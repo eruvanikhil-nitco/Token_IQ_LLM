@@ -4,7 +4,7 @@ import httpx
 
 from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
-from token_iq.gateway.caching.caching import Cache, LiteLLMCacheType
+from token_iq.gateway.caching.caching import Cache, GatewayCacheType
 from token_iq.gateway.constants import MINIMUM_PROMPT_CACHE_TOKEN_COUNT
 from token_iq.gateway.core_utils.litellm_logging import Logging
 from token_iq.gateway.llms.custom_httpx.http_handler import (
@@ -27,7 +27,7 @@ from .transformation import (
     transform_openai_messages_to_gemini_context_caching,
 )
 
-local_cache_obj: Final = Cache(type=LiteLLMCacheType.LOCAL)  # only used for calling 'get_cache_key' function
+local_cache_obj: Final = Cache(type=GatewayCacheType.LOCAL)  # only used for calling 'get_cache_key' function
 
 MAX_PAGINATION_PAGES: Final = 100  # Reasonable upper bound for pagination
 

@@ -633,7 +633,7 @@ def test_router_completion_vertex_exception():
         print("exception: ", e)
 
 
-def test_litellm_completion_vertex_exception():
+def test_gateway_completion_vertex_exception():
     try:
         from token_iq import gateway
 
@@ -649,7 +649,7 @@ def test_litellm_completion_vertex_exception():
         print("exception: ", e)
 
 
-def test_litellm_predibase_exception():
+def test_gateway_predibase_exception():
     """
     Test - Assert that the Predibase API Key is not returned on Authentication Errors
     """
@@ -1279,10 +1279,10 @@ def test_exceptions_base_class():
     assert e.type == "throttling_error"
 
 
-def test_context_window_exceeded_error_from_litellm_proxy():
+def test_context_window_exceeded_error_from_gateway_proxy():
     from httpx import Response
     from token_iq.gateway.core_utils.exception_mapping_utils import (
-        extract_and_raise_litellm_exception,
+        extract_and_raise_gateway_exception,
     )
 
     args = {
@@ -1292,7 +1292,7 @@ def test_context_window_exceeded_error_from_litellm_proxy():
         "custom_llm_provider": "litellm_proxy",
     }
     with pytest.raises(gateway.ContextWindowExceededError):
-        extract_and_raise_litellm_exception(**args)
+        extract_and_raise_gateway_exception(**args)
 
 
 def test_bad_request_error_with_response_without_request():
@@ -1305,7 +1305,7 @@ def test_bad_request_error_with_response_without_request():
     """
     from httpx import Response
     from token_iq.gateway.core_utils.exception_mapping_utils import (
-        extract_and_raise_litellm_exception,
+        extract_and_raise_gateway_exception,
     )
 
     # Create a Response without a request (simulates the scenario that was failing)
@@ -1321,7 +1321,7 @@ def test_bad_request_error_with_response_without_request():
 
     # This should raise BadRequestError without RuntimeError
     with pytest.raises(gateway.BadRequestError) as exc_info:
-        extract_and_raise_litellm_exception(**args)
+        extract_and_raise_gateway_exception(**args)
 
     # Verify the exception was created successfully
     error = exc_info.value

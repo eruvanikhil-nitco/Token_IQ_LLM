@@ -2,7 +2,7 @@ from typing import Final
 
 import httpx
 
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.llms.base_llm.chat.transformation import BaseLLMException
 from token_iq.gateway.llms.base_llm.embedding.transformation import BaseEmbeddingConfig
 from token_iq.gateway.secret_managers.main import get_secret_str
@@ -108,7 +108,7 @@ class InfinityEmbeddingConfig(BaseEmbeddingConfig):
         model: str,
         raw_response: httpx.Response,
         model_response: EmbeddingResponse,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         api_key: str | None = None,
         request_data: dict = {},
         optional_params: dict = {},

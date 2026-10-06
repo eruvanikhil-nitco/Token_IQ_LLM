@@ -21,7 +21,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from token_iq import gateway
 from token_iq.gateway import Cache, completion, embedding
 from token_iq.gateway.integrations.custom_logger import CustomLogger
-from token_iq.gateway.types.utils import LiteLLMCommonStrings
+from token_iq.gateway.types.utils import GatewayCommonStrings
 
 
 class CustomLoggingIntegration(CustomLogger):

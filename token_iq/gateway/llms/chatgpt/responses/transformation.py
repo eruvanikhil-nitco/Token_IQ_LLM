@@ -16,7 +16,7 @@ from token_iq.gateway.types.llms.openai import (
     ResponsesAPIResponse,
     ResponsesAPIStreamEvents,
 )
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.types.utils import LlmProviders
 
 from ..authenticator import Authenticator
@@ -29,7 +29,7 @@ from ..common_utils import (
 )
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 
 
 class ChatGPTResponsesAPIConfig(OpenAIResponsesAPIConfig):
@@ -45,7 +45,7 @@ class ChatGPTResponsesAPIConfig(OpenAIResponsesAPIConfig):
         self,
         headers: dict,
         model: str,
-        litellm_params: GenericLiteLLMParams | None,
+        litellm_params: GenericGatewayParams | None,
     ) -> dict:
         try:
             access_token: Final = self.authenticator.get_access_token()
@@ -66,7 +66,7 @@ class ChatGPTResponsesAPIConfig(OpenAIResponsesAPIConfig):
         model: str,
         input: Any,
         response_api_optional_request_params: dict,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> dict:
         request: Final = super().transform_responses_api_request(
@@ -110,7 +110,7 @@ class ChatGPTResponsesAPIConfig(OpenAIResponsesAPIConfig):
         self,
         model: str,
         raw_response: Any,
-        logging_obj: "LiteLLMLoggingObj",
+        logging_obj: "GatewayLoggingObj",
     ):
         body_text: Final = raw_response.text or ""
         if not self._should_parse_as_sse(raw_response=raw_response, body_text=body_text):

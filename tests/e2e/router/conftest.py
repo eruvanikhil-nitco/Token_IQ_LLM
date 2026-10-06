@@ -23,12 +23,12 @@ from models import (
     ChatBody,
     ChatMessage,
     KeyGenerateBody,
-    LiteLLMParamsBody,
+    GatewayParamsBody,
     ModelsListResponse,
 )
 
 ROUTER_MODEL = "complexity-smart-router"
-ROUTER_PARAMS = LiteLLMParamsBody(
+ROUTER_PARAMS = GatewayParamsBody(
     model="auto_router/complexity_router",
     complexity_router_config={
         "classifier_type": "llm",

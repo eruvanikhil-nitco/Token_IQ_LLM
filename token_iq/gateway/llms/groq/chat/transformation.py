@@ -10,7 +10,7 @@ from pydantic import BaseModel, TypeAdapter, ValidationError
 
 from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.llms.openai.chat.gpt_transformation import (
     OpenAIChatCompletionStreamingHandler,
 )
@@ -281,7 +281,7 @@ class GroqChatConfig(OpenAILikeChatConfig):
         model: str,
         raw_response: httpx.Response,
         model_response: ModelResponse,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         request_data: dict,
         messages: list[AllMessageValues],
         optional_params: dict,

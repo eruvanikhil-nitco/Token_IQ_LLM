@@ -209,7 +209,7 @@ def make_ui_spend_logs_mock_prisma(mock_spend_logs, filter_fn, team_lookup_fn=No
 
 from token_iq.gateway.constants import LITTELM_INTERNAL_HEALTH_SERVICE_ACCOUNT_NAME
 from token_iq.gateway.proxy._types import (
-    LitellmUserRoles,
+    GatewayUserRoles,
     Member,
     SpendLogsPayload,
     UserAPIKeyAuth,
@@ -224,17 +224,17 @@ from token_iq.gateway.types.utils import BudgetConfig
 
 @pytest.mark.asyncio
 async def test_is_admin_view_safe_true():
-    auth = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin_user")
+    auth = UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin_user")
     assert spend_management_endpoints._is_admin_view_safe(auth) is True
     auth_view = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY, user_id="admin_view"
+        user_role=GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY, user_id="admin_view"
     )
     assert spend_management_endpoints._is_admin_view_safe(auth_view) is True
 
 
 @pytest.mark.asyncio
 async def test_is_admin_view_safe_false():
-    auth = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, user_id="user_1")
+    auth = UserAPIKeyAuth(user_role=GatewayUserRoles.INTERNAL_USER, user_id="user_1")
     assert spend_management_endpoints._is_admin_view_safe(auth) is False
 
 
@@ -265,7 +265,7 @@ async def test_can_team_member_view_log_none_team_id():
             self.db = self.DB()
 
     prisma = MockPrisma()
-    auth = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, user_id="user_1")
+    auth = UserAPIKeyAuth(user_role=GatewayUserRoles.INTERNAL_USER, user_id="user_1")
     allowed = await spend_management_endpoints._can_team_member_view_log(
         prisma, auth, None
     )
@@ -294,7 +294,7 @@ async def test_can_team_member_view_log_team_not_found(monkeypatch):
         "_is_user_team_admin",
         lambda user_api_key_dict, team_obj: True,
     )
-    auth = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, user_id="user_1")
+    auth = UserAPIKeyAuth(user_role=GatewayUserRoles.INTERNAL_USER, user_id="user_1")
     allowed = await spend_management_endpoints._can_team_member_view_log(
         prisma, auth, "team_x"
     )
@@ -334,7 +334,7 @@ async def test_can_team_member_view_log_not_admin(monkeypatch):
         "_is_user_team_admin",
         lambda user_api_key_dict, team_obj: False,
     )
-    auth = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, user_id="user_1")
+    auth = UserAPIKeyAuth(user_role=GatewayUserRoles.INTERNAL_USER, user_id="user_1")
     allowed = await spend_management_endpoints._can_team_member_view_log(
         prisma, auth, "team_x"
     )
@@ -369,7 +369,7 @@ async def test_can_team_member_view_log_admin(monkeypatch):
             self.db = self.DB()
 
     prisma = MockPrisma()
-    auth = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, user_id="user_1")
+    auth = UserAPIKeyAuth(user_role=GatewayUserRoles.INTERNAL_USER, user_id="user_1")
     allowed = await spend_management_endpoints._can_team_member_view_log(
         prisma, auth, "team_x"
     )
@@ -377,24 +377,24 @@ async def test_can_team_member_view_log_admin(monkeypatch):
 
 
 def test_can_user_view_spend_log_true_for_internal_user():
-    auth = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, user_id="u1")
+    auth = UserAPIKeyAuth(user_role=GatewayUserRoles.INTERNAL_USER, user_id="u1")
     assert spend_management_endpoints._can_user_view_spend_log(auth) is True
 
 
 def test_can_user_view_spend_log_true_for_internal_view_only():
     auth = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER_VIEW_ONLY, user_id="u1"
+        user_role=GatewayUserRoles.INTERNAL_USER_VIEW_ONLY, user_id="u1"
     )
     assert spend_management_endpoints._can_user_view_spend_log(auth) is True
 
 
 def test_can_user_view_spend_log_false_without_user_id():
-    auth = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, user_id=None)
+    auth = UserAPIKeyAuth(user_role=GatewayUserRoles.INTERNAL_USER, user_id=None)
     assert spend_management_endpoints._can_user_view_spend_log(auth) is False
 
 
 def test_can_user_view_spend_log_false_for_other_roles():
-    auth = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin")
+    auth = UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin")
     assert spend_management_endpoints._can_user_view_spend_log(auth) is False
 
 
@@ -421,7 +421,7 @@ async def test_assert_user_can_view_request_id_rejects_both_users_none():
         def __init__(self):
             self.db = MockDB()
 
-    auth = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, user_id=None)
+    auth = UserAPIKeyAuth(user_role=GatewayUserRoles.INTERNAL_USER, user_id=None)
     with pytest.raises(HTTPException) as exc_info:
         await spend_management_endpoints._assert_user_can_view_request_id(
             MockPrisma(), auth, "req-none-user"
@@ -436,7 +436,7 @@ def test_ui_view_request_response_forbids_non_admin_without_db(client, monkeypat
     """
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", None)
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="user_1",
     )
     try:
@@ -804,7 +804,7 @@ async def test_ui_view_spend_logs_sort_by_and_sort_order(
         lambda user_api_key_dict: True,
     )
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin_user"
+        user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin_user"
     )
 
     try:
@@ -868,7 +868,7 @@ async def test_ui_view_spend_logs_sort_validation_errors(
         lambda user_api_key_dict: True,
     )
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin_user"
+        user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin_user"
     )
 
     try:
@@ -946,7 +946,7 @@ async def test_ui_view_spend_logs_sort_by_request_duration_ms(client, monkeypatc
         lambda user_api_key_dict: True,
     )
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin_user"
+        user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin_user"
     )
 
     try:
@@ -1046,7 +1046,7 @@ async def test_ui_view_spend_logs_sort_by_model(
         lambda user_api_key_dict: True,
     )
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin_user"
+        user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin_user"
     )
 
     try:
@@ -1161,7 +1161,7 @@ async def test_ui_view_spend_logs_sort_by_ttft_ms(client, monkeypatch):
         lambda user_api_key_dict: True,
     )
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin_user"
+        user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin_user"
     )
 
     try:
@@ -1239,7 +1239,7 @@ async def test_ui_view_spend_logs_with_team_id(client, monkeypatch):
         lambda user_api_key_dict: True,
     )
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin_user"
+        user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin_user"
     )
 
     try:
@@ -1328,7 +1328,7 @@ async def test_ui_view_spend_logs_exclude_internal_health_checks(client, monkeyp
         make_ui_spend_logs_mock_prisma(mock_spend_logs, filter_health_checks, query_observer=observe_query),
     )
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin_user"
+        user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin_user"
     )
 
     try:
@@ -1382,7 +1382,7 @@ async def test_ui_view_spend_logs_includes_internal_health_checks_by_default(cli
         make_ui_spend_logs_mock_prisma(mock_spend_logs, filter_health_checks, query_observer=observe_query),
     )
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin_user"
+        user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin_user"
     )
 
     try:
@@ -1442,7 +1442,7 @@ async def test_ui_view_spend_logs_internal_user_scoped_without_user_id(
         make_ui_spend_logs_mock_prisma(mock_spend_logs, filter_by_user),
     )
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER, user_id="internal_user_1"
+        user_role=GatewayUserRoles.INTERNAL_USER, user_id="internal_user_1"
     )
 
     try:
@@ -1491,7 +1491,7 @@ async def test_ui_view_spend_logs_explicit_user_filter_cannot_escape_own_scope(c
         AsyncMock(return_value=[]),
     )
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER, user_id="caller@example.com"
+        user_role=GatewayUserRoles.INTERNAL_USER, user_id="caller@example.com"
     )
 
     try:
@@ -1550,7 +1550,7 @@ async def test_ui_view_spend_logs_without_user_filter_includes_permitted_team_sc
         AsyncMock(return_value=["team-9"]),
     )
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER, user_id="team-admin@example.com"
+        user_role=GatewayUserRoles.INTERNAL_USER, user_id="team-admin@example.com"
     )
 
     try:
@@ -1577,7 +1577,7 @@ async def test_permitted_team_scope_falls_back_to_own_user_when_lookup_fails(mon
     permitted_team_ids = await spend_management_endpoints._get_permitted_team_ids_for_spend_logs_or_empty(
         prisma_client=MagicMock(),
         user_api_key_dict=UserAPIKeyAuth(
-            user_role=LitellmUserRoles.INTERNAL_USER,
+            user_role=GatewayUserRoles.INTERNAL_USER,
             user_id="caller@example.com",
         ),
     )
@@ -1650,7 +1650,7 @@ async def test_ui_view_spend_logs_team_admin_can_filter_team_spend_by_user(clien
         make_ui_spend_logs_mock_prisma(mock_spend_logs, filter_by_team, team_lookup),
     )
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER, user_id="admin_user"
+        user_role=GatewayUserRoles.INTERNAL_USER, user_id="admin_user"
     )
 
     try:
@@ -1711,7 +1711,7 @@ async def test_ui_view_spend_logs_user_filter_intersects_permitted_team_scope(cl
         AsyncMock(return_value=["team-9"]),
     )
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER, user_id="team-admin"
+        user_role=GatewayUserRoles.INTERNAL_USER, user_id="team-admin"
     )
 
     try:
@@ -1758,7 +1758,7 @@ async def test_ui_view_spend_logs_pagination(client, monkeypatch):
     )
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin_user"
+        user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin_user"
     )
 
     try:
@@ -1833,7 +1833,7 @@ async def test_ui_view_spend_logs_page_size_upper_bound(
     )
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin_user"
+        user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin_user"
     )
 
     try:
@@ -1898,7 +1898,7 @@ async def test_ui_view_session_spend_logs_pagination(client, monkeypatch):
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin_user"
+        user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin_user"
     )
 
     try:
@@ -1948,7 +1948,7 @@ async def test_ui_view_session_spend_logs_rehydrates_metadata_jsonb_text(client,
 
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", MockPrismaClient())
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin_user"
+        user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin_user"
     )
 
     try:
@@ -1998,7 +1998,7 @@ async def test_ui_view_session_spend_logs_scopes_non_admin_to_own_logs(client, m
     )
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER, user_id="user-1"
+        user_role=GatewayUserRoles.INTERNAL_USER, user_id="user-1"
     )
 
     try:
@@ -2060,7 +2060,7 @@ async def test_ui_view_session_spend_logs_includes_permitted_team_logs(client, m
     )
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER, user_id="user-1"
+        user_role=GatewayUserRoles.INTERNAL_USER, user_id="user-1"
     )
 
     try:
@@ -2176,7 +2176,7 @@ async def test_ui_view_spend_logs_request_id_lookup_ignores_date_window(
     end_date = today.strftime("%Y-%m-%d %H:%M:%S")
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN
+        user_role=GatewayUserRoles.PROXY_ADMIN
     )
     try:
         response = client.get(
@@ -2209,7 +2209,7 @@ async def test_ui_view_spend_logs_requires_dates_without_request_id(
         make_ui_spend_logs_mock_prisma([], lambda where: []),
     )
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN
+        user_role=GatewayUserRoles.PROXY_ADMIN
     )
     try:
         response = client.get(
@@ -2230,7 +2230,7 @@ async def test_spend_logs_v2_still_requires_dates_with_request_id(client, monkey
         make_ui_spend_logs_mock_prisma([], lambda where: []),
     )
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN
+        user_role=GatewayUserRoles.PROXY_ADMIN
     )
     try:
         response = client.get(
@@ -2267,7 +2267,7 @@ async def test_ui_view_spend_logs_request_id_blocks_non_owner(client, monkeypatc
 
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", _Prisma())
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER, user_id="user_1"
+        user_role=GatewayUserRoles.INTERNAL_USER, user_id="user_1"
     )
     try:
         response = client.get(
@@ -2328,7 +2328,7 @@ async def test_ui_view_spend_logs_request_id_owner_scoped_by_id_only(
     end_date = today.strftime("%Y-%m-%d %H:%M:%S")
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER, user_id="user_1"
+        user_role=GatewayUserRoles.INTERNAL_USER, user_id="user_1"
     )
     try:
         response = client.get(
@@ -2408,7 +2408,7 @@ async def test_ui_view_spend_logs_with_status(client, monkeypatch):
     start_date, end_date = _default_date_range()
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN
+        user_role=GatewayUserRoles.PROXY_ADMIN
     )
     try:
         # Test success status
@@ -2482,7 +2482,7 @@ async def test_ui_view_spend_logs_with_cache_hit_filter(client, monkeypatch):
     start_date, end_date = _default_date_range()
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN
+        user_role=GatewayUserRoles.PROXY_ADMIN
     )
     try:
         response = client.get(
@@ -2578,7 +2578,7 @@ async def test_ui_view_spend_logs_with_model(client, monkeypatch):
     start_date, end_date = _default_date_range()
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN
+        user_role=GatewayUserRoles.PROXY_ADMIN
     )
     try:
         # Make the request with model filter
@@ -2647,7 +2647,7 @@ async def test_ui_view_spend_logs_with_model_id(client, monkeypatch):
     start_date, end_date = _default_date_range()
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN
+        user_role=GatewayUserRoles.PROXY_ADMIN
     )
     try:
         response = client.get(
@@ -2712,7 +2712,7 @@ async def test_ui_view_spend_logs_with_model_group(client, monkeypatch):
     start_date, end_date = _default_date_range()
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN
+        user_role=GatewayUserRoles.PROXY_ADMIN
     )
     try:
         response = client.get(
@@ -2770,7 +2770,7 @@ async def test_ui_view_spend_logs_with_key_hash(client, monkeypatch):
     )
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin_user"
+        user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin_user"
     )
 
     try:
@@ -3167,7 +3167,7 @@ async def test_global_spend_keys_endpoint_limit_validation(client, monkeypatch):
 
     # Override auth to bypass API key validation
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin_user"
+        user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin_user"
     )
 
     try:
@@ -3304,7 +3304,7 @@ async def test_view_spend_logs_summarize_parameter(client, monkeypatch):
     end_date = datetime.datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN
+        user_role=GatewayUserRoles.PROXY_ADMIN
     )
     try:
         # Test 1: summarize=false should return individual log entries
@@ -3398,7 +3398,7 @@ async def test_view_spend_logs_bounds_row_count(client, monkeypatch):
     mock_prisma_client = MockPrismaClient()
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN
+        user_role=GatewayUserRoles.PROXY_ADMIN
     )
     start_date = (
         datetime.datetime.now(timezone.utc) - datetime.timedelta(days=2)
@@ -3482,7 +3482,7 @@ async def test_view_spend_tags(client, monkeypatch):
     )
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin_user"
+        user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin_user"
     )
 
     try:
@@ -3529,7 +3529,7 @@ async def test_view_spend_tags_no_database(client, monkeypatch):
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", None)
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin_user"
+        user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin_user"
     )
 
     try:
@@ -3668,7 +3668,7 @@ async def test_view_spend_logs_with_date_range_summarized(client, monkeypatch):
     end_date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN
+        user_role=GatewayUserRoles.PROXY_ADMIN
     )
     try:
         # Call the endpoint with both start and end dates.
@@ -3737,7 +3737,7 @@ async def test_ui_view_spend_logs_with_error_code(client):
         return mock_spend_logs
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin_user"
+        user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin_user"
     )
 
     try:
@@ -3811,7 +3811,7 @@ async def test_ui_view_spend_logs_with_error_message(client):
         return mock_spend_logs
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin_user"
+        user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin_user"
     )
 
     try:
@@ -3901,7 +3901,7 @@ async def test_ui_view_spend_logs_with_error_code_and_key_alias(client):
         return mock_spend_logs
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin_user"
+        user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin_user"
     )
 
     try:
@@ -4277,7 +4277,7 @@ async def test_can_team_member_view_log_with_spend_logs_permission(monkeypatch):
             self.db = self.DB()
 
     prisma = MockPrisma()
-    auth = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, user_id="member_1")
+    auth = UserAPIKeyAuth(user_role=GatewayUserRoles.INTERNAL_USER, user_id="member_1")
     allowed = await spend_management_endpoints._can_team_member_view_log(
         prisma, auth, "team_abc"
     )
@@ -4315,7 +4315,7 @@ async def test_can_team_member_view_log_without_spend_logs_permission(monkeypatc
             self.db = self.DB()
 
     prisma = MockPrisma()
-    auth = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, user_id="member_1")
+    auth = UserAPIKeyAuth(user_role=GatewayUserRoles.INTERNAL_USER, user_id="member_1")
     allowed = await spend_management_endpoints._can_team_member_view_log(
         prisma, auth, "team_abc"
     )
@@ -4378,7 +4378,7 @@ async def test_ui_view_spend_logs_team_member_with_spend_logs_permission(
         make_ui_spend_logs_mock_prisma(mock_spend_logs, filter_by_team, team_lookup),
     )
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER, user_id="member_1"
+        user_role=GatewayUserRoles.INTERNAL_USER, user_id="member_1"
     )
 
     try:
@@ -4444,7 +4444,7 @@ async def test_ui_view_spend_logs_team_member_no_permission_blocked(
         make_ui_spend_logs_mock_prisma(mock_spend_logs, filter_fn, team_lookup),
     )
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER, user_id="member_1"
+        user_role=GatewayUserRoles.INTERNAL_USER, user_id="member_1"
     )
 
     try:
@@ -4498,7 +4498,7 @@ async def test_view_spend_logs_internal_user_combines_user_with_api_key(
     start_date = "2024-01-01"
     end_date = "2024-12-31"
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="internal-user-1",
     )
     try:
@@ -4533,7 +4533,7 @@ async def test_view_spend_logs_internal_user_combines_user_with_request_id(
     start_date = "2024-01-01"
     end_date = "2024-12-31"
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="internal-user-2",
     )
     try:
@@ -4565,7 +4565,7 @@ async def test_view_spend_logs_non_date_range_combines_user_with_request_id(
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_client)
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="internal-user-3",
     )
     try:
@@ -4590,7 +4590,7 @@ async def test_view_spend_logs_non_date_range_hashes_sk_api_key(client, monkeypa
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_client)
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
     )
     try:
         response = client.get(
@@ -4615,7 +4615,7 @@ async def test_view_spend_logs_date_range_hashes_sk_api_key(client, monkeypatch)
     start_date = "2024-01-01"
     end_date = "2024-12-31"
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
     )
     try:
         response = client.get(
@@ -4683,7 +4683,7 @@ async def test_spend_key_fn_proxy_admin_returns_all_keys(client, monkeypatch):
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin"
+        user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin"
     )
     try:
         response = client.get(
@@ -4708,7 +4708,7 @@ async def test_spend_key_fn_proxy_admin_view_only_returns_all_keys(client, monke
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY, user_id="admin_viewer"
+        user_role=GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY, user_id="admin_viewer"
     )
     try:
         response = client.get(
@@ -4724,7 +4724,7 @@ async def test_spend_key_fn_proxy_admin_view_only_returns_all_keys(client, monke
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
     "role",
-    [LitellmUserRoles.INTERNAL_USER, LitellmUserRoles.INTERNAL_USER_VIEW_ONLY],
+    [GatewayUserRoles.INTERNAL_USER, GatewayUserRoles.INTERNAL_USER_VIEW_ONLY],
 )
 async def test_spend_key_fn_internal_user_scoped_to_own_keys(client, monkeypatch, role):
     """Both internal-user roles must only see keys they own."""
@@ -4771,7 +4771,7 @@ async def test_spend_key_fn_internal_user_without_user_id_returns_empty(
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER, user_id=None
+        user_role=GatewayUserRoles.INTERNAL_USER, user_id=None
     )
     try:
         response = client.get(
@@ -4798,7 +4798,7 @@ async def test_spend_user_fn_proxy_admin_returns_all_users_without_user_id(
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin"
+        user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin"
     )
     try:
         response = client.get(
@@ -4827,7 +4827,7 @@ async def test_spend_user_fn_proxy_admin_can_query_specific_user_id(
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin"
+        user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin"
     )
     try:
         response = client.get(
@@ -4847,7 +4847,7 @@ async def test_spend_user_fn_proxy_admin_can_query_specific_user_id(
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
     "role",
-    [LitellmUserRoles.INTERNAL_USER, LitellmUserRoles.INTERNAL_USER_VIEW_ONLY],
+    [GatewayUserRoles.INTERNAL_USER, GatewayUserRoles.INTERNAL_USER_VIEW_ONLY],
 )
 async def test_spend_user_fn_internal_user_scoped_without_user_id(
     client, monkeypatch, role
@@ -4890,7 +4890,7 @@ async def test_spend_user_fn_internal_user_supplying_other_user_id_returns_403(
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER, user_id="alice"
+        user_role=GatewayUserRoles.INTERNAL_USER, user_id="alice"
     )
     try:
         response = client.get(
@@ -4917,7 +4917,7 @@ async def test_spend_user_fn_internal_user_supplying_own_user_id_is_allowed(
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER, user_id="alice"
+        user_role=GatewayUserRoles.INTERNAL_USER, user_id="alice"
     )
     try:
         response = client.get(
@@ -4948,7 +4948,7 @@ async def test_spend_user_fn_internal_user_without_user_id_returns_empty(
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER_VIEW_ONLY, user_id=None
+        user_role=GatewayUserRoles.INTERNAL_USER_VIEW_ONLY, user_id=None
     )
     try:
         response = client.get(
@@ -4977,7 +4977,7 @@ async def test_spend_user_fn_strips_password_field(client, monkeypatch):
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER, user_id="alice"
+        user_role=GatewayUserRoles.INTERNAL_USER, user_id="alice"
     )
     try:
         response = client.get(
@@ -5060,7 +5060,7 @@ async def test_ui_view_spend_logs_rehydrates_metadata_jsonb_text(client, monkeyp
         lambda user_api_key_dict: True,
     )
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin_user"
+        user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin_user"
     )
 
     try:
@@ -5146,7 +5146,7 @@ async def test_ui_view_spend_logs_metadata_invalid_json_falls_back_to_empty_dict
         lambda user_api_key_dict: True,
     )
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin_user"
+        user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin_user"
     )
 
     try:
@@ -5447,7 +5447,7 @@ def test_ui_view_request_response_reads_from_cold_storage(client, monkeypatch):
     )
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin_1"
+        user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin_1"
     )
     try:
         response = client.get(
@@ -5466,7 +5466,7 @@ def test_ui_view_request_response_reads_from_cold_storage(client, monkeypatch):
 from token_iq.gateway.proxy._types import (
     LiteLLM_OrganizationMembershipTable,
     LiteLLM_UserTable,
-    LiteLLMRoutes,
+    GatewayRoutes,
     hash_token,
 )
 
@@ -5515,14 +5515,14 @@ def test_scoped_spend_report_routes_reachable_by_non_admin_roles():
     caller before the endpoint runs.
     """
     for path in _SCOPED_SPEND_REPORT_PATHS:
-        assert path in LiteLLMRoutes.spend_tracking_routes.value
-        assert path in LiteLLMRoutes.internal_user_routes.value
-        assert path in LiteLLMRoutes.internal_user_view_only_routes.value
-        assert path in LiteLLMRoutes.org_admin_allowed_routes.value
+        assert path in GatewayRoutes.spend_tracking_routes.value
+        assert path in GatewayRoutes.internal_user_routes.value
+        assert path in GatewayRoutes.internal_user_view_only_routes.value
+        assert path in GatewayRoutes.org_admin_allowed_routes.value
 
 
 def test_resolve_spend_report_scope_defaults_to_caller():
-    auth = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, user_id="alice")
+    auth = UserAPIKeyAuth(user_role=GatewayUserRoles.INTERNAL_USER, user_id="alice")
     resolved = spend_management_endpoints._resolve_spend_report_scope(
         user_api_key_dict=auth,
         requested=None,
@@ -5533,7 +5533,7 @@ def test_resolve_spend_report_scope_defaults_to_caller():
 
 
 def test_resolve_spend_report_scope_non_admin_override_forbidden():
-    auth = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, user_id="alice")
+    auth = UserAPIKeyAuth(user_role=GatewayUserRoles.INTERNAL_USER, user_id="alice")
     with pytest.raises(HTTPException) as exc_info:
         spend_management_endpoints._resolve_spend_report_scope(
             user_api_key_dict=auth,
@@ -5545,7 +5545,7 @@ def test_resolve_spend_report_scope_non_admin_override_forbidden():
 
 
 def test_resolve_spend_report_scope_non_admin_matching_override_allowed():
-    auth = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, user_id="alice")
+    auth = UserAPIKeyAuth(user_role=GatewayUserRoles.INTERNAL_USER, user_id="alice")
     resolved = spend_management_endpoints._resolve_spend_report_scope(
         user_api_key_dict=auth,
         requested="team-blue",
@@ -5557,7 +5557,7 @@ def test_resolve_spend_report_scope_non_admin_matching_override_allowed():
 
 @pytest.mark.parametrize(
     "role",
-    [LitellmUserRoles.PROXY_ADMIN, LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY],
+    [GatewayUserRoles.PROXY_ADMIN, GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY],
 )
 def test_resolve_spend_report_scope_admin_override_allowed(role):
     auth = UserAPIKeyAuth(user_role=role, user_id="admin")
@@ -5571,7 +5571,7 @@ def test_resolve_spend_report_scope_admin_override_allowed(role):
 
 
 def test_resolve_spend_report_scope_missing_caller_value_400():
-    auth = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, user_id="alice")
+    auth = UserAPIKeyAuth(user_role=GatewayUserRoles.INTERNAL_USER, user_id="alice")
     with pytest.raises(HTTPException) as exc_info:
         spend_management_endpoints._resolve_spend_report_scope(
             user_api_key_dict=auth,
@@ -5595,7 +5595,7 @@ def test_key_spend_report_scopes_to_caller_key(client, monkeypatch):
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.premium_user", True)
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="alice",
         api_key="hashed-caller-key",
     )
@@ -5622,7 +5622,7 @@ def test_key_spend_report_non_admin_override_403(client, monkeypatch):
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.premium_user", True)
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="alice",
         api_key="hashed-caller-key",
     )
@@ -5647,7 +5647,7 @@ def test_key_spend_report_admin_override_sk_key_gets_hashed(client, monkeypatch)
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.premium_user", True)
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin", api_key="hashed-admin-key"
+        user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin", api_key="hashed-admin-key"
     )
     try:
         response = client.get(
@@ -5673,7 +5673,7 @@ def test_user_spend_report_scopes_to_caller_user_id(client, monkeypatch):
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.premium_user", True)
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER, user_id="alice", api_key="hashed-k"
+        user_role=GatewayUserRoles.INTERNAL_USER, user_id="alice", api_key="hashed-k"
     )
     try:
         response = client.get(
@@ -5695,7 +5695,7 @@ def test_user_spend_report_non_admin_override_403(client, monkeypatch):
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.premium_user", True)
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER, user_id="alice", api_key="hashed-k"
+        user_role=GatewayUserRoles.INTERNAL_USER, user_id="alice", api_key="hashed-k"
     )
     try:
         response = client.get(
@@ -5718,7 +5718,7 @@ def test_team_spend_report_scopes_to_key_team(client, monkeypatch):
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.premium_user", True)
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="alice",
         api_key="hashed-k",
         team_id="team-blue",
@@ -5743,7 +5743,7 @@ def test_team_spend_report_no_team_400(client, monkeypatch):
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.premium_user", True)
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER, user_id="alice", api_key="hashed-k"
+        user_role=GatewayUserRoles.INTERNAL_USER, user_id="alice", api_key="hashed-k"
     )
     try:
         response = client.get(
@@ -5765,7 +5765,7 @@ def test_org_spend_report_proxy_admin_override(client, monkeypatch):
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.premium_user", True)
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin", api_key="hashed-admin"
+        user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin", api_key="hashed-admin"
     )
     try:
         response = client.get(
@@ -5799,13 +5799,13 @@ def test_org_spend_report_org_admin_auto_scopes_to_own_org(client, monkeypatch):
         user_row=_org_member_user_row(
             user_id=user_id,
             organization_id="org-acme",
-            membership_role=LitellmUserRoles.ORG_ADMIN.value,
+            membership_role=GatewayUserRoles.ORG_ADMIN.value,
         ),
     )
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.premium_user", True)
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id=user_id,
         api_key="hashed-org-admin-key",
         org_id="org-acme",
@@ -5831,13 +5831,13 @@ def test_org_spend_report_non_org_admin_403(client, monkeypatch):
         user_row=_org_member_user_row(
             user_id=user_id,
             organization_id="org-acme",
-            membership_role=LitellmUserRoles.INTERNAL_USER.value,
+            membership_role=GatewayUserRoles.INTERNAL_USER.value,
         ),
     )
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.premium_user", True)
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id=user_id,
         api_key="hashed-member-key",
         org_id="org-acme",
@@ -5859,7 +5859,7 @@ def test_org_spend_report_no_org_400(client, monkeypatch):
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.premium_user", True)
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER, user_id="alice", api_key="hashed-k"
+        user_role=GatewayUserRoles.INTERNAL_USER, user_id="alice", api_key="hashed-k"
     )
     try:
         response = client.get(
@@ -5879,7 +5879,7 @@ def test_scoped_spend_report_not_premium_403(client, monkeypatch, path):
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.premium_user", False)
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin", api_key="hashed-admin"
+        user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin", api_key="hashed-admin"
     )
     try:
         response = client.get(
@@ -5899,7 +5899,7 @@ def test_scoped_spend_report_missing_dates_400(client, monkeypatch, path):
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.premium_user", True)
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin", api_key="hashed-admin"
+        user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin", api_key="hashed-admin"
     )
     try:
         response = client.get(path, headers={"Authorization": "Bearer sk-test"})
@@ -5914,7 +5914,7 @@ def test_scoped_spend_report_invalid_date_format_400(client, monkeypatch):
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.premium_user", True)
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin", api_key="hashed-admin"
+        user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin", api_key="hashed-admin"
     )
     try:
         response = client.get(
@@ -5933,7 +5933,7 @@ def test_scoped_spend_report_reversed_range_400(client, monkeypatch):
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.premium_user", True)
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER, user_id="alice", api_key="hashed-k"
+        user_role=GatewayUserRoles.INTERNAL_USER, user_id="alice", api_key="hashed-k"
     )
     try:
         response = client.get(
@@ -5952,7 +5952,7 @@ def test_scoped_spend_report_range_over_max_400(client, monkeypatch):
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.premium_user", True)
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER, user_id="alice", api_key="hashed-k"
+        user_role=GatewayUserRoles.INTERNAL_USER, user_id="alice", api_key="hashed-k"
     )
     try:
         response = client.get(
@@ -5971,7 +5971,7 @@ def test_scoped_spend_report_range_at_max_allowed(client, monkeypatch):
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.premium_user", True)
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER, user_id="alice", api_key="hashed-k"
+        user_role=GatewayUserRoles.INTERNAL_USER, user_id="alice", api_key="hashed-k"
     )
     try:
         response = client.get(

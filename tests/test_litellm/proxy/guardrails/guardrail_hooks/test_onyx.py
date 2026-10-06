@@ -8,7 +8,7 @@ from httpx import Request, Response
 
 from token_iq import gateway
 from token_iq.gateway import ModelResponse
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.proxy.guardrails.guardrail_hooks.onyx.onyx import OnyxGuardrail
 from token_iq.gateway.proxy.guardrails.init_guardrails import init_guardrails_v2
 from token_iq.gateway.types.utils import Choices, GenericGuardrailAPIInputs, Message
@@ -286,7 +286,7 @@ class TestOnyxGuardrail:
         }
 
         # Create logging object
-        logging_obj = LiteLLMLoggingObj(
+        logging_obj = GatewayLoggingObj(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": "Hello, how are you?"}],
             stream=False,
@@ -424,7 +424,7 @@ class TestOnyxGuardrail:
         mock_api_response.raise_for_status = MagicMock()
 
         # Create logging object
-        logging_obj = LiteLLMLoggingObj(
+        logging_obj = GatewayLoggingObj(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": "What is AI?"}],
             stream=False,

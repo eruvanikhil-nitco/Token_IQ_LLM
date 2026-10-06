@@ -304,7 +304,7 @@ class LakeraAIGuardrail(CustomGuardrail):
             breakdown=self.breakdown,
         )
 
-    def update_in_memory_litellm_params(self, litellm_params: LitellmParams) -> None:
+    def update_in_memory_gateway_params(self, litellm_params: LitellmParams) -> None:
         """
         The base implementation blindly ``setattr``s every field on ``litellm_params``
         (including ``on_flagged``/``advisory_system_message``/``payload``/``breakdown``)
@@ -329,7 +329,7 @@ class LakeraAIGuardrail(CustomGuardrail):
             payload=self.payload if prospective_payload is None else prospective_payload,
             breakdown=self.breakdown if prospective_breakdown is None else prospective_breakdown,
         )
-        super().update_in_memory_litellm_params(litellm_params=litellm_params)
+        super().update_in_memory_gateway_params(litellm_params=litellm_params)
         self.event_hook = new_event_hook
 
     def _validate_advisory_config(

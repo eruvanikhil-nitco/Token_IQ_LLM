@@ -1,6 +1,6 @@
 from token_iq.gateway.llms.azure.common_utils import BaseAzureLLM
 from token_iq.gateway.llms.openai.vector_stores.transformation import OpenAIVectorStoreConfig
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 
 
 class AzureOpenAIVectorStoreConfig(OpenAIVectorStoreConfig):
@@ -15,5 +15,5 @@ class AzureOpenAIVectorStoreConfig(OpenAIVectorStoreConfig):
             route="/openai/vector_stores",
         )
 
-    def validate_environment(self, headers: dict, litellm_params: GenericLiteLLMParams | None) -> dict:
+    def validate_environment(self, headers: dict, litellm_params: GenericGatewayParams | None) -> dict:
         return BaseAzureLLM._base_validate_azure_environment(headers=headers, litellm_params=litellm_params)

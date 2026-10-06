@@ -10,7 +10,7 @@ import pytest
 
 from token_iq import gateway
 from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
-    LiteLLMResponsesTransformationHandler,
+    GatewayResponsesTransformationHandler,
 )
 
 if TYPE_CHECKING:
@@ -23,10 +23,10 @@ if TYPE_CHECKING:
 
 def test_convert_chat_completion_messages_to_responses_api_image_input():
     from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
-        LiteLLMResponsesTransformationHandler,
+        GatewayResponsesTransformationHandler,
     )
 
-    handler = LiteLLMResponsesTransformationHandler()
+    handler = GatewayResponsesTransformationHandler()
 
     user_content = "What's in this image?"
     user_image = "https://w7.pngwing.com/pngs/666/274/png-transparent-image-pictures-icon-photo-thumbnail.png"
@@ -73,10 +73,10 @@ def test_convert_chat_completion_messages_to_responses_api_tool_result_with_imag
         {"type": "input_image", "image_url": "data:image/png;base64,..."}
     """
     from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
-        LiteLLMResponsesTransformationHandler,
+        GatewayResponsesTransformationHandler,
     )
 
-    handler = LiteLLMResponsesTransformationHandler()
+    handler = GatewayResponsesTransformationHandler()
 
     test_image_base64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8DwHwAFBQIAX8jx0gAAAABJRU5ErkJggg=="
 
@@ -163,10 +163,10 @@ def test_convert_chat_completion_messages_to_responses_api_tool_result_with_text
         {"type": "function_call_output", "call_id": "call_abc123", "output": [{"type": "input_text", "text": "15 degrees"}]}
     """
     from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
-        LiteLLMResponsesTransformationHandler,
+        GatewayResponsesTransformationHandler,
     )
 
-    handler = LiteLLMResponsesTransformationHandler()
+    handler = GatewayResponsesTransformationHandler()
 
     # Chat Completion format with tool result containing text
     messages = [
@@ -350,7 +350,7 @@ def test_transform_response_with_reasoning_and_output():
     )
 
     from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
-        LiteLLMResponsesTransformationHandler,
+        GatewayResponsesTransformationHandler,
     )
     from token_iq.gateway.types.llms.openai import (
         InputTokensDetails,
@@ -360,7 +360,7 @@ def test_transform_response_with_reasoning_and_output():
     )
     from token_iq.gateway.types.utils import ModelResponse, Usage
 
-    handler = LiteLLMResponsesTransformationHandler()
+    handler = GatewayResponsesTransformationHandler()
 
     # Create the reasoning item with summary
     reasoning_summary = Summary(
@@ -574,10 +574,10 @@ def _make_empty_model_response():
 
 def test_transform_response_recovers_empty_output_from_raw_sse():
     from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
-        LiteLLMResponsesTransformationHandler,
+        GatewayResponsesTransformationHandler,
     )
 
-    handler = LiteLLMResponsesTransformationHandler()
+    handler = GatewayResponsesTransformationHandler()
 
     raw_sse = "\n".join(
         [
@@ -611,10 +611,10 @@ def test_transform_response_recovers_empty_output_from_raw_sse():
 
 def test_transform_response_recovers_output_item_done_from_raw_sse():
     from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
-        LiteLLMResponsesTransformationHandler,
+        GatewayResponsesTransformationHandler,
     )
 
-    handler = LiteLLMResponsesTransformationHandler()
+    handler = GatewayResponsesTransformationHandler()
 
     raw_sse = "\n".join(
         [
@@ -648,10 +648,10 @@ def test_transform_response_recovers_output_item_done_from_raw_sse():
 
 def test_transform_response_recovers_output_item_done_from_whitespace_padded_raw_sse():
     from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
-        LiteLLMResponsesTransformationHandler,
+        GatewayResponsesTransformationHandler,
     )
 
-    handler = LiteLLMResponsesTransformationHandler()
+    handler = GatewayResponsesTransformationHandler()
 
     output_item_event = {
         "type": "response.output_item.done",
@@ -713,10 +713,10 @@ def test_transform_response_recovers_output_item_done_from_whitespace_padded_raw
 
 def test_transform_response_preserves_output_item_when_text_done_arrives_later():
     from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
-        LiteLLMResponsesTransformationHandler,
+        GatewayResponsesTransformationHandler,
     )
 
-    handler = LiteLLMResponsesTransformationHandler()
+    handler = GatewayResponsesTransformationHandler()
 
     raw_sse = "\n".join(
         [
@@ -754,7 +754,7 @@ def test_recover_output_items_merges_text_only_items_at_distinct_indices():
     others, both must be preserved instead of treating them as mutually
     exclusive fallbacks."""
     from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
-        LiteLLMResponsesTransformationHandler,
+        GatewayResponsesTransformationHandler,
     )
 
     raw_sse = "\n".join(
@@ -767,7 +767,7 @@ def test_recover_output_items_merges_text_only_items_at_distinct_indices():
     )
 
     recovered = (
-        LiteLLMResponsesTransformationHandler._recover_output_items_from_raw_sse(
+        GatewayResponsesTransformationHandler._recover_output_items_from_raw_sse(
             raw_sse
         )
     )
@@ -781,10 +781,10 @@ def test_recover_output_items_merges_text_only_items_at_distinct_indices():
 
 def test_transform_response_prefers_completed_output_from_raw_sse():
     from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
-        LiteLLMResponsesTransformationHandler,
+        GatewayResponsesTransformationHandler,
     )
 
-    handler = LiteLLMResponsesTransformationHandler()
+    handler = GatewayResponsesTransformationHandler()
 
     raw_sse = "\n".join(
         [
@@ -818,10 +818,10 @@ def test_transform_response_prefers_completed_output_from_raw_sse():
 
 def test_convert_tools_to_responses_format():
     from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
-        LiteLLMResponsesTransformationHandler,
+        GatewayResponsesTransformationHandler,
     )
 
-    handler = LiteLLMResponsesTransformationHandler()
+    handler = GatewayResponsesTransformationHandler()
 
     tools = [{"type": "function", "function": {"name": "test", "arguments": "test"}}]
 
@@ -833,10 +833,10 @@ def test_convert_tools_to_responses_format():
 def test_extract_extra_body_params_reasoning_effort_override():
     """Test that reasoning_effort from extra_body overrides top-level reasoning_effort"""
     from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
-        LiteLLMResponsesTransformationHandler,
+        GatewayResponsesTransformationHandler,
     )
 
-    handler = LiteLLMResponsesTransformationHandler()
+    handler = GatewayResponsesTransformationHandler()
 
     # Test case: reasoning_effort in extra_body (with summary) should override top-level string
     optional_params = {
@@ -873,7 +873,7 @@ def test_transform_request_system_only_message_maps_to_system_input_item():
     system message, carry it as a system-role input item (single copy, correct
     role) rather than leaving input empty or duplicating it into instructions.
     """
-    handler = LiteLLMResponsesTransformationHandler()
+    handler = GatewayResponsesTransformationHandler()
     logging_obj = Mock()
     messages = [{"role": "system", "content": "You are a helpful assistant."}]
 
@@ -909,10 +909,10 @@ def test_transform_request_single_char_keys_not_matched():
     - This caused single-char keys like "m", "e", "t", etc. to incorrectly match
     """
     from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
-        LiteLLMResponsesTransformationHandler,
+        GatewayResponsesTransformationHandler,
     )
 
-    handler = LiteLLMResponsesTransformationHandler()
+    handler = GatewayResponsesTransformationHandler()
 
     # Create mock objects
     logging_obj = Mock()
@@ -1309,10 +1309,10 @@ def test_tool_message_output_uses_input_text_not_output_text():
         "Invalid value: 'output_text'. Supported values are: 'input_text', 'input_image', and 'input_file'."
     """
     from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
-        LiteLLMResponsesTransformationHandler,
+        GatewayResponsesTransformationHandler,
     )
 
-    handler = LiteLLMResponsesTransformationHandler()
+    handler = GatewayResponsesTransformationHandler()
 
     messages = [
         {"role": "user", "content": "What's the weather?"},
@@ -1383,7 +1383,7 @@ def test_multiple_tool_calls_in_single_choice():
     from openai.types.responses import ResponseFunctionToolCall
 
     from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
-        LiteLLMResponsesTransformationHandler,
+        GatewayResponsesTransformationHandler,
     )
     from token_iq.gateway.types.llms.openai import (
         InputTokensDetails,
@@ -1393,7 +1393,7 @@ def test_multiple_tool_calls_in_single_choice():
     )
     from token_iq.gateway.types.utils import ModelResponse, Usage
 
-    handler = LiteLLMResponsesTransformationHandler()
+    handler = GatewayResponsesTransformationHandler()
 
     # Create multiple function tool calls (simulating parallel tool calls)
     tool_call_1 = ResponseFunctionToolCall(
@@ -1517,10 +1517,10 @@ def test_map_reasoning_effort_adds_summary_detailed(monkeypatch):
 
     from token_iq import gateway
     from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
-        LiteLLMResponsesTransformationHandler,
+        GatewayResponsesTransformationHandler,
     )
 
-    handler = LiteLLMResponsesTransformationHandler()
+    handler = GatewayResponsesTransformationHandler()
 
     # Test all string effort levels - DEFAULT BEHAVIOR (no summary)
     effort_levels = ["none", "low", "medium", "high", "xhigh", "minimal"]
@@ -1624,7 +1624,7 @@ def test_transform_response_preserves_annotations():
     from openai.types.responses import ResponseOutputMessage, ResponseOutputText
 
     from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
-        LiteLLMResponsesTransformationHandler,
+        GatewayResponsesTransformationHandler,
     )
     from token_iq.gateway.types.llms.openai import (
         InputTokensDetails,
@@ -1634,7 +1634,7 @@ def test_transform_response_preserves_annotations():
     )
     from token_iq.gateway.types.utils import ModelResponse, Usage
 
-    handler = LiteLLMResponsesTransformationHandler()
+    handler = GatewayResponsesTransformationHandler()
 
     # Create annotations similar to what OpenAI Responses API returns
     annotations = [
@@ -1821,7 +1821,7 @@ def test_apply_patch_tool_call_converted_to_chat_completion_tool_call():
     )
 
     from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
-        LiteLLMResponsesTransformationHandler,
+        GatewayResponsesTransformationHandler,
     )
     from token_iq.gateway.types.llms.openai import (
         InputTokensDetails,
@@ -1831,7 +1831,7 @@ def test_apply_patch_tool_call_converted_to_chat_completion_tool_call():
     )
     from token_iq.gateway.types.utils import ModelResponse, Usage
 
-    handler = LiteLLMResponsesTransformationHandler()
+    handler = GatewayResponsesTransformationHandler()
 
     # Build an apply_patch_call item like the model would return
     operation = OperationCreateFile(
@@ -2416,11 +2416,11 @@ def test_map_optional_params_preserves_reasoning_summary():
     when routing to Responses API. The dict format should be fully preserved.
     """
     from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
-        LiteLLMResponsesTransformationHandler,
+        GatewayResponsesTransformationHandler,
     )
     from token_iq.gateway.types.llms.openai import ResponsesAPIOptionalRequestParams
 
-    handler = LiteLLMResponsesTransformationHandler()
+    handler = GatewayResponsesTransformationHandler()
 
     optional_params = {
         "stream": False,
@@ -2448,12 +2448,12 @@ def test_map_optional_params_preserves_reasoning_summary():
 def test_transform_request_bedrock_mantle_tools_keeps_reasoning_effort(monkeypatch, reasoning_effort):
     """Regression for reasoning_effort=max being dropped on the chat -> Responses bridge (issue #38084)."""
     from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
-        LiteLLMResponsesTransformationHandler,
+        GatewayResponsesTransformationHandler,
     )
 
     monkeypatch.setattr(gateway, "reasoning_auto_summary", False)
     monkeypatch.delenv("LITELLM_REASONING_AUTO_SUMMARY", raising=False)
-    handler: Final = LiteLLMResponsesTransformationHandler()
+    handler: Final = GatewayResponsesTransformationHandler()
 
     result: Final = handler.transform_request(
         model="openai.gpt-5.6-sol",
@@ -2473,11 +2473,11 @@ def test_transform_request_bedrock_mantle_tools_keeps_reasoning_effort(monkeypat
 def test_map_optional_params_tool_choice_chat_nested_to_responses_api():
     """Chat tool_choice must become Responses ToolChoiceFunction (top-level name)."""
     from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
-        LiteLLMResponsesTransformationHandler,
+        GatewayResponsesTransformationHandler,
     )
     from token_iq.gateway.types.llms.openai import ResponsesAPIOptionalRequestParams
 
-    handler = LiteLLMResponsesTransformationHandler()
+    handler = GatewayResponsesTransformationHandler()
     responses_api_request = ResponsesAPIOptionalRequestParams()
     handler._map_optional_params_to_responses_api_request(
         {
@@ -2524,10 +2524,10 @@ def test_map_optional_params_tool_choice_chat_nested_to_responses_api():
 )
 def test_normalize_tool_choice_for_responses_api(tool_choice, expected):
     from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
-        LiteLLMResponsesTransformationHandler,
+        GatewayResponsesTransformationHandler,
     )
 
-    handler = LiteLLMResponsesTransformationHandler()
+    handler = GatewayResponsesTransformationHandler()
     assert handler._normalize_tool_choice_for_responses_api(tool_choice) == expected
 
 
@@ -2539,10 +2539,10 @@ def test_convert_chat_completion_file_type_to_input_file():
     Regression test for https://github.com/BerriAI/litellm/issues/23588
     """
     from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
-        LiteLLMResponsesTransformationHandler,
+        GatewayResponsesTransformationHandler,
     )
 
-    handler = LiteLLMResponsesTransformationHandler()
+    handler = GatewayResponsesTransformationHandler()
 
     messages = [
         {
@@ -2590,10 +2590,10 @@ def test_convert_chat_completion_file_type_with_file_id():
     Test that Chat Completion content with type 'file' using file_id is correctly mapped.
     """
     from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
-        LiteLLMResponsesTransformationHandler,
+        GatewayResponsesTransformationHandler,
     )
 
-    handler = LiteLLMResponsesTransformationHandler()
+    handler = GatewayResponsesTransformationHandler()
 
     messages = [
         {
@@ -2642,7 +2642,7 @@ def test_reasoning_items_non_streaming_round_trip():
     )
 
     from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
-        LiteLLMResponsesTransformationHandler,
+        GatewayResponsesTransformationHandler,
     )
     from token_iq.gateway.types.llms.openai import (
         InputTokensDetails,
@@ -2652,7 +2652,7 @@ def test_reasoning_items_non_streaming_round_trip():
     )
     from token_iq.gateway.types.utils import ModelResponse, Usage
 
-    handler = LiteLLMResponsesTransformationHandler()
+    handler = GatewayResponsesTransformationHandler()
 
     encrypted = "gAAAAABpw5abc123FAKE=="
     summary_text = "**Thinking about it**\n\nSome reasoning here."
@@ -3163,7 +3163,7 @@ def test_convert_response_output_custom_tool_call_to_tool_calls_choice():
     from openai.types.responses import ResponseCustomToolCall
 
     from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
-        LiteLLMResponsesTransformationHandler,
+        GatewayResponsesTransformationHandler,
     )
 
     item = ResponseCustomToolCall(
@@ -3174,7 +3174,7 @@ def test_convert_response_output_custom_tool_call_to_tool_calls_choice():
         input="*** Begin Patch\n*** End Patch",
     )
 
-    choices = LiteLLMResponsesTransformationHandler._convert_response_output_to_choices([item])
+    choices = GatewayResponsesTransformationHandler._convert_response_output_to_choices([item])
 
     assert len(choices) == 1
     choice = choices[0]
@@ -3192,10 +3192,10 @@ def test_convert_response_output_accumulates_raw_tool_calls_into_one_choice():
     clients, which read only the first choice; a multi-tool agent turn through the
     completion bridge lost all but one call."""
     from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
-        LiteLLMResponsesTransformationHandler,
+        GatewayResponsesTransformationHandler,
     )
 
-    handler = LiteLLMResponsesTransformationHandler()
+    handler = GatewayResponsesTransformationHandler()
     items = [
         {
             "type": "function_call",
@@ -3213,7 +3213,7 @@ def test_convert_response_output_accumulates_raw_tool_calls_into_one_choice():
         },
     ]
 
-    choices = LiteLLMResponsesTransformationHandler._convert_response_output_to_choices(
+    choices = GatewayResponsesTransformationHandler._convert_response_output_to_choices(
         items,
         handle_raw_dict_callback=handler._handle_raw_dict_response_item,
     )
@@ -3239,11 +3239,11 @@ def test_convert_response_output_generic_pydantic_message_item():
     raise 'Unknown items in responses API response' on an otherwise-successful
     completion (hit live via /cursor/chat/completions multi-turn tool round trips)."""
     from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
-        LiteLLMResponsesTransformationHandler,
+        GatewayResponsesTransformationHandler,
     )
     from token_iq.gateway.types.responses.main import GenericResponseOutputItem, OutputText
 
-    handler = LiteLLMResponsesTransformationHandler()
+    handler = GatewayResponsesTransformationHandler()
     item = GenericResponseOutputItem(
         type="message",
         id="msg_generic1",
@@ -3252,7 +3252,7 @@ def test_convert_response_output_generic_pydantic_message_item():
         content=[OutputText(type="output_text", text="42", annotations=[])],
     )
 
-    choices = LiteLLMResponsesTransformationHandler._convert_response_output_to_choices(
+    choices = GatewayResponsesTransformationHandler._convert_response_output_to_choices(
         [item],
         handle_raw_dict_callback=handler._handle_raw_dict_response_item,
     )
@@ -3264,10 +3264,10 @@ def test_convert_response_output_generic_pydantic_message_item():
 
 def test_convert_tools_to_responses_format_flattens_nested_custom_tool():
     from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
-        LiteLLMResponsesTransformationHandler,
+        GatewayResponsesTransformationHandler,
     )
 
-    handler = LiteLLMResponsesTransformationHandler()
+    handler = GatewayResponsesTransformationHandler()
     tools = [
         {
             "type": "custom",
@@ -3288,20 +3288,20 @@ def test_convert_tools_to_responses_format_flattens_nested_custom_tool():
 
 def test_convert_tools_to_responses_format_flattens_custom_tool_without_optional_keys():
     from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
-        LiteLLMResponsesTransformationHandler,
+        GatewayResponsesTransformationHandler,
     )
 
-    handler = LiteLLMResponsesTransformationHandler()
+    handler = GatewayResponsesTransformationHandler()
     converted = handler._convert_tools_to_responses_format([{"type": "custom", "custom": {"name": "Minimal"}}])
     assert converted[0] == {"type": "custom", "name": "Minimal"}
 
 
 def test_convert_tools_to_responses_format_unwraps_nested_grammar_format():
     from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
-        LiteLLMResponsesTransformationHandler,
+        GatewayResponsesTransformationHandler,
     )
 
-    handler = LiteLLMResponsesTransformationHandler()
+    handler = GatewayResponsesTransformationHandler()
     converted = handler._convert_tools_to_responses_format(
         [
             {
@@ -3325,10 +3325,10 @@ def test_convert_tools_to_responses_format_unwraps_nested_grammar_format():
 
 def test_convert_tools_to_responses_format_text_format_passes_through():
     from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
-        LiteLLMResponsesTransformationHandler,
+        GatewayResponsesTransformationHandler,
     )
 
-    handler = LiteLLMResponsesTransformationHandler()
+    handler = GatewayResponsesTransformationHandler()
     converted = handler._convert_tools_to_responses_format(
         [{"type": "custom", "custom": {"name": "A", "format": {"type": "text"}}}]
     )
@@ -3337,10 +3337,10 @@ def test_convert_tools_to_responses_format_text_format_passes_through():
 
 def test_convert_chat_completion_messages_maps_custom_tool_call_history():
     from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
-        LiteLLMResponsesTransformationHandler,
+        GatewayResponsesTransformationHandler,
     )
 
-    handler = LiteLLMResponsesTransformationHandler()
+    handler = GatewayResponsesTransformationHandler()
     input_items, instructions = handler.convert_chat_completion_messages_to_responses_api(
         [
             {"role": "user", "content": "use ApplyPatch"},
@@ -3382,10 +3382,10 @@ def test_convert_chat_completion_messages_still_rejects_unknown_tool_call_shape(
     import pytest
 
     from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
-        LiteLLMResponsesTransformationHandler,
+        GatewayResponsesTransformationHandler,
     )
 
-    handler = LiteLLMResponsesTransformationHandler()
+    handler = GatewayResponsesTransformationHandler()
     with pytest.raises(ValueError, match="tool call not supported"):
         handler.convert_chat_completion_messages_to_responses_api(
             [{"role": "assistant", "tool_calls": [{"id": "call_x", "type": "mystery"}]}]
@@ -3597,7 +3597,7 @@ def _make_reasoning_only_output_item() -> "ResponseReasoningItem":
 
 
 def _call_transform_response(
-    handler: LiteLLMResponsesTransformationHandler,
+    handler: GatewayResponsesTransformationHandler,
     raw_response: "ResponsesAPIResponse",
 ) -> "ModelResponse":
     logging_obj = Mock()
@@ -3616,7 +3616,7 @@ def _call_transform_response(
 
 
 def test_transform_response_incomplete_reasoning_only_returns_empty_length_choice():
-    handler = LiteLLMResponsesTransformationHandler()
+    handler = GatewayResponsesTransformationHandler()
     raw_response = _make_incomplete_responses_api_response(
         "max_output_tokens", [_make_reasoning_only_output_item()]
     )
@@ -3637,7 +3637,7 @@ def test_transform_response_incomplete_reasoning_only_returns_empty_length_choic
 
 
 def test_transform_response_incomplete_content_filter_maps_finish_reason():
-    handler = LiteLLMResponsesTransformationHandler()
+    handler = GatewayResponsesTransformationHandler()
     raw_response = _make_incomplete_responses_api_response(
         "content_filter", [_make_reasoning_only_output_item()]
     )
@@ -3650,7 +3650,7 @@ def test_transform_response_incomplete_content_filter_maps_finish_reason():
 
 
 def test_transform_response_zero_choices_not_incomplete_still_raises():
-    handler = LiteLLMResponsesTransformationHandler()
+    handler = GatewayResponsesTransformationHandler()
     raw_response = _make_empty_responses_api_response()
 
     with pytest.raises(ValueError, match="Unknown items"):
@@ -3660,7 +3660,7 @@ def test_transform_response_zero_choices_not_incomplete_still_raises():
 def test_transform_response_completed_with_reasonless_incomplete_details_keeps_stop():
     from openai.types.responses import ResponseOutputMessage, ResponseOutputText
 
-    handler = LiteLLMResponsesTransformationHandler()
+    handler = GatewayResponsesTransformationHandler()
     output_message = ResponseOutputMessage(
         id="msg_complete",
         content=[
@@ -3686,7 +3686,7 @@ def test_transform_response_completed_with_reasonless_incomplete_details_keeps_s
 def test_transform_response_incomplete_partial_text_overrides_finish_reason_to_length():
     from openai.types.responses import ResponseOutputMessage, ResponseOutputText
 
-    handler = LiteLLMResponsesTransformationHandler()
+    handler = GatewayResponsesTransformationHandler()
     output_message = ResponseOutputMessage(
         id="msg_partial",
         content=[
@@ -3802,7 +3802,7 @@ def test_assistant_message_with_tool_calls_keeps_its_content():
     An assistant turn that both answered and called a tool used to lose its whole message:
     the branch handling tool_calls emitted the calls and dropped the text.
     """
-    handler = LiteLLMResponsesTransformationHandler()
+    handler = GatewayResponsesTransformationHandler()
     messages = [
         {"role": "user", "content": "What is the weather in Denver?"},
         {
@@ -3835,7 +3835,7 @@ def test_assistant_message_with_tool_calls_keeps_its_content():
 
 def test_assistant_thinking_blocks_become_a_reasoning_input_item():
     """Thinking blocks are how an Anthropic-shaped turn carries reasoning into this bridge."""
-    handler = LiteLLMResponsesTransformationHandler()
+    handler = GatewayResponsesTransformationHandler()
     messages = [
         {"role": "user", "content": "What is the weather in Denver?"},
         {
@@ -3858,7 +3858,7 @@ def test_assistant_thinking_blocks_become_a_reasoning_input_item():
 
 def test_thinking_only_assistant_turn_still_sends_its_reasoning():
     """An assistant turn can be pure reasoning, with no visible text and no tool call."""
-    handler = LiteLLMResponsesTransformationHandler()
+    handler = GatewayResponsesTransformationHandler()
     messages = [
         {"role": "user", "content": "What is the weather in Denver?"},
         {
@@ -3880,7 +3880,7 @@ def test_thinking_only_assistant_turn_still_sends_its_reasoning():
 
 def test_stored_reasoning_items_win_over_thinking_blocks():
     """A minted reasoning id beats a re-derived one, so the two must not both be sent."""
-    handler = LiteLLMResponsesTransformationHandler()
+    handler = GatewayResponsesTransformationHandler()
     messages = [
         {
             "role": "assistant",
@@ -3908,10 +3908,10 @@ def test_stored_reasoning_items_win_over_thinking_blocks():
 def test_convert_chat_completion_messages_to_responses_api_tool_result_with_tool_reference():
     """Tool-search tool_reference blocks have no Responses API equivalent: skip them, never stringify them."""
     from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
-        LiteLLMResponsesTransformationHandler,
+        GatewayResponsesTransformationHandler,
     )
 
-    handler = LiteLLMResponsesTransformationHandler()
+    handler = GatewayResponsesTransformationHandler()
 
     messages = [
         {

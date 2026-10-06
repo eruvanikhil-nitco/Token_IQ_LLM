@@ -46,7 +46,7 @@ from token_iq.gateway.proxy.management_endpoints.team_endpoints import (
     update_team,
 )
 from token_iq.gateway.proxy.proxy_server import (
-    LitellmUserRoles,
+    GatewayUserRoles,
     audio_transcriptions,
     chat_completion,
     completion,
@@ -116,7 +116,7 @@ def prisma_client():
     )
 
     # Reset litellm.proxy.proxy_server.prisma_client to None
-    gateway.proxy.proxy_server.litellm_proxy_budget_name = (
+    gateway.proxy.proxy_server.gateway_proxy_budget_name = (
         f"litellm-proxy-budget-{time.time()}"
     )
     gateway.proxy.proxy_server.user_custom_key_generate = None

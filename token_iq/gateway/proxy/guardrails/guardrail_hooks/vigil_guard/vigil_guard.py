@@ -7,7 +7,7 @@ from typing_extensions import ReadOnly, TypedDict
 
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.exceptions import GuardrailRaisedException
-from token_iq.gateway.exceptions import Timeout as LiteLLMTimeout
+from token_iq.gateway.exceptions import Timeout as GatewayTimeout
 from token_iq.gateway.integrations.custom_guardrail import (
     CustomGuardrail,
     log_guardrail_information,
@@ -22,7 +22,7 @@ from token_iq.gateway.types.utils import GenericGuardrailAPIInputs
 
 if TYPE_CHECKING:
     from token_iq.gateway.core_utils.litellm_logging import (
-        Logging as LiteLLMLoggingObj,
+        Logging as GatewayLoggingObj,
     )
     from token_iq.gateway.types.proxy.guardrails.guardrail_hooks.base import (
         GuardrailConfigModel,
@@ -147,7 +147,7 @@ class VigilGuardGuardrail(CustomGuardrail):
         inputs: GenericGuardrailAPIInputs,
         request_data: dict,
         input_type: Literal["request", "response"],
-        logging_obj: Optional["LiteLLMLoggingObj"] = None,
+        logging_obj: Optional["GatewayLoggingObj"] = None,
     ) -> GenericGuardrailAPIInputs:
         texts: Final = inputs.get("texts") or []
         has_text: Final = any(isinstance(text, str) and text.strip() for text in texts)
@@ -168,7 +168,7 @@ class VigilGuardGuardrail(CustomGuardrail):
                 analysis = await self._analyze(text=text, source=source, metadata=metadata)
             except (
                 httpx.HTTPError,
-                LiteLLMTimeout,
+                GatewayTimeout,
                 JSONDecodeError,
                 OSError,
             ) as exc:
@@ -219,7 +219,7 @@ class VigilGuardGuardrail(CustomGuardrail):
                 analysis = await self._analyze(text=arguments, source=source, metadata=metadata)
             except (
                 httpx.HTTPError,
-                LiteLLMTimeout,
+                GatewayTimeout,
                 JSONDecodeError,
                 OSError,
             ) as exc:
@@ -381,7 +381,7 @@ class VigilGuardGuardrail(CustomGuardrail):
                 httpx.ConnectTimeout,
                 httpx.ReadTimeout,
                 httpx.RemoteProtocolError,
-                LiteLLMTimeout,
+                GatewayTimeout,
             ),
         )
 
@@ -407,7 +407,7 @@ class VigilGuardGuardrail(CustomGuardrail):
         return original
 
     def _collect_metadata(
-        self, request_data: dict, logging_obj: Optional["LiteLLMLoggingObj"]
+        self, request_data: dict, logging_obj: Optional["GatewayLoggingObj"]
     ) -> Mapping[str, _MetadataValue]:
         sources: Final[list[dict]] = []
         if isinstance(request_data, dict):
@@ -453,7 +453,7 @@ class VigilGuardGuardrail(CustomGuardrail):
         return None
 
     @staticmethod
-    def _extract_call_id(request_data: dict, logging_obj: Optional["LiteLLMLoggingObj"]) -> str | None:
+    def _extract_call_id(request_data: dict, logging_obj: Optional["GatewayLoggingObj"]) -> str | None:
         if logging_obj is not None:
             call_id = getattr(logging_obj, "litellm_call_id", None)
             if isinstance(call_id, str) and call_id:

@@ -14,7 +14,7 @@ import pytest
 from token_iq.gateway.constants import LITELLM_PROXY_ADMIN_NAME
 from token_iq.gateway.proxy._types import (
     LiteLLM_UserTable,
-    LitellmUserRoles,
+    GatewayUserRoles,
     ProxyErrorTypes,
     ProxyException,
     hash_token,
@@ -105,7 +105,7 @@ async def test_authenticate_user_admin_login_with_ui_credentials():
                     assert result.user_id == LITELLM_PROXY_ADMIN_NAME
                     assert result.key == "test-token-123"
                     assert result.user_email is None
-                    assert result.user_role == LitellmUserRoles.PROXY_ADMIN
+                    assert result.user_role == GatewayUserRoles.PROXY_ADMIN
                     assert result.login_method == "username_password"
 
 
@@ -160,7 +160,7 @@ async def test_authenticate_user_admin_login_with_master_key_as_password(monkeyp
 
                     assert isinstance(result, LoginResult)
                     assert result.user_id == LITELLM_PROXY_ADMIN_NAME
-                    assert result.user_role == LitellmUserRoles.PROXY_ADMIN
+                    assert result.user_role == GatewayUserRoles.PROXY_ADMIN
 
 
 @pytest.mark.asyncio
@@ -218,7 +218,7 @@ async def test_authenticate_user_wrong_password():
         user_id="test-user-123",
         user_email=user_email,
         password=hashed_password,
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
     )
 
     mock_prisma_client = MagicMock()
@@ -260,7 +260,7 @@ async def test_authenticate_user_email_case_insensitive_login():
     mock_user.user_id = "test-user-123"
     mock_user.user_email = stored_email
     mock_user.password = hashed_password
-    mock_user.user_role = LitellmUserRoles.INTERNAL_USER
+    mock_user.user_role = GatewayUserRoles.INTERNAL_USER
 
     def mock_find_first(**kwargs):
         where = kwargs.get("where", {})
@@ -399,7 +399,7 @@ async def test_authenticate_user_admin_login_with_non_ascii_characters():
                     assert isinstance(result, LoginResult)
                     assert result.user_id == LITELLM_PROXY_ADMIN_NAME
                     assert result.key == "test-token-123"
-                    assert result.user_role == LitellmUserRoles.PROXY_ADMIN
+                    assert result.user_role == GatewayUserRoles.PROXY_ADMIN
 
 
 def test_authenticate_user_non_ascii_direct_comparison():
@@ -508,7 +508,7 @@ async def test_authenticate_user_database_login_with_non_ascii_password():
     mock_user.user_id = "test-user-123"
     mock_user.user_email = user_email
     mock_user.password = hashed_password
-    mock_user.user_role = LitellmUserRoles.INTERNAL_USER
+    mock_user.user_role = GatewayUserRoles.INTERNAL_USER
 
     def mock_find_first(**kwargs):
         where = kwargs.get("where", {})
@@ -678,7 +678,7 @@ class TestDisablePasswordLoginWhenSSOEnabled:
             user_id="test-user-123",
             user_email=user_email,
             password=hash_token(token=password),
-            user_role=LitellmUserRoles.INTERNAL_USER,
+            user_role=GatewayUserRoles.INTERNAL_USER,
         )
         mock_prisma_client = MagicMock()
         mock_prisma_client.db.litellm_usertable.find_first = AsyncMock(return_value=mock_user)

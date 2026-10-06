@@ -15,7 +15,7 @@ INSTANCE_BASE_ANTHROPIC_MESSAGES_TEST = BaseAnthropicMessagesTest()
 
 
 @pytest.mark.asyncio
-async def test_anthropic_messages_litellm_router_bedrock():
+async def test_anthropic_messages_gateway_router_bedrock():
     """
     Test the anthropic_messages with non-streaming request
     """

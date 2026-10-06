@@ -1,4 +1,4 @@
-from token_iq.gateway.core_utils.cli_token_utils import get_litellm_gateway_api_key
+from token_iq.gateway.core_utils.cli_token_utils import get_gateway_gateway_api_key
 
 from .chat import ChatClient
 from .credentials import CredentialsManagementClient
@@ -29,7 +29,7 @@ class Client:
         """
         self._base_url = base_url.rstrip("/")
         # Only use the stored CLI key when it was issued for this server.
-        self._api_key = api_key or get_litellm_gateway_api_key(expected_base_url=self._base_url)
+        self._api_key = api_key or get_gateway_gateway_api_key(expected_base_url=self._base_url)
 
         # Initialize resource clients
 

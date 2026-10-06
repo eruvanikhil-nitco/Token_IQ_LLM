@@ -18,7 +18,7 @@ class TestGeminiVectorStore(BaseVectorStoreTest):
                 "GEMINI_TEST_STORE_ID", "fileSearchStores/example-test-store"
             ),
             "custom_llm_provider": "gemini",
-            "query": "LiteLLM",
+            "query": "Gateway",
         }
 
     def get_base_create_vector_store_args(self) -> dict:

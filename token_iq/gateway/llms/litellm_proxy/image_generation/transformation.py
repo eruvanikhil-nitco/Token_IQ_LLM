@@ -4,7 +4,7 @@ from token_iq.gateway.llms.openai.image_generation.gpt_transformation import (
 from token_iq.gateway.secret_managers.main import get_secret_str
 
 
-class LiteLLMProxyImageGenerationConfig(GPTImageGenerationConfig):
+class GatewayProxyImageGenerationConfig(GPTImageGenerationConfig):
     """Configuration for image generation requests routed through LiteLLM Proxy."""
 
     def validate_environment(

@@ -8,7 +8,7 @@ from token_iq.gateway.llms.xai.chat.transformation import XAIChatConfig
 from token_iq.gateway.llms.xai.common_utils import XAIModelInfo
 from token_iq.gateway.llms.xai.responses.transformation import XAIResponsesAPIConfig
 from token_iq.gateway.realtime_api import main as realtime_main
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 
 
 class FakeLogging:
@@ -134,7 +134,7 @@ def test_responses_config_preserves_generic_key_precedence(monkeypatch):
     assert headers["Authorization"] == "Bearer common_api_key"
 
 
-def test_responses_config_prefers_litellm_params_api_key(monkeypatch):
+def test_responses_config_prefers_gateway_params_api_key(monkeypatch):
     monkeypatch.setattr(gateway, "xai_key", "xai_key_value")
     monkeypatch.setattr(gateway, "api_key", "common_api_key")
     monkeypatch.setenv("XAI_API_KEY", "env_api_key")
@@ -142,7 +142,7 @@ def test_responses_config_prefers_litellm_params_api_key(monkeypatch):
     headers = XAIResponsesAPIConfig().validate_environment(
         {},
         "xai/grok-3-mini",
-        GenericLiteLLMParams(api_key="param_api_key"),
+        GenericGatewayParams(api_key="param_api_key"),
     )
 
     assert headers["Authorization"] == "Bearer param_api_key"

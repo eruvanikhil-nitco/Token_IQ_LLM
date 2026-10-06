@@ -64,7 +64,7 @@ class PrometheusAuthMiddleware:
                         SpecialHeaders.google_ai_studio_authorization.value
                     ),
                     azure_apim_header=request.headers.get(SpecialHeaders.azure_apim_authorization.value) or "",
-                    custom_litellm_key_header=request.headers.get(SpecialHeaders.custom_litellm_api_key.value),
+                    custom_gateway_key_header=request.headers.get(SpecialHeaders.custom_gateway_api_key.value),
                 )
             except Exception as e:
                 # Send 401 response directly via ASGI protocol

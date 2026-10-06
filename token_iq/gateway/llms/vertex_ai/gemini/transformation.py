@@ -101,11 +101,11 @@ def _get_gcs_metadata_http_handler() -> HTTPHandler:
 
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as _LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as _GatewayLoggingObj
 
-    LiteLLMLoggingObj = _LiteLLMLoggingObj
+    GatewayLoggingObj = _GatewayLoggingObj
 else:
-    LiteLLMLoggingObj = Any
+    GatewayLoggingObj = Any
 
 
 def _convert_detail_to_media_resolution_enum(
@@ -1073,7 +1073,7 @@ def _gemini_convert_messages_with_history(
 
 
 # Keys that LiteLLM consumes internally and must never be forwarded to the
-_LITELLM_INTERNAL_EXTRA_BODY_KEYS: Final[frozenset] = frozenset({"cache", "tags"})
+_GATEWAY_INTERNAL_EXTRA_BODY_KEYS: Final[frozenset] = frozenset({"cache", "tags"})
 
 
 def _pop_and_merge_extra_body(data: RequestBody, optional_params: dict) -> None:
@@ -1082,7 +1082,7 @@ def _pop_and_merge_extra_body(data: RequestBody, optional_params: dict) -> None:
     if extra_body is not None:
         data_dict: Final[dict] = data
         for k, v in extra_body.items():
-            if k in _LITELLM_INTERNAL_EXTRA_BODY_KEYS:
+            if k in _GATEWAY_INTERNAL_EXTRA_BODY_KEYS:
                 continue
             if k in data_dict and isinstance(data_dict[k], dict) and isinstance(v, dict):
                 data_dict[k].update(v)
@@ -1265,7 +1265,7 @@ def sync_transform_request_body(
     timeout: float | httpx.Timeout | None,
     extra_headers: dict | None,
     optional_params: dict,
-    logging_obj: LiteLLMLoggingObj,
+    logging_obj: GatewayLoggingObj,
     custom_llm_provider: Literal["vertex_ai", "vertex_ai_beta", "gemini"],
     litellm_params: dict,
     vertex_project: str | None,
@@ -1316,7 +1316,7 @@ async def async_transform_request_body(
     timeout: float | httpx.Timeout | None,
     extra_headers: dict | None,
     optional_params: dict,
-    logging_obj: LiteLLMLoggingObj,
+    logging_obj: GatewayLoggingObj,
     custom_llm_provider: Literal["vertex_ai", "vertex_ai_beta", "gemini"],
     litellm_params: dict,
     vertex_project: str | None,

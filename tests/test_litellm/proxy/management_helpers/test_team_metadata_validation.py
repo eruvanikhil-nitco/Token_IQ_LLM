@@ -5,7 +5,7 @@ import pytest
 from fastapi import HTTPException
 
 
-from token_iq.gateway.proxy._types import CommonProxyErrors, LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import CommonProxyErrors, GatewayUserRoles, UserAPIKeyAuth
 from token_iq.gateway.proxy.management_helpers.team_metadata_validation import (
     DEFAULT_TEAM_METADATA_VALIDATION_REJECTED_MESSAGE,
     DEFAULT_TEAM_METADATA_VALIDATION_TIMEOUT_SECONDS,
@@ -196,7 +196,7 @@ async def test_adapter_is_noop_when_unconfigured():
         existing_metadata=None,
         team_id="team-1",
         team_alias="alias-1",
-        user_api_key_dict=UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN, user_id="u1"),
+        user_api_key_dict=UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN, user_id="u1"),
         registry=TeamMetadataValidatorRegistry(),
     )
     assert calls == []
@@ -224,7 +224,7 @@ async def test_adapter_builds_payload_and_reads_settings():
             team_id="team-9",
             team_alias="alias-9",
             user_api_key_dict=UserAPIKeyAuth(
-                user_role=LitellmUserRoles.INTERNAL_USER,
+                user_role=GatewayUserRoles.INTERNAL_USER,
                 user_id="user-9",
                 user_email="user-9@example.com",
             ),
@@ -240,7 +240,7 @@ async def test_adapter_builds_payload_and_reads_settings():
     assert payload.team_alias == "alias-9"
     assert payload.requester.user_id == "user-9"
     assert payload.requester.user_email == "user-9@example.com"
-    assert payload.requester.user_role == LitellmUserRoles.INTERNAL_USER.value
+    assert payload.requester.user_role == GatewayUserRoles.INTERNAL_USER.value
 
 
 @pytest.mark.asyncio
@@ -261,7 +261,7 @@ async def test_adapter_normalizes_non_dict_metadata_to_empty_dict():
             existing_metadata=None,
             team_id="team-1",
             team_alias=None,
-            user_api_key_dict=UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN, user_id="u1"),
+            user_api_key_dict=UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN, user_id="u1"),
             registry=_registry_with(validator),
         )
 
@@ -377,7 +377,7 @@ async def _drive_create(metadata, mock_sink=None):
         return await new_team(
             data=NewTeamRequest(**request_kwargs),
             http_request=MagicMock(spec=Request),
-            user_api_key_dict=UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN),
+            user_api_key_dict=UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN),
         )
 
 
@@ -394,7 +394,7 @@ async def _drive_update(kind, existing_metadata, payload):
         metadata=existing_metadata,
         organization_id=None,
     )
-    auth = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin-1")
+    auth = UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin-1")
 
     with (
         patch("token_iq.gateway.proxy.proxy_server.prisma_client") as pc,
@@ -696,7 +696,7 @@ async def test_adapter_applies_configured_timeout_to_slow_validator():
                 existing_metadata=None,
                 team_id="team-1",
                 team_alias="alias-1",
-                user_api_key_dict=UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN, user_id="u1"),
+                user_api_key_dict=UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN, user_id="u1"),
                 registry=registry,
             )
 

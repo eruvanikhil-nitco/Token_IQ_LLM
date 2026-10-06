@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from fastapi.testclient import TestClient
 
-from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
 from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 from token_iq.gateway.proxy.proxy_server import app
 from token_iq.gateway.types.utils import CredentialItem
@@ -396,7 +396,7 @@ def test_the_credential_list_still_carries_an_ordinary_credential_with_no_purpos
     assert [row["credential_name"] for row in listed.json()["credentials"]] == ["plain"]
 
 
-TEAM_ADMIN = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-lead", user_id="lead")
+TEAM_ADMIN = UserAPIKeyAuth(user_role=GatewayUserRoles.INTERNAL_USER, api_key="sk-lead", user_id="lead")
 
 
 def _as_team_admin_request(method: str, path: str, body: dict | None = None):

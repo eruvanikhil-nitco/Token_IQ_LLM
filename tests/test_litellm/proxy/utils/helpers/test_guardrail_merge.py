@@ -227,7 +227,7 @@ def test_check_and_merge_model_level_guardrails_alias_fallback_passes_team_id():
     router.get_model_list.assert_called_once_with(model_name="team-scoped-alias", team_id="team-abc")
 
 
-def test_check_and_merge_model_level_guardrails_alias_fallback_reads_team_id_from_litellm_metadata():
+def test_check_and_merge_model_level_guardrails_alias_fallback_reads_team_id_from_gateway_metadata():
     """Backstop: some call sites stash the team id on litellm_metadata
     instead of metadata. The alias fallback should accept either."""
     router = MagicMock()

@@ -3,7 +3,7 @@ from typing import Any, Literal, TypedDict
 
 from pydantic import Field
 
-from token_iq.gateway.types.llms.base import BaseLiteLLMOpenAIResponseObject
+from token_iq.gateway.types.llms.base import BaseGatewayOpenAIResponseObject
 from token_iq.gateway.types.proxy.guardrails.guardrail_hooks.base import GuardrailConfigModel
 
 # --- Competitor intent blocker (generic, industry-agnostic) ---
@@ -83,7 +83,7 @@ class CompetitorIntentDetection(TypedDict):
 ContentFilterDetection = PatternDetection | BlockedWordDetection | CategoryKeywordDetection | CompetitorIntentDetection
 
 
-class ContentFilterCategoryConfig(BaseLiteLLMOpenAIResponseObject):
+class ContentFilterCategoryConfig(BaseGatewayOpenAIResponseObject):
     """
     category: "harmful_self_harm"
                   enabled: true
@@ -112,7 +112,7 @@ class ContentFilterCategoryConfig(BaseLiteLLMOpenAIResponseObject):
     )
 
 
-class LitellmContentFilterGuardrailConfigModel(GuardrailConfigModel):
+class GatewayContentFilterGuardrailConfigModel(GuardrailConfigModel):
     """
     Configuration model for LiteLLM Content Filter guardrail.
 

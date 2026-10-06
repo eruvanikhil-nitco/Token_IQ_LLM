@@ -13,7 +13,7 @@ from token_iq.gateway.images.utils import ImageEditRequestUtils
 from token_iq.gateway.core_utils.url_utils import SSRFError, validate_url
 from token_iq.gateway.llms.openai.videos.transformation import OpenAIVideoConfig
 from token_iq.gateway.secret_managers.main import get_secret_str
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.types.videos.main import VideoCreateOptionalRequestParams
 
 _EXCLUDED_FORM_KEYS: Final = frozenset(
@@ -155,7 +155,7 @@ class HostedVLLMVideoConfig(OpenAIVideoConfig):
         headers: dict,  # mutable-ok: BaseVideoConfig contract
         model: str,
         api_key: str | None = None,
-        litellm_params: GenericLiteLLMParams | None = None,
+        litellm_params: GenericGatewayParams | None = None,
     ) -> dict:  # mutable-ok: BaseVideoConfig contract
         resolved_key: Final = (
             (litellm_params.api_key if litellm_params is not None else None)
@@ -188,7 +188,7 @@ class HostedVLLMVideoConfig(OpenAIVideoConfig):
         prompt: str,
         api_base: str,
         video_create_optional_request_params: dict,  # mutable-ok: BaseVideoConfig contract
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,  # mutable-ok: BaseVideoConfig contract
     ) -> tuple[dict, RequestFiles, str]:  # mutable-ok: BaseVideoConfig contract
         data: Final = {  # mutable-ok: BaseVideoConfig contract returns a data dict

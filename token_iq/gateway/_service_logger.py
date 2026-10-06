@@ -348,7 +348,7 @@ class ServiceLogging(CustomLogger):
             # Batch polling callbacks (check_batch_cost) don't include call_type in kwargs.
             # Use .get() to avoid KeyError.
             await self.async_service_success_hook(
-                service=ServiceTypes.LITELLM,
+                service=ServiceTypes.GATEWAY,
                 duration=_duration,
                 call_type=kwargs.get("call_type", "unknown"),
                 start_time=start_time,

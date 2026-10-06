@@ -19,7 +19,7 @@ from e2e_config import unique_marker
 from e2e_http import UnknownApiError, unwrap
 from endpoints_client import EndpointsClient, TranscriptionForm, TranscriptionResult
 from lifecycle import ResourceManager
-from models import LiteLLMParamsBody
+from models import GatewayParamsBody
 from pydantic import BaseModel
 
 pytestmark = pytest.mark.e2e
@@ -42,7 +42,7 @@ def _register(
     model = f"e2e-transcribe-{unique_marker()}"
     model_id = endpoints_client.create_model(
         model,
-        LiteLLMParamsBody(
+        GatewayParamsBody(
             model="openai/gpt-4o-mini-transcribe", api_key="os.environ/OPENAI_API_KEY"
         ),
     )

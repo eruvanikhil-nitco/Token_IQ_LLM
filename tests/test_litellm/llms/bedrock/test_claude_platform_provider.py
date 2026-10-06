@@ -301,7 +301,7 @@ async def test_anthropic_messages_routes_bedrock_claude_platform_to_messages_api
                 workspace_id="wrkspc_test",
             )
     finally:
-        await gateway.close_litellm_async_clients()
+        await gateway.close_gateway_async_clients()
 
     assert response["content"][0]["text"] == "ok"
     assert len(requests) == 1

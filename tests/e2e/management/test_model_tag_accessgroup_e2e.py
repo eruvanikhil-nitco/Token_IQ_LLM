@@ -24,7 +24,7 @@ from e2e_config import unique_marker
 from e2e_http import NoBody, unwrap
 from lifecycle import ResourceManager
 from management_client import ManagementClient
-from models import KeyGenerateBody, LiteLLMParamsBody, ModelInfoBody, ModelNewBody
+from models import KeyGenerateBody, GatewayParamsBody, ModelInfoBody, ModelNewBody
 from proxy_client import ProxyClient
 
 pytestmark = pytest.mark.e2e
@@ -166,7 +166,7 @@ def _delete_access_group(client: ManagementClient, access_group: str) -> None:
 
 def _create_db_model(client: ManagementClient, resources: ResourceManager, model_name: str) -> str:
     model_id = client.proxy.create_model(
-        model_name, LiteLLMParamsBody(model=_DUMMY_MODEL, api_key=_DUMMY_API_KEY)
+        model_name, GatewayParamsBody(model=_DUMMY_MODEL, api_key=_DUMMY_API_KEY)
     )
     resources.defer(lambda: client.proxy.delete_model(model_id))
     return model_id
@@ -228,7 +228,7 @@ class TestModelRoutes:
             headers=client.proxy.transport.bearer(key),
             json=ModelNewBody(
                 model_name=model_name,
-                litellm_params=LiteLLMParamsBody(model=_DUMMY_MODEL, api_key=_DUMMY_API_KEY),
+                litellm_params=GatewayParamsBody(model=_DUMMY_MODEL, api_key=_DUMMY_API_KEY),
                 model_info=ModelInfoBody(),
             ),
         )

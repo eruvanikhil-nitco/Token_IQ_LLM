@@ -20,11 +20,11 @@ from token_iq.gateway.proxy.openai_files_endpoints.common_utils import (
     validate_managed_id_requirement,
 )
 from token_iq.gateway.proxy.utils import handle_exception_on_proxy
-from token_iq.gateway.types.utils import LiteLLMFineTuningJob
+from token_iq.gateway.types.utils import GatewayFineTuningJob
 
 router: Final = APIRouter()
 
-from token_iq.gateway.types.llms.openai import LiteLLMFineTuningJobCreate
+from token_iq.gateway.types.llms.openai import GatewayFineTuningJobCreate
 
 fine_tuning_config = None
 
@@ -74,7 +74,7 @@ def get_fine_tuning_provider_config(
 async def create_fine_tuning_job(
     request: Request,
     fastapi_response: Response,
-    fine_tuning_request: LiteLLMFineTuningJobCreate,
+    fine_tuning_request: GatewayFineTuningJobCreate,
     user_api_key_dict: UserAPIKeyAuth = Depends(user_api_key_auth),
 ):
     """
@@ -147,7 +147,7 @@ async def create_fine_tuning_job(
             user_api_key_dict=user_api_key_dict,
             managed_files_obj=proxy_logging_obj.get_proxy_hook("managed_files"),
         )
-        response: LiteLLMFineTuningJob | None = None
+        response: GatewayFineTuningJob | None = None
         if training_file:
             unified_file_id = _is_base64_encoded_unified_file_id(training_file)
         ## IF SO, Route based on that
@@ -159,7 +159,7 @@ async def create_fine_tuning_job(
                     detail={"error": "LLM Router not initialized. Ensure models added to proxy."},
                 )
 
-            response = cast(LiteLLMFineTuningJob, await llm_router.acreate_fine_tuning_job(**data))
+            response = cast(GatewayFineTuningJob, await llm_router.acreate_fine_tuning_job(**data))
             response.training_file = unified_file_id
             response._hidden_params["unified_file_id"] = unified_file_id
         ## ELSE, Route based on custom_llm_provider
@@ -183,7 +183,7 @@ async def create_fine_tuning_job(
             user_api_key_dict=user_api_key_dict,
             response=response,
         )
-        if _response is not None and isinstance(_response, LiteLLMFineTuningJob):
+        if _response is not None and isinstance(_response, GatewayFineTuningJob):
             response = _response
 
         ### ALERTING ###
@@ -289,7 +289,7 @@ async def retrieve_fine_tuning_job(
 
         ## CHECK IF MANAGED FILE ID
         unified_finetuning_job_id: str | Literal[False] = False
-        response: LiteLLMFineTuningJob | None = None
+        response: GatewayFineTuningJob | None = None
         if fine_tuning_job_id:
             unified_finetuning_job_id = _is_base64_encoded_unified_file_id(fine_tuning_job_id)
         if unified_finetuning_job_id:
@@ -299,7 +299,7 @@ async def retrieve_fine_tuning_job(
                     detail={"error": "LLM Router not initialized. Ensure models added to proxy."},
                 )
             response = cast(
-                LiteLLMFineTuningJob,
+                GatewayFineTuningJob,
                 await llm_router.aretrieve_fine_tuning_job(
                     **data,
                 ),
@@ -328,7 +328,7 @@ async def retrieve_fine_tuning_job(
             user_api_key_dict=user_api_key_dict,
             response=response,
         )
-        if _response is not None and isinstance(_response, LiteLLMFineTuningJob):
+        if _response is not None and isinstance(_response, GatewayFineTuningJob):
             response = _response
 
         ### ALERTING ###
@@ -562,7 +562,7 @@ async def cancel_fine_tuning_job(
 
         ## CHECK IF MANAGED FILE ID
         unified_finetuning_job_id: str | Literal[False] = False
-        response: LiteLLMFineTuningJob | None = None
+        response: GatewayFineTuningJob | None = None
         if fine_tuning_job_id:
             unified_finetuning_job_id = _is_base64_encoded_unified_file_id(fine_tuning_job_id)
         if unified_finetuning_job_id:
@@ -572,7 +572,7 @@ async def cancel_fine_tuning_job(
                     detail={"error": "LLM Router not initialized. Ensure models added to proxy."},
                 )
             response = cast(
-                LiteLLMFineTuningJob,
+                GatewayFineTuningJob,
                 await llm_router.acancel_fine_tuning_job(
                     **data,
                 ),
@@ -601,7 +601,7 @@ async def cancel_fine_tuning_job(
             user_api_key_dict=user_api_key_dict,
             response=response,
         )
-        if _response is not None and isinstance(_response, LiteLLMFineTuningJob):
+        if _response is not None and isinstance(_response, GatewayFineTuningJob):
             response = _response
 
         ### ALERTING ###

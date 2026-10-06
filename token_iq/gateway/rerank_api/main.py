@@ -7,7 +7,7 @@ from typing import Any, Final, Literal
 from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.core_utils.get_llm_provider_logic import declared_authenticating_provider
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.llms.base_llm.rerank.transformation import BaseRerankConfig
 from token_iq.gateway.llms.bedrock.rerank.handler import BedrockRerankHandler
 from token_iq.gateway.llms.custom_httpx.llm_http_handler import BaseLLMHTTPHandler
@@ -127,7 +127,7 @@ def rerank(
     # adding real safety; it stays typed downstream via get_optional_rerank_params.
     instruction: Final[str | None] = kwargs.get("instruction", None)
     headers: Final[dict | None] = kwargs.get("headers")
-    litellm_logging_obj: Final[LiteLLMLoggingObj] = kwargs.get("litellm_logging_obj")
+    litellm_logging_obj: Final[GatewayLoggingObj] = kwargs.get("litellm_logging_obj")
     litellm_call_id: Final[str | None] = kwargs.get("litellm_call_id", None)
     proxy_server_request: Final = kwargs.get("proxy_server_request", None)
     model_info: Final = kwargs.get("model_info", None)
@@ -136,7 +136,7 @@ def rerank(
     _custom_llm_provider: str | None = None  # rebind-ok: set by the get_llm_provider unpack; read in the except
     try:
         _is_async: Final = kwargs.pop("arerank", False) is True
-        optional_params: Final = GenericLiteLLMParams(**kwargs)
+        optional_params: Final = GenericGatewayParams(**kwargs)
         # Params that are unique to specific versions of the client for the rerank call
         unique_version_params: Final = {
             "max_chunks_per_doc": max_chunks_per_doc,
@@ -184,7 +184,7 @@ def rerank(
 
         model_response: Final = RerankResponse()
 
-        rerank_litellm_params: Final = {
+        rerank_gateway_params: Final = {
             "litellm_call_id": litellm_call_id,
             "proxy_server_request": proxy_server_request,
             "model_info": model_info,
@@ -198,7 +198,7 @@ def rerank(
             model=model,
             user=user,
             optional_params=dict(optional_rerank_params),
-            litellm_params=dict(rerank_litellm_params),
+            litellm_params=dict(rerank_gateway_params),
             custom_llm_provider=_custom_llm_provider,
         )
 
@@ -233,7 +233,7 @@ def rerank(
                 headers=headers or gateway.headers or {},
                 client=client,
                 model_response=model_response,
-                litellm_params=rerank_litellm_params,
+                litellm_params=rerank_gateway_params,
             )
         elif _custom_llm_provider == gateway.LlmProviders.AZURE_AI:
             api_base = (
@@ -255,7 +255,7 @@ def rerank(
                 headers=headers or gateway.headers or {},
                 client=client,
                 model_response=model_response,
-                litellm_params=rerank_litellm_params,
+                litellm_params=rerank_gateway_params,
             )
         elif _custom_llm_provider == gateway.LlmProviders.INFINITY:
             # Implement Infinity rerank logic
@@ -281,7 +281,7 @@ def rerank(
                 headers=headers or gateway.headers or {},
                 client=client,
                 model_response=model_response,
-                litellm_params=rerank_litellm_params,
+                litellm_params=rerank_gateway_params,
             )
         elif _custom_llm_provider == gateway.LlmProviders.TOGETHER_AI:
             # Implement Together AI rerank logic
@@ -331,7 +331,7 @@ def rerank(
                 headers=headers or gateway.headers or {},
                 client=client,
                 model_response=model_response,
-                litellm_params=rerank_litellm_params,
+                litellm_params=rerank_gateway_params,
             )
         elif _custom_llm_provider == gateway.LlmProviders.NVIDIA_NIM:
             if dynamic_api_key is None:
@@ -358,7 +358,7 @@ def rerank(
                 headers=headers or gateway.headers or {},
                 client=client,
                 model_response=model_response,
-                litellm_params=rerank_litellm_params,
+                litellm_params=rerank_gateway_params,
             )
         elif _custom_llm_provider == gateway.LlmProviders.BEDROCK:
             api_base = (
@@ -411,7 +411,7 @@ def rerank(
                 headers=headers or gateway.headers or {},
                 client=client,
                 model_response=model_response,
-                litellm_params=rerank_litellm_params,
+                litellm_params=rerank_gateway_params,
             )
 
         elif _custom_llm_provider == gateway.LlmProviders.DEEPINFRA:
@@ -437,7 +437,7 @@ def rerank(
                 headers=headers or gateway.headers or {},
                 client=client,
                 model_response=model_response,
-                litellm_params=rerank_litellm_params,
+                litellm_params=rerank_gateway_params,
             )
         elif _custom_llm_provider == gateway.LlmProviders.FIREWORKS_AI:
             api_key = (
@@ -464,7 +464,7 @@ def rerank(
                 headers=headers or gateway.headers or {},
                 client=client,
                 model_response=model_response,
-                litellm_params=rerank_litellm_params,
+                litellm_params=rerank_gateway_params,
             )
         elif _custom_llm_provider == gateway.LlmProviders.VOYAGE:
             api_key = (
@@ -489,7 +489,7 @@ def rerank(
                 headers=headers or gateway.headers or {},
                 client=client,
                 model_response=model_response,
-                litellm_params=rerank_litellm_params,
+                litellm_params=rerank_gateway_params,
             )
         elif _custom_llm_provider == gateway.LlmProviders.WATSONX:
             credentials: Final = IBMWatsonXMixin.get_watsonx_credentials(
@@ -517,7 +517,7 @@ def rerank(
                 headers=headers or gateway.headers or {},
                 client=client,
                 model_response=model_response,
-                litellm_params=rerank_litellm_params,
+                litellm_params=rerank_gateway_params,
             )
         else:
             # Generic handler for all providers that use base_llm_http_handler
@@ -550,7 +550,7 @@ def rerank(
                 headers=headers or gateway.headers or {},
                 client=client,
                 model_response=model_response,
-                litellm_params=rerank_litellm_params,
+                litellm_params=rerank_gateway_params,
             )
 
         # Placeholder return

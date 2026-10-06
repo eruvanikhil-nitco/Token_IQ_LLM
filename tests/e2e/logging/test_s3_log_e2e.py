@@ -35,7 +35,7 @@ from logging_client import (
     first_ok,
     readiness_details_body,
 )
-from models import LiteLLMParamsBody
+from models import GatewayParamsBody
 from s3_reader import S3LogReader, build_s3_reader
 
 pytestmark = pytest.mark.e2e
@@ -126,7 +126,7 @@ class TestS3LogDelivery:
         model_name = f"s3-err-{unique_marker()}"
         model_id = client.create_model(
             model_name,
-            LiteLLMParamsBody(model="anthropic/claude-haiku-4-5", api_key=INVALID_UPSTREAM_API_KEY),
+            GatewayParamsBody(model="anthropic/claude-haiku-4-5", api_key=INVALID_UPSTREAM_API_KEY),
         )
         resources.defer(lambda: client.delete_model(model_id))
         alias = f"s3-err-key-{unique_marker()}"

@@ -1861,7 +1861,7 @@ class TestBedrockFileContentTransformation:
     S3_URI = "s3://my-bucket/litellm-batch-outputs/job-123/input.jsonl.out"
     EXPECTED_URL = "https://s3.us-west-2.amazonaws.com/my-bucket/litellm-batch-outputs/job-123/input.jsonl.out"
 
-    def _litellm_params(self) -> dict:
+    def _gateway_params(self) -> dict:
         return {
             "aws_access_key_id": "AKIAEXAMPLE",
             "aws_secret_access_key": "secret",
@@ -1878,7 +1878,7 @@ class TestBedrockFileContentTransformation:
         )
 
         monkeypatch.setenv("AWS_S3_BUCKET_NAME", "my-bucket")
-        litellm_params = self._litellm_params()
+        litellm_params = self._gateway_params()
 
         url, params = BedrockFilesConfig().transform_file_content_request(
             file_content_request={"file_id": self.S3_URI},
@@ -1924,7 +1924,7 @@ class TestBedrockFileContentTransformation:
         url, _ = BedrockFilesConfig().transform_file_content_request(
             file_content_request={"file_id": encoded_file_id},
             optional_params={},
-            litellm_params=self._litellm_params(),
+            litellm_params=self._gateway_params(),
         )
 
         assert url == self.EXPECTED_URL
@@ -1940,7 +1940,7 @@ class TestBedrockFileContentTransformation:
                     "file_id": "s3://other-bucket/litellm-batch-outputs/job/x.jsonl.out"
                 },
                 optional_params={},
-                litellm_params=self._litellm_params(),
+                litellm_params=self._gateway_params(),
             )
 
     def test_transform_file_content_request_rejects_unmanaged_key(self, monkeypatch):
@@ -1952,7 +1952,7 @@ class TestBedrockFileContentTransformation:
             BedrockFilesConfig().transform_file_content_request(
                 file_content_request={"file_id": "s3://my-bucket/private/x.jsonl"},
                 optional_params={},
-                litellm_params=self._litellm_params(),
+                litellm_params=self._gateway_params(),
             )
 
     def test_extract_s3_uri_rejects_non_managed_file_id(self):
@@ -1977,7 +1977,7 @@ class TestBedrockFileContentTransformation:
             BedrockFilesConfig().transform_file_content_request(
                 file_content_request={"file_id": self.S3_URI},
                 optional_params={},
-                litellm_params=self._litellm_params(),
+                litellm_params=self._gateway_params(),
             )
 
     def test_transform_file_content_request_requires_file_id(self, monkeypatch):
@@ -1989,10 +1989,10 @@ class TestBedrockFileContentTransformation:
             BedrockFilesConfig().transform_file_content_request(
                 file_content_request={},
                 optional_params={},
-                litellm_params=self._litellm_params(),
+                litellm_params=self._gateway_params(),
             )
 
-    def _trusted(self, **deployment_litellm_params) -> dict:
+    def _trusted(self, **deployment_gateway_params) -> dict:
         """Build the trusted snapshot the way the proxy does: deployment
         litellm_params funneled through ``CredentialLiteLLMParams`` (the strict
         allowlist ``get_deployment_credentials_with_provider`` applies) before
@@ -2001,12 +2001,12 @@ class TestBedrockFileContentTransformation:
         into the snapshot in production."""
         from types import MappingProxyType
 
-        from token_iq.gateway.types.router import CredentialLiteLLMParams
+        from token_iq.gateway.types.router import CredentialGatewayParams
 
-        snapshot = CredentialLiteLLMParams(**deployment_litellm_params).model_dump(
+        snapshot = CredentialGatewayParams(**deployment_gateway_params).model_dump(
             exclude_none=True
         )
-        params = self._litellm_params()
+        params = self._gateway_params()
         params["_litellm_internal_model_credentials"] = MappingProxyType(snapshot)
         return params
 
@@ -2049,7 +2049,7 @@ class TestBedrockFileContentTransformation:
                 "file_id": "s3://env-out-bucket/litellm-batch-outputs/job/in.jsonl.out"
             },
             optional_params={},
-            litellm_params=self._litellm_params(),
+            litellm_params=self._gateway_params(),
         )
 
         assert (
@@ -2113,7 +2113,7 @@ class TestBedrockFileContentTransformation:
             BedrockFilesConfig().transform_file_content_request(
                 file_content_request={"file_id": self.S3_URI},
                 optional_params={},
-                litellm_params=self._litellm_params(),
+                litellm_params=self._gateway_params(),
             )
 
     def test_bucket_resolved_from_trusted_model_credentials(self, monkeypatch):
@@ -2123,7 +2123,7 @@ class TestBedrockFileContentTransformation:
         from token_iq.gateway.llms.bedrock.files.transformation import BedrockFilesConfig
 
         monkeypatch.delenv("AWS_S3_BUCKET_NAME", raising=False)
-        litellm_params = self._litellm_params()
+        litellm_params = self._gateway_params()
         litellm_params["_litellm_internal_model_credentials"] = MappingProxyType(
             {"s3_bucket_name": "my-bucket"}
         )
@@ -2144,7 +2144,7 @@ class TestBedrockFileContentTransformation:
         )
 
         monkeypatch.setenv("AWS_S3_BUCKET_NAME", "my-bucket")
-        litellm_params = self._litellm_params()
+        litellm_params = self._gateway_params()
         litellm_params["s3_region_name"] = "eu-west-1"
 
         url, _ = BedrockFilesConfig().transform_file_content_request(
@@ -2238,7 +2238,7 @@ class TestBedrockFileContentTransformation:
             response = gateway.file_content(
                 file_id=self.S3_URI,
                 custom_llm_provider="bedrock",
-                **self._litellm_params(),
+                **self._gateway_params(),
             )
 
         assert route.called
@@ -2268,7 +2268,7 @@ class TestBedrockFileContentTransformation:
             response = await gateway.afile_content(
                 file_id=self.S3_URI,
                 custom_llm_provider="bedrock",
-                **self._litellm_params(),
+                **self._gateway_params(),
             )
 
         assert route.called

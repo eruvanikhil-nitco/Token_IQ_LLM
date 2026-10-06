@@ -19,7 +19,7 @@ from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.constants import DEFAULT_MAX_RECURSE_DEPTH
 from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
 from token_iq.gateway.core_utils.safe_json_dumps import safe_dumps
-from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
 from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 from token_iq.gateway.proxy.common_utils.path_utils import safe_join
 from token_iq.gateway.proxy.guardrails.guardrail_hooks.custom_code.sandbox import (
@@ -247,24 +247,24 @@ async def list_guardrails_v2(
         seen_guardrail_ids: Final[set] = excluded_guardrail_ids.copy()
         for guardrail in guardrails:
             litellm_params: LitellmParams | dict | None = guardrail.get("litellm_params")
-            litellm_params_dict = (
+            gateway_params_dict = (
                 litellm_params.model_dump(exclude_none=True)
                 if isinstance(litellm_params, LitellmParams)
                 else litellm_params
             ) or {}
-            masked_litellm_params_dict = _get_masked_values(
-                litellm_params_dict,
+            masked_gateway_params_dict = _get_masked_values(
+                gateway_params_dict,
                 unmasked_length=4,
                 number_of_asterisks=4,
             )
-            masked_litellm_params = (
-                BaseLitellmParams(**masked_litellm_params_dict) if masked_litellm_params_dict else None
+            masked_gateway_params = (
+                BaseLitellmParams(**masked_gateway_params_dict) if masked_gateway_params_dict else None
             )
             guardrail_configs.append(
                 GuardrailInfoResponse(
                     guardrail_id=guardrail.get("guardrail_id"),
                     guardrail_name=guardrail.get("guardrail_name"),
-                    litellm_params=masked_litellm_params,
+                    litellm_params=masked_gateway_params,
                     guardrail_info=guardrail.get("guardrail_info"),
                     created_at=guardrail.get("created_at"),
                     updated_at=guardrail.get("updated_at"),
@@ -287,25 +287,25 @@ async def list_guardrails_v2(
                 g_team_id = guardrail.get("team_id")
                 if g_team_id is not None and g_team_id not in caller_team_ids:
                     continue
-            in_memory_litellm_params_raw = guardrail.get("litellm_params")
-            in_memory_litellm_params_dict = (
-                in_memory_litellm_params_raw.model_dump(exclude_none=True)
-                if isinstance(in_memory_litellm_params_raw, LitellmParams)
-                else in_memory_litellm_params_raw
+            in_memory_gateway_params_raw = guardrail.get("litellm_params")
+            in_memory_gateway_params_dict = (
+                in_memory_gateway_params_raw.model_dump(exclude_none=True)
+                if isinstance(in_memory_gateway_params_raw, LitellmParams)
+                else in_memory_gateway_params_raw
             ) or {}
-            masked_in_memory_litellm_params = _get_masked_values(
-                in_memory_litellm_params_dict,
+            masked_in_memory_gateway_params = _get_masked_values(
+                in_memory_gateway_params_dict,
                 unmasked_length=4,
                 number_of_asterisks=4,
             )
-            masked_in_memory_litellm_params_typed = (
-                BaseLitellmParams(**masked_in_memory_litellm_params) if masked_in_memory_litellm_params else None
+            masked_in_memory_gateway_params_typed = (
+                BaseLitellmParams(**masked_in_memory_gateway_params) if masked_in_memory_gateway_params else None
             )
             guardrail_configs.append(
                 GuardrailInfoResponse(
                     guardrail_id=guardrail.get("guardrail_id"),
                     guardrail_name=guardrail.get("guardrail_name"),
-                    litellm_params=masked_in_memory_litellm_params_typed,
+                    litellm_params=masked_in_memory_gateway_params_typed,
                     guardrail_info=dict(guardrail.get("guardrail_info") or {}),
                     guardrail_definition_location="config",
                 )
@@ -380,7 +380,7 @@ async def create_guardrail(
     from token_iq.gateway.proxy.guardrails.guardrail_registry import IN_MEMORY_GUARDRAIL_HANDLER
     from token_iq.gateway.proxy.proxy_server import prisma_client
 
-    if user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN:
+    if user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN:
         raise HTTPException(
             status_code=403,
             detail="Admin access required to manage guardrails",
@@ -488,7 +488,7 @@ async def update_guardrail(
     from token_iq.gateway.proxy.guardrails.guardrail_registry import IN_MEMORY_GUARDRAIL_HANDLER
     from token_iq.gateway.proxy.proxy_server import prisma_client
 
-    if user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN:
+    if user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN:
         raise HTTPException(
             status_code=403,
             detail="Admin access required to manage guardrails",
@@ -581,7 +581,7 @@ async def delete_guardrail(
     from token_iq.gateway.proxy.guardrails.guardrail_registry import IN_MEMORY_GUARDRAIL_HANDLER
     from token_iq.gateway.proxy.proxy_server import prisma_client
 
-    if user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN:
+    if user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN:
         raise HTTPException(
             status_code=403,
             detail="Admin access required to manage guardrails",
@@ -640,7 +640,7 @@ class RegisterGuardrailRequest(BaseModel):
     guardrail_info: dict[str, object] | None = None
     team_id: str | None = None
 
-    def get_litellm_params_dict(self) -> dict[str, Any]:
+    def get_gateway_params_dict(self) -> dict[str, Any]:
         return dict(self.litellm_params)
 
 
@@ -711,7 +711,7 @@ async def register_guardrail(
         )
 
     # Validate team membership for non-admin users when team differs from key
-    is_admin: Final = user_api_key_dict.user_role == LitellmUserRoles.PROXY_ADMIN
+    is_admin: Final = user_api_key_dict.user_role == GatewayUserRoles.PROXY_ADMIN
     if not is_admin and team_id != user_api_key_dict.team_id:
         user_team_ids: Final = await _get_user_team_ids(user_api_key_dict)
         if team_id not in user_team_ids:
@@ -720,7 +720,7 @@ async def register_guardrail(
                 detail=f"You are not a member of team {team_id!r}",
             )
 
-    params: Final = request.get_litellm_params_dict()
+    params: Final = request.get_gateway_params_dict()
     if params.get("guardrail") != GENERIC_GUARDRAIL_API:
         raise HTTPException(
             status_code=400,
@@ -764,7 +764,7 @@ async def register_guardrail(
         raise HTTPException(status_code=500, detail=str(e))
 
     now: Final = datetime.now(timezone.utc)
-    litellm_params_str: Final = safe_dumps(params)
+    gateway_params_str: Final = safe_dumps(params)
     guardrail_info: Final = dict(request.guardrail_info or {})
     guardrail_info["submitted_by_user_id"] = user_api_key_dict.user_id
     guardrail_info["submitted_by_email"] = user_api_key_dict.user_email
@@ -776,7 +776,7 @@ async def register_guardrail(
             prisma_client,
             data={
                 "guardrail_name": request.guardrail_name,
-                "litellm_params": litellm_params_str,
+                "litellm_params": gateway_params_str,
                 "guardrail_info": guardrail_info_str,
                 "status": "pending_review",
                 "team_id": team_id,
@@ -1001,7 +1001,7 @@ async def approve_guardrail_submission(
     from token_iq.gateway.proxy.guardrails.guardrail_registry import IN_MEMORY_GUARDRAIL_HANDLER
     from token_iq.gateway.proxy.proxy_server import prisma_client
 
-    if user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN:
+    if user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN:
         raise HTTPException(status_code=403, detail="Admin access required")
 
     if prisma_client is None:
@@ -1081,7 +1081,7 @@ async def reject_guardrail_submission(
     """Reject a guardrail submission (admin only)."""
     from token_iq.gateway.proxy.proxy_server import prisma_client
 
-    if user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN:
+    if user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN:
         raise HTTPException(status_code=403, detail="Admin access required")
 
     if prisma_client is None:
@@ -1171,7 +1171,7 @@ async def patch_guardrail(
     from token_iq.gateway.proxy.guardrails.guardrail_registry import IN_MEMORY_GUARDRAIL_HANDLER
     from token_iq.gateway.proxy.proxy_server import prisma_client
 
-    if user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN:
+    if user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN:
         raise HTTPException(
             status_code=403,
             detail="Admin access required to manage guardrails",
@@ -1195,14 +1195,14 @@ async def patch_guardrail(
         )
 
         # Update litellm_params if default_on is provided or pii_entities_config is provided
-        existing_litellm_params: Final = _as_str_object_mapping(dict(existing_guardrail.get("litellm_params", {})))
-        litellm_params = LitellmParams(**existing_litellm_params)
+        existing_gateway_params: Final = _as_str_object_mapping(dict(existing_guardrail.get("litellm_params", {})))
+        litellm_params = LitellmParams(**existing_gateway_params)
         if request.litellm_params is not None:
-            requested_litellm_params: Final = request.litellm_params.model_dump(exclude_unset=True)
-            litellm_params_dict: Final = litellm_params.model_dump(exclude_unset=True)
-            litellm_params_dict.update(requested_litellm_params)
-            merged_litellm_params: Final = _as_str_object_mapping(litellm_params_dict)
-            litellm_params = LitellmParams(**merged_litellm_params)
+            requested_gateway_params: Final = request.litellm_params.model_dump(exclude_unset=True)
+            gateway_params_dict: Final = litellm_params.model_dump(exclude_unset=True)
+            gateway_params_dict.update(requested_gateway_params)
+            merged_gateway_params: Final = _as_str_object_mapping(gateway_params_dict)
+            litellm_params = LitellmParams(**merged_gateway_params)
 
         # Update guardrail_info if provided
         guardrail_info: Final = (
@@ -1247,7 +1247,7 @@ async def patch_guardrail(
                 guardrail=Guardrail(
                     guardrail_id=guardrail_id,
                     guardrail_name=existing_guardrail.get("guardrail_name") or "",
-                    litellm_params=LitellmParams(**existing_litellm_params),
+                    litellm_params=LitellmParams(**existing_gateway_params),
                     guardrail_info=existing_guardrail.get(
                         "guardrail_info",
                         {},  # mutable-ok: Guardrail's own constructor takes a plain dict
@@ -1343,22 +1343,22 @@ async def get_guardrail_info(guardrail_id: str):
             raise HTTPException(status_code=404, detail=f"Guardrail with ID {guardrail_id} not found")
 
         litellm_params: Final[LitellmParams | dict | None] = result.get("litellm_params")
-        result_litellm_params_dict: Final = (
+        result_gateway_params_dict: Final = (
             litellm_params.model_dump(exclude_none=True)
             if isinstance(litellm_params, LitellmParams)
             else litellm_params
         ) or {}
-        masked_litellm_params_dict: Final = _get_masked_values(
-            result_litellm_params_dict,
+        masked_gateway_params_dict: Final = _get_masked_values(
+            result_gateway_params_dict,
             unmasked_length=4,
             number_of_asterisks=4,
         )
-        masked_litellm_params = BaseLitellmParams(**masked_litellm_params_dict) if masked_litellm_params_dict else None
+        masked_gateway_params = BaseLitellmParams(**masked_gateway_params_dict) if masked_gateway_params_dict else None
 
         return GuardrailInfoResponse(
             guardrail_id=result.get("guardrail_id"),
             guardrail_name=result.get("guardrail_name"),
-            litellm_params=masked_litellm_params,
+            litellm_params=masked_gateway_params,
             guardrail_info=dict(result.get("guardrail_info") or {}),
             created_at=result.get("created_at"),
             updated_at=result.get("updated_at"),
@@ -2103,7 +2103,7 @@ async def test_custom_code_guardrail(
     ```
     """
 
-    if user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN:
+    if user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN:
         raise HTTPException(
             status_code=403,
             detail="Admin access required to test custom code guardrails",

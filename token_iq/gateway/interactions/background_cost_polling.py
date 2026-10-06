@@ -45,7 +45,7 @@ from token_iq.gateway.core_utils.core_helpers import get_litellm_metadata_from_k
 from token_iq.gateway.types.interactions import InteractionsAPIResponse
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 
 _TERMINAL_STATUSES: Final = frozenset(
     {"completed", "failed", "cancelled", "incomplete", "budget_exceeded", "requires_action"}
@@ -60,7 +60,7 @@ _STATUSES_THAT_PRODUCED_OUTPUT: Final = frozenset({"completed", "requires_action
 class BackgroundInteractionPollContext:
     interaction_id: str
     custom_llm_provider: str
-    logging_obj: "LiteLLMLoggingObj"
+    logging_obj: "GatewayLoggingObj"
     api_key: str | None = None
     api_base: str | None = None
     initial_interval_seconds: float = BACKGROUND_INTERACTION_COST_POLL_INITIAL_INTERVAL_SECONDS
@@ -97,11 +97,11 @@ def _poll_intervals(initial: float, maximum: float, timeout: float) -> Iterator[
 _SETTLED_KEY = "background_interaction_settled"
 
 
-def _is_settled(logging_obj: "LiteLLMLoggingObj") -> bool:
+def _is_settled(logging_obj: "GatewayLoggingObj") -> bool:
     return logging_obj.model_call_details.get(_SETTLED_KEY) is True
 
 
-def _claim_settlement(logging_obj: "LiteLLMLoggingObj") -> bool:
+def _claim_settlement(logging_obj: "GatewayLoggingObj") -> bool:
     """
     Exactly-once gate between the poll task and the delete-time settlement:
     both run on the same event loop and neither awaits between reading and
@@ -165,7 +165,7 @@ async def poll_and_log_background_interaction_cost(
     await _release_open_budget_reservation(logging_obj=context.logging_obj)
 
 
-async def _release_open_budget_reservation(logging_obj: "LiteLLMLoggingObj") -> None:
+async def _release_open_budget_reservation(logging_obj: "GatewayLoggingObj") -> None:
     """
     The proxy keeps the pre-call budget reservation open for an in-progress
     background interaction so concurrent creates cannot stack past the budget.
@@ -188,7 +188,7 @@ async def _release_open_budget_reservation(logging_obj: "LiteLLMLoggingObj") -> 
         verbose_logger.exception("Failed to release budget reservation for an unbilled background interaction")
 
 
-async def _bill_settled_interaction(logging_obj: "LiteLLMLoggingObj", response: InteractionsAPIResponse) -> None:
+async def _bill_settled_interaction(logging_obj: "GatewayLoggingObj", response: InteractionsAPIResponse) -> None:
     """
     Claiming the settlement makes the claimer solely responsible for the
     reservation, and no one retries a claim that is already set. A billing

@@ -8,7 +8,7 @@ from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.testclient import TestClient
 
-from token_iq.gateway.proxy._types import LiteLLMRoutes, LitellmUserRoles
+from token_iq.gateway.proxy._types import GatewayRoutes, GatewayUserRoles
 from token_iq.gateway.proxy.auth.user_api_key_auth import UserAPIKeyAuth, user_api_key_auth
 from token_iq.gateway.proxy.list_api.common import (
     PROBLEM_TYPE_BASE,
@@ -87,13 +87,13 @@ def _serve(query_raw, rows: list[dict[str, Any]], total: int | None = None) -> N
 @pytest.fixture
 def as_proxy_admin():
     app.dependency_overrides[user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_id="admin", user_role=LitellmUserRoles.PROXY_ADMIN
+        user_id="admin", user_role=GatewayUserRoles.PROXY_ADMIN
     )
     yield
     app.dependency_overrides.clear()
 
 
-def _as_role(role: LitellmUserRoles):
+def _as_role(role: GatewayUserRoles):
     original = app.dependency_overrides.copy()
     app.dependency_overrides[user_api_key_auth] = lambda: UserAPIKeyAuth(user_id="u", user_role=role)
     return original
@@ -247,9 +247,9 @@ def test_offsets_by_page(query_raw, as_proxy_admin):
 @pytest.mark.parametrize(
     "role",
     [
-        LitellmUserRoles.INTERNAL_USER,
-        LitellmUserRoles.INTERNAL_USER_VIEW_ONLY,
-        LitellmUserRoles.TEAM,
+        GatewayUserRoles.INTERNAL_USER,
+        GatewayUserRoles.INTERNAL_USER_VIEW_ONLY,
+        GatewayUserRoles.TEAM,
     ],
 )
 def test_refuses_a_caller_without_admin_view(query_raw, role):
@@ -268,7 +268,7 @@ def test_refuses_a_caller_without_admin_view(query_raw, role):
     query_raw.assert_not_called()
 
 
-@pytest.mark.parametrize("role", [LitellmUserRoles.PROXY_ADMIN, LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY])
+@pytest.mark.parametrize("role", [GatewayUserRoles.PROXY_ADMIN, GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY])
 def test_admins_and_admin_viewers_may_read_every_budget(query_raw, role):
     _serve(query_raw, [_row("b-1")])
     original = _as_role(role)
@@ -285,7 +285,7 @@ def test_admins_and_admin_viewers_may_read_every_budget(query_raw, role):
 def test_a_denied_caller_stays_denied_whatever_they_filter_on(query_raw):
     """The scope decision reads the caller, never the query string."""
     _serve(query_raw, [_row("b-1")])
-    original = _as_role(LitellmUserRoles.INTERNAL_USER)
+    original = _as_role(GatewayUserRoles.INTERNAL_USER)
     try:
         response = _get("filter[max_budget][gte]=0&q=b-")
     finally:
@@ -305,7 +305,7 @@ def test_a_filter_sits_behind_the_scope_predicate_instead_of_replacing_it():
     plan = build_query_plan(
         spec=scoped,
         params={"filter[max_budget][gte]": "5"},
-        caller=UserAPIKeyAuth(user_id="u", user_role=LitellmUserRoles.INTERNAL_USER),
+        caller=UserAPIKeyAuth(user_id="u", user_role=GatewayUserRoles.INTERNAL_USER),
     )
 
     assert plan.where[0] == Compare(field="budget_id", op="eq", value="b-1")
@@ -519,7 +519,7 @@ def test_the_spec_serves_what_the_row_model_declares():
 def test_is_reachable_by_the_roles_that_can_open_the_budgets_page():
     """Route-level auth gate, which the dependency_overrides above bypass. The handler's
     admin-view check is dead code if RouteChecks rejects the role first."""
-    assert BUDGETS_PATH in LiteLLMRoutes.admin_viewer_routes.value
-    assert ("/budget/list" in LiteLLMRoutes.admin_viewer_routes.value) == (
-        BUDGETS_PATH in LiteLLMRoutes.admin_viewer_routes.value
+    assert BUDGETS_PATH in GatewayRoutes.admin_viewer_routes.value
+    assert ("/budget/list" in GatewayRoutes.admin_viewer_routes.value) == (
+        BUDGETS_PATH in GatewayRoutes.admin_viewer_routes.value
     )

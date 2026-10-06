@@ -89,7 +89,7 @@ def test_build_judge_prompt_missing_name_and_weight():
 # ---------------------------------------------------------------------------
 
 
-def _make_litellm_params(**overrides):
+def _make_gateway_params(**overrides):
     params = MagicMock()
     for attr in ("guardrail_name", "judge_model", "criteria", "on_failure", "overall_threshold", "mode", "default_on"):
         setattr(params, attr, None)
@@ -98,15 +98,15 @@ def _make_litellm_params(**overrides):
     return params
 
 
-def _make_guardrail_dict(name="g", **litellm_params_overrides):
+def _make_guardrail_dict(name="g", **gateway_params_overrides):
     raw = {"judge_model": "gpt-4o-mini", "criteria": CRITERIA_100, "on_failure": "block", "overall_threshold": 80.0}
-    raw.update(litellm_params_overrides)
+    raw.update(gateway_params_overrides)
     return {"guardrail_name": name, "litellm_params": raw}
 
 
 @patch("token_iq.gateway.proxy.guardrails.guardrail_hooks.llm_as_a_judge.gateway.logging_callback_manager")
 def test_initialize_guardrail_ok(mock_mgr):
-    lp = _make_litellm_params()
+    lp = _make_gateway_params()
     g = _make_guardrail_dict()
     instance = initialize_guardrail(lp, g)
     assert isinstance(instance, LLMAsAJudgeGuardrail)
@@ -114,7 +114,7 @@ def test_initialize_guardrail_ok(mock_mgr):
 
 
 def test_initialize_guardrail_missing_judge_model():
-    lp = _make_litellm_params()
+    lp = _make_gateway_params()
     g = _make_guardrail_dict(judge_model=None)
     g["litellm_params"].pop("judge_model")
     with pytest.raises(ValueError, match="judge_model"):
@@ -122,7 +122,7 @@ def test_initialize_guardrail_missing_judge_model():
 
 
 def test_initialize_guardrail_weight_sum_not_100():
-    lp = _make_litellm_params()
+    lp = _make_gateway_params()
     bad_criteria = [{"name": "A", "weight": 50, "description": "d"}]
     g = _make_guardrail_dict(criteria=bad_criteria)
     with pytest.raises(ValueError, match="100"):
@@ -130,7 +130,7 @@ def test_initialize_guardrail_weight_sum_not_100():
 
 
 def test_initialize_guardrail_invalid_on_failure():
-    lp = _make_litellm_params()
+    lp = _make_gateway_params()
     g = _make_guardrail_dict(on_failure="explode")
     with pytest.raises(ValueError, match="on_failure"):
         initialize_guardrail(lp, g)
@@ -445,7 +445,7 @@ def test_default_router_provider_reads_global_router():
 def test_initialize_guardrail_uses_default_router_provider(mock_mgr):
     from token_iq.gateway.proxy.guardrails.guardrail_hooks.llm_as_a_judge import _default_router_provider
 
-    lp = _make_litellm_params()
+    lp = _make_gateway_params()
     g = _make_guardrail_dict(judge_model="my-judge-alias")
     instance = initialize_guardrail(lp, g)
     assert instance._router_provider is _default_router_provider

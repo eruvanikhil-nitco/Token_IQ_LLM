@@ -178,7 +178,7 @@ class TestSingulrBuildPayloadRequestData:
         tool_calls = payload["request_data"]["model_response"]["choices"][0]["message"]["tool_calls"]
         assert tool_calls[0]["function"]["name"] == "get_current_time"
 
-    def test_litellm_metadata_is_forwarded(self, singulr_guardrail):
+    def test_gateway_metadata_is_forwarded(self, singulr_guardrail):
         request_data = {"model": "gpt-4o", "litellm_metadata": {"user_api_key_hash": "abc123"}}
         payload = singulr_guardrail._build_payload(request_data, {"texts": []}, "request")
         assert payload["request_data"]["litellm_metadata"] == {"user_api_key_hash": "abc123"}

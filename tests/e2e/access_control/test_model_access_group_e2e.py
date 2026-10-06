@@ -28,7 +28,7 @@ from lifecycle import ResourceManager
 from models import (
     ChatResponse,
     KeyGenerateBody,
-    LiteLLMParamsBody,
+    GatewayParamsBody,
     ModelInfoBody,
     ModelNewBody,
 )
@@ -90,7 +90,7 @@ def _provider_key(env_var: str) -> str:
 def _grouped_model(model_name: str, backend: str, access_groups: list[str] | None) -> ModelNewBody:
     return ModelNewBody(
         model_name=model_name,
-        litellm_params=LiteLLMParamsBody(model=backend, api_key=_provider_key("OPENAI_API_KEY")),
+        litellm_params=GatewayParamsBody(model=backend, api_key=_provider_key("OPENAI_API_KEY")),
         model_info=ModelInfoBody(access_groups=access_groups),
     )
 
@@ -165,7 +165,7 @@ def team_grant(client: AccessControlClient) -> Iterator[TeamGrant]:
     model_id: Final = client.proxy.register_model(
         ModelNewBody(
             model_name=TEAM_WILDCARD_PATTERN,
-            litellm_params=LiteLLMParamsBody(
+            litellm_params=GatewayParamsBody(
                 model=TEAM_WILDCARD_PATTERN, api_key=_provider_key("OPENAI_API_KEY")
             ),
             model_info=ModelInfoBody(team_id=team_id, access_groups=[access_group]),

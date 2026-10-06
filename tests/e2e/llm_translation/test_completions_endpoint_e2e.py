@@ -15,7 +15,7 @@ from e2e_config import unique_marker
 from e2e_http import require_successful_call
 from endpoints_client import CompletionsResult, EndpointsClient
 from lifecycle import ResourceManager
-from models import LiteLLMParamsBody
+from models import GatewayParamsBody
 
 pytestmark = pytest.mark.e2e
 
@@ -28,7 +28,7 @@ class TestCompletionsEndpoint:
         model = f"e2e-completions-{unique_marker()}"
         model_id = endpoints_client.create_model(
             model,
-            LiteLLMParamsBody(
+            GatewayParamsBody(
                 model="text-completion-openai/gpt-3.5-turbo-instruct",
                 api_key="os.environ/OPENAI_API_KEY",
             ),

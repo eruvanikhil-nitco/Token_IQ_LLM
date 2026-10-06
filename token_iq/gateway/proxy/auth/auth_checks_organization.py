@@ -32,7 +32,7 @@ def organization_role_based_access_check(
     passed_organization_id: Final[str | None] = request_body.get("organization_id", None)
 
     if route == "/organization/new":
-        if user_object.user_role != LitellmUserRoles.PROXY_ADMIN.value:
+        if user_object.user_role != GatewayUserRoles.PROXY_ADMIN.value:
             raise ProxyException(
                 message=f"Only proxy admins can create new organizations. You are {user_object.user_role}",
                 type=ProxyErrorTypes.auth_error.value,
@@ -40,11 +40,11 @@ def organization_role_based_access_check(
                 code=status.HTTP_401_UNAUTHORIZED,
             )
 
-    if user_object.user_role == LitellmUserRoles.PROXY_ADMIN.value:
+    if user_object.user_role == GatewayUserRoles.PROXY_ADMIN.value:
         return
 
     # Checks if route is an Org Admin Only Route
-    if route in LiteLLMRoutes.org_admin_only_routes.value:
+    if route in GatewayRoutes.org_admin_only_routes.value:
         (
             _user_organizations,
             _user_organization_role_mapping,
@@ -66,7 +66,7 @@ def organization_role_based_access_check(
                 code=status.HTTP_401_UNAUTHORIZED,
             )
 
-        user_role: Final[LitellmUserRoles | None] = _user_organization_role_mapping.get(passed_organization_id)
+        user_role: Final[GatewayUserRoles | None] = _user_organization_role_mapping.get(passed_organization_id)
         if user_role is None:
             raise ProxyException(
                 message=f"You do not have a role within the selected organization. Passed organization_id: {passed_organization_id}. Please contact the organization admin to request access.",
@@ -75,7 +75,7 @@ def organization_role_based_access_check(
                 code=status.HTTP_401_UNAUTHORIZED,
             )
 
-        if user_role != LitellmUserRoles.ORG_ADMIN.value:
+        if user_role != GatewayUserRoles.ORG_ADMIN.value:
             raise ProxyException(
                 message=f"You do not have the required role to perform {route} in Organization {passed_organization_id}. Your role is {user_role} in Organization {passed_organization_id}",
                 type=ProxyErrorTypes.auth_error.value,
@@ -98,7 +98,7 @@ def organization_role_based_access_check(
                 )
 
             _user_role_in_passed_org: Final = _user_organization_role_mapping.get(passed_organization_id)
-            if _user_role_in_passed_org != LitellmUserRoles.ORG_ADMIN.value:
+            if _user_role_in_passed_org != GatewayUserRoles.ORG_ADMIN.value:
                 raise ProxyException(
                     message=f"You do not have the required role to call {route}. Your role is {_user_role_in_passed_org} in Organization {passed_organization_id}",
                     type=ProxyErrorTypes.auth_error.value,
@@ -109,7 +109,7 @@ def organization_role_based_access_check(
 
 def get_user_organization_info(
     user_object: LiteLLM_UserTable,
-) -> tuple[list[str], dict[str, LitellmUserRoles | None]]:
+) -> tuple[list[str], dict[str, GatewayUserRoles | None]]:
     """
     Helper function to extract user organization information.
 
@@ -122,7 +122,7 @@ def get_user_organization_info(
             - Dictionary mapping organization IDs to user roles
     """
     _user_organizations: Final[list[str]] = []
-    _user_organization_role_mapping: Final[dict[str, LitellmUserRoles | None]] = {}
+    _user_organization_role_mapping: Final[dict[str, GatewayUserRoles | None]] = {}
 
     if user_object.organization_memberships is not None:
         for _membership in user_object.organization_memberships:
@@ -166,7 +166,7 @@ def _user_is_org_admin(
     admin_org_ids: Final = {
         _membership.organization_id
         for _membership in user_object.organization_memberships
-        if _membership.user_role == LitellmUserRoles.ORG_ADMIN.value and _membership.organization_id is not None
+        if _membership.user_role == GatewayUserRoles.ORG_ADMIN.value and _membership.organization_id is not None
     }
 
     # User must be admin of ALL requested orgs, not just any one

@@ -101,7 +101,7 @@ def is_unbilled_non_inference_call_from_params(
     from token_iq.gateway.core_utils.litellm_logging import StandardLoggingPayloadSetup
 
     metadata: Final = (
-        StandardLoggingPayloadSetup.merge_litellm_metadata(litellm_params) if litellm_params is not None else None
+        StandardLoggingPayloadSetup.merge_gateway_metadata(litellm_params) if litellm_params is not None else None
     )
     return is_unbilled_non_inference_call(call_type, metadata, response)
 

@@ -51,9 +51,9 @@ def _make_app() -> FastAPI:
 
 # Stub the auth dependency so we don't need a real proxy running.
 def _override_auth():
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
 
-    return UserAPIKeyAuth(api_key="sk-test", user_id="admin", user_role=LitellmUserRoles.PROXY_ADMIN)
+    return UserAPIKeyAuth(api_key="sk-test", user_id="admin", user_role=GatewayUserRoles.PROXY_ADMIN)
 
 
 # A real (non-None) prisma stub for truthiness checks.
@@ -411,12 +411,12 @@ class TestToolManagementEndpoints:
         prisma.db.litellm_dailytoolspend.group_by.assert_not_awaited()
 
     def test_tool_spend_non_admin_returns_403(self):
-        from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+        from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
         from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 
         app = _make_app()
         app.dependency_overrides[user_api_key_auth] = lambda: UserAPIKeyAuth(
-            api_key="sk-user", user_id="u1", user_role=LitellmUserRoles.INTERNAL_USER
+            api_key="sk-user", user_id="u1", user_role=GatewayUserRoles.INTERNAL_USER
         )
         client = TestClient(app, raise_server_exceptions=True)
         prisma = _rollup_prisma([])

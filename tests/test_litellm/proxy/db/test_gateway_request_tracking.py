@@ -93,7 +93,7 @@ class FakeTable:
 
 class FakeBatcher:
     def __init__(self, table: FakeTable) -> None:
-        self.litellm_dailygatewayrequests = table
+        self.gateway_dailygatewayrequests = table
 
     async def __aenter__(self) -> "FakeBatcher":
         return self

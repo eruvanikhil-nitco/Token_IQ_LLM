@@ -26,11 +26,11 @@ from ..common_utils import SagemakerError
 if TYPE_CHECKING:
     import tiktoken
 
-    from token_iq.gateway.core_utils.litellm_logging import Logging as _LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as _GatewayLoggingObj
 
-    LiteLLMLoggingObj = _LiteLLMLoggingObj
+    GatewayLoggingObj = _GatewayLoggingObj
 else:
-    LiteLLMLoggingObj = Any
+    GatewayLoggingObj = Any
 
 
 class SagemakerConfig(BaseConfig):
@@ -193,7 +193,7 @@ class SagemakerConfig(BaseConfig):
         model: str,
         raw_response: Response,
         model_response: ModelResponse,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         request_data: dict,
         messages: list[AllMessageValues],
         optional_params: dict,

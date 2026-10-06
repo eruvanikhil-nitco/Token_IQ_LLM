@@ -186,7 +186,7 @@ def create_responses_config_class(provider: SimpleProviderConfig):
         OpenAILikeResponsesConfig,
     )
     from token_iq.gateway.types.llms.openai import ResponseInputParam
-    from token_iq.gateway.types.router import GenericLiteLLMParams
+    from token_iq.gateway.types.router import GenericGatewayParams
 
     class JSONProviderResponsesConfig(OpenAILikeResponsesConfig):
         @property
@@ -197,9 +197,9 @@ def create_responses_config_class(provider: SimpleProviderConfig):
             self,
             headers: dict,
             model: str,
-            litellm_params: GenericLiteLLMParams | None,
+            litellm_params: GenericGatewayParams | None,
         ) -> dict:
-            litellm_params = litellm_params or GenericLiteLLMParams()
+            litellm_params = litellm_params or GenericGatewayParams()
             api_key: Final = litellm_params.api_key or get_secret_str(provider.api_key_env)
             if api_key:
                 headers["Authorization"] = f"Bearer {api_key}"
@@ -227,7 +227,7 @@ def create_responses_config_class(provider: SimpleProviderConfig):
             model: str,
             input: str | ResponseInputParam,
             response_api_optional_request_params: dict,
-            litellm_params: GenericLiteLLMParams,
+            litellm_params: GenericGatewayParams,
             headers: dict,
         ) -> dict:
             if provider.special_handling.get("force_store_false"):

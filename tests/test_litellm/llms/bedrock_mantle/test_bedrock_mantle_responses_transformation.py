@@ -23,7 +23,7 @@ from token_iq import gateway
 from token_iq.gateway.llms.bedrock_mantle.responses.transformation import (
     BedrockMantleResponsesAPIConfig,
 )
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.types.utils import LlmProviders
 
 
@@ -82,7 +82,7 @@ class TestBedrockMantleResponsesURL:
         url = cfg.get_complete_url(api_base=None, litellm_params={})
         assert url == "https://bedrock-mantle.us-west-2.api.aws/openai/v1/responses"
 
-    def test_url_region_from_aws_region_name_litellm_params(self, monkeypatch):
+    def test_url_region_from_aws_region_name_gateway_params(self, monkeypatch):
         monkeypatch.delenv("BEDROCK_MANTLE_REGION", raising=False)
         monkeypatch.delenv("BEDROCK_MANTLE_API_BASE", raising=False)
         monkeypatch.delenv("AWS_REGION", raising=False)
@@ -167,35 +167,35 @@ class TestBedrockMantleResponsesURL:
 
 
 class TestBedrockMantleGetLlmProviderRegion:
-    def test_get_llm_provider_uses_supplemental_litellm_params(
+    def test_get_llm_provider_uses_supplemental_gateway_params(
         self, monkeypatch, local_cost_map
     ):
         monkeypatch.delenv("BEDROCK_MANTLE_REGION", raising=False)
         monkeypatch.delenv("BEDROCK_MANTLE_API_BASE", raising=False)
         monkeypatch.delenv("AWS_REGION", raising=False)
         from token_iq.gateway.core_utils.get_llm_provider_logic import get_llm_provider
-        from token_iq.gateway.types.router import GenericLiteLLMParams
+        from token_iq.gateway.types.router import GenericGatewayParams
 
         _, provider, _, api_base = get_llm_provider(
             model="bedrock_mantle/openai.gpt-5.5",
             api_key="test-key",
-            litellm_params=GenericLiteLLMParams(aws_region_name="us-east-2"),
+            litellm_params=GenericGatewayParams(aws_region_name="us-east-2"),
         )
         assert provider == "bedrock_mantle"
         # gpt-5.x carries use_openai_responses_path, so its whole surface (incl.
         # the resolved chat base) is on the /openai/v1 base per the AWS card.
         assert api_base == "https://bedrock-mantle.us-east-2.api.aws/openai/v1"
 
-    def test_get_llm_provider_uses_aws_region_from_litellm_params(
+    def test_get_llm_provider_uses_aws_region_from_gateway_params(
         self, monkeypatch, local_cost_map
     ):
         monkeypatch.delenv("BEDROCK_MANTLE_REGION", raising=False)
         monkeypatch.delenv("BEDROCK_MANTLE_API_BASE", raising=False)
         monkeypatch.delenv("AWS_REGION", raising=False)
         from token_iq.gateway.core_utils.get_llm_provider_logic import get_llm_provider
-        from token_iq.gateway.types.router import GenericLiteLLMParams
+        from token_iq.gateway.types.router import GenericGatewayParams
 
-        params = GenericLiteLLMParams(
+        params = GenericGatewayParams(
             custom_llm_provider="bedrock_mantle",
             aws_region_name="us-east-2",
         )
@@ -214,7 +214,7 @@ class TestBedrockMantleResponsesAuth:
         headers = cfg.validate_environment(
             headers={},
             model="openai.gpt-5.5",
-            litellm_params=GenericLiteLLMParams(api_key="config-key"),
+            litellm_params=GenericGatewayParams(api_key="config-key"),
         )
         assert headers["Authorization"] == "Bearer config-key"
 
@@ -223,7 +223,7 @@ class TestBedrockMantleResponsesAuth:
         monkeypatch.delenv("AWS_BEARER_TOKEN_BEDROCK", raising=False)
         cfg = BedrockMantleResponsesAPIConfig()
         headers = cfg.validate_environment(
-            headers={}, model="openai.gpt-5.5", litellm_params=GenericLiteLLMParams()
+            headers={}, model="openai.gpt-5.5", litellm_params=GenericGatewayParams()
         )
         assert headers["Authorization"] == "Bearer env-key"
 
@@ -232,7 +232,7 @@ class TestBedrockMantleResponsesAuth:
         monkeypatch.setenv("AWS_BEARER_TOKEN_BEDROCK", "bearer-key")
         cfg = BedrockMantleResponsesAPIConfig()
         headers = cfg.validate_environment(
-            headers={}, model="openai.gpt-5.5", litellm_params=GenericLiteLLMParams()
+            headers={}, model="openai.gpt-5.5", litellm_params=GenericGatewayParams()
         )
         assert headers["Authorization"] == "Bearer bearer-key"
 
@@ -242,7 +242,7 @@ class TestBedrockMantleResponsesAuth:
         monkeypatch.delenv("AWS_BEARER_TOKEN_BEDROCK", raising=False)
         cfg = BedrockMantleResponsesAPIConfig()
         headers = cfg.validate_environment(
-            headers={}, model="openai.gpt-5.5", litellm_params=GenericLiteLLMParams()
+            headers={}, model="openai.gpt-5.5", litellm_params=GenericGatewayParams()
         )
         assert "Authorization" not in headers
 
@@ -251,7 +251,7 @@ class TestBedrockMantleResponsesAuth:
         headers = cfg.validate_environment(
             headers={},
             model="openai.gpt-5.5",
-            litellm_params=GenericLiteLLMParams(
+            litellm_params=GenericGatewayParams(
                 api_key="fake-key", aws_bedrock_project_id="proj_abc123def456"
             ),
         )
@@ -262,7 +262,7 @@ class TestBedrockMantleResponsesAuth:
         headers = cfg.validate_environment(
             headers={},
             model="openai.gpt-5.5",
-            litellm_params=GenericLiteLLMParams(api_key="fake-key"),
+            litellm_params=GenericGatewayParams(api_key="fake-key"),
         )
         assert "OpenAI-Project" not in headers
 
@@ -302,7 +302,7 @@ class TestBedrockMantleResponsesAuth:
         headers = cfg.validate_environment(
             headers={},
             model="openai.gpt-oss-120b",
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
         )
         assert headers["Authorization"] == "Bearer env-key"
 
@@ -319,7 +319,7 @@ class TestBedrockMantleResponsesRequestBody:
             model="openai.gpt-oss-120b",
             input="hello",
             response_api_optional_request_params={},
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
         assert body["model"] == "openai.gpt-oss-120b"
@@ -478,7 +478,7 @@ class TestBedrockMantleCodexRequestEndToEnd:
                 }
             ],
             response_api_optional_request_params=params,
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
         assert "service_tier" not in body
@@ -518,7 +518,7 @@ class TestBedrockMantleCodexAdditionalTools:
             model="openai.gpt-5.6-sol",
             input=input,
             response_api_optional_request_params=params if params is not None else {},
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 
@@ -648,7 +648,7 @@ class TestBedrockMantleCodexInputItemNormalization:
             model="openai.gpt-5.6-sol",
             input=input,
             response_api_optional_request_params={},
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 
@@ -782,7 +782,7 @@ class TestBedrockMantleCodexInputItemNormalization:
         assert body["input"] == "Say hi."
 
     def test_rewrite_is_logged_as_warning_naming_the_types(self, caplog):
-        with caplog.at_level(logging.WARNING, logger="LiteLLM"):
+        with caplog.at_level(logging.WARNING, logger="Gateway"):
             body = self._transform(
                 input=[
                     {"type": "agent_message", "author": "a", "recipient": "b", "content": [{"type": "input_text", "text": "hi"}]},

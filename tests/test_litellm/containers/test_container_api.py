@@ -18,7 +18,7 @@ from token_iq.gateway.containers.main import (
     retrieve_container,
 )
 from token_iq.gateway.main import base_llm_http_handler
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLogging
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLogging
 from token_iq.gateway.llms.openai.containers.transformation import OpenAIContainerConfig
 from token_iq.gateway.responses.utils import ResponsesAPIRequestUtils
 from token_iq.gateway.router import Router

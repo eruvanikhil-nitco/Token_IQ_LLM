@@ -235,7 +235,7 @@ LLM_CONFIG_NAMES: Final = (
     "AzureOpenAIResponsesAPIConfig",
     "AzureOpenAIOSeriesResponsesAPIConfig",
     "XAIResponsesAPIConfig",
-    "LiteLLMProxyResponsesAPIConfig",
+    "GatewayProxyResponsesAPIConfig",
     "HostedVLLMResponsesAPIConfig",
     "VolcEngineResponsesAPIConfig",
     "PerplexityResponsesConfig",
@@ -285,7 +285,7 @@ LLM_CONFIG_NAMES: Final = (
     # Alias for backwards compatibility
     "VolcEngineConfig",  # Alias for VolcEngineChatConfig
     "LlamafileChatConfig",
-    "LiteLLMProxyChatConfig",
+    "GatewayProxyChatConfig",
     "VLLMConfig",
     "DeepSeekChatConfig",
     "TencentChatConfig",
@@ -367,7 +367,7 @@ UTILS_MODULE_NAMES: Final = (
     "get_llm_provider",
     "_is_non_openai_azure_model",
     "get_supported_openai_params",
-    "LiteLLMResponseObjectHandler",
+    "GatewayResponseObjectHandler",
     "_handle_invalid_parallel_tool_calls",
     "convert_to_model_response_object",
     "convert_to_streaming_response",
@@ -375,7 +375,7 @@ UTILS_MODULE_NAMES: Final = (
     "get_api_base",
     "ResponseMetadata",
     "_parse_content_for_reasoning",
-    "LiteLLMLoggingObject",
+    "GatewayLoggingObject",
     "redact_message_input_output_from_logging",
     "CustomStreamWrapper",
     "BaseGoogleGenAIGenerateContentConfig",
@@ -523,7 +523,7 @@ _CACHING_IMPORT_MAP: Final = {
     "InMemoryCache": ("token_iq.gateway.caching.caching", "InMemoryCache"),
 }
 
-_LITELLM_LOGGING_IMPORT_MAP: Final = {
+_GATEWAY_LOGGING_IMPORT_MAP: Final = {
     "Logging": ("token_iq.gateway.core_utils.litellm_logging", "Logging"),
     "modify_integration": (
         "token_iq.gateway.core_utils.litellm_logging",
@@ -949,9 +949,9 @@ _LLM_CONFIGS_IMPORT_MAP: Final = {
         ".llms.xai.responses.transformation",
         "XAIResponsesAPIConfig",
     ),
-    "LiteLLMProxyResponsesAPIConfig": (
+    "GatewayProxyResponsesAPIConfig": (
         ".llms.litellm_proxy.responses.transformation",
-        "LiteLLMProxyResponsesAPIConfig",
+        "GatewayProxyResponsesAPIConfig",
     ),
     "HostedVLLMResponsesAPIConfig": (
         ".llms.hosted_vllm.responses.transformation",
@@ -1105,9 +1105,9 @@ _LLM_CONFIGS_IMPORT_MAP: Final = {
         ".llms.llamafile.chat.transformation",
         "LlamafileChatConfig",
     ),
-    "LiteLLMProxyChatConfig": (
+    "GatewayProxyChatConfig": (
         ".llms.litellm_proxy.chat.transformation",
-        "LiteLLMProxyChatConfig",
+        "GatewayProxyChatConfig",
     ),
     "VLLMConfig": (".llms.vllm.completion.transformation", "VLLMConfig"),
     "DeepSeekChatConfig": (".llms.deepseek.chat.transformation", "DeepSeekChatConfig"),
@@ -1271,9 +1271,9 @@ _UTILS_MODULE_IMPORT_MAP: Final = {
         "token_iq.gateway.core_utils.get_supported_openai_params",
         "get_supported_openai_params",
     ),
-    "LiteLLMResponseObjectHandler": (
+    "GatewayResponseObjectHandler": (
         "token_iq.gateway.core_utils.llm_response_utils.convert_dict_to_response",
-        "LiteLLMResponseObjectHandler",
+        "GatewayResponseObjectHandler",
     ),
     "_handle_invalid_parallel_tool_calls": (
         "token_iq.gateway.core_utils.llm_response_utils.convert_dict_to_response",
@@ -1303,9 +1303,9 @@ _UTILS_MODULE_IMPORT_MAP: Final = {
         "token_iq.gateway.core_utils.prompt_templates.common_utils",
         "_parse_content_for_reasoning",
     ),
-    "LiteLLMLoggingObject": (
+    "GatewayLoggingObject": (
         "token_iq.gateway.core_utils.redact_messages",
-        "LiteLLMLoggingObject",
+        "GatewayLoggingObject",
     ),
     "redact_message_input_output_from_logging": (
         "token_iq.gateway.core_utils.redact_messages",
@@ -1499,7 +1499,7 @@ __all__ = [
     "_CACHING_IMPORT_MAP",
     "_COST_CALCULATOR_IMPORT_MAP",
     "_DOTPROMPT_IMPORT_MAP",
-    "_LITELLM_LOGGING_IMPORT_MAP",
+    "_GATEWAY_LOGGING_IMPORT_MAP",
     "_LLM_CONFIGS_IMPORT_MAP",
     "_LLM_PROVIDER_LOGIC_IMPORT_MAP",
     "_TOKEN_COUNTER_IMPORT_MAP",

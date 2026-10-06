@@ -356,11 +356,11 @@ class TestThinkingParameterTransformation:
     def test_claude_model_preserves_thinking_with_budget_tokens(self):
         """Test that Claude models get thinking parameter passed through with exact budget_tokens."""
         from token_iq.gateway.llms.anthropic.experimental_pass_through.adapters.transformation import (
-            LiteLLMAnthropicMessagesAdapter,
+            GatewayAnthropicMessagesAdapter,
         )
 
         thinking = {"type": "enabled", "budget_tokens": 5000}
-        result = LiteLLMAnthropicMessagesAdapter.translate_thinking_for_model(
+        result = GatewayAnthropicMessagesAdapter.translate_thinking_for_model(
             thinking=thinking,
             model="bedrock/converse/us.anthropic.claude-sonnet-4-20250514-v1:0",
         )
@@ -371,11 +371,11 @@ class TestThinkingParameterTransformation:
     def test_non_claude_model_converts_thinking_to_reasoning_effort(self):
         """Test that non-Claude models convert thinking to reasoning_effort."""
         from token_iq.gateway.llms.anthropic.experimental_pass_through.adapters.transformation import (
-            LiteLLMAnthropicMessagesAdapter,
+            GatewayAnthropicMessagesAdapter,
         )
 
         thinking = {"type": "enabled", "budget_tokens": 1024}
-        result = LiteLLMAnthropicMessagesAdapter.translate_thinking_for_model(
+        result = GatewayAnthropicMessagesAdapter.translate_thinking_for_model(
             thinking=thinking,
             model="openai/gpt-5.2",
         )
@@ -389,14 +389,14 @@ class TestThinkingParameterTransformation:
         """When reasoning_auto_summary is True, summary='detailed' is injected."""
         from token_iq import gateway
         from token_iq.gateway.llms.anthropic.experimental_pass_through.adapters.transformation import (
-            LiteLLMAnthropicMessagesAdapter,
+            GatewayAnthropicMessagesAdapter,
         )
 
         original = gateway.reasoning_auto_summary
         try:
             gateway.reasoning_auto_summary = True
             thinking = {"type": "enabled", "budget_tokens": 5000}
-            result = LiteLLMAnthropicMessagesAdapter.translate_thinking_for_model(
+            result = GatewayAnthropicMessagesAdapter.translate_thinking_for_model(
                 thinking=thinking,
                 model="openai/gpt-5.2",
             )
@@ -407,11 +407,11 @@ class TestThinkingParameterTransformation:
     def test_translate_thinking_for_model_preserves_user_summary(self):
         """User-provided summary is always preserved regardless of flag."""
         from token_iq.gateway.llms.anthropic.experimental_pass_through.adapters.transformation import (
-            LiteLLMAnthropicMessagesAdapter,
+            GatewayAnthropicMessagesAdapter,
         )
 
         thinking = {"type": "enabled", "budget_tokens": 10000, "summary": "concise"}
-        result = LiteLLMAnthropicMessagesAdapter.translate_thinking_for_model(
+        result = GatewayAnthropicMessagesAdapter.translate_thinking_for_model(
             thinking=thinking,
             model="openai/gpt-5.2",
         )
@@ -424,12 +424,12 @@ class TestThinkingSummaryPreservation:
     def test_thinking_summary_concise_preserved_for_openai(self):
         """User-provided summary='concise' should not be replaced with 'detailed'."""
         from token_iq.gateway.llms.anthropic.experimental_pass_through.adapters.handler import (
-            LiteLLMMessagesToCompletionTransformationHandler,
+            GatewayMessagesToCompletionTransformationHandler,
         )
 
         thinking = {"type": "enabled", "budget_tokens": 5000, "summary": "concise"}
         completion_kwargs = {"model": "openai/gpt-5.1", "reasoning_effort": "medium"}
-        LiteLLMMessagesToCompletionTransformationHandler._route_openai_thinking_to_responses_api_if_needed(
+        GatewayMessagesToCompletionTransformationHandler._route_openai_thinking_to_responses_api_if_needed(
             completion_kwargs, thinking=thinking
         )
         assert completion_kwargs["reasoning_effort"] == {
@@ -440,12 +440,12 @@ class TestThinkingSummaryPreservation:
     def test_thinking_summary_auto_preserved_for_openai(self):
         """User-provided summary='auto' should be preserved."""
         from token_iq.gateway.llms.anthropic.experimental_pass_through.adapters.handler import (
-            LiteLLMMessagesToCompletionTransformationHandler,
+            GatewayMessagesToCompletionTransformationHandler,
         )
 
         thinking = {"type": "enabled", "budget_tokens": 10000, "summary": "auto"}
         completion_kwargs = {"model": "openai/gpt-5.1", "reasoning_effort": "high"}
-        LiteLLMMessagesToCompletionTransformationHandler._route_openai_thinking_to_responses_api_if_needed(
+        GatewayMessagesToCompletionTransformationHandler._route_openai_thinking_to_responses_api_if_needed(
             completion_kwargs, thinking=thinking
         )
         assert completion_kwargs["reasoning_effort"] == {
@@ -457,7 +457,7 @@ class TestThinkingSummaryPreservation:
         """When reasoning_auto_summary is True, summary='detailed' is added."""
         from token_iq import gateway
         from token_iq.gateway.llms.anthropic.experimental_pass_through.adapters.handler import (
-            LiteLLMMessagesToCompletionTransformationHandler,
+            GatewayMessagesToCompletionTransformationHandler,
         )
 
         original = gateway.reasoning_auto_summary
@@ -468,7 +468,7 @@ class TestThinkingSummaryPreservation:
                 "custom_llm_provider": "openai",
                 "reasoning_effort": "medium",
             }
-            LiteLLMMessagesToCompletionTransformationHandler._route_openai_thinking_to_responses_api_if_needed(
+            GatewayMessagesToCompletionTransformationHandler._route_openai_thinking_to_responses_api_if_needed(
                 completion_kwargs, thinking={"type": "enabled", "budget_tokens": 5000}
             )
             assert completion_kwargs["reasoning_effort"] == {
@@ -482,7 +482,7 @@ class TestThinkingSummaryPreservation:
         """By default (reasoning_auto_summary=False), summary is not added for string reasoning_effort."""
         from token_iq import gateway
         from token_iq.gateway.llms.anthropic.experimental_pass_through.adapters.handler import (
-            LiteLLMMessagesToCompletionTransformationHandler,
+            GatewayMessagesToCompletionTransformationHandler,
         )
 
         original = gateway.reasoning_auto_summary
@@ -493,7 +493,7 @@ class TestThinkingSummaryPreservation:
                 "custom_llm_provider": "openai",
                 "reasoning_effort": "high",
             }
-            LiteLLMMessagesToCompletionTransformationHandler._route_openai_thinking_to_responses_api_if_needed(
+            GatewayMessagesToCompletionTransformationHandler._route_openai_thinking_to_responses_api_if_needed(
                 completion_kwargs, thinking={"type": "enabled", "budget_tokens": 10000}
             )
             assert completion_kwargs["reasoning_effort"] == {"effort": "high"}
@@ -505,7 +505,7 @@ class TestThinkingSummaryPreservation:
         """By default (reasoning_auto_summary=False), summary is not injected into dict reasoning_effort."""
         from token_iq import gateway
         from token_iq.gateway.llms.anthropic.experimental_pass_through.adapters.handler import (
-            LiteLLMMessagesToCompletionTransformationHandler,
+            GatewayMessagesToCompletionTransformationHandler,
         )
 
         original = gateway.reasoning_auto_summary
@@ -516,7 +516,7 @@ class TestThinkingSummaryPreservation:
                 "custom_llm_provider": "openai",
                 "reasoning_effort": {"effort": "medium"},
             }
-            LiteLLMMessagesToCompletionTransformationHandler._route_openai_thinking_to_responses_api_if_needed(
+            GatewayMessagesToCompletionTransformationHandler._route_openai_thinking_to_responses_api_if_needed(
                 completion_kwargs, thinking={"type": "enabled", "budget_tokens": 5000}
             )
             assert completion_kwargs["reasoning_effort"] == {"effort": "medium"}
@@ -528,7 +528,7 @@ class TestThinkingSummaryPreservation:
         """When LITELLM_REASONING_AUTO_SUMMARY env var is true, summary is added."""
         from token_iq import gateway
         from token_iq.gateway.llms.anthropic.experimental_pass_through.adapters.handler import (
-            LiteLLMMessagesToCompletionTransformationHandler,
+            GatewayMessagesToCompletionTransformationHandler,
         )
 
         original = gateway.reasoning_auto_summary
@@ -540,7 +540,7 @@ class TestThinkingSummaryPreservation:
                 "custom_llm_provider": "openai",
                 "reasoning_effort": "high",
             }
-            LiteLLMMessagesToCompletionTransformationHandler._route_openai_thinking_to_responses_api_if_needed(
+            GatewayMessagesToCompletionTransformationHandler._route_openai_thinking_to_responses_api_if_needed(
                 completion_kwargs, thinking={"type": "enabled", "budget_tokens": 10000}
             )
             assert completion_kwargs["reasoning_effort"] == {
@@ -555,7 +555,7 @@ class TestThinkingSummaryPreservation:
         """When user already set summary in dict reasoning_effort, it's preserved regardless of flag."""
         from token_iq import gateway
         from token_iq.gateway.llms.anthropic.experimental_pass_through.adapters.handler import (
-            LiteLLMMessagesToCompletionTransformationHandler,
+            GatewayMessagesToCompletionTransformationHandler,
         )
 
         original = gateway.reasoning_auto_summary
@@ -566,7 +566,7 @@ class TestThinkingSummaryPreservation:
                 "custom_llm_provider": "openai",
                 "reasoning_effort": {"effort": "high", "summary": "concise"},
             }
-            LiteLLMMessagesToCompletionTransformationHandler._route_openai_thinking_to_responses_api_if_needed(
+            GatewayMessagesToCompletionTransformationHandler._route_openai_thinking_to_responses_api_if_needed(
                 completion_kwargs, thinking={"type": "enabled", "budget_tokens": 10000}
             )
             assert completion_kwargs["reasoning_effort"]["summary"] == "concise"
@@ -605,25 +605,25 @@ class TestThinkingSummaryPreservation:
     def test_responses_adapter_preserves_summary(self):
         """translate_thinking_to_reasoning should include summary when user provides it."""
         from token_iq.gateway.llms.anthropic.experimental_pass_through.responses_adapters.transformation import (
-            LiteLLMAnthropicToResponsesAPIAdapter,
+            GatewayAnthropicToResponsesAPIAdapter,
         )
 
         thinking = {"type": "enabled", "budget_tokens": 5000, "summary": "concise"}
-        result = LiteLLMAnthropicToResponsesAPIAdapter.translate_thinking_to_reasoning(thinking)
+        result = GatewayAnthropicToResponsesAPIAdapter.translate_thinking_to_reasoning(thinking)
         assert result == {"effort": "high", "summary": "concise"}
 
     def test_responses_adapter_no_summary_by_default(self):
         """translate_thinking_to_reasoning should not include summary by default (opt-in)."""
         from token_iq import gateway
         from token_iq.gateway.llms.anthropic.experimental_pass_through.responses_adapters.transformation import (
-            LiteLLMAnthropicToResponsesAPIAdapter,
+            GatewayAnthropicToResponsesAPIAdapter,
         )
 
         original = gateway.reasoning_auto_summary
         try:
             gateway.reasoning_auto_summary = False
             thinking = {"type": "enabled", "budget_tokens": 5000}
-            result = LiteLLMAnthropicToResponsesAPIAdapter.translate_thinking_to_reasoning(thinking)
+            result = GatewayAnthropicToResponsesAPIAdapter.translate_thinking_to_reasoning(thinking)
             assert result == {"effort": "high"}
             assert result is not None and "summary" not in result
         finally:
@@ -632,11 +632,11 @@ class TestThinkingSummaryPreservation:
     def test_translate_thinking_for_model_preserves_summary(self):
         """translate_thinking_for_model should include summary in reasoning_effort dict when user provides it."""
         from token_iq.gateway.llms.anthropic.experimental_pass_through.adapters.transformation import (
-            LiteLLMAnthropicMessagesAdapter,
+            GatewayAnthropicMessagesAdapter,
         )
 
         thinking = {"type": "enabled", "budget_tokens": 5000, "summary": "concise"}
-        result = LiteLLMAnthropicMessagesAdapter.translate_thinking_for_model(
+        result = GatewayAnthropicMessagesAdapter.translate_thinking_for_model(
             thinking=thinking,
             model="openai/gpt-5.2",
         )
@@ -646,14 +646,14 @@ class TestThinkingSummaryPreservation:
         """Disabled thinking must stay a plain string even when reasoning_auto_summary is on."""
         from token_iq import gateway
         from token_iq.gateway.llms.anthropic.experimental_pass_through.adapters.transformation import (
-            LiteLLMAnthropicMessagesAdapter,
+            GatewayAnthropicMessagesAdapter,
         )
 
         original = gateway.reasoning_auto_summary
         try:
             gateway.reasoning_auto_summary = True
             thinking = {"type": "disabled"}
-            result = LiteLLMAnthropicMessagesAdapter.translate_thinking_for_model(
+            result = GatewayAnthropicMessagesAdapter.translate_thinking_for_model(
                 thinking=thinking,
                 model="openai/gpt-5.2",
             )
@@ -868,12 +868,12 @@ def _gate_stubs(monkeypatch):
 
     monkeypatch.setattr(handler.base_llm_http_handler, "anthropic_messages_handler", fake_native)
     monkeypatch.setattr(
-        handler.LiteLLMMessagesToResponsesAPIHandler,
+        handler.GatewayMessagesToResponsesAPIHandler,
         "anthropic_messages_handler",
         staticmethod(fake_translation),
     )
     monkeypatch.setattr(
-        handler.LiteLLMMessagesToCompletionTransformationHandler,
+        handler.GatewayMessagesToCompletionTransformationHandler,
         "anthropic_messages_handler",
         staticmethod(fake_translation),
     )
@@ -1228,7 +1228,7 @@ class TestMessagesStreamingSuccessLogging:
     async def test_responses_bridge_streaming_emits_success_logging(self, capture_success_payloads):
         """The Responses bridge, which is the default for openai/ deployments."""
         from token_iq.gateway.llms.anthropic.experimental_pass_through.responses_adapters.handler import (
-            LiteLLMMessagesToResponsesAPIHandler,
+            GatewayMessagesToResponsesAPIHandler,
         )
 
         _bind_logging_worker_to_running_loop()
@@ -1242,7 +1242,7 @@ class TestMessagesStreamingSuccessLogging:
                 content=_sse_body(_RESPONSES_SSE_EVENTS),
                 headers={"content-type": "text/event-stream"},
             )
-            sse_stream = await LiteLLMMessagesToResponsesAPIHandler.async_anthropic_messages_handler(
+            sse_stream = await GatewayMessagesToResponsesAPIHandler.async_anthropic_messages_handler(
                 max_tokens=100,
                 messages=self.MESSAGES,
                 model="openai/gpt-4o-mini",
@@ -1269,7 +1269,7 @@ class TestMessagesStreamingSuccessLogging:
         litellm.use_chat_completions_url_for_anthropic_messages. Its router lookup is
         stubbed to what an SDK caller with no proxy running already resolves to."""
         from token_iq.gateway.llms.anthropic.experimental_pass_through.adapters.handler import (
-            LiteLLMMessagesToCompletionTransformationHandler,
+            GatewayMessagesToCompletionTransformationHandler,
         )
 
         _bind_logging_worker_to_running_loop()
@@ -1278,7 +1278,7 @@ class TestMessagesStreamingSuccessLogging:
             "token_iq.gateway.llms.anthropic.experimental_pass_through.adapters.handler._proxy_router_fallback",
             return_value=None,
         ):
-            sse_stream = await LiteLLMMessagesToCompletionTransformationHandler.async_anthropic_messages_handler(
+            sse_stream = await GatewayMessagesToCompletionTransformationHandler.async_anthropic_messages_handler(
                 max_tokens=100,
                 messages=self.MESSAGES,
                 model="openai/gpt-4o-mini",

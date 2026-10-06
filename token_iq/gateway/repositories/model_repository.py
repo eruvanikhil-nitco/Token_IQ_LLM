@@ -48,7 +48,7 @@ class ModelRepository(BaseRepository[LiteLLM_ProxyModelTable]):
     def model_class(self) -> type[LiteLLM_ProxyModelTable]:
         return LiteLLM_ProxyModelTable
 
-    def _encrypt_litellm_params(self, litellm_params: Mapping[str, object]) -> Mapping[str, object]:
+    def _encrypt_gateway_params(self, litellm_params: Mapping[str, object]) -> Mapping[str, object]:
         """Encrypt sensitive values in litellm_params."""
         encrypted: Final = {}
         for key, value in litellm_params.items():
@@ -58,7 +58,7 @@ class ModelRepository(BaseRepository[LiteLLM_ProxyModelTable]):
                 encrypted[key] = value
         return encrypted
 
-    def _decrypt_litellm_params(self, litellm_params: Mapping[str, object]) -> Mapping[str, object]:
+    def _decrypt_gateway_params(self, litellm_params: Mapping[str, object]) -> Mapping[str, object]:
         """Decrypt sensitive values in litellm_params."""
         decrypted: Final = {}
         for key, value in litellm_params.items():
@@ -83,7 +83,7 @@ class ModelRepository(BaseRepository[LiteLLM_ProxyModelTable]):
             data["model_info"] = json.loads(data["model_info"])
 
         if data.get("litellm_params"):
-            data["litellm_params"] = self._decrypt_litellm_params(data["litellm_params"])
+            data["litellm_params"] = self._decrypt_gateway_params(data["litellm_params"])
 
         return LiteLLM_ProxyModelTable(**data)
 
@@ -125,7 +125,7 @@ class ModelRepository(BaseRepository[LiteLLM_ProxyModelTable]):
         blocked: bool = False,
     ) -> LiteLLM_ProxyModelTable:
         """Create a new model with encryption."""
-        encrypted_params: Final = self._encrypt_litellm_params(litellm_params)
+        encrypted_params: Final = self._encrypt_gateway_params(litellm_params)
 
         data: Final[dict[str, str | bool]] = {
             "model_name": model_name,
@@ -158,7 +158,7 @@ class ModelRepository(BaseRepository[LiteLLM_ProxyModelTable]):
         if model_name is not None:
             data["model_name"] = model_name
         if litellm_params is not None:
-            encrypted_params: Final = self._encrypt_litellm_params(litellm_params)
+            encrypted_params: Final = self._encrypt_gateway_params(litellm_params)
             data["litellm_params"] = json.dumps(encrypted_params)
         if model_info is not None:
             data["model_info"] = json.dumps(model_info)

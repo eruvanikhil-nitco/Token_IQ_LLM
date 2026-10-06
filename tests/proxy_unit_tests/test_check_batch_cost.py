@@ -49,9 +49,9 @@ def _unmanaged_vertex_file_object(
 ):
     """A LiteLLMBatch JSON blob shaped like what the managed-files hook stores for an
     unmanaged Vertex batch (raw gs:// input_file_id)."""
-    from token_iq.gateway.types.utils import LiteLLMBatch
+    from token_iq.gateway.types.utils import GatewayBatch
 
-    return LiteLLMBatch(
+    return GatewayBatch(
         id="8823717160934178816",
         completion_window="24h",
         created_at=1,
@@ -71,9 +71,9 @@ def _unmanaged_bedrock_file_object(
 ):
     """A LiteLLMBatch JSON blob shaped like what gets stored for an unmanaged Bedrock
     batch (raw s3:// input_file_id, ARN unified_object_id)."""
-    from token_iq.gateway.types.utils import LiteLLMBatch
+    from token_iq.gateway.types.utils import GatewayBatch
 
-    return LiteLLMBatch(
+    return GatewayBatch(
         id="arn:aws:bedrock:us-east-1:298249409318:model-invocation-job/1ofb47x17jua",
         completion_window="24h",
         created_at=1,
@@ -726,9 +726,9 @@ class TestCheckBatchCost:
         # A real LiteLLMBatch (not a bare MagicMock): this test runs the real
         # litellm_logging.Logging pipeline, which type-checks the result via
         # isinstance(..., LiteLLMBatch) before it will compute/attach a cost.
-        from token_iq.gateway.types.utils import LiteLLMBatch
+        from token_iq.gateway.types.utils import GatewayBatch
 
-        mock_response = LiteLLMBatch(
+        mock_response = GatewayBatch(
             id="batch-1",
             completion_window="24h",
             created_at=1,
@@ -961,7 +961,7 @@ class TestCheckBatchCost:
         import base64
         import json
 
-        from token_iq.gateway.types.utils import LiteLLMBatch
+        from token_iq.gateway.types.utils import GatewayBatch
 
         unified_batch_uid = base64.urlsafe_b64encode(
             b"litellm_proxy;model_id:model-123;llm_batch_id:batch-456"
@@ -1006,7 +1006,7 @@ class TestCheckBatchCost:
             return_value=[mock_job]
         )
 
-        response = LiteLLMBatch(
+        response = GatewayBatch(
             id="batch-456",
             completion_window="24h",
             created_at=1,
@@ -2248,14 +2248,14 @@ class TestManagedOutputFileIdEncodesPublicModelGroup:
         return base64.urlsafe_b64encode(unified_id.encode()).decode().rstrip("=")
 
     def _job(self, input_file_id: str) -> MagicMock:
-        from token_iq.gateway.types.utils import LiteLLMBatch
+        from token_iq.gateway.types.utils import GatewayBatch
 
         job = MagicMock()
         job.id = "job-lit-4964"
         job.unified_object_id = "dW5pZmllZF9iYXRjaF9pZA=="
         job.created_by = "user-1"
         job.team_id = None
-        job.file_object = LiteLLMBatch(
+        job.file_object = GatewayBatch(
             id="batch-456",
             completion_window="24h",
             created_at=1,
@@ -2270,9 +2270,9 @@ class TestManagedOutputFileIdEncodesPublicModelGroup:
         from litellm_enterprise.proxy.common_utils.check_batch_cost import (
             CheckBatchCost,
         )
-        from token_iq.gateway.types.utils import LiteLLMBatch
+        from token_iq.gateway.types.utils import GatewayBatch
         from enterprise.litellm_enterprise.proxy.hooks.managed_files import (
-            _PROXY_LiteLLMManagedFiles,
+            _PROXY_GatewayManagedFiles,
         )
 
         router = MagicMock()
@@ -2288,7 +2288,7 @@ class TestManagedOutputFileIdEncodesPublicModelGroup:
 
         hook = MagicMock()
         hook.get_unified_output_file_id = (
-            lambda output_file_id, model_id, model_name: _PROXY_LiteLLMManagedFiles.get_unified_output_file_id(
+            lambda output_file_id, model_id, model_name: _PROXY_GatewayManagedFiles.get_unified_output_file_id(
                 None, output_file_id=output_file_id, model_id=model_id, model_name=model_name
             )
         )
@@ -2305,7 +2305,7 @@ class TestManagedOutputFileIdEncodesPublicModelGroup:
             llm_router=router,
         )
 
-        response = LiteLLMBatch(
+        response = GatewayBatch(
             id="batch-456",
             completion_window="24h",
             created_at=1,
@@ -2981,12 +2981,12 @@ class TestMultiPodBatchCostClaim:
     @staticmethod
     async def _run_deletion_guard(prisma, file_id: str) -> None:
         """Run the real managed-files deletion guard against the row the poller is costing."""
-        from litellm_enterprise.proxy.hooks.managed_files import _PROXY_LiteLLMManagedFiles
+        from litellm_enterprise.proxy.hooks.managed_files import _PROXY_GatewayManagedFiles
 
         cache = MagicMock()
         cache.async_get_cache = AsyncMock(return_value=None)
         cache.async_set_cache = AsyncMock()
-        guard = _PROXY_LiteLLMManagedFiles(internal_usage_cache=cache, prisma_client=prisma)
+        guard = _PROXY_GatewayManagedFiles(internal_usage_cache=cache, prisma_client=prisma)
 
         scheduler = MagicMock()
         scheduler.get_job.return_value = MagicMock()

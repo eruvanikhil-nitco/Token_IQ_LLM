@@ -956,7 +956,7 @@ class TestCustomToolFormatShapeConversion:
 # --- x-litellm-model upload-path decoding (litellm #29830) -------------------
 
 
-def _xlitellm_encoded(raw_id: str, model: str) -> str:
+def _xgateway_encoded(raw_id: str, model: str) -> str:
     from token_iq.gateway.proxy.openai_files_endpoints.common_utils import (
         encode_file_id_with_model,
     )
@@ -964,12 +964,12 @@ def _xlitellm_encoded(raw_id: str, model: str) -> str:
     return encode_file_id_with_model(raw_id, model)
 
 
-def test_update_messages_with_model_file_ids_decodes_xlitellm_encoded_id():
+def test_update_messages_with_model_file_ids_decodes_xgateway_encoded_id():
     """x-litellm-model upload returns `file-<b64(litellm:<raw>;model,<m>)>`.
     Without decoding, the encoded id leaks to upstream OpenAI and errors as
     'Files [...] were not found'. Decode it back to raw provider id."""
     raw_id = "file-ExTuCawUqxEMjVFK6xwR9B"
-    encoded_id = _xlitellm_encoded(raw_id, "gpt-5.1")
+    encoded_id = _xgateway_encoded(raw_id, "gpt-5.1")
     messages = [
         {
             "role": "user",
@@ -985,7 +985,7 @@ def test_update_messages_with_model_file_ids_decodes_xlitellm_encoded_id():
     assert updated[0]["content"][1]["file"]["file_id"] == raw_id
 
 
-def test_update_responses_input_with_model_file_ids_decodes_xlitellm_encoded_id():
+def test_update_responses_input_with_model_file_ids_decodes_xgateway_encoded_id():
     """Same bug on /v1/responses path. Without decoding the encoded id (>64
     chars), OpenAI rejects with 'string too long. Expected ... maximum length
     64'."""
@@ -994,7 +994,7 @@ def test_update_responses_input_with_model_file_ids_decodes_xlitellm_encoded_id(
     )
 
     raw_id = "file-ExTuCawUqxEMjVFK6xwR9B"
-    encoded_id = _xlitellm_encoded(raw_id, "gpt-5.1")
+    encoded_id = _xgateway_encoded(raw_id, "gpt-5.1")
     input_items = [
         {
             "role": "user",
@@ -1010,11 +1010,11 @@ def test_update_responses_input_with_model_file_ids_decodes_xlitellm_encoded_id(
     assert updated[0]["content"][1]["file_id"] == raw_id
 
 
-def test_update_messages_xlitellm_decode_does_not_override_mapping():
+def test_update_messages_xgateway_decode_does_not_override_mapping():
     """If the call-site already resolved a provider id via the mapping, that
     wins. The new decode fallback runs only when no mapping match."""
     raw_id = "file-ExTuCawUqxEMjVFK6xwR9B"
-    encoded_id = _xlitellm_encoded(raw_id, "gpt-5.1")
+    encoded_id = _xgateway_encoded(raw_id, "gpt-5.1")
     mapping = {encoded_id: {"model-A": "provider-explicit-id"}}
     messages = [
         {

@@ -32,7 +32,7 @@ async def test_acompletion_resource_cleanup():
         )
 
         # Manually close async clients
-        await gateway.close_litellm_async_clients()
+        await gateway.close_gateway_async_clients()
 
         # Give a small delay for any warnings to appear
         await asyncio.sleep(0.1)
@@ -70,7 +70,7 @@ async def test_multiple_acompletion_calls_cleanup():
             assert response.choices[0].message.content == f"Response {i}"
 
         # Clean up
-        await gateway.close_litellm_async_clients()
+        await gateway.close_gateway_async_clients()
 
         # Give a small delay for any warnings to appear
         await asyncio.sleep(0.1)
@@ -95,9 +95,9 @@ async def test_multiple_acompletion_calls_cleanup():
 async def test_cleanup_function_is_safe_to_call_multiple_times():
     """Test that the cleanup function can be called multiple times safely."""
     # This should not raise any errors
-    await gateway.close_litellm_async_clients()
-    await gateway.close_litellm_async_clients()
-    await gateway.close_litellm_async_clients()
+    await gateway.close_gateway_async_clients()
+    await gateway.close_gateway_async_clients()
+    await gateway.close_gateway_async_clients()
 
     # Should still work after multiple cleanups
     response = await gateway.acompletion(
@@ -108,7 +108,7 @@ async def test_cleanup_function_is_safe_to_call_multiple_times():
     assert response.choices[0].message.content == "Hi!"
 
     # Clean up again
-    await gateway.close_litellm_async_clients()
+    await gateway.close_gateway_async_clients()
 
 
 if __name__ == "__main__":

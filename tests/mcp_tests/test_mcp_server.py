@@ -2863,7 +2863,7 @@ async def test_mcp_server_manager_with_access_groups_integration():
 
 @pytest.mark.asyncio
 async def test_get_allowed_mcp_servers_returns_registry_for_admin():
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
     from token_iq.gateway.proxy._experimental.mcp_server.auth.user_api_key_auth_mcp import (
         MCPRequestHandler,
     )
@@ -2884,7 +2884,7 @@ async def test_get_allowed_mcp_servers_returns_registry_for_admin():
 
     admin_auth = UserAPIKeyAuth(
         api_key="admin-key",
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
     )
 
     with patch.object(
@@ -2898,7 +2898,7 @@ async def test_get_allowed_mcp_servers_returns_registry_for_admin():
 
 @pytest.mark.asyncio
 async def test_get_allowed_mcp_servers_returns_empty_for_non_admin_without_permissions():
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
     from token_iq.gateway.proxy._experimental.mcp_server.auth.user_api_key_auth_mcp import (
         MCPRequestHandler,
     )
@@ -2919,7 +2919,7 @@ async def test_get_allowed_mcp_servers_returns_empty_for_non_admin_without_permi
 
     user_auth = UserAPIKeyAuth(
         api_key="user-key",
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
     )
 
     with patch.object(

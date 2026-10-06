@@ -5,7 +5,7 @@ import httpx
 import pytest
 
 from token_iq import gateway
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.core_utils.streaming_handler import CustomStreamWrapper
 from token_iq.gateway.llms.bedrock.chat.invoke_handler import (
     AWSEventStreamDecoder,
@@ -334,7 +334,7 @@ def _converse_stream_wrapper(events):
         completion_stream=bedrock_stream(),
         model=CONVERSE_MODEL,
         custom_llm_provider="bedrock",
-        logging_obj=LiteLLMLoggingObj(
+        logging_obj=GatewayLoggingObj(
             model=CONVERSE_MODEL,
             messages=[{"role": "user", "content": "hi"}],
             stream=True,

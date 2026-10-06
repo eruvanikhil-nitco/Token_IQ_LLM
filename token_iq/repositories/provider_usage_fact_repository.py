@@ -252,7 +252,7 @@ class ProviderUsageFactRepository:
 
     @property
     def _table(self) -> Any:  # any-ok: PrismaClient is an untyped runtime wrapper
-        return self._db.litellm_providerusagefact
+        return self._db.gateway_providerusagefact
 
     async def upsert_many(self, facts: Sequence[ProviderUsageFact]) -> int:
         """Write facts, overwriting any already stored under the same fact_key."""

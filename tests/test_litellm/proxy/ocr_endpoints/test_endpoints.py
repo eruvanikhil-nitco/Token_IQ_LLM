@@ -96,7 +96,7 @@ async def test_should_reject_unknown_req_format(body_format, headers):
     assert "Invalid `req_format`" in f"{exc_info.value.detail}"
 
 
-def test_should_return_native_payload_with_litellm_response_headers():
+def test_should_return_native_payload_with_gateway_response_headers():
     fastapi_response = MagicMock()
     fastapi_response.headers = {"x-litellm-response-cost": "0.0015"}
 

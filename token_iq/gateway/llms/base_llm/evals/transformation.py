@@ -23,15 +23,15 @@ from token_iq.gateway.types.llms.openai_evals import (
     RunDeleteResponse,
     UpdateEvalRequest,
 )
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.types.utils import LlmProviders
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as _LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as _GatewayLoggingObj
 
-    LiteLLMLoggingObj = _LiteLLMLoggingObj
+    GatewayLoggingObj = _GatewayLoggingObj
 else:
-    LiteLLMLoggingObj = Any
+    GatewayLoggingObj = Any
 
 
 class BaseEvalsAPIConfig(ABC):
@@ -46,7 +46,7 @@ class BaseEvalsAPIConfig(ABC):
         pass
 
     @abstractmethod
-    def validate_environment(self, headers: dict, litellm_params: GenericLiteLLMParams | None) -> dict:
+    def validate_environment(self, headers: dict, litellm_params: GenericGatewayParams | None) -> dict:
         """
         Validate and update headers with provider-specific requirements
 
@@ -85,7 +85,7 @@ class BaseEvalsAPIConfig(ABC):
     def transform_create_eval_request(
         self,
         create_request: CreateEvalRequest,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> dict:
         """
@@ -104,7 +104,7 @@ class BaseEvalsAPIConfig(ABC):
     def transform_create_eval_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> Eval:
         """
         Transform provider response to Eval object
@@ -121,7 +121,7 @@ class BaseEvalsAPIConfig(ABC):
     def transform_list_evals_request(
         self,
         list_params: ListEvalsParams,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> tuple[str, dict]:
         """
@@ -140,7 +140,7 @@ class BaseEvalsAPIConfig(ABC):
     def transform_list_evals_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> ListEvalsResponse:
         """
         Transform provider response to ListEvalsResponse
@@ -158,7 +158,7 @@ class BaseEvalsAPIConfig(ABC):
         self,
         eval_id: str,
         api_base: str,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> tuple[str, dict]:
         """
@@ -178,7 +178,7 @@ class BaseEvalsAPIConfig(ABC):
     def transform_get_eval_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> Eval:
         """
         Transform provider response to Eval object
@@ -197,7 +197,7 @@ class BaseEvalsAPIConfig(ABC):
         eval_id: str,
         update_request: UpdateEvalRequest,
         api_base: str,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> tuple[str, dict, dict]:
         """
@@ -218,7 +218,7 @@ class BaseEvalsAPIConfig(ABC):
     def transform_update_eval_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> Eval:
         """
         Transform provider response to Eval object
@@ -236,7 +236,7 @@ class BaseEvalsAPIConfig(ABC):
         self,
         eval_id: str,
         api_base: str,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> tuple[str, dict]:
         """
@@ -256,7 +256,7 @@ class BaseEvalsAPIConfig(ABC):
     def transform_delete_eval_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> DeleteEvalResponse:
         """
         Transform provider response to DeleteEvalResponse
@@ -274,7 +274,7 @@ class BaseEvalsAPIConfig(ABC):
         self,
         eval_id: str,
         api_base: str,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> tuple[str, dict, dict]:
         """
@@ -294,7 +294,7 @@ class BaseEvalsAPIConfig(ABC):
     def transform_cancel_eval_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> CancelEvalResponse:
         """
         Transform provider response to CancelEvalResponse
@@ -313,7 +313,7 @@ class BaseEvalsAPIConfig(ABC):
         self,
         eval_id: str,
         create_request: CreateRunRequest,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> tuple[str, dict]:
         """
@@ -333,7 +333,7 @@ class BaseEvalsAPIConfig(ABC):
     def transform_create_run_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> Run:
         """
         Transform provider response to Run object
@@ -351,7 +351,7 @@ class BaseEvalsAPIConfig(ABC):
         self,
         eval_id: str,
         list_params: ListRunsParams,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> tuple[str, dict]:
         """
@@ -371,7 +371,7 @@ class BaseEvalsAPIConfig(ABC):
     def transform_list_runs_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> ListRunsResponse:
         """
         Transform provider response to ListRunsResponse
@@ -390,7 +390,7 @@ class BaseEvalsAPIConfig(ABC):
         eval_id: str,
         run_id: str,
         api_base: str,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> tuple[str, dict]:
         """
@@ -411,7 +411,7 @@ class BaseEvalsAPIConfig(ABC):
     def transform_get_run_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> Run:
         """
         Transform provider response to Run object
@@ -430,7 +430,7 @@ class BaseEvalsAPIConfig(ABC):
         eval_id: str,
         run_id: str,
         api_base: str,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> tuple[str, dict, dict]:
         """
@@ -451,7 +451,7 @@ class BaseEvalsAPIConfig(ABC):
     def transform_cancel_run_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> CancelRunResponse:
         """
         Transform provider response to CancelRunResponse
@@ -470,7 +470,7 @@ class BaseEvalsAPIConfig(ABC):
         eval_id: str,
         run_id: str,
         api_base: str,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> tuple[str, dict, dict]:
         """
@@ -491,7 +491,7 @@ class BaseEvalsAPIConfig(ABC):
     def transform_delete_run_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> "RunDeleteResponse":
         """
         Transform provider response to RunDeleteResponse

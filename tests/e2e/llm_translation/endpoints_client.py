@@ -14,7 +14,7 @@ from typing import Literal
 
 from e2e_config import SLOW_PROVIDER_TIMEOUT_SECONDS
 from e2e_http import BinaryStream, Result, StreamingResponse
-from models import CacheControl, ChatMessage, LiteLLMParamsBody, RichMessage, TextBlock
+from models import CacheControl, ChatMessage, GatewayParamsBody, RichMessage, TextBlock
 from proxy_client import ProxyClient
 from pydantic import BaseModel
 
@@ -292,7 +292,7 @@ class ModerationResult(BaseModel):
 class EndpointsClient:
     proxy: ProxyClient
 
-    def create_model(self, model_name: str, litellm_params: LiteLLMParamsBody) -> str:
+    def create_model(self, model_name: str, litellm_params: GatewayParamsBody) -> str:
         return self.proxy.create_model(model_name, litellm_params)
 
     def delete_model(self, model_id: str) -> None:

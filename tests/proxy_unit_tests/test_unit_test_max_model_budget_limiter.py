@@ -11,7 +11,7 @@ from token_iq.gateway.caching.redis_cache import RedisCache
 from datetime import datetime, timezone
 
 from token_iq.gateway.core_utils.duration_parser import duration_in_seconds
-from token_iq.gateway.proxy._types import Litellm_EntityType
+from token_iq.gateway.proxy._types import Gateway_EntityType
 from token_iq.gateway.proxy.hooks.model_max_budget_limiter import (
     _budget_model_candidates,
     _PROXY_VirtualKeyModelMaxBudgetLimiter,
@@ -162,7 +162,7 @@ async def test_get_spend_for_model_budget_reads_the_configured_model_key(
 
     with patch.object(budget_limiter.dual_cache, "async_get_cache", side_effect=_spend) as mock_get:
         spend = await budget_limiter._get_spend_for_model_budget(
-            entity_type=Litellm_EntityType.KEY,
+            entity_type=Gateway_EntityType.KEY,
             entity_id="test-key",
             model="openai/gpt-4",
             resolved=resolved,
@@ -262,7 +262,7 @@ async def test_get_spend_for_end_user_model_budget(budget_limiter):
 
     with patch.object(budget_limiter.dual_cache, "async_get_cache", side_effect=_spend) as mock_get:
         spend = await budget_limiter._get_spend_for_model_budget(
-            entity_type=Litellm_EntityType.END_USER,
+            entity_type=Gateway_EntityType.END_USER,
             entity_id="test-user",
             model="openai/gpt-4",
             resolved=resolved,
@@ -648,7 +648,7 @@ async def test_logged_spend_is_visible_to_key_info_usage_and_enforcement(request
     )
 
     usage = await build_model_max_budget_usage(
-        entity_type=Litellm_EntityType.KEY,
+        entity_type=Gateway_EntityType.KEY,
         entity_id=key_hash,
         model_max_budget=model_max_budget,
         cache=dual_cache,
@@ -680,7 +680,7 @@ async def test_logged_spend_is_visible_to_key_info_usage_and_enforcement(request
         await limiter.is_key_within_model_budget(user_api_key, request_model)
 
     usage_after = await build_model_max_budget_usage(
-        entity_type=Litellm_EntityType.KEY,
+        entity_type=Gateway_EntityType.KEY,
         entity_id=key_hash,
         model_max_budget=model_max_budget,
         cache=dual_cache,
@@ -721,7 +721,7 @@ async def test_user_model_budget_is_tracked_and_enforced():
     )
 
     assert await build_model_max_budget_usage(
-        entity_type=Litellm_EntityType.USER,
+        entity_type=Gateway_EntityType.USER,
         entity_id=user_id,
         model_max_budget=user_model_max_budget,
         cache=dual_cache,
@@ -733,7 +733,7 @@ async def test_user_model_budget_is_tracked_and_enforced():
             user_model_max_budget=user_model_max_budget,
             model="openai/gpt-4",
         )
-    assert exc.value.entity_type == Litellm_EntityType.USER.value
+    assert exc.value.entity_type == Gateway_EntityType.USER.value
 
 
 @pytest.mark.asyncio
@@ -826,7 +826,7 @@ async def test_build_model_max_budget_usage_skips_unusable_entries():
     await dual_cache.async_set_cache(key="virtual_key_spend:vk:gpt-4:1d", value=3.0)
 
     usage = await build_model_max_budget_usage(
-        entity_type=Litellm_EntityType.KEY,
+        entity_type=Gateway_EntityType.KEY,
         entity_id="vk",
         model_max_budget={
             "gpt-4": {"budget_limit": 10.0, "time_period": "1d"},
@@ -865,7 +865,7 @@ async def test_bedrock_traffic_charges_the_bare_family_name_budget():
     )
 
     assert await build_model_max_budget_usage(
-        entity_type=Litellm_EntityType.KEY,
+        entity_type=Gateway_EntityType.KEY,
         entity_id=key_hash,
         model_max_budget=model_max_budget,
         cache=dual_cache,
@@ -898,13 +898,13 @@ async def test_user_model_budget_window_resets_when_the_period_elapses():
     user_id = "user-1"
     user_model_max_budget = {"gpt-4": {"budget_limit": 1.0, "time_period": "1mo"}}
     spend_key = model_budget_spend_cache_key(
-        entity_type=Litellm_EntityType.USER,
+        entity_type=Gateway_EntityType.USER,
         entity_id=user_id,
         budget_model="gpt-4",
         budget_duration="1mo",
     )
     start_time_key = model_budget_start_time_cache_key(
-        entity_type=Litellm_EntityType.USER,
+        entity_type=Gateway_EntityType.USER,
         entity_id=user_id,
         budget_model="gpt-4",
         budget_duration="1mo",
@@ -937,7 +937,7 @@ async def test_user_model_budget_window_resets_when_the_period_elapses():
     await limiter.async_log_success_event(kwargs, response_obj=None, start_time=None, end_time=None)
     assert await dual_cache.async_get_cache(key=spend_key) == 1.5
     assert await build_model_max_budget_usage(
-        entity_type=Litellm_EntityType.USER,
+        entity_type=Gateway_EntityType.USER,
         entity_id=user_id,
         model_max_budget=user_model_max_budget,
         cache=dual_cache,
@@ -969,7 +969,7 @@ async def test_a_zero_dollar_cap_blocks_the_model():
 async def test_a_zero_dollar_cap_is_reported_as_a_cap_not_as_absent():
     """The usage endpoints must show the 0 too, or an operator cannot see the block they configured."""
     assert await build_model_max_budget_usage(
-        entity_type=Litellm_EntityType.KEY,
+        entity_type=Gateway_EntityType.KEY,
         entity_id="hash-zero",
         model_max_budget={"gpt-4": {"budget_limit": 0, "time_period": "1d"}},
         cache=DualCache(),
@@ -1015,7 +1015,7 @@ async def test_usage_report_reads_every_counter_in_one_batched_lookup():
         patch.object(dual_cache, "async_get_cache", new=AsyncMock()) as single,
     ):
         usage = await build_model_max_budget_usage(
-            entity_type=Litellm_EntityType.KEY,
+            entity_type=Gateway_EntityType.KEY,
             entity_id="hash-many",
             model_max_budget=budget,
             cache=dual_cache,
@@ -1037,7 +1037,7 @@ async def test_usage_report_survives_a_batch_lookup_that_returns_nothing():
     dual_cache = DualCache()
     with patch.object(dual_cache, "async_batch_get_cache", new=AsyncMock(return_value=None)):
         assert await build_model_max_budget_usage(
-            entity_type=Litellm_EntityType.KEY,
+            entity_type=Gateway_EntityType.KEY,
             entity_id="hash-none",
             model_max_budget={"gpt-4": {"budget_limit": 1.0, "time_period": "1d"}},
             cache=dual_cache,
@@ -1071,7 +1071,7 @@ async def test_one_malformed_scope_does_not_abort_the_other_scopes():
     )
 
     assert await build_model_max_budget_usage(
-        entity_type=Litellm_EntityType.KEY,
+        entity_type=Gateway_EntityType.KEY,
         entity_id="hash-mixed",
         model_max_budget=key_budget,
         cache=dual_cache,
@@ -1193,8 +1193,8 @@ def test_resolution_accepts_both_documented_spellings():
 @pytest.mark.parametrize(
     "entity_type, prefix",
     [
-        (Litellm_EntityType.KEY, "virtual_key_spend"),
-        (Litellm_EntityType.END_USER, "end_user_model_spend"),
+        (Gateway_EntityType.KEY, "virtual_key_spend"),
+        (Gateway_EntityType.END_USER, "end_user_model_spend"),
     ],
 )
 async def test_a_pre_upgrade_counter_keyed_on_the_request_model_still_enforces(entity_type, prefix):
@@ -1210,7 +1210,7 @@ async def test_a_pre_upgrade_counter_keyed_on_the_request_model_still_enforces(e
     model_max_budget = {"gpt-4": {"budget_limit": 10.0, "time_period": "1d"}}
     await limiter.dual_cache.async_set_cache(key=f"{prefix}:entity-1:openai/gpt-4:1d", value=25.0, ttl=86400)
 
-    if entity_type == Litellm_EntityType.KEY:
+    if entity_type == Gateway_EntityType.KEY:
         budget_check = limiter.is_key_within_model_budget(
             user_api_key_dict=UserAPIKeyAuth(token="entity-1", model_max_budget=model_max_budget),
             model="openai/gpt-4",
@@ -1406,7 +1406,7 @@ async def test_spend_logged_on_one_replica_is_enforced_and_reported_on_another()
         await replica_b.is_key_within_model_budget(user_api_key, "gpt-4")
 
     usage_on_b = await build_model_max_budget_usage(
-        entity_type=Litellm_EntityType.KEY,
+        entity_type=Gateway_EntityType.KEY,
         entity_id=key_hash,
         model_max_budget=model_max_budget,
         cache=replica_b.dual_cache,

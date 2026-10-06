@@ -200,8 +200,8 @@ async def _get_agent(agent_id: str) -> "AgentResponse | None":
 
 def _enforce_inbound_trace_id(agent: "AgentResponse", request: Request) -> None:
     """Raise 400 if agent requires x-litellm-trace-id on inbound calls and it is missing."""
-    agent_litellm_params: Final = agent.litellm_params or {}
-    if not agent_litellm_params.get("require_trace_id_on_calls_to_agent"):
+    agent_gateway_params: Final = agent.litellm_params or {}
+    if not agent_gateway_params.get("require_trace_id_on_calls_to_agent"):
         return
 
     from token_iq.gateway.proxy.litellm_pre_call_utils import get_chain_id_from_headers
@@ -963,9 +963,9 @@ async def invoke_agent_a2a(
                     result["result"] = normalize_agent_card(card, served_version)
             else:
                 result = normalize_jsonrpc_response(result, served_version, method=method)
-            from token_iq.gateway.types.agents import LiteLLMSendMessageResponse
+            from token_iq.gateway.types.agents import GatewaySendMessageResponse
 
-            response = LiteLLMSendMessageResponse.from_dict(result, request_id=request_id)
+            response = GatewaySendMessageResponse.from_dict(result, request_id=request_id)
             response = await proxy_logging_obj.post_call_success_hook(
                 user_api_key_dict=user_api_key_dict,
                 data=data,

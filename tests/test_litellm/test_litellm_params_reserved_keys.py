@@ -8,13 +8,13 @@ This test verifies the fix for the bug where passing a dict containing 'self',
 
 import pytest
 
-from token_iq.gateway.types.router import GenericLiteLLMParams, LiteLLM_Params
+from token_iq.gateway.types.router import GenericGatewayParams, LiteLLM_Params
 
 
-class TestLiteLLMParamsReservedKeys:
+class TestGatewayParamsReservedKeys:
     """Test that reserved keys in input data are filtered out gracefully."""
 
-    def test_litellm_params_with_self_key(self):
+    def test_gateway_params_with_self_key(self):
         """Test LiteLLM_Params handles 'self' key in input dict."""
         params_dict = {"model": "gpt-4", "self": "some_value", "api_key": "test-key"}
         params = LiteLLM_Params(**params_dict)
@@ -22,34 +22,34 @@ class TestLiteLLMParamsReservedKeys:
         assert params.api_key == "test-key"
         assert not hasattr(params, "self") or params.get("self") is None
 
-    def test_litellm_params_with_params_key(self):
+    def test_gateway_params_with_params_key(self):
         """Test LiteLLM_Params handles 'params' key in input dict."""
         params_dict = {"model": "gpt-4", "params": "bad_value"}
         params = LiteLLM_Params(**params_dict)
         assert params.model == "gpt-4"
 
-    def test_litellm_params_with_class_key(self):
+    def test_gateway_params_with_class_key(self):
         """Test LiteLLM_Params handles '__class__' key in input dict."""
         params_dict = {"model": "gpt-4", "__class__": "bad_value"}
         params = LiteLLM_Params(**params_dict)
         assert params.model == "gpt-4"
 
-    def test_generic_litellm_params_with_self_key(self):
+    def test_generic_gateway_params_with_self_key(self):
         """Test GenericLiteLLMParams handles 'self' key in input dict."""
         params_dict = {"self": "some_value", "api_key": "test-key"}
-        params = GenericLiteLLMParams(**params_dict)
+        params = GenericGatewayParams(**params_dict)
         assert params.api_key == "test-key"
 
-    def test_generic_litellm_params_with_params_key(self):
+    def test_generic_gateway_params_with_params_key(self):
         """Test GenericLiteLLMParams handles 'params' key in input dict."""
         params_dict = {"params": "bad_value", "api_key": "test-key"}
-        params = GenericLiteLLMParams(**params_dict)
+        params = GenericGatewayParams(**params_dict)
         assert params.api_key == "test-key"
 
-    def test_generic_litellm_params_with_class_key(self):
+    def test_generic_gateway_params_with_class_key(self):
         """Test GenericLiteLLMParams handles '__class__' key in input dict."""
         params_dict = {"__class__": "bad_value", "api_key": "test-key"}
-        params = GenericLiteLLMParams(**params_dict)
+        params = GenericGatewayParams(**params_dict)
         assert params.api_key == "test-key"
 
     def test_max_retries_string_conversion(self):

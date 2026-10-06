@@ -12,7 +12,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
 from token_iq.gateway.proxy.agent_endpoints.auth.agent_permission_handler import (
     RestrictedAgentAccess,
     UnrestrictedAgentAccess,
@@ -55,7 +55,7 @@ async def test_team_activity_requires_admin_on_every_requested_team():
 
     user = UserAPIKeyAuth(
         user_id="alice",
-        user_role=LitellmUserRoles.INTERNAL_USER.value,
+        user_role=GatewayUserRoles.INTERNAL_USER.value,
     )
 
     # Mock prisma client
@@ -113,7 +113,7 @@ async def test_team_activity_full_view_when_admin_of_all_requested_teams():
 
     user = UserAPIKeyAuth(
         user_id="alice",
-        user_role=LitellmUserRoles.INTERNAL_USER.value,
+        user_role=GatewayUserRoles.INTERNAL_USER.value,
     )
 
     prisma = MagicMock()
@@ -167,7 +167,7 @@ async def test_agent_activity_admin_unscoped():
     """Proxy admin: agent_ids omitted → no scoping (existing behavior)."""
     from token_iq.gateway.proxy.agent_endpoints import endpoints
 
-    admin = UserAPIKeyAuth(user_id="root", user_role=LitellmUserRoles.PROXY_ADMIN.value)
+    admin = UserAPIKeyAuth(user_id="root", user_role=GatewayUserRoles.PROXY_ADMIN.value)
 
     prisma = MagicMock()
     prisma.db.litellm_agentstable.find_many = AsyncMock(return_value=[])
@@ -208,7 +208,7 @@ async def test_agent_activity_non_admin_no_perms_falls_back_to_owned():
 
     user = UserAPIKeyAuth(
         user_id="alice",
-        user_role=LitellmUserRoles.INTERNAL_USER.value,
+        user_role=GatewayUserRoles.INTERNAL_USER.value,
     )
 
     owned = [MagicMock(agent_id="agent-alice-1"), MagicMock(agent_id="agent-alice-2")]
@@ -259,7 +259,7 @@ async def test_agent_activity_non_admin_intersects_explicit_agent_ids():
 
     user = UserAPIKeyAuth(
         user_id="alice",
-        user_role=LitellmUserRoles.INTERNAL_USER.value,
+        user_role=GatewayUserRoles.INTERNAL_USER.value,
     )
 
     prisma = MagicMock()
@@ -309,7 +309,7 @@ async def test_agent_activity_keyless_caller_does_not_query_created_by_null():
     user = UserAPIKeyAuth(
         api_key="sk-svc",
         # NOTE: no user_id
-        user_role=LitellmUserRoles.INTERNAL_USER.value,
+        user_role=GatewayUserRoles.INTERNAL_USER.value,
     )
 
     prisma = MagicMock()
@@ -354,7 +354,7 @@ async def test_agent_activity_non_admin_no_access_returns_empty_page():
 
     user = UserAPIKeyAuth(
         user_id="alice",
-        user_role=LitellmUserRoles.INTERNAL_USER.value,
+        user_role=GatewayUserRoles.INTERNAL_USER.value,
     )
 
     prisma = MagicMock()

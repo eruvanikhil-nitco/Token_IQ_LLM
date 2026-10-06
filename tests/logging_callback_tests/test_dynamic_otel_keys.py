@@ -25,7 +25,7 @@ def test_dynamic_key_extraction_from_metadata():
     assert params.get("langfuse_host") == "https://test.langfuse.com"
 
 
-def test_dynamic_key_extraction_from_litellm_params_metadata():
+def test_dynamic_key_extraction_from_gateway_params_metadata():
     """
     Test extraction of langfuse keys from litellm_params.metadata.
     """
@@ -46,4 +46,4 @@ def test_dynamic_key_extraction_from_litellm_params_metadata():
 
 if __name__ == "__main__":
     test_dynamic_key_extraction_from_metadata()
-    test_dynamic_key_extraction_from_litellm_params_metadata()
+    test_dynamic_key_extraction_from_gateway_params_metadata()

@@ -21,8 +21,8 @@ from token_iq.gateway.constants import LITELLM_WEB_SEARCH_TOOL_NAME
 from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.integrations.websearch_interception.tools import (
     get_litellm_web_search_tool,
-    get_litellm_web_search_tool_openai,
-    get_litellm_web_search_tool_responses,
+    get_gateway_web_search_tool_openai,
+    get_gateway_web_search_tool_responses,
     is_anthropic_native_web_search_tool,
     is_web_search_tool,
     is_web_search_tool_chat_completion,
@@ -64,7 +64,7 @@ from token_iq.gateway.utils import ProviderConfigManager
 if TYPE_CHECKING:
     from aiohttp import ClientSession
 
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
     from token_iq.gateway.llms.base_llm.anthropic_messages.transformation import (
         BaseAnthropicMessagesConfig,
     )
@@ -102,22 +102,22 @@ class _WebSearchSettingsView(TypedDict):
     websearch_interception_params: WebSearchInterceptionConfig
 
 
-class _SearchToolLitellmParams(TypedDict, total=False):
+class _SearchToolGatewayParams(TypedDict, total=False):
     search_provider: ReadOnly[str | None]
 
 
 class _SearchToolConfig(TypedDict, total=False):
     search_tool_name: str
-    litellm_params: ReadOnly[_SearchToolLitellmParams | None]
+    litellm_params: ReadOnly[_SearchToolGatewayParams | None]
 
 
-class _LitellmParamsProviderView(TypedDict, total=False):
+class _GatewayParamsProviderView(TypedDict, total=False):
     custom_llm_provider: ReadOnly[str]
 
 
 class _DeploymentCallKwargsView(TypedDict):
     custom_llm_provider: ReadOnly[str]
-    litellm_params: ReadOnly[_LitellmParamsProviderView]
+    litellm_params: ReadOnly[_GatewayParamsProviderView]
     model: ReadOnly[str]
 
 
@@ -439,7 +439,7 @@ class WebSearchInterceptionLogger(CustomLogger):
         for tool in tools:
             if is_web_search_tool(tool):
                 # Convert to LiteLLM standard web search tool
-                converted_tool = get_litellm_web_search_tool_openai()
+                converted_tool = get_gateway_web_search_tool_openai()
                 converted_tools.append(converted_tool)
                 verbose_logger.debug(
                     "WebSearchInterception: Converted %s (type=%s) to %s",
@@ -470,7 +470,7 @@ class WebSearchInterceptionLogger(CustomLogger):
         verbose_logger.debug("WebSearchInterception: Converting Responses web_search tools to LiteLLM standard")
 
         converted_tools: Final = [
-            get_litellm_web_search_tool_responses() if is_web_search_tool_responses(tool) else tool for tool in tools
+            get_gateway_web_search_tool_responses() if is_web_search_tool_responses(tool) else tool for tool in tools
         ]
 
         converted_kwargs: Final = {**kwargs, "tools": converted_tools}
@@ -1477,12 +1477,12 @@ class WebSearchInterceptionLogger(CustomLogger):
 
             search_tool: Final = self._select_search_tool_from_router(llm_router=llm_router)
             search_provider: str | None = None
-            search_litellm_params: Mapping[str, object] = {}
+            search_gateway_params: Mapping[str, object] = {}
             search_tool_name: Final = self._selected_search_tool_name(search_tool=search_tool)
             if search_tool is not None:
                 await self._authorize_search_tool(search_tool=search_tool, kwargs=kwargs)
-                tool_params: Final[_SearchToolLitellmParams] = search_tool.get("litellm_params", {}) or {}
-                search_litellm_params = dict[str, object](tool_params)
+                tool_params: Final[_SearchToolGatewayParams] = search_tool.get("litellm_params", {}) or {}
+                search_gateway_params = dict[str, object](tool_params)
                 search_provider = tool_params.get("search_provider")
 
             # Fallback to perplexity if no router or no search tools configured
@@ -1507,7 +1507,7 @@ class WebSearchInterceptionLogger(CustomLogger):
             )
             search_kwargs: Final = {
                 key: value
-                for key, value in search_litellm_params.items()
+                for key, value in search_gateway_params.items()
                 if key != "search_provider" and value is not None
             }
             result: Final = (
@@ -1589,10 +1589,10 @@ class WebSearchInterceptionLogger(CustomLogger):
         and billed against the key/user/team that made the originating LLM request instead
         of being dropped by the proxy's spend hook for lack of an owner.
         """
-        from token_iq.gateway.proxy.litellm_pre_call_utils import LiteLLMProxyRequestSetup
+        from token_iq.gateway.proxy.litellm_pre_call_utils import GatewayProxyRequestSetup
 
         user_api_key_metadata: Final[StandardLoggingUserAPIKeyMetadata] = (
-            LiteLLMProxyRequestSetup.get_sanitized_user_information_from_key(user_api_key_dict=user_api_key_auth)
+            GatewayProxyRequestSetup.get_sanitized_user_information_from_key(user_api_key_dict=user_api_key_auth)
         )
         return {  # mutable-ok: litellm's metadata channel is a plain dict its logging path reads and enriches
             **user_api_key_metadata,

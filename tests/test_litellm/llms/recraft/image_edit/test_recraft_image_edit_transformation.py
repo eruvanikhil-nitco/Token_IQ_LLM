@@ -9,7 +9,7 @@ import pytest
 
 from token_iq.gateway.llms.recraft.image_edit.transformation import RecraftImageEditConfig
 from token_iq.gateway.types.images.main import ImageEditOptionalRequestParams
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.types.utils import ImageObject, ImageResponse
 
 
@@ -41,7 +41,7 @@ class TestRecraftImageEditTransformation:
             "style": "photographic",
         }
 
-        litellm_params = GenericLiteLLMParams()
+        litellm_params = GenericGatewayParams()
         headers = {}
 
         data, files = self.config.transform_image_edit_request(

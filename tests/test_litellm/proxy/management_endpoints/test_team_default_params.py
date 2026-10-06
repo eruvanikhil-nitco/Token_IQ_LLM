@@ -16,7 +16,7 @@ from token_iq.gateway.proxy._types import (
     NewTeamRequest,
     ProxyException,
     UserAPIKeyAuth,
-    LitellmUserRoles,
+    GatewayUserRoles,
 )
 from token_iq.gateway.proxy.management_endpoints.team_endpoints import (
     _get_default_team_param,
@@ -165,7 +165,7 @@ class TestNewTeamDefaultParamsApplied:
     def _make_admin_auth(self) -> UserAPIKeyAuth:
         return UserAPIKeyAuth(
             user_id="admin-user",
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
         )
 
     def _make_org(self, organization_id: str, max_budget: float | None = None) -> LiteLLM_OrganizationTable:
@@ -527,7 +527,7 @@ class TestNewTeamDefaultParamsApplied:
 # ---------------------------------------------------------------------------
 
 
-class TestUpdateLitellmSettingOrdering:
+class TestUpdateGatewaySettingOrdering:
     """Tests that _update_litellm_setting sets in-memory value AFTER get_config,
     so stale DB values from LITELLM_SETTINGS_SAFE_DB_OVERRIDES don't overwrite it."""
 
@@ -535,7 +535,7 @@ class TestUpdateLitellmSettingOrdering:
     async def test_setattr_not_overwritten_by_get_config(self, monkeypatch):
         """The new in-memory value survives get_config() which may load stale DB values."""
         from token_iq.gateway.proxy.ui_crud_endpoints.proxy_setting_endpoints import (
-            _update_litellm_setting,
+            _update_gateway_setting,
         )
         from token_iq.gateway.types.proxy.management_endpoints.ui_sso import (
             DefaultTeamSSOParams,
@@ -573,7 +573,7 @@ class TestUpdateLitellmSettingOrdering:
             rpm_limit=1000,
         )
 
-        result = await _update_litellm_setting(
+        result = await _update_gateway_setting(
             settings=new_settings,
             settings_key="default_team_params",
             success_message="Updated",
@@ -598,7 +598,7 @@ class TestUpdateLitellmSettingOrdering:
         from fastapi import HTTPException
 
         from token_iq.gateway.proxy.ui_crud_endpoints.proxy_setting_endpoints import (
-            _update_litellm_setting,
+            _update_gateway_setting,
         )
         from token_iq.gateway.types.proxy.management_endpoints.ui_sso import (
             DefaultTeamSSOParams,
@@ -607,7 +607,7 @@ class TestUpdateLitellmSettingOrdering:
         monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", False)
 
         with pytest.raises(HTTPException) as exc_info:
-            await _update_litellm_setting(
+            await _update_gateway_setting(
                 settings=DefaultTeamSSOParams(max_budget=100.0),
                 settings_key="default_team_params",
                 success_message="Updated",
@@ -653,18 +653,18 @@ class TestBulkUpdateTeamMemberPermissions:
         return team
 
     def _admin_key_dict(self):
-        from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+        from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
 
         return UserAPIKeyAuth(
-            user_role=LitellmUserRoles.PROXY_ADMIN.value,
+            user_role=GatewayUserRoles.PROXY_ADMIN.value,
             api_key="sk-1234",
         )
 
     def _non_admin_key_dict(self):
-        from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+        from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
 
         return UserAPIKeyAuth(
-            user_role=LitellmUserRoles.INTERNAL_USER.value,
+            user_role=GatewayUserRoles.INTERNAL_USER.value,
             api_key="sk-user",
         )
 

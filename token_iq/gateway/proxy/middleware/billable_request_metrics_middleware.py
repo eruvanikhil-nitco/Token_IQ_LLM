@@ -24,7 +24,7 @@ from typing import Final, Protocol, runtime_checkable
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from token_iq.gateway._logging import verbose_proxy_logger
-from token_iq.gateway.proxy._types import LiteLLMRoutes
+from token_iq.gateway.proxy._types import GatewayRoutes
 
 
 class BillableCategory(str, Enum):
@@ -103,7 +103,7 @@ _LLM_ROUTE_EXACT: Final[tuple[str, ...]] = (
 _NON_BILLABLE_PASSTHROUGH_PREFIXES: Final = frozenset({"/langfuse"})
 _PASSTHROUGH_PREFIXES: Final[tuple[str, ...]] = tuple(
     prefix
-    for prefix in LiteLLMRoutes.mapped_pass_through_routes.value
+    for prefix in GatewayRoutes.mapped_pass_through_routes.value
     if prefix not in _NON_BILLABLE_PASSTHROUGH_PREFIXES
 )
 

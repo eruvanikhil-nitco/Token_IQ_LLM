@@ -13,7 +13,7 @@ from token_iq.gateway.containers.utils import (
     ContainerRequestUtils,
     decode_managed_container_id_for_request,
 )
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.llms.base_llm.containers.transformation import BaseContainerConfig
 from token_iq.gateway.main import base_llm_http_handler
 from token_iq.gateway.types.containers.main import (
@@ -26,7 +26,7 @@ from token_iq.gateway.types.containers.main import (
     DeleteContainerResult,
 )
 from token_iq.gateway.types.llms.openai import FileTypes
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.types.utils import CallTypes
 from token_iq.gateway.utils import ProviderConfigManager, client
 
@@ -196,7 +196,7 @@ def create_container(
     """
     local_vars: Final = locals()
     try:
-        litellm_logging_obj: Final[LiteLLMLoggingObj] = kwargs.pop("litellm_logging_obj")
+        litellm_logging_obj: Final[GatewayLoggingObj] = kwargs.pop("litellm_logging_obj")
         litellm_call_id: Final[str | None] = kwargs.get("litellm_call_id")
         _is_async: Final = kwargs.pop("async_call", False) is True
 
@@ -211,7 +211,7 @@ def create_container(
 
         # get llm provider logic
         # Pass credential params explicitly since they're named args, not in kwargs
-        litellm_params: Final = GenericLiteLLMParams(
+        litellm_params: Final = GenericGatewayParams(
             api_key=api_key,
             api_base=api_base,
             api_version=api_version,
@@ -414,7 +414,7 @@ def list_containers(
     """
     local_vars: Final = locals()
     try:
-        litellm_logging_obj: Final[LiteLLMLoggingObj] = kwargs.pop("litellm_logging_obj")
+        litellm_logging_obj: Final[GatewayLoggingObj] = kwargs.pop("litellm_logging_obj")
         litellm_call_id: Final[str | None] = kwargs.get("litellm_call_id")
         _is_async: Final = kwargs.pop("async_call", False) is True
 
@@ -429,7 +429,7 @@ def list_containers(
 
         # get llm provider logic
         # Pass credential params explicitly since they're named args, not in kwargs
-        litellm_params: Final = GenericLiteLLMParams(
+        litellm_params: Final = GenericGatewayParams(
             api_key=api_key,
             api_base=api_base,
             api_version=api_version,
@@ -605,7 +605,7 @@ def retrieve_container(
     local_vars: Final = locals()
     try:
         resolved_custom_llm_provider: str = custom_llm_provider
-        litellm_logging_obj: Final[LiteLLMLoggingObj] = kwargs.pop("litellm_logging_obj")
+        litellm_logging_obj: Final[GatewayLoggingObj] = kwargs.pop("litellm_logging_obj")
         litellm_call_id: Final[str | None] = kwargs.get("litellm_call_id")
         _is_async: Final = kwargs.pop("async_call", False) is True
 
@@ -620,7 +620,7 @@ def retrieve_container(
 
         # get llm provider logic
         # Pass credential params explicitly since they're named args, not in kwargs
-        litellm_params = GenericLiteLLMParams(
+        litellm_params = GenericGatewayParams(
             api_key=api_key,
             api_base=api_base,
             api_version=api_version,
@@ -820,7 +820,7 @@ def delete_container(
     local_vars: Final = locals()
     try:
         resolved_custom_llm_provider: str = custom_llm_provider
-        litellm_logging_obj: Final[LiteLLMLoggingObj] = kwargs.pop("litellm_logging_obj")
+        litellm_logging_obj: Final[GatewayLoggingObj] = kwargs.pop("litellm_logging_obj")
         litellm_call_id: Final[str | None] = kwargs.get("litellm_call_id")
         _is_async: Final = kwargs.pop("async_call", False) is True
 
@@ -835,7 +835,7 @@ def delete_container(
 
         # get llm provider logic
         # Pass credential params explicitly since they're named args, not in kwargs
-        litellm_params = GenericLiteLLMParams(
+        litellm_params = GenericGatewayParams(
             api_key=api_key,
             api_base=api_base,
             api_version=api_version,
@@ -1049,7 +1049,7 @@ def list_container_files(
     local_vars: Final = locals()
     try:
         resolved_custom_llm_provider: str = custom_llm_provider
-        litellm_logging_obj: Final[LiteLLMLoggingObj] = kwargs.pop("litellm_logging_obj")
+        litellm_logging_obj: Final[GatewayLoggingObj] = kwargs.pop("litellm_logging_obj")
         litellm_call_id: Final[str | None] = kwargs.get("litellm_call_id")
         _is_async: Final = kwargs.pop("async_call", False) is True
 
@@ -1064,7 +1064,7 @@ def list_container_files(
 
         # get llm provider logic
         # Pass credential params explicitly since they're named args, not in kwargs
-        litellm_params = GenericLiteLLMParams(
+        litellm_params = GenericGatewayParams(
             api_key=api_key,
             api_base=api_base,
             api_version=api_version,
@@ -1300,7 +1300,7 @@ def upload_container_file(
     local_vars: Final = locals()
     try:
         resolved_custom_llm_provider: str = custom_llm_provider
-        litellm_logging_obj: Final[LiteLLMLoggingObj] = kwargs.pop("litellm_logging_obj")
+        litellm_logging_obj: Final[GatewayLoggingObj] = kwargs.pop("litellm_logging_obj")
         litellm_call_id: Final[str | None] = kwargs.get("litellm_call_id")
         _is_async: Final = kwargs.pop("async_call", False) is True
 
@@ -1315,7 +1315,7 @@ def upload_container_file(
 
         # get llm provider logic
         # Pass credential params explicitly since they're named args, not in kwargs
-        litellm_params = GenericLiteLLMParams(
+        litellm_params = GenericGatewayParams(
             api_key=api_key,
             api_base=api_base,
             api_version=api_version,

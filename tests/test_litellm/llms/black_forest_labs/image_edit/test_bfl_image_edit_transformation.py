@@ -21,7 +21,7 @@ from token_iq.gateway.llms.black_forest_labs.image_edit.transformation import (
 )
 from token_iq.gateway.llms.black_forest_labs.common_utils import BlackForestLabsError
 from token_iq.gateway.types.images.main import ImageEditOptionalRequestParams
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.types.utils import ImageObject, ImageResponse
 
 
@@ -164,7 +164,7 @@ class TestBlackForestLabsImageEditTransformation:
             "output_format": "jpeg",
         }
 
-        litellm_params = GenericLiteLLMParams()
+        litellm_params = GenericGatewayParams()
         headers = {}
 
         data, files = self.config.transform_image_edit_request(
@@ -199,7 +199,7 @@ class TestBlackForestLabsImageEditTransformation:
             "output_format": "png",
         }
 
-        litellm_params = GenericLiteLLMParams()
+        litellm_params = GenericGatewayParams()
         headers = {}
 
         data, files = self.config.transform_image_edit_request(

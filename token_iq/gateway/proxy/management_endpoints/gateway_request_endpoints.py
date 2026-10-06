@@ -19,7 +19,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, TypeAdapter
 
 from token_iq.gateway._logging import verbose_proxy_logger
-from token_iq.gateway.proxy._types import CommonProxyErrors, LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import CommonProxyErrors, GatewayUserRoles, UserAPIKeyAuth
 from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 from token_iq.gateway.types.proxy.gateway_requests import (
     GatewayRequestActivityResponse,
@@ -110,8 +110,8 @@ async def get_gateway_daily_activity(
     from token_iq.gateway.proxy.proxy_server import prisma_client
 
     if user_api_key_dict.user_role not in (
-        LitellmUserRoles.PROXY_ADMIN,
-        LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY,
+        GatewayUserRoles.PROXY_ADMIN,
+        GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY,
     ):
         raise HTTPException(
             status_code=403,

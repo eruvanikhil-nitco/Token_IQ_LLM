@@ -14,7 +14,7 @@ from token_iq.gateway.proxy.auth.handle_jwt import JWTHandler
 from token_iq.gateway.proxy._types import (
     JWTKeyMappingResponse,
     LiteLLM_JWTAuth,
-    LitellmUserRoles,
+    GatewayUserRoles,
     UserAPIKeyAuth,
 )
 from token_iq.gateway.proxy.management_endpoints.jwt_key_mapping_endpoints import (
@@ -249,14 +249,14 @@ def test_to_response_excludes_token():
 def _make_admin_auth() -> UserAPIKeyAuth:
     return UserAPIKeyAuth(
         token="sk-admin",
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
     )
 
 
 def _make_non_admin_auth() -> UserAPIKeyAuth:
     return UserAPIKeyAuth(
         token="sk-user",
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
     )
 
 

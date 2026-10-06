@@ -4,7 +4,7 @@ from httpx import Headers, Response
 
 from token_iq.gateway.exceptions import InternalServerError
 from token_iq.gateway.llms.base_llm.chat.transformation import BaseLLMException
-from token_iq.gateway.llms.base_llm.embedding.transformation import LiteLLMLoggingObj
+from token_iq.gateway.llms.base_llm.embedding.transformation import GatewayLoggingObj
 from token_iq.gateway.types.llms.openai import AllEmbeddingInputValues, AllMessageValues
 from token_iq.gateway.types.llms.vertex_ai import (
     Instance,
@@ -199,7 +199,7 @@ class VertexAIMultimodalEmbeddingConfig(BaseEmbeddingConfig):
         model: str,
         raw_response: Response,
         model_response: EmbeddingResponse,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         api_key: str | None,
         request_data: dict,
         optional_params: dict,

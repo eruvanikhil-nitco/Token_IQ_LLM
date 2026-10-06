@@ -13,13 +13,13 @@ from token_iq.gateway._logging import verbose_router_logger
 if TYPE_CHECKING:
     from token_iq.gateway.router import Router as _Router
 
-    LitellmRouter = _Router
+    GatewayRouter = _Router
 else:
-    LitellmRouter = Any
+    GatewayRouter = Any
 
 
 def simple_shuffle(
-    llm_router_instance: LitellmRouter,
+    llm_router_instance: GatewayRouter,
     healthy_deployments: list[Any] | dict[Any, Any],
     model: str,
 ) -> dict:

@@ -21,7 +21,7 @@ import pytest
 
 
 from token_iq.gateway.llms.bedrock.batches.transformation import BedrockBatchesConfig
-from token_iq.gateway.types.utils import LiteLLMBatch, LlmProviders
+from token_iq.gateway.types.utils import GatewayBatch, LlmProviders
 
 # AWS JobStatus -> OpenAI BatchJobStatus, exactly as encoded in transformation.py
 # (both transform_create_batch_response and transform_retrieve_batch_response).
@@ -255,7 +255,7 @@ def test_create_request_no_timeout_for_non_24h_window(config):
     assert "timeoutDurationInHours" not in mock_sign.call_args.kwargs["data"]
 
 
-def test_create_request_forwards_bedrock_tags_from_litellm_params(config):
+def test_create_request_forwards_bedrock_tags_from_gateway_params(config):
     tags = [
         {"key": "application", "value": "genai-proxy"},
         {"key": "team", "value": "ml-platform"},
@@ -295,7 +295,7 @@ def test_create_request_forwards_bedrock_tags_from_optional_params(config):
     assert mock_sign.call_args.kwargs["data"]["tags"] == tags
 
 
-def test_create_request_empty_litellm_params_tags_do_not_fall_through(config):
+def test_create_request_empty_gateway_params_tags_do_not_fall_through(config):
     with patch.object(
         config.common_utils,
         "generate_unique_job_name",

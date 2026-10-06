@@ -11,10 +11,10 @@ from pydantic import ConfigDict, model_validator
 
 from token_iq.gateway.models.budget import LiteLLM_BudgetTable
 from token_iq.gateway.models.object_permission import LiteLLM_ObjectPermissionTable
-from token_iq.gateway.types.llms.base import LiteLLMPydanticObjectBase
+from token_iq.gateway.types.llms.base import GatewayPydanticObjectBase
 
 
-class LiteLLM_EndUserTable(LiteLLMPydanticObjectBase):
+class LiteLLM_EndUserTable(GatewayPydanticObjectBase):
     user_id: str
     blocked: bool
     alias: str | None = None

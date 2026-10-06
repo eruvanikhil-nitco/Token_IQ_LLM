@@ -27,7 +27,7 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from typing import Final
 
-from token_iq.gateway.proxy._types import LiteLLMRoutes
+from token_iq.gateway.proxy._types import GatewayRoutes
 
 # Dispatch predicates whose derived name is not the route prefix. Everything else
 # reduces mechanically: `is_anthropic_route` -> `anthropic`.
@@ -108,7 +108,7 @@ def provider_courier_coverage(provider: str) -> ProviderCourierCoverage:
     priced_under: Final = _PRICED_BY_ANOTHERS_BRANCH.get(provider, provider)
     return ProviderCourierCoverage(
         provider=provider,
-        has_route=f"/{provider}" in LiteLLMRoutes.mapped_pass_through_routes.value,
+        has_route=f"/{provider}" in GatewayRoutes.mapped_pass_through_routes.value,
         reads_usage=priced_under in pricing_branch_providers() or _has_config_usage_reader(provider),
     )
 

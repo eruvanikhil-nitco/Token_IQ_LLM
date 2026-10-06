@@ -5,13 +5,13 @@ from typing import Final
 import pytest
 from fastapi import HTTPException
 
-from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
 from token_iq.api.recommendations import recommendations_response
 from token_iq.types.recommendation import Evidence, Recommendation
 
 START: Final = datetime(2026, 9, 1, tzinfo=timezone.utc)
 END: Final = datetime(2026, 9, 30, tzinfo=timezone.utc)
-MEMBER: Final = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-test", user_id="u-1")
+MEMBER: Final = UserAPIKeyAuth(user_role=GatewayUserRoles.INTERNAL_USER, api_key="sk-test", user_id="u-1")
 
 ESCAPED: Final = Recommendation(
     rule_id="escaped_spend",

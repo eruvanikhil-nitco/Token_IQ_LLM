@@ -3,7 +3,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from fastapi import HTTPException
 
-from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
 from token_iq.api.audit_logs import list_audit_logs
 
 
@@ -14,7 +14,7 @@ def _prisma_with_no_rows() -> MagicMock:
     return client
 
 
-async def _list_as(role: LitellmUserRoles):
+async def _list_as(role: GatewayUserRoles):
     with patch("token_iq.gateway.proxy.proxy_server.prisma_client", _prisma_with_no_rows()):
         return await list_audit_logs(
             user_api_key_dict=UserAPIKeyAuth(user_role=role),
@@ -31,7 +31,7 @@ async def _list_as(role: LitellmUserRoles):
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("role", [LitellmUserRoles.PROXY_ADMIN, LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY])
+@pytest.mark.parametrize("role", [GatewayUserRoles.PROXY_ADMIN, GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY])
 async def test_admins_can_read_the_audit_trail(role):
     response = await _list_as(role)
 
@@ -42,7 +42,7 @@ async def test_admins_can_read_the_audit_trail(role):
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
     "role",
-    [LitellmUserRoles.ORG_ADMIN, LitellmUserRoles.INTERNAL_USER, LitellmUserRoles.INTERNAL_USER_VIEW_ONLY],
+    [GatewayUserRoles.ORG_ADMIN, GatewayUserRoles.INTERNAL_USER, GatewayUserRoles.INTERNAL_USER_VIEW_ONLY],
 )
 async def test_the_installation_wide_audit_trail_is_refused_to_everyone_else(role):
     with pytest.raises(HTTPException) as refused:

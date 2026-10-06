@@ -93,7 +93,7 @@ class TestLoggingSafeMcpHeaders:
             "cookie": "***REDACTED***",
         }
 
-    def test_strips_custom_litellm_key_header(self):
+    def test_strips_custom_gateway_key_header(self):
         """general_settings.litellm_key_header_name carries the proxy virtual key, so it must
         never reach a callback or a guardrail even though clean_headers cannot know its name."""
         with patch.dict(
@@ -216,7 +216,7 @@ class TestBuildSyntheticMcpRequest:
         assert "x-mcp-auth" not in request.headers
         assert "x-mcp-github-authorization" not in request.headers
 
-    def test_drops_custom_litellm_key_header(self):
+    def test_drops_custom_gateway_key_header(self):
         """Callers such as the sampling flow build metadata off this request, so the
         deployment's custom proxy key header must never be forwarded on it."""
         with patch.dict(

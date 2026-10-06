@@ -11,7 +11,7 @@ from typing import Literal
 
 from pydantic import Field
 
-from token_iq.gateway.types.llms.base import LiteLLMPydanticObjectBase
+from token_iq.gateway.types.llms.base import GatewayPydanticObjectBase
 from token_iq.gateway.types.mcp import MCPAuthType, MCPCredentials, MCPTransportType
 from token_iq.gateway.types.mcp_server.mcp_server_manager import MCPInfo
 
@@ -29,7 +29,7 @@ class MCPEnvVarScope(str, enum.Enum):
     user = "user"
 
 
-class MCPEnvVar(LiteLLMPydanticObjectBase):
+class MCPEnvVar(GatewayPydanticObjectBase):
     """One environment variable for an MCP server.
 
     Variables can be interpolated into ``static_headers`` using ``${NAME}``
@@ -44,7 +44,7 @@ class MCPEnvVar(LiteLLMPydanticObjectBase):
     description: str | None = None
 
 
-class LiteLLM_MCPServerTable(LiteLLMPydanticObjectBase):
+class LiteLLM_MCPServerTable(GatewayPydanticObjectBase):
     """Represents a LiteLLM_MCPServerTable record"""
 
     server_id: str

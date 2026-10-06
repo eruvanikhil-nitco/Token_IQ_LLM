@@ -21,7 +21,7 @@ from token_iq.gateway.proxy.pass_through_endpoints.llm_provider_handlers.vertex_
 from token_iq.gateway.proxy.pass_through_endpoints.success_handler import (
     PassThroughEndpointLogging,
 )
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.types.utils import LlmProviders
 from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
@@ -37,7 +37,7 @@ class TestVertexAILivePassthroughLoggingHandler:
     @pytest.fixture
     def mock_logging_obj(self):
         """Create a mock logging object"""
-        mock = MagicMock(spec=LiteLLMLoggingObj)
+        mock = MagicMock(spec=GatewayLoggingObj)
         mock.model_call_details = {}
         return mock
 
@@ -374,7 +374,7 @@ class TestVertexAILivePassthroughIntegration:
     @pytest.fixture
     def mock_logging_obj(self):
         """Create a mock logging object"""
-        mock = MagicMock(spec=LiteLLMLoggingObj)
+        mock = MagicMock(spec=GatewayLoggingObj)
         mock.model_call_details = {}
         return mock
 
@@ -507,7 +507,7 @@ class TestVertexAILivePassthroughErrorHandling:
     @pytest.fixture
     def mock_logging_obj(self):
         """Create a mock logging object"""
-        mock = MagicMock(spec=LiteLLMLoggingObj)
+        mock = MagicMock(spec=GatewayLoggingObj)
         mock.model_call_details = {}
         return mock
 

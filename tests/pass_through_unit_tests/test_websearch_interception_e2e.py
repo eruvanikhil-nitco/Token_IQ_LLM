@@ -647,7 +647,7 @@ if __name__ == "__main__":
     sys.exit(0 if result else 1)
 
 
-async def test_litellm_standard_websearch_tool():
+async def test_gateway_standard_websearch_tool():
     """
     PRIORITY TEST #1: Test with the canonical litellm_web_search tool format.
 

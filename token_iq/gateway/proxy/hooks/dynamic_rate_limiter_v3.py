@@ -694,7 +694,7 @@ class _PROXY_DynamicRateLimitHandlerV3(CustomLogger):
             _get_parent_otel_span_from_kwargs,
         )
         from token_iq.gateway.proxy.common_utils.callback_utils import (
-            get_model_group_from_litellm_kwargs,
+            get_model_group_from_gateway_kwargs,
         )
         from token_iq.gateway.types.caching import RedisPipelineIncrementOperation
         from token_iq.gateway.types.utils import Usage
@@ -709,7 +709,7 @@ class _PROXY_DynamicRateLimitHandlerV3(CustomLogger):
             standard_logging_metadata: Final = standard_logging_object.get("metadata") or {}
 
             # Get model and priority
-            model_group: Final = get_model_group_from_litellm_kwargs(kwargs)
+            model_group: Final = get_model_group_from_gateway_kwargs(kwargs)
             if not model_group:
                 return
 

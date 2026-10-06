@@ -99,9 +99,9 @@ class XAIModelInfo(BaseLLMModelInfo):
 
         models: Final = response.json()["data"]
 
-        litellm_model_names: Final = []
+        gateway_model_names: Final = []
         for model in models:
             stripped_model_name = model["id"]
             litellm_model_name = "xai/" + stripped_model_name
-            litellm_model_names.append(litellm_model_name)
-        return litellm_model_names
+            gateway_model_names.append(litellm_model_name)
+        return gateway_model_names

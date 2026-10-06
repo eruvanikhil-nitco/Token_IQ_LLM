@@ -20,7 +20,7 @@ from datetime import datetime, timedelta, timezone
 from typing import TYPE_CHECKING, Final, Protocol
 
 from token_iq.gateway._logging import verbose_proxy_logger
-from token_iq.gateway.proxy._types import Litellm_EntityType
+from token_iq.gateway.proxy._types import Gateway_EntityType
 from token_iq.gateway.proxy.db.db_transaction_queue.window_spend_update_queue import (
     WindowSpendTransaction,
     to_naive_utc,
@@ -140,9 +140,9 @@ async def spend_logs_seed_totals(
     counts everything: that can only over-count once, which enforcement
     tolerates, whereas under-counting is a budget bypass.
     """
-    if entity_type == Litellm_EntityType.KEY.value:
+    if entity_type == Gateway_EntityType.KEY.value:
         bounded_sql, unbounded_sql = _SEED_FROM_SPEND_LOGS_KEY_SQL, _SEED_FROM_SPEND_LOGS_KEY_UNBOUNDED_SQL
-    elif entity_type == Litellm_EntityType.TEAM.value:
+    elif entity_type == Gateway_EntityType.TEAM.value:
         bounded_sql, unbounded_sql = _SEED_FROM_SPEND_LOGS_TEAM_SQL, _SEED_FROM_SPEND_LOGS_TEAM_UNBOUNDED_SQL
     else:
         return None

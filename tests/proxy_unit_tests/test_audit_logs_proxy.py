@@ -23,7 +23,7 @@ from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 
 from token_iq.gateway.proxy.proxy_server import (
-    LitellmUserRoles,
+    GatewayUserRoles,
     audio_transcriptions,
     chat_completion,
     completion,
@@ -43,7 +43,7 @@ from token_iq.gateway.proxy.management_helpers.audit_logs import (
     create_audit_log_for_update,
     get_audit_log_changed_by,
 )
-from token_iq.gateway.proxy._types import LiteLLM_AuditLogs, LitellmTableNames, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import LiteLLM_AuditLogs, GatewayTableNames, UserAPIKeyAuth
 from token_iq.gateway.caching.caching import DualCache
 from unittest.mock import patch, AsyncMock
 
@@ -184,7 +184,7 @@ async def test_create_audit_log_for_update_premium_user():
             updated_at=datetime.now(),
             changed_by="test_changed_by",
             action="updated",
-            table_name=LitellmTableNames.TEAM_TABLE_NAME,
+            table_name=GatewayTableNames.TEAM_TABLE_NAME,
             object_id="test_object_id",
             updated_values=json.dumps({"key": "value"}),
             before_value=json.dumps({"old_key": "old_value"}),
@@ -243,7 +243,7 @@ async def test_create_audit_log_in_db(prisma_client):
         updated_at=datetime.now(),
         changed_by="test_changed_by",
         action="updated",
-        table_name=LitellmTableNames.TEAM_TABLE_NAME,
+        table_name=GatewayTableNames.TEAM_TABLE_NAME,
         object_id="test_object_id",
         updated_values=json.dumps({"key": "value"}),
         before_value=json.dumps({"old_key": "old_value"}),

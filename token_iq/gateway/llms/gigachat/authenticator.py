@@ -34,7 +34,7 @@ GIGACHAT_SCOPE: Final = "GIGACHAT_API_PERS"
 TOKEN_EXPIRY_BUFFER_MS: Final = 60000
 
 _token_cache: Final = InMemoryCache()
-_NO_LITELLM_PARAMS: Final[Mapping[str, object]] = MappingProxyType({})
+_NO_GATEWAY_PARAMS: Final[Mapping[str, object]] = MappingProxyType({})
 
 
 class GigaChatAuthError(BaseLLMException):
@@ -81,7 +81,7 @@ def get_access_token(
     Raises:
         GigaChatAuthError: If authentication fails
     """
-    params: Final = litellm_params or _NO_LITELLM_PARAMS
+    params: Final = litellm_params or _NO_GATEWAY_PARAMS
 
     access_token: Final = params.get("gigachat_access_token") or get_secret_str("GIGACHAT_ACCESS_TOKEN")
     if access_token:
@@ -122,7 +122,7 @@ async def get_access_token_async(
     litellm_params: Mapping[str, object] | None = None,
 ) -> str:
     """Async version of get_access_token."""
-    params: Final = litellm_params or _NO_LITELLM_PARAMS
+    params: Final = litellm_params or _NO_GATEWAY_PARAMS
 
     access_token: Final = params.get("gigachat_access_token") or get_secret_str("GIGACHAT_ACCESS_TOKEN")
     if access_token:

@@ -5,7 +5,7 @@ import pytest
 from token_iq import gateway
 from token_iq.gateway.proxy._types import (
     BlockModelRequest,
-    LitellmUserRoles,
+    GatewayUserRoles,
     ProxyException,
     ReconcileOutcome,
     UserAPIKeyAuth,
@@ -64,7 +64,7 @@ def _setup_model_block_mocks(monkeypatch, *, updated_blocked: bool):
 def _proxy_admin() -> UserAPIKeyAuth:
     return UserAPIKeyAuth(
         user_id="admin",
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
         api_key="sk-admin",
     )
 
@@ -135,7 +135,7 @@ async def test_model_block_endpoint_requires_proxy_admin(monkeypatch):
     )
     non_admin = UserAPIKeyAuth(
         user_id="internal-user",
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         api_key="sk-user",
     )
 

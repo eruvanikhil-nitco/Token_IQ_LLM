@@ -228,7 +228,7 @@ class AnthropicAdapter:
         (
             translated_body,
             tool_name_mapping,
-        ) = LiteLLMAnthropicMessagesAdapter().translate_anthropic_to_openai(
+        ) = GatewayAnthropicMessagesAdapter().translate_anthropic_to_openai(
             anthropic_message_request=request_body,
             custom_llm_provider=custom_llm_provider,
         )
@@ -251,7 +251,7 @@ class AnthropicAdapter:
                               OpenAI's 64-char limit.
             polyfill_result: PolyfillResult from context_management polyfill.
         """
-        return LiteLLMAnthropicMessagesAdapter().translate_openai_response_to_anthropic(
+        return GatewayAnthropicMessagesAdapter().translate_openai_response_to_anthropic(
             response=response,
             tool_name_mapping=tool_name_mapping,
             polyfill_result=polyfill_result,
@@ -300,7 +300,7 @@ class AnthropicAdapter:
 _BlockT: Final = TypeVar("_BlockT", bound=Mapping[str, object])
 
 
-class LiteLLMAnthropicMessagesAdapter:
+class GatewayAnthropicMessagesAdapter:
     def __init__(self):
         pass
 
@@ -645,17 +645,17 @@ class LiteLLMAnthropicMessagesAdapter:
         Returns:
             Dict with either 'thinking' or 'reasoning_effort' key
         """
-        if LiteLLMAnthropicMessagesAdapter.is_anthropic_claude_model(
+        if GatewayAnthropicMessagesAdapter.is_anthropic_claude_model(
             model
-        ) or LiteLLMAnthropicMessagesAdapter.is_bedrock_arn_model(model):
+        ) or GatewayAnthropicMessagesAdapter.is_bedrock_arn_model(model):
             return {"thinking": thinking}
         else:
-            reasoning_effort: Final = LiteLLMAnthropicMessagesAdapter.translate_anthropic_thinking_to_reasoning_effort(
+            reasoning_effort: Final = GatewayAnthropicMessagesAdapter.translate_anthropic_thinking_to_reasoning_effort(
                 thinking
             )
             if reasoning_effort:
                 return {
-                    "reasoning_effort": LiteLLMAnthropicMessagesAdapter._apply_reasoning_summary_wrapping(
+                    "reasoning_effort": GatewayAnthropicMessagesAdapter._apply_reasoning_summary_wrapping(
                         reasoning_effort, thinking
                     )
                 }
@@ -826,23 +826,23 @@ class LiteLLMAnthropicMessagesAdapter:
             schema["additionalProperties"] = False
             schema["required"] = list(schema["properties"].keys())
             for prop in schema["properties"].values():
-                LiteLLMAnthropicMessagesAdapter._add_additional_properties_false(prop)
+                GatewayAnthropicMessagesAdapter._add_additional_properties_false(prop)
 
         # Handle array items
         if "items" in schema:
-            LiteLLMAnthropicMessagesAdapter._add_additional_properties_false(schema["items"])
+            GatewayAnthropicMessagesAdapter._add_additional_properties_false(schema["items"])
 
         # Handle anyOf/oneOf/allOf
         for key in ("anyOf", "oneOf", "allOf"):
             if key in schema:
                 for sub_schema in schema[key]:
-                    LiteLLMAnthropicMessagesAdapter._add_additional_properties_false(sub_schema)
+                    GatewayAnthropicMessagesAdapter._add_additional_properties_false(sub_schema)
 
         # Handle $defs / definitions
         for key in ("$defs", "definitions"):
             if key in schema:
                 for def_schema in schema[key].values():
-                    LiteLLMAnthropicMessagesAdapter._add_additional_properties_false(def_schema)
+                    GatewayAnthropicMessagesAdapter._add_additional_properties_false(def_schema)
 
     def _translate_midturn_system_message_to_openai(
         self,
@@ -1634,13 +1634,13 @@ class LiteLLMAnthropicMessagesAdapter:
                 stop_reason=self._translate_openai_finish_reason_to_anthropic(response.choices[0].finish_reason),
             )
             if getattr(response, "usage", None) is not None:
-                litellm_usage_chunk: Usage | None = response.usage
+                gateway_usage_chunk: Usage | None = response.usage
             elif hasattr(response, "_hidden_params") and "usage" in response._hidden_params:
-                litellm_usage_chunk = response._hidden_params["usage"]
+                gateway_usage_chunk = response._hidden_params["usage"]
             else:
-                litellm_usage_chunk = None
-            if litellm_usage_chunk is not None:
-                usage_delta = self._translate_openai_usage_to_anthropic_usage_delta(litellm_usage_chunk)
+                gateway_usage_chunk = None
+            if gateway_usage_chunk is not None:
+                usage_delta = self._translate_openai_usage_to_anthropic_usage_delta(gateway_usage_chunk)
             else:
                 usage_delta = UsageDelta(input_tokens=0, output_tokens=0)
             message_block: Final = MessageBlockDelta(

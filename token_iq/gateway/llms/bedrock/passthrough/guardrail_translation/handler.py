@@ -13,7 +13,7 @@ from token_iq.gateway.types.utils import GenericGuardrailAPIInputs
 
 if TYPE_CHECKING:
     from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
     from token_iq.gateway.proxy._types import UserAPIKeyAuth
     from token_iq.gateway.proxy.utils import ProxyLogging
 
@@ -412,7 +412,7 @@ class BedrockPassthroughGuardrailHandler(BaseTranslation):
         self,
         data: dict,
         guardrail_to_apply: "CustomGuardrail",
-        litellm_logging_obj: Optional["LiteLLMLoggingObj"] = None,
+        litellm_logging_obj: Optional["GatewayLoggingObj"] = None,
     ) -> Mapping[str, object]:
         endpoint: Final = data.get("endpoint", "")
         body: Final = data.get("data")
@@ -457,7 +457,7 @@ class BedrockPassthroughGuardrailHandler(BaseTranslation):
         self,
         response: object,
         guardrail_to_apply: "CustomGuardrail",
-        litellm_logging_obj: Optional["LiteLLMLoggingObj"] = None,
+        litellm_logging_obj: Optional["GatewayLoggingObj"] = None,
         user_api_key_dict: Optional["UserAPIKeyAuth"] = None,
         request_data: dict | None = None,
     ) -> object:

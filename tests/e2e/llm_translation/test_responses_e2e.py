@@ -26,7 +26,7 @@ from endpoints_client import (
     ResponsesStreamEventType,
 )
 from lifecycle import ResourceManager
-from models import LiteLLMParamsBody
+from models import GatewayParamsBody
 from pydantic import BaseModel, ValidationError
 
 pytestmark = pytest.mark.e2e
@@ -50,8 +50,8 @@ WEATHER_TOOL = ResponsesFunctionTool(
 )
 
 
-def _bedrock_params() -> LiteLLMParamsBody:
-    return LiteLLMParamsBody(
+def _bedrock_params() -> GatewayParamsBody:
+    return GatewayParamsBody(
         model=BEDROCK_CONVERSE_BACKEND,
         aws_access_key_id="os.environ/AWS_ACCESS_KEY_ID",
         aws_secret_access_key="os.environ/AWS_SECRET_ACCESS_KEY",
@@ -71,7 +71,7 @@ class TestResponses:
         model = f"e2e-responses-{unique_marker()}"
         model_id = endpoints_client.create_model(
             model,
-            LiteLLMParamsBody(model="openai/gpt-4o-mini", api_key="os.environ/OPENAI_API_KEY"),
+            GatewayParamsBody(model="openai/gpt-4o-mini", api_key="os.environ/OPENAI_API_KEY"),
         )
         resources.defer(lambda: endpoints_client.delete_model(model_id))
         key = resources.key()
@@ -88,7 +88,7 @@ class TestResponses:
         model = f"e2e-responses-{unique_marker()}"
         model_id = endpoints_client.create_model(
             model,
-            LiteLLMParamsBody(model="openai/gpt-4o-mini", api_key="os.environ/OPENAI_API_KEY"),
+            GatewayParamsBody(model="openai/gpt-4o-mini", api_key="os.environ/OPENAI_API_KEY"),
         )
         resources.defer(lambda: endpoints_client.delete_model(model_id))
         key = resources.key()
@@ -115,7 +115,7 @@ class TestResponses:
         model = f"e2e-responses-{unique_marker()}"
         model_id = endpoints_client.create_model(
             model,
-            LiteLLMParamsBody(model="openai/gpt-4o-mini", api_key="os.environ/OPENAI_API_KEY"),
+            GatewayParamsBody(model="openai/gpt-4o-mini", api_key="os.environ/OPENAI_API_KEY"),
         )
         resources.defer(lambda: endpoints_client.delete_model(model_id))
         key = resources.key()
@@ -141,7 +141,7 @@ class TestResponses:
         model = f"e2e-responses-{unique_marker()}"
         model_id = endpoints_client.create_model(
             model,
-            LiteLLMParamsBody(model="openai/gpt-4o-mini", api_key="os.environ/OPENAI_API_KEY"),
+            GatewayParamsBody(model="openai/gpt-4o-mini", api_key="os.environ/OPENAI_API_KEY"),
         )
         resources.defer(lambda: endpoints_client.delete_model(model_id))
         key = resources.key()
@@ -180,7 +180,7 @@ class TestResponses:
         model = f"e2e-responses-{unique_marker()}"
         model_id = endpoints_client.create_model(
             model,
-            LiteLLMParamsBody(model="openai/gpt-4o", api_key="os.environ/OPENAI_API_KEY"),
+            GatewayParamsBody(model="openai/gpt-4o", api_key="os.environ/OPENAI_API_KEY"),
         )
         resources.defer(lambda: endpoints_client.delete_model(model_id))
         key = resources.key()
@@ -207,7 +207,7 @@ class TestResponses:
         model = f"e2e-responses-{unique_marker()}"
         model_id = endpoints_client.create_model(
             model,
-            LiteLLMParamsBody(
+            GatewayParamsBody(
                 model="anthropic/claude-haiku-4-5", api_key="os.environ/ANTHROPIC_API_KEY"
             ),
         )
@@ -226,7 +226,7 @@ class TestResponses:
         model = f"e2e-responses-{unique_marker()}"
         model_id = endpoints_client.create_model(
             model,
-            LiteLLMParamsBody(
+            GatewayParamsBody(
                 model="anthropic/claude-haiku-4-5", api_key="os.environ/ANTHROPIC_API_KEY"
             ),
         )
@@ -303,7 +303,7 @@ class TestResponses:
         model = f"e2e-responses-val-{unique_marker()}"
         model_id = endpoints_client.create_model(
             model,
-            LiteLLMParamsBody(model="openai/gpt-4o-mini", api_key="os.environ/OPENAI_API_KEY"),
+            GatewayParamsBody(model="openai/gpt-4o-mini", api_key="os.environ/OPENAI_API_KEY"),
         )
         resources.defer(lambda: endpoints_client.delete_model(model_id))
         key = resources.key()
@@ -333,7 +333,7 @@ class TestResponses:
         model = f"e2e-responses-val-{unique_marker()}"
         model_id = endpoints_client.create_model(
             model,
-            LiteLLMParamsBody(model="openai/gpt-4o-mini", api_key="os.environ/OPENAI_API_KEY"),
+            GatewayParamsBody(model="openai/gpt-4o-mini", api_key="os.environ/OPENAI_API_KEY"),
         )
         resources.defer(lambda: endpoints_client.delete_model(model_id))
         key = resources.key()

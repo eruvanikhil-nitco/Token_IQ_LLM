@@ -8,7 +8,7 @@ from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.transfor
     AnthropicMessagesConfig,
 )
 from token_iq.gateway.llms.azure.common_utils import BaseAzureLLM
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 
 
 class AzureAnthropicMessagesConfig(AnthropicMessagesConfig):
@@ -43,14 +43,14 @@ class AzureAnthropicMessagesConfig(AnthropicMessagesConfig):
         if isinstance(litellm_params, dict):
             if api_key and "api_key" not in litellm_params:
                 litellm_params = {**litellm_params, "api_key": api_key}
-            litellm_params_obj = GenericLiteLLMParams(**litellm_params)
+            gateway_params_obj = GenericGatewayParams(**litellm_params)
         else:
-            litellm_params_obj = litellm_params or GenericLiteLLMParams()
-            if api_key and not litellm_params_obj.api_key:
-                litellm_params_obj.api_key = api_key
+            gateway_params_obj = litellm_params or GenericGatewayParams()
+            if api_key and not gateway_params_obj.api_key:
+                gateway_params_obj.api_key = api_key
 
         # Use Azure authentication logic
-        headers = BaseAzureLLM._base_validate_azure_environment(headers=headers, litellm_params=litellm_params_obj)
+        headers = BaseAzureLLM._base_validate_azure_environment(headers=headers, litellm_params=gateway_params_obj)
 
         # Azure Anthropic uses x-api-key header (not api-key)
         # Convert api-key to x-api-key if present
@@ -150,7 +150,7 @@ class AzureAnthropicMessagesConfig(AnthropicMessagesConfig):
         model: str,
         messages: list[dict],
         anthropic_messages_optional_request_params: dict,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> dict:
         anthropic_messages_request: Final = super().transform_anthropic_messages_request(

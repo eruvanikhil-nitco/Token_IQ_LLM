@@ -6,14 +6,14 @@ import pytest
 from fastapi import HTTPException
 
 from token_iq.attribution.gap_owner import GapRow, attribute
-from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
 from token_iq.api.attribution import unallocated_response
 from token_iq.types.attribution import AttributionRule
 
 DAY: Final = datetime(2026, 9, 15, tzinfo=timezone.utc)
 SETTLED: Final = datetime(2026, 9, 19, tzinfo=timezone.utc)
-ADMIN: Final = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN, api_key="sk-test")
-MEMBER: Final = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-test")
+ADMIN: Final = UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN, api_key="sk-test")
+MEMBER: Final = UserAPIKeyAuth(user_role=GatewayUserRoles.INTERNAL_USER, api_key="sk-test")
 
 GAP_10_MINUS_4: Final = GapRow("openrouter", "acct", DAY, Decimal("10"), Decimal("4"))
 ACCT_RULE: Final = AttributionRule("r-1", "openrouter", "cloud_account", "acct", "team", "t-1")

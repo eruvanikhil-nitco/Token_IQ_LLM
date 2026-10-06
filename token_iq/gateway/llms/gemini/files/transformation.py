@@ -18,7 +18,7 @@ from token_iq.gateway.core_utils.prompt_templates.common_utils import extract_fi
 from token_iq.gateway.core_utils.url_utils import encode_url_path_segment
 from token_iq.gateway.llms.base_llm.files.transformation import (
     BaseFilesConfig,
-    LiteLLMLoggingObj,
+    GatewayLoggingObj,
 )
 from token_iq.gateway.types.llms.openai import (
     AllMessageValues,
@@ -177,7 +177,7 @@ class GoogleAIStudioFilesHandler(GeminiModelInfo, BaseFilesConfig):
         self,
         model: str | None,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         litellm_params: dict,
     ) -> OpenAIFileObject:
         """
@@ -274,7 +274,7 @@ class GoogleAIStudioFilesHandler(GeminiModelInfo, BaseFilesConfig):
     def transform_retrieve_file_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         litellm_params: dict,
     ) -> OpenAIFileObject:
         """
@@ -355,7 +355,7 @@ class GoogleAIStudioFilesHandler(GeminiModelInfo, BaseFilesConfig):
     def transform_delete_file_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         litellm_params: dict,
     ) -> FileDeleted:
         """
@@ -394,7 +394,7 @@ class GoogleAIStudioFilesHandler(GeminiModelInfo, BaseFilesConfig):
     def transform_list_files_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         litellm_params: dict,
     ) -> list[OpenAIFileObject]:
         raise NotImplementedError("GoogleAIStudioFilesHandler does not support file listing")
@@ -410,7 +410,7 @@ class GoogleAIStudioFilesHandler(GeminiModelInfo, BaseFilesConfig):
     def transform_file_content_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         litellm_params: dict,
     ) -> HttpxBinaryResponseContent:
         raise NotImplementedError("GoogleAIStudioFilesHandler does not support file content retrieval")

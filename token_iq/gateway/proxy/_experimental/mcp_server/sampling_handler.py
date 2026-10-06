@@ -997,9 +997,9 @@ async def _run_budget_checks(
     # bypass per-tag budget enforcement (mirroring the regular auth path).
     request_body: Final[dict[str, object]] = {"model": model}
     try:
-        from token_iq.gateway.proxy.litellm_pre_call_utils import LiteLLMProxyRequestSetup
+        from token_iq.gateway.proxy.litellm_pre_call_utils import GatewayProxyRequestSetup
 
-        LiteLLMProxyRequestSetup.apply_client_tag_policy_pre_auth(
+        GatewayProxyRequestSetup.apply_client_tag_policy_pre_auth(
             request=dummy_request,
             request_data=request_body,
             user_api_key_dict=user_api_key_auth,

@@ -832,8 +832,8 @@ async def list_end_user(
         from token_iq.gateway.proxy.proxy_server import prisma_client
 
         if (
-            user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN
-            and user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY
+            user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN
+            and user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY
         ):
             raise HTTPException(
                 status_code=401,
@@ -886,8 +886,8 @@ async def get_customer_daily_activity(
     Get daily activity for specific organizations or all accessible organizations.
     """
     if (
-        user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN
-        and user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY
+        user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN
+        and user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY
     ):
         raise HTTPException(
             status_code=401,

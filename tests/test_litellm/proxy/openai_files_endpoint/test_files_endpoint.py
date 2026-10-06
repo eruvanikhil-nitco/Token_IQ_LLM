@@ -261,7 +261,7 @@ def test_mock_create_audio_file(mocker: MockerFixture, monkeypatch, llm_router: 
     from token_iq import gateway
     import token_iq.gateway.proxy.proxy_server as ps
     from token_iq.gateway import Router
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
     from token_iq.gateway.proxy.utils import ProxyLogging
 
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.master_key", None)
@@ -359,7 +359,7 @@ def test_mock_create_audio_file(mocker: MockerFixture, monkeypatch, llm_router: 
     )
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, user_id="test-user"
+        user_role=GatewayUserRoles.PROXY_ADMIN, user_id="test-user"
     )
 
     try:
@@ -420,7 +420,7 @@ def test_create_file_batch_streams_from_upload_spool(monkeypatch, llm_router: Ro
     the proxy never buffers the whole payload. Non-batch uploads keep the bytes path.
     """
     import token_iq.gateway.proxy.proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
     from token_iq.gateway.proxy.openai_files_endpoints import files_endpoints as fe
     from token_iq.gateway.types.llms.openai import OpenAIFileObject
 
@@ -449,7 +449,7 @@ def test_create_file_batch_streams_from_upload_spool(monkeypatch, llm_router: Ro
 
     monkeypatch.setattr(fe, "route_create_file", fake_route_create_file)
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, user_id="test-user"
+        user_role=GatewayUserRoles.PROXY_ADMIN, user_id="test-user"
     )
 
     content = (
@@ -498,7 +498,7 @@ def test_target_storage_invokes_storage_backend(
     Ensure target_storage is parsed and invokes the storage backend service.
     """
     import token_iq.gateway.proxy.proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.master_key", None)
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", None)
@@ -506,7 +506,7 @@ def test_target_storage_invokes_storage_backend(
     setup_proxy_logging_object(monkeypatch, llm_router)
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, user_id="test-user"
+        user_role=GatewayUserRoles.PROXY_ADMIN, user_id="test-user"
     )
 
     async_mock = mocker.AsyncMock(
@@ -557,7 +557,7 @@ def test_target_storage_with_target_models(
     Ensure target_storage and target_model_names are parsed and passed through.
     """
     import token_iq.gateway.proxy.proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.master_key", None)
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", None)
@@ -565,7 +565,7 @@ def test_target_storage_with_target_models(
     setup_proxy_logging_object(monkeypatch, llm_router)
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, user_id="test-user"
+        user_role=GatewayUserRoles.PROXY_ADMIN, user_id="test-user"
     )
 
     async_mock = mocker.AsyncMock(
@@ -767,7 +767,7 @@ def test_create_file_for_each_model(
     import asyncio
 
     from token_iq.gateway import CreateFileRequest
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
     from token_iq.gateway.proxy.openai_files_endpoints.files_endpoints import (
         create_file_for_each_model,
     )
@@ -786,7 +786,7 @@ def test_create_file_for_each_model(
     # Mock user API key dict
     user_api_key_dict = UserAPIKeyAuth(
         api_key="test-key",
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="test-user",
         team_id="test-team",
         team_alias="test-team-alias",
@@ -1305,7 +1305,7 @@ def test_managed_files_with_loadbalancing(
             raise NotImplementedError("Not implemented for test")
 
     import token_iq.gateway.proxy.proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
     proxy_logging_obj.proxy_hook_mapping["managed_files"] = (
         ManagedFilesWithLoadbalancing()
@@ -1318,7 +1318,7 @@ def test_managed_files_with_loadbalancing(
 
     # Override auth to avoid dependence on shared proxy state in parallel CI
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        api_key="test-key", user_role=LitellmUserRoles.PROXY_ADMIN
+        api_key="test-key", user_role=GatewayUserRoles.PROXY_ADMIN
     )
 
     try:
@@ -1357,7 +1357,7 @@ def test_managed_files_with_loadbalancing(
     ), "All calls should go through router"
 
 
-def test_create_file_with_nested_litellm_metadata(
+def test_create_file_with_nested_gateway_metadata(
     mocker: MockerFixture, monkeypatch, llm_router: Router
 ):
     """
@@ -1374,7 +1374,7 @@ def test_create_file_with_nested_litellm_metadata(
     )
     proxy_logging_obj._add_proxy_hooks(llm_router)
 
-    captured_litellm_metadata = {}
+    captured_gateway_metadata = {}
 
     class DummyManagedFiles(BaseFileEndpoints):
         async def acreate_file(
@@ -1387,11 +1387,11 @@ def test_create_file_with_nested_litellm_metadata(
         ):
             # Capture litellm_metadata for verification
             if isinstance(create_file_request, dict):
-                captured_litellm_metadata.update(
+                captured_gateway_metadata.update(
                     create_file_request.get("litellm_metadata", {})
                 )
             else:
-                captured_litellm_metadata.update(
+                captured_gateway_metadata.update(
                     getattr(create_file_request, "litellm_metadata", {})
                 )
 
@@ -1460,13 +1460,13 @@ def test_create_file_with_nested_litellm_metadata(
     # Verify nested metadata was correctly parsed.
     # Note: caller-supplied `tags` is stripped by default; test removed
     # to keep the parsing test focused on parser correctness.
-    assert "spend_logs_metadata" in captured_litellm_metadata
-    assert captured_litellm_metadata["spend_logs_metadata"]["owner"] == "john_doe"
-    assert captured_litellm_metadata["spend_logs_metadata"]["team"] == "engineering"
-    assert captured_litellm_metadata["environment"] == "prod"
+    assert "spend_logs_metadata" in captured_gateway_metadata
+    assert captured_gateway_metadata["spend_logs_metadata"]["owner"] == "john_doe"
+    assert captured_gateway_metadata["spend_logs_metadata"]["team"] == "engineering"
+    assert captured_gateway_metadata["environment"] == "prod"
 
 
-def test_create_file_with_deep_nested_litellm_metadata(
+def test_create_file_with_deep_nested_gateway_metadata(
     mocker: MockerFixture, monkeypatch, llm_router: Router
 ):
     """
@@ -1476,7 +1476,7 @@ def test_create_file_with_deep_nested_litellm_metadata(
     """
     import token_iq.gateway.proxy.proxy_server as ps
     from token_iq.gateway.llms.base_llm.files.transformation import BaseFileEndpoints
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
     from token_iq.gateway.types.llms.openai import OpenAIFileObject
 
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.master_key", None)
@@ -1487,7 +1487,7 @@ def test_create_file_with_deep_nested_litellm_metadata(
     )
     proxy_logging_obj._add_proxy_hooks(llm_router)
 
-    captured_litellm_metadata = {}
+    captured_gateway_metadata = {}
 
     class DummyManagedFiles(BaseFileEndpoints):
         async def acreate_file(
@@ -1499,11 +1499,11 @@ def test_create_file_with_deep_nested_litellm_metadata(
             user_api_key_dict,
         ):
             if isinstance(create_file_request, dict):
-                captured_litellm_metadata.update(
+                captured_gateway_metadata.update(
                     create_file_request.get("litellm_metadata", {})
                 )
             else:
-                captured_litellm_metadata.update(
+                captured_gateway_metadata.update(
                     getattr(create_file_request, "litellm_metadata", {})
                 )
 
@@ -1548,7 +1548,7 @@ def test_create_file_with_deep_nested_litellm_metadata(
     )
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, user_id="test-user"
+        user_role=GatewayUserRoles.PROXY_ADMIN, user_id="test-user"
     )
 
     try:
@@ -1575,12 +1575,12 @@ def test_create_file_with_deep_nested_litellm_metadata(
         assert result["id"] == "file-test-456"
 
         # Verify deeply nested metadata was correctly parsed
-        assert "config" in captured_litellm_metadata
-        assert "database" in captured_litellm_metadata["config"]
-        assert captured_litellm_metadata["config"]["database"]["host"] == "localhost"
-        assert captured_litellm_metadata["config"]["database"]["port"] == "5432"
-        assert "cache" in captured_litellm_metadata["config"]
-        assert captured_litellm_metadata["config"]["cache"]["enabled"] == "true"
+        assert "config" in captured_gateway_metadata
+        assert "database" in captured_gateway_metadata["config"]
+        assert captured_gateway_metadata["config"]["database"]["host"] == "localhost"
+        assert captured_gateway_metadata["config"]["database"]["port"] == "5432"
+        assert "cache" in captured_gateway_metadata["config"]
+        assert captured_gateway_metadata["config"]["cache"]["enabled"] == "true"
     finally:
         app.dependency_overrides.pop(ps.user_api_key_auth, None)
 
@@ -1852,7 +1852,7 @@ def test_get_file_content_streams_openai_direct_path(
     mocker: MockerFixture, monkeypatch, llm_router: Router
 ):
     import token_iq.gateway.proxy.proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
     proxy_logging_obj = setup_proxy_logging_object(monkeypatch, llm_router)
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.master_key", None)
@@ -1882,7 +1882,7 @@ def test_get_file_content_streams_openai_direct_path(
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
         api_key="test-key",
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
         user_id="test-user",
     )
 
@@ -1909,7 +1909,7 @@ def test_get_file_content_routed_provider_skips_streaming_when_resolved_provider
     mocker: MockerFixture, monkeypatch, llm_router: Router
 ):
     import token_iq.gateway.proxy.proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
     proxy_logging_obj = setup_proxy_logging_object(monkeypatch, llm_router)
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.master_key", None)
@@ -1956,7 +1956,7 @@ def test_get_file_content_routed_provider_skips_streaming_when_resolved_provider
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
         api_key="test-key",
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
         user_id="test-user",
     )
 
@@ -1983,7 +1983,7 @@ def test_get_file_content_non_openai_provider_skips_streaming_handler(
     mocker: MockerFixture, monkeypatch, llm_router: Router
 ):
     import token_iq.gateway.proxy.proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
     proxy_logging_obj = setup_proxy_logging_object(monkeypatch, llm_router)
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.master_key", None)
@@ -2020,7 +2020,7 @@ def test_get_file_content_non_openai_provider_skips_streaming_handler(
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
         api_key="test-key",
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
         user_id="test-user",
     )
 
@@ -2047,7 +2047,7 @@ def test_require_managed_files_rejects_missing_target_model_names(
     mocker: MockerFixture, monkeypatch, llm_router: Router
 ):
     import token_iq.gateway.proxy.proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
     monkeypatch.setattr("token_iq.gateway.require_managed_files", True)
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.master_key", None)
@@ -2058,7 +2058,7 @@ def test_require_managed_files_rejects_missing_target_model_names(
     mock_acreate_file = mocker.patch("token_iq.gateway.acreate_file", new=mocker.AsyncMock())
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, user_id="test-user"
+        user_role=GatewayUserRoles.PROXY_ADMIN, user_id="test-user"
     )
 
     try:
@@ -2084,7 +2084,7 @@ def test_require_managed_files_allows_managed_file_upload(
 ):
     import token_iq.gateway.proxy.proxy_server as ps
     from token_iq.gateway.llms.base_llm.files.transformation import BaseFileEndpoints
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
     monkeypatch.setattr("token_iq.gateway.require_managed_files", True)
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.master_key", None)
@@ -2141,7 +2141,7 @@ def test_require_managed_files_allows_managed_file_upload(
     mock_acreate_file = mocker.patch("token_iq.gateway.acreate_file", new=mocker.AsyncMock())
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, user_id="test-user"
+        user_role=GatewayUserRoles.PROXY_ADMIN, user_id="test-user"
     )
 
     try:
@@ -2172,7 +2172,7 @@ def test_require_managed_files_rejects_model_param_bypass(
     litellm.acreate_file directly instead of the managed-files hook.
     """
     import token_iq.gateway.proxy.proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
     monkeypatch.setattr("token_iq.gateway.require_managed_files", True)
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.master_key", None)
@@ -2183,7 +2183,7 @@ def test_require_managed_files_rejects_model_param_bypass(
     mock_acreate_file = mocker.patch("token_iq.gateway.acreate_file", new=mocker.AsyncMock())
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, user_id="test-user"
+        user_role=GatewayUserRoles.PROXY_ADMIN, user_id="test-user"
     )
 
     try:
@@ -2215,7 +2215,7 @@ def test_require_managed_files_accepts_target_model_names_bracket_form(
     """
     import token_iq.gateway.proxy.proxy_server as ps
     from token_iq.gateway.llms.base_llm.files.transformation import BaseFileEndpoints
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
     monkeypatch.setattr("token_iq.gateway.require_managed_files", True)
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.master_key", None)
@@ -2271,7 +2271,7 @@ def test_require_managed_files_accepts_target_model_names_bracket_form(
     proxy_logging_obj.proxy_hook_mapping["managed_files"] = DummyManagedFiles()
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, user_id="test-user"
+        user_role=GatewayUserRoles.PROXY_ADMIN, user_id="test-user"
     )
 
     try:
@@ -2301,7 +2301,7 @@ def test_require_managed_files_accepts_repeated_target_model_names_bracket_form(
     """
     import token_iq.gateway.proxy.proxy_server as ps
     from token_iq.gateway.llms.base_llm.files.transformation import BaseFileEndpoints
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
     monkeypatch.setattr("token_iq.gateway.require_managed_files", True)
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.master_key", None)
@@ -2359,7 +2359,7 @@ def test_require_managed_files_accepts_repeated_target_model_names_bracket_form(
     proxy_logging_obj.proxy_hook_mapping["managed_files"] = DummyManagedFiles()
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, user_id="test-user"
+        user_role=GatewayUserRoles.PROXY_ADMIN, user_id="test-user"
     )
 
     try:
@@ -2391,7 +2391,7 @@ def test_list_files_resolves_wildcard_deployment_credentials(
     api_key and failed with "api_key client option must be set".
     """
     import token_iq.gateway.proxy.proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
     wildcard_router = Router(
         model_list=[
@@ -2423,7 +2423,7 @@ def test_list_files_resolves_wildcard_deployment_credentials(
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
         api_key="test-key",
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
         user_id="test-user",
     )
 
@@ -2445,7 +2445,7 @@ def test_list_files_model_routing_does_not_forward_custom_llm_provider_twice(
     mocker: MockerFixture, monkeypatch, llm_router: Router
 ):
     import token_iq.gateway.proxy.proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
     proxy_logging_obj = setup_proxy_logging_object(monkeypatch, llm_router)
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.master_key", None)
@@ -2476,7 +2476,7 @@ def test_list_files_model_routing_does_not_forward_custom_llm_provider_twice(
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
         api_key="test-key",
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
         user_id="test-user",
     )
 
@@ -2503,7 +2503,7 @@ def test_list_files_without_target_model_names_uses_team_openai_deployment(
     keyless OpenAI client. Regression for "api_key client option must be set".
     """
     import token_iq.gateway.proxy.proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
     wildcard_router = Router(
         model_list=[
@@ -2535,7 +2535,7 @@ def test_list_files_without_target_model_names_uses_team_openai_deployment(
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
         api_key="test-key",
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="test-user",
         team_id="test-team",
         team_models=["openai/*"],
@@ -2560,7 +2560,7 @@ def test_unscoped_list_files_uses_managed_file_store(
 ):
     import token_iq.gateway.proxy.proxy_server as ps
     from token_iq.gateway.llms.base_llm.files.transformation import BaseFileEndpoints
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
     managed_file = OpenAIFileObject(
         id="unified-file-id",
@@ -2594,7 +2594,7 @@ def test_unscoped_list_files_uses_managed_file_store(
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
         api_key="test-key",
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="test-user",
     )
 
@@ -2621,7 +2621,7 @@ def test_unscoped_list_files_forwards_limit_and_after_to_the_managed_file_store(
 ):
     import token_iq.gateway.proxy.proxy_server as ps
     from token_iq.gateway.llms.base_llm.files.transformation import BaseFileEndpoints
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
     second_page_file = OpenAIFileObject(
         id="unified-file-id-2",
@@ -2655,7 +2655,7 @@ def test_unscoped_list_files_forwards_limit_and_after_to_the_managed_file_store(
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
         api_key="test-key",
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="test-user",
     )
 
@@ -2682,7 +2682,7 @@ def _setup_unscoped_list_files_route(mocker, monkeypatch, llm_router: Router, af
     """Wire GET /v1/files to the managed file store, with afile_list as the store."""
     import token_iq.gateway.proxy.proxy_server as ps
     from token_iq.gateway.llms.base_llm.files.transformation import BaseFileEndpoints
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
     proxy_logging_obj = setup_proxy_logging_object(monkeypatch, llm_router)
     managed_files = mocker.MagicMock(spec=BaseFileEndpoints)
@@ -2698,7 +2698,7 @@ def _setup_unscoped_list_files_route(mocker, monkeypatch, llm_router: Router, af
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
         api_key="test-key",
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="test-user",
     )
     return managed_files
@@ -2961,7 +2961,7 @@ def test_list_files_restricted_team_does_not_leak_global_openai_credentials(
     last-resort scan that ignored team access control.
     """
     import token_iq.gateway.proxy.proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
     router = Router(
         model_list=[
@@ -3000,7 +3000,7 @@ def test_list_files_restricted_team_does_not_leak_global_openai_credentials(
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
         api_key="test-key",
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="test-user",
         team_id="anthropic-only-team",
         team_models=["claude-opus-4-6"],
@@ -3026,7 +3026,7 @@ def test_list_files_prefers_team_byok_over_global_openai_deployment(
     GET /v1/files must use the team's key, not a shared/global openai deployment.
     """
     import token_iq.gateway.proxy.proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
     router = Router(
         model_list=[
@@ -3070,7 +3070,7 @@ def test_list_files_prefers_team_byok_over_global_openai_deployment(
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
         api_key="test-key",
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="test-user",
         team_id="test-team",
         team_models=["team-gpt-4o"],
@@ -3098,7 +3098,7 @@ def test_list_files_with_all_proxy_models_team_uses_openai_deployment(
     credentials for plain GET /v1/files.
     """
     import token_iq.gateway.proxy.proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles, SpecialModelNames
+    from token_iq.gateway.proxy._types import GatewayUserRoles, SpecialModelNames
 
     wildcard_router = Router(
         model_list=[
@@ -3137,7 +3137,7 @@ def test_list_files_with_all_proxy_models_team_uses_openai_deployment(
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
         api_key="test-key",
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="test-user",
         team_id="test-team",
         team_models=[SpecialModelNames.all_proxy_models.value],
@@ -3206,7 +3206,7 @@ def test_create_file_provider_only_resolves_named_vertex_credentials(
     which uploads into the hosting environment's GCP project.
     """
     import token_iq.gateway.proxy.proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
     router = _setup_vertex_named_credential_router(monkeypatch)
     proxy_logging_obj = setup_proxy_logging_object(monkeypatch, router)
@@ -3234,7 +3234,7 @@ def test_create_file_provider_only_resolves_named_vertex_credentials(
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
         api_key="test-key",
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
         user_id="test-user",
     )
 
@@ -3260,7 +3260,7 @@ def test_get_file_provider_only_resolves_named_vertex_credentials(
     mocker: MockerFixture, monkeypatch
 ):
     import token_iq.gateway.proxy.proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
     router = _setup_vertex_named_credential_router(monkeypatch)
     proxy_logging_obj = setup_proxy_logging_object(monkeypatch, router)
@@ -3288,7 +3288,7 @@ def test_get_file_provider_only_resolves_named_vertex_credentials(
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
         api_key="test-key",
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
         user_id="test-user",
     )
 
@@ -3313,7 +3313,7 @@ def test_get_file_content_provider_only_resolves_named_vertex_credentials(
     mocker: MockerFixture, monkeypatch
 ):
     import token_iq.gateway.proxy.proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
     router = _setup_vertex_named_credential_router(monkeypatch)
     proxy_logging_obj = setup_proxy_logging_object(monkeypatch, router)
@@ -3339,7 +3339,7 @@ def test_get_file_content_provider_only_resolves_named_vertex_credentials(
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
         api_key="test-key",
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
         user_id="test-user",
     )
 
@@ -3365,7 +3365,7 @@ def test_delete_file_provider_only_resolves_named_vertex_credentials(
     mocker: MockerFixture, monkeypatch
 ):
     import token_iq.gateway.proxy.proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
     router = _setup_vertex_named_credential_router(monkeypatch)
     proxy_logging_obj = setup_proxy_logging_object(monkeypatch, router)
@@ -3393,7 +3393,7 @@ def test_delete_file_provider_only_resolves_named_vertex_credentials(
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
         api_key="test-key",
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
         user_id="test-user",
     )
 
@@ -3424,7 +3424,7 @@ def test_create_file_provider_only_skips_other_team_vertex_deployment(
     team's.
     """
     import token_iq.gateway.proxy.proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
     router = Router(
         model_list=[
@@ -3474,7 +3474,7 @@ def test_create_file_provider_only_skips_other_team_vertex_deployment(
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
         api_key="test-key",
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="test-user",
         team_id="team-a",
         team_models=["gemini-2.5-pro"],
@@ -3528,7 +3528,7 @@ def _list_files_captured_kwargs(
     mocker: MockerFixture, monkeypatch, router: Router, key_models: list
 ) -> dict:
     import token_iq.gateway.proxy.proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
     proxy_logging_obj = setup_proxy_logging_object(monkeypatch, router)
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.master_key", None)
@@ -3548,7 +3548,7 @@ def _list_files_captured_kwargs(
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
         api_key="test-key",
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="test-user",
         team_id="team-a",
         team_models=["team-gpt", "claude-opus-4-6"],
@@ -3599,7 +3599,7 @@ def test_list_files_key_allowed_openai_model_still_resolves_team_credentials(
 
 
 @pytest.mark.parametrize(
-    "http_method, url, patched_litellm_call",
+    "http_method, url, patched_gateway_call",
     [
         ("get", "/v1/files/file-victim-abc123", "litellm.afile_retrieve"),
         ("get", "/v1/files/file-victim-abc123/content", "litellm.afile_content"),
@@ -3612,10 +3612,10 @@ def test_require_managed_files_rejects_raw_provider_file_id(
     llm_router: Router,
     http_method: str,
     url: str,
-    patched_litellm_call: str,
+    patched_gateway_call: str,
 ):
     import token_iq.gateway.proxy.proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
     monkeypatch.setattr("token_iq.gateway.require_managed_files", True)
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.master_key", None)
@@ -3623,10 +3623,10 @@ def test_require_managed_files_rejects_raw_provider_file_id(
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", llm_router)
     setup_proxy_logging_object(monkeypatch, llm_router)
 
-    mock_call = mocker.patch(patched_litellm_call, new=mocker.AsyncMock())
+    mock_call = mocker.patch(patched_gateway_call, new=mocker.AsyncMock())
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER, user_id="attacker-user"
+        user_role=GatewayUserRoles.INTERNAL_USER, user_id="attacker-user"
     )
 
     try:
@@ -3654,7 +3654,7 @@ def test_get_file_content_model_routed_attaches_trusted_model_credentials(monkey
     from types import MappingProxyType
 
     import token_iq.gateway.proxy.proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
     from token_iq.gateway.types.utils import SpecialEnums
 
     router = Router(
@@ -3713,7 +3713,7 @@ def test_get_file_content_model_routed_attaches_trusted_model_credentials(monkey
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
         api_key="test-key",
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
         user_id="test-user",
     )
     try:
@@ -3797,7 +3797,7 @@ def test_raw_provider_file_id_retrieve_allowed_when_managed_files_not_required(
     mocker: MockerFixture, monkeypatch, llm_router: Router
 ):
     import token_iq.gateway.proxy.proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
     monkeypatch.setattr("token_iq.gateway.require_managed_files", False)
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.master_key", None)
@@ -3821,7 +3821,7 @@ def test_raw_provider_file_id_retrieve_allowed_when_managed_files_not_required(
     )
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER, user_id="some-user"
+        user_role=GatewayUserRoles.INTERNAL_USER, user_id="some-user"
     )
 
     try:
@@ -3837,7 +3837,7 @@ def test_raw_provider_file_id_retrieve_allowed_when_managed_files_not_required(
 
 def _setup_batch_upload_endpoint(monkeypatch, llm_router: Router) -> list:
     import token_iq.gateway.proxy.proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
     from token_iq.gateway.proxy.openai_files_endpoints import files_endpoints as fe
 
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.master_key", None)
@@ -3861,7 +3861,7 @@ def _setup_batch_upload_endpoint(monkeypatch, llm_router: Router) -> list:
 
     monkeypatch.setattr(fe, "route_create_file", fake_route_create_file)
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, user_id="test-user"
+        user_role=GatewayUserRoles.PROXY_ADMIN, user_id="test-user"
     )
     return forwarded_calls
 
@@ -4046,7 +4046,7 @@ def test_batch_upload_runs_guardrails_on_each_record(
     import token_iq.gateway.proxy.openai_files_endpoints.files_endpoints as fe
     import token_iq.gateway.proxy.proxy_server as ps
     from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
     from token_iq.gateway.proxy.utils import ProxyLogging
 
     class _Redactor(CustomGuardrail):
@@ -4076,7 +4076,7 @@ def test_batch_upload_runs_guardrails_on_each_record(
 
     monkeypatch.setattr(fe, "route_create_file", fake_route_create_file)
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, user_id="test-user"
+        user_role=GatewayUserRoles.PROXY_ADMIN, user_id="test-user"
     )
     try:
         resp = _batch_upload(client, content, purpose)
@@ -4097,7 +4097,7 @@ def test_batch_upload_redacts_per_record(monkeypatch, llm_router: Router):
     import token_iq.gateway.proxy.openai_files_endpoints.files_endpoints as fe
     import token_iq.gateway.proxy.proxy_server as ps
     from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
     from token_iq.gateway.proxy.utils import ProxyLogging
 
     class _Redactor(CustomGuardrail):
@@ -4131,7 +4131,7 @@ def test_batch_upload_redacts_per_record(monkeypatch, llm_router: Router):
 
     monkeypatch.setattr(fe, "route_create_file", fake_route_create_file)
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, user_id="test-user"
+        user_role=GatewayUserRoles.PROXY_ADMIN, user_id="test-user"
     )
 
     def _row(custom_id, content):
@@ -4235,7 +4235,7 @@ def test_batch_upload_closes_the_spools_it_opened(monkeypatch, llm_router: Route
     import token_iq.gateway.proxy.openai_files_endpoints.files_endpoints as fe
     import token_iq.gateway.proxy.proxy_server as ps
     from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
     from token_iq.gateway.proxy.utils import ProxyLogging
 
     class _Redactor(CustomGuardrail):
@@ -4275,7 +4275,7 @@ def test_batch_upload_closes_the_spools_it_opened(monkeypatch, llm_router: Route
 
     monkeypatch.setattr(fe, "route_create_file", fake_route_create_file)
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, user_id="test-user"
+        user_role=GatewayUserRoles.PROXY_ADMIN, user_id="test-user"
     )
 
     def _row(custom_id, content):
@@ -4368,9 +4368,9 @@ def _setup_unscoped_list_files_route_over_real_hook(
     credentials in the process. The neighbouring setup stubs the hook with a
     MagicMock, so it cannot see anything past the route's argument plumbing."""
     import token_iq.gateway.proxy.proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
     from litellm_enterprise.proxy.hooks.managed_files import (
-        _PROXY_LiteLLMManagedFiles,
+        _PROXY_GatewayManagedFiles,
     )
 
     for env_var in ("OPENAI_API_KEY", "OPENAI_ADMIN_KEY", "OPENAI_ORGANIZATION"):
@@ -4378,7 +4378,7 @@ def _setup_unscoped_list_files_route_over_real_hook(
     monkeypatch.setattr(gateway, "api_key", None, raising=False)
     monkeypatch.setattr(gateway, "openai_key", None, raising=False)
 
-    managed_files = _PROXY_LiteLLMManagedFiles(
+    managed_files = _PROXY_GatewayManagedFiles(
         internal_usage_cache=MagicMock(), prisma_client=MagicMock()
     )
     managed_files.prisma_client.db.litellm_managedfiletable = _ManagedFileTableOverRows(rows)
@@ -4396,7 +4396,7 @@ def _setup_unscoped_list_files_route_over_real_hook(
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
         api_key="test-key",
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="test-user",
     )
     return proxy_logging_obj, provider_list

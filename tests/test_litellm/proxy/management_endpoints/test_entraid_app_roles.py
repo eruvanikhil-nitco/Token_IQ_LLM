@@ -1,7 +1,7 @@
 import jwt
 import pytest
 
-from token_iq.gateway.proxy._types import LitellmUserRoles
+from token_iq.gateway.proxy._types import GatewayUserRoles
 from token_iq.gateway.proxy.management_endpoints.ui_sso import MicrosoftSSOHandler
 
 
@@ -39,14 +39,14 @@ def test_extracts_app_roles_from_roles_claim():
 @pytest.mark.parametrize(
     "app_roles, expected",
     [
-        (["proxy_admin"], LitellmUserRoles.PROXY_ADMIN),
-        (["proxy_admin_viewer"], LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY),
-        (["internal_user"], LitellmUserRoles.INTERNAL_USER),
-        (["internal_user_viewer"], LitellmUserRoles.INTERNAL_USER_VIEW_ONLY),
+        (["proxy_admin"], GatewayUserRoles.PROXY_ADMIN),
+        (["proxy_admin_viewer"], GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY),
+        (["internal_user"], GatewayUserRoles.INTERNAL_USER),
+        (["internal_user_viewer"], GatewayUserRoles.INTERNAL_USER_VIEW_ONLY),
         # Case-insensitive, matching get_litellm_user_role.
-        (["PROXY_ADMIN_VIEWER"], LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY),
+        (["PROXY_ADMIN_VIEWER"], GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY),
         # Roles outside the privilege hierarchy still resolve.
-        (["org_admin"], LitellmUserRoles.ORG_ADMIN),
+        (["org_admin"], GatewayUserRoles.ORG_ADMIN),
     ],
 )
 def test_maps_single_app_role(app_roles, expected):
@@ -69,7 +69,7 @@ def test_highest_privilege_role_wins_regardless_of_claim_order(app_roles):
     Entra does not guarantee the ordering of the `roles` claim, so the resolved
     role must not depend on it.
     """
-    assert MicrosoftSSOHandler.get_user_role_from_app_roles(app_roles) == (LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY)
+    assert MicrosoftSSOHandler.get_user_role_from_app_roles(app_roles) == (GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY)
 
 
 @pytest.mark.parametrize(
@@ -82,14 +82,14 @@ def test_highest_privilege_role_wins_regardless_of_claim_order(app_roles):
 )
 def test_proxy_admin_beats_every_other_role(app_roles):
     """proxy_admin outranks every other role in the hierarchy, in any claim order."""
-    assert MicrosoftSSOHandler.get_user_role_from_app_roles(app_roles) == LitellmUserRoles.PROXY_ADMIN
+    assert MicrosoftSSOHandler.get_user_role_from_app_roles(app_roles) == GatewayUserRoles.PROXY_ADMIN
 
 
 def test_unrecognised_app_roles_are_ignored():
     """App roles that are not LitellmUserRoles values do not shadow ones that are."""
     app_roles = ["Some.Custom.Role", "msiam_access", "internal_user"]
 
-    assert MicrosoftSSOHandler.get_user_role_from_app_roles(app_roles) == LitellmUserRoles.INTERNAL_USER
+    assert MicrosoftSSOHandler.get_user_role_from_app_roles(app_roles) == GatewayUserRoles.INTERNAL_USER
 
 
 @pytest.mark.parametrize("app_roles", [None, [], ["msiam_access"], ["User"]])
@@ -117,4 +117,4 @@ def test_end_to_end_from_id_token_to_role():
 
     roles = MicrosoftSSOHandler.get_app_roles_from_id_token(token)
 
-    assert MicrosoftSSOHandler.get_user_role_from_app_roles(roles) == LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY
+    assert MicrosoftSSOHandler.get_user_role_from_app_roles(roles) == GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY

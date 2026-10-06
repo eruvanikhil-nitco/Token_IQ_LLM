@@ -35,7 +35,7 @@ from models import (
     ChatToolFunction,
     ImageContentPart,
     ImageUrl,
-    LiteLLMParamsBody,
+    GatewayParamsBody,
     TextContentPart,
     ThinkingParam,
 )
@@ -131,8 +131,8 @@ def _assert_streamed_completion(result: StreamingResponse) -> None:
     )
 
 
-def _bedrock_params() -> LiteLLMParamsBody:
-    return LiteLLMParamsBody(
+def _bedrock_params() -> GatewayParamsBody:
+    return GatewayParamsBody(
         model=BEDROCK_CONVERSE_BACKEND,
         aws_access_key_id="os.environ/AWS_ACCESS_KEY_ID",
         aws_secret_access_key="os.environ/AWS_SECRET_ACCESS_KEY",
@@ -255,7 +255,7 @@ class TestCohereChat:
         model = f"e2e-cohere-chat-{unique_marker()}"
         model_id = client.proxy.create_model(
             model,
-            LiteLLMParamsBody(model=COHERE_BACKEND, api_key=cohere_key),
+            GatewayParamsBody(model=COHERE_BACKEND, api_key=cohere_key),
         )
         resources.defer(lambda: client.proxy.delete_model(model_id))
         key = resources.key()
@@ -298,7 +298,7 @@ class TestGeminiChatCompletions:
         model = f"e2e-gemini-chat-{unique_marker()}"
         model_id = client.proxy.create_model(
             model,
-            LiteLLMParamsBody(model=GEMINI_BACKEND, api_key="os.environ/GEMINI_API_KEY"),
+            GatewayParamsBody(model=GEMINI_BACKEND, api_key="os.environ/GEMINI_API_KEY"),
         )
         resources.defer(lambda: client.proxy.delete_model(model_id))
         key = resources.key()
@@ -357,7 +357,7 @@ class TestHostedVllmChat:
         model = f"e2e-vllm-chat-{unique_marker()}"
         model_id = client.proxy.create_model(
             model,
-            LiteLLMParamsBody(
+            GatewayParamsBody(
                 model=f"hosted_vllm/{backend}",
                 api_base=api_base,
             ),
@@ -402,7 +402,7 @@ class TestOpenAIChatCompletions:
     ) -> None:
         model = f"e2e-openai-chat-{unique_marker()}"
         model_id = client.proxy.create_model(
-            model, LiteLLMParamsBody(model=OPENAI_BACKEND, api_key="os.environ/OPENAI_API_KEY")
+            model, GatewayParamsBody(model=OPENAI_BACKEND, api_key="os.environ/OPENAI_API_KEY")
         )
         resources.defer(lambda: client.proxy.delete_model(model_id))
         key = resources.key()
@@ -429,7 +429,7 @@ class TestOpenAIChatCompletions:
     ) -> None:
         model = f"e2e-openai-cost-{unique_marker()}"
         model_id = client.proxy.create_model(
-            model, LiteLLMParamsBody(model=OPENAI_BACKEND, api_key="os.environ/OPENAI_API_KEY")
+            model, GatewayParamsBody(model=OPENAI_BACKEND, api_key="os.environ/OPENAI_API_KEY")
         )
         resources.defer(lambda: client.proxy.delete_model(model_id))
         key = resources.key()
@@ -462,7 +462,7 @@ class TestOpenAIChatCompletions:
     ) -> None:
         model = f"e2e-openai-tool-{unique_marker()}"
         model_id = client.proxy.create_model(
-            model, LiteLLMParamsBody(model=OPENAI_BACKEND, api_key="os.environ/OPENAI_API_KEY")
+            model, GatewayParamsBody(model=OPENAI_BACKEND, api_key="os.environ/OPENAI_API_KEY")
         )
         resources.defer(lambda: client.proxy.delete_model(model_id))
         key = resources.key()
@@ -493,7 +493,7 @@ class TestOpenAIChatCompletions:
     ) -> None:
         model = f"e2e-openai-schema-{unique_marker()}"
         model_id = client.proxy.create_model(
-            model, LiteLLMParamsBody(model=OPENAI_BACKEND, api_key="os.environ/OPENAI_API_KEY")
+            model, GatewayParamsBody(model=OPENAI_BACKEND, api_key="os.environ/OPENAI_API_KEY")
         )
         resources.defer(lambda: client.proxy.delete_model(model_id))
         key = resources.key()
@@ -526,7 +526,7 @@ class TestOpenAIChatCompletions:
     ) -> None:
         model = f"e2e-openai-reasoning-{unique_marker()}"
         model_id = client.proxy.create_model(
-            model, LiteLLMParamsBody(model=OPENAI_BACKEND, api_key="os.environ/OPENAI_API_KEY")
+            model, GatewayParamsBody(model=OPENAI_BACKEND, api_key="os.environ/OPENAI_API_KEY")
         )
         resources.defer(lambda: client.proxy.delete_model(model_id))
         key = resources.key()
@@ -576,7 +576,7 @@ class TestOpenAIChatCompletions:
     ) -> None:
         model = f"e2e-openai-vision-{unique_marker()}"
         model_id = client.proxy.create_model(
-            model, LiteLLMParamsBody(model=OPENAI_VISION_BACKEND, api_key="os.environ/OPENAI_API_KEY")
+            model, GatewayParamsBody(model=OPENAI_VISION_BACKEND, api_key="os.environ/OPENAI_API_KEY")
         )
         resources.defer(lambda: client.proxy.delete_model(model_id))
         key = resources.key()
@@ -593,7 +593,7 @@ class TestOpenAIChatCompletions:
     ) -> None:
         model = f"e2e-openai-tool-stream-{unique_marker()}"
         model_id = client.proxy.create_model(
-            model, LiteLLMParamsBody(model=OPENAI_BACKEND, api_key="os.environ/OPENAI_API_KEY")
+            model, GatewayParamsBody(model=OPENAI_BACKEND, api_key="os.environ/OPENAI_API_KEY")
         )
         resources.defer(lambda: client.proxy.delete_model(model_id))
         key = resources.key()

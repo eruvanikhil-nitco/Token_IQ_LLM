@@ -135,7 +135,7 @@ def test_azure_image_generation_creates_token_provider_from_credentials():
     azure_ad_token_provider from credentials in litellm_params if it's not already provided.
     """
     # Simulate the fix in images/main.py
-    litellm_params_dict = {
+    gateway_params_dict = {
         "tenant_id": "test-tenant-id",
         "client_id": "test-client-id",
         "client_secret": "test-client-secret",
@@ -146,11 +146,11 @@ def test_azure_image_generation_creates_token_provider_from_credentials():
 
     # This is the logic we added in images/main.py
     if azure_ad_token_provider is None:
-        tenant_id = litellm_params_dict.get("tenant_id")
-        client_id = litellm_params_dict.get("client_id")
-        client_secret = litellm_params_dict.get("client_secret")
+        tenant_id = gateway_params_dict.get("tenant_id")
+        client_id = gateway_params_dict.get("client_id")
+        client_secret = gateway_params_dict.get("client_secret")
         azure_scope = (
-            litellm_params_dict.get("azure_scope")
+            gateway_params_dict.get("azure_scope")
             or "https://cognitiveservices.azure.com/.default"
         )
 

@@ -481,7 +481,7 @@ async def _run_model_health_check(model: dict):
         model_info,
         litellm_params,  # any-ok: untyped router config dict
     )
-    litellm_params = _update_litellm_params_for_health_check(model_info, litellm_params)
+    litellm_params = _update_gateway_params_for_health_check(model_info, litellm_params)
     timeout: Final = model_info.get("health_check_timeout") or HEALTH_CHECK_TIMEOUT_SECONDS
 
     return await run_with_timeout(
@@ -710,7 +710,7 @@ def _resolve_health_check_max_tokens(model_info: dict, litellm_params: dict) -> 
     return None
 
 
-def _update_litellm_params_for_health_check(model_info: dict, litellm_params: dict) -> dict:
+def _update_gateway_params_for_health_check(model_info: dict, litellm_params: dict) -> dict:
     """
     Update the litellm params for health check.
 

@@ -10,7 +10,7 @@ import pytest
 from e2e_config import unique_marker
 from e2e_http import NoBody, assert_auth_denied, unwrap
 from lifecycle import ResourceManager
-from models import LiteLLMParamsBody
+from models import GatewayParamsBody
 from proxy_client import ProxyClient
 from pydantic import BaseModel
 
@@ -51,7 +51,7 @@ def _register(proxy: ProxyClient, resources: ResourceManager) -> tuple[str, str]
     model = f"e2e-realtime-http-{unique_marker()}"
     model_id = proxy.create_model(
         model,
-        LiteLLMParamsBody(model=REALTIME_BACKEND, api_key="os.environ/OPENAI_API_KEY"),
+        GatewayParamsBody(model=REALTIME_BACKEND, api_key="os.environ/OPENAI_API_KEY"),
     )
     resources.defer(lambda: proxy.delete_model(model_id))
     return model, resources.key()

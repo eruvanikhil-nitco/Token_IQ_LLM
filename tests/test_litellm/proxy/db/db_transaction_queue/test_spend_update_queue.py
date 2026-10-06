@@ -5,7 +5,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from token_iq.gateway.constants import MAX_SIZE_IN_MEMORY_QUEUE
-from token_iq.gateway.proxy._types import Litellm_EntityType, SpendUpdateQueueItem
+from token_iq.gateway.proxy._types import Gateway_EntityType, SpendUpdateQueueItem
 from token_iq.gateway.proxy.db.db_transaction_queue.spend_update_queue import SpendUpdateQueue
 
 
@@ -19,7 +19,7 @@ def spend_queue():
 async def test_add_update(spend_queue):
     # Test adding a single update
     update: SpendUpdateQueueItem = {
-        "entity_type": Litellm_EntityType.USER,
+        "entity_type": Gateway_EntityType.USER,
         "entity_id": "user123",
         "response_cost": 0.5,
     }
@@ -33,7 +33,7 @@ async def test_add_update(spend_queue):
 async def test_missing_response_cost(spend_queue):
     # Test with missing response_cost - should default to 0
     update: SpendUpdateQueueItem = {
-        "entity_type": Litellm_EntityType.USER,
+        "entity_type": Gateway_EntityType.USER,
         "entity_id": "user123",
     }
 
@@ -50,7 +50,7 @@ async def test_missing_response_cost(spend_queue):
 async def test_missing_entity_id(spend_queue):
     # Test with missing entity_id - should default to empty string
     update: SpendUpdateQueueItem = {
-        "entity_type": Litellm_EntityType.USER,
+        "entity_type": Gateway_EntityType.USER,
         "response_cost": 1.0,
     }
 
@@ -67,7 +67,7 @@ async def test_missing_entity_id(spend_queue):
 async def test_none_values(spend_queue):
     # Test with None values
     update: SpendUpdateQueueItem = {
-        "entity_type": Litellm_EntityType.USER,
+        "entity_type": Gateway_EntityType.USER,
         "entity_id": None,  # type: ignore
         "response_cost": None,
     }
@@ -86,16 +86,16 @@ async def test_multiple_updates_with_missing_fields(spend_queue):
     # Test multiple updates with various missing fields
     updates: list[SpendUpdateQueueItem] = [
         {
-            "entity_type": Litellm_EntityType.USER,
+            "entity_type": Gateway_EntityType.USER,
             "entity_id": "user123",
             "response_cost": 0.5,
         },
         {
-            "entity_type": Litellm_EntityType.USER,
+            "entity_type": Gateway_EntityType.USER,
             "entity_id": "user123",  # missing response_cost
         },
         {
-            "entity_type": Litellm_EntityType.USER,  # missing entity_id
+            "entity_type": Gateway_EntityType.USER,  # missing entity_id
             "response_cost": 1.5,
         },
     ]
@@ -157,7 +157,7 @@ async def test_queue_max_size_triggers_aggregation(monkeypatch, spend_queue):
     # Add 6 updates for the same user (exceeding the max size)
     for i in range(6):
         update: SpendUpdateQueueItem = {
-            "entity_type": Litellm_EntityType.USER,
+            "entity_type": Gateway_EntityType.USER,
             "entity_id": "user123",
             "response_cost": 1.0,
         }
@@ -179,22 +179,22 @@ async def test_aggregate_queue_updates_accuracy(spend_queue):
     # Add multiple updates for different entities
     updates = [
         {
-            "entity_type": Litellm_EntityType.USER,
+            "entity_type": Gateway_EntityType.USER,
             "entity_id": "user1",
             "response_cost": 1.5,
         },
         {
-            "entity_type": Litellm_EntityType.USER,
+            "entity_type": Gateway_EntityType.USER,
             "entity_id": "user1",
             "response_cost": 2.5,
         },
         {
-            "entity_type": Litellm_EntityType.USER,
+            "entity_type": Gateway_EntityType.USER,
             "entity_id": "user2",
             "response_cost": 3.0,
         },
         {
-            "entity_type": Litellm_EntityType.TEAM,
+            "entity_type": Gateway_EntityType.TEAM,
             "entity_id": "team1",
             "response_cost": 5.0,
         },
@@ -224,12 +224,12 @@ def test_get_aggregated_spend_update_queue_item_does_not_mutate_original_updates
     spend_queue,
 ):
     original_update: SpendUpdateQueueItem = {
-        "entity_type": Litellm_EntityType.USER,
+        "entity_type": Gateway_EntityType.USER,
         "entity_id": "user1",
         "response_cost": 10.0,
     }
     duplicate_key_update: SpendUpdateQueueItem = {
-        "entity_type": Litellm_EntityType.USER,
+        "entity_type": Gateway_EntityType.USER,
         "entity_id": "user1",
         "response_cost": 20.0,
     }
@@ -241,7 +241,7 @@ def test_get_aggregated_spend_update_queue_item_does_not_mutate_original_updates
         (
             update
             for update in aggregated_updates
-            if update.get("entity_type") == Litellm_EntityType.USER
+            if update.get("entity_type") == Gateway_EntityType.USER
             and update.get("entity_id") == "user1"
         ),
         None,
@@ -263,7 +263,7 @@ async def test_queue_size_reduction_with_large_volume(monkeypatch, spend_queue):
     for i in range(200):
         await spend_queue.add_update(
             {
-                "entity_type": Litellm_EntityType.USER,
+                "entity_type": Gateway_EntityType.USER,
                 "entity_id": "user1",
                 "response_cost": 0.5,
             }
@@ -276,7 +276,7 @@ async def test_queue_size_reduction_with_large_volume(monkeypatch, spend_queue):
     for i in range(300):
         await spend_queue.add_update(
             {
-                "entity_type": Litellm_EntityType.KEY,
+                "entity_type": Gateway_EntityType.KEY,
                 "entity_id": "key1",
                 "response_cost": 1.0,
             }

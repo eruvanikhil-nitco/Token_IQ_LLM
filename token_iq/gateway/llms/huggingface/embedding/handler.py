@@ -6,7 +6,7 @@ from typing import Any, Final, Literal, get_args
 import httpx
 
 from token_iq import gateway
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.llms.custom_httpx.http_handler import (
     AsyncHTTPHandler,
     HTTPHandler,
@@ -229,7 +229,7 @@ class HuggingFaceEmbedding(BaseLLM):
         input: list,
         model_response: gateway.utils.EmbeddingResponse,
         timeout: float | httpx.Timeout,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         optional_params: dict,
         api_base: str,
         api_key: str | None,
@@ -293,7 +293,7 @@ class HuggingFaceEmbedding(BaseLLM):
         model_response: EmbeddingResponse,
         optional_params: dict,
         litellm_params: dict,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         encoding: Callable,
         api_key: str | None = None,
         api_base: str | None = None,

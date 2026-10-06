@@ -10,7 +10,7 @@ from token_iq.gateway.types.llms.anthropic import (
 )
 from token_iq.gateway.types.llms.anthropic_tool_search import get_tool_search_beta_header
 from token_iq.gateway.types.llms.vertex_ai import VertexPartnerProvider
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 
 from ....vertex_llm_base import VertexBase
 from ..output_params_utils import sanitize_vertex_anthropic_output_params
@@ -131,7 +131,7 @@ class VertexAIPartnerModelsAnthropicMessagesConfig(AnthropicMessagesConfig, Vert
         model: str,
         messages: list[dict],
         anthropic_messages_optional_request_params: dict,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> dict:
         anthropic_messages_request: Final = super().transform_anthropic_messages_request(

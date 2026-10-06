@@ -8,7 +8,7 @@ from typing import Any, Final
 import polars as pl
 
 
-class FocusLiteLLMDatabase:
+class FocusGatewayDatabase:
     """Retrieves LiteLLM usage data for Focus export workflows."""
 
     def _ensure_prisma_client(self):

@@ -45,13 +45,13 @@ from typing_extensions import NotRequired, ReadOnly, Required, TypedDict
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway._uuid import uuid
 from token_iq.gateway.types.llms.base import (
-    BaseLiteLLMOpenAIResponseObject,
-    LiteLLMPydanticObjectBase,
+    BaseGatewayOpenAIResponseObject,
+    GatewayPydanticObjectBase,
 )
 from token_iq.gateway.types.mcp import MCPServerCostInfo
 
 from ..core_utils.core_helpers import map_finish_reason, process_response_headers
-from .agents import LiteLLMSendMessageResponse
+from .agents import GatewaySendMessageResponse
 from .guardrails import GuardrailEventHooks
 from .llms.anthropic_messages.anthropic_response import AnthropicMessagesResponse
 from .llms.base import HiddenParams
@@ -110,8 +110,8 @@ class SafeAttributeModel:
             pass
 
 
-class LiteLLMCommonStrings(Enum):
-    redacted_by_litellm = "redacted by litellm. 'litellm.turn_off_message_logging=True'"
+class GatewayCommonStrings(Enum):
+    redacted_by_gateway = "redacted by litellm. 'litellm.turn_off_message_logging=True'"
     llm_provider_not_provided ="Unmapped LLM provider for this endpoint. You passed model={model}, custom_llm_provider={custom_llm_provider}. Check supported provider and route"
 
 
@@ -2466,7 +2466,7 @@ class ImageObject(OpenAIImage):
             return self.dict()
 
 
-class ImageUsageInputTokensDetails(BaseLiteLLMOpenAIResponseObject):
+class ImageUsageInputTokensDetails(BaseGatewayOpenAIResponseObject):
     image_tokens: int
     """The number of image tokens in the input prompt."""
 
@@ -2474,7 +2474,7 @@ class ImageUsageInputTokensDetails(BaseLiteLLMOpenAIResponseObject):
     """The number of text tokens in the input prompt."""
 
 
-class ImageUsage(BaseLiteLLMOpenAIResponseObject):
+class ImageUsage(BaseGatewayOpenAIResponseObject):
     input_tokens: int
     """The number of tokens (images and text) in the input prompt."""
 
@@ -2491,7 +2491,7 @@ class ImageUsage(BaseLiteLLMOpenAIResponseObject):
 from openai.types.images_response import ImagesResponse as OpenAIImageResponse
 
 
-class ImageResponse(OpenAIImageResponse, BaseLiteLLMOpenAIResponseObject):
+class ImageResponse(OpenAIImageResponse, BaseGatewayOpenAIResponseObject):
     _hidden_params: dict = {}
 
     usage: ImageUsage | None = None
@@ -2635,7 +2635,7 @@ class ResponseFormatChunk(TypedDict, total=False):
     response_schema: dict
 
 
-class LoggedLiteLLMParams(TypedDict, total=False):
+class LoggedGatewayParams(TypedDict, total=False):
     force_timeout: float | None
     custom_llm_provider: str | None
     api_base: str | None
@@ -3425,7 +3425,7 @@ class MirroredPricingParams(BaseModel):
     tiered_pricing: list[dict[str, Any]] | None = None
 
 
-class CustomPricingLiteLLMParams(MirroredPricingParams):
+class CustomPricingGatewayParams(MirroredPricingParams):
     ## CUSTOM PRICING ##
     input_cost_per_second: float | None = None
     output_cost_per_second: float | None = None
@@ -3529,7 +3529,7 @@ DEPLOYMENT_SCOPED_PRICING_FIELDS: Final[frozenset[str]] = frozenset({"off_peak_p
 
 SHARED_BACKEND_MODEL_INFO_FIELDS: Final[frozenset[str]] = (
     frozenset(ModelInfoBase.__required_keys__ | ModelInfoBase.__optional_keys__)
-    - frozenset(CustomPricingLiteLLMParams.model_fields)
+    - frozenset(CustomPricingGatewayParams.model_fields)
     - DEPLOYMENT_SCOPED_PRICING_FIELDS
 )
 
@@ -3552,7 +3552,7 @@ def shared_backend_model_info(model_info: dict[str, Any]) -> dict[str, Any]:
 # any unrecognized top-level key into extra_body and leaks them to the provider.
 # This is what lets the loop carry state across rerun calls without a provider
 # scrubber.
-agentic_loop_internal_litellm_params: Final = [
+agentic_loop_internal_gateway_params: Final = [
     "_agentic_loop_depth",
     "_agentic_loop_fingerprints",
     "_agentic_loop_api_surface",
@@ -3576,7 +3576,7 @@ TRUSTED_CALLBACK_VARS_FIELD: Final = "litellm_trusted_callback_vars"
 # files transformations. Listed for the same reason as the fields above: these sit on
 # a deployment that also serves chat, so leaking them into extra_body makes Bedrock
 # reject every non-batch request to that deployment.
-bedrock_batch_litellm_params: Final = (
+bedrock_batch_gateway_params: Final = (
     "aws_batch_role_arn",
     "s3_bucket_name",
     "s3_region_name",
@@ -3585,8 +3585,8 @@ bedrock_batch_litellm_params: Final = (
 )
 
 all_litellm_params = (
-    agentic_loop_internal_litellm_params
-    + [TRUSTED_CALLBACK_VARS_FIELD, *bedrock_batch_litellm_params]
+    agentic_loop_internal_gateway_params
+    + [TRUSTED_CALLBACK_VARS_FIELD, *bedrock_batch_gateway_params]
     + [
         "metadata",
         "litellm_metadata",
@@ -3717,7 +3717,7 @@ all_litellm_params = (
         "quality_router_default_model",
     ]
     + list(StandardCallbackDynamicParams.__annotations__.keys())
-    + list(CustomPricingLiteLLMParams.model_fields.keys())
+    + list(CustomPricingGatewayParams.model_fields.keys())
 )
 
 
@@ -3973,7 +3973,7 @@ class SandboxProviders(str, Enum):
     OPENSANDBOX = "opensandbox"
 
 
-class LiteLLMLoggingBaseClass:
+class GatewayLoggingBaseClass:
     """
     Base class for logging pre and post call
 
@@ -3987,7 +3987,7 @@ class LiteLLMLoggingBaseClass:
         pass
 
 
-class TokenCountResponse(LiteLLMPydanticObjectBase):
+class TokenCountResponse(GatewayPydanticObjectBase):
     total_tokens: int
     request_model: str
     model_used: str
@@ -4036,7 +4036,7 @@ class SelectTokenizerResponse(TypedDict):
     tokenizer: Any
 
 
-class LiteLLMFineTuningJob(FineTuningJob):
+class GatewayFineTuningJob(FineTuningJob):
     _hidden_params: dict = {}
     seed: int | None = None
 
@@ -4049,7 +4049,7 @@ class LiteLLMFineTuningJob(FineTuningJob):
         self._hidden_params = kwargs.get("_hidden_params", {})
 
 
-class LiteLLMBatch(Batch):
+class GatewayBatch(Batch):
     _hidden_params: dict = {}
     usage: Usage | None = None
 
@@ -4073,7 +4073,7 @@ class LiteLLMBatch(Batch):
             return self.dict()
 
 
-class LiteLLMRealtimeStreamLoggingObject(LiteLLMPydanticObjectBase):
+class GatewayRealtimeStreamLoggingObject(GatewayPydanticObjectBase):
     # Events are already well-formed provider dicts. Validating them against the
     # OpenAIRealtimeEvents union makes Pydantic try every member per event, which
     # floods thousands of ValidationErrors for events outside the union (e.g.
@@ -4187,11 +4187,11 @@ LLMResponseTypes = (
     | EmbeddingResponse
     | ImageResponse
     | OpenAIFileObject
-    | LiteLLMBatch
-    | LiteLLMFineTuningJob
+    | GatewayBatch
+    | GatewayFineTuningJob
     | AnthropicMessagesResponse
     | ResponsesAPIResponse
-    | LiteLLMSendMessageResponse
+    | GatewaySendMessageResponse
 )
 
 

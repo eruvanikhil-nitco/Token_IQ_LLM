@@ -30,7 +30,7 @@ from token_iq.gateway.types.utils import (
 )
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 
 # Language tag aliases (normalize to canonical for comparison)
 LANGUAGE_ALIASES: Final[dict[str, str]] = {
@@ -514,7 +514,7 @@ class BlockCodeExecutionGuardrail(CustomGuardrail):
         inputs: GenericGuardrailAPIInputs,
         request_data: dict[str, object],
         input_type: Literal["request", "response"],
-        logging_obj: Optional["LiteLLMLoggingObj"] = None,
+        logging_obj: Optional["GatewayLoggingObj"] = None,
     ) -> GenericGuardrailAPIInputs:
         start_time: Final = datetime.now()
         detections: Final[list[CodeBlockDetection]] = []

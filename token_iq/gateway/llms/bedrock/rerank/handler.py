@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Any, Final, cast
 import httpx
 
 from token_iq import gateway
-from token_iq.gateway.core_utils.litellm_logging import Logging as LitellmLogging
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLogging
 from token_iq.gateway.llms.custom_httpx.http_handler import (
     AsyncHTTPHandler,
     HTTPHandler,
@@ -29,7 +29,7 @@ class BedrockRerankHandler(BaseAWSLLM):
     async def arerank(
         self,
         prepared_request: BedrockPreparedRequest,
-        logging_obj: LitellmLogging,
+        logging_obj: GatewayLogging,
         timeout: float | httpx.Timeout | None = None,
         client: AsyncHTTPHandler | None = None,
     ):
@@ -58,7 +58,7 @@ class BedrockRerankHandler(BaseAWSLLM):
         query: str,
         documents: list[str | dict[str, Any]],
         optional_params: dict,
-        logging_obj: LitellmLogging,
+        logging_obj: GatewayLogging,
         top_n: int | None = None,
         rank_fields: list[str] | None = None,
         return_documents: bool | None = True,

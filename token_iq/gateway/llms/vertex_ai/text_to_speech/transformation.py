@@ -28,10 +28,10 @@ from token_iq.gateway.types.llms.vertex_ai_text_to_speech import (
 )
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
     from token_iq.gateway.types.llms.openai import HttpxBinaryResponseContent
 else:
-    LiteLLMLoggingObj = Any
+    GatewayLoggingObj = Any
     HttpxBinaryResponseContent = Any
 
 
@@ -132,8 +132,8 @@ class VertexAITextToSpeechConfig(BaseTextToSpeechConfig, VertexBase):
         input: str,
         voice: str | dict | None,
         optional_params: dict,
-        litellm_params_dict: dict,
-        logging_obj: "LiteLLMLoggingObj",
+        gateway_params_dict: dict,
+        logging_obj: "GatewayLoggingObj",
         timeout: float | httpx.Timeout,
         extra_headers: dict[str, Any] | None,
         base_llm_http_handler: Any,
@@ -155,9 +155,9 @@ class VertexAITextToSpeechConfig(BaseTextToSpeechConfig, VertexBase):
             base_llm_http_handler: The BaseLLMHTTPHandler instance from main.py
         """
         # Resolve Vertex AI credentials using VertexBase helpers
-        vertex_credentials: Final = self.safe_get_vertex_ai_credentials(litellm_params_dict)
-        vertex_project: Final = self.safe_get_vertex_ai_project(litellm_params_dict)
-        vertex_location: Final = self.safe_get_vertex_ai_location(litellm_params_dict)
+        vertex_credentials: Final = self.safe_get_vertex_ai_credentials(gateway_params_dict)
+        vertex_project: Final = self.safe_get_vertex_ai_project(gateway_params_dict)
+        vertex_location: Final = self.safe_get_vertex_ai_location(gateway_params_dict)
 
         # Convert voice to string if it's a dict (extract name)
         # Actual voice mapping happens in map_openai_params
@@ -169,7 +169,7 @@ class VertexAITextToSpeechConfig(BaseTextToSpeechConfig, VertexBase):
             voice_str = voice.get("name") if voice else None
 
         # Store credentials in litellm_params for use in transform methods
-        litellm_params_dict.update(
+        gateway_params_dict.update(
             {
                 "vertex_credentials": vertex_credentials,
                 "vertex_project": vertex_project,
@@ -186,7 +186,7 @@ class VertexAITextToSpeechConfig(BaseTextToSpeechConfig, VertexBase):
             text_to_speech_provider_config=self,
             text_to_speech_optional_params=optional_params,
             custom_llm_provider="vertex_ai",
-            litellm_params=litellm_params_dict,
+            litellm_params=gateway_params_dict,
             logging_obj=logging_obj,
             timeout=timeout,
             extra_headers=extra_headers,
@@ -443,7 +443,7 @@ class VertexAITextToSpeechConfig(BaseTextToSpeechConfig, VertexBase):
         self,
         model: str,
         raw_response: httpx.Response,
-        logging_obj: "LiteLLMLoggingObj",
+        logging_obj: "GatewayLoggingObj",
     ) -> "HttpxBinaryResponseContent":
         """
         Transform Vertex AI TTS response to standard format

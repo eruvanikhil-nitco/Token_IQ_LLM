@@ -69,7 +69,7 @@ async def test_async_otel_callback(streaming):
         print("span attributes", span.attributes)
 
         if span.name == "litellm_request":
-            validate_litellm_request(span)
+            validate_gateway_request(span)
             # Additional specific checks
             assert span._attributes["gen_ai.request.model"] == "gpt-4.1-mini"
             assert span._attributes["gen_ai.system"] == "openai"
@@ -86,7 +86,7 @@ async def test_async_otel_callback(streaming):
     exporter.clear()
 
 
-def validate_litellm_request(span):
+def validate_gateway_request(span):
     expected_attributes = [
         "gen_ai.request.model",
         "gen_ai.system",

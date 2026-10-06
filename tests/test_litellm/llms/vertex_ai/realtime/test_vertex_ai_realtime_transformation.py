@@ -345,7 +345,7 @@ def test_vertex_warns_when_dropping_guardrail_turn_detection_update(caplog):
         "session": {"turn_detection": {"create_response": False}},
     }
 
-    with caplog.at_level(logging.WARNING, logger="LiteLLM"):
+    with caplog.at_level(logging.WARNING, logger="Gateway"):
         result = cfg.transform_realtime_request(
             json.dumps(session_update),
             "gemini-live-2.5-flash-preview-native-audio-09-2025",
@@ -374,7 +374,7 @@ def test_vertex_does_not_warn_when_dropping_non_guardrail_session_update(caplog)
         "session": {"instructions": "Be concise."},
     }
 
-    with caplog.at_level(logging.WARNING, logger="LiteLLM"):
+    with caplog.at_level(logging.WARNING, logger="Gateway"):
         cfg.transform_realtime_request(
             json.dumps(session_update),
             "gemini-live-2.5-flash-preview-native-audio-09-2025",

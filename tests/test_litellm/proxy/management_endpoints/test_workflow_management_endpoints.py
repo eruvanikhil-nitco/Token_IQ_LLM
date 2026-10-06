@@ -127,10 +127,10 @@ def _override_auth() -> Any:
 
 
 def _override_auth_admin() -> Any:
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
 
     auth = UserAPIKeyAuth(api_key="sk-master")
-    auth.user_role = LitellmUserRoles.PROXY_ADMIN  # type: ignore[assignment]
+    auth.user_role = GatewayUserRoles.PROXY_ADMIN  # type: ignore[assignment]
     return auth
 
 
@@ -145,24 +145,24 @@ def _override_auth_user_with_token(token: str = "tok-abc") -> Any:
 
 def _override_auth_admin_viewer(token: str = "tok-viewer") -> Any:
     """Viewer carries a real token, so a re-scoped read path would be observable."""
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
 
     auth = UserAPIKeyAuth(
         api_key="sk-viewer",
         user_id="viewer-1",
-        user_role=LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY,
+        user_role=GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY,
     )
     auth.token = token
     return auth
 
 
 def _override_auth_internal_user(token: str = "tok-internal") -> Any:
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
 
     auth = UserAPIKeyAuth(
         api_key="sk-internal",
         user_id="user-2",
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
     )
     auth.token = token
     return auth

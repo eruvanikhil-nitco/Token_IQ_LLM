@@ -56,7 +56,7 @@ from token_iq.gateway.constants import (
     DEFAULT_MOCK_RESPONSE_COMPLETION_TOKEN_COUNT,
     DEFAULT_MOCK_RESPONSE_PROMPT_TOKEN_COUNT,
 )
-from token_iq.gateway.exceptions import LiteLLMUnknownProvider
+from token_iq.gateway.exceptions import GatewayUnknownProvider
 from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.core_utils.asyncify import run_async_function
 from token_iq.gateway.core_utils.audio_utils.utils import (
@@ -79,7 +79,7 @@ from token_iq.gateway.core_utils.health_check_utils import (
     _create_health_check_response,
     _filter_model_params,
 )
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.core_utils.mock_functions import (
     mock_embedding,
     mock_image_generation,
@@ -109,9 +109,9 @@ from token_iq.gateway.types.completion import (
     _CompletionDispatchContext,
     _CompletionDispatchResult,
 )
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.types.utils import (
-    CustomPricingLiteLLMParams,
+    CustomPricingGatewayParams,
     ModelResponseStream,
     RawRequestTypedDict,
     StreamingChoices,
@@ -319,7 +319,7 @@ MOCK_RESPONSE_TYPE = str | Exception | dict | ModelResponse | ModelResponseStrea
 ####### COMPLETION ENDPOINTS ################
 
 
-class LiteLLM:
+class Gateway:
     def __init__(
         self,
         *,
@@ -503,7 +503,7 @@ async def acompletion(
         api_base=kwargs.get("api_base") or base_url,
     )
 
-    if isinstance(litellm_logging_obj, LiteLLMLoggingObj) and (
+    if isinstance(litellm_logging_obj, GatewayLoggingObj) and (
         litellm_logging_obj.should_run_prompt_management_hooks(
             prompt_id=kwargs.get("prompt_id", None),
             non_default_params=kwargs,
@@ -1153,7 +1153,7 @@ def _build_custom_pricing_entry(
     """
     entry: Final[dict] = {"litellm_provider": custom_llm_provider}
 
-    for field_name in CustomPricingLiteLLMParams.model_fields:
+    for field_name in CustomPricingGatewayParams.model_fields:
         value = kwargs.get(field_name)
         if value is not None:
             entry[field_name] = value
@@ -1209,7 +1209,7 @@ def _register_custom_pricing_for_request(
     gateway.register_model(
         {
             deployment_id: entry,
-            shared_key: CustomPricingLiteLLMParams.strip_custom_pricing_fields(entry),
+            shared_key: CustomPricingGatewayParams.strip_custom_pricing_fields(entry),
         },
         persist_across_reloads=False,
         warning_display_name=shared_key,
@@ -4807,7 +4807,7 @@ def _complete_custom_providers(
             custom_handler = item["custom_handler"]
 
     if custom_handler is None:
-        raise LiteLLMUnknownProvider(model=model, custom_llm_provider=custom_llm_provider)
+        raise GatewayUnknownProvider(model=model, custom_llm_provider=custom_llm_provider)
 
     ## ROUTE LLM CALL ##
     handler_fn: Final = custom_chat_llm_router(async_fn=acompletion, stream=stream, custom_llm=custom_handler)
@@ -5222,7 +5222,7 @@ def completion(
         api_base=kwargs.get("api_base") or base_url,
     )
 
-    if isinstance(litellm_logging_obj, LiteLLMLoggingObj) and (
+    if isinstance(litellm_logging_obj, GatewayLoggingObj) and (
         litellm_logging_obj.should_run_prompt_management_hooks(
             prompt_id=prompt_id, non_default_params=non_default_params
         )
@@ -5258,7 +5258,7 @@ def completion(
             max_retries = 0
         elif num_retries is not None:
             max_retries = num_retries
-        logging: Final[LiteLLMLoggingObj] = cast(LiteLLMLoggingObj, litellm_logging_obj)
+        logging: Final[GatewayLoggingObj] = cast(GatewayLoggingObj, litellm_logging_obj)
         fallbacks = fallbacks or gateway.model_fallbacks
         if fallbacks is not None:
             return completion_with_fallbacks(  # pyright: ignore[reportReturnType]  # fallback runner is untyped; resolves to ModelResponse|CustomStreamWrapper at runtime
@@ -5289,7 +5289,7 @@ def completion(
             api_base=api_base,
             api_key=api_key,
             litellm_params=(
-                GenericLiteLLMParams(**_supplemental_provider_params) if _supplemental_provider_params else None
+                GenericGatewayParams(**_supplemental_provider_params) if _supplemental_provider_params else None
             ),
         )
 
@@ -5504,7 +5504,7 @@ def completion(
             gigachat_access_token=kwargs.get("gigachat_access_token"),
             **{key: kwargs[key] for key in FORWARDED_KWARGS_KEYS if key in kwargs},
         )
-        cast(LiteLLMLoggingObj, logging).update_environment_variables(
+        cast(GatewayLoggingObj, logging).update_environment_variables(
             model=model,
             user=user,
             optional_params=processed_non_default_params,  # [IMPORTANT] - using processed_non_default_params ensures consistent params logged to langfuse for finetuning / eval datasets.
@@ -5825,7 +5825,7 @@ def completion(
             response = _complete_langflow(_dispatch_ctx)
 
         else:
-            raise LiteLLMUnknownProvider(model=model, custom_llm_provider=custom_llm_provider)
+            raise GatewayUnknownProvider(model=model, custom_llm_provider=custom_llm_provider)
         return response
     except Exception as e:
         ## Map to OpenAI Exception
@@ -6113,7 +6113,7 @@ def embedding(
     client: Final = kwargs.pop("client", None)
     shared_session: Final = kwargs.get("shared_session", None)
     max_retries: Final = kwargs.get("max_retries", None)
-    litellm_logging_obj: Final[LiteLLMLoggingObj] = kwargs.get("litellm_logging_obj")
+    litellm_logging_obj: Final[GatewayLoggingObj] = kwargs.get("litellm_logging_obj")
     mock_response: Final[list[float] | None] = kwargs.get("mock_response", None)
     azure_ad_token_provider: Final = kwargs.get("azure_ad_token_provider", None)
     aembedding: Final[bool | None] = kwargs.get("aembedding", None)
@@ -6189,14 +6189,14 @@ def embedding(
             model_info=kwargs.get("model_info"),
         )
 
-    litellm_params_dict: Final = get_litellm_params(**kwargs)
+    gateway_params_dict: Final = get_litellm_params(**kwargs)
 
-    logging: Final[LiteLLMLoggingObj] = litellm_logging_obj
+    logging: Final[GatewayLoggingObj] = litellm_logging_obj
     logging.update_environment_variables(
         model=model,
         user=user,
         optional_params=optional_params,
-        litellm_params=litellm_params_dict,
+        litellm_params=gateway_params_dict,
         custom_llm_provider=custom_llm_provider,
     )
 
@@ -6241,7 +6241,7 @@ def embedding(
                 aembedding=aembedding,
                 max_retries=max_retries,
                 headers=headers or extra_headers,
-                litellm_params=litellm_params_dict,
+                litellm_params=gateway_params_dict,
             )
         elif custom_llm_provider == "github_copilot":
             api_key = api_key or gateway.api_key
@@ -6257,7 +6257,7 @@ def embedding(
                 optional_params=optional_params,
                 client=client,
                 aembedding=aembedding,
-                litellm_params=litellm_params_dict,
+                litellm_params=gateway_params_dict,
             )
         elif (
             custom_llm_provider == "openai"
@@ -6349,7 +6349,7 @@ def embedding(
                 optional_params=optional_params,
                 client=client,
                 aembedding=aembedding,
-                litellm_params=litellm_params_dict,
+                litellm_params=gateway_params_dict,
                 headers=headers or {},
             )
         elif (
@@ -6394,7 +6394,7 @@ def embedding(
                 optional_params=optional_params,
                 client=client,
                 aembedding=aembedding,
-                litellm_params=litellm_params_dict,
+                litellm_params=gateway_params_dict,
                 headers=headers,
             )
         elif custom_llm_provider == "cohere" or custom_llm_provider == "cohere_chat":
@@ -6423,7 +6423,7 @@ def embedding(
                 optional_params=optional_params,
                 client=client,
                 aembedding=aembedding,
-                litellm_params=litellm_params_dict,
+                litellm_params=gateway_params_dict,
                 headers=headers,
             )
         elif custom_llm_provider == "openrouter":
@@ -6465,7 +6465,7 @@ def embedding(
                 optional_params=optional_params,
                 client=client,
                 aembedding=aembedding,
-                litellm_params=litellm_params_dict,
+                litellm_params=gateway_params_dict,
                 headers=headers,
             )
         elif custom_llm_provider == "vercel_ai_gateway":
@@ -6495,7 +6495,7 @@ def embedding(
                 optional_params=optional_params,
                 client=client,
                 aembedding=aembedding,
-                litellm_params=litellm_params_dict,
+                litellm_params=gateway_params_dict,
                 headers=headers,
             )
         elif custom_llm_provider == "huggingface":
@@ -6511,7 +6511,7 @@ def embedding(
                 optional_params=optional_params,
                 client=client,
                 aembedding=aembedding,
-                litellm_params=litellm_params_dict,
+                litellm_params=gateway_params_dict,
                 headers=headers,
             )
         elif custom_llm_provider == "bedrock":
@@ -6638,7 +6638,7 @@ def embedding(
                     encoding=_get_encoding(),
                     logging_obj=logging,
                     optional_params=optional_params,
-                    litellm_params=litellm_params_dict,
+                    litellm_params=gateway_params_dict,
                     model_response=EmbeddingResponse(),
                     vertex_project=vertex_ai_project,
                     vertex_location=vertex_ai_location,
@@ -6667,7 +6667,7 @@ def embedding(
                     api_key=api_key,
                     api_base=api_base,
                     client=client,
-                    litellm_params=litellm_params_dict,
+                    litellm_params=gateway_params_dict,
                 )
         elif custom_llm_provider == "oobabooga":
             response = oobabooga.embedding(
@@ -6879,7 +6879,7 @@ def embedding(
                 api_key
                 or gateway.api_key  # for deepinfra/perplexity/anyscale/friendliai we check in get_llm_provider and pass in the api key from there
                 or get_secret_str("AZURE_AI_API_KEY")
-                or get_azure_ai_entra_token(litellm_params=litellm_params_dict)
+                or get_azure_ai_entra_token(litellm_params=gateway_params_dict)
             )
 
             ## EMBEDDING CALL
@@ -7020,7 +7020,7 @@ def embedding(
                     custom_handler = item["custom_handler"]
 
             if custom_handler is None:
-                raise LiteLLMUnknownProvider(model=model, custom_llm_provider=custom_llm_provider)
+                raise GatewayUnknownProvider(model=model, custom_llm_provider=custom_llm_provider)
 
             handler_fn: Final = custom_handler.embedding if not aembedding else custom_handler.aembedding
 
@@ -7034,7 +7034,7 @@ def embedding(
                 optional_params=optional_params,
                 model_response=EmbeddingResponse(),
                 print_verbose=print_verbose,
-                litellm_params=litellm_params_dict,
+                litellm_params=gateway_params_dict,
             )
         elif custom_llm_provider == "snowflake":
             api_key = api_key or get_secret_str("SNOWFLAKE_JWT")
@@ -7090,12 +7090,12 @@ def embedding(
                 litellm_params={},
             )
         else:
-            raise LiteLLMUnknownProvider(model=model, custom_llm_provider=custom_llm_provider)
+            raise GatewayUnknownProvider(model=model, custom_llm_provider=custom_llm_provider)
         if response is not None and hasattr(response, "_hidden_params") and isinstance(response, EmbeddingResponse):
             response._hidden_params["custom_llm_provider"] = custom_llm_provider
 
         if response is None:
-            raise LiteLLMUnknownProvider(model=model, custom_llm_provider=custom_llm_provider)
+            raise GatewayUnknownProvider(model=model, custom_llm_provider=custom_llm_provider)
         return response
     except Exception as e:
         ## LOGGING
@@ -7181,7 +7181,7 @@ async def atext_completion(*args, **kwargs) -> TextCompletionResponse | TextComp
                 response = await _resolve_pending_chat_response(response)
 
             text_completion_response = TextCompletionResponse()
-            text_completion_response = gateway.utils.LiteLLMResponseObjectHandler.convert_chat_to_text_completion(
+            text_completion_response = gateway.utils.GatewayResponseObjectHandler.convert_chat_to_text_completion(
                 text_completion_response=text_completion_response,
                 response=response,
                 custom_llm_provider=custom_llm_provider,
@@ -7424,7 +7424,7 @@ def text_completion(
     if isinstance(response, TextCompletionResponse):
         return response
 
-    text_completion_response = gateway.utils.LiteLLMResponseObjectHandler.convert_chat_to_text_completion(
+    text_completion_response = gateway.utils.GatewayResponseObjectHandler.convert_chat_to_text_completion(
         response=response,
         text_completion_response=text_completion_response,
     )
@@ -7524,7 +7524,7 @@ def moderation(input: str, model: str | None = None, api_key: str | None = None,
         response = openai_client.moderations.create(input=input)
 
     response_dict: Final[dict] = response.model_dump()
-    return gateway.utils.LiteLLMResponseObjectHandler.convert_to_moderation_response(
+    return gateway.utils.GatewayResponseObjectHandler.convert_to_moderation_response(
         response_object=response_dict,
     )
 
@@ -7541,8 +7541,8 @@ async def amoderation(
 
     # only supports open ai for now
     api_key = api_key or gateway.api_key or gateway.openai_key or get_secret_str("OPENAI_API_KEY")
-    optional_params: Final = GenericLiteLLMParams(**kwargs)
-    litellm_logging_obj: Final[LiteLLMLoggingObj | None] = kwargs.get("litellm_logging_obj", None)
+    optional_params: Final = GenericGatewayParams(**kwargs)
+    litellm_logging_obj: Final[GatewayLoggingObj | None] = kwargs.get("litellm_logging_obj", None)
     _dynamic_api_base = None
     try:
         (
@@ -7599,7 +7599,7 @@ async def amoderation(
     else:
         response = await _openai_client.moderations.create(input=input)
     response_dict: Final[dict] = response.model_dump()
-    return gateway.utils.LiteLLMResponseObjectHandler.convert_to_moderation_response(
+    return gateway.utils.GatewayResponseObjectHandler.convert_to_moderation_response(
         response_object=response_dict,
     )
 
@@ -7699,7 +7699,7 @@ def transcription(
     model_info: Final = kwargs.get("model_info", None)
     metadata: Final = kwargs.get("metadata", None)
     atranscription: Final = kwargs.pop("atranscription", False)
-    litellm_logging_obj: Final[LiteLLMLoggingObj] = kwargs.get("litellm_logging_obj")
+    litellm_logging_obj: Final[GatewayLoggingObj] = kwargs.get("litellm_logging_obj")
     extra_headers: Final = kwargs.get("extra_headers", None)
     shared_session: Final = kwargs.get("shared_session", None)
     kwargs.pop("tags", [])
@@ -7737,7 +7737,7 @@ def transcription(
         **non_default_params,
     )
 
-    litellm_params_dict: Final = get_litellm_params(**kwargs)
+    gateway_params_dict: Final = get_litellm_params(**kwargs)
 
     litellm_logging_obj.update_environment_variables(
         model=model,
@@ -7788,7 +7788,7 @@ def transcription(
             api_version=api_version,
             azure_ad_token=azure_ad_token,
             max_retries=max_retries,
-            litellm_params=litellm_params_dict,
+            litellm_params=gateway_params_dict,
         )
     elif custom_llm_provider == "openai" or (custom_llm_provider in gateway.openai_compatible_providers):
         api_base = (
@@ -7819,7 +7819,7 @@ def transcription(
             api_base=api_base,
             api_key=api_key,
             provider_config=provider_config,
-            litellm_params=litellm_params_dict,
+            litellm_params=gateway_params_dict,
             shared_session=shared_session,
         )
     elif custom_llm_provider == "nvidia_riva":
@@ -7829,7 +7829,7 @@ def transcription(
             model=model,
             audio_file=file,
             optional_params=optional_params,
-            litellm_params=litellm_params_dict,
+            litellm_params=gateway_params_dict,
             model_response=model_response,
             atranscription=atranscription,
             timeout=timeout,
@@ -7849,7 +7849,7 @@ def transcription(
             model=model,
             audio_file=file,
             optional_params=optional_params,
-            litellm_params=litellm_params_dict,
+            litellm_params=gateway_params_dict,
             model_response=model_response,
             atranscription=atranscription,
             client=(
@@ -7896,7 +7896,7 @@ def transcription(
             model=model,
             audio_file=file,
             optional_params=optional_params,
-            litellm_params=litellm_params_dict,
+            litellm_params=gateway_params_dict,
             model_response=model_response,
             atranscription=atranscription,
             client=(
@@ -8014,7 +8014,7 @@ def speech(
 
     if max_retries is None:
         max_retries = gateway.num_retries or openai.DEFAULT_MAX_RETRIES
-    litellm_params_dict: Final = get_litellm_params(metadata=metadata, api_key=api_key or dynamic_api_key, **kwargs)
+    gateway_params_dict: Final = get_litellm_params(metadata=metadata, api_key=api_key or dynamic_api_key, **kwargs)
 
     # Get provider-specific text-to-speech config and map parameters
     text_to_speech_provider_config = ProviderConfigManager.get_provider_text_to_speech_config(
@@ -8032,7 +8032,7 @@ def speech(
             kwargs=kwargs,
         )
 
-    logging_obj: Final[LiteLLMLoggingObj] = cast(LiteLLMLoggingObj, kwargs.get("litellm_logging_obj"))
+    logging_obj: Final[GatewayLoggingObj] = cast(GatewayLoggingObj, kwargs.get("litellm_logging_obj"))
     logging_obj.update_environment_variables(
         model=model,
         user=user,
@@ -8126,7 +8126,7 @@ def speech(
                 input=input,
                 voice=voice,
                 optional_params=optional_params,
-                litellm_params_dict=litellm_params_dict,
+                gateway_params_dict=gateway_params_dict,
                 logging_obj=logging_obj,
                 timeout=timeout,
                 extra_headers=extra_headers,
@@ -8180,7 +8180,7 @@ def speech(
                 logging_obj=logging_obj,
                 client=client,  # pass AsyncOpenAI, OpenAI client
                 aspeech=aspeech,
-                litellm_params=litellm_params_dict,
+                litellm_params=gateway_params_dict,
             )
     elif custom_llm_provider == "elevenlabs":
         from token_iq.gateway.llms.elevenlabs.text_to_speech.transformation import (
@@ -8203,14 +8203,14 @@ def speech(
 
         query_params: Final = kwargs.pop(ElevenLabsTextToSpeechConfig.ELEVENLABS_QUERY_PARAMS_KEY, None)
         if isinstance(query_params, dict):
-            litellm_params_dict[ElevenLabsTextToSpeechConfig.ELEVENLABS_QUERY_PARAMS_KEY] = query_params
+            gateway_params_dict[ElevenLabsTextToSpeechConfig.ELEVENLABS_QUERY_PARAMS_KEY] = query_params
 
-        litellm_params_dict[ElevenLabsTextToSpeechConfig.ELEVENLABS_VOICE_ID_KEY] = voice_id
+        gateway_params_dict[ElevenLabsTextToSpeechConfig.ELEVENLABS_VOICE_ID_KEY] = voice_id
 
         if api_base is not None:
-            litellm_params_dict["api_base"] = api_base
+            gateway_params_dict["api_base"] = api_base
         if api_key is not None:
-            litellm_params_dict["api_key"] = api_key
+            gateway_params_dict["api_key"] = api_key
 
         response = base_llm_http_handler.text_to_speech_handler(
             model=model,
@@ -8219,7 +8219,7 @@ def speech(
             text_to_speech_provider_config=elevenlabs_config,
             text_to_speech_optional_params=optional_params,
             custom_llm_provider=custom_llm_provider,
-            litellm_params=litellm_params_dict,
+            litellm_params=gateway_params_dict,
             logging_obj=logging_obj,
             timeout=timeout,
             extra_headers=extra_headers,
@@ -8231,7 +8231,7 @@ def speech(
             VertexAITextToSpeechConfig,
         )
 
-        generic_optional_params: Final = GenericLiteLLMParams(**kwargs)
+        generic_optional_params: Final = GenericGatewayParams(**kwargs)
 
         # Handle Gemini models separately (they use speech_to_completion_bridge)
         if "gemini" in model:
@@ -8244,7 +8244,7 @@ def speech(
                 input=input,
                 voice=voice,
                 optional_params=optional_params,
-                litellm_params=litellm_params_dict,
+                litellm_params=gateway_params_dict,
                 headers=headers or {},
                 logging_obj=logging_obj,
                 custom_llm_provider=custom_llm_provider,
@@ -8258,7 +8258,7 @@ def speech(
         vertex_config: Final = cast(VertexAITextToSpeechConfig, text_to_speech_provider_config)
 
         # Store Vertex AI specific params in litellm_params_dict
-        litellm_params_dict.update(
+        gateway_params_dict.update(
             {
                 "vertex_project": generic_optional_params.vertex_project,
                 "vertex_location": generic_optional_params.vertex_location,
@@ -8271,7 +8271,7 @@ def speech(
             input=input,
             voice=voice,
             optional_params=optional_params,
-            litellm_params_dict=litellm_params_dict,
+            gateway_params_dict=gateway_params_dict,
             logging_obj=logging_obj,
             timeout=timeout,
             extra_headers=headers,
@@ -8291,7 +8291,7 @@ def speech(
             input=input,
             voice=voice,
             optional_params=optional_params,
-            litellm_params=litellm_params_dict,
+            litellm_params=gateway_params_dict,
             headers=headers or {},
             logging_obj=logging_obj,
             custom_llm_provider=custom_llm_provider,
@@ -8317,7 +8317,7 @@ def speech(
             input=input,
             voice=voice,
             optional_params=optional_params,
-            litellm_params_dict=litellm_params_dict,
+            gateway_params_dict=gateway_params_dict,
             logging_obj=logging_obj,
             timeout=timeout,
             extra_headers=extra_headers,
@@ -8339,9 +8339,9 @@ def speech(
         minimax_config: Final = cast(MinimaxTextToSpeechConfig, text_to_speech_provider_config)
 
         if api_base is not None:
-            litellm_params_dict["api_base"] = api_base
+            gateway_params_dict["api_base"] = api_base
         if api_key is not None:
-            litellm_params_dict["api_key"] = api_key
+            gateway_params_dict["api_key"] = api_key
 
         # Convert voice to string if it's a dict (minimax handler expects Optional[str])
         voice_str: str | None = None
@@ -8358,7 +8358,7 @@ def speech(
             text_to_speech_provider_config=minimax_config,
             text_to_speech_optional_params=optional_params,
             custom_llm_provider=custom_llm_provider,
-            litellm_params=litellm_params_dict,
+            litellm_params=gateway_params_dict,
             logging_obj=logging_obj,
             timeout=timeout,
             extra_headers=extra_headers,
@@ -8382,7 +8382,7 @@ def speech(
             input=input,
             voice=voice,
             optional_params=optional_params,
-            litellm_params_dict=litellm_params_dict,
+            gateway_params_dict=gateway_params_dict,
             logging_obj=logging_obj,
             timeout=timeout,
             extra_headers=extra_headers,

@@ -14,7 +14,7 @@ from token_iq.gateway.llms.hosted_vllm.videos.transformation import (
     HostedVLLMVideoConfig,
     _serialize_form_value,
 )
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.types.utils import LlmProviders
 from token_iq.gateway.types.videos.main import VideoObject
 from token_iq.gateway.utils import ProviderConfigManager
@@ -61,7 +61,7 @@ def test_validate_environment_defaults_to_fake_api_key():
     headers = config.validate_environment(
         headers={},
         model="MiniMax-H3",
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
     )
 
     assert headers.get("Authorization") == "Bearer fake-api-key"
@@ -73,7 +73,7 @@ def test_validate_environment_uses_provided_api_key():
     headers = config.validate_environment(
         headers={"X-Test": "1"},
         model="MiniMax-H3",
-        litellm_params=GenericLiteLLMParams(api_key="my-custom-key"),
+        litellm_params=GenericGatewayParams(api_key="my-custom-key"),
     )
 
     assert headers.get("Authorization") == "Bearer my-custom-key"
@@ -100,7 +100,7 @@ def test_transform_video_create_request_uses_multipart_form_fields():
             "extra_params": extra_params,
             "extra_headers": {"X-Ignored": "yes"},
         },
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         headers={},
     )
 
@@ -127,7 +127,7 @@ def test_transform_video_create_request_keeps_openai_size_and_seconds():
         prompt="a mountain lake at sunrise",
         api_base="http://localhost:8091/v1/videos",
         video_create_optional_request_params={"seconds": "8", "size": "1280x720"},
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         headers={},
     )
 
@@ -146,7 +146,7 @@ def test_transform_video_create_request_attaches_input_reference_file():
         prompt="animate this image",
         api_base="http://localhost:8091/v1/videos",
         video_create_optional_request_params={"input_reference": reference, "width": 832},
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         headers={},
     )
 
@@ -257,7 +257,7 @@ def test_http_image_reference_is_forwarded_not_downloaded():
         video_create_optional_request_params={
             "image_reference": {"image_url": "http://1.1.1.1/face.png"},
         },
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         headers={},
     )
 
@@ -274,7 +274,7 @@ def test_data_url_image_reference_is_forwarded():
         prompt="a person singing",
         api_base="http://localhost:8091/v1/videos",
         video_create_optional_request_params={"image_reference": {"image_url": data_url}},
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         headers={},
     )
 
@@ -292,7 +292,7 @@ def test_metadata_url_in_image_reference_is_rejected():
             video_create_optional_request_params={
                 "image_reference": {"image_url": "http://169.254.169.254/latest/meta-data/"},
             },
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 
@@ -307,6 +307,6 @@ def test_file_scheme_media_reference_is_rejected():
             video_create_optional_request_params={
                 "video_reference": {"video_url": "file:///etc/passwd"},
             },
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )

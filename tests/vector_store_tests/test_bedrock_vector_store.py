@@ -8,7 +8,7 @@ import httpx
 
 from tests.vector_store_tests.base_vector_store_test import BaseVectorStoreTest
 from token_iq.gateway.llms.bedrock.vector_stores.transformation import BedrockVectorStoreConfig
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 
 
 class TestBedrockVectorStore(BaseVectorStoreTest):

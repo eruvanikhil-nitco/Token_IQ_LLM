@@ -5,7 +5,7 @@ Transformation for Calling Google models in their native format.
 from typing import Any, Final, Literal
 
 from token_iq.gateway.llms.gemini.google_genai.transformation import GoogleGenAIConfig
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 
 
 class VertexAIGoogleGenAIConfig(GoogleGenAIConfig):
@@ -25,7 +25,7 @@ class VertexAIGoogleGenAIConfig(GoogleGenAIConfig):
         api_key: str | None,
         headers: dict | None,
         model: str,
-        litellm_params: GenericLiteLLMParams | dict | None,
+        litellm_params: GenericGatewayParams | dict | None,
     ) -> dict:
         default_headers: Final = {
             "Content-Type": "application/json",

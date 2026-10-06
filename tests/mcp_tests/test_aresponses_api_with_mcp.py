@@ -434,7 +434,7 @@ async def test_mcp_allowed_tools_filtering():
     # Filter tools using the helper function
     filtered_tools = LiteLLM_Proxy_MCP_Handler._filter_mcp_tools_by_allowed_tools(
         mcp_tools=mock_mcp_tools_from_server,
-        mcp_tools_with_litellm_proxy=cast(
+        mcp_tools_with_gateway_proxy=cast(
             List[ToolParam], mcp_tool_config_with_allowed_tools
         ),
     )
@@ -476,7 +476,7 @@ async def test_mcp_allowed_tools_filtering():
 
     filtered_tools_all = LiteLLM_Proxy_MCP_Handler._filter_mcp_tools_by_allowed_tools(
         mcp_tools=mock_mcp_tools_from_server,
-        mcp_tools_with_litellm_proxy=cast(
+        mcp_tools_with_gateway_proxy=cast(
             List[ToolParam], mcp_tool_config_without_allowed_tools
         ),
     )
@@ -549,7 +549,7 @@ async def test_mcp_allowed_tools_filtering():
     filtered_tools_with_duplicates = (
         LiteLLM_Proxy_MCP_Handler._filter_mcp_tools_by_allowed_tools(
             mcp_tools=mock_mcp_tools_with_duplicates,
-            mcp_tools_with_litellm_proxy=cast(
+            mcp_tools_with_gateway_proxy=cast(
                 List[ToolParam], mcp_tool_config_with_duplicates
             ),
         )
@@ -614,7 +614,7 @@ async def test_mcp_allowed_tools_filtering():
     filtered_tools_multiple = (
         LiteLLM_Proxy_MCP_Handler._filter_mcp_tools_by_allowed_tools(
             mcp_tools=mock_mcp_tools_from_server,
-            mcp_tools_with_litellm_proxy=cast(List[ToolParam], multiple_mcp_configs),
+            mcp_tools_with_gateway_proxy=cast(List[ToolParam], multiple_mcp_configs),
         )
     )
 
@@ -651,7 +651,7 @@ async def test_mcp_allowed_tools_filtering():
 
     filtered_tools_empty = LiteLLM_Proxy_MCP_Handler._filter_mcp_tools_by_allowed_tools(
         mcp_tools=mock_mcp_tools_from_server,
-        mcp_tools_with_litellm_proxy=cast(List[ToolParam], mcp_config_empty_allowed),
+        mcp_tools_with_gateway_proxy=cast(List[ToolParam], mcp_config_empty_allowed),
     )
 
     # Should return all tools when allowed_tools is empty list (no filtering)
@@ -1033,7 +1033,7 @@ async def test_streaming_responses_api_with_mcp_tools(
         record
         for record in caplog.records
         if record.levelno >= logging.ERROR
-        and ("LiteLLM" in record.name or "LiteLLM" in record.getMessage())
+        and ("Gateway" in record.name or "Gateway" in record.getMessage())
     ]
     assert not lite_errors, "Unexpected LiteLLM errors: " + ", ".join(
         record.getMessage() for record in lite_errors
@@ -1696,7 +1696,7 @@ async def test_streaming_mcp_event_order_and_response_id_consistency(
         record
         for record in caplog.records
         if record.levelno >= logging.ERROR
-        and ("LiteLLM" in record.name or "LiteLLM" in record.getMessage())
+        and ("Gateway" in record.name or "Gateway" in record.getMessage())
     ]
     assert not lite_errors, "Unexpected LiteLLM errors: " + ", ".join(
         record.getMessage() for record in lite_errors

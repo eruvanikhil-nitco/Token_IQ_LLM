@@ -23,7 +23,7 @@ from websockets.sync.connection import Connection
 
 from e2e_config import unique_marker, ws_base_url
 from proxy_client import ProxyClient
-from models import LiteLLMParamsBody
+from models import GatewayParamsBody
 
 _M = TypeVar("_M", bound=BaseModel)
 
@@ -44,14 +44,14 @@ class RealtimeProvider:
 
     id: str
     alias: str
-    litellm_params: LiteLLMParamsBody
+    litellm_params: GatewayParamsBody
 
 
 PROVIDERS = (
     RealtimeProvider(
         "openai",
         "openai-realtime",
-        LiteLLMParamsBody(
+        GatewayParamsBody(
             model="openai/gpt-realtime-2",
             api_key="os.environ/OPENAI_API_KEY",
         ),
@@ -59,7 +59,7 @@ PROVIDERS = (
     RealtimeProvider(
         "azure",
         "azure-realtime",
-        LiteLLMParamsBody(
+        GatewayParamsBody(
             model="azure/gpt-realtime",
             api_key="os.environ/AZURE_API_KEY",
             api_version="2025-08-28",
@@ -69,7 +69,7 @@ PROVIDERS = (
     RealtimeProvider(
         "gemini",
         "gemini-realtime",
-        LiteLLMParamsBody(
+        GatewayParamsBody(
             model="gemini/gemini-3.1-flash-live-preview",
             api_key="os.environ/GEMINI_API_KEY",
         ),
@@ -77,7 +77,7 @@ PROVIDERS = (
     RealtimeProvider(
         "vertex_ai",
         "vertex-realtime",
-        LiteLLMParamsBody(
+        GatewayParamsBody(
             model="vertex_ai/gemini-live-2.5-flash-native-audio",
             vertex_location="us-central1",
             vertex_credentials="os.environ/VERTEXAI_CREDENTIALS",

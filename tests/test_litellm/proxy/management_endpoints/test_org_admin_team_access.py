@@ -17,7 +17,7 @@ from token_iq.gateway.proxy._types import (
     LiteLLM_OrganizationMembershipTable,
     LiteLLM_TeamTable,
     LiteLLM_UserTable,
-    LitellmUserRoles,
+    GatewayUserRoles,
     Member,
     UserAPIKeyAuth,
 )
@@ -43,7 +43,7 @@ def _make_team(team_id="team-1", organization_id="org-1") -> LiteLLM_TeamTable:
 
 
 def _make_user_key(
-    user_id="org-admin-user", role=LitellmUserRoles.INTERNAL_USER.value
+    user_id="org-admin-user", role=GatewayUserRoles.INTERNAL_USER.value
 ) -> UserAPIKeyAuth:
     return UserAPIKeyAuth(user_id=user_id, user_role=role)
 
@@ -180,7 +180,7 @@ class TestValidateMembership:
         )
 
         team = _make_team()
-        key = _make_user_key(user_id="admin", role=LitellmUserRoles.PROXY_ADMIN.value)
+        key = _make_user_key(user_id="admin", role=GatewayUserRoles.PROXY_ADMIN.value)
         await validate_membership(user_api_key_dict=key, team_table=team)
 
     @pytest.mark.asyncio
@@ -234,7 +234,7 @@ class TestValidateMembership:
 
         team = _make_team(team_id="team-1")
         key = UserAPIKeyAuth(
-            team_id="team-1", user_role=LitellmUserRoles.INTERNAL_USER.value
+            team_id="team-1", user_role=GatewayUserRoles.INTERNAL_USER.value
         )
         await validate_membership(user_api_key_dict=key, team_table=team)
 
@@ -304,6 +304,6 @@ class TestUserIsOrgAdminRouteCheck:
 
     def test_user_list_in_self_managed_routes(self):
         """Verify /user/list is in self_managed_routes so org admins can reach it."""
-        from token_iq.gateway.proxy._types import LiteLLMRoutes
+        from token_iq.gateway.proxy._types import GatewayRoutes
 
-        assert "/user/list" in LiteLLMRoutes.self_managed_routes.value
+        assert "/user/list" in GatewayRoutes.self_managed_routes.value

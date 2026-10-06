@@ -23,7 +23,7 @@ from token_iq.gateway.llms.openai.responses.guardrail_translation.handler import
 )
 from token_iq.gateway.llms.openai.responses.guardrail_translation.tool_merge import merge_guardrailed_tools
 from token_iq.gateway.responses.litellm_completion_transformation.transformation import (
-    LiteLLMCompletionResponsesConfig,
+    GatewayCompletionResponsesConfig,
 )
 from token_iq.gateway.types.llms.openai import ResponsesAPIResponse
 from token_iq.gateway.types.responses.main import GenericResponseOutputItem, OutputText
@@ -1295,7 +1295,7 @@ class TestOpenAIResponsesHandlerToolInjection:
     def test_merge_keeps_guardrail_appended_tool(self):
         """merge_guardrailed_tools must not drop the extra appended tool."""
         original = [{"type": "function", "name": "a"}]
-        groups = [form.chat_tools for form in LiteLLMCompletionResponsesConfig.responses_tools_to_chat_forms(original)]
+        groups = [form.chat_tools for form in GatewayCompletionResponsesConfig.responses_tools_to_chat_forms(original)]
         guardrailed = [
             *groups[0],
             {"type": "function", "function": {"name": "b", "description": "", "parameters": {"type": "object"}}},
@@ -1617,7 +1617,7 @@ class TestBuildBlockSseChunks:
 
     def test_continuation_closes_open_item_given_pydantic_events_with_enum_types(self):
         from token_iq.gateway.types.llms.openai import (
-            BaseLiteLLMOpenAIResponseObject,
+            BaseGatewayOpenAIResponseObject,
             ContentPartAddedEvent,
             OutputItemAddedEvent,
             OutputTextDeltaEvent,
@@ -1637,7 +1637,7 @@ class TestBuildBlockSseChunks:
                 item_id="msg_live",
                 output_index=0,
                 content_index=0,
-                part=BaseLiteLLMOpenAIResponseObject.model_validate(
+                part=BaseGatewayOpenAIResponseObject.model_validate(
                     {"type": "output_text", "text": "", "annotations": []}
                 ),
             ),

@@ -49,7 +49,7 @@ def server_span_factory(otel_with_exporter):
     otel, _exporter = otel_with_exporter
 
     def _make(url_path: str, http_route: Optional[str] = None):
-        span = otel.create_litellm_proxy_request_started_span(
+        span = otel.create_gateway_proxy_request_started_span(
             start_time=datetime.now(), headers={}
         )
         otel.set_proxy_request_route_attributes(

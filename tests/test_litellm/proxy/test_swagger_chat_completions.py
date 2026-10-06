@@ -90,7 +90,7 @@ class TestSwaggerChatCompletions:
             ), f"Expected field '{field}' not found in ProxyChatCompletionRequest schema"
 
         # Check for LiteLLM-specific fields added by ProxyChatCompletionRequest
-        expected_litellm_fields = [
+        expected_gateway_fields = [
             "guardrails",
             "caching",
             "num_retries",
@@ -98,7 +98,7 @@ class TestSwaggerChatCompletions:
             "fallbacks",
         ]
 
-        for field in expected_litellm_fields:
+        for field in expected_gateway_fields:
             assert (
                 field in properties
             ), f"Expected LiteLLM field '{field}' not found in ProxyChatCompletionRequest schema"
@@ -174,8 +174,8 @@ class TestSwaggerChatCompletions:
             ), f"Core field '{field}' should be in expanded properties"
 
         # Should have LiteLLM-specific fields
-        litellm_fields = ["guardrails", "caching", "fallbacks", "num_retries"]
-        for field in litellm_fields:
+        gateway_fields = ["guardrails", "caching", "fallbacks", "num_retries"]
+        for field in gateway_fields:
             assert (
                 field in properties
             ), f"LiteLLM field '{field}' should be in expanded properties"
@@ -267,14 +267,14 @@ class TestSwaggerChatCompletions:
         assert "messages" in properties, "Field 'messages' should be in schema"
 
         # Check for LiteLLM-specific fields
-        litellm_fields = [
+        gateway_fields = [
             "guardrails",
             "caching",
             "num_retries",
             "context_window_fallback_dict",
             "fallbacks",
         ]
-        for field in litellm_fields:
+        for field in gateway_fields:
             assert (
                 field in properties
             ), f"LiteLLM field '{field}' should be in ProxyChatCompletionRequest schema"

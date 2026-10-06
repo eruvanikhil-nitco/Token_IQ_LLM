@@ -605,11 +605,11 @@ class SetupWizard:
         print()
 
         scripts_dir: Final = sysconfig.get_path("scripts")
-        litellm_bin: Final = os.path.join(scripts_dir or "", "litellm")
+        gateway_bin: Final = os.path.join(scripts_dir or "", "litellm")
         try:
             os.execlp(
-                litellm_bin,
-                litellm_bin,
+                gateway_bin,
+                gateway_bin,
                 "--config",
                 str(config_path),
                 "--port",

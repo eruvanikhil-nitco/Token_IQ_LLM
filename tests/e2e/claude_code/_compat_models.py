@@ -18,7 +18,7 @@ from typing import Callable, Mapping
 
 import yaml
 
-from models import LiteLLMParamsBody
+from models import GatewayParamsBody
 
 CONFIG_PATH = Path(__file__).resolve().parent / "test_config.yaml"
 
@@ -26,7 +26,7 @@ CONFIG_PATH = Path(__file__).resolve().parent / "test_config.yaml"
 @dataclass(frozen=True, slots=True)
 class CompatDeployment:
     model_name: str
-    litellm_params: LiteLLMParamsBody
+    litellm_params: GatewayParamsBody
 
 
 # The yaml uses ``vertex_ai_*`` for the vertex project/location fields
@@ -66,7 +66,7 @@ def load_all_deployments(
     return tuple(
         CompatDeployment(
             model_name=entry["model_name"],
-            litellm_params=LiteLLMParamsBody(
+            litellm_params=GatewayParamsBody(
                 **_normalize_params(entry["litellm_params"])
             ),
         )

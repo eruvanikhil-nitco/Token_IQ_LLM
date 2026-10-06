@@ -259,7 +259,7 @@ def test_xai_api_base(model):
 # -------- Tests for force_use_litellm_proxy ---------
 
 
-def test_get_litellm_proxy_custom_llm_provider():
+def test_get_gateway_proxy_custom_llm_provider():
     """
     Tests force_use_litellm_proxy uses LITELLM_PROXY_API_BASE and LITELLM_PROXY_API_KEY from env.
     """
@@ -280,7 +280,7 @@ def test_get_litellm_proxy_custom_llm_provider():
             provider,
             key,
             base,
-        ) = gateway.LiteLLMProxyChatConfig().litellm_proxy_get_custom_llm_provider_info(
+        ) = gateway.GatewayProxyChatConfig().gateway_proxy_get_custom_llm_provider_info(
             model=test_model
         )
 
@@ -290,7 +290,7 @@ def test_get_litellm_proxy_custom_llm_provider():
     assert base == expected_api_base
 
 
-def test_get_litellm_proxy_with_args_override_env_vars():
+def test_get_gateway_proxy_with_args_override_env_vars():
     """
     Tests force_use_litellm_proxy uses api_base and api_key args over environment variables.
     """
@@ -311,7 +311,7 @@ def test_get_litellm_proxy_with_args_override_env_vars():
             provider,
             key,
             base,
-        ) = gateway.LiteLLMProxyChatConfig().litellm_proxy_get_custom_llm_provider_info(
+        ) = gateway.GatewayProxyChatConfig().gateway_proxy_get_custom_llm_provider_info(
             model=test_model, api_base=arg_api_base, api_key=arg_api_key
         )
 
@@ -321,7 +321,7 @@ def test_get_litellm_proxy_with_args_override_env_vars():
     assert base == arg_api_base
 
 
-def test_get_litellm_proxy_model_prefix_stripping():
+def test_get_gateway_proxy_model_prefix_stripping():
     """
     Tests force_use_litellm_proxy strips 'litellm_proxy/' prefix from model name.
     """
@@ -343,7 +343,7 @@ def test_get_litellm_proxy_model_prefix_stripping():
             provider,
             key,
             base,
-        ) = gateway.LiteLLMProxyChatConfig().litellm_proxy_get_custom_llm_provider_info(
+        ) = gateway.GatewayProxyChatConfig().gateway_proxy_get_custom_llm_provider_info(
             model=original_model
         )
 
@@ -356,7 +356,7 @@ def test_get_litellm_proxy_model_prefix_stripping():
 # -------- Tests for get_llm_provider triggering use_litellm_proxy ---------
 
 
-def test_get_llm_provider_LITELLM_PROXY_ALWAYS_true():
+def test_get_llm_provider_GATEWAY_PROXY_ALWAYS_true():
     """
     Tests get_llm_provider uses litellm_proxy when USE_LITELLM_PROXY is "True".
     """
@@ -384,7 +384,7 @@ def test_get_llm_provider_LITELLM_PROXY_ALWAYS_true():
     assert base == proxy_api_base
 
 
-def test_get_llm_provider_LITELLM_PROXY_ALWAYS_true_model_prefix():
+def test_get_llm_provider_GATEWAY_PROXY_ALWAYS_true_model_prefix():
     """
     Tests get_llm_provider with USE_LITELLM_PROXY="True" and model prefix "litellm_proxy/".
     """

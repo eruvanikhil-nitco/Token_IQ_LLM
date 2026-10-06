@@ -20,17 +20,17 @@ from token_iq.gateway.types.llms.openai import (
     ResponsesAPIStreamingResponse,
 )
 from token_iq.gateway.types.llms.xai import XAIWebSearchTool, XAIXSearchTool
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.types.utils import LlmProviders
 
 if TYPE_CHECKING:
     from token_iq.gateway.core_utils.litellm_logging import (
-        Logging as _LiteLLMLoggingObj,
+        Logging as _GatewayLoggingObj,
     )
 
-    LiteLLMLoggingObj = _LiteLLMLoggingObj
+    GatewayLoggingObj = _GatewayLoggingObj
 else:
-    LiteLLMLoggingObj = Any
+    GatewayLoggingObj = Any
 
 
 def _usage_restated_from_xai_ticks(usage: ResponseAPIUsage | None) -> ResponseAPIUsage | None:
@@ -214,13 +214,13 @@ class XAIResponsesAPIConfig(OpenAIResponsesAPIConfig):
 
         return params
 
-    def validate_environment(self, headers: dict, model: str, litellm_params: GenericLiteLLMParams | None) -> dict:
+    def validate_environment(self, headers: dict, model: str, litellm_params: GenericGatewayParams | None) -> dict:
         """
         Validate environment and set up headers for XAI API.
 
         Uses the shared xAI key resolver with Responses API legacy precedence.
         """
-        litellm_params = litellm_params or GenericLiteLLMParams()
+        litellm_params = litellm_params or GenericGatewayParams()
         api_key = XAIModelInfo.get_api_key(litellm_params.api_key, legacy_generic_before_env=True)
 
         if not api_key:
@@ -281,7 +281,7 @@ class XAIResponsesAPIConfig(OpenAIResponsesAPIConfig):
         self,
         model: str,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> ResponsesAPIResponse:
         response: Final = super().transform_response_api_response(
             model=model,
@@ -298,7 +298,7 @@ class XAIResponsesAPIConfig(OpenAIResponsesAPIConfig):
         self,
         model: str,
         parsed_chunk: dict,  # mutable-ok: overrides the base class signature
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> ResponsesAPIStreamingResponse:
         event: Final = super().transform_streaming_response(
             model=model,

@@ -7,7 +7,7 @@ from typing import Any, Final
 import httpx
 import openai
 
-from token_iq.gateway.types.utils import LiteLLMCommonStrings
+from token_iq.gateway.types.utils import GatewayCommonStrings
 
 
 class RateLimitErrorCategory(str, enum.Enum):
@@ -1019,9 +1019,9 @@ class MockException(openai.APIError):
         super().__init__(self.message, request=request, body=None)
 
 
-class LiteLLMUnknownProvider(BadRequestError):
+class GatewayUnknownProvider(BadRequestError):
     def __init__(self, model: str, custom_llm_provider: str | None = None):
-        self.message = LiteLLMCommonStrings.llm_provider_not_provided.value.format(
+        self.message = GatewayCommonStrings.llm_provider_not_provided.value.format(
             model=model, custom_llm_provider=custom_llm_provider
         )
         super().__init__(self.message, model=model, llm_provider=custom_llm_provider, response=None)

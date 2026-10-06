@@ -7,9 +7,9 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
 
-ADMIN = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN, api_key="sk-admin", user_id="admin")
+ADMIN = UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN, api_key="sk-admin", user_id="admin")
 
 
 def _row(day: str, ours: str | None, theirs: str | None) -> dict:
@@ -195,7 +195,7 @@ async def test_mixed_grain_facts_for_the_same_day_are_summed_not_dropped():
 async def test_only_an_admin_may_read_it():
     from fastapi import HTTPException
 
-    member = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-u", user_id="u")
+    member = UserAPIKeyAuth(user_role=GatewayUserRoles.INTERNAL_USER, api_key="sk-u", user_id="u")
     with pytest.raises(HTTPException) as exc:
         await _call([], caller=member)
 

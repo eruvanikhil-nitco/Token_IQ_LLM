@@ -65,7 +65,7 @@ from e2e_http import (
     unwrap,
 )
 from lifecycle import ResourceManager
-from models import KeyGenerateBody, KeyMetadata, LiteLLMParamsBody, SpendLogRow
+from models import KeyGenerateBody, KeyMetadata, GatewayParamsBody, SpendLogRow
 
 pytestmark = pytest.mark.e2e
 
@@ -935,8 +935,8 @@ class TestBatchEnqueuedTokenLimit:
 ASSUME_ROLE_RAW_MODEL = "bedrock/us.anthropic.claude-haiku-4-5-20251001-v1:0"
 
 
-def _assume_role_params(role_arn: str, session_name: str) -> LiteLLMParamsBody:
-    return LiteLLMParamsBody(
+def _assume_role_params(role_arn: str, session_name: str) -> GatewayParamsBody:
+    return GatewayParamsBody(
         model=ASSUME_ROLE_RAW_MODEL,
         aws_access_key_id="os.environ/AWS_ACCESS_KEY_ID",
         aws_secret_access_key="os.environ/AWS_SECRET_ACCESS_KEY",
@@ -1030,7 +1030,7 @@ class TestGeminiFiles:
         model_name = batch_model_name("gemini-files")
         model_id = client.create_model(
             model_name,
-            LiteLLMParamsBody(
+            GatewayParamsBody(
                 model=f"gemini/{GEMINI_FILES_RAW_MODEL}",
                 api_key="os.environ/GEMINI_API_KEY",
             ),
@@ -1050,8 +1050,8 @@ class TestGeminiFiles:
         assert file.id, "gemini file upload returned no id"
 
 
-def _vllm_params(api_base: str, api_key: str | None, model_id: str) -> LiteLLMParamsBody:
-    return LiteLLMParamsBody(
+def _vllm_params(api_base: str, api_key: str | None, model_id: str) -> GatewayParamsBody:
+    return GatewayParamsBody(
         model=f"hosted_vllm/{model_id}",
         api_base=api_base,
         api_key=api_key,
@@ -1293,7 +1293,7 @@ class TestBatchSecondHop:
         hop_name = batch_model_name("openai-batch-hop")
         model_id = client.create_model(
             hop_name,
-            LiteLLMParamsBody(
+            GatewayParamsBody(
                 model=f"litellm_proxy/{OPENAI_BATCH_MODEL}",
                 api_base=PROXY_BASE_URL,
                 api_key=key,

@@ -43,7 +43,7 @@ def initialize_guardrail(litellm_params: "LitellmParams", guardrail: "Guardrail"
     gateway.logging_callback_manager.add_litellm_callback(_callback)
 
     # MCP post-tool-call hooks are dispatched through success callbacks.
-    gateway.logging_callback_manager.add_litellm_success_callback(_callback)
+    gateway.logging_callback_manager.add_gateway_success_callback(_callback)
 
     return _callback
 

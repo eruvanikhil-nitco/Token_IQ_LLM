@@ -4785,7 +4785,7 @@ class TestBedrockIncrementalFlagInteractions:
             assert [m["content"] for m in mock_api.call_args.kwargs["messages"]] == texts
 
     @pytest.mark.asyncio
-    async def test_litellm_masking_flag_disables_incremental_single_full_scan(self):
+    async def test_gateway_masking_flag_disables_incremental_single_full_scan(self):
         """mask_request_content must fall back to exactly ONE full scan per turn
         and never persist hashes (verified live: 1 call/turn, no cache writes)."""
         guardrail = self._guardrail(mask_request_content=True)
@@ -5363,7 +5363,7 @@ def _chat_chunk(content: str, finish_reason: str | None) -> gateway.ModelRespons
     )
 
 
-def _streaming_litellm_params(**extras):
+def _streaming_gateway_params(**extras):
     from token_iq.gateway.types.guardrails import LitellmParams
 
     return LitellmParams(
@@ -5379,7 +5379,7 @@ def test_initialize_bedrock_wires_streaming_flags():
     from token_iq.gateway.proxy.guardrails.guardrail_initializers import initialize_bedrock
 
     configured = initialize_bedrock(
-        _streaming_litellm_params(
+        _streaming_gateway_params(
             streaming_buffer_until_moderated=False,
             streaming_sampling_rate=3,
             streaming_end_of_stream_only=True,
@@ -5387,7 +5387,7 @@ def test_initialize_bedrock_wires_streaming_flags():
         {"guardrail_name": "bedrock-streaming"},
     )
     defaulted = initialize_bedrock(
-        _streaming_litellm_params(),
+        _streaming_gateway_params(),
         {"guardrail_name": "bedrock-defaults"},
     )
     for registered in (configured, defaulted):
@@ -5408,20 +5408,20 @@ def test_initialize_bedrock_rejects_non_positive_sampling_rate():
 
     with pytest.raises(ValidationError):
         initialize_bedrock(
-            _streaming_litellm_params(streaming_sampling_rate=0),
+            _streaming_gateway_params(streaming_sampling_rate=0),
             {"guardrail_name": "bedrock-bad-rate"},
         )
 
 
-def test_update_in_memory_litellm_params_round_trips_streaming_flags():
+def test_update_in_memory_gateway_params_round_trips_streaming_flags():
     guardrail = BedrockGuardrail(
         guardrail_name="bedrock-update",
         guardrailIdentifier="test-id",
         guardrailVersion="DRAFT",
     )
 
-    guardrail.update_in_memory_litellm_params(
-        _streaming_litellm_params(
+    guardrail.update_in_memory_gateway_params(
+        _streaming_gateway_params(
             streaming_buffer_until_moderated=False,
             streaming_sampling_rate=7,
             streaming_end_of_stream_only=True,
@@ -5431,7 +5431,7 @@ def test_update_in_memory_litellm_params_round_trips_streaming_flags():
     assert guardrail.streaming_sampling_rate == 7
     assert guardrail.streaming_end_of_stream_only is True
 
-    guardrail.update_in_memory_litellm_params(_streaming_litellm_params())
+    guardrail.update_in_memory_gateway_params(_streaming_gateway_params())
     assert guardrail.streaming_buffer_until_moderated is True
     assert guardrail.streaming_sampling_rate == 5
     assert guardrail.streaming_end_of_stream_only is False

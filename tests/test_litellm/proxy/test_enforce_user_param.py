@@ -14,7 +14,7 @@ from unittest.mock import AsyncMock, MagicMock, PropertyMock, patch
 import pytest
 from fastapi import Request
 
-from token_iq.gateway.proxy._types import LiteLLMRoutes, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import GatewayRoutes, UserAPIKeyAuth
 from token_iq.gateway.proxy.auth.auth_checks import common_checks
 from token_iq.gateway.proxy.auth.route_checks import RouteChecks
 

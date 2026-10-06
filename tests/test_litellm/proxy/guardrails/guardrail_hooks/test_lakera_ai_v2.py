@@ -942,7 +942,7 @@ class TestAdvisorySystemMessageValidation:
         updated_params = LitellmParams(
             guardrail="lakera_v2", mode="pre_call", on_flagged="block", advisory_system_message="No placeholder here."
         )
-        guardrail.update_in_memory_litellm_params(litellm_params=updated_params)
+        guardrail.update_in_memory_gateway_params(litellm_params=updated_params)
         assert guardrail.on_flagged == "block"
 
 
@@ -990,7 +990,7 @@ class TestAdvisoryModeDuringCallDegradesGracefully:
     def test_in_memory_update_reintroducing_the_combo_is_allowed(self):
         guardrail = LakeraAIGuardrail(api_key="test_key", on_flagged="block", event_hook="during_call")
         updated_params = LitellmParams(guardrail="lakera_v2", mode="during_call", on_flagged="inject_system_message")
-        guardrail.update_in_memory_litellm_params(litellm_params=updated_params)
+        guardrail.update_in_memory_gateway_params(litellm_params=updated_params)
         assert guardrail.on_flagged == "inject_system_message"
 
     def test_in_memory_update_moving_off_during_call_in_the_same_update_is_allowed(self):
@@ -1002,7 +1002,7 @@ class TestAdvisoryModeDuringCallDegradesGracefully:
         still during_call the instant before this update applied."""
         guardrail = LakeraAIGuardrail(api_key="test_key", on_flagged="block", event_hook="during_call")
         updated_params = LitellmParams(guardrail="lakera_v2", mode="pre_call", on_flagged="inject_system_message")
-        guardrail.update_in_memory_litellm_params(litellm_params=updated_params)
+        guardrail.update_in_memory_gateway_params(litellm_params=updated_params)
         assert guardrail.on_flagged == "inject_system_message"
 
     def test_in_memory_update_actually_moves_dispatch_off_during_call(self):
@@ -1016,7 +1016,7 @@ class TestAdvisoryModeDuringCallDegradesGracefully:
         to have moved it to pre_call."""
         guardrail = LakeraAIGuardrail(api_key="test_key", on_flagged="block", event_hook="during_call")
         updated_params = LitellmParams(guardrail="lakera_v2", mode="pre_call", on_flagged="inject_system_message")
-        guardrail.update_in_memory_litellm_params(litellm_params=updated_params)
+        guardrail.update_in_memory_gateway_params(litellm_params=updated_params)
         assert guardrail.event_hook == "pre_call"
 
 
@@ -1059,7 +1059,7 @@ class TestAdvisoryModeRequiresPayloadAndBreakdown:
             guardrail="lakera_v2", mode="pre_call", on_flagged="inject_system_message", payload=False
         )
         with pytest.raises(ValueError, match="requires payload=True and breakdown=True"):
-            guardrail.update_in_memory_litellm_params(litellm_params=updated_params)
+            guardrail.update_in_memory_gateway_params(litellm_params=updated_params)
         assert guardrail.on_flagged == "block", "a rejected update must leave the live instance untouched"
 
     def test_in_memory_update_leaving_payload_unspecified_resets_to_the_model_default(self):
@@ -1070,7 +1070,7 @@ class TestAdvisoryModeRequiresPayloadAndBreakdown:
         pydantic-default behavior every other field on this update already has."""
         guardrail = LakeraAIGuardrail(api_key="test_key", on_flagged="block", payload=False)
         updated_params = LitellmParams(guardrail="lakera_v2", mode="pre_call", on_flagged="inject_system_message")
-        guardrail.update_in_memory_litellm_params(litellm_params=updated_params)
+        guardrail.update_in_memory_gateway_params(litellm_params=updated_params)
         assert guardrail.on_flagged == "inject_system_message"
         assert guardrail.payload is True
 
@@ -1080,7 +1080,7 @@ class TestAdvisoryModeRequiresPayloadAndBreakdown:
             guardrail="lakera_v2", mode="pre_call", on_flagged="inject_system_message", breakdown=False
         )
         with pytest.raises(ValueError, match="requires payload=True and breakdown=True"):
-            guardrail.update_in_memory_litellm_params(litellm_params=updated_params)
+            guardrail.update_in_memory_gateway_params(litellm_params=updated_params)
         assert guardrail.breakdown is True, "a rejected update must leave the live instance untouched"
 
     def test_in_memory_update_enabling_both_while_flipping_on_flagged_is_allowed(self):
@@ -1088,7 +1088,7 @@ class TestAdvisoryModeRequiresPayloadAndBreakdown:
         updated_params = LitellmParams(
             guardrail="lakera_v2", mode="pre_call", on_flagged="inject_system_message", payload=True, breakdown=True
         )
-        guardrail.update_in_memory_litellm_params(litellm_params=updated_params)
+        guardrail.update_in_memory_gateway_params(litellm_params=updated_params)
         assert guardrail.on_flagged == "inject_system_message"
 
 

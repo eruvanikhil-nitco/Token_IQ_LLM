@@ -250,7 +250,7 @@ def get_chatgpt_default_instructions() -> str:
     return os.getenv("CHATGPT_DEFAULT_INSTRUCTIONS") or CHATGPT_DEFAULT_INSTRUCTIONS
 
 
-def _normalize_litellm_params(litellm_params: Any | None) -> dict:
+def _normalize_gateway_params(litellm_params: Any | None) -> dict:
     if litellm_params is None:
         return {}
     if isinstance(litellm_params, dict):
@@ -269,7 +269,7 @@ def _normalize_litellm_params(litellm_params: Any | None) -> dict:
 
 
 def get_chatgpt_session_id(litellm_params: Any | None) -> str | None:
-    params: Final = _normalize_litellm_params(litellm_params)
+    params: Final = _normalize_gateway_params(litellm_params)
     for key in ("litellm_session_id", "session_id"):
         value = params.get(key)
         if value:

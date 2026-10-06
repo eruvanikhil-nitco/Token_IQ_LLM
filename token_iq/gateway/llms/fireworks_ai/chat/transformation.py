@@ -8,7 +8,7 @@ from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway._uuid import uuid
 from token_iq.gateway.constants import RESPONSE_FORMAT_TOOL_NAME
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.core_utils.llm_response_utils.get_headers import (
     get_response_headers,
 )
@@ -689,7 +689,7 @@ class FireworksAIConfig(FireworksAIMixin, OpenAIGPTConfig):
         model: str,
         raw_response: httpx.Response,
         model_response: ModelResponse,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         request_data: dict,
         messages: list[AllMessageValues],
         optional_params: dict,

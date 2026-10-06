@@ -321,7 +321,7 @@ async def test_create_delete_assistants(provider, sync_mode, assistant_client):
         assert response.id == assistant.id
 
 
-async def _create_thread_litellm(sync_mode, provider, assistant_client) -> Thread:
+async def _create_thread_gateway(sync_mode, provider, assistant_client) -> Thread:
     message: MessageData = {"role": "user", "content": "Hey, how's it going?"}  # type: ignore
     data = _request_data(provider, assistant_client, message=[message])
 
@@ -337,15 +337,15 @@ async def _create_thread_litellm(sync_mode, provider, assistant_client) -> Threa
 @pytest.mark.parametrize("provider", ["openai", "azure"])
 @pytest.mark.parametrize("sync_mode", [True, False])
 @pytest.mark.asyncio
-async def test_create_thread_litellm(sync_mode, provider, assistant_client):
-    await _create_thread_litellm(sync_mode, provider, assistant_client)
+async def test_create_thread_gateway(sync_mode, provider, assistant_client):
+    await _create_thread_gateway(sync_mode, provider, assistant_client)
 
 
 @pytest.mark.parametrize("provider", ["openai", "azure"])
 @pytest.mark.parametrize("sync_mode", [True, False])
 @pytest.mark.asyncio
-async def test_get_thread_litellm(provider, sync_mode, assistant_client):
-    new_thread = await _create_thread_litellm(sync_mode, provider, assistant_client)
+async def test_get_thread_gateway(provider, sync_mode, assistant_client):
+    new_thread = await _create_thread_gateway(sync_mode, provider, assistant_client)
     data = _request_data(provider, assistant_client, thread_id=new_thread.id)
 
     if sync_mode:
@@ -359,8 +359,8 @@ async def test_get_thread_litellm(provider, sync_mode, assistant_client):
 @pytest.mark.parametrize("provider", ["openai", "azure"])
 @pytest.mark.parametrize("sync_mode", [True, False])
 @pytest.mark.asyncio
-async def test_add_message_litellm(sync_mode, provider, assistant_client):
-    new_thread = await _create_thread_litellm(sync_mode, provider, assistant_client)
+async def test_add_message_gateway(sync_mode, provider, assistant_client):
+    new_thread = await _create_thread_gateway(sync_mode, provider, assistant_client)
     message: MessageData = {"role": "user", "content": "Hey, how's it going?"}  # type: ignore
     data = _request_data(provider, assistant_client, thread_id=new_thread.id, **message)
 
@@ -376,7 +376,7 @@ async def test_add_message_litellm(sync_mode, provider, assistant_client):
 @pytest.mark.parametrize("sync_mode", [True, False])
 @pytest.mark.parametrize("is_streaming", [True, False])
 @pytest.mark.asyncio
-async def test_aarun_thread_litellm(
+async def test_aarun_thread_gateway(
     sync_mode, provider, is_streaming, assistant_client
 ):
     get_assistants_data = _request_data(provider, assistant_client)
@@ -386,7 +386,7 @@ async def test_aarun_thread_litellm(
         assistants = await gateway.aget_assistants(**get_assistants_data)
 
     assistant_id = assistants.data[0].id
-    new_thread = await _create_thread_litellm(sync_mode, provider, assistant_client)
+    new_thread = await _create_thread_gateway(sync_mode, provider, assistant_client)
     message: MessageData = {"role": "user", "content": "Hey, how's it going?"}  # type: ignore
     thread_data = _request_data(provider, assistant_client, thread_id=new_thread.id)
     message_data = _request_data(

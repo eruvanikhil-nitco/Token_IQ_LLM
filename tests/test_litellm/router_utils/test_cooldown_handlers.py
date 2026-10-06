@@ -225,7 +225,7 @@ class TestShouldCooldownBasedOnDeploymentPolicy:
         call_kwargs = mock_sc.call_args[1]
         assert call_kwargs["cooldown_time_override"] == 120.0
 
-    def test_cooldown_time_from_litellm_params_used_as_fallback(self):
+    def test_cooldown_time_from_gateway_params_used_as_fallback(self):
         """cooldown_time has pre-existing litellm_params support on the primary
         failure path, so it must still be honored here when model_info doesn't
         set it."""
@@ -241,7 +241,7 @@ class TestShouldCooldownBasedOnDeploymentPolicy:
         call_kwargs = mock_sc.call_args[1]
         assert call_kwargs["cooldown_time_override"] == 120.0
 
-    def test_cooldown_time_from_model_info_takes_priority_over_litellm_params(self):
+    def test_cooldown_time_from_model_info_takes_priority_over_gateway_params(self):
         exc = gateway.RateLimitError("429", "openai", "gpt-4")
         router = self._make_router({"litellm_params": {"cooldown_time": 120.0}, "model_info": {"cooldown_time": 15.0}})
 

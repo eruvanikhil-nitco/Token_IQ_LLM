@@ -27,7 +27,7 @@ from cost_rows import (
 from e2e_config import unique_marker
 from e2e_http import unwrap
 from lifecycle import ResourceManager
-from models import ChatBody, ChatMessage, LiteLLMParamsBody
+from models import ChatBody, ChatMessage, GatewayParamsBody
 from spend_e2e_client import SpendClient
 
 pytestmark = pytest.mark.e2e
@@ -52,7 +52,7 @@ class TestServiceTierPricing:
             client.proxy,
             resources,
             "tier-priced",
-            LiteLLMParamsBody(
+            GatewayParamsBody(
                 model=BACKEND,
                 api_key=OPENAI_API_KEY,
                 input_cost_per_token=INPUT_RATE,

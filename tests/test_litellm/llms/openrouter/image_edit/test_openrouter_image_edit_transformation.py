@@ -11,7 +11,7 @@ from token_iq.gateway.llms.openrouter.common_utils import OpenRouterException
 from token_iq.gateway.llms.openrouter.image_edit.transformation import (
     OpenRouterImageEditConfig,
 )
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.types.utils import ImageResponse
 
 
@@ -192,11 +192,11 @@ class TestOpenRouterImageEditTransformation:
     @patch("token_iq.gateway.llms.openrouter.image_edit.transformation.gateway")
     @patch("token_iq.gateway.llms.openrouter.image_edit.transformation.get_secret_str")
     def test_validate_environment_missing_api_key_raises(
-        self, mock_get_secret, mock_litellm
+        self, mock_get_secret, mock_gateway
     ):
         """Test that validate_environment raises ValueError when no API key is available."""
         mock_get_secret.return_value = None
-        mock_litellm.api_key = None
+        mock_gateway.api_key = None
 
         with pytest.raises(ValueError, match="OPENROUTER_API_KEY is not set"):
             self.config.validate_environment(
@@ -214,7 +214,7 @@ class TestOpenRouterImageEditTransformation:
             prompt="Add a sunset to this image",
             image=self.sample_image_bytes,
             image_edit_optional_request_params={},
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 
@@ -245,7 +245,7 @@ class TestOpenRouterImageEditTransformation:
             prompt="Edit this",
             image=image,
             image_edit_optional_request_params={},
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 
@@ -261,7 +261,7 @@ class TestOpenRouterImageEditTransformation:
             prompt="Combine these images",
             image=images,
             image_edit_optional_request_params={},
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 
@@ -282,7 +282,7 @@ class TestOpenRouterImageEditTransformation:
                 "image_config": {"aspect_ratio": "16:9"},
                 "n": 2,
             },
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 
@@ -299,7 +299,7 @@ class TestOpenRouterImageEditTransformation:
             prompt="Edit",
             image=raw_bytes,
             image_edit_optional_request_params={},
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 
@@ -315,7 +315,7 @@ class TestOpenRouterImageEditTransformation:
             prompt=None,
             image=self.sample_image_bytes,
             image_edit_optional_request_params={},
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 

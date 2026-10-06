@@ -37,7 +37,7 @@ from endpoints_client import (
     TextBlock,
 )
 from lifecycle import ResourceManager
-from models import LiteLLMParamsBody
+from models import GatewayParamsBody
 
 pytestmark = pytest.mark.e2e
 
@@ -94,7 +94,7 @@ def _register_invoke_deployment(
 ) -> str:
     model = f"e2e-midsys-{unique_marker()}"
     model_id = client.create_model(
-        model, LiteLLMParamsBody(model=bedrock_model, aws_region_name=AWS_REGION)
+        model, GatewayParamsBody(model=bedrock_model, aws_region_name=AWS_REGION)
     )
     resources.defer(lambda: client.delete_model(model_id))
     return model

@@ -18,7 +18,7 @@ from token_iq.gateway.types.llms.openai import (
 )
 from token_iq.gateway.types.realtime import ALL_DELTA_TYPES
 
-from .litellm_logging import Logging as LiteLLMLogging
+from .litellm_logging import Logging as GatewayLogging
 
 if TYPE_CHECKING:
     from websockets.asyncio.client import ClientConnection
@@ -100,7 +100,7 @@ class RealTimeStreaming:
         self,
         websocket: Any,
         backend_ws: CLIENT_CONNECTION_CLASS,
-        logging_obj: LiteLLMLogging,
+        logging_obj: GatewayLogging,
         provider_config: BaseRealtimeConfig | None = None,
         model: str = "",
         user_api_key_dict: object | None = None,

@@ -56,7 +56,7 @@ def test_tpm_rpm_updated():
         "standard_logging_object": standard_logging_payload,
     }
 
-    litellm_deployment_dict: DeploymentTypedDict = {
+    gateway_deployment_dict: DeploymentTypedDict = {
         "model_name": model_group,
         "litellm_params": {"model": deployment},
         "model_info": {"id": deployment_id},
@@ -65,7 +65,7 @@ def test_tpm_rpm_updated():
     start_time = time.time()
     response_obj = {"usage": {"total_tokens": total_tokens}}
     end_time = time.time()
-    lowest_tpm_logger.pre_call_check(deployment=litellm_deployment_dict)
+    lowest_tpm_logger.pre_call_check(deployment=gateway_deployment_dict)
     lowest_tpm_logger.log_success_event(
         response_obj=response_obj,
         kwargs=kwargs,

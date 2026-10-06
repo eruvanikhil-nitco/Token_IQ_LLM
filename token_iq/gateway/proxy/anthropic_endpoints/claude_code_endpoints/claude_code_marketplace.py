@@ -141,7 +141,7 @@ async def get_marketplace():
 
         marketplace: Final = {
             "name": "litellm",
-            "owner": {"name": "LiteLLM", "email": "support@litellm.ai"},
+            "owner": {"name": "Gateway", "email": "support@litellm.ai"},
             "plugins": plugin_list,
         }
 

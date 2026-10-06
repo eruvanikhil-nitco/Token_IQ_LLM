@@ -47,7 +47,7 @@ from pydantic import BaseModel, ConfigDict, ValidationError
 from e2e_config import unique_marker
 from e2e_http import StreamingResponse, require_successful_call
 from lifecycle import ResourceManager
-from models import KeyGenerateBody, KeyMetadata, LiteLLMParamsBody
+from models import KeyGenerateBody, KeyMetadata, GatewayParamsBody
 from quota_client import QuotaClient
 
 pytestmark = pytest.mark.e2e
@@ -100,7 +100,7 @@ def _dynamic_limited_model(client: QuotaClient, resources: ResourceManager, labe
     model = f"e2e-dynpri-{label}-{unique_marker()}"
     model_id = client.proxy.create_model(
         model,
-        LiteLLMParamsBody(model=BACKEND, api_key="os.environ/ANTHROPIC_API_KEY", tpm=MODEL_TPM),
+        GatewayParamsBody(model=BACKEND, api_key="os.environ/ANTHROPIC_API_KEY", tpm=MODEL_TPM),
     )
     resources.defer(lambda: client.proxy.delete_model(model_id))
 

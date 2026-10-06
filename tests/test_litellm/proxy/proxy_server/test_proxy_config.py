@@ -787,7 +787,7 @@ def test_ProxyConfig_load_team_config_no_settings_returns_empty():
 # ---------------------------------------------------------------------------
 
 
-def test_ProxyConfig__init_cache_sets_litellm_cache(monkeypatch):
+def test_ProxyConfig__init_cache_sets_gateway_cache(monkeypatch):
     pc = ProxyConfig()
     monkeypatch.setattr(gateway, "cache", None, raising=False)
     pc._init_cache(cache_params={"type": "local"})
@@ -2036,7 +2036,7 @@ def test_ProxyConfig__add_deployment_no_router_returns_zero(monkeypatch):
     assert snapshot == {"added": 0, "router_was": "none", "called": True}
 
 
-def test_ProxyConfig__add_deployment_invalid_litellm_params_skips(monkeypatch):
+def test_ProxyConfig__add_deployment_invalid_gateway_params_skips(monkeypatch):
     fake_router = MagicMock()
     fake_router.upsert_deployment = MagicMock(return_value=None)
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", fake_router)
@@ -2118,7 +2118,7 @@ def test_ProxyConfig__add_deployment_resolves_team_env_refs(monkeypatch):
     assert deployment.litellm_params.api_base == "https://team.example"
 
 
-def test_ProxyConfig__resolve_db_litellm_param_skips_non_string_values(monkeypatch):
+def test_ProxyConfig__resolve_db_gateway_param_skips_non_string_values(monkeypatch):
     def fail_on_call(value, key, return_original_value):
         raise AssertionError("decrypt_value_helper should only receive strings")
 
@@ -2128,7 +2128,7 @@ def test_ProxyConfig__resolve_db_litellm_param_skips_non_string_values(monkeypat
     )
     pc = ProxyConfig()
 
-    assert pc._resolve_db_litellm_param(key="tpm", value=100) == 100
+    assert pc._resolve_db_gateway_param(key="tpm", value=100) == 100
 
 
 def test_ProxyConfig__add_deployment_resolves_env_refs_for_aws_bedrock_auth_params(
@@ -2390,12 +2390,12 @@ async def test_ProxyConfig__update_llm_router_bad_proxy_logging_raises(monkeypat
 # ---------------------------------------------------------------------------
 
 
-def test_ProxyConfig__add_callback_from_db_to_in_memory_litellm_callbacks_adds(
+def test_ProxyConfig__add_callback_from_db_to_in_memory_gateway_callbacks_adds(
     monkeypatch,
 ):
     monkeypatch.setattr(gateway, "callbacks", [], raising=False)
     pc = ProxyConfig()
-    pc._add_callback_from_db_to_in_memory_litellm_callbacks(
+    pc._add_callback_from_db_to_in_memory_gateway_callbacks(
         callback="my_custom_cb",
         event_types=["success", "failure"],
         existing_callbacks=[],
@@ -2408,14 +2408,14 @@ def test_ProxyConfig__add_callback_from_db_to_in_memory_litellm_callbacks_adds(
     assert snapshot == {"in_callbacks": True, "count": 1, "method_called": True}
 
 
-def test_ProxyConfig__add_callback_from_db_to_in_memory_litellm_callbacks_invalid_event_raises(
+def test_ProxyConfig__add_callback_from_db_to_in_memory_gateway_callbacks_invalid_event_raises(
     monkeypatch,
 ):
     monkeypatch.setattr(gateway, "callbacks", [], raising=False)
     pc = ProxyConfig()
     # For a "known" callback, event_types is iterated — non-iterable raises TypeError.
     with pytest.raises(TypeError):
-        pc._add_callback_from_db_to_in_memory_litellm_callbacks(
+        pc._add_callback_from_db_to_in_memory_gateway_callbacks(
             callback="lago",  # in _known_custom_logger_compatible_callbacks
             event_types=12345,  # type: ignore[arg-type]
             existing_callbacks=[],
@@ -3041,7 +3041,7 @@ async def test_ProxyConfig__update_config_from_db_does_not_log_general_settings_
 
 
 @pytest.mark.asyncio
-async def test_ProxyConfig_load_config_redacts_secret_litellm_setting_keeps_plain(tmp_path, monkeypatch):
+async def test_ProxyConfig_load_config_redacts_secret_gateway_setting_keeps_plain(tmp_path, monkeypatch):
     """Regression for LIT-4152 on the ``litellm_settings`` apply loop.
 
     ``load_config`` logged ``setting litellm.<key>=<value>`` verbatim at DEBUG,

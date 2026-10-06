@@ -14,7 +14,7 @@ from unittest.mock import MagicMock
 
 from token_iq.gateway.llms.vertex_ai.files.transformation import (
     VertexAIFilesConfig,
-    _get_litellm_batch_custom_id_from_labels,
+    _get_gateway_batch_custom_id_from_labels,
     _openai_batch_jsonl_entry_to_vertex_rows,
     _sanitize_gcp_label_value,
 )
@@ -1032,8 +1032,8 @@ class TestVertexBatchCustomIdLabels:
         assert "litellm_custom_id_raw_1" in labels_b
         assert labels_a["litellm_custom_id_raw"] == labels_b["litellm_custom_id_raw"]
         assert labels_a["litellm_custom_id_raw_1"] != labels_b["litellm_custom_id_raw_1"]
-        assert _get_litellm_batch_custom_id_from_labels(labels_a) == custom_id_a
-        assert _get_litellm_batch_custom_id_from_labels(labels_b) == custom_id_b
+        assert _get_gateway_batch_custom_id_from_labels(labels_a) == custom_id_a
+        assert _get_gateway_batch_custom_id_from_labels(labels_b) == custom_id_b
 
     def test_multiple_requests_each_get_their_own_label(self):
         """Test that multiple requests each get their own custom_id label"""
@@ -1196,7 +1196,7 @@ class TestConfiguredBucketNameResolution:
         with pytest.raises(ValueError, match="GCS bucket_name is required"):
             config._get_configured_bucket_name({})
 
-    def test_legacy_kwarg_survives_get_litellm_params(self):
+    def test_legacy_kwarg_survives_get_gateway_params(self):
         from token_iq.gateway.core_utils.get_litellm_params import (
             OPTIONAL_KWARGS_KEYS,
             get_litellm_params,

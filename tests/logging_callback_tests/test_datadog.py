@@ -31,7 +31,7 @@ from token_iq.gateway.types.utils import (
     StandardLoggingModelInformation,
     StandardLoggingMetadata,
     StandardLoggingHiddenParams,
-    LiteLLMCommonStrings,
+    GatewayCommonStrings,
 )
 from token_iq.gateway.types.integrations.datadog import DatadogInitParams
 

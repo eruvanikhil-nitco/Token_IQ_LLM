@@ -11,7 +11,7 @@ from token_iq.gateway.proxy._types import UserAPIKeyAuth
 from token_iq.gateway.caching.caching import DualCache
 from token_iq.gateway.exceptions import BlockedPiiEntityError, GuardrailRaisedException
 from fastapi import HTTPException
-from token_iq.gateway.types.utils import CallTypes as LitellmCallTypes, ModelResponse
+from token_iq.gateway.types.utils import CallTypes as GatewayCallTypes, ModelResponse
 
 
 @pytest.mark.asyncio

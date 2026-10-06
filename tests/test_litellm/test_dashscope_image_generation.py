@@ -427,7 +427,7 @@ class TestDashScopeImageGenerationConfig:
         "dashscope/qwen-image-3.0-pro",
     ],
 )
-def test_litellm_image_generation_dashscope_end_to_end(model: str):
+def test_gateway_image_generation_dashscope_end_to_end(model: str):
     mock_response_body = {
         "output": {
             "choices": [

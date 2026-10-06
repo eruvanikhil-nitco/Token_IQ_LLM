@@ -193,7 +193,7 @@ def test_vertex_ai_cancel_batch_custom_proxy_retrieve_url():
 
 
 @pytest.mark.asyncio
-async def test_litellm_cancel_batch_vertex_ai():
+async def test_gateway_cancel_batch_vertex_ai():
     """Test that litellm.cancel_batch works with vertex_ai provider"""
     mock_response = MagicMock()
     mock_response.id = "batch_123"

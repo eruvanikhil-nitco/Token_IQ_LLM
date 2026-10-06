@@ -19,7 +19,7 @@ import pytest
 from fastapi import FastAPI, HTTPException
 from fastapi.testclient import TestClient
 
-from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
 from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 from token_iq.gateway.proxy.management_endpoints.gateway_request_endpoints import (
     _AggregateRow,
@@ -71,7 +71,7 @@ def _row(
 
 
 def _admin() -> UserAPIKeyAuth:
-    return UserAPIKeyAuth(api_key="sk-test", user_role=LitellmUserRoles.PROXY_ADMIN)
+    return UserAPIKeyAuth(api_key="sk-test", user_role=GatewayUserRoles.PROXY_ADMIN)
 
 
 def _prisma_returning(rows: list) -> MagicMock:
@@ -158,10 +158,10 @@ class TestGatewayDailyActivityEndpoint:
     @pytest.mark.parametrize(
         "role",
         [
-            LitellmUserRoles.INTERNAL_USER,
-            LitellmUserRoles.INTERNAL_USER_VIEW_ONLY,
-            LitellmUserRoles.TEAM,
-            LitellmUserRoles.ORG_ADMIN,
+            GatewayUserRoles.INTERNAL_USER,
+            GatewayUserRoles.INTERNAL_USER_VIEW_ONLY,
+            GatewayUserRoles.TEAM,
+            GatewayUserRoles.ORG_ADMIN,
         ],
     )
     async def test_refuses_every_non_admin_role(self, role):
@@ -175,7 +175,7 @@ class TestGatewayDailyActivityEndpoint:
     @pytest.mark.asyncio
     @pytest.mark.parametrize(
         "role",
-        [LitellmUserRoles.PROXY_ADMIN, LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY],
+        [GatewayUserRoles.PROXY_ADMIN, GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY],
     )
     async def test_serves_both_admin_roles(self, role):
         with patch("token_iq.gateway.proxy.proxy_server.prisma_client", _prisma_returning([])):

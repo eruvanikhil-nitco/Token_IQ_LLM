@@ -7,7 +7,7 @@ import pytest
 import datetime
 
 from token_iq import gateway
-from token_iq.gateway.caching.caching import Cache, LiteLLMCacheType
+from token_iq.gateway.caching.caching import Cache, GatewayCacheType
 from token_iq.gateway.caching.caching_handler import LLMCachingHandler
 from token_iq.gateway.llms.anthropic.experimental_pass_through.messages import handler
 from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.response_cache import (
@@ -65,7 +65,7 @@ async def _collect(stream: AsyncIterator[bytes]) -> List[bytes]:
 @pytest.fixture
 def local_cache():
     previous_cache = gateway.cache
-    gateway.cache = Cache(type=LiteLLMCacheType.LOCAL)
+    gateway.cache = Cache(type=GatewayCacheType.LOCAL)
     yield gateway.cache
     gateway.cache = previous_cache
 

@@ -769,7 +769,7 @@ def test_realtime_transcription_duration_cost(monkeypatch):
     assert abs(attributed_total - logging_obj.cost_breakdown["total_cost"]) < 1e-9
 
 
-def test_realtime_transcription_duration_cost_resolves_model_from_litellm_name(
+def test_realtime_transcription_duration_cost_resolves_model_from_gateway_name(
     monkeypatch,
 ):
     """When no session event carries the ASR model, the litellm_model_name is used."""
@@ -922,7 +922,7 @@ def test_get_transcription_model_falls_back_to_session_model(monkeypatch):
     assert model_info["cache_read_input_token_cost"] == 0.0000006
 
 
-def test_custom_pricing_cost_calc_uses_router_model_id_from_litellm_metadata():
+def test_custom_pricing_cost_calc_uses_router_model_id_from_gateway_metadata():
     """When custom pricing is in litellm_metadata.model_info,
     use_custom_pricing_for_model should return True and
     _select_model_name_for_cost_calc should use router_model_id.
@@ -1274,7 +1274,7 @@ def test_cost_calculator_with_cache_creation():
     from token_iq.gateway import completion_cost
     from token_iq.gateway.types.utils import Choices, Message, Usage
 
-    litellm_model_response = ModelResponse(
+    gateway_model_response = ModelResponse(
         id="chatcmpl-cc5638bc-fdfe-48e4-8884-57c8f4fb7c63",
         created=1750733889,
         model=None,
@@ -1312,10 +1312,10 @@ def test_cost_calculator_with_cache_creation():
     )
     model = "claude-sonnet-4@20250514"
 
-    assert litellm_model_response.usage.prompt_tokens_details.cached_tokens == 28491
+    assert gateway_model_response.usage.prompt_tokens_details.cached_tokens == 28491
 
     result = completion_cost(
-        completion_response=litellm_model_response,
+        completion_response=gateway_model_response,
         model=model,
         custom_llm_provider="vertex_ai",
     )
@@ -1421,7 +1421,7 @@ def test_gemini_25_implicit_caching_cost():
     )
 
     # Create a mock response similar to the one in the issue
-    litellm_model_response = ModelResponse(
+    gateway_model_response = ModelResponse(
         id="test-response",
         created=1750733889,
         model="gemini/gemini-2.5-flash",
@@ -1453,7 +1453,7 @@ def test_gemini_25_implicit_caching_cost():
 
     # Calculate the cost
     result = completion_cost(
-        completion_response=litellm_model_response,
+        completion_response=gateway_model_response,
         model="gemini/gemini-2.5-flash",
     )
 

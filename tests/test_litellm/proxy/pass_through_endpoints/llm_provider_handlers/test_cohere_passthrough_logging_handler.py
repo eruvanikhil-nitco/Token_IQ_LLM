@@ -6,7 +6,7 @@ import httpx
 import pytest
 
 
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.proxy.pass_through_endpoints.llm_provider_handlers.cohere_passthrough_logging_handler import (
     CoherePassthroughLoggingHandler,
 )
@@ -37,7 +37,7 @@ class TestCoherePassthroughLoggingHandler:
             },
         }
 
-    def _create_mock_logging_obj(self) -> LiteLLMLoggingObj:
+    def _create_mock_logging_obj(self) -> GatewayLoggingObj:
         """Create a mock logging object"""
         mock_logging_obj = MagicMock()
         mock_logging_obj.model_call_details = {}

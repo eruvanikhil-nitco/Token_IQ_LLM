@@ -32,7 +32,7 @@ def no_sockets(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 class TestNothingFetchesAtRuntime:
-    def test_importing_litellm_opens_no_socket(self, no_sockets: None) -> None:
+    def test_importing_gateway_opens_no_socket(self, no_sockets: None) -> None:
         import importlib
 
         from token_iq import gateway
@@ -51,7 +51,7 @@ class TestNothingFetchesAtRuntime:
 
 
 class TestOnlyTheUpdateJobNamesUpstream:
-    def test_no_module_under_litellm_fetches_from_upstream(self) -> None:
+    def test_no_module_under_gateway_fetches_from_upstream(self) -> None:
         """A grep is the right test here: the failure is a URL existing at all, and a
         behavioural test can only prove the paths it happens to walk."""
         offenders: Final = [

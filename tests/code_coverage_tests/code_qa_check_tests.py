@@ -2,7 +2,7 @@ import ast
 import os
 
 
-def check_for_litellm_module_deletion(base_dir):
+def check_for_gateway_module_deletion(base_dir):
     """
     Checks for code patterns that delete litellm modules from sys.modules
     in the test_litellm directory.
@@ -33,7 +33,7 @@ def check_for_litellm_module_deletion(base_dir):
                     continue
 
                 # Check for litellm module deletion patterns
-                if has_litellm_module_deletion(tree):
+                if has_gateway_module_deletion(tree):
                     relative_path = os.path.relpath(file_path, base_dir)
                     problematic_files.append(relative_path)
                     print(f"Found litellm module deletion in: {relative_path}")
@@ -41,7 +41,7 @@ def check_for_litellm_module_deletion(base_dir):
     return problematic_files
 
 
-def has_litellm_module_deletion(tree):
+def has_gateway_module_deletion(tree):
     """
     Checks if the AST contains patterns that delete litellm modules from sys.modules.
 
@@ -51,10 +51,10 @@ def has_litellm_module_deletion(tree):
     3. del sys.modules[module] statements
     """
 
-    class LiteLLMDeletionVisitor(ast.NodeVisitor):
+    class GatewayDeletionVisitor(ast.NodeVisitor):
         def __init__(self):
             self.has_sys_modules_loop = False
-            self.has_litellm_check = False
+            self.has_gateway_check = False
             self.has_del_sys_modules = False
             self.current_for_target = None
 
@@ -116,7 +116,7 @@ def has_litellm_module_deletion(tree):
                 and node.test.args[0].value == "litellm"
             ):
 
-                self.has_litellm_check = True
+                self.has_gateway_check = True
 
                 # Check the body of the if statement
                 for stmt in node.body:
@@ -141,12 +141,12 @@ def has_litellm_module_deletion(tree):
 
             self.generic_visit(node)
 
-    visitor = LiteLLMDeletionVisitor()
+    visitor = GatewayDeletionVisitor()
     visitor.visit(tree)
 
     return (
         visitor.has_sys_modules_loop
-        and visitor.has_litellm_check
+        and visitor.has_gateway_check
         and visitor.has_del_sys_modules
     )
 
@@ -161,7 +161,7 @@ def main():
     # ci/cd dir
     tests_dir = "./tests/"
 
-    problematic_files = check_for_litellm_module_deletion(tests_dir)
+    problematic_files = check_for_gateway_module_deletion(tests_dir)
 
     if problematic_files:
         print("\nERROR: Found files that delete litellm modules from sys.modules:")

@@ -9,10 +9,10 @@ from datetime import datetime
 
 from token_iq.gateway.models.budget import LiteLLM_BudgetTable
 from token_iq.gateway.models.object_permission import LiteLLM_ObjectPermissionTable
-from token_iq.gateway.types.llms.base import LiteLLMPydanticObjectBase
+from token_iq.gateway.types.llms.base import GatewayPydanticObjectBase
 
 
-class LiteLLM_ProjectTable(LiteLLMPydanticObjectBase):
+class LiteLLM_ProjectTable(GatewayPydanticObjectBase):
     """Database model representation for project"""
 
     project_id: str

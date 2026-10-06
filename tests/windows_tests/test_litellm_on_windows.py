@@ -8,7 +8,7 @@ import pytest
 
 
 
-def test_using_litellm_on_windows():
+def test_using_gateway_on_windows():
     """Test that LiteLLM can be imported on Windows systems."""
 
     try:

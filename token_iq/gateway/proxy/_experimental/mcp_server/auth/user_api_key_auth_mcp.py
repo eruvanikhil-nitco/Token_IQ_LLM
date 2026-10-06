@@ -146,7 +146,7 @@ def _is_mcp_passthrough_cold_start(mcp_servers: list[str] | None, client_ip: str
     return True
 
 
-def _is_litellm_auth_admission_error(exc: Exception) -> bool:
+def _is_gateway_auth_admission_error(exc: Exception) -> bool:
     if isinstance(exc, HTTPException):
         return exc.status_code == 401
     if isinstance(exc, ProxyException):
@@ -219,7 +219,7 @@ def _is_gateway_dcr_challenge_scope(
     (the resource the client configured is still ``/mcp``), or a per-server path whose
     single target is a gateway-managed oauth2 server. Every other named target keeps
     its existing behavior, failing closed to the original admission error."""
-    if not _is_litellm_auth_admission_error(exc):
+    if not _is_gateway_auth_admission_error(exc):
         return False
     if _has_client_supplied_mcp_auth(mcp_auth_header, mcp_server_auth_headers):
         return False
@@ -285,7 +285,7 @@ def _admission_failure_fallback(
     if (
         mcp_servers_from_path is not None
         and not _has_client_supplied_mcp_auth(mcp_auth_header, mcp_server_auth_headers)
-        and _is_litellm_auth_admission_error(exc)
+        and _is_gateway_auth_admission_error(exc)
         and _is_mcp_passthrough_cold_start(
             mcp_servers_from_path,
             client_ip=IPAddressUtils.get_mcp_client_ip(request),
@@ -341,7 +341,7 @@ class MCPRequestHandler:
       configured, for the duration of a cold-cache or DB fault.
     """
 
-    LITELLM_API_KEY_HEADER_NAME_PRIMARY = SpecialHeaders.custom_litellm_api_key.value
+    LITELLM_API_KEY_HEADER_NAME_PRIMARY = SpecialHeaders.custom_gateway_api_key.value
     LITELLM_API_KEY_HEADER_NAME_SECONDARY = SpecialHeaders.openai_authorization.value
 
     # This is the header to use if you want LiteLLM to use this header for authenticating to the MCP server
@@ -387,9 +387,9 @@ class MCPRequestHandler:
         headers: Final = MCPRequestHandler._safe_get_headers_from_scope(scope)
 
         # Check if there is an explicit LiteLLM API key (primary header)
-        has_explicit_litellm_key: Final = headers.get(MCPRequestHandler.LITELLM_API_KEY_HEADER_NAME_PRIMARY) is not None
+        has_explicit_gateway_key: Final = headers.get(MCPRequestHandler.LITELLM_API_KEY_HEADER_NAME_PRIMARY) is not None
 
-        litellm_api_key: Final = MCPRequestHandler.get_litellm_api_key_from_headers(headers) or ""
+        litellm_api_key: Final = MCPRequestHandler.get_gateway_api_key_from_headers(headers) or ""
 
         # Get the old mcp_auth_header for backward compatibility
         mcp_auth_header = MCPRequestHandler._get_mcp_auth_header_from_headers(headers)
@@ -429,7 +429,7 @@ class MCPRequestHandler:
         # Only OAuth metadata routes registered under /.well-known/ are public.
         if request_route.startswith("/.well-known/"):
             validated_user_api_key_auth = UserAPIKeyAuth()
-        elif has_explicit_litellm_key:
+        elif has_explicit_gateway_key:
             # An explicit x-litellm-api-key is always a LiteLLM credential, even
             # for a delegated server, so validate it: identity / spend / rate
             # limits resolve and any stored upstream token can be forwarded.
@@ -856,7 +856,7 @@ class MCPRequestHandler:
         try:
             admitted: Final = await user_api_key_auth(api_key=litellm_api_key, request=request)
         except (HTTPException, ProxyException) as exc:
-            if not _is_litellm_auth_admission_error(exc):
+            if not _is_gateway_auth_admission_error(exc):
                 raise
             raise MCPRequestHandler._dcr_bridge_invalid_token_challenge(
                 requested_name=requested_name, request=request
@@ -1377,7 +1377,7 @@ class MCPRequestHandler:
         return MCP_CLIENT_SIDE_AUTH_HEADER_NAME
 
     @staticmethod
-    def get_litellm_api_key_from_headers(headers: Headers) -> str | None:
+    def get_gateway_api_key_from_headers(headers: Headers) -> str | None:
         """
         Get the Litellm API key from the headers using case-insensitive lookup
 

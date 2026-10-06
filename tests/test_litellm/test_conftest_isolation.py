@@ -1,7 +1,7 @@
 from token_iq import gateway
 from token_iq.gateway import Router
-from token_iq.gateway import router as litellm_router_module
-from token_iq.gateway import utils as litellm_utils_module
+from token_iq.gateway import router as gateway_router_module
+from token_iq.gateway import utils as gateway_utils_module
 
 CANARY_MODEL = "conftest-isolation-canary-model"
 
@@ -12,11 +12,11 @@ class _CanaryRouterHolder:
 
 def test_register_model_ledger_entry_is_scoped_to_this_test():
     gateway.register_model({CANARY_MODEL: {"litellm_provider": "openai", "input_cost_per_token": 0.001}})
-    assert CANARY_MODEL in litellm_utils_module._runtime_registered_model_cost
+    assert CANARY_MODEL in gateway_utils_module._runtime_registered_model_cost
 
 
 def test_register_model_ledger_entry_was_rolled_back():
-    assert CANARY_MODEL not in litellm_utils_module._runtime_registered_model_cost
+    assert CANARY_MODEL not in gateway_utils_module._runtime_registered_model_cost
 
 
 def test_live_router_membership_is_scoped_to_this_test():
@@ -28,9 +28,9 @@ def test_live_router_membership_is_scoped_to_this_test():
             }
         ]
     )
-    assert _CanaryRouterHolder.router in litellm_router_module._live_routers
+    assert _CanaryRouterHolder.router in gateway_router_module._live_routers
 
 
 def test_live_router_membership_was_rolled_back():
     assert _CanaryRouterHolder.router is not None
-    assert _CanaryRouterHolder.router not in litellm_router_module._live_routers
+    assert _CanaryRouterHolder.router not in gateway_router_module._live_routers

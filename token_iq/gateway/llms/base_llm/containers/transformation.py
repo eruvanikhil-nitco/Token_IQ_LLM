@@ -7,10 +7,10 @@ from typing import TYPE_CHECKING, Any, Final
 import httpx
 
 from token_iq.gateway.types.containers.main import ContainerCreateOptionalRequestParams
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as _LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as _GatewayLoggingObj
     from token_iq.gateway.types.containers.main import (
         ContainerFileListResponse as _ContainerFileListResponse,
     )
@@ -24,14 +24,14 @@ if TYPE_CHECKING:
 
     from ..chat.transformation import BaseLLMException as _BaseLLMException
 
-    LiteLLMLoggingObj = _LiteLLMLoggingObj
+    GatewayLoggingObj = _GatewayLoggingObj
     BaseLLMException = _BaseLLMException
     ContainerObject = _ContainerObject
     DeleteContainerResult = _DeleteContainerResult
     ContainerListResponse = _ContainerListResponse
     ContainerFileListResponse = _ContainerFileListResponse
 else:
-    LiteLLMLoggingObj = Any
+    GatewayLoggingObj = Any
     BaseLLMException = Any
     ContainerObject = Any
     DeleteContainerResult = Any
@@ -102,7 +102,7 @@ class BaseContainerConfig(ABC):
         self,
         name: str,
         container_create_optional_request_params: dict,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> dict:
         """Transform the container creation request.
@@ -116,7 +116,7 @@ class BaseContainerConfig(ABC):
     def transform_container_create_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> ContainerObject:
         """Transform the container creation response."""
         ...
@@ -125,7 +125,7 @@ class BaseContainerConfig(ABC):
     def transform_container_list_request(
         self,
         api_base: str,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
         after: str | None = None,
         limit: int | None = None,
@@ -143,7 +143,7 @@ class BaseContainerConfig(ABC):
     def transform_container_list_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> ContainerListResponse:
         """Transform the container list response."""
         ...
@@ -153,7 +153,7 @@ class BaseContainerConfig(ABC):
         self,
         container_id: str,
         api_base: str,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> tuple[str, dict]:
         """Transform the container retrieve request into a URL and data/params.
@@ -167,7 +167,7 @@ class BaseContainerConfig(ABC):
     def transform_container_retrieve_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> ContainerObject:
         """Transform the container retrieve response."""
         ...
@@ -177,7 +177,7 @@ class BaseContainerConfig(ABC):
         self,
         container_id: str,
         api_base: str,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> tuple[str, dict]:
         """Transform the container delete request into a URL and data.
@@ -191,7 +191,7 @@ class BaseContainerConfig(ABC):
     def transform_container_delete_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> DeleteContainerResult:
         """Transform the container delete response."""
         ...
@@ -201,7 +201,7 @@ class BaseContainerConfig(ABC):
         self,
         container_id: str,
         api_base: str,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
         after: str | None = None,
         limit: int | None = None,
@@ -219,7 +219,7 @@ class BaseContainerConfig(ABC):
     def transform_container_file_list_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> ContainerFileListResponse:
         """Transform the container file list response."""
         ...
@@ -230,7 +230,7 @@ class BaseContainerConfig(ABC):
         container_id: str,
         file_id: str,
         api_base: str,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> tuple[str, dict]:
         """Transform the container file content request into a URL and params.
@@ -244,7 +244,7 @@ class BaseContainerConfig(ABC):
     def transform_container_file_content_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> bytes:
         """Transform the container file content response.
 

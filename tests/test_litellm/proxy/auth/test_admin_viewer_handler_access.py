@@ -19,18 +19,18 @@ from fastapi.testclient import TestClient
 
 
 import token_iq.gateway.proxy.proxy_server as ps
-from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
 from token_iq.gateway.proxy.proxy_server import app
 
 
 def _make_admin_viewer_auth() -> UserAPIKeyAuth:
     return UserAPIKeyAuth(
         user_id="viewer_user",
-        user_role=LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY,
+        user_role=GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY,
     )
 
 
-def _override_auth(role: LitellmUserRoles) -> None:
+def _override_auth(role: GatewayUserRoles) -> None:
     fake_user = UserAPIKeyAuth(user_id="viewer_user", user_role=role)
     app.dependency_overrides[ps.user_api_key_auth] = lambda: fake_user
 
@@ -66,7 +66,7 @@ def admin_viewer_client(monkeypatch):
     )
 
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
-    _override_auth(LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY)
+    _override_auth(GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY)
 
     yield TestClient(app)
 

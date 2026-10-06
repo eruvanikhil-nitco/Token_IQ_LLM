@@ -46,7 +46,7 @@ from token_iq.gateway.types.proxy.guardrails.guardrail_hooks.straiker import (
 from token_iq.gateway.types.utils import GenericGuardrailAPIInputs
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
     from token_iq.gateway.types.proxy.guardrails.guardrail_hooks.base import GuardrailConfigModel
 
 GUARDRAIL_NAME: Final = "straiker"
@@ -177,7 +177,7 @@ def _configured_modes(event_hook: object) -> list[str] | None:
     return list(dict.fromkeys(names)) or None
 
 
-def _resolve_call_surface(logging_obj: LiteLLMLoggingObj | None, request_data: dict) -> str:
+def _resolve_call_surface(logging_obj: GatewayLoggingObj | None, request_data: dict) -> str:
     call_type: Final = (
         (getattr(logging_obj, "call_type", None) if logging_obj is not None else None)
         or request_data.get("call_type")
@@ -354,7 +354,7 @@ class StraikerGuardrail(CustomGuardrail):
         self,
         request_data: dict,
         model: str | None,
-        logging_obj: LiteLLMLoggingObj | None,
+        logging_obj: GatewayLoggingObj | None,
     ) -> StraikerWebhookContext:
         return StraikerWebhookContext(
             call_surface=_resolve_call_surface(logging_obj, request_data),
@@ -374,7 +374,7 @@ class StraikerGuardrail(CustomGuardrail):
         inputs: GenericGuardrailAPIInputs,
         request_data: dict,
         input_type: Literal["request", "response"],
-        logging_obj: LiteLLMLoggingObj | None,
+        logging_obj: GatewayLoggingObj | None,
     ) -> StraikerWebhookRequest:
         model: Final = inputs.get("model") or request_data.get("model")
         call_id: Final = getattr(logging_obj, "litellm_call_id", None) if logging_obj else None
@@ -489,7 +489,7 @@ class StraikerGuardrail(CustomGuardrail):
         self,
         *,
         request_data: dict,
-        logging_obj: LiteLLMLoggingObj | None,
+        logging_obj: GatewayLoggingObj | None,
         parsed: StraikerWebhookResponse,
     ) -> None:
         if not self.verbose:
@@ -570,7 +570,7 @@ class StraikerGuardrail(CustomGuardrail):
         inputs: GenericGuardrailAPIInputs,
         request_data: dict,
         input_type: Literal["request", "response"],
-        logging_obj: LiteLLMLoggingObj | None = None,
+        logging_obj: GatewayLoggingObj | None = None,
     ) -> GenericGuardrailAPIInputs:
         try:
             envelope: Final = self._build_envelope(

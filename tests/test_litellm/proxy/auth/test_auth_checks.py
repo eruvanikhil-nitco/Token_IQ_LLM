@@ -17,14 +17,14 @@ from fastapi import Request, status
 from token_iq import gateway
 from token_iq.gateway.proxy._types import (
     CallInfo,
-    Litellm_EntityType,
+    Gateway_EntityType,
     LiteLLM_BudgetTable,
     LiteLLM_EndUserTable,
     LiteLLM_ObjectPermissionTable,
     LiteLLM_TagTable,
     LiteLLM_TeamTable,
     LiteLLM_UserTable,
-    LitellmUserRoles,
+    GatewayUserRoles,
     ProxyErrorTypes,
     ProxyException,
     SSOUserDefinedValues,
@@ -107,7 +107,7 @@ def valid_sso_user_defined_values():
     return LiteLLM_UserTable(
         user_id="test_user",
         user_email="test@example.com",
-        user_role=LitellmUserRoles.PROXY_ADMIN.value,
+        user_role=GatewayUserRoles.PROXY_ADMIN.value,
         models=["gpt-3.5-turbo"],
         max_budget=100.0,
     )
@@ -139,7 +139,7 @@ def test_get_experimental_ui_login_jwt_auth_token_valid(valid_sso_user_defined_v
     token_data = json.loads(decrypted_token)
 
     assert token_data["user_id"] == "test_user"
-    assert token_data["user_role"] == LitellmUserRoles.PROXY_ADMIN.value
+    assert token_data["user_role"] == GatewayUserRoles.PROXY_ADMIN.value
     assert token_data["models"] == ["gpt-3.5-turbo"]
     assert token_data["max_budget"] == gateway.max_ui_session_budget
 
@@ -237,7 +237,7 @@ def test_get_experimental_ui_login_jwt_auth_token_uses_10_min_expiry(
     assert expires <= now + timedelta(minutes=10, seconds=2)
 
 
-def test_experimental_ui_token_ignores_litellm_ui_session_duration(
+def test_experimental_ui_token_ignores_gateway_ui_session_duration(
     valid_sso_user_defined_values,
 ):
     """Regression test: LITELLM_UI_SESSION_DURATION must NOT affect Experimental UI token expiry.
@@ -287,7 +287,7 @@ def test_get_key_object_from_ui_hash_key_valid(
 
     assert key_object is not None
     assert key_object.user_id == "test_user"
-    assert key_object.user_role == LitellmUserRoles.PROXY_ADMIN
+    assert key_object.user_role == GatewayUserRoles.PROXY_ADMIN
     assert key_object.models == ["gpt-3.5-turbo"]
     assert key_object.max_budget == gateway.max_ui_session_budget
 
@@ -647,7 +647,7 @@ def test_get_cli_jwt_auth_token_default_expiration(valid_sso_user_defined_values
     token_data = json.loads(decrypted_token)
 
     assert token_data["user_id"] == "test_user"
-    assert token_data["user_role"] == LitellmUserRoles.PROXY_ADMIN.value
+    assert token_data["user_role"] == GatewayUserRoles.PROXY_ADMIN.value
     assert token_data["models"] == ["gpt-3.5-turbo"]
     # CLI session tokens carry no per-key budget; spend is enforced via the
     # shared team/user counters. The $0.25 UI session cap must not leak in.
@@ -1226,7 +1226,7 @@ async def test_get_user_object_upsert_routes_default_team_to_membership(monkeypa
     assert [team.team_id for team in passed_teams] == ["default-team"]
     assert (
         mock_add_to_team.await_args[1]["user_api_key_dict"].user_role
-        == LitellmUserRoles.PROXY_ADMIN
+        == GatewayUserRoles.PROXY_ADMIN
     )
 
 
@@ -2687,7 +2687,7 @@ async def test_reject_clientside_metadata_tags_non_llm_route():
     # Create an admin user object for the management route
     admin_user = LiteLLM_UserTable(
         user_id="admin-user",
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
     )
 
     # Should not raise an exception for non-LLM route
@@ -2940,7 +2940,7 @@ async def test_virtual_key_soft_budget_check_with_user_obj():
     assert captured_call_info.team_alias == "test-team-alias"
     assert captured_call_info.organization_id == "test-org"
     assert captured_call_info.key_alias == "test-key"
-    assert captured_call_info.event_group == Litellm_EntityType.KEY
+    assert captured_call_info.event_group == Gateway_EntityType.KEY
 
 
 @pytest.mark.asyncio
@@ -3081,7 +3081,7 @@ async def test_virtual_key_max_budget_alert_check_with_user_obj():
     assert captured_call_info.team_alias == "test-team-alias"
     assert captured_call_info.organization_id == "test-org"
     assert captured_call_info.key_alias == "test-key"
-    assert captured_call_info.event_group == Litellm_EntityType.KEY
+    assert captured_call_info.event_group == Gateway_EntityType.KEY
 
 
 @pytest.mark.asyncio
@@ -3212,7 +3212,7 @@ async def test_virtual_key_max_budget_alert_check_with_multi_threshold_map():
     assert captured_call_info is not None
     assert captured_call_info.max_budget_alert_emails == alert_config
     assert captured_call_info.user_email == "owner@co.com"
-    assert captured_call_info.event_group == Litellm_EntityType.KEY
+    assert captured_call_info.event_group == Gateway_EntityType.KEY
 
 
 @pytest.mark.asyncio
@@ -3965,7 +3965,7 @@ class TestGuardrailModificationCheck:
                 self._call({"metadata": {key: empty_value}})
             assert exc.value.status_code == 403
 
-    def test_rejects_injection_via_litellm_metadata_key(self):
+    def test_rejects_injection_via_gateway_metadata_key(self):
         """Caller can populate the OTHER metadata key; that must also 403."""
         from fastapi import HTTPException
 
@@ -4015,7 +4015,7 @@ class TestGuardrailModificationCheck:
                 self._call({"metadata": _json.dumps(attacker_payload)})
             assert exc.value.status_code == 403
 
-    def test_rejects_string_encoded_litellm_metadata_bypass(self):
+    def test_rejects_string_encoded_gateway_metadata_bypass(self):
         """Same bypass via the litellm_metadata key."""
         import json as _json
 
@@ -6553,12 +6553,12 @@ def test_is_user_proxy_admin_rejects_view_only_admin():
     viewer = LiteLLM_UserTable(
         user_id="viewer_user",
         user_email="viewer@example.com",
-        user_role=LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY.value,
+        user_role=GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY.value,
     )
     admin = LiteLLM_UserTable(
         user_id="admin_user",
         user_email="admin@example.com",
-        user_role=LitellmUserRoles.PROXY_ADMIN.value,
+        user_role=GatewayUserRoles.PROXY_ADMIN.value,
     )
 
     assert _is_user_proxy_admin(user_obj=viewer) is False
@@ -6801,7 +6801,7 @@ def test_model_has_no_cost_mapping_non_token_priced_model_is_false(underlying_mo
     assert model_has_no_cost_mapping(model="non-token-priced-group", llm_router=router) is False
 
 
-def test_model_has_no_cost_mapping_non_token_price_from_litellm_params_is_false():
+def test_model_has_no_cost_mapping_non_token_price_from_gateway_params_is_false():
     from token_iq.gateway.proxy.auth.auth_checks import model_has_no_cost_mapping
     from token_iq.gateway.router import Router
 
@@ -7030,7 +7030,7 @@ def test_team_allowed_routes_wildcard_prefix_matches_unregistered_passthrough_ro
 
     assert (
         allowed_routes_check(
-            user_role=LitellmUserRoles.TEAM,
+            user_role=GatewayUserRoles.TEAM,
             user_route=user_route,
             litellm_proxy_roles=LiteLLM_JWTAuth(team_allowed_routes=["/internal-models/*"]),
         )
@@ -7045,11 +7045,11 @@ def test_team_allowed_routes_exact_route_does_not_become_a_prefix_grant():
     roles = LiteLLM_JWTAuth(team_allowed_routes=["/internal-models/model-a"])
 
     assert (
-        allowed_routes_check(user_role=LitellmUserRoles.TEAM, user_route="/internal-models/model-a", litellm_proxy_roles=roles)
+        allowed_routes_check(user_role=GatewayUserRoles.TEAM, user_route="/internal-models/model-a", litellm_proxy_roles=roles)
         is True
     )
     assert (
-        allowed_routes_check(user_role=LitellmUserRoles.TEAM, user_route="/internal-models/model-b", litellm_proxy_roles=roles)
+        allowed_routes_check(user_role=GatewayUserRoles.TEAM, user_route="/internal-models/model-b", litellm_proxy_roles=roles)
         is False
     )
 
@@ -7062,13 +7062,13 @@ def test_admin_allowed_routes_wildcard_prefix_is_honored():
 
     assert (
         allowed_routes_check(
-            user_role=LitellmUserRoles.PROXY_ADMIN, user_route="/internal-models/anything", litellm_proxy_roles=roles
+            user_role=GatewayUserRoles.PROXY_ADMIN, user_route="/internal-models/anything", litellm_proxy_roles=roles
         )
         is True
     )
     assert (
         allowed_routes_check(
-            user_role=LitellmUserRoles.PROXY_ADMIN, user_route="/other/anything", litellm_proxy_roles=roles
+            user_role=GatewayUserRoles.PROXY_ADMIN, user_route="/other/anything", litellm_proxy_roles=roles
         )
         is False
     )
@@ -7082,12 +7082,12 @@ def test_team_allowed_routes_named_route_group_still_resolves():
 
     assert (
         allowed_routes_check(
-            user_role=LitellmUserRoles.TEAM, user_route="/v1/chat/completions", litellm_proxy_roles=roles
+            user_role=GatewayUserRoles.TEAM, user_route="/v1/chat/completions", litellm_proxy_roles=roles
         )
         is True
     )
     assert (
-        allowed_routes_check(user_role=LitellmUserRoles.TEAM, user_route="/key/generate", litellm_proxy_roles=roles)
+        allowed_routes_check(user_role=GatewayUserRoles.TEAM, user_route="/key/generate", litellm_proxy_roles=roles)
         is False
     )
 

@@ -24,7 +24,7 @@ from access_control_client import (
 from e2e_config import unique_marker
 from e2e_http import Success, UnauthorizedError, UnknownApiError, unwrap
 from lifecycle import ResourceManager
-from models import ChatBody, ChatMessage, ChatResponse, LiteLLMParamsBody
+from models import ChatBody, ChatMessage, ChatResponse, GatewayParamsBody
 from proxy_client import ProxyClient
 
 pytestmark = pytest.mark.e2e
@@ -120,7 +120,7 @@ class TestVirtualKeyAuth:
         model = f"e2e-auth-chat-{unique_marker()}"
         model_id = proxy.create_model(
             model,
-            LiteLLMParamsBody(model=VIRTUAL_KEY_BACKEND, api_key="os.environ/ANTHROPIC_API_KEY"),
+            GatewayParamsBody(model=VIRTUAL_KEY_BACKEND, api_key="os.environ/ANTHROPIC_API_KEY"),
         )
         resources.defer(lambda: proxy.delete_model(model_id))
         key = resources.key()

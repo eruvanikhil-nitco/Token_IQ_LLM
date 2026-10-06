@@ -1,6 +1,6 @@
 import pytest
 
-from token_iq.gateway.proxy._types import LitellmUserRoles
+from token_iq.gateway.proxy._types import GatewayUserRoles
 
 from .actors import Actor
 from .conftest import create_scratch_actor, create_scratch_team
@@ -214,7 +214,7 @@ async def test_team_update_org_relocation_allowed_for_dual_org_admin(
     actor = await create_scratch_actor(
         prisma,
         scratch.prefix,
-        user_role=LitellmUserRoles.ORG_ADMIN.value,
+        user_role=GatewayUserRoles.ORG_ADMIN.value,
         org_admin_of=(world.org_a_id, world.org_b_id),
     )
     team_id = await create_scratch_team(

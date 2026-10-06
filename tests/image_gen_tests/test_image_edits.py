@@ -60,7 +60,7 @@ class BaseLLMImageEditTest(ABC):
     @pytest.mark.parametrize("sync_mode", [True, False])
     @pytest.mark.flaky(retries=3, delay=2)
     @pytest.mark.asyncio
-    async def test_openai_image_edit_litellm_sdk(self, sync_mode):
+    async def test_openai_image_edit_gateway_sdk(self, sync_mode):
         """
         Test image edit functionality with both sync and async modes.
         """
@@ -105,11 +105,11 @@ def _read_image_bytes(filename: str) -> bytes:
 
 
 _ISHAAN_GITHUB_BYTES = _read_image_bytes("ishaan_github.png")
-_LITELLM_SITE_BYTES = _read_image_bytes("litellm_site.png")
+_GATEWAY_SITE_BYTES = _read_image_bytes("litellm_site.png")
 
 
 def _make_test_images() -> list:
-    return [_ISHAAN_GITHUB_BYTES, _LITELLM_SITE_BYTES]
+    return [_ISHAAN_GITHUB_BYTES, _GATEWAY_SITE_BYTES]
 
 
 def _make_single_test_image() -> bytes:
@@ -119,7 +119,7 @@ def _make_single_test_image() -> bytes:
 def get_test_images_as_bytesio():
     return [
         BytesIO(_ISHAAN_GITHUB_BYTES),
-        BytesIO(_LITELLM_SITE_BYTES),
+        BytesIO(_GATEWAY_SITE_BYTES),
     ]
 
 
@@ -155,7 +155,7 @@ class TestAzureAIFlux2ImageEdit(BaseLLMImageEditTest):
 
 @pytest.mark.flaky(retries=3, delay=2)
 @pytest.mark.asyncio
-async def test_openai_image_edit_litellm_router():
+async def test_openai_image_edit_gateway_router():
     gateway._turn_on_debug()
     try:
         prompt = """
@@ -231,7 +231,7 @@ async def test_openai_image_edit_with_bytesio():
 
 
 @pytest.mark.asyncio
-async def test_azure_image_edit_litellm_sdk():
+async def test_azure_image_edit_gateway_sdk():
     """Test Azure image edit with mocked httpx request to validate request body and URL"""
     from token_iq.gateway import aimage_edit
 
@@ -562,7 +562,7 @@ def test_recraft_image_edit_config():
     """
     from token_iq.gateway.llms.recraft.image_edit.transformation import RecraftImageEditConfig
     from token_iq.gateway.types.images.main import ImageEditOptionalRequestParams
-    from token_iq.gateway.types.router import GenericLiteLLMParams
+    from token_iq.gateway.types.router import GenericGatewayParams
 
     config = RecraftImageEditConfig()
 
@@ -596,7 +596,7 @@ def test_recraft_image_edit_config():
     # Test request transformation (reuses OpenAI file handling)
     mock_image = b"fake_image_data"
     prompt = "winter landscape"
-    litellm_params = GenericLiteLLMParams(api_key="test_key")
+    litellm_params = GenericGatewayParams(api_key="test_key")
 
     data, files = config.transform_image_edit_request(
         model="recraftv3",

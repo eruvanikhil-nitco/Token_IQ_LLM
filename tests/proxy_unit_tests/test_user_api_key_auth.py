@@ -22,7 +22,7 @@ from token_iq.gateway.proxy.auth.user_api_key_auth import (
 )
 from fastapi import WebSocket, HTTPException, status
 
-from token_iq.gateway.proxy._types import LiteLLM_UserTable, LitellmUserRoles
+from token_iq.gateway.proxy._types import LiteLLM_UserTable, GatewayUserRoles
 
 
 class Request:
@@ -187,7 +187,7 @@ async def test_team_object_has_object_permission_id():
 )
 @pytest.mark.asyncio
 async def test_returned_user_api_key_auth(user_role, expected_role):
-    from token_iq.gateway.proxy._types import LiteLLM_UserTable, LitellmUserRoles
+    from token_iq.gateway.proxy._types import LiteLLM_UserTable, GatewayUserRoles
     from token_iq.gateway.proxy.auth.user_api_key_auth import _return_user_api_key_auth_obj
     from datetime import datetime
 
@@ -501,7 +501,7 @@ def _assert_api_key_from_custom_header(headers, custom_header_name, expected_api
     verbose_proxy_logger.setLevel(logging.DEBUG)
     request = MagicMock(spec=Request)
     request.headers = headers
-    api_key = get_api_key_from_custom_header(request=request, custom_litellm_key_header_name=custom_header_name)
+    api_key = get_api_key_from_custom_header(request=request, custom_gateway_key_header_name=custom_header_name)
     assert api_key == expected_api_key
 
 
@@ -544,16 +544,16 @@ def test_get_api_key_from_custom_header_different_casing():
 @pytest.mark.parametrize(
     "user_role, auth_user_id, requested_user_id, expected_result",
     [
-        (LitellmUserRoles.PROXY_ADMIN, "1234", None, True),
-        (LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY, None, "1234", True),
-        (LitellmUserRoles.TEAM, "1234", None, False),
-        (LitellmUserRoles.TEAM, None, None, False),
-        (LitellmUserRoles.TEAM, "1234", "1234", True),
+        (GatewayUserRoles.PROXY_ADMIN, "1234", None, True),
+        (GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY, None, "1234", True),
+        (GatewayUserRoles.TEAM, "1234", None, False),
+        (GatewayUserRoles.TEAM, None, None, False),
+        (GatewayUserRoles.TEAM, "1234", "1234", True),
     ],
 )
 def test_allowed_route_inside_route(user_role, auth_user_id, requested_user_id, expected_result):
     from token_iq.gateway.proxy.auth.auth_checks import allowed_route_check_inside_route
-    from token_iq.gateway.proxy._types import UserAPIKeyAuth, LitellmUserRoles
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth, GatewayUserRoles
 
     assert (
         allowed_route_check_inside_route(
@@ -786,7 +786,7 @@ def test_is_allowed_route():
         (None, False),  # Case 1: user_obj is None
         (
             LiteLLM_UserTable(
-                user_role=LitellmUserRoles.PROXY_ADMIN.value,
+                user_role=GatewayUserRoles.PROXY_ADMIN.value,
                 user_id="1234",
                 user_email="test@test.com",
                 max_budget=None,
@@ -818,13 +818,13 @@ def test_is_user_proxy_admin(user_obj, expected_result):
         (None, None),  # Case 1: user_obj is None (should return None)
         (
             LiteLLM_UserTable(
-                user_role=LitellmUserRoles.PROXY_ADMIN.value,
+                user_role=GatewayUserRoles.PROXY_ADMIN.value,
                 user_id="1234",
                 user_email="test@test.com",
                 max_budget=None,
                 spend=0.0,
             ),
-            LitellmUserRoles.PROXY_ADMIN,
+            GatewayUserRoles.PROXY_ADMIN,
         ),  # Case 2: user_role is PROXY_ADMIN (should return LitellmUserRoles.PROXY_ADMIN)
         (
             LiteLLM_UserTable(
@@ -834,7 +834,7 @@ def test_is_user_proxy_admin(user_obj, expected_result):
                 max_budget=None,
                 spend=0.0,
             ),
-            LitellmUserRoles.INTERNAL_USER,
+            GatewayUserRoles.INTERNAL_USER,
         ),  # Case 3: invalid user_role (should return LitellmUserRoles.INTERNAL_USER)
     ],
 )
@@ -979,7 +979,7 @@ def test_user_api_key_auth_end_user_str():
     user_api_key_args = {
         "api_key": "sk-1234",
         "parent_otel_span": None,
-        "user_role": LitellmUserRoles.PROXY_ADMIN,
+        "user_role": GatewayUserRoles.PROXY_ADMIN,
         "end_user_id": "1",
         "user_id": "default_user_id",
     }
@@ -994,31 +994,31 @@ def test_can_rbac_role_call_model():
 
     roles_based_permissions = [
         RoleBasedPermissions(
-            role=LitellmUserRoles.INTERNAL_USER,
+            role=GatewayUserRoles.INTERNAL_USER,
             models=["gpt-4"],
         ),
         RoleBasedPermissions(
-            role=LitellmUserRoles.PROXY_ADMIN,
+            role=GatewayUserRoles.PROXY_ADMIN,
             models=["anthropic-claude"],
         ),
     ]
 
     assert JWTAuthManager.can_rbac_role_call_model(
-        rbac_role=LitellmUserRoles.INTERNAL_USER,
+        rbac_role=GatewayUserRoles.INTERNAL_USER,
         general_settings={"role_permissions": roles_based_permissions},
         model="gpt-4",
     )
 
     with pytest.raises(HTTPException):
         JWTAuthManager.can_rbac_role_call_model(
-            rbac_role=LitellmUserRoles.INTERNAL_USER,
+            rbac_role=GatewayUserRoles.INTERNAL_USER,
             general_settings={"role_permissions": roles_based_permissions},
             model="gpt-4o",
         )
 
     with pytest.raises(HTTPException):
         JWTAuthManager.can_rbac_role_call_model(
-            rbac_role=LitellmUserRoles.PROXY_ADMIN,
+            rbac_role=GatewayUserRoles.PROXY_ADMIN,
             general_settings={"role_permissions": roles_based_permissions},
             model="gpt-4o",
         )
@@ -1028,13 +1028,13 @@ def test_can_rbac_role_call_model_no_role_permissions():
     from token_iq.gateway.proxy.auth.handle_jwt import JWTAuthManager
 
     assert JWTAuthManager.can_rbac_role_call_model(
-        rbac_role=LitellmUserRoles.INTERNAL_USER,
+        rbac_role=GatewayUserRoles.INTERNAL_USER,
         general_settings={},
         model="gpt-4",
     )
 
     assert JWTAuthManager.can_rbac_role_call_model(
-        rbac_role=LitellmUserRoles.PROXY_ADMIN,
+        rbac_role=GatewayUserRoles.PROXY_ADMIN,
         general_settings={"role_permissions": []},
         model="anthropic-claude",
     )
@@ -1125,7 +1125,7 @@ async def test_jwt_non_admin_team_route_access(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_x_litellm_api_key():
+async def test_x_gateway_api_key():
     """
     Check if auth can pick up x-litellm-api-key header, even if Bearer token is provided.
 
@@ -1161,7 +1161,7 @@ async def test_x_litellm_api_key():
     valid_token = await user_api_key_auth(
         request=request,
         api_key="Bearer " + ignored_key,
-        custom_litellm_key_header=master_key,
+        custom_gateway_key_header=master_key,
     )
     assert valid_token.token == LITELLM_PROXY_MASTER_KEY_ALIAS
     assert valid_token.token != hash_token(master_key)
@@ -1270,7 +1270,7 @@ async def test_user_model_max_budget_is_threaded_onto_the_auth_object():
         valid_token_dict={"token": "hash"},
         route="/chat/completions",
         start_time=datetime.now(),
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
     )
     assert auth_obj.user_model_max_budget == budget
 
@@ -1294,7 +1294,7 @@ async def test_user_model_budget_is_enforced_through_user_api_key_auth(over_budg
     from fastapi import Request
     from starlette.datastructures import URL
 
-    from token_iq.gateway.proxy._types import LiteLLM_UserTable, Litellm_EntityType, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import LiteLLM_UserTable, Gateway_EntityType, UserAPIKeyAuth
     from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
     from token_iq.gateway.proxy.hooks.model_max_budget_limiter import model_budget_spend_cache_key
     from token_iq.gateway.proxy.proxy_server import (
@@ -1320,7 +1320,7 @@ async def test_user_model_budget_is_enforced_through_user_api_key_auth(over_budg
     )
     await model_max_budget_limiter.dual_cache.async_set_cache(
         key=model_budget_spend_cache_key(
-            entity_type=Litellm_EntityType.USER,
+            entity_type=Gateway_EntityType.USER,
             entity_id=user_id,
             budget_model=model,
             budget_duration="1mo",
@@ -1378,7 +1378,7 @@ async def test_jwt_user_model_budget_is_enforced_before_the_jwt_path_returns(ove
     JWT user's counter either way, so without this check the counter grows and
     nothing ever reads it, which looks enforced and is not.
     """
-    from token_iq.gateway.proxy._types import Litellm_EntityType, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import Gateway_EntityType, UserAPIKeyAuth
     from token_iq.gateway.proxy.auth.user_api_key_auth import _check_user_model_budget
     from token_iq.gateway.proxy.hooks.model_max_budget_limiter import model_budget_spend_cache_key
     from token_iq.gateway.proxy.proxy_server import model_max_budget_limiter
@@ -1389,7 +1389,7 @@ async def test_jwt_user_model_budget_is_enforced_before_the_jwt_path_returns(ove
 
     await model_max_budget_limiter.dual_cache.async_set_cache(
         key=model_budget_spend_cache_key(
-            entity_type=Litellm_EntityType.USER,
+            entity_type=Gateway_EntityType.USER,
             entity_id=user_id,
             budget_model=model,
             budget_duration="1mo",
@@ -1412,7 +1412,7 @@ async def test_jwt_user_model_budget_is_enforced_before_the_jwt_path_returns(ove
                 model_max_budget_limiter=model_max_budget_limiter,
                 models=[model],
             )
-        assert exc.value.entity_type == Litellm_EntityType.USER.value
+        assert exc.value.entity_type == Gateway_EntityType.USER.value
     else:
         await _check_user_model_budget(
             valid_token=valid_token,

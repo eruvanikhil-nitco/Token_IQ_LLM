@@ -17,7 +17,7 @@ import httpx
 from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.constants import request_timeout
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.llms.azure_ai.ocr.common_utils import (
     is_azure_document_intelligence_model,
 )
@@ -29,7 +29,7 @@ from token_iq.gateway.llms.base_llm.ocr.transformation import (
 )
 from token_iq.gateway.llms.custom_httpx.llm_http_handler import BaseLLMHTTPHandler
 from token_iq.gateway.rust_bridge import ocr as rust_ocr_bridge
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.utils import ProviderConfigManager, client
 
 ####### ENVIRONMENT VARIABLES ###################
@@ -49,7 +49,7 @@ class _PreparedOCRRequest:
     optional_params: dict[str, object]
     litellm_params: dict[str, object]
     effective_timeout: float | httpx.Timeout
-    litellm_logging_obj: LiteLLMLoggingObj
+    litellm_logging_obj: GatewayLoggingObj
 
 
 @dataclass
@@ -77,7 +77,7 @@ def _prepare_ocr_request(
     extra_headers: dict[str, object] | None,
     kwargs: dict[str, object],
 ) -> _PreparedOCRRequest:
-    litellm_logging_obj: Final = cast(LiteLLMLoggingObj, kwargs.pop("litellm_logging_obj"))
+    litellm_logging_obj: Final = cast(GatewayLoggingObj, kwargs.pop("litellm_logging_obj"))
     litellm_call_id: Final = cast(str | None, kwargs.get("litellm_call_id", None))
 
     if not isinstance(document, dict):
@@ -126,7 +126,7 @@ def _prepare_ocr_request(
 
     verbose_logger.debug("OCR call - model: %s, provider: %s", model, custom_llm_provider)
 
-    litellm_params: Final = GenericLiteLLMParams.model_validate(kwargs)
+    litellm_params: Final = GenericGatewayParams.model_validate(kwargs)
 
     supported_params: Final = ocr_provider_config.get_supported_ocr_params(model=model)
     requested_format: Final = kwargs.get(OCR_REQUEST_FORMAT_PARAM)

@@ -16,14 +16,14 @@ from typing_extensions import ReadOnly
 
 from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.llms.custom_httpx.http_handler import (
     AsyncHTTPHandler,
     HTTPHandler,
     _get_httpx_client,
     get_async_httpx_client,
 )
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.types.utils import ImageResponse
 
 from ..common_utils import (
@@ -69,8 +69,8 @@ class BlackForestLabsImageGeneration:
         prompt: str,
         model_response: ImageResponse,
         optional_params: dict,
-        litellm_params: GenericLiteLLMParams | dict,
-        logging_obj: LiteLLMLoggingObj,
+        litellm_params: GenericGatewayParams | dict,
+        logging_obj: GatewayLoggingObj,
         timeout: float | httpx.Timeout | None,
         extra_headers: Mapping[str, str] | None = None,
         client: HTTPHandler | AsyncHTTPHandler | None = None,
@@ -98,11 +98,11 @@ class BlackForestLabsImageGeneration:
         if isinstance(litellm_params, dict):
             api_key = litellm_params.get("api_key")
             api_base = litellm_params.get("api_base")
-            litellm_params_dict = litellm_params
+            gateway_params_dict = litellm_params
         else:
             api_key = litellm_params.api_key
             api_base = litellm_params.api_base
-            litellm_params_dict = dict(litellm_params)
+            gateway_params_dict = dict(litellm_params)
 
         if aimg_generation:
             return self.async_image_generation(
@@ -130,7 +130,7 @@ class BlackForestLabsImageGeneration:
             model=model,
             messages=[],
             optional_params=optional_params,
-            litellm_params=litellm_params_dict,
+            litellm_params=gateway_params_dict,
         )
         if extra_headers:
             headers.update(extra_headers)
@@ -141,7 +141,7 @@ class BlackForestLabsImageGeneration:
             api_key=api_key,
             model=model,
             optional_params=optional_params,
-            litellm_params=litellm_params_dict,
+            litellm_params=gateway_params_dict,
         )
 
         # Transform request
@@ -149,7 +149,7 @@ class BlackForestLabsImageGeneration:
             model=model,
             prompt=prompt,
             optional_params=optional_params,
-            litellm_params=litellm_params_dict,
+            litellm_params=gateway_params_dict,
             headers=headers,
         )
 
@@ -193,7 +193,7 @@ class BlackForestLabsImageGeneration:
             logging_obj=logging_obj,
             request_data=data,
             optional_params=optional_params,
-            litellm_params=litellm_params_dict,
+            litellm_params=gateway_params_dict,
             encoding=None,
         )
 
@@ -203,8 +203,8 @@ class BlackForestLabsImageGeneration:
         prompt: str,
         model_response: ImageResponse,
         optional_params: dict,
-        litellm_params: GenericLiteLLMParams | dict,
-        logging_obj: LiteLLMLoggingObj,
+        litellm_params: GenericGatewayParams | dict,
+        logging_obj: GatewayLoggingObj,
         timeout: float | httpx.Timeout | None,
         extra_headers: Mapping[str, str] | None = None,
         client: AsyncHTTPHandler | None = None,
@@ -216,11 +216,11 @@ class BlackForestLabsImageGeneration:
         if isinstance(litellm_params, dict):
             api_key = litellm_params.get("api_key")
             api_base = litellm_params.get("api_base")
-            litellm_params_dict = litellm_params
+            gateway_params_dict = litellm_params
         else:
             api_key = litellm_params.api_key
             api_base = litellm_params.api_base
-            litellm_params_dict = dict(litellm_params)
+            gateway_params_dict = dict(litellm_params)
 
         if client is None:
             async_client = get_async_httpx_client(
@@ -236,7 +236,7 @@ class BlackForestLabsImageGeneration:
             model=model,
             messages=[],
             optional_params=optional_params,
-            litellm_params=litellm_params_dict,
+            litellm_params=gateway_params_dict,
         )
         if extra_headers:
             headers.update(extra_headers)
@@ -247,7 +247,7 @@ class BlackForestLabsImageGeneration:
             api_key=api_key,
             model=model,
             optional_params=optional_params,
-            litellm_params=litellm_params_dict,
+            litellm_params=gateway_params_dict,
         )
 
         # Transform request
@@ -255,7 +255,7 @@ class BlackForestLabsImageGeneration:
             model=model,
             prompt=prompt,
             optional_params=optional_params,
-            litellm_params=litellm_params_dict,
+            litellm_params=gateway_params_dict,
             headers=headers,
         )
 
@@ -299,7 +299,7 @@ class BlackForestLabsImageGeneration:
             logging_obj=logging_obj,
             request_data=data,
             optional_params=optional_params,
-            litellm_params=litellm_params_dict,
+            litellm_params=gateway_params_dict,
             encoding=None,
         )
 

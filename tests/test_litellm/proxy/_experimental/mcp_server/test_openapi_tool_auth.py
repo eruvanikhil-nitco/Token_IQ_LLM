@@ -11,7 +11,7 @@ import pytest
 
 from token_iq.gateway.proxy._types import (
     LiteLLM_ObjectPermissionTable,
-    LitellmUserRoles,
+    GatewayUserRoles,
     UserAPIKeyAuth,
 )
 from token_iq.gateway.types.mcp import MCPAuth, MCPTransport
@@ -28,7 +28,7 @@ async def test_openapi_local_tool_runs_pre_call_tool_check():
     user = UserAPIKeyAuth(
         api_key="sk-user",
         user_id="alice",
-        user_role=LitellmUserRoles.INTERNAL_USER.value,
+        user_role=GatewayUserRoles.INTERNAL_USER.value,
     )
 
     fake_server = MagicMock()
@@ -109,7 +109,7 @@ async def test_openapi_local_tool_blocked_when_pre_call_check_raises():
     user = UserAPIKeyAuth(
         api_key="sk-user",
         user_id="alice",
-        user_role=LitellmUserRoles.INTERNAL_USER.value,
+        user_role=GatewayUserRoles.INTERNAL_USER.value,
     )
 
     fake_server = MagicMock()
@@ -181,7 +181,7 @@ async def test_openapi_local_tool_denied_when_server_not_resolvable():
     user = UserAPIKeyAuth(
         api_key="sk-user",
         user_id="alice",
-        user_role=LitellmUserRoles.INTERNAL_USER.value,
+        user_role=GatewayUserRoles.INTERNAL_USER.value,
     )
 
     fake_tool = MagicMock()
@@ -256,7 +256,7 @@ async def test_openapi_local_tool_injects_resolved_oauth_token():
     user = UserAPIKeyAuth(
         api_key="sk-user",
         user_id="alice",
-        user_role=LitellmUserRoles.INTERNAL_USER.value,
+        user_role=GatewayUserRoles.INTERNAL_USER.value,
     )
     oauth_server = MCPServer(
         server_id="srv-sheets",
@@ -374,7 +374,7 @@ def _caller_entitled_to(tools: list[str]) -> UserAPIKeyAuth:
     return UserAPIKeyAuth(
         api_key="sk-caller",
         user_id="alice",
-        user_role=LitellmUserRoles.INTERNAL_USER.value,
+        user_role=GatewayUserRoles.INTERNAL_USER.value,
         object_permission=LiteLLM_ObjectPermissionTable(
             object_permission_id="op-legacy-fallback",
             mcp_servers=[LEGACY_SERVER_ID],
@@ -593,7 +593,7 @@ async def test_per_server_auth_header_reaches_both_openapi_dispatch_arms(dispatc
 
     server = _spec_path_server()
     auth_headers = {"report_api": {"Authorization": OPENAPI_PER_SERVER_TOKEN}}
-    user = UserAPIKeyAuth(api_key="sk-user", user_id="alice", user_role=LitellmUserRoles.INTERNAL_USER.value)
+    user = UserAPIKeyAuth(api_key="sk-user", user_id="alice", user_role=GatewayUserRoles.INTERNAL_USER.value)
     captured: dict = {}
 
     async def fake_resolver(**kwargs):
@@ -697,7 +697,7 @@ async def test_local_dispatch_reports_the_outcome_instead_of_success(failure: st
         auth_type=MCPAuth.oauth_delegate,
         spec_path="https://api.example.com/openapi.json",
     )
-    user = UserAPIKeyAuth(api_key="sk-user", user_id="alice", user_role=LitellmUserRoles.INTERNAL_USER.value)
+    user = UserAPIKeyAuth(api_key="sk-user", user_id="alice", user_role=GatewayUserRoles.INTERNAL_USER.value)
 
     with (
         patch.object(mcp_module.global_mcp_server_manager, "_get_mcp_server_from_tool_name", return_value=server),

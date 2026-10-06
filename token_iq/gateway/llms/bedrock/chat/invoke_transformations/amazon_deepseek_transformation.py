@@ -8,7 +8,7 @@ from token_iq.gateway.core_utils.prompt_templates.common_utils import (
 )
 from token_iq.gateway.llms.base_llm.base_model_iterator import BaseModelResponseIterator
 from token_iq.gateway.llms.bedrock.chat.invoke_transformations.base_invoke_transformation import (
-    LiteLLMLoggingObj,
+    GatewayLoggingObj,
 )
 from token_iq.gateway.types.llms.bedrock import AmazonDeepSeekR1StreamingResponse
 from token_iq.gateway.types.llms.openai import AllMessageValues
@@ -34,7 +34,7 @@ class AmazonDeepSeekR1Config(AmazonLlamaConfig):
         model: str,
         raw_response: Response,
         model_response: ModelResponse,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         request_data: dict,
         messages: list[AllMessageValues],
         optional_params: dict,

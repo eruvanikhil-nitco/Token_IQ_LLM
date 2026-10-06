@@ -616,7 +616,7 @@ class TestNomaV2ApplicationIdResolution:
         assert payload["application_id"] == "test-app"
 
     @pytest.mark.asyncio
-    async def test_apply_guardrail_falls_back_to_key_alias_from_litellm_metadata(
+    async def test_apply_guardrail_falls_back_to_key_alias_from_gateway_metadata(
         self, noma_v2_guardrail
     ):
         """When no explicit application_id is set, fall back to user_api_key_alias

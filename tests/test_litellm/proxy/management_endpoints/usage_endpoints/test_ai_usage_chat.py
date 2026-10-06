@@ -216,13 +216,13 @@ class TestStreamUsageAiChat:
         with (
             patch(
                 "token_iq.gateway.proxy.management_endpoints.usage_endpoints.ai_usage_chat.gateway"
-            ) as mock_litellm,
+            ) as mock_gateway,
             patch(
                 "token_iq.gateway.proxy.management_endpoints.usage_endpoints.ai_usage_chat._fetch_usage_data",
                 new_callable=AsyncMock,
             ) as mock_fetch,
         ):
-            mock_litellm.acompletion = AsyncMock(
+            mock_gateway.acompletion = AsyncMock(
                 side_effect=[
                     mock_first_response,
                     mock_stream(),
@@ -291,13 +291,13 @@ class TestStreamUsageAiChat:
         with (
             patch(
                 "token_iq.gateway.proxy.management_endpoints.usage_endpoints.ai_usage_chat.gateway"
-            ) as mock_litellm,
+            ) as mock_gateway,
             patch(
                 "token_iq.gateway.proxy.management_endpoints.usage_endpoints.ai_usage_chat._fetch_team_usage_data",
                 new_callable=AsyncMock,
             ) as mock_fetch,
         ):
-            mock_litellm.acompletion = AsyncMock(
+            mock_gateway.acompletion = AsyncMock(
                 side_effect=[
                     mock_first_response,
                     mock_stream(),
@@ -321,8 +321,8 @@ class TestStreamUsageAiChat:
     async def test_stream_handles_error(self):
         with patch(
             "token_iq.gateway.proxy.management_endpoints.usage_endpoints.ai_usage_chat.gateway"
-        ) as mock_litellm:
-            mock_litellm.acompletion = AsyncMock(side_effect=Exception("LLM error"))
+        ) as mock_gateway:
+            mock_gateway.acompletion = AsyncMock(side_effect=Exception("LLM error"))
 
             events = []
             async for event in stream_usage_ai_chat(
@@ -376,7 +376,7 @@ class TestStreamUsageAiChat:
         with (
             patch(
                 "token_iq.gateway.proxy.management_endpoints.usage_endpoints.ai_usage_chat.gateway"
-            ) as mock_litellm,
+            ) as mock_gateway,
             patch.dict(
                 "token_iq.gateway.proxy.management_endpoints.usage_endpoints.ai_usage_chat.TOOL_HANDLERS",
                 {
@@ -388,7 +388,7 @@ class TestStreamUsageAiChat:
                 },
             ),
         ):
-            mock_litellm.acompletion = AsyncMock(
+            mock_gateway.acompletion = AsyncMock(
                 side_effect=[
                     mock_first_response,
                     mock_stream(),
@@ -421,7 +421,7 @@ class TestUsageAiChatServiceAccountGuard:
     async def test_non_admin_with_user_id_none_is_rejected(self):
         from fastapi import HTTPException
 
-        from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+        from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
         from token_iq.gateway.proxy.management_endpoints.usage_endpoints.endpoints import (
             ChatMessage,
             UsageAIChatRequest,
@@ -430,7 +430,7 @@ class TestUsageAiChatServiceAccountGuard:
 
         service_account_key = UserAPIKeyAuth(
             user_id=None,
-            user_role=LitellmUserRoles.INTERNAL_USER,
+            user_role=GatewayUserRoles.INTERNAL_USER,
         )
         request = MagicMock()
         body = UsageAIChatRequest(

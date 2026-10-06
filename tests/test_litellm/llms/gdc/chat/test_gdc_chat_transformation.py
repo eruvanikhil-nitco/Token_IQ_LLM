@@ -111,7 +111,7 @@ class TestGDCGeminiConfig:
             == f"{TEST_API_BASE}/v1/projects/{TEST_PROJECT}/locations/{TEST_LOCATION}/chat/completions"
         )
 
-    def test_get_complete_url_preformed_base_is_authoritative_over_litellm_params(self):
+    def test_get_complete_url_preformed_base_is_authoritative_over_gateway_params(self):
         config = GDCGeminiConfig()
         preformed = f"{TEST_API_BASE}/v1/projects/pinned-project/locations/pinned-loc/chat/completions"
         url = config.get_complete_url(

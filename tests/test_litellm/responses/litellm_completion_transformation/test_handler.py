@@ -18,7 +18,7 @@ import pytest
 
 
 from token_iq.gateway.responses.litellm_completion_transformation.handler import (
-    LiteLLMCompletionTransformationHandler,
+    GatewayCompletionTransformationHandler,
 )
 
 
@@ -27,7 +27,7 @@ class _StopForwarding(Exception):
 
 
 def test_sync_fallback_tags_skip_responses_api_bridge():
-    handler = LiteLLMCompletionTransformationHandler()
+    handler = GatewayCompletionTransformationHandler()
     captured: dict = {}
 
     def fake_completion(**kwargs):
@@ -49,7 +49,7 @@ def test_sync_fallback_tags_skip_responses_api_bridge():
 
 @pytest.mark.asyncio
 async def test_async_fallback_tags_skip_responses_api_bridge():
-    handler = LiteLLMCompletionTransformationHandler()
+    handler = GatewayCompletionTransformationHandler()
     captured: dict = {}
 
     async def fake_acompletion(**kwargs):

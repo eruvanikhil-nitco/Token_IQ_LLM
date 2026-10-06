@@ -1048,13 +1048,13 @@ class InteractionSseEvent(
 
 from pydantic import PrivateAttr
 
-from token_iq.gateway.types.llms.base import BaseLiteLLMOpenAIResponseObject
+from token_iq.gateway.types.llms.base import BaseGatewayOpenAIResponseObject
 
 # Type alias for input
 InteractionInput = str | Content | list[Content] | list[Turn]
 
 
-class InteractionsAPIResponse(BaseLiteLLMOpenAIResponseObject):
+class InteractionsAPIResponse(BaseGatewayOpenAIResponseObject):
     """
     Response from the Interactions API.
 
@@ -1082,7 +1082,7 @@ class InteractionsAPIResponse(BaseLiteLLMOpenAIResponseObject):
     _hidden_params: dict = PrivateAttr(default_factory=dict)
 
 
-class InteractionsAPIStreamingResponse(BaseLiteLLMOpenAIResponseObject):
+class InteractionsAPIStreamingResponse(BaseGatewayOpenAIResponseObject):
     """
     Streaming response chunk from the Interactions API.
 
@@ -1120,7 +1120,7 @@ class InteractionsAPIStreamingResponse(BaseLiteLLMOpenAIResponseObject):
     _hidden_params: dict = PrivateAttr(default_factory=dict)
 
 
-class DeleteInteractionResult(BaseLiteLLMOpenAIResponseObject):
+class DeleteInteractionResult(BaseGatewayOpenAIResponseObject):
     """Result of deleting an interaction."""
 
     success: bool = True
@@ -1129,7 +1129,7 @@ class DeleteInteractionResult(BaseLiteLLMOpenAIResponseObject):
     _hidden_params: dict = PrivateAttr(default_factory=dict)
 
 
-class CancelInteractionResult(BaseLiteLLMOpenAIResponseObject):
+class CancelInteractionResult(BaseGatewayOpenAIResponseObject):
     """Result of cancelling an interaction."""
 
     id: str | None = None

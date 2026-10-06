@@ -265,7 +265,7 @@ class TestResolveProjectName:
         }
         assert ArizePhoenixLogger._resolve_project_name(kwargs) == "my-project"
 
-    def test_extracts_phoenix_name_from_litellm_params_metadata(self):
+    def test_extracts_phoenix_name_from_gateway_params_metadata(self):
         kwargs = {
             "litellm_params": {
                 "metadata": {"phoenix_project_name": "sdk-project"},
@@ -514,7 +514,7 @@ class TestPerProjectTracerProviderCache:
         mock_provider.force_flush.assert_called_once()
 
 
-class TestGetLitellmResourceForProject:
+class TestGetGatewayResourceForProject:
     """Resource attrs used by Phoenix OSS and Arize AX for project routing."""
 
     def test_project_attrs_win_over_otel_resource_attributes_env(self):
@@ -532,7 +532,7 @@ class TestGetLitellmResourceForProject:
             },
             clear=False,
         ):
-            resource = logger._get_litellm_resource_for_project("dynamic-proj")
+            resource = logger._get_gateway_resource_for_project("dynamic-proj")
 
         assert resource.attributes["openinference.project.name"] == "dynamic-proj"
         assert resource.attributes["model_id"] == "dynamic-proj"
@@ -548,7 +548,7 @@ class TestGetLitellmResourceForProject:
             ),
             callback_name="arize_phoenix",
         )
-        resource = logger._get_litellm_resource_for_project("my-proj")
+        resource = logger._get_gateway_resource_for_project("my-proj")
         assert resource.attributes.get("deployment.environment") == "staging"
 
 
@@ -688,7 +688,7 @@ class TestTracerResolutionAndCache:
         logger.flush_tracer_providers()
         exporter.shutdown()
 
-    def test_standard_logging_metadata_wins_over_litellm_params(self):
+    def test_standard_logging_metadata_wins_over_gateway_params(self):
         kwargs = {
             "standard_logging_object": {
                 "metadata": {"phoenix_project_name_override": "from-logging"},

@@ -107,7 +107,7 @@ class TestProxyRateLimitErrorClass:
         assert isinstance(e.message, str)
         assert "over rpm" in e.message
 
-    def test_defaults_to_litellm_proxy_provider(self):
+    def test_defaults_to_gateway_proxy_provider(self):
         e = ProxyRateLimitError(detail="x")
         assert e.llm_provider == PROXY_LLM_PROVIDER_FALLBACK
         assert e.model == ""

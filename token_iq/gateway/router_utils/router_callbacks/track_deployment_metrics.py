@@ -14,13 +14,13 @@ from typing import TYPE_CHECKING, Any, Final
 if TYPE_CHECKING:
     from token_iq.gateway.router import Router as _Router
 
-    LitellmRouter = _Router
+    GatewayRouter = _Router
 else:
-    LitellmRouter = Any
+    GatewayRouter = Any
 
 
 def increment_deployment_successes_for_current_minute(
-    litellm_router_instance: LitellmRouter,
+    litellm_router_instance: GatewayRouter,
     deployment_id: str,
 ) -> str:
     """
@@ -37,7 +37,7 @@ def increment_deployment_successes_for_current_minute(
 
 
 def increment_deployment_failures_for_current_minute(
-    litellm_router_instance: LitellmRouter,
+    litellm_router_instance: GatewayRouter,
     deployment_id: str,
 ):
     """
@@ -53,7 +53,7 @@ def increment_deployment_failures_for_current_minute(
 
 
 def get_deployment_successes_for_current_minute(
-    litellm_router_instance: LitellmRouter,
+    litellm_router_instance: GatewayRouter,
     deployment_id: str,
 ) -> int:
     """
@@ -72,7 +72,7 @@ def get_deployment_successes_for_current_minute(
 
 
 def get_deployment_failures_for_current_minute(
-    litellm_router_instance: LitellmRouter,
+    litellm_router_instance: GatewayRouter,
     deployment_id: str,
 ) -> int:
     """

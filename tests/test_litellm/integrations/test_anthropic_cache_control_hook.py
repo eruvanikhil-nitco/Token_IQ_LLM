@@ -2003,7 +2003,7 @@ class TestAnthropicPromptCachingEnvVars:
     """
 
     @staticmethod
-    def _import_litellm_with_env(env_override: dict) -> Tuple[bool, Optional[str]]:
+    def _import_gateway_with_env(env_override: dict) -> Tuple[bool, Optional[str]]:
         env = os.environ.copy()
         env.pop("LITELLM_ENABLE_ANTHROPIC_PROMPT_CACHING", None)
         env.pop("LITELLM_ANTHROPIC_PROMPT_CACHING_TTL", None)
@@ -2023,27 +2023,27 @@ class TestAnthropicPromptCachingEnvVars:
         return enabled, ttl
 
     def test_unset_env_leaves_auto_caching_off(self):
-        assert self._import_litellm_with_env({}) == (False, None)
+        assert self._import_gateway_with_env({}) == (False, None)
 
     @pytest.mark.parametrize("value", ["true", "True", "TRUE"])
     def test_env_enables_auto_caching_case_insensitively(self, value):
-        enabled, _ = self._import_litellm_with_env({"LITELLM_ENABLE_ANTHROPIC_PROMPT_CACHING": value})
+        enabled, _ = self._import_gateway_with_env({"LITELLM_ENABLE_ANTHROPIC_PROMPT_CACHING": value})
         assert enabled is True
 
     @pytest.mark.parametrize("value", ["false", "0", "yes", ""])
     def test_env_only_enables_on_true(self, value):
-        enabled, _ = self._import_litellm_with_env({"LITELLM_ENABLE_ANTHROPIC_PROMPT_CACHING": value})
+        enabled, _ = self._import_gateway_with_env({"LITELLM_ENABLE_ANTHROPIC_PROMPT_CACHING": value})
         assert enabled is False
 
     @pytest.mark.parametrize("value", ["5m", "1h"])
     def test_ttl_env_is_applied(self, value):
-        _, ttl = self._import_litellm_with_env({"LITELLM_ANTHROPIC_PROMPT_CACHING_TTL": value})
+        _, ttl = self._import_gateway_with_env({"LITELLM_ANTHROPIC_PROMPT_CACHING_TTL": value})
         assert ttl == value
 
     @pytest.mark.parametrize("value", ["10m", "1H", "3600", "ephemeral"])
     def test_unsupported_ttl_env_falls_back_to_provider_default(self, value):
         """An unparseable TTL must fall back to Anthropic's 5m default, never reach the provider verbatim."""
-        _, ttl = self._import_litellm_with_env({"LITELLM_ANTHROPIC_PROMPT_CACHING_TTL": value})
+        _, ttl = self._import_gateway_with_env({"LITELLM_ANTHROPIC_PROMPT_CACHING_TTL": value})
         assert ttl is None
 
 
@@ -2507,7 +2507,7 @@ class TestChatPathProviderStamp:
             assert AnthropicCacheControlHook._targets_openai_prompt_cache_breakpoint("my-custom-model", None) is False
         resolve.assert_not_called()
 
-    def test_litellm_proxy_target_keeps_anthropic_style_markers(self):
+    def test_gateway_proxy_target_keeps_anthropic_style_markers(self):
         out, params = self._seed_and_run("litellm_proxy/gpt-5.6", None)
         assert out[0] == self.ANTHROPIC_STYLE
         assert "prompt_cache_options" not in params
@@ -2536,7 +2536,7 @@ class TestChatPathProviderStamp:
         assert out[0] == self.ANTHROPIC_STYLE
         assert "prompt_cache_options" not in params
 
-    def test_global_litellm_api_base_keeps_anthropic_style_markers(self, monkeypatch):
+    def test_global_gateway_api_base_keeps_anthropic_style_markers(self, monkeypatch):
         monkeypatch.setattr(gateway, "api_base", self.CUSTOM_API_BASE)
         out, params = self._seed_and_run("gpt-5.6", None)
         assert out[0] == self.ANTHROPIC_STYLE
@@ -2676,7 +2676,7 @@ class TestMessagesPathApiBaseGate:
         )
         return out[0]["content"][0], kwargs
 
-    def test_litellm_proxy_target_keeps_cache_control(self):
+    def test_gateway_proxy_target_keeps_cache_control(self):
         block, kwargs = self._inject("gpt-5.6", api_base=self.CUSTOM_API_BASE, custom_llm_provider="litellm_proxy")
         assert block == self.CACHE_CONTROL_BLOCK
         assert "prompt_cache_options" not in kwargs

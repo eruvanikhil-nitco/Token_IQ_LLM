@@ -8,7 +8,7 @@ import httpx
 import pytest
 
 from token_iq.gateway.exceptions import GuardrailRaisedException
-from token_iq.gateway.exceptions import Timeout as LiteLLMTimeout
+from token_iq.gateway.exceptions import Timeout as GatewayTimeout
 from token_iq.gateway.proxy.guardrails.guardrail_hooks.vigil_guard import (
     VigilGuardGuardrail,
     guardrail_class_registry,
@@ -80,7 +80,7 @@ def _transient_exceptions() -> List[BaseException]:
         httpx.ConnectTimeout("boom", request=req),
         httpx.ReadTimeout("boom", request=req),
         httpx.RemoteProtocolError("boom", request=req),
-        LiteLLMTimeout(message="t", model="m", llm_provider="vigil_guard"),
+        GatewayTimeout(message="t", model="m", llm_provider="vigil_guard"),
     ]
 
 
@@ -760,7 +760,7 @@ async def test_metadata_allowlist_and_clamping():
     assert md["conversation_id"] == 7
 
 
-async def test_metadata_source_precedence_and_litellm_metadata_fallback():
+async def test_metadata_source_precedence_and_gateway_metadata_fallback():
     handler = FakeHandler([_resp({"decision": "ALLOWED"})])
     g = _make_guardrail(handler)
     request_data = {
@@ -884,7 +884,7 @@ def test_registries_expose_initializer_and_class():
     assert guardrail_class_registry["vigil_guard"] is VigilGuardGuardrail
 
 
-def test_litellm_params_includes_config_model():
+def test_gateway_params_includes_config_model():
     assert VigilGuardGuardrailConfigModel in LitellmParams.__mro__
 
 

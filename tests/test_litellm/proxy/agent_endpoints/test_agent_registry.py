@@ -12,8 +12,8 @@ from token_iq.gateway.constants import REDACTED_BY_LITELM_STRING
 from token_iq.gateway.proxy.agent_endpoints.agent_registry import (
     AgentRegistry,
     GrantMigrationResult,
-    _restore_redacted_litellm_params,
-    redact_sensitive_agent_litellm_params,
+    _restore_redacted_gateway_params,
+    redact_sensitive_agent_gateway_params,
 )
 
 # Obviously-fake stand-ins for a real AWS credential pair (LIT-6736 regression
@@ -506,10 +506,10 @@ async def test_delete_agent_from_db_raises_when_row_already_gone():
 # ---------- LIT-6736: agent litellm_params secret redaction ----------
 
 
-def test_redact_sensitive_agent_litellm_params_masks_secrets_keeps_the_rest():
+def test_redact_sensitive_agent_gateway_params_masks_secrets_keeps_the_rest():
     """The sentinel secret must never appear in the redacted output; non-secret
     keys (model reference, is_public) must survive untouched."""
-    redacted = redact_sensitive_agent_litellm_params(
+    redacted = redact_sensitive_agent_gateway_params(
         {
             "aws_access_key_id": SENTINEL_AWS_ACCESS_KEY_ID,
             "aws_secret_access_key": SENTINEL_AWS_SECRET_ACCESS_KEY,
@@ -526,10 +526,10 @@ def test_redact_sensitive_agent_litellm_params_masks_secrets_keeps_the_rest():
     assert redacted["is_public"] is True
 
 
-def test_redact_sensitive_agent_litellm_params_recurses_into_nested_dicts():
+def test_redact_sensitive_agent_gateway_params_recurses_into_nested_dicts():
     """A secret nested one level down (e.g. a per-provider sub-config) must
     also be redacted, not just top-level keys."""
-    redacted = redact_sensitive_agent_litellm_params(
+    redacted = redact_sensitive_agent_gateway_params(
         {"provider_config": {"aws_secret_access_key": SENTINEL_AWS_SECRET_ACCESS_KEY, "region": "us-east-1"}}
     )
 
@@ -538,22 +538,22 @@ def test_redact_sensitive_agent_litellm_params_recurses_into_nested_dicts():
     assert redacted["provider_config"]["region"] == "us-east-1"
 
 
-def test_redact_sensitive_agent_litellm_params_handles_none_and_json_string():
-    assert redact_sensitive_agent_litellm_params(None) is None
+def test_redact_sensitive_agent_gateway_params_handles_none_and_json_string():
+    assert redact_sensitive_agent_gateway_params(None) is None
 
     serialized = json.dumps({"api_key": SENTINEL_AWS_SECRET_ACCESS_KEY, "model": "gpt-4"})
-    redacted = redact_sensitive_agent_litellm_params(serialized)
+    redacted = redact_sensitive_agent_gateway_params(serialized)
 
     assert SENTINEL_AWS_SECRET_ACCESS_KEY not in redacted
     assert json.loads(redacted)["api_key"] == REDACTED_BY_LITELM_STRING
     assert json.loads(redacted)["model"] == "gpt-4"
 
 
-def test_redact_sensitive_agent_litellm_params_recurses_into_lists_of_dicts():
+def test_redact_sensitive_agent_gateway_params_recurses_into_lists_of_dicts():
     """A secret nested inside a list of provider sub-configs (a shape a
     non-sensitively-named key can legitimately hold) must also be redacted,
     not silently returned as-is."""
-    redacted = redact_sensitive_agent_litellm_params(
+    redacted = redact_sensitive_agent_gateway_params(
         {
             "provider_configs": [
                 {"aws_secret_access_key": SENTINEL_AWS_SECRET_ACCESS_KEY, "region": "us-east-1"},
@@ -569,10 +569,10 @@ def test_redact_sensitive_agent_litellm_params_recurses_into_lists_of_dicts():
     assert redacted["provider_configs"][1]["region"] == "us-west-2"
 
 
-def test_redact_sensitive_agent_litellm_params_redacts_secrets_inside_model_list():
+def test_redact_sensitive_agent_gateway_params_redacts_secrets_inside_model_list():
     """The exact shape flagged in review: litellm_params.model_list, where each
     entry carries its own nested litellm_params with a provider credential."""
-    redacted = redact_sensitive_agent_litellm_params(
+    redacted = redact_sensitive_agent_gateway_params(
         {
             "model_list": [
                 {
@@ -597,7 +597,7 @@ def test_redact_sensitive_agent_litellm_params_redacts_secrets_inside_model_list
     assert redacted["model_list"][1]["litellm_params"]["model"] == "bedrock/claude"
 
 
-def test_restore_redacted_litellm_params_preserves_secret_inside_model_list():
+def test_restore_redacted_gateway_params_preserves_secret_inside_model_list():
     """The write-side counterpart: a caller editing a model_list entry's own
     non-secret field (renaming it) while leaving that same entry's nested
     secret masked must not corrupt the stored per-deployment credential.
@@ -623,14 +623,14 @@ def test_restore_redacted_litellm_params_preserves_secret_inside_model_list():
         ],
     }
 
-    restored = _restore_redacted_litellm_params(incoming, existing)
+    restored = _restore_redacted_gateway_params(incoming, existing)
 
     assert SENTINEL_AWS_SECRET_ACCESS_KEY == restored["model_list"][0]["litellm_params"]["api_key"]
     assert restored["model_list"][0]["model_name"] == "gpt-4-renamed"
     assert restored["agent_name"] == "my-agent-renamed"
 
 
-def test_restore_redacted_litellm_params_matches_list_entries_by_position():
+def test_restore_redacted_gateway_params_matches_list_entries_by_position():
     """Documents the accepted trade-off: a list has no stable per-element
     identity in a plain ``dict[str, object]`` schema, so restoration matches
     entries by index, the same correspondence every other part of this merge
@@ -654,12 +654,12 @@ def test_restore_redacted_litellm_params_matches_list_entries_by_position():
         ],
     }
 
-    restored = _restore_redacted_litellm_params(incoming, existing)
+    restored = _restore_redacted_gateway_params(incoming, existing)
 
     assert restored["model_list"][0]["litellm_params"]["api_key"] == SENTINEL_AWS_SECRET_ACCESS_KEY
 
 
-def test_restore_redacted_litellm_params_recovers_a_whole_subtree_collapsed_by_the_depth_cap():
+def test_restore_redacted_gateway_params_recovers_a_whole_subtree_collapsed_by_the_depth_cap():
     """Past the read-side recursion depth cap, a whole nested subtree is
     collapsed to the flat REDACTED_BY_LITELM marker rather than a dict/list.
     If the caller echoes that flat marker back unchanged, the whole
@@ -668,15 +668,15 @@ def test_restore_redacted_litellm_params_recovers_a_whole_subtree_collapsed_by_t
     incoming = {"provider_config": REDACTED_BY_LITELM_STRING}
     existing = {"provider_config": existing_subtree}
 
-    restored = _restore_redacted_litellm_params(incoming, existing)
+    restored = _restore_redacted_gateway_params(incoming, existing)
 
     assert restored["provider_config"] == existing_subtree
 
 
-def test_redact_sensitive_agent_litellm_params_does_not_reinterpret_plain_string_values_as_json():
+def test_redact_sensitive_agent_gateway_params_does_not_reinterpret_plain_string_values_as_json():
     """A plain non-JSON string value (most string leaves) must pass through
     unchanged rather than failing to parse and getting redacted."""
-    redacted = redact_sensitive_agent_litellm_params({"model": "bedrock/agentcore/my-agent", "is_public": True})
+    redacted = redact_sensitive_agent_gateway_params({"model": "bedrock/agentcore/my-agent", "is_public": True})
 
     assert redacted["model"] == "bedrock/agentcore/my-agent"
     assert redacted["is_public"] is True
@@ -907,7 +907,7 @@ async def test_update_agent_in_db_clears_secret_on_explicit_empty_value():
 
 
 @pytest.mark.asyncio
-async def test_patch_agent_in_db_preserves_secret_when_litellm_params_omitted():
+async def test_patch_agent_in_db_preserves_secret_when_gateway_params_omitted():
     """A PATCH that only renames the agent must not touch (let alone drop) the
     stored litellm_params secret."""
     registry: Final = AgentRegistry()

@@ -618,12 +618,12 @@ class TestTestToolsList:
             credentials={"auth_value": "secret-key"},
         )
 
-        from token_iq.gateway.proxy._types import LitellmUserRoles
+        from token_iq.gateway.proxy._types import GatewayUserRoles
 
         result = await rest_endpoints.test_tools_list(
             request,
             payload,
-            user_api_key_dict=UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN),
+            user_api_key_dict=UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN),
         )
 
         assert result["message"] == "Successfully retrieved tools"
@@ -653,7 +653,7 @@ class TestTestToolsList:
 
         monkeypatch.setattr(rest_endpoints, "_execute_with_mcp_client", fake_execute, raising=False)
 
-        from token_iq.gateway.proxy._types import LitellmUserRoles
+        from token_iq.gateway.proxy._types import GatewayUserRoles
 
         request = _build_request()
         payload = NewMCPServerRequest(
@@ -666,7 +666,7 @@ class TestTestToolsList:
         result = await rest_endpoints.test_tools_list(
             request,
             payload,
-            user_api_key_dict=UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN),
+            user_api_key_dict=UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN),
         )
 
         assert result["status"] == "error"
@@ -692,7 +692,7 @@ class TestTestToolsList:
 
         monkeypatch.setattr(rest_endpoints, "_execute_with_mcp_client", fake_execute, raising=False)
 
-        from token_iq.gateway.proxy._types import LitellmUserRoles
+        from token_iq.gateway.proxy._types import GatewayUserRoles
 
         request = _build_request()
         payload = NewMCPServerRequest(
@@ -705,7 +705,7 @@ class TestTestToolsList:
         result = await rest_endpoints.test_tools_list(
             request,
             payload,
-            user_api_key_dict=UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN),
+            user_api_key_dict=UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN),
         )
 
         assert result["error"] is None
@@ -737,7 +737,7 @@ class TestTestToolsList:
 
         monkeypatch.setattr(rest_endpoints, "_execute_with_mcp_client", fake_execute, raising=False)
 
-        from token_iq.gateway.proxy._types import LitellmUserRoles
+        from token_iq.gateway.proxy._types import GatewayUserRoles
 
         request = _build_request()
         payload = NewMCPServerRequest(
@@ -750,7 +750,7 @@ class TestTestToolsList:
         result = await rest_endpoints.test_tools_list(
             request,
             payload,
-            user_api_key_dict=UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN),
+            user_api_key_dict=UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN),
         )
 
         assert result["error"] is None
@@ -799,12 +799,12 @@ class TestTestToolsList:
             auth_type=MCPAuth.oauth2,
         )
 
-        from token_iq.gateway.proxy._types import LitellmUserRoles
+        from token_iq.gateway.proxy._types import GatewayUserRoles
 
         result = await rest_endpoints.test_tools_list(
             request,
             payload,
-            user_api_key_dict=UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN),
+            user_api_key_dict=UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN),
         )
 
         assert result["message"] == "Successfully retrieved tools"
@@ -853,12 +853,12 @@ class TestTestToolsList:
             auth_type=auth_type,
         )
 
-        from token_iq.gateway.proxy._types import LitellmUserRoles
+        from token_iq.gateway.proxy._types import GatewayUserRoles
 
         result = await rest_endpoints.test_tools_list(
             request,
             payload,
-            user_api_key_dict=UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN),
+            user_api_key_dict=UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN),
         )
 
         assert result["message"] == "Successfully retrieved tools"
@@ -896,12 +896,12 @@ class TestTestToolsList:
             auth_type=auth_type,
         )
 
-        from token_iq.gateway.proxy._types import LitellmUserRoles
+        from token_iq.gateway.proxy._types import GatewayUserRoles
 
         result = await rest_endpoints.test_tools_list(
             request,
             payload,
-            user_api_key_dict=UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN),
+            user_api_key_dict=UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN),
         )
 
         assert result["message"] == "Successfully retrieved tools"
@@ -1301,7 +1301,7 @@ class TestListToolsRestAPI:
         """include_disabled_tools skips the allowlist filter only for PROXY_ADMIN;
         a non-admin passing it stays filtered so the REST endpoint can't be used
         to enumerate deliberately-disabled tools."""
-        from token_iq.gateway.proxy._types import LitellmUserRoles
+        from token_iq.gateway.proxy._types import GatewayUserRoles
 
         async def fake_contexts(user_api_key_auth):
             return [user_api_key_auth]
@@ -1355,7 +1355,7 @@ class TestListToolsRestAPI:
             request,
             server_id="server-1",
             include_disabled_tools=True,
-            user_api_key_dict=UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN),
+            user_api_key_dict=UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN),
         )
         assert captured["apply_tool_filters"] is False
 
@@ -2092,7 +2092,7 @@ class TestCallToolRestAPI:
         async def fake_get_allowed_mcp_servers(*args, **kwargs):
             return []
 
-        async def fake_add_litellm_data_to_request(**kwargs):
+        async def fake_add_gateway_data_to_request(**kwargs):
             return kwargs.get("data", {})
 
         monkeypatch.setattr(
@@ -2109,7 +2109,7 @@ class TestCallToolRestAPI:
         )
         monkeypatch.setattr(
             "token_iq.gateway.proxy.proxy_server.add_litellm_data_to_request",
-            fake_add_litellm_data_to_request,
+            fake_add_gateway_data_to_request,
             raising=False,
         )
 
@@ -2172,7 +2172,7 @@ class TestCallToolRestAPI:
 
         stub_server = StubServer()
 
-        async def fake_add_litellm_data_to_request(**kwargs):
+        async def fake_add_gateway_data_to_request(**kwargs):
             return kwargs.get("data", {})
 
         captured = {}
@@ -2201,7 +2201,7 @@ class TestCallToolRestAPI:
         )
         monkeypatch.setattr(
             "token_iq.gateway.proxy.proxy_server.add_litellm_data_to_request",
-            fake_add_litellm_data_to_request,
+            fake_add_gateway_data_to_request,
             raising=False,
         )
         monkeypatch.setattr(
@@ -2267,7 +2267,7 @@ class TestCallToolRestAPI:
 
         stub_server = StubServer()
 
-        async def fake_add_litellm_data_to_request(**kwargs):
+        async def fake_add_gateway_data_to_request(**kwargs):
             return kwargs.get("data", {})
 
         async def fake_execute_mcp_tool(**kwargs):
@@ -2288,7 +2288,7 @@ class TestCallToolRestAPI:
         )
         monkeypatch.setattr(
             "token_iq.gateway.proxy.proxy_server.add_litellm_data_to_request",
-            fake_add_litellm_data_to_request,
+            fake_add_gateway_data_to_request,
             raising=False,
         )
         monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.proxy_config", {}, raising=False)
@@ -2354,7 +2354,7 @@ class TestCallToolRestAPI:
 
         stub_server = StubServer()
 
-        async def fake_add_litellm_data_to_request(**kwargs):
+        async def fake_add_gateway_data_to_request(**kwargs):
             return kwargs.get("data", {})
 
         challenge = 'Bearer resource_metadata="https://gw.example.com/.well-known/oauth-protected-resource/mcp/stub"'
@@ -2381,7 +2381,7 @@ class TestCallToolRestAPI:
         )
         monkeypatch.setattr(
             "token_iq.gateway.proxy.proxy_server.add_litellm_data_to_request",
-            fake_add_litellm_data_to_request,
+            fake_add_gateway_data_to_request,
             raising=False,
         )
         monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.proxy_config", {}, raising=False)
@@ -2439,7 +2439,7 @@ class TestCallToolRestAPI:
             available_on_public_internet = True
             auth_type = None
 
-        async def fake_add_litellm_data_to_request(**kwargs):
+        async def fake_add_gateway_data_to_request(**kwargs):
             return kwargs.get("data", {})
 
         async def fake_execute_mcp_tool(**kwargs):
@@ -2459,7 +2459,7 @@ class TestCallToolRestAPI:
             raising=False,
         )
         monkeypatch.setattr(
-            "token_iq.gateway.proxy.proxy_server.add_litellm_data_to_request", fake_add_litellm_data_to_request, raising=False
+            "token_iq.gateway.proxy.proxy_server.add_litellm_data_to_request", fake_add_gateway_data_to_request, raising=False
         )
         monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.proxy_config", {}, raising=False)
         monkeypatch.setattr(rest_endpoints, "execute_mcp_tool", fake_execute_mcp_tool, raising=False)
@@ -2991,7 +2991,7 @@ class TestEndpointRoleChecks:
     @pytest.mark.asyncio
     async def test_test_connection_rejects_non_admin(self):
         """Non-admin users should get 403 from test_connection."""
-        from token_iq.gateway.proxy._types import LitellmUserRoles
+        from token_iq.gateway.proxy._types import GatewayUserRoles
 
         payload = NewMCPServerRequest(
             server_name="test",
@@ -2999,7 +2999,7 @@ class TestEndpointRoleChecks:
             auth_type=MCPAuth.none,
         )
         user_key = UserAPIKeyAuth(
-            user_role=LitellmUserRoles.INTERNAL_USER,
+            user_role=GatewayUserRoles.INTERNAL_USER,
             user_id="non_admin",
             api_key="sk-test",
         )
@@ -3016,7 +3016,7 @@ class TestEndpointRoleChecks:
     @pytest.mark.asyncio
     async def test_test_tools_list_rejects_non_admin(self):
         """Non-admin users should get 403 from test_tools_list."""
-        from token_iq.gateway.proxy._types import LitellmUserRoles
+        from token_iq.gateway.proxy._types import GatewayUserRoles
 
         payload = NewMCPServerRequest(
             server_name="test",
@@ -3024,7 +3024,7 @@ class TestEndpointRoleChecks:
             auth_type=MCPAuth.none,
         )
         user_key = UserAPIKeyAuth(
-            user_role=LitellmUserRoles.INTERNAL_USER,
+            user_role=GatewayUserRoles.INTERNAL_USER,
             user_id="non_admin",
             api_key="sk-test",
         )
@@ -3041,7 +3041,7 @@ class TestEndpointRoleChecks:
     @pytest.mark.asyncio
     async def test_test_connection_allows_admin(self, monkeypatch):
         """PROXY_ADMIN should pass the role check."""
-        from token_iq.gateway.proxy._types import LitellmUserRoles
+        from token_iq.gateway.proxy._types import GatewayUserRoles
 
         async def fake_execute(*args, **kwargs):
             return {"status": "ok"}
@@ -3058,7 +3058,7 @@ class TestEndpointRoleChecks:
             auth_type=MCPAuth.none,
         )
         user_key = UserAPIKeyAuth(
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
             user_id="admin",
             api_key="sk-admin",
         )
@@ -3122,12 +3122,12 @@ class TestPreviewOpenAPITools:
         )
         request = _build_request()
 
-        from token_iq.gateway.proxy._types import LitellmUserRoles
+        from token_iq.gateway.proxy._types import GatewayUserRoles
 
         result = await rest_endpoints.test_tools_list(
             request,
             payload,
-            user_api_key_dict=UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN),
+            user_api_key_dict=UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN),
         )
 
         assert result.get("error") is None, result
@@ -3179,12 +3179,12 @@ class TestPreviewOpenAPITools:
             transport="http",
         )
         request = _build_request()
-        from token_iq.gateway.proxy._types import LitellmUserRoles
+        from token_iq.gateway.proxy._types import GatewayUserRoles
 
         result = await rest_endpoints.test_tools_list(
             request,
             payload,
-            user_api_key_dict=UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN),
+            user_api_key_dict=UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN),
         )
         assert result.get("error") is None, result
         preview_summary_to_name = {t["description"]: t["name"] for t in result["tools"]}

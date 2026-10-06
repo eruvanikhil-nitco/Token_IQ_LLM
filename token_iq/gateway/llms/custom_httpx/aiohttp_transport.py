@@ -163,7 +163,7 @@ class AiohttpTransport(httpx.AsyncBaseTransport):
             await self.client.close()
 
 
-class LiteLLMAiohttpTransport(AiohttpTransport):
+class GatewayAiohttpTransport(AiohttpTransport):
     """
     LiteLLM wrapper around AiohttpTransport to handle %-encodings in URLs
     and event loop lifecycle issues in CI/CD environments

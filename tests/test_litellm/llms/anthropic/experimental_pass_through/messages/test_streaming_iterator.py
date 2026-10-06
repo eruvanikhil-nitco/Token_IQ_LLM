@@ -5,7 +5,7 @@ from datetime import datetime
 import pytest
 
 
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.llms.anthropic.experimental_pass_through.messages import streaming_iterator as streaming_iterator_module
 from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.streaming_iterator import (
     INCOMPLETE_STREAM_ERROR_MESSAGE,
@@ -22,7 +22,7 @@ from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.streamin
 
 
 class _RecordingLoggingIterator(BaseAnthropicMessagesStreamingIterator):
-    def __init__(self, litellm_logging_obj: LiteLLMLoggingObj, request_body: dict):
+    def __init__(self, litellm_logging_obj: GatewayLoggingObj, request_body: dict):
         super().__init__(litellm_logging_obj=litellm_logging_obj, request_body=request_body)
         self.logged_chunks: list = []
         self.logging_call_count: int = 0
@@ -32,8 +32,8 @@ class _RecordingLoggingIterator(BaseAnthropicMessagesStreamingIterator):
         self.logging_call_count += 1
 
 
-def _make_logging_obj(test_name: str) -> LiteLLMLoggingObj:
-    return LiteLLMLoggingObj(
+def _make_logging_obj(test_name: str) -> GatewayLoggingObj:
+    return GatewayLoggingObj(
         model="bedrock/invoke/anthropic.claude-3-sonnet-20240229-v1:0",
         messages=[{"role": "user", "content": "hi"}],
         stream=True,

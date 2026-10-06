@@ -6,13 +6,13 @@ import pytest
 from fastapi import HTTPException
 
 from token_iq.attribution.gap_owner import GapRow, attribute
-from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
 from token_iq.api.combined_usage import comparison_response
 from token_iq.types.attribution import AttributionRule
 
 DAY: Final = datetime(2026, 9, 15, tzinfo=timezone.utc)
 SETTLED: Final = datetime(2026, 9, 19, tzinfo=timezone.utc)
-MEMBER: Final = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-test")
+MEMBER: Final = UserAPIKeyAuth(user_role=GatewayUserRoles.INTERNAL_USER, api_key="sk-test")
 
 GAP_10_MINUS_4: Final = GapRow("openrouter", "acct", DAY, Decimal("10"), Decimal("4"))
 UNSETTLED: Final = GapRow("openrouter", "acct", SETTLED, Decimal("10"), Decimal("4"))

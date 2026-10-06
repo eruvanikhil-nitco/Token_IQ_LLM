@@ -9,7 +9,7 @@ from typing import Final
 
 import httpx
 
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.llms.anthropic.chat.handler import AnthropicChatCompletion
 from token_iq.gateway.llms.custom_httpx.http_handler import (
     AsyncHTTPHandler,
@@ -41,7 +41,7 @@ class AzureAnthropicChatCompletion(AnthropicChatCompletion):
         print_verbose: Callable,
         encoding,
         api_key,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         optional_params: dict,
         timeout: float | httpx.Timeout,
         litellm_params: dict,

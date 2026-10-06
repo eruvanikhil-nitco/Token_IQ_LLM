@@ -41,9 +41,9 @@ from token_iq.gateway.core_utils.url_utils import (
 from token_iq.gateway.proxy._types import (
     AddTeamCallback,
     CommonProxyErrors,
-    LitellmDataForBackendLLMCall,
-    LiteLLMRoutes,
-    LitellmUserRoles,
+    GatewayDataForBackendLLMCall,
+    GatewayRoutes,
+    GatewayUserRoles,
     ProxyErrorTypes,
     ProxyException,
     SpecialHeaders,
@@ -64,7 +64,7 @@ from token_iq.gateway.types.integrations.anthropic_cache_control_hook import GAT
 _SPECIAL_HEADERS_CACHE: Final = frozenset(str(v.value).lower() for v in SpecialHeaders)
 
 _REDACTED_HEADER_VALUE: Final = "***REDACTED***"
-_CREDENTIAL_HEADER_NAMES: Final = SpecialHeaders.litellm_credential_header_names() | frozenset(
+_CREDENTIAL_HEADER_NAMES: Final = SpecialHeaders.gateway_credential_header_names() | frozenset(
     {"cookie", "proxy-authorization"}
 )
 _TRANSPORT_ONLY_CREDENTIAL_KEYS: Final = frozenset({"provider_specific_header", "headers", "api_key"})
@@ -153,7 +153,7 @@ from token_iq.gateway.secret_managers.main import get_secret_bool
 from token_iq.gateway.types.llms.anthropic import ANTHROPIC_API_HEADERS
 from token_iq.gateway.types.services import ServiceTypes
 from token_iq.gateway.types.utils import (
-    CustomPricingLiteLLMParams,
+    CustomPricingGatewayParams,
     LlmProviders,
     ProviderSpecificHeader,
     StandardLoggingUserAPIKeyMetadata,
@@ -314,7 +314,7 @@ _ALLOW_CLIENT_MESSAGE_REDACTION_OPT_OUT_METADATA_KEY: Final = "allow_client_mess
 # not to user-supplied request bodies, so the proxy strips them before they
 # reach the call path. Built from the Pydantic model so newly-added pricing
 # fields are covered automatically.
-_CLIENT_PRICING_CONTROL_FIELDS: Final = frozenset(CustomPricingLiteLLMParams.model_fields.keys())
+_CLIENT_PRICING_CONTROL_FIELDS: Final = frozenset(CustomPricingGatewayParams.model_fields.keys())
 # ``model_info`` carries the same pricing fields when read by
 # ``use_custom_pricing_for_model``; strip from metadata for the same reason.
 # ``standard_logging_guardrail_information`` is proxy-written telemetry summed
@@ -723,7 +723,7 @@ def _get_anthropic_session_id_from_metadata(metadata: object) -> str | None:
 def _is_llm_inference_route(request: Request) -> bool:
     route: Final = get_request_route(request)
     return RouteChecks.is_llm_api_route(route=route) and not RouteChecks.check_route_access(
-        route=route, allowed_routes=LiteLLMRoutes.mcp_routes.value
+        route=route, allowed_routes=GatewayRoutes.mcp_routes.value
     )
 
 
@@ -943,7 +943,7 @@ def _get_dynamic_logging_metadata(
     # Enter here when configured on the config.yaml file.
     #########################################################################################
     elif user_api_key_dict.team_id is not None:
-        callback_settings_obj = LiteLLMProxyRequestSetup.add_team_based_callbacks_from_config(
+        callback_settings_obj = GatewayProxyRequestSetup.add_team_based_callbacks_from_config(
             team_id=user_api_key_dict.team_id, proxy_config=proxy_config
         )
     return callback_settings_obj
@@ -971,7 +971,7 @@ def clean_headers(
     from token_iq.gateway.llms.anthropic.common_utils import is_anthropic_oauth_key
 
     clean_headers: Final = {}
-    litellm_key_lower: Final = litellm_key_header_name.lower() if litellm_key_header_name is not None else None
+    gateway_key_lower: Final = litellm_key_header_name.lower() if litellm_key_header_name is not None else None
     for header, value in headers.items():
         header_lower = header.lower()
 
@@ -986,7 +986,7 @@ def clean_headers(
             ):
                 clean_headers[header] = value
         elif forward_llm_provider_auth_headers and header_lower in _SPECIAL_HEADERS_CACHE:
-            if litellm_key_lower and header_lower == litellm_key_lower:
+            if gateway_key_lower and header_lower == gateway_key_lower:
                 continue
             if header_lower == "authorization":
                 continue
@@ -996,7 +996,7 @@ def clean_headers(
             clean_headers[header] = value
         # Check if header should be excluded: either in special headers cache or matches custom litellm key
         elif header_lower not in _SPECIAL_HEADERS_CACHE and (
-            litellm_key_lower is None or header_lower != litellm_key_lower
+            gateway_key_lower is None or header_lower != gateway_key_lower
         ):
             clean_headers[header] = value
     return clean_headers
@@ -1026,7 +1026,7 @@ def redact_credential_headers(headers: Mapping[str, str]) -> Mapping[str, str]:
     }
 
 
-class LiteLLMProxyRequestSetup:
+class GatewayProxyRequestSetup:
     @staticmethod
     def _get_timeout_from_request(headers: dict) -> float | None:
         """
@@ -1140,10 +1140,10 @@ class LiteLLMProxyRequestSetup:
         user_header_mapping: Final = general_settings.get("user_header_mappings")
         if not user_header_mapping:
             return user_api_key_dict
-        header_name: Final = LiteLLMProxyRequestSetup.get_internal_user_header_from_mapping(user_header_mapping)
+        header_name: Final = GatewayProxyRequestSetup.get_internal_user_header_from_mapping(user_header_mapping)
         if not header_name:
             return user_api_key_dict
-        header_value: Final = LiteLLMProxyRequestSetup._get_case_insensitive_header(headers, header_name)
+        header_value: Final = GatewayProxyRequestSetup._get_case_insensitive_header(headers, header_name)
         if header_value:
             user_api_key_dict.user_id = header_value
             return user_api_key_dict
@@ -1164,7 +1164,7 @@ class LiteLLMProxyRequestSetup:
         if not isinstance(header_name, str):
             raise TypeError(f"Expected user_header_name to be a str but got {type(header_name)}")
 
-        user: Final = LiteLLMProxyRequestSetup._get_case_insensitive_header(headers, header_name)
+        user: Final = GatewayProxyRequestSetup._get_case_insensitive_header(headers, header_name)
         if user is not None:
             verbose_logger.info('found user "%s" in header "%s"', user, header_name)
 
@@ -1192,13 +1192,13 @@ class LiteLLMProxyRequestSetup:
         - Checks if user information should be added to the headers
         """
 
-        returned_headers: Final = LiteLLMProxyRequestSetup._get_forwardable_headers(headers)
+        returned_headers: Final = GatewayProxyRequestSetup._get_forwardable_headers(headers)
 
         if gateway.add_user_information_to_llm_headers is True:
-            litellm_logging_metadata_headers: Final = LiteLLMProxyRequestSetup.get_sanitized_user_information_from_key(
+            gateway_logging_metadata_headers: Final = GatewayProxyRequestSetup.get_sanitized_user_information_from_key(
                 user_api_key_dict=user_api_key_dict
             )
-            for k, v in litellm_logging_metadata_headers.items():
+            for k, v in gateway_logging_metadata_headers.items():
                 if v is None:
                     continue
                 # httpx requires header values to be str or bytes; coerce numbers/bools
@@ -1235,7 +1235,7 @@ class LiteLLMProxyRequestSetup:
                 team_id=user_api_key_dict.team_id,
             )  # handles aliases, wildcards, etc.
         ):
-            _headers: Final = LiteLLMProxyRequestSetup.add_headers_to_llm_call(headers, user_api_key_dict)
+            _headers: Final = GatewayProxyRequestSetup.add_headers_to_llm_call(headers, user_api_key_dict)
             if _headers != {}:
                 data["headers"] = _headers
         return data
@@ -1252,38 +1252,38 @@ class LiteLLMProxyRequestSetup:
             header_name = item.get("header_name")
             if role is None or not header_name:
                 continue
-            if str(role).lower() == str(LitellmUserRoles.INTERNAL_USER).lower():
+            if str(role).lower() == str(GatewayUserRoles.INTERNAL_USER).lower():
                 return header_name
         return None
 
     @staticmethod
-    def add_litellm_data_for_backend_llm_call(
+    def add_gateway_data_for_backend_llm_call(
         *,
         headers: dict,
         request_data: Mapping[str, object],
         user_api_key_dict: UserAPIKeyAuth,
         general_settings: dict[str, Any] | None = None,
-    ) -> LitellmDataForBackendLLMCall:
+    ) -> GatewayDataForBackendLLMCall:
         """
         - Adds user from headers
         - Adds forwardable headers
         - Adds org id
         """
-        data: Final = LitellmDataForBackendLLMCall()
+        data: Final = GatewayDataForBackendLLMCall()
 
         if general_settings and general_settings.get("forward_client_headers_to_llm_api") is True:
-            _headers: Final = LiteLLMProxyRequestSetup.add_headers_to_llm_call(headers, user_api_key_dict)
+            _headers: Final = GatewayProxyRequestSetup.add_headers_to_llm_call(headers, user_api_key_dict)
             if _headers != {}:
                 data["headers"] = _headers
-        _organization: Final = LiteLLMProxyRequestSetup.get_openai_org_id_from_headers(headers, general_settings)
+        _organization: Final = GatewayProxyRequestSetup.get_openai_org_id_from_headers(headers, general_settings)
         if _organization is not None:
             data["organization"] = _organization
 
-        header_timeout: Final = LiteLLMProxyRequestSetup._get_timeout_from_request(headers)
+        header_timeout: Final = GatewayProxyRequestSetup._get_timeout_from_request(headers)
         if header_timeout is not None:
             data["timeout"] = header_timeout
 
-        header_stream_timeout: Final = LiteLLMProxyRequestSetup._get_stream_timeout_from_request(headers)
+        header_stream_timeout: Final = GatewayProxyRequestSetup._get_stream_timeout_from_request(headers)
         if header_stream_timeout is not None:
             data["stream_timeout"] = header_stream_timeout
 
@@ -1303,18 +1303,18 @@ class LiteLLMProxyRequestSetup:
         ):
             data["client_side_timeout"] = True
 
-        num_retries: Final = LiteLLMProxyRequestSetup._get_num_retries_from_request(headers)
+        num_retries: Final = GatewayProxyRequestSetup._get_num_retries_from_request(headers)
         if num_retries is not None:
             data["num_retries"] = num_retries
 
-        keepalive_seconds: Final = LiteLLMProxyRequestSetup._get_keepalive_seconds_from_request(headers)
+        keepalive_seconds: Final = GatewayProxyRequestSetup._get_keepalive_seconds_from_request(headers)
         if keepalive_seconds is not None:
             data["keepalive_seconds"] = keepalive_seconds
 
         return data
 
     @staticmethod
-    def add_litellm_metadata_from_request_headers(
+    def add_gateway_metadata_from_request_headers(
         headers: dict,
         data: dict,
         _metadata_variable_name: str,
@@ -1324,10 +1324,10 @@ class LiteLLMProxyRequestSetup:
 
         Relevant issue
         """
-        from token_iq.gateway.proxy._types import LitellmMetadataFromRequestHeaders
+        from token_iq.gateway.proxy._types import GatewayMetadataFromRequestHeaders
 
-        metadata_from_headers: Final = LitellmMetadataFromRequestHeaders()
-        spend_logs_metadata: Final = LiteLLMProxyRequestSetup._get_spend_logs_metadata_from_request_headers(headers)
+        metadata_from_headers: Final = GatewayMetadataFromRequestHeaders()
+        spend_logs_metadata: Final = GatewayProxyRequestSetup._get_spend_logs_metadata_from_request_headers(headers)
         if spend_logs_metadata is not None:
             metadata_from_headers["spend_logs_metadata"] = spend_logs_metadata
 
@@ -1431,7 +1431,7 @@ class LiteLLMProxyRequestSetup:
         """
         Adds the `UserAPIKeyAuth` object to the request metadata.
         """
-        user_api_key_logged_metadata: Final = LiteLLMProxyRequestSetup.get_sanitized_user_information_from_key(
+        user_api_key_logged_metadata: Final = GatewayProxyRequestSetup.get_sanitized_user_information_from_key(
             user_api_key_dict=user_api_key_dict
         )
         data[_metadata_variable_name].update(user_api_key_logged_metadata)
@@ -1505,7 +1505,7 @@ class LiteLLMProxyRequestSetup:
 
         ## KEY-LEVEL SPEND LOGS / TAGS
         if "tags" in key_metadata and key_metadata["tags"] is not None:
-            data[_metadata_variable_name]["tags"] = LiteLLMProxyRequestSetup._merge_tags(
+            data[_metadata_variable_name]["tags"] = GatewayProxyRequestSetup._merge_tags(
                 request_tags=data[_metadata_variable_name].get("tags"),
                 tags_to_add=key_metadata["tags"],
             )
@@ -1531,7 +1531,7 @@ class LiteLLMProxyRequestSetup:
             data["enable_prompt_caching"] = key_metadata["enable_prompt_caching"]  # rebind-ok: data is an out-param
 
         ## KEY-LEVEL METADATA
-        data = LiteLLMProxyRequestSetup.add_management_endpoint_metadata_to_request_metadata(
+        data = GatewayProxyRequestSetup.add_management_endpoint_metadata_to_request_metadata(
             data=data,
             management_endpoint_metadata=key_metadata,
             _metadata_variable_name=_metadata_variable_name,
@@ -1611,7 +1611,7 @@ class LiteLLMProxyRequestSetup:
         return tags
 
     @staticmethod
-    def pre_seed_litellm_metadata_for_route(
+    def pre_seed_gateway_metadata_for_route(
         request_data: dict,
         route: str,
     ) -> None:
@@ -1649,7 +1649,7 @@ class LiteLLMProxyRequestSetup:
         metadata: Final = _normalized_metadata_slot(request_data, _metadata_variable_name)
 
         existing_tags: Final = metadata.get("tags")
-        metadata["tags"] = LiteLLMProxyRequestSetup._merge_tags(
+        metadata["tags"] = GatewayProxyRequestSetup._merge_tags(
             request_tags=existing_tags if isinstance(existing_tags, list) else None,
             tags_to_add=key_tags,
         )
@@ -1701,7 +1701,7 @@ class LiteLLMProxyRequestSetup:
         metadata: Final = _normalized_metadata_slot(request_data, _metadata_variable_name)
 
         existing_tags: Final = metadata.get("tags")
-        metadata["tags"] = LiteLLMProxyRequestSetup._merge_tags(
+        metadata["tags"] = GatewayProxyRequestSetup._merge_tags(
             request_tags=existing_tags if isinstance(existing_tags, list) else None,
             tags_to_add=header_tags,
         )
@@ -1838,8 +1838,8 @@ async def add_litellm_data_to_request(
     # admin-injection strip below so the audit / spend-tracking consumers of
     # proxy_server_request["body"] see the cleaned metadata rather than
     # attacker-forged user_api_key_* fields.
-    _litellm_received_at: Final[datetime | None] = getattr(request.state, "litellm_received_at", None)
-    arrival_time: Final = _litellm_received_at.timestamp() if _litellm_received_at is not None else time.time()
+    _gateway_received_at: Final[datetime | None] = getattr(request.state, "litellm_received_at", None)
+    arrival_time: Final = _gateway_received_at.timestamp() if _gateway_received_at is not None else time.time()
     data["proxy_server_request"] = {
         "url": str(request.url),
         "method": request.method,
@@ -1854,7 +1854,7 @@ async def add_litellm_data_to_request(
         data[_metadata_variable_name] = {}
 
     data.update(
-        LiteLLMProxyRequestSetup.add_litellm_data_for_backend_llm_call(
+        GatewayProxyRequestSetup.add_gateway_data_for_backend_llm_call(
             headers=_headers,
             request_data=data,
             user_api_key_dict=user_api_key_dict,
@@ -1862,7 +1862,7 @@ async def add_litellm_data_to_request(
         )
     )
 
-    LiteLLMProxyRequestSetup.add_litellm_metadata_from_request_headers(
+    GatewayProxyRequestSetup.add_gateway_metadata_from_request_headers(
         headers=_headers,
         data=data,
         _metadata_variable_name=_metadata_variable_name,
@@ -1879,16 +1879,16 @@ async def add_litellm_data_to_request(
         data[_metadata_variable_name]["headers"] = _logging_safe_headers
 
     # check for forwardable headers
-    data = LiteLLMProxyRequestSetup.add_headers_to_llm_call_by_model_group(
+    data = GatewayProxyRequestSetup.add_headers_to_llm_call_by_model_group(
         data=data, headers=_headers, user_api_key_dict=user_api_key_dict
     )
 
-    user_api_key_dict = LiteLLMProxyRequestSetup.add_internal_user_from_user_mapping(
+    user_api_key_dict = GatewayProxyRequestSetup.add_internal_user_from_user_mapping(
         general_settings, user_api_key_dict, _headers
     )
 
     # Parse user info from headers (fallback to general_settings.user_header_name)
-    user: Final = LiteLLMProxyRequestSetup.get_user_from_headers(_headers, general_settings)
+    user: Final = GatewayProxyRequestSetup.get_user_from_headers(_headers, general_settings)
     if user is not None:
         if user_api_key_dict.end_user_id is None:
             user_api_key_dict.end_user_id = user
@@ -2012,14 +2012,14 @@ async def add_litellm_data_to_request(
             if key not in data[_metadata_variable_name]:
                 data[_metadata_variable_name][key] = value
         if _metadata_variable_name == "metadata":
-            data["metadata"]["tags"] = LiteLLMProxyRequestSetup._merge_tags(  # pyright: ignore[reportPrivateUsage]  # same-module helper, budget blocks the unsuppressed idiom sibling call sites use
+            data["metadata"]["tags"] = GatewayProxyRequestSetup._merge_tags(  # pyright: ignore[reportPrivateUsage]  # same-module helper, budget blocks the unsuppressed idiom sibling call sites use
                 request_tags=data["metadata"].get("tags"),
                 tags_to_add=data["litellm_metadata"].get("tags"),
             )
     if _metadata_variable_name == "metadata":
         data.pop("litellm_metadata", None)
 
-    data = LiteLLMProxyRequestSetup.add_user_api_key_auth_to_request_metadata(
+    data = GatewayProxyRequestSetup.add_user_api_key_auth_to_request_metadata(
         data=data,
         user_api_key_dict=user_api_key_dict,
         _metadata_variable_name=_metadata_variable_name,
@@ -2033,7 +2033,7 @@ async def add_litellm_data_to_request(
 
     ### KEY-LEVEL Controls
     key_metadata: Final = user_api_key_dict.metadata
-    data = LiteLLMProxyRequestSetup.add_key_level_controls(
+    data = GatewayProxyRequestSetup.add_key_level_controls(
         key_metadata=key_metadata,
         data=data,
         _metadata_variable_name=_metadata_variable_name,
@@ -2041,7 +2041,7 @@ async def add_litellm_data_to_request(
     ## TEAM-LEVEL SPEND LOGS/TAGS
     team_metadata: Final = user_api_key_dict.team_metadata or {}
     if "tags" in team_metadata and team_metadata["tags"] is not None:
-        data[_metadata_variable_name]["tags"] = LiteLLMProxyRequestSetup._merge_tags(
+        data[_metadata_variable_name]["tags"] = GatewayProxyRequestSetup._merge_tags(
             request_tags=data[_metadata_variable_name].get("tags"),
             tags_to_add=team_metadata["tags"],
         )
@@ -2066,7 +2066,7 @@ async def add_litellm_data_to_request(
     ## PROJECT-LEVEL TAGS
     project_metadata: Final = user_api_key_dict.project_metadata or {}
     if "tags" in project_metadata and project_metadata["tags"] is not None:
-        data[_metadata_variable_name]["tags"] = LiteLLMProxyRequestSetup._merge_tags(
+        data[_metadata_variable_name]["tags"] = GatewayProxyRequestSetup._merge_tags(
             request_tags=data[_metadata_variable_name].get("tags"),
             tags_to_add=project_metadata["tags"],
         )
@@ -2090,7 +2090,7 @@ async def add_litellm_data_to_request(
     )
 
     ## TEAM-LEVEL METADATA
-    data = LiteLLMProxyRequestSetup.add_management_endpoint_metadata_to_request_metadata(
+    data = GatewayProxyRequestSetup.add_management_endpoint_metadata_to_request_metadata(
         data=data,
         management_endpoint_metadata=team_metadata,
         _metadata_variable_name=_metadata_variable_name,
@@ -2103,7 +2103,7 @@ async def add_litellm_data_to_request(
         for field, value in (key_metadata or {}).items()
         if field in OTEL_SERVICE_NAME_METADATA_KEYS and isinstance(value, str) and value.strip()
     }
-    data = LiteLLMProxyRequestSetup.add_management_endpoint_metadata_to_request_metadata(
+    data = GatewayProxyRequestSetup.add_management_endpoint_metadata_to_request_metadata(
         data=data,
         management_endpoint_metadata=_key_otel_service_names,
         _metadata_variable_name=_metadata_variable_name,
@@ -2188,14 +2188,14 @@ async def add_litellm_data_to_request(
 
     # Merge caller-supplied tags (x-litellm-tags header, data["tags"] root-level)
     # into request metadata for tag-based routing and spend attribution.
-    tags: Final = LiteLLMProxyRequestSetup.add_request_tag_to_metadata(
+    tags: Final = GatewayProxyRequestSetup.add_request_tag_to_metadata(
         llm_router=llm_router,
         headers=_headers,
         data=data,
     )
 
     if tags is not None:
-        data[_metadata_variable_name]["tags"] = LiteLLMProxyRequestSetup._merge_tags(
+        data[_metadata_variable_name]["tags"] = GatewayProxyRequestSetup._merge_tags(
             request_tags=data[_metadata_variable_name].get("tags"),
             tags_to_add=tags,
         )
@@ -2207,7 +2207,7 @@ async def add_litellm_data_to_request(
         else None
     )
     if _caller_body_tags:
-        data[_metadata_variable_name]["tags"] = LiteLLMProxyRequestSetup._merge_tags(  # rebind-ok: matches file idiom
+        data[_metadata_variable_name]["tags"] = GatewayProxyRequestSetup._merge_tags(  # rebind-ok: matches file idiom
             request_tags=data[_metadata_variable_name].get("tags"),
             tags_to_add=_caller_body_tags,
         )

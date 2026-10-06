@@ -1,7 +1,7 @@
 import enum
 from typing import Literal
 
-from token_iq.gateway.types.llms.base import LiteLLMPydanticObjectBase
+from token_iq.gateway.types.llms.base import GatewayPydanticObjectBase
 
 
 class KeyManagementSystem(enum.Enum):
@@ -16,7 +16,7 @@ class KeyManagementSystem(enum.Enum):
     CUSTOM = "custom"
 
 
-class KeyManagementSettings(LiteLLMPydanticObjectBase):
+class KeyManagementSettings(GatewayPydanticObjectBase):
     hosted_keys: list | None = None
     store_virtual_keys: bool | None = False
     """

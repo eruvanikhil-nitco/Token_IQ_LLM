@@ -17,7 +17,7 @@ from dotenv import load_dotenv
 from pydantic import BaseModel, ConfigDict
 
 from token_iq import gateway
-from token_iq.gateway.constants import DEFAULT_NUM_WORKERS_LITELLM_PROXY
+from token_iq.gateway.constants import DEFAULT_NUM_WORKERS_GATEWAY_PROXY
 from token_iq.gateway.proxy.db.query_engine_reaper import start_query_engine_reaper
 
 if TYPE_CHECKING:
@@ -45,15 +45,15 @@ sys.path.append(os.getcwd())
 
 config_filename: Final = "litellm.secrets"
 
-litellm_mode: Final = os.getenv("LITELLM_MODE", "DEV")  # "PRODUCTION", "DEV"
-if litellm_mode == "DEV":
+gateway_mode: Final = os.getenv("LITELLM_MODE", "DEV")  # "PRODUCTION", "DEV"
+if gateway_mode == "DEV":
     load_dotenv()
 from enum import Enum
 
 telemetry: Final = None
 
 
-class LiteLLMDatabaseConnectionPool(Enum):
+class GatewayDatabaseConnectionPool(Enum):
     database_connection_pool_limit = 10
     database_connection_pool_timeout = 60
 
@@ -179,7 +179,7 @@ def append_query_params(url: str | None, params: dict) -> str:
 
 class ProxyInitializationHelpers:
     @staticmethod
-    def _echo_litellm_version():
+    def _echo_gateway_version():
         pkg_version: Final = importlib.metadata.version("litellm")
         click.echo(f"\nLiteLLM: Current Version = {pkg_version}\n")
 
@@ -660,7 +660,7 @@ class ProxyInitializationHelpers:
 @click.option("--port", default=4000, help="Port to bind the server to.", envvar="PORT")
 @click.option(
     "--num_workers",
-    default=DEFAULT_NUM_WORKERS_LITELLM_PROXY,
+    default=DEFAULT_NUM_WORKERS_GATEWAY_PROXY,
     help=(
         "Number of worker processes for uvicorn / gunicorn, or Granian worker processes "
         "(--workers). Default is 1 (from DEFAULT_NUM_WORKERS_LITELLM_PROXY). "
@@ -1030,7 +1030,7 @@ def run_server(
                     save_worker_config,
                 )
     if version is True:
-        ProxyInitializationHelpers._echo_litellm_version()
+        ProxyInitializationHelpers._echo_gateway_version()
         return
     if model and "ollama" in model and api_base is None:
         ProxyInitializationHelpers._run_ollama_serve()
@@ -1175,13 +1175,13 @@ def run_server(
                     os.environ["DATABASE_URL"] = database_url
             db_connection_pool_limit = general_settings.get(
                 "database_connection_pool_limit",
-                LiteLLMDatabaseConnectionPool.database_connection_pool_limit.value,
+                GatewayDatabaseConnectionPool.database_connection_pool_limit.value,
             )
             db_connection_timeout = general_settings.get("database_connection_timeout")
             if db_connection_timeout is None:
                 db_connection_timeout = general_settings.get("database_connection_pool_timeout")
             if db_connection_timeout is None:
-                db_connection_timeout = LiteLLMDatabaseConnectionPool.database_connection_pool_timeout.value
+                db_connection_timeout = GatewayDatabaseConnectionPool.database_connection_pool_timeout.value
             db_connect_timeout = general_settings.get("database_connect_timeout")
             db_socket_timeout = general_settings.get("database_socket_timeout")
             _disable_prepared_statements: Final = general_settings.get("database_disable_prepared_statements", False)
@@ -1220,8 +1220,8 @@ def run_server(
 
         # Set default values for connection pool settings when no config is used
         if config is None:
-            db_connection_pool_limit = LiteLLMDatabaseConnectionPool.database_connection_pool_limit.value
-            db_connection_timeout = LiteLLMDatabaseConnectionPool.database_connection_pool_timeout.value
+            db_connection_pool_limit = GatewayDatabaseConnectionPool.database_connection_pool_limit.value
+            db_connection_timeout = GatewayDatabaseConnectionPool.database_connection_pool_timeout.value
 
         if os.getenv("DATABASE_URL", None) is not None or os.getenv("DIRECT_URL", None) is not None:
             from token_iq.gateway.proxy.db.db_url_settings import (

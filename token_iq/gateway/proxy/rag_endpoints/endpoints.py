@@ -525,7 +525,7 @@ async def rag_ingest(
         )
 
         # INTERNAL_USER_VIEW_ONLY can ingest to existing vector stores only
-        if user_api_key_dict.user_role == LitellmUserRoles.INTERNAL_USER_VIEW_ONLY.value and not ingest_options.get(
+        if user_api_key_dict.user_role == GatewayUserRoles.INTERNAL_USER_VIEW_ONLY.value and not ingest_options.get(
             "vector_store", {}
         ).get("vector_store_id"):
             raise HTTPException(

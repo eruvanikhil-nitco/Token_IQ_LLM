@@ -15,7 +15,7 @@ import pytest
 
 from token_iq import gateway
 from token_iq.gateway.interactions.litellm_responses_transformation.streaming_iterator import (
-    LiteLLMResponsesInteractionsStreamingIterator,
+    GatewayResponsesInteractionsStreamingIterator,
 )
 from token_iq.gateway.llms.gemini.interactions.transformation import (
     GoogleAIStudioInteractionsConfig,
@@ -25,7 +25,7 @@ from token_iq.gateway.types.llms.openai import (
     ResponseCompletedEvent,
     ResponseCreatedEvent,
 )
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 
 _PATCH_GET_API_KEY = "litellm.llms.gemini.common_utils.GeminiModelInfo.get_api_key"
 
@@ -37,7 +37,7 @@ def config():
 
 class TestValidateEnvironment:
     def test_sets_x_goog_api_key_header(self, config):
-        litellm_params = GenericLiteLLMParams(api_key="test-api-key-123")
+        litellm_params = GenericGatewayParams(api_key="test-api-key-123")
 
         headers = config.validate_environment(
             headers={},
@@ -49,7 +49,7 @@ class TestValidateEnvironment:
         assert headers["Content-Type"] == "application/json"
 
     def test_no_api_key_skips_header(self, config):
-        litellm_params = GenericLiteLLMParams(api_key=None)
+        litellm_params = GenericGatewayParams(api_key=None)
 
         with patch(_PATCH_GET_API_KEY, return_value=None):
             headers = config.validate_environment(
@@ -61,7 +61,7 @@ class TestValidateEnvironment:
         assert "x-goog-api-key" not in headers
         assert headers["Content-Type"] == "application/json"
 
-    def test_no_litellm_params_skips_header(self, config):
+    def test_no_gateway_params_skips_header(self, config):
         headers = config.validate_environment(
             headers={},
             model="gemini-2.5-flash",
@@ -72,7 +72,7 @@ class TestValidateEnvironment:
         assert headers["Content-Type"] == "application/json"
 
     def test_preserves_existing_headers(self, config):
-        litellm_params = GenericLiteLLMParams(api_key="test-key")
+        litellm_params = GenericGatewayParams(api_key="test-key")
 
         headers = config.validate_environment(
             headers={"X-Custom": "value"},
@@ -151,7 +151,7 @@ class TestTransformRequest:
                 "environment": "remote",
                 "stream": False,
             },
-            litellm_params=GenericLiteLLMParams(api_key="test-api-key"),
+            litellm_params=GenericGatewayParams(api_key="test-api-key"),
             headers={},
         )
 
@@ -173,7 +173,7 @@ class TestTransformRequest:
             agent="waverunner",
             input="What is 2 + 2?",
             optional_params={"environment": environment_config},
-            litellm_params=GenericLiteLLMParams(api_key="test-api-key"),
+            litellm_params=GenericGatewayParams(api_key="test-api-key"),
             headers={},
         )
 
@@ -186,7 +186,7 @@ class TestTransformRequest:
             agent="my-custom-slides-agent",
             input="Continue the presentation.",
             optional_params={"environment": env_id},
-            litellm_params=GenericLiteLLMParams(api_key="test-api-key"),
+            litellm_params=GenericGatewayParams(api_key="test-api-key"),
             headers={},
         )
 
@@ -200,7 +200,7 @@ class TestTransformRequest:
             agent=None,
             input="Hello",
             optional_params={"stream": True},
-            litellm_params=GenericLiteLLMParams(api_key="test-key"),
+            litellm_params=GenericGatewayParams(api_key="test-key"),
             headers={},
         )
 
@@ -213,7 +213,7 @@ class TestTransformRequest:
             agent=None,
             input="Hello",
             optional_params={},
-            litellm_params=GenericLiteLLMParams(api_key="test-key"),
+            litellm_params=GenericGatewayParams(api_key="test-key"),
             headers={},
         )
 
@@ -223,13 +223,13 @@ class TestTransformRequest:
 class TestStreamingIterator:
     def _make_iterator(
         self, use_legacy: bool = False
-    ) -> LiteLLMResponsesInteractionsStreamingIterator:
+    ) -> GatewayResponsesInteractionsStreamingIterator:
         original = gateway.use_legacy_interactions_schema
         gateway.use_legacy_interactions_schema = use_legacy
         try:
-            return LiteLLMResponsesInteractionsStreamingIterator(
+            return GatewayResponsesInteractionsStreamingIterator(
                 model="gpt-5.4",
-                litellm_custom_stream_wrapper=MagicMock(),
+                gateway_custom_stream_wrapper=MagicMock(),
                 request_input="hi",
                 optional_params={},
             )
@@ -404,9 +404,9 @@ class TestStreamingIterator:
         original = gateway.use_legacy_interactions_schema
         gateway.use_legacy_interactions_schema = False
         try:
-            it = LiteLLMResponsesInteractionsStreamingIterator(
+            it = GatewayResponsesInteractionsStreamingIterator(
                 model="gpt-5.4",
-                litellm_custom_stream_wrapper=sync_iter,
+                gateway_custom_stream_wrapper=sync_iter,
                 request_input="hi",
                 optional_params={},
             )
@@ -453,9 +453,9 @@ class TestStreamingIterator:
         original = gateway.use_legacy_interactions_schema
         gateway.use_legacy_interactions_schema = False
         try:
-            it = LiteLLMResponsesInteractionsStreamingIterator(
+            it = GatewayResponsesInteractionsStreamingIterator(
                 model="gpt-5.4",
-                litellm_custom_stream_wrapper=sync_iter,
+                gateway_custom_stream_wrapper=sync_iter,
                 request_input="hi",
                 optional_params={},
             )
@@ -513,7 +513,7 @@ class TestInteractionOperationUrls:
             url, params = getattr(config, method_name)(
                 interaction_id=interaction_id,
                 api_base="https://generativelanguage.googleapis.com",
-                litellm_params=GenericLiteLLMParams(api_key="secret-key"),
+                litellm_params=GenericGatewayParams(api_key="secret-key"),
                 headers={},
             )
 
@@ -526,7 +526,7 @@ class TestInteractionOperationUrls:
             url, params = config.transform_cancel_interaction_request(
                 interaction_id="../../interactions/other?x=1#frag",
                 api_base="https://generativelanguage.googleapis.com",
-                litellm_params=GenericLiteLLMParams(api_key="secret-key"),
+                litellm_params=GenericGatewayParams(api_key="secret-key"),
                 headers={},
             )
 
@@ -542,7 +542,7 @@ class TestInteractionOperationUrls:
                 config.transform_get_interaction_request(
                     interaction_id="interaction-123",
                     api_base="https://generativelanguage.googleapis.com",
-                    litellm_params=GenericLiteLLMParams(api_key=None),
+                    litellm_params=GenericGatewayParams(api_key=None),
                     headers={},
                 )
 
@@ -560,7 +560,7 @@ class TestTransformRequestSchemaCoalescing:
                 "response_mime_type": "application/json",
                 "response_format": {"type": "object", "properties": {}},
             },
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 
@@ -583,7 +583,7 @@ class TestTransformRequestSchemaCoalescing:
                     "image_config": {"aspect_ratio": "1:1", "image_size": "1K"},
                 }
             },
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 
@@ -609,7 +609,7 @@ class TestTransformRequestSchemaCoalescing:
                 "response_format": rf_list,
                 "response_mime_type": "application/json",
             },
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 
@@ -637,7 +637,7 @@ class TestTransformRequestSchemaCoalescing:
             agent=None,
             input="draw and summarise",
             optional_params=optional_params,
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 
@@ -654,7 +654,7 @@ class TestTransformRequestSchemaCoalescing:
             agent=None,
             input="draw and summarise",
             optional_params=optional_params,
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
         assert len(optional_params["response_format"]) == 1
@@ -670,7 +670,7 @@ class TestTransformRequestSchemaCoalescing:
                 "response_mime_type": "application/json",
                 "generation_config": {"image_config": {"aspect_ratio": "16:9"}},
             },
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 

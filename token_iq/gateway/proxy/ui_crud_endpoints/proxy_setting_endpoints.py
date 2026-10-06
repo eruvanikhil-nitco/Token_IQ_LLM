@@ -840,7 +840,7 @@ async def update_default_team_member_budget(teams: list[NewUserRequestTeam], use
             continue
 
 
-async def _update_litellm_setting(
+async def _update_gateway_setting(
     settings: DefaultInternalUserParams | DefaultTeamSSOParams | MCPSemanticFilterSettings | MCPToolSearchSettings,
     settings_key: str,
     success_message: str,
@@ -930,7 +930,7 @@ async def update_internal_user_settings(
             user_api_key_dict=user_api_key_dict,
         )
 
-    return await _update_litellm_setting(
+    return await _update_gateway_setting(
         settings=settings,
         settings_key="default_internal_user_params",
         success_message="Internal user settings updated successfully",
@@ -955,7 +955,7 @@ async def update_default_team_settings(
     if settings.organization_id is not None:
         await _validate_default_organization_exists(settings.organization_id)
 
-    return await _update_litellm_setting(
+    return await _update_gateway_setting(
         settings=settings,
         settings_key="default_team_params",
         success_message="Default team settings updated successfully",
@@ -1113,7 +1113,7 @@ async def update_sso_settings(
             before_value=before_sso_data,
             after_value=sso_data,
             user_api_key_dict=user_api_key_dict,
-            table_name=LitellmTableNames.SSO_CONFIG_TABLE_NAME,
+            table_name=GatewayTableNames.SSO_CONFIG_TABLE_NAME,
         )
     )
 
@@ -1342,13 +1342,13 @@ async def update_mcp_semantic_filter_settings(
     Update MCP semantic filter settings in database.
     Settings will be picked up by all pods within approximately 10 seconds via background polling.
     """
-    if user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN:
+    if user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN:
         raise HTTPException(
             status_code=403,
             detail="Only proxy admins can update MCP semantic filter settings.",
         )
 
-    result: Final = await _update_litellm_setting(
+    result: Final = await _update_gateway_setting(
         settings=settings,
         settings_key="mcp_semantic_tool_filter",
         success_message="MCP Semantic Filter settings updated successfully. Changes will be applied across all pods within 10 seconds.",
@@ -1404,13 +1404,13 @@ async def update_mcp_tool_search_settings(
     Update `litellm_settings.mcp_tool_search` in the database.
     Settings will be picked up by all pods within approximately 10 seconds via background polling.
     """
-    if user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN:
+    if user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN:
         raise HTTPException(
             status_code=403,
             detail="Only proxy admins can update MCP tool search settings.",
         )
 
-    return await _update_litellm_setting(
+    return await _update_gateway_setting(
         settings=settings,
         settings_key=MCP_TOOL_SEARCH_SETTINGS_KEY,
         success_message="MCP tool search settings updated successfully. Changes will be applied across all pods within 10 seconds.",
@@ -1534,7 +1534,7 @@ async def update_ui_settings(
         store_model_in_db,
     )
 
-    if user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN:
+    if user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN:
         raise HTTPException(status_code=403, detail="Only proxy admins can update UI settings.")
 
     if prisma_client is None:
@@ -1623,7 +1623,7 @@ async def update_ui_settings(
             before_value=existing,
             after_value=ui_settings,
             user_api_key_dict=user_api_key_dict,
-            table_name=LitellmTableNames.UI_SETTINGS_TABLE_NAME,
+            table_name=GatewayTableNames.UI_SETTINGS_TABLE_NAME,
         )
     )
 
@@ -1650,7 +1650,7 @@ async def upload_logo(
     import os
     from pathlib import Path
 
-    if user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN:
+    if user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN:
         raise HTTPException(
             status_code=403,
             detail="Only proxy admins can upload a UI logo.",

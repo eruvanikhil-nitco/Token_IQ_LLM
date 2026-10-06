@@ -19,15 +19,15 @@ from token_iq.gateway.types.llms.vertex_ai import (
     HttpxContentType,
     HttpxPartType,
 )
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.types.utils import FileTypes, ImageObject, ImageResponse, OpenAIImage
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as _LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as _GatewayLoggingObj
 
-    LiteLLMLoggingObj = _LiteLLMLoggingObj
+    GatewayLoggingObj = _GatewayLoggingObj
 else:
-    LiteLLMLoggingObj = Any
+    GatewayLoggingObj = Any
 
 
 class _GenerateContentSource(Protocol):
@@ -161,7 +161,7 @@ class VertexAIGeminiImageEditConfig(BaseImageEditConfig, VertexLLM):
         prompt: str | None,
         image: FileTypes | None,
         image_edit_optional_request_params: dict[str, object],
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict[str, str],
     ) -> tuple[dict[str, object], RequestFiles | None]:
         inline_parts: Final = self._prepare_inline_image_parts(image) if image else []
@@ -196,7 +196,7 @@ class VertexAIGeminiImageEditConfig(BaseImageEditConfig, VertexLLM):
         self,
         model: str,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> ImageResponse:
         model_response: Final = ImageResponse()
         try:

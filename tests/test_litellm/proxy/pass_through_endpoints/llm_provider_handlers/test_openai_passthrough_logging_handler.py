@@ -8,7 +8,7 @@ import pytest
 
 
 from token_iq import gateway
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.proxy.pass_through_endpoints.llm_provider_handlers.openai_passthrough_logging_handler import (
     OpenAIPassthroughLoggingHandler,
 )
@@ -49,7 +49,7 @@ class TestOpenAIPassthroughLoggingHandler:
             "usage": {"prompt_tokens": 20, "completion_tokens": 15, "total_tokens": 35},
         }
 
-    def _create_mock_logging_obj(self) -> LiteLLMLoggingObj:
+    def _create_mock_logging_obj(self) -> GatewayLoggingObj:
         """Create a mock logging object"""
         mock_logging_obj = MagicMock()
         mock_logging_obj.model_call_details = {}
@@ -1085,7 +1085,7 @@ class TestOpenAIPassthroughIntegration:
         self.start_time = datetime.now()
         self.end_time = datetime.now()
 
-    def _create_mock_logging_obj(self) -> LiteLLMLoggingObj:
+    def _create_mock_logging_obj(self) -> GatewayLoggingObj:
         """Create a mock logging object"""
         mock_logging_obj = MagicMock()
         mock_logging_obj.model_call_details = {}
@@ -1657,7 +1657,7 @@ class TestOpenAIPassthroughIntegration:
     def test_cost_calculation_preservation(self):
         """Test that manually calculated costs are preserved and not overridden."""
         # Create a logging object
-        logging_obj = LiteLLMLoggingObj(
+        logging_obj = GatewayLoggingObj(
             model="dall-e-3",
             messages=[{"role": "user", "content": "Generate an image"}],
             stream=False,
@@ -1899,8 +1899,8 @@ class TestOpenAIPassthroughResponsesStreamingSpendLog:
             "data: [DONE]",
         ]
 
-    def _logging_obj(self) -> LiteLLMLoggingObj:
-        logging_obj = LiteLLMLoggingObj(
+    def _logging_obj(self) -> GatewayLoggingObj:
+        logging_obj = GatewayLoggingObj(
             model="gpt-4o-mini",
             messages=[],
             stream=True,
@@ -1982,8 +1982,8 @@ class TestOpenAIPassthroughEmbeddingsSpendLog:
         mock_response.headers = {"content-type": "application/json"}
         return mock_response
 
-    def _logging_obj(self) -> LiteLLMLoggingObj:
-        logging_obj = LiteLLMLoggingObj(
+    def _logging_obj(self) -> GatewayLoggingObj:
+        logging_obj = GatewayLoggingObj(
             model=self.MODEL,
             messages=[],
             stream=False,

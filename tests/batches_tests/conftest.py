@@ -91,7 +91,7 @@ def event_loop():
     loop.close()
 
 
-def _copy_litellm_state():
+def _copy_gateway_state():
     state = {}
     for attr in _CALLBACK_ATTRS:
         if hasattr(gateway, attr):
@@ -103,13 +103,13 @@ def _copy_litellm_state():
     return state
 
 
-def _restore_litellm_state(state) -> None:
+def _restore_gateway_state(state) -> None:
     for attr, value in state.items():
         if hasattr(gateway, attr):
             setattr(gateway, attr, value)
 
 
-def _reset_litellm_callbacks() -> None:
+def _reset_gateway_callbacks() -> None:
     for attr in _CALLBACK_ATTRS:
         if hasattr(gateway, attr):
             setattr(gateway, attr, [])
@@ -130,16 +130,16 @@ def _clear_logging_queue(loop=None) -> None:
 
 @pytest.fixture(scope="function", autouse=True)
 def setup_and_teardown(event_loop):
-    original_state = _copy_litellm_state()
+    original_state = _copy_gateway_state()
     _clear_logging_queue(event_loop)
-    _reset_litellm_callbacks()
+    _reset_gateway_callbacks()
     asyncio.set_event_loop(event_loop)
 
     yield
 
     _clear_logging_queue(event_loop)
-    _reset_litellm_callbacks()
-    _restore_litellm_state(original_state)
+    _reset_gateway_callbacks()
+    _restore_gateway_state(original_state)
 
     pending = asyncio.all_tasks(event_loop)
     for task in pending:

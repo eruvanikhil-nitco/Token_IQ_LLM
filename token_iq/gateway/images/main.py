@@ -16,9 +16,9 @@ from token_iq import gateway
 from token_iq.gateway import client
 from token_iq.gateway.constants import DEFAULT_IMAGE_ENDPOINT_MODEL
 from token_iq.gateway.constants import request_timeout as DEFAULT_REQUEST_TIMEOUT
-from token_iq.gateway.exceptions import LiteLLMUnknownProvider
+from token_iq.gateway.exceptions import GatewayUnknownProvider
 from token_iq.gateway.core_utils.litellm_logging import Logging
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.core_utils.llm_request_utils import flatten_form_field_values
 from token_iq.gateway.core_utils.mock_functions import mock_image_generation
 from token_iq.gateway.llms.base_llm import BaseImageEditConfig, BaseImageGenerationConfig
@@ -48,7 +48,7 @@ from token_iq.gateway.main import (
 from token_iq.gateway.secret_managers.main import get_secret_str
 from token_iq.gateway.types.images.main import ImageEditOptionalRequestParams
 from token_iq.gateway.types.llms.openai import ImageGenerationRequestQuality
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.types.utils import (
     LITELLM_IMAGE_VARIATION_PROVIDERS,
     LlmProviders,
@@ -213,7 +213,7 @@ def image_generation(
         azure_ad_token_provider = kwargs.get("azure_ad_token_provider", None)
         model_info: Final = kwargs.get("model_info", None)
         metadata: Final = kwargs.get("metadata", {})
-        litellm_logging_obj: Final[LiteLLMLoggingObj] = kwargs.get("litellm_logging_obj")
+        litellm_logging_obj: Final[GatewayLoggingObj] = kwargs.get("litellm_logging_obj")
         client: Final = kwargs.get("client", None)
         extra_headers: Final = kwargs.get("extra_headers", None)
         headers: Final[dict] = kwargs.get("headers", None) or {}
@@ -275,7 +275,7 @@ def image_generation(
             **non_default_params,
         )
 
-        litellm_params_dict: Final = get_litellm_params(**kwargs)
+        gateway_params_dict: Final = get_litellm_params(**kwargs)
 
         logging: Final[Logging] = litellm_logging_obj
         logging.update_from_kwargs(
@@ -330,10 +330,10 @@ def image_generation(
                 )
 
                 # Extract Azure AD credentials from litellm_params
-                tenant_id: Final = litellm_params_dict.get("tenant_id")
-                client_id: Final = litellm_params_dict.get("client_id")
-                client_secret: Final = litellm_params_dict.get("client_secret")
-                azure_scope = litellm_params_dict.get("azure_scope") or "https://cognitiveservices.azure.com/.default"
+                tenant_id: Final = gateway_params_dict.get("tenant_id")
+                client_id: Final = gateway_params_dict.get("client_id")
+                client_secret: Final = gateway_params_dict.get("client_secret")
+                azure_scope = gateway_params_dict.get("azure_scope") or "https://cognitiveservices.azure.com/.default"
 
                 # Create token provider if credentials are available
                 if tenant_id and client_id and client_secret:
@@ -371,7 +371,7 @@ def image_generation(
                 aimg_generation=aimg_generation,
                 client=client,
                 headers=headers,
-                litellm_params=litellm_params_dict,
+                litellm_params=gateway_params_dict,
             )
         #########################################################
         # Providers using llm_http_handler
@@ -394,7 +394,7 @@ def image_generation(
 
             # Resolve api_base from litellm.api_base if not explicitly provided
             _api_base: Final = api_base or gateway.api_base
-            litellm_params_dict["api_base"] = _api_base
+            gateway_params_dict["api_base"] = _api_base
 
             return llm_http_handler.image_generation_handler(
                 api_key=api_key,
@@ -403,7 +403,7 @@ def image_generation(
                 image_generation_provider_config=image_generation_config,
                 image_generation_optional_request_params=optional_params,
                 custom_llm_provider=custom_llm_provider,
-                litellm_params=litellm_params_dict,
+                litellm_params=gateway_params_dict,
                 logging_obj=litellm_logging_obj,
                 timeout=timeout,
                 client=client,
@@ -417,7 +417,7 @@ def image_generation(
                 prompt=prompt,
                 model_response=model_response,
                 optional_params=optional_params,
-                litellm_params=litellm_params_dict,
+                litellm_params=gateway_params_dict,
                 logging_obj=litellm_logging_obj,
                 timeout=timeout,
                 extra_headers=extra_headers,
@@ -442,7 +442,7 @@ def image_generation(
                 if caller_set_auth
                 else get_azure_ai_auth_headers(
                     api_key=api_key,
-                    litellm_params=litellm_params_dict,
+                    litellm_params=gateway_params_dict,
                     api_key_header="api-key",
                 )
             )
@@ -467,7 +467,7 @@ def image_generation(
                 aimg_generation=aimg_generation,
                 client=client,
                 headers=request_headers,
-                litellm_params=litellm_params_dict,
+                litellm_params=gateway_params_dict,
             )
         elif (
             custom_llm_provider == "openai"
@@ -515,7 +515,7 @@ def image_generation(
                     custom_handler = item["custom_handler"]
 
             if custom_handler is None:
-                raise LiteLLMUnknownProvider(model=model, custom_llm_provider=custom_llm_provider)
+                raise GatewayUnknownProvider(model=model, custom_llm_provider=custom_llm_provider)
 
             ## ROUTE LLM CALL ##
             if aimg_generation is True:
@@ -629,7 +629,7 @@ def image_variation(
     # get non-default params
     client: Final = kwargs.get("client", None)
     # get logging object
-    litellm_logging_obj: Final = cast(LiteLLMLoggingObj, kwargs.get("litellm_logging_obj"))
+    litellm_logging_obj: Final = cast(GatewayLoggingObj, kwargs.get("litellm_logging_obj"))
 
     # get the litellm params
     litellm_params: Final = get_litellm_params(**kwargs)
@@ -756,12 +756,12 @@ def image_edit(
             "style",
             "async_call",
         ]
-        litellm_params_list: Final = all_litellm_params
-        default_params: Final = openai_params + litellm_params_list
+        gateway_params_list: Final = all_litellm_params
+        default_params: Final = openai_params + gateway_params_list
         non_default_params: Final = {
             k: v for k, v in kwargs.items() if k not in default_params
         }  # model-specific params - pass them straight to the model/provider
-        litellm_logging_obj: Final[LiteLLMLoggingObj] = kwargs.get("litellm_logging_obj")
+        litellm_logging_obj: Final[GatewayLoggingObj] = kwargs.get("litellm_logging_obj")
         litellm_call_id: Final[str | None] = kwargs.get("litellm_call_id", None)
         model_info: Final = kwargs.get("model_info", None)
         metadata: Final = kwargs.get("metadata", {})
@@ -781,7 +781,7 @@ def image_edit(
             extra_headers = dict(merged_extra_headers)
 
         # get llm provider logic
-        litellm_params: Final = GenericLiteLLMParams(**kwargs)
+        litellm_params: Final = GenericGatewayParams(**kwargs)
         model, custom_llm_provider, _, _ = get_llm_provider(
             model=model or DEFAULT_IMAGE_ENDPOINT_MODEL,
             custom_llm_provider=custom_llm_provider,
@@ -795,7 +795,7 @@ def image_edit(
                     custom_handler = item["custom_handler"]
 
             if custom_handler is None:
-                raise LiteLLMUnknownProvider(model=model, custom_llm_provider=custom_llm_provider)
+                raise GatewayUnknownProvider(model=model, custom_llm_provider=custom_llm_provider)
 
             model_response: Final = ImageResponse()
 

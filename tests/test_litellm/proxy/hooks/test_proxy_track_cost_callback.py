@@ -81,7 +81,7 @@ async def test_async_post_call_failure_hook():
 
 
 @pytest.mark.asyncio
-async def test_async_post_call_failure_hook_carries_guardrail_info_from_litellm_metadata():
+async def test_async_post_call_failure_hook_carries_guardrail_info_from_gateway_metadata():
     """
     LIT-5650 regression: on a pre_call guardrail block the unified guardrail
     layer seeds request_data["litellm_metadata"], so the guardrail hook writes

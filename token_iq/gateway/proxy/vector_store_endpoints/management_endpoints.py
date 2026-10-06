@@ -56,10 +56,10 @@ def _row_to_vector_store(row: "_VectorStoreRow") -> LiteLLM_ManagedVectorStore:
     return LiteLLM_ManagedVectorStore(**row.model_dump())
 
 
-_LITELLM_PARAMS_MASKER: Final = SensitiveDataMasker()
+_GATEWAY_PARAMS_MASKER: Final = SensitiveDataMasker()
 
 
-_REDACT_LITELLM_PARAMS_MAX_DEPTH: Final = 10
+_REDACT_GATEWAY_PARAMS_MAX_DEPTH: Final = 10
 
 
 def _redact_sensitive_litellm_params(litellm_params: Any, _depth: int = 0) -> Any:
@@ -82,7 +82,7 @@ def _redact_sensitive_litellm_params(litellm_params: Any, _depth: int = 0) -> An
     matching the convention of other allowlisted recursive helpers in the
     repo (see ``tests/code_coverage_tests/recursive_detector.py``).
     """
-    if _depth >= _REDACT_LITELLM_PARAMS_MAX_DEPTH:
+    if _depth >= _REDACT_GATEWAY_PARAMS_MAX_DEPTH:
         return REDACTED_BY_LITELM_STRING
     if litellm_params is None:
         return None
@@ -96,7 +96,7 @@ def _redact_sensitive_litellm_params(litellm_params: Any, _depth: int = 0) -> An
         return litellm_params
     out: Final[dict[str, Any]] = {}
     for k, v in litellm_params.items():
-        if _LITELLM_PARAMS_MASKER.is_sensitive_key(k):
+        if _GATEWAY_PARAMS_MASKER.is_sensitive_key(k):
             out[k] = REDACTED_BY_LITELM_STRING
         elif isinstance(v, dict):
             out[k] = _redact_sensitive_litellm_params(v, _depth + 1)
@@ -175,7 +175,7 @@ async def create_vector_store_in_db(
     Raises:
         HTTPException: If vector store already exists or database error occurs
     """
-    from token_iq.gateway.types.router import GenericLiteLLMParams
+    from token_iq.gateway.types.router import GenericGatewayParams
 
     if prisma_client is None:
         raise HTTPException(status_code=500, detail="Database not connected")
@@ -219,8 +219,8 @@ async def create_vector_store_in_db(
     # query through the router at request time, so the credentials stay
     # on the deployment and never reach the database.
     if litellm_params:
-        litellm_params_dict: Final = GenericLiteLLMParams(**litellm_params).model_dump(exclude_none=True)
-        data_to_create["litellm_params"] = safe_dumps(litellm_params_dict)
+        gateway_params_dict: Final = GenericGatewayParams(**litellm_params).model_dump(exclude_none=True)
+        data_to_create["litellm_params"] = safe_dumps(gateway_params_dict)
     else:
         # Provide empty dict if no litellm_params provided
         data_to_create["litellm_params"] = safe_dumps({})
@@ -458,7 +458,7 @@ async def delete_vector_store(
 
         # Check in-memory registry
         if gateway.vector_store_registry is not None:
-            memory_vector_store: Final = gateway.vector_store_registry.get_litellm_managed_vector_store_from_registry(
+            memory_vector_store: Final = gateway.vector_store_registry.get_gateway_managed_vector_store_from_registry(
                 vector_store_id=data.vector_store_id
             )
             if memory_vector_store is not None:
@@ -519,7 +519,7 @@ async def get_vector_store_info(
 
     try:
         if gateway.vector_store_registry is not None:
-            vector_store: Final = gateway.vector_store_registry.get_litellm_managed_vector_store_from_registry(
+            vector_store: Final = gateway.vector_store_registry.get_gateway_managed_vector_store_from_registry(
                 vector_store_id=data.vector_store_id
             )
             if vector_store is not None:
@@ -593,7 +593,7 @@ async def update_vector_store(
         assert_proxy_admin_for_credential_attachment(user_api_key_dict)
 
     from token_iq.gateway.proxy.proxy_server import prisma_client
-    from token_iq.gateway.types.router import GenericLiteLLMParams
+    from token_iq.gateway.types.router import GenericGatewayParams
 
     if prisma_client is None:
         raise HTTPException(status_code=500, detail="Database not connected")
@@ -621,9 +621,9 @@ async def update_vector_store(
         # through the router at request time, so this row only ever stores
         # the user-supplied ``litellm_embedding_model`` reference.
         if "litellm_params" in update_data:
-            _input_litellm_params: Final[dict] = update_data.get("litellm_params", {}) or {}
-            litellm_params_dict: Final = GenericLiteLLMParams(**_input_litellm_params).model_dump(exclude_none=True)
-            update_data["litellm_params"] = safe_dumps(litellm_params_dict)
+            _input_gateway_params: Final[dict] = update_data.get("litellm_params", {}) or {}
+            gateway_params_dict: Final = GenericGatewayParams(**_input_gateway_params).model_dump(exclude_none=True)
+            update_data["litellm_params"] = safe_dumps(gateway_params_dict)
 
         # Update in database
         updated: Final = await _vector_store_table(prisma_client).update(

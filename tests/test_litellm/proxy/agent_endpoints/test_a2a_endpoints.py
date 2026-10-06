@@ -24,7 +24,7 @@ async def test_invoke_agent_a2a_adds_litellm_data():
     # Track the data passed to add_litellm_data_to_request
     captured_data = {}
 
-    async def mock_add_litellm_data(data, **kwargs):
+    async def mock_add_gateway_data(data, **kwargs):
         # Simulate what add_litellm_data_to_request does
         data["proxy_server_request"] = {
             "url": "http://localhost:4000/a2a/test-agent",
@@ -131,7 +131,7 @@ async def test_invoke_agent_a2a_adds_litellm_data():
         ),
         patch(
             "token_iq.gateway.proxy.common_request_processing.add_litellm_data_to_request",
-            side_effect=mock_add_litellm_data,
+            side_effect=mock_add_gateway_data,
         ) as mock_add_data,
         patch(
             "token_iq.gateway.a2a_protocol.create_a2a_client",
@@ -262,7 +262,7 @@ async def test_invoke_agent_a2a_injects_authenticated_key_hash_for_bridge():
 
     captured = {}
 
-    async def mock_add_litellm_data(data, **kwargs):
+    async def mock_add_gateway_data(data, **kwargs):
         data["proxy_server_request"] = {
             "url": "http://localhost:4000/a2a/lf-agent",
             "method": "POST",
@@ -321,7 +321,7 @@ async def test_invoke_agent_a2a_injects_authenticated_key_hash_for_bridge():
         ),
         patch(
             "token_iq.gateway.proxy.common_request_processing.add_litellm_data_to_request",
-            side_effect=mock_add_litellm_data,
+            side_effect=mock_add_gateway_data,
         ),
         patch(
             "token_iq.gateway.proxy.agent_endpoints.auth.agent_permission_handler.AgentRequestHandler.is_agent_allowed",
@@ -566,7 +566,7 @@ async def test_task_methods_forward_jsonrpc(method: str, params: dict):
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("method", ["tasks/get", "tasks/resubscribe"])
-async def test_task_methods_extract_litellm_params_before_forwarding(method: str):
+async def test_task_methods_extract_gateway_params_before_forwarding(method: str):
     from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
     agent = _make_agent_mock()

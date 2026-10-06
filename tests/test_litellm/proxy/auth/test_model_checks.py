@@ -721,7 +721,7 @@ def test_expand_wildcard_deployments_openai_wildcard():
     assert all(r["litellm_params"]["model"] in fake_models for r in result)
 
 
-def test_expand_wildcard_concrete_model_name_with_wildcard_litellm_params():
+def test_expand_wildcard_concrete_model_name_with_wildcard_gateway_params():
     """Concrete model_name must not be overwritten when only litellm_params.model is wildcard."""
     from token_iq.gateway.proxy.auth.model_checks import (
         expand_wildcard_deployments_for_model_info,
@@ -736,7 +736,7 @@ def test_expand_wildcard_concrete_model_name_with_wildcard_litellm_params():
     assert result == [deployment]
 
 
-def test_expand_wildcard_invalid_litellm_params_passthrough():
+def test_expand_wildcard_invalid_gateway_params_passthrough():
     """Deployments with invalid litellm_params must pass through unchanged (no 500)."""
     from token_iq.gateway.proxy.auth.model_checks import (
         expand_wildcard_deployments_for_model_info,

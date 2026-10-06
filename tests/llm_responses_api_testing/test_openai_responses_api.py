@@ -5,7 +5,7 @@ from typing import Optional, cast
 from unittest.mock import patch, AsyncMock
 import httpx
 from token_iq.gateway.llms.openai.responses.transformation import OpenAIResponsesAPIConfig
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 import time
 import json
 
@@ -130,41 +130,41 @@ def test_basic_openai_responses_api_streaming_with_logging():
     )
 
 
-def validate_responses_match(slp_response, litellm_response):
+def validate_responses_match(slp_response, gateway_response):
     """Validate that the standard logging payload OpenAI response matches the litellm response"""
     # Validate core fields
-    assert slp_response["id"] == litellm_response["id"], "ID mismatch"
-    assert slp_response["model"] == litellm_response["model"], "Model mismatch"
+    assert slp_response["id"] == gateway_response["id"], "ID mismatch"
+    assert slp_response["model"] == gateway_response["model"], "Model mismatch"
     assert (
-        slp_response["created_at"] == litellm_response["created_at"]
+        slp_response["created_at"] == gateway_response["created_at"]
     ), "Created at mismatch"
 
     # Validate usage
     assert (
         slp_response["usage"]["prompt_tokens"]
-        == litellm_response["usage"]["input_tokens"]
+        == gateway_response["usage"]["input_tokens"]
     ), "Input tokens mismatch"
     assert (
         slp_response["usage"]["completion_tokens"]
-        == litellm_response["usage"]["output_tokens"]
+        == gateway_response["usage"]["output_tokens"]
     ), "Output tokens mismatch"
     assert (
         slp_response["usage"]["total_tokens"]
-        == litellm_response["usage"]["total_tokens"]
+        == gateway_response["usage"]["total_tokens"]
     ), "Total tokens mismatch"
 
     # Validate output/messages
     assert len(slp_response["output"]) == len(
-        litellm_response["output"]
+        gateway_response["output"]
     ), "Output length mismatch"
-    for slp_msg, litellm_msg in zip(slp_response["output"], litellm_response["output"]):
-        assert slp_msg["role"] == litellm_msg.role, "Message role mismatch"
+    for slp_msg, gateway_msg in zip(slp_response["output"], gateway_response["output"]):
+        assert slp_msg["role"] == gateway_msg.role, "Message role mismatch"
         # Access the content's text field for the litellm response
-        litellm_content = litellm_msg.content[0].text if litellm_msg.content else ""
+        gateway_content = gateway_msg.content[0].text if gateway_msg.content else ""
         assert (
-            slp_msg["content"][0]["text"] == litellm_content
-        ), f"Message content mismatch. Expected {litellm_content}, Got {slp_msg['content']}"
-        assert slp_msg["status"] == litellm_msg.status, "Message status mismatch"
+            slp_msg["content"][0]["text"] == gateway_content
+        ), f"Message content mismatch. Expected {gateway_content}, Got {slp_msg['content']}"
+        assert slp_msg["status"] == gateway_msg.status, "Message status mismatch"
 
 
 @pytest.mark.asyncio
@@ -498,7 +498,7 @@ async def test_openai_responses_api_streaming_validation(sync_mode):
 
 @pytest.mark.parametrize("sync_mode", [True, False])
 @pytest.mark.asyncio
-async def test_openai_responses_litellm_router(sync_mode):
+async def test_openai_responses_gateway_router(sync_mode):
     """
     Test the OpenAI responses API with LiteLLM Router in both sync and async modes
     """
@@ -543,7 +543,7 @@ async def test_openai_responses_litellm_router(sync_mode):
 
 @pytest.mark.parametrize("sync_mode", [True, False])
 @pytest.mark.asyncio
-async def test_openai_responses_litellm_router_streaming(sync_mode):
+async def test_openai_responses_gateway_router_streaming(sync_mode):
     """
     Test the OpenAI responses API with streaming through LiteLLM Router
     """
@@ -593,7 +593,7 @@ async def test_openai_responses_litellm_router_streaming(sync_mode):
 
 
 @pytest.mark.asyncio
-async def test_openai_responses_litellm_router_no_metadata():
+async def test_openai_responses_gateway_router_no_metadata():
     """
     Test that metadata is not passed through when using the Router for responses API
     """
@@ -686,7 +686,7 @@ async def test_openai_responses_litellm_router_no_metadata():
 
 
 @pytest.mark.asyncio
-async def test_openai_responses_litellm_router_with_metadata():
+async def test_openai_responses_gateway_router_with_metadata():
     """
     Test that metadata is correctly passed through when explicitly provided to the Router for responses API
     """
@@ -785,7 +785,7 @@ async def test_openai_responses_litellm_router_with_metadata():
 
 
 @pytest.mark.asyncio
-async def test_openai_responses_litellm_router_with_prompt():
+async def test_openai_responses_gateway_router_with_prompt():
     """Test that prompt object is passed through the Router for responses API"""
 
     prompt_obj = {
@@ -1306,7 +1306,7 @@ async def test_store_field_transformation():
     config = OpenAIResponsesAPIConfig()
 
     # Initialize logging object with required parameters
-    logging_obj = LiteLLMLoggingObj(
+    logging_obj = GatewayLoggingObj(
         model="gpt-5.5",
         messages=[],
         stream=False,

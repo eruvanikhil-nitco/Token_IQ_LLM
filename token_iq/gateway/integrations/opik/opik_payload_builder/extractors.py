@@ -162,7 +162,7 @@ def extract_and_build_metadata(
     opik_metadata: Mapping[str, object],
     standard_logging_metadata: Mapping[str, object],
     standard_logging_object: Mapping[str, object],
-    litellm_kwargs: Mapping[str, object],
+    gateway_kwargs: Mapping[str, object],
 ) -> dict[str, object]:
     """
     Build the complete metadata dictionary from all available sources.
@@ -213,14 +213,14 @@ def extract_and_build_metadata(
     # Add cost information
     # response_cost is calculated by LiteLLM after completion and added to kwargs
     # See: token_iq/gateway/core_utils/llm_response_utils/response_metadata.py
-    if "response_cost" in litellm_kwargs:
+    if "response_cost" in gateway_kwargs:
         metadata["cost"] = {
-            "total_tokens": litellm_kwargs["response_cost"],
+            "total_tokens": gateway_kwargs["response_cost"],
             "currency": "USD",
         }
 
     # Add debug info if cost calculation failed
-    if "response_cost_failure_debug_info" in litellm_kwargs:
-        metadata["response_cost_failure_debug_info"] = litellm_kwargs["response_cost_failure_debug_info"]
+    if "response_cost_failure_debug_info" in gateway_kwargs:
+        metadata["response_cost_failure_debug_info"] = gateway_kwargs["response_cost_failure_debug_info"]
 
     return metadata

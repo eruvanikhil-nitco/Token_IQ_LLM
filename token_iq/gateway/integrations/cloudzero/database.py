@@ -24,7 +24,7 @@ from typing import Any, Final
 import polars as pl
 
 
-class LiteLLMDatabase:
+class GatewayDatabase:
     """Handle LiteLLM PostgreSQL database connections and queries."""
 
     def _ensure_prisma_client(self):

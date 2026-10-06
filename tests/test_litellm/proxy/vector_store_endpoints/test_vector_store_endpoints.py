@@ -9,12 +9,12 @@ from token_iq.gateway.integrations.vector_store_integrations.vector_store_pre_ca
     LiteLLM_ManagedVectorStore,
 )
 from token_iq.gateway.llms.base_llm.vector_store.transformation import (
-    LiteLLMVectorStoreEmbeddingExecutor,
+    GatewayVectorStoreEmbeddingExecutor,
     RouterVectorStoreEmbeddingExecutor,
 )
-from token_iq.gateway.proxy._types import CommonProxyErrors, LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import CommonProxyErrors, GatewayUserRoles, UserAPIKeyAuth
 from token_iq.gateway.proxy.vector_store_endpoints.endpoints import (
-    _update_request_data_with_litellm_managed_vector_store_registry,
+    _update_request_data_with_gateway_managed_vector_store_registry,
     index_create,
     index_list,
 )
@@ -36,7 +36,7 @@ from token_iq.gateway.types.vector_stores import IndexCreateRequest, IndexListRe
 from token_iq.gateway.vector_stores.main import _direct_vector_store_embedding_executor
 
 
-def _serialize_litellm_params(litellm_params):
+def _serialize_gateway_params(litellm_params):
     """Serialize ``litellm_params`` to a string for substring assertions.
 
     The redact helper preserves the persisted shape — string in, string
@@ -101,7 +101,7 @@ def test_router_vector_store_search_injects_executor_and_request_metadata():
 @pytest.mark.asyncio
 async def test_vector_store_embedding_executors_preserve_explicit_configuration():
     response = EmbeddingResponse(data=[{"embedding": [0.1], "index": 0, "object": "embedding"}])
-    sdk_executor = LiteLLMVectorStoreEmbeddingExecutor()
+    sdk_executor = GatewayVectorStoreEmbeddingExecutor()
 
     with (
         patch(  # test-quality-ok: isolates SDK dispatch from external embedding providers
@@ -575,7 +575,7 @@ async def test_vector_store_file_list_authorizes_model_query_param_before_creden
 
 
 @pytest.mark.asyncio
-async def test_update_request_data_with_litellm_managed_vector_store_registry():
+async def test_update_request_data_with_gateway_managed_vector_store_registry():
     """
     Test that _update_request_data_with_litellm_managed_vector_store_registry
     correctly updates request data with vector store registry information.
@@ -593,13 +593,13 @@ async def test_update_request_data_with_litellm_managed_vector_store_registry():
     }
 
     mock_registry = MagicMock()
-    mock_registry.get_litellm_managed_vector_store_from_registry.return_value = (
+    mock_registry.get_gateway_managed_vector_store_from_registry.return_value = (
         mock_vector_store
     )
 
     # Test with vector store registry
     with patch.object(gateway, "vector_store_registry", mock_registry):
-        result = await _update_request_data_with_litellm_managed_vector_store_registry(
+        result = await _update_request_data_with_gateway_managed_vector_store_registry(
             data=data, vector_store_id=vector_store_id
         )
 
@@ -611,7 +611,7 @@ async def test_update_request_data_with_litellm_managed_vector_store_registry():
         assert result["aws_region_name"] == "us-east-1"
 
         # Verify registry was called correctly
-        mock_registry.get_litellm_managed_vector_store_from_registry.assert_called_once_with(
+        mock_registry.get_gateway_managed_vector_store_from_registry.assert_called_once_with(
             vector_store_id="test_store_id"
         )
 
@@ -621,7 +621,7 @@ async def test_update_request_data_with_litellm_managed_vector_store_registry():
         patch("token_iq.gateway.proxy.proxy_server.prisma_client", None),
     ):
         original_data = {"existing_key": "existing_value"}
-        result = await _update_request_data_with_litellm_managed_vector_store_registry(
+        result = await _update_request_data_with_gateway_managed_vector_store_registry(
             data=original_data, vector_store_id=vector_store_id
         )
 
@@ -641,10 +641,10 @@ async def test_managed_vector_store_keeps_embedding_reference_and_explicit_confi
         },
     }
     mock_registry = MagicMock()
-    mock_registry.get_litellm_managed_vector_store_from_registry.return_value = managed_vector_store
+    mock_registry.get_gateway_managed_vector_store_from_registry.return_value = managed_vector_store
 
     with patch.object(gateway, "vector_store_registry", mock_registry):
-        result = await _update_request_data_with_litellm_managed_vector_store_registry(
+        result = await _update_request_data_with_gateway_managed_vector_store_registry(
             data={},
             vector_store_id="test_store",
         )
@@ -1102,7 +1102,7 @@ class TestIsAllowedToCallVectorStoreEndpoint:
         mock_request.url.path = "/azure_ai/indexes/my-index"
 
         mock_user_api_key = MagicMock(spec=UserAPIKeyAuth)
-        mock_user_api_key.user_role = LitellmUserRoles.PROXY_ADMIN
+        mock_user_api_key.user_role = GatewayUserRoles.PROXY_ADMIN
 
         mock_provider_config = MagicMock()
         mock_provider_config.get_vector_store_endpoints_by_type.return_value = {
@@ -1326,7 +1326,7 @@ class TestIndexCreate:
                 user_api_key_dict=UserAPIKeyAuth(
                     token="sk-test",
                     key_name="sk-...test",
-                    user_role=LitellmUserRoles.INTERNAL_USER,
+                    user_role=GatewayUserRoles.INTERNAL_USER,
                 ),
             )
 
@@ -1370,7 +1370,7 @@ class TestIndexCreate:
                 user_api_key_dict=UserAPIKeyAuth(
                     token="sk-test",
                     key_name="sk-...test",
-                    user_role=LitellmUserRoles.PROXY_ADMIN,
+                    user_role=GatewayUserRoles.PROXY_ADMIN,
                     user_id="admin-user",
                 ),
             )
@@ -1384,7 +1384,7 @@ class TestIndexList:
         return UserAPIKeyAuth(
             token="sk-test",
             key_name="sk-...test",
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
             user_id="admin-user",
         )
 
@@ -1415,7 +1415,7 @@ class TestIndexList:
                     user_api_key_dict=UserAPIKeyAuth(
                         token="sk-test",
                         key_name="sk-...test",
-                        user_role=LitellmUserRoles.INTERNAL_USER,
+                        user_role=GatewayUserRoles.INTERNAL_USER,
                     )
                 )
 
@@ -1736,7 +1736,7 @@ async def test_vector_store_synchronization_across_instances():
 
     # Verify it's in Instance 1's memory
     assert (
-        instance_1_registry.get_litellm_managed_vector_store_from_registry(
+        instance_1_registry.get_gateway_managed_vector_store_from_registry(
             test_vector_store_id
         )
         is not None
@@ -1751,7 +1751,7 @@ async def test_vector_store_synchronization_across_instances():
     # Step 2: Instance 2 should be able to find it via database fallback
     # (Simulate what happens in pop_vector_stores_to_run_with_db_fallback)
     found_store = (
-        await instance_2_registry.get_litellm_managed_vector_store_from_registry_or_db(
+        await instance_2_registry.get_gateway_managed_vector_store_from_registry_or_db(
             vector_store_id=test_vector_store_id, prisma_client=mock_prisma_client
         )
     )
@@ -1760,7 +1760,7 @@ async def test_vector_store_synchronization_across_instances():
 
     # Verify it's now cached in Instance 2's memory
     assert (
-        instance_2_registry.get_litellm_managed_vector_store_from_registry(
+        instance_2_registry.get_gateway_managed_vector_store_from_registry(
             test_vector_store_id
         )
         is not None
@@ -1795,7 +1795,7 @@ async def test_vector_store_synchronization_across_instances():
 
     # After cleanup, instance 2 should still have the vector store (it's in DB)
     assert (
-        instance_2_registry.get_litellm_managed_vector_store_from_registry(
+        instance_2_registry.get_gateway_managed_vector_store_from_registry(
             test_vector_store_id
         )
         is not None
@@ -1812,7 +1812,7 @@ async def test_vector_store_synchronization_across_instances():
 
     # Verify it's removed from Instance 1's memory
     assert (
-        instance_1_registry.get_litellm_managed_vector_store_from_registry(
+        instance_1_registry.get_gateway_managed_vector_store_from_registry(
             test_vector_store_id
         )
         is None
@@ -1857,7 +1857,7 @@ async def test_vector_store_synchronization_across_instances():
 
     # Verify it was removed from Instance 2's cache
     assert (
-        instance_2_registry.get_litellm_managed_vector_store_from_registry(
+        instance_2_registry.get_gateway_managed_vector_store_from_registry(
             test_vector_store_id
         )
         is None
@@ -1989,10 +1989,10 @@ async def test_vector_store_update_and_list_synchronization():
             instance_2_registry.add_vector_store_to_registry(vector_store=vs)
 
     # Verify both instances have the original data
-    instance_1_vs = instance_1_registry.get_litellm_managed_vector_store_from_registry(
+    instance_1_vs = instance_1_registry.get_gateway_managed_vector_store_from_registry(
         test_vector_store_id
     )
-    instance_2_vs = instance_2_registry.get_litellm_managed_vector_store_from_registry(
+    instance_2_vs = instance_2_registry.get_gateway_managed_vector_store_from_registry(
         test_vector_store_id
     )
     assert instance_1_vs.get("vector_store_name") == original_name
@@ -2014,7 +2014,7 @@ async def test_vector_store_update_and_list_synchronization():
 
     # Verify Instance 1 has the updated data
     instance_1_vs_after_update = (
-        instance_1_registry.get_litellm_managed_vector_store_from_registry(
+        instance_1_registry.get_gateway_managed_vector_store_from_registry(
             test_vector_store_id
         )
     )
@@ -2022,7 +2022,7 @@ async def test_vector_store_update_and_list_synchronization():
 
     # Verify Instance 2 still has stale data in cache
     instance_2_vs_before_list = (
-        instance_2_registry.get_litellm_managed_vector_store_from_registry(
+        instance_2_registry.get_gateway_managed_vector_store_from_registry(
             test_vector_store_id
         )
     )
@@ -2052,7 +2052,7 @@ async def test_vector_store_update_and_list_synchronization():
 
     # Step 5: Verify Instance 2 now has the updated data
     instance_2_vs_after_list = (
-        instance_2_registry.get_litellm_managed_vector_store_from_registry(
+        instance_2_registry.get_gateway_managed_vector_store_from_registry(
             test_vector_store_id
         )
     )
@@ -2124,14 +2124,14 @@ async def test_new_vector_store_persists_embedding_reference_without_credentials
         result = await new_vector_store(vector_store=vector_store_data, user_api_key_dict=mock_user_api_key)
 
     assert result["status"] == "success"
-    litellm_params_json = captured_create_data.get("litellm_params")
-    assert litellm_params_json is not None
-    litellm_params_dict = json.loads(litellm_params_json)
-    assert "litellm_embedding_config" not in litellm_params_dict
-    assert litellm_params_dict["litellm_embedding_model"] == "text-embedding-ada-002"
+    gateway_params_json = captured_create_data.get("litellm_params")
+    assert gateway_params_json is not None
+    gateway_params_dict = json.loads(gateway_params_json)
+    assert "litellm_embedding_config" not in gateway_params_dict
+    assert gateway_params_dict["litellm_embedding_model"] == "text-embedding-ada-002"
 
     response_vs = result["vector_store"]
-    assert "api_key" not in _serialize_litellm_params(response_vs.get("litellm_params"))
+    assert "api_key" not in _serialize_gateway_params(response_vs.get("litellm_params"))
 
 
 @pytest.mark.asyncio
@@ -2156,13 +2156,13 @@ async def test_new_vector_store_auto_resolves_from_router():
 
     # Mock router with the model
     mock_router = MagicMock()
-    mock_litellm_params = MagicMock(spec=LiteLLM_Params)
-    mock_litellm_params.api_key = "router-resolved-api-key"
-    mock_litellm_params.api_base = "https://router-resolved-base.com"
-    mock_litellm_params.api_version = "2024-03-01"
+    mock_gateway_params = MagicMock(spec=LiteLLM_Params)
+    mock_gateway_params.api_key = "router-resolved-api-key"
+    mock_gateway_params.api_base = "https://router-resolved-base.com"
+    mock_gateway_params.api_version = "2024-03-01"
 
     mock_deployment = MagicMock(spec=Deployment)
-    mock_deployment.litellm_params = mock_litellm_params
+    mock_deployment.litellm_params = mock_gateway_params
 
     mock_router.get_deployment_by_model_group_name.return_value = mock_deployment
 
@@ -2208,14 +2208,14 @@ async def test_new_vector_store_auto_resolves_from_router():
     # Resolution against the router happens at request-handling time now,
     # not at row creation. The persisted ``litellm_params`` carries only
     # the model reference, never the cleartext credential.
-    litellm_params_json = captured_create_data.get("litellm_params")
-    assert litellm_params_json is not None
-    litellm_params_dict = json.loads(litellm_params_json)
-    assert "litellm_embedding_config" not in litellm_params_dict
-    assert litellm_params_dict["litellm_embedding_model"] == "config-embedding-model"
+    gateway_params_json = captured_create_data.get("litellm_params")
+    assert gateway_params_json is not None
+    gateway_params_dict = json.loads(gateway_params_json)
+    assert "litellm_embedding_config" not in gateway_params_dict
+    assert gateway_params_dict["litellm_embedding_model"] == "config-embedding-model"
 
     response_vs = result["vector_store"]
-    assert "router-resolved-api-key" not in _serialize_litellm_params(
+    assert "router-resolved-api-key" not in _serialize_gateway_params(
         response_vs.get("litellm_params")
     )
 
@@ -2417,7 +2417,7 @@ async def test_create_vector_store_in_db_raises_when_no_db():
     assert "database not connected" in exc_info.value.detail.lower()
 
 
-class TestRedactSensitiveLitellmParams:
+class TestRedactSensitiveGatewayParams:
     """
     ``litellm_params`` on a managed vector store carries the upstream
     provider credential (OpenAI ``api_key``, AWS ``aws_secret_access_key``,
@@ -2471,7 +2471,7 @@ class TestRedactSensitiveLitellmParams:
         assert _redact_sensitive_litellm_params(None) is None
         assert _redact_sensitive_litellm_params({}) == {}
 
-    def test_redaction_does_not_mutate_input_litellm_params(self):
+    def test_redaction_does_not_mutate_input_gateway_params(self):
         from token_iq.gateway.proxy.vector_store_endpoints.management_endpoints import (
             _redact_sensitive_litellm_params,
         )
@@ -2515,7 +2515,7 @@ class TestRedactSensitiveLitellmParams:
         assert out["api_base"] == "https://api.openai.com/v1"
         assert out["model"] == "openai/text-embedding-3-large"
 
-    def test_redacts_json_string_litellm_params(self):
+    def test_redacts_json_string_gateway_params(self):
         """
         The in-memory registry occasionally holds ``litellm_params`` as a
         JSON-serialized string rather than a dict. The redactor must parse,
@@ -2540,7 +2540,7 @@ class TestRedactSensitiveLitellmParams:
         assert parsed["api_key"] == REDACTED_BY_LITELM_STRING
         assert parsed["api_base"] == "https://api.openai.com/v1"
 
-    def test_redacts_unparseable_string_litellm_params(self):
+    def test_redacts_unparseable_string_gateway_params(self):
         """
         If ``litellm_params`` is a string that isn't valid JSON, the
         redactor must NOT echo the value back verbatim — it could contain
@@ -2620,7 +2620,7 @@ class TestUpdateVectorStoreAccessControlAndRedaction:
         mock_prisma_client.db.litellm_managedvectorstorestable.update.assert_not_called()
 
     @pytest.mark.asyncio
-    async def test_update_response_redacts_litellm_params(self):
+    async def test_update_response_redacts_gateway_params(self):
         from unittest.mock import AsyncMock, MagicMock, patch
 
         from token_iq.gateway.constants import REDACTED_BY_LITELM_STRING
@@ -2939,7 +2939,7 @@ def test_vector_store_search_rejects_caller_embedding_selection_params(blocked_k
     from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
     from token_iq.gateway.proxy.proxy_server import app
 
-    mock_auth = UserAPIKeyAuth(user_id="test_internal_user", user_role=LitellmUserRoles.INTERNAL_USER.value)
+    mock_auth = UserAPIKeyAuth(user_id="test_internal_user", user_role=GatewayUserRoles.INTERNAL_USER.value)
     original_overrides = app.dependency_overrides.copy()
     app.dependency_overrides[user_api_key_auth] = lambda: mock_auth
     try:
@@ -3013,9 +3013,9 @@ class TestVectorStoreCredentialAttachmentRequiresProxyAdmin:
     @pytest.mark.parametrize(
         "user_role",
         [
-            LitellmUserRoles.INTERNAL_USER,
-            LitellmUserRoles.INTERNAL_USER_VIEW_ONLY,
-            LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY,
+            GatewayUserRoles.INTERNAL_USER,
+            GatewayUserRoles.INTERNAL_USER_VIEW_ONLY,
+            GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY,
             None,
         ],
     )
@@ -3068,7 +3068,7 @@ class TestVectorStoreCredentialAttachmentRequiresProxyAdmin:
                 },
                 user_api_key_dict=UserAPIKeyAuth(
                     user_id="fake-admin",
-                    user_role=LitellmUserRoles.PROXY_ADMIN,
+                    user_role=GatewayUserRoles.PROXY_ADMIN,
                 ),
             )
 
@@ -3095,7 +3095,7 @@ class TestVectorStoreCredentialAttachmentRequiresProxyAdmin:
                 },
                 user_api_key_dict=UserAPIKeyAuth(
                     user_id="fake-user",
-                    user_role=LitellmUserRoles.INTERNAL_USER,
+                    user_role=GatewayUserRoles.INTERNAL_USER,
                 ),
             )
 
@@ -3135,7 +3135,7 @@ class TestVectorStoreCredentialAttachmentRequiresProxyAdmin:
                     user_api_key_dict=UserAPIKeyAuth(
                         user_id="fake-user",
                         team_id="team-fake",
-                        user_role=LitellmUserRoles.INTERNAL_USER,
+                        user_role=GatewayUserRoles.INTERNAL_USER,
                     ),
                 )
 
@@ -3182,7 +3182,7 @@ class TestVectorStoreCredentialAttachmentRequiresProxyAdmin:
                     user_api_key_dict=UserAPIKeyAuth(
                         user_id="fake-user",
                         team_id="team-fake",
-                        user_role=LitellmUserRoles.INTERNAL_USER,
+                        user_role=GatewayUserRoles.INTERNAL_USER,
                     ),
                 )
 
@@ -3221,7 +3221,7 @@ class TestVectorStoreCredentialAttachmentRequiresProxyAdmin:
                 ),
                 user_api_key_dict=UserAPIKeyAuth(
                     user_id="fake-admin",
-                    user_role=LitellmUserRoles.PROXY_ADMIN,
+                    user_role=GatewayUserRoles.PROXY_ADMIN,
                 ),
             )
 
@@ -3261,7 +3261,7 @@ class TestVectorStoreCredentialAttachmentRequiresProxyAdmin:
                 user_api_key_dict=UserAPIKeyAuth(
                     user_id="fake-user",
                     team_id="team-fake",
-                    user_role=LitellmUserRoles.INTERNAL_USER,
+                    user_role=GatewayUserRoles.INTERNAL_USER,
                 ),
             )
 
@@ -3298,7 +3298,7 @@ class TestVectorStoreCredentialAttachmentRequiresProxyAdmin:
                 ),
                 user_api_key_dict=UserAPIKeyAuth(
                     user_id="fake-admin",
-                    user_role=LitellmUserRoles.PROXY_ADMIN,
+                    user_role=GatewayUserRoles.PROXY_ADMIN,
                 ),
             )
 

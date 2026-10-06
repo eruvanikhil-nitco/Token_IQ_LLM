@@ -12,7 +12,7 @@ from tests.unified_google_tests.base_interactions_test import (
 )
 
 
-class TestLiteLLMResponsesBridge(BaseInteractionsTest):
+class TestGatewayResponsesBridge(BaseInteractionsTest):
     """Test LiteLLM Responses bridge using the base test suite."""
 
     def get_model(self) -> str:

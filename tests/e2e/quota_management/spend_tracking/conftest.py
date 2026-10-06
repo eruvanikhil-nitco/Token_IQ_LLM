@@ -19,13 +19,13 @@ from typing import Iterator
 
 import pytest
 
-from models import LiteLLMParamsBody
+from models import GatewayParamsBody
 from spend_e2e_client import SpendClient, build_client
 from proxy_client import ProxyClient
 
 
-def _driver_params(provider_model: str, env_var: str) -> LiteLLMParamsBody:
-    return LiteLLMParamsBody(
+def _driver_params(provider_model: str, env_var: str) -> GatewayParamsBody:
+    return GatewayParamsBody(
         model=provider_model,
         api_key=os.environ.get(env_var) or f"os.environ/{env_var}",
     )

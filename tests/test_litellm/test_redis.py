@@ -623,7 +623,7 @@ def test_async_only_kwargs_in_cluster_kwargs_when_async_client_requested():
 
 
 @patch(  # test-quality-ok: redis-py >= 6 keeps no cluster_error_retry_attempts attribute on the built client, so the constructor call is the only place the value is observable
-    "token_iq.gateway.caching.redis_cluster_node_isolation.get_litellm_async_redis_cluster_class"
+    "token_iq.gateway.caching.redis_cluster_node_isolation.get_gateway_async_redis_cluster_class"
 )
 def test_async_cluster_forwards_retry_attempts(mock_get_cluster_class):
     """Regression: cluster_error_retry_attempts must reach the constructed async
@@ -667,7 +667,7 @@ def test_cluster_kwargs_exclude_variadic_parameters(cluster_client):
     assert not leaked, f"variadic params leaked into the allow-list: {leaked}"
 
 
-@patch("token_iq.gateway.caching.redis_cluster_node_isolation.get_litellm_async_redis_cluster_class")
+@patch("token_iq.gateway.caching.redis_cluster_node_isolation.get_gateway_async_redis_cluster_class")
 def test_async_cluster_sets_reconnect_defaults(mock_get_cluster_class):
     """
     The async RedisCluster client must be built with a periodic health check and
@@ -685,7 +685,7 @@ def test_async_cluster_sets_reconnect_defaults(mock_get_cluster_class):
     assert call_kwargs["socket_keepalive"] is True
 
 
-@patch("token_iq.gateway.caching.redis_cluster_node_isolation.get_litellm_async_redis_cluster_class")
+@patch("token_iq.gateway.caching.redis_cluster_node_isolation.get_gateway_async_redis_cluster_class")
 def test_async_cluster_reconnect_defaults_are_overridable(mock_get_cluster_class):
     """An explicit health_check_interval / socket_keepalive from config must win
     over the built-in reconnect defaults."""
@@ -843,7 +843,7 @@ def test_get_redis_async_client_gcp_cluster_uses_credential_provider():
 
     with (
         patch(
-            "token_iq.gateway.caching.redis_cluster_node_isolation.get_litellm_async_redis_cluster_class"
+            "token_iq.gateway.caching.redis_cluster_node_isolation.get_gateway_async_redis_cluster_class"
         ) as mock_get_cluster_class,
         patch("token_iq.gateway._redis._get_redis_client_logic", return_value=redis_kwargs),
     ):
@@ -878,7 +878,7 @@ def test_sync_client_prefers_cluster_over_url(mock_init_cluster, monkeypatch):
     assert "startup_nodes" in call_kwargs, "startup_nodes must be forwarded to init_redis_cluster"
 
 
-@patch("token_iq.gateway.caching.redis_cluster_node_isolation.get_litellm_async_redis_cluster_class")
+@patch("token_iq.gateway.caching.redis_cluster_node_isolation.get_gateway_async_redis_cluster_class")
 def test_async_client_prefers_cluster_over_url(mock_get_cluster_class, monkeypatch):
     """
     Test (1) get_redis_async_client returns async RedisCluster when startup_nodes is present
@@ -896,7 +896,7 @@ def test_async_client_prefers_cluster_over_url(mock_get_cluster_class, monkeypat
     assert len(call_kwargs["startup_nodes"]) == 1, "should forward exactly 1 cluster node"
 
 
-@patch("token_iq.gateway.caching.redis_cluster_node_isolation.get_litellm_async_redis_cluster_class")
+@patch("token_iq.gateway.caching.redis_cluster_node_isolation.get_gateway_async_redis_cluster_class")
 def test_async_client_prefers_cluster_over_url_via_env_var(mock_get_cluster_class, monkeypatch):
     """
     Test get_redis_async_client returns async RedisCluster when REDIS_CLUSTER_NODES is set

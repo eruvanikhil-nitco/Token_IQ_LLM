@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, Mock, patch
 import httpx
 import pytest
 from token_iq import gateway
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 
 # Import the class we're testing
 from token_iq.gateway.proxy.pass_through_endpoints.llm_provider_handlers.anthropic_passthrough_logging_handler import (
@@ -44,7 +44,7 @@ def mock_httpx_response():
 
 @pytest.fixture
 def mock_logging_obj():
-    logging_obj = LiteLLMLoggingObj(
+    logging_obj = GatewayLoggingObj(
         model="claude-opus-4-7",
         messages=[],
         stream=False,
@@ -95,7 +95,7 @@ def test_create_anthropic_response_logging_payload(mock_logging_obj, metadata_pa
     end_time = datetime.now()
 
     result = AnthropicPassthroughLoggingHandler._create_anthropic_response_logging_payload(
-        litellm_model_response=model_response,
+        gateway_model_response=model_response,
         model="claude-opus-4-7",
         kwargs={
             "litellm_params": {

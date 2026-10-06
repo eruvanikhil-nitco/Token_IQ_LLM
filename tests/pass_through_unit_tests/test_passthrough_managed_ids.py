@@ -1232,7 +1232,7 @@ class TestRewriteBodyIds:
         assert result["input_file_id"] == "file-xyz"  # type: ignore[index]
 
     @pytest.mark.asyncio
-    async def test_litellm_internal_key_preserved(self):
+    async def test_gateway_internal_key_preserved(self):
         """litellm_logging_obj and similar keys are never walked."""
         logging_obj = object()
         body = {"litellm_logging_obj": logging_obj, "model": "gpt-4o"}

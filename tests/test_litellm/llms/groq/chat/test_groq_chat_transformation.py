@@ -95,7 +95,7 @@ class TestGroqWebSearchOptions:
         assert "tools" not in optional_params
 
     def test_ignored_fields_logged_as_info(self, caplog: pytest.LogCaptureFixture):
-        with caplog.at_level(logging.INFO, logger="LiteLLM"):
+        with caplog.at_level(logging.INFO, logger="Gateway"):
             get_optional_params(
                 model="openai/gpt-oss-20b",
                 custom_llm_provider="groq",
@@ -111,7 +111,7 @@ class TestGroqWebSearchOptions:
         assert "enabled" in ignored_fields_records[0].message
 
     def test_empty_options_log_nothing(self, caplog: pytest.LogCaptureFixture):
-        with caplog.at_level(logging.INFO, logger="LiteLLM"):
+        with caplog.at_level(logging.INFO, logger="Gateway"):
             get_optional_params(
                 model="openai/gpt-oss-20b",
                 custom_llm_provider="groq",

@@ -9,7 +9,7 @@ from fastapi import HTTPException
 from typing_extensions import ReadOnly, TypedDict
 
 from token_iq.gateway._logging import verbose_proxy_logger
-from token_iq.gateway.exceptions import Timeout as LiteLLMTimeout
+from token_iq.gateway.exceptions import Timeout as GatewayTimeout
 from token_iq.gateway.integrations.custom_guardrail import (
     CustomGuardrail,
     log_guardrail_information,
@@ -22,7 +22,7 @@ from token_iq.gateway.types.guardrails import GuardrailEventHooks
 from token_iq.gateway.types.utils import GenericGuardrailAPIInputs
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
     from token_iq.gateway.types.proxy.guardrails.guardrail_hooks.base import GuardrailConfigModel
 
 
@@ -136,7 +136,7 @@ class PromptSecurityGuardrail(CustomGuardrail):
         inputs: GenericGuardrailAPIInputs,
         request_data: dict,
         input_type: Literal["request", "response"],
-        logging_obj: Optional["LiteLLMLoggingObj"] = None,
+        logging_obj: Optional["GatewayLoggingObj"] = None,
     ) -> GenericGuardrailAPIInputs:
         """
         Apply Prompt Security guardrail to the given inputs.
@@ -418,7 +418,7 @@ class PromptSecurityGuardrail(CustomGuardrail):
                 self._sanitize_file_content(file_data, filename, user_api_key_alias),
                 timeout=self.file_sanitization_timeout,
             )
-        except (asyncio.TimeoutError, httpx.TimeoutException, LiteLLMTimeout) as exc:
+        except (asyncio.TimeoutError, httpx.TimeoutException, GatewayTimeout) as exc:
             if not self.file_sanitization_fail_open:
                 verbose_proxy_logger.error(
                     "Prompt Security Guardrail: file sanitization for %s timed out with %s; failing closed",

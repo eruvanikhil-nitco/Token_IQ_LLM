@@ -159,7 +159,7 @@ class ToolPermissionGuardrail(CustomGuardrail):
         self._compiled_rule_targets = compiled_targets
         self._compiled_rule_patterns = compiled_patterns
 
-    def update_in_memory_litellm_params(self, litellm_params: LitellmParams | dict) -> None:
+    def update_in_memory_gateway_params(self, litellm_params: LitellmParams | dict) -> None:
         """Apply updated params in place, rebuilding the compiled rule state.
 
         The base implementation only ``setattr``s raw fields, which would leave
@@ -178,7 +178,7 @@ class ToolPermissionGuardrail(CustomGuardrail):
             for key, value in params.items():
                 setattr(self, key, value)
         else:
-            super().update_in_memory_litellm_params(litellm_params)
+            super().update_in_memory_gateway_params(litellm_params)
             params = vars(litellm_params)
 
         # The generic update above sets ``self.rules`` from the incoming value

@@ -208,12 +208,12 @@ class TestPromptVersionsEndpoint:
         """
         from unittest.mock import patch
 
-        from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+        from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
         from token_iq.gateway.proxy.prompts.prompt_endpoints import get_prompt_versions
 
         # Mock user with admin role
         mock_user = UserAPIKeyAuth(
-            api_key="test_key", user_role=LitellmUserRoles.PROXY_ADMIN
+            api_key="test_key", user_role=GatewayUserRoles.PROXY_ADMIN
         )
 
         # Create mock prompt registry with multiple versions
@@ -297,11 +297,11 @@ class TestPromptVersionsEndpoint:
 
         from fastapi import HTTPException
 
-        from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+        from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
         from token_iq.gateway.proxy.prompts.prompt_endpoints import get_prompt_versions
 
         mock_user = UserAPIKeyAuth(
-            api_key="test_key", user_role=LitellmUserRoles.PROXY_ADMIN
+            api_key="test_key", user_role=GatewayUserRoles.PROXY_ADMIN
         )
 
         with (
@@ -331,11 +331,11 @@ class TestAdminViewerReadAccess:
         """A role without admin view falls through to the empty-list branch here."""
         from unittest.mock import patch
 
-        from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+        from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
         from token_iq.gateway.proxy.prompts.prompt_endpoints import list_prompts
 
         viewer = UserAPIKeyAuth(
-            api_key="test_key", user_role=LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY
+            api_key="test_key", user_role=GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY
         )
 
         mock_prompts = {
@@ -384,11 +384,11 @@ class TestAdminViewerReadAccess:
         """Version history used to 403 anyone who was not exactly proxy_admin."""
         from unittest.mock import patch
 
-        from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+        from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
         from token_iq.gateway.proxy.prompts.prompt_endpoints import get_prompt_versions
 
         viewer = UserAPIKeyAuth(
-            api_key="test_key", user_role=LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY
+            api_key="test_key", user_role=GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY
         )
 
         mock_prompts = {
@@ -431,11 +431,11 @@ class TestAdminViewerReadAccess:
         """Prompt info used to 403 anyone who was not exactly proxy_admin."""
         from unittest.mock import patch
 
-        from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+        from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
         from token_iq.gateway.proxy.prompts.prompt_endpoints import get_prompt_info
 
         viewer = UserAPIKeyAuth(
-            api_key="test_key", user_role=LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY
+            api_key="test_key", user_role=GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY
         )
 
         with (

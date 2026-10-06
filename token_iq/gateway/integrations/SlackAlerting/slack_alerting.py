@@ -44,7 +44,7 @@ from token_iq.gateway.proxy._types import (
     CallInfo,
     InvitationModel,
     InvitationNew,
-    Litellm_EntityType,
+    Gateway_EntityType,
     UserAPIKeyAuth,
     VirtualKeyEvent,
     WebhookEvent,
@@ -679,7 +679,7 @@ class SlackAlerting(CustomBatchLogger):
         _all_fields_as_dict.pop("token")
         msg = ""
         for k, v in _all_fields_as_dict.items():
-            if isinstance(v, Litellm_EntityType):
+            if isinstance(v, Gateway_EntityType):
                 v = v.value
             msg += f"*{k}:* `{v}`\n"
 
@@ -713,7 +713,7 @@ class SlackAlerting(CustomBatchLogger):
                 projected_exceeded_date=None,
                 projected_spend=None,
                 event="spend_tracked",
-                event_group=Litellm_EntityType.END_USER,
+                event_group=Gateway_EntityType.END_USER,
                 event_message=f"Customer spend tracked. Customer={end_user_id}, spend={response_cost}",
             )
 
@@ -1407,7 +1407,7 @@ Model Info:
             subject=email_event["subject"],
             html=email_event["html"],
         )
-        if webhook_event.event_group == Litellm_EntityType.TEAM:
+        if webhook_event.event_group == Gateway_EntityType.TEAM:
             from token_iq.gateway.integrations.email_alerting import send_team_budget_alert
 
             await send_team_budget_alert(webhook_event=webhook_event)
@@ -1707,8 +1707,8 @@ Model Info:
 
     async def async_log_failure_event(self, kwargs, response_obj, start_time, end_time):
         """Log failure + deployment latency"""
-        _litellm_params: Final = kwargs.get("litellm_params", {})
-        _model_info: Final = _litellm_params.get("model_info", {}) or {}
+        _gateway_params: Final = kwargs.get("litellm_params", {})
+        _model_info: Final = _gateway_params.get("model_info", {}) or {}
         model_id: Final = _model_info.get("id", "")
         try:
             if "daily_reports" in self.alert_types:

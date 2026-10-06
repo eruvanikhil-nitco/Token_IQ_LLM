@@ -5,7 +5,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from token_iq.gateway.constants import REDACTED_BY_LITELM_STRING
-from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
 from token_iq.gateway.proxy.agent_endpoints import endpoints as agent_endpoints
 from token_iq.gateway.proxy.agent_endpoints.auth.agent_permission_handler import (
     RestrictedAgentAccess,
@@ -54,7 +54,7 @@ def _sample_agent_response(
     )
 
 
-def _make_app_with_role(role: LitellmUserRoles) -> TestClient:
+def _make_app_with_role(role: GatewayUserRoles) -> TestClient:
     """Create a TestClient where the auth dependency returns the given role."""
     test_app = FastAPI()
     test_app.include_router(router)
@@ -67,7 +67,7 @@ def _make_app_with_role(role: LitellmUserRoles) -> TestClient:
 app = FastAPI()
 app.include_router(router)
 app.dependency_overrides[user_api_key_auth] = lambda: UserAPIKeyAuth(
-    user_id="test-user", user_role=LitellmUserRoles.PROXY_ADMIN
+    user_id="test-user", user_role=GatewayUserRoles.PROXY_ADMIN
 )
 client = TestClient(app)
 
@@ -82,7 +82,7 @@ def mock_prisma_client():
 def mock_user_api_key_auth():
     with patch("token_iq.gateway.proxy.agent_endpoints.endpoints.user_api_key_auth") as mock:
         mock.return_value = UserAPIKeyAuth(
-            user_id="test-user", user_role=LitellmUserRoles.PROXY_ADMIN
+            user_id="test-user", user_role=GatewayUserRoles.PROXY_ADMIN
         )
         yield mock
 
@@ -214,7 +214,7 @@ async def test_get_agent_daily_activity_admin_param_passing(monkeypatch):
     get_daily_activity_mock = AsyncMock(return_value=mocked_response)
     monkeypatch.setattr(agent_endpoints, "get_daily_activity", get_daily_activity_mock)
 
-    auth = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin1")
+    auth = UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin1")
     result = await get_agent_daily_activity(
         agent_ids="agent-1,agent-2",
         start_date="2024-01-01",
@@ -261,7 +261,7 @@ async def test_get_agent_daily_activity_with_agent_names(monkeypatch):
     get_daily_activity_mock = AsyncMock(return_value=mocked_response)
     monkeypatch.setattr(agent_endpoints, "get_daily_activity", get_daily_activity_mock)
 
-    auth = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin1")
+    auth = UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin1")
     await get_agent_daily_activity(
         agent_ids="agent-1,agent-2",
         start_date="2024-01-01",
@@ -338,7 +338,7 @@ class TestAgentByIdKeyRedaction:
         )
         monkeypatch.setattr(agent_endpoints, "AGENT_REGISTRY", self.mock_registry)
 
-    def _get_as(self, role: LitellmUserRoles):
+    def _get_as(self, role: GatewayUserRoles):
         key_row = MagicMock()
         key_row.token = "hash-aaa"
         key_row.agent_id = "agent-123"
@@ -358,7 +358,7 @@ class TestAgentByIdKeyRedaction:
             )
 
     def test_admin_sees_attached_keys(self):
-        resp = self._get_as(LitellmUserRoles.PROXY_ADMIN)
+        resp = self._get_as(GatewayUserRoles.PROXY_ADMIN)
         assert resp.status_code == 200
         keys = resp.json()["keys"]
         assert keys is not None
@@ -369,7 +369,7 @@ class TestAgentByIdKeyRedaction:
         }
 
     def test_non_admin_never_sees_keys(self):
-        resp = self._get_as(LitellmUserRoles.INTERNAL_USER)
+        resp = self._get_as(GatewayUserRoles.INTERNAL_USER)
         assert resp.status_code == 200
         assert resp.json()["keys"] is None
 
@@ -380,7 +380,7 @@ class TestAgentByIdKeyRedaction:
             "token_iq.gateway.proxy.agent_endpoints.auth.agent_permission_handler.AgentRequestHandler.is_agent_allowed",
             AsyncMock(return_value=False),
         ):
-            resp = self._get_as(LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY)
+            resp = self._get_as(GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY)
         assert resp.status_code == 200
         assert resp.json()["keys"] is None
 
@@ -393,7 +393,7 @@ class TestAgentRBACInternalUser:
 
     @pytest.fixture(autouse=True)
     def _setup(self, monkeypatch):
-        self.internal_client = _make_app_with_role(LitellmUserRoles.INTERNAL_USER)
+        self.internal_client = _make_app_with_role(GatewayUserRoles.INTERNAL_USER)
         self.mock_registry = MagicMock()
         monkeypatch.setattr(agent_endpoints, "AGENT_REGISTRY", self.mock_registry)
 
@@ -458,7 +458,7 @@ class TestAgentRBACInternalUserViewOnly:
     @pytest.fixture(autouse=True)
     def _setup(self, monkeypatch):
         self.viewer_client = _make_app_with_role(
-            LitellmUserRoles.INTERNAL_USER_VIEW_ONLY
+            GatewayUserRoles.INTERNAL_USER_VIEW_ONLY
         )
         self.mock_registry = MagicMock()
         monkeypatch.setattr(agent_endpoints, "AGENT_REGISTRY", self.mock_registry)
@@ -499,8 +499,8 @@ class TestAgentRBACProxyAdminViewOnly:
     def _setup(self, monkeypatch):
         from token_iq.gateway.proxy.agent_endpoints import agent_registry as ar_mod
 
-        self.viewer_client = _make_app_with_role(LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY)
-        self.admin_client = _make_app_with_role(LitellmUserRoles.PROXY_ADMIN)
+        self.viewer_client = _make_app_with_role(GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY)
+        self.admin_client = _make_app_with_role(GatewayUserRoles.PROXY_ADMIN)
         self.agents = [
             AgentResponse(
                 agent_id=f"agent-{index}",
@@ -571,7 +571,7 @@ class TestAgentRBACProxyAdmin:
 
     @pytest.fixture(autouse=True)
     def _setup(self, monkeypatch):
-        self.admin_client = _make_app_with_role(LitellmUserRoles.PROXY_ADMIN)
+        self.admin_client = _make_app_with_role(GatewayUserRoles.PROXY_ADMIN)
         self.mock_registry = MagicMock()
         monkeypatch.setattr(agent_endpoints, "AGENT_REGISTRY", self.mock_registry)
 
@@ -589,7 +589,7 @@ class TestAgentRBACProxyAdmin:
             )
             assert resp.status_code == 200
 
-    def test_create_agent_applies_litellm_merge_to_stored_card(self):
+    def test_create_agent_applies_gateway_merge_to_stored_card(self):
         """The card stored in the DB must reflect the LiteLLM-fronting merge."""
         with patch("token_iq.gateway.proxy.proxy_server.prisma_client"):
             self.mock_registry.get_agent_by_name = MagicMock(return_value=None)
@@ -746,7 +746,7 @@ class TestAgentProtocolVersionValidation:
 
     @pytest.fixture(autouse=True)
     def _setup(self, monkeypatch):
-        self.admin_client = _make_app_with_role(LitellmUserRoles.PROXY_ADMIN)
+        self.admin_client = _make_app_with_role(GatewayUserRoles.PROXY_ADMIN)
         self.mock_registry = MagicMock()
         monkeypatch.setattr(agent_endpoints, "AGENT_REGISTRY", self.mock_registry)
 
@@ -791,15 +791,15 @@ class TestCheckAgentManagementPermission:
     """Unit tests for the _check_agent_management_permission helper."""
 
     def test_should_allow_proxy_admin(self):
-        auth = UserAPIKeyAuth(user_id="admin", user_role=LitellmUserRoles.PROXY_ADMIN)
+        auth = UserAPIKeyAuth(user_id="admin", user_role=GatewayUserRoles.PROXY_ADMIN)
         _check_agent_management_permission(auth)
 
     @pytest.mark.parametrize(
         "role",
         [
-            LitellmUserRoles.INTERNAL_USER,
-            LitellmUserRoles.INTERNAL_USER_VIEW_ONLY,
-            LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY,
+            GatewayUserRoles.INTERNAL_USER,
+            GatewayUserRoles.INTERNAL_USER_VIEW_ONLY,
+            GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY,
         ],
     )
     def test_should_block_non_admin_roles(self, role):
@@ -815,9 +815,9 @@ class TestAgentRoutesIncludesAgentIdPattern:
     """Verify that agent_routes includes the {agent_id} pattern for route access."""
 
     def test_should_include_agent_id_pattern(self):
-        from token_iq.gateway.proxy._types import LiteLLMRoutes
+        from token_iq.gateway.proxy._types import GatewayRoutes
 
-        assert "/v1/agents/{agent_id}" in LiteLLMRoutes.agent_routes.value
+        assert "/v1/agents/{agent_id}" in GatewayRoutes.agent_routes.value
 
 
 class TestAgentHealthCheck:
@@ -827,7 +827,7 @@ class TestAgentHealthCheck:
     def _setup(self, monkeypatch):
         from token_iq.gateway.proxy.agent_endpoints import agent_registry as ar_mod
 
-        self.admin_client = _make_app_with_role(LitellmUserRoles.PROXY_ADMIN)
+        self.admin_client = _make_app_with_role(GatewayUserRoles.PROXY_ADMIN)
         self.mock_registry = MagicMock()
         monkeypatch.setattr(ar_mod, "global_agent_registry", self.mock_registry)
         # Ensure prisma_client is None so the endpoint skips DB queries.

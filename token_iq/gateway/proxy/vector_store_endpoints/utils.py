@@ -8,7 +8,7 @@ from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.proxy._types import (
     LiteLLM_ObjectPermissionTable,
-    LitellmUserRoles,
+    GatewayUserRoles,
     UserAPIKeyAuth,
 )
 from token_iq.gateway.types.utils import LlmProviders
@@ -16,7 +16,7 @@ from token_iq.gateway.types.vector_stores import LiteLLM_ManagedVectorStore
 from token_iq.gateway.utils import ProviderConfigManager
 
 
-def _normalize_litellm_params(
+def _normalize_gateway_params(
     vector_store: LiteLLM_ManagedVectorStore,
 ) -> LiteLLM_ManagedVectorStore:
     litellm_params: Final = vector_store.get("litellm_params")
@@ -33,8 +33,8 @@ def _normalize_litellm_params(
 
 def _is_proxy_admin(user_api_key_dict: UserAPIKeyAuth) -> bool:
     return (
-        user_api_key_dict.user_role == LitellmUserRoles.PROXY_ADMIN
-        or user_api_key_dict.user_role == LitellmUserRoles.PROXY_ADMIN.value
+        user_api_key_dict.user_role == GatewayUserRoles.PROXY_ADMIN
+        or user_api_key_dict.user_role == GatewayUserRoles.PROXY_ADMIN.value
     )
 
 
@@ -202,7 +202,7 @@ async def can_user_access_vector_store(
     return False
 
 
-async def get_litellm_managed_vector_store(
+async def get_gateway_managed_vector_store(
     vector_store_id: str,
 ) -> LiteLLM_ManagedVectorStore | None:
     """
@@ -217,11 +217,11 @@ async def get_litellm_managed_vector_store(
 
     if gateway.vector_store_registry is not None:
         try:
-            vector_store: Final = gateway.vector_store_registry.get_litellm_managed_vector_store_from_registry(
+            vector_store: Final = gateway.vector_store_registry.get_gateway_managed_vector_store_from_registry(
                 vector_store_id=vector_store_id
             )
             if vector_store is not None:
-                return _normalize_litellm_params(vector_store)
+                return _normalize_gateway_params(vector_store)
         except Exception as e:
             verbose_proxy_logger.warning(
                 "Failed to resolve vector store id=%s from registry: %s",
@@ -253,7 +253,7 @@ async def get_litellm_managed_vector_store(
         )
         if not rows:
             return None
-        return _normalize_litellm_params(LiteLLM_ManagedVectorStore(**rows[0].model_dump()))
+        return _normalize_gateway_params(LiteLLM_ManagedVectorStore(**rows[0].model_dump()))
     except Exception as e:
         verbose_proxy_logger.warning(
             "Failed to resolve vector store id=%s from shared cache: %s",
@@ -286,7 +286,7 @@ async def assert_user_can_access_vector_store_id(
 
     Unknown ids are treated as provider-native ids and are not rejected here.
     """
-    vector_store: Final = await get_litellm_managed_vector_store(vector_store_id=vector_store_id)
+    vector_store: Final = await get_gateway_managed_vector_store(vector_store_id=vector_store_id)
     if vector_store is not None:
         await assert_user_can_access_vector_store(
             vector_store=vector_store,
@@ -370,8 +370,8 @@ def is_allowed_to_call_vector_store_endpoint(
     2. Reading a vector store index (Search / List / Get)
     """
     if (
-        user_api_key_dict.user_role == LitellmUserRoles.PROXY_ADMIN
-        or user_api_key_dict.user_role == LitellmUserRoles.PROXY_ADMIN.value
+        user_api_key_dict.user_role == GatewayUserRoles.PROXY_ADMIN
+        or user_api_key_dict.user_role == GatewayUserRoles.PROXY_ADMIN.value
     ):
         return True
     # check what allowed permissions are for the key
@@ -454,8 +454,8 @@ def is_allowed_to_call_vector_store_files_endpoint(
     user_api_key_dict: UserAPIKeyAuth,
 ) -> Literal[True] | None:
     if (
-        user_api_key_dict.user_role == LitellmUserRoles.PROXY_ADMIN
-        or user_api_key_dict.user_role == LitellmUserRoles.PROXY_ADMIN.value
+        user_api_key_dict.user_role == GatewayUserRoles.PROXY_ADMIN
+        or user_api_key_dict.user_role == GatewayUserRoles.PROXY_ADMIN.value
     ):
         return True
 

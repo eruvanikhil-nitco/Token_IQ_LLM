@@ -85,12 +85,12 @@ class A2ACompletionBridgeHandler:
             "stream": stream,
         }
         # Add litellm_params (contains api_key, client_id, client_secret, tenant_id, etc.)
-        litellm_params_to_add: Final = {
+        gateway_params_to_add: Final = {
             k: v
             for k, v in litellm_params.items()
             if k not in ("model", "custom_llm_provider") and k not in _AGENT_ONLY_PARAMS
         }
-        completion_params.update(litellm_params_to_add)
+        completion_params.update(gateway_params_to_add)
         # Apply forward metadata AFTER the litellm_params merge so the helper
         # sees any agent-owner-configured ``extra_body.metadata`` and can keep
         # those keys authoritative over the client-supplied A2A metadata.

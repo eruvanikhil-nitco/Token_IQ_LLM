@@ -19,7 +19,7 @@ MCP_REFERENCE = {
 }
 
 
-def test_anthropic_messages_handler_routes_litellm_proxy_mcp_to_the_gateway():
+def test_anthropic_messages_handler_routes_gateway_proxy_mcp_to_the_gateway():
     """
     Regression test (LIT-4517): /v1/messages must expand a litellm_proxy MCP
     reference through the MCP gateway.

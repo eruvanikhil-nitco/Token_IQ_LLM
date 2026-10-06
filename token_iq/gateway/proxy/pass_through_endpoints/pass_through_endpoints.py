@@ -50,7 +50,7 @@ from token_iq.gateway.core_utils.core_helpers import (
 )
 from token_iq.gateway.core_utils.initialize_dynamic_callback_params import validate_no_callback_env_reference
 from token_iq.gateway.core_utils.internal_call_metadata import MODEL_ACCESS_GROUP_METADATA_KEY
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.core_utils.logging_worker import GLOBAL_LOGGING_WORKER
 from token_iq.gateway.core_utils.safe_json_dumps import safe_dumps
 from token_iq.gateway.llms.base_llm.managed_resources.utils import (
@@ -61,7 +61,7 @@ from token_iq.gateway.passthrough import BasePassthroughUtils
 from token_iq.gateway.proxy._types import (
     ConfigFieldInfo,
     ConfigFieldUpdate,
-    LiteLLMRoutes,
+    GatewayRoutes,
     PassThroughEndpointResponse,
     PassThroughGenericEndpoint,
     ProxyException,
@@ -81,7 +81,7 @@ from token_iq.gateway.proxy.common_utils.sse_keepalive import (
     wrap_passthrough_sse_bytes_with_keepalive_pings,
 )
 from token_iq.gateway.proxy.litellm_pre_call_utils import (
-    LiteLLMProxyRequestSetup,
+    GatewayProxyRequestSetup,
     _get_dynamic_logging_metadata,  # pyright: ignore[reportPrivateUsage]  # shared proxy helper, same import style as _read_request_body above
 )
 from token_iq.gateway.proxy.utils import normalize_route_for_root_path
@@ -556,7 +556,7 @@ class HttpPassThroughEndpointHelpers(BasePassthroughUtils):
         request: Request,
         user_api_key_dict: UserAPIKeyAuth,
         passthrough_logging_payload: PassthroughStandardLoggingPayload,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         _parsed_body: dict | None = None,
         litellm_call_id: str | None = None,
     ) -> dict:
@@ -567,13 +567,13 @@ class HttpPassThroughEndpointHelpers(BasePassthroughUtils):
 
         _parsed_body = _parsed_body or {}
 
-        litellm_params_in_body: Final = {}
+        gateway_params_in_body: Final = {}
         for k in all_litellm_params:
             if k in _parsed_body:
-                litellm_params_in_body[k] = _parsed_body.pop(k, None)
+                gateway_params_in_body[k] = _parsed_body.pop(k, None)
 
         _metadata = dict(
-            LiteLLMProxyRequestSetup.get_sanitized_user_information_from_key(user_api_key_dict=user_api_key_dict)
+            GatewayProxyRequestSetup.get_sanitized_user_information_from_key(user_api_key_dict=user_api_key_dict)
         )
 
         # Which of the customer's accounts this is charged to. A courier request carries
@@ -583,8 +583,8 @@ class HttpPassThroughEndpointHelpers(BasePassthroughUtils):
         if bound_credentials:
             _metadata["provider_credential"] = bound_credentials[0]
 
-        litellm_metadata: Final = litellm_params_in_body.pop("litellm_metadata", None)
-        metadata: Final = litellm_params_in_body.pop("metadata", None)
+        litellm_metadata: Final = gateway_params_in_body.pop("litellm_metadata", None)
+        metadata: Final = gateway_params_in_body.pop("metadata", None)
         if litellm_metadata:
             _metadata.update(litellm_metadata)
         if metadata:
@@ -619,12 +619,12 @@ class HttpPassThroughEndpointHelpers(BasePassthroughUtils):
             _metadata["user_api_key_user_model_max_budget"] = user_api_key_dict.user_model_max_budget
             _metadata["user_api_key_end_user_model_max_budget"] = user_api_key_dict.end_user_model_max_budget
         _metadata.update(
-            LiteLLMProxyRequestSetup.get_sanitized_user_information_from_key(user_api_key_dict=user_api_key_dict)
+            GatewayProxyRequestSetup.get_sanitized_user_information_from_key(user_api_key_dict=user_api_key_dict)
         )
 
         kwargs: Final = {
             "litellm_params": {
-                **litellm_params_in_body,
+                **gateway_params_in_body,
                 "metadata": _metadata,
                 "proxy_server_request": {
                     "url": str(request.url),
@@ -746,7 +746,7 @@ def _carry_guardrail_logging_info(request_data: dict, guardrail_data: dict | Non
 def _build_passthrough_failure_request_payload(
     parsed_body: dict | None,
     kwargs: dict | None,
-    logging_obj: LiteLLMLoggingObj | None,
+    logging_obj: GatewayLoggingObj | None,
     custom_llm_provider: str | None,
     upstream_usage: UpstreamReportedUsage | None = None,
 ) -> dict:
@@ -2614,7 +2614,7 @@ async def _relay_passthrough_response_bytes(
     request_body: dict,
     url_route: str,
     start_time: datetime,
-    logging_obj: LiteLLMLoggingObj,
+    logging_obj: GatewayLoggingObj,
     custom_llm_provider: str | None,
     success_handler_kwargs: dict,
 ) -> AsyncGenerator[bytes, None]:
@@ -2942,7 +2942,7 @@ class InitPassThroughEndpointHelpers:
             route_info = _registered_pass_through_routes[key]
             path = route_info.get("path")
             if isinstance(path, str):
-                openai_routes = LiteLLMRoutes.openai_routes.value
+                openai_routes = GatewayRoutes.openai_routes.value
                 if path in openai_routes:
                     openai_routes.remove(path)
                 if route_info.get("type") == "subpath":
@@ -2991,7 +2991,7 @@ class InitPassThroughEndpointHelpers:
         ## CHECK IF MAPPED PASS THROUGH ENDPOINT
         normalized_route: Final = normalize_route_for_root_path(route)
         if normalized_route is not None:
-            for mapped_route in LiteLLMRoutes.mapped_pass_through_routes.value:
+            for mapped_route in GatewayRoutes.mapped_pass_through_routes.value:
                 if normalized_route.startswith(mapped_route):
                     return True
 
@@ -3092,8 +3092,8 @@ async def _register_pass_through_endpoint(
         # unless the operator had a license. The safe option must always be free,
         # and unauthenticated forwarding should require explicit opt-in.
         dependencies = [Depends(user_api_key_auth)]
-        if path not in LiteLLMRoutes.openai_routes.value:
-            LiteLLMRoutes.openai_routes.value.append(path)
+        if path not in GatewayRoutes.openai_routes.value:
+            GatewayRoutes.openai_routes.value.append(path)
 
     if target is None:
         return
@@ -3129,8 +3129,8 @@ async def _register_pass_through_endpoint(
     if endpoint_data.get("include_subpath", False) is True:
         if auth is not None and str(auth).lower() == "true":
             wildcard_path: Final = path.rstrip("/") + "/*"
-            if wildcard_path not in LiteLLMRoutes.openai_routes.value:
-                LiteLLMRoutes.openai_routes.value.append(wildcard_path)
+            if wildcard_path not in GatewayRoutes.openai_routes.value:
+                GatewayRoutes.openai_routes.value.append(wildcard_path)
         InitPassThroughEndpointHelpers.add_subpath_route(
             app=app,
             path=path,
@@ -3269,12 +3269,12 @@ async def _get_pass_through_endpoints_from_db(
     endpoint_id: str | None = None,
     user_api_key_dict: UserAPIKeyAuth | None = None,
 ) -> list[PassThroughGenericEndpoint]:
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
     from token_iq.gateway.proxy.proxy_server import get_config_general_settings
 
     try:
         if user_api_key_dict is None:
-            user_api_key_dict = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN)
+            user_api_key_dict = UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN)
         response: Final[ConfigFieldInfo] = await get_config_general_settings(
             field_name="pass_through_endpoints", user_api_key_dict=user_api_key_dict
         )

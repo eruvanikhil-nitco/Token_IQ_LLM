@@ -24,7 +24,7 @@ from token_iq.gateway.core_utils.sensitive_data_masker import SensitiveDataMaske
 from token_iq.gateway.proxy._types import (
     AUDIT_ACTIONS,
     LiteLLM_AuditLogs,
-    LitellmTableNames,
+    GatewayTableNames,
     UserAPIKeyAuth,
 )
 from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
@@ -317,7 +317,7 @@ async def _emit_cache_settings_audit_log(
                 updated_at=datetime.now(timezone.utc),
                 changed_by=litellm_changed_by or user_api_key_dict.user_id or litellm_proxy_admin_name,
                 changed_by_api_key=user_api_key_dict.api_key,
-                table_name=LitellmTableNames.CACHE_CONFIG_TABLE_NAME,
+                table_name=GatewayTableNames.CACHE_CONFIG_TABLE_NAME,
                 object_id="cache_config",
                 action=action,
                 updated_values=json.dumps({"settings": _redact_settings(after_settings)}, default=str),

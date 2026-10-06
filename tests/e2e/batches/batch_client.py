@@ -24,7 +24,7 @@ from e2e_http import (
     StreamingResponse,
     UnknownApiError,
 )
-from models import LiteLLMParamsBody
+from models import GatewayParamsBody
 
 UPLOAD_FILENAME = "batch_input.jsonl"
 
@@ -122,7 +122,7 @@ def is_result_access_denied[R: BaseModel](result: Result[R]) -> bool:
 class BatchClient:
     proxy: ProxyClient
 
-    def create_model(self, model_name: str, litellm_params: LiteLLMParamsBody) -> str:
+    def create_model(self, model_name: str, litellm_params: GatewayParamsBody) -> str:
         return self.proxy.create_model(model_name, litellm_params, mode="batch")
 
     def delete_model(self, model_id: str) -> None:

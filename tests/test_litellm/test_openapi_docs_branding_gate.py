@@ -17,7 +17,7 @@ if str(REPO / "tests" / "code_coverage_tests") not in sys.path:
 from check_openapi_docs_do_not_name_litellm import offenders  # noqa: E402  # path set above
 
 
-def test_a_description_naming_litellm_is_caught() -> None:
+def test_a_description_naming_gateway_is_caught() -> None:
     schema: Final = {"paths": {"/x": {"get": {"description": "Proxied by LiteLLM."}}}}
 
     assert len(offenders(schema)) == 1
@@ -47,7 +47,7 @@ def test_a_title_pydantic_generated_from_a_field_name_is_ignored() -> None:
 
 
 def test_a_schema_title_that_is_just_the_class_name_is_ignored() -> None:
-    schema: Final = {"components": {"schemas": {"LiteLLMKeyType": {"title": "LiteLLMKeyType"}}}}
+    schema: Final = {"components": {"schemas": {"GatewayKeyType": {"title": "GatewayKeyType"}}}}
 
     assert offenders(schema) == ()
 
@@ -64,7 +64,7 @@ def test_a_parameter_title_generated_from_its_name_is_ignored() -> None:
     assert offenders(schema) == ()
 
 
-def test_a_hand_written_title_naming_litellm_is_still_caught() -> None:
+def test_a_hand_written_title_naming_gateway_is_still_caught() -> None:
     """The exclusion is for titles that echo an identifier, not for every title. A title that
     says something a human wrote must not slip through with them."""
     schema: Final = {

@@ -3,7 +3,7 @@ from typing import Final, Literal
 import httpx
 
 from token_iq import gateway
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObject
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObject
 from token_iq.gateway.llms.custom_httpx.http_handler import (
     AsyncHTTPHandler,
     HTTPHandler,
@@ -29,7 +29,7 @@ class VertexEmbedding(VertexBase):
         print_verbose,
         model_response: EmbeddingResponse,
         optional_params: dict,
-        logging_obj: LiteLLMLoggingObject,
+        logging_obj: GatewayLoggingObject,
         custom_llm_provider: Literal[
             "vertex_ai", "vertex_ai_beta", "gemini"
         ],  # if it's vertex_ai or gemini (google ai studio)
@@ -141,7 +141,7 @@ class VertexEmbedding(VertexBase):
         model: str,
         input: list | str,
         model_response: EmbeddingResponse,
-        logging_obj: LiteLLMLoggingObject,
+        logging_obj: GatewayLoggingObject,
         optional_params: dict,
         custom_llm_provider: Literal[
             "vertex_ai", "vertex_ai_beta", "gemini"

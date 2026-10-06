@@ -21,7 +21,7 @@ from token_iq.gateway.types.llms.openai import (
     ResponsesAPIStreamingResponse,
 )
 from token_iq.gateway.types.responses.main import DeleteResponseResult
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.types.utils import LlmProviders
 
 from ..common_utils import (
@@ -31,11 +31,11 @@ from ..common_utils import (
 )
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as _LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as _GatewayLoggingObj
 
-    LiteLLMLoggingObj = _LiteLLMLoggingObj
+    GatewayLoggingObj = _GatewayLoggingObj
 else:
-    LiteLLMLoggingObj = Any
+    GatewayLoggingObj = Any
 
 
 class _EventModelClass(Protocol):
@@ -95,14 +95,14 @@ class VolcEngineResponsesAPIConfig(OpenAIResponsesAPIConfig):
             headers=typed_headers,
         )
 
-    def validate_environment(self, headers: dict, model: str, litellm_params: GenericLiteLLMParams | None) -> dict:
+    def validate_environment(self, headers: dict, model: str, litellm_params: GenericGatewayParams | None) -> dict:
         """
         Build auth headers for Volcengine Responses API.
         """
         if litellm_params is None:
-            litellm_params = GenericLiteLLMParams()
+            litellm_params = GenericGatewayParams()
         elif isinstance(litellm_params, dict):
-            litellm_params = GenericLiteLLMParams.model_validate(litellm_params)
+            litellm_params = GenericGatewayParams.model_validate(litellm_params)
 
         api_key: Final = (
             litellm_params.api_key
@@ -171,7 +171,7 @@ class VolcEngineResponsesAPIConfig(OpenAIResponsesAPIConfig):
         model: str,
         input: str | ResponseInputParam,
         response_api_optional_request_params: dict,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> dict:
         """
@@ -207,7 +207,7 @@ class VolcEngineResponsesAPIConfig(OpenAIResponsesAPIConfig):
         self,
         model: str,
         parsed_chunk: Mapping[str, object],
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> ResponsesAPIStreamingResponse:
         """
         Volcengine may omit required fields; auto-fill them using event model defaults.
@@ -236,7 +236,7 @@ class VolcEngineResponsesAPIConfig(OpenAIResponsesAPIConfig):
         self,
         model: str,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> ResponsesAPIResponse:
         try:
             logging_obj.post_call(
@@ -270,7 +270,7 @@ class VolcEngineResponsesAPIConfig(OpenAIResponsesAPIConfig):
         self,
         response_id: str,
         api_base: str,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> tuple[str, dict]:
         encoded_response_id: Final = encode_url_path_segment(response_id, field_name="response_id")
@@ -281,7 +281,7 @@ class VolcEngineResponsesAPIConfig(OpenAIResponsesAPIConfig):
     def transform_delete_response_api_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> DeleteResponseResult:
         try:
             raw_response_json: Final = self._parsed_response_body(raw_response)
@@ -303,7 +303,7 @@ class VolcEngineResponsesAPIConfig(OpenAIResponsesAPIConfig):
         self,
         response_id: str,
         api_base: str,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> tuple[str, dict]:
         encoded_response_id: Final = encode_url_path_segment(response_id, field_name="response_id")
@@ -314,7 +314,7 @@ class VolcEngineResponsesAPIConfig(OpenAIResponsesAPIConfig):
     def transform_get_response_api_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> ResponsesAPIResponse:
         try:
             raw_response_json: Final = self._parsed_response_body(raw_response)
@@ -336,7 +336,7 @@ class VolcEngineResponsesAPIConfig(OpenAIResponsesAPIConfig):
         self,
         response_id: str,
         api_base: str,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
         after: str | None = None,
         before: str | None = None,
@@ -362,7 +362,7 @@ class VolcEngineResponsesAPIConfig(OpenAIResponsesAPIConfig):
     def transform_list_input_items_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> dict:
         try:
             return self._parsed_response_body(raw_response)
@@ -376,7 +376,7 @@ class VolcEngineResponsesAPIConfig(OpenAIResponsesAPIConfig):
         self,
         response_id: str,
         api_base: str,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> tuple[str, dict]:
         encoded_response_id: Final = encode_url_path_segment(response_id, field_name="response_id")
@@ -387,7 +387,7 @@ class VolcEngineResponsesAPIConfig(OpenAIResponsesAPIConfig):
     def transform_cancel_response_api_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> ResponsesAPIResponse:
         try:
             raw_response_json: Final = self._parsed_response_body(raw_response)

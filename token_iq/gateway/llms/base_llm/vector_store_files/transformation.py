@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, Any
 
 import httpx
 
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.types.vector_store_files import (
     VectorStoreFileAuthCredentials,
     VectorStoreFileChunkingStrategy,
@@ -17,14 +17,14 @@ from token_iq.gateway.types.vector_store_files import (
 )
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as _LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as _GatewayLoggingObj
 
     from ..chat.transformation import BaseLLMException as _BaseLLMException
 
-    LiteLLMLoggingObj = _LiteLLMLoggingObj
+    GatewayLoggingObj = _GatewayLoggingObj
     BaseLLMException = _BaseLLMException
 else:
-    LiteLLMLoggingObj = Any
+    GatewayLoggingObj = Any
     BaseLLMException = Any
 
 
@@ -64,7 +64,7 @@ class BaseVectorStoreFilesConfig(ABC):
         self,
         *,
         headers: dict[str, str],
-        litellm_params: GenericLiteLLMParams | None,
+        litellm_params: GenericGatewayParams | None,
     ) -> dict[str, str]:
         return {}
 

@@ -11,7 +11,7 @@ import pytest
 from openai import OpenAI
 
 from token_iq import gateway
-from token_iq.gateway.proxy.litellm_pre_call_utils import LiteLLMProxyRequestSetup
+from token_iq.gateway.proxy.litellm_pre_call_utils import GatewayProxyRequestSetup
 from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
 
@@ -26,7 +26,7 @@ def test_add_key_level_controls_with_none_metadata():
     metadata_variable_name = "metadata"
 
     # Test with None key_metadata (this was causing the original error)
-    result = LiteLLMProxyRequestSetup.add_key_level_controls(
+    result = GatewayProxyRequestSetup.add_key_level_controls(
         key_metadata=None, data=data, _metadata_variable_name=metadata_variable_name
     )
 
@@ -34,7 +34,7 @@ def test_add_key_level_controls_with_none_metadata():
     assert result == data
 
     # Test with empty dict key_metadata (should also work)
-    result = LiteLLMProxyRequestSetup.add_key_level_controls(
+    result = GatewayProxyRequestSetup.add_key_level_controls(
         key_metadata={}, data=data, _metadata_variable_name=metadata_variable_name
     )
 
@@ -44,7 +44,7 @@ def test_add_key_level_controls_with_none_metadata():
     # Test with valid key_metadata containing cache settings
     key_metadata_with_cache = {"cache": {"ttl": 300, "s-maxage": 600}}
 
-    result = LiteLLMProxyRequestSetup.add_key_level_controls(
+    result = GatewayProxyRequestSetup.add_key_level_controls(
         key_metadata=key_metadata_with_cache,
         data=data.copy(),
         _metadata_variable_name=metadata_variable_name,
@@ -70,7 +70,7 @@ def test_add_key_level_controls_simulates_original_issue():
     # This is the exact call that was failing before the fix
     # user_api_key_dict.metadata was None, causing the error in add_key_level_controls
     try:
-        result = LiteLLMProxyRequestSetup.add_key_level_controls(
+        result = GatewayProxyRequestSetup.add_key_level_controls(
             key_metadata=None,  # This was the root cause of the issue
             data=data,
             _metadata_variable_name=metadata_variable_name,
@@ -90,7 +90,7 @@ def test_add_key_level_controls_simulates_original_issue():
             raise
 
 
-def test_batch_create_with_litellm_sdk():
+def test_batch_create_with_gateway_sdk():
     """
     Test creating a batch using litellm SDK with metadata=None.
     This is a more direct test of the original issue.
@@ -132,7 +132,7 @@ if __name__ == "__main__":
     test_add_key_level_controls_simulates_original_issue()
     print("✓ test_add_key_level_controls_simulates_original_issue passed")
 
-    test_batch_create_with_litellm_sdk()
+    test_batch_create_with_gateway_sdk()
     print("✓ test_batch_create_with_litellm_sdk passed")
 
     print("All tests passed! Issue #13995 fix is working correctly.")

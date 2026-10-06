@@ -9,18 +9,18 @@ from typing import Any, Final, cast
 
 from fastapi_sso.sso.base import OpenID
 
-from token_iq.gateway.proxy._types import LitellmUserRoles
+from token_iq.gateway.proxy._types import GatewayUserRoles
 
 # Ordered highest to lowest privilege
 LITELLM_USER_ROLE_HIERARCHY: Final = (
-    LitellmUserRoles.PROXY_ADMIN,
-    LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY,
-    LitellmUserRoles.INTERNAL_USER,
-    LitellmUserRoles.INTERNAL_USER_VIEW_ONLY,
+    GatewayUserRoles.PROXY_ADMIN,
+    GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY,
+    GatewayUserRoles.INTERNAL_USER,
+    GatewayUserRoles.INTERNAL_USER_VIEW_ONLY,
 )
 
 
-def highest_privilege_role(roles: Iterable[LitellmUserRoles]) -> LitellmUserRoles | None:
+def highest_privilege_role(roles: Iterable[GatewayUserRoles]) -> GatewayUserRoles | None:
     """
     Pick the highest privilege role out of the roles an IdP asserted for one user.
 
@@ -43,7 +43,7 @@ def highest_privilege_role(roles: Iterable[LitellmUserRoles]) -> LitellmUserRole
     return ranked if ranked is not None else min(resolved, key=lambda role: role.value)
 
 
-def is_valid_litellm_user_role(role_str: str) -> bool:
+def is_valid_gateway_user_role(role_str: str) -> bool:
     """
     Check if a string is a valid LitellmUserRoles enum value (case-insensitive).
 
@@ -55,20 +55,20 @@ def is_valid_litellm_user_role(role_str: str) -> bool:
     """
     try:
         # Use _value2member_map_ for O(1) lookup, case-insensitive
-        return role_str.lower() in LitellmUserRoles._value2member_map_
+        return role_str.lower() in GatewayUserRoles._value2member_map_
     except Exception:
         return False
 
 
-def _role_from_claim_value(role_str: object) -> LitellmUserRoles | None:
+def _role_from_claim_value(role_str: object) -> GatewayUserRoles | None:
     if not isinstance(role_str, str):
         return None
     # Use _value2member_map_ for O(1) lookup, case-insensitive
-    result: Final = LitellmUserRoles._value2member_map_.get(role_str.lower())
-    return cast(LitellmUserRoles | None, result)
+    result: Final = GatewayUserRoles._value2member_map_.get(role_str.lower())
+    return cast(GatewayUserRoles | None, result)
 
 
-def get_litellm_user_role(role_str: object) -> LitellmUserRoles | None:
+def get_gateway_user_role(role_str: object) -> GatewayUserRoles | None:
     """
     Convert a string (or list of strings) to a LitellmUserRoles enum if valid (case-insensitive).
 
@@ -93,5 +93,5 @@ def get_litellm_user_role(role_str: object) -> LitellmUserRoles | None:
 
 class CustomOpenID(OpenID):
     team_ids: list[str]
-    user_role: LitellmUserRoles | None = None
+    user_role: GatewayUserRoles | None = None
     extra_fields: dict[str, Any] | None = None

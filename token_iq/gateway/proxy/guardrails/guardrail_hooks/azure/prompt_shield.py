@@ -30,7 +30,7 @@ from token_iq.gateway.types.utils import (
 from .base import AZURE_CONTENT_SAFETY_TEXT_RECORD_LENGTH, AzureGuardrailBase
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
     from token_iq.gateway.proxy._types import UserAPIKeyAuth
     from token_iq.gateway.types.guardrails import LitellmParams
     from token_iq.gateway.types.llms.openai import AllMessageValues
@@ -270,7 +270,7 @@ class AzureContentSafetyPromptShieldGuardrail(AzureGuardrailBase, CustomGuardrai
             verbose_proxy_logger.warning("Azure Prompt Shield: No user prompt found")
         return None
 
-    def update_in_memory_litellm_params(self, litellm_params: "LitellmParams | dict") -> None:  # mutable-ok: DB dict
+    def update_in_memory_gateway_params(self, litellm_params: "LitellmParams | dict") -> None:  # mutable-ok: DB dict
         """Apply updated params in place, re-resolving billing and credentials.
 
         Pricing is read via ``_updated_param`` (the values are pydantic extras, and
@@ -290,7 +290,7 @@ class AzureContentSafetyPromptShieldGuardrail(AzureGuardrailBase, CustomGuardrai
             for key, value in litellm_params.items():
                 setattr(self, key, resolved_credentials.get(key, value))
         else:
-            super().update_in_memory_litellm_params(litellm_params)
+            super().update_in_memory_gateway_params(litellm_params)
             for cred_key, cred_value in resolved_credentials.items():
                 setattr(self, cred_key, cred_value)
         self.cost_tier = cost_tier

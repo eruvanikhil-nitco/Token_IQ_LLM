@@ -53,7 +53,7 @@ from cost_rows import (
 from e2e_config import unique_marker
 from e2e_http import unwrap
 from lifecycle import ResourceManager
-from models import AnthropicMessagesBody, ChatBody, ChatMessage, LiteLLMParamsBody
+from models import AnthropicMessagesBody, ChatBody, ChatMessage, GatewayParamsBody
 from pydantic import BaseModel
 from spend_e2e_client import SpendClient
 
@@ -80,8 +80,8 @@ class _StreamChunk(BaseModel):
     id: str | None = None
 
 
-def _cache_priced_params(backend: str) -> LiteLLMParamsBody:
-    return LiteLLMParamsBody(
+def _cache_priced_params(backend: str) -> GatewayParamsBody:
+    return GatewayParamsBody(
         model=backend,
         api_key=OPENAI_API_KEY,
         input_cost_per_token=INPUT_RATE,

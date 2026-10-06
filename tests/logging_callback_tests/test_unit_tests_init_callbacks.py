@@ -206,13 +206,13 @@ async def use_callback_in_llm_call(
 
 
 def test_dynamic_logging_global_callback():
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
     from token_iq.gateway.integrations.custom_logger import CustomLogger
     from token_iq.gateway.types.utils import ModelResponse, Choices, Message, Usage
 
     cl = CustomLogger()
 
-    litellm_logging = LiteLLMLoggingObj(
+    litellm_logging = GatewayLoggingObj(
         model="claude-opus-4-7",
         messages=[{"role": "user", "content": "hi"}],
         stream=False,
@@ -270,9 +270,9 @@ def test_dynamic_logging_global_callback():
 
 
 def test_get_combined_callback_list():
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 
-    _logging = LiteLLMLoggingObj(
+    _logging = GatewayLoggingObj(
         model="claude-opus-4-7",
         messages=[{"role": "user", "content": "hi"}],
         stream=False,
@@ -291,9 +291,9 @@ def test_get_combined_callback_list():
 
 
 def test_get_combined_callback_list_returns_copy_when_dynamic_is_none():
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 
-    _logging = LiteLLMLoggingObj(
+    _logging = GatewayLoggingObj(
         model="claude-opus-4-7",
         messages=[{"role": "user", "content": "hi"}],
         stream=False,

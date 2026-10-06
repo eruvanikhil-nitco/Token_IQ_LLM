@@ -12,7 +12,7 @@ import pytest
 
 
 from token_iq.gateway.llms.openai.common_utils import OpenAIError
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.types.utils import LlmProviders
 from token_iq.gateway.utils import ProviderConfigManager
 from token_iq.gateway.llms.chatgpt.responses.transformation import ChatGPTResponsesAPIConfig
@@ -69,7 +69,7 @@ class TestChatGPTResponsesAPITransformation:
         mock_authenticator_class.return_value = mock_auth_instance
 
         config = ChatGPTResponsesAPIConfig()
-        litellm_params = GenericLiteLLMParams(litellm_session_id="session-123")
+        litellm_params = GenericGatewayParams(litellm_session_id="session-123")
         headers = config.validate_environment(
             headers={"originator": "custom-origin"},
             model="gpt-5.2",
@@ -96,7 +96,7 @@ class TestChatGPTResponsesAPITransformation:
             model=model_name,
             input="hi",
             response_api_optional_request_params={},
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 
@@ -134,7 +134,7 @@ class TestChatGPTResponsesAPITransformation:
                 "tools": [{"type": "function", "function": {"name": "hello"}}],
                 "tool_choice": {"type": "function", "function": {"name": "hello"}},
             },
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 

@@ -179,7 +179,7 @@ class TestGenericOAuth2Credential:
             assert mock_post.call_count == 1
 
 
-class TestLiteLLMIntegration:
+class TestGatewayIntegration:
     """Tests for integration with litellm module."""
 
     def test_proxy_auth_variable_exists(self):

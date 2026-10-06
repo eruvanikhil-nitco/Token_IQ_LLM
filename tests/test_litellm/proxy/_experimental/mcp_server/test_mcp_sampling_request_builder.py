@@ -77,7 +77,7 @@ class TestBuildSamplingRequest:
         req = _build_sampling_request()
         assert req.scope["path"] == "/mcp/sampling/createMessage"
 
-    def test_server_should_default_to_litellm_port(self):
+    def test_server_should_default_to_gateway_port(self):
         """Server tuple should use port 4000 (LiteLLM default), not 0."""
         req = _build_sampling_request()
         _host, _port = req.scope["server"]
@@ -139,7 +139,7 @@ class TestBuildSamplingRequest:
             "00-abcdef1234567890abcdef1234567890-1234567890abcdef-01"
         )
 
-    def test_should_forward_x_litellm_api_key(self):
+    def test_should_forward_x_gateway_api_key(self):
         """x-litellm-api-key header must be forwarded for auth."""
         raw = {"x-litellm-api-key": "sk-proxy-key-123"}
         req = _build_sampling_request(raw_headers=raw)

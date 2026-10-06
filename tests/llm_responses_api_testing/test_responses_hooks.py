@@ -326,7 +326,7 @@ def test_process_chunk_wraps_encrypted_content_with_model_id():
             return openai_types.OutputItemAddedEvent(
                 type=openai_types.ResponsesAPIStreamEvents.OUTPUT_ITEM_ADDED,
                 output_index=0,
-                item=openai_types.BaseLiteLLMOpenAIResponseObject(
+                item=openai_types.BaseGatewayOpenAIResponseObject(
                     id="rs_123",
                     type="reasoning",
                     encrypted_content="ciphertext",

@@ -10,7 +10,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from token_iq.gateway.llms.azure_ai.anthropic.transformation import AzureAnthropicConfig
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 
 
 class TestAzureAnthropicConfig:
@@ -19,7 +19,7 @@ class TestAzureAnthropicConfig:
         config = AzureAnthropicConfig()
         assert config.custom_llm_provider == "azure_ai"
 
-    def test_validate_environment_with_dict_litellm_params(self):
+    def test_validate_environment_with_dict_gateway_params(self):
         """Test validate_environment with dict litellm_params"""
         config = AzureAnthropicConfig()
         headers = {}
@@ -44,18 +44,18 @@ class TestAzureAnthropicConfig:
 
             # Verify that dict was converted to GenericLiteLLMParams
             call_args = mock_validate.call_args
-            assert isinstance(call_args[1]["litellm_params"], GenericLiteLLMParams)
+            assert isinstance(call_args[1]["litellm_params"], GenericGatewayParams)
             assert call_args[1]["litellm_params"].api_key == "test-api-key"
             assert "anthropic-version" in result
 
-    def test_validate_environment_with_generic_litellm_params(self):
+    def test_validate_environment_with_generic_gateway_params(self):
         """Test validate_environment with GenericLiteLLMParams object"""
         config = AzureAnthropicConfig()
         headers = {}
         model = "claude-sonnet-4-5"
         messages = [{"role": "user", "content": "Hello"}]
         optional_params = {}
-        litellm_params = GenericLiteLLMParams(api_key="test-api-key")
+        litellm_params = GenericGatewayParams(api_key="test-api-key")
         api_key = "test-api-key"
 
         with patch(
@@ -73,10 +73,10 @@ class TestAzureAnthropicConfig:
 
             # Verify that GenericLiteLLMParams was passed through
             call_args = mock_validate.call_args
-            assert isinstance(call_args[1]["litellm_params"], GenericLiteLLMParams)
+            assert isinstance(call_args[1]["litellm_params"], GenericGatewayParams)
             assert "anthropic-version" in result
 
-    def test_validate_environment_sets_api_key_in_litellm_params(self):
+    def test_validate_environment_sets_api_key_in_gateway_params(self):
         """Test that api_key parameter is set in litellm_params if provided"""
         config = AzureAnthropicConfig()
         headers = {}

@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from fastapi.testclient import TestClient
 
-from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
 from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 from token_iq.gateway.proxy.proxy_server import app
 
@@ -21,7 +21,7 @@ PUBLISH_BODY = {k: v for k, v in PUBLISHED_BANNER.items() if k != "revision"}
 DISABLED_BANNER = {"enabled": False, "message": "", "severity": "info", "revision": ""}
 
 
-def _auth_override(role: LitellmUserRoles):
+def _auth_override(role: GatewayUserRoles):
     async def override() -> UserAPIKeyAuth:
         return UserAPIKeyAuth(api_key="sk-test", user_id="test-user", user_role=role)
 
@@ -30,14 +30,14 @@ def _auth_override(role: LitellmUserRoles):
 
 @pytest.fixture
 def admin_auth():
-    app.dependency_overrides[user_api_key_auth] = _auth_override(LitellmUserRoles.PROXY_ADMIN)
+    app.dependency_overrides[user_api_key_auth] = _auth_override(GatewayUserRoles.PROXY_ADMIN)
     yield
     app.dependency_overrides.pop(user_api_key_auth, None)
 
 
 @pytest.fixture
 def internal_user_auth():
-    app.dependency_overrides[user_api_key_auth] = _auth_override(LitellmUserRoles.INTERNAL_USER)
+    app.dependency_overrides[user_api_key_auth] = _auth_override(GatewayUserRoles.INTERNAL_USER)
     yield
     app.dependency_overrides.pop(user_api_key_auth, None)
 

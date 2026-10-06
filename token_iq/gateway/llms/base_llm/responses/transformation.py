@@ -11,18 +11,18 @@ from token_iq.gateway.types.llms.openai import (
     ResponsesAPIStreamingResponse,
 )
 from token_iq.gateway.types.responses.main import *
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.types.utils import LlmProviders
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as _LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as _GatewayLoggingObj
 
     from ..chat.transformation import BaseLLMException as _BaseLLMException
 
-    LiteLLMLoggingObj = _LiteLLMLoggingObj
+    GatewayLoggingObj = _GatewayLoggingObj
     BaseLLMException = _BaseLLMException
 else:
-    LiteLLMLoggingObj = Any
+    GatewayLoggingObj = Any
     BaseLLMException = Any
 
 
@@ -96,7 +96,7 @@ class BaseResponsesAPIConfig(ABC):
         pass
 
     @abstractmethod
-    def validate_environment(self, headers: dict, model: str, litellm_params: GenericLiteLLMParams | None) -> dict:
+    def validate_environment(self, headers: dict, model: str, litellm_params: GenericGatewayParams | None) -> dict:
         return {}
 
     @abstractmethod
@@ -122,7 +122,7 @@ class BaseResponsesAPIConfig(ABC):
         model: str,
         input: str | ResponseInputParam,
         response_api_optional_request_params: dict,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> dict:
         pass
@@ -132,7 +132,7 @@ class BaseResponsesAPIConfig(ABC):
         self,
         model: str,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> ResponsesAPIResponse:
         pass
 
@@ -141,7 +141,7 @@ class BaseResponsesAPIConfig(ABC):
         self,
         model: str,
         parsed_chunk: dict,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> ResponsesAPIStreamingResponse:
         """
         Transform a parsed streaming response chunk into a ResponsesAPIStreamingResponse
@@ -155,7 +155,7 @@ class BaseResponsesAPIConfig(ABC):
         self,
         response_id: str,
         api_base: str,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> tuple[str, dict]:
         pass
@@ -164,7 +164,7 @@ class BaseResponsesAPIConfig(ABC):
     def transform_delete_response_api_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> DeleteResponseResult:
         pass
 
@@ -180,7 +180,7 @@ class BaseResponsesAPIConfig(ABC):
         self,
         response_id: str,
         api_base: str,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> tuple[str, dict]:
         pass
@@ -189,7 +189,7 @@ class BaseResponsesAPIConfig(ABC):
     def transform_get_response_api_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> ResponsesAPIResponse:
         pass
 
@@ -201,7 +201,7 @@ class BaseResponsesAPIConfig(ABC):
         self,
         response_id: str,
         api_base: str,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
         after: str | None = None,
         before: str | None = None,
@@ -215,7 +215,7 @@ class BaseResponsesAPIConfig(ABC):
     def transform_list_input_items_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> dict:
         pass
 
@@ -284,7 +284,7 @@ class BaseResponsesAPIConfig(ABC):
         self,
         response_id: str,
         api_base: str,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> tuple[str, dict]:
         pass
@@ -293,7 +293,7 @@ class BaseResponsesAPIConfig(ABC):
     def transform_cancel_response_api_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> ResponsesAPIResponse:
         pass
 
@@ -311,7 +311,7 @@ class BaseResponsesAPIConfig(ABC):
         input: str | ResponseInputParam,
         response_api_optional_request_params: dict,
         api_base: str,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> tuple[str, dict]:
         pass
@@ -320,7 +320,7 @@ class BaseResponsesAPIConfig(ABC):
     def transform_compact_response_api_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> ResponsesAPIResponse:
         pass
 

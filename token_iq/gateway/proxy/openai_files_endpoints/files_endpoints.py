@@ -486,15 +486,15 @@ async def create_file(
         expires_after: FileExpiresAfter | None = None
         form_data_raw: Final = await request.form()
         form_data_dict: Final[dict[str, Any]] = dict(form_data_raw)
-        extracted_litellm_metadata: Final[dict[str, Any] | None] = extract_nested_form_metadata(
+        extracted_gateway_metadata: Final[dict[str, Any] | None] = extract_nested_form_metadata(
             form_data=form_data_dict, prefix="litellm_metadata["
         )
         expires_after_anchor: Final = form_data_raw.get("expires_after[anchor]")
         expires_after_seconds_str: Final = form_data_raw.get("expires_after[seconds]")
 
         # Add litellm_metadata to data if provided (from form field)
-        if extracted_litellm_metadata is not None:
-            data["litellm_metadata"] = extracted_litellm_metadata
+        if extracted_gateway_metadata is not None:
+            data["litellm_metadata"] = extracted_gateway_metadata
 
         if expires_after_anchor is not None or expires_after_seconds_str is not None:
             if expires_after_anchor is None or expires_after_seconds_str is None:

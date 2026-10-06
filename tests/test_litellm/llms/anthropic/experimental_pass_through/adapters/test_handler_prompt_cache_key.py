@@ -6,14 +6,14 @@ import pytest
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../../../..")))
 
 from token_iq.gateway.llms.anthropic.experimental_pass_through.adapters.handler import (
-    LiteLLMMessagesToCompletionTransformationHandler,
+    GatewayMessagesToCompletionTransformationHandler,
 )
 
 MESSAGES = [{"role": "user", "content": "hello"}]
 
 
 def _prepare(model: str, extra_kwargs: dict[str, object], thinking: dict[str, object] | None = None):
-    completion_kwargs, _ = LiteLLMMessagesToCompletionTransformationHandler._prepare_completion_kwargs(
+    completion_kwargs, _ = GatewayMessagesToCompletionTransformationHandler._prepare_completion_kwargs(
         max_tokens=1024,
         messages=MESSAGES,
         model=model,
@@ -54,7 +54,7 @@ def test_prepare_completion_kwargs_skips_prompt_cache_key_without_provider_suppo
     assert "prompt_cache_key" not in completion_kwargs
 
 
-def test_prepare_completion_kwargs_skips_prompt_cache_key_for_chained_litellm_proxy():
+def test_prepare_completion_kwargs_skips_prompt_cache_key_for_chained_gateway_proxy():
     completion_kwargs = _prepare("litellm_proxy/xai", {"custom_llm_provider": "litellm_proxy"})
     assert completion_kwargs["user"] == "session-abc"
     assert "prompt_cache_key" not in completion_kwargs

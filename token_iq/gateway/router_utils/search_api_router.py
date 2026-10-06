@@ -25,7 +25,7 @@ class SearchAPIRouter:
     @staticmethod
     def _resolve_search_provider_credentials(
         *,
-        tool_litellm_params: dict[str, Any],
+        tool_gateway_params: dict[str, Any],
     ) -> tuple[str | None, str | None]:
         """
         Resolve search provider credentials from tool configuration ONLY.
@@ -39,8 +39,8 @@ class SearchAPIRouter:
         Returns:
             Tuple of (api_key, api_base) from tool configuration
         """
-        resolved_api_key: Final[str | None] = tool_litellm_params.get("api_key")
-        resolved_api_base: Final[str | None] = tool_litellm_params.get("api_base")
+        resolved_api_key: Final[str | None] = tool_gateway_params.get("api_key")
+        resolved_api_base: Final[str | None] = tool_gateway_params.get("api_base")
 
         return resolved_api_key, resolved_api_base
 
@@ -213,7 +213,7 @@ class SearchAPIRouter:
                 raise ValueError(f"search_provider not found in litellm_params for search tool '{search_tool_name}'")
 
             api_key, api_base = SearchAPIRouter._resolve_search_provider_credentials(
-                tool_litellm_params=litellm_params,
+                tool_gateway_params=litellm_params,
             )
             protected_params: Final = frozenset(("search_provider", "api_key", "api_base"))
             search_params: Final = MappingProxyType(

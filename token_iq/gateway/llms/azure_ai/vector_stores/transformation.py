@@ -10,7 +10,7 @@ from token_iq.gateway.llms.base_llm.vector_store.transformation import (
     BaseQueryEmbeddingVectorStoreConfig,
     VectorStoreEmbeddingExecutor,
 )
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.types.vector_stores import (
     BaseVectorStoreAuthCredentials,
     VectorStoreCreateOptionalRequestParams,
@@ -23,11 +23,11 @@ from token_iq.gateway.types.vector_stores import (
 )
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as _LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as _GatewayLoggingObj
 
-    LiteLLMLoggingObj = _LiteLLMLoggingObj
+    GatewayLoggingObj = _GatewayLoggingObj
 else:
-    LiteLLMLoggingObj = Any
+    GatewayLoggingObj = Any
 
 
 class AzureAIVectorStoreConfig(BaseQueryEmbeddingVectorStoreConfig, BaseAzureLLM):
@@ -81,7 +81,7 @@ class AzureAIVectorStoreConfig(BaseQueryEmbeddingVectorStoreConfig, BaseAzureLLM
             }
         }
 
-    def validate_environment(self, headers: dict, litellm_params: GenericLiteLLMParams | None) -> dict:
+    def validate_environment(self, headers: dict, litellm_params: GenericGatewayParams | None) -> dict:
         basic_headers: Final = self._base_validate_azure_environment(headers, litellm_params)
         basic_headers.update({"Content-Type": "application/json"})
         return basic_headers
@@ -117,7 +117,7 @@ class AzureAIVectorStoreConfig(BaseQueryEmbeddingVectorStoreConfig, BaseAzureLLM
         query: str | Sequence[str],
         vector_store_search_optional_params: VectorStoreSearchOptionalRequestParams,
         api_base: str,
-        litellm_logging_obj: LiteLLMLoggingObj,
+        litellm_logging_obj: GatewayLoggingObj,
         litellm_params: Mapping[str, object],
         extra_body: Mapping[str, object] | None = None,
         embedding_executor: VectorStoreEmbeddingExecutor | None = None,
@@ -140,7 +140,7 @@ class AzureAIVectorStoreConfig(BaseQueryEmbeddingVectorStoreConfig, BaseAzureLLM
         query: str | Sequence[str],
         vector_store_search_optional_params: VectorStoreSearchOptionalRequestParams,
         api_base: str,
-        litellm_logging_obj: LiteLLMLoggingObj,
+        litellm_logging_obj: GatewayLoggingObj,
         litellm_params: Mapping[str, object],
         extra_body: Mapping[str, object] | None = None,
         embedding_executor: VectorStoreEmbeddingExecutor | None = None,
@@ -164,7 +164,7 @@ class AzureAIVectorStoreConfig(BaseQueryEmbeddingVectorStoreConfig, BaseAzureLLM
         query_vector: Sequence[float],
         vector_store_search_optional_params: VectorStoreSearchOptionalRequestParams,
         api_base: str,
-        litellm_logging_obj: LiteLLMLoggingObj,
+        litellm_logging_obj: GatewayLoggingObj,
         litellm_params: Mapping[str, object],
     ) -> tuple[str, dict[str, object]]:
         vector_field: Final = litellm_params.get("azure_search_vector_field", "contentVector")
@@ -180,7 +180,7 @@ class AzureAIVectorStoreConfig(BaseQueryEmbeddingVectorStoreConfig, BaseAzureLLM
         }
 
     def transform_search_vector_store_response(
-        self, response: httpx.Response, litellm_logging_obj: LiteLLMLoggingObj
+        self, response: httpx.Response, litellm_logging_obj: GatewayLoggingObj
     ) -> VectorStoreSearchResponse:
         """
         Transform Azure AI Search API response to standard vector store search response

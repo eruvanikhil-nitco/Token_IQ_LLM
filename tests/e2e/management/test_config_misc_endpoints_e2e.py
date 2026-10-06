@@ -29,7 +29,7 @@ from e2e_config import unique_marker
 from e2e_http import NoBody, Success, unwrap, unwrap_status
 from lifecycle import ResourceManager
 from management_client import ManagementClient
-from models import KeyGenerateBody, LiteLLMParamsBody, TeamNewBody
+from models import KeyGenerateBody, GatewayParamsBody, TeamNewBody
 
 pytestmark = pytest.mark.e2e
 
@@ -354,7 +354,7 @@ class TestFallbackManagement:
     def test_create_persists_and_is_read_back(self, client: ManagementClient, resources: ResourceManager) -> None:
         primary = f"e2e-fallback-primary-{unique_marker()}"
         secondary = f"e2e-fallback-secondary-{unique_marker()}"
-        params = LiteLLMParamsBody(model="openai/gpt-5.5", api_key="e2e-dummy-key")
+        params = GatewayParamsBody(model="openai/gpt-5.5", api_key="e2e-dummy-key")
         primary_id = client.proxy.create_model(primary, params)
         resources.defer(lambda: client.proxy.delete_model(primary_id))
         secondary_id = client.proxy.create_model(secondary, params)

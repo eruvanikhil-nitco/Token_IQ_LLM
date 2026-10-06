@@ -42,7 +42,7 @@ from models import (
     ChatToolResultTurn,
     CostMapEntry,
     JsonSchemaProperty,
-    LiteLLMParamsBody,
+    GatewayParamsBody,
     OutMessage,
     SpendLogRow,
     ToolCall,
@@ -201,7 +201,7 @@ def reasoning_tool_backend(registry: dict[str, CostMapEntry]) -> str:
 def _register(client: PassthroughClient, resources: ResourceManager, backend: str) -> tuple[str, str]:
     model = f"e2e-together-{unique_marker()}"
     model_id = client.proxy.create_model(
-        model, LiteLLMParamsBody(model=backend, api_key="os.environ/TOGETHER_API_KEY")
+        model, GatewayParamsBody(model=backend, api_key="os.environ/TOGETHER_API_KEY")
     )
     resources.defer(lambda: client.proxy.delete_model(model_id))
     return model, resources.key()

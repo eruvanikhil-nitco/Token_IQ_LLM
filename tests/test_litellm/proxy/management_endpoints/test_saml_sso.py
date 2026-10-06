@@ -30,7 +30,7 @@ from typing import cast
 from token_iq.gateway.caching.dual_cache import DualCache
 from token_iq.gateway.caching.in_memory_cache import InMemoryCache
 from token_iq.gateway.caching.redis_cache import RedisCache
-from token_iq.gateway.proxy._types import LitellmUserRoles
+from token_iq.gateway.proxy._types import GatewayUserRoles
 from token_iq.gateway.proxy.management_endpoints.sso.saml_sso import (
     _SAML_AUTHN_REQUEST_CACHE_PREFIX,
     _SAML_AUTHN_STATE_COOKIE,
@@ -229,7 +229,7 @@ async def test_valid_idp_initiated_login_maps_assertion_to_user(saml_env_idp_ini
     assert result.id == "alice@example.com"
     assert result.first_name == "Alice"
     assert result.last_name == "Smith"
-    assert result.user_role == LitellmUserRoles.INTERNAL_USER
+    assert result.user_role == GatewayUserRoles.INTERNAL_USER
     assert result.provider == "saml"
 
 
@@ -537,7 +537,7 @@ async def test_multi_valued_role_attribute_resolves_to_highest_privilege(saml_en
     )
 
     result = await _acs(_b64(resp), _shared_cache())
-    assert result.user_role == LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY
+    assert result.user_role == GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY
 
 
 @pytest.mark.asyncio

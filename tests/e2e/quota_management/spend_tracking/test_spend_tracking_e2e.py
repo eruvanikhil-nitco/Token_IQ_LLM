@@ -23,7 +23,7 @@ import pytest
 
 from e2e_http import Result, Success
 from lifecycle import ResourceManager
-from models import ChatResponse, LiteLLMParamsBody, SpendLogs, SpendLogsParams
+from models import ChatResponse, GatewayParamsBody, SpendLogs, SpendLogsParams
 from spend_e2e_client import SpendClient, SpendLogRow, is_ok, unique_marker, unwrap
 
 pytestmark = pytest.mark.e2e
@@ -509,7 +509,7 @@ def test_failure_call_writes_failure_status_row(
     model = f"e2e-spend-failure-{unique_marker()}"
     model_id = client.proxy.create_model(
         model,
-        LiteLLMParamsBody(model="openai/gpt-5.5", api_key="sk-invalid-e2e-failure-row"),
+        GatewayParamsBody(model="openai/gpt-5.5", api_key="sk-invalid-e2e-failure-row"),
     )
     resources.defer(lambda: client.proxy.delete_model(model_id))
 

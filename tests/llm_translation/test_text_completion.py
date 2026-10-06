@@ -6,7 +6,7 @@ from token_iq import gateway
 import pytest
 
 from token_iq.gateway.utils import (
-    LiteLLMResponseObjectHandler,
+    GatewayResponseObjectHandler,
 )
 
 
@@ -39,7 +39,7 @@ def test_convert_chat_to_text_completion():
     )
 
     text_completion = TextCompletionResponse()
-    result = LiteLLMResponseObjectHandler.convert_chat_to_text_completion(
+    result = GatewayResponseObjectHandler.convert_chat_to_text_completion(
         response=chat_response, text_completion_response=text_completion
     )
 
@@ -63,7 +63,7 @@ def test_convert_provider_response_logprobs_non_huggingface():
     """Test converting provider logprobs for non-huggingface provider"""
     response = ModelResponse(id="test123", _hidden_params={})
 
-    result = LiteLLMResponseObjectHandler._convert_provider_response_logprobs_to_text_completion_logprobs(
+    result = GatewayResponseObjectHandler._convert_provider_response_logprobs_to_text_completion_logprobs(
         response=response, custom_llm_provider="openai"
     )
 
@@ -93,7 +93,7 @@ def test_convert_chat_to_text_completion_multiple_choices():
     )
 
     text_completion = TextCompletionResponse()
-    result = LiteLLMResponseObjectHandler.convert_chat_to_text_completion(
+    result = GatewayResponseObjectHandler.convert_chat_to_text_completion(
         response=chat_response, text_completion_response=text_completion
     )
 

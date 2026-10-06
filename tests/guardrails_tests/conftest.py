@@ -62,7 +62,7 @@ def pytest_runtest_logreport(report):
 
 
 @pytest.fixture(scope="function", autouse=True)
-def isolate_litellm_state():
+def isolate_gateway_state():
     """
     Per-function isolation fixture.
 

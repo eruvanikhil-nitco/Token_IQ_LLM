@@ -8,11 +8,11 @@ from token_iq.gateway.proxy.openai_files_endpoints.common_utils import (
     apply_unified_file_ids,
     map_raw_file_ids_to_unified,
 )
-from token_iq.gateway.types.utils import LiteLLMBatch
+from token_iq.gateway.types.utils import GatewayBatch
 
 
-def _batch(input_file_id, output_file_id, error_file_id) -> LiteLLMBatch:
-    return LiteLLMBatch(
+def _batch(input_file_id, output_file_id, error_file_id) -> GatewayBatch:
+    return GatewayBatch(
         id="batch-1",
         completion_window="24h",
         created_at=1234567890,
@@ -162,8 +162,8 @@ def test_batch_cost_poller_is_active_is_false_when_no_scheduler_exists(monkeypat
     assert batch_cost_poller_is_active() is False
 
 
-def _completed_batch() -> LiteLLMBatch:
-    return LiteLLMBatch(
+def _completed_batch() -> GatewayBatch:
+    return GatewayBatch(
         id="batch-done",
         completion_window="24h",
         created_at=1234567890,
@@ -443,7 +443,7 @@ from token_iq.gateway.proxy.openai_files_endpoints.common_utils import (
 
 def _completed_batch_for_retire(
     output_file_id: str | None, counts: BatchRequestCounts | None = None
-) -> LiteLLMBatch:
+) -> GatewayBatch:
     kwargs = dict(
         id="batch-1",
         completion_window="24h",
@@ -457,7 +457,7 @@ def _completed_batch_for_retire(
     )
     if counts is not None:
         kwargs["request_counts"] = counts
-    return LiteLLMBatch(**kwargs)
+    return GatewayBatch(**kwargs)
 
 
 class TestCompletedBatchSafeToRetire:

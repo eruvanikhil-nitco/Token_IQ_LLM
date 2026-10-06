@@ -33,7 +33,7 @@ from token_iq.gateway.models.user import SCIMPlaceholder
 from token_iq.gateway.proxy._types import (
     LiteLLM_TeamTable,
     LiteLLM_UserTable,
-    LitellmUserRoles,
+    GatewayUserRoles,
     Member,
     NewTeamRequest,
     NewUserRequest,
@@ -228,7 +228,7 @@ class UserProvisionerHelpers:
             },
         )
 
-        return await ScimTransformations.transform_litellm_user_to_scim_user(updated_user)
+        return await ScimTransformations.transform_gateway_user_to_scim_user(updated_user)
 
 
 class ScimUserData(TypedDict):
@@ -382,10 +382,10 @@ async def _get_scim_upsert_user_setting() -> bool:
 
 
 ScimUserRole = Literal[
-    LitellmUserRoles.PROXY_ADMIN,
-    LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY,
-    LitellmUserRoles.INTERNAL_USER,
-    LitellmUserRoles.INTERNAL_USER_VIEW_ONLY,
+    GatewayUserRoles.PROXY_ADMIN,
+    GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY,
+    GatewayUserRoles.INTERNAL_USER,
+    GatewayUserRoles.INTERNAL_USER_VIEW_ONLY,
 ]
 
 
@@ -395,7 +395,7 @@ def _default_scim_user_role() -> ScimUserRole:
         configured_role: Final = gateway.default_internal_user_params.get("user_role")
         if configured_role is not None:
             return configured_role
-    return LitellmUserRoles.INTERNAL_USER_VIEW_ONLY
+    return GatewayUserRoles.INTERNAL_USER_VIEW_ONLY
 
 
 async def _get_scim_admin_group() -> str | None:
@@ -420,7 +420,7 @@ def _resolve_scim_user_role(
     groups: list[SCIMUserGroup],
     admin_group: str | None,
     default_role: ScimUserRole,
-) -> LitellmUserRoles | None:
+) -> GatewayUserRoles | None:
     """
     Resolve a user's global proxy role from their SCIM groups.
 
@@ -432,7 +432,7 @@ def _resolve_scim_user_role(
         return None
     for group in groups:
         if group.value == admin_group or group.display == admin_group:
-            return LitellmUserRoles.PROXY_ADMIN
+            return GatewayUserRoles.PROXY_ADMIN
     return default_role
 
 
@@ -1109,13 +1109,13 @@ async def _create_user_if_not_exists(user_id: str, created_via: str = "scim_grou
         # Get default role for new internal users
         default_role: (
             Literal[
-                LitellmUserRoles.PROXY_ADMIN,
-                LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY,
-                LitellmUserRoles.INTERNAL_USER,
-                LitellmUserRoles.INTERNAL_USER_VIEW_ONLY,
+                GatewayUserRoles.PROXY_ADMIN,
+                GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY,
+                GatewayUserRoles.INTERNAL_USER,
+                GatewayUserRoles.INTERNAL_USER_VIEW_ONLY,
             ]
             | None
-        ) = LitellmUserRoles.INTERNAL_USER_VIEW_ONLY
+        ) = GatewayUserRoles.INTERNAL_USER_VIEW_ONLY
         if gateway.default_internal_user_params:
             default_role = gateway.default_internal_user_params.get("user_role")
 
@@ -1615,7 +1615,7 @@ async def get_users(
         # Convert to SCIM format
         scim_users: Final[list[SCIMUser]] = []
         for user in users:
-            scim_user = await ScimTransformations.transform_litellm_user_to_scim_user(user=user)
+            scim_user = await ScimTransformations.transform_gateway_user_to_scim_user(user=user)
             scim_users.append(scim_user)
 
         return SCIMListResponse(
@@ -1646,7 +1646,7 @@ async def get_user(
         user: Final = await _check_user_exists(user_id)
 
         # Convert to SCIM format
-        scim_user: Final = await ScimTransformations.transform_litellm_user_to_scim_user(user)
+        scim_user: Final = await ScimTransformations.transform_gateway_user_to_scim_user(user)
         return scim_user
 
     except Exception as e:
@@ -1719,7 +1719,7 @@ async def create_user(
             data=new_user_request,
         )
 
-        scim_user: Final = await ScimTransformations.transform_litellm_user_to_scim_user(user=created_user)
+        scim_user: Final = await ScimTransformations.transform_gateway_user_to_scim_user(user=created_user)
         return scim_user
     except HTTPException as e:  # allow exceptions like SCIMUserAlreadyExists to be raised
         raise e
@@ -1802,7 +1802,7 @@ async def update_user(
                 await _set_user_keys_blocked(user_id=user_id, blocked=not new_active)
 
         # Convert back to SCIM format
-        scim_user: Final = await ScimTransformations.transform_litellm_user_to_scim_user(updated_user)
+        scim_user: Final = await ScimTransformations.transform_gateway_user_to_scim_user(updated_user)
 
         return scim_user
 
@@ -1848,7 +1848,7 @@ async def delete_user(
             if any(member.user_id == user_id for member in team_row.members_with_roles or []):
                 await team_member_delete(
                     data=TeamMemberDeleteRequest(team_id=team_row.team_id, user_id=user_id),
-                    user_api_key_dict=UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN),
+                    user_api_key_dict=UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN),
                 )
 
         await _set_user_keys_blocked(user_id=user_id, blocked=True)
@@ -2249,7 +2249,7 @@ async def _add_user_to_team(user_id: str, team_id: str) -> None:
                 team_id=team_id,
                 member=Member(user_id=user_id, role="user"),
             ),
-            user_api_key_dict=UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN),
+            user_api_key_dict=UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN),
         )
     except ProxyException as e:
         if e.type != ProxyErrorTypes.team_member_already_in_team:
@@ -2261,7 +2261,7 @@ async def _remove_user_from_team(user_id: str, team_id: str) -> None:
     try:
         await team_member_delete(
             data=TeamMemberDeleteRequest(team_id=team_id, user_id=user_id),
-            user_api_key_dict=UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN),
+            user_api_key_dict=UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN),
         )
     except HTTPException as e:
         if not _is_user_not_in_team_error(e):
@@ -2370,7 +2370,7 @@ async def patch_user(
         if new_active is not None and new_active != (True if prev_active is None else prev_active):
             await _set_user_keys_blocked(user_id=user_id, blocked=not new_active)
 
-        scim_user: Final = await ScimTransformations.transform_litellm_user_to_scim_user(updated_user)
+        scim_user: Final = await ScimTransformations.transform_gateway_user_to_scim_user(updated_user)
 
         return scim_user
 
@@ -2562,7 +2562,7 @@ async def create_group(
                 members_with_roles=members_with_roles,
             ),
             http_request=Request(scope={"type": "http", "path": "/scim/v2/Groups"}),
-            user_api_key_dict=UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN),
+            user_api_key_dict=UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN),
         )
 
         await _recompute_scim_member_roles(prisma_client, member_result.all_member_ids)

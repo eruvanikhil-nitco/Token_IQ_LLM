@@ -8,7 +8,7 @@ import pytest
 
 from token_iq import gateway
 from token_iq.gateway.exceptions import UnsupportedParamsError
-from token_iq.gateway.llms.base_llm.chat.transformation import LiteLLMLoggingObj
+from token_iq.gateway.llms.base_llm.chat.transformation import GatewayLoggingObj
 from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
 from token_iq.gateway.llms.openai.chat.gpt_transformation import (
     OpenAIChatCompletionStreamingHandler,
@@ -90,7 +90,7 @@ def together_warning_log(caplog):
     from token_iq.gateway._logging import verbose_logger
 
     verbose_logger.addHandler(caplog.handler)
-    with caplog.at_level(logging.WARNING, logger="LiteLLM"):
+    with caplog.at_level(logging.WARNING, logger="Gateway"):
         yield caplog
     verbose_logger.removeHandler(caplog.handler)
 
@@ -369,7 +369,7 @@ def _transform_response(message: dict) -> ModelResponse:
     mock_response.json.return_value = raw_response_json
     mock_response.text = json.dumps(raw_response_json)
     mock_response.headers = {}
-    logging_obj = MagicMock(spec=LiteLLMLoggingObj)
+    logging_obj = MagicMock(spec=GatewayLoggingObj)
     logging_obj.post_call = MagicMock()
     logging_obj.model_call_details = {}
 

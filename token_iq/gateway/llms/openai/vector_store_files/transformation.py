@@ -8,7 +8,7 @@ from token_iq.gateway.llms.base_llm.vector_store_files.transformation import (
     BaseVectorStoreFilesConfig,
 )
 from token_iq.gateway.secret_managers.main import get_secret_str
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.types.vector_store_files import (
     VectorStoreFileAuthCredentials,
     VectorStoreFileContentResponse,
@@ -63,9 +63,9 @@ class OpenAIVectorStoreFilesConfig(BaseVectorStoreFilesConfig):
         self,
         *,
         headers: dict[str, str],
-        litellm_params: GenericLiteLLMParams | None,
+        litellm_params: GenericGatewayParams | None,
     ) -> dict[str, str]:
-        litellm_params = litellm_params or GenericLiteLLMParams()
+        litellm_params = litellm_params or GenericGatewayParams()
         api_key = litellm_params.api_key or gateway.api_key or gateway.openai_key or get_secret_str("OPENAI_API_KEY")
         headers.update(
             {

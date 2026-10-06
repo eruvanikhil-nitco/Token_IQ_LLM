@@ -5,10 +5,10 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
 from token_iq.gateway.proxy.management_endpoints.team_endpoints import team_courier_coverage
 
-ADMIN = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN, api_key="sk-admin", user_id="admin")
+ADMIN = UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN, api_key="sk-admin", user_id="admin")
 
 DEPLOYMENTS = (
     {"model_name": "or-gpt", "litellm_params": {"model": "openrouter/openai/gpt-4o-mini"}},
@@ -104,7 +104,7 @@ async def test_someone_outside_the_team_cannot_read_its_coverage():
     which is not something one customer's team should learn about another's."""
     from fastapi import HTTPException
 
-    outsider = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-other", user_id="other")
+    outsider = UserAPIKeyAuth(user_role=GatewayUserRoles.INTERNAL_USER, api_key="sk-other", user_id="other")
     router = SimpleNamespace(get_model_list=lambda: list(DEPLOYMENTS))
     with (
         patch("token_iq.gateway.proxy.proxy_server.prisma_client", _prisma(_team(models=["*"]))),

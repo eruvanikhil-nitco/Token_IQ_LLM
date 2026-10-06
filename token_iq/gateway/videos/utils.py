@@ -3,7 +3,7 @@ from typing import Any, Final, cast
 from token_iq import gateway
 from token_iq.gateway.llms.base_llm.videos.transformation import BaseVideoConfig
 from token_iq.gateway.types.videos.main import VideoCreateOptionalRequestParams
-from token_iq.gateway.utils import filter_out_litellm_params
+from token_iq.gateway.utils import filter_out_gateway_params
 
 
 class VideoGenerationRequestUtils:
@@ -71,9 +71,9 @@ class VideoGenerationRequestUtils:
             for key, value in params.items()
             if key not in {"kwargs", "extra_body", "prompt", "model"} and value is not None
         }
-        base_params: Final = filter_out_litellm_params(kwargs=base_params_raw)
+        base_params: Final = filter_out_gateway_params(kwargs=base_params_raw)
 
-        cleaned_kwargs: Final = filter_out_litellm_params(kwargs={k: v for k, v in raw_kwargs.items() if v is not None})
+        cleaned_kwargs: Final = filter_out_gateway_params(kwargs={k: v for k, v in raw_kwargs.items() if v is not None})
 
         optional_params: Final[dict[str, Any]] = {
             **base_params,
@@ -88,7 +88,7 @@ class VideoGenerationRequestUtils:
                         merged_extra_body[key] = value
 
         if merged_extra_body:
-            merged_extra_body = filter_out_litellm_params(kwargs=merged_extra_body)
+            merged_extra_body = filter_out_gateway_params(kwargs=merged_extra_body)
             if merged_extra_body:
                 optional_params["extra_body"] = merged_extra_body
                 optional_params.update(merged_extra_body)

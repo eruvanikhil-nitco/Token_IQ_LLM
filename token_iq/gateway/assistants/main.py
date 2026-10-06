@@ -13,7 +13,7 @@ from openai.types.beta.assistant import Assistant
 from openai.types.beta.assistant_deleted import AssistantDeleted
 
 from token_iq import gateway
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.utils import (
     exception_type,
     get_litellm_params,
@@ -81,8 +81,8 @@ def get_assistants(
     aget_assistants: Final[bool | None] = kwargs.pop("aget_assistants", None)
     if aget_assistants is not None and not isinstance(aget_assistants, bool):
         raise Exception("Invalid value passed in for aget_assistants. Only bool or None allowed")
-    optional_params: Final = GenericLiteLLMParams(api_key=api_key, api_base=api_base, api_version=api_version, **kwargs)
-    litellm_params_dict: Final = get_litellm_params(**kwargs)
+    optional_params: Final = GenericGatewayParams(api_key=api_key, api_base=api_base, api_version=api_version, **kwargs)
+    gateway_params_dict: Final = get_litellm_params(**kwargs)
 
     ### TIMEOUT LOGIC ###
     timeout = optional_params.timeout or kwargs.get("request_timeout", 600) or 600
@@ -161,7 +161,7 @@ def get_assistants(
             max_retries=optional_params.max_retries,
             client=client,
             aget_assistants=aget_assistants,
-            litellm_params=litellm_params_dict,
+            litellm_params=gateway_params_dict,
         )
     else:
         raise gateway.exceptions.BadRequestError(
@@ -248,8 +248,8 @@ def create_assistants(
     async_create_assistants: Final[bool | None] = kwargs.pop("async_create_assistants", None)
     if async_create_assistants is not None and not isinstance(async_create_assistants, bool):
         raise ValueError("Invalid value passed in for async_create_assistants. Only bool or None allowed")
-    optional_params: Final = GenericLiteLLMParams(api_key=api_key, api_base=api_base, api_version=api_version, **kwargs)
-    litellm_params_dict: Final = get_litellm_params(**kwargs)
+    optional_params: Final = GenericGatewayParams(api_key=api_key, api_base=api_base, api_version=api_version, **kwargs)
+    gateway_params_dict: Final = get_litellm_params(**kwargs)
 
     ### TIMEOUT LOGIC ###
     timeout = optional_params.timeout or kwargs.get("request_timeout", 600) or 600
@@ -349,7 +349,7 @@ def create_assistants(
             client=client,
             async_create_assistants=async_create_assistants,
             create_assistant_data=create_assistant_data,
-            litellm_params=litellm_params_dict,
+            litellm_params=gateway_params_dict,
         )
     else:
         raise gateway.exceptions.BadRequestError(
@@ -416,9 +416,9 @@ def delete_assistant(
     api_version: str | None = None,
     **kwargs,
 ) -> AssistantDeleted | Coroutine[Any, Any, AssistantDeleted]:
-    optional_params: Final = GenericLiteLLMParams(api_key=api_key, api_base=api_base, api_version=api_version, **kwargs)
+    optional_params: Final = GenericGatewayParams(api_key=api_key, api_base=api_base, api_version=api_version, **kwargs)
 
-    litellm_params_dict: Final = get_litellm_params(**kwargs)
+    gateway_params_dict: Final = get_litellm_params(**kwargs)
 
     async_delete_assistants: Final[bool | None] = kwargs.pop("async_delete_assistants", None)
     if async_delete_assistants is not None and not isinstance(async_delete_assistants, bool):
@@ -498,7 +498,7 @@ def delete_assistant(
             max_retries=optional_params.max_retries,
             client=client,
             async_delete_assistants=async_delete_assistants,
-            litellm_params=litellm_params_dict,
+            litellm_params=gateway_params_dict,
         )
     else:
         raise gateway.exceptions.BadRequestError(
@@ -585,8 +585,8 @@ def create_thread(
     ```
     """
     acreate_thread: Final = kwargs.get("acreate_thread", None)
-    optional_params: Final = GenericLiteLLMParams(**kwargs)
-    litellm_params_dict: Final = get_litellm_params(**kwargs)
+    optional_params: Final = GenericGatewayParams(**kwargs)
+    gateway_params_dict: Final = get_litellm_params(**kwargs)
 
     ### TIMEOUT LOGIC ###
     timeout = optional_params.timeout or kwargs.get("request_timeout", 600) or 600
@@ -674,7 +674,7 @@ def create_thread(
             max_retries=optional_params.max_retries,
             client=client,
             acreate_thread=acreate_thread,
-            litellm_params=litellm_params_dict,
+            litellm_params=gateway_params_dict,
         )
     else:
         raise gateway.exceptions.BadRequestError(
@@ -734,8 +734,8 @@ def get_thread(
 ) -> Thread:
     """Get the thread object, given a thread_id"""
     aget_thread: Final = kwargs.pop("aget_thread", None)
-    optional_params: Final = GenericLiteLLMParams(**kwargs)
-    litellm_params_dict: Final = get_litellm_params(**kwargs)
+    optional_params: Final = GenericGatewayParams(**kwargs)
+    gateway_params_dict: Final = get_litellm_params(**kwargs)
     ### TIMEOUT LOGIC ###
     timeout = optional_params.timeout or kwargs.get("request_timeout", 600) or 600
     # set timeout for 10 minutes by default
@@ -819,7 +819,7 @@ def get_thread(
             max_retries=optional_params.max_retries,
             client=client,
             aget_thread=aget_thread,
-            litellm_params=litellm_params_dict,
+            litellm_params=gateway_params_dict,
         )
     else:
         raise gateway.exceptions.BadRequestError(
@@ -902,8 +902,8 @@ def add_message(
     ### COMMON OBJECTS ###
     a_add_message: Final = kwargs.pop("a_add_message", None)
     _message_data: Final = MessageData(role=role, content=content, attachments=attachments, metadata=metadata)
-    litellm_params_dict: Final = get_litellm_params(**kwargs)
-    optional_params: Final = GenericLiteLLMParams(**kwargs)
+    gateway_params_dict: Final = get_litellm_params(**kwargs)
+    optional_params: Final = GenericGatewayParams(**kwargs)
 
     message_data: Final = get_optional_params_add_message(
         role=_message_data["role"],
@@ -994,7 +994,7 @@ def add_message(
             max_retries=optional_params.max_retries,
             client=client,
             a_add_message=a_add_message,
-            litellm_params=litellm_params_dict,
+            litellm_params=gateway_params_dict,
         )
     else:
         raise gateway.exceptions.BadRequestError(
@@ -1061,8 +1061,8 @@ def get_messages(
     **kwargs,
 ) -> SyncCursorPage[OpenAIMessage]:
     aget_messages: Final = kwargs.pop("aget_messages", None)
-    optional_params: Final = GenericLiteLLMParams(**kwargs)
-    litellm_params_dict: Final = get_litellm_params(**kwargs)
+    optional_params: Final = GenericGatewayParams(**kwargs)
+    gateway_params_dict: Final = get_litellm_params(**kwargs)
 
     ### TIMEOUT LOGIC ###
     timeout = optional_params.timeout or kwargs.get("request_timeout", 600) or 600
@@ -1144,7 +1144,7 @@ def get_messages(
             max_retries=optional_params.max_retries,
             client=client,
             aget_messages=aget_messages,
-            litellm_params=litellm_params_dict,
+            litellm_params=gateway_params_dict,
         )
     else:
         raise gateway.exceptions.BadRequestError(
@@ -1252,8 +1252,8 @@ def run_thread(
 ) -> Run:
     """Run a given thread + assistant."""
     arun_thread: Final = kwargs.pop("arun_thread", None)
-    optional_params: Final = GenericLiteLLMParams(**kwargs)
-    litellm_params_dict: Final = get_litellm_params(**kwargs)
+    optional_params: Final = GenericGatewayParams(**kwargs)
+    gateway_params_dict: Final = get_litellm_params(**kwargs)
 
     ### TIMEOUT LOGIC ###
     timeout = optional_params.timeout or kwargs.get("request_timeout", 600) or 600
@@ -1349,7 +1349,7 @@ def run_thread(
             max_retries=optional_params.max_retries,
             client=client,
             arun_thread=arun_thread,
-            litellm_params=litellm_params_dict,
+            litellm_params=gateway_params_dict,
         )
     else:
         raise gateway.exceptions.BadRequestError(

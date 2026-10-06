@@ -388,7 +388,7 @@ This is a beta API. Please help us improve it.
 """
 
 
-class LitellmBasicGuardrailRequest(BaseModel):
+class GatewayBasicGuardrailRequest(BaseModel):
     texts: List[str]
     images: Optional[List[str]] = None
     tools: Optional[List[dict]] = None
@@ -401,7 +401,7 @@ class LitellmBasicGuardrailRequest(BaseModel):
     structured_messages: Optional[List[Dict[str, Any]]] = None
 
 
-class LitellmBasicGuardrailResponse(BaseModel):
+class GatewayBasicGuardrailResponse(BaseModel):
     action: Literal[
         "BLOCKED", "NONE", "GUARDRAIL_INTERVENED"
     ]  # BLOCKED = litellm will raise an error, NONE = litellm will continue, GUARDRAIL_INTERVENED = litellm will continue, but the text was modified by the guardrail
@@ -412,11 +412,11 @@ class LitellmBasicGuardrailResponse(BaseModel):
 
 @app.post(
     "/beta/litellm_basic_guardrail_api",
-    response_model=LitellmBasicGuardrailResponse,
+    response_model=GatewayBasicGuardrailResponse,
 )
-async def beta_litellm_basic_guardrail_api(
-    request: LitellmBasicGuardrailRequest,
-) -> LitellmBasicGuardrailResponse:
+async def beta_gateway_basic_guardrail_api(
+    request: GatewayBasicGuardrailRequest,
+) -> GatewayBasicGuardrailResponse:
     """
     Apply guardrail to input or output content.
 
@@ -431,18 +431,18 @@ async def beta_litellm_basic_guardrail_api(
     """
     print(f"request: {request}")
     if any("ishaan" in text.lower() for text in request.texts):
-        return LitellmBasicGuardrailResponse(
+        return GatewayBasicGuardrailResponse(
             action="BLOCKED", blocked_reason="Ishaan is not allowed"
         )
     elif any("pii_value" in text for text in request.texts):
-        return LitellmBasicGuardrailResponse(
+        return GatewayBasicGuardrailResponse(
             action="GUARDRAIL_INTERVENED",
             texts=[
                 text.replace("pii_value", "pii_value_redacted")
                 for text in request.texts
             ],
         )
-    return LitellmBasicGuardrailResponse(action="NONE")
+    return GatewayBasicGuardrailResponse(action="NONE")
 
 
 @app.post("/config/update")

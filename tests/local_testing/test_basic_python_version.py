@@ -14,7 +14,7 @@ def _run_uv(*args: str, **kwargs) -> subprocess.CompletedProcess:
     return subprocess.run(["uv", *args], check=True, cwd=PROJECT_ROOT, **kwargs)
 
 
-def test_using_litellm():
+def test_using_gateway():
     try:
         from token_iq import gateway
 
@@ -23,7 +23,7 @@ def test_using_litellm():
         pytest.fail(f"Error occurred: {e}. Installing litellm failed please retry")
 
 
-def test_litellm_proxy_server():
+def test_gateway_proxy_server():
     # Sync the local litellm[proxy] dependencies into the project environment
     _run_uv("sync", "--frozen", "--extra", "proxy")
 
@@ -56,8 +56,8 @@ def test_package_dependencies():
                 pytest.skip("tomli/tomllib not available - skipping dependency check")
 
         # Get the litellm package root path
-        litellm_path = pathlib.Path(gateway.__file__).parent.parent
-        pyproject_path = litellm_path / "pyproject.toml"
+        gateway_path = pathlib.Path(gateway.__file__).parent.parent
+        pyproject_path = gateway_path / "pyproject.toml"
 
         # Read and parse pyproject.toml
         with open(pyproject_path, "rb") as f:
@@ -304,12 +304,12 @@ def _run_proxy_server_smoke_test(extra_proxy_args=None):
     assert True
 
 
-def test_litellm_proxy_server_config_no_general_settings():
+def test_gateway_proxy_server_config_no_general_settings():
     """Exercises the default (v1) migration resolver."""
     _run_proxy_server_smoke_test()
 
 
-def test_litellm_proxy_server_config_no_general_settings_v2_resolver():
+def test_gateway_proxy_server_config_no_general_settings_v2_resolver():
     """Exercises the opt-in v2 migration resolver.
 
     Runs in a separate CI job against a local Postgres to avoid collisions

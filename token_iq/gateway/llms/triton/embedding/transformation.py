@@ -5,7 +5,7 @@ import httpx
 from token_iq.gateway.llms.base_llm.chat.transformation import AllMessageValues, BaseLLMException
 from token_iq.gateway.llms.base_llm.embedding.transformation import (
     BaseEmbeddingConfig,
-    LiteLLMLoggingObj,
+    GatewayLoggingObj,
 )
 from token_iq.gateway.types.llms.openai import AllEmbeddingInputValues
 from token_iq.gateway.types.utils import EmbeddingResponse, Usage
@@ -72,7 +72,7 @@ class TritonEmbeddingConfig(BaseEmbeddingConfig):
         model: str,
         raw_response: httpx.Response,
         model_response: EmbeddingResponse,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         api_key: str | None = None,
         request_data: dict = {},
         optional_params: dict = {},

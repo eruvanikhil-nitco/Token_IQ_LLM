@@ -13,7 +13,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import httpx
 import pytest
 from token_iq import gateway
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.types.passthrough_endpoints.pass_through_endpoints import EndpointType
 from token_iq.gateway.proxy.pass_through_endpoints.success_handler import (
     PassThroughEndpointLogging,
@@ -52,7 +52,7 @@ async def test_vertex_ai_anthropic_streaming_cost_injection_enabled():
         response.aiter_bytes = mock_aiter_bytes
 
         # Setup logging object with model info
-        litellm_logging_obj = MagicMock(spec=LiteLLMLoggingObj)
+        litellm_logging_obj = MagicMock(spec=GatewayLoggingObj)
         litellm_logging_obj.model_call_details = {"model": "claude-sonnet-4@20250514"}
         litellm_logging_obj.completion_start_time = None
         litellm_logging_obj.async_success_handler = AsyncMock()
@@ -131,7 +131,7 @@ async def test_vertex_ai_anthropic_streaming_cost_injection_disabled():
 
         response.aiter_bytes = mock_aiter_bytes
 
-        litellm_logging_obj = MagicMock(spec=LiteLLMLoggingObj)
+        litellm_logging_obj = MagicMock(spec=GatewayLoggingObj)
         litellm_logging_obj.model_call_details = {"model": "claude-sonnet-4@20250514"}
         litellm_logging_obj.completion_start_time = None
         litellm_logging_obj.async_success_handler = AsyncMock()
@@ -193,7 +193,7 @@ async def test_vertex_ai_anthropic_streaming_cost_injection_no_usage_chunk():
 
         response.aiter_bytes = mock_aiter_bytes
 
-        litellm_logging_obj = MagicMock(spec=LiteLLMLoggingObj)
+        litellm_logging_obj = MagicMock(spec=GatewayLoggingObj)
         litellm_logging_obj.model_call_details = {"model": "claude-sonnet-4@20250514"}
         litellm_logging_obj.completion_start_time = None
         litellm_logging_obj.async_success_handler = AsyncMock()
@@ -248,7 +248,7 @@ async def test_vertex_ai_anthropic_streaming_model_extraction():
 
         response.aiter_bytes = mock_aiter_bytes
 
-        litellm_logging_obj = MagicMock(spec=LiteLLMLoggingObj)
+        litellm_logging_obj = MagicMock(spec=GatewayLoggingObj)
         litellm_logging_obj.model_call_details = {}
         litellm_logging_obj.completion_start_time = None
         litellm_logging_obj.async_success_handler = AsyncMock()

@@ -9,7 +9,7 @@ from token_iq.gateway.llms.base_llm.managed_resources.isolation import (
     can_access_resource,
     resolve_resource_owner_id,
 )
-from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
 
 
 # ---------------------------------------------------------------------------
@@ -19,7 +19,7 @@ from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
 
 @pytest.mark.parametrize(
     "role",
-    [LitellmUserRoles.PROXY_ADMIN, LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY],
+    [GatewayUserRoles.PROXY_ADMIN, GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY],
 )
 def test_owner_filter_admin_unscoped(role):
     assert build_owner_filter(UserAPIKeyAuth(user_role=role)) == {}
@@ -62,7 +62,7 @@ def test_owner_filter_no_identity_returns_none():
 
 @pytest.mark.parametrize(
     "role",
-    [LitellmUserRoles.PROXY_ADMIN, LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY],
+    [GatewayUserRoles.PROXY_ADMIN, GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY],
 )
 @pytest.mark.parametrize(
     "created_by,resource_team_id",

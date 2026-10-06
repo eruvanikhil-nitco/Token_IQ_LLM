@@ -15,7 +15,7 @@ from token_iq.gateway.proxy.hooks.prompt_injection_detection import (
 )
 from token_iq.gateway import Router, mock_completion
 from token_iq.gateway.proxy.utils import ProxyLogging
-from token_iq.gateway.proxy._types import UserAPIKeyAuth, LiteLLMPromptInjectionParams
+from token_iq.gateway.proxy._types import UserAPIKeyAuth, GatewayPromptInjectionParams
 from token_iq.gateway.caching.caching import DualCache
 
 
@@ -85,7 +85,7 @@ async def test_prompt_injection_llm_eval():
     Tests if prompt injection detection fails a prompt attack
     """
     gateway.set_verbose = True
-    _prompt_injection_params = LiteLLMPromptInjectionParams(
+    _prompt_injection_params = GatewayPromptInjectionParams(
         heuristics_check=False,
         vector_db_check=False,
         llm_api_check=True,

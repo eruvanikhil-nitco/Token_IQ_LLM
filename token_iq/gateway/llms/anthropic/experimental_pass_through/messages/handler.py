@@ -13,7 +13,7 @@ from typing import Any, Final, cast
 
 from token_iq import gateway
 from token_iq.gateway.core_utils.exception_mapping_utils import exception_type
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.llms.anthropic.common_utils import (
     flatten_unencrypted_web_search_results_in_anthropic_messages,
     sanitize_tool_use_ids_in_anthropic_messages,
@@ -29,12 +29,12 @@ from token_iq.gateway.types.llms.anthropic_messages.anthropic_request import Ant
 from token_iq.gateway.types.llms.anthropic_messages.anthropic_response import (
     AnthropicMessagesResponse,
 )
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.types.utils import CallTypes
 from token_iq.gateway.utils import ProviderConfigManager, client
 
-from ..adapters.handler import LiteLLMMessagesToCompletionTransformationHandler
-from ..responses_adapters.handler import LiteLLMMessagesToResponsesAPIHandler
+from ..adapters.handler import GatewayMessagesToCompletionTransformationHandler
+from ..responses_adapters.handler import GatewayMessagesToResponsesAPIHandler
 from ..utils import is_reasoning_auto_summary_enabled
 from .interceptors import get_messages_interceptors
 from .utils import AnthropicMessagesRequestUtils, mock_response
@@ -475,13 +475,13 @@ def anthropic_messages_handler(
     local_vars: Final = locals()
     is_async: Final = kwargs.pop("is_async", False)
     # Use provided client or create a new one
-    litellm_logging_obj: Final[LiteLLMLoggingObj] = kwargs.get("litellm_logging_obj")
+    litellm_logging_obj: Final[GatewayLoggingObj] = kwargs.get("litellm_logging_obj")
 
     # Store original model name before get_llm_provider strips the provider prefix
     # This is needed by agentic hooks (e.g., websearch_interception) to make follow-up requests
     original_model: Final = model
 
-    litellm_params: Final = GenericLiteLLMParams(
+    litellm_params: Final = GenericGatewayParams(
         **kwargs,
         api_key=api_key,
         api_base=api_base,
@@ -578,7 +578,7 @@ def anthropic_messages_handler(
     if anthropic_messages_provider_config is None:
         # Route to Responses API for OpenAI / Azure, chat/completions for everything else.
         if _should_route_to_responses_api(custom_llm_provider, original_model, model):
-            return LiteLLMMessagesToResponsesAPIHandler.anthropic_messages_handler(
+            return GatewayMessagesToResponsesAPIHandler.anthropic_messages_handler(
                 max_tokens=max_tokens,
                 messages=messages,
                 model=original_model,
@@ -604,7 +604,7 @@ def anthropic_messages_handler(
         # ``async_anthropic_messages_handler`` so it can ``await`` the
         # summarization model for ``compact_20260112``. ``context_management``
         # is passed through as a regular kwarg.
-        return LiteLLMMessagesToCompletionTransformationHandler.anthropic_messages_handler(
+        return GatewayMessagesToCompletionTransformationHandler.anthropic_messages_handler(
             max_tokens=max_tokens,
             messages=messages,
             model=original_model,

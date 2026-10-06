@@ -8,7 +8,7 @@ from pydantic import BaseModel
 
 from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
-from token_iq.gateway.core_utils.litellm_logging import Logging as LitellmLogging
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLogging
 from token_iq.gateway.llms.bedrock.image_generation.amazon_nova_canvas_transformation import (
     AmazonNovaCanvasConfig,
 )
@@ -79,7 +79,7 @@ class BedrockImageGeneration(BaseAWSLLM):
         prompt: str,
         model_response: ImageResponse,
         optional_params: dict,
-        logging_obj: LitellmLogging,
+        logging_obj: GatewayLogging,
         timeout: float | httpx.Timeout | None,
         aimg_generation: bool = False,
         api_base: str | None = None,
@@ -138,7 +138,7 @@ class BedrockImageGeneration(BaseAWSLLM):
         prepared_request: BedrockImagePreparedRequest,
         timeout: float | httpx.Timeout | None,
         model: str,
-        logging_obj: LitellmLogging,
+        logging_obj: GatewayLogging,
         prompt: str,
         model_response: ImageResponse,
         client: AsyncHTTPHandler | None = None,
@@ -198,7 +198,7 @@ class BedrockImageGeneration(BaseAWSLLM):
         optional_params: dict,
         api_base: str | None,
         extra_headers: dict | None,
-        logging_obj: LitellmLogging,
+        logging_obj: GatewayLogging,
         prompt: str,
         api_key: str | None,
     ) -> BedrockImagePreparedRequest:
@@ -301,7 +301,7 @@ class BedrockImageGeneration(BaseAWSLLM):
         self,
         model_response: ImageResponse,
         model: str,
-        logging_obj: LitellmLogging,
+        logging_obj: GatewayLogging,
         prompt: str,
         response: httpx.Response,
         data: dict,

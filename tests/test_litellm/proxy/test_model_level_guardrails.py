@@ -615,7 +615,7 @@ async def test_pre_call_merges_model_level_guardrails_before_pre_call_hook():
     # Minimal stubs for the surrounding setup steps in
     # common_processing_pre_call_logic. We only care about the ordering
     # between _check_and_merge_model_level_guardrails and pre_call_hook.
-    async def passthrough_add_litellm_data(*, data, **kwargs):
+    async def passthrough_add_gateway_data(*, data, **kwargs):
         return data
 
     proxy_config = MagicMock()
@@ -628,7 +628,7 @@ async def test_pre_call_merges_model_level_guardrails_before_pre_call_hook():
     with (
         patch(
             "token_iq.gateway.proxy.common_request_processing.add_litellm_data_to_request",
-            side_effect=passthrough_add_litellm_data,
+            side_effect=passthrough_add_gateway_data,
         ),
         patch(
             "token_iq.gateway.proxy.common_request_processing.gateway.utils.function_setup",

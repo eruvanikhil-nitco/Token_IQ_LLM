@@ -12,7 +12,7 @@ import pytest
 
 from token_iq.gateway.llms.gemini.videos.transformation import GeminiVideoConfig
 from token_iq.gateway.llms.openai.cost_calculation import video_generation_cost
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.types.videos.main import VideoObject
 
 
@@ -90,7 +90,7 @@ class TestGeminiVideoConfig:
             prompt=prompt,
             api_base=api_base,
             video_create_optional_request_params={},
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 
@@ -119,7 +119,7 @@ class TestGeminiVideoConfig:
                 "durationSeconds": 8,
                 "resolution": "1080p",
             },
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 
@@ -148,7 +148,7 @@ class TestGeminiVideoConfig:
                 "aspectRatio": "16:9",
                 "durationSeconds": 4,
             },
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 
@@ -178,7 +178,7 @@ class TestGeminiVideoConfig:
                 "image": image_file,
                 "aspectRatio": "16:9",
             },
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 
@@ -207,7 +207,7 @@ class TestGeminiVideoConfig:
                 "image": None,
                 "aspectRatio": "16:9",
             },
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 
@@ -509,7 +509,7 @@ class TestGeminiVideoConfig:
         url, params = self.config.transform_video_status_retrieve_request(
             video_id=video_id,
             api_base="https://generativelanguage.googleapis.com",
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 
@@ -580,7 +580,7 @@ class TestGeminiVideoConfig:
         url, params = self.config.transform_video_content_request(
             video_id=video_id,
             api_base="https://generativelanguage.googleapis.com",
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 
@@ -608,7 +608,7 @@ class TestGeminiVideoConfig:
                 video_id="test_id",
                 prompt="test prompt",
                 api_base="https://test.com",
-                litellm_params=GenericLiteLLMParams(),
+                litellm_params=GenericGatewayParams(),
                 headers={},
             )
 
@@ -617,7 +617,7 @@ class TestGeminiVideoConfig:
         with pytest.raises(NotImplementedError, match="Video list is not supported"):
             self.config.transform_video_list_request(
                 api_base="https://test.com",
-                litellm_params=GenericLiteLLMParams(),
+                litellm_params=GenericGatewayParams(),
                 headers={},
             )
 
@@ -627,7 +627,7 @@ class TestGeminiVideoConfig:
             self.config.transform_video_delete_request(
                 video_id="test_id",
                 api_base="https://test.com",
-                litellm_params=GenericLiteLLMParams(),
+                litellm_params=GenericGatewayParams(),
                 headers={},
             )
 
@@ -651,7 +651,7 @@ class TestGeminiVideoIntegration:
                 "aspectRatio": "16:9",
                 "durationSeconds": 8,
             },
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 

@@ -2,20 +2,20 @@ from typing import TYPE_CHECKING, Any
 
 from token_iq.gateway.llms.azure.common_utils import BaseAzureLLM
 from token_iq.gateway.llms.openai.videos.transformation import OpenAIVideoConfig
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.types.videos.main import VideoCreateOptionalRequestParams
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as _LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as _GatewayLoggingObj
 
     from ...base_llm.chat.transformation import BaseLLMException as _BaseLLMException
     from ...base_llm.videos.transformation import BaseVideoConfig as _BaseVideoConfig
 
-    LiteLLMLoggingObj = _LiteLLMLoggingObj
+    GatewayLoggingObj = _GatewayLoggingObj
     BaseVideoConfig = _BaseVideoConfig
     BaseLLMException = _BaseLLMException
 else:
-    LiteLLMLoggingObj = Any
+    GatewayLoggingObj = Any
     BaseVideoConfig = Any
     BaseLLMException = Any
 
@@ -56,7 +56,7 @@ class AzureVideoConfig(OpenAIVideoConfig):
         headers: dict,
         model: str,
         api_key: str | None = None,
-        litellm_params: GenericLiteLLMParams | None = None,
+        litellm_params: GenericGatewayParams | None = None,
     ) -> dict:
         """
         Validate Azure environment and set up authentication headers.
@@ -64,7 +64,7 @@ class AzureVideoConfig(OpenAIVideoConfig):
         """
         # If litellm_params is provided, use it; otherwise create a new one
         if litellm_params is None:
-            litellm_params = GenericLiteLLMParams()
+            litellm_params = GenericGatewayParams()
 
         if api_key and not litellm_params.api_key:
             litellm_params.api_key = api_key

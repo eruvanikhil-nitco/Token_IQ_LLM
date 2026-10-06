@@ -3428,7 +3428,7 @@ def test_gemini_fine_tuned_model_request_consistency():
 
 @pytest.mark.parametrize("provider", ["vertex_ai", "gemini"])
 @pytest.mark.parametrize("route", ["completion", "embedding", "image_generation"])
-def test_litellm_api_base(monkeypatch, provider, route):
+def test_gateway_api_base(monkeypatch, provider, route):
     from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     client = HTTPHandler()

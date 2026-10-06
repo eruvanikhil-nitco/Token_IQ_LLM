@@ -9,7 +9,7 @@ import sys, os
 from typing import Optional
 
 from token_iq import gateway
-from token_iq.gateway.proxy._types import LitellmUserRoles
+from token_iq.gateway.proxy._types import GatewayUserRoles
 
 
 async def generate_team(
@@ -777,7 +777,7 @@ async def test_key_delete_ui():
         # generate a admin UI key
         team = await generate_team(session=session)
         admin_ui_key = await generate_user(
-            session=session, user_role=LitellmUserRoles.PROXY_ADMIN.value
+            session=session, user_role=GatewayUserRoles.PROXY_ADMIN.value
         )
         print(
             "trying to delete key=",

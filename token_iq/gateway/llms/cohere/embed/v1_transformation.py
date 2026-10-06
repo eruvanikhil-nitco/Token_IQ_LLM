@@ -7,7 +7,7 @@ from typing import Any, Final
 import httpx
 
 from token_iq.gateway import COHERE_DEFAULT_EMBEDDING_INPUT_TYPE
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.types.llms.bedrock import (
     CohereEmbeddingRequest,
     CohereEmbeddingRequestWithModel,
@@ -93,7 +93,7 @@ class CohereEmbeddingConfig:
         self,
         response: httpx.Response,
         api_key: str | None,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         data: dict | CohereEmbeddingRequest,
         model_response: EmbeddingResponse,
         model: str,

@@ -37,7 +37,7 @@ from token_iq.gateway.proxy._types import (
     DailyTeamSpendTransaction,
     DailyUserSpendTransaction,
     DBSpendUpdateTransactions,
-    Litellm_EntityType,
+    Gateway_EntityType,
     SpendUpdateQueueItem,
 )
 from token_iq.gateway.proxy.db.db_transaction_queue.base_update_queue import service_logger_obj
@@ -404,45 +404,45 @@ class RedisUpdateBuffer:
         because the source queues were already drained before the rpush.
         """
         if db_spend_update_transactions is not None:
-            entity_entries: Final[list[tuple[Litellm_EntityType, dict[str, float] | None]]] = [
+            entity_entries: Final[list[tuple[Gateway_EntityType, dict[str, float] | None]]] = [
                 (
-                    Litellm_EntityType.USER,
+                    Gateway_EntityType.USER,
                     db_spend_update_transactions.get("user_list_transactions"),
                 ),
                 (
-                    Litellm_EntityType.END_USER,
+                    Gateway_EntityType.END_USER,
                     db_spend_update_transactions.get("end_user_list_transactions"),
                 ),
                 (
-                    Litellm_EntityType.KEY,
+                    Gateway_EntityType.KEY,
                     db_spend_update_transactions.get("key_list_transactions"),
                 ),
                 (
-                    Litellm_EntityType.TEAM,
+                    Gateway_EntityType.TEAM,
                     db_spend_update_transactions.get("team_list_transactions"),
                 ),
                 (
-                    Litellm_EntityType.TEAM_MEMBER,
+                    Gateway_EntityType.TEAM_MEMBER,
                     db_spend_update_transactions.get("team_member_list_transactions"),
                 ),
                 (
-                    Litellm_EntityType.ORGANIZATION,
+                    Gateway_EntityType.ORGANIZATION,
                     db_spend_update_transactions.get("org_list_transactions"),
                 ),
                 (
-                    Litellm_EntityType.PROJECT,
+                    Gateway_EntityType.PROJECT,
                     db_spend_update_transactions.get("project_list_transactions"),
                 ),
                 (
-                    Litellm_EntityType.TAG,
+                    Gateway_EntityType.TAG,
                     db_spend_update_transactions.get("tag_list_transactions"),
                 ),
                 (
-                    Litellm_EntityType.AGENT,
+                    Gateway_EntityType.AGENT,
                     db_spend_update_transactions.get("agent_list_transactions"),
                 ),
                 (
-                    Litellm_EntityType.MODEL_ACCESS_GROUP,
+                    Gateway_EntityType.MODEL_ACCESS_GROUP,
                     db_spend_update_transactions.get("model_access_group_list_transactions"),
                 ),
             ]

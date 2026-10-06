@@ -12,12 +12,12 @@ from token_iq.gateway.constants import request_timeout
 
 # Import the adapter for fallback to completion format
 from token_iq.gateway.google_genai.adapters.handler import GenerateContentToCompletionHandler
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.llms.base_llm.google_genai.transformation import (
     BaseGoogleGenAIGenerateContentConfig,
 )
 from token_iq.gateway.llms.custom_httpx.llm_http_handler import BaseLLMHTTPHandler
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.types.utils import CallTypes
 from token_iq.gateway.utils import ProviderConfigManager, client
 
@@ -41,7 +41,7 @@ base_llm_http_handler = BaseLLMHTTPHandler()
 #################################################
 
 
-def _mark_async_entrypoint(logging_obj: LiteLLMLoggingObj | None, marker: str, is_async: bool) -> None:
+def _mark_async_entrypoint(logging_obj: GatewayLoggingObj | None, marker: str, is_async: bool) -> None:
     if logging_obj is not None:
         logging_obj.model_call_details.setdefault("litellm_params", {})[marker] = is_async
 
@@ -57,8 +57,8 @@ class GenerateContentSetupResult(BaseModel):
     generate_content_provider_config: BaseGoogleGenAIGenerateContentConfig | None
     generate_content_config_dict: dict[str, object]
     native_request_fields: dict[str, object]
-    litellm_params: GenericLiteLLMParams
-    litellm_logging_obj: LiteLLMLoggingObj
+    litellm_params: GenericGatewayParams
+    litellm_logging_obj: GatewayLoggingObj
     litellm_call_id: str | None
 
 
@@ -110,11 +110,11 @@ class GenerateContentHelper:
         Returns:
             GenerateContentSetupResult containing all setup information
         """
-        litellm_logging_obj: Final[LiteLLMLoggingObj | None] = kwargs.get("litellm_logging_obj")
+        litellm_logging_obj: Final[GatewayLoggingObj | None] = kwargs.get("litellm_logging_obj")
         litellm_call_id: Final[str | None] = kwargs.get("litellm_call_id", None)
 
         # get llm provider logic
-        litellm_params: Final = GenericLiteLLMParams(**kwargs)
+        litellm_params: Final = GenericGatewayParams(**kwargs)
 
         ## MOCK RESPONSE LOGIC (only for non-streaming)
         if (
@@ -328,7 +328,7 @@ def generate_content(
         if "generationConfig" in kwargs and config is None:
             config = kwargs.pop("generationConfig")
         # Check for mock response first
-        litellm_params: Final = GenericLiteLLMParams(**kwargs)
+        litellm_params: Final = GenericGatewayParams(**kwargs)
         if litellm_params.mock_response and isinstance(litellm_params.mock_response, str):
             return GenerateContentHelper.mock_generate_content_response(mock_response=litellm_params.mock_response)
 

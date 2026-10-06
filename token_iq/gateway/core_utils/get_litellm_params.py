@@ -132,8 +132,8 @@ def get_litellm_params(
     litellm_request_debug: bool | None = None,
     **kwargs,
 ) -> dict:
-    _litellm_metadata_dict: Final = litellm_metadata if isinstance(litellm_metadata, dict) else None
-    resolved_metadata: Final = _litellm_metadata_dict.copy() if not metadata and _litellm_metadata_dict else metadata
+    _gateway_metadata_dict: Final = litellm_metadata if isinstance(litellm_metadata, dict) else None
+    resolved_metadata: Final = _gateway_metadata_dict.copy() if not metadata and _gateway_metadata_dict else metadata
 
     # Derive litellm_session_id / litellm_trace_id from metadata when not provided (call chaining)
     _meta: Final = resolved_metadata or {}
@@ -203,8 +203,8 @@ def get_litellm_params(
     return litellm_params
 
 
-def add_trusted_model_credentials_to_litellm_params(
-    litellm_params_dict: MutableMapping[str, object], kwargs: Mapping[str, object]
+def add_trusted_model_credentials_to_gateway_params(
+    gateway_params_dict: MutableMapping[str, object], kwargs: Mapping[str, object]
 ) -> None:
     """
     Carry the immutable server-side credential snapshot into litellm_params.
@@ -216,4 +216,4 @@ def add_trusted_model_credentials_to_litellm_params(
     """
     trusted_model_credentials: Final = kwargs.get("_litellm_internal_model_credentials")
     if isinstance(trusted_model_credentials, MappingProxyType):
-        litellm_params_dict["_litellm_internal_model_credentials"] = trusted_model_credentials
+        gateway_params_dict["_litellm_internal_model_credentials"] = trusted_model_credentials

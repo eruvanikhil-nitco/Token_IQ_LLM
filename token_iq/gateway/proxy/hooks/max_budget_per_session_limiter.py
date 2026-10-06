@@ -148,8 +148,8 @@ class _PROXY_MaxBudgetPerSessionHandler(CustomLogger):
             if agent is None:
                 return
 
-            agent_litellm_params: Final = agent.litellm_params or {}
-            max_budget: Final = agent_litellm_params.get("max_budget_per_session")
+            agent_gateway_params: Final = agent.litellm_params or {}
+            max_budget: Final = agent_gateway_params.get("max_budget_per_session")
             if max_budget is None:
                 return
 

@@ -13,7 +13,7 @@ from typing import Final
 from token_iq import gateway
 from token_iq.gateway.llms.openai.responses.transformation import OpenAIResponsesAPIConfig
 from token_iq.gateway.secret_managers.main import get_secret_str
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.types.utils import LlmProviders
 
 
@@ -37,9 +37,9 @@ class OpenRouterResponsesAPIConfig(OpenAIResponsesAPIConfig):
         self,
         headers: dict,
         model: str,
-        litellm_params: GenericLiteLLMParams | None,
+        litellm_params: GenericGatewayParams | None,
     ) -> dict:
-        litellm_params = litellm_params or GenericLiteLLMParams()
+        litellm_params = litellm_params or GenericGatewayParams()
         api_key: Final = (
             litellm_params.api_key
             or gateway.api_key

@@ -4,7 +4,7 @@ from typing import Final, Literal
 import httpx
 
 from token_iq import gateway
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.llms.custom_httpx.http_handler import (
     AsyncHTTPHandler,
     HTTPHandler,
@@ -38,7 +38,7 @@ class VertexMultimodalEmbedding(VertexLLM):
         custom_llm_provider: Literal["gemini", "vertex_ai"],
         optional_params: dict,
         litellm_params: dict,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         api_key: str | None = None,
         api_base: str | None = None,
         headers: dict = {},
@@ -149,7 +149,7 @@ class VertexMultimodalEmbedding(VertexLLM):
         data: dict,
         model_response: EmbeddingResponse,
         timeout: float | httpx.Timeout | None,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         headers={},
         client: AsyncHTTPHandler | None = None,
         api_key: str | None = None,

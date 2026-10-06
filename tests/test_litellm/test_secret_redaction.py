@@ -298,7 +298,7 @@ def test_json_excepthook_redacts_secrets():
 
     # Capture what the excepthook would emit
     record = logging.LogRecord(
-        name="LiteLLM",
+        name="Gateway",
         level=logging.ERROR,
         pathname="",
         lineno=0,
@@ -326,7 +326,7 @@ def test_json_excepthook_redacts_traceback_secrets():
         exc_info = sys.exc_info()
 
     record = logging.LogRecord(
-        name="LiteLLM",
+        name="Gateway",
         level=logging.ERROR,
         pathname="",
         lineno=0,

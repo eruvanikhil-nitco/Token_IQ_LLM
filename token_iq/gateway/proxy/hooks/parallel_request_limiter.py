@@ -490,7 +490,7 @@ class _PROXY_MaxParallelRequestsHandler(CustomLogger):
 
     async def async_log_success_event(self, kwargs, response_obj: object, start_time, end_time):
         from token_iq.gateway.proxy.common_utils.callback_utils import (
-            get_model_group_from_litellm_kwargs,
+            get_model_group_from_gateway_kwargs,
         )
 
         litellm_parent_otel_span: Final[Span | None] = _get_parent_otel_span_from_kwargs(kwargs=kwargs)
@@ -569,7 +569,7 @@ class _PROXY_MaxParallelRequestsHandler(CustomLogger):
             # ------------
             # Update usage - model group + API Key
             # ------------
-            model_group: Final = get_model_group_from_litellm_kwargs(kwargs)
+            model_group: Final = get_model_group_from_gateway_kwargs(kwargs)
             _success_tpm_limit: Final = (
                 get_key_model_tpm_limit(user_api_key_dict, model_name=model_group) if model_group is not None else None
             )

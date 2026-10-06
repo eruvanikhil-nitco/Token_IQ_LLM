@@ -16,7 +16,7 @@ from unittest.mock import patch, MagicMock
 
 from token_iq import gateway
 from token_iq.gateway.responses.litellm_completion_transformation.transformation import (
-    LiteLLMCompletionResponsesConfig,
+    GatewayCompletionResponsesConfig,
     TOOL_CALLS_CACHE,
 )
 from token_iq.gateway.llms.anthropic.chat.transformation import AnthropicConfig
@@ -35,7 +35,7 @@ def test_empty_tool_call_id_is_skipped():
     }
 
     # Transform should return empty list (skip the message)
-    result = LiteLLMCompletionResponsesConfig._transform_responses_api_tool_call_output_to_chat_completion_message(
+    result = GatewayCompletionResponsesConfig._transform_responses_api_tool_call_output_to_chat_completion_message(
         tool_call_output_empty
     )
 
@@ -61,7 +61,7 @@ def test_empty_tool_call_id_in_messages_list_is_removed():
     ]
 
     # The fix should remove messages with empty tool_call_id
-    fixed_messages = LiteLLMCompletionResponsesConfig._ensure_tool_results_have_corresponding_tool_calls(
+    fixed_messages = GatewayCompletionResponsesConfig._ensure_tool_results_have_corresponding_tool_calls(
         messages=messages, tools=None
     )
 
@@ -101,7 +101,7 @@ def test_tool_call_id_recovered_from_previous_assistant():
         },
     ]
 
-    fixed_messages = LiteLLMCompletionResponsesConfig._ensure_tool_results_have_corresponding_tool_calls(
+    fixed_messages = GatewayCompletionResponsesConfig._ensure_tool_results_have_corresponding_tool_calls(
         messages=messages, tools=None
     )
 
@@ -152,7 +152,7 @@ def test_tool_calls_added_when_missing():
         {"role": "tool", "content": '{"output":"hello"}', "tool_call_id": tool_call_id},
     ]
 
-    fixed_messages = LiteLLMCompletionResponsesConfig._ensure_tool_results_have_corresponding_tool_calls(
+    fixed_messages = GatewayCompletionResponsesConfig._ensure_tool_results_have_corresponding_tool_calls(
         messages=messages, tools=[shell_tool]
     )
 
@@ -219,7 +219,7 @@ def test_anthropic_transformation_with_fixed_messages():
     ]
 
     # Apply the fix
-    fixed_messages = LiteLLMCompletionResponsesConfig._ensure_tool_results_have_corresponding_tool_calls(
+    fixed_messages = GatewayCompletionResponsesConfig._ensure_tool_results_have_corresponding_tool_calls(
         messages=messages, tools=[shell_tool]
     )
 

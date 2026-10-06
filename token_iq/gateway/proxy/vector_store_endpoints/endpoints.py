@@ -19,7 +19,7 @@ from token_iq.gateway.proxy.utils import jsonify_object
 from token_iq.gateway.proxy.vector_store_endpoints.utils import (
     assert_proxy_admin_for_vector_store_index_management,
     assert_user_can_access_vector_store,
-    get_litellm_managed_vector_store,
+    get_gateway_managed_vector_store,
 )
 from token_iq.gateway.repositories.table_repositories import ManagedVectorStoreIndexRepository
 from token_iq.gateway.types.vector_stores import IndexCreateRequest, IndexListResponse
@@ -68,7 +68,7 @@ def build_request_data_from_managed_vector_store(
     return MappingProxyType({**top_level, **litellm_params})
 
 
-async def _update_request_data_with_litellm_managed_vector_store_registry(
+async def _update_request_data_with_gateway_managed_vector_store_registry(
     data: dict,
     vector_store_id: str,
     user_api_key_dict: UserAPIKeyAuth | None = None,
@@ -84,7 +84,7 @@ async def _update_request_data_with_litellm_managed_vector_store_registry(
     Raises:
         HTTPException: If user doesn't have access to the vector store
     """
-    vector_store_to_run: Final[LiteLLM_ManagedVectorStore | None] = await get_litellm_managed_vector_store(
+    vector_store_to_run: Final[LiteLLM_ManagedVectorStore | None] = await get_gateway_managed_vector_store(
         vector_store_id=vector_store_id
     )
     if vector_store_to_run is None:
@@ -137,7 +137,7 @@ async def vector_store_search(
     data["vector_store_id"] = vector_store_id
 
     # Check for legacy vector store registry (non-managed vector stores)
-    data = await _update_request_data_with_litellm_managed_vector_store_registry(
+    data = await _update_request_data_with_gateway_managed_vector_store_registry(
         data=data, vector_store_id=vector_store_id, user_api_key_dict=user_api_key_dict
     )
 
@@ -313,7 +313,7 @@ async def vector_store_retrieve(
 
     data = {"vector_store_id": vector_store_id}
 
-    data = await _update_request_data_with_litellm_managed_vector_store_registry(
+    data = await _update_request_data_with_gateway_managed_vector_store_registry(
         data=data, vector_store_id=vector_store_id, user_api_key_dict=user_api_key_dict
     )
 
@@ -449,7 +449,7 @@ async def vector_store_update(
     if "vector_store_id" not in data:
         data["vector_store_id"] = vector_store_id
 
-    data = await _update_request_data_with_litellm_managed_vector_store_registry(
+    data = await _update_request_data_with_gateway_managed_vector_store_registry(
         data=data, vector_store_id=vector_store_id, user_api_key_dict=user_api_key_dict
     )
 
@@ -512,7 +512,7 @@ async def vector_store_delete(
 
     data = {"vector_store_id": vector_store_id}
 
-    data = await _update_request_data_with_litellm_managed_vector_store_registry(
+    data = await _update_request_data_with_gateway_managed_vector_store_registry(
         data=data, vector_store_id=vector_store_id, user_api_key_dict=user_api_key_dict
     )
 

@@ -52,7 +52,7 @@ from token_iq.gateway.a2a_protocol.main import (
     create_a2a_client,
     send_message,
 )
-from token_iq.gateway.types.agents import LiteLLMSendMessageResponse
+from token_iq.gateway.types.agents import GatewaySendMessageResponse
 
 __all__ = [
     "A2AAgentCardError",
@@ -60,7 +60,7 @@ __all__ = [
     "A2AConnectionError",
     "A2AError",
     "A2ALocalhostURLError",
-    "LiteLLMSendMessageResponse",
+    "GatewaySendMessageResponse",
     "aget_agent_card",
     "asend_message",
     "asend_message_streaming",

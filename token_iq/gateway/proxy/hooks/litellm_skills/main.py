@@ -195,7 +195,7 @@ class SkillsInjectionHook(CustomLogger):
         - Stores skill files in metadata for sandbox execution
         """
         from token_iq.gateway.llms.litellm_proxy.skills.code_execution import (
-            get_litellm_code_execution_tool_anthropic,
+            get_gateway_code_execution_tool_anthropic,
         )
 
         tools: Final = data.get("tools", [])
@@ -232,7 +232,7 @@ class SkillsInjectionHook(CustomLogger):
 
         # Add litellm_code_execution tool if we have skill files
         if all_skill_files:
-            code_exec_tool: Final = get_litellm_code_execution_tool_anthropic()
+            code_exec_tool: Final = get_gateway_code_execution_tool_anthropic()
             data["tools"] = data.get("tools", []) + [code_exec_tool]
 
             # Store skill files in litellm_metadata for automatic code execution
@@ -336,9 +336,9 @@ class SkillsInjectionHook(CustomLogger):
             LiteLLM_SkillsTable or None if not found
         """
         try:
-            from token_iq.gateway.llms.litellm_proxy.skills.handler import LiteLLMSkillsHandler
+            from token_iq.gateway.llms.litellm_proxy.skills.handler import GatewaySkillsHandler
 
-            return await LiteLLMSkillsHandler.fetch_skill_from_db(
+            return await GatewaySkillsHandler.fetch_skill_from_db(
                 skill_id,
                 user_api_key_dict=user_api_key_dict,
             )
@@ -387,7 +387,7 @@ class SkillsInjectionHook(CustomLogger):
         5. Return modified response with generated files
         """
         from token_iq.gateway.llms.litellm_proxy.skills.code_execution import (
-            LiteLLMInternalTools,
+            GatewayInternalTools,
         )
 
         # Check if code execution is enabled for this request
@@ -420,7 +420,7 @@ class SkillsInjectionHook(CustomLogger):
         for tc in tool_calls:
             tool_name: str = tc.get("name", "")
             # Execute if it's litellm_code_execution OR a skill tool (litellm_skill_xxx)
-            if tool_name == LiteLLMInternalTools.CODE_EXECUTION.value or tool_name.startswith(LITELLM_SKILL_ID_PREFIX):
+            if tool_name == GatewayInternalTools.CODE_EXECUTION.value or tool_name.startswith(LITELLM_SKILL_ID_PREFIX):
                 has_executable_tool = True
                 break
 
@@ -495,7 +495,7 @@ class SkillsInjectionHook(CustomLogger):
         """
         from token_iq import gateway
         from token_iq.gateway.llms.litellm_proxy.skills.code_execution import (
-            LiteLLMInternalTools,
+            GatewayInternalTools,
         )
         from token_iq.gateway.llms.litellm_proxy.skills.sandbox_executor import (
             SkillsSandboxExecutor,
@@ -562,7 +562,7 @@ class SkillsInjectionHook(CustomLogger):
                 tool_input: Mapping[str, str] = tc.get("input", {})
 
                 # Execute if it's litellm_code_execution OR a skill tool
-                if tool_name == LiteLLMInternalTools.CODE_EXECUTION.value:
+                if tool_name == GatewayInternalTools.CODE_EXECUTION.value:
                     code = tool_input.get("code", "")
                     result = await self._execute_code(code, skill_files, executor, generated_files)
                 elif tool_name.startswith(LITELLM_SKILL_ID_PREFIX):
@@ -725,7 +725,7 @@ print('No executable skill module found')
         """
         from token_iq import gateway
         from token_iq.gateway.llms.litellm_proxy.skills.code_execution import (
-            LiteLLMInternalTools,
+            GatewayInternalTools,
         )
         from token_iq.gateway.llms.litellm_proxy.skills.sandbox_executor import (
             SkillsSandboxExecutor,
@@ -793,7 +793,7 @@ print('No executable skill module found')
             for tool_call in assistant_message.tool_calls:
                 tool_name = tool_call.function.name
 
-                if tool_name == LiteLLMInternalTools.CODE_EXECUTION.value:
+                if tool_name == GatewayInternalTools.CODE_EXECUTION.value:
                     tool_result = await self._execute_code_tool(
                         tool_call=tool_call,
                         skill_files=skill_files,

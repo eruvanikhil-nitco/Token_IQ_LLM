@@ -22,7 +22,7 @@ from token_iq.gateway.core_utils.llm_judge import judge_target
 from token_iq.gateway.proxy._types import (
     CommonProxyErrors,
     LiteLLM_TeamTable,
-    LitellmUserRoles,
+    GatewayUserRoles,
     ProxyErrorTypes,
     ProxyException,
     UserAPIKeyAuth,
@@ -34,7 +34,7 @@ from token_iq.gateway.proxy.auth.auth_checks import (
 from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 from token_iq.gateway.proxy.db.autorouter_session_rollup import AUTOROUTER_BENCHMARKS_SQL
 from token_iq.gateway.proxy.litellm_pre_call_utils import (
-    LiteLLMProxyRequestSetup,
+    GatewayProxyRequestSetup,
     refresh_proxy_server_request_body_snapshot,
 )
 from token_iq.gateway.repositories.base_repository import SupportsModelDump
@@ -181,15 +181,15 @@ def _user_rows(prisma_client: "PrismaClient") -> _UserRowsTable:
 
 
 def _shadow_eval_jobs(prisma_client: "PrismaClient") -> _ShadowEvalJobTable:
-    return prisma_client.db.litellm_shadowevaljob
+    return prisma_client.db.gateway_shadowevaljob
 
 
 def _shadow_eval_funnel(prisma_client: "PrismaClient") -> _ShadowEvalFunnelTable:
-    return prisma_client.db.litellm_shadowevalfunnel  # pyright: ignore[reportAttributeAccessIssue]  # generated client
+    return prisma_client.db.gateway_shadowevalfunnel  # pyright: ignore[reportAttributeAccessIssue]  # generated client
 
 
 def _shadow_eval_attempts(prisma_client: "PrismaClient") -> _ShadowEvalAttemptTable:
-    return prisma_client.db.litellm_shadowevalattempt
+    return prisma_client.db.gateway_shadowevalattempt
 
 
 async def _query_raw(prisma_client: "PrismaClient", query: str, *args: object) -> Sequence[Mapping[str, object]]:
@@ -209,7 +209,7 @@ async def _authorize_router_dry_run(user_api_key_dict: UserAPIKeyAuth, team_id: 
     )
     from token_iq.gateway.proxy.proxy_server import premium_user, prisma_client
 
-    if user_api_key_dict.user_role == LitellmUserRoles.PROXY_ADMIN:
+    if user_api_key_dict.user_role == GatewayUserRoles.PROXY_ADMIN:
         return
 
     if team_id is None:
@@ -411,7 +411,7 @@ async def preview_auto_router_routing(
         derive_savings_baseline=False,
     )
 
-    request_kwargs: Final = LiteLLMProxyRequestSetup.add_user_api_key_auth_to_request_metadata(
+    request_kwargs: Final = GatewayProxyRequestSetup.add_user_api_key_auth_to_request_metadata(
         data={  # mutable-ok: the request-metadata helper takes and returns request kwargs as a dict
             **data.wire_body(),
             "metadata": {},  # mutable-ok: the request-metadata helper writes the auth fields into this dict
@@ -706,14 +706,14 @@ async def get_auto_router_benchmarks(
 
 def _require_admin_viewer(user_api_key_dict: UserAPIKeyAuth, action: str) -> None:
     if user_api_key_dict.user_role not in (
-        LitellmUserRoles.PROXY_ADMIN,
-        LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY,
+        GatewayUserRoles.PROXY_ADMIN,
+        GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY,
     ):
         raise HTTPException(status_code=403, detail=f"Only proxy admin roles can {action}")
 
 
 def _require_admin_writer(user_api_key_dict: UserAPIKeyAuth, action: str) -> None:
-    if user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN:
+    if user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN:
         raise HTTPException(status_code=403, detail=f"Only a proxy admin can {action}")
 
 

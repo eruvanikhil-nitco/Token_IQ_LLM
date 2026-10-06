@@ -17,7 +17,7 @@ from typing import Final
 from fastapi_sso.sso.base import OpenID
 
 from token_iq.gateway.proxy import proxy_server
-from token_iq.gateway.proxy._types import LitellmUserRoles, SSOUserDefinedValues
+from token_iq.gateway.proxy._types import GatewayUserRoles, SSOUserDefinedValues
 
 
 async def custom_sso_handler(userIDPInfo: OpenID) -> SSOUserDefinedValues:
@@ -38,7 +38,7 @@ async def custom_sso_handler(userIDPInfo: OpenID) -> SSOUserDefinedValues:
             models=[],
             user_id=userIDPInfo.id,
             user_email=userIDPInfo.email,
-            user_role=LitellmUserRoles.INTERNAL_USER.value,
+            user_role=GatewayUserRoles.INTERNAL_USER.value,
             max_budget=10,
             budget_duration="1d",
         )

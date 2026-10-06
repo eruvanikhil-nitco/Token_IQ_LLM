@@ -23,7 +23,7 @@ from token_iq.gateway.types.prompts.init_prompts import PromptSpec
 from token_iq.gateway.types.utils import StandardCallbackDynamicParams
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 
 
 class GenericPromptManager(CustomPromptManagement):
@@ -391,7 +391,7 @@ class GenericPromptManager(CustomPromptManagement):
         prompt_id: str | None,
         prompt_variables: dict | None,
         dynamic_callback_params: StandardCallbackDynamicParams,
-        litellm_logging_obj: "LiteLLMLoggingObj",
+        litellm_logging_obj: "GatewayLoggingObj",
         prompt_spec: PromptSpec | None = None,
         tools: list[dict] | None = None,
         prompt_label: str | None = None,

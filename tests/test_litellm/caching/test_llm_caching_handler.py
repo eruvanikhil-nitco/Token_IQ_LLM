@@ -166,7 +166,7 @@ class _FakeClock:
 
 
 @pytest.mark.asyncio
-async def test_evicted_litellm_owned_client_is_closed_once_the_grace_window_elapses():
+async def test_evicted_gateway_owned_client_is_closed_once_the_grace_window_elapses():
     """
     Eviction only drops the cache's reference. The SDK clients are reference
     cycles, so without an explicit close the client keeps its connection pool
@@ -179,7 +179,7 @@ async def test_evicted_litellm_owned_client_is_closed_once_the_grace_window_elap
     )
 
     client = MockAsyncClient()
-    cache.set_cache("client-key", client, litellm_owned_client=True, ttl=600)
+    cache.set_cache("client-key", client, gateway_owned_client=True, ttl=600)
 
     cache.ttl_dict = {key: 0 for key in cache.ttl_dict}
     cache.expiration_heap = [(0, key) for _, key in cache.expiration_heap]

@@ -20,7 +20,7 @@ from token_iq.gateway.types.llms.openai import (
     ResponseInputParam,
     ResponsesAPIOptionalRequestParams,
 )
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.types.utils import LlmProviders
 from token_iq.gateway.utils import _cached_get_model_info_helper
 
@@ -32,11 +32,11 @@ from ..common_utils import (
 )
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as _LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as _GatewayLoggingObj
 
-    LiteLLMLoggingObj = _LiteLLMLoggingObj
+    GatewayLoggingObj = _GatewayLoggingObj
 else:
-    LiteLLMLoggingObj = Any
+    GatewayLoggingObj = Any
 
 
 def github_copilot_supports_responses_api(model: str) -> bool:
@@ -128,7 +128,7 @@ class GithubCopilotResponsesAPIConfig(OpenAIResponsesAPIConfig):
         self,
         model: str,
         parsed_chunk: dict,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> Any:
         parsed_chunk = self._normalize_stream_item_id(parsed_chunk)
         return super().transform_streaming_response(
@@ -183,7 +183,7 @@ class GithubCopilotResponsesAPIConfig(OpenAIResponsesAPIConfig):
         self,
         headers: dict,
         model: str,
-        litellm_params: GenericLiteLLMParams | None,
+        litellm_params: GenericGatewayParams | None,
     ) -> dict:
         """
         Validate environment and set up headers for GitHub Copilot API.
@@ -303,7 +303,7 @@ class GithubCopilotResponsesAPIConfig(OpenAIResponsesAPIConfig):
 
     # ==================== Helper Methods ====================
 
-    def _get_input_from_params(self, litellm_params: GenericLiteLLMParams | None) -> str | ResponseInputParam | None:
+    def _get_input_from_params(self, litellm_params: GenericGatewayParams | None) -> str | ResponseInputParam | None:
         """
         Extract input parameter from litellm_params.
 

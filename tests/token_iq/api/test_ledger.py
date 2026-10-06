@@ -7,15 +7,15 @@ from fastapi import HTTPException
 from pydantic import ValidationError
 
 from token_iq.ledger.reconciliation import reconcile
-from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
 from token_iq.api.ledger import reconciliation_response
 from token_iq.types.invoice import InvoiceAdjustment, ProviderInvoice
 from token_iq.api.types.ledger import InvoiceBody
 
 START: Final = datetime(2026, 9, 1, tzinfo=timezone.utc)
 END: Final = datetime(2026, 9, 30, tzinfo=timezone.utc)
-MEMBER: Final = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-test")
-ADMIN: Final = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN, api_key="sk-test")
+MEMBER: Final = UserAPIKeyAuth(user_role=GatewayUserRoles.INTERNAL_USER, api_key="sk-test")
+ADMIN: Final = UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN, api_key="sk-test")
 
 
 def _invoice(total: str, *, currency: str = "USD", adjustments: tuple[InvoiceAdjustment, ...] = ()) -> ProviderInvoice:

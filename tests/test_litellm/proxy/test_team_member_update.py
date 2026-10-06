@@ -9,7 +9,7 @@ import token_iq.gateway.proxy.proxy_server as proxy_server
 import token_iq.gateway.proxy.management_endpoints.team_endpoints as team_endpoints
 from token_iq.gateway.proxy._types import (
     LiteLLM_TeamTable,
-    LitellmUserRoles,
+    GatewayUserRoles,
     Member,
     TeamMemberUpdateRequest,
     UserAPIKeyAuth,
@@ -43,7 +43,7 @@ async def test_assigning_a_team_admin_off_plan_names_the_token_iq_plan(monkeypat
 
     assert exc_info.value.status_code == 400
     assert exc_info.value.detail == "Assigning team admins: This feature is not included in this installation's Token IQ plan."
-    assert "LiteLLM" not in exc_info.value.detail
+    assert "Gateway" not in exc_info.value.detail
 
 
 @pytest.fixture
@@ -93,7 +93,7 @@ def _member_update_request(**overrides):
         team_id="team-1234", user_id="user-1", role="user", **overrides
     )
     request = Request({"type": "http", "method": "POST", "path": "/team/member_update"})
-    auth = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN.value, user_id="admin")
+    auth = UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN.value, user_id="admin")
     return data, request, auth
 
 
@@ -166,7 +166,7 @@ async def test_team_member_update_rejects_invalid_budget_duration(
         budget_duration=bad_duration,
     )
     request = Request({"type": "http", "method": "POST", "path": "/team/member_update"})
-    auth = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN.value, user_id="admin")
+    auth = UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN.value, user_id="admin")
 
     with pytest.raises(HTTPException) as exc_info:
         await team_member_update(data, request, auth)

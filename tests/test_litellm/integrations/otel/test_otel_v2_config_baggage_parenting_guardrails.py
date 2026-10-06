@@ -21,7 +21,7 @@ from opentelemetry.sdk.trace.export.in_memory_span_exporter import (  # noqa: E4
     InMemorySpanExporter,
 )
 
-from token_iq.gateway.integrations.otel import LiteLLM, OpenTelemetryV2Config  # noqa: E402
+from token_iq.gateway.integrations.otel import Gateway, OpenTelemetryV2Config  # noqa: E402
 from token_iq.gateway.integrations.otel.plumbing import providers  # noqa: E402
 from token_iq.gateway.integrations.otel.model.baggage import (  # noqa: E402
     BAGGAGE_PROMOTED_KEYS,
@@ -48,7 +48,7 @@ def test_baggage_keys_default_when_unset():
 def test_baggage_promoted_keys_from_env_csv(monkeypatch):
     monkeypatch.setenv(
         "LITELLM_OTEL_BAGGAGE_PROMOTED_KEYS",
-        f"{LiteLLM.TEAM_ID}, {LiteLLM.KEY_HASH}",
+        f"{Gateway.TEAM_ID}, {Gateway.KEY_HASH}",
     )
     monkeypatch.setenv(
         "LITELLM_OTEL_BAGGAGE_METADATA_KEYS",
@@ -56,7 +56,7 @@ def test_baggage_promoted_keys_from_env_csv(monkeypatch):
     )
     cfg = OpenTelemetryV2Config()
     # Whitespace around comma-separated entries is trimmed.
-    assert cfg.baggage_promoted_keys == [LiteLLM.TEAM_ID, LiteLLM.KEY_HASH]
+    assert cfg.baggage_promoted_keys == [Gateway.TEAM_ID, Gateway.KEY_HASH]
     assert cfg.baggage_metadata_keys == [
         "user_api_key_user_id",
         "requester_ip_address",
@@ -66,16 +66,16 @@ def test_baggage_promoted_keys_from_env_csv(monkeypatch):
 def test_baggage_keys_from_config_yaml_kwargs():
     """``callback_settings.otel.*`` reaches the config through the logger kwargs."""
     logger = OpenTelemetryV2(
-        baggage_promoted_keys=[LiteLLM.TEAM_ALIAS],
+        baggage_promoted_keys=[Gateway.TEAM_ALIAS],
         baggage_metadata_keys=["user_api_key_alias"],
     )
-    assert logger.config.baggage_promoted_keys == [LiteLLM.TEAM_ALIAS]
+    assert logger.config.baggage_promoted_keys == [Gateway.TEAM_ALIAS]
     assert logger.config.baggage_metadata_keys == ["user_api_key_alias"]
 
 
 def test_baggage_processor_allowlist_uses_config_keys():
     cfg = OpenTelemetryV2Config(
-        exporter="in_memory", baggage_promoted_keys=[LiteLLM.TEAM_ID]
+        exporter="in_memory", baggage_promoted_keys=[Gateway.TEAM_ID]
     )
     provider, exporter = providers.in_memory_provider(cfg)
     from token_iq.gateway.integrations.otel.plumbing import context as ctx_mod
@@ -83,11 +83,11 @@ def test_baggage_processor_allowlist_uses_config_keys():
     from token_iq.gateway.integrations.otel.model.payloads import ServiceSpanData
 
     engine = SpanEmitter(providers.get_tracer(provider, "t"), cfg)
-    ctx = ctx_mod.set_request_baggage({LiteLLM.TEAM_ID: "t1", LiteLLM.TEAM_ALIAS: "ta"})
+    ctx = ctx_mod.set_request_baggage({Gateway.TEAM_ID: "t1", Gateway.TEAM_ALIAS: "ta"})
     engine.emit(SpanRole.SERVICE, ServiceSpanData("redis"), ctx)
     (span,) = exporter.get_finished_spans()
-    assert span.attributes.get(LiteLLM.TEAM_ID) == "t1"
-    assert LiteLLM.TEAM_ALIAS not in span.attributes  # not in this allowlist
+    assert span.attributes.get(Gateway.TEAM_ID) == "t1"
+    assert Gateway.TEAM_ALIAS not in span.attributes  # not in this allowlist
 
 
 # --------------------------------------------------------------------------- #
@@ -221,9 +221,9 @@ def test_guardrail_typed_metadata_fields_mapped_to_span():
     assert d.policy_template == "EU AI Act Article 5"
     assert d.detection_method == "presidio"
     attrs = GenAIMapper().map(d)
-    assert attrs[LiteLLM.GUARDRAIL_ID] == "gd-eu-pii-001"
-    assert attrs[LiteLLM.GUARDRAIL_POLICY_TEMPLATE] == "EU AI Act Article 5"
-    assert attrs[LiteLLM.GUARDRAIL_DETECTION_METHOD] == "presidio"
+    assert attrs[Gateway.GUARDRAIL_ID] == "gd-eu-pii-001"
+    assert attrs[Gateway.GUARDRAIL_POLICY_TEMPLATE] == "EU AI Act Article 5"
+    assert attrs[Gateway.GUARDRAIL_DETECTION_METHOD] == "presidio"
 
 
 def test_guardrail_ignores_non_canonical_provider_keys():

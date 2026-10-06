@@ -29,7 +29,7 @@ from token_iq.gateway.caching.caching import DualCache
 from token_iq.gateway.proxy._types import (
     LiteLLM_JWTAuth,
     LiteLLM_UserTable,
-    LiteLLMRoutes,
+    GatewayRoutes,
     JWTAuthBuilderResult,
 )
 from token_iq.gateway.proxy.auth.handle_jwt import JWTHandler, JWTAuthManager
@@ -832,8 +832,8 @@ async def test_allowed_routes_admin(
 
     actual_routes = []
     for route in pseudo_routes:
-        if route in LiteLLMRoutes.__members__:
-            actual_routes.extend(LiteLLMRoutes[route].value)
+        if route in GatewayRoutes.__members__:
+            actual_routes.extend(GatewayRoutes[route].value)
 
     for route in actual_routes:
         request = Request(scope={"type": "http", "headers": []})
@@ -1249,15 +1249,15 @@ async def test_end_user_jwt_auth(monkeypatch):
 def test_can_rbac_role_call_route():
     from token_iq.gateway.proxy.auth.handle_jwt import JWTAuthManager
     from token_iq.gateway.proxy._types import RoleBasedPermissions
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
     with pytest.raises(HTTPException):
         JWTAuthManager.can_rbac_role_call_route(
-            rbac_role=LitellmUserRoles.TEAM,
+            rbac_role=GatewayUserRoles.TEAM,
             general_settings={
                 "role_permissions": [
                     RoleBasedPermissions(
-                        role=LitellmUserRoles.TEAM, routes=["/v1/chat/completions"]
+                        role=GatewayUserRoles.TEAM, routes=["/v1/chat/completions"]
                     )
                 ]
             },

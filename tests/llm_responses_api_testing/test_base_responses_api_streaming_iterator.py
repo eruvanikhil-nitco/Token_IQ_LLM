@@ -21,7 +21,7 @@ import pytest
 
 
 from token_iq.gateway.constants import STREAM_SSE_DONE_STRING
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.llms.base_llm.responses.transformation import BaseResponsesAPIConfig
 from token_iq.gateway.responses.streaming_iterator import BaseResponsesAPIStreamingIterator
 from token_iq.gateway.responses.utils import ResponsesAPIRequestUtils
@@ -62,7 +62,7 @@ class TestBaseResponsesAPIStreamingIterator:
         mock_response.headers = {}
         mock_response.aiter_bytes = mock_aiter_bytes
 
-        mock_logging_obj = Mock(spec=LiteLLMLoggingObj)
+        mock_logging_obj = Mock(spec=GatewayLoggingObj)
         mock_logging_obj.model_call_details = {"litellm_params": {}}
         mock_logging_obj.completion_start_time = None
         mock_config = Mock(spec=BaseResponsesAPIConfig)
@@ -103,7 +103,7 @@ class TestBaseResponsesAPIStreamingIterator:
         # Mock dependencies
         mock_response = Mock()
         mock_response.headers = {}
-        mock_logging_obj = Mock(spec=LiteLLMLoggingObj)
+        mock_logging_obj = Mock(spec=GatewayLoggingObj)
         mock_logging_obj.model_call_details = {"litellm_params": {}}
         mock_logging_obj.completion_start_time = None
         mock_config = Mock(spec=BaseResponsesAPIConfig)
@@ -176,7 +176,7 @@ class TestBaseResponsesAPIStreamingIterator:
         # Mock dependencies
         mock_response = Mock()
         mock_response.headers = {}
-        mock_logging_obj = Mock(spec=LiteLLMLoggingObj)
+        mock_logging_obj = Mock(spec=GatewayLoggingObj)
         mock_logging_obj.model_call_details = {"litellm_params": {}}
         mock_logging_obj.completion_start_time = None
         mock_config = Mock(spec=BaseResponsesAPIConfig)
@@ -237,7 +237,7 @@ class TestBaseResponsesAPIStreamingIterator:
         # Mock dependencies
         mock_response = Mock()
         mock_response.headers = {}
-        mock_logging_obj = Mock(spec=LiteLLMLoggingObj)
+        mock_logging_obj = Mock(spec=GatewayLoggingObj)
         mock_logging_obj.model_call_details = {"litellm_params": {}}
         mock_logging_obj.completion_start_time = None
         mock_config = Mock(spec=BaseResponsesAPIConfig)
@@ -264,7 +264,7 @@ class TestBaseResponsesAPIStreamingIterator:
         # Mock dependencies
         mock_response = Mock()
         mock_response.headers = {}
-        mock_logging_obj = Mock(spec=LiteLLMLoggingObj)
+        mock_logging_obj = Mock(spec=GatewayLoggingObj)
         mock_logging_obj.model_call_details = {"litellm_params": {}}
         mock_logging_obj.completion_start_time = None
         mock_config = Mock(spec=BaseResponsesAPIConfig)
@@ -291,7 +291,7 @@ class TestBaseResponsesAPIStreamingIterator:
         # Mock dependencies
         mock_response = Mock()
         mock_response.headers = {}
-        mock_logging_obj = Mock(spec=LiteLLMLoggingObj)
+        mock_logging_obj = Mock(spec=GatewayLoggingObj)
         mock_logging_obj.model_call_details = {"litellm_params": {}}
         mock_logging_obj.completion_start_time = None
         mock_config = Mock(spec=BaseResponsesAPIConfig)
@@ -330,7 +330,7 @@ class TestBaseResponsesAPIStreamingIterator:
         mock_response = Mock()
         mock_response.headers = {}
         mock_response.aiter_bytes = Mock()
-        mock_logging_obj = Mock(spec=LiteLLMLoggingObj)
+        mock_logging_obj = Mock(spec=GatewayLoggingObj)
         mock_logging_obj.model_call_details = {"litellm_params": {}}
         mock_logging_obj.completion_start_time = None
         mock_logging_obj.async_success_handler = Mock()
@@ -399,7 +399,7 @@ class TestBaseResponsesAPIStreamingIterator:
 
         mock_response.aiter_bytes = mock_aiter_bytes
 
-        mock_logging_obj = Mock(spec=LiteLLMLoggingObj)
+        mock_logging_obj = Mock(spec=GatewayLoggingObj)
         mock_logging_obj.model_call_details = {"litellm_params": {}}
         mock_logging_obj.completion_start_time = None
         mock_logging_obj.async_failure_handler = Mock()
@@ -460,7 +460,7 @@ class TestBaseResponsesAPIStreamingIterator:
 
         mock_response.iter_bytes = mock_iter_bytes
 
-        mock_logging_obj = Mock(spec=LiteLLMLoggingObj)
+        mock_logging_obj = Mock(spec=GatewayLoggingObj)
         mock_logging_obj.model_call_details = {"litellm_params": {}}
         mock_logging_obj.completion_start_time = None
         mock_logging_obj.async_failure_handler = Mock()
@@ -509,7 +509,7 @@ class TestBaseResponsesAPIStreamingIterator:
         mock_response = Mock()
         mock_response.headers = {}
         mock_response.aiter_bytes = Mock()
-        mock_logging_obj = Mock(spec=LiteLLMLoggingObj)
+        mock_logging_obj = Mock(spec=GatewayLoggingObj)
         mock_logging_obj.model_call_details = {"litellm_params": {}}
         mock_logging_obj.completion_start_time = None
         mock_logging_obj.async_failure_handler = Mock()
@@ -592,7 +592,7 @@ class TestBaseResponsesAPIStreamingIterator:
         mock_response = Mock()
         mock_response.headers = {}
         mock_response.aiter_bytes = Mock()
-        mock_logging_obj = Mock(spec=LiteLLMLoggingObj)
+        mock_logging_obj = Mock(spec=GatewayLoggingObj)
         mock_logging_obj.model_call_details = {"litellm_params": {}}
         mock_logging_obj.completion_start_time = None
         mock_logging_obj.async_failure_handler = Mock()

@@ -46,7 +46,7 @@ async def test_route_request_dynamic_credentials(route_type, required_body_param
 async def test_route_request_proxy_admin_can_call_all_team_scoped_deployments_without_team_id():
     from token_iq import gateway
 
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
 
     router = gateway.Router(
         model_list=[
@@ -82,7 +82,7 @@ async def test_route_request_proxy_admin_can_call_all_team_scoped_deployments_wi
             },
         ]
     )
-    admin_auth = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN)
+    admin_auth = UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN)
     data = {
         "model": "team-azure",
         "messages": [{"role": "user", "content": "Hello"}],
@@ -108,7 +108,7 @@ async def test_route_request_proxy_admin_can_call_all_team_scoped_deployments_wi
         "team-azure-west",
     }
 
-    non_admin_auth = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER)
+    non_admin_auth = UserAPIKeyAuth(user_role=GatewayUserRoles.INTERNAL_USER)
     with pytest.raises(ProxyModelNotFoundError):
         await route_request(
             data={
@@ -820,7 +820,7 @@ async def test_route_request_realtime_team_scoped_model_resolves_credentials(
 
 
 @pytest.mark.asyncio
-async def test_route_request_realtime_litellm_credential_name_resolves_api_key(
+async def test_route_request_realtime_gateway_credential_name_resolves_api_key(
     openai_realtime_credential,
     monkeypatch,
 ):

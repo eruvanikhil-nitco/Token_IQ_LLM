@@ -137,7 +137,7 @@ class SemanticMCPToolFilter:
         from semantic_router.routers.base import Route
 
         from token_iq.gateway.router_strategy.auto_router.litellm_encoder import (
-            LiteLLMRouterEncoder,
+            GatewayRouterEncoder,
         )
 
         if not tools:
@@ -165,7 +165,7 @@ class SemanticMCPToolFilter:
 
             self.tool_router = SemanticRouter(
                 routes=routes,
-                encoder=LiteLLMRouterEncoder(
+                encoder=GatewayRouterEncoder(
                     litellm_router_instance=self.router_instance,
                     model_name=self.embedding_model,
                     score_threshold=self.similarity_threshold,
@@ -215,7 +215,7 @@ class SemanticMCPToolFilter:
         from semantic_router.routers.base import Route
 
         from token_iq.gateway.router_strategy.auto_router.litellm_encoder import (
-            LiteLLMRouterEncoder,
+            GatewayRouterEncoder,
         )
 
         if not self._has_tools_missing_from_index(available_tools):
@@ -240,7 +240,7 @@ class SemanticMCPToolFilter:
             if self.tool_router is None:
                 router: Final = SemanticRouter(
                     routes=[],
-                    encoder=LiteLLMRouterEncoder(
+                    encoder=GatewayRouterEncoder(
                         litellm_router_instance=self.router_instance,
                         model_name=self.embedding_model,
                         score_threshold=self.similarity_threshold,

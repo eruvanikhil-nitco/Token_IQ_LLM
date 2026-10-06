@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import TYPE_CHECKING, Any, Final
 
 from token_iq import gateway
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.proxy.pass_through_endpoints.success_handler import (
     PassThroughEndpointLogging,
 )
@@ -63,7 +63,7 @@ class BaseGoogleGenAIGenerateContentStreamingIterator:
 
     def __init__(
         self,
-        litellm_logging_obj: LiteLLMLoggingObj,
+        litellm_logging_obj: GatewayLoggingObj,
         request_body: dict,
         model: str,
         custom_llm_provider: str,
@@ -113,7 +113,7 @@ class GoogleGenAIGenerateContentStreamingIterator(BaseGoogleGenAIGenerateContent
         self,
         response,
         model: str,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         generate_content_provider_config: BaseGoogleGenAIGenerateContentConfig,
         litellm_metadata: dict,
         custom_llm_provider: str,
@@ -164,7 +164,7 @@ class AsyncGoogleGenAIGenerateContentStreamingIterator(BaseGoogleGenAIGenerateCo
         self,
         response,
         model: str,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         generate_content_provider_config: BaseGoogleGenAIGenerateContentConfig,
         litellm_metadata: dict,
         custom_llm_provider: str,

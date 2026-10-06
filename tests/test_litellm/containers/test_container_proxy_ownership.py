@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock
 import pytest
 from fastapi import HTTPException
 
-from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
 from token_iq.gateway.proxy.container_endpoints import ownership
 from token_iq.gateway.responses.utils import ResponsesAPIRequestUtils
 from token_iq.gateway.types.containers.main import ContainerListResponse, ContainerObject
@@ -903,7 +903,7 @@ async def test_admin_with_identity_records_container_ownership(monkeypatch):
     )
     admin_auth = UserAPIKeyAuth(
         user_id="proxy-admin",
-        user_role=LitellmUserRoles.PROXY_ADMIN.value,
+        user_role=GatewayUserRoles.PROXY_ADMIN.value,
     )
 
     await ownership.record_container_owner(

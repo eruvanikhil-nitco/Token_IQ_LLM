@@ -72,7 +72,7 @@ from token_iq.gateway.types.utils import (
     PromptTokensDetailsWrapper,
     ServerToolUse,
 )
-from token_iq.gateway.types.utils import Message as LitellmMessage
+from token_iq.gateway.types.utils import Message as GatewayMessage
 from token_iq.gateway.utils import (
     ModelResponse,
     Usage,
@@ -95,9 +95,9 @@ from ..common_utils import (
 if TYPE_CHECKING:
     import tiktoken
 
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 
-    LoggingClass = LiteLLMLoggingObj
+    LoggingClass = GatewayLoggingObj
 else:
     LoggingClass = Any
 
@@ -1969,15 +1969,15 @@ class AnthropicConfig(AnthropicModelInfo, BaseConfig):
                 optional_params[k] = v
 
         ## Handle user_id in metadata
-        _litellm_metadata: Final = litellm_params.get("metadata", None)
+        _gateway_metadata: Final = litellm_params.get("metadata", None)
         if (
-            _litellm_metadata
-            and isinstance(_litellm_metadata, dict)
-            and "user_id" in _litellm_metadata
-            and _litellm_metadata["user_id"] is not None
-            and _valid_user_id(_litellm_metadata["user_id"])
+            _gateway_metadata
+            and isinstance(_gateway_metadata, dict)
+            and "user_id" in _gateway_metadata
+            and _gateway_metadata["user_id"] is not None
+            and _valid_user_id(_gateway_metadata["user_id"])
         ):
-            optional_params["metadata"] = {"user_id": _litellm_metadata["user_id"]}
+            optional_params["metadata"] = {"user_id": _gateway_metadata["user_id"]}
 
         ## Ensure metadata only contains user_id (only documented field in Anthropic Messages API)
         if "metadata" in optional_params and isinstance(optional_params["metadata"], dict):
@@ -2068,7 +2068,7 @@ class AnthropicConfig(AnthropicModelInfo, BaseConfig):
         json_mode: bool | None,
         tool_calls: list[ChatCompletionToolCallChunk],
     ) -> tuple[
-        LitellmMessage | None,
+        GatewayMessage | None,
         list[ChatCompletionToolCallChunk],
         str | None,
     ]:
@@ -2662,7 +2662,7 @@ class AnthropicConfig(AnthropicModelInfo, BaseConfig):
     @staticmethod
     def _convert_tool_response_to_message(
         tool_calls: list[ChatCompletionToolCallChunk],
-    ) -> LitellmMessage | None:
+    ) -> GatewayMessage | None:
         """
         In JSON mode, Anthropic API returns JSON schema as a tool call, we need to convert it to a message to follow the OpenAI format
 

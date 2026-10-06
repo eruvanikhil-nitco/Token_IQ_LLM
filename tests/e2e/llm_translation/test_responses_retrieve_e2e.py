@@ -11,7 +11,7 @@ import pytest
 from e2e_config import POLL_INTERVAL, POLL_TIMEOUT, unique_marker
 from e2e_http import NoBody, Success, UnknownApiError, unwrap
 from lifecycle import ResourceManager
-from models import LiteLLMParamsBody
+from models import GatewayParamsBody
 from proxy_client import ProxyClient
 from pydantic import BaseModel
 
@@ -60,7 +60,7 @@ class TestResponsesRetrieve:
         model = f"e2e-resp-store-{unique_marker()}"
         model_id = proxy.create_model(
             model,
-            LiteLLMParamsBody(model="openai/gpt-4o-mini", api_key="os.environ/OPENAI_API_KEY"),
+            GatewayParamsBody(model="openai/gpt-4o-mini", api_key="os.environ/OPENAI_API_KEY"),
         )
         resources.defer(lambda: proxy.delete_model(model_id))
         key = resources.key()

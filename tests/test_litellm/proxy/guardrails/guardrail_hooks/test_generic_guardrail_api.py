@@ -447,7 +447,7 @@ class TestMetadataExtraction:
             assert request_metadata == {}
 
     @pytest.mark.asyncio
-    async def test_inbound_headers_and_litellm_version_forwarded_and_sanitized(
+    async def test_inbound_headers_and_gateway_version_forwarded_and_sanitized(
         self, generic_guardrail, mock_request_data_input
     ):
         """

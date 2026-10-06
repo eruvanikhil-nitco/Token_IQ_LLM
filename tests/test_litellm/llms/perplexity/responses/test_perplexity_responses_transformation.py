@@ -13,7 +13,7 @@ import httpx
 import pytest
 
 
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.llms.base_llm.chat.transformation import BaseLLMException
 from token_iq.gateway.llms.perplexity.responses.transformation import PerplexityResponsesConfig
 from token_iq.gateway.types.llms.openai import ResponsesAPIOptionalRequestParams
@@ -457,7 +457,7 @@ class TestPerplexityResponsesTransformation:
             request=httpx.Request("POST", "https://api.perplexity.ai/v1/responses"),
         )
 
-        logging_obj = LiteLLMLoggingObj(
+        logging_obj = GatewayLoggingObj(
             model="perplexity/openai/gpt-5.2",
             messages=[],
             stream=False,
@@ -510,7 +510,7 @@ class TestPerplexityResponsesTransformation:
             request=httpx.Request("POST", "https://api.perplexity.ai/v1/responses"),
         )
 
-        logging_obj = LiteLLMLoggingObj(
+        logging_obj = GatewayLoggingObj(
             model="perplexity/openai/gpt-5.2",
             messages=[],
             stream=False,
@@ -568,7 +568,7 @@ class TestPerplexityResponsesTransformation:
             },
         }
 
-        logging_obj = LiteLLMLoggingObj(
+        logging_obj = GatewayLoggingObj(
             model="perplexity/openai/gpt-5.2",
             messages=[],
             stream=True,

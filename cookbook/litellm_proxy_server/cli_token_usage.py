@@ -19,7 +19,7 @@ def main():
     # litellm._turn_on_debug()
 
     # Get the CLI token
-    api_key = gateway.get_litellm_gateway_api_key()
+    api_key = gateway.get_gateway_gateway_api_key()
 
     if not api_key:
         print("❌ No CLI token found. Please run 'litellm-proxy login' first.")

@@ -99,7 +99,7 @@ import httpx
 
 # register_async_client_cleanup is lazy-loaded and called on first access
 
-litellm_mode = os.getenv("LITELLM_MODE", "DEV")  # "PRODUCTION", "DEV"
+gateway_mode = os.getenv("LITELLM_MODE", "DEV")  # "PRODUCTION", "DEV"
 
 
 ####################################################
@@ -1338,7 +1338,7 @@ from .evals.main import (
     acancel_run,
 )
 from .integrations import *
-from .llms.custom_httpx.async_client_cleanup import close_litellm_async_clients
+from .llms.custom_httpx.async_client_cleanup import close_gateway_async_clients
 from .exceptions import (
     AuthenticationError,
     InvalidRequestError,
@@ -1463,7 +1463,7 @@ disable_hf_tokenizer_download: Optional[bool] = (
 global_disable_no_log_param: bool = False
 
 ### CLI UTILITIES ###
-from token_iq.gateway.core_utils.cli_token_utils import get_litellm_gateway_api_key
+from token_iq.gateway.core_utils.cli_token_utils import get_gateway_gateway_api_key
 
 ### PASSTHROUGH ###
 from .passthrough import allm_passthrough_route, llm_passthrough_route
@@ -1790,7 +1790,7 @@ if TYPE_CHECKING:
         XAIResponsesAPIConfig as XAIResponsesAPIConfig,
     )
     from .llms.litellm_proxy.responses.transformation import (
-        LiteLLMProxyResponsesAPIConfig as LiteLLMProxyResponsesAPIConfig,
+        GatewayProxyResponsesAPIConfig as GatewayProxyResponsesAPIConfig,
     )
     from .llms.volcengine.responses.transformation import (
         VolcEngineResponsesAPIConfig as VolcEngineResponsesAPIConfig,
@@ -1884,7 +1884,7 @@ if TYPE_CHECKING:
         IBMWatsonXAIConfig as _IBMWatsonXAIConfig,
     )
     from .llms.litellm_proxy.chat.transformation import (
-        LiteLLMProxyChatConfig as _LiteLLMProxyChatConfig,
+        GatewayProxyChatConfig as _GatewayProxyChatConfig,
     )
     from .llms.deepinfra.chat.transformation import DeepInfraConfig as _DeepInfraConfig
     from .llms.llamafile.chat.transformation import (
@@ -1914,7 +1914,7 @@ if TYPE_CHECKING:
     NscaleConfig: Type[_NscaleConfig]
     IBMWatsonXChatConfig: Type[_IBMWatsonXChatConfig]
     IBMWatsonXAIConfig: Type[_IBMWatsonXAIConfig]
-    LiteLLMProxyChatConfig: Type[_LiteLLMProxyChatConfig]
+    GatewayProxyChatConfig: Type[_GatewayProxyChatConfig]
     DeepInfraConfig: Type[_DeepInfraConfig]
     LlamafileChatConfig: Type[_LlamafileChatConfig]
     LMStudioChatConfig: Type[_LMStudioChatConfig]
@@ -2206,9 +2206,9 @@ def __getattr__(name: str) -> Any:
 
     # Lazy load encoding from main.py to avoid heavy tiktoken import
     if name == "encoding":
-        from ._lazy_imports import get_litellm_globals
+        from ._lazy_imports import get_gateway_globals
 
-        _globals = get_litellm_globals()
+        _globals = get_gateway_globals()
         # Check if already cached
         if "encoding" not in _globals:
             from .main import encoding as _encoding
@@ -2218,9 +2218,9 @@ def __getattr__(name: str) -> Any:
 
     # Lazy load bedrock_tool_name_mappings instance
     if name == "bedrock_tool_name_mappings":
-        from ._lazy_imports import get_litellm_globals
+        from ._lazy_imports import get_gateway_globals
 
-        _globals = get_litellm_globals()
+        _globals = get_gateway_globals()
         # Check if already cached
         if "bedrock_tool_name_mappings" not in _globals:
             from .llms.bedrock.chat.invoke_handler import (
@@ -2232,9 +2232,9 @@ def __getattr__(name: str) -> Any:
 
     # Lazy load AzureOpenAIError exception class
     if name == "AzureOpenAIError":
-        from ._lazy_imports import get_litellm_globals
+        from ._lazy_imports import get_gateway_globals
 
-        _globals = get_litellm_globals()
+        _globals = get_gateway_globals()
         # Check if already cached
         if "AzureOpenAIError" not in _globals:
             from .llms.azure.common_utils import AzureOpenAIError as _AzureOpenAIError
@@ -2244,9 +2244,9 @@ def __getattr__(name: str) -> Any:
 
     # Lazy load openaiOSeriesConfig instance
     if name == "openaiOSeriesConfig":
-        from ._lazy_imports import get_litellm_globals
+        from ._lazy_imports import get_gateway_globals
 
-        _globals = get_litellm_globals()
+        _globals = get_gateway_globals()
         if "openaiOSeriesConfig" not in _globals:
             # Import the config class and instantiate it
             config_class = __getattr__("OpenAIOSeriesConfig")
@@ -2262,9 +2262,9 @@ def __getattr__(name: str) -> Any:
         "nvidiaNimEmbeddingConfig": "NvidiaNimEmbeddingConfig",
     }
     if name in _config_instances:
-        from ._lazy_imports import get_litellm_globals
+        from ._lazy_imports import get_gateway_globals
 
-        _globals = get_litellm_globals()
+        _globals = get_gateway_globals()
         if name not in _globals:
             # Import the config class and instantiate it
             config_class = __getattr__(_config_instances[name])
@@ -2277,9 +2277,9 @@ def __getattr__(name: str) -> Any:
 
     # Lazy load provider_list
     if name == "provider_list":
-        from ._lazy_imports import get_litellm_globals
+        from ._lazy_imports import get_gateway_globals
 
-        _globals = get_litellm_globals()
+        _globals = get_gateway_globals()
         # Check if already cached
         if "provider_list" not in _globals:
             # LlmProviders is eagerly imported above, so we can import it directly
@@ -2290,9 +2290,9 @@ def __getattr__(name: str) -> Any:
 
     # Lazy load priority_reservation_settings instance
     if name == "priority_reservation_settings":
-        from ._lazy_imports import get_litellm_globals
+        from ._lazy_imports import get_gateway_globals
 
-        _globals = get_litellm_globals()
+        _globals = get_gateway_globals()
         # Check if already cached
         if "priority_reservation_settings" not in _globals:
             # Import the class and instantiate it
@@ -2302,9 +2302,9 @@ def __getattr__(name: str) -> Any:
 
     # Lazy load logging_callback_manager instance
     if name == "logging_callback_manager":
-        from ._lazy_imports import get_litellm_globals
+        from ._lazy_imports import get_gateway_globals
 
-        _globals = get_litellm_globals()
+        _globals = get_gateway_globals()
         # Check if already cached
         if "logging_callback_manager" not in _globals:
             # Import the class and instantiate it
@@ -2314,9 +2314,9 @@ def __getattr__(name: str) -> Any:
 
     # Lazy load _service_logger module
     if name == "_service_logger":
-        from ._lazy_imports import get_litellm_globals
+        from ._lazy_imports import get_gateway_globals
 
-        _globals = get_litellm_globals()
+        _globals = get_gateway_globals()
         # Check if already cached
         if "_service_logger" not in _globals:
             # Import the module lazily

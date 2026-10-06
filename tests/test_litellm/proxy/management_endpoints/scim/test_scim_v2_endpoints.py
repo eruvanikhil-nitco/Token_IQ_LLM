@@ -13,7 +13,7 @@ from pytest_mock import MockerFixture
 from token_iq.gateway.proxy._types import (
     LiteLLM_TeamTable,
     LiteLLM_UserTable,
-    LitellmUserRoles,
+    GatewayUserRoles,
     Member,
     NewUserRequest,
     NewUserResponse,
@@ -132,14 +132,14 @@ async def test_create_user_defaults_to_viewer(mocker, monkeypatch):
     )
 
     mocker.patch(
-        "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_litellm_user_to_scim_user",
+        "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_gateway_user_to_scim_user",
         AsyncMock(return_value=scim_user),
     )
 
     await create_user(user=scim_user)
 
     called_args = new_user_mock.call_args.kwargs["data"]
-    assert called_args.user_role == LitellmUserRoles.INTERNAL_USER_VIEW_ONLY
+    assert called_args.user_role == GatewayUserRoles.INTERNAL_USER_VIEW_ONLY
 
 
 @pytest.mark.asyncio
@@ -183,7 +183,7 @@ async def test_create_user_ingests_enterprise_extension(mocker, monkeypatch):
     )
 
     mocker.patch(
-        "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_litellm_user_to_scim_user",
+        "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_gateway_user_to_scim_user",
         AsyncMock(return_value=scim_user),
     )
 
@@ -240,7 +240,7 @@ async def test_create_user_ingests_entitlements_and_roles(mocker, monkeypatch):
     )
 
     mocker.patch(
-        "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_litellm_user_to_scim_user",
+        "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_gateway_user_to_scim_user",
         AsyncMock(return_value=scim_user),
     )
 
@@ -279,7 +279,7 @@ async def test_create_user_uses_default_internal_user_params_role(mocker, monkey
 
     # Set default_internal_user_params with a specific role
     default_params = {
-        "user_role": LitellmUserRoles.PROXY_ADMIN,
+        "user_role": GatewayUserRoles.PROXY_ADMIN,
     }
     monkeypatch.setattr("token_iq.gateway.default_internal_user_params", default_params, raising=False)
 
@@ -294,14 +294,14 @@ async def test_create_user_uses_default_internal_user_params_role(mocker, monkey
     )
 
     mocker.patch(
-        "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_litellm_user_to_scim_user",
+        "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_gateway_user_to_scim_user",
         AsyncMock(return_value=scim_user),
     )
 
     await create_user(user=scim_user)
 
     called_args = new_user_mock.call_args.kwargs["data"]
-    assert called_args.user_role == LitellmUserRoles.PROXY_ADMIN
+    assert called_args.user_role == GatewayUserRoles.PROXY_ADMIN
 
 
 @pytest.mark.asyncio
@@ -322,7 +322,7 @@ async def test_scim_create_user_respects_default_role_set_via_ui(mocker, monkeyp
     """
     from token_iq.gateway.proxy._types import DefaultInternalUserParams
     from token_iq.gateway.proxy.ui_crud_endpoints.proxy_setting_endpoints import (
-        _update_litellm_setting,
+        _update_gateway_setting,
     )
 
     # Step 1: Start with no default params (fresh proxy state)
@@ -347,9 +347,9 @@ async def test_scim_create_user_respects_default_role_set_via_ui(mocker, monkeyp
     from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
     settings = DefaultInternalUserParams(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
     )
-    await _update_litellm_setting(
+    await _update_gateway_setting(
         settings=settings,
         settings_key="default_internal_user_params",
         success_message="ok",
@@ -361,7 +361,7 @@ async def test_scim_create_user_respects_default_role_set_via_ui(mocker, monkeyp
         "BUG: _update_litellm_setting did not update litellm.default_internal_user_params in memory. "
         "The local variable reassignment (in_memory_var = ...) doesn't propagate back."
     )
-    assert gateway.default_internal_user_params.get("user_role") == LitellmUserRoles.INTERNAL_USER
+    assert gateway.default_internal_user_params.get("user_role") == GatewayUserRoles.INTERNAL_USER
 
     # Step 3: Create a user via SCIM
     scim_user = SCIMUser(
@@ -388,7 +388,7 @@ async def test_scim_create_user_respects_default_role_set_via_ui(mocker, monkeyp
     )
 
     mocker.patch(
-        "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_litellm_user_to_scim_user",
+        "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_gateway_user_to_scim_user",
         AsyncMock(return_value=scim_user),
     )
 
@@ -396,9 +396,9 @@ async def test_scim_create_user_respects_default_role_set_via_ui(mocker, monkeyp
 
     # Step 4: Verify the user got INTERNAL_USER, not INTERNAL_USER_VIEW_ONLY
     called_args = new_user_mock.call_args.kwargs["data"]
-    assert called_args.user_role == LitellmUserRoles.INTERNAL_USER, (
+    assert called_args.user_role == GatewayUserRoles.INTERNAL_USER, (
         f"BUG: SCIM created user with role {called_args.user_role} instead of "
-        f"{LitellmUserRoles.INTERNAL_USER}. The default_internal_user_params "
+        f"{GatewayUserRoles.INTERNAL_USER}. The default_internal_user_params "
         f"in-memory variable was not updated by _update_litellm_setting."
     )
 
@@ -429,7 +429,7 @@ async def test_get_users_filters_username_by_exposed_scim_username_for_okta(mock
         AsyncMock(return_value=mock_prisma_client),
     )
     mocker.patch(
-        "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_litellm_user_to_scim_user",
+        "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_gateway_user_to_scim_user",
         AsyncMock(
             return_value=SCIMUser(
                 schemas=["urn:ietf:params:scim:schemas:core:2.0:User"],
@@ -488,7 +488,7 @@ async def test_get_users_filters_email_value_by_user_email(mocker):
         AsyncMock(return_value=mock_prisma_client),
     )
     mocker.patch(
-        "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_litellm_user_to_scim_user",
+        "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_gateway_user_to_scim_user",
         AsyncMock(
             return_value=SCIMUser(
                 schemas=["urn:ietf:params:scim:schemas:core:2.0:User"],
@@ -601,7 +601,7 @@ async def test_handle_existing_user_by_email_existing_user_updated(mocker):
     mock_prisma_client.db.litellm_usertable.update = AsyncMock(return_value=updated_user)
 
     mock_transform = mocker.patch(
-        "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_litellm_user_to_scim_user",
+        "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_gateway_user_to_scim_user",
         AsyncMock(return_value=mock_scim_user),
     )
     mock_membership = mocker.patch(
@@ -676,7 +676,7 @@ async def test_handle_existing_user_by_email_roster_changes_use_existing_user_id
         AsyncMock(),
     )
     mocker.patch(
-        "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_litellm_user_to_scim_user",
+        "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_gateway_user_to_scim_user",
         AsyncMock(return_value=None),
     )
 
@@ -722,7 +722,7 @@ async def test_handle_existing_user_by_email_syncs_roster_and_dedups_teams(mocke
     mock_prisma_client.db.litellm_usertable.update = AsyncMock(return_value={})
 
     mocker.patch(
-        "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_litellm_user_to_scim_user",
+        "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_gateway_user_to_scim_user",
         AsyncMock(return_value=None),
     )
     mock_membership = mocker.patch(
@@ -778,7 +778,7 @@ async def test_handle_existing_user_by_email_without_teams_preserves_memberships
     mock_prisma_client.db.litellm_usertable.update = AsyncMock(return_value={})
 
     mocker.patch(  # test-quality-ok: roster helpers are module-level, not injectable into the helper
-        "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_litellm_user_to_scim_user",
+        "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_gateway_user_to_scim_user",
         AsyncMock(return_value=None),
     )
     mock_team_member_add = (
@@ -891,7 +891,7 @@ async def test_handle_existing_user_by_email_roster_add_already_member_is_noop(m
         ),
     )
     mocker.patch(
-        "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_litellm_user_to_scim_user",
+        "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_gateway_user_to_scim_user",
         AsyncMock(return_value=None),
     )
 
@@ -982,7 +982,7 @@ async def test_handle_existing_user_by_email_roster_remove_already_absent_is_noo
         AsyncMock(side_effect=HTTPException(status_code=400, detail={"error": "User not found in team"})),
     )
     mocker.patch(
-        "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_litellm_user_to_scim_user",
+        "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_gateway_user_to_scim_user",
         AsyncMock(return_value=None),
     )
 
@@ -1158,7 +1158,7 @@ async def test_update_user_success(mocker):
         AsyncMock(),
     )
     mocker.patch(
-        "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_litellm_user_to_scim_user",
+        "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_gateway_user_to_scim_user",
         AsyncMock(return_value=response_scim_user),
     )
 
@@ -1254,7 +1254,7 @@ async def test_patch_user_success(mocker):
         AsyncMock(),
     )
     mocker.patch(
-        "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_litellm_user_to_scim_user",
+        "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_gateway_user_to_scim_user",
         AsyncMock(return_value=response_scim_user),
     )
 
@@ -2196,14 +2196,14 @@ async def test_create_user_grants_admin_when_in_scim_admin_group(mocker, monkeyp
         AsyncMock(return_value=NewUserRequest(user_id="new-admin")),
     )
     mocker.patch(
-        "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_litellm_user_to_scim_user",
+        "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_gateway_user_to_scim_user",
         AsyncMock(return_value=scim_user),
     )
 
     await create_user(user=scim_user)
 
     called_args = new_user_mock.call_args.kwargs["data"]
-    assert called_args.user_role == LitellmUserRoles.PROXY_ADMIN
+    assert called_args.user_role == GatewayUserRoles.PROXY_ADMIN
 
 
 @pytest.mark.asyncio
@@ -2241,14 +2241,14 @@ async def test_create_user_keeps_default_when_not_in_scim_admin_group(mocker, mo
         AsyncMock(return_value=NewUserRequest(user_id="regular-user")),
     )
     mocker.patch(
-        "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_litellm_user_to_scim_user",
+        "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_gateway_user_to_scim_user",
         AsyncMock(return_value=scim_user),
     )
 
     await create_user(user=scim_user)
 
     called_args = new_user_mock.call_args.kwargs["data"]
-    assert called_args.user_role == LitellmUserRoles.INTERNAL_USER_VIEW_ONLY
+    assert called_args.user_role == GatewayUserRoles.INTERNAL_USER_VIEW_ONLY
 
 
 @pytest.mark.asyncio
@@ -2301,14 +2301,14 @@ async def test_update_user_demotes_admin_when_removed_from_scim_admin_group(mock
         AsyncMock(),
     )
     mocker.patch(
-        "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_litellm_user_to_scim_user",
+        "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_gateway_user_to_scim_user",
         AsyncMock(return_value=scim_user),
     )
 
     await update_user(user_id="demote-me", user=scim_user)
 
     call_args = mock_prisma_client.db.litellm_usertable.update.call_args
-    assert call_args[1]["data"]["user_role"] == LitellmUserRoles.INTERNAL_USER_VIEW_ONLY
+    assert call_args[1]["data"]["user_role"] == GatewayUserRoles.INTERNAL_USER_VIEW_ONLY
 
 
 @pytest.mark.asyncio
@@ -2360,7 +2360,7 @@ async def test_update_user_does_not_force_role_when_scim_admin_group_unset(mocke
         AsyncMock(),
     )
     mocker.patch(
-        "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_litellm_user_to_scim_user",
+        "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_gateway_user_to_scim_user",
         AsyncMock(return_value=scim_user),
     )
 
@@ -2420,14 +2420,14 @@ async def test_update_user_demotes_when_default_params_lack_user_role(mocker, mo
         AsyncMock(),
     )
     mocker.patch(
-        "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_litellm_user_to_scim_user",
+        "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_gateway_user_to_scim_user",
         AsyncMock(return_value=scim_user),
     )
 
     await update_user(user_id="demote-me", user=scim_user)
 
     call_args = mock_prisma_client.db.litellm_usertable.update.call_args
-    assert call_args[1]["data"]["user_role"] == LitellmUserRoles.INTERNAL_USER_VIEW_ONLY
+    assert call_args[1]["data"]["user_role"] == GatewayUserRoles.INTERNAL_USER_VIEW_ONLY
 
 
 @pytest.mark.asyncio
@@ -2481,7 +2481,7 @@ async def test_patch_user_demotes_admin_when_removed_from_scim_admin_group(mocke
         AsyncMock(),
     )
     mocker.patch(
-        "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_litellm_user_to_scim_user",
+        "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_gateway_user_to_scim_user",
         AsyncMock(
             return_value=SCIMUser(
                 schemas=["urn:ietf:params:scim:schemas:core:2.0:User"],
@@ -2493,7 +2493,7 @@ async def test_patch_user_demotes_admin_when_removed_from_scim_admin_group(mocke
     await patch_user(user_id="demote-me", patch_ops=patch_ops)
 
     call_args = mock_prisma_client.db.litellm_usertable.update.call_args
-    assert call_args[1]["data"]["user_role"] == LitellmUserRoles.INTERNAL_USER_VIEW_ONLY
+    assert call_args[1]["data"]["user_role"] == GatewayUserRoles.INTERNAL_USER_VIEW_ONLY
 
 
 @pytest.mark.asyncio
@@ -2548,7 +2548,7 @@ async def test_patch_user_grants_admin_by_team_display_name(mocker, monkeypatch)
         AsyncMock(),
     )
     mocker.patch(
-        "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_litellm_user_to_scim_user",
+        "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_gateway_user_to_scim_user",
         AsyncMock(
             return_value=SCIMUser(
                 schemas=["urn:ietf:params:scim:schemas:core:2.0:User"],
@@ -2560,7 +2560,7 @@ async def test_patch_user_grants_admin_by_team_display_name(mocker, monkeypatch)
     await patch_user(user_id="promote-me", patch_ops=patch_ops)
 
     call_args = mock_prisma_client.db.litellm_usertable.update.call_args
-    assert call_args[1]["data"]["user_role"] == LitellmUserRoles.PROXY_ADMIN
+    assert call_args[1]["data"]["user_role"] == GatewayUserRoles.PROXY_ADMIN
 
 
 def _scim_admin_prisma(mocker, *, user_teams):
@@ -2603,7 +2603,7 @@ async def test_recompute_scim_member_roles_demotes_when_not_in_admin_group(mocke
     await _recompute_scim_member_roles(prisma, ["member-1"])
 
     call_args = prisma.db.litellm_usertable.update.call_args
-    assert call_args[1]["data"]["user_role"] == LitellmUserRoles.INTERNAL_USER_VIEW_ONLY
+    assert call_args[1]["data"]["user_role"] == GatewayUserRoles.INTERNAL_USER_VIEW_ONLY
 
 
 @pytest.mark.asyncio
@@ -2623,7 +2623,7 @@ async def test_recompute_scim_member_roles_grants_when_in_admin_group(mocker, mo
     await _recompute_scim_member_roles(prisma, ["member-1"])
 
     call_args = prisma.db.litellm_usertable.update.call_args
-    assert call_args[1]["data"]["user_role"] == LitellmUserRoles.PROXY_ADMIN
+    assert call_args[1]["data"]["user_role"] == GatewayUserRoles.PROXY_ADMIN
 
 
 @pytest.mark.asyncio
@@ -2821,7 +2821,7 @@ async def test_handle_existing_user_by_email_applies_role_when_admin_group_set(m
     mock_prisma_client.db.litellm_usertable.find_first = AsyncMock(return_value=existing_user)
     mock_prisma_client.db.litellm_usertable.update = AsyncMock(return_value={"user_id": "new-user-id"})
     mocker.patch(
-        "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_litellm_user_to_scim_user",
+        "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_gateway_user_to_scim_user",
         AsyncMock(return_value=mocker.MagicMock()),
     )
     mocker.patch(
@@ -2835,7 +2835,7 @@ async def test_handle_existing_user_by_email_applies_role_when_admin_group_set(m
         teams=["engineering"],
         metadata={},
         auto_create_key=False,
-        user_role=LitellmUserRoles.INTERNAL_USER_VIEW_ONLY,
+        user_role=GatewayUserRoles.INTERNAL_USER_VIEW_ONLY,
     )
 
     await UserProvisionerHelpers.handle_existing_user_by_email(
@@ -2845,7 +2845,7 @@ async def test_handle_existing_user_by_email_applies_role_when_admin_group_set(m
     )
 
     call_args = mock_prisma_client.db.litellm_usertable.update.call_args
-    assert call_args[1]["data"]["user_role"] == LitellmUserRoles.INTERNAL_USER_VIEW_ONLY
+    assert call_args[1]["data"]["user_role"] == GatewayUserRoles.INTERNAL_USER_VIEW_ONLY
 
 
 @pytest.mark.asyncio
@@ -2861,7 +2861,7 @@ async def test_handle_existing_user_by_email_leaves_role_when_admin_group_unset(
     mock_prisma_client.db.litellm_usertable.find_first = AsyncMock(return_value=existing_user)
     mock_prisma_client.db.litellm_usertable.update = AsyncMock(return_value={"user_id": "new-user-id"})
     mocker.patch(
-        "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_litellm_user_to_scim_user",
+        "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_gateway_user_to_scim_user",
         AsyncMock(return_value=mocker.MagicMock()),
     )
     mocker.patch(
@@ -2875,7 +2875,7 @@ async def test_handle_existing_user_by_email_leaves_role_when_admin_group_unset(
         teams=["engineering"],
         metadata={},
         auto_create_key=False,
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
     )
 
     await UserProvisionerHelpers.handle_existing_user_by_email(
@@ -2927,7 +2927,7 @@ async def test_create_user_existing_email_upsert_demotes_when_admin_group_set(mo
         AsyncMock(return_value=NewUserRequest(user_id="returning-user")),
     )
     mocker.patch(
-        "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_litellm_user_to_scim_user",
+        "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_gateway_user_to_scim_user",
         AsyncMock(return_value=scim_user),
     )
     mocker.patch(
@@ -2939,7 +2939,7 @@ async def test_create_user_existing_email_upsert_demotes_when_admin_group_set(mo
 
     new_user_mock.assert_not_called()
     call_args = mock_prisma_client.db.litellm_usertable.update.call_args
-    assert call_args[1]["data"]["user_role"] == LitellmUserRoles.INTERNAL_USER_VIEW_ONLY
+    assert call_args[1]["data"]["user_role"] == GatewayUserRoles.INTERNAL_USER_VIEW_ONLY
 
 
 @pytest.mark.asyncio
@@ -3315,7 +3315,7 @@ async def test_delete_user_prunes_members_with_roles(mocker):
     call = team_member_delete_mock.call_args
     assert call.kwargs["data"].team_id == "team-1"
     assert call.kwargs["data"].user_id == user_id
-    assert call.kwargs["user_api_key_dict"].user_role == LitellmUserRoles.PROXY_ADMIN
+    assert call.kwargs["user_api_key_dict"].user_role == GatewayUserRoles.PROXY_ADMIN
     mock_prisma_client.db.litellm_usertable.delete.assert_awaited_once()
 
 

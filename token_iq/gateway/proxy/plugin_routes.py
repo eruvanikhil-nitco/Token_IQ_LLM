@@ -81,7 +81,7 @@ def _request_strip_headers() -> frozenset[str]:
     x-litellm-api-key, and any configured custom key header — so a plugin can
     never be handed the caller's live litellm key (confused-deputy escalation).
     """
-    return _HOP_BY_HOP_STRIP | SpecialHeaders.litellm_credential_header_names() | _configured_key_header_names()
+    return _HOP_BY_HOP_STRIP | SpecialHeaders.gateway_credential_header_names() | _configured_key_header_names()
 
 
 # Headers to strip from plugin RESPONSES before returning to the browser.

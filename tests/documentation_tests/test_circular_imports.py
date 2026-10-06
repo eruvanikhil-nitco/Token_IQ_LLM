@@ -4,7 +4,7 @@ import sys
 from typing import List, Tuple, Optional
 
 
-def find_litellm_type_hints(directory: str) -> List[Tuple[str, int, str]]:
+def find_gateway_type_hints(directory: str) -> List[Tuple[str, int, str]]:
     """
     Recursively search for Python files in the given directory
     and find type hints containing 'litellm.'.
@@ -15,9 +15,9 @@ def find_litellm_type_hints(directory: str) -> List[Tuple[str, int, str]]:
     Returns:
         List of tuples containing (file_path, line_number, type_hint)
     """
-    litellm_type_hints = []
+    gateway_type_hints = []
 
-    def is_litellm_type_hint(node):
+    def is_gateway_type_hint(node):
         """
         Recursively check if a type annotation contains 'litellm.'
 
@@ -43,12 +43,12 @@ def find_litellm_type_hints(directory: str) -> List[Tuple[str, int, str]]:
                 ]:
                     # Check each element in the Union/Optional type
                     if isinstance(node.slice, ast.Tuple):
-                        return any(is_litellm_type_hint(elt) for elt in node.slice.elts)
+                        return any(is_gateway_type_hint(elt) for elt in node.slice.elts)
                     else:
-                        return is_litellm_type_hint(node.slice)
+                        return is_gateway_type_hint(node.slice)
 
                 # Recursive check for subscripted types
-                return is_litellm_type_hint(node.value) or is_litellm_type_hint(
+                return is_gateway_type_hint(node.value) or is_gateway_type_hint(
                     node.slice
                 )
 
@@ -80,22 +80,22 @@ def find_litellm_type_hints(directory: str) -> List[Tuple[str, int, str]]:
             for node in ast.walk(tree):
                 # Check type annotations in variable annotations
                 if isinstance(node, ast.AnnAssign) and node.annotation:
-                    if is_litellm_type_hint(node.annotation):
-                        litellm_type_hints.append(
+                    if is_gateway_type_hint(node.annotation):
+                        gateway_type_hints.append(
                             (file_path, node.lineno, ast.unparse(node.annotation))
                         )
 
                 # Check type hints in function arguments
                 elif isinstance(node, ast.FunctionDef):
                     for arg in node.args.args:
-                        if arg.annotation and is_litellm_type_hint(arg.annotation):
-                            litellm_type_hints.append(
+                        if arg.annotation and is_gateway_type_hint(arg.annotation):
+                            gateway_type_hints.append(
                                 (file_path, arg.lineno, ast.unparse(arg.annotation))
                             )
 
                     # Check return type annotation
-                    if node.returns and is_litellm_type_hint(node.returns):
-                        litellm_type_hints.append(
+                    if node.returns and is_gateway_type_hint(node.returns):
+                        gateway_type_hints.append(
                             (file_path, node.lineno, ast.unparse(node.returns))
                         )
         except SyntaxError as e:
@@ -139,7 +139,7 @@ def find_litellm_type_hints(directory: str) -> List[Tuple[str, int, str]]:
                 ):
                     scan_file(full_path)
 
-    return litellm_type_hints
+    return gateway_type_hints
 
 
 def main():
@@ -147,7 +147,7 @@ def main():
     directory = "./litellm/"
 
     # Find LiteLLM type hints
-    results = find_litellm_type_hints(directory)
+    results = find_gateway_type_hints(directory)
 
     # Print results
     if results:

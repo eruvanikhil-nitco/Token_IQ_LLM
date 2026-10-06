@@ -22,7 +22,7 @@ import pytest
 
 
 from token_iq.gateway.llms.anthropic.batches.transformation import AnthropicBatchesConfig
-from token_iq.gateway.types.utils import LiteLLMBatch, LlmProviders
+from token_iq.gateway.types.utils import GatewayBatch, LlmProviders
 
 
 @pytest.fixture
@@ -299,7 +299,7 @@ def test_transform_retrieve_response_in_progress(config):
         model=None, raw_response=raw, logging_obj=MagicMock(), litellm_params={}
     )
 
-    assert isinstance(batch, LiteLLMBatch)
+    assert isinstance(batch, GatewayBatch)
     assert batch.id == "msgbatch_abc"
     assert batch.object == "batch"
     assert batch.endpoint == "/v1/messages"

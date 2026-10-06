@@ -25,12 +25,12 @@ from token_iq.gateway.types.realtime import (
     RealtimeSessionConfig,
     RealtimeTranscriptionSessionRequest,
 )
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.types.utils import LlmProviders
 from token_iq.gateway.utils import ProviderConfigManager
 
 from ..core_utils.get_litellm_params import get_litellm_params
-from ..core_utils.litellm_logging import Logging as LiteLLMLogging
+from ..core_utils.litellm_logging import Logging as GatewayLogging
 from ..llms.azure.common_utils import get_azure_ad_token
 from ..llms.azure.realtime.handler import AzureOpenAIRealtime
 from ..llms.bedrock.realtime.handler import BedrockRealtime
@@ -56,7 +56,7 @@ def _with_resolved_session_model(session: dict[str, Any], model_name: str) -> di
     return {**session, "model": model_name}
 
 
-def _build_litellm_metadata(kwargs: dict) -> dict:
+def _build_gateway_metadata(kwargs: dict) -> dict:
     """Build the litellm_metadata dict for guardrail checking (internal only, not forwarded to provider)."""
     metadata: Final[dict] = {**(kwargs.get("litellm_metadata") or {})}
     guardrails: Final = (kwargs.get("metadata") or {}).get("guardrails") or kwargs.get("guardrails") or []
@@ -69,7 +69,7 @@ def _get_realtime_http_provider_config(
     custom_llm_provider: str,
     dynamic_api_base: str | None,
     dynamic_api_key: str | None,
-    litellm_params: GenericLiteLLMParams,
+    litellm_params: GenericGatewayParams,
 ) -> tuple[Any, str, str]:
     """
     Return (provider_config, resolved_api_base, resolved_api_key) for the
@@ -119,8 +119,8 @@ async def acreate_realtime_client_secret(
         expires_after=RealtimeExpiresAfter(**expires_after) if expires_after else None,
     )
     model_name = (req.session.model if req.session is not None else None) or req.model or "gpt-4o-realtime-preview"
-    litellm_logging_obj: Final[LiteLLMLogging] = kwargs.get("litellm_logging_obj")
-    litellm_params: Final = GenericLiteLLMParams(**kwargs)
+    litellm_logging_obj: Final[GatewayLogging] = kwargs.get("litellm_logging_obj")
+    litellm_params: Final = GenericGatewayParams(**kwargs)
 
     (
         model_name,
@@ -187,8 +187,8 @@ async def acreate_realtime_transcription_session(
         **(transcription_session or {}),
     )
     model_name = req.resolved_model() or "gpt-realtime-whisper"
-    litellm_logging_obj: Final[LiteLLMLogging] = kwargs.get("litellm_logging_obj")
-    litellm_params: Final = GenericLiteLLMParams(**kwargs)
+    litellm_logging_obj: Final[GatewayLogging] = kwargs.get("litellm_logging_obj")
+    litellm_params: Final = GenericGatewayParams(**kwargs)
 
     (
         model_name,
@@ -248,8 +248,8 @@ async def arealtime_calls(
     **kwargs,
 ):
     model_name = model or "gpt-4o-realtime-preview"
-    litellm_logging_obj: Final[LiteLLMLogging] = kwargs.get("litellm_logging_obj")
-    litellm_params: Final = GenericLiteLLMParams(**kwargs)
+    litellm_logging_obj: Final[GatewayLogging] = kwargs.get("litellm_logging_obj")
+    litellm_params: Final = GenericGatewayParams(**kwargs)
 
     (
         model_name,
@@ -350,11 +350,11 @@ async def _arealtime(
         headers = {}
     if extra_headers is not None:
         headers.update(extra_headers)
-    litellm_logging_obj: Final[LiteLLMLogging] = kwargs.get("litellm_logging_obj")
+    litellm_logging_obj: Final[GatewayLogging] = kwargs.get("litellm_logging_obj")
     user: Final = kwargs.get("user", None)
-    litellm_params: Final = GenericLiteLLMParams(**kwargs)
+    litellm_params: Final = GenericGatewayParams(**kwargs)
 
-    litellm_params_dict: Final = get_litellm_params(**kwargs)
+    gateway_params_dict: Final = get_litellm_params(**kwargs)
 
     model, _custom_llm_provider, dynamic_api_key, dynamic_api_base = get_llm_provider(
         model=model,
@@ -375,7 +375,7 @@ async def _arealtime(
         model=model,
         user=user,
         optional_params={},
-        litellm_params=litellm_params_dict,
+        litellm_params=gateway_params_dict,
         custom_llm_provider=_custom_llm_provider,
     )
 
@@ -397,7 +397,7 @@ async def _arealtime(
             timeout=timeout,
             headers=headers,
             user_api_key_dict=kwargs.get("user_api_key_dict"),
-            litellm_metadata=_build_litellm_metadata(kwargs),
+            litellm_metadata=_build_gateway_metadata(kwargs),
             query_params=query_params,
         )
     elif _custom_llm_provider == "azure":
@@ -416,7 +416,7 @@ async def _arealtime(
             realtime_protocol = "GA"
         realtime_protocol = realtime_protocol or "beta"
         resolved_azure_ad_token: Final = (
-            None if api_key else get_azure_ad_token(GenericLiteLLMParams(**kwargs, azure_ad_token=azure_ad_token))
+            None if api_key else get_azure_ad_token(GenericGatewayParams(**kwargs, azure_ad_token=azure_ad_token))
         )
         await azure_realtime.async_realtime(
             model=model,
@@ -431,7 +431,7 @@ async def _arealtime(
             realtime_protocol=realtime_protocol,
             query_params=query_params,
             user_api_key_dict=kwargs.get("user_api_key_dict"),
-            litellm_metadata=_build_litellm_metadata(kwargs),
+            litellm_metadata=_build_gateway_metadata(kwargs),
         )
     elif _custom_llm_provider == "openai":
         api_base = dynamic_api_base or litellm_params.api_base or gateway.api_base or "https://api.openai.com/"
@@ -448,7 +448,7 @@ async def _arealtime(
             timeout=timeout,
             query_params=query_params,
             user_api_key_dict=kwargs.get("user_api_key_dict"),
-            litellm_metadata=_build_litellm_metadata(kwargs),
+            litellm_metadata=_build_gateway_metadata(kwargs),
         )
     elif _custom_llm_provider == "bedrock":
         # Extract AWS parameters from kwargs
@@ -500,7 +500,7 @@ async def _arealtime(
             timeout=timeout,
             query_params=query_params,
             user_api_key_dict=kwargs.get("user_api_key_dict"),
-            litellm_metadata=_build_litellm_metadata(kwargs),
+            litellm_metadata=_build_gateway_metadata(kwargs),
         )
     elif _custom_llm_provider == "vertex_ai":
         vertex_credentials: Final = (
@@ -550,7 +550,7 @@ async def _arealtime(
             timeout=timeout,
             headers=headers,
             user_api_key_dict=kwargs.get("user_api_key_dict"),
-            litellm_metadata=_build_litellm_metadata(kwargs),
+            litellm_metadata=_build_gateway_metadata(kwargs),
             query_params=query_params,
         )
     else:
@@ -592,7 +592,7 @@ def _realtime_health_check_auth_headers(
         return MappingProxyType({"api-key": api_key})
     return azure_realtime.get_auth_headers(
         api_key=api_key,
-        azure_ad_token=(None if api_key else get_azure_ad_token(GenericLiteLLMParams(**model_params))),
+        azure_ad_token=(None if api_key else get_azure_ad_token(GenericGatewayParams(**model_params))),
     )
 
 

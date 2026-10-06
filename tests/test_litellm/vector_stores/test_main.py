@@ -57,7 +57,7 @@ def test_search_wraps_router_into_the_handler_embedding_executor():
     assert dict(executor.metadata) == {"user_api_key_team_id": "team-a"}
 
 
-def test_search_router_not_in_litellm_params():
+def test_search_router_not_in_gateway_params():
     """Regression (#19550 class): the router must stay out of GenericLiteLLMParams,
     otherwise pre-call logging model_dump()s it and breaks serialization."""
     mock_router = MagicMock()

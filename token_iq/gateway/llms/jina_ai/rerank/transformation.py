@@ -12,7 +12,7 @@ from typing import Any, Final
 from httpx import URL, Response
 
 from token_iq.gateway._uuid import uuid
-from token_iq.gateway.llms.base_llm.chat.transformation import LiteLLMLoggingObj
+from token_iq.gateway.llms.base_llm.chat.transformation import GatewayLoggingObj
 from token_iq.gateway.llms.base_llm.rerank.transformation import BaseRerankConfig
 from token_iq.gateway.types.rerank import (
     OptionalRerankParams,
@@ -89,7 +89,7 @@ class JinaAIRerankConfig(BaseRerankConfig):
         model: str,
         raw_response: Response,
         model_response: RerankResponse,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         api_key: str | None = None,
         request_data: dict = {},
         optional_params: dict = {},

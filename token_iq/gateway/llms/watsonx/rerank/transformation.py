@@ -10,7 +10,7 @@ from typing import Any, Final, cast
 
 import httpx
 
-from token_iq.gateway.llms.base_llm.chat.transformation import LiteLLMLoggingObj
+from token_iq.gateway.llms.base_llm.chat.transformation import GatewayLoggingObj
 from token_iq.gateway.llms.base_llm.rerank.transformation import BaseRerankConfig
 from token_iq.gateway.secret_managers.main import get_secret_str
 from token_iq.gateway.types.llms.watsonx import (
@@ -153,7 +153,7 @@ class IBMWatsonXRerankConfig(IBMWatsonXMixin, BaseRerankConfig):
         model: str,
         raw_response: httpx.Response,
         model_response: RerankResponse,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         api_key: str | None = None,
         request_data: dict = {},
         optional_params: dict = {},

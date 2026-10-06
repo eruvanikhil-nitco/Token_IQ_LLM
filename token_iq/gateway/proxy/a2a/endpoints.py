@@ -16,7 +16,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
 from token_iq.gateway._logging import verbose_proxy_logger
-from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
 from token_iq.gateway.proxy.a2a.discovery import (
     AGENT_CARD_WELL_KNOWN_PATHS,
     AgentCardDiscoveryError,
@@ -88,7 +88,7 @@ async def discover_agent_card(
         -d '{"url": "https://upstream-agent.example.com"}'
     ```
     """
-    if user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN:
+    if user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN:
         raise HTTPException(
             status_code=403,
             detail=(f"Only proxy admins can discover agent cards. Your role={user_api_key_dict.user_role}"),

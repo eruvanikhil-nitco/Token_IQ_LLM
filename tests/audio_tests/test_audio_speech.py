@@ -21,7 +21,7 @@ import pytest
 from token_iq import gateway
 
 
-async def _run_audio_speech_litellm(sync_mode, model, api_base, api_key):
+async def _run_audio_speech_gateway(sync_mode, model, api_base, api_key):
     gateway._turn_on_debug()
     speech_file_path = Path(__file__).parent / "speech.mp3"
 
@@ -66,8 +66,8 @@ async def _run_audio_speech_litellm(sync_mode, model, api_base, api_key):
 @pytest.mark.parametrize("sync_mode", [True, False])
 @pytest.mark.asyncio
 @pytest.mark.flaky(retries=3, delay=1)
-async def test_audio_speech_litellm_azure(sync_mode):
-    await _run_audio_speech_litellm(
+async def test_audio_speech_gateway_azure(sync_mode):
+    await _run_audio_speech_gateway(
         sync_mode=sync_mode,
         model="azure/tts",
         api_base=os.getenv("AZURE_TTS_API_BASE"),
@@ -78,8 +78,8 @@ async def test_audio_speech_litellm_azure(sync_mode):
 @pytest.mark.parametrize("sync_mode", [True, False])
 @pytest.mark.asyncio
 @pytest.mark.flaky(retries=3, delay=1)
-async def test_audio_speech_litellm_openai(sync_mode):
-    await _run_audio_speech_litellm(
+async def test_audio_speech_gateway_openai(sync_mode):
+    await _run_audio_speech_gateway(
         sync_mode=sync_mode,
         model="openai/tts-1",
         api_base=None,
@@ -94,7 +94,7 @@ async def test_audio_speech_litellm_openai(sync_mode):
 @pytest.mark.skip(reason="local only test - we run testing using MockRequests below")
 @pytest.mark.asyncio
 @pytest.mark.flaky(retries=3, delay=1)
-async def test_audio_speech_litellm_vertex(sync_mode):
+async def test_audio_speech_gateway_vertex(sync_mode):
     gateway.set_verbose = True
     speech_file_path = Path(__file__).parent / "speech_vertex.mp3"
     model = "vertex_ai/test"
@@ -121,7 +121,7 @@ async def test_audio_speech_litellm_vertex(sync_mode):
 
 @pytest.mark.flaky(retries=6, delay=2)
 @pytest.mark.asyncio
-async def test_speech_litellm_vertex_async():
+async def test_speech_gateway_vertex_async():
     # Mock the response
     mock_response = AsyncMock()
 
@@ -168,7 +168,7 @@ async def test_speech_litellm_vertex_async():
 
 
 @pytest.mark.asyncio
-async def test_speech_litellm_vertex_async_with_voice():
+async def test_speech_gateway_vertex_async_with_voice():
     # Mock the response
     mock_response = AsyncMock()
 
@@ -223,7 +223,7 @@ async def test_speech_litellm_vertex_async_with_voice():
 
 
 @pytest.mark.asyncio
-async def test_speech_litellm_vertex_async_with_voice_ssml():
+async def test_speech_gateway_vertex_async_with_voice_ssml():
     # Mock the response
     mock_response = AsyncMock()
 

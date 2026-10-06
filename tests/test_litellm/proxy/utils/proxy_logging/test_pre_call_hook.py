@@ -424,7 +424,7 @@ def test_every_pre_call_customlogger_is_deliberately_classified():
         "_PROXY_SensitiveDataRoutingHandler",
         "ResponsesIDSecurity",
         "SkillsInjectionHook",
-        "_PROXY_LiteLLMManagedFiles",
+        "_PROXY_GatewayManagedFiles",
         "_PROXY_LiteLLMManagedVectorStores",
     }
 

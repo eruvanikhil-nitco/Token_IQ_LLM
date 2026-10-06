@@ -67,7 +67,7 @@ class TestCategories:
 
 class TestFileCount:
     def test_counts_files_holding_the_name_not_files_scanned(self, tmp_path: pathlib.Path) -> None:
-        _tree(tmp_path, {"a.py": "litellm", "b.py": "clean", "c.py": "LiteLLM"})
+        _tree(tmp_path, {"a.py": "litellm", "b.py": "clean", "c.py": "Gateway"})
         assert count_tree(tmp_path).files == 2
 
     def test_an_excluded_file_adds_nothing(self, tmp_path: pathlib.Path) -> None:

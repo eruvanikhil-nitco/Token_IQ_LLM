@@ -331,7 +331,7 @@ class ResponsesAPIRequestUtils:
         if response_id is None:
             return responses_api_response
 
-        if ResponsesAPIRequestUtils._is_litellm_encoded_response_id(response_id):
+        if ResponsesAPIRequestUtils._is_gateway_encoded_response_id(response_id):
             return responses_api_response
 
         updated_id: Final = ResponsesAPIRequestUtils._build_responses_api_response_id(
@@ -601,7 +601,7 @@ class ResponsesAPIRequestUtils:
             )
 
     @staticmethod
-    def _is_litellm_encoded_response_id(response_id: str) -> bool:
+    def _is_gateway_encoded_response_id(response_id: str) -> bool:
         decoded_response_id: Final = ResponsesAPIRequestUtils._decode_responses_api_response_id(response_id)
         return (
             decoded_response_id.get("model_id") is not None

@@ -196,11 +196,11 @@ class ComplexityTierModel(BaseModel):
 
     @field_validator("litellm_params", mode="before")
     @classmethod
-    def _freeze_litellm_params(cls, value: Mapping[str, object]) -> Mapping[str, object]:
+    def _freeze_gateway_params(cls, value: Mapping[str, object]) -> Mapping[str, object]:
         return MappingProxyType(dict(value))
 
     @field_serializer("litellm_params")
-    def _serialize_litellm_params(self, value: Mapping[str, object]) -> Mapping[str, object]:
+    def _serialize_gateway_params(self, value: Mapping[str, object]) -> Mapping[str, object]:
         return dict(value)  # mutable-ok: Pydantic JSON serialization requires a concrete mapping
 
 

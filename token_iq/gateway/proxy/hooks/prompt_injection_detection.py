@@ -20,7 +20,7 @@ from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.core_utils.prompt_templates.factory import (
     prompt_injection_detection_default_pt,
 )
-from token_iq.gateway.proxy._types import LiteLLMPromptInjectionParams, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import GatewayPromptInjectionParams, UserAPIKeyAuth
 from token_iq.gateway.router import Router
 from token_iq.gateway.utils import get_formatted_prompt
 
@@ -31,7 +31,7 @@ class _OPTIONAL_PromptInjectionDetection(CustomLogger):
     # Class variables or attributes
     def __init__(
         self,
-        prompt_injection_params: LiteLLMPromptInjectionParams | None = None,
+        prompt_injection_params: GatewayPromptInjectionParams | None = None,
     ):
         self.prompt_injection_params = prompt_injection_params
         self.llm_router: Router | None = None

@@ -492,13 +492,13 @@ def _get_cache_memory_stats(
 
 def _get_router_memory_stats(llm_router) -> Mapping[str, object]:
     """Get memory usage statistics for LiteLLM router."""
-    litellm_router_memory: dict[str, object] = {}
+    gateway_router_memory: dict[str, object] = {}
     try:
         if llm_router is not None:
             # Model list memory size
             if hasattr(llm_router, "model_list") and llm_router.model_list:
                 model_list_size: Final = sys.getsizeof(llm_router.model_list)
-                litellm_router_memory["model_list"] = {
+                gateway_router_memory["model_list"] = {
                     "num_models": len(llm_router.model_list),
                     "size_bytes": model_list_size,
                     "size_mb": round(model_list_size / (1024 * 1024), 4),
@@ -507,7 +507,7 @@ def _get_router_memory_stats(llm_router) -> Mapping[str, object]:
             # Model names set
             if hasattr(llm_router, "model_names") and llm_router.model_names:
                 model_names_size: Final = sys.getsizeof(llm_router.model_names)
-                litellm_router_memory["model_names_set"] = {
+                gateway_router_memory["model_names_set"] = {
                     "num_model_groups": len(llm_router.model_names),
                     "size_bytes": model_names_size,
                     "size_mb": round(model_names_size / (1024 * 1024), 4),
@@ -516,7 +516,7 @@ def _get_router_memory_stats(llm_router) -> Mapping[str, object]:
             # Deployment names list
             if hasattr(llm_router, "deployment_names") and llm_router.deployment_names:
                 deployment_names_size: Final = sys.getsizeof(llm_router.deployment_names)
-                litellm_router_memory["deployment_names"] = {
+                gateway_router_memory["deployment_names"] = {
                     "num_deployments": len(llm_router.deployment_names),
                     "size_bytes": deployment_names_size,
                     "size_mb": round(deployment_names_size / (1024 * 1024), 4),
@@ -525,7 +525,7 @@ def _get_router_memory_stats(llm_router) -> Mapping[str, object]:
             # Deployment latency map
             if hasattr(llm_router, "deployment_latency_map") and llm_router.deployment_latency_map:
                 latency_map_size: Final = sys.getsizeof(llm_router.deployment_latency_map)
-                litellm_router_memory["deployment_latency_map"] = {
+                gateway_router_memory["deployment_latency_map"] = {
                     "num_tracked_deployments": len(llm_router.deployment_latency_map),
                     "size_bytes": latency_map_size,
                     "size_mb": round(latency_map_size / (1024 * 1024), 4),
@@ -534,7 +534,7 @@ def _get_router_memory_stats(llm_router) -> Mapping[str, object]:
             # Fallback configuration
             if hasattr(llm_router, "fallbacks") and llm_router.fallbacks:
                 fallbacks_size: Final = sys.getsizeof(llm_router.fallbacks)
-                litellm_router_memory["fallbacks"] = {
+                gateway_router_memory["fallbacks"] = {
                     "num_fallback_configs": len(llm_router.fallbacks),
                     "size_bytes": fallbacks_size,
                     "size_mb": round(fallbacks_size / (1024 * 1024), 4),
@@ -542,18 +542,18 @@ def _get_router_memory_stats(llm_router) -> Mapping[str, object]:
 
             # Total router object size
             router_obj_size: Final = sys.getsizeof(llm_router)
-            litellm_router_memory["router_object"] = {
+            gateway_router_memory["router_object"] = {
                 "size_bytes": router_obj_size,
                 "size_mb": round(router_obj_size / (1024 * 1024), 4),
             }
 
         else:
-            litellm_router_memory = {"note": "Router not initialized"}
+            gateway_router_memory = {"note": "Router not initialized"}
     except Exception as e:
         verbose_proxy_logger.debug("Error getting router memory info: %s", e)
-        litellm_router_memory = {"error": str(e)}
+        gateway_router_memory = {"error": str(e)}
 
-    return litellm_router_memory
+    return gateway_router_memory
 
 
 def _get_process_memory_info(worker_pid: int, include_process_info: bool) -> Mapping[str, object] | None:
@@ -645,7 +645,7 @@ async def get_memory_details(
     total_objects, top_object_types = _get_object_type_counts(top_n)
     uncollectable_info: Final = _get_uncollectable_objects_info()
     cache_stats: Final = _get_cache_memory_stats(user_api_key_cache, llm_router, proxy_logging_obj, redis_usage_cache)
-    litellm_router_memory: Final = _get_router_memory_stats(llm_router)
+    gateway_router_memory: Final = _get_router_memory_stats(llm_router)
     process_info: Final = _get_process_memory_info(worker_pid, include_process_info)
 
     return {
@@ -659,7 +659,7 @@ async def get_memory_details(
         },
         "uncollectable": uncollectable_info,
         "cache_memory": cache_stats,
-        "router_memory": litellm_router_memory,
+        "router_memory": gateway_router_memory,
     }
 
 
@@ -810,9 +810,9 @@ def init_verbose_loggers():
             verbose_proxy_logger.setLevel(level=logging.DEBUG)  # set proxy logs to debug
         elif debug is False and detailed_debug is False:
             # users can control proxy debugging using env variable = 'LITELLM_LOG'
-            litellm_log_setting: Final = os.environ.get("LITELLM_LOG", "")
-            if litellm_log_setting is not None:
-                if litellm_log_setting.upper() == "INFO":
+            gateway_log_setting: Final = os.environ.get("LITELLM_LOG", "")
+            if gateway_log_setting is not None:
+                if gateway_log_setting.upper() == "INFO":
                     import logging
 
                     from token_iq.gateway._logging import (
@@ -824,7 +824,7 @@ def init_verbose_loggers():
 
                     verbose_router_logger.setLevel(level=logging.INFO)  # set router logs to info
                     verbose_proxy_logger.setLevel(level=logging.INFO)  # set proxy logs to info
-                elif litellm_log_setting.upper() == "DEBUG":
+                elif gateway_log_setting.upper() == "DEBUG":
                     import logging
 
                     from token_iq.gateway._logging import (

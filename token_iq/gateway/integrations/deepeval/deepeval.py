@@ -24,8 +24,8 @@ class DeepEvalLogger(CustomLogger):
 
     def __init__(self, *args, **kwargs):
         api_key: Final = os.getenv("CONFIDENT_API_KEY")
-        self.litellm_environment = os.getenv("LITELM_ENVIRONMENT", "development")
-        validate_environment(self.litellm_environment)
+        self.gateway_environment = os.getenv("LITELM_ENVIRONMENT", "development")
+        validate_environment(self.gateway_environment)
         if not api_key:
             raise ValueError("Please set 'CONFIDENT_API_KEY=<>' in your environment variables.")
         self.api = Api(api_key=api_key)
@@ -63,7 +63,7 @@ class DeepEvalLogger(CustomLogger):
             standard_logging_object=_standard_logging_object,
             start_time=_start_time,
             end_time=_end_time,
-            litellm_environment=self.litellm_environment,
+            gateway_environment=self.gateway_environment,
         )
 
         body = {}
@@ -130,7 +130,7 @@ class DeepEvalLogger(CustomLogger):
         standard_logging_object,
         start_time,
         end_time,
-        litellm_environment,
+        gateway_environment,
     ):
         return TraceApi(
             uuid=standard_logging_object.get("trace_id", uuid.uuid4()),
@@ -141,5 +141,5 @@ class DeepEvalLogger(CustomLogger):
             toolSpans=[],
             startTime=str(start_time),
             endTime=str(end_time),
-            environment=litellm_environment,
+            environment=gateway_environment,
         )

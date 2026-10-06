@@ -19,7 +19,7 @@ from unittest.mock import AsyncMock, MagicMock
 from .conftest import VOLATILE_KEYS, normalize
 
 
-def _install_litellm_config(mock_prisma: MagicMock) -> MagicMock:
+def _install_gateway_config(mock_prisma: MagicMock) -> MagicMock:
     """Ensure mock_prisma.db.litellm_config exists with async methods (the
     conftest only stubs ``litellm_configtable`` — this is a different table)."""
     table = MagicMock()
@@ -43,15 +43,15 @@ def test_config_update_happy_admin(client, auth_as, mock_prisma, monkeypatch):
     """POST /config/update with admin role merges + upserts general_settings
     and returns the canonical success message."""
     from token_iq.gateway.proxy import proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
-    _install_litellm_config(mock_prisma)
+    _install_gateway_config(mock_prisma)
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
     fake_proxy_config = MagicMock()
     fake_proxy_config.add_deployment = AsyncMock()
     monkeypatch.setattr(ps, "proxy_config", fake_proxy_config)
 
-    with auth_as(LitellmUserRoles.PROXY_ADMIN):
+    with auth_as(GatewayUserRoles.PROXY_ADMIN):
         response = client.post(
             "/config/update",
             json={"general_settings": {"alerting": ["slack"]}},
@@ -62,15 +62,15 @@ def test_config_update_happy_admin(client, auth_as, mock_prisma, monkeypatch):
 
 def test_config_update_persists_optional_pre_call_checks(client, auth_as, mock_prisma, monkeypatch):
     from token_iq.gateway.proxy import proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
-    table = _install_litellm_config(mock_prisma)
+    table = _install_gateway_config(mock_prisma)
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
     fake_proxy_config = MagicMock()
     fake_proxy_config.add_deployment = AsyncMock()
     monkeypatch.setattr(ps, "proxy_config", fake_proxy_config)
 
-    with auth_as(LitellmUserRoles.PROXY_ADMIN):
+    with auth_as(GatewayUserRoles.PROXY_ADMIN):
         response = client.post(
             "/config/update",
             json={"router_settings": {"optional_pre_call_checks": ["prompt_caching"]}},
@@ -83,16 +83,16 @@ def test_config_update_persists_optional_pre_call_checks(client, auth_as, mock_p
 
 def test_config_update_persists_model_group_affinity_config(client, auth_as, mock_prisma, monkeypatch):
     from token_iq.gateway.proxy import proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
-    table = _install_litellm_config(mock_prisma)
+    table = _install_gateway_config(mock_prisma)
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
     fake_proxy_config = MagicMock()
     fake_proxy_config.add_deployment = AsyncMock()
     monkeypatch.setattr(ps, "proxy_config", fake_proxy_config)
 
     model_group_affinity_config = {"gpt-4": ["session_affinity"]}
-    with auth_as(LitellmUserRoles.PROXY_ADMIN):
+    with auth_as(GatewayUserRoles.PROXY_ADMIN):
         response = client.post(
             "/config/update",
             json={"router_settings": {"model_group_affinity_config": model_group_affinity_config}},
@@ -105,15 +105,15 @@ def test_config_update_persists_model_group_affinity_config(client, auth_as, moc
 
 def test_config_update_persists_disable_cooldowns(client, auth_as, mock_prisma, monkeypatch):
     from token_iq.gateway.proxy import proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
-    table = _install_litellm_config(mock_prisma)
+    table = _install_gateway_config(mock_prisma)
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
     fake_proxy_config = MagicMock()
     fake_proxy_config.add_deployment = AsyncMock()
     monkeypatch.setattr(ps, "proxy_config", fake_proxy_config)
 
-    with auth_as(LitellmUserRoles.PROXY_ADMIN):
+    with auth_as(GatewayUserRoles.PROXY_ADMIN):
         response = client.post(
             "/config/update",
             json={"router_settings": {"disable_cooldowns": True}},
@@ -126,12 +126,12 @@ def test_config_update_persists_disable_cooldowns(client, auth_as, mock_prisma, 
 
 def test_config_update_rejects_assistants_config(client, auth_as, mock_prisma, monkeypatch):
     from token_iq.gateway.proxy import proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
-    table = _install_litellm_config(mock_prisma)
+    table = _install_gateway_config(mock_prisma)
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
 
-    with auth_as(LitellmUserRoles.PROXY_ADMIN):
+    with auth_as(GatewayUserRoles.PROXY_ADMIN):
         response = client.post(
             "/config/update",
             json={"router_settings": {"assistants_config": {"enabled": True}}},
@@ -144,12 +144,12 @@ def test_config_update_rejects_assistants_config(client, auth_as, mock_prisma, m
 
 def test_config_update_rejects_router_general_settings(client, auth_as, mock_prisma, monkeypatch):
     from token_iq.gateway.proxy import proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
-    table = _install_litellm_config(mock_prisma)
+    table = _install_gateway_config(mock_prisma)
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
 
-    with auth_as(LitellmUserRoles.PROXY_ADMIN):
+    with auth_as(GatewayUserRoles.PROXY_ADMIN):
         response = client.post(
             "/config/update",
             json={"router_settings": {"router_general_settings": {"async_only_mode": True}}},
@@ -162,12 +162,12 @@ def test_config_update_rejects_router_general_settings(client, auth_as, mock_pri
 
 def test_config_update_rejects_unknown_router_setting(client, auth_as, mock_prisma, monkeypatch):
     from token_iq.gateway.proxy import proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
-    table = _install_litellm_config(mock_prisma)
+    table = _install_gateway_config(mock_prisma)
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
 
-    with auth_as(LitellmUserRoles.PROXY_ADMIN):
+    with auth_as(GatewayUserRoles.PROXY_ADMIN):
         response = client.post(
             "/config/update",
             json={"router_settings": {"optional_precall_checks": ["prompt_caching"]}},
@@ -180,12 +180,12 @@ def test_config_update_rejects_unknown_router_setting(client, auth_as, mock_pris
 
 def test_config_update_unknown_router_setting_non_admin_forbidden(client, auth_as, mock_prisma, monkeypatch):
     from token_iq.gateway.proxy import proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
-    _install_litellm_config(mock_prisma)
+    _install_gateway_config(mock_prisma)
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
 
-    with auth_as(LitellmUserRoles.INTERNAL_USER):
+    with auth_as(GatewayUserRoles.INTERNAL_USER):
         response = client.post(
             "/config/update",
             json={"router_settings": {"optional_precall_checks": ["prompt_caching"]}},
@@ -199,12 +199,12 @@ def test_config_update_non_admin_forbidden(client, auth_as, mock_prisma, monkeyp
     """POST /config/update by a non-admin caller is rejected; the error
     surfaces as a ProxyException with the admin-only message."""
     from token_iq.gateway.proxy import proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
-    _install_litellm_config(mock_prisma)
+    _install_gateway_config(mock_prisma)
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
 
-    with auth_as(LitellmUserRoles.INTERNAL_USER):
+    with auth_as(GatewayUserRoles.INTERNAL_USER):
         response = client.post(
             "/config/update",
             json={"general_settings": {"alerting": ["slack"]}},
@@ -219,11 +219,11 @@ def test_config_update_no_db_error(client, auth_as, monkeypatch):
     """POST /config/update with prisma_client=None returns a 'No DB Connected'
     style error (the route raises Exception which the handler maps to 400)."""
     from token_iq.gateway.proxy import proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
     monkeypatch.setattr(ps, "prisma_client", None)
 
-    with auth_as(LitellmUserRoles.PROXY_ADMIN):
+    with auth_as(GatewayUserRoles.PROXY_ADMIN):
         response = client.post(
             "/config/update",
             json={"general_settings": {"alerting": ["slack"]}},
@@ -244,9 +244,9 @@ def test_config_field_update_happy_admin(client, auth_as, mock_prisma, monkeypat
     """POST /config/field/update for a known field upserts the DB row and
     returns the upsert response (we pin it to a specific shape)."""
     from token_iq.gateway.proxy import proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
-    table = _install_litellm_config(mock_prisma)
+    table = _install_gateway_config(mock_prisma)
     table.find_first = AsyncMock(return_value=None)
     upsert_row = {
         "param_name": "general_settings",
@@ -256,7 +256,7 @@ def test_config_field_update_happy_admin(client, auth_as, mock_prisma, monkeypat
     table.upsert = AsyncMock(return_value=upsert_row)
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
 
-    with auth_as(LitellmUserRoles.PROXY_ADMIN):
+    with auth_as(GatewayUserRoles.PROXY_ADMIN):
         response = client.post(
             "/config/field/update",
             json={
@@ -279,12 +279,12 @@ def test_config_field_update_non_admin_rejected(
     """Non-admin cannot update config fields — returns 400 with not-allowed
     detail (handler uses 400 for the auth gate, not 403)."""
     from token_iq.gateway.proxy import proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
-    _install_litellm_config(mock_prisma)
+    _install_gateway_config(mock_prisma)
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
 
-    with auth_as(LitellmUserRoles.INTERNAL_USER):
+    with auth_as(GatewayUserRoles.INTERNAL_USER):
         response = client.post(
             "/config/field/update",
             json={
@@ -300,12 +300,12 @@ def test_config_field_update_non_admin_rejected(
 def test_config_field_update_invalid_field(client, auth_as, mock_prisma, monkeypatch):
     """Unknown field_name is rejected with 400 + 'Invalid field=' detail."""
     from token_iq.gateway.proxy import proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
-    _install_litellm_config(mock_prisma)
+    _install_gateway_config(mock_prisma)
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
 
-    with auth_as(LitellmUserRoles.PROXY_ADMIN):
+    with auth_as(GatewayUserRoles.PROXY_ADMIN):
         response = client.post(
             "/config/field/update",
             json={
@@ -326,15 +326,15 @@ def test_config_field_update_invalid_field(client, auth_as, mock_prisma, monkeyp
 def test_config_field_info_happy_admin(client, auth_as, mock_prisma, monkeypatch):
     """Admin gets back ConfigFieldInfo with the stored value pulled from DB."""
     from token_iq.gateway.proxy import proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
-    table = _install_litellm_config(mock_prisma)
+    table = _install_gateway_config(mock_prisma)
     row = MagicMock()
     row.param_value = {"max_parallel_requests": 7}
     table.find_first = AsyncMock(return_value=row)
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
 
-    with auth_as(LitellmUserRoles.PROXY_ADMIN):
+    with auth_as(GatewayUserRoles.PROXY_ADMIN):
         response = client.get(
             "/config/field/info", params={"field_name": "max_parallel_requests"}
         )
@@ -350,12 +350,12 @@ def test_config_field_info_non_admin_rejected(
 ):
     """Non-admin (INTERNAL_USER) is denied — admin-view gate fires."""
     from token_iq.gateway.proxy import proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
-    _install_litellm_config(mock_prisma)
+    _install_gateway_config(mock_prisma)
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
 
-    with auth_as(LitellmUserRoles.INTERNAL_USER):
+    with auth_as(GatewayUserRoles.INTERNAL_USER):
         response = client.get(
             "/config/field/info", params={"field_name": "max_parallel_requests"}
         )
@@ -366,15 +366,15 @@ def test_config_field_info_non_admin_rejected(
 def test_config_field_info_field_not_in_db(client, auth_as, mock_prisma, monkeypatch):
     """When the field is missing from the DB row, returns 400 'not in DB'."""
     from token_iq.gateway.proxy import proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
-    table = _install_litellm_config(mock_prisma)
+    table = _install_gateway_config(mock_prisma)
     row = MagicMock()
     row.param_value = {"some_other_field": "value"}
     table.find_first = AsyncMock(return_value=row)
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
 
-    with auth_as(LitellmUserRoles.PROXY_ADMIN):
+    with auth_as(GatewayUserRoles.PROXY_ADMIN):
         response = client.get(
             "/config/field/info", params={"field_name": "max_parallel_requests"}
         )
@@ -390,9 +390,9 @@ def test_config_field_info_redacts_nested_secret_for_view_only_admin(
     role-assumption credential); it must come back redacted while non-secret
     siblings like region_name stay visible."""
     from token_iq.gateway.proxy import proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
-    table = _install_litellm_config(mock_prisma)
+    table = _install_gateway_config(mock_prisma)
     row = MagicMock()
     row.param_value = {
         "database_args": {
@@ -404,7 +404,7 @@ def test_config_field_info_redacts_nested_secret_for_view_only_admin(
     table.find_first = AsyncMock(return_value=row)
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
 
-    with auth_as(LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY):
+    with auth_as(GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY):
         response = client.get(
             "/config/field/info", params={"field_name": "database_args"}
         )
@@ -421,9 +421,9 @@ def test_config_field_info_full_admin_sees_nested_secret(
     """The redaction must not over-redact for a full PROXY_ADMIN, who needs
     the real nested value to populate the edit form."""
     from token_iq.gateway.proxy import proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
-    table = _install_litellm_config(mock_prisma)
+    table = _install_gateway_config(mock_prisma)
     row = MagicMock()
     row.param_value = {
         "database_args": {
@@ -434,7 +434,7 @@ def test_config_field_info_full_admin_sees_nested_secret(
     table.find_first = AsyncMock(return_value=row)
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
 
-    with auth_as(LitellmUserRoles.PROXY_ADMIN):
+    with auth_as(GatewayUserRoles.PROXY_ADMIN):
         response = client.get(
             "/config/field/info", params={"field_name": "database_args"}
         )
@@ -451,15 +451,15 @@ def test_config_field_info_redacts_top_level_scalar_for_view_only(
     database_url carries DB credentials and is not caught by the name masker,
     so it is in the explicit secret set."""
     from token_iq.gateway.proxy import proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
-    table = _install_litellm_config(mock_prisma)
+    table = _install_gateway_config(mock_prisma)
     row = MagicMock()
     row.param_value = {"database_url": "postgresql://admin:p4ss@db:5432/litellm"}
     table.find_first = AsyncMock(return_value=row)
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
 
-    with auth_as(LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY):
+    with auth_as(GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY):
         response = client.get(
             "/config/field/info", params={"field_name": "database_url"}
         )
@@ -524,9 +524,9 @@ def test_config_list_redacts_pass_through_secret_for_view_only(
     to a view-only admin. pass_through_endpoints is a known secret-bearing
     field, so a non-admin gets it redacted; a full admin still sees it."""
     from token_iq.gateway.proxy import proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
-    table = _install_litellm_config(mock_prisma)
+    table = _install_gateway_config(mock_prisma)
     row = MagicMock()
     row.param_value = {"max_parallel_requests": 3}
     table.find_first = AsyncMock(return_value=row)
@@ -552,7 +552,7 @@ def test_config_list_redacts_pass_through_secret_for_view_only(
             if entry["field_name"] == "pass_through_endpoints"
         )
 
-    with auth_as(LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY):
+    with auth_as(GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY):
         view_resp = client.get(
             "/config/list", params={"config_type": "general_settings"}
         )
@@ -560,7 +560,7 @@ def test_config_list_redacts_pass_through_secret_for_view_only(
     assert "sk-UPSTREAM-SECRET" not in view_resp.text
     assert _pass_through_value(view_resp.json()) == "REDACTED"
 
-    with auth_as(LitellmUserRoles.PROXY_ADMIN):
+    with auth_as(GatewayUserRoles.PROXY_ADMIN):
         admin_resp = client.get(
             "/config/list", params={"config_type": "general_settings"}
         )
@@ -578,15 +578,15 @@ def test_config_list_happy_admin(client, auth_as, mock_prisma, monkeypatch):
     """Admin gets a non-empty list of ConfigList rows for general_settings
     (one entry per known allowed_arg). Each row has the documented schema."""
     from token_iq.gateway.proxy import proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
-    table = _install_litellm_config(mock_prisma)
+    table = _install_gateway_config(mock_prisma)
     row = MagicMock()
     row.param_value = {"max_parallel_requests": 3}
     table.find_first = AsyncMock(return_value=row)
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
 
-    with auth_as(LitellmUserRoles.PROXY_ADMIN):
+    with auth_as(GatewayUserRoles.PROXY_ADMIN):
         response = client.get(
             "/config/list", params={"config_type": "general_settings"}
         )
@@ -614,15 +614,15 @@ def test_config_list_exposes_config_reload_interval(client, auth_as, mock_prisma
     list as an Integer field defaulting to 30, so operators can tune multi-pod convergence
     from the dashboard."""
     from token_iq.gateway.proxy import proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
-    table = _install_litellm_config(mock_prisma)
+    table = _install_gateway_config(mock_prisma)
     row = MagicMock()
     row.param_value = {}
     table.find_first = AsyncMock(return_value=row)
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
 
-    with auth_as(LitellmUserRoles.PROXY_ADMIN):
+    with auth_as(GatewayUserRoles.PROXY_ADMIN):
         response = client.get("/config/list", params={"config_type": "general_settings"})
     assert response.status_code == 200
     by_name = {entry["field_name"]: entry for entry in response.json()}
@@ -636,9 +636,9 @@ def test_config_field_update_accepts_config_reload_interval(client, auth_as, moc
     """POST /config/field/update accepts proxy_config_reload_interval_seconds and persists
     it to the DB general_settings row for all pods to pick up."""
     from token_iq.gateway.proxy import proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
-    table = _install_litellm_config(mock_prisma)
+    table = _install_gateway_config(mock_prisma)
     table.find_first = AsyncMock(return_value=None)
     upsert_row = {
         "param_name": "general_settings",
@@ -648,7 +648,7 @@ def test_config_field_update_accepts_config_reload_interval(client, auth_as, moc
     table.upsert = AsyncMock(return_value=upsert_row)
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
 
-    with auth_as(LitellmUserRoles.PROXY_ADMIN):
+    with auth_as(GatewayUserRoles.PROXY_ADMIN):
         response = client.post(
             "/config/field/update",
             json={
@@ -666,14 +666,14 @@ def test_config_field_update_rejects_non_positive_config_reload_interval(client,
     """A non-positive proxy_config_reload_interval_seconds from the UI is rejected with a 400
     and never persisted, since APScheduler requires a positive interval."""
     from token_iq.gateway.proxy import proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
-    table = _install_litellm_config(mock_prisma)
+    table = _install_gateway_config(mock_prisma)
     table.find_first = AsyncMock(return_value=None)
     table.upsert = AsyncMock()
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
 
-    with auth_as(LitellmUserRoles.PROXY_ADMIN):
+    with auth_as(GatewayUserRoles.PROXY_ADMIN):
         response = client.post(
             "/config/field/update",
             json={
@@ -689,12 +689,12 @@ def test_config_field_update_rejects_non_positive_config_reload_interval(client,
 def test_config_list_non_admin_rejected(client, auth_as, mock_prisma, monkeypatch):
     """Non-admin gets a 400 with the role embedded in the error message."""
     from token_iq.gateway.proxy import proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
-    _install_litellm_config(mock_prisma)
+    _install_gateway_config(mock_prisma)
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
 
-    with auth_as(LitellmUserRoles.INTERNAL_USER):
+    with auth_as(GatewayUserRoles.INTERNAL_USER):
         response = client.get(
             "/config/list", params={"config_type": "general_settings"}
         )
@@ -705,11 +705,11 @@ def test_config_list_non_admin_rejected(client, auth_as, mock_prisma, monkeypatc
 def test_config_list_no_db_error(client, auth_as, monkeypatch):
     """No DB → 400 with db_not_connected error."""
     from token_iq.gateway.proxy import proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
     monkeypatch.setattr(ps, "prisma_client", None)
 
-    with auth_as(LitellmUserRoles.PROXY_ADMIN):
+    with auth_as(GatewayUserRoles.PROXY_ADMIN):
         response = client.get(
             "/config/list", params={"config_type": "general_settings"}
         )
@@ -725,9 +725,9 @@ def test_config_list_no_db_error(client, auth_as, monkeypatch):
 def test_config_field_delete_happy_admin(client, auth_as, mock_prisma, monkeypatch):
     """Admin can delete a stored general_settings field — returns the upsert row."""
     from token_iq.gateway.proxy import proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
-    table = _install_litellm_config(mock_prisma)
+    table = _install_gateway_config(mock_prisma)
     existing = MagicMock()
     existing.param_value = {"max_parallel_requests": 5, "other": "value"}
     table.find_first = AsyncMock(return_value=existing)
@@ -740,7 +740,7 @@ def test_config_field_delete_happy_admin(client, auth_as, mock_prisma, monkeypat
     )
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
 
-    with auth_as(LitellmUserRoles.PROXY_ADMIN):
+    with auth_as(GatewayUserRoles.PROXY_ADMIN):
         response = client.post(
             "/config/field/delete",
             json={
@@ -761,12 +761,12 @@ def test_config_field_delete_non_admin_rejected(
 ):
     """Non-admin caller hits the 400 not-allowed branch with role in detail."""
     from token_iq.gateway.proxy import proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
-    _install_litellm_config(mock_prisma)
+    _install_gateway_config(mock_prisma)
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
 
-    with auth_as(LitellmUserRoles.INTERNAL_USER):
+    with auth_as(GatewayUserRoles.INTERNAL_USER):
         response = client.post(
             "/config/field/delete",
             json={
@@ -783,13 +783,13 @@ def test_config_field_delete_field_not_in_config(
 ):
     """If there is no general_settings row at all, returns 400 'not in config'."""
     from token_iq.gateway.proxy import proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
-    table = _install_litellm_config(mock_prisma)
+    table = _install_gateway_config(mock_prisma)
     table.find_first = AsyncMock(return_value=None)
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
 
-    with auth_as(LitellmUserRoles.PROXY_ADMIN):
+    with auth_as(GatewayUserRoles.PROXY_ADMIN):
         response = client.post(
             "/config/field/delete",
             json={
@@ -810,9 +810,9 @@ def test_config_callback_delete_happy_admin(client, auth_as, mock_prisma, monkey
     """Admin deletes a configured success callback — handler returns the
     success message + remaining callbacks + a timestamp."""
     from token_iq.gateway.proxy import proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
-    _install_litellm_config(mock_prisma)
+    _install_gateway_config(mock_prisma)
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
     monkeypatch.setattr(ps, "store_model_in_db", True)
 
@@ -824,7 +824,7 @@ def test_config_callback_delete_happy_admin(client, auth_as, mock_prisma, monkey
     fake_proxy_config.add_deployment = AsyncMock()
     monkeypatch.setattr(ps, "proxy_config", fake_proxy_config)
 
-    with auth_as(LitellmUserRoles.PROXY_ADMIN):
+    with auth_as(GatewayUserRoles.PROXY_ADMIN):
         response = client.post(
             "/config/callback/delete", json={"callback_name": "langfuse"}
         )
@@ -845,13 +845,13 @@ def test_config_callback_delete_non_admin_rejected(
 ):
     """Non-admin caller is rejected with 400 not-allowed."""
     from token_iq.gateway.proxy import proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
-    _install_litellm_config(mock_prisma)
+    _install_gateway_config(mock_prisma)
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
     monkeypatch.setattr(ps, "store_model_in_db", True)
 
-    with auth_as(LitellmUserRoles.INTERNAL_USER):
+    with auth_as(GatewayUserRoles.INTERNAL_USER):
         response = client.post(
             "/config/callback/delete", json={"callback_name": "langfuse"}
         )
@@ -862,9 +862,9 @@ def test_config_callback_delete_non_admin_rejected(
 def test_config_callback_delete_not_found(client, auth_as, mock_prisma, monkeypatch):
     """Callback missing from current config returns 404."""
     from token_iq.gateway.proxy import proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
-    _install_litellm_config(mock_prisma)
+    _install_gateway_config(mock_prisma)
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
     monkeypatch.setattr(ps, "store_model_in_db", True)
 
@@ -874,7 +874,7 @@ def test_config_callback_delete_not_found(client, auth_as, mock_prisma, monkeypa
     )
     monkeypatch.setattr(ps, "proxy_config", fake_proxy_config)
 
-    with auth_as(LitellmUserRoles.PROXY_ADMIN):
+    with auth_as(GatewayUserRoles.PROXY_ADMIN):
         response = client.post(
             "/config/callback/delete", json={"callback_name": "langfuse"}
         )
@@ -896,9 +896,9 @@ def test_get_config_callbacks_happy(client, auth_as, mock_prisma, monkeypatch):
     """GET /get/config/callbacks returns the 5 pinned top-level keys:
     status, callbacks, alerts, router_settings, available_callbacks."""
     from token_iq.gateway.proxy import proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
-    _install_litellm_config(mock_prisma)
+    _install_gateway_config(mock_prisma)
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
     monkeypatch.setattr(ps, "llm_router", None)
 
@@ -912,7 +912,7 @@ def test_get_config_callbacks_happy(client, auth_as, mock_prisma, monkeypatch):
     )
     monkeypatch.setattr(ps, "proxy_config", fake_proxy_config)
 
-    with auth_as(LitellmUserRoles.PROXY_ADMIN):
+    with auth_as(GatewayUserRoles.PROXY_ADMIN):
         response = client.get("/get/config/callbacks")
     assert response.status_code == 200
     body = response.json()
@@ -936,16 +936,16 @@ def test_get_config_callbacks_internal_error(client, auth_as, mock_prisma, monke
     """If proxy_config.get_config() raises, the handler wraps the failure in
     a ProxyException → non-2xx response with an error body."""
     from token_iq.gateway.proxy import proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
-    _install_litellm_config(mock_prisma)
+    _install_gateway_config(mock_prisma)
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
 
     fake_proxy_config = MagicMock()
     fake_proxy_config.get_config = AsyncMock(side_effect=RuntimeError("boom"))
     monkeypatch.setattr(ps, "proxy_config", fake_proxy_config)
 
-    with auth_as(LitellmUserRoles.PROXY_ADMIN):
+    with auth_as(GatewayUserRoles.PROXY_ADMIN):
         response = client.get("/get/config/callbacks")
     assert response.status_code >= 400
     assert (
@@ -969,7 +969,7 @@ _CALLBACK_ENV_FIXTURE = {
 def _install_callbacks_config(monkeypatch, mock_prisma):
     from token_iq.gateway.proxy import proxy_server as ps
 
-    _install_litellm_config(mock_prisma)
+    _install_gateway_config(mock_prisma)
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
     monkeypatch.setattr(ps, "llm_router", None)
 
@@ -993,11 +993,11 @@ def _callback_variables(body: dict, name: str) -> dict:
 def test_get_config_callbacks_redacts_secret_env_vars_for_view_only_admin(
     client, auth_as, mock_prisma, monkeypatch
 ):
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
     _install_callbacks_config(monkeypatch, mock_prisma)
 
-    with auth_as(LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY):
+    with auth_as(GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY):
         response = client.get("/get/config/callbacks")
     assert response.status_code == 200
     body = response.json()
@@ -1027,11 +1027,11 @@ def test_get_config_callbacks_redacts_secret_env_vars_for_view_only_admin(
 def test_get_config_callbacks_full_admin_still_sees_secret_env_vars(
     client, auth_as, mock_prisma, monkeypatch
 ):
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
     _install_callbacks_config(monkeypatch, mock_prisma)
 
-    with auth_as(LitellmUserRoles.PROXY_ADMIN):
+    with auth_as(GatewayUserRoles.PROXY_ADMIN):
         response = client.get("/get/config/callbacks")
     assert response.status_code == 200
     body = response.json()
@@ -1051,7 +1051,7 @@ def test_get_config_callbacks_redacts_slack_webhook_urls_for_view_only_admin(
     client, auth_as, mock_prisma, monkeypatch
 ):
     from token_iq.gateway.proxy import proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
     _install_callbacks_config(monkeypatch, mock_prisma)
 
@@ -1069,7 +1069,7 @@ def test_get_config_callbacks_redacts_slack_webhook_urls_for_view_only_admin(
     def _slack_block(body):
         return next(a for a in body["alerts"] if a["name"] == "slack")
 
-    with auth_as(LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY):
+    with auth_as(GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY):
         view_resp = client.get("/get/config/callbacks")
     assert view_resp.status_code == 200
     for url in webhooks.values():
@@ -1082,7 +1082,7 @@ def test_get_config_callbacks_redacts_slack_webhook_urls_for_view_only_admin(
     }
     assert view_slack["variables"]["SLACK_WEBHOOK_URL"] == "REDACTED"
 
-    with auth_as(LitellmUserRoles.PROXY_ADMIN):
+    with auth_as(GatewayUserRoles.PROXY_ADMIN):
         admin_resp = client.get("/get/config/callbacks")
     assert admin_resp.status_code == 200
     admin_slack = _slack_block(admin_resp.json())
@@ -1121,9 +1121,9 @@ def test_get_config_callbacks_redacts_email_alerting_vars_for_view_only_admin(
     client, auth_as, mock_prisma, monkeypatch
 ):
     from token_iq.gateway.proxy import proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
-    _install_litellm_config(mock_prisma)
+    _install_gateway_config(mock_prisma)
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
     monkeypatch.setattr(ps, "llm_router", None)
 
@@ -1149,7 +1149,7 @@ def test_get_config_callbacks_redacts_email_alerting_vars_for_view_only_admin(
     def _email_block(body):
         return next(a for a in body["alerts"] if a["name"] == "email")
 
-    with auth_as(LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY):
+    with auth_as(GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY):
         view_resp = client.get("/get/config/callbacks")
     assert view_resp.status_code == 200
     for secret in ("smtp-user-fixture-1234", "smtp-password-fixture-1234"):
@@ -1161,7 +1161,7 @@ def test_get_config_callbacks_redacts_email_alerting_vars_for_view_only_admin(
     assert view_email["SMTP_PORT"] == "587"
     assert view_email["SMTP_SENDER_EMAIL"] == "alerts@example.com"
 
-    with auth_as(LitellmUserRoles.PROXY_ADMIN):
+    with auth_as(GatewayUserRoles.PROXY_ADMIN):
         admin_resp = client.get("/get/config/callbacks")
     assert admin_resp.status_code == 200
     admin_email = _email_block(admin_resp.json())["variables"]

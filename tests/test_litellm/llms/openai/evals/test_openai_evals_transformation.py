@@ -6,7 +6,7 @@ import httpx
 import pytest
 
 from token_iq.gateway.llms.openai.evals.transformation import OpenAIEvalsConfig
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 
 
 @pytest.fixture()
@@ -17,7 +17,7 @@ def config() -> OpenAIEvalsConfig:
 def test_validate_environment_sets_headers(config: OpenAIEvalsConfig):
     """Test that validate_environment correctly sets authorization headers"""
     headers: dict = {}
-    params = GenericLiteLLMParams(api_key="sk-test-12345")
+    params = GenericGatewayParams(api_key="sk-test-12345")
 
     result = config.validate_environment(headers=headers, litellm_params=params)
 
@@ -33,7 +33,7 @@ def test_validate_environment_requires_api_key(config: OpenAIEvalsConfig, monkey
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
 
     headers: dict = {}
-    params = GenericLiteLLMParams()
+    params = GenericGatewayParams()
 
     with pytest.raises(ValueError, match="OPENAI_API_KEY is required"):
         config.validate_environment(headers=headers, litellm_params=params)
@@ -91,7 +91,7 @@ def test_transform_create_eval_request(config: OpenAIEvalsConfig):
 
     result = config.transform_create_eval_request(
         create_request=create_request,
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         headers={},
     )
 
@@ -136,7 +136,7 @@ def test_transform_list_evals_request(config: OpenAIEvalsConfig):
 
     url, query_params = config.transform_list_evals_request(
         list_params=list_params,
-        litellm_params=GenericLiteLLMParams(api_base="https://api.openai.com"),
+        litellm_params=GenericGatewayParams(api_base="https://api.openai.com"),
         headers={},
     )
 
@@ -191,7 +191,7 @@ def test_transform_update_eval_request(config: OpenAIEvalsConfig):
         eval_id="eval_123",
         update_request=update_request,
         api_base="https://api.openai.com",
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         headers={},
     )
 
@@ -205,7 +205,7 @@ def test_transform_delete_eval_request(config: OpenAIEvalsConfig):
     url, headers = config.transform_delete_eval_request(
         eval_id="eval_123",
         api_base="https://api.openai.com",
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         headers={},
     )
 
@@ -235,7 +235,7 @@ def test_transform_cancel_eval_request(config: OpenAIEvalsConfig):
     url, headers, request_body = config.transform_cancel_eval_request(
         eval_id="eval_123",
         api_base="https://api.openai.com",
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         headers={},
     )
 
@@ -270,7 +270,7 @@ def test_transform_run_requests_encode_eval_and_run_ids(config: OpenAIEvalsConfi
         eval_id="../../evals?x=1#frag",
         run_id="../runs#other",
         api_base="https://api.openai.com",
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         headers={},
     )
 
@@ -346,7 +346,7 @@ def test_transform_list_runs_request(config: OpenAIEvalsConfig):
     url, query_params = config.transform_list_runs_request(
         eval_id="eval_123",
         list_params={"limit": 5, "after": "evalrun_1", "order": "asc"},
-        litellm_params=GenericLiteLLMParams(api_base="https://api.openai.com"),
+        litellm_params=GenericGatewayParams(api_base="https://api.openai.com"),
         headers={},
     )
 
@@ -418,7 +418,7 @@ def test_transform_delete_run_request(config: OpenAIEvalsConfig):
         eval_id="eval_123",
         run_id="evalrun_123",
         api_base="https://api.openai.com",
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         headers={},
     )
 

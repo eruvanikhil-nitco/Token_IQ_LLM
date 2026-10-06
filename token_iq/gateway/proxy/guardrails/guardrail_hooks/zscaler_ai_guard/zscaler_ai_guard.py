@@ -21,7 +21,7 @@ from token_iq.gateway.types.guardrails import GuardrailEventHooks
 from token_iq.gateway.types.utils import GenericGuardrailAPIInputs
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
     from token_iq.gateway.types.guardrails import LitellmParams
     from token_iq.gateway.types.proxy.guardrails.guardrail_hooks.base import GuardrailConfigModel
 
@@ -102,8 +102,8 @@ class ZscalerAIGuard(CustomGuardrail):
 
         return timeout
 
-    def update_in_memory_litellm_params(self, litellm_params: "LitellmParams") -> None:
-        super().update_in_memory_litellm_params(litellm_params)
+    def update_in_memory_gateway_params(self, litellm_params: "LitellmParams") -> None:
+        super().update_in_memory_gateway_params(litellm_params)
         self.timeout = self._resolve_timeout(litellm_params.timeout)
 
     @staticmethod
@@ -151,7 +151,7 @@ class ZscalerAIGuard(CustomGuardrail):
         inputs: "GenericGuardrailAPIInputs",
         request_data: dict,
         input_type: Literal["request", "response"],
-        logging_obj: Optional["LiteLLMLoggingObj"] = None,
+        logging_obj: Optional["GatewayLoggingObj"] = None,
     ) -> "GenericGuardrailAPIInputs":
         """
         Apply Zscaler AI Guard guardrail to batch of texts.

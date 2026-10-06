@@ -13,7 +13,7 @@ from typing_extensions import ReadOnly
 
 from token_iq import gateway
 from token_iq.gateway import LlmProviders
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.llms.bedrock.chat.invoke_handler import MockResponseIterator
 from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
 from token_iq.gateway.llms.databricks.streaming_utils import ModelResponseIterator
@@ -131,7 +131,7 @@ class OpenAILikeChatHandler(OpenAILikeBase):
         print_verbose: Callable,
         encoding,
         api_key,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         stream,
         data: dict,
         optional_params=None,
@@ -233,7 +233,7 @@ class OpenAILikeChatHandler(OpenAILikeBase):
         print_verbose: Callable,
         encoding,
         api_key: str | None,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         optional_params: dict,
         acompletion=None,
         litellm_params: dict = {},

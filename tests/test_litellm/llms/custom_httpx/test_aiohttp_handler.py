@@ -5,7 +5,7 @@ import pytest
 
 from token_iq import gateway
 from token_iq.gateway.llms.custom_httpx.aiohttp_handler import BaseLLMAIOHTTPHandler
-from token_iq.gateway.llms.custom_httpx.aiohttp_transport import LiteLLMAiohttpTransport
+from token_iq.gateway.llms.custom_httpx.aiohttp_transport import GatewayAiohttpTransport
 
 
 class TestBaseLLMAIOHTTPHandler:
@@ -212,7 +212,7 @@ class TestBaseLLMAIOHTTPHandler:
 
     def test_init_with_transport(self):
         """Test handler initialization with provided transport"""
-        mock_transport = Mock(spec=LiteLLMAiohttpTransport)
+        mock_transport = Mock(spec=GatewayAiohttpTransport)
 
         handler = BaseLLMAIOHTTPHandler(transport=mock_transport)
 
@@ -230,7 +230,7 @@ class TestBaseLLMAIOHTTPHandler:
 
     def test_init_with_transport_and_session(self):
         """Test handler initialization with both transport and session"""
-        mock_transport = Mock(spec=LiteLLMAiohttpTransport)
+        mock_transport = Mock(spec=GatewayAiohttpTransport)
         mock_session = Mock()
 
         handler = BaseLLMAIOHTTPHandler(
@@ -262,7 +262,7 @@ class TestBaseLLMAIOHTTPHandler:
 
         mock_session = MockSession()
 
-        mock_transport = Mock(spec=LiteLLMAiohttpTransport)
+        mock_transport = Mock(spec=GatewayAiohttpTransport)
         mock_transport.client = mock_session
 
         handler = BaseLLMAIOHTTPHandler(transport=mock_transport)
@@ -273,7 +273,7 @@ class TestBaseLLMAIOHTTPHandler:
 
     def test_get_connector_from_transport_with_callable_client(self):
         """Test _get_connector with transport that has callable client"""
-        mock_transport = Mock(spec=LiteLLMAiohttpTransport)
+        mock_transport = Mock(spec=GatewayAiohttpTransport)
         mock_transport.client = lambda: Mock()  # Callable client
 
         handler = BaseLLMAIOHTTPHandler(transport=mock_transport)
@@ -287,7 +287,7 @@ class TestBaseLLMAIOHTTPHandler:
         """Test session creation using transport"""
         mock_session_from_transport = Mock()
 
-        mock_transport = Mock(spec=LiteLLMAiohttpTransport)
+        mock_transport = Mock(spec=GatewayAiohttpTransport)
         mock_transport._get_valid_client_session = Mock(
             return_value=mock_session_from_transport
         )
@@ -376,7 +376,7 @@ class TestBaseLLMAIOHTTPHandler:
         if result is not None:
             assert handler.transport is result
             assert handler._owns_transport is True
-            assert isinstance(result, LiteLLMAiohttpTransport)
+            assert isinstance(result, GatewayAiohttpTransport)
         else:
             # Creation can fail in test environments without full aiohttp setup
             # This is the graceful fallback path
@@ -384,7 +384,7 @@ class TestBaseLLMAIOHTTPHandler:
 
     def test_get_or_create_transport_with_existing(self):
         """Test _get_or_create_transport returns existing transport"""
-        mock_transport = Mock(spec=LiteLLMAiohttpTransport)
+        mock_transport = Mock(spec=GatewayAiohttpTransport)
         handler = BaseLLMAIOHTTPHandler(transport=mock_transport)
 
         result = handler._get_or_create_transport()
@@ -394,7 +394,7 @@ class TestBaseLLMAIOHTTPHandler:
     @pytest.mark.asyncio
     async def test_close_with_owned_transport(self):
         """Test close() method with owned transport"""
-        mock_transport = Mock(spec=LiteLLMAiohttpTransport)
+        mock_transport = Mock(spec=GatewayAiohttpTransport)
         mock_transport.aclose = AsyncMock()
 
         handler = BaseLLMAIOHTTPHandler()
@@ -409,7 +409,7 @@ class TestBaseLLMAIOHTTPHandler:
     @pytest.mark.asyncio
     async def test_close_with_non_owned_transport(self):
         """Test close() method with non-owned transport (should not close)"""
-        mock_transport = Mock(spec=LiteLLMAiohttpTransport)
+        mock_transport = Mock(spec=GatewayAiohttpTransport)
         mock_transport.aclose = AsyncMock()
 
         handler = BaseLLMAIOHTTPHandler(transport=mock_transport)
@@ -434,7 +434,7 @@ class TestBaseLLMAIOHTTPHandler:
     def test_transport_priority_hierarchy(self):
         """Test that session creation follows the right priority: transport > connector > default"""
         # Test with transport having _get_valid_client_session
-        mock_transport = Mock(spec=LiteLLMAiohttpTransport)
+        mock_transport = Mock(spec=GatewayAiohttpTransport)
         mock_session_from_transport = Mock()
         mock_transport._get_valid_client_session = Mock(
             return_value=mock_session_from_transport

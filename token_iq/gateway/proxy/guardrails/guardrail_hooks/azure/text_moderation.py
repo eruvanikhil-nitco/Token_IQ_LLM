@@ -19,7 +19,7 @@ from token_iq.gateway.types.utils import CallTypesLiteral, GenericGuardrailAPIIn
 from .base import AzureGuardrailBase
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
     from token_iq.gateway.types.llms.openai import AllMessageValues
     from token_iq.gateway.types.proxy.guardrails.guardrail_hooks.azure.azure_text_moderation import (
         AzureTextModerationGuardrailResponse,

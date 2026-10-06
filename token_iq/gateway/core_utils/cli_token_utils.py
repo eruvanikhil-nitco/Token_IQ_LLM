@@ -306,7 +306,7 @@ def _nothing_left_behind(outcome: SecretErase, record: CliTokenRecord | None) ->
             return record is None
 
 
-def get_litellm_gateway_api_key(
+def get_gateway_gateway_api_key(
     expected_base_url: str | None = None,
     *,
     vault: SecretVault = SYSTEM_KEYRING,

@@ -16,7 +16,7 @@ from e2e_http import (
 )
 from endpoints_client import EmbeddingsResult, EndpointsClient
 from lifecycle import ResourceManager
-from models import LiteLLMParamsBody
+from models import GatewayParamsBody
 from pydantic import BaseModel
 
 pytestmark = pytest.mark.e2e
@@ -27,12 +27,12 @@ class _OptionalEmbeddingsBody(BaseModel):
     input: str | list[str] | None = None
 
 
-def _openai_embeddings_params() -> LiteLLMParamsBody:
+def _openai_embeddings_params() -> GatewayParamsBody:
     """The OpenAI embeddings deployment, wired through the record/replay edge when a
     fixture mode is active and straight at OpenAI otherwise (LIT-5974). Bedrock and
     Vertex stay live: SigV4 signs the Host header, and neither has an edge mount."""
     base = provider_edge_base("openai")
-    return LiteLLMParamsBody(
+    return GatewayParamsBody(
         model="openai/text-embedding-3-small",
         api_key="os.environ/OPENAI_API_KEY",
         api_base=None if base is None else f"{base}/v1",
@@ -68,7 +68,7 @@ class TestEmbeddingsEndpoint:
         model = f"e2e-embeddings-bedrock-{unique_marker()}"
         model_id = endpoints_client.create_model(
             model,
-            LiteLLMParamsBody(
+            GatewayParamsBody(
                 model="bedrock/amazon.titan-embed-text-v2:0",
                 aws_access_key_id="os.environ/AWS_ACCESS_KEY_ID",
                 aws_secret_access_key="os.environ/AWS_SECRET_ACCESS_KEY",
@@ -93,7 +93,7 @@ class TestEmbeddingsEndpoint:
         model = f"e2e-embeddings-vertex-{unique_marker()}"
         model_id = endpoints_client.create_model(
             model,
-            LiteLLMParamsBody(
+            GatewayParamsBody(
                 model="vertex_ai/text-embedding-005",
                 vertex_project="os.environ/VERTEXAI_PROJECT",
                 vertex_location="us-central1",

@@ -19,7 +19,7 @@ import httpx
 from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway._uuid import uuid
-from token_iq.gateway.constants import REDACTED_BY_LITELLM
+from token_iq.gateway.constants import REDACTED_BY_GATEWAY
 from token_iq.gateway.integrations.custom_batch_logger import CustomBatchLogger
 from token_iq.gateway.integrations.datadog.datadog_handler import (
     get_datadog_base_url_from_env,
@@ -124,7 +124,7 @@ def _redact_messages(messages: Sequence[Message]) -> tuple[Message, ...]:
     return tuple(
         {
             "role": role if isinstance(role, str) and role in _SAFE_REDACTED_MESSAGE_ROLES else "",
-            "content": REDACTED_BY_LITELLM,
+            "content": REDACTED_BY_GATEWAY,
         }
         for message in messages
         for role in (message.get("role", ""),)
@@ -899,9 +899,9 @@ class DataDogLLMObsLogger(CustomBatchLogger):
 
         # LiteLLM overhead time
         hidden_params: Final = standard_logging_payload.get("hidden_params", {})
-        litellm_overhead_ms: Final = hidden_params.get("litellm_overhead_time_ms")
-        if litellm_overhead_ms is not None:
-            latency_metrics["litellm_overhead_time_ms"] = litellm_overhead_ms
+        gateway_overhead_ms: Final = hidden_params.get("litellm_overhead_time_ms")
+        if gateway_overhead_ms is not None:
+            latency_metrics["litellm_overhead_time_ms"] = gateway_overhead_ms
 
         # Guardrail overhead latency
         guardrail_info: Final[list[StandardLoggingGuardrailInformation] | None] = standard_logging_payload.get(

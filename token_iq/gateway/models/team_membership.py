@@ -6,10 +6,10 @@ Canonical definition for ``litellm_teammembership``. Re-exported from
 """
 
 from token_iq.gateway.models.budget import LiteLLM_BudgetTable, LiteLLM_BudgetTableFull
-from token_iq.gateway.types.llms.base import LiteLLMPydanticObjectBase
+from token_iq.gateway.types.llms.base import GatewayPydanticObjectBase
 
 
-class LiteLLM_TeamMembership(LiteLLMPydanticObjectBase):
+class LiteLLM_TeamMembership(GatewayPydanticObjectBase):
     user_id: str
     team_id: str
     budget_id: str | None = None

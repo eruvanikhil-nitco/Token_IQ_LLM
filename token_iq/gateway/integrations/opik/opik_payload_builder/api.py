@@ -69,7 +69,7 @@ def build_opik_payload(
         opik_metadata=opik_metadata,
         standard_logging_metadata=standard_logging_metadata,
         standard_logging_object=standard_logging_object,
-        litellm_kwargs=kwargs,
+        gateway_kwargs=kwargs,
     )
 
     # Get input/output data

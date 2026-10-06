@@ -238,8 +238,8 @@ class TestGithubCopilotResponsesAPITransformation:
         config = GithubCopilotResponsesAPIConfig()
 
         # Create mock litellm_params with input attribute
-        mock_litellm_params = MagicMock()
-        mock_litellm_params.input = [
+        mock_gateway_params = MagicMock()
+        mock_gateway_params.input = [
             {
                 "role": "user",
                 "content": [{"type": "input_image", "data": "base64..."}],
@@ -247,7 +247,7 @@ class TestGithubCopilotResponsesAPITransformation:
         ]
 
         headers = config.validate_environment(
-            headers={}, model="gpt-5.1-codex", litellm_params=mock_litellm_params
+            headers={}, model="gpt-5.1-codex", litellm_params=mock_gateway_params
         )
 
         assert (
@@ -264,14 +264,14 @@ class TestGithubCopilotResponsesAPITransformation:
         config = GithubCopilotResponsesAPIConfig()
 
         # Create mock litellm_params with input attribute
-        mock_litellm_params = MagicMock()
-        mock_litellm_params.input = [
+        mock_gateway_params = MagicMock()
+        mock_gateway_params.input = [
             {"role": "user", "content": "Hello"},
             {"role": "assistant", "content": "Hi"},
         ]
 
         headers = config.validate_environment(
-            headers={}, model="gpt-5.1-codex", litellm_params=mock_litellm_params
+            headers={}, model="gpt-5.1-codex", litellm_params=mock_gateway_params
         )
 
         assert (

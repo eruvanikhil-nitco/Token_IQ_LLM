@@ -6,7 +6,7 @@ from token_iq import gateway
 from token_iq.gateway.core_utils.url_utils import encode_url_path_segment
 from token_iq.gateway.llms.base_llm.vector_store.transformation import BaseVectorStoreConfig
 from token_iq.gateway.secret_managers.main import get_secret_str
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.types.vector_stores import (
     BaseVectorStoreAuthCredentials,
     VectorStoreCreateOptionalRequestParams,
@@ -20,11 +20,11 @@ from token_iq.gateway.types.vector_stores import (
 from token_iq.gateway.utils import add_openai_metadata
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as _LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as _GatewayLoggingObj
 
-    LiteLLMLoggingObj = _LiteLLMLoggingObj
+    GatewayLoggingObj = _GatewayLoggingObj
 else:
-    LiteLLMLoggingObj = Any
+    GatewayLoggingObj = Any
 
 
 class OpenAIVectorStoreConfig(BaseVectorStoreConfig):
@@ -47,8 +47,8 @@ class OpenAIVectorStoreConfig(BaseVectorStoreConfig):
             "write": [("POST", "/vector_stores")],
         }
 
-    def validate_environment(self, headers: dict, litellm_params: GenericLiteLLMParams | None) -> dict:
-        litellm_params = litellm_params or GenericLiteLLMParams()
+    def validate_environment(self, headers: dict, litellm_params: GenericGatewayParams | None) -> dict:
+        litellm_params = litellm_params or GenericGatewayParams()
         api_key = litellm_params.api_key or gateway.api_key or gateway.openai_key or get_secret_str("OPENAI_API_KEY")
         headers.update(
             {
@@ -96,7 +96,7 @@ class OpenAIVectorStoreConfig(BaseVectorStoreConfig):
         query: str | list[str],
         vector_store_search_optional_params: VectorStoreSearchOptionalRequestParams,
         api_base: str,
-        litellm_logging_obj: LiteLLMLoggingObj,
+        litellm_logging_obj: GatewayLoggingObj,
         litellm_params: dict,
         extra_body: dict[str, Any] | None = None,
     ) -> tuple[str, dict]:
@@ -114,7 +114,7 @@ class OpenAIVectorStoreConfig(BaseVectorStoreConfig):
         return url, dict_request_body
 
     def transform_search_vector_store_response(
-        self, response: httpx.Response, litellm_logging_obj: LiteLLMLoggingObj
+        self, response: httpx.Response, litellm_logging_obj: GatewayLoggingObj
     ) -> VectorStoreSearchResponse:
         try:
             response_json: Final = response.json()

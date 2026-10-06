@@ -89,7 +89,7 @@ def test_json_formatter_parses_embedded_json_message():
     """
     formatter = JsonFormatter()
     record = logging.LogRecord(
-        name="LiteLLM",
+        name="Gateway",
         level=logging.DEBUG,
         pathname="",
         lineno=0,
@@ -115,7 +115,7 @@ def test_json_formatter_includes_extra_attributes():
     """
     formatter = JsonFormatter()
     record = logging.LogRecord(
-        name="LiteLLM",
+        name="Gateway",
         level=logging.DEBUG,
         pathname="",
         lineno=0,
@@ -138,7 +138,7 @@ def test_json_formatter_plain_message_unchanged():
     """
     formatter = JsonFormatter()
     record = logging.LogRecord(
-        name="LiteLLM",
+        name="Gateway",
         level=logging.INFO,
         pathname="",
         lineno=0,
@@ -204,7 +204,7 @@ def test_json_formatter_output_stays_parseable_when_a_secret_is_redacted():
     """
     formatter = JsonFormatter()
     record = logging.LogRecord(
-        name="LiteLLM",
+        name="Gateway",
         level=logging.INFO,
         pathname="",
         lineno=0,
@@ -234,7 +234,7 @@ def test_json_formatter_includes_component_field():
     This allows filtering by component (e.g. "LiteLLM Proxy") in Datadog / third-party log services.
     """
     formatter = JsonFormatter()
-    for logger_name in ("LiteLLM Proxy", "LiteLLM Router", "LiteLLM"):
+    for logger_name in ("LiteLLM Proxy", "LiteLLM Router", "Gateway"):
         record = logging.LogRecord(
             name=logger_name,
             level=logging.ERROR,

@@ -1563,13 +1563,13 @@ def test_make_keepalive_resolver_expires_cache_after_ttl(monkeypatch):
     assert router.get_deployment.call_count == 2
 
 
-def test_keepalive_seconds_in_all_litellm_params():
+def test_keepalive_seconds_in_all_gateway_params():
     from token_iq.gateway.types.utils import all_litellm_params
 
     assert "keepalive_seconds" in all_litellm_params
 
 
-def test_allow_client_keepalive_override_in_all_litellm_params():
+def test_allow_client_keepalive_override_in_all_gateway_params():
     """allow_client_keepalive_override is a deployment-only control flag: if it's
     missing from all_litellm_params, it leaks straight through into the actual
     provider API call as an unrecognized field and gets rejected (confirmed live

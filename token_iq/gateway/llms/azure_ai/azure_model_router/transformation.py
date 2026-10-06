@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, Final
 from httpx import Response
 
 from token_iq.gateway.llms.azure_ai.chat.transformation import AzureAIStudioConfig
-from token_iq.gateway.llms.base_llm.chat.transformation import LiteLLMLoggingObj
+from token_iq.gateway.llms.base_llm.chat.transformation import GatewayLoggingObj
 from token_iq.gateway.types.llms.openai import AllMessageValues
 from token_iq.gateway.types.utils import ModelResponse
 
@@ -54,7 +54,7 @@ class AzureModelRouterConfig(AzureAIStudioConfig):
         model: str,
         raw_response: Response,
         model_response: ModelResponse,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         request_data: dict,
         messages: list[AllMessageValues],
         optional_params: dict,

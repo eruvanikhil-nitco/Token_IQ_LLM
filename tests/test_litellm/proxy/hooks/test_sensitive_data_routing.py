@@ -69,12 +69,12 @@ class TestSensitiveDataRoutingHandler:
         session_id = get_session_id_from_request_data(data)
         assert session_id == "session-from-metadata"
 
-    def test_get_session_id_from_litellm_metadata(self):
+    def test_get_session_id_from_gateway_metadata(self):
         data = {"litellm_metadata": {"session_id": "session-from-litellm-metadata"}}
         session_id = get_session_id_from_request_data(data)
         assert session_id == "session-from-litellm-metadata"
 
-    def test_get_session_id_from_litellm_session_id(self):
+    def test_get_session_id_from_gateway_session_id(self):
         data = {"litellm_session_id": "session-direct"}
         session_id = get_session_id_from_request_data(data)
         assert session_id == "session-direct"
@@ -450,7 +450,7 @@ class TestCacheKeyAndTTL:
 
 
 class TestCustomGuardrailSessionIdExtraction:
-    def test_get_session_id_from_litellm_session_id(self):
+    def test_get_session_id_from_gateway_session_id(self):
         guardrail = CustomGuardrail(guardrail_name="test")
         request_data = {"litellm_session_id": "session-direct-123"}
         session_id = guardrail._get_session_id_from_request_data(request_data)
@@ -462,7 +462,7 @@ class TestCustomGuardrailSessionIdExtraction:
         session_id = guardrail._get_session_id_from_request_data(request_data)
         assert session_id == "session-metadata-456"
 
-    def test_get_session_id_from_litellm_metadata(self):
+    def test_get_session_id_from_gateway_metadata(self):
         guardrail = CustomGuardrail(guardrail_name="test")
         request_data = {"litellm_metadata": {"session_id": "session-litellm-meta-789"}}
         session_id = guardrail._get_session_id_from_request_data(request_data)
@@ -474,7 +474,7 @@ class TestCustomGuardrailSessionIdExtraction:
         session_id = guardrail._get_session_id_from_request_data(request_data)
         assert session_id is None
 
-    def test_get_session_id_priority_litellm_session_id_first(self):
+    def test_get_session_id_priority_gateway_session_id_first(self):
         guardrail = CustomGuardrail(guardrail_name="test")
         request_data = {
             "litellm_session_id": "priority-session",

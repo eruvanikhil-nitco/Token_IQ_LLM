@@ -11,7 +11,7 @@ import pytest
 
 from e2e_config import unique_marker
 from lifecycle import ResourceManager
-from models import LiteLLMParamsBody
+from models import GatewayParamsBody
 from realtime_client import (
     RealtimeClient,
     ResponseCreate,
@@ -39,7 +39,7 @@ class TestNovaSonicRealtime:
         model = f"e2e-nova-sonic-{unique_marker()}"
         model_id = client.proxy.create_model(
             model,
-            LiteLLMParamsBody(
+            GatewayParamsBody(
                 model=NOVA_SONIC,
                 aws_access_key_id="os.environ/AWS_ACCESS_KEY_ID",
                 aws_secret_access_key="os.environ/AWS_SECRET_ACCESS_KEY",

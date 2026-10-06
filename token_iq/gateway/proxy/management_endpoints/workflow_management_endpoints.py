@@ -28,7 +28,7 @@ from pydantic import BaseModel
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.proxy._types import (
     CommonProxyErrors,
-    LitellmUserRoles,
+    GatewayUserRoles,
     UserAPIKeyAuth,
     user_api_key_has_admin_view,
 )
@@ -50,7 +50,7 @@ def _json(value: object) -> str:
 
 
 def _is_admin(user_api_key_dict: UserAPIKeyAuth) -> bool:
-    return user_api_key_dict.user_role == LitellmUserRoles.PROXY_ADMIN.value
+    return user_api_key_dict.user_role == GatewayUserRoles.PROXY_ADMIN.value
 
 
 def _read_scope_caller(user_api_key_dict: UserAPIKeyAuth) -> UserAPIKeyAuth | None:

@@ -8,11 +8,11 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from token_iq.connectors.billing.fetch_profile import FETCH_PROFILES
-from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
 from token_iq.types.provider_billing import ProviderUsageFact, RecentFactsPage, SummaryRow, TokenTotals
 
-ADMIN = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN, api_key="sk-admin", user_id="admin")
-NON_ADMIN = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-u", user_id="u")
+ADMIN = UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN, api_key="sk-admin", user_id="admin")
+NON_ADMIN = UserAPIKeyAuth(user_role=GatewayUserRoles.INTERNAL_USER, api_key="sk-u", user_id="u")
 
 TOKENS = TokenTotals(input_tokens=100, output_tokens=20, cached_input_tokens=5, cache_write_tokens=2)
 
@@ -339,7 +339,7 @@ async def test_next_before_is_set_even_when_one_row_in_a_full_page_is_dropped():
     table = MagicMock()
     table.find_many = AsyncMock(return_value=[good_row, bad_row])
     prisma_client = MagicMock()
-    prisma_client.db.litellm_providerusagefact = table
+    prisma_client.db.gateway_providerusagefact = table
 
     with patch("token_iq.gateway.proxy.proxy_server.prisma_client", prisma_client):
         result = await provider_usage_raw(provider="openrouter", limit=2, before=None, user_api_key_dict=ADMIN)

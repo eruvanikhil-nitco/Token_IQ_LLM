@@ -25,7 +25,7 @@ from token_iq.gateway.llms.vertex_ai.fine_tuning.handler import VertexFineTuning
 from token_iq.gateway.secret_managers.main import get_secret_str
 from token_iq.gateway.types.llms.openai import FineTuningJobCreate, Hyperparameters
 from token_iq.gateway.types.router import *
-from token_iq.gateway.types.utils import LiteLLMFineTuningJob
+from token_iq.gateway.types.utils import GatewayFineTuningJob
 from token_iq.gateway.utils import client, supports_httpx_timeout
 
 ####### ENVIRONMENT VARIABLES ###################
@@ -86,7 +86,7 @@ async def acreate_fine_tuning_job(
     extra_headers: dict[str, str] | None = None,
     extra_body: dict[str, str] | None = None,
     **kwargs,
-) -> LiteLLMFineTuningJob:
+) -> GatewayFineTuningJob:
     """
     Async: Creates and executes a batch from an uploaded file of request
 
@@ -163,7 +163,7 @@ def create_fine_tuning_job(
     extra_headers: dict[str, str] | None = None,
     extra_body: dict[str, str] | None = None,
     **kwargs,
-) -> LiteLLMFineTuningJob | Coroutine[Any, Any, LiteLLMFineTuningJob]:
+) -> GatewayFineTuningJob | Coroutine[Any, Any, GatewayFineTuningJob]:
     """
     Creates a fine-tuning job which begins the process of creating a new model from a given dataset.
 
@@ -172,7 +172,7 @@ def create_fine_tuning_job(
     """
     try:
         _is_async: Final = kwargs.pop("acreate_fine_tuning_job", False) is True
-        optional_params: Final = GenericLiteLLMParams(**kwargs)
+        optional_params: Final = GenericGatewayParams(**kwargs)
 
         # handle hyperparameters
         hyperparameters = hyperparameters or {}  # original hyperparameters
@@ -337,7 +337,7 @@ async def acancel_fine_tuning_job(
     extra_headers: dict[str, str] | None = None,
     extra_body: dict[str, str] | None = None,
     **kwargs,
-) -> LiteLLMFineTuningJob:
+) -> GatewayFineTuningJob:
     """
     Async: Immediately cancel a fine-tune job.
     """
@@ -375,7 +375,7 @@ def cancel_fine_tuning_job(
     extra_headers: dict[str, str] | None = None,
     extra_body: dict[str, str] | None = None,
     **kwargs,
-) -> LiteLLMFineTuningJob | Coroutine[Any, Any, LiteLLMFineTuningJob]:
+) -> GatewayFineTuningJob | Coroutine[Any, Any, GatewayFineTuningJob]:
     """
     Immediately cancel a fine-tune job.
 
@@ -383,7 +383,7 @@ def cancel_fine_tuning_job(
 
     """
     try:
-        optional_params: Final = GenericLiteLLMParams(**kwargs)
+        optional_params: Final = GenericGatewayParams(**kwargs)
         ### TIMEOUT LOGIC ###
         timeout = optional_params.timeout or kwargs.get("request_timeout", 600) or 600
         # set timeout for 10 minutes by default
@@ -537,7 +537,7 @@ def list_fine_tuning_jobs(
     - limit: Optional[int] = None, Number of fine-tuning jobs to retrieve. Defaults to 20
     """
     try:
-        optional_params: Final = GenericLiteLLMParams(**kwargs)
+        optional_params: Final = GenericGatewayParams(**kwargs)
         ### TIMEOUT LOGIC ###
         timeout = optional_params.timeout or kwargs.get("request_timeout", 600) or 600
         # set timeout for 10 minutes by default
@@ -644,7 +644,7 @@ async def aretrieve_fine_tuning_job(
     extra_headers: dict[str, str] | None = None,
     extra_body: dict[str, str] | None = None,
     **kwargs,
-) -> LiteLLMFineTuningJob:
+) -> GatewayFineTuningJob:
     """
     Async: Get info about a fine-tuning job.
     """
@@ -682,12 +682,12 @@ def retrieve_fine_tuning_job(
     extra_headers: dict[str, str] | None = None,
     extra_body: dict[str, str] | None = None,
     **kwargs,
-) -> LiteLLMFineTuningJob | Coroutine[Any, Any, LiteLLMFineTuningJob]:
+) -> GatewayFineTuningJob | Coroutine[Any, Any, GatewayFineTuningJob]:
     """
     Get info about a fine-tuning job.
     """
     try:
-        optional_params: Final = GenericLiteLLMParams(**kwargs)
+        optional_params: Final = GenericGatewayParams(**kwargs)
         ### TIMEOUT LOGIC ###
         timeout = optional_params.timeout or kwargs.get("request_timeout", 600) or 600
         # set timeout for 10 minutes by default

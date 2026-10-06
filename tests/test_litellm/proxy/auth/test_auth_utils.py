@@ -281,13 +281,13 @@ class TestGetKeyModelTpmLimit:
 class TestGetCustomerIdFromStandardHeaders:
     """Tests for _get_customer_id_from_standard_headers helper function."""
 
-    def test_should_return_customer_id_from_x_litellm_customer_id_header(self):
+    def test_should_return_customer_id_from_x_gateway_customer_id_header(self):
         """Should extract customer ID from x-litellm-customer-id header."""
         headers = {"x-litellm-customer-id": "customer-123"}
         result = _get_customer_id_from_standard_headers(request_headers=headers)
         assert result == "customer-123"
 
-    def test_should_return_customer_id_from_x_litellm_end_user_id_header(self):
+    def test_should_return_customer_id_from_x_gateway_end_user_id_header(self):
         """Should extract customer ID from x-litellm-end-user-id header."""
         headers = {"x-litellm-end-user-id": "end-user-456"}
         result = _get_customer_id_from_standard_headers(request_headers=headers)
@@ -1097,7 +1097,7 @@ class TestGetEndUserIdDropsMalformedBodyValues:
     """Tests that get_end_user_id_from_request_body drops dict-shaped values
     rather than stringifying them into spend logs."""
 
-    def test_dict_user_falls_through_to_litellm_metadata(self):
+    def test_dict_user_falls_through_to_gateway_metadata(self):
         request_body = {
             "user": {
                 "device_id": "abc",
@@ -1634,7 +1634,7 @@ class TestCheckCompleteCredentialsBlocksSSRF:
         mocked.assert_not_called()
 
 
-class TestGetDynamicLitellmParamsClearsAdminConfigOnBaseOverride:
+class TestGetDynamicGatewayParamsClearsAdminConfigOnBaseOverride:
     """
     When the caller redirects ``api_base`` / ``base_url`` to their own
     server, admin-set fields like ``OpenAI-Organization``, ``extra_body``,
@@ -1644,7 +1644,7 @@ class TestGetDynamicLitellmParamsClearsAdminConfigOnBaseOverride:
 
     def test_clears_admin_organization_and_extra_body_on_base_override(self):
         from token_iq.gateway.router_utils.clientside_credential_handler import (
-            get_dynamic_litellm_params,
+            get_dynamic_gateway_params,
         )
 
         admin_params = {
@@ -1655,7 +1655,7 @@ class TestGetDynamicLitellmParamsClearsAdminConfigOnBaseOverride:
             "extra_body": {"x-admin-secret": "super-secret"},
             "api_version": "2026-04-01",
         }
-        out = get_dynamic_litellm_params(
+        out = get_dynamic_gateway_params(
             litellm_params=dict(admin_params),
             request_kwargs={
                 "api_key": "sk-attacker",
@@ -1670,7 +1670,7 @@ class TestGetDynamicLitellmParamsClearsAdminConfigOnBaseOverride:
 
     def test_clears_aws_and_vertex_secrets_on_base_override(self):
         from token_iq.gateway.router_utils.clientside_credential_handler import (
-            get_dynamic_litellm_params,
+            get_dynamic_gateway_params,
         )
 
         admin_params = {
@@ -1681,7 +1681,7 @@ class TestGetDynamicLitellmParamsClearsAdminConfigOnBaseOverride:
             "vertex_credentials": '{"private_key":"-----BEGIN..."}',
             "vertex_project": "admin-gcp-project",
         }
-        out = get_dynamic_litellm_params(
+        out = get_dynamic_gateway_params(
             litellm_params=dict(admin_params),
             request_kwargs={"base_url": "https://attacker.example", "api_key": "sk-caller"},
         )
@@ -1693,7 +1693,7 @@ class TestGetDynamicLitellmParamsClearsAdminConfigOnBaseOverride:
 
     def test_clears_nvcf_function_id_on_base_override(self):
         from token_iq.gateway.router_utils.clientside_credential_handler import (
-            get_dynamic_litellm_params,
+            get_dynamic_gateway_params,
         )
 
         admin_params = {
@@ -1702,7 +1702,7 @@ class TestGetDynamicLitellmParamsClearsAdminConfigOnBaseOverride:
             "api_key": "nvapi-admin",
             "nvcf_function_id": "admin-pinned-function",
         }
-        out = get_dynamic_litellm_params(
+        out = get_dynamic_gateway_params(
             litellm_params=dict(admin_params),
             request_kwargs={"api_base": "self-hosted.example.com:50051", "api_key": "sk-caller"},
         )
@@ -1711,7 +1711,7 @@ class TestGetDynamicLitellmParamsClearsAdminConfigOnBaseOverride:
 
     def test_clears_use_ssl_on_base_override(self):
         from token_iq.gateway.router_utils.clientside_credential_handler import (
-            get_dynamic_litellm_params,
+            get_dynamic_gateway_params,
         )
 
         admin_params = {
@@ -1720,7 +1720,7 @@ class TestGetDynamicLitellmParamsClearsAdminConfigOnBaseOverride:
             "api_key": "nvapi-admin",
             "use_ssl": True,
         }
-        out = get_dynamic_litellm_params(
+        out = get_dynamic_gateway_params(
             litellm_params=dict(admin_params),
             request_kwargs={"api_base": "self-hosted.example.com:50051", "api_key": "sk-caller"},
         )
@@ -1736,10 +1736,10 @@ class TestGetDynamicLitellmParamsClearsAdminConfigOnBaseOverride:
         # admin's value forwarded, which is the exfiltration vector this
         # test guards against.
         from token_iq.gateway.router_utils.clientside_credential_handler import (
-            get_dynamic_litellm_params,
+            get_dynamic_gateway_params,
         )
 
-        out = get_dynamic_litellm_params(
+        out = get_dynamic_gateway_params(
             litellm_params={
                 "api_base": "https://admin.upstream/v1",
                 "organization": "org-admin",
@@ -1760,10 +1760,10 @@ class TestGetDynamicLitellmParamsClearsAdminConfigOnBaseOverride:
         # an *empty* value (or any value) must not be able to keep the
         # admin's value in ``litellm_params``.
         from token_iq.gateway.router_utils.clientside_credential_handler import (
-            get_dynamic_litellm_params,
+            get_dynamic_gateway_params,
         )
 
-        out = get_dynamic_litellm_params(
+        out = get_dynamic_gateway_params(
             litellm_params={
                 "api_base": "https://admin.upstream/v1",
                 "organization": "org-admin-secret",
@@ -1782,12 +1782,12 @@ class TestGetDynamicLitellmParamsClearsAdminConfigOnBaseOverride:
 
     def test_no_clearing_when_only_api_key_overridden(self):
         from token_iq.gateway.router_utils.clientside_credential_handler import (
-            get_dynamic_litellm_params,
+            get_dynamic_gateway_params,
         )
 
         # Caller only overrides api_key (BYOK pattern); admin's organization /
         # extra_body / region still apply because the destination is unchanged.
-        out = get_dynamic_litellm_params(
+        out = get_dynamic_gateway_params(
             litellm_params={
                 "api_base": "https://admin.upstream/v1",
                 "organization": "org-admin",
@@ -1801,10 +1801,10 @@ class TestGetDynamicLitellmParamsClearsAdminConfigOnBaseOverride:
 
     def test_client_api_key_used_when_supplied_with_base_override(self):
         from token_iq.gateway.router_utils.clientside_credential_handler import (
-            get_dynamic_litellm_params,
+            get_dynamic_gateway_params,
         )
 
-        out = get_dynamic_litellm_params(
+        out = get_dynamic_gateway_params(
             litellm_params={
                 "model": "gpt-4",
                 "api_key": "sk-admin-secret",
@@ -2785,7 +2785,7 @@ class TestObservabilityCallbackBans:
             is True
         )
 
-    def test_observability_field_in_litellm_params_metadata_is_rejected(self):
+    def test_observability_field_in_gateway_params_metadata_is_rejected(self):
         with pytest.raises(ValueError, match='Rejected Request: turn_off_message_logging is not allowed') as exc:
             is_request_body_safe(
                 request_body={
@@ -2968,10 +2968,10 @@ class TestPricingInjectionBlocked:
 
     def test_all_custom_pricing_fields_are_banned(self):
         from token_iq.gateway.proxy.auth.auth_utils import _BANNED_REQUEST_BODY_PARAMS
-        from token_iq.gateway.types.utils import CustomPricingLiteLLMParams
+        from token_iq.gateway.types.utils import CustomPricingGatewayParams
 
         banned = set(_BANNED_REQUEST_BODY_PARAMS)
-        for field in CustomPricingLiteLLMParams.model_fields:
+        for field in CustomPricingGatewayParams.model_fields:
             assert field in banned, (
                 f"CustomPricingLiteLLMParams.{field} is not in "
                 "_BANNED_REQUEST_BODY_PARAMS — clients can poison the global "

@@ -5,9 +5,9 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
 
-ADMIN = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN, api_key="sk-admin", user_id="admin")
+ADMIN = UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN, api_key="sk-admin", user_id="admin")
 
 
 def _prisma(rows: list[dict]) -> MagicMock:
@@ -96,7 +96,7 @@ async def test_only_an_admin_may_read_it():
     """This names every provider account and what it was charged, across every team."""
     from fastapi import HTTPException
 
-    member = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-u", user_id="u")
+    member = UserAPIKeyAuth(user_role=GatewayUserRoles.INTERNAL_USER, api_key="sk-u", user_id="u")
     with pytest.raises(HTTPException) as exc:
         await _call([], caller=member)
 
@@ -276,7 +276,7 @@ async def test_only_an_admin_may_probe():
 
     from token_iq.api.provider_reconciliation import provider_billing_probe
 
-    member = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-u", user_id="u")
+    member = UserAPIKeyAuth(user_role=GatewayUserRoles.INTERNAL_USER, api_key="sk-u", user_id="u")
     with pytest.raises(HTTPException) as exc:
         await provider_billing_probe(provider="anthropic", user_api_key_dict=member)
 

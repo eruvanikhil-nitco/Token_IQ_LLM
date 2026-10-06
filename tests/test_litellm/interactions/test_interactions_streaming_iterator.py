@@ -15,7 +15,7 @@ from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.interactions import streaming_iterator as interactions_streaming_iterator_module
 from token_iq.gateway.interactions.streaming_iterator import InteractionsAPIStreamingIterator
 from token_iq.gateway.core_utils import thread_pool_executor as thread_pool_executor_module
-from token_iq.gateway.core_utils.litellm_logging import Logging as LitellmLogging
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLogging
 from token_iq.gateway.types.interactions import InteractionsAPIStreamingResponse
 
 
@@ -73,7 +73,7 @@ async def test_custom_logger_only_never_submits_sync_success_handler(monkeypatch
     gateway.success_callback = [recorder]
     gateway._async_success_callback = [recorder]
 
-    logging_obj = LitellmLogging(
+    logging_obj = GatewayLogging(
         model="gemini/gemini-3-pro-preview",
         messages=[{"role": "user", "content": "hi"}],
         stream=True,

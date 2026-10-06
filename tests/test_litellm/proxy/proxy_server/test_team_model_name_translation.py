@@ -16,7 +16,7 @@ import pytest
 import token_iq.gateway.proxy.proxy_server as ps
 from token_iq.gateway.proxy._types import (
     LiteLLM_UserTable,
-    LitellmUserRoles,
+    GatewayUserRoles,
     UserAPIKeyAuth,
 )
 from token_iq.gateway.proxy.common_utils.model_listing_utils import (
@@ -134,7 +134,7 @@ async def test_model_info_v2_translates_team_model_name(monkeypatch):
         AsyncMock(side_effect=lambda models, **kw: models),
     )
 
-    admin = UserAPIKeyAuth(user_id="u", user_role=LitellmUserRoles.PROXY_ADMIN)
+    admin = UserAPIKeyAuth(user_id="u", user_role=GatewayUserRoles.PROXY_ADMIN)
     # Pass every query param explicitly: called directly (not through FastAPI),
     # the fastapi.Query(...) defaults are Query objects, not their values.
     resp = await ps.model_info_v2(
@@ -190,7 +190,7 @@ async def test_model_info_v2_exact_model_filter_matches_team_public_name(monkeyp
         AsyncMock(side_effect=lambda models, **kw: models),
     )
 
-    admin = UserAPIKeyAuth(user_id="u", user_role=LitellmUserRoles.PROXY_ADMIN)
+    admin = UserAPIKeyAuth(user_id="u", user_role=GatewayUserRoles.PROXY_ADMIN)
     resp = await ps.model_info_v2(
         user_api_key_dict=admin,
         model="team-claude-sonnet",
@@ -233,7 +233,7 @@ async def test_model_info_v1_list_path_translates_team_model_name(monkeypatch):
     )
 
     admin = UserAPIKeyAuth(
-        user_id="u", user_role=LitellmUserRoles.PROXY_ADMIN, team_models=[]
+        user_id="u", user_role=GatewayUserRoles.PROXY_ADMIN, team_models=[]
     )
     resp = await ps.model_info_v1(user_api_key_dict=admin, litellm_model_id=None)
 
@@ -264,7 +264,7 @@ async def test_model_info_v1_unrestricted_key_returns_all_deployments(monkeypatc
 
     caller = UserAPIKeyAuth(
         user_id="user-1",
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         models=[],
         team_models=[],
     )
@@ -296,7 +296,7 @@ async def test_model_info_v1_restricted_key_filters_deployments(monkeypatch):
 
     caller = UserAPIKeyAuth(
         user_id="user-1",
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         models=["gpt-4"],
         team_models=[],
     )
@@ -360,7 +360,7 @@ async def test_model_info_v1_unrestricted_key_hides_other_team_byok(monkeypatch)
 
     caller = UserAPIKeyAuth(
         user_id="user-1",
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         models=[],
         team_models=[],
     )
@@ -404,7 +404,7 @@ async def test_model_info_v1_service_key_hides_all_team_byok(monkeypatch):
 
     caller = UserAPIKeyAuth(
         user_id=None,
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         team_id=None,
         models=[],
         team_models=[],
@@ -458,7 +458,7 @@ async def test_model_info_v1_team_key_sees_own_byok_regardless_of_user_lookup(
 
     caller = UserAPIKeyAuth(
         user_id="user-1",
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         team_id="team-abc-123",
         models=[],
         team_models=[],
@@ -501,7 +501,7 @@ async def test_model_info_v1_user_team_membership_grants_byok(monkeypatch):
 
     caller = UserAPIKeyAuth(
         user_id="user-2",
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         team_id=None,
         models=[],
         team_models=[],
@@ -552,7 +552,7 @@ async def test_model_info_v1_populates_access_via_team_ids(monkeypatch):
     )
 
     admin = UserAPIKeyAuth(
-        user_id="u", user_role=LitellmUserRoles.PROXY_ADMIN, team_models=[]
+        user_id="u", user_role=GatewayUserRoles.PROXY_ADMIN, team_models=[]
     )
     resp = await ps.model_info_v1(user_api_key_dict=admin, litellm_model_id=None)
 
@@ -580,7 +580,7 @@ async def test_populate_team_access_sets_direct_access_false_by_default(monkeypa
     )
 
     admin = UserAPIKeyAuth(
-        user_id="u", user_role=LitellmUserRoles.PROXY_ADMIN, team_models=[]
+        user_id="u", user_role=GatewayUserRoles.PROXY_ADMIN, team_models=[]
     )
     result = await ps._populate_team_access_on_models(
         user_api_key_dict=admin,
@@ -617,7 +617,7 @@ async def test_populate_team_access_gives_view_only_admin_full_admin_scope(monke
 
     viewer = UserAPIKeyAuth(
         user_id="viewer",
-        user_role=LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY,
+        user_role=GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY,
         team_models=[],
     )
     result = await ps._populate_team_access_on_models(
@@ -675,7 +675,7 @@ async def test_populate_team_access_grants_config_access_group_model():
     prisma_client = MagicMock()
     prisma_client.db.litellm_teamtable.find_many = AsyncMock(return_value=[team_db_object])
 
-    admin = UserAPIKeyAuth(user_id="u", user_role=LitellmUserRoles.PROXY_ADMIN, team_models=[])
+    admin = UserAPIKeyAuth(user_id="u", user_role=GatewayUserRoles.PROXY_ADMIN, team_models=[])
     result = await ps._populate_team_access_on_models(
         user_api_key_dict=admin,
         prisma_client=prisma_client,
@@ -708,7 +708,7 @@ async def test_model_info_v1_team_id_without_db_fails_fast(monkeypatch):
     monkeypatch.setattr(ps, "_enrich_model_info_with_litellm_data", enrich_spy)
 
     admin = UserAPIKeyAuth(
-        user_id="u", user_role=LitellmUserRoles.PROXY_ADMIN, team_models=[]
+        user_id="u", user_role=GatewayUserRoles.PROXY_ADMIN, team_models=[]
     )
 
     with pytest.raises(ps.HTTPException) as exc_info:
@@ -737,7 +737,7 @@ async def test_model_info_v1_include_team_models_without_db_fails_fast(monkeypat
     monkeypatch.setattr(ps, "_enrich_model_info_with_litellm_data", enrich_spy)
 
     admin = UserAPIKeyAuth(
-        user_id="u", user_role=LitellmUserRoles.PROXY_ADMIN, team_models=[]
+        user_id="u", user_role=GatewayUserRoles.PROXY_ADMIN, team_models=[]
     )
 
     with pytest.raises(ps.HTTPException) as exc_info:
@@ -765,7 +765,7 @@ async def test_model_info_v1_litellm_model_id_team_id_without_db_fails_fast(
     monkeypatch.setattr(ps, "prisma_client", None)
 
     admin = UserAPIKeyAuth(
-        user_id="u", user_role=LitellmUserRoles.PROXY_ADMIN, team_models=[]
+        user_id="u", user_role=GatewayUserRoles.PROXY_ADMIN, team_models=[]
     )
 
     with pytest.raises(ps.HTTPException) as exc_info:
@@ -807,7 +807,7 @@ async def test_model_info_v1_litellm_model_id_include_team_models_filters_inacce
     monkeypatch.setattr(ps, "_populate_team_access_on_models", _fake_populate)
 
     caller = UserAPIKeyAuth(
-        user_id="u", user_role=LitellmUserRoles.INTERNAL_USER, team_models=[]
+        user_id="u", user_role=GatewayUserRoles.INTERNAL_USER, team_models=[]
     )
     resp = await ps.model_info_v1(
         user_api_key_dict=caller,
@@ -843,7 +843,7 @@ async def test_model_info_v1_litellm_model_id_team_id_applies_team_filter(monkey
     monkeypatch.setattr(ps, "_filter_models_by_team_id", team_filter)
 
     admin = UserAPIKeyAuth(
-        user_id="u", user_role=LitellmUserRoles.PROXY_ADMIN, team_models=[]
+        user_id="u", user_role=GatewayUserRoles.PROXY_ADMIN, team_models=[]
     )
     resp = await ps.model_info_v1(
         user_api_key_dict=admin,
@@ -1616,7 +1616,7 @@ async def test_populate_team_access_grants_empty_models_user_direct_access(monke
 
     user_row = LiteLLM_UserTable(
         user_id="u",
-        user_role=LitellmUserRoles.INTERNAL_USER.value,
+        user_role=GatewayUserRoles.INTERNAL_USER.value,
         models=[],
         teams=[],
     )
@@ -1625,7 +1625,7 @@ async def test_populate_team_access_grants_empty_models_user_direct_access(monke
 
     monkeypatch.setattr(ps, "get_all_team_models", AsyncMock(return_value={}))
 
-    caller = UserAPIKeyAuth(user_id="u", user_role=LitellmUserRoles.INTERNAL_USER, team_models=[])
+    caller = UserAPIKeyAuth(user_id="u", user_role=GatewayUserRoles.INTERNAL_USER, team_models=[])
 
     populated = await ps._populate_team_access_on_models(
         user_api_key_dict=caller,
@@ -1718,7 +1718,7 @@ async def test_populate_team_access_hides_models_the_calling_key_cannot_call(mon
 
     user_row = LiteLLM_UserTable(
         user_id="u",
-        user_role=LitellmUserRoles.INTERNAL_USER.value,
+        user_role=GatewayUserRoles.INTERNAL_USER.value,
         models=[],
         teams=[],
     )
@@ -1729,7 +1729,7 @@ async def test_populate_team_access_hides_models_the_calling_key_cannot_call(mon
 
     caller = UserAPIKeyAuth(
         user_id="u",
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         models=["gpt-4o"],
         team_models=[],
     )
@@ -1764,7 +1764,7 @@ async def test_populate_team_access_grants_all_proxy_models_user_direct_access(
 
     user_row = LiteLLM_UserTable(
         user_id="u",
-        user_role=LitellmUserRoles.INTERNAL_USER.value,
+        user_role=GatewayUserRoles.INTERNAL_USER.value,
         models=[ps.SpecialModelNames.all_proxy_models.value],
         teams=[],
     )
@@ -1774,7 +1774,7 @@ async def test_populate_team_access_grants_all_proxy_models_user_direct_access(
     monkeypatch.setattr(ps, "get_all_team_models", AsyncMock(return_value={}))
 
     caller = UserAPIKeyAuth(
-        user_id="u", user_role=LitellmUserRoles.INTERNAL_USER, team_models=[]
+        user_id="u", user_role=GatewayUserRoles.INTERNAL_USER, team_models=[]
     )
 
     populated = await ps._populate_team_access_on_models(

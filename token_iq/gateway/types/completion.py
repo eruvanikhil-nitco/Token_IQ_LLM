@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     import httpx
     from aiohttp import ClientSession
 
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
     from token_iq.gateway.llms.base_llm import BaseConfig
     from token_iq.gateway.utils import CustomStreamWrapper, ModelResponse
 
@@ -219,7 +219,7 @@ class _CompletionDispatchContext:
     kwargs: dict
     litellm_params: dict[str, object]
     logger_fn: Callable | None
-    logging: LiteLLMLoggingObj
+    logging: GatewayLoggingObj
     max_retries: int | None
     max_tokens: int | None
     messages: list

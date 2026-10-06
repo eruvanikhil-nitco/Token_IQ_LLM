@@ -80,7 +80,7 @@ class ExpiredUISessionKeyCleanupManager:
             if not tokens:
                 return 0
 
-            system_user: Final = UserAPIKeyAuth.get_litellm_internal_jobs_user_api_key_auth()
+            system_user: Final = UserAPIKeyAuth.get_gateway_internal_jobs_user_api_key_auth()
             response, keys_being_deleted = await delete_verification_tokens(
                 tokens=tokens,
                 user_api_key_cache=self.user_api_key_cache,

@@ -39,7 +39,7 @@ except ImportError:
     HTTPException = None
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
     from token_iq.gateway.llms.base_llm.guardrail_translation.base_translation import BaseTranslation
 dc: Final = DualCache()
 
@@ -782,8 +782,8 @@ class CustomGuardrail(CustomLogger):
         from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
         # should run guardrail
-        litellm_guardrails: Final = kwargs.get("guardrails")
-        if litellm_guardrails is None or not isinstance(litellm_guardrails, list):
+        gateway_guardrails: Final = kwargs.get("guardrails")
+        if gateway_guardrails is None or not isinstance(gateway_guardrails, list):
             return kwargs
 
         if self._pre_call_hook_already_ran(kwargs):
@@ -829,8 +829,8 @@ class CustomGuardrail(CustomLogger):
         from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
         # should run guardrail
-        litellm_guardrails: Final = request_data.get("guardrails")
-        if litellm_guardrails is None or not isinstance(litellm_guardrails, list):
+        gateway_guardrails: Final = request_data.get("guardrails")
+        if gateway_guardrails is None or not isinstance(gateway_guardrails, list):
             return response
 
         if self.should_run_guardrail(data=request_data, event_type=GuardrailEventHooks.post_call) is not True:
@@ -1195,7 +1195,7 @@ class CustomGuardrail(CustomLogger):
         inputs: GenericGuardrailAPIInputs,
         request_data: dict,
         input_type: Literal["request", "response"],
-        logging_obj: Optional["LiteLLMLoggingObj"] = None,
+        logging_obj: Optional["GatewayLoggingObj"] = None,
     ) -> GenericGuardrailAPIInputs:
         """
         Apply your guardrail logic to the given inputs
@@ -1336,7 +1336,7 @@ class CustomGuardrail(CustomLogger):
         # Mask the content
         return content_string[:start_index] + mask_string + content_string[end_index:]
 
-    def update_in_memory_litellm_params(self, litellm_params: LitellmParams) -> None:
+    def update_in_memory_gateway_params(self, litellm_params: LitellmParams) -> None:
         """
         Update the guardrails litellm params in memory
         """
@@ -1373,14 +1373,14 @@ class CustomGuardrail(CustomLogger):
             from typing import cast
 
             from token_iq.gateway.responses.litellm_completion_transformation.transformation import (
-                LiteLLMCompletionResponsesConfig,
+                GatewayCompletionResponsesConfig,
             )
 
             input_data: Final = data.get("input")
             if input_data is None:
                 return None
 
-            messages: Final = LiteLLMCompletionResponsesConfig.transform_responses_api_input_to_messages(
+            messages: Final = GatewayCompletionResponsesConfig.transform_responses_api_input_to_messages(
                 input=input_data,
                 responses_api_request=data,
             )
@@ -1388,7 +1388,7 @@ class CustomGuardrail(CustomLogger):
         return None
 
 
-def _append_slg_to_litellm_params(lp: object, entries: list) -> None:
+def _append_slg_to_gateway_params(lp: object, entries: list) -> None:
     """Merge guardrail entries into a single litellm_params dict."""
     if not isinstance(lp, dict):
         return
@@ -1419,8 +1419,8 @@ def _sync_guardrail_info_to_logging_obj(request_data: dict, logging_obj: object)
         return
     entries: Final[list] = slg_info if isinstance(slg_info, list) else [slg_info]
     mcd: Final = getattr(logging_obj, "model_call_details", None) or {}
-    _append_slg_to_litellm_params(getattr(logging_obj, "litellm_params", None), entries)
-    _append_slg_to_litellm_params(mcd.get("litellm_params"), entries)
+    _append_slg_to_gateway_params(getattr(logging_obj, "litellm_params", None), entries)
+    _append_slg_to_gateway_params(mcd.get("litellm_params"), entries)
 
 
 def log_guardrail_information(func):

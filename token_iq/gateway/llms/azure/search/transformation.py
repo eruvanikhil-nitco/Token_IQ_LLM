@@ -44,7 +44,7 @@ from token_iq.gateway.llms.base_llm.search.transformation import (
 from token_iq.gateway.secret_managers.main import get_secret_str
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 
 _DOCS_URL: Final = "https://learn.microsoft.com/en-us/azure/ai-foundry/agents/how-to/tools/bing-grounding"
 
@@ -378,7 +378,7 @@ class BingGroundingSearchConfig(BaseSearchConfig):
     def transform_search_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         **kwargs: object,  # kwargs-ok: BaseSearchConfig.transform_search_response signature
     ) -> SearchResponse:
         try:

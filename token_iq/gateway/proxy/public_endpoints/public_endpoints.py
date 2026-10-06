@@ -419,7 +419,7 @@ async def get_complexity_scorer_defaults() -> ComplexityScorerDefaults:
     tags=["public", "model management"],
     summary="Get the public model cost map",
 )
-async def get_litellm_model_cost_map():
+async def get_gateway_model_cost_map():
     """
     Public endpoint to get the Token IQ model cost map.
     Returns pricing information for all supported models.

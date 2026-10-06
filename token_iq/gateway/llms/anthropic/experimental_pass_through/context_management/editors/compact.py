@@ -697,7 +697,7 @@ def _build_summary_prompt(edit_spec: Mapping[str, object], tools: Sequence[Mappi
 
 
 def _propagate_metadata(
-    parent_litellm_metadata: Mapping[str, object] | None,
+    parent_gateway_metadata: Mapping[str, object] | None,
 ) -> dict[str, object]:
     """Extract the parent request's auth/spend-attribution fields for the summary subcall.
 
@@ -707,12 +707,12 @@ def _propagate_metadata(
     Without these on the summary subrequest, the router's post-call hooks
     cannot attribute summary tokens to the caller's key/team budget.
     """
-    if not parent_litellm_metadata:
+    if not parent_gateway_metadata:
         return {}
     propagated: Final[dict[str, object]] = {}
     for key in _PROPAGATED_METADATA_KEYS:
-        if key in parent_litellm_metadata:
-            propagated[key] = parent_litellm_metadata[key]
+        if key in parent_gateway_metadata:
+            propagated[key] = parent_gateway_metadata[key]
     return propagated
 
 
@@ -733,11 +733,11 @@ def _count_effective_tokens(
     """
     # Local import to avoid pulling the adapter at module load time.
     from token_iq.gateway.llms.anthropic.experimental_pass_through.adapters.transformation import (
-        LiteLLMAnthropicMessagesAdapter,
+        GatewayAnthropicMessagesAdapter,
     )
 
     messages_without_compaction: Final = _strip_compaction_blocks(effective_messages)
-    adapter: Final = LiteLLMAnthropicMessagesAdapter()
+    adapter: Final = GatewayAnthropicMessagesAdapter()
     try:
         openai_shape = adapter.translate_anthropic_messages_to_openai(
             messages=cast(
@@ -889,12 +889,12 @@ def _build_summary_messages(
     the summarization prompt is appended as a final user turn.
     """
     from token_iq.gateway.llms.anthropic.experimental_pass_through.adapters.transformation import (
-        LiteLLMAnthropicMessagesAdapter,
+        GatewayAnthropicMessagesAdapter,
     )
 
     stripped: Final = _strip_compaction_blocks(effective_messages)
     try:
-        openai_messages = LiteLLMAnthropicMessagesAdapter().translate_anthropic_messages_to_openai(
+        openai_messages = GatewayAnthropicMessagesAdapter().translate_anthropic_messages_to_openai(
             messages=cast(
                 "list[AllAnthropicPassThroughMessageValues]",
                 stripped,

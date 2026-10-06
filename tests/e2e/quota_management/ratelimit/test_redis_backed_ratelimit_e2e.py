@@ -14,7 +14,7 @@ import pytest
 from e2e_config import unique_marker
 from e2e_http import require_successful_call
 from lifecycle import ResourceManager
-from models import KeyGenerateBody, LiteLLMParamsBody
+from models import KeyGenerateBody, GatewayParamsBody
 from quota_client import QuotaClient
 
 pytestmark = pytest.mark.e2e
@@ -47,7 +47,7 @@ class TestRedisBackedRateLimit:
         model = f"e2e-redis-rpm-{unique_marker()}"
         model_id = client.proxy.create_model(
             model,
-            LiteLLMParamsBody(model=BACKEND, api_key="os.environ/ANTHROPIC_API_KEY"),
+            GatewayParamsBody(model=BACKEND, api_key="os.environ/ANTHROPIC_API_KEY"),
         )
         resources.defer(lambda: client.proxy.delete_model(model_id))
 

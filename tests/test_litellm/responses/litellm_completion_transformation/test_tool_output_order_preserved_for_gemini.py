@@ -6,12 +6,12 @@ The ResponsesAPI->Chat conversion must not move tool outputs to the end.
 """
 
 from token_iq.gateway.responses.litellm_completion_transformation.transformation import (
-    LiteLLMCompletionResponsesConfig,
+    GatewayCompletionResponsesConfig,
 )
 
 
 def test_function_call_output_stays_adjacent_to_tool_call():
-    msgs = LiteLLMCompletionResponsesConfig._transform_response_input_param_to_chat_completion_message(
+    msgs = GatewayCompletionResponsesConfig._transform_response_input_param_to_chat_completion_message(
         input=[
             {
                 "role": "user",
@@ -81,7 +81,7 @@ def test_assistant_message_after_tool_call_is_folded_into_it():
     """Codex echoes history as [function_call, assistant message, function_call_output].
     The assistant message must fold into the tool_calls message so the tool result
     stays immediately after it (DeepSeek and Anthropic reject it otherwise)."""
-    msgs = LiteLLMCompletionResponsesConfig._transform_response_input_param_to_chat_completion_message(
+    msgs = GatewayCompletionResponsesConfig._transform_response_input_param_to_chat_completion_message(
         input=[
             {
                 "role": "user",
@@ -122,7 +122,7 @@ def test_assistant_message_before_function_call_keeps_one_assistant_turn():
     Round-tripping that order back to chat must fold both into a single assistant
     turn, so the tool result still follows the message that made the call.
     """
-    msgs = LiteLLMCompletionResponsesConfig._transform_response_input_param_to_chat_completion_message(
+    msgs = GatewayCompletionResponsesConfig._transform_response_input_param_to_chat_completion_message(
         input=[
             {
                 "role": "user",

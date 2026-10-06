@@ -301,10 +301,10 @@ class TestEnforceMemberCanAssignAccessGroups:
 
     def test_proxy_admin_bypasses(self, monkeypatch):
         """Proxy admins may assign access groups regardless of team opt-in."""
-        from token_iq.gateway.proxy._types import LitellmUserRoles
+        from token_iq.gateway.proxy._types import GatewayUserRoles
 
         TeamMemberPermissionChecks.enforce_member_can_assign_access_groups(
-            user_api_key_dict=self._user(role=LitellmUserRoles.PROXY_ADMIN.value),
+            user_api_key_dict=self._user(role=GatewayUserRoles.PROXY_ADMIN.value),
             team_table=self._team([]),
             access_group_ids=["ag-1"],
         )
@@ -328,10 +328,10 @@ class TestEnforceMemberCanAssignAccessGroups:
     def test_personal_key_proxy_admin_can_assign(self):
         """Proxy admins bypass the personal-key gate and may assign access
         groups on personal keys."""
-        from token_iq.gateway.proxy._types import LitellmUserRoles
+        from token_iq.gateway.proxy._types import GatewayUserRoles
 
         TeamMemberPermissionChecks.enforce_member_can_assign_access_groups(
-            user_api_key_dict=self._user(role=LitellmUserRoles.PROXY_ADMIN.value),
+            user_api_key_dict=self._user(role=GatewayUserRoles.PROXY_ADMIN.value),
             team_table=None,
             access_group_ids=["ag-private"],
         )

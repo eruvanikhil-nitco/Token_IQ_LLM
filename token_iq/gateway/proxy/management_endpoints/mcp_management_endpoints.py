@@ -171,7 +171,7 @@ if MCP_AVAILABLE:
     )
     from token_iq.gateway.proxy._types import (
         LiteLLM_MCPServerTable,
-        LitellmUserRoles,
+        GatewayUserRoles,
         MakeMCPServersPublicRequest,
         MCPApprovalStatus,
         MCPOAuthUserCredentialRequest,
@@ -638,7 +638,7 @@ if MCP_AVAILABLE:
         must see them, but a read-only admin gets the same redacted view as
         any other non-managing caller.
         """
-        return user_api_key_dict.user_role == LitellmUserRoles.PROXY_ADMIN
+        return user_api_key_dict.user_role == GatewayUserRoles.PROXY_ADMIN
 
     def _is_restricted_virtual_key_request(user_api_key_dict: UserAPIKeyAuth) -> bool:
         """Best-effort detection for route-restricted virtual keys.
@@ -1268,7 +1268,7 @@ if MCP_AVAILABLE:
         Creates the server with approval_status=pending_review.
         Requires a team-scoped API key.
         """
-        if user_api_key_dict.user_role == LitellmUserRoles.PROXY_ADMIN:
+        if user_api_key_dict.user_role == GatewayUserRoles.PROXY_ADMIN:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail={
@@ -1339,8 +1339,8 @@ if MCP_AVAILABLE:
         Admin-only endpoint to view all user-submitted MCP servers pending review.
         """
         if user_api_key_dict.user_role not in (
-            LitellmUserRoles.PROXY_ADMIN,
-            LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY,
+            GatewayUserRoles.PROXY_ADMIN,
+            GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY,
         ):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
@@ -1369,7 +1369,7 @@ if MCP_AVAILABLE:
         """
         Admin approves a pending or previously-rejected MCP server — sets approval_status=active and loads it into the runtime registry.
         """
-        if LitellmUserRoles.PROXY_ADMIN != user_api_key_dict.user_role:
+        if GatewayUserRoles.PROXY_ADMIN != user_api_key_dict.user_role:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail={"error": "Admin access required to approve MCP server submissions."},
@@ -1414,7 +1414,7 @@ if MCP_AVAILABLE:
         """
         Admin rejects a pending MCP server — sets approval_status=rejected with optional review_notes.
         """
-        if LitellmUserRoles.PROXY_ADMIN != user_api_key_dict.user_role:
+        if GatewayUserRoles.PROXY_ADMIN != user_api_key_dict.user_role:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail={"error": "Admin access required to reject MCP server submissions."},
@@ -1572,7 +1572,7 @@ if MCP_AVAILABLE:
         stamp_omitted_oauth2_flow(payload)
 
         # AuthZ - restrict only proxy admins to create mcp servers
-        if LitellmUserRoles.PROXY_ADMIN != user_api_key_dict.user_role:
+        if GatewayUserRoles.PROXY_ADMIN != user_api_key_dict.user_role:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail={
@@ -1657,7 +1657,7 @@ if MCP_AVAILABLE:
         """
         prisma_client: Final = get_prisma_client_or_throw("Database not connected. Connect a database to your proxy")
 
-        if LitellmUserRoles.PROXY_ADMIN != user_api_key_dict.user_role:
+        if GatewayUserRoles.PROXY_ADMIN != user_api_key_dict.user_role:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail={  # mutable-ok: FastAPI HTTPException detail requires a plain dict
@@ -1774,7 +1774,7 @@ if MCP_AVAILABLE:
         stamp_omitted_oauth2_flow(payload)
 
         # Restrict to proxy admins similar to the persistent create endpoint
-        if LitellmUserRoles.PROXY_ADMIN != user_api_key_dict.user_role:
+        if GatewayUserRoles.PROXY_ADMIN != user_api_key_dict.user_role:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail={
@@ -2137,7 +2137,7 @@ if MCP_AVAILABLE:
         )
 
         # Authz - restrict only admins to delete mcp servers
-        if LitellmUserRoles.PROXY_ADMIN != user_api_key_dict.user_role:
+        if GatewayUserRoles.PROXY_ADMIN != user_api_key_dict.user_role:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail={
@@ -2668,7 +2668,7 @@ if MCP_AVAILABLE:
         validate_and_normalize_mcp_server_payload(payload)
 
         # Authz - restrict only admins to delete mcp servers
-        if LitellmUserRoles.PROXY_ADMIN != user_api_key_dict.user_role:
+        if GatewayUserRoles.PROXY_ADMIN != user_api_key_dict.user_role:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail={
@@ -2785,7 +2785,7 @@ if MCP_AVAILABLE:
             # Load existing config
             config: Final = await proxy_config.get_config()
             # Check if user has admin permissions
-            if user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN:
+            if user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN:
                 raise HTTPException(
                     status_code=403,
                     detail={
@@ -2967,7 +2967,7 @@ if MCP_AVAILABLE:
     ):
         """Create a named toolset — a curated selection of {server_id, tool_name} pairs."""
         prisma_client: Final = get_prisma_client_or_throw("Database not connected. Connect a database to your proxy")
-        if LitellmUserRoles.PROXY_ADMIN != user_api_key_dict.user_role:
+        if GatewayUserRoles.PROXY_ADMIN != user_api_key_dict.user_role:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail={"error": "Only proxy admins can create MCP toolsets."},
@@ -3055,7 +3055,7 @@ if MCP_AVAILABLE:
         litellm_changed_by: str | None = Header(None),
     ):
         prisma_client: Final = get_prisma_client_or_throw("Database not connected. Connect a database to your proxy")
-        if LitellmUserRoles.PROXY_ADMIN != user_api_key_dict.user_role:
+        if GatewayUserRoles.PROXY_ADMIN != user_api_key_dict.user_role:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail={"error": "Only proxy admins can update MCP toolsets."},
@@ -3105,7 +3105,7 @@ if MCP_AVAILABLE:
         litellm_changed_by: str | None = Header(None),
     ):
         prisma_client: Final = get_prisma_client_or_throw("Database not connected. Connect a database to your proxy")
-        if LitellmUserRoles.PROXY_ADMIN != user_api_key_dict.user_role:
+        if GatewayUserRoles.PROXY_ADMIN != user_api_key_dict.user_role:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail={"error": "Only proxy admins can delete MCP toolsets."},

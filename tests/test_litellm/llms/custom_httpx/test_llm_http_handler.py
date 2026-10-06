@@ -29,7 +29,7 @@ from token_iq.gateway.llms.custom_httpx.llm_http_handler import (
 from token_iq.gateway.llms.azure.videos.transformation import AzureVideoConfig
 from token_iq.gateway.llms.openai.videos.transformation import OpenAIVideoConfig
 from token_iq.gateway.types.llms.openai import ResponsesAPIResponse
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.types.utils import TranscriptionResponse
 
 _ACTIVE_KEY = "_code_interpreter_interception_active"
@@ -119,7 +119,7 @@ def test_response_api_handler_streams_when_provider_transform_adds_stream():
         responses_api_provider_config=config,
         response_api_optional_request_params={},
         custom_llm_provider="chatgpt",
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         logging_obj=logging_obj,
         client=client,
     )
@@ -161,7 +161,7 @@ def test_response_api_handler_runs_agentic_hooks_in_sync_path(monkeypatch):
         responses_api_provider_config=config,
         response_api_optional_request_params={},
         custom_llm_provider="openai",
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         logging_obj=logging_obj,
         client=client,
     )
@@ -216,7 +216,7 @@ def test_response_api_handler_runs_responses_pre_call_hook_before_transform():
                 "tools": [{"type": "code_interpreter", "container": {"type": "auto"}}]
             },
             custom_llm_provider="openai",
-            litellm_params=GenericLiteLLMParams(api_key="sk-test"),
+            litellm_params=GenericGatewayParams(api_key="sk-test"),
             logging_obj=logging_obj,
             client=client,
         )
@@ -230,9 +230,9 @@ def test_response_api_handler_runs_responses_pre_call_hook_before_transform():
     assert any(
         tool.get("type") == "function" and tool.get("name") == LITELLM_CODE_EXECUTION_TOOL_NAME for tool in tools
     )
-    hook_litellm_params = transform_kwargs["litellm_params"]
-    assert hook_litellm_params.get(_ACTIVE_KEY) is True
-    assert hook_litellm_params.get(_SANDBOX_KEY)
+    hook_gateway_params = transform_kwargs["litellm_params"]
+    assert hook_gateway_params.get(_ACTIVE_KEY) is True
+    assert hook_gateway_params.get(_SANDBOX_KEY)
 
 
 @pytest.mark.asyncio
@@ -262,7 +262,7 @@ async def test_async_response_api_handler_streams_when_provider_transform_adds_s
         responses_api_provider_config=config,
         response_api_optional_request_params={},
         custom_llm_provider="chatgpt",
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         logging_obj=logging_obj,
         client=client,
     )
@@ -298,7 +298,7 @@ async def test_async_response_api_handler_streaming_passes_logging_obj_to_post()
         responses_api_provider_config=config,
         response_api_optional_request_params={},
         custom_llm_provider="chatgpt",
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         logging_obj=logging_obj,
         client=client,
     )
@@ -511,7 +511,7 @@ async def test_async_anthropic_messages_handler_extra_headers():
                 anthropic_messages_provider_config=mock_config,
                 anthropic_messages_optional_request_params={},
                 custom_llm_provider="anthropic",
-                litellm_params=GenericLiteLLMParams(),
+                litellm_params=GenericGatewayParams(),
                 logging_obj=mock_logging_obj,
                 client=mock_client,
                 kwargs=kwargs,
@@ -569,7 +569,7 @@ async def test_async_anthropic_messages_handler_streaming_forwards_provider_resp
         anthropic_messages_provider_config=AnthropicMessagesConfig(),
         anthropic_messages_optional_request_params={"max_tokens": 32},
         custom_llm_provider="anthropic",
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         logging_obj=mock_logging_obj,
         client=mock_client,
         api_key="sk-test",
@@ -645,7 +645,7 @@ async def test_async_anthropic_messages_handler_agentic_streaming_forwards_provi
         anthropic_messages_provider_config=AnthropicMessagesConfig(),
         anthropic_messages_optional_request_params={"max_tokens": 32},
         custom_llm_provider="anthropic",
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         logging_obj=mock_logging_obj,
         client=mock_client,
         api_key="sk-test",
@@ -748,7 +748,7 @@ async def test_anthropic_messages_streaming_response_aclose_closes_agentic_upstr
 
 
 @pytest.mark.asyncio
-async def test_async_anthropic_messages_handler_passes_litellm_metadata():
+async def test_async_anthropic_messages_handler_passes_gateway_metadata():
     """Ensure litellm_metadata from kwargs is forwarded via update_from_kwargs.
 
     Routes like /messages store model_info under kwargs['litellm_metadata'].
@@ -802,7 +802,7 @@ async def test_async_anthropic_messages_handler_passes_litellm_metadata():
             anthropic_messages_provider_config=mock_config,
             anthropic_messages_optional_request_params={},
             custom_llm_provider="anthropic",
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             logging_obj=mock_logging_obj,
             client=mock_client,
             kwargs=kwargs,
@@ -874,7 +874,7 @@ async def test_async_anthropic_messages_handler_forwards_router_model_info():
             anthropic_messages_provider_config=mock_config,
             anthropic_messages_optional_request_params={},
             custom_llm_provider="anthropic",
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             logging_obj=mock_logging_obj,
             client=mock_client,
             kwargs={"model_info": deployment_model_info},
@@ -884,13 +884,13 @@ async def test_async_anthropic_messages_handler_forwards_router_model_info():
 
     mock_logging_obj.update_from_kwargs.assert_called_once()
     call_kwargs = mock_logging_obj.update_from_kwargs.call_args
-    litellm_params_arg = (
+    gateway_params_arg = (
         call_kwargs.kwargs.get("litellm_params", call_kwargs[1].get("litellm_params", {}))
         if call_kwargs.kwargs
         else call_kwargs[1].get("litellm_params", {})
     )
 
-    assert litellm_params_arg.get("model_info") == deployment_model_info
+    assert gateway_params_arg.get("model_info") == deployment_model_info
 
 
 @pytest.mark.asyncio
@@ -941,7 +941,7 @@ async def test_async_anthropic_messages_handler_header_priority():
                 anthropic_messages_provider_config=mock_config,
                 anthropic_messages_optional_request_params={},
                 custom_llm_provider="anthropic",
-                litellm_params=GenericLiteLLMParams(),
+                litellm_params=GenericGatewayParams(),
                 logging_obj=mock_logging_obj,
                 client=mock_client,
                 kwargs=kwargs,
@@ -1016,7 +1016,7 @@ async def test_async_anthropic_messages_handler_drops_top_level_and_nested_param
                 anthropic_messages_provider_config=mock_config,
                 anthropic_messages_optional_request_params=optional_params,
                 custom_llm_provider="bedrock",
-                litellm_params=GenericLiteLLMParams(
+                litellm_params=GenericGatewayParams(
                     additional_drop_params=[
                         "thinking",
                         "context_management",
@@ -1042,7 +1042,7 @@ def test_google_genai_streaming_hidden_params_model_info_and_router_fallback():
 
     from_model_info = _google_genai_streaming_hidden_params(
         api_base="https://generativelanguage.googleapis.com/v1beta",
-        litellm_params=GenericLiteLLMParams(model_info={"id": "info-id"}),
+        litellm_params=GenericGatewayParams(model_info={"id": "info-id"}),
         logging_obj=logging_obj,
         response_headers=httpx.Headers({"x-ratelimit-remaining": "10"}),
     )
@@ -1052,7 +1052,7 @@ def test_google_genai_streaming_hidden_params_model_info_and_router_fallback():
 
     from_router = _google_genai_streaming_hidden_params(
         api_base="https://x",
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         logging_obj=logging_obj,
         response_headers=httpx.Headers({}),
     )
@@ -1169,7 +1169,7 @@ def test_sync_delete_responses_sets_json_content_type():
 
 
 @pytest.mark.parametrize(
-    "litellm_params_kwargs, stream, global_timeout, expected",
+    "gateway_params_kwargs, stream, global_timeout, expected",
     [
         ({"timeout": 12.0}, False, None, 12.0),
         ({"request_timeout": 30.0}, False, None, 30.0),
@@ -1182,7 +1182,7 @@ def test_sync_delete_responses_sets_json_content_type():
     ],
 )
 def test_resolve_anthropic_messages_timeout(
-    monkeypatch, litellm_params_kwargs, stream, global_timeout, expected
+    monkeypatch, gateway_params_kwargs, stream, global_timeout, expected
 ):
     from token_iq.gateway.constants import DEFAULT_REQUEST_TIMEOUT_SECONDS
 
@@ -1204,7 +1204,7 @@ def test_resolve_anthropic_messages_timeout(
         )
 
     resolved = BaseLLMHTTPHandler._resolve_anthropic_messages_timeout(
-        litellm_params=GenericLiteLLMParams(**litellm_params_kwargs),
+        litellm_params=GenericGatewayParams(**gateway_params_kwargs),
         stream=stream,
         custom_llm_provider="anthropic",
     )
@@ -1250,7 +1250,7 @@ async def test_async_anthropic_messages_handler_forwards_request_timeout(monkeyp
         anthropic_messages_provider_config=mock_config,
         anthropic_messages_optional_request_params={},
         custom_llm_provider="anthropic",
-        litellm_params=GenericLiteLLMParams(request_timeout=0.3),
+        litellm_params=GenericGatewayParams(request_timeout=0.3),
         logging_obj=logging_obj,
         client=mock_client,
         kwargs={},
@@ -1298,7 +1298,7 @@ async def test_async_anthropic_messages_handler_forwards_stream_timeout(monkeypa
         anthropic_messages_provider_config=mock_config,
         anthropic_messages_optional_request_params={},
         custom_llm_provider="anthropic",
-        litellm_params=GenericLiteLLMParams(timeout=9.0, stream_timeout=0.7),
+        litellm_params=GenericGatewayParams(timeout=9.0, stream_timeout=0.7),
         logging_obj=logging_obj,
         client=mock_client,
         stream=True,
@@ -1339,7 +1339,7 @@ async def test_anthropic_post_uses_prebuilt_body_without_redumping():
         stream=False,
         logging_obj=logging_obj,
         provider_config=provider_config,
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         api_key="k",
         model="claude",
     )
@@ -1379,7 +1379,7 @@ async def test_anthropic_post_falls_back_to_json_dumps_when_unsigned_none():
         stream=False,
         logging_obj=logging_obj,
         provider_config=provider_config,
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         api_key="k",
         model="claude",
     )
@@ -1427,7 +1427,7 @@ async def test_anthropic_post_retry_reserializes_mutated_body():
         stream=False,
         logging_obj=logging_obj,
         provider_config=provider_config,
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         api_key="k",
         model="claude",
     )
@@ -1469,7 +1469,7 @@ def _make_responses_handler_call(signed_body):
     from unittest.mock import MagicMock
     from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
     from token_iq.gateway.llms.custom_httpx.llm_http_handler import BaseLLMHTTPHandler
-    from token_iq.gateway.types.router import GenericLiteLLMParams
+    from token_iq.gateway.types.router import GenericGatewayParams
 
     provider_config = MagicMock()
     provider_config.validate_environment.return_value = {}
@@ -1488,7 +1488,7 @@ def _make_responses_handler_call(signed_body):
         responses_api_provider_config=provider_config,
         response_api_optional_request_params={},
         custom_llm_provider="bedrock_mantle",
-        litellm_params=GenericLiteLLMParams(aws_region_name="us-east-2"),
+        litellm_params=GenericGatewayParams(aws_region_name="us-east-2"),
         logging_obj=MagicMock(),
         client=mock_client,
         _is_async=False,
@@ -1525,7 +1525,7 @@ def test_responses_handler_signs_after_fake_stream_prep_strips_stream():
     from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
     from token_iq.gateway.llms.custom_httpx.llm_http_handler import BaseLLMHTTPHandler
     from token_iq.gateway.types.llms.openai import ResponsesAPIResponse
-    from token_iq.gateway.types.router import GenericLiteLLMParams
+    from token_iq.gateway.types.router import GenericGatewayParams
 
     provider_config = MagicMock()
     provider_config.validate_environment.return_value = {}
@@ -1561,7 +1561,7 @@ def test_responses_handler_signs_after_fake_stream_prep_strips_stream():
         responses_api_provider_config=provider_config,
         response_api_optional_request_params={"stream": True},
         custom_llm_provider="bedrock_mantle",
-        litellm_params=GenericLiteLLMParams(aws_region_name="us-east-2"),
+        litellm_params=GenericGatewayParams(aws_region_name="us-east-2"),
         logging_obj=MagicMock(),
         client=mock_client,
         _is_async=False,
@@ -1587,7 +1587,7 @@ def _make_compact_handler_call(signed_body, is_async):
     from unittest.mock import MagicMock
     from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
     from token_iq.gateway.llms.custom_httpx.llm_http_handler import BaseLLMHTTPHandler
-    from token_iq.gateway.types.router import GenericLiteLLMParams
+    from token_iq.gateway.types.router import GenericGatewayParams
 
     compact_url = "https://bedrock-mantle.us-east-2.api.aws/openai/v1/responses/compact"
     provider_config = MagicMock()
@@ -1614,7 +1614,7 @@ def _make_compact_handler_call(signed_body, is_async):
         responses_api_provider_config=provider_config,
         response_api_optional_request_params={},
         custom_llm_provider="bedrock_mantle",
-        litellm_params=GenericLiteLLMParams(aws_region_name="us-east-2"),
+        litellm_params=GenericGatewayParams(aws_region_name="us-east-2"),
         logging_obj=MagicMock(),
         client=mock_client,
         _is_async=is_async,
@@ -1717,7 +1717,7 @@ async def test_async_anthropic_messages_handler_passes_api_key_to_agentic_hooks(
             anthropic_messages_provider_config=mock_config,
             anthropic_messages_optional_request_params={"stream": False},
             custom_llm_provider="anthropic",
-            litellm_params=GenericLiteLLMParams(api_key="sk-real-anthropic-key"),
+            litellm_params=GenericGatewayParams(api_key="sk-real-anthropic-key"),
             logging_obj=mock_logging_obj,
             api_key="sk-real-anthropic-key",
             stream=False,
@@ -2216,7 +2216,7 @@ async def test_anthropic_invalid_thinking_signature_retry_resigns_bedrock_reques
 
     handler = BaseLLMHTTPHandler()
     provider_config = AmazonAnthropicClaudeMessagesConfig()
-    litellm_params = GenericLiteLLMParams(
+    litellm_params = GenericGatewayParams(
         aws_access_key_id="AKIAIOSFODNN7EXAMPLE",
         aws_secret_access_key="wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
         aws_region_name="us-east-1",
@@ -2420,7 +2420,7 @@ def test_vector_store_search_handler_direct_config_sync_skips_http():
             vector_store_search_optional_params={"max_num_results": 4},
             vector_store_provider_config=config,
             custom_llm_provider="valkey",
-            litellm_params=GenericLiteLLMParams(valkey_host="localhost"),
+            litellm_params=GenericGatewayParams(valkey_host="localhost"),
             logging_obj=logging_obj,
             timeout=12.5,
             _is_async=False,
@@ -2455,7 +2455,7 @@ async def test_vector_store_search_handler_direct_config_async_skips_http():
             vector_store_search_optional_params={},
             vector_store_provider_config=config,
             custom_llm_provider="valkey",
-            litellm_params=GenericLiteLLMParams(valkey_host="localhost"),
+            litellm_params=GenericGatewayParams(valkey_host="localhost"),
             logging_obj=logging_obj,
             timeout=7.0,
             _is_async=True,
@@ -2473,9 +2473,9 @@ async def test_vector_store_search_handler_direct_config_async_skips_http():
 
 
 def _direct_vector_store_debug_logging_obj():
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LitellmLogging
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLogging
 
-    logging_obj = LitellmLogging(
+    logging_obj = GatewayLogging(
         model="valkey",
         messages=[{"role": "user", "content": "q"}],
         stream=False,
@@ -2517,7 +2517,7 @@ def test_direct_vector_store_search_debug_log_omits_stored_credentials(caplog, i
             vector_store_search_optional_params={"max_num_results": 4},
             vector_store_provider_config=config,
             custom_llm_provider="valkey",
-            litellm_params=GenericLiteLLMParams(
+            litellm_params=GenericGatewayParams(
                 valkey_host="valkey.internal",
                 valkey_password="sup3r-s3cret-valkey-pw",
             ),
@@ -2596,7 +2596,7 @@ async def test_async_anthropic_messages_handler_carries_deployment_vertex_locati
             )
         return logging_obj
 
-    global_deployment = await logging_obj_after_handler(GenericLiteLLMParams(vertex_location="global"))
+    global_deployment = await logging_obj_after_handler(GenericGatewayParams(vertex_location="global"))
     assert global_deployment.litellm_params["vertex_location"] == "global"
     assert (
         _resolve_vertex_location_for_cost(
@@ -2608,7 +2608,7 @@ async def test_async_anthropic_messages_handler_carries_deployment_vertex_locati
         == "global"
     )
 
-    unconfigured_deployment = await logging_obj_after_handler(GenericLiteLLMParams())
+    unconfigured_deployment = await logging_obj_after_handler(GenericGatewayParams())
     assert "vertex_location" not in unconfigured_deployment.litellm_params
 
 
@@ -2691,12 +2691,12 @@ async def test_generic_http_handler_async_streaming_forwards_provider_response_h
 @pytest.mark.parametrize(
     "custom_llm_provider, litellm_params, expected",
     [
-        ("openai", GenericLiteLLMParams(rust=True), True),
-        ("openai", GenericLiteLLMParams(), False),
-        ("openai", GenericLiteLLMParams(rust=False), False),
-        ("azure", GenericLiteLLMParams(rust=True), False),
-        ("hosted_vllm", GenericLiteLLMParams(rust=True), False),
-        (None, GenericLiteLLMParams(rust=True), False),
+        ("openai", GenericGatewayParams(rust=True), True),
+        ("openai", GenericGatewayParams(), False),
+        ("openai", GenericGatewayParams(rust=False), False),
+        ("azure", GenericGatewayParams(rust=True), False),
+        ("hosted_vllm", GenericGatewayParams(rust=True), False),
+        (None, GenericGatewayParams(rust=True), False),
     ],
 )
 def test_the_rust_responses_websocket_needs_both_openai_and_the_rust_flag(
@@ -2810,7 +2810,7 @@ def _video_create_call_kwargs(config, **optional_params):
         "video_generation_provider_config": config,
         "video_generation_optional_request_params": {"seconds": "4", **optional_params},
         "custom_llm_provider": "openai",
-        "litellm_params": GenericLiteLLMParams(api_key="sk-test", api_base="https://video.example/v1"),
+        "litellm_params": GenericGatewayParams(api_key="sk-test", api_base="https://video.example/v1"),
         "logging_obj": Mock(),
         "timeout": 10.0,
     }

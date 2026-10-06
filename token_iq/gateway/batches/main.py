@@ -22,8 +22,8 @@ from openai.types.batch import BatchRequestCounts
 
 from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
-from token_iq.gateway.core_utils.get_litellm_params import add_trusted_model_credentials_to_litellm_params
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.get_litellm_params import add_trusted_model_credentials_to_gateway_params
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.llms.anthropic.batches.handler import AnthropicBatchesHandler
 from token_iq.gateway.llms.azure.batches.handler import AzureBatchesAPI
 from token_iq.gateway.llms.bedrock.batches.handler import BedrockBatchesHandler
@@ -38,12 +38,12 @@ from token_iq.gateway.types.llms.openai import (
     FileExpiresAfter,
     RetrieveBatchRequest,
 )
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.types.utils import (
     LIST_BATCHES_SUPPORTED_PROVIDERS,
     OPENAI_COMPATIBLE_BATCH_AND_FILES_PROVIDERS,
     ListBatchesSupportedProvider,
-    LiteLLMBatch,
+    GatewayBatch,
     LlmProviders,
 )
 from token_iq.gateway.utils import (
@@ -64,7 +64,7 @@ base_llm_http_handler = BaseLLMHTTPHandler()
 
 
 def _resolve_timeout(
-    optional_params: GenericLiteLLMParams,
+    optional_params: GenericGatewayParams,
     kwargs: dict[str, Any],
     custom_llm_provider: str,
     default_timeout: float = 600.0,
@@ -113,7 +113,7 @@ async def acreate_batch(
     extra_body: dict[str, str] | None = None,
     output_expires_after: dict[str, Any] | None = None,
     **kwargs,
-) -> LiteLLMBatch:
+) -> GatewayBatch:
     """
     Async: Creates and executes a batch from an uploaded file of request
 
@@ -163,14 +163,14 @@ def create_batch(
     extra_body: dict[str, str] | None = None,
     output_expires_after: dict[str, Any] | None = None,
     **kwargs,
-) -> LiteLLMBatch | Coroutine[Any, Any, LiteLLMBatch]:
+) -> GatewayBatch | Coroutine[Any, Any, GatewayBatch]:
     """
     Creates and executes a batch from an uploaded file of request
 
     LiteLLM Equivalent of POST: https://api.openai.com/v1/batches
     """
     try:
-        optional_params: Final = GenericLiteLLMParams(**kwargs)
+        optional_params: Final = GenericGatewayParams(**kwargs)
         litellm_call_id: Final = kwargs.get("litellm_call_id", None)
         proxy_server_request: Final = kwargs.get("proxy_server_request", None)
         model_info: Final = kwargs.get("model_info", None)
@@ -187,8 +187,8 @@ def create_batch(
             )
 
         _is_async: Final = kwargs.pop("acreate_batch", False) is True
-        litellm_params: Final = dict(GenericLiteLLMParams(**kwargs))
-        litellm_logging_obj: Final[LiteLLMLoggingObj] = cast(LiteLLMLoggingObj, kwargs.get("litellm_logging_obj", None))
+        litellm_params: Final = dict(GenericGatewayParams(**kwargs))
+        litellm_logging_obj: Final[GatewayLoggingObj] = cast(GatewayLoggingObj, kwargs.get("litellm_logging_obj", None))
         ### TIMEOUT LOGIC ###
         timeout: Final = _resolve_timeout(optional_params, kwargs, custom_llm_provider)
         litellm_logging_obj.update_from_kwargs(
@@ -346,7 +346,7 @@ async def aretrieve_batch(
     extra_headers: dict[str, str] | None = None,
     extra_body: dict[str, str] | None = None,
     **kwargs,
-) -> LiteLLMBatch:
+) -> GatewayBatch:
     """
     Async: Retrieves a batch.
 
@@ -382,7 +382,7 @@ async def aretrieve_batch(
 
 def _handle_retrieve_batch_providers_without_provider_config(
     batch_id: str,
-    optional_params: GenericLiteLLMParams,
+    optional_params: GenericGatewayParams,
     timeout: float | httpx.Timeout,
     litellm_params: dict,
     _retrieve_batch_request: RetrieveBatchRequest,
@@ -390,7 +390,7 @@ def _handle_retrieve_batch_providers_without_provider_config(
     custom_llm_provider: Literal[
         "openai", "azure", "vertex_ai", "bedrock", "hosted_vllm", "litellm_proxy", "anthropic"
     ] = "openai",
-    logging_obj: LiteLLMLoggingObj | None = None,
+    logging_obj: GatewayLoggingObj | None = None,
 ):
     api_base: str | None = None
     if custom_llm_provider in OPENAI_COMPATIBLE_BATCH_AND_FILES_PROVIDERS:
@@ -519,22 +519,22 @@ def retrieve_batch(
     extra_headers: dict[str, str] | None = None,
     extra_body: dict[str, str] | None = None,
     **kwargs,
-) -> LiteLLMBatch | Coroutine[Any, Any, LiteLLMBatch]:
+) -> GatewayBatch | Coroutine[Any, Any, GatewayBatch]:
     """
     Retrieves a batch.
 
     LiteLLM Equivalent of GET https://api.openai.com/v1/batches/{batch_id}
     """
     try:
-        optional_params: Final = GenericLiteLLMParams(**kwargs)
-        litellm_logging_obj: Final[LiteLLMLoggingObj | None] = kwargs.get("litellm_logging_obj", None)
+        optional_params: Final = GenericGatewayParams(**kwargs)
+        litellm_logging_obj: Final[GatewayLoggingObj | None] = kwargs.get("litellm_logging_obj", None)
         ### TIMEOUT LOGIC ###
         timeout = optional_params.timeout or kwargs.get("request_timeout", 600) or 600
         litellm_params: Final = get_litellm_params(
             custom_llm_provider=custom_llm_provider,
             **kwargs,
         )
-        add_trusted_model_credentials_to_litellm_params(litellm_params, kwargs)
+        add_trusted_model_credentials_to_gateway_params(litellm_params, kwargs)
         if litellm_logging_obj is not None:
             litellm_logging_obj.update_from_kwargs(
                 kwargs=kwargs,
@@ -615,7 +615,7 @@ def retrieve_batch(
                 api_base=optional_params.api_base,
                 api_key=optional_params.api_key,
                 logging_obj=litellm_logging_obj
-                or LiteLLMLoggingObj(
+                or GatewayLoggingObj(
                     model=model or f"{custom_llm_provider}/unknown",
                     messages=[],
                     stream=False,
@@ -708,7 +708,7 @@ def list_batches(
     """
     try:
         # set API KEY
-        optional_params: Final = GenericLiteLLMParams(**kwargs)
+        optional_params: Final = GenericGatewayParams(**kwargs)
         litellm_params: Final = get_litellm_params(
             custom_llm_provider=custom_llm_provider,
             **kwargs,
@@ -837,7 +837,7 @@ async def acancel_batch(
     extra_headers: dict[str, str] | None = None,
     extra_body: dict[str, str] | None = None,
     **kwargs,
-) -> LiteLLMBatch:
+) -> GatewayBatch:
     """
     Async: Cancels a batch.
 
@@ -883,7 +883,7 @@ def cancel_batch(
     extra_headers: dict[str, str] | None = None,
     extra_body: dict[str, str] | None = None,
     **kwargs,
-) -> LiteLLMBatch | Coroutine[Any, Any, LiteLLMBatch]:
+) -> GatewayBatch | Coroutine[Any, Any, GatewayBatch]:
     """
     Cancels a batch.
 
@@ -900,7 +900,7 @@ def cancel_batch(
             verbose_logger.exception(
                 "litellm.batches.main.py::cancel_batch() - Error inferring custom_llm_provider - %s", e
             )
-        optional_params: Final = GenericLiteLLMParams(**kwargs)
+        optional_params: Final = GenericGatewayParams(**kwargs)
         litellm_params: Final = get_litellm_params(
             custom_llm_provider=custom_llm_provider,
             **kwargs,
@@ -1020,7 +1020,7 @@ def cancel_batch(
         raise e
 
 
-def _handle_async_invoke_status(batch_id: str, aws_region_name: str, logging_obj=None, **kwargs) -> "LiteLLMBatch":
+def _handle_async_invoke_status(batch_id: str, aws_region_name: str, logging_obj=None, **kwargs) -> "GatewayBatch":
     """
     Handle async invoke status check for AWS Bedrock.
 
@@ -1050,7 +1050,7 @@ def _handle_async_invoke_status(batch_id: str, aws_region_name: str, logging_obj
 
         # Transform response to a LiteLLMBatch object
         from token_iq.gateway.types.llms.openai import BatchJobStatus
-        from token_iq.gateway.types.utils import LiteLLMBatch
+        from token_iq.gateway.types.utils import GatewayBatch
 
         # Normalize status to lowercase (AWS returns 'Completed', 'Failed', etc.)
         aws_status_raw: Final = status_response.get("status", "")
@@ -1086,7 +1086,7 @@ def _handle_async_invoke_status(batch_id: str, aws_region_name: str, logging_obj
             _,
             _,
         ) = BedrockBatchesConfig()._parse_timestamps_and_status(status_response, aws_status_raw)
-        result: Final = LiteLLMBatch(
+        result: Final = GatewayBatch(
             id=status_response["invocationArn"],
             object="batch",
             status=normalized_status,

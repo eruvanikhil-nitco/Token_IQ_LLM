@@ -18,7 +18,7 @@ from token_iq.gateway.types.llms.openai import (
     ResponsesAPIResponse,
     ResponsesAPIStreamEvents,
 )
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 
 
 class TestOpenAIResponsesAPIConfig:
@@ -318,7 +318,7 @@ class TestOpenAIResponsesAPIConfig:
             input=replayed_input,
             response_api_optional_request_params={},
             api_base="https://api.openai.com/v1/responses",
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 
@@ -395,7 +395,7 @@ class TestOpenAIResponsesAPIConfig:
         # Test with provided API key
         headers = {}
         api_key = "test_api_key"
-        litellm_params = GenericLiteLLMParams(api_key=api_key)
+        litellm_params = GenericGatewayParams(api_key=api_key)
         result = self.config.validate_environment(
             headers=headers, model=self.model, litellm_params=litellm_params
         )
@@ -408,7 +408,7 @@ class TestOpenAIResponsesAPIConfig:
         headers = {}
 
         with patch("token_iq.gateway.api_key", "litellm_api_key"):
-            litellm_params = GenericLiteLLMParams()
+            litellm_params = GenericGatewayParams()
             result = self.config.validate_environment(
                 headers=headers, model=self.model, litellm_params=litellm_params
             )
@@ -421,7 +421,7 @@ class TestOpenAIResponsesAPIConfig:
 
         with patch("token_iq.gateway.openai_key", "openai_key"):
             with patch("token_iq.gateway.api_key", None):
-                litellm_params = GenericLiteLLMParams()
+                litellm_params = GenericGatewayParams()
                 result = self.config.validate_environment(
                     headers=headers, model=self.model, litellm_params=litellm_params
                 )
@@ -440,7 +440,7 @@ class TestOpenAIResponsesAPIConfig:
                     "token_iq.gateway.llms.openai.responses.transformation.get_secret_str",
                     return_value="env_api_key",
                 ):
-                    litellm_params = GenericLiteLLMParams()
+                    litellm_params = GenericGatewayParams()
                     result = self.config.validate_environment(
                         headers=headers, model=self.model, litellm_params=litellm_params
                     )
@@ -513,7 +513,7 @@ class TestOpenAIResponsesAPIConfig:
         url, data = self.config.transform_list_input_items_request(
             response_id=response_id,
             api_base=api_base,
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 
@@ -846,7 +846,7 @@ class TestOpenAIResponsesAPIConfig:
             model=self.model,
             input=input_items,
             response_api_optional_request_params={},
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
         assert body["input"][0].get("namespace") == "my_tools"
@@ -929,7 +929,7 @@ class TestAzureResponsesAPIConfig:
             model=self.model,
             input=input_items,
             response_api_optional_request_params={},
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
         assert body["input"][1].get("namespace") == "None"
@@ -952,7 +952,7 @@ class TestTransformListInputItemsRequest:
         self.azure_config = AzureOpenAIResponsesAPIConfig()
         self.response_id = "resp_abc123"
         self.api_base = "https://api.openai.com/v1/responses"
-        self.litellm_params = GenericLiteLLMParams()
+        self.litellm_params = GenericGatewayParams()
         self.headers = {"Authorization": "Bearer test-key"}
 
     def test_openai_transform_list_input_items_request_minimal(self):
@@ -1153,7 +1153,7 @@ class TestTransformListInputItemsRequest:
         assert params == expected_params
 
     @patch("token_iq.gateway.router.Router")
-    def test_mock_litellm_router_with_transform_list_input_items_request(
+    def test_mock_gateway_router_with_transform_list_input_items_request(
         self, mock_router
     ):
         """Mock test using litellm.router for transform_list_input_items_request"""
@@ -1180,7 +1180,7 @@ class TestTransformListInputItemsRequest:
         url, params = mock_provider_config.transform_list_input_items_request(
             response_id=response_id,
             api_base="https://api.openai.com/v1/responses",
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={"Authorization": "Bearer test"},
             after="cursor_123",
             include=["metadata"],
@@ -1191,7 +1191,7 @@ class TestTransformListInputItemsRequest:
         mock_provider_config.transform_list_input_items_request.assert_called_once_with(
             response_id=response_id,
             api_base="https://api.openai.com/v1/responses",
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={"Authorization": "Bearer test"},
             after="cursor_123",
             include=["metadata"],
@@ -1201,7 +1201,7 @@ class TestTransformListInputItemsRequest:
         assert params == {"limit": 20, "order": "desc"}
 
     @patch("token_iq.gateway.list_input_items")
-    def test_mock_litellm_list_input_items_integration(self, mock_list_input_items):
+    def test_mock_gateway_list_input_items_integration(self, mock_list_input_items):
         """Test integration with litellm.list_input_items function"""
         # Setup mock response
         mock_response = {
@@ -1788,7 +1788,7 @@ class TestFlattenToolSchemaCombinatorsWiring:
             model="gpt-4o",
             input="hi",
             response_api_optional_request_params={"tools": [self._flat_function_tool()]},
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 
@@ -1804,7 +1804,7 @@ class TestFlattenToolSchemaCombinatorsWiring:
             model="gpt-4o",
             input="hi",
             response_api_optional_request_params={"tools": [self._codex_namespace_tool()]},
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 
@@ -1819,7 +1819,7 @@ class TestFlattenToolSchemaCombinatorsWiring:
             input="hi",
             response_api_optional_request_params={"tools": [self._flat_function_tool()]},
             api_base="https://api.openai.com/v1/responses",
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 
@@ -1836,7 +1836,7 @@ class TestFlattenToolSchemaCombinatorsWiring:
             model="gpt-4o",
             input="hi",
             response_api_optional_request_params={"tools": [clean_tool]},
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 
@@ -1849,7 +1849,7 @@ class TestFlattenToolSchemaCombinatorsWiring:
             model="gpt-4o",
             input="hi",
             response_api_optional_request_params={"tools": [tool]},
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 
@@ -1862,7 +1862,7 @@ class TestFlattenToolSchemaCombinatorsWiring:
             model="hosted_vllm/qwen",
             input="hi",
             response_api_optional_request_params={"tools": [self._flat_function_tool()]},
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 
@@ -1886,7 +1886,7 @@ class TestFlattenToolSchemaCombinatorsWiring:
             model=model,
             input="hi",
             response_api_optional_request_params={"tools": [self._flat_function_tool()]},
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 
@@ -1902,7 +1902,7 @@ class TestFlattenToolSchemaCombinatorsWiring:
             model=model,
             input="hi",
             response_api_optional_request_params={"tools": [tool]},
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 
@@ -1915,7 +1915,7 @@ class TestFlattenToolSchemaCombinatorsWiring:
             model="gpt-4o",
             input="hi",
             response_api_optional_request_params={"tools": [opaque_tool, self._flat_function_tool()]},
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 

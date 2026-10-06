@@ -88,7 +88,7 @@ from token_iq.gateway.core_utils.redact_messages import (
 from token_iq.gateway.llms.base_llm.ocr.transformation import OCRResponse
 from token_iq.gateway.llms.base_llm.search.transformation import SearchResponse
 from token_iq.gateway.responses.utils import ResponseAPILoggingUtils
-from token_iq.gateway.types.agents import LiteLLMSendMessageResponse
+from token_iq.gateway.types.agents import GatewaySendMessageResponse
 from token_iq.gateway.types.containers.main import ContainerObject
 from token_iq.gateway.types.interactions import (
     InteractionsAPIResponse,
@@ -116,14 +116,14 @@ from token_iq.gateway.types.utils import (
     CallTypes,
     CostBreakdown,
     CostResponseTypes,
-    CustomPricingLiteLLMParams,
+    CustomPricingGatewayParams,
     DynamicPromptManagementParamLiteral,
     EmbeddingResponse,
     GuardrailStatus,
     ImageResponse,
-    LiteLLMBatch,
-    LiteLLMLoggingBaseClass,
-    LiteLLMRealtimeStreamLoggingObject,
+    GatewayBatch,
+    GatewayLoggingBaseClass,
+    GatewayRealtimeStreamLoggingObject,
     ModelInfo,
     ModelResponse,
     ModelResponseStream,
@@ -171,7 +171,7 @@ from ..integrations.langfuse.langfuse import LangFuseLogger
 from ..integrations.langfuse.langfuse_handler import LangFuseHandler
 from ..integrations.langfuse.langfuse_prompt_management import LangfusePromptManagement
 from ..integrations.langsmith import LangsmithLogger
-from ..integrations.litellm_agent import LiteLLMAgentModelResolver
+from ..integrations.litellm_agent import GatewayAgentModelResolver
 from ..integrations.literal_ai import LiteralAILogger
 from ..integrations.logfire_logger import LogfireLevel, LogfireLogger
 from ..integrations.lunary import LunaryLogger
@@ -255,7 +255,7 @@ _STANDARD_LOGGING_METADATA_KEYS: Final[frozenset[str]] = frozenset(StandardLoggi
 ### GLOBAL VARIABLES ###
 
 # Cache custom pricing keys as frozenset for O(1) lookups instead of looping through 49 keys
-_CUSTOM_PRICING_KEYS: Final[frozenset[str]] = frozenset(CustomPricingLiteLLMParams.model_fields.keys())
+_CUSTOM_PRICING_KEYS: Final[frozenset[str]] = frozenset(CustomPricingGatewayParams.model_fields.keys())
 _MODEL_INFO_CUSTOM_PRICING_KEYS: Final[frozenset[str]] = _CUSTOM_PRICING_KEYS | DEPLOYMENT_SCOPED_PRICING_FIELDS
 
 sentry_sdk_instance = None
@@ -414,7 +414,7 @@ def _resolve_vertex_location_for_cost(
     return VertexBase.get_vertex_region(configured_location, model)
 
 
-class Logging(LiteLLMLoggingBaseClass):
+class Logging(GatewayLoggingBaseClass):
     global \
         supabaseClient, \
         promptLayerLogger, \
@@ -801,14 +801,14 @@ class Logging(LiteLLMLoggingBaseClass):
         automatically extracts metadata/litellm_metadata from kwargs,
         so callers don't need to manually plumb them into litellm_params.
         """
-        base_litellm_params: Final[dict[str, Any]] = {}
+        base_gateway_params: Final[dict[str, Any]] = {}
 
         if isinstance(kwargs.get("metadata"), dict):
-            base_litellm_params["metadata"] = kwargs["metadata"].copy()
+            base_gateway_params["metadata"] = kwargs["metadata"].copy()
         if "litellm_metadata" in kwargs and isinstance(kwargs["litellm_metadata"], dict):
-            base_litellm_params["litellm_metadata"] = kwargs["litellm_metadata"]
-            if "metadata" not in base_litellm_params:
-                base_litellm_params["metadata"] = kwargs["litellm_metadata"].copy()
+            base_gateway_params["litellm_metadata"] = kwargs["litellm_metadata"]
+            if "metadata" not in base_gateway_params:
+                base_gateway_params["metadata"] = kwargs["litellm_metadata"].copy()
 
         if litellm_params:
             # Merge metadata carefully — don't overwrite the merged metadata
@@ -816,15 +816,15 @@ class Logging(LiteLLMLoggingBaseClass):
             # e.g. anthropic_messages passes Anthropic's native metadata ({user_id: ...})
             # in litellm_params, which would overwrite proxy key-auth fields.
             lp_metadata: Final = litellm_params.pop("metadata", None)
-            base_litellm_params.update(litellm_params)
+            base_gateway_params.update(litellm_params)
             if lp_metadata and isinstance(lp_metadata, dict):
-                base_litellm_params.setdefault("metadata", {})
+                base_gateway_params.setdefault("metadata", {})
                 for k, v in lp_metadata.items():
-                    if k not in base_litellm_params["metadata"]:
-                        base_litellm_params["metadata"][k] = v
+                    if k not in base_gateway_params["metadata"]:
+                        base_gateway_params["metadata"][k] = v
 
         self.update_environment_variables(
-            litellm_params=base_litellm_params,
+            litellm_params=base_gateway_params,
             optional_params=optional_params or {},
             model=model,
             user=user,
@@ -1195,8 +1195,8 @@ class Logging(LiteLLMLoggingBaseClass):
             )
             # log raw request to provider (like LangFuse) -- if opted in.
             if self.log_raw_request_response is True or log_raw_request_response is True:
-                _litellm_params: Final = self.model_call_details.get("litellm_params", {})
-                _metadata: Final = _litellm_params.get("metadata", {}) or {}
+                _gateway_params: Final = self.model_call_details.get("litellm_params", {})
+                _metadata: Final = _gateway_params.get("metadata", {}) or {}
                 try:
                     # [Non-blocking Extra Debug Information in metadata]
                     if turn_off_message_logging is True:
@@ -1622,7 +1622,7 @@ class Logging(LiteLLMLoggingBaseClass):
             ResponsesAPIResponse,
             ResponseCompletedEvent,
             OpenAIFileObject,
-            LiteLLMRealtimeStreamLoggingObject,
+            GatewayRealtimeStreamLoggingObject,
             OpenAIModerationResponse,
             "SearchResponse",
             dict,
@@ -1645,7 +1645,7 @@ class Logging(LiteLLMLoggingBaseClass):
             return 0.0
 
         if is_unbilled_non_inference_call(
-            self.call_type, StandardLoggingPayloadSetup.merge_litellm_metadata(self.litellm_params), result
+            self.call_type, StandardLoggingPayloadSetup.merge_gateway_metadata(self.litellm_params), result
         ):
             return 0.0
 
@@ -1801,7 +1801,7 @@ class Logging(LiteLLMLoggingBaseClass):
         return self._response_cost_calculator(result=result, cache_hit=cache_hit)
 
     @staticmethod
-    def _is_sync_litellm_request(litellm_params: dict) -> bool:
+    def _is_sync_gateway_request(litellm_params: dict) -> bool:
         """True for sync SDK entrypoints (``completion``), false for async (``acompletion``, etc.)."""
         return (
             litellm_params.get(CallTypes.acompletion.value, False) is not True
@@ -1856,7 +1856,7 @@ class Logging(LiteLLMLoggingBaseClass):
             self.model_call_details["has_dispatched_final_stream_success"] = True
 
         litellm_params: Final = self.model_call_details.get("litellm_params", {}) or {}
-        sync_sdk: Final = self._is_sync_litellm_request(litellm_params)
+        sync_sdk: Final = self._is_sync_gateway_request(litellm_params)
         passthrough: Final = self.call_type == CallTypes.pass_through.value
         if sync_sdk and not prefer_async_handlers and not passthrough:
             self.success_handler(
@@ -1904,7 +1904,7 @@ class Logging(LiteLLMLoggingBaseClass):
         ``executor.submit(failure_handler)`` when configured.
         """
         litellm_params: Final = self.model_call_details.get("litellm_params", {}) or {}
-        sync_sdk: Final = self._is_sync_litellm_request(litellm_params)
+        sync_sdk: Final = self._is_sync_gateway_request(litellm_params)
         passthrough: Final = self.call_type == CallTypes.pass_through.value
         if sync_sdk and not prefer_async_handlers and not passthrough:
             self.failure_handler(exception, traceback_exception)
@@ -2211,10 +2211,10 @@ class Logging(LiteLLMLoggingBaseClass):
             or isinstance(logging_result, HttpxBinaryResponseContent)  # tts
             or isinstance(logging_result, RerankResponse)
             or isinstance(logging_result, FineTuningJob)
-            or isinstance(logging_result, LiteLLMBatch)
+            or isinstance(logging_result, GatewayBatch)
             or isinstance(logging_result, ResponsesAPIResponse)
             or isinstance(logging_result, OpenAIFileObject)
-            or isinstance(logging_result, LiteLLMRealtimeStreamLoggingObject)
+            or isinstance(logging_result, GatewayRealtimeStreamLoggingObject)
             or isinstance(logging_result, OpenAIModerationResponse)
             or isinstance(logging_result, OCRResponse)  # OCR
             or isinstance(logging_result, SearchResponse)  # Search API
@@ -2229,7 +2229,7 @@ class Logging(LiteLLMLoggingBaseClass):
             and logging_result.get("object") == "search"  # Search API (dict format)
             or isinstance(logging_result, VideoObject)
             or isinstance(logging_result, ContainerObject)
-            or isinstance(logging_result, LiteLLMSendMessageResponse)  # A2A
+            or isinstance(logging_result, GatewaySendMessageResponse)  # A2A
             or (self.call_type == CallTypes.call_mcp_tool.value)
         ):
             return True
@@ -2438,7 +2438,7 @@ class Logging(LiteLLMLoggingBaseClass):
             standard_logging_object=kwargs.get("standard_logging_object", None),
         )
         litellm_params = self.model_call_details.get("litellm_params", {})
-        is_sync_request: Final = self._is_sync_litellm_request(litellm_params)
+        is_sync_request: Final = self._is_sync_gateway_request(litellm_params)
         try:
             ## BUILD COMPLETE STREAMED RESPONSE
             complete_streaming_response: (
@@ -2873,7 +2873,7 @@ class Logging(LiteLLMLoggingBaseClass):
             return
 
         ## CALCULATE COST FOR BATCH JOBS
-        if self.call_type == CallTypes.aretrieve_batch.value and isinstance(result, LiteLLMBatch):
+        if self.call_type == CallTypes.aretrieve_batch.value and isinstance(result, GatewayBatch):
             litellm_params = self.litellm_params or {}
             litellm_metadata: Final = litellm_params.get("litellm_metadata") or {}
             if (
@@ -3314,7 +3314,7 @@ class Logging(LiteLLMLoggingBaseClass):
         if not self.should_run_logging(event_type="sync_failure"):  # prevent double logging
             return
         litellm_params: Final = self.model_call_details.get("litellm_params", {})
-        is_sync_request: Final = self._is_sync_litellm_request(litellm_params)
+        is_sync_request: Final = self._is_sync_gateway_request(litellm_params)
 
         try:
             start_time, end_time = self._failure_handler_helper_fn(
@@ -3648,7 +3648,7 @@ class Logging(LiteLLMLoggingBaseClass):
             global_callbacks=gateway.success_callback,
         )
         _filtered_success_callbacks = self._remove_internal_custom_logger_callbacks(_combined_sync_callbacks)
-        _filtered_success_callbacks = self._remove_internal_litellm_callbacks(_filtered_success_callbacks)
+        _filtered_success_callbacks = self._remove_internal_gateway_callbacks(_filtered_success_callbacks)
         return len(_filtered_success_callbacks) > 0
 
     def _should_run_sync_failure_callbacks_for_async_calls(self) -> bool:
@@ -3666,7 +3666,7 @@ class Logging(LiteLLMLoggingBaseClass):
             global_callbacks=gateway.failure_callback,
         )
         _filtered_failure_callbacks = self._remove_internal_custom_logger_callbacks(_combined_sync_callbacks)
-        _filtered_failure_callbacks = self._remove_internal_litellm_callbacks(_filtered_failure_callbacks)
+        _filtered_failure_callbacks = self._remove_internal_gateway_callbacks(_filtered_failure_callbacks)
         return len(_filtered_failure_callbacks) > 0
 
     def get_combined_callback_list(self, dynamic_success_callbacks: list | None, global_callbacks: list) -> list:
@@ -3674,7 +3674,7 @@ class Logging(LiteLLMLoggingBaseClass):
             return list(global_callbacks)
         return list(dict.fromkeys(dynamic_success_callbacks + global_callbacks))
 
-    def _remove_internal_litellm_callbacks(self, callbacks: list) -> list:
+    def _remove_internal_gateway_callbacks(self, callbacks: list) -> list:
         """
         Creates a filtered list of callbacks, excluding internal LiteLLM callbacks.
 
@@ -3684,7 +3684,7 @@ class Logging(LiteLLMLoggingBaseClass):
         Returns:
             List of filtered callbacks with internal ones removed
         """
-        filtered: Final = [cb for cb in callbacks if not self._is_internal_litellm_proxy_callback(cb)]
+        filtered: Final = [cb for cb in callbacks if not self._is_internal_gateway_proxy_callback(cb)]
 
         verbose_logger.debug("Filtered callbacks: %s", filtered)
         return filtered
@@ -3709,7 +3709,7 @@ class Logging(LiteLLMLoggingBaseClass):
             return cb.__class__.__name__
         return str(cb)
 
-    def _is_internal_litellm_proxy_callback(self, cb) -> bool:
+    def _is_internal_gateway_proxy_callback(self, cb) -> bool:
         """Helper to check if a callback is internal"""
         INTERNAL_PREFIXES: Final = [
             "_PROXY",
@@ -3875,11 +3875,11 @@ class Logging(LiteLLMLoggingBaseClass):
         choices/message detail downstream consumers can rely on.
         """
         from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
-            LiteLLMResponsesTransformationHandler,
+            GatewayResponsesTransformationHandler,
         )
 
         try:
-            return LiteLLMResponsesTransformationHandler().transform_response(
+            return GatewayResponsesTransformationHandler().transform_response(
                 model=self.model,
                 raw_response=result,
                 model_response=gateway.ModelResponse(),
@@ -4203,12 +4203,12 @@ def _init_custom_logger_compatible_class(
             return _literalai_logger
         elif logging_integration == "litellm_agent":
             for callback in _in_memory_loggers:
-                if isinstance(callback, LiteLLMAgentModelResolver):
+                if isinstance(callback, GatewayAgentModelResolver):
                     return callback
 
-            _litellm_agent_resolver: Final = LiteLLMAgentModelResolver()
-            _in_memory_loggers.append(_litellm_agent_resolver)
-            return _litellm_agent_resolver
+            _gateway_agent_resolver: Final = GatewayAgentModelResolver()
+            _in_memory_loggers.append(_gateway_agent_resolver)
+            return _gateway_agent_resolver
         elif logging_integration == "prometheus":
             PrometheusLogger: Final = _get_cached_prometheus_logger()
 
@@ -4886,7 +4886,7 @@ def get_custom_logger_compatible_class(
                     return callback
         elif logging_integration == "litellm_agent":
             for callback in _in_memory_loggers:
-                if isinstance(callback, LiteLLMAgentModelResolver):
+                if isinstance(callback, GatewayAgentModelResolver):
                     return callback
         elif logging_integration == "prometheus":
             PrometheusLogger: Final = _get_cached_prometheus_logger()
@@ -5113,7 +5113,7 @@ def _model_access_groups_from_metadata(metadata: Mapping[str, object]) -> tuple[
     return coerce_model_access_groups(_model_access_groups_on_auth_object(metadata.get("user_api_key_auth")))
 
 
-def request_model_access_groups_from_litellm_params(litellm_params: Mapping[str, object]) -> tuple[str, ...]:
+def request_model_access_groups_from_gateway_params(litellm_params: Mapping[str, object]) -> tuple[str, ...]:
     """Access groups the auth layer stamped onto this request, from whichever metadata field carries them.
 
     Detached internal sub-calls only inherit the identity keys, so the auth object is the
@@ -5197,7 +5197,7 @@ class StandardLoggingPayloadSetup:
         return messages
 
     @staticmethod
-    def merge_litellm_metadata(litellm_params: Mapping[str, object]) -> dict:
+    def merge_gateway_metadata(litellm_params: Mapping[str, object]) -> dict:
         """
         Merge both litellm_metadata and metadata from litellm_params.
 
@@ -5717,16 +5717,16 @@ class StandardLoggingPayloadSetup:
         - On: `litellm_trace_id` takes priority - trace_id and session_id are independent,
           see `get_standard_logging_payload_session_id` for session tracking.
         """
-        dynamic_litellm_session_id: Final = litellm_params.get("litellm_session_id")
-        dynamic_litellm_trace_id: Final = litellm_params.get("litellm_trace_id")
+        dynamic_gateway_session_id: Final = litellm_params.get("litellm_session_id")
+        dynamic_gateway_trace_id: Final = litellm_params.get("litellm_trace_id")
         metadata: Final[Mapping[str, object] | None] = litellm_params.get("metadata")
         metadata_session_id: Final = metadata.get("session_id") if metadata else None
         metadata_trace_id: Final = metadata.get("trace_id") if metadata else None
 
         ordered_candidates: Final[tuple[object, object, object, object]] = (
-            (dynamic_litellm_trace_id, dynamic_litellm_session_id, metadata_trace_id, metadata_session_id)
+            (dynamic_gateway_trace_id, dynamic_gateway_session_id, metadata_trace_id, metadata_session_id)
             if gateway.request_correlation_in_logs
-            else (dynamic_litellm_session_id, dynamic_litellm_trace_id, metadata_session_id, metadata_trace_id)
+            else (dynamic_gateway_session_id, dynamic_gateway_trace_id, metadata_session_id, metadata_trace_id)
         )
         for candidate in ordered_candidates:
             if candidate:
@@ -5748,9 +5748,9 @@ class StandardLoggingPayloadSetup:
         """
         if not gateway.request_correlation_in_logs:
             return ""
-        dynamic_litellm_session_id: Final[object] = litellm_params.get("litellm_session_id")
-        if dynamic_litellm_session_id:
-            return str(dynamic_litellm_session_id)
+        dynamic_gateway_session_id: Final[object] = litellm_params.get("litellm_session_id")
+        if dynamic_gateway_session_id:
+            return str(dynamic_gateway_session_id)
         metadata: Final[Mapping[str, object] | None] = litellm_params.get("metadata")
         metadata_session_id: Final = metadata.get("session_id") if metadata else None
         if metadata_session_id:
@@ -5956,7 +5956,7 @@ def get_standard_logging_object_payload(
         proxy_server_request: Final = litellm_params.get("proxy_server_request") or {}
 
         # Merge both litellm_metadata and metadata to get complete metadata
-        metadata: Final[dict] = StandardLoggingPayloadSetup.merge_litellm_metadata(litellm_params)
+        metadata: Final[dict] = StandardLoggingPayloadSetup.merge_gateway_metadata(litellm_params)
 
         completion_start_time: Final = kwargs.get("completion_start_time", end_time)
         call_type: Final = kwargs.get("call_type")
@@ -5980,7 +5980,7 @@ def get_standard_logging_object_payload(
         request_tags: Final = StandardLoggingPayloadSetup._get_request_tags(
             litellm_params=litellm_params, proxy_server_request=proxy_server_request
         )
-        request_model_access_groups: Final = request_model_access_groups_from_litellm_params(litellm_params)
+        request_model_access_groups: Final = request_model_access_groups_from_gateway_params(litellm_params)
 
         # cleanup timestamps
         (

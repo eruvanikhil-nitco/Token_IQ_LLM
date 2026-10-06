@@ -7,7 +7,7 @@ import httpx
 import pytest
 from aiohttp import ClientSession
 
-from token_iq.gateway.llms.custom_httpx.aiohttp_transport import LiteLLMAiohttpTransport
+from token_iq.gateway.llms.custom_httpx.aiohttp_transport import GatewayAiohttpTransport
 from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler
 
 
@@ -19,7 +19,7 @@ def _closed_local_port() -> int:
 
 async def test_client_session_helper() -> None:
     transport: Final = AsyncHTTPHandler._create_aiohttp_transport()
-    assert isinstance(transport, LiteLLMAiohttpTransport)
+    assert isinstance(transport, GatewayAiohttpTransport)
     session1: Final = transport._get_valid_client_session()
     assert isinstance(session1, ClientSession)
     assert session1.closed is False

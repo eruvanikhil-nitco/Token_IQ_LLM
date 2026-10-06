@@ -29,7 +29,7 @@ from starlette.requests import Request
 
 from token_iq import gateway
 from token_iq.gateway.integrations.opentelemetry import LITELLM_PROXY_REQUEST_SPAN_NAME
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.proxy._types import UserAPIKeyAuth
 from token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints import (
     HttpPassThroughEndpointHelpers,
@@ -79,7 +79,7 @@ def _make_request() -> Request:
 
 def _build_logging_obj_wired_to_root(
     root_span, *, stream: bool, extra_body: Optional[dict] = None
-) -> Tuple[LiteLLMLoggingObj, dict, datetime]:
+) -> Tuple[GatewayLoggingObj, dict, datetime]:
     """Mirror pass_through_endpoints.py: build the logging object and run the
     real _init_kwargs + update_environment_variables so the parent span lands
     on model_call_details exactly the way production wires it."""
@@ -89,7 +89,7 @@ def _build_logging_obj_wired_to_root(
         body.update(extra_body)
     user_api_key_dict = UserAPIKeyAuth(api_key="sk-test", parent_otel_span=root_span)
     start_time = datetime.now()
-    logging_obj = LiteLLMLoggingObj(
+    logging_obj = GatewayLoggingObj(
         model="unknown",
         messages=[{"role": "user", "content": "hi"}],
         stream=stream,
@@ -305,7 +305,7 @@ def test_init_kwargs_internal_keys_resist_client_metadata(server_span_factory):
             "litellm_parent_otel_span": "not-a-real-span",
         },
     }
-    logging_obj = LiteLLMLoggingObj(
+    logging_obj = GatewayLoggingObj(
         model="unknown",
         messages=[{"role": "user", "content": "hi"}],
         stream=False,

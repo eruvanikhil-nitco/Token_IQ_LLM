@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Final
 from typing_extensions import TypedDict
 
 if TYPE_CHECKING:
-    from token_iq.gateway import LiteLLMLoggingObj
+    from token_iq.gateway import GatewayLoggingObj
     from token_iq.gateway.types.llms.openai import HttpxBinaryResponseContent
 
 
@@ -17,7 +17,7 @@ class SpeechToCompletionBridgeHandlerInputKwargs(TypedDict):
     voice: str | dict | None
     optional_params: dict
     litellm_params: dict
-    logging_obj: "LiteLLMLoggingObj"
+    logging_obj: "GatewayLoggingObj"
     headers: dict
     custom_llm_provider: str
 
@@ -30,7 +30,7 @@ class SpeechToCompletionBridgeHandler:
         self.transformation_handler = SpeechToCompletionBridgeTransformationHandler()
 
     def validate_input_kwargs(self, kwargs: dict) -> SpeechToCompletionBridgeHandlerInputKwargs:
-        from token_iq.gateway import LiteLLMLoggingObj
+        from token_iq.gateway import GatewayLoggingObj
 
         model: Final = kwargs.get("model")
         if model is None or not isinstance(model, str):
@@ -61,7 +61,7 @@ class SpeechToCompletionBridgeHandler:
             raise ValueError("headers is required")
 
         logging_obj: Final = kwargs.get("logging_obj")
-        if logging_obj is None or not isinstance(logging_obj, LiteLLMLoggingObj):
+        if logging_obj is None or not isinstance(logging_obj, GatewayLoggingObj):
             raise ValueError("logging_obj is required")
 
         return SpeechToCompletionBridgeHandlerInputKwargs(
@@ -83,7 +83,7 @@ class SpeechToCompletionBridgeHandler:
         optional_params: dict,
         litellm_params: dict,
         headers: dict,
-        logging_obj: "LiteLLMLoggingObj",
+        logging_obj: "GatewayLoggingObj",
         custom_llm_provider: str,
     ) -> "HttpxBinaryResponseContent":
         received_args: Final = locals()

@@ -36,12 +36,12 @@ from token_iq.gateway.types.utils import ModelResponse
 if TYPE_CHECKING:
     import tiktoken
 
-    from token_iq.gateway.core_utils.litellm_logging import Logging as _LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as _GatewayLoggingObj
     from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
 
-    LiteLLMLoggingObj = _LiteLLMLoggingObj
+    GatewayLoggingObj = _GatewayLoggingObj
 else:
-    LiteLLMLoggingObj = Any
+    GatewayLoggingObj = Any
     HTTPHandler = Any
     AsyncHTTPHandler = Any
 
@@ -292,7 +292,7 @@ class AzureAIAgentsConfig(BaseConfig):
         model: str,
         raw_response: httpx.Response,
         model_response: ModelResponse,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         request_data: dict,
         messages: list[AllMessageValues],
         optional_params: dict,
@@ -314,7 +314,7 @@ class AzureAIAgentsConfig(BaseConfig):
         api_base: str,
         api_key: str | None,
         model_response: ModelResponse,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         optional_params: dict,
         litellm_params: dict,
         timeout: float | Any,
@@ -337,7 +337,7 @@ class AzureAIAgentsConfig(BaseConfig):
         """
         from token_iq.gateway.llms.azure.common_utils import get_azure_ad_token
         from token_iq.gateway.llms.azure_ai.agents.handler import azure_ai_agents_handler
-        from token_iq.gateway.types.router import GenericLiteLLMParams
+        from token_iq.gateway.types.router import GenericGatewayParams
 
         # If no api_key is provided, try to get Azure AD token
         if api_key is None:
@@ -346,7 +346,7 @@ class AzureAIAgentsConfig(BaseConfig):
             # Create a GenericLiteLLMParams with the scope override for Azure Foundry Agents
             azure_auth_params: Final = dict(litellm_params) if litellm_params else {}
             azure_auth_params["azure_scope"] = "https://ai.azure.com/.default"
-            api_key = get_azure_ad_token(GenericLiteLLMParams(**azure_auth_params))
+            api_key = get_azure_ad_token(GenericGatewayParams(**azure_auth_params))
 
         if api_key is None:
             raise ValueError(

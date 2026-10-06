@@ -27,7 +27,7 @@ from token_iq.gateway.caching.caching import RedisCache
 from token_iq.gateway.caching.redis_cluster_cache import RedisClusterCache
 from token_iq.gateway.core_utils.get_model_cost_map import ModelCostMapReloaded
 from token_iq.gateway.caching.dual_cache import DualCache
-from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
 from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 from token_iq.gateway.proxy.proxy_server import app, initialize
 from token_iq.gateway.utils import _invalidate_model_cost_lowercase_map
@@ -1153,7 +1153,7 @@ def test_get_config_custom_callback_api_env_vars(monkeypatch):
     # Bypass auth dependency
     original_overrides = app.dependency_overrides.copy()
     app.dependency_overrides[user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, api_key="sk-1234"
+        user_role=GatewayUserRoles.PROXY_ADMIN, api_key="sk-1234"
     )
 
     client = TestClient(app)
@@ -1202,7 +1202,7 @@ def test_get_config_callbacks_fall_back_to_process_env(mock_env_vars, monkeypatc
 
     original_overrides = app.dependency_overrides.copy()
     app.dependency_overrides[user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, api_key="sk-1234"
+        user_role=GatewayUserRoles.PROXY_ADMIN, api_key="sk-1234"
     )
 
     client = TestClient(app)
@@ -1249,7 +1249,7 @@ def test_get_config_callback_env_secrets_redacted_for_non_admin(mock_env_vars, m
 
     original_overrides = app.dependency_overrides.copy()
     app.dependency_overrides[user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-user"
+        user_role=GatewayUserRoles.INTERNAL_USER, api_key="sk-user"
     )
 
     client = TestClient(app)
@@ -1299,7 +1299,7 @@ def test_get_config_returns_email_settings(monkeypatch):
 
     original_overrides = app.dependency_overrides.copy()
     app.dependency_overrides[user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, api_key="sk-1234"
+        user_role=GatewayUserRoles.PROXY_ADMIN, api_key="sk-1234"
     )
 
     client = TestClient(app)
@@ -1336,7 +1336,7 @@ def _get_email_alert_variables(monkeypatch, config_data):
 
     original_overrides = app.dependency_overrides.copy()
     app.dependency_overrides[user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, api_key="sk-1234"
+        user_role=GatewayUserRoles.PROXY_ADMIN, api_key="sk-1234"
     )
 
     client = TestClient(app)
@@ -1461,7 +1461,7 @@ def test_get_config_returns_slack_webhook(monkeypatch):
 
     original_overrides = app.dependency_overrides.copy()
     app.dependency_overrides[user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, api_key="sk-1234"
+        user_role=GatewayUserRoles.PROXY_ADMIN, api_key="sk-1234"
     )
 
     client = TestClient(app)
@@ -1511,7 +1511,7 @@ def test_get_config_cleared_slack_webhook_not_overridden_by_os_env(monkeypatch):
 
     original_overrides = app.dependency_overrides.copy()
     app.dependency_overrides[user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, api_key="sk-1234"
+        user_role=GatewayUserRoles.PROXY_ADMIN, api_key="sk-1234"
     )
 
     client = TestClient(app)
@@ -1680,13 +1680,13 @@ async def test_get_all_team_models():
     # Mock prisma client
     mock_prisma_client = MagicMock()
     mock_db = MagicMock()
-    mock_litellm_teamtable = MagicMock()
+    mock_gateway_teamtable = MagicMock()
 
     mock_prisma_client.db = mock_db
-    mock_db.litellm_teamtable = mock_litellm_teamtable
+    mock_db.litellm_teamtable = mock_gateway_teamtable
 
     # Make find_many async
-    mock_litellm_teamtable.find_many = AsyncMock()
+    mock_gateway_teamtable.find_many = AsyncMock()
 
     # Mock router
     mock_router = MagicMock()
@@ -1703,7 +1703,7 @@ async def test_get_all_team_models():
     mock_router.get_model_list.side_effect = mock_get_model_list
 
     # Test Case 1: user_teams = "*" (all teams)
-    mock_litellm_teamtable.find_many.return_value = [mock_team1, mock_team2]
+    mock_gateway_teamtable.find_many.return_value = [mock_team1, mock_team2]
 
     with patch("token_iq.gateway.proxy.proxy_server.LiteLLM_TeamTable") as mock_team_table_class:
         # Configure the mock class to return proper instances
@@ -1723,7 +1723,7 @@ async def test_get_all_team_models():
         )
 
         # Verify find_many was called without where clause for "*"
-        mock_litellm_teamtable.find_many.assert_called_with()
+        mock_gateway_teamtable.find_many.assert_called_with()
 
         # Verify router.get_model_list was called for each model
         expected_calls = [
@@ -1735,12 +1735,12 @@ async def test_get_all_team_models():
         mock_router.get_model_list.assert_has_calls(expected_calls, any_order=True)
 
     # Test Case 2: user_teams = specific list
-    mock_litellm_teamtable.reset_mock()
+    mock_gateway_teamtable.reset_mock()
     mock_router.reset_mock()
     mock_router.get_model_list.side_effect = mock_get_model_list
 
     # Only return team1 for specific team query
-    mock_litellm_teamtable.find_many.return_value = [mock_team1]
+    mock_gateway_teamtable.find_many.return_value = [mock_team1]
 
     with patch("token_iq.gateway.proxy.proxy_server.LiteLLM_TeamTable") as mock_team_table_class:
         mock_team_table_class.model_validate.side_effect = mock_team_table_constructor
@@ -1752,7 +1752,7 @@ async def test_get_all_team_models():
         )
 
         # Verify find_many was called with where clause for specific teams
-        mock_litellm_teamtable.find_many.assert_called_with(where={"team_id": {"in": ["team1"]}})
+        mock_gateway_teamtable.find_many.assert_called_with(where={"team_id": {"in": ["team1"]}})
 
         # Verify router.get_model_list was called only for team1 models
         expected_calls = [
@@ -1762,9 +1762,9 @@ async def test_get_all_team_models():
         mock_router.get_model_list.assert_has_calls(expected_calls, any_order=True)
 
     # Test Case 3: Empty teams list
-    mock_litellm_teamtable.reset_mock()
+    mock_gateway_teamtable.reset_mock()
     mock_router.reset_mock()
-    mock_litellm_teamtable.find_many.return_value = []
+    mock_gateway_teamtable.find_many.return_value = []
 
     result = await get_all_team_models(
         user_teams=[],
@@ -1773,15 +1773,15 @@ async def test_get_all_team_models():
     )
 
     # Verify find_many was called with empty list
-    mock_litellm_teamtable.find_many.assert_called_with(where={"team_id": {"in": []}})
+    mock_gateway_teamtable.find_many.assert_called_with(where={"team_id": {"in": []}})
 
     # Should return empty list when no teams
     assert result == {}
 
     # Test Case 4: Router returns None for some models
-    mock_litellm_teamtable.reset_mock()
+    mock_gateway_teamtable.reset_mock()
     mock_router.reset_mock()
-    mock_litellm_teamtable.find_many.return_value = [mock_team1]
+    mock_gateway_teamtable.find_many.return_value = [mock_team1]
 
     def mock_get_model_list_with_none(model_name, team_id=None):
         if model_name == "gpt-4":
@@ -2138,7 +2138,7 @@ async def test_apply_search_filter_scopes_byok_to_caller_teams():
     ]
 
     non_admin = MagicMock(spec=UserAPIKeyAuth)
-    non_admin.user_role = LitellmUserRoles.INTERNAL_USER
+    non_admin.user_role = GatewayUserRoles.INTERNAL_USER
     non_admin.user_id = "user-mine"
     non_admin.team_id = None
 
@@ -2170,7 +2170,7 @@ async def test_apply_search_filter_scopes_byok_to_caller_teams():
 
     # Admins keep the un-scoped view across teams.
     admin = MagicMock(spec=UserAPIKeyAuth)
-    admin.user_role = LitellmUserRoles.PROXY_ADMIN
+    admin.user_role = GatewayUserRoles.PROXY_ADMIN
     admin.user_id = "admin-1"
     admin.team_id = None
 
@@ -2369,7 +2369,7 @@ async def test_filter_models_by_team_id_rejects_non_member():
     """
     from fastapi import HTTPException
 
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
     from token_iq.gateway.proxy.proxy_server import _filter_models_by_team_id
 
     byok = {
@@ -2386,7 +2386,7 @@ async def test_filter_models_by_team_id_rejects_non_member():
 
     caller = UserAPIKeyAuth(
         user_id="alice",
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         api_key="sk-test",
     )
 
@@ -2407,7 +2407,7 @@ async def test_filter_models_by_team_id_allows_team_member():
     A caller who IS a member of `team_id` must be allowed to filter, and
     should see that team's BYOK rows.
     """
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
     from token_iq.gateway.proxy.proxy_server import _filter_models_by_team_id
 
     byok = {
@@ -2436,7 +2436,7 @@ async def test_filter_models_by_team_id_allows_team_member():
 
     caller = UserAPIKeyAuth(
         user_id="bob",
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         api_key="sk-test",
     )
 
@@ -2459,12 +2459,12 @@ async def test_caller_byok_team_scope_treats_view_only_admin_as_unscoped():
     to the user-id's `teams` field — that path narrows results to whatever
     teams the admin happens to be a member of, regressing pre-PR behavior.
     """
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
     from token_iq.gateway.proxy.proxy_server import _get_caller_byok_team_scope
 
     caller = UserAPIKeyAuth(
         user_id="view-admin",
-        user_role=LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY,
+        user_role=GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY,
         api_key="sk-test",
     )
     scope = await _get_caller_byok_team_scope(
@@ -2697,10 +2697,10 @@ async def test_get_all_team_models_with_access_groups():
 
     mock_prisma_client = MagicMock()
     mock_db = MagicMock()
-    mock_litellm_teamtable = MagicMock()
+    mock_gateway_teamtable = MagicMock()
     mock_prisma_client.db = mock_db
-    mock_db.litellm_teamtable = mock_litellm_teamtable
-    mock_litellm_teamtable.find_many = AsyncMock(return_value=[mock_team1])
+    mock_db.litellm_teamtable = mock_gateway_teamtable
+    mock_gateway_teamtable.find_many = AsyncMock(return_value=[mock_team1])
     mock_db.litellm_accessgrouptable = MagicMock()
     mock_db.litellm_accessgrouptable.find_many = AsyncMock(return_value=[mock_ag_row])
 
@@ -2993,12 +2993,12 @@ async def test_add_proxy_budget_to_db_only_creates_user_no_keys():
     gateway.budget_duration = "30d"
     gateway.max_budget = 100.0
 
-    litellm_proxy_budget_name = "litellm-proxy-budget"
+    gateway_proxy_budget_name = "litellm-proxy-budget"
 
     # Mock generate_key_helper_fn to capture its call arguments
     mock_generate_key_helper = AsyncMock(
         return_value={
-            "user_id": litellm_proxy_budget_name,
+            "user_id": gateway_proxy_budget_name,
             "max_budget": 100.0,
             "budget_duration": "30d",
             "spend": 0,
@@ -3023,7 +3023,7 @@ async def test_add_proxy_budget_to_db_only_creates_user_no_keys():
         # Verify critical parameters that prevent key creation
         assert call_args.kwargs["request_type"] == "user"
         assert call_args.kwargs["table_name"] == "user"
-        assert call_args.kwargs["user_id"] == litellm_proxy_budget_name
+        assert call_args.kwargs["user_id"] == gateway_proxy_budget_name
         assert call_args.kwargs["max_budget"] == 100.0
         assert call_args.kwargs["budget_duration"] == "30d"
         assert call_args.kwargs["query_type"] == "update_data"
@@ -3050,14 +3050,14 @@ async def test_add_proxy_budget_to_db_backfills_budget_reset_at():
 
     gateway.budget_duration = "30d"
     gateway.max_budget = 100.0
-    litellm_proxy_budget_name = "litellm-proxy-budget"
+    gateway_proxy_budget_name = "litellm-proxy-budget"
 
     mock_prisma = MagicMock()
     mock_prisma.db.litellm_usertable.update_many = AsyncMock(return_value={"count": 1})
 
     mock_generate_key_helper = AsyncMock(
         return_value={
-            "user_id": litellm_proxy_budget_name,
+            "user_id": gateway_proxy_budget_name,
             "max_budget": 100.0,
             "budget_duration": "30d",
             "spend": 0,
@@ -3080,7 +3080,7 @@ async def test_add_proxy_budget_to_db_backfills_budget_reset_at():
     # Backfill update_many ran with the conditional WHERE
     mock_prisma.db.litellm_usertable.update_many.assert_called_once()
     backfill_call = mock_prisma.db.litellm_usertable.update_many.call_args
-    assert backfill_call.kwargs["where"]["user_id"] == litellm_proxy_budget_name
+    assert backfill_call.kwargs["where"]["user_id"] == gateway_proxy_budget_name
     assert backfill_call.kwargs["where"]["budget_reset_at"] is None
 
     # The backfilled value must be a real future datetime — anything else and
@@ -3883,7 +3883,7 @@ class TestPriceDataReloadAPI:
     @pytest.fixture
     def client_with_auth(self):
         """Create a test client with authentication"""
-        from token_iq.gateway.proxy._types import LitellmUserRoles
+        from token_iq.gateway.proxy._types import GatewayUserRoles
         from token_iq.gateway.proxy.proxy_server import cleanup_router_config_variables
 
         cleanup_router_config_variables()
@@ -3893,7 +3893,7 @@ class TestPriceDataReloadAPI:
 
         # Mock admin user authentication
         mock_auth = MagicMock()
-        mock_auth.user_role = LitellmUserRoles.PROXY_ADMIN
+        mock_auth.user_role = GatewayUserRoles.PROXY_ADMIN
         app.dependency_overrides[user_api_key_auth] = lambda: mock_auth
 
         return TestClient(app)
@@ -4149,7 +4149,7 @@ class TestPriceDataReloadIntegration:
     @pytest.fixture
     def client_with_auth(self):
         """Create a test client with authentication"""
-        from token_iq.gateway.proxy._types import LitellmUserRoles
+        from token_iq.gateway.proxy._types import GatewayUserRoles
         from token_iq.gateway.proxy.proxy_server import cleanup_router_config_variables
 
         cleanup_router_config_variables()
@@ -4159,7 +4159,7 @@ class TestPriceDataReloadIntegration:
 
         # Mock admin user authentication
         mock_auth = MagicMock()
-        mock_auth.user_role = LitellmUserRoles.PROXY_ADMIN
+        mock_auth.user_role = GatewayUserRoles.PROXY_ADMIN
         app.dependency_overrides[user_api_key_auth] = lambda: mock_auth
 
         return TestClient(app)
@@ -4571,7 +4571,7 @@ class TestPriceDataReloadIntegration:
         The swap happens early in the handler, so a failure in the bookkeeping
         after it is swallowed by the surrounding except and would otherwise
         leave the metadata correct while the path is quietly broken"""
-        from token_iq.gateway import utils as litellm_utils
+        from token_iq.gateway import utils as gateway_utils
         from token_iq.gateway.core_utils.get_model_cost_map import ModelCostMapReloaded
         from token_iq.gateway.proxy.proxy_server import ProxyConfig
 
@@ -4585,7 +4585,7 @@ class TestPriceDataReloadIntegration:
         mock_prisma.db.litellm_config.update_many = AsyncMock(return_value=None)
 
         original_model_cost = gateway.model_cost
-        original_registry = dict(litellm_utils._runtime_registered_model_cost)
+        original_registry = dict(gateway_utils._runtime_registered_model_cost)
         try:
             gateway.register_model(
                 model_cost={"custom/deployment-model": {"litellm_provider": "custom", "max_input_tokens": 4321}}
@@ -4611,8 +4611,8 @@ class TestPriceDataReloadIntegration:
             assert proxy_config.model_cost_map_applied_revision == 7
         finally:
             gateway.model_cost = original_model_cost
-            litellm_utils._runtime_registered_model_cost.clear()
-            litellm_utils._runtime_registered_model_cost.update(original_registry)
+            gateway_utils._runtime_registered_model_cost.clear()
+            gateway_utils._runtime_registered_model_cost.update(original_registry)
             _invalidate_model_cost_lowercase_map()
 
     def test_swap_in_model_cost_map_counts_the_fetched_catalog_only(self):
@@ -4620,11 +4620,11 @@ class TestPriceDataReloadIntegration:
         is taken before the runtime registrations are written back into the same
         dict. Counting after would inflate it by however many deployments and
         overrides this pod happens to be carrying"""
-        from token_iq.gateway import utils as litellm_utils
+        from token_iq.gateway import utils as gateway_utils
         from token_iq.gateway.proxy.proxy_server import _swap_in_model_cost_map
 
         original_model_cost = gateway.model_cost
-        original_registry = dict(litellm_utils._runtime_registered_model_cost)
+        original_registry = dict(gateway_utils._runtime_registered_model_cost)
         try:
             gateway.register_model(
                 model_cost={"custom/deployment-model": {"litellm_provider": "custom", "max_input_tokens": 4321}}
@@ -4636,8 +4636,8 @@ class TestPriceDataReloadIntegration:
             assert gateway.model_cost["custom/deployment-model"]["max_input_tokens"] == 4321
         finally:
             gateway.model_cost = original_model_cost
-            litellm_utils._runtime_registered_model_cost.clear()
-            litellm_utils._runtime_registered_model_cost.update(original_registry)
+            gateway_utils._runtime_registered_model_cost.clear()
+            gateway_utils._runtime_registered_model_cost.update(original_registry)
             _invalidate_model_cost_lowercase_map()
 
     def test_manual_reload_preserves_interval_hours(self):
@@ -4645,7 +4645,7 @@ class TestPriceDataReloadIntegration:
         Regression: manual reload owns only the run columns, so it never reads or rewrites
         param_value and cannot destroy an existing schedule
         """
-        from token_iq.gateway.proxy._types import LitellmUserRoles
+        from token_iq.gateway.proxy._types import GatewayUserRoles
         from token_iq.gateway.proxy.proxy_server import cleanup_router_config_variables
 
         cleanup_router_config_variables()
@@ -4654,7 +4654,7 @@ class TestPriceDataReloadIntegration:
         asyncio.run(initialize(config=config_fp, debug=True))
 
         mock_auth = MagicMock()
-        mock_auth.user_role = LitellmUserRoles.PROXY_ADMIN
+        mock_auth.user_role = GatewayUserRoles.PROXY_ADMIN
         app.dependency_overrides[user_api_key_auth] = lambda: mock_auth
         client = TestClient(app)
         frozen_now = datetime(2024, 1, 1, 7, 0, tzinfo=timezone.utc)
@@ -4742,7 +4742,7 @@ class TestPriceDataReloadIntegration:
         Regression test: the manual reload endpoint was overwriting param_value with
         only force_reload=True, dropping any existing interval_hours schedule.
         """
-        from token_iq.gateway.proxy._types import LitellmUserRoles
+        from token_iq.gateway.proxy._types import GatewayUserRoles
         from token_iq.gateway.proxy.proxy_server import cleanup_router_config_variables
 
         cleanup_router_config_variables()
@@ -4751,7 +4751,7 @@ class TestPriceDataReloadIntegration:
         asyncio.run(initialize(config=config_fp, debug=True))
 
         mock_auth = MagicMock()
-        mock_auth.user_role = LitellmUserRoles.PROXY_ADMIN
+        mock_auth.user_role = GatewayUserRoles.PROXY_ADMIN
         app.dependency_overrides[user_api_key_auth] = lambda: mock_auth
         client = TestClient(app)
 
@@ -5213,7 +5213,7 @@ async def test_model_info_v1_oci_secrets_not_leaked():
         assert "/path/to/oci_api_key.pem" not in result_str
 
 
-def test_add_callback_from_db_to_in_memory_litellm_callbacks():
+def test_add_callback_from_db_to_in_memory_gateway_callbacks():
     """
     Test that _add_callback_from_db_to_in_memory_litellm_callbacks correctly adds callbacks
     for success, failure, and combined event types.
@@ -5227,34 +5227,34 @@ def test_add_callback_from_db_to_in_memory_litellm_callbacks():
     # Mock the callback manager
     mock_callback_manager = MagicMock()
 
-    with patch("token_iq.gateway.proxy.proxy_server.gateway") as mock_litellm:
+    with patch("token_iq.gateway.proxy.proxy_server.gateway") as mock_gateway:
         # Set up mock litellm attributes
-        mock_litellm._known_custom_logger_compatible_callbacks = []
-        mock_litellm.logging_callback_manager = mock_callback_manager
+        mock_gateway._known_custom_logger_compatible_callbacks = []
+        mock_gateway.logging_callback_manager = mock_callback_manager
 
         # Test Case 1: Add success callback
         mock_success_callbacks = []
-        proxy_config._add_callback_from_db_to_in_memory_litellm_callbacks(
+        proxy_config._add_callback_from_db_to_in_memory_gateway_callbacks(
             callback="prometheus",
             event_types=["success"],
             existing_callbacks=mock_success_callbacks,
         )
-        mock_callback_manager.add_litellm_success_callback.assert_called_once_with("prometheus")
+        mock_callback_manager.add_gateway_success_callback.assert_called_once_with("prometheus")
         mock_callback_manager.reset_mock()
 
         # Test Case 2: Add failure callback
         mock_failure_callbacks = []
-        proxy_config._add_callback_from_db_to_in_memory_litellm_callbacks(
+        proxy_config._add_callback_from_db_to_in_memory_gateway_callbacks(
             callback="langfuse",
             event_types=["failure"],
             existing_callbacks=mock_failure_callbacks,
         )
-        mock_callback_manager.add_litellm_failure_callback.assert_called_once_with("langfuse")
+        mock_callback_manager.add_gateway_failure_callback.assert_called_once_with("langfuse")
         mock_callback_manager.reset_mock()
 
         # Test Case 3: Add callback for both success and failure
         mock_callbacks = []
-        proxy_config._add_callback_from_db_to_in_memory_litellm_callbacks(
+        proxy_config._add_callback_from_db_to_in_memory_gateway_callbacks(
             callback="s3",
             event_types=["success", "failure"],
             existing_callbacks=mock_callbacks,
@@ -5264,12 +5264,12 @@ def test_add_callback_from_db_to_in_memory_litellm_callbacks():
 
         # Test Case 4: Don't add callback if it already exists
         existing_callbacks_with_item = ["prometheus"]
-        proxy_config._add_callback_from_db_to_in_memory_litellm_callbacks(
+        proxy_config._add_callback_from_db_to_in_memory_gateway_callbacks(
             callback="prometheus",
             event_types=["success"],
             existing_callbacks=existing_callbacks_with_item,
         )
-        mock_callback_manager.add_litellm_success_callback.assert_not_called()
+        mock_callback_manager.add_gateway_success_callback.assert_not_called()
 
 
 def test_should_load_db_object_with_supported_db_objects():
@@ -6282,7 +6282,7 @@ def test_get_config_normalizes_string_callbacks(monkeypatch):
 
     original_overrides = app.dependency_overrides.copy()
     app.dependency_overrides[user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, api_key="sk-1234"
+        user_role=GatewayUserRoles.PROXY_ADMIN, api_key="sk-1234"
     )
 
     client = TestClient(app)
@@ -6349,7 +6349,7 @@ class TestInvitationEndpoints:
     @pytest.fixture
     def client_with_auth(self):
         """Create a test client with admin authentication."""
-        from token_iq.gateway.proxy._types import LitellmUserRoles
+        from token_iq.gateway.proxy._types import GatewayUserRoles
         from token_iq.gateway.proxy.proxy_server import cleanup_router_config_variables
 
         cleanup_router_config_variables()
@@ -6359,7 +6359,7 @@ class TestInvitationEndpoints:
 
         mock_auth = MagicMock()
         mock_auth.user_id = "admin-user-id"
-        mock_auth.user_role = LitellmUserRoles.PROXY_ADMIN
+        mock_auth.user_role = GatewayUserRoles.PROXY_ADMIN
         mock_auth.api_key = "sk-test"
         app.dependency_overrides[user_api_key_auth] = lambda: mock_auth
 
@@ -6432,11 +6432,11 @@ class TestInvitationEndpoints:
     )
     def test_invitation_endpoints_non_admin_denied(self, client_with_auth, endpoint, payload):
         """Non-admin users cannot access invitation endpoints."""
-        from token_iq.gateway.proxy._types import LitellmUserRoles
+        from token_iq.gateway.proxy._types import GatewayUserRoles
 
         mock_auth = MagicMock()
         mock_auth.user_id = "regular-user"
-        mock_auth.user_role = LitellmUserRoles.INTERNAL_USER
+        mock_auth.user_role = GatewayUserRoles.INTERNAL_USER
         mock_auth.api_key = "sk-regular"
         app.dependency_overrides[user_api_key_auth] = lambda: mock_auth
 
@@ -8763,7 +8763,7 @@ class _FakeRow:
         self.param_value = param_value
 
 
-class _FakeLitellmConfig:
+class _FakeGatewayConfig:
     def __init__(self, initial_rows=None):
         self.rows = dict(initial_rows or {})
         self.upsert_calls: list = []
@@ -8788,14 +8788,14 @@ class _FakeLitellmConfig:
 class _FakePrismaClient:
     def __init__(self, initial_rows=None):
         self.db = mock.MagicMock()
-        self.db.litellm_config = _FakeLitellmConfig(initial_rows=initial_rows)
+        self.db.litellm_config = _FakeGatewayConfig(initial_rows=initial_rows)
         self.jsonify_object = lambda obj: obj
 
 
 @pytest.fixture
 def _update_config_setup(monkeypatch):
     """Install fakes for the /config/update endpoint and return (client, prisma)."""
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
     from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth as auth_dep
 
     def _install(initial_rows=None, store_model_in_db=True):
@@ -8817,7 +8817,7 @@ def _update_config_setup(monkeypatch):
         original_overrides = app.dependency_overrides.copy()
         app.dependency_overrides[auth_dep] = lambda: UserAPIKeyAuth(
             user_id="test_admin",
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
             api_key="sk-1234",
         )
         client = TestClient(app)
@@ -8935,7 +8935,7 @@ def test_update_config_environment_variables_encrypted_before_write(
         restore()
 
 
-def test_update_config_litellm_settings_request_wins_for_non_callback_keys(
+def test_update_config_gateway_settings_request_wins_for_non_callback_keys(
     _update_config_setup,
 ):
     """Sending {"drop_params": False} when the row holds drop_params: True
@@ -9478,12 +9478,12 @@ def test_realtime_websocket_route_aliases_registered():
     logic such as guardrails can resolve the realtime call type)."""
     from starlette.routing import WebSocketRoute
 
-    from token_iq.gateway.proxy._types import LiteLLMRoutes
+    from token_iq.gateway.proxy._types import GatewayRoutes
     from token_iq.gateway.proxy.proxy_server import app
     from token_iq.gateway.types.utils import API_ROUTE_TO_CALL_TYPES, CallTypes
 
     websocket_paths = {route.path for route in app.routes if isinstance(route, WebSocketRoute)}
-    openai_routes = LiteLLMRoutes.openai_routes.value
+    openai_routes = GatewayRoutes.openai_routes.value
 
     for expected in ("/openai/v1/realtime", "/v1/realtime", "/realtime"):
         assert expected in websocket_paths, (
@@ -9513,7 +9513,7 @@ class TestTransformRequestBannedParams:
     def client(self):
         mock_auth = UserAPIKeyAuth(
             user_id="test-internal",
-            user_role=LitellmUserRoles.INTERNAL_USER,
+            user_role=GatewayUserRoles.INTERNAL_USER,
         )
         original = app.dependency_overrides.copy()
         app.dependency_overrides[user_api_key_auth] = lambda: mock_auth
@@ -9759,7 +9759,7 @@ def test_get_config_list_includes_cancel_on_disconnect(monkeypatch):
     from fastapi.testclient import TestClient
 
     import token_iq.gateway.proxy.proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
     from token_iq.gateway.proxy.proxy_server import app
 
     mock_prisma = MagicMock()
@@ -9768,7 +9768,7 @@ def test_get_config_list_includes_cancel_on_disconnect(monkeypatch):
     mock_prisma.db = types.SimpleNamespace(litellm_config=mock_config_table)
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_id="admin", user_role=LitellmUserRoles.PROXY_ADMIN
+        user_id="admin", user_role=GatewayUserRoles.PROXY_ADMIN
     )
     try:
         client = TestClient(app)
@@ -9791,7 +9791,7 @@ def test_get_config_list_includes_apply_user_budget_to_team_keys(monkeypatch):
     from fastapi.testclient import TestClient
 
     import token_iq.gateway.proxy.proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
     from token_iq.gateway.proxy.proxy_server import app
 
     mock_prisma = MagicMock()
@@ -9800,7 +9800,7 @@ def test_get_config_list_includes_apply_user_budget_to_team_keys(monkeypatch):
     mock_prisma.db = types.SimpleNamespace(litellm_config=mock_config_table)
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_id="admin", user_role=LitellmUserRoles.PROXY_ADMIN
+        user_id="admin", user_role=GatewayUserRoles.PROXY_ADMIN
     )
     try:
         client = TestClient(app)
@@ -9823,7 +9823,7 @@ def test_get_config_list_includes_budget_exceeded_throttle_percentage(monkeypatc
     from fastapi.testclient import TestClient
 
     import token_iq.gateway.proxy.proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
     from token_iq.gateway.proxy.proxy_server import app
 
     mock_prisma = MagicMock()
@@ -9833,7 +9833,7 @@ def test_get_config_list_includes_budget_exceeded_throttle_percentage(monkeypatc
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
     monkeypatch.setattr(gateway, "budget_exceeded_throttle_percentage", 0.15)
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_id="admin", user_role=LitellmUserRoles.PROXY_ADMIN
+        user_id="admin", user_role=GatewayUserRoles.PROXY_ADMIN
     )
     try:
         client = TestClient(app)
@@ -9848,7 +9848,7 @@ def test_get_config_list_includes_budget_exceeded_throttle_percentage(monkeypatc
 
 
 @pytest.mark.asyncio
-async def test_update_config_field_throttle_persists_to_litellm_settings(monkeypatch):
+async def test_update_config_field_throttle_persists_to_gateway_settings(monkeypatch):
     """Editing the throttle Float row on the General Settings table routes to
     litellm_settings (not general_settings): it sets litellm.<attr> live and
     persists under litellm_settings so the runtime read is unchanged."""
@@ -9857,7 +9857,7 @@ async def test_update_config_field_throttle_persists_to_litellm_settings(monkeyp
     import token_iq.gateway.proxy.proxy_server as ps
     from token_iq.gateway.proxy._types import (
         ConfigFieldUpdate,
-        LitellmUserRoles,
+        GatewayUserRoles,
         UserAPIKeyAuth,
     )
     from token_iq.gateway.proxy.proxy_server import update_config_general_settings
@@ -9876,7 +9876,7 @@ async def test_update_config_field_throttle_persists_to_litellm_settings(monkeyp
     monkeypatch.setattr(gateway, "store_audit_logs", False)
     monkeypatch.setattr(gateway, "budget_exceeded_throttle_percentage", None)
 
-    admin = UserAPIKeyAuth(api_key="k", user_id="a", user_role=LitellmUserRoles.PROXY_ADMIN)
+    admin = UserAPIKeyAuth(api_key="k", user_id="a", user_role=GatewayUserRoles.PROXY_ADMIN)
     await update_config_general_settings(
         data=ConfigFieldUpdate(
             field_name="budget_exceeded_throttle_percentage",
@@ -9900,7 +9900,7 @@ def test_get_config_list_includes_anthropic_prompt_caching_fields(monkeypatch):
     from fastapi.testclient import TestClient
 
     import token_iq.gateway.proxy.proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
     from token_iq.gateway.proxy.proxy_server import app
 
     mock_prisma = MagicMock()
@@ -9911,7 +9911,7 @@ def test_get_config_list_includes_anthropic_prompt_caching_fields(monkeypatch):
     monkeypatch.setattr(gateway, "enable_anthropic_prompt_caching", True)
     monkeypatch.setattr(gateway, "anthropic_prompt_caching_ttl", "1h")
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_id="admin", user_role=LitellmUserRoles.PROXY_ADMIN
+        user_id="admin", user_role=GatewayUserRoles.PROXY_ADMIN
     )
     try:
         client = TestClient(app)
@@ -9945,9 +9945,9 @@ def test_general_settings_ui_fields_are_db_overridable():
     without enrolling it in the DB-override allowlist silently breaks cross-worker propagation.
     """
     from token_iq.gateway.constants import LITELLM_SETTINGS_SAFE_DB_OVERRIDES
-    from token_iq.gateway.proxy.proxy_server import _GENERAL_SETTINGS_UI_LITELLM_FIELDS
+    from token_iq.gateway.proxy.proxy_server import _GENERAL_SETTINGS_UI_GATEWAY_FIELDS
 
-    missing = set(_GENERAL_SETTINGS_UI_LITELLM_FIELDS) - set(LITELLM_SETTINGS_SAFE_DB_OVERRIDES)
+    missing = set(_GENERAL_SETTINGS_UI_GATEWAY_FIELDS) - set(LITELLM_SETTINGS_SAFE_DB_OVERRIDES)
     assert not missing, (
         f"UI-editable litellm_settings fields missing from LITELLM_SETTINGS_SAFE_DB_OVERRIDES: {sorted(missing)}. "
         "Add them, or they will not propagate to other workers when changed from the UI."
@@ -9964,7 +9964,7 @@ async def test_update_config_field_max_ui_session_budget_sets_live_value(monkeyp
     import token_iq.gateway.proxy.proxy_server as ps
     from token_iq.gateway.proxy._types import (
         ConfigFieldUpdate,
-        LitellmUserRoles,
+        GatewayUserRoles,
         UserAPIKeyAuth,
     )
     from token_iq.gateway.proxy.proxy_server import update_config_general_settings
@@ -9983,7 +9983,7 @@ async def test_update_config_field_max_ui_session_budget_sets_live_value(monkeyp
     monkeypatch.setattr(gateway, "store_audit_logs", False)
     monkeypatch.setattr(gateway, "max_ui_session_budget", 1.0)
 
-    admin = UserAPIKeyAuth(api_key="k", user_id="a", user_role=LitellmUserRoles.PROXY_ADMIN)
+    admin = UserAPIKeyAuth(api_key="k", user_id="a", user_role=GatewayUserRoles.PROXY_ADMIN)
     await update_config_general_settings(
         data=ConfigFieldUpdate(
             field_name="max_ui_session_budget",
@@ -10003,10 +10003,10 @@ def test_validate_max_ui_session_budget_rejects_malformed(bad_value):
     LLM call at mint and non-numerics would break session key generation."""
     from fastapi import HTTPException
 
-    from token_iq.gateway.proxy.proxy_server import _validate_general_settings_ui_litellm_value
+    from token_iq.gateway.proxy.proxy_server import _validate_general_settings_ui_gateway_value
 
     with pytest.raises(HTTPException) as exc_info:
-        _validate_general_settings_ui_litellm_value("max_ui_session_budget", bad_value)
+        _validate_general_settings_ui_gateway_value("max_ui_session_budget", bad_value)
     assert exc_info.value.status_code == 400
 
 
@@ -10015,29 +10015,29 @@ def test_validate_max_ui_session_budget_empty_restores_default(empty_value):
     """Clearing the field in the UI restores the shipped $1 default rather than None;
     None would silently remove the session spend guardrail (unlimited budget), which
     must stay a deliberate config.yaml act (max_ui_session_budget: null)."""
-    from token_iq.gateway.proxy.proxy_server import _validate_general_settings_ui_litellm_value
+    from token_iq.gateway.proxy.proxy_server import _validate_general_settings_ui_gateway_value
 
-    assert _validate_general_settings_ui_litellm_value("max_ui_session_budget", empty_value) == 1.0
+    assert _validate_general_settings_ui_gateway_value("max_ui_session_budget", empty_value) == 1.0
 
 
 def test_general_settings_ui_defaults_unchanged_for_existing_fields():
     """The spec-default mechanism added for max_ui_session_budget must not change what
     clearing the pre-existing fields restores (None for Float/Select, False for Boolean)."""
     from token_iq.gateway.proxy.proxy_server import (
-        _GENERAL_SETTINGS_UI_LITELLM_FIELDS,
-        _general_settings_ui_litellm_default,
+        _GENERAL_SETTINGS_UI_GATEWAY_FIELDS,
+        _general_settings_ui_gateway_default,
     )
 
     assert (
-        _general_settings_ui_litellm_default(_GENERAL_SETTINGS_UI_LITELLM_FIELDS["budget_exceeded_throttle_percentage"])
+        _general_settings_ui_gateway_default(_GENERAL_SETTINGS_UI_GATEWAY_FIELDS["budget_exceeded_throttle_percentage"])
         is None
     )
     assert (
-        _general_settings_ui_litellm_default(_GENERAL_SETTINGS_UI_LITELLM_FIELDS["enable_anthropic_prompt_caching"])
+        _general_settings_ui_gateway_default(_GENERAL_SETTINGS_UI_GATEWAY_FIELDS["enable_anthropic_prompt_caching"])
         is False
     )
     assert (
-        _general_settings_ui_litellm_default(_GENERAL_SETTINGS_UI_LITELLM_FIELDS["anthropic_prompt_caching_ttl"])
+        _general_settings_ui_gateway_default(_GENERAL_SETTINGS_UI_GATEWAY_FIELDS["anthropic_prompt_caching_ttl"])
         is None
     )
 
@@ -10077,7 +10077,7 @@ def test_get_config_list_marks_untouched_prompt_caching_flag_as_not_set(monkeypa
     from fastapi.testclient import TestClient
 
     import token_iq.gateway.proxy.proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
     from token_iq.gateway.proxy.proxy_server import app
 
     mock_prisma = MagicMock()
@@ -10087,7 +10087,7 @@ def test_get_config_list_marks_untouched_prompt_caching_flag_as_not_set(monkeypa
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
     monkeypatch.setattr(gateway, "enable_anthropic_prompt_caching", False)
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_id="admin", user_role=LitellmUserRoles.PROXY_ADMIN
+        user_id="admin", user_role=GatewayUserRoles.PROXY_ADMIN
     )
     try:
         client = TestClient(app)
@@ -10108,7 +10108,7 @@ def test_get_config_list_marks_untouched_prompt_caching_flag_as_not_set(monkeypa
     ],
 )
 @pytest.mark.asyncio
-async def test_update_config_field_prompt_caching_persists_to_litellm_settings(monkeypatch, field_name, field_value):
+async def test_update_config_field_prompt_caching_persists_to_gateway_settings(monkeypatch, field_name, field_value):
     """Toggling either row must set litellm.<attr> live and persist under litellm_settings,
     so the running proxy caches immediately and still does after a restart."""
     from unittest.mock import MagicMock
@@ -10116,7 +10116,7 @@ async def test_update_config_field_prompt_caching_persists_to_litellm_settings(m
     import token_iq.gateway.proxy.proxy_server as ps
     from token_iq.gateway.proxy._types import (
         ConfigFieldUpdate,
-        LitellmUserRoles,
+        GatewayUserRoles,
         UserAPIKeyAuth,
     )
     from token_iq.gateway.proxy.proxy_server import update_config_general_settings
@@ -10135,7 +10135,7 @@ async def test_update_config_field_prompt_caching_persists_to_litellm_settings(m
     monkeypatch.setattr(gateway, "store_audit_logs", False)
     monkeypatch.setattr(gateway, field_name, None)
 
-    admin = UserAPIKeyAuth(api_key="k", user_id="a", user_role=LitellmUserRoles.PROXY_ADMIN)
+    admin = UserAPIKeyAuth(api_key="k", user_id="a", user_role=GatewayUserRoles.PROXY_ADMIN)
     await update_config_general_settings(
         data=ConfigFieldUpdate(field_name=field_name, field_value=field_value, config_type="general_settings"),
         user_api_key_dict=admin,
@@ -10165,7 +10165,7 @@ async def test_update_config_field_prompt_caching_rejects_invalid(monkeypatch, f
     import token_iq.gateway.proxy.proxy_server as ps
     from token_iq.gateway.proxy._types import (
         ConfigFieldUpdate,
-        LitellmUserRoles,
+        GatewayUserRoles,
         UserAPIKeyAuth,
     )
     from token_iq.gateway.proxy.proxy_server import update_config_general_settings
@@ -10177,7 +10177,7 @@ async def test_update_config_field_prompt_caching_rejects_invalid(monkeypatch, f
     monkeypatch.setattr(ps, "prisma_client", MagicMock())
     monkeypatch.setattr(gateway, field_name, None)
 
-    admin = UserAPIKeyAuth(api_key="k", user_id="a", user_role=LitellmUserRoles.PROXY_ADMIN)
+    admin = UserAPIKeyAuth(api_key="k", user_id="a", user_role=GatewayUserRoles.PROXY_ADMIN)
     with pytest.raises(HTTPException) as exc:
         await update_config_general_settings(
             data=ConfigFieldUpdate(field_name=field_name, field_value=bad_value, config_type="general_settings"),
@@ -10204,7 +10204,7 @@ async def test_reset_config_field_restores_type_default(monkeypatch, field_name,
     import token_iq.gateway.proxy.proxy_server as ps
     from token_iq.gateway.proxy._types import (
         ConfigFieldDelete,
-        LitellmUserRoles,
+        GatewayUserRoles,
         UserAPIKeyAuth,
     )
     from token_iq.gateway.proxy.proxy_server import delete_config_general_settings
@@ -10223,7 +10223,7 @@ async def test_reset_config_field_restores_type_default(monkeypatch, field_name,
     monkeypatch.setattr(gateway, "store_audit_logs", False)
     monkeypatch.setattr(gateway, field_name, "stale")
 
-    admin = UserAPIKeyAuth(api_key="k", user_id="a", user_role=LitellmUserRoles.PROXY_ADMIN)
+    admin = UserAPIKeyAuth(api_key="k", user_id="a", user_role=GatewayUserRoles.PROXY_ADMIN)
     await delete_config_general_settings(
         data=ConfigFieldDelete(field_name=field_name, config_type="general_settings"),
         user_api_key_dict=admin,
@@ -10243,7 +10243,7 @@ async def test_update_config_field_throttle_rejects_invalid(monkeypatch, bad_val
     import token_iq.gateway.proxy.proxy_server as ps
     from token_iq.gateway.proxy._types import (
         ConfigFieldUpdate,
-        LitellmUserRoles,
+        GatewayUserRoles,
         UserAPIKeyAuth,
     )
     from token_iq.gateway.proxy.proxy_server import update_config_general_settings
@@ -10255,7 +10255,7 @@ async def test_update_config_field_throttle_rejects_invalid(monkeypatch, bad_val
     monkeypatch.setattr(ps, "prisma_client", MagicMock())
     monkeypatch.setattr(gateway, "budget_exceeded_throttle_percentage", None)
 
-    admin = UserAPIKeyAuth(api_key="k", user_id="a", user_role=LitellmUserRoles.PROXY_ADMIN)
+    admin = UserAPIKeyAuth(api_key="k", user_id="a", user_role=GatewayUserRoles.PROXY_ADMIN)
     with pytest.raises(HTTPException) as exc:
         await update_config_general_settings(
             data=ConfigFieldUpdate(
@@ -10278,7 +10278,7 @@ async def test_update_config_field_throttle_rejected_for_non_admin(monkeypatch):
     import token_iq.gateway.proxy.proxy_server as ps
     from token_iq.gateway.proxy._types import (
         ConfigFieldUpdate,
-        LitellmUserRoles,
+        GatewayUserRoles,
         UserAPIKeyAuth,
     )
     from token_iq.gateway.proxy.proxy_server import update_config_general_settings
@@ -10286,7 +10286,7 @@ async def test_update_config_field_throttle_rejected_for_non_admin(monkeypatch):
     monkeypatch.setattr(ps, "prisma_client", MagicMock())
     monkeypatch.setattr(gateway, "budget_exceeded_throttle_percentage", None)
 
-    non_admin = UserAPIKeyAuth(api_key="k", user_id="u", user_role=LitellmUserRoles.INTERNAL_USER)
+    non_admin = UserAPIKeyAuth(api_key="k", user_id="u", user_role=GatewayUserRoles.INTERNAL_USER)
     with pytest.raises(HTTPException):
         await update_config_general_settings(
             data=ConfigFieldUpdate(
@@ -10363,9 +10363,9 @@ def test_config_field_info_redacts_secrets_for_view_only_admin(monkeypatch):
     PROXY_ADMIN_VIEW_ONLY. A view-only admin reading master_key/database_url verbatim is
     effectively a full admin. Secret-bearing fields must come back REDACTED for anyone who
     is not a FULL PROXY_ADMIN, while non-secret fields stay readable."""
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
-    client = _config_field_info_client(monkeypatch, LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY)
+    client = _config_field_info_client(monkeypatch, GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY)
     try:
         for secret_field in ("master_key", "database_url", "pass_through_endpoints"):
             resp = client.get("/config/field/info", params={"field_name": secret_field})
@@ -10385,9 +10385,9 @@ def test_config_field_info_redacts_secrets_for_view_only_admin(monkeypatch):
 def test_config_field_info_returns_raw_secrets_for_full_admin(monkeypatch):
     """the redaction must not over-apply. A FULL PROXY_ADMIN still
     needs the real master_key value to populate the admin edit form."""
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
-    client = _config_field_info_client(monkeypatch, LitellmUserRoles.PROXY_ADMIN)
+    client = _config_field_info_client(monkeypatch, GatewayUserRoles.PROXY_ADMIN)
     try:
         resp = client.get("/config/field/info", params={"field_name": "master_key"})
         assert resp.status_code == 200, resp.text
@@ -10435,7 +10435,7 @@ def test_dump_redacted_config_redacts_secret_leaves():
 @pytest.mark.asyncio
 async def test_create_config_audit_log_writes_redacted_entry(monkeypatch):
     import token_iq.gateway.proxy.proxy_server as proxy_server_module
-    from token_iq.gateway.proxy._types import LitellmTableNames
+    from token_iq.gateway.proxy._types import GatewayTableNames
     from token_iq.gateway.proxy.proxy_server import create_config_audit_log
 
     fake = _fake_prisma_with_config({})
@@ -10454,7 +10454,7 @@ async def test_create_config_audit_log_writes_redacted_entry(monkeypatch):
 
     fake.db.litellm_auditlog.create.assert_awaited_once()
     written = fake.db.litellm_auditlog.create.call_args.kwargs["data"]
-    assert written["table_name"] == LitellmTableNames.CONFIG_TABLE_NAME.value
+    assert written["table_name"] == GatewayTableNames.CONFIG_TABLE_NAME.value
     assert written["object_id"] == "router_settings"
     assert written["action"] == "updated"
     assert written["changed_by"] == "admin-7"
@@ -10520,7 +10520,7 @@ async def test_update_config_general_settings_emits_audit_log(monkeypatch):
     admin = UserAPIKeyAuth(
         api_key="hashed-admin",
         user_id="admin-1",
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
     )
     await update_config_general_settings(
         data=ConfigFieldUpdate(
@@ -10566,7 +10566,7 @@ async def test_update_config_field_rejects_out_of_range_alerting_args(monkeypatc
     admin = UserAPIKeyAuth(
         api_key="hashed-admin",
         user_id="admin-1",
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
     )
     with pytest.raises(HTTPException) as exc_info:
         await update_config_general_settings(
@@ -10600,7 +10600,7 @@ async def test_update_config_field_accepts_valid_alerting_args(monkeypatch):
     admin = UserAPIKeyAuth(
         api_key="hashed-admin",
         user_id="admin-1",
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
     )
     await update_config_general_settings(
         data=ConfigFieldUpdate(
@@ -10634,7 +10634,7 @@ async def test_update_config_general_settings_applies_ssrf_globals(monkeypatch):
     admin = UserAPIKeyAuth(
         api_key="hashed-admin",
         user_id="admin-1",
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
     )
     await update_config_general_settings(
         data=ConfigFieldUpdate(
@@ -10703,7 +10703,7 @@ async def test_delete_config_general_settings_emits_deleted_audit_log(monkeypatc
     admin = UserAPIKeyAuth(
         api_key="hashed-admin",
         user_id="admin-1",
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
     )
     await delete_config_general_settings(
         data=ConfigFieldDelete(field_name="max_parallel_requests", config_type="general_settings"),
@@ -10766,7 +10766,7 @@ def test_update_config_audits_every_written_section(_update_config_setup, monkey
         restore()
 
 
-def test_delete_callback_audits_litellm_settings_deletion(_update_config_setup, monkeypatch):
+def test_delete_callback_audits_gateway_settings_deletion(_update_config_setup, monkeypatch):
     """/config/callback/delete must emit a deleted audit row for litellm_settings
     capturing the success_callback list before and after removal."""
     import token_iq.gateway.proxy.proxy_server as proxy_server_module
@@ -10939,8 +10939,8 @@ def _run_init_cache_with_backend(cache_backend, redis_env_kwargs):
     """Run ProxyConfig._init_cache with a stubbed response-cache backend and a
     controlled REDIS_* environment, returning (redis_usage_cache,
     spend_counter redis, config-cache redis) as observed after the call."""
-    mock_litellm_cache = MagicMock()
-    mock_litellm_cache.cache = cache_backend
+    mock_gateway_cache = MagicMock()
+    mock_gateway_cache.cache = cache_backend
     fresh_spend_cache = DualCache()
     fresh_config_cache = types.SimpleNamespace(redis_cache=None)
 
@@ -10950,7 +10950,7 @@ def _run_init_cache_with_backend(cache_backend, redis_env_kwargs):
             "token_iq.gateway._redis._redis_kwargs_from_environment",
             return_value=redis_env_kwargs,
         ),
-        patch("token_iq.gateway.Cache", return_value=mock_litellm_cache),
+        patch("token_iq.gateway.Cache", return_value=mock_gateway_cache),
     ):
         gateway.cache = None
         resolved = proxy_server_module.ProxyConfig()._init_cache(cache_params={"type": "qdrant-semantic"})
@@ -11104,12 +11104,12 @@ def test_explicit_coordination_redis_takes_precedence_over_cache_backend():
     fresh_spend_cache = DualCache()
     fresh_config_cache = types.SimpleNamespace(redis_cache=None)
     cache_backend = _EnvBuiltRedisCache(host="cache-backend-host")
-    mock_litellm_cache = MagicMock()
-    mock_litellm_cache.cache = cache_backend
+    mock_gateway_cache = MagicMock()
+    mock_gateway_cache.cache = cache_backend
 
     with (
         _patched_coordination_redis_module_state(spend_cache=fresh_spend_cache, config_cache=fresh_config_cache),
-        patch("token_iq.gateway.Cache", return_value=mock_litellm_cache),
+        patch("token_iq.gateway.Cache", return_value=mock_gateway_cache),
     ):
         gateway.cache = None
         proxy_config = proxy_server_module.ProxyConfig()
@@ -11429,7 +11429,7 @@ async def test_config_field_update_rejects_mock_testing_flag():
     from token_iq.gateway.proxy.route_llm_request import MOCK_TESTING_CONFIG_KEY
 
     admin = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
         api_key="sk-test",
     )
 
@@ -12501,7 +12501,7 @@ def test_disabling_docs_does_not_disable_other_routes(monkeypatch):
     assert client.get("/health/liveliness").status_code == 200
 
 
-def test_the_gateway_has_no_path_that_meters_usage_to_litellm(monkeypatch):
+def test_the_gateway_has_no_path_that_meters_usage_to_gateway(monkeypatch):
     import importlib.util
 
     from token_iq.gateway.proxy import proxy_server
@@ -12520,7 +12520,7 @@ def test_the_gateway_has_no_path_that_meters_usage_to_litellm(monkeypatch):
     assert not importable("litellm.proxy.enterprise_billing.billing_metrics")
 
 
-def test_gated_features_unlock_from_the_token_iq_plan_without_a_litellm_licence(monkeypatch):
+def test_gated_features_unlock_from_the_token_iq_plan_without_a_gateway_licence(monkeypatch):
     from token_iq.gateway.proxy import proxy_server
 
     monkeypatch.delenv("LITELLM_LICENSE", raising=False)

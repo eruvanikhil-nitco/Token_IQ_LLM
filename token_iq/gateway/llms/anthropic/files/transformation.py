@@ -24,7 +24,7 @@ from token_iq.gateway.core_utils.url_utils import encode_url_path_segment
 from token_iq.gateway.llms.base_llm.chat.transformation import BaseLLMException
 from token_iq.gateway.llms.base_llm.files.transformation import (
     BaseFilesConfig,
-    LiteLLMLoggingObj,
+    GatewayLoggingObj,
 )
 from token_iq.gateway.types.llms.openai import (
     CreateFileRequest,
@@ -156,7 +156,7 @@ class AnthropicFilesConfig(BaseFilesConfig):
         self,
         model: str | None,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         litellm_params: dict,
     ) -> OpenAIFileObject:
         """
@@ -188,7 +188,7 @@ class AnthropicFilesConfig(BaseFilesConfig):
     def transform_retrieve_file_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         litellm_params: dict,
     ) -> OpenAIFileObject:
         response_json: Final = raw_response.json()
@@ -207,7 +207,7 @@ class AnthropicFilesConfig(BaseFilesConfig):
     def transform_delete_file_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         litellm_params: dict,
     ) -> FileDeleted:
         response_json: Final = raw_response.json()
@@ -234,7 +234,7 @@ class AnthropicFilesConfig(BaseFilesConfig):
     def transform_list_files_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         litellm_params: dict,
     ) -> list[OpenAIFileObject]:
         """
@@ -266,7 +266,7 @@ class AnthropicFilesConfig(BaseFilesConfig):
     def transform_file_content_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         litellm_params: dict,
     ) -> HttpxBinaryResponseContent:
         return HttpxBinaryResponseContent(response=raw_response)

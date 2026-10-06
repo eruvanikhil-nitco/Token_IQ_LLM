@@ -60,7 +60,7 @@ from token_iq.gateway.core_utils.coroutine_checker import coroutine_checker
 from token_iq.gateway.core_utils.credential_accessor import CredentialAccessor
 from token_iq.gateway.core_utils.dd_tracing import tracer
 from token_iq.gateway.core_utils.get_llm_provider_logic import declared_authenticating_provider
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLogging
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLogging
 from token_iq.gateway.core_utils.ptu_pricing import (
     PTU_COST_ATTRIBUTION_ENV_VAR,
     declares_ptu,
@@ -113,7 +113,7 @@ from token_iq.gateway.router_utils.batch_utils import (
 )
 from token_iq.gateway.router_utils.client_initalization_utils import InitalizeCachedClient
 from token_iq.gateway.router_utils.clientside_credential_handler import (
-    get_dynamic_litellm_params,
+    get_dynamic_gateway_params,
     is_clientside_credential,
 )
 from token_iq.gateway.router_utils.common_utils import (
@@ -188,12 +188,12 @@ from token_iq.gateway.types.llms.openai import (
 )
 from token_iq.gateway.types.router import (
     CONFIGURABLE_CLIENTSIDE_AUTH_PARAMS,
-    VALID_LITELLM_ENVIRONMENTS,
+    VALID_GATEWAY_ENVIRONMENTS,
     AlertingConfig,
     AllowedFailsPolicy,
     AssistantsTypedDict,
     ConsumedRequestTagsStamp,
-    CredentialLiteLLMParams,
+    CredentialGatewayParams,
     CustomRoutingStrategyBase,
     Deployment,
     DeploymentTypedDict,
@@ -221,9 +221,9 @@ from token_iq.gateway.types.router import (
 from token_iq.gateway.types.services import ServiceTypes
 from token_iq.gateway.types.utils import (
     PROMPT_QUOTING_ROUTING_DECISION_FIELDS,
-    CustomPricingLiteLLMParams,
+    CustomPricingGatewayParams,
     GenericBudgetConfigType,
-    LiteLLMBatch,
+    GatewayBatch,
     LlmProviders,
     ModelInfo,
     ModelResponseStream,
@@ -274,7 +274,7 @@ if TYPE_CHECKING:
     from token_iq.gateway.types.llms.anthropic_messages.anthropic_response import (
         AnthropicMessagesResponse,
     )
-    from token_iq.gateway.types.llms.base import BaseLiteLLMOpenAIResponseObject
+    from token_iq.gateway.types.llms.base import BaseGatewayOpenAIResponseObject
     from token_iq.gateway.types.llms.openai import (
         ResponseAPIUsage,
         ResponseInputParam,
@@ -317,26 +317,26 @@ def model_info_is_active_for_environment(model_info: Mapping[str, object] | None
         return True
     if not isinstance(supported_environments, (list, tuple)):
         raise ValueError(
-            f"supported_environments must be a list of {VALID_LITELLM_ENVIRONMENTS}. "
+            f"supported_environments must be a list of {VALID_GATEWAY_ENVIRONMENTS}. "
             f"but set as: {supported_environments} for model_info: {model_info}"
         )
-    litellm_environment: Final = get_secret_str(secret_name="LITELLM_ENVIRONMENT")
-    if litellm_environment is None:
+    gateway_environment: Final = get_secret_str(secret_name="LITELLM_ENVIRONMENT")
+    if gateway_environment is None:
         raise ValueError("Set 'supported_environments' for model but not 'LITELLM_ENVIRONMENT' set in .env")
 
-    if litellm_environment not in VALID_LITELLM_ENVIRONMENTS:
+    if gateway_environment not in VALID_GATEWAY_ENVIRONMENTS:
         raise ValueError(
-            f"LITELLM_ENVIRONMENT must be one of {VALID_LITELLM_ENVIRONMENTS}. but set as: {litellm_environment}"
+            f"LITELLM_ENVIRONMENT must be one of {VALID_GATEWAY_ENVIRONMENTS}. but set as: {gateway_environment}"
         )
 
     for _env in supported_environments:
-        if _env not in VALID_LITELLM_ENVIRONMENTS:
+        if _env not in VALID_GATEWAY_ENVIRONMENTS:
             raise ValueError(
-                f"supported_environments must be one of {VALID_LITELLM_ENVIRONMENTS}. but set as: {_env} "
+                f"supported_environments must be one of {VALID_GATEWAY_ENVIRONMENTS}. but set as: {_env} "
                 f"for model_info: {model_info}"
             )
 
-    if litellm_environment in supported_environments:
+    if gateway_environment in supported_environments:
         return True
     return False
 
@@ -1003,22 +1003,22 @@ class Router:
         self.access_groups = None
         ## USAGE TRACKING ##
         if isinstance(gateway._async_success_callback, list):
-            gateway.logging_callback_manager.add_litellm_async_success_callback(self.deployment_callback_on_success)
+            gateway.logging_callback_manager.add_gateway_async_success_callback(self.deployment_callback_on_success)
         else:
-            gateway.logging_callback_manager.add_litellm_async_success_callback(self.deployment_callback_on_success)
+            gateway.logging_callback_manager.add_gateway_async_success_callback(self.deployment_callback_on_success)
         if isinstance(gateway.success_callback, list):
-            gateway.logging_callback_manager.add_litellm_success_callback(self.sync_deployment_callback_on_success)
+            gateway.logging_callback_manager.add_gateway_success_callback(self.sync_deployment_callback_on_success)
         else:
             gateway.success_callback = [self.sync_deployment_callback_on_success]
         if isinstance(gateway._async_failure_callback, list):
-            gateway.logging_callback_manager.add_litellm_async_failure_callback(
+            gateway.logging_callback_manager.add_gateway_async_failure_callback(
                 self.async_deployment_callback_on_failure
             )
         else:
             gateway._async_failure_callback = [self.async_deployment_callback_on_failure]
         ## COOLDOWNS ##
         if isinstance(gateway.failure_callback, list):
-            gateway.logging_callback_manager.add_litellm_failure_callback(self.deployment_callback_on_failure)
+            gateway.logging_callback_manager.add_gateway_failure_callback(self.deployment_callback_on_failure)
         else:
             gateway.failure_callback = [self.deployment_callback_on_failure]
         self.routing_strategy_args = routing_strategy_args
@@ -2687,7 +2687,7 @@ class Router:
         Returns None when no partial usage is recoverable.
         """
         from token_iq.gateway.responses.litellm_completion_transformation.streaming_iterator import (
-            LiteLLMCompletionStreamingIterator,
+            GatewayCompletionStreamingIterator,
         )
         from token_iq.gateway.types.llms.openai import (
             ResponseAPIUsage,
@@ -2699,7 +2699,7 @@ class Router:
         # Bridge subclass is the only iterator that accumulates chat-completion
         # chunks. isinstance narrows the type so we can read the attribute
         # directly instead of getattr-ing on the base class.
-        if isinstance(source_iterator, LiteLLMCompletionStreamingIterator):
+        if isinstance(source_iterator, GatewayCompletionStreamingIterator):
             chunks: Final = source_iterator.collected_chat_completion_chunks
             if chunks:
                 try:
@@ -2741,7 +2741,7 @@ class Router:
 
     @staticmethod
     def _combine_responses_fallback_usage(
-        fallback_item: "BaseLiteLLMOpenAIResponseObject",
+        fallback_item: "BaseGatewayOpenAIResponseObject",
         partial_usage: "ResponseAPIUsage",
     ) -> None:
         """
@@ -3304,7 +3304,7 @@ class Router:
 
             _response: Final = gateway.acompletion(**input_kwargs)
 
-            logging_obj: Final[LiteLLMLogging | None] = kwargs.get("litellm_logging_obj", None)
+            logging_obj: Final[GatewayLogging | None] = kwargs.get("litellm_logging_obj", None)
 
             rpm_semaphore: Final = self._get_client(
                 deployment=deployment,
@@ -3460,7 +3460,7 @@ class Router:
         effective_model_info: Final = kwargs.get("model_info") or deployment.get("model_info") or MappingProxyType({})
         self._set_failed_deployment_id_on_exception(exception, MappingProxyType({"model_info": effective_model_info}))
 
-    def _update_kwargs_with_default_litellm_params(
+    def _update_kwargs_with_default_gateway_params(
         self, kwargs: dict, metadata_variable_name: str | None = "metadata"
     ) -> None:
         """
@@ -3489,19 +3489,19 @@ class Router:
         """
         model_info: Final = deployment.get("model_info", {}).copy()
         litellm_params: Final = deployment["litellm_params"].copy()
-        dynamic_litellm_params: Final = get_dynamic_litellm_params(litellm_params=litellm_params, request_kwargs=kwargs)
+        dynamic_gateway_params: Final = get_dynamic_gateway_params(litellm_params=litellm_params, request_kwargs=kwargs)
         # Use deployment model_name as model_group for generating model_id
         metadata_variable_name: Final = _get_router_metadata_variable_name(
             function_name=function_name,
         )
         model_group: Final = kwargs.get(metadata_variable_name, {}).get("model_group")
-        _model_id: Final = self.generate_model_id(model_group=model_group, litellm_params=dynamic_litellm_params)
+        _model_id: Final = self.generate_model_id(model_group=model_group, litellm_params=dynamic_gateway_params)
         original_model_id: Final = model_info.get("id")
         model_info["id"] = _model_id
         model_info["original_model_id"] = original_model_id
         deployment_pydantic_obj: Final = Deployment(
             model_name=model_group,
-            litellm_params=LiteLLM_Params(**dynamic_litellm_params),
+            litellm_params=LiteLLM_Params(**dynamic_gateway_params),
             model_info=model_info,
         )
         self.upsert_deployment(deployment=deployment_pydantic_obj)  # add new deployment to router
@@ -3546,7 +3546,7 @@ class Router:
         self._merge_tools_from_deployment(deployment=deployment, kwargs=kwargs)
 
         model_info = deployment.get("model_info", {}).copy()
-        deployment_litellm_model_name = deployment["litellm_params"]["model"]
+        deployment_gateway_model_name = deployment["litellm_params"]["model"]
         deployment_api_base = deployment["litellm_params"].get("api_base")
         deployment_model_name: Final = deployment["model_name"]
         if is_clientside_credential(request_kwargs=kwargs):
@@ -3554,7 +3554,7 @@ class Router:
                 deployment=deployment, kwargs=kwargs, function_name=function_name
             )
             model_info = deployment_pydantic_obj.model_info.model_dump()
-            deployment_litellm_model_name = deployment_pydantic_obj.litellm_params.model
+            deployment_gateway_model_name = deployment_pydantic_obj.litellm_params.model
             deployment_api_base = deployment_pydantic_obj.litellm_params.api_base
 
         metadata_variable_name: Final = _get_router_metadata_variable_name(
@@ -3563,7 +3563,7 @@ class Router:
 
         kwargs.setdefault(metadata_variable_name, {}).update(
             {
-                "deployment": deployment_litellm_model_name,
+                "deployment": deployment_gateway_model_name,
                 "model_info": model_info,
                 "api_base": deployment_api_base,
                 "deployment_model_name": deployment_model_name,
@@ -3614,7 +3614,7 @@ class Router:
         else:
             kwargs["timeout"] = self._get_timeout(kwargs=kwargs, data=deployment["litellm_params"])
 
-        self._update_kwargs_with_default_litellm_params(kwargs=kwargs, metadata_variable_name=metadata_variable_name)
+        self._update_kwargs_with_default_gateway_params(kwargs=kwargs, metadata_variable_name=metadata_variable_name)
 
     def _get_async_openai_model_client(self, deployment: dict, kwargs: dict):
         """
@@ -4045,8 +4045,8 @@ class Router:
         if litellm_model is None or "/" not in litellm_model:
             return False
 
-        split_litellm_model: Final = litellm_model.split("/")[0]
-        return split_litellm_model in gateway._known_custom_logger_compatible_callbacks
+        split_gateway_model: Final = litellm_model.split("/")[0]
+        return split_gateway_model in gateway._known_custom_logger_compatible_callbacks
 
     async def _prompt_management_factory(
         self,
@@ -4054,9 +4054,9 @@ class Router:
         messages: list[AllMessageValues],
         kwargs: dict[str, Any],
     ):
-        litellm_logging_object = kwargs.get("litellm_logging_obj", None)
-        if litellm_logging_object is None:
-            litellm_logging_object, kwargs = function_setup(
+        gateway_logging_object = kwargs.get("litellm_logging_obj", None)
+        if gateway_logging_object is None:
+            gateway_logging_object, kwargs = function_setup(
                 **{
                     "original_function": "acompletion",
                     "rules_obj": Rules(),
@@ -4064,7 +4064,7 @@ class Router:
                     **kwargs,
                 }
             )
-        litellm_logging_object = cast(LiteLLMLogging, litellm_logging_object)
+        gateway_logging_object = cast(GatewayLogging, gateway_logging_object)
         prompt_management_deployment: Final = self.get_available_deployment(
             model=model,
             messages=[{"role": "user", "content": "prompt"}],
@@ -4077,7 +4077,7 @@ class Router:
         litellm_model: Final = data.get("model", None)
 
         # litellm_agent/ prefix only strips the model name, no prompt_id needed
-        is_litellm_agent_model: Final = isinstance(litellm_model, str) and litellm_model.startswith("litellm_agent/")
+        is_gateway_agent_model: Final = isinstance(litellm_model, str) and litellm_model.startswith("litellm_agent/")
 
         prompt_id = kwargs.get("prompt_id") or prompt_management_deployment["litellm_params"].get("prompt_id", None)
         prompt_variables: Final = kwargs.get("prompt_variables") or prompt_management_deployment["litellm_params"].get(
@@ -4087,7 +4087,7 @@ class Router:
             "prompt_label", None
         )
 
-        if not is_litellm_agent_model and (prompt_id is None or not isinstance(prompt_id, str)):
+        if not is_gateway_agent_model and (prompt_id is None or not isinstance(prompt_id, str)):
             raise ValueError(f"Prompt ID is not set or not a string. Got={prompt_id}, type={type(prompt_id)}")
         if prompt_variables is not None and not isinstance(prompt_variables, dict):
             raise ValueError(
@@ -4098,7 +4098,7 @@ class Router:
             model,
             messages,
             optional_params,
-        ) = litellm_logging_object.get_chat_completion_prompt(
+        ) = gateway_logging_object.get_chat_completion_prompt(
             model=litellm_model,
             messages=messages,
             non_default_params=get_non_default_completion_params(kwargs=kwargs),
@@ -4123,7 +4123,7 @@ class Router:
         kwargs = {**filtered_data, **kwargs, **optional_params}
         kwargs["model"] = model
         kwargs["messages"] = messages
-        kwargs["litellm_logging_obj"] = litellm_logging_object
+        kwargs["litellm_logging_obj"] = gateway_logging_object
         kwargs["prompt_id"] = prompt_id
         kwargs["prompt_variables"] = prompt_variables
         kwargs["prompt_label"] = prompt_label
@@ -5950,7 +5950,7 @@ class Router:
         self,
         model: str,
         **kwargs,
-    ) -> LiteLLMBatch:
+    ) -> GatewayBatch:
         try:
             kwargs["model"] = model
             kwargs["original_function"] = self._acreate_batch
@@ -5978,7 +5978,7 @@ class Router:
         self,
         model: str,
         **kwargs,
-    ) -> LiteLLMBatch:
+    ) -> GatewayBatch:
         try:
             verbose_router_logger.debug("Inside _acreate_batch()- model: %s; kwargs: %s", model, kwargs)
             parent_otel_span: Final = _get_parent_otel_span_from_kwargs(kwargs)
@@ -6055,7 +6055,7 @@ class Router:
         self,
         model: str | None = None,
         **kwargs,
-    ) -> LiteLLMBatch:
+    ) -> GatewayBatch:
         """
         Iterate through all models in a model group to check for batch
 
@@ -6132,11 +6132,11 @@ class Router:
 
             # Check for successful responses and handle exceptions
             if results is not None:
-                if isinstance(results, LiteLLMBatch):
+                if isinstance(results, GatewayBatch):
                     return results
                 elif isinstance(results, list):
                     for result in results:
-                        if isinstance(result, LiteLLMBatch):
+                        if isinstance(result, GatewayBatch):
                             return result
 
             # If no valid Batch response was found, raise the first encountered exception
@@ -6160,7 +6160,7 @@ class Router:
         self,
         model: str,
         **kwargs,
-    ) -> LiteLLMBatch:
+    ) -> GatewayBatch:
         """
         Cancel a batch through the router with proper model-to-provider mapping.
         """
@@ -6191,7 +6191,7 @@ class Router:
         self,
         model: str,
         **kwargs,
-    ) -> LiteLLMBatch:
+    ) -> GatewayBatch:
         try:
             verbose_router_logger.debug("Inside _acancel_batch()- model: %s; kwargs: %s", model, kwargs)
             parent_otel_span: Final = _get_parent_otel_span_from_kwargs(kwargs)
@@ -7832,8 +7832,8 @@ class Router:
                     rpm: Final = deployment_info.get("rpm", None)
 
                     ## check tpm/rpm in litellm_params
-                    tpm_litellm_params: Final = deployment_info.litellm_params.tpm
-                    rpm_litellm_params: Final = deployment_info.litellm_params.rpm
+                    tpm_gateway_params: Final = deployment_info.litellm_params.tpm
+                    rpm_gateway_params: Final = deployment_info.litellm_params.rpm
 
                     ## check tpm/rpm in model_info
                     tpm_model_info: Final = deployment_model_info.get("tpm", None)
@@ -7855,8 +7855,8 @@ class Router:
                 if (
                     tpm is None
                     and rpm is None
-                    and tpm_litellm_params is None
-                    and rpm_litellm_params is None
+                    and tpm_gateway_params is None
+                    and rpm_gateway_params is None
                     and tpm_model_info is None
                     and rpm_model_info is None
                     and not has_io_token_limits
@@ -8289,7 +8289,7 @@ class Router:
         self,
         deployment: dict,
         parent_otel_span: Span | None,
-        logging_obj: LiteLLMLogging | None = None,
+        logging_obj: GatewayLogging | None = None,
     ):
         """
         For usage-based-routing-v2, enables running rpm checks before the call is made, inside the semaphore.
@@ -8353,7 +8353,7 @@ class Router:
         messages: list[AllMessageValues] | None,
         parent_otel_span: Span | None,
         request_kwargs: dict | None = None,
-        logging_obj: LiteLLMLogging | None = None,
+        logging_obj: GatewayLogging | None = None,
     ):
         """
         For usage-based-routing-v2, enables running rpm checks before the call is made, inside the semaphore.
@@ -8547,7 +8547,7 @@ class Router:
         self,
         deployment_info: dict,
         _model_name: str,
-        _litellm_params: dict,
+        _gateway_params: dict,
         _model_info: dict,
         *,
         declared_id: str | None = None,
@@ -8579,22 +8579,22 @@ class Router:
             )
             if ptu_error is not None and is_ptu_cost_attribution_enabled():
                 raise ValueError(ptu_error)
-            zeroed_pricing: Final = zeroed_ptu_pricing(_model_info, _litellm_params) if config_sourced else None
+            zeroed_pricing: Final = zeroed_ptu_pricing(_model_info, _gateway_params) if config_sourced else None
             litellm_params: Final[LiteLLM_Params] = LiteLLM_Params(
                 **(
-                    _litellm_params
+                    _gateway_params
                     if zeroed_pricing is None
-                    else MappingProxyType({**_litellm_params, **zeroed_pricing})
+                    else MappingProxyType({**_gateway_params, **zeroed_pricing})
                 )
             )
-            warn_on_provider_credential_mismatch(model_name=_model_name, litellm_params=_litellm_params)
+            warn_on_provider_credential_mismatch(model_name=_model_name, litellm_params=_gateway_params)
             deployment = Deployment(
                 **deployment_info,
                 model_name=_model_name,
                 litellm_params=litellm_params,
                 model_info=_model_info,
             )
-            for field in CustomPricingLiteLLMParams.model_fields:
+            for field in CustomPricingGatewayParams.model_fields:
                 if deployment.litellm_params.get(field) is not None:
                     _model_info[field] = deployment.litellm_params[field]
 
@@ -8658,7 +8658,7 @@ class Router:
                             self._create_deployment,
                             deployment_info=deployment_info,
                             _model_name=_model_name,
-                            _litellm_params=_litellm_params,
+                            _gateway_params=_gateway_params,
                             _model_info=_model_info,
                             declared_id=declared_id,
                             duplicate_ids=duplicate_ids,
@@ -9158,12 +9158,12 @@ class Router:
 
         for model in original_model_list:
             _model_name = model.pop("model_name")
-            _litellm_params = model.pop("litellm_params")
+            _gateway_params = model.pop("litellm_params")
             ## check if litellm params in os.environ
-            if isinstance(_litellm_params, dict):
-                for k, v in _litellm_params.items():
+            if isinstance(_gateway_params, dict):
+                for k, v in _gateway_params.items():
                     if isinstance(v, str) and v.startswith("os.environ/"):
-                        _litellm_params[k] = get_secret(v)
+                        _gateway_params[k] = get_secret(v)
 
             _model_info: dict = model.pop("model_info", {})
 
@@ -9171,18 +9171,18 @@ class Router:
 
             # check if model info has id
             if "id" not in _model_info:
-                _id = self.generate_model_id(_model_name, _litellm_params)
+                _id = self.generate_model_id(_model_name, _gateway_params)
                 _model_info["id"] = _id
 
-            if _litellm_params.get("organization", None) is not None and isinstance(
-                _litellm_params["organization"], list
+            if _gateway_params.get("organization", None) is not None and isinstance(
+                _gateway_params["organization"], list
             ): # Addresses
-                for org in _litellm_params["organization"]:
-                    _litellm_params["organization"] = org
+                for org in _gateway_params["organization"]:
+                    _gateway_params["organization"] = org
                     self._create_deployment(
                         deployment_info=model,
                         _model_name=_model_name,
-                        _litellm_params=_litellm_params,
+                        _gateway_params=_gateway_params,
                         _model_info=_model_info,
                         declared_id=declared_id,
                         duplicate_ids=duplicate_ids,
@@ -9191,7 +9191,7 @@ class Router:
                 self._create_deployment(
                     deployment_info=model,
                     _model_name=_model_name,
-                    _litellm_params=_litellm_params,
+                    _gateway_params=_gateway_params,
                     _model_info=_model_info,
                     declared_id=declared_id,
                     duplicate_ids=duplicate_ids,
@@ -9217,8 +9217,8 @@ class Router:
         is_prompt_management_model = False
 
         if "/" in litellm_model:
-            split_litellm_model: Final = litellm_model.split("/")[0]
-            if split_litellm_model in gateway._known_custom_logger_compatible_callbacks:
+            split_gateway_model: Final = litellm_model.split("/")[0]
+            if split_gateway_model in gateway._known_custom_logger_compatible_callbacks:
                 is_prompt_management_model = True
 
         if is_prompt_management_model:
@@ -9392,7 +9392,7 @@ class Router:
         self._add_deployment(deployment=deployment)
 
         _model_info_dict: Final[dict] = deployment.model_info.model_dump(exclude_none=True)
-        for field in CustomPricingLiteLLMParams.model_fields:
+        for field in CustomPricingGatewayParams.model_fields:
             field_value = deployment.litellm_params.get(field)
             if field_value is not None:
                 _model_info_dict[field] = field_value
@@ -9653,7 +9653,7 @@ class Router:
         deployment alone, which is what lets a refresh rebuild the same entries.
         """
         model_info: Final[dict] = deployment.model_info.model_dump(exclude_none=True)  # mutable-ok: built in place
-        for field in CustomPricingLiteLLMParams.model_fields:
+        for field in CustomPricingGatewayParams.model_fields:
             field_value = deployment.litellm_params.get(field)
             if field_value is not None:
                 model_info[field] = field_value
@@ -9699,7 +9699,7 @@ class Router:
         """
         if classify_strategy_router_model(model) is not None:
             model_info = {  # mutable-ok: filtered copy of the caller's entry, handed straight to register_model
-                k: v for k, v in model_info.items() if k not in CustomPricingLiteLLMParams.model_fields
+                k: v for k, v in model_info.items() if k not in CustomPricingGatewayParams.model_fields
             }
 
         if model_id is not None:
@@ -9890,7 +9890,7 @@ class Router:
         deployment: Final = self.get_deployment(model_id=model_id)
         if deployment is None or self._is_deployment_blocked(deployment):
             return None
-        return CredentialLiteLLMParams.model_validate(
+        return CredentialGatewayParams.model_validate(
             deployment.litellm_params.model_dump(exclude_none=True)
         ).model_dump(exclude_none=True)
 
@@ -10052,7 +10052,7 @@ class Router:
             return None
 
         # Get basic credentials
-        credentials: Final = CredentialLiteLLMParams.model_validate(
+        credentials: Final = CredentialGatewayParams.model_validate(
             deployment.litellm_params.model_dump(exclude_none=True)
         ).model_dump(exclude_none=True)
 
@@ -10130,16 +10130,16 @@ class Router:
         model = base_model
 
         ## GET PROVIDER - reuse LiteLLM_Params if already constructed
-        litellm_params_data: Final = deployment.get("litellm_params")
+        gateway_params_data: Final = deployment.get("litellm_params")
         litellm_params: LiteLLM_Params
-        if isinstance(litellm_params_data, LiteLLM_Params):
-            litellm_params = litellm_params_data
-        elif isinstance(litellm_params_data, dict) and "model" in litellm_params_data:
-            litellm_params = LiteLLM_Params(**litellm_params_data)
+        if isinstance(gateway_params_data, LiteLLM_Params):
+            litellm_params = gateway_params_data
+        elif isinstance(gateway_params_data, dict) and "model" in gateway_params_data:
+            litellm_params = LiteLLM_Params(**gateway_params_data)
         else:
             raise ValueError(
                 f"Deployment missing valid litellm_params. "
-                f"Got: {type(litellm_params_data).__name__}, "
+                f"Got: {type(gateway_params_data).__name__}, "
                 f"deployment_id: {(deployment.get('model_info') or {}).get('id', 'unknown')}"
             )
         _model, custom_llm_provider, _, _ = gateway.get_llm_provider(
@@ -10259,7 +10259,7 @@ class Router:
 
         model_info: ModelInfo | None = None
         custom_model_info: dict | None = None
-        litellm_model_name_model_info: ModelInfo | None = None
+        gateway_model_name_model_info: ModelInfo | None = None
 
         try:
             custom_model_info = copy.deepcopy(gateway.model_cost.get(model_id))
@@ -10267,7 +10267,7 @@ class Router:
             pass
 
         try:
-            litellm_model_name_model_info = gateway.get_model_info(model=model_name)
+            gateway_model_name_model_info = gateway.get_model_info(model=model_name)
         except Exception:
             pass
 
@@ -10288,19 +10288,19 @@ class Router:
             pass
 
         # Three mutually exclusive scenarios for the model's metadata:
-        if custom_model_info is not None and litellm_model_name_model_info is not None:
+        if custom_model_info is not None and gateway_model_name_model_info is not None:
             # (1) It has both custom model_info set and exists in the built-in map
             # merge with custom overriding built-in
             model_info = cast(
                 ModelInfo,
                 _update_dictionary(
-                    copy.deepcopy(cast(dict, litellm_model_name_model_info)),
+                    copy.deepcopy(cast(dict, gateway_model_name_model_info)),
                     custom_model_info,
                 ),
             )
-        elif litellm_model_name_model_info is not None:
+        elif gateway_model_name_model_info is not None:
             # (2) Built-in only — no custom pricing to merge
-            model_info = copy.deepcopy(litellm_model_name_model_info)
+            model_info = copy.deepcopy(gateway_model_name_model_info)
         elif custom_model_info is not None:
             # (3) Custom only — model not in built-in cost map yet
             # custom_model_info already includes base_model defaults at this point, if applicable
@@ -10344,7 +10344,7 @@ class Router:
             configurable_clientside_auth_params = litellm_params.configurable_clientside_auth_params
 
             # Cache nested dict access to avoid repeated temporary dict allocations
-            model_litellm_params = model.get("litellm_params", {})
+            model_gateway_params = model.get("litellm_params", {})
             model_info_dict = model.get("model_info", {})
 
             # get model tpm
@@ -10352,7 +10352,7 @@ class Router:
             if _deployment_tpm is None:
                 _deployment_tpm = model.get("tpm", None)
             if _deployment_tpm is None:
-                _deployment_tpm = model_litellm_params.get("tpm", None)
+                _deployment_tpm = model_gateway_params.get("tpm", None)
             if _deployment_tpm is None:
                 _deployment_tpm = model_info_dict.get("tpm", None)
 
@@ -10361,19 +10361,19 @@ class Router:
             if _deployment_rpm is None:
                 _deployment_rpm = model.get("rpm", None)
             if _deployment_rpm is None:
-                _deployment_rpm = model_litellm_params.get("rpm", None)
+                _deployment_rpm = model_gateway_params.get("rpm", None)
             if _deployment_rpm is None:
                 _deployment_rpm = model_info_dict.get("rpm", None)
 
             _deployment_itpm: int | None = model.get("itpm")
             if _deployment_itpm is None:
-                _deployment_itpm = model_litellm_params.get("itpm", None)
+                _deployment_itpm = model_gateway_params.get("itpm", None)
             if _deployment_itpm is None:
                 _deployment_itpm = model_info_dict.get("itpm", None)
 
             _deployment_otpm: int | None = model.get("otpm")
             if _deployment_otpm is None:
-                _deployment_otpm = model_litellm_params.get("otpm", None)
+                _deployment_otpm = model_gateway_params.get("otpm", None)
             if _deployment_otpm is None:
                 _deployment_otpm = model_info_dict.get("otpm", None)
 
@@ -11421,7 +11421,7 @@ class Router:
 
         return returned_models
 
-    def resolved_litellm_models(self, model_name: str, team_id: str | None = None) -> tuple[str, ...]:
+    def resolved_gateway_models(self, model_name: str, team_id: str | None = None) -> tuple[str, ...]:
         """The provider model strings `model_name` can actually be served by on this proxy.
 
         `get_model_list` composes every channel the request path itself uses (exact name,
@@ -11686,11 +11686,11 @@ class Router:
             from openai.types.responses.response_create_params import ResponseInputParam
 
             from token_iq.gateway.responses.litellm_completion_transformation.transformation import (
-                LiteLLMCompletionResponsesConfig,
+                GatewayCompletionResponsesConfig,
             )
 
             typed_input: Final = cast(str | ResponseInputParam, input)  # cast-ok: str | list matches transform input
-            input_messages: Final = LiteLLMCompletionResponsesConfig.transform_responses_api_input_to_messages(
+            input_messages: Final = GatewayCompletionResponsesConfig.transform_responses_api_input_to_messages(
                 input=typed_input,
                 responses_api_request={"instructions": instructions} if instructions is not None else {},
             )
@@ -11807,7 +11807,7 @@ class Router:
         )  # check the in-memory cache used by lowest_latency and usage-based routing. Only check the local cache.
         for idx, deployment in enumerate(_returned_deployments):
             # Cache nested dict access to avoid repeated temporary dict allocations
-            _litellm_params = deployment.get("litellm_params", {})
+            _gateway_params = deployment.get("litellm_params", {})
             _model_info = deployment.get("model_info", {})
 
             # see if we have the info for this model
@@ -11815,8 +11815,8 @@ class Router:
             try:
                 base_model = _model_info.get("base_model", None)
                 if base_model is None:
-                    base_model = _litellm_params.get("base_model", None)
-                _deployment_model = base_model or _litellm_params.get("model", None)
+                    base_model = _gateway_params.get("base_model", None)
+                _deployment_model = base_model or _gateway_params.get("model", None)
                 model_info = self.get_router_model_info(deployment=deployment, received_model_name=model)
 
                 max_input_tokens = model_info.get("max_input_tokens") if isinstance(model_info, dict) else None
@@ -11856,8 +11856,8 @@ class Router:
 
                 current_request = max(current_request_cache_local, model_group_cache[model_id])
 
-                if isinstance(_litellm_params, dict) and _litellm_params.get("rpm", None) is not None:
-                    if isinstance(_litellm_params["rpm"], int) and _litellm_params["rpm"] <= current_request:
+                if isinstance(_gateway_params, dict) and _gateway_params.get("rpm", None) is not None:
+                    if isinstance(_gateway_params["rpm"], int) and _gateway_params["rpm"] <= current_request:
                         invalid_model_indices.add(idx)
                         _rate_limit_error = True
                         continue
@@ -11868,7 +11868,7 @@ class Router:
 
                 if allowed_model_region is not None:
                     if not is_region_allowed(
-                        litellm_params=LiteLLM_Params(**_litellm_params),
+                        litellm_params=LiteLLM_Params(**_gateway_params),
                         allowed_model_region=allowed_model_region,
                     ):
                         invalid_model_indices.add(idx)
@@ -11886,7 +11886,7 @@ class Router:
                         _,
                     ) = gateway.get_llm_provider(
                         model=_dep_model_for_params,
-                        litellm_params=LiteLLM_Params(**_litellm_params),
+                        litellm_params=LiteLLM_Params(**_gateway_params),
                     )
                 except Exception as e:  # noqa: BLE001  # best-effort filter: an unresolvable provider must not fail the request
                     verbose_router_logger.debug(
@@ -12102,10 +12102,10 @@ class Router:
             # Do not fall back when access-group filtering removed every candidate;
             # _get_deployment_by_litellm_model does not re-apply that filter.
             if _pre_model_access_group_filter_len == 0:
-                _litellm_model_deployments: Final = self._get_deployment_by_litellm_model(model=model)
+                _gateway_model_deployments: Final = self._get_deployment_by_litellm_model(model=model)
                 healthy_deployments = self._filter_deployments_by_model_access_groups(
                     model=model,
-                    healthy_deployments=_litellm_model_deployments,
+                    healthy_deployments=_gateway_model_deployments,
                     request_kwargs=request_kwargs,
                     request_team_id=request_team_id,
                 )
@@ -12114,7 +12114,7 @@ class Router:
                 # being emptied: prevent default-model fallback from bypassing the
                 # restriction (the fallback model may have no access_groups and
                 # would short-circuit the filter).
-                if len(_litellm_model_deployments) > 0 and len(healthy_deployments) == 0:
+                if len(_gateway_model_deployments) > 0 and len(healthy_deployments) == 0:
                     _access_group_filter_emptied_candidates = True
 
         if verbose_router_logger.isEnabledFor(logging.DEBUG):
@@ -12675,7 +12675,7 @@ class Router:
             resolve_structured_messages,
         )
 
-        candidate_models: Final = list(self.resolved_litellm_models(model))
+        candidate_models: Final = list(self.resolved_gateway_models(model))
 
         metadata_key: Final = self._get_metadata_variable_name_from_kwargs(request_kwargs)
         metadata: Final = request_kwargs.setdefault(metadata_key, {})
@@ -13003,7 +13003,7 @@ class Router:
             (key, value)
             for key, value in selected.items()
             if key not in _ALIAS_PARAMS_NEVER_FORWARDED
-            and key not in CustomPricingLiteLLMParams.model_fields
+            and key not in CustomPricingGatewayParams.model_fields
             and value is not None
         )
 
@@ -13011,18 +13011,18 @@ class Router:
     def _forwarded_alias_marker_keys_the_deployment_sets(
         deployment: Mapping[str, object], forwarded_keys: object
     ) -> tuple[str, ...]:
-        deployment_litellm_params: Final = deployment.get("litellm_params")
-        if not isinstance(deployment_litellm_params, Mapping) or not isinstance(forwarded_keys, tuple):
+        deployment_gateway_params: Final = deployment.get("litellm_params")
+        if not isinstance(deployment_gateway_params, Mapping) or not isinstance(forwarded_keys, tuple):
             return ()
         return tuple(
             key
             for key in forwarded_keys
-            if isinstance(key, str) and Router._deployment_sets_litellm_param(deployment_litellm_params, key)
+            if isinstance(key, str) and Router._deployment_sets_gateway_param(deployment_gateway_params, key)
         )
 
     @staticmethod
-    def _deployment_sets_litellm_param(deployment_litellm_params: Mapping[str, object], key: str) -> bool:
-        value: Final = deployment_litellm_params.get(key)
+    def _deployment_sets_gateway_param(deployment_gateway_params: Mapping[str, object], key: str) -> bool:
+        value: Final = deployment_gateway_params.get(key)
         if value is None:
             return False
         field: Final = LiteLLM_Params.model_fields.get(key)
@@ -13658,7 +13658,7 @@ class Router:
         self.slack_alerting_logger = _slack_alerting_logger
 
         gateway.logging_callback_manager.add_litellm_callback(_slack_alerting_logger)
-        gateway.logging_callback_manager.add_litellm_success_callback(
+        gateway.logging_callback_manager.add_gateway_success_callback(
             _slack_alerting_logger.response_taking_too_long_callback
         )
         verbose_router_logger.info("\033[94m\nInitialized Alerting for litellm.Router\033[0m\n")

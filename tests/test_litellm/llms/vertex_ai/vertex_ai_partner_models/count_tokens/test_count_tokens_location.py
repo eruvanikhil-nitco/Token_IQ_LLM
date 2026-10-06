@@ -19,7 +19,7 @@ def counter():
 class TestCountTokensLocationResolution:
     """Verify that vertex_count_tokens_location is respected in handle_count_tokens_request."""
 
-    def _build_litellm_params(
+    def _build_gateway_params(
         self,
         vertex_location=None,
         vertex_count_tokens_location=None,
@@ -80,7 +80,7 @@ class TestCountTokensLocationResolution:
             handler_mod, "get_async_httpx_client", lambda **kwargs: FakeClient()
         )
 
-        litellm_params = self._build_litellm_params(
+        litellm_params = self._build_gateway_params(
             vertex_location="us-east5",
             vertex_count_tokens_location="europe-west1",
         )
@@ -141,7 +141,7 @@ class TestCountTokensLocationResolution:
             handler_mod, "get_async_httpx_client", lambda **kwargs: FakeClient()
         )
 
-        litellm_params = self._build_litellm_params()  # no location at all
+        litellm_params = self._build_gateway_params()  # no location at all
 
         await counter.handle_count_tokens_request(
             model="claude-sonnet-4-6",
@@ -197,7 +197,7 @@ class TestCountTokensLocationResolution:
             handler_mod, "get_async_httpx_client", lambda **kwargs: FakeClient()
         )
 
-        litellm_params = self._build_litellm_params(vertex_location="asia-southeast1")
+        litellm_params = self._build_gateway_params(vertex_location="asia-southeast1")
 
         await counter.handle_count_tokens_request(
             model="claude-sonnet-4-6",

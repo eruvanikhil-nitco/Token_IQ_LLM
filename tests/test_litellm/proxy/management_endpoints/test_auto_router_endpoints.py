@@ -12,7 +12,7 @@ from pydantic import ValidationError
 
 
 from token_iq.gateway.proxy._types import (
-    LitellmUserRoles,
+    GatewayUserRoles,
     ProxyErrorTypes,
     ProxyException,
     UserAPIKeyAuth,
@@ -27,7 +27,7 @@ from token_iq.gateway.types.management_endpoints.auto_router_endpoints import (
     AutoRouterRoutingTestRequest,
 )
 
-ADMIN = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN, api_key="sk-test", user_id="admin")
+ADMIN = UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN, api_key="sk-test", user_id="admin")
 
 
 def _deployment(model_name: str, model: str, *, db_model: bool) -> dict[str, object]:
@@ -362,7 +362,7 @@ async def test_a_key_that_cannot_call_the_classifier_model_is_rejected_before_it
         await preview_auto_router_routing(
             data=_request("what is 2+2", **config_overrides),
             user_api_key_dict=UserAPIKeyAuth(
-                user_role=LitellmUserRoles.PROXY_ADMIN,
+                user_role=GatewayUserRoles.PROXY_ADMIN,
                 api_key="sk-restricted",
                 user_id="admin",
                 models=["cheap-model"],
@@ -395,7 +395,7 @@ async def test_a_key_over_its_budget_cannot_run_a_classifier_config(monkeypatch:
                 classifier_llm_config={"model": "classifier-model"},
             ),
             user_api_key_dict=UserAPIKeyAuth(
-                user_role=LitellmUserRoles.PROXY_ADMIN,
+                user_role=GatewayUserRoles.PROXY_ADMIN,
                 api_key="sk-broke",
                 user_id="admin",
                 max_budget=1.0,
@@ -416,7 +416,7 @@ async def test_a_heuristic_config_does_not_need_a_budget(monkeypatch: pytest.Mon
     response = await preview_auto_router_routing(
         data=_request("what is 2+2"),
         user_api_key_dict=UserAPIKeyAuth(
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
             api_key="sk-broke",
             user_id="admin",
             max_budget=1.0,
@@ -450,7 +450,7 @@ async def test_non_admin_without_a_team_is_rejected(monkeypatch: pytest.MonkeyPa
         await preview_auto_router_routing(
             data=_request("what is 2+2"),
             user_api_key_dict=UserAPIKeyAuth(
-                user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-user", user_id="user"
+                user_role=GatewayUserRoles.INTERNAL_USER, api_key="sk-user", user_id="user"
             ),
         )
 
@@ -613,7 +613,7 @@ class TestAutoRouterBenchmarks:
 
         with pytest.raises(HTTPException) as err:
             await get_auto_router_benchmarks(
-                user_api_key_dict=UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-x"),
+                user_api_key_dict=UserAPIKeyAuth(user_role=GatewayUserRoles.INTERNAL_USER, api_key="sk-x"),
                 start_date="2026-08-01",
                 end_date="2026-08-02",
             )
@@ -804,8 +804,8 @@ from token_iq.gateway.proxy.management_endpoints.auto_router_endpoints import (
 )
 from token_iq.gateway.types.management_endpoints.auto_router_endpoints import SHADOW_EVAL_TURN_VALVE, StartShadowEvalRequest
 
-VIEWER = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY, api_key="sk-view", user_id="viewer")
-NON_ADMIN = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-user", user_id="user")
+VIEWER = UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY, api_key="sk-view", user_id="viewer")
+NON_ADMIN = UserAPIKeyAuth(user_role=GatewayUserRoles.INTERNAL_USER, api_key="sk-user", user_id="user")
 
 
 
@@ -986,11 +986,11 @@ def _shadow_prisma(
         )
         return {field: getattr(row, field) for field in fields}
 
-    prisma.db.litellm_shadowevaljob.find_many = AsyncMock(side_effect=find_many_legs)
-    prisma.db.litellm_shadowevaljob.create_many = AsyncMock(return_value=1)
-    prisma.db.litellm_shadowevaljob.update_many = AsyncMock(return_value=1)
-    prisma.db.litellm_shadowevalattempt.find_first = AsyncMock(return_value=None)
-    prisma.db.litellm_shadowevalfunnel.create_many = AsyncMock(return_value=1)
+    prisma.db.gateway_shadowevaljob.find_many = AsyncMock(side_effect=find_many_legs)
+    prisma.db.gateway_shadowevaljob.create_many = AsyncMock(return_value=1)
+    prisma.db.gateway_shadowevaljob.update_many = AsyncMock(return_value=1)
+    prisma.db.gateway_shadowevalattempt.find_first = AsyncMock(return_value=None)
+    prisma.db.gateway_shadowevalfunnel.create_many = AsyncMock(return_value=1)
     prisma.attempt_rows = []
 
     async def query_raw(sql: str, *params: object):
@@ -1197,7 +1197,7 @@ async def test_get_shadow_eval_job_pools_counts_and_slices_results_per_key(monke
         agg_rows=tier_rows,
         by_leg_rows=leg_rows,
     )
-    prisma.db.litellm_shadowevalattempt.find_first = AsyncMock(return_value=MagicMock(error="judge call failed: boom"))
+    prisma.db.gateway_shadowevalattempt.find_first = AsyncMock(return_value=MagicMock(error="judge call failed: boom"))
     monkeypatch.setattr(proxy_server, "prisma_client", prisma)
 
     response = await get_shadow_eval_job("job-1", VIEWER)
@@ -1232,7 +1232,7 @@ async def test_get_shadow_eval_job_pools_counts_and_slices_results_per_key(monke
     ]
     totals_args = [call.args for call in prisma.db.query_raw.await_args_list if "judged_count" in call.args[0]]
     assert totals_args == [(totals_args[0][0], ["leg-1", "leg-2"])]
-    error_where = prisma.db.litellm_shadowevalattempt.find_first.call_args.kwargs["where"]
+    error_where = prisma.db.gateway_shadowevalattempt.find_first.call_args.kwargs["where"]
     assert error_where == {"job_id": {"in": ["leg-1", "leg-2"]}, "outcome": "error"}
 
 
@@ -1358,7 +1358,7 @@ async def test_list_shadow_eval_jobs_collapses_legs_into_jobs_newest_first(monke
     assert prisma.db.query_raw.await_count == 2
     group_reads = [
         call
-        for call in prisma.db.litellm_shadowevaljob.find_many.call_args_list
+        for call in prisma.db.gateway_shadowevaljob.find_many.call_args_list
         if "group_id" in call.kwargs.get("where", {})
     ]
     assert group_reads == []
@@ -1597,7 +1597,7 @@ async def test_stop_rejects_a_job_that_already_spent_its_budget(monkeypatch: pyt
         await stop_shadow_eval_job("job-1", ADMIN)
     assert exhausted.value.status_code == 400
     assert "completed" in exhausted.value.detail
-    prisma.db.litellm_shadowevaljob.update_many.assert_not_called()
+    prisma.db.gateway_shadowevaljob.update_many.assert_not_called()
 
 
 @pytest.mark.asyncio
@@ -1644,7 +1644,7 @@ async def test_stop_rejects_a_job_whose_dollar_budget_is_spent(monkeypatch: pyte
         await stop_shadow_eval_job("job-1", ADMIN)
     assert exhausted.value.status_code == 400
     assert "completed" in exhausted.value.detail
-    prisma.db.litellm_shadowevaljob.update_many.assert_not_called()
+    prisma.db.gateway_shadowevaljob.update_many.assert_not_called()
 
 
 @pytest.mark.asyncio
@@ -1694,7 +1694,7 @@ async def test_stop_shadow_eval_stops_every_unstopped_leg_and_rejects_non_runnin
     assert (stop_group, stop_operator) == ("job-1", "admin")
     assert datetime.fromisoformat(stop_stamp).tzinfo is None
     assert prisma.db.execute_raw.await_count == 1
-    prisma.db.litellm_shadowevaljob.update_many.assert_not_called()
+    prisma.db.gateway_shadowevaljob.update_many.assert_not_called()
     by_target = {target.target_id: target.stopped_at for target in stopped.targets}
     assert by_target["key-hash-2"] == earned
     assert by_target["key-hash"] is not None and by_target["key-hash"] != earned
@@ -1794,7 +1794,7 @@ async def test_routing_test_never_confirms_models_the_caller_cannot_use(monkeypa
     monkeypatch.setattr(proxy_server, "llm_router", _router())
 
     team_admin: Final = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-team", user_id="team-admin"
+        user_role=GatewayUserRoles.INTERNAL_USER, api_key="sk-team", user_id="team-admin"
     )
 
     monkeypatch.setattr(proxy_server, "prisma_client", _team_prisma("team-probe", models=["mid-model"]))
@@ -1840,7 +1840,7 @@ async def test_validate_config_gates_like_the_write_it_rehearses(monkeypatch: py
     monkeypatch.setattr(proxy_server, "premium_user", True)
 
     team_admin: Final = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-team", user_id="team-admin"
+        user_role=GatewayUserRoles.INTERNAL_USER, api_key="sk-team", user_id="team-admin"
     )
     verdict = await validate_complexity_router_config(
         ComplexityRouterConfigValidationRequest(complexity_router_config=config, team_id="team-1"),
@@ -1851,7 +1851,7 @@ async def test_validate_config_gates_like_the_write_it_rehearses(monkeypatch: py
     with pytest.raises(HTTPException) as not_their_team:
         await validate_complexity_router_config(
             ComplexityRouterConfigValidationRequest(complexity_router_config=config, team_id="team-1"),
-            UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-other", user_id="someone-else"),
+            UserAPIKeyAuth(user_role=GatewayUserRoles.INTERNAL_USER, api_key="sk-other", user_id="someone-else"),
         )
     assert not_their_team.value.status_code == 403
 
@@ -1888,7 +1888,7 @@ async def test_a_stop_racing_the_last_budgeted_attempt_reports_completed_not_sto
         await stop_shadow_eval_job("job-1", ADMIN)
     assert exc.value.status_code == 400
     assert "already completed" in exc.value.detail
-    assert prisma.db.litellm_shadowevaljob.find_many.await_args.kwargs["where"] == {"group_id": "job-1"}
+    assert prisma.db.gateway_shadowevaljob.find_many.await_args.kwargs["where"] == {"group_id": "job-1"}
 
 
 @pytest.mark.asyncio

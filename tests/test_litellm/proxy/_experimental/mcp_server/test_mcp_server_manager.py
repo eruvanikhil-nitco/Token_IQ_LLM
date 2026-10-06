@@ -48,7 +48,7 @@ from token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager import (
 from token_iq.gateway.proxy._types import (
     LiteLLM_MCPServerTable,
     LiteLLM_ObjectPermissionTable,
-    LitellmUserRoles,
+    GatewayUserRoles,
     MCPApprovalStatus,
     MCPEnvVar,
     MCPEnvVarScope,
@@ -373,7 +373,7 @@ class TestMCPServerManager:
             }
         }
 
-        with caplog.at_level(logging.DEBUG, logger="LiteLLM"):
+        with caplog.at_level(logging.DEBUG, logger="Gateway"):
             await manager.load_servers_from_config(config)
 
         dump = next(m for m in caplog.messages if "Loaded MCP Servers" in m)
@@ -395,7 +395,7 @@ class TestMCPServerManager:
             }
         }
 
-        with caplog.at_level(logging.WARNING, logger="LiteLLM"):
+        with caplog.at_level(logging.WARNING, logger="Gateway"):
             await manager.load_servers_from_config(config)
 
         assert any("invalid alias 'bad/name'" in message for message in caplog.messages)
@@ -413,7 +413,7 @@ class TestMCPServerManager:
             }
         }
 
-        with caplog.at_level(logging.WARNING, logger="LiteLLM"):
+        with caplog.at_level(logging.WARNING, logger="Gateway"):
             await manager.load_servers_from_config(config)
 
         # No warnings logged for the valid alias
@@ -1255,7 +1255,7 @@ class TestMCPServerManager:
         original_value = os.environ.get("MCP_TOOL_PREFIX_SEPARATOR")
         monkeypatch.setenv("MCP_TOOL_PREFIX_SEPARATOR", "/")
 
-        with caplog.at_level(logging.WARNING, logger="LiteLLM"):
+        with caplog.at_level(logging.WARNING, logger="Gateway"):
             _reload_mcp_manager_module()
 
         assert any("violates SEP-986" in message for message in caplog.messages)
@@ -1267,7 +1267,7 @@ class TestMCPServerManager:
             monkeypatch.setenv("MCP_TOOL_PREFIX_SEPARATOR", original_value)
 
         caplog.clear()
-        with caplog.at_level(logging.WARNING, logger="LiteLLM"):
+        with caplog.at_level(logging.WARNING, logger="Gateway"):
             _reload_mcp_manager_module()
 
         assert all("violates SEP-986" not in message for message in caplog.messages)
@@ -1278,7 +1278,7 @@ class TestMCPServerManager:
         original_value = os.environ.get("MCP_TOOL_PREFIX_SEPARATOR")
         monkeypatch.setenv("MCP_TOOL_PREFIX_SEPARATOR", "_")
 
-        with caplog.at_level(logging.WARNING, logger="LiteLLM"):
+        with caplog.at_level(logging.WARNING, logger="Gateway"):
             _reload_mcp_manager_module()
 
         assert all("violates SEP-986" not in message for message in caplog.messages)
@@ -2614,7 +2614,7 @@ class TestMCPServerManager:
         manager.ensure_oauth_metadata_discovered.assert_not_awaited()
 
     @pytest.mark.asyncio
-    async def test_call_regular_mcp_tool_passthrough_strips_authorization_when_admission_consumed_litellm_key(
+    async def test_call_regular_mcp_tool_passthrough_strips_authorization_when_admission_consumed_gateway_key(
         self,
     ):
         """OAuth pass-through must not forward the caller's Authorization to upstream
@@ -6660,7 +6660,7 @@ class TestMCPServerTimestamps:
 
         with (
             patch.object(manager, "_fetch_issuer_anchored_oauth_metadata", new=AsyncMock(return_value=None)),
-            caplog.at_level(logging.WARNING, logger="LiteLLM"),
+            caplog.at_level(logging.WARNING, logger="Gateway"),
         ):
             built = await manager.build_mcp_server_from_table(record, credentials_are_encrypted=False)
 
@@ -7380,7 +7380,7 @@ class TestMCPServerTokenExchangeColumns:
 class TestInternalDelegatePkceWarningLog:
     @pytest.mark.asyncio
     async def test_build_mcp_server_logs_on_internal_delegate_interactive(self, caplog):
-        caplog.set_level(logging.WARNING, logger="LiteLLM")
+        caplog.set_level(logging.WARNING, logger="Gateway")
         manager = MCPServerManager()
         table_record = LiteLLM_MCPServerTable(
             server_id="warn-del-1",
@@ -7400,7 +7400,7 @@ class TestInternalDelegatePkceWarningLog:
 
     @pytest.mark.asyncio
     async def test_build_mcp_server_no_internal_delegate_log_when_public(self, caplog):
-        caplog.set_level(logging.WARNING, logger="LiteLLM")
+        caplog.set_level(logging.WARNING, logger="Gateway")
         manager = MCPServerManager()
         table_record = LiteLLM_MCPServerTable(
             server_id="warn-del-2",
@@ -7418,7 +7418,7 @@ class TestInternalDelegatePkceWarningLog:
         assert "internal-only" not in combined
 
     def test_warn_skipped_for_client_credentials(self, caplog):
-        caplog.set_level(logging.WARNING, logger="LiteLLM")
+        caplog.set_level(logging.WARNING, logger="Gateway")
         from token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager import (
             _warn_internal_delegate_pkce_if_applicable,
         )
@@ -9641,7 +9641,7 @@ class TestRequestTimeOauth2FlowBackstop:
             client_secret="csecret",
             token_url="https://idp.example.com/token",
         )
-        with caplog.at_level(logging.WARNING, logger="LiteLLM"):
+        with caplog.at_level(logging.WARNING, logger="Gateway"):
             resolved = MCPServerManager.resolve_oauth2_flow_for_request(server)
 
         assert resolved is not server
@@ -9913,7 +9913,7 @@ class TestDiscoveryFailureLogging:
                 "token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager.get_async_httpx_client",
                 return_value=self._connect_error_client(secret_url),
             ),
-            caplog.at_level(logging.WARNING, logger="LiteLLM"),
+            caplog.at_level(logging.WARNING, logger="Gateway"),
         ):
             result = await manager._descovery_metadata(secret_url, warn_when_no_metadata=True)
         assert result is None
@@ -9933,7 +9933,7 @@ class TestDiscoveryFailureLogging:
                 "token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager.get_async_httpx_client",
                 return_value=self._connect_error_client(url),
             ),
-            caplog.at_level(logging.WARNING, logger="LiteLLM"),
+            caplog.at_level(logging.WARNING, logger="Gateway"),
         ):
             result = await manager._descovery_metadata(url)
         assert result is None
@@ -9950,7 +9950,7 @@ class TestDiscoveryFailureLogging:
                 "token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager.get_async_httpx_client",
                 return_value=client,
             ),
-            caplog.at_level(logging.WARNING, logger="LiteLLM"),
+            caplog.at_level(logging.WARNING, logger="Gateway"),
         ):
             result = await manager._descovery_metadata(url, warn_when_no_metadata=True)
         assert result is None
@@ -9970,7 +9970,7 @@ class TestDiscoveryFailureLogging:
                 "oauth2_flow": "authorization_code",
             }
         }
-        with caplog.at_level(logging.WARNING, logger="LiteLLM"):
+        with caplog.at_level(logging.WARNING, logger="Gateway"):
             await manager.load_servers_from_config(config)
         assert "typo_server" in caplog.text
         assert "authorization_url, token_url" in caplog.text
@@ -10007,7 +10007,7 @@ class TestDiscoveryFailureLogging:
                 **extra_config,
             }
         }
-        with caplog.at_level(logging.WARNING, logger="LiteLLM"):
+        with caplog.at_level(logging.WARNING, logger="Gateway"):
             await manager.load_servers_from_config(config)
         assert "unresolved" not in caplog.text
         assert "no discovery source" not in caplog.text
@@ -10024,7 +10024,7 @@ class TestDiscoveryFailureLogging:
                 "oauth2_flow": "authorization_code",
             }
         }
-        with caplog.at_level(logging.WARNING, logger="LiteLLM"):
+        with caplog.at_level(logging.WARNING, logger="Gateway"):
             await manager.load_servers_from_config(config)
         assert "no discovery source" in caplog.text
         assert "authorization_url and token_url are not set manually" in caplog.text
@@ -10041,7 +10041,7 @@ class TestDiscoveryFailureLogging:
             auth_type=MCPAuth.oauth2,
             oauth2_flow="authorization_code",
         )
-        with caplog.at_level(logging.WARNING, logger="LiteLLM"):
+        with caplog.at_level(logging.WARNING, logger="Gateway"):
             await manager.build_mcp_server_from_table(record, credentials_are_encrypted=False)
         assert "typo_row" in caplog.text
         assert "authorization_url, token_url" in caplog.text
@@ -10573,7 +10573,7 @@ class TestToolAuthorizationIsNotConditionalOnLogging:
         user = UserAPIKeyAuth(
             api_key="sk-caller",
             user_id="alice",
-            user_role=LitellmUserRoles.INTERNAL_USER.value,
+            user_role=GatewayUserRoles.INTERNAL_USER.value,
             object_permission=LiteLLM_ObjectPermissionTable(
                 object_permission_id="op-gated",
                 mcp_servers=["srv-gated"],
@@ -10654,7 +10654,7 @@ class TestSessionResourceScopeIntersect:
         from unittest.mock import AsyncMock, patch
 
         from token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager import MCPServerManager
-        from token_iq.gateway.proxy._types import LitellmUserRoles
+        from token_iq.gateway.proxy._types import GatewayUserRoles
         from token_iq.gateway.types.mcp import MCPTransport
         from token_iq.gateway.types.mcp_server.mcp_server_manager import MCPServer
 
@@ -10664,7 +10664,7 @@ class TestSessionResourceScopeIntersect:
                 server_id=sid, name=sid, server_name=sid, url="https://example.com/mcp", transport=MCPTransport.http
             )
         auth = self._admitted_auth("granted-id")
-        auth.user_role = LitellmUserRoles.PROXY_ADMIN
+        auth.user_role = GatewayUserRoles.PROXY_ADMIN
         with (
             patch.object(MCPServerManager, "get_allow_all_keys_server_ids", return_value=[]),
             patch.object(
@@ -11020,7 +11020,7 @@ class TestOpenApiHandlerRelaysUpstreamAuth:
         assert "upstream returned HTTP 503" in result.content[0].text
 
 
-class TestLitellmAdmissionKeyIsNeverTheSubjectToken:
+class TestGatewayAdmissionKeyIsNeverTheSubjectToken:
     """The bearer that admitted the request as a LiteLLM key must not be sent to the IdP as the
     RFC 8693 subject_token (or ID-JAG assertion). Only ``x-litellm-api-key`` disambiguates: with it
     present, ``Authorization`` is the caller's own identity token and is exchanged as before."""
@@ -11105,7 +11105,7 @@ class TestLitellmAdmissionKeyIsNeverTheSubjectToken:
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize("auth_type", [MCPAuth.oauth2_token_exchange, MCPAuth.oauth2_id_jag])
-    async def test_tools_call_with_only_the_litellm_key_has_no_subject(self, auth_type):
+    async def test_tools_call_with_only_the_gateway_key_has_no_subject(self, auth_type):
         server = (
             self._token_exchange_server("te-call")
             if auth_type == MCPAuth.oauth2_token_exchange
@@ -11120,7 +11120,7 @@ class TestLitellmAdmissionKeyIsNeverTheSubjectToken:
         assert subject_token is None
 
     @pytest.mark.asyncio
-    async def test_rest_tools_call_with_only_the_litellm_key_has_no_subject(self):
+    async def test_rest_tools_call_with_only_the_gateway_key_has_no_subject(self):
         """The REST facade passes no oauth2_headers; the bearer is reached through raw_headers only."""
         subject_token = await self._call_tool_subject(
             self._token_exchange_server("te-rest"),
@@ -11131,7 +11131,7 @@ class TestLitellmAdmissionKeyIsNeverTheSubjectToken:
         assert subject_token is None
 
     @pytest.mark.asyncio
-    async def test_tools_call_exchanges_the_user_token_when_x_litellm_api_key_admits(self):
+    async def test_tools_call_exchanges_the_user_token_when_x_gateway_api_key_admits(self):
         subject_token = await self._call_tool_subject(
             self._token_exchange_server("te-split"),
             oauth2_headers={"Authorization": f"Bearer {self._USER_TOKEN}"},
@@ -11144,7 +11144,7 @@ class TestLitellmAdmissionKeyIsNeverTheSubjectToken:
         assert subject_token == self._USER_TOKEN
 
     @pytest.mark.asyncio
-    async def test_tools_call_with_an_empty_x_litellm_api_key_has_no_subject(self):
+    async def test_tools_call_with_an_empty_x_gateway_api_key_has_no_subject(self):
         """Admission ignores an empty ``x-litellm-api-key`` and validates ``Authorization`` instead."""
         subject_token = await self._call_tool_subject(
             self._token_exchange_server("te-empty-header"),
@@ -11155,7 +11155,7 @@ class TestLitellmAdmissionKeyIsNeverTheSubjectToken:
         assert subject_token is None
 
     @pytest.mark.asyncio
-    async def test_tools_call_with_the_same_litellm_key_in_both_headers_has_no_subject(self):
+    async def test_tools_call_with_the_same_gateway_key_in_both_headers_has_no_subject(self):
         subject_token = await self._call_tool_subject(
             self._token_exchange_server("te-same-key"),
             oauth2_headers={"Authorization": f"Bearer {self._ADMISSION_KEY}"},
@@ -11168,7 +11168,7 @@ class TestLitellmAdmissionKeyIsNeverTheSubjectToken:
         assert subject_token is None
 
     @pytest.mark.asyncio
-    async def test_tools_call_with_a_different_litellm_key_in_authorization_has_no_subject(self):
+    async def test_tools_call_with_a_different_gateway_key_in_authorization_has_no_subject(self):
         """A second ``sk-`` virtual key next to ``x-litellm-api-key`` is still a gateway credential."""
         subject_token = await self._call_tool_subject(
             self._token_exchange_server("te-second-key"),
@@ -11192,7 +11192,7 @@ class TestLitellmAdmissionKeyIsNeverTheSubjectToken:
         assert subject_token == self._USER_TOKEN
 
     @pytest.mark.asyncio
-    async def test_tools_list_with_only_the_litellm_key_has_no_subject(self):
+    async def test_tools_list_with_only_the_gateway_key_has_no_subject(self):
         manager: Final = self._manager_with_recording_client()
         manager._fetch_tools_with_timeout = AsyncMock(return_value=[])
         await manager._get_tools_from_server(
@@ -11204,7 +11204,7 @@ class TestLitellmAdmissionKeyIsNeverTheSubjectToken:
         assert self._subject_token_given_to_client(manager) is None
 
     @pytest.mark.asyncio
-    async def test_prompts_list_with_only_the_litellm_key_has_no_subject(self):
+    async def test_prompts_list_with_only_the_gateway_key_has_no_subject(self):
         manager: Final = self._manager_with_recording_client()
         await manager.get_prompts_from_server(
             server=self._token_exchange_server("te-prompts-key"),
@@ -11214,7 +11214,7 @@ class TestLitellmAdmissionKeyIsNeverTheSubjectToken:
         assert self._subject_token_given_to_client(manager) is None
 
     @pytest.mark.asyncio
-    async def test_resource_read_with_only_the_litellm_key_has_no_subject(self):
+    async def test_resource_read_with_only_the_gateway_key_has_no_subject(self):
         manager: Final = self._manager_with_recording_client()
         await manager.read_resource_from_server(
             server=self._token_exchange_server("te-read-key"),
@@ -11225,7 +11225,7 @@ class TestLitellmAdmissionKeyIsNeverTheSubjectToken:
         assert self._subject_token_given_to_client(manager) is None
 
     @pytest.mark.asyncio
-    async def test_resource_read_exchanges_the_user_token_when_x_litellm_api_key_admits(self):
+    async def test_resource_read_exchanges_the_user_token_when_x_gateway_api_key_admits(self):
         manager: Final = self._manager_with_recording_client()
         await manager.read_resource_from_server(
             server=self._token_exchange_server("te-read-split"),
@@ -11239,7 +11239,7 @@ class TestLitellmAdmissionKeyIsNeverTheSubjectToken:
         assert self._subject_token_given_to_client(manager) == self._USER_TOKEN
 
     @pytest.mark.asyncio
-    async def test_openapi_call_never_hands_the_litellm_key_to_the_exchanger(self):
+    async def test_openapi_call_never_hands_the_gateway_key_to_the_exchanger(self):
         provider: Final = self._recording_provider()
         manager = MCPServerManager(cred_provider=provider)
         server = MCPServer(
@@ -11278,7 +11278,7 @@ class TestLitellmAdmissionKeyIsNeverTheSubjectToken:
         assert self._subjects_seen_by(provider) == [None, self._USER_TOKEN]
 
     @pytest.mark.asyncio
-    async def test_preflight_challenges_instead_of_exchanging_the_litellm_key(self):
+    async def test_preflight_challenges_instead_of_exchanging_the_gateway_key(self):
         provider: Final = self._recording_provider()
         manager = MCPServerManager(cred_provider=provider)
 
@@ -11295,7 +11295,7 @@ class TestLitellmAdmissionKeyIsNeverTheSubjectToken:
         assert self._subjects_seen_by(provider) == []
 
     @pytest.mark.asyncio
-    async def test_preflight_exchanges_the_user_token_when_x_litellm_api_key_admits(self):
+    async def test_preflight_exchanges_the_user_token_when_x_gateway_api_key_admits(self):
         provider: Final = self._recording_provider()
         manager = MCPServerManager(cred_provider=provider)
 

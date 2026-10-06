@@ -16,7 +16,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 from token_iq.gateway.proxy._types import (
     LiteLLM_VerificationToken,
-    LitellmUserRoles,
+    GatewayUserRoles,
 )
 from token_iq.gateway.proxy.auth.user_api_key_auth import UserAPIKeyAuth
 from token_iq.gateway.proxy.management_endpoints.key_management_endpoints import (
@@ -53,7 +53,7 @@ def _admin_user() -> UserAPIKeyAuth:
     return UserAPIKeyAuth(
         user_id="admin-user",
         api_key="sk-admin",
-        user_role=LitellmUserRoles.PROXY_ADMIN.value,
+        user_role=GatewayUserRoles.PROXY_ADMIN.value,
     )
 
 
@@ -61,7 +61,7 @@ def _regular_user(user_id: str = "user-123") -> UserAPIKeyAuth:
     return UserAPIKeyAuth(
         user_id=user_id,
         api_key="sk-regular",
-        user_role=LitellmUserRoles.INTERNAL_USER.value,
+        user_role=GatewayUserRoles.INTERNAL_USER.value,
     )
 
 

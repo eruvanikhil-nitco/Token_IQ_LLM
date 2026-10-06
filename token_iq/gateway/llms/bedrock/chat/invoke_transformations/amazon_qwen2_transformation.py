@@ -15,7 +15,7 @@ from token_iq.gateway.llms.bedrock.chat.invoke_transformations.amazon_qwen3_tran
     AmazonQwen3Config,
 )
 from token_iq.gateway.llms.bedrock.chat.invoke_transformations.base_invoke_transformation import (
-    LiteLLMLoggingObj,
+    GatewayLoggingObj,
 )
 from token_iq.gateway.types.llms.openai import AllMessageValues
 from token_iq.gateway.types.utils import ModelResponse, Usage
@@ -39,7 +39,7 @@ class AmazonQwen2Config(AmazonQwen3Config):
         model: str,
         raw_response: httpx.Response,
         model_response: ModelResponse,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         request_data: dict,
         messages: list[AllMessageValues],
         optional_params: dict,

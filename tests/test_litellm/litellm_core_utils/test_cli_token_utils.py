@@ -33,7 +33,7 @@ from token_iq.gateway.core_utils.cli_token_utils import (
     CredentialNotSaved,
     clear_cli_token,
     get_cli_token_file_path,
-    get_litellm_gateway_api_key,
+    get_gateway_gateway_api_key,
     is_cli_token_fresh,
     load_cli_token,
     save_cli_token,
@@ -389,18 +389,18 @@ class TestLoadCliToken:
         assert load_cli_token(vault=secret_vault_factory(blob=_blob())) is None
 
 
-class TestGetLitellmGatewayApiKey:
+class TestGetGatewayGatewayApiKey:
     def test_returns_the_vault_secret_when_the_origin_matches(self, isolated_home, secret_vault_factory):
         _write_metadata_only_file(isolated_home)
 
-        key = get_litellm_gateway_api_key(expected_base_url=SERVER, vault=secret_vault_factory(blob=_blob()))
+        key = get_gateway_gateway_api_key(expected_base_url=SERVER, vault=secret_vault_factory(blob=_blob()))
 
         assert key == "sk-vault"
 
     def test_trailing_slash_on_the_expected_url_is_normalised(self, isolated_home, secret_vault_factory):
         _write_metadata_only_file(isolated_home)
 
-        key = get_litellm_gateway_api_key(expected_base_url=SERVER + "/", vault=secret_vault_factory(blob=_blob()))
+        key = get_gateway_gateway_api_key(expected_base_url=SERVER + "/", vault=secret_vault_factory(blob=_blob()))
 
         assert key == "sk-vault"
 
@@ -410,11 +410,11 @@ class TestGetLitellmGatewayApiKey:
         _write_legacy_file(isolated_home)
         vault = secret_vault_factory(blob=_blob())
 
-        assert get_litellm_gateway_api_key(expected_base_url=OTHER_SERVER, vault=vault) is None
+        assert get_gateway_gateway_api_key(expected_base_url=OTHER_SERVER, vault=vault) is None
         assert vault.reads == 0
 
     def test_no_token_file_returns_nothing(self, isolated_home, secret_vault_factory):
-        assert get_litellm_gateway_api_key(vault=secret_vault_factory(blob=_blob())) is None
+        assert get_gateway_gateway_api_key(vault=secret_vault_factory(blob=_blob())) is None
 
 
 class TestSaveCliToken:

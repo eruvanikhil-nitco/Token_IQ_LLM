@@ -213,7 +213,7 @@ class TestAiPolicySuggester:
         assert "No templates" in result["explanation"]
 
     @pytest.mark.asyncio
-    async def test_suggest_calls_litellm_with_correct_params(self):
+    async def test_suggest_calls_gateway_with_correct_params(self):
         suggester = AiPolicySuggester()
 
         mock_tool_call = MagicMock()

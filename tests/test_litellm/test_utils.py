@@ -30,8 +30,8 @@ from token_iq.gateway.types.utils import (
     StreamingChoices,
     Usage,
 )
-from token_iq.gateway.types.utils import all_litellm_params, bedrock_batch_litellm_params
-from token_iq.gateway.types.router import CredentialLiteLLMParams, GenericLiteLLMParams
+from token_iq.gateway.types.utils import all_litellm_params, bedrock_batch_gateway_params
+from token_iq.gateway.types.router import CredentialGatewayParams, GenericGatewayParams
 from token_iq.gateway.utils import (
     ProviderConfigManager,
     TextCompletionStreamWrapper,
@@ -1907,7 +1907,7 @@ class TestProxyFunctionCalling:
         except Exception as e:
             pytest.fail(f"Error testing proxy model {proxy_model}: {e}")
 
-    def test_litellm_utils_supports_function_calling_import(self):
+    def test_gateway_utils_supports_function_calling_import(self):
         """Test that supports_function_calling can be imported from litellm.utils."""
         try:
             from token_iq.gateway.utils import supports_function_calling
@@ -1916,7 +1916,7 @@ class TestProxyFunctionCalling:
         except ImportError as e:
             pytest.fail(f"Failed to import supports_function_calling: {e}")
 
-    def test_litellm_supports_function_calling_import(self):
+    def test_gateway_supports_function_calling_import(self):
         """Test that supports_function_calling can be imported from litellm directly."""
         try:
             from token_iq import gateway
@@ -3199,7 +3199,7 @@ class TestProxyLoggingBudgetAlerts:
         via metadata.soft_budget_alerting_emails to work even when global alerting is disabled.
         """
         from token_iq.gateway.caching.caching import DualCache
-        from token_iq.gateway.proxy._types import CallInfo, Litellm_EntityType
+        from token_iq.gateway.proxy._types import CallInfo, Gateway_EntityType
         from token_iq.gateway.proxy.utils import ProxyLogging
 
         proxy_logging = ProxyLogging(user_api_key_cache=DualCache())
@@ -3215,7 +3215,7 @@ class TestProxyLoggingBudgetAlerts:
             user_id="test-user",
             team_id="test-team",
             team_alias="test-team-alias",
-            event_group=Litellm_EntityType.TEAM,
+            event_group=Gateway_EntityType.TEAM,
             alert_emails=["team1@example.com", "team2@example.com"],
         )
 
@@ -3238,7 +3238,7 @@ class TestProxyLoggingBudgetAlerts:
         and do not send emails when alerting is None.
         """
         from token_iq.gateway.caching.caching import DualCache
-        from token_iq.gateway.proxy._types import CallInfo, Litellm_EntityType
+        from token_iq.gateway.proxy._types import CallInfo, Gateway_EntityType
         from token_iq.gateway.proxy.utils import ProxyLogging
 
         proxy_logging = ProxyLogging(user_api_key_cache=DualCache())
@@ -3254,7 +3254,7 @@ class TestProxyLoggingBudgetAlerts:
             user_id="test-user",
             team_id="test-team",
             team_alias="test-team-alias",
-            event_group=Litellm_EntityType.TEAM,
+            event_group=Gateway_EntityType.TEAM,
             alert_emails=None,  # No alert emails
         )
 
@@ -3272,7 +3272,7 @@ class TestProxyLoggingBudgetAlerts:
         Test that soft_budget alerts with empty alert_emails list still respect alerting=None.
         """
         from token_iq.gateway.caching.caching import DualCache
-        from token_iq.gateway.proxy._types import CallInfo, Litellm_EntityType
+        from token_iq.gateway.proxy._types import CallInfo, Gateway_EntityType
         from token_iq.gateway.proxy.utils import ProxyLogging
 
         proxy_logging = ProxyLogging(user_api_key_cache=DualCache())
@@ -3288,7 +3288,7 @@ class TestProxyLoggingBudgetAlerts:
             user_id="test-user",
             team_id="test-team",
             team_alias="test-team-alias",
-            event_group=Litellm_EntityType.TEAM,
+            event_group=Gateway_EntityType.TEAM,
             alert_emails=[],  # Empty list
         )
 
@@ -3730,7 +3730,7 @@ class TestCallbackAsyncSyncSeparation:
         async def my_async_cb(*args, **kwargs):
             pass
 
-        gateway.logging_callback_manager.add_litellm_success_callback(my_async_cb)
+        gateway.logging_callback_manager.add_gateway_success_callback(my_async_cb)
         assert my_async_cb in gateway._async_success_callback
         assert my_async_cb not in gateway.success_callback
 
@@ -3738,12 +3738,12 @@ class TestCallbackAsyncSyncSeparation:
         def my_sync_cb(*args, **kwargs):
             pass
 
-        gateway.logging_callback_manager.add_litellm_success_callback(my_sync_cb)
+        gateway.logging_callback_manager.add_gateway_success_callback(my_sync_cb)
         assert my_sync_cb in gateway.success_callback
         assert my_sync_cb not in gateway._async_success_callback
 
     def test_string_callback_stays_in_sync_list(self):
-        gateway.logging_callback_manager.add_litellm_success_callback("langfuse")
+        gateway.logging_callback_manager.add_gateway_success_callback("langfuse")
         assert "langfuse" in gateway.success_callback
         assert "langfuse" not in gateway._async_success_callback
 
@@ -3751,7 +3751,7 @@ class TestCallbackAsyncSyncSeparation:
         async def my_async_cb(*args, **kwargs):
             pass
 
-        gateway.logging_callback_manager.add_litellm_failure_callback(my_async_cb)
+        gateway.logging_callback_manager.add_gateway_failure_callback(my_async_cb)
         assert my_async_cb in gateway._async_failure_callback
         assert my_async_cb not in gateway.failure_callback
 
@@ -3759,17 +3759,17 @@ class TestCallbackAsyncSyncSeparation:
         def my_sync_cb(*args, **kwargs):
             pass
 
-        gateway.logging_callback_manager.add_litellm_failure_callback(my_sync_cb)
+        gateway.logging_callback_manager.add_gateway_failure_callback(my_sync_cb)
         assert my_sync_cb in gateway.failure_callback
         assert my_sync_cb not in gateway._async_failure_callback
 
     def test_dynamodb_routed_to_async_success(self):
-        gateway.logging_callback_manager.add_litellm_success_callback("dynamodb")
+        gateway.logging_callback_manager.add_gateway_success_callback("dynamodb")
         assert "dynamodb" in gateway._async_success_callback
         assert "dynamodb" not in gateway.success_callback
 
     def test_openmeter_routed_to_async_success(self):
-        gateway.logging_callback_manager.add_litellm_success_callback("openmeter")
+        gateway.logging_callback_manager.add_gateway_success_callback("openmeter")
         assert "openmeter" in gateway._async_success_callback
         assert "openmeter" not in gateway.success_callback
 
@@ -3777,7 +3777,7 @@ class TestCallbackAsyncSyncSeparation:
         async def my_async_cb(*args, **kwargs):
             pass
 
-        gateway.logging_callback_manager.add_litellm_input_callback(my_async_cb)
+        gateway.logging_callback_manager.add_gateway_input_callback(my_async_cb)
         assert my_async_cb in gateway._async_input_callback
         assert my_async_cb not in gateway.input_callback
 
@@ -3785,7 +3785,7 @@ class TestCallbackAsyncSyncSeparation:
         def my_sync_cb(*args, **kwargs):
             pass
 
-        gateway.logging_callback_manager.add_litellm_input_callback(my_sync_cb)
+        gateway.logging_callback_manager.add_gateway_input_callback(my_sync_cb)
         assert my_sync_cb in gateway.input_callback
         assert my_sync_cb not in gateway._async_input_callback
 
@@ -3811,8 +3811,8 @@ class TestMetadataNoneHandling:
     def test_metadata_none_model_group_check(self):
         """'model_group' in (kwargs.get("metadata") or {}) should not raise TypeError."""
         kwargs = {"metadata": None}
-        _is_litellm_router_call = "model_group" in (kwargs.get("metadata") or {})
-        assert _is_litellm_router_call is False
+        _is_gateway_router_call = "model_group" in (kwargs.get("metadata") or {})
+        assert _is_gateway_router_call is False
 
     def test_metadata_missing_key(self):
         """Should work when metadata key is completely absent."""
@@ -3825,8 +3825,8 @@ class TestMetadataNoneHandling:
         kwargs = {"metadata": {"previous_models": ["model1"], "model_group": "test"}}
         previous_models = (kwargs.get("metadata") or {}).get("previous_models", None)
         assert previous_models == ["model1"]
-        _is_litellm_router_call = "model_group" in (kwargs.get("metadata") or {})
-        assert _is_litellm_router_call is True
+        _is_gateway_router_call = "model_group" in (kwargs.get("metadata") or {})
+        assert _is_gateway_router_call is True
 
     def test_metadata_none_causes_error_with_old_pattern(self):
         """Demonstrate the bug: dict.get('metadata', {}) returns None when key exists with None value."""
@@ -3843,7 +3843,7 @@ class TestMetadataNoneHandling:
         with pytest.raises(TypeError):
             _ = "model_group" in kwargs.get("metadata", {})
 
-    def test_litellm_params_metadata_none(self):
+    def test_gateway_params_metadata_none(self):
         """litellm_params.get("metadata") or {} should handle None value."""
         litellm_params = {"metadata": None}
         metadata = litellm_params.get("metadata") or {}
@@ -4825,22 +4825,22 @@ def test_reapply_runtime_registrations_replays_register_model_overrides(monkeypa
     so without replaying those registrations the override is silently lost and
     the model reverts to upstream pricing.
     """
-    from token_iq.gateway import utils as litellm_utils
+    from token_iq.gateway import utils as gateway_utils
     from token_iq.gateway.utils import (
         _invalidate_model_cost_lowercase_map,
         reapply_runtime_model_cost_registrations,
     )
 
     monkeypatch.setattr(
-        litellm_utils,
+        gateway_utils,
         "_runtime_registered_model_cost",
-        dict(litellm_utils._runtime_registered_model_cost),
+        dict(gateway_utils._runtime_registered_model_cost),
     )
     # Only the recorded half is under test here; the live-router rebuild is covered
     # in test_router_model_cost_isolation.py. Routers built by earlier tests in this
     # process stay in the weak set until they are collected, so leaving the callback
     # installed would make this depend on when that happens.
-    monkeypatch.setattr(litellm_utils._LiveDeploymentReplay, "callback", None)
+    monkeypatch.setattr(gateway_utils._LiveDeploymentReplay, "callback", None)
 
     saved_model_cost = gateway.model_cost
     try:
@@ -4879,16 +4879,16 @@ def test_reapply_runtime_registrations_drops_request_scoped_registrations(monkey
     the catalog generation it was applied to and silently beat fresh upstream
     pricing forever, while a durable override registered alongside it survives.
     """
-    from token_iq.gateway import utils as litellm_utils
+    from token_iq.gateway import utils as gateway_utils
     from token_iq.gateway.utils import (
         _invalidate_model_cost_lowercase_map,
         reapply_runtime_model_cost_registrations,
     )
 
     monkeypatch.setattr(
-        litellm_utils,
+        gateway_utils,
         "_runtime_registered_model_cost",
-        dict(litellm_utils._runtime_registered_model_cost),
+        dict(gateway_utils._runtime_registered_model_cost),
     )
 
     saved_model_cost = gateway.model_cost
@@ -5082,7 +5082,7 @@ def test_bedrock_batch_params_never_reach_the_provider():
     """
     configured = {
         field: ([{"key": "team", "value": "configured-value"}] if field == "bedrock_tags" else "configured-value")
-        for field in bedrock_batch_litellm_params
+        for field in bedrock_batch_gateway_params
     }
     kwargs = {"a_real_provider_specific_param": 1, **configured}
 
@@ -5092,20 +5092,20 @@ def test_bedrock_batch_params_never_reach_the_provider():
         "bedrock batch params leaked into the provider params: "
         f"{sorted(set(non_default) - {'a_real_provider_specific_param'})}"
     )
-    assert set(bedrock_batch_litellm_params) <= set(all_litellm_params)
+    assert set(bedrock_batch_gateway_params) <= set(all_litellm_params)
 
-    batch_params = dict(GenericLiteLLMParams(**kwargs))
-    assert all(batch_params.get(field) == configured[field] for field in bedrock_batch_litellm_params), (
+    batch_params = dict(GenericGatewayParams(**kwargs))
+    assert all(batch_params.get(field) == configured[field] for field in bedrock_batch_gateway_params), (
         "registering these must not strip them from the batch path: "
-        f"{sorted(f for f in bedrock_batch_litellm_params if batch_params.get(f) != configured[f])}"
+        f"{sorted(f for f in bedrock_batch_gateway_params if batch_params.get(f) != configured[f])}"
     )
 
-    normalized = CredentialLiteLLMParams.model_validate(
-        GenericLiteLLMParams(**kwargs).model_dump(exclude_none=True)
+    normalized = CredentialGatewayParams.model_validate(
+        GenericGatewayParams(**kwargs).model_dump(exclude_none=True)
     ).model_dump(exclude_none=True)
-    assert all(normalized.get(field) == configured[field] for field in bedrock_batch_litellm_params), (
+    assert all(normalized.get(field) == configured[field] for field in bedrock_batch_gateway_params), (
         "credential normalization dropped batch params before the transformation: "
-        f"{sorted(f for f in bedrock_batch_litellm_params if normalized.get(f) != configured[f])}"
+        f"{sorted(f for f in bedrock_batch_gateway_params if normalized.get(f) != configured[f])}"
     )
 
 

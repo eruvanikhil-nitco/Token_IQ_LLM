@@ -8,7 +8,7 @@ from pydantic import BaseModel, TypeAdapter, ValidationError
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.responses.litellm_completion_transformation.transformation import (
     NAMESPACE_DESCRIPTION_SEPARATOR,
-    LiteLLMCompletionResponsesConfig,
+    GatewayCompletionResponsesConfig,
 )
 
 Tool: TypeAlias = Mapping[str, object]
@@ -154,7 +154,7 @@ def _merged_original(
     if not guardrailed_group:
         return ()
     return tuple(
-        LiteLLMCompletionResponsesConfig.transform_chat_completion_tool_params_to_responses_api_tools(guardrailed_group)
+        GatewayCompletionResponsesConfig.transform_chat_completion_tool_params_to_responses_api_tools(guardrailed_group)
     )
 
 
@@ -176,7 +176,7 @@ def merge_guardrailed_tools(
         for original, group, group_keys in zip(original_tools, flattened_groups, group_key_slices)
     )
     owned_keys: Final = frozenset(flattened_keys)
-    appended: Final = LiteLLMCompletionResponsesConfig.transform_chat_completion_tool_params_to_responses_api_tools(
+    appended: Final = GatewayCompletionResponsesConfig.transform_chat_completion_tool_params_to_responses_api_tools(
         tuple(tool for key, tool in zip(guardrailed_keys, guardrailed) if key not in owned_keys)
     )
     return tuple(chain(merged_originals, appended))

@@ -7,7 +7,7 @@ from token_iq import gateway
 from token_iq.gateway import aresponses
 from token_iq.gateway._uuid import uuid
 from token_iq.gateway.caching.caching_handler import LLMCachingHandler
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLogging
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLogging
 from token_iq.gateway.types.llms import openai as openai_types
 from token_iq.gateway.types.utils import CallTypes
 
@@ -19,7 +19,7 @@ async def test_async_get_cache_reuses_preset_cache_key_for_responses():
         request_kwargs={},
         start_time=datetime.now(),
     )
-    logging_obj = LiteLLMLogging(
+    logging_obj = GatewayLogging(
         litellm_call_id=str(datetime.now()),
         call_type=CallTypes.aresponses.value,
         model="gpt-4.1-mini",
@@ -69,7 +69,7 @@ async def test_async_get_cache_falls_back_to_sync_cache_for_responses():
         request_kwargs={},
         start_time=datetime.now(),
     )
-    logging_obj = LiteLLMLogging(
+    logging_obj = GatewayLogging(
         litellm_call_id=str(datetime.now()),
         call_type=CallTypes.aresponses.value,
         model="gpt-4.1-mini",
@@ -130,7 +130,7 @@ def test_reasoning_summary_events_default_summary_index():
         item_id="rs_1",
         output_index=0,
         sequence_number=2,
-        part=openai_types.BaseLiteLLMOpenAIResponseObject(
+        part=openai_types.BaseGatewayOpenAIResponseObject(
             type="summary_text",
             text="abc",
         ),

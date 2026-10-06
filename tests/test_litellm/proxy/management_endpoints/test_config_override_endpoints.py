@@ -9,7 +9,7 @@ from prisma.errors import RecordNotFoundError
 
 from token_iq import gateway
 import token_iq.gateway.proxy.proxy_server as ps
-from token_iq.gateway.proxy._types import KeyManagementSystem, LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import KeyManagementSystem, GatewayUserRoles, UserAPIKeyAuth
 from token_iq.gateway.proxy.management_endpoints.config_override_endpoints import (
     CYBERARK_ENV_VAR_MAPPING,
     HASHICORP_ENV_VAR_MAPPING,
@@ -77,7 +77,7 @@ def _cleanup():
 
 def _set_admin():
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin_user"
+        user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin_user"
     )
 
 
@@ -266,7 +266,7 @@ async def test_hashicorp_vault_validation_errors_and_access_control(
 
         # 5. Non-admin → 403
         app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-            user_role=LitellmUserRoles.INTERNAL_USER, user_id="user"
+            user_role=GatewayUserRoles.INTERNAL_USER, user_id="user"
         )
         assert client.get(VAULT_URL).status_code == 403
         assert (
@@ -438,7 +438,7 @@ async def test_cyberark_validation_errors_and_access_control(client, monkeypatch
 
         # 5. Non-admin → 403
         app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-            user_role=LitellmUserRoles.INTERNAL_USER, user_id="user"
+            user_role=GatewayUserRoles.INTERNAL_USER, user_id="user"
         )
         assert client.get(CYBERARK_URL).status_code == 403
         assert (

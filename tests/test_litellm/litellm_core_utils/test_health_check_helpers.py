@@ -144,13 +144,13 @@ def test_update_model_params_with_health_check_tracking_information():
     initial_model_params = {"model": "gpt-3.5-turbo", "api_key": "test_key"}
 
     with patch(
-        "token_iq.gateway.proxy._types.UserAPIKeyAuth.get_litellm_internal_health_check_user_api_key_auth"
+        "token_iq.gateway.proxy._types.UserAPIKeyAuth.get_gateway_internal_health_check_user_api_key_auth"
     ) as mock_get_auth:
         mock_auth = MagicMock()
         mock_get_auth.return_value = mock_auth
 
         with patch(
-            "token_iq.gateway.proxy.litellm_pre_call_utils.LiteLLMProxyRequestSetup.add_user_api_key_auth_to_request_metadata"
+            "token_iq.gateway.proxy.litellm_pre_call_utils.GatewayProxyRequestSetup.add_user_api_key_auth_to_request_metadata"
         ) as mock_add_auth:
             mock_add_auth.return_value = {
                 **initial_model_params,
@@ -189,9 +189,9 @@ def test_get_metadata_for_health_check_call():
     assert result["tags"][0] == LITTELM_INTERNAL_HEALTH_SERVICE_ACCOUNT_NAME
 
 
-def test_get_litellm_internal_health_check_user_api_key_auth():
+def test_get_gateway_internal_health_check_user_api_key_auth():
     """Test get_litellm_internal_health_check_user_api_key_auth returns properly configured UserAPIKeyAuth object."""
-    result = UserAPIKeyAuth.get_litellm_internal_health_check_user_api_key_auth()
+    result = UserAPIKeyAuth.get_gateway_internal_health_check_user_api_key_auth()
 
     # Verify the returned object is of correct type
     assert isinstance(result, UserAPIKeyAuth)

@@ -16,7 +16,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 
-from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
 from token_iq.gateway.proxy.memory.memory_endpoints import _visibility_filter, router
 
 
@@ -234,7 +234,7 @@ def _admin_auth() -> UserAPIKeyAuth:
     return UserAPIKeyAuth(
         api_key="sk-admin",
         user_id="admin",
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
     )
 
 
@@ -242,7 +242,7 @@ def _admin_viewer_auth() -> UserAPIKeyAuth:
     return UserAPIKeyAuth(
         api_key="sk-viewer",
         user_id="viewer",
-        user_role=LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY,
+        user_role=GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY,
     )
 
 

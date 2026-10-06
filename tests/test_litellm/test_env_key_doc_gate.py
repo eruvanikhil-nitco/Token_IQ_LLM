@@ -38,7 +38,7 @@ def test_get_secret_bool_with_keyword_default_is_captured() -> None:
     }
 
 
-def test_litellm_prefixed_get_secret_bool_is_captured() -> None:
+def test_gateway_prefixed_get_secret_bool_is_captured() -> None:
     assert gate.extract_env_keys('litellm.get_secret_bool("QSTASH_FLUSH_ON_BOOT")') == {"QSTASH_FLUSH_ON_BOOT"}
 
 

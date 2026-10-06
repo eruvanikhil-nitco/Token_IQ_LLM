@@ -17,7 +17,7 @@ import pytest
 
 from token_iq import gateway
 from token_iq.gateway.proxy import proxy_server
-from token_iq.gateway.proxy._types import LitellmUserRoles
+from token_iq.gateway.proxy._types import GatewayUserRoles
 
 from .conftest import normalize  # type: ignore[import-not-found]
 
@@ -181,7 +181,7 @@ def test_model_settings_method_not_allowed(client, auth_as):
 
 def test_alerting_settings_no_db_error(client, auth_as, no_prisma):
     """Pins ``GET /alerting/settings`` (error: db not connected)."""
-    with auth_as(LitellmUserRoles.PROXY_ADMIN):
+    with auth_as(GatewayUserRoles.PROXY_ADMIN):
         response = client.get("/alerting/settings")
     assert response.status_code == 400
     assert "error" in response.text or "detail" in response.text
@@ -190,7 +190,7 @@ def test_alerting_settings_no_db_error(client, auth_as, no_prisma):
 def test_alerting_settings_non_admin_error(client, auth_as, monkeypatch):
     """Pins ``GET /alerting/settings`` (error: non-admin forbidden)."""
     monkeypatch.setattr(proxy_server, "prisma_client", MagicMock())
-    with auth_as(LitellmUserRoles.INTERNAL_USER):
+    with auth_as(GatewayUserRoles.INTERNAL_USER):
         response = client.get("/alerting/settings")
     assert response.status_code == 400
     assert "internal_user" in response.text.lower() or "error" in response.text
@@ -209,7 +209,7 @@ def test_alerting_settings_happy(client, auth_as, monkeypatch):
     monkeypatch.setattr(proxy_server, "proxy_logging_obj", logging_obj)
     monkeypatch.setattr(proxy_server, "general_settings", {})
 
-    with auth_as(LitellmUserRoles.PROXY_ADMIN):
+    with auth_as(GatewayUserRoles.PROXY_ADMIN):
         response = client.get("/alerting/settings")
     assert response.status_code == 200
     body = response.json()

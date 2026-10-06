@@ -46,11 +46,11 @@ from token_iq.gateway.types.llms.openai import AllEmbeddingInputValues, AllMessa
 from token_iq.gateway.types.utils import EmbeddingResponse, Usage
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as _LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as _GatewayLoggingObj
 
-    LiteLLMLoggingObj = _LiteLLMLoggingObj
+    GatewayLoggingObj = _GatewayLoggingObj
 else:
-    LiteLLMLoggingObj = Any
+    GatewayLoggingObj = Any
 
 # OCI sends up to 96 texts per embedText request (Cohere limit).
 OCI_EMBED_BATCH_LIMIT: Final = 96
@@ -250,7 +250,7 @@ class OCIEmbedConfig(BaseEmbeddingConfig):
         model: str,
         raw_response: httpx.Response,
         model_response: EmbeddingResponse,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         api_key: str | None,
         request_data: dict,
         optional_params: dict,

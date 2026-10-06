@@ -7,9 +7,9 @@ import httpx
 from token_iq.gateway.types.llms.openai import AllMessageValues, ChatCompletionRequest
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 
-    LoggingClass = LiteLLMLoggingObj
+    LoggingClass = GatewayLoggingObj
 else:
     LoggingClass = Any
 

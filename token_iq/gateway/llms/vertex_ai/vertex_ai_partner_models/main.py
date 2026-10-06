@@ -306,20 +306,20 @@ class VertexAIPartnerModels(VertexBase):
             }
 
             # Prepare litellm_params with credentials
-            _litellm_params: Final = litellm_params.copy()
+            _gateway_params: Final = litellm_params.copy()
             if vertex_project:
-                _litellm_params["vertex_project"] = vertex_project
+                _gateway_params["vertex_project"] = vertex_project
             if vertex_location:
-                _litellm_params["vertex_location"] = vertex_location
+                _gateway_params["vertex_location"] = vertex_location
             if vertex_credentials:
-                _litellm_params["vertex_credentials"] = vertex_credentials
+                _gateway_params["vertex_credentials"] = vertex_credentials
 
             # Call the token counter
             token_counter: Final = VertexAIPartnerModelsTokenCounter()
             result: Final = await token_counter.handle_count_tokens_request(
                 model=model,
                 request_data=request_data,
-                litellm_params=_litellm_params,
+                litellm_params=_gateway_params,
             )
 
             return result

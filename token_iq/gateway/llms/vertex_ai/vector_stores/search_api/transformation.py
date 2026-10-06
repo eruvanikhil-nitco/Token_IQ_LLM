@@ -9,7 +9,7 @@ from token_iq.gateway.exceptions import BadRequestError
 from token_iq.gateway.core_utils.url_utils import encode_url_path_segment
 from token_iq.gateway.llms.base_llm.vector_store.transformation import BaseVectorStoreConfig
 from token_iq.gateway.llms.vertex_ai.vertex_llm_base import VertexBase
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.types.vector_stores import (
     BaseVectorStoreAuthCredentials,
     VectorStoreCreateOptionalRequestParams,
@@ -24,11 +24,11 @@ from token_iq.gateway.types.vector_stores import (
 )
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as _LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as _GatewayLoggingObj
 
-    LiteLLMLoggingObj = _LiteLLMLoggingObj
+    GatewayLoggingObj = _GatewayLoggingObj
 else:
-    LiteLLMLoggingObj = Any
+    GatewayLoggingObj = Any
 
 
 # Fields that select which data store / serving config to search. These are
@@ -189,11 +189,11 @@ class VertexSearchAPIVectorStoreConfig(BaseVectorStoreConfig, VertexBase):
             "write": [],
         }
 
-    def validate_environment(self, headers: dict, litellm_params: GenericLiteLLMParams | None) -> dict:
+    def validate_environment(self, headers: dict, litellm_params: GenericGatewayParams | None) -> dict:
         """
         Validate and set up authentication for Vertex AI RAG API
         """
-        litellm_params = litellm_params or GenericLiteLLMParams()
+        litellm_params = litellm_params or GenericGatewayParams()
         auth_headers: Final = self.get_auth_credentials(litellm_params.model_dump())
         headers.update(auth_headers.get("headers", {}))
         return headers
@@ -242,7 +242,7 @@ class VertexSearchAPIVectorStoreConfig(BaseVectorStoreConfig, VertexBase):
         query: str | list[str],
         vector_store_search_optional_params: VectorStoreSearchOptionalRequestParams,
         api_base: str,
-        litellm_logging_obj: LiteLLMLoggingObj,
+        litellm_logging_obj: GatewayLoggingObj,
         litellm_params: dict,
         extra_body: Mapping[str, object] | None = None,
     ) -> tuple[str, dict[str, object]]:
@@ -282,7 +282,7 @@ class VertexSearchAPIVectorStoreConfig(BaseVectorStoreConfig, VertexBase):
         return url, request_body
 
     def transform_search_vector_store_response(
-        self, response: httpx.Response, litellm_logging_obj: LiteLLMLoggingObj
+        self, response: httpx.Response, litellm_logging_obj: GatewayLoggingObj
     ) -> VectorStoreSearchResponse:
         """
         Transform Vertex AI Search API response to standard vector store search response

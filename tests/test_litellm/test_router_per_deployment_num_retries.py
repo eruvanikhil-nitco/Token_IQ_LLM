@@ -482,7 +482,7 @@ class TestRequestNumRetriesBeatsGlobal:
     """
 
     @pytest.fixture(autouse=True)
-    def _restore_litellm_globals(self):
+    def _restore_gateway_globals(self):
         prev_num_retries = gateway.num_retries
         prev_callbacks = gateway.callbacks
         yield
@@ -583,7 +583,7 @@ class TestRequestNumRetriesBeatsDeployment:
     """
 
     @pytest.fixture(autouse=True)
-    def _restore_litellm_globals(self):
+    def _restore_gateway_globals(self):
         prev_num_retries = gateway.num_retries
         prev_callbacks = gateway.callbacks
         yield

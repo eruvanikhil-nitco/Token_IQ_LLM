@@ -7,7 +7,7 @@ from typing_extensions import NotRequired, ReadOnly, TypedDict
 from token_iq.gateway.constants import OPENAI_CHAT_COMPLETION_PARAMS
 
 if TYPE_CHECKING:
-    from token_iq.gateway import Logging as LiteLLMLoggingObj
+    from token_iq.gateway import Logging as GatewayLoggingObj
     from token_iq.gateway.types.llms.openai import ChatCompletionUserMessage, HttpxBinaryResponseContent
     from token_iq.gateway.types.utils import ModelResponse
 
@@ -86,7 +86,7 @@ class SpeechToCompletionBridgeTransformationHandler:
         optional_params: dict,
         litellm_params: dict,
         headers: dict,
-        litellm_logging_obj: "LiteLLMLoggingObj",
+        litellm_logging_obj: "GatewayLoggingObj",
         custom_llm_provider: str,
     ) -> dict:
         self._validate_response_format(model, custom_llm_provider, optional_params)

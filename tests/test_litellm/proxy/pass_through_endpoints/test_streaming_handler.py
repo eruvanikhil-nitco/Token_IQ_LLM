@@ -6,7 +6,7 @@ from unittest.mock import MagicMock
 import pytest
 
 from token_iq import gateway
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.proxy.pass_through_endpoints.llm_provider_handlers.vertex_passthrough_logging_handler import (
     VertexPassthroughLoggingHandler,
 )
@@ -75,8 +75,8 @@ def _chunks() -> list[str]:
     return [f"data: {json.dumps(payload)}"]
 
 
-def _logging_obj() -> LiteLLMLoggingObj:
-    logging_obj = MagicMock(spec=LiteLLMLoggingObj)
+def _logging_obj() -> GatewayLoggingObj:
+    logging_obj = MagicMock(spec=GatewayLoggingObj)
     logging_obj.model_call_details = {}
     logging_obj.optional_params = {}
     logging_obj.litellm_call_id = "test-call-id"

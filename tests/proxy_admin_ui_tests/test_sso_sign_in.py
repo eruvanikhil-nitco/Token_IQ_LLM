@@ -9,7 +9,7 @@ from token_iq import gateway
 from token_iq.gateway.proxy.proxy_server import app
 from token_iq.gateway.proxy.utils import PrismaClient, ProxyLogging
 from token_iq.gateway.proxy.management_endpoints.ui_sso import auth_callback
-from token_iq.gateway.proxy._types import LitellmUserRoles
+from token_iq.gateway.proxy._types import GatewayUserRoles
 import jwt
 import time
 from token_iq.gateway.caching.caching import DualCache
@@ -41,7 +41,7 @@ def prisma_client():
     )
 
     # Reset litellm.proxy.proxy_server.prisma_client to None
-    gateway.proxy.proxy_server.litellm_proxy_budget_name = (
+    gateway.proxy.proxy_server.gateway_proxy_budget_name = (
         f"litellm-proxy-budget-{time.time()}"
     )
     gateway.proxy.proxy_server.user_custom_key_generate = None
@@ -113,7 +113,7 @@ async def test_auth_callback_new_user(mock_google_sso, mock_env_vars, prisma_cli
         print("inserted user from SSO", user)
         assert user is not None
         assert user.user_email == unique_user_email
-        assert user.user_role == LitellmUserRoles.INTERNAL_USER_VIEW_ONLY
+        assert user.user_role == GatewayUserRoles.INTERNAL_USER_VIEW_ONLY
         assert user.metadata == {"auth_provider": "google"}
 
     finally:
@@ -143,7 +143,7 @@ async def test_auth_callback_new_user_with_sso_default(
         # Set up the prisma client
         setattr(gateway.proxy.proxy_server, "prisma_client", prisma_client)
         gateway.default_internal_user_params = {
-            "user_role": LitellmUserRoles.INTERNAL_USER.value
+            "user_role": GatewayUserRoles.INTERNAL_USER.value
         }
         await gateway.proxy.proxy_server.prisma_client.connect()
 
@@ -188,7 +188,7 @@ async def test_auth_callback_new_user_with_sso_default(
         print("inserted user from SSO", user)
         assert user is not None
         assert user.user_email == unique_user_email
-        assert user.user_role == LitellmUserRoles.INTERNAL_USER
+        assert user.user_role == GatewayUserRoles.INTERNAL_USER
 
     finally:
         # Clean up: Delete the user from the database

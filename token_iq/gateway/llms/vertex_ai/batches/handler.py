@@ -23,12 +23,12 @@ from token_iq.gateway.types.llms.vertex_ai import (
     VertexAIBatchPredictionJob,
     VertexBatchPredictionResponse,
 )
-from token_iq.gateway.types.utils import LiteLLMBatch
+from token_iq.gateway.types.utils import GatewayBatch
 
 from .transformation import VertexAIBatchTransformation
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 
 
 class _VertexBatchJsonSource(Protocol):
@@ -78,7 +78,7 @@ class VertexAIBatchPrediction(VertexLLM):
         vertex_location: str | None,
         timeout: float | httpx.Timeout,
         max_retries: int | None,
-    ) -> LiteLLMBatch | Coroutine[object, object, LiteLLMBatch]:
+    ) -> GatewayBatch | Coroutine[object, object, GatewayBatch]:
         sync_handler: Final = _get_httpx_client()
 
         access_token, project_id = self._ensure_access_token(
@@ -147,7 +147,7 @@ class VertexAIBatchPrediction(VertexLLM):
         vertex_batch_request: VertexAIBatchPredictionJob,
         api_base: str,
         headers: dict[str, str],
-    ) -> LiteLLMBatch:
+    ) -> GatewayBatch:
         client: Final = get_async_httpx_client(
             llm_provider=gateway.LlmProviders.VERTEX_AI,
         )
@@ -194,7 +194,7 @@ class VertexAIBatchPrediction(VertexLLM):
         timeout: float | httpx.Timeout,
         max_retries: int | None,
         logging_obj: "LiteLLMLoggingObj | None" = None,
-    ) -> LiteLLMBatch | Coroutine[object, object, LiteLLMBatch]:
+    ) -> GatewayBatch | Coroutine[object, object, GatewayBatch]:
         sync_handler: Final = _get_httpx_client()
 
         access_token, project_id = self._ensure_access_token(
@@ -294,7 +294,7 @@ class VertexAIBatchPrediction(VertexLLM):
         api_base: str,
         headers: dict[str, str],
         logging_obj: "LiteLLMLoggingObj | None" = None,
-    ) -> LiteLLMBatch:
+    ) -> GatewayBatch:
         client: Final = get_async_httpx_client(
             llm_provider=gateway.LlmProviders.VERTEX_AI,
         )
@@ -455,7 +455,7 @@ class VertexAIBatchPrediction(VertexLLM):
         vertex_location: str | None,
         timeout: float | httpx.Timeout,
         max_retries: int | None,
-    ) -> LiteLLMBatch | Coroutine[object, object, LiteLLMBatch]:
+    ) -> GatewayBatch | Coroutine[object, object, GatewayBatch]:
         access_token, project_id = self._ensure_access_token(
             credentials=vertex_credentials,
             project_id=vertex_project,
@@ -546,7 +546,7 @@ class VertexAIBatchPrediction(VertexLLM):
         retrieve_api_base: str,
         headers: dict[str, str],
         timeout: float | httpx.Timeout = 600.0,
-    ) -> LiteLLMBatch:
+    ) -> GatewayBatch:
         client: Final = get_async_httpx_client(
             llm_provider=gateway.LlmProviders.VERTEX_AI,
         )

@@ -15,7 +15,7 @@ from token_iq.gateway.types.utils import GenericGuardrailAPIInputs
 
 if TYPE_CHECKING:
     from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
     from token_iq.gateway.proxy._types import UserAPIKeyAuth
     from token_iq.gateway.proxy.utils import ProxyLogging
 
@@ -30,7 +30,7 @@ class PassThroughEndpointHandler(BaseTranslation):
 
     def _get_guardrail_settings(
         self,
-        litellm_logging_obj: Optional["LiteLLMLoggingObj"],
+        litellm_logging_obj: Optional["GatewayLoggingObj"],
         guardrail_name: str | None,
     ) -> PassThroughGuardrailSettings | None:
         """
@@ -88,7 +88,7 @@ class PassThroughEndpointHandler(BaseTranslation):
         self,
         data: dict,
         guardrail_to_apply: "CustomGuardrail",
-        litellm_logging_obj: Optional["LiteLLMLoggingObj"] = None,
+        litellm_logging_obj: Optional["GatewayLoggingObj"] = None,
     ) -> Any:
         """
         Process input by applying guardrails to targeted fields or full payload.
@@ -129,7 +129,7 @@ class PassThroughEndpointHandler(BaseTranslation):
         self,
         response: Any,
         guardrail_to_apply: "CustomGuardrail",
-        litellm_logging_obj: Optional["LiteLLMLoggingObj"] = None,
+        litellm_logging_obj: Optional["GatewayLoggingObj"] = None,
         user_api_key_dict: Any | None = None,
         request_data: dict | None = None,
     ) -> Any:
@@ -218,7 +218,7 @@ class LlmPassthroughRouteHandler(BaseTranslation):
         self,
         data: dict,
         guardrail_to_apply: "CustomGuardrail",
-        litellm_logging_obj: Optional["LiteLLMLoggingObj"] = None,
+        litellm_logging_obj: Optional["GatewayLoggingObj"] = None,
     ) -> Any:
         provider: Final = data.get("custom_llm_provider")
         handler_cls: Final = _get_provider_handlers().get(provider or "")
@@ -238,7 +238,7 @@ class LlmPassthroughRouteHandler(BaseTranslation):
         self,
         response: Any,
         guardrail_to_apply: "CustomGuardrail",
-        litellm_logging_obj: Optional["LiteLLMLoggingObj"] = None,
+        litellm_logging_obj: Optional["GatewayLoggingObj"] = None,
         user_api_key_dict: Any | None = None,
         request_data: dict | None = None,
     ) -> Any:

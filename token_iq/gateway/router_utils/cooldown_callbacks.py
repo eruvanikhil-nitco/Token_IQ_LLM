@@ -11,15 +11,15 @@ from token_iq.gateway._logging import verbose_logger
 if TYPE_CHECKING:
     from token_iq.gateway.router import Router as _Router
 
-    LitellmRouter = _Router
+    GatewayRouter = _Router
     from token_iq.gateway.integrations.prometheus import PrometheusLogger
 else:
-    LitellmRouter = Any
+    GatewayRouter = Any
     PrometheusLogger = Any
 
 
 async def router_cooldown_event_callback(
-    litellm_router_instance: LitellmRouter,
+    litellm_router_instance: GatewayRouter,
     deployment_id: str,
     exception_status: str | int,
     cooldown_time: float | None,
@@ -38,20 +38,20 @@ async def router_cooldown_event_callback(
             deployment_id,
         )
         return
-    _litellm_params: Final = _deployment["litellm_params"]
-    temp_litellm_params = copy.deepcopy(_litellm_params)
-    temp_litellm_params = dict(temp_litellm_params)
+    _gateway_params: Final = _deployment["litellm_params"]
+    temp_gateway_params = copy.deepcopy(_gateway_params)
+    temp_gateway_params = dict(temp_gateway_params)
     _model_name: Final = _deployment.get("model_name", None) or ""
-    _api_base: Final = gateway.get_api_base(model=_model_name, optional_params=temp_litellm_params) or ""
+    _api_base: Final = gateway.get_api_base(model=_model_name, optional_params=temp_gateway_params) or ""
     model_info: Final = _deployment["model_info"]
     model_id: Final = model_info.id
 
-    litellm_model_name: Final = temp_litellm_params.get("model") or ""
+    litellm_model_name: Final = temp_gateway_params.get("model") or ""
     llm_provider = ""
     try:
         _, llm_provider, _, _ = gateway.get_llm_provider(
             model=litellm_model_name,
-            custom_llm_provider=temp_litellm_params.get("custom_llm_provider"),
+            custom_llm_provider=temp_gateway_params.get("custom_llm_provider"),
         )
     except Exception:
         pass

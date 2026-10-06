@@ -10,7 +10,7 @@ from token_iq.gateway.secret_managers.main import get_secret_str
 from token_iq.gateway.types.utils import LlmProviders
 
 
-class LiteLLMProxyResponsesAPIConfig(OpenAIResponsesAPIConfig):
+class GatewayProxyResponsesAPIConfig(OpenAIResponsesAPIConfig):
     """
     Configuration for LiteLLM Proxy Responses API support.
 

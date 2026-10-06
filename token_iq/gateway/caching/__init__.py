@@ -1,5 +1,5 @@
 from .azure_blob_cache import AzureBlobCache
-from .caching import Cache, LiteLLMCacheType
+from .caching import Cache, GatewayCacheType
 from .disk_cache import DiskCache
 from .dual_cache import DualCache
 from .gcs_cache import GCSCache

@@ -67,11 +67,11 @@ from token_iq.gateway.utils import supports_reasoning
 if TYPE_CHECKING:
     import tiktoken
 
-    from token_iq.gateway.core_utils.litellm_logging import Logging as _LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as _GatewayLoggingObj
 
-    LiteLLMLoggingObj = _LiteLLMLoggingObj
+    GatewayLoggingObj = _GatewayLoggingObj
 else:
-    LiteLLMLoggingObj = Any
+    GatewayLoggingObj = Any
 
 
 # Streaming timeout — generous because OCI models may need to warm up on first request
@@ -598,7 +598,7 @@ class OCIChatConfig(BaseConfig):
         model: str,
         raw_response: httpx.Response,
         model_response: ModelResponse,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         request_data: dict,
         messages: list[AllMessageValues],
         optional_params: dict,
@@ -635,7 +635,7 @@ class OCIChatConfig(BaseConfig):
         self,
         model: str,
         custom_llm_provider: str,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         api_base: str,
         headers: dict,
         data: dict,
@@ -674,7 +674,7 @@ class OCIChatConfig(BaseConfig):
         self,
         model: str,
         custom_llm_provider: str,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         api_base: str,
         headers: dict,
         data: dict,
@@ -719,7 +719,7 @@ class OCIStreamWrapper(CustomStreamWrapper):
         self,
         completion_stream: object,
         model: str,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         custom_llm_provider: str | None = None,
         stream_options: object = None,
         make_call: Callable[..., object] | None = None,

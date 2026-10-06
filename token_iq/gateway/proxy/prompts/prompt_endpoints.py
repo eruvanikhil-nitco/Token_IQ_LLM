@@ -22,7 +22,7 @@ from pydantic import BaseModel
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.proxy._types import (
     CommonProxyErrors,
-    LitellmUserRoles,
+    GatewayUserRoles,
     UserAPIKeyAuth,
     user_api_key_has_admin_view,
 )
@@ -300,11 +300,11 @@ def create_versioned_prompt_spec(db_prompt: _PromptRow) -> PromptSpec:
 
     row: Final = _PromptRowData.model_validate(db_prompt.model_dump())
 
-    litellm_params_data: Final = row.litellm_params
-    litellm_params_dict: Final[Mapping[str, object] | None] = (
-        json.loads(litellm_params_data) if isinstance(litellm_params_data, str) else litellm_params_data
+    gateway_params_data: Final = row.litellm_params
+    gateway_params_dict: Final[Mapping[str, object] | None] = (
+        json.loads(gateway_params_data) if isinstance(gateway_params_data, str) else gateway_params_data
     )
-    litellm_params: Final = PromptLiteLLMParams.model_validate(litellm_params_dict)
+    litellm_params: Final = PromptLiteLLMParams.model_validate(gateway_params_dict)
 
     prompt_info_data: Final = row.prompt_info
     if prompt_info_data:
@@ -769,8 +769,8 @@ async def create_prompt(
 
     # Only allow proxy admins to create prompts
     if user_api_key_dict.user_role is None or (
-        user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN
-        and user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN.value
+        user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN
+        and user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN.value
     ):
         raise HTTPException(status_code=403, detail="Only proxy admins can create prompts")
 
@@ -866,8 +866,8 @@ async def update_prompt(
 
     # Only allow proxy admins to update prompts
     if user_api_key_dict.user_role is None or (
-        user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN
-        and user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN.value
+        user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN
+        and user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN.value
     ):
         raise HTTPException(status_code=403, detail="Only proxy admins can update prompts")
 
@@ -979,8 +979,8 @@ async def delete_prompt(
 
     # Only allow proxy admins to delete prompts
     if user_api_key_dict.user_role is None or (
-        user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN
-        and user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN.value
+        user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN
+        and user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN.value
     ):
         raise HTTPException(status_code=403, detail="Only proxy admins can delete prompts")
 
@@ -1079,8 +1079,8 @@ async def patch_prompt(
 
     # Only allow proxy admins to patch prompts
     if user_api_key_dict.user_role is None or (
-        user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN
-        and user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN.value
+        user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN
+        and user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN.value
     ):
         raise HTTPException(status_code=403, detail="Only proxy admins can patch prompts")
 
@@ -1129,7 +1129,7 @@ async def patch_prompt(
 
         current_spec: Final = create_versioned_prompt_spec(db_prompt=target_row)
 
-        updated_litellm_params: Final = (
+        updated_gateway_params: Final = (
             request.litellm_params if request.litellm_params is not None else current_spec.litellm_params
         )
 
@@ -1139,7 +1139,7 @@ async def patch_prompt(
 
         # Build update data dict
         update_data: Final[dict[str, str]] = {
-            "litellm_params": updated_litellm_params.model_dump_json(),
+            "litellm_params": updated_gateway_params.model_dump_json(),
             "prompt_info": updated_prompt_info.model_dump_json(),
         }
         if user_api_key_dict.user_id:

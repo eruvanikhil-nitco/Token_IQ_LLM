@@ -388,14 +388,14 @@ def test_update_kwargs_with_deployment(model_list):
     assert all(field in kwargs["metadata"] for field in set_fields)
 
 
-def test_update_kwargs_with_default_litellm_params(model_list):
+def test_update_kwargs_with_default_gateway_params(model_list):
     """Test if the '_update_kwargs_with_default_litellm_params' function is working correctly"""
     router = Router(
         model_list=model_list,
         default_litellm_params={"api_key": "test", "metadata": {"key": "value"}},
     )
     kwargs: dict = {"metadata": {"key2": "value2"}}
-    router._update_kwargs_with_default_litellm_params(kwargs=kwargs)
+    router._update_kwargs_with_default_gateway_params(kwargs=kwargs)
     assert kwargs["api_key"] == "test"
     assert kwargs["metadata"]["key"] == "value"
     assert kwargs["metadata"]["key2"] == "value2"
@@ -782,7 +782,7 @@ def test_create_deployment(
     deployment = router._create_deployment(
         deployment_info={},
         _model_name="gpt-5-mini",
-        _litellm_params={
+        _gateway_params={
             "model": "gpt-5-mini",
             "api_key": "test",
             "custom_llm_provider": "openai",
@@ -1490,7 +1490,7 @@ def test_get_model_from_alias(model_list):
     assert model == "gpt-5-mini"
 
 
-def test_get_deployment_by_litellm_model(model_list):
+def test_get_deployment_by_gateway_model(model_list):
     """Test if the 'get_deployment_by_litellm_model' function is working correctly"""
     router = Router(model_list=model_list)
     deployment = router._get_deployment_by_litellm_model(model="gpt-5-mini")
@@ -1741,20 +1741,20 @@ def test_is_auto_router_deployment(model_list):
     router = Router(model_list=model_list)
 
     # Test case 1: Model starts with "auto_router/" - should return True
-    litellm_params_auto = LiteLLM_Params(model="auto_router/my-auto-router")
-    assert router._is_auto_router_deployment(litellm_params_auto) is True
+    gateway_params_auto = LiteLLM_Params(model="auto_router/my-auto-router")
+    assert router._is_auto_router_deployment(gateway_params_auto) is True
 
     # Test case 2: Model doesn't start with "auto_router/" - should return False
-    litellm_params_regular = LiteLLM_Params(model="gpt-5-mini")
-    assert router._is_auto_router_deployment(litellm_params_regular) is False
+    gateway_params_regular = LiteLLM_Params(model="gpt-5-mini")
+    assert router._is_auto_router_deployment(gateway_params_regular) is False
 
     # Test case 3: Model is empty string - should return False
-    litellm_params_empty = LiteLLM_Params(model="")
-    assert router._is_auto_router_deployment(litellm_params_empty) is False
+    gateway_params_empty = LiteLLM_Params(model="")
+    assert router._is_auto_router_deployment(gateway_params_empty) is False
 
     # Test case 4: Model contains "auto_router/" but doesn't start with it - should return False
-    litellm_params_contains = LiteLLM_Params(model="prefix_auto_router/something")
-    assert router._is_auto_router_deployment(litellm_params_contains) is False
+    gateway_params_contains = LiteLLM_Params(model="prefix_auto_router/something")
+    assert router._is_auto_router_deployment(gateway_params_contains) is False
 
 
 @patch("token_iq.gateway.router_strategy.auto_router.auto_router.AutoRouter")
@@ -1866,7 +1866,7 @@ def testgenerate_model_id_with_deployment_model_name(model_list):
     )
 
     # Test case 3: Edge case with None key in litellm_params
-    litellm_params_with_none_key = {
+    gateway_params_with_none_key = {
         "model": "gpt-4.1",
         "api_key": "test_key",
         None: "should_be_skipped",  # This should be handled gracefully
@@ -1874,7 +1874,7 @@ def testgenerate_model_id_with_deployment_model_name(model_list):
 
     try:
         result = router.generate_model_id(
-            model_group=model_group, litellm_params=litellm_params_with_none_key
+            model_group=model_group, litellm_params=gateway_params_with_none_key
         )
         assert isinstance(result, str)
         assert len(result) > 0
@@ -1923,7 +1923,7 @@ def test_handle_clientside_credential_with_deployment_model_name(model_list):
     }
 
     # Mock dynamic_litellm_params that would be returned by get_dynamic_litellm_params
-    dynamic_litellm_params = {
+    dynamic_gateway_params = {
         "api_key": "client_side_key",
         "api_base": "https://api.openai.com/v1",
     }
@@ -1937,7 +1937,7 @@ def test_handle_clientside_credential_with_deployment_model_name(model_list):
 
         # Verify that generate_model_id works with this model_group
         result = router.generate_model_id(
-            model_group=model_group, litellm_params=dynamic_litellm_params
+            model_group=model_group, litellm_params=dynamic_gateway_params
         )
         assert isinstance(result, str)
         assert len(result) > 0
@@ -2256,12 +2256,12 @@ def test_get_metadata_variable_name_from_kwargs(model_list):
     router = Router(model_list=model_list)
 
     # Test case 1: kwargs contains litellm_metadata - should return "litellm_metadata"
-    kwargs_with_litellm_metadata = {
+    kwargs_with_gateway_metadata = {
         "litellm_metadata": {"user": "test"},
         "metadata": {"other": "data"},
     }
     result = router._get_metadata_variable_name_from_kwargs(
-        kwargs_with_litellm_metadata
+        kwargs_with_gateway_metadata
     )
     assert result == "litellm_metadata"
 

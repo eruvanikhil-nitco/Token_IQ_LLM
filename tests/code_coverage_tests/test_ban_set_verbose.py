@@ -57,16 +57,16 @@ def find_set_verbose_assignments(file_path):
     return assignments
 
 
-def scan_litellm_files(base_dir):
+def scan_gateway_files(base_dir):
     """
     Scans all Python files in the litellm directory for set_verbose assignments.
     Returns a dictionary mapping file paths to lists of assignments.
     """
     violations = {}
-    litellm_dirs = ["litellm", "enterprise"]
+    gateway_dirs = ["litellm", "enterprise"]
 
-    for litellm_dir in litellm_dirs:
-        dir_path = os.path.join(base_dir, litellm_dir)
+    for gateway_dir in gateway_dirs:
+        dir_path = os.path.join(base_dir, gateway_dir)
         if not os.path.exists(dir_path):
             print(f"Warning: Directory {dir_path} does not exist.")
             continue
@@ -91,7 +91,7 @@ def test_no_hardcoded_set_verbose():
     """
     base_dir = "./"  # Adjust path as needed for your setup
 
-    violations = scan_litellm_files(base_dir)
+    violations = scan_gateway_files(base_dir)
 
     if violations:
         violation_details = []
@@ -118,7 +118,7 @@ def main():
     base_dir = "./"  # Adjust path as needed for your setup
 
     print("Scanning for litellm.set_verbose = True assignments...")
-    violations = scan_litellm_files(base_dir)
+    violations = scan_gateway_files(base_dir)
 
     if violations:
         print("\n❌ FOUND PROHIBITED litellm.set_verbose = True ASSIGNMENTS:")

@@ -30,9 +30,9 @@ MOCK_TESTING_CONFIG_KEY: Final = "dangerously_allow_mock_testing_request_params"
 if TYPE_CHECKING:
     from token_iq.gateway.router import Router as _Router
 
-    LitellmRouter = _Router
+    GatewayRouter = _Router
 else:
-    LitellmRouter = Any
+    GatewayRouter = Any
 
 
 def _route_user_config_request(data: dict, route_type: str):
@@ -55,7 +55,7 @@ def _is_a2a_agent_model(model_name: object) -> bool:
     return isinstance(model_name, str) and model_name.startswith("a2a/")
 
 
-def _raise_if_model_fully_blocked(llm_router: LitellmRouter, model_name: object, team_id: str | None) -> None:
+def _raise_if_model_fully_blocked(llm_router: GatewayRouter, model_name: object, team_id: str | None) -> None:
     if not isinstance(model_name, str) or not model_name:
         return
     if not isinstance(llm_router, gateway.Router):
@@ -422,7 +422,7 @@ RouteType = Literal[
 
 async def route_request(
     data: dict,
-    llm_router: LitellmRouter | None,
+    llm_router: GatewayRouter | None,
     user_model: str | None,
     route_type: RouteType,
     user_api_key_dict: UserAPIKeyAuth | None = None,
@@ -460,7 +460,7 @@ async def route_request(
 
 async def _route_request_single_attempt(  # noqa: ANN202  # returns unawaited provider coroutines; the inferred union keeps route_request's callers typed
     data: dict,  # mutable-ok: request body is the proxy-wide mutable dict contract shared with route_request
-    llm_router: LitellmRouter | None,
+    llm_router: GatewayRouter | None,
     user_model: str | None,
     route_type: RouteType,
     user_api_key_dict: UserAPIKeyAuth | None = None,

@@ -12,7 +12,7 @@ from token_iq.gateway.integrations.custom_guardrail import (
     log_guardrail_information,
 )
 from token_iq.gateway.core_utils.litellm_logging import (
-    Logging as LiteLLMLoggingObj,
+    Logging as GatewayLoggingObj,
 )
 from token_iq.gateway.llms.custom_httpx.http_handler import (
     get_async_httpx_client,

@@ -37,7 +37,7 @@ from token_iq.gateway.proxy._experimental.mcp_server.utils import (
     merge_mcp_headers,
 )
 from token_iq.gateway.proxy._types import (
-    LitellmUserRoles,
+    GatewayUserRoles,
     UserAPIKeyAuth,
     user_api_key_has_admin_view,
 )
@@ -47,7 +47,7 @@ from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 if TYPE_CHECKING:
     from mcp.types import CallToolResult
 
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
     from token_iq.gateway.proxy._experimental.mcp_server.db import OAuthCredentialPayload
 from token_iq.gateway.proxy.common_utils.http_parsing_utils import _safe_get_request_headers
 from token_iq.gateway.types.mcp import MCPAuth
@@ -1362,7 +1362,7 @@ if MCP_AVAILABLE:
         """
         Test if we can connect to the provided MCP server before adding it
         """
-        if LitellmUserRoles.PROXY_ADMIN != user_api_key_dict.user_role:
+        if GatewayUserRoles.PROXY_ADMIN != user_api_key_dict.user_role:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail={
@@ -1392,7 +1392,7 @@ if MCP_AVAILABLE:
         """
         Preview tools available from MCP server before adding it
         """
-        if LitellmUserRoles.PROXY_ADMIN != user_api_key_dict.user_role:
+        if GatewayUserRoles.PROXY_ADMIN != user_api_key_dict.user_role:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail={

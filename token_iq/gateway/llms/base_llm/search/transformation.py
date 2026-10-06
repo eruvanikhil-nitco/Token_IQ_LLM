@@ -10,12 +10,12 @@ from pydantic import PrivateAttr
 
 from token_iq.gateway.llms.base_llm.chat.transformation import BaseLLMException
 from token_iq.gateway.secret_managers.main import get_secret_str
-from token_iq.gateway.types.llms.base import LiteLLMPydanticObjectBase
+from token_iq.gateway.types.llms.base import GatewayPydanticObjectBase
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 else:
-    LiteLLMLoggingObj = Any
+    GatewayLoggingObj = Any
 
 
 _PERPLEXITY_UNIFIED_PARAMS: Final[frozenset[str]] = frozenset(
@@ -51,7 +51,7 @@ def _is_trusted_search_api_base(
     return candidate in trusted
 
 
-class SearchResult(LiteLLMPydanticObjectBase):
+class SearchResult(GatewayPydanticObjectBase):
     """Single search result."""
 
     title: str
@@ -63,7 +63,7 @@ class SearchResult(LiteLLMPydanticObjectBase):
     model_config = {"extra": "allow"}
 
 
-class SearchResponse(LiteLLMPydanticObjectBase):
+class SearchResponse(GatewayPydanticObjectBase):
     """
     Standard Search response format.
     Standardized to Perplexity Search format - other providers should transform to this format.
@@ -255,7 +255,7 @@ class BaseSearchConfig:
     def transform_search_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         **kwargs,
     ) -> SearchResponse:
         """

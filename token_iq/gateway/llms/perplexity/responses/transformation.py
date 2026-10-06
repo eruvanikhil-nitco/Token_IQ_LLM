@@ -13,12 +13,12 @@ from typing import Any, Final
 
 import httpx
 
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.llms.base_llm.chat.transformation import BaseLLMException
 from token_iq.gateway.llms.openai.responses.transformation import OpenAIResponsesAPIConfig
 from token_iq.gateway.secret_managers.main import get_secret_str
 from token_iq.gateway.types.llms.openai import ResponseInputParam, ResponsesAPIResponse
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.types.utils import LlmProviders
 
 
@@ -40,8 +40,8 @@ class PerplexityResponsesConfig(OpenAIResponsesAPIConfig):
     def custom_llm_provider(self) -> LlmProviders:
         return LlmProviders.PERPLEXITY
 
-    def validate_environment(self, headers: dict, model: str, litellm_params: GenericLiteLLMParams | None) -> dict:
-        litellm_params = litellm_params or GenericLiteLLMParams()
+    def validate_environment(self, headers: dict, model: str, litellm_params: GenericGatewayParams | None) -> dict:
+        litellm_params = litellm_params or GenericGatewayParams()
         api_key: Final = (
             litellm_params.api_key or get_secret_str("PERPLEXITYAI_API_KEY") or get_secret_str("PERPLEXITY_API_KEY")
         )
@@ -74,7 +74,7 @@ class PerplexityResponsesConfig(OpenAIResponsesAPIConfig):
         model: str,
         input: str | ResponseInputParam,
         response_api_optional_request_params: dict,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> dict:
         """Handle preset/ model prefix: send as {"preset": name} instead of {"model": name}."""
@@ -99,7 +99,7 @@ class PerplexityResponsesConfig(OpenAIResponsesAPIConfig):
         self,
         model: str,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> ResponsesAPIResponse:
         """Check for Perplexity's status:'failed' on HTTP 200 before delegating to base."""
         try:

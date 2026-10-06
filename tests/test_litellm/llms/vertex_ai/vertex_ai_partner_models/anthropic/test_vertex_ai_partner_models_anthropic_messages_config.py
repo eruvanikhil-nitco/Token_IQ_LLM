@@ -9,7 +9,7 @@ from token_iq.gateway.llms.vertex_ai.vertex_ai_partner_models.anthropic.experime
     VertexAIPartnerModelsAnthropicMessagesConfig,
 )
 from token_iq.gateway.llms.vertex_ai.vertex_ai_partner_models.main import VertexAIPartnerModels
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 
 
 def test_validate_environment_uses_vertex_ai_location():
@@ -367,7 +367,7 @@ def test_transform_anthropic_messages_request_removes_scope_from_cache_control()
         model="claude-sonnet-4-6",
         messages=messages,
         anthropic_messages_optional_request_params=anthropic_messages_optional_request_params,
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         headers={},
     )
 
@@ -396,7 +396,7 @@ def test_messages_request_strips_effort_for_haiku_45():
             "max_tokens": 1024,
             "output_config": {"effort": "high"},
         },
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         headers={},
     )
     assert "output_config" not in haiku_result
@@ -408,7 +408,7 @@ def test_messages_request_strips_effort_for_haiku_45():
             "max_tokens": 1024,
             "output_config": {"effort": "high"},
         },
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         headers={},
     )
     assert opus_result["output_config"] == {"effort": "high"}
@@ -533,7 +533,7 @@ def test_messages_thinking_shape_follows_exact_vertex_entry_flag(local_model_cos
                 "max_tokens": 4096,
                 "reasoning_effort": "medium",
             },
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 
@@ -564,7 +564,7 @@ def _vertex_transform(model, messages, system=None):
         model=model,
         messages=copy.deepcopy(messages),
         anthropic_messages_optional_request_params=params,
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         headers={},
     )
 

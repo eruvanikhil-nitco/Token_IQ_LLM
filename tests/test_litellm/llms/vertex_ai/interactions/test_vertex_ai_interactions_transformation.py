@@ -9,7 +9,7 @@ from token_iq.gateway.llms.vertex_ai.interactions.transformation import (
     VertexAIInteractionsConfig,
 )
 from token_iq.gateway.types.llms.vertex_ai import VERTEX_CREDENTIALS_TYPES
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.types.utils import LlmProviders
 
 GLOBAL_BASE = "https://aiplatform.googleapis.com/v1beta1/projects/test-proj/locations/global/interactions"
@@ -41,7 +41,7 @@ def config(minter):
 
 @pytest.fixture
 def litellm_params():
-    return GenericLiteLLMParams(vertex_project="test-proj", vertex_credentials="creds.json")
+    return GenericGatewayParams(vertex_project="test-proj", vertex_credentials="creds.json")
 
 
 class TestRegistration:

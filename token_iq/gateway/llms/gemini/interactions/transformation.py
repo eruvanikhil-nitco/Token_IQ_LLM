@@ -31,15 +31,15 @@ from token_iq.gateway.types.interactions import (
     InteractionsAPIResponse,
     InteractionsAPIStreamingResponse,
 )
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.types.utils import LlmProviders
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as _LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as _GatewayLoggingObj
 
-    LiteLLMLoggingObj = _LiteLLMLoggingObj
+    GatewayLoggingObj = _GatewayLoggingObj
 else:
-    LiteLLMLoggingObj = Any
+    GatewayLoggingObj = Any
 
 
 _JsonObject: TypeAlias = dict[str, object]
@@ -127,7 +127,7 @@ class GoogleAIStudioInteractionsConfig(BaseInteractionsAPIConfig):
         self,
         headers: dict,
         model: str,
-        litellm_params: GenericLiteLLMParams | None,
+        litellm_params: GenericGatewayParams | None,
     ) -> dict:
         """Google AI Studio uses x-goog-api-key header for authentication."""
         headers = headers or {}
@@ -174,7 +174,7 @@ class GoogleAIStudioInteractionsConfig(BaseInteractionsAPIConfig):
         agent: str | None,
         input: InteractionInput | None,
         optional_params: InteractionsAPIOptionalRequestParams,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> dict:
         """
@@ -279,7 +279,7 @@ class GoogleAIStudioInteractionsConfig(BaseInteractionsAPIConfig):
         self,
         model: str | None,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> InteractionsAPIResponse:
         """Parse response - it already matches our response type."""
         try:
@@ -307,7 +307,7 @@ class GoogleAIStudioInteractionsConfig(BaseInteractionsAPIConfig):
         self,
         model: str | None,
         parsed_chunk: dict,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> InteractionsAPIStreamingResponse:
         """Parse streaming chunk."""
         verbose_logger.debug("Google AI Interactions streaming chunk: %s", parsed_chunk)
@@ -319,7 +319,7 @@ class GoogleAIStudioInteractionsConfig(BaseInteractionsAPIConfig):
         self,
         interaction_id: str,
         api_base: str,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> tuple[str, dict]:
         """GET /{api_version}/interactions/{interaction_id}"""
@@ -335,7 +335,7 @@ class GoogleAIStudioInteractionsConfig(BaseInteractionsAPIConfig):
     def transform_get_interaction_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> InteractionsAPIResponse:
         try:
             raw_json: Final = _interaction_body(raw_response)
@@ -353,7 +353,7 @@ class GoogleAIStudioInteractionsConfig(BaseInteractionsAPIConfig):
         self,
         interaction_id: str,
         api_base: str,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> tuple[str, dict]:
         """DELETE /{api_version}/interactions/{interaction_id}"""
@@ -369,7 +369,7 @@ class GoogleAIStudioInteractionsConfig(BaseInteractionsAPIConfig):
     def transform_delete_interaction_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         interaction_id: str,
     ) -> DeleteInteractionResult:
         if 200 <= raw_response.status_code < 300:
@@ -384,7 +384,7 @@ class GoogleAIStudioInteractionsConfig(BaseInteractionsAPIConfig):
         self,
         interaction_id: str,
         api_base: str,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> tuple[str, dict]:
         """POST /{api_version}/interactions/{interaction_id}:cancel (if supported)"""
@@ -400,7 +400,7 @@ class GoogleAIStudioInteractionsConfig(BaseInteractionsAPIConfig):
     def transform_cancel_interaction_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> CancelInteractionResult:
         try:
             raw_json: Final = _cancel_body(raw_response)

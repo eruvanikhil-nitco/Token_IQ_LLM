@@ -34,7 +34,7 @@ from token_iq.gateway.llms.custom_httpx.llm_http_handler import BaseLLMHTTPHandl
 from token_iq.gateway.llms.vertex_ai.files.transformation import (
     VertexAIFilesConfig,
     _OpenAIToVertexBatchUploadStream,
-    _get_litellm_batch_custom_id_from_labels,
+    _get_gateway_batch_custom_id_from_labels,
     _iter_openai_jsonl_entries,
     _iter_openai_jsonl_lines,
     _openai_batch_jsonl_entry_to_vertex_rows,
@@ -154,7 +154,7 @@ class TestFileLikeInputNotPartiallyConsumed:
         lines = _join_upload_body(out).decode("utf-8").splitlines()
         assert len(lines) == n_rows, "no batch row may be dropped from the upload"
         first_labels = json.loads(lines[0])["request"]["labels"]
-        assert _get_litellm_batch_custom_id_from_labels(first_labels) == "request-0"
+        assert _get_gateway_batch_custom_id_from_labels(first_labels) == "request-0"
 
 
 class TestStreamingLineIterator:
@@ -334,7 +334,7 @@ class TestPathSourcedStreaming:
         lines = body.splitlines()
         assert len(lines) == n_rows, "no batch row may be dropped from a Path source"
         first_labels = json.loads(lines[0])["request"]["labels"]
-        assert _get_litellm_batch_custom_id_from_labels(first_labels) == "request-0"
+        assert _get_gateway_batch_custom_id_from_labels(first_labels) == "request-0"
 
     def test_path_source_peak_stays_below_payload(self, tmp_path):
         cfg = VertexAIFilesConfig()

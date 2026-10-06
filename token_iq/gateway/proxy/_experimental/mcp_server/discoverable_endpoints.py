@@ -354,7 +354,7 @@ def _session_cookie_user_id(request: Request) -> str | None:
     return _user_id_from_session_cookie(request)
 
 
-def _redirect_to_litellm_login(request: Request) -> RedirectResponse:
+def _redirect_to_gateway_login(request: Request) -> RedirectResponse:
     """Send an unauthenticated browser through litellm login before the interactive bridge authorize
     can capture its identity. The bridge oauth_delegate flow seals the SSO user into the gateway code,
     so a session is required; without one there is nothing to bind. A same-origin relative
@@ -890,7 +890,7 @@ async def authorize_with_server(
 
         litellm_user_id = _user_id_from_session_cookie(request)
         if litellm_user_id is None:
-            return _redirect_to_litellm_login(request)
+            return _redirect_to_gateway_login(request)
         denial: Final = await _bridge_authorize_access_denial(
             litellm_user_id=litellm_user_id,
             mcp_server=resolved_server,

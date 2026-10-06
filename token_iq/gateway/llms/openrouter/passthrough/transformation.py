@@ -12,7 +12,7 @@ from token_iq.gateway.types.llms.openai import AllMessageValues
 if TYPE_CHECKING:
     from httpx import URL, Response
 
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
     from token_iq.gateway.types.utils import CostResponseTypes
 
 OPENROUTER_API_BASE: Final = "https://openrouter.ai/api/v1"
@@ -68,7 +68,7 @@ class OpenRouterPassthroughConfig(BasePassthroughConfig):
         custom_llm_provider: str,
         httpx_response: Response,
         request_data: Mapping[str, object],
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         endpoint: str,
     ) -> CostResponseTypes | None:
         from token_iq.gateway import encoding

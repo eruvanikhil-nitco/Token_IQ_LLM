@@ -125,11 +125,11 @@ def test_init_rejects_cluster_startup_nodes():
 
 def test_cache_dispatch_rejects_cluster_for_valkey_semantic():
     from token_iq.gateway.caching.caching import Cache
-    from token_iq.gateway.types.caching import LiteLLMCacheType
+    from token_iq.gateway.types.caching import GatewayCacheType
 
     with pytest.raises(ValueError, match="cluster-mode-enabled"):
         Cache(
-            type=LiteLLMCacheType.VALKEY_SEMANTIC,
+            type=GatewayCacheType.VALKEY_SEMANTIC,
             host="valkey-host",
             port="6379",
             similarity_threshold=0.8,
@@ -481,10 +481,10 @@ def test_init_uses_both_injected_clients_without_connection_info(monkeypatch):
 
 def test_cache_dispatches_valkey_semantic_type():
     from token_iq.gateway.caching.caching import Cache
-    from token_iq.gateway.types.caching import LiteLLMCacheType
+    from token_iq.gateway.types.caching import GatewayCacheType
 
     cache = Cache(
-        type=LiteLLMCacheType.VALKEY_SEMANTIC,
+        type=GatewayCacheType.VALKEY_SEMANTIC,
         host="valkey-host",
         port="6380",
         similarity_threshold=0.8,

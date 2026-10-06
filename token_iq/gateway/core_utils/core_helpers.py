@@ -58,17 +58,17 @@ def safe_divide(
     return numerator / denominator
 
 
-def _is_litellm_limit_rejection(exception: BaseException) -> bool:
+def _is_gateway_limit_rejection(exception: BaseException) -> bool:
     from token_iq.gateway.exceptions import RateLimitErrorCategory
 
-    litellm_limit_categories: Final = frozenset(
+    gateway_limit_categories: Final = frozenset(
         (RateLimitErrorCategory.LITELLM_RATE_LIMIT.value, RateLimitErrorCategory.LITELLM_BATCH_RATE_LIMIT.value)
     )
-    return getattr(exception, "category", None) in litellm_limit_categories
+    return getattr(exception, "category", None) in gateway_limit_categories
 
 
 def _is_proxy_rejection(exception: BaseException) -> bool:
-    if _is_litellm_limit_rejection(exception):
+    if _is_gateway_limit_rejection(exception):
         return True
     try:
         from starlette.exceptions import HTTPException
@@ -227,7 +227,7 @@ def remove_items_at_indices(items: list[Any] | None, indices: Iterable[int]) -> 
             items.pop(index)
 
 
-def add_missing_spend_metadata_to_litellm_metadata(litellm_metadata: dict, metadata: dict) -> dict:
+def add_missing_spend_metadata_to_gateway_metadata(litellm_metadata: dict, metadata: dict) -> dict:
     """
     Helper to get litellm metadata for spend tracking
 
@@ -288,7 +288,7 @@ def get_litellm_metadata_from_kwargs(kwargs: dict):
         metadata: Final = litellm_params.get("metadata", {})
         litellm_metadata = litellm_params.get("litellm_metadata", {})
         if litellm_metadata and metadata:
-            litellm_metadata = add_missing_spend_metadata_to_litellm_metadata(litellm_metadata, metadata)
+            litellm_metadata = add_missing_spend_metadata_to_gateway_metadata(litellm_metadata, metadata)
         if litellm_metadata:
             return litellm_metadata
         elif metadata:
@@ -343,7 +343,7 @@ def _get_parent_otel_span_from_kwargs(
 
 def process_response_headers(
     response_headers: httpx.Headers | dict,
-    preserve_litellm_internal_headers: bool = False,
+    preserve_gateway_internal_headers: bool = False,
 ) -> dict:
     """
     `preserve_litellm_internal_headers` must only be True when the input is a
@@ -361,7 +361,7 @@ def process_response_headers(
 
     # Raw httpx.Headers objects come directly from provider HTTP responses and
     # must never be treated as LiteLLM-owned, regardless of caller intent.
-    _preserve: Final = preserve_litellm_internal_headers and isinstance(response_headers, dict)
+    _preserve: Final = preserve_gateway_internal_headers and isinstance(response_headers, dict)
 
     openai_headers: Final = {}
     processed_headers: Final = {}
@@ -538,7 +538,7 @@ def filter_exceptions_from_params(data: Any, max_depth: int = 20) -> Any:
         return None
     # Skip known non-serializable object types (Logging, Router, etc.)
     obj_type_name: Final = type(data).__name__
-    if obj_type_name in ["Logging", "LiteLLMLoggingObj", "Router"]:
+    if obj_type_name in ["Logging", "GatewayLoggingObj", "Router"]:
         return None
 
     if isinstance(data, dict):

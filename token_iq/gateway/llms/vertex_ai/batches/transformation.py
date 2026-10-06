@@ -8,7 +8,7 @@ from token_iq.gateway.llms.vertex_ai.common_utils import (
 )
 from token_iq.gateway.types.llms.openai import BatchJobStatus, CreateBatchRequest
 from token_iq.gateway.types.llms.vertex_ai import *
-from token_iq.gateway.types.utils import LiteLLMBatch
+from token_iq.gateway.types.utils import GatewayBatch
 
 
 class VertexAIBatchTransformation:
@@ -46,8 +46,8 @@ class VertexAIBatchTransformation:
     @classmethod
     def transform_vertex_ai_batch_response_to_openai_batch_response(
         cls, response: VertexBatchPredictionResponse
-    ) -> LiteLLMBatch:
-        return LiteLLMBatch(
+    ) -> GatewayBatch:
+        return GatewayBatch(
             id=cls._get_batch_id_from_vertex_ai_batch_response(response),
             completion_window="24h",
             created_at=_convert_vertex_datetime_to_openai_datetime(vertex_datetime=response.get("createTime", "")),

@@ -652,7 +652,7 @@ async def test_redact_mode_keeps_a_masked_record_instead_of_rejecting():
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("status_code", [400, 403, 422], ids=["content_policy", "akto", "llm_as_a_judge"])
-async def test_every_status_litellm_calls_a_block_drops_the_record(status_code):
+async def test_every_status_gateway_calls_a_block_drops_the_record(status_code):
     """Follows CustomGuardrail._is_guardrail_intervention, so drop matches what litellm logs as a block."""
     source = _jsonl(_record("a"), _record("b", content="tripwire"))
 
@@ -759,7 +759,7 @@ async def test_clean_file_needs_no_rewrite():
     ],
     ids=["guardrail_raised", "blocked_pii_entity"],
 )
-async def test_litellm_native_block_exceptions_drop_the_record(exc):
+async def test_gateway_native_block_exceptions_drop_the_record(exc):
     """Presidio and friends raise these rather than an HTTPException; they are still policy blocks."""
 
     def _hook(data):
@@ -941,10 +941,10 @@ async def test_a_real_non_guardrail_enforcement_hook_drops_its_record(monkeypatc
     """
     from token_iq import gateway
     from token_iq.gateway.proxy.hooks.prompt_injection_detection import _OPTIONAL_PromptInjectionDetection
-    from token_iq.gateway.proxy._types import LiteLLMPromptInjectionParams
+    from token_iq.gateway.proxy._types import GatewayPromptInjectionParams
 
     hook = _OPTIONAL_PromptInjectionDetection(
-        prompt_injection_params=LiteLLMPromptInjectionParams(heuristics_check=True)
+        prompt_injection_params=GatewayPromptInjectionParams(heuristics_check=True)
     )
     monkeypatch.setattr(gateway, "callbacks", [hook])
     ProxyLogging._callback_capabilities_cache.clear()
@@ -1036,7 +1036,7 @@ async def test_a_redacted_record_keeps_its_own_body_metadata():
 
 
 @pytest.mark.asyncio
-async def test_a_redacted_record_keeps_its_own_litellm_metadata():
+async def test_a_redacted_record_keeps_its_own_gateway_metadata():
     """Tags ride in litellm_metadata; a guardrail firing must not change how the record is attributed."""
     record = _record("m", content="my secret is here")
     record["body"]["litellm_metadata"] = {"tags": ["cost-center-42"]}

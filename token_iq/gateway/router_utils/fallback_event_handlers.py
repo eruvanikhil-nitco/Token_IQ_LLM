@@ -24,14 +24,14 @@ from token_iq.gateway.router_utils.cooldown_handlers import (
 from token_iq.gateway.router_utils.router_callbacks.track_deployment_metrics import (
     increment_deployment_failures_for_current_minute,
 )
-from token_iq.gateway.types.router import LiteLLMParamsTypedDict
+from token_iq.gateway.types.router import GatewayParamsTypedDict
 
 if TYPE_CHECKING:
     from token_iq.gateway.router import Router as _Router
 
-    LitellmRouter = _Router
+    GatewayRouter = _Router
 else:
-    LitellmRouter = Any
+    GatewayRouter = Any
 
 # Status codes a generic API call's caller-supplied resource id can trigger on its own
 # (e.g. a nonexistent file/batch/thread id), independent of the selected deployment's health.
@@ -39,7 +39,7 @@ _REQUEST_SCOPED_STATUS_CODES: Final = frozenset((404,))
 
 
 def _trigger_cooldown_for_failed_deployment(
-    litellm_router: LitellmRouter,
+    litellm_router: GatewayRouter,
     kwargs: Mapping[str, Any],
     exception: Exception,
 ) -> None:
@@ -394,7 +394,7 @@ def _get_fallback_target_model_group(fallback_entry: str | Mapping[str, object])
 
 
 async def _is_fallback_target_authorized(
-    litellm_router: LitellmRouter,
+    litellm_router: GatewayRouter,
     fallback_entry: str | Mapping[str, object],
     original_model_group: str,
     kwargs: Mapping[str, object],
@@ -448,7 +448,7 @@ def creates_provider_scoped_resource(kwargs: Mapping[str, object]) -> bool:
 
 async def run_async_fallback(
     *args: tuple[Any],
-    litellm_router: LitellmRouter,
+    litellm_router: GatewayRouter,
     fallback_model_group: list[str],
     original_model_group: str,
     original_exception: Exception,
@@ -655,7 +655,7 @@ def _check_non_standard_fallback_format(fallbacks: list[Any] | None) -> bool:
         return True
     elif all(isinstance(item, dict) for item in fallbacks):
         for item in fallbacks:
-            for key in LiteLLMParamsTypedDict.__annotations__:
+            for key in GatewayParamsTypedDict.__annotations__:
                 if key in item:
                     # If the value is a list, it's likely a standard fallback model group mapping
                     # (e.g. {"model": ["backup"]}) rather than a parameter override.

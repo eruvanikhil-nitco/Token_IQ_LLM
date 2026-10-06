@@ -30,7 +30,7 @@ from token_iq.gateway.llms.mistral.ocr.guardrail_translation.handler import OCRH
 from token_iq.gateway.proxy._experimental.mcp_server.guardrail_translation.handler import (
     MCPGuardrailTranslationHandler,
 )
-from token_iq.gateway.proxy._types import LiteLLMRoutes, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import GatewayRoutes, UserAPIKeyAuth
 from token_iq.gateway.proxy.guardrails.guardrail_hooks.unified_guardrail import (
     unified_guardrail as unified_module,
 )
@@ -623,7 +623,7 @@ class TestUnifiedLLMGuardrails:
             assert "has no guardrail translation handler" in caplog.text
 
         def test_openai_prefixed_aliases_are_authorized_like_canonical_routes(self) -> None:
-            openai_routes = LiteLLMRoutes.openai_routes.value
+            openai_routes = GatewayRoutes.openai_routes.value
             for route in (
                 "/openai/v1/responses",
                 "/openai/v1/responses/{response_id}",

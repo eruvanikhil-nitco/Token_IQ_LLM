@@ -18,7 +18,7 @@ import pytest
 from fastapi import HTTPException
 from prisma.errors import TableNotFoundError
 
-from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
 from token_iq.gateway.proxy.guardrails.guardrail_registry import InMemoryGuardrailHandler
 from token_iq.gateway.proxy.guardrails.usage_endpoints import (
     guardrails_usage_detail,
@@ -28,7 +28,7 @@ from token_iq.gateway.proxy.guardrails.usage_endpoints import (
 )
 from token_iq.gateway.types.guardrails import Guardrail, LitellmParams
 
-ADMIN = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN)
+ADMIN = UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN)
 # Query() defaults don't resolve to None when the handler is called directly.
 START, END = "2026-04-20", "2026-04-27"
 

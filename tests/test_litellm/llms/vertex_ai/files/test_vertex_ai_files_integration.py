@@ -13,7 +13,7 @@ class TestVertexAIFilesIntegration:
     """Test integration of Vertex AI files with main litellm API"""
 
     @pytest.mark.asyncio
-    async def test_litellm_afile_content_vertex_ai_provider(self):
+    async def test_gateway_afile_content_vertex_ai_provider(self):
         """Test litellm.afile_content with vertex_ai provider"""
         file_id = "gs%3A%2F%2Ftest-bucket%2Ftest-file.txt"
         expected_content = b"test file content"
@@ -54,7 +54,7 @@ class TestVertexAIFilesIntegration:
             # Verify the mock was called
             mock_retrieve.assert_called_once()
 
-    def test_litellm_file_content_vertex_ai_provider(self):
+    def test_gateway_file_content_vertex_ai_provider(self):
         """Test litellm.file_content with vertex_ai provider (sync)"""
         file_id = "gs%3A%2F%2Ftest-bucket%2Ftest-file.txt"
         expected_content = b"test file content"
@@ -91,7 +91,7 @@ class TestVertexAIFilesIntegration:
             # Verify the mock was called
             mock_retrieve.assert_called_once()
 
-    def test_litellm_file_content_vertex_ai_with_model_provider_detection(self):
+    def test_gateway_file_content_vertex_ai_with_model_provider_detection(self):
         """Test litellm.file_content with model parameter for provider detection"""
         file_id = "gs%3A%2F%2Ftest-bucket%2Ftest-file.txt"
         expected_content = b"test file content"
@@ -136,7 +136,7 @@ class TestVertexAIFilesIntegration:
                 # Verify provider detection was called
                 mock_get_provider.assert_called_once()
 
-    def test_litellm_file_content_vertex_ai_error_cases(self):
+    def test_gateway_file_content_vertex_ai_error_cases(self):
         """Test error handling in vertex_ai file_content"""
         # Test missing file_id - the VertexAI provider config's
         # transform_file_content_request should handle empty file_id.

@@ -10,7 +10,7 @@ from fastapi.testclient import TestClient
 from token_iq.gateway.proxy._types import (
     LiteLLM_ObjectPermissionTable,
     LiteLLM_TeamTable,
-    LitellmUserRoles,
+    GatewayUserRoles,
     UserAPIKeyAuth,
 )
 
@@ -58,7 +58,7 @@ async def test_list_search_tools_db_only(monkeypatch):
                 from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 
                 app.dependency_overrides[user_api_key_auth] = lambda: UserAPIKeyAuth(
-                    user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin_user"
+                    user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin_user"
                 )
 
                 try:
@@ -123,7 +123,7 @@ async def test_list_search_tools_config_only(monkeypatch):
                 from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 
                 app.dependency_overrides[user_api_key_auth] = lambda: UserAPIKeyAuth(
-                    user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin_user"
+                    user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin_user"
                 )
 
                 try:
@@ -199,7 +199,7 @@ async def test_list_search_tools_filters_duplicate_config_tools(monkeypatch):
                 from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 
                 app.dependency_overrides[user_api_key_auth] = lambda: UserAPIKeyAuth(
-                    user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin_user"
+                    user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin_user"
                 )
 
                 try:
@@ -308,7 +308,7 @@ async def test_list_search_tools_datetime_conversion(monkeypatch):
                 from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 
                 app.dependency_overrides[user_api_key_auth] = lambda: UserAPIKeyAuth(
-                    user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin_user"
+                    user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin_user"
                 )
 
                 try:
@@ -407,7 +407,7 @@ async def test_list_search_tools_config_error_handling(monkeypatch):
                 from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 
                 app.dependency_overrides[user_api_key_auth] = lambda: UserAPIKeyAuth(
-                    user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin_user"
+                    user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin_user"
                 )
 
                 try:
@@ -438,7 +438,7 @@ async def test_list_search_tools_no_prisma_client(monkeypatch):
         from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 
         app.dependency_overrides[user_api_key_auth] = lambda: UserAPIKeyAuth(
-            user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin_user"
+            user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin_user"
         )
 
         try:
@@ -528,7 +528,7 @@ async def test_list_search_tools_db_masking_sensitive_values(monkeypatch):
                 from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 
                 app.dependency_overrides[user_api_key_auth] = lambda: UserAPIKeyAuth(
-                    user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin_user"
+                    user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin_user"
                 )
 
                 try:
@@ -723,7 +723,7 @@ async def test_list_search_tools_scoped_to_key_object_permission():
     configured tool, leaking ids, api_base, and metadata for tools it cannot call.
     """
     restricted_user = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="internal_user",
         object_permission=LiteLLM_ObjectPermissionTable(
             object_permission_id="op-key",
@@ -748,7 +748,7 @@ async def test_list_search_tools_scoped_to_key_object_permission():
 async def test_list_search_tools_unrestricted_internal_user_sees_all():
     """An internal user with no search_tools allowlist is unrestricted and sees every tool."""
     unrestricted_user = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER, user_id="internal_user"
+        user_role=GatewayUserRoles.INTERNAL_USER, user_id="internal_user"
     )
 
     with (
@@ -766,7 +766,7 @@ async def test_list_search_tools_unrestricted_internal_user_sees_all():
 async def test_list_search_tools_scoped_to_team_object_permission():
     """A team-level search_tools allowlist also scopes the listing for a non-admin caller."""
     team_member = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="internal_user",
         team_id="team-1",
     )
@@ -798,7 +798,7 @@ async def test_list_search_tools_scoped_to_team_object_permission():
 async def test_list_search_tools_admin_with_restricted_key_still_sees_all():
     """Proxy admins bypass search-tool scoping even if their key carries an allowlist."""
     admin_user = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
         user_id="admin_user",
         object_permission=LiteLLM_ObjectPermissionTable(
             object_permission_id="op-admin",
@@ -844,7 +844,7 @@ async def test_list_search_tools_dashboard_session_key_does_not_look_up_the_ui_t
     from token_iq.gateway.constants import UI_SESSION_TOKEN_TEAM_ID
 
     dashboard_session_user = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="internal_user",
         team_id=UI_SESSION_TOKEN_TEAM_ID,
     )
@@ -883,7 +883,7 @@ async def test_filter_visible_search_tools_dashboard_session_still_honors_key_al
     )
 
     restricted_dashboard_session = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="internal_user",
         team_id=UI_SESSION_TOKEN_TEAM_ID,
         object_permission=LiteLLM_ObjectPermissionTable(
@@ -911,7 +911,7 @@ async def test_filter_visible_search_tools_still_applies_a_real_team_allowlist()
     )
 
     team_member = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="internal_user",
         team_id="team-1",
     )
@@ -946,7 +946,7 @@ async def test_filter_visible_search_tools_propagates_a_real_team_lookup_failure
     )
 
     team_member = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="internal_user",
         team_id="deleted-team",
     )
@@ -970,7 +970,7 @@ async def test_list_search_tools_reports_a_missing_real_team_as_404():
     masking it as a 500 or quietly returning an unscoped list.
     """
     team_member = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="internal_user",
         team_id="deleted-team",
     )
@@ -1075,7 +1075,7 @@ def _live_router_and_db(db_rows: list):
             )
         )
         app.dependency_overrides[user_api_key_auth] = lambda: UserAPIKeyAuth(
-            user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin_user"
+            user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin_user"
         )
         try:
             yield fake_router

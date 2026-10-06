@@ -903,7 +903,7 @@ async def test_recovery_store_partitioned_by_caller_identity(guardrail: Compresr
 
 
 @pytest.mark.asyncio
-async def test_caller_scope_read_from_litellm_metadata(guardrail: CompresrGuardrail):
+async def test_caller_scope_read_from_gateway_metadata(guardrail: CompresrGuardrail):
     """/v1/messages and /v1/responses carry the auth object under
     litellm_metadata rather than metadata; the store key must be scoped by it
     there too, without relying on upstream's metadata backfill."""

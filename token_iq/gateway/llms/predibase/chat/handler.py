@@ -9,7 +9,7 @@ from typing import Final
 import httpx
 
 from token_iq import gateway
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.llms.custom_httpx.http_handler import (
     AsyncHTTPHandler,
     get_async_httpx_client,
@@ -60,7 +60,7 @@ class PredibaseChatCompletion:
         print_verbose: Callable,
         encoding,
         api_key: str,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         optional_params: dict,
         litellm_params: dict,
         tenant_id: str,
@@ -80,7 +80,7 @@ class PredibaseChatCompletion:
         )
         request_optional_params: Final = {**optional_params}
         stream: Final = request_optional_params.get("stream", False)
-        request_litellm_params: Final = {
+        request_gateway_params: Final = {
             **litellm_params,
             "custom_prompt_dict": custom_prompt_dict,
             "predibase_tenant_id": tenant_id,
@@ -90,14 +90,14 @@ class PredibaseChatCompletion:
             api_key=api_key,
             model=model,
             optional_params=request_optional_params,
-            litellm_params=request_litellm_params,
+            litellm_params=request_gateway_params,
             stream=stream,
         )
         data: Final = predibase_config.transform_request(
             model=model,
             messages=messages,
             optional_params=request_optional_params,
-            litellm_params=request_litellm_params,
+            litellm_params=request_gateway_params,
             headers=headers,
         )
 
@@ -127,7 +127,7 @@ class PredibaseChatCompletion:
                     api_key=api_key,
                     logging_obj=logging_obj,
                     optional_params=request_optional_params,
-                    litellm_params=request_litellm_params,
+                    litellm_params=request_gateway_params,
                     logger_fn=logger_fn,
                     headers=headers,
                     timeout=timeout,
@@ -146,7 +146,7 @@ class PredibaseChatCompletion:
                     logging_obj=logging_obj,
                     optional_params=request_optional_params,
                     stream=False,
-                    litellm_params=request_litellm_params,
+                    litellm_params=request_gateway_params,
                     logger_fn=logger_fn,
                     headers=headers,
                     timeout=timeout,
@@ -186,7 +186,7 @@ class PredibaseChatCompletion:
             api_key=api_key,
             request_data=data,
             messages=messages,
-            litellm_params=request_litellm_params,
+            litellm_params=request_gateway_params,
             encoding=encoding,
         )
 
@@ -251,7 +251,7 @@ class PredibaseChatCompletion:
         print_verbose: Callable,
         encoding,
         api_key,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         data: dict,
         timeout: float | httpx.Timeout,
         optional_params=None,

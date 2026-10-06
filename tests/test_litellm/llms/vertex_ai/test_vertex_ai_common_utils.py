@@ -14,7 +14,7 @@ from token_iq.gateway.llms.vertex_ai.common_utils import (
     set_schema_property_ordering,
     supports_response_json_schema,
     validate_vertex_location,
-    vertex_request_labels_from_litellm_params,
+    vertex_request_labels_from_gateway_params,
 )
 
 
@@ -1640,25 +1640,25 @@ def test_add_object_type_does_not_add_type_when_anyof_present():
     assert "type" not in input_schema, "type should not be added when anyOf is present"
 
 
-def test_vertex_request_labels_from_litellm_params_extracts_requester_metadata():
-    assert vertex_request_labels_from_litellm_params(None) is None
-    assert vertex_request_labels_from_litellm_params({}) is None
-    assert vertex_request_labels_from_litellm_params({"metadata": None}) is None
+def test_vertex_request_labels_from_gateway_params_extracts_requester_metadata():
+    assert vertex_request_labels_from_gateway_params(None) is None
+    assert vertex_request_labels_from_gateway_params({}) is None
+    assert vertex_request_labels_from_gateway_params({"metadata": None}) is None
     lp = {"metadata": {"requester_metadata": {"team": "analytics", "count": 3}}}
-    assert vertex_request_labels_from_litellm_params(lp) == {"team": "analytics"}
+    assert vertex_request_labels_from_gateway_params(lp) == {"team": "analytics"}
 
 
-def test_vertex_request_labels_from_litellm_params_accepts_litellm_metadata():
+def test_vertex_request_labels_from_gateway_params_accepts_gateway_metadata():
     lp = {"litellm_metadata": {"requester_metadata": {"team": "platform", "count": 3}}}
-    assert vertex_request_labels_from_litellm_params(lp) == {"team": "platform"}
+    assert vertex_request_labels_from_gateway_params(lp) == {"team": "platform"}
 
 
-def test_vertex_request_labels_prefers_metadata_over_litellm_metadata():
+def test_vertex_request_labels_prefers_metadata_over_gateway_metadata():
     lp = {
         "metadata": {"requester_metadata": {"source": "metadata"}},
         "litellm_metadata": {"requester_metadata": {"source": "litellm_metadata"}},
     }
-    assert vertex_request_labels_from_litellm_params(lp) == {"source": "metadata"}
+    assert vertex_request_labels_from_gateway_params(lp) == {"source": "metadata"}
 
 
 def test_pop_vertex_request_labels_prefers_explicit_labels_then_metadata():
@@ -1674,7 +1674,7 @@ def test_pop_vertex_request_labels_prefers_explicit_labels_then_metadata():
     assert pop_vertex_request_labels(optional3, litellm_params) == {"team": "x"}
 
 
-def test_pop_vertex_request_labels_uses_litellm_metadata_when_metadata_absent():
+def test_pop_vertex_request_labels_uses_gateway_metadata_when_metadata_absent():
     optional: dict = {}
     litellm_params = {
         "litellm_metadata": {"requester_metadata": {"team": "from_litellm_meta"}}

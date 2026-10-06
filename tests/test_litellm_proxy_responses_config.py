@@ -8,10 +8,10 @@ from token_iq.gateway.types.utils import LlmProviders
 from token_iq.gateway.utils import ProviderConfigManager
 
 
-def test_litellm_proxy_responses_api_config():
+def test_gateway_proxy_responses_api_config():
     """Test that litellm_proxy provider returns correct Responses API config"""
     from token_iq.gateway.llms.litellm_proxy.responses.transformation import (
-        LiteLLMProxyResponsesAPIConfig,
+        GatewayProxyResponsesAPIConfig,
     )
 
     config = ProviderConfigManager.get_provider_responses_api_config(
@@ -21,21 +21,21 @@ def test_litellm_proxy_responses_api_config():
     print(f"config: {config}")
     assert config is not None, "Config should not be None for litellm_proxy provider"
     assert isinstance(
-        config, LiteLLMProxyResponsesAPIConfig
+        config, GatewayProxyResponsesAPIConfig
     ), f"Expected LiteLLMProxyResponsesAPIConfig, got {type(config)}"
     assert (
         config.custom_llm_provider == LlmProviders.LITELLM_PROXY
     ), "custom_llm_provider should be LITELLM_PROXY"
 
 
-def test_litellm_proxy_responses_api_config_get_complete_url():
+def test_gateway_proxy_responses_api_config_get_complete_url():
     """Test that get_complete_url works correctly"""
     import os
     from token_iq.gateway.llms.litellm_proxy.responses.transformation import (
-        LiteLLMProxyResponsesAPIConfig,
+        GatewayProxyResponsesAPIConfig,
     )
 
-    config = LiteLLMProxyResponsesAPIConfig()
+    config = GatewayProxyResponsesAPIConfig()
 
     # Test with explicit api_base
     url = config.get_complete_url(
@@ -59,16 +59,16 @@ def test_litellm_proxy_responses_api_config_get_complete_url():
         config.get_complete_url(api_base=None, litellm_params={})
 
 
-def test_litellm_proxy_responses_api_config_inherits_from_openai():
+def test_gateway_proxy_responses_api_config_inherits_from_openai():
     """Test that LiteLLMProxyResponsesAPIConfig extends OpenAI config properly"""
     from token_iq.gateway.llms.litellm_proxy.responses.transformation import (
-        LiteLLMProxyResponsesAPIConfig,
+        GatewayProxyResponsesAPIConfig,
     )
     from token_iq.gateway.llms.openai.responses.transformation import (
         OpenAIResponsesAPIConfig,
     )
 
-    config = LiteLLMProxyResponsesAPIConfig()
+    config = GatewayProxyResponsesAPIConfig()
 
     # Should inherit from OpenAI config
     assert isinstance(config, OpenAIResponsesAPIConfig)
@@ -78,7 +78,7 @@ def test_litellm_proxy_responses_api_config_inherits_from_openai():
 
 
 if __name__ == "__main__":
-    test_litellm_proxy_responses_api_config()
-    test_litellm_proxy_responses_api_config_get_complete_url()
-    test_litellm_proxy_responses_api_config_inherits_from_openai()
+    test_gateway_proxy_responses_api_config()
+    test_gateway_proxy_responses_api_config_get_complete_url()
+    test_gateway_proxy_responses_api_config_inherits_from_openai()
     print("All tests passed!")

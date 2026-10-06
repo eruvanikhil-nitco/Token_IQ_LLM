@@ -16,7 +16,7 @@ from token_iq import gateway
 from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.core_utils import thread_pool_executor as thread_pool_executor_module
 from token_iq.gateway.responses import streaming_iterator as responses_streaming_iterator_module
-from token_iq.gateway.core_utils.litellm_logging import Logging as LitellmLogging
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLogging
 from token_iq.gateway.responses.streaming_iterator import ResponsesAPIStreamingIterator
 from token_iq.gateway.types.llms.openai import ResponsesAPIResponse
 
@@ -79,8 +79,8 @@ def recording_executor(monkeypatch):
     return recording
 
 
-def _make_logging_obj() -> LitellmLogging:
-    logging_obj = LitellmLogging(
+def _make_logging_obj() -> GatewayLogging:
+    logging_obj = GatewayLogging(
         model="gpt-5.4-nano",
         messages=[{"role": "user", "content": "hi"}],
         stream=True,
@@ -93,7 +93,7 @@ def _make_logging_obj() -> LitellmLogging:
     return logging_obj
 
 
-def _make_iterator(logging_obj: LitellmLogging) -> ResponsesAPIStreamingIterator:
+def _make_iterator(logging_obj: GatewayLogging) -> ResponsesAPIStreamingIterator:
     iterator = ResponsesAPIStreamingIterator(
         response=httpx.Response(200),
         model="gpt-5.4-nano",

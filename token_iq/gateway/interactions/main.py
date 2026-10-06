@@ -49,7 +49,7 @@ from token_iq.gateway.interactions.utils import (
     InteractionsAPIRequestUtils,
     get_provider_interactions_api_config,
 )
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.types.interactions import (
     CancelInteractionResult,
     DeleteInteractionResult,
@@ -59,7 +59,7 @@ from token_iq.gateway.types.interactions import (
     InteractionsAPIStreamingResponse,
     InteractionTool,
 )
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.utils import client
 
 # ============================================================
@@ -265,11 +265,11 @@ def create(
     local_vars: Final = locals()
 
     try:
-        litellm_logging_obj: Final[LiteLLMLoggingObj] = kwargs.get("litellm_logging_obj")
+        litellm_logging_obj: Final[GatewayLoggingObj] = kwargs.get("litellm_logging_obj")
         litellm_call_id: Final[str | None] = kwargs.get("litellm_call_id", None)
         _is_async: Final = kwargs.pop("acreate_interaction", False) is True
 
-        litellm_params: Final = GenericLiteLLMParams(**kwargs)
+        litellm_params: Final = GenericGatewayParams(**kwargs)
 
         # Routing logic:
         # - agent provided (no model, or model accidentally set to agent name) → gemini
@@ -302,10 +302,10 @@ def create(
         if custom_llm_provider == "litellm_responses" or interactions_api_config is None:
             # Bridge to litellm.responses() for non-native providers
             from token_iq.gateway.interactions.litellm_responses_transformation.handler import (
-                LiteLLMResponsesInteractionsHandler,
+                GatewayResponsesInteractionsHandler,
             )
 
-            handler: Final = LiteLLMResponsesInteractionsHandler()
+            handler: Final = GatewayResponsesInteractionsHandler()
             return handler.interactions_api_handler(
                 model=model or "",
                 input=input,
@@ -412,11 +412,11 @@ def get(
     custom_llm_provider = custom_llm_provider or "gemini"
 
     try:
-        litellm_logging_obj: Final[LiteLLMLoggingObj] = kwargs.get("litellm_logging_obj")
+        litellm_logging_obj: Final[GatewayLoggingObj] = kwargs.get("litellm_logging_obj")
         litellm_call_id: Final[str | None] = kwargs.get("litellm_call_id", None)
         _is_async: Final = kwargs.pop("aget_interaction", False) is True
 
-        litellm_params: Final = GenericLiteLLMParams(**kwargs)
+        litellm_params: Final = GenericGatewayParams(**kwargs)
 
         interactions_api_config: Final = get_provider_interactions_api_config(
             provider=custom_llm_provider,
@@ -516,11 +516,11 @@ def delete(
     custom_llm_provider = custom_llm_provider or "gemini"
 
     try:
-        litellm_logging_obj: Final[LiteLLMLoggingObj] = kwargs.get("litellm_logging_obj")
+        litellm_logging_obj: Final[GatewayLoggingObj] = kwargs.get("litellm_logging_obj")
         litellm_call_id: Final[str | None] = kwargs.get("litellm_call_id", None)
         _is_async: Final = kwargs.pop("adelete_interaction", False) is True
 
-        litellm_params: Final = GenericLiteLLMParams(**kwargs)
+        litellm_params: Final = GenericGatewayParams(**kwargs)
 
         interactions_api_config: Final = get_provider_interactions_api_config(
             provider=custom_llm_provider,
@@ -618,11 +618,11 @@ def cancel(
     custom_llm_provider = custom_llm_provider or "gemini"
 
     try:
-        litellm_logging_obj: Final[LiteLLMLoggingObj] = kwargs.get("litellm_logging_obj")
+        litellm_logging_obj: Final[GatewayLoggingObj] = kwargs.get("litellm_logging_obj")
         litellm_call_id: Final[str | None] = kwargs.get("litellm_call_id", None)
         _is_async: Final = kwargs.pop("acancel_interaction", False) is True
 
-        litellm_params: Final = GenericLiteLLMParams(**kwargs)
+        litellm_params: Final = GenericGatewayParams(**kwargs)
 
         interactions_api_config: Final = get_provider_interactions_api_config(
             provider=custom_llm_provider,

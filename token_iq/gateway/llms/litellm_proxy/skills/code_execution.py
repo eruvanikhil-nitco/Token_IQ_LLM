@@ -118,7 +118,7 @@ def _parse_code_execution_arguments(serialized_arguments: str) -> _CodeExecution
     return json.loads(serialized_arguments)
 
 
-class LiteLLMInternalTools(str, Enum):
+class GatewayInternalTools(str, Enum):
     """
     Enum for internal LiteLLM tools that are injected into requests.
 
@@ -139,7 +139,7 @@ def get_litellm_code_execution_tool() -> _OpenAIToolSpec:
     return {
         "type": "function",
         "function": {
-            "name": LiteLLMInternalTools.CODE_EXECUTION.value,
+            "name": GatewayInternalTools.CODE_EXECUTION.value,
             "description": "Execute Python code in a sandboxed environment. Use this to run code that generates files, processes data, or performs computations. Generated files will be returned directly.",
             "parameters": {
                 "type": "object",
@@ -150,7 +150,7 @@ def get_litellm_code_execution_tool() -> _OpenAIToolSpec:
     }
 
 
-def get_litellm_code_execution_tool_anthropic() -> _AnthropicToolSpec:
+def get_gateway_code_execution_tool_anthropic() -> _AnthropicToolSpec:
     """
     Returns the litellm_code_execution tool definition in Anthropic/messages API format.
 
@@ -158,7 +158,7 @@ def get_litellm_code_execution_tool_anthropic() -> _AnthropicToolSpec:
     when skills include executable Python code.
     """
     return {
-        "name": LiteLLMInternalTools.CODE_EXECUTION.value,
+        "name": GatewayInternalTools.CODE_EXECUTION.value,
         "description": "Execute Python code in a sandboxed environment. Use this to run code that generates files, processes data, or performs computations. Generated files will be returned directly.",
         "input_schema": {
             "type": "object",
@@ -287,7 +287,7 @@ class CodeExecutionHandler:
             for tool_call in assistant_message.tool_calls:
                 tool_name = tool_call.function.name
 
-                if tool_name == LiteLLMInternalTools.CODE_EXECUTION.value:
+                if tool_name == GatewayInternalTools.CODE_EXECUTION.value:
                     # Execute code in sandbox
                     try:
                         args = _parse_code_execution_arguments(tool_call.function.arguments)
@@ -386,7 +386,7 @@ def has_code_execution_tool(tools: list[_OpenAIToolSpec] | None) -> bool:
         return False
     for tool in tools:
         func = tool.get("function", {})
-        if func.get("name") == LiteLLMInternalTools.CODE_EXECUTION.value:
+        if func.get("name") == GatewayInternalTools.CODE_EXECUTION.value:
             return True
     return False
 

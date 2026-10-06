@@ -27,8 +27,8 @@ from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler
 from token_iq.gateway.proxy._types import (
     AlertType,
     CallInfo,
-    Litellm_EntityType,
-    LitellmUserRoles,
+    Gateway_EntityType,
+    GatewayUserRoles,
     ProxyErrorTypes,
     ProxyException,
     SpecialModelNames,
@@ -44,7 +44,7 @@ from token_iq.gateway.proxy.db.proxy_worker_heartbeat import count_live_proxy_wo
 from token_iq.gateway.proxy.health_check import (
     ADMIN_ONLY_HEALTH_DISPLAY_PARAMS,
     _clean_endpoint_data,
-    _update_litellm_params_for_health_check,
+    _update_gateway_params_for_health_check,
     health_check_filter_kwargs_from_general_settings,
     perform_health_check,
     run_with_timeout,
@@ -392,7 +392,7 @@ async def health_services_endpoint(
                 user_id=user_api_key_dict.user_id,
                 key_alias=user_api_key_dict.key_alias,
                 team_id=user_api_key_dict.team_id,
-                event_group=Litellm_EntityType.KEY,
+                event_group=Gateway_EntityType.KEY,
             )
             await proxy_logging_obj.budget_alerts(
                 type="user_budget",
@@ -500,7 +500,7 @@ async def health_services_endpoint(
         if service == "email":
             webhook_event: Final = WebhookEvent(
                 event="key_created",
-                event_group=Litellm_EntityType.KEY,
+                event_group=Gateway_EntityType.KEY,
                 event_message="Test Email Alert",
                 token=user_api_key_dict.token or "",
                 key_alias="Email Test key (This is only a test alert key. DO NOT USE THIS IN PRODUCTION.)",
@@ -811,12 +811,12 @@ async def _save_background_health_checks_to_db(
 
 _PROXY_ADMIN_ROLES: Final = frozenset(
     {
-        LitellmUserRoles.PROXY_ADMIN.value,
+        GatewayUserRoles.PROXY_ADMIN.value,
         # View-only admins are operators (oncall, support); they need the
         # routing fields (api_base, api_version) to diagnose health and tell
         # which provider region a check is hitting. They cannot mutate config
         # so granting them the read-only view is safe.
-        LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY.value,
+        GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY.value,
     }
 )
 
@@ -1413,22 +1413,22 @@ async def active_callbacks():
     _alerting: Final = str(general_settings.get("alerting"))
     # get success callbacks
 
-    litellm_callbacks: Final = [str(x) for x in gateway.callbacks]
-    litellm_input_callbacks: Final = [str(x) for x in gateway.input_callback]
-    litellm_failure_callbacks: Final = [str(x) for x in gateway.failure_callback]
-    litellm_success_callbacks: Final = [str(x) for x in gateway.success_callback]
-    litellm_async_success_callbacks: Final = [str(x) for x in gateway._async_success_callback]
-    litellm_async_failure_callbacks: Final = [str(x) for x in gateway._async_failure_callback]
-    litellm_async_input_callbacks: Final = [str(x) for x in gateway._async_input_callback]
+    gateway_callbacks: Final = [str(x) for x in gateway.callbacks]
+    gateway_input_callbacks: Final = [str(x) for x in gateway.input_callback]
+    gateway_failure_callbacks: Final = [str(x) for x in gateway.failure_callback]
+    gateway_success_callbacks: Final = [str(x) for x in gateway.success_callback]
+    gateway_async_success_callbacks: Final = [str(x) for x in gateway._async_success_callback]
+    gateway_async_failure_callbacks: Final = [str(x) for x in gateway._async_failure_callback]
+    gateway_async_input_callbacks: Final = [str(x) for x in gateway._async_input_callback]
 
     all_litellm_callbacks: Final = (
-        litellm_callbacks
-        + litellm_input_callbacks
-        + litellm_failure_callbacks
-        + litellm_success_callbacks
-        + litellm_async_success_callbacks
-        + litellm_async_failure_callbacks
-        + litellm_async_input_callbacks
+        gateway_callbacks
+        + gateway_input_callbacks
+        + gateway_failure_callbacks
+        + gateway_success_callbacks
+        + gateway_async_success_callbacks
+        + gateway_async_failure_callbacks
+        + gateway_async_input_callbacks
     )
 
     alerting: Final = proxy_logging_obj.alerting
@@ -1438,13 +1438,13 @@ async def active_callbacks():
 
     return {
         "alerting": _alerting,
-        "litellm.callbacks": litellm_callbacks,
-        "litellm.input_callback": litellm_input_callbacks,
-        "litellm.failure_callback": litellm_failure_callbacks,
-        "litellm.success_callback": litellm_success_callbacks,
-        "litellm._async_success_callback": litellm_async_success_callbacks,
-        "litellm._async_failure_callback": litellm_async_failure_callbacks,
-        "litellm._async_input_callback": litellm_async_input_callbacks,
+        "litellm.callbacks": gateway_callbacks,
+        "litellm.input_callback": gateway_input_callbacks,
+        "litellm.failure_callback": gateway_failure_callbacks,
+        "litellm.success_callback": gateway_success_callbacks,
+        "litellm._async_success_callback": gateway_async_success_callbacks,
+        "litellm._async_failure_callback": gateway_async_failure_callbacks,
+        "litellm._async_input_callback": gateway_async_input_callbacks,
         "all_litellm_callbacks": all_litellm_callbacks,
         "num_callbacks": len(all_litellm_callbacks),
         "num_alerting": _num_alerting,
@@ -1910,18 +1910,18 @@ async def test_model_connection(
             )
 
         # Get model name from litellm_params
-        request_litellm_params: Final = litellm_params or {}
+        request_gateway_params: Final = litellm_params or {}
         # Reject request-supplied os.environ/ references. Config values are
         # already resolved before reaching this endpoint; any remaining
         # reference must have come from the request body.
-        _reject_os_environ_references(request_litellm_params)
+        _reject_os_environ_references(request_gateway_params)
         if model_info:
             _reject_os_environ_references(model_info)
-        model_name: Final = request_litellm_params.get("model")
+        model_name: Final = request_gateway_params.get("model")
 
         # Look up model configuration from router if model name is provided
         # This gets the litellm_params from proxy config (with resolved env vars)
-        config_litellm_params: dict = {}
+        config_gateway_params: dict = {}
         loaded_model_info: dict | None = None
         if llm_router is not None:
             # Prefer disambiguation by deployment id (`model_info.id`) when
@@ -1940,7 +1940,7 @@ async def test_model_connection(
                     deployment_by_id = llm_router.get_deployment(model_id=request_model_id)
 
                 if deployment_by_id is not None:
-                    config_litellm_params = deployment_by_id.litellm_params.model_dump(exclude_none=True)
+                    config_gateway_params = deployment_by_id.litellm_params.model_dump(exclude_none=True)
                     loaded_model_info = deployment_by_id.model_info.model_dump(exclude_none=True)
                 elif model_name:
                     # Fall back to model_name lookup for callers (e.g. the
@@ -1962,7 +1962,7 @@ async def test_model_connection(
                         # Use the first deployment's litellm_params as base
                         # config. These already have resolved environment
                         # variables from proxy config.
-                        config_litellm_params = dict(deployments[0].get("litellm_params", {}))
+                        config_gateway_params = dict(deployments[0].get("litellm_params", {}))
                         loaded_model_info = dict(deployments[0].get("model_info") or {})
             except Exception as e:
                 verbose_proxy_logger.debug(
@@ -1972,15 +1972,15 @@ async def test_model_connection(
         # Merge: config params (from proxy config) as base, request params override
         litellm_params = {
             **_config_base_for_health_check(
-                config_litellm_params,
-                request_litellm_params,
+                config_gateway_params,
+                request_gateway_params,
                 allow_client_side_credentials=general_settings.get("allow_client_side_credentials") is True,
             ),
-            **request_litellm_params,
+            **request_gateway_params,
         }
 
         resolved_model_info: Final = loaded_model_info if loaded_model_info is not None else model_info
-        litellm_params = _update_litellm_params_for_health_check(
+        litellm_params = _update_gateway_params_for_health_check(
             model_info=resolved_model_info or {},
             litellm_params=litellm_params,
         )

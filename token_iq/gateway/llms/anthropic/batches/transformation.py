@@ -11,14 +11,14 @@ from token_iq.gateway.core_utils.url_utils import encode_url_path_segment
 from token_iq.gateway.llms.base_llm.batches.transformation import BaseBatchesConfig
 from token_iq.gateway.llms.base_llm.chat.transformation import BaseLLMException
 from token_iq.gateway.types.llms.openai import AllMessageValues, CreateBatchRequest
-from token_iq.gateway.types.utils import LiteLLMBatch, LlmProviders, ModelResponse
+from token_iq.gateway.types.utils import GatewayBatch, LlmProviders, ModelResponse
 
 if TYPE_CHECKING:
     import tiktoken
 
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 
-    LoggingClass = LiteLLMLoggingObj
+    LoggingClass = GatewayLoggingObj
 else:
     LoggingClass = Any
 
@@ -124,7 +124,7 @@ class AnthropicBatchesConfig(BaseBatchesConfig):
         raw_response: httpx.Response,
         logging_obj: LoggingClass,
         litellm_params: dict,
-    ) -> LiteLLMBatch:
+    ) -> GatewayBatch:
         """
         Transform Anthropic MessageBatch creation response to LiteLLM format.
 
@@ -176,7 +176,7 @@ class AnthropicBatchesConfig(BaseBatchesConfig):
         raw_response: httpx.Response,
         logging_obj: LoggingClass,
         litellm_params: dict,
-    ) -> LiteLLMBatch:
+    ) -> GatewayBatch:
         """Transform Anthropic MessageBatch retrieval response to LiteLLM format."""
         try:
             response_data: Final[AnthropicMessageBatch] = raw_response.json()
@@ -245,7 +245,7 @@ class AnthropicBatchesConfig(BaseBatchesConfig):
             failed=request_counts_data.get("errored", 0),
         )
 
-        return LiteLLMBatch(
+        return GatewayBatch(
             id=batch_id,
             object="batch",
             endpoint="/v1/messages",

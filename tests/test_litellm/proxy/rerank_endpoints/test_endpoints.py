@@ -55,7 +55,7 @@ async def _call_rerank(hidden_params: dict = HIDDEN_PARAMS) -> Response:
     proxy_logging_obj.pre_call_hook = AsyncMock(side_effect=lambda **kwargs: kwargs["data"])
     proxy_logging_obj.update_request_status = AsyncMock()
 
-    async def fake_add_litellm_data_to_request(**kwargs):
+    async def fake_add_gateway_data_to_request(**kwargs):
         return {**kwargs["data"], "litellm_call_id": "call-123"}
 
     async def fake_route_request(**kwargs):
@@ -65,7 +65,7 @@ async def _call_rerank(hidden_params: dict = HIDDEN_PARAMS) -> Response:
         return _call()
 
     with (
-        patch.object(proxy_server_mod, "add_litellm_data_to_request", fake_add_litellm_data_to_request),  # test-quality-ok: the rerank route reads these proxy_server module globals; no injection seam on the FastAPI handler
+        patch.object(proxy_server_mod, "add_litellm_data_to_request", fake_add_gateway_data_to_request),  # test-quality-ok: the rerank route reads these proxy_server module globals; no injection seam on the FastAPI handler
         patch.object(proxy_server_mod, "route_request", fake_route_request),  # test-quality-ok: the rerank route reads these proxy_server module globals; no injection seam on the FastAPI handler
         patch.object(proxy_server_mod, "proxy_logging_obj", proxy_logging_obj),  # test-quality-ok: the rerank route reads these proxy_server module globals; no injection seam on the FastAPI handler
         patch.object(proxy_server_mod, "llm_router", MagicMock()),  # test-quality-ok: the rerank route reads these proxy_server module globals; no injection seam on the FastAPI handler

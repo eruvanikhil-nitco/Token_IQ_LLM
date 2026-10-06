@@ -7,7 +7,7 @@ Provides a class-based interface for A2A agent invocation.
 from collections.abc import AsyncIterator
 from typing import TYPE_CHECKING, Final
 
-from token_iq.gateway.types.agents import LiteLLMSendMessageResponse
+from token_iq.gateway.types.agents import GatewaySendMessageResponse
 
 if TYPE_CHECKING:
     from a2a.client import A2AClient as A2AClientType
@@ -88,7 +88,7 @@ class A2AClient:
             extra_headers=self.extra_headers,
         )
 
-    async def send_message(self, request: "SendMessageRequest") -> LiteLLMSendMessageResponse:
+    async def send_message(self, request: "SendMessageRequest") -> GatewaySendMessageResponse:
         """Send a message to the A2A agent."""
         from token_iq.gateway.a2a_protocol.main import asend_message
 

@@ -62,7 +62,7 @@ from token_iq.gateway.types.utils import GenericGuardrailAPIInputs
 
 if TYPE_CHECKING:
     from token_iq.gateway.core_utils.litellm_logging import (
-        Logging as LiteLLMLoggingObj,
+        Logging as GatewayLoggingObj,
     )
     from token_iq.gateway.types.proxy.guardrails.guardrail_hooks.base import (
         GuardrailConfigModel,
@@ -942,7 +942,7 @@ class CompresrGuardrail(CustomGuardrail):
         inputs: GenericGuardrailAPIInputs,
         request_data: dict,
         input_type: Literal["request", "response"],
-        logging_obj: LiteLLMLoggingObj | None = None,
+        logging_obj: GatewayLoggingObj | None = None,
     ) -> GenericGuardrailAPIInputs:
         if input_type != "request":
             return inputs
@@ -1071,7 +1071,7 @@ class CompresrGuardrail(CustomGuardrail):
         response: Any,
         anthropic_messages_provider_config: Any,
         anthropic_messages_optional_request_params: dict,
-        logging_obj: LiteLLMLoggingObj | None,
+        logging_obj: GatewayLoggingObj | None,
         stream: bool,
         kwargs: dict,
     ) -> AgenticLoopPlan:

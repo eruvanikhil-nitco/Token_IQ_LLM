@@ -20,7 +20,7 @@ class ServiceTypes(str, enum.Enum):
     DB = "postgres"
     BATCH_WRITE_TO_DB = "batch_write_to_db"
     RESET_BUDGET_JOB = "reset_budget_job"
-    LITELLM = "self"
+    GATEWAY = "self"
     ROUTER = "router"
     AUTH = "auth"
     PROXY_PRE_CALL = "proxy_pre_call"
@@ -64,7 +64,7 @@ DEFAULT_SERVICE_CONFIGS: Final = {
     ServiceTypes.DB.value: {"metrics": [ServiceMetrics.COUNTER, ServiceMetrics.HISTOGRAM]},
     ServiceTypes.BATCH_WRITE_TO_DB.value: {"metrics": [ServiceMetrics.COUNTER, ServiceMetrics.HISTOGRAM]},
     ServiceTypes.RESET_BUDGET_JOB.value: {"metrics": [ServiceMetrics.COUNTER, ServiceMetrics.HISTOGRAM]},
-    ServiceTypes.LITELLM.value: {"metrics": [ServiceMetrics.COUNTER, ServiceMetrics.HISTOGRAM]},
+    ServiceTypes.GATEWAY.value: {"metrics": [ServiceMetrics.COUNTER, ServiceMetrics.HISTOGRAM]},
     ServiceTypes.ROUTER.value: {"metrics": [ServiceMetrics.COUNTER, ServiceMetrics.HISTOGRAM]},
     ServiceTypes.AUTH.value: {"metrics": [ServiceMetrics.COUNTER, ServiceMetrics.HISTOGRAM]},
     ServiceTypes.PROXY_PRE_CALL.value: {"metrics": [ServiceMetrics.COUNTER, ServiceMetrics.HISTOGRAM]},

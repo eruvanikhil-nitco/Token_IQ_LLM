@@ -16,7 +16,7 @@ class TestBedrockFilesIntegration:
     """Test integration of Bedrock files with main litellm API"""
 
     @pytest.mark.asyncio
-    async def test_litellm_afile_content_bedrock_provider_with_s3_uri(self):
+    async def test_gateway_afile_content_bedrock_provider_with_s3_uri(self):
         """Test litellm.afile_content with bedrock provider using direct S3 URI"""
         file_id = "s3://test-bucket/test-file.jsonl"
         expected_content = (
@@ -61,7 +61,7 @@ class TestBedrockFilesIntegration:
             assert call_kwargs["file_content_request"]["file_id"] == file_id
 
     @pytest.mark.asyncio
-    async def test_litellm_afile_content_bedrock_provider_with_unified_file_id(self):
+    async def test_gateway_afile_content_bedrock_provider_with_unified_file_id(self):
         """Test litellm.afile_content with bedrock provider using unified file ID"""
         # Create a unified file ID
         s3_uri = "s3://test-bucket/batch-outputs/output.jsonl"

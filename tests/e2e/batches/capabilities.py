@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from typing import Final, Literal
 
 from e2e_config import provider_edge_base, unique_marker
-from models import LiteLLMParamsBody
+from models import GatewayParamsBody
 
 _BATCH_RUN = unique_marker()
 
@@ -20,12 +20,12 @@ def batch_model_name(base: str) -> str:
 OPENAI_BATCH_BACKEND: Final = "gpt-4o-mini"
 
 
-def openai_batch_params() -> LiteLLMParamsBody:
+def openai_batch_params() -> GatewayParamsBody:
     """The OpenAI batch deployment, wired through the record/replay edge when a fixture
     mode is active and straight at OpenAI otherwise (LIT-5974). Azure, Vertex, and
     Bedrock stay live: none of them has an edge mount."""
     base = provider_edge_base("openai")
-    return LiteLLMParamsBody(
+    return GatewayParamsBody(
         model=f"openai/{OPENAI_BATCH_BACKEND}",
         api_key="os.environ/OPENAI_API_KEY",
         api_base=None if base is None else f"{base}/v1",
@@ -59,19 +59,19 @@ class Provider:
     can_cancel: bool
     can_list: bool
 
-    def litellm_params(self) -> LiteLLMParamsBody:
+    def litellm_params(self) -> GatewayParamsBody:
         match self.name:
             case "openai":
                 return openai_batch_params()
             case "azure":
-                return LiteLLMParamsBody(
+                return GatewayParamsBody(
                     model="azure/gpt-5.4-mini-batch",
                     api_base="os.environ/AZURE_API_BASE",
                     api_key="os.environ/AZURE_API_KEY",
                     api_version="2025-04-01-preview",
                 )
             case "vertex_ai":
-                return LiteLLMParamsBody(
+                return GatewayParamsBody(
                     model="vertex_ai/gemini-2.5-flash",
                     vertex_project="os.environ/VERTEXAI_PROJECT",
                     vertex_location="us-central1",
@@ -80,7 +80,7 @@ class Provider:
                     bucket_name="os.environ/GCS_BUCKET_NAME",
                 )
             case "bedrock":
-                return LiteLLMParamsBody(
+                return GatewayParamsBody(
                     model="bedrock/us.anthropic.claude-haiku-4-5-20251001-v1:0",
                     aws_access_key_id="os.environ/AWS_ACCESS_KEY_ID",
                     aws_secret_access_key="os.environ/AWS_SECRET_ACCESS_KEY",

@@ -41,7 +41,7 @@ def _isolate_token_cache():
 
 
 class TestGetAccessTokenSync:
-    def test_returns_token_from_litellm_params(self):
+    def test_returns_token_from_gateway_params(self):
         token = get_access_token(litellm_params={"gigachat_access_token": "param-token"})
         assert token == "param-token"
         authenticator._token_cache.get_cache.assert_not_called()
@@ -158,7 +158,7 @@ class TestGetAccessTokenSync:
     @patch(f"{AUTH_MODULE}._get_scope", return_value="GIGACHAT_API_PERS")
     @patch(f"{AUTH_MODULE}._get_credentials", return_value="env-creds")
     @patch(f"{AUTH_MODULE}.get_secret_str", return_value=None)
-    def test_litellm_params_override_scope_and_auth_url(self, mock_get_secret, mock_creds, mock_scope, mock_auth_url, mock_request):  # test-quality-ok: mock-echo of internal wiring
+    def test_gateway_params_override_scope_and_auth_url(self, mock_get_secret, mock_creds, mock_scope, mock_auth_url, mock_request):  # test-quality-ok: mock-echo of internal wiring
         mock_request.return_value = ("token", _future_expires_at_ms())
 
         get_access_token(
@@ -210,7 +210,7 @@ class TestGetAccessTokenSync:
 
 class TestGetAccessTokenAsync:
     @pytest.mark.asyncio
-    async def test_returns_token_from_litellm_params(self):
+    async def test_returns_token_from_gateway_params(self):
         token = await get_access_token_async(
             litellm_params={"gigachat_access_token": "param-token"}
         )
@@ -318,7 +318,7 @@ class TestGetAccessTokenAsync:
     @patch(f"{AUTH_MODULE}._get_scope", return_value="GIGACHAT_API_PERS")
     @patch(f"{AUTH_MODULE}._get_credentials", return_value="env-creds")
     @patch(f"{AUTH_MODULE}.get_secret_str", return_value=None)
-    async def test_litellm_params_override_scope_and_auth_url(  # test-quality-ok: mock-echo of internal wiring
+    async def test_gateway_params_override_scope_and_auth_url(  # test-quality-ok: mock-echo of internal wiring
         self, mock_get_secret, mock_creds, mock_scope, mock_auth_url, mock_request
     ):
         mock_request.return_value = ("token", _future_expires_at_ms())

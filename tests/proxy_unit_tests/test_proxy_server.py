@@ -254,7 +254,7 @@ def test_add_headers_to_request(litellm_key_header_name):
     import json
     from token_iq.gateway.proxy.litellm_pre_call_utils import (
         clean_headers,
-        LiteLLMProxyRequestSetup,
+        GatewayProxyRequestSetup,
     )
 
     headers = {
@@ -267,7 +267,7 @@ def test_add_headers_to_request(litellm_key_header_name):
     request._url = URL(url="/chat/completions")
     request._body = json.dumps({"model": "gpt-3.5-turbo"}).encode("utf-8")
     request_headers = clean_headers(headers, litellm_key_header_name)
-    forwarded_headers = LiteLLMProxyRequestSetup._get_forwardable_headers(
+    forwarded_headers = GatewayProxyRequestSetup._get_forwardable_headers(
         request_headers
     )
     assert forwarded_headers == {
@@ -1108,7 +1108,7 @@ from token_iq.gateway._uuid import uuid
 from unittest.mock import PropertyMock
 
 from token_iq.gateway.proxy._types import (
-    LitellmUserRoles,
+    GatewayUserRoles,
     NewUserRequest,
     TeamMemberAddRequest,
     UserAPIKeyAuth,
@@ -1129,7 +1129,7 @@ def mock_prisma_client():
 @pytest.mark.skip(reason="Requires reliable external DB connection (prisma).")
 @pytest.mark.parametrize(
     "user_role",
-    [LitellmUserRoles.INTERNAL_USER.value, LitellmUserRoles.PROXY_ADMIN.value],
+    [GatewayUserRoles.INTERNAL_USER.value, GatewayUserRoles.PROXY_ADMIN.value],
 )
 @pytest.mark.asyncio
 @pytest.mark.skip(reason="Requires reliable external DB connection (prisma).")
@@ -1156,7 +1156,7 @@ async def test_create_user_default_budget(prisma_client, user_role):  # noqa: F8
         print(f"mock_client.call_args: {mock_client.call_args}")
         print("mock_client.call_args.kwargs: {}".format(mock_client.call_args.kwargs))
 
-        if user_role == LitellmUserRoles.INTERNAL_USER.value:
+        if user_role == GatewayUserRoles.INTERNAL_USER.value:
             assert (
                 mock_client.call_args.kwargs["data"]["max_budget"]
                 == gateway.max_internal_user_budget
@@ -1231,7 +1231,7 @@ async def test_create_team_member_add(prisma_client, new_member_method):  # noqa
         patch(
             "token_iq.gateway.proxy.proxy_server.prisma_client.db.litellm_usertable",
             new_callable=AsyncMock,
-        ) as mock_litellm_usertable,
+        ) as mock_gateway_usertable,
         patch(
             "token_iq.gateway.proxy.auth.auth_checks._get_team_object_from_user_api_key_cache",
             new=AsyncMock(return_value=team_obj),
@@ -1247,12 +1247,12 @@ async def test_create_team_member_add(prisma_client, new_member_method):  # noqa
                 user_id="1234", max_budget=100, user_email="1234"
             )
         )
-        mock_litellm_usertable.upsert = mock_client
-        mock_litellm_usertable.find_many = AsyncMock(return_value=[])
+        mock_gateway_usertable.upsert = mock_client
+        mock_gateway_usertable.find_many = AsyncMock(return_value=[])
         # Mock find_first for user_email validation (returns None for new users)
-        mock_litellm_usertable.find_first = AsyncMock(return_value=None)
+        mock_gateway_usertable.find_first = AsyncMock(return_value=None)
         # Mock find_unique for user_id validation (returns None for new users)
-        mock_litellm_usertable.find_unique = AsyncMock(return_value=None)
+        mock_gateway_usertable.find_unique = AsyncMock(return_value=None)
         team_mock_client = AsyncMock()
         original_val = getattr(
             gateway.proxy.proxy_server.prisma_client.db, "litellm_teamtable"
@@ -1429,7 +1429,7 @@ async def test_create_team_member_add_team_admin(
         patch(
             "token_iq.gateway.proxy.proxy_server.prisma_client.db.litellm_usertable",
             new_callable=AsyncMock,
-        ) as mock_litellm_usertable,
+        ) as mock_gateway_usertable,
         patch(
             "token_iq.gateway.proxy.auth.auth_checks._get_team_object_from_user_api_key_cache",
             new=AsyncMock(return_value=team_obj),
@@ -1444,12 +1444,12 @@ async def test_create_team_member_add_team_admin(
                 user_id="1234", max_budget=100, user_email="1234"
             )
         )
-        mock_litellm_usertable.upsert = mock_client
-        mock_litellm_usertable.find_many = AsyncMock(return_value=[])
+        mock_gateway_usertable.upsert = mock_client
+        mock_gateway_usertable.find_many = AsyncMock(return_value=[])
         # Mock find_first for user_email validation (returns None for new users)
-        mock_litellm_usertable.find_first = AsyncMock(return_value=None)
+        mock_gateway_usertable.find_first = AsyncMock(return_value=None)
         # Mock find_unique for user_id validation (returns None for new users)
-        mock_litellm_usertable.find_unique = AsyncMock(return_value=None)
+        mock_gateway_usertable.find_unique = AsyncMock(return_value=None)
 
         team_mock_client = AsyncMock()
         team_mock_client.update = AsyncMock(
@@ -1634,7 +1634,7 @@ async def test_add_callback_via_key(prisma_client):  # noqa: F811  # pytest fixt
         ("success_and_failure", ["langfuse"], ["langfuse"]),
     ],
 )
-async def test_add_callback_via_key_litellm_pre_call_utils(
+async def test_add_callback_via_key_gateway_pre_call_utils(
     mock_prisma_client,
     callback_type,
     expected_success_callbacks,
@@ -1768,14 +1768,14 @@ async def test_add_callback_via_key_litellm_pre_call_utils(
     ],
 )
 async def test_disable_fallbacks_by_key(disable_fallbacks_set):
-    from token_iq.gateway.proxy.litellm_pre_call_utils import LiteLLMProxyRequestSetup
+    from token_iq.gateway.proxy.litellm_pre_call_utils import GatewayProxyRequestSetup
 
     key_metadata = {"disable_fallbacks": disable_fallbacks_set}
     existing_data = {
         "model": "azure/gpt-4.1-mini",
         "messages": [{"role": "user", "content": "write 1 sentence poem"}],
     }
-    data = LiteLLMProxyRequestSetup.add_key_level_controls(
+    data = GatewayProxyRequestSetup.add_key_level_controls(
         key_metadata=key_metadata,
         data=existing_data,
         _metadata_variable_name="metadata",
@@ -1793,7 +1793,7 @@ async def test_disable_fallbacks_by_key(disable_fallbacks_set):
         ("success_and_failure", ["gcs_bucket"], ["gcs_bucket"]),
     ],
 )
-async def test_add_callback_via_key_litellm_pre_call_utils_gcs_bucket(
+async def test_add_callback_via_key_gateway_pre_call_utils_gcs_bucket(
     mock_prisma_client,
     callback_type,
     expected_success_callbacks,
@@ -1929,7 +1929,7 @@ async def test_add_callback_via_key_litellm_pre_call_utils_gcs_bucket(
         ("success_and_failure", ["langsmith"], ["langsmith"]),
     ],
 )
-async def test_add_callback_via_key_litellm_pre_call_utils_langsmith(
+async def test_add_callback_via_key_gateway_pre_call_utils_langsmith(
     mock_prisma_client,
     callback_type,
     expected_success_callbacks,
@@ -2706,32 +2706,32 @@ async def test_run_direct_health_check_with_instrumentation_non_kw_typeerror_rer
 
 
 def test_get_timeout_from_request():
-    from token_iq.gateway.proxy.litellm_pre_call_utils import LiteLLMProxyRequestSetup
+    from token_iq.gateway.proxy.litellm_pre_call_utils import GatewayProxyRequestSetup
 
     headers = {
         "x-litellm-timeout": "90",
     }
-    timeout = LiteLLMProxyRequestSetup._get_timeout_from_request(headers)
+    timeout = GatewayProxyRequestSetup._get_timeout_from_request(headers)
     assert timeout == 90
 
     headers = {
         "x-litellm-timeout": "90.5",
     }
-    timeout = LiteLLMProxyRequestSetup._get_timeout_from_request(headers)
+    timeout = GatewayProxyRequestSetup._get_timeout_from_request(headers)
     assert timeout == 90.5
 
 
-def test_add_litellm_data_for_backend_llm_call_marks_client_side_timeout():
+def test_add_gateway_data_for_backend_llm_call_marks_client_side_timeout():
     """A caller-supplied x-litellm-timeout must be marked with client_side_timeout=True,
     so the router's fallback-cooldown trigger can tell it apart from a deployment
     actually timing out (a caller could otherwise force every deployment in a fallback
     chain to look unhealthy with a single near-zero timeout request)."""
     from token_iq.gateway.proxy._types import UserAPIKeyAuth
-    from token_iq.gateway.proxy.litellm_pre_call_utils import LiteLLMProxyRequestSetup
+    from token_iq.gateway.proxy.litellm_pre_call_utils import GatewayProxyRequestSetup
 
     user_api_key_dict = UserAPIKeyAuth(api_key="test_api_key")
 
-    data = LiteLLMProxyRequestSetup.add_litellm_data_for_backend_llm_call(
+    data = GatewayProxyRequestSetup.add_gateway_data_for_backend_llm_call(
         headers={"x-litellm-timeout": "0.001"},
         request_data={},
         user_api_key_dict=user_api_key_dict,
@@ -2739,7 +2739,7 @@ def test_add_litellm_data_for_backend_llm_call_marks_client_side_timeout():
     assert data["timeout"] == 0.001
     assert data["client_side_timeout"] is True
 
-    data_without_header = LiteLLMProxyRequestSetup.add_litellm_data_for_backend_llm_call(
+    data_without_header = GatewayProxyRequestSetup.add_gateway_data_for_backend_llm_call(
         headers={},
         request_data={},
         user_api_key_dict=user_api_key_dict,
@@ -2755,7 +2755,7 @@ def test_add_litellm_data_for_backend_llm_call_marks_client_side_timeout():
         {"stream_timeout": 0.001},
     ],
 )
-def test_add_litellm_data_for_backend_llm_call_marks_client_side_timeout_from_body(
+def test_add_gateway_data_for_backend_llm_call_marks_client_side_timeout_from_body(
     request_data,
 ):
     """Router._get_timeout resolves the effective timeout from kwargs["timeout"],
@@ -2765,11 +2765,11 @@ def test_add_litellm_data_for_backend_llm_call_marks_client_side_timeout_from_bo
     without it being recognized as caller-controlled, cooling down deployments other
     tenants rely on."""
     from token_iq.gateway.proxy._types import UserAPIKeyAuth
-    from token_iq.gateway.proxy.litellm_pre_call_utils import LiteLLMProxyRequestSetup
+    from token_iq.gateway.proxy.litellm_pre_call_utils import GatewayProxyRequestSetup
 
     user_api_key_dict = UserAPIKeyAuth(api_key="test_api_key")
 
-    data = LiteLLMProxyRequestSetup.add_litellm_data_for_backend_llm_call(
+    data = GatewayProxyRequestSetup.add_gateway_data_for_backend_llm_call(
         headers={},
         request_data=request_data,
         user_api_key_dict=user_api_key_dict,
@@ -2777,16 +2777,16 @@ def test_add_litellm_data_for_backend_llm_call_marks_client_side_timeout_from_bo
     assert data["client_side_timeout"] is True
 
 
-def test_add_litellm_data_for_backend_llm_call_ignores_forged_client_side_timeout():
+def test_add_gateway_data_for_backend_llm_call_ignores_forged_client_side_timeout():
     """The caller-supplied client_side_timeout key itself must never be trusted verbatim:
     the marker is always recomputed from the actual timeout sources, so a caller can't
     forge client_side_timeout=True to dodge cooldown on a real deployment failure."""
     from token_iq.gateway.proxy._types import UserAPIKeyAuth
-    from token_iq.gateway.proxy.litellm_pre_call_utils import LiteLLMProxyRequestSetup
+    from token_iq.gateway.proxy.litellm_pre_call_utils import GatewayProxyRequestSetup
 
     user_api_key_dict = UserAPIKeyAuth(api_key="test_api_key")
 
-    data = LiteLLMProxyRequestSetup.add_litellm_data_for_backend_llm_call(
+    data = GatewayProxyRequestSetup.add_gateway_data_for_backend_llm_call(
         headers={},
         request_data={"client_side_timeout": True},
         user_api_key_dict=user_api_key_dict,
@@ -3040,7 +3040,7 @@ async def test_update_config_success_callback_normalization():
 
     setattr(proxy_server, "proxy_logging_obj", MagicMock())
 
-    existing_litellm_settings = {"success_callback": ["langfuse"]}
+    existing_gateway_settings = {"success_callback": ["langfuse"]}
 
     class FakeRow:
         def __init__(self, name, value):
@@ -3051,7 +3051,7 @@ async def test_update_config_success_callback_normalization():
 
     async def fake_find_first(where=None):
         if where and where.get("param_name") == "litellm_settings":
-            return FakeRow("litellm_settings", existing_litellm_settings)
+            return FakeRow("litellm_settings", existing_gateway_settings)
         return None
 
     async def fake_upsert(where=None, data=None):
@@ -3073,10 +3073,10 @@ async def test_update_config_success_callback_normalization():
     setattr(proxy_server, "proxy_config", MockProxyConfig())
 
     config_update = ConfigYAML(litellm_settings={"success_callback": ["SQS", "sQs"]})
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
 
     admin_user = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, api_key="sk-test"
+        user_role=GatewayUserRoles.PROXY_ADMIN, api_key="sk-test"
     )
     request = MagicMock()
     request.json = AsyncMock(return_value={"litellm_settings": {"success_callback": ["SQS", "sQs"]}})
@@ -3139,8 +3139,8 @@ async def test_update_config_success_callback_normalization():
         },
     ],
 )
-def test_get_litellm_model_info(data):
-    from token_iq.gateway.proxy.proxy_server import get_litellm_model_info
+def test_get_gateway_model_info(data):
+    from token_iq.gateway.proxy.proxy_server import get_gateway_model_info
 
     model = data["model"]
     get_info_mock = MagicMock()
@@ -3149,5 +3149,5 @@ def test_get_litellm_model_info(data):
         "token_iq.gateway.get_model_info",
         new=get_info_mock,
     ):
-        get_litellm_model_info(model=model)
+        get_gateway_model_info(model=model)
         get_info_mock.assert_called_once_with(data["expected"])

@@ -6,7 +6,7 @@ from token_iq.gateway.types.router import (
     LiteLLM_Params,
     ModelInfo,
 )
-from token_iq.gateway.types.utils import CustomPricingLiteLLMParams, MirroredPricingParams
+from token_iq.gateway.types.utils import CustomPricingGatewayParams, MirroredPricingParams
 
 
 def test_model_info_declares_mirrored_pricing_fields():
@@ -22,7 +22,7 @@ def test_model_info_declares_mirrored_pricing_fields():
 
 def test_special_model_info_params_cannot_drift_from_the_mirror():
     assert SPECIAL_MODEL_INFO_PARAMS == tuple(MirroredPricingParams.model_fields)
-    assert set(SPECIAL_MODEL_INFO_PARAMS) <= set(CustomPricingLiteLLMParams.model_fields)
+    assert set(SPECIAL_MODEL_INFO_PARAMS) <= set(CustomPricingGatewayParams.model_fields)
     assert set(SPECIAL_MODEL_INFO_PARAMS) <= set(LiteLLM_Params.model_fields)
 
 
@@ -41,11 +41,11 @@ def test_custom_pricing_params_keeps_every_field_it_had():
         "input_cost_per_character_above_128k_tokens",
         "output_cost_per_audio_token",
     ):
-        assert field in CustomPricingLiteLLMParams.model_fields
+        assert field in CustomPricingGatewayParams.model_fields
 
 
 @pytest.mark.parametrize("field", SPECIAL_MODEL_INFO_PARAMS)
-def test_deployment_mirrors_pricing_from_litellm_params_onto_model_info(field):
+def test_deployment_mirrors_pricing_from_gateway_params_onto_model_info(field):
     value = [{"range": [0, 128000], "input_cost_per_token": 3e-06}] if field == "tiered_pricing" else 3e-06
     deployment = Deployment(
         model_name="my-model",

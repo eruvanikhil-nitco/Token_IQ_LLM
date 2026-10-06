@@ -22,7 +22,7 @@ from .embedding import EmbeddingRequest
 from .llms.openai import OpenAIFileObject
 from .search import SearchProvider
 from .utils import (
-    CustomPricingLiteLLMParams,
+    CustomPricingGatewayParams,
     MirroredPricingParams,
     ModelResponse,
     StandardLoggingRoutingDecision,
@@ -252,7 +252,7 @@ class ModelInfo(MirroredPricingParams):
         setattr(self, key, value)
 
 
-class CredentialLiteLLMParams(BaseModel):
+class CredentialGatewayParams(BaseModel):
     api_key: str | None = None
     api_base: str | None = None
     api_version: str | None = None
@@ -299,7 +299,7 @@ class CredentialLiteLLMParams(BaseModel):
 _RESERVED_INIT_KEYS: Final = frozenset({"self", "params", "__class__"})
 
 
-class GenericLiteLLMParams(CredentialLiteLLMParams, CustomPricingLiteLLMParams):
+class GenericGatewayParams(CredentialGatewayParams, CustomPricingGatewayParams):
     """
     LiteLLM Params without 'model' arg (used across completion / assistants api)
     """
@@ -416,7 +416,7 @@ class GenericLiteLLMParams(CredentialLiteLLMParams, CustomPricingLiteLLMParams):
         setattr(self, key, value)
 
 
-class LiteLLM_Params(GenericLiteLLMParams):
+class LiteLLM_Params(GenericGatewayParams):
     """
     Token IQ Params with 'model' requirement - used for completions
     """
@@ -441,7 +441,7 @@ class LiteLLM_Params(GenericLiteLLMParams):
         setattr(self, key, value)
 
 
-class updateLiteLLMParams(GenericLiteLLMParams):
+class updateGatewayParams(GenericGatewayParams):
     # This class is used to update the LiteLLM_Params
     # only differece is model is optional
     model: str | None = None
@@ -449,14 +449,14 @@ class updateLiteLLMParams(GenericLiteLLMParams):
 
 class updateDeployment(BaseModel):
     model_name: str | None = None
-    litellm_params: updateLiteLLMParams | None = None
+    litellm_params: updateGatewayParams | None = None
     model_info: ModelInfo | None = None
     blocked: bool | None = None
 
     model_config = ConfigDict(protected_namespaces=())
 
 
-class LiteLLMParamsTypedDict(TypedDict, total=False):
+class GatewayParamsTypedDict(TypedDict, total=False):
     model: str
     custom_llm_provider: str | None
     tpm: int | None
@@ -529,7 +529,7 @@ class LiteLLMParamsTypedDict(TypedDict, total=False):
 
 class DeploymentTypedDict(TypedDict, total=False):
     model_name: Required[str]
-    litellm_params: Required[LiteLLMParamsTypedDict]
+    litellm_params: Required[GatewayParamsTypedDict]
     model_info: dict
 
 
@@ -684,7 +684,7 @@ class ModelGroupInfo(BaseModel):
 
 class AssistantsTypedDict(TypedDict):
     custom_llm_provider: Literal["azure", "openai"]
-    litellm_params: LiteLLMParamsTypedDict
+    litellm_params: GatewayParamsTypedDict
 
 
 class SearchToolLiteLLMParams(TypedDict, total=False):
@@ -725,7 +725,7 @@ class SearchToolTypedDict(TypedDict, total=False):
     search_tool_info: SearchToolInfoTypedDict
 
 
-class GuardrailLiteLLMParams(TypedDict, total=False):
+class GuardrailGatewayParams(TypedDict, total=False):
     """
     LiteLLM params for guardrails.
     """
@@ -743,7 +743,7 @@ class GuardrailTypedDict(TypedDict, total=False):
     """
 
     guardrail_name: Required[str]
-    litellm_params: Required[GuardrailLiteLLMParams]
+    litellm_params: Required[GuardrailGatewayParams]
     callback: Any  # The CustomGuardrail instance
     id: str | None  # Unique identifier for the guardrail deployment
 
@@ -842,7 +842,7 @@ class RouterModelGroupAliasItem(TypedDict):
     hidden: bool  # if 'True', don't return on `.get_model_list`
 
 
-VALID_LITELLM_ENVIRONMENTS = [
+VALID_GATEWAY_ENVIRONMENTS = [
     "development",
     "staging",
     "production",

@@ -5,10 +5,10 @@ Canonical definition for ``litellm_objectpermissiontable``. Re-exported from
 ``litellm.proxy._types`` for backwards compatibility.
 """
 
-from token_iq.gateway.types.llms.base import LiteLLMPydanticObjectBase
+from token_iq.gateway.types.llms.base import GatewayPydanticObjectBase
 
 
-class LiteLLM_ObjectPermissionTable(LiteLLMPydanticObjectBase):
+class LiteLLM_ObjectPermissionTable(GatewayPydanticObjectBase):
     """Represents a LiteLLM_ObjectPermissionTable record"""
 
     object_permission_id: str

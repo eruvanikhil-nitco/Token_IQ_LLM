@@ -120,7 +120,7 @@ def test_prepare_payload_merges_scan_id_with_existing_metadata_headers(
     }
 
 
-def test_prepare_payload_sanitizes_headers_when_litellm_metadata_absent(
+def test_prepare_payload_sanitizes_headers_when_gateway_metadata_absent(
     monkeypatch: pytest.MonkeyPatch,
     grayswan_guardrail: GraySwanGuardrail,
 ) -> None:
@@ -545,7 +545,7 @@ def test_format_violation_message() -> None:
     assert "Mutation effort to make the harmful intention disguised was DETECTED" in message
 
 
-def test_prepare_payload_includes_litellm_metadata(
+def test_prepare_payload_includes_gateway_metadata(
     grayswan_guardrail: GraySwanGuardrail,
 ) -> None:
     """Verify _prepare_payload forwards litellm_metadata from request_data."""
@@ -566,31 +566,31 @@ def test_prepare_payload_includes_litellm_metadata(
     assert payload["litellm_metadata"]["user_api_key_team_id"] == "team-456"
 
 
-def test_ensure_litellm_metadata_populates_from_user_api_key_dict() -> None:
+def test_ensure_gateway_metadata_populates_from_user_api_key_dict() -> None:
     """Verify _ensure_litellm_metadata populates litellm_metadata."""
     from token_iq.gateway.proxy.guardrails.guardrail_hooks.unified_guardrail.unified_guardrail import (
-        _ensure_litellm_metadata,
+        _ensure_gateway_metadata,
     )
 
     user_auth = UserAPIKeyAuth(user_id="u1", team_id="t1", api_key="sk-test-hashed")
     data: dict = {}
 
-    _ensure_litellm_metadata(data, user_auth)
+    _ensure_gateway_metadata(data, user_auth)
 
     assert "litellm_metadata" in data
     assert data["litellm_metadata"]["user_api_key_user_id"] == "u1"
     assert data["litellm_metadata"]["user_api_key_team_id"] == "t1"
 
 
-def test_ensure_litellm_metadata_noop_when_already_present() -> None:
+def test_ensure_gateway_metadata_noop_when_already_present() -> None:
     """Verify _ensure_litellm_metadata does not overwrite existing litellm_metadata."""
     from token_iq.gateway.proxy.guardrails.guardrail_hooks.unified_guardrail.unified_guardrail import (
-        _ensure_litellm_metadata,
+        _ensure_gateway_metadata,
     )
 
     user_auth = UserAPIKeyAuth(user_id="should-not-appear")
     data: dict = {"litellm_metadata": {"existing": "value"}}
 
-    _ensure_litellm_metadata(data, user_auth)
+    _ensure_gateway_metadata(data, user_auth)
 
     assert data["litellm_metadata"] == {"existing": "value"}

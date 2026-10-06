@@ -5,13 +5,13 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
 from token_iq.types.provider_billing import BillingCredential, ProviderSyncRun
 
 NOW = datetime(2026, 9, 16, 9, 0, tzinfo=timezone.utc)
 
-ADMIN = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN, api_key="sk-admin", user_id="admin")
-NON_ADMIN = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-u", user_id="u")
+ADMIN = UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN, api_key="sk-admin", user_id="admin")
+NON_ADMIN = UserAPIKeyAuth(user_role=GatewayUserRoles.INTERNAL_USER, api_key="sk-u", user_id="u")
 
 
 def _run(provider: str, credential_name: str, outcome: str, detail: str | None = None) -> ProviderSyncRun:

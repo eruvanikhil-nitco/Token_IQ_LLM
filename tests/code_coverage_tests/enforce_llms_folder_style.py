@@ -62,18 +62,18 @@ def get_unique_names_from_llms_dir(base_dir: str):
 
 
 def run_lint_check(unique_names):
-    _all_litellm_providers = [str(provider.value) for provider in gateway.LlmProviders]
+    _all_gateway_providers = [str(provider.value) for provider in gateway.LlmProviders]
     violations = []
     for name in unique_names:
         if (
-            name.lower() not in _all_litellm_providers
+            name.lower() not in _all_gateway_providers
             and name not in ALLOWED_FILES_IN_LLMS_FOLDER
         ):
             violations.append(name)
 
     if len(violations) > 0:
         raise ValueError(
-            f"There are {len(violations)} violations in the llms folder. \n\n {violations}. \n\n Valid providers: {_all_litellm_providers}"
+            f"There are {len(violations)} violations in the llms folder. \n\n {violations}. \n\n Valid providers: {_all_gateway_providers}"
         )
 
 

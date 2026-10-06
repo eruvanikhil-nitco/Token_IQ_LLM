@@ -12,7 +12,7 @@ from token_iq.gateway.rust_bridge import configuration
 from token_iq.gateway.types.llms.anthropic_messages.anthropic_response import (
     AnthropicMessagesResponse,
 )
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 
 rust_messages = importlib.import_module("token_iq.gateway.rust_bridge.messages")
 rust_bridge_loader = importlib.import_module("token_iq.gateway.rust_bridge.loader")
@@ -125,7 +125,7 @@ def test_load_rust_messages_returns_injected_impl():
     assert rust_messages.load_rust_messages() is bridge
 
 
-def test_bare_use_litellm_rust_still_toggles_ocr():
+def test_bare_use_gateway_rust_still_toggles_ocr():
     from token_iq.gateway.rust_bridge.ocr import rust_ocr_enabled
 
     gateway.use_litellm_rust(True)
@@ -210,7 +210,7 @@ async def test_amessages_wrapper_forwards_args():
 def _gate(**overrides):
     kwargs = {
         "custom_llm_provider": "azure_ai",
-        "litellm_params": GenericLiteLLMParams(api_key="sk-azure", rust=True),
+        "litellm_params": GenericGatewayParams(api_key="sk-azure", rust=True),
         "has_agentic_hook": False,
         "model": "claude-sonnet-4-5",
         "api_key": "sk-azure",
@@ -258,7 +258,7 @@ async def test_gate_skips_rust_when_flag_absent():
     bridge = ExplodingAsyncMessages()
     rust_messages.set_rust_messages(amessages=bridge)
 
-    response = await _gate(litellm_params=GenericLiteLLMParams(api_key="sk-azure"))
+    response = await _gate(litellm_params=GenericGatewayParams(api_key="sk-azure"))
 
     assert response is None
     assert bridge.calls == 0
@@ -270,7 +270,7 @@ async def test_gate_uses_process_enable_without_request_override():
     rust_messages.set_rust_messages(amessages=bridge)
     gateway.use_litellm_rust(True)
 
-    response = await _gate(litellm_params=GenericLiteLLMParams(api_key="sk-azure"))
+    response = await _gate(litellm_params=GenericGatewayParams(api_key="sk-azure"))
 
     assert response is not None
     assert bridge.calls[0]["custom_llm_provider"] == "azure_ai"
@@ -281,7 +281,7 @@ async def test_gate_skips_rust_when_flag_false():
     bridge = ExplodingAsyncMessages()
     gateway.use_litellm_rust(True, amessages=bridge)
 
-    response = await _gate(litellm_params=GenericLiteLLMParams(api_key="sk-azure", rust=False))
+    response = await _gate(litellm_params=GenericGatewayParams(api_key="sk-azure", rust=False))
 
     assert response is None
     assert bridge.calls == 0
@@ -294,7 +294,7 @@ async def test_gate_invokes_rust_for_native_anthropic_provider():
 
     response = await _gate(
         custom_llm_provider="anthropic",
-        litellm_params=GenericLiteLLMParams(api_key="sk-ant", rust=True),
+        litellm_params=GenericGatewayParams(api_key="sk-ant", rust=True),
         api_key="sk-ant",
         api_base="https://api.anthropic.com",
         headers={"x-api-key": "sk-ant", "anthropic-version": "2023-06-01"},
@@ -314,7 +314,7 @@ async def test_gate_invokes_rust_when_env_var_set(monkeypatch):
 
     response = await _gate(
         custom_llm_provider="anthropic",
-        litellm_params=GenericLiteLLMParams(api_key="sk-ant"),
+        litellm_params=GenericGatewayParams(api_key="sk-ant"),
     )
 
     assert response is not None
@@ -329,7 +329,7 @@ async def test_gate_env_var_falsey_does_not_enable(monkeypatch):
 
     response = await _gate(
         custom_llm_provider="anthropic",
-        litellm_params=GenericLiteLLMParams(api_key="sk-ant"),
+        litellm_params=GenericGatewayParams(api_key="sk-ant"),
     )
 
     assert response is None

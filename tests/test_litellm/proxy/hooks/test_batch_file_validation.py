@@ -12,7 +12,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from fastapi import HTTPException
 
-from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
 
 
 def _models(file_content_as_dict):
@@ -168,7 +168,7 @@ async def test_pre_call_rejects_unauthorized_model_in_batch_file():
         api_key="sk-restricted",
         user_id="alice",
         models=["gpt-3.5-turbo"],
-        user_role=LitellmUserRoles.INTERNAL_USER.value,
+        user_role=GatewayUserRoles.INTERNAL_USER.value,
     )
 
     # `can_key_call_model` raises a ProxyException for non-allowed models.
@@ -220,7 +220,7 @@ async def test_pre_call_allows_all_team_models_key_when_model_in_team_allowlist(
         team_id="team-123",
         models=[SpecialModelNames.all_team_models.value],
         team_models=[proxy_alias],
-        user_role=LitellmUserRoles.INTERNAL_USER.value,
+        user_role=GatewayUserRoles.INTERNAL_USER.value,
     )
 
     with patch("token_iq.gateway.proxy.proxy_server.llm_router", None):
@@ -255,7 +255,7 @@ async def test_pre_call_uses_current_team_allowlist_for_all_team_models_key():
         team_id="team-123",
         models=[SpecialModelNames.all_team_models.value],
         team_models=[stale_model],
-        user_role=LitellmUserRoles.INTERNAL_USER.value,
+        user_role=GatewayUserRoles.INTERNAL_USER.value,
     )
     team_object = LiteLLM_TeamTable(
         team_id="team-123",
@@ -308,7 +308,7 @@ async def test_pre_call_allows_all_team_models_key_via_current_team_object():
         team_id="team-123",
         models=[SpecialModelNames.all_team_models.value],
         team_models=["stale-model"],
-        user_role=LitellmUserRoles.INTERNAL_USER.value,
+        user_role=GatewayUserRoles.INTERNAL_USER.value,
     )
     team_object = LiteLLM_TeamTable(
         team_id="team-123",
@@ -373,7 +373,7 @@ async def test_pre_call_denies_all_team_models_key_via_member_scope():
         team_id="team-123",
         models=[SpecialModelNames.all_team_models.value],
         team_models=[team_model],
-        user_role=LitellmUserRoles.INTERNAL_USER.value,
+        user_role=GatewayUserRoles.INTERNAL_USER.value,
     )
     team_object = LiteLLM_TeamTable(team_id="team-123", models=[team_model])
     membership = LiteLLM_TeamMembership(
@@ -437,7 +437,7 @@ async def test_pre_call_fails_closed_when_current_team_fetch_fails_for_all_team_
         team_id="team-123",
         models=[SpecialModelNames.all_team_models.value],
         team_models=[stale_model],
-        user_role=LitellmUserRoles.INTERNAL_USER.value,
+        user_role=GatewayUserRoles.INTERNAL_USER.value,
     )
 
     with (
@@ -489,7 +489,7 @@ async def test_pre_call_allows_teamless_all_team_models_key():
         user_id="alice",
         models=[SpecialModelNames.all_team_models.value],
         team_models=[],
-        user_role=LitellmUserRoles.INTERNAL_USER.value,
+        user_role=GatewayUserRoles.INTERNAL_USER.value,
     )
 
     with patch("token_iq.gateway.proxy.proxy_server.llm_router", None):
@@ -523,7 +523,7 @@ async def test_pre_call_allows_authorized_model_in_batch_file():
         api_key="sk-ok",
         user_id="alice",
         models=["gpt-3.5-turbo"],
-        user_role=LitellmUserRoles.INTERNAL_USER.value,
+        user_role=GatewayUserRoles.INTERNAL_USER.value,
     )
 
     with (
@@ -741,7 +741,7 @@ async def test_pre_call_allows_stripped_provider_model_when_key_has_proxy_alias(
         api_key="sk-ok",
         user_id="alice",
         models=[proxy_alias],
-        user_role=LitellmUserRoles.INTERNAL_USER.value,
+        user_role=GatewayUserRoles.INTERNAL_USER.value,
     )
     mock_router = MagicMock()
     mock_router.model_list = []
@@ -836,7 +836,7 @@ async def test_pre_call_uses_target_model_names_not_stripped_reverse_lookup(
         api_key="sk-ok",
         user_id="alice",
         models=[batch_alias],
-        user_role=LitellmUserRoles.INTERNAL_USER.value,
+        user_role=GatewayUserRoles.INTERNAL_USER.value,
     )
     can_key_call_model = AsyncMock(return_value=True)
 
@@ -1864,7 +1864,7 @@ async def test_count_input_file_usage_enforces_models_when_token_counting_fails(
         api_key="sk-x",
         user_id="bob",
         models=["only-allowed"],
-        user_role=LitellmUserRoles.INTERNAL_USER.value,
+        user_role=GatewayUserRoles.INTERNAL_USER.value,
     )
 
     def _boom(*args, **kwargs):
@@ -1909,7 +1909,7 @@ async def test_count_input_file_usage_estimates_tokens_when_counting_fails_for_a
         api_key="sk-x",
         user_id="bob",
         models=["allowed-model"],
-        user_role=LitellmUserRoles.INTERNAL_USER.value,
+        user_role=GatewayUserRoles.INTERNAL_USER.value,
     )
 
     def _boom(*args, **kwargs):
@@ -1957,7 +1957,7 @@ async def test_count_input_file_usage_collects_models_after_malformed_line():
         api_key="sk-x",
         user_id="bob",
         models=["only-allowed"],
-        user_role=LitellmUserRoles.INTERNAL_USER.value,
+        user_role=GatewayUserRoles.INTERNAL_USER.value,
     )
 
     async def _deny_restricted(model, **kwargs):

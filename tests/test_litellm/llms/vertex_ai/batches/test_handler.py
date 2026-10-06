@@ -40,7 +40,7 @@ from token_iq.gateway.llms.vertex_ai.batches.handler import (  # noqa: E402
     VertexAIBatchPrediction,
 )
 from token_iq.gateway.llms.vertex_ai.common_utils import VertexAIError  # noqa: E402
-from token_iq.gateway.types.utils import LiteLLMBatch  # noqa: E402
+from token_iq.gateway.types.utils import GatewayBatch  # noqa: E402
 
 HMOD = "token_iq.gateway.llms.vertex_ai.batches.handler"
 TOKEN = "ya29.fake-access-token"
@@ -132,7 +132,7 @@ def test_create_batch_sync_posts_and_parses():
             max_retries=None,
         )
 
-    assert isinstance(out, LiteLLMBatch)
+    assert isinstance(out, GatewayBatch)
     assert out.id == BATCH_ID
     assert out.status == "completed"
 
@@ -171,7 +171,7 @@ def test_create_batch_async_returns_coroutine_and_uses_async_client():
         assert asyncio.iscoroutine(coro)
         out = _run(coro)
 
-    assert isinstance(out, LiteLLMBatch)
+    assert isinstance(out, GatewayBatch)
     assert out.id == BATCH_ID
     async_client.post.assert_awaited_once()
     # the async branch must NOT use the sync client for the request
@@ -250,7 +250,7 @@ def test_retrieve_batch_sync_uses_safe_get_with_batch_id_url():
             max_retries=None,
         )
 
-    assert isinstance(out, LiteLLMBatch)
+    assert isinstance(out, GatewayBatch)
     assert out.id == BATCH_ID
     # SSRF-wrapped fetch fired with the batch-id-appended url + bearer header
     args, kwargs = safe_get.call_args
@@ -286,7 +286,7 @@ def test_retrieve_batch_async_returns_coroutine_uses_async_safe_get():
         assert asyncio.iscoroutine(coro)
         out = _run(coro)
 
-    assert isinstance(out, LiteLLMBatch)
+    assert isinstance(out, GatewayBatch)
     async_safe_get.assert_awaited_once()
     args, _ = async_safe_get.await_args
     assert args[1].endswith(f"/batchPredictionJobs/{BATCH_ID}")
@@ -314,10 +314,10 @@ def test_retrieve_batch_sync_non_200_raises():
 def test_retrieve_batch_sync_invokes_logging_pre_call():
     """When a real ``Logging`` obj is passed, ``pre_call`` is invoked with the
     request url + headers (the curl-redaction branch)."""
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLogging
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLogging
 
     h = _make_handler()
-    logging_obj = MagicMock(spec=LiteLLMLogging)
+    logging_obj = MagicMock(spec=GatewayLogging)
 
     with (
         patch(f"{HMOD}._get_httpx_client", return_value=MagicMock()),
@@ -483,7 +483,7 @@ def test_cancel_batch_sync_posts_cancel_then_retrieves():
             max_retries=None,
         )
 
-    assert isinstance(out, LiteLLMBatch)
+    assert isinstance(out, GatewayBatch)
     assert out.status == "cancelled"
 
     # POST hit the :cancel url
@@ -662,10 +662,10 @@ def test_async_retrieve_batch_non_200_raises():
 
 
 def test_async_retrieve_batch_invokes_logging_pre_call():
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLogging
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLogging
 
     h = _make_handler()
-    logging_obj = MagicMock(spec=LiteLLMLogging)
+    logging_obj = MagicMock(spec=GatewayLogging)
 
     with (
         patch(f"{HMOD}._get_httpx_client", return_value=MagicMock()),

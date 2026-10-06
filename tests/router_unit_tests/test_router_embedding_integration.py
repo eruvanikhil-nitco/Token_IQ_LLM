@@ -15,7 +15,7 @@ import respx
 from token_iq import gateway
 from token_iq.gateway import Router
 from token_iq.gateway.llms.base_llm.vector_store.transformation import (
-    LiteLLMVectorStoreEmbeddingExecutor,
+    GatewayVectorStoreEmbeddingExecutor,
     RouterVectorStoreEmbeddingExecutor,
 )
 
@@ -61,7 +61,7 @@ def _alias_router() -> Router:
 class TestRouterEmbeddingIntegration:
     """Integration tests for embedding with router configuration."""
 
-    def test_vector_store_request_metadata_prefers_litellm_metadata(self):
+    def test_vector_store_request_metadata_prefers_gateway_metadata(self):
         assert Router._vector_store_request_metadata(
             {
                 "litellm_metadata": {"user_api_key_team_id": "team-a"},
@@ -118,7 +118,7 @@ class TestRouterEmbeddingIntegration:
         monkeypatch.delenv("OPENAI_API_KEY", raising=False)
         openai_route = _mock_embedding_route(respx_mock, OPENAI_EMBEDDINGS_URL)
         store_route = _mock_embedding_route(respx_mock, STORE_EMBEDDINGS_URL)
-        sdk_executor = LiteLLMVectorStoreEmbeddingExecutor()
+        sdk_executor = GatewayVectorStoreEmbeddingExecutor()
 
         sync_response = sdk_executor.embed("openai/text-embedding-3-small", "sync", {"api_key": "explicit"})
         async_response = await sdk_executor.aembed("openai/text-embedding-3-small", "async", {"api_key": "explicit"})

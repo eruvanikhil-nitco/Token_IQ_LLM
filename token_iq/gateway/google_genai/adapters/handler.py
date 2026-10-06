@@ -3,7 +3,7 @@ from typing import Final, cast
 
 from token_iq import gateway
 from token_iq.gateway.types.google_genai.adapters import GenerateContentCompletionKwargs
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.types.utils import ModelResponse
 
 from .transformation import GoogleGenAIAdapter
@@ -21,7 +21,7 @@ class GenerateContentToCompletionHandler:
         contents: list[dict[str, object]] | dict[str, object],
         config: dict[str, object] | None = None,
         stream: bool = False,
-        litellm_params: GenericLiteLLMParams | None = None,
+        litellm_params: GenericGatewayParams | None = None,
         extra_kwargs: Mapping[str, object] | None = None,
     ) -> GenerateContentCompletionKwargs:
         """Prepare kwargs for litellm.completion/acompletion"""
@@ -55,7 +55,7 @@ class GenerateContentToCompletionHandler:
     async def async_generate_content_handler(
         model: str,
         contents: list[dict[str, object]] | dict[str, object],
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         config: dict[str, object] | None = None,
         stream: bool = False,
         **kwargs: object,
@@ -105,7 +105,7 @@ class GenerateContentToCompletionHandler:
     def generate_content_handler(
         model: str,
         contents: list[dict[str, object]] | dict[str, object],
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         config: dict[str, object] | None = None,
         stream: bool = False,
         _is_async: bool = False,

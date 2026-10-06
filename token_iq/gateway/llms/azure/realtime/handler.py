@@ -12,7 +12,7 @@ from token_iq.gateway._logging import _redact_string, verbose_proxy_logger
 from token_iq.gateway.constants import REALTIME_WEBSOCKET_MAX_MESSAGE_SIZE_BYTES
 from token_iq.gateway.types.realtime import RealtimeQueryParams
 
-from ....core_utils.litellm_logging import Logging as LiteLLMLogging
+from ....core_utils.litellm_logging import Logging as GatewayLogging
 from ....core_utils.realtime_streaming import RealTimeStreaming
 from ....llms.custom_httpx.http_handler import get_shared_realtime_ssl_context
 from ..azure import AzureChatCompletion
@@ -105,7 +105,7 @@ class AzureOpenAIRealtime(AzureChatCompletion):
         self,
         model: str,
         websocket: Any,
-        logging_obj: LiteLLMLogging,
+        logging_obj: GatewayLogging,
         api_base: str | None = None,
         api_key: str | None = None,
         api_version: str | None = None,

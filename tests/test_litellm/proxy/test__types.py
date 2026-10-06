@@ -9,7 +9,7 @@ from token_iq.gateway.proxy._types import (
     KeyRequest,
     LiteLLM_AuditLogs,
     LiteLLM_TeamMembership,
-    LitellmUserRoles,
+    GatewayUserRoles,
     OrganizationMemberUpdateRequest,
     ResetSpendRequest,
     UpdateKeyRequest,
@@ -175,7 +175,7 @@ def test_an_organization_member_may_hold_a_role_that_exists_within_an_organizati
     assert request.role == role
 
 
-ROLES_OUTSIDE_ORG = tuple(role for role in LitellmUserRoles if role not in ROLES_WITHIN_ORG)
+ROLES_OUTSIDE_ORG = tuple(role for role in GatewayUserRoles if role not in ROLES_WITHIN_ORG)
 
 
 @pytest.mark.parametrize("role", ROLES_OUTSIDE_ORG)

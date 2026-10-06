@@ -25,7 +25,7 @@ from token_iq.gateway.types.llms.openai import (
 )
 
 
-class LiteLLMResponsesInteractionsStreamingIterator:
+class GatewayResponsesInteractionsStreamingIterator:
     """
     Iterator that wraps Responses API streaming and transforms chunks to Interactions API format.
 
@@ -43,7 +43,7 @@ class LiteLLMResponsesInteractionsStreamingIterator:
     def __init__(
         self,
         model: str,
-        litellm_custom_stream_wrapper: BaseResponsesAPIStreamingIterator,
+        gateway_custom_stream_wrapper: BaseResponsesAPIStreamingIterator,
         request_input: InteractionInput | None,
         optional_params: InteractionsAPIOptionalRequestParams,
         custom_llm_provider: str | None = None,
@@ -52,7 +52,7 @@ class LiteLLMResponsesInteractionsStreamingIterator:
         from token_iq import gateway
 
         self.model = model
-        self.responses_stream_iterator = litellm_custom_stream_wrapper
+        self.responses_stream_iterator = gateway_custom_stream_wrapper
         self.request_input = request_input
         self.optional_params = optional_params
         self.custom_llm_provider = custom_llm_provider

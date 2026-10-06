@@ -15,8 +15,8 @@ import pytest
 import asyncio
 
 from token_iq import gateway
-from token_iq.gateway import router as litellm_router_module
-from token_iq.gateway import utils as litellm_utils_module
+from token_iq.gateway import router as gateway_router_module
+from token_iq.gateway import utils as gateway_utils_module
 from token_iq.gateway._logging import ALL_LOGGERS
 from token_iq.gateway.core_utils.cli_keyring import (
     KeyringDiscardsWrites,
@@ -35,7 +35,7 @@ from token_iq.gateway.core_utils.prompt_templates import (
     image_handling as image_handling_module,
 )
 from token_iq.gateway.llms.custom_httpx.async_client_cleanup import (
-    close_litellm_async_clients,
+    close_gateway_async_clients,
 )
 from token_iq.gateway.proxy.db import tool_registry_writer as tool_registry_writer_module
 
@@ -238,7 +238,7 @@ def _close_handler_if_needed(handler):
 
 
 @pytest.fixture(scope="function", autouse=True)
-def isolate_litellm_state():
+def isolate_gateway_state():
     """
     Per-function isolation fixture (changed from module scope).
 
@@ -345,10 +345,10 @@ def isolate_litellm_state():
 
     original_runtime_registered_model_cost = {
         model_key: dict(model_value)
-        for model_key, model_value in litellm_utils_module._runtime_registered_model_cost.items()
+        for model_key, model_value in gateway_utils_module._runtime_registered_model_cost.items()
     }
 
-    original_live_routers = set(litellm_router_module._live_routers)
+    original_live_routers = set(gateway_router_module._live_routers)
 
     # Store LiteLLM logger state. Some tests reconfigure handlers/propagation for
     # JSON logging and do not restore them, which breaks later caplog-based tests.
@@ -377,7 +377,7 @@ def isolate_litellm_state():
     _reset_module_level_aws_auth_caches()
     # litellm.get_model_info() memoizes ModelInfo built from litellm.model_cost, so a
     # test that rebinds the cost map leaves later tests pricing against the old map.
-    litellm_utils_module._invalidate_model_cost_lowercase_map()
+    gateway_utils_module._invalidate_model_cost_lowercase_map()
 
     # Clear all callback lists to prevent cross-test contamination
     if hasattr(gateway, "callbacks"):
@@ -419,14 +419,14 @@ def isolate_litellm_state():
         if hasattr(gateway, attr_name):
             setattr(gateway, attr_name, original_value)
 
-    litellm_utils_module._runtime_registered_model_cost.clear()
-    litellm_utils_module._runtime_registered_model_cost.update(original_runtime_registered_model_cost)
-    litellm_utils_module._invalidate_model_cost_lowercase_map()
+    gateway_utils_module._runtime_registered_model_cost.clear()
+    gateway_utils_module._runtime_registered_model_cost.update(original_runtime_registered_model_cost)
+    gateway_utils_module._invalidate_model_cost_lowercase_map()
 
-    for _router in tuple(litellm_router_module._live_routers):
-        litellm_router_module._live_routers.discard(_router)
+    for _router in tuple(gateway_router_module._live_routers):
+        gateway_router_module._live_routers.discard(_router)
     for _router in original_live_routers:
-        litellm_router_module._live_routers.add(_router)
+        gateway_router_module._live_routers.add(_router)
 
     # Restore logger configuration mutated by logging-focused tests.
     for logger in ALL_LOGGERS:
@@ -595,4 +595,4 @@ def pytest_sessionfinish(session, exitstatus):
     _close_handler_if_needed(getattr(gateway, "httpx_client", None))
     _close_handler_if_needed(getattr(gateway, "aclient", None))
     _close_handler_if_needed(getattr(gateway, "client", None))
-    _run_coroutine_if_needed(close_litellm_async_clients())
+    _run_coroutine_if_needed(close_gateway_async_clients())

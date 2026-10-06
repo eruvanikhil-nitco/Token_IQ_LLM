@@ -16,7 +16,7 @@ from token_iq.gateway.types.guardrails import GuardrailEventHooks
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from token_iq import gateway
-from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
 from token_iq.gateway.proxy.auth.auth_utils import (
     check_complete_credentials,
     is_request_body_safe,
@@ -46,7 +46,7 @@ def mock_request(monkeypatch):
 
 @pytest.mark.parametrize("endpoint", ["/v1/threads", "/v1/thread/123"])
 @pytest.mark.asyncio
-async def test_add_litellm_data_to_request_thread_endpoint(endpoint, mock_request):
+async def test_add_gateway_data_to_request_thread_endpoint(endpoint, mock_request):
     mock_request.url.path = endpoint
     user_api_key_dict = UserAPIKeyAuth(
         api_key="test_api_key", user_id="test_user_id", org_id="test_org_id"
@@ -68,7 +68,7 @@ async def test_add_litellm_data_to_request_thread_endpoint(endpoint, mock_reques
     "endpoint", ["/chat/completions", "/v1/completions", "/completions"]
 )
 @pytest.mark.asyncio
-async def test_add_litellm_data_to_request_non_thread_endpoint(endpoint, mock_request):
+async def test_add_gateway_data_to_request_non_thread_endpoint(endpoint, mock_request):
     mock_request.url.path = endpoint
     user_api_key_dict = UserAPIKeyAuth(
         api_key="test_api_key", user_id="test_user_id", org_id="test_org_id"
@@ -288,7 +288,7 @@ def test_dynamic_logging_metadata_key_and_team_metadata(callback_vars):
         end_user_max_budget=None,
         last_refreshed_at=1726101560.967527,
         api_key="sk-test-mock-api-key-202",
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         allowed_model_region=None,
         parent_otel_span=None,
         rpm_limit_per_model=None,
@@ -404,7 +404,7 @@ def test_dynamic_turn_off_message_logging(callback_vars):
         end_user_max_budget=None,
         last_refreshed_at=1726101560.967527,
         api_key="sk-test-mock-api-key-202",
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         allowed_model_region=None,
         parent_otel_span=None,
         rpm_limit_per_model=None,
@@ -522,12 +522,12 @@ def test_check_complete_credentials_with_whitespace():
 
 
 def test_reading_openai_org_id_from_headers():
-    from token_iq.gateway.proxy.litellm_pre_call_utils import LiteLLMProxyRequestSetup
+    from token_iq.gateway.proxy.litellm_pre_call_utils import GatewayProxyRequestSetup
 
     headers = {
         "OpenAI-Organization": "test_org_id",
     }
-    org_id = LiteLLMProxyRequestSetup.get_openai_org_id_from_headers(headers)
+    org_id = GatewayProxyRequestSetup.get_openai_org_id_from_headers(headers)
     assert org_id == "test_org_id"
 
 
@@ -548,17 +548,17 @@ def test_reading_openai_org_id_from_headers():
         ({}, None, None),
     ],
 )
-def test_add_litellm_data_for_backend_llm_call(
+def test_add_gateway_data_for_backend_llm_call(
     headers, general_settings, expected_data
 ):
     import json
 
     from token_iq.gateway.proxy._types import UserAPIKeyAuth
-    from token_iq.gateway.proxy.litellm_pre_call_utils import LiteLLMProxyRequestSetup
+    from token_iq.gateway.proxy.litellm_pre_call_utils import GatewayProxyRequestSetup
 
     UserAPIKeyAuth(api_key="test_api_key", user_id="test_user_id", org_id="test_org_id")
 
-    data = LiteLLMProxyRequestSetup.get_user_from_headers(
+    data = GatewayProxyRequestSetup.get_user_from_headers(
         headers=headers,
         general_settings=general_settings,
     )
@@ -566,19 +566,19 @@ def test_add_litellm_data_for_backend_llm_call(
     assert json.dumps(data, sort_keys=True) == json.dumps(expected_data, sort_keys=True)
 
 
-def test_foward_litellm_user_info_to_backend_llm_call():
+def test_foward_gateway_user_info_to_backend_llm_call():
     import json
 
     gateway.add_user_information_to_llm_headers = True
 
     from token_iq.gateway.proxy._types import UserAPIKeyAuth
-    from token_iq.gateway.proxy.litellm_pre_call_utils import LiteLLMProxyRequestSetup
+    from token_iq.gateway.proxy.litellm_pre_call_utils import GatewayProxyRequestSetup
 
     user_api_key_dict = UserAPIKeyAuth(
         api_key="test_api_key", user_id="test_user_id", org_id="test_org_id"
     )
 
-    data = LiteLLMProxyRequestSetup.add_headers_to_llm_call(
+    data = GatewayProxyRequestSetup.add_headers_to_llm_call(
         headers={},
         user_api_key_dict=user_api_key_dict,
     )
@@ -854,9 +854,9 @@ def test_get_openapi_url(env_vars, expected_url):
     ],
 )
 def test_merge_tags(request_tags, tags_to_add, expected_tags):
-    from token_iq.gateway.proxy.litellm_pre_call_utils import LiteLLMProxyRequestSetup
+    from token_iq.gateway.proxy.litellm_pre_call_utils import GatewayProxyRequestSetup
 
-    result = LiteLLMProxyRequestSetup._merge_tags(
+    result = GatewayProxyRequestSetup._merge_tags(
         request_tags=request_tags, tags_to_add=tags_to_add
     )
 
@@ -884,7 +884,7 @@ def test_merge_tags(request_tags, tags_to_add, expected_tags):
         (["Tag1", "TAG2"], ["tag1", "tag2"], ["Tag1", "TAG2", "tag1", "tag2"]),
     ],
 )
-async def test_add_litellm_data_to_request_duplicate_tags(
+async def test_add_gateway_data_to_request_duplicate_tags(
     key_tags, request_tags, expected_tags
 ):
     """
@@ -1278,7 +1278,7 @@ def test_proxy_config_state_post_init_callback_call(monkeypatch):
     Note: Environment variables are mocked to avoid validation errors
     in parallel execution where env vars may not be set.
     """
-    from token_iq.gateway.proxy.litellm_pre_call_utils import LiteLLMProxyRequestSetup
+    from token_iq.gateway.proxy.litellm_pre_call_utils import GatewayProxyRequestSetup
     from token_iq.gateway.proxy.proxy_server import ProxyConfig
 
     # Mock environment variables to avoid Pydantic validation errors
@@ -1303,7 +1303,7 @@ def test_proxy_config_state_post_init_callback_call(monkeypatch):
         }
     )
 
-    callback_metadata = LiteLLMProxyRequestSetup.add_team_based_callbacks_from_config(
+    callback_metadata = GatewayProxyRequestSetup.add_team_based_callbacks_from_config(
         team_id="test",
         proxy_config=pc,
     )
@@ -1328,7 +1328,7 @@ async def test_default_team_settings_newrelic_resolves_traces_and_metrics():
     same per-team routing as the API customer.
     """
     from token_iq.gateway.core_utils.litellm_logging import Logging
-    from token_iq.gateway.proxy.litellm_pre_call_utils import LiteLLMProxyRequestSetup
+    from token_iq.gateway.proxy.litellm_pre_call_utils import GatewayProxyRequestSetup
     from token_iq.gateway.proxy.proxy_server import ProxyConfig
 
     pc = ProxyConfig()
@@ -1345,7 +1345,7 @@ async def test_default_team_settings_newrelic_resolves_traces_and_metrics():
         }
     }
 
-    callback_metadata = LiteLLMProxyRequestSetup.add_team_based_callbacks_from_config(
+    callback_metadata = GatewayProxyRequestSetup.add_team_based_callbacks_from_config(
         team_id="team-a",
         proxy_config=pc,
     )
@@ -1427,7 +1427,7 @@ def test_proxy_config_state_get_config_state_error():
         ),
     ],
 )
-def test_litellm_verification_token_view_response_with_budget_table(
+def test_gateway_verification_token_view_response_with_budget_table(
     associated_budget_table,
     expected_user_api_key_auth_key,
     expected_user_api_key_auth_value,
@@ -1483,7 +1483,7 @@ def test_litellm_verification_token_view_response_with_budget_table(
         )
 
 
-def test_litellm_verification_token_view_budget_does_not_override_key_model_max_budget():
+def test_gateway_verification_token_view_budget_does_not_override_key_model_max_budget():
     """
     When key has non-empty model_max_budget, budget's model_max_budget is NOT applied.
     Regression test for per-model budget: only apply budget's model_max_budget when key's is empty.
@@ -1539,7 +1539,7 @@ def test_litellm_verification_token_view_budget_does_not_override_key_model_max_
 
 
 def test_is_allowed_to_make_key_request():
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
     from token_iq.gateway.proxy.management_endpoints.key_management_endpoints import (
         _is_allowed_to_make_key_request,
     )
@@ -1547,7 +1547,7 @@ def test_is_allowed_to_make_key_request():
     assert (
         _is_allowed_to_make_key_request(
             user_api_key_dict=UserAPIKeyAuth(
-                user_id="test_user_id", user_role=LitellmUserRoles.PROXY_ADMIN
+                user_id="test_user_id", user_role=GatewayUserRoles.PROXY_ADMIN
             ),
             user_id="test_user_id",
             team_id="test_team_id",
@@ -1559,7 +1559,7 @@ def test_is_allowed_to_make_key_request():
         _is_allowed_to_make_key_request(
             user_api_key_dict=UserAPIKeyAuth(
                 user_id="test_user_id",
-                user_role=LitellmUserRoles.INTERNAL_USER,
+                user_role=GatewayUserRoles.INTERNAL_USER,
                 team_id="litellm-dashboard",
             ),
             user_id="test_user_id",
@@ -2160,7 +2160,7 @@ def test_get_known_models_from_wildcard(
     assert all(model in wildcard_models for model in expected_models)
 
 
-def test_get_known_models_from_wildcard_without_litellm_params():
+def test_get_known_models_from_wildcard_without_gateway_params():
     """
     Test wildcard expansion without litellm_params (BYOK case - team has openai/*
     but no deployment in router config).
@@ -3195,7 +3195,7 @@ async def test_handle_logging_proxy_only_error_preserves_pass_through_call_type(
 
 
 @pytest.mark.asyncio
-async def test_litellm_logging_obj_excluded_from_optional_params():
+async def test_gateway_logging_obj_excluded_from_optional_params():
     """Ensure litellm_logging_obj is excluded from _optional_params to prevent
     circular references in model_call_details.
     """

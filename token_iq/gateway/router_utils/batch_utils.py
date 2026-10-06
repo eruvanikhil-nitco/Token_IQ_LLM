@@ -157,7 +157,7 @@ def _get_router_metadata_variable_name(function_name: str | None) -> str:
 
     For ALL other endpoints we call this "metadata
     """
-    ROUTER_METHODS_USING_LITELLM_METADATA: Final = set(
+    ROUTER_METHODS_USING_GATEWAY_METADATA: Final = set(
         [
             "batch",
             "generic_api_call",
@@ -166,7 +166,7 @@ def _get_router_metadata_variable_name(function_name: str | None) -> str:
             "_ageneric_api_call_with_fallbacks",
         ]
     )
-    if function_name and any(method in function_name for method in ROUTER_METHODS_USING_LITELLM_METADATA):
+    if function_name and any(method in function_name for method in ROUTER_METHODS_USING_GATEWAY_METADATA):
         return "litellm_metadata"
     else:
         return "metadata"

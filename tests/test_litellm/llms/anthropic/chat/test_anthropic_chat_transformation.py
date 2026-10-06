@@ -5800,7 +5800,7 @@ def test_translate_system_message_strips_billing_header_for_bedrock():
 
 
 def test_anthropic_messages_request_keeps_billing_header_for_first_party():
-    from token_iq.gateway.types.router import GenericLiteLLMParams
+    from token_iq.gateway.types.router import GenericGatewayParams
 
     config = AnthropicMessagesConfig()
     assert config.should_strip_billing_metadata() is False
@@ -5816,7 +5816,7 @@ def test_anthropic_messages_request_keeps_billing_header_for_first_party():
         model="claude-3-5-sonnet-latest",
         messages=[{"role": "user", "content": "hi"}],
         anthropic_messages_optional_request_params=optional_params,
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         headers={},
     )
 
@@ -5826,7 +5826,7 @@ def test_anthropic_messages_request_keeps_billing_header_for_first_party():
 
 def test_anthropic_messages_request_strips_billing_header_for_minimax():
     from token_iq.gateway.llms.minimax.messages.transformation import MinimaxMessagesConfig
-    from token_iq.gateway.types.router import GenericLiteLLMParams
+    from token_iq.gateway.types.router import GenericGatewayParams
 
     config = MinimaxMessagesConfig()
     assert config.should_strip_billing_metadata() is True
@@ -5842,7 +5842,7 @@ def test_anthropic_messages_request_strips_billing_header_for_minimax():
         model="MiniMax-M2",
         messages=[{"role": "user", "content": "hi"}],
         anthropic_messages_optional_request_params=optional_params,
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         headers={},
     )
 

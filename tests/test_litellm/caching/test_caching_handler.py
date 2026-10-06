@@ -249,9 +249,9 @@ def test_is_chat_completion_cached_dict():
 def _build_logging_obj(call_type: str, stream: bool):
     import uuid as _uuid
 
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLogging
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLogging
 
-    return LiteLLMLogging(
+    return GatewayLogging(
         litellm_call_id=str(datetime.now()),
         call_type=call_type,
         model="gpt-5.4",

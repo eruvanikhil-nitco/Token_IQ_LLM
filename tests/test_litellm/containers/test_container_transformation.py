@@ -14,7 +14,7 @@ from token_iq.gateway.types.containers.main import (
     ContainerListResponse,
     DeleteContainerResult,
 )
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLogging
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLogging
 
 
 class TestOpenAIContainerTransformation:
@@ -23,7 +23,7 @@ class TestOpenAIContainerTransformation:
     def setup_method(self):
         """Set up test fixtures."""
         self.config = OpenAIContainerConfig()
-        self.logging_obj = LiteLLMLogging(
+        self.logging_obj = GatewayLogging(
             model="",
             messages=[],
             stream=False,
@@ -97,9 +97,9 @@ class TestOpenAIContainerTransformation:
 
     def test_transform_container_create_request(self):
         """Test container create request transformation."""
-        from token_iq.gateway.types.router import GenericLiteLLMParams
+        from token_iq.gateway.types.router import GenericGatewayParams
 
-        litellm_params = GenericLiteLLMParams()
+        litellm_params = GenericGatewayParams()
         headers = {"Authorization": "Bearer sk-test123"}
         name = "Test Container"
         container_create_optional_request_params = {
@@ -315,9 +315,9 @@ class TestOpenAIContainerTransformation:
 
     def test_transform_with_none_optional_params(self):
         """Test transformation handles None optional parameters correctly."""
-        from token_iq.gateway.types.router import GenericLiteLLMParams
+        from token_iq.gateway.types.router import GenericGatewayParams
 
-        litellm_params = GenericLiteLLMParams()
+        litellm_params = GenericGatewayParams()
         headers = {"Authorization": "Bearer sk-test123"}
         name = "Test Container"
         container_create_optional_request_params = {

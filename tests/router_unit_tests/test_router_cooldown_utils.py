@@ -53,7 +53,7 @@ async def test_router_cooldown_event_callback_no_deployment():
 
 
 @pytest.fixture
-def testing_litellm_router():
+def testing_gateway_router():
     return Router(
         model_list=[
             {
@@ -75,28 +75,28 @@ def testing_litellm_router():
     )
 
 
-def test_should_run_cooldown_logic(testing_litellm_router):
-    testing_litellm_router.disable_cooldowns = True
+def test_should_run_cooldown_logic(testing_gateway_router):
+    testing_gateway_router.disable_cooldowns = True
     # don't run cooldown logic if disable_cooldowns is True
     assert (
         _should_run_cooldown_logic(
-            testing_litellm_router, "test_deployment", 500, Exception("Test")
+            testing_gateway_router, "test_deployment", 500, Exception("Test")
         )
         is False
     )
 
     # don't cooldown if deployment is None
-    testing_litellm_router.disable_cooldowns = False
+    testing_gateway_router.disable_cooldowns = False
     assert (
-        _should_run_cooldown_logic(testing_litellm_router, None, 500, Exception("Test"))
+        _should_run_cooldown_logic(testing_gateway_router, None, 500, Exception("Test"))
         is False
     )
 
     # don't cooldown if it's a provider default deployment
-    testing_litellm_router.provider_default_deployment_ids = ["test_deployment"]
+    testing_gateway_router.provider_default_deployment_ids = ["test_deployment"]
     assert (
         _should_run_cooldown_logic(
-            testing_litellm_router, "test_deployment", 500, Exception("Test")
+            testing_gateway_router, "test_deployment", 500, Exception("Test")
         )
         is False
     )
@@ -233,7 +233,7 @@ class TestHasExplicitAllowedFailsPolicyForException:
         )
 
 
-def test_should_cooldown_deployment_rate_limit_error(testing_litellm_router):
+def test_should_cooldown_deployment_rate_limit_error(testing_gateway_router):
     """
     Test the _should_cooldown_deployment function when a rate limit error occurs
     """
@@ -243,13 +243,13 @@ def test_should_cooldown_deployment_rate_limit_error(testing_litellm_router):
     )
     assert (
         _should_cooldown_deployment(
-            testing_litellm_router, "test_deployment", 429, _exception
+            testing_gateway_router, "test_deployment", 429, _exception
         )
         is True
     )
 
 
-def test_should_cooldown_deployment_auth_limit_error(testing_litellm_router):
+def test_should_cooldown_deployment_auth_limit_error(testing_gateway_router):
     """
     Test the _should_cooldown_deployment function when an auth limit error occurs
     """
@@ -259,14 +259,14 @@ def test_should_cooldown_deployment_auth_limit_error(testing_litellm_router):
     )
     assert (
         _should_cooldown_deployment(
-            testing_litellm_router, "test_deployment", 401, _exception
+            testing_gateway_router, "test_deployment", 401, _exception
         )
         is True
     )
 
 
 @pytest.mark.asyncio
-async def test_should_cooldown_deployment(testing_litellm_router):
+async def test_should_cooldown_deployment(testing_gateway_router):
     """
     Cooldown a deployment if it fails 60% of requests in 1 minute - DEFAULT threshold is 50%
     """
@@ -281,12 +281,12 @@ async def test_should_cooldown_deployment(testing_litellm_router):
     )
     assert (
         _should_cooldown_deployment(
-            testing_litellm_router, "test_deployment", 429, _exception
+            testing_gateway_router, "test_deployment", 429, _exception
         )
         is True
     )
 
-    available_deployment = testing_litellm_router.get_available_deployment(
+    available_deployment = testing_gateway_router.get_available_deployment(
         model="test_deployment"
     )
     print("available_deployment", available_deployment)
@@ -298,14 +298,14 @@ async def test_should_cooldown_deployment(testing_litellm_router):
     # set current success for deployment to 40
     for _ in range(40):
         increment_deployment_successes_for_current_minute(
-            litellm_router_instance=testing_litellm_router, deployment_id=deployment_id
+            litellm_router_instance=testing_gateway_router, deployment_id=deployment_id
         )
 
     # now we fail 40 requests in a row
     tasks = []
     for _ in range(41):
         tasks.append(
-            testing_litellm_router.acompletion(
+            testing_gateway_router.acompletion(
                 model=deployment_id,
                 messages=[{"role": "user", "content": "Hello, world!"}],
                 max_tokens=100,
@@ -322,7 +322,7 @@ async def test_should_cooldown_deployment(testing_litellm_router):
     # expect this to fail since it's now 51% of requests are failing
     assert (
         _should_cooldown_deployment(
-            testing_litellm_router, deployment_id, 500, Exception("Test")
+            testing_gateway_router, deployment_id, 500, Exception("Test")
         )
         is True
     )
@@ -363,7 +363,7 @@ async def test_should_cooldown_deployment_allowed_fails_set_on_router():
 
 
 def test_increment_deployment_successes_for_current_minute_does_not_write_to_redis(
-    testing_litellm_router,
+    testing_gateway_router,
 ):
     """
     Ensure tracking deployment metrics does not write to redis
@@ -380,17 +380,17 @@ def test_increment_deployment_successes_for_current_minute_does_not_write_to_red
     # Mock RedisCache
     mock_redis_cache = MagicMock(spec=RedisCache)
 
-    testing_litellm_router.cache = DualCache(
+    testing_gateway_router.cache = DualCache(
         redis_cache=mock_redis_cache, in_memory_cache=InMemoryCache()
     )
 
     # Call the function we're testing
     increment_deployment_successes_for_current_minute(
-        litellm_router_instance=testing_litellm_router, deployment_id="test_deployment"
+        litellm_router_instance=testing_gateway_router, deployment_id="test_deployment"
     )
 
     increment_deployment_failures_for_current_minute(
-        litellm_router_instance=testing_litellm_router, deployment_id="test_deployment"
+        litellm_router_instance=testing_gateway_router, deployment_id="test_deployment"
     )
 
     time.sleep(1)
@@ -400,10 +400,10 @@ def test_increment_deployment_successes_for_current_minute_does_not_write_to_red
 
     print(
         "in memory cache values=",
-        testing_litellm_router.cache.in_memory_cache.cache_dict,
+        testing_gateway_router.cache.in_memory_cache.cache_dict,
     )
     assert (
-        testing_litellm_router.cache.in_memory_cache.get_cache(
+        testing_gateway_router.cache.in_memory_cache.get_cache(
             "test_deployment:successes"
         )
         is not None
@@ -527,12 +527,12 @@ def test_mixed_success_failure(mock_failures, mock_successes, router):
     ), "Should not cooldown when failure rate is below threshold"
 
 
-def test_is_cooldown_required_empty_string_exception_status(testing_litellm_router):
+def test_is_cooldown_required_empty_string_exception_status(testing_gateway_router):
     """
     Test that _is_cooldown_required returns False when exception_status is an empty string
     """
     result = _is_cooldown_required(
-        litellm_router_instance=testing_litellm_router,
+        litellm_router_instance=testing_gateway_router,
         model_id="test_deployment",
         exception_status="",
     )
@@ -542,7 +542,7 @@ def test_is_cooldown_required_empty_string_exception_status(testing_litellm_rout
     ), "Should not require cooldown when exception_status is empty string"
 
 
-def test_should_cooldown_deployment_minimum_request_threshold(testing_litellm_router):
+def test_should_cooldown_deployment_minimum_request_threshold(testing_gateway_router):
     """
     Test that error rate cooldown does NOT trigger on first failure.
 
@@ -558,7 +558,7 @@ def test_should_cooldown_deployment_minimum_request_threshold(testing_litellm_ro
 
     # Get a deployment that's not a single-deployment model group
     # (test_deployment_2 and test_deployment_3 are both for "test_deployment" model)
-    available_deployment = testing_litellm_router.get_available_deployment(
+    available_deployment = testing_gateway_router.get_available_deployment(
         model="test_deployment"
     )
     assert available_deployment is not None
@@ -567,7 +567,7 @@ def test_should_cooldown_deployment_minimum_request_threshold(testing_litellm_ro
     # Simulate only 1 failure (below minimum threshold)
     # This should NOT trigger cooldown even though 100% > 50%
     increment_deployment_failures_for_current_minute(
-        litellm_router_instance=testing_litellm_router, deployment_id=deployment_id
+        litellm_router_instance=testing_gateway_router, deployment_id=deployment_id
     )
 
     _exception = gateway.exceptions.InternalServerError(
@@ -576,7 +576,7 @@ def test_should_cooldown_deployment_minimum_request_threshold(testing_litellm_ro
 
     # With only 1 request, should NOT cooldown (below minimum threshold)
     should_cooldown = _should_cooldown_deployment(
-        testing_litellm_router, deployment_id, 500, _exception
+        testing_gateway_router, deployment_id, 500, _exception
     )
     assert (
         should_cooldown is False
@@ -585,12 +585,12 @@ def test_should_cooldown_deployment_minimum_request_threshold(testing_litellm_ro
     # Now add more failures to reach the minimum threshold
     for _ in range(DEFAULT_FAILURE_THRESHOLD_MINIMUM_REQUESTS - 1):
         increment_deployment_failures_for_current_minute(
-            litellm_router_instance=testing_litellm_router, deployment_id=deployment_id
+            litellm_router_instance=testing_gateway_router, deployment_id=deployment_id
         )
 
     # Now with enough requests (all failures), it SHOULD trigger cooldown
     should_cooldown = _should_cooldown_deployment(
-        testing_litellm_router, deployment_id, 500, _exception
+        testing_gateway_router, deployment_id, 500, _exception
     )
     assert (
         should_cooldown is True

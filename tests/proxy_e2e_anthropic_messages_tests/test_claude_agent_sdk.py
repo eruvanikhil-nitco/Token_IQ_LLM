@@ -26,7 +26,7 @@ TEST_MODELS = [
 
 
 @pytest.fixture(scope="module")
-def litellm_proxy_config():
+def gateway_proxy_config():
     """Configure connection to LiteLLM proxy"""
     proxy_url = os.getenv("LITELLM_PROXY_URL", "http://localhost:4000")
     api_key = os.getenv("LITELLM_API_KEY", "sk-1234")
@@ -99,7 +99,7 @@ async def _run_streaming_test(model_name: str) -> tuple[list[str], str]:
 @pytest.mark.asyncio
 @pytest.mark.parametrize("model_name,model_description", TEST_MODELS)
 async def test_claude_agent_sdk_streaming(
-    litellm_proxy_config, model_name, model_description
+    gateway_proxy_config, model_name, model_description
 ):
     """
     Test streaming messages with Claude Agent SDK through LiteLLM proxy.

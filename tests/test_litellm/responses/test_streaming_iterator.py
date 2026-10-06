@@ -11,7 +11,7 @@ from unittest.mock import Mock, patch
 import httpx
 import pytest
 
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.llms.base_llm.responses.transformation import BaseResponsesAPIConfig
 from token_iq.gateway.responses.streaming_iterator import (
     ResponsesAPIStreamingIterator,
@@ -51,7 +51,7 @@ def _mock_config() -> Mock:
 def _make_iterator(
     *,
     sse_events: list[bytes],
-    logging_obj: LiteLLMLoggingObj,
+    logging_obj: GatewayLoggingObj,
     trailing_error: Optional[Exception] = None,
 ) -> ResponsesAPIStreamingIterator:
     async def aiter_bytes():
@@ -77,7 +77,7 @@ def _make_iterator(
 def _make_sync_iterator(
     *,
     sse_events: list[bytes],
-    logging_obj: LiteLLMLoggingObj,
+    logging_obj: GatewayLoggingObj,
     trailing_error: Optional[Exception] = None,
 ) -> SyncResponsesAPIStreamingIterator:
     def iter_bytes():
@@ -101,7 +101,7 @@ def _make_sync_iterator(
 
 
 def _logging_obj_stub() -> Mock:
-    logging_obj = Mock(spec=LiteLLMLoggingObj)
+    logging_obj = Mock(spec=GatewayLoggingObj)
     logging_obj.completion_start_time = None
     logging_obj.model_call_details = {"litellm_params": {}}
     return logging_obj
@@ -112,7 +112,7 @@ async def test_responses_streaming_stamps_completion_start_time_on_first_chunk()
     """Without the fix, `logging_obj.completion_start_time` stays None across the
     entire stream and _success_handler_helper_fn falls back to end_time — collapsing
     the reported TTFT to full generation time."""
-    logging_obj = Mock(spec=LiteLLMLoggingObj)
+    logging_obj = Mock(spec=GatewayLoggingObj)
     logging_obj.completion_start_time = None
     logging_obj.model_call_details = {"litellm_params": {}}
     stamped: list[datetime] = []
@@ -149,7 +149,7 @@ async def test_responses_streaming_does_not_reset_prior_completion_start_time():
     iterator must not overwrite it — otherwise TTFT would collapse to
     time-to-last-chunk under contention."""
     prior = datetime(2020, 1, 1, 0, 0, 0)
-    logging_obj = Mock(spec=LiteLLMLoggingObj)
+    logging_obj = Mock(spec=GatewayLoggingObj)
     logging_obj.completion_start_time = prior
     logging_obj.model_call_details = {"litellm_params": {}}
 
@@ -346,7 +346,7 @@ def test_stamp_responses_usage_cost_stamps_computed_cost():
     from token_iq.gateway.responses.streaming_iterator import _stamp_responses_usage_cost
 
     response = _responses_api_response_with_usage()
-    logging_obj = Mock(spec=LiteLLMLoggingObj)
+    logging_obj = Mock(spec=GatewayLoggingObj)
     logging_obj._response_cost_calculator.return_value = 0.000704
 
     _stamp_responses_usage_cost(response, logging_obj)
@@ -360,7 +360,7 @@ def test_stamp_responses_usage_cost_keeps_provider_reported_cost():
 
     response = _responses_api_response_with_usage()
     setattr(response.usage, "cost", 0.5)
-    logging_obj = Mock(spec=LiteLLMLoggingObj)
+    logging_obj = Mock(spec=GatewayLoggingObj)
 
     _stamp_responses_usage_cost(response, logging_obj)
 
@@ -372,7 +372,7 @@ def test_stamp_responses_usage_cost_survives_calculator_failure():
     from token_iq.gateway.responses.streaming_iterator import _stamp_responses_usage_cost
 
     response = _responses_api_response_with_usage()
-    logging_obj = Mock(spec=LiteLLMLoggingObj)
+    logging_obj = Mock(spec=GatewayLoggingObj)
     logging_obj._response_cost_calculator.side_effect = RuntimeError("cost map unavailable")
 
     _stamp_responses_usage_cost(response, logging_obj)
@@ -431,7 +431,7 @@ def _make_header_iterator(
     *,
     headers: dict,
     config: Mock,
-    logging_obj: LiteLLMLoggingObj,
+    logging_obj: GatewayLoggingObj,
 ) -> ResponsesAPIStreamingIterator:
     async def aiter_bytes():
         yield _sse_event({"type": "response.completed"})

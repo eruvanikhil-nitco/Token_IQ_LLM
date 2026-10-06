@@ -10,10 +10,10 @@ from datetime import datetime
 from pydantic import ConfigDict
 
 from token_iq.gateway.models.object_permission import LiteLLM_ObjectPermissionTable
-from token_iq.gateway.types.llms.base import LiteLLMPydanticObjectBase
+from token_iq.gateway.types.llms.base import GatewayPydanticObjectBase
 
 
-class LiteLLM_VerificationToken(LiteLLMPydanticObjectBase):
+class LiteLLM_VerificationToken(GatewayPydanticObjectBase):
     token: str | None = None
     key_name: str | None = None
     key_alias: str | None = None

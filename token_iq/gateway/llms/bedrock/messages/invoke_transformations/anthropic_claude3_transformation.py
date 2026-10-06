@@ -48,16 +48,16 @@ from token_iq.gateway.types.llms.anthropic import (
 )
 from token_iq.gateway.types.llms.bedrock import BedrockInvokeAnthropicMessagesRequest
 from token_iq.gateway.types.llms.openai import AllMessageValues
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.types.utils import GenericStreamingChunk, ModelResponseStream
 from token_iq.gateway.types.utils import GenericStreamingChunk as GChunk
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as _LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as _GatewayLoggingObj
 
-    LiteLLMLoggingObj = _LiteLLMLoggingObj
+    GatewayLoggingObj = _GatewayLoggingObj
 else:
-    LiteLLMLoggingObj = Any
+    GatewayLoggingObj = Any
 
 
 class AmazonAnthropicClaudeMessagesConfig(
@@ -665,7 +665,7 @@ class AmazonAnthropicClaudeMessagesConfig(
         model: str,
         messages: list[dict],
         anthropic_messages_optional_request_params: dict,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> dict:
         self._clamp_adaptive_reasoning_effort_for_bedrock(
@@ -772,7 +772,7 @@ class AmazonAnthropicClaudeMessagesConfig(
         model: str,
         httpx_response: httpx.Response,
         request_body: dict,
-        litellm_logging_obj: LiteLLMLoggingObj,
+        litellm_logging_obj: GatewayLoggingObj,
     ) -> AsyncIterator:
         aws_decoder: Final = AmazonAnthropicClaudeMessagesStreamDecoder(
             model=model,
@@ -790,7 +790,7 @@ class AmazonAnthropicClaudeMessagesConfig(
     async def bedrock_sse_wrapper(
         self,
         completion_stream: AsyncIterator[bytes | GenericStreamingChunk | ModelResponseStream | dict],
-        litellm_logging_obj: LiteLLMLoggingObj,
+        litellm_logging_obj: GatewayLoggingObj,
         request_body: dict,
     ):
         """

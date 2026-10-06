@@ -38,7 +38,7 @@ from .cohere_transformation import BedrockCohereEmbeddingConfig
 from .twelvelabs_marengo_transformation import TwelveLabsMarengoEmbeddingConfig
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 
 
 class BedrockEmbedding(BaseAWSLLM):
@@ -66,10 +66,10 @@ class BedrockEmbedding(BaseAWSLLM):
         ### SET REGION NAME ###
         if aws_region_name is None:
             # check env #
-            litellm_aws_region_name: Final = get_secret("AWS_REGION_NAME", None)
+            gateway_aws_region_name: Final = get_secret("AWS_REGION_NAME", None)
 
-            if litellm_aws_region_name is not None and isinstance(litellm_aws_region_name, str):
-                aws_region_name = litellm_aws_region_name
+            if gateway_aws_region_name is not None and isinstance(gateway_aws_region_name, str):
+                aws_region_name = gateway_aws_region_name
 
             standard_aws_region_name: Final = get_secret("AWS_REGION", None)
             if standard_aws_region_name is not None and isinstance(standard_aws_region_name, str):
@@ -238,7 +238,7 @@ class BedrockEmbedding(BaseAWSLLM):
         endpoint_url: str,
         aws_region_name: str,
         model: str,
-        logging_obj: "LiteLLMLoggingObj",
+        logging_obj: "GatewayLoggingObj",
         provider: BEDROCK_EMBEDDING_PROVIDERS_LITERAL,
         api_key: str | None = None,
         is_async_invoke: bool | None = False,
@@ -306,7 +306,7 @@ class BedrockEmbedding(BaseAWSLLM):
         endpoint_url: str,
         aws_region_name: str,
         model: str,
-        logging_obj: "LiteLLMLoggingObj",
+        logging_obj: "GatewayLoggingObj",
         provider: BEDROCK_EMBEDDING_PROVIDERS_LITERAL,
         api_key: str | None = None,
         is_async_invoke: bool | None = False,

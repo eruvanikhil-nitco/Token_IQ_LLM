@@ -14,7 +14,7 @@ from token_iq.gateway.types.llms.openai import (
     CreateBatchRequest,
     RetrieveBatchRequest,
 )
-from token_iq.gateway.types.utils import LiteLLMBatch
+from token_iq.gateway.types.utils import GatewayBatch
 
 from ..common_utils import BaseAzureLLM
 
@@ -35,9 +35,9 @@ class AzureBatchesAPI(BaseAzureLLM):
         self,
         create_batch_data: CreateBatchRequest,
         azure_client: AsyncAzureOpenAI | AsyncOpenAI,
-    ) -> LiteLLMBatch:
+    ) -> GatewayBatch:
         response: Final = await azure_client.batches.create(**create_batch_data)
-        return LiteLLMBatch.model_validate(response.model_dump())
+        return GatewayBatch.model_validate(response.model_dump())
 
     def create_batch(
         self,
@@ -50,7 +50,7 @@ class AzureBatchesAPI(BaseAzureLLM):
         max_retries: int | None,
         client: AzureOpenAI | AsyncAzureOpenAI | OpenAI | AsyncOpenAI | None = None,
         litellm_params: dict | None = None,
-    ) -> LiteLLMBatch | Coroutine[object, object, LiteLLMBatch]:
+    ) -> GatewayBatch | Coroutine[object, object, GatewayBatch]:
         azure_client: AzureOpenAI | AsyncAzureOpenAI | OpenAI | AsyncOpenAI | None = self.get_azure_openai_client(
             api_key=api_key,
             api_base=api_base,
@@ -71,15 +71,15 @@ class AzureBatchesAPI(BaseAzureLLM):
                 )
             return self.acreate_batch(create_batch_data=create_batch_data, azure_client=azure_client)
         response = cast(AzureOpenAI | OpenAI, azure_client).batches.create(**create_batch_data)
-        return LiteLLMBatch.model_validate(response.model_dump())
+        return GatewayBatch.model_validate(response.model_dump())
 
     async def aretrieve_batch(
         self,
         retrieve_batch_data: RetrieveBatchRequest,
         client: AsyncAzureOpenAI | AsyncOpenAI,
-    ) -> LiteLLMBatch:
+    ) -> GatewayBatch:
         response: Final = await client.batches.retrieve(**retrieve_batch_data)
-        return LiteLLMBatch.model_validate(response.model_dump())
+        return GatewayBatch.model_validate(response.model_dump())
 
     def retrieve_batch(
         self,
@@ -113,15 +113,15 @@ class AzureBatchesAPI(BaseAzureLLM):
                 )
             return self.aretrieve_batch(retrieve_batch_data=retrieve_batch_data, client=azure_client)
         response: Final = cast(AzureOpenAI | OpenAI, azure_client).batches.retrieve(**retrieve_batch_data)
-        return LiteLLMBatch.model_validate(response.model_dump())
+        return GatewayBatch.model_validate(response.model_dump())
 
     async def acancel_batch(
         self,
         cancel_batch_data: CancelBatchRequest,
         client: AsyncAzureOpenAI | AsyncOpenAI,
-    ) -> LiteLLMBatch:
+    ) -> GatewayBatch:
         response: Final = await client.batches.cancel(**cancel_batch_data)
-        return LiteLLMBatch.model_validate(response.model_dump())
+        return GatewayBatch.model_validate(response.model_dump())
 
     def cancel_batch(
         self,
@@ -161,7 +161,7 @@ class AzureBatchesAPI(BaseAzureLLM):
                 "Azure client is not an instance of AzureOpenAI or OpenAI. Make sure you passed a sync client."
             )
         response: Final = azure_client.batches.cancel(**cancel_batch_data)
-        return LiteLLMBatch.model_validate(response.model_dump())
+        return GatewayBatch.model_validate(response.model_dump())
 
     async def alist_batches(
         self,

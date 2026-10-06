@@ -70,13 +70,13 @@ def test_internal_jobs_user_has_proxy_admin_role():
 
     Regression test for: https://github.com/BerriAI/litellm/pull/21896
     """
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
 
     # Get the system user used for internal jobs like key rotation
-    system_user = UserAPIKeyAuth.get_litellm_internal_jobs_user_api_key_auth()
+    system_user = UserAPIKeyAuth.get_gateway_internal_jobs_user_api_key_auth()
 
     # Verify the system user has PROXY_ADMIN role
-    assert system_user.user_role == LitellmUserRoles.PROXY_ADMIN
+    assert system_user.user_role == GatewayUserRoles.PROXY_ADMIN
 
     # Verify other expected properties
     assert system_user.user_id == "system"
@@ -230,23 +230,23 @@ def test_an_empty_max_budget_is_read_as_no_limit():
 def test_an_organization_member_can_only_take_a_role_the_organization_has():
     from pydantic import ValidationError
 
-    from token_iq.gateway.proxy._types import LitellmUserRoles, OrganizationMemberUpdateRequest
+    from token_iq.gateway.proxy._types import GatewayUserRoles, OrganizationMemberUpdateRequest
 
     with pytest.raises(ValidationError, match="Invalid role"):
         OrganizationMemberUpdateRequest(
-            organization_id="org-1", user_id="user-1", role=LitellmUserRoles.PROXY_ADMIN
+            organization_id="org-1", user_id="user-1", role=GatewayUserRoles.PROXY_ADMIN
         )
 
     allowed = OrganizationMemberUpdateRequest(
-        organization_id="org-1", user_id="user-1", role=LitellmUserRoles.ORG_ADMIN
+        organization_id="org-1", user_id="user-1", role=GatewayUserRoles.ORG_ADMIN
     )
-    assert allowed.role == LitellmUserRoles.ORG_ADMIN
+    assert allowed.role == GatewayUserRoles.ORG_ADMIN
 
 
 def test_an_llm_backed_injection_check_needs_the_call_it_would_make():
     from pydantic import ValidationError
 
-    from token_iq.gateway.proxy._types import LiteLLMPromptInjectionParams
+    from token_iq.gateway.proxy._types import GatewayPromptInjectionParams
 
     for missing in ("llm_api_name", "llm_api_system_prompt", "llm_api_fail_call_string"):
         complete = {
@@ -256,9 +256,9 @@ def test_an_llm_backed_injection_check_needs_the_call_it_would_make():
         }
         del complete[missing]
         with pytest.raises(ValidationError, match=f"{missing} must be provided"):
-            LiteLLMPromptInjectionParams(llm_api_check=True, **complete)
+            GatewayPromptInjectionParams(llm_api_check=True, **complete)
 
-    assert LiteLLMPromptInjectionParams(llm_api_check=False).llm_api_name is None
+    assert GatewayPromptInjectionParams(llm_api_check=False).llm_api_name is None
 
 
 @pytest.mark.parametrize(

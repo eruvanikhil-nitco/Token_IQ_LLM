@@ -451,7 +451,7 @@ def _policy_overview_rows(
                 id=pid,
                 name=p.policy_name or pid,
                 type="Policy",
-                provider="LiteLLM",
+                provider="Gateway",
                 requestsEvaluated=req,
                 failRate=round(fail_rate, 1),
                 avgScore=None,

@@ -23,7 +23,7 @@ from token_iq.gateway.core_utils.url_utils import encode_url_path_segment
 from token_iq.gateway.llms.base_llm.chat.transformation import BaseLLMException
 from token_iq.gateway.llms.base_llm.files.transformation import (
     BaseFilesConfig,
-    LiteLLMLoggingObj,
+    GatewayLoggingObj,
 )
 from token_iq.gateway.llms.openai.common_utils import OpenAIError
 from token_iq.gateway.secret_managers.main import get_secret_str
@@ -218,7 +218,7 @@ class ManusFilesConfig(BaseFilesConfig):
         self,
         model: str | None,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         litellm_params: dict,
     ) -> OpenAIFileObject:
         """
@@ -302,7 +302,7 @@ class ManusFilesConfig(BaseFilesConfig):
     def transform_retrieve_file_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         litellm_params: dict,
     ) -> OpenAIFileObject:
         """Transform retrieve file response."""
@@ -333,7 +333,7 @@ class ManusFilesConfig(BaseFilesConfig):
     def transform_delete_file_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         litellm_params: dict,
     ) -> FileDeleted:
         """Transform delete file response."""
@@ -362,7 +362,7 @@ class ManusFilesConfig(BaseFilesConfig):
     def transform_list_files_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         litellm_params: dict,
     ) -> list[OpenAIFileObject]:
         """Transform list files response."""
@@ -420,7 +420,7 @@ class ManusFilesConfig(BaseFilesConfig):
     def transform_file_content_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         litellm_params: dict,
     ) -> HttpxBinaryResponseContent:
         """Transform file content response."""

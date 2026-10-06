@@ -17,7 +17,7 @@ from token_iq.gateway.types.utils import EmbeddingResponse
 if TYPE_CHECKING:
     from httpx import URL, Response
 
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
     from token_iq.gateway.types.utils import CostResponseTypes
 
 
@@ -74,7 +74,7 @@ class GigaChatPassthroughConfig(BasePassthroughConfig):
         custom_llm_provider: str,
         httpx_response: Response,
         request_data: Mapping[str, object],
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         endpoint: str,
     ) -> CostResponseTypes | None:
         from token_iq.gateway import encoding
@@ -91,7 +91,7 @@ class GigaChatPassthroughConfig(BasePassthroughConfig):
                 raise ValueError(f"No provider config found for model: {model}")
 
             raw_messages: Final = request_data.get("messages")
-            litellm_model_response: Final = provider_chat_config.transform_response(
+            gateway_model_response: Final = provider_chat_config.transform_response(
                 model=model,
                 messages=list(raw_messages)
                 if isinstance(raw_messages, list)
@@ -106,7 +106,7 @@ class GigaChatPassthroughConfig(BasePassthroughConfig):
                 encoding=encoding,
             )
 
-            return litellm_model_response
+            return gateway_model_response
 
         if "embeddings" in endpoint:
             provider_embedding_config: Final = ProviderConfigManager.get_provider_embedding_config(
@@ -117,7 +117,7 @@ class GigaChatPassthroughConfig(BasePassthroughConfig):
             if provider_embedding_config is None:
                 raise ValueError(f"No provider config found for model: {model}")
 
-            litellm_embedding_response: Final[EmbeddingResponse] = (
+            gateway_embedding_response: Final[EmbeddingResponse] = (
                 provider_embedding_config.transform_embedding_response(
                     model=model,
                     raw_response=httpx_response,
@@ -130,14 +130,14 @@ class GigaChatPassthroughConfig(BasePassthroughConfig):
                 )
             )
 
-            return litellm_embedding_response
+            return gateway_embedding_response
 
         return None
 
     def handle_logging_collected_chunks(
         self,
         all_chunks: Sequence[str],
-        litellm_logging_obj: LiteLLMLoggingObj,
+        litellm_logging_obj: GatewayLoggingObj,
         model: str,
         custom_llm_provider: str,
         endpoint: str,

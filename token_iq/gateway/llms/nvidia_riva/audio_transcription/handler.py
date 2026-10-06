@@ -44,14 +44,14 @@ from token_iq.gateway.llms.nvidia_riva.audio_transcription.transformation import
 )
 from token_iq.gateway.llms.nvidia_riva.common_utils import (
     NvidiaRivaException,
-    grpc_error_to_litellm_exception,
+    grpc_error_to_gateway_exception,
 )
 from token_iq.gateway.types.utils import FileTypes, TranscriptionResponse
 from token_iq.gateway.utils import convert_to_model_response_object
 
 if TYPE_CHECKING:
     from token_iq.gateway.core_utils.litellm_logging import (
-        Logging as LiteLLMLoggingObj,
+        Logging as GatewayLoggingObj,
     )
 
 # Stream audio to Riva in ~50 ms slices (1600 samples at 16 kHz). Matches
@@ -114,7 +114,7 @@ class NvidiaRivaAudioTranscription:
         litellm_params: dict,
         model_response: TranscriptionResponse,
         timeout: float,
-        logging_obj: "LiteLLMLoggingObj",
+        logging_obj: "GatewayLoggingObj",
         api_key: str | None,
         api_base: str | None,
         atranscription: bool = False,
@@ -159,7 +159,7 @@ class NvidiaRivaAudioTranscription:
         litellm_params: dict,
         model_response: TranscriptionResponse,
         timeout: float,
-        logging_obj: "LiteLLMLoggingObj",
+        logging_obj: "GatewayLoggingObj",
         api_key: str | None,
         api_base: str | None,
         provider_config: NvidiaRivaAudioTranscriptionConfig | None = None,
@@ -189,7 +189,7 @@ class NvidiaRivaAudioTranscription:
         litellm_params: dict,
         model_response: TranscriptionResponse,
         timeout: float,
-        logging_obj: "LiteLLMLoggingObj",
+        logging_obj: "GatewayLoggingObj",
         api_key: str | None,
         api_base: str | None,
         provider_config: NvidiaRivaAudioTranscriptionConfig,
@@ -282,7 +282,7 @@ class NvidiaRivaAudioTranscription:
         except NvidiaRivaException:
             raise
         except Exception as e:
-            raise grpc_error_to_litellm_exception(e) from e
+            raise grpc_error_to_gateway_exception(e) from e
 
         transcription: Final = NvidiaRivaAudioTranscriptionConfig.build_transcription_response(
             final_results=final_results,

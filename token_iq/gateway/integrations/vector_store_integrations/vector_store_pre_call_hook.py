@@ -24,9 +24,9 @@ from token_iq.gateway.types.vector_stores import (
 )
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 else:
-    LiteLLMLoggingObj = Any
+    GatewayLoggingObj = Any
 
 
 class VectorStorePreCallHook(CustomLogger):
@@ -51,7 +51,7 @@ class VectorStorePreCallHook(CustomLogger):
         prompt_id: str | None,
         prompt_variables: dict | None,
         dynamic_callback_params: StandardCallbackDynamicParams,
-        litellm_logging_obj: LiteLLMLoggingObj,
+        litellm_logging_obj: GatewayLoggingObj,
         prompt_spec: PromptSpec | None = None,
         tools: list[dict] | None = None,
         prompt_label: str | None = None,
@@ -122,10 +122,10 @@ class VectorStorePreCallHook(CustomLogger):
                 # Get vector store id from the vector store config
                 vector_store_id = vector_store_to_run.get("vector_store_id", "")
                 custom_llm_provider = vector_store_to_run.get("custom_llm_provider")
-                litellm_params_for_vector_store = vector_store_to_run.get("litellm_params", {}) or {}
-                request_litellm_params = litellm_logging_obj.model_call_details.get("litellm_params", {})
+                gateway_params_for_vector_store = vector_store_to_run.get("litellm_params", {}) or {}
+                request_gateway_params = litellm_logging_obj.model_call_details.get("litellm_params", {})
                 request_metadata = (
-                    request_litellm_params.get("metadata", {}) if isinstance(request_litellm_params, dict) else {}
+                    request_gateway_params.get("metadata", {}) if isinstance(request_gateway_params, dict) else {}
                 )
                 if llm_router is not None:
                     search_function = cast(  # cast-ok: normalize router search callable
@@ -143,7 +143,7 @@ class VectorStorePreCallHook(CustomLogger):
                         "query": query,
                         "custom_llm_provider": custom_llm_provider,
                         "metadata": request_metadata,
-                        **litellm_params_for_vector_store,
+                        **gateway_params_for_vector_store,
                     },
                 )
 

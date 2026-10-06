@@ -510,7 +510,7 @@ def test_cache_read_input_tokens_retained_genericstreamingchunk():
 
     assert usage.prompt_tokens_details.cached_tokens == 543
 
-def test_stream_chunk_builder_litellm_usage_chunks():
+def test_stream_chunk_builder_gateway_usage_chunks():
     """
     Validate ChunkProcessor.calculate_usage uses provided usage fields from streaming chunks
     and reconstructs prompt and completion tokens without making any upstream API calls.
@@ -1110,7 +1110,7 @@ def test_stream_chunk_builder_tolerates_trailing_chunk_without_choices():
     those chunks used to raise ``KeyError('choices')`` (surfaced as a 500
     APIError); it must now skip the choices-less chunk and assemble content.
     """
-    from token_iq.gateway.types.llms.base import BaseLiteLLMOpenAIResponseObject
+    from token_iq.gateway.types.llms.base import BaseGatewayOpenAIResponseObject
 
     content_chunks = [
         ModelResponseStream(
@@ -1119,7 +1119,7 @@ def test_stream_chunk_builder_tolerates_trailing_chunk_without_choices():
         )
         for part in ("Hello", " world")
     ]
-    trailing_chunk = BaseLiteLLMOpenAIResponseObject()
+    trailing_chunk = BaseGatewayOpenAIResponseObject()
     assert "choices" not in trailing_chunk
 
     response = stream_chunk_builder(chunks=content_chunks + [trailing_chunk])

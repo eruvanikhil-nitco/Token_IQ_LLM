@@ -32,7 +32,7 @@ async def test_openai_moderation_guardrail_init():
 
 
 @pytest.mark.asyncio
-async def test_openai_moderation_guardrail_adds_to_litellm_callbacks():
+async def test_openai_moderation_guardrail_adds_to_gateway_callbacks():
     """Test that OpenAI moderation guardrail adds itself to litellm callbacks during initialization"""
     from token_iq import gateway
     from token_iq.gateway.proxy.guardrails.guardrail_hooks.openai import (
@@ -50,17 +50,17 @@ async def test_openai_moderation_guardrail_adds_to_litellm_callbacks():
 
     try:
         with patch.dict(os.environ, {"OPENAI_API_KEY": "test-key"}):
-            guardrail_litellm_params = LitellmParams(
+            guardrail_gateway_params = LitellmParams(
                 guardrail=SupportedGuardrailIntegrations.OPENAI_MODERATION,
                 api_key="test-key",
                 model="omni-moderation-latest",
                 mode="pre_call",
             )
             guardrail = openai_initialize_guardrail(
-                litellm_params=guardrail_litellm_params,
+                litellm_params=guardrail_gateway_params,
                 guardrail=Guardrail(
                     guardrail_name="test-openai-moderation",
-                    litellm_params=guardrail_litellm_params,
+                    litellm_params=guardrail_gateway_params,
                 ),
             )
 

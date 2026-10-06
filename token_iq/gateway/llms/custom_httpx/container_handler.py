@@ -26,10 +26,10 @@ from token_iq.gateway.types.containers.main import (
     ContainerFileObject,
     DeleteContainerFileResponse,
 )
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
     from token_iq.gateway.llms.base_llm.containers.transformation import BaseContainerConfig
 
 
@@ -215,7 +215,7 @@ def _prepare_multipart_file_upload(
 def _request_headers(
     container_provider_config: "BaseContainerConfig",
     extra_headers: dict[str, object] | None,
-    litellm_params: GenericLiteLLMParams,
+    litellm_params: GenericGatewayParams,
 ) -> dict[str, object]:
     """The provider auth headers for a container request."""
     return container_provider_config.validate_environment(
@@ -226,7 +226,7 @@ def _request_headers(
 
 def _request_api_base(
     container_provider_config: "BaseContainerConfig",
-    litellm_params: GenericLiteLLMParams,
+    litellm_params: GenericGatewayParams,
 ) -> str:
     """The provider base URL for a container request."""
     return container_provider_config.get_complete_url(
@@ -237,7 +237,7 @@ def _request_api_base(
 
 def _sync_http_client(
     client: HTTPHandler | AsyncHTTPHandler | None,
-    litellm_params: GenericLiteLLMParams,
+    litellm_params: GenericGatewayParams,
 ) -> HTTPHandler:
     """The sync HTTP client for a container request, reusing the caller's when usable."""
     if client is None or not isinstance(client, HTTPHandler):
@@ -247,7 +247,7 @@ def _sync_http_client(
 
 def _async_http_client(
     client: HTTPHandler | AsyncHTTPHandler | None,
-    litellm_params: GenericLiteLLMParams,
+    litellm_params: GenericGatewayParams,
 ) -> AsyncHTTPHandler:
     """The async HTTP client for a container request, reusing the caller's when usable."""
     if client is None or not isinstance(client, AsyncHTTPHandler):
@@ -270,8 +270,8 @@ class GenericContainerHandler:
         self,
         endpoint_name: str,
         container_provider_config: "BaseContainerConfig",
-        litellm_params: GenericLiteLLMParams,
-        logging_obj: "LiteLLMLoggingObj",
+        litellm_params: GenericGatewayParams,
+        logging_obj: "GatewayLoggingObj",
         extra_headers: dict[str, object] | None = None,
         extra_query: dict[str, object] | None = None,
         timeout: float | httpx.Timeout = 600,
@@ -323,8 +323,8 @@ class GenericContainerHandler:
         self,
         endpoint_name: str,
         container_provider_config: "BaseContainerConfig",
-        litellm_params: GenericLiteLLMParams,
-        logging_obj: "LiteLLMLoggingObj",
+        litellm_params: GenericGatewayParams,
+        logging_obj: "GatewayLoggingObj",
         extra_headers: dict[str, object] | None = None,
         extra_query: dict[str, object] | None = None,
         timeout: float | httpx.Timeout = 600,
@@ -403,8 +403,8 @@ class GenericContainerHandler:
         self,
         endpoint_name: str,
         container_provider_config: "BaseContainerConfig",
-        litellm_params: GenericLiteLLMParams,
-        logging_obj: "LiteLLMLoggingObj",
+        litellm_params: GenericGatewayParams,
+        logging_obj: "GatewayLoggingObj",
         extra_headers: dict[str, object] | None = None,
         extra_query: dict[str, object] | None = None,
         timeout: float | httpx.Timeout = 600,

@@ -50,12 +50,12 @@ class ArizeLogger(OpenTelemetry):
             self.span_kind = SpanKind
             return
 
-        provider: Final = TracerProvider(resource=self._get_litellm_resource(self.config))
+        provider: Final = TracerProvider(resource=self._get_gateway_resource(self.config))
         provider.add_span_processor(self._get_span_processor())
         self.tracer = provider.get_tracer("litellm")
         self.span_kind = SpanKind
 
-    def _init_otel_logger_on_litellm_proxy(self):
+    def _init_otel_logger_on_gateway_proxy(self):
         """
         Override: Arize should NOT overwrite the proxy's
         ``open_telemetry_logger``.  That attribute is reserved for the

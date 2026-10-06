@@ -6,7 +6,7 @@ from token_iq import gateway
 from token_iq.gateway.llms.azure.common_utils import BaseAzureLLM
 from token_iq.gateway.llms.openai.image_edit.transformation import OpenAIImageEditConfig
 from token_iq.gateway.secret_managers.main import get_secret_str
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.utils import _add_path_to_api_base
 
 
@@ -62,7 +62,7 @@ class AzureImageEditConfig(OpenAIImageEditConfig):
           the same ``litellm_params.api_key``, so the precedence only matters
           for direct callers of this method.
         """
-        params: Final = GenericLiteLLMParams(**(litellm_params or {}))
+        params: Final = GenericGatewayParams(**(litellm_params or {}))
         if api_key is not None and params.api_key is None:
             params.api_key = api_key
         return BaseAzureLLM._base_validate_azure_environment(headers=headers, litellm_params=params)

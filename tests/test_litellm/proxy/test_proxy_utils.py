@@ -111,7 +111,7 @@ async def test_proxy_only_error_log_marks_no_upstream_llm_call():
 
 
 @pytest.mark.asyncio
-async def test_proxy_only_error_log_keeps_litellm_metadata_in_litellm_params():
+async def test_proxy_only_error_log_keeps_gateway_metadata_in_gateway_params():
     """Responses API requests carry guardrail info under ``litellm_metadata``
     (not ``metadata``). It must land in litellm_params so
     ``merge_litellm_metadata`` can surface ``guardrail_information`` in the

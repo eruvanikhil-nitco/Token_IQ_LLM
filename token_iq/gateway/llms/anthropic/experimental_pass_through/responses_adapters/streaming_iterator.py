@@ -10,7 +10,7 @@ from token_iq.gateway import verbose_logger
 from token_iq.gateway._uuid import uuid
 from token_iq.gateway.types.llms.anthropic_messages.anthropic_response import AnthropicUsage
 
-from .transformation import LiteLLMAnthropicToResponsesAPIAdapter
+from .transformation import GatewayAnthropicToResponsesAPIAdapter
 
 
 class AnthropicResponsesStreamWrapper:
@@ -217,7 +217,7 @@ class AnthropicResponsesStreamWrapper:
                 if status == "incomplete":
                     stop_reason = "max_tokens"
                 anthropic_usage = (
-                    LiteLLMAnthropicToResponsesAPIAdapter.translate_responses_api_usage_to_anthropic_usage(
+                    GatewayAnthropicToResponsesAPIAdapter.translate_responses_api_usage_to_anthropic_usage(
                         getattr(response_obj, "usage", None)
                     )
                 )

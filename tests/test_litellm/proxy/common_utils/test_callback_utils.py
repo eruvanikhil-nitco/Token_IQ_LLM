@@ -145,7 +145,7 @@ def test_normalize_callback_names_lowercases_strings():
     ]
 
 
-def test_add_policy_to_applied_policies_header_uses_litellm_metadata_bucket():
+def test_add_policy_to_applied_policies_header_uses_gateway_metadata_bucket():
     request_data = {
         "input_file_id": "file-abc123",
         "litellm_metadata": {},
@@ -172,7 +172,7 @@ def test_sanitize_openai_provider_metadata_strips_internal_tracking_fields():
     assert sanitized == {"customer_id": "cust-123"}
 
 
-def test_get_logging_caching_headers_merges_metadata_and_litellm_metadata():
+def test_get_logging_caching_headers_merges_metadata_and_gateway_metadata():
     request_data = {
         "metadata": {"customer_id": "cust-123"},
         "litellm_metadata": {

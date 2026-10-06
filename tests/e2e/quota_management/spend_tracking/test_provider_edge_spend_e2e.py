@@ -15,7 +15,7 @@ import pytest
 
 from e2e_config import CHEAP_OPENAI_MODEL, provider_edge_base
 from lifecycle import ResourceManager
-from models import LiteLLMParamsBody
+from models import GatewayParamsBody
 from spend_e2e_client import SpendClient, unique_marker, unwrap
 
 pytestmark = [pytest.mark.e2e, pytest.mark.replayable]
@@ -29,7 +29,7 @@ def test_edge_wired_chat_writes_nonzero_spend_row(
     model = f"e2e-edge-openai-{unique_marker()}"
     model_id = client.proxy.create_model(
         model,
-        LiteLLMParamsBody(
+        GatewayParamsBody(
             model=f"openai/{CHEAP_OPENAI_MODEL}",
             api_key="os.environ/OPENAI_API_KEY",
             api_base=None if base is None else f"{base}/v1",

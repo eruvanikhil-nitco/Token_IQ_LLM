@@ -25,7 +25,7 @@ from token_iq.gateway.router_utils.cooldown_handlers import (
 from token_iq.gateway.types.router import (
     AllowedFailsPolicy,
     DeploymentTypedDict,
-    LiteLLMParamsTypedDict,
+    GatewayParamsTypedDict,
 )
 
 
@@ -256,7 +256,7 @@ def test_single_deployment_no_cooldowns(num_deployments):
     for i in range(num_deployments):
         model = DeploymentTypedDict(
             model_name="gpt-3.5-turbo",
-            litellm_params=LiteLLMParamsTypedDict(
+            litellm_params=GatewayParamsTypedDict(
                 model="gpt-3.5-turbo",
             ),
         )

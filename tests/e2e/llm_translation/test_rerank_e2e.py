@@ -13,7 +13,7 @@ from e2e_config import unique_marker
 from e2e_http import require_successful_call
 from endpoints_client import EndpointsClient, RerankResult
 from lifecycle import ResourceManager
-from models import LiteLLMParamsBody
+from models import GatewayParamsBody
 
 pytestmark = pytest.mark.e2e
 
@@ -43,7 +43,7 @@ class TestRerank:
         model = f"e2e-rerank-{unique_marker()}"
         model_id = endpoints_client.create_model(
             model,
-            LiteLLMParamsBody(model="cohere/rerank-v3.5", api_key="os.environ/COHERE_API_KEY"),
+            GatewayParamsBody(model="cohere/rerank-v3.5", api_key="os.environ/COHERE_API_KEY"),
         )
         resources.defer(lambda: endpoints_client.delete_model(model_id))
         key = resources.key()
@@ -59,7 +59,7 @@ class TestRerank:
         model = f"e2e-bedrock-rerank-{unique_marker()}"
         model_id = endpoints_client.create_model(
             model,
-            LiteLLMParamsBody(
+            GatewayParamsBody(
                 model="bedrock/arn:aws:bedrock:us-east-1::foundation-model/cohere.rerank-v3-5:0",
                 aws_access_key_id="os.environ/AWS_ACCESS_KEY_ID",
                 aws_secret_access_key="os.environ/AWS_SECRET_ACCESS_KEY",

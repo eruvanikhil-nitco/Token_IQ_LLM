@@ -15,7 +15,7 @@ from typing import Dict, Any, List
 from openai.types.responses import ResponseFunctionToolCall
 
 from token_iq.gateway.responses.litellm_completion_transformation.transformation import (
-    LiteLLMCompletionResponsesConfig,
+    GatewayCompletionResponsesConfig,
 )
 from token_iq.gateway.responses.litellm_completion_transformation.custom_tools import (
     extract_custom_tool_names,
@@ -229,7 +229,7 @@ class TestTransformationCustomTools:
             "tools": [{"type": "custom", "name": "apply_patch"}, {"type": "function", "name": "regular_tool"}]
         }
 
-        result = LiteLLMCompletionResponsesConfig.transform_chat_completion_tools_to_responses_tools(
+        result = GatewayCompletionResponsesConfig.transform_chat_completion_tools_to_responses_tools(
             response, responses_api_request=responses_api_request
         )
 
@@ -258,7 +258,7 @@ class TestTransformationCustomTools:
             if arguments is not None:
                 item["arguments"] = arguments
             messages = (
-                LiteLLMCompletionResponsesConfig._transform_responses_api_function_call_to_chat_completion_message(
+                GatewayCompletionResponsesConfig._transform_responses_api_function_call_to_chat_completion_message(
                     function_call=item
                 )
             )
@@ -287,7 +287,7 @@ class TestTransformationCustomTools:
             },
         ):
             messages = (
-                LiteLLMCompletionResponsesConfig._transform_responses_api_function_call_to_chat_completion_message(
+                GatewayCompletionResponsesConfig._transform_responses_api_function_call_to_chat_completion_message(
                     function_call=item
                 )
             )
@@ -317,7 +317,7 @@ class TestTransformationCustomTools:
             "tools": [{"type": "custom", "name": "apply_patch"}, {"type": "function", "name": "regular_tool"}]
         }
 
-        result = LiteLLMCompletionResponsesConfig.transform_chat_completion_tools_to_responses_tools(
+        result = GatewayCompletionResponsesConfig.transform_chat_completion_tools_to_responses_tools(
             response, responses_api_request=responses_api_request
         )
 
@@ -360,7 +360,7 @@ class TestTransformationCustomTools:
             "tools": [{"type": "custom", "name": "apply_patch"}, {"type": "function", "name": "get_weather"}]
         }
 
-        result = LiteLLMCompletionResponsesConfig.transform_chat_completion_tools_to_responses_tools(
+        result = GatewayCompletionResponsesConfig.transform_chat_completion_tools_to_responses_tools(
             response, responses_api_request=responses_api_request
         )
 
@@ -401,7 +401,7 @@ class TestTransformationCustomTools:
             "tools": [{"type": "custom", "name": "apply_patch"}, {"type": "function", "name": "get_weather"}]
         }
 
-        result = LiteLLMCompletionResponsesConfig.transform_chat_completion_tools_to_responses_tools(
+        result = GatewayCompletionResponsesConfig.transform_chat_completion_tools_to_responses_tools(
             response, responses_api_request=responses_api_request
         )
 

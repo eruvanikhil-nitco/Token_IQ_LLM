@@ -7,10 +7,10 @@ Canonical definition for ``litellm_accessgrouptable``. Re-exported from
 
 from datetime import datetime
 
-from token_iq.gateway.types.llms.base import LiteLLMPydanticObjectBase
+from token_iq.gateway.types.llms.base import GatewayPydanticObjectBase
 
 
-class LiteLLM_AccessGroupTable(LiteLLMPydanticObjectBase):
+class LiteLLM_AccessGroupTable(GatewayPydanticObjectBase):
     access_group_id: str
     access_group_name: str
     description: str | None = None

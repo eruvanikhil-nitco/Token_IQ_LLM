@@ -27,7 +27,7 @@ from token_iq.gateway.proxy._types import (
     DB_RETRY_SAFE_ERROR_TYPES,
     LiteLLM_BudgetTableFull,
     LiteLLM_EndUserTable,
-    Litellm_EntityType,
+    Gateway_EntityType,
     LiteLLM_TeamTable,
     LiteLLM_UserTable,
     LiteLLM_VerificationToken,
@@ -352,7 +352,7 @@ class _WindowSource:
 
     table: str
     id_column: str
-    entity_type: Litellm_EntityType
+    entity_type: Gateway_EntityType
     counter_prefix: str
     log_subject: str
     retry_subject: str
@@ -377,7 +377,7 @@ _WINDOW_SOURCES: Final[tuple[_WindowSource, ...]] = (
     _WindowSource(
         table="LiteLLM_VerificationToken",
         id_column="token",
-        entity_type=Litellm_EntityType.KEY,
+        entity_type=Gateway_EntityType.KEY,
         counter_prefix="spend:key",
         log_subject="keys",
         retry_subject="key",
@@ -386,7 +386,7 @@ _WINDOW_SOURCES: Final[tuple[_WindowSource, ...]] = (
     _WindowSource(
         table="LiteLLM_TeamTable",
         id_column="team_id",
-        entity_type=Litellm_EntityType.TEAM,
+        entity_type=Gateway_EntityType.TEAM,
         counter_prefix="spend:team",
         log_subject="teams",
         retry_subject="team",
@@ -491,7 +491,7 @@ class ResetBudgetJob:
             await self.reset_budget_for_litellm_keys()
             await self.reset_budget_for_litellm_users()
             await self.reset_budget_for_litellm_teams()
-            await self.reset_budget_for_litellm_budget_table()
+            await self.reset_budget_for_gateway_budget_table()
             await self.reset_budget_windows()
         finally:
             if lease is _Lease.LEADER and self.pod_lock_manager is not None:
@@ -748,7 +748,7 @@ class ResetBudgetJob:
             ),
         )
 
-    async def reset_budget_for_litellm_budget_table(self) -> None:
+    async def reset_budget_for_gateway_budget_table(self) -> None:
         """
         Resets the spend a budget tier gates (end users, team members, keys,
         orgs, tags, model access groups) and advances the tier's
@@ -757,9 +757,9 @@ class ResetBudgetJob:
         Caches are invalidated only after the transaction commits, so a failed
         run cannot leave a zeroed counter in front of an un-reset DB row.
         """
-        await _run_phase_in_chunks(self._reset_budget_for_litellm_budget_table_chunk)
+        await _run_phase_in_chunks(self._reset_budget_for_gateway_budget_table_chunk)
 
-    async def _reset_budget_for_litellm_budget_table_chunk(self) -> _ChunkOutcome:
+    async def _reset_budget_for_gateway_budget_table_chunk(self) -> _ChunkOutcome:
         start_time: Final = time.time()
         outcome: Final = await self._reset_expired_budget_cascade()
         end_time: Final = time.time()
@@ -927,9 +927,9 @@ class ResetBudgetJob:
 
         Catches Exceptions and logs them
         """
-        await _run_phase_in_chunks(self._reset_budget_for_litellm_keys_chunk)
+        await _run_phase_in_chunks(self._reset_budget_for_gateway_keys_chunk)
 
-    async def _reset_budget_for_litellm_keys_chunk(self) -> _ChunkOutcome:
+    async def _reset_budget_for_gateway_keys_chunk(self) -> _ChunkOutcome:
         now: Final = datetime.utcnow()
         start_time: Final = time.time()
         keys_to_reset: list[LiteLLM_VerificationToken] | None = None
@@ -1030,9 +1030,9 @@ class ResetBudgetJob:
         """
         Resets the budget for all LiteLLM Internal Users if their budget has expired
         """
-        await _run_phase_in_chunks(self._reset_budget_for_litellm_users_chunk)
+        await _run_phase_in_chunks(self._reset_budget_for_gateway_users_chunk)
 
-    async def _reset_budget_for_litellm_users_chunk(self) -> _ChunkOutcome:
+    async def _reset_budget_for_gateway_users_chunk(self) -> _ChunkOutcome:
         now: Final = datetime.utcnow()
         start_time: Final = time.time()
         users_to_reset: list[LiteLLM_UserTable] | None = None
@@ -1139,9 +1139,9 @@ class ResetBudgetJob:
         """
         Resets the budget for all LiteLLM Internal Teams if their budget has expired
         """
-        await _run_phase_in_chunks(self._reset_budget_for_litellm_teams_chunk)
+        await _run_phase_in_chunks(self._reset_budget_for_gateway_teams_chunk)
 
-    async def _reset_budget_for_litellm_teams_chunk(self) -> _ChunkOutcome:
+    async def _reset_budget_for_gateway_teams_chunk(self) -> _ChunkOutcome:
         now: Final = datetime.utcnow()
         start_time: Final = time.time()
         teams_to_reset: list[LiteLLM_TeamTable] | None = None
@@ -1250,7 +1250,7 @@ class ResetBudgetJob:
         now: datetime,
         reset_settings: BudgetResetSettings,
         prisma_client: PrismaClient,
-        entity_type: Litellm_EntityType,
+        entity_type: Gateway_EntityType,
         entity_id: str,
     ) -> bool:
         """Reset a single budget window if expired. Returns True if the window was reset."""
@@ -1282,7 +1282,7 @@ class ResetBudgetJob:
     @staticmethod
     async def _roll_window_spend_row(
         prisma_client: PrismaClient,
-        entity_type: Litellm_EntityType,
+        entity_type: Gateway_EntityType,
         entity_id: str,
         budget_duration: str,
         next_reset_at: datetime,

@@ -9,7 +9,7 @@ from token_iq.gateway.llms.custom_httpx.http_handler import (
     get_async_httpx_client,
     httpxSpecialProvider,
 )
-from token_iq.gateway.proxy._types import CommonProxyErrors, LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import CommonProxyErrors, GatewayUserRoles, UserAPIKeyAuth
 
 
 class Oauth2Handler:
@@ -203,7 +203,7 @@ class Oauth2Handler:
                 api_key=token,
                 team_id=user_team_id,
                 user_id=user_id,
-                user_role=cast(LitellmUserRoles, user_role),
+                user_role=cast(GatewayUserRoles, user_role),
             )
         except httpx.HTTPStatusError as e:
             # This will catch any 4xx or 5xx errors

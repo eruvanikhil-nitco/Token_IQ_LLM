@@ -7,7 +7,7 @@ from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.transfor
 )
 from token_iq.gateway.llms.openai_like.json_loader import SimpleProviderConfig
 from token_iq.gateway.secret_managers.main import get_secret_str
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 
 DEFAULT_ANTHROPIC_API_VERSION: Final = "2023-06-01"
 
@@ -70,7 +70,7 @@ class OpenAILikeAnthropicMessagesConfig(AnthropicMessagesConfig):
         model: str,
         messages: list[dict],  # mutable-ok: matches dict-typed base signature
         anthropic_messages_optional_request_params: dict,  # mutable-ok: matches dict-typed base signature
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,  # mutable-ok: matches dict-typed base signature
     ) -> dict:  # mutable-ok: matches dict-typed base signature
         """

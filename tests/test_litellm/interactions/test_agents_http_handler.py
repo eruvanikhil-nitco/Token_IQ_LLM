@@ -27,7 +27,7 @@ from token_iq.gateway.types.agents import (
     AgentListResponse,
     AgentVersionsResponse,
 )
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 
 
 # ---------------------------------------------------------------------------
@@ -76,8 +76,8 @@ def config() -> GeminiAgentsConfig:
 
 
 @pytest.fixture
-def litellm_params() -> GenericLiteLLMParams:
-    return GenericLiteLLMParams(api_key="AIza-test")
+def litellm_params() -> GenericGatewayParams:
+    return GenericGatewayParams(api_key="AIza-test")
 
 
 # ---------------------------------------------------------------------------

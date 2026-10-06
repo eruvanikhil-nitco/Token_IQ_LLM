@@ -11,14 +11,14 @@ from token_iq.gateway.proxy._types import SpecialModelNames, UserAPIKeyAuth
 from token_iq.gateway.repositories.object_permission_repository import ObjectPermissionRepository
 from token_iq.gateway.router import Router
 from token_iq.gateway.router_utils.fallback_event_handlers import get_fallback_model_group
-from token_iq.gateway.types.router import CredentialLiteLLMParams, LiteLLM_Params
+from token_iq.gateway.types.router import CredentialGatewayParams, LiteLLM_Params
 from token_iq.gateway.types.utils import LlmProviders
 from token_iq.gateway.utils import get_valid_models
 
-_CREDENTIAL_LITELLM_PARAM_FIELDS = set(CredentialLiteLLMParams.model_fields)
+_CREDENTIAL_GATEWAY_PARAM_FIELDS = set(CredentialGatewayParams.model_fields)
 
 
-_CREDENTIAL_LITELLM_PARAM_FIELDS = set(CredentialLiteLLMParams.model_fields)
+_CREDENTIAL_GATEWAY_PARAM_FIELDS = set(CredentialGatewayParams.model_fields)
 
 
 def _check_wildcard_routing(model: str) -> bool:
@@ -244,7 +244,7 @@ def get_complete_model_list(
     return complete_model_list
 
 
-def _hydrate_litellm_credential_name(
+def _hydrate_gateway_credential_name(
     litellm_params: LiteLLM_Params | None,
 ) -> LiteLLM_Params | None:
     if litellm_params is None or litellm_params.litellm_credential_name is None:
@@ -256,7 +256,7 @@ def _hydrate_litellm_credential_name(
 
     litellm_params = litellm_params.model_copy()
     for key, value in credential_values.items():
-        if key in _CREDENTIAL_LITELLM_PARAM_FIELDS and getattr(litellm_params, key, None) is None:
+        if key in _CREDENTIAL_GATEWAY_PARAM_FIELDS and getattr(litellm_params, key, None) is None:
             setattr(litellm_params, key, value)
     litellm_params.litellm_credential_name = None
     return litellm_params
@@ -286,7 +286,7 @@ def get_known_models_from_wildcard(wildcard_model: str, litellm_params: LiteLLM_
     else:
         provider = wildcard_provider_prefix
 
-    litellm_params = _hydrate_litellm_credential_name(litellm_params)
+    litellm_params = _hydrate_gateway_credential_name(litellm_params)
 
     wildcard_models = get_provider_models(provider=provider, litellm_params=litellm_params)
 
@@ -337,8 +337,8 @@ def expand_wildcard_deployments_for_model_info(
     for deployment in deployments:
         model_name = str(deployment.get("model_name") or "")
         raw_params = deployment.get("litellm_params")
-        litellm_params_dict: dict[str, Any] = raw_params if isinstance(raw_params, dict) else {}
-        litellm_model = str(litellm_params_dict.get("model") or "")
+        gateway_params_dict: dict[str, Any] = raw_params if isinstance(raw_params, dict) else {}
+        litellm_model = str(gateway_params_dict.get("model") or "")
 
         # Determine the wildcard pattern to expand.
         # Branch order matters: only fall to litellm_model when model_name is
@@ -354,7 +354,7 @@ def expand_wildcard_deployments_for_model_info(
             continue
 
         try:
-            litellm_params = LiteLLM_Params.model_validate(litellm_params_dict) if litellm_params_dict else None
+            litellm_params = LiteLLM_Params.model_validate(gateway_params_dict) if gateway_params_dict else None
         except Exception:
             expanded.append(deployment)
             continue

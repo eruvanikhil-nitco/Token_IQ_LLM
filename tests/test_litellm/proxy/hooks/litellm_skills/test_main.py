@@ -28,7 +28,7 @@ def _tool_use_response(tool_name):
 
 
 @pytest.mark.asyncio
-async def test_post_call_success_hook_executes_litellm_skill_tool():
+async def test_post_call_success_hook_executes_gateway_skill_tool():
     """DB skill tool names carry the litellm_skill_ prefix and must trigger the execution loop."""
     hook = SkillsInjectionHook()
     response = _tool_use_response(SKILL_TOOL_NAME)
@@ -45,7 +45,7 @@ async def test_post_call_success_hook_executes_litellm_skill_tool():
 
 
 @pytest.mark.asyncio
-async def test_execute_code_loop_dispatches_litellm_skill_tool():
+async def test_execute_code_loop_dispatches_gateway_skill_tool():
     """The agentic loop must route litellm_skill_ tool calls to _execute_skill_tool."""
     hook = SkillsInjectionHook()
     final_response = {"stop_reason": "end_turn", "content": []}

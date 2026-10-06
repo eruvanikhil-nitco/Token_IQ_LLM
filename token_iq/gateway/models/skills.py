@@ -8,10 +8,10 @@ Canonical definition for ``litellm_skillstable``. Re-exported from
 from datetime import datetime
 from typing import Any
 
-from token_iq.gateway.types.llms.base import LiteLLMPydanticObjectBase
+from token_iq.gateway.types.llms.base import GatewayPydanticObjectBase
 
 
-class LiteLLM_SkillsTable(LiteLLMPydanticObjectBase):
+class LiteLLM_SkillsTable(GatewayPydanticObjectBase):
     """Represents a LiteLLM_SkillsTable record"""
 
     skill_id: str

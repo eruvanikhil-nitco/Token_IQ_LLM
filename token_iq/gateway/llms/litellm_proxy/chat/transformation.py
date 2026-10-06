@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from token_iq.gateway.types.llms.openai import AllMessageValues
 
 
-class LiteLLMProxyChatConfig(OpenAIGPTConfig):
+class GatewayProxyChatConfig(OpenAIGPTConfig):
     def get_supported_openai_params(self, model: str) -> list:
         params_list: Final = super().get_supported_openai_params(model)
         params_list.extend(OPENAI_CHAT_COMPLETION_PARAMS)
@@ -54,7 +54,7 @@ class LiteLLMProxyChatConfig(OpenAIGPTConfig):
         return api_key or get_secret_str("LITELLM_PROXY_API_KEY")
 
     @staticmethod
-    def _should_use_litellm_proxy_by_default(
+    def _should_use_gateway_proxy_by_default(
         litellm_params: LiteLLM_Params | None = None,
     ):
         """
@@ -78,7 +78,7 @@ class LiteLLMProxyChatConfig(OpenAIGPTConfig):
         return False
 
     @staticmethod
-    def litellm_proxy_get_custom_llm_provider_info(
+    def gateway_proxy_get_custom_llm_provider_info(
         model: str, api_base: str | None = None, api_key: str | None = None
     ) -> tuple[str, str, str | None, str | None]:
         """
@@ -107,7 +107,7 @@ class LiteLLMProxyChatConfig(OpenAIGPTConfig):
         (
             api_base,
             api_key,
-        ) = gateway.LiteLLMProxyChatConfig()._get_openai_compatible_provider_info(api_base=api_base, api_key=api_key)
+        ) = gateway.GatewayProxyChatConfig()._get_openai_compatible_provider_info(api_base=api_base, api_key=api_key)
 
         return model, custom_llm_provider, api_key, api_base
 

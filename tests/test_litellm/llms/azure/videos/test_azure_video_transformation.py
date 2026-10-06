@@ -18,7 +18,7 @@ from token_iq.gateway.types.videos.main import (
     VideoResponse,
     VideoCreateOptionalRequestParams,
 )
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from pydantic import ValidationError
 
 
@@ -71,11 +71,11 @@ class TestAzureVideoConfig:
         assert result["user"] == "test_user"
 
     @patch("token_iq.gateway.llms.azure.common_utils.gateway")
-    def test_validate_environment_with_api_key(self, mock_litellm):
+    def test_validate_environment_with_api_key(self, mock_gateway):
         """Test environment validation with provided API key - should use api-key header for Azure."""
         # Since validate_environment passes litellm_params=None, it relies on litellm.api_key or litellm.azure_key
-        mock_litellm.api_key = self.api_key
-        mock_litellm.azure_key = None
+        mock_gateway.api_key = self.api_key
+        mock_gateway.azure_key = None
 
         headers = {"Content-Type": "application/json"}
 
@@ -90,10 +90,10 @@ class TestAzureVideoConfig:
 
     @patch("token_iq.gateway.llms.azure.common_utils.get_secret_str")
     @patch("token_iq.gateway.llms.azure.common_utils.gateway")
-    def test_validate_environment_without_api_key(self, mock_litellm, mock_get_secret):
+    def test_validate_environment_without_api_key(self, mock_gateway, mock_get_secret):
         """Test environment validation without provided API key - should fallback to secret manager."""
-        mock_litellm.api_key = None
-        mock_litellm.azure_key = None
+        mock_gateway.api_key = None
+        mock_gateway.azure_key = None
         mock_get_secret.return_value = "secret-api-key"
 
         headers = {"Content-Type": "application/json"}
@@ -124,7 +124,7 @@ class TestAzureVideoConfig:
         """Test video creation request transformation."""
         video_params = {"seconds": 8, "size": "720x1280"}
 
-        litellm_params = GenericLiteLLMParams(
+        litellm_params = GenericGatewayParams(
             model=self.model, api_base=self.api_base, api_key=self.api_key
         )
 
@@ -264,7 +264,7 @@ class TestAzureVideoConfig:
         """Test video creation with file upload (input_reference)."""
         video_params = {"seconds": 10, "input_reference": "test_image.png"}
 
-        litellm_params = GenericLiteLLMParams(
+        litellm_params = GenericGatewayParams(
             model=self.model, api_base=self.api_base, api_key=self.api_key
         )
 
@@ -306,12 +306,12 @@ class TestAzureVideoConfig:
             )
 
     @patch("token_iq.gateway.llms.azure.common_utils.gateway")
-    def test_azure_specific_environment_validation(self, mock_litellm):
+    def test_azure_specific_environment_validation(self, mock_gateway):
         """Test Azure-specific environment validation with different key sources."""
         # Test with azure_key
-        mock_litellm.api_key = None
-        mock_litellm.azure_key = "azure-test-key"
-        mock_litellm.openai_key = None
+        mock_gateway.api_key = None
+        mock_gateway.azure_key = "azure-test-key"
+        mock_gateway.openai_key = None
 
         headers = {"Content-Type": "application/json"}
 

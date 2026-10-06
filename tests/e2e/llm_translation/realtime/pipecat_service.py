@@ -26,7 +26,7 @@ from pipecat.services.openai.realtime.llm import (  # noqa: E402
 from websockets.asyncio.client import connect as websocket_connect  # noqa: E402
 
 
-class LiteLLMRealtimeLLMService(OpenAIRealtimeLLMService):
+class GatewayRealtimeLLMService(OpenAIRealtimeLLMService):
     """Minimal LiteLLM-aware realtime service for tests.
 
     Three overrides carried from bot.py:

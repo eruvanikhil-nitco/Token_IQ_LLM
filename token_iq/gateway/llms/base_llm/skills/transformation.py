@@ -15,15 +15,15 @@ from token_iq.gateway.types.llms.anthropic_skills import (
     ListSkillsResponse,
     Skill,
 )
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.types.utils import LlmProviders
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as _LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as _GatewayLoggingObj
 
-    LiteLLMLoggingObj = _LiteLLMLoggingObj
+    GatewayLoggingObj = _GatewayLoggingObj
 else:
-    LiteLLMLoggingObj = Any
+    GatewayLoggingObj = Any
 
 
 class BaseSkillsAPIConfig(ABC):
@@ -38,7 +38,7 @@ class BaseSkillsAPIConfig(ABC):
         pass
 
     @abstractmethod
-    def validate_environment(self, headers: dict, litellm_params: GenericLiteLLMParams | None) -> dict:
+    def validate_environment(self, headers: dict, litellm_params: GenericGatewayParams | None) -> dict:
         """
         Validate and update headers with provider-specific requirements
 
@@ -77,7 +77,7 @@ class BaseSkillsAPIConfig(ABC):
     def transform_create_skill_request(
         self,
         create_request: CreateSkillRequest,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> dict:
         """
@@ -96,7 +96,7 @@ class BaseSkillsAPIConfig(ABC):
     def transform_create_skill_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> Skill:
         """
         Transform provider response to Skill object
@@ -113,7 +113,7 @@ class BaseSkillsAPIConfig(ABC):
     def transform_list_skills_request(
         self,
         list_params: ListSkillsParams,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> tuple[str, dict]:
         """
@@ -132,7 +132,7 @@ class BaseSkillsAPIConfig(ABC):
     def transform_list_skills_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> ListSkillsResponse:
         """
         Transform provider response to ListSkillsResponse
@@ -150,7 +150,7 @@ class BaseSkillsAPIConfig(ABC):
         self,
         skill_id: str,
         api_base: str,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> tuple[str, dict]:
         """
@@ -170,7 +170,7 @@ class BaseSkillsAPIConfig(ABC):
     def transform_get_skill_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> Skill:
         """
         Transform provider response to Skill object
@@ -188,7 +188,7 @@ class BaseSkillsAPIConfig(ABC):
         self,
         skill_id: str,
         api_base: str,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> tuple[str, dict]:
         """
@@ -208,7 +208,7 @@ class BaseSkillsAPIConfig(ABC):
     def transform_delete_skill_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> DeleteSkillResponse:
         """
         Transform provider response to DeleteSkillResponse

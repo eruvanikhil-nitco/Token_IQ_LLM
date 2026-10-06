@@ -30,7 +30,7 @@ if TYPE_CHECKING:
     from opentelemetry.trace import Span as _Span
 
     from token_iq.gateway.caching.caching import DualCache
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
     from token_iq.gateway.llms.base_llm.anthropic_messages.transformation import (
         BaseAnthropicMessagesConfig,
     )
@@ -45,7 +45,7 @@ if TYPE_CHECKING:
     Span = _Span
 else:
     Span = Any
-    LiteLLMLoggingObj = Any
+    GatewayLoggingObj = Any
     UserAPIKeyAuth = Any
     MCPPostCallResponseObject = Any
     MCPPreCallRequestObject = Any
@@ -203,7 +203,7 @@ class CustomLogger:
         prompt_id: str | None,
         prompt_variables: dict | None,
         dynamic_callback_params: StandardCallbackDynamicParams,
-        litellm_logging_obj: LiteLLMLoggingObj,
+        litellm_logging_obj: GatewayLoggingObj,
         prompt_spec: PromptSpec | None = None,
         tools: list[dict] | None = None,
         prompt_label: str | None = None,
@@ -650,7 +650,7 @@ class CustomLogger:
         response: object,
         anthropic_messages_provider_config: "BaseAnthropicMessagesConfig | None",
         anthropic_messages_optional_request_params: dict,
-        logging_obj: "LiteLLMLoggingObj",
+        logging_obj: "GatewayLoggingObj",
         stream: bool,
         kwargs: dict,
     ) -> Any:
@@ -719,7 +719,7 @@ class CustomLogger:
         response: object,
         anthropic_messages_provider_config: "BaseAnthropicMessagesConfig | None",
         anthropic_messages_optional_request_params: dict,
-        logging_obj: "LiteLLMLoggingObj",
+        logging_obj: "GatewayLoggingObj",
         stream: bool,
         kwargs: dict,
     ) -> AgenticLoopPlan:
@@ -792,7 +792,7 @@ class CustomLogger:
         messages: list[dict],
         response: object,
         optional_params: dict,
-        logging_obj: "LiteLLMLoggingObj",
+        logging_obj: "GatewayLoggingObj",
         stream: bool,
         kwargs: dict,
     ) -> object:
@@ -807,7 +807,7 @@ class CustomLogger:
         messages: list[dict],
         response: object,
         optional_params: dict,
-        logging_obj: "LiteLLMLoggingObj",
+        logging_obj: "GatewayLoggingObj",
         stream: bool,
         kwargs: dict,
     ) -> AgenticLoopPlan:
@@ -877,13 +877,13 @@ class CustomLogger:
         1. If `litellm_metadata` is in the request kwargs, use it
         2. Otherwise, use `metadata`
         """
-        from token_iq.gateway.constants import LITELLM_METADATA_FIELD, OLD_LITELLM_METADATA_FIELD
+        from token_iq.gateway.constants import LITELLM_METADATA_FIELD, OLD_GATEWAY_METADATA_FIELD
 
         if request_kwargs is None:
             return None
         if LITELLM_METADATA_FIELD in request_kwargs:
             return LITELLM_METADATA_FIELD
-        return OLD_LITELLM_METADATA_FIELD
+        return OLD_GATEWAY_METADATA_FIELD
 
     def redact_standard_logging_payload_from_model_call_details(self, model_call_details: dict) -> dict:
         """

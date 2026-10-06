@@ -32,7 +32,7 @@ from token_iq.gateway.integrations.otel.model.semconv import (
     Error,
     GenAI,
     JsonRpc,
-    LiteLLM,
+    Gateway,
     RpcSystem,
     Server,
 )
@@ -67,28 +67,28 @@ class GenAIMapper:
         Error.TYPE: lambda d: d.error.error_type if d.error else None,
         Server.ADDRESS: lambda d: d.server.address if d.server else None,
         Server.PORT: lambda d: d.server.port if d.server else None,
-        LiteLLM.CALL_ID: lambda d: d.identity.call_id or None,
-        LiteLLM.CALL_TYPE: lambda d: d.call_type,
+        Gateway.CALL_ID: lambda d: d.identity.call_id or None,
+        Gateway.CALL_TYPE: lambda d: d.call_type,
         # The provider/underlying model is only known once routing has picked a
         # deployment, so it can't ride identity Baggage (seeded at auth, before
         # routing) onto the boundary-born LLM span — stamp it directly here.
-        LiteLLM.PROVIDER_MODEL: lambda d: d.identity.provider_model or None,
-        f"{LiteLLM.COST_PREFIX}total": lambda d: d.response_cost,
+        Gateway.PROVIDER_MODEL: lambda d: d.identity.provider_model or None,
+        f"{Gateway.COST_PREFIX}total": lambda d: d.response_cost,
         # Per-component cost breakdown (from the StandardLoggingPayload
         # ``cost_breakdown``). Each component is omitted when the source didn't
         # report it, so spans stay sparse rather than carrying zeros.
-        f"{LiteLLM.COST_PREFIX}input": lambda d: d.cost.input,
-        f"{LiteLLM.COST_PREFIX}output": lambda d: d.cost.output,
-        f"{LiteLLM.COST_PREFIX}cache_read": lambda d: d.cost.cache_read,
-        f"{LiteLLM.COST_PREFIX}cache_creation": lambda d: d.cost.cache_creation,
-        f"{LiteLLM.COST_PREFIX}tool_usage": lambda d: d.cost.tool_usage,
-        f"{LiteLLM.COST_PREFIX}original": lambda d: d.cost.original,
-        f"{LiteLLM.COST_PREFIX}discount_amount": lambda d: d.cost.discount_amount,
-        f"{LiteLLM.COST_PREFIX}discount_percent": lambda d: d.cost.discount_percent,
-        f"{LiteLLM.COST_PREFIX}margin_fixed_amount": lambda d: d.cost.margin_fixed_amount,
-        f"{LiteLLM.COST_PREFIX}margin_percent": lambda d: d.cost.margin_percent,
-        f"{LiteLLM.COST_PREFIX}margin_total_amount": lambda d: d.cost.margin_total_amount,
-        LiteLLM.REQUEST_STREAMING: lambda d: d.is_streaming,
+        f"{Gateway.COST_PREFIX}input": lambda d: d.cost.input,
+        f"{Gateway.COST_PREFIX}output": lambda d: d.cost.output,
+        f"{Gateway.COST_PREFIX}cache_read": lambda d: d.cost.cache_read,
+        f"{Gateway.COST_PREFIX}cache_creation": lambda d: d.cost.cache_creation,
+        f"{Gateway.COST_PREFIX}tool_usage": lambda d: d.cost.tool_usage,
+        f"{Gateway.COST_PREFIX}original": lambda d: d.cost.original,
+        f"{Gateway.COST_PREFIX}discount_amount": lambda d: d.cost.discount_amount,
+        f"{Gateway.COST_PREFIX}discount_percent": lambda d: d.cost.discount_percent,
+        f"{Gateway.COST_PREFIX}margin_fixed_amount": lambda d: d.cost.margin_fixed_amount,
+        f"{Gateway.COST_PREFIX}margin_percent": lambda d: d.cost.margin_percent,
+        f"{Gateway.COST_PREFIX}margin_total_amount": lambda d: d.cost.margin_total_amount,
+        Gateway.REQUEST_STREAMING: lambda d: d.is_streaming,
     }
 
     _TOOL_ATTRS: dict[str, Callable[[ToolDefinition], AttrValue | None]] = {
@@ -107,9 +107,9 @@ class GenAIMapper:
         GenAI.TOOL_CALL_RESULT: lambda d: d.result_json,
         Server.ADDRESS: lambda d: d.server_address,
         Server.PORT: lambda d: d.server_port,
-        LiteLLM.MCP_SERVER_NAME: lambda d: d.server_name,
-        LiteLLM.CALL_ID: lambda d: d.identity.call_id or None,
-        f"{LiteLLM.COST_PREFIX}total": lambda d: d.response_cost,
+        Gateway.MCP_SERVER_NAME: lambda d: d.server_name,
+        Gateway.CALL_ID: lambda d: d.identity.call_id or None,
+        f"{Gateway.COST_PREFIX}total": lambda d: d.response_cost,
     }
 
     # A tools/list discovery span: the method and session only. Per semconv it must
@@ -118,34 +118,34 @@ class GenAIMapper:
     _MCP_LIST_ATTRS: dict[str, Callable[[MCPListToolsSpanData], AttrValue | None]] = {
         MCP.METHOD_NAME: lambda d: d.method,
         MCP.SESSION_ID: lambda d: d.session_id,
-        LiteLLM.CALL_ID: lambda d: d.identity.call_id or None,
+        Gateway.CALL_ID: lambda d: d.identity.call_id or None,
     }
 
     _GUARDRAIL_ATTRS: dict[str, Callable[[GuardrailSpanData], AttrValue | None]] = {
-        LiteLLM.GUARDRAIL_NAME: lambda d: d.guardrail_name,
-        LiteLLM.GUARDRAIL_MODE: lambda d: d.mode,
-        LiteLLM.GUARDRAIL_STATUS: lambda d: d.status,
-        LiteLLM.GUARDRAIL_PROVIDER: lambda d: d.provider,
-        LiteLLM.GUARDRAIL_ACTION: lambda d: d.action,
-        LiteLLM.GUARDRAIL_RESPONSE: lambda d: d.response_json,
-        LiteLLM.GUARDRAIL_VIOLATION_CATEGORIES: lambda d: (
+        Gateway.GUARDRAIL_NAME: lambda d: d.guardrail_name,
+        Gateway.GUARDRAIL_MODE: lambda d: d.mode,
+        Gateway.GUARDRAIL_STATUS: lambda d: d.status,
+        Gateway.GUARDRAIL_PROVIDER: lambda d: d.provider,
+        Gateway.GUARDRAIL_ACTION: lambda d: d.action,
+        Gateway.GUARDRAIL_RESPONSE: lambda d: d.response_json,
+        Gateway.GUARDRAIL_VIOLATION_CATEGORIES: lambda d: (
             list(d.violation_categories) if d.violation_categories else None
         ),
-        LiteLLM.GUARDRAIL_CONFIDENCE_SCORE: lambda d: d.confidence_score,
-        LiteLLM.GUARDRAIL_RISK_SCORE: lambda d: d.risk_score,
-        LiteLLM.GUARDRAIL_MASKED_ENTITY_COUNT: lambda d: d.masked_entity_count,
-        LiteLLM.GUARDRAIL_DURATION: lambda d: d.duration,
-        LiteLLM.GUARDRAIL_ID: lambda d: d.guardrail_id,
-        LiteLLM.GUARDRAIL_POLICY_TEMPLATE: lambda d: d.policy_template,
-        LiteLLM.GUARDRAIL_DETECTION_METHOD: lambda d: d.detection_method,
-        LiteLLM.GUARDRAIL_USAGE: lambda d: d.usage_json,
-        LiteLLM.GUARDRAIL_COST: lambda d: d.cost,
-        LiteLLM.GUARDRAIL_COST_IN_SPEND: lambda d: d.cost_in_spend,
+        Gateway.GUARDRAIL_CONFIDENCE_SCORE: lambda d: d.confidence_score,
+        Gateway.GUARDRAIL_RISK_SCORE: lambda d: d.risk_score,
+        Gateway.GUARDRAIL_MASKED_ENTITY_COUNT: lambda d: d.masked_entity_count,
+        Gateway.GUARDRAIL_DURATION: lambda d: d.duration,
+        Gateway.GUARDRAIL_ID: lambda d: d.guardrail_id,
+        Gateway.GUARDRAIL_POLICY_TEMPLATE: lambda d: d.policy_template,
+        Gateway.GUARDRAIL_DETECTION_METHOD: lambda d: d.detection_method,
+        Gateway.GUARDRAIL_USAGE: lambda d: d.usage_json,
+        Gateway.GUARDRAIL_COST: lambda d: d.cost,
+        Gateway.GUARDRAIL_COST_IN_SPEND: lambda d: d.cost_in_spend,
     }
 
     _SERVICE_ATTRS: dict[str, Callable[[ServiceSpanData], AttrValue | None]] = {
-        LiteLLM.SERVICE_NAME: lambda d: d.service_name,
-        LiteLLM.SERVICE_CALL_TYPE: lambda d: d.call_type,
+        Gateway.SERVICE_NAME: lambda d: d.service_name,
+        Gateway.SERVICE_CALL_TYPE: lambda d: d.call_type,
     }
 
     def __init__(self, tool_attr_budget: int = MAX_TOOL_DEFINITION_ATTRS_PER_SPAN) -> None:
@@ -169,7 +169,7 @@ class GenAIMapper:
     def _llm_call(self, data: LLMCallSpanData) -> AttributeMap:
         attrs: Final = collect(self._LLM_CALL_ATTRS, data)
         if data.tools:
-            attrs[LiteLLM.TOOLS_DECLARED] = len(data.tools)
+            attrs[Gateway.TOOLS_DECLARED] = len(data.tools)
             attrs.update(
                 tool_definition_attrs(
                     lambda idx, suffix: f"gen_ai.tool.{idx}.{suffix}",
@@ -191,5 +191,5 @@ class GenAIMapper:
         # semconv naming the server it reached. Internal services (router, budget
         # jobs, …) have no db.system, so they get only the litellm.service.* keys.
         attrs.update(db_span_attributes(data.service_name, data.call_type))
-        attrs.update({f"{LiteLLM.METADATA_PREFIX}{key}": value for key, value in data.event_metadata.items()})
+        attrs.update({f"{Gateway.METADATA_PREFIX}{key}": value for key, value in data.event_metadata.items()})
         return attrs

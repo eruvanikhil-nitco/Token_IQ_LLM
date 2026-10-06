@@ -30,7 +30,7 @@ from token_iq.gateway.caching.in_memory_cache import InMemoryCache
 from token_iq.gateway.proxy._types import (
     LiteLLM_TeamTableCachedObj,
     LiteLLM_UserTable,
-    LitellmUserRoles,
+    GatewayUserRoles,
     UserAPIKeyAuth,
     LiteLLM_TeamMembership,
     hash_token,
@@ -112,7 +112,7 @@ def _create_valid_token(
         team_models=["gpt-4", "gpt-3.5-turbo"],
         team_member_spend=5.0 if has_team_member_spend else None,
         last_refreshed_at=time.time(),
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
     )
 
 
@@ -138,7 +138,7 @@ def _create_user_object(user_id: str) -> LiteLLM_UserTable:
         models=["gpt-4"],
         tpm_limit=5000,
         rpm_limit=50,
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_email="test@example.com",
     )
 

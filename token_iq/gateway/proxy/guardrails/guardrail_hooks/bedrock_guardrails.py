@@ -82,7 +82,7 @@ if TYPE_CHECKING:
     from botocore.awsrequest import AWSPreparedRequest
     from botocore.credentials import Credentials
 
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 
 from token_iq.gateway.types.utils import (
     CallTypes,
@@ -317,8 +317,8 @@ class BedrockGuardrail(CustomGuardrail, BaseAWSLLM):
         self.streaming_sampling_rate = streaming_params.streaming_sampling_rate
         self.streaming_end_of_stream_only = streaming_params.streaming_end_of_stream_only
 
-    def update_in_memory_litellm_params(self, litellm_params: LitellmParams) -> None:
-        super().update_in_memory_litellm_params(litellm_params)
+    def update_in_memory_gateway_params(self, litellm_params: LitellmParams) -> None:
+        super().update_in_memory_gateway_params(litellm_params)
         self._set_streaming_params(BedrockGuardrailStreamingParams.from_extras(litellm_params.model_extra))
 
     def _streams_incrementally(self) -> bool:
@@ -3112,7 +3112,7 @@ class BedrockGuardrail(CustomGuardrail, BaseAWSLLM):
         inputs: "GenericGuardrailAPIInputs",
         request_data: dict,
         input_type: Literal["request", "response"],
-        logging_obj: Optional["LiteLLMLoggingObj"] = None,
+        logging_obj: Optional["GatewayLoggingObj"] = None,
     ) -> "GenericGuardrailAPIInputs":
         """
         Apply Bedrock guardrail to a batch of texts for testing purposes.

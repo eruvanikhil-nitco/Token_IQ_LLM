@@ -61,7 +61,7 @@ from token_iq.gateway.proxy._types import (
     LiteLLM_ProjectTable,
     LiteLLM_TeamTable,
     LiteLLM_UserTable,
-    LitellmUserRoles,
+    GatewayUserRoles,
     NewProjectRequest,
     UpdateProjectRequest,
     UserAPIKeyAuth,
@@ -117,7 +117,7 @@ def _check_passthrough_routes_caller_permission(
     must be gated identically.
     """
     # view-only admins excluded by design; blocked upstream from writes anyway
-    if user_api_key_dict.user_role == LitellmUserRoles.PROXY_ADMIN.value:
+    if user_api_key_dict.user_role == GatewayUserRoles.PROXY_ADMIN.value:
         return
     if getattr(data, "allowed_passthrough_routes", None):
         raise HTTPException(
@@ -169,7 +169,7 @@ async def _is_user_org_admin_for_team(user_api_key_dict: UserAPIKeyAuth, team_ob
         return False
 
     for m in caller_user.organization_memberships or []:
-        if m.organization_id == team_obj.organization_id and m.user_role == LitellmUserRoles.ORG_ADMIN.value:
+        if m.organization_id == team_obj.organization_id and m.user_role == GatewayUserRoles.ORG_ADMIN.value:
             return True
 
     return False
@@ -210,7 +210,7 @@ async def _user_has_admin_privileges(
         True if user is proxy admin, team admin for any team, or org admin for any organization
     """
     # Check if user is proxy admin
-    if user_api_key_dict.user_role == LitellmUserRoles.PROXY_ADMIN:
+    if user_api_key_dict.user_role == GatewayUserRoles.PROXY_ADMIN:
         return True
 
     # If no database connection, can't check team/org admin status
@@ -236,7 +236,7 @@ async def _user_has_admin_privileges(
         # Check if user is org admin for any organization
         if user_obj.organization_memberships is not None:
             for membership in user_obj.organization_memberships:
-                if membership.user_role == LitellmUserRoles.ORG_ADMIN.value:
+                if membership.user_role == GatewayUserRoles.ORG_ADMIN.value:
                     return True
 
         # Check if user is team admin for any team
@@ -277,7 +277,7 @@ def _org_admin_can_invite_user(
     admin_org_ids: Final = {
         m.organization_id
         for m in admin_user_obj.organization_memberships
-        if m.user_role == LitellmUserRoles.ORG_ADMIN.value
+        if m.user_role == GatewayUserRoles.ORG_ADMIN.value
     }
     if not admin_org_ids:
         return False
@@ -351,7 +351,7 @@ async def admin_can_invite_user(
     Returns:
         True if user can invite the target user
     """
-    if user_api_key_dict.user_role == LitellmUserRoles.PROXY_ADMIN:
+    if user_api_key_dict.user_role == GatewayUserRoles.PROXY_ADMIN:
         return True
 
     if prisma_client is None or user_api_key_dict.user_id is None:

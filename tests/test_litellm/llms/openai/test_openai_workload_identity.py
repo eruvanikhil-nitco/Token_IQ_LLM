@@ -9,7 +9,7 @@ import respx
 from openai import AsyncOpenAI, OpenAI
 
 from token_iq import gateway
-from token_iq.gateway.llms.litellm_proxy.responses.transformation import LiteLLMProxyResponsesAPIConfig
+from token_iq.gateway.llms.litellm_proxy.responses.transformation import GatewayProxyResponsesAPIConfig
 from token_iq.gateway.llms.openai.common_utils import BaseOpenAILLM, OpenAIError
 from token_iq.gateway.llms.openai.openai import OpenAIChatCompletion
 from token_iq.gateway.llms.openai.responses.transformation import OpenAIResponsesAPIConfig
@@ -19,7 +19,7 @@ from token_iq.gateway.llms.openai.workload_identity import (
     get_workload_identity_bearer_token,
     resolve_openai_workload_identity_config,
 )
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 
 TOKEN_EXCHANGE_URL: Final = "https://auth.openai.com/oauth/token"
 
@@ -97,7 +97,7 @@ class TestResolveConfig:
         monkeypatch.setenv("OPENAI_BASE_URL", "https://api.openai.com/v1")
         assert resolve_openai_workload_identity_config(api_key=None, api_base=None) == wif_env
 
-    def test_foreign_litellm_api_base_disables(
+    def test_foreign_gateway_api_base_disables(
         self, wif_env: OpenAIWorkloadIdentityConfig, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         monkeypatch.setattr(gateway, "api_base", "https://my-vllm.internal/v1")
@@ -213,13 +213,13 @@ class TestResponsesValidateEnvironment:
     def test_mints_bearer_when_wif_configured(self, wif_env: OpenAIWorkloadIdentityConfig) -> None:
         mock_token_exchange()
         headers: Final = OpenAIResponsesAPIConfig().validate_environment(
-            headers={}, model="gpt-4o-mini", litellm_params=GenericLiteLLMParams()
+            headers={}, model="gpt-4o-mini", litellm_params=GenericGatewayParams()
         )
         assert headers["Authorization"] == "Bearer exchanged-bearer-token"
 
     def test_static_key_wins(self, wif_env: OpenAIWorkloadIdentityConfig) -> None:
         headers: Final = OpenAIResponsesAPIConfig().validate_environment(
-            headers={}, model="gpt-4o-mini", litellm_params=GenericLiteLLMParams(api_key="sk-responses")
+            headers={}, model="gpt-4o-mini", litellm_params=GenericGatewayParams(api_key="sk-responses")
         )
         assert headers["Authorization"] == "Bearer sk-responses"
 
@@ -227,12 +227,12 @@ class TestResponsesValidateEnvironment:
         headers: Final = OpenAIResponsesAPIConfig().validate_environment(
             headers={},
             model="gpt-4o-mini",
-            litellm_params=GenericLiteLLMParams(api_base="https://my-vllm.internal/v1"),
+            litellm_params=GenericGatewayParams(api_base="https://my-vllm.internal/v1"),
         )
         assert headers["Authorization"] == "Bearer None"
 
-    def test_litellm_proxy_subclass_never_mints_wif(self, wif_env: OpenAIWorkloadIdentityConfig) -> None:
-        headers: Final = LiteLLMProxyResponsesAPIConfig().validate_environment(
-            headers={}, model="gpt-4o-mini", litellm_params=GenericLiteLLMParams()
+    def test_gateway_proxy_subclass_never_mints_wif(self, wif_env: OpenAIWorkloadIdentityConfig) -> None:
+        headers: Final = GatewayProxyResponsesAPIConfig().validate_environment(
+            headers={}, model="gpt-4o-mini", litellm_params=GenericGatewayParams()
         )
         assert headers["Authorization"] == "Bearer None"

@@ -183,10 +183,10 @@ def test_every_endpoint_builder_keeps_amazonaws_com_outside_cn(builder_name: str
 
 
 def _fstring_literal_offenders(needle: str) -> list[str]:
-    litellm_root = Path(gateway.__file__).parent
+    gateway_root = Path(gateway.__file__).parent
     return [
-        f"{path.relative_to(litellm_root)}: {part.value!r}"
-        for path in sorted(litellm_root.rglob("*.py"))
+        f"{path.relative_to(gateway_root)}: {part.value!r}"
+        for path in sorted(gateway_root.rglob("*.py"))
         for node in ast.walk(ast.parse(path.read_text(encoding="utf-8")))
         if isinstance(node, ast.JoinedStr)
         for part in node.values

@@ -4,14 +4,14 @@ from unittest.mock import patch
 import pytest
 
 from token_iq import gateway
-from token_iq.gateway.llms.litellm_proxy.chat.transformation import LiteLLMProxyChatConfig
+from token_iq.gateway.llms.litellm_proxy.chat.transformation import GatewayProxyChatConfig
 
 
 def test_litellm_proxy_chat_transformation():
     """
     Assert messages are not transformed when calling litellm proxy
     """
-    config = LiteLLMProxyChatConfig()
+    config = GatewayProxyChatConfig()
     file_content = [
         {"type": "text", "text": "What is this document about?"},
         {
@@ -32,10 +32,10 @@ def test_litellm_proxy_chat_transformation():
     ) == {"model": "model", "messages": messages}
 
 
-def test_litellm_gateway_from_sdk_with_user_param():
-    from token_iq.gateway.llms.litellm_proxy.chat.transformation import LiteLLMProxyChatConfig
+def test_gateway_gateway_from_sdk_with_user_param():
+    from token_iq.gateway.llms.litellm_proxy.chat.transformation import GatewayProxyChatConfig
 
-    supported_params = LiteLLMProxyChatConfig().get_supported_openai_params(
+    supported_params = GatewayProxyChatConfig().get_supported_openai_params(
         "openai/gpt-4o"
     )
     print(f"supported_params: {supported_params}")

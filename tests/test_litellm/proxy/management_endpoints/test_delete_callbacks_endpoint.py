@@ -7,7 +7,7 @@ from fastapi.testclient import TestClient
 from token_iq.gateway.proxy._types import (
     CallbackDelete,
     ConfigYAML,
-    LitellmUserRoles,
+    GatewayUserRoles,
     UserAPIKeyAuth,
 )
 from token_iq.gateway.proxy.proxy_server import app
@@ -87,7 +87,7 @@ class MockPrismaClient:
 def mock_auth():
     """Mock admin user authentication"""
     return UserAPIKeyAuth(
-        user_id="test_admin", user_role=LitellmUserRoles.PROXY_ADMIN, api_key="sk-1234"
+        user_id="test_admin", user_role=GatewayUserRoles.PROXY_ADMIN, api_key="sk-1234"
     )
 
 

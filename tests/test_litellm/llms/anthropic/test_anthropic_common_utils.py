@@ -322,7 +322,7 @@ class TestValidateEnvironmentOAuth:
         assert updated_headers["authorization"] == "Bearer custom-api-key"
         assert "x-api-key" not in updated_headers
 
-    def test_custom_api_base_via_litellm_params(self):
+    def test_custom_api_base_via_gateway_params(self):
         """validate_environment uses Bearer when api_base and use_bearer_for_custom_base are in litellm_params."""
         from token_iq.gateway.llms.anthropic.common_utils import AnthropicModelInfo
 
@@ -616,7 +616,7 @@ class TestProxyOAuthHeaderForwarding:
         assert anthropic_headers["authorization"] == f"Bearer {FAKE_OAUTH_TOKEN}"
         assert anthropic_headers["anthropic-beta"] == "oauth-2025-04-20"
 
-    def test_clean_headers_forwards_x_api_key_when_authenticated_with_litellm_key(self):
+    def test_clean_headers_forwards_x_api_key_when_authenticated_with_gateway_key(self):
         """clean_headers should forward x-api-key when user authenticated with x-litellm-api-key and forward_llm_provider_auth_headers=True."""
         from starlette.datastructures import Headers
 
@@ -706,7 +706,7 @@ class TestProxyOAuthHeaderForwarding:
         assert "x-api-key" not in cleaned
         assert cleaned["content-type"] == "application/json"
 
-    def test_clean_headers_forwards_x_api_key_with_forward_flag_and_litellm_auth(
+    def test_clean_headers_forwards_x_api_key_with_forward_flag_and_gateway_auth(
         self,
     ):
         """clean_headers should forward x-api-key when both forward_llm_provider_auth_headers=True
@@ -739,7 +739,7 @@ class TestProxyOAuthHeaderForwarding:
         assert "x-litellm-api-key" not in cleaned
         assert cleaned["content-type"] == "application/json"
 
-    def test_clean_headers_authorization_not_forwarded_when_used_for_litellm_auth(
+    def test_clean_headers_authorization_not_forwarded_when_used_for_gateway_auth(
         self,
     ):
         """Authorization Bearer (LiteLLM key) must never be forwarded to the LLM provider.
@@ -774,7 +774,7 @@ class TestProxyOAuthHeaderForwarding:
         assert cleaned["x-api-key"] == "sk-ant-api03-real-anthropic-key"
         assert cleaned["content-type"] == "application/json"
 
-    def test_clean_headers_oauth_authorization_forwarded_when_not_used_for_litellm_auth(
+    def test_clean_headers_oauth_authorization_forwarded_when_not_used_for_gateway_auth(
         self,
     ):
         """OAuth Authorization header IS forwarded when x-litellm-api-key was used for proxy auth."""

@@ -80,7 +80,7 @@ class _ClusterAttrs(Protocol):
 _VERIFIED_REDIS_VERSIONS: Final = frozenset({"5.3.1"})
 
 
-def get_litellm_async_redis_cluster_class(
+def get_gateway_async_redis_cluster_class(
     cluster_node_class: type | None = None,
 ) -> type["_AsyncRedisClusterType"]:
     """Returns the base ``RedisCluster`` when the installed redis-py already recovers a
@@ -135,7 +135,7 @@ def get_litellm_async_redis_cluster_class(
             sorted(_VERIFIED_REDIS_VERSIONS),
         )
 
-    class LiteLLMAsyncRedisCluster(
+    class GatewayAsyncRedisCluster(
         _BaseAsyncRedisCluster  # pyright: ignore[reportUntypedBaseClass]  # same stale-stub gap as the import above; the base class itself is unresolvable, not this subclass's own code
     ):
         async def _execute_command(
@@ -198,4 +198,4 @@ def get_litellm_async_redis_cluster_class(
 
             raise ClusterError("TTL exhausted.")
 
-    return LiteLLMAsyncRedisCluster
+    return GatewayAsyncRedisCluster

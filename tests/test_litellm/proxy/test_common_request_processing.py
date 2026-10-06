@@ -46,7 +46,7 @@ from token_iq.gateway.proxy.utils import ProxyLogging
 
 class TestProxyBaseLLMRequestProcessing:
     @pytest.mark.asyncio
-    async def test_base_passthrough_process_llm_request_preserves_litellm_headers_for_non_streaming_response(
+    async def test_base_passthrough_process_llm_request_preserves_gateway_headers_for_non_streaming_response(
         self, monkeypatch
     ):
         processing_obj = ProxyBaseLLMRequestProcessing(data={})
@@ -271,12 +271,12 @@ class TestProxyBaseLLMRequestProcessing:
         assert kwargs["request_headers"] == {"authorization": "Bearer sk-test"}
 
     @pytest.mark.asyncio
-    async def test_common_processing_pre_call_logic_pre_call_hook_receives_litellm_call_id(self, monkeypatch):
+    async def test_common_processing_pre_call_logic_pre_call_hook_receives_gateway_call_id(self, monkeypatch):
         processing_obj = ProxyBaseLLMRequestProcessing(data={})
         mock_request = MagicMock(spec=Request)
         mock_request.headers = {}
 
-        async def mock_add_litellm_data_to_request(*args, **kwargs):
+        async def mock_add_gateway_data_to_request(*args, **kwargs):
             return {}
 
         async def mock_common_processing_pre_call_logic(user_api_key_dict, data, call_type):
@@ -288,7 +288,7 @@ class TestProxyBaseLLMRequestProcessing:
         monkeypatch.setattr(
             gateway.proxy.common_request_processing,
             "add_litellm_data_to_request",
-            mock_add_litellm_data_to_request,
+            mock_add_gateway_data_to_request,
         )
         mock_general_settings = {}
         mock_user_api_key_dict = MagicMock(spec=UserAPIKeyAuth)
@@ -336,7 +336,7 @@ class TestProxyBaseLLMRequestProcessing:
 
         raw_messages = [{"role": "user", "content": "my ssn is 123-45-6789"}]
 
-        async def mock_add_litellm_data_to_request(*args, **kwargs):
+        async def mock_add_gateway_data_to_request(*args, **kwargs):
             return {
                 "messages": raw_messages,
                 "proxy_server_request": {
@@ -355,7 +355,7 @@ class TestProxyBaseLLMRequestProcessing:
         monkeypatch.setattr(
             gateway.proxy.common_request_processing,
             "add_litellm_data_to_request",
-            mock_add_litellm_data_to_request,
+            mock_add_gateway_data_to_request,
         )
 
         returned_data, _ = await processing_obj.common_processing_pre_call_logic(
@@ -376,7 +376,7 @@ class TestProxyBaseLLMRequestProcessing:
         assert "litellm_logging_obj" not in persisted_body
         json.dumps(persisted_body)
 
-    def test_add_dd_apm_tags_for_litellm_call_id_uses_dd_tracing_helper(self, monkeypatch):
+    def test_add_dd_apm_tags_for_gateway_call_id_uses_dd_tracing_helper(self, monkeypatch):
         mock_set_active_span_tag = MagicMock(return_value=True)
         import token_iq.gateway.proxy.dd_span_tagger
         from token_iq import gateway
@@ -404,7 +404,7 @@ class TestProxyBaseLLMRequestProcessing:
         mock_request = MagicMock(spec=Request)
         mock_request.headers = {}
 
-        async def mock_add_litellm_data_to_request(*args, **kwargs):
+        async def mock_add_gateway_data_to_request(*args, **kwargs):
             return {}
 
         async def mock_common_processing_pre_call_logic(user_api_key_dict, data, call_type):
@@ -416,7 +416,7 @@ class TestProxyBaseLLMRequestProcessing:
         monkeypatch.setattr(
             gateway.proxy.common_request_processing,
             "add_litellm_data_to_request",
-            mock_add_litellm_data_to_request,
+            mock_add_gateway_data_to_request,
         )
 
         mock_general_settings = {}
@@ -478,25 +478,25 @@ class TestProxyBaseLLMRequestProcessing:
         """
         Test that x-litellm-stream-timeout header gets processed and added to request data as stream_timeout.
         """
-        from token_iq.gateway.proxy.litellm_pre_call_utils import LiteLLMProxyRequestSetup
+        from token_iq.gateway.proxy.litellm_pre_call_utils import GatewayProxyRequestSetup
 
         # Test with stream timeout header
         headers_with_timeout = {"x-litellm-stream-timeout": "30.5"}
-        result = LiteLLMProxyRequestSetup._get_stream_timeout_from_request(headers_with_timeout)
+        result = GatewayProxyRequestSetup._get_stream_timeout_from_request(headers_with_timeout)
         assert result == 30.5
 
         # Test without stream timeout header
         headers_without_timeout = {}
-        result = LiteLLMProxyRequestSetup._get_stream_timeout_from_request(headers_without_timeout)
+        result = GatewayProxyRequestSetup._get_stream_timeout_from_request(headers_without_timeout)
         assert result is None
 
         # Test with invalid header value (should raise ValueError when converting to float)
         headers_with_invalid = {"x-litellm-stream-timeout": "invalid"}
         with pytest.raises(ValueError, match="could not convert string to float: 'invalid"):
-            LiteLLMProxyRequestSetup._get_stream_timeout_from_request(headers_with_invalid)
+            GatewayProxyRequestSetup._get_stream_timeout_from_request(headers_with_invalid)
 
     @pytest.mark.asyncio
-    async def test_build_litellm_proxy_success_headers_from_llm_response(self):
+    async def test_build_gateway_proxy_success_headers_from_llm_response(self):
         """
         Google native :generateContent uses this helper instead of base_process_llm_request;
         ensure x-litellm-* headers and callback hooks merge like the main proxy path.
@@ -528,7 +528,7 @@ class TestProxyBaseLLMRequestProcessing:
             return_value={"x-ratelimit-remaining-requests": "999"}
         )
 
-        headers = await ProxyBaseLLMRequestProcessing.build_litellm_proxy_success_headers_from_llm_response(
+        headers = await ProxyBaseLLMRequestProcessing.build_gateway_proxy_success_headers_from_llm_response(
             response=_FakeGenaiResponse(),
             request_data={"model": "gemini/gemini-1.5-flash"},
             request=mock_request,
@@ -546,7 +546,7 @@ class TestProxyBaseLLMRequestProcessing:
         proxy_logging_obj.post_call_response_headers_hook.assert_awaited_once()
 
     @pytest.mark.asyncio
-    async def test_build_litellm_proxy_success_headers_streaming_style_iterator(self):
+    async def test_build_gateway_proxy_success_headers_streaming_style_iterator(self):
         """AsyncGoogleGenAIGenerateContentStreamingIterator sets _hidden_params at init; headers must propagate."""
 
         class _FakeStreamLike:
@@ -577,7 +577,7 @@ class TestProxyBaseLLMRequestProcessing:
         proxy_logging_obj = MagicMock(spec=ProxyLogging)
         proxy_logging_obj.post_call_response_headers_hook = AsyncMock(return_value={})
 
-        headers = await ProxyBaseLLMRequestProcessing.build_litellm_proxy_success_headers_from_llm_response(
+        headers = await ProxyBaseLLMRequestProcessing.build_gateway_proxy_success_headers_from_llm_response(
             response=_FakeStreamLike(),
             request_data={"model": "gemini/gemini-2.0-flash"},
             request=mock_request,
@@ -592,7 +592,7 @@ class TestProxyBaseLLMRequestProcessing:
         assert headers["llm_provider-x"] == "y"
 
     @pytest.mark.asyncio
-    async def test_build_litellm_proxy_success_headers_no_hidden_params_metadata_fallback(
+    async def test_build_gateway_proxy_success_headers_no_hidden_params_metadata_fallback(
         self,
     ):
         """When response has no _hidden_params, model_id can still come from litellm_metadata."""
@@ -613,7 +613,7 @@ class TestProxyBaseLLMRequestProcessing:
         proxy_logging_obj = MagicMock(spec=ProxyLogging)
         proxy_logging_obj.post_call_response_headers_hook = AsyncMock(return_value={})
 
-        headers = await ProxyBaseLLMRequestProcessing.build_litellm_proxy_success_headers_from_llm_response(
+        headers = await ProxyBaseLLMRequestProcessing.build_gateway_proxy_success_headers_from_llm_response(
             response=_BareResponse(),
             request_data={
                 "model": "gemini/gemini-1.5-flash",
@@ -629,7 +629,7 @@ class TestProxyBaseLLMRequestProcessing:
         assert headers["x-litellm-model-id"] == "meta-model-id"
 
     @pytest.mark.asyncio
-    async def test_add_litellm_data_to_request_with_stream_timeout_header(self):
+    async def test_add_gateway_data_to_request_with_stream_timeout_header(self):
         """
         Test that x-litellm-stream-timeout header gets processed and added to request data
         when calling add_litellm_data_to_request.
@@ -701,7 +701,7 @@ class TestProxyBaseLLMRequestProcessing:
         and included in response headers.
         """
         from token_iq.gateway.core_utils.litellm_logging import (
-            Logging as LiteLLMLoggingObj,
+            Logging as GatewayLoggingObj,
         )
 
         # Create mock user API key dict
@@ -712,7 +712,7 @@ class TestProxyBaseLLMRequestProcessing:
         mock_user_api_key_dict.spend = 0
 
         # Create logging object with cost breakdown including discount
-        logging_obj = LiteLLMLoggingObj(
+        logging_obj = GatewayLoggingObj(
             model="vertex_ai/gemini-pro",
             messages=[{"role": "user", "content": "test"}],
             stream=False,
@@ -756,7 +756,7 @@ class TestProxyBaseLLMRequestProcessing:
         Test that when no discount is applied, discount headers are not included.
         """
         from token_iq.gateway.core_utils.litellm_logging import (
-            Logging as LiteLLMLoggingObj,
+            Logging as GatewayLoggingObj,
         )
 
         # Create mock user API key dict
@@ -767,7 +767,7 @@ class TestProxyBaseLLMRequestProcessing:
         mock_user_api_key_dict.spend = 0
 
         # Create logging object without discount
-        logging_obj = LiteLLMLoggingObj(
+        logging_obj = GatewayLoggingObj(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": "test"}],
             stream=False,
@@ -806,7 +806,7 @@ class TestProxyBaseLLMRequestProcessing:
         Test that margin headers are included when margin is applied.
         """
         from token_iq.gateway.core_utils.litellm_logging import (
-            Logging as LiteLLMLoggingObj,
+            Logging as GatewayLoggingObj,
         )
 
         # Create mock user API key dict
@@ -817,7 +817,7 @@ class TestProxyBaseLLMRequestProcessing:
         mock_user_api_key_dict.spend = 0
 
         # Create logging object with margin
-        logging_obj = LiteLLMLoggingObj(
+        logging_obj = GatewayLoggingObj(
             model="gpt-4",
             messages=[],
             stream=False,
@@ -857,7 +857,7 @@ class TestProxyBaseLLMRequestProcessing:
         Test that when no margin is applied, margin headers are not included.
         """
         from token_iq.gateway.core_utils.litellm_logging import (
-            Logging as LiteLLMLoggingObj,
+            Logging as GatewayLoggingObj,
         )
 
         # Create mock user API key dict
@@ -868,7 +868,7 @@ class TestProxyBaseLLMRequestProcessing:
         mock_user_api_key_dict.spend = 0
 
         # Create logging object without margin
-        logging_obj = LiteLLMLoggingObj(
+        logging_obj = GatewayLoggingObj(
             model="gpt-4",
             messages=[],
             stream=False,
@@ -904,7 +904,7 @@ class TestProxyBaseLLMRequestProcessing:
         reasoning remaining a subset of output.
         """
         from token_iq.gateway.core_utils.litellm_logging import (
-            Logging as LiteLLMLoggingObj,
+            Logging as GatewayLoggingObj,
         )
 
         mock_user_api_key_dict = MagicMock(spec=UserAPIKeyAuth)
@@ -913,7 +913,7 @@ class TestProxyBaseLLMRequestProcessing:
         mock_user_api_key_dict.max_budget = None
         mock_user_api_key_dict.spend = 0
 
-        logging_obj = LiteLLMLoggingObj(
+        logging_obj = GatewayLoggingObj(
             model="gpt-5.4-nano",
             messages=[{"role": "user", "content": "hello"}],
             stream=False,
@@ -983,7 +983,7 @@ class TestProxyBaseLLMRequestProcessing:
     def test_get_custom_headers_without_cost_breakdown_omits_component_headers(self):
         """Test that when litellm_logging_obj has no cost_breakdown, component headers are omitted."""
         from token_iq.gateway.core_utils.litellm_logging import (
-            Logging as LiteLLMLoggingObj,
+            Logging as GatewayLoggingObj,
         )
 
         mock_user_api_key_dict = MagicMock(spec=UserAPIKeyAuth)
@@ -992,7 +992,7 @@ class TestProxyBaseLLMRequestProcessing:
         mock_user_api_key_dict.max_budget = None
         mock_user_api_key_dict.spend = 0
 
-        logging_obj = LiteLLMLoggingObj(
+        logging_obj = GatewayLoggingObj(
             model="gpt-4",
             messages=[],
             stream=False,
@@ -1019,7 +1019,7 @@ class TestProxyBaseLLMRequestProcessing:
     def test_get_custom_headers_per_component_with_discount_and_margin(self):
         """Test that component headers co-exist accurately with discount and margin headers."""
         from token_iq.gateway.core_utils.litellm_logging import (
-            Logging as LiteLLMLoggingObj,
+            Logging as GatewayLoggingObj,
         )
 
         mock_user_api_key_dict = MagicMock(spec=UserAPIKeyAuth)
@@ -1028,7 +1028,7 @@ class TestProxyBaseLLMRequestProcessing:
         mock_user_api_key_dict.max_budget = None
         mock_user_api_key_dict.spend = 0
 
-        logging_obj = LiteLLMLoggingObj(
+        logging_obj = GatewayLoggingObj(
             model="gpt-4",
             messages=[],
             stream=False,
@@ -1130,11 +1130,11 @@ class TestProxyBaseLLMRequestProcessing:
         Test the helper function that extracts cost breakdown information.
         """
         from token_iq.gateway.core_utils.litellm_logging import (
-            Logging as LiteLLMLoggingObj,
+            Logging as GatewayLoggingObj,
         )
 
         # Test with discount info
-        logging_obj = LiteLLMLoggingObj(
+        logging_obj = GatewayLoggingObj(
             model="vertex_ai/gemini-pro",
             messages=[{"role": "user", "content": "test"}],
             stream=False,
@@ -1163,7 +1163,7 @@ class TestProxyBaseLLMRequestProcessing:
         assert breakdown.tool_usage_cost == 0.0
 
         # Test with margin info
-        logging_obj_with_margin = LiteLLMLoggingObj(
+        logging_obj_with_margin = GatewayLoggingObj(
             model="gpt-4",
             messages=[{"role": "user", "content": "test"}],
             stream=False,
@@ -1189,7 +1189,7 @@ class TestProxyBaseLLMRequestProcessing:
         assert breakdown_with_margin.margin_percent == 0.10
 
         # Test with no discount or margin info
-        logging_obj_no_discount = LiteLLMLoggingObj(
+        logging_obj_no_discount = GatewayLoggingObj(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": "test"}],
             stream=False,
@@ -1214,7 +1214,7 @@ class TestProxyBaseLLMRequestProcessing:
         assert breakdown_no_discount.output_cost == 0.00005
 
         # Test that cache components stored nested inside input_cost are subtracted out
-        logging_obj_with_cache = LiteLLMLoggingObj(
+        logging_obj_with_cache = GatewayLoggingObj(
             model="claude-haiku-4-5",
             messages=[{"role": "user", "content": "test"}],
             stream=False,
@@ -1348,7 +1348,7 @@ class TestProxyBaseLLMRequestProcessing:
         mock_request.url = MagicMock()
         mock_request.url.path = "/v1/chat/completions"
 
-        async def mock_add_litellm_data_to_request(*args, **kwargs):
+        async def mock_add_gateway_data_to_request(*args, **kwargs):
             data = kwargs.get("data", args[0] if args else {})
             # Simulate what add_litellm_data_to_request does: set arrival_time
             import time
@@ -1371,7 +1371,7 @@ class TestProxyBaseLLMRequestProcessing:
         monkeypatch.setattr(
             gateway.proxy.common_request_processing,
             "add_litellm_data_to_request",
-            mock_add_litellm_data_to_request,
+            mock_add_gateway_data_to_request,
         )
         mock_general_settings = {}
         mock_user_api_key_dict = MagicMock(spec=UserAPIKeyAuth)
@@ -2552,9 +2552,9 @@ class TestStreamingOverheadHeader:
 
     @staticmethod
     def _timing_logging_obj(timing_metrics):
-        from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+        from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 
-        logging_obj = LiteLLMLoggingObj(
+        logging_obj = GatewayLoggingObj(
             model="openai/gpt-4o-mini",
             messages=[{"role": "user", "content": "hi"}],
             stream=True,
@@ -5132,7 +5132,7 @@ class TestResponseCostHeaderForTypedDictResponses:
         cost was 0.0 and the header was dropped even though the async logging path
         billed a real non-zero amount. The header must now carry the true cost.
         """
-        from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+        from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
         from token_iq.gateway.types.llms.vertex_ai import GenerateContentResponseBody
         from token_iq.gateway.types.utils import ModelResponse, Usage
 
@@ -5145,7 +5145,7 @@ class TestResponseCostHeaderForTypedDictResponses:
             },
         )
 
-        real_logging = LiteLLMLoggingObj(
+        real_logging = GatewayLoggingObj(
             model="gemini-2.5-flash",
             messages=[{"role": "user", "content": "hi"}],
             stream=False,
@@ -6622,7 +6622,7 @@ class TestPerRequestModelGroupAlias:
         mock_request = MagicMock(spec=Request)
         mock_request.headers = {}
 
-        async def mock_add_litellm_data_to_request(*args, **kwargs):
+        async def mock_add_gateway_data_to_request(*args, **kwargs):
             return kwargs.get("data", {})
 
         async def passthrough_pre_call_hook(user_api_key_dict, data, call_type):
@@ -6633,7 +6633,7 @@ class TestPerRequestModelGroupAlias:
         monkeypatch.setattr(
             gateway.proxy.common_request_processing,
             "add_litellm_data_to_request",
-            mock_add_litellm_data_to_request,
+            mock_add_gateway_data_to_request,
         )
         monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock())
 
@@ -6671,7 +6671,7 @@ class TestPerRequestModelGroupAlias:
         mock_request = MagicMock(spec=Request)
         mock_request.headers = {}
 
-        async def mock_add_litellm_data_to_request(*args, **kwargs):
+        async def mock_add_gateway_data_to_request(*args, **kwargs):
             return kwargs.get("data", {})
 
         async def passthrough_pre_call_hook(user_api_key_dict, data, call_type):
@@ -6682,7 +6682,7 @@ class TestPerRequestModelGroupAlias:
         monkeypatch.setattr(
             gateway.proxy.common_request_processing,
             "add_litellm_data_to_request",
-            mock_add_litellm_data_to_request,
+            mock_add_gateway_data_to_request,
         )
         monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock())
         monkeypatch.setattr(
@@ -6710,7 +6710,7 @@ class TestPerRequestModelGroupAlias:
         mock_request = MagicMock(spec=Request)
         mock_request.headers = {}
 
-        async def mock_add_litellm_data_to_request(*args, **kwargs):
+        async def mock_add_gateway_data_to_request(*args, **kwargs):
             return kwargs.get("data", {})
 
         async def passthrough_pre_call_hook(user_api_key_dict, data, call_type):
@@ -6721,7 +6721,7 @@ class TestPerRequestModelGroupAlias:
         monkeypatch.setattr(
             gateway.proxy.common_request_processing,
             "add_litellm_data_to_request",
-            mock_add_litellm_data_to_request,
+            mock_add_gateway_data_to_request,
         )
         monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock())
 
@@ -6993,11 +6993,11 @@ class TestInjectCostIntoUsageDict:
         """Pricing runs against the live logging object, and the pass-through handlers never
         recompute cost_breakdown, so a frame-derived breakdown would reach the spend log."""
         from token_iq.gateway.core_utils.litellm_logging import (
-            Logging as LiteLLMLoggingObj,
+            Logging as GatewayLoggingObj,
         )
         from token_iq.gateway.types.utils import ModelResponse, Usage
 
-        logging_obj = LiteLLMLoggingObj(
+        logging_obj = GatewayLoggingObj(
             model="claude-haiku-4-5",
             messages=[{"role": "user", "content": "test"}],
             stream=True,
@@ -7021,11 +7021,11 @@ class TestInjectCostIntoUsageDict:
 
     def test_pricing_a_frame_restores_a_breakdown_the_request_already_had(self):
         from token_iq.gateway.core_utils.litellm_logging import (
-            Logging as LiteLLMLoggingObj,
+            Logging as GatewayLoggingObj,
         )
         from token_iq.gateway.types.utils import ModelResponse, Usage
 
-        logging_obj = LiteLLMLoggingObj(
+        logging_obj = GatewayLoggingObj(
             model="claude-haiku-4-5",
             messages=[{"role": "user", "content": "test"}],
             stream=True,

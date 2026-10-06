@@ -28,7 +28,7 @@ from token_iq.gateway.core_utils.internal_call_metadata import is_unbilled_non_i
 from token_iq.gateway.core_utils.litellm_logging import (
     coerce_model_access_groups,
     is_valid_sha256_hash,
-    request_model_access_groups_from_litellm_params,
+    request_model_access_groups_from_gateway_params,
 )
 from token_iq.gateway.core_utils.safe_json_dumps import safe_dumps, strip_null_bytes
 from token_iq.gateway.proxy._types import SpendLogsMetadata, SpendLogsPayload, SpendLogsRouterMetadata
@@ -318,7 +318,7 @@ def get_request_model_access_groups(kwargs: Mapping[str, object] | None) -> tupl
     litellm_params: Final = kwargs.get("litellm_params")
     if not isinstance(litellm_params, Mapping):
         return ()
-    return request_model_access_groups_from_litellm_params(litellm_params)
+    return request_model_access_groups_from_gateway_params(litellm_params)
 
 
 def _provider_credential_that_paid(litellm_params: Mapping[str, object], model_id: str) -> str:

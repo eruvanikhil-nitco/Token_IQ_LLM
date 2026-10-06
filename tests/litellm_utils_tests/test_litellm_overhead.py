@@ -60,7 +60,7 @@ def _stream_payload(response_id="chatcmpl-stream"):
 def _mock_openai_completion_transport(
     monkeypatch, *, stream=False, response_id="chatcmpl-test"
 ):
-    from token_iq.gateway.llms.custom_httpx.aiohttp_transport import LiteLLMAiohttpTransport
+    from token_iq.gateway.llms.custom_httpx.aiohttp_transport import GatewayAiohttpTransport
 
     calls = {"count": 0}
 
@@ -79,7 +79,7 @@ def _mock_openai_completion_transport(
         )
 
     monkeypatch.setattr(
-        LiteLLMAiohttpTransport,
+        GatewayAiohttpTransport,
         "handle_async_request",
         delayed_response,
     )
@@ -87,17 +87,17 @@ def _mock_openai_completion_transport(
 
 
 def _assert_overhead_is_smaller_than_total(response, total_time_ms):
-    litellm_overhead_ms = response._hidden_params["litellm_overhead_time_ms"]
-    overhead_percent = litellm_overhead_ms * 100 / total_time_ms
+    gateway_overhead_ms = response._hidden_params["litellm_overhead_time_ms"]
+    overhead_percent = gateway_overhead_ms * 100 / total_time_ms
 
-    assert litellm_overhead_ms > 0
-    assert litellm_overhead_ms < 1000
-    assert litellm_overhead_ms < total_time_ms
+    assert gateway_overhead_ms > 0
+    assert gateway_overhead_ms < 1000
+    assert gateway_overhead_ms < total_time_ms
     assert overhead_percent < 40
 
 
 @pytest.fixture(autouse=True)
-def reset_litellm_state():
+def reset_gateway_state():
     gateway.cache = None
     gateway.success_callback = []
     gateway._async_success_callback = []
@@ -109,7 +109,7 @@ def reset_litellm_state():
 
 
 @pytest.mark.asyncio
-async def test_litellm_overhead_non_streaming(monkeypatch):
+async def test_gateway_overhead_non_streaming(monkeypatch):
     calls = _mock_openai_completion_transport(
         monkeypatch, response_id="chatcmpl-non-stream"
     )
@@ -128,7 +128,7 @@ async def test_litellm_overhead_non_streaming(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_litellm_overhead_stream(monkeypatch):
+async def test_gateway_overhead_stream(monkeypatch):
     calls = _mock_openai_completion_transport(
         monkeypatch, stream=True, response_id="chatcmpl-stream"
     )
@@ -152,7 +152,7 @@ async def test_litellm_overhead_stream(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_litellm_overhead_cache_hit(monkeypatch):
+async def test_gateway_overhead_cache_hit(monkeypatch):
     from token_iq.gateway.caching.caching import Cache
 
     calls = _mock_openai_completion_transport(monkeypatch, response_id="chatcmpl-cache")

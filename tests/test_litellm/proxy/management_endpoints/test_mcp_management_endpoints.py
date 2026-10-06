@@ -20,7 +20,7 @@ from token_iq.gateway.proxy.management_endpoints import (
 
 from token_iq.gateway.proxy._types import (
     LiteLLM_MCPServerTable,
-    LitellmUserRoles,
+    GatewayUserRoles,
     MCPTransport,
     NewMCPServerRequest,
     UpdateMCPServerRequest,
@@ -85,7 +85,7 @@ def _make_mock_request(ip: str = "127.0.0.1"):
 
 
 def generate_mock_user_api_key_auth(
-    user_role: LitellmUserRoles = LitellmUserRoles.PROXY_ADMIN,
+    user_role: GatewayUserRoles = GatewayUserRoles.PROXY_ADMIN,
     user_id: str = "test_user_id",
     api_key: str = "test_api_key",
     team_id: Optional[str] = None,
@@ -286,7 +286,7 @@ class TestListMCPServers:
     async def test_list_mcp_servers_view_all_mode(self):
         """Users should see all MCP servers when view_all mode is enabled."""
 
-        mock_user_auth = generate_mock_user_api_key_auth(user_role=LitellmUserRoles.INTERNAL_USER)
+        mock_user_auth = generate_mock_user_api_key_auth(user_role=GatewayUserRoles.INTERNAL_USER)
 
         mock_servers = [
             generate_mock_mcp_server_db_record(server_id="server-1", alias="One"),
@@ -320,7 +320,7 @@ class TestListMCPServers:
         """Issue #20325: virtual keys should get a safe discovery view."""
 
         mock_user_auth = UserAPIKeyAuth(
-            user_role=LitellmUserRoles.INTERNAL_USER,
+            user_role=GatewayUserRoles.INTERNAL_USER,
             user_id="test_user_id",
             api_key="test_api_key",
             allowed_routes=["mcp_routes"],
@@ -565,7 +565,7 @@ class TestListMCPServers:
             mcp_servers=[db_server_allowed],  # Only the allowed DB server
         )
         mock_user_auth = generate_mock_user_api_key_auth(
-            user_role=LitellmUserRoles.INTERNAL_USER,  # Non-admin user
+            user_role=GatewayUserRoles.INTERNAL_USER,  # Non-admin user
             team_id="team_123",
         )
 
@@ -669,7 +669,7 @@ class TestListMCPServers:
 
         # Create admin user with object permission
         mock_user_auth = UserAPIKeyAuth(
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
             user_id="admin_user_id",
             api_key="admin_api_key",
             object_permission=mock_object_permission,
@@ -725,7 +725,7 @@ class TestListMCPServers:
         mock_health_result.last_health_check = datetime.now()
         mock_health_result.health_check_error = None
 
-        mock_user_auth = generate_mock_user_api_key_auth(user_role=LitellmUserRoles.PROXY_ADMIN)
+        mock_user_auth = generate_mock_user_api_key_auth(user_role=GatewayUserRoles.PROXY_ADMIN)
 
         with (
             patch(
@@ -772,7 +772,7 @@ class TestListMCPServers:
         mock_health_result.status = "healthy"
         mock_health_result.last_health_check = datetime.now()
         mock_health_result.health_check_error = None
-        mock_user_auth = generate_mock_user_api_key_auth(user_role=LitellmUserRoles.PROXY_ADMIN)
+        mock_user_auth = generate_mock_user_api_key_auth(user_role=GatewayUserRoles.PROXY_ADMIN)
 
         with (
             patch(
@@ -829,7 +829,7 @@ class TestListMCPServers:
         mock_health_result.status = "healthy"
         mock_health_result.last_health_check = datetime.now()
         mock_health_result.health_check_error = None
-        mock_user_auth = generate_mock_user_api_key_auth(user_role=LitellmUserRoles.PROXY_ADMIN)
+        mock_user_auth = generate_mock_user_api_key_auth(user_role=GatewayUserRoles.PROXY_ADMIN)
 
         with (
             patch(
@@ -873,7 +873,7 @@ class TestListMCPServers:
         mock_health_result.status = "healthy"
         mock_health_result.last_health_check = datetime.now()
         mock_health_result.health_check_error = None
-        mock_user_auth = generate_mock_user_api_key_auth(user_role=LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY)
+        mock_user_auth = generate_mock_user_api_key_auth(user_role=GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY)
 
         with (
             patch(
@@ -919,7 +919,7 @@ class TestListMCPServers:
         mock_health_result.last_health_check = datetime.now()
         mock_health_result.health_check_error = None
 
-        mock_user_auth = generate_mock_user_api_key_auth(user_role=LitellmUserRoles.PROXY_ADMIN)
+        mock_user_auth = generate_mock_user_api_key_auth(user_role=GatewayUserRoles.PROXY_ADMIN)
 
         with (
             patch(
@@ -988,7 +988,7 @@ class TestListMCPServers:
         mock_manager.get_allowed_mcp_servers = AsyncMock(return_value=["serper_custom_dev"])
         mock_manager.health_check_server = AsyncMock(return_value=mock_health_result)
 
-        mock_user_auth = generate_mock_user_api_key_auth(user_role=LitellmUserRoles.PROXY_ADMIN)
+        mock_user_auth = generate_mock_user_api_key_auth(user_role=GatewayUserRoles.PROXY_ADMIN)
 
         with (
             patch(
@@ -1052,7 +1052,7 @@ class TestListMCPServers:
             return_value=generate_mock_mcp_server_db_record(server_id="serper_custom_dev", alias="Serper MCP")
         )
 
-        mock_user_auth = generate_mock_user_api_key_auth(user_role=LitellmUserRoles.PROXY_ADMIN)
+        mock_user_auth = generate_mock_user_api_key_auth(user_role=GatewayUserRoles.PROXY_ADMIN)
 
         with (
             patch(
@@ -1115,7 +1115,7 @@ class TestListMCPServers:
             return_value=["other_server"]  # restricted_server NOT in list
         )
 
-        mock_user_auth = generate_mock_user_api_key_auth(user_role=LitellmUserRoles.INTERNAL_USER)
+        mock_user_auth = generate_mock_user_api_key_auth(user_role=GatewayUserRoles.INTERNAL_USER)
 
         with (
             patch(
@@ -1182,7 +1182,7 @@ class TestListMCPServers:
         mock_manager.get_allowed_mcp_servers = AsyncMock(return_value=["allowed_config_server"])
         mock_manager.health_check_server = AsyncMock(return_value=mock_health_result)
 
-        mock_user_auth = generate_mock_user_api_key_auth(user_role=LitellmUserRoles.INTERNAL_USER)
+        mock_user_auth = generate_mock_user_api_key_auth(user_role=GatewayUserRoles.INTERNAL_USER)
 
         with (
             patch(
@@ -1264,7 +1264,7 @@ class TestListMCPServers:
         mock_manager.add_server = AsyncMock()
         mock_manager.health_check_server = AsyncMock(return_value=mock_health_result)
 
-        mock_user_auth = generate_mock_user_api_key_auth(user_role=LitellmUserRoles.INTERNAL_USER)
+        mock_user_auth = generate_mock_user_api_key_auth(user_role=GatewayUserRoles.INTERNAL_USER)
 
         with (
             patch(
@@ -1331,7 +1331,7 @@ class TestListMCPServers:
         mock_manager.add_server = AsyncMock()
         mock_manager.health_check_server = AsyncMock(return_value=mock_health_result)
 
-        mock_user_auth = generate_mock_user_api_key_auth(user_role=LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY)
+        mock_user_auth = generate_mock_user_api_key_auth(user_role=GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY)
 
         with (
             patch(
@@ -1389,7 +1389,7 @@ class TestListMCPServers:
         mock_manager.add_server = AsyncMock()
         mock_manager.health_check_server = AsyncMock(return_value=mock_health_result)
 
-        mock_user_auth = generate_mock_user_api_key_auth(user_role=LitellmUserRoles.PROXY_ADMIN)
+        mock_user_auth = generate_mock_user_api_key_auth(user_role=GatewayUserRoles.PROXY_ADMIN)
 
         with (
             patch(
@@ -1430,7 +1430,7 @@ class TestTeamScopedMCPServerAccess:
         from token_iq.gateway.proxy._types import Member
 
         mock_user_auth = generate_mock_user_api_key_auth(
-            user_role=LitellmUserRoles.INTERNAL_USER,
+            user_role=GatewayUserRoles.INTERNAL_USER,
             user_id="attacker_user",
         )
 
@@ -1465,7 +1465,7 @@ class TestTeamScopedMCPServerAccess:
         from token_iq.gateway.proxy._types import Member
 
         mock_user_auth = generate_mock_user_api_key_auth(
-            user_role=LitellmUserRoles.INTERNAL_USER,
+            user_role=GatewayUserRoles.INTERNAL_USER,
             user_id="team_member",
         )
 
@@ -1512,7 +1512,7 @@ class TestTeamScopedMCPServerAccess:
     async def test_admin_can_query_any_team(self):
         """Proxy admins should be able to query any team's MCP servers."""
         mock_user_auth = generate_mock_user_api_key_auth(
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
             user_id="admin_user",
         )
 
@@ -1538,7 +1538,7 @@ class TestTeamScopedMCPServerAccess:
     async def test_restricted_virtual_key_cannot_use_team_id_filter(self):
         """Restricted virtual keys must not bypass access limits via team_id."""
         mock_user_auth = UserAPIKeyAuth(
-            user_role=LitellmUserRoles.INTERNAL_USER,
+            user_role=GatewayUserRoles.INTERNAL_USER,
             user_id="vkey_user",
             api_key="sk-restricted",
             allowed_routes=["mcp_routes"],
@@ -2099,7 +2099,7 @@ class TestTemporaryMCPSessionEndpoints:
 
         server = generate_mock_mcp_server_config_record(server_id="cached")
         admin_auth = generate_mock_user_api_key_auth(
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
         )
 
         with patch(
@@ -2129,7 +2129,7 @@ class TestTemporaryMCPSessionEndpoints:
 
         registry_server = generate_mock_mcp_server_config_record(server_id="server-x")
         non_admin = generate_mock_user_api_key_auth(
-            user_role=LitellmUserRoles.INTERNAL_USER,
+            user_role=GatewayUserRoles.INTERNAL_USER,
         )
         mock_manager = MagicMock()
         mock_manager.get_mcp_server_by_id.return_value = registry_server
@@ -2165,7 +2165,7 @@ class TestTemporaryMCPSessionEndpoints:
 
         registry_server = generate_mock_mcp_server_config_record(server_id="server-x")
         non_admin = generate_mock_user_api_key_auth(
-            user_role=LitellmUserRoles.INTERNAL_USER,
+            user_role=GatewayUserRoles.INTERNAL_USER,
         )
         mock_manager = MagicMock()
         mock_manager.get_mcp_server_by_id.return_value = registry_server
@@ -2206,7 +2206,7 @@ class TestTemporaryMCPSessionEndpoints:
 
         registry_server = generate_mock_mcp_server_config_record(server_id="server-x")
         ui_session_auth = generate_mock_user_api_key_auth(
-            user_role=LitellmUserRoles.INTERNAL_USER,
+            user_role=GatewayUserRoles.INTERNAL_USER,
             team_id=UI_SESSION_TOKEN_TEAM_ID,
         )
         team_context = ui_session_auth.model_copy()
@@ -2249,7 +2249,7 @@ class TestTemporaryMCPSessionEndpoints:
 
         temp_server = generate_mock_mcp_server_config_record(server_id="temp-cache")
         non_admin = generate_mock_user_api_key_auth(
-            user_role=LitellmUserRoles.INTERNAL_USER,
+            user_role=GatewayUserRoles.INTERNAL_USER,
         )
 
         with patch(
@@ -2275,7 +2275,7 @@ class TestTemporaryMCPSessionEndpoints:
             transport=MCPTransport.http,
         )
         user_auth = generate_mock_user_api_key_auth(
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
             user_id="admin-user",
         )
         inherited_server = MagicMock(
@@ -2351,7 +2351,7 @@ class TestTemporaryMCPSessionEndpoints:
             transport=MCPTransport.http,
         )
         non_admin = generate_mock_user_api_key_auth(
-            user_role=LitellmUserRoles.INTERNAL_USER,
+            user_role=GatewayUserRoles.INTERNAL_USER,
         )
 
         with patch(
@@ -2397,7 +2397,7 @@ class TestTemporaryMCPSessionEndpoints:
         mock_request.cookies = {"token": token_cookie}
 
         expected_auth = generate_mock_user_api_key_auth(
-            user_role=LitellmUserRoles.PROXY_ADMIN, api_key=api_key_in_cookie
+            user_role=GatewayUserRoles.PROXY_ADMIN, api_key=api_key_in_cookie
         )
         fake_proxy_server = types.SimpleNamespace(master_key=master_key)
 
@@ -2431,7 +2431,7 @@ class TestTemporaryMCPSessionEndpoints:
             _mcp_oauth_user_api_key_auth,
         )
 
-        expected_auth = generate_mock_user_api_key_auth(user_role=LitellmUserRoles.PROXY_ADMIN)
+        expected_auth = generate_mock_user_api_key_auth(user_role=GatewayUserRoles.PROXY_ADMIN)
         mock_request = MagicMock()
         mock_request.headers = {"Authorization": "Bearer sk-header-key"}
         mock_request.cookies = {}
@@ -2465,7 +2465,7 @@ class TestTemporaryMCPSessionEndpoints:
             _mcp_oauth_user_api_key_auth,
         )
 
-        expected_auth = generate_mock_user_api_key_auth(user_role=LitellmUserRoles.PROXY_ADMIN)
+        expected_auth = generate_mock_user_api_key_auth(user_role=GatewayUserRoles.PROXY_ADMIN)
         mock_request = MagicMock()
         mock_request.headers = {}
         mock_request.cookies = {}
@@ -2513,7 +2513,7 @@ class TestTemporaryMCPSessionEndpoints:
             _mcp_oauth_user_api_key_auth,
         )
 
-        expected_auth = generate_mock_user_api_key_auth(user_role=LitellmUserRoles.PROXY_ADMIN)
+        expected_auth = generate_mock_user_api_key_auth(user_role=GatewayUserRoles.PROXY_ADMIN)
         mock_request = MagicMock()
         mock_request.headers = {}
         mock_request.cookies = {}
@@ -2596,7 +2596,7 @@ class TestTemporaryMCPSessionEndpoints:
         server.auth_type = MCPAuth.oauth2
         authorize_response = MagicMock()
         admin_auth = generate_mock_user_api_key_auth(
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
         )
 
         with (
@@ -2648,7 +2648,7 @@ class TestTemporaryMCPSessionEndpoints:
         )
 
         request = MagicMock()
-        admin_auth = generate_mock_user_api_key_auth(user_role=LitellmUserRoles.PROXY_ADMIN)
+        admin_auth = generate_mock_user_api_key_auth(user_role=GatewayUserRoles.PROXY_ADMIN)
         patches = [
             patch(
                 "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints._get_cached_temporary_mcp_server_or_404",
@@ -2749,7 +2749,7 @@ class TestTemporaryMCPSessionEndpoints:
         server.authorization_url = "https://idp.example.com/authorize"
         server.registration_url = "https://idp.example.com/register"
         mint_mock = AsyncMock()
-        admin_auth = generate_mock_user_api_key_auth(user_role=LitellmUserRoles.PROXY_ADMIN)
+        admin_auth = generate_mock_user_api_key_auth(user_role=GatewayUserRoles.PROXY_ADMIN)
         request = MagicMock()
         request.base_url = "https://litellm.example.com/"
         request.headers = {}
@@ -2897,7 +2897,7 @@ class TestTemporaryMCPSessionEndpoints:
         request.headers = {}
         server = generate_mock_mcp_server_config_record(server_id="server-1")
         server.auth_type = MCPAuth.true_passthrough
-        admin_auth = generate_mock_user_api_key_auth(user_role=LitellmUserRoles.PROXY_ADMIN)
+        admin_auth = generate_mock_user_api_key_auth(user_role=GatewayUserRoles.PROXY_ADMIN)
 
         with (
             patch("token_iq.gateway.proxy.proxy_server.master_key", "sk-lit4581-test-master-key"),
@@ -2956,7 +2956,7 @@ class TestTemporaryMCPSessionEndpoints:
         request.headers = {}
         server = generate_mock_mcp_server_config_record(server_id="server-1")
         server.auth_type = MCPAuth.true_passthrough
-        admin_auth = generate_mock_user_api_key_auth(user_role=LitellmUserRoles.PROXY_ADMIN)
+        admin_auth = generate_mock_user_api_key_auth(user_role=GatewayUserRoles.PROXY_ADMIN)
 
         with (
             patch("token_iq.gateway.proxy.proxy_server.master_key", "sk-lit4581-test-master-key"),
@@ -3010,7 +3010,7 @@ class TestTemporaryMCPSessionEndpoints:
         request = MagicMock()
         server = generate_mock_mcp_server_config_record(server_id="server-1")
         server.auth_type = MCPAuth.true_passthrough
-        admin_auth = generate_mock_user_api_key_auth(user_role=LitellmUserRoles.PROXY_ADMIN)
+        admin_auth = generate_mock_user_api_key_auth(user_role=GatewayUserRoles.PROXY_ADMIN)
 
         with (
             patch("token_iq.gateway.proxy.proxy_server.master_key", "sk-lit4581-test-master-key"),
@@ -3060,7 +3060,7 @@ class TestTemporaryMCPSessionEndpoints:
         request = MagicMock()
         server = generate_mock_mcp_server_config_record(server_id="server-1")
         server.auth_type = MCPAuth.true_passthrough
-        admin_auth = generate_mock_user_api_key_auth(user_role=LitellmUserRoles.PROXY_ADMIN)
+        admin_auth = generate_mock_user_api_key_auth(user_role=GatewayUserRoles.PROXY_ADMIN)
 
         with (
             patch("token_iq.gateway.proxy.proxy_server.master_key", "sk-lit4581-test-master-key"),
@@ -3108,7 +3108,7 @@ class TestTemporaryMCPSessionEndpoints:
         server = generate_mock_mcp_server_config_record(server_id="none-server")
         server.auth_type = MCPAuth.none
         admin_auth = generate_mock_user_api_key_auth(
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
         )
 
         with (
@@ -3148,7 +3148,7 @@ class TestTemporaryMCPSessionEndpoints:
         server = generate_mock_mcp_server_config_record(server_id="none-server")
         server.auth_type = MCPAuth.none
         admin_auth = generate_mock_user_api_key_auth(
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
         )
 
         with (
@@ -3193,7 +3193,7 @@ class TestTemporaryMCPSessionEndpoints:
         server.auth_type = MCPAuth.oauth2
         exchange_response = {"access_token": "token"}
         admin_auth = generate_mock_user_api_key_auth(
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
         )
 
         with (
@@ -3247,7 +3247,7 @@ class TestTemporaryMCPSessionEndpoints:
         server.auth_type = MCPAuth.oauth2
         exchange_response = {"access_token": "new-token", "refresh_token": "new-rt"}
         admin_auth = generate_mock_user_api_key_auth(
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
         )
 
         with (
@@ -3301,13 +3301,13 @@ class TestTemporaryMCPSessionEndpoints:
         server.auth_type = MCPAuth.oauth2
         register_response = {"client_id": "generated"}
         request_body = {
-            "client_name": "LiteLLM",
+            "client_name": "Gateway",
             "grant_types": ["authorization_code"],
             "response_types": ["code"],
             "token_endpoint_auth_method": "client_secret_basic",
         }
         admin_auth = generate_mock_user_api_key_auth(
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
         )
 
         with (
@@ -3336,7 +3336,7 @@ class TestTemporaryMCPSessionEndpoints:
         register_mock.assert_awaited_once_with(
             request=request,
             mcp_server=server,
-            client_name="LiteLLM",
+            client_name="Gateway",
             grant_types=["authorization_code"],
             response_types=["code"],
             token_endpoint_auth_method="client_secret_basic",
@@ -3370,8 +3370,8 @@ class TestTemporaryMCPSessionEndpoints:
         request = MagicMock()
         server = generate_mock_mcp_server_config_record(server_id="server-1")
         server.auth_type = MCPAuth.oauth2
-        request_body = {"client_name": "LiteLLM", "redirect_uris": raw_redirect_uris}
-        admin_auth = generate_mock_user_api_key_auth(user_role=LitellmUserRoles.PROXY_ADMIN)
+        request_body = {"client_name": "Gateway", "redirect_uris": raw_redirect_uris}
+        admin_auth = generate_mock_user_api_key_auth(user_role=GatewayUserRoles.PROXY_ADMIN)
 
         with (
             patch(
@@ -3409,13 +3409,13 @@ class TestTemporaryMCPSessionEndpoints:
         server = generate_mock_mcp_server_config_record(server_id="server-1")
         register_response = {"client_id": "generated"}
         request_body = {
-            "client_name": "LiteLLM",
+            "client_name": "Gateway",
             "grant_types": ["authorization_code"],
             "response_types": ["code"],
             "token_endpoint_auth_method": "client_secret_basic",
         }
         non_admin_auth = generate_mock_user_api_key_auth(
-            user_role=LitellmUserRoles.INTERNAL_USER,
+            user_role=GatewayUserRoles.INTERNAL_USER,
         )
 
         with (
@@ -3696,7 +3696,7 @@ class TestUpdateMCPServer:
         mock_prisma_client.db.litellm_mcpservertable.find_unique = AsyncMock(return_value=existing_server)
         mock_prisma_client.db.litellm_mcpservertable.update = AsyncMock(return_value=updated_server)
 
-        mock_user_auth = generate_mock_user_api_key_auth(user_role=LitellmUserRoles.PROXY_ADMIN)
+        mock_user_auth = generate_mock_user_api_key_auth(user_role=GatewayUserRoles.PROXY_ADMIN)
 
         # Mock the update_mcp_server function to capture the call
         with (
@@ -3766,7 +3766,7 @@ class TestAddMCPServerAtomicity:
             url="https://echo.example.com/mcp",
             transport=MCPTransport.http,
         )
-        admin = generate_mock_user_api_key_auth(user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin-user")
+        admin = generate_mock_user_api_key_auth(user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin-user")
         created_server = generate_mock_mcp_server_db_record(server_id="created-1", alias="echo")
 
         mock_manager = MagicMock()
@@ -3808,7 +3808,7 @@ class TestAddMCPServerAtomicity:
             url="https://echo.example.com/mcp",
             transport=MCPTransport.http,
         )
-        admin = generate_mock_user_api_key_auth(user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin-user")
+        admin = generate_mock_user_api_key_auth(user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin-user")
 
         mock_manager = MagicMock()
         mock_manager.add_server = AsyncMock()
@@ -4035,7 +4035,7 @@ class TestManagementPayloadValidation:
             health_check_servers,
         )
 
-        mock_user_auth = generate_mock_user_api_key_auth(user_role=LitellmUserRoles.INTERNAL_USER)
+        mock_user_auth = generate_mock_user_api_key_auth(user_role=GatewayUserRoles.INTERNAL_USER)
 
         health_result_one = generate_mock_mcp_server_db_record(server_id="server-1", alias="One")
         health_result_one.status = "healthy"
@@ -4138,7 +4138,7 @@ class TestMCPApprovalWorkflow:
         )
         # No team_id → should raise 400
         user_auth = generate_mock_user_api_key_auth(
-            user_role=LitellmUserRoles.INTERNAL_USER,
+            user_role=GatewayUserRoles.INTERNAL_USER,
             team_id=None,
         )
         with pytest.raises(HTTPException) as exc_info:
@@ -4163,7 +4163,7 @@ class TestMCPApprovalWorkflow:
             args=["-m", "mcp_server_filesystem", "/tmp"],
         )
         user_auth = generate_mock_user_api_key_auth(
-            user_role=LitellmUserRoles.INTERNAL_USER,
+            user_role=GatewayUserRoles.INTERNAL_USER,
             team_id="team-123",
             user_id="user-abc",
         )
@@ -4185,7 +4185,7 @@ class TestMCPApprovalWorkflow:
             transport=MCPTransport.sse,
         )
         user_auth = generate_mock_user_api_key_auth(
-            user_role=LitellmUserRoles.INTERNAL_USER,
+            user_role=GatewayUserRoles.INTERNAL_USER,
             team_id="team-123",
             user_id="user-abc",
         )
@@ -4225,7 +4225,7 @@ class TestMCPApprovalWorkflow:
         )
 
         non_admin = generate_mock_user_api_key_auth(
-            user_role=LitellmUserRoles.INTERNAL_USER,
+            user_role=GatewayUserRoles.INTERNAL_USER,
         )
         with pytest.raises(HTTPException) as exc_info:
             await get_mcp_server_submissions(user_api_key_dict=non_admin)
@@ -4238,7 +4238,7 @@ class TestMCPApprovalWorkflow:
             get_mcp_server_submissions,
         )
 
-        admin = generate_mock_user_api_key_auth(user_role=LitellmUserRoles.PROXY_ADMIN)
+        admin = generate_mock_user_api_key_auth(user_role=GatewayUserRoles.PROXY_ADMIN)
         pending = generate_mock_mcp_server_db_record(alias="Pending")
         pending.approval_status = "pending_review"
         summary = MCPSubmissionsSummary(total=1, pending_review=1, active=0, rejected=0, items=[pending])
@@ -4285,7 +4285,7 @@ class TestMCPApprovalWorkflow:
             ),
         ):
             result = await get_mcp_server_submissions(
-                user_api_key_dict=generate_mock_user_api_key_auth(user_role=LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY),
+                user_api_key_dict=generate_mock_user_api_key_auth(user_role=GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY),
             )
 
         assert len(result.items) == 1
@@ -4325,7 +4325,7 @@ class TestMCPApprovalWorkflow:
             ),
         ):
             result = await get_mcp_server_submissions(
-                user_api_key_dict=generate_mock_user_api_key_auth(user_role=LitellmUserRoles.PROXY_ADMIN),
+                user_api_key_dict=generate_mock_user_api_key_auth(user_role=GatewayUserRoles.PROXY_ADMIN),
             )
 
         assert len(result.items) == 1
@@ -4351,7 +4351,7 @@ class TestMCPApprovalWorkflow:
             approve_mcp_server_submission,
         )
 
-        admin = generate_mock_user_api_key_auth(user_role=LitellmUserRoles.PROXY_ADMIN)
+        admin = generate_mock_user_api_key_auth(user_role=GatewayUserRoles.PROXY_ADMIN)
         active_server = generate_mock_mcp_server_db_record()
         active_server.approval_status = MCPApprovalStatus.active
 
@@ -4376,7 +4376,7 @@ class TestMCPApprovalWorkflow:
             approve_mcp_server_submission,
         )
 
-        admin = generate_mock_user_api_key_auth(user_role=LitellmUserRoles.PROXY_ADMIN)
+        admin = generate_mock_user_api_key_auth(user_role=GatewayUserRoles.PROXY_ADMIN)
         pending_server = generate_mock_mcp_server_db_record()
         pending_server.approval_status = MCPApprovalStatus.pending_review
         approved_server = generate_mock_mcp_server_db_record()
@@ -4418,7 +4418,7 @@ class TestMCPApprovalWorkflow:
             reject_mcp_server_submission,
         )
 
-        admin = generate_mock_user_api_key_auth(user_role=LitellmUserRoles.PROXY_ADMIN)
+        admin = generate_mock_user_api_key_auth(user_role=GatewayUserRoles.PROXY_ADMIN)
         rejected_server = generate_mock_mcp_server_db_record()
         rejected_server.approval_status = MCPApprovalStatus.rejected
 
@@ -4448,7 +4448,7 @@ class TestMCPApprovalWorkflow:
             reject_mcp_server_submission,
         )
 
-        admin = generate_mock_user_api_key_auth(user_role=LitellmUserRoles.PROXY_ADMIN)
+        admin = generate_mock_user_api_key_auth(user_role=GatewayUserRoles.PROXY_ADMIN)
         active_server = generate_mock_mcp_server_db_record()
         active_server.approval_status = MCPApprovalStatus.active
         now_rejected = generate_mock_mcp_server_db_record()
@@ -4576,7 +4576,7 @@ def _make_user_auth(user_id: str = "user-abc") -> "UserAPIKeyAuth":
     return UserAPIKeyAuth(
         api_key="sk-test",
         user_id=user_id,
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
     )
 
 
@@ -4911,7 +4911,7 @@ async def test_list_mcp_servers_non_admin_url_redacted():
     )
 
     user = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="alice",
         api_key="sk-alice",
         # NOT allowed_routes — a normal authenticated user.
@@ -4981,7 +4981,7 @@ async def test_list_mcp_servers_admin_keeps_url():
     )
 
     admin = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
         user_id="root",
         api_key="sk-admin",
     )
@@ -5192,12 +5192,12 @@ async def test_fetch_single_mcp_server_env_vars_full_admin_vs_view_only():
                 user_api_key_dict=generate_mock_user_api_key_auth(user_role=user_role),
             )
 
-    full_admin = await _fetch(LitellmUserRoles.PROXY_ADMIN)
+    full_admin = await _fetch(GatewayUserRoles.PROXY_ADMIN)
     by_name = {ev.name: ev for ev in full_admin.env_vars}
     assert by_name["ADMIN_API_KEY"].value == "super-secret"
     assert by_name["USER_TOKEN"].value == "placeholder-hint"
 
-    view_only = await _fetch(LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY)
+    view_only = await _fetch(GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY)
     assert view_only.env_vars is None
 
     # The source record must never be mutated.
@@ -5230,12 +5230,12 @@ async def test_fetch_all_mcp_servers_env_vars_full_admin_vs_view_only():
                 user_api_key_dict=generate_mock_user_api_key_auth(user_role=user_role),
             )
 
-    full_admin = await _fetch_all(LitellmUserRoles.PROXY_ADMIN)
+    full_admin = await _fetch_all(GatewayUserRoles.PROXY_ADMIN)
     by_name = {ev.name: ev for ev in full_admin[0].env_vars}
     assert by_name["ADMIN_API_KEY"].value == "super-secret"
     assert by_name["USER_TOKEN"].value == "placeholder-hint"
 
-    view_only = await _fetch_all(LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY)
+    view_only = await _fetch_all(GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY)
     assert view_only[0].env_vars is None
 
     assert {ev.name: ev.value for ev in server.env_vars}["ADMIN_API_KEY"] == "super-secret"
@@ -5260,7 +5260,7 @@ def _leaky_list_server() -> "LiteLLM_MCPServerTable":
     )
 
 
-async def _fetch_all_via_view_all(user_role: LitellmUserRoles):
+async def _fetch_all_via_view_all(user_role: GatewayUserRoles):
     """Drive GET /v1/mcp/server in view_all mode for the given role using the
     real role helpers (the full-admin gate is never patched)."""
     server = _leaky_list_server()
@@ -5291,7 +5291,7 @@ async def test_list_mcp_servers_sanitized_for_view_only_admin():
     A mutation swapping _user_is_full_admin() back to _user_has_admin_view()
     (which also grants view-only admins) would return the raw url/headers and
     fail this. The real role helpers are exercised; the gate is not patched."""
-    source, result = await _fetch_all_via_view_all(LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY)
+    source, result = await _fetch_all_via_view_all(GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY)
 
     assert len(result) == 1
     sanitized = result[0]
@@ -5312,7 +5312,7 @@ async def test_list_mcp_servers_full_admin_still_sees_secrets():
     """The view-only redaction must not over-redact for a FULL PROXY_ADMIN,
     who needs url/static_headers to populate the edit form. Only the explicit
     credentials field is cleared for full admins on the list endpoint."""
-    _, result = await _fetch_all_via_view_all(LitellmUserRoles.PROXY_ADMIN)
+    _, result = await _fetch_all_via_view_all(GatewayUserRoles.PROXY_ADMIN)
 
     assert len(result) == 1
     raw = result[0]
@@ -5772,7 +5772,7 @@ class TestListMCPUserEnvVarStatus:
             result = await mgmt_endpoints.list_mcp_user_env_var_status(
                 user_api_key_dict=generate_mock_user_api_key_auth(
                     user_id="admin",
-                    user_role=LitellmUserRoles.PROXY_ADMIN,
+                    user_role=GatewayUserRoles.PROXY_ADMIN,
                 )
             )
         assert [s.server_id for s in result] == ["srv-with"]
@@ -5812,7 +5812,7 @@ class TestMCPUserEnvVarsAccessControl:
                     server_id="srv-1",
                     user_api_key_dict=generate_mock_user_api_key_auth(
                         user_id="alice",
-                        user_role=LitellmUserRoles.INTERNAL_USER,
+                        user_role=GatewayUserRoles.INTERNAL_USER,
                     ),
                 )
         assert exc.value.status_code == 403
@@ -5843,7 +5843,7 @@ class TestMCPUserEnvVarsAccessControl:
                     payload=mgmt_endpoints.MCPUserEnvVarsRequest(values={"CORP_USERNAME": "alice"}),
                     user_api_key_dict=generate_mock_user_api_key_auth(
                         user_id="alice",
-                        user_role=LitellmUserRoles.INTERNAL_USER,
+                        user_role=GatewayUserRoles.INTERNAL_USER,
                     ),
                 )
         assert exc.value.status_code == 403
@@ -5873,7 +5873,7 @@ class TestMCPUserEnvVarsAccessControl:
                     server_id="srv-1",
                     user_api_key_dict=generate_mock_user_api_key_auth(
                         user_id="alice",
-                        user_role=LitellmUserRoles.INTERNAL_USER,
+                        user_role=GatewayUserRoles.INTERNAL_USER,
                     ),
                 )
         assert exc.value.status_code == 403
@@ -5909,7 +5909,7 @@ class TestMCPUserEnvVarsAccessControl:
                 server_id="srv-1",
                 user_api_key_dict=generate_mock_user_api_key_auth(
                     user_id="alice",
-                    user_role=LitellmUserRoles.INTERNAL_USER,
+                    user_role=GatewayUserRoles.INTERNAL_USER,
                 ),
             )
         assert result.server_id == "srv-1"
@@ -5938,7 +5938,7 @@ class TestMCPUserEnvVarsAccessControl:
                 server_id="srv-1",
                 user_api_key_dict=generate_mock_user_api_key_auth(
                     user_id="admin",
-                    user_role=LitellmUserRoles.PROXY_ADMIN,
+                    user_role=GatewayUserRoles.PROXY_ADMIN,
                 ),
             )
         assert result.server_id == "srv-1"
@@ -5974,7 +5974,7 @@ class TestMCPUserEnvVarsAccessControl:
                     server_id="srv-1",
                     user_api_key_dict=generate_mock_user_api_key_auth(
                         user_id="alice",
-                        user_role=LitellmUserRoles.INTERNAL_USER,
+                        user_role=GatewayUserRoles.INTERNAL_USER,
                     ),
                 )
         assert exc.value.status_code == 403
@@ -6135,7 +6135,7 @@ async def test_edit_mcp_server_rejects_dcr_bridge_when_stored_auth_type_not_clie
     p1, p2, p3, p4, p5 = _edit_endpoint_patches(old_record, update_mock)
     with p1, p2, p3, p4, p5:
         payload = UpdateMCPServerRequest(server_id="srv-1", dcr_bridge=True)
-        user_auth = UserAPIKeyAuth(user_id="admin", user_role=LitellmUserRoles.PROXY_ADMIN)
+        user_auth = UserAPIKeyAuth(user_id="admin", user_role=GatewayUserRoles.PROXY_ADMIN)
         with pytest.raises(HTTPException) as exc:
             await edit_mcp_server(payload=payload, user_api_key_dict=user_auth)
 
@@ -6153,7 +6153,7 @@ async def test_edit_mcp_server_rejects_dcr_bridge_when_stored_record_unreadable(
     p1, p2, p3, p4, p5 = _edit_endpoint_patches(RuntimeError("db down"), update_mock)
     with p1, p2, p3, p4, p5:
         payload = UpdateMCPServerRequest(server_id="srv-1", dcr_bridge=True)
-        user_auth = UserAPIKeyAuth(user_id="admin", user_role=LitellmUserRoles.PROXY_ADMIN)
+        user_auth = UserAPIKeyAuth(user_id="admin", user_role=GatewayUserRoles.PROXY_ADMIN)
         with pytest.raises(HTTPException) as exc:
             await edit_mcp_server(payload=payload, user_api_key_dict=user_auth)
 
@@ -6173,7 +6173,7 @@ async def test_edit_mcp_server_dcr_bridge_on_unknown_server_returns_404_not_400(
     p1, p2, p3, p4, p5 = _edit_endpoint_patches(None, update_mock)
     with p1, p2, p3, p4, p5:
         payload = UpdateMCPServerRequest(server_id="does-not-exist", dcr_bridge=True)
-        user_auth = UserAPIKeyAuth(user_id="admin", user_role=LitellmUserRoles.PROXY_ADMIN)
+        user_auth = UserAPIKeyAuth(user_id="admin", user_role=GatewayUserRoles.PROXY_ADMIN)
         with pytest.raises(HTTPException) as exc:
             await edit_mcp_server(payload=payload, user_api_key_dict=user_auth)
 
@@ -6275,7 +6275,7 @@ class TestPerUserCredentialConfigServerResolution:
                     server_id=self.CONFIG_SERVER_ID,
                     payload=mgmt_endpoints.MCPOAuthUserCredentialRequest(access_token="tok", expires_in=3600),
                     user_api_key_dict=generate_mock_user_api_key_auth(
-                        user_id="alice", user_role=LitellmUserRoles.INTERNAL_USER
+                        user_id="alice", user_role=GatewayUserRoles.INTERNAL_USER
                     ),
                 )
         assert exc.value.status_code == 403
@@ -6308,7 +6308,7 @@ class TestPerUserCredentialConfigServerResolution:
                 server_id=self.CONFIG_SERVER_ID,
                 payload=mgmt_endpoints.MCPOAuthUserCredentialRequest(access_token="tok", expires_in=3600),
                 user_api_key_dict=generate_mock_user_api_key_auth(
-                    user_id="alice", user_role=LitellmUserRoles.INTERNAL_USER
+                    user_id="alice", user_role=GatewayUserRoles.INTERNAL_USER
                 ),
             )
         assert result.has_credential is True
@@ -6348,7 +6348,7 @@ class TestPerUserCredentialConfigServerResolution:
                 server_id=self.CONFIG_SERVER_ID,
                 payload=mgmt_endpoints.MCPUserEnvVarsRequest(values={"CORP_USERNAME": "alice"}),
                 user_api_key_dict=generate_mock_user_api_key_auth(
-                    user_id="alice", user_role=LitellmUserRoles.INTERNAL_USER
+                    user_id="alice", user_role=GatewayUserRoles.INTERNAL_USER
                 ),
             )
         merge_mock.assert_awaited_once()
@@ -6450,7 +6450,7 @@ async def _run_edit(old_record, updated_record, purge_mock=None):
         mock_manager.update_server = AsyncMock()
         mock_manager.reload_servers_from_database = AsyncMock()
         payload = UpdateMCPServerRequest(server_id=server_id, alias=updated_record.alias, url=updated_record.url)
-        user_auth = UserAPIKeyAuth(user_id="admin", user_role=LitellmUserRoles.PROXY_ADMIN)
+        user_auth = UserAPIKeyAuth(user_id="admin", user_role=GatewayUserRoles.PROXY_ADMIN)
         result = await edit_mcp_server(payload=payload, user_api_key_dict=user_auth)
         return result, mock_purge
 
@@ -6556,7 +6556,7 @@ class TestConnectedAppViewAnnotation:
     The view is honored only for the dashboard's UI session credential; a caller-passed
     virtual key must never be widened to its owning user's identity."""
 
-    def _ui_session_auth(self, user_role: LitellmUserRoles = LitellmUserRoles.PROXY_ADMIN) -> UserAPIKeyAuth:
+    def _ui_session_auth(self, user_role: GatewayUserRoles = GatewayUserRoles.PROXY_ADMIN) -> UserAPIKeyAuth:
         from token_iq.gateway.constants import UI_SESSION_TOKEN_TEAM_ID
 
         return generate_mock_user_api_key_auth(user_role=user_role, team_id=UI_SESSION_TOKEN_TEAM_ID)
@@ -6611,7 +6611,7 @@ class TestConnectedAppViewAnnotation:
     async def test_connected_app_view_stamps_view_all_list_and_survives_non_admin_sanitizer(self):
         """view_all preempts the manager's admin shortcut with a second whole-registry
         shortcut; the annotation must still land, and must survive the non-admin sanitizer."""
-        caller_auth = self._ui_session_auth(user_role=LitellmUserRoles.INTERNAL_USER)
+        caller_auth = self._ui_session_auth(user_role=GatewayUserRoles.INTERNAL_USER)
         mock_manager = self._mock_manager(self._servers(), ["server-2"])
 
         with (
@@ -6643,7 +6643,7 @@ class TestConnectedAppViewAnnotation:
         """A server granted only through the user's own object permission must be listed and
         flagged reachable: the REAL build_effective_auth_contexts appends the admitted-user
         context, so the page and every action endpoint resolve it identically."""
-        caller_auth = self._ui_session_auth(user_role=LitellmUserRoles.INTERNAL_USER)
+        caller_auth = self._ui_session_auth(user_role=GatewayUserRoles.INTERNAL_USER)
         admitted_auth = UserAPIKeyAuth(user_id="test_user_id", org_id="admitted-org")
         listed_row = generate_mock_mcp_server_db_record(server_id="server-1", alias="TeamGranted")
         user_granted_row = generate_mock_mcp_server_db_record(server_id="server-2", alias="UserGranted")
@@ -6741,7 +6741,7 @@ class TestConnectedAppViewAnnotation:
         from token_iq.gateway.constants import UI_SESSION_TOKEN_TEAM_ID
 
         caller_auth = UserAPIKeyAuth(
-            user_role=LitellmUserRoles.PROXY_ADMIN, api_key="test_api_key", team_id=UI_SESSION_TOKEN_TEAM_ID
+            user_role=GatewayUserRoles.PROXY_ADMIN, api_key="test_api_key", team_id=UI_SESSION_TOKEN_TEAM_ID
         )
         caller_auth.user_id = None
         mock_manager = self._mock_manager(self._servers(), ["server-1"])
@@ -6836,7 +6836,7 @@ class TestImportMCPServers:
         payload = MCPConnectorImportRequest.model_validate(
             {"mcpServers": {"srv": {"url": "https://x.example/mcp"}}}
         )
-        caller = generate_mock_user_api_key_auth(user_role=LitellmUserRoles.INTERNAL_USER)
+        caller = generate_mock_user_api_key_auth(user_role=GatewayUserRoles.INTERNAL_USER)
 
         with patch(  # test-quality-ok: endpoint takes collaborators from module scope, matching the suite's pattern
             "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
@@ -6863,7 +6863,7 @@ class TestImportMCPServers:
                 }
             }
         )
-        admin = generate_mock_user_api_key_auth(user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin-user")
+        admin = generate_mock_user_api_key_auth(user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin-user")
         existing = generate_mock_mcp_server_db_record(server_id="existing-1", alias="existing")
         created = generate_mock_mcp_server_db_record(server_id="created-1", alias="new_server")
         create_mock = AsyncMock(return_value=created)
@@ -6902,7 +6902,7 @@ class TestImportMCPServers:
                 ]
             }
         )
-        admin = generate_mock_user_api_key_auth(user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin-user")
+        admin = generate_mock_user_api_key_auth(user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin-user")
         created = generate_mock_mcp_server_db_record(server_id="created-1", alias="dup_srv")
         create_mock = AsyncMock(return_value=created)
         mock_manager = MagicMock()
@@ -6930,7 +6930,7 @@ class TestImportMCPServers:
         payload = MCPConnectorImportRequest.model_validate(
             {"mcpServers": {"existing": {"url": "https://existing.example/mcp"}}}
         )
-        admin = generate_mock_user_api_key_auth(user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin-user")
+        admin = generate_mock_user_api_key_auth(user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin-user")
         existing = generate_mock_mcp_server_db_record(server_id="existing-1", alias="existing")
         create_mock = AsyncMock()
         mock_manager = MagicMock()
@@ -6957,7 +6957,7 @@ class TestImportMCPServers:
         payload = MCPConnectorImportRequest.model_validate(
             {"mcpServers": {"new-server": {"url": "https://new.example/mcp"}}}
         )
-        admin = generate_mock_user_api_key_auth(user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin-user")
+        admin = generate_mock_user_api_key_auth(user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin-user")
         created = generate_mock_mcp_server_db_record(server_id="created-1", alias="new_server")
         create_mock = AsyncMock(return_value=created)
         mock_manager = MagicMock()

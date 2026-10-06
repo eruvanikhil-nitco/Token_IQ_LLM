@@ -9,7 +9,7 @@ from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.core_utils.asyncify import asyncify
 from token_iq.gateway.core_utils.aws_partition import get_aws_dns_suffix
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.llms.bedrock.base_aws_llm import BaseAWSLLM
 from token_iq.gateway.llms.custom_httpx.http_handler import (
     _get_httpx_client,
@@ -63,10 +63,10 @@ class SagemakerLLM(BaseAWSLLM):
         ### SET REGION NAME ###
         if aws_region_name is None:
             # check env #
-            litellm_aws_region_name: Final = get_secret("AWS_REGION_NAME", None)
+            gateway_aws_region_name: Final = get_secret("AWS_REGION_NAME", None)
 
-            if litellm_aws_region_name is not None and isinstance(litellm_aws_region_name, str):
-                aws_region_name = litellm_aws_region_name
+            if gateway_aws_region_name is not None and isinstance(gateway_aws_region_name, str):
+                aws_region_name = gateway_aws_region_name
 
             standard_aws_region_name: Final = get_secret("AWS_REGION", None)
             if standard_aws_region_name is not None and isinstance(standard_aws_region_name, str):
@@ -143,7 +143,7 @@ class SagemakerLLM(BaseAWSLLM):
         model_response: ModelResponse,
         print_verbose: Callable,
         encoding,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         optional_params: dict,
         litellm_params: dict,
         timeout: float | httpx.Timeout | None = None,
@@ -408,7 +408,7 @@ class SagemakerLLM(BaseAWSLLM):
         encoding,
         model_response: ModelResponse,
         model_id: str | None,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         litellm_params: dict,
         headers: dict,
     ):
@@ -436,7 +436,7 @@ class SagemakerLLM(BaseAWSLLM):
         if not prepared_request.body:
             raise ValueError("Prepared request body is empty")
 
-        stream_logging_obj: Final[LiteLLMLoggingObj] = logging_obj
+        stream_logging_obj: Final[GatewayLoggingObj] = logging_obj
         completion_stream: Final = await self.make_async_call(
             api_base=prepared_request.url,
             headers=prepared_request.headers,
@@ -471,7 +471,7 @@ class SagemakerLLM(BaseAWSLLM):
         encoding,
         model_response: ModelResponse,
         optional_params: dict,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         model_id: str | None,
         headers: dict,
         litellm_params: dict,

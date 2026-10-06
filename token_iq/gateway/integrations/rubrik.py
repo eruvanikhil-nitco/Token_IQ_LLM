@@ -42,7 +42,7 @@ from token_iq.gateway.types.utils import (
 
 if TYPE_CHECKING:
     from token_iq.gateway.core_utils.litellm_logging import (
-        Logging as LiteLLMLoggingObj,
+        Logging as GatewayLoggingObj,
     )
     from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
@@ -324,7 +324,7 @@ class RubrikLogger(CustomGuardrail, CustomBatchLogger):
         inputs: GenericGuardrailAPIInputs,
         request_data: dict,
         input_type: Literal["request", "response"],
-        logging_obj: Optional["LiteLLMLoggingObj"] = None,
+        logging_obj: Optional["GatewayLoggingObj"] = None,
     ) -> GenericGuardrailAPIInputs:
         """Moderate prompts (request) and responses (response); fail-open.
 
@@ -391,7 +391,7 @@ class RubrikLogger(CustomGuardrail, CustomBatchLogger):
         self,
         inputs: GenericGuardrailAPIInputs,
         request_data: dict,
-        logging_obj: Optional["LiteLLMLoggingObj"],
+        logging_obj: Optional["GatewayLoggingObj"],
     ) -> GenericGuardrailAPIInputs:
         """Send response text + tool calls to the after_completion webhook and
         raise if either the response text or any tool call is blocked."""
@@ -437,7 +437,7 @@ class RubrikLogger(CustomGuardrail, CustomBatchLogger):
         self,
         inputs: GenericGuardrailAPIInputs,
         request_data: dict,
-        logging_obj: Optional["LiteLLMLoggingObj"],
+        logging_obj: Optional["GatewayLoggingObj"],
     ) -> GenericGuardrailAPIInputs:
         """Send the (normalized) prompt to the before_prompt webhook and raise
         if the prompt is blocked."""
@@ -471,7 +471,7 @@ class RubrikLogger(CustomGuardrail, CustomBatchLogger):
 
     @staticmethod
     def _stash_block_context(
-        logging_obj: Optional["LiteLLMLoggingObj"],
+        logging_obj: Optional["GatewayLoggingObj"],
         request_data: dict[str, object],
     ) -> None:
         """Stash signals so the deferred success-event skips this request and
@@ -886,7 +886,7 @@ class RubrikLogger(CustomGuardrail, CustomBatchLogger):
 
     async def _build_and_enqueue_block_event(
         self,
-        logging_obj: "LiteLLMLoggingObj",
+        logging_obj: "GatewayLoggingObj",
         exception: "ModifyResponseException",
         call_id: str | None,
         user_api_key_dict: "UserAPIKeyAuth",
@@ -923,7 +923,7 @@ class RubrikLogger(CustomGuardrail, CustomBatchLogger):
 
     def _prepare_block_failure_payload(
         self,
-        logging_obj: "LiteLLMLoggingObj",
+        logging_obj: "GatewayLoggingObj",
         exception: "ModifyResponseException",
         user_api_key_dict: "UserAPIKeyAuth",
     ) -> _BlockFailurePayload:
@@ -1011,9 +1011,9 @@ class RubrikLogger(CustomGuardrail, CustomBatchLogger):
         module scope, so there is no path where this hook runs and the mapper is
         missing.
         """
-        from token_iq.gateway.proxy.litellm_pre_call_utils import LiteLLMProxyRequestSetup
+        from token_iq.gateway.proxy.litellm_pre_call_utils import GatewayProxyRequestSetup
 
-        return LiteLLMProxyRequestSetup.get_sanitized_user_information_from_key(user_api_key_dict)
+        return GatewayProxyRequestSetup.get_sanitized_user_information_from_key(user_api_key_dict)
 
     @classmethod
     def _build_fallback_payload(

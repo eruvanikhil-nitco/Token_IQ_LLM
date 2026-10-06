@@ -13,7 +13,7 @@ import requests
 
 from token_iq import gateway
 from token_iq.gateway import ModelResponse
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.proxy.guardrails.guardrail_hooks.hiddenlayer.hiddenlayer import (
     HiddenlayerGuardrail,
     HiddenlayerGuardrailV2,
@@ -112,7 +112,7 @@ class TestHiddenlayerGuardrail:
         }
 
         # Create logging object
-        logging_obj = LiteLLMLoggingObj(
+        logging_obj = GatewayLoggingObj(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": "Hello, how are you?"}],
             stream=False,
@@ -177,7 +177,7 @@ class TestHiddenlayerGuardrail:
             }
         }
 
-        logging_obj = LiteLLMLoggingObj(
+        logging_obj = GatewayLoggingObj(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": "What is AI?"}],
             stream=False,
@@ -250,7 +250,7 @@ class TestHiddenlayerGuardrail:
         mock_api_response.raise_for_status = MagicMock()
 
         # Create logging object
-        logging_obj = LiteLLMLoggingObj(
+        logging_obj = GatewayLoggingObj(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": "What is AI?"}],
             stream=False,
@@ -316,7 +316,7 @@ class TestHiddenlayerGuardrail:
 
         request_data = mock_model_response
 
-        logging_obj = LiteLLMLoggingObj(
+        logging_obj = GatewayLoggingObj(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": "What is AI?"}],
             stream=False,
@@ -364,7 +364,7 @@ class TestHiddenlayerGuardrail:
             }
         }
 
-        logging_obj = LiteLLMLoggingObj(
+        logging_obj = GatewayLoggingObj(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": "What is AI?"}],
             stream=False,
@@ -461,7 +461,7 @@ class TestHiddenlayerGuardrail:
             }
         }
 
-        logging_obj = LiteLLMLoggingObj(
+        logging_obj = GatewayLoggingObj(
             model="gpt-4o-mini",
             messages=[{"role": "user", "content": multimodal_content}],
             stream=False,
@@ -521,7 +521,7 @@ class TestHiddenlayerGuardrail:
 
         request_data = {"proxy_server_request": {"headers": {}}}
 
-        logging_obj = LiteLLMLoggingObj(
+        logging_obj = GatewayLoggingObj(
             model="gpt-4o-mini",
             messages=[],
             stream=False,
@@ -650,7 +650,7 @@ class TestHiddenlayerGuardrailV2:
             }
         }
 
-        logging_obj = LiteLLMLoggingObj(
+        logging_obj = GatewayLoggingObj(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": "Hello, how are you?"}],
             stream=False,
@@ -717,7 +717,7 @@ class TestHiddenlayerGuardrailV2:
             }
         }
 
-        logging_obj = LiteLLMLoggingObj(
+        logging_obj = GatewayLoggingObj(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": "test"}],
             stream=False,
@@ -766,7 +766,7 @@ class TestHiddenlayerGuardrailV2:
             }
         }
 
-        logging_obj = LiteLLMLoggingObj(
+        logging_obj = GatewayLoggingObj(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": "What is AI?"}],
             stream=False,
@@ -829,7 +829,7 @@ class TestHiddenlayerGuardrailV2:
             }
         }
 
-        logging_obj = LiteLLMLoggingObj(
+        logging_obj = GatewayLoggingObj(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": "test"}],
             stream=False,
@@ -887,7 +887,7 @@ class TestHiddenlayerGuardrailV2:
             }
         }
 
-        logging_obj = LiteLLMLoggingObj(
+        logging_obj = GatewayLoggingObj(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": "What's the weather?"}],
             stream=False,
@@ -984,7 +984,7 @@ class TestHiddenlayerGuardrailV2:
             }
         }
 
-        logging_obj = LiteLLMLoggingObj(
+        logging_obj = GatewayLoggingObj(
             model="gpt-4o-mini",
             messages=[{"role": "user", "content": multimodal_content}],
             stream=False,
@@ -1053,7 +1053,7 @@ class TestHiddenlayerGuardrailV2:
             }
         }
 
-        logging_obj = LiteLLMLoggingObj(
+        logging_obj = GatewayLoggingObj(
             model="gpt-4o-mini",
             messages=[],
             stream=False,

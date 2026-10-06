@@ -66,7 +66,7 @@ def _proxy_router_fallback() -> "Router | None":
     return _proxy_router
 
 
-def _extract_proxy_litellm_metadata(
+def _extract_proxy_gateway_metadata(
     kwargs: Mapping[str, object],
 ) -> "tuple[dict[str, object], UserAPIKeyAuth | None] | tuple[None, None]":
     """Return ``(kwargs["litellm_metadata"], its user_api_key_auth)`` when it's a dict; ``(None, None)`` otherwise.
@@ -316,7 +316,7 @@ ANTHROPIC_ADAPTER: Final = AnthropicAdapter()
 ########################################################
 
 
-class LiteLLMMessagesToCompletionTransformationHandler:
+class GatewayMessagesToCompletionTransformationHandler:
     @staticmethod
     def _route_openai_thinking_to_responses_api_if_needed(
         completion_kwargs: _CompletionKwargs,
@@ -445,7 +445,7 @@ class LiteLLMMessagesToCompletionTransformationHandler:
               for tools that exceeded OpenAI's 64-char limit
         """
         from token_iq.gateway.core_utils.litellm_logging import (
-            Logging as LiteLLMLoggingObject,
+            Logging as GatewayLoggingObject,
         )
 
         request_data: Final[dict[str, object]] = {
@@ -523,7 +523,7 @@ class LiteLLMMessagesToCompletionTransformationHandler:
         # NOTE: extra_kwargs was already coerced from None to {} at the top of
         # this method (line ~220). It is guaranteed to be a dict here.
         for key, value in extra_kwargs.items():
-            if key == "litellm_logging_obj" and value is not None and isinstance(value, LiteLLMLoggingObject):
+            if key == "litellm_logging_obj" and value is not None and isinstance(value, GatewayLoggingObject):
                 from token_iq.gateway.types.utils import CallTypes
 
                 setattr(value, "call_type", CallTypes.anthropic_messages.value)
@@ -539,9 +539,9 @@ class LiteLLMMessagesToCompletionTransformationHandler:
         # (e.g. "max" → "xhigh"/"high", "minimal" → "low" if unsupported)
         # Must run BEFORE _route_openai_thinking, which prepends "responses/"
         # to the model name and would break get_model_info() lookups.
-        LiteLLMMessagesToCompletionTransformationHandler._normalize_reasoning_effort(completion_kwargs)
+        GatewayMessagesToCompletionTransformationHandler._normalize_reasoning_effort(completion_kwargs)
 
-        LiteLLMMessagesToCompletionTransformationHandler._route_openai_thinking_to_responses_api_if_needed(
+        GatewayMessagesToCompletionTransformationHandler._route_openai_thinking_to_responses_api_if_needed(
             completion_kwargs,
             thinking=thinking,
         )
@@ -574,7 +574,7 @@ class LiteLLMMessagesToCompletionTransformationHandler:
             requested_router if requested_router is not None else _proxy_router_fallback()
         )
 
-        proxy_litellm_metadata, user_api_key_auth = _extract_proxy_litellm_metadata(kwargs)
+        proxy_gateway_metadata, user_api_key_auth = _extract_proxy_gateway_metadata(kwargs)
 
         polyfill_result: Final = await _prepare_context_managed_request(
             model=model,
@@ -582,7 +582,7 @@ class LiteLLMMessagesToCompletionTransformationHandler:
             tools=tools,
             system=system,
             context_management_spec=context_management,
-            litellm_metadata=proxy_litellm_metadata,
+            litellm_metadata=proxy_gateway_metadata,
             additional_drop_params=additional_drop_params,
             llm_router=litellm_router,
             user_api_key_auth=user_api_key_auth,
@@ -594,7 +594,7 @@ class LiteLLMMessagesToCompletionTransformationHandler:
         (
             completion_kwargs,
             tool_name_mapping,
-        ) = LiteLLMMessagesToCompletionTransformationHandler._prepare_completion_kwargs(
+        ) = GatewayMessagesToCompletionTransformationHandler._prepare_completion_kwargs(
             max_tokens=max_tokens,
             messages=effective_messages,
             model=model,
@@ -661,7 +661,7 @@ class LiteLLMMessagesToCompletionTransformationHandler:
     ):
         """Handle non-Anthropic models using the adapter."""
         if _is_async is True:
-            return LiteLLMMessagesToCompletionTransformationHandler.async_anthropic_messages_handler(
+            return GatewayMessagesToCompletionTransformationHandler.async_anthropic_messages_handler(
                 max_tokens=max_tokens,
                 messages=messages,
                 model=model,
@@ -708,7 +708,7 @@ class LiteLLMMessagesToCompletionTransformationHandler:
         if context_management is None and not _messages_have_compaction_block(messages):
             polyfill_result: PolyfillResult | None = None
         else:
-            proxy_litellm_metadata, user_api_key_auth = _extract_proxy_litellm_metadata(kwargs)
+            proxy_gateway_metadata, user_api_key_auth = _extract_proxy_gateway_metadata(kwargs)
             polyfill_result = run_async_function(
                 _prepare_context_managed_request,
                 model=model,
@@ -716,7 +716,7 @@ class LiteLLMMessagesToCompletionTransformationHandler:
                 tools=tools,
                 system=system,
                 context_management_spec=context_management,
-                litellm_metadata=proxy_litellm_metadata,
+                litellm_metadata=proxy_gateway_metadata,
                 additional_drop_params=additional_drop_params,
                 llm_router=litellm_router,
                 user_api_key_auth=user_api_key_auth,
@@ -728,7 +728,7 @@ class LiteLLMMessagesToCompletionTransformationHandler:
         (
             completion_kwargs,
             tool_name_mapping,
-        ) = LiteLLMMessagesToCompletionTransformationHandler._prepare_completion_kwargs(
+        ) = GatewayMessagesToCompletionTransformationHandler._prepare_completion_kwargs(
             max_tokens=max_tokens,
             messages=effective_messages,
             model=model,

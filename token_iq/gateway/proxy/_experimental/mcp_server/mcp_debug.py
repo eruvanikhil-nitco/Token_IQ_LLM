@@ -224,8 +224,8 @@ class MCPDebug:
         oauth2_token: Final = (oauth2_headers or {}).get("Authorization")
         if oauth2_token and litellm_api_key:
             oauth2_raw: Final = oauth2_token.removeprefix("Bearer ").strip()
-            litellm_raw: Final = litellm_api_key.removeprefix("Bearer ").strip()
-            if oauth2_raw == litellm_raw:
+            gateway_raw: Final = litellm_api_key.removeprefix("Bearer ").strip()
+            if oauth2_raw == gateway_raw:
                 debug[f"{_RESPONSE_HEADER_PREFIX}-oauth2-token"] = (
                     f"{MCPDebug._mask(oauth2_token)} (SAME_AS_LITELLM_KEY - likely misconfigured)"
                 )
@@ -301,7 +301,7 @@ class MCPDebug:
                 break
 
         scope_headers: Final = MCPRequestHandler._safe_get_headers_from_scope(scope)
-        litellm_key: Final = MCPRequestHandler.get_litellm_api_key_from_headers(scope_headers)
+        litellm_key: Final = MCPRequestHandler.get_gateway_api_key_from_headers(scope_headers)
 
         return MCPDebug.build_debug_headers(
             inbound_headers=raw_headers,

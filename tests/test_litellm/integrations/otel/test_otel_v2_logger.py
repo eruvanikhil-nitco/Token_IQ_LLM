@@ -25,7 +25,7 @@ from opentelemetry.trace.status import StatusCode  # noqa: E402
 
 from token_iq.gateway.integrations.otel import (  # noqa: E402
     GenAI,
-    LiteLLM,
+    Gateway,
     OpenTelemetryV2Config,
 )
 from token_iq.gateway.integrations.otel.plumbing import providers  # noqa: E402
@@ -170,7 +170,7 @@ def test_async_log_success_event_emits_llm_call_span():
     assert span.kind is SpanKind.CLIENT
     assert span.attributes[GenAI.OPERATION_NAME] == "chat"
     assert span.attributes[GenAI.REQUEST_MODEL] == "gpt-4o"
-    assert span.attributes[LiteLLM.CALL_ID] == "call_1"
+    assert span.attributes[Gateway.CALL_ID] == "call_1"
     # Success leaves status UNSET (semconv default), not forced OK.
     assert span.status.status_code is StatusCode.UNSET
 
@@ -407,7 +407,7 @@ def test_evicted_carrier_completed_call_emits_one_deferred_span():
     spans = exporter.get_finished_spans()
     assert len(spans) == 1, "the evicted call's real close re-emits one deferred span, not zero"
     assert spans[0].name == "chat gpt-4o"
-    assert spans[0].attributes[LiteLLM.CALL_ID] == "call_1"
+    assert spans[0].attributes[Gateway.CALL_ID] == "call_1"
 
     # Success-then-failure on one logging object: the deferred branch dedups by id.
     asyncio.run(logger.async_log_failure_event(kwargs, None, None, None))
@@ -468,8 +468,8 @@ def test_mcp_tool_call_emits_client_span():
     assert span.attributes["mcp.session.id"] == "sess-abc123"
     assert span.attributes[GenAI.OPERATION_NAME] == "execute_tool"
     assert span.attributes["gen_ai.tool.name"] == "get_weather"
-    assert span.attributes[LiteLLM.MCP_SERVER_NAME] == "weather-mcp"
-    assert span.attributes[LiteLLM.CALL_ID] == "mcp_1"
+    assert span.attributes[Gateway.MCP_SERVER_NAME] == "weather-mcp"
+    assert span.attributes[Gateway.CALL_ID] == "mcp_1"
     assert span.status.status_code is StatusCode.UNSET
     # Tool I/O is content: withheld while capture is off (the default).
     assert "gen_ai.tool.call.arguments" not in span.attributes
@@ -563,7 +563,7 @@ def test_mcp_tool_call_metadata_read_from_nested_metadata_not_top_level():
     assert span.name == "tools/call"
     assert "mcp.session.id" not in span.attributes
     assert "gen_ai.tool.name" not in span.attributes
-    assert LiteLLM.MCP_SERVER_NAME not in span.attributes
+    assert Gateway.MCP_SERVER_NAME not in span.attributes
 
 
 def _mcp_list_payload(**overrides):
@@ -595,7 +595,7 @@ def test_mcp_list_tools_emits_client_span():
     assert span.name == "tools/list"
     assert span.kind is SpanKind.CLIENT
     assert span.attributes["mcp.method.name"] == "tools/list"
-    assert span.attributes[LiteLLM.CALL_ID] == "mcp_list_1"
+    assert span.attributes[Gateway.CALL_ID] == "mcp_list_1"
     assert span.status.status_code is StatusCode.UNSET
     # Bug-killers: no span pre-fix (empty exporter -> the unpack above raises), and a
     # tool-call-shaped fix would leak execute_tool / tool name / session id here.
@@ -902,7 +902,7 @@ def test_mcp_span_ignores_client_supplied_baggage(make_payload, span_name):
     assert span.parent is not None
     assert span.parent.span_id == transport.get_span_context().span_id
     # Identity is the authenticated payload's team, never the client's spoofed value.
-    assert span.attributes[LiteLLM.TEAM_ID] == "t1"
+    assert span.attributes[Gateway.TEAM_ID] == "t1"
     assert "litellm.metadata.user_api_key_user_id" not in span.attributes
 
 
@@ -919,7 +919,7 @@ def test_mcp_span_carries_authenticated_identity(make_payload, span_name):
         )
     )
     span = next(s for s in exporter.get_finished_spans() if s.name == span_name)
-    assert span.attributes[LiteLLM.TEAM_ID] == "t1"
+    assert span.attributes[Gateway.TEAM_ID] == "t1"
 
 
 def test_mcp_span_malformed_traceparent_nests_under_transport():
@@ -1143,7 +1143,7 @@ def test_create_request_started_span_captures_anchor():
         SpanRole.PROXY_REQUEST, LITELLM_PROXY_REQUEST_SPAN_NAME
     )
     with trace.use_span(server, end_on_exit=False):
-        returned = logger.create_litellm_proxy_request_started_span(
+        returned = logger.create_gateway_proxy_request_started_span(
             start_time=datetime.now(), headers=None
         )
     server.end()
@@ -1499,8 +1499,8 @@ def test_baggage_identity_promoted_onto_llm_call():
     logger, exporter = _logger()
     _emit_llm(logger)
     (span,) = exporter.get_finished_spans()
-    assert span.attributes[LiteLLM.TEAM_ID] == "t1"
-    assert span.attributes[LiteLLM.TEAM_ALIAS] == "team one"
+    assert span.attributes[Gateway.TEAM_ID] == "t1"
+    assert span.attributes[Gateway.TEAM_ALIAS] == "team one"
     assert span.attributes[GenAI.REQUEST_MODEL] == "gpt-4o"
 
 
@@ -1556,12 +1556,12 @@ def test_provider_model_and_team_metadata_on_real_boundary_flow():
     llm = spans["chat gpt-4o"]
     srv = spans[LITELLM_PROXY_REQUEST_SPAN_NAME]
     # provider model: on the LLM call span, NOT the server span
-    assert llm.attributes[LiteLLM.PROVIDER_MODEL] == "azure/my-deployment"
-    assert LiteLLM.PROVIDER_MODEL not in srv.attributes
+    assert llm.attributes[Gateway.PROVIDER_MODEL] == "azure/my-deployment"
+    assert Gateway.PROVIDER_MODEL not in srv.attributes
     # team metadata: on every span, JSON-serialized
     expected = {"tier": "gold", "cost_center": "42"}
-    assert json.loads(llm.attributes[LiteLLM.TEAM_METADATA]) == expected
-    assert json.loads(srv.attributes[LiteLLM.TEAM_METADATA]) == expected
+    assert json.loads(llm.attributes[Gateway.TEAM_METADATA]) == expected
+    assert json.loads(srv.attributes[Gateway.TEAM_METADATA]) == expected
 
 
 def test_pre_call_hook_seeds_baggage_onto_server_and_child_spans():
@@ -1589,14 +1589,14 @@ def test_pre_call_hook_seeds_baggage_onto_server_and_child_spans():
 
     spans = {s.name: s for s in exporter.get_finished_spans()}
     redis = spans["redis set"]
-    assert redis.attributes[LiteLLM.TEAM_ID] == "t1"
-    assert redis.attributes[LiteLLM.KEY_HASH] == "hash1"
-    assert redis.attributes[f"{LiteLLM.METADATA_PREFIX}user_api_key_user_id"] == "u1"
+    assert redis.attributes[Gateway.TEAM_ID] == "t1"
+    assert redis.attributes[Gateway.KEY_HASH] == "hash1"
+    assert redis.attributes[f"{Gateway.METADATA_PREFIX}user_api_key_user_id"] == "u1"
     srv = spans[LITELLM_PROXY_REQUEST_SPAN_NAME]
     assert (
-        srv.attributes[LiteLLM.TEAM_ID] == "t1"
+        srv.attributes[Gateway.TEAM_ID] == "t1"
     )  # stamped directly on the server span
-    assert srv.attributes[f"{LiteLLM.METADATA_PREFIX}user_api_key_user_id"] == "u1"
+    assert srv.attributes[f"{Gateway.METADATA_PREFIX}user_api_key_user_id"] == "u1"
 
 
 # --------------------------------------------------------------------------- #
@@ -1645,10 +1645,10 @@ def test_async_service_success_hook_emits_service_span():
     assert span.kind is SpanKind.CLIENT
     assert span.attributes["db.system.name"] == "redis"
     assert span.attributes["db.operation.name"] == "set"
-    assert span.attributes[LiteLLM.SERVICE_NAME] == "redis"
-    assert span.attributes[LiteLLM.SERVICE_CALL_TYPE] == "set"
+    assert span.attributes[Gateway.SERVICE_NAME] == "redis"
+    assert span.attributes[Gateway.SERVICE_CALL_TYPE] == "set"
     # Canonical (V2) namespaced metadata key
-    assert span.attributes[f"{LiteLLM.METADATA_PREFIX}key1"] == "val1"
+    assert span.attributes[f"{Gateway.METADATA_PREFIX}key1"] == "val1"
     # V1 bare key (legacy dual-emit)
     assert span.attributes["key1"] == "val1"
     assert span.attributes["service"] == "redis"  # V1 bare key
@@ -1707,7 +1707,7 @@ def test_async_service_failure_hook_marks_error_status():
     assert span.status.status_code is StatusCode.ERROR
     # Without an explicit error_type from the payload, V2 stamps the fallback.
     assert span.attributes["error.type"] == "error"
-    assert span.attributes[LiteLLM.SERVICE_NAME] == "postgres"
+    assert span.attributes[Gateway.SERVICE_NAME] == "postgres"
 
 
 def test_async_service_failure_hook_preserves_payload_error_over_override():
@@ -1777,7 +1777,7 @@ def test_internal_service_call_is_internal_kind_without_db_attrs():
     assert span.name == "reset_budget_job reset_budget"
     assert span.kind is SpanKind.INTERNAL
     assert "db.system.name" not in span.attributes
-    assert span.attributes[LiteLLM.SERVICE_NAME] == "reset_budget_job"
+    assert span.attributes[Gateway.SERVICE_NAME] == "reset_budget_job"
 
 
 def test_metrics_only_services_emit_no_span():
@@ -1853,7 +1853,7 @@ def test_create_proxy_request_started_span_returns_ambient_span():
     logger, exporter = _logger()
     # No ambient recordable span → None (and creates nothing).
     assert (
-        logger.create_litellm_proxy_request_started_span(
+        logger.create_gateway_proxy_request_started_span(
             start_time=datetime.now(timezone.utc), headers={"traceparent": "x"}
         )
         is None
@@ -1864,7 +1864,7 @@ def test_create_proxy_request_started_span_returns_ambient_span():
         SpanRole.PROXY_REQUEST, LITELLM_PROXY_REQUEST_SPAN_NAME
     )
     with trace.use_span(server, end_on_exit=False):
-        got = logger.create_litellm_proxy_request_started_span(
+        got = logger.create_gateway_proxy_request_started_span(
             start_time=datetime.now(timezone.utc), headers=None
         )
     server.end()
@@ -2012,7 +2012,7 @@ def test_publish_global_otel_v2_provider_sets_selected_logger_provider():
     assert published == [preset_logger._tracer_provider]
 
 
-def test_registers_into_litellm_service_callback(monkeypatch):
+def test_registers_into_gateway_service_callback(monkeypatch):
     """The logger must mutate ``litellm.service_callback`` in place. An empty
     list is falsy, so a ``getattr(..) or []`` would append to a throwaway local
     and service spans (Redis, …) would silently never fire on this logger.
@@ -2037,7 +2037,7 @@ def test_registers_into_litellm_service_callback(monkeypatch):
     assert len(otel_registrations) == 1
 
 
-def test_registers_into_litellm_input_callback(monkeypatch):
+def test_registers_into_gateway_input_callback(monkeypatch):
     """The logger must land in ``litellm.input_callback`` — the list
     ``Logging.pre_call`` iterates to fire ``log_pre_api_call``. Without this the
     boundary hook never runs and the gen-AI span is never opened (the span goes
@@ -2339,7 +2339,7 @@ def test_invalid_metric_filter_logged_once_records_nothing(caplog, monkeypatch):
     end = start + timedelta(seconds=1)
     response_obj = {"usage": {"prompt_tokens": 1, "completion_tokens": 1}}
 
-    with caplog.at_level(logging.ERROR, logger="LiteLLM"):
+    with caplog.at_level(logging.ERROR, logger="Gateway"):
         # Neither call may raise; the bad filter is caught in the logger.
         asyncio.run(
             logger.async_log_success_event(

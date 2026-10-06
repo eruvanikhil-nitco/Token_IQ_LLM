@@ -6,14 +6,14 @@ from token_iq.gateway.utils import calculate_max_parallel_requests
 if TYPE_CHECKING:
     from token_iq.gateway.router import Router as _Router
 
-    LitellmRouter = _Router
+    GatewayRouter = _Router
 else:
-    LitellmRouter = Any
+    GatewayRouter = Any
 
 
 class InitalizeCachedClient:
     @staticmethod
-    def set_max_parallel_requests_client(litellm_router_instance: LitellmRouter, model: dict):
+    def set_max_parallel_requests_client(litellm_router_instance: GatewayRouter, model: dict):
         litellm_params: Final = model.get("litellm_params", {})
         model_id: Final = model["model_info"]["id"]
         rpm: Final = litellm_params.get("rpm", None)

@@ -30,8 +30,8 @@ from token_iq.gateway.proxy._types import (
     AUDIT_ACTIONS,
     CoordinationRedisParams,
     LiteLLM_AuditLogs,
-    LitellmTableNames,
-    LitellmUserRoles,
+    GatewayTableNames,
+    GatewayUserRoles,
     UserAPIKeyAuth,
     user_api_key_has_admin_view,
 )
@@ -66,7 +66,7 @@ _SETTINGS_ADAPTER: Final[TypeAdapter[dict[str, object]]] = TypeAdapter(dict[str,
 
 
 def _enforce_proxy_admin(user_api_key_dict: UserAPIKeyAuth) -> None:
-    if user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN:
+    if user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN:
         raise HTTPException(
             status_code=403,
             detail={"error": "Only proxy admins can manage coordination Redis settings"},
@@ -259,7 +259,7 @@ async def _emit_coordination_redis_audit_log(
                 updated_at=datetime.now(timezone.utc),
                 changed_by=litellm_changed_by or user_api_key_dict.user_id or litellm_proxy_admin_name,
                 changed_by_api_key=user_api_key_dict.api_key,
-                table_name=LitellmTableNames.CONFIG_TABLE_NAME,
+                table_name=GatewayTableNames.CONFIG_TABLE_NAME,
                 object_id=_COORDINATION_REDIS_KEY,
                 action=action,
                 updated_values=json.dumps({"settings": _redact_all_values(after_settings)}, default=str),

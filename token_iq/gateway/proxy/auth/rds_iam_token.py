@@ -17,7 +17,7 @@ def init_rds_client(
     from token_iq.gateway.secret_managers.main import get_secret
 
     # check for custom AWS_REGION_NAME and use it if not passed to init_bedrock_client
-    litellm_aws_region_name: Final = get_secret("AWS_REGION_NAME", None)
+    gateway_aws_region_name: Final = get_secret("AWS_REGION_NAME", None)
     standard_aws_region_name: Final = get_secret("AWS_REGION", None)
     ## CHECK IS  'os.environ/' passed in
     # Define the list of parameters to check
@@ -50,8 +50,8 @@ def init_rds_client(
     region_name = aws_region_name
     if aws_region_name:
         region_name = aws_region_name
-    elif litellm_aws_region_name:
-        region_name = litellm_aws_region_name
+    elif gateway_aws_region_name:
+        region_name = gateway_aws_region_name
     elif standard_aws_region_name:
         region_name = standard_aws_region_name
     else:

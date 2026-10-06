@@ -3,13 +3,13 @@ from unittest.mock import AsyncMock, Mock
 import pytest
 
 from token_iq.gateway.llms.litellm_proxy.skills import handler as skills_handler
-from token_iq.gateway.llms.litellm_proxy.skills.handler import LiteLLMSkillsHandler
+from token_iq.gateway.llms.litellm_proxy.skills.handler import GatewaySkillsHandler
 from token_iq.gateway.llms.litellm_proxy.skills.transformation import (
-    LiteLLMSkillsTransformationHandler,
+    GatewaySkillsTransformationHandler,
 )
 from token_iq.gateway.proxy._types import (
     LiteLLM_SkillsTable,
-    LitellmUserRoles,
+    GatewayUserRoles,
     NewSkillRequest,
     UserAPIKeyAuth,
 )
@@ -160,7 +160,7 @@ def test_should_build_resource_owner_scopes_for_auth_context():
 
 
 def test_should_allow_admin_and_anonymous_resource_owner_paths():
-    admin = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN.value)
+    admin = UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN.value)
 
     assert resource_ownership.is_proxy_admin(admin)
     assert resource_ownership.user_can_access_resource_owner(None, admin)
@@ -172,17 +172,17 @@ def test_should_allow_admin_and_anonymous_resource_owner_paths():
 
 @pytest.mark.asyncio
 async def test_should_forward_skill_auth_through_transformation_handler(monkeypatch):
-    handler = LiteLLMSkillsTransformationHandler()
+    handler = GatewaySkillsTransformationHandler()
     auth = UserAPIKeyAuth(user_id="user-1")
 
     create_skill = AsyncMock(return_value=_skill("litellm_skill_created", "user-1"))
     list_skills = AsyncMock(return_value=[_skill("litellm_skill_listed", "user-1")])
     get_skill = AsyncMock(return_value=_skill("litellm_skill_got", "user-1"))
     delete_skill = AsyncMock(return_value={"id": "litellm_skill_deleted"})
-    monkeypatch.setattr(LiteLLMSkillsHandler, "create_skill", create_skill)
-    monkeypatch.setattr(LiteLLMSkillsHandler, "list_skills", list_skills)
-    monkeypatch.setattr(LiteLLMSkillsHandler, "get_skill", get_skill)
-    monkeypatch.setattr(LiteLLMSkillsHandler, "delete_skill", delete_skill)
+    monkeypatch.setattr(GatewaySkillsHandler, "create_skill", create_skill)
+    monkeypatch.setattr(GatewaySkillsHandler, "list_skills", list_skills)
+    monkeypatch.setattr(GatewaySkillsHandler, "get_skill", get_skill)
+    monkeypatch.setattr(GatewaySkillsHandler, "delete_skill", delete_skill)
 
     created = await handler._async_create_skill(
         display_title="skill",
@@ -222,14 +222,14 @@ async def test_should_store_team_owner_for_keys_without_user_id(monkeypatch):
         "Prisma", (), {"db": type("DB", (), {"litellm_skillstable": table})()}
     )()
     monkeypatch.setattr(
-        LiteLLMSkillsHandler,
+        GatewaySkillsHandler,
         "_get_prisma_client",
         AsyncMock(return_value=prisma_client),
     )
 
     auth = UserAPIKeyAuth(team_id="team-1")
 
-    skill = await LiteLLMSkillsHandler.create_skill(
+    skill = await GatewaySkillsHandler.create_skill(
         data=NewSkillRequest(display_title="skill"),
         user_api_key_dict=auth,
     )
@@ -246,14 +246,14 @@ async def test_should_store_token_owner_for_keys_without_user_team_or_org(monkey
         "Prisma", (), {"db": type("DB", (), {"litellm_skillstable": table})()}
     )()
     monkeypatch.setattr(
-        LiteLLMSkillsHandler,
+        GatewaySkillsHandler,
         "_get_prisma_client",
         AsyncMock(return_value=prisma_client),
     )
 
     auth = UserAPIKeyAuth(token="hashed-token")
 
-    skill = await LiteLLMSkillsHandler.create_skill(
+    skill = await GatewaySkillsHandler.create_skill(
         data=NewSkillRequest(display_title="skill"),
         user_api_key_dict=auth,
     )
@@ -272,7 +272,7 @@ async def test_should_reject_skill_create_for_identityless_proxy_auth(monkeypatc
         "Prisma", (), {"db": type("DB", (), {"litellm_skillstable": table})()}
     )()
     monkeypatch.setattr(
-        LiteLLMSkillsHandler,
+        GatewaySkillsHandler,
         "_get_prisma_client",
         AsyncMock(return_value=prisma_client),
     )
@@ -280,7 +280,7 @@ async def test_should_reject_skill_create_for_identityless_proxy_auth(monkeypatc
     auth = UserAPIKeyAuth()
 
     with pytest.raises(ValueError, match="identity scope"):
-        await LiteLLMSkillsHandler.create_skill(
+        await GatewaySkillsHandler.create_skill(
             data=NewSkillRequest(display_title="skill"),
             user_api_key_dict=auth,
         )
@@ -295,14 +295,14 @@ async def test_should_filter_list_skills_to_authenticated_owner_scopes(monkeypat
         "Prisma", (), {"db": type("DB", (), {"litellm_skillstable": table})()}
     )()
     monkeypatch.setattr(
-        LiteLLMSkillsHandler,
+        GatewaySkillsHandler,
         "_get_prisma_client",
         AsyncMock(return_value=prisma_client),
     )
 
     auth = UserAPIKeyAuth(user_id="user-1", team_id="team-1")
 
-    skills = await LiteLLMSkillsHandler.list_skills(user_api_key_dict=auth)
+    skills = await GatewaySkillsHandler.list_skills(user_api_key_dict=auth)
 
     assert [skill.skill_id for skill in skills] == ["litellm_skill_owner"]
     table.find_many.assert_awaited_once()
@@ -322,7 +322,7 @@ async def test_should_hide_skill_from_different_owner(monkeypatch):
         "Prisma", (), {"db": type("DB", (), {"litellm_skillstable": table})()}
     )()
     monkeypatch.setattr(
-        LiteLLMSkillsHandler,
+        GatewaySkillsHandler,
         "_get_prisma_client",
         AsyncMock(return_value=prisma_client),
     )
@@ -330,7 +330,7 @@ async def test_should_hide_skill_from_different_owner(monkeypatch):
     auth = UserAPIKeyAuth(user_id="user-1")
 
     with pytest.raises(ValueError, match="Skill not found"):
-        await LiteLLMSkillsHandler.get_skill(
+        await GatewaySkillsHandler.get_skill(
             "litellm_skill_other",
             user_api_key_dict=auth,
         )
@@ -344,7 +344,7 @@ async def test_should_hide_unowned_skill_by_default(monkeypatch):
         "Prisma", (), {"db": type("DB", (), {"litellm_skillstable": table})()}
     )()
     monkeypatch.setattr(
-        LiteLLMSkillsHandler,
+        GatewaySkillsHandler,
         "_get_prisma_client",
         AsyncMock(return_value=prisma_client),
     )
@@ -352,7 +352,7 @@ async def test_should_hide_unowned_skill_by_default(monkeypatch):
     auth = UserAPIKeyAuth(user_id="user-1")
 
     with pytest.raises(ValueError, match="Skill not found"):
-        await LiteLLMSkillsHandler.get_skill(
+        await GatewaySkillsHandler.get_skill(
             "litellm_skill_unowned",
             user_api_key_dict=auth,
         )
@@ -368,13 +368,13 @@ async def test_list_skills_excludes_unowned_for_non_admin(monkeypatch):
         "Prisma", (), {"db": type("DB", (), {"litellm_skillstable": table})()}
     )()
     monkeypatch.setattr(
-        LiteLLMSkillsHandler,
+        GatewaySkillsHandler,
         "_get_prisma_client",
         AsyncMock(return_value=prisma_client),
     )
 
     auth = UserAPIKeyAuth(user_id="user-1")
-    await LiteLLMSkillsHandler.list_skills(user_api_key_dict=auth)
+    await GatewaySkillsHandler.list_skills(user_api_key_dict=auth)
 
     where = table.find_many.await_args.kwargs["where"]
     # No OR fallback to ``created_by IS NULL`` — strict scope only.
@@ -386,7 +386,7 @@ async def test_should_scope_skill_injection_fetch_to_authenticated_user(monkeypa
     from token_iq.gateway.proxy.hooks.litellm_skills.main import SkillsInjectionHook
 
     fetch = AsyncMock(return_value=None)
-    monkeypatch.setattr(LiteLLMSkillsHandler, "fetch_skill_from_db", fetch)
+    monkeypatch.setattr(GatewaySkillsHandler, "fetch_skill_from_db", fetch)
 
     auth = UserAPIKeyAuth(user_id="user-1")
     hook = SkillsInjectionHook()
@@ -426,14 +426,14 @@ async def test_load_skill_uses_cache_after_first_db_hit(monkeypatch):
         "Prisma", (), {"db": type("DB", (), {"litellm_skillstable": table})()}
     )()
     monkeypatch.setattr(
-        skills_handler.LiteLLMSkillsHandler,
+        skills_handler.GatewaySkillsHandler,
         "_get_prisma_client",
         AsyncMock(return_value=prisma_client),
     )
 
     for _ in range(3):
         assert (
-            await skills_handler.LiteLLMSkillsHandler._load_skill("litellm_skill_a")
+            await skills_handler.GatewaySkillsHandler._load_skill("litellm_skill_a")
             is fake_skill
         )
     assert table.find_unique.await_count == 1
@@ -449,13 +449,13 @@ async def test_load_skill_caches_negative_lookups(monkeypatch):
         "Prisma", (), {"db": type("DB", (), {"litellm_skillstable": table})()}
     )()
     monkeypatch.setattr(
-        skills_handler.LiteLLMSkillsHandler,
+        skills_handler.GatewaySkillsHandler,
         "_get_prisma_client",
         AsyncMock(return_value=prisma_client),
     )
 
-    assert await skills_handler.LiteLLMSkillsHandler._load_skill("missing") is None
-    assert await skills_handler.LiteLLMSkillsHandler._load_skill("missing") is None
+    assert await skills_handler.GatewaySkillsHandler._load_skill("missing") is None
+    assert await skills_handler.GatewaySkillsHandler._load_skill("missing") is None
     assert table.find_unique.await_count == 1
 
 
@@ -470,17 +470,17 @@ async def test_delete_skill_invalidates_cache(monkeypatch):
         "Prisma", (), {"db": type("DB", (), {"litellm_skillstable": table})()}
     )()
     monkeypatch.setattr(
-        skills_handler.LiteLLMSkillsHandler,
+        skills_handler.GatewaySkillsHandler,
         "_get_prisma_client",
         AsyncMock(return_value=prisma_client),
     )
 
     # Prime the cache via the read path.
-    await skills_handler.LiteLLMSkillsHandler._load_skill("litellm_skill_a")
+    await skills_handler.GatewaySkillsHandler._load_skill("litellm_skill_a")
     assert skills_handler._SKILL_CACHE.get_cache("litellm_skill_a") is fake_skill
 
     auth = UserAPIKeyAuth(user_id="user-1")
-    await skills_handler.LiteLLMSkillsHandler.delete_skill(
+    await skills_handler.GatewaySkillsHandler.delete_skill(
         "litellm_skill_a", user_api_key_dict=auth
     )
 

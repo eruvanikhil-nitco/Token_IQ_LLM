@@ -290,7 +290,7 @@ async def test_scim_patch_user_active_false_blocks_keys():
         patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", MagicMock()),
         patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj", MagicMock()),
         patch(
-            "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_litellm_user_to_scim_user",
+            "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_gateway_user_to_scim_user",
             AsyncMock(return_value=mock_scim_user),
         ),
         patch(
@@ -350,7 +350,7 @@ async def test_scim_patch_user_active_true_unblocks_keys():
         patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", MagicMock()),
         patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj", MagicMock()),
         patch(
-            "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_litellm_user_to_scim_user",
+            "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_gateway_user_to_scim_user",
             AsyncMock(return_value=mock_scim_user),
         ),
         patch(
@@ -407,7 +407,7 @@ async def test_scim_patch_user_no_active_change_does_not_touch_keys():
         patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", MagicMock()),
         patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj", MagicMock()),
         patch(
-            "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_litellm_user_to_scim_user",
+            "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_gateway_user_to_scim_user",
             AsyncMock(return_value=mock_scim_user),
         ),
         patch(
@@ -470,7 +470,7 @@ async def test_scim_put_user_omitting_active_preserves_deactivated_state():
         patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", MagicMock()),
         patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj", MagicMock()),
         patch(
-            "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_litellm_user_to_scim_user",
+            "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_gateway_user_to_scim_user",
             AsyncMock(return_value=mock_scim_user),
         ),
         patch(
@@ -526,7 +526,7 @@ async def test_scim_put_user_explicit_active_false_blocks_keys():
         patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", MagicMock()),
         patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj", MagicMock()),
         patch(
-            "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_litellm_user_to_scim_user",
+            "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_gateway_user_to_scim_user",
             AsyncMock(return_value=mock_scim_user),
         ),
         patch(

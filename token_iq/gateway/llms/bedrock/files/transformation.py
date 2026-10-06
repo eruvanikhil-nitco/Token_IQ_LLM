@@ -39,7 +39,7 @@ from token_iq.gateway.core_utils.prompt_templates.common_utils import (
 from token_iq.gateway.llms.base_llm.chat.transformation import BaseLLMException
 from token_iq.gateway.llms.base_llm.files.transformation import (
     BaseFilesConfig,
-    LiteLLMLoggingObj,
+    GatewayLoggingObj,
 )
 from token_iq.gateway.types.llms.bedrock import BedrockBatchRecordKind
 from token_iq.gateway.types.llms.openai import (
@@ -730,7 +730,7 @@ class BedrockFilesConfig(BaseAWSLLM, BaseFilesConfig):
         empty array inside `modelInput`.
         """
         from token_iq.gateway.responses.litellm_completion_transformation.transformation import (
-            LiteLLMCompletionResponsesConfig,
+            GatewayCompletionResponsesConfig,
         )
 
         responses_input: Final = openai_request_body.get("input")
@@ -740,7 +740,7 @@ class BedrockFilesConfig(BaseAWSLLM, BaseFilesConfig):
                 f"model={openai_request_body.get('model', '')}"
             )
         chat_body: Final[Mapping[str, object]] = (
-            LiteLLMCompletionResponsesConfig.transform_responses_api_request_to_chat_completion_request(
+            GatewayCompletionResponsesConfig.transform_responses_api_request_to_chat_completion_request(
                 model=openai_request_body.get("model", ""),
                 input=_responses_input_adapter().validate_python(responses_input),
                 responses_api_request=_responses_request_adapter().validate_python(
@@ -942,8 +942,8 @@ class BedrockFilesConfig(BaseAWSLLM, BaseFilesConfig):
             ## Transform JSONL content to Bedrock format
             original_file_content: Final = self._get_content_from_openai_file(extracted_file_data_content)
             openai_jsonl_content = [json.loads(line) for line in original_file_content.splitlines() if line.strip()]
-            litellm_params_model: Final = litellm_params.get("model")
-            target_model: Final = model or (litellm_params_model if isinstance(litellm_params_model, str) else "")
+            gateway_params_model: Final = litellm_params.get("model")
+            target_model: Final = model or (gateway_params_model if isinstance(gateway_params_model, str) else "")
             bedrock_jsonl_content = self._transform_openai_jsonl_content_to_bedrock_jsonl_content(
                 openai_jsonl_content, target_model=target_model
             )
@@ -1141,7 +1141,7 @@ class BedrockFilesConfig(BaseAWSLLM, BaseFilesConfig):
         self,
         model: str | None,
         raw_response: Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         litellm_params: dict,
     ) -> OpenAIFileObject:
         """
@@ -1179,7 +1179,7 @@ class BedrockFilesConfig(BaseAWSLLM, BaseFilesConfig):
     def transform_retrieve_file_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         litellm_params: dict,
     ) -> OpenAIFileObject:
         raise NotImplementedError("BedrockFilesConfig does not support file retrieval")
@@ -1195,7 +1195,7 @@ class BedrockFilesConfig(BaseAWSLLM, BaseFilesConfig):
     def transform_delete_file_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         litellm_params: dict,
     ) -> FileDeleted:
         raise NotImplementedError("BedrockFilesConfig does not support file deletion")
@@ -1211,7 +1211,7 @@ class BedrockFilesConfig(BaseAWSLLM, BaseFilesConfig):
     def transform_list_files_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         litellm_params: dict,
     ) -> list[OpenAIFileObject]:
         raise NotImplementedError("BedrockFilesConfig does not support file listing")
@@ -1308,7 +1308,7 @@ class BedrockFilesConfig(BaseAWSLLM, BaseFilesConfig):
     def transform_file_content_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         litellm_params: dict,
     ) -> HttpxBinaryResponseContent:
         if raw_response.status_code >= 400:

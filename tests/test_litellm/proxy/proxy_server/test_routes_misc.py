@@ -88,7 +88,7 @@ def test_get_routes_invalid_method_405(client):
 
 def test_adaptive_router_state_returns_snapshots(client, auth_as, monkeypatch):
     from token_iq.gateway.proxy import proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
     fake_router = MagicMock()
     snap = {"router_name": "ar-1", "queue_depth": 0, "posteriors": []}
@@ -101,7 +101,7 @@ def test_adaptive_router_state_returns_snapshots(client, auth_as, monkeypatch):
     }
     monkeypatch.setattr(ps, "llm_router", fake_router)
 
-    with auth_as(LitellmUserRoles.PROXY_ADMIN):
+    with auth_as(GatewayUserRoles.PROXY_ADMIN):
         response = client.get("/adaptive_router/state")
     assert response.status_code == 200
     assert normalize(response.json()) == {
@@ -112,9 +112,9 @@ def test_adaptive_router_state_returns_snapshots(client, auth_as, monkeypatch):
 
 
 def test_adaptive_router_state_not_admin_forbidden(client, auth_as):
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
-    with auth_as(LitellmUserRoles.INTERNAL_USER):
+    with auth_as(GatewayUserRoles.INTERNAL_USER):
         response = client.get("/adaptive_router/state")
     assert response.status_code == 403
     assert "error" in response.json().get("detail", {})
@@ -122,13 +122,13 @@ def test_adaptive_router_state_not_admin_forbidden(client, auth_as):
 
 def test_adaptive_router_state_not_configured_404(client, auth_as, monkeypatch):
     from token_iq.gateway.proxy import proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
     fake_router = MagicMock()
     fake_router.adaptive_routers = {}
     monkeypatch.setattr(ps, "llm_router", fake_router)
 
-    with auth_as(LitellmUserRoles.PROXY_ADMIN):
+    with auth_as(GatewayUserRoles.PROXY_ADMIN):
         response = client.get("/adaptive_router/state")
     assert response.status_code == 404
     assert "adaptive_router" in response.json().get("detail", {}).get("error", "")

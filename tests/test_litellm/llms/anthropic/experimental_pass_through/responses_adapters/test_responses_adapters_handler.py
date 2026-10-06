@@ -9,7 +9,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../.
 
 from token_iq import gateway
 from token_iq.gateway.llms.anthropic.experimental_pass_through.responses_adapters.handler import (
-    LiteLLMMessagesToResponsesAPIHandler,
+    GatewayMessagesToResponsesAPIHandler,
     _build_responses_kwargs,
 )
 
@@ -71,7 +71,7 @@ async def test_streaming_message_start_reports_the_provider_local_model(requeste
         yield
 
     with patch.object(gateway, "aresponses", AsyncMock(return_value=empty_stream())):
-        sse = await LiteLLMMessagesToResponsesAPIHandler.async_anthropic_messages_handler(
+        sse = await GatewayMessagesToResponsesAPIHandler.async_anthropic_messages_handler(
             max_tokens=1024,
             messages=MESSAGES,
             model=requested_model,

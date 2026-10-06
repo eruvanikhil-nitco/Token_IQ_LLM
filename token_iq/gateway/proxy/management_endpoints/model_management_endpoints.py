@@ -39,8 +39,8 @@ from token_iq.gateway.proxy._types import (
     CommonProxyErrors,
     LiteLLM_ProxyModelTable,
     LiteLLM_TeamTable,
-    LitellmTableNames,
-    LitellmUserRoles,
+    GatewayTableNames,
+    GatewayUserRoles,
     ModelInfoDelete,
     PrismaCompatibleUpdateDBModel,
     ProxyErrorTypes,
@@ -105,7 +105,7 @@ from token_iq.gateway.types.proxy.management_endpoints.model_management_endpoint
 from token_iq.gateway.types.router import (
     SPECIAL_MODEL_INFO_PARAMS,
     Deployment,
-    GenericLiteLLMParams,
+    GenericGatewayParams,
     ModelInfo,
     updateDeployment,
 )
@@ -232,17 +232,17 @@ async def get_db_model(model_id: str, prisma_client: PrismaClient) -> Deployment
 
 
 def _is_unchanged_credential_name(
-    litellm_params: GenericLiteLLMParams | None,
-    existing_litellm_params: GenericLiteLLMParams | None,
+    litellm_params: GenericGatewayParams | None,
+    existing_gateway_params: GenericGatewayParams | None,
 ) -> bool:
     """Whether litellm_params names the same credential existing_litellm_params already has --
     the existing name is encrypted at rest, so it must be decrypted before comparing."""
     if litellm_params is None or litellm_params.litellm_credential_name is None:
         return False
-    if existing_litellm_params is None or existing_litellm_params.litellm_credential_name is None:
+    if existing_gateway_params is None or existing_gateway_params.litellm_credential_name is None:
         return False
     existing_credential_name: Final = decrypt_value_helper(
-        value=existing_litellm_params.litellm_credential_name,
+        value=existing_gateway_params.litellm_credential_name,
         key="litellm_credential_name",
         exception_type="debug",
         return_original_value=True,
@@ -272,8 +272,8 @@ def _billing_credential_attach_refusal(credential_name: str) -> ProxyException:
 
 
 async def _credential_info_for_attach(
-    litellm_params: GenericLiteLLMParams | None,
-    existing_litellm_params: GenericLiteLLMParams | None,
+    litellm_params: GenericGatewayParams | None,
+    existing_gateway_params: GenericGatewayParams | None,
     user_api_key_dict: UserAPIKeyAuth,
     model_team_id: str | None,
     prisma_client: PrismaClient,
@@ -289,9 +289,9 @@ async def _credential_info_for_attach(
     every one of them."""
     if litellm_params is None or litellm_params.litellm_credential_name is None:
         return None
-    if _is_unchanged_credential_name(litellm_params, existing_litellm_params):
+    if _is_unchanged_credential_name(litellm_params, existing_gateway_params):
         return None
-    if user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN and model_team_id is None:
+    if user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN and model_team_id is None:
         return None
     in_memory: Final = _credential_info_from_memory(litellm_params.litellm_credential_name)
     if in_memory is not None:
@@ -308,8 +308,8 @@ async def _credential_info_for_attach(
 
 
 def _strategy_router_write_violation(
-    incoming_params: GenericLiteLLMParams | None,
-    existing_params: GenericLiteLLMParams | None,
+    incoming_params: GenericGatewayParams | None,
+    existing_params: GenericGatewayParams | None,
 ) -> str | None:
     """Reject writes that would corrupt a strategy router's pseudo-model.
 
@@ -346,8 +346,8 @@ def _strategy_router_write_violation(
 
 
 def _raise_on_strategy_router_write_violation(
-    incoming_params: GenericLiteLLMParams | None,
-    existing_params: GenericLiteLLMParams | None,
+    incoming_params: GenericGatewayParams | None,
+    existing_params: GenericGatewayParams | None,
 ) -> None:
     violation = _strategy_router_write_violation(incoming_params=incoming_params, existing_params=existing_params)
     if violation is None:
@@ -364,7 +364,7 @@ ENFORCE_RPM_TPM_ON_MODEL_ADD_SETTING: Final = "enforce_rpm_tpm_on_model_add"
 _REQUIRED_RATE_LIMIT_FIELDS: Final = ("rpm", "tpm")
 
 
-def _raise_if_rate_limits_required_but_missing(*, litellm_params: GenericLiteLLMParams, enforced: bool) -> None:
+def _raise_if_rate_limits_required_but_missing(*, litellm_params: GenericGatewayParams, enforced: bool) -> None:
     """Require both rpm and tpm (each a positive value) when the operator opts in via config.yaml.
 
     Off by default, so deployments keep adding models without limits. When
@@ -655,7 +655,7 @@ def update_db_model(db_model: Deployment, updated_patch: updateDeployment) -> Pr
     if updated_patch.model_info is not None:
         _raise_if_ptu_cost_attribution_disabled(updated_patch.model_info.model_dump(exclude_none=True))
     merged_model_name: Final = updated_patch.model_name or db_model.model_name
-    merged_litellm_params: Final = db_model.litellm_params.model_dump(exclude_none=True)
+    merged_gateway_params: Final = db_model.litellm_params.model_dump(exclude_none=True)
     merged_model_info: Final[dict[str, object]] = db_model.model_info.model_dump(exclude_none=True)
 
     # update litellm params
@@ -665,7 +665,7 @@ def update_db_model(db_model: Deployment, updated_patch: updateDeployment) -> Pr
             k: encrypt_value_helper(v) for k, v in updated_patch.litellm_params.model_dump(exclude_none=True).items()
         }
 
-        merged_litellm_params.update(encrypted_params)
+        merged_gateway_params.update(encrypted_params)
 
     # update model info
     if updated_patch.model_info:
@@ -683,19 +683,19 @@ def update_db_model(db_model: Deployment, updated_patch: updateDeployment) -> Pr
     if updated_patch.litellm_params:
         for field in updated_patch.litellm_params.model_fields_set:
             if field in SPECIAL_MODEL_INFO_PARAMS and getattr(updated_patch.litellm_params, field) is None:
-                merged_litellm_params.pop(field, None)
+                merged_gateway_params.pop(field, None)
                 merged_model_info.pop(field, None)
     if updated_patch.model_info:
         for field in updated_patch.model_info.model_fields_set:
             if field in SPECIAL_MODEL_INFO_PARAMS and getattr(updated_patch.model_info, field) is None:
                 merged_model_info.pop(field, None)
-                merged_litellm_params.pop(field, None)
+                merged_gateway_params.pop(field, None)
         for field in _explicitly_cleared_ptu_fields(updated_patch.model_info):
             merged_model_info.pop(field, None)
     if updated_patch.litellm_params and updated_patch.litellm_params.litellm_credential_name is not None:
         for field in updated_patch.litellm_params.model_fields_set:
             if field in CREDENTIAL_CARRYING_PARAMS and getattr(updated_patch.litellm_params, field) is None:
-                merged_litellm_params.pop(field, None)
+                merged_gateway_params.pop(field, None)
 
     _validate_ptu_model_info(merged_model_info)
     ptu_pricing, ptu_released = _ptu_pricing_delta(
@@ -703,14 +703,14 @@ def update_db_model(db_model: Deployment, updated_patch: updateDeployment) -> Pr
         if db_model.model_info
         else _EMPTY_MODEL_INFO,
         model_info=merged_model_info,
-        litellm_params=merged_litellm_params,
+        litellm_params=merged_gateway_params,
         patch=updated_patch,
     )
     merged_model_info.update(ptu_pricing)
-    merged_litellm_params.update(ptu_pricing)
+    merged_gateway_params.update(ptu_pricing)
     for field in ptu_released:
         merged_model_info.pop(field, None)
-        merged_litellm_params.pop(field, None)
+        merged_gateway_params.pop(field, None)
 
     # convert to prisma compatible format
 
@@ -720,7 +720,7 @@ def update_db_model(db_model: Deployment, updated_patch: updateDeployment) -> Pr
 
     prisma_compatible_model_dict: Final = PrismaCompatibleUpdateDBModel(
         model_name=merged_model_name,
-        litellm_params=json.dumps(merged_litellm_params),
+        litellm_params=json.dumps(merged_gateway_params),
         model_info=json.dumps(merged_model_info),
     )
 
@@ -818,7 +818,7 @@ async def patch_model(
         # Pause/resume (`blocked`) is a proxy-admin-only privilege. Team admins
         # passed the auth check above for team-scoped models, but they must not
         # be able to unblock (or block) a model their proxy admin has paused.
-        if patch_data.blocked is not None and user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN:
+        if patch_data.blocked is not None and user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN:
             raise ProxyException(
                 message="Only proxy admins can change a model's blocked flag.",
                 type=ProxyErrorTypes.auth_error.value,
@@ -829,10 +829,10 @@ async def patch_model(
         ModelManagementAuthChecks.can_user_attach_credential(
             litellm_params=patch_data.litellm_params,
             user_api_key_dict=user_api_key_dict,
-            existing_litellm_params=db_model.litellm_params,
+            existing_gateway_params=db_model.litellm_params,
             credential_info=await _credential_info_for_attach(
                 litellm_params=patch_data.litellm_params,
-                existing_litellm_params=db_model.litellm_params,
+                existing_gateway_params=db_model.litellm_params,
                 user_api_key_dict=user_api_key_dict,
                 model_team_id=patch_model_team_id,
                 prisma_client=prisma_client,
@@ -882,7 +882,7 @@ async def patch_model(
                 object_id=model_id,
                 action="updated",
                 user_api_key_dict=user_api_key_dict,
-                table_name=LitellmTableNames.PROXY_MODEL_TABLE_NAME,
+                table_name=GatewayTableNames.PROXY_MODEL_TABLE_NAME,
                 before_value=db_model.model_dump_json(exclude_none=True),
                 after_value=updated_model.model_dump_json(exclude_none=True),
                 litellm_changed_by=user_api_key_dict.user_id,
@@ -943,7 +943,7 @@ async def _set_model_blocked_status(
                 param=None,
             )
 
-        if user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN:
+        if user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN:
             raise ProxyException(
                 message="Only proxy admins can change a model's blocked flag.",
                 type=ProxyErrorTypes.auth_error.value,
@@ -988,7 +988,7 @@ async def _set_model_blocked_status(
                 object_id=data.model_id,
                 action=action,
                 user_api_key_dict=user_api_key_dict,
-                table_name=LitellmTableNames.PROXY_MODEL_TABLE_NAME,
+                table_name=GatewayTableNames.PROXY_MODEL_TABLE_NAME,
                 before_value=db_model.model_dump_json(exclude_none=True),
                 after_value=(
                     updated_model.model_dump_json(exclude_none=True) if isinstance(updated_model, BaseModel) else None
@@ -1094,9 +1094,9 @@ async def _add_model_to_db(
     should_create_model_in_db: bool = True,
 ) -> "prisma_models.LiteLLM_ProxyModelTable | LiteLLM_ProxyModelTable | None":
     # encrypt litellm params #
-    _litellm_params_dict: Final = model_params.litellm_params.dict(exclude_none=True)
-    _original_litellm_model_name: Final = model_params.litellm_params.model
-    for k, v in _litellm_params_dict.items():
+    _gateway_params_dict: Final = model_params.litellm_params.dict(exclude_none=True)
+    _original_gateway_model_name: Final = model_params.litellm_params.model
+    for k, v in _gateway_params_dict.items():
         encrypted_value = encrypt_value_helper(value=v, new_encryption_key=new_encryption_key)
         model_params.litellm_params[k] = encrypted_value
     _data: Final[dict] = {
@@ -1593,7 +1593,7 @@ class ModelManagementAuthChecks:
                 status_code=403,
                 detail={"error": CommonProxyErrors.not_premium_user.value},
             )
-        if user_api_key_dict.user_role and user_api_key_dict.user_role == LitellmUserRoles.PROXY_ADMIN:
+        if user_api_key_dict.user_role and user_api_key_dict.user_role == GatewayUserRoles.PROXY_ADMIN:
             return True
         elif team_obj is None or not _is_user_team_admin(user_api_key_dict=user_api_key_dict, team_obj=team_obj):
             raise HTTPException(
@@ -1606,9 +1606,9 @@ class ModelManagementAuthChecks:
 
     @staticmethod
     def can_user_attach_credential(
-        litellm_params: GenericLiteLLMParams | None,
+        litellm_params: GenericGatewayParams | None,
         user_api_key_dict: UserAPIKeyAuth,
-        existing_litellm_params: GenericLiteLLMParams | None = None,
+        existing_gateway_params: GenericGatewayParams | None = None,
         *,
         credential_info: Mapping[str, object] | None = None,
         model_team_id: str | None = None,
@@ -1616,7 +1616,7 @@ class ModelManagementAuthChecks:
     ) -> Literal[True]:
         if litellm_params is None or litellm_params.litellm_credential_name is None:
             return True
-        if _is_unchanged_credential_name(litellm_params, existing_litellm_params):
+        if _is_unchanged_credential_name(litellm_params, existing_gateway_params):
             # An unchanged name needs no fresh grant, but the credential could have been
             # repurposed for billing since it was attached -- re-check that, from the
             # in-memory list so this never costs a database query.
@@ -1625,7 +1625,7 @@ class ModelManagementAuthChecks:
             return True
         if is_billing_credential(credential_info):
             raise _billing_credential_attach_refusal(litellm_params.litellm_credential_name)
-        if user_api_key_dict.user_role == LitellmUserRoles.PROXY_ADMIN:
+        if user_api_key_dict.user_role == GatewayUserRoles.PROXY_ADMIN:
             return True
         # Team-admin rights are proved here, not assumed: team_obj is the same DB-backed row
         # allow_team_model_action/can_user_make_model_call verify team-admin status against,
@@ -1715,7 +1715,7 @@ class ModelManagementAuthChecks:
                 # act on the orphaned model, but only as a proxy admin -- without the
                 # team there is no team-admin membership left to verify.
                 if allow_missing_team:
-                    if user_api_key_dict.user_role == LitellmUserRoles.PROXY_ADMIN:
+                    if user_api_key_dict.user_role == GatewayUserRoles.PROXY_ADMIN:
                         return True
                     raise HTTPException(
                         status_code=403,
@@ -1733,7 +1733,7 @@ class ModelManagementAuthChecks:
                 premium_user=premium_user,
             )
         ## Check non-team model auth
-        elif user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN:
+        elif user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN:
             raise HTTPException(
                 status_code=403,
                 detail={
@@ -1843,7 +1843,7 @@ async def delete_model(
                     object_id=model_info.id,
                     action="deleted",
                     user_api_key_dict=user_api_key_dict,
-                    table_name=LitellmTableNames.PROXY_MODEL_TABLE_NAME,
+                    table_name=GatewayTableNames.PROXY_MODEL_TABLE_NAME,
                     before_value=result.model_dump_json(exclude_none=True),
                     after_value=None,
                     litellm_changed_by=user_api_key_dict.user_id,
@@ -1997,7 +1997,7 @@ async def add_new_model(
             user_api_key_dict=user_api_key_dict,
             credential_info=await _credential_info_for_attach(
                 litellm_params=model_params.litellm_params,
-                existing_litellm_params=None,
+                existing_gateway_params=None,
                 user_api_key_dict=user_api_key_dict,
                 model_team_id=add_model_team_id,
                 prisma_client=prisma_client,
@@ -2032,7 +2032,7 @@ async def add_new_model(
             live_before_reload: Final = live_model_ids_snapshot()
             reload_outcome: ReconcileOutcome = ReconcileOutcome(still_desired=None, live_after=None)
             try:
-                _original_litellm_model_name: Final = model_params.model_name
+                _original_gateway_model_name: Final = model_params.model_name
                 if model_params.model_info.team_id is None:
                     model_response = await _add_model_to_db(
                         model_params=priced_model_params,
@@ -2054,7 +2054,7 @@ async def add_new_model(
                     # send notification - new model added
                     await proxy_logging_obj.slack_alerting_instance.model_added_alert(
                         model_name=priced_model_params.model_name,
-                        litellm_model_name=_original_litellm_model_name,
+                        litellm_model_name=_original_gateway_model_name,
                         passed_model_info=priced_model_params.model_info,
                     )
             except Exception as e:
@@ -2078,7 +2078,7 @@ async def add_new_model(
                 object_id=model_response.model_id,
                 action="created",
                 user_api_key_dict=user_api_key_dict,
-                table_name=LitellmTableNames.PROXY_MODEL_TABLE_NAME,
+                table_name=GatewayTableNames.PROXY_MODEL_TABLE_NAME,
                 before_value=None,
                 after_value=(
                     model_response.model_dump_json(exclude_none=True) if isinstance(model_response, BaseModel) else None
@@ -2159,9 +2159,9 @@ async def update_model(
         if _model_id is None:
             raise Exception("model_info.id not provided")
 
-        _existing_litellm_params = await ModelRepository(prisma_client).table.find_unique(where={"model_id": _model_id})
+        _existing_gateway_params = await ModelRepository(prisma_client).table.find_unique(where={"model_id": _model_id})
 
-        if _existing_litellm_params is None:
+        if _existing_gateway_params is None:
             if llm_router is not None and llm_router.get_deployment(model_id=_model_id) is not None:
                 raise HTTPException(
                     status_code=400,
@@ -2169,7 +2169,7 @@ async def update_model(
                 )
             else:
                 raise Exception("model not found")
-        deployment: Final = Deployment(**_existing_litellm_params.model_dump())
+        deployment: Final = Deployment(**_existing_gateway_params.model_dump())
 
         update_model_team_id: Final = deployment.model_info.team_id
         update_model_team_obj: Final = (
@@ -2189,10 +2189,10 @@ async def update_model(
         ModelManagementAuthChecks.can_user_attach_credential(
             litellm_params=model_params.litellm_params,
             user_api_key_dict=user_api_key_dict,
-            existing_litellm_params=deployment.litellm_params,
+            existing_gateway_params=deployment.litellm_params,
             credential_info=await _credential_info_for_attach(
                 litellm_params=model_params.litellm_params,
-                existing_litellm_params=deployment.litellm_params,
+                existing_gateway_params=deployment.litellm_params,
                 user_api_key_dict=user_api_key_dict,
                 model_team_id=update_model_team_id,
                 prisma_client=prisma_client,
@@ -2209,17 +2209,17 @@ async def update_model(
         # update DB
         if store_model_in_db is True:
             existing_model_row: Final = cast(  # cast-ok: prisma types Json columns as `str`; the driver parses them
-                "_ExistingModelRow", _existing_litellm_params
+                "_ExistingModelRow", _existing_gateway_params
             )
-            _existing_litellm_params_dict: Final = dict(existing_model_row.litellm_params)
+            _existing_gateway_params_dict: Final = dict(existing_model_row.litellm_params)
 
             if model_params.litellm_params is None:
                 raise Exception("litellm_params not provided")
 
-            _new_litellm_params_dict: Final = model_params.litellm_params.dict(exclude_none=True)
+            _new_gateway_params_dict: Final = model_params.litellm_params.dict(exclude_none=True)
 
             ### ENCRYPT PARAMS ###
-            for k, v in _new_litellm_params_dict.items():
+            for k, v in _new_gateway_params_dict.items():
                 encrypted_value = encrypt_value_helper(value=v)
                 model_params.litellm_params[k] = encrypted_value
 
@@ -2230,8 +2230,8 @@ async def update_model(
             for key, value in _mp.items():
                 if value is not None:
                     merged_dictionary[key] = value
-                elif key in _existing_litellm_params_dict and _existing_litellm_params_dict[key] is not None:
-                    merged_dictionary[key] = _existing_litellm_params_dict[key]
+                elif key in _existing_gateway_params_dict and _existing_gateway_params_dict[key] is not None:
+                    merged_dictionary[key] = _existing_gateway_params_dict[key]
                 else:
                     pass
 
@@ -2253,7 +2253,7 @@ async def update_model(
                     object_id=_model_id,
                     action="updated",
                     user_api_key_dict=user_api_key_dict,
-                    table_name=LitellmTableNames.PROXY_MODEL_TABLE_NAME,
+                    table_name=GatewayTableNames.PROXY_MODEL_TABLE_NAME,
                     before_value=(
                         existing_model_row.model_dump_json(exclude_none=True)
                         if isinstance(existing_model_row, BaseModel)
@@ -2329,7 +2329,7 @@ async def update_public_model_groups(
         from token_iq.gateway.proxy.proxy_server import proxy_config, store_model_in_db
 
         # Check if user has admin permissions
-        if user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN:
+        if user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN:
             raise HTTPException(
                 status_code=403,
                 detail={
@@ -2404,7 +2404,7 @@ async def update_useful_links(
         from token_iq.gateway.proxy.proxy_server import proxy_config
 
         # Check if user has admin permissions
-        if user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN:
+        if user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN:
             raise HTTPException(
                 status_code=403,
                 detail={
@@ -2559,7 +2559,7 @@ async def get_auto_router_classifier_default_prompt(
     )
 
 
-def _deduplicate_litellm_router_models(models: list[dict]) -> list[dict]:
+def _deduplicate_gateway_router_models(models: list[dict]) -> list[dict]:
     """
     Deduplicate models based on their model_info.id field.
     Returns a list of unique models keeping only the first occurrence of each model ID.

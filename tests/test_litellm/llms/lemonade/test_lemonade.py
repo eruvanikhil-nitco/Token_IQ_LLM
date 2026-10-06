@@ -291,7 +291,7 @@ def test_get_model_info_sends_explicit_lemonade_api_key_for_custom_base(monkeypa
     }
 
 
-def test_litellm_get_model_info_does_not_leak_lemonade_key_to_custom_base(
+def test_gateway_get_model_info_does_not_leak_lemonade_key_to_custom_base(
     monkeypatch,
 ):
     """Test top-level model info does not send server-side keys to supplied bases."""
@@ -322,7 +322,7 @@ def test_litellm_get_model_info_does_not_leak_lemonade_key_to_custom_base(
     assert mock_get.call_args.kwargs["headers"] == {}
 
 
-def test_litellm_get_model_info_forwards_explicit_lemonade_key_to_custom_base(
+def test_gateway_get_model_info_forwards_explicit_lemonade_key_to_custom_base(
     monkeypatch,
 ):
     """Top-level model info must forward an explicit api_key to the supplied base."""
@@ -355,7 +355,7 @@ def test_litellm_get_model_info_forwards_explicit_lemonade_key_to_custom_base(
     }
 
 
-def test_litellm_get_model_info_uses_lemonade_api_base():
+def test_gateway_get_model_info_uses_lemonade_api_base():
     """Test that LiteLLM model info is wired to Lemonade's model metadata API."""
     response = MagicMock()
     response.status_code = 200

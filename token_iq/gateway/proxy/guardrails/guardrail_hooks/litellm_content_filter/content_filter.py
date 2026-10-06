@@ -33,7 +33,7 @@ from token_iq.gateway.types.utils import (
 )
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 
 from token_iq.gateway.types.guardrails import (
     BlockedWord,
@@ -1799,7 +1799,7 @@ class ContentFilterGuardrail(CustomGuardrail):
         self,
         request_data: dict,
         detections: list[ContentFilterDetection],
-        logging_obj: Optional["LiteLLMLoggingObj"] = None,
+        logging_obj: Optional["GatewayLoggingObj"] = None,
     ) -> None:
         if not self._event_hook_is_event_type(GuardrailEventHooks.pre_mcp_call):
             return
@@ -1869,7 +1869,7 @@ class ContentFilterGuardrail(CustomGuardrail):
         inputs: "GenericGuardrailAPIInputs",
         request_data: dict,
         input_type: Literal["request", "response"],
-        logging_obj: Optional["LiteLLMLoggingObj"] = None,
+        logging_obj: Optional["GatewayLoggingObj"] = None,
     ) -> "GenericGuardrailAPIInputs":
         """
         Apply content filtering guardrail to a batch of texts.
@@ -2079,10 +2079,10 @@ class ContentFilterGuardrail(CustomGuardrail):
     @staticmethod
     def get_config_model():
         from token_iq.gateway.types.proxy.guardrails.guardrail_hooks.litellm_content_filter import (
-            LitellmContentFilterGuardrailConfigModel,
+            GatewayContentFilterGuardrailConfigModel,
         )
 
-        return LitellmContentFilterGuardrailConfigModel
+        return GatewayContentFilterGuardrailConfigModel
 
     @classmethod
     def get_supported_event_hooks(cls) -> list[GuardrailEventHooks]:

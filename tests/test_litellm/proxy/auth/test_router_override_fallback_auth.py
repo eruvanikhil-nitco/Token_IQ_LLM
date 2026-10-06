@@ -10,7 +10,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
 from token_iq.gateway.proxy.auth.auth_utils import iter_request_fallback_targets
 from token_iq.gateway.proxy.auth.user_api_key_auth import (
     _enforce_key_and_fallback_model_access,
@@ -31,7 +31,7 @@ def _key_with_models(models: List[str]) -> UserAPIKeyAuth:
     return UserAPIKeyAuth(
         api_key="hashed",
         user_id="caller",
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         models=models,
     )
 

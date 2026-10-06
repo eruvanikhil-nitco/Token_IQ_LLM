@@ -20,7 +20,7 @@ from token_iq.gateway.core_utils.url_utils import safe_get
 from token_iq.gateway.llms.base_llm.image_edit.transformation import BaseImageEditConfig
 from token_iq.gateway.secret_managers.main import get_secret_str
 from token_iq.gateway.types.images.main import ImageEditOptionalRequestParams
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.types.utils import FileTypes, ImageObject, ImageResponse
 
 from ..common_utils import (
@@ -30,11 +30,11 @@ from ..common_utils import (
 )
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as _LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as _GatewayLoggingObj
 
-    LiteLLMLoggingObj = _LiteLLMLoggingObj
+    GatewayLoggingObj = _GatewayLoggingObj
 else:
-    LiteLLMLoggingObj = Any
+    GatewayLoggingObj = Any
 
 
 class BlackForestLabsImageEditConfig(BaseImageEditConfig):
@@ -233,7 +233,7 @@ class BlackForestLabsImageEditConfig(BaseImageEditConfig):
         prompt: str | None,
         image: FileTypes | None,
         image_edit_optional_request_params: dict,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> tuple[dict, RequestFiles]:
         """
@@ -283,7 +283,7 @@ class BlackForestLabsImageEditConfig(BaseImageEditConfig):
         self,
         model: str,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> ImageResponse:
         """
         Transform Black Forest Labs response to OpenAI-compatible ImageResponse.

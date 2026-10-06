@@ -303,29 +303,29 @@ def test_get_customer_user_header_from_mapping_no_customer_returns_none():
 
 
 def test_get_internal_user_header_from_mapping_returns_internal_header():
-    from token_iq.gateway.proxy.litellm_pre_call_utils import LiteLLMProxyRequestSetup
+    from token_iq.gateway.proxy.litellm_pre_call_utils import GatewayProxyRequestSetup
 
     mappings = [
         {"header_name": "X-OpenWebUI-User-Id", "litellm_user_role": "internal_user"},
         {"header_name": "X-OpenWebUI-User-Email", "litellm_user_role": "customer"},
     ]
 
-    result = LiteLLMProxyRequestSetup.get_internal_user_header_from_mapping(mappings)
+    result = GatewayProxyRequestSetup.get_internal_user_header_from_mapping(mappings)
     assert result == "X-OpenWebUI-User-Id"
 
 
 def test_get_internal_user_header_from_mapping_no_internal_returns_none():
-    from token_iq.gateway.proxy.litellm_pre_call_utils import LiteLLMProxyRequestSetup
+    from token_iq.gateway.proxy.litellm_pre_call_utils import GatewayProxyRequestSetup
 
     mappings = [
         {"header_name": "X-OpenWebUI-User-Email", "litellm_user_role": "customer"}
     ]
-    result = LiteLLMProxyRequestSetup.get_internal_user_header_from_mapping(mappings)
+    result = GatewayProxyRequestSetup.get_internal_user_header_from_mapping(mappings)
     assert result is None
 
     # Also support single mapping dict
     single_mapping = {"header_name": "X-Only-Customer", "litellm_user_role": "customer"}
-    result = LiteLLMProxyRequestSetup.get_internal_user_header_from_mapping(
+    result = GatewayProxyRequestSetup.get_internal_user_header_from_mapping(
         single_mapping
     )
     assert result is None

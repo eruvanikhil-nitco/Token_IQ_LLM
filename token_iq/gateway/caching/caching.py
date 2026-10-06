@@ -48,7 +48,7 @@ class CacheMode(str, Enum):
 class Cache:
     def __init__(
         self,
-        type: LiteLLMCacheType | None = LiteLLMCacheType.LOCAL,
+        type: GatewayCacheType | None = GatewayCacheType.LOCAL,
         mode: CacheMode
         | None = CacheMode.default_on,  # when default_on cache is always on, when default_off cache is opt in
         host: str | None = None,
@@ -150,7 +150,7 @@ class Cache:
         Returns:
             None. Cache is set as a litellm param
         """
-        if type == LiteLLMCacheType.REDIS:
+        if type == GatewayCacheType.REDIS:
             # Check REDIS_CLUSTER_NODES env var if no explicit startup nodes
             if not redis_startup_nodes:
                 _env_cluster_nodes: Final = gateway.get_secret("REDIS_CLUSTER_NODES")
@@ -181,7 +181,7 @@ class Cache:
                     redis_flush_size=redis_flush_size,
                     **kwargs,
                 )
-        elif type == LiteLLMCacheType.REDIS_SEMANTIC:
+        elif type == GatewayCacheType.REDIS_SEMANTIC:
             self.cache = RedisSemanticCache(
                 host=host,
                 port=port,
@@ -193,7 +193,7 @@ class Cache:
                 embedding_timeout=semantic_cache_embedding_timeout,
                 **kwargs,
             )
-        elif type == LiteLLMCacheType.VALKEY_SEMANTIC:
+        elif type == GatewayCacheType.VALKEY_SEMANTIC:
             # Imported here, not at module top, so the optional redis dependency
             # is only required when this backend is actually selected.
             from .valkey_semantic_cache import ValkeySemanticCache
@@ -210,7 +210,7 @@ class Cache:
                 embedding_timeout=semantic_cache_embedding_timeout,
                 **kwargs,
             )
-        elif type == LiteLLMCacheType.QDRANT_SEMANTIC:
+        elif type == GatewayCacheType.QDRANT_SEMANTIC:
             self.cache = QdrantSemanticCache(
                 qdrant_api_base=qdrant_api_base,
                 qdrant_api_key=qdrant_api_key,
@@ -222,9 +222,9 @@ class Cache:
                 embedding_max_input_tokens=semantic_cache_embedding_max_input_tokens,
                 embedding_timeout=semantic_cache_embedding_timeout,
             )
-        elif type == LiteLLMCacheType.LOCAL:
+        elif type == GatewayCacheType.LOCAL:
             self.cache = InMemoryCache()
-        elif type == LiteLLMCacheType.S3:
+        elif type == GatewayCacheType.S3:
             self.cache = S3Cache(
                 s3_bucket_name=s3_bucket_name,
                 s3_region_name=s3_region_name,
@@ -239,25 +239,25 @@ class Cache:
                 s3_path=s3_path,
                 **kwargs,
             )
-        elif type == LiteLLMCacheType.GCS:
+        elif type == GatewayCacheType.GCS:
             self.cache = GCSCache(
                 bucket_name=gcs_bucket_name,
                 path_service_account=gcs_path_service_account,
                 gcs_path=gcs_path,
             )
-        elif type == LiteLLMCacheType.AZURE_BLOB:
+        elif type == GatewayCacheType.AZURE_BLOB:
             self.cache = AzureBlobCache(
                 account_url=azure_account_url,
                 container=azure_blob_container,
             )
-        elif type == LiteLLMCacheType.DISK:
+        elif type == GatewayCacheType.DISK:
             self.cache = DiskCache(disk_cache_dir=disk_cache_dir)
         if "cache" not in gateway.input_callback:
             gateway.input_callback.append("cache")
         if "cache" not in gateway.success_callback:
-            gateway.logging_callback_manager.add_litellm_success_callback("cache")
+            gateway.logging_callback_manager.add_gateway_success_callback("cache")
         if "cache" not in gateway._async_success_callback:
-            gateway.logging_callback_manager.add_litellm_async_success_callback("cache")
+            gateway.logging_callback_manager.add_gateway_async_success_callback("cache")
         self.supported_call_types = (
             supported_call_types  # default to ["completion", "acompletion", "embedding", "aembedding"]
         )
@@ -267,13 +267,13 @@ class Cache:
         self.ttl = ttl
         self.mode: CacheMode = mode or CacheMode.default_on
 
-        if self.type == LiteLLMCacheType.LOCAL and default_in_memory_ttl is not None:
+        if self.type == GatewayCacheType.LOCAL and default_in_memory_ttl is not None:
             self.ttl = default_in_memory_ttl
 
         if (
-            self.type == LiteLLMCacheType.REDIS
-            or self.type == LiteLLMCacheType.REDIS_SEMANTIC
-            or self.type == LiteLLMCacheType.VALKEY_SEMANTIC
+            self.type == GatewayCacheType.REDIS
+            or self.type == GatewayCacheType.REDIS_SEMANTIC
+            or self.type == GatewayCacheType.VALKEY_SEMANTIC
         ) and default_in_redis_ttl is not None:
             self.ttl = default_in_redis_ttl
 
@@ -296,21 +296,21 @@ class Cache:
 
     def _is_semantic_cache(self) -> bool:
         return self.type in (
-            LiteLLMCacheType.REDIS_SEMANTIC,
-            LiteLLMCacheType.QDRANT_SEMANTIC,
-            LiteLLMCacheType.VALKEY_SEMANTIC,
+            GatewayCacheType.REDIS_SEMANTIC,
+            GatewayCacheType.QDRANT_SEMANTIC,
+            GatewayCacheType.VALKEY_SEMANTIC,
         )
 
     def _get_semantic_cache_tenant_scope(self, kwargs: dict) -> str:
         metadata: Final[dict] = kwargs.get("metadata") or {}
         litellm_params: Final[dict] = kwargs.get("litellm_params") or {}
-        metadata_in_litellm_params: Final[dict] = litellm_params.get("metadata") or {}
+        metadata_in_gateway_params: Final[dict] = litellm_params.get("metadata") or {}
 
         scope = ""
         for field in self._SEMANTIC_CACHE_TENANT_SCOPE_FIELDS:
             value = metadata.get(field)
             if value is None:
-                value = metadata_in_litellm_params.get(field)
+                value = metadata_in_gateway_params.get(field)
             if value is not None:
                 scope += f"{field}: {value}"
         return scope
@@ -334,7 +334,7 @@ class Cache:
             return preset_cache_key
 
         combined_kwargs: Final = ModelParamHelper._get_all_llm_api_params()
-        litellm_param_kwargs: Final = all_litellm_params
+        gateway_param_kwargs: Final = all_litellm_params
         is_semantic_cache: Final = self._is_semantic_cache()
         scope_excluded_params: Final = self._SEMANTIC_CACHE_SCOPE_EXCLUDED_PARAMS if is_semantic_cache else frozenset()
         for param in kwargs:
@@ -344,7 +344,7 @@ class Cache:
                 param_value: str | None = self._get_param_value(param, kwargs)
                 if param_value is not None:
                     cache_key += f"{param}: {param_value}"
-            elif param not in litellm_param_kwargs:  # check if user passed in optional param - e.g. top_k
+            elif param not in gateway_param_kwargs:  # check if user passed in optional param - e.g. top_k
                 if gateway.enable_caching_on_provider_specific_optional_params is True:  # feature flagged for now
                     if kwargs[param] is None:
                         continue  # ignore None params
@@ -391,8 +391,8 @@ class Cache:
         """
         metadata: Final[dict] = kwargs.get("metadata", {}) or {}
         litellm_params: Final[dict] = kwargs.get("litellm_params", {}) or {}
-        metadata_in_litellm_params: Final[dict] = litellm_params.get("metadata", {}) or {}
-        model_group: Final[str | None] = metadata.get("model_group") or metadata_in_litellm_params.get("model_group")
+        metadata_in_gateway_params: Final[dict] = litellm_params.get("metadata", {}) or {}
+        model_group: Final[str | None] = metadata.get("model_group") or metadata_in_gateway_params.get("model_group")
         caching_group: Final = self._get_caching_group(metadata, model_group)
         return caching_group or model_group or kwargs["model"]
 
@@ -913,7 +913,7 @@ class Cache:
 
 
 def enable_cache(
-    type: LiteLLMCacheType | None = LiteLLMCacheType.LOCAL,
+    type: GatewayCacheType | None = GatewayCacheType.LOCAL,
     host: str | None = None,
     port: str | None = None,
     password: str | None = None,
@@ -942,9 +942,9 @@ def enable_cache(
     if "cache" not in gateway.input_callback:
         gateway.input_callback.append("cache")
     if "cache" not in gateway.success_callback:
-        gateway.logging_callback_manager.add_litellm_success_callback("cache")
+        gateway.logging_callback_manager.add_gateway_success_callback("cache")
     if "cache" not in gateway._async_success_callback:
-        gateway.logging_callback_manager.add_litellm_async_success_callback("cache")
+        gateway.logging_callback_manager.add_gateway_async_success_callback("cache")
 
     if gateway.cache is None:
         gateway.cache = Cache(
@@ -960,7 +960,7 @@ def enable_cache(
 
 
 def update_cache(
-    type: LiteLLMCacheType | None = LiteLLMCacheType.LOCAL,
+    type: GatewayCacheType | None = GatewayCacheType.LOCAL,
     host: str | None = None,
     port: str | None = None,
     password: str | None = None,

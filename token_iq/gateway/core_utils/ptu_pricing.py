@@ -14,7 +14,7 @@ from typing import Final
 
 from token_iq.gateway.secret_managers.main import get_secret_bool
 from token_iq.gateway.types.router import ModelInfo
-from token_iq.gateway.types.utils import CustomPricingLiteLLMParams, MirroredPricingParams
+from token_iq.gateway.types.utils import CustomPricingGatewayParams, MirroredPricingParams
 
 PTU_COST_ATTRIBUTION_ENV_VAR: Final = "LITELLM_ENABLE_PTU_COST_ATTRIBUTION"
 
@@ -42,7 +42,7 @@ SEARCH_CONTEXT_SIZES: Final = ("search_context_size_low", "search_context_size_m
 # Rate fields only. CustomPricingLiteLLMParams also carries settings that are not charges,
 # and zeroing one of those would destroy the deployment's configuration rather than stop a
 # charge.
-CUSTOM_PRICING_FIELDS: Final = frozenset(f for f in CustomPricingLiteLLMParams.model_fields if "cost" in f)
+CUSTOM_PRICING_FIELDS: Final = frozenset(f for f in CustomPricingGatewayParams.model_fields if "cost" in f)
 PTU_ZEROED_PRICING: Final[Mapping[str, float | tuple[()] | Mapping[str, float]]] = MappingProxyType(
     {
         **dict.fromkeys(PTU_ZEROED_PRICING_FIELDS, 0.0),

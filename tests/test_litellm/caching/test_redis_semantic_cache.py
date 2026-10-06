@@ -1451,11 +1451,11 @@ async def test_redis_async_get_cache_fails_open_when_embedding_hangs(monkeypatch
 
 def test_cache_forwards_semantic_cache_embedding_timeout():
     from token_iq.gateway.caching.caching import Cache
-    from token_iq.gateway.types.caching import LiteLLMCacheType
+    from token_iq.gateway.types.caching import GatewayCacheType
 
     with patch("token_iq.gateway.caching.caching.RedisSemanticCache") as backend:
         Cache(
-            type=LiteLLMCacheType.REDIS_SEMANTIC,
+            type=GatewayCacheType.REDIS_SEMANTIC,
             similarity_threshold=0.8,
             redis_url="redis://localhost:6379",
             semantic_cache_embedding_timeout=2.5,

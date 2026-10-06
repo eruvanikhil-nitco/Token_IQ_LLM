@@ -31,7 +31,7 @@ from token_iq.gateway.proxy.proxy_server import app
 from token_iq.gateway.proxy.utils import ProxyLogging
 from token_iq.gateway.router import Router
 from token_iq.gateway.types.llms.openai import HttpxBinaryResponseContent
-from token_iq.gateway.types.utils import LiteLLMBatch
+from token_iq.gateway.types.utils import GatewayBatch
 
 client = TestClient(app)
 
@@ -79,8 +79,8 @@ def _encoded_bedrock_batch_id() -> str:
     )
 
 
-def _make_in_progress_batch_response(batch_id: str) -> LiteLLMBatch:
-    return LiteLLMBatch(
+def _make_in_progress_batch_response(batch_id: str) -> GatewayBatch:
+    return GatewayBatch(
         id=batch_id,
         completion_window="24h",
         created_at=1234567890,

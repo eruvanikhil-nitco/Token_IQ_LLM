@@ -17,7 +17,7 @@ from .azure import AzureChatCompletion
 from .common_utils import AzureOpenAIError
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 
 
 class AzureAudioTranscription(AzureChatCompletion):
@@ -26,7 +26,7 @@ class AzureAudioTranscription(AzureChatCompletion):
         model: str,
         audio_file: FileTypes,
         optional_params: dict,
-        logging_obj: "LiteLLMLoggingObj",
+        logging_obj: "GatewayLoggingObj",
         model_response: TranscriptionResponse,
         timeout: float,
         max_retries: int,
@@ -115,7 +115,7 @@ class AzureAudioTranscription(AzureChatCompletion):
         data: dict,
         model_response: TranscriptionResponse,
         timeout: float,
-        logging_obj: "LiteLLMLoggingObj",
+        logging_obj: "GatewayLoggingObj",
         api_version: str | None = None,
         api_key: str | None = None,
         api_base: str | None = None,

@@ -313,7 +313,7 @@ async def test_batch_status_sync_from_provider_to_database():
         get_batch_from_database,
         update_batch_in_database,
     )
-    from token_iq.gateway.types.utils import LiteLLMBatch
+    from token_iq.gateway.types.utils import GatewayBatch
     import json
 
     # Setup: Create mock objects
@@ -374,7 +374,7 @@ async def test_batch_status_sync_from_provider_to_database():
     assert response_batch.status == "validating"
 
     # Test 2: Simulate provider returning updated status
-    updated_batch_response = LiteLLMBatch(
+    updated_batch_response = GatewayBatch(
         id=batch_id,
         object="batch",
         status="completed",  # Status changed from "validating" to "completed"
@@ -429,14 +429,14 @@ async def test_batch_cancel_updates_database():
     from token_iq.gateway.proxy.openai_files_endpoints.common_utils import (
         update_batch_in_database,
     )
-    from token_iq.gateway.types.utils import LiteLLMBatch
+    from token_iq.gateway.types.utils import GatewayBatch
 
     # Setup
     batch_id = "batch_cancel_test"
     unified_batch_id = "litellm_proxy:cancel_test"
 
     # Mock cancelled batch response from provider
-    cancelled_batch_response = LiteLLMBatch(
+    cancelled_batch_response = GatewayBatch(
         id=batch_id,
         object="batch",
         status="cancelled",
@@ -501,7 +501,7 @@ async def test_batch_terminal_state_skip_provider_call():
     from token_iq.gateway.proxy.openai_files_endpoints.common_utils import (
         get_batch_from_database,
     )
-    from token_iq.gateway.types.utils import LiteLLMBatch
+    from token_iq.gateway.types.utils import GatewayBatch
     import json
 
     # Setup: Create mock objects for a completed batch
@@ -570,7 +570,7 @@ async def test_batch_no_status_change_skip_update():
     from token_iq.gateway.proxy.openai_files_endpoints.common_utils import (
         update_batch_in_database,
     )
-    from token_iq.gateway.types.utils import LiteLLMBatch
+    from token_iq.gateway.types.utils import GatewayBatch
 
     # Setup
     batch_id = "batch_no_change_test"
@@ -581,7 +581,7 @@ async def test_batch_no_status_change_skip_update():
     mock_db_batch.status = "validating"
 
     # Mock batch response from provider with same status
-    batch_response = LiteLLMBatch(
+    batch_response = GatewayBatch(
         id=batch_id,
         object="batch",
         status="validating",  # Same status as in database

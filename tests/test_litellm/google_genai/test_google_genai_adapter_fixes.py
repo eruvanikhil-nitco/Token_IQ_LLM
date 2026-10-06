@@ -12,7 +12,7 @@ import pytest
 from token_iq import gateway
 from token_iq.gateway.google_genai.adapters.handler import GenerateContentToCompletionHandler
 from token_iq.gateway.google_genai.adapters.transformation import GoogleGenAIAdapter
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.types.utils import ModelResponse
 
 

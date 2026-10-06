@@ -1337,7 +1337,7 @@ async def test_async_log_success_event_increments_by_actual_tokens(monkeypatch):
     }
 
     with patch(
-        "token_iq.gateway.proxy.common_utils.callback_utils.get_model_group_from_litellm_kwargs",
+        "token_iq.gateway.proxy.common_utils.callback_utils.get_model_group_from_gateway_kwargs",
         return_value=model,
     ):
         await handler.async_log_success_event(
@@ -1521,7 +1521,7 @@ async def test_async_log_success_event_uses_team_priority_from_auth_metadata(mon
     }
 
     with patch(
-        "token_iq.gateway.proxy.common_utils.callback_utils.get_model_group_from_litellm_kwargs",
+        "token_iq.gateway.proxy.common_utils.callback_utils.get_model_group_from_gateway_kwargs",
         return_value=model,
     ):
         await handler.async_log_success_event(
@@ -1729,7 +1729,7 @@ async def test_tpm_only_model_enforces_priority_and_model_capacity(monkeypatch):
 
 
 @pytest.mark.parametrize("premium", [True, False])
-def test_priority_reservation_follows_the_token_iq_plan_not_a_litellm_licence(monkeypatch, premium):
+def test_priority_reservation_follows_the_token_iq_plan_not_a_gateway_licence(monkeypatch, premium):
     from token_iq.gateway.proxy import proxy_server
     from token_iq.gateway.proxy.hooks.dynamic_rate_limiter_v3 import _get_priority_settings
 

@@ -254,7 +254,7 @@ class TestModelRateLimitingCheckIOTokens:
         assert successes == itpm_limit
 
     @pytest.mark.asyncio
-    async def test_reservation_read_prefers_top_level_metadata_over_litellm_params(self):
+    async def test_reservation_read_prefers_top_level_metadata_over_gateway_params(self):
         from token_iq.gateway.utils import get_utc_datetime
 
         dual_cache = DualCache()

@@ -19,11 +19,11 @@ from token_iq.gateway.types.utils import EmbeddingResponse
 from token_iq.gateway.utils import convert_to_model_response_object
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as _LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as _GatewayLoggingObj
 
-    LiteLLMLoggingObj = _LiteLLMLoggingObj
+    GatewayLoggingObj = _GatewayLoggingObj
 else:
-    LiteLLMLoggingObj = Any
+    GatewayLoggingObj = Any
 
 
 class HostedVLLMEmbeddingError(BaseLLMException):
@@ -119,7 +119,7 @@ class HostedVLLMEmbeddingConfig(BaseEmbeddingConfig):
         model: str,
         raw_response: httpx.Response,
         model_response: EmbeddingResponse,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         api_key: str | None,
         request_data: dict,
         optional_params: dict,

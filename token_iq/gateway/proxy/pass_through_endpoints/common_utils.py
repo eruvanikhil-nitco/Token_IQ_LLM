@@ -8,7 +8,7 @@ if TYPE_CHECKING:
     from token_iq.gateway.integrations.custom_logger import CustomLogger
 
 
-def get_litellm_virtual_key(request: Request) -> str:
+def get_gateway_virtual_key(request: Request) -> str:
     """
     Extract and format API key from request headers.
     Prioritizes x-litellm-api-key over Authorization header.

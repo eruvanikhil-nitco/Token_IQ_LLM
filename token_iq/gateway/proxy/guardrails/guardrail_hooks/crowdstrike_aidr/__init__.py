@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING, Final
 
 from token_iq.gateway.types.guardrails import SupportedGuardrailIntegrations
 
-from .crowdstrike_aidr import CrowdStrikeAIDRHandler, streaming_params_from_litellm_params
+from .crowdstrike_aidr import CrowdStrikeAIDRHandler, streaming_params_from_gateway_params
 
 if TYPE_CHECKING:
     from token_iq.gateway.types.guardrails import Guardrail, LitellmParams
@@ -15,7 +15,7 @@ def initialize_guardrail(litellm_params: "LitellmParams", guardrail: "Guardrail"
     if not guardrail_name:
         raise ValueError("CrowdStrike AIDR guardrail name is required")
 
-    streaming_params: Final = streaming_params_from_litellm_params(litellm_params)
+    streaming_params: Final = streaming_params_from_gateway_params(litellm_params)
     _crowdstrike_aidr_callback: Final = CrowdStrikeAIDRHandler(
         guardrail_name=guardrail_name,
         api_base=litellm_params.api_base,

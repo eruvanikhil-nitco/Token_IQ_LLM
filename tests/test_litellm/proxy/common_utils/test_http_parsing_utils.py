@@ -541,7 +541,7 @@ def test_get_tags_from_request_body_with_metadata_tags():
     assert result == ["tag1", "tag2", "tag3"]
 
 
-def test_get_tags_from_request_body_with_litellm_metadata_tags():
+def test_get_tags_from_request_body_with_gateway_metadata_tags():
     """
     Test that tags are correctly extracted from request body when using litellm_metadata.
     """

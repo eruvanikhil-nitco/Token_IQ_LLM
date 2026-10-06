@@ -7,7 +7,7 @@ from token_iq.gateway.llms.gemini.interactions.transformation import GoogleAIStu
 from token_iq.gateway.llms.vertex_ai.common_utils import validate_vertex_location
 from token_iq.gateway.llms.vertex_ai.vertex_llm_base import VertexBase
 from token_iq.gateway.types.llms.vertex_ai import VERTEX_CREDENTIALS_TYPES
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.types.utils import LlmProviders
 
 VERTEX_INTERACTIONS_API_VERSION: Final = "v1beta1"
@@ -62,14 +62,14 @@ class VertexAIInteractionsConfig(VertexBase, GoogleAIStudioInteractionsConfig):
     def get_default_vertex_location(self) -> str:
         return VERTEX_INTERACTIONS_DEFAULT_LOCATION
 
-    def _mint(self, litellm_params: GenericLiteLLMParams) -> tuple[str, str]:
+    def _mint(self, litellm_params: GenericGatewayParams) -> tuple[str, str]:
         raw_params: Final = litellm_params.model_dump()
         return self._mint_access_token(
             self.safe_get_vertex_ai_credentials(raw_params),
             self.safe_get_vertex_ai_project(raw_params),
         )
 
-    def _target(self, api_base: str | None, litellm_params: GenericLiteLLMParams) -> VertexInteractionsTarget:
+    def _target(self, api_base: str | None, litellm_params: GenericGatewayParams) -> VertexInteractionsTarget:
         _, project_id = self._mint(litellm_params)
         if not project_id:
             raise ValueError(
@@ -88,9 +88,9 @@ class VertexAIInteractionsConfig(VertexBase, GoogleAIStudioInteractionsConfig):
         self,
         headers: Mapping[str, str],
         model: str,
-        litellm_params: GenericLiteLLMParams | None,
+        litellm_params: GenericGatewayParams | None,
     ) -> dict:  # mutable-ok: BaseInteractionsAPIConfig declares plain-dict headers
-        access_token, _ = self._mint(litellm_params or GenericLiteLLMParams())
+        access_token, _ = self._mint(litellm_params or GenericGatewayParams())
         return {  # mutable-ok: BaseInteractionsAPIConfig declares plain-dict headers
             "Content-Type": "application/json",
             "Authorization": f"Bearer {access_token}",
@@ -106,7 +106,7 @@ class VertexAIInteractionsConfig(VertexBase, GoogleAIStudioInteractionsConfig):
         stream: bool | None = None,
     ) -> str:
         params: Final = (
-            GenericLiteLLMParams.model_validate(litellm_params) if litellm_params else GenericLiteLLMParams()
+            GenericGatewayParams.model_validate(litellm_params) if litellm_params else GenericGatewayParams()
         )
         collection_url: Final = self._target(api_base, params).collection_url
         return f"{collection_url}?alt=sse" if stream else collection_url
@@ -115,7 +115,7 @@ class VertexAIInteractionsConfig(VertexBase, GoogleAIStudioInteractionsConfig):
         self,
         interaction_id: str,
         api_base: str,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         url_suffix: str = "",
     ) -> tuple[str, dict]:  # mutable-ok: BaseInteractionsAPIConfig declares a plain-dict request body
         target: Final = self._target(api_base or None, litellm_params)
@@ -125,7 +125,7 @@ class VertexAIInteractionsConfig(VertexBase, GoogleAIStudioInteractionsConfig):
         self,
         interaction_id: str,
         api_base: str,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: Mapping[str, str],
     ) -> tuple[str, dict]:  # mutable-ok: BaseInteractionsAPIConfig declares a plain-dict request body
         return self._interaction_by_id_request(interaction_id, api_base, litellm_params)
@@ -134,7 +134,7 @@ class VertexAIInteractionsConfig(VertexBase, GoogleAIStudioInteractionsConfig):
         self,
         interaction_id: str,
         api_base: str,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: Mapping[str, str],
     ) -> tuple[str, dict]:  # mutable-ok: BaseInteractionsAPIConfig declares a plain-dict request body
         return self._interaction_by_id_request(interaction_id, api_base, litellm_params)
@@ -143,7 +143,7 @@ class VertexAIInteractionsConfig(VertexBase, GoogleAIStudioInteractionsConfig):
         self,
         interaction_id: str,
         api_base: str,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: Mapping[str, str],
     ) -> tuple[str, dict]:  # mutable-ok: BaseInteractionsAPIConfig declares a plain-dict request body
         return self._interaction_by_id_request(interaction_id, api_base, litellm_params, url_suffix=":cancel")

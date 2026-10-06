@@ -58,13 +58,13 @@ from ..common_utils import OpenAIError
 if TYPE_CHECKING:
     import tiktoken
 
-    from token_iq.gateway.core_utils.litellm_logging import Logging as _LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as _GatewayLoggingObj
     from token_iq.gateway.llms.base_llm.base_utils import BaseTokenCounter
     from token_iq.gateway.types.llms.openai import ChatCompletionToolParam
 
-    LiteLLMLoggingObj = _LiteLLMLoggingObj
+    GatewayLoggingObj = _GatewayLoggingObj
 else:
-    LiteLLMLoggingObj = Any
+    GatewayLoggingObj = Any
 
 
 _NO_TOOLS_UPDATE: Final[Mapping[str, object]] = MappingProxyType({})
@@ -264,7 +264,7 @@ class OpenAIGPTConfig(BaseLLMModelInfo, BaseConfig):
         self,
         content_item: OpenAIMessageContentListBlock,
     ) -> OpenAIMessageContentListBlock:
-        litellm_specific_params: Final = {"format"}
+        gateway_specific_params: Final = {"format"}
         if content_item.get("type") == "image_url":
             content_item = cast(ChatCompletionImageObject, content_item)
             if isinstance(content_item["image_url"], str):
@@ -273,7 +273,7 @@ class OpenAIGPTConfig(BaseLLMModelInfo, BaseConfig):
                 }
             elif isinstance(content_item["image_url"], dict):
                 new_image_url_obj: Final = ChatCompletionImageUrlObject(
-                    **{k: v for k, v in content_item["image_url"].items() if k not in litellm_specific_params}
+                    **{k: v for k, v in content_item["image_url"].items() if k not in gateway_specific_params}
                 )
                 content_item["image_url"] = new_image_url_obj
         elif content_item.get("type") == "file":
@@ -286,7 +286,7 @@ class OpenAIGPTConfig(BaseLLMModelInfo, BaseConfig):
                     llm_provider="openai",
                 )
             new_file_obj: Final = ChatCompletionFileObjectFile(
-                **{k: v for k, v in file_obj.items() if k not in litellm_specific_params}
+                **{k: v for k, v in file_obj.items() if k not in gateway_specific_params}
             )
             content_item["file"] = new_file_obj
 
@@ -645,7 +645,7 @@ class OpenAIGPTConfig(BaseLLMModelInfo, BaseConfig):
         model: str,
         raw_response: httpx.Response,
         model_response: ModelResponse,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         request_data: dict,
         messages: list[AllMessageValues],
         optional_params: dict,

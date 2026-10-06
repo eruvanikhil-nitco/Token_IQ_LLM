@@ -41,7 +41,7 @@ from token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints imp
     vertex_proxy_route,
     vllm_proxy_route,
 )
-from token_iq.gateway.proxy._types import LitellmUserRoles, SpecialHeaders, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import GatewayUserRoles, SpecialHeaders, UserAPIKeyAuth
 from token_iq.gateway.proxy.auth.handle_jwt import JWTHandler
 from token_iq.gateway.types.passthrough_endpoints.vertex_ai import VertexPassThroughCredentials
 
@@ -296,7 +296,7 @@ class TestVertexAIPassThroughHandler:
                 "token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints.create_pass_through_route"
             ) as mock_create_route,
             mock.patch(
-                "token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints.get_litellm_virtual_key"
+                "token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints.get_gateway_virtual_key"
             ) as mock_get_virtual_key,
             mock.patch(
                 "token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints.user_api_key_auth"
@@ -404,7 +404,7 @@ class TestVertexAIPassThroughHandler:
                 "token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints.create_pass_through_route"
             ) as mock_create_route,
             mock.patch(
-                "token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints.get_litellm_virtual_key"
+                "token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints.get_gateway_virtual_key"
             ) as mock_get_virtual_key,
             mock.patch(
                 "token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints.user_api_key_auth"
@@ -684,7 +684,7 @@ class TestVertexAIPassThroughHandler:
         from unittest.mock import Mock
 
         from token_iq.gateway.core_utils.litellm_logging import (
-            Logging as LiteLLMLoggingObj,
+            Logging as GatewayLoggingObj,
         )
         from token_iq.gateway.proxy.pass_through_endpoints.llm_provider_handlers.vertex_passthrough_logging_handler import (
             VertexPassthroughLoggingHandler,
@@ -715,7 +715,7 @@ class TestVertexAIPassThroughHandler:
         mock_httpx_response.status_code = 200
 
         # Create mock logging object
-        mock_logging_obj = Mock(spec=LiteLLMLoggingObj)
+        mock_logging_obj = Mock(spec=GatewayLoggingObj)
         mock_logging_obj.optional_params = {}
         mock_logging_obj.litellm_call_id = "test-call-id-123"
         mock_logging_obj.model_call_details = {}
@@ -868,7 +868,7 @@ class TestVertexAIPassThroughHandler:
         from unittest.mock import Mock, patch
 
         from token_iq.gateway.core_utils.litellm_logging import (
-            Logging as LiteLLMLoggingObj,
+            Logging as GatewayLoggingObj,
         )
         from token_iq.gateway.proxy.pass_through_endpoints.llm_provider_handlers.vertex_passthrough_logging_handler import (
             VertexPassthroughLoggingHandler,
@@ -892,7 +892,7 @@ class TestVertexAIPassThroughHandler:
         mock_httpx_response.status_code = 200
 
         # Create mock logging object
-        mock_logging_obj = Mock(spec=LiteLLMLoggingObj)
+        mock_logging_obj = Mock(spec=GatewayLoggingObj)
         mock_logging_obj.optional_params = {}
         mock_logging_obj.litellm_call_id = "test-call-id-123"
         mock_logging_obj.model_call_details = {}
@@ -947,7 +947,7 @@ class TestVertexAIPassThroughHandler:
         from unittest.mock import Mock, patch
 
         from token_iq.gateway.core_utils.litellm_logging import (
-            Logging as LiteLLMLoggingObj,
+            Logging as GatewayLoggingObj,
         )
         from token_iq.gateway.proxy.pass_through_endpoints.llm_provider_handlers.vertex_passthrough_logging_handler import (
             VertexPassthroughLoggingHandler,
@@ -963,7 +963,7 @@ class TestVertexAIPassThroughHandler:
         mock_httpx_response.json.return_value = embed_content_response_data
         mock_httpx_response.status_code = 200
 
-        mock_logging_obj = Mock(spec=LiteLLMLoggingObj)
+        mock_logging_obj = Mock(spec=GatewayLoggingObj)
         mock_logging_obj.optional_params = {}
         mock_logging_obj.litellm_call_id = "test-call-id-embed"
         mock_logging_obj.model_call_details = {}
@@ -1005,7 +1005,7 @@ class TestVertexAIPassThroughHandler:
         from unittest.mock import Mock, patch
 
         from token_iq.gateway.core_utils.litellm_logging import (
-            Logging as LiteLLMLoggingObj,
+            Logging as GatewayLoggingObj,
         )
         from token_iq.gateway.proxy.pass_through_endpoints.llm_provider_handlers.vertex_passthrough_logging_handler import (
             VertexPassthroughLoggingHandler,
@@ -1022,7 +1022,7 @@ class TestVertexAIPassThroughHandler:
         mock_httpx_response.json.return_value = batch_embed_response_data
         mock_httpx_response.status_code = 200
 
-        mock_logging_obj = Mock(spec=LiteLLMLoggingObj)
+        mock_logging_obj = Mock(spec=GatewayLoggingObj)
         mock_logging_obj.optional_params = {}
         mock_logging_obj.litellm_call_id = "test-call-id-batch"
         mock_logging_obj.model_call_details = {}
@@ -1063,7 +1063,7 @@ class TestVertexAIPassThroughHandler:
         from unittest.mock import Mock, patch
 
         from token_iq.gateway.core_utils.litellm_logging import (
-            Logging as LiteLLMLoggingObj,
+            Logging as GatewayLoggingObj,
         )
         from token_iq.gateway.proxy.pass_through_endpoints.llm_provider_handlers.vertex_passthrough_logging_handler import (
             VertexPassthroughLoggingHandler,
@@ -1079,7 +1079,7 @@ class TestVertexAIPassThroughHandler:
         mock_httpx_response.json.return_value = embed_content_response_data
         mock_httpx_response.status_code = 200
 
-        mock_logging_obj = Mock(spec=LiteLLMLoggingObj)
+        mock_logging_obj = Mock(spec=GatewayLoggingObj)
         mock_logging_obj.optional_params = {}
         mock_logging_obj.litellm_call_id = "test-call-id-gemini-studio"
         mock_logging_obj.model_call_details = {}
@@ -1285,7 +1285,7 @@ class TestVertexAIDiscoveryPassThroughHandler:
                 "token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints.create_pass_through_route"
             ) as mock_create_route,
             mock.patch(
-                "token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints.get_litellm_virtual_key"
+                "token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints.get_gateway_virtual_key"
             ) as mock_get_virtual_key,
             mock.patch(
                 "token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints.user_api_key_auth"
@@ -1703,28 +1703,28 @@ class TestBedrockLLMProxyRoute:
             deployments = router.get_model_list(model_name="claude-opus-4-1")
             assert len(deployments) > 0
             deployment = deployments[0]
-            deployment_litellm_params = deployment.get("litellm_params", {})
+            deployment_gateway_params = deployment.get("litellm_params", {})
 
             # Verify model-specific credentials are in the deployment
             assert (
-                deployment_litellm_params.get("aws_access_key_id") == model_access_key
+                deployment_gateway_params.get("aws_access_key_id") == model_access_key
             )
             assert (
-                deployment_litellm_params.get("aws_secret_access_key")
+                deployment_gateway_params.get("aws_secret_access_key")
                 == model_secret_key
             )
-            assert deployment_litellm_params.get("aws_region_name") == model_region
+            assert deployment_gateway_params.get("aws_region_name") == model_region
             assert (
-                deployment_litellm_params.get("aws_session_token")
+                deployment_gateway_params.get("aws_session_token")
                 == model_session_token
             )
 
             # Verify environment variables are NOT in the deployment
-            assert deployment_litellm_params.get("aws_access_key_id") != env_access_key
+            assert deployment_gateway_params.get("aws_access_key_id") != env_access_key
             assert (
-                deployment_litellm_params.get("aws_secret_access_key") != env_secret_key
+                deployment_gateway_params.get("aws_secret_access_key") != env_secret_key
             )
-            assert deployment_litellm_params.get("aws_region_name") != env_region
+            assert deployment_gateway_params.get("aws_region_name") != env_region
 
             # Test 3: Verify credentials are passed through the passthrough route
             # Mock the passthrough route to capture what credentials are used
@@ -2781,7 +2781,7 @@ class TestMilvusProxyRoute:
                 mock_index_object
             )
 
-            mock_vector_registry.get_litellm_managed_vector_store_from_registry_by_name.return_value = (
+            mock_vector_registry.get_gateway_managed_vector_store_from_registry_by_name.return_value = (
                 mock_vector_store
             )
 
@@ -3006,7 +3006,7 @@ class TestMilvusProxyRoute:
             mock_index_registry.get_vector_store_index_by_name.return_value = (
                 mock_index_object
             )
-            mock_vector_registry.get_litellm_managed_vector_store_from_registry_by_name.return_value = (
+            mock_vector_registry.get_gateway_managed_vector_store_from_registry_by_name.return_value = (
                 None
             )
 
@@ -3068,7 +3068,7 @@ class TestMilvusProxyRoute:
             mock_index_registry.get_vector_store_index_by_name.return_value = (
                 mock_index_object
             )
-            mock_vector_registry.get_litellm_managed_vector_store_from_registry_by_name.return_value = (
+            mock_vector_registry.get_gateway_managed_vector_store_from_registry_by_name.return_value = (
                 mock_vector_store
             )
 
@@ -3135,7 +3135,7 @@ class TestMilvusProxyRoute:
             mock_index_registry.get_vector_store_index_by_name.return_value = (
                 mock_index_object
             )
-            mock_vector_registry.get_litellm_managed_vector_store_from_registry_by_name.return_value = (
+            mock_vector_registry.get_gateway_managed_vector_store_from_registry_by_name.return_value = (
                 mock_vector_store
             )
 
@@ -3875,7 +3875,7 @@ class TestVertexCredentiallessPassthroughVirtualKeyLeak:
         assert raised is not None and raised.status_code == 401
 
     @pytest.mark.asyncio
-    async def test_x_litellm_api_key_virtual_key_is_rejected_not_forwarded(self, monkeypatch):
+    async def test_x_gateway_api_key_virtual_key_is_rejected_not_forwarded(self, monkeypatch):
         raised, forwarded = await self._run(
             monkeypatch,
             [(b"x-litellm-api-key", self.VKEY.encode()), (b"content-type", b"application/json")],
@@ -3981,7 +3981,7 @@ class TestVertexCredentiallessPassthroughVirtualKeyLeak:
     @pytest.mark.parametrize(
         "credential_header",
         sorted(
-            SpecialHeaders.litellm_credential_header_names()
+            SpecialHeaders.gateway_credential_header_names()
             - {"authorization", "x-goog-api-key", "x-litellm-api-key"}
         ),
     )
@@ -4079,7 +4079,7 @@ class TestVertexCredentiallessPassthroughVirtualKeyLeak:
         assert self.VKEY not in " ".join(f"{name}:{value}" for name, value in forwarded.items())
 
     @pytest.mark.asyncio
-    async def test_virtual_key_in_mapped_route_litellm_user_api_key_header_is_stripped(self, monkeypatch):
+    async def test_virtual_key_in_mapped_route_gateway_user_api_key_header_is_stripped(self, monkeypatch):
         raised, forwarded = await self._run(
             monkeypatch,
             [
@@ -4097,7 +4097,7 @@ class TestVertexCredentiallessPassthroughVirtualKeyLeak:
         assert self.VKEY not in " ".join(f"{name}:{value}" for name, value in forwarded.items())
 
     @pytest.mark.asyncio
-    async def test_virtual_key_in_mapped_route_litellm_user_api_key_header_alone_is_rejected(self, monkeypatch):
+    async def test_virtual_key_in_mapped_route_gateway_user_api_key_header_alone_is_rejected(self, monkeypatch):
         raised, forwarded = await self._run(
             monkeypatch,
             [
@@ -4126,7 +4126,7 @@ class TestVertexCredentiallessPassthroughVirtualKeyLeak:
         [
             pytest.param(
                 "sk-master-1234",
-                UserAPIKeyAuth(api_key="best-api-key-ever", user_role=LitellmUserRoles.PROXY_ADMIN),
+                UserAPIKeyAuth(api_key="best-api-key-ever", user_role=GatewayUserRoles.PROXY_ADMIN),
                 id="custom-auth-returning-its-own-identifier",
             ),
             pytest.param(
@@ -4183,7 +4183,7 @@ class TestVertexCredentiallessPassthroughVirtualKeyLeak:
             ),
         ],
     )
-    async def test_non_sk_litellm_credential_that_authenticated_is_rejected_not_forwarded(
+    async def test_non_sk_gateway_credential_that_authenticated_is_rejected_not_forwarded(
         self, monkeypatch, credential: str, authenticated: UserAPIKeyAuth
     ):
         raised, forwarded = await self._run(
@@ -4215,7 +4215,7 @@ class TestVertexCredentiallessPassthroughVirtualKeyLeak:
         raised, forwarded = await self._run(
             monkeypatch,
             [(b"authorization", b"Bearer sk-master-1234"), (b"content-type", b"application/json")],
-            authenticated=UserAPIKeyAuth(api_key=LITELLM_PROXY_MASTER_KEY_ALIAS, user_role=LitellmUserRoles.PROXY_ADMIN),
+            authenticated=UserAPIKeyAuth(api_key=LITELLM_PROXY_MASTER_KEY_ALIAS, user_role=GatewayUserRoles.PROXY_ADMIN),
         )
         assert forwarded is None, "the master key must never reach the upstream forwarder"
         assert raised is not None and raised.status_code == 401
@@ -4229,7 +4229,7 @@ class TestVertexCredentiallessPassthroughVirtualKeyLeak:
                 (b"x-goog-api-key", b"AIza-real-google-api-key"),
                 (b"content-type", b"application/json"),
             ],
-            authenticated=UserAPIKeyAuth(api_key=LITELLM_PROXY_MASTER_KEY_ALIAS, user_role=LitellmUserRoles.PROXY_ADMIN),
+            authenticated=UserAPIKeyAuth(api_key=LITELLM_PROXY_MASTER_KEY_ALIAS, user_role=GatewayUserRoles.PROXY_ADMIN),
         )
         assert raised is None
         assert forwarded is not None
@@ -4312,7 +4312,7 @@ class TestAzureProxyRouteCrossIndexAuthorization:
                 vector_store_index_name == "my-index"
             )
             mock_index_registry.get_vector_store_index_by_name.return_value = index_object
-            mock_vector_registry.get_litellm_managed_vector_store_from_registry_by_name.return_value = vector_store
+            mock_vector_registry.get_gateway_managed_vector_store_from_registry_by_name.return_value = vector_store
 
             await azure_proxy_route(
                 endpoint="indexes/my-index/docs/index",
@@ -4418,7 +4418,7 @@ class TestAzureProxyRouteServiceLevelIndexCreate:
                     fastapi_response=MagicMock(spec=Response),
                     user_api_key_dict=UserAPIKeyAuth(
                         token="sk-team-token",
-                        user_role=LitellmUserRoles.INTERNAL_USER,
+                        user_role=GatewayUserRoles.INTERNAL_USER,
                     ),
                 )
 
@@ -4449,7 +4449,7 @@ class TestAzureProxyRouteServiceLevelIndexCreate:
                 fastapi_response=MagicMock(spec=Response),
                 user_api_key_dict=UserAPIKeyAuth(
                     token="sk-admin-token",
-                    user_role=LitellmUserRoles.PROXY_ADMIN,
+                    user_role=GatewayUserRoles.PROXY_ADMIN,
                 ),
             )
 
@@ -4580,9 +4580,9 @@ class TestComprehendMedicalProxyRoute:
         assert exc_info.value.status_code == 400
 
     def test_comprehendmedical_is_a_mapped_pass_through_route(self):
-        from token_iq.gateway.proxy._types import LiteLLMRoutes
+        from token_iq.gateway.proxy._types import GatewayRoutes
 
-        assert "/comprehendmedical" in LiteLLMRoutes.mapped_pass_through_routes.value
+        assert "/comprehendmedical" in GatewayRoutes.mapped_pass_through_routes.value
 
     @pytest.mark.asyncio
     async def test_sdk_route_reads_operation_from_x_amz_target(self):

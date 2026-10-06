@@ -49,7 +49,7 @@ from token_iq.gateway.types.utils import (
 
 if TYPE_CHECKING:
     from token_iq.gateway.core_utils.litellm_logging import (
-        Logging as LiteLLMLoggingObj,
+        Logging as GatewayLoggingObj,
     )
     from token_iq.gateway.types.proxy.guardrails.guardrail_hooks.base import (
         GuardrailConfigModel,
@@ -149,7 +149,7 @@ class XecGuardGuardrail(CustomGuardrail):
         inputs: GenericGuardrailAPIInputs,
         request_data: dict,
         input_type: Literal["request", "response"],
-        logging_obj: Optional["LiteLLMLoggingObj"] = None,
+        logging_obj: Optional["GatewayLoggingObj"] = None,
     ) -> GenericGuardrailAPIInputs:
         messages: Final = self._build_full_history(
             request_data=request_data,

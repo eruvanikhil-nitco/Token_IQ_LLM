@@ -14,7 +14,7 @@ from token_iq.gateway.llms.base_llm.base_model_iterator import BaseModelResponse
 from token_iq.gateway.llms.base_llm.chat.transformation import (
     BaseConfig,
     BaseLLMException,
-    LiteLLMLoggingObj,
+    GatewayLoggingObj,
 )
 from token_iq.gateway.types.llms.openai import AllMessageValues
 from token_iq.gateway.types.utils import (
@@ -90,7 +90,7 @@ class TritonConfig(BaseConfig):
         model: str,
         raw_response: Response,
         model_response: ModelResponse,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         request_data: dict,
         messages: list[AllMessageValues],
         optional_params: dict,
@@ -210,7 +210,7 @@ class TritonGenerateConfig(TritonConfig):
         model: str,
         raw_response: Response,
         model_response: ModelResponse,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         request_data: dict,
         messages: list[AllMessageValues],
         optional_params: dict,
@@ -275,7 +275,7 @@ class TritonInferConfig(TritonConfig):
         model: str,
         raw_response: Response,
         model_response: ModelResponse,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         request_data: dict,
         messages: list[AllMessageValues],
         optional_params: dict,

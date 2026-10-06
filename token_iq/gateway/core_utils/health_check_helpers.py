@@ -72,14 +72,14 @@ class HealthCheckHelpers:
                 We need this since the DB requires an API Key to track a log in the SpendLogs Table
         """
         from token_iq.gateway.proxy._types import UserAPIKeyAuth
-        from token_iq.gateway.proxy.litellm_pre_call_utils import LiteLLMProxyRequestSetup
+        from token_iq.gateway.proxy.litellm_pre_call_utils import GatewayProxyRequestSetup
 
         _metadata_variable_name: Final = "litellm_metadata"
         litellm_metadata: Final = HealthCheckHelpers._get_metadata_for_health_check_call()
         model_params[_metadata_variable_name] = litellm_metadata
-        model_params = LiteLLMProxyRequestSetup.add_user_api_key_auth_to_request_metadata(
+        model_params = GatewayProxyRequestSetup.add_user_api_key_auth_to_request_metadata(
             data=model_params,
-            user_api_key_dict=UserAPIKeyAuth.get_litellm_internal_health_check_user_api_key_auth(),
+            user_api_key_dict=UserAPIKeyAuth.get_gateway_internal_health_check_user_api_key_auth(),
             _metadata_variable_name=_metadata_variable_name,
         )
         return model_params

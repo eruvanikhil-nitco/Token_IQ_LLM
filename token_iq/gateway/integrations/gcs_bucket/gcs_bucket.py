@@ -293,8 +293,8 @@ class GCSBucketLogger(GCSBucketBase, AdditionalLoggingUtils):
             )
 
         # used for testing
-        _litellm_params: Final = kwargs.get("litellm_params", None) or {}
-        _metadata: Final = _litellm_params.get("metadata", None) or {}
+        _gateway_params: Final = kwargs.get("litellm_params", None) or {}
+        _metadata: Final = _gateway_params.get("metadata", None) or {}
         if "gcs_log_id" in _metadata:
             safe_log_id: Final = sanitize_cloud_object_component(_metadata.get("gcs_log_id"), fallback="")
             if safe_log_id:

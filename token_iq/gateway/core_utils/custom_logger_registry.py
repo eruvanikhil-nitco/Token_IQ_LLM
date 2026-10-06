@@ -35,7 +35,7 @@ from token_iq.gateway.integrations.langfuse.langfuse_prompt_management import (
     LangfusePromptManagement,
 )
 from token_iq.gateway.integrations.langsmith import LangsmithLogger
-from token_iq.gateway.integrations.litellm_agent import LiteLLMAgentModelResolver
+from token_iq.gateway.integrations.litellm_agent import GatewayAgentModelResolver
 from token_iq.gateway.integrations.literal_ai import LiteralAILogger
 from token_iq.gateway.integrations.mavvrik_focus.mavvrik_focus_logger import MavvrikFocusLogger
 from token_iq.gateway.integrations.mlflow import MlflowLogger
@@ -67,7 +67,7 @@ class CustomLoggerRegistry:
         "galileo": GalileoObserve,
         "langsmith": LangsmithLogger,
         "literalai": LiteralAILogger,
-        "litellm_agent": LiteLLMAgentModelResolver,
+        "litellm_agent": GatewayAgentModelResolver,
         "prometheus": PrometheusLogger,
         "datadog": DataDogLogger,
         "datadog_llm_observability": DataDogLLMObsLogger,

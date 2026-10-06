@@ -17,7 +17,7 @@ from e2e_config import unique_marker
 from e2e_http import Result, UnknownApiError, unwrap
 from endpoints_client import EndpointsClient, ImageEditForm, ImagesResult
 from lifecycle import ResourceManager
-from models import LiteLLMParamsBody
+from models import GatewayParamsBody
 
 pytestmark = pytest.mark.e2e
 
@@ -32,7 +32,7 @@ def _register_image_model(endpoints_client: EndpointsClient, resources: Resource
     model = f"e2e-image-edit-{unique_marker()}"
     model_id = endpoints_client.create_model(
         model,
-        LiteLLMParamsBody(model="openai/gpt-image-1", api_key="os.environ/OPENAI_API_KEY"),
+        GatewayParamsBody(model="openai/gpt-image-1", api_key="os.environ/OPENAI_API_KEY"),
     )
     resources.defer(lambda: endpoints_client.delete_model(model_id))
     return model, resources.key()

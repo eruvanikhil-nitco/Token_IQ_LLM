@@ -5,7 +5,7 @@ from token_iq.gateway.files import main as files_main
 from token_iq.gateway.files.streaming import FileContentStreamingResponse
 from token_iq.gateway.files.types import FileContentStreamingResult
 from token_iq.gateway.llms.openai.openai import OpenAIFilesAPI
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 
 
 @pytest.mark.asyncio
@@ -88,12 +88,12 @@ async def test_afile_content_streaming_builds_standard_logging_object_on_complet
         _mock_file_content_streaming,
     )
     monkeypatch.setattr(
-        LiteLLMLoggingObj,
+        GatewayLoggingObj,
         "async_success_handler",
         _mock_async_success_handler,
     )
     monkeypatch.setattr(
-        LiteLLMLoggingObj,
+        GatewayLoggingObj,
         "handle_sync_success_callbacks_for_async_calls",
         lambda self, result, start_time, end_time, cache_hit=None: None,
     )

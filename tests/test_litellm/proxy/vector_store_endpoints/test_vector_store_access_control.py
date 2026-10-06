@@ -13,7 +13,7 @@ from fastapi import HTTPException
 
 from token_iq.gateway.proxy._types import (
     LiteLLM_ObjectPermissionTable,
-    LitellmUserRoles,
+    GatewayUserRoles,
     UserAPIKeyAuth,
 )
 from token_iq.gateway.proxy.vector_store_endpoints.management_endpoints import (
@@ -62,7 +62,7 @@ async def test_check_vector_store_access_proxy_admin_bypass():
         "custom_llm_provider": "openai",
         "team_id": "team_456",
     }
-    admin = UserAPIKeyAuth(team_id="team_999", user_role=LitellmUserRoles.PROXY_ADMIN)
+    admin = UserAPIKeyAuth(team_id="team_999", user_role=GatewayUserRoles.PROXY_ADMIN)
     assert await _check_vector_store_access(vector_store, admin) is True
 
 

@@ -326,9 +326,9 @@ async def test_s3_cache_async_with_key_prefix(mock_s3_dependencies):
 
 def test_s3_cache_supports_async():
     """Test that S3Cache now supports async operations"""
-    from token_iq.gateway.caching.caching import Cache, LiteLLMCacheType
+    from token_iq.gateway.caching.caching import Cache, GatewayCacheType
 
-    cache = Cache(type=LiteLLMCacheType.S3, s3_bucket_name="test-bucket")
+    cache = Cache(type=GatewayCacheType.S3, s3_bucket_name="test-bucket")
 
     # Should now return True for async support
     assert cache._supports_async() is True

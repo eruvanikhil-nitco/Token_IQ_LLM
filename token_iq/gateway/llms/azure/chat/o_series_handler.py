@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Optional
 
 import httpx
 
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.types.utils import ModelResponse
 
 from ...openai.openai import OpenAIChatCompletion
@@ -26,7 +26,7 @@ class AzureOpenAIO1ChatCompletion(BaseAzureLLM, OpenAIChatCompletion):
         timeout: float | httpx.Timeout,
         optional_params: dict,
         litellm_params: dict,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         model: str | None = None,
         messages: list | None = None,
         print_verbose: Callable | None = None,

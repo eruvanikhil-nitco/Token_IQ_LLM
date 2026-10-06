@@ -202,9 +202,9 @@ class TestBedrockModelInfoWrappers:
             arn
         ) == extract_model_name_from_bedrock_arn(arn)
 
-    def test_get_non_litellm_routing_model_name_matches_standalone(self):
+    def test_get_non_gateway_routing_model_name_matches_standalone(self):
         model = "bedrock/converse/claude-3"
-        assert BedrockModelInfo.get_non_litellm_routing_model_name(
+        assert BedrockModelInfo.get_non_gateway_routing_model_name(
             model
         ) == strip_bedrock_routing_prefix(model)
 

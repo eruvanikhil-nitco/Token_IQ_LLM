@@ -68,13 +68,13 @@ class ModelParamHelper:
         (``_get_relevant_args_to_use_for_logging``). Callers treat the result as
         read-only.
         """
-        chat_completion_kwargs: Final = ModelParamHelper._get_litellm_supported_chat_completion_kwargs()
-        text_completion_kwargs: Final = ModelParamHelper._get_litellm_supported_text_completion_kwargs()
-        embedding_kwargs: Final = ModelParamHelper._get_litellm_supported_embedding_kwargs()
-        transcription_kwargs: Final = ModelParamHelper._get_litellm_supported_transcription_kwargs()
-        rerank_kwargs: Final = ModelParamHelper._get_litellm_supported_rerank_kwargs()
-        responses_api_kwargs: Final = ModelParamHelper._get_litellm_supported_responses_api_kwargs()
-        anthropic_messages_kwargs: Final = ModelParamHelper._get_litellm_supported_anthropic_messages_kwargs()
+        chat_completion_kwargs: Final = ModelParamHelper._get_gateway_supported_chat_completion_kwargs()
+        text_completion_kwargs: Final = ModelParamHelper._get_gateway_supported_text_completion_kwargs()
+        embedding_kwargs: Final = ModelParamHelper._get_gateway_supported_embedding_kwargs()
+        transcription_kwargs: Final = ModelParamHelper._get_gateway_supported_transcription_kwargs()
+        rerank_kwargs: Final = ModelParamHelper._get_gateway_supported_rerank_kwargs()
+        responses_api_kwargs: Final = ModelParamHelper._get_gateway_supported_responses_api_kwargs()
+        anthropic_messages_kwargs: Final = ModelParamHelper._get_gateway_supported_anthropic_messages_kwargs()
         exclude_kwargs: Final = ModelParamHelper._get_exclude_kwargs()
 
         combined_kwargs = chat_completion_kwargs.union(
@@ -89,11 +89,11 @@ class ModelParamHelper:
         return combined_kwargs
 
     @staticmethod
-    def get_litellm_provider_specific_params_for_chat_params() -> set[str]:
+    def get_gateway_provider_specific_params_for_chat_params() -> set[str]:
         return set(["thinking"])
 
     @staticmethod
-    def _get_litellm_supported_chat_completion_kwargs() -> set[str]:
+    def _get_gateway_supported_chat_completion_kwargs() -> set[str]:
         """
         Get the litellm supported chat completion kwargs
 
@@ -101,16 +101,16 @@ class ModelParamHelper:
         """
         non_streaming_params: set[str] = set(getattr(CompletionCreateParamsNonStreaming, "__annotations__", {}).keys())
         streaming_params: Final[set[str]] = set(getattr(CompletionCreateParamsStreaming, "__annotations__", {}).keys())
-        litellm_provider_specific_params: Final[set[str]] = (
-            ModelParamHelper.get_litellm_provider_specific_params_for_chat_params()
+        gateway_provider_specific_params: Final[set[str]] = (
+            ModelParamHelper.get_gateway_provider_specific_params_for_chat_params()
         )
         all_chat_completion_kwargs: Final[set[str]] = non_streaming_params.union(streaming_params).union(
-            litellm_provider_specific_params
+            gateway_provider_specific_params
         )
         return all_chat_completion_kwargs
 
     @staticmethod
-    def _get_litellm_supported_text_completion_kwargs() -> set[str]:
+    def _get_gateway_supported_text_completion_kwargs() -> set[str]:
         """
         Get the litellm supported text completion kwargs
 
@@ -122,14 +122,14 @@ class ModelParamHelper:
         return all_text_completion_kwargs
 
     @staticmethod
-    def _get_litellm_supported_rerank_kwargs() -> set[str]:
+    def _get_gateway_supported_rerank_kwargs() -> set[str]:
         """
         Get the litellm supported rerank kwargs
         """
         return set(RerankRequest.model_fields.keys())
 
     @staticmethod
-    def _get_litellm_supported_embedding_kwargs() -> set[str]:
+    def _get_gateway_supported_embedding_kwargs() -> set[str]:
         """
         Get the litellm supported embedding kwargs
 
@@ -138,7 +138,7 @@ class ModelParamHelper:
         return set(getattr(EmbeddingCreateParams, "__annotations__", {}).keys())
 
     @staticmethod
-    def _get_litellm_supported_transcription_kwargs() -> set[str]:
+    def _get_gateway_supported_transcription_kwargs() -> set[str]:
         """
         Get the litellm supported transcription kwargs
 
@@ -160,7 +160,7 @@ class ModelParamHelper:
             return set()
 
     @staticmethod
-    def _get_litellm_supported_responses_api_kwargs() -> set[str]:
+    def _get_gateway_supported_responses_api_kwargs() -> set[str]:
         """
         Get the litellm supported responses API kwargs
 
@@ -171,7 +171,7 @@ class ModelParamHelper:
         return non_streaming_params.union(streaming_params)
 
     @staticmethod
-    def _get_litellm_supported_anthropic_messages_kwargs() -> frozenset[str]:
+    def _get_gateway_supported_anthropic_messages_kwargs() -> frozenset[str]:
         """
         Get the litellm supported Anthropic /v1/messages kwargs
         """

@@ -7,7 +7,7 @@ from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.proxy._types import (
     CommonProxyErrors,
     LiteLLM_AccessGroupTable,
-    LitellmUserRoles,
+    GatewayUserRoles,
     UserAPIKeyAuth,
 )
 from token_iq.gateway.proxy.auth.auth_checks import (
@@ -101,7 +101,7 @@ class _AccessGroupTx(Protocol):
 
 
 def _require_proxy_admin(user_api_key_dict: UserAPIKeyAuth) -> None:
-    if user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN:
+    if user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail={"error": CommonProxyErrors.not_allowed_access.value},

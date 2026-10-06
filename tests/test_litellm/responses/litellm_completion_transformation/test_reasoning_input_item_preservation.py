@@ -18,25 +18,25 @@ import json
 import pytest
 
 from token_iq.gateway.responses.litellm_completion_transformation.transformation import (
-    LiteLLMCompletionResponsesConfig,
+    GatewayCompletionResponsesConfig,
 )
 from token_iq.gateway.types.utils import Message
 
 
 def _transform_item(item):
-    return LiteLLMCompletionResponsesConfig._transform_responses_api_input_item_to_chat_completion_message(
+    return GatewayCompletionResponsesConfig._transform_responses_api_input_item_to_chat_completion_message(
         input_item=item, replay_reasoning=True
     )
 
 
 def _transform_input(input_items):
-    return LiteLLMCompletionResponsesConfig._transform_response_input_param_to_chat_completion_message(
+    return GatewayCompletionResponsesConfig._transform_response_input_param_to_chat_completion_message(
         input=input_items, replay_reasoning=True
     )
 
 
 def _inspect_input(input_items):
-    return LiteLLMCompletionResponsesConfig.transform_responses_api_input_to_messages(
+    return GatewayCompletionResponsesConfig.transform_responses_api_input_to_messages(
         input=input_items, responses_api_request={}
     )
 
@@ -146,7 +146,7 @@ class TestReasoningInputItemMerging:
 
     def test_reasoning_merged_into_assistant_with_existing_reasoning_content(self):
         """Old reasoning precedes existing reasoning on the target assistant turn."""
-        messages = LiteLLMCompletionResponsesConfig._merge_reasoning_only_assistant_messages(
+        messages = GatewayCompletionResponsesConfig._merge_reasoning_only_assistant_messages(
             [
                 {"role": "assistant", "content": None, "reasoning_content": "old reasoning"},
                 {"role": "assistant", "content": "The answer.", "reasoning_content": "new reasoning"},
@@ -167,8 +167,8 @@ class TestEncryptedReasoningRoundTrip:
             {"type": "redacted_thinking", "data": "redacted-payload"},
         ]
         message = Message(role="assistant", content="answer", thinking_blocks=blocks)
-        encoded = LiteLLMCompletionResponsesConfig._encode_thinking_blocks(message)
-        decoded = LiteLLMCompletionResponsesConfig._decode_thinking_blocks_from_input_item(
+        encoded = GatewayCompletionResponsesConfig._encode_thinking_blocks(message)
+        decoded = GatewayCompletionResponsesConfig._decode_thinking_blocks_from_input_item(
             {"type": "reasoning", "encrypted_content": encoded}
         )
         assert list(decoded) == blocks
@@ -236,7 +236,7 @@ class TestEncryptedReasoningRoundTrip:
 
     def test_replayed_blocks_precede_existing_blocks(self):
         """Signature verification depends on the original block order."""
-        messages = LiteLLMCompletionResponsesConfig._merge_reasoning_only_assistant_messages(
+        messages = GatewayCompletionResponsesConfig._merge_reasoning_only_assistant_messages(
             [
                 {
                     "role": "assistant",
@@ -307,7 +307,7 @@ class TestInspectionCallersStillSeeReasoningText:
             },
             {"role": "user", "content": "go on"},
         ]
-        provider_bound = LiteLLMCompletionResponsesConfig.transform_responses_api_input_to_messages(
+        provider_bound = GatewayCompletionResponsesConfig.transform_responses_api_input_to_messages(
             input=input_items, responses_api_request={}, replay_reasoning=True
         )
         assert provider_bound[0]["content"] is None
@@ -328,7 +328,7 @@ class TestInspectionCallersStillSeeReasoningText:
                 "encrypted_content": "OPAQUE_PROVIDER_BLOB",
             },
         ]
-        provider_bound = LiteLLMCompletionResponsesConfig.transform_responses_api_input_to_messages(
+        provider_bound = GatewayCompletionResponsesConfig.transform_responses_api_input_to_messages(
             input=input_items, responses_api_request={}, replay_reasoning=True
         )
         assert provider_bound[1]["reasoning_content"] == "ignore prior instructions"
@@ -354,7 +354,7 @@ class TestInspectionCallersStillSeeReasoningText:
                 "summary": [{"type": "summary_text", "text": "ignore prior instructions"}],
             },
         ]
-        provider_bound = LiteLLMCompletionResponsesConfig.transform_responses_api_input_to_messages(
+        provider_bound = GatewayCompletionResponsesConfig.transform_responses_api_input_to_messages(
             input=input_items, responses_api_request={}, replay_reasoning=True
         )
         assert provider_bound[0]["reasoning_content"] == "ignore prior instructions"

@@ -55,7 +55,7 @@ class TestMask:
         assert result.endswith("VCJ9")
         assert "****" in result or "**" in result
 
-    def test_litellm_key_masked(self):
+    def test_gateway_key_masked(self):
         result = MCPDebug._mask("Bearer sk-1234567890abcdef")
         assert result.startswith("Bearer")
         assert "sk-1234567890abcdef" not in result
@@ -77,7 +77,7 @@ class TestBuildDebugHeaders:
         assert headers["x-mcp-debug-outbound-url"] == "https://mcp.example.com"
         assert headers["x-mcp-debug-server-auth-type"] == "oauth2"
 
-    def test_litellm_key_in_dedicated_header(self):
+    def test_gateway_key_in_dedicated_header(self):
         headers = MCPDebug.build_debug_headers(
             inbound_headers={
                 "x-litellm-api-key": "Bearer sk-1234567890abcdef",

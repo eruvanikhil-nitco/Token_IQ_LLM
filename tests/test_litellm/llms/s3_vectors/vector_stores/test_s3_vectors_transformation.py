@@ -182,7 +182,7 @@ class TestS3VectorsVectorStoreConfig:
         router.get_model_list.return_value = [
             {"model_name": "team-embeddings", "litellm_params": {"model": "openai/text-embedding-3-small"}}
         ]
-        router.resolved_litellm_models.return_value = []
+        router.resolved_gateway_models.return_value = []
         router.aembedding = AsyncMock(side_effect=AssertionError("unserved model must not reach the Router"))
         request_metadata = {"user_api_key_team_id": "team-a"}
 
@@ -236,7 +236,7 @@ class TestS3VectorsVectorStoreConfig:
 
         assert executor.calls == []
 
-    def test_transform_search_request_bucket_from_litellm_params(self):
+    def test_transform_search_request_bucket_from_gateway_params(self):
         config = S3VectorsVectorStoreConfig()
 
         _, request_body = config.transform_search_vector_store_request(

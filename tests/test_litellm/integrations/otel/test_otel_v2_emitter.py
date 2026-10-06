@@ -10,7 +10,7 @@ from opentelemetry.trace.status import StatusCode  # noqa: E402
 
 from token_iq.gateway.integrations.otel import (  # noqa: E402
     GenAI,
-    LiteLLM,
+    Gateway,
     OpenTelemetryV2Config,
 )
 from token_iq.gateway.integrations.otel.plumbing import context as ctx_mod  # noqa: E402
@@ -78,16 +78,16 @@ def test_llm_call_span_cost_breakdown():
     (span,) = exporter.get_finished_spans()
     a = span.attributes
     # The rolled-up total stays sourced from response_cost.
-    assert a[f"{LiteLLM.COST_PREFIX}total"] == 0.002
+    assert a[f"{Gateway.COST_PREFIX}total"] == 0.002
     # Per-component breakdown now rides the span.
-    assert a[f"{LiteLLM.COST_PREFIX}input"] == 0.004
-    assert a[f"{LiteLLM.COST_PREFIX}output"] == 0.006
-    assert a[f"{LiteLLM.COST_PREFIX}cache_read"] == 0.001
+    assert a[f"{Gateway.COST_PREFIX}input"] == 0.004
+    assert a[f"{Gateway.COST_PREFIX}output"] == 0.006
+    assert a[f"{Gateway.COST_PREFIX}cache_read"] == 0.001
     # Unreported components are omitted, not zero-filled.
-    assert f"{LiteLLM.COST_PREFIX}margin_total_amount" not in a
+    assert f"{Gateway.COST_PREFIX}margin_total_amount" not in a
 
 
-def test_tracer_scope_carries_litellm_version():
+def test_tracer_scope_carries_gateway_version():
     from token_iq.gateway._version import version as litellm_version
 
     cfg = OpenTelemetryV2Config(exporter="in_memory")
@@ -116,7 +116,7 @@ def test_llm_call_span_golden():
     assert a[GenAI.RESPONSE_FINISH_REASONS] == ("stop",)
     assert a[GenAI.REQUEST_TEMPERATURE] == 0.7
     assert a["server.address"] == "api.openai.com"
-    assert a[LiteLLM.CALL_ID] == "call_1"
+    assert a[Gateway.CALL_ID] == "call_1"
     assert a["litellm.cost.total"] == 0.002
     # Success leaves status UNSET (semconv default), not forced OK.
     assert span.status.status_code is StatusCode.UNSET
@@ -272,7 +272,7 @@ def test_service_error_span():
     (span,) = exporter.get_finished_spans()
     assert span.status.status_code is StatusCode.ERROR
     assert span.attributes["error.type"] == "DBError"
-    assert span.attributes[LiteLLM.SERVICE_NAME] == "postgres"
+    assert span.attributes[Gateway.SERVICE_NAME] == "postgres"
 
 
 def test_guardrail_block_span_is_error_and_carries_verdict():
@@ -291,10 +291,10 @@ def test_guardrail_block_span_is_error_and_carries_verdict():
     (span,) = exporter.get_finished_spans()
     assert span.status.status_code is StatusCode.ERROR  # intervention → ERROR
     a = span.attributes
-    assert a[LiteLLM.GUARDRAIL_STATUS] == "guardrail_intervened"
-    assert a[LiteLLM.GUARDRAIL_PROVIDER] == "openai"
-    assert "violence" in a[LiteLLM.GUARDRAIL_RESPONSE]  # the verdict rides the span
-    assert a[LiteLLM.GUARDRAIL_MASKED_ENTITY_COUNT] == 2
+    assert a[Gateway.GUARDRAIL_STATUS] == "guardrail_intervened"
+    assert a[Gateway.GUARDRAIL_PROVIDER] == "openai"
+    assert "violence" in a[Gateway.GUARDRAIL_RESPONSE]  # the verdict rides the span
+    assert a[Gateway.GUARDRAIL_MASKED_ENTITY_COUNT] == 2
 
 
 def test_guardrail_success_span_is_unset():
@@ -349,11 +349,11 @@ def test_many_tools_do_not_evict_core_attributes():
     assert a[GenAI.USAGE_INPUT_TOKENS] == 10
     assert a[GenAI.USAGE_OUTPUT_TOKENS] == 5
     assert a[GenAI.RESPONSE_FINISH_REASONS] == ("stop",)
-    assert a[f"{LiteLLM.COST_PREFIX}total"] == 0.002
+    assert a[f"{Gateway.COST_PREFIX}total"] == 0.002
     assert a["gen_ai.usage.prompt_tokens"] == 10
 
     assert span.dropped_attributes == 0
-    assert a[LiteLLM.TOOLS_DECLARED] == 127
+    assert a[Gateway.TOOLS_DECLARED] == 127
     assert a["gen_ai.tool.0.name"] == "tool_0"
     assert "gen_ai.tool.126.name" not in a
     assert "llm.request.functions.126.name" not in a
@@ -367,7 +367,7 @@ def test_tool_definitions_kept_in_full_below_the_cap():
     (span,) = exporter.get_finished_spans()
     a = span.attributes
 
-    assert a[LiteLLM.TOOLS_DECLARED] == 3
+    assert a[Gateway.TOOLS_DECLARED] == 3
     for idx in range(3):
         assert a[f"gen_ai.tool.{idx}.name"] == f"tool_{idx}"
         assert a[f"gen_ai.tool.{idx}.description"] == f"description for tool {idx}"
@@ -426,8 +426,8 @@ def test_tool_definitions_stay_within_one_span_wide_budget(mapper_names):
     assert a[GenAI.PROVIDER_NAME] == "openai"
     assert a[GenAI.USAGE_INPUT_TOKENS] == 10
     assert a[GenAI.USAGE_OUTPUT_TOKENS] == 5
-    assert a[f"{LiteLLM.COST_PREFIX}total"] == 0.002
-    assert a[LiteLLM.TOOLS_DECLARED] == 127
+    assert a[f"{Gateway.COST_PREFIX}total"] == 0.002
+    assert a[Gateway.TOOLS_DECLARED] == 127
 
     emitted = _tool_definition_keys(a)
     assert emitted, "some tool detail should survive in every composition"

@@ -7,7 +7,7 @@ from typing import Any, Dict
 
 from prisma import Json
 
-from token_iq.gateway.proxy._types import LitellmUserRoles
+from token_iq.gateway.proxy._types import GatewayUserRoles
 from token_iq.gateway.proxy.utils import PrismaClient, hash_token
 
 
@@ -56,47 +56,47 @@ def _new_clear_key() -> str:
 def _actor_profile() -> Dict[Actor, Dict[str, Any]]:
     return {
         Actor.PROXY_ADMIN: {
-            "user_role": LitellmUserRoles.PROXY_ADMIN.value,
+            "user_role": GatewayUserRoles.PROXY_ADMIN.value,
             "team_id": None,
             "organization_id": None,
         },
         Actor.ORG_ADMIN: {
-            "user_role": LitellmUserRoles.ORG_ADMIN.value,
+            "user_role": GatewayUserRoles.ORG_ADMIN.value,
             "team_id": None,
             "organization_id": ORG_A,
         },
         Actor.TEAM_ADMIN: {
-            "user_role": LitellmUserRoles.INTERNAL_USER.value,
+            "user_role": GatewayUserRoles.INTERNAL_USER.value,
             "team_id": TEAM_ALPHA,
             "organization_id": ORG_A,
         },
         Actor.INTERNAL_USER: {
-            "user_role": LitellmUserRoles.INTERNAL_USER.value,
+            "user_role": GatewayUserRoles.INTERNAL_USER.value,
             "team_id": TEAM_ALPHA,
             "organization_id": ORG_A,
         },
         Actor.OWNER: {
-            "user_role": LitellmUserRoles.INTERNAL_USER.value,
+            "user_role": GatewayUserRoles.INTERNAL_USER.value,
             "team_id": TEAM_ALPHA,
             "organization_id": ORG_A,
         },
         Actor.UNRELATED_SAME_ORG: {
-            "user_role": LitellmUserRoles.INTERNAL_USER.value,
+            "user_role": GatewayUserRoles.INTERNAL_USER.value,
             "team_id": TEAM_ALPHA,
             "organization_id": ORG_A,
         },
         Actor.CROSS_ORG_USER: {
-            "user_role": LitellmUserRoles.INTERNAL_USER.value,
+            "user_role": GatewayUserRoles.INTERNAL_USER.value,
             "team_id": TEAM_BETA,
             "organization_id": ORG_B,
         },
         Actor.SERVICE_ACCOUNT: {
-            "user_role": LitellmUserRoles.INTERNAL_USER.value,
+            "user_role": GatewayUserRoles.INTERNAL_USER.value,
             "team_id": TEAM_ALPHA,
             "organization_id": ORG_A,
         },
         Actor.ORG_B_ADMIN: {
-            "user_role": LitellmUserRoles.ORG_ADMIN.value,
+            "user_role": GatewayUserRoles.ORG_ADMIN.value,
             "team_id": None,
             "organization_id": ORG_B,
         },

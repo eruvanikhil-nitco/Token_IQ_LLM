@@ -30,7 +30,7 @@ from openai import AsyncOpenAI, OpenAI  # noqa: E402
 
 from token_iq.gateway.llms.azure.azure import AsyncAzureOpenAI, AzureOpenAI  # noqa: E402
 from token_iq.gateway.llms.azure.batches.handler import AzureBatchesAPI  # noqa: E402
-from token_iq.gateway.types.utils import LiteLLMBatch  # noqa: E402
+from token_iq.gateway.types.utils import GatewayBatch  # noqa: E402
 
 GET_CLIENT = "litellm.llms.azure.batches.handler.AzureBatchesAPI.get_azure_openai_client"
 
@@ -128,13 +128,13 @@ def test_create_sync_forwards_auth_to_client_seam(handler):
     client.batches.cancel.assert_not_called()
 
     # RESULT: parsed into LiteLLMBatch from the SDK response's model_dump.
-    assert isinstance(result, LiteLLMBatch)
+    assert isinstance(result, GatewayBatch)
     assert result.id == "batch-123"
     assert result.status == "completed"
     assert result.output_file_id == "file-out-xyz"
 
 
-def test_create_sync_passes_litellm_params_through(handler):
+def test_create_sync_passes_gateway_params_through(handler):
     client = _sync_client()
     client.batches.create.return_value = _sdk_response(_batch_dict())
     lp = {"azure_ad_token": "tok", "tenant_id": "t1"}
@@ -192,7 +192,7 @@ async def test_create_async_returns_coroutine_and_awaits_async_client(handler):
 
     assert get_client.call_args.kwargs["_is_async"] is True
     client.batches.create.assert_awaited_once_with(**CREATE_DATA)
-    assert isinstance(result, LiteLLMBatch)
+    assert isinstance(result, GatewayBatch)
     assert result.id == "batch-123"
 
 
@@ -220,7 +220,7 @@ async def test_acreate_batch_parses_response(handler):
     )
 
     client.batches.create.assert_awaited_once_with(**CREATE_DATA)
-    assert isinstance(result, LiteLLMBatch)
+    assert isinstance(result, GatewayBatch)
     assert result.status == "validating"
 
 
@@ -242,7 +242,7 @@ def test_retrieve_sync_dispatch_payload_and_result(handler):
     client.batches.retrieve.assert_called_once_with(**RETRIEVE_DATA)
     client.batches.create.assert_not_called()
     client.batches.cancel.assert_not_called()
-    assert isinstance(result, LiteLLMBatch)
+    assert isinstance(result, GatewayBatch)
     assert result.id == "batch-123"
 
 
@@ -268,7 +268,7 @@ async def test_retrieve_async_returns_coroutine_and_awaits(handler):
 
     assert get_client.call_args.kwargs["_is_async"] is True
     client.batches.retrieve.assert_awaited_once_with(**RETRIEVE_DATA)
-    assert isinstance(result, LiteLLMBatch)
+    assert isinstance(result, GatewayBatch)
 
 
 @pytest.mark.asyncio
@@ -292,7 +292,7 @@ async def test_aretrieve_batch_parses_response(handler):
     )
 
     client.batches.retrieve.assert_awaited_once_with(**RETRIEVE_DATA)
-    assert isinstance(result, LiteLLMBatch)
+    assert isinstance(result, GatewayBatch)
 
 
 # =========================================================================== #
@@ -313,7 +313,7 @@ def test_cancel_sync_dispatch_payload_and_result(handler):
     client.batches.cancel.assert_called_once_with(**CANCEL_DATA)
     client.batches.create.assert_not_called()
     client.batches.retrieve.assert_not_called()
-    assert isinstance(result, LiteLLMBatch)
+    assert isinstance(result, GatewayBatch)
     assert result.status == "cancelled"
 
 
@@ -354,7 +354,7 @@ async def test_cancel_async_returns_coroutine_and_awaits(handler):
 
     assert get_client.call_args.kwargs["_is_async"] is True
     client.batches.cancel.assert_awaited_once_with(**CANCEL_DATA)
-    assert isinstance(result, LiteLLMBatch)
+    assert isinstance(result, GatewayBatch)
     assert result.status == "cancelled"
 
 
@@ -377,7 +377,7 @@ async def test_acancel_batch_parses_response(handler):
     result = await handler.acancel_batch(cancel_batch_data=CANCEL_DATA, client=client)
 
     client.batches.cancel.assert_awaited_once_with(**CANCEL_DATA)
-    assert isinstance(result, LiteLLMBatch)
+    assert isinstance(result, GatewayBatch)
     assert result.status == "cancelled"
 
 
@@ -472,7 +472,7 @@ def test_create_sync_accepts_plain_openai_client(handler):
             _is_async=False, create_batch_data=CREATE_DATA, **AUTH_KW
         )
 
-    assert isinstance(result, LiteLLMBatch)
+    assert isinstance(result, GatewayBatch)
 
 
 @pytest.mark.asyncio
@@ -485,4 +485,4 @@ async def test_create_async_accepts_plain_async_openai_client(handler):
             _is_async=True, create_batch_data=CREATE_DATA, **AUTH_KW
         )
 
-    assert isinstance(result, LiteLLMBatch)
+    assert isinstance(result, GatewayBatch)

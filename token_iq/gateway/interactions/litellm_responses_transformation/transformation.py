@@ -26,7 +26,7 @@ from token_iq.gateway.types.llms.openai import (
 _STEP_TYPE_ROLES: Final = MappingProxyType({"user_input": "user", "model_output": "assistant"})
 
 
-class LiteLLMResponsesInteractionsConfig:
+class GatewayResponsesInteractionsConfig:
     """Configuration class for transforming between Interactions API and Responses API."""
 
     @staticmethod
@@ -52,7 +52,7 @@ class LiteLLMResponsesInteractionsConfig:
         # Transform input
         if input is not None:
             responses_request["input"] = (
-                LiteLLMResponsesInteractionsConfig._transform_interactions_input_to_responses_input(input)
+                GatewayResponsesInteractionsConfig._transform_interactions_input_to_responses_input(input)
             )
 
         # Transform system_instruction -> instructions
@@ -111,15 +111,15 @@ class LiteLLMResponsesInteractionsConfig:
         if isinstance(input, list):
             transformed: Final = (
                 [
-                    LiteLLMResponsesInteractionsConfig._transform_history_item(item)
+                    GatewayResponsesInteractionsConfig._transform_history_item(item)
                     for item in input
-                    if LiteLLMResponsesInteractionsConfig._is_history_item(item)
+                    if GatewayResponsesInteractionsConfig._is_history_item(item)
                 ]
-                if any(LiteLLMResponsesInteractionsConfig._is_history_item(item) for item in input)
+                if any(GatewayResponsesInteractionsConfig._is_history_item(item) for item in input)
                 else [
                     {
                         "role": "user",
-                        "content": LiteLLMResponsesInteractionsConfig._transform_content_array(input, "user"),
+                        "content": GatewayResponsesInteractionsConfig._transform_content_array(input, "user"),
                     }
                 ]
             )
@@ -133,7 +133,7 @@ class LiteLLMResponsesInteractionsConfig:
                 [
                     {
                         "role": "user",
-                        "content": LiteLLMResponsesInteractionsConfig._transform_content_array(content_items, "user"),
+                        "content": GatewayResponsesInteractionsConfig._transform_content_array(content_items, "user"),
                     }
                 ],
             )
@@ -150,14 +150,14 @@ class LiteLLMResponsesInteractionsConfig:
     def _transform_history_item(item: object) -> Mapping[str, object]:
         raw: Final = item.model_dump(exclude_none=True) if isinstance(item, Turn) else item
         fields: Final = raw if isinstance(raw, Mapping) else {}
-        role: Final = LiteLLMResponsesInteractionsConfig._responses_role(fields)
+        role: Final = GatewayResponsesInteractionsConfig._responses_role(fields)
         raw_content: Final = fields.get("content")
         content_items: Final = (
             raw_content if isinstance(raw_content, list) else [] if raw_content is None else [raw_content]
         )
         return {
             "role": role,
-            "content": LiteLLMResponsesInteractionsConfig._transform_content_array(content_items, role),
+            "content": GatewayResponsesInteractionsConfig._transform_content_array(content_items, role),
         }
 
     @staticmethod
@@ -171,7 +171,7 @@ class LiteLLMResponsesInteractionsConfig:
     @staticmethod
     def _transform_content_array(content: Sequence[object], role: str) -> Sequence[Mapping[str, object]]:
         """Transform Interactions API content parts to Responses API parts for the given role."""
-        return [LiteLLMResponsesInteractionsConfig._transform_content_item(item, role) for item in content]
+        return [GatewayResponsesInteractionsConfig._transform_content_item(item, role) for item in content]
 
     @staticmethod
     def _transform_content_item(item: object, role: str) -> Mapping[str, object]:
@@ -183,7 +183,7 @@ class LiteLLMResponsesInteractionsConfig:
                 return {"type": text_type, "text": str(item.get("text", ""))}
             return item
         if isinstance(item, BaseModel):
-            return LiteLLMResponsesInteractionsConfig._transform_content_item(item.model_dump(exclude_none=True), role)
+            return GatewayResponsesInteractionsConfig._transform_content_item(item.model_dump(exclude_none=True), role)
         return {"type": text_type, "text": str(item)}
 
     @staticmethod

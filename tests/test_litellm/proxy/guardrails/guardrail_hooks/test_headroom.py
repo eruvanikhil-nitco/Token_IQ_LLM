@@ -1576,7 +1576,7 @@ async def test_async_should_run_agentic_loop_detects_responses_api_output_format
 
 
 @pytest.mark.asyncio
-async def test_apply_guardrail_litellm_timeout_raises_when_fail_closed():
+async def test_apply_guardrail_gateway_timeout_raises_when_fail_closed():
     guardrail = _make_guardrail()
 
     inputs = GenericGuardrailAPIInputs(
@@ -1606,7 +1606,7 @@ async def test_apply_guardrail_litellm_timeout_raises_when_fail_closed():
 
 
 @pytest.mark.asyncio
-async def test_apply_guardrail_litellm_timeout_fail_open_forwards_uncompressed():
+async def test_apply_guardrail_gateway_timeout_fail_open_forwards_uncompressed():
     guardrail = _make_guardrail(unreachable_fallback="fail_open")
 
     inputs = GenericGuardrailAPIInputs(

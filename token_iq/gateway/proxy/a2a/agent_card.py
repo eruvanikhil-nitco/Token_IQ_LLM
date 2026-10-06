@@ -138,7 +138,7 @@ def _filter_capabilities(upstream_capabilities: Any) -> dict[str, Any]:
     }
 
 
-def _default_litellm_provider(proxy_base_url: str) -> dict[str, str]:
+def _default_gateway_provider(proxy_base_url: str) -> dict[str, str]:
     return {"organization": "LiteLLM Proxy", "url": proxy_base_url}
 
 
@@ -197,7 +197,7 @@ def merge_agent_card(
         base["defaultOutputModes"] = list(_DEFAULT_MODES)
 
     if not base.get("provider"):
-        base["provider"] = _default_litellm_provider(proxy_base_url)
+        base["provider"] = _default_gateway_provider(proxy_base_url)
 
     base["supportedInterfaces"] = [
         {

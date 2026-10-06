@@ -369,11 +369,11 @@ async def responses_api(
         if data.get("background") and isinstance(response, ResponsesAPIResponse):
             if response.status in ["queued", "in_progress"]:
                 from litellm_enterprise.proxy.hooks.managed_files import (
-                    _PROXY_LiteLLMManagedFiles,
+                    _PROXY_GatewayManagedFiles,
                 )
 
                 managed_files_obj: Final = cast(
-                    _PROXY_LiteLLMManagedFiles | None,
+                    _PROXY_GatewayManagedFiles | None,
                     proxy_logging_obj.get_proxy_hook("managed_files"),
                 )
 
@@ -1086,11 +1086,11 @@ def _responses_input_as_token_count_messages(
     instructions: str | None,
 ) -> tuple[Mapping[str, object], ...]:
     from token_iq.gateway.responses.litellm_completion_transformation.transformation import (
-        LiteLLMCompletionResponsesConfig,
+        GatewayCompletionResponsesConfig,
     )
 
     request_params: Final[ResponsesAPIOptionalRequestParams] = {"instructions": instructions}
-    transformed: Final = LiteLLMCompletionResponsesConfig.transform_responses_api_input_to_messages(
+    transformed: Final = GatewayCompletionResponsesConfig.transform_responses_api_input_to_messages(
         input=input_value,
         responses_api_request=request_params,
     )

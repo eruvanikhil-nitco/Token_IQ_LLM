@@ -27,7 +27,7 @@ async def test_create_duplicate_access_group_fails():
     """
     from fastapi import HTTPException
 
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
     from token_iq.gateway.proxy.management_endpoints.model_access_group_management_endpoints import (
         create_model_group,
     )
@@ -61,7 +61,7 @@ async def test_create_duplicate_access_group_fails():
 
     mock_user = UserAPIKeyAuth(
         user_id="test_admin",
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
     )
 
     request_data = NewModelGroupRequest(
@@ -91,7 +91,7 @@ async def test_create_access_group_with_model_ids_tags_only_specific_deployments
 
     Fixes: https://github.com/BerriAI/litellm/issues/21544
     """
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
     from token_iq.gateway.proxy.management_endpoints.model_access_group_management_endpoints import (
         create_model_group,
     )
@@ -110,7 +110,7 @@ async def test_create_access_group_with_model_ids_tags_only_specific_deployments
 
     mock_user = UserAPIKeyAuth(
         user_id="test_admin",
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
     )
 
     request_data = NewModelGroupRequest(
@@ -145,7 +145,7 @@ async def test_create_access_group_with_model_names_tags_all_deployments():
     """
     Test backward compat: model_names still tags ALL deployments sharing that model_name.
     """
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
     from token_iq.gateway.proxy.management_endpoints.model_access_group_management_endpoints import (
         create_model_group,
     )
@@ -176,7 +176,7 @@ async def test_create_access_group_with_model_names_tags_all_deployments():
 
     mock_user = UserAPIKeyAuth(
         user_id="test_admin",
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
     )
 
     request_data = NewModelGroupRequest(
@@ -205,7 +205,7 @@ async def test_create_access_group_model_ids_takes_priority_over_model_names():
     """
     Test that when both model_ids and model_names are provided, model_ids is used.
     """
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
     from token_iq.gateway.proxy.management_endpoints.model_access_group_management_endpoints import (
         create_model_group,
     )
@@ -224,7 +224,7 @@ async def test_create_access_group_model_ids_takes_priority_over_model_names():
 
     mock_user = UserAPIKeyAuth(
         user_id="test_admin",
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
     )
 
     request_data = NewModelGroupRequest(
@@ -257,7 +257,7 @@ async def test_create_access_group_requires_model_names_or_model_ids():
     Test that creating an access group without model_names or model_ids fails.
     """
     from fastapi import HTTPException
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
     from token_iq.gateway.proxy.management_endpoints.model_access_group_management_endpoints import (
         create_model_group,
     )
@@ -267,7 +267,7 @@ async def test_create_access_group_requires_model_names_or_model_ids():
 
     mock_user = UserAPIKeyAuth(
         user_id="test_admin",
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
     )
 
     request_data = NewModelGroupRequest(access_group="production-models")
@@ -288,7 +288,7 @@ async def test_create_access_group_invalid_model_id_returns_400():
     Test that passing a non-existent model_id returns 400 error.
     """
     from fastapi import HTTPException
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
     from token_iq.gateway.proxy.management_endpoints.model_access_group_management_endpoints import (
         create_model_group,
     )
@@ -302,7 +302,7 @@ async def test_create_access_group_invalid_model_id_returns_400():
 
     mock_user = UserAPIKeyAuth(
         user_id="test_admin",
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
     )
 
     request_data = NewModelGroupRequest(
@@ -330,7 +330,7 @@ async def test_create_access_group_surfaces_dropped_models():
     pod must report the drop through this file's HTTPException contract, not a 200."""
     from fastapi import HTTPException
 
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
     from token_iq.gateway.proxy.management_endpoints.model_access_group_management_endpoints import (
         create_model_group,
     )
@@ -345,7 +345,7 @@ async def test_create_access_group_surfaces_dropped_models():
     mock_prisma.db.litellm_proxymodeltable.find_unique = AsyncMock(return_value=deploy_a)
     mock_prisma.db.litellm_proxymodeltable.update = AsyncMock()
 
-    mock_user = UserAPIKeyAuth(user_id="test_admin", user_role=LitellmUserRoles.PROXY_ADMIN)
+    mock_user = UserAPIKeyAuth(user_id="test_admin", user_role=GatewayUserRoles.PROXY_ADMIN)
 
     wiped_router = MagicMock()
     wiped_router.get_model_ids.side_effect = [["deploy-A"], []]
@@ -373,7 +373,7 @@ async def test_create_access_group_trusts_reload_snapshot_over_post_lock_fresh_r
     """A concurrent reconcile sampled after the lock is released must not make this
     write's reload look like it dropped the tagged model: the verdict has to judge from
     the ReconcileOutcome the reload captured under the lock, not a fresh router read."""
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
     from token_iq.gateway.proxy.management_endpoints.model_access_group_management_endpoints import (
         create_model_group,
     )
@@ -404,7 +404,7 @@ async def test_create_access_group_trusts_reload_snapshot_over_post_lock_fresh_r
     ):
         response = await create_model_group(
             data=NewModelGroupRequest(access_group="production-models", model_ids=["deploy-A"]),
-            user_api_key_dict=UserAPIKeyAuth(user_id="test_admin", user_role=LitellmUserRoles.PROXY_ADMIN),
+            user_api_key_dict=UserAPIKeyAuth(user_id="test_admin", user_role=GatewayUserRoles.PROXY_ADMIN),
         )
 
     assert response.models_updated == 1
@@ -455,7 +455,7 @@ async def test_delete_access_group_ignores_models_that_were_already_dead():
     mock_prisma.db.litellm_proxymodeltable.update = AsyncMock()
     mock_prisma.db.litellm_modelaccessgroupbudgettable.delete = AsyncMock(return_value=None)
 
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
     from token_iq.gateway.proxy.management_endpoints.model_access_group_management_endpoints import (
         delete_access_group,
     )
@@ -472,7 +472,7 @@ async def test_delete_access_group_ignores_models_that_were_already_dead():
     ):
         response = await delete_access_group(
             access_group="doomed-group",
-            user_api_key_dict=UserAPIKeyAuth(user_id="admin", user_role=LitellmUserRoles.PROXY_ADMIN),
+            user_api_key_dict=UserAPIKeyAuth(user_id="admin", user_role=GatewayUserRoles.PROXY_ADMIN),
             auth_cache=_FakeAuthCache(),
         )
 
@@ -484,7 +484,7 @@ async def test_delete_access_group_ignores_models_that_were_already_dead():
 async def test_create_access_group_read_through_recovers_model_created_on_sibling_replica():
     """Regression: an access group referencing a model that another replica just wrote
     to the DB must be created instead of 400ing until the periodic config reload."""
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
     from token_iq.gateway.proxy.management_endpoints.model_access_group_management_endpoints import (
         create_model_group,
     )
@@ -527,7 +527,7 @@ async def test_create_access_group_read_through_recovers_model_created_on_siblin
     ):
         response = await create_model_group(
             data=NewModelGroupRequest(access_group="replica-lag-group", model_names=[model_name]),
-            user_api_key_dict=UserAPIKeyAuth(user_id="admin", user_role=LitellmUserRoles.PROXY_ADMIN),
+            user_api_key_dict=UserAPIKeyAuth(user_id="admin", user_role=GatewayUserRoles.PROXY_ADMIN),
         )
 
     assert response.models_updated == 1
@@ -541,7 +541,7 @@ async def test_create_access_group_read_through_recovers_model_created_on_siblin
 async def test_create_access_group_model_missing_everywhere_still_400s():
     from fastapi import HTTPException
 
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
     from token_iq.gateway.proxy.management_endpoints.model_access_group_management_endpoints import (
         create_model_group,
     )
@@ -569,7 +569,7 @@ async def test_create_access_group_model_missing_everywhere_still_400s():
         with pytest.raises(HTTPException) as exc_info:
             await create_model_group(
                 data=NewModelGroupRequest(access_group="ghost-group", model_names=[model_name]),
-                user_api_key_dict=UserAPIKeyAuth(user_id="admin", user_role=LitellmUserRoles.PROXY_ADMIN),
+                user_api_key_dict=UserAPIKeyAuth(user_id="admin", user_role=GatewayUserRoles.PROXY_ADMIN),
             )
 
     assert exc_info.value.status_code == 400
@@ -733,9 +733,9 @@ class _FakeAuthCache:
 
 
 def _admin():
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
 
-    return UserAPIKeyAuth(user_id="admin", user_role=LitellmUserRoles.PROXY_ADMIN)
+    return UserAPIKeyAuth(user_id="admin", user_role=GatewayUserRoles.PROXY_ADMIN)
 
 
 def _deployment(model_id="deploy-1", model_name="gpt-4o", access_groups=("prod-models",)):

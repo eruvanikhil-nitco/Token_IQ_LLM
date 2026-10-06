@@ -14,7 +14,7 @@ import pytest
 from token_iq.gateway.llms.azure_ai.anthropic.messages_transformation import (
     AzureAnthropicMessagesConfig,
 )
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 
 
 class TestAzureAnthropicMessagesConfig:
@@ -29,7 +29,7 @@ class TestAzureAnthropicMessagesConfig:
         assert hasattr(config, "transform_anthropic_messages_request")
         assert hasattr(config, "transform_anthropic_messages_response")
 
-    def test_validate_anthropic_messages_environment_with_dict_litellm_params(self):
+    def test_validate_anthropic_messages_environment_with_dict_gateway_params(self):
         """Test validate_anthropic_messages_environment with dict litellm_params"""
         config = AzureAnthropicMessagesConfig()
         headers = {}
@@ -54,7 +54,7 @@ class TestAzureAnthropicMessagesConfig:
 
             # Verify that dict was converted to GenericLiteLLMParams
             call_args = mock_validate.call_args
-            assert isinstance(call_args[1]["litellm_params"], GenericLiteLLMParams)
+            assert isinstance(call_args[1]["litellm_params"], GenericGatewayParams)
             assert call_args[1]["litellm_params"].api_key == "test-api-key"
             assert "anthropic-version" in result
             assert "x-api-key" in result
@@ -253,7 +253,7 @@ class TestAzureAnthropicMessagesConfig:
                 }
             ],
         }
-        litellm_params = GenericLiteLLMParams()
+        litellm_params = GenericGatewayParams()
         headers = {}
 
         result = config.transform_anthropic_messages_request(
@@ -336,7 +336,7 @@ def test_messages_thinking_shape_follows_exact_azure_entry_flag(local_model_cost
                 "max_tokens": 4096,
                 "reasoning_effort": "medium",
             },
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 
@@ -367,7 +367,7 @@ def _azure_transform(model, messages, system=None):
         model=model,
         messages=copy.deepcopy(messages),
         anthropic_messages_optional_request_params=params,
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         headers={},
     )
 

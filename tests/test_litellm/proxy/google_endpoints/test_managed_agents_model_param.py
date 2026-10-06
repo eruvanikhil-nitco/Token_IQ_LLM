@@ -25,7 +25,7 @@ def _build_agents_client():
     from fastapi import FastAPI
     from fastapi.testclient import TestClient
 
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
     from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
     from token_iq.gateway.proxy.google_endpoints.agents_endpoints import router as agents_router
 
@@ -35,7 +35,7 @@ def _build_agents_client():
     async def _fake_user_api_key_auth():
         return UserAPIKeyAuth(
             api_key="sk-test",
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
         )
 
     app.dependency_overrides[user_api_key_auth] = _fake_user_api_key_auth

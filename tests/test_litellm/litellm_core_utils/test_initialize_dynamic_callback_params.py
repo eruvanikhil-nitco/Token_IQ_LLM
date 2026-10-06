@@ -77,7 +77,7 @@ def test_resolves_plain_values_from_metadata():
     assert params.get("langfuse_host") == "https://test.langfuse.com"
 
 
-def test_litellm_params_metadata_overrides_metadata():
+def test_gateway_params_metadata_overrides_metadata():
     kwargs = {
         "metadata": {
             "langfuse_public_key": "pk-meta",
@@ -132,7 +132,7 @@ def test_env_reference_in_metadata_raises_with_guidance():
     assert "metadata" in message
 
 
-def test_gcs_bucket_name_in_litellm_params_metadata_is_ignored():
+def test_gcs_bucket_name_in_gateway_params_metadata_is_ignored():
     kwargs = {
         "litellm_params": {
             "metadata": {

@@ -335,7 +335,7 @@ async def test_reset_budget_endusers_cascade_failure_is_all_or_nothing():
 
     job = ResetBudgetJob(proxy_logging_obj, prisma_client)
 
-    await job.reset_budget_for_litellm_budget_table()
+    await job.reset_budget_for_gateway_budget_table()
     await asyncio.sleep(0.1)
 
     assert batch_calls == [], "a failed cascade must not persist any write"
@@ -394,7 +394,7 @@ async def test_reset_budget_endusers_are_zeroed_with_the_budget_window_advance()
 
     job = ResetBudgetJob(proxy_logging_obj, prisma_client)
 
-    await job.reset_budget_for_litellm_budget_table()
+    await job.reset_budget_for_gateway_budget_table()
     await asyncio.sleep(0.1)
 
     assert prisma_client.db.batch_.call_count == 1, "the cascade must be one transaction"
@@ -1025,7 +1025,7 @@ async def test_service_logger_endusers_success():
     with patch(
         "token_iq.gateway.proxy.common_utils.reset_budget_job.verbose_proxy_logger.exception"
     ) as mock_verbose_exc:
-        await job.reset_budget_for_litellm_budget_table()
+        await job.reset_budget_for_gateway_budget_table()
         await asyncio.sleep(0.1)
         mock_verbose_exc.assert_not_called()
 
@@ -1090,7 +1090,7 @@ async def test_service_logger_endusers_failure():
     with patch(
         "token_iq.gateway.proxy.common_utils.reset_budget_job.verbose_proxy_logger.exception"
     ) as mock_verbose_exc:
-        await job.reset_budget_for_litellm_budget_table()
+        await job.reset_budget_for_gateway_budget_table()
         await asyncio.sleep(0.1)
         # The log must name the whole cascade, not just end users: the write
         # that failed could have been any of team member / enduser / org / tag
@@ -1112,7 +1112,7 @@ async def test_service_logger_endusers_failure():
 
 
 @pytest.mark.asyncio
-async def test_reset_budget_for_litellm_team_members_called():
+async def test_reset_budget_for_gateway_team_members_called():
     """
     Test that when reset_budget_for_litellm_budget_table is called, team
     members' spend is zeroed as part of the cascade transaction.
@@ -1152,7 +1152,7 @@ async def test_reset_budget_for_litellm_team_members_called():
     job = ResetBudgetJob(proxy_logging_obj, prisma_client)
 
     # Act
-    await job.reset_budget_for_litellm_budget_table()
+    await job.reset_budget_for_gateway_budget_table()
 
     # Assert
     team_member_writes = [c for c in batch_calls if c["table"] == "team_membership"]

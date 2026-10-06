@@ -26,7 +26,7 @@ from token_iq.gateway.proxy._types import (
     NewMCPServerRequest,
     UpdateMCPServerRequest,
     LiteLLM_MCPServerTable,
-    LitellmUserRoles,
+    GatewayUserRoles,
     UserAPIKeyAuth,
 )
 from token_iq.gateway.types.mcp import MCPAuth
@@ -193,7 +193,7 @@ async def test_create_mcp_server_direct():
         user_auth = UserAPIKeyAuth(
             api_key=TEST_MASTER_KEY,
             user_id="test-user",
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
         )
 
         # Call the function directly
@@ -265,7 +265,7 @@ async def test_create_duplicate_mcp_server():
         user_auth = UserAPIKeyAuth(
             api_key=TEST_MASTER_KEY,
             user_id="test-user",
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
         )
 
         # Expect HTTPException to be raised
@@ -313,7 +313,7 @@ async def test_create_mcp_server_auth_failure():
         user_auth = UserAPIKeyAuth(
             api_key=TEST_MASTER_KEY,
             user_id="test-user",
-            user_role=LitellmUserRoles.INTERNAL_USER,  # Not an admin
+            user_role=GatewayUserRoles.INTERNAL_USER,  # Not an admin
         )
 
         # Expect HTTPException to be raised
@@ -372,7 +372,7 @@ async def test_create_mcp_server_invalid_alias():
         user_auth = UserAPIKeyAuth(
             api_key=TEST_MASTER_KEY,
             user_id="test-user",
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
         )
 
         with pytest.raises(HTTPException) as exc_info:
@@ -444,7 +444,7 @@ async def test_edit_mcp_server_redacts_credentials():
         user_auth = UserAPIKeyAuth(
             api_key=TEST_MASTER_KEY,
             user_id="test-user",
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
         )
 
         result = await edit_mcp_server(payload=payload, user_api_key_dict=user_auth)

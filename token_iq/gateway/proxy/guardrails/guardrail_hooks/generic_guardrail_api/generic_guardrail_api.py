@@ -32,7 +32,7 @@ from token_iq.gateway.types.proxy.guardrails.guardrail_hooks.generic_guardrail_a
 from token_iq.gateway.types.utils import GenericGuardrailAPIInputs
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
     from token_iq.gateway.types.proxy.guardrails.guardrail_hooks.base import GuardrailConfigModel
 
 GUARDRAIL_NAME: Final = "generic_guardrail_api"
@@ -104,7 +104,7 @@ def _sanitize_inbound_headers(
 
 def _extract_inbound_headers(
     request_data: dict,
-    logging_obj: Optional["LiteLLMLoggingObj"],
+    logging_obj: Optional["GatewayLoggingObj"],
     extra_allowlist: set[str] | None = None,
 ) -> dict[str, str] | None:
     """
@@ -131,9 +131,9 @@ def _extract_inbound_headers(
     if metadata_headers:
         return _sanitize_inbound_headers(metadata_headers, extra_allowlist=extra_allowlist)
 
-    litellm_metadata_headers: Final = (request_data.get("litellm_metadata") or {}).get("headers")
-    if litellm_metadata_headers:
-        return _sanitize_inbound_headers(litellm_metadata_headers, extra_allowlist=extra_allowlist)
+    gateway_metadata_headers: Final = (request_data.get("litellm_metadata") or {}).get("headers")
+    if gateway_metadata_headers:
+        return _sanitize_inbound_headers(gateway_metadata_headers, extra_allowlist=extra_allowlist)
 
     # 4) Post-call: headers not present on response; fallback to logging object
     if logging_obj and getattr(logging_obj, "model_call_details", None):
@@ -286,7 +286,7 @@ class GenericGuardrailAPI(CustomGuardrail):
         *,
         inputs: GenericGuardrailAPIInputs,
         input_type: Literal["request", "response"],
-        logging_obj: Optional["LiteLLMLoggingObj"],
+        logging_obj: Optional["GatewayLoggingObj"],
         error: Exception,
         http_status_code: int | None = None,
     ) -> GenericGuardrailAPIInputs:
@@ -343,7 +343,7 @@ class GenericGuardrailAPI(CustomGuardrail):
         error: Exception,
         inputs: GenericGuardrailAPIInputs,
         input_type: Literal["request", "response"],
-        logging_obj: Optional["LiteLLMLoggingObj"],
+        logging_obj: Optional["GatewayLoggingObj"],
         is_unreachable: bool = True,
     ) -> GenericGuardrailAPIInputs:
         unreachable_fail_open: Final = is_unreachable and self.unreachable_fallback == "fail_open"
@@ -365,7 +365,7 @@ class GenericGuardrailAPI(CustomGuardrail):
         inputs: GenericGuardrailAPIInputs,
         request_data: dict,
         input_type: Literal["request", "response"],
-        logging_obj: Optional["LiteLLMLoggingObj"] = None,
+        logging_obj: Optional["GatewayLoggingObj"] = None,
     ) -> GenericGuardrailAPIInputs:
         """
         Apply the Generic Guardrail API to the given inputs.

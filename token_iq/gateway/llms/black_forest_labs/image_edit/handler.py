@@ -16,14 +16,14 @@ from typing_extensions import ReadOnly, TypedDict
 
 from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.llms.custom_httpx.http_handler import (
     AsyncHTTPHandler,
     HTTPHandler,
     _get_httpx_client,
     get_async_httpx_client,
 )
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.types.utils import FileTypes, ImageResponse
 
 from ..common_utils import (
@@ -88,8 +88,8 @@ class BlackForestLabsImageEdit:
         image: FileTypes | list[FileTypes],
         prompt: str | None,
         image_edit_optional_request_params: dict,
-        litellm_params: GenericLiteLLMParams | dict,
-        logging_obj: LiteLLMLoggingObj,
+        litellm_params: GenericGatewayParams | dict,
+        logging_obj: GatewayLoggingObj,
         timeout: float | httpx.Timeout | None,
         extra_headers: Mapping[str, object] | None = None,
         client: HTTPHandler | AsyncHTTPHandler | None = None,
@@ -117,11 +117,11 @@ class BlackForestLabsImageEdit:
         if isinstance(litellm_params, dict):
             api_key = litellm_params.get("api_key")
             api_base = litellm_params.get("api_base")
-            litellm_params_dict = litellm_params
+            gateway_params_dict = litellm_params
         else:
             api_key = litellm_params.api_key
             api_base = litellm_params.api_base
-            litellm_params_dict = dict(litellm_params)
+            gateway_params_dict = dict(litellm_params)
 
         if aimage_edit:
             return self.async_image_edit(
@@ -155,7 +155,7 @@ class BlackForestLabsImageEdit:
         complete_url: Final = self.config.get_complete_url(
             model=model,
             api_base=api_base,
-            litellm_params=litellm_params_dict,
+            litellm_params=gateway_params_dict,
         )
 
         # Transform request
@@ -171,7 +171,7 @@ class BlackForestLabsImageEdit:
             prompt=prompt or "",
             image=image_input,
             image_edit_optional_request_params=image_edit_optional_request_params,
-            litellm_params=litellm_params_dict,
+            litellm_params=gateway_params_dict,
             headers=headers,
         )
 
@@ -220,8 +220,8 @@ class BlackForestLabsImageEdit:
         image: FileTypes | list[FileTypes],
         prompt: str | None,
         image_edit_optional_request_params: dict,
-        litellm_params: GenericLiteLLMParams | dict,
-        logging_obj: LiteLLMLoggingObj,
+        litellm_params: GenericGatewayParams | dict,
+        logging_obj: GatewayLoggingObj,
         timeout: float | httpx.Timeout | None,
         extra_headers: Mapping[str, object] | None = None,
         client: AsyncHTTPHandler | None = None,
@@ -233,11 +233,11 @@ class BlackForestLabsImageEdit:
         if isinstance(litellm_params, dict):
             api_key = litellm_params.get("api_key")
             api_base = litellm_params.get("api_base")
-            litellm_params_dict = litellm_params
+            gateway_params_dict = litellm_params
         else:
             api_key = litellm_params.api_key
             api_base = litellm_params.api_base
-            litellm_params_dict = dict(litellm_params)
+            gateway_params_dict = dict(litellm_params)
 
         if client is None:
             async_client = get_async_httpx_client(
@@ -259,7 +259,7 @@ class BlackForestLabsImageEdit:
         complete_url: Final = self.config.get_complete_url(
             model=model,
             api_base=api_base,
-            litellm_params=litellm_params_dict,
+            litellm_params=gateway_params_dict,
         )
 
         # Transform request
@@ -274,7 +274,7 @@ class BlackForestLabsImageEdit:
             prompt=prompt or "",
             image=image_input,
             image_edit_optional_request_params=image_edit_optional_request_params,
-            litellm_params=litellm_params_dict,
+            litellm_params=gateway_params_dict,
             headers=headers,
         )
 

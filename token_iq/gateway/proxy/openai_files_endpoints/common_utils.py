@@ -30,7 +30,7 @@ if TYPE_CHECKING:
     from token_iq.gateway.proxy._types import UserAPIKeyAuth
     from token_iq.gateway.proxy.utils import PrismaClient
     from token_iq.gateway.router import Router
-    from token_iq.gateway.types.utils import LiteLLMBatch
+    from token_iq.gateway.types.utils import GatewayBatch
 
 
 MAX_FILE_LIST_LIMIT: Final = 10000
@@ -1076,7 +1076,7 @@ def _batch_response_model_id_candidates(
 
 
 def _model_id_for_batch_response(
-    response: "LiteLLMBatch",
+    response: "GatewayBatch",
     unified_batch_id: str | Literal[False] | None,
 ) -> str | None:
     hidden_params: Final = getattr(response, "_hidden_params", None) or {}
@@ -1093,7 +1093,7 @@ def _model_id_for_batch_response(
     )
 
 
-def _model_name_for_batch_response(response: "LiteLLMBatch") -> str | None:
+def _model_name_for_batch_response(response: "GatewayBatch") -> str | None:
     hidden_params: Final = getattr(response, "_hidden_params", None) or {}
     unified_file_id: Final = hidden_params.get("unified_file_id")
     return resolve_managed_output_file_model_name(
@@ -1176,7 +1176,7 @@ async def map_raw_file_ids_to_unified(
     )
 
 
-def apply_unified_file_ids(response: "LiteLLMBatch", unified_id_by_raw_id: Mapping[str, str]) -> None:
+def apply_unified_file_ids(response: "GatewayBatch", unified_id_by_raw_id: Mapping[str, str]) -> None:
     for file_attr, raw_id in (
         ("input_file_id", getattr(response, "input_file_id", None)),
         ("output_file_id", getattr(response, "output_file_id", None)),
@@ -1262,7 +1262,7 @@ async def get_batch_from_database(
     """
     import json
 
-    from token_iq.gateway.types.utils import LiteLLMBatch
+    from token_iq.gateway.types.utils import GatewayBatch
 
     if managed_files_obj is None or not unified_batch_id:
         return None, None
@@ -1283,7 +1283,7 @@ async def get_batch_from_database(
             "Mapping[str, object] | str", db_batch_object.file_object
         )
         batch_data: Final = json.loads(file_object) if isinstance(file_object, str) else file_object
-        response: Final = LiteLLMBatch.model_validate(batch_data)
+        response: Final = GatewayBatch.model_validate(batch_data)
         response.id = batch_id
 
         # The stored batch object may have raw provider file IDs. Register any missing
@@ -1342,7 +1342,7 @@ def batch_cost_poller_is_active() -> bool:
         return False
 
 
-def _completed_batch_safe_to_retire(response: "LiteLLMBatch") -> bool:
+def _completed_batch_safe_to_retire(response: "GatewayBatch") -> bool:
     """Whether a "completed" batch may be retired from cost recovery.
 
     ``batch_processed=True`` is the sole re-pickup gate for CheckBatchCost's

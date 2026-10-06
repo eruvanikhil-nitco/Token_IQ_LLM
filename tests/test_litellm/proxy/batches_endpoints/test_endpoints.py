@@ -49,7 +49,7 @@ from token_iq.gateway.proxy.openai_files_endpoints.common_utils import (
 from token_iq.gateway.proxy.utils import ProxyLogging
 from token_iq.gateway.router import Router
 from token_iq.gateway.types.llms.openai import BatchJobStatus
-from token_iq.gateway.types.utils import CredentialItem, LiteLLMBatch
+from token_iq.gateway.types.utils import CredentialItem, GatewayBatch
 
 from fastapi import Request, Response
 
@@ -84,8 +84,8 @@ def make_batch(
     error_file_id: Optional[str] = None,
     input_file_id: Optional[str] = None,
     status: BatchJobStatus = "validating",
-) -> LiteLLMBatch:
-    batch = LiteLLMBatch(
+) -> GatewayBatch:
+    batch = GatewayBatch(
         id=id,
         completion_window="24h",
         created_at=1234567890,
@@ -140,7 +140,7 @@ class Harness:
     get_headers: MagicMock
     provider_from_headers: MagicMock
     is_known_model: MagicMock
-    litellm_acreate: AsyncMock
+    gateway_acreate: AsyncMock
     router: MagicMock
     logging: MagicMock
     creds_resolver: MagicMock
@@ -151,8 +151,8 @@ class Harness:
 
     def acreate_kwargs(self) -> Dict[str, Any]:
         """Exact kwargs forwarded to litellm.acreate_batch."""
-        assert self.litellm_acreate.call_count == 1
-        return dict(self.litellm_acreate.call_args.kwargs)
+        assert self.gateway_acreate.call_count == 1
+        return dict(self.gateway_acreate.call_args.kwargs)
 
     def router_kwargs(self) -> Dict[str, Any]:
         assert self.router_acreate.call_count == 1
@@ -184,7 +184,7 @@ def harness():
     get_headers = MagicMock(return_value={})
     provider_from_headers = MagicMock(return_value=None)
     is_known_model = MagicMock(return_value=False)
-    litellm_acreate = AsyncMock(return_value=make_batch())
+    gateway_acreate = AsyncMock(return_value=make_batch())
 
     with ExitStack() as stack:
         stack.enter_context(patch.object(endpoints, "_read_request_body", read_body))
@@ -204,7 +204,7 @@ def harness():
             )
         )
         stack.enter_context(patch.object(endpoints, "is_known_model", is_known_model))
-        stack.enter_context(patch.object(gateway, "acreate_batch", litellm_acreate))
+        stack.enter_context(patch.object(gateway, "acreate_batch", gateway_acreate))
         stack.enter_context(patch.object(gateway, "enable_loadbalancing_on_batch_endpoints", False))
         stack.enter_context(patch.object(proxy_server, "llm_router", router))
         stack.enter_context(patch.object(proxy_server, "proxy_logging_obj", logging))
@@ -220,7 +220,7 @@ def harness():
             get_headers=get_headers,
             provider_from_headers=provider_from_headers,
             is_known_model=is_known_model,
-            litellm_acreate=litellm_acreate,
+            gateway_acreate=gateway_acreate,
             router=router,
             logging=logging,
             creds_resolver=router.get_deployment_credentials_with_provider,
@@ -268,7 +268,7 @@ async def test_create__model_encoded_file_id(harness):
     resp = await call_create(harness)
 
     # 1. DISPATCH - model-credential path fired via litellm, router did not.
-    assert harness.litellm_acreate.call_count == 1
+    assert harness.gateway_acreate.call_count == 1
     harness.router_acreate.assert_not_called()
 
     # 2. CREDENTIALS - resolved for the model decoded FROM the file id.
@@ -301,7 +301,7 @@ async def test_create__model_encoded_file_id__encodes_output_and_error_ids(harne
             "completion_window": "24h",
         },
     )
-    harness.litellm_acreate.return_value = make_batch(
+    harness.gateway_acreate.return_value = make_batch(
         id="batch-xyz",
         output_file_id="file-out-raw",
         error_file_id="file-err-raw",
@@ -350,7 +350,7 @@ async def test_create__model_from_body(harness):
 
     resp = await call_create(harness)
 
-    assert harness.litellm_acreate.call_count == 1
+    assert harness.gateway_acreate.call_count == 1
     harness.router_acreate.assert_not_called()
     harness.creds_resolver.assert_called_once_with(model_id="vertex-model")
     payload = harness.acreate_kwargs()
@@ -434,7 +434,7 @@ async def test_create__fallback_default_openai(harness, openai_env_creds):
 
     await call_create(harness)
 
-    assert harness.litellm_acreate.call_count == 1
+    assert harness.gateway_acreate.call_count == 1
     harness.router_acreate.assert_not_called()
     harness.creds_resolver.assert_not_called()  # inverse-bug guard
     assert harness.acreate_kwargs()["custom_llm_provider"] == "openai"
@@ -458,7 +458,7 @@ async def test_create__fallback_no_creds_404(harness, no_openai_creds):
     assert exc.value.type == "invalid_request_error"
     assert exc.value.param is None
     assert exc.value.message == "No such File object: file-plain"
-    harness.litellm_acreate.assert_not_called()
+    harness.gateway_acreate.assert_not_called()
     harness.router_acreate.assert_not_called()
 
 
@@ -557,7 +557,7 @@ async def test_create__unified_file_id_single_model_disables_cross_model_fallbac
 
     # DISPATCH - router fired, direct litellm did not.
     assert harness.router_acreate.call_count == 1
-    harness.litellm_acreate.assert_not_called()
+    harness.gateway_acreate.assert_not_called()
     # model injected from the unified id, input_file_id restored, hidden param set
     assert harness.router_kwargs()["model"] == "gpt-4o-mini"
     assert harness.router_kwargs()["disable_fallbacks"] is True
@@ -585,7 +585,7 @@ async def test_create__unified_file_id_not_exactly_one_model_400(harness, models
 
     assert exc.value.code == "400"
     harness.router_acreate.assert_not_called()
-    harness.litellm_acreate.assert_not_called()
+    harness.gateway_acreate.assert_not_called()
 
 
 @pytest.mark.asyncio
@@ -692,7 +692,7 @@ async def test_create__multi_model_unified_file_with_loadbalancing_keeps_router_
 
     assert harness.router_acreate.call_count == 1
     assert harness.router_kwargs()["input_file_id"] == "litellm_proxy_unified_id"
-    harness.litellm_acreate.assert_not_called()
+    harness.gateway_acreate.assert_not_called()
 
 
 @pytest.mark.asyncio
@@ -777,7 +777,7 @@ async def test_create__model_encoded_beats_unified(harness):
     ):
         await call_create(harness)
 
-    assert harness.litellm_acreate.call_count == 1
+    assert harness.gateway_acreate.call_count == 1
     harness.router_acreate.assert_not_called()
     harness.creds_resolver.assert_called_once_with(model_id="azure/gpt-4o")
 
@@ -804,7 +804,7 @@ async def test_create__loadbalancing_routes_to_router(harness):
 
     harness.is_known_model.assert_called_once_with(model="lb-model", llm_router=harness.router)
     assert harness.router_acreate.call_count == 1
-    harness.litellm_acreate.assert_not_called()
+    harness.gateway_acreate.assert_not_called()
     harness.creds_resolver.assert_not_called()
 
 
@@ -823,7 +823,7 @@ async def test_create__model_encoded_beats_loadbalancing(harness):
     with patch.object(gateway, "enable_loadbalancing_on_batch_endpoints", True):
         await call_create(harness)
 
-    assert harness.litellm_acreate.call_count == 1
+    assert harness.gateway_acreate.call_count == 1
     harness.router_acreate.assert_not_called()
     harness.creds_resolver.assert_called_once_with(model_id="azure/gpt-4o")
 
@@ -848,7 +848,7 @@ async def test_create__missing_required_param_is_400(harness, body, missing_para
     assert exc_info.value.type == "invalid_request_error"
     assert exc_info.value.param == missing_param
     assert exc_info.value.message == f"/batches: Missing required parameter: '{missing_param}'."
-    harness.litellm_acreate.assert_not_called()
+    harness.gateway_acreate.assert_not_called()
     harness.router_acreate.assert_not_called()
 
 
@@ -964,7 +964,7 @@ async def test_create__team_expiry_malformed_500(harness, expiry):
         await call_create(harness, user=_user_with_expiry(expiry))
 
     assert exc.value.code == "500"
-    harness.litellm_acreate.assert_not_called()
+    harness.gateway_acreate.assert_not_called()
     harness.router_acreate.assert_not_called()
 
 
@@ -1017,7 +1017,7 @@ async def test_create__exception_calls_failure_hook(harness, openai_env_creds):
             "completion_window": "24h",
         },
     )
-    harness.litellm_acreate.side_effect = ValueError("provider boom")
+    harness.gateway_acreate.side_effect = ValueError("provider boom")
 
     with pytest.raises(ProxyException):
         await call_create(harness)
@@ -1067,7 +1067,7 @@ class RetrieveHarness:
     get_headers: MagicMock
     provider_from_headers: MagicMock
     provider_from_query: MagicMock
-    litellm_aretrieve: AsyncMock
+    gateway_aretrieve: AsyncMock
     router: MagicMock
     logging: MagicMock
     creds_resolver: MagicMock
@@ -1081,8 +1081,8 @@ class RetrieveHarness:
 
     def aretrieve_kwargs(self) -> Dict[str, Any]:
         """Exact kwargs forwarded to litellm.aretrieve_batch."""
-        assert self.litellm_aretrieve.call_count == 1
-        return dict(self.litellm_aretrieve.call_args.kwargs)
+        assert self.gateway_aretrieve.call_count == 1
+        return dict(self.gateway_aretrieve.call_args.kwargs)
 
     def router_kwargs(self) -> Dict[str, Any]:
         assert self.router_aretrieve.call_count == 1
@@ -1106,7 +1106,7 @@ def retrieve_harness():
     get_headers = MagicMock(return_value={})
     provider_from_headers = MagicMock(return_value=None)
     provider_from_query = MagicMock(return_value=None)
-    litellm_aretrieve = AsyncMock(return_value=make_batch())
+    gateway_aretrieve = AsyncMock(return_value=make_batch())
     # Default: DB miss -> always fall through to provider routing.
     get_batch_from_db = AsyncMock(return_value=(None, None))
     update_batch_in_db = AsyncMock(return_value=None)
@@ -1138,7 +1138,7 @@ def retrieve_harness():
         stack.enter_context(patch.object(endpoints, "get_batch_from_database", get_batch_from_db))
         stack.enter_context(patch.object(endpoints, "update_batch_in_database", update_batch_in_db))
         stack.enter_context(patch.object(endpoints, "ensure_batch_response_managed_file_ids", ensure_managed_files))
-        stack.enter_context(patch.object(gateway, "aretrieve_batch", litellm_aretrieve))
+        stack.enter_context(patch.object(gateway, "aretrieve_batch", gateway_aretrieve))
         stack.enter_context(patch.object(gateway, "enable_loadbalancing_on_batch_endpoints", False))
         stack.enter_context(patch.object(proxy_server, "llm_router", router))
         stack.enter_context(patch.object(proxy_server, "proxy_logging_obj", logging))
@@ -1153,7 +1153,7 @@ def retrieve_harness():
             get_headers=get_headers,
             provider_from_headers=provider_from_headers,
             provider_from_query=provider_from_query,
-            litellm_aretrieve=litellm_aretrieve,
+            gateway_aretrieve=gateway_aretrieve,
             router=router,
             logging=logging,
             creds_resolver=router.get_deployment_credentials_with_provider,
@@ -1194,7 +1194,7 @@ async def test_retrieve__model_encoded_id(retrieve_harness):
     resp = await call_retrieve(retrieve_harness, AZURE_BATCH_ID)
 
     # 1. DISPATCH - model-credential path fired via litellm, router did not.
-    assert retrieve_harness.litellm_aretrieve.call_count == 1
+    assert retrieve_harness.gateway_aretrieve.call_count == 1
     retrieve_harness.router_aretrieve.assert_not_called()
 
     # 2. CREDENTIALS - resolved for the model decoded FROM the batch id.
@@ -1235,7 +1235,7 @@ async def test_retrieve__model_encoded_id__forwards_decoded_model_not_deployment
 async def test_retrieve__model_encoded_id__encodes_output_and_error_ids(
     retrieve_harness,
 ):
-    retrieve_harness.litellm_aretrieve.return_value = make_batch(
+    retrieve_harness.gateway_aretrieve.return_value = make_batch(
         id="batch-xyz",
         output_file_id="file-out-raw",
         error_file_id="file-err-raw",
@@ -1254,7 +1254,7 @@ async def test_retrieve__model_encoded_beats_loadbalancing(retrieve_harness):
     with patch.object(gateway, "enable_loadbalancing_on_batch_endpoints", True):
         await call_retrieve(retrieve_harness, AZURE_BATCH_ID)
 
-    assert retrieve_harness.litellm_aretrieve.call_count == 1
+    assert retrieve_harness.gateway_aretrieve.call_count == 1
     retrieve_harness.router_aretrieve.assert_not_called()
     retrieve_harness.creds_resolver.assert_called_once_with(model_id="azure/gpt-4o")
 
@@ -1273,7 +1273,7 @@ async def test_retrieve__unified_batch_id_routes_to_router(retrieve_harness):
 
     # DISPATCH - router fired, direct litellm did not.
     assert retrieve_harness.router_aretrieve.call_count == 1
-    retrieve_harness.litellm_aretrieve.assert_not_called()
+    retrieve_harness.gateway_aretrieve.assert_not_called()
 
     # Credentials are resolved for the deployment behind the unified id so the batch's
     # output file can be read for cost accounting. This id resolves to nothing here, and
@@ -1300,7 +1300,7 @@ async def test_retrieve__loadbalancing_raw_id_routes_to_router(retrieve_harness)
         resp = await call_retrieve(retrieve_harness, "batch-raw-xyz")
 
     assert retrieve_harness.router_aretrieve.call_count == 1
-    retrieve_harness.litellm_aretrieve.assert_not_called()
+    retrieve_harness.gateway_aretrieve.assert_not_called()
     assert retrieve_harness.router_kwargs() == {"batch_id": "batch-raw-xyz"}
     # not a unified id -> hidden param reflects that, no model_id stamped.
     assert resp._hidden_params["unified_batch_id"] is False
@@ -1319,7 +1319,7 @@ async def test_retrieve__loadbalancing_raw_id_routes_to_router(retrieve_harness)
 async def test_retrieve__fallback_default_openai(retrieve_harness, openai_env_creds):
     await call_retrieve(retrieve_harness, "batch-raw-xyz")
 
-    assert retrieve_harness.litellm_aretrieve.call_count == 1
+    assert retrieve_harness.gateway_aretrieve.call_count == 1
     retrieve_harness.router_aretrieve.assert_not_called()
     retrieve_harness.creds_resolver.assert_not_called()  # inverse-bug guard
     assert retrieve_harness.aretrieve_kwargs() == {
@@ -1338,7 +1338,7 @@ async def test_retrieve__fallback_no_creds_404(retrieve_harness, no_openai_creds
     assert exc.value.type == "invalid_request_error"
     assert exc.value.param is None
     assert exc.value.message == "No batch found with id 'batch-raw-xyz'."
-    retrieve_harness.litellm_aretrieve.assert_not_called()
+    retrieve_harness.gateway_aretrieve.assert_not_called()
     retrieve_harness.router_aretrieve.assert_not_called()
 
 
@@ -1421,7 +1421,7 @@ async def test_retrieve__db_terminal_state_short_circuits(retrieve_harness, stat
     resp = await call_retrieve(retrieve_harness, "batch-raw-xyz")
 
     # No provider seam fired, and no write-back (the row is already terminal).
-    retrieve_harness.litellm_aretrieve.assert_not_called()
+    retrieve_harness.gateway_aretrieve.assert_not_called()
     retrieve_harness.router_aretrieve.assert_not_called()
     retrieve_harness.update_batch_in_db.assert_not_called()
     # The DB object is what the client gets back.
@@ -1443,7 +1443,7 @@ async def test_retrieve__db_terminal_unified_resolves_file_ids(retrieve_harness)
     assert ensure_kwargs["response"] is db_response
     assert ensure_kwargs["db_batch_object"] is db_batch_object
     assert ensure_kwargs["unified_batch_id"] == UNIFIED_BATCH_ID
-    retrieve_harness.litellm_aretrieve.assert_not_called()
+    retrieve_harness.gateway_aretrieve.assert_not_called()
     retrieve_harness.router_aretrieve.assert_not_called()
 
 
@@ -1457,7 +1457,7 @@ async def test_retrieve__db_non_terminal_state_syncs_with_provider(retrieve_harn
     await call_retrieve(retrieve_harness, "batch-raw-xyz")
 
     # Provider sync happened despite the DB hit.
-    assert retrieve_harness.litellm_aretrieve.call_count == 1
+    assert retrieve_harness.gateway_aretrieve.call_count == 1
     assert retrieve_harness.update_batch_in_db.call_count == 1
 
 
@@ -1475,7 +1475,7 @@ async def test_retrieve__uses_aretrieve_batch_route_type(retrieve_harness, opena
 
 @pytest.mark.asyncio
 async def test_retrieve__exception_calls_failure_hook(retrieve_harness, openai_env_creds):
-    retrieve_harness.litellm_aretrieve.side_effect = ValueError("provider boom")
+    retrieve_harness.gateway_aretrieve.side_effect = ValueError("provider boom")
 
     with pytest.raises(ProxyException):
         await call_retrieve(retrieve_harness, "batch-raw-xyz")
@@ -1518,7 +1518,7 @@ class ListHarness:
     get_headers: MagicMock
     provider_from_headers: MagicMock
     provider_from_query: MagicMock
-    litellm_alist: AsyncMock
+    gateway_alist: AsyncMock
     router: MagicMock
     logging: MagicMock
     creds_resolver: MagicMock
@@ -1535,8 +1535,8 @@ class ListHarness:
         return hook.list_user_batches
 
     def alist_kwargs(self) -> Dict[str, Any]:
-        assert self.litellm_alist.call_count == 1
-        return dict(self.litellm_alist.call_args.kwargs)
+        assert self.gateway_alist.call_count == 1
+        return dict(self.gateway_alist.call_args.kwargs)
 
     def router_kwargs(self) -> Dict[str, Any]:
         assert self.router_alist.call_count == 1
@@ -1562,7 +1562,7 @@ def list_harness():
     get_headers = MagicMock(return_value={})
     provider_from_headers = MagicMock(return_value=None)
     provider_from_query = MagicMock(return_value=None)
-    litellm_alist = AsyncMock(return_value=FakeListPage([]))
+    gateway_alist = AsyncMock(return_value=FakeListPage([]))
 
     with ExitStack() as stack:
         stack.enter_context(patch.object(endpoints, "_read_request_body", read_body))
@@ -1588,7 +1588,7 @@ def list_harness():
                 provider_from_query,
             )
         )
-        stack.enter_context(patch.object(gateway, "alist_batches", litellm_alist))
+        stack.enter_context(patch.object(gateway, "alist_batches", gateway_alist))
         stack.enter_context(patch.object(proxy_server, "llm_router", router))
         stack.enter_context(patch.object(proxy_server, "proxy_logging_obj", logging))
         stack.enter_context(patch.object(proxy_server, "general_settings", {}))
@@ -1602,7 +1602,7 @@ def list_harness():
             get_headers=get_headers,
             provider_from_headers=provider_from_headers,
             provider_from_query=provider_from_query,
-            litellm_alist=litellm_alist,
+            gateway_alist=gateway_alist,
             router=router,
             logging=logging,
             creds_resolver=router.get_deployment_credentials_with_provider,
@@ -1663,7 +1663,7 @@ async def test_list__managed_files_path(list_harness):
         target_model_names="m1,m2",
         llm_router=list_harness.router,
     )
-    list_harness.litellm_alist.assert_not_called()
+    list_harness.gateway_alist.assert_not_called()
     list_harness.router_alist.assert_not_called()
     assert resp is page
 
@@ -1678,7 +1678,7 @@ async def test_list__managed_files_beats_model_param(list_harness):
     await call_list(list_harness, body={"model": "azure/gpt-4o"})
 
     list_user_batches.assert_called_once()
-    list_harness.litellm_alist.assert_not_called()
+    list_harness.gateway_alist.assert_not_called()
     list_harness.router_alist.assert_not_called()
     list_harness.creds_resolver.assert_not_called()
 
@@ -1718,7 +1718,7 @@ async def test_list__out_of_range_limit_rejected_with_400(list_harness, limit, e
     assert exc.value.openai_code == expected_openai_code
     assert exc.value.message == expected_message
     list_user_batches.assert_not_called()
-    list_harness.litellm_alist.assert_not_called()
+    list_harness.gateway_alist.assert_not_called()
     list_harness.router_alist.assert_not_called()
 
 
@@ -1747,11 +1747,11 @@ async def test_list__in_range_limit_dispatches(list_harness, limit):
 
 @pytest.mark.asyncio
 async def test_list__model_from_body_routes_and_encodes(list_harness):
-    list_harness.litellm_alist.return_value = FakeListPage([make_batch(id="batch-1"), make_batch(id="batch-2")])
+    list_harness.gateway_alist.return_value = FakeListPage([make_batch(id="batch-1"), make_batch(id="batch-2")])
 
     resp = await call_list(list_harness, body={"model": "azure/gpt-4o"})
 
-    assert list_harness.litellm_alist.call_count == 1
+    assert list_harness.gateway_alist.call_count == 1
     list_harness.router_alist.assert_not_called()
     list_harness.creds_resolver.assert_called_once_with(model_id="azure/gpt-4o")
     assert resp.data[0].id == encode_file_id_with_model("batch-1", "azure/gpt-4o", id_type="batch")
@@ -1769,7 +1769,7 @@ async def test_list__target_model_names_param_routes_to_router(list_harness):
     await call_list(list_harness, target_model_names="m1,m2", limit=3, after="cur")
 
     assert list_harness.router_alist.call_count == 1
-    list_harness.litellm_alist.assert_not_called()
+    list_harness.gateway_alist.assert_not_called()
     list_harness.creds_resolver.assert_not_called()
     # first model only; after/limit forwarded; nothing else (param not in data).
     assert list_harness.router_kwargs() == {
@@ -1784,7 +1784,7 @@ async def test_list__target_model_names_from_body(list_harness):
     await call_list(list_harness, body={"target_model_names": "m1,m2"})
 
     assert list_harness.router_alist.call_count == 1
-    list_harness.litellm_alist.assert_not_called()
+    list_harness.gateway_alist.assert_not_called()
     kwargs = list_harness.router_kwargs()
     assert kwargs["model"] == "m1"
     # body-sourced target_model_names stays in the forwarded data.
@@ -1813,7 +1813,7 @@ async def test_list__fallback_default_openai(list_harness, no_openai_creds):
     collection, not a specific id, so there is nothing to 404 about."""
     await call_list(list_harness)
 
-    assert list_harness.litellm_alist.call_count == 1
+    assert list_harness.gateway_alist.call_count == 1
     list_harness.router_alist.assert_not_called()
     list_harness.creds_resolver.assert_not_called()  # inverse-bug guard
     assert list_harness.alist_kwargs() == {
@@ -1870,7 +1870,7 @@ async def test_list__no_router_raises_500(list_harness):
             await call_list(list_harness)
 
     assert exc.value.code == "500"
-    list_harness.litellm_alist.assert_not_called()
+    list_harness.gateway_alist.assert_not_called()
 
 
 @pytest.mark.asyncio
@@ -1882,7 +1882,7 @@ async def test_list__uses_alist_batches_route_type(list_harness):
 
 @pytest.mark.asyncio
 async def test_list__exception_calls_failure_hook(list_harness):
-    list_harness.litellm_alist.side_effect = ValueError("provider boom")
+    list_harness.gateway_alist.side_effect = ValueError("provider boom")
 
     with pytest.raises(ProxyException):
         await call_list(list_harness)
@@ -1921,7 +1921,7 @@ class CancelHarness:
     get_headers: MagicMock
     provider_from_headers: MagicMock
     provider_from_query: MagicMock
-    litellm_acancel: AsyncMock
+    gateway_acancel: AsyncMock
     router: MagicMock
     logging: MagicMock
     creds_resolver: MagicMock
@@ -1932,8 +1932,8 @@ class CancelHarness:
         return self.router.acancel_batch
 
     def acancel_kwargs(self) -> Dict[str, Any]:
-        assert self.litellm_acancel.call_count == 1
-        return dict(self.litellm_acancel.call_args.kwargs)
+        assert self.gateway_acancel.call_count == 1
+        return dict(self.gateway_acancel.call_args.kwargs)
 
     def router_kwargs(self) -> Dict[str, Any]:
         assert self.router_acancel.call_count == 1
@@ -1959,7 +1959,7 @@ def cancel_harness():
     get_headers = MagicMock(return_value={})
     provider_from_headers = MagicMock(return_value=None)
     provider_from_query = MagicMock(return_value=None)
-    litellm_acancel = AsyncMock(return_value=make_batch())
+    gateway_acancel = AsyncMock(return_value=make_batch())
     update_batch_in_db = AsyncMock(return_value=None)
 
     with ExitStack() as stack:
@@ -1986,7 +1986,7 @@ def cancel_harness():
             )
         )
         stack.enter_context(patch.object(endpoints, "update_batch_in_database", update_batch_in_db))
-        stack.enter_context(patch.object(gateway, "acancel_batch", litellm_acancel))
+        stack.enter_context(patch.object(gateway, "acancel_batch", gateway_acancel))
         stack.enter_context(patch.object(gateway, "enable_loadbalancing_on_batch_endpoints", False))
         stack.enter_context(patch.object(proxy_server, "llm_router", router))
         stack.enter_context(patch.object(proxy_server, "proxy_logging_obj", logging))
@@ -2003,7 +2003,7 @@ def cancel_harness():
             get_headers=get_headers,
             provider_from_headers=provider_from_headers,
             provider_from_query=provider_from_query,
-            litellm_acancel=litellm_acancel,
+            gateway_acancel=gateway_acancel,
             router=router,
             logging=logging,
             creds_resolver=router.get_deployment_credentials_with_provider,
@@ -2041,7 +2041,7 @@ async def test_cancel__model_encoded_id(cancel_harness):
     resp = await call_cancel(cancel_harness, AZURE_BATCH_ID)
 
     # DISPATCH - model-credential path via litellm; router untouched.
-    assert cancel_harness.litellm_acancel.call_count == 1
+    assert cancel_harness.gateway_acancel.call_count == 1
     cancel_harness.router_acancel.assert_not_called()
 
     # CREDENTIALS - resolved for the model decoded from the batch id.
@@ -2081,7 +2081,7 @@ async def test_cancel__model_encoded_beats_unified(cancel_harness):
     with patch.object(endpoints, "_is_base64_encoded_unified_file_id", return_value=UNIFIED_BATCH_ID):
         await call_cancel(cancel_harness, AZURE_BATCH_ID)
 
-    assert cancel_harness.litellm_acancel.call_count == 1
+    assert cancel_harness.gateway_acancel.call_count == 1
     cancel_harness.router_acancel.assert_not_called()
     cancel_harness.creds_resolver.assert_called_once_with(model_id="azure/gpt-4o")
 
@@ -2099,7 +2099,7 @@ async def test_cancel__unified_batch_id_routes_to_router(cancel_harness):
 
     # DISPATCH - router fired, litellm did not, no creds lookup.
     assert cancel_harness.router_acancel.call_count == 1
-    cancel_harness.litellm_acancel.assert_not_called()
+    cancel_harness.gateway_acancel.assert_not_called()
     cancel_harness.creds_resolver.assert_not_called()
 
     # model + batch_id are extracted from the unified id and forwarded.
@@ -2139,7 +2139,7 @@ async def test_cancel__unified_missing_model_id_400(cancel_harness):
 
     assert exc.value.code == "400"
     cancel_harness.router_acancel.assert_not_called()
-    cancel_harness.litellm_acancel.assert_not_called()
+    cancel_harness.gateway_acancel.assert_not_called()
 
 
 @pytest.mark.asyncio
@@ -2164,7 +2164,7 @@ async def test_cancel__unified_no_router_500(cancel_harness):
 async def test_cancel__fallback_default_openai(cancel_harness, openai_env_creds):
     await call_cancel(cancel_harness, "batch-raw-xyz")
 
-    assert cancel_harness.litellm_acancel.call_count == 1
+    assert cancel_harness.gateway_acancel.call_count == 1
     cancel_harness.router_acancel.assert_not_called()
     cancel_harness.creds_resolver.assert_not_called()  # inverse-bug guard
     # current behavior: enrichment keys dropped; only these two forwarded.
@@ -2184,7 +2184,7 @@ async def test_cancel__fallback_no_creds_404(cancel_harness, no_openai_creds):
     assert exc.value.type == "invalid_request_error"
     assert exc.value.param is None
     assert exc.value.message == "No batch found with id 'batch-raw-xyz'."
-    cancel_harness.litellm_acancel.assert_not_called()
+    cancel_harness.gateway_acancel.assert_not_called()
     cancel_harness.router_acancel.assert_not_called()
 
 
@@ -2271,7 +2271,7 @@ async def test_cancel__uses_acancel_batch_route_type(cancel_harness, openai_env_
 
 @pytest.mark.asyncio
 async def test_cancel__exception_calls_failure_hook(cancel_harness, openai_env_creds):
-    cancel_harness.litellm_acancel.side_effect = ValueError("provider boom")
+    cancel_harness.gateway_acancel.side_effect = ValueError("provider boom")
 
     with pytest.raises(ProxyException):
         await call_cancel(cancel_harness, "batch-raw-xyz")
@@ -2309,7 +2309,7 @@ async def test_create__loadbalancing_no_router_500(harness):
 
     assert exc.value.code == "500"
     harness.router_acreate.assert_not_called()
-    harness.litellm_acreate.assert_not_called()
+    harness.gateway_acreate.assert_not_called()
 
 
 @pytest.mark.asyncio
@@ -2344,7 +2344,7 @@ async def test_retrieve__unified_no_router_500(retrieve_harness):
 
     assert exc.value.code == "500"
     retrieve_harness.router_aretrieve.assert_not_called()
-    retrieve_harness.litellm_aretrieve.assert_not_called()
+    retrieve_harness.gateway_aretrieve.assert_not_called()
 
 
 # =========================================================================== #
@@ -2565,7 +2565,7 @@ async def test_create__raw_input_file_id_rejected_when_managed_files_required(ha
             await call_create(harness)
 
     assert exc.value.code == "400"
-    harness.litellm_acreate.assert_not_called()
+    harness.gateway_acreate.assert_not_called()
     harness.router_acreate.assert_not_called()
 
 
@@ -2587,7 +2587,7 @@ async def test_create__model_encoded_input_file_id_rejected_when_managed_files_r
             await call_create(harness)
 
     assert exc.value.code == "400"
-    harness.litellm_acreate.assert_not_called()
+    harness.gateway_acreate.assert_not_called()
     harness.router_acreate.assert_not_called()
 
 
@@ -2625,7 +2625,7 @@ async def test_create__other_teams_unified_input_file_id_rejected(harness):
             await call_create(harness)
 
     assert exc.value.code == "403"
-    harness.litellm_acreate.assert_not_called()
+    harness.gateway_acreate.assert_not_called()
     harness.router_acreate.assert_not_called()
 
 
@@ -2636,7 +2636,7 @@ async def test_retrieve__raw_batch_id_rejected_when_managed_files_required(retri
             await call_retrieve(retrieve_harness, "batch-victim-abc123")
 
     assert exc.value.code == "400"
-    retrieve_harness.litellm_aretrieve.assert_not_called()
+    retrieve_harness.gateway_aretrieve.assert_not_called()
     retrieve_harness.router_aretrieve.assert_not_called()
 
 
@@ -2657,7 +2657,7 @@ async def test_cancel__raw_batch_id_rejected_when_managed_files_required(cancel_
             await call_cancel(cancel_harness, "batch-victim-abc123")
 
     assert exc.value.code == "400"
-    cancel_harness.litellm_acancel.assert_not_called()
+    cancel_harness.gateway_acancel.assert_not_called()
     cancel_harness.router_acancel.assert_not_called()
 
 
@@ -2698,5 +2698,5 @@ async def test_retrieve__raw_batch_id_is_untouched_by_the_poller_handoff(retriev
     with patch.object(endpoints, "batch_cost_poller_is_active", MagicMock(return_value=True)):
         await call_retrieve(retrieve_harness, "batch-raw-xyz")
 
-    metadata = retrieve_harness.litellm_aretrieve.await_args.kwargs.get("litellm_metadata") or {}
+    metadata = retrieve_harness.gateway_aretrieve.await_args.kwargs.get("litellm_metadata") or {}
     assert metadata.get("batch_ignore_default_logging") is None

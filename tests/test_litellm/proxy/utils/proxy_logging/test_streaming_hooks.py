@@ -19,7 +19,7 @@ from fastapi import HTTPException
 
 from token_iq import gateway
 from token_iq.gateway.integrations.custom_logger import CustomLogger
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.streaming_iterator import (
     BaseAnthropicMessagesStreamingIterator,
 )
@@ -69,14 +69,14 @@ def test_is_a2a_streaming_response_invalid_input_raises(proxy_logging):
 # ---------------------------------------------------------------------------
 
 
-def test_build_litellm_call_info_pulls_from_hidden_params_and_metadata(proxy_logging):
+def test_build_gateway_call_info_pulls_from_hidden_params_and_metadata(proxy_logging):
     response = MagicMock()
     response._hidden_params = {
         "custom_llm_provider": "openai",
         "api_base": "https://api.openai.com",
         "model_id": "model-1",
     }
-    info = proxy_logging._build_litellm_call_info(
+    info = proxy_logging._build_gateway_call_info(
         data={"metadata": {"model_info": {"name": "gpt-4o-mini"}}},
         response=response,
     )
@@ -88,10 +88,10 @@ def test_build_litellm_call_info_pulls_from_hidden_params_and_metadata(proxy_log
     }
 
 
-def test_build_litellm_call_info_fallbacks_to_litellm_metadata(proxy_logging):
+def test_build_gateway_call_info_fallbacks_to_gateway_metadata(proxy_logging):
     response = MagicMock()
     response._hidden_params = {"custom_llm_provider": "azure"}
-    info = proxy_logging._build_litellm_call_info(
+    info = proxy_logging._build_gateway_call_info(
         data={"litellm_metadata": {"model_info": {"alias": "azure-gpt"}}},
         response=response,
     )
@@ -109,9 +109,9 @@ def test_build_litellm_call_info_fallbacks_to_litellm_metadata(proxy_logging):
     }
 
 
-def test_build_litellm_call_info_invalid_data_raises(proxy_logging):
+def test_build_gateway_call_info_invalid_data_raises(proxy_logging):
     with pytest.raises(AttributeError):
-        proxy_logging._build_litellm_call_info(data=None, response=MagicMock())  # type: ignore[arg-type]
+        proxy_logging._build_gateway_call_info(data=None, response=MagicMock())  # type: ignore[arg-type]
 
 
 # ---------------------------------------------------------------------------
@@ -370,7 +370,7 @@ def _armed_native_messages_stream(test_name: str, request_data: Dict[str, Any], 
     logging_obj carries the deferred-dispatch callback the proxy arms in
     common_request_processing. The callback records what the guardrail
     metadata contained at the moment the deferred logging was dispatched."""
-    logging_obj = LiteLLMLoggingObj(
+    logging_obj = GatewayLoggingObj(
         model="bedrock/invoke/anthropic.claude-sonnet-4-20250514-v1:0",
         messages=[{"role": "user", "content": "hi"}],
         stream=True,

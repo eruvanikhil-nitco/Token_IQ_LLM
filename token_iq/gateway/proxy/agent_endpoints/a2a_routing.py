@@ -11,7 +11,7 @@ from fastapi import HTTPException
 
 from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
-from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
 
 
 async def route_a2a_agent_request(
@@ -54,8 +54,8 @@ async def route_a2a_agent_request(
 
     # Verify the caller is permitted to use this agent (admins bypass the check)
     is_admin: Final = user_api_key_dict is not None and (
-        user_api_key_dict.user_role == LitellmUserRoles.PROXY_ADMIN
-        or user_api_key_dict.user_role == LitellmUserRoles.PROXY_ADMIN.value
+        user_api_key_dict.user_role == GatewayUserRoles.PROXY_ADMIN
+        or user_api_key_dict.user_role == GatewayUserRoles.PROXY_ADMIN.value
     )
     if not is_admin:
         is_allowed: Final = await AgentRequestHandler.is_agent_allowed(

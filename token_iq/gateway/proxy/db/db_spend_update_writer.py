@@ -37,7 +37,7 @@ from token_iq.gateway.proxy._types import (
     DailyTeamSpendTransaction,
     DailyUserSpendTransaction,
     DBSpendUpdateTransactions,
-    Litellm_EntityType,
+    Gateway_EntityType,
     SpendLogsMetadata,
     SpendLogsPayload,
     SpendUpdateQueueItem,
@@ -221,7 +221,7 @@ class DBSpendUpdateWriter:
     ) -> None:
         from token_iq.gateway.proxy.proxy_server import (
             disable_spend_logs,
-            litellm_proxy_budget_name,
+            gateway_proxy_budget_name,
             prisma_client,
         )
         from token_iq.gateway.proxy.utils import ProxyUpdateSpend, hash_token
@@ -296,7 +296,7 @@ class DBSpendUpdateWriter:
                     project_id=project_id,
                     end_user_id=end_user_id,
                     prisma_client=prisma_client,
-                    litellm_proxy_budget_name=litellm_proxy_budget_name,
+                    gateway_proxy_budget_name=gateway_proxy_budget_name,
                     payload=payload,
                     request_model_access_groups=get_request_model_access_groups(kwargs),
                 )
@@ -422,8 +422,8 @@ class DBSpendUpdateWriter:
 
             # Extract key_alias from kwargs metadata if available
             key_alias: str | None = None
-            _litellm_params: Final = kwargs.get("litellm_params") or {}
-            _metadata: Final = _litellm_params.get("metadata") or {}
+            _gateway_params: Final = kwargs.get("litellm_params") or {}
+            _metadata: Final = _gateway_params.get("metadata") or {}
             key_alias = _metadata.get("user_api_key_alias") or None
             user_agent: Final = _metadata.get("user_agent") or None
 
@@ -491,7 +491,7 @@ class DBSpendUpdateWriter:
         project_id: str | None,
         end_user_id: str | None,
         prisma_client: PrismaClient | None,
-        litellm_proxy_budget_name: str | None,
+        gateway_proxy_budget_name: str | None,
         payload: SpendLogsPayload,
         request_model_access_groups: Sequence[str] = (),
     ):
@@ -510,7 +510,7 @@ class DBSpendUpdateWriter:
                 response_cost=response_cost,
                 user_id=user_id,
                 prisma_client=prisma_client,
-                litellm_proxy_budget_name=litellm_proxy_budget_name,
+                gateway_proxy_budget_name=gateway_proxy_budget_name,
                 end_user_id=end_user_id,
             )
         except Exception:
@@ -692,7 +692,7 @@ class DBSpendUpdateWriter:
 
             await self.spend_update_queue.add_update(
                 update=SpendUpdateQueueItem(
-                    entity_type=Litellm_EntityType.KEY,
+                    entity_type=Gateway_EntityType.KEY,
                     entity_id=hashed_token,
                     response_cost=response_cost,
                 )
@@ -706,7 +706,7 @@ class DBSpendUpdateWriter:
         response_cost: float | None,
         user_id: str | None,
         prisma_client: PrismaClient | None,
-        litellm_proxy_budget_name: str | None,
+        gateway_proxy_budget_name: str | None,
         end_user_id: str | None = None,
     ):
         """
@@ -717,13 +717,13 @@ class DBSpendUpdateWriter:
             if prisma_client is not None:  # update
                 user_ids: Final = [user_id]
                 if gateway.max_budget > 0:  # track global proxy budget, if user set max budget
-                    user_ids.append(litellm_proxy_budget_name)
+                    user_ids.append(gateway_proxy_budget_name)
 
                 for _id in user_ids:
                     if _id is not None:
                         await self.spend_update_queue.add_update(
                             update=SpendUpdateQueueItem(
-                                entity_type=Litellm_EntityType.USER,
+                                entity_type=Gateway_EntityType.USER,
                                 entity_id=_id,
                                 response_cost=response_cost,
                             )
@@ -732,7 +732,7 @@ class DBSpendUpdateWriter:
                 if end_user_id is not None:
                     await self.spend_update_queue.add_update(
                         update=SpendUpdateQueueItem(
-                            entity_type=Litellm_EntityType.END_USER,
+                            entity_type=Gateway_EntityType.END_USER,
                             entity_id=end_user_id,
                             response_cost=response_cost,
                         )
@@ -764,7 +764,7 @@ class DBSpendUpdateWriter:
 
             await self.spend_update_queue.add_update(
                 update=SpendUpdateQueueItem(
-                    entity_type=Litellm_EntityType.TEAM,
+                    entity_type=Gateway_EntityType.TEAM,
                     entity_id=team_id,
                     response_cost=response_cost,
                 )
@@ -777,7 +777,7 @@ class DBSpendUpdateWriter:
                     team_member_key: Final = f"team_id::{team_id}::user_id::{user_id}"
                     await self.spend_update_queue.add_update(
                         update=SpendUpdateQueueItem(
-                            entity_type=Litellm_EntityType.TEAM_MEMBER,
+                            entity_type=Gateway_EntityType.TEAM_MEMBER,
                             entity_id=team_member_key,
                             response_cost=response_cost,
                         )
@@ -813,7 +813,7 @@ class DBSpendUpdateWriter:
         try:
             await self.spend_update_queue.add_update(
                 update=SpendUpdateQueueItem(
-                    entity_type=Litellm_EntityType.PROJECT,
+                    entity_type=Gateway_EntityType.PROJECT,
                     entity_id=project_id,
                     response_cost=response_cost,
                 )
@@ -842,7 +842,7 @@ class DBSpendUpdateWriter:
 
             await self.spend_update_queue.add_update(
                 update=SpendUpdateQueueItem(
-                    entity_type=Litellm_EntityType.ORGANIZATION,
+                    entity_type=Gateway_EntityType.ORGANIZATION,
                     entity_id=org_id,
                     response_cost=response_cost,
                 )
@@ -869,7 +869,7 @@ class DBSpendUpdateWriter:
 
             await self.spend_update_queue.add_update(
                 update=SpendUpdateQueueItem(
-                    entity_type=Litellm_EntityType.AGENT,
+                    entity_type=Gateway_EntityType.AGENT,
                     entity_id=agent_id,
                     response_cost=response_cost,
                 )
@@ -919,7 +919,7 @@ class DBSpendUpdateWriter:
                 if tag_name and isinstance(tag_name, str):
                     await self.spend_update_queue.add_update(
                         update=SpendUpdateQueueItem(
-                            entity_type=Litellm_EntityType.TAG,
+                            entity_type=Gateway_EntityType.TAG,
                             entity_id=tag_name,
                             response_cost=response_cost,
                         )
@@ -963,7 +963,7 @@ class DBSpendUpdateWriter:
             ):
                 await self.spend_update_queue.add_update(
                     update=SpendUpdateQueueItem(
-                        entity_type=Litellm_EntityType.MODEL_ACCESS_GROUP,
+                        entity_type=Gateway_EntityType.MODEL_ACCESS_GROUP,
                         entity_id=model_access_group,
                         response_cost=response_cost,
                     )

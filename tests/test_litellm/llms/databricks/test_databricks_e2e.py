@@ -289,7 +289,7 @@ def test_chat_completion_default_user_agent(config: dict):
 
     # Clear any custom user agent from environment
     saved_user_agent = os.environ.pop("DATABRICKS_USER_AGENT", None)
-    saved_litellm_ua = os.environ.pop("LITELLM_USER_AGENT", None)
+    saved_gateway_ua = os.environ.pop("LITELLM_USER_AGENT", None)
 
     try:
         from token_iq.gateway._version import version
@@ -326,8 +326,8 @@ def test_chat_completion_default_user_agent(config: dict):
         # Restore environment variables
         if saved_user_agent:
             os.environ["DATABRICKS_USER_AGENT"] = saved_user_agent
-        if saved_litellm_ua:
-            os.environ["LITELLM_USER_AGENT"] = saved_litellm_ua
+        if saved_gateway_ua:
+            os.environ["LITELLM_USER_AGENT"] = saved_gateway_ua
 
 
 def test_chat_completion_with_custom_user_agent(config: dict):
@@ -340,7 +340,7 @@ def test_chat_completion_with_custom_user_agent(config: dict):
 
     # Clear any env user agent to ensure parameter takes precedence
     saved_user_agent = os.environ.pop("DATABRICKS_USER_AGENT", None)
-    saved_litellm_ua = os.environ.pop("LITELLM_USER_AGENT", None)
+    saved_gateway_ua = os.environ.pop("LITELLM_USER_AGENT", None)
 
     try:
         from token_iq.gateway._version import version
@@ -377,8 +377,8 @@ def test_chat_completion_with_custom_user_agent(config: dict):
         # Restore environment variables
         if saved_user_agent:
             os.environ["DATABRICKS_USER_AGENT"] = saved_user_agent
-        if saved_litellm_ua:
-            os.environ["LITELLM_USER_AGENT"] = saved_litellm_ua
+        if saved_gateway_ua:
+            os.environ["LITELLM_USER_AGENT"] = saved_gateway_ua
 
 
 def test_chat_completion_with_env_user_agent(config: dict):
@@ -513,7 +513,7 @@ def test_oauth_token_retrieval(config: dict):
 # ==============================================================================
 
 
-def test_litellm_sdk_with_config_user_agent(config: dict):
+def test_gateway_sdk_with_config_user_agent(config: dict):
     """
     Test 1: LiteLLM SDK with custom user agent from config file.
 
@@ -566,7 +566,7 @@ def test_litellm_sdk_with_config_user_agent(config: dict):
         return False
 
 
-def test_langchain_litellm_with_user_agent(config: dict):
+def test_langchain_gateway_with_user_agent(config: dict):
     """
     Test 2: LangChain with LiteLLM integration.
 
@@ -588,11 +588,11 @@ def test_langchain_litellm_with_user_agent(config: dict):
         return None
 
     # Try the new langchain-litellm package first, fall back to deprecated import
-    ChatLiteLLM = None
+    ChatGateway = None
     HumanMessage = None
 
     try:
-        from langchain_litellm import ChatLiteLLM
+        from langchain_litellm import ChatGateway
         from langchain_core.messages import HumanMessage
 
         print("  Using: langchain-litellm package (recommended)")
@@ -603,7 +603,7 @@ def test_langchain_litellm_with_user_agent(config: dict):
 
             with warnings.catch_warnings():
                 warnings.filterwarnings("ignore", category=DeprecationWarning)
-                from langchain_community.chat_models import ChatLiteLLM
+                from langchain_community.chat_models import ChatGateway
                 from langchain_core.messages import HumanMessage
             print(
                 "  Using: langchain-community (deprecated, consider: pip install langchain-litellm)"
@@ -627,7 +627,7 @@ def test_langchain_litellm_with_user_agent(config: dict):
         # Set user agent via environment for LangChain integration
         os.environ["DATABRICKS_USER_AGENT"] = custom_ua
 
-        chat = ChatLiteLLM(
+        chat = ChatGateway(
             model=full_model,
             max_tokens=20,
             temperature=0.1,
@@ -653,7 +653,7 @@ def test_langchain_litellm_with_user_agent(config: dict):
         os.environ.pop("DATABRICKS_USER_AGENT", None)
 
 
-def test_litellm_async_completion(config: dict):
+def test_gateway_async_completion(config: dict):
     """
     Test 3: LiteLLM Async Completion API with custom User-Agent.
 
@@ -709,7 +709,7 @@ def test_litellm_async_completion(config: dict):
         return False
 
 
-def test_litellm_streaming_completion(config: dict):
+def test_gateway_streaming_completion(config: dict):
     """
     Test 4: LiteLLM Streaming Completion with custom User-Agent.
 
@@ -769,7 +769,7 @@ def test_litellm_streaming_completion(config: dict):
         return False
 
 
-def test_litellm_embedding_with_user_agent(config: dict):
+def test_gateway_embedding_with_user_agent(config: dict):
     """
     Test 5: LiteLLM Embedding API with custom User-Agent.
 
@@ -964,7 +964,7 @@ def main():
     all_results.append(
         (
             "LiteLLM SDK with Config User-Agent",
-            test_litellm_sdk_with_config_user_agent(config),
+            test_gateway_sdk_with_config_user_agent(config),
         )
     )
 
@@ -972,7 +972,7 @@ def main():
     all_results.append(
         (
             "LangChain + LiteLLM with Config User-Agent",
-            test_langchain_litellm_with_user_agent(config),
+            test_langchain_gateway_with_user_agent(config),
         )
     )
 
@@ -980,7 +980,7 @@ def main():
     all_results.append(
         (
             "LiteLLM Async Completion with Config User-Agent",
-            test_litellm_async_completion(config),
+            test_gateway_async_completion(config),
         )
     )
 
@@ -988,7 +988,7 @@ def main():
     all_results.append(
         (
             "LiteLLM Streaming Completion with Config User-Agent",
-            test_litellm_streaming_completion(config),
+            test_gateway_streaming_completion(config),
         )
     )
 
@@ -996,7 +996,7 @@ def main():
     all_results.append(
         (
             "LiteLLM Embedding with Config User-Agent",
-            test_litellm_embedding_with_user_agent(config),
+            test_gateway_embedding_with_user_agent(config),
         )
     )
 

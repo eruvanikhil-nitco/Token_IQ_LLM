@@ -51,7 +51,7 @@ def redact_vertex_ai_metadata_from_logged_object(obj: object) -> None:
             hidden_params.pop(field, None)
 
 
-def redact_vertex_ai_metadata_from_litellm_params(model_call_details: dict) -> None:
+def redact_vertex_ai_metadata_from_gateway_params(model_call_details: dict) -> None:
     """
     success_handler() merges response._hidden_params into
     litellm_params.metadata['hidden_params'] before redaction runs, so the Vertex
@@ -72,7 +72,7 @@ def redact_vertex_ai_metadata_from_litellm_params(model_call_details: dict) -> N
             hidden_params.pop(field, None)
 
 
-def vertex_request_labels_from_litellm_params(
+def vertex_request_labels_from_gateway_params(
     litellm_params: dict | None,
 ) -> dict[str, str] | None:
     """
@@ -115,7 +115,7 @@ def pop_vertex_request_labels(
         if isinstance(raw, dict):
             labels = {k: v for k, v in raw.items() if isinstance(v, str)}
     if not labels:
-        labels = vertex_request_labels_from_litellm_params(litellm_params)
+        labels = vertex_request_labels_from_gateway_params(litellm_params)
     return labels if labels else None
 
 
@@ -1133,26 +1133,26 @@ class VertexAITokenCounter(BaseTokenCounter):
             partner_models_handler: Final = VertexAIPartnerModels()
 
             # Extract vertex-specific params from litellm_params
-            partner_litellm_params: Final[dict[str, object]] = count_tokens_params_request
-            vertex_project = partner_litellm_params.get("vertex_project") or partner_litellm_params.get(
+            partner_gateway_params: Final[dict[str, object]] = count_tokens_params_request
+            vertex_project = partner_gateway_params.get("vertex_project") or partner_gateway_params.get(
                 "vertex_ai_project"
             )
 
-            vertex_location = partner_litellm_params.get("vertex_location") or partner_litellm_params.get(
+            vertex_location = partner_gateway_params.get("vertex_location") or partner_gateway_params.get(
                 "vertex_ai_location"
             )
 
             # Count tokens not available on global location: https://docs.cloud.google.com/vertex-ai/generative-ai/docs/partner-models/claude/count-tokens
-            vertex_location = partner_litellm_params.get("vertex_count_tokens_location") or vertex_location
+            vertex_location = partner_gateway_params.get("vertex_count_tokens_location") or vertex_location
 
-            vertex_credentials: Final = partner_litellm_params.get("vertex_credentials") or partner_litellm_params.get(
+            vertex_credentials: Final = partner_gateway_params.get("vertex_credentials") or partner_gateway_params.get(
                 "vertex_ai_credentials"
             )
 
             result = await partner_models_handler.count_tokens(
                 model=model_to_use,
                 messages=messages or [],
-                litellm_params=partner_litellm_params,
+                litellm_params=partner_gateway_params,
                 vertex_project=vertex_project,
                 vertex_location=vertex_location,
                 vertex_credentials=vertex_credentials,

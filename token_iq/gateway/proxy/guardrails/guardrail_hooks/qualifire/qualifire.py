@@ -16,7 +16,7 @@ from token_iq.gateway.integrations.custom_guardrail import (
     CustomGuardrail,
     log_guardrail_information,
 )
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.llms.custom_httpx.http_handler import (
     get_async_httpx_client,
     httpxSpecialProvider,
@@ -111,7 +111,7 @@ class QualifireGuardrail(CustomGuardrail):
                 "only 'block' and 'monitor' are supported."
             )
 
-    def update_in_memory_litellm_params(self, litellm_params: LitellmParams) -> None:
+    def update_in_memory_gateway_params(self, litellm_params: LitellmParams) -> None:
         """
         The base implementation blindly ``setattr``s every field on ``litellm_params``
         (including ``on_flagged``) onto this live instance with no revalidation, so an
@@ -123,7 +123,7 @@ class QualifireGuardrail(CustomGuardrail):
         """
         prospective_on_flagged: Final = litellm_params.on_flagged or self.on_flagged
         self._validate_on_flagged(prospective_on_flagged)
-        super().update_in_memory_litellm_params(litellm_params=litellm_params)
+        super().update_in_memory_gateway_params(litellm_params=litellm_params)
 
     def _has_any_check_enabled(self) -> bool:
         """Check if any evaluation check is explicitly enabled."""
@@ -425,7 +425,7 @@ class QualifireGuardrail(CustomGuardrail):
         inputs: GenericGuardrailAPIInputs,
         request_data: dict,
         input_type: Literal["request", "response"],
-        logging_obj: LiteLLMLoggingObj | None = None,
+        logging_obj: GatewayLoggingObj | None = None,
     ) -> GenericGuardrailAPIInputs:
         """
         Apply Qualifire guardrail to the given inputs.

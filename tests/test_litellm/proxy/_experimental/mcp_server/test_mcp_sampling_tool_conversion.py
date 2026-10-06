@@ -130,7 +130,7 @@ class TestConvertMcpMessagesMultiTurnTools:
         a proper tool_calls array, not a text stub."""
         messages = [
             _sampling_msg("assistant", _tool_use(
-                name="search", tool_id="call_1", input_data={"query": "LiteLLM"}
+                name="search", tool_id="call_1", input_data={"query": "Gateway"}
             )),
         ]
         result = _convert_mcp_messages_to_openai(messages)

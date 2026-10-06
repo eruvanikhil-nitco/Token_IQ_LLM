@@ -7,15 +7,15 @@ import httpx
 from token_iq.gateway.types.llms.anthropic_messages.anthropic_response import (
     AnthropicMessagesResponse,
 )
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as _LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as _GatewayLoggingObj
     from token_iq.gateway.llms.base_llm.chat.transformation import BaseLLMException
 
-    LiteLLMLoggingObj = _LiteLLMLoggingObj
+    GatewayLoggingObj = _GatewayLoggingObj
 else:
-    LiteLLMLoggingObj = Any
+    GatewayLoggingObj = Any
 
 
 class BaseAnthropicMessagesConfig(ABC):
@@ -70,7 +70,7 @@ class BaseAnthropicMessagesConfig(ABC):
         model: str,
         messages: list[dict],
         anthropic_messages_optional_request_params: dict,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> dict:
         pass
@@ -80,7 +80,7 @@ class BaseAnthropicMessagesConfig(ABC):
         self,
         model: str,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> AnthropicMessagesResponse:
         pass
 
@@ -133,7 +133,7 @@ class BaseAnthropicMessagesConfig(ABC):
         model: str,
         httpx_response: httpx.Response,
         request_body: dict,
-        litellm_logging_obj: LiteLLMLoggingObj,
+        litellm_logging_obj: GatewayLoggingObj,
     ) -> AsyncIterator:
         raise NotImplementedError("Subclasses must implement this method")
 

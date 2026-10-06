@@ -14,7 +14,7 @@ import pytest
 from aiohttp import ClientSession, TCPConnector
 
 from token_iq import gateway
-from token_iq.gateway.llms.custom_httpx.aiohttp_transport import LiteLLMAiohttpTransport
+from token_iq.gateway.llms.custom_httpx.aiohttp_transport import GatewayAiohttpTransport
 from token_iq.gateway.llms.custom_httpx.http_handler import (
     _CLIENT_REFCOUNT_WHEN_HANDLER_IS_SOLE_REFERRER,
     AsyncHTTPHandler,
@@ -54,13 +54,13 @@ async def test_async_post_streaming_status_error_should_not_wait_forever_for_bod
         0.01,
     )
 
-    litellm_handler = AsyncHTTPHandler()
-    await litellm_handler.client.aclose()
-    litellm_handler.client = httpx.AsyncClient(transport=httpx.MockTransport(mock_handler))
+    gateway_handler = AsyncHTTPHandler()
+    await gateway_handler.client.aclose()
+    gateway_handler.client = httpx.AsyncClient(transport=httpx.MockTransport(mock_handler))
     try:
         with pytest.raises(MaskedHTTPStatusError) as exc_info:
             await asyncio.wait_for(
-                litellm_handler.post(
+                gateway_handler.post(
                     "https://vertex.example/streamRawPredict",
                     stream=True,
                 ),
@@ -70,7 +70,7 @@ async def test_async_post_streaming_status_error_should_not_wait_forever_for_bod
         assert exc_info.value.status_code == 400
         assert exc_info.value.response.status_code == 400
     finally:
-        await litellm_handler.close()
+        await gateway_handler.close()
 
 
 def test_sync_post_streaming_status_error_should_not_wait_forever_for_body(
@@ -106,12 +106,12 @@ def test_sync_post_streaming_status_error_should_not_wait_forever_for_body(
         0.01,
     )
 
-    litellm_handler = HTTPHandler()
-    litellm_handler.client.close()
-    litellm_handler.client = httpx.Client(transport=httpx.MockTransport(mock_handler))
+    gateway_handler = HTTPHandler()
+    gateway_handler.client.close()
+    gateway_handler.client = httpx.Client(transport=httpx.MockTransport(mock_handler))
     try:
         with pytest.raises(MaskedHTTPStatusError) as exc_info:
-            litellm_handler.post(
+            gateway_handler.post(
                 "https://vertex.example/streamRawPredict",
                 stream=True,
             )
@@ -119,7 +119,7 @@ def test_sync_post_streaming_status_error_should_not_wait_forever_for_body(
         assert exc_info.value.status_code == 400
         assert exc_info.value.response.status_code == 400
     finally:
-        litellm_handler.close()
+        gateway_handler.close()
 
 
 @pytest.mark.asyncio
@@ -137,7 +137,7 @@ async def test_ssl_security_level(monkeypatch):
         try:
             # Get the transport (should be LiteLLMAiohttpTransport)
             transport = client.client._transport
-            assert isinstance(transport, LiteLLMAiohttpTransport)
+            assert isinstance(transport, GatewayAiohttpTransport)
 
             # Get the aiohttp ClientSession
             client_session = transport._get_valid_client_session()
@@ -192,11 +192,11 @@ async def test_ssl_verification_with_aiohttp_transport(monkeypatch: pytest.Monke
     # Ensure aiohttp transport is enabled for this test
     monkeypatch.setattr(gateway, "disable_aiohttp_transport", False)
 
-    litellm_async_client = AsyncHTTPHandler(ssl_verify=False)
+    gateway_async_client = AsyncHTTPHandler(ssl_verify=False)
 
     try:
-        transport = litellm_async_client.client._transport
-        assert isinstance(transport, LiteLLMAiohttpTransport)
+        transport = gateway_async_client.client._transport
+        assert isinstance(transport, GatewayAiohttpTransport)
         transport_connector = transport._get_valid_client_session().connector
         assert isinstance(transport_connector, TCPConnector)
 
@@ -210,7 +210,7 @@ async def test_ssl_verification_with_aiohttp_transport(monkeypatch: pytest.Monke
         finally:
             await aiohttp_session.close()
     finally:
-        await litellm_async_client.close()
+        await gateway_async_client.close()
 
 
 @pytest.mark.asyncio
@@ -495,7 +495,7 @@ async def test_session_reuse_integration():
 
 
 @pytest.mark.parametrize(
-    "env_curve,litellm_curve,expected_curve,should_call",
+    "env_curve,gateway_curve,expected_curve,should_call",
     [
         # env_curve: SSL_ECDH_CURVE env var | litellm_curve: litellm.ssl_ecdh_curve variable
         # expected_curve: curve that should be set | should_call: whether set_ecdh_curve() should be called
@@ -509,7 +509,7 @@ async def test_session_reuse_integration():
         (None, None, None, False),  # None value - skip configuration
     ],
 )
-def test_ssl_ecdh_curve(env_curve, litellm_curve, expected_curve, should_call, monkeypatch):
+def test_ssl_ecdh_curve(env_curve, gateway_curve, expected_curve, should_call, monkeypatch):
     """Test SSL ECDH curve configuration with valid curves and precedence"""
     from token_iq.gateway.llms.custom_httpx.http_handler import _ssl_context_cache
 
@@ -520,7 +520,7 @@ def test_ssl_ecdh_curve(env_curve, litellm_curve, expected_curve, should_call, m
         if env_curve:
             monkeypatch.setenv("SSL_ECDH_CURVE", env_curve)
 
-        monkeypatch.setattr(gateway, "ssl_ecdh_curve", litellm_curve)
+        monkeypatch.setattr(gateway, "ssl_ecdh_curve", gateway_curve)
 
         # Create a real SSL context and patch set_ecdh_curve on it
         # We need a real SSLContext instance (not a MagicMock) because _create_ssl_context
@@ -538,7 +538,7 @@ def test_ssl_ecdh_curve(env_curve, litellm_curve, expected_curve, should_call, m
                 assert isinstance(ssl_context, ssl.SSLContext)
 
 
-def test_default_user_agent_is_litellm_version(monkeypatch):
+def test_default_user_agent_is_gateway_version(monkeypatch):
     from token_iq.gateway._version import version
     from token_iq.gateway.llms.custom_httpx.http_handler import get_default_headers
 
@@ -790,7 +790,7 @@ async def test_init_held_async_handler_survives_evicted_client_close():
     cache = LLMClientCache(evicted_client_closer=EvictedClientCloser(grace_seconds=0))
     handler = AsyncHTTPHandler(timeout=42.5)
     held_client = handler.client
-    cache.set_cache("init-held-handler", handler, litellm_owned_client=True, ttl=0)
+    cache.set_cache("init-held-handler", handler, gateway_owned_client=True, ttl=0)
     await asyncio.sleep(0.02)
     assert cache.get_cache("init-held-handler") is None
     await asyncio.sleep(0.05)
@@ -1176,7 +1176,7 @@ async def test_aiohttp_session_never_replays_one_upstreams_cookie_to_another():
 
     http_handler = AsyncHTTPHandler(timeout=61.0)
     transport = http_handler.client._transport
-    assert isinstance(transport, LiteLLMAiohttpTransport), "aiohttp is no longer the default transport"
+    assert isinstance(transport, GatewayAiohttpTransport), "aiohttp is no longer the default transport"
 
     session = transport.client() if callable(transport.client) else transport.client
     jar = session.cookie_jar
@@ -1196,7 +1196,7 @@ def _mint_session_on_dead_loop(handler: AsyncHTTPHandler) -> ClientSession:
     session outlives its loop and can only ever be disposed loop-lessly.
     """
     transport = handler.client._transport
-    assert isinstance(transport, LiteLLMAiohttpTransport)
+    assert isinstance(transport, GatewayAiohttpTransport)
     loop = asyncio.new_event_loop()
 
     async def _create() -> ClientSession:
@@ -1231,7 +1231,7 @@ async def test_finalizer_with_running_loop_schedules_close_and_holds_task_ref():
     result may be collected before it runs, leaving the session unclosed."""
     handler = AsyncHTTPHandler(timeout=61.0)
     transport = handler.client._transport
-    assert isinstance(transport, LiteLLMAiohttpTransport)
+    assert isinstance(transport, GatewayAiohttpTransport)
     session = transport._get_valid_client_session()
     assert not session.closed
     del transport
@@ -1254,19 +1254,19 @@ async def test_sync_close_helper_respects_session_ownership():
     shared session (e.g. the proxy's) must never be closed by a handler."""
     owned_handler = AsyncHTTPHandler(timeout=61.0)
     owned_transport = owned_handler.client._transport
-    assert isinstance(owned_transport, LiteLLMAiohttpTransport)
+    assert isinstance(owned_transport, GatewayAiohttpTransport)
     owned_session = owned_transport._get_valid_client_session()
 
-    baseline = set(LiteLLMAiohttpTransport._background_close_tasks)
+    baseline = set(GatewayAiohttpTransport._background_close_tasks)
     owned_handler._dispose_wrapped_aiohttp_session()
-    scheduled = LiteLLMAiohttpTransport._background_close_tasks - baseline
+    scheduled = GatewayAiohttpTransport._background_close_tasks - baseline
     await asyncio.gather(*scheduled)
     assert owned_session.closed
 
     shared_session = ClientSession()
     shared_handler = AsyncHTTPHandler(timeout=61.0, shared_session=shared_session)
     shared_transport = shared_handler.client._transport
-    assert isinstance(shared_transport, LiteLLMAiohttpTransport)
+    assert isinstance(shared_transport, GatewayAiohttpTransport)
     assert shared_transport._owns_session is False
 
     shared_handler._dispose_wrapped_aiohttp_session()

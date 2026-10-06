@@ -10,7 +10,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from fastapi import HTTPException
 
-from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
 from token_iq.gateway.proxy.agent_endpoints.auth.agent_permission_handler import (
     RestrictedAgentAccess,
     UnrestrictedAgentAccess,
@@ -19,14 +19,14 @@ from token_iq.gateway.proxy.agent_endpoints.auth.agent_permission_handler import
 
 def _make_internal_user(user_id: str = "user-1") -> UserAPIKeyAuth:
     return UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER.value,
+        user_role=GatewayUserRoles.INTERNAL_USER.value,
         user_id=user_id,
     )
 
 
 def _make_admin_user(user_id: str = "admin-1") -> UserAPIKeyAuth:
     return UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN.value,
+        user_role=GatewayUserRoles.PROXY_ADMIN.value,
         user_id=user_id,
     )
 

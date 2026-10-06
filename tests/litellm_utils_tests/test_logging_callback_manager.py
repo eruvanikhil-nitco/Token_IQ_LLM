@@ -53,7 +53,7 @@ def test_duplicate_langfuse_logger_test():
     manager = LoggingCallbackManager()
     for _ in range(10):
         langfuse_logger = LangfusePromptManagement()
-        manager.add_litellm_success_callback(langfuse_logger)
+        manager.add_gateway_success_callback(langfuse_logger)
     print("litellm.success_callback: ", gateway.success_callback)
     assert len(gateway.success_callback) == 1
 
@@ -63,8 +63,8 @@ def test_duplicate_multiple_loggers_test():
     for _ in range(10):
         langfuse_logger = LangfusePromptManagement()
         otel_logger = OpenTelemetry()
-        manager.add_litellm_success_callback(langfuse_logger)
-        manager.add_litellm_success_callback(otel_logger)
+        manager.add_gateway_success_callback(langfuse_logger)
+        manager.add_gateway_success_callback(otel_logger)
     print("litellm.success_callback: ", gateway.success_callback)
     assert len(gateway.success_callback) == 2
 
@@ -135,8 +135,8 @@ def test_success_failure_callbacks():
     failure_callback = "failure_callback"
 
     # Add callbacks
-    manager.add_litellm_success_callback(success_callback)
-    manager.add_litellm_failure_callback(failure_callback)
+    manager.add_gateway_success_callback(success_callback)
+    manager.add_gateway_failure_callback(failure_callback)
 
     assert success_callback in gateway.success_callback
     assert failure_callback in gateway.failure_callback
@@ -149,8 +149,8 @@ def test_async_callbacks():
     async_failure = "async_failure"
 
     # Add async callbacks
-    manager.add_litellm_async_success_callback(async_success)
-    manager.add_litellm_async_failure_callback(async_failure)
+    manager.add_gateway_async_success_callback(async_success)
+    manager.add_gateway_async_failure_callback(async_failure)
 
     assert async_success in gateway._async_success_callback
     assert async_failure in gateway._async_failure_callback
@@ -164,10 +164,10 @@ def test_remove_callback_from_list_by_object():
     def TestObject():
         def __init__(self):
             manager.add_litellm_callback(self.callback)
-            manager.add_litellm_success_callback(self.callback)
-            manager.add_litellm_failure_callback(self.callback)
-            manager.add_litellm_async_success_callback(self.callback)
-            manager.add_litellm_async_failure_callback(self.callback)
+            manager.add_gateway_success_callback(self.callback)
+            manager.add_gateway_failure_callback(self.callback)
+            manager.add_gateway_async_success_callback(self.callback)
+            manager.add_gateway_async_failure_callback(self.callback)
 
         def callback(self):
             pass
@@ -197,10 +197,10 @@ def test_remove_callback_from_all_lists():
 
     obj = TestLogger()
     manager.add_litellm_callback(obj)
-    manager.add_litellm_success_callback(obj)
-    manager.add_litellm_failure_callback(obj)
-    manager.add_litellm_async_success_callback(obj)
-    manager.add_litellm_async_failure_callback(obj)
+    manager.add_gateway_success_callback(obj)
+    manager.add_gateway_failure_callback(obj)
+    manager.add_gateway_async_success_callback(obj)
+    manager.add_gateway_async_failure_callback(obj)
 
     manager.remove_callback_from_all_lists(obj)
 
@@ -214,10 +214,10 @@ def test_remove_callback_from_all_lists():
 def test_reset_callbacks(callback_manager):
     # Add various callbacks
     callback_manager.add_litellm_callback("test")
-    callback_manager.add_litellm_success_callback("success")
-    callback_manager.add_litellm_failure_callback("failure")
-    callback_manager.add_litellm_async_success_callback("async_success")
-    callback_manager.add_litellm_async_failure_callback("async_failure")
+    callback_manager.add_gateway_success_callback("success")
+    callback_manager.add_gateway_failure_callback("failure")
+    callback_manager.add_gateway_async_success_callback("async_success")
+    callback_manager.add_gateway_async_failure_callback("async_failure")
 
     # Reset all callbacks
     callback_manager._reset_all_callbacks()

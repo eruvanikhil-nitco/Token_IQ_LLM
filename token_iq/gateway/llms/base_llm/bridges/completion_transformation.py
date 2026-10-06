@@ -10,7 +10,7 @@ if TYPE_CHECKING:
     import tiktoken
     from pydantic import BaseModel
 
-    from token_iq.gateway import LiteLLMLoggingObj, ModelResponse
+    from token_iq.gateway import GatewayLoggingObj, ModelResponse
     from token_iq.gateway.llms.base_llm.base_model_iterator import BaseModelResponseIterator
     from token_iq.gateway.types.llms.openai import AllMessageValues
 
@@ -24,7 +24,7 @@ class CompletionTransformationBridge(ABC):
         optional_params: dict,
         litellm_params: dict,
         headers: dict,
-        litellm_logging_obj: "LiteLLMLoggingObj",
+        litellm_logging_obj: "GatewayLoggingObj",
     ) -> dict:
         """Transform /chat/completions api request to another request"""
 
@@ -34,7 +34,7 @@ class CompletionTransformationBridge(ABC):
         model: str,
         raw_response: "BaseModel",  # the response from the other API
         model_response: "ModelResponse",
-        logging_obj: "LiteLLMLoggingObj",
+        logging_obj: "GatewayLoggingObj",
         request_data: dict,
         messages: list["AllMessageValues"],
         optional_params: dict,

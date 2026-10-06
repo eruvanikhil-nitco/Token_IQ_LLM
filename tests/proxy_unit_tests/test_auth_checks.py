@@ -19,7 +19,7 @@ from token_iq.gateway.proxy._types import (
     LiteLLM_BudgetTable,
     LiteLLM_UserTable,
     LiteLLM_TeamTable,
-    Litellm_EntityType,
+    Gateway_EntityType,
 )
 from token_iq.gateway.proxy.utils import PrismaClient
 from token_iq.gateway.proxy.auth.auth_checks import (
@@ -745,7 +745,7 @@ async def test_team_soft_budget_check(
         assert captured_call_info.team_id == "test-team"
         assert captured_call_info.spend == spend
         assert captured_call_info.soft_budget == soft_budget
-        assert captured_call_info.event_group == Litellm_EntityType.TEAM
+        assert captured_call_info.event_group == Gateway_EntityType.TEAM
         # Verify alert_emails if expected
         if expected_alert_emails is not None:
             assert captured_call_info.alert_emails == expected_alert_emails

@@ -14,7 +14,7 @@ from token_iq.gateway.types.containers.main import (
     ContainerObject,
     DeleteContainerResult,
 )
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLogging
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLogging
 
 
 class TestAzureContainerConfig:
@@ -22,7 +22,7 @@ class TestAzureContainerConfig:
 
     def setup_method(self):
         self.config = AzureContainerConfig()
-        self.logging_obj = LiteLLMLogging(
+        self.logging_obj = GatewayLogging(
             model="",
             messages=[],
             stream=False,
@@ -138,9 +138,9 @@ class TestAzureContainerConfig:
             self.config.get_complete_url(api_base=None, litellm_params={})
 
     def test_transform_container_create_request(self):
-        from token_iq.gateway.types.router import GenericLiteLLMParams
+        from token_iq.gateway.types.router import GenericGatewayParams
 
-        litellm_params = GenericLiteLLMParams()
+        litellm_params = GenericGatewayParams()
         headers = {"api-key": "test-key"}
         name = "My Azure Container"
         optional_params = {
@@ -181,10 +181,10 @@ class TestAzureContainerConfig:
         assert container.status == "running"
 
     def test_transform_container_list_request(self):
-        from token_iq.gateway.types.router import GenericLiteLLMParams
+        from token_iq.gateway.types.router import GenericGatewayParams
 
         api_base = "https://my-resource.openai.azure.com/openai/v1/containers"
-        litellm_params = GenericLiteLLMParams()
+        litellm_params = GenericGatewayParams()
         headers = {"api-key": "test-key"}
 
         url, params = self.config.transform_container_list_request(
@@ -228,11 +228,11 @@ class TestAzureContainerConfig:
         assert container_list.first_id == "cntr_1"
 
     def test_transform_container_retrieve_request(self):
-        from token_iq.gateway.types.router import GenericLiteLLMParams
+        from token_iq.gateway.types.router import GenericGatewayParams
 
         container_id = "cntr_azure_abc"
         api_base = "https://my-resource.openai.azure.com/openai/v1/containers"
-        litellm_params = GenericLiteLLMParams()
+        litellm_params = GenericGatewayParams()
         headers = {"api-key": "test-key"}
 
         url, params = self.config.transform_container_retrieve_request(
@@ -246,11 +246,11 @@ class TestAzureContainerConfig:
         assert params == {}
 
     def test_transform_container_delete_request(self):
-        from token_iq.gateway.types.router import GenericLiteLLMParams
+        from token_iq.gateway.types.router import GenericGatewayParams
 
         container_id = "cntr_azure_del"
         api_base = "https://my-resource.openai.azure.com/openai/v1/containers"
-        litellm_params = GenericLiteLLMParams()
+        litellm_params = GenericGatewayParams()
         headers = {"api-key": "test-key"}
 
         url, params = self.config.transform_container_delete_request(
@@ -280,11 +280,11 @@ class TestAzureContainerConfig:
         assert delete_result.deleted is True
 
     def test_transform_container_file_list_request(self):
-        from token_iq.gateway.types.router import GenericLiteLLMParams
+        from token_iq.gateway.types.router import GenericGatewayParams
 
         container_id = "cntr_azure_files"
         api_base = "https://my-resource.openai.azure.com/openai/v1/containers"
-        litellm_params = GenericLiteLLMParams()
+        litellm_params = GenericGatewayParams()
         headers = {"api-key": "test-key"}
 
         url, params = self.config.transform_container_file_list_request(
@@ -300,13 +300,13 @@ class TestAzureContainerConfig:
 
     def test_transform_requests_preserve_query_string_after_path(self):
         """api-version must not appear before /{container_id}/... (Azure bases include ?)."""
-        from token_iq.gateway.types.router import GenericLiteLLMParams
+        from token_iq.gateway.types.router import GenericGatewayParams
 
         api_base = (
             "https://my-resource.openai.azure.com/openai/v1/containers"
             "?api-version=v1"
         )
-        litellm_params = GenericLiteLLMParams()
+        litellm_params = GenericGatewayParams()
         headers: dict = {}
 
         url_r, _ = self.config.transform_container_retrieve_request(
@@ -346,7 +346,7 @@ class TestAzureContainerConfig:
         assert url_fc.index("/content") < url_fc.index("?")
 
     def test_transform_requests_encode_path_ids_before_query_string(self):
-        from token_iq.gateway.types.router import GenericLiteLLMParams
+        from token_iq.gateway.types.router import GenericGatewayParams
 
         api_base = (
             "https://my-resource.openai.azure.com/openai/v1/containers"
@@ -357,7 +357,7 @@ class TestAzureContainerConfig:
             container_id="../../other",
             file_id="file?download=1#frag",
             api_base=api_base,
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 
@@ -420,7 +420,7 @@ class TestAzureContainerKnownFailureRegressions:
 
     def test_regression_query_never_splits_before_container_segment(self):
         """Forbid the broken shape: …/containers?api-version=v1/cntr_…"""
-        from token_iq.gateway.types.router import GenericLiteLLMParams
+        from token_iq.gateway.types.router import GenericGatewayParams
 
         api_base = (
             "https://my-resource.openai.azure.com/openai/v1/containers"
@@ -428,7 +428,7 @@ class TestAzureContainerKnownFailureRegressions:
         )
         cid = "cntr_69d4f27de324819082c54f6aeaab6391056f5dbdf1fe2b02"
         fid = "cfile_69d4f283bac0819094bfe7805a4f3ce8"
-        litellm_params = GenericLiteLLMParams()
+        litellm_params = GenericGatewayParams()
         headers: dict = {}
 
         url_fc, _ = self.config.transform_container_file_content_request(
@@ -449,7 +449,7 @@ class TestAzureContainerKnownFailureRegressions:
 
     def test_regression_full_chain_bare_resource_root_like_env(self):
         """Mimics AZURE_API_BASE=https://resource.openai.azure.com — no ? in env."""
-        from token_iq.gateway.types.router import GenericLiteLLMParams
+        from token_iq.gateway.types.router import GenericGatewayParams
 
         resource_root = "https://my-resource.openai.azure.com"
         container_base = self.config.get_complete_url(
@@ -468,7 +468,7 @@ class TestAzureContainerKnownFailureRegressions:
             container_id=cid,
             file_id=fid,
             api_base=container_base,
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
         assert cid in url_fc
@@ -482,7 +482,7 @@ class TestAzureContainerKnownFailureRegressions:
 
     def test_regression_all_crud_urls_with_azure_style_api_base(self):
         """Retrieve, delete, list files, and file content all keep ?api-version last."""
-        from token_iq.gateway.types.router import GenericLiteLLMParams
+        from token_iq.gateway.types.router import GenericGatewayParams
 
         api_base = (
             "https://iamkankute-5584-resource.openai.azure.com/openai/v1/containers"
@@ -490,7 +490,7 @@ class TestAzureContainerKnownFailureRegressions:
         )
         cid = "cntr_69d4f1c5c6448190930a444af3f84f670b35dc2ee845cd1b"
         fid = "cfile_69d4f1c97a1081908d22a9f56268c743"
-        litellm_params = GenericLiteLLMParams()
+        litellm_params = GenericGatewayParams()
         headers: dict = {}
 
         url_r, _ = self.config.transform_container_retrieve_request(
@@ -534,7 +534,7 @@ class TestAzureContainerKnownFailureRegressions:
 
     def test_regression_api_base_with_extra_query_params(self):
         """Multiple query params must stay at the end after path join."""
-        from token_iq.gateway.types.router import GenericLiteLLMParams
+        from token_iq.gateway.types.router import GenericGatewayParams
 
         api_base = (
             "https://my-resource.openai.azure.com/openai/v1/containers"
@@ -544,7 +544,7 @@ class TestAzureContainerKnownFailureRegressions:
         url_lf, _ = self.config.transform_container_file_list_request(
             container_id=cid,
             api_base=api_base,
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
         p = urlparse(url_lf)

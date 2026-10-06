@@ -7,7 +7,7 @@ from e2e_config import unique_marker
 from e2e_http import StreamingResponse, require_successful_call
 from endpoints_client import EndpointsClient
 from lifecycle import ResourceManager
-from models import LiteLLMParamsBody
+from models import GatewayParamsBody
 
 pytestmark = pytest.mark.e2e
 
@@ -34,7 +34,7 @@ def _managed_deployment(client: EndpointsClient, resources: ResourceManager) -> 
     model = f"e2e-google-native-{unique_marker()}"
     model_id = client.create_model(
         model,
-        LiteLLMParamsBody(model=UPSTREAM_MODEL, api_key="os.environ/GEMINI_API_KEY"),
+        GatewayParamsBody(model=UPSTREAM_MODEL, api_key="os.environ/GEMINI_API_KEY"),
     )
     resources.defer(lambda: client.delete_model(model_id))
     return model

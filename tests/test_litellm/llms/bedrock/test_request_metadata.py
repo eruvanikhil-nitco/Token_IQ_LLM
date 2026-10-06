@@ -37,16 +37,16 @@ def litellm_params(metadata_key, **metadata):
     return {metadata_key: dict(metadata)}
 
 
-def converse_body(litellm_params_value, optional_params=None):
+def converse_body(gateway_params_value, optional_params=None):
     return AmazonConverseConfig()._transform_request(
         model=MODEL,
         messages=MESSAGES,
         optional_params=dict(optional_params or {}),
-        litellm_params=dict(litellm_params_value),
+        litellm_params=dict(gateway_params_value),
     )
 
 
-def converse_body_async(litellm_params_value, optional_params=None):
+def converse_body_async(gateway_params_value, optional_params=None):
     """The proxy serves completions through the async transform, so every rule asserted against
     the sync body has to be asserted against this one too or half the product is untested."""
     return asyncio.run(
@@ -54,7 +54,7 @@ def converse_body_async(litellm_params_value, optional_params=None):
             model=MODEL,
             messages=MESSAGES,
             optional_params=dict(optional_params or {}),
-            litellm_params=dict(litellm_params_value),
+            litellm_params=dict(gateway_params_value),
         )
     )
 

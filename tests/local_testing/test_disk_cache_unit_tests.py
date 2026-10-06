@@ -1,10 +1,10 @@
 from cache_unit_tests import LLMCachingUnitTests
-from token_iq.gateway.caching import LiteLLMCacheType
+from token_iq.gateway.caching import GatewayCacheType
 
 
 class TestDiskCacheUnitTests(LLMCachingUnitTests):
-    def get_cache_type(self) -> LiteLLMCacheType:
-        return LiteLLMCacheType.DISK
+    def get_cache_type(self) -> GatewayCacheType:
+        return GatewayCacheType.DISK
 
 
 # if __name__ == "__main__":

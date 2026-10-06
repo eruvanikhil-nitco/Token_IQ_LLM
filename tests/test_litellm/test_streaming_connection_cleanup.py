@@ -13,7 +13,7 @@ import pytest
 from token_iq.gateway.core_utils.streaming_handler import CustomStreamWrapper
 from token_iq.gateway.llms.custom_httpx.aiohttp_transport import (
     AiohttpResponseStream,
-    LiteLLMAiohttpTransport,
+    GatewayAiohttpTransport,
 )
 
 
@@ -54,7 +54,7 @@ async def test_aiohttp_transport_response_uses_stream_not_content():
 
             return Resp()
 
-    transport = LiteLLMAiohttpTransport(client=lambda: FakeSession())  # type: ignore
+    transport = GatewayAiohttpTransport(client=lambda: FakeSession())  # type: ignore
     response = await transport.handle_async_request(
         httpx.Request("GET", "http://example.com")
     )

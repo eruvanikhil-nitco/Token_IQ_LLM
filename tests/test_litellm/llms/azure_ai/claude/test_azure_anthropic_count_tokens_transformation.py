@@ -53,7 +53,7 @@ class TestAzureAIAnthropicCountTokensConfig:
         assert headers["x-api-key"] == api_key
         assert headers["api-key"] == api_key
 
-    def test_get_required_headers_with_litellm_params(self):
+    def test_get_required_headers_with_gateway_params(self):
         """
         Test that get_required_headers works with litellm_params.
         """

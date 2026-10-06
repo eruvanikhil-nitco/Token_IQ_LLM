@@ -23,18 +23,18 @@ from token_iq.gateway.types.interactions import (
     InteractionsAPIResponse,
     InteractionsAPIStreamingResponse,
 )
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.types.utils import LlmProviders
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as _LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as _GatewayLoggingObj
 
     from ..chat.transformation import BaseLLMException as _BaseLLMException
 
-    LiteLLMLoggingObj = _LiteLLMLoggingObj
+    GatewayLoggingObj = _GatewayLoggingObj
     BaseLLMException = _BaseLLMException
 else:
-    LiteLLMLoggingObj = Any
+    GatewayLoggingObj = Any
     BaseLLMException = Any
 
 
@@ -84,7 +84,7 @@ class BaseInteractionsAPIConfig(ABC):
         """
 
     @abstractmethod
-    def validate_environment(self, headers: dict, model: str, litellm_params: GenericLiteLLMParams | None) -> dict:
+    def validate_environment(self, headers: dict, model: str, litellm_params: GenericGatewayParams | None) -> dict:
         """
         Validate and prepare environment settings including headers.
         """
@@ -125,7 +125,7 @@ class BaseInteractionsAPIConfig(ABC):
         agent: str | None,
         input: InteractionInput | None,
         optional_params: InteractionsAPIOptionalRequestParams,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> dict:
         """
@@ -152,7 +152,7 @@ class BaseInteractionsAPIConfig(ABC):
         self,
         model: str | None,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> InteractionsAPIResponse:
         """
         Transform the raw HTTP response into an InteractionsAPIResponse.
@@ -165,7 +165,7 @@ class BaseInteractionsAPIConfig(ABC):
         self,
         model: str | None,
         parsed_chunk: dict,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> InteractionsAPIStreamingResponse:
         """
         Transform a parsed streaming response chunk into an InteractionsAPIStreamingResponse.
@@ -182,7 +182,7 @@ class BaseInteractionsAPIConfig(ABC):
         self,
         interaction_id: str,
         api_base: str,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> tuple[str, dict]:
         """
@@ -198,7 +198,7 @@ class BaseInteractionsAPIConfig(ABC):
     def transform_get_interaction_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> InteractionsAPIResponse:
         """
         Transform the get interaction response.
@@ -213,7 +213,7 @@ class BaseInteractionsAPIConfig(ABC):
         self,
         interaction_id: str,
         api_base: str,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> tuple[str, dict]:
         """
@@ -229,7 +229,7 @@ class BaseInteractionsAPIConfig(ABC):
     def transform_delete_interaction_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         interaction_id: str,
     ) -> DeleteInteractionResult:
         """
@@ -245,7 +245,7 @@ class BaseInteractionsAPIConfig(ABC):
         self,
         interaction_id: str,
         api_base: str,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> tuple[str, dict]:
         """
@@ -259,7 +259,7 @@ class BaseInteractionsAPIConfig(ABC):
     def transform_cancel_interaction_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> CancelInteractionResult:
         """
         Transform the cancel interaction response.

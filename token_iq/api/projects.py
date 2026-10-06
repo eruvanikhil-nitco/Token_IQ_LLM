@@ -25,7 +25,7 @@ from token_iq.gateway.models.project import LiteLLM_ProjectTable
 from token_iq.gateway.proxy._types import (
     CommonProxyErrors,
     LiteLLM_TeamTable,
-    LitellmUserRoles,
+    GatewayUserRoles,
     NewProjectRequest,
     UpdateProjectRequest,
     UserAPIKeyAuth,
@@ -36,7 +36,7 @@ from token_iq.gateway.proxy.management_endpoints.common_daily_activity import ge
 from token_iq.gateway.proxy.management_endpoints.common_utils import _is_user_team_admin
 from token_iq.gateway.repositories.project_repository import ProjectRepository
 from token_iq.gateway.repositories.team_repository import TeamRepository
-from token_iq.gateway.types.llms.base import LiteLLMPydanticObjectBase
+from token_iq.gateway.types.llms.base import GatewayPydanticObjectBase
 from token_iq.gateway.types.proxy.management_endpoints.common_daily_activity import (
     SpendAnalyticsPaginatedResponse,
 )
@@ -86,7 +86,7 @@ async def _authorised_team_or_403(
     permissions problem from whoever has to debug it.
     """
     team: Final = await _team_or_404(team_id, prisma_client)
-    if user_api_key_dict.user_role == LitellmUserRoles.PROXY_ADMIN:
+    if user_api_key_dict.user_role == GatewayUserRoles.PROXY_ADMIN:
         return team
     if not write and user_api_key_has_admin_view(user_api_key_dict):
         return team
@@ -168,7 +168,7 @@ async def project_a_key_may_join_or_403(
 
 def _refuse_budget_unless_proxy_admin(budget_id: str | None, user_api_key_dict: UserAPIKeyAuth) -> None:
     """Budgets are created on the admin-only Budgets page, so only a proxy admin picks one for a project."""
-    if budget_id is None or user_api_key_dict.user_role == LitellmUserRoles.PROXY_ADMIN:
+    if budget_id is None or user_api_key_dict.user_role == GatewayUserRoles.PROXY_ADMIN:
         return
     detail: Final[_ErrorDetail] = {"error": "Only a proxy admin can attach a budget to a project."}
     raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail=detail)
@@ -228,7 +228,7 @@ async def project_list(
     return await ProjectRepository(prisma_client).find_by_team_id(team_id)
 
 
-class ProjectDeleteRequest(LiteLLMPydanticObjectBase):
+class ProjectDeleteRequest(GatewayPydanticObjectBase):
     """Request model for POST /project/delete"""
 
     project_ids: list[str]

@@ -624,7 +624,7 @@ class TestAgentCoreMultimodalContent:
         payload = config.transform_request(messages=messages, **kwargs)
         assert "content" not in payload
 
-    def test_forward_flag_via_litellm_params(self, config, transform_kwargs):
+    def test_forward_flag_via_gateway_params(self, config, transform_kwargs):
         """The opt-in flag is also honored when set in litellm_params."""
         content = [
             {"type": "text", "text": "hi"},

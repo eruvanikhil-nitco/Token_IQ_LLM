@@ -725,7 +725,7 @@ async def test_auth_failure_keeps_existing_requester_ip_address():
 
 
 @pytest.mark.asyncio
-async def test_auth_failure_ip_uses_litellm_metadata_when_present():
+async def test_auth_failure_ip_uses_gateway_metadata_when_present():
     """Routes that keep proxy metadata under `litellm_metadata` (e.g. /responses) must
     get the IP there, since that is the dict the logging layer reads for them."""
     with (

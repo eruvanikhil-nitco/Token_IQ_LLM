@@ -24,7 +24,7 @@ from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.constants import STREAM_SSE_KEEPALIVE_PING_BYTES
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 
 HOLD_BACK_PING_INTERVAL_SECONDS: Final = 15.0
 SERVER_FULFILLED_TOOL_LEAK_ERROR_SSE_BYTES: Final = (
@@ -184,7 +184,7 @@ class AgenticAnthropicStreamingIterator:
         messages: list[dict],
         anthropic_messages_provider_config: Any,
         anthropic_messages_optional_request_params: dict,
-        logging_obj: "LiteLLMLoggingObj",
+        logging_obj: "GatewayLoggingObj",
         custom_llm_provider: str,
         kwargs: dict,
         hold_back: bool = False,

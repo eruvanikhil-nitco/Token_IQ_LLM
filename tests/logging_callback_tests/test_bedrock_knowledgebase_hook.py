@@ -378,14 +378,14 @@ async def test_bedrock_kb_request_body_has_transformed_filters(
         client=None,
         _is_async=False,
     ):
-        litellm_params_dict = (
+        gateway_params_dict = (
             litellm_params.model_dump(exclude_none=False)
             if hasattr(litellm_params, "model_dump")
             else dict(litellm_params)
         )
         api_base = vector_store_provider_config.get_complete_url(
-            api_base=litellm_params_dict.get("api_base"),
-            litellm_params=litellm_params_dict,
+            api_base=gateway_params_dict.get("api_base"),
+            litellm_params=gateway_params_dict,
         )
 
         url, request_body = (
@@ -395,7 +395,7 @@ async def test_bedrock_kb_request_body_has_transformed_filters(
                 vector_store_search_optional_params=vector_store_search_optional_params,
                 api_base=api_base,
                 litellm_logging_obj=logging_obj,
-                litellm_params=litellm_params_dict,
+                litellm_params=gateway_params_dict,
                 extra_body=None,
             )
         )

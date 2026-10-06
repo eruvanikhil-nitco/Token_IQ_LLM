@@ -5,7 +5,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 
-from token_iq.gateway.proxy._types import DefaultInternalUserParams, LitellmUserRoles
+from token_iq.gateway.proxy._types import DefaultInternalUserParams, GatewayUserRoles
 from token_iq.gateway.proxy.proxy_server import app
 from token_iq.gateway.types.proxy.management_endpoints.ui_sso import (
     DefaultTeamSSOParams,
@@ -21,7 +21,7 @@ def mock_proxy_config(monkeypatch):
     mock_config = {
         "litellm_settings": {
             "default_internal_user_params": {
-                "user_role": LitellmUserRoles.INTERNAL_USER,
+                "user_role": GatewayUserRoles.INTERNAL_USER,
                 "max_budget": 100.0,
                 "budget_duration": "30d",
                 "models": ["gpt-3.5-turbo", "gpt-4"],
@@ -143,7 +143,7 @@ class TestProxySettingEndpoints:
         assert response.status_code == 200
 
         values = response.json()["values"]
-        assert values["user_role"] == LitellmUserRoles.INTERNAL_USER_VIEW_ONLY, (
+        assert values["user_role"] == GatewayUserRoles.INTERNAL_USER_VIEW_ONLY, (
             f"Fresh DB should default to INTERNAL_USER_VIEW_ONLY, got {values['user_role']}. "
             "The Pydantic default must match the runtime fallback."
         )
@@ -161,7 +161,7 @@ class TestProxySettingEndpoints:
 
         # New settings to update
         new_settings = {
-            "user_role": LitellmUserRoles.PROXY_ADMIN,
+            "user_role": GatewayUserRoles.PROXY_ADMIN,
             "max_budget": 200.0,
             "budget_duration": "7d",
             "models": ["gpt-4", "claude-3"],
@@ -1394,8 +1394,8 @@ class TestProxySettingEndpoints:
     @pytest.mark.parametrize(
         "user_role",
         [
-            LitellmUserRoles.INTERNAL_USER,
-            LitellmUserRoles.INTERNAL_USER_VIEW_ONLY,
+            GatewayUserRoles.INTERNAL_USER,
+            GatewayUserRoles.INTERNAL_USER_VIEW_ONLY,
         ],
     )
     def test_get_ui_settings_allows_internal_roles(self, monkeypatch, user_role):
@@ -1449,7 +1449,7 @@ class TestProxySettingEndpoints:
         # Override the FastAPI dependency with a proper mock
         mock_user_auth = UserAPIKeyAuth(
             user_id="test-user-123",
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
         )
         app.dependency_overrides[user_api_key_auth] = lambda: mock_user_auth
 
@@ -1491,7 +1491,7 @@ class TestProxySettingEndpoints:
         # Override the FastAPI dependency with a proper mock
         mock_user_auth = UserAPIKeyAuth(
             user_id="test-user-123",
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
         )
         app.dependency_overrides[user_api_key_auth] = lambda: mock_user_auth
 
@@ -1535,7 +1535,7 @@ class TestProxySettingEndpoints:
 
         mock_user_auth = UserAPIKeyAuth(
             user_id="test-user-123",
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
         )
         app.dependency_overrides[user_api_key_auth] = lambda: mock_user_auth
 
@@ -1572,7 +1572,7 @@ class TestProxySettingEndpoints:
 
         mock_user_auth = UserAPIKeyAuth(
             user_id="test-user-123",
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
         )
         app.dependency_overrides[user_api_key_auth] = lambda: mock_user_auth
 
@@ -1611,7 +1611,7 @@ class TestProxySettingEndpoints:
 
         mock_user_auth = UserAPIKeyAuth(
             user_id="test-user-123",
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
         )
         app.dependency_overrides[user_api_key_auth] = lambda: mock_user_auth
 
@@ -1649,7 +1649,7 @@ class TestProxySettingEndpoints:
 
         mock_user_auth = UserAPIKeyAuth(
             user_id="test-user-123",
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
         )
         app.dependency_overrides[user_api_key_auth] = lambda: mock_user_auth
 
@@ -1686,7 +1686,7 @@ class TestProxySettingEndpoints:
 
         mock_user_auth = UserAPIKeyAuth(
             user_id="test-user-123",
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
         )
         app.dependency_overrides[user_api_key_auth] = lambda: mock_user_auth
 
@@ -2039,7 +2039,7 @@ class TestProxySettingEndpoints:
         """Test getting SSO settings when role_mappings is present in database"""
         from unittest.mock import AsyncMock, MagicMock
 
-        from token_iq.gateway.proxy._types import LitellmUserRoles
+        from token_iq.gateway.proxy._types import GatewayUserRoles
 
         # Mock the prisma client with database record containing role_mappings
         mock_prisma = MagicMock()
@@ -2049,9 +2049,9 @@ class TestProxySettingEndpoints:
             "role_mappings": {
                 "provider": "google",
                 "group_claim": "groups",
-                "default_role": LitellmUserRoles.INTERNAL_USER,
+                "default_role": GatewayUserRoles.INTERNAL_USER,
                 "roles": {
-                    LitellmUserRoles.PROXY_ADMIN: ["admin-group"],
+                    GatewayUserRoles.PROXY_ADMIN: ["admin-group"],
                 },
             },
         }
@@ -2083,8 +2083,8 @@ class TestProxySettingEndpoints:
         assert values["role_mappings"] is not None
         assert values["role_mappings"]["provider"] == "google"
         assert values["role_mappings"]["group_claim"] == "groups"
-        assert values["role_mappings"]["default_role"] == LitellmUserRoles.INTERNAL_USER
-        assert values["role_mappings"]["roles"][LitellmUserRoles.PROXY_ADMIN] == [
+        assert values["role_mappings"]["default_role"] == GatewayUserRoles.INTERNAL_USER
+        assert values["role_mappings"]["roles"][GatewayUserRoles.PROXY_ADMIN] == [
             "admin-group"
         ]
 
@@ -2095,7 +2095,7 @@ class TestProxySettingEndpoints:
         import json
         from unittest.mock import AsyncMock, MagicMock
 
-        from token_iq.gateway.proxy._types import LitellmUserRoles
+        from token_iq.gateway.proxy._types import GatewayUserRoles
 
         monkeypatch.setenv("LITELLM_SALT_KEY", "test_salt_key")
         monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", True)
@@ -2122,10 +2122,10 @@ class TestProxySettingEndpoints:
         role_mappings_data = {
             "provider": "google",
             "group_claim": "groups",
-            "default_role": LitellmUserRoles.INTERNAL_USER,
+            "default_role": GatewayUserRoles.INTERNAL_USER,
             "roles": {
-                LitellmUserRoles.PROXY_ADMIN: ["admin-group"],
-                LitellmUserRoles.INTERNAL_USER: ["user-group"],
+                GatewayUserRoles.PROXY_ADMIN: ["admin-group"],
+                GatewayUserRoles.INTERNAL_USER: ["user-group"],
             },
         }
 
@@ -2145,8 +2145,8 @@ class TestProxySettingEndpoints:
         returned_role_mappings = data["settings"]["role_mappings"]
         assert returned_role_mappings["provider"] == "google"
         assert returned_role_mappings["group_claim"] == "groups"
-        assert returned_role_mappings["default_role"] == LitellmUserRoles.INTERNAL_USER
-        assert returned_role_mappings["roles"][LitellmUserRoles.PROXY_ADMIN] == [
+        assert returned_role_mappings["default_role"] == GatewayUserRoles.INTERNAL_USER
+        assert returned_role_mappings["roles"][GatewayUserRoles.PROXY_ADMIN] == [
             "admin-group"
         ]
 
@@ -2180,14 +2180,14 @@ class TestProxySettingEndpoints:
         assert retrieved_role_mappings is not None
         assert retrieved_role_mappings["provider"] == "google"
         assert retrieved_role_mappings["group_claim"] == "groups"
-        assert retrieved_role_mappings["default_role"] == LitellmUserRoles.INTERNAL_USER
+        assert retrieved_role_mappings["default_role"] == GatewayUserRoles.INTERNAL_USER
 
     def test_setup_role_mappings_custom_logic_with_env_vars(self, monkeypatch):
         """Test the _setup_role_mappings function directly with custom role mapping logic from environment variables"""
         import asyncio
         import os
 
-        from token_iq.gateway.proxy._types import LitellmUserRoles
+        from token_iq.gateway.proxy._types import GatewayUserRoles
         from token_iq.gateway.proxy.management_endpoints.ui_sso import _setup_role_mappings
 
         # Set up environment variables for custom role mappings using valid Python dict format
@@ -2219,14 +2219,14 @@ class TestProxySettingEndpoints:
         assert role_mappings is not None
         assert role_mappings.provider == "generic"
         assert role_mappings.group_claim == "custom-groups"
-        assert role_mappings.default_role == LitellmUserRoles.INTERNAL_USER_VIEW_ONLY
-        assert role_mappings.roles[LitellmUserRoles.PROXY_ADMIN] == [
+        assert role_mappings.default_role == GatewayUserRoles.INTERNAL_USER_VIEW_ONLY
+        assert role_mappings.roles[GatewayUserRoles.PROXY_ADMIN] == [
             "custom-admin-group"
         ]
-        assert role_mappings.roles[LitellmUserRoles.INTERNAL_USER] == [
+        assert role_mappings.roles[GatewayUserRoles.INTERNAL_USER] == [
             "custom-user-group"
         ]
-        assert role_mappings.roles[LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY] == [
+        assert role_mappings.roles[GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY] == [
             "custom-viewer-group"
         ]
 
@@ -2257,7 +2257,7 @@ class TestProxySettingEndpoints:
         import json
         from unittest.mock import AsyncMock, MagicMock
 
-        from token_iq.gateway.proxy._types import LitellmUserRoles
+        from token_iq.gateway.proxy._types import GatewayUserRoles
 
         monkeypatch.setenv(
             "GENERIC_ROLE_MAPPINGS_ROLES",
@@ -2304,8 +2304,8 @@ class TestProxySettingEndpoints:
         # The database values shoeld override the environment variables
         assert values["role_mappings"]["provider"] == "google"
         assert values["role_mappings"]["group_claim"] == "db-groups"
-        assert values["role_mappings"]["default_role"] == LitellmUserRoles.PROXY_ADMIN
-        assert values["role_mappings"]["roles"][LitellmUserRoles.PROXY_ADMIN] == [
+        assert values["role_mappings"]["default_role"] == GatewayUserRoles.PROXY_ADMIN
+        assert values["role_mappings"]["roles"][GatewayUserRoles.PROXY_ADMIN] == [
             "db-admin-group"
         ]
 
@@ -2349,7 +2349,7 @@ def test_update_internal_user_settings_writes_audit_log(mock_proxy_config, monke
         return UserAPIKeyAuth(
             user_id="audit-admin",
             api_key="hashed-admin-key",
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
         )
 
     app.dependency_overrides[user_api_key_auth] = _admin_auth
@@ -2400,7 +2400,7 @@ def test_update_internal_user_settings_returns_200_when_audit_write_raises(
         return UserAPIKeyAuth(
             user_id="audit-admin",
             api_key="hashed-admin-key",
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
         )
 
     app.dependency_overrides[user_api_key_auth] = _admin_auth
@@ -2446,7 +2446,7 @@ def test_update_sso_settings_writes_redacted_audit_log(mock_proxy_config, monkey
         return UserAPIKeyAuth(
             user_id="audit-admin",
             api_key="hashed-admin-key",
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
         )
 
     app.dependency_overrides[user_api_key_auth] = _admin_auth
@@ -2525,7 +2525,7 @@ def test_update_sso_settings_audit_captures_redacted_before_snapshot(
         return UserAPIKeyAuth(
             user_id="audit-admin",
             api_key="hashed-admin-key",
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
         )
 
     app.dependency_overrides[user_api_key_auth] = _admin_auth
@@ -2582,7 +2582,7 @@ def test_add_allowed_ip_writes_audit_log(mock_proxy_config, monkeypatch):
         return UserAPIKeyAuth(
             user_id="audit-admin",
             api_key="hashed-admin-key",
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
         )
 
     app.dependency_overrides[user_api_key_auth] = _admin_auth
@@ -2642,7 +2642,7 @@ def test_delete_allowed_ip_writes_deleted_audit_log(monkeypatch):
         return UserAPIKeyAuth(
             user_id="audit-admin",
             api_key="hashed-admin-key",
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
         )
 
     app.dependency_overrides[user_api_key_auth] = _admin_auth
@@ -2689,7 +2689,7 @@ def test_update_ui_theme_settings_writes_audit_log(mock_proxy_config, monkeypatc
         return UserAPIKeyAuth(
             user_id="audit-admin",
             api_key="hashed-admin-key",
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
         )
 
     app.dependency_overrides[user_api_key_auth] = _admin_auth
@@ -2735,7 +2735,7 @@ def test_update_ui_settings_writes_audit_log(monkeypatch):
         return UserAPIKeyAuth(
             user_id="audit-admin",
             api_key="hashed-admin-key",
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
         )
 
     app.dependency_overrides[user_api_key_auth] = _admin_auth
@@ -2991,7 +2991,7 @@ def test_update_mcp_semantic_filter_settings_requires_proxy_admin(monkeypatch):
         return UserAPIKeyAuth(
             user_id="internal-user-1",
             api_key="hashed-internal-key",
-            user_role=LitellmUserRoles.INTERNAL_USER,
+            user_role=GatewayUserRoles.INTERNAL_USER,
         )
 
     app.dependency_overrides[user_api_key_auth] = _internal_user_auth
@@ -3010,7 +3010,7 @@ class TestMcpToolSearchSettingsEndpoints:
     """`litellm_settings.mcp_tool_search` drives the native `mcp_tool_search` virtual tool, so the UI must round-trip it."""
 
     @staticmethod
-    def _override_auth(role: LitellmUserRoles):
+    def _override_auth(role: GatewayUserRoles):
         from token_iq.gateway.proxy._types import UserAPIKeyAuth
         from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 
@@ -3038,7 +3038,7 @@ class TestMcpToolSearchSettingsEndpoints:
 
     def test_update_requires_proxy_admin(self, monkeypatch):
         monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", True)
-        self._override_auth(LitellmUserRoles.INTERNAL_USER)
+        self._override_auth(GatewayUserRoles.INTERNAL_USER)
         try:
             resp = client.patch("/update/mcp_tool_search_settings", json={"top_k": 3})
         finally:
@@ -3050,7 +3050,7 @@ class TestMcpToolSearchSettingsEndpoints:
 
         monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", True)
         monkeypatch.setattr(gateway, "mcp_tool_search", None)
-        self._override_auth(LitellmUserRoles.PROXY_ADMIN)
+        self._override_auth(GatewayUserRoles.PROXY_ADMIN)
         payload = {
             "embedding_model": "text-embedding-3-small",
             "top_k": 3,
@@ -3069,7 +3069,7 @@ class TestMcpToolSearchSettingsEndpoints:
 
     def test_update_rejects_out_of_range_top_k(self, mock_proxy_config, monkeypatch):
         monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", True)
-        self._override_auth(LitellmUserRoles.PROXY_ADMIN)
+        self._override_auth(GatewayUserRoles.PROXY_ADMIN)
         try:
             resp = client.patch("/update/mcp_tool_search_settings", json={"top_k": 0})
         finally:
@@ -3087,7 +3087,7 @@ def test_upload_logo_requires_proxy_admin(monkeypatch):
         return UserAPIKeyAuth(
             user_id="internal-user-1",
             api_key="hashed-internal-key",
-            user_role=LitellmUserRoles.INTERNAL_USER,
+            user_role=GatewayUserRoles.INTERNAL_USER,
         )
 
     app.dependency_overrides[user_api_key_auth] = _internal_user_auth
@@ -3110,7 +3110,7 @@ def test_upload_logo_allows_proxy_admin(monkeypatch, tmp_path):
         return UserAPIKeyAuth(
             user_id="admin-1",
             api_key="hashed-admin-key",
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
         )
 
     app.dependency_overrides[user_api_key_auth] = _admin_auth
@@ -3200,7 +3200,7 @@ class TestPtuCostAttributionUISetting:
 
         app.dependency_overrides[user_api_key_auth] = lambda: UserAPIKeyAuth(
             user_id="test-user-123",
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
         )
         monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", True)
         monkeypatch.delenv(PTU_COST_ATTRIBUTION_ENV_VAR, raising=False)
@@ -3224,7 +3224,7 @@ class TestPtuCostAttributionUISetting:
 
         app.dependency_overrides[user_api_key_auth] = lambda: UserAPIKeyAuth(
             user_id="test-user-123",
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
         )
         monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", True)
         monkeypatch.delenv(PTU_COST_ATTRIBUTION_ENV_VAR, raising=False)
@@ -3250,7 +3250,7 @@ class TestPtuCostAttributionUISetting:
 
         app.dependency_overrides[user_api_key_auth] = lambda: UserAPIKeyAuth(
             user_id="test-user-123",
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
         )
         monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", True)
         mock_prisma = self._mock_prisma(monkeypatch)
@@ -3303,7 +3303,7 @@ def test_an_admin_can_turn_projects_off_without_a_paid_feature_refusal(monkeypat
         return UserAPIKeyAuth(
             user_id="settings-admin",
             api_key="hashed-admin-key",
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
         )
 
     app.dependency_overrides[user_api_key_auth] = _admin_auth

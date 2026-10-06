@@ -85,7 +85,7 @@ class TestUnmappedModelBudgetEnforcement:
         result = _is_model_cost_zero(model="paid-model", llm_router=router)
         assert result is False, "Known paid model should enforce budget (return False)"
 
-    def test_unmapped_model_with_litellm_params_pricing(self):
+    def test_unmapped_model_with_gateway_params_pricing(self):
         """A model with cost=0 in litellm_params (not model_info) should bypass budget."""
         router = Router(
             model_list=[

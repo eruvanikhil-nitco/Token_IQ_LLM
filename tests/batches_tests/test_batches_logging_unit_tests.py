@@ -175,11 +175,11 @@ async def test_batch_retrieve_cost_tracking_with_completed_batch_no_explicit_cos
     """
     from token_iq.gateway.core_utils.litellm_logging import Logging
     from token_iq.gateway.types.utils import CallTypes
-    from token_iq.gateway.types.utils import LiteLLMBatch
+    from token_iq.gateway.types.utils import GatewayBatch
     from unittest.mock import AsyncMock, patch
 
     # Mock batch result with completed status
-    mock_batch = LiteLLMBatch(
+    mock_batch = GatewayBatch(
         id="batch-test-123",
         object="batch",
         endpoint="/v1/chat/completions",
@@ -271,9 +271,9 @@ async def test_handle_completed_batch_computes_real_cost_from_output_file(
     wrong token sum, or mispriced model fails this test.
     """
     from token_iq.gateway.batches.batch_utils import _handle_completed_batch
-    from token_iq.gateway.types.utils import LiteLLMBatch
+    from token_iq.gateway.types.utils import GatewayBatch
 
-    batch = LiteLLMBatch(
+    batch = GatewayBatch(
         id="batch-real-cost-123",
         object="batch",
         endpoint="/v1/chat/completions",
@@ -325,11 +325,11 @@ async def test_batch_retrieve_cost_tracking_with_explicit_cost_data():
     """
     from token_iq.gateway.core_utils.litellm_logging import Logging
     from token_iq.gateway.types.utils import CallTypes
-    from token_iq.gateway.types.utils import LiteLLMBatch
+    from token_iq.gateway.types.utils import GatewayBatch
     from unittest.mock import AsyncMock, patch
 
     # Mock batch result with completed status
-    mock_batch = LiteLLMBatch(
+    mock_batch = GatewayBatch(
         id="batch-test-456",
         object="batch",
         endpoint="/v1/chat/completions",
@@ -413,7 +413,7 @@ async def test_batch_retrieve_cost_tracking_with_unified_file_id_incomplete_batc
     import base64
     from token_iq.gateway.core_utils.litellm_logging import Logging
     from token_iq.gateway.types.utils import CallTypes, SpecialEnums
-    from token_iq.gateway.types.utils import LiteLLMBatch
+    from token_iq.gateway.types.utils import GatewayBatch
     from unittest.mock import AsyncMock, patch
 
     # Create a proper unified file ID by encoding the correct prefix
@@ -423,7 +423,7 @@ async def test_batch_retrieve_cost_tracking_with_unified_file_id_incomplete_batc
     )
 
     # Mock batch result with in_progress status and unified file ID
-    mock_batch = LiteLLMBatch(
+    mock_batch = GatewayBatch(
         id=encoded_unified_id,  # Properly encoded unified ID
         object="batch",
         endpoint="/v1/chat/completions",
@@ -494,11 +494,11 @@ async def test_batch_retrieve_cost_tracking_with_partial_explicit_data():
     """
     from token_iq.gateway.core_utils.litellm_logging import Logging
     from token_iq.gateway.types.utils import CallTypes
-    from token_iq.gateway.types.utils import LiteLLMBatch
+    from token_iq.gateway.types.utils import GatewayBatch
     from unittest.mock import AsyncMock, patch
 
     # Mock batch result with completed status
-    mock_batch = LiteLLMBatch(
+    mock_batch = GatewayBatch(
         id="batch-test-partial",
         object="batch",
         endpoint="/v1/chat/completions",

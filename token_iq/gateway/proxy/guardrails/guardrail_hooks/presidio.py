@@ -30,7 +30,7 @@ from token_iq.gateway.constants import (
 from token_iq.gateway.types.utils import GenericGuardrailAPIInputs
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 
 from token_iq.gateway.caching.caching import DualCache
 from token_iq.gateway.exceptions import BlockedPiiEntityError, GuardrailRaisedException
@@ -1598,7 +1598,7 @@ class _OPTIONAL_PresidioPIIMasking(CustomGuardrail):
         inputs: "GenericGuardrailAPIInputs",
         request_data: dict,
         input_type: Literal["request", "response"],
-        logging_obj: Optional["LiteLLMLoggingObj"] = None,
+        logging_obj: Optional["GatewayLoggingObj"] = None,
     ) -> "GenericGuardrailAPIInputs":
         """
         UI will call this function to check:
@@ -1628,11 +1628,11 @@ class _OPTIONAL_PresidioPIIMasking(CustomGuardrail):
         inputs["texts"] = new_texts
         return inputs
 
-    def update_in_memory_litellm_params(self, litellm_params: LitellmParams) -> None:
+    def update_in_memory_gateway_params(self, litellm_params: LitellmParams) -> None:
         """
         Update the guardrails litellm params in memory
         """
-        super().update_in_memory_litellm_params(litellm_params)
+        super().update_in_memory_gateway_params(litellm_params)
         if self.apply_to_output:
             self.output_parse_pii = False
         if litellm_params.pii_entities_config:

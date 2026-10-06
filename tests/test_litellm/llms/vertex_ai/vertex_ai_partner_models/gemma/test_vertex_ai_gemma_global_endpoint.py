@@ -49,7 +49,7 @@ _GEMMA_MODEL_COST_ENTRY = {
 
 
 @pytest.fixture(autouse=True)
-def _reset_litellm_http_client_cache():
+def _reset_gateway_http_client_cache():
     """Ensure each test gets a fresh async HTTP client mock."""
     from token_iq.gateway import in_memory_llm_clients_cache
 

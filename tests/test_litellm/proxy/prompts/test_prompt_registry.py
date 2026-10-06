@@ -104,7 +104,7 @@ def _versioned_prompt_spec(version: int, environment: str) -> PromptSpec:
     )
 
 
-def test_delete_prompts_by_base_id_removes_the_callbacks_from_litellm_callbacks(isolated_callbacks: list) -> None:
+def test_delete_prompts_by_base_id_removes_the_callbacks_from_gateway_callbacks(isolated_callbacks: list) -> None:
     registry = InMemoryPromptRegistry()
     registry.initialize_prompt(prompt=_versioned_prompt_spec(1, "development"))
     registry.initialize_prompt(prompt=_versioned_prompt_spec(2, "development"))

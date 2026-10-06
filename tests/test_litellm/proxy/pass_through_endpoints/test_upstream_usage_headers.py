@@ -3,7 +3,7 @@ import httpx
 import pytest
 
 
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.proxy.pass_through_endpoints.upstream_usage_headers import (
     UpstreamReportedUsage,
     apply_upstream_reported_usage,
@@ -71,8 +71,8 @@ def test_parse_reports_missing_counterpart_header():
     )
 
 
-def _logging_obj() -> LiteLLMLoggingObj:
-    logging_obj = LiteLLMLoggingObj(
+def _logging_obj() -> GatewayLoggingObj:
+    logging_obj = GatewayLoggingObj(
         model="unknown",
         messages=[{"role": "user", "content": "x"}],
         stream=False,
@@ -102,7 +102,7 @@ def test_apply_records_reported_totals():
     assert logging_obj.model_call_details["combined_usage_object"] == Usage(total_tokens=1874)
 
 
-def test_apply_leaves_litellm_derived_values_alone_when_upstream_is_silent():
+def test_apply_leaves_gateway_derived_values_alone_when_upstream_is_silent():
     logging_obj = _logging_obj()
     logging_obj.model_call_details["response_cost"] = 9.99
     logging_obj.model_call_details["combined_usage_object"] = Usage(total_tokens=42)

@@ -5,7 +5,7 @@ import httpx
 from openai import AsyncAzureOpenAI, AsyncOpenAI, AzureOpenAI, OpenAI
 
 from token_iq.gateway._logging import verbose_logger
-from token_iq.gateway.types.utils import LiteLLMFineTuningJob
+from token_iq.gateway.types.utils import GatewayFineTuningJob
 
 _AZURE_STATUS_MAP: Final = {
     "pending": "queued",
@@ -47,8 +47,8 @@ def _normalize_fine_tuning_job_dict(data: dict[str, Any], is_azure: bool = False
     return normalized
 
 
-def _litellm_fine_tuning_job_from_response(response: Any, is_azure: bool = False) -> LiteLLMFineTuningJob:
-    return LiteLLMFineTuningJob(**_normalize_fine_tuning_job_dict(response.model_dump(), is_azure=is_azure))
+def _gateway_fine_tuning_job_from_response(response: Any, is_azure: bool = False) -> GatewayFineTuningJob:
+    return GatewayFineTuningJob(**_normalize_fine_tuning_job_dict(response.model_dump(), is_azure=is_azure))
 
 
 class OpenAIFineTuningAPI:
@@ -95,10 +95,10 @@ class OpenAIFineTuningAPI:
         self,
         create_fine_tuning_job_data: dict,
         openai_client: AsyncOpenAI | AsyncAzureOpenAI,
-    ) -> LiteLLMFineTuningJob:
+    ) -> GatewayFineTuningJob:
         response: Final = await openai_client.fine_tuning.jobs.create(**create_fine_tuning_job_data)
 
-        return _litellm_fine_tuning_job_from_response(response)
+        return _gateway_fine_tuning_job_from_response(response)
 
     def create_fine_tuning_job(
         self,
@@ -111,7 +111,7 @@ class OpenAIFineTuningAPI:
         max_retries: int | None,
         organization: str | None,
         client: OpenAI | AsyncOpenAI | AzureOpenAI | AsyncAzureOpenAI | None = None,
-    ) -> LiteLLMFineTuningJob | Coroutine[Any, Any, LiteLLMFineTuningJob]:
+    ) -> GatewayFineTuningJob | Coroutine[Any, Any, GatewayFineTuningJob]:
         openai_client: Final[OpenAI | AsyncOpenAI | AzureOpenAI | AsyncAzureOpenAI | None] = self.get_openai_client(
             api_key=api_key,
             api_base=api_base,
@@ -138,15 +138,15 @@ class OpenAIFineTuningAPI:
             )
         verbose_logger.debug("creating fine tuning job, args= %s", create_fine_tuning_job_data)
         response: Final = cast(OpenAI, openai_client).fine_tuning.jobs.create(**create_fine_tuning_job_data)
-        return _litellm_fine_tuning_job_from_response(response)
+        return _gateway_fine_tuning_job_from_response(response)
 
     async def acancel_fine_tuning_job(
         self,
         fine_tuning_job_id: str,
         openai_client: AsyncOpenAI | AsyncAzureOpenAI,
-    ) -> LiteLLMFineTuningJob:
+    ) -> GatewayFineTuningJob:
         response: Final = await openai_client.fine_tuning.jobs.cancel(fine_tuning_job_id=fine_tuning_job_id)
-        return _litellm_fine_tuning_job_from_response(response)
+        return _gateway_fine_tuning_job_from_response(response)
 
     def cancel_fine_tuning_job(
         self,
@@ -159,7 +159,7 @@ class OpenAIFineTuningAPI:
         max_retries: int | None,
         organization: str | None,
         client: OpenAI | AsyncOpenAI | AzureOpenAI | AsyncAzureOpenAI | None = None,
-    ) -> LiteLLMFineTuningJob | Coroutine[Any, Any, LiteLLMFineTuningJob]:
+    ) -> GatewayFineTuningJob | Coroutine[Any, Any, GatewayFineTuningJob]:
         openai_client: Final[OpenAI | AsyncOpenAI | AzureOpenAI | AsyncAzureOpenAI | None] = self.get_openai_client(
             api_key=api_key,
             api_base=api_base,
@@ -186,7 +186,7 @@ class OpenAIFineTuningAPI:
             )
         verbose_logger.debug("canceling fine tuning job, args= %s", fine_tuning_job_id)
         response: Final = cast(OpenAI, openai_client).fine_tuning.jobs.cancel(fine_tuning_job_id=fine_tuning_job_id)
-        return _litellm_fine_tuning_job_from_response(response)
+        return _gateway_fine_tuning_job_from_response(response)
 
     async def alist_fine_tuning_jobs(
         self,
@@ -243,9 +243,9 @@ class OpenAIFineTuningAPI:
         self,
         fine_tuning_job_id: str,
         openai_client: AsyncOpenAI | AsyncAzureOpenAI,
-    ) -> LiteLLMFineTuningJob:
+    ) -> GatewayFineTuningJob:
         response: Final = await openai_client.fine_tuning.jobs.retrieve(fine_tuning_job_id=fine_tuning_job_id)
-        return _litellm_fine_tuning_job_from_response(response)
+        return _gateway_fine_tuning_job_from_response(response)
 
     def retrieve_fine_tuning_job(
         self,
@@ -258,7 +258,7 @@ class OpenAIFineTuningAPI:
         max_retries: int | None,
         organization: str | None,
         client: OpenAI | AsyncOpenAI | AzureOpenAI | AsyncAzureOpenAI | None = None,
-    ) -> LiteLLMFineTuningJob | Coroutine[Any, Any, LiteLLMFineTuningJob]:
+    ) -> GatewayFineTuningJob | Coroutine[Any, Any, GatewayFineTuningJob]:
         openai_client: Final[OpenAI | AsyncOpenAI | AzureOpenAI | AsyncAzureOpenAI | None] = self.get_openai_client(
             api_key=api_key,
             api_base=api_base,
@@ -285,4 +285,4 @@ class OpenAIFineTuningAPI:
             )
         verbose_logger.debug("retrieving fine tuning job, id= %s", fine_tuning_job_id)
         response: Final = cast(OpenAI, openai_client).fine_tuning.jobs.retrieve(fine_tuning_job_id=fine_tuning_job_id)
-        return _litellm_fine_tuning_job_from_response(response)
+        return _gateway_fine_tuning_job_from_response(response)

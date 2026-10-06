@@ -4,13 +4,13 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from token_iq.gateway.integrations.litellm_agent import LiteLLMAgentModelResolver
+from token_iq.gateway.integrations.litellm_agent import GatewayAgentModelResolver
 
 
-class TestLiteLLMAgentModelResolver:
+class TestGatewayAgentModelResolver:
     def test_get_chat_completion_prompt_strips_prefix(self):
         """Verify get_chat_completion_prompt strips litellm_agent/ prefix from model."""
-        resolver = LiteLLMAgentModelResolver()
+        resolver = GatewayAgentModelResolver()
         messages = [{"role": "user", "content": "Hello"}]
 
         resolved_model, out_messages, out_params = resolver.get_chat_completion_prompt(
@@ -28,7 +28,7 @@ class TestLiteLLMAgentModelResolver:
 
     def test_get_chat_completion_prompt_preserves_rest_of_model(self):
         """Verify model name after prefix is preserved (e.g. openai/gpt-3.5-turbo)."""
-        resolver = LiteLLMAgentModelResolver()
+        resolver = GatewayAgentModelResolver()
         messages = [{"role": "user", "content": "Test"}]
 
         resolved_model, _, _ = resolver.get_chat_completion_prompt(
@@ -44,7 +44,7 @@ class TestLiteLLMAgentModelResolver:
 
     def test_get_chat_completion_prompt_respects_ignore_prompt_manager_model(self):
         """Verify model is unchanged when ignore_prompt_manager_model is True."""
-        resolver = LiteLLMAgentModelResolver()
+        resolver = GatewayAgentModelResolver()
         messages = [{"role": "user", "content": "Hello"}]
 
         resolved_model, _, _ = resolver.get_chat_completion_prompt(
@@ -62,7 +62,7 @@ class TestLiteLLMAgentModelResolver:
     @pytest.mark.asyncio
     async def test_async_get_chat_completion_prompt_strips_prefix(self):
         """Verify async_get_chat_completion_prompt strips prefix."""
-        resolver = LiteLLMAgentModelResolver()
+        resolver = GatewayAgentModelResolver()
         messages = [{"role": "user", "content": "Hello"}]
 
         resolved_model, out_messages, _ = (

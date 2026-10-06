@@ -27,8 +27,8 @@ from token_iq.gateway.proxy._types import (
     CommonProxyErrors,
     KeyManagementSystem,
     LiteLLM_AuditLogs,
-    LitellmTableNames,
-    LitellmUserRoles,
+    GatewayTableNames,
+    GatewayUserRoles,
     UserAPIKeyAuth,
 )
 from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
@@ -120,7 +120,7 @@ async def _emit_config_override_audit_log(
                 updated_at=datetime.now(timezone.utc),
                 changed_by=litellm_changed_by or user_api_key_dict.user_id or litellm_proxy_admin_name,
                 changed_by_api_key=user_api_key_dict.api_key,
-                table_name=LitellmTableNames.CONFIG_OVERRIDES_TABLE_NAME,
+                table_name=GatewayTableNames.CONFIG_OVERRIDES_TABLE_NAME,
                 object_id=object_id,
                 action=action,
                 updated_values=json.dumps({"config": _redact_config(after_config)}, default=str),
@@ -342,7 +342,7 @@ async def update_hashicorp_vault_config(
     """
     from token_iq.gateway.proxy.proxy_server import prisma_client, proxy_config
 
-    if user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN:
+    if user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN:
         raise HTTPException(
             status_code=403,
             detail="Only admin users can update config overrides",
@@ -533,7 +533,7 @@ async def delete_hashicorp_vault_config(
     """Delete Hashicorp Vault configuration. Idempotent."""
     from token_iq.gateway.proxy.proxy_server import prisma_client, proxy_config
 
-    if user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN:
+    if user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN:
         raise HTTPException(
             status_code=403,
             detail="Only admin users can delete config overrides",
@@ -601,7 +601,7 @@ async def test_hashicorp_vault_connection(
         HashicorpSecretManager,
     )
 
-    if user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN:
+    if user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN:
         raise HTTPException(
             status_code=403,
             detail="Only admin users can test Vault connection",
@@ -666,7 +666,7 @@ async def update_cyberark_config(
     """
     from token_iq.gateway.proxy.proxy_server import prisma_client, proxy_config
 
-    if user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN:
+    if user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN:
         raise HTTPException(
             status_code=403,
             detail="Only admin users can update config overrides",
@@ -834,7 +834,7 @@ async def delete_cyberark_config(
     """Delete CyberArk Conjur configuration. Idempotent."""
     from token_iq.gateway.proxy.proxy_server import prisma_client, proxy_config
 
-    if user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN:
+    if user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN:
         raise HTTPException(
             status_code=403,
             detail="Only admin users can delete config overrides",
@@ -897,7 +897,7 @@ async def test_cyberark_connection(
     """
     from token_iq.gateway.secret_managers.cyberark_secret_manager import CyberArkSecretManager
 
-    if user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN:
+    if user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN:
         raise HTTPException(
             status_code=403,
             detail="Only admin users can test CyberArk connection",

@@ -13,7 +13,7 @@ else:
     Router = Any
 
 
-def litellm_to_list(embeds: gateway.EmbeddingResponse) -> list[list[float]]:
+def gateway_to_list(embeds: gateway.EmbeddingResponse) -> list[list[float]]:
     """Convert a LiteLLM embedding response to a list of embeddings.
 
     :param embeds: The LiteLLM embedding response.
@@ -36,7 +36,7 @@ class CustomDenseEncoder(DenseEncoder):
         self.litellm_router_instance = litellm_router_instance
 
 
-class LiteLLMRouterEncoder(CustomDenseEncoder, AsymmetricDenseMixin):
+class GatewayRouterEncoder(CustomDenseEncoder, AsymmetricDenseMixin):
     """LiteLLM encoder class for generating embeddings using LiteLLM.
 
     The LiteLLMRouterEncoder class is a subclass of DenseEncoder and utilizes the LiteLLM Router SDK
@@ -115,7 +115,7 @@ class LiteLLMRouterEncoder(CustomDenseEncoder, AsymmetricDenseMixin):
             embeds: Final = self.litellm_router_instance.embedding(
                 input=self._clamp(docs), model=self.model_name, **kwargs
             )
-            return litellm_to_list(embeds)
+            return gateway_to_list(embeds)
         except Exception as e:
             raise ValueError(f"{self.type.capitalize()} API call failed. Error: {e}") from e
 
@@ -126,7 +126,7 @@ class LiteLLMRouterEncoder(CustomDenseEncoder, AsymmetricDenseMixin):
             embeds: Final = self.litellm_router_instance.embedding(
                 input=self._clamp(docs), model=self.model_name, **kwargs
             )
-            return litellm_to_list(embeds)
+            return gateway_to_list(embeds)
         except Exception as e:
             raise ValueError(f"{self.type.capitalize()} API call failed. Error: {e}") from e
 
@@ -137,7 +137,7 @@ class LiteLLMRouterEncoder(CustomDenseEncoder, AsymmetricDenseMixin):
             embeds: Final = await self.litellm_router_instance.aembedding(
                 input=self._clamp(docs), model=self.model_name, **kwargs
             )
-            return litellm_to_list(embeds)
+            return gateway_to_list(embeds)
         except Exception as e:
             raise ValueError(f"{self.type.capitalize()} API call failed. Error: {e}") from e
 
@@ -148,6 +148,6 @@ class LiteLLMRouterEncoder(CustomDenseEncoder, AsymmetricDenseMixin):
             embeds: Final = await self.litellm_router_instance.aembedding(
                 input=self._clamp(docs), model=self.model_name, **kwargs
             )
-            return litellm_to_list(embeds)
+            return gateway_to_list(embeds)
         except Exception as e:
             raise ValueError(f"{self.type.capitalize()} API call failed. Error: {e}") from e

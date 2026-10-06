@@ -9,17 +9,17 @@ from token_iq.gateway.types.llms.openai import (
     AllMessageValues,
     CreateBatchRequest,
 )
-from token_iq.gateway.types.utils import LiteLLMBatch, LlmProviders
+from token_iq.gateway.types.utils import GatewayBatch, LlmProviders
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as _LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as _GatewayLoggingObj
 
     from ..chat.transformation import BaseLLMException as _BaseLLMException
 
-    LiteLLMLoggingObj = _LiteLLMLoggingObj
+    GatewayLoggingObj = _GatewayLoggingObj
     BaseLLMException = _BaseLLMException
 else:
-    LiteLLMLoggingObj = Any
+    GatewayLoggingObj = Any
     BaseLLMException = Any
 
 
@@ -137,9 +137,9 @@ class BaseBatchesConfig(ABC):
         self,
         model: str | None,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         litellm_params: dict,
-    ) -> LiteLLMBatch:
+    ) -> GatewayBatch:
         """
         Transform provider-specific batch response to LiteLLM format.
 
@@ -177,9 +177,9 @@ class BaseBatchesConfig(ABC):
         self,
         model: str | None,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         litellm_params: dict,
-    ) -> LiteLLMBatch:
+    ) -> GatewayBatch:
         """
         Transform provider-specific batch retrieval response to LiteLLM format.
 

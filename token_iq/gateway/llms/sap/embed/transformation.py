@@ -10,7 +10,7 @@ from pydantic import BaseModel, Field
 
 from token_iq.gateway.llms.base_llm.embedding.transformation import (
     BaseEmbeddingConfig,
-    LiteLLMLoggingObj,
+    GatewayLoggingObj,
 )
 from token_iq.gateway.llms.sap.chat.models import MaskingModuleConfig
 from token_iq.gateway.types.llms.openai import AllEmbeddingInputValues
@@ -92,7 +92,7 @@ class GenAIHubEmbeddingConfig(BaseEmbeddingConfig):
             "Authorization": access_token,
             "AI-Resource-Group": self.resource_group,
             "Content-Type": "application/json",
-            "AI-Client-Type": "LiteLLM",
+            "AI-Client-Type": "Gateway",
         }
         return headers
 
@@ -181,7 +181,7 @@ class GenAIHubEmbeddingConfig(BaseEmbeddingConfig):
         model: str,
         raw_response: httpx.Response,
         model_response: EmbeddingResponse,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         api_key: str | None,
         request_data: dict,
         optional_params: dict,

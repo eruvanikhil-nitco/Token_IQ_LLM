@@ -49,10 +49,10 @@ def cosine_similarity(left: Vector, right: Vector) -> float:
 
 
 def embedding_spend_metadata(user_api_key_dict: UserAPIKeyAuth) -> dict[str, object]:  # mutable-ok: router mutates it
-    from token_iq.gateway.proxy.litellm_pre_call_utils import LiteLLMProxyRequestSetup
+    from token_iq.gateway.proxy.litellm_pre_call_utils import GatewayProxyRequestSetup
 
     return {  # mutable-ok: the router mutates the metadata dict it is handed
-        **LiteLLMProxyRequestSetup.get_sanitized_user_information_from_key(user_api_key_dict),
+        **GatewayProxyRequestSetup.get_sanitized_user_information_from_key(user_api_key_dict),
         "user_api_key": user_api_key_dict.api_key,
     }
 

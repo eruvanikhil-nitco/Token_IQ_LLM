@@ -15,7 +15,7 @@ from token_iq.gateway.interactions.streaming_iterator import (
     InteractionsAPIStreamingIterator,
     SyncInteractionsAPIStreamingIterator,
 )
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.llms.base_llm.interactions.transformation import BaseInteractionsAPIConfig
 from token_iq.gateway.llms.custom_httpx.http_handler import (
     AsyncHTTPHandler,
@@ -31,7 +31,7 @@ from token_iq.gateway.types.interactions import (
     InteractionsAPIResponse,
     InteractionsAPIStreamingResponse,
 )
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 
 
 class _BaseHTTPHandler:
@@ -54,14 +54,14 @@ class _BaseHTTPHandler:
 
     def _sync_client(
         self,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         client: HTTPHandler | None,
     ) -> HTTPHandler:
         return client or _get_httpx_client(params={"ssl_verify": litellm_params.get("ssl_verify", None)})
 
     def _async_client(
         self,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         client: AsyncHTTPHandler | None,
     ) -> AsyncHTTPHandler:
         # GenericLiteLLMParams.get uses getattr; an unset field is None, not the default.
@@ -91,8 +91,8 @@ class InteractionsHTTPHandler(_BaseHTTPHandler):
         interactions_api_config: BaseInteractionsAPIConfig,
         optional_params: InteractionsAPIOptionalRequestParams,
         custom_llm_provider: str,
-        litellm_params: GenericLiteLLMParams,
-        logging_obj: LiteLLMLoggingObj,
+        litellm_params: GenericGatewayParams,
+        logging_obj: GatewayLoggingObj,
         model: str | None = None,
         agent: str | None = None,
         input: InteractionInput | None = None,
@@ -206,8 +206,8 @@ class InteractionsHTTPHandler(_BaseHTTPHandler):
         interactions_api_config: BaseInteractionsAPIConfig,
         optional_params: InteractionsAPIOptionalRequestParams,
         custom_llm_provider: str,
-        litellm_params: GenericLiteLLMParams,
-        logging_obj: LiteLLMLoggingObj,
+        litellm_params: GenericGatewayParams,
+        logging_obj: GatewayLoggingObj,
         model: str | None = None,
         agent: str | None = None,
         input: InteractionInput | None = None,
@@ -300,7 +300,7 @@ class InteractionsHTTPHandler(_BaseHTTPHandler):
         self,
         response: httpx.Response,
         model: str | None,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         interactions_api_config: BaseInteractionsAPIConfig,
     ) -> SyncInteractionsAPIStreamingIterator:
         """Create a synchronous streaming iterator.
@@ -319,7 +319,7 @@ class InteractionsHTTPHandler(_BaseHTTPHandler):
         self,
         response: httpx.Response,
         model: str | None,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         interactions_api_config: BaseInteractionsAPIConfig,
     ) -> InteractionsAPIStreamingIterator:
         """Create an asynchronous streaming iterator.
@@ -343,8 +343,8 @@ class InteractionsHTTPHandler(_BaseHTTPHandler):
         interaction_id: str,
         interactions_api_config: BaseInteractionsAPIConfig,
         custom_llm_provider: str,
-        litellm_params: GenericLiteLLMParams,
-        logging_obj: LiteLLMLoggingObj,
+        litellm_params: GenericGatewayParams,
+        logging_obj: GatewayLoggingObj,
         extra_headers: dict[str, Any] | None = None,
         timeout: float | httpx.Timeout | None = None,
         client: HTTPHandler | None = None,
@@ -405,8 +405,8 @@ class InteractionsHTTPHandler(_BaseHTTPHandler):
         interaction_id: str,
         interactions_api_config: BaseInteractionsAPIConfig,
         custom_llm_provider: str,
-        litellm_params: GenericLiteLLMParams,
-        logging_obj: LiteLLMLoggingObj,
+        litellm_params: GenericGatewayParams,
+        logging_obj: GatewayLoggingObj,
         extra_headers: dict[str, Any] | None = None,
         timeout: float | httpx.Timeout | None = None,
         client: AsyncHTTPHandler | None = None,
@@ -462,8 +462,8 @@ class InteractionsHTTPHandler(_BaseHTTPHandler):
         interaction_id: str,
         interactions_api_config: BaseInteractionsAPIConfig,
         custom_llm_provider: str,
-        litellm_params: GenericLiteLLMParams,
-        logging_obj: LiteLLMLoggingObj,
+        litellm_params: GenericGatewayParams,
+        logging_obj: GatewayLoggingObj,
         extra_headers: dict[str, Any] | None = None,
         timeout: float | httpx.Timeout | None = None,
         client: HTTPHandler | None = None,
@@ -525,8 +525,8 @@ class InteractionsHTTPHandler(_BaseHTTPHandler):
         interaction_id: str,
         interactions_api_config: BaseInteractionsAPIConfig,
         custom_llm_provider: str,
-        litellm_params: GenericLiteLLMParams,
-        logging_obj: LiteLLMLoggingObj,
+        litellm_params: GenericGatewayParams,
+        logging_obj: GatewayLoggingObj,
         extra_headers: dict[str, Any] | None = None,
         timeout: float | httpx.Timeout | None = None,
         client: AsyncHTTPHandler | None = None,
@@ -583,8 +583,8 @@ class InteractionsHTTPHandler(_BaseHTTPHandler):
         interaction_id: str,
         interactions_api_config: BaseInteractionsAPIConfig,
         custom_llm_provider: str,
-        litellm_params: GenericLiteLLMParams,
-        logging_obj: LiteLLMLoggingObj,
+        litellm_params: GenericGatewayParams,
+        logging_obj: GatewayLoggingObj,
         extra_headers: dict[str, Any] | None = None,
         timeout: float | httpx.Timeout | None = None,
         client: HTTPHandler | None = None,
@@ -646,8 +646,8 @@ class InteractionsHTTPHandler(_BaseHTTPHandler):
         interaction_id: str,
         interactions_api_config: BaseInteractionsAPIConfig,
         custom_llm_provider: str,
-        litellm_params: GenericLiteLLMParams,
-        logging_obj: LiteLLMLoggingObj,
+        litellm_params: GenericGatewayParams,
+        logging_obj: GatewayLoggingObj,
         extra_headers: dict[str, Any] | None = None,
         timeout: float | httpx.Timeout | None = None,
         client: AsyncHTTPHandler | None = None,

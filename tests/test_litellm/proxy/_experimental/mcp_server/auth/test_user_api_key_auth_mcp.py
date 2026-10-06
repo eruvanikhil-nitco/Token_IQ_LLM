@@ -1344,7 +1344,7 @@ class TestMCPRequestHandler:
         extracted_headers = MCPRequestHandler._safe_get_headers_from_scope(scope)
 
         # Verify API key extraction
-        api_key = MCPRequestHandler.get_litellm_api_key_from_headers(extracted_headers)
+        api_key = MCPRequestHandler.get_gateway_api_key_from_headers(extracted_headers)
         assert api_key == expected_result["api_key"]
 
         # Verify MCP auth header
@@ -1490,7 +1490,7 @@ class TestMCPOAuth2AuthFlow:
             # ... and is preserved for upstream forwarding.
             assert oauth2_headers.get("Authorization") == "Bearer atlassian-oauth2-access-token-xyz"
 
-    async def test_explicit_litellm_key_with_oauth2_authorization(self):
+    async def test_explicit_gateway_key_with_oauth2_authorization(self):
         """
         When both x-litellm-api-key AND Authorization header are present,
         LiteLLM key should be used for auth and Authorization preserved for OAuth2.
@@ -1533,7 +1533,7 @@ class TestMCPOAuth2AuthFlow:
         "header_value",
         [b"sk-litellm-valid-key", b"Bearer sk-litellm-valid-key", b"bearer sk-litellm-valid-key"],
     )
-    async def test_x_litellm_api_key_survives_bearer_only_strip(self, header_value):
+    async def test_x_gateway_api_key_survives_bearer_only_strip(self, header_value):
         from token_iq.gateway.proxy.auth.user_api_key_auth import _get_bearer_token
 
         scope = {
@@ -1558,7 +1558,7 @@ class TestMCPOAuth2AuthFlow:
         assert _get_bearer_token(api_key=mock_auth.call_args.kwargs["api_key"]) == "sk-litellm-valid-key"
         assert auth_result.user_id == "test-user"
 
-    async def test_litellm_key_in_authorization_backward_compat(self):
+    async def test_gateway_key_in_authorization_backward_compat(self):
         """
         Backward compatibility: when only Authorization header is present
         with a valid LiteLLM key (not OAuth2), auth should succeed normally.
@@ -2400,7 +2400,7 @@ class TestMCPDelegateAuthToUpstream:
         not_passthrough = passthrough.model_copy(update={"oauth_passthrough": False})
         assert manager._build_mcp_server_table(not_passthrough).oauth_passthrough is False
 
-    async def test_delegate_skips_litellm_auth_with_no_authorization(self):
+    async def test_delegate_skips_gateway_auth_with_no_authorization(self):
         """
         oauth2 + delegate_auth_to_upstream=True, no Authorization header at
         all → anonymous UserAPIKeyAuth and ``user_api_key_auth`` is never
@@ -2429,7 +2429,7 @@ class TestMCPDelegateAuthToUpstream:
             assert isinstance(auth_result, UserAPIKeyAuth)
             mock_auth.assert_not_called()
 
-    async def test_delegate_with_upstream_token_in_authorization_skips_litellm_auth(
+    async def test_delegate_with_upstream_token_in_authorization_skips_gateway_auth(
         self,
     ):
         """
@@ -2471,7 +2471,7 @@ class TestMCPDelegateAuthToUpstream:
             assert oauth2_headers.get("Authorization") == "Bearer upstream-pkce-token"
             mock_auth.assert_not_called()
 
-    async def test_delegate_off_still_requires_litellm_auth(self):
+    async def test_delegate_off_still_requires_gateway_auth(self):
         """
         oauth2 server but delegate flag is OFF → existing behaviour: a missing
         / invalid LiteLLM key still 401s (no anonymous fast-path).
@@ -2615,7 +2615,7 @@ class TestMCPDelegateAuthToUpstream:
                 await MCPRequestHandler.process_mcp_request(scope)
             assert exc_info.value.status_code == 401
 
-    async def test_explicit_litellm_key_takes_precedence_over_delegate(self):
+    async def test_explicit_gateway_key_takes_precedence_over_delegate(self):
         """
         When ``x-litellm-api-key`` is present, normal auth runs even for a
         delegate server, so ``user_id`` is resolved and any stored upstream
@@ -3013,7 +3013,7 @@ class TestMCPDelegateAuthToUpstream:
         assert "public-server" in result
         assert "internal-server" in result
 
-    async def test_true_passthrough_skips_litellm_auth_anonymously(self):
+    async def test_true_passthrough_skips_gateway_auth_anonymously(self):
         """auth_type=true_passthrough performs no admission auth: the caller's Authorization is an
         upstream token forwarded unchanged and user_api_key_auth is never called."""
         from token_iq.gateway.types.mcp import MCPAuth
@@ -6669,7 +6669,7 @@ class TestMCPDcrBridgeDelegateAdmission:
             )
         }
 
-    async def test_valid_litellm_authorization_key_uses_standard_admission(self):
+    async def test_valid_gateway_authorization_key_uses_standard_admission(self):
         scope = {
             "type": "http",
             "method": "POST",
@@ -6733,7 +6733,7 @@ class TestMCPDcrBridgeDelegateAdmission:
         assert exc_info.value.status_code == 403
         assert not exc_info.value.headers
 
-    async def test_explicit_litellm_key_wins_over_envelope_arm(self):
+    async def test_explicit_gateway_key_wins_over_envelope_arm(self):
         """An explicit x-litellm-api-key is always a LiteLLM credential and its arm precedes the
         envelope arm: user_api_key_auth validates the key and NO inner token is injected, even
         though the Authorization header carries a valid envelope."""
@@ -6987,7 +6987,7 @@ class TestAggregateGatewayDcrChallenge:
             'resource_metadata="http://testserver/.well-known/oauth-protected-resource/litellm/mcp"' in www_authenticate
         )
 
-    async def test_no_challenge_for_explicit_litellm_key(self):
+    async def test_no_challenge_for_explicit_gateway_key(self):
         """An explicit x-litellm-api-key declares a litellm-key client; a typo
         there must surface the real auth error, never a DCR challenge that
         would send SDKs into a sign-in flow."""
@@ -7812,12 +7812,12 @@ class TestUserSubjectTeamUnion:
         subject with an admin-view role resolves the same full registry an admin KEY does, so the
         servers the dashboard shows an admin are the servers their OAuth session serves. Regression
         pin for the customer report where an admin's Claude Code session showed zero tools."""
-        from token_iq.gateway.proxy._types import LitellmUserRoles
+        from token_iq.gateway.proxy._types import GatewayUserRoles
 
         manager = self._manager_with(["srv-granted", "srv-secret"])
         admitted = _make_admitted_subject("admin-user")
-        admitted.user_role = LitellmUserRoles[role]
-        key_admin = UserAPIKeyAuth(user_id="admin-user", api_key="sk-hash", user_role=LitellmUserRoles[role])
+        admitted.user_role = GatewayUserRoles[role]
+        key_admin = UserAPIKeyAuth(user_id="admin-user", api_key="sk-hash", user_role=GatewayUserRoles[role])
         with patch.object(MCPRequestHandler, "get_allowed_mcp_servers", AsyncMock(return_value=["srv-granted"])):
             admitted_view = set(await manager.get_allowed_mcp_servers(admitted))
             key_admin_view = set(await manager.get_allowed_mcp_servers(key_admin))
@@ -7829,11 +7829,11 @@ class TestUserSubjectTeamUnion:
         row binds through the ceiling for an admitted subject (a user row's mcp_servers is the
         human's grant list, not a credential scope), so the registry seed must not fire. A KEY
         carrying an explicit scope disqualifies directly, empty list included."""
-        from token_iq.gateway.proxy._types import LiteLLM_ObjectPermissionTable, LitellmUserRoles
+        from token_iq.gateway.proxy._types import LiteLLM_ObjectPermissionTable, GatewayUserRoles
 
         manager = self._manager_with(["srv-granted", "srv-secret"])
         admitted = _make_admitted_subject("admin-user", own_servers=["srv-granted"])
-        admitted.user_role = LitellmUserRoles.PROXY_ADMIN
+        admitted.user_role = GatewayUserRoles.PROXY_ADMIN
         with (
             patch.object(
                 MCPRequestHandler, "_get_allowed_mcp_servers_for_user", AsyncMock(return_value=["srv-granted"])
@@ -7845,7 +7845,7 @@ class TestUserSubjectTeamUnion:
         scoped_key = UserAPIKeyAuth(
             user_id="admin-user",
             api_key="sk-hash",
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
             object_permission=LiteLLM_ObjectPermissionTable(object_permission_id="op-k", mcp_servers=[]),
         )
         with patch.object(MCPRequestHandler, "get_allowed_mcp_servers", AsyncMock(return_value=[])):
@@ -7856,11 +7856,11 @@ class TestUserSubjectTeamUnion:
         is [] by DB default whenever the row exists for any other field: default noise, never an
         explicit scope. The registry seed must fire through it, or every admin with a shared
         permission row keeps resolving zero servers while their dashboard shows all of them."""
-        from token_iq.gateway.proxy._types import LiteLLM_ObjectPermissionTable, LitellmUserRoles
+        from token_iq.gateway.proxy._types import LiteLLM_ObjectPermissionTable, GatewayUserRoles
 
         manager = self._manager_with(["srv-granted", "srv-secret"])
         admitted = _make_admitted_subject("admin-user")
-        admitted.user_role = LitellmUserRoles.PROXY_ADMIN
+        admitted.user_role = GatewayUserRoles.PROXY_ADMIN
         admitted.object_permission = LiteLLM_ObjectPermissionTable(object_permission_id="op-u", mcp_servers=[])
         with patch.object(MCPRequestHandler, "get_allowed_mcp_servers", AsyncMock(return_value=[])):
             assert set(await manager.get_allowed_mcp_servers(admitted)) == {"srv-granted", "srv-secret"}
@@ -7876,11 +7876,11 @@ class TestUserSubjectTeamUnion:
     async def test_admitted_admin_entitlement_ceiling_disables_registry(self):
         """An entitlement ceiling, including an UNRESOLVED one, binds the human whatever their role:
         the registry seed must not fire on a transient fault, and the grant union answers instead."""
-        from token_iq.gateway.proxy._types import LitellmUserRoles
+        from token_iq.gateway.proxy._types import GatewayUserRoles
 
         manager = self._manager_with(["srv-granted", "srv-secret"])
         admitted = _make_admitted_subject("admin-user")
-        admitted.user_role = LitellmUserRoles.PROXY_ADMIN
+        admitted.user_role = GatewayUserRoles.PROXY_ADMIN
         with (
             patch.object(MCPRequestHandler, "_get_allowed_mcp_servers_for_user", AsyncMock(return_value=None)),
             patch.object(MCPRequestHandler, "get_allowed_mcp_servers", AsyncMock(return_value=["srv-granted"])),
@@ -7893,10 +7893,10 @@ class TestUserSubjectTeamUnion:
         rather than listable-but-uninvokable. A non-admin subject on the same server stays denied.
         An admin whose row carries any entitlement never reaches this channel: the ceiling clause
         disqualifies the predicate first, so their own tool permissions keep binding on the grants path."""
-        from token_iq.gateway.proxy._types import LitellmUserRoles
+        from token_iq.gateway.proxy._types import GatewayUserRoles
 
         admin = _make_admitted_subject("admin-user")
-        admin.user_role = LitellmUserRoles.PROXY_ADMIN
+        admin.user_role = GatewayUserRoles.PROXY_ADMIN
         plain = _make_admitted_subject("plain-user")
         with self._patch(teams_by_id={}, user_teams=[]):
             with patch(

@@ -6,10 +6,10 @@ from openai.types.batch import BatchRequestCounts
 from openai.types.batch import Metadata as OpenAIBatchMetadata
 
 from token_iq.gateway.core_utils.aws_partition import get_aws_dns_suffix
-from token_iq.gateway.types.utils import LiteLLMBatch
+from token_iq.gateway.types.utils import GatewayBatch
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 
 # AWS Bedrock model-invocation-job statuses → OpenAI Batch statuses.
 # Mirrors the mapping used by `BedrockBatchesConfig.transform_create_batch_response`
@@ -117,7 +117,7 @@ class BedrockBatchesHandler:
         aws_sts_endpoint: str | None = None,
         aws_external_id: str | None = None,
         **kwargs: object,  # kwargs-ok: litellm.cancel_batch forwards arbitrary user kwargs verbatim
-    ) -> "LiteLLMBatch":
+    ) -> "GatewayBatch":
         try:
             import boto3
             from botocore.exceptions import ClientError
@@ -149,7 +149,7 @@ class BedrockBatchesHandler:
             aws_session_token=creds.token,
         )
 
-        def job_status() -> "LiteLLMBatch":
+        def job_status() -> "GatewayBatch":
             return BedrockBatchesHandler._handle_model_invocation_job_status(
                 batch_id=batch_id,
                 aws_region_name=region,
@@ -178,7 +178,7 @@ class BedrockBatchesHandler:
         return job_status()
 
     @staticmethod
-    def _handle_async_invoke_status(batch_id: str, aws_region_name: str, logging_obj=None, **kwargs) -> "LiteLLMBatch":
+    def _handle_async_invoke_status(batch_id: str, aws_region_name: str, logging_obj=None, **kwargs) -> "GatewayBatch":
         """
         Handle async invoke status check for AWS Bedrock.
 
@@ -209,7 +209,7 @@ class BedrockBatchesHandler:
             )
 
             # Transform response to a LiteLLMBatch object
-            from token_iq.gateway.types.utils import LiteLLMBatch
+            from token_iq.gateway.types.utils import GatewayBatch
 
             openai_batch_metadata: Final[OpenAIBatchMetadata] = {
                 "output_file_id": status_response["outputDataConfig"]["s3OutputDataConfig"]["s3Uri"],
@@ -217,7 +217,7 @@ class BedrockBatchesHandler:
                 "model_arn": status_response["modelArn"],
             }
 
-            result: Final = LiteLLMBatch(
+            result: Final = GatewayBatch(
                 id=status_response["invocationArn"],
                 object="batch",
                 status=status_response["status"],
@@ -260,7 +260,7 @@ class BedrockBatchesHandler:
         aws_region_name: str | None = None,
         logging_obj=None,
         **kwargs,
-    ) -> "LiteLLMBatch":
+    ) -> "GatewayBatch":
         """
         Handle ``GetModelInvocationJob`` status check for AWS Bedrock bulk batch
         inference jobs (the ARN type returned by ``CreateModelInvocationJob``).
@@ -393,7 +393,7 @@ class BedrockBatchesHandler:
             "output_file_uri": output_file_uri or "",
         }
 
-        return LiteLLMBatch(
+        return GatewayBatch(
             id=job_arn,
             object="batch",
             status=openai_status,

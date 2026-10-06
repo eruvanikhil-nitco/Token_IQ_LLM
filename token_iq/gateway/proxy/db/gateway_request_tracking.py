@@ -92,7 +92,7 @@ async def commit_gateway_requests_to_db(
     async with prisma_client.db.batch_() as batcher:  # pyright: ignore[reportAny]  # untyped prisma client
         for key, counts in ordered:
             columns = asdict(key)
-            batcher.litellm_dailygatewayrequests.upsert(  # pyright: ignore[reportAny]  # untyped prisma client
+            batcher.gateway_dailygatewayrequests.upsert(  # pyright: ignore[reportAny]  # untyped prisma client
                 where={"date_category_route": columns},  # mutable-ok: prisma input is dict-shaped
                 data={  # mutable-ok: prisma input is dict-shaped
                     "create": {  # mutable-ok: prisma input is dict-shaped

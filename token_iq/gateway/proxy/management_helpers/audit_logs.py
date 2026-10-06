@@ -14,14 +14,14 @@ from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.proxy._types import (
     AUDIT_ACTIONS,
     LiteLLM_AuditLogs,
-    LitellmTableNames,
+    GatewayTableNames,
     UserAPIKeyAuth,
 )
 from token_iq.gateway.repositories.table_repositories import AuditLogRepository
 from token_iq.gateway.types.utils import StandardAuditLogPayload
 
 _audit_log_callback_cache: Final[dict[str, CustomLogger]] = {}
-ALLOW_LITELLM_CHANGED_BY_HEADER_METADATA_KEY: Final = "allow_litellm_changed_by_header"
+ALLOW_GATEWAY_CHANGED_BY_HEADER_METADATA_KEY: Final = "allow_litellm_changed_by_header"
 
 
 def is_audit_logging_enabled(store_audit_logs: bool | None = None) -> bool:
@@ -41,11 +41,11 @@ def is_audit_logging_enabled(store_audit_logs: bool | None = None) -> bool:
     return False
 
 
-def _allows_litellm_changed_by_header(user_api_key_dict: UserAPIKeyAuth) -> bool:
+def _allows_gateway_changed_by_header(user_api_key_dict: UserAPIKeyAuth) -> bool:
     for admin_metadata in (user_api_key_dict.metadata, user_api_key_dict.team_metadata):
         if (
             isinstance(admin_metadata, dict)
-            and admin_metadata.get(ALLOW_LITELLM_CHANGED_BY_HEADER_METADATA_KEY) is True
+            and admin_metadata.get(ALLOW_GATEWAY_CHANGED_BY_HEADER_METADATA_KEY) is True
         ):
             return True
     return False
@@ -57,7 +57,7 @@ def get_audit_log_changed_by(
     user_api_key_dict: UserAPIKeyAuth,
     litellm_proxy_admin_name: str | None,
 ) -> str | None:
-    if litellm_changed_by and _allows_litellm_changed_by_header(user_api_key_dict):
+    if litellm_changed_by and _allows_gateway_changed_by_header(user_api_key_dict):
         return litellm_changed_by
     return user_api_key_dict.user_id or litellm_proxy_admin_name
 
@@ -108,7 +108,7 @@ def _build_audit_log_payload(
 
     table_name_str: Final[str] = (
         request_data.table_name.value
-        if isinstance(request_data.table_name, LitellmTableNames)
+        if isinstance(request_data.table_name, GatewayTableNames)
         else str(request_data.table_name)
     )
 
@@ -166,7 +166,7 @@ async def create_object_audit_log(
     litellm_changed_by: str | None,
     user_api_key_dict: UserAPIKeyAuth,
     litellm_proxy_admin_name: str | None,
-    table_name: LitellmTableNames,
+    table_name: GatewayTableNames,
     before_value: str | None = None,
     after_value: str | None = None,
 ):

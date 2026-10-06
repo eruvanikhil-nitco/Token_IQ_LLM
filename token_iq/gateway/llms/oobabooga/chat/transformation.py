@@ -13,9 +13,9 @@ from ..common_utils import OobaboogaError
 if TYPE_CHECKING:
     import tiktoken
 
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 
-    LoggingClass = LiteLLMLoggingObj
+    LoggingClass = GatewayLoggingObj
 else:
     LoggingClass = Any
 

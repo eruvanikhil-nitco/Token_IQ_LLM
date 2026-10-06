@@ -11,7 +11,7 @@ from unittest.mock import patch, AsyncMock
 
 from token_iq import gateway
 from token_iq.gateway.responses.litellm_completion_transformation.transformation import (
-    LiteLLMCompletionResponsesConfig,
+    GatewayCompletionResponsesConfig,
     TOOL_CALLS_CACHE,
 )
 from token_iq.gateway.llms.anthropic.chat.transformation import AnthropicConfig
@@ -76,7 +76,7 @@ def test_fix_ensures_tool_calls_for_tool_results():
     ]
 
     # Apply the fix
-    fixed_messages = LiteLLMCompletionResponsesConfig._ensure_tool_results_have_corresponding_tool_calls(
+    fixed_messages = GatewayCompletionResponsesConfig._ensure_tool_results_have_corresponding_tool_calls(
         messages=messages_missing_tool_calls, tools=[shell_tool]
     )
 

@@ -31,7 +31,7 @@ from token_iq.gateway.proxy.proxy_server import (  # noqa: E402
     "field",
     ["callbacks", "success_callback", "failure_callback", "audit_log_callbacks"],
 )
-def test_litellm_settings_callback_list_strips_remote_urls(field):
+def test_gateway_settings_callback_list_strips_remote_urls(field):
     overlay = {field: ["langfuse", "s3://attacker/m.i", "gcs://attacker/m.i"]}
     cleaned = _scrub_db_overlay_remote_module_loads("litellm_settings", overlay)
     assert cleaned[field] == ["langfuse"]
@@ -53,7 +53,7 @@ def test_general_settings_str_field_strips_remote_urls(field):
     assert cleaned[field] is None
 
 
-def test_litellm_settings_post_call_rules_str_stripped():
+def test_gateway_settings_post_call_rules_str_stripped():
     overlay = {"post_call_rules": "gcs://attacker/m.i"}
     cleaned = _scrub_db_overlay_remote_module_loads("litellm_settings", overlay)
     assert cleaned["post_call_rules"] is None
@@ -71,7 +71,7 @@ def test_custom_provider_map_custom_handler_stripped():
     assert cleaned["custom_provider_map"][1]["custom_handler"] is None
 
 
-def test_litellm_settings_guardrails_v1_callbacks_stripped():
+def test_gateway_settings_guardrails_v1_callbacks_stripped():
     # v1 guardrail shape: {guardrail_name: {callbacks: [...], default_on: bool}}
     overlay = {
         "guardrails": [
@@ -93,7 +93,7 @@ def test_litellm_settings_guardrails_v1_callbacks_stripped():
     ]
 
 
-def test_litellm_settings_guardrails_v2_callbacks_and_guardrail_stripped():
+def test_gateway_settings_guardrails_v2_callbacks_and_guardrail_stripped():
     # v2 shape: {guardrail_name, litellm_params: {guardrail: "module.path", callbacks: [...]}}
     overlay = {
         "guardrails": [
@@ -114,7 +114,7 @@ def test_litellm_settings_guardrails_v2_callbacks_and_guardrail_stripped():
     assert lp["mode"] == "pre_call"
 
 
-def test_litellm_settings_guardrails_local_dotted_name_preserved():
+def test_gateway_settings_guardrails_local_dotted_name_preserved():
     overlay = {
         "guardrails": [
             {
@@ -132,7 +132,7 @@ def test_litellm_settings_guardrails_local_dotted_name_preserved():
     assert lp["callbacks"] == ["my_module.cb", "langfuse"]
 
 
-def test_litellm_settings_guardrails_non_list_passthrough():
+def test_gateway_settings_guardrails_non_list_passthrough():
     cleaned = _scrub_db_overlay_remote_module_loads(
         "litellm_settings", {"guardrails": "not-a-list"}
     )
@@ -168,7 +168,7 @@ def test_pass_through_endpoints_non_list_passthrough():
     assert cleaned["pass_through_endpoints"] == "not-a-list"
 
 
-def test_litellm_jwtauth_custom_validate_stripped():
+def test_gateway_jwtauth_custom_validate_stripped():
     overlay = {
         "litellm_jwtauth": {
             "user_id_jwt_field": "sub",

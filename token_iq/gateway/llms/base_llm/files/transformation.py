@@ -22,15 +22,15 @@ from ..chat.transformation import BaseConfig
 if TYPE_CHECKING:
     import tiktoken
 
-    from token_iq.gateway.core_utils.litellm_logging import Logging as _LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as _GatewayLoggingObj
     from token_iq.gateway.router import Router as _Router
     from token_iq.gateway.types.llms.openai import HttpxBinaryResponseContent
 
-    LiteLLMLoggingObj = _LiteLLMLoggingObj
+    GatewayLoggingObj = _GatewayLoggingObj
     Span = Any
     Router = _Router
 else:
-    LiteLLMLoggingObj = Any
+    GatewayLoggingObj = Any
     Span = Any
     Router = Any
 
@@ -110,7 +110,7 @@ class BaseFilesConfig(BaseConfig):
         self,
         model: str | None,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         litellm_params: dict,
     ) -> OpenAIFileObject:
         pass
@@ -128,7 +128,7 @@ class BaseFilesConfig(BaseConfig):
     def transform_retrieve_file_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         litellm_params: dict,
     ) -> OpenAIFileObject:
         """Transform file retrieve response into OpenAI format."""
@@ -146,7 +146,7 @@ class BaseFilesConfig(BaseConfig):
     def transform_delete_file_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         litellm_params: dict,
     ) -> "FileDeleted":
         """Transform file delete response into OpenAI format."""
@@ -164,7 +164,7 @@ class BaseFilesConfig(BaseConfig):
     def transform_list_files_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         litellm_params: dict,
     ) -> list[OpenAIFileObject]:
         """Transform file list response into OpenAI format."""
@@ -182,7 +182,7 @@ class BaseFilesConfig(BaseConfig):
     def transform_file_content_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         litellm_params: dict,
     ) -> "HttpxBinaryResponseContent":
         """Transform file content response into OpenAI format."""
@@ -204,7 +204,7 @@ class BaseFilesConfig(BaseConfig):
         model: str,
         raw_response: httpx.Response,
         model_response: ModelResponse,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         request_data: dict,
         messages: list[AllMessageValues],
         optional_params: dict,

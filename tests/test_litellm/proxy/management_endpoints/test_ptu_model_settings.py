@@ -11,7 +11,7 @@ from fastapi import HTTPException
 
 from token_iq.gateway.proxy._types import (
     LiteLLM_ProxyModelTable,
-    LitellmUserRoles,
+    GatewayUserRoles,
     ReconcileOutcome,
     UserAPIKeyAuth,
 )
@@ -40,7 +40,7 @@ from token_iq.gateway.types.router import (
     LiteLLM_Params,
     ModelInfo,
     updateDeployment,
-    updateLiteLLMParams,
+    updateGatewayParams,
 )
 from token_iq.gateway.types.utils import Usage
 
@@ -693,7 +693,7 @@ class TestAddNewModelPtuGate:
     @pytest.mark.asyncio
     async def test_model_new_rejects_ptu_config_while_disabled(self):
         (add_model_to_db, add_team_model_to_db), patches = self._patched_proxy("ptu-gate-model")
-        admin = UserAPIKeyAuth(user_id="test-admin", user_role=LitellmUserRoles.PROXY_ADMIN)
+        admin = UserAPIKeyAuth(user_id="test-admin", user_role=GatewayUserRoles.PROXY_ADMIN)
 
         with ExitStack() as stack:
             for active_patch in patches:
@@ -708,7 +708,7 @@ class TestAddNewModelPtuGate:
     @pytest.mark.asyncio
     async def test_model_new_accepts_a_deployment_without_ptu_config_while_disabled(self):
         _, patches = self._patched_proxy("plain-model")
-        admin = UserAPIKeyAuth(user_id="test-admin", user_role=LitellmUserRoles.PROXY_ADMIN)
+        admin = UserAPIKeyAuth(user_id="test-admin", user_role=GatewayUserRoles.PROXY_ADMIN)
 
         with ExitStack() as stack:
             for active_patch in patches:
@@ -728,7 +728,7 @@ class TestAddNewModelPtuGate:
     async def test_model_new_accepts_ptu_config_once_enabled(self, monkeypatch):
         monkeypatch.setenv(PTU_COST_ATTRIBUTION_ENV_VAR, "true")
         (_, add_team_model_to_db), patches = self._patched_proxy("ptu-gate-model")
-        admin = UserAPIKeyAuth(user_id="test-admin", user_role=LitellmUserRoles.PROXY_ADMIN)
+        admin = UserAPIKeyAuth(user_id="test-admin", user_role=GatewayUserRoles.PROXY_ADMIN)
 
         with ExitStack() as stack:
             for active_patch in patches:
@@ -895,7 +895,7 @@ class TestPtuDeploymentsAreNotBilledPerToken:
             ),
         )
         patch = updateDeployment(
-            litellm_params=updateLiteLLMParams(model="openai/gpt-4o", input_cost_per_token=5e-07),
+            litellm_params=updateGatewayParams(model="openai/gpt-4o", input_cost_per_token=5e-07),
             model_info=ModelInfo(id="dep-0", team_id="team-2"),
         )
         endpoints = "token_iq.gateway.proxy.management_endpoints.model_management_endpoints"
@@ -912,7 +912,7 @@ class TestPtuDeploymentsAreNotBilledPerToken:
                 await _update_team_model_in_db(
                     db_model=db_model,
                     patch_data=patch,
-                    user_api_key_dict=UserAPIKeyAuth(user_id="a", user_role=LitellmUserRoles.PROXY_ADMIN),
+                    user_api_key_dict=UserAPIKeyAuth(user_id="a", user_role=GatewayUserRoles.PROXY_ADMIN),
                     prisma_client=MagicMock(),
                 )
 
@@ -1183,7 +1183,7 @@ class TestPtuDeploymentsAreNotBilledPerToken:
             update_db_model(
                 db_model=_deployment_with_stored_ptu(),
                 updated_patch=updateDeployment(
-                    litellm_params=updateLiteLLMParams(model="openai/gpt-4o", input_cost_per_token=5e-07)
+                    litellm_params=updateGatewayParams(model="openai/gpt-4o", input_cost_per_token=5e-07)
                 ),
             )
         assert exc.value.status_code == 400
@@ -1220,7 +1220,7 @@ class TestPtuDeploymentsAreNotBilledPerToken:
             update_db_model(
                 db_model=priced,
                 updated_patch=updateDeployment(
-                    litellm_params=updateLiteLLMParams(model="openai/gpt-4o", input_cost_per_token=5e-07),
+                    litellm_params=updateGatewayParams(model="openai/gpt-4o", input_cost_per_token=5e-07),
                     model_info=ModelInfo(
                         id="dep-0",
                         team_id="t",
@@ -1245,7 +1245,7 @@ class TestPtuDeploymentsAreNotBilledPerToken:
     @pytest.mark.asyncio
     async def test_model_new_stores_zero_pricing_on_both_blobs(self):
         (_, add_team_model_to_db), patches = TestAddNewModelPtuGate._patched_proxy("ptu-priced-model")
-        admin = UserAPIKeyAuth(user_id="test-admin", user_role=LitellmUserRoles.PROXY_ADMIN)
+        admin = UserAPIKeyAuth(user_id="test-admin", user_role=GatewayUserRoles.PROXY_ADMIN)
 
         with ExitStack() as stack:
             for active_patch in patches:
@@ -1264,7 +1264,7 @@ class TestPtuDeploymentsAreNotBilledPerToken:
     @pytest.mark.asyncio
     async def test_model_new_refuses_a_priced_ptu_deployment(self):
         (_, add_team_model_to_db), patches = TestAddNewModelPtuGate._patched_proxy("ptu-priced-model")
-        admin = UserAPIKeyAuth(user_id="test-admin", user_role=LitellmUserRoles.PROXY_ADMIN)
+        admin = UserAPIKeyAuth(user_id="test-admin", user_role=GatewayUserRoles.PROXY_ADMIN)
         base = TestAddNewModelPtuGate._ptu_deployment("ptu-priced-model")
         deployment = base.model_copy(
             update={"litellm_params": base.litellm_params.model_copy(update={"input_cost_per_token": 5e-07})}

@@ -446,7 +446,7 @@ class RepelloAIGuardrail(CustomGuardrail):
         response: AsyncGenerator[ModelResponseStream, None],
         request_data: dict[str, object],
     ) -> AsyncGenerator[ModelResponseStream, None]:
-        from token_iq.gateway import main as litellm_main
+        from token_iq.gateway import main as gateway_main
 
         event_type: Final = GuardrailEventHooks.post_call
         if (
@@ -463,7 +463,7 @@ class RepelloAIGuardrail(CustomGuardrail):
         async for chunk in response:
             chunks.append(chunk)
 
-        assembled = litellm_main.stream_chunk_builder(  # pyright: ignore[reportUnknownMemberType, reportUnknownVariableType]
+        assembled = gateway_main.stream_chunk_builder(  # pyright: ignore[reportUnknownMemberType, reportUnknownVariableType]
             chunks=chunks
         )
         text: Final = self._extract_response_text(assembled) if isinstance(assembled, ModelResponse) else None

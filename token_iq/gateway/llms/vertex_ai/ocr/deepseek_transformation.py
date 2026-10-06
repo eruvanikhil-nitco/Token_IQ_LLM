@@ -21,9 +21,9 @@ from token_iq.gateway.llms.vertex_ai.vertex_llm_base import VertexBase
 VERTEX_AI_DEEPSEEK_OCR_API_KEY_ENV_VAR: Final = "VERTEX_AI_API_KEY"
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 else:
-    LiteLLMLoggingObj = Any
+    GatewayLoggingObj = Any
 
 
 class VertexAIDeepSeekOCRConfig(BaseOCRConfig):
@@ -230,7 +230,7 @@ class VertexAIDeepSeekOCRConfig(BaseOCRConfig):
         self,
         model: str,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         **kwargs,
     ) -> OCRResponse:
         """
@@ -353,7 +353,7 @@ class VertexAIDeepSeekOCRConfig(BaseOCRConfig):
         self,
         model: str,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         **kwargs,
     ) -> OCRResponse:
         """

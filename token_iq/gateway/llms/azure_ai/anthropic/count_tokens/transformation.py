@@ -11,7 +11,7 @@ from token_iq.gateway.llms.anthropic.count_tokens.transformation import (
     AnthropicCountTokensConfig,
 )
 from token_iq.gateway.llms.azure.common_utils import BaseAzureLLM
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 
 
 class AzureAIAnthropicCountTokensConfig(AnthropicCountTokensConfig):
@@ -53,10 +53,10 @@ class AzureAIAnthropicCountTokensConfig(AnthropicCountTokensConfig):
         if "api_key" not in litellm_params:
             litellm_params["api_key"] = api_key
 
-        litellm_params_obj: Final = GenericLiteLLMParams.model_validate(litellm_params)
+        gateway_params_obj: Final = GenericGatewayParams.model_validate(litellm_params)
 
         # Get Azure auth headers (api-key or Authorization)
-        azure_headers = BaseAzureLLM._base_validate_azure_environment(headers={}, litellm_params=litellm_params_obj)
+        azure_headers = BaseAzureLLM._base_validate_azure_environment(headers={}, litellm_params=gateway_params_obj)
 
         # Merge Azure auth headers
         headers.update(azure_headers)

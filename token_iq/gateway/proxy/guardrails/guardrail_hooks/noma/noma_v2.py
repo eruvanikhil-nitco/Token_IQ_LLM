@@ -29,7 +29,7 @@ from token_iq.gateway.types.guardrails import GuardrailEventHooks
 from token_iq.gateway.types.utils import GenericGuardrailAPIInputs, GuardrailStatus
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
     from token_iq.gateway.types.proxy.guardrails.guardrail_hooks.base import GuardrailConfigModel
 
 
@@ -140,7 +140,7 @@ class NomaV2Guardrail(CustomGuardrail):
         inputs: GenericGuardrailAPIInputs,
         request_data: dict,
         input_type: Literal["request", "response"],
-        logging_obj: Optional["LiteLLMLoggingObj"],
+        logging_obj: Optional["GatewayLoggingObj"],
         application_id: str | None,
     ) -> dict:
         payload_request_data: Final = self._sanitize_payload_for_transport(
@@ -272,7 +272,7 @@ class NomaV2Guardrail(CustomGuardrail):
         inputs: GenericGuardrailAPIInputs,
         request_data: dict,
         input_type: Literal["request", "response"],
-        logging_obj: Optional["LiteLLMLoggingObj"] = None,
+        logging_obj: Optional["GatewayLoggingObj"] = None,
     ) -> GenericGuardrailAPIInputs:
         start_time: Final = datetime.now()
         guardrail_status: GuardrailStatus = "success"

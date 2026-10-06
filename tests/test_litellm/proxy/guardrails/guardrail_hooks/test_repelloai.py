@@ -129,7 +129,7 @@ class TestRepelloAIInitialization:
         assert "asset_id" in repelloai_params
         assert "unreachable_fallback" in repelloai_params
 
-    def test_asset_id_optional_on_shared_litellm_params(self):
+    def test_asset_id_optional_on_shared_gateway_params(self):
         """asset_id is enforced at runtime (test_missing_asset_id_raises), not as a
         hard-required Pydantic field. LitellmParams inherits the RepelloAI config
         model, so a required asset_id would leak onto every other guardrail's

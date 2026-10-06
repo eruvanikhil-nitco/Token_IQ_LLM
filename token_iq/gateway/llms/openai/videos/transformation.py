@@ -14,7 +14,7 @@ from token_iq.gateway.llms.base_llm.videos.transformation import BaseVideoConfig
 from token_iq.gateway.llms.openai.image_edit.transformation import ImageEditRequestUtils
 from token_iq.gateway.secret_managers.main import get_secret_str
 from token_iq.gateway.types.llms.openai import CreateVideoRequest
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.types.videos.main import (
     CharacterObject,
     VideoCreateOptionalRequestParams,
@@ -27,14 +27,14 @@ from token_iq.gateway.types.videos.utils import (
 )
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as _LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as _GatewayLoggingObj
 
     from ...base_llm.chat.transformation import BaseLLMException as _BaseLLMException
 
-    LiteLLMLoggingObj = _LiteLLMLoggingObj
+    GatewayLoggingObj = _GatewayLoggingObj
     BaseLLMException = _BaseLLMException
 else:
-    LiteLLMLoggingObj = Any
+    GatewayLoggingObj = Any
     BaseLLMException = Any
 
 
@@ -75,7 +75,7 @@ class OpenAIVideoConfig(BaseVideoConfig):
         headers: dict,
         model: str,
         api_key: str | None = None,
-        litellm_params: GenericLiteLLMParams | None = None,
+        litellm_params: GenericGatewayParams | None = None,
     ) -> dict:
         # Use api_key from litellm_params if available, otherwise fall back to other sources
         if litellm_params and litellm_params.api_key:
@@ -112,7 +112,7 @@ class OpenAIVideoConfig(BaseVideoConfig):
         prompt: str,
         api_base: str,
         video_create_optional_request_params: dict,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> tuple[dict, RequestFiles, str]:
         """
@@ -177,7 +177,7 @@ class OpenAIVideoConfig(BaseVideoConfig):
         self,
         model: str,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         custom_llm_provider: str | None = None,
         request_data: dict | None = None,
     ) -> VideoObject:
@@ -202,7 +202,7 @@ class OpenAIVideoConfig(BaseVideoConfig):
         self,
         video_id: str,
         api_base: str,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
         variant: str | None = None,
     ) -> tuple[str, dict]:
@@ -235,7 +235,7 @@ class OpenAIVideoConfig(BaseVideoConfig):
         video_id: str,
         prompt: str,
         api_base: str,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
         extra_body: dict[str, Any] | None = None,
     ) -> tuple[str, dict]:
@@ -263,7 +263,7 @@ class OpenAIVideoConfig(BaseVideoConfig):
     def transform_video_content_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> bytes:
         """Transform the OpenAI video content download response."""
         return raw_response.content
@@ -271,7 +271,7 @@ class OpenAIVideoConfig(BaseVideoConfig):
     def transform_video_remix_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         custom_llm_provider: str | None = None,
     ) -> VideoObject:
         """
@@ -300,7 +300,7 @@ class OpenAIVideoConfig(BaseVideoConfig):
     def transform_video_list_request(
         self,
         api_base: str,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
         after: str | None = None,
         limit: int | None = None,
@@ -335,7 +335,7 @@ class OpenAIVideoConfig(BaseVideoConfig):
     def transform_video_list_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         custom_llm_provider: str | None = None,
     ) -> dict[str, str]:
         response_data: Final = raw_response.json()
@@ -377,7 +377,7 @@ class OpenAIVideoConfig(BaseVideoConfig):
         self,
         video_id: str,
         api_base: str,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> tuple[str, dict]:
         """
@@ -400,7 +400,7 @@ class OpenAIVideoConfig(BaseVideoConfig):
     def transform_video_delete_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> VideoObject:
         """
         Transform the OpenAI video delete response.
@@ -414,7 +414,7 @@ class OpenAIVideoConfig(BaseVideoConfig):
         self,
         video_id: str,
         api_base: str,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> tuple[str, dict]:
         """
@@ -435,7 +435,7 @@ class OpenAIVideoConfig(BaseVideoConfig):
     def transform_video_status_retrieve_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         custom_llm_provider: str | None = None,
     ) -> VideoObject:
         """
@@ -463,7 +463,7 @@ class OpenAIVideoConfig(BaseVideoConfig):
         name: str,
         video: FileContent,
         api_base: str,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> tuple[str, list]:
         url: Final = f"{api_base.rstrip('/')}/characters"
@@ -474,7 +474,7 @@ class OpenAIVideoConfig(BaseVideoConfig):
     def transform_video_create_character_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> CharacterObject:
         return CharacterObject.model_validate(raw_response.json())
 
@@ -482,7 +482,7 @@ class OpenAIVideoConfig(BaseVideoConfig):
         self,
         character_id: str,
         api_base: str,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> tuple[str, dict]:
         original_character_id: Final = extract_original_character_id(character_id)
@@ -493,7 +493,7 @@ class OpenAIVideoConfig(BaseVideoConfig):
     def transform_video_get_character_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> CharacterObject:
         return CharacterObject.model_validate(raw_response.json())
 
@@ -502,7 +502,7 @@ class OpenAIVideoConfig(BaseVideoConfig):
         prompt: str,
         video_id: str,
         api_base: str,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
         video_file: FileContent | None = None,
         extra_body: dict[str, object] | None = None,
@@ -528,7 +528,7 @@ class OpenAIVideoConfig(BaseVideoConfig):
     def transform_video_edit_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         custom_llm_provider: str | None = None,
         request_data: dict | None = None,
     ) -> VideoObject:
@@ -543,7 +543,7 @@ class OpenAIVideoConfig(BaseVideoConfig):
         video_id: str,
         seconds: str,
         api_base: str,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
         extra_body: dict[str, object] | None = None,
     ) -> tuple[str, dict]:
@@ -561,7 +561,7 @@ class OpenAIVideoConfig(BaseVideoConfig):
     def transform_video_extension_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         custom_llm_provider: str | None = None,
     ) -> VideoObject:
         video_obj: Final = VideoObject.model_validate(raw_response.json())

@@ -54,7 +54,7 @@ from token_iq.gateway.types.proxy.policy_engine import (
 from token_iq.gateway.types.utils import GenericGuardrailAPIInputs, ModelResponse
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 
 router: Final = APIRouter()
 
@@ -117,7 +117,7 @@ async def apply_policies(
     inputs: GenericGuardrailAPIInputs,
     request_data: dict,
     input_type: Literal["request", "response"],
-    proxy_logging_obj: "LiteLLMLoggingObj",
+    proxy_logging_obj: "GatewayLoggingObj",
     guardrail_names: list[str] | None = None,
 ) -> ApplyPoliciesResult:
     """
@@ -291,7 +291,7 @@ async def test_policies_and_guardrails(
 
     Use inputs for a single call (legacy).
     """
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
     from token_iq.gateway.proxy.proxy_server import chat_completion, proxy_logging_obj
     from token_iq.gateway.proxy.utils import handle_exception_on_proxy
 
@@ -319,7 +319,7 @@ async def test_policies_and_guardrails(
         return _serialize_chat_response(result)
 
     try:
-        logging_obj: Final = cast(LiteLLMLoggingObj, proxy_logging_obj)
+        logging_obj: Final = cast(GatewayLoggingObj, proxy_logging_obj)
 
         results: Final[list[ApplyPoliciesPerItemResult]] = []
         for inp in data.inputs_list:

@@ -272,15 +272,15 @@ def test_monkeypatch_setenv_is_not_flagged(tmp_path):
     assert _codes(tmp_path, source) == []
 
 
-def test_litellm_global_write_is_flagged(tmp_path):
+def test_gateway_global_write_is_flagged(tmp_path):
     assert _codes(tmp_path, "import litellm\n\nlitellm.drop_params = True\n") == ["TQ005"]
 
 
-def test_litellm_augmented_global_write_is_flagged(tmp_path):
+def test_gateway_augmented_global_write_is_flagged(tmp_path):
     assert _codes(tmp_path, "import litellm\n\nlitellm.num_retries += 1\n") == ["TQ005"]
 
 
-def test_litellm_attribute_read_is_not_flagged(tmp_path):
+def test_gateway_attribute_read_is_not_flagged(tmp_path):
     assert _codes(tmp_path, "import litellm\n\nvalue = litellm.drop_params\n") == []
 
 
@@ -661,7 +661,7 @@ def test_mocking_the_http_transport_is_not_flagged(tmp_path):
     assert "TQ008" not in _codes(tmp_path, source)
 
 
-def test_a_name_merely_starting_with_litellm_is_not_the_sdk(tmp_path):
+def test_a_name_merely_starting_with_gateway_is_not_the_sdk(tmp_path):
     source = (
         "from unittest.mock import patch\n\n\n"
         "def test_x():\n"

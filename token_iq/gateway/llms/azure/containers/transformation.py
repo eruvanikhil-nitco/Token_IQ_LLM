@@ -3,7 +3,7 @@ from urllib.parse import parse_qs, urlparse, urlunparse
 
 from token_iq.gateway.llms.azure.common_utils import BaseAzureLLM
 from token_iq.gateway.llms.openai.containers.transformation import OpenAIContainerConfig
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 
 # Endpoint-specific path suffixes that may appear in a deployment's api_base
 # (e.g. the responses endpoint URL is stored as api_base for Azure models).
@@ -31,7 +31,7 @@ class AzureContainerConfig(OpenAIContainerConfig):
     ) -> dict:
         return BaseAzureLLM._base_validate_azure_environment(
             headers=headers,
-            litellm_params=GenericLiteLLMParams(api_key=api_key),
+            litellm_params=GenericGatewayParams(api_key=api_key),
         )
 
     @staticmethod

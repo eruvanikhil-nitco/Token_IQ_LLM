@@ -17,7 +17,7 @@ from token_iq.gateway.llms.base_llm.chat.transformation import BaseConfig
 from token_iq.gateway.llms.base_llm.image_variations.transformation import (
     BaseImageVariationConfig,
 )
-from token_iq.gateway.llms.custom_httpx.aiohttp_transport import LiteLLMAiohttpTransport
+from token_iq.gateway.llms.custom_httpx.aiohttp_transport import GatewayAiohttpTransport
 from token_iq.gateway.llms.custom_httpx.http_handler import (
     AsyncHTTPHandler,
     HTTPHandler,
@@ -31,11 +31,11 @@ from token_iq.gateway.utils import CustomStreamWrapper, ModelResponse, ProviderC
 if TYPE_CHECKING:
     import tiktoken
 
-    from token_iq.gateway.core_utils.litellm_logging import Logging as _LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as _GatewayLoggingObj
 
-    LiteLLMLoggingObj = _LiteLLMLoggingObj
+    GatewayLoggingObj = _GatewayLoggingObj
 else:
-    LiteLLMLoggingObj = Any
+    GatewayLoggingObj = Any
 
 DEFAULT_TIMEOUT: Final = 600
 
@@ -44,7 +44,7 @@ class BaseLLMAIOHTTPHandler:
     def __init__(
         self,
         client_session: aiohttp.ClientSession | None = None,
-        transport: LiteLLMAiohttpTransport | None = None,
+        transport: GatewayAiohttpTransport | None = None,
         connector: aiohttp.BaseConnector | None = None,
     ):
         self.client_session = client_session
@@ -56,7 +56,7 @@ class BaseLLMAIOHTTPHandler:
         self.connector = connector
         self._owns_connector = connector is None  # Track if we own the connector for cleanup
 
-    def _get_or_create_transport(self) -> LiteLLMAiohttpTransport | None:
+    def _get_or_create_transport(self) -> GatewayAiohttpTransport | None:
         """Get existing transport or create a new one if needed."""
         if self.transport:
             return self.transport
@@ -267,7 +267,7 @@ class BaseLLMAIOHTTPHandler:
         timeout: float | httpx.Timeout,
         model: str,
         model_response: ModelResponse,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         messages: list,
         optional_params: dict,
         litellm_params: dict,
@@ -307,7 +307,7 @@ class BaseLLMAIOHTTPHandler:
         custom_llm_provider: str,
         model_response: ModelResponse,
         encoding,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         optional_params: dict,
         timeout: float | httpx.Timeout,
         litellm_params: dict,
@@ -493,7 +493,7 @@ class BaseLLMAIOHTTPHandler:
         timeout: float,
         litellm_params: dict,
         model_response: ImageResponse,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         api_key: str,
         model: str | None,
         image: FileTypes,
@@ -553,7 +553,7 @@ class BaseLLMAIOHTTPHandler:
         image: FileTypes,
         timeout: float,
         custom_llm_provider: str,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         optional_params: dict,
         litellm_params: dict,
         print_verbose: Callable | None = None,

@@ -28,7 +28,7 @@ from token_iq.gateway.types.agents import (
 _GEMINI_AGENT_BODY_KEYS: Final = ("base_agent", "instructions", "base_environment")
 
 # LiteLLM-internal keys that must never be forwarded to Gemini.
-_LITELLM_INTERNAL_KEYS: Final = frozenset(
+_GATEWAY_INTERNAL_KEYS: Final = frozenset(
     {
         "custom_llm_provider",
         "api_key",

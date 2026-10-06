@@ -230,7 +230,7 @@ class BaseOpenAILLM:
         openai_client: OpenAI | AsyncOpenAI | AzureOpenAI | AsyncAzureOpenAI,
         client_type: Literal["openai", "azure"],
         client_initialization_params: dict,
-        litellm_owned_client: bool = False,
+        gateway_owned_client: bool = False,
     ):
         """Stores the OpenAI client in the in-memory cache for _DEFAULT_TTL_FOR_HTTPX_CLIENTS SECONDS
 
@@ -245,7 +245,7 @@ class BaseOpenAILLM:
             key=_cache_key,
             value=openai_client,
             ttl=_DEFAULT_TTL_FOR_HTTPX_CLIENTS,
-            litellm_owned_client=litellm_owned_client,
+            gateway_owned_client=gateway_owned_client,
         )
 
     @staticmethod

@@ -11,11 +11,11 @@ from token_iq import gateway
 from token_iq.gateway.constants import DEFAULT_VIDEO_ENDPOINT_MODEL
 from token_iq.gateway.constants import request_timeout as DEFAULT_REQUEST_TIMEOUT
 from token_iq.gateway.core_utils.get_llm_provider_logic import get_llm_provider
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.llms.base_llm.videos.transformation import BaseVideoConfig
 from token_iq.gateway.llms.custom_httpx.llm_http_handler import BaseLLMHTTPHandler
 from token_iq.gateway.main import base_llm_http_handler
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.types.utils import CallTypes, FileTypes
 from token_iq.gateway.types.videos.main import (
     CharacterObject,
@@ -185,7 +185,7 @@ def video_generation(
     """
     local_vars: Final = locals()
     try:
-        litellm_logging_obj: Final[LiteLLMLoggingObj] = kwargs.pop("litellm_logging_obj")
+        litellm_logging_obj: Final[GatewayLoggingObj] = kwargs.pop("litellm_logging_obj")
         litellm_call_id: Final[str | None] = kwargs.get("litellm_call_id", None)
         _is_async: Final = kwargs.pop("async_call", False) is True
 
@@ -199,7 +199,7 @@ def video_generation(
             return response
 
         # get llm provider logic
-        litellm_params: Final = GenericLiteLLMParams(**kwargs)
+        litellm_params: Final = GenericGatewayParams(**kwargs)
         model, custom_llm_provider, _, _ = get_llm_provider(
             model=model or DEFAULT_VIDEO_ENDPOINT_MODEL,
             custom_llm_provider=custom_llm_provider,
@@ -313,7 +313,7 @@ def video_content(
     """
     local_vars: Final = locals()
     try:
-        litellm_logging_obj: Final[LiteLLMLoggingObj] = kwargs.get("litellm_logging_obj")
+        litellm_logging_obj: Final[GatewayLoggingObj] = kwargs.get("litellm_logging_obj")
         litellm_call_id: Final[str | None] = kwargs.get("litellm_call_id", None)
         _is_async: Final = kwargs.pop("async_call", False) is True
 
@@ -323,7 +323,7 @@ def video_content(
             custom_llm_provider = decoded.get("custom_llm_provider") or "openai"
 
         # get llm provider logic
-        litellm_params: Final = GenericLiteLLMParams(**kwargs)
+        litellm_params: Final = GenericGatewayParams(**kwargs)
 
         # get provider config
         video_provider_config: Final[BaseVideoConfig | None] = ProviderConfigManager.get_provider_video_config(
@@ -573,7 +573,7 @@ def video_remix(
     """
     local_vars: Final = locals()
     try:
-        litellm_logging_obj: Final[LiteLLMLoggingObj] = kwargs.pop("litellm_logging_obj")
+        litellm_logging_obj: Final[GatewayLoggingObj] = kwargs.pop("litellm_logging_obj")
         litellm_call_id: Final[str | None] = kwargs.get("litellm_call_id", None)
         _is_async: Final = kwargs.pop("async_call", False) is True
 
@@ -592,7 +592,7 @@ def video_remix(
             custom_llm_provider = decoded.get("custom_llm_provider") or "openai"
 
         # get llm provider logic
-        litellm_params: Final = GenericLiteLLMParams(**kwargs)
+        litellm_params: Final = GenericGatewayParams(**kwargs)
 
         # get provider config
         video_remix_provider_config: Final[BaseVideoConfig | None] = ProviderConfigManager.get_provider_video_config(
@@ -788,7 +788,7 @@ def video_list(
     """
     local_vars: Final = locals()
     try:
-        litellm_logging_obj: Final[LiteLLMLoggingObj] = kwargs.get("litellm_logging_obj")
+        litellm_logging_obj: Final[GatewayLoggingObj] = kwargs.get("litellm_logging_obj")
         litellm_call_id: Final[str | None] = kwargs.get("litellm_call_id", None)
         _is_async: Final = kwargs.pop("async_call", False) is True
 
@@ -804,7 +804,7 @@ def video_list(
             custom_llm_provider = "openai"
 
         # get llm provider logic
-        litellm_params: Final = GenericLiteLLMParams(**kwargs)
+        litellm_params: Final = GenericGatewayParams(**kwargs)
 
         # get provider config
         video_list_provider_config: Final[BaseVideoConfig | None] = ProviderConfigManager.get_provider_video_config(
@@ -1006,7 +1006,7 @@ def video_status(
     """
     local_vars: Final = locals()
     try:
-        litellm_logging_obj: Final[LiteLLMLoggingObj] = kwargs.get("litellm_logging_obj")
+        litellm_logging_obj: Final[GatewayLoggingObj] = kwargs.get("litellm_logging_obj")
         litellm_call_id: Final[str | None] = kwargs.get("litellm_call_id", None)
         _is_async: Final = kwargs.pop("async_call", False) is True
 
@@ -1025,7 +1025,7 @@ def video_status(
             custom_llm_provider = decoded.get("custom_llm_provider") or "openai"
 
         # get llm provider logic
-        litellm_params: Final = GenericLiteLLMParams(**kwargs)
+        litellm_params: Final = GenericGatewayParams(**kwargs)
 
         # get provider config
         video_status_provider_config: Final[BaseVideoConfig | None] = ProviderConfigManager.get_provider_video_config(
@@ -1154,7 +1154,7 @@ def video_create_character(
     """
     local_vars: Final = locals()
     try:
-        litellm_logging_obj: Final[LiteLLMLoggingObj] = kwargs.pop("litellm_logging_obj")
+        litellm_logging_obj: Final[GatewayLoggingObj] = kwargs.pop("litellm_logging_obj")
         litellm_call_id: Final[str | None] = kwargs.get("litellm_call_id", None)
         _is_async: Final = kwargs.pop("async_call", False) is True
 
@@ -1167,7 +1167,7 @@ def video_create_character(
         if custom_llm_provider is None:
             custom_llm_provider = "openai"
 
-        litellm_params: Final = GenericLiteLLMParams(**kwargs)
+        litellm_params: Final = GenericGatewayParams(**kwargs)
 
         provider_config: Final[BaseVideoConfig | None] = ProviderConfigManager.get_provider_video_config(
             model=None,
@@ -1279,7 +1279,7 @@ def video_get_character(
     """
     local_vars: Final = locals()
     try:
-        litellm_logging_obj: Final[LiteLLMLoggingObj] = kwargs.pop("litellm_logging_obj")
+        litellm_logging_obj: Final[GatewayLoggingObj] = kwargs.pop("litellm_logging_obj")
         litellm_call_id: Final[str | None] = kwargs.get("litellm_call_id", None)
         _is_async: Final = kwargs.pop("async_call", False) is True
 
@@ -1292,7 +1292,7 @@ def video_get_character(
         if custom_llm_provider is None:
             custom_llm_provider = "openai"
 
-        litellm_params: Final = GenericLiteLLMParams(**kwargs)
+        litellm_params: Final = GenericGatewayParams(**kwargs)
 
         provider_config: Final[BaseVideoConfig | None] = ProviderConfigManager.get_provider_video_config(
             model=None,
@@ -1411,7 +1411,7 @@ def video_edit(
     """
     local_vars: Final = locals()
     try:
-        litellm_logging_obj: Final[LiteLLMLoggingObj] = kwargs.pop("litellm_logging_obj")
+        litellm_logging_obj: Final[GatewayLoggingObj] = kwargs.pop("litellm_logging_obj")
         litellm_call_id: Final[str | None] = kwargs.get("litellm_call_id", None)
         _is_async: Final = kwargs.pop("async_call", False) is True
 
@@ -1425,7 +1425,7 @@ def video_edit(
             decoded: Final = decode_video_id_with_provider(video_id)
             custom_llm_provider = decoded.get("custom_llm_provider") or "openai"
 
-        litellm_params: Final = GenericLiteLLMParams(**kwargs)
+        litellm_params: Final = GenericGatewayParams(**kwargs)
 
         provider_config: Final[BaseVideoConfig | None] = ProviderConfigManager.get_provider_video_config(
             model=None,
@@ -1545,7 +1545,7 @@ def video_extension(
     """
     local_vars: Final = locals()
     try:
-        litellm_logging_obj: Final[LiteLLMLoggingObj] = kwargs.pop("litellm_logging_obj")
+        litellm_logging_obj: Final[GatewayLoggingObj] = kwargs.pop("litellm_logging_obj")
         litellm_call_id: Final[str | None] = kwargs.get("litellm_call_id", None)
         _is_async: Final = kwargs.pop("async_call", False) is True
 
@@ -1559,7 +1559,7 @@ def video_extension(
             decoded: Final = decode_video_id_with_provider(video_id)
             custom_llm_provider = decoded.get("custom_llm_provider") or "openai"
 
-        litellm_params: Final = GenericLiteLLMParams(**kwargs)
+        litellm_params: Final = GenericGatewayParams(**kwargs)
 
         provider_config: Final[BaseVideoConfig | None] = ProviderConfigManager.get_provider_video_config(
             model=None,

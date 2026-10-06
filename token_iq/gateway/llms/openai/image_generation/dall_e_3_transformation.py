@@ -11,7 +11,7 @@ from token_iq.gateway.utils import convert_to_model_response_object
 
 if TYPE_CHECKING:
     import tiktoken
-    from token_iq.gateway.core_utils.logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.logging import Logging as GatewayLoggingObj
 
 
 class DallE3ImageGenerationConfig(BaseImageGenerationConfig):
@@ -48,7 +48,7 @@ class DallE3ImageGenerationConfig(BaseImageGenerationConfig):
         model: str,
         raw_response: httpx.Response,
         model_response: ImageResponse,
-        logging_obj: "LiteLLMLoggingObj",
+        logging_obj: "GatewayLoggingObj",
         request_data: dict,
         optional_params: dict,
         litellm_params: dict,

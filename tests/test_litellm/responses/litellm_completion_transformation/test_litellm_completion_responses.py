@@ -5,7 +5,7 @@ import pytest
 
 from token_iq.gateway.responses.litellm_completion_transformation.transformation import (
     TOOL_CALLS_CACHE,
-    LiteLLMCompletionResponsesConfig,
+    GatewayCompletionResponsesConfig,
 )
 from token_iq.gateway.types.utils import (
     ChatCompletionMessageToolCall,
@@ -19,7 +19,7 @@ from token_iq.gateway.types.utils import (
 )
 
 
-class TestLiteLLMCompletionResponsesConfig:
+class TestGatewayCompletionResponsesConfig:
     def test_transform_input_file_item_to_file_item_with_file_id(self):
         """Test transformation of input_file item with file_id to Chat Completion file format"""
         # Setup
@@ -27,7 +27,7 @@ class TestLiteLLMCompletionResponsesConfig:
 
         # Execute
         result = (
-            LiteLLMCompletionResponsesConfig._transform_input_file_item_to_file_item(
+            GatewayCompletionResponsesConfig._transform_input_file_item_to_file_item(
                 input_item
             )
         )
@@ -46,7 +46,7 @@ class TestLiteLLMCompletionResponsesConfig:
 
         # Execute
         result = (
-            LiteLLMCompletionResponsesConfig._transform_input_file_item_to_file_item(
+            GatewayCompletionResponsesConfig._transform_input_file_item_to_file_item(
                 input_item
             )
         )
@@ -68,7 +68,7 @@ class TestLiteLLMCompletionResponsesConfig:
 
         # Execute
         result = (
-            LiteLLMCompletionResponsesConfig._transform_input_file_item_to_file_item(
+            GatewayCompletionResponsesConfig._transform_input_file_item_to_file_item(
                 input_item
             )
         )
@@ -90,7 +90,7 @@ class TestLiteLLMCompletionResponsesConfig:
 
         # Execute
         result = (
-            LiteLLMCompletionResponsesConfig._transform_input_file_item_to_file_item(
+            GatewayCompletionResponsesConfig._transform_input_file_item_to_file_item(
                 input_item
             )
         )
@@ -113,7 +113,7 @@ class TestLiteLLMCompletionResponsesConfig:
 
         # Execute
         result = (
-            LiteLLMCompletionResponsesConfig._transform_input_file_item_to_file_item(
+            GatewayCompletionResponsesConfig._transform_input_file_item_to_file_item(
                 input_item
             )
         )
@@ -127,7 +127,7 @@ class TestLiteLLMCompletionResponsesConfig:
     def test_transform_input_file_item_to_file_item_keeps_filename(self):
         """OpenAI rejects file_data with no filename beside it, so dropping it 400s the request"""
         result = (
-            LiteLLMCompletionResponsesConfig._transform_input_file_item_to_file_item(
+            GatewayCompletionResponsesConfig._transform_input_file_item_to_file_item(
                 {
                     "type": "input_file",
                     "filename": "report.pdf",
@@ -146,7 +146,7 @@ class TestLiteLLMCompletionResponsesConfig:
     def test_transform_input_file_item_to_file_item_with_file_url(self):
         """file_url should be mapped to file_id for downstream URL handling"""
         result = (
-            LiteLLMCompletionResponsesConfig._transform_input_file_item_to_file_item(
+            GatewayCompletionResponsesConfig._transform_input_file_item_to_file_item(
                 {"type": "input_file", "file_url": "https://example.com/doc.pdf"}
             )
         )
@@ -158,7 +158,7 @@ class TestLiteLLMCompletionResponsesConfig:
     def test_transform_input_file_item_file_id_takes_precedence_over_file_url(self):
         """explicit file_id should not be overwritten by file_url"""
         result = (
-            LiteLLMCompletionResponsesConfig._transform_input_file_item_to_file_item(
+            GatewayCompletionResponsesConfig._transform_input_file_item_to_file_item(
                 {
                     "type": "input_file",
                     "file_id": "file-abc123",
@@ -176,7 +176,7 @@ class TestLiteLLMCompletionResponsesConfig:
 
         # Execute
         result = (
-            LiteLLMCompletionResponsesConfig._transform_input_image_item_to_image_item(
+            GatewayCompletionResponsesConfig._transform_input_image_item_to_image_item(
                 input_item
             )
         )
@@ -199,7 +199,7 @@ class TestLiteLLMCompletionResponsesConfig:
 
         # Execute
         result = (
-            LiteLLMCompletionResponsesConfig._transform_input_image_item_to_image_item(
+            GatewayCompletionResponsesConfig._transform_input_image_item_to_image_item(
                 input_item
             )
         )
@@ -222,7 +222,7 @@ class TestLiteLLMCompletionResponsesConfig:
 
         # Execute
         result = (
-            LiteLLMCompletionResponsesConfig._transform_input_image_item_to_image_item(
+            GatewayCompletionResponsesConfig._transform_input_image_item_to_image_item(
                 input_item
             )
         )
@@ -244,7 +244,7 @@ class TestLiteLLMCompletionResponsesConfig:
 
         # Execute
         result = (
-            LiteLLMCompletionResponsesConfig._transform_input_image_item_to_image_item(
+            GatewayCompletionResponsesConfig._transform_input_image_item_to_image_item(
                 input_item
             )
         )
@@ -268,7 +268,7 @@ class TestLiteLLMCompletionResponsesConfig:
 
         # Execute
         result = (
-            LiteLLMCompletionResponsesConfig._transform_input_image_item_to_image_item(
+            GatewayCompletionResponsesConfig._transform_input_image_item_to_image_item(
                 input_item
             )
         )
@@ -307,7 +307,7 @@ class TestLiteLLMCompletionResponsesConfig:
         )
 
         # Execute
-        responses_api_response = LiteLLMCompletionResponsesConfig.transform_chat_completion_response_to_responses_api_response(
+        responses_api_response = GatewayCompletionResponsesConfig.transform_chat_completion_response_to_responses_api_response(
             request_input="What is the meaning of life?",
             responses_api_request={},
             chat_completion_response=chat_completion_response,
@@ -365,7 +365,7 @@ class TestLiteLLMCompletionResponsesConfig:
         )
 
         # Execute
-        responses_api_response = LiteLLMCompletionResponsesConfig.transform_chat_completion_response_to_responses_api_response(
+        responses_api_response = GatewayCompletionResponsesConfig.transform_chat_completion_response_to_responses_api_response(
             request_input="A simple question?",
             responses_api_request={},
             chat_completion_response=chat_completion_response,
@@ -415,7 +415,7 @@ class TestLiteLLMCompletionResponsesConfig:
         )
 
         # Execute
-        responses_api_response = LiteLLMCompletionResponsesConfig.transform_chat_completion_response_to_responses_api_response(
+        responses_api_response = GatewayCompletionResponsesConfig.transform_chat_completion_response_to_responses_api_response(
             request_input="A question with multiple answers?",
             responses_api_request={},
             chat_completion_response=chat_completion_response,
@@ -455,7 +455,7 @@ class TestLiteLLMCompletionResponsesConfig:
             ],
         )
 
-        responses_api_response = LiteLLMCompletionResponsesConfig.transform_chat_completion_response_to_responses_api_response(
+        responses_api_response = GatewayCompletionResponsesConfig.transform_chat_completion_response_to_responses_api_response(
             request_input="Test input",
             responses_api_request={},
             chat_completion_response=response,
@@ -487,7 +487,7 @@ class TestLiteLLMCompletionResponsesConfig:
             ],
         )
 
-        responses_api_response = LiteLLMCompletionResponsesConfig.transform_chat_completion_response_to_responses_api_response(
+        responses_api_response = GatewayCompletionResponsesConfig.transform_chat_completion_response_to_responses_api_response(
             request_input="Test input",
             responses_api_request={},
             chat_completion_response=response,
@@ -521,7 +521,7 @@ class TestLiteLLMCompletionResponsesConfig:
             ],
         )
 
-        responses_api_response = LiteLLMCompletionResponsesConfig.transform_chat_completion_response_to_responses_api_response(
+        responses_api_response = GatewayCompletionResponsesConfig.transform_chat_completion_response_to_responses_api_response(
             request_input="Test input",
             responses_api_request={},
             chat_completion_response=response,
@@ -558,7 +558,7 @@ class TestLiteLLMCompletionResponsesConfig:
             ],
         )
 
-        responses_api_response = LiteLLMCompletionResponsesConfig.transform_chat_completion_response_to_responses_api_response(
+        responses_api_response = GatewayCompletionResponsesConfig.transform_chat_completion_response_to_responses_api_response(
             request_input="this is a test",
             responses_api_request={},
             chat_completion_response=chat_completion_response,
@@ -597,7 +597,7 @@ class TestLiteLLMCompletionResponsesConfig:
             ],
         )
 
-        responses_api_response = LiteLLMCompletionResponsesConfig.transform_chat_completion_response_to_responses_api_response(
+        responses_api_response = GatewayCompletionResponsesConfig.transform_chat_completion_response_to_responses_api_response(
             request_input="this is a test",
             responses_api_request={},
             chat_completion_response=chat_completion_response,
@@ -640,7 +640,7 @@ class TestLiteLLMCompletionResponsesConfig:
             ],
         )
 
-        responses_api_response = LiteLLMCompletionResponsesConfig.transform_chat_completion_response_to_responses_api_response(
+        responses_api_response = GatewayCompletionResponsesConfig.transform_chat_completion_response_to_responses_api_response(
             request_input="this is a test",
             responses_api_request={},
             chat_completion_response=chat_completion_response,
@@ -678,7 +678,7 @@ class TestLiteLLMCompletionResponsesConfig:
             ],
         )
 
-        responses_api_response = LiteLLMCompletionResponsesConfig.transform_chat_completion_response_to_responses_api_response(
+        responses_api_response = GatewayCompletionResponsesConfig.transform_chat_completion_response_to_responses_api_response(
             request_input="what's the weather in SF?",
             responses_api_request={},
             chat_completion_response=chat_completion_response,
@@ -704,7 +704,7 @@ class TestLiteLLMCompletionResponsesConfig:
             ],
         )
 
-        responses_api_response = LiteLLMCompletionResponsesConfig.transform_chat_completion_response_to_responses_api_response(
+        responses_api_response = GatewayCompletionResponsesConfig.transform_chat_completion_response_to_responses_api_response(
             request_input="what's the weather in SF?",
             responses_api_request={},
             chat_completion_response=chat_completion_response,
@@ -741,7 +741,7 @@ class TestLiteLLMCompletionResponsesConfig:
         }
 
         # Execute
-        responses_api_response = LiteLLMCompletionResponsesConfig.transform_chat_completion_response_to_responses_api_response(
+        responses_api_response = GatewayCompletionResponsesConfig.transform_chat_completion_response_to_responses_api_response(
             request_input="Test",
             responses_api_request={},
             chat_completion_response=chat_completion_response,
@@ -776,7 +776,7 @@ class TestLiteLLMCompletionResponsesConfig:
         )
 
         # Execute
-        responses_api_response = LiteLLMCompletionResponsesConfig.transform_chat_completion_response_to_responses_api_response(
+        responses_api_response = GatewayCompletionResponsesConfig.transform_chat_completion_response_to_responses_api_response(
             request_input="Test",
             responses_api_request={},
             chat_completion_response=chat_completion_response,
@@ -816,7 +816,7 @@ class TestLiteLLMCompletionResponsesConfig:
         )
 
         try:
-            responses_api_response = LiteLLMCompletionResponsesConfig.transform_chat_completion_response_to_responses_api_response(
+            responses_api_response = GatewayCompletionResponsesConfig.transform_chat_completion_response_to_responses_api_response(
                 request_input="Spawn an agent",
                 responses_api_request={
                     "tools": [
@@ -883,7 +883,7 @@ class TestLiteLLMCompletionResponsesConfig:
         )
 
         try:
-            responses_api_response = LiteLLMCompletionResponsesConfig.transform_chat_completion_response_to_responses_api_response(
+            responses_api_response = GatewayCompletionResponsesConfig.transform_chat_completion_response_to_responses_api_response(
                 request_input="What is the weather in Paris?",
                 responses_api_request={
                     "tools": [
@@ -949,7 +949,7 @@ class TestLiteLLMCompletionResponsesConfig:
         }
 
         try:
-            response = LiteLLMCompletionResponsesConfig.transform_chat_completion_response_to_responses_api_response(
+            response = GatewayCompletionResponsesConfig.transform_chat_completion_response_to_responses_api_response(
                 request_input="Run the tool",
                 responses_api_request=responses_api_request,
                 chat_completion_response=chat_completion_response,
@@ -983,24 +983,24 @@ class TestFunctionCallTransformation:
         regular_message = {"type": "message", "role": "user", "content": "Hello"}
 
         # Test function_call detection
-        assert LiteLLMCompletionResponsesConfig._is_input_item_function_call(
+        assert GatewayCompletionResponsesConfig._is_input_item_function_call(
             function_call_item
         )
-        assert not LiteLLMCompletionResponsesConfig._is_input_item_function_call(
+        assert not GatewayCompletionResponsesConfig._is_input_item_function_call(
             function_call_output_item
         )
-        assert not LiteLLMCompletionResponsesConfig._is_input_item_function_call(
+        assert not GatewayCompletionResponsesConfig._is_input_item_function_call(
             regular_message
         )
 
         # Test function_call_output detection (should still work)
-        assert LiteLLMCompletionResponsesConfig._is_input_item_tool_call_output(
+        assert GatewayCompletionResponsesConfig._is_input_item_tool_call_output(
             function_call_output_item
         )
-        assert not LiteLLMCompletionResponsesConfig._is_input_item_tool_call_output(
+        assert not GatewayCompletionResponsesConfig._is_input_item_tool_call_output(
             function_call_item
         )
-        assert not LiteLLMCompletionResponsesConfig._is_input_item_tool_call_output(
+        assert not GatewayCompletionResponsesConfig._is_input_item_tool_call_output(
             regular_message
         )
 
@@ -1015,7 +1015,7 @@ class TestFunctionCallTransformation:
             "status": "completed",
         }
 
-        result = LiteLLMCompletionResponsesConfig._transform_responses_api_function_call_to_chat_completion_message(
+        result = GatewayCompletionResponsesConfig._transform_responses_api_function_call_to_chat_completion_message(
             function_call=function_call_item
         )
 
@@ -1040,7 +1040,7 @@ class TestFunctionCallTransformation:
 
     def test_function_call_transformation_normalizes_redacted_arguments(self):
         """Redacted rows hold the bare sentinel in arguments, which is invalid JSON."""
-        result = LiteLLMCompletionResponsesConfig._transform_responses_api_function_call_to_chat_completion_message(
+        result = GatewayCompletionResponsesConfig._transform_responses_api_function_call_to_chat_completion_message(
             function_call={
                 "type": "function_call",
                 "name": "get_weather",
@@ -1068,7 +1068,7 @@ class TestFunctionCallTransformation:
             "status": "completed",
         }
 
-        result = LiteLLMCompletionResponsesConfig._transform_responses_api_function_call_to_chat_completion_message(
+        result = GatewayCompletionResponsesConfig._transform_responses_api_function_call_to_chat_completion_message(
             function_call=function_call_item
         )
 
@@ -1078,7 +1078,7 @@ class TestFunctionCallTransformation:
 
     def test_create_tool_call_chunk_json_encodes_object_arguments(self):
         """Cached tool_call definitions with object arguments stay valid JSON."""
-        chunk = LiteLLMCompletionResponsesConfig._create_tool_call_chunk(
+        chunk = GatewayCompletionResponsesConfig._create_tool_call_chunk(
             tool_use_definition={
                 "id": "call_456",
                 "type": "function",
@@ -1092,7 +1092,7 @@ class TestFunctionCallTransformation:
 
     def test_create_tool_call_chunk_keeps_empty_arguments_default(self):
         """Missing arguments still fall back to an empty JSON object."""
-        chunk = LiteLLMCompletionResponsesConfig._create_tool_call_chunk(
+        chunk = GatewayCompletionResponsesConfig._create_tool_call_chunk(
             tool_use_definition={"id": "call_789", "type": "function", "function": {"name": "shell"}},
             tool_call_id="call_789",
             index=0,
@@ -1124,7 +1124,7 @@ class TestFunctionCallTransformation:
         ]
 
         # This should not raise an error (previously would raise "Invalid content type: <class 'NoneType'>")
-        messages = LiteLLMCompletionResponsesConfig._transform_response_input_param_to_chat_completion_message(
+        messages = GatewayCompletionResponsesConfig._transform_response_input_param_to_chat_completion_message(
             input=test_input
         )
 
@@ -1197,7 +1197,7 @@ class TestFunctionCallTransformation:
         responses_api_request = {"store": False, "tools": tools}
 
         # This should work without errors for non-OpenAI models
-        result = LiteLLMCompletionResponsesConfig.transform_responses_api_request_to_chat_completion_request(
+        result = GatewayCompletionResponsesConfig.transform_responses_api_request_to_chat_completion_request(
             model="gemini/gemini-2.0-flash",
             input=test_input,
             responses_api_request=responses_api_request,
@@ -1227,7 +1227,7 @@ class TestFunctionCallTransformation:
 
     def test_drops_tool_choice_when_no_tools(self):
         """Chat completions providers reject tool_choice when no tools are present."""
-        result = LiteLLMCompletionResponsesConfig.transform_responses_api_request_to_chat_completion_request(
+        result = GatewayCompletionResponsesConfig.transform_responses_api_request_to_chat_completion_request(
             model="azure_ai/grok-4.3",
             input="who are you?",
             responses_api_request={"tool_choice": "auto", "tools": []},
@@ -1246,7 +1246,7 @@ class TestFunctionCallTransformation:
             "id": "fallback_id",  # Only has 'id', not 'call_id'
         }
 
-        result = LiteLLMCompletionResponsesConfig._transform_responses_api_function_call_to_chat_completion_message(
+        result = GatewayCompletionResponsesConfig._transform_responses_api_function_call_to_chat_completion_message(
             function_call=function_call_item
         )
 
@@ -1286,7 +1286,7 @@ class TestFunctionCallTransformation:
         ]
 
         try:
-            fixed_messages = LiteLLMCompletionResponsesConfig._ensure_tool_results_have_corresponding_tool_calls(
+            fixed_messages = GatewayCompletionResponsesConfig._ensure_tool_results_have_corresponding_tool_calls(
                 messages=messages_missing_tool_calls,
                 tools=None,
             )
@@ -1342,7 +1342,7 @@ class TestFunctionCallTransformation:
         ]
 
         try:
-            fixed_messages = LiteLLMCompletionResponsesConfig._ensure_tool_results_have_corresponding_tool_calls(
+            fixed_messages = GatewayCompletionResponsesConfig._ensure_tool_results_have_corresponding_tool_calls(
                 messages=messages_missing_tool_calls,
                 tools=None,
             )
@@ -1367,7 +1367,7 @@ class TestToolChoiceTransformation:
         Test that {"type": "tool"} is transformed to "required".
         This fixes the Anthropic error: "tool_choice.tool.name: Field required"
         """
-        result = LiteLLMCompletionResponsesConfig._transform_tool_choice(
+        result = GatewayCompletionResponsesConfig._transform_tool_choice(
             {"type": "tool"}
         )
         assert result == "required"
@@ -1375,13 +1375,13 @@ class TestToolChoiceTransformation:
     def test_transform_tool_choice_preserves_function_with_name(self):
         """Test that valid OpenAI format with function name passes through unchanged"""
         tool_choice = {"type": "function", "function": {"name": "my_tool"}}
-        result = LiteLLMCompletionResponsesConfig._transform_tool_choice(tool_choice)
+        result = GatewayCompletionResponsesConfig._transform_tool_choice(tool_choice)
         assert result == tool_choice
 
     def test_transform_tool_choice_responses_flat_function_name(self):
         """Responses-API forced-function with a top-level name maps to the nested Chat
         Completions shape instead of degrading to required and dropping the name"""
-        result = LiteLLMCompletionResponsesConfig._transform_tool_choice(
+        result = GatewayCompletionResponsesConfig._transform_tool_choice(
             {"type": "function", "name": "get_weather"}
         )
         assert result == {"type": "function", "function": {"name": "get_weather"}}
@@ -1393,30 +1393,30 @@ class TestToolChoiceTransformation:
         function tool_choice naming the same tool or it references a tool type absent
         from the converted request.
         """
-        flat = LiteLLMCompletionResponsesConfig._transform_tool_choice(
+        flat = GatewayCompletionResponsesConfig._transform_tool_choice(
             {"type": "custom", "name": "ApplyPatch"}
         )
         assert flat == {"type": "function", "function": {"name": "ApplyPatch"}}
 
-        nested = LiteLLMCompletionResponsesConfig._transform_tool_choice(
+        nested = GatewayCompletionResponsesConfig._transform_tool_choice(
             {"type": "custom", "custom": {"name": "ApplyPatch"}}
         )
         assert nested == {"type": "function", "function": {"name": "ApplyPatch"}}
 
     def test_transform_tool_choice_custom_without_name_falls_back_to_required(self):
-        result = LiteLLMCompletionResponsesConfig._transform_tool_choice({"type": "custom"})
+        result = GatewayCompletionResponsesConfig._transform_tool_choice({"type": "custom"})
         assert result == "required"
 
     def test_transform_tool_choice_function_without_name_falls_back_to_required(self):
         """A function-type dict with no name still falls back to required"""
-        result = LiteLLMCompletionResponsesConfig._transform_tool_choice(
+        result = GatewayCompletionResponsesConfig._transform_tool_choice(
             {"type": "function"}
         )
         assert result == "required"
 
     def test_transform_tool_choice_function_empty_name_falls_back_to_required(self):
         """An empty top-level name is falsy and must not produce an empty function name"""
-        result = LiteLLMCompletionResponsesConfig._transform_tool_choice(
+        result = GatewayCompletionResponsesConfig._transform_tool_choice(
             {"type": "function", "name": ""}
         )
         assert result == "required"
@@ -1431,7 +1431,7 @@ class TestContentTypeTransformation:
         This fixes: Invalid user message - content type 'tool_result' not valid.
         """
         result = (
-            LiteLLMCompletionResponsesConfig._get_chat_completion_request_content_type(
+            GatewayCompletionResponsesConfig._get_chat_completion_request_content_type(
                 "tool_result"
             )
         )
@@ -1440,7 +1440,7 @@ class TestContentTypeTransformation:
     def test_input_text_content_type_transformed_to_text(self):
         """Test that 'input_text' content type is transformed to 'text'"""
         result = (
-            LiteLLMCompletionResponsesConfig._get_chat_completion_request_content_type(
+            GatewayCompletionResponsesConfig._get_chat_completion_request_content_type(
                 "input_text"
             )
         )
@@ -1457,7 +1457,7 @@ class TestContentTypeTransformation:
             {"type": "text", "text": None},  # Should be filtered out
             {"type": "text", "text": "another valid"},
         ]
-        result = LiteLLMCompletionResponsesConfig._transform_responses_api_content_to_chat_completion_content(
+        result = GatewayCompletionResponsesConfig._transform_responses_api_content_to_chat_completion_content(
             content
         )
         assert len(result) == 2
@@ -1478,7 +1478,7 @@ class TestContentTypeTransformation:
             },
         ]
 
-        result = LiteLLMCompletionResponsesConfig._transform_responses_api_content_to_chat_completion_content(
+        result = GatewayCompletionResponsesConfig._transform_responses_api_content_to_chat_completion_content(
             content
         )
 
@@ -1504,7 +1504,7 @@ class TestToolTransformation:
         (
             result_tools,
             web_search_options,
-        ) = LiteLLMCompletionResponsesConfig.transform_responses_api_tools_to_chat_completion_tools(
+        ) = GatewayCompletionResponsesConfig.transform_responses_api_tools_to_chat_completion_tools(
             tools=tools
         )
 
@@ -1528,7 +1528,7 @@ class TestToolTransformation:
         (
             result_tools,
             web_search_options,
-        ) = LiteLLMCompletionResponsesConfig.transform_responses_api_tools_to_chat_completion_tools(
+        ) = GatewayCompletionResponsesConfig.transform_responses_api_tools_to_chat_completion_tools(
             tools=tools
         )
 
@@ -1558,7 +1558,7 @@ class TestToolTransformation:
         (
             result_tools,
             web_search_options,
-        ) = LiteLLMCompletionResponsesConfig.transform_responses_api_tools_to_chat_completion_tools(
+        ) = GatewayCompletionResponsesConfig.transform_responses_api_tools_to_chat_completion_tools(
             tools=tools
         )
 
@@ -1585,7 +1585,7 @@ class TestToolTransformation:
         (
             result_tools,
             web_search_options,
-        ) = LiteLLMCompletionResponsesConfig.transform_responses_api_tools_to_chat_completion_tools(
+        ) = GatewayCompletionResponsesConfig.transform_responses_api_tools_to_chat_completion_tools(
             tools=tools
         )
 
@@ -1612,7 +1612,7 @@ class TestToolTransformation:
         (
             result_tools,
             web_search_options,
-        ) = LiteLLMCompletionResponsesConfig.transform_responses_api_tools_to_chat_completion_tools(
+        ) = GatewayCompletionResponsesConfig.transform_responses_api_tools_to_chat_completion_tools(
             tools=tools
         )
 
@@ -1638,7 +1638,7 @@ class TestToolTransformation:
         (
             result_tools,
             _,
-        ) = LiteLLMCompletionResponsesConfig.transform_responses_api_tools_to_chat_completion_tools(
+        ) = GatewayCompletionResponsesConfig.transform_responses_api_tools_to_chat_completion_tools(
             tools=tools
         )
 
@@ -1661,7 +1661,7 @@ class TestToolTransformation:
         (
             result_tools,
             _,
-        ) = LiteLLMCompletionResponsesConfig.transform_responses_api_tools_to_chat_completion_tools(
+        ) = GatewayCompletionResponsesConfig.transform_responses_api_tools_to_chat_completion_tools(
             tools=tools
         )
 
@@ -1682,7 +1682,7 @@ class TestToolTransformation:
         tools = [custom_tool]
 
         with pytest.raises(ValueError, match="allowed_callers must be a list of strings"):
-            LiteLLMCompletionResponsesConfig.transform_responses_api_tools_to_chat_completion_tools(
+            GatewayCompletionResponsesConfig.transform_responses_api_tools_to_chat_completion_tools(
                 tools=tools
             )
 
@@ -1700,7 +1700,7 @@ class TestToolTransformation:
         (
             result_tools,
             web_search_options,
-        ) = LiteLLMCompletionResponsesConfig.transform_responses_api_tools_to_chat_completion_tools(
+        ) = GatewayCompletionResponsesConfig.transform_responses_api_tools_to_chat_completion_tools(
             tools=tools
         )
 
@@ -1733,7 +1733,7 @@ class TestToolTransformation:
         (
             result_tools,
             web_search_options,
-        ) = LiteLLMCompletionResponsesConfig.transform_responses_api_tools_to_chat_completion_tools(
+        ) = GatewayCompletionResponsesConfig.transform_responses_api_tools_to_chat_completion_tools(
             tools=tools
         )
 
@@ -1765,7 +1765,7 @@ class TestToolTransformation:
         (
             result_tools,
             _,
-        ) = LiteLLMCompletionResponsesConfig.transform_responses_api_tools_to_chat_completion_tools(
+        ) = GatewayCompletionResponsesConfig.transform_responses_api_tools_to_chat_completion_tools(
             tools=tools
         )
 
@@ -1793,7 +1793,7 @@ class TestToolTransformation:
         (
             result_tools,
             _,
-        ) = LiteLLMCompletionResponsesConfig.transform_responses_api_tools_to_chat_completion_tools(
+        ) = GatewayCompletionResponsesConfig.transform_responses_api_tools_to_chat_completion_tools(
             tools=tools
         )
 
@@ -1821,7 +1821,7 @@ class TestToolTransformation:
         (
             result_tools,
             _,
-        ) = LiteLLMCompletionResponsesConfig.transform_responses_api_tools_to_chat_completion_tools(
+        ) = GatewayCompletionResponsesConfig.transform_responses_api_tools_to_chat_completion_tools(
             tools=tools
         )
 
@@ -1847,7 +1847,7 @@ class TestToolTransformation:
         (
             result_tools,
             _,
-        ) = LiteLLMCompletionResponsesConfig.transform_responses_api_tools_to_chat_completion_tools(
+        ) = GatewayCompletionResponsesConfig.transform_responses_api_tools_to_chat_completion_tools(
             tools=tools
         )
 
@@ -1881,7 +1881,7 @@ class TestToolTransformation:
         (
             result_tools,
             web_search_options,
-        ) = LiteLLMCompletionResponsesConfig.transform_responses_api_tools_to_chat_completion_tools(
+        ) = GatewayCompletionResponsesConfig.transform_responses_api_tools_to_chat_completion_tools(
             tools=tools
         )
 
@@ -1918,7 +1918,7 @@ class TestToolTransformation:
         (
             result_tools,
             _,
-        ) = LiteLLMCompletionResponsesConfig.transform_responses_api_tools_to_chat_completion_tools(
+        ) = GatewayCompletionResponsesConfig.transform_responses_api_tools_to_chat_completion_tools(
             tools=tools
         )
 
@@ -1934,7 +1934,7 @@ class TestToolTransformation:
             {"type": "function", "name": "b", "parameters": {"type": "object", "properties": {}}},
         ]
 
-        result_tools, _ = LiteLLMCompletionResponsesConfig.transform_responses_api_tools_to_chat_completion_tools(
+        result_tools, _ = GatewayCompletionResponsesConfig.transform_responses_api_tools_to_chat_completion_tools(
             tools=tools
         )
 
@@ -1956,7 +1956,7 @@ class TestToolTransformation:
         (
             result_tools,
             _,
-        ) = LiteLLMCompletionResponsesConfig.transform_responses_api_tools_to_chat_completion_tools(
+        ) = GatewayCompletionResponsesConfig.transform_responses_api_tools_to_chat_completion_tools(
             tools=tools
         )
 
@@ -1979,7 +1979,7 @@ class TestToolTransformation:
         (
             result_tools,
             _,
-        ) = LiteLLMCompletionResponsesConfig.transform_responses_api_tools_to_chat_completion_tools(
+        ) = GatewayCompletionResponsesConfig.transform_responses_api_tools_to_chat_completion_tools(
             tools=tools
         )
 
@@ -2003,7 +2003,7 @@ class TestToolTransformation:
         (
             result_tools,
             _,
-        ) = LiteLLMCompletionResponsesConfig.transform_responses_api_tools_to_chat_completion_tools(
+        ) = GatewayCompletionResponsesConfig.transform_responses_api_tools_to_chat_completion_tools(
             tools=tools
         )
 
@@ -2028,7 +2028,7 @@ class TestToolTransformation:
             "tools": [{"type": "web_search", "external_web_access": False}],
         }
 
-        result = LiteLLMCompletionResponsesConfig.transform_responses_api_request_to_chat_completion_request(
+        result = GatewayCompletionResponsesConfig.transform_responses_api_request_to_chat_completion_request(
             model="anthropic.claude-sonnet-4-5-20250929-v1:0",
             input="hi",
             responses_api_request=responses_api_request,
@@ -2047,7 +2047,7 @@ class TestToolTransformation:
             "tools": [{"type": "web_search", "external_web_access": False}],
         }
 
-        result = LiteLLMCompletionResponsesConfig.transform_responses_api_request_to_chat_completion_request(
+        result = GatewayCompletionResponsesConfig.transform_responses_api_request_to_chat_completion_request(
             model="bedrock/converse/us.anthropic.claude-sonnet-4-6",
             input="hi",
             responses_api_request=responses_api_request,
@@ -2062,7 +2062,7 @@ class TestToolTransformation:
             "tools": [{"type": "web_search", "search_context_size": "high"}],
         }
 
-        result = LiteLLMCompletionResponsesConfig.transform_responses_api_request_to_chat_completion_request(
+        result = GatewayCompletionResponsesConfig.transform_responses_api_request_to_chat_completion_request(
             model="amazon.nova-pro-v1:0",
             input="hi",
             responses_api_request=responses_api_request,
@@ -2077,7 +2077,7 @@ class TestToolTransformation:
             "tools": [{"type": "web_search", "search_context_size": "high"}],
         }
 
-        result = LiteLLMCompletionResponsesConfig.transform_responses_api_request_to_chat_completion_request(
+        result = GatewayCompletionResponsesConfig.transform_responses_api_request_to_chat_completion_request(
             model="gpt-4o",
             input="hi",
             responses_api_request=responses_api_request,
@@ -2096,7 +2096,7 @@ class TestToolTransformation:
             "tools": [{"type": "web_search", "search_context_size": "high"}],
         }
 
-        result = LiteLLMCompletionResponsesConfig.transform_responses_api_request_to_chat_completion_request(
+        result = GatewayCompletionResponsesConfig.transform_responses_api_request_to_chat_completion_request(
             model="command-r",
             input="hi",
             responses_api_request=responses_api_request,
@@ -2130,7 +2130,7 @@ class TestToolTransformation:
         }
 
         result_tools, web_search_options = (
-            LiteLLMCompletionResponsesConfig.transform_responses_api_tools_to_chat_completion_tools(
+            GatewayCompletionResponsesConfig.transform_responses_api_tools_to_chat_completion_tools(
                 tools=[namespace_tool]
             )
         )
@@ -2163,7 +2163,7 @@ class TestToolTransformation:
             ],
         }
 
-        result_tools, _ = LiteLLMCompletionResponsesConfig.transform_responses_api_tools_to_chat_completion_tools(
+        result_tools, _ = GatewayCompletionResponsesConfig.transform_responses_api_tools_to_chat_completion_tools(
             tools=[namespace_tool]
         )
 
@@ -2172,7 +2172,7 @@ class TestToolTransformation:
     def test_function_call_echo_requalifies_namespace_tool_name(self):
         """Codex echoes restored history items as short name plus namespace; the
         outbound chat tool_call must use the flattened name the provider was given."""
-        messages = LiteLLMCompletionResponsesConfig._transform_responses_api_function_call_to_chat_completion_message(
+        messages = GatewayCompletionResponsesConfig._transform_responses_api_function_call_to_chat_completion_message(
             function_call={
                 "type": "function_call",
                 "name": "get_sum",
@@ -2187,7 +2187,7 @@ class TestToolTransformation:
     def test_custom_tool_call_echo_keeps_short_name(self):
         """Custom tools stay advertised under their short name, so a namespace on
         a custom_tool_call echo is routing metadata and must not be prefixed."""
-        messages = LiteLLMCompletionResponsesConfig._transform_responses_api_function_call_to_chat_completion_message(
+        messages = GatewayCompletionResponsesConfig._transform_responses_api_function_call_to_chat_completion_message(
             function_call={
                 "type": "custom_tool_call",
                 "name": "apply_patch",
@@ -2217,7 +2217,7 @@ class TestToolTransformation:
             else {**function_tool, "type": "namespace"}
         )
 
-        result_tools, _ = LiteLLMCompletionResponsesConfig.transform_responses_api_tools_to_chat_completion_tools(
+        result_tools, _ = GatewayCompletionResponsesConfig.transform_responses_api_tools_to_chat_completion_tools(
             tools=[namespace_tool]
         )
 
@@ -2243,7 +2243,7 @@ class TestToolTransformation:
         )
 
         with pytest.raises(ValueError, match="allowed_callers must be a list of strings"):
-            LiteLLMCompletionResponsesConfig.transform_responses_api_tools_to_chat_completion_tools(
+            GatewayCompletionResponsesConfig.transform_responses_api_tools_to_chat_completion_tools(
                 tools=[namespace_tool]
             )
 
@@ -2266,7 +2266,7 @@ class TestToolTransformation:
         }
 
         result_tools, web_search_options = (
-            LiteLLMCompletionResponsesConfig.transform_responses_api_tools_to_chat_completion_tools(
+            GatewayCompletionResponsesConfig.transform_responses_api_tools_to_chat_completion_tools(
                 tools=[namespace_tool]
             )
         )
@@ -2293,7 +2293,7 @@ class TestToolTransformation:
             ],
         }
 
-        result = LiteLLMCompletionResponsesConfig.namespace_tool_name_map(
+        result = GatewayCompletionResponsesConfig.namespace_tool_name_map(
             [namespace_tool]
         )
 
@@ -2339,7 +2339,7 @@ class TestToolTransformation:
             },
         ]
 
-        result = LiteLLMCompletionResponsesConfig.namespace_tool_name_map(
+        result = GatewayCompletionResponsesConfig.namespace_tool_name_map(
             tools
         )
 
@@ -2364,7 +2364,7 @@ class TestToolTransformation:
             },
         ]
 
-        result = LiteLLMCompletionResponsesConfig.namespace_tool_name_map(tools)
+        result = GatewayCompletionResponsesConfig.namespace_tool_name_map(tools)
 
         assert result["admin__run"] == ("admin", "run")
         assert "run" not in result
@@ -2394,11 +2394,11 @@ class TestToolTransformation:
             ValueError,
             match="Top-level function names conflict with flattened namespace tools: admin__run",
         ):
-            LiteLLMCompletionResponsesConfig.transform_responses_api_tools_to_chat_completion_tools(tools=tools)
+            GatewayCompletionResponsesConfig.transform_responses_api_tools_to_chat_completion_tools(tools=tools)
 
 
     def test_restore_namespace_tool_name_leaves_unknown_tool_unchanged(self):
-        tool_name, namespace = LiteLLMCompletionResponsesConfig._restore_namespace_tool_name(
+        tool_name, namespace = GatewayCompletionResponsesConfig._restore_namespace_tool_name(
             "mcp__node_repl",
             {},
         )
@@ -2422,7 +2422,7 @@ class TestToolTransformation:
         }
 
         result_tools, _ = (
-            LiteLLMCompletionResponsesConfig.transform_responses_api_tools_to_chat_completion_tools(
+            GatewayCompletionResponsesConfig.transform_responses_api_tools_to_chat_completion_tools(
                 tools=[namespace_tool]
             )
         )
@@ -2460,7 +2460,7 @@ class TestToolTransformation:
             ],
         }
 
-        result = LiteLLMCompletionResponsesConfig.transform_responses_api_request_to_chat_completion_request(
+        result = GatewayCompletionResponsesConfig.transform_responses_api_request_to_chat_completion_request(
             model=model,
             input="hi",
             responses_api_request=responses_api_request,
@@ -2511,7 +2511,7 @@ class TestUsageTransformation:
         )
 
         # Execute
-        response_usage = LiteLLMCompletionResponsesConfig._transform_chat_completion_usage_to_responses_usage(
+        response_usage = GatewayCompletionResponsesConfig._transform_chat_completion_usage_to_responses_usage(
             chat_completion_response=chat_completion_response
         )
 
@@ -2552,7 +2552,7 @@ class TestUsageTransformation:
         )
 
         # Execute
-        response_usage = LiteLLMCompletionResponsesConfig._transform_chat_completion_usage_to_responses_usage(
+        response_usage = GatewayCompletionResponsesConfig._transform_chat_completion_usage_to_responses_usage(
             chat_completion_response=chat_completion_response
         )
 
@@ -2577,7 +2577,7 @@ class TestUsageTransformation:
             ),
         )
 
-        response_usage = LiteLLMCompletionResponsesConfig._transform_chat_completion_usage_to_responses_usage(
+        response_usage = GatewayCompletionResponsesConfig._transform_chat_completion_usage_to_responses_usage(
             chat_completion_response=usage
         )
 
@@ -2614,7 +2614,7 @@ class TestUsageTransformation:
         )
 
         # Execute
-        response_usage = LiteLLMCompletionResponsesConfig._transform_chat_completion_usage_to_responses_usage(
+        response_usage = GatewayCompletionResponsesConfig._transform_chat_completion_usage_to_responses_usage(
             chat_completion_response=chat_completion_response
         )
 
@@ -2657,7 +2657,7 @@ class TestUsageTransformation:
         )
 
         # Execute
-        response_usage = LiteLLMCompletionResponsesConfig._transform_chat_completion_usage_to_responses_usage(
+        response_usage = GatewayCompletionResponsesConfig._transform_chat_completion_usage_to_responses_usage(
             chat_completion_response=chat_completion_response
         )
 
@@ -2705,7 +2705,7 @@ class TestUsageTransformation:
         )
 
         # Execute
-        response_usage = LiteLLMCompletionResponsesConfig._transform_chat_completion_usage_to_responses_usage(
+        response_usage = GatewayCompletionResponsesConfig._transform_chat_completion_usage_to_responses_usage(
             chat_completion_response=chat_completion_response
         )
 
@@ -2739,7 +2739,7 @@ class TestUsageTransformation:
         )
 
         # Execute
-        response_usage = LiteLLMCompletionResponsesConfig._transform_chat_completion_usage_to_responses_usage(
+        response_usage = GatewayCompletionResponsesConfig._transform_chat_completion_usage_to_responses_usage(
             chat_completion_response=chat_completion_response
         )
 
@@ -2782,7 +2782,7 @@ class TestUsageTransformation:
         )
 
         # Execute
-        response_usage = LiteLLMCompletionResponsesConfig._transform_chat_completion_usage_to_responses_usage(
+        response_usage = GatewayCompletionResponsesConfig._transform_chat_completion_usage_to_responses_usage(
             chat_completion_response=chat_completion_response
         )
 
@@ -2822,7 +2822,7 @@ class TestUsageTransformation:
             ],
         )
 
-        response_usage = LiteLLMCompletionResponsesConfig._transform_chat_completion_usage_to_responses_usage(
+        response_usage = GatewayCompletionResponsesConfig._transform_chat_completion_usage_to_responses_usage(
             chat_completion_response=chat_completion_response
         )
 
@@ -2858,7 +2858,7 @@ class TestUsageTransformation:
             ],
         )
 
-        response_usage = LiteLLMCompletionResponsesConfig._transform_chat_completion_usage_to_responses_usage(
+        response_usage = GatewayCompletionResponsesConfig._transform_chat_completion_usage_to_responses_usage(
             chat_completion_response=chat_completion_response
         )
 
@@ -2891,7 +2891,7 @@ class TestUsageTransformation:
             ],
         )
 
-        response_usage = LiteLLMCompletionResponsesConfig._transform_chat_completion_usage_to_responses_usage(
+        response_usage = GatewayCompletionResponsesConfig._transform_chat_completion_usage_to_responses_usage(
             chat_completion_response=chat_completion_response
         )
 
@@ -2914,7 +2914,7 @@ class TestStreamingIDConsistency:
 
         from token_iq import gateway
         from token_iq.gateway.responses.litellm_completion_transformation.streaming_iterator import (
-            LiteLLMCompletionStreamingIterator,
+            GatewayCompletionStreamingIterator,
         )
         from token_iq.gateway.types.utils import Delta, ModelResponseStream, StreamingChoices
 
@@ -2924,9 +2924,9 @@ class TestStreamingIDConsistency:
         mock_stream_wrapper.logging_obj = mock_logging_obj
 
         # Create the streaming iterator
-        iterator = LiteLLMCompletionStreamingIterator(
+        iterator = GatewayCompletionStreamingIterator(
             model="gemini/gemini-2.5-flash-lite",
-            litellm_custom_stream_wrapper=mock_stream_wrapper,
+            gateway_custom_stream_wrapper=mock_stream_wrapper,
             request_input="Say Hello World",
             responses_api_request={},
             custom_llm_provider="gemini",
@@ -3013,7 +3013,7 @@ class TestStreamingIDConsistency:
 
         from token_iq import gateway
         from token_iq.gateway.responses.litellm_completion_transformation.streaming_iterator import (
-            LiteLLMCompletionStreamingIterator,
+            GatewayCompletionStreamingIterator,
         )
 
         # Create a mock stream wrapper
@@ -3022,9 +3022,9 @@ class TestStreamingIDConsistency:
         mock_stream_wrapper.logging_obj = mock_logging_obj
 
         # Create the streaming iterator
-        iterator = LiteLLMCompletionStreamingIterator(
+        iterator = GatewayCompletionStreamingIterator(
             model="gemini/gemini-2.5-flash-lite",
-            litellm_custom_stream_wrapper=mock_stream_wrapper,
+            gateway_custom_stream_wrapper=mock_stream_wrapper,
             request_input="Test",
             responses_api_request={},
         )
@@ -3057,7 +3057,7 @@ class TestStreamingIDConsistency:
 
         from token_iq import gateway
         from token_iq.gateway.responses.litellm_completion_transformation.streaming_iterator import (
-            LiteLLMCompletionStreamingIterator,
+            GatewayCompletionStreamingIterator,
         )
         from token_iq.gateway.types.utils import Choices, Message, ModelResponse
 
@@ -3068,9 +3068,9 @@ class TestStreamingIDConsistency:
         mock_logging_obj._response_cost_calculator = Mock(return_value=0.001)
 
         # Create the streaming iterator
-        iterator = LiteLLMCompletionStreamingIterator(
+        iterator = GatewayCompletionStreamingIterator(
             model="gemini/gemini-2.5-flash-lite",
-            litellm_custom_stream_wrapper=mock_stream_wrapper,
+            gateway_custom_stream_wrapper=mock_stream_wrapper,
             request_input="Test",
             responses_api_request={},
         )
@@ -3089,7 +3089,7 @@ class TestStreamingIDConsistency:
                 )
             ],
         )
-        iterator.litellm_model_response = complete_response
+        iterator.gateway_model_response = complete_response
 
         # Create done events
         text_done_event = iterator.create_output_text_done_event(complete_response)
@@ -3151,7 +3151,7 @@ class TestStreamingIDConsistency:
             {"type": "function_call_output", "call_id": "toolu_02", "output": "55°F"},
         ]
 
-        messages = LiteLLMCompletionResponsesConfig._transform_response_input_param_to_chat_completion_message(
+        messages = GatewayCompletionResponsesConfig._transform_response_input_param_to_chat_completion_message(
             input=input_items
         )
 
@@ -3221,7 +3221,7 @@ class TestStreamingIDConsistency:
             {"type": "function_call_output", "call_id": "toolu_01", "output": "72°F"},
         ]
 
-        messages = LiteLLMCompletionResponsesConfig._transform_response_input_param_to_chat_completion_message(
+        messages = GatewayCompletionResponsesConfig._transform_response_input_param_to_chat_completion_message(
             input=input_items
         )
 
@@ -3269,7 +3269,7 @@ class TestCompletedResponseLatchedOnStreamEnd:
 
         from token_iq import gateway
         from token_iq.gateway.responses.litellm_completion_transformation.streaming_iterator import (
-            LiteLLMCompletionStreamingIterator,
+            GatewayCompletionStreamingIterator,
         )
 
         mock_wrapper = Mock(spec=gateway.CustomStreamWrapper)
@@ -3278,13 +3278,13 @@ class TestCompletedResponseLatchedOnStreamEnd:
         mock_wrapper.__aiter__ = Mock(return_value=mock_wrapper)
         mock_wrapper.__anext__ = Mock(side_effect=StopAsyncIteration)
 
-        iterator = LiteLLMCompletionStreamingIterator(
+        iterator = GatewayCompletionStreamingIterator(
             model="deepseek/deepseek-chat",
-            litellm_custom_stream_wrapper=mock_wrapper,
+            gateway_custom_stream_wrapper=mock_wrapper,
             request_input="test",
             responses_api_request={},
         )
-        iterator.litellm_model_response = model_response
+        iterator.gateway_model_response = model_response
         return iterator
 
     def test_completed_response_set_after_common_done_event_logic(self):
@@ -3406,11 +3406,11 @@ class TestEnsureOutputItemContentPartAdded:
     def _make_iterator(self):
         """Create a minimal LiteLLMCompletionStreamingIterator for testing."""
         from token_iq.gateway.responses.litellm_completion_transformation.streaming_iterator import (
-            LiteLLMCompletionStreamingIterator,
+            GatewayCompletionStreamingIterator,
         )
 
-        iterator = LiteLLMCompletionStreamingIterator.__new__(
-            LiteLLMCompletionStreamingIterator
+        iterator = GatewayCompletionStreamingIterator.__new__(
+            GatewayCompletionStreamingIterator
         )
         iterator.sent_output_item_added_event = False
         iterator.sent_content_part_added_event = False
@@ -3429,7 +3429,7 @@ class TestEnsureOutputItemContentPartAdded:
         iterator._final_tool_events_queued = False
         iterator._custom_tool_names = set()
         iterator.responses_api_request = {}
-        iterator._namespace_tool_names = LiteLLMCompletionResponsesConfig.namespace_tool_name_map(None)
+        iterator._namespace_tool_names = GatewayCompletionResponsesConfig.namespace_tool_name_map(None)
         return iterator
 
     def _make_text_chunk(self):
@@ -3496,7 +3496,7 @@ class TestEnsureOutputItemContentPartAdded:
             ]
         }
 
-        iterator._namespace_tool_names = LiteLLMCompletionResponsesConfig.namespace_tool_name_map(
+        iterator._namespace_tool_names = GatewayCompletionResponsesConfig.namespace_tool_name_map(
             iterator.responses_api_request.get("tools")
         )
 
@@ -3536,7 +3536,7 @@ class TestEnsureOutputItemContentPartAdded:
             ]
         }
 
-        iterator._namespace_tool_names = LiteLLMCompletionResponsesConfig.namespace_tool_name_map(
+        iterator._namespace_tool_names = GatewayCompletionResponsesConfig.namespace_tool_name_map(
             iterator.responses_api_request.get("tools")
         )
 
@@ -3573,7 +3573,7 @@ class TestEnsureOutputItemContentPartAdded:
             ]
         }
 
-        iterator._namespace_tool_names = LiteLLMCompletionResponsesConfig.namespace_tool_name_map(
+        iterator._namespace_tool_names = GatewayCompletionResponsesConfig.namespace_tool_name_map(
             iterator.responses_api_request.get("tools")
         )
 
@@ -3645,7 +3645,7 @@ class TestEnsureOutputItemContentPartAdded:
                 }
             ]
         }
-        iterator._namespace_tool_names = LiteLLMCompletionResponsesConfig.namespace_tool_name_map(
+        iterator._namespace_tool_names = GatewayCompletionResponsesConfig.namespace_tool_name_map(
             iterator.responses_api_request.get("tools")
         )
 
@@ -3692,7 +3692,7 @@ class TestEnsureOutputItemContentPartAdded:
             ]
         }
 
-        iterator._namespace_tool_names = LiteLLMCompletionResponsesConfig.namespace_tool_name_map(
+        iterator._namespace_tool_names = GatewayCompletionResponsesConfig.namespace_tool_name_map(
             iterator.responses_api_request.get("tools")
         )
 
@@ -3715,7 +3715,7 @@ class TestEnsureOutputItemContentPartAdded:
         from unittest.mock import MagicMock, patch
 
         from token_iq.gateway.responses.litellm_completion_transformation.streaming_iterator import (
-            LiteLLMCompletionStreamingIterator,
+            GatewayCompletionStreamingIterator,
         )
 
         mock_stream_wrapper = MagicMock()
@@ -3737,13 +3737,13 @@ class TestEnsureOutputItemContentPartAdded:
         }
 
         with patch.object(
-            LiteLLMCompletionResponsesConfig,
+            GatewayCompletionResponsesConfig,
             "namespace_tool_name_map",
-            wraps=LiteLLMCompletionResponsesConfig.namespace_tool_name_map,
+            wraps=GatewayCompletionResponsesConfig.namespace_tool_name_map,
         ) as namespace_map:
-            iterator = LiteLLMCompletionStreamingIterator(
+            iterator = GatewayCompletionStreamingIterator(
                 model="test-model",
-                litellm_custom_stream_wrapper=mock_stream_wrapper,
+                gateway_custom_stream_wrapper=mock_stream_wrapper,
                 request_input="test",
                 responses_api_request=request,
             )
@@ -3763,21 +3763,21 @@ class TestEnsureOutputItemContentPartAdded:
 
         from token_iq import gateway
         from token_iq.gateway.responses.litellm_completion_transformation.streaming_iterator import (
-            LiteLLMCompletionStreamingIterator,
+            GatewayCompletionStreamingIterator,
         )
 
         mock_stream_wrapper = Mock(spec=gateway.CustomStreamWrapper)
         mock_stream_wrapper.logging_obj = Mock()
 
-        iterator = LiteLLMCompletionStreamingIterator(
+        iterator = GatewayCompletionStreamingIterator(
             model="anthropic/claude-sonnet-4-6",
-            litellm_custom_stream_wrapper=mock_stream_wrapper,
+            gateway_custom_stream_wrapper=mock_stream_wrapper,
             request_input="test",
             responses_api_request={},
             custom_llm_provider="anthropic",
         )
 
-        litellm_model_response = ModelResponse(
+        gateway_model_response = ModelResponse(
             id="chatcmpl-test",
             created=1234567890,
             model="anthropic/claude-sonnet-4-6",
@@ -3793,7 +3793,7 @@ class TestEnsureOutputItemContentPartAdded:
         )
 
         completed_event = iterator._emit_response_completed_event(
-            litellm_model_response
+            gateway_model_response
         )
 
         assert completed_event is not None
@@ -3837,7 +3837,7 @@ class TestCacheControlPreservation:
                 "cache_control": {"type": "ephemeral"},
             }
         ]
-        result = LiteLLMCompletionResponsesConfig._transform_responses_api_content_to_chat_completion_content(
+        result = GatewayCompletionResponsesConfig._transform_responses_api_content_to_chat_completion_content(
             content
         )
         assert isinstance(result, list)
@@ -3847,7 +3847,7 @@ class TestCacheControlPreservation:
     def test_content_without_cache_control_unaffected(self):
         """Content blocks that don't have cache_control should be unaffected."""
         content = [{"type": "text", "text": "hello"}]
-        result = LiteLLMCompletionResponsesConfig._transform_responses_api_content_to_chat_completion_content(
+        result = GatewayCompletionResponsesConfig._transform_responses_api_content_to_chat_completion_content(
             content
         )
         assert isinstance(result, list)
@@ -3866,7 +3866,7 @@ class TestCacheControlPreservation:
                 }
             ],
         }
-        messages = LiteLLMCompletionResponsesConfig._transform_responses_api_input_item_to_chat_completion_message(
+        messages = GatewayCompletionResponsesConfig._transform_responses_api_input_item_to_chat_completion_message(
             input_item
         )
         assert len(messages) == 1
@@ -3886,7 +3886,7 @@ class TestCacheControlPreservation:
                 "cache_control": {"type": "ephemeral"},
             }
         ]
-        result = LiteLLMCompletionResponsesConfig._transform_responses_api_content_to_chat_completion_content(
+        result = GatewayCompletionResponsesConfig._transform_responses_api_content_to_chat_completion_content(
             content
         )
         assert isinstance(result, list)
@@ -3901,7 +3901,7 @@ class TestCacheControlPreservation:
                 "cache_control": {"type": "ephemeral"},
             }
         ]
-        result = LiteLLMCompletionResponsesConfig._transform_responses_api_content_to_chat_completion_content(
+        result = GatewayCompletionResponsesConfig._transform_responses_api_content_to_chat_completion_content(
             content
         )
         assert isinstance(result, list)
@@ -3920,7 +3920,7 @@ def test_function_call_tool_id_falls_back_to_unique_id_for_degenerate_call_id():
     from types import SimpleNamespace
 
     convert = (
-        LiteLLMCompletionResponsesConfig.convert_response_function_tool_call_to_chat_completion_tool_call
+        GatewayCompletionResponsesConfig.convert_response_function_tool_call_to_chat_completion_tool_call
     )
 
     mantle = SimpleNamespace(
@@ -3969,7 +3969,7 @@ class TestBridgedOutputItemIdPrefixes:
     """
 
     def _transform(self, chat_completion_response):
-        return LiteLLMCompletionResponsesConfig.transform_chat_completion_response_to_responses_api_response(
+        return GatewayCompletionResponsesConfig.transform_chat_completion_response_to_responses_api_response(
             request_input="Say the single word: apple",
             responses_api_request={},
             chat_completion_response=chat_completion_response,
@@ -4001,7 +4001,7 @@ class TestBridgedOutputItemIdPrefixes:
         message = Message(role="assistant", content="apple")
         message.reasoning_content = "thinking about fruit"
         choice = Choices(index=0, finish_reason="stop", message=message)
-        return LiteLLMCompletionResponsesConfig._extract_reasoning_output_items(
+        return GatewayCompletionResponsesConfig._extract_reasoning_output_items(
             chat_completion_response=_bridged_chat_completion_response(),
             choices=[choice],
         )
@@ -4034,14 +4034,14 @@ class TestStreamingSnapshotItemIds:
 
         from token_iq import gateway
         from token_iq.gateway.responses.litellm_completion_transformation.streaming_iterator import (
-            LiteLLMCompletionStreamingIterator,
+            GatewayCompletionStreamingIterator,
         )
 
         mock_stream_wrapper = Mock(spec=gateway.CustomStreamWrapper)
         mock_stream_wrapper.logging_obj = Mock()
-        return LiteLLMCompletionStreamingIterator(
+        return GatewayCompletionStreamingIterator(
             model="anthropic/claude-sonnet-4-5",
-            litellm_custom_stream_wrapper=mock_stream_wrapper,
+            gateway_custom_stream_wrapper=mock_stream_wrapper,
             request_input="Say the single word: apple",
             responses_api_request={},
             custom_llm_provider="anthropic",

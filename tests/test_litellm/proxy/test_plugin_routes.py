@@ -16,7 +16,7 @@ from unittest.mock import MagicMock
 
 from token_iq.gateway.proxy._types import (
     ConfigGeneralSettings,
-    LitellmUserRoles,
+    GatewayUserRoles,
     PluginConfig,
     UserAPIKeyAuth,
 )
@@ -24,11 +24,11 @@ from token_iq.gateway.proxy.plugin_routes import list_plugins, register_plugins_
 
 
 def _admin() -> UserAPIKeyAuth:
-    return UserAPIKeyAuth(api_key="sk-admin", user_role=LitellmUserRoles.PROXY_ADMIN)
+    return UserAPIKeyAuth(api_key="sk-admin", user_role=GatewayUserRoles.PROXY_ADMIN)
 
 
 def _non_admin() -> UserAPIKeyAuth:
-    return UserAPIKeyAuth(api_key="sk-user", user_role=LitellmUserRoles.INTERNAL_USER)
+    return UserAPIKeyAuth(api_key="sk-user", user_role=GatewayUserRoles.INTERNAL_USER)
 
 
 def test_plugins_is_a_valid_general_setting() -> None:
@@ -181,12 +181,12 @@ def test_safe_response_headers_sandbox_and_strips_wire_headers() -> None:
         assert stripped not in out
 
 
-def test_litellm_credential_header_names_covers_every_auth_header() -> None:
+def test_gateway_credential_header_names_covers_every_auth_header() -> None:
     """The canonical strip set must list every header user_api_key_auth accepts
     as a litellm key, so a new auth header can't silently start leaking."""
     from token_iq.gateway.proxy._types import SpecialHeaders
 
-    assert SpecialHeaders.litellm_credential_header_names() == {
+    assert SpecialHeaders.gateway_credential_header_names() == {
         "authorization",
         "api-key",
         "x-api-key",
@@ -196,7 +196,7 @@ def test_litellm_credential_header_names_covers_every_auth_header() -> None:
     }
 
 
-def test_every_litellm_auth_header_is_stripped_before_forwarding() -> None:
+def test_every_gateway_auth_header_is_stripped_before_forwarding() -> None:
     """A plugin must never receive any header that authenticates against litellm,
     only the hop-by-hop set and benign headers are forwarded."""
     from token_iq.gateway.proxy.plugin_routes import _request_strip_headers

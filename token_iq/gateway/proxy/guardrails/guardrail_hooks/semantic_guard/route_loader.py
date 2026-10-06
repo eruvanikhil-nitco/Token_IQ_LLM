@@ -127,10 +127,10 @@ class SemanticGuardRouteLoader:
         from semantic_router.routers import SemanticRouter
 
         from token_iq.gateway.router_strategy.auto_router.litellm_encoder import (
-            LiteLLMRouterEncoder,
+            GatewayRouterEncoder,
         )
 
-        encoder: Final = LiteLLMRouterEncoder(
+        encoder: Final = GatewayRouterEncoder(
             litellm_router_instance=litellm_router,
             model_name=embedding_model,
             score_threshold=global_threshold,

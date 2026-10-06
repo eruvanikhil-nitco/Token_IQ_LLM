@@ -11,7 +11,7 @@ import httpx
 import pytest
 from token_iq import gateway
 from typing import AsyncGenerator
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.types.passthrough_endpoints.pass_through_endpoints import EndpointType
 from token_iq.gateway.proxy.pass_through_endpoints.success_handler import (
     PassThroughEndpointLogging,
@@ -25,7 +25,7 @@ from token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints import
 )
 from fastapi import Request
 from token_iq.gateway.proxy._types import UserAPIKeyAuth
-from token_iq.gateway.proxy.litellm_pre_call_utils import LiteLLMProxyRequestSetup
+from token_iq.gateway.proxy.litellm_pre_call_utils import GatewayProxyRequestSetup
 from token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints import (
     _update_metadata_with_tags_in_header,
     HttpPassThroughEndpointHelpers,
@@ -163,7 +163,7 @@ def test_init_kwargs_for_pass_through_endpoint_basic(
         user_api_key_dict=mock_user_api_key_dict,
         passthrough_logging_payload=passthrough_payload,
         litellm_call_id="test-call-id",
-        logging_obj=LiteLLMLoggingObj(
+        logging_obj=GatewayLoggingObj(
             model="test-model",
             messages=[],
             stream=False,
@@ -195,7 +195,7 @@ def test_init_kwargs_for_pass_through_endpoint_basic(
     assert result["litellm_params"]["metadata"]["user_api_key_request_route"] is None
 
 
-def test_init_kwargs_with_litellm_metadata(mock_request, mock_user_api_key_dict):
+def test_init_kwargs_with_gateway_metadata(mock_request, mock_user_api_key_dict):
     """
     Expected behavior: litellm_metadata should be merged with default metadata
 
@@ -216,7 +216,7 @@ def test_init_kwargs_with_litellm_metadata(mock_request, mock_user_api_key_dict)
         passthrough_logging_payload=passthrough_payload,
         _parsed_body=parsed_body,
         litellm_call_id="test-call-id",
-        logging_obj=LiteLLMLoggingObj(
+        logging_obj=GatewayLoggingObj(
             model="test-model",
             messages=[],
             stream=False,
@@ -250,7 +250,7 @@ def test_init_kwargs_with_tags_in_header(mock_request, mock_user_api_key_dict):
         user_api_key_dict=mock_user_api_key_dict,
         passthrough_logging_payload=passthrough_payload,
         litellm_call_id="test-call-id",
-        logging_obj=LiteLLMLoggingObj(
+        logging_obj=GatewayLoggingObj(
             model="test-model",
             messages=[],
             stream=False,
@@ -539,7 +539,7 @@ def test_init_kwargs_filters_pricing_params(mock_request, mock_user_api_key_dict
         passthrough_logging_payload=passthrough_payload,
         _parsed_body=parsed_body,
         litellm_call_id="test-call-id",
-        logging_obj=LiteLLMLoggingObj(
+        logging_obj=GatewayLoggingObj(
             model="gpt-5.5",
             messages=[{"role": "user", "content": "test"}],
             stream=False,
@@ -693,7 +693,7 @@ def test_init_kwargs_client_metadata_cannot_spoof_authenticated_identity(
         user_api_key_dict=authenticated_key,
         passthrough_logging_payload=passthrough_payload,
         litellm_call_id="test-call-id",
-        logging_obj=LiteLLMLoggingObj(
+        logging_obj=GatewayLoggingObj(
             model="test-model",
             messages=[],
             stream=False,
@@ -749,7 +749,7 @@ def test_init_kwargs_no_authenticated_identity_field_is_client_settable(
         metadata={"real": "auth-metadata"},
     )
     expected = dict(
-        LiteLLMProxyRequestSetup.get_sanitized_user_information_from_key(
+        GatewayProxyRequestSetup.get_sanitized_user_information_from_key(
             user_api_key_dict=authenticated_key
         )
     )
@@ -764,7 +764,7 @@ def test_init_kwargs_no_authenticated_identity_field_is_client_settable(
             url="https://test.com", request_body={}
         ),
         litellm_call_id="test-call-id",
-        logging_obj=LiteLLMLoggingObj(
+        logging_obj=GatewayLoggingObj(
             model="test-model",
             messages=[],
             stream=False,

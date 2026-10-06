@@ -10,10 +10,10 @@ from typing import Any, Final
 import httpx
 
 from token_iq import gateway
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.llms.base_llm.rerank.transformation import BaseRerankConfig
 from token_iq.gateway.llms.vertex_ai.common_utils import (
-    vertex_request_labels_from_litellm_params,
+    vertex_request_labels_from_gateway_params,
 )
 from token_iq.gateway.llms.vertex_ai.vertex_llm_base import VertexBase
 from token_iq.gateway.secret_managers.main import get_secret_str
@@ -147,7 +147,7 @@ class VertexAIRerankConfig(BaseRerankConfig, VertexBase):
         # When return_documents is False, we want to ignore record details (return only IDs)
         request_data["ignoreRecordDetailsInResponse"] = not return_documents
 
-        user_labels: Final = vertex_request_labels_from_litellm_params(litellm_params)
+        user_labels: Final = vertex_request_labels_from_gateway_params(litellm_params)
         if user_labels:
             request_data["userLabels"] = user_labels
 
@@ -158,7 +158,7 @@ class VertexAIRerankConfig(BaseRerankConfig, VertexBase):
         model: str,
         raw_response: httpx.Response,
         model_response: RerankResponse,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         api_key: str | None = None,
         request_data: dict = {},
         optional_params: dict = {},

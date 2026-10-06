@@ -45,7 +45,7 @@ from token_iq.gateway.types.utils import BudgetConfig as GenericBudgetInfo
 DEFAULT_REDIS_SYNC_INTERVAL: Final = 1
 
 
-class _LiteLLMParamsDictView:
+class _GatewayParamsDictView:
     """
     Lightweight attribute view over `litellm_params` dict.
 
@@ -241,14 +241,14 @@ class RouterBudgetLimiting(CustomLogger):
             # Check deployment budget
             if self.deployment_budget_config and is_within_budget:
                 _model_name = deployment.get("model_name")
-                _litellm_params = deployment.get("litellm_params") or {}
-                _litellm_model_name = _litellm_params.get("model")
+                _gateway_params = deployment.get("litellm_params") or {}
+                _gateway_model_name = _gateway_params.get("model")
                 model_id = deployment.get("model_info", {}).get("id")
                 if model_id in deployment_configs:
                     config = deployment_configs[model_id]
                     current_spend = spend_map.get(f"deployment_spend:{model_id}:{config.budget_duration}", 0.0)
                     if config.max_budget and current_spend >= config.max_budget:
-                        debug_msg = f"Exceeded budget for deployment model_name: {_model_name}, litellm_params.model: {_litellm_model_name}, model_id: {model_id}: {current_spend} >= {config.budget_duration}"
+                        debug_msg = f"Exceeded budget for deployment model_name: {_model_name}, litellm_params.model: {_gateway_model_name}, model_id: {model_id}: {current_spend} >= {config.budget_duration}"
                         verbose_router_logger.debug(debug_msg)
                         deployment_above_budget_info += f"{debug_msg}\n"
                         is_within_budget = False
@@ -623,17 +623,17 @@ class RouterBudgetLimiting(CustomLogger):
 
     def _get_llm_provider_for_deployment(self, deployment: dict) -> str | None:
         try:
-            deployment_litellm_params: Final = deployment.get("litellm_params") or {}
+            deployment_gateway_params: Final = deployment.get("litellm_params") or {}
 
-            if isinstance(deployment_litellm_params, LiteLLM_Params):
-                model = deployment_litellm_params.model or ""
-                provider_resolution_params: Any = deployment_litellm_params
-            elif isinstance(deployment_litellm_params, dict):
-                model = deployment_litellm_params.get("model") or ""
-                provider_resolution_params = _LiteLLMParamsDictView(deployment_litellm_params)
+            if isinstance(deployment_gateway_params, LiteLLM_Params):
+                model = deployment_gateway_params.model or ""
+                provider_resolution_params: Any = deployment_gateway_params
+            elif isinstance(deployment_gateway_params, dict):
+                model = deployment_gateway_params.get("model") or ""
+                provider_resolution_params = _GatewayParamsDictView(deployment_gateway_params)
             else:
                 model = ""
-                provider_resolution_params = _LiteLLMParamsDictView({})
+                provider_resolution_params = _GatewayParamsDictView({})
 
             _, custom_llm_provider, _, _ = gateway.get_llm_provider(
                 model=str(model),
@@ -747,8 +747,8 @@ class RouterBudgetLimiting(CustomLogger):
             return False
 
         for _model in model_list:
-            _litellm_params = _model.get("litellm_params", {})
-            if _litellm_params.get("max_budget") or _litellm_params.get("budget_duration") is not None:
+            _gateway_params = _model.get("litellm_params", {})
+            if _gateway_params.get("max_budget") or _gateway_params.get("budget_duration") is not None:
                 return True
         return False
 
@@ -782,11 +782,11 @@ class RouterBudgetLimiting(CustomLogger):
         if model_list is None:
             return
         for _model in model_list:
-            _litellm_params = _model.get("litellm_params", {})
+            _gateway_params = _model.get("litellm_params", {})
             _model_info: dict = _model.get("model_info") or {}
             _model_id = _model_info.get("id")
-            _max_budget = _litellm_params.get("max_budget")
-            _budget_duration = _litellm_params.get("budget_duration")
+            _max_budget = _gateway_params.get("max_budget")
+            _budget_duration = _gateway_params.get("budget_duration")
 
             verbose_router_logger.debug(
                 "Init Deployment Budget: max_budget: %s, budget_duration: %s, model_id: %s",

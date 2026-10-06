@@ -6,14 +6,14 @@ from token_iq.gateway.types.containers.main import (
     ContainerCreateOptionalRequestParams,
     ContainerListOptionalRequestParams,
 )
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 
 
 def decode_managed_container_id_for_request(
     container_id: str,
     custom_llm_provider: str,
-    litellm_params: GenericLiteLLMParams,
-) -> tuple[str, str, GenericLiteLLMParams]:
+    litellm_params: GenericGatewayParams,
+) -> tuple[str, str, GenericGatewayParams]:
     """Decode a LiteLLM-managed container ID for upstream API calls.
 
     Returns:

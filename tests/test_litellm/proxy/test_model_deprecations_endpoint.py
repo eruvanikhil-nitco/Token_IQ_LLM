@@ -6,7 +6,7 @@ from fastapi.testclient import TestClient
 
 from token_iq import gateway
 from token_iq.gateway.proxy import proxy_server
-from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
 from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 from token_iq.gateway.proxy.proxy_server import app
 
@@ -16,7 +16,7 @@ client = TestClient(app)
 @pytest.fixture
 def authenticated_client(monkeypatch):
     app.dependency_overrides[user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, api_key="sk-1234"
+        user_role=GatewayUserRoles.PROXY_ADMIN, api_key="sk-1234"
     )
     monkeypatch.setattr(
         gateway,

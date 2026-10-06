@@ -68,7 +68,7 @@ def _make_otel():
 
 def _server_span(otel):
     """Mirror the SERVER span user_api_key_auth opens per request."""
-    return otel.create_litellm_proxy_request_started_span(
+    return otel.create_gateway_proxy_request_started_span(
         start_time=datetime.now(), headers={}
     )
 

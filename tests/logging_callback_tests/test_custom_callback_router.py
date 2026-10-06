@@ -763,7 +763,7 @@ async def test_rate_limit_error_callback():
 
     Relevant issue: https://github.com/BerriAI/litellm/issues/4096
     """
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLogging
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLogging
 
     customHandler = CompletionCustomHandler()
     gateway.callbacks = [customHandler]
@@ -783,7 +783,7 @@ async def test_rate_limit_error_callback():
         num_retries=0,
     )
 
-    litellm_logging_obj = LiteLLMLogging(
+    litellm_logging_obj = GatewayLogging(
         model="my-test-gpt",
         messages=[{"role": "user", "content": "hi"}],
         stream=False,

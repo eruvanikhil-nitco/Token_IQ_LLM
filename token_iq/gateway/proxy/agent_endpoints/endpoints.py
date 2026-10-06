@@ -23,7 +23,7 @@ from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.llms.custom_httpx.http_handler import get_async_httpx_client
 from token_iq.gateway.proxy._types import (
     CommonProxyErrors,
-    LitellmUserRoles,
+    GatewayUserRoles,
     UserAPIKeyAuth,
     user_api_key_has_admin_view,
 )
@@ -33,8 +33,8 @@ from token_iq.gateway.proxy.a2a.agent_card import (
     normalize_protocol_version,
 )
 from token_iq.gateway.proxy.agent_endpoints.agent_registry import (
-    parse_agent_litellm_params,
-    redact_sensitive_agent_litellm_params,
+    parse_agent_gateway_params,
+    redact_sensitive_agent_gateway_params,
 )
 from token_iq.gateway.proxy.agent_endpoints.agent_search import (
     DEFAULT_AGENT_SEARCH_TOP_K,
@@ -142,14 +142,14 @@ async def _attach_keys_to_agents(agents: Sequence[AgentResponse], prisma_client)
         agent.keys = matched_keys or None
 
 
-def _redact_agent_litellm_params_dict(
+def _redact_agent_gateway_params_dict(
     litellm_params: Mapping[str, object],
 ) -> dict[str, object]:  # mutable-ok: AgentResponse.litellm_params is declared as a plain dict, not Mapping
     """Type-narrowing wrapper: a dict in always yields a dict back from
     ``redact_sensitive_agent_litellm_params``, which the function's general
     (possible-JSON-string, possibly-None) signature can't express."""
     return dict(  # mutable-ok: AgentResponse.litellm_params is declared as a plain dict, not Mapping
-        parse_agent_litellm_params(redact_sensitive_agent_litellm_params(litellm_params))
+        parse_agent_gateway_params(redact_sensitive_agent_gateway_params(litellm_params))
     )
 
 
@@ -172,7 +172,7 @@ def _redact_sensitive_agent_fields(
             copy.extra_headers = None
             copy.keys = None
         if copy.litellm_params:
-            copy.litellm_params = _redact_agent_litellm_params_dict(copy.litellm_params)
+            copy.litellm_params = _redact_agent_gateway_params_dict(copy.litellm_params)
         redacted.append(copy)
     return redacted
 
@@ -183,7 +183,7 @@ def _check_agent_management_permission(user_api_key_dict: UserAPIKeyAuth) -> Non
     or delete agents.  Only PROXY_ADMIN users are allowed to perform these
     write operations.
     """
-    if user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN:
+    if user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN:
         raise HTTPException(
             status_code=403,
             detail={
@@ -363,8 +363,8 @@ async def get_agents(
         # litellm_params secrets are always redacted; keys/headers stay
         # admin-only.
         is_admin: Final = (
-            user_api_key_dict.user_role == LitellmUserRoles.PROXY_ADMIN
-            or user_api_key_dict.user_role == LitellmUserRoles.PROXY_ADMIN.value
+            user_api_key_dict.user_role == GatewayUserRoles.PROXY_ADMIN
+            or user_api_key_dict.user_role == GatewayUserRoles.PROXY_ADMIN.value
         )
         returned_agents = _redact_sensitive_agent_fields(returned_agents, is_admin=is_admin)
 
@@ -598,8 +598,8 @@ async def get_agent_by_id(
         # litellm_params secrets are always redacted; keys/headers stay
         # admin-only.
         is_admin = (
-            user_api_key_dict.user_role == LitellmUserRoles.PROXY_ADMIN
-            or user_api_key_dict.user_role == LitellmUserRoles.PROXY_ADMIN.value
+            user_api_key_dict.user_role == GatewayUserRoles.PROXY_ADMIN
+            or user_api_key_dict.user_role == GatewayUserRoles.PROXY_ADMIN.value
         )
         agent = _redact_sensitive_agent_fields((agent,), is_admin=is_admin)[0]
 
@@ -921,7 +921,7 @@ async def make_agent_public(
         from token_iq.gateway.proxy.proxy_server import proxy_config
 
         # Check if user has admin permissions
-        if user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN:
+        if user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN:
             raise HTTPException(
                 status_code=403,
                 detail={
@@ -1032,7 +1032,7 @@ async def make_agents_public(
         # Load existing config
         config: Final = await proxy_config.get_config()
         # Check if user has admin permissions
-        if user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN:
+        if user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN:
             raise HTTPException(
                 status_code=403,
                 detail={

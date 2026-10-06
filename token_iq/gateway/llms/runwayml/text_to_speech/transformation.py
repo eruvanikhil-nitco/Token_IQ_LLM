@@ -25,10 +25,10 @@ from token_iq.gateway.llms.base_llm.text_to_speech.transformation import (
 from token_iq.gateway.secret_managers.main import get_secret_str
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
     from token_iq.gateway.types.llms.openai import HttpxBinaryResponseContent
 else:
-    LiteLLMLoggingObj = Any
+    GatewayLoggingObj = Any
     HttpxBinaryResponseContent = Any
 
 
@@ -70,8 +70,8 @@ class RunwayMLTextToSpeechConfig(BaseTextToSpeechConfig):
         input: str,
         voice: str | dict | None,
         optional_params: dict,
-        litellm_params_dict: dict,
-        logging_obj: "LiteLLMLoggingObj",
+        gateway_params_dict: dict,
+        logging_obj: "GatewayLoggingObj",
         timeout: float | httpx.Timeout,
         extra_headers: dict[str, object] | None,
         base_llm_http_handler: Any,
@@ -94,7 +94,7 @@ class RunwayMLTextToSpeechConfig(BaseTextToSpeechConfig):
         # Resolve api_base from multiple sources
         api_base = (
             api_base
-            or litellm_params_dict.get("api_base")
+            or gateway_params_dict.get("api_base")
             or gateway.api_base
             or get_secret_str("RUNWAYML_API_BASE")
             or self.DEFAULT_BASE_URL
@@ -103,7 +103,7 @@ class RunwayMLTextToSpeechConfig(BaseTextToSpeechConfig):
         # Resolve api_key from multiple sources
         api_key = (
             api_key
-            or litellm_params_dict.get("api_key")
+            or gateway_params_dict.get("api_key")
             or gateway.api_key
             or get_secret_str("RUNWAYML_API_SECRET")
             or get_secret_str("RUNWAYML_API_KEY")
@@ -118,7 +118,7 @@ class RunwayMLTextToSpeechConfig(BaseTextToSpeechConfig):
             # Already in dict format, pass through
             voice_param = voice
 
-        litellm_params_dict.update(
+        gateway_params_dict.update(
             {
                 "api_key": api_key,
                 "api_base": api_base,
@@ -133,7 +133,7 @@ class RunwayMLTextToSpeechConfig(BaseTextToSpeechConfig):
             text_to_speech_provider_config=self,
             text_to_speech_optional_params=optional_params,
             custom_llm_provider="runwayml",
-            litellm_params=litellm_params_dict,
+            litellm_params=gateway_params_dict,
             logging_obj=logging_obj,
             timeout=timeout,
             extra_headers=extra_headers,
@@ -436,7 +436,7 @@ class RunwayMLTextToSpeechConfig(BaseTextToSpeechConfig):
         self,
         model: str,
         raw_response: httpx.Response,
-        logging_obj: "LiteLLMLoggingObj",
+        logging_obj: "GatewayLoggingObj",
     ) -> "HttpxBinaryResponseContent":
         """
         Transform RunwayML TTS response to standard format
@@ -521,7 +521,7 @@ class RunwayMLTextToSpeechConfig(BaseTextToSpeechConfig):
         self,
         model: str,
         raw_response: httpx.Response,
-        logging_obj: "LiteLLMLoggingObj",
+        logging_obj: "GatewayLoggingObj",
     ) -> "HttpxBinaryResponseContent":
         """
         Async transform RunwayML TTS response to standard format

@@ -11,7 +11,7 @@ from fastapi.testclient import TestClient
 
 
 from token_iq.gateway.proxy import proxy_server
-from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
 from token_iq.gateway.proxy.management_endpoints.router_settings_endpoints import (
     get_router_settings,
 )
@@ -111,7 +111,7 @@ class TestRouterSettingsEndpoints:
         )
 
         admin_user = UserAPIKeyAuth(
-            user_role=LitellmUserRoles.PROXY_ADMIN, api_key="sk-x"
+            user_role=GatewayUserRoles.PROXY_ADMIN, api_key="sk-x"
         )
         response = await get_router_settings(user_api_key_dict=admin_user)
 

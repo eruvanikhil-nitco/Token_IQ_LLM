@@ -205,7 +205,7 @@ def test_build_custom_pricing_entry_time_based():
     assert entry["output_cost_per_second"] == 0.02
 
 
-def test_register_model_strips_none_litellm_provider():
+def test_register_model_strips_none_gateway_provider():
     """``get_model_info`` returns ``litellm_provider: None`` for deployments
     registered without a provider (e.g. ``Router.add_deployment`` flows).
     ``register_model`` must not persist that None into ``model_cost``,
@@ -244,7 +244,7 @@ def test_register_model_strips_none_litellm_provider():
         gateway.model_cost.pop(model_key, None)
 
 
-def test_register_model_strips_none_litellm_provider_from_get_model_info(monkeypatch):
+def test_register_model_strips_none_gateway_provider_from_get_model_info(monkeypatch):
     """Directly exercise the strip in ``register_model``.
 
     The companion test above hits the ``except Exception`` branch where
@@ -257,7 +257,7 @@ def test_register_model_strips_none_litellm_provider_from_get_model_info(monkeyp
 
     Regression test for https://github.com/BerriAI/litellm/issues/28336.
     """
-    from token_iq.gateway import utils as litellm_utils
+    from token_iq.gateway import utils as gateway_utils
     from token_iq.gateway.utils import _check_provider_match
 
     model_key = "test-strip-none-provider-from-get-model-info-28336"
@@ -276,7 +276,7 @@ def test_register_model_strips_none_litellm_provider_from_get_model_info(monkeyp
     # ``_invalidate_model_cost_lowercase_map``, so the replacement must
     # expose a no-op ``cache_clear`` attribute.
     _fake_get_model_info.cache_clear = lambda: None
-    monkeypatch.setattr(litellm_utils, "get_model_info", _fake_get_model_info)
+    monkeypatch.setattr(gateway_utils, "get_model_info", _fake_get_model_info)
 
     try:
         gateway.register_model(

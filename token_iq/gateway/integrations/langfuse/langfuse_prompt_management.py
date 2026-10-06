@@ -27,7 +27,7 @@ if TYPE_CHECKING:
     from langfuse import Langfuse
     from langfuse.client import ChatPromptClient, TextPromptClient
 
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 
     LangfuseClass: TypeAlias = Langfuse
 
@@ -35,7 +35,7 @@ if TYPE_CHECKING:
 else:
     PROMPT_CLIENT = Any
     LangfuseClass = Any
-    LiteLLMLoggingObj = Any
+    GatewayLoggingObj = Any
 in_memory_dynamic_logger_cache: Final = DynamicLoggingCache()
 
 
@@ -187,7 +187,7 @@ class LangfusePromptManagement(LangFuseLogger, PromptManagementBase, CustomLogge
         prompt_id: str | None,
         prompt_variables: dict | None,
         dynamic_callback_params: StandardCallbackDynamicParams,
-        litellm_logging_obj: LiteLLMLoggingObj,
+        litellm_logging_obj: GatewayLoggingObj,
         prompt_spec: PromptSpec | None = None,
         tools: list[dict] | None = None,
         prompt_label: str | None = None,

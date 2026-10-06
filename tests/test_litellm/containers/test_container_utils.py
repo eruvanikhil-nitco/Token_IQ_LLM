@@ -8,7 +8,7 @@ from token_iq.gateway.containers.utils import (
     decode_managed_container_id_for_request,
 )
 from token_iq.gateway.responses.utils import ResponsesAPIRequestUtils
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.llms.openai.containers.transformation import OpenAIContainerConfig
 from token_iq.gateway.types.containers.main import (
     ContainerCreateOptionalRequestParams,
@@ -232,7 +232,7 @@ class TestContainerRequestUtils:
             container_id=inner,
         )
         assert len(managed) > len(inner)
-        litellm_params: GenericLiteLLMParams = GenericLiteLLMParams()
+        litellm_params: GenericGatewayParams = GenericGatewayParams()
         original_id, provider, updated = decode_managed_container_id_for_request(
             managed, "openai", litellm_params
         )

@@ -9,10 +9,10 @@ search provider APIs.
 
 
 from token_iq.gateway.types.utils import all_litellm_params
-from token_iq.gateway.utils import filter_out_litellm_params
+from token_iq.gateway.utils import filter_out_gateway_params
 
 
-def test_search_tool_name_in_all_litellm_params():
+def test_search_tool_name_in_all_gateway_params():
     """
     Test that search_tool_name is in all_litellm_params.
 
@@ -34,7 +34,7 @@ def test_filter_out_search_tool_name():
         "litellm_call_id": "test-123",
     }
 
-    filtered = filter_out_litellm_params(kwargs=kwargs)
+    filtered = filter_out_gateway_params(kwargs=kwargs)
 
     assert "search_tool_name" not in filtered
     assert "metadata" not in filtered

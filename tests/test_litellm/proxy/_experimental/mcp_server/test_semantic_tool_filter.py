@@ -775,7 +775,7 @@ async def test_semantic_filter_hook_responses_api_name_collision():
 
 
 @pytest.mark.asyncio
-async def test_semantic_filter_hook_filters_expanded_litellm_proxy_tools():
+async def test_semantic_filter_hook_filters_expanded_gateway_proxy_tools():
     """
     Regression test (LIT-4214): litellm_proxy MCP references must be
     semantically filtered after expansion, with real filter stats.

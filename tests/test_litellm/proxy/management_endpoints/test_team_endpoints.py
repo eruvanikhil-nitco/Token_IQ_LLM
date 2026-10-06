@@ -25,7 +25,7 @@ from token_iq.gateway.proxy._types import (
     LiteLLM_TeamTable,
     LiteLLM_TeamTableCachedObj,
     LiteLLM_UserTable,
-    LitellmUserRoles,
+    GatewayUserRoles,
     Member,
     ProxyErrorTypes,
     ProxyException,
@@ -188,7 +188,7 @@ def disable_audit_logging_for_mocked_team(monkeypatch: pytest.MonkeyPatch):
 # Fixture to provide a mock admin user auth object
 @pytest.fixture
 def mock_admin_auth():
-    mock_auth = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN)
+    mock_auth = UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN)
     return mock_auth
 
 
@@ -721,12 +721,12 @@ async def test_new_team_with_mcp_tool_permissions(mock_db_client, mock_admin_aut
 @pytest.mark.parametrize(
     "user_role,user_id,flag_value,expected",
     [
-        (LitellmUserRoles.PROXY_ADMIN, "admin-1", True, False),
-        (LitellmUserRoles.PROXY_ADMIN, "admin-1", False, True),
-        (LitellmUserRoles.PROXY_ADMIN, "admin-1", None, True),
-        (LitellmUserRoles.INTERNAL_USER, "user-1", True, True),
-        (LitellmUserRoles.ORG_ADMIN, "org-admin-1", True, True),
-        (LitellmUserRoles.PROXY_ADMIN, None, False, False),
+        (GatewayUserRoles.PROXY_ADMIN, "admin-1", True, False),
+        (GatewayUserRoles.PROXY_ADMIN, "admin-1", False, True),
+        (GatewayUserRoles.PROXY_ADMIN, "admin-1", None, True),
+        (GatewayUserRoles.INTERNAL_USER, "user-1", True, True),
+        (GatewayUserRoles.ORG_ADMIN, "org-admin-1", True, True),
+        (GatewayUserRoles.PROXY_ADMIN, None, False, False),
     ],
 )
 def test_should_auto_add_team_creator(user_role, user_id, flag_value, expected):
@@ -776,7 +776,7 @@ async def test_new_team_disable_auto_add_proxy_admin_flag(
     from token_iq.gateway.proxy.management_endpoints.team_endpoints import new_team
 
     admin_auth = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin-user-1"
+        user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin-user-1"
     )
 
     with patch(
@@ -1241,7 +1241,7 @@ async def test_validate_team_member_add_permissions_admin():
         _validate_team_member_add_permissions,
     )
 
-    admin_user = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN)
+    admin_user = UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN)
 
     team = MagicMock(spec=LiteLLM_TeamTable)
     team.team_id = "test-team-123"
@@ -1264,7 +1264,7 @@ async def test_validate_team_member_add_permissions_non_admin():
 
     regular_user = UserAPIKeyAuth(
         user_id="regular-user",
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         team_id="different-team",
     )
 
@@ -1307,7 +1307,7 @@ async def test_available_team_self_join_with_caller_user_id_allowed():
 
     user = UserAPIKeyAuth(
         user_id="alice",
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
     )
 
     team = MagicMock(spec=LiteLLM_TeamTable)
@@ -1340,7 +1340,7 @@ async def test_available_team_self_join_blocks_admin_role():
         _validate_team_member_add_permissions,
     )
 
-    user = UserAPIKeyAuth(user_id="alice", user_role=LitellmUserRoles.INTERNAL_USER)
+    user = UserAPIKeyAuth(user_id="alice", user_role=GatewayUserRoles.INTERNAL_USER)
     team = MagicMock(spec=LiteLLM_TeamTable)
     team.team_id = "public-team"
     team.members_with_roles = []
@@ -1375,7 +1375,7 @@ async def test_available_team_self_join_blocks_other_user_id():
         _validate_team_member_add_permissions,
     )
 
-    user = UserAPIKeyAuth(user_id="alice", user_role=LitellmUserRoles.INTERNAL_USER)
+    user = UserAPIKeyAuth(user_id="alice", user_role=GatewayUserRoles.INTERNAL_USER)
     team = MagicMock(spec=LiteLLM_TeamTable)
     team.team_id = "public-team"
     team.members_with_roles = []
@@ -1411,7 +1411,7 @@ async def test_available_team_self_join_blocks_when_caller_has_no_user_id():
         _validate_team_member_add_permissions,
     )
 
-    user = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER)  # no user_id
+    user = UserAPIKeyAuth(user_role=GatewayUserRoles.INTERNAL_USER)  # no user_id
     team = MagicMock(spec=LiteLLM_TeamTable)
     team.team_id = "public-team"
     team.members_with_roles = []
@@ -1446,7 +1446,7 @@ async def test_available_team_self_join_blocks_email_only_member():
         _validate_team_member_add_permissions,
     )
 
-    user = UserAPIKeyAuth(user_id="alice", user_role=LitellmUserRoles.INTERNAL_USER)
+    user = UserAPIKeyAuth(user_id="alice", user_role=GatewayUserRoles.INTERNAL_USER)
     team = MagicMock(spec=LiteLLM_TeamTable)
     team.team_id = "public-team"
     team.members_with_roles = []
@@ -1486,7 +1486,7 @@ async def test_available_team_self_join_blocks_admin_role_in_member_list():
         _validate_team_member_add_permissions,
     )
 
-    user = UserAPIKeyAuth(user_id="alice", user_role=LitellmUserRoles.INTERNAL_USER)
+    user = UserAPIKeyAuth(user_id="alice", user_role=GatewayUserRoles.INTERNAL_USER)
     team = MagicMock(spec=LiteLLM_TeamTable)
     team.team_id = "public-team"
     team.members_with_roles = []
@@ -1539,7 +1539,7 @@ async def test_available_team_self_join_blocks_member_budget_controls(budget_con
         _validate_team_member_add_permissions,
     )
 
-    user = UserAPIKeyAuth(user_id="alice", user_role=LitellmUserRoles.INTERNAL_USER)
+    user = UserAPIKeyAuth(user_id="alice", user_role=GatewayUserRoles.INTERNAL_USER)
     team = MagicMock(spec=LiteLLM_TeamTable)
     team.team_id = "public-team"
     team.members_with_roles = []
@@ -1581,7 +1581,7 @@ async def test_available_team_self_join_allows_no_budget_controls():
         _validate_team_member_add_permissions,
     )
 
-    user = UserAPIKeyAuth(user_id="alice", user_role=LitellmUserRoles.INTERNAL_USER)
+    user = UserAPIKeyAuth(user_id="alice", user_role=GatewayUserRoles.INTERNAL_USER)
     team = MagicMock(spec=LiteLLM_TeamTable)
     team.team_id = "public-team"
     team.members_with_roles = []
@@ -1637,7 +1637,7 @@ async def test_update_team_member_permissions_blocks_non_admin_via_available_tea
 
     non_admin_auth = UserAPIKeyAuth(
         user_id="alice",
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
     )
 
     with (
@@ -1921,7 +1921,7 @@ async def test_add_team_members_reconciles_against_freshly_locked_row():
             ),
             complete_team_data=stale_snapshot,
             prisma_client=cast(object, prisma_client),
-            user_api_key_dict=UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN),
+            user_api_key_dict=UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN),
             litellm_proxy_admin_name="admin",
         )
 
@@ -1994,7 +1994,7 @@ async def test_add_team_members_runs_member_writes_on_the_lock_holding_transacti
         ),
         complete_team_data=LiteLLM_TeamTable(team_id="team-pool", members_with_roles=[]),
         prisma_client=cast(object, prisma_client),
-        user_api_key_dict=UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN),
+        user_api_key_dict=UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN),
         litellm_proxy_admin_name="admin",
     )
 
@@ -2042,7 +2042,7 @@ async def test_add_team_members_writes_nothing_when_the_team_is_deleted_mid_requ
                 ),
                 complete_team_data=LiteLLM_TeamTable(team_id="team-deleted-mid-add", members_with_roles=[]),
                 prisma_client=cast(object, prisma_client),
-                user_api_key_dict=UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN),
+                user_api_key_dict=UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN),
                 litellm_proxy_admin_name="admin",
             )
 
@@ -2095,7 +2095,7 @@ async def test_team_model_add_delete_refresh_team_cache(endpoint_name):
     from fastapi import Request
 
     from token_iq.gateway.proxy._types import (
-        LitellmUserRoles,
+        GatewayUserRoles,
         TeamModelAddRequest,
         TeamModelDeleteRequest,
         UserAPIKeyAuth,
@@ -2107,7 +2107,7 @@ async def test_team_model_add_delete_refresh_team_cache(endpoint_name):
 
     mock_request = Mock(spec=Request)
     mock_user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, user_id="test_user_id"
+        user_role=GatewayUserRoles.PROXY_ADMIN, user_id="test_user_id"
     )
 
     existing_team = MagicMock()
@@ -2225,7 +2225,7 @@ async def test_team_write_404s_when_row_vanishes_before_update(endpoint_name):
     from fastapi import Request
 
     from token_iq.gateway.proxy._types import (
-        LitellmUserRoles,
+        GatewayUserRoles,
         TeamModelAddRequest,
         TeamModelDeleteRequest,
         UserAPIKeyAuth,
@@ -2238,7 +2238,7 @@ async def test_team_write_404s_when_row_vanishes_before_update(endpoint_name):
 
     mock_request = Mock(spec=Request)
     mock_user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, user_id="test_user_id"
+        user_role=GatewayUserRoles.PROXY_ADMIN, user_id="test_user_id"
     )
 
     existing_team = MagicMock()
@@ -2313,13 +2313,13 @@ async def test_update_team_team_member_budget_not_passed_to_db(
 
     from fastapi import Request
 
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UpdateTeamRequest, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UpdateTeamRequest, UserAPIKeyAuth
     from token_iq.gateway.proxy.management_endpoints.team_endpoints import update_team
 
     # Mock dependencies
     mock_request = Mock(spec=Request)
     mock_user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, user_id="test_user_id"
+        user_role=GatewayUserRoles.PROXY_ADMIN, user_id="test_user_id"
     )
 
     with (
@@ -2518,13 +2518,13 @@ async def test_create_team_member_budget_table():
     """
     from unittest.mock import AsyncMock, MagicMock, patch
 
-    from token_iq.gateway.proxy._types import LitellmUserRoles, NewTeamRequest, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, NewTeamRequest, UserAPIKeyAuth
     from token_iq.gateway.proxy.management_endpoints.team_endpoints import (
         TeamMemberBudgetHandler,
     )
 
     mock_user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, user_id="test_user_id"
+        user_role=GatewayUserRoles.PROXY_ADMIN, user_id="test_user_id"
     )
 
     data = NewTeamRequest(
@@ -2587,13 +2587,13 @@ async def test_create_team_member_budget_table_without_team_alias():
     """
     from unittest.mock import AsyncMock, MagicMock, patch
 
-    from token_iq.gateway.proxy._types import LitellmUserRoles, NewTeamRequest, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, NewTeamRequest, UserAPIKeyAuth
     from token_iq.gateway.proxy.management_endpoints.team_endpoints import (
         TeamMemberBudgetHandler,
     )
 
     mock_user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, user_id="test_user_id"
+        user_role=GatewayUserRoles.PROXY_ADMIN, user_id="test_user_id"
     )
 
     data = NewTeamRequest(team_id="test_team_id")
@@ -2633,13 +2633,13 @@ async def test_upsert_team_member_budget_table_existing_budget():
     """
     from unittest.mock import AsyncMock, MagicMock, patch
 
-    from token_iq.gateway.proxy._types import LitellmUserRoles, LiteLLM_TeamTable, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, LiteLLM_TeamTable, UserAPIKeyAuth
     from token_iq.gateway.proxy.management_endpoints.team_endpoints import (
         TeamMemberBudgetHandler,
     )
 
     mock_user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, user_id="test_user_id"
+        user_role=GatewayUserRoles.PROXY_ADMIN, user_id="test_user_id"
     )
 
     team_table = MagicMock(spec=LiteLLM_TeamTable)
@@ -2694,13 +2694,13 @@ async def test_upsert_team_member_budget_table_no_existing_budget():
     """
     from unittest.mock import AsyncMock, MagicMock, patch
 
-    from token_iq.gateway.proxy._types import LitellmUserRoles, LiteLLM_TeamTable, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, LiteLLM_TeamTable, UserAPIKeyAuth
     from token_iq.gateway.proxy.management_endpoints.team_endpoints import (
         TeamMemberBudgetHandler,
     )
 
     mock_user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, user_id="test_user_id"
+        user_role=GatewayUserRoles.PROXY_ADMIN, user_id="test_user_id"
     )
 
     team_table = MagicMock(spec=LiteLLM_TeamTable)
@@ -2750,7 +2750,7 @@ async def test_upsert_team_member_budget_table_clears_duration_kept_budget(mock_
     )
 
     mock_user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, user_id="test_user_id"
+        user_role=GatewayUserRoles.PROXY_ADMIN, user_id="test_user_id"
     )
 
     team_table = MagicMock(spec=LiteLLM_TeamTable)
@@ -2800,7 +2800,7 @@ async def test_create_team_member_budget_table_explicit_null_duration_does_not_i
     )
 
     mock_user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, user_id="test_user_id"
+        user_role=GatewayUserRoles.PROXY_ADMIN, user_id="test_user_id"
     )
 
     team_table = MagicMock(spec=LiteLLM_TeamTable)
@@ -2845,7 +2845,7 @@ async def test_create_team_member_budget_table_inherits_team_duration_when_durat
     )
 
     mock_user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, user_id="test_user_id"
+        user_role=GatewayUserRoles.PROXY_ADMIN, user_id="test_user_id"
     )
 
     team_table = MagicMock(spec=LiteLLM_TeamTable)
@@ -2882,12 +2882,12 @@ async def test_update_team_with_team_member_budget_duration(
 
     from fastapi import Request
 
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UpdateTeamRequest, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UpdateTeamRequest, UserAPIKeyAuth
     from token_iq.gateway.proxy.management_endpoints.team_endpoints import update_team
 
     mock_request = Mock(spec=Request)
     mock_user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, user_id="test_user_id"
+        user_role=GatewayUserRoles.PROXY_ADMIN, user_id="test_user_id"
     )
 
     with (
@@ -3241,7 +3241,7 @@ async def test_bulk_team_member_add_success():
         new_callable=AsyncMock,
         return_value=mock_team_response,
     ) as mock_team_member_add:
-        mock_auth = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN)
+        mock_auth = UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN)
 
         result = await bulk_team_member_add(
             data=bulk_request,
@@ -3283,7 +3283,7 @@ async def test_bulk_team_member_add_no_members_error():
         members=[],  # Empty list
     )
 
-    mock_auth = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN)
+    mock_auth = UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN)
 
     with pytest.raises(HTTPException) as exc_info:
         await bulk_team_member_add(
@@ -3312,7 +3312,7 @@ async def test_bulk_team_member_add_batch_size_limit():
         members=large_member_list,
     )
 
-    mock_auth = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN)
+    mock_auth = UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN)
 
     with pytest.raises(HTTPException) as exc_info:
         await bulk_team_member_add(
@@ -3364,7 +3364,7 @@ async def test_bulk_team_member_add_all_users_flag():
             return_value=mock_db_users
         )
 
-        mock_auth = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN)
+        mock_auth = UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN)
 
         result = await bulk_team_member_add(
             data=bulk_request,
@@ -3406,7 +3406,7 @@ async def test_bulk_team_member_add_failure_scenario():
         new_callable=AsyncMock,
         side_effect=Exception("Database connection failed"),
     ) as mock_team_member_add:
-        mock_auth = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN)
+        mock_auth = UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN)
 
         result = await bulk_team_member_add(
             data=bulk_request,
@@ -3441,7 +3441,7 @@ async def test_bulk_team_member_add_no_db_connection():
     )
 
     with patch("token_iq.gateway.proxy.proxy_server.prisma_client", None):
-        mock_auth = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN)
+        mock_auth = UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN)
 
         with pytest.raises(HTTPException) as exc_info:
             await bulk_team_member_add(
@@ -3463,7 +3463,7 @@ async def test_list_team_v2_security_check_non_admin_user():
 
     from fastapi import HTTPException, Request
 
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
     from token_iq.gateway.proxy.management_endpoints.team_endpoints import list_team_v2
 
     # Mock request
@@ -3471,7 +3471,7 @@ async def test_list_team_v2_security_check_non_admin_user():
 
     # Test Case 1: Non-admin user trying to query all teams (user_id=None)
     mock_user_api_key_dict_non_admin = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="non_admin_user_123",
     )
 
@@ -3500,7 +3500,7 @@ async def test_list_team_v2_security_check_non_admin_user():
         assert "Only admin users can query all teams/other teams" in str(
             exc_info.value.detail
         )
-        assert LitellmUserRoles.INTERNAL_USER.value in str(exc_info.value.detail)
+        assert GatewayUserRoles.INTERNAL_USER.value in str(exc_info.value.detail)
 
 
 @pytest.mark.asyncio
@@ -3513,7 +3513,7 @@ async def test_list_team_v2_security_check_non_admin_user_other_user():
 
     from fastapi import HTTPException, Request
 
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
     from token_iq.gateway.proxy.management_endpoints.team_endpoints import list_team_v2
 
     # Mock request
@@ -3521,7 +3521,7 @@ async def test_list_team_v2_security_check_non_admin_user_other_user():
 
     # Test Case 2: Non-admin user trying to query another user's teams
     mock_user_api_key_dict_non_admin = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="non_admin_user_123",
     )
 
@@ -3561,7 +3561,7 @@ async def test_list_team_v2_security_check_non_admin_user_own_teams():
 
     from fastapi import Request
 
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
     from token_iq.gateway.proxy.management_endpoints.team_endpoints import list_team_v2
 
     # Mock request
@@ -3569,7 +3569,7 @@ async def test_list_team_v2_security_check_non_admin_user_own_teams():
 
     # Test Case 3: Non-admin user querying their own teams (should be allowed)
     mock_user_api_key_dict_non_admin = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="non_admin_user_123",
     )
 
@@ -3630,7 +3630,7 @@ async def test_list_team_v2_security_check_admin_user():
 
     from fastapi import Request
 
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
     from token_iq.gateway.proxy.management_endpoints.team_endpoints import list_team_v2
 
     # Mock request
@@ -3638,7 +3638,7 @@ async def test_list_team_v2_security_check_admin_user():
 
     # Test Case 4: Admin user querying all teams (should be allowed)
     mock_user_api_key_dict_admin = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
         user_id="admin_user_123",
     )
 
@@ -3681,7 +3681,7 @@ async def test_list_team_v2_with_status_deleted():
 
     from fastapi import Request
 
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
     from token_iq.gateway.proxy.management_endpoints.team_endpoints import list_team_v2
 
     # Mock request
@@ -3689,7 +3689,7 @@ async def test_list_team_v2_with_status_deleted():
 
     # Mock admin user
     mock_user_api_key_dict_admin = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
         user_id="admin_user_123",
     )
 
@@ -3759,12 +3759,12 @@ async def test_list_team_v2_includes_litellm_model_table():
 
     from fastapi import Request
 
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
     from token_iq.gateway.proxy.management_endpoints.team_endpoints import list_team_v2
 
     mock_request = Mock(spec=Request)
     mock_user_api_key_dict_admin = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
         user_id="admin_user_123",
     )
 
@@ -3842,14 +3842,14 @@ async def test_list_team_v2_org_admin_sees_org_teams():
     from token_iq.gateway.proxy._types import (
         LiteLLM_OrganizationMembershipTable,
         LiteLLM_UserTable,
-        LitellmUserRoles,
+        GatewayUserRoles,
         UserAPIKeyAuth,
     )
     from token_iq.gateway.proxy.management_endpoints.team_endpoints import list_team_v2
 
     mock_request = Mock(spec=Request)
     mock_user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="org_admin_user",
     )
 
@@ -3932,14 +3932,14 @@ async def test_list_team_v2_org_admin_own_user_id_sees_all_org_teams():
     from token_iq.gateway.proxy._types import (
         LiteLLM_OrganizationMembershipTable,
         LiteLLM_UserTable,
-        LitellmUserRoles,
+        GatewayUserRoles,
         UserAPIKeyAuth,
     )
     from token_iq.gateway.proxy.management_endpoints.team_endpoints import list_team_v2
 
     mock_request = Mock(spec=Request)
     mock_user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="org_admin_user",
     )
 
@@ -4029,14 +4029,14 @@ async def test_list_team_v2_org_admin_cannot_view_other_orgs():
     from token_iq.gateway.proxy._types import (
         LiteLLM_OrganizationMembershipTable,
         LiteLLM_UserTable,
-        LitellmUserRoles,
+        GatewayUserRoles,
         UserAPIKeyAuth,
     )
     from token_iq.gateway.proxy.management_endpoints.team_endpoints import list_team_v2
 
     mock_request = Mock(spec=Request)
     mock_user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="org_admin_user",
     )
 
@@ -4103,14 +4103,14 @@ async def test_list_team_v2_org_admin_with_user_id_returns_user_teams():
     from token_iq.gateway.proxy._types import (
         LiteLLM_OrganizationMembershipTable,
         LiteLLM_UserTable,
-        LitellmUserRoles,
+        GatewayUserRoles,
         UserAPIKeyAuth,
     )
     from token_iq.gateway.proxy.management_endpoints.team_endpoints import list_team_v2
 
     mock_request = Mock(spec=Request)
     mock_user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="org_admin_user",
     )
 
@@ -4199,7 +4199,7 @@ async def test_list_team_v2_with_invalid_status():
 
     from fastapi import HTTPException, Request
 
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
     from token_iq.gateway.proxy.management_endpoints.team_endpoints import list_team_v2
 
     # Mock request
@@ -4207,7 +4207,7 @@ async def test_list_team_v2_with_invalid_status():
 
     # Mock admin user
     mock_user_api_key_dict_admin = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
         user_id="admin_user_123",
     )
 
@@ -4242,12 +4242,12 @@ async def test_list_team_v2_search_builds_or_clause():
 
     from fastapi import Request
 
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
     from token_iq.gateway.proxy.management_endpoints.team_endpoints import list_team_v2
 
     mock_request = Mock(spec=Request)
     mock_admin = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin_user"
+        user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin_user"
     )
 
     with patch("token_iq.gateway.proxy.proxy_server.prisma_client") as mock_prisma_client:
@@ -4289,12 +4289,12 @@ async def test_list_team_v2_search_team_id_match_prefix():
 
     from fastapi import Request
 
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
     from token_iq.gateway.proxy.management_endpoints.team_endpoints import list_team_v2
 
     mock_request = Mock(spec=Request)
     mock_admin = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin_user"
+        user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin_user"
     )
 
     with patch("token_iq.gateway.proxy.proxy_server.prisma_client") as mock_prisma_client:
@@ -4340,14 +4340,14 @@ async def test_list_team_v2_search_composes_with_user_id_filter():
 
     from token_iq.gateway.proxy._types import (
         LiteLLM_UserTable,
-        LitellmUserRoles,
+        GatewayUserRoles,
         UserAPIKeyAuth,
     )
     from token_iq.gateway.proxy.management_endpoints.team_endpoints import list_team_v2
 
     mock_request = Mock(spec=Request)
     mock_user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER, user_id="member_user"
+        user_role=GatewayUserRoles.INTERNAL_USER, user_id="member_user"
     )
 
     mock_user = LiteLLM_UserTable(
@@ -4405,12 +4405,12 @@ async def test_list_team_v2_populates_keys_count():
 
     from fastapi import Request
 
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
     from token_iq.gateway.proxy.management_endpoints.team_endpoints import list_team_v2
 
     mock_request = Mock(spec=Request)
     mock_user_api_key_dict_admin = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
         user_id="admin_user_123",
     )
 
@@ -4472,12 +4472,12 @@ async def test_list_team_v2_keys_count_skipped_for_empty_page():
 
     from fastapi import Request
 
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
     from token_iq.gateway.proxy.management_endpoints.team_endpoints import list_team_v2
 
     mock_request = Mock(spec=Request)
     mock_user_api_key_dict_admin = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
         user_id="admin_user_123",
     )
 
@@ -4513,12 +4513,12 @@ async def test_list_team_v2_keys_count_skipped_for_deleted_status():
 
     from fastapi import Request
 
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
     from token_iq.gateway.proxy.management_endpoints.team_endpoints import list_team_v2
 
     mock_request = Mock(spec=Request)
     mock_user_api_key_dict_admin = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
         user_id="admin_user_123",
     )
 
@@ -4954,7 +4954,7 @@ async def test_new_team_max_budget_exceeds_user_max_budget():
 
     # Create non-admin user with user_max_budget set to 100.0
     non_admin_user = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="non-admin-user-123",
         user_max_budget=100.0,
     )
@@ -5003,7 +5003,7 @@ async def test_new_team_max_budget_exceeds_user_max_budget():
         assert "100.0" in str(
             exc_info.value.message
         )  # User's user_max_budget should be mentioned
-        assert LitellmUserRoles.INTERNAL_USER.value in str(exc_info.value.message)
+        assert GatewayUserRoles.INTERNAL_USER.value in str(exc_info.value.message)
 
 
 @pytest.mark.asyncio
@@ -5020,7 +5020,7 @@ async def test_new_team_max_budget_within_user_limit():
 
     # Create non-admin user with user_max_budget set to 100.0
     non_admin_user = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="non-admin-user-456",
         user_max_budget=100.0,
         models=[],  # Empty models list to bypass model validation
@@ -5149,7 +5149,7 @@ async def test_new_team_org_scoped_budget_bypasses_user_limit():
 
     # Create non-admin user with very restrictive personal budget ($3)
     org_admin_user = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="org-admin-user-123",
         user_max_budget=3.0,  # Restrictive personal budget
         models=[],  # Empty models list to bypass model validation
@@ -5291,7 +5291,7 @@ async def test_new_team_org_scoped_models_bypasses_user_limit():
 
     # Create non-admin user with restrictive personal models
     org_admin_user = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="org-admin-user-456",
         user_max_budget=None,  # No budget restriction for this test
         models=["no-default-models"],  # Restrictive personal models
@@ -5436,7 +5436,7 @@ async def test_new_team_standalone_validates_against_user_models(monkeypatch):
 
     # Create non-admin user with restrictive personal models
     non_admin_user = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="non-admin-user-789",
         user_max_budget=None,
         models=["no-default-models"],  # Restrictive personal models
@@ -5502,7 +5502,7 @@ async def test_new_team_standalone_validates_against_user_budget():
 
     # Create non-admin user with restrictive personal budget
     non_admin_user = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="non-admin-user-budget-789",
         user_max_budget=100.0,  # This is for key auth, actual budget is from user object
         models=[],  # Empty models list to bypass model validation
@@ -5574,7 +5574,7 @@ async def test_new_team_org_scoped_budget_exceeds_org_limit():
 
     # Create user (org admin)
     org_admin_user = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="org-admin-user-budget-test",
         models=[],
     )
@@ -5651,7 +5651,7 @@ async def test_new_team_org_scoped_models_not_in_org_models():
 
     # Create user (org admin)
     org_admin_user = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="org-admin-user-models-test",
         models=[],
     )
@@ -5728,7 +5728,7 @@ async def test_update_team_standalone_budget_raise_blocked_for_team_admin():
     from token_iq.gateway.proxy.management_endpoints.team_endpoints import update_team
 
     team_admin_user = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="non-admin-update-test",
         models=[],
     )
@@ -5796,7 +5796,7 @@ async def test_update_team_standalone_budget_raise_allowed_for_proxy_admin(
     from token_iq.gateway.proxy.management_endpoints.team_endpoints import update_team
 
     proxy_admin = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
         user_id="proxy-admin-update-test",
         models=[],
     )
@@ -5881,7 +5881,7 @@ async def test_update_team_standalone_budget_removal_blocked_for_team_admin():
     from token_iq.gateway.proxy.management_endpoints.team_endpoints import update_team
 
     team_admin_user = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="budget-removal-admin",
         models=[],
     )
@@ -5953,7 +5953,7 @@ async def test_update_team_standalone_uncapped_team_admin_sets_finite_allowed(
     from token_iq.gateway.proxy.management_endpoints.team_endpoints import update_team
 
     team_admin_user = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="uncapped-team-admin",
         models=[],
     )
@@ -6045,7 +6045,7 @@ async def test_update_team_standalone_unchanged_budget_allowed(
     from token_iq.gateway.proxy.management_endpoints.team_endpoints import update_team
 
     team_admin_user = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="standalone-unchanged-budget-admin",
         models=[],
     )
@@ -6145,7 +6145,7 @@ async def test_update_team_standalone_lower_budget_allowed(
     from token_iq.gateway.proxy.management_endpoints.team_endpoints import update_team
 
     team_admin_user = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="standalone-lower-budget-admin",
         models=[],
     )
@@ -6237,7 +6237,7 @@ async def test_update_team_org_scoped_budget_exceeds_org_limit():
 
     # Create user (org admin)
     org_admin_user = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="org-admin-update-test",
         models=[],
     )
@@ -6327,7 +6327,7 @@ async def test_update_team_standalone_models_not_gated_by_user_limit(
     from token_iq.gateway.proxy.management_endpoints.team_endpoints import update_team
 
     team_admin_user = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="non-admin-update-models-test",
         models=["gpt-3.5-turbo"],  # Restrictive personal model list
     )
@@ -6416,7 +6416,7 @@ async def test_update_team_org_scoped_budget_bypasses_user_limit(
 
     # Create user with very restrictive personal budget ($3)
     org_admin_user = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="org-admin-update-budget-test",
         models=[],
     )
@@ -6530,7 +6530,7 @@ async def test_update_team_org_scoped_models_bypasses_user_limit(
 
     # Create user with very restrictive personal models
     org_admin_user = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="org-admin-update-models-test",
         models=["no-default-models"],  # Restrictive model list
     )
@@ -6632,7 +6632,7 @@ async def test_update_team_org_scoped_models_not_in_org_models():
 
     # Create user (org admin)
     org_admin_user = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="org-admin-update-models-fail-test",
         models=[],
     )
@@ -6720,7 +6720,7 @@ async def test_update_team_org_scoped_models_with_all_proxy_models(
 
     # Create user (org admin)
     org_admin_user = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="org-admin-all-proxy-models-test",
         models=[],
     )
@@ -6836,7 +6836,7 @@ async def test_update_team_tpm_limit_not_gated_by_user_limit(
     from token_iq.gateway.proxy.management_endpoints.team_endpoints import update_team
 
     team_admin_user = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="tpm-limit-user",
         models=[],
         tpm_limit=1000,  # Restrictive personal TPM limit
@@ -6918,7 +6918,7 @@ async def test_update_team_rpm_limit_not_gated_by_user_limit(
     from token_iq.gateway.proxy.management_endpoints.team_endpoints import update_team
 
     team_admin_user = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="rpm-limit-user",
         models=[],
         rpm_limit=100,  # Restrictive personal RPM limit
@@ -7002,7 +7002,7 @@ async def test_new_team_org_scoped_tpm_exceeds_org_limit():
 
     # Create user (with restrictive personal TPM limit that should be bypassed)
     org_admin_user = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="org-admin-tpm-test",
         models=[],
         tpm_limit=1000,  # User's personal limit (should be bypassed for org teams)
@@ -7075,7 +7075,7 @@ async def test_new_team_org_scoped_rpm_exceeds_org_limit():
 
     # Create user (with restrictive personal RPM limit that should be bypassed)
     org_admin_user = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="org-admin-rpm-test",
         models=[],
         rpm_limit=100,  # User's personal limit (should be bypassed for org teams)
@@ -7149,7 +7149,7 @@ async def test_new_team_org_scoped_tpm_rpm_bypasses_user_limit():
 
     # Create user with restrictive personal limits
     org_admin_user = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="org-admin-bypass-test",
         models=[],
         tpm_limit=1000,  # Restrictive user TPM limit
@@ -7255,7 +7255,7 @@ async def test_update_team_org_scoped_tpm_exceeds_org_limit():
 
     # Create user (with restrictive personal TPM limit that should be bypassed)
     org_admin_user = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="org-admin-update-tpm-test",
         models=[],
         tpm_limit=1000,  # User's personal limit (should be bypassed for org teams)
@@ -7341,7 +7341,7 @@ async def test_update_team_org_scoped_rpm_exceeds_org_limit():
 
     # Create user (with restrictive personal RPM limit that should be bypassed)
     org_admin_user = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="org-admin-update-rpm-test",
         models=[],
         rpm_limit=100,  # User's personal limit (should be bypassed for org teams)
@@ -7430,7 +7430,7 @@ async def test_update_team_org_scoped_tpm_rpm_bypasses_user_limit(
 
     # Create user with restrictive personal limits
     org_admin_user = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="org-admin-update-bypass-test",
         models=[],
         tpm_limit=1000,  # Restrictive user TPM limit
@@ -7535,7 +7535,7 @@ async def test_update_team_guardrails_with_org_id(
 
     # Create user (org admin)
     org_admin_user = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="org-admin-guardrails-test",
         models=[],
     )
@@ -7705,7 +7705,7 @@ def test_transform_teams_to_deleted_records():
     user_api_key_dict = UserAPIKeyAuth(
         user_id="user-123",
         api_key="sk-test",
-        user_role=LitellmUserRoles.PROXY_ADMIN.value,
+        user_role=GatewayUserRoles.PROXY_ADMIN.value,
     )
 
     team1 = LiteLLM_TeamTable(
@@ -7766,7 +7766,7 @@ def test_transform_teams_to_deleted_records_empty_list():
     user_api_key_dict = UserAPIKeyAuth(
         user_id="user-123",
         api_key="sk-test",
-        user_role=LitellmUserRoles.PROXY_ADMIN.value,
+        user_role=GatewayUserRoles.PROXY_ADMIN.value,
     )
 
     records = _transform_teams_to_deleted_records(
@@ -7823,7 +7823,7 @@ async def test_persist_deleted_team_records():
     user_api_key_dict = UserAPIKeyAuth(
         user_id="user-123",
         api_key="sk-test",
-        user_role=LitellmUserRoles.PROXY_ADMIN.value,
+        user_role=GatewayUserRoles.PROXY_ADMIN.value,
     )
 
     team = LiteLLM_TeamTable(
@@ -7865,7 +7865,7 @@ async def test_delete_team_persists_deleted_teams(
     mock_user_api_key_dict = UserAPIKeyAuth(
         user_id="admin-user",
         api_key="sk-admin",
-        user_role=LitellmUserRoles.PROXY_ADMIN.value,
+        user_role=GatewayUserRoles.PROXY_ADMIN.value,
     )
 
     team1 = LiteLLM_TeamTable(
@@ -8026,7 +8026,7 @@ async def test_delete_team_sweeps_references_outside_members_with_roles(
         user_api_key_dict=UserAPIKeyAuth(
             user_id="admin-user",
             api_key="sk-admin",
-            user_role=LitellmUserRoles.PROXY_ADMIN.value,
+            user_role=GatewayUserRoles.PROXY_ADMIN.value,
         ),
         litellm_changed_by="admin-user",
     )
@@ -8119,7 +8119,7 @@ async def test_delete_team_evicts_the_auth_cache_of_the_keys_it_deletes(
         user_api_key_dict=UserAPIKeyAuth(
             user_id="admin-user",
             api_key="sk-admin",
-            user_role=LitellmUserRoles.PROXY_ADMIN.value,
+            user_role=GatewayUserRoles.PROXY_ADMIN.value,
         ),
         litellm_changed_by="admin-user",
     )
@@ -8188,7 +8188,7 @@ async def test_delete_team_failing_locked_sweep_rolls_back_the_delete_and_leaves
             user_api_key_dict=UserAPIKeyAuth(
                 user_id="admin-user",
                 api_key="sk-admin",
-                user_role=LitellmUserRoles.PROXY_ADMIN.value,
+                user_role=GatewayUserRoles.PROXY_ADMIN.value,
             ),
             litellm_changed_by="admin-user",
         )
@@ -8257,7 +8257,7 @@ async def test_delete_team_broadcasts_cache_invalidation_to_other_workers(
         user_api_key_dict=UserAPIKeyAuth(
             user_id="admin-user",
             api_key="sk-admin",
-            user_role=LitellmUserRoles.PROXY_ADMIN.value,
+            user_role=GatewayUserRoles.PROXY_ADMIN.value,
         ),
         litellm_changed_by="admin-user",
     )
@@ -8328,7 +8328,7 @@ async def test_delete_team_survives_a_failing_cache_backend(
         user_api_key_dict=UserAPIKeyAuth(
             user_id="admin-user",
             api_key="sk-admin",
-            user_role=LitellmUserRoles.PROXY_ADMIN.value,
+            user_role=GatewayUserRoles.PROXY_ADMIN.value,
         ),
         litellm_changed_by="admin-user",
     )
@@ -8349,7 +8349,7 @@ async def test_team_member_delete_persists_deleted_keys(monkeypatch):
     mock_user_api_key_dict = UserAPIKeyAuth(
         user_id="admin-user",
         api_key="sk-admin",
-        user_role=LitellmUserRoles.PROXY_ADMIN.value,
+        user_role=GatewayUserRoles.PROXY_ADMIN.value,
     )
 
     team = LiteLLM_TeamTable(
@@ -8562,7 +8562,7 @@ async def test_new_team_soft_budget_validation(
 
     # Create admin user to bypass user budget checks
     admin_user = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
         user_id="admin-user",
         models=[],
     )
@@ -8763,7 +8763,7 @@ async def test_update_team_soft_budget_validation(
 
     # Create admin user to bypass user budget checks
     admin_user = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
         user_id="admin-user",
         models=[],
     )
@@ -8986,7 +8986,7 @@ async def test_get_team_daily_activity_member_with_permission_sees_all_spend(
     user_id = "test_user_with_perm_123"
     team_id = "test_team_789"
     user_api_key_dict = UserAPIKeyAuth(
-        user_id=user_id, user_role=LitellmUserRoles.INTERNAL_USER
+        user_id=user_id, user_role=GatewayUserRoles.INTERNAL_USER
     )
 
     # Mock user info
@@ -9073,7 +9073,7 @@ async def test_get_team_daily_activity_member_without_permission_filters_by_keys
     user_id = "test_user_no_perm_123"
     team_id = "test_team_789"
     user_api_key_dict = UserAPIKeyAuth(
-        user_id=user_id, user_role=LitellmUserRoles.INTERNAL_USER
+        user_id=user_id, user_role=GatewayUserRoles.INTERNAL_USER
     )
 
     # Mock user info
@@ -9247,7 +9247,7 @@ async def test_get_team_daily_activity_non_admin_filters_by_user_api_keys(
     user_id = "test_user_123"
     team_id = "test_team_456"
     user_api_key_dict = UserAPIKeyAuth(
-        user_id=user_id, user_role=LitellmUserRoles.INTERNAL_USER
+        user_id=user_id, user_role=GatewayUserRoles.INTERNAL_USER
     )
 
     # Mock user info
@@ -9339,7 +9339,7 @@ async def test_get_team_daily_activity_team_admin_sees_all_spend(mock_db_client)
     user_id = "test_admin_123"
     team_id = "test_team_456"
     user_api_key_dict = UserAPIKeyAuth(
-        user_id=user_id, user_role=LitellmUserRoles.INTERNAL_USER
+        user_id=user_id, user_role=GatewayUserRoles.INTERNAL_USER
     )
 
     # Mock user info
@@ -9573,7 +9573,7 @@ async def test_list_team_v1_batches_key_queries():
     from token_iq.gateway.proxy._types import (
         LiteLLM_TeamMembership,
         LiteLLM_TeamTable,
-        LitellmUserRoles,
+        GatewayUserRoles,
         TeamListResponseObject,
         UserAPIKeyAuth,
     )
@@ -9582,7 +9582,7 @@ async def test_list_team_v1_batches_key_queries():
     mock_request = Mock(spec=Request)
 
     mock_user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
         user_id="admin_user",
     )
 
@@ -9655,13 +9655,13 @@ def test_new_team_request_accepts_team_member_budget_duration():
 async def test_create_team_member_budget_table_with_duration():
     """Verify that create_team_member_budget_table passes budget_duration
     through to the new_budget call when team_member_budget_duration is provided."""
-    from token_iq.gateway.proxy._types import NewTeamRequest, UserAPIKeyAuth, LitellmUserRoles
+    from token_iq.gateway.proxy._types import NewTeamRequest, UserAPIKeyAuth, GatewayUserRoles
     from token_iq.gateway.proxy.management_endpoints.team_endpoints import (
         TeamMemberBudgetHandler,
     )
 
     mock_budget_response = MagicMock(budget_id="budget-abc")
-    mock_admin = UserAPIKeyAuth(user_id="admin", user_role=LitellmUserRoles.PROXY_ADMIN)
+    mock_admin = UserAPIKeyAuth(user_id="admin", user_role=GatewayUserRoles.PROXY_ADMIN)
 
     data = NewTeamRequest(
         team_alias="test-team",
@@ -9911,7 +9911,7 @@ async def test_verify_team_access_denies_unauthorized_user():
 
     # Caller is an internal user with no admin role and not in the team
     caller = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="unauthorized_user",
     )
 
@@ -9941,7 +9941,7 @@ async def test_update_team_rejects_unauthorized_caller():
 
     mock_request = Mock(spec=Request)
     caller = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="unauthorized_user",
     )
 
@@ -10053,7 +10053,7 @@ async def test_team_member_me_returns_caller_membership(mock_db_client):
     caller_id = "alice@example.com"
     other_id = "bob@example.com"
     caller_auth = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER, user_id=caller_id
+        user_role=GatewayUserRoles.INTERNAL_USER, user_id=caller_id
     )
 
     team = _build_team_for_me(
@@ -10112,7 +10112,7 @@ async def test_team_member_me_matches_email_only_member(mock_db_client):
     caller_id = "u-123"
     caller_email = "alice@example.com"
     caller_auth = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id=caller_id,
         user_email=caller_email,
     )
@@ -10152,7 +10152,7 @@ async def test_team_member_me_returns_404_for_non_member(mock_db_client):
     team_id = "team-me-2"
     caller_id = "outsider@example.com"
     caller_auth = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER, user_id=caller_id
+        user_role=GatewayUserRoles.INTERNAL_USER, user_id=caller_id
     )
 
     team = _build_team_for_me(
@@ -10215,7 +10215,7 @@ async def test_team_member_me_returns_defaults_when_no_membership_row(mock_db_cl
     team_id = "team-me-4"
     caller_id = "newmember@example.com"
     caller_auth = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER, user_id=caller_id
+        user_role=GatewayUserRoles.INTERNAL_USER, user_id=caller_id
     )
 
     team = _build_team_for_me(
@@ -10263,7 +10263,7 @@ async def test_team_member_me_returns_404_for_unknown_team(mock_db_client):
     from token_iq.gateway.proxy.management_endpoints.team_endpoints import team_member_me
 
     caller_auth = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER, user_id="alice@example.com"
+        user_role=GatewayUserRoles.INTERNAL_USER, user_id="alice@example.com"
     )
 
     # get_team_object raises 404 directly when the team is missing.
@@ -10354,7 +10354,7 @@ async def test_new_team_encrypts_callback_vars(
 
 def _non_admin_auth():
     return UserAPIKeyAuth(
-        user_id="u-team-admin", user_role=LitellmUserRoles.INTERNAL_USER
+        user_id="u-team-admin", user_role=GatewayUserRoles.INTERNAL_USER
     )
 
 
@@ -10364,7 +10364,7 @@ def test_check_passthrough_routes_caller_permission_team():
         _check_passthrough_routes_caller_permission,
     )
 
-    admin = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN)
+    admin = UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN)
     non_admin = _non_admin_auth()
 
     _check_passthrough_routes_caller_permission(
@@ -10514,7 +10514,7 @@ async def test_clear_team_member_budget_duration_calls_update_budget():
     )
 
     mock_user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
         api_key="sk-1234",
         user_id="admin-user",
     )
@@ -10562,7 +10562,7 @@ async def test_clear_team_member_budget_clears_max_budget():
     )
 
     mock_user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
         api_key="sk-1234",
         user_id="admin-user",
     )
@@ -10608,7 +10608,7 @@ async def test_clear_team_member_rpm_tpm_limits():
     )
 
     mock_user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
         api_key="sk-1234",
         user_id="admin-user",
     )
@@ -10658,7 +10658,7 @@ async def test_clear_all_team_member_fields_at_once():
     )
 
     mock_user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
         api_key="sk-1234",
         user_id="admin-user",
     )
@@ -10745,7 +10745,7 @@ async def test_clear_team_member_budget_fields_no_budget_row_skips_update():
     )
 
     mock_user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
         api_key="sk-1234",
         user_id="admin-user",
     )
@@ -10803,7 +10803,7 @@ async def test_team_info_forwards_key_limit_to_get_data():
             http_request=MagicMock(spec=Request),
             team_id="team-1",
             key_limit=7,
-            user_api_key_dict=UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN),
+            user_api_key_dict=UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN),
         )
 
     assert mock_prisma.get_data.await_args.kwargs["limit"] == 7
@@ -10842,7 +10842,7 @@ async def test_team_info_returns_model_aliases():
         response = await team_endpoints.team_info(
             http_request=MagicMock(spec=Request),
             team_id="team-1",
-            user_api_key_dict=UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN),
+            user_api_key_dict=UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN),
         )
 
     include = mock_prisma.db.litellm_teamtable.find_unique.await_args.kwargs["include"]
@@ -10900,7 +10900,7 @@ async def test_team_info_hydrates_member_emails_from_the_user_table():
         response = await team_endpoints.team_info(
             http_request=MagicMock(spec=Request),
             team_id="team-1",
-            user_api_key_dict=UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN),
+            user_api_key_dict=UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN),
         )
 
     members = response["team_info"].members_with_roles
@@ -10924,7 +10924,7 @@ async def test_update_model_table_clears_aliases_with_empty_map():
         return_value=MagicMock(id="model-123")
     )
     user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin"
+        user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin"
     )
 
     returned_model_id = await _update_model_table(
@@ -11048,7 +11048,7 @@ async def test_new_team_rejects_reserved_ui_session_team_id():
                 data=team_request,
                 http_request=dummy_request,
                 user_api_key_dict=UserAPIKeyAuth(
-                    user_role=LitellmUserRoles.PROXY_ADMIN
+                    user_role=GatewayUserRoles.PROXY_ADMIN
                 ),
             )
 
@@ -11097,7 +11097,7 @@ async def _drive_team_write(
 
     from token_iq.gateway.proxy._types import (
         LiteLLM_TeamTable,
-        LitellmUserRoles,
+        GatewayUserRoles,
         PatchTeamRequest,
         UpdateTeamRequest,
         UserAPIKeyAuth,
@@ -11114,7 +11114,7 @@ async def _drive_team_write(
         organization_id=None,
         **(existing_kwargs or {}),
     )
-    auth = user or UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN, user_id="u")
+    auth = user or UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN, user_id="u")
 
     with (
         _patch("token_iq.gateway.proxy.proxy_server.prisma_client") as pc,
@@ -11375,9 +11375,9 @@ async def test_patch_team_not_found_returns_404():
 async def test_patch_enforces_team_access_via_delegation():
     """PATCH inherits POST's team-level RBAC: a caller who is neither proxy admin,
     team admin, nor org admin of the team is rejected."""
-    from token_iq.gateway.proxy._types import LitellmUserRoles, ProxyException, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, ProxyException, UserAPIKeyAuth
 
-    outsider = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, user_id="outsider")
+    outsider = UserAPIKeyAuth(user_role=GatewayUserRoles.INTERNAL_USER, user_id="outsider")
     with pytest.raises(ProxyException) as exc:
         await _drive_team_write(
             "patch", raw_body={"tpm_limit": 5}, user=outsider
@@ -11535,7 +11535,7 @@ async def test_new_team_validator_runs_without_metadata_and_rejection_blocks_cre
             await new_team(
                 data=NewTeamRequest(team_alias="no-metadata-team"),
                 http_request=MagicMock(spec=Request),
-                user_api_key_dict=UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin-1"),
+                user_api_key_dict=UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin-1"),
             )
 
         assert str(exc_info.value.code) == "400"
@@ -11612,7 +11612,7 @@ async def test_new_team_rejection_precedes_model_alias_write():
                     model_aliases={"alias-model": "gpt-4o"},
                 ),
                 http_request=MagicMock(spec=Request),
-                user_api_key_dict=UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin-1"),
+                user_api_key_dict=UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin-1"),
             )
 
         mock_prisma.db.litellm_modeltable.create.assert_not_awaited()
@@ -11856,7 +11856,7 @@ def test_get_team_metadata_schema_route_requires_auth():
 
     TEAM_METADATA_SCHEMA_REGISTRY.set(parse_team_metadata_schema([{"key": "cost_center", "label": "Cost Center"}]))
     app.dependency_overrides[user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin-1"
+        user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin-1"
     )
     try:
         authed = client.get("/team/metadata_schema")
@@ -11869,13 +11869,13 @@ def test_get_team_metadata_schema_route_requires_auth():
 
 
 def test_team_metadata_schema_route_is_readable_by_non_admins():
-    from token_iq.gateway.proxy._types import LiteLLMRoutes
+    from token_iq.gateway.proxy._types import GatewayRoutes
 
-    assert "/team/metadata_schema" in LiteLLMRoutes.info_routes.value
-    assert "/team/metadata_schema" in LiteLLMRoutes.management_routes.value
+    assert "/team/metadata_schema" in GatewayRoutes.info_routes.value
+    assert "/team/metadata_schema" in GatewayRoutes.management_routes.value
 
 
-def _provisioning_caller(role: LitellmUserRoles) -> UserAPIKeyAuth:
+def _provisioning_caller(role: GatewayUserRoles) -> UserAPIKeyAuth:
     return UserAPIKeyAuth(user_id="caller-1", user_role=role)
 
 
@@ -11888,7 +11888,7 @@ def test_validate_member_user_id_provisioning_allows_proxy_admin():
     _validate_member_user_id_provisioning(
         members=[Member(user_id="brand-new", role="user")],
         existing_user_ids=frozenset(),
-        user_api_key_dict=_provisioning_caller(LitellmUserRoles.PROXY_ADMIN),
+        user_api_key_dict=_provisioning_caller(GatewayUserRoles.PROXY_ADMIN),
     )
 
 
@@ -11902,7 +11902,7 @@ def test_validate_member_user_id_provisioning_rejects_unknown_user_id_for_non_pr
         _validate_member_user_id_provisioning(
             members=[Member(user_id="brand-new", role="user")],
             existing_user_ids=frozenset(),
-            user_api_key_dict=_provisioning_caller(LitellmUserRoles.INTERNAL_USER),
+            user_api_key_dict=_provisioning_caller(GatewayUserRoles.INTERNAL_USER),
         )
 
     assert exc_info.value.status_code == 403
@@ -11918,7 +11918,7 @@ def test_validate_member_user_id_provisioning_allows_existing_user_id_for_non_pr
     _validate_member_user_id_provisioning(
         members=[Member(user_id="already-here", role="user")],
         existing_user_ids=frozenset({"already-here"}),
-        user_api_key_dict=_provisioning_caller(LitellmUserRoles.INTERNAL_USER),
+        user_api_key_dict=_provisioning_caller(GatewayUserRoles.INTERNAL_USER),
     )
 
 
@@ -11931,7 +11931,7 @@ def test_validate_member_user_id_provisioning_allows_email_only_member_for_non_p
     _validate_member_user_id_provisioning(
         members=[Member(user_email="invitee@example.com", role="user")],
         existing_user_ids=frozenset(),
-        user_api_key_dict=_provisioning_caller(LitellmUserRoles.INTERNAL_USER),
+        user_api_key_dict=_provisioning_caller(GatewayUserRoles.INTERNAL_USER),
     )
 
 
@@ -11945,7 +11945,7 @@ def test_validate_member_user_id_provisioning_rejects_unknown_user_id_paired_wit
         _validate_member_user_id_provisioning(
             members=[Member(user_id="chosen-id", user_email="invitee@example.com", role="user")],
             existing_user_ids=frozenset(),
-            user_api_key_dict=_provisioning_caller(LitellmUserRoles.INTERNAL_USER),
+            user_api_key_dict=_provisioning_caller(GatewayUserRoles.INTERNAL_USER),
         )
 
     assert exc_info.value.status_code == 403
@@ -11965,7 +11965,7 @@ def test_validate_member_user_id_provisioning_reports_every_unknown_member():
                 Member(user_id="unknown-b", role="user"),
             ],
             existing_user_ids=frozenset({"known"}),
-            user_api_key_dict=_provisioning_caller(LitellmUserRoles.INTERNAL_USER),
+            user_api_key_dict=_provisioning_caller(GatewayUserRoles.INTERNAL_USER),
         )
 
     detail = str(exc_info.value.detail)
@@ -12259,7 +12259,7 @@ async def test_team_member_add_audits_a_user_created_from_a_list_payload(monkeyp
     ):
         await team_member_add(
             data=TeamMemberAddRequest(team_id=team_id, member=[member]),
-            user_api_key_dict=UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin-1"),
+            user_api_key_dict=UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin-1"),
         )
 
     mock_audit.assert_called_once()
@@ -12279,7 +12279,7 @@ def test_validate_member_user_id_provisioning_caps_the_ids_it_echoes_back():
         _validate_member_user_id_provisioning(
             members=members,
             existing_user_ids=frozenset(),
-            user_api_key_dict=_provisioning_caller(LitellmUserRoles.INTERNAL_USER),
+            user_api_key_dict=_provisioning_caller(GatewayUserRoles.INTERNAL_USER),
         )
 
     detail = str(exc_info.value.detail)
@@ -12358,7 +12358,7 @@ def test_team_output_token_estimate_admin_gate_matrix(label, request_body, exist
         )
 
     team_admin = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         api_key="sk-team-admin",
         user_id="team-admin",
     )
@@ -12372,7 +12372,7 @@ def test_team_output_token_estimate_admin_gate_matrix(label, request_body, exist
 
     _call(
         UserAPIKeyAuth(
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
             api_key="sk-admin",
             user_id="admin",
         )
@@ -12427,7 +12427,7 @@ async def test_update_team_output_token_estimate_lowered_rejected_for_team_admin
                 data=UpdateTeamRequest(team_id="test_team_id", default_estimated_output_tokens=1),
                 http_request=Mock(spec=Request),
                 user_api_key_dict=UserAPIKeyAuth(
-                    user_role=LitellmUserRoles.INTERNAL_USER,
+                    user_role=GatewayUserRoles.INTERNAL_USER,
                     api_key="sk-team-admin",
                     user_id="team-admin",
                 ),
@@ -12461,7 +12461,7 @@ async def test_update_team_output_token_estimate_unchanged_allows_team_admin_edi
             ),
             http_request=Mock(spec=Request),
             user_api_key_dict=UserAPIKeyAuth(
-                user_role=LitellmUserRoles.INTERNAL_USER,
+                user_role=GatewayUserRoles.INTERNAL_USER,
                 api_key="sk-team-admin",
                 user_id="team-admin",
             ),
@@ -12485,7 +12485,7 @@ async def test_new_team_output_token_estimate_rejected_for_non_admin():
             data=NewTeamRequest(team_alias="t", default_estimated_output_tokens=1),
             http_request=Mock(spec=Request),
             user_api_key_dict=UserAPIKeyAuth(
-                user_role=LitellmUserRoles.INTERNAL_USER,
+                user_role=GatewayUserRoles.INTERNAL_USER,
                 api_key="sk-alice",
                 user_id="alice",
             ),
@@ -12517,7 +12517,7 @@ async def test_update_team_batch_enqueued_token_limit_raised_rejected_for_team_a
                 data=UpdateTeamRequest(team_id="test_team_id", metadata={_TEAM_BATCH_LIMIT: 10**12}),
                 http_request=Mock(spec=Request),
                 user_api_key_dict=UserAPIKeyAuth(
-                    user_role=LitellmUserRoles.INTERNAL_USER,
+                    user_role=GatewayUserRoles.INTERNAL_USER,
                     api_key="sk-team-admin",
                     user_id="team-admin",
                 ),
@@ -12542,7 +12542,7 @@ async def test_new_team_batch_enqueued_token_limit_rejected_for_non_admin():
             data=NewTeamRequest(team_alias="t", metadata={_TEAM_BATCH_LIMIT: 100000}),
             http_request=Mock(spec=Request),
             user_api_key_dict=UserAPIKeyAuth(
-                user_role=LitellmUserRoles.INTERNAL_USER,
+                user_role=GatewayUserRoles.INTERNAL_USER,
                 api_key="sk-alice",
                 user_id="alice",
             ),
@@ -12564,7 +12564,7 @@ async def test_get_team_daily_activity_aggregated_scopes_and_flags(mock_db_clien
     user_id = "test_user_123"
     team_id = "test_team_456"
     user_api_key_dict = UserAPIKeyAuth(
-        user_id=user_id, user_role=LitellmUserRoles.INTERNAL_USER
+        user_id=user_id, user_role=GatewayUserRoles.INTERNAL_USER
     )
 
     mock_user_info = LiteLLM_UserTable(
@@ -12664,7 +12664,7 @@ async def test_get_team_daily_activity_aggregated_rejects_bad_ranges(
                 exclude_team_ids=None,
                 timezone=None,
                 user_api_key_dict=UserAPIKeyAuth(
-                    user_id="admin", user_role=LitellmUserRoles.PROXY_ADMIN
+                    user_id="admin", user_role=GatewayUserRoles.PROXY_ADMIN
                 ),
             )
 
@@ -12924,7 +12924,7 @@ async def test_update_team_syncs_access_group_assigned_team_ids_in_both_directio
         await update_team(
             data=UpdateTeamRequest(team_id="team-a", access_group_ids=committed_team_groups),
             http_request=Mock(spec=Request),
-            user_api_key_dict=UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin"),
+            user_api_key_dict=UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin"),
         )
 
     assert access_groups["ag-drop"]["assigned_team_ids"] == []
@@ -13057,7 +13057,7 @@ async def test_new_team_and_delete_team_both_drive_the_mirror(
         await new_team(
             data=NewTeamRequest(team_id="team-new", team_alias="new", access_group_ids=["ag-1"]),
             http_request=Mock(spec=Request),
-            user_api_key_dict=UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin"),
+            user_api_key_dict=UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin"),
         )
 
     assert access_groups == {"ag-1": ["team-new"], "ag-2": []}
@@ -13086,7 +13086,7 @@ async def test_new_team_and_delete_team_both_drive_the_mirror(
         await delete_team(
             data=DeleteTeamRequest(team_ids=["team-gone"]),
             http_request=Mock(spec=Request),
-            user_api_key_dict=UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin"),
+            user_api_key_dict=UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin"),
         )
 
     assert sync.await_args_list[0].kwargs["team_id"] == "team-gone"
@@ -13231,7 +13231,7 @@ async def test_reset_team_member_spend_fn_success(monkeypatch):
             user_id="member-1",
             data=ResetSpendRequest(reset_to=0.0),
             user_api_key_dict=UserAPIKeyAuth(
-                user_role=LitellmUserRoles.PROXY_ADMIN, api_key="sk-admin", user_id="admin-user"
+                user_role=GatewayUserRoles.PROXY_ADMIN, api_key="sk-admin", user_id="admin-user"
             ),
         )
 
@@ -13265,7 +13265,7 @@ async def test_reset_team_member_spend_fn_membership_not_found(monkeypatch):
                 user_id="ghost-user",
                 data=ResetSpendRequest(reset_to=0.0),
                 user_api_key_dict=UserAPIKeyAuth(
-                    user_role=LitellmUserRoles.PROXY_ADMIN, api_key="sk-admin", user_id="admin-user"
+                    user_role=GatewayUserRoles.PROXY_ADMIN, api_key="sk-admin", user_id="admin-user"
                 ),
             )
     assert exc.value.status_code == 404
@@ -13288,7 +13288,7 @@ async def test_reset_team_member_spend_fn_team_not_found(monkeypatch):
                 user_id="member-1",
                 data=ResetSpendRequest(reset_to=0.0),
                 user_api_key_dict=UserAPIKeyAuth(
-                    user_role=LitellmUserRoles.PROXY_ADMIN, api_key="sk-admin", user_id="admin-user"
+                    user_role=GatewayUserRoles.PROXY_ADMIN, api_key="sk-admin", user_id="admin-user"
                 ),
             )
     assert exc.value.status_code == 404
@@ -13313,7 +13313,7 @@ async def test_reset_team_member_spend_fn_forbidden_for_non_admin(monkeypatch):
                 user_id="member-1",
                 data=ResetSpendRequest(reset_to=0.0),
                 user_api_key_dict=UserAPIKeyAuth(
-                    user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-user", user_id="plain-user"
+                    user_role=GatewayUserRoles.INTERNAL_USER, api_key="sk-user", user_id="plain-user"
                 ),
             )
     assert exc.value.status_code == 403
@@ -13330,7 +13330,7 @@ async def test_reset_team_member_spend_fn_team_admin_cannot_reset_own_spend(monk
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.user_api_key_cache", MagicMock())
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.proxy_logging_obj", MagicMock())
 
-    team_admin = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-admin", user_id="team-admin-1")
+    team_admin = UserAPIKeyAuth(user_role=GatewayUserRoles.INTERNAL_USER, api_key="sk-admin", user_id="team-admin-1")
     with patch(  # test-quality-ok: no live DB here; matches this file's established convention for endpoint-logic unit tests
         "token_iq.gateway.proxy.management_endpoints.team_endpoints.get_team_object",
         AsyncMock(
@@ -13373,7 +13373,7 @@ async def test_reset_team_member_spend_fn_proxy_admin_can_reset_own_spend(monkey
             user_id="admin-user",
             data=ResetSpendRequest(reset_to=0.0),
             user_api_key_dict=UserAPIKeyAuth(
-                user_role=LitellmUserRoles.PROXY_ADMIN, api_key="sk-admin", user_id="admin-user"
+                user_role=GatewayUserRoles.PROXY_ADMIN, api_key="sk-admin", user_id="admin-user"
             ),
         )
     assert response["spend"] == 0.0
@@ -13430,7 +13430,7 @@ async def test_team_member_update_invalidates_team_member_spend_state_when_budge
             data=TeamMemberUpdateRequest(team_id="team-1", user_id="member-1", max_budget_in_team=999999.0),
             http_request=MagicMock(),
             user_api_key_dict=UserAPIKeyAuth(
-                user_role=LitellmUserRoles.PROXY_ADMIN, api_key="sk-admin", user_id="admin-user"
+                user_role=GatewayUserRoles.PROXY_ADMIN, api_key="sk-admin", user_id="admin-user"
             ),
         )
 
@@ -13483,7 +13483,7 @@ async def test_team_member_update_skips_invalidation_when_no_budget_fields_sent(
             data=TeamMemberUpdateRequest(team_id="team-1", user_id="member-1"),
             http_request=MagicMock(),
             user_api_key_dict=UserAPIKeyAuth(
-                user_role=LitellmUserRoles.PROXY_ADMIN, api_key="sk-admin", user_id="admin-user"
+                user_role=GatewayUserRoles.PROXY_ADMIN, api_key="sk-admin", user_id="admin-user"
             ),
         )
 

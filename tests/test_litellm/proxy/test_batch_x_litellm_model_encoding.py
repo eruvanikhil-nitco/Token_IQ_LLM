@@ -16,7 +16,7 @@ from token_iq.gateway.proxy.openai_files_endpoints.common_utils import (
     get_batch_id_from_unified_batch_id,
     get_original_file_id,
 )
-from token_iq.gateway.types.utils import LiteLLMBatch
+from token_iq.gateway.types.utils import GatewayBatch
 
 
 def _make_mock_request(headers: dict) -> MagicMock:
@@ -42,9 +42,9 @@ def _make_batch_response(
     output_file_id: Optional[str] = None,
     error_file_id: Optional[str] = None,
     status: str = "validating",
-) -> LiteLLMBatch:
+) -> GatewayBatch:
     """Create a mock LiteLLMBatch response from a provider."""
-    return LiteLLMBatch(
+    return GatewayBatch(
         id=batch_id,
         object="batch",
         status=status,
@@ -67,7 +67,7 @@ def test_get_batch_id_from_unified_batch_id_handles_appended_fields():
 
 
 @pytest.mark.asyncio
-async def test_create_batch_with_x_litellm_model_encodes_batch_id():
+async def test_create_batch_with_x_gateway_model_encodes_batch_id():
     """
     When x-litellm-model header is provided, create_batch should encode the
     response batch_id with model info so retrieve_batch can route correctly.
@@ -186,7 +186,7 @@ async def test_create_batch_with_x_litellm_model_encodes_batch_id():
 
 
 @pytest.mark.asyncio
-async def test_create_batch_with_x_litellm_model_encodes_output_and_error_file_ids():
+async def test_create_batch_with_x_gateway_model_encodes_output_and_error_file_ids():
     """
     When a completed batch is returned with output_file_id and error_file_id,
     these should also be encoded with model info.
@@ -287,7 +287,7 @@ async def test_create_batch_with_x_litellm_model_encodes_output_and_error_file_i
 
 
 @pytest.mark.asyncio
-async def test_create_batch_without_x_litellm_model_returns_raw_ids(monkeypatch):
+async def test_create_batch_without_x_gateway_model_returns_raw_ids(monkeypatch):
     """
     Without x-litellm-model header, create_batch should NOT encode batch IDs
     (falls through to Scenario 3 / custom_llm_provider fallback).

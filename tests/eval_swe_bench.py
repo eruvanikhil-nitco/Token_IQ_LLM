@@ -39,7 +39,7 @@ from typing import Optional
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from token_iq import gateway  # noqa: E402
-from token_iq.gateway.compression import compress as litellm_compress  # noqa: E402
+from token_iq.gateway.compression import compress as gateway_compress  # noqa: E402
 from token_iq.gateway.types.utils import CallTypes  # noqa: E402
 
 # ---------------------------------------------------------------------------
@@ -452,7 +452,7 @@ def eval_instance(
         }
         if compression_target is not None:
             compress_kwargs["compression_target"] = compression_target
-        result = litellm_compress(**compress_kwargs)
+        result = gateway_compress(**compress_kwargs)
         messages = result["messages"]
         tools = result["tools"]
         cache = result["cache"]

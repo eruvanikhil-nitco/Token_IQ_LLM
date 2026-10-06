@@ -27,8 +27,8 @@ from token_iq.gateway.proxy._types import ProxyException, UserAPIKeyAuth
 from token_iq.gateway.proxy.common_request_processing import ProxyBaseLLMRequestProcessing
 from token_iq.gateway.proxy.utils import ProxyLogging
 from token_iq.gateway.router import Router
-from token_iq.gateway.types.llms.openai import LiteLLMFineTuningJobCreate
-from token_iq.gateway.types.utils import LiteLLMFineTuningJob, SpecialEnums
+from token_iq.gateway.types.llms.openai import GatewayFineTuningJobCreate
+from token_iq.gateway.types.utils import GatewayFineTuningJob, SpecialEnums
 
 RAW_FILE_ID = "file-victim-abc123"
 RAW_JOB_ID = "ftjob-victim-abc123"
@@ -46,8 +46,8 @@ def _unified_job_id() -> str:
     return base64.urlsafe_b64encode(unified.encode()).decode().rstrip("=")
 
 
-def _job() -> LiteLLMFineTuningJob:
-    job = LiteLLMFineTuningJob(
+def _job() -> GatewayFineTuningJob:
+    job = GatewayFineTuningJob(
         id=RAW_JOB_ID,
         created_at=1234567890,
         fine_tuned_model=None,
@@ -97,13 +97,13 @@ class ManagedResourceAccessCheckerStub:
 
 
 class Seams:
-    def __init__(self, router: MagicMock, litellm_calls: dict[str, AsyncMock], logging: MagicMock):
+    def __init__(self, router: MagicMock, gateway_calls: dict[str, AsyncMock], logging: MagicMock):
         self.router = router
-        self.litellm_calls = litellm_calls
+        self.gateway_calls = gateway_calls
         self.logging = logging
 
     def assert_no_provider_call(self) -> None:
-        for name, mock in self.litellm_calls.items():
+        for name, mock in self.gateway_calls.items():
             assert mock.call_count == 0, f"litellm.{name} was called"
         for name in ("acreate_fine_tuning_job", "aretrieve_fine_tuning_job", "acancel_fine_tuning_job"):
             assert getattr(self.router, name).call_count == 0, f"router.{name} was called"
@@ -122,7 +122,7 @@ def seams():
     router.aretrieve_fine_tuning_job = AsyncMock(return_value=_job())
     router.acancel_fine_tuning_job = AsyncMock(return_value=_job())
 
-    litellm_calls = {
+    gateway_calls = {
         name: AsyncMock(return_value=_job())
         for name in ("acreate_fine_tuning_job", "aretrieve_fine_tuning_job", "acancel_fine_tuning_job")
     }
@@ -136,7 +136,7 @@ def seams():
             )
         )
         stack.enter_context(patch.object(ProxyBaseLLMRequestProcessing, "get_custom_headers", MagicMock(return_value={})))
-        for name, mock in litellm_calls.items():
+        for name, mock in gateway_calls.items():
             stack.enter_context(patch.object(gateway, name, mock))
         stack.enter_context(patch.object(proxy_server, "llm_router", router))
         stack.enter_context(patch.object(proxy_server, "proxy_logging_obj", logging))
@@ -145,14 +145,14 @@ def seams():
         stack.enter_context(patch.object(proxy_server, "proxy_config", MagicMock()))
         stack.enter_context(patch.object(proxy_server, "version", "test-version"))
         stack.enter_context(patch.object(endpoints, "fine_tuning_config", [{"custom_llm_provider": "openai"}]))
-        yield Seams(router=router, litellm_calls=litellm_calls, logging=logging)
+        yield Seams(router=router, gateway_calls=gateway_calls, logging=logging)
 
 
 async def _create(training_file: str, validation_file: str | None = None):
     return await endpoints.create_fine_tuning_job(
         request=FakeRequest(),
         fastapi_response=Response(),
-        fine_tuning_request=LiteLLMFineTuningJobCreate(
+        fine_tuning_request=GatewayFineTuningJobCreate(
             model="gpt-4o-mini",
             training_file=training_file,
             validation_file=validation_file,
@@ -232,7 +232,7 @@ async def test_create__raw_training_file_allowed_when_managed_files_not_required
     with patch.object(gateway, "require_managed_files", False):
         await _create(RAW_FILE_ID)
 
-    assert seams.litellm_calls["acreate_fine_tuning_job"].call_count == 1
+    assert seams.gateway_calls["acreate_fine_tuning_job"].call_count == 1
 
 
 @pytest.mark.asyncio

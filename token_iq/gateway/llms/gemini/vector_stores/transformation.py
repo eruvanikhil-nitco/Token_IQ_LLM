@@ -17,7 +17,7 @@ from token_iq.gateway.llms.gemini.common_utils import (
     GeminiModelInfo,
     get_api_key_from_env,
 )
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.types.vector_stores import (
     VECTOR_STORE_OPENAI_PARAMS,
     BaseVectorStoreAuthCredentials,
@@ -32,9 +32,9 @@ from token_iq.gateway.types.vector_stores import (
 )
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 else:
-    LiteLLMLoggingObj = Any
+    GatewayLoggingObj = Any
 
 
 class GeminiRetrievedContext(TypedDict, total=False):
@@ -122,7 +122,7 @@ class GeminiVectorStoreConfig(BaseVectorStoreConfig):
         """Supported parameters for Gemini File Search."""
         return ["max_num_results", "filters"]
 
-    def validate_environment(self, headers: dict, litellm_params: GenericLiteLLMParams | None) -> dict:
+    def validate_environment(self, headers: dict, litellm_params: GenericGatewayParams | None) -> dict:
         """Validate and set up headers for Gemini API."""
         headers = headers or {}
         headers.setdefault("Content-Type", "application/json")
@@ -165,7 +165,7 @@ class GeminiVectorStoreConfig(BaseVectorStoreConfig):
         query: str | list[str],
         vector_store_search_optional_params: VectorStoreSearchOptionalRequestParams,
         api_base: str,
-        litellm_logging_obj: LiteLLMLoggingObj,
+        litellm_logging_obj: GatewayLoggingObj,
         litellm_params: dict,
         extra_body: Mapping[str, object] | None = None,
     ) -> tuple[str, dict]:
@@ -227,7 +227,7 @@ class GeminiVectorStoreConfig(BaseVectorStoreConfig):
         return url, request_body
 
     def transform_search_vector_store_response(
-        self, response: httpx.Response, litellm_logging_obj: LiteLLMLoggingObj
+        self, response: httpx.Response, litellm_logging_obj: GatewayLoggingObj
     ) -> VectorStoreSearchResponse:
         """
         Transform Gemini's generateContent response to standard format.

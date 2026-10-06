@@ -26,7 +26,7 @@ from token_iq.gateway.llms.custom_httpx.http_handler import (
     get_async_httpx_client,
     httpxSpecialProvider,
 )
-from token_iq.gateway.types.agents import LiteLLMSendMessageResponse
+from token_iq.gateway.types.agents import GatewaySendMessageResponse
 from token_iq.gateway.utils import client
 
 if TYPE_CHECKING:
@@ -71,7 +71,7 @@ except ImportError:
 
 # Import our custom card resolver that supports multiple well-known paths
 from token_iq.gateway.a2a_protocol.card_resolver import (
-    LiteLLMA2ACardResolver,
+    GatewayA2ACardResolver,
     get_agent_card_url,
     normalize_agent_card_interfaces,
 )
@@ -82,7 +82,7 @@ from token_iq.gateway.a2a_protocol.exception_mapping_utils import (
 from token_iq.gateway.a2a_protocol.exceptions import A2ALocalhostURLError
 
 # Use our custom resolver instead of the default A2A SDK resolver
-A2ACardResolver: Final = LiteLLMA2ACardResolver
+A2ACardResolver: Final = GatewayA2ACardResolver
 
 
 def _set_usage_on_logging_obj(
@@ -131,7 +131,7 @@ def _set_agent_id_on_logging_obj(
 _A2A_COST_PARAM_KEYS: Final = ("cost_per_query", "input_cost_per_token", "output_cost_per_token")
 
 
-def _set_litellm_params_on_logging_obj(
+def _set_gateway_params_on_logging_obj(
     kwargs: Mapping[str, object],
     litellm_params: Mapping[str, object],
 ) -> None:
@@ -204,7 +204,7 @@ async def _send_message_via_completion_bridge(
     api_base: str | None,
     litellm_params: dict[str, object],
     agent_extra_headers: dict[str, str] | None = None,
-) -> LiteLLMSendMessageResponse:
+) -> GatewaySendMessageResponse:
     """
     Route a send_message through the LiteLLM completion bridge (e.g. LangGraph, Bedrock AgentCore).
 
@@ -226,7 +226,7 @@ async def _send_message_via_completion_bridge(
         agent_extra_headers=agent_extra_headers,
     )
 
-    return LiteLLMSendMessageResponse.from_dict(response_dict, request_id=str(request.id))
+    return GatewaySendMessageResponse.from_dict(response_dict, request_id=str(request.id))
 
 
 def _get_a2a_call_context(a2a_client: "A2AClientType") -> Optional["A2ACallContextType"]:
@@ -389,7 +389,7 @@ async def asend_message(
     agent_id: str | None = None,
     agent_extra_headers: dict[str, str] | None = None,
     **kwargs: object,
-) -> LiteLLMSendMessageResponse:
+) -> GatewaySendMessageResponse:
     """
     Async: Send a message to an A2A agent.
 
@@ -499,7 +499,7 @@ async def asend_message(
     verbose_logger.info("A2A send_message completed, request_id=%s", request.id)
 
     # Wrap in LiteLLM response type for _hidden_params support
-    response: Final = LiteLLMSendMessageResponse.from_a2a_response(a2a_response, request_id=str(request.id))
+    response: Final = GatewaySendMessageResponse.from_a2a_response(a2a_response, request_id=str(request.id))
 
     # Calculate token usage from request and response
     response_dict: Final[dict[str, object]] = a2a_response.root.model_dump(mode="json", exclude_none=True)
@@ -520,7 +520,7 @@ async def asend_message(
     )
 
     # Merge agent pricing params into the logging obj so cost is calculated
-    _set_litellm_params_on_logging_obj(kwargs=kwargs, litellm_params=litellm_params)
+    _set_gateway_params_on_logging_obj(kwargs=kwargs, litellm_params=litellm_params)
 
     # Set agent_id on logging obj for SpendLogs tracking
     _set_agent_id_on_logging_obj(kwargs=kwargs, agent_id=agent_id)
@@ -533,7 +533,7 @@ def send_message(
     a2a_client: "A2AClientType",
     request: "SendMessageRequest",
     **kwargs: Any,
-) -> LiteLLMSendMessageResponse | Coroutine[object, object, LiteLLMSendMessageResponse]:
+) -> GatewaySendMessageResponse | Coroutine[object, object, GatewaySendMessageResponse]:
     """
     Sync: Send a message to an A2A agent.
 
@@ -587,15 +587,15 @@ def _build_streaming_logging_obj(
     if agent_id:
         logging_obj.model_call_details["agent_id"] = agent_id
 
-    _litellm_params: Final = litellm_params.copy() if litellm_params else {}
+    _gateway_params: Final = litellm_params.copy() if litellm_params else {}
     if metadata:
-        _litellm_params["metadata"] = metadata
+        _gateway_params["metadata"] = metadata
     if proxy_server_request:
-        _litellm_params["proxy_server_request"] = proxy_server_request
+        _gateway_params["proxy_server_request"] = proxy_server_request
 
-    logging_obj.litellm_params = _litellm_params
-    logging_obj.optional_params = _litellm_params
-    logging_obj.model_call_details["litellm_params"] = _litellm_params
+    logging_obj.litellm_params = _gateway_params
+    logging_obj.optional_params = _gateway_params
+    logging_obj.model_call_details["litellm_params"] = _gateway_params
     logging_obj.model_call_details["metadata"] = metadata or {}
 
     return logging_obj

@@ -16,7 +16,7 @@ from httpx._types import CookieTypes, QueryParamTypes, RequestContent, RequestFi
 
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.core_utils.get_llm_provider_logic import get_llm_provider
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.llms.base_llm.passthrough.transformation import BasePassthroughConfig
 from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
 from token_iq.gateway.llms.custom_httpx.llm_http_handler import BaseLLMHTTPHandler
@@ -40,7 +40,7 @@ class AsyncPassthroughStreamingResponse(AsyncGenerator[bytes, bytes]):
     def __init__(
         self,
         response: Awaitable[httpx.Response],
-        litellm_logging_obj: LiteLLMLoggingObj,
+        litellm_logging_obj: GatewayLoggingObj,
         provider_config: BasePassthroughConfig,
     ) -> None:
         self._initialized = False
@@ -49,7 +49,7 @@ class AsyncPassthroughStreamingResponse(AsyncGenerator[bytes, bytes]):
         self._response_coro = response
         self._response: httpx.Response
         self._iterator: AsyncGenerator[bytes, bytes]
-        self._litellm_logging_obj = litellm_logging_obj
+        self._gateway_logging_obj = litellm_logging_obj
         self._provider_config = provider_config
         self._raw_bytes: list[bytes] = []  # mutable-ok: instance buffer for streaming chunks
         self._flush_scheduled = False
@@ -107,7 +107,7 @@ class AsyncPassthroughStreamingResponse(AsyncGenerator[bytes, bytes]):
 
         try:
             task: Final = asyncio.create_task(
-                self._litellm_logging_obj.async_flush_passthrough_collected_chunks(
+                self._gateway_logging_obj.async_flush_passthrough_collected_chunks(
                     raw_bytes=self._raw_bytes,
                     provider_config=self._provider_config,
                 )
@@ -174,13 +174,13 @@ class PassthroughStreamingResponse(Generator[bytes, bytes, None]):
     def __init__(
         self,
         response: httpx.Response,
-        litellm_logging_obj: LiteLLMLoggingObj,
+        litellm_logging_obj: GatewayLoggingObj,
         provider_config: BasePassthroughConfig,
     ) -> None:
         self._response = response
         self.headers = response.headers
         self.status_code = response.status_code
-        self._litellm_logging_obj = litellm_logging_obj
+        self._gateway_logging_obj = litellm_logging_obj
         self._provider_config = provider_config
         self._iterator: Generator[bytes, bytes, None] = _as_generator(response.iter_bytes())
         self._raw_bytes: list[bytes] = []  # mutable-ok: instance buffer for streaming chunks
@@ -195,7 +195,7 @@ class PassthroughStreamingResponse(Generator[bytes, bytes, None]):
 
         try:
             executor.submit(
-                self._litellm_logging_obj.flush_passthrough_collected_chunks,
+                self._gateway_logging_obj.flush_passthrough_collected_chunks,
                 raw_bytes=self._raw_bytes,
                 provider_config=self._provider_config,
             )
@@ -407,7 +407,7 @@ def llm_passthrough_route(
     _is_async: Final = bool(kwargs.get("allm_passthrough_route", False))
 
     litellm_logging_obj: Final = cast(
-        LiteLLMLoggingObj, kwargs.get("litellm_logging_obj")
+        GatewayLoggingObj, kwargs.get("litellm_logging_obj")
     )  # cast-ok: logging obj is constructed upstream; tests inject mocks
 
     model, custom_llm_provider, api_key, api_base = get_llm_provider(
@@ -417,7 +417,7 @@ def llm_passthrough_route(
         api_key=api_key,
     )
 
-    litellm_params_dict: Final = get_litellm_params(api_key=api_key, api_base=api_base, **kwargs)
+    gateway_params_dict: Final = get_litellm_params(api_key=api_key, api_base=api_base, **kwargs)
 
     if client is None:
         from token_iq.gateway.llms.custom_httpx.http_handler import (
@@ -429,7 +429,7 @@ def llm_passthrough_route(
 
         resolved_timeout: Final = resolve_llm_passthrough_timeout(
             kwargs=kwargs,
-            litellm_params=litellm_params_dict,
+            litellm_params=gateway_params_dict,
         )
         if _is_async:
             client = get_async_httpx_client(
@@ -441,11 +441,11 @@ def llm_passthrough_route(
 
     # Add model_id to litellm_params if present in kwargs (for Bedrock Application Inference Profiles)
     if "model_id" in kwargs:
-        litellm_params_dict["model_id"] = kwargs["model_id"]
+        gateway_params_dict["model_id"] = kwargs["model_id"]
 
     litellm_logging_obj.update_environment_variables(
         model=model,
-        litellm_params=litellm_params_dict,
+        litellm_params=gateway_params_dict,
         optional_params={},
         endpoint=endpoint,
         custom_llm_provider=custom_llm_provider,
@@ -467,7 +467,7 @@ def llm_passthrough_route(
         model=model,
         endpoint=endpoint,
         request_query_params=request_query_params,
-        litellm_params=litellm_params_dict,
+        litellm_params=gateway_params_dict,
     )
 
     # [TODO: Refactor to bedrockpassthroughconfig] need to encode the id of application-inference-profile for bedrock
@@ -483,7 +483,7 @@ def llm_passthrough_route(
         model=model,
         messages=[],
         optional_params={},
-        litellm_params=litellm_params_dict,
+        litellm_params=gateway_params_dict,
         api_key=provider_api_key,
         api_base=base_target_url,
     )
@@ -499,7 +499,7 @@ def llm_passthrough_route(
     )  # rebind-ok: conditional
     headers, signed_json_body = provider_config.sign_request(
         headers=headers,
-        litellm_params=litellm_params_dict,
+        litellm_params=gateway_params_dict,
         request_data=_request_data,
         api_base=str(updated_url),
         model=model,
@@ -587,7 +587,7 @@ async def _async_passthrough_request(
     client: HTTPHandler | AsyncHTTPHandler,
     request: httpx.Request,
     is_streaming_request: bool,
-    litellm_logging_obj: LiteLLMLoggingObj,
+    litellm_logging_obj: GatewayLoggingObj,
     provider_config: BasePassthroughConfig,
 ) -> httpx.Response | AsyncGenerator[bytes, bytes]:
     """

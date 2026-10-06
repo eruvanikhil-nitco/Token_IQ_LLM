@@ -15,7 +15,7 @@ from token_iq.gateway.types.llms.vertex_ai import VERTEX_CREDENTIALS_TYPES
 from token_iq.gateway.types.utils import ImageResponse
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 
 
 class VertexImageGeneration(VertexLLM):
@@ -77,7 +77,7 @@ class VertexImageGeneration(VertexLLM):
         vertex_location: str | None,
         vertex_credentials: VERTEX_CREDENTIALS_TYPES | None,
         model_response: ImageResponse,
-        logging_obj: "LiteLLMLoggingObj",
+        logging_obj: "GatewayLoggingObj",
         model: str = "imagegeneration",  # vertex ai uses imagegeneration as the default model
         client: Any | None = None,
         optional_params: dict | None = None,
@@ -176,7 +176,7 @@ class VertexImageGeneration(VertexLLM):
         vertex_location: str | None,
         vertex_credentials: VERTEX_CREDENTIALS_TYPES | None,
         model_response: ImageResponse,
-        logging_obj: "LiteLLMLoggingObj",
+        logging_obj: "GatewayLoggingObj",
         model: str = "imagegeneration",  # vertex ai uses imagegeneration as the default model
         client: AsyncHTTPHandler | None = None,
         optional_params: dict | None = None,

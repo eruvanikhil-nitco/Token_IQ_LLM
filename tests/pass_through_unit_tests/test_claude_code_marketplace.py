@@ -16,7 +16,7 @@ import pytest
 
 from token_iq import gateway
 from token_iq.gateway.proxy._types import UserAPIKeyAuth
-from token_iq.gateway.proxy.proxy_server import LitellmUserRoles
+from token_iq.gateway.proxy.proxy_server import GatewayUserRoles
 from token_iq.gateway.caching.caching import DualCache
 from token_iq.gateway.types.proxy.claude_code_endpoints import RegisterPluginRequest
 
@@ -155,7 +155,7 @@ async def test_register_plugin(mock_prisma_client):
     )
 
     user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
         api_key="sk-1234",
         user_id="test-user",
     )
@@ -205,7 +205,7 @@ async def test_get_marketplace(mock_prisma_client):
     )
 
     user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
         api_key="sk-1234",
         user_id="test-user",
     )
@@ -261,7 +261,7 @@ async def test_register_plugin_git_subdir(mock_prisma_client):
     )
 
     user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
         api_key="sk-1234",
         user_id="test-user",
     )

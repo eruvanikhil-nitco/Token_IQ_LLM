@@ -25,7 +25,7 @@ from pydantic import BaseModel, ConfigDict, ValidationError
 from e2e_config import CHEAP_ANTHROPIC_MODEL, CHEAP_OPENAI_MODEL, unique_marker
 from lifecycle import ResourceManager
 from logging_client import INVALID_UPSTREAM_API_KEY, LoggingClient, first_ok, readiness_details_body
-from models import LiteLLMParamsBody
+from models import GatewayParamsBody
 from otel_client import JaegerSpan, JaegerTrace, OtelReader
 
 pytestmark = pytest.mark.e2e
@@ -690,7 +690,7 @@ class TestOtelTraceCompleteness:
         model_name = f"otel-err-{unique_marker()}"
         model_id = client.create_model(
             model_name,
-            LiteLLMParamsBody(model="anthropic/claude-haiku-4-5", api_key=INVALID_UPSTREAM_API_KEY),
+            GatewayParamsBody(model="anthropic/claude-haiku-4-5", api_key=INVALID_UPSTREAM_API_KEY),
         )
         resources.defer(lambda: client.delete_model(model_id))
         key = client.key_with_alias(f"otel-err-{unique_marker()}", models=[model_name])
@@ -747,7 +747,7 @@ class TestOtelTraceCompleteness:
         model_name = f"otel-err-{unique_marker()}"
         model_id = client.create_model(
             model_name,
-            LiteLLMParamsBody(model="anthropic/claude-haiku-4-5", api_key=INVALID_UPSTREAM_API_KEY),
+            GatewayParamsBody(model="anthropic/claude-haiku-4-5", api_key=INVALID_UPSTREAM_API_KEY),
         )
         resources.defer(lambda: client.delete_model(model_id))
         key = client.key_with_alias(f"otel-err-{unique_marker()}", models=[model_name])

@@ -120,7 +120,7 @@ async def persist_sso_identity_assertion(user_id: str, assertion: SSOIdentityAss
         **({"expires_at": assertion.expires_at.isoformat()} if assertion.expires_at else {}),
     }
     encoded: Final = _STR_ADAPTER.validate_python(encrypt_value_helper(json.dumps(payload)))
-    await prisma_client.db.litellm_ssoidentityassertion.upsert(
+    await prisma_client.db.gateway_ssoidentityassertion.upsert(
         where={"user_id": user_id},
         data={
             "create": {"user_id": user_id, "assertion_b64": encoded},
@@ -137,7 +137,7 @@ async def fetch_sso_identity_assertion(user_id: str) -> SSOIdentityAssertion | N
 
     if prisma_client is None:
         return None
-    row: Final = await prisma_client.db.litellm_ssoidentityassertion.find_unique(where={"user_id": user_id})
+    row: Final = await prisma_client.db.gateway_ssoidentityassertion.find_unique(where={"user_id": user_id})
     if row is None:
         return None
     raw: Final = _MAYBE_STR_ADAPTER.validate_python(
@@ -219,13 +219,13 @@ async def rotate_sso_identity_assertions_master_key(prisma_client: PrismaClient,
             )
             return False
         re_encrypted = _STR_ADAPTER.validate_python(encrypt_value_helper(plaintext, new_encryption_key=new_master_key))
-        await prisma_client.db.litellm_ssoidentityassertion.update(
+        await prisma_client.db.gateway_ssoidentityassertion.update(
             where={"user_id": row.user_id},
             data={"assertion_b64": re_encrypted},
         )
         return True
 
-    rows: Final = await prisma_client.db.litellm_ssoidentityassertion.find_many()
+    rows: Final = await prisma_client.db.gateway_ssoidentityassertion.find_many()
     outcomes: Final = [await _rotate_row(row) for row in rows]
     verbose_proxy_logger.info(
         "rotate_sso_identity_assertions_master_key: rotated %d row(s), skipped %d",

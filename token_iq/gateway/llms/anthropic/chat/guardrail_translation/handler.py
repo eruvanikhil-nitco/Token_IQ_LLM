@@ -23,7 +23,7 @@ from typing_extensions import ReadOnly, TypedDict, assert_never
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.llms.anthropic.chat.transformation import AnthropicConfig
 from token_iq.gateway.llms.anthropic.experimental_pass_through.adapters.transformation import (
-    LiteLLMAnthropicMessagesAdapter,
+    GatewayAnthropicMessagesAdapter,
     is_provider_native_tool_dict,
 )
 from token_iq.gateway.llms.base_llm.guardrail_translation.base_translation import (
@@ -68,7 +68,7 @@ if TYPE_CHECKING:
         CustomGuardrail,
         ModifyResponseException,
     )
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
     from token_iq.gateway.proxy._types import UserAPIKeyAuth
     from token_iq.gateway.types.llms.anthropic_messages.anthropic_response import (
         AnthropicMessagesResponse,
@@ -170,7 +170,7 @@ class AnthropicMessagesHandler(BaseTranslation):
 
     def __init__(self):
         super().__init__()
-        self.adapter = LiteLLMAnthropicMessagesAdapter()
+        self.adapter = GatewayAnthropicMessagesAdapter()
 
     @staticmethod
     def _build_streaming_usage_response(
@@ -362,7 +362,7 @@ class AnthropicMessagesHandler(BaseTranslation):
         (
             chat_completion_compatible_request,
             _tool_name_mapping,
-        ) = LiteLLMAnthropicMessagesAdapter().translate_anthropic_to_openai(
+        ) = GatewayAnthropicMessagesAdapter().translate_anthropic_to_openai(
             anthropic_message_request=cast(AnthropicMessagesRequest, data.copy())
         )
         return chat_completion_compatible_request
@@ -1027,7 +1027,7 @@ class AnthropicMessagesHandler(BaseTranslation):
             # build the model response from the responses_so_far
             built_response: Final = AnthropicPassthroughLoggingHandler._build_complete_streaming_response(
                 all_chunks=responses_so_far,
-                litellm_logging_obj=cast("LiteLLMLoggingObj", litellm_logging_obj),
+                litellm_logging_obj=cast("GatewayLoggingObj", litellm_logging_obj),
                 model="",
             )
 

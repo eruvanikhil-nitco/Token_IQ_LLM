@@ -23,7 +23,7 @@ from token_iq.gateway.proxy.litellm_pre_call_utils import (
     _strip_client_pricing_overrides,
     add_litellm_data_to_request,
 )
-from token_iq.gateway.types.utils import CustomPricingLiteLLMParams
+from token_iq.gateway.types.utils import CustomPricingGatewayParams
 
 
 
@@ -59,7 +59,7 @@ class TestStripClientPricingOverrides:
         # automatically — this test guards against the model and the strip
         # set drifting apart if someone replaces the auto-derivation later.
         assert _CLIENT_PRICING_CONTROL_FIELDS == frozenset(
-            CustomPricingLiteLLMParams.model_fields.keys()
+            CustomPricingGatewayParams.model_fields.keys()
         )
         # Sanity: the obvious top-level pricing fields are in the set.
         for field in (
@@ -189,7 +189,7 @@ class TestStripClientPricingOverrides:
 
 
 @pytest.mark.asyncio
-async def test_add_litellm_data_to_request_strips_root_pricing_fields():
+async def test_add_gateway_data_to_request_strips_root_pricing_fields():
     data = {
         "model": "gpt-4",
         "messages": [{"role": "user", "content": "hi"}],
@@ -211,7 +211,7 @@ async def test_add_litellm_data_to_request_strips_root_pricing_fields():
 
 
 @pytest.mark.asyncio
-async def test_add_litellm_data_to_request_strips_client_disconnect_metadata():
+async def test_add_gateway_data_to_request_strips_client_disconnect_metadata():
     data = {
         "model": "gpt-4",
         "messages": [{"role": "user", "content": "hi"}],
@@ -239,7 +239,7 @@ async def test_add_litellm_data_to_request_strips_client_disconnect_metadata():
 
 
 @pytest.mark.asyncio
-async def test_add_litellm_data_to_request_strips_metadata_model_info():
+async def test_add_gateway_data_to_request_strips_metadata_model_info():
     data = {
         "model": "gpt-4",
         "messages": [{"role": "user", "content": "hi"}],
@@ -259,7 +259,7 @@ async def test_add_litellm_data_to_request_strips_metadata_model_info():
 
 
 @pytest.mark.asyncio
-async def test_add_litellm_data_to_request_skips_strip_with_key_opt_in():
+async def test_add_gateway_data_to_request_skips_strip_with_key_opt_in():
     data = {
         "model": "gpt-4",
         "messages": [{"role": "user", "content": "hi"}],
@@ -282,7 +282,7 @@ async def test_add_litellm_data_to_request_skips_strip_with_key_opt_in():
 
 
 @pytest.mark.asyncio
-async def test_add_litellm_data_to_request_strips_json_string_litellm_metadata():
+async def test_add_gateway_data_to_request_strips_json_string_gateway_metadata():
     """``litellm_metadata`` may arrive as a JSON-encoded string (multipart/
     form-data or ``extra_body``). The strip has to run after the proxy parses
     it into a dict but before the chat-route fold into ``metadata``; otherwise
@@ -310,7 +310,7 @@ async def test_add_litellm_data_to_request_strips_json_string_litellm_metadata()
 
 
 @pytest.mark.asyncio
-async def test_add_litellm_data_to_request_skips_strip_with_team_opt_in():
+async def test_add_gateway_data_to_request_skips_strip_with_team_opt_in():
     data = {
         "model": "gpt-4",
         "messages": [{"role": "user", "content": "hi"}],

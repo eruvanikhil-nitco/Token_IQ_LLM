@@ -21,7 +21,7 @@ import pytest
 from e2e_config import unique_marker
 from e2e_http import unwrap
 from lifecycle import ResourceManager
-from models import ChatBody, ChatMessage, LiteLLMParamsBody
+from models import ChatBody, ChatMessage, GatewayParamsBody
 from passthrough_client import PassthroughClient
 
 pytestmark = pytest.mark.e2e
@@ -39,7 +39,7 @@ class TestServiceTier:
         model = f"e2e-service-tier-{unique_marker()}"
         model_id = client.proxy.create_model(
             model,
-            LiteLLMParamsBody(
+            GatewayParamsBody(
                 model="openai/gpt-5.5", api_key="os.environ/OPENAI_API_KEY"
             ),
         )

@@ -275,7 +275,7 @@ import importlib.metadata
 from collections.abc import Callable, Iterable, Mapping, Sequence
 from typing import TYPE_CHECKING, Any, Final, Literal, Optional, Union, cast, get_args
 
-from token_iq.gateway import utils as litellm_utils
+from token_iq.gateway import utils as gateway_utils
 
 # These are lazy loaded via __getattr__
 from token_iq.gateway.llms.base_llm.base_utils import (
@@ -325,7 +325,7 @@ if TYPE_CHECKING:
     )
     from token_iq.gateway.core_utils.llm_request_utils import _ensure_extra_body_is_safe
     from token_iq.gateway.core_utils.llm_response_utils.convert_dict_to_response import (
-        LiteLLMResponseObjectHandler,
+        GatewayResponseObjectHandler,
         _handle_invalid_parallel_tool_calls,
         convert_to_model_response_object,
         convert_to_streaming_response,
@@ -346,7 +346,7 @@ if TYPE_CHECKING:
         _parse_content_for_reasoning,
     )
     from token_iq.gateway.core_utils.redact_messages import (
-        LiteLLMLoggingObject,
+        GatewayLoggingObject,
         redact_message_input_output_from_logging,
     )
     from token_iq.gateway.core_utils.rules import Rules
@@ -578,15 +578,15 @@ def _add_custom_logger_callback_to_specific_event(callback: str, logging_event: 
 
     if callback_class:
         if logging_event == "success" and _custom_logger_class_exists_in_success_callbacks(callback_class) is False:
-            gateway.logging_callback_manager.add_litellm_success_callback(callback_class)
-            gateway.logging_callback_manager.add_litellm_async_success_callback(callback_class)
+            gateway.logging_callback_manager.add_gateway_success_callback(callback_class)
+            gateway.logging_callback_manager.add_gateway_async_success_callback(callback_class)
             if callback in gateway.success_callback:
                 gateway.success_callback.remove(callback)  # remove the string from the callback list
             if callback in gateway._async_success_callback:
                 gateway._async_success_callback.remove(callback)  # remove the string from the callback list
         elif logging_event == "failure" and _custom_logger_class_exists_in_failure_callbacks(callback_class) is False:
-            gateway.logging_callback_manager.add_litellm_failure_callback(callback_class)
-            gateway.logging_callback_manager.add_litellm_async_failure_callback(callback_class)
+            gateway.logging_callback_manager.add_gateway_failure_callback(callback_class)
+            gateway.logging_callback_manager.add_gateway_async_failure_callback(callback_class)
             if callback in gateway.failure_callback:
                 gateway.failure_callback.remove(callback)  # remove the string from the callback list
             if callback in gateway._async_failure_callback:
@@ -828,13 +828,13 @@ def function_setup(
     *args: Any,  # positional passthrough to the wrapped LLM call (ANN401 ignored, see ruff-strict.toml)
     is_async_call: bool = True,
     **kwargs: Any,  # kwargs-ok: forwarded to Logging()/callbacks, varies per call_type
-) -> tuple[LiteLLMLoggingObject, dict[str, Any]]:
+) -> tuple[GatewayLoggingObject, dict[str, Any]]:
     ### NOTICES ###
     if gateway.set_verbose is True:
         verbose_logger.warning(
             "`litellm.set_verbose` is deprecated. Please set `os.environ['LITELLM_LOG'] = 'DEBUG'` for debug logs."
         )
-    logging_obj: LiteLLMLoggingObject | None = None  # rebind-ok: set to the real object further down on success
+    logging_obj: GatewayLoggingObject | None = None  # rebind-ok: set to the real object further down on success
     try:
         global callback_list, add_breadcrumb, user_logger_fn, Logging
 
@@ -848,7 +848,7 @@ def function_setup(
         function_id: Final[str | None] = kwargs["id"] if "id" in kwargs else None
 
         ## LAZY LOAD COROUTINE CHECKER ##
-        get_coroutine_checker_fn: Final = litellm_utils.get_coroutine_checker
+        get_coroutine_checker_fn: Final = gateway_utils.get_coroutine_checker
         coroutine_checker: Final = get_coroutine_checker_fn()
 
         ## DYNAMIC CALLBACKS ##
@@ -871,13 +871,13 @@ def function_setup(
                 if callback not in gateway.input_callback:
                     gateway.input_callback.append(callback)
                 if callback not in gateway.success_callback:
-                    gateway.logging_callback_manager.add_litellm_success_callback(callback)
+                    gateway.logging_callback_manager.add_gateway_success_callback(callback)
                 if callback not in gateway.failure_callback:
-                    gateway.logging_callback_manager.add_litellm_failure_callback(callback)
+                    gateway.logging_callback_manager.add_gateway_failure_callback(callback)
                 if callback not in gateway._async_success_callback:
-                    gateway.logging_callback_manager.add_litellm_async_success_callback(callback)
+                    gateway.logging_callback_manager.add_gateway_async_success_callback(callback)
                 if callback not in gateway._async_failure_callback:
-                    gateway.logging_callback_manager.add_litellm_async_failure_callback(callback)
+                    gateway.logging_callback_manager.add_gateway_async_failure_callback(callback)
             print_verbose(f"Initialized litellm callbacks, Async Success Callbacks: {gateway._async_success_callback}")
 
         if (
@@ -901,12 +901,12 @@ def function_setup(
             removed_async_items = []
             for index, callback in enumerate(gateway.success_callback):
                 if coroutine_checker.is_async_callable(callback):
-                    gateway.logging_callback_manager.add_litellm_async_success_callback(callback)
+                    gateway.logging_callback_manager.add_gateway_async_success_callback(callback)
                     removed_async_items.append(index)
                 elif callback == "dynamodb" or callback == "openmeter":
                     # dynamo is an async callback, it's used for the proxy and needs to be async
                     # we only support async dynamo db logging for acompletion/aembedding since that's used on proxy
-                    gateway.logging_callback_manager.add_litellm_async_success_callback(callback)
+                    gateway.logging_callback_manager.add_gateway_async_success_callback(callback)
                     removed_async_items.append(index)
                 elif callback in gateway._known_custom_logger_compatible_callbacks and isinstance(callback, str):
                     _add_custom_logger_callback_to_specific_event(callback, "success")
@@ -919,7 +919,7 @@ def function_setup(
             removed_async_items = []
             for index, callback in enumerate(gateway.failure_callback):
                 if coroutine_checker.is_async_callable(callback):
-                    gateway.logging_callback_manager.add_litellm_async_failure_callback(callback)
+                    gateway.logging_callback_manager.add_gateway_async_failure_callback(callback)
                     removed_async_items.append(index)
                 elif callback in gateway._known_custom_logger_compatible_callbacks and isinstance(callback, str):
                     _add_custom_logger_callback_to_specific_event(callback, "failure")
@@ -984,7 +984,7 @@ def function_setup(
             elif kwargs.get("messages", None):
                 messages = kwargs["messages"]
             ### PRE-CALL RULES ###
-            Rules: Final = litellm_utils.Rules
+            Rules: Final = gateway_utils.Rules
             if (
                 Rules.has_pre_call_rules()
                 and isinstance(messages, list)
@@ -1174,7 +1174,7 @@ def function_setup(
 
 
 async def _client_async_logging_helper(
-    logging_obj: LiteLLMLoggingObject,
+    logging_obj: GatewayLoggingObject,
     result,
     start_time,
     end_time,
@@ -1218,7 +1218,7 @@ def _get_wrapper_num_retries(kwargs: dict[str, Any], exception: Exception) -> tu
         get_num_retries_from_retry_policy: Final[Callable[..., int | None]] = getattr(
             sys.modules[__name__], "get_num_retries_from_retry_policy"
         )
-        reset_retry_policy: Final = litellm_utils.reset_retry_policy
+        reset_retry_policy: Final = gateway_utils.reset_retry_policy
         retry_policy_num_retries: Final[int | None] = get_num_retries_from_retry_policy(
             exception=exception,
             retry_policy=kwargs.get("retry_policy"),
@@ -1242,7 +1242,7 @@ def _get_wrapper_timeout(kwargs: dict[str, object], exception: Exception) -> flo
 
 
 def check_coroutine(value) -> bool:
-    get_coroutine_checker: Final = litellm_utils.get_coroutine_checker
+    get_coroutine_checker: Final = gateway_utils.get_coroutine_checker
     return get_coroutine_checker().is_async_callable(value)
 
 
@@ -1433,7 +1433,7 @@ def post_call_processing(
 
 
 def client(original_function):
-    Rules: Final = litellm_utils.Rules
+    Rules: Final = gateway_utils.Rules
     rules_obj: Final = Rules()
 
     @wraps(original_function)
@@ -1467,10 +1467,10 @@ def client(original_function):
             return result
 
         # Prints Exactly what was passed to litellm function - don't execute any logic here - it should just print
-        print_args_passed_to_litellm(original_function, args, kwargs)
+        print_args_passed_to_gateway(original_function, args, kwargs)
         start_time: Final = datetime.datetime.now()
         result = None
-        logging_obj: LiteLLMLoggingObject | None = kwargs.get("litellm_logging_obj", None)
+        logging_obj: GatewayLoggingObject | None = kwargs.get("litellm_logging_obj", None)
 
         # only set litellm_call_id if its not in kwargs
         if "litellm_call_id" not in kwargs:
@@ -1670,7 +1670,7 @@ def client(original_function):
                     get_num_retries_from_retry_policy: Callable[..., int | None] = getattr(
                         sys.modules[__name__], "get_num_retries_from_retry_policy"
                     )
-                    reset_retry_policy = litellm_utils.reset_retry_policy
+                    reset_retry_policy = gateway_utils.reset_retry_policy
                     num_retries = get_num_retries_from_retry_policy(
                         exception=e,
                         retry_policy=kwargs.get("retry_policy"),
@@ -1679,11 +1679,11 @@ def client(original_function):
                 gateway.num_retries = None  # set retries to None to prevent infinite loops
                 context_window_fallback_dict: Final = kwargs.get("context_window_fallback_dict", {})
 
-                _is_litellm_router_call = "model_group" in (
+                _is_gateway_router_call = "model_group" in (
                     kwargs.get("metadata") or {}
                 )  # check if call from litellm.router/proxy
                 if (
-                    num_retries and not _is_litellm_router_call
+                    num_retries and not _is_gateway_router_call
                 ):  # only enter this if call is not from litellm router/proxy. router has it's own logic for retrying
                     if (
                         isinstance(e, openai.APIError)
@@ -1696,7 +1696,7 @@ def client(original_function):
                     isinstance(e, gateway.exceptions.ContextWindowExceededError)
                     and context_window_fallback_dict
                     and model in context_window_fallback_dict
-                    and not _is_litellm_router_call
+                    and not _is_gateway_router_call
                 ):
                     if len(args) > 0:
                         args[0] = context_window_fallback_dict[model]
@@ -1709,7 +1709,7 @@ def client(original_function):
                     get_num_retries_from_retry_policy = getattr(
                         sys.modules[__name__], "get_num_retries_from_retry_policy"
                     )
-                    reset_retry_policy = litellm_utils.reset_retry_policy
+                    reset_retry_policy = gateway_utils.reset_retry_policy
                     num_retries = get_num_retries_from_retry_policy(
                         exception=e,
                         retry_policy=kwargs.get("retry_policy"),
@@ -1717,11 +1717,11 @@ def client(original_function):
                     kwargs["retry_policy"] = reset_retry_policy()  # prevent infinite loops
                 gateway.num_retries = None  # set retries to None to prevent infinite loops
 
-                _is_litellm_router_call = "model_group" in (
+                _is_gateway_router_call = "model_group" in (
                     kwargs.get("metadata") or {}
                 )  # check if call from litellm.router/proxy
                 if (
-                    num_retries and not _is_litellm_router_call
+                    num_retries and not _is_gateway_router_call
                 ):  # only enter this if call is not from litellm router/proxy. router has it's own logic for retrying
                     if (
                         isinstance(e, openai.APIError)
@@ -1742,11 +1742,11 @@ def client(original_function):
 
     @wraps(original_function)
     async def wrapper_async(*args, **kwargs):
-        print_args_passed_to_litellm(original_function, args, kwargs)
+        print_args_passed_to_gateway(original_function, args, kwargs)
         start_time: Final = datetime.datetime.now()
         result = None
         _update_response_metadata: Final = getattr(sys.modules[__name__], "update_response_metadata")
-        logging_obj: LiteLLMLoggingObject | None = kwargs.get("litellm_logging_obj", None)
+        logging_obj: GatewayLoggingObject | None = kwargs.get("litellm_logging_obj", None)
         LLMCachingHandler: Final = _get_cached_llm_caching_handler()
         _llm_caching_handler: Final[LLMCachingHandler] = LLMCachingHandler(
             original_function=original_function,
@@ -1998,12 +1998,12 @@ def client(original_function):
             if call_type == CallTypes.acompletion.value:
                 context_window_fallback_dict: Final = kwargs.get("context_window_fallback_dict", {})
 
-                _is_litellm_router_call = "model_group" in (
+                _is_gateway_router_call = "model_group" in (
                     kwargs.get("metadata") or {}
                 )  # check if call from litellm.router/proxy
 
                 if (
-                    num_retries and not _is_litellm_router_call
+                    num_retries and not _is_gateway_router_call
                 ):  # only enter this if call is not from litellm router/proxy. router has it's own logic for retrying
                     try:
                         gateway.num_retries = None  # set retries to None to prevent infinite loops
@@ -2022,7 +2022,7 @@ def client(original_function):
                     isinstance(e, gateway.exceptions.ContextWindowExceededError)
                     and context_window_fallback_dict
                     and model in context_window_fallback_dict
-                    and not _is_litellm_router_call
+                    and not _is_gateway_router_call
                 ):
                     if len(args) > 0:
                         args[0] = context_window_fallback_dict[model]
@@ -2031,12 +2031,12 @@ def client(original_function):
                     result = await original_function(*args, **kwargs)
                     return result
             elif call_type == CallTypes.aresponses.value:
-                _is_litellm_router_call = "model_group" in (
+                _is_gateway_router_call = "model_group" in (
                     kwargs.get("metadata") or {}
                 )  # check if call from litellm.router/proxy
 
                 if (
-                    num_retries and not _is_litellm_router_call
+                    num_retries and not _is_gateway_router_call
                 ):  # only enter this if call is not from litellm router/proxy. router has it's own logic for retrying
                     try:
                         gateway.num_retries = None  # set retries to None to prevent infinite loops
@@ -2075,7 +2075,7 @@ def client(original_function):
             if not _is_streaming_response_for_correlation(result):
                 _restore_correlation_context_if_supported(logging_obj)
 
-    get_coroutine_checker: Final = litellm_utils.get_coroutine_checker
+    get_coroutine_checker: Final = gateway_utils.get_coroutine_checker
     is_coroutine: Final = get_coroutine_checker().is_async_callable(original_function)
 
     # Return the appropriate wrapper based on the original function type
@@ -2459,7 +2459,7 @@ def supports_response_schema(model: str, custom_llm_provider: str | None = None)
     """
     ## GET LLM PROVIDER ##
     try:
-        get_llm_provider: Final = litellm_utils.get_llm_provider
+        get_llm_provider: Final = gateway_utils.get_llm_provider
         model, custom_llm_provider, _, _ = get_llm_provider(model=model, custom_llm_provider=custom_llm_provider)
     except Exception as e:
         verbose_logger.debug(
@@ -3871,7 +3871,7 @@ def _remove_unsupported_params(non_default_params: dict, supported_openai_params
     return non_default_params
 
 
-def filter_out_litellm_params(kwargs: dict) -> dict:
+def filter_out_gateway_params(kwargs: dict) -> dict:
     """
     Filter out LiteLLM internal parameters from kwargs dict.
 
@@ -5157,7 +5157,7 @@ def get_max_tokens(model: str) -> int | None:
                 return gateway.model_cost[model]["max_output_tokens"]
             elif "max_tokens" in gateway.model_cost[model]:
                 return gateway.model_cost[model]["max_tokens"]
-        get_llm_provider: Final = litellm_utils.get_llm_provider
+        get_llm_provider: Final = gateway_utils.get_llm_provider
         model, custom_llm_provider, _, _ = get_llm_provider(model=model)
         if custom_llm_provider == "huggingface":
             max_tokens: Final = _get_max_position_embeddings(model_name=model)
@@ -5447,7 +5447,7 @@ def _get_potential_model_names(model: str, custom_llm_provider: str | None) -> P
     if custom_llm_provider is None:
         # Get custom_llm_provider
         try:
-            get_llm_provider: Final = litellm_utils.get_llm_provider
+            get_llm_provider: Final = gateway_utils.get_llm_provider
             split_model, custom_llm_provider, _, _ = get_llm_provider(model=model)
         except Exception:
             split_model = model
@@ -6304,7 +6304,7 @@ def validate_environment(
         }
     ## EXTRACT LLM PROVIDER - if model name provided
     try:
-        get_llm_provider: Final = litellm_utils.get_llm_provider
+        get_llm_provider: Final = gateway_utils.get_llm_provider
         _, custom_llm_provider, _, _ = get_llm_provider(model=model)
     except Exception:
         custom_llm_provider = None
@@ -6854,7 +6854,7 @@ def register_prompt_template(
     complete_model: Final = model
     potential_models: Final = [complete_model]
     try:
-        get_llm_provider: Final = litellm_utils.get_llm_provider
+        get_llm_provider: Final = gateway_utils.get_llm_provider
         model = get_llm_provider(model=model)[0]
         potential_models.append(model)
     except Exception:
@@ -7436,7 +7436,7 @@ def get_valid_models(
         return []  # NON-Blocking
 
 
-def print_args_passed_to_litellm(original_function, args, kwargs):
+def print_args_passed_to_gateway(original_function, args, kwargs):
     if not _is_debugging_on():
         return
     try:
@@ -8117,7 +8117,7 @@ class ProviderConfigManager:
             LlmProviders.V0: (lambda: gateway.V0ChatConfig(), False),
             LlmProviders.MORPH: (lambda: gateway.MorphChatConfig(), False),
             LlmProviders.LITELLM_PROXY: (
-                lambda: gateway.LiteLLMProxyChatConfig(),
+                lambda: gateway.GatewayProxyChatConfig(),
                 False,
             ),
             LlmProviders.GRADIENT_AI: (lambda: gateway.GradientAIConfig(), False),
@@ -8197,7 +8197,7 @@ class ProviderConfigManager:
     @staticmethod
     def _get_cohere_config(model: str) -> BaseConfig:
         """Get Cohere config based on route."""
-        CohereModelInfo: Final = litellm_utils.CohereModelInfo
+        CohereModelInfo: Final = gateway_utils.CohereModelInfo
         route: Final = CohereModelInfo.get_cohere_route(model)
         if route == "v2":
             return gateway.CohereV2ChatConfig()
@@ -8655,7 +8655,7 @@ class ProviderConfigManager:
         elif gateway.LlmProviders.CHATGPT == provider:
             return gateway.ChatGPTResponsesAPIConfig()
         elif gateway.LlmProviders.LITELLM_PROXY == provider:
-            return gateway.LiteLLMProxyResponsesAPIConfig()
+            return gateway.GatewayProxyResponsesAPIConfig()
         elif gateway.LlmProviders.VOLCENGINE == provider:
             return gateway.VolcEngineResponsesAPIConfig()
         elif gateway.LlmProviders.MANUS == provider:
@@ -8758,7 +8758,7 @@ class ProviderConfigManager:
 
             return VertexAIModelInfo()
         elif LlmProviders.LITELLM_PROXY == provider:
-            return gateway.LiteLLMProxyChatConfig()
+            return gateway.GatewayProxyChatConfig()
         elif LlmProviders.TOPAZ == provider:
             return gateway.TopazModelInfo()
         elif LlmProviders.ANTHROPIC == provider:
@@ -9058,10 +9058,10 @@ class ProviderConfigManager:
             return get_gemini_image_generation_config(model)
         elif LlmProviders.LITELLM_PROXY == provider:
             from token_iq.gateway.llms.litellm_proxy.image_generation.transformation import (
-                LiteLLMProxyImageGenerationConfig,
+                GatewayProxyImageGenerationConfig,
             )
 
-            return LiteLLMProxyImageGenerationConfig()
+            return GatewayProxyImageGenerationConfig()
         elif LlmProviders.FAL_AI == provider:
             from token_iq.gateway.llms.fal_ai.image_generation import (
                 get_fal_ai_image_generation_config,
@@ -9237,10 +9237,10 @@ class ProviderConfigManager:
             return get_gemini_image_edit_config(model)
         elif LlmProviders.LITELLM_PROXY == provider:
             from token_iq.gateway.llms.litellm_proxy.image_edit.transformation import (
-                LiteLLMProxyImageEditConfig,
+                GatewayProxyImageEditConfig,
             )
 
-            return LiteLLMProxyImageEditConfig()
+            return GatewayProxyImageEditConfig()
         elif LlmProviders.VERTEX_AI == provider:
             from token_iq.gateway.llms.vertex_ai.image_edit import (
                 get_vertex_ai_image_edit_config,
@@ -9300,7 +9300,7 @@ class ProviderConfigManager:
                 return ReductoParseLegacyConfig()
             return None
 
-        MistralOCRConfig: Final = litellm_utils.MistralOCRConfig
+        MistralOCRConfig: Final = gateway_utils.MistralOCRConfig
         PROVIDER_TO_CONFIG_MAP: Final = {
             gateway.LlmProviders.MISTRAL: MistralOCRConfig,
         }

@@ -89,11 +89,11 @@ class TestGetOpenaiCompatibleBatchMetadata:
         assert result["_model_armor_status"] == "success"
         assert result["user_metadata_key"] == "user_value"
 
-    def test_result_compatible_with_litellm_batch(self):
+    def test_result_compatible_with_gateway_batch(self):
         """Verify sanitized metadata can construct a LiteLLMBatch without error."""
         import time
 
-        from token_iq.gateway.types.utils import LiteLLMBatch
+        from token_iq.gateway.types.utils import GatewayBatch
 
         metadata = {
             "_model_armor_response": {"blocked": True},
@@ -103,7 +103,7 @@ class TestGetOpenaiCompatibleBatchMetadata:
         sanitized = BedrockBatchesConfig._get_openai_compatible_batch_metadata(metadata)
 
         # This would raise ValidationError before the fix
-        batch = LiteLLMBatch(
+        batch = GatewayBatch(
             id="arn:aws:bedrock:us-east-1:123:model-invocation-job/test",
             object="batch",
             endpoint="/v1/chat/completions",

@@ -7,10 +7,10 @@ from typing import Any, Final
 
 from token_iq import gateway
 from token_iq.gateway.interactions.litellm_responses_transformation.streaming_iterator import (
-    LiteLLMResponsesInteractionsStreamingIterator,
+    GatewayResponsesInteractionsStreamingIterator,
 )
 from token_iq.gateway.interactions.litellm_responses_transformation.transformation import (
-    LiteLLMResponsesInteractionsConfig,
+    GatewayResponsesInteractionsConfig,
 )
 from token_iq.gateway.responses.streaming_iterator import BaseResponsesAPIStreamingIterator
 from token_iq.gateway.types.interactions import (
@@ -22,7 +22,7 @@ from token_iq.gateway.types.interactions import (
 from token_iq.gateway.types.llms.openai import ResponsesAPIResponse
 
 
-class LiteLLMResponsesInteractionsHandler:
+class GatewayResponsesInteractionsHandler:
     """Handler for bridging Interactions API to Responses API via litellm.responses()."""
 
     def interactions_api_handler(
@@ -56,7 +56,7 @@ class LiteLLMResponsesInteractionsHandler:
         """
         # Transform interactions request to responses request
         responses_request: Final = (
-            LiteLLMResponsesInteractionsConfig.transform_interactions_request_to_responses_request(
+            GatewayResponsesInteractionsConfig.transform_interactions_request_to_responses_request(
                 model=model,
                 input=input,
                 optional_params=optional_params,
@@ -87,9 +87,9 @@ class LiteLLMResponsesInteractionsHandler:
 
         # Handle streaming response
         if isinstance(responses_response, BaseResponsesAPIStreamingIterator):
-            return LiteLLMResponsesInteractionsStreamingIterator(
+            return GatewayResponsesInteractionsStreamingIterator(
                 model=model,
-                litellm_custom_stream_wrapper=responses_response,
+                gateway_custom_stream_wrapper=responses_response,
                 request_input=input,
                 optional_params=optional_params,
                 custom_llm_provider=custom_llm_provider,
@@ -100,7 +100,7 @@ class LiteLLMResponsesInteractionsHandler:
         responses_api_response: Final = responses_response
 
         # Transform responses response to interactions response
-        return LiteLLMResponsesInteractionsConfig.transform_responses_response_to_interactions_response(
+        return GatewayResponsesInteractionsConfig.transform_responses_response_to_interactions_response(
             responses_response=responses_api_response,
             model=model,
         )
@@ -125,9 +125,9 @@ class LiteLLMResponsesInteractionsHandler:
 
         # Handle streaming response
         if isinstance(responses_response, BaseResponsesAPIStreamingIterator):
-            return LiteLLMResponsesInteractionsStreamingIterator(
+            return GatewayResponsesInteractionsStreamingIterator(
                 model=model,
-                litellm_custom_stream_wrapper=responses_response,
+                gateway_custom_stream_wrapper=responses_response,
                 request_input=input,
                 optional_params=optional_params,
                 custom_llm_provider=responses_request.get("custom_llm_provider"),
@@ -138,7 +138,7 @@ class LiteLLMResponsesInteractionsHandler:
         responses_api_response: Final = responses_response
 
         # Transform responses response to interactions response
-        return LiteLLMResponsesInteractionsConfig.transform_responses_response_to_interactions_response(
+        return GatewayResponsesInteractionsConfig.transform_responses_response_to_interactions_response(
             responses_response=responses_api_response,
             model=model,
         )

@@ -96,7 +96,7 @@ from token_iq.gateway.proxy.common_utils.user_api_key_cache import (
     team_membership_auth_cache_key,
 )
 from token_iq.gateway.proxy.db.exception_handler import PrismaDBExceptionHandler
-from token_iq.gateway.proxy.litellm_pre_call_utils import LiteLLMProxyRequestSetup
+from token_iq.gateway.proxy.litellm_pre_call_utils import GatewayProxyRequestSetup
 from token_iq.gateway.proxy.utils import (
     PrismaClient,
     ProxyLogging,
@@ -133,8 +133,8 @@ def _route_requires_auth_despite_public(route: str, general_settings: dict | Non
     return False
 
 
-custom_litellm_key_header: Final = APIKeyHeader(
-    name=SpecialHeaders.custom_litellm_api_key.value,
+custom_gateway_key_header: Final = APIKeyHeader(
+    name=SpecialHeaders.custom_gateway_api_key.value,
     auto_error=False,
     description="Bearer token",
 )
@@ -619,7 +619,7 @@ async def get_global_proxy_spend(
                 max_budget=gateway.max_budget,
                 spend=global_proxy_spend,
                 token=token,
-                event_group=Litellm_EntityType.PROXY,
+                event_group=Gateway_EntityType.PROXY,
             )
             asyncio.create_task(
                 proxy_logging_obj.budget_alerts(
@@ -633,13 +633,13 @@ async def get_global_proxy_spend(
 def get_rbac_role(jwt_handler: JWTHandler, scopes: list[str]) -> str:
     is_admin: Final = jwt_handler.is_admin(scopes=scopes)
     if is_admin:
-        return LitellmUserRoles.PROXY_ADMIN
+        return GatewayUserRoles.PROXY_ADMIN
     else:
-        return LitellmUserRoles.TEAM
+        return GatewayUserRoles.TEAM
 
 
 def get_api_key(
-    custom_litellm_key_header: str | None,
+    custom_gateway_key_header: str | None,
     api_key: str,
     azure_api_key_header: str | None,
     anthropic_api_key_header: str | None,
@@ -660,9 +660,9 @@ def get_api_key(
 
     api_key = api_key
     passed_in_key: str | None = None
-    if isinstance(custom_litellm_key_header, str):
-        passed_in_key = custom_litellm_key_header
-        api_key = _get_bearer_token_or_received_api_key(custom_litellm_key_header)
+    if isinstance(custom_gateway_key_header, str):
+        passed_in_key = custom_gateway_key_header
+        api_key = _get_bearer_token_or_received_api_key(custom_gateway_key_header)
     elif isinstance(api_key, str) and len(api_key) > 0:
         passed_in_key = api_key
         api_key = _get_bearer_token(api_key=api_key)
@@ -707,7 +707,7 @@ async def check_api_key_for_custom_headers_or_pass_through_endpoints(
     is_mapped_pass_through_route: bool = False
     normalized_route: Final = normalize_route_for_root_path(route)
     if normalized_route is not None:
-        for mapped_route in LiteLLMRoutes.mapped_pass_through_routes.value:
+        for mapped_route in GatewayRoutes.mapped_pass_through_routes.value:
             if normalized_route.startswith(mapped_route):
                 is_mapped_pass_through_route = True
                 break
@@ -1087,7 +1087,7 @@ async def _resolve_jwt_to_virtual_key(
     return None
 
 
-def _ensure_litellm_received_at_on_request_state(request: Request) -> datetime:
+def _ensure_gateway_received_at_on_request_state(request: Request) -> datetime:
     """Idempotently stamp ``request.state.litellm_received_at`` with the moment
     litellm's own code started handling this request -- the first line of
     ``user_api_key_auth``, before any auth/pre-call work runs. This is the
@@ -1117,13 +1117,13 @@ def _ensure_parent_otel_span_on_request_state(request: Request) -> None:
     """
     from token_iq.gateway.proxy.proxy_server import open_telemetry_logger
 
-    start_time: Final = _ensure_litellm_received_at_on_request_state(request)
+    start_time: Final = _ensure_gateway_received_at_on_request_state(request)
 
     if open_telemetry_logger is None:
         return
     if getattr(request.state, "parent_otel_span", None) is not None:
         return
-    parent_otel_span: Final = open_telemetry_logger.create_litellm_proxy_request_started_span(
+    parent_otel_span: Final = open_telemetry_logger.create_gateway_proxy_request_started_span(
         start_time=start_time,
         headers=_safe_get_request_headers(request),
     )
@@ -1208,7 +1208,7 @@ async def _user_api_key_auth_builder(
     google_ai_studio_api_key_header: str | None,
     azure_apim_header: str | None,
     request_data: dict,
-    custom_litellm_key_header: str | None = None,
+    custom_gateway_key_header: str | None = None,
 ) -> UserAPIKeyAuth:
     from token_iq.gateway.proxy.proxy_server import (
         general_settings,
@@ -1248,7 +1248,7 @@ async def _user_api_key_auth_builder(
         pass_through_endpoints: Final[list[dict] | None] = general_settings.get("pass_through_endpoints", None)
         ## CHECK IF X-LITELM-API-KEY IS PASSED IN - supercedes Authorization header
         api_key, passed_in_key = get_api_key(
-            custom_litellm_key_header=custom_litellm_key_header,
+            custom_gateway_key_header=custom_gateway_key_header,
             api_key=api_key,
             azure_api_key_header=azure_api_key_header,
             anthropic_api_key_header=anthropic_api_key_header,
@@ -1259,11 +1259,11 @@ async def _user_api_key_auth_builder(
             request=request,
         )
         # if user wants to pass LiteLLM_Master_Key as a custom header, example pass litellm keys as X-LiteLLM-Key: Bearer sk-1234
-        custom_litellm_key_header_name: Final = general_settings.get("litellm_key_header_name")
-        if custom_litellm_key_header_name is not None:
+        custom_gateway_key_header_name: Final = general_settings.get("litellm_key_header_name")
+        if custom_gateway_key_header_name is not None:
             api_key = get_api_key_from_custom_header(
                 request=request,
-                custom_litellm_key_header_name=custom_litellm_key_header_name,
+                custom_gateway_key_header_name=custom_gateway_key_header_name,
             )
 
         if open_telemetry_logger is not None:
@@ -1320,10 +1320,10 @@ async def _user_api_key_auth_builder(
 
         ######## Route Checks Before Reading DB / Cache for "token" ################
         if not _route_requires_auth_despite_public(route=route, general_settings=general_settings) and (
-            route in LiteLLMRoutes.public_routes.value or route_in_additonal_public_routes(current_route=route)
+            route in GatewayRoutes.public_routes.value or route_in_additonal_public_routes(current_route=route)
         ):
             # check if public endpoint
-            return UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER_VIEW_ONLY)
+            return UserAPIKeyAuth(user_role=GatewayUserRoles.INTERNAL_USER_VIEW_ONLY)
 
         ########## End of Route Checks Before Reading DB / Cache for "token" ########
 
@@ -1470,7 +1470,7 @@ async def _user_api_key_auth_builder(
                             )
                         return UserAPIKeyAuth(
                             api_key=None,
-                            user_role=LitellmUserRoles.PROXY_ADMIN,
+                            user_role=GatewayUserRoles.PROXY_ADMIN,
                             user_id=user_id,
                             user_email=user_email,
                             team_id=team_id,
@@ -1493,9 +1493,9 @@ async def _user_api_key_auth_builder(
                         team_rpm_limit=(team_object.rpm_limit if team_object is not None else None),
                         team_models=(team_object.models if team_object is not None else []),
                         user_role=(
-                            LitellmUserRoles(user_object.user_role)
+                            GatewayUserRoles(user_object.user_role)
                             if user_object is not None and user_object.user_role is not None
-                            else LitellmUserRoles.INTERNAL_USER
+                            else GatewayUserRoles.INTERNAL_USER
                         ),
                         user_id=user_id,
                         user_email=user_email,
@@ -1621,12 +1621,12 @@ async def _user_api_key_auth_builder(
             if isinstance(api_key, str):
                 return UserAPIKeyAuth(
                     api_key=api_key,
-                    user_role=LitellmUserRoles.INTERNAL_USER,
+                    user_role=GatewayUserRoles.INTERNAL_USER,
                     parent_otel_span=parent_otel_span,
                 )
             else:
                 return UserAPIKeyAuth(
-                    user_role=LitellmUserRoles.INTERNAL_USER,
+                    user_role=GatewayUserRoles.INTERNAL_USER,
                     parent_otel_span=parent_otel_span,
                 )
         elif api_key is None:  # only require api key if master key is set
@@ -1743,7 +1743,7 @@ async def _user_api_key_auth_builder(
         if (
             valid_token is not None
             and isinstance(valid_token, UserAPIKeyAuth)
-            and valid_token.user_role == LitellmUserRoles.PROXY_ADMIN
+            and valid_token.user_role == GatewayUserRoles.PROXY_ADMIN
         ):
             if valid_token.expires is not None:
                 current_time = datetime.now(timezone.utc)
@@ -1824,7 +1824,7 @@ async def _user_api_key_auth_builder(
             # downstream consumer of UserAPIKeyAuth.api_key.
             _user_api_key_obj = await _return_user_api_key_auth_obj(
                 user_obj=None,
-                user_role=LitellmUserRoles.PROXY_ADMIN,
+                user_role=GatewayUserRoles.PROXY_ADMIN,
                 api_key=LITELLM_PROXY_MASTER_KEY_ALIAS,
                 parent_otel_span=parent_otel_span,
                 valid_token_dict={
@@ -1852,7 +1852,7 @@ async def _user_api_key_auth_builder(
 
         ## IF it's not a master key
         ## Route should not be in master_key_only_routes
-        if route in LiteLLMRoutes.master_key_only_routes.value:
+        if route in GatewayRoutes.master_key_only_routes.value:
             raise Exception(f"Tried to access route={route}, which is only for MASTER KEY")
 
         ## Check DB
@@ -2045,7 +2045,7 @@ async def _user_api_key_auth_builder(
                                         f"Budget has been exceeded! TeamMember={_entity_id} "
                                         f"Current cost: {team_member_spend}, Max budget: {team_member_budget}"
                                     ),
-                                    entity_type=Litellm_EntityType.TEAM_MEMBER.value,
+                                    entity_type=Gateway_EntityType.TEAM_MEMBER.value,
                                     entity_id=_entity_id,
                                 )
 
@@ -2236,7 +2236,7 @@ async def _user_api_key_auth_builder(
                         max_budget=gateway.max_budget,
                         user_id=litellm_proxy_admin_name,
                         team_id=valid_token.team_id,
-                        event_group=Litellm_EntityType.PROXY,
+                        event_group=Gateway_EntityType.PROXY,
                     )
                     asyncio.create_task(
                         proxy_logging_obj.budget_alerts(
@@ -2410,7 +2410,7 @@ async def _run_centralized_common_checks(
     # auth in the builder — the wrapper must not retroactively apply
     # authz on top, or k8s readiness probes and other unauthenticated
     # callers get 401.
-    if route in LiteLLMRoutes.public_routes.value or route_in_additonal_public_routes(current_route=route):
+    if route in GatewayRoutes.public_routes.value or route_in_additonal_public_routes(current_route=route):
         return
 
     # User-configured pass-through endpoints with ``auth: false`` are
@@ -2607,10 +2607,10 @@ async def _run_centralized_common_checks(
     # caller. The token is the source of truth for these paths — force
     # the admin user_object whenever the token says PROXY_ADMIN, even
     # if a DB row was fetched.
-    if user_api_key_auth_obj.user_role == LitellmUserRoles.PROXY_ADMIN:
+    if user_api_key_auth_obj.user_role == GatewayUserRoles.PROXY_ADMIN:
         user_object = LiteLLM_UserTable(
             user_id=user_api_key_auth_obj.user_id or litellm_proxy_admin_name,
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
             spend=user_object.spend if user_object is not None else 0.0,
         )
 
@@ -2631,7 +2631,7 @@ async def _run_centralized_common_checks(
     # later seed in common_checks pushes key tags and the
     # _tag_max_budget_check read into `litellm_metadata`, hiding header
     # tags from per-tag budget enforcement on LITELLM_METADATA_ROUTES.
-    LiteLLMProxyRequestSetup.pre_seed_litellm_metadata_for_route(
+    GatewayProxyRequestSetup.pre_seed_gateway_metadata_for_route(
         request_data=request_data,
         route=route,
     )
@@ -2640,7 +2640,7 @@ async def _run_centralized_common_checks(
     # _tag_max_budget_check inside common_checks only inspects request_data;
     # without this pre-merge, header-supplied tags bypass tag-budget
     # enforcement.
-    LiteLLMProxyRequestSetup.apply_client_tag_policy_pre_auth(
+    GatewayProxyRequestSetup.apply_client_tag_policy_pre_auth(
         request=request,
         request_data=request_data,
         user_api_key_dict=user_api_key_auth_obj,
@@ -2850,7 +2850,7 @@ async def user_api_key_auth(
     anthropic_api_key_header: str | None = fastapi.Security(anthropic_api_key_header),
     google_ai_studio_api_key_header: str | None = fastapi.Security(google_ai_studio_api_key_header),
     azure_apim_header: str | None = fastapi.Security(azure_apim_header),
-    custom_litellm_key_header: str | None = fastapi.Security(custom_litellm_key_header),
+    custom_gateway_key_header: str | None = fastapi.Security(custom_gateway_key_header),
 ) -> UserAPIKeyAuth:
     """
     Parent function to authenticate user api key / jwt token.
@@ -2879,7 +2879,7 @@ async def user_api_key_auth(
                 google_ai_studio_api_key_header=google_ai_studio_api_key_header,
                 azure_apim_header=azure_apim_header,
                 request_data=request_data,
-                custom_litellm_key_header=custom_litellm_key_header,
+                custom_gateway_key_header=custom_gateway_key_header,
             )
         except Exception:
             # The body was read first, so a caller who sent both a malformed body and
@@ -2945,7 +2945,7 @@ async def _return_user_api_key_auth_obj(
     valid_token_dict: dict,
     route: str,
     start_time: datetime,
-    user_role: LitellmUserRoles | None = None,
+    user_role: GatewayUserRoles | None = None,
 ) -> UserAPIKeyAuth:
     end_time: Final = datetime.now(timezone.utc)
 
@@ -2960,7 +2960,7 @@ async def _return_user_api_key_auth_obj(
         )
     )
 
-    retrieved_user_role: Final = user_role or _get_user_role(user_obj=user_obj) or LitellmUserRoles.INTERNAL_USER
+    retrieved_user_role: Final = user_role or _get_user_role(user_obj=user_obj) or GatewayUserRoles.INTERNAL_USER
 
     user_api_key_kwargs: Final = {
         "api_key": api_key,
@@ -2979,14 +2979,14 @@ async def _return_user_api_key_auth_obj(
         )
     if user_obj is not None and _is_user_proxy_admin(user_obj=user_obj):
         user_api_key_kwargs.update(
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
         )
         return UserAPIKeyAuth.model_validate(user_api_key_kwargs)
     else:
         return UserAPIKeyAuth.model_validate(user_api_key_kwargs)
 
 
-def get_api_key_from_custom_header(request: Request, custom_litellm_key_header_name: str) -> str:
+def get_api_key_from_custom_header(request: Request, custom_gateway_key_header_name: str) -> str:
     """
     Get API key from custom header
 
@@ -2999,24 +2999,24 @@ def get_api_key_from_custom_header(request: Request, custom_litellm_key_header_n
     """
     api_key: str = ""
     # use this as the virtual key passed to litellm proxy
-    custom_litellm_key_header_name = custom_litellm_key_header_name.lower()
+    custom_gateway_key_header_name = custom_gateway_key_header_name.lower()
     _headers: Final = {k.lower(): v for k, v in request.headers.items()}
     verbose_proxy_logger.debug(
         "searching for custom_litellm_key_header_name= %s, in headers=%s",
-        custom_litellm_key_header_name,
+        custom_gateway_key_header_name,
         _headers,
     )
-    custom_api_key: Final = _headers.get(custom_litellm_key_header_name)
+    custom_api_key: Final = _headers.get(custom_gateway_key_header_name)
     if custom_api_key:
         api_key = _get_bearer_token(api_key=custom_api_key)
         verbose_proxy_logger.debug(
             "Found custom API key using header: %s, setting api_key=%s",
-            custom_litellm_key_header_name,
+            custom_gateway_key_header_name,
             abbreviate_api_key(api_key),
         )
     else:
         verbose_proxy_logger.exception(
-            "No LiteLLM Virtual Key pass. Please set header=%s: Bearer <api_key>", custom_litellm_key_header_name
+            "No LiteLLM Virtual Key pass. Please set header=%s: Bearer <api_key>", custom_gateway_key_header_name
         )
     return api_key
 

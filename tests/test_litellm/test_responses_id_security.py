@@ -276,13 +276,13 @@ class TestCheckUserAccessToResponseId:
         self, responses_id_security
     ):
         """Test that proxy admin can access any response ID"""
-        from token_iq.gateway.proxy._types import LitellmUserRoles
+        from token_iq.gateway.proxy._types import GatewayUserRoles
 
         # Create a mock admin user
         mock_admin_auth = MagicMock()
         mock_admin_auth.user_id = "admin-user"
         mock_admin_auth.team_id = "admin-team"
-        mock_admin_auth.user_role = LitellmUserRoles.PROXY_ADMIN.value
+        mock_admin_auth.user_role = GatewayUserRoles.PROXY_ADMIN.value
 
         # Admin should be able to access response from different team and different user
         result = responses_id_security.check_user_access_to_response_id(

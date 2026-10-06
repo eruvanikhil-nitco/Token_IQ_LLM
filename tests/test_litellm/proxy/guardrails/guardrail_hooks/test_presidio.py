@@ -818,7 +818,7 @@ async def test_presidio_filter_scope_initializer(monkeypatch):
             self.event_hook = event_hook
             created.append(self)
 
-        def update_in_memory_litellm_params(self, litellm_params):
+        def update_in_memory_gateway_params(self, litellm_params):
             pass
 
     class DummyManager:
@@ -1378,7 +1378,7 @@ def test_update_in_memory_applies_score_thresholds():
         mode="pre_call",
         presidio_score_thresholds={PiiEntityType.CREDIT_CARD: 0.85},
     )
-    guardrail.update_in_memory_litellm_params(params)
+    guardrail.update_in_memory_gateway_params(params)
 
     assert guardrail.presidio_score_thresholds == {PiiEntityType.CREDIT_CARD: 0.85}
 
@@ -3125,7 +3125,7 @@ def test_update_in_memory_applies_analyze_chunk_size():
         mode="pre_call",
         presidio_analyze_chunk_size_bytes=99_000,
     )
-    guardrail.update_in_memory_litellm_params(params)
+    guardrail.update_in_memory_gateway_params(params)
     assert guardrail.presidio_analyze_chunk_size_bytes == 99_000
 
 
@@ -3134,8 +3134,8 @@ def test_update_in_memory_keeps_output_masker_from_unmasking():
     unmasker = _OPTIONAL_PresidioPIIMasking(mock_testing=True, output_parse_pii=True)
     params = LitellmParams(guardrail="presidio", mode="pre_call", output_parse_pii=True)
 
-    masker.update_in_memory_litellm_params(params)
-    unmasker.update_in_memory_litellm_params(params)
+    masker.update_in_memory_gateway_params(params)
+    unmasker.update_in_memory_gateway_params(params)
 
     assert (masker.apply_to_output, masker.output_parse_pii) == (True, False)
     assert (unmasker.apply_to_output, unmasker.output_parse_pii) == (False, True)
@@ -3188,7 +3188,7 @@ def test_update_in_memory_coerces_invalid_chunk_size():
         mode="pre_call",
         presidio_analyze_chunk_size_bytes=-1,
     )
-    guardrail.update_in_memory_litellm_params(params)
+    guardrail.update_in_memory_gateway_params(params)
     assert guardrail.presidio_analyze_chunk_size_bytes == DEFAULT_PRESIDIO_ANALYZE_CHUNK_SIZE_BYTES
 
 

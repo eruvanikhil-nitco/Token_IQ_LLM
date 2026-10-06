@@ -217,7 +217,7 @@ class CallInfoInspectorLogger(CustomLogger):
 
 
 @pytest.mark.asyncio
-async def test_litellm_call_info_from_hidden_params():
+async def test_gateway_call_info_from_hidden_params():
     """Test that litellm_call_info is built from response._hidden_params."""
     inspector = CallInfoInspectorLogger()
 
@@ -252,7 +252,7 @@ async def test_litellm_call_info_from_hidden_params():
 
 
 @pytest.mark.asyncio
-async def test_litellm_call_info_from_litellm_metadata():
+async def test_gateway_call_info_from_gateway_metadata():
     """Test that litellm_call_info finds model_info under litellm_metadata (responses API path)."""
     inspector = CallInfoInspectorLogger()
 
@@ -283,7 +283,7 @@ async def test_litellm_call_info_from_litellm_metadata():
 
 
 @pytest.mark.asyncio
-async def test_litellm_call_info_with_none_response():
+async def test_gateway_call_info_with_none_response():
     """Test that litellm_call_info handles None response (failure path)."""
     inspector = CallInfoInspectorLogger()
 
@@ -306,7 +306,7 @@ async def test_litellm_call_info_with_none_response():
 
 
 @pytest.mark.asyncio
-async def test_litellm_call_info_backwards_compatible():
+async def test_gateway_call_info_backwards_compatible():
     """Test that existing callbacks without litellm_call_info parameter still work."""
     # HeaderInjectorLogger doesn't accept litellm_call_info — must not crash
     injector = HeaderInjectorLogger(headers={"x-test": "1"})
@@ -338,7 +338,7 @@ async def test_litellm_call_info_backwards_compatible():
 
 
 @pytest.mark.asyncio
-async def test_litellm_call_info_fallback_to_response_attribute():
+async def test_gateway_call_info_fallback_to_response_attribute():
     """Test that _build_litellm_call_info falls back to response.custom_llm_provider
     when _hidden_params doesn't contain it (streaming response types)."""
     inspector = CallInfoInspectorLogger()
@@ -379,7 +379,7 @@ async def test_litellm_call_info_fallback_to_response_attribute():
 
 
 @pytest.mark.asyncio
-async def test_litellm_call_info_fallback_no_hidden_params():
+async def test_gateway_call_info_fallback_no_hidden_params():
     """Test that _build_litellm_call_info works when response has no _hidden_params
     at all (LiteLLMCompletionStreamingIterator case)."""
     inspector = CallInfoInspectorLogger()
@@ -410,7 +410,7 @@ async def test_litellm_call_info_fallback_no_hidden_params():
 
 
 @pytest.mark.asyncio
-async def test_litellm_call_info_hidden_params_takes_priority():
+async def test_gateway_call_info_hidden_params_takes_priority():
     """Test that _hidden_params.custom_llm_provider takes priority over
     the response attribute when both are present."""
     inspector = CallInfoInspectorLogger()

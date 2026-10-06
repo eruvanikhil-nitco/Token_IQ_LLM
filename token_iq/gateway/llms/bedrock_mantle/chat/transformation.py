@@ -22,7 +22,7 @@ from token_iq.gateway.llms.bedrock_mantle.common_utils import (
 )
 from token_iq.gateway.secret_managers.main import get_secret_str
 from token_iq.gateway.types.llms.openai import AllMessageValues
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 
 from ...openai_like.chat.transformation import OpenAILikeChatConfig
 from ..common_utils import mantle_base_segment
@@ -49,7 +49,7 @@ class BedrockMantleChatConfig(BedrockMantleAuthMixin, OpenAILikeChatConfig):
         self,
         api_base: str | None,
         api_key: str | None,
-        litellm_params: GenericLiteLLMParams | None = None,
+        litellm_params: GenericGatewayParams | None = None,
         model: str | None = None,
     ) -> tuple[str | None, str | None]:
         region: Final = (

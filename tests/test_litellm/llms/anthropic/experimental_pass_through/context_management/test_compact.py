@@ -594,11 +594,11 @@ async def test_full_summary_path_uses_router_when_available():
     assert result.compaction_block["content"] == "Router summary"
 
 
-async def test_litellm_metadata_propagated_to_summary_call():
+async def test_gateway_metadata_propagated_to_summary_call():
     """Auth fields from the proxy ``litellm_metadata`` are forwarded to the summary call."""
     messages = _simple_messages()
     mock_response = _make_mock_response("<summary>Summary</summary>")
-    parent_litellm_metadata = {
+    parent_gateway_metadata = {
         "user_api_key": "sk-test",
         "user_api_key_team_id": "team-123",
         "user_api_key_user_id": "user-456",
@@ -624,7 +624,7 @@ async def test_litellm_metadata_propagated_to_summary_call():
             tools=None,
             system=None,
             edit_spec=_EDIT_SPEC_DEFAULT,
-            litellm_metadata=parent_litellm_metadata,
+            litellm_metadata=parent_gateway_metadata,
         )
 
     call_kwargs = mock_call.call_args.kwargs
@@ -1867,7 +1867,7 @@ async def test_scoped_budget_metadata_propagated_to_summary_call():
     limiter hooks read, so the summary tokens debit those scoped budgets/counters."""
     messages = _simple_messages()
     mock_response = _make_mock_response("<summary>Summary</summary>")
-    parent_litellm_metadata = {
+    parent_gateway_metadata = {
         "user_api_key": "sk-test",
         "user_api_key_end_user_id": "customer-1",
         "user_api_end_user_max_budget": 10,
@@ -1892,7 +1892,7 @@ async def test_scoped_budget_metadata_propagated_to_summary_call():
             tools=None,
             system=None,
             edit_spec=_EDIT_SPEC_DEFAULT,
-            litellm_metadata=parent_litellm_metadata,
+            litellm_metadata=parent_gateway_metadata,
         )
 
     propagated = mock_call.call_args.kwargs["metadata"]
@@ -1953,7 +1953,7 @@ async def test_model_budget_metadata_propagated_to_summary_call():
     summary subrequest so its spend counts against the caller's model budget."""
     messages = _simple_messages()
     mock_response = _make_mock_response("<summary>Summary</summary>")
-    parent_litellm_metadata = {
+    parent_gateway_metadata = {
         "user_api_key": "sk-test",
         "user_api_key_model_max_budget": {"claude-haiku-4-5": {"budget_limit": 5}},
         "user_api_key_end_user_model_max_budget": {
@@ -1979,7 +1979,7 @@ async def test_model_budget_metadata_propagated_to_summary_call():
             tools=None,
             system=None,
             edit_spec=_EDIT_SPEC_DEFAULT,
-            litellm_metadata=parent_litellm_metadata,
+            litellm_metadata=parent_gateway_metadata,
         )
 
     propagated = mock_call.call_args.kwargs["metadata"]
@@ -2143,7 +2143,7 @@ async def test_run_polyfill_skipped_when_context_management_in_additional_drop_p
     assert result is None
 
 
-async def test_run_polyfill_runs_when_litellm_drop_params_true(monkeypatch):
+async def test_run_polyfill_runs_when_gateway_drop_params_true(monkeypatch):
     """drop_params must not disable the polyfill: context_management is a
     LiteLLM-supported param (polyfilled where not native), and drop_params only
     exists to strip genuinely unsupported params."""
@@ -2242,7 +2242,7 @@ def _openai_chat_response():
 
 async def _call_async_adapter_handler(**handler_kwargs: Any):
     from token_iq.gateway.llms.anthropic.experimental_pass_through.adapters.handler import (
-        LiteLLMMessagesToCompletionTransformationHandler,
+        GatewayMessagesToCompletionTransformationHandler,
     )
 
     captured: Dict[str, Any] = {}
@@ -2252,7 +2252,7 @@ async def _call_async_adapter_handler(**handler_kwargs: Any):
         return _openai_chat_response()
 
     with patch("token_iq.gateway.acompletion", side_effect=_capture_acompletion):
-        response = await LiteLLMMessagesToCompletionTransformationHandler.async_anthropic_messages_handler(
+        response = await GatewayMessagesToCompletionTransformationHandler.async_anthropic_messages_handler(
             max_tokens=128,
             messages=_tool_use_messages(),
             model=MODEL,
@@ -2281,7 +2281,7 @@ async def test_async_handler_runs_polyfill_when_request_drop_params_true():
     _assert_polyfill_applied(response, captured)
 
 
-async def test_async_handler_runs_polyfill_when_litellm_drop_params_true(monkeypatch):
+async def test_async_handler_runs_polyfill_when_gateway_drop_params_true(monkeypatch):
     """Regression (LIT-3768): proxy-wide litellm.drop_params=True silently
     skipped the polyfill too."""
     monkeypatch.setattr(gateway, "drop_params", True)
@@ -2301,7 +2301,7 @@ async def test_async_handler_additional_drop_params_strips_context_management():
 
 def _call_sync_adapter_handler(**handler_kwargs: Any):
     from token_iq.gateway.llms.anthropic.experimental_pass_through.adapters.handler import (
-        LiteLLMMessagesToCompletionTransformationHandler,
+        GatewayMessagesToCompletionTransformationHandler,
     )
 
     captured: Dict[str, Any] = {}
@@ -2311,7 +2311,7 @@ def _call_sync_adapter_handler(**handler_kwargs: Any):
         return _openai_chat_response()
 
     with patch("token_iq.gateway.completion", side_effect=_capture_completion):
-        response = LiteLLMMessagesToCompletionTransformationHandler.anthropic_messages_handler(
+        response = GatewayMessagesToCompletionTransformationHandler.anthropic_messages_handler(
             max_tokens=128,
             messages=_tool_use_messages(),
             model=MODEL,
@@ -2328,7 +2328,7 @@ def test_sync_handler_runs_polyfill_when_request_drop_params_true():
     _assert_polyfill_applied(response, captured)
 
 
-def test_sync_handler_runs_polyfill_when_litellm_drop_params_true(monkeypatch):
+def test_sync_handler_runs_polyfill_when_gateway_drop_params_true(monkeypatch):
     """Proxy-wide litellm.drop_params=True must not skip the polyfill on the
     sync entry point either."""
     monkeypatch.setattr(gateway, "drop_params", True)
@@ -2346,7 +2346,7 @@ def test_sync_handler_additional_drop_params_strips_context_management():
     assert "sunny in SF" in forwarded
 
 
-async def test_prepare_context_managed_request_forwards_proxy_litellm_metadata():
+async def test_prepare_context_managed_request_forwards_proxy_gateway_metadata():
     """The handler must hand the polyfill the proxy ``litellm_metadata`` (which
     carries ``user_api_key`` / ``user_api_key_team_id`` / ...), not the
     Anthropic-shape ``metadata`` arg (which only carries ``user_id``). Otherwise

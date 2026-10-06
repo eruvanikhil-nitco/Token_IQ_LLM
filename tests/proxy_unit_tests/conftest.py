@@ -93,7 +93,7 @@ def _flush_caches(targets):
 
 
 # Snapshot once at conftest import — these are the "clean" module states.
-_LITELLM_STATE = _snapshot_mutable_state(gateway)
+_GATEWAY_STATE = _snapshot_mutable_state(gateway)
 _PROXY_SERVER_STATE = _snapshot_mutable_state(gateway.proxy.proxy_server)
 _FLUSHABLE_CACHES = _collect_flushable_caches()
 
@@ -123,7 +123,7 @@ def setup_and_teardown():
         Use pytest's monkeypatch.setattr() or a local fixture for those
         cases — don't rely on this autouse fixture to undo them.
     """
-    _restore_mutable_state(gateway, _LITELLM_STATE)
+    _restore_mutable_state(gateway, _GATEWAY_STATE)
     _restore_mutable_state(gateway.proxy.proxy_server, _PROXY_SERVER_STATE)
     _flush_caches(_FLUSHABLE_CACHES)
 

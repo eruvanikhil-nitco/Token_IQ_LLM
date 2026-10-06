@@ -13,11 +13,11 @@ from token_iq.gateway.types.realtime import (
 from ..chat.transformation import BaseLLMException
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as _LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as _GatewayLoggingObj
 
-    LiteLLMLoggingObj = _LiteLLMLoggingObj
+    GatewayLoggingObj = _GatewayLoggingObj
 else:
-    LiteLLMLoggingObj = Any
+    GatewayLoggingObj = Any
 
 
 class BaseRealtimeConfig(ABC):
@@ -93,7 +93,7 @@ class BaseRealtimeConfig(ABC):
         self,
         message: str | bytes,
         model: str,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         realtime_response_transform_input: RealtimeResponseTransformInput,
     ) -> RealtimeResponseTypedDict:  # message sent to setup the realtime session
         """

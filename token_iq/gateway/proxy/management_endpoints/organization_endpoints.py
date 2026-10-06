@@ -261,7 +261,7 @@ async def _verify_org_access(
         )
 
     for m in caller_user.organization_memberships or []:
-        if m.organization_id == organization_id and m.user_role == LitellmUserRoles.ORG_ADMIN.value:
+        if m.organization_id == organization_id and m.user_role == GatewayUserRoles.ORG_ADMIN.value:
             return
 
     raise HTTPException(
@@ -403,7 +403,7 @@ async def new_organization(
             detail={"error": CommonProxyErrors.db_not_connected_error.value},
         )
 
-    if user_api_key_dict.user_role is None or user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN:
+    if user_api_key_dict.user_role is None or user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN:
         raise HTTPException(
             status_code=401,
             detail={"error": f"Only admins can create orgs. Your role is = {user_api_key_dict.user_role}"},
@@ -554,7 +554,7 @@ async def get_organization_daily_activity(
         memberships: Final = await _table(OrganizationMembershipRepository(prisma_client)).find_many(
             where={"user_id": user_api_key_dict.user_id}
         )
-        admin_org_ids = [m.organization_id for m in memberships if m.user_role == LitellmUserRoles.ORG_ADMIN.value]
+        admin_org_ids = [m.organization_id for m in memberships if m.user_role == GatewayUserRoles.ORG_ADMIN.value]
         if org_ids_list is None:
             # Default to orgs where user is org_admin
             org_ids_list = admin_org_ids
@@ -935,7 +935,7 @@ async def delete_organization(
             detail={"error": CommonProxyErrors.db_not_connected_error.value},
         )
 
-    if user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN:
+    if user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN:
         raise HTTPException(
             status_code=401,
             detail={"error": "Only proxy admins can delete organizations"},
@@ -1387,10 +1387,10 @@ async def organization_member_update(
         # effects on admin UI filtering and scope derivation.
         target_user_row = await _table(UserRepository(prisma_client)).find_unique(where={"user_id": data.user_id})
         if target_user_row is not None and getattr(target_user_row, "user_role", None) in (
-            LitellmUserRoles.PROXY_ADMIN.value,
-            LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY.value,
+            GatewayUserRoles.PROXY_ADMIN.value,
+            GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY.value,
         ):
-            if user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN.value:
+            if user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN.value:
                 raise HTTPException(
                     status_code=403,
                     detail={

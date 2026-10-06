@@ -34,7 +34,7 @@ def mock_handlers():
     definition site so the ``BedrockBatchesHandler`` reference inside
     ``retrieve_batch`` resolves to our mocks.
     """
-    fake_batch = MagicMock(name="LiteLLMBatch")
+    fake_batch = MagicMock(name="GatewayBatch")
     with (
         patch(
             "token_iq.gateway.batches.main.BedrockBatchesHandler._handle_async_invoke_status",

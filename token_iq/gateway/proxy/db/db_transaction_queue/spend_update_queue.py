@@ -6,7 +6,7 @@ from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.constants import LITELLM_ASYNCIO_QUEUE_MAXSIZE
 from token_iq.gateway.proxy._types import (
     DBSpendUpdateTransactions,
-    Litellm_EntityType,
+    Gateway_EntityType,
     SpendUpdateQueueItem,
 )
 from token_iq.gateway.proxy.db.db_transaction_queue.base_update_queue import (
@@ -28,18 +28,18 @@ SpendTransactionField: TypeAlias = Literal[
     "model_access_group_list_transactions",
 ]
 
-_ENTITY_TRANSACTION_FIELD: Final[MappingProxyType[Litellm_EntityType, SpendTransactionField]] = MappingProxyType(
+_ENTITY_TRANSACTION_FIELD: Final[MappingProxyType[Gateway_EntityType, SpendTransactionField]] = MappingProxyType(
     {
-        Litellm_EntityType.USER: "user_list_transactions",
-        Litellm_EntityType.END_USER: "end_user_list_transactions",
-        Litellm_EntityType.KEY: "key_list_transactions",
-        Litellm_EntityType.TEAM: "team_list_transactions",
-        Litellm_EntityType.TEAM_MEMBER: "team_member_list_transactions",
-        Litellm_EntityType.ORGANIZATION: "org_list_transactions",
-        Litellm_EntityType.PROJECT: "project_list_transactions",
-        Litellm_EntityType.TAG: "tag_list_transactions",
-        Litellm_EntityType.AGENT: "agent_list_transactions",
-        Litellm_EntityType.MODEL_ACCESS_GROUP: "model_access_group_list_transactions",
+        Gateway_EntityType.USER: "user_list_transactions",
+        Gateway_EntityType.END_USER: "end_user_list_transactions",
+        Gateway_EntityType.KEY: "key_list_transactions",
+        Gateway_EntityType.TEAM: "team_list_transactions",
+        Gateway_EntityType.TEAM_MEMBER: "team_member_list_transactions",
+        Gateway_EntityType.ORGANIZATION: "org_list_transactions",
+        Gateway_EntityType.PROJECT: "project_list_transactions",
+        Gateway_EntityType.TAG: "tag_list_transactions",
+        Gateway_EntityType.AGENT: "agent_list_transactions",
+        Gateway_EntityType.MODEL_ACCESS_GROUP: "model_access_group_list_transactions",
     }
 )
 

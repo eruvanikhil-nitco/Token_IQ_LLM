@@ -22,7 +22,7 @@ import httpx
 from token_iq import gateway
 from token_iq.gateway._internal_context import is_internal_call
 from token_iq.gateway.cost_calculator import vector_store_search_cost
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.rag.ingestion.base_ingestion import BaseRAGIngestion
 from token_iq.gateway.rag.ingestion.bedrock_ingestion import BedrockRAGIngestion
 from token_iq.gateway.rag.ingestion.gemini_ingestion import GeminiRAGIngestion
@@ -326,7 +326,7 @@ async def _execute_query_pipeline(
                     hidden_params["response_cost"] = completion_response_cost + sub_call_cost
     elif sub_call_cost > 0:
         logging_obj: Final[object] = kwargs.get("litellm_logging_obj")
-        if isinstance(logging_obj, LiteLLMLoggingObj):
+        if isinstance(logging_obj, GatewayLoggingObj):
             logging_obj.model_call_details["additional_response_cost"] = sub_call_cost
 
     return response

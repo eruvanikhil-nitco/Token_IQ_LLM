@@ -631,7 +631,7 @@ class TestLangfuseUsageDetails(unittest.TestCase):
 
         assert generation_metadata["user_api_key_alias"] == "canary-alias"
 
-    def test_caller_nested_metadata_cannot_erase_a_litellm_enrichment(self):
+    def test_caller_nested_metadata_cannot_erase_a_gateway_enrichment(self):
         """
         log_requester_metadata drops any top-level key whose name also appears inside
         requester_metadata. Sourcing the blob from the allowlist populates that nested

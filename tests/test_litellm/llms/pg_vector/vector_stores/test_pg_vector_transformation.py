@@ -10,7 +10,7 @@ from unittest.mock import MagicMock, Mock, patch
 import pytest
 
 from token_iq.gateway.llms.pg_vector.vector_stores.transformation import PGVectorStoreConfig
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 
 
 class TestPGVectorStoreConfig:
@@ -23,7 +23,7 @@ class TestPGVectorStoreConfig:
         This test validates that API key from params is correctly set in headers.
         """
         config = PGVectorStoreConfig()
-        litellm_params = GenericLiteLLMParams(api_key="test_pg_vector_key_123")
+        litellm_params = GenericGatewayParams(api_key="test_pg_vector_key_123")
         headers = {}
 
         result_headers = config.validate_environment(headers, litellm_params)
@@ -39,7 +39,7 @@ class TestPGVectorStoreConfig:
         This test validates that proper error handling occurs for missing credentials.
         """
         config = PGVectorStoreConfig()
-        litellm_params = GenericLiteLLMParams()
+        litellm_params = GenericGatewayParams()
         headers = {}
 
         with pytest.raises(ValueError, match='PG Vector API key is required\\. Set PG_VECTOR_API_KEY') as exc_info:
@@ -133,7 +133,7 @@ class TestPGVectorStoreConfig:
         config = PGVectorStoreConfig()
 
         # Test with valid parameters
-        litellm_params = GenericLiteLLMParams(api_key="test_key")
+        litellm_params = GenericGatewayParams(api_key="test_key")
         headers = config.validate_environment({}, litellm_params)
         url = config.get_complete_url("https://example.com", {})
 
@@ -172,7 +172,7 @@ class TestPGVectorStoreConfig:
 
         # Test API key from environment variable
         with patch.dict(os.environ, {"PG_VECTOR_API_KEY": "env_api_key_123"}):
-            litellm_params = GenericLiteLLMParams()  # No API key in params
+            litellm_params = GenericGatewayParams()  # No API key in params
 
             headers = config.validate_environment({}, litellm_params)
 
@@ -189,7 +189,7 @@ class TestPGVectorStoreConfig:
 
         # Test that params take precedence over environment variables
         with patch.dict(os.environ, {"PG_VECTOR_API_KEY": "env_key"}):
-            litellm_params = GenericLiteLLMParams(api_key="param_key")
+            litellm_params = GenericGatewayParams(api_key="param_key")
 
             headers = config.validate_environment({}, litellm_params)
 

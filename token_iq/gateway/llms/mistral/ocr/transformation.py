@@ -16,7 +16,7 @@ from token_iq.gateway.llms.base_llm.ocr.transformation import (
 from token_iq.gateway.secret_managers.main import get_secret_str
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 
 MISTRAL_OCR_API_KEY_ENV_VAR: Final = "MISTRAL_API_KEY"
 
@@ -201,7 +201,7 @@ class MistralOCRConfig(BaseOCRConfig):
         self,
         model: str,
         raw_response: httpx.Response,
-        logging_obj: "LiteLLMLoggingObj",
+        logging_obj: "GatewayLoggingObj",
         **kwargs,
     ) -> OCRResponse:
         """

@@ -13,11 +13,11 @@ import httpx
 from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.constants import request_timeout
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.llms.base_llm.search.transformation import BaseSearchConfig, SearchResponse
 from token_iq.gateway.llms.custom_httpx.llm_http_handler import BaseLLMHTTPHandler
 from token_iq.gateway.types.utils import SearchProviders
-from token_iq.gateway.utils import ProviderConfigManager, client, filter_out_litellm_params
+from token_iq.gateway.utils import ProviderConfigManager, client, filter_out_gateway_params
 
 ####### ENVIRONMENT VARIABLES ###################
 base_llm_http_handler = BaseLLMHTTPHandler()
@@ -228,7 +228,7 @@ def search(
     """
     local_vars: Final = locals()
     try:
-        litellm_logging_obj: Final[LiteLLMLoggingObj] = kwargs.pop("litellm_logging_obj")
+        litellm_logging_obj: Final[GatewayLoggingObj] = kwargs.pop("litellm_logging_obj")
         litellm_call_id: Final[str | None] = kwargs.get("litellm_call_id", None)
         _is_async: Final = kwargs.pop("asearch", False) is True
 
@@ -258,7 +258,7 @@ def search(
         )
 
         # Filter out internal LiteLLM parameters from kwargs
-        filtered_kwargs: Final = filter_out_litellm_params(kwargs=kwargs)
+        filtered_kwargs: Final = filter_out_gateway_params(kwargs=kwargs)
 
         # Add remaining kwargs to optional_params (for provider-specific params)
         for key, value in filtered_kwargs.items():

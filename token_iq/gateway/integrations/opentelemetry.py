@@ -391,7 +391,7 @@ class OpenTelemetry(OTELGenAISemconvMixin, CustomLogger):
         self._tracer_provider_cache: OrderedDict[str, _CachedTracerProvider] = OrderedDict()
         self._tracer_provider_cache_lock: Final = threading.Lock()
         self._max_dynamic_tracer_providers: Final = max(1, max_dynamic_tracer_providers)
-        self._litellm_resource_memo: _Resource | None = None
+        self._gateway_resource_memo: _Resource | None = None
         self._init_tracing(tracer_provider)
 
         _debug_otel: Final = str(os.getenv("DEBUG_OTEL", "False")).lower()
@@ -414,10 +414,10 @@ class OpenTelemetry(OTELGenAISemconvMixin, CustomLogger):
         # Sample env-var / config / message_logging at init so subsequent
         # _capture_in_span / _capture_in_event calls are deterministic.
         self._capture_mode_cached = self._compute_capture_mode_from_init_state()
-        self._init_otel_logger_on_litellm_proxy()
+        self._init_otel_logger_on_gateway_proxy()
 
     @staticmethod
-    def _get_litellm_resource(config: OpenTelemetryConfig) -> "_Resource":
+    def _get_gateway_resource(config: OpenTelemetryConfig) -> "_Resource":
         """Create an OpenTelemetry Resource using config-driven defaults."""
         from opentelemetry.sdk.resources import OTELResourceDetector, Resource
 
@@ -432,7 +432,7 @@ class OpenTelemetry(OTELGenAISemconvMixin, CustomLogger):
         env_resource: Final = otel_resource_detector.detect()
         return base_resource.merge(env_resource)
 
-    def _litellm_resource(self) -> "_Resource":
+    def _gateway_resource(self) -> "_Resource":
         """The Resource every provider on this logger is built with, frozen at first use.
 
         ``Resource.create`` scans every installed distribution's entry points, roughly 3ms and
@@ -440,14 +440,14 @@ class OpenTelemetry(OTELGenAISemconvMixin, CustomLogger):
         also keeps them consistent with whatever this logger built at startup. ``cached_property``
         locks class-wide before 3.12, which this file still supports.
         """
-        memo: Final = self._litellm_resource_memo
+        memo: Final = self._gateway_resource_memo
         if memo is not None:
             return memo
-        built: Final = self._get_litellm_resource(self.config)
-        self._litellm_resource_memo = built
+        built: Final = self._get_gateway_resource(self.config)
+        self._gateway_resource_memo = built
         return built
 
-    def _init_otel_logger_on_litellm_proxy(self):
+    def _init_otel_logger_on_gateway_proxy(self):
         """
         Initializes OpenTelemetry for litellm proxy server
 
@@ -614,7 +614,7 @@ class OpenTelemetry(OTELGenAISemconvMixin, CustomLogger):
         from opentelemetry.trace import SpanKind
 
         def create_tracer_provider():
-            provider: Final = TracerProvider(resource=self._litellm_resource())
+            provider: Final = TracerProvider(resource=self._gateway_resource())
             provider.add_span_processor(self._get_span_processor())
             return provider
 
@@ -652,7 +652,7 @@ class OpenTelemetry(OTELGenAISemconvMixin, CustomLogger):
             metric_reader: Final = self._get_metric_reader()
             return MeterProvider(
                 metric_readers=[metric_reader],
-                resource=self._litellm_resource(),
+                resource=self._gateway_resource(),
             )
 
         meter_provider = self._get_or_create_provider(
@@ -710,7 +710,7 @@ class OpenTelemetry(OTELGenAISemconvMixin, CustomLogger):
         from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
 
         def create_logger_provider():
-            provider: Final = OTLoggerProvider(resource=self._litellm_resource())
+            provider: Final = OTLoggerProvider(resource=self._gateway_resource())
             log_exporter: Final = self._get_log_exporter()
             provider.add_log_record_processor(BatchLogRecordProcessor(log_exporter))
             return provider
@@ -1003,11 +1003,11 @@ class OpenTelemetry(OTELGenAISemconvMixin, CustomLogger):
         user_api_key_dict: UserAPIKeyAuth,
         response: LLMResponseTypes,
     ):
-        from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLogging
+        from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLogging
 
         litellm_logging_obj: Final = data.get("litellm_logging_obj")
 
-        if litellm_logging_obj is not None and isinstance(litellm_logging_obj, LiteLLMLogging):
+        if litellm_logging_obj is not None and isinstance(litellm_logging_obj, GatewayLogging):
             kwargs: Final = litellm_logging_obj.model_call_details
             parent_span: Final = user_api_key_dict.parent_otel_span
 
@@ -1162,7 +1162,7 @@ class OpenTelemetry(OTELGenAISemconvMixin, CustomLogger):
         owns_exporter: Final = _provider_owns_exporter(dynamic_config.exporter)
 
         def _build() -> "_SDKTracerProvider":
-            provider: Final = TracerProvider(resource=self._litellm_resource(), shutdown_on_exit=owns_exporter)
+            provider: Final = TracerProvider(resource=self._gateway_resource(), shutdown_on_exit=owns_exporter)
             provider.add_span_processor(self._get_span_processor(config_override=dynamic_config))
             return provider
 
@@ -1178,7 +1178,7 @@ class OpenTelemetry(OTELGenAISemconvMixin, CustomLogger):
         owns_exporter: Final = _provider_owns_exporter(self.OTEL_EXPORTER)
 
         def _build() -> "_SDKTracerProvider":
-            provider: Final = TracerProvider(resource=self._litellm_resource(), shutdown_on_exit=owns_exporter)
+            provider: Final = TracerProvider(resource=self._gateway_resource(), shutdown_on_exit=owns_exporter)
             provider.add_span_processor(self._get_span_processor(dynamic_headers=dynamic_headers))
             return provider
 
@@ -1291,8 +1291,8 @@ class OpenTelemetry(OTELGenAISemconvMixin, CustomLogger):
         # Fallback: check litellm_metadata (used by /v1/messages and other
         # LITELLM_METADATA_ROUTES).
         if proxy_span is None:
-            _litellm_metadata: Final = litellm_params.get("litellm_metadata", {}) or {}
-            proxy_span = _litellm_metadata.get("litellm_parent_otel_span", None)
+            _gateway_metadata: Final = litellm_params.get("litellm_metadata", {}) or {}
+            proxy_span = _gateway_metadata.get("litellm_parent_otel_span", None)
 
         if (
             proxy_span is not None
@@ -2954,8 +2954,8 @@ class OpenTelemetry(OTELGenAISemconvMixin, CustomLogger):
         # LITELLM_METADATA_ROUTES that store proxy-internal metadata
         # separately from the provider's native "metadata" field).
         if parent_otel_span is None:
-            _litellm_metadata: Final = litellm_params.get("litellm_metadata", {}) or {}
-            parent_otel_span = _litellm_metadata.get("litellm_parent_otel_span", None)
+            _gateway_metadata: Final = litellm_params.get("litellm_metadata", {}) or {}
+            parent_otel_span = _gateway_metadata.get("litellm_parent_otel_span", None)
 
         # Priority 1: Explicit parent span from metadata
         if parent_otel_span is not None:
@@ -3450,7 +3450,7 @@ class OpenTelemetry(OTELGenAISemconvMixin, CustomLogger):
             )
             parent_otel_span.end(end_time=_end_time_ns)
 
-    def create_litellm_proxy_request_started_span(
+    def create_gateway_proxy_request_started_span(
         self,
         start_time: datetime,
         headers: dict,

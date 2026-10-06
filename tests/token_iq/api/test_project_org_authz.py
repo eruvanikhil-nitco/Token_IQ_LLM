@@ -12,7 +12,7 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from fastapi import HTTPException
 
-from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
 
 
 # ---------------------------------------------------------------------------
@@ -42,7 +42,7 @@ async def test_project_perm_check_uses_current_team_not_caller_supplied():
     prisma = _make_prisma_with_team(team_id="team-A", admins=["alice"])
     caller = UserAPIKeyAuth(
         user_id="bob",
-        user_role=LitellmUserRoles.INTERNAL_USER.value,
+        user_role=GatewayUserRoles.INTERNAL_USER.value,
     )
 
     has_perm = await _check_user_permission_for_project(
@@ -63,7 +63,7 @@ async def test_project_perm_check_allows_team_admin_of_existing_team():
     prisma = _make_prisma_with_team(team_id="team-A", admins=["alice"])
     alice = UserAPIKeyAuth(
         user_id="alice",
-        user_role=LitellmUserRoles.INTERNAL_USER.value,
+        user_role=GatewayUserRoles.INTERNAL_USER.value,
     )
 
     has_perm = await _check_user_permission_for_project(
@@ -83,7 +83,7 @@ async def test_project_perm_check_proxy_admin_always_allowed():
     prisma = MagicMock()
     admin = UserAPIKeyAuth(
         user_id="root",
-        user_role=LitellmUserRoles.PROXY_ADMIN.value,
+        user_role=GatewayUserRoles.PROXY_ADMIN.value,
     )
 
     has_perm = await _check_user_permission_for_project(
@@ -120,7 +120,7 @@ async def test_assign_key_org_allows_member():
     prisma = _make_prisma_with_user_orgs("alice", ["org-1", "org-2"])
     caller = UserAPIKeyAuth(
         user_id="alice",
-        user_role=LitellmUserRoles.INTERNAL_USER.value,
+        user_role=GatewayUserRoles.INTERNAL_USER.value,
     )
     # Should not raise.
     await _validate_caller_can_assign_key_org(
@@ -140,7 +140,7 @@ async def test_assign_key_org_blocks_non_member():
     prisma = _make_prisma_with_user_orgs("alice", ["org-1"])
     caller = UserAPIKeyAuth(
         user_id="alice",
-        user_role=LitellmUserRoles.INTERNAL_USER.value,
+        user_role=GatewayUserRoles.INTERNAL_USER.value,
     )
     with pytest.raises(HTTPException) as exc_info:
         await _validate_caller_can_assign_key_org(
@@ -160,7 +160,7 @@ async def test_assign_key_org_blocks_caller_without_user_id():
 
     prisma = MagicMock()
     caller = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER.value,
+        user_role=GatewayUserRoles.INTERNAL_USER.value,
     )
     with pytest.raises(HTTPException) as exc_info:
         await _validate_caller_can_assign_key_org(
@@ -184,7 +184,7 @@ async def test_assign_key_org_blocks_caller_with_no_memberships():
 
     caller = UserAPIKeyAuth(
         user_id="alice",
-        user_role=LitellmUserRoles.INTERNAL_USER.value,
+        user_role=GatewayUserRoles.INTERNAL_USER.value,
     )
     with pytest.raises(HTTPException) as exc_info:
         await _validate_caller_can_assign_key_org(

@@ -10,11 +10,11 @@ from token_iq.gateway.types.utils import ModelInfo
 from ..chat.transformation import BaseLLMException
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as _LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as _GatewayLoggingObj
 
-    LiteLLMLoggingObj = _LiteLLMLoggingObj
+    GatewayLoggingObj = _GatewayLoggingObj
 else:
-    LiteLLMLoggingObj = Any
+    GatewayLoggingObj = Any
 
 
 class BaseRerankConfig(ABC):
@@ -45,7 +45,7 @@ class BaseRerankConfig(ABC):
         model: str,
         raw_response: httpx.Response,
         model_response: RerankResponse,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         api_key: str | None = None,
         request_data: dict = {},
         optional_params: dict = {},

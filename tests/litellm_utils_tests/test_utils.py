@@ -321,7 +321,7 @@ def test_trimming_with_untokenizable_field(caplog: pytest.LogCaptureFixture) -> 
     ]
 
     # trim_messages() catches the exception raised by the tokenizer and logs an error
-    with caplog.at_level(level=logging.ERROR, logger="LiteLLM"):
+    with caplog.at_level(level=logging.ERROR, logger="Gateway"):
         trimmed_messages = trim_messages(messages, max_tokens=999)
 
     assert trimmed_messages == messages
@@ -2042,7 +2042,7 @@ def test_add_custom_logger_callback_to_specific_event_e2e_failure(monkeypatch):
 async def test_wrapper_kwargs_passthrough():
     from token_iq.gateway.utils import client
     from token_iq.gateway.core_utils.litellm_logging import (
-        Logging as LiteLLMLoggingObject,
+        Logging as GatewayLoggingObject,
     )
 
     # Create mock original function
@@ -2062,7 +2062,7 @@ async def test_wrapper_kwargs_passthrough():
     mock_original.assert_called_once()
 
     # get litellm logging object
-    litellm_logging_obj: LiteLLMLoggingObject = mock_original.call_args.kwargs.get(
+    litellm_logging_obj: GatewayLoggingObject = mock_original.call_args.kwargs.get(
         "litellm_logging_obj"
     )
     assert litellm_logging_obj is not None
@@ -2344,9 +2344,9 @@ def test_get_valid_models_from_dynamic_api_key():
     Test that get_valid_models returns the correct models for a given provider
     """
     from token_iq.gateway.utils import get_valid_models
-    from token_iq.gateway.types.router import CredentialLiteLLMParams
+    from token_iq.gateway.types.router import CredentialGatewayParams
 
-    creds = CredentialLiteLLMParams(api_key="123")
+    creds = CredentialGatewayParams(api_key="123")
 
     valid_models = get_valid_models(
         custom_llm_provider="anthropic",
@@ -2355,7 +2355,7 @@ def test_get_valid_models_from_dynamic_api_key():
     )
     assert len(valid_models) == 0
 
-    creds = CredentialLiteLLMParams(api_key=os.getenv("ANTHROPIC_API_KEY"))
+    creds = CredentialGatewayParams(api_key=os.getenv("ANTHROPIC_API_KEY"))
     valid_models = get_valid_models(
         custom_llm_provider="anthropic",
         litellm_params=creds,
@@ -2462,12 +2462,12 @@ def test_get_base_model_from_metadata():
     assert result == "azure/gpt-5.5", f"Expected 'azure/gpt-5.5', got {result}"
 
     # Test 2: base_model in litellm_metadata (Responses API and generic API calls pattern)
-    model_call_details_with_litellm_metadata = {
+    model_call_details_with_gateway_metadata = {
         "litellm_params": {
             "litellm_metadata": {"model_info": {"base_model": "azure/gpt-5-mini"}}
         }
     }
-    result = _get_base_model_from_metadata(model_call_details_with_litellm_metadata)
+    result = _get_base_model_from_metadata(model_call_details_with_gateway_metadata)
     assert result == "azure/gpt-5-mini", f"Expected 'azure/gpt-5-mini', got {result}"
 
     # Test 3: base_model in litellm_params (direct base_model)

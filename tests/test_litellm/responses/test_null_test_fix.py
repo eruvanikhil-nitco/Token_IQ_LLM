@@ -211,7 +211,7 @@ class TestStreamingIteratorTextHandling:
         from unittest.mock import Mock
 
         from token_iq.gateway.responses.litellm_completion_transformation.streaming_iterator import (
-            LiteLLMCompletionStreamingIterator,
+            GatewayCompletionStreamingIterator,
         )
         from token_iq.gateway.types.llms.openai import (
             ResponseInputParam,
@@ -222,9 +222,9 @@ class TestStreamingIteratorTextHandling:
         mock_wrapper = Mock()
         mock_wrapper.logging_obj = Mock()
 
-        iterator = LiteLLMCompletionStreamingIterator(
+        iterator = GatewayCompletionStreamingIterator(
             model="gpt-oss-120b",
-            litellm_custom_stream_wrapper=mock_wrapper,
+            gateway_custom_stream_wrapper=mock_wrapper,
             request_input="test input",
             responses_api_request={},
         )
@@ -248,7 +248,7 @@ class TestStreamingIteratorTextHandling:
         from unittest.mock import Mock
 
         from token_iq.gateway.responses.litellm_completion_transformation.streaming_iterator import (
-            LiteLLMCompletionStreamingIterator,
+            GatewayCompletionStreamingIterator,
         )
         from token_iq.gateway.types.utils import Delta, StreamingChoices
 
@@ -256,9 +256,9 @@ class TestStreamingIteratorTextHandling:
         mock_wrapper = Mock()
         mock_wrapper.logging_obj = Mock()
 
-        iterator = LiteLLMCompletionStreamingIterator(
+        iterator = GatewayCompletionStreamingIterator(
             model="gpt-oss-120b",
-            litellm_custom_stream_wrapper=mock_wrapper,
+            gateway_custom_stream_wrapper=mock_wrapper,
             request_input="test input",
             responses_api_request={},
         )

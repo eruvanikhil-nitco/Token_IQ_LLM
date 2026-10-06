@@ -10,7 +10,7 @@ import pytest
 from token_iq.gateway.llms.base_llm.managed_resources.base_managed_resource import (
     BaseManagedResource,
 )
-from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
 
 
 class _StubResource(BaseManagedResource):
@@ -51,7 +51,7 @@ def _make_resource(records: List = None) -> _StubResource:
 @pytest.mark.asyncio
 async def test_list_admin_query_is_unscoped():
     resource = _make_resource()
-    admin = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN)
+    admin = UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN)
 
     await resource.list_user_resources(user_api_key_dict=admin)
 

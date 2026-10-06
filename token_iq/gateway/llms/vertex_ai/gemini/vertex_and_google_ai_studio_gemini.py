@@ -99,10 +99,10 @@ from .transformation import (
 if TYPE_CHECKING:
     from pydantic import BaseModel
 
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
     from token_iq.gateway.types.utils import ModelResponseStream, StreamingChoices
 
-    LoggingClass = LiteLLMLoggingObj
+    LoggingClass = GatewayLoggingObj
 else:
     LoggingClass = Any
     StreamingChoices = Any

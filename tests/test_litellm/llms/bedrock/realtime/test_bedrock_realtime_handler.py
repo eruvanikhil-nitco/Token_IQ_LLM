@@ -468,7 +468,7 @@ class TestBedrockRealtimeAwsAuth:
     """AWS auth params passed via litellm_params must reach the Smithy client config (LIT-3923 regression)"""
 
     @pytest.mark.asyncio
-    async def test_static_credentials_from_litellm_params_reach_smithy_config(self, stub_aws_sdk_client):
+    async def test_static_credentials_from_gateway_params_reach_smithy_config(self, stub_aws_sdk_client):
         handler = BedrockRealtime()
         websocket = RealtimeClientWS()
 

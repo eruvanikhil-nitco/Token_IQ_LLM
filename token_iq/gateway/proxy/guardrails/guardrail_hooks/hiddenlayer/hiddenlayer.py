@@ -18,7 +18,7 @@ from token_iq.gateway.integrations.custom_guardrail import (
     CustomGuardrail,
     log_guardrail_information,
 )
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.llms.custom_httpx.http_handler import (
     get_async_httpx_client,
     httpxSpecialProvider,
@@ -83,7 +83,7 @@ class _LoggedCallMetadata(TypedDict, total=False):
     headers: ReadOnly[dict[str, str]]
 
 
-class _LoggedCallLitellmParams(TypedDict, total=False):
+class _LoggedCallGatewayParams(TypedDict, total=False):
     metadata: ReadOnly[_LoggedCallMetadata]
 
 
@@ -117,7 +117,7 @@ class _LoggedCallDetails(Protocol):
     """Logging object view that exposes its untyped call details with the shape this guardrail reads."""
 
     @property
-    def model_call_details(self) -> Mapping[str, _LoggedCallLitellmParams]: ...
+    def model_call_details(self) -> Mapping[str, _LoggedCallGatewayParams]: ...
 
 
 class _TokenPayloadSource(Protocol):
@@ -263,7 +263,7 @@ class HiddenlayerGuardrail(CustomGuardrail):
         inputs: GenericGuardrailAPIInputs,
         request_data: dict,
         input_type: Literal["request", "response"],
-        logging_obj: LiteLLMLoggingObj | None = None,
+        logging_obj: GatewayLoggingObj | None = None,
     ) -> GenericGuardrailAPIInputs:
         """Validate (and optionally redact) text via HiddenLayer before/after LLM calls."""
 
@@ -283,7 +283,7 @@ class HiddenlayerGuardrail(CustomGuardrail):
         if not headers and logging_obj and logging_obj.model_call_details:
             headers = _logged_request_headers(logging_obj)
 
-        hl_request_metadata["requester_id"] = headers.get("hl-requester-id") or "LiteLLM"
+        hl_request_metadata["requester_id"] = headers.get("hl-requester-id") or "Gateway"
         project_id: Final = headers.get("hl-project-id")
 
         if scan_params := inputs.get("structured_messages"):
@@ -467,7 +467,7 @@ class HiddenlayerGuardrailV2(CustomGuardrail):
         inputs: GenericGuardrailAPIInputs,
         request_data: dict,
         input_type: Literal["request", "response"],
-        logging_obj: LiteLLMLoggingObj | None = None,
+        logging_obj: GatewayLoggingObj | None = None,
     ) -> GenericGuardrailAPIInputs:
         """Validate (and optionally redact) text via HiddenLayer before/after LLM calls."""
 
@@ -490,7 +490,7 @@ class HiddenlayerGuardrailV2(CustomGuardrail):
         hl_headers: Final = {h.lower(): v for h, v in headers.items() if h.lower().startswith("hl-")}
 
         if "hl-requester-id" not in hl_headers:
-            hl_headers["hl-requester-id"] = "LiteLLM"
+            hl_headers["hl-requester-id"] = "Gateway"
 
         payload: _HiddenlayerV2Payload
         if input_type == "request":

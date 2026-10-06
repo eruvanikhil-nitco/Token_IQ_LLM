@@ -75,7 +75,7 @@ class TestBedrockSSLVerify:
             os.environ.pop("SSL_CERT_FILE", None)
             os.unlink(ca_bundle_path)
 
-    def test_base_aws_llm_get_ssl_verify_litellm_config(self):
+    def test_base_aws_llm_get_ssl_verify_gateway_config(self):
         """Test that _get_ssl_verify uses litellm.ssl_verify when set."""
         base_aws = BaseAWSLLM()
 
@@ -325,7 +325,7 @@ class TestBedrockSSLVerify:
             os.environ.pop("SSL_CERT_FILE", None)
             os.unlink(ca_bundle_path)
 
-    def test_ssl_verify_priority_env_over_litellm_config(self, monkeypatch):
+    def test_ssl_verify_priority_env_over_gateway_config(self, monkeypatch):
         """Test that SSL_VERIFY environment variable takes priority over litellm.ssl_verify."""
         base_aws = BaseAWSLLM()
 

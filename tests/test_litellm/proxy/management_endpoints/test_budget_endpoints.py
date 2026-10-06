@@ -10,7 +10,7 @@ from fastapi.testclient import TestClient
 
 import token_iq.gateway.proxy.proxy_server as ps
 from token_iq.gateway.proxy.proxy_server import app
-from token_iq.gateway.proxy._types import UserAPIKeyAuth, LitellmUserRoles, CommonProxyErrors
+from token_iq.gateway.proxy._types import UserAPIKeyAuth, GatewayUserRoles, CommonProxyErrors
 
 
 
@@ -33,7 +33,7 @@ def client_and_mocks(monkeypatch):
     # override returned auth user
     fake_user = UserAPIKeyAuth(
         user_id="test_user",
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
     )
     app.dependency_overrides[ps.user_api_key_auth] = lambda: fake_user
 

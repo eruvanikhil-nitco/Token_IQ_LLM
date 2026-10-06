@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field, ValidationError, model_validator
 
 from token_iq.gateway._uuid import uuid4
-from token_iq.gateway.proxy._types import LitellmTableNames, LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import GatewayTableNames, GatewayUserRoles, UserAPIKeyAuth
 from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 from token_iq.gateway.repositories.user_banner_repository import USER_BANNER_ROW_ID, UserBannerRepository
 
@@ -99,7 +99,7 @@ async def update_user_banner(
     """
     from token_iq.gateway.proxy.proxy_server import create_config_audit_log, prisma_client
 
-    if user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN:
+    if user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN:
         raise HTTPException(status_code=403, detail="Only proxy admins can update the user banner.")
 
     if prisma_client is None:
@@ -123,7 +123,7 @@ async def update_user_banner(
             before_value=before.model_dump(),
             after_value=banner.model_dump(),
             user_api_key_dict=user_api_key_dict,
-            table_name=LitellmTableNames.UI_SETTINGS_TABLE_NAME,
+            table_name=GatewayTableNames.UI_SETTINGS_TABLE_NAME,
         )
     )
 

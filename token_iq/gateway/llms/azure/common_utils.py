@@ -20,7 +20,7 @@ from token_iq.gateway.secret_managers.get_azure_ad_token_provider import (
     get_azure_ad_token_provider,
 )
 from token_iq.gateway.secret_managers.main import get_secret_str
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.utils import _add_path_to_api_base
 
 azure_ad_cache: Final = DualCache()
@@ -291,7 +291,7 @@ def select_azure_base_url_or_endpoint(azure_client_params: dict):
 
 
 def get_azure_ad_token(
-    litellm_params: GenericLiteLLMParams,
+    litellm_params: GenericGatewayParams,
 ) -> str | None:
     """
     Get Azure AD token from various authentication methods.
@@ -478,7 +478,7 @@ class BaseAzureLLM(BaseOpenAILLM):
                 openai_client=client,
                 client_initialization_params=client_initialization_params,
                 client_type="azure",
-                litellm_owned_client=False,
+                gateway_owned_client=False,
             )
             return client
 
@@ -554,7 +554,7 @@ class BaseAzureLLM(BaseOpenAILLM):
             openai_client=openai_client,
             client_initialization_params=client_initialization_params,
             client_type="azure",
-            litellm_owned_client=self.owns_wrapped_http_client(azure_client_params.get("http_client")),
+            gateway_owned_client=self.owns_wrapped_http_client(azure_client_params.get("http_client")),
         )
         return openai_client
 
@@ -711,8 +711,8 @@ class BaseAzureLLM(BaseOpenAILLM):
         return client
 
     @staticmethod
-    def _base_validate_azure_environment(headers: dict, litellm_params: GenericLiteLLMParams | None) -> dict:
-        litellm_params = litellm_params or GenericLiteLLMParams()
+    def _base_validate_azure_environment(headers: dict, litellm_params: GenericGatewayParams | None) -> dict:
+        litellm_params = litellm_params or GenericGatewayParams()
 
         # Check if api-key is already in headers; if so, use it
         if "api-key" in headers:
@@ -741,7 +741,7 @@ class BaseAzureLLM(BaseOpenAILLM):
     @staticmethod
     def _get_base_azure_url(
         api_base: str | None,
-        litellm_params: GenericLiteLLMParams | Mapping[str, object] | None,
+        litellm_params: GenericGatewayParams | Mapping[str, object] | None,
         route: Literal["/openai/responses", "/openai/vector_stores"] | str,
         default_api_version: str | Literal["latest", "preview"] | None = None,
     ) -> str:

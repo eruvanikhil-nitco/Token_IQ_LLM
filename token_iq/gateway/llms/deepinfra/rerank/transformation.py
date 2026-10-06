@@ -9,7 +9,7 @@ import httpx
 from typing_extensions import ReadOnly, TypedDict
 
 from token_iq.gateway._uuid import uuid
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.llms.base_llm.rerank.transformation import (
     BaseLLMException,
     BaseRerankConfig,
@@ -174,7 +174,7 @@ class DeepinfraRerankConfig(BaseRerankConfig):
         model: str,
         raw_response: httpx.Response,
         model_response: RerankResponse,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         api_key: str | None = None,
         request_data: dict = {},
         optional_params: dict = {},

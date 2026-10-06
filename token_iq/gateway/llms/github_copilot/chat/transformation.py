@@ -18,7 +18,7 @@ from ..common_utils import (
 )
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 
 
 class GithubCopilotConfig(OpenAIConfig):
@@ -275,7 +275,7 @@ class GithubCopilotConfig(OpenAIConfig):
         model: str,
         raw_response: httpx.Response,
         model_response: "ModelResponse",
-        logging_obj: "LiteLLMLoggingObj",
+        logging_obj: "GatewayLoggingObj",
         request_data: dict,
         messages: list[AllMessageValues],
         optional_params: dict,

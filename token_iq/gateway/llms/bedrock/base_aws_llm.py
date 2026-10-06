@@ -567,14 +567,14 @@ class BaseAWSLLM:
             else:
                 aws_region_name = self._get_aws_region_from_model_arn(model)
             # check env #
-            litellm_aws_region_name: Final = get_secret("AWS_REGION_NAME", None)
+            gateway_aws_region_name: Final = get_secret("AWS_REGION_NAME", None)
 
             if (
                 aws_region_name is None
-                and litellm_aws_region_name is not None
-                and isinstance(litellm_aws_region_name, str)
+                and gateway_aws_region_name is not None
+                and isinstance(gateway_aws_region_name, str)
             ):
-                aws_region_name = litellm_aws_region_name
+                aws_region_name = gateway_aws_region_name
 
             standard_aws_region_name: Final = get_secret("AWS_REGION", None)
             if (
@@ -667,10 +667,10 @@ class BaseAWSLLM:
         self._validate_aws_region_name(aws_region_name)
         if aws_region_name is None:
             # check env #
-            litellm_aws_region_name: Final = get_secret("AWS_REGION_NAME", None)
+            gateway_aws_region_name: Final = get_secret("AWS_REGION_NAME", None)
 
-            if litellm_aws_region_name is not None and isinstance(litellm_aws_region_name, str):
-                aws_region_name = litellm_aws_region_name
+            if gateway_aws_region_name is not None and isinstance(gateway_aws_region_name, str):
+                aws_region_name = gateway_aws_region_name
 
             standard_aws_region_name: Final = get_secret("AWS_REGION", None)
             if standard_aws_region_name is not None and isinstance(standard_aws_region_name, str):

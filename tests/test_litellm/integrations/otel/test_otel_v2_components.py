@@ -44,7 +44,7 @@ from token_iq.gateway.integrations.otel.model.payloads import (  # noqa: E402
 from token_iq.gateway.integrations.otel.model.semconv import GenAI, GenAIOperation
 from token_iq.gateway.integrations.otel.model.spans import (  # noqa: E402
     SPAN_REGISTRY,
-    LiteLLMSpanKind,
+    GatewaySpanKind,
     SpanRole,
     SpanSpec,
     db_system,
@@ -155,13 +155,13 @@ def test_name_builders():
 
 
 def test_validate_registry_detects_role_mismatch():
-    bad = {SpanRole.LLM_CALL: SpanSpec(SpanRole.SERVICE, LiteLLMSpanKind.CLIENT, None)}
+    bad = {SpanRole.LLM_CALL: SpanSpec(SpanRole.SERVICE, GatewaySpanKind.CLIENT, None)}
     with pytest.raises(ValueError, match="mismatched role"):
         validate_registry(bad)
 
 
 def test_validate_registry_detects_unknown_parent():
-    bad = {SpanRole.LLM_CALL: SpanSpec(SpanRole.LLM_CALL, LiteLLMSpanKind.CLIENT, parent=SpanRole.PROXY_REQUEST)}
+    bad = {SpanRole.LLM_CALL: SpanSpec(SpanRole.LLM_CALL, GatewaySpanKind.CLIENT, parent=SpanRole.PROXY_REQUEST)}
     with pytest.raises(ValueError, match="unknown parent"):
         validate_registry(bad)
 
@@ -277,7 +277,7 @@ def test_genai_mapper_omits_messages_when_content_not_captured():
 
 
 def test_genai_mapper_cost_breakdown():
-    from token_iq.gateway.integrations.otel.model.semconv import LiteLLM
+    from token_iq.gateway.integrations.otel.model.semconv import Gateway
 
     data = LLMCallSpanData(
         operation=GenAIOperation.CHAT,
@@ -306,28 +306,28 @@ def test_genai_mapper_cost_breakdown():
         ),
     )
     attrs = GenAIMapper().map(data)
-    assert attrs[f"{LiteLLM.COST_PREFIX}total"] == 0.012
-    assert attrs[f"{LiteLLM.COST_PREFIX}input"] == 0.004
-    assert attrs[f"{LiteLLM.COST_PREFIX}output"] == 0.006
-    assert attrs[f"{LiteLLM.COST_PREFIX}cache_read"] == 0.001
-    assert attrs[f"{LiteLLM.COST_PREFIX}cache_creation"] == 0.0
-    assert attrs[f"{LiteLLM.COST_PREFIX}tool_usage"] == 0.0005
-    assert attrs[f"{LiteLLM.COST_PREFIX}original"] == 0.013
-    assert attrs[f"{LiteLLM.COST_PREFIX}discount_amount"] == 0.001
-    assert attrs[f"{LiteLLM.COST_PREFIX}discount_percent"] == 0.077
-    assert attrs[f"{LiteLLM.COST_PREFIX}margin_total_amount"] == 0.0
+    assert attrs[f"{Gateway.COST_PREFIX}total"] == 0.012
+    assert attrs[f"{Gateway.COST_PREFIX}input"] == 0.004
+    assert attrs[f"{Gateway.COST_PREFIX}output"] == 0.006
+    assert attrs[f"{Gateway.COST_PREFIX}cache_read"] == 0.001
+    assert attrs[f"{Gateway.COST_PREFIX}cache_creation"] == 0.0
+    assert attrs[f"{Gateway.COST_PREFIX}tool_usage"] == 0.0005
+    assert attrs[f"{Gateway.COST_PREFIX}original"] == 0.013
+    assert attrs[f"{Gateway.COST_PREFIX}discount_amount"] == 0.001
+    assert attrs[f"{Gateway.COST_PREFIX}discount_percent"] == 0.077
+    assert attrs[f"{Gateway.COST_PREFIX}margin_total_amount"] == 0.0
     # Components the source did not report are omitted, not zero-filled.
-    assert f"{LiteLLM.COST_PREFIX}margin_fixed_amount" not in attrs
-    assert f"{LiteLLM.COST_PREFIX}margin_percent" not in attrs
+    assert f"{Gateway.COST_PREFIX}margin_fixed_amount" not in attrs
+    assert f"{Gateway.COST_PREFIX}margin_percent" not in attrs
 
 
 def test_genai_mapper_cost_breakdown_absent():
     # No cost_breakdown → only the rolled-up total (from response_cost) emits.
-    from token_iq.gateway.integrations.otel.model.semconv import LiteLLM
+    from token_iq.gateway.integrations.otel.model.semconv import Gateway
 
     attrs = GenAIMapper().map(_full_llm_call())
-    assert attrs[f"{LiteLLM.COST_PREFIX}total"] == 0.002
-    assert not any(k.startswith(LiteLLM.COST_PREFIX) and k != f"{LiteLLM.COST_PREFIX}total" for k in attrs)
+    assert attrs[f"{Gateway.COST_PREFIX}total"] == 0.002
+    assert not any(k.startswith(Gateway.COST_PREFIX) and k != f"{Gateway.COST_PREFIX}total" for k in attrs)
 
 
 def test_llm_cost_from_breakdown_maps_costbreakdown_keys():
@@ -365,22 +365,22 @@ def test_llm_cost_from_breakdown_none_is_empty():
 
 
 def test_genai_mapper_guardrail_and_service():
-    from token_iq.gateway.integrations.otel.model.semconv import LiteLLM
+    from token_iq.gateway.integrations.otel.model.semconv import Gateway
 
     g = GenAIMapper().map(GuardrailSpanData("presidio", mode="pre"))
-    assert g[LiteLLM.GUARDRAIL_NAME] == "presidio"
-    assert g[LiteLLM.GUARDRAIL_MODE] == "pre"
+    assert g[Gateway.GUARDRAIL_NAME] == "presidio"
+    assert g[Gateway.GUARDRAIL_MODE] == "pre"
 
     # A datastore service (redis) also gets db.* semconv.
     s = GenAIMapper().map(ServiceSpanData("redis", call_type="set"))
-    assert s[LiteLLM.SERVICE_NAME] == "redis"
-    assert s[LiteLLM.SERVICE_CALL_TYPE] == "set"
+    assert s[Gateway.SERVICE_NAME] == "redis"
+    assert s[Gateway.SERVICE_CALL_TYPE] == "set"
     assert s["db.system.name"] == "redis"
     assert s["db.operation.name"] == "set"
 
     # An internal service (router) gets no db.* keys.
     internal = GenAIMapper().map(ServiceSpanData("router", call_type="acompletion"))
-    assert internal[LiteLLM.SERVICE_NAME] == "router"
+    assert internal[Gateway.SERVICE_NAME] == "router"
     assert "db.system.name" not in internal
 
 
@@ -388,7 +388,7 @@ def test_genai_mapper_guardrail_billing_attrs():
     """Billing counters and USD cost stamped on StandardLoggingGuardrailInformation
     surface on the guardrail span: usage JSON-serialized, cost numeric under the
     litellm.cost.* namespace."""
-    from token_iq.gateway.integrations.otel.model.semconv import LiteLLM
+    from token_iq.gateway.integrations.otel.model.semconv import Gateway
 
     entry = {
         "guardrail_name": "azure-shield",
@@ -401,14 +401,14 @@ def test_genai_mapper_guardrail_billing_attrs():
     assert data.usage_json is not None and '"text_records": 12' in data.usage_json
 
     attrs = GenAIMapper().map(data)
-    assert attrs[LiteLLM.GUARDRAIL_COST] == 0.00456
-    assert LiteLLM.GUARDRAIL_COST == "litellm.cost.guardrail"
-    assert attrs[LiteLLM.GUARDRAIL_USAGE] == data.usage_json
+    assert attrs[Gateway.GUARDRAIL_COST] == 0.00456
+    assert Gateway.GUARDRAIL_COST == "litellm.cost.guardrail"
+    assert attrs[Gateway.GUARDRAIL_USAGE] == data.usage_json
 
     # A guardrail without billing data keeps a sparse span: neither key present.
     unbilled = GenAIMapper().map(GuardrailSpanData("presidio", mode="pre"))
-    assert LiteLLM.GUARDRAIL_COST not in unbilled
-    assert LiteLLM.GUARDRAIL_USAGE not in unbilled
+    assert Gateway.GUARDRAIL_COST not in unbilled
+    assert Gateway.GUARDRAIL_USAGE not in unbilled
 
 
 def test_legacy_mapper_all_request_params():
@@ -470,11 +470,11 @@ def test_get_baggage_attributes_roundtrip():
 
 
 def test_to_otel_span_kind_covers_all():
-    assert providers.to_otel_span_kind(LiteLLMSpanKind.SERVER) is SpanKind.SERVER
-    assert providers.to_otel_span_kind(LiteLLMSpanKind.CLIENT) is SpanKind.CLIENT
-    assert providers.to_otel_span_kind(LiteLLMSpanKind.INTERNAL) is SpanKind.INTERNAL
-    assert providers.to_otel_span_kind(LiteLLMSpanKind.PRODUCER) is SpanKind.PRODUCER
-    assert providers.to_otel_span_kind(LiteLLMSpanKind.CONSUMER) is SpanKind.CONSUMER
+    assert providers.to_otel_span_kind(GatewaySpanKind.SERVER) is SpanKind.SERVER
+    assert providers.to_otel_span_kind(GatewaySpanKind.CLIENT) is SpanKind.CLIENT
+    assert providers.to_otel_span_kind(GatewaySpanKind.INTERNAL) is SpanKind.INTERNAL
+    assert providers.to_otel_span_kind(GatewaySpanKind.PRODUCER) is SpanKind.PRODUCER
+    assert providers.to_otel_span_kind(GatewaySpanKind.CONSUMER) is SpanKind.CONSUMER
 
 
 def test_parse_headers():
@@ -638,7 +638,7 @@ def test_build_tracer_provider_processor_selection():
 
 
 def test_baggage_processor_lifecycle_noops():
-    proc = providers.LiteLLMBaggageSpanProcessor(allowed_keys=["litellm.team.id"])
+    proc = providers.GatewayBaggageSpanProcessor(allowed_keys=["litellm.team.id"])
     # no-op lifecycle hooks must not raise
     assert proc.on_end(None) is None  # type: ignore[arg-type]
     assert proc.shutdown() is None
@@ -730,7 +730,7 @@ def test_error_details_stamped_as_span_attributes_for_labels_ingest():
     attributes so backends that flatten attrs into label indexes (Elastic APM
     ``labels.*``, Datadog span tags) render them. The exception event with the
     full untruncated message stays alongside."""
-    from token_iq.gateway.integrations.otel.model.semconv import Error, ExceptionEvent, LiteLLMError
+    from token_iq.gateway.integrations.otel.model.semconv import Error, ExceptionEvent, GatewayError
     from token_iq.gateway.integrations.otel.emitter import SpanEmitter
 
     cfg = OpenTelemetryV2Config(exporter="in_memory")
@@ -764,9 +764,9 @@ def test_error_details_stamped_as_span_attributes_for_labels_ingest():
     assert span.attributes[Error.MESSAGE] == "400: violated moderation policy"
     # LiteLLM-specific detail keys, under the ``litellm.provider.error.*``
     # vendor namespace, not defined by OTel semconv.
-    assert span.attributes[LiteLLMError.CODE] == "400"
-    assert span.attributes[LiteLLMError.STACK_TRACE] == "File proxy_server.py line 8570 ..."
-    assert span.attributes[LiteLLMError.LLM_PROVIDER] == "openai"
+    assert span.attributes[GatewayError.CODE] == "400"
+    assert span.attributes[GatewayError.STACK_TRACE] == "File proxy_server.py line 8570 ..."
+    assert span.attributes[GatewayError.LLM_PROVIDER] == "openai"
 
     # The exception event carries the same message on the span too.
     event = _exception_event(span)
@@ -777,7 +777,7 @@ def test_error_details_omitted_when_span_error_carries_only_message():
     """A guardrail-shape error (message only, no code/traceback/provider) must
     not pollute the span with empty-string detail attributes. Only the keys
     that carry real data land."""
-    from token_iq.gateway.integrations.otel.model.semconv import Error, LiteLLMError
+    from token_iq.gateway.integrations.otel.model.semconv import Error, GatewayError
 
     span = _emit_error_span("guardrail rejected", error_type="ContentFilter")
 
@@ -785,9 +785,9 @@ def test_error_details_omitted_when_span_error_carries_only_message():
     assert span.attributes[Error.MESSAGE] == "guardrail rejected"
     # LiteLLM-specific detail keys aren't stamped when the SpanError doesn't
     # carry them.
-    assert LiteLLMError.CODE not in span.attributes
-    assert LiteLLMError.STACK_TRACE not in span.attributes
-    assert LiteLLMError.LLM_PROVIDER not in span.attributes
+    assert GatewayError.CODE not in span.attributes
+    assert GatewayError.STACK_TRACE not in span.attributes
+    assert GatewayError.LLM_PROVIDER not in span.attributes
 
 
 def test_error_attribute_keys_are_pinned():
@@ -795,13 +795,13 @@ def test_error_attribute_keys_are_pinned():
     registry; the litellm-specific detail keys are vendor keys under
     ``litellm.provider.error.*``. Pins the exact strings so the emitted
     vocabulary can't drift silently."""
-    from token_iq.gateway.integrations.otel.model.semconv import Error, LiteLLMError
+    from token_iq.gateway.integrations.otel.model.semconv import Error, GatewayError
 
     assert Error.TYPE == "error.type"
     assert Error.MESSAGE == "error.message"
-    assert LiteLLMError.CODE == "litellm.provider.error.code"
-    assert LiteLLMError.STACK_TRACE == "litellm.provider.error.stack_trace"
-    assert LiteLLMError.LLM_PROVIDER == "litellm.provider.error.llm_provider"
+    assert GatewayError.CODE == "litellm.provider.error.code"
+    assert GatewayError.STACK_TRACE == "litellm.provider.error.stack_trace"
+    assert GatewayError.LLM_PROVIDER == "litellm.provider.error.llm_provider"
 
 
 def test_error_message_falls_back_to_error_type_when_message_absent():
@@ -1072,7 +1072,7 @@ def test_genai_mapper_guardrail_cost_in_spend_attr():
     """guardrail_cost_in_spend surfaces on the span so trace consumers can tell a
     billed guardrail cost (already inside litellm.cost.total) from a report-only
     one; absent means billed and the attribute stays off the span."""
-    from token_iq.gateway.integrations.otel.model.semconv import LiteLLM
+    from token_iq.gateway.integrations.otel.model.semconv import Gateway
 
     entry = {
         "guardrail_name": "azure-shield",
@@ -1082,9 +1082,9 @@ def test_genai_mapper_guardrail_cost_in_spend_attr():
         "guardrail_cost_in_spend": False,
     }
     attrs = GenAIMapper().map(GuardrailSpanData.from_logging_entry(entry))
-    assert attrs[LiteLLM.GUARDRAIL_COST_IN_SPEND] is False
-    assert LiteLLM.GUARDRAIL_COST_IN_SPEND == "litellm.guardrail.cost_in_spend"
+    assert attrs[Gateway.GUARDRAIL_COST_IN_SPEND] is False
+    assert Gateway.GUARDRAIL_COST_IN_SPEND == "litellm.guardrail.cost_in_spend"
 
     billed = dict(entry)
     del billed["guardrail_cost_in_spend"]
-    assert LiteLLM.GUARDRAIL_COST_IN_SPEND not in GenAIMapper().map(GuardrailSpanData.from_logging_entry(billed))
+    assert Gateway.GUARDRAIL_COST_IN_SPEND not in GenAIMapper().map(GuardrailSpanData.from_logging_entry(billed))

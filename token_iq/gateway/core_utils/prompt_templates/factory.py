@@ -18,7 +18,7 @@ import token_iq.gateway.types.llms
 from token_iq import gateway
 from token_iq.gateway import verbose_logger
 from token_iq.gateway._uuid import uuid
-from token_iq.gateway.constants import REDACTED_BY_LITELLM
+from token_iq.gateway.constants import REDACTED_BY_GATEWAY
 from token_iq.gateway.core_utils.url_utils import async_safe_get, safe_get
 from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler, get_async_httpx_client
 from token_iq.gateway.types.files import get_file_extension_from_mime_type
@@ -5359,7 +5359,7 @@ def _parse_tool_call_arguments(raw: Any, tool_name: str | None, context: str) ->
         return raw
     if not isinstance(raw, str):
         return {}
-    normalized_raw: Final = "{}" if raw == REDACTED_BY_LITELLM else raw
+    normalized_raw: Final = "{}" if raw == REDACTED_BY_GATEWAY else raw
     from token_iq.gateway.core_utils.prompt_templates.common_utils import (
         parse_tool_call_arguments,
     )

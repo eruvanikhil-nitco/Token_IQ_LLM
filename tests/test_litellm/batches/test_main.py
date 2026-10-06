@@ -716,9 +716,9 @@ def test_cancel__vertex_credentials_passthrough(seams):
 
 
 def _params(**kw):
-    from token_iq.gateway.types.router import GenericLiteLLMParams
+    from token_iq.gateway.types.router import GenericGatewayParams
 
-    return GenericLiteLLMParams(**kw)
+    return GenericGatewayParams(**kw)
 
 
 def test_resolve_timeout__explicit_numeric():
@@ -742,7 +742,7 @@ def test_resolve_timeout__httpx_timeout_returns_float_read():
     assert resolved == 99.0
 
 
-def test_retrieve__forwards_trusted_model_credentials_into_litellm_params(seams):
+def test_retrieve__forwards_trusted_model_credentials_into_gateway_params(seams):
     """The batch's cost is computed by reading its output file after the retrieve, and
     Bedrock resolves that bucket only from this immutable snapshot. get_litellm_params has
     a fixed signature that drops it, so without re-adding it here the snapshot never

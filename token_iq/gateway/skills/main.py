@@ -13,7 +13,7 @@ import httpx
 
 from token_iq import gateway
 from token_iq.gateway.constants import request_timeout
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.llms.base_llm.skills.transformation import BaseSkillsAPIConfig
 from token_iq.gateway.llms.custom_httpx.llm_http_handler import BaseLLMHTTPHandler
 from token_iq.gateway.types.llms.anthropic_skills import (
@@ -23,7 +23,7 @@ from token_iq.gateway.types.llms.anthropic_skills import (
     ListSkillsResponse,
     Skill,
 )
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.types.utils import LlmProviders
 from token_iq.gateway.utils import ProviderConfigManager, client
 
@@ -32,7 +32,7 @@ base_llm_http_handler = BaseLLMHTTPHandler()
 DEFAULT_ANTHROPIC_API_BASE: Final = "https://api.anthropic.com/v1"
 
 # Initialize LiteLLM skills handler (lazy - only used when custom_llm_provider="litellm")
-_litellm_skills_handler = None
+_gateway_skills_handler = None
 
 
 def _get_user_api_key_auth_from_kwargs(kwargs: dict[str, Any]) -> Any | None:
@@ -58,14 +58,14 @@ def _get_skill_request_metadata(
 
 def _get_litellm_skills_handler():
     """Lazy initialization of LiteLLM skills handler to avoid import overhead."""
-    global _litellm_skills_handler
-    if _litellm_skills_handler is None:
+    global _gateway_skills_handler
+    if _gateway_skills_handler is None:
         from token_iq.gateway.llms.litellm_proxy.skills.transformation import (
-            LiteLLMSkillsTransformationHandler,
+            GatewaySkillsTransformationHandler,
         )
 
-        _litellm_skills_handler = LiteLLMSkillsTransformationHandler()
-    return _litellm_skills_handler
+        _gateway_skills_handler = GatewaySkillsTransformationHandler()
+    return _gateway_skills_handler
 
 
 @client
@@ -160,12 +160,12 @@ def create_skill(
     """
     local_vars: Final = locals()
     try:
-        litellm_logging_obj: Final[LiteLLMLoggingObj] = kwargs.get("litellm_logging_obj")
+        litellm_logging_obj: Final[GatewayLoggingObj] = kwargs.get("litellm_logging_obj")
         litellm_call_id: Final[str | None] = kwargs.get("litellm_call_id", None)
         _is_async: Final = kwargs.pop("acreate_skill", False) is True
 
         # Get LiteLLM parameters
-        litellm_params: Final = GenericLiteLLMParams(**kwargs)
+        litellm_params: Final = GenericGatewayParams(**kwargs)
 
         # Determine provider
         if custom_llm_provider is None:
@@ -349,12 +349,12 @@ def list_skills(
     """
     local_vars: Final = locals()
     try:
-        litellm_logging_obj: Final[LiteLLMLoggingObj] = kwargs.get("litellm_logging_obj")
+        litellm_logging_obj: Final[GatewayLoggingObj] = kwargs.get("litellm_logging_obj")
         litellm_call_id: Final[str | None] = kwargs.get("litellm_call_id", None)
         _is_async: Final = kwargs.pop("alist_skills", False) is True
 
         # Get LiteLLM parameters
-        litellm_params: Final = GenericLiteLLMParams(**kwargs)
+        litellm_params: Final = GenericGatewayParams(**kwargs)
 
         # Determine provider
         if custom_llm_provider is None:
@@ -522,12 +522,12 @@ def get_skill(
     """
     local_vars: Final = locals()
     try:
-        litellm_logging_obj: Final[LiteLLMLoggingObj] = kwargs.get("litellm_logging_obj")
+        litellm_logging_obj: Final[GatewayLoggingObj] = kwargs.get("litellm_logging_obj")
         litellm_call_id: Final[str | None] = kwargs.get("litellm_call_id", None)
         _is_async: Final = kwargs.pop("aget_skill", False) is True
 
         # Get LiteLLM parameters
-        litellm_params: Final = GenericLiteLLMParams(**kwargs)
+        litellm_params: Final = GenericGatewayParams(**kwargs)
 
         # Determine provider
         if custom_llm_provider is None:
@@ -686,12 +686,12 @@ def delete_skill(
     """
     local_vars: Final = locals()
     try:
-        litellm_logging_obj: Final[LiteLLMLoggingObj] = kwargs.get("litellm_logging_obj")
+        litellm_logging_obj: Final[GatewayLoggingObj] = kwargs.get("litellm_logging_obj")
         litellm_call_id: Final[str | None] = kwargs.get("litellm_call_id", None)
         _is_async: Final = kwargs.pop("adelete_skill", False) is True
 
         # Get LiteLLM parameters
-        litellm_params: Final = GenericLiteLLMParams(**kwargs)
+        litellm_params: Final = GenericGatewayParams(**kwargs)
 
         # Determine provider
         if custom_llm_provider is None:

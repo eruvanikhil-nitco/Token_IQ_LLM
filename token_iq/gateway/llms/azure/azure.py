@@ -16,7 +16,7 @@ from openai import (
 
 from token_iq import gateway
 from token_iq.gateway.constants import AZURE_OPERATION_POLLING_TIMEOUT, DEFAULT_MAX_RETRIES
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.core_utils.logging_utils import speech_request_body, track_llm_api_timing
 from token_iq.gateway.core_utils.url_utils import SSRFError, assert_same_origin
 from token_iq.gateway.llms.custom_httpx.http_handler import (
@@ -165,7 +165,7 @@ class AzureChatCompletion(BaseAzureLLM, BaseLLM):
         azure_client: AsyncAzureOpenAI | AsyncOpenAI,
         data: dict,
         timeout: float | httpx.Timeout,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ):
         """
         Helper to:
@@ -205,7 +205,7 @@ class AzureChatCompletion(BaseAzureLLM, BaseLLM):
         dynamic_params: bool,
         print_verbose: Callable,
         timeout: float | httpx.Timeout,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         optional_params,
         litellm_params,
         logger_fn,
@@ -395,7 +395,7 @@ class AzureChatCompletion(BaseAzureLLM, BaseLLM):
         timeout: float | httpx.Timeout,
         dynamic_params: bool,
         model_response: ModelResponse,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         max_retries: int,
         azure_ad_token: str | None = None,
         azure_ad_token_provider: Callable | None = None,
@@ -495,7 +495,7 @@ class AzureChatCompletion(BaseAzureLLM, BaseLLM):
 
     def streaming(
         self,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         api_base: str,
         api_key: str | None,
         api_version: str,
@@ -571,7 +571,7 @@ class AzureChatCompletion(BaseAzureLLM, BaseLLM):
 
     async def async_streaming(
         self,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         api_base: str,
         api_key: str | None,
         api_version: str,
@@ -652,7 +652,7 @@ class AzureChatCompletion(BaseAzureLLM, BaseLLM):
         data: dict,
         model_response: EmbeddingResponse,
         input: list,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         api_base: str,
         api_key: str | None = None,
         api_version: str | None = None,
@@ -743,7 +743,7 @@ class AzureChatCompletion(BaseAzureLLM, BaseLLM):
         api_base: str,
         api_version: str,
         timeout: float,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         model_response: EmbeddingResponse,
         optional_params: dict,
         api_key: str | None = None,
@@ -1141,7 +1141,7 @@ class AzureChatCompletion(BaseAzureLLM, BaseLLM):
         azure_client_params: dict,
         api_key: str,
         input: list,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         headers: dict,
         client=None,
         timeout=None,
@@ -1225,7 +1225,7 @@ class AzureChatCompletion(BaseAzureLLM, BaseLLM):
         prompt: str,
         timeout: float,
         optional_params: dict,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         headers: dict,
         model: str | None = None,
         api_key: str | None = None,
@@ -1365,7 +1365,7 @@ class AzureChatCompletion(BaseAzureLLM, BaseLLM):
         organization: str | None,
         max_retries: int,
         timeout: float | httpx.Timeout,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         azure_ad_token: str | None = None,
         azure_ad_token_provider: Callable | None = None,
         aspeech: bool | None = None,
@@ -1432,7 +1432,7 @@ class AzureChatCompletion(BaseAzureLLM, BaseLLM):
         azure_ad_token_provider: Callable | None,
         max_retries: int,
         timeout: float | httpx.Timeout,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         client=None,
         litellm_params: dict | None = None,
     ) -> HttpxBinaryResponseContent:

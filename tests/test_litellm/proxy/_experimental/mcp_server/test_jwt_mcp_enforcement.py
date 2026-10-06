@@ -142,14 +142,14 @@ async def test_mcp_route_check_passes_for_team():
     Verify that allowed_routes_check returns True for MCP routes with default settings.
     This is required for teams to access MCP endpoints with JWT auth.
     """
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
     from token_iq.gateway.proxy.auth.auth_checks import allowed_routes_check
 
     jwt_auth = LiteLLM_JWTAuth()  # Use defaults
 
     # Check if MCP route is allowed for TEAM role
     is_allowed = allowed_routes_check(
-        user_role=LitellmUserRoles.TEAM,
+        user_role=GatewayUserRoles.TEAM,
         user_route="/mcp/tools/list",
         litellm_proxy_roles=jwt_auth,
     )
@@ -168,7 +168,7 @@ async def test_mcp_route_check_passes_for_team_server_subpaths():
     Verify that allowed_routes_check returns True for /v1/mcp/server sub-paths with default settings.
     Regression test for JWT users accessing /v1/mcp/server/register and similar endpoints.
     """
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
     from token_iq.gateway.proxy.auth.auth_checks import allowed_routes_check
 
     jwt_auth = LiteLLM_JWTAuth()
@@ -179,7 +179,7 @@ async def test_mcp_route_check_passes_for_team_server_subpaths():
         "/v1/mcp/server/abc/approve",
     ]:
         is_allowed = allowed_routes_check(
-            user_role=LitellmUserRoles.TEAM,
+            user_role=GatewayUserRoles.TEAM,
             user_route=route,
             litellm_proxy_roles=jwt_auth,
         )

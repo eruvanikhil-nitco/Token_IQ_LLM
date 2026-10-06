@@ -7,7 +7,7 @@ import httpx
 import pytest
 from token_iq import gateway
 from typing import AsyncGenerator
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.types.passthrough_endpoints.pass_through_endpoints import EndpointType
 from token_iq.gateway.types.passthrough_endpoints.pass_through_endpoints import (
     PassthroughStandardLoggingPayload,
@@ -108,7 +108,7 @@ async def test_route_streaming_logging_runs_async_handler_for_sdk_passthrough():
 
     from token_iq.gateway.types.utils import CallTypes
 
-    logging_obj = LiteLLMLoggingObj(
+    logging_obj = GatewayLoggingObj(
         model="claude-sonnet-4-5",
         messages=[{"role": "user", "content": "hi"}],
         stream=True,
@@ -171,7 +171,7 @@ async def test_handle_logging_runs_async_handler_for_passthrough():
 
     from token_iq.gateway.types.utils import CallTypes
 
-    logging_obj = LiteLLMLoggingObj(
+    logging_obj = GatewayLoggingObj(
         model="claude-sonnet-4-5",
         messages=[{"role": "user", "content": "hi"}],
         stream=False,

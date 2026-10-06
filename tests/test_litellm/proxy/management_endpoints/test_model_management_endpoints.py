@@ -15,7 +15,7 @@ from token_iq.gateway.proxy._types import (
     LiteLLM_ModelTable,
     LiteLLM_ProxyModelTable,
     LiteLLM_TeamTable,
-    LitellmUserRoles,
+    GatewayUserRoles,
     Member,
     ProxyException,
     ReconcileOutcome,
@@ -33,7 +33,7 @@ from token_iq.gateway.proxy.management_endpoints.model_management_endpoints impo
 from token_iq.gateway.proxy.utils import PrismaClient
 from token_iq.gateway.types.router import (
     Deployment,
-    GenericLiteLLMParams,
+    GenericGatewayParams,
     LiteLLM_Params,
     updateDeployment,
 )
@@ -123,17 +123,17 @@ class TestModelManagementAuthChecks:
     def setup_method(self):
         """Setup test cases"""
         self.admin_user = UserAPIKeyAuth(
-            user_id="test_admin", user_role=LitellmUserRoles.PROXY_ADMIN
+            user_id="test_admin", user_role=GatewayUserRoles.PROXY_ADMIN
         )
 
         self.normal_user = UserAPIKeyAuth(
-            user_id="test_user", user_role=LitellmUserRoles.INTERNAL_USER
+            user_id="test_user", user_role=GatewayUserRoles.INTERNAL_USER
         )
 
         self.team_admin_user = UserAPIKeyAuth(
             user_id="test_user",
             team_id="test_team",
-            user_role=LitellmUserRoles.INTERNAL_USER,
+            user_role=GatewayUserRoles.INTERNAL_USER,
         )
 
     @pytest.mark.asyncio
@@ -299,7 +299,7 @@ class TestModelManagementAuthChecks:
         result = ModelManagementAuthChecks.can_user_attach_credential(
             litellm_params=LiteLLM_Params(model="test_model", litellm_credential_name="shared-credential"),
             user_api_key_dict=self.team_admin_user,
-            existing_litellm_params=LiteLLM_Params(model="test_model", litellm_credential_name="shared-credential"),
+            existing_gateway_params=LiteLLM_Params(model="test_model", litellm_credential_name="shared-credential"),
         )
         assert result is True
 
@@ -310,7 +310,7 @@ class TestModelManagementAuthChecks:
         result = ModelManagementAuthChecks.can_user_attach_credential(
             litellm_params=LiteLLM_Params(model="test_model", litellm_credential_name="shared-credential"),
             user_api_key_dict=self.team_admin_user,
-            existing_litellm_params=LiteLLM_Params(model="test_model", litellm_credential_name=encrypted_name),
+            existing_gateway_params=LiteLLM_Params(model="test_model", litellm_credential_name=encrypted_name),
         )
         assert result is True
 
@@ -351,7 +351,7 @@ class TestModelManagementAuthChecks:
         from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             patch_model,
         )
-        from token_iq.gateway.types.router import updateLiteLLMParams
+        from token_iq.gateway.types.router import updateGatewayParams
 
         model_id = "credential-patch-test"
         db_model = Deployment(
@@ -381,7 +381,7 @@ class TestModelManagementAuthChecks:
                 await patch_model(
                     model_id=model_id,
                     patch_data=updateDeployment(
-                        litellm_params=updateLiteLLMParams(
+                        litellm_params=updateGatewayParams(
                             model="openai/gpt-4o", litellm_credential_name="shared-credential"
                         )
                     ),
@@ -401,11 +401,11 @@ class TestModelManagementAuthChecks:
     def test_can_user_attach_credential_refuses_a_billing_credential_for_an_admin(self):
         """A billing credential is a read-only cost key. Serving models with it would spend
         against the organisation's admin key and, for OpenAI and Anthropic, would not work."""
-        admin = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN, api_key="sk-a", user_id="admin")
+        admin = UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN, api_key="sk-a", user_id="admin")
 
         with pytest.raises(ProxyException) as exc:
             ModelManagementAuthChecks.can_user_attach_credential(
-                litellm_params=GenericLiteLLMParams(litellm_credential_name="anthropic-costs"),
+                litellm_params=GenericGatewayParams(litellm_credential_name="anthropic-costs"),
                 user_api_key_dict=admin,
                 credential_info={"purpose": "billing_ingestion", "provider": "anthropic"},
             )
@@ -414,14 +414,14 @@ class TestModelManagementAuthChecks:
         assert "billing" in str(exc.value.message).lower()
 
     def test_can_user_attach_credential_allows_a_team_admin_their_own_team_s_credential(self):
-        lead = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-l", user_id="lead")
+        lead = UserAPIKeyAuth(user_role=GatewayUserRoles.INTERNAL_USER, api_key="sk-l", user_id="lead")
         team_a = LiteLLM_TeamTable(
             team_id="team-a", team_alias="team-a", members_with_roles=[Member(user_id="lead", role="admin")]
         )
 
         assert (
             ModelManagementAuthChecks.can_user_attach_credential(
-                litellm_params=GenericLiteLLMParams(litellm_credential_name="team-a-openai"),
+                litellm_params=GenericGatewayParams(litellm_credential_name="team-a-openai"),
                 user_api_key_dict=lead,
                 credential_info={"custom_llm_provider": "openai", "team_id": "team-a"},
                 model_team_id="team-a",
@@ -432,14 +432,14 @@ class TestModelManagementAuthChecks:
 
     def test_can_user_attach_credential_refuses_a_team_admin_another_team_s_credential(self):
         """Proof that lead administers team-a still doesn't help - the credential belongs to team-b."""
-        lead = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-l", user_id="lead")
+        lead = UserAPIKeyAuth(user_role=GatewayUserRoles.INTERNAL_USER, api_key="sk-l", user_id="lead")
         team_a = LiteLLM_TeamTable(
             team_id="team-a", team_alias="team-a", members_with_roles=[Member(user_id="lead", role="admin")]
         )
 
         with pytest.raises(ProxyException):
             ModelManagementAuthChecks.can_user_attach_credential(
-                litellm_params=GenericLiteLLMParams(litellm_credential_name="team-b-openai"),
+                litellm_params=GenericGatewayParams(litellm_credential_name="team-b-openai"),
                 user_api_key_dict=lead,
                 credential_info={"custom_llm_provider": "openai", "team_id": "team-b"},
                 model_team_id="team-a",
@@ -448,25 +448,25 @@ class TestModelManagementAuthChecks:
 
     def test_can_user_attach_credential_refuses_a_team_credential_on_a_model_of_another_team(self):
         """Otherwise a team admin could lend their key to a model any other team can call."""
-        lead = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-l", user_id="lead")
+        lead = UserAPIKeyAuth(user_role=GatewayUserRoles.INTERNAL_USER, api_key="sk-l", user_id="lead")
 
         with pytest.raises(ProxyException):
             ModelManagementAuthChecks.can_user_attach_credential(
-                litellm_params=GenericLiteLLMParams(litellm_credential_name="team-a-openai"),
+                litellm_params=GenericGatewayParams(litellm_credential_name="team-a-openai"),
                 user_api_key_dict=lead,
                 credential_info={"custom_llm_provider": "openai", "team_id": "team-a"},
                 model_team_id=None,
             )
 
     def test_can_user_attach_credential_still_refuses_a_shared_credential_for_a_team_admin(self):
-        lead = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-l", user_id="lead")
+        lead = UserAPIKeyAuth(user_role=GatewayUserRoles.INTERNAL_USER, api_key="sk-l", user_id="lead")
         team_a = LiteLLM_TeamTable(
             team_id="team-a", team_alias="team-a", members_with_roles=[Member(user_id="lead", role="admin")]
         )
 
         with pytest.raises(ProxyException):
             ModelManagementAuthChecks.can_user_attach_credential(
-                litellm_params=GenericLiteLLMParams(litellm_credential_name="shared-openai"),
+                litellm_params=GenericGatewayParams(litellm_credential_name="shared-openai"),
                 user_api_key_dict=lead,
                 credential_info={"custom_llm_provider": "openai"},
                 model_team_id="team-a",
@@ -477,11 +477,11 @@ class TestModelManagementAuthChecks:
         """Even a perfectly matching owner/model team must be refused if nothing proves the
         caller administers that team - the credential path must not assume an earlier,
         unrelated call already checked this."""
-        lead = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-l", user_id="lead")
+        lead = UserAPIKeyAuth(user_role=GatewayUserRoles.INTERNAL_USER, api_key="sk-l", user_id="lead")
 
         with pytest.raises(ProxyException):
             ModelManagementAuthChecks.can_user_attach_credential(
-                litellm_params=GenericLiteLLMParams(litellm_credential_name="team-a-openai"),
+                litellm_params=GenericGatewayParams(litellm_credential_name="team-a-openai"),
                 user_api_key_dict=lead,
                 credential_info={"custom_llm_provider": "openai", "team_id": "team-a"},
                 model_team_id="team-a",
@@ -490,14 +490,14 @@ class TestModelManagementAuthChecks:
 
     def test_can_user_attach_credential_refuses_a_team_admin_when_proof_is_false(self):
         """The team object is supplied, but lead isn't actually one of its admins."""
-        lead = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-l", user_id="lead")
+        lead = UserAPIKeyAuth(user_role=GatewayUserRoles.INTERNAL_USER, api_key="sk-l", user_id="lead")
         team_a_without_lead = LiteLLM_TeamTable(
             team_id="team-a", team_alias="team-a", members_with_roles=[Member(user_id="someone-else", role="admin")]
         )
 
         with pytest.raises(ProxyException):
             ModelManagementAuthChecks.can_user_attach_credential(
-                litellm_params=GenericLiteLLMParams(litellm_credential_name="team-a-openai"),
+                litellm_params=GenericGatewayParams(litellm_credential_name="team-a-openai"),
                 user_api_key_dict=lead,
                 credential_info={"custom_llm_provider": "openai", "team_id": "team-a"},
                 model_team_id="team-a",
@@ -513,7 +513,7 @@ class TestModelManagementAuthChecks:
 
         result = await _credential_info_for_attach(
             litellm_params=LiteLLM_Params(model="test_model", litellm_credential_name="shared-credential"),
-            existing_litellm_params=LiteLLM_Params(model="test_model", litellm_credential_name="shared-credential"),
+            existing_gateway_params=LiteLLM_Params(model="test_model", litellm_credential_name="shared-credential"),
             user_api_key_dict=self.admin_user,
             model_team_id=None,
             prisma_client=mock_prisma,
@@ -540,7 +540,7 @@ class TestModelManagementAuthChecks:
 
         result = await _credential_info_for_attach(
             litellm_params=LiteLLM_Params(model="test_model", litellm_credential_name="config-openai"),
-            existing_litellm_params=None,
+            existing_gateway_params=None,
             user_api_key_dict=self.admin_user,
             model_team_id=None,
             prisma_client=mock_prisma,
@@ -562,7 +562,7 @@ class TestModelManagementAuthChecks:
 
         result = await _credential_info_for_attach(
             litellm_params=LiteLLM_Params(model="test_model", litellm_credential_name="db-openai"),
-            existing_litellm_params=None,
+            existing_gateway_params=None,
             user_api_key_dict=self.admin_user,
             model_team_id=None,
             prisma_client=mock_prisma,
@@ -579,7 +579,7 @@ class TestModelManagementAuthChecks:
         with pytest.raises(ProxyException) as exc:
             await _credential_info_for_attach(
                 litellm_params=LiteLLM_Params(model="test_model", litellm_credential_name="nowhere"),
-                existing_litellm_params=None,
+                existing_gateway_params=None,
                 user_api_key_dict=self.admin_user,
                 model_team_id=None,
                 prisma_client=mock_prisma,
@@ -607,7 +607,7 @@ class TestModelManagementAuthChecks:
             ModelManagementAuthChecks.can_user_attach_credential(
                 litellm_params=LiteLLM_Params(model="test_model", litellm_credential_name="shared-credential"),
                 user_api_key_dict=self.admin_user,
-                existing_litellm_params=LiteLLM_Params(model="test_model", litellm_credential_name="shared-credential"),
+                existing_gateway_params=LiteLLM_Params(model="test_model", litellm_credential_name="shared-credential"),
             )
 
         assert exc.value.code == "403"
@@ -1086,7 +1086,7 @@ class TestDeleteModelClearsRouterRegistry:
 
         model_id = "router-del-1"
         surviving_id = "router-del-2"
-        admin_user = UserAPIKeyAuth(user_id="admin", user_role=LitellmUserRoles.PROXY_ADMIN)
+        admin_user = UserAPIKeyAuth(user_id="admin", user_role=GatewayUserRoles.PROXY_ADMIN)
         db_row = LiteLLM_ProxyModelTable(
             model_id=model_id,
             model_name="smart-router",
@@ -1147,7 +1147,7 @@ class TestDeleteModelClearsRouterRegistry:
         from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import ModelInfoDelete
 
         model_id = "regular-del-1"
-        admin_user = UserAPIKeyAuth(user_id="admin", user_role=LitellmUserRoles.PROXY_ADMIN)
+        admin_user = UserAPIKeyAuth(user_id="admin", user_role=GatewayUserRoles.PROXY_ADMIN)
         db_row = LiteLLM_ProxyModelTable(
             model_id=model_id,
             model_name="shared-name",
@@ -1213,7 +1213,7 @@ class TestUpdateModel:
         from token_iq.gateway.types.router import (
             ModelInfo,
             updateDeployment,
-            updateLiteLLMParams,
+            updateGatewayParams,
         )
 
         model_id = "db-model-under-test"
@@ -1244,7 +1244,7 @@ class TestUpdateModel:
         mock_router = MagicMock()
         mock_router.get_model_ids.return_value = [model_id]
         admin_user = UserAPIKeyAuth(
-            user_id="admin", user_role=LitellmUserRoles.PROXY_ADMIN
+            user_id="admin", user_role=GatewayUserRoles.PROXY_ADMIN
         )
 
         with (
@@ -1269,7 +1269,7 @@ class TestUpdateModel:
         ):
             await update_model(
                 model_params=updateDeployment(
-                    litellm_params=updateLiteLLMParams(guardrails=["g1"]),
+                    litellm_params=updateGatewayParams(guardrails=["g1"]),
                     model_info=ModelInfo(id=model_id),
                 ),
                 user_api_key_dict=admin_user,
@@ -1310,7 +1310,7 @@ class TestUpdatePublicModelGroups:
         mock_proxy_config.save_config = AsyncMock()
 
         admin_user = UserAPIKeyAuth(
-            user_id="admin", user_role=LitellmUserRoles.PROXY_ADMIN
+            user_id="admin", user_role=GatewayUserRoles.PROXY_ADMIN
         )
 
         request = UpdatePublicModelGroupsRequest(model_groups=new_models)
@@ -1368,7 +1368,7 @@ class TestUpdatePublicModelGroups:
         mock_proxy_config.save_config = AsyncMock()
 
         admin_user = UserAPIKeyAuth(
-            user_id="admin", user_role=LitellmUserRoles.PROXY_ADMIN
+            user_id="admin", user_role=GatewayUserRoles.PROXY_ADMIN
         )
 
         request = UpdateUsefulLinksRequest(useful_links=new_links)
@@ -1417,7 +1417,7 @@ class TestTeamModelSiblingRouting:
 
         mock_team_model_add = AsyncMock()
 
-        user = UserAPIKeyAuth(user_id="admin", user_role=LitellmUserRoles.PROXY_ADMIN)
+        user = UserAPIKeyAuth(user_id="admin", user_role=GatewayUserRoles.PROXY_ADMIN)
         prisma_client = MockPrismaClient(team_exists=True)
 
         for api_base in ["https://eastus.example.com", "https://westus.example.com"]:
@@ -1573,7 +1573,7 @@ class TestTeamModelUpdate:
         )
         user_api_key_dict = UserAPIKeyAuth(
             user_id="test_user",
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
         )
         prisma_client = MockPrismaClient(team_exists=True)
 
@@ -1641,7 +1641,7 @@ class TestTeamModelUpdate:
 
         user_api_key_dict = UserAPIKeyAuth(
             user_id="test_user",
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
         )
 
         with (
@@ -1687,7 +1687,7 @@ class TestTeamModelUpdate:
 
         user_api_key_dict = UserAPIKeyAuth(
             user_id="test_user",
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
         )
 
         with (
@@ -1731,7 +1731,7 @@ class TestTeamModelUpdate:
         )
         user_api_key_dict = UserAPIKeyAuth(
             user_id="test_user",
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
         )
 
         await _update_existing_team_model_assignment(
@@ -1780,7 +1780,7 @@ class TestTeamModelUpdate:
 
         user_api_key_dict = UserAPIKeyAuth(
             user_id="test_user",
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
         )
 
         with (
@@ -1822,7 +1822,7 @@ class TestTeamModelUpdate:
         )
         user_api_key_dict = UserAPIKeyAuth(
             user_id="test_user",
-            user_role=LitellmUserRoles.INTERNAL_USER,
+            user_role=GatewayUserRoles.INTERNAL_USER,
         )
         prisma_client = MockPrismaClient(team_exists=True, user_admin=False)
 
@@ -2101,7 +2101,7 @@ class TestTeamModelUpdate:
         )
         user_api_key_dict = UserAPIKeyAuth(
             user_id="test_user",
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
         )
         prisma_client = MockPrismaClient(team_exists=True)
 
@@ -2287,7 +2287,7 @@ class TestAddAndDeleteModelLifecycle:
 
         model_id = "lifecycle-test-model-123"
         admin_user = UserAPIKeyAuth(
-            user_id="test-admin", user_role=LitellmUserRoles.PROXY_ADMIN
+            user_id="test-admin", user_role=GatewayUserRoles.PROXY_ADMIN
         )
 
         # Build a real LiteLLM_ProxyModelTable for the DB mock to return
@@ -2431,7 +2431,7 @@ class TestDeleteTeamBYOKModelGhost:
         mock_prisma.db.litellm_modeltable.find_many = AsyncMock(return_value=[])
 
         admin_user = UserAPIKeyAuth(
-            user_id="admin", user_role=LitellmUserRoles.PROXY_ADMIN
+            user_id="admin", user_role=GatewayUserRoles.PROXY_ADMIN
         )
 
         _PS = "token_iq.gateway.proxy.proxy_server"
@@ -2510,7 +2510,7 @@ class TestDeleteTeamBYOKModelGhost:
         mock_prisma.db.litellm_modeltable.find_many = AsyncMock(return_value=[])
 
         admin_user = UserAPIKeyAuth(
-            user_id="admin", user_role=LitellmUserRoles.PROXY_ADMIN
+            user_id="admin", user_role=GatewayUserRoles.PROXY_ADMIN
         )
 
         _PS = "token_iq.gateway.proxy.proxy_server"
@@ -2590,7 +2590,7 @@ class TestDeleteTeamBYOKModelGhost:
         mock_prisma.db.litellm_modeltable.find_many = AsyncMock(return_value=[])
 
         admin_user = UserAPIKeyAuth(
-            user_id="admin", user_role=LitellmUserRoles.PROXY_ADMIN
+            user_id="admin", user_role=GatewayUserRoles.PROXY_ADMIN
         )
 
         _PS = "token_iq.gateway.proxy.proxy_server"
@@ -2676,7 +2676,7 @@ class TestDeleteTeamBYOKModelGhost:
         mock_router.model_name_to_deployment_indices = {public_name: [0]}
 
         admin_user = UserAPIKeyAuth(
-            user_id="admin", user_role=LitellmUserRoles.PROXY_ADMIN
+            user_id="admin", user_role=GatewayUserRoles.PROXY_ADMIN
         )
 
         _PS = "token_iq.gateway.proxy.proxy_server"
@@ -2755,7 +2755,7 @@ class TestDeleteTeamBYOKModelGhost:
         mock_router.model_name_to_deployment_indices = {internal_name: [0]}
 
         admin_user = UserAPIKeyAuth(
-            user_id="admin", user_role=LitellmUserRoles.PROXY_ADMIN
+            user_id="admin", user_role=GatewayUserRoles.PROXY_ADMIN
         )
 
         _PS = "token_iq.gateway.proxy.proxy_server"
@@ -2833,7 +2833,7 @@ class TestDeleteModelTeamAuth:
         mock_prisma = self._orphaned_model_mocks(team_id, model_id)
 
         admin_user = UserAPIKeyAuth(
-            user_id="admin", user_role=LitellmUserRoles.PROXY_ADMIN
+            user_id="admin", user_role=GatewayUserRoles.PROXY_ADMIN
         )
 
         _PS = "token_iq.gateway.proxy.proxy_server"
@@ -2871,7 +2871,7 @@ class TestDeleteModelTeamAuth:
         mock_prisma = self._orphaned_model_mocks(team_id, model_id)
 
         non_admin = UserAPIKeyAuth(
-            user_id="someone", user_role=LitellmUserRoles.INTERNAL_USER
+            user_id="someone", user_role=GatewayUserRoles.INTERNAL_USER
         )
 
         _PS = "token_iq.gateway.proxy.proxy_server"
@@ -2939,7 +2939,7 @@ class TestDeleteModelTeamAuth:
         # A team member who is not the team admin: rejected before the delete runs,
         # so the only team lookup is the single one inside the auth check.
         non_admin = UserAPIKeyAuth(
-            user_id="someone", user_role=LitellmUserRoles.INTERNAL_USER
+            user_id="someone", user_role=GatewayUserRoles.INTERNAL_USER
         )
 
         _PS = "token_iq.gateway.proxy.proxy_server"
@@ -3269,12 +3269,12 @@ class TestUpdateDBModelClearPricing:
         from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             update_db_model,
         )
-        from token_iq.gateway.types.router import updateLiteLLMParams
+        from token_iq.gateway.types.router import updateGatewayParams
 
         result = update_db_model(
             db_model=_build_db_model_with_pricing(),
             updated_patch=updateDeployment(
-                litellm_params=updateLiteLLMParams(input_cost_per_token=None)
+                litellm_params=updateGatewayParams(input_cost_per_token=None)
             ),
         )
 
@@ -3290,12 +3290,12 @@ class TestUpdateDBModelClearPricing:
         from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             update_db_model,
         )
-        from token_iq.gateway.types.router import updateLiteLLMParams
+        from token_iq.gateway.types.router import updateGatewayParams
 
         result = update_db_model(
             db_model=_build_db_model_with_pricing(),
             updated_patch=updateDeployment(
-                litellm_params=updateLiteLLMParams(output_cost_per_token=None)
+                litellm_params=updateGatewayParams(output_cost_per_token=None)
             ),
         )
 
@@ -3308,12 +3308,12 @@ class TestUpdateDBModelClearPricing:
         from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             update_db_model,
         )
-        from token_iq.gateway.types.router import updateLiteLLMParams
+        from token_iq.gateway.types.router import updateGatewayParams
 
         result = update_db_model(
             db_model=_build_db_model_with_pricing(),
             updated_patch=updateDeployment(
-                litellm_params=updateLiteLLMParams(input_cost_per_token=0.000005)
+                litellm_params=updateGatewayParams(input_cost_per_token=0.000005)
             ),
         )
 
@@ -3325,12 +3325,12 @@ class TestUpdateDBModelClearPricing:
         from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             update_db_model,
         )
-        from token_iq.gateway.types.router import updateLiteLLMParams
+        from token_iq.gateway.types.router import updateGatewayParams
 
         result = update_db_model(
             db_model=_build_db_model_with_pricing(),
             updated_patch=updateDeployment(
-                litellm_params=updateLiteLLMParams(output_cost_per_token=0.000007)
+                litellm_params=updateGatewayParams(output_cost_per_token=0.000007)
             ),
         )
 
@@ -3350,7 +3350,7 @@ class TestUpdateDBModelClearPricing:
             Deployment,
             LiteLLM_Params,
             ModelInfo,
-            updateLiteLLMParams,
+            updateGatewayParams,
         )
 
         db_model = Deployment(
@@ -3367,7 +3367,7 @@ class TestUpdateDBModelClearPricing:
         result = update_db_model(
             db_model=db_model,
             updated_patch=updateDeployment(
-                litellm_params=updateLiteLLMParams(api_base=None)
+                litellm_params=updateGatewayParams(api_base=None)
             ),
         )
 
@@ -3386,12 +3386,12 @@ class TestUpdateDBModelClearPricing:
         from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             update_db_model,
         )
-        from token_iq.gateway.types.router import ModelInfo, updateLiteLLMParams
+        from token_iq.gateway.types.router import ModelInfo, updateGatewayParams
 
         result = update_db_model(
             db_model=_build_db_model_with_pricing(),
             updated_patch=updateDeployment(
-                litellm_params=updateLiteLLMParams(input_cost_per_token=None),
+                litellm_params=updateGatewayParams(input_cost_per_token=None),
                 # The UI passes the OLD model_info blob through unchanged.
                 model_info=ModelInfo(
                     id="dep-pricing-0",
@@ -3437,7 +3437,7 @@ class TestUpdateDBModelClearPricing:
             Deployment,
             LiteLLM_Params,
             ModelInfo,
-            updateLiteLLMParams,
+            updateGatewayParams,
         )
 
         db_model = Deployment(
@@ -3452,7 +3452,7 @@ class TestUpdateDBModelClearPricing:
         result = update_db_model(
             db_model=db_model,
             updated_patch=updateDeployment(
-                litellm_params=updateLiteLLMParams(cache_read_input_token_cost=None)
+                litellm_params=updateGatewayParams(cache_read_input_token_cost=None)
             ),
         )
 
@@ -3471,7 +3471,7 @@ class TestUpdateDBModelClearPricing:
             Deployment,
             LiteLLM_Params,
             ModelInfo,
-            updateLiteLLMParams,
+            updateGatewayParams,
         )
 
         db_model = Deployment(
@@ -3486,7 +3486,7 @@ class TestUpdateDBModelClearPricing:
         result = update_db_model(
             db_model=db_model,
             updated_patch=updateDeployment(
-                litellm_params=updateLiteLLMParams(cache_creation_input_token_cost=None)
+                litellm_params=updateGatewayParams(cache_creation_input_token_cost=None)
             ),
         )
 
@@ -3504,7 +3504,7 @@ class TestUpdateDBModelClearPricing:
             Deployment,
             LiteLLM_Params,
             ModelInfo,
-            updateLiteLLMParams,
+            updateGatewayParams,
         )
 
         db_model = Deployment(
@@ -3522,7 +3522,7 @@ class TestUpdateDBModelClearPricing:
         result = update_db_model(
             db_model=db_model,
             updated_patch=updateDeployment(
-                litellm_params=updateLiteLLMParams(cache_read_input_token_cost=None)
+                litellm_params=updateGatewayParams(cache_read_input_token_cost=None)
             ),
         )
 
@@ -3545,7 +3545,7 @@ class TestUpdateDBModelClearPricing:
         from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             update_db_model,
         )
-        from token_iq.gateway.types.router import ModelInfo, updateLiteLLMParams
+        from token_iq.gateway.types.router import ModelInfo, updateGatewayParams
 
         db_model: Final = Deployment(
             model_name="gpt-4o",
@@ -3553,7 +3553,7 @@ class TestUpdateDBModelClearPricing:
             model_info=ModelInfo(id="m-1"),
         )
         patch_data: Final = updateDeployment(
-            litellm_params=updateLiteLLMParams(litellm_credential_name="openai-models", api_key=None),
+            litellm_params=updateGatewayParams(litellm_credential_name="openai-models", api_key=None),
         )
 
         updated: Final = update_db_model(db_model=db_model, updated_patch=patch_data)
@@ -3568,10 +3568,10 @@ class TestUpdateDBModelClearPricing:
         from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             CREDENTIAL_CARRYING_PARAMS,
         )
-        from token_iq.gateway.types.router import CredentialLiteLLMParams
+        from token_iq.gateway.types.router import CredentialGatewayParams
 
         unstorable: Final = tuple(
-            field for field in CREDENTIAL_CARRYING_PARAMS if field not in CredentialLiteLLMParams.model_fields
+            field for field in CREDENTIAL_CARRYING_PARAMS if field not in CredentialGatewayParams.model_fields
         )
 
         assert unstorable == ()
@@ -3581,14 +3581,14 @@ class TestUpdateDBModelClearPricing:
         from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             update_db_model,
         )
-        from token_iq.gateway.types.router import ModelInfo, updateLiteLLMParams
+        from token_iq.gateway.types.router import ModelInfo, updateGatewayParams
 
         db_model: Final = Deployment(
             model_name="gpt-4o",
             litellm_params=LiteLLM_Params(model="gpt-4o", api_key="sk-test-not-real"),
             model_info=ModelInfo(id="m-1"),
         )
-        patch_data: Final = updateDeployment(litellm_params=updateLiteLLMParams(api_key=None))
+        patch_data: Final = updateDeployment(litellm_params=updateGatewayParams(api_key=None))
 
         updated: Final = update_db_model(db_model=db_model, updated_patch=patch_data)
         params: Final = json.loads(updated["litellm_params"])
@@ -3634,7 +3634,7 @@ class TestPatchModelBlockedAuthGate:
 
         non_admin = UserAPIKeyAuth(
             user_id="team_admin",
-            user_role=LitellmUserRoles.INTERNAL_USER,
+            user_role=GatewayUserRoles.INTERNAL_USER,
         )
         existing_row = MagicMock()
         existing_row.litellm_params = {"model": "openai/gpt-4o-mini"}
@@ -3676,7 +3676,7 @@ class TestPatchModelBlockedAuthGate:
             patch_model,
         )
 
-        admin = UserAPIKeyAuth(user_id="admin", user_role=LitellmUserRoles.PROXY_ADMIN)
+        admin = UserAPIKeyAuth(user_id="admin", user_role=GatewayUserRoles.PROXY_ADMIN)
         existing_row = MagicMock()
         existing_row.litellm_params = {"model": "openai/gpt-4o-mini"}
         existing_row.model_dump.return_value = {
@@ -3733,7 +3733,7 @@ class TestPatchModelRowDeletedBeforeWrite:
         )
         from token_iq.gateway.proxy.proxy_server import ProxyException
 
-        admin = UserAPIKeyAuth(user_id="admin", user_role=LitellmUserRoles.PROXY_ADMIN)
+        admin = UserAPIKeyAuth(user_id="admin", user_role=GatewayUserRoles.PROXY_ADMIN)
         existing_row = MagicMock()
         existing_row.litellm_params = {"model": "openai/gpt-4o-mini"}
         existing_row.model_dump.return_value = {
@@ -4143,7 +4143,7 @@ class TestDeleteEvictionsHoldTheReconcileLock:
                 model_info=ModelInfoDelete(id=model_id),
                 user_api_key_dict=UserAPIKeyAuth(
                     user_id="admin",
-                    user_role=LitellmUserRoles.PROXY_ADMIN,
+                    user_role=GatewayUserRoles.PROXY_ADMIN,
                     api_key="sk-admin",
                 ),
             )
@@ -4238,10 +4238,10 @@ class TestStrategyRouterWriteValidation:
         from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             _strategy_router_write_violation,
         )
-        from token_iq.gateway.types.router import updateLiteLLMParams
+        from token_iq.gateway.types.router import updateGatewayParams
 
         violation = _strategy_router_write_violation(
-            incoming_params=updateLiteLLMParams(model="auto_router/auto_router/complexity_router"),
+            incoming_params=updateGatewayParams(model="auto_router/auto_router/complexity_router"),
             existing_params=self._stored_complexity_params(),
         )
         assert violation is not None
@@ -4251,10 +4251,10 @@ class TestStrategyRouterWriteValidation:
         from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             _strategy_router_write_violation,
         )
-        from token_iq.gateway.types.router import updateLiteLLMParams
+        from token_iq.gateway.types.router import updateGatewayParams
 
         violation = _strategy_router_write_violation(
-            incoming_params=updateLiteLLMParams(model="complexity_router"),
+            incoming_params=updateGatewayParams(model="complexity_router"),
             existing_params=self._stored_complexity_params(),
         )
         assert violation is not None
@@ -4264,11 +4264,11 @@ class TestStrategyRouterWriteValidation:
         from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             _strategy_router_write_violation,
         )
-        from token_iq.gateway.types.router import updateLiteLLMParams
+        from token_iq.gateway.types.router import updateGatewayParams
 
         assert (
             _strategy_router_write_violation(
-                incoming_params=updateLiteLLMParams(rpm=10),
+                incoming_params=updateGatewayParams(rpm=10),
                 existing_params=self._stored_complexity_params(),
             )
             is None
@@ -4279,7 +4279,7 @@ class TestStrategyRouterWriteValidation:
         from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             _strategy_router_write_violation,
         )
-        from token_iq.gateway.types.router import updateLiteLLMParams
+        from token_iq.gateway.types.router import updateGatewayParams
 
         corrupted = LiteLLM_Params(
             model="auto_router/auto_router/complexity_router",
@@ -4287,7 +4287,7 @@ class TestStrategyRouterWriteValidation:
         )
         assert (
             _strategy_router_write_violation(
-                incoming_params=updateLiteLLMParams(model="auto_router/complexity_router"),
+                incoming_params=updateGatewayParams(model="auto_router/complexity_router"),
                 existing_params=corrupted,
             )
             is None
@@ -4323,7 +4323,7 @@ class TestStrategyRouterWriteValidation:
         from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             _strategy_router_write_violation,
         )
-        from token_iq.gateway.types.router import updateLiteLLMParams
+        from token_iq.gateway.types.router import updateGatewayParams
 
         stored_bad = LiteLLM_Params(
             model="auto_router/complexity_router",
@@ -4334,7 +4334,7 @@ class TestStrategyRouterWriteValidation:
         )
         assert (
             _strategy_router_write_violation(
-                incoming_params=updateLiteLLMParams(model="auto_router/complexity_router"),
+                incoming_params=updateGatewayParams(model="auto_router/complexity_router"),
                 existing_params=stored_bad,
             )
             is None
@@ -4345,7 +4345,7 @@ class TestStrategyRouterWriteValidation:
         from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             _strategy_router_write_violation,
         )
-        from token_iq.gateway.types.router import updateLiteLLMParams
+        from token_iq.gateway.types.router import updateGatewayParams
 
         stored_bad = LiteLLM_Params(
             model="auto_router/complexity_router",
@@ -4356,7 +4356,7 @@ class TestStrategyRouterWriteValidation:
         )
         assert (
             _strategy_router_write_violation(
-                incoming_params=updateLiteLLMParams(
+                incoming_params=updateGatewayParams(
                     model="auto_router/complexity_router",
                     complexity_router_config={
                         "tiers": {"SIMPLE": ["gpt-4o-mini"]},
@@ -4376,10 +4376,10 @@ class TestStrategyRouterWriteValidation:
         from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             _strategy_router_write_violation,
         )
-        from token_iq.gateway.types.router import updateLiteLLMParams
+        from token_iq.gateway.types.router import updateGatewayParams
 
         violation = _strategy_router_write_violation(
-            incoming_params=updateLiteLLMParams(
+            incoming_params=updateGatewayParams(
                 complexity_router_config={
                     "tiers": {"SIMPLE": ["gpt-4o-mini"]},
                     "keyword_tier_rules": [{"keywords": [], "tier": "COMPLEX"}],
@@ -4394,11 +4394,11 @@ class TestStrategyRouterWriteValidation:
         from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             _strategy_router_write_violation,
         )
-        from token_iq.gateway.types.router import updateLiteLLMParams
+        from token_iq.gateway.types.router import updateGatewayParams
 
         assert (
             _strategy_router_write_violation(
-                incoming_params=updateLiteLLMParams(
+                incoming_params=updateGatewayParams(
                     complexity_router_config={
                         "tiers": {"SIMPLE": ["gpt-4o-mini"]},
                         "keyword_tier_rules": [{"keywords": ["invoice"], "tier": "COMPLEX"}],
@@ -4416,10 +4416,10 @@ class TestStrategyRouterWriteValidation:
         from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             _strategy_router_write_violation,
         )
-        from token_iq.gateway.types.router import updateLiteLLMParams
+        from token_iq.gateway.types.router import updateGatewayParams
 
         violation = _strategy_router_write_violation(
-            incoming_params=updateLiteLLMParams(
+            incoming_params=updateGatewayParams(
                 complexity_router_config={"keyword_tier_rules": [{"keywords": [], "tier": "COMPLEX"}]}
             ),
             existing_params=LiteLLM_Params(model="c2VjcmV0-encrypted-at-rest"),
@@ -4449,10 +4449,10 @@ class TestStrategyRouterWriteValidation:
         from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             patch_model,
         )
-        from token_iq.gateway.types.router import updateLiteLLMParams
+        from token_iq.gateway.types.router import updateGatewayParams
 
         model_id = "strategy-router-patch-test"
-        admin = UserAPIKeyAuth(user_id="admin", user_role=LitellmUserRoles.PROXY_ADMIN)
+        admin = UserAPIKeyAuth(user_id="admin", user_role=GatewayUserRoles.PROXY_ADMIN)
 
         with (
             patch("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock()),
@@ -4476,7 +4476,7 @@ class TestStrategyRouterWriteValidation:
                 await patch_model(
                     model_id=model_id,
                     patch_data=updateDeployment(
-                        litellm_params=updateLiteLLMParams(model="auto_router/auto_router/complexity_router")
+                        litellm_params=updateGatewayParams(model="auto_router/auto_router/complexity_router")
                     ),
                     user_api_key_dict=admin,
                 )
@@ -4490,7 +4490,7 @@ class TestStrategyRouterWriteValidation:
             add_new_model,
         )
 
-        admin = UserAPIKeyAuth(user_id="admin", user_role=LitellmUserRoles.PROXY_ADMIN)
+        admin = UserAPIKeyAuth(user_id="admin", user_role=GatewayUserRoles.PROXY_ADMIN)
         mock_prisma = MagicMock()
 
         with (
@@ -4546,7 +4546,7 @@ class TestStrategyRouterWriteValidation:
         from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             _strategy_router_write_violation,
         )
-        from token_iq.gateway.types.router import updateLiteLLMParams
+        from token_iq.gateway.types.router import updateGatewayParams
 
         stored = {
             "complexity_router_config": {"tiers": {"SIMPLE": "gpt-4o-mini"}},
@@ -4554,7 +4554,7 @@ class TestStrategyRouterWriteValidation:
         }[stored_field]
 
         violation = _strategy_router_write_violation(
-            incoming_params=updateLiteLLMParams(tier_boundaries={"simple_medium": 0.1}),
+            incoming_params=updateGatewayParams(tier_boundaries={"simple_medium": 0.1}),
             existing_params=LiteLLM_Params(model="auto_router/complexity_router", **{stored_field: stored}),
         )
         assert violation is not None
@@ -4586,10 +4586,10 @@ class TestStrategyRouterWriteValidation:
         from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             update_model,
         )
-        from token_iq.gateway.types.router import ModelInfo, updateLiteLLMParams
+        from token_iq.gateway.types.router import ModelInfo, updateGatewayParams
 
         model_id = "strategy-router-update-test"
-        admin = UserAPIKeyAuth(user_id="admin", user_role=LitellmUserRoles.PROXY_ADMIN)
+        admin = UserAPIKeyAuth(user_id="admin", user_role=GatewayUserRoles.PROXY_ADMIN)
 
         existing_row = MagicMock()
         existing_row.model_dump.return_value = {
@@ -4618,7 +4618,7 @@ class TestStrategyRouterWriteValidation:
             with pytest.raises(ProxyException) as exc_info:
                 await update_model(
                     model_params=updateDeployment(
-                        litellm_params=updateLiteLLMParams(model="complexity_router"),
+                        litellm_params=updateGatewayParams(model="complexity_router"),
                         model_info=ModelInfo(id=model_id),
                     ),
                     user_api_key_dict=admin,
@@ -4784,9 +4784,9 @@ class TestAutoRouterClassifierDefaultPrompt:
     def test_the_prompt_preview_is_readable_by_an_admin_viewer_like_the_get_beside_it(self):
         """Both methods on this path are pure reads, so a role that may call the GET must not be
         refused the POST purely because default-allow only covers safe methods."""
-        from token_iq.gateway.proxy._types import LiteLLMRoutes
+        from token_iq.gateway.proxy._types import GatewayRoutes
 
-        assert "/auto_router/classifier/default_prompt" in LiteLLMRoutes.admin_viewer_routes.value
+        assert "/auto_router/classifier/default_prompt" in GatewayRoutes.admin_viewer_routes.value
 
     @pytest.mark.parametrize(
         "payload",
@@ -4905,7 +4905,7 @@ class TestBlockModelResponseSerialization:
         mock_prisma.db.litellm_proxymodeltable.find_unique = AsyncMock(return_value=existing_row)
         mock_prisma.db.litellm_proxymodeltable.update = AsyncMock(return_value=updated_row)
 
-        admin = UserAPIKeyAuth(user_id="admin", user_role=LitellmUserRoles.PROXY_ADMIN)
+        admin = UserAPIKeyAuth(user_id="admin", user_role=GatewayUserRoles.PROXY_ADMIN)
         app.dependency_overrides[ps.user_api_key_auth] = lambda: admin
         try:
             with (

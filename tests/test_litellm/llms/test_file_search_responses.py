@@ -328,7 +328,7 @@ class TestManagedFilesVectorStoreAccess:
     def _make_hook(self):
         """Return a ManagedFiles instance with prisma_client mocked."""
         from litellm_enterprise.proxy.hooks.managed_files import (
-            _PROXY_LiteLLMManagedFiles as ManagedFiles,
+            _PROXY_GatewayManagedFiles as ManagedFiles,
         )
 
         hook = ManagedFiles.__new__(ManagedFiles)
@@ -472,7 +472,7 @@ class TestManagedFilesVectorStoreAccess:
     async def test_F6_non_responses_call_type_skipped(self):
         """Access check only runs for aresponses/responses call types."""
         from litellm_enterprise.proxy.hooks.managed_files import (
-            _PROXY_LiteLLMManagedFiles as ManagedFiles,
+            _PROXY_GatewayManagedFiles as ManagedFiles,
         )
         from token_iq.gateway.proxy._types import CallTypes
 
@@ -500,7 +500,7 @@ class TestManagedFilesVectorStoreAccess:
 class TestGetVectorStoreIdsFromFileSearchTools:
     def _make_hook(self):
         from litellm_enterprise.proxy.hooks.managed_files import (
-            _PROXY_LiteLLMManagedFiles as ManagedFiles,
+            _PROXY_GatewayManagedFiles as ManagedFiles,
         )
 
         return ManagedFiles.__new__(ManagedFiles)

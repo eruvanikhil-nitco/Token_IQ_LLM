@@ -102,7 +102,7 @@ def judge_target(router: Router | None, model: str, team_id: str | None = None) 
     only for its own team and a team's own deployment resolves for nobody else, so asking
     without it answers for a caller who does not exist.
     """
-    served: Final = router.resolved_litellm_models(model, team_id=team_id) if router is not None else ()
+    served: Final = router.resolved_gateway_models(model, team_id=team_id) if router is not None else ()
     if served:
         return JudgeTarget("router", frozenset(_provider_qualified(m) or m for m in served))
     qualified: Final = _provider_qualified(model)

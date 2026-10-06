@@ -19,10 +19,10 @@ import urllib.parse
 from unittest.mock import MagicMock, patch
 
 from token_iq import gateway
-from token_iq.gateway import main as litellm_main
+from token_iq.gateway import main as gateway_main
 from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.core_utils.core_helpers import get_litellm_metadata_from_kwargs
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLogging
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLogging
 from token_iq.gateway.types.utils import Delta, ModelResponseStream, StreamingChoices, Usage
 
 
@@ -360,11 +360,11 @@ def test_strip_input_examples_for_non_anthropic_providers():
         }
     ]
 
-    assert not litellm_main._should_allow_input_examples(
+    assert not gateway_main._should_allow_input_examples(
         custom_llm_provider="openai", model="gpt-4o-mini"
     )
 
-    cleaned = litellm_main._drop_input_examples_from_tools(tools=tools)
+    cleaned = gateway_main._drop_input_examples_from_tools(tools=tools)
 
     assert isinstance(cleaned, list)
     assert "input_examples" not in cleaned[0]
@@ -3131,8 +3131,8 @@ def test_stream_chunk_builder_prices_proxy_alias_via_model_map():
     assert response._hidden_params["response_cost"] == pytest.approx(expected_cost)
 
 
-def _stream_builder_logging_obj(model: str = "gpt-4o", custom_llm_provider: str = "openai") -> LiteLLMLogging:
-    logging_obj: Final = LiteLLMLogging(
+def _stream_builder_logging_obj(model: str = "gpt-4o", custom_llm_provider: str = "openai") -> GatewayLogging:
+    logging_obj: Final = GatewayLogging(
         model=model,
         messages=[{"role": "user", "content": "hi"}],
         stream=True,
@@ -3172,9 +3172,9 @@ def test_stream_chunk_builder_stamps_streaming_usage_cost_by_default(monkeypatch
 def test_stream_chunk_builder_skips_stamp_when_cost_is_unpriceable():
     import time as time_module
 
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLogging
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLogging
 
-    logging_obj: Final = LiteLLMLogging(
+    logging_obj: Final = GatewayLogging(
         model="us.anthropic.claude-opus-5",
         messages=[{"role": "user", "content": "hi"}],
         stream=True,

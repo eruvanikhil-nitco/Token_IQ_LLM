@@ -20,14 +20,14 @@ if TYPE_CHECKING:
 
     from token_iq.gateway import ModelResponse as _ModelResponse
     from token_iq.gateway.core_utils.litellm_logging import (
-        Logging as LiteLLMLoggingObject,
+        Logging as GatewayLoggingObject,
     )
 
-    LiteLLMModelResponse = _ModelResponse
+    GatewayModelResponse = _ModelResponse
     Span = _Span | Any
 else:
-    LiteLLMModelResponse = Any
-    LiteLLMLoggingObject = Any
+    GatewayModelResponse = Any
+    GatewayLoggingObject = Any
     Span = Any
 
 
@@ -156,7 +156,7 @@ def _get_service_logger():
 
 
 def _get_parent_otel_span_from_logging_obj(
-    logging_obj: LiteLLMLoggingObject | None = None,
+    logging_obj: GatewayLoggingObject | None = None,
 ) -> Span | None:
     """
     Extract the parent OTEL span from the logging object using existing helper.
@@ -183,8 +183,8 @@ def _get_parent_otel_span_from_logging_obj(
         return None
 
 
-def convert_litellm_response_object_to_str(
-    response_obj: Any | LiteLLMModelResponse,
+def convert_gateway_response_object_to_str(
+    response_obj: Any | GatewayModelResponse,
 ) -> str | None:
     """
     Get the string of the response object from LiteLLM
@@ -323,7 +323,7 @@ def track_llm_api_timing():
                     # Create async task for service logging (similar to Redis cache pattern)
                     asyncio.create_task(
                         service_logger.async_service_success_hook(
-                            service=ServiceTypes.LITELLM,
+                            service=ServiceTypes.GATEWAY,
                             duration=duration,
                             call_type=call_type,
                             start_time=start_time_float,
@@ -369,7 +369,7 @@ def track_llm_api_timing():
 
                     # Use sync service logging for sync functions
                     service_logger.service_success_hook(
-                        service=ServiceTypes.LITELLM,
+                        service=ServiceTypes.GATEWAY,
                         duration=duration,
                         call_type=call_type,
                         start_time=start_time_float,

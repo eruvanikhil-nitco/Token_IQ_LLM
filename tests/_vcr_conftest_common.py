@@ -412,7 +412,7 @@ def _canonical_body(request) -> tuple[bytes, str]:
 _VCR_UUID_RE = re.compile(
     rb"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"
 )
-_VCR_LITELLM_BATCH_JOB_RE = re.compile(rb"litellm-batch-[0-9a-fA-F]{8}")
+_VCR_GATEWAY_BATCH_JOB_RE = re.compile(rb"litellm-batch-[0-9a-fA-F]{8}")
 # ISO-8601 timestamps, e.g. ``2026-05-25T03:40:37.262045Z`` /
 # ``2026-05-25T03:40:37+00:00``.
 _VCR_ISO_TS_RE = re.compile(
@@ -438,7 +438,7 @@ def _normalize_volatile_tokens(body: bytes) -> bytes:
     if not body:
         return body
     body = _VCR_UUID_RE.sub(b"<vcr-uuid>", body)
-    body = _VCR_LITELLM_BATCH_JOB_RE.sub(b"litellm-batch-<vcr-id>", body)
+    body = _VCR_GATEWAY_BATCH_JOB_RE.sub(b"litellm-batch-<vcr-id>", body)
     body = _VCR_ISO_TS_RE.sub(b"<vcr-iso-ts>", body)
     body = _VCR_UNIX_MS_RE.sub(b"<vcr-unix-ms>", body)
     body = _VCR_UNIX_FLOAT_RE.sub(b"<vcr-unix-float>", body)

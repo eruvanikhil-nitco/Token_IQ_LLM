@@ -18,7 +18,7 @@ from token_iq.gateway.llms.reducto.common import (
 )
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 
 
 class _BaseReductoOCRConfig(BaseOCRConfig):
@@ -130,7 +130,7 @@ class _BaseReductoOCRConfig(BaseOCRConfig):
         self,
         model: str,
         raw_response: httpx.Response,
-        logging_obj: "LiteLLMLoggingObj",
+        logging_obj: "GatewayLoggingObj",
         **kwargs,
     ) -> OCRResponse:
         response_json: Final = raw_response.json()

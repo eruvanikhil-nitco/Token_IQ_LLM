@@ -8,7 +8,7 @@ from fastapi.testclient import TestClient
 
 from token_iq.gateway.proxy._types import (
     LiteLLM_UserTableFiltered,
-    LitellmUserRoles,
+    GatewayUserRoles,
     NewUserRequest,
     ProxyException,
     UpdateUserRequest,
@@ -62,7 +62,7 @@ async def test_ui_view_users_with_null_email(mocker, caplog):
     # Proxy admin: no org filter, no get_user_object call
     response = await ui_view_users(
         user_api_key_dict=UserAPIKeyAuth(
-            user_id="test_user", user_role=LitellmUserRoles.PROXY_ADMIN
+            user_id="test_user", user_role=GatewayUserRoles.PROXY_ADMIN
         ),
         user_id="test_user",
         user_email=None,
@@ -98,7 +98,7 @@ async def test_ui_view_users_proxy_admin_no_org_filter(mocker):
 
     await ui_view_users(
         user_api_key_dict=UserAPIKeyAuth(
-            user_id="admin", user_role=LitellmUserRoles.PROXY_ADMIN
+            user_id="admin", user_role=GatewayUserRoles.PROXY_ADMIN
         ),
         user_id=None,
         user_email="foo",
@@ -144,7 +144,7 @@ async def test_ui_view_users_org_admin_filtered_by_org(mocker):
         LiteLLM_OrganizationMembershipTable(
             user_id="org-admin",
             organization_id=org_id,
-            user_role=LitellmUserRoles.ORG_ADMIN.value,
+            user_role=GatewayUserRoles.ORG_ADMIN.value,
             created_at=datetime.now(timezone.utc),
             updated_at=datetime.now(timezone.utc),
         )
@@ -584,7 +584,7 @@ async def test_get_users_includes_timestamps(mocker):
     )
 
     # Call get_users function directly with proxy admin auth
-    admin_key = UserAPIKeyAuth(user_id="admin", user_role=LitellmUserRoles.PROXY_ADMIN)
+    admin_key = UserAPIKeyAuth(user_id="admin", user_role=GatewayUserRoles.PROXY_ADMIN)
     response = await get_users(
         page=1, page_size=1, user_api_key_dict=admin_key, organization_ids=None
     )
@@ -647,7 +647,7 @@ async def test_get_users_redacts_scim_enterprise_metadata(mocker):
         mock_get_user_key_counts,
     )
 
-    admin_key = UserAPIKeyAuth(user_id="admin", user_role=LitellmUserRoles.PROXY_ADMIN)
+    admin_key = UserAPIKeyAuth(user_id="admin", user_role=GatewayUserRoles.PROXY_ADMIN)
     response = await get_users(
         page=1, page_size=1, user_api_key_dict=admin_key, organization_ids=None
     )
@@ -789,7 +789,7 @@ async def test_new_user_rejects_a_duration_that_never_advances(mocker, bad_durat
         "token_iq.gateway.proxy.management_endpoints.internal_user_endpoints._check_duplicate_user_id",
         new=AsyncMock(),
     )
-    admin = UserAPIKeyAuth(user_id="admin", user_role=LitellmUserRoles.PROXY_ADMIN)
+    admin = UserAPIKeyAuth(user_id="admin", user_role=GatewayUserRoles.PROXY_ADMIN)
 
     with pytest.raises(ProxyException) as exc_info:
         await new_user(
@@ -904,7 +904,7 @@ async def test_new_user_license_gate_counts_only_billable_users(mocker):
         client.db.litellm_usertable.count = _count
         return client
 
-    admin = UserAPIKeyAuth(user_id="admin", user_role=LitellmUserRoles.PROXY_ADMIN)
+    admin = UserAPIKeyAuth(user_id="admin", user_role=GatewayUserRoles.PROXY_ADMIN)
     request = NewUserRequest(user_role="internal_user")
 
     # 2 active + 3 deactivated -> billable 2, not over max_users 2: gate passes
@@ -967,12 +967,12 @@ async def test_new_user_non_admin_cannot_create_admin(mocker):
 
     # Test Case 1: INTERNAL_USER trying to create PROXY_ADMIN
     user_request = NewUserRequest(
-        user_email="admin@example.com", user_role=LitellmUserRoles.PROXY_ADMIN
+        user_email="admin@example.com", user_role=GatewayUserRoles.PROXY_ADMIN
     )
 
     # Mock user_api_key_dict with non-admin role
     mock_user_api_key_dict = UserAPIKeyAuth(
-        user_id="test_internal_user", user_role=LitellmUserRoles.INTERNAL_USER
+        user_id="test_internal_user", user_role=GatewayUserRoles.INTERNAL_USER
     )
 
     # Call new_user function and expect ProxyException
@@ -986,13 +986,13 @@ async def test_new_user_non_admin_cannot_create_admin(mocker):
     )
     assert "proxy_admin" in str(exc_info.value.message)
     assert "proxy_admin_viewer" in str(exc_info.value.message)
-    assert str(LitellmUserRoles.PROXY_ADMIN) in str(exc_info.value.message)
-    assert str(LitellmUserRoles.INTERNAL_USER) in str(exc_info.value.message)
+    assert str(GatewayUserRoles.PROXY_ADMIN) in str(exc_info.value.message)
+    assert str(GatewayUserRoles.INTERNAL_USER) in str(exc_info.value.message)
 
     # Test Case 2: INTERNAL_USER trying to create PROXY_ADMIN_VIEW_ONLY
     user_request_viewer = NewUserRequest(
         user_email="admin_viewer@example.com",
-        user_role=LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY,
+        user_role=GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY,
     )
 
     with pytest.raises(ProxyException) as exc_info2:
@@ -1005,7 +1005,7 @@ async def test_new_user_non_admin_cannot_create_admin(mocker):
     assert "Only proxy admins can create administrative users" in str(
         exc_info2.value.message
     )
-    assert str(LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY) in str(exc_info2.value.message)
+    assert str(GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY) in str(exc_info2.value.message)
 
 
 @pytest.mark.asyncio
@@ -1037,11 +1037,11 @@ async def test_new_user_non_admin_permissions_non_empty_rejected(mocker):
 
     data = NewUserRequest(
         user_email="alice@example.com",
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         permissions={"get_spend_routes": True},
     )
     caller = UserAPIKeyAuth(
-        user_id="org-admin", user_role=LitellmUserRoles.ORG_ADMIN
+        user_id="org-admin", user_role=GatewayUserRoles.ORG_ADMIN
     )
 
     with pytest.raises(ProxyException) as exc_info:
@@ -1079,12 +1079,12 @@ async def test_new_user_non_admin_permissions_explicit_empty_rejected(mocker):
 
     data = NewUserRequest(
         user_email="alice@example.com",
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         permissions={},
     )
     assert "permissions" in data.model_fields_set
     caller = UserAPIKeyAuth(
-        user_id="org-admin", user_role=LitellmUserRoles.ORG_ADMIN
+        user_id="org-admin", user_role=GatewayUserRoles.ORG_ADMIN
     )
 
     with pytest.raises(ProxyException) as exc_info:
@@ -1132,11 +1132,11 @@ async def test_new_user_non_admin_omits_permissions_succeeds(mocker):
 
     data = NewUserRequest(
         user_email="alice@example.com",
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
     )
     assert "permissions" not in data.model_fields_set
     caller = UserAPIKeyAuth(
-        user_id="org-admin", user_role=LitellmUserRoles.ORG_ADMIN
+        user_id="org-admin", user_role=GatewayUserRoles.ORG_ADMIN
     )
 
     result = await new_user(data=data, user_api_key_dict=caller)
@@ -1177,11 +1177,11 @@ async def test_new_user_admin_can_set_permissions(mocker):
         stub_helper,
     )
 
-    admin = UserAPIKeyAuth(user_id="admin", user_role=LitellmUserRoles.PROXY_ADMIN)
+    admin = UserAPIKeyAuth(user_id="admin", user_role=GatewayUserRoles.PROXY_ADMIN)
     for permissions_value in ({"get_spend_routes": True}, {}, None):
         data = NewUserRequest(
             user_email=f"alice-{permissions_value}@example.com",
-            user_role=LitellmUserRoles.INTERNAL_USER,
+            user_role=GatewayUserRoles.INTERNAL_USER,
             permissions=permissions_value,
         )
         result = await new_user(data=data, user_api_key_dict=admin)
@@ -1209,7 +1209,7 @@ async def test_update_single_user_non_admin_permissions_rejected(mocker):
         permissions={"get_spend_routes": True},
     )
     caller = UserAPIKeyAuth(
-        user_id="org-admin", user_role=LitellmUserRoles.ORG_ADMIN
+        user_id="org-admin", user_role=GatewayUserRoles.ORG_ADMIN
     )
 
     with pytest.raises(HTTPException) as exc_info:
@@ -1238,7 +1238,7 @@ async def test_update_single_user_non_admin_permissions_explicit_empty_rejected(
     data = UpdateUserRequest(user_id="alice", permissions={})
     assert "permissions" in data.model_fields_set
     caller = UserAPIKeyAuth(
-        user_id="org-admin", user_role=LitellmUserRoles.ORG_ADMIN
+        user_id="org-admin", user_role=GatewayUserRoles.ORG_ADMIN
     )
 
     with pytest.raises(HTTPException) as exc_info:
@@ -1385,7 +1385,7 @@ async def test_user_info_no_user_id_view_only_admin_gets_proxy_admin_payload(moc
     silently narrows to the viewer's own row instead of the whole tenant."""
     from fastapi import Request
 
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth, UserInfoResponse
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth, UserInfoResponse
     from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import user_info
 
     mock_prisma_client = mocker.MagicMock()
@@ -1400,7 +1400,7 @@ async def test_user_info_no_user_id_view_only_admin_gets_proxy_admin_payload(moc
     )
 
     viewer = UserAPIKeyAuth(
-        user_id="viewer", user_role=LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY.value
+        user_id="viewer", user_role=GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY.value
     )
     mock_request = mocker.MagicMock(spec=Request)
 
@@ -1541,7 +1541,7 @@ def test_update_internal_new_user_params_proxy_admin_role():
     Test that default_internal_user_params are NOT applied when user_role is PROXY_ADMIN
     """
     from token_iq import gateway
-    from token_iq.gateway.proxy._types import LitellmUserRoles, NewUserRequest
+    from token_iq.gateway.proxy._types import GatewayUserRoles, NewUserRequest
     from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import (
         _update_internal_new_user_params,
     )
@@ -1557,7 +1557,7 @@ def test_update_internal_new_user_params_proxy_admin_role():
     try:
         # Create test data with PROXY_ADMIN role
         data = NewUserRequest(
-            user_email="admin@example.com", user_role=LitellmUserRoles.PROXY_ADMIN.value
+            user_email="admin@example.com", user_role=GatewayUserRoles.PROXY_ADMIN.value
         )
         data_json = data.model_dump(exclude_unset=True)
 
@@ -1577,7 +1577,7 @@ def test_update_internal_new_user_params_proxy_admin_role():
 
         # These should still work
         assert result["user_email"] == "admin@example.com"
-        assert result["user_role"] == LitellmUserRoles.PROXY_ADMIN.value
+        assert result["user_role"] == GatewayUserRoles.PROXY_ADMIN.value
 
     finally:
         gateway.default_internal_user_params = original_default_params
@@ -1624,7 +1624,7 @@ def test_update_internal_new_user_params_internal_user_role():
     Test that default_internal_user_params ARE applied when user_role is INTERNAL_USER
     """
     from token_iq import gateway
-    from token_iq.gateway.proxy._types import LitellmUserRoles, NewUserRequest
+    from token_iq.gateway.proxy._types import GatewayUserRoles, NewUserRequest
     from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import (
         _update_internal_new_user_params,
     )
@@ -1641,7 +1641,7 @@ def test_update_internal_new_user_params_internal_user_role():
         # Create test data with INTERNAL_USER role
         data = NewUserRequest(
             user_email="internaluser@example.com",
-            user_role=LitellmUserRoles.INTERNAL_USER.value,
+            user_role=GatewayUserRoles.INTERNAL_USER.value,
         )
         data_json = data.model_dump(exclude_unset=True)
 
@@ -1653,7 +1653,7 @@ def test_update_internal_new_user_params_internal_user_role():
         assert result.get("models") == ["gpt-3.5-turbo", "gpt-4"]
         assert result.get("tpm_limit") == 5000
         assert result["user_email"] == "internaluser@example.com"
-        assert result["user_role"] == LitellmUserRoles.INTERNAL_USER.value
+        assert result["user_role"] == GatewayUserRoles.INTERNAL_USER.value
 
     finally:
         gateway.default_internal_user_params = original_default_params
@@ -1833,7 +1833,7 @@ def test_process_keys_for_user_info_filters_dashboard_keys(monkeypatch):
         {},
     )
     monkeypatch.setattr(
-        "token_iq.gateway.proxy.proxy_server.litellm_master_key_hash",
+        "token_iq.gateway.proxy.proxy_server.gateway_master_key_hash",
         "different-hash",
     )
 
@@ -1876,7 +1876,7 @@ def test_process_keys_for_user_info_handles_none_keys(monkeypatch):
         {},
     )
     monkeypatch.setattr(
-        "token_iq.gateway.proxy.proxy_server.litellm_master_key_hash",
+        "token_iq.gateway.proxy.proxy_server.gateway_master_key_hash",
         "different-hash",
     )
 
@@ -1901,7 +1901,7 @@ def test_process_keys_for_user_info_handles_empty_keys(monkeypatch):
         {},
     )
     monkeypatch.setattr(
-        "token_iq.gateway.proxy.proxy_server.litellm_master_key_hash",
+        "token_iq.gateway.proxy.proxy_server.gateway_master_key_hash",
         "different-hash",
     )
 
@@ -1955,7 +1955,7 @@ async def test_get_users_user_id_partial_match(mocker):
         mock_get_user_key_counts,
     )
 
-    admin_key = UserAPIKeyAuth(user_id="admin", user_role=LitellmUserRoles.PROXY_ADMIN)
+    admin_key = UserAPIKeyAuth(user_id="admin", user_role=GatewayUserRoles.PROXY_ADMIN)
 
     captured_where_conditions.clear()
     await get_users(
@@ -2079,7 +2079,7 @@ async def test_get_user_daily_activity_non_admin_cannot_view_other_users(monkeyp
     # Non-admin caller
     non_admin_key_dict = UserAPIKeyAuth(
         user_id="regular-user-123",
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
     )
 
     # Case 1: Non-admin tries to view a different user's data — should get 403
@@ -2159,7 +2159,7 @@ async def test_get_user_daily_activity_rejects_service_account_caller(monkeypatc
 
     service_account_key = UserAPIKeyAuth(
         user_id=None,  # service-account keys have user_id forced to None
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
     )
 
     with pytest.raises(HTTPException) as exc_info:
@@ -2208,7 +2208,7 @@ async def test_get_user_daily_activity_aggregated_rejects_service_account_caller
 
     service_account_key = UserAPIKeyAuth(
         user_id=None,
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
     )
 
     with pytest.raises(HTTPException) as exc_info:
@@ -2256,7 +2256,7 @@ async def test_get_user_daily_activity_aggregated_admin_global_view(monkeypatch,
     # Admin caller
     admin_key_dict = UserAPIKeyAuth(
         user_id="admin-user-001",
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
     )
 
     # Admin calls without user_id → global view (entity_id=None)
@@ -2313,7 +2313,7 @@ async def test_get_user_daily_activity_aggregated_non_admin_cannot_view_other_us
 
     non_admin_key_dict = UserAPIKeyAuth(
         user_id="regular-user-123",
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
     )
 
     # Case 1: Non-admin targets another user's data — 403, helper never reached
@@ -2417,7 +2417,7 @@ async def test_delete_user_cleans_up_created_by_invitation_links(mocker):
     # Call delete_user
     data = DeleteUserRequest(user_ids=["admin-creator"])
     user_api_key_dict = UserAPIKeyAuth(
-        user_id="proxy-admin", user_role=LitellmUserRoles.PROXY_ADMIN
+        user_id="proxy-admin", user_role=GatewayUserRoles.PROXY_ADMIN
     )
 
     await delete_user(data=data, user_api_key_dict=user_api_key_dict)
@@ -2508,7 +2508,7 @@ async def test_delete_user_rejects_org_admin_deleting_outside_scope(mocker):
 
     data = DeleteUserRequest(user_ids=["victim"])
     user_api_key_dict = UserAPIKeyAuth(
-        user_id="org_admin_user", user_role=LitellmUserRoles.ORG_ADMIN
+        user_id="org_admin_user", user_role=GatewayUserRoles.ORG_ADMIN
     )
 
     with pytest.raises(HTTPException) as exc:
@@ -2552,7 +2552,7 @@ async def test_user_update_rejects_silent_create_for_non_proxy_admin(mocker):
     )
     org_admin = UserAPIKeyAuth(
         user_id="org-admin",
-        user_role=LitellmUserRoles.ORG_ADMIN,
+        user_role=GatewayUserRoles.ORG_ADMIN,
     )
 
     with pytest.raises(HTTPException) as exc:
@@ -2611,7 +2611,7 @@ async def test_user_info_v2_proxy_admin_can_query_any_user(mocker):
     mock_request = mocker.MagicMock(spec=Request)
 
     admin_key = UserAPIKeyAuth(
-        user_id="admin-user", user_role=LitellmUserRoles.PROXY_ADMIN
+        user_id="admin-user", user_role=GatewayUserRoles.PROXY_ADMIN
     )
 
     response = await user_info_v2(
@@ -2675,7 +2675,7 @@ async def test_user_info_v2_redacts_scim_enterprise_metadata(mocker):
     mock_request = mocker.MagicMock(spec=Request)
 
     admin_key = UserAPIKeyAuth(
-        user_id="admin-user", user_role=LitellmUserRoles.PROXY_ADMIN
+        user_id="admin-user", user_role=GatewayUserRoles.PROXY_ADMIN
     )
 
     response = await user_info_v2(
@@ -2765,7 +2765,7 @@ async def test_user_info_v2_internal_user_can_query_self(mocker):
     mock_request = mocker.MagicMock(spec=Request)
 
     user_key = UserAPIKeyAuth(
-        user_id="self-user", user_role=LitellmUserRoles.INTERNAL_USER
+        user_id="self-user", user_role=GatewayUserRoles.INTERNAL_USER
     )
 
     response = await user_info_v2(
@@ -2810,7 +2810,7 @@ async def test_user_info_v2_internal_user_cannot_query_other(mocker):
     mock_request = mocker.MagicMock(spec=Request)
 
     user_key = UserAPIKeyAuth(
-        user_id="caller-user", user_role=LitellmUserRoles.INTERNAL_USER
+        user_id="caller-user", user_role=GatewayUserRoles.INTERNAL_USER
     )
 
     with pytest.raises(ProxyException) as exc_info:
@@ -2867,7 +2867,7 @@ async def test_user_info_v2_no_user_id_defaults_to_self(mocker):
     mock_request = mocker.MagicMock(spec=Request)
 
     user_key = UserAPIKeyAuth(
-        user_id="my-user-id", user_role=LitellmUserRoles.INTERNAL_USER
+        user_id="my-user-id", user_role=GatewayUserRoles.INTERNAL_USER
     )
 
     # Call without user_id
@@ -2905,7 +2905,7 @@ async def test_user_info_v2_nonexistent_user_returns_404(mocker):
     mock_request = mocker.MagicMock(spec=Request)
 
     admin_key = UserAPIKeyAuth(
-        user_id="admin-user", user_role=LitellmUserRoles.PROXY_ADMIN
+        user_id="admin-user", user_role=GatewayUserRoles.PROXY_ADMIN
     )
 
     with pytest.raises(ProxyException) as exc_info:
@@ -2963,7 +2963,7 @@ async def test_user_info_v2_response_shape(mocker):
     mock_request = mocker.MagicMock(spec=Request)
 
     admin_key = UserAPIKeyAuth(
-        user_id="admin-user", user_role=LitellmUserRoles.PROXY_ADMIN
+        user_id="admin-user", user_role=GatewayUserRoles.PROXY_ADMIN
     )
 
     response = await user_info_v2(
@@ -3088,7 +3088,7 @@ async def test_user_info_v2_team_admin_can_query_team_member(mocker):
     mock_request = mocker.MagicMock(spec=Request)
 
     team_admin_key = UserAPIKeyAuth(
-        user_id="team-admin-user", user_role=LitellmUserRoles.INTERNAL_USER
+        user_id="team-admin-user", user_role=GatewayUserRoles.INTERNAL_USER
     )
 
     response = await user_info_v2(
@@ -3156,7 +3156,7 @@ async def test_user_info_v2_team_admin_cannot_query_non_team_member(mocker):
     mock_request = mocker.MagicMock(spec=Request)
 
     team_admin_key = UserAPIKeyAuth(
-        user_id="team-admin-user", user_role=LitellmUserRoles.INTERNAL_USER
+        user_id="team-admin-user", user_role=GatewayUserRoles.INTERNAL_USER
     )
 
     with pytest.raises(ProxyException) as exc_info:
@@ -3217,7 +3217,7 @@ async def test_user_info_v2_url_encoding_plus_character(mocker):
     mock_request.url.query = f"user_id={expected_user_id}"
 
     admin_key = UserAPIKeyAuth(
-        user_id="admin-user", user_role=LitellmUserRoles.PROXY_ADMIN
+        user_id="admin-user", user_role=GatewayUserRoles.PROXY_ADMIN
     )
 
     # Simulate FastAPI converting + to space
@@ -3310,13 +3310,13 @@ class TestGetUserIdFromRequestValidation:
 
 def test_enforce_user_info_access_admin_bypass():
     """Proxy admins must always be allowed past the re-check."""
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
     from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import (
         _enforce_user_info_access,
     )
 
     admin = UserAPIKeyAuth(
-        user_id="admin", user_role=LitellmUserRoles.PROXY_ADMIN.value
+        user_id="admin", user_role=GatewayUserRoles.PROXY_ADMIN.value
     )
     # Should not raise even when querying a different user
     _enforce_user_info_access(user_id="someone_else", user_api_key_dict=admin)
@@ -3325,39 +3325,39 @@ def test_enforce_user_info_access_admin_bypass():
 def test_enforce_user_info_access_view_only_admin_can_read_other_users():
     """PROXY_ADMIN_VIEW_ONLY has read parity with PROXY_ADMIN, so the ownership
     re-check must wave it through for another user's id."""
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
     from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import (
         _enforce_user_info_access,
     )
 
     viewer = UserAPIKeyAuth(
         user_id="viewer",
-        user_role=LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY.value,
+        user_role=GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY.value,
     )
     _enforce_user_info_access(user_id="someone_else", user_api_key_dict=viewer)
 
 
 def test_enforce_user_info_access_view_only_admin_can_read_own():
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
     from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import (
         _enforce_user_info_access,
     )
 
     viewer = UserAPIKeyAuth(
         user_id="viewer",
-        user_role=LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY.value,
+        user_role=GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY.value,
     )
     _enforce_user_info_access(user_id="viewer", user_api_key_dict=viewer)
 
 
 def test_enforce_user_info_access_owner_allowed():
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
     from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import (
         _enforce_user_info_access,
     )
 
     user = UserAPIKeyAuth(
-        user_id="alice", user_role=LitellmUserRoles.INTERNAL_USER.value
+        user_id="alice", user_role=GatewayUserRoles.INTERNAL_USER.value
     )
     _enforce_user_info_access(user_id="alice", user_api_key_dict=user)
 
@@ -3365,13 +3365,13 @@ def test_enforce_user_info_access_owner_allowed():
 def test_enforce_user_info_access_no_user_id_allowed():
     """No user_id in query → handler resolves to caller's own id later, so
     this branch must not raise."""
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
     from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import (
         _enforce_user_info_access,
     )
 
     user = UserAPIKeyAuth(
-        user_id="alice", user_role=LitellmUserRoles.INTERNAL_USER.value
+        user_id="alice", user_role=GatewayUserRoles.INTERNAL_USER.value
     )
     _enforce_user_info_access(user_id=None, user_api_key_dict=user)
 
@@ -3383,14 +3383,14 @@ def test_enforce_user_info_access_blocks_cross_user_lookup():
     import pytest
     from fastapi import HTTPException
 
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
     from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import (
         _enforce_user_info_access,
     )
 
     attacker = UserAPIKeyAuth(
         user_id="attacker space",  # original (URL-decoded) id seen by route check
-        user_role=LitellmUserRoles.INTERNAL_USER.value,
+        user_role=GatewayUserRoles.INTERNAL_USER.value,
     )
 
     with pytest.raises(HTTPException) as exc_info:
@@ -3435,7 +3435,7 @@ async def test_ghsa_wvg4_non_admin_cannot_self_escalate_max_budget(mocker):
     )
     caller = UserAPIKeyAuth(
         user_id="user-1",
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
     )
 
     with pytest.raises(HTTPException) as exc:
@@ -3473,7 +3473,7 @@ async def test_ghsa_wvg4_non_admin_cannot_self_escalate_spend(mocker):
     )
     caller = UserAPIKeyAuth(
         user_id="user-1",
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
     )
 
     with pytest.raises(HTTPException) as exc:
@@ -3514,7 +3514,7 @@ async def test_ghsa_wvg4_proxy_admin_can_update_user_budget(mocker):
     )
     admin_caller = UserAPIKeyAuth(
         user_id="admin-1",
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
     )
 
     result = await _update_single_user_helper(
@@ -3556,7 +3556,7 @@ async def test_admin_user_update_spend_invalidates_counter(mocker):
     # continue allowing negative spend counters.
     user_request = UpdateUserRequest(user_id="target-user", spend=-25)
     admin_caller = UserAPIKeyAuth(
-        user_id="admin-1", user_role=LitellmUserRoles.PROXY_ADMIN
+        user_id="admin-1", user_role=GatewayUserRoles.PROXY_ADMIN
     )
 
     await _update_single_user_helper(
@@ -3591,7 +3591,7 @@ async def test_user_update_rejects_non_finite_spend(mocker):
 
     user_request = UpdateUserRequest(user_id="target-user", spend=float("nan"))
     admin_caller = UserAPIKeyAuth(
-        user_id="admin-1", user_role=LitellmUserRoles.PROXY_ADMIN
+        user_id="admin-1", user_role=GatewayUserRoles.PROXY_ADMIN
     )
 
     with pytest.raises(HTTPException) as exc:
@@ -3673,7 +3673,7 @@ async def test_add_new_user_to_default_team_propagates_max_budget_in_team(mocker
     await add_new_user_to_default_team(
         user_id="jwt-user",
         user_email="jwt-user@example.com",
-        user_api_key_dict=UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN),
+        user_api_key_dict=UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN),
         teams=[
             NewUserRequestTeam(team_id="budgeted-team", max_budget_in_team=25.0, user_role="admin"),
             NewUserRequestTeam(team_id="uncapped-team"),
@@ -3702,7 +3702,7 @@ async def test_add_new_user_to_default_team_string_teams_have_no_member_budget(m
     await add_new_user_to_default_team(
         user_id="jwt-user",
         user_email=None,
-        user_api_key_dict=UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN),
+        user_api_key_dict=UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN),
         teams=["string-team"],
         prisma_client=mocker.MagicMock(),
     )
@@ -3736,7 +3736,7 @@ async def test_add_user_to_team_logs_unknown_team_at_error(mocker, caplog):
         await _add_user_to_team(
             user_id="sso-user",
             team_id="deleted-team",
-            user_api_key_dict=UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN),
+            user_api_key_dict=UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN),
         )
 
     errors = [r.getMessage() for r in caplog.records if r.levelno >= logging.ERROR]
@@ -3767,7 +3767,7 @@ async def test_add_user_to_team_keeps_already_a_member_quiet(mocker, caplog):
         await _add_user_to_team(
             user_id="sso-user",
             team_id="existing-team",
-            user_api_key_dict=UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN),
+            user_api_key_dict=UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN),
         )
 
     assert [r.getMessage() for r in caplog.records if r.levelno >= logging.ERROR] == []
@@ -3866,7 +3866,7 @@ async def test_user_update_persists_mcp_entitlement_and_links_it(mocker):
             },
         ),
         user_api_key_dict=UserAPIKeyAuth(
-            user_id="admin-1", user_role=LitellmUserRoles.PROXY_ADMIN
+            user_id="admin-1", user_role=GatewayUserRoles.PROXY_ADMIN
         ),
     )
 
@@ -3902,7 +3902,7 @@ async def test_user_update_invalidates_the_cached_entitlement(mocker):
             object_permission={"mcp_tool_permissions": {"github": []}},
         ),
         user_api_key_dict=UserAPIKeyAuth(
-            user_id="admin-1", user_role=LitellmUserRoles.PROXY_ADMIN
+            user_id="admin-1", user_role=GatewayUserRoles.PROXY_ADMIN
         ),
     )
 
@@ -3937,7 +3937,7 @@ async def test_admin_can_clear_a_users_mcp_entitlement(mocker):
     await _update_single_user_helper(
         user_request=UpdateUserRequest(user_id="target-user", object_permission={}),
         user_api_key_dict=UserAPIKeyAuth(
-            user_id="admin-1", user_role=LitellmUserRoles.PROXY_ADMIN
+            user_id="admin-1", user_role=GatewayUserRoles.PROXY_ADMIN
         ),
     )
 
@@ -3976,7 +3976,7 @@ async def test_user_update_invalidates_both_the_old_and_new_permission_rows(mock
             object_permission={"mcp_tool_permissions": {"github": ["list_issues"]}},
         ),
         user_api_key_dict=UserAPIKeyAuth(
-            user_id="admin-1", user_role=LitellmUserRoles.PROXY_ADMIN
+            user_id="admin-1", user_role=GatewayUserRoles.PROXY_ADMIN
         ),
     )
 
@@ -4009,7 +4009,7 @@ async def test_non_admin_cannot_clear_their_own_mcp_entitlement(mocker):
         await _update_single_user_helper(
             user_request=UpdateUserRequest(user_id="target-user", object_permission={}),
             user_api_key_dict=UserAPIKeyAuth(
-                user_id="target-user", user_role=LitellmUserRoles.INTERNAL_USER
+                user_id="target-user", user_role=GatewayUserRoles.INTERNAL_USER
             ),
         )
 
@@ -4039,7 +4039,7 @@ async def test_non_admin_cannot_rewrite_their_own_mcp_entitlement(mocker):
                 object_permission={"mcp_servers": [], "mcp_tool_permissions": {}},
             ),
             user_api_key_dict=UserAPIKeyAuth(
-                user_id="target-user", user_role=LitellmUserRoles.INTERNAL_USER
+                user_id="target-user", user_role=GatewayUserRoles.INTERNAL_USER
             ),
         )
 
@@ -4082,7 +4082,7 @@ async def test_new_user_persists_the_requested_mcp_entitlement(mocker):
             object_permission={"mcp_tool_permissions": {"github": ["list_issues"]}},
         ),
         user_api_key_dict=UserAPIKeyAuth(
-            user_id="admin-1", user_role=LitellmUserRoles.PROXY_ADMIN
+            user_id="admin-1", user_role=GatewayUserRoles.PROXY_ADMIN
         ),
     )
 
@@ -4126,7 +4126,7 @@ async def test_user_info_v2_returns_the_mcp_entitlement(mocker):
         request=SimpleNamespace(query_params={}),
         user_id="human-1",
         user_api_key_dict=UserAPIKeyAuth(
-            user_id="admin-1", user_role=LitellmUserRoles.PROXY_ADMIN
+            user_id="admin-1", user_role=GatewayUserRoles.PROXY_ADMIN
         ),
     )
 
@@ -4226,7 +4226,7 @@ async def test_user_update_rejects_weak_password(_admin_prisma):
     )
 
     user_request = UpdateUserRequest(user_id="target-user", password="short1!")
-    admin_caller = UserAPIKeyAuth(user_id="admin-1", user_role=LitellmUserRoles.PROXY_ADMIN)
+    admin_caller = UserAPIKeyAuth(user_id="admin-1", user_role=GatewayUserRoles.PROXY_ADMIN)
 
     with pytest.raises(ProxyException) as exc_info:
         await _update_single_user_helper(user_request=user_request, user_api_key_dict=admin_caller)
@@ -4250,7 +4250,7 @@ async def test_user_update_rejects_weak_password_against_configured_policy(_admi
     )
 
     user_request = UpdateUserRequest(user_id="target-user", password="Str0ng!Passw0rd")
-    admin_caller = UserAPIKeyAuth(user_id="admin-1", user_role=LitellmUserRoles.PROXY_ADMIN)
+    admin_caller = UserAPIKeyAuth(user_id="admin-1", user_role=GatewayUserRoles.PROXY_ADMIN)
 
     with pytest.raises(ProxyException) as exc_info:
         await _update_single_user_helper(user_request=user_request, user_api_key_dict=admin_caller)
@@ -4276,7 +4276,7 @@ async def test_user_update_hashes_and_persists_strong_password(_admin_prisma, mo
 
     strong_password = "Str0ng!Passw0rd"
     user_request = UpdateUserRequest(user_id="target-user", password=strong_password)
-    admin_caller = UserAPIKeyAuth(user_id="admin-1", user_role=LitellmUserRoles.PROXY_ADMIN)
+    admin_caller = UserAPIKeyAuth(user_id="admin-1", user_role=GatewayUserRoles.PROXY_ADMIN)
 
     await _update_single_user_helper(user_request=user_request, user_api_key_dict=admin_caller)
 

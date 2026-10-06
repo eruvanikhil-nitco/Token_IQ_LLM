@@ -58,7 +58,7 @@ def scratch_schema(monkeypatch):
 
 
 @requires_db
-def test_applies_full_to_litellm_tables_only(scratch_schema, monkeypatch):
+def test_applies_full_to_gateway_tables_only(scratch_schema, monkeypatch):
     monkeypatch.setenv(REPLICA_IDENTITY_FULL_ENV_VAR, "true")
 
     assert ProxyExtrasDBManager.apply_replica_identity_full_if_requested() is True

@@ -35,7 +35,7 @@ from token_iq.gateway.llms.base_llm.chat.transformation import BaseLLMException
 from token_iq.gateway.llms.base_llm.files.transformation import (
     BaseFilesConfig,
     BaseFileUploadStream,
-    LiteLLMLoggingObj,
+    GatewayLoggingObj,
 )
 from token_iq.gateway.llms.vertex_ai.common_utils import (
     _convert_vertex_datetime_to_openai_datetime,
@@ -187,7 +187,7 @@ def _decode_gcp_label_value_chunks(values: list[str]) -> str | None:
         return None
 
 
-def _set_litellm_batch_custom_id_labels(labels: dict[str, str], custom_id: object) -> None:
+def _set_gateway_batch_custom_id_labels(labels: dict[str, str], custom_id: object) -> None:
     """
     Store OpenAI batch custom_id for Vertex batch correlation.
 
@@ -203,7 +203,7 @@ def _set_litellm_batch_custom_id_labels(labels: dict[str, str], custom_id: objec
         labels[f"litellm_custom_id_raw_{index}"] = raw_label_chunk
 
 
-def _get_litellm_batch_custom_id(vertex_output_row: Mapping[str, object]) -> str:
+def _get_gateway_batch_custom_id(vertex_output_row: Mapping[str, object]) -> str:
     """
     Resolve the OpenAI `custom_id` for a Vertex batch output row.
 
@@ -216,10 +216,10 @@ def _get_litellm_batch_custom_id(vertex_output_row: Mapping[str, object]) -> str
         return unquote(str(key))
     request_data = vertex_output_row.get("request")
     labels = request_data.get("labels") if isinstance(request_data, Mapping) else None
-    return _get_litellm_batch_custom_id_from_labels(labels)
+    return _get_gateway_batch_custom_id_from_labels(labels)
 
 
-def _get_litellm_batch_custom_id_from_labels(labels: Mapping[str, object] | None) -> str:
+def _get_gateway_batch_custom_id_from_labels(labels: Mapping[str, object] | None) -> str:
     """Prefer encoded custom_id when present (see _set_litellm_batch_custom_id_labels)."""
     if not labels:
         return "unknown"
@@ -292,7 +292,7 @@ def _split_vertex_batch_key(vertex_output_row: Mapping[str, object]) -> tuple[st
     """
     key = vertex_output_row.get(_VERTEX_BATCH_KEY_FIELD)
     if key is None:
-        return _get_litellm_batch_custom_id(vertex_output_row), 0, 1
+        return _get_gateway_batch_custom_id(vertex_output_row), 0, 1
     match = _VERTEX_BATCH_FANNED_OUT_KEY_PATTERN.fullmatch(str(key))
     if match is None:
         return unquote(str(key)), 0, 1
@@ -558,7 +558,7 @@ def _openai_batch_jsonl_entry_to_vertex_rows(
     if custom_id is not None:
         if "labels" not in vertex_request_body:
             vertex_request_body["labels"] = {}
-        _set_litellm_batch_custom_id_labels(vertex_request_body["labels"], custom_id)
+        _set_gateway_batch_custom_id_labels(vertex_request_body["labels"], custom_id)
 
     return ({"request": vertex_request_body},)
 
@@ -855,7 +855,7 @@ class VertexAIFilesConfig(VertexBase, BaseFilesConfig):
         self,
         model: str | None,
         raw_response: Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         litellm_params: dict,
     ) -> OpenAIFileObject:
         """
@@ -918,7 +918,7 @@ class VertexAIFilesConfig(VertexBase, BaseFilesConfig):
     def transform_retrieve_file_response(
         self,
         raw_response: Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         litellm_params: dict,
     ) -> OpenAIFileObject:
         response_json: Final[_GcsObjectJson] = raw_response.json()
@@ -950,7 +950,7 @@ class VertexAIFilesConfig(VertexBase, BaseFilesConfig):
     def transform_delete_file_response(
         self,
         raw_response: Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         litellm_params: dict,
     ) -> FileDeleted:
         file_id = "deleted"
@@ -975,7 +975,7 @@ class VertexAIFilesConfig(VertexBase, BaseFilesConfig):
     def transform_list_files_response(
         self,
         raw_response: Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         litellm_params: dict,
     ) -> list[OpenAIFileObject]:
         raise NotImplementedError("VertexAIFilesConfig does not support file listing")
@@ -994,7 +994,7 @@ class VertexAIFilesConfig(VertexBase, BaseFilesConfig):
     def transform_file_content_response(
         self,
         raw_response: Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         litellm_params: dict,
     ) -> HttpxBinaryResponseContent:
         """
@@ -1042,7 +1042,7 @@ class VertexAIFilesConfig(VertexBase, BaseFilesConfig):
     def _try_transform_vertex_batch_output_to_openai(
         self,
         content: bytes,
-        logging_obj: LiteLLMLoggingObj | None = None,
+        logging_obj: GatewayLoggingObj | None = None,
         model: str | None = None,
     ) -> bytes:
         """
@@ -1165,7 +1165,7 @@ class VertexAIFilesConfig(VertexBase, BaseFilesConfig):
         Transform a single Vertex AI batch output line to OpenAI format.
         Uses the existing VertexGeminiConfig transformation for the response.
         """
-        custom_id: Final = _get_litellm_batch_custom_id(vertex_output)
+        custom_id: Final = _get_gateway_batch_custom_id(vertex_output)
 
         # Check if there's an error
         status: Final = vertex_output.get("status", "")

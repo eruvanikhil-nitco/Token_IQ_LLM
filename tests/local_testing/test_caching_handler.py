@@ -23,7 +23,7 @@ from token_iq.gateway.caching.caching_handler import (
     _is_chat_completion_cached_dict,
     _should_defer_streaming_cache_hit_callbacks,
 )
-from token_iq.gateway.caching.caching import LiteLLMCacheType
+from token_iq.gateway.caching.caching import GatewayCacheType
 from token_iq.gateway.types.utils import CallTypes
 from token_iq.gateway.types.rerank import RerankResponse
 from token_iq.gateway.types.utils import (
@@ -35,7 +35,7 @@ from token_iq.gateway.types.utils import (
 )
 from token_iq.gateway.types.llms.openai import ResponsesAPIResponse
 from datetime import timedelta, datetime
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLogging
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLogging
 from token_iq.gateway.core_utils.streaming_handler import CustomStreamWrapper
 from token_iq.gateway._logging import verbose_logger
 import logging
@@ -43,7 +43,7 @@ import logging
 
 def setup_cache():
     # Set up the cache
-    cache = Cache(type=LiteLLMCacheType.LOCAL)
+    cache = Cache(type=GatewayCacheType.LOCAL)
     gateway.cache = cache
     return cache
 
@@ -79,7 +79,7 @@ async def test_async_set_get_cache(response):
 
     messages = [{"role": "user", "content": f"Unique message {datetime.now()}"}]
 
-    logging_obj = LiteLLMLogging(
+    logging_obj = GatewayLogging(
         litellm_call_id=str(datetime.now()),
         call_type=CallTypes.completion.value,
         model="gpt-3.5-turbo",
@@ -219,7 +219,7 @@ def test_convert_cached_result_to_model_response(
     caching_handler = LLMCachingHandler(
         original_function=lambda: None, request_kwargs={}, start_time=datetime.now()
     )
-    logging_obj = LiteLLMLogging(
+    logging_obj = GatewayLogging(
         litellm_call_id=str(datetime.now()),
         call_type=call_type,
         model="gpt-3.5-turbo",
@@ -370,7 +370,7 @@ async def test_embedding_cache_model_field_consistency():
     )
 
     # Mock logging object
-    logging_obj = LiteLLMLogging(
+    logging_obj = GatewayLogging(
         litellm_call_id=str(datetime.now()),
         call_type=CallTypes.aembedding.value,
         model=original_model,
@@ -452,7 +452,7 @@ async def test_embedding_cache_model_field_with_vendor_prefix():
     )
 
     # Mock logging object
-    logging_obj = LiteLLMLogging(
+    logging_obj = GatewayLogging(
         litellm_call_id=str(datetime.now()),
         call_type=CallTypes.aembedding.value,
         model=vendor_model,
@@ -582,7 +582,7 @@ async def test_async_responses_api_caching():
     )
 
     # Mock logging object
-    logging_obj = LiteLLMLogging(
+    logging_obj = GatewayLogging(
         litellm_call_id=str(datetime.now()),
         call_type=CallTypes.aresponses.value,
         model=original_model,
@@ -643,7 +643,7 @@ async def test_async_get_cache_updates_request_kwargs_for_streaming_responses():
         start_time=datetime.now(),
     )
 
-    logging_obj = LiteLLMLogging(
+    logging_obj = GatewayLogging(
         litellm_call_id=str(datetime.now()),
         call_type=CallTypes.aresponses.value,
         model="gpt-4o",
@@ -715,7 +715,7 @@ def test_sync_responses_api_caching():
     )
 
     # Mock logging object
-    logging_obj = LiteLLMLogging(
+    logging_obj = GatewayLogging(
         litellm_call_id=str(datetime.now()),
         call_type=CallTypes.responses.value,
         model=original_model,
@@ -766,7 +766,7 @@ def test_convert_cached_responses_api_result_to_model_response():
         original_function=responses, request_kwargs={}, start_time=datetime.now()
     )
 
-    logging_obj = LiteLLMLogging(
+    logging_obj = GatewayLogging(
         litellm_call_id=str(datetime.now()),
         call_type=CallTypes.responses.value,
         model="gpt-4o",
@@ -849,7 +849,7 @@ def test_sync_get_cache_does_not_eagerly_log_streaming_responses_hits():
         ],
     )
 
-    logging_obj = LiteLLMLogging(
+    logging_obj = GatewayLogging(
         litellm_call_id=str(datetime.now()),
         call_type=CallTypes.responses.value,
         model=original_model,
@@ -893,7 +893,7 @@ def test_sync_get_cache_defers_streaming_completion_hit_callbacks():
     )
 
     original_model = "gpt-4o"
-    logging_obj = LiteLLMLogging(
+    logging_obj = GatewayLogging(
         litellm_call_id=str(datetime.now()),
         call_type=CallTypes.completion.value,
         model=original_model,
@@ -970,7 +970,7 @@ async def test_async_get_cache_defers_streaming_completion_hit_callbacks():
     )
     await asyncio.sleep(0.2)
 
-    logging_obj = LiteLLMLogging(
+    logging_obj = GatewayLogging(
         litellm_call_id=str(datetime.now()),
         call_type=CallTypes.acompletion.value,
         model=original_model,
@@ -1004,7 +1004,7 @@ def test_convert_cached_streaming_responses_result_to_iterator():
         original_function=responses, request_kwargs={}, start_time=datetime.now()
     )
 
-    logging_obj = LiteLLMLogging(
+    logging_obj = GatewayLogging(
         litellm_call_id=str(datetime.now()),
         call_type=CallTypes.responses.value,
         model="gpt-4o",
@@ -1085,7 +1085,7 @@ def test_convert_cached_aresponses_bridge_chat_completion_stream():
     caching_handler = LLMCachingHandler(
         original_function=aresponses, request_kwargs={}, start_time=datetime.now()
     )
-    logging_obj = LiteLLMLogging(
+    logging_obj = GatewayLogging(
         litellm_call_id=str(datetime.now()),
         call_type=CallTypes.aresponses.value,
         model="gpt-5.4",
@@ -1134,7 +1134,7 @@ def test_convert_cached_streaming_reasoning_result_to_iterator():
         original_function=responses, request_kwargs={}, start_time=datetime.now()
     )
 
-    logging_obj = LiteLLMLogging(
+    logging_obj = GatewayLogging(
         litellm_call_id=str(datetime.now()),
         call_type=CallTypes.responses.value,
         model="gpt-4o",
@@ -1287,7 +1287,7 @@ async def test_responses_api_cache_with_different_inputs():
     await asyncio.sleep(0.5)
 
     # Retrieve both from cache
-    logging_obj_1 = LiteLLMLogging(
+    logging_obj_1 = GatewayLogging(
         litellm_call_id=str(datetime.now()),
         call_type=CallTypes.aresponses.value,
         model=original_model,
@@ -1297,7 +1297,7 @@ async def test_responses_api_cache_with_different_inputs():
         start_time=datetime.now(),
     )
 
-    logging_obj_2 = LiteLLMLogging(
+    logging_obj_2 = GatewayLogging(
         litellm_call_id=str(datetime.now()),
         call_type=CallTypes.aresponses.value,
         model=original_model,
@@ -1419,7 +1419,7 @@ def test_convert_cached_responses_result_parameterized(
     caching_handler = LLMCachingHandler(
         original_function=lambda: None, request_kwargs={}, start_time=datetime.now()
     )
-    logging_obj = LiteLLMLogging(
+    logging_obj = GatewayLogging(
         litellm_call_id=str(datetime.now()),
         call_type=call_type,
         model="gpt-4o",

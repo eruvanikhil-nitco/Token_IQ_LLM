@@ -11,7 +11,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 
-from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
 from token_iq.gateway.proxy.proxy_server import app
 import token_iq.gateway.proxy.proxy_server as ps
 
@@ -26,7 +26,7 @@ def client():
 def mock_auth():
     """Override auth dependency for all tests."""
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, user_id="test-user"
+        user_role=GatewayUserRoles.PROXY_ADMIN, user_id="test-user"
     )
     yield
     app.dependency_overrides.pop(ps.user_api_key_auth, None)

@@ -1146,7 +1146,7 @@ def test_gemini_frequency_penalty_listed_in_vertex_ai_supported_params():
     assert "frequency_penalty" in optional_params
 
 
-def test_litellm_proxy_claude_3_5_sonnet():
+def test_gateway_proxy_claude_3_5_sonnet():
     tools = [
         {
             "type": "function",
@@ -1773,7 +1773,7 @@ def test_azure_modalities_param():
     assert optional_params["audio"] == {"type": "audio_input", "input": "test.wav"}
 
 
-def test_litellm_proxy_thinking_param():
+def test_gateway_proxy_thinking_param():
     optional_params = get_optional_params(
         model="gpt-4o",
         custom_llm_provider="litellm_proxy",

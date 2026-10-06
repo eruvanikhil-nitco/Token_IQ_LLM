@@ -12,9 +12,9 @@ from typing_extensions import ReadOnly, TypedDict
 from token_iq.gateway.integrations.custom_prompt_management import CustomPromptManagement
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 else:
-    LiteLLMLoggingObj = Any
+    GatewayLoggingObj = Any
 from token_iq.gateway.integrations.gitlab.gitlab_client import GitLabClient
 from token_iq.gateway.integrations.prompt_management_base import (
     PromptManagementBase,
@@ -594,7 +594,7 @@ class GitLabPromptManager(CustomPromptManagement):
         prompt_id: str | None,
         prompt_variables: dict | None,
         dynamic_callback_params: StandardCallbackDynamicParams,
-        litellm_logging_obj: LiteLLMLoggingObj,
+        litellm_logging_obj: GatewayLoggingObj,
         prompt_spec: PromptSpec | None = None,
         tools: list[dict] | None = None,
         prompt_label: str | None = None,

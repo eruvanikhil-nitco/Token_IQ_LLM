@@ -192,8 +192,8 @@ class LangsmithLogger(CustomBatchLogger):
         credentials: LangsmithCredentialsObject,
     ):
         try:
-            _litellm_params: Final = kwargs.get("litellm_params", {}) or {}
-            metadata = _litellm_params.get("metadata", {}) or {}
+            _gateway_params: Final = kwargs.get("litellm_params", {}) or {}
+            metadata = _gateway_params.get("metadata", {}) or {}
 
             fields: Final = self._extract_metadata_fields(metadata, credentials)
             # the proxy header fan-out mirrors one value into both keys, and LangSmith

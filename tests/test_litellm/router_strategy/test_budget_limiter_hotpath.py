@@ -19,7 +19,7 @@ def disable_budget_sync(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_get_llm_provider_for_deployment_dict_does_not_require_litellm_params_instantiation(
+async def test_get_llm_provider_for_deployment_dict_does_not_require_gateway_params_instantiation(
     disable_budget_sync, monkeypatch
 ):
     class RaiseOnInit:
@@ -201,12 +201,12 @@ def _legacy_provider_resolution(deployment):
     Reference implementation used before hot-path optimization.
     """
     try:
-        _litellm_params = LiteLLM_Params(
+        _gateway_params = LiteLLM_Params(
             **deployment.get("litellm_params", {"model": ""})
         )
         _, custom_llm_provider, _, _ = gateway.get_llm_provider(
-            model=_litellm_params.model,
-            litellm_params=_litellm_params,
+            model=_gateway_params.model,
+            litellm_params=_gateway_params,
         )
     except Exception:
         return None

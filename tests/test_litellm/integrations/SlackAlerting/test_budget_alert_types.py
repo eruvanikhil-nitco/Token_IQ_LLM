@@ -1,5 +1,5 @@
 from token_iq.gateway.integrations.SlackAlerting.budget_alert_types import SoftBudgetAlert
-from token_iq.gateway.proxy._types import CallInfo, Litellm_EntityType
+from token_iq.gateway.proxy._types import CallInfo, Gateway_EntityType
 
 
 class TestSoftBudgetAlert:
@@ -10,7 +10,7 @@ class TestSoftBudgetAlert:
         user_info = CallInfo(
             spend=120.0,
             token=token_value,
-            event_group=Litellm_EntityType.KEY,
+            event_group=Gateway_EntityType.KEY,
         )
 
         result = alert.get_id(user_info)
@@ -22,7 +22,7 @@ class TestSoftBudgetAlert:
         user_info = CallInfo(
             spend=100.0,
             token=None,
-            event_group=Litellm_EntityType.KEY,
+            event_group=Gateway_EntityType.KEY,
         )
 
         result = alert.get_id(user_info)
@@ -35,7 +35,7 @@ class TestSoftBudgetAlert:
             spend=120.0,
             token="test_token_123",
             team_id="team_456",
-            event_group=Litellm_EntityType.TEAM,
+            event_group=Gateway_EntityType.TEAM,
         )
 
         result = alert.get_id(user_info)
@@ -47,7 +47,7 @@ class TestSoftBudgetAlert:
             spend=120.0,
             token="test_token_123",
             team_id=None,
-            event_group=Litellm_EntityType.TEAM,
+            event_group=Gateway_EntityType.TEAM,
         )
 
         result = alert.get_id(user_info)
@@ -59,7 +59,7 @@ class TestSoftBudgetAlert:
         user_info = CallInfo(
             spend=100.0,
             token="",
-            event_group=Litellm_EntityType.KEY,
+            event_group=Gateway_EntityType.KEY,
         )
 
         result = alert.get_id(user_info)

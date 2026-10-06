@@ -15,7 +15,7 @@ Usage:
 from token_iq.gateway.llms.litellm_proxy.skills import (
     LITELLM_CODE_EXECUTION_TOOL,
     CodeExecutionHandler,
-    LiteLLMInternalTools,
+    GatewayInternalTools,
     SkillPromptInjectionHandler,
     SkillsSandboxExecutor,
     code_execution_handler,
@@ -29,7 +29,7 @@ from token_iq.gateway.proxy.hooks.litellm_skills.main import (
 __all__ = [
     "LITELLM_CODE_EXECUTION_TOOL",
     "CodeExecutionHandler",
-    "LiteLLMInternalTools",
+    "GatewayInternalTools",
     "SkillPromptInjectionHandler",
     "SkillsInjectionHook",
     "SkillsSandboxExecutor",

@@ -10,7 +10,7 @@ from typing import Final
 
 import httpx
 
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.llms.nvidia_nim.rerank.transformation import NvidiaNimRerankConfig
 from token_iq.gateway.types.rerank import RerankResponse
 
@@ -156,7 +156,7 @@ class NvidiaNimRankingConfig(NvidiaNimRerankConfig):
         model: str,
         raw_response: httpx.Response,
         model_response: RerankResponse,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         api_key: str | None = None,
         request_data: dict | None = None,  # mutable-ok: matches BaseRerankConfig's response contract
         optional_params: dict | None = None,  # mutable-ok: matches BaseRerankConfig's response contract
@@ -170,7 +170,7 @@ class NvidiaNimRankingConfig(NvidiaNimRerankConfig):
         """
         resolved_request_data: Final = request_data or {}  # mutable-ok: the base transformer requires a dictionary
         resolved_optional_params: Final = optional_params or {}  # mutable-ok: response options are keyed lookups
-        resolved_litellm_params: Final = litellm_params or {}  # mutable-ok: the base transformer requires a dictionary
+        resolved_gateway_params: Final = litellm_params or {}  # mutable-ok: the base transformer requires a dictionary
 
         response: Final = super().transform_rerank_response(
             model=model,
@@ -180,7 +180,7 @@ class NvidiaNimRankingConfig(NvidiaNimRerankConfig):
             api_key=api_key,
             request_data=resolved_request_data,
             optional_params=resolved_optional_params,
-            litellm_params=resolved_litellm_params,
+            litellm_params=resolved_gateway_params,
         )
 
         top_n: Final = resolved_optional_params.get("top_n") or self._client_side_top_n

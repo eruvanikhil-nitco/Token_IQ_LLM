@@ -41,12 +41,12 @@ from token_iq.gateway.types.llms.openai import (
 from token_iq.gateway.types.utils import ModelResponse, ModelResponseStream
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as _LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as _GatewayLoggingObj
     from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
 
-    LiteLLMLoggingObj = _LiteLLMLoggingObj
+    GatewayLoggingObj = _GatewayLoggingObj
 else:
-    LiteLLMLoggingObj = Any
+    GatewayLoggingObj = Any
     HTTPHandler = Any
     AsyncHTTPHandler = Any
 
@@ -306,7 +306,7 @@ class AzureAIAgentsHandler:
         api_base: str,
         api_key: str,
         model_response: ModelResponse,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         optional_params: dict,
         litellm_params: dict,
         timeout: float,
@@ -430,7 +430,7 @@ class AzureAIAgentsHandler:
         api_base: str,
         api_key: str,
         model_response: ModelResponse,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         optional_params: dict,
         litellm_params: dict,
         timeout: float,
@@ -557,7 +557,7 @@ class AzureAIAgentsHandler:
         messages: list[dict[str, object]],
         api_base: str,
         api_key: str,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         optional_params: dict,
         litellm_params: dict,
         timeout: float,

@@ -126,7 +126,7 @@ async def test_o1_max_completion_tokens(model: str):
         assert request_body["messages"] == [{"role": "user", "content": "Hello!"}]
 
 
-def test_litellm_responses():
+def test_gateway_responses():
     """
     ensures that type of completion_tokens_details is correctly handled / returned
     """

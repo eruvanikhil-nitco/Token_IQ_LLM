@@ -8,7 +8,7 @@ import pytest
 
 from token_iq.gateway.llms.gemini.google_genai.transformation import GoogleGenAIConfig
 from token_iq.gateway.responses.litellm_completion_transformation.transformation import (
-    LiteLLMCompletionResponsesConfig,
+    GatewayCompletionResponsesConfig,
 )
 
 
@@ -166,7 +166,7 @@ def test_responses_api_reasoning_dict_format():
         "temperature": 1.0,
     }
 
-    result = LiteLLMCompletionResponsesConfig.transform_responses_api_request_to_chat_completion_request(
+    result = GatewayCompletionResponsesConfig.transform_responses_api_request_to_chat_completion_request(
         model="gemini/2.5-pro",
         input="Hello, what is the capital of France?",
         responses_api_request=responses_api_request,
@@ -186,7 +186,7 @@ def test_responses_api_reasoning_string_format():
         "temperature": 1.0,
     }
 
-    result = LiteLLMCompletionResponsesConfig.transform_responses_api_request_to_chat_completion_request(
+    result = GatewayCompletionResponsesConfig.transform_responses_api_request_to_chat_completion_request(
         model="gemini/2.5-pro",
         input="Hello, what is the capital of France?",
         responses_api_request=responses_api_request,
@@ -205,7 +205,7 @@ def test_responses_api_reasoning_low_effort():
         "reasoning": {"effort": "low"},
     }
 
-    result = LiteLLMCompletionResponsesConfig.transform_responses_api_request_to_chat_completion_request(
+    result = GatewayCompletionResponsesConfig.transform_responses_api_request_to_chat_completion_request(
         model="gemini/2.5-pro",
         input="Test",
         responses_api_request=responses_api_request,
@@ -223,7 +223,7 @@ def test_responses_api_no_reasoning():
         "temperature": 1.0,
     }
 
-    result = LiteLLMCompletionResponsesConfig.transform_responses_api_request_to_chat_completion_request(
+    result = GatewayCompletionResponsesConfig.transform_responses_api_request_to_chat_completion_request(
         model="gemini/2.5-pro",
         input="Test",
         responses_api_request=responses_api_request,

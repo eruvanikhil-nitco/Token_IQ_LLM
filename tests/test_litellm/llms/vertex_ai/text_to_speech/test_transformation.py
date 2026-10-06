@@ -172,7 +172,7 @@ def test_transform_text_to_speech_response_leaves_unknown_bytes_unlabeled():
 @patch("token_iq.gateway.llms.custom_httpx.llm_http_handler.HTTPHandler.post")
 @patch.object(VertexAITextToSpeechConfig, "_ensure_access_token")
 @patch.object(VertexAITextToSpeechConfig, "_get_token_and_url")
-def test_litellm_speech_vertex_ai_chirp(mock_get_token, mock_ensure_token, mock_post):
+def test_gateway_speech_vertex_ai_chirp(mock_get_token, mock_ensure_token, mock_post):
     """
     Test that litellm.speech(model="vertex_ai/chirp") sends the correct URL and request body
     """

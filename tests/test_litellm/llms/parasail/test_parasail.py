@@ -112,7 +112,7 @@ def test_parasail_responses_api_honors_api_base_override():
 
 
 def test_parasail_responses_api_forces_store_false_when_caller_sets_true():
-    from token_iq.gateway.types.router import GenericLiteLLMParams
+    from token_iq.gateway.types.router import GenericGatewayParams
     from token_iq.gateway.utils import ProviderConfigManager
 
     config = ProviderConfigManager.get_provider_responses_api_config(
@@ -125,7 +125,7 @@ def test_parasail_responses_api_forces_store_false_when_caller_sets_true():
         model="parasail-kimi-k25-elicit",
         input="hello",
         response_api_optional_request_params=request_params,
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         headers={},
     )
 
@@ -134,7 +134,7 @@ def test_parasail_responses_api_forces_store_false_when_caller_sets_true():
 
 
 def test_parasail_responses_api_forces_store_false_when_caller_omits_store():
-    from token_iq.gateway.types.router import GenericLiteLLMParams
+    from token_iq.gateway.types.router import GenericGatewayParams
     from token_iq.gateway.utils import ProviderConfigManager
 
     config = ProviderConfigManager.get_provider_responses_api_config(
@@ -146,7 +146,7 @@ def test_parasail_responses_api_forces_store_false_when_caller_omits_store():
         model="parasail-kimi-k25-elicit",
         input="hello",
         response_api_optional_request_params={},
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         headers={},
     )
 
@@ -154,7 +154,7 @@ def test_parasail_responses_api_forces_store_false_when_caller_omits_store():
 
 
 def test_parasail_responses_api_validate_environment_sets_bearer_token():
-    from token_iq.gateway.types.router import GenericLiteLLMParams
+    from token_iq.gateway.types.router import GenericGatewayParams
     from token_iq.gateway.utils import ProviderConfigManager
 
     config = ProviderConfigManager.get_provider_responses_api_config(
@@ -166,7 +166,7 @@ def test_parasail_responses_api_validate_environment_sets_bearer_token():
         headers = config.validate_environment(
             headers={},
             model="parasail-kimi-k25-elicit",
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
         )
 
     assert headers["Authorization"] == "Bearer secret-from-env"

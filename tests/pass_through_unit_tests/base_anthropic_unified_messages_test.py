@@ -190,7 +190,7 @@ class BaseAnthropicMessagesTest:
         )
 
     @pytest.mark.asyncio
-    async def test_anthropic_messages_litellm_router_streaming_with_logging(self):
+    async def test_anthropic_messages_gateway_router_streaming_with_logging(self):
         """
         Test that logging and cost tracking works for anthropic_messages with streaming request
         """

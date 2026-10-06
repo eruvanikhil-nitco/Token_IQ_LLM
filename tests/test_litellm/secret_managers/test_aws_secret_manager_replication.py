@@ -223,7 +223,7 @@ async def test_replication_fires_on_create(caplog):
             "token_iq.gateway.secret_managers.aws_secret_manager_v2.get_async_httpx_client",
             return_value=_mock_http_client(_REPLICATE_RESPONSE),
         ):
-            with caplog.at_level(logging.INFO, logger="LiteLLM"):
+            with caplog.at_level(logging.INFO, logger="Gateway"):
                 await manager.async_replicate_secret(
                     secret_name="litellm/test-key",
                     replica_regions=["us-west-2"],

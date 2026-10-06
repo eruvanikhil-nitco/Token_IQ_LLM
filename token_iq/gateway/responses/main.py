@@ -11,12 +11,12 @@ from pydantic import BaseModel
 from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
-    LiteLLMResponsesTransformationHandler,
+    GatewayResponsesTransformationHandler,
 )
 from token_iq.gateway.constants import request_timeout
 from token_iq.gateway.integrations.anthropic_cache_control_hook import CARRY_UNMATCHED_MESSAGE_POINTS
 from token_iq.gateway.core_utils.asyncify import run_async_function
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.core_utils.prompt_templates.common_utils import (
     update_responses_input_with_model_file_ids,
     update_responses_tools_with_model_file_ids,
@@ -24,7 +24,7 @@ from token_iq.gateway.core_utils.prompt_templates.common_utils import (
 from token_iq.gateway.llms.base_llm.responses.transformation import BaseResponsesAPIConfig
 from token_iq.gateway.llms.custom_httpx.llm_http_handler import BaseLLMHTTPHandler
 from token_iq.gateway.responses.litellm_completion_transformation.handler import (
-    LiteLLMCompletionTransformationHandler,
+    GatewayCompletionTransformationHandler,
 )
 from token_iq.gateway.responses.utils import ResponsesAPIRequestUtils
 from token_iq.gateway.types.llms.openai import (
@@ -47,7 +47,7 @@ from token_iq.gateway.core_utils.get_litellm_params import get_litellm_params
 from token_iq.gateway.llms.openai.data_residency import infer_openai_data_residency
 from token_iq.gateway.secret_managers.main import get_secret_str
 from token_iq.gateway.types.responses.main import *
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.utils import (
     ProviderConfigManager,
     client,
@@ -64,7 +64,7 @@ from .streaming_iterator import BaseResponsesAPIStreamingIterator
 ####### ENVIRONMENT VARIABLES ###################
 # Initialize any necessary instances or variables here
 base_llm_http_handler = BaseLLMHTTPHandler()
-litellm_completion_transformation_handler: Final = LiteLLMCompletionTransformationHandler()
+gateway_completion_transformation_handler: Final = GatewayCompletionTransformationHandler()
 #################################################
 
 
@@ -173,7 +173,7 @@ async def aresponses_api_with_mcp(
 
     # Parse MCP tools and separate from other tools
     (
-        mcp_tools_with_litellm_proxy,
+        mcp_tools_with_gateway_proxy,
         other_tools,
     ) = LiteLLM_Proxy_MCP_Handler._parse_mcp_tools(tools)
 
@@ -199,7 +199,7 @@ async def aresponses_api_with_mcp(
         tool_server_map,
     ) = await LiteLLM_Proxy_MCP_Handler._process_mcp_tools_without_openai_transform(
         user_api_key_auth=user_api_key_auth,
-        mcp_tools_with_litellm_proxy=mcp_tools_with_litellm_proxy,
+        mcp_tools_with_gateway_proxy=mcp_tools_with_gateway_proxy,
         litellm_trace_id=kwargs.get("litellm_trace_id"),
         mcp_auth_header=mcp_auth_header,
         mcp_server_auth_headers=mcp_server_auth_headers,
@@ -237,7 +237,7 @@ async def aresponses_api_with_mcp(
     }
 
     # Handle MCP streaming if requested
-    if stream and mcp_tools_with_litellm_proxy:
+    if stream and mcp_tools_with_gateway_proxy:
         # Generate MCP discovery events using the already processed tools
         from token_iq.gateway._uuid import uuid
         from token_iq.gateway.responses.mcp.mcp_streaming_iterator import (
@@ -246,7 +246,7 @@ async def aresponses_api_with_mcp(
 
         base_item_id: Final = f"mcp_{uuid.uuid4().hex[:8]}"
         mcp_discovery_events: Final = await create_mcp_list_tools_events(
-            mcp_tools_with_litellm_proxy=mcp_tools_with_litellm_proxy,
+            mcp_tools_with_gateway_proxy=mcp_tools_with_gateway_proxy,
             user_api_key_auth=user_api_key_auth,
             base_item_id=base_item_id,
             pre_processed_mcp_tools=original_mcp_tools,
@@ -256,7 +256,7 @@ async def aresponses_api_with_mcp(
             input=input,
             model=model,
             all_tools=all_tools,
-            mcp_tools_with_litellm_proxy=mcp_tools_with_litellm_proxy,
+            mcp_tools_with_gateway_proxy=mcp_tools_with_gateway_proxy,
             mcp_discovery_events=mcp_discovery_events,
             call_params=call_params,
             previous_response_id=previous_response_id,
@@ -269,8 +269,8 @@ async def aresponses_api_with_mcp(
         return mcp_streaming_response
 
     # Determine if we should auto-execute tools
-    should_auto_execute = bool(mcp_tools_with_litellm_proxy) and LiteLLM_Proxy_MCP_Handler._should_auto_execute_tools(
-        mcp_tools_with_litellm_proxy=mcp_tools_with_litellm_proxy
+    should_auto_execute = bool(mcp_tools_with_gateway_proxy) and LiteLLM_Proxy_MCP_Handler._should_auto_execute_tools(
+        mcp_tools_with_gateway_proxy=mcp_tools_with_gateway_proxy
     )
 
     # Prepare parameters for the initial call
@@ -376,7 +376,7 @@ async def aresponses_api_with_mcp(
                         _,
                     ) = await LiteLLM_Proxy_MCP_Handler._process_mcp_tools_without_openai_transform(
                         user_api_key_auth=user_api_key_auth,
-                        mcp_tools_with_litellm_proxy=mcp_tools_with_litellm_proxy,
+                        mcp_tools_with_gateway_proxy=mcp_tools_with_gateway_proxy,
                         mcp_auth_header=mcp_auth_header,
                         mcp_server_auth_headers=mcp_server_auth_headers,
                         request_tags=LiteLLM_Proxy_MCP_Handler._get_parent_request_tags(kwargs),
@@ -516,7 +516,7 @@ async def aresponses(
         original_model: Final = model
 
         if isinstance(
-            litellm_logging_obj, LiteLLMLoggingObj
+            litellm_logging_obj, GatewayLoggingObj
         ) and litellm_logging_obj.should_run_prompt_management_hooks(prompt_id=prompt_id, non_default_params=kwargs):
             client_input: Final = ResponsesAPIRequestUtils.responses_input_to_chat_messages(input)
             with _prompt_management_sees_a_provisional_message_list(
@@ -657,7 +657,7 @@ def _apply_prompt_management_to_responses_call(
     input: str | ResponseInputParam,
     model: str,
     custom_llm_provider: str | None,
-    litellm_logging_obj: LiteLLMLoggingObj | None,
+    litellm_logging_obj: GatewayLoggingObj | None,
     kwargs: dict[str, Any],
     local_vars: dict[str, object],
     use_chat_completions_api: bool,
@@ -674,7 +674,7 @@ def _apply_prompt_management_to_responses_call(
 
     client_input: Final = ResponsesAPIRequestUtils.responses_input_to_chat_messages(input)
 
-    if isinstance(litellm_logging_obj, LiteLLMLoggingObj) and litellm_logging_obj.should_run_prompt_management_hooks(
+    if isinstance(litellm_logging_obj, GatewayLoggingObj) and litellm_logging_obj.should_run_prompt_management_hooks(
         prompt_id=prompt_id, non_default_params=kwargs
     ):
         with _prompt_management_sees_a_provisional_message_list(
@@ -755,7 +755,7 @@ def _strip_responses_routing_prefix(model: str) -> str:
 def _resolve_model_provider_for_responses(
     model: str,
     custom_llm_provider: str | None,
-    litellm_params: GenericLiteLLMParams,
+    litellm_params: GenericGatewayParams,
     local_vars: dict[str, object],
 ) -> tuple[str, str | None]:
     if custom_llm_provider is not None and not litellm_params.custom_llm_provider:
@@ -1012,7 +1012,7 @@ def responses(
     local_vars: Final = locals()
 
     try:
-        litellm_logging_obj: Final[LiteLLMLoggingObj] = kwargs.get("litellm_logging_obj")
+        litellm_logging_obj: Final[GatewayLoggingObj] = kwargs.get("litellm_logging_obj")
         litellm_call_id: Final[str | None] = kwargs.get("litellm_call_id", None)
         _is_async: Final = kwargs.pop("aresponses", False) is True
         use_chat_completions_api = _pop_use_chat_completions_api_kw(kwargs)
@@ -1058,7 +1058,7 @@ def responses(
         )
 
         # get llm provider logic
-        litellm_params: Final = GenericLiteLLMParams(**kwargs)
+        litellm_params: Final = GenericGatewayParams(**kwargs)
 
         #########################################################
         # MOCK RESPONSE LOGIC
@@ -1126,7 +1126,7 @@ def responses(
         local_vars.update(kwargs)
         # Map reasoning_effort (from litellm_params/proxy config) to reasoning when not set
         if reasoning is None and "reasoning_effort" in local_vars:
-            _mapped = LiteLLMResponsesTransformationHandler()._map_reasoning_effort(local_vars.pop("reasoning_effort"))
+            _mapped = GatewayResponsesTransformationHandler()._map_reasoning_effort(local_vars.pop("reasoning_effort"))
             if _mapped is not None:
                 reasoning = _mapped
                 local_vars["reasoning"] = _mapped
@@ -1174,7 +1174,7 @@ def responses(
             return _file_search_dispatch
 
         if _bridges_to_chat_completions(responses_api_provider_config, use_chat_completions_api):
-            return litellm_completion_transformation_handler.response_api_handler(
+            return gateway_completion_transformation_handler.response_api_handler(
                 model=model,
                 input=input,
                 responses_api_request=response_api_optional_params,
@@ -1345,12 +1345,12 @@ def delete_responses(
     """
     local_vars: Final = locals()
     try:
-        litellm_logging_obj: Final[LiteLLMLoggingObj] = kwargs.get("litellm_logging_obj")
+        litellm_logging_obj: Final[GatewayLoggingObj] = kwargs.get("litellm_logging_obj")
         litellm_call_id: Final[str | None] = kwargs.get("litellm_call_id", None)
         _is_async: Final = kwargs.pop("adelete_responses", False) is True
 
         # get llm provider logic
-        litellm_params: Final = GenericLiteLLMParams(**kwargs)
+        litellm_params: Final = GenericGatewayParams(**kwargs)
 
         # get custom llm provider from response_id
         decoded_response_id: Final[DecodedResponseId] = ResponsesAPIRequestUtils._decode_responses_api_response_id(
@@ -1516,12 +1516,12 @@ def get_responses(
     """
     local_vars: Final = locals()
     try:
-        litellm_logging_obj: Final[LiteLLMLoggingObj] = kwargs.get("litellm_logging_obj")
+        litellm_logging_obj: Final[GatewayLoggingObj] = kwargs.get("litellm_logging_obj")
         litellm_call_id: Final[str | None] = kwargs.get("litellm_call_id", None)
         _is_async: Final = kwargs.pop("aget_responses", False) is True
 
         # get llm provider logic
-        litellm_params: Final = GenericLiteLLMParams(**kwargs)
+        litellm_params: Final = GenericGatewayParams(**kwargs)
 
         # get custom llm provider from response_id
         decoded_response_id: Final[DecodedResponseId] = ResponsesAPIRequestUtils._decode_responses_api_response_id(
@@ -1665,11 +1665,11 @@ def list_input_items(
     """List input items for a response"""
     local_vars: Final = locals()
     try:
-        litellm_logging_obj: Final[LiteLLMLoggingObj] = kwargs.get("litellm_logging_obj")
+        litellm_logging_obj: Final[GatewayLoggingObj] = kwargs.get("litellm_logging_obj")
         litellm_call_id: Final[str | None] = kwargs.get("litellm_call_id", None)
         _is_async: Final = kwargs.pop("alist_input_items", False) is True
 
-        litellm_params: Final = GenericLiteLLMParams(**kwargs)
+        litellm_params: Final = GenericGatewayParams(**kwargs)
 
         decoded_response_id: Final = ResponsesAPIRequestUtils._decode_responses_api_response_id(response_id=response_id)
         response_id = decoded_response_id.get("response_id") or response_id
@@ -1809,12 +1809,12 @@ def cancel_responses(
     """
     local_vars: Final = locals()
     try:
-        litellm_logging_obj: Final[LiteLLMLoggingObj] = kwargs.get("litellm_logging_obj")
+        litellm_logging_obj: Final[GatewayLoggingObj] = kwargs.get("litellm_logging_obj")
         litellm_call_id: Final[str | None] = kwargs.get("litellm_call_id", None)
         _is_async: Final = kwargs.pop("acancel_responses", False) is True
 
         # get llm provider logic
-        litellm_params: Final = GenericLiteLLMParams(**kwargs)
+        litellm_params: Final = GenericGatewayParams(**kwargs)
 
         # get custom llm provider from response_id
         decoded_response_id: Final[DecodedResponseId] = ResponsesAPIRequestUtils._decode_responses_api_response_id(
@@ -1981,12 +1981,12 @@ def compact_responses(
     """
     local_vars: Final = locals()
     try:
-        litellm_logging_obj: Final[LiteLLMLoggingObj] = kwargs.get("litellm_logging_obj")
+        litellm_logging_obj: Final[GatewayLoggingObj] = kwargs.get("litellm_logging_obj")
         litellm_call_id: Final[str | None] = kwargs.get("litellm_call_id", None)
         _is_async: Final = kwargs.pop("acompact_responses", False) is True
 
         # get llm provider logic
-        litellm_params: Final = GenericLiteLLMParams(**kwargs)
+        litellm_params: Final = GenericGatewayParams(**kwargs)
 
         model, custom_llm_provider = _resolve_model_provider_for_responses(
             model=model,
@@ -2084,7 +2084,7 @@ def compact_responses(
 # ---------------------------------------------------------------------------
 
 
-def _build_litellm_metadata_for_ws(kwargs: dict) -> dict:
+def _build_gateway_metadata_for_ws(kwargs: dict) -> dict:
     metadata: Final[dict] = {**(kwargs.get("litellm_metadata") or {})}
     guardrails: Final = (kwargs.get("metadata") or {}).get("guardrails") or kwargs.get("guardrails") or []
     if guardrails:
@@ -2110,10 +2110,10 @@ async def _aresponses_websocket(
     ``BaseResponsesAPIConfig``, and hands off to
     ``BaseLLMHTTPHandler.async_responses_websocket``.
     """
-    litellm_logging_obj: Final[LiteLLMLoggingObj] = kwargs.get("litellm_logging_obj")
+    litellm_logging_obj: Final[GatewayLoggingObj] = kwargs.get("litellm_logging_obj")
     user: Final = kwargs.get("user", None)
-    litellm_params: Final = GenericLiteLLMParams(**kwargs)
-    litellm_params_dict: Final = get_litellm_params(**kwargs)
+    litellm_params: Final = GenericGatewayParams(**kwargs)
+    gateway_params_dict: Final = get_litellm_params(**kwargs)
 
     (
         provider_model,
@@ -2127,7 +2127,7 @@ async def _aresponses_websocket(
     )
     resolved_model: Final = _strip_responses_routing_prefix(provider_model)
 
-    litellm_params_dict["data_residency"] = infer_openai_data_residency(
+    gateway_params_dict["data_residency"] = infer_openai_data_residency(
         _custom_llm_provider,
         dynamic_api_base or litellm_params.api_base or gateway.api_base,
     )
@@ -2137,7 +2137,7 @@ async def _aresponses_websocket(
         model=resolved_model,
         user=user,
         optional_params={},
-        litellm_params=litellm_params_dict,
+        litellm_params=gateway_params_dict,
         custom_llm_provider=_custom_llm_provider,
     )
 
@@ -2180,7 +2180,7 @@ async def _aresponses_websocket(
         api_key=resolved_api_key,
         timeout=timeout,
         user_api_key_dict=kwargs.get("user_api_key_dict"),
-        litellm_metadata=_build_litellm_metadata_for_ws(kwargs),
+        litellm_metadata=_build_gateway_metadata_for_ws(kwargs),
         custom_llm_provider=_custom_llm_provider,
         **remaining_kwargs,
     )

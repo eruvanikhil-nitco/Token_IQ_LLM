@@ -13,7 +13,7 @@ import pytest
 from redis.exceptions import DataError
 
 from token_iq import gateway
-from token_iq.gateway.proxy._types import Litellm_EntityType
+from token_iq.gateway.proxy._types import Gateway_EntityType
 from token_iq.gateway.proxy.db.db_spend_update_writer import DBSpendUpdateWriter
 from token_iq.gateway.proxy.db.db_transaction_queue.window_spend_update_queue import (
     build_window_spend_transaction,
@@ -38,7 +38,7 @@ async def test_daily_spend_tracking_with_disabled_spend_logs():
         patch("token_iq.gateway.proxy.proxy_server.disable_spend_logs", True),
         patch("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock()),
         patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", MagicMock()),
-        patch("token_iq.gateway.proxy.proxy_server.litellm_proxy_budget_name", "test-budget"),
+        patch("token_iq.gateway.proxy.proxy_server.gateway_proxy_budget_name", "test-budget"),
     ):
         # Test data
         test_data = {
@@ -111,7 +111,7 @@ async def test_update_database_enqueues_tool_usage_for_invoked_tools():
     with (
         patch("token_iq.gateway.proxy.proxy_server.disable_spend_logs", False),
         patch("token_iq.gateway.proxy.proxy_server.prisma_client", prisma),
-        patch("token_iq.gateway.proxy.proxy_server.litellm_proxy_budget_name", "test-budget"),
+        patch("token_iq.gateway.proxy.proxy_server.gateway_proxy_budget_name", "test-budget"),
         patch(
             "token_iq.gateway.proxy.spend_tracking.spend_tracking_utils.get_logging_payload",
             return_value=_minimal_spend_payload(),
@@ -150,7 +150,7 @@ async def test_update_database_enqueues_realtime_tool_usage():
     with (
         patch("token_iq.gateway.proxy.proxy_server.disable_spend_logs", False),
         patch("token_iq.gateway.proxy.proxy_server.prisma_client", prisma),
-        patch("token_iq.gateway.proxy.proxy_server.litellm_proxy_budget_name", "test-budget"),
+        patch("token_iq.gateway.proxy.proxy_server.gateway_proxy_budget_name", "test-budget"),
         patch(
             "token_iq.gateway.proxy.spend_tracking.spend_tracking_utils.get_logging_payload",
             return_value=_minimal_spend_payload(),
@@ -207,7 +207,7 @@ async def test_update_database_skips_tool_usage_when_spend_logs_disabled():
     with (
         patch("token_iq.gateway.proxy.proxy_server.disable_spend_logs", True),
         patch("token_iq.gateway.proxy.proxy_server.prisma_client", prisma),
-        patch("token_iq.gateway.proxy.proxy_server.litellm_proxy_budget_name", "test-budget"),
+        patch("token_iq.gateway.proxy.proxy_server.gateway_proxy_budget_name", "test-budget"),
         patch(
             "token_iq.gateway.proxy.spend_tracking.spend_tracking_utils.get_logging_payload",
             return_value=_minimal_spend_payload(),
@@ -627,7 +627,7 @@ async def test_update_tag_db_with_valid_tags():
     """
     Test that _update_tag_db correctly processes valid tags and adds them to the spend update queue.
     """
-    from token_iq.gateway.proxy._types import Litellm_EntityType, SpendUpdateQueueItem
+    from token_iq.gateway.proxy._types import Gateway_EntityType, SpendUpdateQueueItem
 
     writer = DBSpendUpdateWriter()
     mock_prisma = MagicMock()
@@ -645,12 +645,12 @@ async def test_update_tag_db_with_valid_tags():
     assert writer.spend_update_queue.add_update.call_count == 2
 
     first_call_args = writer.spend_update_queue.add_update.call_args_list[0][1]
-    assert first_call_args["update"]["entity_type"] == Litellm_EntityType.TAG
+    assert first_call_args["update"]["entity_type"] == Gateway_EntityType.TAG
     assert first_call_args["update"]["entity_id"] == "prod-tag"
     assert first_call_args["update"]["response_cost"] == response_cost
 
     second_call_args = writer.spend_update_queue.add_update.call_args_list[1][1]
-    assert second_call_args["update"]["entity_type"] == Litellm_EntityType.TAG
+    assert second_call_args["update"]["entity_type"] == Gateway_EntityType.TAG
     assert second_call_args["update"]["entity_id"] == "test-tag"
     assert second_call_args["update"]["response_cost"] == response_cost
 
@@ -748,7 +748,7 @@ async def test_update_agent_db_enqueues_agent_spend():
     """
     Test that _update_agent_db enqueues a SpendUpdateQueueItem with entity_type=AGENT.
     """
-    from token_iq.gateway.proxy._types import Litellm_EntityType
+    from token_iq.gateway.proxy._types import Gateway_EntityType
 
     writer = DBSpendUpdateWriter()
     mock_prisma = MagicMock()
@@ -765,7 +765,7 @@ async def test_update_agent_db_enqueues_agent_spend():
 
     writer.spend_update_queue.add_update.assert_called_once()
     call_args = writer.spend_update_queue.add_update.call_args[1]
-    assert call_args["update"]["entity_type"] == Litellm_EntityType.AGENT
+    assert call_args["update"]["entity_type"] == Gateway_EntityType.AGENT
     assert call_args["update"]["entity_id"] == agent_id
     assert call_args["update"]["response_cost"] == response_cost
 
@@ -1560,7 +1560,7 @@ async def test_update_database_creates_single_task():
         patch("token_iq.gateway.proxy.proxy_server.disable_spend_logs", False),
         patch("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock()),
         patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", MagicMock()),
-        patch("token_iq.gateway.proxy.proxy_server.litellm_proxy_budget_name", "test-budget"),
+        patch("token_iq.gateway.proxy.proxy_server.gateway_proxy_budget_name", "test-budget"),
         patch("token_iq.gateway.proxy.db.db_spend_update_writer.asyncio.create_task") as mock_create_task,
     ):
         await db_writer.update_database(
@@ -1614,7 +1614,7 @@ async def test_batch_database_updates_isolation_on_failure():
         project_id="proj1",
         end_user_id="eu1",
         prisma_client=MagicMock(),
-        litellm_proxy_budget_name="budget",
+        gateway_proxy_budget_name="budget",
         payload={"key": "value"},
     )
 
@@ -1684,7 +1684,7 @@ async def test_daily_agent_receives_deepcopied_payload():
         patch("token_iq.gateway.proxy.proxy_server.disable_spend_logs", True),
         patch("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock()),
         patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", MagicMock()),
-        patch("token_iq.gateway.proxy.proxy_server.litellm_proxy_budget_name", "test-budget"),
+        patch("token_iq.gateway.proxy.proxy_server.gateway_proxy_budget_name", "test-budget"),
         patch(
             "token_iq.gateway.proxy.spend_tracking.spend_tracking_utils.get_logging_payload",
             return_value=fake_payload,
@@ -2197,7 +2197,7 @@ async def test_update_database_does_not_deepcopy_on_request_path():
         patch("token_iq.gateway.proxy.proxy_server.disable_spend_logs", False),
         patch("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock()),
         patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", MagicMock()),
-        patch("token_iq.gateway.proxy.proxy_server.litellm_proxy_budget_name", "test-budget"),
+        patch("token_iq.gateway.proxy.proxy_server.gateway_proxy_budget_name", "test-budget"),
         patch(
             "token_iq.gateway.proxy.spend_tracking.spend_tracking_utils.get_logging_payload",
             return_value=fake_payload,
@@ -2268,7 +2268,7 @@ async def test_spend_update_path_never_queries_user_cache_with_none_user_id():
         patch("token_iq.gateway.proxy.proxy_server.disable_spend_logs", True),
         patch("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock()),
         patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", strict_redis_backed_cache),
-        patch("token_iq.gateway.proxy.proxy_server.litellm_proxy_budget_name", "litellm-proxy-budget"),
+        patch("token_iq.gateway.proxy.proxy_server.gateway_proxy_budget_name", "litellm-proxy-budget"),
         patch(
             "token_iq.gateway.proxy.spend_tracking.spend_tracking_utils.get_logging_payload",
             return_value={
@@ -2297,10 +2297,10 @@ async def test_spend_update_path_never_queries_user_cache_with_none_user_id():
     strict_redis_backed_cache.async_get_cache.assert_not_called()
 
     queued = await db_writer.spend_update_queue.flush_all_updates_from_in_memory_queue()
-    end_user_updates = [u for u in queued if u["entity_type"] == Litellm_EntityType.END_USER]
+    end_user_updates = [u for u in queued if u["entity_type"] == Gateway_EntityType.END_USER]
     assert len(end_user_updates) == 1
     assert end_user_updates[0]["entity_id"] == "end-user-1"
-    assert all(u["entity_type"] != Litellm_EntityType.USER for u in queued)
+    assert all(u["entity_type"] != Gateway_EntityType.USER for u in queued)
 
 
 @pytest.mark.asyncio
@@ -2316,14 +2316,14 @@ async def test_update_user_db_enqueues_user_spend_without_cache_dependency():
             response_cost=0.25,
             user_id="user-123",
             prisma_client=MagicMock(),
-            litellm_proxy_budget_name="litellm-proxy-budget",
+            gateway_proxy_budget_name="litellm-proxy-budget",
             end_user_id="end-user-9",
         )
 
     queued = await db_writer.spend_update_queue.flush_all_updates_from_in_memory_queue()
     by_type = {u["entity_type"]: u["entity_id"] for u in queued}
-    assert by_type[Litellm_EntityType.USER] == "user-123"
-    assert by_type[Litellm_EntityType.END_USER] == "end-user-9"
+    assert by_type[Gateway_EntityType.USER] == "user-123"
+    assert by_type[Gateway_EntityType.END_USER] == "end-user-9"
 
 
 @pytest.mark.asyncio
@@ -3110,7 +3110,7 @@ async def test_spend_on_a_project_key_is_attributed_to_that_project():
         project_id="proj-alpha",
         end_user_id=None,
         prisma_client=MagicMock(),
-        litellm_proxy_budget_name=None,
+        gateway_proxy_budget_name=None,
         payload={},
     )
 
@@ -3131,7 +3131,7 @@ async def test_a_request_with_no_project_leaves_the_project_ledger_alone():
         project_id=None,
         end_user_id=None,
         prisma_client=MagicMock(),
-        litellm_proxy_budget_name=None,
+        gateway_proxy_budget_name=None,
         payload={},
     )
 

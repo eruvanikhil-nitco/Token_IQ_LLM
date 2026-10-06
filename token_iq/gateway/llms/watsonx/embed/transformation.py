@@ -8,7 +8,7 @@ import httpx
 
 from token_iq.gateway.llms.base_llm.embedding.transformation import (
     BaseEmbeddingConfig,
-    LiteLLMLoggingObj,
+    GatewayLoggingObj,
 )
 from token_iq.gateway.types.llms.openai import AllEmbeddingInputValues
 from token_iq.gateway.types.llms.watsonx import WatsonXAIEndpoint
@@ -83,7 +83,7 @@ class IBMWatsonXEmbeddingConfig(IBMWatsonXMixin, BaseEmbeddingConfig):
         model: str,
         raw_response: httpx.Response,
         model_response: EmbeddingResponse,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         api_key: str | None,
         request_data: dict,
         optional_params: dict,

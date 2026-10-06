@@ -27,11 +27,11 @@ def test_openai_embedding():
             input=["good morning from litellm", "this is another item"],
             metadata={"anything": "good day"},
         )
-        litellm_response = dict(response)
-        litellm_response_keys = set(litellm_response.keys())
-        litellm_response_keys.discard("_response_ms")
+        gateway_response = dict(response)
+        gateway_response_keys = set(gateway_response.keys())
+        gateway_response_keys.discard("_response_ms")
 
-        print(litellm_response_keys)
+        print(gateway_response_keys)
         print("LiteLLM Response\n")
         # print(litellm_response)
 
@@ -48,10 +48,10 @@ def test_openai_embedding():
         openai_response_keys = set(response.keys())
         print(openai_response_keys)
         assert (
-            litellm_response_keys == openai_response_keys
+            gateway_response_keys == openai_response_keys
         )  # ENSURE the Keys in litellm response is exactly what the openai package returns
         assert (
-            len(litellm_response["data"]) == 2
+            len(gateway_response["data"]) == 2
         )  # expect two embedding responses from litellm_response since input had two
         print(openai_response_keys)
     except Exception as e:
@@ -71,11 +71,11 @@ def test_openai_embedding_3():
             dimensions=5,
         )
         print(f"response:", response)
-        litellm_response = dict(response)
-        litellm_response_keys = set(litellm_response.keys())
-        litellm_response_keys.discard("_response_ms")
+        gateway_response = dict(response)
+        gateway_response_keys = set(gateway_response.keys())
+        gateway_response_keys.discard("_response_ms")
 
-        print(litellm_response_keys)
+        print(gateway_response_keys)
         print("LiteLLM Response\n")
         # print(litellm_response)
 
@@ -93,10 +93,10 @@ def test_openai_embedding_3():
         openai_response_keys = set(response.keys())
         print(openai_response_keys)
         assert (
-            litellm_response_keys == openai_response_keys
+            gateway_response_keys == openai_response_keys
         )  # ENSURE the Keys in litellm response is exactly what the openai package returns
         assert (
-            len(litellm_response["data"]) == 2
+            len(gateway_response["data"]) == 2
         )  # expect two embedding responses from litellm_response since input had two
         print(openai_response_keys)
     except Exception as e:

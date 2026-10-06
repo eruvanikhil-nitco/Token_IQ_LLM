@@ -4,7 +4,7 @@ from typing import Any, Final
 import httpx
 
 from token_iq.gateway.exceptions import AuthenticationError
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.core_utils.litellm_logging import verbose_logger
 from token_iq.gateway.llms.base_llm.anthropic_messages.transformation import (
     BaseAnthropicMessagesConfig,
@@ -18,7 +18,7 @@ from token_iq.gateway.types.llms.anthropic_messages.anthropic_response import (
     AnthropicMessagesResponse,
 )
 from token_iq.gateway.types.llms.anthropic_tool_search import get_tool_search_beta_header
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 
 from ...common_utils import (
     AnthropicError,
@@ -532,7 +532,7 @@ class AnthropicMessagesConfig(BaseAnthropicMessagesConfig):
         model: str,
         messages: list[dict],
         anthropic_messages_optional_request_params: dict,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> dict:
         """
@@ -624,7 +624,7 @@ class AnthropicMessagesConfig(BaseAnthropicMessagesConfig):
         self,
         model: str,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> AnthropicMessagesResponse:
         """
         No transformation is needed for Anthropic messages, since we want the response in the Anthropic /v1/messages API spec
@@ -640,7 +640,7 @@ class AnthropicMessagesConfig(BaseAnthropicMessagesConfig):
         model: str,
         httpx_response: httpx.Response,
         request_body: dict,
-        litellm_logging_obj: LiteLLMLoggingObj,
+        litellm_logging_obj: GatewayLoggingObj,
     ) -> AsyncIterator:
         """Helper function to handle Anthropic streaming responses using the existing logging handlers"""
         from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.streaming_iterator import (

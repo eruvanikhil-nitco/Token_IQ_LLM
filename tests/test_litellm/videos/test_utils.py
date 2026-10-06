@@ -45,7 +45,7 @@ def test_requested__drops_none_and_excluded_keys():
     assert result == {"seconds": "8", "user": "u1"}
 
 
-def test_requested__strips_litellm_internal_params():
+def test_requested__strips_gateway_internal_params():
     result = get_requested(
         {
             "seconds": "8",
@@ -109,7 +109,7 @@ def test_requested__extra_body_kwargs_overrides_top_level():
     }
 
 
-def test_requested__extra_body_strips_litellm_internal_params():
+def test_requested__extra_body_strips_gateway_internal_params():
     result = get_requested({"extra_body": {"api_key": "sk", "foo_param": "bar"}})
     # api_key filtered out of extra_body; only foo_param remains (and is spread).
     assert result == {"foo_param": "bar", "extra_body": {"foo_param": "bar"}}

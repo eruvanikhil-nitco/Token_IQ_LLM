@@ -16,7 +16,7 @@ from typing import Final
 import fastapi
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from token_iq.gateway.proxy._types import CommonProxyErrors, LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import CommonProxyErrors, GatewayUserRoles, UserAPIKeyAuth
 from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 from token_iq.gateway.types.proxy.management_endpoints.team_endpoints import (
     BillingProbeResponse,
@@ -88,7 +88,7 @@ async def provider_reconciliation(
     """Every request in the window, priced by us and by the provider, with the difference."""
     from token_iq.gateway.proxy.proxy_server import prisma_client
 
-    if user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN:
+    if user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail={"error": "Only a proxy admin may read cross-team provider reconciliation."},
@@ -226,7 +226,7 @@ async def provider_billing_probe(
     """Try one provider's billing API now and report what came back."""
     from token_iq.gateway.proxy.proxy_server import prisma_client
 
-    if user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN:
+    if user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail={"error": "Only a proxy admin may probe a provider's billing API."},
@@ -279,7 +279,7 @@ async def daily_reconciliation(
     """
     from token_iq.gateway.proxy.proxy_server import prisma_client
 
-    if user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN:
+    if user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail={"error": "Only a proxy admin may read cross-team provider reconciliation."},

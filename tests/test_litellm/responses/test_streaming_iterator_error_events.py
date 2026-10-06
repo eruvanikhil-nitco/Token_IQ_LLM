@@ -22,7 +22,7 @@ import pytest
 
 from token_iq import gateway
 from token_iq.gateway.exceptions import MidStreamFallbackError
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.llms.base_llm.responses.transformation import BaseResponsesAPIConfig
 from token_iq.gateway.responses.streaming_iterator import (
     _ERROR_CODE_HTTP_STATUS,
@@ -40,7 +40,7 @@ from token_iq.gateway.types.llms.openai import (
 
 
 def _make_iterator() -> BaseResponsesAPIStreamingIterator:
-    mock_logging_obj = Mock(spec=LiteLLMLoggingObj)
+    mock_logging_obj = Mock(spec=GatewayLoggingObj)
     mock_logging_obj.model_call_details = {"litellm_params": {}}
     mock_config = Mock(spec=BaseResponsesAPIConfig)
     mock_response = Mock()
@@ -140,7 +140,7 @@ def _make_async_iterator_with_events(events: list) -> ResponsesAPIStreamingItera
     mock_response = Mock()
     mock_response.headers = {}
     mock_response.aiter_bytes = mock_aiter_bytes
-    mock_logging_obj = Mock(spec=LiteLLMLoggingObj)
+    mock_logging_obj = Mock(spec=GatewayLoggingObj)
     mock_logging_obj.model_call_details = {"litellm_params": {}}
     mock_logging_obj.completion_start_time = None
     mock_config = Mock(spec=BaseResponsesAPIConfig)
@@ -334,7 +334,7 @@ def test_sync_iterator_raises_mid_stream_fallback_on_rate_limit_error_event():
     mock_response = Mock()
     mock_response.headers = {}
     mock_response.iter_bytes.return_value = iter([sse_bytes])
-    mock_logging_obj = Mock(spec=LiteLLMLoggingObj)
+    mock_logging_obj = Mock(spec=GatewayLoggingObj)
     mock_logging_obj.model_call_details = {"litellm_params": {}}
     mock_logging_obj.completion_start_time = None
     mock_config = Mock(spec=BaseResponsesAPIConfig)

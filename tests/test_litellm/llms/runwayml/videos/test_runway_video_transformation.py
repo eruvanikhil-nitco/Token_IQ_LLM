@@ -13,7 +13,7 @@ from token_iq.gateway.llms.runwayml.videos.transformation import (
     RunwayMLVideoConfig,
     _ratio_to_resolution,
 )
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.types.videos.main import VideoObject
 
 
@@ -39,7 +39,7 @@ class TestRunwayMLVideoTransformation:
                 "duration": 5,
                 "ratio": "1280:720",
             },
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 
@@ -61,7 +61,7 @@ class TestRunwayMLVideoTransformation:
             prompt="A serene mountain lake at sunrise",
             api_base="https://api.dev.runwayml.com/v1",
             video_create_optional_request_params={"duration": 8, "ratio": "1280:720"},
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 
@@ -80,7 +80,7 @@ class TestRunwayMLVideoTransformation:
                 "promptImage": "https://example.com/reference.png",
                 "ratio": "1280:720",
             },
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 
@@ -94,7 +94,7 @@ class TestRunwayMLVideoTransformation:
             prompt="Make it snow",
             api_base="https://api.dev.runwayml.com/v1",
             video_create_optional_request_params={"videoUri": "https://example.com/source.mp4"},
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 
@@ -219,7 +219,7 @@ class TestRunwayMLVideoTransformation:
         url, params = self.config.transform_video_status_retrieve_request(
             video_id=video_id,
             api_base=api_base,
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 
@@ -268,7 +268,7 @@ class TestRunwayMLVideoTransformation:
         url, params = self.config.transform_video_content_request(
             video_id=video_id,
             api_base=api_base,
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 
@@ -296,7 +296,7 @@ class TestRunwayMLVideoTransformation:
         url, params = self.config.transform_video_status_retrieve_request(
             video_id="../../tasks/other?x=1#frag",
             api_base="https://api.dev.runwayml.com/v1",
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 
@@ -323,7 +323,7 @@ class TestRunwayMLVideoTransformation:
                 "ratio": "1280:720",
                 "duration": 5,
             },
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 

@@ -6,7 +6,7 @@ import httpx
 from token_iq import gateway
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
     from token_iq.gateway.core_utils.streaming_handler import CustomStreamWrapper
     from token_iq.gateway.types.utils import ModelResponse, TextCompletionResponse
 
@@ -20,7 +20,7 @@ class BaseLLM:
         response: httpx.Response,
         model_response: "ModelResponse",
         stream: bool,
-        logging_obj: "LiteLLMLoggingObj",
+        logging_obj: "GatewayLoggingObj",
         optional_params: dict,
         api_key: str,
         data: dict | str,
@@ -39,7 +39,7 @@ class BaseLLM:
         response: httpx.Response,
         model_response: "TextCompletionResponse",
         stream: bool,
-        logging_obj: "LiteLLMLoggingObj",
+        logging_obj: "GatewayLoggingObj",
         optional_params: dict,
         api_key: str,
         data: dict | str,

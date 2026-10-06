@@ -47,7 +47,7 @@ from token_iq.gateway.proxy.common_utils.http_parsing_utils import (
     get_form_data,
     get_request_body,
 )
-from token_iq.gateway.proxy.pass_through_endpoints.common_utils import get_litellm_virtual_key
+from token_iq.gateway.proxy.pass_through_endpoints.common_utils import get_gateway_virtual_key
 from token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints import (
     HttpPassThroughEndpointHelpers,
     create_pass_through_route,
@@ -59,7 +59,7 @@ from token_iq.gateway.proxy.utils import is_known_model
 from token_iq.gateway.proxy.vector_store_endpoints.utils import (
     assert_proxy_admin_for_vector_store_index_management,
     assert_user_can_access_vector_store,
-    get_litellm_managed_vector_store,
+    get_gateway_managed_vector_store,
     is_allowed_to_call_vector_store_endpoint,
 )
 from token_iq.gateway.secret_managers.main import get_secret_str, str_to_bool
@@ -155,10 +155,10 @@ def get_passthrough_router_request_metadata(user_api_key_dict: UserAPIKeyAuth) -
     attribution fields the helper sets (``agent_id``,
     ``user_api_end_user_max_budget``) before the callback ever sees them.
     """
-    from token_iq.gateway.proxy.litellm_pre_call_utils import LiteLLMProxyRequestSetup
+    from token_iq.gateway.proxy.litellm_pre_call_utils import GatewayProxyRequestSetup
 
     request_data: Final = {"litellm_metadata": {}}  # mutable-ok: builder + litellm mutate this in place
-    LiteLLMProxyRequestSetup.add_user_api_key_auth_to_request_metadata(
+    GatewayProxyRequestSetup.add_user_api_key_auth_to_request_metadata(
         data=request_data,
         user_api_key_dict=user_api_key_dict,
         _metadata_variable_name="litellm_metadata",
@@ -567,7 +567,7 @@ async def milvus_proxy_route(
     # Update the request object with the modified collection name
     _safe_set_request_parsed_body(request, request_body)
 
-    vector_store: Final = gateway.vector_store_registry.get_litellm_managed_vector_store_from_registry_by_name(
+    vector_store: Final = gateway.vector_store_registry.get_gateway_managed_vector_store_from_registry_by_name(
         vector_store_name=vector_store_name
     )
     if vector_store is None:
@@ -898,14 +898,14 @@ async def handle_bedrock_count_tokens(
             if deployments and len(deployments) > 0:
                 # Get the first matching deployment
                 deployment: Final = deployments[0]
-                model_litellm_params: Final = deployment.get("litellm_params", {})
+                model_gateway_params: Final = deployment.get("litellm_params", {})
 
                 # Get the resolved model ID from the configuration
-                if "model" in model_litellm_params:
-                    resolved_model = model_litellm_params["model"]
+                if "model" in model_gateway_params:
+                    resolved_model = model_gateway_params["model"]
 
                 # Copy all litellm_params - BaseAWSLLM will handle AWS credential discovery
-                for key, value in model_litellm_params.items():
+                for key, value in model_gateway_params.items():
                     if key != "user_api_key_dict":  # Don't overwrite user_api_key_dict
                         litellm_params[key] = value
 
@@ -1635,7 +1635,7 @@ async def azure_proxy_route(
 
                 vector_store_name = index_object.litellm_params.vector_store_name
 
-                vector_store = gateway.vector_store_registry.get_litellm_managed_vector_store_from_registry_by_name(
+                vector_store = gateway.vector_store_registry.get_gateway_managed_vector_store_from_registry_by_name(
                     vector_store_name=vector_store_name
                 )
                 if vector_store is None:
@@ -1845,7 +1845,7 @@ def _normalize_credential_value(value: str) -> str:
 
 _VERTEX_UPSTREAM_CREDENTIAL_HEADERS: Final = frozenset({"authorization", "x-goog-api-key"})
 _HEADERS_NEVER_FORWARDED_TO_VERTEX: Final = frozenset({"content-length", "host"}) | (
-    SpecialHeaders.litellm_credential_header_names() - _VERTEX_UPSTREAM_CREDENTIAL_HEADERS
+    SpecialHeaders.gateway_credential_header_names() - _VERTEX_UPSTREAM_CREDENTIAL_HEADERS
 )
 
 
@@ -1899,7 +1899,7 @@ def _is_authenticated_caller_secret(value: str, user_api_key_dict: UserAPIKeyAut
         return False
     if master_key is None and not normalized.startswith("sk-"):
         return False
-    stored_representation: Final = UserAPIKeyAuth._safe_hash_litellm_api_key(normalized)  # pyright: ignore[reportPrivateUsage]  # the exact transform auth applied when it stored api_key
+    stored_representation: Final = UserAPIKeyAuth._safe_hash_gateway_api_key(normalized)  # pyright: ignore[reportPrivateUsage]  # the exact transform auth applied when it stored api_key
     return hmac.compare_digest(stored_representation.encode(), authenticated_key.encode())
 
 
@@ -2051,14 +2051,14 @@ async def _base_vertex_proxy_route(
     encoded_endpoint = httpx.URL(endpoint).path
     verbose_proxy_logger.debug("requested endpoint %s", endpoint)
     headers: Mapping[str, str] = {}
-    api_key_to_use = get_litellm_virtual_key(request=request)
+    api_key_to_use = get_gateway_virtual_key(request=request)
     user_api_key_dict = await user_api_key_auth(
         request=request,
         api_key=api_key_to_use,
     )
 
     if user_api_key_dict is None:
-        api_key_to_use = get_litellm_virtual_key(request=request)
+        api_key_to_use = get_gateway_virtual_key(request=request)
         user_api_key_dict = await user_api_key_auth(
             request=request,
             api_key=api_key_to_use,
@@ -2204,7 +2204,7 @@ async def vertex_discovery_proxy_route(
         # Retrieve LiteLLM-managed vector store credentials if the datastore id
         # is registered with LiteLLM. Unknown datastore ids keep the existing
         # direct Vertex pass-through behavior.
-        vector_store_credentials = await get_litellm_managed_vector_store(vector_store_id=vector_store_id)
+        vector_store_credentials = await get_gateway_managed_vector_store(vector_store_id=vector_store_id)
 
         if vector_store_credentials:
             verbose_proxy_logger.debug("Found vector store credentials for ID: %s", vector_store_id)

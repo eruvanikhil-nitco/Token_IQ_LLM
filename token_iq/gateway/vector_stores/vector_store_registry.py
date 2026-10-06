@@ -95,8 +95,8 @@ class VectorStoreIndexRegistry:
             )
             for vector_store in _vector_stores_from_db:
                 _dict_vector_store = dict(vector_store)
-                _litellm_managed_vector_store = LiteLLM_ManagedVectorStoreIndex(**_dict_vector_store)
-                vector_stores_from_db.append(_litellm_managed_vector_store)
+                _gateway_managed_vector_store = LiteLLM_ManagedVectorStoreIndex(**_dict_vector_store)
+                vector_stores_from_db.append(_gateway_managed_vector_store)
         return vector_stores_from_db
 
 
@@ -213,7 +213,7 @@ class VectorStoreRegistry:
                     return vector_store
         return None
 
-    def get_litellm_managed_vector_store_from_registry(self, vector_store_id: str) -> LiteLLM_ManagedVectorStore | None:
+    def get_gateway_managed_vector_store_from_registry(self, vector_store_id: str) -> LiteLLM_ManagedVectorStore | None:
         """
         Returns the vector store from the registry
         """
@@ -222,7 +222,7 @@ class VectorStoreRegistry:
                 return vector_store
         return None
 
-    async def get_litellm_managed_vector_store_from_registry_or_db(
+    async def get_gateway_managed_vector_store_from_registry_or_db(
         self, vector_store_id: str, prisma_client: PrismaClient | None = None
     ) -> LiteLLM_ManagedVectorStore | None:
         """
@@ -230,7 +230,7 @@ class VectorStoreRegistry:
         This ensures synchronization across multiple instances.
         """
         # First check in-memory registry
-        vector_store: Final = self.get_litellm_managed_vector_store_from_registry(vector_store_id)
+        vector_store: Final = self.get_gateway_managed_vector_store_from_registry(vector_store_id)
         if vector_store is not None:
             return vector_store
 
@@ -248,7 +248,7 @@ class VectorStoreRegistry:
 
         return None
 
-    def get_litellm_managed_vector_store_from_registry_by_name(
+    def get_gateway_managed_vector_store_from_registry_by_name(
         self, vector_store_name: str
     ) -> LiteLLM_ManagedVectorStore | None:
         """
@@ -363,7 +363,7 @@ class VectorStoreRegistry:
             # Fall back to database if not found in memory (or was deleted)
             if vector_store is None and prisma_client is not None:
                 try:
-                    vector_store = await self.get_litellm_managed_vector_store_from_registry_or_db(
+                    vector_store = await self.get_gateway_managed_vector_store_from_registry_or_db(
                         vector_store_id=vector_store_id, prisma_client=prisma_client
                     )
                 except Exception as e:
@@ -403,32 +403,32 @@ class VectorStoreRegistry:
         """
         for vector_store_config in vector_stores_config:
             # cast to VectorStoreConfig
-            litellm_vector_store_config = LiteLLM_VectorStoreConfig(**vector_store_config)
-            vector_store_name = litellm_vector_store_config.get("vector_store_name")
-            vector_store_litellm_params: dict[str, Any] = litellm_vector_store_config.get("litellm_params") or {}
+            gateway_vector_store_config = LiteLLM_VectorStoreConfig(**vector_store_config)
+            vector_store_name = gateway_vector_store_config.get("vector_store_name")
+            vector_store_gateway_params: dict[str, Any] = gateway_vector_store_config.get("litellm_params") or {}
 
-            vector_store_id = vector_store_litellm_params.get("vector_store_id")
+            vector_store_id = vector_store_gateway_params.get("vector_store_id")
             if vector_store_id is None:
                 raise ValueError(
                     f"vector_store_id is required for initializing vector store, got vector_store_id={vector_store_id}"
                 )
-            custom_llm_provider = vector_store_litellm_params.get("custom_llm_provider")
+            custom_llm_provider = vector_store_gateway_params.get("custom_llm_provider")
             if custom_llm_provider is None:
                 raise ValueError(
                     f"custom_llm_provider is required for initializing vector store, got custom_llm_provider={custom_llm_provider}"
                 )
 
-            litellm_managed_vector_store = LiteLLM_ManagedVectorStore(
+            gateway_managed_vector_store = LiteLLM_ManagedVectorStore(
                 vector_store_id=vector_store_id,
                 custom_llm_provider=custom_llm_provider,
-                litellm_params=vector_store_litellm_params,
+                litellm_params=vector_store_gateway_params,
                 vector_store_name=vector_store_name,
-                vector_store_description=vector_store_litellm_params.get("vector_store_description"),
-                vector_store_metadata=vector_store_litellm_params.get("vector_store_metadata"),
+                vector_store_description=vector_store_gateway_params.get("vector_store_description"),
+                vector_store_metadata=vector_store_gateway_params.get("vector_store_metadata"),
                 created_at=datetime.now(timezone.utc),
                 updated_at=datetime.now(timezone.utc),
             )
-            self.vector_stores.append(litellm_managed_vector_store)
+            self.vector_stores.append(gateway_managed_vector_store)
 
         verbose_logger.debug(
             "all loaded vector stores = %s",
@@ -501,8 +501,8 @@ class VectorStoreRegistry:
             )
             for vector_store in _vector_stores_from_db:
                 _dict_vector_store = dict(vector_store)
-                _litellm_managed_vector_store = LiteLLM_ManagedVectorStore(**_dict_vector_store)
-                vector_stores_from_db.append(_litellm_managed_vector_store)
+                _gateway_managed_vector_store = LiteLLM_ManagedVectorStore(**_dict_vector_store)
+                vector_stores_from_db.append(_gateway_managed_vector_store)
         return vector_stores_from_db
 
     def get_credentials_for_vector_store(self, vector_store_id: str) -> dict[str, object]:

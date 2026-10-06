@@ -27,7 +27,7 @@ from token_iq.gateway import LlmProviders
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.constants import DEFAULT_MAX_RETRIES
 from token_iq.gateway.files.types import FileContentStreamingResult
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.core_utils.logging_utils import speech_request_body, track_llm_api_timing
 from token_iq.gateway.llms.base_llm.base_model_iterator import BaseModelResponseIterator
 from token_iq.gateway.llms.base_llm.chat.transformation import BaseConfig, BaseLLMException
@@ -35,7 +35,7 @@ from token_iq.gateway.llms.bedrock.chat.invoke_handler import MockResponseIterat
 from token_iq.gateway.types.utils import (
     EmbeddingResponse,
     ImageResponse,
-    LiteLLMBatch,
+    GatewayBatch,
     ModelResponse,
     ModelResponseStream,
 )
@@ -272,7 +272,7 @@ class OpenAIConfig(BaseConfig):
         model: str,
         raw_response: httpx.Response,
         model_response: ModelResponse,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         request_data: dict,
         messages: list[AllMessageValues],
         optional_params: dict,
@@ -449,7 +449,7 @@ class OpenAIChatCompletion(BaseLLM, BaseOpenAILLM):
                 openai_client=_new_client,
                 client_initialization_params=client_initialization_params,
                 client_type="openai",
-                litellm_owned_client=self.owns_wrapped_http_client(http_client),
+                gateway_owned_client=self.owns_wrapped_http_client(http_client),
             )
             return _new_client
 
@@ -467,7 +467,7 @@ class OpenAIChatCompletion(BaseLLM, BaseOpenAILLM):
         openai_aclient: AsyncOpenAI,
         data: dict,
         timeout: float | httpx.Timeout,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> tuple[dict, BaseModel]:
         """
         Helper to:
@@ -508,7 +508,7 @@ class OpenAIChatCompletion(BaseLLM, BaseOpenAILLM):
         openai_client: OpenAI,
         data: dict,
         timeout: float | httpx.Timeout,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> tuple[dict, BaseModel]:
         """
         Helper to:
@@ -550,7 +550,7 @@ class OpenAIChatCompletion(BaseLLM, BaseOpenAILLM):
         model: str,
         messages: list[dict],
         optional_params: dict,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         stream: bool,
         litellm_params: dict,
     ) -> object | None:
@@ -627,7 +627,7 @@ class OpenAIChatCompletion(BaseLLM, BaseOpenAILLM):
     def mock_streaming(
         self,
         response: ModelResponse,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         model: str,
         stream_options: dict | None = None,
     ) -> CustomStreamWrapper:
@@ -648,7 +648,7 @@ class OpenAIChatCompletion(BaseLLM, BaseOpenAILLM):
         timeout: float | httpx.Timeout,
         optional_params: dict,
         litellm_params: dict,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         model: str | None = None,
         messages: list | None = None,
         print_verbose: Callable | None = None,
@@ -893,7 +893,7 @@ class OpenAIChatCompletion(BaseLLM, BaseOpenAILLM):
         provider_config: BaseConfig,
         model: str,
         model_response: ModelResponse,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         timeout: float | httpx.Timeout,
         api_key: str | None = None,
         api_base: str | None = None,
@@ -1073,7 +1073,7 @@ class OpenAIChatCompletion(BaseLLM, BaseOpenAILLM):
         litellm_params: dict,
         provider_config: BaseConfig,
         model: str,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         api_key: str | None = None,
         api_base: str | None = None,
         api_version: str | None = None,
@@ -1203,7 +1203,7 @@ class OpenAIChatCompletion(BaseLLM, BaseOpenAILLM):
         openai_aclient: AsyncOpenAI,
         data: dict,
         timeout: float | httpx.Timeout,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> LegacyAPIResponse[CreateEmbeddingResponse]:
         if "encoding_format" not in data:
             body, options = _embedding_request_without_sdk_defaults(data, timeout)
@@ -1220,7 +1220,7 @@ class OpenAIChatCompletion(BaseLLM, BaseOpenAILLM):
         openai_client: OpenAI,
         data: dict,
         timeout: float | httpx.Timeout,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> LegacyAPIResponse[CreateEmbeddingResponse]:
         if "encoding_format" not in data:
             body, options = _embedding_request_without_sdk_defaults(data, timeout)
@@ -1237,7 +1237,7 @@ class OpenAIChatCompletion(BaseLLM, BaseOpenAILLM):
         data: dict,
         model_response: EmbeddingResponse,
         timeout: float,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         api_key: str | None = None,
         api_base: str | None = None,
         client: AsyncOpenAI | None = None,
@@ -1395,7 +1395,7 @@ class OpenAIChatCompletion(BaseLLM, BaseOpenAILLM):
         data: dict,
         model_response: ModelResponse,
         timeout: float,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         api_key: str | None = None,
         api_base: str | None = None,
         client=None,
@@ -1458,7 +1458,7 @@ class OpenAIChatCompletion(BaseLLM, BaseOpenAILLM):
         prompt: str,
         timeout: float,
         optional_params: dict,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         api_key: str | None = None,
         api_base: str | None = None,
         model_response: ImageResponse | None = None,
@@ -1564,7 +1564,7 @@ class OpenAIChatCompletion(BaseLLM, BaseOpenAILLM):
         project: str | None,
         max_retries: int,
         timeout: float | httpx.Timeout,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         aspeech: bool | None = None,
         client=None,
         shared_session: Optional["ClientSession"] = None,
@@ -1626,7 +1626,7 @@ class OpenAIChatCompletion(BaseLLM, BaseOpenAILLM):
         project: str | None,
         max_retries: int,
         timeout: float | httpx.Timeout,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         client=None,
         shared_session: Optional["ClientSession"] = None,
     ) -> HttpxBinaryResponseContent:
@@ -2068,9 +2068,9 @@ class OpenAIBatchesAPI(BaseLLM):
         self,
         create_batch_data: CreateBatchRequest,
         openai_client: AsyncOpenAI,
-    ) -> LiteLLMBatch:
+    ) -> GatewayBatch:
         response: Final = await openai_client.batches.create(**create_batch_data)
-        return LiteLLMBatch.model_validate(response.model_dump())
+        return GatewayBatch.model_validate(response.model_dump())
 
     def create_batch(
         self,
@@ -2082,7 +2082,7 @@ class OpenAIBatchesAPI(BaseLLM):
         max_retries: int | None,
         organization: str | None,
         client: OpenAI | AsyncOpenAI | None = None,
-    ) -> LiteLLMBatch | Coroutine[None, None, LiteLLMBatch]:
+    ) -> GatewayBatch | Coroutine[None, None, GatewayBatch]:
         openai_client: Final[OpenAI | AsyncOpenAI | None] = self.get_openai_client(
             api_key=api_key,
             api_base=api_base,
@@ -2105,16 +2105,16 @@ class OpenAIBatchesAPI(BaseLLM):
             return self.acreate_batch(create_batch_data=create_batch_data, openai_client=openai_client)
         response: Final = cast(OpenAI, openai_client).batches.create(**create_batch_data)
 
-        return LiteLLMBatch.model_validate(response.model_dump())
+        return GatewayBatch.model_validate(response.model_dump())
 
     async def aretrieve_batch(
         self,
         retrieve_batch_data: RetrieveBatchRequest,
         openai_client: AsyncOpenAI,
-    ) -> LiteLLMBatch:
+    ) -> GatewayBatch:
         verbose_logger.debug("retrieving batch, args= %s", retrieve_batch_data)
         response: Final = await openai_client.batches.retrieve(**retrieve_batch_data)
-        return LiteLLMBatch.model_validate(response.model_dump())
+        return GatewayBatch.model_validate(response.model_dump())
 
     def retrieve_batch(
         self,
@@ -2148,16 +2148,16 @@ class OpenAIBatchesAPI(BaseLLM):
                 )
             return self.aretrieve_batch(retrieve_batch_data=retrieve_batch_data, openai_client=openai_client)
         response: Final = cast(OpenAI, openai_client).batches.retrieve(**retrieve_batch_data)
-        return LiteLLMBatch.model_validate(response.model_dump())
+        return GatewayBatch.model_validate(response.model_dump())
 
     async def acancel_batch(
         self,
         cancel_batch_data: CancelBatchRequest,
         openai_client: AsyncOpenAI,
-    ) -> LiteLLMBatch:
+    ) -> GatewayBatch:
         verbose_logger.debug("async cancelling batch, args= %s", cancel_batch_data)
         response: Final = await openai_client.batches.cancel(**cancel_batch_data)
-        return LiteLLMBatch.model_validate(response.model_dump())
+        return GatewayBatch.model_validate(response.model_dump())
 
     def cancel_batch(
         self,
@@ -2195,7 +2195,7 @@ class OpenAIBatchesAPI(BaseLLM):
         if not isinstance(openai_client, OpenAI):
             raise ValueError("OpenAI client is not an instance of OpenAI. Make sure you passed a sync OpenAI client.")
         response: Final = openai_client.batches.cancel(**cancel_batch_data)
-        return LiteLLMBatch.model_validate(response.model_dump())
+        return GatewayBatch.model_validate(response.model_dump())
 
     async def alist_batches(
         self,

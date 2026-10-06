@@ -1839,7 +1839,7 @@ def test_metadata_without_user_id_is_dropped():
     assert "metadata" not in data
 
 
-def test_metadata_user_id_from_litellm_params_strips_extras():
+def test_metadata_user_id_from_gateway_params_strips_extras():
     """user_id from litellm_params metadata is extracted; extra keys are not forwarded."""
     data = _make_transform_request(
         optional_params={},

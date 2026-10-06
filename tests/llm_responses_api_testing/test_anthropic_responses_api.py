@@ -3,10 +3,10 @@ import asyncio
 from typing import Optional
 from unittest.mock import patch, AsyncMock, MagicMock
 from token_iq.gateway.responses.litellm_completion_transformation.handler import (
-    LiteLLMCompletionTransformationHandler,
+    GatewayCompletionTransformationHandler,
 )
 from token_iq.gateway.responses.litellm_completion_transformation.transformation import (
-    LiteLLMCompletionResponsesConfig,
+    GatewayCompletionResponsesConfig,
 )
 from token_iq.gateway.types.utils import ModelResponse
 
@@ -128,7 +128,7 @@ def test_multiturn_tool_calls():
 
 def test_response_api_handler_merges_metadata_and_service_tier_without_error():
     """Sync path must merge kwargs like async; double-splat raises TypeError."""
-    handler = LiteLLMCompletionTransformationHandler()
+    handler = GatewayCompletionTransformationHandler()
 
     with patch("token_iq.gateway.completion", new_callable=MagicMock) as mock_completion:
         mock_completion.return_value = ModelResponse(
@@ -148,14 +148,14 @@ def test_response_api_handler_merges_metadata_and_service_tier_without_error():
 
 @pytest.mark.asyncio
 async def test_async_response_api_handler_merges_trace_id_without_error():
-    handler = LiteLLMCompletionTransformationHandler()
+    handler = GatewayCompletionTransformationHandler()
 
-    async def fake_session_handler(previous_response_id, litellm_completion_request):
-        litellm_completion_request["litellm_trace_id"] = "session-trace"
-        return litellm_completion_request
+    async def fake_session_handler(previous_response_id, gateway_completion_request):
+        gateway_completion_request["litellm_trace_id"] = "session-trace"
+        return gateway_completion_request
 
     with patch.object(
-        LiteLLMCompletionResponsesConfig,
+        GatewayCompletionResponsesConfig,
         "async_responses_api_session_handler",
         side_effect=fake_session_handler,
     ):
@@ -164,7 +164,7 @@ async def test_async_response_api_handler_merges_trace_id_without_error():
                 id="id", created=0, model="test", object="chat.completion", choices=[]
             )
             await handler.async_response_api_handler(
-                litellm_completion_request={"model": "test"},
+                gateway_completion_request={"model": "test"},
                 request_input="hi",
                 responses_api_request={"previous_response_id": "123"},
                 litellm_trace_id="original-trace",

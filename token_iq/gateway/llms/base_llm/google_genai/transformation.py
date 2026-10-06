@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Any
 import httpx
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
     from token_iq.gateway.types.google_genai.main import (
         GenerateContentConfigDict,
         GenerateContentContentListUnionDict,
@@ -16,10 +16,10 @@ else:
     GenerateContentConfigDict = Any
     GenerateContentContentListUnionDict = Any
     GenerateContentResponse = Any
-    LiteLLMLoggingObj = Any
+    GatewayLoggingObj = Any
     ToolConfigDict = Any
 
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 
 
 class BaseGoogleGenAIGenerateContentConfig(ABC):
@@ -97,7 +97,7 @@ class BaseGoogleGenAIGenerateContentConfig(ABC):
         api_key: str | None,
         headers: dict | None,
         model: str,
-        litellm_params: GenericLiteLLMParams | dict | None,
+        litellm_params: GenericGatewayParams | dict | None,
     ) -> dict:
         """
         Validate the environment and return headers for the request.
@@ -182,7 +182,7 @@ class BaseGoogleGenAIGenerateContentConfig(ABC):
         self,
         model: str,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> GenerateContentResponse:
         """
         Transform the raw response from the generate content API.

@@ -13,11 +13,11 @@ from typing import Final, Literal, Optional
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from token_iq.gateway.models.object_permission import LiteLLM_ObjectPermissionTable
-from token_iq.gateway.types.llms.base import LiteLLMPydanticObjectBase
+from token_iq.gateway.types.llms.base import GatewayPydanticObjectBase
 from token_iq.types.team_api_access import DEFAULT_API_ACCESS_MODE, TeamApiAccessMode
 
 
-class MemberBase(LiteLLMPydanticObjectBase):
+class MemberBase(GatewayPydanticObjectBase):
     user_id: str | None = Field(
         default=None,
         description="The unique ID of the user to add. Either user_id or user_email must be provided",
@@ -43,7 +43,7 @@ class Member(MemberBase):
     )
 
 
-class BudgetLimitEntry(LiteLLMPydanticObjectBase):
+class BudgetLimitEntry(GatewayPydanticObjectBase):
     """A single budget window with its own limit and independent reset schedule."""
 
     budget_duration: str
@@ -51,7 +51,7 @@ class BudgetLimitEntry(LiteLLMPydanticObjectBase):
     reset_at: datetime | None = None
 
 
-class LiteLLM_ModelTable(LiteLLMPydanticObjectBase):
+class LiteLLM_ModelTable(GatewayPydanticObjectBase):
     id: int | None = None
     model_aliases: str | dict | None = None
     created_by: str
@@ -61,7 +61,7 @@ class LiteLLM_ModelTable(LiteLLMPydanticObjectBase):
     model_config = ConfigDict(protected_namespaces=())
 
 
-class TeamBase(LiteLLMPydanticObjectBase):
+class TeamBase(GatewayPydanticObjectBase):
     team_alias: str | None = None
     team_id: str | None = None
     organization_id: str | None = None

@@ -29,7 +29,7 @@ def force_local_model_cost(monkeypatch):
     gateway.model_cost = get_model_cost_map()
 
 
-def test_validate_environment_sets_session_affinity_from_litellm_session_id():
+def test_validate_environment_sets_session_affinity_from_gateway_session_id():
     config = FireworksAIConfig()
 
     headers = config.validate_environment(
@@ -227,7 +227,7 @@ def test_validate_environment_raises_without_api_key(monkeypatch):
         )
 
 
-def test_get_fireworks_session_id_prefers_litellm_session_id_over_trace_id():
+def test_get_fireworks_session_id_prefers_gateway_session_id_over_trace_id():
     assert (
         get_fireworks_session_id(
             {"litellm_session_id": "session-123", "litellm_trace_id": "trace-123"}

@@ -33,7 +33,7 @@ from token_iq.gateway.types.passthrough_endpoints.pass_through_endpoints import 
     LITELLM_PASS_THROUGH_ENDPOINT_MARKER,
 )
 from token_iq.gateway.types.router import CONFIGURABLE_CLIENTSIDE_AUTH_PARAMS
-from token_iq.gateway.types.utils import CustomPricingLiteLLMParams
+from token_iq.gateway.types.utils import CustomPricingGatewayParams
 
 
 def is_invalid_virtual_key_error(exception: BaseException | None) -> bool:
@@ -367,7 +367,7 @@ _BANNED_REQUEST_BODY_PARAMS: Final[tuple[str, ...]] = (
     # integrations are covered automatically. Sorted for stable iteration
     # order and reviewable diffs.
     *sorted(_build_banned_observability_params()),
-    *sorted(CustomPricingLiteLLMParams.model_fields.keys()),
+    *sorted(CustomPricingGatewayParams.model_fields.keys()),
 )
 
 # ``litellm_credential_name`` names the stored credential a managed vector store is
@@ -545,10 +545,10 @@ def is_request_body_safe(
             _reject_url_valued_fallback_target(target)
     litellm_params: Final = _coerce_metadata_to_dict(request_body.get("litellm_params"))
     if litellm_params is not None:
-        litellm_params_metadata: Final = _coerce_metadata_to_dict(litellm_params.get("metadata"))
-        if litellm_params_metadata is not None:
+        gateway_params_metadata: Final = _coerce_metadata_to_dict(litellm_params.get("metadata"))
+        if gateway_params_metadata is not None:
             _check_banned_params(
-                litellm_params_metadata,
+                gateway_params_metadata,
                 general_settings,
                 llm_router,
                 model,
@@ -1230,7 +1230,7 @@ def enforce_output_token_estimates_are_admin_only(
     that weakens a limit set above them. Gated on the resulting value rather
     than on presence, so a form resending the stored declaration stays a no-op.
     """
-    if user_api_key_dict.user_role == LitellmUserRoles.PROXY_ADMIN.value:
+    if user_api_key_dict.user_role == GatewayUserRoles.PROXY_ADMIN.value:
         return
     stored: Final[Mapping[str, object]] = existing_metadata or {}
     if _requested_output_token_estimates(data, stored) == (
@@ -1271,7 +1271,7 @@ def enforce_batch_enqueued_token_limit_is_admin_only(
     own batch quota. Gated on the resulting value rather than on presence, so a
     form resending the stored value stays a no-op.
     """
-    if user_api_key_dict.user_role == LitellmUserRoles.PROXY_ADMIN.value:
+    if user_api_key_dict.user_role == GatewayUserRoles.PROXY_ADMIN.value:
         return
     stored: Final[Mapping[str, object]] = existing_metadata or EMPTY_MAPPING
     requested: Final[Mapping[str, object]] = (
@@ -1523,7 +1523,7 @@ def get_customer_user_header_from_mapping(user_id_mapping) -> list | None:
         header_name = item.get("header_name")
         if role is None or not header_name:
             continue
-        if str(role).lower() == str(LitellmUserRoles.CUSTOMER).lower():
+        if str(role).lower() == str(GatewayUserRoles.CUSTOMER).lower():
             customer_headers_mappings.append(header_name.lower())
 
     if customer_headers_mappings:

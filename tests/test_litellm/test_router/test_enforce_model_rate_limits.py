@@ -36,7 +36,7 @@ class TestModelRateLimitingCheck:
         assert tpm == 1000
         assert rpm == 10
 
-    def test_get_deployment_limits_from_litellm_params(self):
+    def test_get_deployment_limits_from_gateway_params(self):
         """Test extracting limits from litellm_params."""
         check = ModelRateLimitingCheck(dual_cache=MagicMock())
 

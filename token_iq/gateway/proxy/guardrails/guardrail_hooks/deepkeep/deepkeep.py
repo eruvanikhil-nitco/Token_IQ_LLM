@@ -27,7 +27,7 @@ from token_iq.gateway.types.guardrails import GuardrailEventHooks
 from token_iq.gateway.types.utils import GenericGuardrailAPIInputs
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
     from token_iq.gateway.types.llms.openai import (
         AllMessageValues,
         ChatCompletionToolCallChunk,
@@ -230,7 +230,7 @@ class DeepKeepGuardrail(CustomGuardrail):
         *,
         inputs: GenericGuardrailAPIInputs,
         input_type: Literal["request", "response"],
-        logging_obj: Optional["LiteLLMLoggingObj"],
+        logging_obj: Optional["GatewayLoggingObj"],
         error: Exception,
         http_status_code: int | None = None,
     ) -> GenericGuardrailAPIInputs:
@@ -256,7 +256,7 @@ class DeepKeepGuardrail(CustomGuardrail):
         error: Exception,
         inputs: GenericGuardrailAPIInputs,
         input_type: Literal["request", "response"],
-        logging_obj: Optional["LiteLLMLoggingObj"],
+        logging_obj: Optional["GatewayLoggingObj"],
         is_unreachable: bool = True,
     ) -> GenericGuardrailAPIInputs:
         """Handle errors from the DeepKeep API with fail-open/fail-closed logic."""
@@ -321,7 +321,7 @@ class DeepKeepGuardrail(CustomGuardrail):
         inputs: GenericGuardrailAPIInputs,
         request_data: dict,
         input_type: Literal["request", "response"],
-        logging_obj: Optional["LiteLLMLoggingObj"] = None,
+        logging_obj: Optional["GatewayLoggingObj"] = None,
     ) -> GenericGuardrailAPIInputs:
         """
         Apply the DeepKeep AI Firewall guardrail to the given inputs.

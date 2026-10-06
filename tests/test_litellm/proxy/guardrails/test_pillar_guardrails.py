@@ -724,7 +724,7 @@ async def test_pre_call_hook_custom_header_overrides(
 
 
 @pytest.mark.asyncio
-async def test_litellm_context_headers_automatically_added(
+async def test_gateway_context_headers_automatically_added(
     sample_request_data,
     user_api_key_dict_with_context,
     dual_cache,
@@ -775,7 +775,7 @@ async def test_litellm_context_headers_automatically_added(
 
 
 @pytest.mark.asyncio
-async def test_litellm_context_with_partial_fields(
+async def test_gateway_context_with_partial_fields(
     sample_request_data,
     dual_cache,
     pillar_clean_response,
@@ -791,7 +791,7 @@ async def test_litellm_context_with_partial_fields(
         guardrail_name="pillar-partial-context",
         api_key="test-pillar-key",
         api_base="https://api.pillar.security",
-        pass_litellm_key_header=True,
+        pass_gateway_key_header=True,
     )
 
     captured_headers: Dict[str, str] = {}

@@ -15,7 +15,7 @@ from prisma.errors import ClientNotConnectedError, HTTPClientClosedError, Prisma
 from token_iq import gateway
 import token_iq.gateway.proxy.health_endpoints._health_endpoints as _health_endpoints_module
 from token_iq.gateway.core_utils.health_check_helpers import TEST_IMAGE_BASE64
-from token_iq.gateway.proxy._types import LitellmUserRoles, ProxyException, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import GatewayUserRoles, ProxyException, UserAPIKeyAuth
 from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 from token_iq.gateway.proxy.health_endpoints._health_endpoints import (
     _db_health_readiness_check,
@@ -373,7 +373,7 @@ async def test_test_model_connection_loads_config_from_router():
             mock_run_with_timeout,
         ),
         patch(
-            "token_iq.gateway.proxy.health_endpoints._health_endpoints._update_litellm_params_for_health_check",
+            "token_iq.gateway.proxy.health_endpoints._health_endpoints._update_gateway_params_for_health_check",
             mock_update_params,
         ),
         patch(
@@ -522,7 +522,7 @@ async def test_test_model_connection_uses_model_info_id_to_disambiguate_duplicat
             mock_run_with_timeout,
         ),
         patch(
-            "token_iq.gateway.proxy.health_endpoints._health_endpoints._update_litellm_params_for_health_check",
+            "token_iq.gateway.proxy.health_endpoints._health_endpoints._update_gateway_params_for_health_check",
             mock_update_params,
         ),
         patch(
@@ -624,7 +624,7 @@ async def test_test_model_connection_falls_back_to_deployments_zero_without_id()
             mock_run_with_timeout,
         ),
         patch(
-            "token_iq.gateway.proxy.health_endpoints._health_endpoints._update_litellm_params_for_health_check",
+            "token_iq.gateway.proxy.health_endpoints._health_endpoints._update_gateway_params_for_health_check",
             mock_update_params,
         ),
         patch(
@@ -672,7 +672,7 @@ async def test_test_model_connection_uses_loaded_deployment_team_id():
         token="requester-token",
         user_id="team-b-admin-user",
         team_id=requester_team_id,
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
     )
 
     mock_prisma_client = MagicMock()
@@ -778,7 +778,7 @@ async def test_test_model_connection_uses_loaded_deployment_team_id_via_model_na
         token="requester-token-2",
         user_id="team-b-admin-user-2",
         team_id=requester_team_id,
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
     )
 
     mock_prisma_client = MagicMock()
@@ -887,7 +887,7 @@ async def test_test_model_connection_authorizes_on_params_after_health_check_par
             user_api_key_dict=UserAPIKeyAuth(
                 token="requester-token",
                 user_id="admin-user",
-                user_role=LitellmUserRoles.PROXY_ADMIN,
+                user_role=GatewayUserRoles.PROXY_ADMIN,
             ),
         )
 
@@ -923,7 +923,7 @@ async def test_test_model_connection_authorized_team_admin_passes_real_auth():
         token="owner-admin-token",
         user_id=owner_admin_user_id,
         team_id=owner_team_id,
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
     )
 
     mock_prisma_client = MagicMock()
@@ -1052,10 +1052,10 @@ async def test_health_services_endpoint_rejects_unknown_service():
     "role",
     [
         None,
-        LitellmUserRoles.INTERNAL_USER,
-        LitellmUserRoles.INTERNAL_USER_VIEW_ONLY,
-        LitellmUserRoles.TEAM,
-        LitellmUserRoles.CUSTOMER,
+        GatewayUserRoles.INTERNAL_USER,
+        GatewayUserRoles.INTERNAL_USER_VIEW_ONLY,
+        GatewayUserRoles.TEAM,
+        GatewayUserRoles.CUSTOMER,
     ],
 )
 async def test_health_services_endpoint_newrelic_blocks_non_admin(role):
@@ -1092,7 +1092,7 @@ async def test_health_services_endpoint_newrelic_blocks_non_admin(role):
 @pytest.mark.asyncio
 @pytest.mark.parametrize(
     "admin_role",
-    [LitellmUserRoles.PROXY_ADMIN, LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY],
+    [GatewayUserRoles.PROXY_ADMIN, GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY],
 )
 async def test_health_services_endpoint_newrelic_allows_proxy_admin(admin_role):
     """
@@ -1234,7 +1234,7 @@ def test_health_readiness_details_returns_diagnostic_fields(monkeypatch):
     """
     app = FastAPI()
     app.include_router(_health_endpoints_module.router)
-    app.dependency_overrides[user_api_key_auth] = lambda: UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN)
+    app.dependency_overrides[user_api_key_auth] = lambda: UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN)
     client = TestClient(app)
 
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", None)
@@ -1711,7 +1711,7 @@ async def test_health_endpoint_admin_sees_routing_fields_non_admin_does_not():
     """
     from fastapi import Response
 
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
     from token_iq.gateway.proxy.health_endpoints._health_endpoints import health_endpoint
 
     full_model_list = [
@@ -1741,7 +1741,7 @@ async def test_health_endpoint_admin_sees_routing_fields_non_admin_does_not():
     admin_key = UserAPIKeyAuth(
         api_key="hashed-admin-key",
         models=["model-a"],
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
     )
     non_admin_key = UserAPIKeyAuth(
         api_key="hashed-user-key",
@@ -1966,7 +1966,7 @@ async def test_health_endpoint_503_for_targeted_unhealthy_model_under_background
     """
     from fastapi import Response
 
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
     from token_iq.gateway.proxy.health_endpoints._health_endpoints import health_endpoint
 
     full_model_list = [
@@ -1995,7 +1995,7 @@ async def test_health_endpoint_503_for_targeted_unhealthy_model_under_background
 
     user_api_key_dict = UserAPIKeyAuth(
         api_key="hashed-admin",
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
     )
 
     response = Response()
@@ -2033,7 +2033,7 @@ async def test_health_endpoint_returns_503_when_requested_model_has_no_healthy_e
     """
     from fastapi import Response
 
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
     from token_iq.gateway.proxy.health_endpoints._health_endpoints import health_endpoint
 
     full_model_list = [
@@ -2049,7 +2049,7 @@ async def test_health_endpoint_returns_503_when_requested_model_has_no_healthy_e
 
     user_api_key_dict = UserAPIKeyAuth(
         api_key="hashed-test-key",
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
     )
 
     async def fake_perform(**kwargs):
@@ -2100,7 +2100,7 @@ async def test_health_endpoint_returns_200_when_requested_model_has_healthy_endp
     """
     from fastapi import Response
 
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
     from token_iq.gateway.proxy.health_endpoints._health_endpoints import health_endpoint
 
     full_model_list = [
@@ -2113,7 +2113,7 @@ async def test_health_endpoint_returns_200_when_requested_model_has_healthy_endp
 
     user_api_key_dict = UserAPIKeyAuth(
         api_key="hashed-test-key",
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
     )
 
     async def fake_perform(**kwargs):
@@ -2159,7 +2159,7 @@ async def test_health_endpoint_no_model_param_returns_200_even_when_zero_healthy
     """
     from fastapi import Response
 
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
     from token_iq.gateway.proxy.health_endpoints._health_endpoints import health_endpoint
 
     full_model_list = [
@@ -2172,7 +2172,7 @@ async def test_health_endpoint_no_model_param_returns_200_even_when_zero_healthy
 
     user_api_key_dict = UserAPIKeyAuth(
         api_key="hashed-test-key",
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
     )
 
     async def fake_perform(**kwargs):
@@ -2864,7 +2864,7 @@ def test_test_model_connection_accepts_image_edit_mode(monkeypatch):
 
     app = FastAPI()
     app.include_router(_health_endpoints_module.router)
-    app.dependency_overrides[user_api_key_auth] = lambda: UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN)
+    app.dependency_overrides[user_api_key_auth] = lambda: UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN)
     client = TestClient(app)
 
     with (

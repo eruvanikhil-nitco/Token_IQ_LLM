@@ -6,7 +6,7 @@ import httpx
 
 from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.core_utils.litellm_logging import (
     get_standard_logging_object_payload,
 )
@@ -42,7 +42,7 @@ class BasePassthroughLoggingHandler(ABC):
         self,
         httpx_response: httpx.Response,
         response_body: dict,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         url_route: str,
         result: str,
         start_time: datetime,
@@ -56,7 +56,7 @@ class BasePassthroughLoggingHandler(ABC):
         """
         model: Final = request_body.get("model", response_body.get("model", ""))
         provider_config: Final = self.get_provider_config(model=model)
-        litellm_model_response: Final[ModelResponse] = provider_config.transform_response(
+        gateway_model_response: Final[ModelResponse] = provider_config.transform_response(
             raw_response=httpx_response,
             model_response=gateway.ModelResponse(),
             model=model,
@@ -71,7 +71,7 @@ class BasePassthroughLoggingHandler(ABC):
         )
 
         kwargs = self._create_response_logging_payload(
-            litellm_model_response=litellm_model_response,
+            gateway_model_response=gateway_model_response,
             model=model,
             kwargs=kwargs,
             start_time=start_time,
@@ -80,7 +80,7 @@ class BasePassthroughLoggingHandler(ABC):
         )
 
         return {
-            "result": litellm_model_response,
+            "result": gateway_model_response,
             "kwargs": kwargs,
         }
 
@@ -95,12 +95,12 @@ class BasePassthroughLoggingHandler(ABC):
 
     def _create_response_logging_payload(
         self,
-        litellm_model_response: ModelResponse | TextCompletionResponse,
+        gateway_model_response: ModelResponse | TextCompletionResponse,
         model: str,
         kwargs: dict,
         start_time: datetime,
         end_time: datetime,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> dict:
         """
         Create the standard logging object for Generic LLM passthrough
@@ -110,7 +110,7 @@ class BasePassthroughLoggingHandler(ABC):
 
         try:
             response_cost: Final = gateway.completion_cost(
-                completion_response=litellm_model_response,
+                completion_response=gateway_model_response,
                 model=model,
             )
 
@@ -133,7 +133,7 @@ class BasePassthroughLoggingHandler(ABC):
             # Make standard logging object for Anthropic
             standard_logging_object: Final = get_standard_logging_object_payload(
                 kwargs=kwargs,
-                init_response_obj=litellm_model_response,
+                init_response_obj=gateway_model_response,
                 start_time=start_time,
                 end_time=end_time,
                 logging_obj=logging_obj,
@@ -148,8 +148,8 @@ class BasePassthroughLoggingHandler(ABC):
             kwargs["standard_logging_object"] = standard_logging_object
 
             # set litellm_call_id to logging response object
-            litellm_model_response.id = logging_obj.litellm_call_id
-            litellm_model_response.model = model
+            gateway_model_response.id = logging_obj.litellm_call_id
+            gateway_model_response.model = model
             logging_obj.model_call_details["model"] = model
             return kwargs
         except Exception as e:
@@ -160,7 +160,7 @@ class BasePassthroughLoggingHandler(ABC):
     def _build_complete_streaming_response(
         self,
         all_chunks: list[str],
-        litellm_logging_obj: LiteLLMLoggingObj,
+        litellm_logging_obj: GatewayLoggingObj,
         model: str,
     ) -> ModelResponse | TextCompletionResponse | None:
         """
@@ -173,7 +173,7 @@ class BasePassthroughLoggingHandler(ABC):
 
     def _handle_logging_llm_collected_chunks(
         self,
-        litellm_logging_obj: LiteLLMLoggingObj,
+        litellm_logging_obj: GatewayLoggingObj,
         passthrough_success_handler_obj: PassThroughEndpointLogging,
         url_route: str,
         request_body: dict,
@@ -205,7 +205,7 @@ class BasePassthroughLoggingHandler(ABC):
                 "kwargs": {},
             }
         kwargs: Final = self._create_response_logging_payload(
-            litellm_model_response=complete_streaming_response,
+            gateway_model_response=complete_streaming_response,
             model=model,
             kwargs={},
             start_time=start_time,

@@ -23,10 +23,10 @@ from token_iq.gateway.types.utils import all_litellm_params
 from ..common_utils import ElevenLabsException
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
     from token_iq.gateway.types.llms.openai import HttpxBinaryResponseContent
 else:
-    LiteLLMLoggingObj = Any
+    GatewayLoggingObj = Any
     HttpxBinaryResponseContent = Any
 
 
@@ -279,7 +279,7 @@ class ElevenLabsTextToSpeechConfig(BaseTextToSpeechConfig):
         self,
         model: str,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> "HttpxBinaryResponseContent":
         """
         Wrap ElevenLabs binary audio response.

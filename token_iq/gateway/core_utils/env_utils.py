@@ -32,7 +32,7 @@ def get_env_int_in_range(env_var: str, default: int, minimum: int, maximum: int)
     value: Final = get_env_int(env_var, default)
     if minimum <= value <= maximum:
         return value
-    logging.getLogger("LiteLLM").warning(
+    logging.getLogger("Gateway").warning(
         "%s=%s is outside the supported range [%s, %s]. Falling back to %s.",
         env_var,
         value,

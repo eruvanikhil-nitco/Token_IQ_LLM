@@ -18,11 +18,11 @@ from token_iq.gateway.types.utils import Choices, Message, ModelResponse, Usage
 from ..common_utils import PredibaseError
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as _LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as _GatewayLoggingObj
 
-    LiteLLMLoggingObj = _LiteLLMLoggingObj
+    GatewayLoggingObj = _GatewayLoggingObj
 else:
-    LiteLLMLoggingObj = Any
+    GatewayLoggingObj = Any
 
 
 class PredibaseConfig(BaseConfig):
@@ -128,7 +128,7 @@ class PredibaseConfig(BaseConfig):
         model: str,
         raw_response: Response,
         model_response: ModelResponse,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         request_data: dict,
         messages: list[AllMessageValues],
         optional_params: dict,

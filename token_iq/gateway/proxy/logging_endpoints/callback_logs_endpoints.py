@@ -21,8 +21,8 @@ from typing import Any, Final
 from fastapi import APIRouter, Depends, HTTPException
 
 from token_iq.gateway._logging import verbose_proxy_logger
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLogging
-from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLogging
+from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
 from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 from token_iq.gateway.types.proxy.callback_logs_endpoints import (
     CallbackLogFailure,
@@ -57,7 +57,7 @@ class CallbackLogsReplayer:
         return datetime.now(tz=timezone.utc)
 
     @staticmethod
-    def _build_logging_obj(payload: dict[str, Any]) -> LiteLLMLogging:
+    def _build_logging_obj(payload: dict[str, Any]) -> GatewayLogging:
         """
         Reconstruct a `Logging` object from a finished payload and seed
         `model_call_details` with exactly what the success/failure callbacks
@@ -71,7 +71,7 @@ class CallbackLogsReplayer:
         start_time: Final = CallbackLogsReplayer._epoch_to_datetime(payload.get("startTime"))
         call_id: Final = payload.get("litellm_call_id") or payload.get("id") or str(uuid.uuid4())
 
-        logging_obj: Final = LiteLLMLogging(
+        logging_obj: Final = GatewayLogging(
             model=model,
             messages=payload.get("messages") or [],
             # A replayed payload is always a *terminal*, fully-aggregated event —
@@ -191,7 +191,7 @@ async def ingest_callback_logs(
     Admin-only: the payloads write spend logs and trigger every callback, so this
     is a trusted internal route, not a public surface.
     """
-    if user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN:
+    if user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN:
         raise HTTPException(
             status_code=403,
             detail="/v1/rust_control_plane/logs is admin-only (proxy admin key required).",

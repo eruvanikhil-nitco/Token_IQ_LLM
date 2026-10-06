@@ -60,7 +60,7 @@ class TestCloudZeroDryRunEndpoint:
 
         with (
             patch(
-                "token_iq.gateway.integrations.cloudzero.database.LiteLLMDatabase"
+                "token_iq.gateway.integrations.cloudzero.database.GatewayDatabase"
             ) as mock_db_class,
             patch(
                 "token_iq.gateway.integrations.cloudzero.transform.CBFTransformer"
@@ -117,7 +117,7 @@ class TestCloudZeroDryRunEndpoint:
         mock_empty_data = pl.DataFrame()
 
         with patch(
-            "token_iq.gateway.integrations.cloudzero.database.LiteLLMDatabase"
+            "token_iq.gateway.integrations.cloudzero.database.GatewayDatabase"
         ) as mock_db_class:
 
             # Setup mocks

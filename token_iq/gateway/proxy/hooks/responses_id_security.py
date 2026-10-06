@@ -12,13 +12,13 @@ from fastapi import HTTPException
 
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.integrations.custom_logger import CustomLogger
-from token_iq.gateway.proxy._types import LitellmUserRoles
+from token_iq.gateway.proxy._types import GatewayUserRoles
 from token_iq.gateway.proxy.common_utils.encrypt_decrypt_utils import (
     decrypt_value_helper,
     encrypt_value_helper,
 )
 from token_iq.gateway.types.llms.openai import (
-    BaseLiteLLMOpenAIResponseObject,
+    BaseGatewayOpenAIResponseObject,
     ResponsesAPIResponse,
 )
 from token_iq.gateway.types.utils import CallTypesLiteral, LLMResponseTypes, SpecialEnums
@@ -90,8 +90,8 @@ class ResponsesIDSecurity(CustomLogger):
         from token_iq.gateway.proxy.proxy_server import general_settings
 
         if (
-            user_api_key_dict.user_role == LitellmUserRoles.PROXY_ADMIN.value
-            or user_api_key_dict.user_role == LitellmUserRoles.PROXY_ADMIN
+            user_api_key_dict.user_role == GatewayUserRoles.PROXY_ADMIN.value
+            or user_api_key_dict.user_role == GatewayUserRoles.PROXY_ADMIN
         ):
             return True
 
@@ -192,10 +192,10 @@ class ResponsesIDSecurity(CustomLogger):
 
     def _encrypt_response_id(
         self,
-        response: BaseLiteLLMOpenAIResponseObject,
+        response: BaseGatewayOpenAIResponseObject,
         user_api_key_dict: "UserAPIKeyAuth",
         request_cache: dict[str, str] | None = None,
-    ) -> BaseLiteLLMOpenAIResponseObject:
+    ) -> BaseGatewayOpenAIResponseObject:
         # encrypt the response id using the symmetric key
         # encrypt the response id, and encode the user id and response id in base64
 
@@ -273,7 +273,7 @@ class ResponsesIDSecurity(CustomLogger):
 
     async def async_post_call_streaming_iterator_hook(
         self, user_api_key_dict: "UserAPIKeyAuth", response: Any, request_data: dict
-    ) -> AsyncGenerator[BaseLiteLLMOpenAIResponseObject, None]:
+    ) -> AsyncGenerator[BaseGatewayOpenAIResponseObject, None]:
         from token_iq.gateway.proxy.proxy_server import general_settings
 
         # Create a request-scoped cache for consistent encryption across streaming chunks.
@@ -281,7 +281,7 @@ class ResponsesIDSecurity(CustomLogger):
 
         async for chunk in response:
             if (
-                isinstance(chunk, BaseLiteLLMOpenAIResponseObject)
+                isinstance(chunk, BaseGatewayOpenAIResponseObject)
                 and _is_responses_api_create_route(user_api_key_dict.request_route)
                 and not general_settings.get("disable_responses_id_security", False)
             ):

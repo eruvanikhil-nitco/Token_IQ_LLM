@@ -94,7 +94,7 @@ def mock_prisma_client():
 
 class TestScimTransformations:
     @pytest.mark.asyncio
-    async def test_transform_litellm_user_to_scim_user(self, mock_user, mock_prisma_client):
+    async def test_transform_gateway_user_to_scim_user(self, mock_user, mock_prisma_client):
         mock_client, mock_find_unique = mock_prisma_client
 
         # Mock the team lookup
@@ -104,7 +104,7 @@ class TestScimTransformations:
         mock_find_unique.side_effect = [team1, team2]
 
         with patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_client):
-            scim_user = await ScimTransformations.transform_litellm_user_to_scim_user(mock_user)
+            scim_user = await ScimTransformations.transform_gateway_user_to_scim_user(mock_user)
 
             assert scim_user.id == mock_user.user_id
             assert scim_user.userName == mock_user.user_email
@@ -128,7 +128,7 @@ class TestScimTransformations:
         mock_find_unique.return_value = team1
 
         with patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_client):
-            scim_user = await ScimTransformations.transform_litellm_user_to_scim_user(mock_user_with_scim_metadata)
+            scim_user = await ScimTransformations.transform_gateway_user_to_scim_user(mock_user_with_scim_metadata)
 
             assert scim_user.name.givenName == "Test"
             assert scim_user.name.familyName == "User"
@@ -149,7 +149,7 @@ class TestScimTransformations:
         )
 
         with patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_client):
-            scim_user = await ScimTransformations.transform_litellm_user_to_scim_user(user)
+            scim_user = await ScimTransformations.transform_gateway_user_to_scim_user(user)
 
             assert scim_user.enterprise_user is not None
             assert scim_user.enterprise_user.costCenter == "CC-42"
@@ -175,7 +175,7 @@ class TestScimTransformations:
         )
 
         with patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_client):
-            scim_user = await ScimTransformations.transform_litellm_user_to_scim_user(user)
+            scim_user = await ScimTransformations.transform_gateway_user_to_scim_user(user)
 
             assert scim_user.entitlements is not None
             assert scim_user.entitlements[0].value == "jira-software"
@@ -206,7 +206,7 @@ class TestScimTransformations:
         )
 
         with patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_client):
-            scim_user = await ScimTransformations.transform_litellm_user_to_scim_user(user)
+            scim_user = await ScimTransformations.transform_gateway_user_to_scim_user(user)
 
             assert scim_user.id == "user-corrupt"
             assert scim_user.entitlements is None
@@ -222,7 +222,7 @@ class TestScimTransformations:
         mock_find_unique.side_effect = [team1, team2]
 
         with patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_client):
-            scim_user = await ScimTransformations.transform_litellm_user_to_scim_user(mock_user)
+            scim_user = await ScimTransformations.transform_gateway_user_to_scim_user(mock_user)
 
             assert scim_user.enterprise_user is None
             assert SCIM_ENTERPRISE_USER_SCHEMA not in scim_user.schemas
@@ -272,7 +272,7 @@ class TestScimTransformations:
         assert dumped_attrs["roles"][0]["value"] == "engineering-admin"
 
     @pytest.mark.asyncio
-    async def test_transform_litellm_team_to_scim_group(self, mock_team, mock_prisma_client):
+    async def test_transform_gateway_team_to_scim_group(self, mock_team, mock_prisma_client):
         mock_client, _ = mock_prisma_client
 
         with patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_client):
@@ -362,7 +362,7 @@ class TestScimTransformations:
         mock_find_unique.return_value = None
 
         with patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_client):
-            scim_user = await ScimTransformations.transform_litellm_user_to_scim_user(user_with_uuid_email)
+            scim_user = await ScimTransformations.transform_gateway_user_to_scim_user(user_with_uuid_email)
 
             assert scim_user.id == user_with_uuid_email.user_id
             assert scim_user.emails is None or len(scim_user.emails) == 0
@@ -388,7 +388,7 @@ class TestScimTransformations:
         mock_find_unique.return_value = None
 
         with patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_client):
-            scim_user = await ScimTransformations.transform_litellm_user_to_scim_user(user_with_none_email)
+            scim_user = await ScimTransformations.transform_gateway_user_to_scim_user(user_with_none_email)
 
             assert scim_user.id == user_with_none_email.user_id
             assert scim_user.emails is None or len(scim_user.emails) == 0

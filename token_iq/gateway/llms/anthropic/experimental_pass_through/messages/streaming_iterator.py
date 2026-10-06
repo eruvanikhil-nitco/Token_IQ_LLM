@@ -13,7 +13,7 @@ from token_iq.gateway.constants import (
     ANTHROPIC_MESSAGES_STREAM_RELAY_QUEUE_MAXSIZE,
 )
 from token_iq.gateway.core_utils.core_helpers import process_response_headers
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.core_utils.logging_worker import GLOBAL_LOGGING_WORKER
 from token_iq.gateway.llms.anthropic.common_utils import ANTHROPIC_ERROR_STATUS_CODE_MAP
 from token_iq.gateway.proxy.pass_through_endpoints.success_handler import (
@@ -388,7 +388,7 @@ class BaseAnthropicMessagesStreamingIterator:
 
     def __init__(
         self,
-        litellm_logging_obj: LiteLLMLoggingObj,
+        litellm_logging_obj: GatewayLoggingObj,
         request_body: dict,
     ):
         self.litellm_logging_obj = litellm_logging_obj
@@ -433,7 +433,7 @@ class BaseAnthropicMessagesStreamingIterator:
         self,
         httpx_response,
         request_body: dict,
-        litellm_logging_obj: LiteLLMLoggingObj,
+        litellm_logging_obj: GatewayLoggingObj,
     ) -> AsyncIterator:
         """Helper function to handle Anthropic streaming responses using the existing logging handlers"""
         from token_iq.gateway.proxy.pass_through_endpoints.streaming_handler import (

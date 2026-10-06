@@ -9,7 +9,7 @@ import pytest
 from e2e_config import provider_edge_base, unique_marker
 from e2e_http import StreamingResponse, assert_client_error, require_successful_call, unwrap
 from lifecycle import ResourceManager
-from models import ChatBody, ChatMessage, ChatResponse, LiteLLMParamsBody
+from models import ChatBody, ChatMessage, ChatResponse, GatewayParamsBody
 from proxy_client import ProxyClient
 from pydantic import BaseModel
 
@@ -42,7 +42,7 @@ def _register_chat_model(proxy: ProxyClient, resources: ResourceManager) -> tupl
     model = f"e2e-chat-sec-{unique_marker()}"
     model_id = proxy.create_model(
         model,
-        LiteLLMParamsBody(
+        GatewayParamsBody(
             model=OPENAI_BACKEND,
             api_key="os.environ/OPENAI_API_KEY",
             api_base=None if base is None else f"{base}/v1",

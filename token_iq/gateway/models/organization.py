@@ -8,10 +8,10 @@ Canonical definition for ``litellm_organizationtable``. Re-exported from
 from token_iq.gateway.models.budget import LiteLLM_BudgetTable
 from token_iq.gateway.models.object_permission import LiteLLM_ObjectPermissionTable
 from token_iq.gateway.models.user import LiteLLM_UserTable
-from token_iq.gateway.types.llms.base import LiteLLMPydanticObjectBase
+from token_iq.gateway.types.llms.base import GatewayPydanticObjectBase
 
 
-class LiteLLM_OrganizationTable(LiteLLMPydanticObjectBase):
+class LiteLLM_OrganizationTable(GatewayPydanticObjectBase):
     """Represents user-controllable params for a LiteLLM_OrganizationTable record"""
 
     organization_id: str | None = None

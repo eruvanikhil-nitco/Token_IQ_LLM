@@ -21,7 +21,7 @@ from token_iq.gateway.core_utils.prompt_templates.common_utils import (
     TOOL_RESULT_IMAGE_PLACEHOLDER,
 )
 from token_iq.gateway.llms.anthropic.experimental_pass_through.responses_adapters.transformation import (
-    LiteLLMAnthropicToResponsesAPIAdapter,
+    GatewayAnthropicToResponsesAPIAdapter,
 )
 from token_iq.gateway.types.llms.anthropic import (
     AllAnthropicToolsValues,
@@ -40,7 +40,7 @@ def _make_request(**overrides) -> AnthropicMessagesRequest:
     return AnthropicMessagesRequest(**base)
 
 
-_ADAPTER = LiteLLMAnthropicToResponsesAPIAdapter()
+_ADAPTER = GatewayAnthropicToResponsesAPIAdapter()
 
 
 # ---------------------------------------------------------------------------
@@ -1383,7 +1383,7 @@ class TestTranslateResponse:
 
     def test_missing_usage_maps_to_zero_tokens(self):
         """A response without a usage object must map to zeroed Anthropic usage."""
-        assert LiteLLMAnthropicToResponsesAPIAdapter.translate_responses_api_usage_to_anthropic_usage(None) == {
+        assert GatewayAnthropicToResponsesAPIAdapter.translate_responses_api_usage_to_anthropic_usage(None) == {
             "input_tokens": 0,
             "output_tokens": 0,
         }

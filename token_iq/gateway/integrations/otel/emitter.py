@@ -19,7 +19,7 @@ from token_iq.gateway.integrations.otel.model.payloads import (
     ServiceSpanData,
     SpanError,
 )
-from token_iq.gateway.integrations.otel.model.semconv import Error, ExceptionEvent, LiteLLMError
+from token_iq.gateway.integrations.otel.model.semconv import Error, ExceptionEvent, GatewayError
 from token_iq.gateway.integrations.otel.model.spans import (
     SPAN_REGISTRY,
     SpanRole,
@@ -61,16 +61,16 @@ def _stamp_otel_error_attributes(span: Span, error_type: str, resolved_message: 
     span.set_attribute(Error.MESSAGE, resolved_message)
 
 
-def _stamp_litellm_error_attributes(span: Span, error: SpanError) -> None:
+def _stamp_gateway_error_attributes(span: Span, error: SpanError) -> None:
     """Stamp litellm-specific error detail attributes. Emitted only when the
     corresponding field is populated so guardrail-shape errors carrying only a
     message aren't polluted with empty detail keys."""
     if error.code:
-        span.set_attribute(LiteLLMError.CODE, error.code)
+        span.set_attribute(GatewayError.CODE, error.code)
     if error.stack_trace:
-        span.set_attribute(LiteLLMError.STACK_TRACE, error.stack_trace)
+        span.set_attribute(GatewayError.STACK_TRACE, error.stack_trace)
     if error.llm_provider:
-        span.set_attribute(LiteLLMError.LLM_PROVIDER, error.llm_provider)
+        span.set_attribute(GatewayError.LLM_PROVIDER, error.llm_provider)
 
 
 def stamp_error(
@@ -98,7 +98,7 @@ def stamp_error(
     error_type: Final = error.error_type or "error"
     message: Final = error.message or error.error_type or "error"
     _stamp_otel_error_attributes(span, error_type, message)
-    _stamp_litellm_error_attributes(span, error)
+    _stamp_gateway_error_attributes(span, error)
     if set_status:
         span.set_status(Status(StatusCode.ERROR, message))
     if record_event:

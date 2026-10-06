@@ -80,7 +80,7 @@ from typing_extensions import (
     override,
 )
 
-from token_iq.gateway.types.llms.base import BaseLiteLLMOpenAIResponseObject
+from token_iq.gateway.types.llms.base import BaseGatewayOpenAIResponseObject
 from token_iq.gateway.types.responses.main import (
     CustomToolCallOutputItem,
     GenericResponseOutputItem,
@@ -506,7 +506,7 @@ class CreateBatchRequest(TypedDict, total=False):
     timeout: float | None
 
 
-class LiteLLMBatchCreateRequest(CreateBatchRequest, total=False):
+class GatewayBatchCreateRequest(CreateBatchRequest, total=False):
     model: str
 
 
@@ -1116,7 +1116,7 @@ class FineTuningJobCreate(BaseModel):
     seed: int | None = None  # "The seed controls the reproducibility of the job."
 
 
-class LiteLLMFineTuningJobCreate(FineTuningJobCreate):
+class GatewayFineTuningJobCreate(FineTuningJobCreate):
     custom_llm_provider: Literal["openai", "azure", "vertex_ai"] | None = None
 
     model_config = {"extra": "allow"}  # This allows the model to accept additional fields
@@ -1273,7 +1273,7 @@ class ResponsesAPIRequestParams(ResponsesAPIOptionalRequestParams, total=False):
     model: str
 
 
-class OutputTokensDetails(BaseLiteLLMOpenAIResponseObject):
+class OutputTokensDetails(BaseGatewayOpenAIResponseObject):
     audio_tokens: int | None = None
 
     reasoning_tokens: int | None = None
@@ -1283,7 +1283,7 @@ class OutputTokensDetails(BaseLiteLLMOpenAIResponseObject):
     model_config = {"extra": "allow"}
 
 
-class InputTokensDetails(BaseLiteLLMOpenAIResponseObject):
+class InputTokensDetails(BaseGatewayOpenAIResponseObject):
     audio_tokens: int | None = None
     cached_tokens: int = 0
     text_tokens: int | None = None
@@ -1291,7 +1291,7 @@ class InputTokensDetails(BaseLiteLLMOpenAIResponseObject):
     model_config = {"extra": "allow"}
 
 
-class ResponseAPIUsage(BaseLiteLLMOpenAIResponseObject):
+class ResponseAPIUsage(BaseGatewayOpenAIResponseObject):
     input_tokens: int
     """The number of input tokens."""
 
@@ -1328,7 +1328,7 @@ One of: completed, failed, in_progress, cancelled, queued, or incomplete.
 """
 
 
-class ResponsesAPIResponse(BaseLiteLLMOpenAIResponseObject):
+class ResponsesAPIResponse(BaseGatewayOpenAIResponseObject):
     id: str
     created_at: int
     error: dict | None = None
@@ -1525,40 +1525,40 @@ class ResponsesAPIStreamEvents(str, Enum):
     ERROR = "error"
 
 
-class ResponseCreatedEvent(BaseLiteLLMOpenAIResponseObject):
+class ResponseCreatedEvent(BaseGatewayOpenAIResponseObject):
     type: Literal[ResponsesAPIStreamEvents.RESPONSE_CREATED]
     response: ResponsesAPIResponse
 
 
-class ResponseInProgressEvent(BaseLiteLLMOpenAIResponseObject):
+class ResponseInProgressEvent(BaseGatewayOpenAIResponseObject):
     type: Literal[ResponsesAPIStreamEvents.RESPONSE_IN_PROGRESS]
     response: ResponsesAPIResponse
 
 
-class ResponseCompletedEvent(BaseLiteLLMOpenAIResponseObject):
+class ResponseCompletedEvent(BaseGatewayOpenAIResponseObject):
     type: Literal[ResponsesAPIStreamEvents.RESPONSE_COMPLETED]
     response: ResponsesAPIResponse
     _hidden_params: dict = PrivateAttr(default_factory=dict)
 
 
-class ResponseFailedEvent(BaseLiteLLMOpenAIResponseObject):
+class ResponseFailedEvent(BaseGatewayOpenAIResponseObject):
     type: Literal[ResponsesAPIStreamEvents.RESPONSE_FAILED]
     response: ResponsesAPIResponse
 
 
-class ResponseIncompleteEvent(BaseLiteLLMOpenAIResponseObject):
+class ResponseIncompleteEvent(BaseGatewayOpenAIResponseObject):
     type: Literal[ResponsesAPIStreamEvents.RESPONSE_INCOMPLETE]
     response: ResponsesAPIResponse
 
 
-class ResponsePartAddedEvent(BaseLiteLLMOpenAIResponseObject):
+class ResponsePartAddedEvent(BaseGatewayOpenAIResponseObject):
     type: Literal[ResponsesAPIStreamEvents.RESPONSE_PART_ADDED]
     item_id: str
     output_index: int
     part: dict
 
 
-class ReasoningSummaryTextDeltaEvent(BaseLiteLLMOpenAIResponseObject):
+class ReasoningSummaryTextDeltaEvent(BaseGatewayOpenAIResponseObject):
     type: Literal[ResponsesAPIStreamEvents.REASONING_SUMMARY_TEXT_DELTA]
     item_id: str
     output_index: int
@@ -1566,7 +1566,7 @@ class ReasoningSummaryTextDeltaEvent(BaseLiteLLMOpenAIResponseObject):
     delta: str
 
 
-class ReasoningSummaryTextDoneEvent(BaseLiteLLMOpenAIResponseObject):
+class ReasoningSummaryTextDoneEvent(BaseGatewayOpenAIResponseObject):
     type: Literal[ResponsesAPIStreamEvents.REASONING_SUMMARY_TEXT_DONE]
     item_id: str
     output_index: int
@@ -1575,26 +1575,26 @@ class ReasoningSummaryTextDoneEvent(BaseLiteLLMOpenAIResponseObject):
     text: str
 
 
-class ReasoningSummaryPartDoneEvent(BaseLiteLLMOpenAIResponseObject):
+class ReasoningSummaryPartDoneEvent(BaseGatewayOpenAIResponseObject):
     type: Literal[ResponsesAPIStreamEvents.REASONING_SUMMARY_PART_DONE]
     item_id: str
     output_index: int
     sequence_number: int
     summary_index: int = 0
-    part: BaseLiteLLMOpenAIResponseObject
+    part: BaseGatewayOpenAIResponseObject
 
 
-class OutputItemAddedEvent(BaseLiteLLMOpenAIResponseObject):
+class OutputItemAddedEvent(BaseGatewayOpenAIResponseObject):
     type: Literal[ResponsesAPIStreamEvents.OUTPUT_ITEM_ADDED]
     output_index: int
-    item: BaseLiteLLMOpenAIResponseObject | None
+    item: BaseGatewayOpenAIResponseObject | None
 
 
-class OutputItemDoneEvent(BaseLiteLLMOpenAIResponseObject):
+class OutputItemDoneEvent(BaseGatewayOpenAIResponseObject):
     type: Literal[ResponsesAPIStreamEvents.OUTPUT_ITEM_DONE]
     output_index: int
     sequence_number: int = 1
-    item: BaseLiteLLMOpenAIResponseObject
+    item: BaseGatewayOpenAIResponseObject
 
 
 class OpenAIChatCompletionLogprobsContentTopLogprobs(TypedDict, total=False):
@@ -1610,27 +1610,27 @@ class OpenAIChatCompletionLogprobsContent(TypedDict, total=False):
     top_logprobs: list[OpenAIChatCompletionLogprobsContentTopLogprobs]
 
 
-class ContentPartAddedEvent(BaseLiteLLMOpenAIResponseObject):
+class ContentPartAddedEvent(BaseGatewayOpenAIResponseObject):
     type: Literal[ResponsesAPIStreamEvents.CONTENT_PART_ADDED]
     item_id: str
     output_index: int
     content_index: int
-    part: BaseLiteLLMOpenAIResponseObject
+    part: BaseGatewayOpenAIResponseObject
 
 
-class ContentPartDonePartOutputText(BaseLiteLLMOpenAIResponseObject):
+class ContentPartDonePartOutputText(BaseGatewayOpenAIResponseObject):
     type: Literal["output_text"]
     text: str
-    annotations: list[BaseLiteLLMOpenAIResponseObject]
+    annotations: list[BaseGatewayOpenAIResponseObject]
     logprobs: list[OpenAIChatCompletionLogprobsContent] | None
 
 
-class ContentPartDonePartRefusal(BaseLiteLLMOpenAIResponseObject):
+class ContentPartDonePartRefusal(BaseGatewayOpenAIResponseObject):
     type: Literal["refusal"]
     refusal: str
 
 
-class ContentPartDonePartReasoningText(BaseLiteLLMOpenAIResponseObject):
+class ContentPartDonePartReasoningText(BaseGatewayOpenAIResponseObject):
     type: Literal["reasoning_text"]
     reasoning: str
 
@@ -1638,7 +1638,7 @@ class ContentPartDonePartReasoningText(BaseLiteLLMOpenAIResponseObject):
 PART_UNION_TYPES = ContentPartDonePartOutputText | ContentPartDonePartRefusal | ContentPartDonePartReasoningText
 
 
-class ContentPartDoneEvent(BaseLiteLLMOpenAIResponseObject):
+class ContentPartDoneEvent(BaseGatewayOpenAIResponseObject):
     type: Literal[ResponsesAPIStreamEvents.CONTENT_PART_DONE]
     item_id: str
     output_index: int
@@ -1646,7 +1646,7 @@ class ContentPartDoneEvent(BaseLiteLLMOpenAIResponseObject):
     part: PART_UNION_TYPES
 
 
-class OutputTextDeltaEvent(BaseLiteLLMOpenAIResponseObject):
+class OutputTextDeltaEvent(BaseGatewayOpenAIResponseObject):
     type: Literal[ResponsesAPIStreamEvents.OUTPUT_TEXT_DELTA]
     item_id: str
     output_index: int
@@ -1654,7 +1654,7 @@ class OutputTextDeltaEvent(BaseLiteLLMOpenAIResponseObject):
     delta: str
 
 
-class OutputTextAnnotationAddedEvent(BaseLiteLLMOpenAIResponseObject):
+class OutputTextAnnotationAddedEvent(BaseGatewayOpenAIResponseObject):
     type: Literal[ResponsesAPIStreamEvents.OUTPUT_TEXT_ANNOTATION_ADDED]
     item_id: str
     output_index: int
@@ -1663,7 +1663,7 @@ class OutputTextAnnotationAddedEvent(BaseLiteLLMOpenAIResponseObject):
     annotation: dict
 
 
-class OutputTextDoneEvent(BaseLiteLLMOpenAIResponseObject):
+class OutputTextDoneEvent(BaseGatewayOpenAIResponseObject):
     type: Literal[ResponsesAPIStreamEvents.OUTPUT_TEXT_DONE]
     item_id: str
     output_index: int
@@ -1671,7 +1671,7 @@ class OutputTextDoneEvent(BaseLiteLLMOpenAIResponseObject):
     text: str
 
 
-class RefusalDeltaEvent(BaseLiteLLMOpenAIResponseObject):
+class RefusalDeltaEvent(BaseGatewayOpenAIResponseObject):
     type: Literal[ResponsesAPIStreamEvents.REFUSAL_DELTA]
     item_id: str
     output_index: int
@@ -1679,7 +1679,7 @@ class RefusalDeltaEvent(BaseLiteLLMOpenAIResponseObject):
     delta: str
 
 
-class RefusalDoneEvent(BaseLiteLLMOpenAIResponseObject):
+class RefusalDoneEvent(BaseGatewayOpenAIResponseObject):
     type: Literal[ResponsesAPIStreamEvents.REFUSAL_DONE]
     item_id: str
     output_index: int
@@ -1687,72 +1687,72 @@ class RefusalDoneEvent(BaseLiteLLMOpenAIResponseObject):
     refusal: str
 
 
-class FunctionCallArgumentsDeltaEvent(BaseLiteLLMOpenAIResponseObject):
+class FunctionCallArgumentsDeltaEvent(BaseGatewayOpenAIResponseObject):
     type: Literal[ResponsesAPIStreamEvents.FUNCTION_CALL_ARGUMENTS_DELTA]
     item_id: str
     output_index: int
     delta: str
 
 
-class FunctionCallArgumentsDoneEvent(BaseLiteLLMOpenAIResponseObject):
+class FunctionCallArgumentsDoneEvent(BaseGatewayOpenAIResponseObject):
     type: Literal[ResponsesAPIStreamEvents.FUNCTION_CALL_ARGUMENTS_DONE]
     item_id: str
     output_index: int
     arguments: str
 
 
-class FileSearchCallInProgressEvent(BaseLiteLLMOpenAIResponseObject):
+class FileSearchCallInProgressEvent(BaseGatewayOpenAIResponseObject):
     type: Literal[ResponsesAPIStreamEvents.FILE_SEARCH_CALL_IN_PROGRESS]
     output_index: int
     item_id: str
 
 
-class FileSearchCallSearchingEvent(BaseLiteLLMOpenAIResponseObject):
+class FileSearchCallSearchingEvent(BaseGatewayOpenAIResponseObject):
     type: Literal[ResponsesAPIStreamEvents.FILE_SEARCH_CALL_SEARCHING]
     output_index: int
     item_id: str
 
 
-class FileSearchCallCompletedEvent(BaseLiteLLMOpenAIResponseObject):
+class FileSearchCallCompletedEvent(BaseGatewayOpenAIResponseObject):
     type: Literal[ResponsesAPIStreamEvents.FILE_SEARCH_CALL_COMPLETED]
     output_index: int
     item_id: str
 
 
-class WebSearchCallInProgressEvent(BaseLiteLLMOpenAIResponseObject):
+class WebSearchCallInProgressEvent(BaseGatewayOpenAIResponseObject):
     type: Literal[ResponsesAPIStreamEvents.WEB_SEARCH_CALL_IN_PROGRESS]
     output_index: int
     item_id: str
 
 
-class WebSearchCallSearchingEvent(BaseLiteLLMOpenAIResponseObject):
+class WebSearchCallSearchingEvent(BaseGatewayOpenAIResponseObject):
     type: Literal[ResponsesAPIStreamEvents.WEB_SEARCH_CALL_SEARCHING]
     output_index: int
     item_id: str
 
 
-class WebSearchCallCompletedEvent(BaseLiteLLMOpenAIResponseObject):
+class WebSearchCallCompletedEvent(BaseGatewayOpenAIResponseObject):
     type: Literal[ResponsesAPIStreamEvents.WEB_SEARCH_CALL_COMPLETED]
     output_index: int
     item_id: str
 
 
 # MCP List Tools Events
-class MCPListToolsInProgressEvent(BaseLiteLLMOpenAIResponseObject):
+class MCPListToolsInProgressEvent(BaseGatewayOpenAIResponseObject):
     type: Literal[ResponsesAPIStreamEvents.MCP_LIST_TOOLS_IN_PROGRESS]
     sequence_number: int
     output_index: int
     item_id: str
 
 
-class MCPListToolsCompletedEvent(BaseLiteLLMOpenAIResponseObject):
+class MCPListToolsCompletedEvent(BaseGatewayOpenAIResponseObject):
     type: Literal[ResponsesAPIStreamEvents.MCP_LIST_TOOLS_COMPLETED]
     sequence_number: int
     output_index: int
     item_id: str
 
 
-class MCPListToolsFailedEvent(BaseLiteLLMOpenAIResponseObject):
+class MCPListToolsFailedEvent(BaseGatewayOpenAIResponseObject):
     type: Literal[ResponsesAPIStreamEvents.MCP_LIST_TOOLS_FAILED]
     sequence_number: int
     output_index: int
@@ -1760,14 +1760,14 @@ class MCPListToolsFailedEvent(BaseLiteLLMOpenAIResponseObject):
 
 
 # MCP Call Events
-class MCPCallInProgressEvent(BaseLiteLLMOpenAIResponseObject):
+class MCPCallInProgressEvent(BaseGatewayOpenAIResponseObject):
     type: Literal[ResponsesAPIStreamEvents.MCP_CALL_IN_PROGRESS]
     sequence_number: int
     output_index: int
     item_id: str
 
 
-class MCPCallArgumentsDeltaEvent(BaseLiteLLMOpenAIResponseObject):
+class MCPCallArgumentsDeltaEvent(BaseGatewayOpenAIResponseObject):
     type: Literal[ResponsesAPIStreamEvents.MCP_CALL_ARGUMENTS_DELTA]
     output_index: int
     item_id: str
@@ -1775,7 +1775,7 @@ class MCPCallArgumentsDeltaEvent(BaseLiteLLMOpenAIResponseObject):
     sequence_number: int
 
 
-class MCPCallArgumentsDoneEvent(BaseLiteLLMOpenAIResponseObject):
+class MCPCallArgumentsDoneEvent(BaseGatewayOpenAIResponseObject):
     type: Literal[ResponsesAPIStreamEvents.MCP_CALL_ARGUMENTS_DONE]
     output_index: int
     item_id: str
@@ -1783,27 +1783,27 @@ class MCPCallArgumentsDoneEvent(BaseLiteLLMOpenAIResponseObject):
     sequence_number: int
 
 
-class MCPCallCompletedEvent(BaseLiteLLMOpenAIResponseObject):
+class MCPCallCompletedEvent(BaseGatewayOpenAIResponseObject):
     type: Literal[ResponsesAPIStreamEvents.MCP_CALL_COMPLETED]
     sequence_number: int
     item_id: str
     output_index: int
 
 
-class MCPCallFailedEvent(BaseLiteLLMOpenAIResponseObject):
+class MCPCallFailedEvent(BaseGatewayOpenAIResponseObject):
     type: Literal[ResponsesAPIStreamEvents.MCP_CALL_FAILED]
     sequence_number: int
     item_id: str
     output_index: int
 
 
-class ImageGenerationPartialImageEvent(BaseLiteLLMOpenAIResponseObject):
+class ImageGenerationPartialImageEvent(BaseGatewayOpenAIResponseObject):
     type: Literal[ResponsesAPIStreamEvents.IMAGE_GENERATION_PARTIAL_IMAGE]
     partial_image_index: int
     b64_json: str
 
 
-class ErrorEventError(BaseLiteLLMOpenAIResponseObject):
+class ErrorEventError(BaseGatewayOpenAIResponseObject):
     """Nested error object within ErrorEvent."""
 
     type: str  # e.g., 'invalid_request_error'
@@ -1812,13 +1812,13 @@ class ErrorEventError(BaseLiteLLMOpenAIResponseObject):
     param: str | dict[str, object] | None = None
 
 
-class ErrorEvent(BaseLiteLLMOpenAIResponseObject):
+class ErrorEvent(BaseGatewayOpenAIResponseObject):
     type: Literal[ResponsesAPIStreamEvents.ERROR]
     sequence_number: int
     error: ErrorEventError
 
 
-class GenericEvent(BaseLiteLLMOpenAIResponseObject):
+class GenericEvent(BaseGatewayOpenAIResponseObject):
     type: str
 
     model_config = ConfigDict(extra="allow", protected_namespaces=())
@@ -1863,7 +1863,7 @@ ResponsesAPIStreamingResponse = Annotated[
     | ImageGenerationPartialImageEvent
     | ErrorEvent
     | GenericEvent
-    | BaseLiteLLMOpenAIResponseObject,
+    | BaseGatewayOpenAIResponseObject,
     Discriminator("type"),
 ]
 
@@ -2256,14 +2256,14 @@ class ImageGenerationRequestQuality(str, Enum):
     HD = "hd"
 
 
-class OpenAIModerationResult(BaseLiteLLMOpenAIResponseObject):
+class OpenAIModerationResult(BaseGatewayOpenAIResponseObject):
     categories: dict | None
     category_applied_input_types: dict | None
     category_scores: dict | None
     flagged: bool | None
 
 
-class OpenAIModerationResponse(BaseLiteLLMOpenAIResponseObject):
+class OpenAIModerationResponse(BaseGatewayOpenAIResponseObject):
     """
     Response from the OpenAI Moderation API.
     """

@@ -59,12 +59,12 @@ class TestServiceLoggerOTEL(unittest.IsolatedAsyncioTestCase):
 
         # Verify the method is overridden
         self.assertEqual(
-            logger.create_litellm_proxy_request_started_span.__qualname__,
+            logger.create_gateway_proxy_request_started_span.__qualname__,
             "LangfuseOtelLogger.create_litellm_proxy_request_started_span",
         )
 
         # Verify it returns None
-        result = logger.create_litellm_proxy_request_started_span(
+        result = logger.create_gateway_proxy_request_started_span(
             start_time=datetime.now(),
             headers={"Authorization": "Bearer test"},
         )

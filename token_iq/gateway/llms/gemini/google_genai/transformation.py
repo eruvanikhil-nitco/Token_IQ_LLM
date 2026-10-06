@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Any, Final, Literal, cast
 import httpx
 
 from token_iq import gateway
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.llms.base_llm.google_genai.transformation import (
     BaseGoogleGenAIGenerateContentConfig,
 )
@@ -17,7 +17,7 @@ from token_iq.gateway.llms.vertex_ai.common_utils import (
     supports_response_json_schema,
 )
 from token_iq.gateway.llms.vertex_ai.gemini.vertex_and_google_ai_studio_gemini import VertexLLM
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 
 if TYPE_CHECKING:
     from token_iq.gateway.types.google_genai.main import (
@@ -148,7 +148,7 @@ class GoogleGenAIConfig(BaseGoogleGenAIGenerateContentConfig, VertexLLM):
         api_key: str | None,
         headers: dict | None,
         model: str,
-        litellm_params: GenericLiteLLMParams | dict | None,
+        litellm_params: GenericGatewayParams | dict | None,
     ) -> dict:
         default_headers: Final = {
             "Content-Type": "application/json",
@@ -363,7 +363,7 @@ class GoogleGenAIConfig(BaseGoogleGenAIGenerateContentConfig, VertexLLM):
         self,
         model: str,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> GenerateContentResponse:
         """
         Transform the raw response from the generate content API.

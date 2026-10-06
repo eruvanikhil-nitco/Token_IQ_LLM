@@ -14,20 +14,20 @@ if TYPE_CHECKING:
     from token_iq.gateway.core_utils.litellm_logging import Logging
 
 # Global cache variables
-_LiteLLMLogging: type["Logging"] | None = None
+_GatewayLogging: type["Logging"] | None = None
 _coroutine_checker: Optional["CoroutineChecker"] = None
 _set_callbacks: Callable | None = None
 
 
 def get_litellm_logging_class() -> type["Logging"]:
     """Get the cached LiteLLM Logging class, initializing if needed."""
-    global _LiteLLMLogging
-    if _LiteLLMLogging is not None:
-        return _LiteLLMLogging
+    global _GatewayLogging
+    if _GatewayLogging is not None:
+        return _GatewayLogging
     from token_iq.gateway.core_utils.litellm_logging import Logging
 
-    _LiteLLMLogging = Logging
-    return _LiteLLMLogging
+    _GatewayLogging = Logging
+    return _GatewayLogging
 
 
 def get_coroutine_checker() -> "CoroutineChecker":
@@ -54,7 +54,7 @@ def get_set_callbacks() -> Callable:
 
 def clear_cached_imports() -> None:
     """Clear all cached imports. Useful for testing or memory management."""
-    global _LiteLLMLogging, _coroutine_checker, _set_callbacks
-    _LiteLLMLogging = None
+    global _GatewayLogging, _coroutine_checker, _set_callbacks
+    _GatewayLogging = None
     _coroutine_checker = None
     _set_callbacks = None

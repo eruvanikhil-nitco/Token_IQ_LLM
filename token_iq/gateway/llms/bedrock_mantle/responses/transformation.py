@@ -34,7 +34,7 @@ from token_iq.gateway.types.llms.openai import (
     ResponseInputParam,
     ResponsesAPIOptionalRequestParams,
 )
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.types.utils import LlmProviders
 
 # Checked longest/most-specific first so a full endpoint URL collapses to host
@@ -116,8 +116,8 @@ class BedrockMantleResponsesAPIConfig(BedrockMantleAuthMixin, OpenAIResponsesAPI
         path: Final = "/openai/v1/responses" if self.use_openai_path else "/v1/responses"
         return f"{base}{path}"
 
-    def validate_environment(self, headers: dict, model: str, litellm_params: GenericLiteLLMParams | None) -> dict:
-        litellm_params = litellm_params or GenericLiteLLMParams()
+    def validate_environment(self, headers: dict, model: str, litellm_params: GenericGatewayParams | None) -> dict:
+        litellm_params = litellm_params or GenericGatewayParams()
         bearer: Final = self._resolve_bearer_token(litellm_params.api_key)
         if bearer:
             headers["Authorization"] = f"Bearer {bearer}"
@@ -182,7 +182,7 @@ class BedrockMantleResponsesAPIConfig(BedrockMantleAuthMixin, OpenAIResponsesAPI
         model: str,
         input: "str | ResponseInputParam",
         response_api_optional_request_params: dict,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> dict:
         remaining_input, hoisted_tools = self._hoist_codex_additional_tools(input)

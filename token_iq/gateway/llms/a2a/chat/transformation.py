@@ -23,7 +23,7 @@ from .streaming_iterator import A2AModelResponseIterator
 if TYPE_CHECKING:
     import tiktoken
 
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 
 
 class A2AConfig(BaseConfig):
@@ -251,7 +251,7 @@ class A2AConfig(BaseConfig):
         model: str,
         raw_response: httpx.Response,
         model_response: ModelResponse,
-        logging_obj: "LiteLLMLoggingObj",
+        logging_obj: "GatewayLoggingObj",
         request_data: dict,
         messages: list[AllMessageValues],
         optional_params: dict,

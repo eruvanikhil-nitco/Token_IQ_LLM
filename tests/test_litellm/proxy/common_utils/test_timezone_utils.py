@@ -43,7 +43,7 @@ def test_get_budget_reset_time():
     assert get_budget_reset_time(budget_duration="1mo") == expected_reset_at
 
 
-def test_get_budget_reset_timezone_reads_litellm_attr():
+def test_get_budget_reset_timezone_reads_gateway_attr():
     """
     Test that get_budget_reset_timezone reads from litellm.timezone attribute.
     """

@@ -189,18 +189,18 @@ class TestCreateResponsesConfigClass:
             )
         assert headers["Authorization"] == "Bearer sk-test-key-123"
 
-    def test_generated_class_validate_environment_litellm_params_override(self):
+    def test_generated_class_validate_environment_gateway_params_override(self):
         """api_key from litellm_params takes precedence over env"""
         from token_iq.gateway.llms.openai_like.dynamic_config import (
             create_responses_config_class,
         )
-        from token_iq.gateway.types.router import GenericLiteLLMParams
+        from token_iq.gateway.types.router import GenericGatewayParams
 
         provider = self._make_test_provider()
         config_cls = create_responses_config_class(provider)
         config = config_cls()
 
-        litellm_params = GenericLiteLLMParams(api_key="sk-override-key")
+        litellm_params = GenericGatewayParams(api_key="sk-override-key")
         headers = config.validate_environment(
             headers={}, model="test-model", litellm_params=litellm_params
         )

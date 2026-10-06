@@ -8,7 +8,7 @@ import pytest
 
 from fastapi import HTTPException
 
-from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
 from token_iq.gateway.proxy.guardrails.guardrail_endpoints import (
     CreateGuardrailRequest,
     PatchGuardrailRequest,
@@ -29,7 +29,7 @@ from token_iq.gateway.proxy.guardrails.guardrail_endpoints import (
     update_guardrail,
 )
 
-MOCK_ADMIN_USER = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN)
+MOCK_ADMIN_USER = UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN)
 from token_iq.gateway.proxy.guardrails.guardrail_registry import (
     IN_MEMORY_GUARDRAIL_HANDLER,
     InMemoryGuardrailHandler,
@@ -138,7 +138,7 @@ async def test_list_guardrails_v2_with_db_and_config(
         mock_in_memory_handler,
     )
 
-    admin_auth = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN)
+    admin_auth = UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN)
     response = await list_guardrails_v2(user_api_key_dict=admin_auth)
 
     assert len(response.guardrails) == 2
@@ -188,7 +188,7 @@ async def test_list_guardrails_v2_skips_stale_db_backed_in_memory_entries(mocker
         mock_in_memory_handler,
     )
 
-    admin_auth = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN)
+    admin_auth = UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN)
     response = await list_guardrails_v2(user_api_key_dict=admin_auth)
 
     assert response.guardrails == []
@@ -254,7 +254,7 @@ async def test_list_guardrails_v2_masks_sensitive_data_in_db_guardrails(mocker):
         mock_in_memory_handler,
     )
 
-    admin_auth = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN)
+    admin_auth = UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN)
     response = await list_guardrails_v2(user_api_key_dict=admin_auth)
 
     assert len(response.guardrails) == 1
@@ -309,7 +309,7 @@ async def test_list_guardrails_v2_masks_sensitive_data_in_config_guardrails(mock
         mock_in_memory_handler,
     )
 
-    admin_auth = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN)
+    admin_auth = UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN)
     response = await list_guardrails_v2(user_api_key_dict=admin_auth)
 
     assert len(response.guardrails) == 1
@@ -373,7 +373,7 @@ async def test_list_guardrails_v2_admin_viewer_sees_guardrails_of_teams_they_are
     )
 
     viewer_auth = UserAPIKeyAuth(
-        user_id="viewer-1", user_role=LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY
+        user_id="viewer-1", user_role=GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY
     )
     response = await list_guardrails_v2(user_api_key_dict=viewer_auth)
 
@@ -422,7 +422,7 @@ async def test_list_guardrails_v2_masks_sensitive_data_for_admin_viewer(mocker):
     )
 
     viewer_auth = UserAPIKeyAuth(
-        user_id="viewer-1", user_role=LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY
+        user_id="viewer-1", user_role=GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY
     )
     response = await list_guardrails_v2(user_api_key_dict=viewer_auth)
 
@@ -536,7 +536,7 @@ async def test_list_guardrails_v2_without_prisma_non_admin_sees_unrestricted_con
     )
 
     non_admin_auth = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER, user_id="internal-user-1"
+        user_role=GatewayUserRoles.INTERNAL_USER, user_id="internal-user-1"
     )
     response = await list_guardrails_v2(user_api_key_dict=non_admin_auth)
 
@@ -1946,7 +1946,7 @@ async def test_register_guardrail_non_admin_cross_team_allowed(mocker):
         litellm_params=MOCK_REGISTER_REQUEST.litellm_params,
     )
     user = UserAPIKeyAuth(
-        user_id="u1", user_role=LitellmUserRoles.INTERNAL_USER, team_id="team-alpha"
+        user_id="u1", user_role=GatewayUserRoles.INTERNAL_USER, team_id="team-alpha"
     )
 
     result = await register_guardrail(req, user)
@@ -1968,7 +1968,7 @@ async def test_register_guardrail_non_admin_cross_team_forbidden(mocker):
         litellm_params=MOCK_REGISTER_REQUEST.litellm_params,
     )
     user = UserAPIKeyAuth(
-        user_id="u1", user_role=LitellmUserRoles.INTERNAL_USER, team_id="team-alpha"
+        user_id="u1", user_role=GatewayUserRoles.INTERNAL_USER, team_id="team-alpha"
     )
 
     with pytest.raises(HTTPException) as exc_info:
@@ -2015,7 +2015,7 @@ async def test_list_guardrail_submissions_non_admin_scoped_to_own_teams(mocker):
         "token_iq.gateway.proxy.guardrails.guardrail_endpoints._get_user_team_ids",
         AsyncMock(return_value=["team-mine"]),
     )
-    user = UserAPIKeyAuth(user_id="u1", user_role=LitellmUserRoles.INTERNAL_USER)
+    user = UserAPIKeyAuth(user_id="u1", user_role=GatewayUserRoles.INTERNAL_USER)
 
     result = await list_guardrail_submissions(user_api_key_dict=user)
 
@@ -2040,7 +2040,7 @@ async def test_list_guardrail_submissions_non_admin_no_teams(mocker):
         "token_iq.gateway.proxy.guardrails.guardrail_endpoints._get_user_team_ids",
         AsyncMock(return_value=[]),
     )
-    user = UserAPIKeyAuth(user_id="u1", user_role=LitellmUserRoles.INTERNAL_USER)
+    user = UserAPIKeyAuth(user_id="u1", user_role=GatewayUserRoles.INTERNAL_USER)
 
     result = await list_guardrail_submissions(user_api_key_dict=user)
 
@@ -2057,7 +2057,7 @@ async def test_list_guardrail_submissions_non_admin_team_filter_forbidden(mocker
         "token_iq.gateway.proxy.guardrails.guardrail_endpoints._get_user_team_ids",
         AsyncMock(return_value=["team-mine"]),
     )
-    user = UserAPIKeyAuth(user_id="u1", user_role=LitellmUserRoles.INTERNAL_USER)
+    user = UserAPIKeyAuth(user_id="u1", user_role=GatewayUserRoles.INTERNAL_USER)
 
     with pytest.raises(HTTPException) as exc_info:
         await list_guardrail_submissions(team_id="team-other", user_api_key_dict=user)
@@ -2089,7 +2089,7 @@ async def test_list_guardrail_submissions_success(mocker):
     )
     mock_prisma.db.litellm_guardrailstable.find_many = AsyncMock(return_value=[row])
     mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
-    user = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN)
+    user = UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN)
 
     result = await list_guardrail_submissions(user_api_key_dict=user)
 
@@ -2108,7 +2108,7 @@ async def test_list_guardrail_submissions_returns_only_team_guardrails(mocker):
     find_many = AsyncMock(return_value=[])
     mock_prisma.db.litellm_guardrailstable.find_many = find_many
     mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
-    user = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN)
+    user = UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN)
 
     await list_guardrail_submissions(user_api_key_dict=user)
 
@@ -2149,7 +2149,7 @@ async def test_list_guardrail_submissions_team_id_filter(mocker):
     find_many = AsyncMock(return_value=[row_abc, row_other])
     mock_prisma.db.litellm_guardrailstable.find_many = find_many
     mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
-    user = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN)
+    user = UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN)
 
     result = await list_guardrail_submissions(
         user_api_key_dict=user, team_id="team-abc"
@@ -2167,7 +2167,7 @@ async def test_get_guardrail_submission_not_found(mocker):
     mock_prisma = mocker.Mock()
     mock_prisma.db.litellm_guardrailstable.find_unique = AsyncMock(return_value=None)
     mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
-    user = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN)
+    user = UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN)
 
     with pytest.raises(HTTPException) as exc_info:
         await get_guardrail_submission("nonexistent-id", user)
@@ -2196,7 +2196,7 @@ async def test_get_guardrail_submission_non_admin_own_team(mocker):
         "token_iq.gateway.proxy.guardrails.guardrail_endpoints._get_user_team_ids",
         AsyncMock(return_value=["team-mine"]),
     )
-    user = UserAPIKeyAuth(user_id="u1", user_role=LitellmUserRoles.INTERNAL_USER)
+    user = UserAPIKeyAuth(user_id="u1", user_role=GatewayUserRoles.INTERNAL_USER)
 
     result = await get_guardrail_submission("sub-1", user)
 
@@ -2226,7 +2226,7 @@ async def test_get_guardrail_submission_non_admin_other_team_forbidden(mocker):
         "token_iq.gateway.proxy.guardrails.guardrail_endpoints._get_user_team_ids",
         AsyncMock(return_value=["team-mine"]),
     )
-    user = UserAPIKeyAuth(user_id="u1", user_role=LitellmUserRoles.INTERNAL_USER)
+    user = UserAPIKeyAuth(user_id="u1", user_role=GatewayUserRoles.INTERNAL_USER)
 
     with pytest.raises(HTTPException) as exc_info:
         await get_guardrail_submission("sub-1", user)
@@ -2256,7 +2256,7 @@ async def test_get_guardrail_submission_admin_viewer_other_team_allowed(mocker):
         AsyncMock(return_value=[]),
     )
     user = UserAPIKeyAuth(
-        user_id="viewer-1", user_role=LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY
+        user_id="viewer-1", user_role=GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY
     )
 
     result = await get_guardrail_submission("sub-1", user)
@@ -2290,7 +2290,7 @@ async def test_approve_guardrail_submission_success(mocker):
         "token_iq.gateway.proxy.guardrails.guardrail_registry.IN_MEMORY_GUARDRAIL_HANDLER",
         mock_handler,
     )
-    user = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN)
+    user = UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN)
 
     result = await approve_guardrail_submission("approve-me", user)
 
@@ -2308,7 +2308,7 @@ async def test_approve_guardrail_submission_not_pending(mocker):
     row = mocker.Mock(guardrail_id="x", guardrail_name="y", status="active")
     mock_prisma.db.litellm_guardrailstable.find_unique = AsyncMock(return_value=row)
     mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
-    user = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN)
+    user = UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN)
 
     with pytest.raises(HTTPException) as exc_info:
         await approve_guardrail_submission("x", user)
@@ -2323,7 +2323,7 @@ async def test_reject_guardrail_submission_success(mocker):
     mock_prisma.db.litellm_guardrailstable.find_unique = AsyncMock(return_value=row)
     mock_prisma.db.litellm_guardrailstable.update = AsyncMock()
     mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
-    user = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN)
+    user = UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN)
 
     result = await reject_guardrail_submission("rej-1", user)
 
@@ -2342,7 +2342,7 @@ async def test_reject_guardrail_submission_not_pending(mocker):
     )
     mock_prisma.db.litellm_guardrailstable.find_unique = AsyncMock(return_value=row)
     mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
-    user = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN)
+    user = UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN)
 
     with pytest.raises(HTTPException) as exc_info:
         await reject_guardrail_submission("already-active", user)
@@ -2448,7 +2448,7 @@ async def test_approve_guardrail_init_failure_returns_warning(mocker):
         "token_iq.gateway.proxy.guardrails.guardrail_registry.IN_MEMORY_GUARDRAIL_HANDLER",
         mock_handler,
     )
-    user = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN)
+    user = UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN)
 
     result = await approve_guardrail_submission("warn-me", user)
 
@@ -2483,7 +2483,7 @@ async def test_approve_guardrail_no_warning_on_success(mocker):
         "token_iq.gateway.proxy.guardrails.guardrail_registry.IN_MEMORY_GUARDRAIL_HANDLER",
         mock_handler,
     )
-    user = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN)
+    user = UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN)
 
     result = await approve_guardrail_submission("ok-guard", user)
 
@@ -2498,7 +2498,7 @@ async def test_list_submissions_single_db_query(mocker):
     find_many = AsyncMock(return_value=[])
     mock_prisma.db.litellm_guardrailstable.find_many = find_many
     mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
-    user = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN)
+    user = UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN)
 
     await list_guardrail_submissions(user_api_key_dict=user)
 
@@ -2536,7 +2536,7 @@ async def test_list_submissions_summary_counts_unaffected_by_filters(mocker):
     all_rows = [pending_row, active_row]
     mock_prisma.db.litellm_guardrailstable.find_many = AsyncMock(return_value=all_rows)
     mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
-    user = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN)
+    user = UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN)
 
     # Filter to only pending, but summary should still show both
     result = await list_guardrail_submissions(

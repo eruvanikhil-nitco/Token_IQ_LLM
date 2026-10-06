@@ -52,7 +52,7 @@ S3_PREFIX_DIGEST_CHARS: Final = 16
 # s3 allows 2048 bytes of combined metadata headers, which Content-Disposition counts against
 MAX_S3_OBJECT_DOWNLOAD_FILENAME_BYTES: Final = 1024
 DEFAULT_SQS_FLUSH_INTERVAL_SECONDS: Final = int(os.getenv("DEFAULT_SQS_FLUSH_INTERVAL_SECONDS", 10))
-DEFAULT_NUM_WORKERS_LITELLM_PROXY: Final = int(os.getenv("DEFAULT_NUM_WORKERS_LITELLM_PROXY", 1))
+DEFAULT_NUM_WORKERS_GATEWAY_PROXY: Final = int(os.getenv("DEFAULT_NUM_WORKERS_GATEWAY_PROXY", 1))
 DYNAMIC_RATE_LIMIT_ERROR_THRESHOLD_PER_MINUTE = int(os.getenv("DYNAMIC_RATE_LIMIT_ERROR_THRESHOLD_PER_MINUTE", 1))
 DEFAULT_SQS_BATCH_SIZE: Final = int(os.getenv("DEFAULT_SQS_BATCH_SIZE", 512))
 SQS_SEND_MESSAGE_ACTION: Final = "SendMessage"
@@ -87,7 +87,7 @@ LITELLM_MAX_STREAMING_DURATION_SECONDS: Final = (
 # Data URIs exceeding this are replaced with a size placeholder.
 # Set to 0 to disable truncation.
 MAX_BASE64_LENGTH_FOR_LOGGING: Final = int(os.getenv("MAX_BASE64_LENGTH_FOR_LOGGING", 64))
-REDACTED_BY_LITELLM: Final = "redacted-by-litellm"
+REDACTED_BY_GATEWAY: Final = "redacted-by-litellm"
 # in-memory stand-in handed to provider converters for redacted arguments; never stored
 REDACTED_TOOL_CALL_ARGUMENTS_PLACEHOLDER: Final = "{}"
 
@@ -1443,9 +1443,9 @@ MCP_TOOL_NAME_PREFIX: Final = "mcp_tool"
 MAXIMUM_TRACEBACK_LINES_TO_LOG: Final = int(os.getenv("MAXIMUM_TRACEBACK_LINES_TO_LOG", 100))
 
 # Headers to control callbacks
-X_LITELLM_DISABLE_CALLBACKS: Final = "x-litellm-disable-callbacks"
+X_GATEWAY_DISABLE_CALLBACKS: Final = "x-litellm-disable-callbacks"
 LITELLM_METADATA_FIELD: Final = "litellm_metadata"
-OLD_LITELLM_METADATA_FIELD: Final = "metadata"
+OLD_GATEWAY_METADATA_FIELD: Final = "metadata"
 RETURN_RAW_MODEL_NAME_METADATA_KEY: Final = "_complexity_router_return_raw_model_name"
 SESSION_DEPLOYMENT_AFFINITY_TTL_METADATA_KEY: Final = "_session_deployment_affinity_ttl"
 CONSUMED_REQUEST_TAGS_METADATA_KEY: Final = "_consumed_request_tags"
@@ -1722,7 +1722,7 @@ DEFAULT_SLACK_ALERTING_THRESHOLD: Final = int(os.getenv("DEFAULT_SLACK_ALERTING_
 MAX_TEAM_LIST_LIMIT: Final = int(os.getenv("MAX_TEAM_LIST_LIMIT", 20))
 MAX_POLICY_ESTIMATE_IMPACT_ROWS: Final = int(os.getenv("MAX_POLICY_ESTIMATE_IMPACT_ROWS", 1000))
 DEFAULT_PROMPT_INJECTION_SIMILARITY_THRESHOLD = float(os.getenv("DEFAULT_PROMPT_INJECTION_SIMILARITY_THRESHOLD", 0.7))
-LENGTH_OF_LITELLM_GENERATED_KEY: Final = int(os.getenv("LENGTH_OF_LITELLM_GENERATED_KEY", 16))
+LENGTH_OF_GATEWAY_GENERATED_KEY: Final = int(os.getenv("LENGTH_OF_GATEWAY_GENERATED_KEY", 16))
 MINIMUM_CUSTOM_KEY_LENGTH: Final = int(os.getenv("MINIMUM_CUSTOM_KEY_LENGTH", 16))
 SECRET_MANAGER_REFRESH_INTERVAL: Final = int(os.getenv("SECRET_MANAGER_REFRESH_INTERVAL", 86400))
 LITELLM_SETTINGS_SAFE_DB_OVERRIDES: Final = [
@@ -1746,7 +1746,7 @@ LITELLM_SETTINGS_SAFE_DB_OVERRIDES: Final = [
     "budget_rollover",
     "mcp_tool_search",
 ]
-SPECIAL_LITELLM_AUTH_TOKEN: Final = ["ui-token"]
+SPECIAL_GATEWAY_AUTH_TOKEN: Final = ["ui-token"]
 DEFAULT_MANAGEMENT_OBJECT_IN_MEMORY_CACHE_TTL = int(os.getenv("DEFAULT_MANAGEMENT_OBJECT_IN_MEMORY_CACHE_TTL", 60))
 DEFAULT_ACCESS_GROUP_CACHE_TTL: Final = int(os.getenv("DEFAULT_ACCESS_GROUP_CACHE_TTL", 600))
 # Short TTL for negative MCP access-group existence lookups. Keeps unauthenticated

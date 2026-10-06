@@ -8,7 +8,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from token_iq import gateway
-from token_iq.gateway.proxy._types import LiteLLMRoutes
+from token_iq.gateway.proxy._types import GatewayRoutes
 from token_iq.gateway.proxy.proxy_server import app
 from token_iq.gateway.types.router import ModelGroupInfo
 
@@ -84,7 +84,7 @@ def _asked_about(read) -> list[str]:
 
 def test_the_route_is_registered_as_a_public_route():
     """`public_routes` membership is an exact-string check, so the path has to match literally."""
-    assert MODEL_HUB_PATH in LiteLLMRoutes.public_routes.value
+    assert MODEL_HUB_PATH in GatewayRoutes.public_routes.value
 
 
 def test_a_page_slices_the_published_model_groups(monkeypatch):

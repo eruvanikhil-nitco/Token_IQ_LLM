@@ -19,7 +19,7 @@ from token_iq.gateway.llms.custom_httpx.http_handler import (
     get_async_httpx_client,
 )
 from token_iq.gateway.secret_managers.main import get_secret_str
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.types.videos.main import VideoCreateOptionalRequestParams, VideoObject
 from token_iq.gateway.types.videos.utils import (
     encode_video_id_with_provider,
@@ -27,11 +27,11 @@ from token_iq.gateway.types.videos.utils import (
 )
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as _LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as _GatewayLoggingObj
 
-    LiteLLMLoggingObj = _LiteLLMLoggingObj
+    GatewayLoggingObj = _GatewayLoggingObj
 else:
-    LiteLLMLoggingObj = Any
+    GatewayLoggingObj = Any
 
 
 class RunwayMLError(BaseLLMException):
@@ -197,7 +197,7 @@ class RunwayMLVideoConfig(BaseVideoConfig):
         headers: dict,
         model: str,
         api_key: str | None = None,
-        litellm_params: GenericLiteLLMParams | None = None,
+        litellm_params: GenericGatewayParams | None = None,
     ) -> dict:
         """
         Validate environment and set up authentication headers.
@@ -246,7 +246,7 @@ class RunwayMLVideoConfig(BaseVideoConfig):
         prompt: str,
         api_base: str,
         video_create_optional_request_params: dict[str, object],
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> tuple[dict, RequestFiles, str]:
         """
@@ -287,7 +287,7 @@ class RunwayMLVideoConfig(BaseVideoConfig):
         self,
         model: str,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         custom_llm_provider: str | None = None,
         request_data: dict | None = None,
     ) -> VideoObject:
@@ -398,7 +398,7 @@ class RunwayMLVideoConfig(BaseVideoConfig):
         self,
         video_id: str,
         api_base: str,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
         variant: str | None = None,
     ) -> tuple[str, dict]:
@@ -444,7 +444,7 @@ class RunwayMLVideoConfig(BaseVideoConfig):
     def transform_video_content_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> bytes:
         """
         Transform the RunwayML video content download response (synchronous).
@@ -473,7 +473,7 @@ class RunwayMLVideoConfig(BaseVideoConfig):
     async def async_transform_video_content_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> bytes:
         """
         Transform the RunwayML video content download response (asynchronous).
@@ -506,7 +506,7 @@ class RunwayMLVideoConfig(BaseVideoConfig):
         video_id: str,
         prompt: str,
         api_base: str,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
         extra_body: Mapping[str, object] | None = None,
     ) -> tuple[str, dict]:
@@ -521,7 +521,7 @@ class RunwayMLVideoConfig(BaseVideoConfig):
     def transform_video_remix_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         custom_llm_provider: str | None = None,
     ) -> VideoObject:
         """Transform the RunwayML video remix response."""
@@ -530,7 +530,7 @@ class RunwayMLVideoConfig(BaseVideoConfig):
     def transform_video_list_request(
         self,
         api_base: str,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
         after: str | None = None,
         limit: int | None = None,
@@ -547,7 +547,7 @@ class RunwayMLVideoConfig(BaseVideoConfig):
     def transform_video_list_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         custom_llm_provider: str | None = None,
     ) -> dict[str, str]:
         """Transform the RunwayML video list response."""
@@ -557,7 +557,7 @@ class RunwayMLVideoConfig(BaseVideoConfig):
         self,
         video_id: str,
         api_base: str,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> tuple[str, dict]:
         """
@@ -576,7 +576,7 @@ class RunwayMLVideoConfig(BaseVideoConfig):
     def transform_video_delete_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> VideoObject:
         """Transform the RunwayML video delete/cancel response."""
         response_data: Final = _parse_runway_task_response(raw_response)
@@ -594,7 +594,7 @@ class RunwayMLVideoConfig(BaseVideoConfig):
         self,
         video_id: str,
         api_base: str,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> tuple[str, dict]:
         """
@@ -614,7 +614,7 @@ class RunwayMLVideoConfig(BaseVideoConfig):
     def transform_video_status_retrieve_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         custom_llm_provider: str | None = None,
     ) -> VideoObject:
         """

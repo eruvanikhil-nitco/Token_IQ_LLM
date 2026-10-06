@@ -109,10 +109,10 @@ def _chat_request_from_anthropic_messages(
     inner completion rewrites them to chat shape mid-flight); the adapter translates
     them alongside the messages, and sampling params copy through untranslated."""
     from token_iq.gateway.llms.anthropic.experimental_pass_through.adapters.transformation import (
-        LiteLLMAnthropicMessagesAdapter,
+        GatewayAnthropicMessagesAdapter,
     )
 
-    adapter: Final = LiteLLMAnthropicMessagesAdapter()
+    adapter: Final = GatewayAnthropicMessagesAdapter()
     wire_body: Final = _proxy_wire_body(kwargs)
     system: Final = kwargs.get("system") or wire_body.get("system")
     param_keys: Final = (
@@ -142,7 +142,7 @@ def _chat_request_from_responses(
     the input (max_output_tokens to max_tokens, Responses tools to chat tools, reasoning
     to reasoning_effort) and never reads surface-only keys like previous_response_id."""
     from token_iq.gateway.responses.litellm_completion_transformation.transformation import (
-        LiteLLMCompletionResponsesConfig,
+        GatewayCompletionResponsesConfig,
     )
     from token_iq.gateway.types.llms.openai import ResponsesAPIOptionalRequestParams
 
@@ -157,7 +157,7 @@ def _chat_request_from_responses(
         )
     )
     return _CHAT_REQUEST_ADAPTER.validate_python(
-        LiteLLMCompletionResponsesConfig.transform_responses_api_request_to_chat_completion_request(  # pyright: ignore[reportUnknownMemberType]  # transformer declares a bare dict return
+        GatewayCompletionResponsesConfig.transform_responses_api_request_to_chat_completion_request(  # pyright: ignore[reportUnknownMemberType]  # transformer declares a bare dict return
             model=str(kwargs.get("model") or ""),
             input=kwargs.get("messages"),  # pyright: ignore[reportArgumentType]  # untyped callback kwargs; transformer validates shapes
             responses_api_request=responses_request,  # pyright: ignore[reportArgumentType]  # wire-body dict filtered to the surface's own request keys; the transformer is duck-typed
@@ -654,14 +654,14 @@ class ShadowEvalLogger(CustomLogger):
         if prisma is None:
             return _EMPTY_JOBS
         try:
-            records: Final = await prisma.db.litellm_shadowevaljob.find_many(
+            records: Final = await prisma.db.gateway_shadowevaljob.find_many(
                 where={  # mutable-ok: Prisma filter
                     "stopped_at": None,
                     "ends_at": {"gt": datetime.now(timezone.utc)},  # mutable-ok: Prisma filter
                 },
             )
             grouped: Final = (
-                await prisma.db.litellm_shadowevalattempt.group_by(
+                await prisma.db.gateway_shadowevalattempt.group_by(
                     by=["job_id"],
                     count=True,
                     # mutable-ok: Prisma aggregate spec
@@ -1023,7 +1023,7 @@ class ShadowEvalLogger(CustomLogger):
         if prisma is None:
             return
         try:
-            await prisma.db.litellm_shadowevalattempt.create(
+            await prisma.db.gateway_shadowevalattempt.create(
                 data={  # mutable-ok: Prisma payload
                     "job_id": job.id,
                     "request_id": request_id,

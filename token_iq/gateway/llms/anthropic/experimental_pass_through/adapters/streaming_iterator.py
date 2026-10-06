@@ -338,9 +338,9 @@ class AnthropicStreamWrapper(AdapterCompletionStreamWrapper):
         if "delta" not in merged_chunk:
             merged_chunk["delta"] = {}
 
-        from .transformation import LiteLLMAnthropicMessagesAdapter
+        from .transformation import GatewayAnthropicMessagesAdapter
 
-        usage_dict: UsageDelta = LiteLLMAnthropicMessagesAdapter._translate_openai_usage_to_anthropic_usage_delta(
+        usage_dict: UsageDelta = GatewayAnthropicMessagesAdapter._translate_openai_usage_to_anthropic_usage_delta(
             chunk.usage
         )
         merged_chunk["usage"] = usage_dict
@@ -493,7 +493,7 @@ class AnthropicStreamWrapper(AdapterCompletionStreamWrapper):
         )
 
     def __next__(self):
-        from .transformation import LiteLLMAnthropicMessagesAdapter
+        from .transformation import GatewayAnthropicMessagesAdapter
 
         try:
             # Always return queued chunks first
@@ -562,7 +562,7 @@ class AnthropicStreamWrapper(AdapterCompletionStreamWrapper):
                     self.holding_stop_reason_chunk is not None and getattr(chunk, "usage", None) is not None
                 )
                 is_final_chunk = chunk.choices[0].finish_reason is not None
-                processed_chunk = LiteLLMAnthropicMessagesAdapter().translate_streaming_openai_response_to_anthropic(
+                processed_chunk = GatewayAnthropicMessagesAdapter().translate_streaming_openai_response_to_anthropic(
                     response=chunk,
                     current_content_block_index=self.current_content_block_index,
                     applied_edits=(self.applied_edits if is_final_chunk and not will_merge_into_held else None),
@@ -727,7 +727,7 @@ class AnthropicStreamWrapper(AdapterCompletionStreamWrapper):
             raise StopIteration
 
     async def __anext__(self):
-        from .transformation import LiteLLMAnthropicMessagesAdapter
+        from .transformation import GatewayAnthropicMessagesAdapter
 
         try:
             # Always return queued chunks first
@@ -796,7 +796,7 @@ class AnthropicStreamWrapper(AdapterCompletionStreamWrapper):
                     self.holding_stop_reason_chunk is not None and getattr(chunk, "usage", None) is not None
                 )
                 is_final_chunk = chunk.choices[0].finish_reason is not None
-                processed_chunk = LiteLLMAnthropicMessagesAdapter().translate_streaming_openai_response_to_anthropic(
+                processed_chunk = GatewayAnthropicMessagesAdapter().translate_streaming_openai_response_to_anthropic(
                     response=chunk,
                     current_content_block_index=self.current_content_block_index,
                     applied_edits=(self.applied_edits if is_final_chunk and not will_merge_into_held else None),
@@ -1062,7 +1062,7 @@ class AnthropicStreamWrapper(AdapterCompletionStreamWrapper):
         - Different content types in the response
         - Specific markers in the content
         """
-        from .transformation import LiteLLMAnthropicMessagesAdapter
+        from .transformation import GatewayAnthropicMessagesAdapter
 
         # Example logic - customize based on your needs:
         # If chunk indicates a tool call
@@ -1072,7 +1072,7 @@ class AnthropicStreamWrapper(AdapterCompletionStreamWrapper):
         (
             block_type,
             content_block_start,
-        ) = LiteLLMAnthropicMessagesAdapter()._translate_streaming_openai_chunk_to_anthropic_content_block(
+        ) = GatewayAnthropicMessagesAdapter()._translate_streaming_openai_chunk_to_anthropic_content_block(
             choices=chunk.choices
         )
 

@@ -61,7 +61,7 @@ class TestIsAnthropicNativeWebSearchTool:
             {"type": "web_search_20260101", "name": "web_search"}
         )
 
-    def test_rejects_litellm_standard(self):
+    def test_rejects_gateway_standard(self):
         assert not is_anthropic_native_web_search_tool(
             {"name": "litellm_web_search", "input_schema": {}}
         )
@@ -195,7 +195,7 @@ class TestPreRequestHookFlagsNativeTools:
         assert out.get(WEBSEARCH_EMIT_NATIVE_BLOCKS_KEY) is True
 
     @pytest.mark.asyncio
-    async def test_litellm_standard_tool_does_not_set_flag(self):
+    async def test_gateway_standard_tool_does_not_set_flag(self):
         logger = WebSearchInterceptionLogger(enabled_providers=["bedrock"])
         kwargs = {
             "tools": [{"name": "litellm_web_search", "input_schema": {}}],
@@ -407,7 +407,7 @@ class TestShortCircuitEmitsNativeBlocks:
         assert tool_result["content"][0]["url"] == "https://docs.litellm.ai/"
 
     @pytest.mark.asyncio
-    async def test_litellm_standard_tool_short_circuit_stays_text_only(self):
+    async def test_gateway_standard_tool_short_circuit_stays_text_only(self):
         """Non-native tool → existing text-only short-circuit, no regression."""
         logger = WebSearchInterceptionLogger(enabled_providers=["github_copilot"])
 

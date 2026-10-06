@@ -210,7 +210,7 @@ def test_vertex_deployment_resolves_via_named_credential():
     assert resolved.vertex_credentials == '{"type": "service_account"}'
 
 
-def test_vertex_deployment_resolves_from_inline_litellm_params():
+def test_vertex_deployment_resolves_from_inline_gateway_params():
     llm_router = gateway.Router(
         model_list=[
             _vertex_deployment(

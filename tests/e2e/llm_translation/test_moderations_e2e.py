@@ -12,7 +12,7 @@ from e2e_config import unique_marker
 from e2e_http import assert_client_error, unwrap
 from endpoints_client import EndpointsClient
 from lifecycle import ResourceManager
-from models import LiteLLMParamsBody
+from models import GatewayParamsBody
 from pydantic import BaseModel
 
 pytestmark = pytest.mark.e2e
@@ -32,7 +32,7 @@ def _register_moderation_model(
     model = f"e2e-moderation-{unique_marker()}"
     model_id = endpoints_client.create_model(
         model,
-        LiteLLMParamsBody(
+        GatewayParamsBody(
             model="openai/omni-moderation-latest", api_key="os.environ/OPENAI_API_KEY"
         ),
     )

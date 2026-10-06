@@ -262,7 +262,7 @@ async def test_vertex_passthrough_forwards_anthropic_beta_header():
 
 
 @pytest.mark.asyncio
-async def test_vertex_passthrough_does_not_forward_litellm_auth_token():
+async def test_vertex_passthrough_does_not_forward_gateway_auth_token():
     """
     Test that the LiteLLM authorization header is NOT forwarded to Vertex AI.
 

@@ -8,7 +8,7 @@ from token_iq.gateway.core_utils.get_llm_provider_logic import (
 )
 from token_iq.gateway.llms.xai.chat.transformation import XAIChatConfig
 from token_iq.gateway.llms.xai.responses.transformation import XAIResponsesAPIConfig
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.utils import (
     ProviderConfigManager,
     get_optional_params,
@@ -62,8 +62,8 @@ def test_xai_validate_environment_reads_api_key(monkeypatch):
     assert result == {"keys_in_environment": True, "missing_keys": []}
 
 
-def test_xai_oauth_flag_is_generic_litellm_param():
-    litellm_params = GenericLiteLLMParams(use_xai_oauth=True)
+def test_xai_oauth_flag_is_generic_gateway_param():
+    litellm_params = GenericGatewayParams(use_xai_oauth=True)
     runtime_params = get_litellm_params(use_xai_oauth=True)
     result = get_optional_params(
         model="grok-3-mini",

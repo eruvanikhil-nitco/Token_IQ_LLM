@@ -16,7 +16,7 @@ _ISO_YMD: Final = re.compile(r"^\s*\d{4}[-/]\d{1,2}[-/]\d{1,2}\s*$")
 _UNIX_TIMESTAMP: Final = re.compile(r"^\s*-?\d+(\.\d+)?\s*$")
 BRAVE_SECTIONS: Final = ["web", "discussions", "faqs", "faq", "news", "videos"]
 
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.llms.base_llm.search.transformation import (
     BaseSearchConfig,
     SearchResponse,
@@ -240,7 +240,7 @@ class BraveSearchConfig(BaseSearchConfig):
     def transform_search_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj | None,
+        logging_obj: GatewayLoggingObj | None,
         **kwargs,
     ) -> SearchResponse:
         """

@@ -2138,12 +2138,12 @@ class PrometheusLogger(CustomLogger):
         model_id: str | None = None,
     ):
         from token_iq.gateway.proxy.common_utils.callback_utils import (
-            get_model_group_from_litellm_kwargs,
+            get_model_group_from_gateway_kwargs,
         )
 
         # Set remaining rpm/tpm for API Key + model
         # see parallel_request_limiter.py - variables are set there
-        model_group: Final = get_model_group_from_litellm_kwargs(kwargs)
+        model_group: Final = get_model_group_from_gateway_kwargs(kwargs)
         remaining_requests_variable_name: Final = f"litellm-key-remaining-requests-{model_group}"
         remaining_tokens_variable_name: Final = f"litellm-key-remaining-tokens-{model_group}"
         standard_logging_payload: Final[StandardLoggingPayload | None] = kwargs.get("standard_logging_object")
@@ -2252,8 +2252,8 @@ class PrometheusLogger(CustomLogger):
         # it can be folded into the total-latency metric below. start_time/end_time
         # only span from after auth completes, so without this the "total" latency
         # metric silently excludes auth and pre-call hook time.
-        _litellm_params: Final = kwargs.get("litellm_params", {}) or {}
-        queue_time_seconds: Final = (_litellm_params.get("metadata") or {}).get("queue_time_seconds")
+        _gateway_params: Final = kwargs.get("litellm_params", {}) or {}
+        queue_time_seconds: Final = (_gateway_params.get("metadata") or {}).get("queue_time_seconds")
 
         # total request latency: true end-to-end, from request arrival (queue_time_seconds,
         # when available) through the end of processing.
@@ -2622,7 +2622,7 @@ class PrometheusLogger(CustomLogger):
         user_api_key_auth when standard_logging_payload has None values.
         """
         standard_logging_payload: Final = request_kwargs.get("standard_logging_object", {}) or {}
-        _litellm_params: Final = request_kwargs.get("litellm_params", {}) or {}
+        _gateway_params: Final = request_kwargs.get("litellm_params", {}) or {}
         _metadata_raw: Final = self._safe_get(standard_logging_payload, "metadata") or {}
         if isinstance(_metadata_raw, dict):
             _metadata = _metadata_raw
@@ -2636,16 +2636,16 @@ class PrometheusLogger(CustomLogger):
                 "requester_ip_address": getattr(_metadata_raw, "requester_ip_address", None),
                 "user_agent": getattr(_metadata_raw, "user_agent", None),
             }
-        _litellm_params_metadata: Final = _litellm_params.get("metadata", {}) or {}
+        _gateway_params_metadata: Final = _gateway_params.get("metadata", {}) or {}
 
         # Extract user_api_key_auth if present (proxy injects this, skipped in merge)
-        user_api_key_auth: Final = _litellm_params_metadata.get("user_api_key_auth")
+        user_api_key_auth: Final = _gateway_params_metadata.get("user_api_key_auth")
 
         def _get_api_key_alias() -> str | None:
             val = _metadata.get("user_api_key_alias")
             if val is not None:
                 return val
-            val = _litellm_params_metadata.get("user_api_key_alias")
+            val = _gateway_params_metadata.get("user_api_key_alias")
             if val is not None:
                 return val
             if user_api_key_auth is not None:
@@ -2656,7 +2656,7 @@ class PrometheusLogger(CustomLogger):
             from_metadata: Final = _metadata.get("user_api_key_user_email")
             if from_metadata is not None:
                 return from_metadata
-            from_params: Final = _litellm_params_metadata.get("user_api_key_user_email")
+            from_params: Final = _gateway_params_metadata.get("user_api_key_user_email")
             if from_params is not None:
                 return from_params
             if user_api_key_auth is not None:
@@ -2667,7 +2667,7 @@ class PrometheusLogger(CustomLogger):
             val = _metadata.get("user_api_key_team_id")
             if val is not None:
                 return val
-            val = _litellm_params_metadata.get("user_api_key_team_id")
+            val = _gateway_params_metadata.get("user_api_key_team_id")
             if val is not None:
                 return val
             if user_api_key_auth is not None:
@@ -2678,7 +2678,7 @@ class PrometheusLogger(CustomLogger):
             val = _metadata.get("user_api_key_team_alias")
             if val is not None:
                 return val
-            val = _litellm_params_metadata.get("user_api_key_team_alias")
+            val = _gateway_params_metadata.get("user_api_key_team_alias")
             if val is not None:
                 return val
             if user_api_key_auth is not None:
@@ -2689,7 +2689,7 @@ class PrometheusLogger(CustomLogger):
             val = _metadata.get("user_api_key_hash")
             if val is not None:
                 return val
-            val = _litellm_params_metadata.get("user_api_key_hash")
+            val = _gateway_params_metadata.get("user_api_key_hash")
             if val is not None:
                 return val
             if user_api_key_auth is not None:
@@ -2702,8 +2702,8 @@ class PrometheusLogger(CustomLogger):
             "team": _get_team_id(),
             "team_alias": _get_team_alias(),
             "hashed_api_key": _get_hashed_api_key(),
-            "client_ip": _metadata.get("requester_ip_address") or _litellm_params_metadata.get("requester_ip_address"),
-            "user_agent": _metadata.get("user_agent") or _litellm_params_metadata.get("user_agent"),
+            "client_ip": _metadata.get("requester_ip_address") or _gateway_params_metadata.get("requester_ip_address"),
+            "user_agent": _metadata.get("user_agent") or _gateway_params_metadata.get("user_agent"),
         }
 
     def set_llm_deployment_failure_metrics(self, request_kwargs: dict):
@@ -2721,7 +2721,7 @@ class PrometheusLogger(CustomLogger):
         try:
             verbose_logger.debug("setting remaining tokens requests metric")
             standard_logging_payload: Final[StandardLoggingPayload] = request_kwargs.get("standard_logging_object", {})
-            _litellm_params: Final = request_kwargs.get("litellm_params", {}) or {}
+            _gateway_params: Final = request_kwargs.get("litellm_params", {}) or {}
             litellm_model_name: Final = request_kwargs.get("model", None)
             model_group = standard_logging_payload.get("model_group", None)
             api_base: Final = standard_logging_payload.get("api_base", None)
@@ -2731,19 +2731,19 @@ class PrometheusLogger(CustomLogger):
             # Fallback: model_id from litellm_metadata.model_info
             if model_id is None:
                 _model_info: Final = (
-                    (_litellm_params.get("litellm_metadata") or {}).get("model_info")
-                    or (_litellm_params.get("metadata") or {}).get("model_info")
+                    (_gateway_params.get("litellm_metadata") or {}).get("model_info")
+                    or (_gateway_params.get("metadata") or {}).get("model_info")
                     or {}
                 )
                 model_id = _model_info.get("id")
 
             # Fallback: model_group from litellm_metadata
             if model_group is None:
-                model_group = (_litellm_params.get("litellm_metadata") or {}).get("model_group") or (
-                    _litellm_params.get("metadata") or {}
+                model_group = (_gateway_params.get("litellm_metadata") or {}).get("model_group") or (
+                    _gateway_params.get("metadata") or {}
                 ).get("model_group")
 
-            llm_provider: Final = _litellm_params.get("custom_llm_provider", None)
+            llm_provider: Final = _gateway_params.get("custom_llm_provider", None)
 
             if self._should_skip_metrics_for_invalid_key(
                 kwargs=request_kwargs,
@@ -2775,13 +2775,13 @@ class PrometheusLogger(CustomLogger):
             # into requested_model and leave deployment-scoped labels empty.
             deployment_selected: Final = bool(model_id)
             if deployment_selected:
-                label_litellm_model_name = litellm_model_name
+                label_gateway_model_name = litellm_model_name
                 label_model_id = model_id
                 label_api_base = api_base
                 label_api_provider = llm_provider
                 label_requested_model = model_group or litellm_model_name
             else:
-                label_litellm_model_name = ""
+                label_gateway_model_name = ""
                 label_model_id = ""
                 label_api_base = ""
                 label_api_provider = ""
@@ -2790,7 +2790,7 @@ class PrometheusLogger(CustomLogger):
                 )
 
             enum_values: Final = UserAPIKeyLabelValues(
-                litellm_model_name=label_litellm_model_name,
+                litellm_model_name=label_gateway_model_name,
                 model_id=label_model_id,
                 api_base=label_api_base,
                 api_provider=label_api_provider,
@@ -2979,17 +2979,17 @@ class PrometheusLogger(CustomLogger):
                 return
 
             api_base: Final = standard_logging_payload["api_base"]
-            _litellm_params: Final = request_kwargs.get("litellm_params", {}) or {}
+            _gateway_params: Final = request_kwargs.get("litellm_params", {}) or {}
             _metadata: Final = get_litellm_metadata_from_kwargs(request_kwargs)
             litellm_model_name: Final = request_kwargs.get("model", None)
-            llm_provider: Final = _litellm_params.get("custom_llm_provider", None)
+            llm_provider: Final = _gateway_params.get("custom_llm_provider", None)
             _model_info: Final = _metadata.get("model_info") or {}
             model_id: Final = _model_info.get("id", None)
 
-            if _model_info or _litellm_params:
+            if _model_info or _gateway_params:
                 self._set_deployment_tpm_rpm_limit_metrics(
                     model_info=_model_info,
-                    litellm_params=_litellm_params,
+                    litellm_params=_gateway_params,
                     litellm_model_name=litellm_model_name,
                     model_id=model_id,
                     api_base=api_base,
@@ -3406,7 +3406,7 @@ class PrometheusLogger(CustomLogger):
             label_context=PrometheusLabelFactoryContext(enum_values),
         )
 
-    def set_litellm_deployment_state(
+    def set_gateway_deployment_state(
         self,
         state: int,
         litellm_model_name: str,
@@ -3436,7 +3436,7 @@ class PrometheusLogger(CustomLogger):
         api_base: str,
         api_provider: str,
     ):
-        self.set_litellm_deployment_state(0, litellm_model_name, model_id, api_base, api_provider)
+        self.set_gateway_deployment_state(0, litellm_model_name, model_id, api_base, api_provider)
 
     def set_deployment_partial_outage(
         self,
@@ -3445,7 +3445,7 @@ class PrometheusLogger(CustomLogger):
         api_base: str | None,
         api_provider: str,
     ):
-        self.set_litellm_deployment_state(1, litellm_model_name, model_id, api_base, api_provider)
+        self.set_gateway_deployment_state(1, litellm_model_name, model_id, api_base, api_provider)
 
     def set_deployment_complete_outage(
         self,
@@ -3454,7 +3454,7 @@ class PrometheusLogger(CustomLogger):
         api_base: str | None,
         api_provider: str,
     ):
-        self.set_litellm_deployment_state(2, litellm_model_name, model_id, api_base, api_provider)
+        self.set_gateway_deployment_state(2, litellm_model_name, model_id, api_base, api_provider)
 
     def increment_deployment_cooled_down(
         self,

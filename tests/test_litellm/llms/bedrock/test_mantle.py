@@ -296,14 +296,14 @@ async def test_mantle_async_transform_request_omits_stream_when_not_streaming():
 
 
 def test_mantle_messages_transform_request_keeps_stream_in_body():
-    from token_iq.gateway.types.router import GenericLiteLLMParams
+    from token_iq.gateway.types.router import GenericGatewayParams
 
     config = AmazonMantleMessagesConfig()
     request = config.transform_anthropic_messages_request(
         model="mantle/anthropic.claude-mythos-preview",
         messages=[{"role": "user", "content": "Hello"}],
         anthropic_messages_optional_request_params={"max_tokens": 100, "stream": True},
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         headers={},
     )
     assert request["stream"] is True
@@ -311,14 +311,14 @@ def test_mantle_messages_transform_request_keeps_stream_in_body():
 
 
 def test_mantle_messages_transform_request_omits_stream_when_not_streaming():
-    from token_iq.gateway.types.router import GenericLiteLLMParams
+    from token_iq.gateway.types.router import GenericGatewayParams
 
     config = AmazonMantleMessagesConfig()
     request = config.transform_anthropic_messages_request(
         model="mantle/anthropic.claude-mythos-preview",
         messages=[{"role": "user", "content": "Hello"}],
         anthropic_messages_optional_request_params={"max_tokens": 100},
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         headers={},
     )
     assert "stream" not in request
@@ -438,7 +438,7 @@ async def test_mantle_anthropic_messages_sends_workspace_header_and_clean_body()
                 aws_region_name="us-east-1",
             )
     finally:
-        await gateway.close_litellm_async_clients()
+        await gateway.close_gateway_async_clients()
 
     assert response["content"][0]["text"] == "ok"
     assert len(requests) == 1
@@ -489,7 +489,7 @@ async def test_mantle_anthropic_messages_backfills_missing_usage():
                 aws_region_name="us-east-1",
             )
     finally:
-        await gateway.close_litellm_async_clients()
+        await gateway.close_gateway_async_clients()
 
     assert response["usage"]["input_tokens"] == 0
     assert response["usage"]["output_tokens"] == 0
@@ -537,7 +537,7 @@ async def test_mantle_anthropic_messages_preserves_upstream_usage():
                 aws_region_name="us-east-1",
             )
     finally:
-        await gateway.close_litellm_async_clients()
+        await gateway.close_gateway_async_clients()
 
     assert response["usage"]["input_tokens"] == 42
     assert response["usage"]["output_tokens"] == 7
@@ -569,7 +569,7 @@ async def test_mantle_anthropic_messages_routes_to_vpc_api_base():
                 aws_region_name="us-gov-west-1",
             )
     finally:
-        await gateway.close_litellm_async_clients()
+        await gateway.close_gateway_async_clients()
 
     assert len(urls) == 1
     assert urls[0] == f"{_VPC_ENDPOINT}/anthropic/v1/messages"
@@ -692,7 +692,7 @@ async def test_mantle_acompletion_streaming_sends_stream_and_decodes_sse():
             )
             chunks = [chunk async for chunk in response]
     finally:
-        await gateway.close_litellm_async_clients()
+        await gateway.close_gateway_async_clients()
 
     assert len(requests) == 1
     assert requests[0]["body"]["stream"] is True
@@ -727,7 +727,7 @@ async def test_mantle_anthropic_messages_streaming_sends_stream_and_passes_throu
             )
             raw = b"".join([chunk async for chunk in response])
     finally:
-        await gateway.close_litellm_async_clients()
+        await gateway.close_gateway_async_clients()
 
     assert len(requests) == 1
     assert requests[0]["body"]["stream"] is True

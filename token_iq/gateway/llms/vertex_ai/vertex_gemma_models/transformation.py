@@ -26,7 +26,7 @@ from token_iq.gateway.types.utils import ModelResponse
 if TYPE_CHECKING:
     import tiktoken
 
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 
 
 class VertexGemmaConfig(OpenAIGPTConfig):
@@ -215,7 +215,7 @@ class VertexGemmaConfig(OpenAIGPTConfig):
         custom_prompt_dict: dict,
         model_response: ModelResponse,
         print_verbose: Callable,
-        logging_obj: "LiteLLMLoggingObj",
+        logging_obj: "GatewayLoggingObj",
         optional_params: dict,
         acompletion: bool,
         litellm_params: dict,
@@ -270,7 +270,7 @@ class VertexGemmaConfig(OpenAIGPTConfig):
         api_key: str,
         model_response: ModelResponse,
         print_verbose: Callable,
-        logging_obj: "LiteLLMLoggingObj",
+        logging_obj: "GatewayLoggingObj",
         optional_params: dict,
         litellm_params: dict,
         client: HTTPHandler | httpx.Client | None = None,
@@ -360,7 +360,7 @@ class VertexGemmaConfig(OpenAIGPTConfig):
         api_key: str,
         model_response: ModelResponse,
         print_verbose: Callable,
-        logging_obj: "LiteLLMLoggingObj",
+        logging_obj: "GatewayLoggingObj",
         optional_params: dict,
         litellm_params: dict,
         client: AsyncHTTPHandler | httpx.AsyncClient | None = None,

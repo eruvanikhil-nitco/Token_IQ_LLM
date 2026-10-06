@@ -410,7 +410,7 @@ def _stub_compress_result(original_tokens, compressed_tokens, cache):
 
 
 @pytest.mark.asyncio
-async def test_pre_call_hook_records_compression_savings_in_litellm_metadata(monkeypatch):
+async def test_pre_call_hook_records_compression_savings_in_gateway_metadata(monkeypatch):
     """
     When compression fires, the hook must record tokens_before/after/saved into
     the request's litellm_metadata IN PLACE (the proxy and logging object hold
@@ -444,7 +444,7 @@ async def test_pre_call_hook_records_compression_savings_in_litellm_metadata(mon
 
 
 @pytest.mark.asyncio
-async def test_pre_call_hook_creates_litellm_metadata_when_absent(monkeypatch):
+async def test_pre_call_hook_creates_gateway_metadata_when_absent(monkeypatch):
     """SDK-direct calls have no litellm_metadata dict yet; the hook creates it."""
     logger = CompressionInterceptionLogger()
     monkeypatch.setattr(

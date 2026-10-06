@@ -12,7 +12,7 @@ import pytest
 
 
 from token_iq.gateway.proxy._types import (
-    LitellmUserRoles,
+    GatewayUserRoles,
     TeamModelAddRequest,
     UserAPIKeyAuth,
 )
@@ -30,7 +30,7 @@ class TestTeamModelAddAtomicAppend:
 
         mock_request = MagicMock()
         mock_user = UserAPIKeyAuth(
-            user_role=LitellmUserRoles.PROXY_ADMIN, user_id="test_user"
+            user_role=GatewayUserRoles.PROXY_ADMIN, user_id="test_user"
         )
 
         existing_team = MagicMock()

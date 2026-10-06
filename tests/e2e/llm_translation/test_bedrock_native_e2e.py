@@ -13,7 +13,7 @@ from e2e_http import (
     require_successful_call,
 )
 from lifecycle import ResourceManager
-from models import LiteLLMParamsBody
+from models import GatewayParamsBody
 from proxy_client import ProxyClient
 from pydantic import BaseModel
 
@@ -71,7 +71,7 @@ def _register(proxy: ProxyClient, resources: ResourceManager) -> tuple[str, str]
     model = f"e2e-bedrock-native-{unique_marker()}"
     model_id = proxy.create_model(
         model,
-        LiteLLMParamsBody(
+        GatewayParamsBody(
             model=BEDROCK_BACKEND,
             aws_access_key_id="os.environ/AWS_ACCESS_KEY_ID",
             aws_secret_access_key="os.environ/AWS_SECRET_ACCESS_KEY",

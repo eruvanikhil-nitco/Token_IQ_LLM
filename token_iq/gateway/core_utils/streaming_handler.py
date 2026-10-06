@@ -22,10 +22,10 @@ from token_iq.gateway._uuid import uuid
 from token_iq.gateway.core_utils.model_response_utils import (
     is_model_response_stream_empty,
 )
-from token_iq.gateway.core_utils.redact_messages import LiteLLMLoggingObject
+from token_iq.gateway.core_utils.redact_messages import GatewayLoggingObject
 from token_iq.gateway.core_utils.thread_pool_executor import executor
 from token_iq.gateway.types.llms.openai import OpenAIChatCompletionChunk
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.types.utils import (
     CacheCreationTokenDetails,
     CompletionTokensDetailsWrapper,
@@ -231,7 +231,7 @@ class CustomStreamWrapper:
         self,
         completion_stream,
         model,
-        logging_obj: LiteLLMLoggingObject,
+        logging_obj: GatewayLoggingObject,
         custom_llm_provider: str | None = None,
         stream_options=None,
         make_call: Callable | None = None,
@@ -240,13 +240,13 @@ class CustomStreamWrapper:
         self.model = model
         self.make_call = make_call
         self.custom_llm_provider = custom_llm_provider
-        self.logging_obj: LiteLLMLoggingObject = logging_obj
+        self.logging_obj: GatewayLoggingObject = logging_obj
         self.completion_stream = completion_stream
         self.sent_first_chunk = False
         self.sent_last_chunk = False
         self._stream_created_time: float = time.time()
 
-        litellm_params: Final[GenericLiteLLMParams] = GenericLiteLLMParams.model_validate(
+        litellm_params: Final[GenericGatewayParams] = GenericGatewayParams.model_validate(
             dict(**self.logging_obj.model_call_details.get("litellm_params", {}))
         )
         self.merge_reasoning_content_in_choices: bool = litellm_params.merge_reasoning_content_in_choices or False
@@ -1856,7 +1856,7 @@ class CustomStreamWrapper:
             asyncio.run(self.logging_obj.async_success_handler(processed_chunk, None, None, cache_hit))
         ## SYNC LOGGING — only for sync SDK entrypoints; async proxy paths export via async_success_handler
         litellm_params: Final = self.logging_obj.model_call_details.get("litellm_params", {})
-        if self.logging_obj._is_sync_litellm_request(litellm_params):
+        if self.logging_obj._is_sync_gateway_request(litellm_params):
             self.logging_obj.success_handler(processed_chunk, None, None, cache_hit)
 
     def finish_reason_handler(self):

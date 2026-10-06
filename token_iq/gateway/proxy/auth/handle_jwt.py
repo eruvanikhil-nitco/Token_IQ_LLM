@@ -42,7 +42,7 @@ from token_iq.gateway.proxy._types import (
     LiteLLM_TeamMembership,
     LiteLLM_TeamTable,
     LiteLLM_UserTable,
-    LitellmUserRoles,
+    GatewayUserRoles,
     Member,
     ProxyErrorTypes,
     ProxyException,
@@ -291,15 +291,15 @@ class JWTHandler:
         user_roles: Final = self.get_user_roles(token=token, default_value=None)
 
         if is_admin:
-            return LitellmUserRoles.PROXY_ADMIN
+            return GatewayUserRoles.PROXY_ADMIN
         elif self.get_team_id(token=token, default_value=None) is not None:
-            return LitellmUserRoles.TEAM
+            return GatewayUserRoles.TEAM
         elif (
             self.get_user_id(token=token, default_value=None) is not None
             or user_roles is not None
             and self.is_allowed_user_role(user_roles=user_roles)
         ):
-            return LitellmUserRoles.INTERNAL_USER
+            return GatewayUserRoles.INTERNAL_USER
         elif rbac_role := self._rbac_role_from_role_mapping(token=token):
             return rbac_role
 
@@ -540,7 +540,7 @@ class JWTHandler:
             user_roles = default_value
         return user_roles
 
-    def map_jwt_role_to_litellm_role(self, token: dict) -> LitellmUserRoles | None:
+    def map_jwt_role_to_gateway_role(self, token: dict) -> GatewayUserRoles | None:
         """Map roles from JWT to LiteLLM user roles"""
         if not self.litellm_jwtauth.jwt_litellm_role_map:
             return None
@@ -1384,7 +1384,7 @@ class JWTAuthManager:
             return None
 
         is_allowed: Final = allowed_routes_check(
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
             user_route=route,
             litellm_proxy_roles=jwt_handler.litellm_jwtauth,
         )
@@ -1599,7 +1599,7 @@ class JWTAuthManager:
                         )
                     ):
                         is_allowed = allowed_routes_check(
-                            user_role=LitellmUserRoles.TEAM,
+                            user_role=GatewayUserRoles.TEAM,
                             user_route=route,
                             litellm_proxy_roles=jwt_handler.litellm_jwtauth,
                         )
@@ -1883,7 +1883,7 @@ class JWTAuthManager:
             await team_member_add(
                 data=data,
                 user_api_key_dict=UserAPIKeyAuth(
-                    user_role=LitellmUserRoles.PROXY_ADMIN
+                    user_role=GatewayUserRoles.PROXY_ADMIN
                 ),  # [TODO]: expose an internal service role, for better tracking
             )
             verbose_proxy_logger.debug(
@@ -1923,7 +1923,7 @@ class JWTAuthManager:
             return
 
         # Update user role
-        new_role: Final = jwt_handler.map_jwt_role_to_litellm_role(jwt_valid_token)
+        new_role: Final = jwt_handler.map_jwt_role_to_gateway_role(jwt_valid_token)
         if new_role and user_object.user_role != new_role.value:
             await UserRepository(prisma_client).table.update(
                 where={"user_id": user_object.user_id},
@@ -2188,7 +2188,7 @@ class JWTAuthManager:
         return RouteChecks.is_auth_enforced_pass_through_route(
             route=route, method=normalized_method
         ) or allowed_routes_check(
-            user_role=LitellmUserRoles.TEAM,
+            user_role=GatewayUserRoles.TEAM,
             user_route=route,
             litellm_proxy_roles=jwt_handler.litellm_jwtauth,
         )
@@ -2287,9 +2287,9 @@ class JWTAuthManager:
         object_id = jwt_handler.get_object_id(token=jwt_valid_token, default_value=None)
 
         if rbac_role and object_id:
-            if rbac_role == LitellmUserRoles.TEAM:
+            if rbac_role == GatewayUserRoles.TEAM:
                 team_id = object_id
-            elif rbac_role == LitellmUserRoles.INTERNAL_USER:
+            elif rbac_role == GatewayUserRoles.INTERNAL_USER:
                 user_id = object_id
 
         # Check admin access
@@ -2522,7 +2522,7 @@ class JWTAuthManager:
         )
 
         # check if user is proxy admin
-        is_proxy_admin: Final = bool(user_object and user_object.user_role == LitellmUserRoles.PROXY_ADMIN)
+        is_proxy_admin: Final = bool(user_object and user_object.user_role == GatewayUserRoles.PROXY_ADMIN)
 
         return JWTAuthBuilderResult(
             is_proxy_admin=is_proxy_admin,

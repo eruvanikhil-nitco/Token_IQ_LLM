@@ -21,7 +21,7 @@ from redis.exceptions import (
 from redis.exceptions import TimeoutError as RedisTimeoutError
 
 from token_iq.gateway.caching.redis_cluster_node_isolation import (
-    get_litellm_async_redis_cluster_class,
+    get_gateway_async_redis_cluster_class,
 )
 
 if TYPE_CHECKING:
@@ -55,7 +55,7 @@ class _FakeNodesManager:
 
 
 def _build_cluster_instance() -> "_AsyncRedisClusterType":
-    cluster_cls = get_litellm_async_redis_cluster_class(
+    cluster_cls = get_gateway_async_redis_cluster_class(
         cluster_node_class=_NodeClassWithoutPerConnectionRecovery
     )
     instance = cluster_cls.__new__(cluster_cls)
@@ -74,7 +74,7 @@ def test_per_connection_recovery_redis_py_gets_the_unmodified_upstream_class() -
     whose node.disconnect() also kills connections other coroutines are mid-operation on."""
     from redis.asyncio.cluster import RedisCluster
 
-    cluster_cls = get_litellm_async_redis_cluster_class(
+    cluster_cls = get_gateway_async_redis_cluster_class(
         cluster_node_class=_NodeClassWithPerConnectionRecovery
     )
 
@@ -86,7 +86,7 @@ def test_pre_recovery_redis_py_still_gets_the_node_isolation_override() -> None:
     so those versions must keep litellm's per-node isolation override."""
     from redis.asyncio.cluster import RedisCluster
 
-    cluster_cls = get_litellm_async_redis_cluster_class(
+    cluster_cls = get_gateway_async_redis_cluster_class(
         cluster_node_class=_NodeClassWithoutPerConnectionRecovery
     )
 

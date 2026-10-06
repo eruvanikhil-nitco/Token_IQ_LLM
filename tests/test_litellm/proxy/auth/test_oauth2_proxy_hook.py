@@ -19,7 +19,7 @@ from fastapi import Request
 from starlette.datastructures import Headers
 
 
-from token_iq.gateway.proxy._types import LitellmUserRoles
+from token_iq.gateway.proxy._types import GatewayUserRoles
 from token_iq.gateway.proxy.auth.oauth2_proxy_hook import (
     ALLOWED_OAUTH2_PROXY_FIELDS,
     handle_oauth2_proxy_request,
@@ -171,7 +171,7 @@ async def test_user_role_header_forgery_attack_is_blocked(configure_proxy):
     request = _request_with_headers(
         {
             "x-user-id": "attacker",
-            "x-user-role": LitellmUserRoles.PROXY_ADMIN.value,
+            "x-user-role": GatewayUserRoles.PROXY_ADMIN.value,
         }
     )
 

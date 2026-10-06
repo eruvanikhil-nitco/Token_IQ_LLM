@@ -31,7 +31,7 @@ from typing import Final
 
 from fastapi import status
 
-from token_iq.gateway.proxy._types import LiteLLMRoutes, ProxyErrorTypes, ProxyException
+from token_iq.gateway.proxy._types import GatewayRoutes, ProxyErrorTypes, ProxyException
 from token_iq.types.team_api_access import DEFAULT_API_ACCESS_MODE as DEFAULT_API_ACCESS_MODE
 from token_iq.types.team_api_access import TeamApiAccessMode as TeamApiAccessMode
 
@@ -55,7 +55,7 @@ def is_pass_through_route(route: str) -> bool:
 
     Read off the same list the request path gates on, so the two cannot disagree.
     """
-    return any(route.startswith(prefix) for prefix in LiteLLMRoutes.mapped_pass_through_routes.value)
+    return any(route.startswith(prefix) for prefix in GatewayRoutes.mapped_pass_through_routes.value)
 
 
 def _serves_a_model(route: str) -> bool:
@@ -66,13 +66,13 @@ def _serves_a_model(route: str) -> bool:
     or list the models it is allowed. `/models` and `/model/info` count as reading, which
     is why the info routes are excluded before anything else is considered.
     """
-    if route in LiteLLMRoutes.info_routes.value:  # pyright: ignore[reportOperatorIssue]  # route enum values are untyped
+    if route in GatewayRoutes.info_routes.value:  # pyright: ignore[reportOperatorIssue]  # route enum values are untyped
         return False
     if is_pass_through_route(route):
         return True
     return any(
         route == known or route.startswith(f"{known}/")
-        for known in LiteLLMRoutes.llm_api_routes.value  # pyright: ignore[reportAny]  # route enum values are untyped
+        for known in GatewayRoutes.llm_api_routes.value  # pyright: ignore[reportAny]  # route enum values are untyped
     )
 
 

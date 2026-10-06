@@ -29,7 +29,7 @@ from unittest.mock import MagicMock
 # when it sees synthetic model names — we're not exercising provider
 # routing, only the per-chunk wrapper hot path.
 os.environ.setdefault("LITELLM_LOG", "ERROR")
-logging.getLogger("LiteLLM").setLevel(logging.ERROR)
+logging.getLogger("Gateway").setLevel(logging.ERROR)
 
 from token_iq import gateway  # noqa: E402
 

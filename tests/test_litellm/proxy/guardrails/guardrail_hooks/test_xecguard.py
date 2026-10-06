@@ -760,7 +760,7 @@ class TestXecGuardGrounding:
         assert sent_docs == [{"document_id": "good", "context": "good context"}]
 
     @pytest.mark.asyncio
-    async def test_grounding_metadata_falls_back_to_litellm_metadata(
+    async def test_grounding_metadata_falls_back_to_gateway_metadata(
         self, xecguard_guardrail
     ):
         request_data = {

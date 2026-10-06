@@ -51,7 +51,7 @@ def test_model_id_in_json_body_heuristic() -> None:
 
 
 @pytest.fixture
-def _reset_litellm_http_client_cache():
+def _reset_gateway_http_client_cache():
     from token_iq.gateway import in_memory_llm_clients_cache
 
     in_memory_llm_clients_cache.flush_cache()
@@ -147,7 +147,7 @@ async def _invoke_model_garden_completion(
 
 @pytest.mark.asyncio
 async def test_user_supplied_api_base_passes_through_unchanged(
-    clean_vertex_env, _reset_litellm_http_client_cache
+    clean_vertex_env, _reset_gateway_http_client_cache
 ):
     """A user-supplied api_base must reach the OpenAI-like handler unchanged,
     with only its own '/chat/completions' suffix appended."""
@@ -171,7 +171,7 @@ async def test_user_supplied_api_base_passes_through_unchanged(
 
 @pytest.mark.asyncio
 async def test_user_supplied_api_base_passthrough_for_publisher_model(
-    clean_vertex_env, _reset_litellm_http_client_cache
+    clean_vertex_env, _reset_gateway_http_client_cache
 ):
     """User-supplied api_base is forwarded unchanged for publisher/catalog
     models too; the publisher model id stays in the JSON body."""
@@ -194,7 +194,7 @@ async def test_user_supplied_api_base_passthrough_for_publisher_model(
 
 @pytest.mark.asyncio
 async def test_default_api_base_when_none_provided_single_segment(
-    clean_vertex_env, _reset_litellm_http_client_cache
+    clean_vertex_env, _reset_gateway_http_client_cache
 ):
     """With no api_base, single-segment endpoint ids must hit the per-endpoint
     Vertex URL and send an empty model field in the body."""
@@ -218,7 +218,7 @@ async def test_default_api_base_when_none_provided_single_segment(
 
 @pytest.mark.asyncio
 async def test_default_api_base_when_none_provided_publisher_model(
-    clean_vertex_env, _reset_litellm_http_client_cache
+    clean_vertex_env, _reset_gateway_http_client_cache
 ):
     """With no api_base, publisher/catalog models must hit the shared OpenAPI
     URL and send the publisher model id in the body."""

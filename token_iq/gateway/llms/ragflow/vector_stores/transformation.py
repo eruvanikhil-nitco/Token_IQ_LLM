@@ -4,7 +4,7 @@ import httpx
 
 from token_iq.gateway.llms.base_llm.vector_store.transformation import BaseVectorStoreConfig
 from token_iq.gateway.secret_managers.main import get_secret_str
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.types.vector_stores import (
     BaseVectorStoreAuthCredentials,
     VectorStoreCreateOptionalRequestParams,
@@ -16,9 +16,9 @@ from token_iq.gateway.types.vector_stores import (
 )
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 else:
-    LiteLLMLoggingObj = Any
+    GatewayLoggingObj = Any
 
 
 class RAGFlowVectorStoreConfig(BaseVectorStoreConfig):
@@ -44,9 +44,9 @@ class RAGFlowVectorStoreConfig(BaseVectorStoreConfig):
             "write": [],
         }
 
-    def validate_environment(self, headers: dict, litellm_params: GenericLiteLLMParams | None) -> dict:
+    def validate_environment(self, headers: dict, litellm_params: GenericGatewayParams | None) -> dict:
         """Validate environment and set headers for RAGFlow API."""
-        litellm_params = litellm_params or GenericLiteLLMParams()
+        litellm_params = litellm_params or GenericGatewayParams()
         api_key: Final = litellm_params.api_key or get_secret_str("RAGFLOW_API_KEY")
 
         if api_key is None:
@@ -89,7 +89,7 @@ class RAGFlowVectorStoreConfig(BaseVectorStoreConfig):
         query: str | list[str],
         vector_store_search_optional_params: VectorStoreSearchOptionalRequestParams,
         api_base: str,
-        litellm_logging_obj: LiteLLMLoggingObj,
+        litellm_logging_obj: GatewayLoggingObj,
         litellm_params: dict,
         extra_body: dict[str, Any] | None = None,
     ) -> tuple[str, dict]:
@@ -97,7 +97,7 @@ class RAGFlowVectorStoreConfig(BaseVectorStoreConfig):
         raise NotImplementedError("RAGFlow vector stores support dataset management only, not search/retrieval")
 
     def transform_search_vector_store_response(
-        self, response: httpx.Response, litellm_logging_obj: LiteLLMLoggingObj
+        self, response: httpx.Response, litellm_logging_obj: GatewayLoggingObj
     ) -> VectorStoreSearchResponse:
         """RAGFlow vector stores are management-only, search is not supported."""
         raise NotImplementedError("RAGFlow vector stores support dataset management only, not search/retrieval")

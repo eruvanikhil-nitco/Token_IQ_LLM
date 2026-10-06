@@ -28,7 +28,7 @@ from typing import Any, Final
 import httpx
 
 from token_iq.gateway._uuid import uuid
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.llms.base_llm.chat.transformation import BaseLLMException
 from token_iq.gateway.llms.base_llm.rerank.transformation import BaseRerankConfig
 from token_iq.gateway.secret_managers.main import get_secret_str
@@ -164,7 +164,7 @@ class DashScopeRerankConfig(BaseRerankConfig):
         model: str,
         raw_response: httpx.Response,
         model_response: RerankResponse,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         api_key: str | None = None,
         request_data: dict | None = None,
         optional_params: dict | None = None,

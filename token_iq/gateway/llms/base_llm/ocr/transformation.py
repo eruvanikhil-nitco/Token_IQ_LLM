@@ -9,12 +9,12 @@ import httpx
 from pydantic import PrivateAttr
 
 from token_iq.gateway.llms.base_llm.chat.transformation import BaseLLMException
-from token_iq.gateway.types.llms.base import LiteLLMPydanticObjectBase
+from token_iq.gateway.types.llms.base import GatewayPydanticObjectBase
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 else:
-    LiteLLMLoggingObj = Any
+    GatewayLoggingObj = Any
 
 
 # DocumentType for OCR - providers always receive a dict with
@@ -43,7 +43,7 @@ def parse_ocr_request_format(value: object) -> OCRRequestFormat:
     )
 
 
-class OCRPageDimensions(LiteLLMPydanticObjectBase):
+class OCRPageDimensions(GatewayPydanticObjectBase):
     """Page dimensions from OCR response."""
 
     dpi: int | None = None
@@ -51,7 +51,7 @@ class OCRPageDimensions(LiteLLMPydanticObjectBase):
     width: int | None = None
 
 
-class OCRPageImage(LiteLLMPydanticObjectBase):
+class OCRPageImage(GatewayPydanticObjectBase):
     """Image extracted from OCR page."""
 
     image_base64: str | None = None
@@ -60,7 +60,7 @@ class OCRPageImage(LiteLLMPydanticObjectBase):
     model_config = {"extra": "allow"}
 
 
-class OCRPage(LiteLLMPydanticObjectBase):
+class OCRPage(GatewayPydanticObjectBase):
     """Single page from OCR response."""
 
     index: int
@@ -71,7 +71,7 @@ class OCRPage(LiteLLMPydanticObjectBase):
     model_config = {"extra": "allow"}
 
 
-class OCRUsageInfo(LiteLLMPydanticObjectBase):
+class OCRUsageInfo(GatewayPydanticObjectBase):
     """Usage information from OCR response."""
 
     pages_processed: int | None = None
@@ -82,7 +82,7 @@ class OCRUsageInfo(LiteLLMPydanticObjectBase):
     model_config = {"extra": "allow"}
 
 
-class OCRResponse(LiteLLMPydanticObjectBase):
+class OCRResponse(GatewayPydanticObjectBase):
     """
     Standard OCR response format.
     Standardized to Mistral OCR format - other providers should transform to this format.
@@ -112,7 +112,7 @@ class OCRResponse(LiteLLMPydanticObjectBase):
         return native_response if isinstance(native_response, dict) else None
 
 
-class OCRRequestData(LiteLLMPydanticObjectBase):
+class OCRRequestData(GatewayPydanticObjectBase):
     """OCR request data structure."""
 
     data: dict | bytes | None = None
@@ -243,7 +243,7 @@ class BaseOCRConfig:
         self,
         model: str,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         **kwargs,
     ) -> OCRResponse:
         """
@@ -256,7 +256,7 @@ class BaseOCRConfig:
         self,
         model: str,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         **kwargs,
     ) -> OCRResponse:
         """

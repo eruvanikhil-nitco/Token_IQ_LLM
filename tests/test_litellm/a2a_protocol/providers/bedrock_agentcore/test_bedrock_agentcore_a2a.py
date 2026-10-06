@@ -26,7 +26,7 @@ SAMPLE_PARAMS = {
         "messageId": "msg-001",
     }
 }
-SAMPLE_LITELLM_PARAMS = {
+SAMPLE_GATEWAY_PARAMS = {
     "model": SAMPLE_MODEL,
     "custom_llm_provider": "bedrock",
     "api_key": "test-jwt-token",
@@ -46,7 +46,7 @@ class TestTransformation:
             BedrockAgentCoreA2ATransformation.get_url_and_signed_request(
                 request_id="req-001",
                 params=SAMPLE_PARAMS,
-                litellm_params=SAMPLE_LITELLM_PARAMS,
+                litellm_params=SAMPLE_GATEWAY_PARAMS,
                 method="message/send",
             )
         )
@@ -65,7 +65,7 @@ class TestTransformation:
         url, _, _ = BedrockAgentCoreA2ATransformation.get_url_and_signed_request(
             request_id="req-001",
             params=SAMPLE_PARAMS,
-            litellm_params=SAMPLE_LITELLM_PARAMS,
+            litellm_params=SAMPLE_GATEWAY_PARAMS,
         )
         assert "bedrock-agentcore.us-west-2.amazonaws.com" in url
         assert "/runtimes/" in url
@@ -80,7 +80,7 @@ class TestTransformation:
         _, headers, _ = BedrockAgentCoreA2ATransformation.get_url_and_signed_request(
             request_id="req-001",
             params=SAMPLE_PARAMS,
-            litellm_params=SAMPLE_LITELLM_PARAMS,
+            litellm_params=SAMPLE_GATEWAY_PARAMS,
         )
         assert headers["Authorization"] == "Bearer test-jwt-token"
 
@@ -93,7 +93,7 @@ class TestTransformation:
         _, headers, _ = BedrockAgentCoreA2ATransformation.get_url_and_signed_request(
             request_id="req-001",
             params=SAMPLE_PARAMS,
-            litellm_params=SAMPLE_LITELLM_PARAMS,
+            litellm_params=SAMPLE_GATEWAY_PARAMS,
         )
         session_id = headers.get("X-Amzn-Bedrock-AgentCore-Runtime-Session-Id", "")
         assert len(session_id) >= 33
@@ -104,7 +104,7 @@ class TestTransformation:
             BedrockAgentCoreA2ATransformation,
         )
 
-        params_with_session = {**SAMPLE_LITELLM_PARAMS, "runtimeSessionId": "a" * 40}
+        params_with_session = {**SAMPLE_GATEWAY_PARAMS, "runtimeSessionId": "a" * 40}
         _, headers, _ = BedrockAgentCoreA2ATransformation.get_url_and_signed_request(
             request_id="req-001",
             params=SAMPLE_PARAMS,
@@ -121,7 +121,7 @@ class TestTransformation:
         _, headers, _ = BedrockAgentCoreA2ATransformation.get_url_and_signed_request(
             request_id="req-001",
             params=SAMPLE_PARAMS,
-            litellm_params=SAMPLE_LITELLM_PARAMS,
+            litellm_params=SAMPLE_GATEWAY_PARAMS,
             agent_extra_headers={"x-mcp-token": "mcp-abc", "x-tenant": "t1"},
         )
         assert headers["x-mcp-token"] == "mcp-abc"
@@ -133,7 +133,7 @@ class TestTransformation:
             BedrockAgentCoreA2ATransformation,
         )
 
-        litellm_params_no_key = {
+        gateway_params_no_key = {
             "model": SAMPLE_MODEL,
             "custom_llm_provider": "bedrock",
             "aws_access_key_id": "AKIAIOSFODNN7EXAMPLE",
@@ -154,7 +154,7 @@ class TestTransformation:
             BedrockAgentCoreA2ATransformation.get_url_and_signed_request(
                 request_id="req-001",
                 params=SAMPLE_PARAMS,
-                litellm_params=litellm_params_no_key,
+                litellm_params=gateway_params_no_key,
                 agent_extra_headers={"x-mcp-token": "mcp-abc"},
             )
         assert captured.get("x-mcp-token") == "mcp-abc"
@@ -170,15 +170,15 @@ class TestTransformation:
             BedrockAgentCoreA2ATransformation,
         )
 
-        litellm_params_with_user = {
-            **SAMPLE_LITELLM_PARAMS,
+        gateway_params_with_user = {
+            **SAMPLE_GATEWAY_PARAMS,
             "runtimeUserId": "legit-user",
         }
 
         _, headers, _ = BedrockAgentCoreA2ATransformation.get_url_and_signed_request(
             request_id="req-001",
             params=SAMPLE_PARAMS,
-            litellm_params=litellm_params_with_user,
+            litellm_params=gateway_params_with_user,
             agent_extra_headers={
                 # Spoofing attempt — must be dropped.
                 "x-amzn-bedrock-agentcore-runtime-user-id": "victim-user",
@@ -221,7 +221,7 @@ class TestTransformation:
             BedrockAgentCoreA2ATransformation,
         )
 
-        litellm_params_no_key = {
+        gateway_params_no_key = {
             "model": SAMPLE_MODEL,
             "custom_llm_provider": "bedrock",
             "aws_access_key_id": "AKIAIOSFODNN7EXAMPLE",
@@ -243,7 +243,7 @@ class TestTransformation:
             BedrockAgentCoreA2ATransformation.get_url_and_signed_request(
                 request_id="req-001",
                 params=SAMPLE_PARAMS,
-                litellm_params=litellm_params_no_key,
+                litellm_params=gateway_params_no_key,
                 agent_extra_headers={
                     "x-amzn-bedrock-agentcore-runtime-user-id": "victim-user",
                     "x-amz-date": "20990101T000000Z",
@@ -265,7 +265,7 @@ class TestTransformation:
             BedrockAgentCoreA2ATransformation,
         )
 
-        litellm_params_no_key = {
+        gateway_params_no_key = {
             "model": SAMPLE_MODEL,
             "custom_llm_provider": "bedrock",
             "aws_access_key_id": "AKIAIOSFODNN7EXAMPLE",
@@ -289,7 +289,7 @@ class TestTransformation:
                 BedrockAgentCoreA2ATransformation.get_url_and_signed_request(
                     request_id="req-001",
                     params=SAMPLE_PARAMS,
-                    litellm_params=litellm_params_no_key,
+                    litellm_params=gateway_params_no_key,
                 )
             )
         # SigV4 produces an Authorization header starting with "AWS4-HMAC-SHA256"
@@ -344,18 +344,18 @@ class TestRequestScopedRuntimeSession:
             A2A_USER_API_KEY_HASH_PARAM,
         )
 
-        litellm_params = {**SAMPLE_LITELLM_PARAMS, A2A_USER_API_KEY_HASH_PARAM: KEY_HASH}
+        litellm_params = {**SAMPLE_GATEWAY_PARAMS, A2A_USER_API_KEY_HASH_PARAM: KEY_HASH}
         assert _session_header(_params_with_context(CONTEXT_ID), litellm_params) == _scoped(CONTEXT_ID, KEY_HASH)
 
     def test_context_id_used_verbatim_without_principal(self):
-        assert _session_header(_params_with_context(CONTEXT_ID), SAMPLE_LITELLM_PARAMS) == CONTEXT_ID
+        assert _session_header(_params_with_context(CONTEXT_ID), SAMPLE_GATEWAY_PARAMS) == CONTEXT_ID
 
     def test_same_context_id_reuses_session_and_other_context_isolated(self):
-        first = _session_header(_params_with_context(CONTEXT_ID), SAMPLE_LITELLM_PARAMS)
-        second = _session_header(_params_with_context(CONTEXT_ID), SAMPLE_LITELLM_PARAMS)
+        first = _session_header(_params_with_context(CONTEXT_ID), SAMPLE_GATEWAY_PARAMS)
+        second = _session_header(_params_with_context(CONTEXT_ID), SAMPLE_GATEWAY_PARAMS)
         other = _session_header(
             _params_with_context("conversation-beta-00002-0000000000000000"),
-            SAMPLE_LITELLM_PARAMS,
+            SAMPLE_GATEWAY_PARAMS,
         )
         assert first == second
         assert other != first
@@ -366,26 +366,26 @@ class TestRequestScopedRuntimeSession:
         )
 
         params = _params_with_context(CONTEXT_ID)
-        caller_one = _session_header(params, {**SAMPLE_LITELLM_PARAMS, A2A_USER_API_KEY_HASH_PARAM: KEY_HASH})
+        caller_one = _session_header(params, {**SAMPLE_GATEWAY_PARAMS, A2A_USER_API_KEY_HASH_PARAM: KEY_HASH})
         caller_two = _session_header(
-            params, {**SAMPLE_LITELLM_PARAMS, A2A_USER_API_KEY_HASH_PARAM: "hashed-key-of-caller-two"}
+            params, {**SAMPLE_GATEWAY_PARAMS, A2A_USER_API_KEY_HASH_PARAM: "hashed-key-of-caller-two"}
         )
         assert caller_one != caller_two
         assert caller_one.endswith(f"-{CONTEXT_ID}")
         assert caller_two.endswith(f"-{CONTEXT_ID}")
 
     def test_context_id_takes_precedence_over_configured_session(self):
-        litellm_params = {**SAMPLE_LITELLM_PARAMS, "runtimeSessionId": "a" * 40}
+        litellm_params = {**SAMPLE_GATEWAY_PARAMS, "runtimeSessionId": "a" * 40}
         assert _session_header(_params_with_context(CONTEXT_ID), litellm_params) == CONTEXT_ID
 
     def test_configured_session_is_fallback_without_context_id(self):
-        litellm_params = {**SAMPLE_LITELLM_PARAMS, "runtimeSessionId": "a" * 40}
+        litellm_params = {**SAMPLE_GATEWAY_PARAMS, "runtimeSessionId": "a" * 40}
         assert _session_header(SAMPLE_PARAMS, litellm_params) == "a" * 40
         assert _session_header(_params_with_context(""), litellm_params) == "a" * 40
 
     def test_no_context_id_and_no_config_generates_new_session_per_request(self):
-        first = _session_header(SAMPLE_PARAMS, SAMPLE_LITELLM_PARAMS)
-        second = _session_header(SAMPLE_PARAMS, SAMPLE_LITELLM_PARAMS)
+        first = _session_header(SAMPLE_PARAMS, SAMPLE_GATEWAY_PARAMS)
+        second = _session_header(SAMPLE_PARAMS, SAMPLE_GATEWAY_PARAMS)
         assert first != second
         assert 33 <= len(first) <= 256
 
@@ -400,7 +400,7 @@ class TestRequestScopedRuntimeSession:
         from token_iq import gateway
 
         with pytest.raises(gateway.BadRequestError, match="Invalid AgentCore runtime session id") as exc_info:
-            _session_header(_params_with_context(context_id), SAMPLE_LITELLM_PARAMS)
+            _session_header(_params_with_context(context_id), SAMPLE_GATEWAY_PARAMS)
         assert exc_info.value.status_code == 400
         assert "33-256" in str(exc_info.value)
 
@@ -410,7 +410,7 @@ class TestRequestScopedRuntimeSession:
             A2A_USER_API_KEY_HASH_PARAM,
         )
 
-        litellm_params = {**SAMPLE_LITELLM_PARAMS, A2A_USER_API_KEY_HASH_PARAM: KEY_HASH}
+        litellm_params = {**SAMPLE_GATEWAY_PARAMS, A2A_USER_API_KEY_HASH_PARAM: KEY_HASH}
         with pytest.raises(gateway.BadRequestError, match=_scoped("c" * 15, KEY_HASH)):
             _session_header(_params_with_context("c" * 15), litellm_params)
         assert _session_header(_params_with_context("c" * 16), litellm_params) == _scoped("c" * 16, KEY_HASH)
@@ -418,12 +418,12 @@ class TestRequestScopedRuntimeSession:
     def test_invalid_configured_session_rejected(self):
         from token_iq import gateway
 
-        litellm_params = {**SAMPLE_LITELLM_PARAMS, "runtimeSessionId": "too-short"}
+        litellm_params = {**SAMPLE_GATEWAY_PARAMS, "runtimeSessionId": "too-short"}
         with pytest.raises(gateway.BadRequestError, match="Invalid AgentCore runtime session id"):
             _session_header(SAMPLE_PARAMS, litellm_params)
 
     def test_non_string_context_id_falls_back(self):
-        litellm_params = {**SAMPLE_LITELLM_PARAMS, "runtimeSessionId": "a" * 40}
+        litellm_params = {**SAMPLE_GATEWAY_PARAMS, "runtimeSessionId": "a" * 40}
         assert _session_header(_params_with_context(12345), litellm_params) == "a" * 40
 
     def test_spoofed_session_header_does_not_override_context_id(self):
@@ -434,7 +434,7 @@ class TestRequestScopedRuntimeSession:
         _, headers, _ = BedrockAgentCoreA2ATransformation.get_url_and_signed_request(
             request_id="req-001",
             params=_params_with_context(CONTEXT_ID),
-            litellm_params=SAMPLE_LITELLM_PARAMS,
+            litellm_params=SAMPLE_GATEWAY_PARAMS,
             agent_extra_headers={SESSION_HEADER: "s" * 40},
         )
         assert headers[SESSION_HEADER] == CONTEXT_ID
@@ -455,7 +455,7 @@ class TestRequestScopedRuntimeSession:
             await BedrockAgentCoreA2AConfig().handle_non_streaming(
                 request_id="req-001",
                 params=_params_with_context(CONTEXT_ID),
-                litellm_params={**SAMPLE_LITELLM_PARAMS, A2A_USER_API_KEY_HASH_PARAM: KEY_HASH},
+                litellm_params={**SAMPLE_GATEWAY_PARAMS, A2A_USER_API_KEY_HASH_PARAM: KEY_HASH},
             )
 
         assert route.calls.last.request.headers[SESSION_HEADER] == _scoped(CONTEXT_ID, KEY_HASH)
@@ -478,7 +478,7 @@ class TestRequestScopedRuntimeSession:
                 async for event in BedrockAgentCoreA2AConfig().handle_streaming(
                     request_id="req-001",
                     params=_params_with_context(CONTEXT_ID),
-                    litellm_params={**SAMPLE_LITELLM_PARAMS, A2A_USER_API_KEY_HASH_PARAM: KEY_HASH},
+                    litellm_params={**SAMPLE_GATEWAY_PARAMS, A2A_USER_API_KEY_HASH_PARAM: KEY_HASH},
                 )
             ]
 
@@ -521,7 +521,7 @@ class TestNonStreaming:
             result = await config.handle_non_streaming(
                 request_id="req-001",
                 params=SAMPLE_PARAMS,
-                litellm_params=SAMPLE_LITELLM_PARAMS,
+                litellm_params=SAMPLE_GATEWAY_PARAMS,
             )
 
             # Verify the POST was called
@@ -564,7 +564,7 @@ class TestNonStreaming:
             await config.handle_non_streaming(
                 request_id="req-001",
                 params=SAMPLE_PARAMS,
-                litellm_params=SAMPLE_LITELLM_PARAMS,
+                litellm_params=SAMPLE_GATEWAY_PARAMS,
                 agent_extra_headers={"x-mcp-token": "mcp-abc"},
             )
 
@@ -598,7 +598,7 @@ class TestNonStreaming:
             result = await config.handle_non_streaming(
                 request_id="req-001",
                 params=SAMPLE_PARAMS,
-                litellm_params=SAMPLE_LITELLM_PARAMS,
+                litellm_params=SAMPLE_GATEWAY_PARAMS,
             )
 
             assert result["error"]["code"] == -32600
@@ -645,7 +645,7 @@ class TestHandlerIntegration:
     """Test handler.py changes — litellm_params passed through, api_base not required."""
 
     @pytest.mark.asyncio
-    async def test_provider_config_receives_litellm_params(self):
+    async def test_provider_config_receives_gateway_params(self):
         """Verify handler passes litellm_params to provider config via kwargs."""
         from token_iq.gateway.a2a_protocol.litellm_completion_bridge.handler import (
             A2ACompletionBridgeHandler,
@@ -663,7 +663,7 @@ class TestHandlerIntegration:
             await A2ACompletionBridgeHandler.handle_non_streaming(
                 request_id="req-001",
                 params=SAMPLE_PARAMS,
-                litellm_params=SAMPLE_LITELLM_PARAMS,
+                litellm_params=SAMPLE_GATEWAY_PARAMS,
                 api_base=None,
             )
 
@@ -671,7 +671,7 @@ class TestHandlerIntegration:
                 request_id="req-001",
                 params=SAMPLE_PARAMS,
                 api_base=None,
-                litellm_params=SAMPLE_LITELLM_PARAMS,
+                litellm_params=SAMPLE_GATEWAY_PARAMS,
                 agent_extra_headers=None,
             )
 
@@ -695,7 +695,7 @@ class TestHandlerIntegration:
             result = await A2ACompletionBridgeHandler.handle_non_streaming(
                 request_id="req-001",
                 params=SAMPLE_PARAMS,
-                litellm_params=SAMPLE_LITELLM_PARAMS,
+                litellm_params=SAMPLE_GATEWAY_PARAMS,
                 api_base=None,
             )
             assert result is not None

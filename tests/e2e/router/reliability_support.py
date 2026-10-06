@@ -18,7 +18,7 @@ from e2e_http import StreamingResponse
 from models import (
     ChatMessage,
     ChatResponse,
-    LiteLLMParamsBody,
+    GatewayParamsBody,
     ModelInfoBody,
     ModelNewBody,
     ReliabilityChatBody,
@@ -45,19 +45,19 @@ def create_bad_base_deployment(proxy: ProxyClient, name: str) -> str:
     """Register a deployment pointing at an unreachable base, so every call to it
     fails with a real connection error the fallback can reroute around."""
     return proxy.create_model(
-        name, LiteLLMParamsBody(model=REAL_MODEL, api_key=REAL_KEY, api_base="http://127.0.0.1:9/v1")
+        name, GatewayParamsBody(model=REAL_MODEL, api_key=REAL_KEY, api_base="http://127.0.0.1:9/v1")
     )
 
 
 def create_timeout_deployment(proxy: ProxyClient, name: str) -> str:
     """Register a deployment with a 1ms deadline the real backend always exceeds."""
-    return proxy.create_model(name, LiteLLMParamsBody(model=REAL_MODEL, api_key=REAL_KEY, timeout=0.001))
+    return proxy.create_model(name, GatewayParamsBody(model=REAL_MODEL, api_key=REAL_KEY, timeout=0.001))
 
 
 def create_small_context_deployment(proxy: ProxyClient, name: str) -> str:
     """Register a deployment on the smallest-context model OpenAI still serves, so an
     oversized prompt earns a real context-window refusal from the provider."""
-    return proxy.create_model(name, LiteLLMParamsBody(model=SMALL_CONTEXT_MODEL, api_key=REAL_KEY))
+    return proxy.create_model(name, GatewayParamsBody(model=SMALL_CONTEXT_MODEL, api_key=REAL_KEY))
 
 
 def create_always_timing_out_deployment(proxy: ProxyClient, name: str) -> str:
@@ -67,7 +67,7 @@ def create_always_timing_out_deployment(proxy: ProxyClient, name: str) -> str:
     return proxy.register_model(
         ModelNewBody(
             model_name=name,
-            litellm_params=LiteLLMParamsBody(model=REAL_MODEL, api_key=REAL_KEY, timeout=0.001, weight=1),
+            litellm_params=GatewayParamsBody(model=REAL_MODEL, api_key=REAL_KEY, timeout=0.001, weight=1),
             model_info=ModelInfoBody(allowed_fails_policy={"TimeoutErrorAllowedFails": 0}),
         )
     )
@@ -80,7 +80,7 @@ def create_zero_weight_backup_deployment(proxy: ProxyClient, name: str) -> str:
     return proxy.register_model(
         ModelNewBody(
             model_name=name,
-            litellm_params=LiteLLMParamsBody(model=REAL_MODEL, api_key=REAL_KEY, weight=0),
+            litellm_params=GatewayParamsBody(model=REAL_MODEL, api_key=REAL_KEY, weight=0),
             model_info=ModelInfoBody(),
         )
     )

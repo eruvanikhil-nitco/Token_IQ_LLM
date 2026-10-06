@@ -27,7 +27,7 @@ from fastapi import HTTPException
 
 from token_iq.gateway.proxy._types import (
     DeleteTeamRequest,
-    LitellmUserRoles,
+    GatewayUserRoles,
     Member,
     TeamMemberAddRequest,
     UserAPIKeyAuth,
@@ -85,7 +85,7 @@ async def _real_prisma_client():
 
 
 def _admin_auth():
-    return UserAPIKeyAuth(user_id="lit5544-admin", api_key="sk-lit5544", user_role=LitellmUserRoles.PROXY_ADMIN.value)
+    return UserAPIKeyAuth(user_id="lit5544-admin", api_key="sk-lit5544", user_role=GatewayUserRoles.PROXY_ADMIN.value)
 
 
 @pytest.mark.asyncio

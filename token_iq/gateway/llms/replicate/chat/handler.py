@@ -6,7 +6,7 @@ from typing import Final
 
 from token_iq import gateway
 from token_iq.gateway.constants import REPLICATE_POLLING_DELAY_SECONDS
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.llms.custom_httpx.http_handler import (
     AsyncHTTPHandler,
     HTTPHandler,
@@ -129,7 +129,7 @@ def completion(
     print_verbose: Callable,
     optional_params: dict,
     litellm_params: dict,
-    logging_obj: LiteLLMLoggingObj,
+    logging_obj: GatewayLoggingObj,
     api_key,
     encoding,
     custom_prompt_dict={},
@@ -247,7 +247,7 @@ async def async_completion(
     input_data,
     api_key,
     api_base,
-    logging_obj: LiteLLMLoggingObj,
+    logging_obj: GatewayLoggingObj,
     print_verbose,
     headers: dict,
 ) -> ModelResponse | CustomStreamWrapper:

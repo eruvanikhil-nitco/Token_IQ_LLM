@@ -46,7 +46,7 @@ from models import (
     KeyLoggingCallback,
     KeyLoggingCallbackVars,
     KeyMetadata,
-    LiteLLMParamsBody,
+    GatewayParamsBody,
     OrgDeleteBody,
     OrgNewBody,
     OrgNewResponse,
@@ -98,7 +98,7 @@ class TeamCallbackResponse(BaseModel):
     status: str
 
 
-class GuardrailLitellmParams(BaseModel):
+class GuardrailGatewayParams(BaseModel):
     guardrail: str
     mode: str
     default_on: bool = False
@@ -109,7 +109,7 @@ class GuardrailLitellmParams(BaseModel):
 
 class GuardrailSpec(BaseModel):
     guardrail_name: str
-    litellm_params: GuardrailLitellmParams
+    litellm_params: GuardrailGatewayParams
 
 
 class CreateGuardrailBody(BaseModel):
@@ -388,7 +388,7 @@ class LoggingClient:
                 json=CreateGuardrailBody(
                     guardrail=GuardrailSpec(
                         guardrail_name=name,
-                        litellm_params=GuardrailLitellmParams(
+                        litellm_params=GuardrailGatewayParams(
                             guardrail="tool_permission",
                             mode="post_call",
                             default_on=False,
@@ -420,7 +420,7 @@ class LoggingClient:
             response_type=NoBody,
         )
 
-    def create_model(self, model_name: str, litellm_params: LiteLLMParamsBody) -> str:
+    def create_model(self, model_name: str, litellm_params: GatewayParamsBody) -> str:
         return self.proxy.create_model(model_name, litellm_params)
 
     def delete_model(self, model_id: str) -> None:

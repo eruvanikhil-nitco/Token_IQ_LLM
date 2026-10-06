@@ -23,7 +23,7 @@ from token_iq.gateway.types.guardrails import GuardrailEventHooks
 from token_iq.gateway.types.utils import GenericGuardrailAPIInputs
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 
 GRAYSWAN_BLOCK_ERROR_MSG: Final = "Blocked by Gray Swan Guardrail"
 
@@ -192,7 +192,7 @@ class GraySwanGuardrail(CustomGuardrail):
         inputs: GenericGuardrailAPIInputs,
         request_data: dict,
         input_type: Literal["request", "response"],
-        logging_obj: Optional["LiteLLMLoggingObj"] = None,
+        logging_obj: Optional["GatewayLoggingObj"] = None,
     ) -> GenericGuardrailAPIInputs:
         """
         Apply Gray Swan guardrail to extracted text content.
@@ -537,7 +537,7 @@ class GraySwanGuardrail(CustomGuardrail):
     def _extract_inbound_headers(
         self,
         request_data: dict,
-        logging_obj: Optional["LiteLLMLoggingObj"] = None,
+        logging_obj: Optional["GatewayLoggingObj"] = None,
     ) -> dict[str, str] | None:
         headers = (request_data.get("proxy_server_request") or {}).get("headers")
         if not headers:
@@ -563,7 +563,7 @@ class GraySwanGuardrail(CustomGuardrail):
         messages: list[dict[str, str]],
         dynamic_body: dict,
         request_data: dict,
-        logging_obj: Optional["LiteLLMLoggingObj"] = None,
+        logging_obj: Optional["GatewayLoggingObj"] = None,
     ) -> dict[str, object] | None:
         payload: Final[dict[str, object]] = {"messages": messages}
 
@@ -586,14 +586,14 @@ class GraySwanGuardrail(CustomGuardrail):
         inbound_headers: Final = self._extract_inbound_headers(request_data, logging_obj)
 
         litellm_metadata: Final = request_data.get("litellm_metadata")
-        cleaned_litellm_metadata: Final = dict(litellm_metadata) if isinstance(litellm_metadata, dict) else {}
+        cleaned_gateway_metadata: Final = dict(litellm_metadata) if isinstance(litellm_metadata, dict) else {}
         if inbound_headers:
-            existing_headers: Final = cleaned_litellm_metadata.get("headers")
-            cleaned_litellm_metadata["headers"] = (
+            existing_headers: Final = cleaned_gateway_metadata.get("headers")
+            cleaned_gateway_metadata["headers"] = (
                 {**existing_headers, **inbound_headers} if isinstance(existing_headers, dict) else inbound_headers
             )
-        if cleaned_litellm_metadata:
-            sanitized: Final[object] = safe_json_loads(safe_dumps(cleaned_litellm_metadata), default={})
+        if cleaned_gateway_metadata:
+            sanitized: Final[object] = safe_json_loads(safe_dumps(cleaned_gateway_metadata), default={})
             if isinstance(sanitized, dict) and sanitized:
                 payload["litellm_metadata"] = sanitized
 

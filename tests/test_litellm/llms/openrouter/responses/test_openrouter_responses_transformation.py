@@ -54,9 +54,9 @@ class TestOpenRouterResponsesAPIConfig:
     def test_validate_environment_sets_auth_header(self):
         """validate_environment should set the Authorization header."""
         config = OpenRouterResponsesAPIConfig()
-        from token_iq.gateway.types.router import GenericLiteLLMParams
+        from token_iq.gateway.types.router import GenericGatewayParams
 
-        params = GenericLiteLLMParams(api_key="sk-or-test-key")
+        params = GenericGatewayParams(api_key="sk-or-test-key")
         headers = config.validate_environment(
             headers={}, model="openai/o4-mini", litellm_params=params
         )
@@ -65,7 +65,7 @@ class TestOpenRouterResponsesAPIConfig:
     def test_validate_environment_raises_without_key(self, monkeypatch):
         """validate_environment should raise when no API key is available."""
         config = OpenRouterResponsesAPIConfig()
-        from token_iq.gateway.types.router import GenericLiteLLMParams
+        from token_iq.gateway.types.router import GenericGatewayParams
 
         # Clear any globally set API keys so the validation correctly raises
         monkeypatch.setattr(gateway, "api_key", None)
@@ -76,7 +76,7 @@ class TestOpenRouterResponsesAPIConfig:
             config.validate_environment(
                 headers={},
                 model="openai/o4-mini",
-                litellm_params=GenericLiteLLMParams(),
+                litellm_params=GenericGatewayParams(),
             )
         e = exc_info.value
         assert "OpenRouter API key is required" in str(e)

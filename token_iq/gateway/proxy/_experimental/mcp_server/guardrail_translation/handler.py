@@ -39,7 +39,7 @@ if TYPE_CHECKING:
     from mcp.types import CallToolResult
 
     from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 
 
 class MCPGuardrailTranslationHandler(BaseTranslation):

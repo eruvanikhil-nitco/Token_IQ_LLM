@@ -4,7 +4,7 @@ from token_iq.gateway.llms.anthropic.common_utils import AnthropicError
 from token_iq.gateway.llms.openai_like.messages.transformation import (
     OpenAILikeAnthropicMessagesConfig,
 )
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 
 
 @pytest.fixture
@@ -71,7 +71,7 @@ def test_request_stays_in_anthropic_shape(config):
         model="some-model",
         messages=messages,
         anthropic_messages_optional_request_params=optional_params,
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         headers={},
     )
 
@@ -100,7 +100,7 @@ def test_request_requires_max_tokens(config):
             model="some-model",
             messages=[{"role": "user", "content": "hi"}],
             anthropic_messages_optional_request_params={"system": "s"},
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 
@@ -234,7 +234,7 @@ def test_request_strips_advisor_blocks_when_advisor_tool_absent(config):
         model="some-model",
         messages=messages,
         anthropic_messages_optional_request_params={"max_tokens": 64},
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         headers={},
     )
 
@@ -257,7 +257,7 @@ def test_request_maps_reasoning_effort_to_thinking(config):
             "max_tokens": 8192,
             "reasoning_effort": "medium",
         },
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         headers={},
     )
 
@@ -363,7 +363,7 @@ def test_request_strips_cache_control_ttl_everywhere(config):
         model="some-model",
         messages=messages,
         anthropic_messages_optional_request_params=optional_params,
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         headers={},
     )
 
@@ -386,7 +386,7 @@ def test_request_defaults_missing_cache_control_type_and_drops_non_dict(config):
             }
         ],
         anthropic_messages_optional_request_params={"max_tokens": 64},
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         headers={},
     )
 
@@ -407,7 +407,7 @@ def test_native_anthropic_config_keeps_cache_control_ttl():
         model="claude-sonnet-4-20250514",
         messages=messages,
         anthropic_messages_optional_request_params=optional_params,
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         headers={},
     )
 
@@ -426,7 +426,7 @@ def test_deployment_opt_in_keeps_cache_control_ttl():
             }
         ],
         anthropic_messages_optional_request_params={"max_tokens": 16},
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         headers={},
     )
     assert payload["messages"][0]["content"][0]["cache_control"] == {"type": "ephemeral", "ttl": "1h"}
@@ -450,7 +450,7 @@ def test_json_provider_constraint_opts_into_cache_control_ttl():
             model="some-model",
             messages=messages,
             anthropic_messages_optional_request_params=optional_params,
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 
@@ -505,7 +505,7 @@ def test_request_strips_ttl_only_where_the_messages_api_defines_cache_control(co
         model="some-model",
         messages=messages,
         anthropic_messages_optional_request_params=optional_params,
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         headers={},
     )
 

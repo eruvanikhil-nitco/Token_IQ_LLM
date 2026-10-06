@@ -3,7 +3,7 @@ from typing import Any, Final
 
 from openai import AsyncAzureOpenAI, AzureOpenAI
 
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.core_utils.prompt_templates.factory import prompt_factory
 from token_iq.gateway.utils import CustomStreamWrapper, ModelResponse, TextCompletionResponse
 
@@ -40,7 +40,7 @@ class AzureTextCompletion(BaseAzureLLM):
         azure_ad_token_provider: Callable | None,
         print_verbose: Callable,
         timeout,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         optional_params,
         litellm_params: dict[str, object],
         logger_fn,
@@ -193,7 +193,7 @@ class AzureTextCompletion(BaseAzureLLM):
         data: dict,
         timeout: Any,
         model_response: ModelResponse,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         max_retries: int,
         azure_ad_token: str | None = None,
         client=None,  # this is the AsyncAzureOpenAI
@@ -247,7 +247,7 @@ class AzureTextCompletion(BaseAzureLLM):
 
     def streaming(
         self,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         api_base: str,
         api_key: str | None,
         api_version: str,
@@ -300,7 +300,7 @@ class AzureTextCompletion(BaseAzureLLM):
 
     async def async_streaming(
         self,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         api_base: str,
         api_key: str | None,
         api_version: str,

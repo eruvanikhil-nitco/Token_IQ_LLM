@@ -17,7 +17,7 @@ from token_iq.gateway.caching.caching import Cache
 
 from unittest.mock import AsyncMock, patch, MagicMock
 from token_iq.gateway.caching.caching_handler import LLMCachingHandler, CachingHandlerResponse
-from token_iq.gateway.caching.caching import LiteLLMCacheType
+from token_iq.gateway.caching.caching import GatewayCacheType
 from token_iq.gateway.types.utils import CallTypes
 from token_iq.gateway.types.rerank import RerankResponse
 from token_iq.gateway.types.utils import (
@@ -28,7 +28,7 @@ from token_iq.gateway.types.utils import (
     Embedding,
 )
 from datetime import timedelta, datetime
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLogging
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLogging
 from token_iq.gateway.core_utils.model_param_helper import ModelParamHelper
 from token_iq.gateway._logging import verbose_logger
 import logging

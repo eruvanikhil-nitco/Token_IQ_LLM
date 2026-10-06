@@ -1031,7 +1031,7 @@ async def test_google_generate_content_with_openai():
     import unittest.mock
 
     from token_iq.gateway.types.llms.openai import ChatCompletionAssistantMessage
-    from token_iq.gateway.types.router import GenericLiteLLMParams
+    from token_iq.gateway.types.router import GenericGatewayParams
     from token_iq.gateway.types.utils import Choices, ModelResponse, Usage
 
     # Create a proper mock response object with expected attributes
@@ -1084,7 +1084,7 @@ async def test_google_generate_content_with_openai():
         # validate only expected fields were sent to litellm.completion
         passed_fields = set(call_kwargs.keys())
         # remove any GenericLiteLLMParams fields
-        passed_fields = passed_fields - set(GenericLiteLLMParams.model_fields.keys())
+        passed_fields = passed_fields - set(GenericGatewayParams.model_fields.keys())
         # extra_headers is now explicitly passed through for providers that need custom headers
         assert passed_fields == set(
             ["model", "messages", "extra_headers"]

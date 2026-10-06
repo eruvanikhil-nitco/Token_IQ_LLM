@@ -37,7 +37,7 @@ from pydantic import ValidationError
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.caching.dual_cache import DualCache
 from token_iq.gateway.proxy.auth.ip_address_utils import IPAddressUtils
-from token_iq.gateway.proxy.management_endpoints.types import CustomOpenID, get_litellm_user_role
+from token_iq.gateway.proxy.management_endpoints.types import CustomOpenID, get_gateway_user_role
 from token_iq.gateway.proxy.utils import get_custom_url
 
 try:
@@ -466,7 +466,7 @@ class SAMLAuthHandler:
                 picture=None,
                 provider="saml",
                 team_ids=team_ids,
-                user_role=get_litellm_user_role(role_values),
+                user_role=get_gateway_user_role(role_values),
             )
         except ValidationError as e:
             raise HTTPException(

@@ -8,7 +8,7 @@ from token_iq.gateway.proxy._types import (
     CreateJWTKeyMappingRequest,
     DeleteJWTKeyMappingRequest,
     JWTKeyMappingResponse,
-    LitellmUserRoles,
+    GatewayUserRoles,
     UpdateJWTKeyMappingRequest,
     UserAPIKeyAuth,
     hash_token,
@@ -98,7 +98,7 @@ async def create_jwt_key_mapping(
 ):
     from token_iq.gateway.proxy.proxy_server import prisma_client, user_api_key_cache
 
-    if user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN:
+    if user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN:
         raise HTTPException(status_code=403, detail="Only proxy admins can create JWT key mappings")
 
     if prisma_client is None:
@@ -151,7 +151,7 @@ async def update_jwt_key_mapping(
 ):
     from token_iq.gateway.proxy.proxy_server import prisma_client, user_api_key_cache
 
-    if user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN:
+    if user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN:
         raise HTTPException(status_code=403, detail="Only proxy admins can update JWT key mappings")
 
     if prisma_client is None:
@@ -206,7 +206,7 @@ async def delete_jwt_key_mapping(
 ):
     from token_iq.gateway.proxy.proxy_server import prisma_client, user_api_key_cache
 
-    if user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN:
+    if user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN:
         raise HTTPException(status_code=403, detail="Only proxy admins can delete JWT key mappings")
 
     if prisma_client is None:

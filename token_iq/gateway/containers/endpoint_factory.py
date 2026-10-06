@@ -16,7 +16,7 @@ from typing import Any, Final, Literal
 from token_iq import gateway
 from token_iq.gateway.constants import request_timeout as DEFAULT_REQUEST_TIMEOUT
 from token_iq.gateway.containers.utils import decode_managed_container_id_for_request
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.llms.base_llm.containers.transformation import BaseContainerConfig
 from token_iq.gateway.llms.custom_httpx.container_handler import generic_container_handler
 from token_iq.gateway.types.containers.main import (
@@ -24,7 +24,7 @@ from token_iq.gateway.types.containers.main import (
     ContainerFileObject,
     DeleteContainerFileResponse,
 )
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.utils import ProviderConfigManager, client
 
 # Response type mapping
@@ -64,7 +64,7 @@ def create_sync_endpoint_function(endpoint_config: dict) -> Callable:
         local_vars: Final = locals()
         try:
             resolved_custom_llm_provider: str = custom_llm_provider
-            litellm_logging_obj: Final[LiteLLMLoggingObj] = kwargs.pop("litellm_logging_obj")
+            litellm_logging_obj: Final[GatewayLoggingObj] = kwargs.pop("litellm_logging_obj")
             litellm_call_id: Final[str | None] = kwargs.get("litellm_call_id")
             _is_async: Final = kwargs.pop("async_call", False) is True
 
@@ -78,7 +78,7 @@ def create_sync_endpoint_function(endpoint_config: dict) -> Callable:
                 return mock_response
 
             # Get provider config
-            litellm_params = GenericLiteLLMParams(**kwargs)
+            litellm_params = GenericGatewayParams(**kwargs)
             # Strip LiteLLM-managed container IDs before calling the provider API
             # (OpenAI enforces max length 64 on container_id).
             if "container_id" in kwargs and isinstance(kwargs["container_id"], str):

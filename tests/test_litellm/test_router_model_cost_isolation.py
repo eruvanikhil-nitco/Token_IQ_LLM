@@ -368,7 +368,7 @@ def test_should_not_downgrade_chatgpt_shared_key_mode_with_alias_override():
             router._create_deployment(
                 deployment_info={},
                 _model_name="chatgpt/gpt-5.4",
-                _litellm_params={
+                _gateway_params={
                     "model": "gpt-5.4",
                     "custom_llm_provider": "chatgpt",
                 },
@@ -380,7 +380,7 @@ def test_should_not_downgrade_chatgpt_shared_key_mode_with_alias_override():
             router._create_deployment(
                 deployment_info={},
                 _model_name="chatgpt/gpt-5.4-medium",
-                _litellm_params={
+                _gateway_params={
                     "model": "gpt-5.4",
                     "custom_llm_provider": "chatgpt",
                 },
@@ -699,13 +699,13 @@ def test_custom_pricing_field_denylist_covers_all_builtin_pricing_fields():
     """
     import typing
 
-    from token_iq.gateway.types.utils import CustomPricingLiteLLMParams, ModelInfoBase
+    from token_iq.gateway.types.utils import CustomPricingGatewayParams, ModelInfoBase
 
     pricing_markers = ("cost", "price", "uplift", "vector_size", "tiered_pricing")
     builtin_pricing_fields = {
         name for name in typing.get_type_hints(ModelInfoBase) if any(marker in name for marker in pricing_markers)
     }
-    denylisted_fields = set(CustomPricingLiteLLMParams.model_fields.keys())
+    denylisted_fields = set(CustomPricingGatewayParams.model_fields.keys())
 
     uncovered = sorted(builtin_pricing_fields - denylisted_fields)
     assert not uncovered, (
@@ -1075,12 +1075,12 @@ def test_price_data_reload_preserves_router_registered_model_info(monkeypatch):
     max_input_tokens / max_output_tokens from every custom model group and
     /model_group/info starts reporting nulls.
     """
-    from token_iq.gateway import utils as litellm_utils
+    from token_iq.gateway import utils as gateway_utils
 
     monkeypatch.setattr(
-        litellm_utils,
+        gateway_utils,
         "_runtime_registered_model_cost",
-        dict(litellm_utils._runtime_registered_model_cost),
+        dict(gateway_utils._runtime_registered_model_cost),
     )
 
     router = Router(
@@ -1123,12 +1123,12 @@ def test_price_data_reload_preserves_custom_override_of_a_catalog_model(monkeypa
     the same bug: the reload does not blank the metadata, it reverts the
     operator's model_info override to the upstream catalog values.
     """
-    from token_iq.gateway import utils as litellm_utils
+    from token_iq.gateway import utils as gateway_utils
 
     monkeypatch.setattr(
-        litellm_utils,
+        gateway_utils,
         "_runtime_registered_model_cost",
-        dict(litellm_utils._runtime_registered_model_cost),
+        dict(gateway_utils._runtime_registered_model_cost),
     )
 
     router = Router(
@@ -1175,12 +1175,12 @@ def test_deleted_deployments_are_not_replayed_onto_later_reloads(monkeypatch):
     key that another live deployment still points at must survive the same
     deletion.
     """
-    from token_iq.gateway import utils as litellm_utils
+    from token_iq.gateway import utils as gateway_utils
 
     monkeypatch.setattr(
-        litellm_utils,
+        gateway_utils,
         "_runtime_registered_model_cost",
-        dict(litellm_utils._runtime_registered_model_cost),
+        dict(gateway_utils._runtime_registered_model_cost),
     )
 
     router = Router(
@@ -1229,12 +1229,12 @@ def test_deleting_a_deployment_leaves_catalog_pricing_for_its_backend_model(monk
     A backend key is shared with the fetched catalog, so withdrawing the entries
     a deleted deployment owns must not take real upstream pricing down with it.
     """
-    from token_iq.gateway import utils as litellm_utils
+    from token_iq.gateway import utils as gateway_utils
 
     monkeypatch.setattr(
-        litellm_utils,
+        gateway_utils,
         "_runtime_registered_model_cost",
-        dict(litellm_utils._runtime_registered_model_cost),
+        dict(gateway_utils._runtime_registered_model_cost),
     )
 
     backend_model = "gemini/gemini-2.5-pro"
@@ -1274,12 +1274,12 @@ def test_repointing_a_deployment_drops_its_previous_backend_key(monkeypatch):
     old backend key behind, and a replayed registry would re-assert it onto every
     later catalog for the life of the process.
     """
-    from token_iq.gateway import utils as litellm_utils
+    from token_iq.gateway import utils as gateway_utils
 
     monkeypatch.setattr(
-        litellm_utils,
+        gateway_utils,
         "_runtime_registered_model_cost",
-        dict(litellm_utils._runtime_registered_model_cost),
+        dict(gateway_utils._runtime_registered_model_cost),
     )
 
     router = Router(
@@ -1453,7 +1453,7 @@ def test_replay_model_cost_registrations_survives_a_malformed_deployment():
         _invalidate_model_cost_lowercase_map()
 
 
-def test_deployment_model_cost_payload_folds_in_litellm_params_pricing():
+def test_deployment_model_cost_payload_folds_in_gateway_params_pricing():
     """
     Custom pricing is configured on litellm_params but has to land in the
     cost-map entry, and setting it pulls in the built-in cache pricing for the
@@ -1502,7 +1502,7 @@ def test_register_deployment_in_model_cost_writes_both_key_families():
         _restore_model_cost_entries(model_keys)
 
 
-def test_reload_keeps_custom_pricing_configured_on_litellm_params_for_a_db_model():
+def test_reload_keeps_custom_pricing_configured_on_gateway_params_for_a_db_model():
     """
     A deployment added at runtime, which is what /model/new does, configures its
     custom pricing on litellm_params rather than on model_info. A price data
@@ -1587,12 +1587,12 @@ def test_strategy_router_alias_pricing_never_enters_model_cost(monkeypatch):
     strip must also survive a price-data reload, which rebuilds entries by
     walking the live routers.
     """
-    from token_iq.gateway import utils as litellm_utils
+    from token_iq.gateway import utils as gateway_utils
 
     monkeypatch.setattr(
-        litellm_utils,
+        gateway_utils,
         "_runtime_registered_model_cost",
-        dict(litellm_utils._runtime_registered_model_cost),
+        dict(gateway_utils._runtime_registered_model_cost),
     )
 
     router = Router(

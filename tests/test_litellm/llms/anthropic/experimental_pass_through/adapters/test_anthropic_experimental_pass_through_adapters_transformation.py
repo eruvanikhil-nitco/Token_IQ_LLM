@@ -17,7 +17,7 @@ from token_iq.gateway.core_utils.prompt_templates.factory import (
 from token_iq.gateway.llms.anthropic.experimental_pass_through.adapters.transformation import (
     OPENAI_MAX_TOOL_NAME_LENGTH,
     AnthropicAdapter,
-    LiteLLMAnthropicMessagesAdapter,
+    GatewayAnthropicMessagesAdapter,
     create_tool_name_mapping,
     truncate_tool_name,
 )
@@ -69,7 +69,7 @@ def test_translate_streaming_openai_chunk_to_anthropic_content_block():
     (
         block_type,
         content_block_start,
-    ) = LiteLLMAnthropicMessagesAdapter()._translate_streaming_openai_chunk_to_anthropic_content_block(
+    ) = GatewayAnthropicMessagesAdapter()._translate_streaming_openai_chunk_to_anthropic_content_block(
         choices=choices
     )
 
@@ -117,7 +117,7 @@ def test_translate_streaming_openai_chunk_strips_gemini_thought_from_tool_call_i
     (
         block_type,
         content_block_start,
-    ) = LiteLLMAnthropicMessagesAdapter()._translate_streaming_openai_chunk_to_anthropic_content_block(
+    ) = GatewayAnthropicMessagesAdapter()._translate_streaming_openai_chunk_to_anthropic_content_block(
         choices=choices
     )
 
@@ -164,7 +164,7 @@ def test_translate_streaming_openai_chunk_to_anthropic_thinking_content_block():
     (
         block_type,
         content_block_start,
-    ) = LiteLLMAnthropicMessagesAdapter()._translate_streaming_openai_chunk_to_anthropic_content_block(
+    ) = GatewayAnthropicMessagesAdapter()._translate_streaming_openai_chunk_to_anthropic_content_block(
         choices=choices
     )
 
@@ -202,7 +202,7 @@ def test_translate_streaming_openai_chunk_to_anthropic_reasoning_content_only_co
     (
         block_type,
         content_block_start,
-    ) = LiteLLMAnthropicMessagesAdapter()._translate_streaming_openai_chunk_to_anthropic_content_block(
+    ) = GatewayAnthropicMessagesAdapter()._translate_streaming_openai_chunk_to_anthropic_content_block(
         choices=choices
     )
 
@@ -250,7 +250,7 @@ def test_translate_streaming_openai_chunk_to_anthropic_thinking_signature_block(
     (
         block_type,
         content_block_start,
-    ) = LiteLLMAnthropicMessagesAdapter()._translate_streaming_openai_chunk_to_anthropic_content_block(
+    ) = GatewayAnthropicMessagesAdapter()._translate_streaming_openai_chunk_to_anthropic_content_block(
         choices=choices
     )
 
@@ -305,7 +305,7 @@ def test_translate_streaming_openai_chunk_to_anthropic_content_block_thinking_an
     (
         block_type,
         content_block_start,
-    ) = LiteLLMAnthropicMessagesAdapter()._translate_streaming_openai_chunk_to_anthropic_content_block(
+    ) = GatewayAnthropicMessagesAdapter()._translate_streaming_openai_chunk_to_anthropic_content_block(
         choices=choices
     )
 
@@ -342,7 +342,7 @@ def test_translate_anthropic_messages_to_openai_thinking_blocks():
         ),
     ]
 
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     result = adapter.translate_anthropic_messages_to_openai(messages=anthropic_messages)
 
     assert len(result) == 2
@@ -385,7 +385,7 @@ def test_translate_anthropic_messages_to_openai_sets_reasoning_content():
         ),
     ]
 
-    result = LiteLLMAnthropicMessagesAdapter().translate_anthropic_messages_to_openai(messages=anthropic_messages)
+    result = GatewayAnthropicMessagesAdapter().translate_anthropic_messages_to_openai(messages=anthropic_messages)
 
     assert result[1]["reasoning_content"] == "Denver is dry in August.\nSan Francisco is foggy."
     assert result[1]["content"] == "Denver."
@@ -399,7 +399,7 @@ def test_translate_anthropic_messages_to_openai_sets_no_reasoning_content_withou
         ),
     ]
 
-    result = LiteLLMAnthropicMessagesAdapter().translate_anthropic_messages_to_openai(messages=anthropic_messages)
+    result = GatewayAnthropicMessagesAdapter().translate_anthropic_messages_to_openai(messages=anthropic_messages)
 
     assert "reasoning_content" not in result[0]
 
@@ -436,7 +436,7 @@ def test_translate_anthropic_messages_to_openai_tool_message_placement():
         ),
     ]
 
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     result = adapter.translate_anthropic_messages_to_openai(messages=anthropic_messages)
 
     # find the indices of tool and user messages in the result
@@ -521,7 +521,7 @@ def test_translate_anthropic_messages_to_openai_preserves_midturn_system_correct
         {"role": "user", "content": "Continue."},
     ]
 
-    result = LiteLLMAnthropicMessagesAdapter().translate_anthropic_messages_to_openai(
+    result = GatewayAnthropicMessagesAdapter().translate_anthropic_messages_to_openai(
         messages=messages,
         model="claude-3-5-sonnet-20240620",
     )
@@ -570,7 +570,7 @@ def test_translate_anthropic_messages_to_openai_preserves_midturn_system_cache_c
         }
     ]
 
-    result = LiteLLMAnthropicMessagesAdapter().translate_anthropic_messages_to_openai(
+    result = GatewayAnthropicMessagesAdapter().translate_anthropic_messages_to_openai(
         messages=messages,
         model="claude-3-5-sonnet-20240620",
     )
@@ -610,7 +610,7 @@ def test_translate_anthropic_messages_to_openai_drops_midturn_system_cache_contr
         }
     ]
 
-    result = LiteLLMAnthropicMessagesAdapter().translate_anthropic_messages_to_openai(
+    result = GatewayAnthropicMessagesAdapter().translate_anthropic_messages_to_openai(
         messages=messages,
         model="gpt-4o",
     )
@@ -642,7 +642,7 @@ def test_translate_anthropic_messages_to_openai_drops_empty_midturn_system(
 ):
     messages = [{"role": "system", "content": system_content}]
 
-    result = LiteLLMAnthropicMessagesAdapter().translate_anthropic_messages_to_openai(
+    result = GatewayAnthropicMessagesAdapter().translate_anthropic_messages_to_openai(
         messages=messages,
         model="claude-3-5-sonnet-20240620",
     )
@@ -656,7 +656,7 @@ def test_translate_anthropic_to_openai_orders_top_level_and_midturn_system():
     in-sequence correction keeps its own position and `role: "system"` -- no duplication of
     either, and no reordering of the surrounding turns.
     """
-    openai_request, _ = LiteLLMAnthropicMessagesAdapter().translate_anthropic_to_openai(
+    openai_request, _ = GatewayAnthropicMessagesAdapter().translate_anthropic_to_openai(
         anthropic_message_request={
             "model": "claude-3-5-sonnet-20240620",
             "max_tokens": 100,
@@ -682,7 +682,7 @@ def test_translate_anthropic_to_openai_orders_top_level_and_midturn_system():
 def _translate_with_metadata(
     model: str, metadata: dict[str, str], custom_llm_provider: str | None
 ) -> dict[str, Any]:
-    openai_request, _ = LiteLLMAnthropicMessagesAdapter().translate_anthropic_to_openai(
+    openai_request, _ = GatewayAnthropicMessagesAdapter().translate_anthropic_to_openai(
         anthropic_message_request={
             "model": model,
             "max_tokens": 100,
@@ -732,7 +732,7 @@ def test_translate_anthropic_to_openai_skips_prompt_cache_key_when_provider_lack
     assert "prompt_cache_key" not in openai_request
 
 
-def test_translate_anthropic_to_openai_skips_prompt_cache_key_for_chained_litellm_proxy():
+def test_translate_anthropic_to_openai_skips_prompt_cache_key_for_chained_gateway_proxy():
     assert "prompt_cache_key" in gateway.get_supported_openai_params(
         model="xai", custom_llm_provider="litellm_proxy"
     )
@@ -755,7 +755,7 @@ def test_translate_anthropic_to_openai_skips_prompt_cache_key_for_empty_or_null_
 
 
 def test_translate_anthropic_to_openai_without_metadata_sets_neither_user_nor_prompt_cache_key():
-    openai_request, _ = LiteLLMAnthropicMessagesAdapter().translate_anthropic_to_openai(
+    openai_request, _ = GatewayAnthropicMessagesAdapter().translate_anthropic_to_openai(
         anthropic_message_request={
             "model": "openai/gpt-5.6-luna",
             "max_tokens": 100,
@@ -788,7 +788,7 @@ def test_translate_openai_content_to_anthropic_empty_function_arguments():
         )
     ]
 
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     result = adapter._translate_openai_content_to_anthropic(choices=openai_choices)
 
     assert len(result) == 1
@@ -821,7 +821,7 @@ def test_translate_openai_content_to_anthropic_text_and_tool_calls():
         )
     ]
 
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     result = adapter._translate_openai_content_to_anthropic(choices=openai_choices)
 
     assert len(result) == 2
@@ -862,7 +862,7 @@ def test_translate_openai_content_to_anthropic_strips_gemini_thought_from_tool_c
         )
     ]
 
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     result = adapter._translate_openai_content_to_anthropic(choices=openai_choices)
 
     assert len(result) == 1
@@ -894,7 +894,7 @@ def test_translate_openai_content_to_anthropic_sanitizes_colon_dot_tool_call_ids
         )
     ]
 
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     result = adapter._translate_openai_content_to_anthropic(choices=openai_choices)
 
     assert len(result) == 1
@@ -928,7 +928,7 @@ def test_translate_openai_response_to_anthropic_text_and_tool_calls():
         usage=Usage(prompt_tokens=5, completion_tokens=2),
     )
 
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     anthropic_response = adapter.translate_openai_response_to_anthropic(
         response=openai_response
     )
@@ -972,7 +972,7 @@ def test_translate_streaming_openai_chunk_to_anthropic_with_partial_json():
     (
         type_of_content,
         content_block_delta,
-    ) = LiteLLMAnthropicMessagesAdapter()._translate_streaming_openai_chunk_to_anthropic(
+    ) = GatewayAnthropicMessagesAdapter()._translate_streaming_openai_chunk_to_anthropic(
         choices=choices
     )
 
@@ -1002,7 +1002,7 @@ def test_translate_openai_content_to_anthropic_thinking_and_redacted_thinking():
         )
     ]
 
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     result = adapter._translate_openai_content_to_anthropic(choices=openai_choices)
 
     assert len(result) == 2
@@ -1037,7 +1037,7 @@ def test_translate_openai_content_to_anthropic_drops_empty_unsigned_thinking_blo
         )
     ]
 
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     result = adapter._translate_openai_content_to_anthropic(choices=openai_choices)
 
     assert [b["type"] for b in result] == ["thinking", "thinking", "redacted_thinking", "text"]
@@ -1083,7 +1083,7 @@ def test_translate_streaming_openai_chunk_to_anthropic_thinking_delta():
     (
         type_of_content,
         content_block_delta,
-    ) = LiteLLMAnthropicMessagesAdapter()._translate_streaming_openai_chunk_to_anthropic(
+    ) = GatewayAnthropicMessagesAdapter()._translate_streaming_openai_chunk_to_anthropic(
         choices=choices
     )
 
@@ -1128,7 +1128,7 @@ def test_translate_streaming_openai_chunk_to_anthropic_with_thinking():
     (
         type_of_content,
         content_block_delta,
-    ) = LiteLLMAnthropicMessagesAdapter()._translate_streaming_openai_chunk_to_anthropic(
+    ) = GatewayAnthropicMessagesAdapter()._translate_streaming_openai_chunk_to_anthropic(
         choices=choices
     )
 
@@ -1180,7 +1180,7 @@ def test_translate_streaming_openai_chunk_to_anthropic_emits_signature_when_thin
         )
     ]
 
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
 
     (
         type_of_content,
@@ -1221,7 +1221,7 @@ def test_translate_anthropic_messages_to_openai_user_message_with_base64_image()
         )
     ]
 
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     result = adapter.translate_anthropic_messages_to_openai(messages=anthropic_messages)
 
     assert len(result) == 1
@@ -1261,7 +1261,7 @@ def test_translate_anthropic_messages_to_openai_user_message_with_url_image():
         )
     ]
 
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     result = adapter.translate_anthropic_messages_to_openai(messages=anthropic_messages)
 
     assert len(result) == 1
@@ -1320,7 +1320,7 @@ def test_translate_anthropic_messages_to_openai_tool_result_with_base64_image():
         ),
     ]
 
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     result = adapter.translate_anthropic_messages_to_openai(messages=anthropic_messages)
 
     # Find the tool message in the result
@@ -1378,7 +1378,7 @@ def test_translate_anthropic_messages_to_openai_tool_result_with_url_image():
         ),
     ]
 
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     result = adapter.translate_anthropic_messages_to_openai(messages=anthropic_messages)
 
     # Find the tool message in the result
@@ -1425,7 +1425,7 @@ def test_translate_anthropic_messages_to_openai_mixed_content_with_image():
         )
     ]
 
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     result = adapter.translate_anthropic_messages_to_openai(messages=anthropic_messages)
 
     assert len(result) == 1
@@ -1484,7 +1484,7 @@ def test_translate_anthropic_messages_to_openai_tool_use_with_signature():
         ),
     ]
 
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     result = adapter.translate_anthropic_messages_to_openai(messages=anthropic_messages)
 
     assert len(result) == 2
@@ -1554,7 +1554,7 @@ def test_translate_anthropic_messages_to_openai_tool_result_with_multiple_conten
         ),
     ]
 
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     result = adapter.translate_anthropic_messages_to_openai(messages=anthropic_messages)
 
     # Count how many tool messages have the same tool_call_id
@@ -1627,7 +1627,7 @@ def test_translate_anthropic_messages_to_openai_tool_result_single_item_backward
         ),
     ]
 
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     result = adapter.translate_anthropic_messages_to_openai(messages=anthropic_messages)
 
     tool_messages = [
@@ -1674,7 +1674,7 @@ def test_streaming_chunk_with_both_text_and_tool_calls_issue_18238():
         )
     ]
 
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
 
     # When both text and tool_calls exist, tool_calls (input_json_delta) takes priority
     (
@@ -1721,7 +1721,7 @@ def test_streaming_chunk_with_text_and_empty_tool_calls_returns_text_delta():
         )
     ]
 
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
 
     (
         type_of_content,
@@ -1762,7 +1762,7 @@ CACHE_CONTROL_BEDROCK_ARN_MODEL = (
 
 def test_should_add_cache_control_for_anthropic_model():
     """Should add cache_control to target for Anthropic Claude models."""
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     cache_control = {"type": "ephemeral"}
 
     for model in [
@@ -1781,7 +1781,7 @@ def test_should_add_cache_control_for_anthropic_model():
 
 def test_should_not_add_cache_control_for_non_anthropic_model():
     """Should not add cache_control for non-Anthropic models."""
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     cache_control = {"type": "ephemeral"}
 
     for model in [
@@ -1798,7 +1798,7 @@ def test_should_not_add_cache_control_for_non_anthropic_model():
 
 def test_should_not_add_cache_control_when_none():
     """Should not add cache_control when source has None or empty cache_control."""
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
 
     for source in [
         {"cache_control": None},
@@ -1815,7 +1815,7 @@ def test_should_not_add_cache_control_when_none():
 
 def test_should_not_add_cache_control_when_model_none():
     """Should not add cache_control when model is None or empty."""
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     cache_control = {"type": "ephemeral"}
 
     for model in [None, ""]:
@@ -1841,7 +1841,7 @@ def test_cache_control_preserved_in_text_content_for_claude():
         )
     ]
 
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     result = adapter.translate_anthropic_messages_to_openai(
         messages=anthropic_messages, model=CACHE_CONTROL_BEDROCK_CONVERSE_MODEL
     )
@@ -1865,7 +1865,7 @@ def test_cache_control_not_preserved_for_non_claude_model():
         )
     ]
 
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     result = adapter.translate_anthropic_messages_to_openai(
         messages=anthropic_messages, model=CACHE_CONTROL_NON_ANTHROPIC_MODEL
     )
@@ -1890,7 +1890,7 @@ def test_cache_control_not_preserved_for_non_claude_model():
 )
 def test_is_bedrock_arn_model(model, expected):
     """is_bedrock_arn_model requires an ARN with bedrock in the service field, not just anywhere."""
-    assert LiteLLMAnthropicMessagesAdapter.is_bedrock_arn_model(model) is expected
+    assert GatewayAnthropicMessagesAdapter.is_bedrock_arn_model(model) is expected
 
 
 def test_cache_control_preserved_for_bedrock_arn_inference_profile():
@@ -1913,7 +1913,7 @@ def test_cache_control_preserved_for_bedrock_arn_inference_profile():
         )
     ]
 
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     result = adapter.translate_anthropic_messages_to_openai(
         messages=anthropic_messages, model=CACHE_CONTROL_BEDROCK_ARN_MODEL
     )
@@ -1929,7 +1929,7 @@ def test_cache_control_fix_does_not_broaden_claude_detection():
     thinking params through unmodified and break non-Claude Bedrock profiles.
     """
     assert (
-        LiteLLMAnthropicMessagesAdapter.is_anthropic_claude_model(
+        GatewayAnthropicMessagesAdapter.is_anthropic_claude_model(
             CACHE_CONTROL_BEDROCK_ARN_MODEL
         )
         is False
@@ -1944,7 +1944,7 @@ def test_thinking_preserved_for_bedrock_arn_inference_profile():
     ["thinking"]` runs after the rewrite and has nothing left to drop, and the Bedrock
     Converse body re-expands reasoning_effort back into additionalModelRequestFields.thinking.
     """
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     thinking = {"type": "enabled", "budget_tokens": 1024}
 
     new_kwargs = {"model": CACHE_CONTROL_BEDROCK_ARN_MODEL}
@@ -1953,7 +1953,7 @@ def test_thinking_preserved_for_bedrock_arn_inference_profile():
     assert new_kwargs["thinking"] == thinking
     assert "reasoning_effort" not in new_kwargs
 
-    assert LiteLLMAnthropicMessagesAdapter.translate_thinking_for_model(thinking, CACHE_CONTROL_BEDROCK_ARN_MODEL) == {
+    assert GatewayAnthropicMessagesAdapter.translate_thinking_for_model(thinking, CACHE_CONTROL_BEDROCK_ARN_MODEL) == {
         "thinking": thinking
     }
 
@@ -1964,7 +1964,7 @@ def test_thinking_still_translated_to_reasoning_effort_for_non_claude_model():
     still has `thinking` converted to `reasoning_effort` so it does not hit an
     UnsupportedParamsError downstream.
     """
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     thinking = {"type": "enabled", "budget_tokens": 1024}
 
     new_kwargs = {"model": CACHE_CONTROL_NON_ANTHROPIC_MODEL}
@@ -1975,7 +1975,7 @@ def test_thinking_still_translated_to_reasoning_effort_for_non_claude_model():
 
 
 def test_thinking_disabled_translated_to_reasoning_effort_none_for_non_claude_model():
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     thinking = {"type": "disabled"}
 
     new_kwargs = {"model": CACHE_CONTROL_NON_ANTHROPIC_MODEL}
@@ -1988,7 +1988,7 @@ def test_thinking_disabled_translated_to_reasoning_effort_none_for_non_claude_mo
 def test_thinking_disabled_stays_plain_string_when_auto_summary_enabled():
     from token_iq import gateway
 
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     thinking = {"type": "disabled"}
 
     original = gateway.reasoning_auto_summary
@@ -2040,7 +2040,7 @@ def test_adaptive_thinking_output_config_effort_preserved_for_claude_model(model
         },
     )
 
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     openai_request, _ = adapter.translate_anthropic_to_openai(anthropic_message_request=anthropic_request)
 
     assert openai_request["thinking"] == {"type": "adaptive"}
@@ -2071,7 +2071,7 @@ def test_adaptive_thinking_format_only_output_config_not_forwarded_for_claude_mo
         output_config={"format": {"type": "json_schema", "schema": {"type": "object", "properties": {}}}},
     )
 
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     openai_request, _ = adapter.translate_anthropic_to_openai(anthropic_message_request=anthropic_request)
 
     assert openai_request["thinking"] == {"type": "adaptive"}
@@ -2095,7 +2095,7 @@ def test_adaptive_thinking_output_config_not_forwarded_for_non_bedrock_claude_mo
         output_config={"effort": "max"},
     )
 
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     openai_request, _ = adapter.translate_anthropic_to_openai(
         anthropic_message_request=anthropic_request, custom_llm_provider="openrouter"
     )
@@ -2112,7 +2112,7 @@ def test_every_adaptive_effort_tier_reaches_a_bridged_claude_target(effort):
     upstream body was the same either way."""
     from token_iq.gateway.types.llms.anthropic import AnthropicMessagesRequest
 
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     openai_request, _ = adapter.translate_anthropic_to_openai(
         anthropic_message_request=AnthropicMessagesRequest(
             model="openrouter/anthropic/claude-opus-4.7",
@@ -2132,7 +2132,7 @@ def test_adaptive_thinking_without_a_tier_leaves_a_claude_target_on_its_own_defa
     default still decides. Inventing a tier here would silently override it."""
     from token_iq.gateway.types.llms.anthropic import AnthropicMessagesRequest
 
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     openai_request, _ = adapter.translate_anthropic_to_openai(
         anthropic_message_request=AnthropicMessagesRequest(
             model="openrouter/anthropic/claude-opus-4-7",
@@ -2152,7 +2152,7 @@ def test_budgeted_thinking_on_a_claude_target_keeps_its_budget_and_gains_no_tier
     untouched rather than coarsening it into a `reasoning_effort` bucket."""
     from token_iq.gateway.types.llms.anthropic import AnthropicMessagesRequest
 
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     openai_request, _ = adapter.translate_anthropic_to_openai(
         anthropic_message_request=AnthropicMessagesRequest(
             model="openrouter/anthropic/claude-opus-4-7",
@@ -2177,7 +2177,7 @@ def test_stop_sequences_translated_to_stop_for_non_claude_model():
         stop_sequences=["</block>"],
     )
 
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     openai_request, _ = adapter.translate_anthropic_to_openai(anthropic_message_request=anthropic_request)
 
     assert openai_request["stop"] == ["</block>"]
@@ -2194,7 +2194,7 @@ def test_empty_stop_sequences_does_not_set_stop():
         stop_sequences=[],
     )
 
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     openai_request, _ = adapter.translate_anthropic_to_openai(anthropic_message_request=anthropic_request)
 
     assert "stop" not in openai_request
@@ -2219,7 +2219,7 @@ def test_cache_control_preserved_in_image_content_for_claude():
         )
     ]
 
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     result = adapter.translate_anthropic_messages_to_openai(
         messages=anthropic_messages, model=CACHE_CONTROL_BEDROCK_CONVERSE_MODEL
     )
@@ -2247,7 +2247,7 @@ def test_cache_control_preserved_in_document_content_for_claude():
         )
     ]
 
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     result = adapter.translate_anthropic_messages_to_openai(
         messages=anthropic_messages, model=CACHE_CONTROL_BEDROCK_CONVERSE_MODEL
     )
@@ -2272,7 +2272,7 @@ def test_cache_control_preserved_in_tool_result_for_claude():
         )
     ]
 
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     result = adapter.translate_anthropic_messages_to_openai(
         messages=anthropic_messages, model=CACHE_CONTROL_BEDROCK_CONVERSE_MODEL
     )
@@ -2297,7 +2297,7 @@ def test_cache_control_not_preserved_in_tool_result_for_non_claude():
         )
     ]
 
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     result = adapter.translate_anthropic_messages_to_openai(
         messages=anthropic_messages, model=CACHE_CONTROL_NON_ANTHROPIC_MODEL
     )
@@ -2321,7 +2321,7 @@ def test_cache_control_preserved_in_assistant_text_for_claude():
         )
     ]
 
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     result = adapter.translate_anthropic_messages_to_openai(
         messages=anthropic_messages, model=CACHE_CONTROL_BEDROCK_CONVERSE_MODEL
     )
@@ -2350,7 +2350,7 @@ def test_cache_control_preserved_in_tool_use_for_claude():
         )
     ]
 
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     result = adapter.translate_anthropic_messages_to_openai(
         messages=anthropic_messages, model=CACHE_CONTROL_BEDROCK_CONVERSE_MODEL
     )
@@ -2374,7 +2374,7 @@ def test_cache_control_preserved_in_tools_for_claude():
         }
     ]
 
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     result, tool_name_mapping = adapter.translate_anthropic_tools_to_openai(
         tools=tools, model=CACHE_CONTROL_BEDROCK_CONVERSE_MODEL
     )
@@ -2398,7 +2398,7 @@ def test_cache_control_not_preserved_in_tools_for_non_claude():
         }
     ]
 
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     result, tool_name_mapping = adapter.translate_anthropic_tools_to_openai(
         tools=tools, model=CACHE_CONTROL_NON_ANTHROPIC_MODEL
     )
@@ -2419,7 +2419,7 @@ def test_translate_anthropic_tools_to_openai_fills_missing_tool_name():
         },
         {"name": "", "input_schema": {"type": "object", "properties": {}}},
     ]
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     result, _ = adapter.translate_anthropic_tools_to_openai(tools=tools, model=None)
     assert result[0]["function"]["name"] == "litellm_unnamed_tool_0"
     assert result[1]["function"]["name"] == "litellm_unnamed_tool_1"
@@ -2435,7 +2435,7 @@ def test_translate_anthropic_tools_to_openai_passes_provider_native_tool_dicts_t
             "input_schema": {"type": "object", "properties": {"location": {"type": "string"}}},
         },
     ]
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     result, tool_name_mapping = adapter.translate_anthropic_tools_to_openai(tools=tools, model=None)
     assert result[0] == {"googleMaps": {}}
     assert result[1] == {"googleSearch": {}}
@@ -2452,7 +2452,7 @@ def test_translate_anthropic_tools_to_openai_passes_openai_function_tools_throug
             "parameters": {"type": "object", "properties": {"location": {"type": "string"}}},
         },
     }
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     result, _ = adapter.translate_anthropic_tools_to_openai(tools=[openai_tool], model=None)
     assert result == [openai_tool]
 
@@ -2490,7 +2490,7 @@ def test_translate_openai_content_to_anthropic_reasoning_content_without_thinkin
         )
     ]
 
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     result = adapter._translate_openai_content_to_anthropic(choices=openai_choices)
 
     assert len(result) == 2
@@ -2531,7 +2531,7 @@ def test_translate_streaming_openai_chunk_to_anthropic_reasoning_content_without
     (
         type_of_content,
         content_block_delta,
-    ) = LiteLLMAnthropicMessagesAdapter()._translate_streaming_openai_chunk_to_anthropic(
+    ) = GatewayAnthropicMessagesAdapter()._translate_streaming_openai_chunk_to_anthropic(
         choices=choices
     )
 
@@ -2564,7 +2564,7 @@ def test_translate_openai_response_to_anthropic_with_reasoning_content_only():
         usage=Usage(prompt_tokens=13, completion_tokens=138),
     )
 
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     anthropic_response = adapter.translate_openai_response_to_anthropic(
         response=openai_response
     )
@@ -2682,7 +2682,7 @@ def test_translate_anthropic_tools_with_long_names():
         }
     ]
 
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     result, tool_name_mapping = adapter.translate_anthropic_tools_to_openai(
         tools=tools, model="gpt-4"
     )
@@ -2706,7 +2706,7 @@ def test_translate_anthropic_tools_mixed_names():
         {"name": long_name, "input_schema": {"type": "object"}},
     ]
 
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     result, tool_name_mapping = adapter.translate_anthropic_tools_to_openai(
         tools=tools, model="gpt-4"
     )
@@ -2756,7 +2756,7 @@ def test_translate_openai_response_restores_tool_names():
         usage=Usage(prompt_tokens=10, completion_tokens=5, total_tokens=15),
     )
 
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     result = adapter.translate_openai_response_to_anthropic(
         response=response, tool_name_mapping=tool_name_mapping
     )
@@ -2814,7 +2814,7 @@ def test_translate_openai_response_to_anthropic_input_tokens_excludes_cached_tok
     )
 
     # Convert to Anthropic format
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     anthropic_response = adapter.translate_openai_response_to_anthropic(
         response=response,
         tool_name_mapping=None,
@@ -2860,7 +2860,7 @@ def test_translate_openai_response_to_anthropic_input_tokens_no_cache():
     )
 
     # Convert to Anthropic format
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     anthropic_response = adapter.translate_openai_response_to_anthropic(
         response=response,
         tool_name_mapping=None,
@@ -2903,7 +2903,7 @@ def test_translate_openai_response_to_anthropic_cache_tokens_from_prompt_tokens_
         usage=usage,
     )
 
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     anthropic_response = adapter.translate_openai_response_to_anthropic(
         response=response,
         tool_name_mapping=None,
@@ -2925,7 +2925,7 @@ def test_translate_openai_usage_to_anthropic_cache_tokens_from_dict_details_with
         "cache_write_tokens": 20.0,
     }
 
-    anthropic_usage = LiteLLMAnthropicMessagesAdapter._translate_openai_usage_to_anthropic_usage_delta(
+    anthropic_usage = GatewayAnthropicMessagesAdapter._translate_openai_usage_to_anthropic_usage_delta(
         usage
     )
 
@@ -2946,7 +2946,7 @@ def test_translate_openai_usage_to_anthropic_ignores_fractional_cache_tokens():
         "cache_creation_tokens": 20.25,
     }
 
-    anthropic_usage = LiteLLMAnthropicMessagesAdapter._translate_openai_usage_to_anthropic_usage_delta(
+    anthropic_usage = GatewayAnthropicMessagesAdapter._translate_openai_usage_to_anthropic_usage_delta(
         usage
     )
 
@@ -2965,7 +2965,7 @@ def test_translate_openai_usage_to_anthropic_ignores_bool_cache_tokens():
     usage.cache_read_input_tokens = True
     usage.cache_creation_input_tokens = True
 
-    anthropic_usage = LiteLLMAnthropicMessagesAdapter._translate_openai_usage_to_anthropic_usage_delta(
+    anthropic_usage = GatewayAnthropicMessagesAdapter._translate_openai_usage_to_anthropic_usage_delta(
         usage
     )
 
@@ -3004,7 +3004,7 @@ def test_translate_openai_response_to_anthropic_cache_creation_from_prompt_token
         usage=usage,
     )
 
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     anthropic_response = adapter.translate_openai_response_to_anthropic(
         response=response,
         tool_name_mapping=None,
@@ -3037,7 +3037,7 @@ def test_translate_openai_response_to_anthropic_cache_tokens_from_usage_fields()
         usage=usage,
     )
 
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     anthropic_response = adapter.translate_openai_response_to_anthropic(
         response=response,
         tool_name_mapping=None,
@@ -3070,7 +3070,7 @@ def test_translate_openai_response_to_anthropic_cache_tokens_from_private_usage_
     response.usage._cache_read_input_tokens = 30
     response.usage._cache_creation_input_tokens = 20
 
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     anthropic_response = adapter.translate_openai_response_to_anthropic(
         response=response,
         tool_name_mapping=None,
@@ -3105,7 +3105,7 @@ def test_translate_streaming_openai_response_to_anthropic_cache_tokens_from_prom
         usage=usage,
     )
 
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     message_delta = adapter.translate_streaming_openai_response_to_anthropic(
         response=response,
         current_content_block_index=0,
@@ -3140,7 +3140,7 @@ def test_translate_streaming_openai_response_to_anthropic_cache_tokens_from_hidd
     )
     response._hidden_params = {"usage": usage}
 
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     message_delta = adapter.translate_streaming_openai_response_to_anthropic(
         response=response,
         current_content_block_index=0,
@@ -3175,7 +3175,7 @@ def test_translate_streaming_openai_response_to_anthropic_cache_tokens_with_appl
         usage=usage,
     )
 
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     message_delta = adapter.translate_streaming_openai_response_to_anthropic(
         response=response,
         current_content_block_index=0,
@@ -3198,7 +3198,7 @@ def test_translate_streaming_openai_response_to_anthropic_cache_tokens_with_appl
 
 def test_is_web_search_tool():
     """Test detection of Anthropic web search tools."""
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
 
     # Tool with type starting with "web_search" should be detected
     web_search_tool_with_type = {
@@ -3248,7 +3248,7 @@ def test_translate_anthropic_to_openai_with_web_search_tool():
         ],
     )
 
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     openai_request, tool_name_mapping = adapter.translate_anthropic_to_openai(
         anthropic_message_request=anthropic_request
     )
@@ -3299,7 +3299,7 @@ def test_translate_anthropic_to_openai_with_mixed_tools():
         ],
     )
 
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     openai_request, tool_name_mapping = adapter.translate_anthropic_to_openai(
         anthropic_message_request=anthropic_request
     )
@@ -3321,7 +3321,7 @@ class TestTranslateAnthropicOutputFormatToOpenAI:
     """Tests for translate_anthropic_output_format_to_openai adding additionalProperties: false."""
 
     def setup_method(self):
-        self.adapter = LiteLLMAnthropicMessagesAdapter()
+        self.adapter = GatewayAnthropicMessagesAdapter()
 
     def test_simple_object_adds_additional_properties_false(self):
         output_format = {
@@ -3619,7 +3619,7 @@ def test_translate_anthropic_tool_choice_none():
     tool_choice={"type": "none"} should be translated to "none" for OpenAI format,
     not raise a ValueError.
     """
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
 
     result = adapter.translate_anthropic_tool_choice_to_openai({"type": "none"})
     assert result == "none"
@@ -3661,7 +3661,7 @@ def test_translate_openai_response_to_anthropic_with_polyfill_compaction_block()
         iterations_usage=None,
     )
     response = _make_simple_openai_response(text="Hello after compaction.")
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     result = adapter.translate_openai_response_to_anthropic(
         response=response, polyfill_result=polyfill
     )
@@ -3695,7 +3695,7 @@ def test_translate_openai_response_to_anthropic_with_polyfill_iterations_usage()
         ],
     )
     response = _make_simple_openai_response(prompt_tokens=100, completion_tokens=30)
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     result = adapter.translate_openai_response_to_anthropic(
         response=response, polyfill_result=polyfill
     )
@@ -3722,7 +3722,7 @@ def test_translate_openai_response_to_anthropic_with_polyfill_iterations_usage()
 def test_translate_openai_response_to_anthropic_no_polyfill_no_change():
     """Without a PolyfillResult the response must be unchanged (no compaction, no iterations)."""
     response = _make_simple_openai_response()
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     result = adapter.translate_openai_response_to_anthropic(response=response)
 
     content = result.get("content")
@@ -3756,7 +3756,7 @@ def test_translate_openai_response_to_anthropic_with_polyfill_both_compaction_an
     response = _make_simple_openai_response(
         text="After compaction.", prompt_tokens=120, completion_tokens=40
     )
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     result = adapter.translate_openai_response_to_anthropic(
         response=response, polyfill_result=polyfill
     )
@@ -3797,7 +3797,7 @@ def test_translate_openai_response_to_anthropic_with_polyfill_both_compaction_an
 def test_translate_anthropic_tools_to_openai_preserves_parameters_type():
     """Regression for #30557: the Anthropic tool `type` ("custom") must not be
     merged into the OpenAI function `parameters`, overwriting parameters.type."""
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     tools = [
         {
             "type": "custom",
@@ -3816,7 +3816,7 @@ def test_translate_anthropic_tools_to_openai_preserves_parameters_type():
 
 def test_translate_anthropic_tools_to_openai_maps_strict_onto_function_not_parameters():
     """A tool-level `strict` lands on the OpenAI function, leaving the caller's `input_schema` untouched."""
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     input_schema = {
         "type": "object",
         "properties": {"city": {"type": "string"}},
@@ -3840,7 +3840,7 @@ def test_translate_anthropic_tools_to_openai_maps_strict_onto_function_not_param
 
 def test_translate_anthropic_tools_to_openai_omits_unset_strict():
     """Chat Completions already defaults to non-strict, so an unset `strict` stays unset."""
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     tools = [
         {
             "type": "custom",
@@ -3899,7 +3899,7 @@ def _url_image_block():
 def _run_chat_completions_pipeline(anthropic_messages):
     """Anthropic /v1/messages input -> chat adapter -> the OpenAI-compatible
     request transformation every OpenAIGPTConfig-based provider runs."""
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     translated = adapter.translate_anthropic_messages_to_openai(messages=anthropic_messages)
     request = OpenAIGPTConfig().transform_request(
         model="gpt-5.4-mini", messages=translated, optional_params={}, litellm_params={}, headers={}
@@ -4012,7 +4012,7 @@ def test_tool_result_parallel_tool_calls_keep_tool_message_adjacency():
     ids=["untranslatable_source", "missing_source", "non_dict_source"],
 )
 def test_tool_result_malformed_image_source_keeps_empty_tool_content(image_block):
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     translated = adapter.translate_anthropic_messages_to_openai(
         messages=[
             _anthropic_tool_use_turn("toolu_01"),
@@ -4050,7 +4050,7 @@ def _base64_pdf_block():
 
 
 def test_tool_result_single_document_kept_as_pdf_data_url():
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     translated = adapter.translate_anthropic_messages_to_openai(
         messages=[
             _anthropic_tool_use_turn("toolu_01"),
@@ -4071,7 +4071,7 @@ def test_tool_result_single_document_kept_as_pdf_data_url():
 def test_tool_result_text_and_document_reach_bedrock_converse_tool_result():
     """Claude Code >= 2.1.245 sends Read-tool PDF output as a document block inside
     tool_result; dropping it left bedrock converse models blind to the PDF content."""
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     translated = adapter.translate_anthropic_messages_to_openai(
         messages=[
             AnthropicMessagesUserMessageParam(role="user", content="Read pong.pdf"),
@@ -4110,7 +4110,7 @@ def test_tool_result_text_and_document_reach_bedrock_converse_tool_result():
 
 def test_translate_anthropic_to_openai_carries_prompt_cache_breakpoint_on_system_and_user_blocks():
     explicit = {"mode": "explicit"}
-    openai_request, _ = LiteLLMAnthropicMessagesAdapter().translate_anthropic_to_openai(
+    openai_request, _ = GatewayAnthropicMessagesAdapter().translate_anthropic_to_openai(
         anthropic_message_request={
             "model": "gpt-5.6",
             "max_tokens": 64,
@@ -4141,7 +4141,7 @@ def test_translate_anthropic_to_openai_carries_prompt_cache_breakpoint_on_system
 
 
 def test_translate_anthropic_to_openai_without_prompt_cache_breakpoint_adds_nothing():
-    openai_request, _ = LiteLLMAnthropicMessagesAdapter().translate_anthropic_to_openai(
+    openai_request, _ = GatewayAnthropicMessagesAdapter().translate_anthropic_to_openai(
         anthropic_message_request={
             "model": "gpt-5.6",
             "max_tokens": 64,
@@ -4155,7 +4155,7 @@ def test_translate_anthropic_to_openai_without_prompt_cache_breakpoint_adds_noth
 
 def test_translate_anthropic_messages_to_openai_carries_midturn_system_prompt_cache_breakpoint():
     explicit = {"mode": "explicit"}
-    result = LiteLLMAnthropicMessagesAdapter().translate_anthropic_messages_to_openai(
+    result = GatewayAnthropicMessagesAdapter().translate_anthropic_messages_to_openai(
         messages=[{"role": "system", "content": [{"type": "text", "text": "fix", "prompt_cache_breakpoint": explicit}]}],
         model="gpt-5.6",
     )
@@ -4169,7 +4169,7 @@ def _tool_reference_block(tool_name="WebFetch"):
 
 
 def test_tool_result_tool_reference_is_carried_through_untouched():
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
 
     result = adapter.translate_anthropic_messages_to_openai(
         messages=[
@@ -4184,7 +4184,7 @@ def test_tool_result_tool_reference_is_carried_through_untouched():
 
 
 def test_tool_result_text_beside_tool_reference_keeps_both_parts_in_order():
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
 
     result = adapter.translate_anthropic_messages_to_openai(
         messages=[
@@ -4214,7 +4214,7 @@ def test_tool_result_text_beside_tool_reference_keeps_both_parts_in_order():
     ids=["empty_list", "null", "empty_string", "non_list", "unknown_block", "search_result_only"],
 )
 def test_tool_result_without_translatable_content_still_answers_its_tool_use(tool_result_content):
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
 
     result = adapter.translate_anthropic_messages_to_openai(
         messages=[
@@ -4258,7 +4258,7 @@ def test_translate_openai_response_to_anthropic_maps_gemini_web_search_usage():
         prompt_tokens_details=PromptTokensDetailsWrapper(text_tokens=385, web_search_requests=2),
     )
 
-    anthropic_response = LiteLLMAnthropicMessagesAdapter().translate_openai_response_to_anthropic(
+    anthropic_response = GatewayAnthropicMessagesAdapter().translate_openai_response_to_anthropic(
         response=_openai_response_with_usage(usage)
     )
 
@@ -4275,7 +4275,7 @@ def test_translate_openai_response_to_anthropic_maps_server_tool_use_web_search_
         server_tool_use=ServerToolUse(web_search_requests=3),
     )
 
-    anthropic_response = LiteLLMAnthropicMessagesAdapter().translate_openai_response_to_anthropic(
+    anthropic_response = GatewayAnthropicMessagesAdapter().translate_openai_response_to_anthropic(
         response=_openai_response_with_usage(usage)
     )
 
@@ -4285,7 +4285,7 @@ def test_translate_openai_response_to_anthropic_maps_server_tool_use_web_search_
 def test_translate_openai_response_to_anthropic_omits_server_tool_use_without_web_search():
     usage = Usage(prompt_tokens=100, completion_tokens=40, total_tokens=140)
 
-    anthropic_response = LiteLLMAnthropicMessagesAdapter().translate_openai_response_to_anthropic(
+    anthropic_response = GatewayAnthropicMessagesAdapter().translate_openai_response_to_anthropic(
         response=_openai_response_with_usage(usage)
     )
 
@@ -4295,7 +4295,7 @@ def test_translate_openai_response_to_anthropic_omits_server_tool_use_without_we
 def test_completion_cost_on_translated_anthropic_response_includes_web_search():
     from token_iq.gateway.types.utils import PromptTokensDetailsWrapper
 
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     with_search = adapter.translate_openai_response_to_anthropic(
         response=_openai_response_with_usage(
             Usage(
@@ -4347,7 +4347,7 @@ def test_a_summary_bearing_adaptive_request_still_delivers_its_tier(model, provi
     from token_iq.gateway.types.llms.anthropic import AnthropicMessagesRequest
     from token_iq.gateway.utils import get_optional_params
 
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     openai_request, _ = adapter.translate_anthropic_to_openai(
         anthropic_message_request=AnthropicMessagesRequest(
             model=model,
@@ -4382,7 +4382,7 @@ def test_an_inference_profile_arn_keeps_taking_its_tier_as_output_config():
     from token_iq.gateway.types.llms.anthropic import AnthropicMessagesRequest
     from token_iq.gateway.utils import get_optional_params
 
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     openai_request, _ = adapter.translate_anthropic_to_openai(
         anthropic_message_request=AnthropicMessagesRequest(
             model=ARN_MODEL,
@@ -4414,7 +4414,7 @@ def test_a_bedrock_target_keeps_a_caller_set_thinking_display():
     from token_iq.gateway.utils import get_optional_params
 
     thinking = {"type": "adaptive", "display": "omitted"}
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     openai_request, _ = adapter.translate_anthropic_to_openai(
         anthropic_message_request=AnthropicMessagesRequest(
             model="bedrock/converse/us.anthropic.claude-opus-4-7",
@@ -4441,7 +4441,7 @@ def test_a_non_claude_target_keeps_its_summary_wrapping():
     summary, so the wrapped dict is still the right shape there."""
     from token_iq.gateway.types.llms.anthropic import AnthropicMessagesRequest
 
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     openai_request, _ = adapter.translate_anthropic_to_openai(
         anthropic_message_request=AnthropicMessagesRequest(
             model="gpt-5-mini",
@@ -4465,7 +4465,7 @@ def test_a_databricks_target_trades_its_thinking_display_for_the_tier():
     from token_iq.gateway.types.llms.anthropic import AnthropicMessagesRequest
     from token_iq.gateway.utils import get_optional_params
 
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     openai_request, _ = adapter.translate_anthropic_to_openai(
         anthropic_message_request=AnthropicMessagesRequest(
             model="databricks/databricks-claude-opus-4-7",
@@ -4507,7 +4507,7 @@ def test_a_target_declaring_no_reasoning_effort_is_sent_none(thinking, output_co
     from token_iq.gateway.types.llms.anthropic import AnthropicMessagesRequest
     from token_iq.gateway.utils import get_optional_params
 
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     openai_request, _ = adapter.translate_anthropic_to_openai(
         anthropic_message_request=AnthropicMessagesRequest(
             model="snowflake/claude-sonnet-4-6",
@@ -4538,7 +4538,7 @@ def test_a_target_declaring_reasoning_effort_still_gets_its_tier():
     every Claude target, or it would undo the fix it is protecting."""
     from token_iq.gateway.types.llms.anthropic import AnthropicMessagesRequest
 
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     openai_request, _ = adapter.translate_anthropic_to_openai(
         anthropic_message_request=AnthropicMessagesRequest(
             model="databricks/databricks-claude-opus-4-7",
@@ -4571,7 +4571,7 @@ def test_a_caller_that_names_no_provider_carries_no_tier(model):
     absence here is also a test that this stays fast."""
     from token_iq.gateway.types.llms.anthropic import AnthropicMessagesRequest
 
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     openai_request, _ = adapter.translate_anthropic_to_openai(
         anthropic_message_request=AnthropicMessagesRequest(
             model=model,
@@ -4586,14 +4586,14 @@ def test_a_caller_that_names_no_provider_carries_no_tier(model):
     assert "reasoning_effort" not in openai_request
 
 
-def test_a_chained_litellm_proxy_target_still_takes_the_tier():
+def test_a_chained_gateway_proxy_target_still_takes_the_tier():
     """The one place this deliberately parts company with `_supports_prompt_cache_key`, which
     excludes a provider that proxies an unknown backend. That exclusion is right for a derived
     cache key and wrong here: the downstream proxy declares this param and resolves the real
     target itself, so excluding it would drop a tier that arrives perfectly well."""
     from token_iq.gateway.types.llms.anthropic import AnthropicMessagesRequest
 
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     openai_request, _ = adapter.translate_anthropic_to_openai(
         anthropic_message_request=AnthropicMessagesRequest(
             model="litellm_proxy/claude-sonnet-4-6",
@@ -4615,7 +4615,7 @@ def test_a_bedrock_target_still_takes_output_config_not_the_declared_gate():
     stored alongside it."""
     from token_iq.gateway.types.llms.anthropic import AnthropicMessagesRequest
 
-    adapter = LiteLLMAnthropicMessagesAdapter()
+    adapter = GatewayAnthropicMessagesAdapter()
     openai_request, _ = adapter.translate_anthropic_to_openai(
         anthropic_message_request=AnthropicMessagesRequest(
             model="bedrock/converse/us.anthropic.claude-opus-4-7",

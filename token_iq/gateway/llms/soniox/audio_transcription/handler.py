@@ -52,10 +52,10 @@ from token_iq.gateway.types.utils import FileTypes, TranscriptionResponse
 
 if TYPE_CHECKING:
     from token_iq.gateway.core_utils.litellm_logging import (
-        Logging as LiteLLMLoggingObj,
+        Logging as GatewayLoggingObj,
     )
 else:
-    LiteLLMLoggingObj = Any
+    GatewayLoggingObj = Any
 
 
 class _TranscriptionMeta(TypedDict, total=False):
@@ -117,7 +117,7 @@ class SonioxAudioTranscriptionHandler:
         model_response: TranscriptionResponse,
         timeout: float,
         max_retries: int,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         api_key: str | None,
         api_base: str | None,
         client: HTTPHandler | AsyncHTTPHandler | None = None,
@@ -288,7 +288,7 @@ class SonioxAudioTranscriptionHandler:
 
     @staticmethod
     def _safe_log_pre_call(
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         api_key: str | None,
         api_base: str,
         body: dict[str, object],
@@ -310,7 +310,7 @@ class SonioxAudioTranscriptionHandler:
 
     @staticmethod
     def _safe_log_post_call(
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         audio_file: FileTypes | None,
         api_key: str | None,
         body: dict[str, object],
@@ -363,7 +363,7 @@ class SonioxAudioTranscriptionHandler:
         litellm_params: dict,
         model_response: TranscriptionResponse,
         timeout: float,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         api_key: str | None,
         api_base: str | None,
         client: HTTPHandler | None,
@@ -594,7 +594,7 @@ class SonioxAudioTranscriptionHandler:
         litellm_params: dict,
         model_response: TranscriptionResponse,
         timeout: float,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         api_key: str | None,
         api_base: str | None,
         client: AsyncHTTPHandler | None,

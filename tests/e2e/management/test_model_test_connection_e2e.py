@@ -24,7 +24,7 @@ import pytest
 
 from e2e_http import unwrap
 from management_client import ManagementClient
-from models import ConnectionTestBody, ConnectionTestResponse, LiteLLMParamsBody
+from models import ConnectionTestBody, ConnectionTestResponse, GatewayParamsBody
 
 pytestmark = pytest.mark.e2e
 
@@ -39,7 +39,7 @@ def _probe_mantle(client: ManagementClient) -> ConnectionTestResponse:
     return unwrap(
         client.connection_test(
             ConnectionTestBody(
-                litellm_params=LiteLLMParamsBody(
+                litellm_params=GatewayParamsBody(
                     model=MANTLE_RESPONSES_BACKEND, aws_region_name=MANTLE_REGION
                 ),
                 mode="responses",

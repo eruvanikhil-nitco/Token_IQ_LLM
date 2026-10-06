@@ -30,7 +30,7 @@ from token_iq.gateway.proxy.common_utils.proxy_rate_limit_error import (
 
 
 class TestRateLimitErrorCategory:
-    def test_should_export_category_enum_on_litellm_module(self):
+    def test_should_export_category_enum_on_gateway_module(self):
         assert hasattr(gateway, "RateLimitErrorCategory")
         assert gateway.RateLimitErrorCategory is RateLimitErrorCategory
 
@@ -107,14 +107,14 @@ class TestProxyRateLimitError:
         assert isinstance(e, RateLimitError)
         assert isinstance(e, HTTPException)
 
-    def test_should_default_category_to_litellm_rate_limit(self):
+    def test_should_default_category_to_gateway_rate_limit(self):
         # ProxyRateLimitError is only used by litellm's own proxy-side
         # limiters, so its default category must reflect that. The vendor
         # default lives on the parent RateLimitError.
         e = ProxyRateLimitError(detail="over limit")
         assert e.category == RateLimitErrorCategory.LITELLM_RATE_LIMIT
 
-    def test_should_accept_litellm_batch_rate_limit_category(self):
+    def test_should_accept_gateway_batch_rate_limit_category(self):
         e = ProxyRateLimitError(
             detail="batch over limit",
             category=RateLimitErrorCategory.LITELLM_BATCH_RATE_LIMIT,
@@ -310,7 +310,7 @@ class TestStandardLoggingPayloadCarriesCategory:
         # Default category for a plain RateLimitError is vendor_rate_limit.
         assert info["error_rate_limit_category"] == "vendor_rate_limit"
 
-    def test_should_propagate_litellm_batch_rate_limit_category(self):
+    def test_should_propagate_gateway_batch_rate_limit_category(self):
         from token_iq.gateway.core_utils.litellm_logging import (
             StandardLoggingPayloadSetup,
         )
@@ -927,7 +927,7 @@ class TestProxyHooksActuallyRaiseProxyRateLimitError:
         assert e.category == RateLimitErrorCategory.LITELLM_RATE_LIMIT
         assert "session" in str(e.detail).lower()
 
-    def test_batch_rate_limiter_helper_raises_with_litellm_batch_category(self):
+    def test_batch_rate_limiter_helper_raises_with_gateway_batch_category(self):
         """
         Direct invocation of `_PROXY_BatchRateLimiter._raise_rate_limit_error`
         — confirms the batch limiter tags with `LITELLM_BATCH_RATE_LIMIT`
@@ -993,7 +993,7 @@ class TestRateLimitType:
     parsing free-text error messages.
     """
 
-    def test_should_export_type_enum_on_litellm_module(self):
+    def test_should_export_type_enum_on_gateway_module(self):
         assert hasattr(gateway, "RateLimitType")
         assert gateway.RateLimitType is RateLimitType
 
@@ -1437,7 +1437,7 @@ class TestBudgetExceededErrorSurfacesUnifiedFields:
     in `get_error_information` picks them up automatically.
     """
 
-    def test_should_carry_litellm_rate_limit_category(self):
+    def test_should_carry_gateway_rate_limit_category(self):
         e = gateway.BudgetExceededError(current_cost=0.5, max_budget=0.1)
         # Stored as the plain string value (matches RateLimitError behavior),
         # but equality with the enum still works because the enum subclasses
@@ -1657,7 +1657,7 @@ class TestBudgetExceededErrorLlmProviderEnrichment:
         )
         assert seen.llm_provider == "anthropic"
 
-    async def test_should_fall_back_to_litellm_proxy_when_model_missing(self):
+    async def test_should_fall_back_to_gateway_proxy_when_model_missing(self):
         err = gateway.BudgetExceededError(current_cost=100, max_budget=10)
         seen = await self._run_handler_and_capture_exception_seen_by_callback(err, {})
         assert seen.llm_provider == "litellm_proxy"

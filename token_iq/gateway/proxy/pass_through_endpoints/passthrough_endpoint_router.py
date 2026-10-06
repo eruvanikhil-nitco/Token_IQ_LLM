@@ -11,7 +11,7 @@ from token_iq.gateway.core_utils.credential_accessor import CredentialAccessor
 from token_iq.gateway.secret_managers.main import get_secret_str
 from token_iq.gateway.types.llms.vertex_ai import VERTEX_CREDENTIALS_TYPES
 from token_iq.gateway.types.passthrough_endpoints.vertex_ai import VertexPassThroughCredentials
-from token_iq.gateway.types.router import DeploymentTypedDict, LiteLLMParamsTypedDict
+from token_iq.gateway.types.router import DeploymentTypedDict, GatewayParamsTypedDict
 
 if TYPE_CHECKING:
     from token_iq.gateway.router import Router
@@ -139,7 +139,7 @@ class PassthroughEndpointRouter:
 
     def _resolve_matching_deployment_api_key(
         self,
-        litellm_params: LiteLLMParamsTypedDict,
+        litellm_params: GatewayParamsTypedDict,
         custom_llm_provider: str,
         region_name: str | None,
     ) -> str | None:
@@ -164,7 +164,7 @@ class PassthroughEndpointRouter:
             return None
         return _get_str_value(credential_values, "api_key") or litellm_params.get("api_key")
 
-    def _get_deployment_provider(self, litellm_params: LiteLLMParamsTypedDict) -> str | None:
+    def _get_deployment_provider(self, litellm_params: GatewayParamsTypedDict) -> str | None:
         model: Final = litellm_params.get("model")
         if model is None:
             return None
@@ -218,7 +218,7 @@ class PassthroughEndpointRouter:
         return resolved[0][1]
 
     def _resolve_vertex_deployment_credentials(
-        self, litellm_params: LiteLLMParamsTypedDict
+        self, litellm_params: GatewayParamsTypedDict
     ) -> VertexPassThroughCredentials | None:
         if litellm_params.get("use_in_pass_through") is not True:
             return None
@@ -334,7 +334,7 @@ class PassthroughEndpointRouter:
         if gateway.vector_store_registry is None:
             return None
         vector_store_to_run: Final[LiteLLM_ManagedVectorStore | None] = (
-            gateway.vector_store_registry.get_litellm_managed_vector_store_from_registry(
+            gateway.vector_store_registry.get_gateway_managed_vector_store_from_registry(
                 vector_store_id=vector_store_id
             )
         )

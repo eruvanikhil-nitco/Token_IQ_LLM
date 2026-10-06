@@ -21,7 +21,7 @@ from token_iq.gateway.types.llms.vertex_ai import (
     ResponseSupervisedTuningSpec,
     ResponseTuningJob,
 )
-from token_iq.gateway.types.utils import LiteLLMFineTuningJob
+from token_iq.gateway.types.utils import GatewayFineTuningJob
 
 
 class VertexFineTuningAPI(VertexLLM):
@@ -105,7 +105,7 @@ class VertexFineTuningAPI(VertexLLM):
 
         return _vertex_hyperparameters
 
-    def convert_vertex_response_to_open_ai_response(self, response: ResponseTuningJob) -> LiteLLMFineTuningJob:
+    def convert_vertex_response_to_open_ai_response(self, response: ResponseTuningJob) -> GatewayFineTuningJob:
         status: Literal["validating_files", "queued", "running", "succeeded", "failed", "cancelled"] = "queued"
         if response["state"] == "JOB_STATE_PENDING":
             status = "queued"
@@ -122,7 +122,7 @@ class VertexFineTuningAPI(VertexLLM):
 
         _supervisedTuningSpec: Final[ResponseSupervisedTuningSpec] = response.get("supervisedTuningSpec", None) or {}
         training_uri: Final[str] = _supervisedTuningSpec.get("trainingDatasetUri", "") or ""
-        return LiteLLMFineTuningJob(
+        return GatewayFineTuningJob(
             id=response.get("name", "") or "",
             created_at=created_at,
             fine_tuned_model=response.get("tunedModelDisplayName", ""),
@@ -207,7 +207,7 @@ class VertexFineTuningAPI(VertexLLM):
         timeout: float | httpx.Timeout,
         kwargs: dict | None = None,
         original_hyperparameters: dict | None = {},
-    ) -> LiteLLMFineTuningJob | Coroutine[Any, Any, LiteLLMFineTuningJob]:
+    ) -> GatewayFineTuningJob | Coroutine[Any, Any, GatewayFineTuningJob]:
         verbose_logger.debug("creating fine tuning job, args= %s", create_fine_tuning_job_data)
         _auth_header, vertex_project = self._ensure_access_token(
             credentials=vertex_credentials,

@@ -15,14 +15,14 @@ from token_iq import gateway
 from token_iq.gateway._logging import session_id_var, trace_id_var
 from token_iq.gateway.constants import SENTRY_DENYLIST, SENTRY_PII_DENYLIST
 from token_iq.gateway.integrations.custom_logger import CustomLogger
-from token_iq.gateway.core_utils.litellm_logging import Logging as LitellmLogging
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLogging
 from token_iq.gateway.core_utils.litellm_logging import set_callbacks
 from token_iq.gateway.types.utils import ModelResponse, TextCompletionResponse
 
 
 @pytest.fixture
 def logging_obj():
-    return LitellmLogging(
+    return GatewayLogging(
         model="bedrock/claude-haiku-4-5-20251001-v1:0",
         messages=[{"role": "user", "content": "Hey"}],
         stream=True,
@@ -172,7 +172,7 @@ def test_use_custom_pricing_for_model():
     assert use_custom_pricing_for_model(litellm_params) == True
 
 
-def test_use_custom_pricing_for_model_via_litellm_metadata():
+def test_use_custom_pricing_for_model_via_gateway_metadata():
     """Pricing in litellm_metadata.model_info must be detected.
 
     Generic API call routes (/messages, /responses) store model_info
@@ -192,7 +192,7 @@ def test_use_custom_pricing_for_model_via_litellm_metadata():
     assert use_custom_pricing_for_model(litellm_params) is True
 
 
-def test_use_custom_pricing_not_detected_litellm_metadata_no_pricing():
+def test_use_custom_pricing_not_detected_gateway_metadata_no_pricing():
     """Should return False when litellm_metadata.model_info has no pricing keys."""
     from token_iq.gateway.core_utils.litellm_logging import use_custom_pricing_for_model
 
@@ -204,13 +204,13 @@ def test_use_custom_pricing_not_detected_litellm_metadata_no_pricing():
     assert use_custom_pricing_for_model(litellm_params) is False
 
 
-def test_response_cost_calculator_uses_router_model_id_from_litellm_metadata():
+def test_response_cost_calculator_uses_router_model_id_from_gateway_metadata():
     """_response_cost_calculator should extract router_model_id from
     litellm_params.litellm_metadata.model_info.id when the result object
     does not carry _hidden_params (e.g. ResponsesAPIResponse from /v1/responses
     streaming). Regression test for custom pricing on streaming responses."""
     from token_iq import gateway
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
     from token_iq.gateway.types.llms.openai import ResponsesAPIResponse
 
     custom_model_id = "gpt-5-custom-pricing"
@@ -231,7 +231,7 @@ def test_response_cost_calculator_uses_router_model_id_from_litellm_metadata():
     )
 
     try:
-        logging_obj = LiteLLMLoggingObj(
+        logging_obj = GatewayLoggingObj(
             model="gpt-5",
             messages=[{"role": "user", "content": "Hi"}],
             stream=True,
@@ -281,7 +281,7 @@ def test_response_cost_calculator_uses_router_model_id_from_litellm_metadata():
 class TestGetRouterModelId:
     """Tests for the get_router_model_id helper method."""
 
-    def test_returns_id_from_litellm_metadata(self, logging_obj):
+    def test_returns_id_from_gateway_metadata(self, logging_obj):
         """Should extract model_info.id from litellm_metadata."""
         logging_obj.litellm_params = {
             "litellm_metadata": {
@@ -299,7 +299,7 @@ class TestGetRouterModelId:
         }
         assert logging_obj.get_router_model_id() == "custom-deploy-2"
 
-    def test_prefers_litellm_metadata_over_metadata(self, logging_obj):
+    def test_prefers_gateway_metadata_over_metadata(self, logging_obj):
         """litellm_metadata should take priority over metadata."""
         logging_obj.litellm_params = {
             "litellm_metadata": {
@@ -316,13 +316,13 @@ class TestGetRouterModelId:
         logging_obj.litellm_params = {"api_base": ""}
         assert logging_obj.get_router_model_id() is None
 
-    def test_returns_none_when_no_litellm_params(self):
+    def test_returns_none_when_no_gateway_params(self):
         """Should return None when litellm_params is not set."""
         from token_iq.gateway.core_utils.litellm_logging import (
-            Logging as LiteLLMLoggingObj,
+            Logging as GatewayLoggingObj,
         )
 
-        obj = LiteLLMLoggingObj(
+        obj = GatewayLoggingObj(
             model="test",
             messages=[],
             stream=False,
@@ -404,7 +404,7 @@ class TestGetRouterDeploymentModelInfo:
         zero, because get_model_info fills an absent cost with 0 and that
         suppressed the global fallback.
         """
-        from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+        from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 
         model = "bedrock/global.anthropic.claude-sonnet-4-6"
         published = gateway.get_model_info(model=model)
@@ -412,7 +412,7 @@ class TestGetRouterDeploymentModelInfo:
 
         deployment_id = f"deploy-one-sided-{'-'.join(sorted(declared))}"
         gateway.model_cost[deployment_id] = {"id": deployment_id, **declared}
-        obj = LiteLLMLoggingObj(
+        obj = GatewayLoggingObj(
             model=model,
             messages=[],
             stream=False,
@@ -438,7 +438,7 @@ class TestGetRouterDeploymentModelInfo:
         deployment configuring only its standard rate had batches billed at the
         published batch price instead of half the rate it configured.
         """
-        from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+        from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 
         model = "ft:gpt-3.5-turbo"
         published = gateway.get_model_info(model=model)
@@ -451,7 +451,7 @@ class TestGetRouterDeploymentModelInfo:
             "litellm_provider": "openai",
             "mode": "chat",
         }
-        obj = LiteLLMLoggingObj(
+        obj = GatewayLoggingObj(
             model=model,
             messages=[],
             stream=False,
@@ -479,12 +479,12 @@ class TestGetRouterDeploymentModelInfo:
         the published rates into it poisoned every later lookup of the
         deployment id for the life of the process.
         """
-        from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+        from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 
         model = "bedrock/global.anthropic.claude-sonnet-4-6"
         deployment_id = "deploy-cache-not-poisoned-1"
         gateway.model_cost[deployment_id] = {"id": deployment_id, "input_cost_per_token": 1e-06}
-        obj = LiteLLMLoggingObj(
+        obj = GatewayLoggingObj(
             model=model,
             messages=[],
             stream=False,
@@ -568,7 +568,7 @@ class TestRetrieveBatchCostPassesModelIdentity:
     @pytest.mark.asyncio
     async def test_forwards_deployment_model_and_pricing(self, monkeypatch) -> None:
         from token_iq.gateway.core_utils import litellm_logging as logging_module
-        from token_iq.gateway.types.utils import LiteLLMBatch, Usage
+        from token_iq.gateway.types.utils import GatewayBatch, Usage
 
         deployment_id = "deploy-batch-pricing-1"
         gateway.model_cost[deployment_id] = {
@@ -594,7 +594,7 @@ class TestRetrieveBatchCostPassesModelIdentity:
 
         monkeypatch.setattr(logging_module, "_handle_completed_batch", fake_handle_completed_batch)
 
-        obj = LitellmLogging(
+        obj = GatewayLogging(
             model="bedrock/global.anthropic.claude-sonnet-4-6",
             messages=[{"role": "user", "content": "Hey"}],
             stream=False,
@@ -606,7 +606,7 @@ class TestRetrieveBatchCostPassesModelIdentity:
         obj.custom_llm_provider = "bedrock"
         obj.litellm_params = {"litellm_metadata": {"model_info": {"id": deployment_id}}}
 
-        batch = LiteLLMBatch(
+        batch = GatewayBatch(
             id="batch_abc",
             completion_window="24h",
             created_at=1,
@@ -639,13 +639,13 @@ class TestAnthropicPassthroughCustomPricing:
         from unittest.mock import patch
 
         from token_iq.gateway.core_utils.litellm_logging import (
-            Logging as LiteLLMLoggingObj,
+            Logging as GatewayLoggingObj,
         )
         from token_iq.gateway.proxy.pass_through_endpoints.llm_provider_handlers.anthropic_passthrough_logging_handler import (
             AnthropicPassthroughLoggingHandler,
         )
 
-        logging_obj = LiteLLMLoggingObj(
+        logging_obj = GatewayLoggingObj(
             model="claude-sonnet-4-20250514",
             messages=[{"role": "user", "content": "Hi"}],
             stream=False,
@@ -676,7 +676,7 @@ class TestAnthropicPassthroughCustomPricing:
 
         with patch("token_iq.gateway.completion_cost", return_value=42.0) as mock_cost:
             AnthropicPassthroughLoggingHandler._create_anthropic_response_logging_payload(
-                litellm_model_response=mock_response,
+                gateway_model_response=mock_response,
                 model="claude-sonnet-4-20250514",
                 kwargs={},
                 start_time=time.time(),
@@ -705,7 +705,7 @@ class TestUpdateFromKwargs:
         assert logging_obj.litellm_params["metadata"] == metadata
         assert logging_obj.litellm_params["litellm_call_id"] == "call-1"
 
-    def test_extracts_litellm_metadata_from_kwargs(self, logging_obj):
+    def test_extracts_gateway_metadata_from_kwargs(self, logging_obj):
         lm_meta = {
             "model_info": {
                 "id": "deploy-1",
@@ -723,7 +723,7 @@ class TestUpdateFromKwargs:
         assert logging_obj.litellm_params["litellm_metadata"] == lm_meta
         assert logging_obj.litellm_params["litellm_call_id"] == "call-2"
 
-    def test_backfills_metadata_from_litellm_metadata(self, logging_obj):
+    def test_backfills_metadata_from_gateway_metadata(self, logging_obj):
         """When only litellm_metadata is present, metadata should be backfilled."""
         lm_meta = {"model_info": {"id": "deploy-1"}}
         kwargs = {"litellm_metadata": lm_meta}
@@ -742,7 +742,7 @@ class TestUpdateFromKwargs:
         assert logging_obj.litellm_params["metadata"] == metadata
         assert logging_obj.litellm_params["litellm_metadata"] == lm_meta
 
-    def test_caller_litellm_params_win_over_kwargs(self, logging_obj):
+    def test_caller_gateway_params_win_over_kwargs(self, logging_obj):
         """Explicit litellm_params metadata merges into kwargs metadata without overwriting."""
         kwargs = {"metadata": {"from_kwargs": True}}
 
@@ -776,7 +776,7 @@ class TestUpdateFromKwargs:
             "shared_key": "kwargs_value",  # kwargs wins on conflict
         }
 
-    def test_custom_pricing_detected_via_litellm_metadata(self, logging_obj):
+    def test_custom_pricing_detected_via_gateway_metadata(self, logging_obj):
         """Custom pricing in litellm_metadata.model_info should set custom_pricing flag."""
         from token_iq.gateway.core_utils.litellm_logging import (
             use_custom_pricing_for_model,
@@ -956,7 +956,7 @@ async def test_logging_result_for_bridge_calls(logging_obj):
 
 
 @pytest.mark.asyncio
-async def test_anthropic_messages_marks_litellm_params_async():
+async def test_anthropic_messages_marks_gateway_params_async():
     """LIT-4447: the async ``anthropic_messages`` entrypoint must plant
     ``aanthropic_messages`` in ``litellm_params`` so ``_is_sync_litellm_request``
     classifies the request async and the sync CustomLogger hook does not fire in
@@ -989,14 +989,14 @@ async def test_anthropic_messages_marks_litellm_params_async():
         await asyncio.wait_for(logged.wait(), timeout=10)
 
         assert captured["litellm_params"].get("aanthropic_messages") is True
-        assert LitellmLogging._is_sync_litellm_request(captured["litellm_params"]) is False
+        assert GatewayLogging._is_sync_gateway_request(captured["litellm_params"]) is False
         logger.log_success_event.assert_not_called()
     finally:
         gateway.callbacks = original_callbacks
 
 
 @pytest.mark.asyncio
-async def test_agenerate_content_marks_litellm_params_async():
+async def test_agenerate_content_marks_gateway_params_async():
     """LIT-4475: the async ``agenerate_content`` entrypoint must plant
     ``agenerate_content`` in ``litellm_params`` so ``_is_sync_litellm_request``
     classifies the nested delegated call async, preventing the sync CustomLogger
@@ -1005,7 +1005,7 @@ async def test_agenerate_content_marks_litellm_params_async():
 
     from token_iq import gateway
 
-    logging_obj = LitellmLogging(
+    logging_obj = GatewayLogging(
         model="gemini/gemini-2.0-flash",
         messages=[{"role": "user", "content": "hi"}],
         stream=False,
@@ -1026,7 +1026,7 @@ async def test_agenerate_content_marks_litellm_params_async():
 
     litellm_params = logging_obj.model_call_details.get("litellm_params", {})
     assert litellm_params.get("agenerate_content") is True
-    assert LitellmLogging._is_sync_litellm_request(litellm_params) is False
+    assert GatewayLogging._is_sync_gateway_request(litellm_params) is False
 
 
 @pytest.mark.asyncio
@@ -1176,17 +1176,17 @@ def test_success_handler_runs_sync_callbacks_for_sync_requests(logging_obj, call
     dummy_logger.log_stream_event.assert_not_called()
 
 
-def test_is_sync_litellm_request():
-    assert LitellmLogging._is_sync_litellm_request({}) is True
-    assert LitellmLogging._is_sync_litellm_request({"acompletion": True}) is False
-    assert LitellmLogging._is_sync_litellm_request({"allm_passthrough_route": True}) is False
-    assert LitellmLogging._is_sync_litellm_request({"aanthropic_messages": True}) is False
-    assert LitellmLogging._is_sync_litellm_request({"agenerate_content": True}) is False
-    assert LitellmLogging._is_sync_litellm_request({"agenerate_content_stream": True}) is False
-    assert LitellmLogging._is_sync_litellm_request({"aanthropic_messages": False}) is True
+def test_is_sync_gateway_request():
+    assert GatewayLogging._is_sync_gateway_request({}) is True
+    assert GatewayLogging._is_sync_gateway_request({"acompletion": True}) is False
+    assert GatewayLogging._is_sync_gateway_request({"allm_passthrough_route": True}) is False
+    assert GatewayLogging._is_sync_gateway_request({"aanthropic_messages": True}) is False
+    assert GatewayLogging._is_sync_gateway_request({"agenerate_content": True}) is False
+    assert GatewayLogging._is_sync_gateway_request({"agenerate_content_stream": True}) is False
+    assert GatewayLogging._is_sync_gateway_request({"aanthropic_messages": False}) is True
 
 
-def test_get_litellm_params_propagates_allm_passthrough_route():
+def test_get_gateway_params_propagates_allm_passthrough_route():
     """`allm_passthrough_route=True` set on kwargs by the async passthrough entrypoint
     must land in `litellm_params` so `_is_sync_litellm_request` sees it and the
     request is classified as async. Regression guard for LIT-4192."""
@@ -1194,7 +1194,7 @@ def test_get_litellm_params_propagates_allm_passthrough_route():
 
     params = get_litellm_params(allm_passthrough_route=True)
     assert params.get("allm_passthrough_route") is True
-    assert LitellmLogging._is_sync_litellm_request(params) is False
+    assert GatewayLogging._is_sync_gateway_request(params) is False
 
 
 @pytest.mark.asyncio
@@ -1681,7 +1681,7 @@ def test_get_request_tags():
     assert "User-Agent: litellm/0.1.0" in tags
 
 
-def test_get_request_tags_from_metadata_and_litellm_metadata():
+def test_get_request_tags_from_metadata_and_gateway_metadata():
     """
     Test that _get_request_tags correctly picks tags from both 'metadata' and 'litellm_metadata'.
 
@@ -1958,7 +1958,7 @@ def test_response_cost_calculator_native_generate_content_body_uses_usage_metada
     from token_iq.gateway.types.llms.vertex_ai import GenerateContentResponseBody
     from token_iq.gateway.types.utils import ModelResponse, Usage
 
-    logging_obj = LitellmLogging(
+    logging_obj = GatewayLogging(
         model="gemini-2.5-flash",
         messages=[{"role": "user", "content": "Hey"}],
         stream=False,
@@ -1996,7 +1996,7 @@ def test_response_cost_calculator_native_generate_content_body_uses_usage_metada
 def test_response_cost_calculator_does_not_transform_non_generate_content_dict():
     """The native-body transform must only run for generate_content call types, so a
     plain dict on a chat completion call is left untouched (no spurious Gemini cost)."""
-    logging_obj = LitellmLogging(
+    logging_obj = GatewayLogging(
         model="gpt-4o",
         messages=[{"role": "user", "content": "Hey"}],
         stream=False,
@@ -2013,8 +2013,8 @@ def test_response_cost_calculator_does_not_transform_non_generate_content_dict()
     assert not cost
 
 
-def _file_content_logging_obj(call_type: str) -> LitellmLogging:
-    logging_obj = LitellmLogging(
+def _file_content_logging_obj(call_type: str) -> GatewayLogging:
+    logging_obj = GatewayLogging(
         model="gemini-3-flash-preview",
         messages="default-message-value",
         stream=False,
@@ -2046,7 +2046,7 @@ def test_file_content_call_is_not_billed(call_type):
 @pytest.mark.parametrize("call_type", ["aspeech", "speech"])
 def test_speech_call_is_still_priced_from_input_characters(call_type):
     """tts bills per input character, so speech call types must keep passing the input along."""
-    logging_obj = LitellmLogging(
+    logging_obj = GatewayLogging(
         model="tts-1",
         messages="the quick brown fox jumped over the lazy dogs",
         stream=False,
@@ -2447,11 +2447,11 @@ async def test_async_success_handler_sets_standard_logging_object_for_pass_throu
     from datetime import datetime
     from unittest.mock import patch
 
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
     from token_iq.gateway.types.utils import StandardPassThroughResponseObject
 
     # Create a logging object for a pass-through endpoint
-    logging_obj = LiteLLMLoggingObj(
+    logging_obj = GatewayLoggingObj(
         model="unknown",
         messages=[{"role": "user", "content": "test"}],
         stream=False,
@@ -2525,11 +2525,11 @@ async def test_async_success_handler_prevents_reprocessing_for_pass_through_endp
     from datetime import datetime
     from unittest.mock import patch
 
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
     from token_iq.gateway.types.utils import StandardPassThroughResponseObject
 
     # Create a logging object for a pass-through endpoint
-    logging_obj = LiteLLMLoggingObj(
+    logging_obj = GatewayLoggingObj(
         model="unknown",
         messages=[{"role": "user", "content": "test"}],
         stream=False,
@@ -2596,11 +2596,11 @@ async def test_async_success_handler_sets_standard_logging_object_for_streaming_
     from datetime import datetime
     from unittest.mock import patch
 
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
     from token_iq.gateway.types.utils import StandardPassThroughResponseObject
 
     # Create a logging object for a streaming pass-through endpoint
-    logging_obj = LiteLLMLoggingObj(
+    logging_obj = GatewayLoggingObj(
         model="unknown",
         messages=[{"role": "user", "content": "test"}],
         stream=True,  # Streaming request
@@ -2665,16 +2665,16 @@ def test_get_error_information_error_code_priority():
     assert result["error_class"] == "ProxyException"
 
     # Test case 2: Exception with 'status_code' attribute (LiteLLM style)
-    class LiteLLMException(Exception):
+    class GatewayException(Exception):
         def __init__(self, status_code, message):
             self.status_code = status_code
             self.message = message
             super().__init__(message)
 
-    litellm_exception = LiteLLMException(status_code=429, message="Rate limit exceeded")
-    result = StandardLoggingPayloadSetup.get_error_information(litellm_exception)
+    gateway_exception = GatewayException(status_code=429, message="Rate limit exceeded")
+    result = StandardLoggingPayloadSetup.get_error_information(gateway_exception)
     assert result["error_code"] == "429"
-    assert result["error_class"] == "LiteLLMException"
+    assert result["error_class"] == "GatewayException"
 
     # Test case 3: Exception with both 'code' and 'status_code' - should prefer 'code'
     class BothAttributesException(Exception):
@@ -2846,8 +2846,8 @@ def test_get_error_information_falls_back_to_str_when_no_message_attr():
 # ──────────────────────────────────────────────────────────────────────
 
 
-def _make_logging_obj(stream: bool) -> LitellmLogging:
-    return LitellmLogging(
+def _make_logging_obj(stream: bool) -> GatewayLogging:
+    return GatewayLogging(
         model="openai/codex-mini-latest",
         messages=[{"role": "user", "content": "Hey"}],
         stream=stream,
@@ -2996,10 +2996,10 @@ async def test_async_success_handler_preserves_response_cost_for_pass_through_en
     by pass-through handlers (Gemini/Vertex)."""
     from datetime import datetime
 
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
     from token_iq.gateway.types.utils import ModelResponse, Usage
 
-    logging_obj = LiteLLMLoggingObj(
+    logging_obj = GatewayLoggingObj(
         model="gemini-2.5-flash-lite",
         messages=[{"role": "user", "content": "test"}],
         stream=False,
@@ -3052,10 +3052,10 @@ def test_process_hidden_params_recalculates_cost_after_failure_handler_zero():
     from datetime import datetime
 
     from token_iq import gateway
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
     from token_iq.gateway.types.utils import ModelResponse, Usage
 
-    logging_obj = LiteLLMLoggingObj(
+    logging_obj = GatewayLoggingObj(
         model="openai/gpt-4o-mini",
         messages=[{"role": "user", "content": "hi"}],
         stream=False,
@@ -3098,10 +3098,10 @@ def test_process_hidden_params_preserves_zero_cost_in_hidden_params():
     """Pass-through handlers often set response_cost on result._hidden_params (including 0)."""
     from datetime import datetime
 
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
     from token_iq.gateway.types.utils import ModelResponse, Usage
 
-    logging_obj = LiteLLMLoggingObj(
+    logging_obj = GatewayLoggingObj(
         model="gemini-2.5-flash-lite",
         messages=[{"role": "user", "content": "test"}],
         stream=False,
@@ -3132,10 +3132,10 @@ def test_process_hidden_params_uses_hidden_params_cost_after_failure_handler_zer
     from datetime import datetime
 
     from token_iq import gateway
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
     from token_iq.gateway.types.utils import ModelResponse, Usage
 
-    logging_obj = LiteLLMLoggingObj(
+    logging_obj = GatewayLoggingObj(
         model="openai/gpt-4o-mini",
         messages=[{"role": "user", "content": "hi"}],
         stream=False,
@@ -3176,7 +3176,7 @@ def test_process_hidden_params_uses_hidden_params_cost_after_failure_handler_zer
     assert slo.get("response_cost") == passthrough_cost
 
 
-def test_function_setup_litellm_metadata_populates_metadata():
+def test_function_setup_gateway_metadata_populates_metadata():
     """
     Test that function_setup() properly handles litellm_metadata (used by /v1/messages,
     /batches, /responses, /files endpoints) and populates litellm_params["metadata"]
@@ -3229,7 +3229,7 @@ def test_function_setup_litellm_metadata_populates_metadata():
     assert metadata is not litellm_metadata, "litellm_params['metadata'] should be a copy, not the same object"
 
 
-def test_function_setup_litellm_metadata_guardrail_writes_visible_after_setup():
+def test_function_setup_gateway_metadata_guardrail_writes_visible_after_setup():
     """
     Regression test for LIT-4512: guardrail writes into the request's
     "litellm_metadata" bucket that happen AFTER function_setup (the proxy
@@ -3276,12 +3276,12 @@ def test_function_setup_litellm_metadata_guardrail_writes_visible_after_setup():
     )
     assert litellm_metadata.get("applied_guardrails") == ["pam-ethical-request"]
 
-    merged = StandardLoggingPayloadSetup.merge_litellm_metadata(litellm_params)
+    merged = StandardLoggingPayloadSetup.merge_gateway_metadata(litellm_params)
     assert merged.get("standard_logging_guardrail_information") == [guardrail_entry]
     assert merged.get("applied_guardrails") == ["pam-ethical-request"]
 
 
-def test_function_setup_metadata_takes_precedence_over_litellm_metadata():
+def test_function_setup_metadata_takes_precedence_over_gateway_metadata():
     """
     Test that when BOTH metadata and litellm_metadata are present (e.g., user sets
     Anthropic API metadata AND proxy adds litellm_metadata), metadata is used as
@@ -3322,7 +3322,7 @@ def test_function_setup_metadata_takes_precedence_over_litellm_metadata():
     assert litellm_metadata.get("user_api_key_hash") == "sk-hashed-xyz"
 
 
-def test_update_from_kwargs_litellm_params_metadata_does_not_overwrite_proxy_fields():
+def test_update_from_kwargs_gateway_params_metadata_does_not_overwrite_proxy_fields():
     """
     Test the exact bug: when update_from_kwargs is called with litellm_params
     containing a 'metadata' key (e.g. Anthropic's native metadata with user_id),
@@ -3375,7 +3375,7 @@ def test_update_from_kwargs_litellm_params_metadata_does_not_overwrite_proxy_fie
     assert metadata.get("user_id") == "anthropic-device-id"
 
 
-def test_function_setup_empty_metadata_falls_back_to_litellm_metadata():
+def test_function_setup_empty_metadata_falls_back_to_gateway_metadata():
     """
     Test that when metadata is explicitly set to {} (empty dict), litellm_metadata
     is still used to populate litellm_params["metadata"] so API key fields are visible.
@@ -3517,9 +3517,9 @@ async def test_async_failure_handler_runs_callbacks_and_restores_correlation_con
 
 def test_merge_hidden_params_from_response_into_metadata_populates_metadata():
     """Streaming completion path should mirror non-stream: metadata.hidden_params from response."""
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 
-    logging_obj = LiteLLMLoggingObj(
+    logging_obj = GatewayLoggingObj(
         model="gpt-4o-mini",
         messages=[{"role": "user", "content": "hi"}],
         stream=True,
@@ -3543,9 +3543,9 @@ def test_merge_hidden_params_from_response_into_metadata_populates_metadata():
 
 def test_merge_hidden_params_from_response_into_metadata_backfills_response_cost():
     """Streaming metadata should include the already-calculated response cost."""
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 
-    logging_obj = LiteLLMLoggingObj(
+    logging_obj = GatewayLoggingObj(
         model="gpt-4o-mini",
         messages=[{"role": "user", "content": "hi"}],
         stream=True,
@@ -3574,10 +3574,10 @@ def test_standard_logging_hidden_params_backfills_response_cost_without_mutating
     """Streaming standard logging payload should expose the calculated response cost."""
     from datetime import datetime
 
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
     from token_iq.gateway.types.utils import Usage
 
-    logging_obj = LiteLLMLoggingObj(
+    logging_obj = GatewayLoggingObj(
         model="gpt-4o-mini",
         messages=[{"role": "user", "content": "hi"}],
         stream=True,
@@ -3612,9 +3612,9 @@ def test_standard_logging_hidden_params_backfills_response_cost_without_mutating
 
 def test_merge_hidden_params_from_response_into_metadata_preserves_response_cost():
     """Do not overwrite provider-supplied response cost when it already exists."""
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 
-    logging_obj = LiteLLMLoggingObj(
+    logging_obj = GatewayLoggingObj(
         model="gpt-4o-mini",
         messages=[{"role": "user", "content": "hi"}],
         stream=True,
@@ -3638,9 +3638,9 @@ def test_merge_hidden_params_from_response_into_metadata_preserves_response_cost
 
 
 def test_merge_hidden_params_from_response_into_metadata_no_op_when_empty():
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 
-    logging_obj = LiteLLMLoggingObj(
+    logging_obj = GatewayLoggingObj(
         model="gpt-4o-mini",
         messages=[{"role": "user", "content": "hi"}],
         stream=True,
@@ -3712,7 +3712,7 @@ def test_get_additional_headers_reset_fields_preserved():
 # ── litellm_call_id propagation ───────────────────────────────────────────────
 
 
-def test_get_standard_logging_object_payload_includes_litellm_call_id(logging_obj):
+def test_get_standard_logging_object_payload_includes_gateway_call_id(logging_obj):
     """litellm_call_id from kwargs must appear in the returned StandardLoggingPayload."""
     import datetime
 
@@ -3910,7 +3910,7 @@ def test_standard_logging_payload_keeps_requested_model_without_router_stamp(
 
 def _make_dict_logging_obj():
     """Build a Logging instance configured for a non-streaming dict result."""
-    obj = LitellmLogging(
+    obj = GatewayLogging(
         model="claude-haiku-4-5@20251001",
         messages=[{"role": "user", "content": "hi"}],
         stream=False,
@@ -4053,7 +4053,7 @@ class TestFirstApiCallStartTimeSetOnce:
     """
 
     def _logging_obj(self):
-        obj = LitellmLogging(
+        obj = GatewayLogging(
             model="gpt-4",
             messages=[{"role": "user", "content": "hi"}],
             stream=False,
@@ -4177,7 +4177,7 @@ def test_get_error_information_prefers_message_attribute_over_empty_str():
 
 
 def _anthropic_messages_logging_obj():
-    return LitellmLogging(
+    return GatewayLogging(
         model="openai/my-local",
         messages=[{"role": "user", "content": "hi"}],
         stream=True,
@@ -4460,7 +4460,7 @@ def test_set_cost_breakdown_stores_reasoning_cost():
     """reasoning_cost is stored only when positive, mirroring the cache-cost fields."""
     from datetime import datetime
 
-    logging_obj = LitellmLogging(
+    logging_obj = GatewayLogging(
         model="gpt-4o",
         messages=[{"role": "user", "content": "hi"}],
         stream=False,
@@ -4478,7 +4478,7 @@ def test_set_cost_breakdown_stores_reasoning_cost():
     )
     assert logging_obj.cost_breakdown["reasoning_cost"] == 0.0005
 
-    no_reasoning = LitellmLogging(
+    no_reasoning = GatewayLogging(
         model="gpt-4o",
         messages=[{"role": "user", "content": "hi"}],
         stream=False,
@@ -4573,7 +4573,7 @@ INTERACTIONS_USAGE_BLOCK = {
 
 
 def _interactions_logging_obj(stream: bool, call_type: str = "acreate"):
-    logging_obj = LitellmLogging(
+    logging_obj = GatewayLogging(
         model="gemini-2.5-flash",
         messages=[],
         stream=stream,
@@ -4858,7 +4858,7 @@ def test_assembled_streaming_response_from_legacy_completed_chunk():
         usage=dict(INTERACTIONS_USAGE_BLOCK),
     )
 
-    assembled = LitellmLogging._assemble_completed_interaction_response(legacy_chunk)
+    assembled = GatewayLogging._assemble_completed_interaction_response(legacy_chunk)
 
     assert isinstance(assembled, InteractionsAPIResponse)
     assert assembled.id == "interactions/legacy"
@@ -4900,7 +4900,7 @@ def test_handle_anthropic_messages_response_logging_preserves_fast_mode_speed():
     fast-mode spend is logged at the standard rate."""
     import httpx
 
-    logging_obj = LitellmLogging(
+    logging_obj = GatewayLogging(
         model="claude-opus-4-8",
         messages=[{"role": "user", "content": "hi"}],
         stream=False,
@@ -4933,7 +4933,7 @@ def test_handle_anthropic_messages_parsed_response_logging_preserves_fast_mode_s
     httpx_response in model_call_details, which routes through transform_parsed_response;
     the request's speed has to be threaded there too or rust-served fast-mode calls are
     logged at the standard rate."""
-    logging_obj = LitellmLogging(
+    logging_obj = GatewayLogging(
         model="claude-opus-4-8",
         messages=[{"role": "user", "content": "hi"}],
         stream=False,
@@ -5165,9 +5165,9 @@ class TestNonInferenceCallTypesAreNotBilled:
     BACKGROUND_POLL_METADATA = {"internal_call_origin": "background_response_cost_poll"}
 
     def _logging_obj(self, call_type: str, litellm_metadata: dict | None = None):
-        from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+        from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 
-        obj = LiteLLMLoggingObj(
+        obj = GatewayLoggingObj(
             model="gpt-4o",
             messages=[],
             stream=False,
@@ -5482,7 +5482,7 @@ def test_pre_call_redacts_and_masks_raw_request(logging_obj):
 def _streaming_logging_obj_with_callbacks(callbacks: list[CustomLogger]):
     import datetime
 
-    obj = LitellmLogging(
+    obj = GatewayLogging(
         model="anthropic/claude-opus-5",
         messages=[{"role": "user", "content": "hi"}],
         stream=True,
@@ -5646,7 +5646,7 @@ def test_response_cost_calculator_prices_proxy_vertex_calls_on_the_configured_lo
     monkeypatch.setattr(gateway, "vertex_location", None)
 
     def cost_at(location):
-        logging_obj = LitellmLogging(
+        logging_obj = GatewayLogging(
             model="gemini-3.5-flash",
             messages=[{"role": "user", "content": "hi"}],
             stream=False,
@@ -5681,7 +5681,7 @@ def test_set_cost_breakdown_stores_vertex_location():
     """vertex_location is recorded in the pricing basis, None for non-vertex requests."""
     from datetime import datetime
 
-    logging_obj = LitellmLogging(
+    logging_obj = GatewayLogging(
         model="vertex_ai/claude-haiku-4-5@20251001",
         messages=[{"role": "user", "content": "hi"}],
         stream=False,
@@ -5699,7 +5699,7 @@ def test_set_cost_breakdown_stores_vertex_location():
     )
     assert logging_obj.cost_breakdown["vertex_location"] == "us-east5"
 
-    no_location = LitellmLogging(
+    no_location = GatewayLogging(
         model="gpt-4o",
         messages=[{"role": "user", "content": "hi"}],
         stream=False,
@@ -5976,7 +5976,7 @@ def test_failure_handler_helper_fn_builds_payload_once_per_exception():
     """Regression for LIT-6043: async and sync failure handlers both call
     _failure_handler_helper_fn for the same failed request; the standardized
     payload must be built once, not once per handler."""
-    obj = LitellmLogging(
+    obj = GatewayLogging(
         model="gpt-4o",
         messages=[{"role": "user", "content": "Hey"}],
         stream=False,
@@ -6230,7 +6230,7 @@ def test_passthrough_embeddings_result_swapped_for_callbacks():
 
     from token_iq.gateway.types.utils import EmbeddingResponse
 
-    logging_obj = LitellmLogging(
+    logging_obj = GatewayLogging(
         model="EmbeddingsGigaR",
         messages=[],
         stream=False,

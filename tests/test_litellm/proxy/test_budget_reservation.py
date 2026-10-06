@@ -20,7 +20,7 @@ from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.streamin
 from token_iq.gateway.proxy._types import (
     LiteLLM_BudgetTable,
     LiteLLM_EndUserTable,
-    Litellm_EntityType,
+    Gateway_EntityType,
     LiteLLM_OrganizationTable,
     LiteLLM_TagTable,
     LiteLLM_TeamMembership,
@@ -3156,7 +3156,7 @@ async def test_model_access_group_counter_blocks_a_request_over_the_group_budget
             )
 
     assert exc_info.value.entity_id == "premium"
-    assert exc_info.value.entity_type == Litellm_EntityType.MODEL_ACCESS_GROUP.value
+    assert exc_info.value.entity_type == Gateway_EntityType.MODEL_ACCESS_GROUP.value
 
 
 async def _cache_model_access_group_budget(key_cache, group, spend, max_budget=None):

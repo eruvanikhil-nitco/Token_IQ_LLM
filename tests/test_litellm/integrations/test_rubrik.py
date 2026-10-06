@@ -458,7 +458,7 @@ class TestBatchLogging:
         )
         assert handler.log_queue[0]["id"] == "litellm-call-123"
 
-    async def test_litellm_call_id_always_used_as_correlation_key(self, handler):
+    async def test_gateway_call_id_always_used_as_correlation_key(self, handler):
         """The merged plugin always uses litellm_call_id as the log ID for all
         providers (not just Anthropic) so that logs correlate with the
         moderation (_blocking) and failure logs for the same request."""
@@ -1380,7 +1380,7 @@ class TestBuildPromptModerationPayload:
         payload = RubrikLogger._build_prompt_moderation_payload(inputs, request_data)
         assert payload["correlation_key"] == "corr-123"
 
-    def test_payload_falls_back_to_litellm_call_id(self):
+    def test_payload_falls_back_to_gateway_call_id(self):
         """When correlation_key is absent, litellm_call_id is used."""
         inputs = {"structured_messages": [{"role": "user", "content": "hi"}]}
         request_data = {"litellm_call_id": "litellm-789"}

@@ -11,7 +11,7 @@ import pytest
 # Ensure the project root is on the import path so `litellm` can be imported when
 # tests are executed from any working directory.
 
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.llms.bedrock.common_utils import (
     ensure_bedrock_anthropic_messages_tool_names,
     normalize_custom_field_on_tools,
@@ -44,7 +44,7 @@ async def test_bedrock_sse_wrapper_encodes_dict_chunks():
     collected: list[bytes] = []
     async for chunk in cfg.bedrock_sse_wrapper(
         _dummy_stream(),
-        litellm_logging_obj=LiteLLMLoggingObj(
+        litellm_logging_obj=GatewayLoggingObj(
             model="bedrock/invoke/anthropic.claude-3-sonnet-20240229-v1:0",
             messages=[
                 {"role": "user", "content": "Hello, can you tell me a short joke?"}
@@ -99,7 +99,7 @@ async def test_bedrock_sse_wrapper_appends_error_event_when_stream_truncates_mid
     collected: list[bytes] = []
     async for chunk in cfg.bedrock_sse_wrapper(
         _truncated_stream(),
-        litellm_logging_obj=LiteLLMLoggingObj(
+        litellm_logging_obj=GatewayLoggingObj(
             model="bedrock/invoke/anthropic.claude-3-sonnet-20240229-v1:0",
             messages=[{"role": "user", "content": "write the file"}],
             stream=True,
@@ -135,7 +135,7 @@ async def test_bedrock_sse_wrapper_no_error_event_when_stream_ends_with_message_
     collected: list[bytes] = []
     async for chunk in cfg.bedrock_sse_wrapper(
         _complete_stream(),
-        litellm_logging_obj=LiteLLMLoggingObj(
+        litellm_logging_obj=GatewayLoggingObj(
             model="bedrock/invoke/anthropic.claude-3-sonnet-20240229-v1:0",
             messages=[{"role": "user", "content": "hi"}],
             stream=True,
@@ -193,7 +193,7 @@ async def test_bedrock_sse_wrapper_keeps_usage_in_message_start_and_message_delt
     collected: list[bytes] = []
     async for chunk in cfg.bedrock_sse_wrapper(
         _dummy_stream(),
-        litellm_logging_obj=LiteLLMLoggingObj(
+        litellm_logging_obj=GatewayLoggingObj(
             model="bedrock/invoke/anthropic.claude-3-sonnet-20240229-v1:0",
             messages=[{"role": "user", "content": "Hello"}],
             stream=True,
@@ -392,7 +392,7 @@ async def test_bedrock_sse_wrapper_preserves_cache_usage_with_invocation_metrics
     collected: list[bytes] = []
     async for chunk in cfg.bedrock_sse_wrapper(
         _decoded_stream(),
-        litellm_logging_obj=LiteLLMLoggingObj(
+        litellm_logging_obj=GatewayLoggingObj(
             model="bedrock/invoke/anthropic.claude-sonnet-4-6",
             messages=[{"role": "user", "content": "Hello"}],
             stream=True,
@@ -592,7 +592,7 @@ def test_bedrock_invoke_messages_transform_emits_top_level_defer_loading(
     """A deferred tool must reach Bedrock as top-level ``defer_loading``, whether the
     client wrapped the flag in ``custom`` or sent it top-level, and the outbound body
     must still carry the Bedrock tool-search beta."""
-    from token_iq.gateway.types.router import GenericLiteLLMParams
+    from token_iq.gateway.types.router import GenericGatewayParams
 
     cfg = AmazonAnthropicClaudeMessagesConfig()
     result = cfg.transform_anthropic_messages_request(
@@ -612,7 +612,7 @@ def test_bedrock_invoke_messages_transform_emits_top_level_defer_loading(
                 {"type": "tool_search_tool_regex_20251119", "name": "tool_search"},
             ],
         },
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         headers={},
     )
     assert result["tools"][0]["defer_loading"] is True
@@ -682,7 +682,7 @@ def test_ensure_bedrock_anthropic_messages_tool_names():
 
 def test_bedrock_invoke_messages_transform_adds_name_when_tool_missing_name():
     """Bedrock requires tools.0.custom.name when the payload is schema-only."""
-    from token_iq.gateway.types.router import GenericLiteLLMParams
+    from token_iq.gateway.types.router import GenericGatewayParams
 
     cfg = AmazonAnthropicClaudeMessagesConfig()
     optional_params = {
@@ -702,7 +702,7 @@ def test_bedrock_invoke_messages_transform_adds_name_when_tool_missing_name():
         model="anthropic.claude-3-haiku-20240307-v1:0",
         messages=[{"role": "user", "content": "hi"}],
         anthropic_messages_optional_request_params=copy.deepcopy(optional_params),
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         headers={},
     )
     assert result["tools"][0]["name"] == "litellm_unnamed_tool_0"
@@ -711,7 +711,7 @@ def test_bedrock_invoke_messages_transform_adds_name_when_tool_missing_name():
 def test_bedrock_invoke_messages_skips_thinking_injection_when_already_enabled(
     local_model_cost_map,
 ):
-    from token_iq.gateway.types.router import GenericLiteLLMParams
+    from token_iq.gateway.types.router import GenericGatewayParams
 
     cfg = AmazonAnthropicClaudeMessagesConfig()
     optional_params = {
@@ -726,7 +726,7 @@ def test_bedrock_invoke_messages_skips_thinking_injection_when_already_enabled(
         model="global.anthropic.claude-sonnet-4-6-v1:0",
         messages=[{"role": "user", "content": "hi"}],
         anthropic_messages_optional_request_params=copy.deepcopy(optional_params),
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         headers={},
     )
     # Claude 4.6/4.7 reject ``thinking.type=enabled``; legacy ``enabled`` is
@@ -743,7 +743,7 @@ def test_bedrock_invoke_messages_transform_converts_custom_tool_schema_type_to_o
     where every ``input_schema`` uses JSON Schema types (``object``), not Anthropic
     ``type: \"custom\"`` (root and nested).
     """
-    from token_iq.gateway.types.router import GenericLiteLLMParams
+    from token_iq.gateway.types.router import GenericGatewayParams
 
     cfg = AmazonAnthropicClaudeMessagesConfig()
     tools = [
@@ -777,7 +777,7 @@ def test_bedrock_invoke_messages_transform_converts_custom_tool_schema_type_to_o
         model="anthropic.claude-3-haiku-20240307-v1:0",
         messages=messages,
         anthropic_messages_optional_request_params=optional_params,
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         headers={},
     )
 
@@ -923,7 +923,7 @@ def test_bedrock_messages_strips_output_config():
     """
     from unittest.mock import patch
 
-    from token_iq.gateway.types.router import GenericLiteLLMParams
+    from token_iq.gateway.types.router import GenericGatewayParams
 
     cfg = AmazonAnthropicClaudeMessagesConfig()
     messages = [{"role": "user", "content": [{"type": "text", "text": "Hello"}]}]
@@ -942,7 +942,7 @@ def test_bedrock_messages_strips_output_config():
             model="anthropic.claude-3-haiku-20240307-v1:0",
             messages=messages,
             anthropic_messages_optional_request_params=optional_params,
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 
@@ -958,7 +958,7 @@ def test_bedrock_messages_preserves_output_config_for_claude_4_6():
     """
     from unittest.mock import patch
 
-    from token_iq.gateway.types.router import GenericLiteLLMParams
+    from token_iq.gateway.types.router import GenericGatewayParams
 
     cfg = AmazonAnthropicClaudeMessagesConfig()
     messages = [{"role": "user", "content": [{"type": "text", "text": "Hello"}]}]
@@ -977,7 +977,7 @@ def test_bedrock_messages_preserves_output_config_for_claude_4_6():
             model="anthropic.claude-opus-4-6-v1",
             messages=messages,
             anthropic_messages_optional_request_params=optional_params,
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 
@@ -991,7 +991,7 @@ def test_bedrock_messages_preserves_output_config_for_claude_4_6():
 def test_bedrock_messages_checks_output_config_support_with_bedrock_provider():
     from unittest.mock import patch
 
-    from token_iq.gateway.types.router import GenericLiteLLMParams
+    from token_iq.gateway.types.router import GenericGatewayParams
 
     cfg = AmazonAnthropicClaudeMessagesConfig()
     messages = [{"role": "user", "content": [{"type": "text", "text": "Hello"}]}]
@@ -1010,7 +1010,7 @@ def test_bedrock_messages_checks_output_config_support_with_bedrock_provider():
             model="us.anthropic.claude-opus-4-7",
             messages=messages,
             anthropic_messages_optional_request_params=optional_params,
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 
@@ -1022,7 +1022,7 @@ def test_bedrock_messages_forwards_output_config():
     """Bedrock Invoke /v1/messages forwards ``output_config`` for supported models."""
     from unittest.mock import patch
 
-    from token_iq.gateway.types.router import GenericLiteLLMParams
+    from token_iq.gateway.types.router import GenericGatewayParams
 
     cfg = AmazonAnthropicClaudeMessagesConfig()
     messages = [{"role": "user", "content": [{"type": "text", "text": "Hello"}]}]
@@ -1041,7 +1041,7 @@ def test_bedrock_messages_forwards_output_config():
             model="anthropic.claude-opus-4-7",
             messages=messages,
             anthropic_messages_optional_request_params=optional_params,
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 
@@ -1054,7 +1054,7 @@ def test_bedrock_messages_forwards_output_config_with_output_format():
     that support native structured outputs, alongside the effort key."""
     from unittest.mock import patch
 
-    from token_iq.gateway.types.router import GenericLiteLLMParams
+    from token_iq.gateway.types.router import GenericGatewayParams
 
     cfg = AmazonAnthropicClaudeMessagesConfig()
     messages = [{"role": "user", "content": [{"type": "text", "text": "Hello"}]}]
@@ -1079,7 +1079,7 @@ def test_bedrock_messages_forwards_output_config_with_output_format():
             model="anthropic.claude-opus-4-7",
             messages=messages,
             anthropic_messages_optional_request_params=optional_params,
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 
@@ -1093,7 +1093,7 @@ def test_bedrock_messages_converts_output_config_format_to_inline_schema():
     to the inline schema so Bedrock does not see an unknown nested key."""
     from unittest.mock import patch
 
-    from token_iq.gateway.types.router import GenericLiteLLMParams
+    from token_iq.gateway.types.router import GenericGatewayParams
 
     cfg = AmazonAnthropicClaudeMessagesConfig()
     messages = [{"role": "user", "content": [{"type": "text", "text": "Hello"}]}]
@@ -1117,7 +1117,7 @@ def test_bedrock_messages_converts_output_config_format_to_inline_schema():
             model="anthropic.claude-opus-4-7",
             messages=messages,
             anthropic_messages_optional_request_params=optional_params,
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 
@@ -1141,7 +1141,7 @@ def test_bedrock_messages_normalizes_output_config_effort_for_opus(
     """Bedrock /v1/messages accepts ``xhigh`` and forwards the provider-safe effort."""
     from unittest.mock import patch
 
-    from token_iq.gateway.types.router import GenericLiteLLMParams
+    from token_iq.gateway.types.router import GenericGatewayParams
 
     cfg = AmazonAnthropicClaudeMessagesConfig()
 
@@ -1156,7 +1156,7 @@ def test_bedrock_messages_normalizes_output_config_effort_for_opus(
                 "max_tokens": 4096,
                 "output_config": {"effort": "xhigh"},
             },
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 
@@ -1168,7 +1168,7 @@ def test_bedrock_messages_does_not_mutate_callers_messages_when_embedding_schema
     message dicts, or content list."""
     from unittest.mock import patch
 
-    from token_iq.gateway.types.router import GenericLiteLLMParams
+    from token_iq.gateway.types.router import GenericGatewayParams
 
     cfg = AmazonAnthropicClaudeMessagesConfig()
     caller_content = [{"type": "text", "text": "Hello"}]
@@ -1191,7 +1191,7 @@ def test_bedrock_messages_does_not_mutate_callers_messages_when_embedding_schema
             model="anthropic.claude-opus-4-7",
             messages=caller_messages,
             anthropic_messages_optional_request_params=optional_params,
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 
@@ -1212,7 +1212,7 @@ def test_bedrock_messages_does_not_mutate_callers_output_config():
     leak into the caller's ``optional_params`` dict."""
     from unittest.mock import patch
 
-    from token_iq.gateway.types.router import GenericLiteLLMParams
+    from token_iq.gateway.types.router import GenericGatewayParams
 
     cfg = AmazonAnthropicClaudeMessagesConfig()
     schema = {
@@ -1236,7 +1236,7 @@ def test_bedrock_messages_does_not_mutate_callers_output_config():
             model="anthropic.claude-opus-4-5-20251101-v1:0",
             messages=[{"role": "user", "content": [{"type": "text", "text": "Hello"}]}],
             anthropic_messages_optional_request_params=optional_params,
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 
@@ -1254,7 +1254,7 @@ def test_bedrock_messages_strips_output_config_with_output_format():
     """
     from unittest.mock import patch
 
-    from token_iq.gateway.types.router import GenericLiteLLMParams
+    from token_iq.gateway.types.router import GenericGatewayParams
 
     cfg = AmazonAnthropicClaudeMessagesConfig()
     messages = [{"role": "user", "content": [{"type": "text", "text": "Hello"}]}]
@@ -1278,7 +1278,7 @@ def test_bedrock_messages_strips_output_config_with_output_format():
             model="anthropic.claude-3-haiku-20240307-v1:0",
             messages=messages,
             anthropic_messages_optional_request_params=optional_params,
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 
@@ -1289,7 +1289,7 @@ def test_bedrock_messages_strips_output_config_with_output_format():
 def test_bedrock_messages_drop_params_strips_output_config_for_pre_4_5():
     """``drop_params=True`` strips ``output_config`` for pre-4.5 Anthropic on /v1/messages."""
     from token_iq import gateway
-    from token_iq.gateway.types.router import GenericLiteLLMParams
+    from token_iq.gateway.types.router import GenericGatewayParams
 
     cfg = AmazonAnthropicClaudeMessagesConfig()
     messages = [{"role": "user", "content": [{"type": "text", "text": "Hello"}]}]
@@ -1305,7 +1305,7 @@ def test_bedrock_messages_drop_params_strips_output_config_for_pre_4_5():
             model="anthropic.claude-3-haiku-20240307-v1:0",
             messages=messages,
             anthropic_messages_optional_request_params=optional_params,
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
     finally:
@@ -1319,7 +1319,7 @@ def test_bedrock_messages_drop_params_keeps_output_config_for_4_7():
     from unittest.mock import patch
 
     from token_iq import gateway
-    from token_iq.gateway.types.router import GenericLiteLLMParams
+    from token_iq.gateway.types.router import GenericGatewayParams
 
     cfg = AmazonAnthropicClaudeMessagesConfig()
     messages = [{"role": "user", "content": [{"type": "text", "text": "Hello"}]}]
@@ -1339,7 +1339,7 @@ def test_bedrock_messages_drop_params_keeps_output_config_for_4_7():
                 model="anthropic.claude-opus-4-7",
                 messages=messages,
                 anthropic_messages_optional_request_params=optional_params,
-                litellm_params=GenericLiteLLMParams(),
+                litellm_params=GenericGatewayParams(),
                 headers={},
             )
     finally:
@@ -1365,7 +1365,7 @@ def test_bedrock_messages_maps_reasoning_effort_for_adaptive_model(
     """``reasoning_effort`` maps to ``thinking`` + ``output_config.effort`` on /v1/messages."""
     from unittest.mock import patch
 
-    from token_iq.gateway.types.router import GenericLiteLLMParams
+    from token_iq.gateway.types.router import GenericGatewayParams
 
     cfg = AmazonAnthropicClaudeMessagesConfig()
     messages = [{"role": "user", "content": [{"type": "text", "text": "Hello"}]}]
@@ -1382,7 +1382,7 @@ def test_bedrock_messages_maps_reasoning_effort_for_adaptive_model(
             model="anthropic.claude-opus-4-7",
             messages=messages,
             anthropic_messages_optional_request_params=optional_params,
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 
@@ -1393,7 +1393,7 @@ def test_bedrock_messages_maps_reasoning_effort_for_adaptive_model(
 
 def test_bedrock_messages_reasoning_effort_on_non_adaptive_uses_thinking_budget():
     """Non-adaptive models map ``reasoning_effort`` to ``thinking.budget_tokens``."""
-    from token_iq.gateway.types.router import GenericLiteLLMParams
+    from token_iq.gateway.types.router import GenericGatewayParams
 
     cfg = AmazonAnthropicClaudeMessagesConfig()
     messages = [{"role": "user", "content": [{"type": "text", "text": "Hello"}]}]
@@ -1406,7 +1406,7 @@ def test_bedrock_messages_reasoning_effort_on_non_adaptive_uses_thinking_budget(
         model="anthropic.claude-opus-4-5-20251101-v1:0",
         messages=messages,
         anthropic_messages_optional_request_params=optional_params,
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         headers={},
     )
 
@@ -1421,7 +1421,7 @@ def test_bedrock_messages_reasoning_effort_on_non_adaptive_uses_thinking_budget(
 
 def test_bedrock_messages_reasoning_effort_none_clears_thinking():
     """``reasoning_effort='none'`` clears both ``thinking`` and ``output_config``."""
-    from token_iq.gateway.types.router import GenericLiteLLMParams
+    from token_iq.gateway.types.router import GenericGatewayParams
 
     cfg = AmazonAnthropicClaudeMessagesConfig()
     messages = [{"role": "user", "content": [{"type": "text", "text": "Hello"}]}]
@@ -1436,7 +1436,7 @@ def test_bedrock_messages_reasoning_effort_none_clears_thinking():
         model="anthropic.claude-opus-4-7",
         messages=messages,
         anthropic_messages_optional_request_params=optional_params,
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         headers={},
     )
 
@@ -1448,7 +1448,7 @@ def test_bedrock_messages_reasoning_effort_none_clears_thinking():
 def test_bedrock_messages_invalid_reasoning_effort_raises_400():
     """Garbage ``reasoning_effort`` raises AnthropicError (400)."""
     from token_iq.gateway.llms.anthropic.common_utils import AnthropicError
-    from token_iq.gateway.types.router import GenericLiteLLMParams
+    from token_iq.gateway.types.router import GenericGatewayParams
 
     cfg = AmazonAnthropicClaudeMessagesConfig()
     messages = [{"role": "user", "content": [{"type": "text", "text": "Hello"}]}]
@@ -1462,7 +1462,7 @@ def test_bedrock_messages_invalid_reasoning_effort_raises_400():
                     "max_tokens": 4096,
                     "reasoning_effort": bad_effort,
                 },
-                litellm_params=GenericLiteLLMParams(),
+                litellm_params=GenericGatewayParams(),
                 headers={},
             )
 
@@ -1471,7 +1471,7 @@ def test_bedrock_messages_explicit_output_config_wins_over_reasoning_effort():
     """Explicit ``output_config.effort`` wins over the ``reasoning_effort`` alias."""
     from unittest.mock import patch
 
-    from token_iq.gateway.types.router import GenericLiteLLMParams
+    from token_iq.gateway.types.router import GenericGatewayParams
 
     cfg = AmazonAnthropicClaudeMessagesConfig()
     messages = [{"role": "user", "content": [{"type": "text", "text": "Hello"}]}]
@@ -1489,7 +1489,7 @@ def test_bedrock_messages_explicit_output_config_wins_over_reasoning_effort():
             model="anthropic.claude-opus-4-7",
             messages=messages,
             anthropic_messages_optional_request_params=optional_params,
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 
@@ -1507,7 +1507,7 @@ def test_bedrock_messages_strips_context_management():
     in the body causes a 400 "context_management: Extra inputs are not
     permitted" from Bedrock.
     """
-    from token_iq.gateway.types.router import GenericLiteLLMParams
+    from token_iq.gateway.types.router import GenericGatewayParams
 
     cfg = AmazonAnthropicClaudeMessagesConfig()
     messages = [{"role": "user", "content": [{"type": "text", "text": "Hello"}]}]
@@ -1522,7 +1522,7 @@ def test_bedrock_messages_strips_context_management():
         model="anthropic.claude-3-haiku-20240307-v1:0",
         messages=messages,
         anthropic_messages_optional_request_params=optional_params,
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         headers={},
     )
 
@@ -1544,7 +1544,7 @@ def test_bedrock_messages_preserves_compact_context_management_and_adds_beta():
 
     Ref: https://github.com/BerriAI/litellm/issues/27532
     """
-    from token_iq.gateway.types.router import GenericLiteLLMParams
+    from token_iq.gateway.types.router import GenericGatewayParams
 
     cfg = AmazonAnthropicClaudeMessagesConfig()
     messages = [{"role": "user", "content": [{"type": "text", "text": "Hi"}]}]
@@ -1557,7 +1557,7 @@ def test_bedrock_messages_preserves_compact_context_management_and_adds_beta():
         model="anthropic.claude-sonnet-4-6-20250929-v1:0",
         messages=messages,
         anthropic_messages_optional_request_params=optional_params,
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         headers={},
     )
 
@@ -1571,7 +1571,7 @@ def test_bedrock_messages_filters_unsupported_context_management_edits():
     Mixed edit lists must drop the LiteLLM-internal ``clear_thinking_20251015``
     entries while keeping ``compact_20260112`` and adding the compact beta.
     """
-    from token_iq.gateway.types.router import GenericLiteLLMParams
+    from token_iq.gateway.types.router import GenericGatewayParams
 
     cfg = AmazonAnthropicClaudeMessagesConfig()
     messages = [{"role": "user", "content": [{"type": "text", "text": "Hi"}]}]
@@ -1589,7 +1589,7 @@ def test_bedrock_messages_filters_unsupported_context_management_edits():
         model="anthropic.claude-sonnet-4-6-20250929-v1:0",
         messages=messages,
         anthropic_messages_optional_request_params=optional_params,
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         headers={},
     )
 
@@ -1605,7 +1605,7 @@ def test_bedrock_messages_allowlist_filters_anthropic_only_fields():
     extensions (speed, mcp_servers, container, ...) and any future additions
     Claude Code starts sending before we learn about them.
     """
-    from token_iq.gateway.types.router import GenericLiteLLMParams
+    from token_iq.gateway.types.router import GenericGatewayParams
 
     cfg = AmazonAnthropicClaudeMessagesConfig()
     messages = [{"role": "user", "content": [{"type": "text", "text": "Hello"}]}]
@@ -1624,7 +1624,7 @@ def test_bedrock_messages_allowlist_filters_anthropic_only_fields():
         model="anthropic.claude-opus-4-7",
         messages=messages,
         anthropic_messages_optional_request_params=optional_params,
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         headers={},
     )
 
@@ -1655,7 +1655,7 @@ def test_bedrock_messages_filters_user_provided_unsupported_beta_header():
     All betas must go through the provider mapping, not just auto-injected ones
     — otherwise Bedrock 400s on the unsupported value.
     """
-    from token_iq.gateway.types.router import GenericLiteLLMParams
+    from token_iq.gateway.types.router import GenericGatewayParams
 
     cfg = AmazonAnthropicClaudeMessagesConfig()
     messages = [{"role": "user", "content": [{"type": "text", "text": "Hello"}]}]
@@ -1670,7 +1670,7 @@ def test_bedrock_messages_filters_user_provided_unsupported_beta_header():
         model="anthropic.claude-3-haiku-20240307-v1:0",
         messages=messages,
         anthropic_messages_optional_request_params=optional_params,
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         headers=headers,
     )
 
@@ -1689,7 +1689,7 @@ def test_bedrock_messages_renames_user_provided_aliased_beta_header():
     `tool-search-tool-2025-10-19`. User-provided betas must go through the
     rename too, not be forwarded under their Anthropic-direct spelling.
     """
-    from token_iq.gateway.types.router import GenericLiteLLMParams
+    from token_iq.gateway.types.router import GenericGatewayParams
 
     cfg = AmazonAnthropicClaudeMessagesConfig()
     messages = [{"role": "user", "content": [{"type": "text", "text": "Hello"}]}]
@@ -1700,7 +1700,7 @@ def test_bedrock_messages_renames_user_provided_aliased_beta_header():
         model="anthropic.claude-3-haiku-20240307-v1:0",
         messages=messages,
         anthropic_messages_optional_request_params=optional_params,
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         headers=headers,
     )
 
@@ -1865,7 +1865,7 @@ async def test_unified_bedrock_messages_cache_on_start_only_never_negative_cost(
             "usage": {"input_tokens": 10, "output_tokens": 181},
         }
 
-    logging_obj = LiteLLMLoggingObj(
+    logging_obj = GatewayLoggingObj(
         model="bedrock/anthropic.claude-3-5-sonnet-20240620-v1:0",
         messages=[{"role": "user", "content": "Hi"}],
         stream=True,
@@ -1934,7 +1934,7 @@ async def test_unified_bedrock_messages_sse_usage_and_cost_claude_sonnet_46():
             "usage": {"input_tokens": 3, "output_tokens": 9},
         }
 
-    logging_obj = LiteLLMLoggingObj(
+    logging_obj = GatewayLoggingObj(
         model="bedrock/us.anthropic.claude-sonnet-4-6",
         messages=[{"role": "user", "content": "Hello"}],
         stream=True,
@@ -2072,7 +2072,7 @@ def test_bedrock_invoke_transform_emits_adaptive_thinking_for_opus_4_8():
     """End-to-end: a Claude Code clear_thinking payload (no ``thinking`` field) on
     Opus 4.8 must produce a Bedrock Invoke body with adaptive thinking and an
     effort, never ``thinking.type.enabled``."""
-    from token_iq.gateway.types.router import GenericLiteLLMParams
+    from token_iq.gateway.types.router import GenericGatewayParams
 
     cfg = AmazonAnthropicClaudeMessagesConfig()
     optional_params = {
@@ -2087,7 +2087,7 @@ def test_bedrock_invoke_transform_emits_adaptive_thinking_for_opus_4_8():
         model="us.anthropic.claude-opus-4-8",
         messages=[{"role": "user", "content": "hi"}],
         anthropic_messages_optional_request_params=copy.deepcopy(optional_params),
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         headers={},
     )
 
@@ -2099,7 +2099,7 @@ def test_bedrock_invoke_transform_normalizes_system_role_message_into_system():
     """Bedrock Invoke rejects ``role: "system"`` entries in ``messages`` on some
     Claude aliases; they must be moved into the top-level ``system`` field
     (Anthropic Messages carries that content there)."""
-    from token_iq.gateway.types.router import GenericLiteLLMParams
+    from token_iq.gateway.types.router import GenericGatewayParams
 
     cfg = AmazonAnthropicClaudeMessagesConfig()
     messages = [
@@ -2111,7 +2111,7 @@ def test_bedrock_invoke_transform_normalizes_system_role_message_into_system():
         model="anthropic.claude-3-haiku-20240307-v1:0",
         messages=copy.deepcopy(messages),
         anthropic_messages_optional_request_params={"max_tokens": 256, "stream": False},
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         headers={},
     )
 
@@ -2125,7 +2125,7 @@ def test_bedrock_invoke_transform_normalizes_system_role_message_into_system():
 def test_bedrock_invoke_transform_merges_system_role_into_existing_system():
     """A ``role: "system"`` message is appended to any pre-existing top-level
     ``system`` content rather than replacing it."""
-    from token_iq.gateway.types.router import GenericLiteLLMParams
+    from token_iq.gateway.types.router import GenericGatewayParams
 
     cfg = AmazonAnthropicClaudeMessagesConfig()
     messages = [
@@ -2141,7 +2141,7 @@ def test_bedrock_invoke_transform_merges_system_role_into_existing_system():
             "stream": False,
             "system": "Base system prompt.",
         },
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         headers={},
     )
 
@@ -2156,7 +2156,7 @@ def test_bedrock_invoke_transform_merges_list_content_system_role_into_system():
     """A ``role: "system"`` message whose content is a list of content blocks is
     merged block-by-block into the top-level ``system`` field, preserving any
     pre-existing system blocks."""
-    from token_iq.gateway.types.router import GenericLiteLLMParams
+    from token_iq.gateway.types.router import GenericGatewayParams
 
     cfg = AmazonAnthropicClaudeMessagesConfig()
     messages = [
@@ -2178,7 +2178,7 @@ def test_bedrock_invoke_transform_merges_list_content_system_role_into_system():
             "stream": False,
             "system": [{"type": "text", "text": "Base."}],
         },
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         headers={},
     )
 
@@ -2208,7 +2208,7 @@ def test_bedrock_invoke_transform_keeps_mid_conversation_system_role_in_place(lo
     4.8+, which Invoke accepts the role on) such entries must be forwarded
     in place. Billing-header blocks must still be stripped from the top-level
     ``system`` field even when nothing is hoisted."""
-    from token_iq.gateway.types.router import GenericLiteLLMParams
+    from token_iq.gateway.types.router import GenericGatewayParams
 
     cfg = AmazonAnthropicClaudeMessagesConfig()
     messages = [
@@ -2229,7 +2229,7 @@ def test_bedrock_invoke_transform_keeps_mid_conversation_system_role_in_place(lo
                 {"type": "text", "text": "Base.", "cache_control": {"type": "ephemeral"}},
             ],
         },
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         headers={},
     )
 
@@ -2244,7 +2244,7 @@ def test_bedrock_invoke_transform_hoists_only_leading_system_run(local_model_cos
     run of ``role: "system"`` messages is hoisted into the top-level ``system``
     field; a later system entry keeps its position in ``messages`` so the
     serialized prefix stays stable across turns."""
-    from token_iq.gateway.types.router import GenericLiteLLMParams
+    from token_iq.gateway.types.router import GenericGatewayParams
 
     cfg = AmazonAnthropicClaudeMessagesConfig()
     messages = [
@@ -2259,7 +2259,7 @@ def test_bedrock_invoke_transform_hoists_only_leading_system_run(local_model_cos
         model="anthropic.claude-opus-4-8",
         messages=copy.deepcopy(messages),
         anthropic_messages_optional_request_params={"max_tokens": 256, "stream": False},
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         headers={},
     )
 
@@ -2282,7 +2282,7 @@ def test_bedrock_invoke_transform_converts_mid_conversation_system_for_older_cla
     without ``supports_mid_conversation_system`` the reminder is converted to a
     user turn in place instead: the request stays valid and a cache breakpoint
     before the reminder still hits."""
-    from token_iq.gateway.types.router import GenericLiteLLMParams
+    from token_iq.gateway.types.router import GenericGatewayParams
 
     cfg = AmazonAnthropicClaudeMessagesConfig()
     messages = [
@@ -2300,7 +2300,7 @@ def test_bedrock_invoke_transform_converts_mid_conversation_system_for_older_cla
             "stream": False,
             "system": [{"type": "text", "text": "Base."}],
         },
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         headers={},
     )
 
@@ -2331,7 +2331,7 @@ def test_bedrock_invoke_transform_moves_converted_system_after_tool_result_turn(
     requires the result right after the call ("tool_use ids were found without
     tool_result blocks immediately after"). The converted turn goes after the
     tool-result turn instead, where consecutive user turns merge upstream."""
-    from token_iq.gateway.types.router import GenericLiteLLMParams
+    from token_iq.gateway.types.router import GenericGatewayParams
 
     cfg = AmazonAnthropicClaudeMessagesConfig()
     tool_use_turn = {
@@ -2357,7 +2357,7 @@ def test_bedrock_invoke_transform_moves_converted_system_after_tool_result_turn(
         model="us.anthropic.claude-opus-4-7",
         messages=copy.deepcopy(messages),
         anthropic_messages_optional_request_params={"max_tokens": 256, "stream": False},
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         headers={},
     )
 
@@ -2398,7 +2398,7 @@ def test_bedrock_invoke_transform_converted_system_carries_only_its_content(loca
     """Hoisting only ever kept a system entry's content, so the in-place
     conversion must not forward the entry's other keys either ("messages.2.name:
     Extra inputs are not permitted")."""
-    from token_iq.gateway.types.router import GenericLiteLLMParams
+    from token_iq.gateway.types.router import GenericGatewayParams
 
     cfg = AmazonAnthropicClaudeMessagesConfig()
     messages = [
@@ -2412,7 +2412,7 @@ def test_bedrock_invoke_transform_converted_system_carries_only_its_content(loca
         model="us.anthropic.claude-opus-4-7",
         messages=copy.deepcopy(messages),
         anthropic_messages_optional_request_params={"max_tokens": 256, "stream": False},
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         headers={},
     )
 
@@ -2436,7 +2436,7 @@ def test_bedrock_invoke_transform_converts_system_for_unmapped_model(local_model
     the unsupported-model treatment: the safe default converts the reminder to
     a user turn in place, never a provider 400 from forwarding a role the model
     may not accept, and never a mutated cache prefix."""
-    from token_iq.gateway.types.router import GenericLiteLLMParams
+    from token_iq.gateway.types.router import GenericGatewayParams
 
     cfg = AmazonAnthropicClaudeMessagesConfig()
     messages = [
@@ -2450,7 +2450,7 @@ def test_bedrock_invoke_transform_converts_system_for_unmapped_model(local_model
         model="us.anthropic.claude-opus-3-9",
         messages=copy.deepcopy(messages),
         anthropic_messages_optional_request_params={"max_tokens": 256, "stream": False},
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         headers={},
     )
 
@@ -2480,7 +2480,7 @@ def test_bedrock_invoke_transform_keeps_system_in_place_for_unmapped_future_clau
     ``claude-mid-conversation-system`` capability rule, so a future model that
     has not landed in the cost map yet keeps the cache-preserving in-place
     behavior instead of falling back to hoist-all."""
-    from token_iq.gateway.types.router import GenericLiteLLMParams
+    from token_iq.gateway.types.router import GenericGatewayParams
 
     cfg = AmazonAnthropicClaudeMessagesConfig()
     messages = [
@@ -2494,7 +2494,7 @@ def test_bedrock_invoke_transform_keeps_system_in_place_for_unmapped_future_clau
         model="us.anthropic.claude-opus-4-9",
         messages=copy.deepcopy(messages),
         anthropic_messages_optional_request_params={"max_tokens": 256, "stream": False},
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         headers={},
     )
 
@@ -2678,7 +2678,7 @@ def test_bedrock_messages_preserves_clear_tool_uses_context_management_and_adds_
     AWS docs ("Automatic tool call clearing (Beta)"):
     https://docs.aws.amazon.com/bedrock/latest/userguide/model-parameters-anthropic-claude-messages-tool-use.md
     """
-    from token_iq.gateway.types.router import GenericLiteLLMParams
+    from token_iq.gateway.types.router import GenericGatewayParams
 
     cfg = AmazonAnthropicClaudeMessagesConfig()
     messages = [{"role": "user", "content": [{"type": "text", "text": "Hi"}]}]
@@ -2693,7 +2693,7 @@ def test_bedrock_messages_preserves_clear_tool_uses_context_management_and_adds_
         model="anthropic.claude-haiku-4-5-20251001-v1:0",
         messages=messages,
         anthropic_messages_optional_request_params=optional_params,
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         headers={},
     )
 
@@ -2714,7 +2714,7 @@ def test_bedrock_messages_preserves_mixed_compact_and_clear_tool_uses_edits(
     ``clear_tool_uses_20250919`` must keep BOTH edits and emit BOTH
     anthropic-beta values (``compact-2026-01-12`` + ``context-management-2025-06-27``).
     """
-    from token_iq.gateway.types.router import GenericLiteLLMParams
+    from token_iq.gateway.types.router import GenericGatewayParams
 
     cfg = AmazonAnthropicClaudeMessagesConfig()
     messages = [{"role": "user", "content": [{"type": "text", "text": "Hi"}]}]
@@ -2732,7 +2732,7 @@ def test_bedrock_messages_preserves_mixed_compact_and_clear_tool_uses_edits(
         model="anthropic.claude-sonnet-4-6-20250929-v1:0",
         messages=messages,
         anthropic_messages_optional_request_params=optional_params,
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         headers={},
     )
 
@@ -2755,7 +2755,7 @@ def test_bedrock_messages_filters_clear_thinking_keeps_clear_tool_uses(
     ``clear_tool_uses_20250919`` (officially supported on Bedrock InvokeModel)
     survives in the same request.
     """
-    from token_iq.gateway.types.router import GenericLiteLLMParams
+    from token_iq.gateway.types.router import GenericGatewayParams
 
     cfg = AmazonAnthropicClaudeMessagesConfig()
     messages = [{"role": "user", "content": [{"type": "text", "text": "Hi"}]}]
@@ -2773,7 +2773,7 @@ def test_bedrock_messages_filters_clear_thinking_keeps_clear_tool_uses(
         model="anthropic.claude-opus-4-7",
         messages=messages,
         anthropic_messages_optional_request_params=optional_params,
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         headers={},
     )
 
@@ -2839,7 +2839,7 @@ def test_bedrock_messages_tool_search_adds_beta_header(local_beta_headers_config
     tool-search request failed. Verified live 2026-08-11: Bedrock returns 200
     with ``server_tool_use`` for all three models once the beta is sent.
     """
-    from token_iq.gateway.types.router import GenericLiteLLMParams
+    from token_iq.gateway.types.router import GenericGatewayParams
 
     cfg = AmazonAnthropicClaudeMessagesConfig()
     messages = [{"role": "user", "content": [{"type": "text", "text": "Hi"}]}]
@@ -2863,7 +2863,7 @@ def test_bedrock_messages_tool_search_adds_beta_header(local_beta_headers_config
         model=model,
         messages=messages,
         anthropic_messages_optional_request_params=optional_params,
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         headers={},
     )
 
@@ -2917,7 +2917,7 @@ def test_bedrock_messages_thinking_shape_follows_exact_bedrock_entry_flag(
     explicitly set to ``false`` on the entry."""
     from token_iq import gateway
 
-    from token_iq.gateway.types.router import GenericLiteLLMParams
+    from token_iq.gateway.types.router import GenericGatewayParams
 
     model = "global.anthropic.claude-opus-4-8"
     cfg = AmazonAnthropicClaudeMessagesConfig()
@@ -2930,7 +2930,7 @@ def test_bedrock_messages_thinking_shape_follows_exact_bedrock_entry_flag(
                 "max_tokens": 4096,
                 "reasoning_effort": "medium",
             },
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 
@@ -2977,7 +2977,7 @@ def test_replayed_intercepted_search_turn_leaves_no_unsupported_block_for_bedroc
     from token_iq.gateway.llms.anthropic.common_utils import (
         flatten_unencrypted_web_search_results_in_anthropic_messages,
     )
-    from token_iq.gateway.types.router import GenericLiteLLMParams
+    from token_iq.gateway.types.router import GenericGatewayParams
 
     replayed_turn = [
         {
@@ -3002,7 +3002,7 @@ def test_replayed_intercepted_search_turn_leaves_no_unsupported_block_for_bedroc
         model="us.anthropic.claude-sonnet-4-5-20250929-v1:0",
         messages=flatten_unencrypted_web_search_results_in_anthropic_messages(messages),
         anthropic_messages_optional_request_params={"max_tokens": 64},
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         headers={},
     )
 
@@ -3019,7 +3019,7 @@ def test_bedrock_invoke_messages_rejects_server_web_search_tool(tool_type: str):
     must raise an actionable 400 pointing at the interception docs instead of
     letting Bedrock return an opaque "provided request is not valid"."""
     from token_iq import gateway
-    from token_iq.gateway.types.router import GenericLiteLLMParams
+    from token_iq.gateway.types.router import GenericGatewayParams
 
     cfg = AmazonAnthropicClaudeMessagesConfig()
     with pytest.raises(gateway.BadRequestError) as exc_info:
@@ -3030,7 +3030,7 @@ def test_bedrock_invoke_messages_rejects_server_web_search_tool(tool_type: str):
                 "max_tokens": 128,
                 "tools": [{"type": tool_type, "name": "web_search", "max_uses": 5}],
             },
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
     assert "https://docs.litellm.ai/docs/integrations/websearch_interception" in str(exc_info.value)
@@ -3040,7 +3040,7 @@ def test_bedrock_invoke_messages_rejects_server_web_search_tool(tool_type: str):
 def test_bedrock_invoke_messages_allows_converted_websearch_function_tool():
     """The interception hook rewrites web_search into a plain custom tool
     (litellm_web_search); that converted shape must pass through untouched."""
-    from token_iq.gateway.types.router import GenericLiteLLMParams
+    from token_iq.gateway.types.router import GenericGatewayParams
 
     cfg = AmazonAnthropicClaudeMessagesConfig()
     result = cfg.transform_anthropic_messages_request(
@@ -3056,7 +3056,7 @@ def test_bedrock_invoke_messages_allows_converted_websearch_function_tool():
                 }
             ],
         },
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         headers={},
     )
     assert result["tools"][0]["name"] == "litellm_web_search"
@@ -3082,7 +3082,7 @@ async def test_bedrock_sse_wrapper_dispatches_logging_on_client_disconnect():
         yield {"type": "content_block_delta", "index": 0, "delta": {"type": "text_delta", "text": "partial"}}
         await release_upstream.wait()
 
-    logging_obj = LiteLLMLoggingObj(
+    logging_obj = GatewayLoggingObj(
         model="bedrock/invoke/anthropic.claude-3-sonnet-20240229-v1:0",
         messages=[{"role": "user", "content": "hi"}],
         stream=True,
@@ -3110,7 +3110,7 @@ def test_bedrock_messages_forwards_output_config_format_natively(local_model_cos
     """Regression: on a model Bedrock enforces structured outputs for (Claude
     Sonnet 4.5), ``output_config.format`` must be forwarded verbatim, not
     silently rewritten into inline prompt text."""
-    from token_iq.gateway.types.router import GenericLiteLLMParams
+    from token_iq.gateway.types.router import GenericGatewayParams
 
     cfg = AmazonAnthropicClaudeMessagesConfig()
     schema_format = {
@@ -3133,7 +3133,7 @@ def test_bedrock_messages_forwards_output_config_format_natively(local_model_cos
             "max_tokens": 100,
             "output_config": {"format": schema_format},
         },
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         headers={},
     )
 
@@ -3144,7 +3144,7 @@ def test_bedrock_messages_forwards_output_config_format_natively(local_model_cos
 def test_bedrock_messages_inlines_schema_for_claude_5(local_model_cost_map):
     """Bedrock rejects ``output_config.format`` for the Claude 5 family, so the
     schema falls back to the inline-text path instead of a deterministic 400."""
-    from token_iq.gateway.types.router import GenericLiteLLMParams
+    from token_iq.gateway.types.router import GenericGatewayParams
 
     cfg = AmazonAnthropicClaudeMessagesConfig()
     schema = {
@@ -3159,7 +3159,7 @@ def test_bedrock_messages_inlines_schema_for_claude_5(local_model_cost_map):
             "max_tokens": 100,
             "output_config": {"format": {"type": "json_schema", "schema": schema}},
         },
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         headers={},
     )
 
@@ -3171,7 +3171,7 @@ def test_bedrock_messages_inlines_schema_for_claude_5(local_model_cost_map):
 def test_bedrock_messages_legacy_output_format_wins_over_output_config_format(local_model_cost_map):
     """When a request carries both schema forms, the legacy top-level
     ``output_format`` keeps winning, matching the pre-existing precedence."""
-    from token_iq.gateway.types.router import GenericLiteLLMParams
+    from token_iq.gateway.types.router import GenericGatewayParams
 
     cfg = AmazonAnthropicClaudeMessagesConfig()
     legacy_format = {
@@ -3191,7 +3191,7 @@ def test_bedrock_messages_legacy_output_format_wins_over_output_config_format(lo
             "output_format": legacy_format,
             "output_config": {"format": newer_format},
         },
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         headers={},
     )
 
@@ -3204,7 +3204,7 @@ def test_bedrock_messages_drop_params_keeps_native_output_config_format(local_mo
     """``drop_params=True`` must not strip a natively forwarded
     ``output_config.format`` on models without effort support (Sonnet 4.5)."""
     from token_iq import gateway
-    from token_iq.gateway.types.router import GenericLiteLLMParams
+    from token_iq.gateway.types.router import GenericGatewayParams
 
     monkeypatch.setattr(gateway, "drop_params", True)
     cfg = AmazonAnthropicClaudeMessagesConfig()
@@ -3220,7 +3220,7 @@ def test_bedrock_messages_drop_params_keeps_native_output_config_format(local_mo
             "max_tokens": 100,
             "output_config": {"format": schema_format},
         },
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         headers={},
     )
 
@@ -3230,7 +3230,7 @@ def test_bedrock_messages_drop_params_keeps_native_output_config_format(local_mo
 def test_bedrock_messages_strips_effort_but_keeps_format_for_sonnet_4_5(local_model_cost_map):
     """Sonnet 4.5 has native structured-output support but no effort support, so
     a mixed ``output_config`` keeps ``format`` and drops ``effort``."""
-    from token_iq.gateway.types.router import GenericLiteLLMParams
+    from token_iq.gateway.types.router import GenericGatewayParams
 
     cfg = AmazonAnthropicClaudeMessagesConfig()
     schema_format = {
@@ -3245,7 +3245,7 @@ def test_bedrock_messages_strips_effort_but_keeps_format_for_sonnet_4_5(local_mo
             "max_tokens": 4096,
             "output_config": {"format": schema_format, "effort": "high"},
         },
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         headers={},
     )
 

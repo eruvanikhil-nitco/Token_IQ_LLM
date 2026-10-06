@@ -222,8 +222,8 @@ class ModelArmorGuardrail(CustomGuardrail, VertexBase):
         if self.optional_params.get("fail_on_error", True):
             raise e from None
 
-    def update_in_memory_litellm_params(self, litellm_params: LitellmParams) -> None:
-        super().update_in_memory_litellm_params(litellm_params)
+    def update_in_memory_gateway_params(self, litellm_params: LitellmParams) -> None:
+        super().update_in_memory_gateway_params(litellm_params)
         self.sanitize_error_detail = self.sanitize_error_detail is not False
 
     def _log_request_debug(

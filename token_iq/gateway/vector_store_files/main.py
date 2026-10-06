@@ -10,9 +10,9 @@ import httpx
 
 from token_iq import gateway
 from token_iq.gateway.constants import request_timeout
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.llms.custom_httpx.llm_http_handler import BaseLLMHTTPHandler
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.types.utils import LlmProviders
 from token_iq.gateway.types.vector_store_files import (
     VectorStoreFileContentResponse,
@@ -119,7 +119,7 @@ def create(
 ) -> VectorStoreFileObject | Coroutine[Any, Any, VectorStoreFileObject]:
     local_vars: Final = locals()
     try:
-        litellm_logging_obj: Final[LiteLLMLoggingObj] = kwargs.get("litellm_logging_obj")
+        litellm_logging_obj: Final[GatewayLoggingObj] = kwargs.get("litellm_logging_obj")
         litellm_call_id: Final[str | None] = kwargs.get("litellm_call_id")
         _is_async: Final = kwargs.pop("acreate", False) is True
 
@@ -127,7 +127,7 @@ def create(
 
         _prepare_registry_credentials(vector_store_id=vector_store_id, kwargs=kwargs)
 
-        litellm_params: Final = GenericLiteLLMParams(vector_store_id=vector_store_id, **kwargs)
+        litellm_params: Final = GenericGatewayParams(vector_store_id=vector_store_id, **kwargs)
 
         provider_config: Final = ProviderConfigManager.get_provider_vector_store_files_config(
             provider=LlmProviders(custom_llm_provider)
@@ -248,7 +248,7 @@ def list(
 ) -> VectorStoreFileListResponse | Coroutine[Any, Any, VectorStoreFileListResponse]:
     local_vars: Final = locals()
     try:
-        litellm_logging_obj: Final[LiteLLMLoggingObj] = kwargs.get("litellm_logging_obj")
+        litellm_logging_obj: Final[GatewayLoggingObj] = kwargs.get("litellm_logging_obj")
         litellm_call_id: Final[str | None] = kwargs.get("litellm_call_id")
         _is_async: Final = kwargs.pop("alist", False) is True
 
@@ -256,7 +256,7 @@ def list(
 
         _prepare_registry_credentials(vector_store_id=vector_store_id, kwargs=kwargs)
 
-        litellm_params: Final = GenericLiteLLMParams(vector_store_id=vector_store_id, **kwargs)
+        litellm_params: Final = GenericGatewayParams(vector_store_id=vector_store_id, **kwargs)
 
         provider_config: Final = ProviderConfigManager.get_provider_vector_store_files_config(
             provider=LlmProviders(custom_llm_provider)
@@ -358,7 +358,7 @@ def retrieve(
 ) -> VectorStoreFileObject | Coroutine[Any, Any, VectorStoreFileObject]:
     local_vars: Final = locals()
     try:
-        litellm_logging_obj: Final[LiteLLMLoggingObj] = kwargs.get("litellm_logging_obj")
+        litellm_logging_obj: Final[GatewayLoggingObj] = kwargs.get("litellm_logging_obj")
         litellm_call_id: Final[str | None] = kwargs.get("litellm_call_id")
         _is_async: Final = kwargs.pop("aretrieve", False) is True
 
@@ -366,7 +366,7 @@ def retrieve(
 
         _prepare_registry_credentials(vector_store_id=vector_store_id, kwargs=kwargs)
 
-        litellm_params: Final = GenericLiteLLMParams(vector_store_id=vector_store_id, **kwargs)
+        litellm_params: Final = GenericGatewayParams(vector_store_id=vector_store_id, **kwargs)
 
         provider_config: Final = ProviderConfigManager.get_provider_vector_store_files_config(
             provider=LlmProviders(custom_llm_provider)
@@ -466,7 +466,7 @@ def retrieve_content(
 ) -> VectorStoreFileContentResponse | Coroutine[Any, Any, VectorStoreFileContentResponse]:
     local_vars: Final = locals()
     try:
-        litellm_logging_obj: Final[LiteLLMLoggingObj] = kwargs.get("litellm_logging_obj")
+        litellm_logging_obj: Final[GatewayLoggingObj] = kwargs.get("litellm_logging_obj")
         litellm_call_id: Final[str | None] = kwargs.get("litellm_call_id")
         _is_async: Final = kwargs.pop("aretrieve_content", False) is True
 
@@ -474,7 +474,7 @@ def retrieve_content(
 
         _prepare_registry_credentials(vector_store_id=vector_store_id, kwargs=kwargs)
 
-        litellm_params: Final = GenericLiteLLMParams(vector_store_id=vector_store_id, **kwargs)
+        litellm_params: Final = GenericGatewayParams(vector_store_id=vector_store_id, **kwargs)
 
         provider_config: Final = ProviderConfigManager.get_provider_vector_store_files_config(
             provider=LlmProviders(custom_llm_provider)
@@ -580,7 +580,7 @@ def update(
 ) -> VectorStoreFileObject | Coroutine[Any, Any, VectorStoreFileObject]:
     local_vars: Final = locals()
     try:
-        litellm_logging_obj: Final[LiteLLMLoggingObj] = kwargs.get("litellm_logging_obj")
+        litellm_logging_obj: Final[GatewayLoggingObj] = kwargs.get("litellm_logging_obj")
         litellm_call_id: Final[str | None] = kwargs.get("litellm_call_id")
         _is_async: Final = kwargs.pop("aupdate", False) is True
 
@@ -588,7 +588,7 @@ def update(
 
         _prepare_registry_credentials(vector_store_id=vector_store_id, kwargs=kwargs)
 
-        litellm_params: Final = GenericLiteLLMParams(vector_store_id=vector_store_id, **kwargs)
+        litellm_params: Final = GenericGatewayParams(vector_store_id=vector_store_id, **kwargs)
 
         provider_config: Final = ProviderConfigManager.get_provider_vector_store_files_config(
             provider=LlmProviders(custom_llm_provider)
@@ -695,7 +695,7 @@ def delete(
 ) -> VectorStoreFileDeleteResponse | Coroutine[Any, Any, VectorStoreFileDeleteResponse]:
     local_vars: Final = locals()
     try:
-        litellm_logging_obj: Final[LiteLLMLoggingObj] = kwargs.get("litellm_logging_obj")
+        litellm_logging_obj: Final[GatewayLoggingObj] = kwargs.get("litellm_logging_obj")
         litellm_call_id: Final[str | None] = kwargs.get("litellm_call_id")
         _is_async: Final = kwargs.pop("adelete", False) is True
 
@@ -703,7 +703,7 @@ def delete(
 
         _prepare_registry_credentials(vector_store_id=vector_store_id, kwargs=kwargs)
 
-        litellm_params: Final = GenericLiteLLMParams(vector_store_id=vector_store_id, **kwargs)
+        litellm_params: Final = GenericGatewayParams(vector_store_id=vector_store_id, **kwargs)
 
         provider_config: Final = ProviderConfigManager.get_provider_vector_store_files_config(
             provider=LlmProviders(custom_llm_provider)

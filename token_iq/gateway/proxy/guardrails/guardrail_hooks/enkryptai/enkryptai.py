@@ -37,7 +37,7 @@ from token_iq.gateway.types.utils import (
 )
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 
 GUARDRAIL_NAME: Final = "enkryptai"
 
@@ -426,7 +426,7 @@ class EnkryptAIGuardrails(CustomGuardrail):
         inputs: "GenericGuardrailAPIInputs",
         request_data: dict,
         input_type: Literal["request", "response"],
-        logging_obj: Optional["LiteLLMLoggingObj"] = None,
+        logging_obj: Optional["GatewayLoggingObj"] = None,
     ) -> "GenericGuardrailAPIInputs":
         """
         Apply EnkryptAI guardrail to a batch of texts.

@@ -16,7 +16,7 @@ from token_iq.gateway.llms.openai.image_edit.transformation import OpenAIImageEd
 from token_iq.gateway.secret_managers.main import get_secret_str
 from token_iq.gateway.types.images.main import ImageEditOptionalRequestParams
 from token_iq.gateway.types.llms.openai import FileTypes
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 
 
 class AzureFoundryFlux2ImageEditConfig(OpenAIImageEditConfig):
@@ -92,7 +92,7 @@ class AzureFoundryFlux2ImageEditConfig(OpenAIImageEditConfig):
         prompt: str | None,
         image: FileTypes | None,
         image_edit_optional_request_params: dict,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> tuple[dict, RequestFiles]:
         """

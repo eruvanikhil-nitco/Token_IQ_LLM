@@ -7,20 +7,20 @@ from httpx._types import RequestFiles
 
 from token_iq.gateway.types.images.main import ImageEditOptionalRequestParams
 from token_iq.gateway.types.responses.main import *
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.types.utils import FileTypes
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as _LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as _GatewayLoggingObj
     from token_iq.gateway.utils import ImageResponse as _ImageResponse
 
     from ..chat.transformation import BaseLLMException as _BaseLLMException
 
-    LiteLLMLoggingObj = _LiteLLMLoggingObj
+    GatewayLoggingObj = _GatewayLoggingObj
     BaseLLMException = _BaseLLMException
     ImageResponse = _ImageResponse
 else:
-    LiteLLMLoggingObj = Any
+    GatewayLoggingObj = Any
     BaseLLMException = Any
     ImageResponse = Any
 
@@ -97,7 +97,7 @@ class BaseImageEditConfig(ABC):
         prompt: str | None,
         image: FileTypes | None,
         image_edit_optional_request_params: dict,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> tuple[dict, RequestFiles]:
         pass
@@ -117,7 +117,7 @@ class BaseImageEditConfig(ABC):
         self,
         model: str,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> ImageResponse:
         pass
 

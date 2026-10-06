@@ -47,7 +47,7 @@ from models import (
     KeyInfo,
     KeyInfoParams,
     KeyInfoResponse,
-    LiteLLMParamsBody,
+    GatewayParamsBody,
     ModelDeleteBody,
     ModelInfoBody,
     ModelInfoEntry,
@@ -284,7 +284,7 @@ class ProxyClient:
     def create_model(
         self,
         model_name: str,
-        litellm_params: LiteLLMParamsBody,
+        litellm_params: GatewayParamsBody,
         mode: ModelMode | None = None,
     ) -> str:
         """Register a deployment under `model_name` and return its proxy-assigned
@@ -361,7 +361,7 @@ class ProxyClient:
                     )
                 )
 
-    def update_model(self, model_id: str, litellm_params: LiteLLMParamsBody) -> None:
+    def update_model(self, model_id: str, litellm_params: GatewayParamsBody) -> None:
         """Merge `litellm_params` over the deployment `model_id`'s stored params via
         POST /model/update. The proxy overlays only the non-null fields and clears
         its model cache, so a later /model/info read reflects the change (eventually,

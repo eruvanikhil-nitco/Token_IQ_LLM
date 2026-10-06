@@ -32,10 +32,10 @@ if TYPE_CHECKING:
 
     from token_iq.gateway.router import Router as _Router
 
-    LitellmRouter = _Router
+    GatewayRouter = _Router
     Span = _Span | Any
 else:
-    LitellmRouter = Any
+    GatewayRouter = Any
     Span = Any
 
 _ADVISOR_ORCHESTRATION_FAILURE_ATTR: Final = "_litellm_advisor_orchestration_failure"
@@ -88,7 +88,7 @@ def _first_present(*sources: Mapping[str, Any] | None, key: str) -> int | float 
 
 
 def _get_deployment_cooldown_policy(
-    litellm_router_instance: LitellmRouter,
+    litellm_router_instance: GatewayRouter,
     deployment: str,
 ) -> tuple[Mapping[str, int] | None, int | None]:
     """Return (allowed_fails_policy, allowed_fails) from deployment model_info, or (None, None).
@@ -126,7 +126,7 @@ def _resolve_allowed_fails_from_policy(
 
 
 def _should_cooldown_based_on_deployment_policy(
-    litellm_router_instance: LitellmRouter,
+    litellm_router_instance: GatewayRouter,
     deployment: str,
     original_exception: Exception,
     dep_policy: Mapping[str, int] | None,
@@ -177,7 +177,7 @@ def _should_cooldown_based_on_deployment_policy(
 
 
 def _has_explicit_allowed_fails_policy_for_exception(
-    litellm_router_instance: LitellmRouter,
+    litellm_router_instance: GatewayRouter,
     deployment: str | None,
     original_exception: Exception,
 ) -> bool:
@@ -203,7 +203,7 @@ def _has_explicit_allowed_fails_policy_for_exception(
 
 
 def _is_cooldown_required(
-    litellm_router_instance: LitellmRouter,
+    litellm_router_instance: GatewayRouter,
     model_id: str,
     exception_status: str | int,
     exception_str: str | None = None,
@@ -256,7 +256,7 @@ def _is_cooldown_required(
 
 
 def _should_run_cooldown_logic(
-    litellm_router_instance: LitellmRouter,
+    litellm_router_instance: GatewayRouter,
     deployment: str | None,
     exception_status: str | int,
     original_exception: Any,
@@ -315,7 +315,7 @@ def _should_run_cooldown_logic(
 
 
 def _should_cooldown_deployment(
-    litellm_router_instance: LitellmRouter,
+    litellm_router_instance: GatewayRouter,
     deployment: str,
     exception_status: str | int,
     original_exception: Any,
@@ -411,7 +411,7 @@ def _should_cooldown_deployment(
 
 
 def _set_cooldown_deployments(
-    litellm_router_instance: LitellmRouter,
+    litellm_router_instance: GatewayRouter,
     original_exception: Any,
     exception_status: str | int,
     deployment: str | None = None,
@@ -476,7 +476,7 @@ def _set_cooldown_deployments(
 
 
 async def _async_get_cooldown_deployments(
-    litellm_router_instance: LitellmRouter,
+    litellm_router_instance: GatewayRouter,
     parent_otel_span: Span | None,
 ) -> list[str]:
     """
@@ -502,7 +502,7 @@ async def _async_get_cooldown_deployments(
 
 
 async def _async_get_cooldown_deployments_with_debug_info(
-    litellm_router_instance: LitellmRouter,
+    litellm_router_instance: GatewayRouter,
     parent_otel_span: Span | None,
 ) -> list[tuple]:
     """
@@ -517,7 +517,7 @@ async def _async_get_cooldown_deployments_with_debug_info(
     return cooldown_models
 
 
-def _get_cooldown_deployments(litellm_router_instance: LitellmRouter, parent_otel_span: Span | None) -> list[str]:
+def _get_cooldown_deployments(litellm_router_instance: GatewayRouter, parent_otel_span: Span | None) -> list[str]:
     """
     Get the list of models being cooled down for this minute
     """
@@ -545,7 +545,7 @@ def _get_cooldown_deployments(litellm_router_instance: LitellmRouter, parent_ote
 
 
 def should_cooldown_based_on_allowed_fails_policy(
-    litellm_router_instance: LitellmRouter,
+    litellm_router_instance: GatewayRouter,
     deployment: str,
     original_exception: Any,
     allowed_fails_override: int | None = None,
@@ -597,7 +597,7 @@ def should_cooldown_based_on_allowed_fails_policy(
 
 
 def _is_allowed_fails_set_on_router(
-    litellm_router_instance: LitellmRouter,
+    litellm_router_instance: GatewayRouter,
 ) -> bool:
     """
     Check if Router.allowed_fails is set or is Non-default Value

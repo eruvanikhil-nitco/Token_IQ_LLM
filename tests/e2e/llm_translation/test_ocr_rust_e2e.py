@@ -23,7 +23,7 @@ from e2e_config import unique_marker
 from e2e_http import assert_client_error, unwrap
 from endpoints_client import EndpointsClient
 from lifecycle import ResourceManager
-from models import LiteLLMParamsBody, OcrBody, OcrDocument, OcrResponse
+from models import GatewayParamsBody, OcrBody, OcrDocument, OcrResponse
 from pydantic import BaseModel
 
 pytestmark = pytest.mark.e2e
@@ -53,15 +53,15 @@ class OcrProvider(Protocol):
     credential references the proxy resolves at call time. Each provider owns which
     env vars it reads, so a new provider is a new type, not another inline body."""
 
-    def litellm_params(self) -> LiteLLMParamsBody: ...
+    def litellm_params(self) -> GatewayParamsBody: ...
 
 
 @dataclass(frozen=True, slots=True)
 class MistralOcr:
     model: str = "mistral/mistral-ocr-latest"
 
-    def litellm_params(self) -> LiteLLMParamsBody:
-        return LiteLLMParamsBody(model=self.model, api_key="os.environ/MISTRAL_API_KEY")
+    def litellm_params(self) -> GatewayParamsBody:
+        return GatewayParamsBody(model=self.model, api_key="os.environ/MISTRAL_API_KEY")
 
 
 @dataclass(frozen=True, slots=True)
@@ -73,8 +73,8 @@ class AzureAiOcr:
 
     model: str
 
-    def litellm_params(self) -> LiteLLMParamsBody:
-        return LiteLLMParamsBody(model=self.model)
+    def litellm_params(self) -> GatewayParamsBody:
+        return GatewayParamsBody(model=self.model)
 
 
 @dataclass(frozen=True, slots=True)
@@ -86,8 +86,8 @@ class AzureDocIntelligenceOcr:
 
     model: str = "azure_ai/doc-intelligence/prebuilt-layout"
 
-    def litellm_params(self) -> LiteLLMParamsBody:
-        return LiteLLMParamsBody(model=self.model)
+    def litellm_params(self) -> GatewayParamsBody:
+        return GatewayParamsBody(model=self.model)
 
 
 @dataclass(frozen=True, slots=True)
@@ -102,8 +102,8 @@ class VertexOcr:
     model: str
     location: str
 
-    def litellm_params(self) -> LiteLLMParamsBody:
-        return LiteLLMParamsBody(model=self.model, vertex_location=self.location)
+    def litellm_params(self) -> GatewayParamsBody:
+        return GatewayParamsBody(model=self.model, vertex_location=self.location)
 
 
 @dataclass(frozen=True, slots=True)

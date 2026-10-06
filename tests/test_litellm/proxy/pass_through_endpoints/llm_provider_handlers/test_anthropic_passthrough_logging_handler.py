@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.proxy.pass_through_endpoints.llm_provider_handlers.anthropic_passthrough_logging_handler import (
     AnthropicPassthroughLoggingHandler,
 )
@@ -36,7 +36,7 @@ class TestAnthropicLoggingHandlerModelFallback:
 
     def _create_mock_logging_obj(
         self, model_in_details: str = None
-    ) -> LiteLLMLoggingObj:
+    ) -> GatewayLoggingObj:
         """Create a mock logging object with optional model in model_call_details"""
         mock_logging_obj = MagicMock()
 
@@ -202,7 +202,7 @@ class TestAzureAnthropicCostCalculation:
 
     def _create_mock_logging_obj(
         self, model: str = None, custom_llm_provider: str = None
-    ) -> LiteLLMLoggingObj:
+    ) -> GatewayLoggingObj:
         """Create a mock logging object with optional model and custom_llm_provider"""
         mock_logging_obj = MagicMock()
         mock_model_call_details = {}
@@ -237,7 +237,7 @@ class TestAzureAnthropicCostCalculation:
         end_time = datetime.now()
 
         AnthropicPassthroughLoggingHandler._create_anthropic_response_logging_payload(
-            litellm_model_response=mock_response,
+            gateway_model_response=mock_response,
             model="claude-sonnet-4-5_gb_20250929",
             kwargs=kwargs,
             start_time=start_time,
@@ -271,7 +271,7 @@ class TestAzureAnthropicCostCalculation:
         end_time = datetime.now()
 
         AnthropicPassthroughLoggingHandler._create_anthropic_response_logging_payload(
-            litellm_model_response=mock_response,
+            gateway_model_response=mock_response,
             model="claude-3-sonnet-20240229",
             kwargs=kwargs,
             start_time=start_time,
@@ -310,7 +310,7 @@ class TestAzureAnthropicCostCalculation:
 
         # Model already has the provider prefix
         AnthropicPassthroughLoggingHandler._create_anthropic_response_logging_payload(
-            litellm_model_response=mock_response,
+            gateway_model_response=mock_response,
             model="azure_ai/claude-sonnet-4-5_gb_20250929",
             kwargs=kwargs,
             start_time=start_time,
@@ -325,7 +325,7 @@ class TestAzureAnthropicCostCalculation:
         assert call_kwargs["custom_llm_provider"] == "azure_ai"
 
     @patch("token_iq.gateway.completion_cost")
-    def test_cost_calculation_resolves_unknown_model_from_litellm_params(
+    def test_cost_calculation_resolves_unknown_model_from_gateway_params(
         self, mock_completion_cost
     ):
         """When the body model is the "unknown" sentinel, the deployment model
@@ -351,7 +351,7 @@ class TestAzureAnthropicCostCalculation:
         mock_response.model = "unknown"
 
         kwargs = AnthropicPassthroughLoggingHandler._create_anthropic_response_logging_payload(
-            litellm_model_response=mock_response,
+            gateway_model_response=mock_response,
             model="unknown",
             kwargs={},
             start_time=datetime.now(),
@@ -393,7 +393,7 @@ class TestAzureAnthropicCostCalculation:
         mock_response.model = "unknown"
 
         kwargs = AnthropicPassthroughLoggingHandler._create_anthropic_response_logging_payload(
-            litellm_model_response=mock_response,
+            gateway_model_response=mock_response,
             model="unknown",
             kwargs={},
             start_time=datetime.now(),
@@ -409,7 +409,7 @@ class TestAzureAnthropicCostCalculation:
         assert kwargs["response_cost"] == 0.002
 
     @patch("token_iq.gateway.completion_cost")
-    def test_cost_calculation_skips_unknown_litellm_params_model_for_model_group(
+    def test_cost_calculation_skips_unknown_gateway_params_model_for_model_group(
         self, mock_completion_cost
     ):
         """When litellm_params.model is itself the "unknown" sentinel, the
@@ -435,7 +435,7 @@ class TestAzureAnthropicCostCalculation:
         mock_response.model = "unknown"
 
         kwargs = AnthropicPassthroughLoggingHandler._create_anthropic_response_logging_payload(
-            litellm_model_response=mock_response,
+            gateway_model_response=mock_response,
             model="unknown",
             kwargs={},
             start_time=datetime.now(),
@@ -614,7 +614,7 @@ class TestAzureAnthropicCostCalculation:
         )
 
         kwargs = AnthropicPassthroughLoggingHandler._create_anthropic_response_logging_payload(
-            litellm_model_response=response,
+            gateway_model_response=response,
             model="claude-3-7-sonnet-20250219",
             kwargs={},
             start_time=datetime.now(),
@@ -696,12 +696,12 @@ class TestAnthropicBatchPassthroughCostTracking:
         mock_request_body,
     ):
         """Test successful batch creation and managed object storage"""
-        from token_iq.gateway.types.utils import LiteLLMBatch
+        from token_iq.gateway.types.utils import GatewayBatch
 
         # Setup mocks
         mock_get_model_id.return_value = "claude-sonnet-4-5-20250929"
 
-        mock_batch_response = LiteLLMBatch(
+        mock_batch_response = GatewayBatch(
             id="msgbatch_01Wj7gkQk7gn4MpAKR8ZEDU2",
             object="batch",
             endpoint="/v1/messages",
@@ -773,12 +773,12 @@ class TestAnthropicBatchPassthroughCostTracking:
     ):
         """Test that model is correctly extracted from nested request structure"""
         from token_iq.gateway.llms.anthropic.batches.transformation import AnthropicBatchesConfig
-        from token_iq.gateway.types.utils import LiteLLMBatch
+        from token_iq.gateway.types.utils import GatewayBatch
 
         # Setup mocks
         mock_get_model_id.return_value = "claude-sonnet-4-5-20250929"
 
-        mock_batch_response = LiteLLMBatch(
+        mock_batch_response = GatewayBatch(
             id="msgbatch_123",
             object="batch",
             endpoint="/v1/messages",
@@ -833,13 +833,13 @@ class TestAnthropicBatchPassthroughCostTracking:
     ):
         """Test that model gets 'anthropic/' prefix when not found in router"""
         from token_iq.gateway.llms.anthropic.batches.transformation import AnthropicBatchesConfig
-        from token_iq.gateway.types.utils import LiteLLMBatch
+        from token_iq.gateway.types.utils import GatewayBatch
         import base64
 
         # Model not in router - returns same model name
         mock_get_model_id.return_value = "claude-sonnet-4-5-20250929"
 
-        mock_batch_response = LiteLLMBatch(
+        mock_batch_response = GatewayBatch(
             id="msgbatch_123",
             object="batch",
             endpoint="/v1/messages",
@@ -1075,14 +1075,14 @@ class TestAnthropicBatchPassthroughCostTracking:
         self, mock_proxy_logging_obj, mock_logging_obj
     ):
         """Test storing batch managed object"""
-        from token_iq.gateway.types.utils import LiteLLMBatch
+        from token_iq.gateway.types.utils import GatewayBatch
 
         # Setup mocks
         mock_managed_files_hook = MagicMock()
         mock_managed_files_hook.store_unified_object_id = AsyncMock()
         mock_proxy_logging_obj.get_proxy_hook.return_value = mock_managed_files_hook
 
-        batch_object = LiteLLMBatch(
+        batch_object = GatewayBatch(
             id="msgbatch_123",
             object="batch",
             endpoint="/v1/messages",
@@ -1310,7 +1310,7 @@ class TestPureTextFastPathParity:
         start = datetime.now()
         end = datetime.now()
         k_legacy = AnthropicPassthroughLoggingHandler._create_anthropic_response_logging_payload(
-            litellm_model_response=legacy,
+            gateway_model_response=legacy,
             model="claude-3-5-sonnet-20241022",
             kwargs={},
             start_time=start,
@@ -1318,7 +1318,7 @@ class TestPureTextFastPathParity:
             logging_obj=lo1,
         )
         k_fast = AnthropicPassthroughLoggingHandler._create_anthropic_response_logging_payload(
-            litellm_model_response=fast,
+            gateway_model_response=fast,
             model="claude-3-5-sonnet-20241022",
             kwargs={},
             start_time=start,
@@ -1700,8 +1700,8 @@ class TestStreamFalseDeduplication:
         return f"event: {event}\ndata: {json.dumps(data)}\n\n".encode()
 
     @staticmethod
-    def _make_logging_obj(stream: bool = False) -> LiteLLMLoggingObj:
-        logging_obj = LiteLLMLoggingObj(
+    def _make_logging_obj(stream: bool = False) -> GatewayLoggingObj:
+        logging_obj = GatewayLoggingObj(
             model="claude-3-5-sonnet-20241022",
             messages=[{"role": "user", "content": "hello"}],
             stream=stream,
@@ -1920,8 +1920,8 @@ class TestNonStreamingResponseRedaction:
     """
 
     @staticmethod
-    def _make_logging_obj(stream: bool) -> LiteLLMLoggingObj:
-        logging_obj = LiteLLMLoggingObj(
+    def _make_logging_obj(stream: bool) -> GatewayLoggingObj:
+        logging_obj = GatewayLoggingObj(
             model="claude-3-5-sonnet-20241022",
             messages=[{"role": "user", "content": "hello"}],
             stream=stream,
@@ -1942,7 +1942,7 @@ class TestNonStreamingResponseRedaction:
         response = ModelResponse(model="claude-3-5-sonnet-20241022")
 
         AnthropicPassthroughLoggingHandler._create_anthropic_response_logging_payload(
-            litellm_model_response=response,
+            gateway_model_response=response,
             model="claude-3-5-sonnet-20241022",
             kwargs={},
             start_time=datetime.now(),
@@ -1961,7 +1961,7 @@ class TestNonStreamingResponseRedaction:
         response = ModelResponse(model="claude-3-5-sonnet-20241022")
 
         AnthropicPassthroughLoggingHandler._create_anthropic_response_logging_payload(
-            litellm_model_response=response,
+            gateway_model_response=response,
             model="claude-3-5-sonnet-20241022",
             kwargs={},
             start_time=datetime.now(),
@@ -1987,7 +1987,7 @@ class TestNonStreamingResponseRedaction:
         )
 
         AnthropicPassthroughLoggingHandler._create_anthropic_response_logging_payload(
-            litellm_model_response=response,
+            gateway_model_response=response,
             model="claude-3-5-sonnet-20241022",
             kwargs={},
             start_time=datetime.now(),
@@ -2302,7 +2302,7 @@ class TestAnthropicResponseCostRecordedOnModelCallDetails:
         )
 
         kwargs = AnthropicPassthroughLoggingHandler._create_anthropic_response_logging_payload(
-            litellm_model_response=response,
+            gateway_model_response=response,
             model="claude-3-7-sonnet-20250219",
             kwargs={},
             start_time=datetime.now(),
@@ -2341,8 +2341,8 @@ class TestAnthropicPassthroughFastMode:
         'data: {"type": "message_stop"}',
     ]
 
-    def _logging_obj(self) -> LiteLLMLoggingObj:
-        return LiteLLMLoggingObj(
+    def _logging_obj(self) -> GatewayLoggingObj:
+        return GatewayLoggingObj(
             model=self.MODEL,
             messages=[],
             stream=True,

@@ -5,7 +5,7 @@ from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.transfor
 from token_iq.gateway.llms.deepseek.messages.transformation import (
     DeepSeekAnthropicMessagesConfig,
 )
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.utils import ProviderConfigManager
 
 
@@ -175,7 +175,7 @@ def test_deepseek_anthropic_messages_preserves_thinking_and_sanitizes_custom_too
                 },
             ],
         },
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         headers={},
     )
 

@@ -49,7 +49,7 @@ from token_iq.gateway.types.utils import (
     GenericBudgetConfigType,
     ImageResponse,
     InternalCallOrigin,
-    LiteLLMPydanticObjectBase,
+    GatewayPydanticObjectBase,
     ModelResponse,
     ProviderField,
     StandardCallbackDynamicParams,
@@ -118,14 +118,14 @@ class SupportedDBObjectType(str, enum.Enum):
         return str(self.value)
 
 
-class LiteLLMTeamRoles(enum.Enum):
+class GatewayTeamRoles(enum.Enum):
     # team admin
     TEAM_ADMIN = "admin"
     # team member
     TEAM_MEMBER = "user"
 
 
-class LitellmUserRoles(str, enum.Enum):
+class GatewayUserRoles(str, enum.Enum):
     """
     Admin Roles:
     PROXY_ADMIN: admin over the platform
@@ -208,7 +208,7 @@ class LitellmUserRoles(str, enum.Enum):
         ]
 
 
-class LitellmTableNames(str, enum.Enum):
+class GatewayTableNames(str, enum.Enum):
     """
     Enum for Table Names used by LiteLLM
     """
@@ -226,7 +226,7 @@ class LitellmTableNames(str, enum.Enum):
     UI_SETTINGS_TABLE_NAME = "LiteLLM_UISettings"
 
 
-class Litellm_EntityType(enum.Enum):
+class Gateway_EntityType(enum.Enum):
     """
     Enum for types of entities on litellm
 
@@ -297,7 +297,7 @@ class KeyManagementRoutes(str, enum.Enum):
     SPEND_LOGS_V2 = "/spend/logs/v2"
 
 
-class LiteLLMRoutes(enum.Enum):
+class GatewayRoutes(enum.Enum):
     openai_route_names = [
         "chat_completion",
         "completion",
@@ -486,7 +486,7 @@ class LiteLLMRoutes(enum.Enum):
     #########################################################
     passthrough_routes_wildcard = [f"{route}/*" for route in mapped_pass_through_routes]
 
-    litellm_native_routes = [
+    gateway_native_routes = [
         "/rag/ingest",
         "/v1/rag/ingest",
         "/rag/query",
@@ -585,7 +585,7 @@ class LiteLLMRoutes(enum.Enum):
         + passthrough_routes_wildcard
         + apply_guardrail_routes
         + mcp_inference_routes
-        + litellm_native_routes
+        + gateway_native_routes
         + list(agent_inference_routes)
         + model_info_routes
     )
@@ -975,7 +975,7 @@ class LiteLLMRoutes(enum.Enum):
     org_admin_allowed_routes = org_admin_only_routes + management_routes + self_managed_routes + admin_viewer_routes
 
 
-class LiteLLMPromptInjectionParams(LiteLLMPydanticObjectBase):
+class GatewayPromptInjectionParams(GatewayPydanticObjectBase):
     heuristics_check: bool = False
     vector_db_check: bool = False
     llm_api_check: bool = False
@@ -1002,7 +1002,7 @@ class LiteLLMPromptInjectionParams(LiteLLMPydanticObjectBase):
 
 
 ######### Request Class Definition ######
-class ProxyChatCompletionRequest(LiteLLMPydanticObjectBase):
+class ProxyChatCompletionRequest(GatewayPydanticObjectBase):
     """
     Pydantic model for chat completion requests that includes both OpenAI standard fields
     and Token IQ-specific parameters. This replaces the previous TypedDict version.
@@ -1046,11 +1046,11 @@ class ProxyChatCompletionRequest(LiteLLMPydanticObjectBase):
     fallbacks: list[str] | None = None
 
 
-class ModelInfoDelete(LiteLLMPydanticObjectBase):
+class ModelInfoDelete(GatewayPydanticObjectBase):
     id: str
 
 
-class ModelInfo(LiteLLMPydanticObjectBase):
+class ModelInfo(GatewayPydanticObjectBase):
     id: str | None
     mode: Literal["embedding", "chat", "completion"] | None
     input_cost_per_token: float | None = 0.0
@@ -1086,16 +1086,16 @@ class ModelInfo(LiteLLMPydanticObjectBase):
         return values
 
 
-class ProviderInfo(LiteLLMPydanticObjectBase):
+class ProviderInfo(GatewayPydanticObjectBase):
     name: str
     fields: list[ProviderField]
 
 
-class BlockUsers(LiteLLMPydanticObjectBase):
+class BlockUsers(GatewayPydanticObjectBase):
     user_ids: list[str]  # required
 
 
-class ModelParams(LiteLLMPydanticObjectBase):
+class ModelParams(GatewayPydanticObjectBase):
     model_name: str
     litellm_params: dict
     model_info: ModelInfo
@@ -1110,7 +1110,7 @@ class ModelParams(LiteLLMPydanticObjectBase):
         return values
 
 
-class LiteLLM_ObjectPermissionBase(LiteLLMPydanticObjectBase):
+class LiteLLM_ObjectPermissionBase(GatewayPydanticObjectBase):
     mcp_servers: list[str] | None = None
     mcp_access_groups: list[str] | None = None
     mcp_tool_permissions: dict[str, list[str]] | None = None
@@ -1130,7 +1130,7 @@ from token_iq.gateway.types.object_permission import (  # noqa: E402
 )
 
 
-class GenerateRequestBase(LiteLLMPydanticObjectBase):
+class GenerateRequestBase(GatewayPydanticObjectBase):
     """
     Overlapping schema between key and user generate/update requests
     """
@@ -1177,7 +1177,7 @@ class GenerateRequestBase(LiteLLMPydanticObjectBase):
         return v
 
 
-class AllowedVectorStoreIndexItem(LiteLLMPydanticObjectBase):
+class AllowedVectorStoreIndexItem(GatewayPydanticObjectBase):
     index_name: str
     index_permissions: list[Literal["read", "write"]]
 
@@ -1205,7 +1205,7 @@ class KeyRequestBase(GenerateRequestBase):
     access_group_ids: list[str] | None = None
 
 
-class LiteLLMKeyType(str, enum.Enum):
+class GatewayKeyType(str, enum.Enum):
     """
     Enum for key types that determine what routes a key can access
     """
@@ -1219,8 +1219,8 @@ class LiteLLMKeyType(str, enum.Enum):
 class GenerateKeyRequest(KeyRequestBase):
     soft_budget: float | None = None
     send_invite_email: bool | None = None
-    key_type: LiteLLMKeyType | None = Field(
-        default=LiteLLMKeyType.DEFAULT,
+    key_type: GatewayKeyType | None = Field(
+        default=GatewayKeyType.DEFAULT,
         description="Type of key that determines default allowed routes.",
     )
     auto_rotate: bool | None = Field(default=False, description="Whether this key should be automatically rotated")
@@ -1318,7 +1318,7 @@ class RegenerateKeyRequest(GenerateKeyRequest):
     grace_period: str | None = None  # Duration to keep old key valid (e.g. "24h", "2d"); None = immediate revoke
 
 
-class ResetSpendRequest(LiteLLMPydanticObjectBase):
+class ResetSpendRequest(GatewayPydanticObjectBase):
     reset_to: float
 
     @field_validator("reset_to", mode="before")
@@ -1332,7 +1332,7 @@ class ResetSpendRequest(LiteLLMPydanticObjectBase):
         return v
 
 
-class KeyRequest(LiteLLMPydanticObjectBase):
+class KeyRequest(GatewayPydanticObjectBase):
     keys: list[str] | None = None
     key_aliases: list[str] | None = None
 
@@ -1382,7 +1382,7 @@ def _dcr_bridge_auth_type_error(auth_type: object) -> ValueError:
     )
 
 
-class NewMCPServerRequest(LiteLLMPydanticObjectBase):
+class NewMCPServerRequest(GatewayPydanticObjectBase):
     server_id: str | None = None
     server_name: str | None = None
     alias: str | None = None
@@ -1488,7 +1488,7 @@ class NewMCPServerRequest(LiteLLMPydanticObjectBase):
         raise _dcr_bridge_auth_type_error(auth_type)
 
 
-class UpdateMCPServerRequest(LiteLLMPydanticObjectBase):
+class UpdateMCPServerRequest(GatewayPydanticObjectBase):
     server_id: str
     server_name: str | None = None
     alias: str | None = None
@@ -1579,21 +1579,21 @@ from token_iq.gateway.models.mcp_server import (  # noqa: E402
 )
 
 
-class MakeMCPServersPublicRequest(LiteLLMPydanticObjectBase):
+class MakeMCPServersPublicRequest(GatewayPydanticObjectBase):
     mcp_server_ids: list[str]
 
 
-class MCPUserCredentialRequest(LiteLLMPydanticObjectBase):
+class MCPUserCredentialRequest(GatewayPydanticObjectBase):
     credential: str
     save: bool = True
 
 
-class MCPUserCredentialResponse(LiteLLMPydanticObjectBase):
+class MCPUserCredentialResponse(GatewayPydanticObjectBase):
     server_id: str
     has_credential: bool
 
 
-class MCPOAuthUserCredentialRequest(LiteLLMPydanticObjectBase):
+class MCPOAuthUserCredentialRequest(GatewayPydanticObjectBase):
     """Stores a user's OAuth2 token for an OpenAPI MCP server."""
 
     access_token: str
@@ -1602,7 +1602,7 @@ class MCPOAuthUserCredentialRequest(LiteLLMPydanticObjectBase):
     scopes: list[str] | None = None
 
 
-class MCPOAuthUserCredentialStatus(LiteLLMPydanticObjectBase):
+class MCPOAuthUserCredentialStatus(GatewayPydanticObjectBase):
     """Describes whether the calling user has a stored OAuth credential."""
 
     server_id: str
@@ -1612,7 +1612,7 @@ class MCPOAuthUserCredentialStatus(LiteLLMPydanticObjectBase):
     connected_at: str | None = None  # ISO-8601
 
 
-class MCPUserCredentialListItem(LiteLLMPydanticObjectBase):
+class MCPUserCredentialListItem(GatewayPydanticObjectBase):
     """One entry in the /user-credentials list."""
 
     server_id: str
@@ -1624,13 +1624,13 @@ class MCPUserCredentialListItem(LiteLLMPydanticObjectBase):
     connected_at: str | None = None  # ISO-8601
 
 
-class MCPUserEnvVarsRequest(LiteLLMPydanticObjectBase):
+class MCPUserEnvVarsRequest(GatewayPydanticObjectBase):
     """Payload for storing the calling user's per-user env var values."""
 
     values: dict[str, str]
 
 
-class MCPUserEnvVarSpec(LiteLLMPydanticObjectBase):
+class MCPUserEnvVarSpec(GatewayPydanticObjectBase):
     """Describes one per-user env var slot for the calling user.
 
     Stored values are write-only: the status only reports whether a value
@@ -1642,7 +1642,7 @@ class MCPUserEnvVarSpec(LiteLLMPydanticObjectBase):
     is_set: bool = False
 
 
-class MCPUserEnvVarsStatus(LiteLLMPydanticObjectBase):
+class MCPUserEnvVarsStatus(GatewayPydanticObjectBase):
     """Per-user env var status for a single MCP server."""
 
     server_id: str
@@ -1653,11 +1653,11 @@ class MCPUserEnvVarsStatus(LiteLLMPydanticObjectBase):
     setup_url: str | None = None  # frontend URL where the user can fill these in
 
 
-class RejectMCPServerRequest(LiteLLMPydanticObjectBase):
+class RejectMCPServerRequest(GatewayPydanticObjectBase):
     review_notes: str | None = None
 
 
-class MCPSubmissionsSummary(LiteLLMPydanticObjectBase):
+class MCPSubmissionsSummary(GatewayPydanticObjectBase):
     total: int
     pending_review: int
     active: int
@@ -1668,7 +1668,7 @@ class MCPSubmissionsSummary(LiteLLMPydanticObjectBase):
 ######## Skills API Types ########
 
 
-class NewSkillRequest(LiteLLMPydanticObjectBase):
+class NewSkillRequest(GatewayPydanticObjectBase):
     """Request to create a new skill in LiteLLM database"""
 
     display_title: str | None = None
@@ -1683,7 +1683,7 @@ class NewSkillRequest(LiteLLMPydanticObjectBase):
     registration_url: str | None = None
 
 
-class UpdateSkillRequest(LiteLLMPydanticObjectBase):
+class UpdateSkillRequest(GatewayPydanticObjectBase):
     """Request to update an existing skill"""
 
     skill_id: str
@@ -1701,14 +1701,14 @@ from token_iq.gateway.models.skills import (  # noqa: E402
 )
 
 
-class ListSkillsRequest(LiteLLMPydanticObjectBase):
+class ListSkillsRequest(GatewayPydanticObjectBase):
     """Request to list skills from LiteLLM database"""
 
     limit: int | None = 20
     offset: int | None = 0
 
 
-class NewUserRequestTeam(LiteLLMPydanticObjectBase):
+class NewUserRequestTeam(GatewayPydanticObjectBase):
     team_id: str
     max_budget_in_team: float | None = None
     user_role: Literal["user", "admin"] = "user"
@@ -1720,10 +1720,10 @@ class NewUserRequest(GenerateRequestBase):
     user_alias: str | None = None
     user_role: (
         Literal[
-            LitellmUserRoles.PROXY_ADMIN,
-            LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY,
-            LitellmUserRoles.INTERNAL_USER,
-            LitellmUserRoles.INTERNAL_USER_VIEW_ONLY,
+            GatewayUserRoles.PROXY_ADMIN,
+            GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY,
+            GatewayUserRoles.INTERNAL_USER,
+            GatewayUserRoles.INTERNAL_USER_VIEW_ONLY,
         ]
         | None
     ) = None
@@ -1739,10 +1739,10 @@ class NewUserResponse(GenerateKeyResponse):
     user_email: str | None = None
     user_role: (
         Literal[
-            LitellmUserRoles.PROXY_ADMIN,
-            LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY,
-            LitellmUserRoles.INTERNAL_USER,
-            LitellmUserRoles.INTERNAL_USER_VIEW_ONLY,
+            GatewayUserRoles.PROXY_ADMIN,
+            GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY,
+            GatewayUserRoles.INTERNAL_USER,
+            GatewayUserRoles.INTERNAL_USER_VIEW_ONLY,
         ]
         | None
     ) = None
@@ -1760,10 +1760,10 @@ class UpdateUserRequestNoUserIDorEmail(GenerateRequestBase):  # shared with Bulk
     user_alias: str | None = None
     user_role: (
         Literal[
-            LitellmUserRoles.PROXY_ADMIN,
-            LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY,
-            LitellmUserRoles.INTERNAL_USER,
-            LitellmUserRoles.INTERNAL_USER_VIEW_ONLY,
+            GatewayUserRoles.PROXY_ADMIN,
+            GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY,
+            GatewayUserRoles.INTERNAL_USER,
+            GatewayUserRoles.INTERNAL_USER_VIEW_ONLY,
         ]
         | None
     ) = None
@@ -1784,14 +1784,14 @@ class UpdateUserRequest(UpdateUserRequestNoUserIDorEmail):
         return values
 
 
-class DeleteUserRequest(LiteLLMPydanticObjectBase):
+class DeleteUserRequest(GatewayPydanticObjectBase):
     user_ids: list[str]  # required
 
 
 AllowedModelRegion = Literal["eu", "us"]
 
 
-class BudgetNewRequest(LiteLLMPydanticObjectBase):
+class BudgetNewRequest(GatewayPydanticObjectBase):
     budget_id: str | None = Field(default=None, description="The unique budget id.")
     max_budget: float | None = Field(
         default=None,
@@ -1820,15 +1820,15 @@ class BudgetNewRequest(LiteLLMPydanticObjectBase):
     )
 
 
-class BudgetRequest(LiteLLMPydanticObjectBase):
+class BudgetRequest(GatewayPydanticObjectBase):
     budgets: list[str]
 
 
-class BudgetDeleteRequest(LiteLLMPydanticObjectBase):
+class BudgetDeleteRequest(GatewayPydanticObjectBase):
     id: str
 
 
-class CustomerBase(LiteLLMPydanticObjectBase):
+class CustomerBase(GatewayPydanticObjectBase):
     user_id: str
     alias: str | None = None
     spend: float = 0.0
@@ -1864,7 +1864,7 @@ class NewCustomerRequest(BudgetNewRequest):
         return values
 
 
-class UpdateCustomerRequest(LiteLLMPydanticObjectBase):
+class UpdateCustomerRequest(GatewayPydanticObjectBase):
     """
     Update a Customer, use this to update customer budgets etc
 
@@ -1882,7 +1882,7 @@ class UpdateCustomerRequest(LiteLLMPydanticObjectBase):
     object_permission: LiteLLM_ObjectPermissionBase | None = None
 
 
-class DeleteCustomerRequest(LiteLLMPydanticObjectBase):
+class DeleteCustomerRequest(GatewayPydanticObjectBase):
     """
     Delete multiple Customers
     """
@@ -1896,9 +1896,9 @@ from token_iq.gateway.models.team import MemberBase as MemberBase  # noqa: E402
 
 class OrgMember(MemberBase):
     role: Literal[
-        LitellmUserRoles.ORG_ADMIN,
-        LitellmUserRoles.INTERNAL_USER,
-        LitellmUserRoles.INTERNAL_USER_VIEW_ONLY,
+        GatewayUserRoles.ORG_ADMIN,
+        GatewayUserRoles.INTERNAL_USER,
+        GatewayUserRoles.INTERNAL_USER_VIEW_ONLY,
     ]
 
 
@@ -1939,13 +1939,13 @@ class NewTeamRequest(TeamBase):
     model_config = ConfigDict(protected_namespaces=())
 
 
-class GlobalEndUsersSpend(LiteLLMPydanticObjectBase):
+class GlobalEndUsersSpend(GatewayPydanticObjectBase):
     api_key: str | None = None
     startTime: datetime | None = None
     endTime: datetime | None = None
 
 
-class UpdateTeamRequest(LiteLLMPydanticObjectBase):
+class UpdateTeamRequest(GatewayPydanticObjectBase):
     """
     UpdateTeamRequest, used by /team/update when you need to update a team
 
@@ -2014,7 +2014,7 @@ class PatchTeamRequest(UpdateTeamRequest):
     team_id: str | None = None
 
 
-class ResetTeamBudgetRequest(LiteLLMPydanticObjectBase):
+class ResetTeamBudgetRequest(GatewayPydanticObjectBase):
     """
     internal type used to reset the budget on a team
     used by reset_budget()
@@ -2030,23 +2030,23 @@ class ResetTeamBudgetRequest(LiteLLMPydanticObjectBase):
     updated_at: datetime
 
 
-class DeleteTeamRequest(LiteLLMPydanticObjectBase):
+class DeleteTeamRequest(GatewayPydanticObjectBase):
     team_ids: list[str]  # required
 
 
-class BlockTeamRequest(LiteLLMPydanticObjectBase):
+class BlockTeamRequest(GatewayPydanticObjectBase):
     team_id: str  # required
 
 
-class BlockKeyRequest(LiteLLMPydanticObjectBase):
+class BlockKeyRequest(GatewayPydanticObjectBase):
     key: str  # required
 
 
-class BlockModelRequest(LiteLLMPydanticObjectBase):
+class BlockModelRequest(GatewayPydanticObjectBase):
     model_id: str  # required
 
 
-class AddTeamCallback(LiteLLMPydanticObjectBase):
+class AddTeamCallback(GatewayPydanticObjectBase):
     callback_name: str
     callback_type: Literal["success", "failure", "success_and_failure"] | None = "success_and_failure"
     callback_vars: dict[str, str]
@@ -2066,19 +2066,19 @@ class AddTeamCallback(LiteLLMPydanticObjectBase):
         return values
 
 
-class TeamCallbackDeleteResponseData(LiteLLMPydanticObjectBase):
+class TeamCallbackDeleteResponseData(GatewayPydanticObjectBase):
     team_id: str
     success_callbacks: tuple[str, ...]
     failure_callbacks: tuple[str, ...]
 
 
-class TeamCallbackDeleteResponse(LiteLLMPydanticObjectBase):
+class TeamCallbackDeleteResponse(GatewayPydanticObjectBase):
     status: Literal["success"]
     message: str
     data: TeamCallbackDeleteResponseData
 
 
-class TeamCallbackMetadata(LiteLLMPydanticObjectBase):
+class TeamCallbackMetadata(GatewayPydanticObjectBase):
     success_callback: list[str] | None = []
     failure_callback: list[str] | None = []
     callbacks: list[str] | None = []
@@ -2128,7 +2128,7 @@ from token_iq.gateway.models.team import (  # noqa: E402
 )
 
 
-class TeamRequest(LiteLLMPydanticObjectBase):
+class TeamRequest(GatewayPydanticObjectBase):
     teams: list[str]
 
 
@@ -2158,15 +2158,15 @@ class NewOrganizationRequest(LiteLLM_BudgetTable):
     object_permission: LiteLLM_ObjectPermissionBase | None = None
 
 
-class OrganizationRequest(LiteLLMPydanticObjectBase):
+class OrganizationRequest(GatewayPydanticObjectBase):
     organizations: list[str]
 
 
-class DeleteOrganizationRequest(LiteLLMPydanticObjectBase):
+class DeleteOrganizationRequest(GatewayPydanticObjectBase):
     organization_ids: list[str]  # required
 
 
-class TeamDefaultSettings(LiteLLMPydanticObjectBase):
+class TeamDefaultSettings(GatewayPydanticObjectBase):
     team_id: str
 
     model_config = ConfigDict(
@@ -2174,7 +2174,7 @@ class TeamDefaultSettings(LiteLLMPydanticObjectBase):
     )  # allow params not defined here, these fall in litellm.completion(**kwargs)
 
 
-class DynamoDBArgs(LiteLLMPydanticObjectBase):
+class DynamoDBArgs(GatewayPydanticObjectBase):
     billing_mode: Literal["PROVISIONED_THROUGHPUT", "PAY_PER_REQUEST"]
     read_capacity_units: int | None = None
     write_capacity_units: int | None = None
@@ -2195,7 +2195,7 @@ class DynamoDBArgs(LiteLLMPydanticObjectBase):
     assume_role_aws_session_name: str | None = None
 
 
-class PassThroughGuardrailSettings(LiteLLMPydanticObjectBase):
+class PassThroughGuardrailSettings(GatewayPydanticObjectBase):
     """
     Settings for a specific guardrail on a passthrough endpoint.
 
@@ -2216,7 +2216,7 @@ class PassThroughGuardrailSettings(LiteLLMPydanticObjectBase):
 PassThroughGuardrailsConfig = dict[str, PassThroughGuardrailSettings | None]
 
 
-class PassThroughGenericEndpoint(LiteLLMPydanticObjectBase):
+class PassThroughGenericEndpoint(GatewayPydanticObjectBase):
     id: str | None = Field(
         default=None,
         description="Optional unique identifier for the pass-through endpoint. If not provided, endpoints will be identified by path for backwards compatibility.",
@@ -2261,22 +2261,22 @@ class PassThroughGenericEndpoint(LiteLLMPydanticObjectBase):
     )
 
 
-class PassThroughEndpointResponse(LiteLLMPydanticObjectBase):
+class PassThroughEndpointResponse(GatewayPydanticObjectBase):
     endpoints: list[PassThroughGenericEndpoint]
 
 
-class ConfigFieldUpdate(LiteLLMPydanticObjectBase):
+class ConfigFieldUpdate(GatewayPydanticObjectBase):
     field_name: str
     field_value: Any
     config_type: Literal["general_settings"]
 
 
-class ConfigFieldDelete(LiteLLMPydanticObjectBase):
+class ConfigFieldDelete(GatewayPydanticObjectBase):
     config_type: Literal["general_settings"]
     field_name: str
 
 
-class CallbackDelete(LiteLLMPydanticObjectBase):
+class CallbackDelete(GatewayPydanticObjectBase):
     callback_name: str
 
 
@@ -2288,7 +2288,7 @@ class FieldDetail(BaseModel):
     stored_in_db: bool | None
 
 
-class ConfigList(LiteLLMPydanticObjectBase):
+class ConfigList(GatewayPydanticObjectBase):
     field_name: str
     field_type: str
     field_description: str
@@ -2301,15 +2301,15 @@ class ConfigList(LiteLLMPydanticObjectBase):
     field_tab: str | None = None  # Admin UI sub-tab this field renders under; None groups it with the rest
 
 
-class UserHeaderMapping(LiteLLMPydanticObjectBase):
+class UserHeaderMapping(GatewayPydanticObjectBase):
     """
     Map an incoming HTTP header to a LiteLLM user role.
     """
 
     header_name: str
     litellm_user_role: Literal[
-        LitellmUserRoles.INTERNAL_USER,
-        LitellmUserRoles.CUSTOMER,
+        GatewayUserRoles.INTERNAL_USER,
+        GatewayUserRoles.CUSTOMER,
     ]
 
     model_config = {
@@ -2320,7 +2320,7 @@ class UserHeaderMapping(LiteLLMPydanticObjectBase):
 UserMCPManagementMode = Literal["restricted", "view_all"]
 
 
-class PluginConfig(LiteLLMPydanticObjectBase):
+class PluginConfig(GatewayPydanticObjectBase):
     """A single external service registered as an embeddable UI plugin."""
 
     name: str = Field(description="unique plugin identifier (kebab-case)")
@@ -2332,14 +2332,14 @@ class PluginConfig(LiteLLMPydanticObjectBase):
     )
 
 
-class CoordinationRedisNode(LiteLLMPydanticObjectBase):
+class CoordinationRedisNode(GatewayPydanticObjectBase):
     """A single startup node of a cluster-mode Redis used for proxy coordination."""
 
     host: str = Field(description="hostname of the cluster node")
     port: int = Field(description="port of the cluster node")
 
 
-class CoordinationRedisParams(LiteLLMPydanticObjectBase):
+class CoordinationRedisParams(GatewayPydanticObjectBase):
     """
     Connection params for the proxy's coordination Redis (cross-pod tpm/rpm rate
     limits, spend tracking, pod lock manager, shared health checks), configured
@@ -2367,7 +2367,7 @@ class CoordinationRedisParams(LiteLLMPydanticObjectBase):
         return any(value is not None for value in (self.host, self.url, self.startup_nodes, self.sentinel_nodes))
 
 
-class ScheduledJobStaggerSettings(LiteLLMPydanticObjectBase):
+class ScheduledJobStaggerSettings(GatewayPydanticObjectBase):
     """
     Spreads the proxy's scheduled background jobs across a window instead of firing them
     all on one instant, on every replica, forever.
@@ -2400,7 +2400,7 @@ class ScheduledJobStaggerSettings(LiteLLMPydanticObjectBase):
     )
 
 
-class ConfigGeneralSettings(LiteLLMPydanticObjectBase):
+class ConfigGeneralSettings(GatewayPydanticObjectBase):
     """
     Documents all the fields supported by `general_settings` in config.yaml
     """
@@ -2810,7 +2810,7 @@ class ConfigGeneralSettings(LiteLLMPydanticObjectBase):
     )
 
 
-class ConfigYAML(LiteLLMPydanticObjectBase):
+class ConfigYAML(GatewayPydanticObjectBase):
     """
     Documents all the fields supported by the config.yaml
     """
@@ -2928,7 +2928,7 @@ class UserAPIKeyAuth(LiteLLM_VerificationTokenView):  # the expected response ob
     """
 
     api_key: str | None = None
-    user_role: LitellmUserRoles | None = None
+    user_role: GatewayUserRoles | None = None
     allowed_model_region: AllowedModelRegion | None = None
     parent_otel_span: Span | None = None
     rpm_limit_per_model: dict[str, int] | None = None
@@ -3002,13 +3002,13 @@ class UserAPIKeyAuth(LiteLLM_VerificationTokenView):  # the expected response ob
         values.pop("mcp_session_resource_server_id", None)
         values.pop("via_virtual_key", None)
         if values.get("api_key") is not None:
-            values.update({"token": cls._safe_hash_litellm_api_key(values.get("api_key"))})
+            values.update({"token": cls._safe_hash_gateway_api_key(values.get("api_key"))})
             if isinstance(values.get("api_key"), str):
-                values.update({"api_key": cls._safe_hash_litellm_api_key(values.get("api_key"))})
+                values.update({"api_key": cls._safe_hash_gateway_api_key(values.get("api_key"))})
         return values
 
     @classmethod
-    def _safe_hash_litellm_api_key(cls, api_key: str) -> str:
+    def _safe_hash_gateway_api_key(cls, api_key: str) -> str:
         """
         Helper to ensure all logged keys are hashed
         Covers:
@@ -3027,7 +3027,7 @@ class UserAPIKeyAuth(LiteLLM_VerificationTokenView):  # the expected response ob
         return normalized
 
     @classmethod
-    def get_litellm_internal_health_check_user_api_key_auth(cls) -> "UserAPIKeyAuth":
+    def get_gateway_internal_health_check_user_api_key_auth(cls) -> "UserAPIKeyAuth":
         """
         Returns a `UserAPIKeyAuth` object for the litellm internal health check service account.
 
@@ -3043,7 +3043,7 @@ class UserAPIKeyAuth(LiteLLM_VerificationTokenView):  # the expected response ob
         )
 
     @classmethod
-    def get_litellm_cli_user_api_key_auth(cls) -> "UserAPIKeyAuth":
+    def get_gateway_cli_user_api_key_auth(cls) -> "UserAPIKeyAuth":
         """
         Returns a `UserAPIKeyAuth` object for the litellm internal health check service account.
 
@@ -3059,7 +3059,7 @@ class UserAPIKeyAuth(LiteLLM_VerificationTokenView):  # the expected response ob
         )
 
     @classmethod
-    def get_litellm_internal_jobs_user_api_key_auth(cls) -> "UserAPIKeyAuth":
+    def get_gateway_internal_jobs_user_api_key_auth(cls) -> "UserAPIKeyAuth":
         """
         Returns a `UserAPIKeyAuth` object for internal LiteLLM jobs like key rotation.
 
@@ -3073,7 +3073,7 @@ class UserAPIKeyAuth(LiteLLM_VerificationTokenView):  # the expected response ob
             key_alias=LITELLM_INTERNAL_JOBS_SERVICE_ACCOUNT_NAME,
             team_alias="system",
             user_id="system",
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
         )
 
 
@@ -3085,19 +3085,19 @@ def user_api_key_has_admin_view(user_api_key_dict: UserAPIKeyAuth) -> bool:
     can use it without pulling in litellm.proxy.utils via management_endpoints.
     """
     return user_api_key_dict.user_role in (
-        LitellmUserRoles.PROXY_ADMIN,
-        LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY,
+        GatewayUserRoles.PROXY_ADMIN,
+        GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY,
     )
 
 
-class UserInfoResponse(LiteLLMPydanticObjectBase):
+class UserInfoResponse(GatewayPydanticObjectBase):
     user_id: str | None
     user_info: dict | BaseModel | None
     keys: list
     teams: list
 
 
-class UserInfoV2Response(LiteLLMPydanticObjectBase):
+class UserInfoV2Response(GatewayPydanticObjectBase):
     """
     Response model for GET /v2/user/info
 
@@ -3157,7 +3157,7 @@ class LiteLLM_OrganizationTableUpdate(LiteLLM_BudgetTable):
         return values
 
 
-class OrganizationUpdateRequestV2(LiteLLMPydanticObjectBase):
+class OrganizationUpdateRequestV2(GatewayPydanticObjectBase):
     """
     Typed PATCH body for ``/v2/organization/{organization_id}`` (RFC 7396 merge-patch).
 
@@ -3206,7 +3206,7 @@ class NewOrganizationResponse(LiteLLM_OrganizationTable):
 ### PROJECT MANAGEMENT TYPES ###
 
 
-class ProjectBase(LiteLLMPydanticObjectBase):
+class ProjectBase(GatewayPydanticObjectBase):
     """Base fields shared by project create/update requests"""
 
     project_id: str | None = None
@@ -3287,7 +3287,7 @@ class UpdateProjectRequest(LiteLLM_BudgetTable):
         return values
 
 
-class DeleteProjectRequest(LiteLLMPydanticObjectBase):
+class DeleteProjectRequest(GatewayPydanticObjectBase):
     """Request model for DELETE /project/delete"""
 
     project_ids: list[str]
@@ -3338,13 +3338,13 @@ from token_iq.gateway.models.tag import LiteLLM_TagTable as LiteLLM_TagTable  # 
 AUDIT_ACTIONS = Literal["created", "updated", "deleted", "blocked", "unblocked", "rotated"]
 
 
-class LiteLLM_AuditLogs(LiteLLMPydanticObjectBase):
+class LiteLLM_AuditLogs(GatewayPydanticObjectBase):
     id: str
     updated_at: datetime
     changed_by: Any | None = None
     changed_by_api_key: str | None = None
     action: AUDIT_ACTIONS
-    table_name: LitellmTableNames
+    table_name: GatewayTableNames
     object_id: str
     before_value: Json | None = None
     updated_values: Json | None = None
@@ -3387,11 +3387,11 @@ class LiteLLM_AuditLogs(LiteLLMPydanticObjectBase):
         return self
 
 
-class LiteLLM_SpendLogs_ResponseObject(LiteLLMPydanticObjectBase):
+class LiteLLM_SpendLogs_ResponseObject(GatewayPydanticObjectBase):
     response: list[LiteLLM_SpendLogs | Any] | None = None
 
 
-class TokenCountRequest(LiteLLMPydanticObjectBase):
+class TokenCountRequest(GatewayPydanticObjectBase):
     model: str
     prompt: str | None = None
     messages: list[dict] | None = None
@@ -3408,7 +3408,7 @@ class TokenCountRequest(LiteLLMPydanticObjectBase):
     system: Any | None = None
 
 
-class CallInfo(LiteLLMPydanticObjectBase):
+class CallInfo(GatewayPydanticObjectBase):
     """Used for slack budget alerting"""
 
     spend: float
@@ -3424,7 +3424,7 @@ class CallInfo(LiteLLMPydanticObjectBase):
     key_alias: str | None = None
     projected_exceeded_date: str | None = None
     projected_spend: float | None = None
-    event_group: Litellm_EntityType
+    event_group: Gateway_EntityType
     alert_emails: list[str] | None = Field(
         default=None,
         description="Additional email addresses to send alerts to (e.g., from team metadata)",
@@ -3448,7 +3448,7 @@ class WebhookEvent(CallInfo):
         "spend_tracked",
     ]
     event_message: str  # human-readable description of event
-    event_group: Litellm_EntityType
+    event_group: Gateway_EntityType
 
 
 class SpecialModelNames(enum.Enum):
@@ -3465,20 +3465,20 @@ class SpecialProxyStrings(enum.Enum):
     default_user_id = "default_user_id"  # global proxy admin
 
 
-class InvitationNew(LiteLLMPydanticObjectBase):
+class InvitationNew(GatewayPydanticObjectBase):
     user_id: str
 
 
-class InvitationUpdate(LiteLLMPydanticObjectBase):
+class InvitationUpdate(GatewayPydanticObjectBase):
     invitation_id: str
     is_accepted: bool
 
 
-class InvitationDelete(LiteLLMPydanticObjectBase):
+class InvitationDelete(GatewayPydanticObjectBase):
     invitation_id: str
 
 
-class InvitationModel(LiteLLMPydanticObjectBase):
+class InvitationModel(GatewayPydanticObjectBase):
     id: str
     user_id: str
     is_accepted: bool
@@ -3490,24 +3490,24 @@ class InvitationModel(LiteLLMPydanticObjectBase):
     updated_by: str
 
 
-class InvitationClaim(LiteLLMPydanticObjectBase):
+class InvitationClaim(GatewayPydanticObjectBase):
     invitation_link: str
     user_id: str
     password: str
 
 
-class ConfigFieldInfo(LiteLLMPydanticObjectBase):
+class ConfigFieldInfo(GatewayPydanticObjectBase):
     field_name: str
     field_value: Any
 
 
-class CallbackOnUI(LiteLLMPydanticObjectBase):
+class CallbackOnUI(GatewayPydanticObjectBase):
     litellm_callback_name: str
     litellm_callback_params: list | None
     ui_callback_name: str
 
 
-class AllCallbacks(LiteLLMPydanticObjectBase):
+class AllCallbacks(GatewayPydanticObjectBase):
     langfuse: CallbackOnUI = CallbackOnUI(
         litellm_callback_name="langfuse",
         ui_callback_name="Langfuse",
@@ -3789,7 +3789,7 @@ class SpanAttributes(str, enum.Enum):
     LLM_OPENAI_API_TYPE = "gen_ai.openai.api_type"
 
 
-class ManagementEndpointLoggingPayload(LiteLLMPydanticObjectBase):
+class ManagementEndpointLoggingPayload(GatewayPydanticObjectBase):
     route: str
     request_data: dict
     response: dict | None = None
@@ -3861,7 +3861,7 @@ class CommonProxyErrors(str, enum.Enum):
     missing_enterprise_package_docker = "This feature is not available in Token IQ."
 
 
-class SpendCalculateRequest(LiteLLMPydanticObjectBase):
+class SpendCalculateRequest(GatewayPydanticObjectBase):
     model: str | None = None
     messages: list | None = None
     completion_response: dict | None = None
@@ -4036,14 +4036,14 @@ class SSOUserDefinedValues(TypedDict):
     budget_duration: str | None
 
 
-class VirtualKeyEvent(LiteLLMPydanticObjectBase):
+class VirtualKeyEvent(GatewayPydanticObjectBase):
     created_by_user_id: str
     created_by_user_role: str
     created_by_key_alias: str | None
     request_kwargs: dict
 
 
-class CreatePassThroughEndpoint(LiteLLMPydanticObjectBase):
+class CreatePassThroughEndpoint(GatewayPydanticObjectBase):
     path: str
     target: str
     headers: dict
@@ -4056,7 +4056,7 @@ from token_iq.gateway.models.team_membership import (  # noqa: E402
 #### Organization / Team Member Requests ####
 
 
-class MemberAddRequest(LiteLLMPydanticObjectBase):
+class MemberAddRequest(GatewayPydanticObjectBase):
     member: list[Member] | Member = Field(
         description="Member object or list of member objects to add. Each member must include either user_id or user_email, and a role"
     )
@@ -4077,7 +4077,7 @@ class MemberAddRequest(LiteLLMPydanticObjectBase):
         super().__init__(**data)
 
 
-class OrgMemberAddRequest(LiteLLMPydanticObjectBase):
+class OrgMemberAddRequest(GatewayPydanticObjectBase):
     member: list[OrgMember] | OrgMember
 
     def __init__(self, **data):
@@ -4104,13 +4104,13 @@ class TeamAddMemberResponse(LiteLLM_TeamTable):
     updated_team_memberships: list[LiteLLM_TeamMembership]
 
 
-class OrganizationAddMemberResponse(LiteLLMPydanticObjectBase):
+class OrganizationAddMemberResponse(GatewayPydanticObjectBase):
     organization_id: str
     updated_users: list[LiteLLM_UserTable]
     updated_organization_memberships: list[LiteLLM_OrganizationMembershipTable]
 
 
-class MemberDeleteRequest(LiteLLMPydanticObjectBase):
+class MemberDeleteRequest(GatewayPydanticObjectBase):
     user_id: str | None = None
     user_email: str | None = None
 
@@ -4122,7 +4122,7 @@ class MemberDeleteRequest(LiteLLMPydanticObjectBase):
         return values
 
 
-class MemberUpdateResponse(LiteLLMPydanticObjectBase):
+class MemberUpdateResponse(GatewayPydanticObjectBase):
     user_id: str
     user_email: str | None = None
 
@@ -4213,18 +4213,18 @@ class OrganizationMemberDeleteRequest(MemberDeleteRequest):
 
 
 ROLES_WITHIN_ORG: Final = [
-    LitellmUserRoles.ORG_ADMIN,
-    LitellmUserRoles.INTERNAL_USER,
-    LitellmUserRoles.INTERNAL_USER_VIEW_ONLY,
+    GatewayUserRoles.ORG_ADMIN,
+    GatewayUserRoles.INTERNAL_USER,
+    GatewayUserRoles.INTERNAL_USER_VIEW_ONLY,
 ]
 
 
 class OrganizationMemberUpdateRequest(OrganizationMemberDeleteRequest):
     max_budget_in_organization: float | None = None
-    role: LitellmUserRoles | None = None
+    role: GatewayUserRoles | None = None
 
     @field_validator("role")
-    def validate_role(cls, value: LitellmUserRoles | None) -> LitellmUserRoles | None:
+    def validate_role(cls, value: GatewayUserRoles | None) -> GatewayUserRoles | None:
         if value is not None and value not in ROLES_WITHIN_ORG:
             raise ValueError(f"Invalid role. Must be one of: {[role.value for role in ROLES_WITHIN_ORG]}")
         return value
@@ -4238,7 +4238,7 @@ class OrganizationMemberUpdateResponse(MemberUpdateResponse):
 ##########################################
 
 
-class TeamAccessGroupModelGrant(LiteLLMPydanticObjectBase):
+class TeamAccessGroupModelGrant(GatewayPydanticObjectBase):
     access_group_id: str
     access_group_name: str
     models: tuple[str, ...]
@@ -4289,25 +4289,25 @@ class KeyHealthResponse(TypedDict, total=False):
     logging_callbacks: LoggingCallbackStatus | None
 
 
-class CreateJWTKeyMappingRequest(LiteLLMPydanticObjectBase):
+class CreateJWTKeyMappingRequest(GatewayPydanticObjectBase):
     jwt_claim_name: str
     jwt_claim_value: str
     key: str
     description: str | None = None
 
 
-class UpdateJWTKeyMappingRequest(LiteLLMPydanticObjectBase):
+class UpdateJWTKeyMappingRequest(GatewayPydanticObjectBase):
     id: str
     key: str | None = None
     description: str | None = None
     is_active: bool | None = None
 
 
-class DeleteJWTKeyMappingRequest(LiteLLMPydanticObjectBase):
+class DeleteJWTKeyMappingRequest(GatewayPydanticObjectBase):
     id: str
 
 
-class JWTKeyMappingResponse(LiteLLMPydanticObjectBase):
+class JWTKeyMappingResponse(GatewayPydanticObjectBase):
     id: str
     jwt_claim_name: str
     jwt_claim_value: str
@@ -4327,13 +4327,13 @@ class SpecialHeaders(enum.Enum):
     anthropic_authorization = "x-api-key"
     google_ai_studio_authorization = "x-goog-api-key"
     azure_apim_authorization = "Ocp-Apim-Subscription-Key"
-    custom_litellm_api_key = "x-litellm-api-key"
+    custom_gateway_api_key = "x-litellm-api-key"
     mcp_auth = "x-mcp-auth"
     mcp_servers = "x-mcp-servers"
     mcp_access_groups = "x-mcp-access-groups"
 
     @classmethod
-    def litellm_credential_header_names(cls) -> "frozenset[str]":
+    def gateway_credential_header_names(cls) -> "frozenset[str]":
         """Lowercased header names user_api_key_auth accepts as a litellm key.
 
         Every header here authenticates the caller, so any code that forwards a
@@ -4350,12 +4350,12 @@ class SpecialHeaders(enum.Enum):
                 cls.anthropic_authorization,
                 cls.google_ai_studio_authorization,
                 cls.azure_apim_authorization,
-                cls.custom_litellm_api_key,
+                cls.custom_gateway_api_key,
             )
         )
 
 
-class LitellmDataForBackendLLMCall(TypedDict, total=False):
+class GatewayDataForBackendLLMCall(TypedDict, total=False):
     headers: dict
     organization: str
     timeout: float | None
@@ -4371,7 +4371,7 @@ class LitellmDataForBackendLLMCall(TypedDict, total=False):
     keepalive_seconds: float | None
 
 
-class LitellmMetadataFromRequestHeaders(TypedDict, total=False):
+class GatewayMetadataFromRequestHeaders(TypedDict, total=False):
     """
     Headers a user can pass that will get added to litellm metadata for the request
     """
@@ -4485,7 +4485,7 @@ LiteLLM_Reserved_Metadata_Fields: Final = [
 ]
 
 
-class ProviderBudgetResponseObject(LiteLLMPydanticObjectBase):
+class ProviderBudgetResponseObject(GatewayPydanticObjectBase):
     """
     Configuration for a single provider's budget settings
     """
@@ -4496,7 +4496,7 @@ class ProviderBudgetResponseObject(LiteLLMPydanticObjectBase):
     budget_reset_at: str | None = None  # When the current budget period resets
 
 
-class ProviderBudgetResponse(LiteLLMPydanticObjectBase):
+class ProviderBudgetResponse(GatewayPydanticObjectBase):
     """
     Complete provider budget configuration and status.
     Maps provider names to their budget configs.
@@ -4547,13 +4547,13 @@ ALL_FALLBACK_MODEL_VALUES = str | ClientSideFallbackModel
 
 
 RBAC_ROLES = Literal[
-    LitellmUserRoles.PROXY_ADMIN,
-    LitellmUserRoles.TEAM,
-    LitellmUserRoles.INTERNAL_USER,
+    GatewayUserRoles.PROXY_ADMIN,
+    GatewayUserRoles.TEAM,
+    GatewayUserRoles.INTERNAL_USER,
 ]
 
 
-class OIDCPermissions(LiteLLMPydanticObjectBase):
+class OIDCPermissions(GatewayPydanticObjectBase):
     models: list[str] | None = None
     routes: list[str] | None = None
 
@@ -4571,9 +4571,9 @@ class RoleMapping(BaseModel):
     internal_role: RBAC_ROLES
 
 
-class JWTLiteLLMRoleMap(BaseModel):
+class JWTGatewayRoleMap(BaseModel):
     jwt_role: str
-    litellm_role: LitellmUserRoles
+    litellm_role: GatewayUserRoles
 
 
 class ScopeMapping(OIDCPermissions):
@@ -4696,7 +4696,7 @@ class JWTIssuerConfig(BaseModel):
 DEFAULT_JWKS_STALE_TTL: Final = 3600
 
 
-class LiteLLM_JWTAuth(LiteLLMPydanticObjectBase):
+class LiteLLM_JWTAuth(GatewayPydanticObjectBase):
     """
     A class to define the roles and permissions for a LiteLLM Proxy w/ JWT Auth.
 
@@ -4783,7 +4783,7 @@ class LiteLLM_JWTAuth(LiteLLMPydanticObjectBase):
     custom_validate: Callable[..., Literal[True]] | None = None
     #########################################################
     # Fields for syncing user team membership and roles with IDP provider
-    jwt_litellm_role_map: list[JWTLiteLLMRoleMap] | None = None
+    jwt_litellm_role_map: list[JWTGatewayRoleMap] | None = None
     sync_user_role_and_teams: bool = False
     #########################################################
     #########################################################
@@ -4920,21 +4920,21 @@ class TransformRequestBody(BaseModel):
     request_body: dict
 
 
-class DefaultInternalUserParams(LiteLLMPydanticObjectBase):
+class DefaultInternalUserParams(GatewayPydanticObjectBase):
     """
     Default parameters to apply when a new user signs in via SSO or is created on the /user/new API endpoint
     """
 
     user_role: (
         Literal[
-            LitellmUserRoles.PROXY_ADMIN,
-            LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY,
-            LitellmUserRoles.INTERNAL_USER,
-            LitellmUserRoles.INTERNAL_USER_VIEW_ONLY,
+            GatewayUserRoles.PROXY_ADMIN,
+            GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY,
+            GatewayUserRoles.INTERNAL_USER,
+            GatewayUserRoles.INTERNAL_USER_VIEW_ONLY,
         ]
         | None
     ) = Field(
-        default=LitellmUserRoles.INTERNAL_USER_VIEW_ONLY,
+        default=GatewayUserRoles.INTERNAL_USER_VIEW_ONLY,
         description="Default role assigned to new users created",
     )
     max_budget: float | None = Field(
@@ -5033,7 +5033,7 @@ class DBSpendUpdateTransactions(TypedDict):
 
 
 class SpendUpdateQueueItem(TypedDict, total=False):
-    entity_type: Litellm_EntityType
+    entity_type: Gateway_EntityType
     entity_id: str
     response_cost: float | None
 
@@ -5066,7 +5066,7 @@ class ResponseLiteLLM_ManagedVectorStore(TypedDict, total=False):
     vector_store: LiteLLM_ManagedVectorStoresTable
 
 
-class CostEstimateRequest(LiteLLMPydanticObjectBase):
+class CostEstimateRequest(GatewayPydanticObjectBase):
     """Request body for /cost/estimate endpoint."""
 
     model: str = Field(description="Model name (from /model_group/info)")
@@ -5076,7 +5076,7 @@ class CostEstimateRequest(LiteLLMPydanticObjectBase):
     num_requests_per_month: int | None = Field(default=None, description="Number of requests per month", ge=0)
 
 
-class CostEstimateResponse(LiteLLMPydanticObjectBase):
+class CostEstimateResponse(GatewayPydanticObjectBase):
     """Response body for /cost/estimate endpoint."""
 
     model: str

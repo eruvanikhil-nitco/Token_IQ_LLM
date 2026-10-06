@@ -22,7 +22,7 @@ import pytest
 from e2e_config import unique_marker
 from e2e_http import unwrap
 from lifecycle import ResourceManager
-from models import ChatBody, ChatMessage, ChatResponse, LiteLLMParamsBody, ThinkingParam
+from models import ChatBody, ChatMessage, ChatResponse, GatewayParamsBody, ThinkingParam
 from passthrough_client import PassthroughClient
 
 pytestmark = pytest.mark.e2e
@@ -35,7 +35,7 @@ def _register_reasoner(client: PassthroughClient, resources: ResourceManager) ->
     model = f"e2e-deepseek-reasoner-{unique_marker()}"
     model_id = client.proxy.create_model(
         model,
-        LiteLLMParamsBody(model=REASONER, api_key="os.environ/DEEPSEEK_API_KEY"),
+        GatewayParamsBody(model=REASONER, api_key="os.environ/DEEPSEEK_API_KEY"),
     )
     resources.defer(lambda: client.proxy.delete_model(model_id))
     return model

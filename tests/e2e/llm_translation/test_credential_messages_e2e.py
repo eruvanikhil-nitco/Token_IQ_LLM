@@ -10,7 +10,7 @@ from e2e_config import unique_marker
 from e2e_http import require_successful_call
 from endpoints_client import EndpointsClient, MessagesResult
 from lifecycle import ResourceManager
-from models import CredentialCreateBody, LiteLLMParamsBody
+from models import CredentialCreateBody, GatewayParamsBody
 
 pytestmark = pytest.mark.e2e
 
@@ -34,7 +34,7 @@ class TestCredentialBackedMessages:
 
         model_id = endpoints_client.create_model(
             model,
-            LiteLLMParamsBody(
+            GatewayParamsBody(
                 model="anthropic/claude-haiku-4-5",
                 litellm_credential_name=credential_name,
             ),

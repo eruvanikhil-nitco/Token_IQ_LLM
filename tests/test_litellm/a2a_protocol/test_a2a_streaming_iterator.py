@@ -15,7 +15,7 @@ from token_iq.gateway.a2a_protocol import streaming_iterator as a2a_streaming_it
 from token_iq.gateway.a2a_protocol.streaming_iterator import A2AStreamingIterator
 from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.core_utils import thread_pool_executor as thread_pool_executor_module
-from token_iq.gateway.core_utils.litellm_logging import Logging as LitellmLogging
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLogging
 
 
 class RecordingCustomLogger(CustomLogger):
@@ -72,7 +72,7 @@ async def test_custom_logger_only_never_submits_sync_success_handler(monkeypatch
     gateway.success_callback = [recorder]
     gateway._async_success_callback = [recorder]
 
-    logging_obj = LitellmLogging(
+    logging_obj = GatewayLogging(
         model="a2a/test-agent",
         messages=[{"role": "user", "content": "hi"}],
         stream=True,

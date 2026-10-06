@@ -9,7 +9,7 @@ from urllib.parse import urlencode
 
 import httpx
 
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.llms.base_llm.search.transformation import (
     BaseSearchConfig,
     SearchResponse,
@@ -140,7 +140,7 @@ class DuckDuckGoSearchConfig(BaseSearchConfig):
     def transform_search_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         **kwargs,
     ) -> SearchResponse:
         """

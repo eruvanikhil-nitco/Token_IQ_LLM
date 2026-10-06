@@ -549,7 +549,7 @@ async def estimate_cost(
     }
     ```
     """
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
     from token_iq.gateway.types.utils import ModelResponse, Usage
 
     # Resolve model name (handles router aliases like 'e-model-router' -> 'azure_ai/gpt-4')
@@ -570,7 +570,7 @@ async def estimate_cost(
     )
 
     # Create a logging object to capture cost breakdown
-    litellm_logging_obj: Final = LiteLLMLoggingObj(
+    litellm_logging_obj: Final = GatewayLoggingObj(
         model=resolved_model,
         messages=[],
         stream=False,

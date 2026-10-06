@@ -17,7 +17,7 @@ from token_iq.gateway.integrations.otel import (
     GenAIOperation,
     GenAIOutputType,
     HTTP,
-    LiteLLM,
+    Gateway,
     OpenTelemetryV2Config,
     Server,
     is_otel_v2_enabled,
@@ -35,7 +35,7 @@ from token_iq.gateway.integrations.otel.model.payloads import (
 )
 from token_iq.gateway.integrations.otel.model.spans import (
     SPAN_REGISTRY,
-    LiteLLMSpanKind,
+    GatewaySpanKind,
     SpanRole,
     child_roles,
     root_roles,
@@ -119,22 +119,22 @@ def test_registry_hierarchy_shape():
         SpanRole.MCP_TOOL_CALL,
         SpanRole.MCP_LIST_TOOLS,
     }
-    assert SPAN_REGISTRY[SpanRole.LLM_CALL].kind is LiteLLMSpanKind.CLIENT
+    assert SPAN_REGISTRY[SpanRole.LLM_CALL].kind is GatewaySpanKind.CLIENT
     # The proxy is an MCP client to the upstream tool server: CLIENT span. Listing
     # tools is the same client relationship, so it's a CLIENT span too.
-    assert SPAN_REGISTRY[SpanRole.MCP_TOOL_CALL].kind is LiteLLMSpanKind.CLIENT
-    assert SPAN_REGISTRY[SpanRole.MCP_LIST_TOOLS].kind is LiteLLMSpanKind.CLIENT
+    assert SPAN_REGISTRY[SpanRole.MCP_TOOL_CALL].kind is GatewaySpanKind.CLIENT
+    assert SPAN_REGISTRY[SpanRole.MCP_LIST_TOOLS].kind is GatewaySpanKind.CLIENT
     # MCP spans nest under the transport span of the request carrying that
     # message (resolved per message at emit time); a client-propagated context
     # becomes a span link to that remote context, which is not a registry role
     # (SpanSpec declares no link field at all).
     assert SPAN_REGISTRY[SpanRole.MCP_TOOL_CALL].parent is SpanRole.PROXY_REQUEST
     assert SPAN_REGISTRY[SpanRole.MCP_LIST_TOOLS].parent is SpanRole.PROXY_REQUEST
-    assert SPAN_REGISTRY[SpanRole.PROXY_REQUEST].kind is LiteLLMSpanKind.SERVER
+    assert SPAN_REGISTRY[SpanRole.PROXY_REQUEST].kind is GatewaySpanKind.SERVER
     assert SPAN_REGISTRY[SpanRole.GUARDRAIL].parent is SpanRole.PROXY_REQUEST
     # An outbound datastore call is a CLIENT span; an internal service is INTERNAL.
-    assert SPAN_REGISTRY[SpanRole.DB_CALL].kind is LiteLLMSpanKind.CLIENT
-    assert SPAN_REGISTRY[SpanRole.SERVICE].kind is LiteLLMSpanKind.INTERNAL
+    assert SPAN_REGISTRY[SpanRole.DB_CALL].kind is GatewaySpanKind.CLIENT
+    assert SPAN_REGISTRY[SpanRole.SERVICE].kind is GatewaySpanKind.INTERNAL
 
 
 def test_llm_call_span_name():
@@ -154,11 +154,11 @@ def _all_constants(cls):
 
 
 def test_attribute_keys_are_unique_across_namespaces():
-    from token_iq.gateway.integrations.otel import MCP, Client, JsonRpc, LiteLLMError, Network
+    from token_iq.gateway.integrations.otel import MCP, Client, JsonRpc, GatewayError, Network
 
     # prefixes are allowed to be substrings; exact keys must not collide.
     exact = set()
-    for cls in (GenAI, Error, LiteLLMError, Server, HTTP, DB, MCP, JsonRpc, Network, Client):
+    for cls in (GenAI, Error, GatewayError, Server, HTTP, DB, MCP, JsonRpc, Network, Client):
         for key in _all_constants(cls):
             assert key not in exact, f"duplicate attribute key {key}"
             exact.add(key)
@@ -332,7 +332,7 @@ def test_non_chat_route_spans_carry_semconv_name_and_modality(call_type, operati
     assert attrs[GenAI.OPERATION_NAME] == operation.value
     assert attrs[GenAI.PROVIDER_NAME] == "openai"
     assert attrs[GenAI.REQUEST_MODEL] == "some-model"
-    assert attrs[LiteLLM.CALL_TYPE] == call_type
+    assert attrs[Gateway.CALL_TYPE] == call_type
     assert attrs.get(GenAI.OUTPUT_TYPE) == (output_type.value if output_type else None)
 
 
@@ -400,7 +400,7 @@ def test_unmapped_call_type_falls_back_to_chat_loudly(caplog):
     """The fallback still labels the series ``chat`` so it is never unlabelled,
     but it says so at debug: a silent default is how retrieval and agent calls
     ended up in the chat charts in the first place."""
-    with caplog.at_level(logging.DEBUG, logger="LiteLLM"):
+    with caplog.at_level(logging.DEBUG, logger="Gateway"):
         assert resolve_operation("some_future_call_type") is GenAIOperation.CHAT
     assert any("some_future_call_type" in record.getMessage() for record in caplog.records)
 
@@ -983,11 +983,11 @@ def test_promoted_baggage_is_bounded_allowlist():
         metadata={"user_api_key_org_id": "org1", "secret_blob": "should-not-promote"},
     )
     promoted = promoted_baggage(identity, "gpt-4o", BAGGAGE_PROMOTED_KEYS)
-    assert promoted[LiteLLM.TEAM_ID] == "t1"
-    assert promoted[LiteLLM.TEAM_ALIAS] == "team one"
+    assert promoted[Gateway.TEAM_ID] == "t1"
+    assert promoted[Gateway.TEAM_ALIAS] == "team one"
     assert promoted[GenAI.REQUEST_MODEL] == "gpt-4o"
     # allowlisted metadata sub-key is promoted under the litellm.metadata.* prefix
-    assert promoted[f"{LiteLLM.METADATA_PREFIX}user_api_key_org_id"] == "org1"
+    assert promoted[f"{Gateway.METADATA_PREFIX}user_api_key_org_id"] == "org1"
     # full metadata blob is NOT promoted
     assert all("secret_blob" not in key for key in promoted)
     # http.* is never a promoted key

@@ -28,7 +28,7 @@ from cost_rows import approx_equal, cacheable_prefix, register_priced_model
 from e2e_config import unique_marker
 from e2e_http import StreamingResponse
 from lifecycle import ResourceManager
-from models import ChatBody, ChatMessage, ChatResponse, LiteLLMParamsBody
+from models import ChatBody, ChatMessage, ChatResponse, GatewayParamsBody
 from spend_e2e_client import SpendClient
 
 pytestmark = pytest.mark.e2e
@@ -67,7 +67,7 @@ class TestCostHeaders:
             client.proxy,
             resources,
             "header-priced",
-            LiteLLMParamsBody(
+            GatewayParamsBody(
                 model=BACKEND,
                 api_key=OPENAI_API_KEY,
                 input_cost_per_token=INPUT_RATE,

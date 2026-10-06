@@ -20,11 +20,11 @@ from token_iq.gateway.types.llms.anthropic_skills import (
 from token_iq.gateway.types.utils import LlmProviders
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
     from token_iq.gateway.proxy._types import LiteLLM_SkillsTable, UserAPIKeyAuth
 
 
-class LiteLLMSkillsTransformationHandler:
+class GatewaySkillsTransformationHandler:
     """
     Transformation handler for skills API requests to LiteLLM database operations.
 
@@ -50,7 +50,7 @@ class LiteLLMSkillsTransformationHandler:
         user_id: str | None = None,
         user_api_key_dict: Optional["UserAPIKeyAuth"] = None,
         _is_async: bool = False,
-        logging_obj: Optional["LiteLLMLoggingObj"] = None,
+        logging_obj: Optional["GatewayLoggingObj"] = None,
         litellm_call_id: str | None = None,
         **kwargs,
     ) -> Skill | Coroutine[object, object, Skill]:
@@ -135,7 +135,7 @@ class LiteLLMSkillsTransformationHandler:
     ) -> Skill:
         """Async implementation of create_skill."""
         # Lazy import to avoid SDK dependency on proxy
-        from token_iq.gateway.llms.litellm_proxy.skills.handler import LiteLLMSkillsHandler
+        from token_iq.gateway.llms.litellm_proxy.skills.handler import GatewaySkillsHandler
         from token_iq.gateway.proxy._types import NewSkillRequest
 
         skill_request: Final = NewSkillRequest(
@@ -148,7 +148,7 @@ class LiteLLMSkillsTransformationHandler:
             metadata=metadata,
         )
 
-        db_skill: Final = await LiteLLMSkillsHandler.create_skill(
+        db_skill: Final = await GatewaySkillsHandler.create_skill(
             data=skill_request,
             user_id=user_id,
             user_api_key_dict=user_api_key_dict,
@@ -161,7 +161,7 @@ class LiteLLMSkillsTransformationHandler:
         limit: int = 20,
         offset: int = 0,
         _is_async: bool = False,
-        logging_obj: Optional["LiteLLMLoggingObj"] = None,
+        logging_obj: Optional["GatewayLoggingObj"] = None,
         litellm_call_id: str | None = None,
         user_api_key_dict: Optional["UserAPIKeyAuth"] = None,
         **kwargs,
@@ -214,9 +214,9 @@ class LiteLLMSkillsTransformationHandler:
     ) -> ListSkillsResponse:
         """Async implementation of list_skills."""
         # Lazy import to avoid SDK dependency on proxy
-        from token_iq.gateway.llms.litellm_proxy.skills.handler import LiteLLMSkillsHandler
+        from token_iq.gateway.llms.litellm_proxy.skills.handler import GatewaySkillsHandler
 
-        db_skills: Final = await LiteLLMSkillsHandler.list_skills(
+        db_skills: Final = await GatewaySkillsHandler.list_skills(
             limit=limit,
             offset=offset,
             user_api_key_dict=user_api_key_dict,
@@ -233,7 +233,7 @@ class LiteLLMSkillsTransformationHandler:
         self,
         skill_id: str,
         _is_async: bool = False,
-        logging_obj: Optional["LiteLLMLoggingObj"] = None,
+        logging_obj: Optional["GatewayLoggingObj"] = None,
         litellm_call_id: str | None = None,
         user_api_key_dict: Optional["UserAPIKeyAuth"] = None,
         **kwargs,
@@ -282,9 +282,9 @@ class LiteLLMSkillsTransformationHandler:
     ) -> Skill:
         """Async implementation of get_skill."""
         # Lazy import to avoid SDK dependency on proxy
-        from token_iq.gateway.llms.litellm_proxy.skills.handler import LiteLLMSkillsHandler
+        from token_iq.gateway.llms.litellm_proxy.skills.handler import GatewaySkillsHandler
 
-        db_skill: Final = await LiteLLMSkillsHandler.get_skill(
+        db_skill: Final = await GatewaySkillsHandler.get_skill(
             skill_id=skill_id,
             user_api_key_dict=user_api_key_dict,
         )
@@ -294,7 +294,7 @@ class LiteLLMSkillsTransformationHandler:
         self,
         skill_id: str,
         _is_async: bool = False,
-        logging_obj: Optional["LiteLLMLoggingObj"] = None,
+        logging_obj: Optional["GatewayLoggingObj"] = None,
         litellm_call_id: str | None = None,
         user_api_key_dict: Optional["UserAPIKeyAuth"] = None,
         **kwargs,
@@ -343,9 +343,9 @@ class LiteLLMSkillsTransformationHandler:
     ) -> DeleteSkillResponse:
         """Async implementation of delete_skill."""
         # Lazy import to avoid SDK dependency on proxy
-        from token_iq.gateway.llms.litellm_proxy.skills.handler import LiteLLMSkillsHandler
+        from token_iq.gateway.llms.litellm_proxy.skills.handler import GatewaySkillsHandler
 
-        result: Final = await LiteLLMSkillsHandler.delete_skill(
+        result: Final = await GatewaySkillsHandler.delete_skill(
             skill_id=skill_id,
             user_api_key_dict=user_api_key_dict,
         )

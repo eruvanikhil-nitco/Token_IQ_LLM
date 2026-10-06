@@ -63,7 +63,7 @@ if TYPE_CHECKING:
         CustomGuardrail,
         ModifyResponseException,
     )
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
     from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
 

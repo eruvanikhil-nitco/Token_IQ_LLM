@@ -18,7 +18,7 @@ from models import (
     AnthropicMessagesBody,
     ChatMessage,
     JsonSchemaProperty,
-    LiteLLMParamsBody,
+    GatewayParamsBody,
     SpendLogRow,
     ToolInputSchema,
 )
@@ -69,13 +69,13 @@ def _approx_equal(actual: float, expected: float) -> bool:
     return abs(actual - expected) <= max(1e-9, abs(expected) * 1e-2)
 
 
-def _anthropic_params() -> LiteLLMParamsBody:
+def _anthropic_params() -> GatewayParamsBody:
     """The Anthropic deployment, wired through the record/replay edge when a fixture
     mode is active (LIT-5974). The mount base carries no ``/v1``: litellm's Anthropic
     handler appends ``/v1/messages`` to ``api_base`` itself, where the OpenAI handler
     appends only ``/chat/completions``."""
     base = provider_edge_base("anthropic")
-    return LiteLLMParamsBody(
+    return GatewayParamsBody(
         model=ANTHROPIC_BACKEND, api_key="os.environ/ANTHROPIC_API_KEY", api_base=base
     )
 
@@ -85,7 +85,7 @@ class TestAnthropicMessages:
         self,
         endpoints_client: EndpointsClient,
         resources: ResourceManager,
-        params: LiteLLMParamsBody | None = None,
+        params: GatewayParamsBody | None = None,
     ) -> tuple[str, str]:
         model = f"e2e-messages-{unique_marker()}"
         model_id = endpoints_client.create_model(

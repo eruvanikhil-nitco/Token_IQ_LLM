@@ -23,7 +23,7 @@ from token_iq.gateway.types.mcp import MCPToolSearchSettings
 if TYPE_CHECKING:
     from mcp.types import CallToolResult, Tool
 
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
     from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
 MCP_TOOL_SEARCH_SETTINGS_KEY: Final[str] = "mcp_tool_search"
@@ -303,7 +303,7 @@ async def handle_mcp_tool_call(
     mcp_server_auth_headers: dict[str, dict[str, str]] | None = None,
     oauth2_headers: dict[str, str] | None = None,
     raw_headers: dict[str, str] | None = None,
-    litellm_logging_obj: LiteLLMLoggingObj | None = None,
+    litellm_logging_obj: GatewayLoggingObj | None = None,
 ) -> CallToolResult:
     from token_iq.gateway.proxy._experimental.mcp_server.server import (
         _get_allowed_mcp_servers,

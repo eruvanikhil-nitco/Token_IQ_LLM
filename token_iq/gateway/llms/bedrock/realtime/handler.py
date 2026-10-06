@@ -15,7 +15,7 @@ from pydantic import JsonValue, TypeAdapter
 from token_iq import gateway
 from token_iq.gateway._logging import _redact_string, verbose_proxy_logger
 from token_iq.gateway.core_utils.aws_partition import get_aws_dns_suffix
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLogging
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLogging
 from token_iq.gateway.core_utils.logging_worker import GLOBAL_LOGGING_WORKER
 from token_iq.gateway.core_utils.realtime_streaming import DefaultLoggedRealTimeEventTypes
 from token_iq.gateway.types.llms.openai import OpenAIRealtimeEvents
@@ -95,7 +95,7 @@ class BedrockRealtime(BaseAWSLLM):
         self,
         model: str,
         websocket: RealtimeClientWebSocket,
-        logging_obj: LiteLLMLogging,
+        logging_obj: GatewayLogging,
         api_base: str | None = None,
         api_key: str | None = None,
         timeout: float | None = None,
@@ -281,7 +281,7 @@ class BedrockRealtime(BaseAWSLLM):
         transformation_config: BedrockRealtimeConfig,
         model: str,
         session_state: RealtimeResponseTransformInput,
-        logging_obj: LiteLLMLogging | None = None,
+        logging_obj: GatewayLogging | None = None,
     ):
         """Forward messages from client WebSocket to Bedrock stream."""
         from aws_sdk_bedrock_runtime.models import (
@@ -345,7 +345,7 @@ class BedrockRealtime(BaseAWSLLM):
         client_ws: RealtimeClientWebSocket,
         transformation_config: BedrockRealtimeConfig,
         model: str,
-        logging_obj: LiteLLMLogging,
+        logging_obj: GatewayLogging,
         session_state: RealtimeResponseTransformInput,
     ) -> AsyncIterator[OpenAIRealtimeEvents]:
         """Forward messages from Bedrock to the client, yielding the ones to record for spend logging."""

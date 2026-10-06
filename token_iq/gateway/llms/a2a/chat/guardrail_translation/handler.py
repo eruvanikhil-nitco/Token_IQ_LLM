@@ -25,7 +25,7 @@ from token_iq.gateway.types.utils import GenericGuardrailAPIInputs
 
 if TYPE_CHECKING:
     from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
     from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
 
@@ -53,7 +53,7 @@ class A2AGuardrailHandler(BaseTranslation):
         self,
         data: dict,
         guardrail_to_apply: "CustomGuardrail",
-        litellm_logging_obj: Optional["LiteLLMLoggingObj"] = None,
+        litellm_logging_obj: Optional["GatewayLoggingObj"] = None,
     ) -> dict:
         """
         Process A2A input messages by applying guardrails to text content.
@@ -122,7 +122,7 @@ class A2AGuardrailHandler(BaseTranslation):
         self,
         response: Any,
         guardrail_to_apply: "CustomGuardrail",
-        litellm_logging_obj: Optional["LiteLLMLoggingObj"] = None,
+        litellm_logging_obj: Optional["GatewayLoggingObj"] = None,
         user_api_key_dict: Optional["UserAPIKeyAuth"] = None,
         request_data: dict | None = None,
     ) -> Any:
@@ -229,7 +229,7 @@ class A2AGuardrailHandler(BaseTranslation):
         self,
         responses_so_far: list[object],
         guardrail_to_apply: "CustomGuardrail",
-        litellm_logging_obj: Optional["LiteLLMLoggingObj"] = None,
+        litellm_logging_obj: Optional["GatewayLoggingObj"] = None,
         user_api_key_dict: Optional["UserAPIKeyAuth"] = None,
         request_data: dict | None = None,
     ) -> list[object]:

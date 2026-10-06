@@ -15,7 +15,7 @@ from e2e_http import (
 )
 from endpoints_client import EndpointsClient, ImagesResult
 from lifecycle import ResourceManager
-from models import LiteLLMParamsBody
+from models import GatewayParamsBody
 from pydantic import BaseModel
 
 pytestmark = pytest.mark.e2e
@@ -43,7 +43,7 @@ def _register_openai_image(
     model = f"e2e-image-{unique_marker()}"
     model_id = endpoints_client.create_model(
         model,
-        LiteLLMParamsBody(model="openai/gpt-image-1-mini", api_key="os.environ/OPENAI_API_KEY"),
+        GatewayParamsBody(model="openai/gpt-image-1-mini", api_key="os.environ/OPENAI_API_KEY"),
     )
     resources.defer(lambda: endpoints_client.delete_model(model_id))
     return model, resources.key()
@@ -66,7 +66,7 @@ class TestImageGeneration:
         model = f"e2e-bedrock-image-{unique_marker()}"
         model_id = endpoints_client.create_model(
             model,
-            LiteLLMParamsBody(
+            GatewayParamsBody(
                 model="bedrock/amazon.nova-canvas-v1:0",
                 aws_access_key_id="os.environ/AWS_ACCESS_KEY_ID",
                 aws_secret_access_key="os.environ/AWS_SECRET_ACCESS_KEY",

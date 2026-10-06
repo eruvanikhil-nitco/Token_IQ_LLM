@@ -8,7 +8,7 @@ from token_iq import gateway
 from token_iq.gateway.constants import MAX_SIZE_IN_MEMORY_QUEUE
 from token_iq.gateway.proxy._types import (
     DailyUserSpendTransaction,
-    Litellm_EntityType,
+    Gateway_EntityType,
     SpendUpdateQueueItem,
 )
 from typing import get_args

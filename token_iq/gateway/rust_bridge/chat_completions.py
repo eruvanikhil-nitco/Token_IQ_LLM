@@ -32,7 +32,7 @@ from token_iq.gateway.rust_bridge.timeouts import timeout_to_seconds
 from token_iq.gateway.types.utils import ModelResponse
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 
 # Providers whose `/chat/completions` deployments the Rust core can serve. A
 # provider outside this set never reaches the bridge.
@@ -40,7 +40,7 @@ RUST_CHAT_COMPLETIONS_PROVIDERS: Final = frozenset({"anthropic", "bedrock"})
 
 # `litellm_params` values are `object`, so validate the one this module reads
 # rather than narrowing an unparameterized `Mapping` and typing the result Any.
-_LITELLM_METADATA_ADAPTER: Final = TypeAdapter(Mapping[str, object])
+_GATEWAY_METADATA_ADAPTER: Final = TypeAdapter(Mapping[str, object])
 
 RUST_RESPONSE_HEADER: Final = "x-litellm-rust"
 
@@ -100,7 +100,7 @@ class ResponseObserver(Protocol):
 
 def response_logger(
     *,
-    logging_obj: LiteLLMLoggingObj,
+    logging_obj: GatewayLoggingObj,
     messages: Sequence[object],
     api_key: str,
     additional_args: Mapping[str, object],
@@ -192,13 +192,13 @@ def _load_rust_decline() -> RustChatCompletionsDecline | None:
 def _anthropic_user_id_reaches_the_body(litellm_params: Mapping[str, object] | None) -> bool:
     metadata: Final = litellm_params.get("metadata") if litellm_params is not None else None
     try:
-        entries: Final = _LITELLM_METADATA_ADAPTER.validate_python(metadata)
+        entries: Final = _GATEWAY_METADATA_ADAPTER.validate_python(metadata)
     except ValidationError:
         return False
     return entries.get("user_id") is not None
 
 
-def _litellm_metadata_reaches_the_provider(
+def _gateway_metadata_reaches_the_provider(
     custom_llm_provider: str | None, litellm_params: Mapping[str, object] | None
 ) -> bool:
     """Whether the Python transform would promote proxy-owned attribution into the
@@ -250,7 +250,7 @@ def rust_chat_completions_accepts(
     request_override: Final = litellm_params.get("rust") if litellm_params is not None else None
     if not rust_enabled(request_override=request_override if isinstance(request_override, bool) else None):
         return False
-    if _litellm_metadata_reaches_the_provider(custom_llm_provider, litellm_params):
+    if _gateway_metadata_reaches_the_provider(custom_llm_provider, litellm_params):
         verbose_logger.debug("Rust chat completions declined (litellm metadata user_id); using the Python path")
         return False
     decline: Final = _load_rust_decline()

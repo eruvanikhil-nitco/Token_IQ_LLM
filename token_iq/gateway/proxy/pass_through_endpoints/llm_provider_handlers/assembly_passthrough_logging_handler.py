@@ -11,7 +11,7 @@ from typing_extensions import TypedDict
 
 from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.core_utils.litellm_logging import (
     get_standard_logging_object_payload,
 )
@@ -57,7 +57,7 @@ class AssemblyAIPassthroughLoggingHandler:
         self,
         httpx_response: httpx.Response,
         response_body: dict,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         url_route: str,
         result: str,
         start_time: datetime,
@@ -85,7 +85,7 @@ class AssemblyAIPassthroughLoggingHandler:
         self,
         httpx_response: httpx.Response,
         response_body: dict,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         url_route: str,
         result: str,
         start_time: datetime,

@@ -3,11 +3,11 @@ from typing import Literal
 from pydantic import Field
 from typing_extensions import TypedDict
 
-from token_iq.gateway.proxy._types import KeyManagementRoutes, LitellmUserRoles
-from token_iq.gateway.types.utils import LiteLLMPydanticObjectBase
+from token_iq.gateway.proxy._types import KeyManagementRoutes, GatewayUserRoles
+from token_iq.gateway.types.utils import GatewayPydanticObjectBase
 
 
-class LiteLLM_UpperboundKeyGenerateParams(LiteLLMPydanticObjectBase):
+class LiteLLM_UpperboundKeyGenerateParams(GatewayPydanticObjectBase):
     """
     Set default upperbound to max budget a key called via `/key/generate` can be.
 
@@ -54,7 +54,7 @@ class MicrosoftServicePrincipalTeam(TypedDict, total=False):
     principalId: str | None
 
 
-class AccessControl_UI_AccessMode(LiteLLMPydanticObjectBase):
+class AccessControl_UI_AccessMode(GatewayPydanticObjectBase):
     """Model for Controlling UI Access Mode via SSO Groups"""
 
     type: Literal["restricted_sso_group"]
@@ -62,7 +62,7 @@ class AccessControl_UI_AccessMode(LiteLLMPydanticObjectBase):
     sso_group_jwt_field: str
 
 
-class RoleMappings(LiteLLMPydanticObjectBase):
+class RoleMappings(GatewayPydanticObjectBase):
     """
     Configuration for mapping SSO groups to Token IQ roles.
 
@@ -74,17 +74,17 @@ class RoleMappings(LiteLLMPydanticObjectBase):
     group_claim: str = Field(
         description="The field name in the SSO token that contains the groups array (e.g., 'groups', 'roles')"
     )
-    default_role: LitellmUserRoles | None = Field(
+    default_role: GatewayUserRoles | None = Field(
         default=None,
         description="Default role to assign if user's groups don't match any role mappings. Must be a valid LitellmUserRoles value (e.g., 'proxy_admin', 'internal_user', 'proxy_admin_viewer')",
     )
-    roles: dict[LitellmUserRoles, list[str]] = Field(
+    roles: dict[GatewayUserRoles, list[str]] = Field(
         default_factory=dict,
         description="Mapping of Token IQ role names to arrays of SSO group names. Example: {'proxy_admin': ['group-1', 'group-2'], 'proxy_admin_viewer': ['group-3']}",
     )
 
 
-class TeamMappings(LiteLLMPydanticObjectBase):
+class TeamMappings(GatewayPydanticObjectBase):
     """
     Configuration for mapping SSO JWT fields to team IDs.
 
@@ -98,7 +98,7 @@ class TeamMappings(LiteLLMPydanticObjectBase):
     )
 
 
-class SSOConfig(LiteLLMPydanticObjectBase):
+class SSOConfig(GatewayPydanticObjectBase):
     """
     Configuration for SSO environment variables and settings
     """
@@ -200,7 +200,7 @@ class SSOConfig(LiteLLMPydanticObjectBase):
     )
 
 
-class DefaultTeamSSOParams(LiteLLMPydanticObjectBase):
+class DefaultTeamSSOParams(GatewayPydanticObjectBase):
     """
     Default parameters applied to every /team/new call for fields not explicitly provided in the request.
     `models` is the exception: it only applies to teams automatically created by Token IQ via SSO Groups.

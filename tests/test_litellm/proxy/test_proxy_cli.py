@@ -23,12 +23,12 @@ from token_iq.gateway.proxy.proxy_cli import ProxyInitializationHelpers, run_ser
 class TestProxyInitializationHelpers:
     @patch("importlib.metadata.version")
     @patch("click.echo")
-    def test_echo_litellm_version(self, mock_echo, mock_version):
+    def test_echo_gateway_version(self, mock_echo, mock_version):
         # Setup
         mock_version.return_value = "1.0.0"
 
         # Execute
-        ProxyInitializationHelpers._echo_litellm_version()
+        ProxyInitializationHelpers._echo_gateway_version()
 
         # Assert
         mock_version.assert_called_once_with("litellm")

@@ -206,7 +206,7 @@ class Error:
     MESSAGE: Final = "error.message"
 
 
-class LiteLLMError:
+class GatewayError:
     """Detail keys for the mapped provider exception of a failed LLM call.
     OTel semconv does not define these, so they live under the ``litellm.*``
     vendor namespace rather than squatting on the semconv-owned ``error.*``
@@ -274,7 +274,7 @@ class HTTP:
     URL_PATH: Final = "url.path"
 
 
-class LiteLLM:
+class Gateway:
     """Vendor-extension keys (no semconv equivalent). Always ``litellm.*``."""
 
     CALL_ID: Final = "litellm.call_id"
@@ -354,7 +354,7 @@ class Metric:
 
 
 # litellm ``custom_llm_provider`` -> ``gen_ai.provider.name`` value.
-_PROVIDER_BY_LITELLM: Final[dict[str, GenAIProvider]] = {
+_PROVIDER_BY_GATEWAY: Final[dict[str, GenAIProvider]] = {
     "openai": GenAIProvider.OPENAI,
     "text-completion-openai": GenAIProvider.OPENAI,
     "azure": GenAIProvider.AZURE_AI_OPENAI,
@@ -462,7 +462,7 @@ def resolve_provider(custom_llm_provider: str | None) -> str:
     """
     if not custom_llm_provider:
         return ""
-    mapped: Final = _PROVIDER_BY_LITELLM.get(custom_llm_provider.lower())
+    mapped: Final = _PROVIDER_BY_GATEWAY.get(custom_llm_provider.lower())
     return mapped.value if mapped is not None else custom_llm_provider
 
 

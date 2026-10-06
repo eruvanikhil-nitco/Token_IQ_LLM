@@ -4,12 +4,12 @@ from openai.types.responses.response_function_tool_call import ResponseFunctionT
 from pydantic import PrivateAttr
 from typing_extensions import Any, TypedDict
 
-from token_iq.gateway.types.llms.base import BaseLiteLLMOpenAIResponseObject
+from token_iq.gateway.types.llms.base import BaseGatewayOpenAIResponseObject
 
 Phase = Literal["commentary", "final_answer"] | None
 
 
-class GenericResponseOutputItemContentAnnotation(BaseLiteLLMOpenAIResponseObject):
+class GenericResponseOutputItemContentAnnotation(BaseGatewayOpenAIResponseObject):
     """Annotation for content in a message"""
 
     type: str | None
@@ -19,7 +19,7 @@ class GenericResponseOutputItemContentAnnotation(BaseLiteLLMOpenAIResponseObject
     title: str | None
 
 
-class OutputText(BaseLiteLLMOpenAIResponseObject):
+class OutputText(BaseGatewayOpenAIResponseObject):
     """Text output content from an assistant message"""
 
     type: str | None  # "output_text"
@@ -27,7 +27,7 @@ class OutputText(BaseLiteLLMOpenAIResponseObject):
     annotations: list[GenericResponseOutputItemContentAnnotation] | None
 
 
-class OutputFunctionToolCall(BaseLiteLLMOpenAIResponseObject):
+class OutputFunctionToolCall(BaseGatewayOpenAIResponseObject):
     """A tool call to run a function"""
 
     arguments: str | None
@@ -39,7 +39,7 @@ class OutputFunctionToolCall(BaseLiteLLMOpenAIResponseObject):
     phase: Phase = None
 
 
-class OutputImageGenerationCall(BaseLiteLLMOpenAIResponseObject):
+class OutputImageGenerationCall(BaseGatewayOpenAIResponseObject):
     """An image generation call output"""
 
     type: Literal["image_generation_call"]
@@ -48,14 +48,14 @@ class OutputImageGenerationCall(BaseLiteLLMOpenAIResponseObject):
     result: str | None  # Base64 encoded image data (without data:image prefix)
 
 
-class OutputCodeInterpreterCallLog(BaseLiteLLMOpenAIResponseObject):
+class OutputCodeInterpreterCallLog(BaseGatewayOpenAIResponseObject):
     """Log output from a code interpreter call"""
 
     type: Literal["logs"]
     logs: str
 
 
-class OutputCodeInterpreterCall(BaseLiteLLMOpenAIResponseObject):
+class OutputCodeInterpreterCall(BaseGatewayOpenAIResponseObject):
     """A code interpreter / code execution call output"""
 
     type: Literal["code_interpreter_call"]
@@ -84,7 +84,7 @@ def build_code_interpreter_log_outputs(
     return [OutputCodeInterpreterCallLog(type="logs", logs=logs)] if logs else None
 
 
-class CustomToolCallOutputItem(BaseLiteLLMOpenAIResponseObject):
+class CustomToolCallOutputItem(BaseGatewayOpenAIResponseObject):
     """A custom/freeform tool call output item (e.g. apply_patch).
 
     Mirrors the ``custom_tool_call`` variant of OpenAI's Responses API output.
@@ -100,7 +100,7 @@ class CustomToolCallOutputItem(BaseLiteLLMOpenAIResponseObject):
     status: Literal["in_progress", "completed", "incomplete"] | None = None
 
 
-class GenericResponseOutputItem(BaseLiteLLMOpenAIResponseObject):
+class GenericResponseOutputItem(BaseGatewayOpenAIResponseObject):
     """
     Generic response API output item
 
@@ -114,7 +114,7 @@ class GenericResponseOutputItem(BaseLiteLLMOpenAIResponseObject):
     phase: Phase = None
 
 
-class DeleteResponseResult(BaseLiteLLMOpenAIResponseObject):
+class DeleteResponseResult(BaseGatewayOpenAIResponseObject):
     """
     Result of a delete response request
 

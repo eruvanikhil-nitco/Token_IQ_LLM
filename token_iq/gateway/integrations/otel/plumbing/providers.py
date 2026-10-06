@@ -34,23 +34,23 @@ from opentelemetry.util.re import parse_env_headers
 
 from token_iq.gateway._version import version as litellm_version
 from token_iq.gateway.integrations.otel.model.config import ExporterSpec, OpenTelemetryV2Config
-from token_iq.gateway.integrations.otel.model.semconv import LiteLLM
-from token_iq.gateway.integrations.otel.model.spans import LiteLLMSpanKind
+from token_iq.gateway.integrations.otel.model.semconv import Gateway
+from token_iq.gateway.integrations.otel.model.spans import GatewaySpanKind
 
 if TYPE_CHECKING:
     from opentelemetry.metrics import Meter
     from opentelemetry.sdk.metrics.export import MetricReader
 
-_SPAN_KIND_BY_ROLE_KIND: Final[dict[LiteLLMSpanKind, SpanKind]] = {
-    LiteLLMSpanKind.SERVER: SpanKind.SERVER,
-    LiteLLMSpanKind.CLIENT: SpanKind.CLIENT,
-    LiteLLMSpanKind.INTERNAL: SpanKind.INTERNAL,
-    LiteLLMSpanKind.PRODUCER: SpanKind.PRODUCER,
-    LiteLLMSpanKind.CONSUMER: SpanKind.CONSUMER,
+_SPAN_KIND_BY_ROLE_KIND: Final[dict[GatewaySpanKind, SpanKind]] = {
+    GatewaySpanKind.SERVER: SpanKind.SERVER,
+    GatewaySpanKind.CLIENT: SpanKind.CLIENT,
+    GatewaySpanKind.INTERNAL: SpanKind.INTERNAL,
+    GatewaySpanKind.PRODUCER: SpanKind.PRODUCER,
+    GatewaySpanKind.CONSUMER: SpanKind.CONSUMER,
 }
 
 
-def to_otel_span_kind(kind: LiteLLMSpanKind) -> SpanKind:
+def to_otel_span_kind(kind: GatewaySpanKind) -> SpanKind:
     return _SPAN_KIND_BY_ROLE_KIND[kind]
 
 
@@ -68,13 +68,13 @@ def register_exporter_factory(kind: str, factory: Callable[[ExporterSpec], SpanE
     _EXPORTER_FACTORIES[kind.lower()] = factory
 
 
-class LiteLLMBaggageSpanProcessor(SpanProcessor):
+class GatewayBaggageSpanProcessor(SpanProcessor):
     """Stamps an allowlisted set of Baggage entries onto every span at start."""
 
     def __init__(
         self,
         allowed_keys: Iterable[str],
-        allowed_prefixes: tuple[str, ...] = (LiteLLM.METADATA_PREFIX,),
+        allowed_prefixes: tuple[str, ...] = (Gateway.METADATA_PREFIX,),
     ) -> None:
         self._allowed_keys = frozenset(allowed_keys)
         self._allowed_prefixes = tuple(allowed_prefixes)
@@ -448,7 +448,7 @@ def build_tracer_provider(
     """
     provider: Final = TracerProvider(resource=build_resource(config))
     if baggage_processor is None:
-        baggage_processor = LiteLLMBaggageSpanProcessor(allowed_keys=config.baggage_promoted_keys)
+        baggage_processor = GatewayBaggageSpanProcessor(allowed_keys=config.baggage_promoted_keys)
     provider.add_span_processor(baggage_processor)
 
     if exporter is not None:

@@ -214,7 +214,7 @@ def test_evicting_a_client_built_on_the_callers_session_leaves_that_session_open
     assert shared_session.is_closed is False, "closed the session the caller configured"
 
 
-def test_a_client_litellm_built_its_own_http_client_for_is_still_closed(monkeypatch):
+def test_a_client_gateway_built_its_own_http_client_for_is_still_closed(monkeypatch):
     """The ownership check must not turn the reclaim off for the ordinary case."""
     from token_iq.gateway.caching.evicted_client_closer import EvictedClientCloser
     from token_iq.gateway.caching.llm_caching_handler import LLMClientCache

@@ -4490,7 +4490,7 @@ def test_vertex_ai_service_tier_non_streaming():
 def test_vertex_ai_traffic_type_surfaced_in_responses_api():
     """Test trafficType is surfaced as provider_specific_fields in ResponsesAPIResponse."""
     from token_iq.gateway.responses.litellm_completion_transformation.transformation import (
-        LiteLLMCompletionResponsesConfig,
+        GatewayCompletionResponsesConfig,
     )
 
     # Create a ModelResponse with provider_specific_fields in _hidden_params
@@ -4508,7 +4508,7 @@ def test_vertex_ai_traffic_type_surfaced_in_responses_api():
         )
     ]
 
-    responses_api_response = LiteLLMCompletionResponsesConfig.transform_chat_completion_response_to_responses_api_response(
+    responses_api_response = GatewayCompletionResponsesConfig.transform_chat_completion_response_to_responses_api_response(
         request_input="test",
         chat_completion_response=model_response,
         responses_api_request={},

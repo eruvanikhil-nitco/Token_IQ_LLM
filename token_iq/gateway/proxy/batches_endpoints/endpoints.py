@@ -46,7 +46,7 @@ from token_iq.gateway.proxy.openai_files_endpoints.common_utils import (
 from token_iq.gateway.proxy.route_llm_request import raise_if_required_body_param_missing
 from token_iq.gateway.proxy.utils import handle_exception_on_proxy, is_known_model
 from token_iq.gateway.repositories.table_repositories import ManagedFileRepository
-from token_iq.gateway.types.llms.openai import LiteLLMBatchCreateRequest
+from token_iq.gateway.types.llms.openai import GatewayBatchCreateRequest
 
 router: Final = APIRouter()
 
@@ -176,7 +176,7 @@ async def create_batch(
             or get_custom_llm_provider_from_request_headers(request=request)
         )
         custom_llm_provider: Final = requested_provider or "openai"
-        _create_batch_data: Final = LiteLLMBatchCreateRequest(**data)
+        _create_batch_data: Final = GatewayBatchCreateRequest(**data)
 
         # Apply team-level batch output expiry enforcement
         team_metadata: Final = user_api_key_dict.team_metadata or {}

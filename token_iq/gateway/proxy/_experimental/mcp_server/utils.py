@@ -889,7 +889,7 @@ _SYNTHETIC_REQUEST_SERVER: Final = ("127.0.0.1", 4000)
 _MCP_SERVER_AUTH_HEADER_PREFIX: Final = "x-mcp-"
 
 
-def _custom_litellm_key_header_name() -> str | None:
+def _custom_gateway_key_header_name() -> str | None:
     """``general_settings.litellm_key_header_name``, the deployment's custom header name for
     the proxy virtual key, so it is stripped from observability copies like the standard ones."""
     try:
@@ -1005,7 +1005,7 @@ def build_synthetic_mcp_request(
     """
     from fastapi import Request
 
-    custom_key_header: Final = _custom_litellm_key_header_name()
+    custom_key_header: Final = _custom_gateway_key_header_name()
     excluded: Final = (
         _SYNTHETIC_REQUEST_EXCLUDED_HEADERS
         | _upstream_credential_headers(raw_headers.keys() if raw_headers else ())
@@ -1062,6 +1062,6 @@ def logging_safe_mcp_headers(raw_headers: Mapping[str, str] | None) -> Mapping[s
     )
     cleaned: Final = clean_headers(
         Headers(raw_headers),
-        litellm_key_header_name=_custom_litellm_key_header_name(),
+        litellm_key_header_name=_custom_gateway_key_header_name(),
     )
     return redact_credential_headers({name: value for name, value in cleaned.items() if name.lower() not in excluded})

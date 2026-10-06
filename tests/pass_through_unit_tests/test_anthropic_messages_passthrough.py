@@ -119,7 +119,7 @@ class TestAnthropicOpenAIAPI(BaseAnthropicMessagesTest):
         return "gpt-4.1-mini"
 
     @pytest.mark.asyncio
-    async def test_anthropic_messages_litellm_router_streaming_with_logging(self):
+    async def test_anthropic_messages_gateway_router_streaming_with_logging(self):
         """
         Test the anthropic_messages with streaming request
         """
@@ -188,7 +188,7 @@ async def test_anthropic_messages_router_streaming_with_bad_request():
 
 
 @pytest.mark.asyncio
-async def test_anthropic_messages_litellm_router_non_streaming():
+async def test_anthropic_messages_gateway_router_non_streaming():
     """
     Test the anthropic_messages with non-streaming request
     """
@@ -226,7 +226,7 @@ async def test_anthropic_messages_litellm_router_non_streaming():
 
 
 @pytest.mark.asyncio
-async def test_anthropic_messages_litellm_router_routing_strategy():
+async def test_anthropic_messages_gateway_router_routing_strategy():
     """
     Test the anthropic_messages with routing strategy + non-streaming request
     """
@@ -322,7 +322,7 @@ async def test_anthropic_messages_fallbacks():
 
 
 @pytest.mark.asyncio
-async def test_anthropic_messages_litellm_router_latency_metadata_tracking():
+async def test_anthropic_messages_gateway_router_latency_metadata_tracking():
     """
     Test the anthropic_messages with routing strategy and verify that _latency_per_deployment
     field is passed in litellm_metadata when calling litellm.anthropic_messages
@@ -437,7 +437,7 @@ class TestCustomLogger(CustomLogger):
 
 
 @pytest.mark.asyncio
-async def test_anthropic_messages_litellm_router_non_streaming_with_logging():
+async def test_anthropic_messages_gateway_router_non_streaming_with_logging():
     """
     Test the anthropic_messages with non-streaming request
 

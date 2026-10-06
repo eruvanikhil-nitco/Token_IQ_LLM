@@ -62,7 +62,7 @@ class MicrosoftPurviewDLPGuardrail(PurviewGuardrailBase, CustomGuardrail):
         tenant_id: str,
         client_id: str,
         client_secret: str,
-        purview_app_name: str = "LiteLLM",
+        purview_app_name: str = "Gateway",
         user_id_field: str = "user_id",
         **kwargs: object,
     ):
@@ -302,7 +302,7 @@ class MicrosoftPurviewDLPGuardrail(PurviewGuardrailBase, CustomGuardrail):
         the response side can still run.
         """
         from token_iq.gateway.responses.litellm_completion_transformation.transformation import (
-            LiteLLMCompletionResponsesConfig,
+            GatewayCompletionResponsesConfig,
         )
 
         input_data: Final = data.get("input")
@@ -311,7 +311,7 @@ class MicrosoftPurviewDLPGuardrail(PurviewGuardrailBase, CustomGuardrail):
         try:
             # Always transform via messages so ``instructions`` become a system message
             # (string ``input`` alone would skip instructions and bypass DLP).
-            messages: Final = LiteLLMCompletionResponsesConfig.transform_responses_api_input_to_messages(
+            messages: Final = GatewayCompletionResponsesConfig.transform_responses_api_input_to_messages(
                 input=input_data if input_data is not None else "",
                 responses_api_request=data,
             )

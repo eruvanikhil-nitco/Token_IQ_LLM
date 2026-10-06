@@ -58,7 +58,7 @@ from pipecat.processors.frame_processor import (  # noqa: E402
 )
 from pipecat.services.llm_service import FunctionCallParams  # noqa: E402
 
-from pipecat_service import LiteLLMRealtimeLLMService  # noqa: E402
+from pipecat_service import GatewayRealtimeLLMService  # noqa: E402
 
 # Vertex native-audio live is flaky through pipecat tool calling (upstream
 # pipecat-ai/pipecat#2544); raw-ws tool_call_round_trip[vertex_ai] is the
@@ -98,7 +98,7 @@ async def _run_pipeline(key: str, model: str) -> tuple[bool, bool]:
         tool_called.set()
         await params.result_callback({"city": "Paris", "temperature_f": 72})
 
-    llm = LiteLLMRealtimeLLMService(
+    llm = GatewayRealtimeLLMService(
         api_key=key, base_url=f"{ws_base_url()}/v1/realtime", model=model
     )
     llm.register_function("get_weather", get_weather)

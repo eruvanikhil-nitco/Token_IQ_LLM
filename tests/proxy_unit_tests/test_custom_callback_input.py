@@ -17,7 +17,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from token_iq import gateway
 from token_iq.gateway import Cache, completion, embedding
 from token_iq.gateway.integrations.custom_logger import CustomLogger
-from token_iq.gateway.types.utils import LiteLLMCommonStrings
+from token_iq.gateway.types.utils import GatewayCommonStrings
 
 # Test Scenarios (test across completion, streaming, embedding)
 ## 1: Pre-API-Call
@@ -82,7 +82,7 @@ class CompletionCustomHandler(
                 if gateway.turn_off_message_logging is True:
                     assert (
                         metadata_value["raw_request"]
-                        is LiteLLMCommonStrings.redacted_by_litellm.value
+                        is GatewayCommonStrings.redacted_by_gateway.value
                     )
                 else:
                     assert "raw_request" not in metadata_value or isinstance(

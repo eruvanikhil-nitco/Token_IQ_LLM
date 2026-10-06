@@ -410,7 +410,7 @@ def _handle_invalid_parallel_tool_calls(
         return tool_calls
 
 
-class LiteLLMResponseObjectHandler:
+class GatewayResponseObjectHandler:
     @staticmethod
     def convert_to_image_response(
         response_object: dict,
@@ -485,7 +485,7 @@ class LiteLLMResponseObjectHandler:
             text_response = convert_chat_to_text_completion(chat_response)
         """
         transformed_logprobs: Final = (
-            LiteLLMResponseObjectHandler._convert_provider_response_logprobs_to_text_completion_logprobs(
+            GatewayResponseObjectHandler._convert_provider_response_logprobs_to_text_completion_logprobs(
                 response=response,
                 custom_llm_provider=custom_llm_provider,
             )
@@ -791,7 +791,7 @@ def convert_to_model_response_object(
             if response_object is None:
                 raise Exception("Error in response object format")
 
-            return LiteLLMResponseObjectHandler.convert_to_image_response(
+            return GatewayResponseObjectHandler.convert_to_image_response(
                 response_object=response_object,
                 model_response_object=model_response_object,
                 hidden_params=hidden_params,

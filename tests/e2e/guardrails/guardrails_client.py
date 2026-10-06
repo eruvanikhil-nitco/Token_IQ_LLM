@@ -19,7 +19,7 @@ from models import (
     ChatMessage,
     ChatResponse,
     KeyGenerateBody,
-    LiteLLMParamsBody,
+    GatewayParamsBody,
     TeamDeleteBody,
     TeamInfoParams,
     TeamInfoResponse,
@@ -178,7 +178,7 @@ class GuardrailsClient:
         model_name = f"{prefix}-{unique_marker()}"
         model_id = self.proxy.create_model(
             model_name,
-            LiteLLMParamsBody(model=backend, api_key=api_key),
+            GatewayParamsBody(model=backend, api_key=api_key),
         )
         resources.defer(lambda: self.proxy.delete_model(model_id))
         return model_name

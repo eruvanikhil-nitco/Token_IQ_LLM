@@ -11,7 +11,7 @@ from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.a2a_protocol.cost_calculator import A2ACostCalculator
 from token_iq.gateway.a2a_protocol.utils import A2ARequestUtils
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 
 if TYPE_CHECKING:
     from a2a.types import SendStreamingMessageRequest, SendStreamingMessageResponse
@@ -28,7 +28,7 @@ class A2AStreamingIterator:
         self,
         stream: AsyncIterator["SendStreamingMessageResponse"],
         request: "SendStreamingMessageRequest",
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         agent_name: str = "unknown",
     ):
         self.stream = stream

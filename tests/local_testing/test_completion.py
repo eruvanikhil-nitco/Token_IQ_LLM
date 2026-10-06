@@ -1776,7 +1776,7 @@ def test_completion_logprobs_stream():
 # test_completion_logprobs_stream()
 
 
-def test_completion_openai_litellm_key():
+def test_completion_openai_gateway_key():
     try:
         gateway.set_verbose = True
         gateway.num_retries = 0
@@ -2442,7 +2442,7 @@ def test_completion_azure3():
 #  litellm.api_base = self.AZURE_AI_API_BASE
 #  litellm.api_version = self.azure_api_version
 #  litellm.api_key = self.api_key
-def test_completion_azure_with_litellm_key():
+def test_completion_azure_with_gateway_key():
     try:
         print("azure gpt-3.5 test\n\n")
         import openai

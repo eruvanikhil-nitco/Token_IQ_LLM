@@ -679,7 +679,7 @@ def test_transform_text_to_speech_request_ssml_with_mstts_namespace(
 
 
 @patch("token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post")
-def test_litellm_speech_with_ssml_passthrough(mock_post):
+def test_gateway_speech_with_ssml_passthrough(mock_post):
     """
     Test that litellm.speech passes SSML through to Azure AVA without transformation
     """

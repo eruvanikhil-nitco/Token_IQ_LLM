@@ -33,7 +33,7 @@ from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway._uuid import uuid
 from token_iq.gateway.caching.dual_cache import DualCache
 from token_iq.gateway.constants import (
-    LENGTH_OF_LITELLM_GENERATED_KEY,
+    LENGTH_OF_GATEWAY_GENERATED_KEY,
     LITELLM_PROXY_ADMIN_NAME,
     MINIMUM_CUSTOM_KEY_LENGTH,
     UI_SESSION_TOKEN_TEAM_ID,
@@ -50,7 +50,7 @@ from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.sso_as
     rotate_sso_identity_assertions_master_key,
 )
 from token_iq.gateway.proxy._types import *
-from token_iq.gateway.proxy._types import Litellm_EntityType, LiteLLM_VerificationToken, hash_token
+from token_iq.gateway.proxy._types import Gateway_EntityType, LiteLLM_VerificationToken, hash_token
 from token_iq.gateway.proxy.auth.auth_checks import (
     _delete_cache_key_object,
     can_team_access_model,
@@ -376,7 +376,7 @@ def _is_allowed_to_make_key_request(
     Relevant issue
     """
     ## BASE CASE - PROXY ADMIN
-    if user_api_key_dict.user_role is not None and user_api_key_dict.user_role == LitellmUserRoles.PROXY_ADMIN.value:
+    if user_api_key_dict.user_role is not None and user_api_key_dict.user_role == GatewayUserRoles.PROXY_ADMIN.value:
         return True
 
     if user_id is not None:
@@ -410,7 +410,7 @@ def _team_key_operation_team_member_check(
     team_member_object: Final = _get_user_in_team(team_table=team_table, user_id=user_api_key_dict.user_id)
 
     is_admin: Final = (
-        user_api_key_dict.user_role is not None and user_api_key_dict.user_role == LitellmUserRoles.PROXY_ADMIN.value
+        user_api_key_dict.user_role is not None and user_api_key_dict.user_role == GatewayUserRoles.PROXY_ADMIN.value
     )
 
     if is_admin:
@@ -457,7 +457,7 @@ def _team_key_generation_check(
     data: GenerateKeyRequest,
     route: KeyManagementRoutes,
 ):
-    if user_api_key_dict.user_role == LitellmUserRoles.PROXY_ADMIN.value:
+    if user_api_key_dict.user_role == GatewayUserRoles.PROXY_ADMIN.value:
         return True
     if gateway.key_generation_settings is not None and "team_key_generation" in gateway.key_generation_settings:
         _team_key_generation = gateway.key_generation_settings["team_key_generation"]
@@ -554,7 +554,7 @@ def key_generation_check(
     ## check if key is for team or individual
     is_team_key: Final = _is_team_key(data=data)
     _is_admin: Final = (
-        user_api_key_dict.user_role is not None and user_api_key_dict.user_role == LitellmUserRoles.PROXY_ADMIN.value
+        user_api_key_dict.user_role is not None and user_api_key_dict.user_role == GatewayUserRoles.PROXY_ADMIN.value
     )
     if is_team_key:
         if team_table is None and gateway.key_generation_settings is not None:
@@ -638,11 +638,11 @@ def handle_key_type(data: GenerateKeyRequest, data_json: dict) -> dict:
         data_json.pop("key_type", None)
         return data_json
     data_json["key_type"] = key_type.value
-    if key_type == LiteLLMKeyType.LLM_API:
+    if key_type == GatewayKeyType.LLM_API:
         data_json["allowed_routes"] = ["llm_api_routes"]
-    elif key_type == LiteLLMKeyType.MANAGEMENT:
+    elif key_type == GatewayKeyType.MANAGEMENT:
         data_json["allowed_routes"] = ["management_routes"]
-    elif key_type == LiteLLMKeyType.READ_ONLY:
+    elif key_type == GatewayKeyType.READ_ONLY:
         data_json["allowed_routes"] = ["info_routes"]
     return data_json
 
@@ -666,7 +666,7 @@ def _validate_caller_can_change_key_ownership(
     not. Sharing the check keeps both endpoints — and any future
     regenerate-style endpoint — consistent.
     """
-    if user_api_key_dict.user_role == LitellmUserRoles.PROXY_ADMIN.value:
+    if user_api_key_dict.user_role == GatewayUserRoles.PROXY_ADMIN.value:
         return
     if data is None:
         return
@@ -720,7 +720,7 @@ def _check_allowed_routes_caller_permission(
     """
     if not allowed_routes_was_provided and not allowed_routes:
         return
-    if user_api_key_dict.user_role == LitellmUserRoles.PROXY_ADMIN.value:
+    if user_api_key_dict.user_role == GatewayUserRoles.PROXY_ADMIN.value:
         return
     if (
         allow_safe_presets
@@ -792,7 +792,7 @@ def _check_permissions_caller_permission(
     permissions_in_request: Final = "permissions" in data.model_fields_set
     if not permissions_in_request and not data.permissions:
         return
-    if user_api_key_dict.user_role == LitellmUserRoles.PROXY_ADMIN.value:
+    if user_api_key_dict.user_role == GatewayUserRoles.PROXY_ADMIN.value:
         return
     raise HTTPException(
         status_code=403,
@@ -825,7 +825,7 @@ def _check_budget_limits_delegation_ceiling(
             status_code=400,
             detail={"error": (f"budget_limits entry max_budget ({non_finite.max_budget}) must be a finite number.")},
         )
-    if user_api_key_dict.user_role == LitellmUserRoles.PROXY_ADMIN.value:
+    if user_api_key_dict.user_role == GatewayUserRoles.PROXY_ADMIN.value:
         return
     if is_ui_session_team_key:
         return
@@ -970,7 +970,7 @@ async def _common_key_generation_helper(
     validate_budget_duration(data.budget_duration)
     raise_on_invalid_key_logging_config(data.metadata)
 
-    if data.throttle_on_budget_exceeded is True and user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN.value:
+    if data.throttle_on_budget_exceeded is True and user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN.value:
         raise HTTPException(
             status_code=403,
             detail={"error": "Only proxy admins can enable throttle_on_budget_exceeded on a key."},
@@ -1041,7 +1041,7 @@ async def _common_key_generation_helper(
     # request time, so a session token cannot delegate any budget for one.
     if (
         user_api_key_dict.is_session_token
-        and user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN.value
+        and user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN.value
         and not is_ui_session_team_key
         and _requested_max_budget is not None
         and team_table is None
@@ -1061,7 +1061,7 @@ async def _common_key_generation_helper(
         else (team_table.max_budget if user_api_key_dict.is_session_token and team_table is not None else None)
     )
     if (
-        user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN.value
+        user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN.value
         and not is_ui_session_team_key
         and _requested_max_budget is not None
         and delegation_ceiling is not None
@@ -1188,7 +1188,7 @@ async def _common_key_generation_helper(
         data_json.pop("tags")
 
     # Validate MCP servers in object_permission are within team scope
-    _is_proxy_admin_caller: Final = user_api_key_dict.user_role == LitellmUserRoles.PROXY_ADMIN.value
+    _is_proxy_admin_caller: Final = user_api_key_dict.user_role == GatewayUserRoles.PROXY_ADMIN.value
     normalized_object_permission: Final = await validate_key_mcp_servers_against_team(
         object_permission=data_json.get("object_permission"),
         team_obj=team_table,
@@ -1266,7 +1266,7 @@ async def _common_key_generation_helper(
             # member of (or proxy admin over) the target organization.
             _is_proxy_admin: Final = (
                 user_api_key_dict.user_role is not None
-                and user_api_key_dict.user_role == LitellmUserRoles.PROXY_ADMIN.value
+                and user_api_key_dict.user_role == GatewayUserRoles.PROXY_ADMIN.value
             )
             _org_inherited_from_team: Final = (
                 team_table is not None
@@ -1841,7 +1841,7 @@ async def generate_key_fn(
         # This prevents creating unbound keys with no user association (LIT-1884)
         _is_proxy_admin: Final = (
             user_api_key_dict.user_role is not None
-            and user_api_key_dict.user_role == LitellmUserRoles.PROXY_ADMIN.value
+            and user_api_key_dict.user_role == GatewayUserRoles.PROXY_ADMIN.value
         )
         if not _is_proxy_admin and data.user_id is None:
             data.user_id = user_api_key_dict.user_id
@@ -2585,7 +2585,7 @@ async def _validate_update_key_data(
     validate_finite_spend(data.spend)
     validate_budget_duration(data.budget_duration)
 
-    _is_proxy_admin: Final = user_api_key_dict.user_role == LitellmUserRoles.PROXY_ADMIN.value
+    _is_proxy_admin: Final = user_api_key_dict.user_role == GatewayUserRoles.PROXY_ADMIN.value
 
     _enforce_allowed_routes_update_permission(
         data=data,
@@ -3132,7 +3132,7 @@ async def bulk_update_keys(
 
     custom_key_update_hook: Final = _custom_key_update_hook(proxy_server)
 
-    if user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN.value:
+    if user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN.value:
         raise HTTPException(
             status_code=403,
             detail={"error": "Only proxy admins can perform bulk key updates"},
@@ -3365,7 +3365,7 @@ async def bulk_update_team_keys(
         )
 
     # Anchor membership check on data.team_id (not existing_keys[0]); empty result must still gate non-admins.
-    if user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN.value:
+    if user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN.value:
         auth_anchor: Final = (
             existing_keys[0]
             if existing_keys
@@ -3499,7 +3499,7 @@ async def validate_key_team_change(
 
     # Check if the person initiating the change is a Proxy Admin or Team Admin
     if (
-        change_initiated_by.user_role == LitellmUserRoles.PROXY_ADMIN.value
+        change_initiated_by.user_role == GatewayUserRoles.PROXY_ADMIN.value
         or _is_user_team_admin(
             user_api_key_dict=change_initiated_by,
             team_obj=team,
@@ -3633,7 +3633,7 @@ async def _build_model_max_budget_usage(
     user_api_key_cache: DualCache | None,
 ) -> dict[str, dict[str, object]]:
     return await build_model_max_budget_usage(
-        entity_type=Litellm_EntityType.KEY,
+        entity_type=Gateway_EntityType.KEY,
         entity_id=api_key_hash,
         model_max_budget=model_max_budget,
         cache=user_api_key_cache,
@@ -4019,7 +4019,7 @@ async def generate_key_helper_fn(
         if key is not None:
             token = key
         else:
-            token = f"sk-{secrets.token_urlsafe(LENGTH_OF_LITELLM_GENERATED_KEY)}"
+            token = f"sk-{secrets.token_urlsafe(LENGTH_OF_GATEWAY_GENERATED_KEY)}"
 
     if duration is None:  # allow tokens that never expire
         expires = None
@@ -4330,7 +4330,7 @@ async def can_modify_verification_token(
     is_team_key: Final = _is_team_key(data=key_info)
 
     # 1. Proxy admin can modify any key
-    if user_api_key_dict.user_role == LitellmUserRoles.PROXY_ADMIN.value:
+    if user_api_key_dict.user_role == GatewayUserRoles.PROXY_ADMIN.value:
         return True
 
     # 2. Internal jobs service account can modify any key (for auto-rotation)
@@ -4416,7 +4416,7 @@ async def delete_verification_tokens(
                     detail={"error": "No keys found"},
                 )
 
-            if user_api_key_dict.user_role == LitellmUserRoles.PROXY_ADMIN.value:
+            if user_api_key_dict.user_role == GatewayUserRoles.PROXY_ADMIN.value:
                 authorized_keys = _keys_being_deleted
             else:
                 authorized_keys = []
@@ -4440,7 +4440,7 @@ async def delete_verification_tokens(
                 litellm_changed_by=litellm_changed_by,
             )
 
-            if user_api_key_dict.user_role == LitellmUserRoles.PROXY_ADMIN.value:
+            if user_api_key_dict.user_role == GatewayUserRoles.PROXY_ADMIN.value:
                 deleted_tokens = await prisma_client.delete_data(tokens=tokens)
                 if deleted_tokens is not None and len(deleted_tokens) != len(tokens):
                     failed_tokens = [token for token in tokens if token not in deleted_tokens]
@@ -4758,7 +4758,7 @@ async def _rotate_master_key(
 def _require_proxy_admin(user_api_key_dict: UserAPIKeyAuth) -> None:
     from token_iq.gateway.proxy._types import CommonProxyErrors
 
-    if user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN.value:
+    if user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN.value:
         raise HTTPException(
             status_code=403,
             detail={"error": CommonProxyErrors.not_allowed_access.value},
@@ -4853,7 +4853,7 @@ async def get_new_token(data: RegenerateKeyRequest | None) -> str:
             )
         new_token = data.new_key
     else:
-        new_token = f"sk-{secrets.token_urlsafe(LENGTH_OF_LITELLM_GENERATED_KEY)}"
+        new_token = f"sk-{secrets.token_urlsafe(LENGTH_OF_GATEWAY_GENERATED_KEY)}"
     return new_token
 
 
@@ -4947,7 +4947,7 @@ async def _execute_virtual_key_regeneration(
         _existing_org_id: Final = getattr(key_in_db, "organization_id", None)
         _is_proxy_admin: Final = (
             user_api_key_dict.user_role is not None
-            and user_api_key_dict.user_role == LitellmUserRoles.PROXY_ADMIN.value
+            and user_api_key_dict.user_role == GatewayUserRoles.PROXY_ADMIN.value
         )
         if data.organization_id != _existing_org_id and not _is_proxy_admin:
             await _validate_caller_can_assign_key_org(
@@ -5247,7 +5247,7 @@ async def regenerate_key_fn(
                     user_api_key_cache=user_api_key_cache,
                     check_db_only=True,
                 )
-            _regen_is_proxy_admin: Final = user_api_key_dict.user_role == LitellmUserRoles.PROXY_ADMIN.value
+            _regen_is_proxy_admin: Final = user_api_key_dict.user_role == GatewayUserRoles.PROXY_ADMIN.value
             TeamMemberPermissionChecks.enforce_member_can_assign_access_groups(
                 user_api_key_dict=user_api_key_dict,
                 team_table=regenerate_team_table,
@@ -5317,7 +5317,7 @@ async def _check_proxy_or_team_admin_for_key(
     prisma_client: PrismaClient,
     user_api_key_cache: UserApiKeyCache,
 ) -> None:
-    if user_api_key_dict.user_role == LitellmUserRoles.PROXY_ADMIN.value:
+    if user_api_key_dict.user_role == GatewayUserRoles.PROXY_ADMIN.value:
         return
 
     if key_in_db.team_id is not None:
@@ -5919,8 +5919,8 @@ async def list_keys(
             admin_team_ids = None
 
         is_proxy_admin: Final = user_api_key_dict.user_role in [
-            LitellmUserRoles.PROXY_ADMIN.value,
-            LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY.value,
+            GatewayUserRoles.PROXY_ADMIN.value,
+            GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY.value,
         ]
 
         # Substring matching is opt-in (admin-only). /key/list matched user_id and
@@ -6068,8 +6068,8 @@ async def key_aliases(
         # Scope results for non-admin users: only show aliases for keys the
         # user owns or keys belonging to teams they are a member of.
         is_proxy_admin: Final = user_api_key_dict.user_role in [
-            LitellmUserRoles.PROXY_ADMIN.value,
-            LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY.value,
+            GatewayUserRoles.PROXY_ADMIN.value,
+            GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY.value,
         ]
         if not is_proxy_admin:
             await _apply_non_admin_alias_scope(user_api_key_dict, prisma_client, query_params, where_parts)
@@ -6516,7 +6516,7 @@ async def _check_key_admin_access(
     Raises HTTPException(403) if the caller is not authorized.
     """
 
-    if user_api_key_dict.user_role == LitellmUserRoles.PROXY_ADMIN.value:
+    if user_api_key_dict.user_role == GatewayUserRoles.PROXY_ADMIN.value:
         return
 
     # Look up the target key to find its team
@@ -6642,7 +6642,7 @@ async def block_key(
                         litellm_proxy_admin_name=litellm_proxy_admin_name,
                     ),
                     changed_by_api_key=user_api_key_dict.api_key,
-                    table_name=LitellmTableNames.KEY_TABLE_NAME,
+                    table_name=GatewayTableNames.KEY_TABLE_NAME,
                     object_id=hashed_token,
                     action="blocked",
                     updated_values="{}",
@@ -6756,7 +6756,7 @@ async def unblock_key(
                         litellm_proxy_admin_name=litellm_proxy_admin_name,
                     ),
                     changed_by_api_key=user_api_key_dict.api_key,
-                    table_name=LitellmTableNames.KEY_TABLE_NAME,
+                    table_name=GatewayTableNames.KEY_TABLE_NAME,
                     object_id=hashed_token,
                     action="unblocked",
                     updated_values="{}",
@@ -6880,8 +6880,8 @@ async def _can_user_query_key_info(
     """
     if (
         (
-            user_api_key_dict.user_role == LitellmUserRoles.PROXY_ADMIN.value
-            or user_api_key_dict.user_role == LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY.value
+            user_api_key_dict.user_role == GatewayUserRoles.PROXY_ADMIN.value
+            or user_api_key_dict.user_role == GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY.value
         )
         or user_api_key_dict.api_key == key
         or key_info.user_id == user_api_key_dict.user_id

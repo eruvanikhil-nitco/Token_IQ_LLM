@@ -173,7 +173,7 @@ def _drop_response_format(passed_params: Container[str], model: str, drop_params
     )
 
 
-def _without_litellm_internal_fields(message: AllMessageValues) -> AllMessageValues:
+def _without_gateway_internal_fields(message: AllMessageValues) -> AllMessageValues:
     if message["role"] != "assistant" or LITELLM_INTERNAL_ASSISTANT_FIELDS.isdisjoint(message):
         return message
     return cast(  # cast-ok: rebuilding the same TypedDict minus internal keys loses the narrowed type
@@ -211,7 +211,7 @@ class TogetherAIChatConfig(OpenAIGPTConfig):
         `chat_template_kwargs: {"clear_thinking": false}`), so it must stay in the payload;
         only litellm-internal fields are stripped before sending."""
         stripped: Final = [  # mutable-ok: super() requires a list
-            _without_litellm_internal_fields(message) for message in messages
+            _without_gateway_internal_fields(message) for message in messages
         ]
         if is_async:
             return super()._transform_messages(stripped, model, is_async=True)

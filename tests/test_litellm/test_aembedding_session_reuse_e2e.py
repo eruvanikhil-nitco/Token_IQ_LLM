@@ -11,7 +11,7 @@ import inspect
 from token_iq.gateway.types.utils import all_litellm_params
 
 
-def test_shared_session_in_all_litellm_params():
+def test_shared_session_in_all_gateway_params():
     """
     CRITICAL: shared_session must be in all_litellm_params.
 

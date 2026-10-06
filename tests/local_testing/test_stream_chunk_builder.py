@@ -86,7 +86,7 @@ tools_schema = [
 # test_stream_chunk_builder_tools()
 
 
-def test_stream_chunk_builder_litellm_function_call():
+def test_stream_chunk_builder_gateway_function_call():
     try:
         gateway.set_verbose = False
         response = gateway.completion(
@@ -105,7 +105,7 @@ def test_stream_chunk_builder_litellm_function_call():
 # test_stream_chunk_builder_litellm_function_call()
 
 
-def test_stream_chunk_builder_litellm_tool_call():
+def test_stream_chunk_builder_gateway_tool_call():
     try:
         gateway.set_verbose = True
         response = gateway.completion(
@@ -131,7 +131,7 @@ def test_stream_chunk_builder_litellm_tool_call():
 # test_stream_chunk_builder_litellm_tool_call()
 
 
-def test_stream_chunk_builder_litellm_tool_call_regular_message():
+def test_stream_chunk_builder_gateway_tool_call_regular_message():
     try:
         messages = [{"role": "user", "content": "Hey, how's it going?"}]
         # litellm.set_verbose = True
@@ -163,7 +163,7 @@ def test_stream_chunk_builder_litellm_tool_call_regular_message():
 # test_stream_chunk_builder_litellm_tool_call_regular_message()
 
 
-def test_stream_chunk_builder_litellm_mixed_calls():
+def test_stream_chunk_builder_gateway_mixed_calls():
     response = stream_chunk_builder(stream_chunk_testdata.chunks)
     assert (
         response.choices[0].message.content
@@ -183,7 +183,7 @@ def test_stream_chunk_builder_litellm_mixed_calls():
     }
 
 
-def test_stream_chunk_builder_litellm_empty_chunks():
+def test_stream_chunk_builder_gateway_empty_chunks():
     with pytest.raises(gateway.APIError):
         response = stream_chunk_builder(chunks=None)
 

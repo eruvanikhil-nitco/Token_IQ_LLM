@@ -3080,7 +3080,7 @@ def test_validate_trusted_redirect_uri_logs_diagnostic_on_rejection(caplog, monk
     import logging
 
     with (
-        caplog.at_level(logging.WARNING, logger="LiteLLM"),
+        caplog.at_level(logging.WARNING, logger="Gateway"),
         patch("token_iq.gateway.proxy.proxy_server.general_settings", {}, create=True),
     ):
         with pytest.raises(HTTPException) as exc_info:
@@ -3191,7 +3191,7 @@ def test_get_request_base_url_rejects_malformed_proxy_base_url(bad_value, monkey
     import logging
 
     with (
-        caplog.at_level(logging.WARNING, logger="LiteLLM"),
+        caplog.at_level(logging.WARNING, logger="Gateway"),
         patch("token_iq.gateway.proxy.proxy_server.general_settings", {}, create=True),
     ):
         result = get_request_base_url(mock_request)
@@ -3230,7 +3230,7 @@ def test_get_request_base_url_malformed_proxy_base_url_warning_is_one_shot(monke
     import logging
 
     with (
-        caplog.at_level(logging.WARNING, logger="LiteLLM"),
+        caplog.at_level(logging.WARNING, logger="Gateway"),
         patch("token_iq.gateway.proxy.proxy_server.general_settings", {}, create=True),
     ):
         for _ in range(5):
@@ -5250,7 +5250,7 @@ async def _exchange_for_bridge_server(server, upstream_body, key_hash, code="aut
             return_value=fake_http_client,
         ),
         patch(
-            "token_iq.gateway.proxy._experimental.mcp_server.bridge_token_flow._resolve_active_litellm_key",
+            "token_iq.gateway.proxy._experimental.mcp_server.bridge_token_flow._resolve_active_gateway_key",
             new=key_resolver,
         ),
         patch("token_iq.gateway.proxy.proxy_server.master_key", _BRIDGE_MASTER_KEY),
@@ -5656,7 +5656,7 @@ async def test_interactive_bridge_callback_seals_user_into_gateway_code():
 
 
 @pytest.mark.asyncio
-async def test_oauth_delegate_bridge_token_exchange_fails_closed_without_litellm_identity():
+async def test_oauth_delegate_bridge_token_exchange_fails_closed_without_gateway_identity():
     """Without a resolvable litellm identity on the token request, the exchange must not mint an
     identity-less envelope. It returns an RFC 6749 §5.2-shaped invalid_request (error at the top
     level, not wrapped in detail) BEFORE exchanging the upstream code, so the single-use code is not
@@ -6368,7 +6368,7 @@ async def test_bridge_mint_fails_closed_before_upstream_when_master_key_unset():
             return_value=fake_http_client,
         ),
         patch(
-            "token_iq.gateway.proxy._experimental.mcp_server.bridge_token_flow._resolve_active_litellm_key",
+            "token_iq.gateway.proxy._experimental.mcp_server.bridge_token_flow._resolve_active_gateway_key",
             new=AsyncMock(return_value="no_active_key"),
         ),
         patch("token_iq.gateway.proxy.proxy_server.master_key", None),
@@ -6405,7 +6405,7 @@ async def _prepare_only_bridge_exchange(resolver_result):
             return_value=fake_http_client,
         ),
         patch(
-            "token_iq.gateway.proxy._experimental.mcp_server.bridge_token_flow._resolve_active_litellm_key",
+            "token_iq.gateway.proxy._experimental.mcp_server.bridge_token_flow._resolve_active_gateway_key",
             new=AsyncMock(return_value=resolver_result),
         ),
         patch("token_iq.gateway.proxy.proxy_server.master_key", _BRIDGE_MASTER_KEY),
@@ -6888,7 +6888,7 @@ def proxy_globals():
 
 
 @pytest.mark.asyncio
-async def test_extract_user_id_reads_x_litellm_api_key_header(proxy_globals):
+async def test_extract_user_id_reads_x_gateway_api_key_header(proxy_globals):
     """The LiteLLM key arrives on x-litellm-api-key (what Claude Desktop/Code send), not
     Authorization. Reading only Authorization dropped the identity, so the per-user token was
     never stored and the egress 401'd forever. Resolution must honor x-litellm-api-key."""
@@ -6958,7 +6958,7 @@ async def test_extract_user_id_falls_back_to_db_on_cache_miss(proxy_globals):
 
 
 @pytest.mark.asyncio
-async def test_extract_user_id_none_without_litellm_key(proxy_globals):
+async def test_extract_user_id_none_without_gateway_key(proxy_globals):
     """No LiteLLM key on the request resolves to None without consulting the resolver."""
     from token_iq.gateway.proxy._experimental.mcp_server.bridge_token_flow import (
         _extract_user_id_from_request,
@@ -7019,13 +7019,13 @@ async def test_extract_user_id_rejects_expired_key(proxy_globals):
 
 
 @pytest.mark.asyncio
-async def test_resolve_active_litellm_key_returns_resolved_key_for_active_key(proxy_globals):
+async def test_resolve_active_gateway_key_returns_resolved_key_for_active_key(proxy_globals):
     """The dcr_bridge mint seals the hash of the authorizing key so admission can reload the live
     record. For an active key the resolver returns exactly hash_token(key), the same value
     get_key_object and the whole cache/DB layer key the record by, so the sealed reference resolves
     back to this key at admission."""
     from token_iq.gateway.proxy._experimental.mcp_server.bridge_token_flow import (
-        _resolve_active_litellm_key,
+        _resolve_active_gateway_key,
         _ResolvedKey,
     )
     from token_iq.gateway.proxy._types import UserAPIKeyAuth, hash_token
@@ -7042,13 +7042,13 @@ async def test_resolve_active_litellm_key_returns_resolved_key_for_active_key(pr
     proxy_globals.prisma_client = object()
 
     request = _token_request({"x-litellm-api-key": f"Bearer {key}"})
-    resolved = await _resolve_active_litellm_key(request)
+    resolved = await _resolve_active_gateway_key(request)
     assert isinstance(resolved, _ResolvedKey)
     assert resolved.key_hash == hash_token(key)
 
 
 @pytest.mark.asyncio
-async def test_resolve_active_litellm_key_resolves_key_without_user_id(proxy_globals):
+async def test_resolve_active_gateway_key_resolves_key_without_user_id(proxy_globals):
     """A valid team-scoped or service-account key has no user_id but is a legitimate credential, so it
     must still resolve to a hash and be able to mint a bridge envelope. Gating the resolver on user_id
     presence wrongly rejected these keys with invalid_request; the active-state gate now checks only
@@ -7057,7 +7057,7 @@ async def test_resolve_active_litellm_key_resolves_key_without_user_id(proxy_glo
     from token_iq.gateway.proxy._experimental.mcp_server.bridge_token_flow import (
         _extract_user_id_from_request,
         _ResolvedKey,
-        _resolve_active_litellm_key,
+        _resolve_active_gateway_key,
     )
     from token_iq.gateway.proxy._types import UserAPIKeyAuth, hash_token
     from token_iq.gateway.proxy.common_utils.user_api_key_cache import UserApiKeyCache
@@ -7073,18 +7073,18 @@ async def test_resolve_active_litellm_key_resolves_key_without_user_id(proxy_glo
     proxy_globals.prisma_client = object()
 
     request = _token_request({"x-litellm-api-key": f"Bearer {key}"})
-    resolved = await _resolve_active_litellm_key(request)
+    resolved = await _resolve_active_gateway_key(request)
     assert isinstance(resolved, _ResolvedKey)
     assert resolved.key_hash == hash_token(key)
     assert await _extract_user_id_from_request(request) is None
 
 
 @pytest.mark.asyncio
-async def test_resolve_active_litellm_key_rejects_blocked_key(proxy_globals):
+async def test_resolve_active_gateway_key_rejects_blocked_key(proxy_globals):
     """A blocked key must not yield a hash, so no gateway-bound envelope is minted for a revoked key;
     the mint fails closed with invalid_request instead."""
     from token_iq.gateway.proxy._experimental.mcp_server.bridge_token_flow import (
-        _resolve_active_litellm_key,
+        _resolve_active_gateway_key,
     )
     from token_iq.gateway.proxy._types import UserAPIKeyAuth
     from token_iq.gateway.proxy.common_utils.user_api_key_cache import UserApiKeyCache
@@ -7097,17 +7097,17 @@ async def test_resolve_active_litellm_key_rejects_blocked_key(proxy_globals):
     proxy_globals.prisma_client = _FakePrisma()
 
     request = _token_request({"x-litellm-api-key": "sk-blocked-key"})
-    assert await _resolve_active_litellm_key(request) == "no_active_key"
+    assert await _resolve_active_gateway_key(request) == "no_active_key"
 
 
 @pytest.mark.asyncio
-async def test_resolve_active_litellm_key_fails_closed_on_malformed_expiry(proxy_globals):
+async def test_resolve_active_gateway_key_fails_closed_on_malformed_expiry(proxy_globals):
     """A key whose stored expires string does not parse must fail closed to no-hash (the mint then
     returns invalid_request), not surface an unhandled 500. The active-state check runs outside the
     resolver's try, so it must be total over a bad expires rather than letting datetime.fromisoformat
     raise. Before the fix this raised a ValueError instead of returning None."""
     from token_iq.gateway.proxy._experimental.mcp_server.bridge_token_flow import (
-        _resolve_active_litellm_key,
+        _resolve_active_gateway_key,
     )
     from token_iq.gateway.proxy._types import UserAPIKeyAuth
     from token_iq.gateway.proxy.common_utils.user_api_key_cache import UserApiKeyCache
@@ -7120,14 +7120,14 @@ async def test_resolve_active_litellm_key_fails_closed_on_malformed_expiry(proxy
     proxy_globals.prisma_client = _FakePrisma()
 
     request = _token_request({"x-litellm-api-key": "sk-bad-expiry-key"})
-    assert await _resolve_active_litellm_key(request) == "no_active_key"
+    assert await _resolve_active_gateway_key(request) == "no_active_key"
 
 
 @pytest.mark.asyncio
-async def test_resolve_active_litellm_key_no_active_key_without_litellm_key(proxy_globals):
+async def test_resolve_active_gateway_key_no_active_key_without_gateway_key(proxy_globals):
     """No LiteLLM key on the request yields no hash without consulting the resolver."""
     from token_iq.gateway.proxy._experimental.mcp_server.bridge_token_flow import (
-        _resolve_active_litellm_key,
+        _resolve_active_gateway_key,
     )
     from token_iq.gateway.proxy.common_utils.user_api_key_cache import UserApiKeyCache
 
@@ -7135,17 +7135,17 @@ async def test_resolve_active_litellm_key_no_active_key_without_litellm_key(prox
     proxy_globals.prisma_client = object()
 
     request = _token_request({"content-type": "application/json"})
-    assert await _resolve_active_litellm_key(request) == "no_active_key"
+    assert await _resolve_active_gateway_key(request) == "no_active_key"
 
 
 @pytest.mark.asyncio
-async def test_resolve_active_litellm_key_db_outage_is_unavailable(proxy_globals):
+async def test_resolve_active_gateway_key_db_outage_is_unavailable(proxy_globals):
     """A database outage while resolving the presented key is a retryable infrastructure failure, not
     the caller's fault, so the resolver reports "unavailable" (the mint statuses it 503) rather than
     collapsing it to the same value as a missing credential. is_database_service_unavailable_error
     classifies a connection error (an OSError) as an outage, matching admission's egress-side handling."""
     from token_iq.gateway.proxy._experimental.mcp_server.bridge_token_flow import (
-        _resolve_active_litellm_key,
+        _resolve_active_gateway_key,
     )
     from token_iq.gateway.proxy.common_utils.user_api_key_cache import UserApiKeyCache
 
@@ -7157,18 +7157,18 @@ async def test_resolve_active_litellm_key_db_outage_is_unavailable(proxy_globals
     proxy_globals.prisma_client = _OutagePrisma()
 
     request = _token_request({"x-litellm-api-key": "sk-during-outage"})
-    assert await _resolve_active_litellm_key(request) == "unavailable"
+    assert await _resolve_active_gateway_key(request) == "unavailable"
 
 
 @pytest.mark.asyncio
-async def test_resolve_active_litellm_key_permanent_engine_fault_is_faulted(proxy_globals):
+async def test_resolve_active_gateway_key_permanent_engine_fault_is_faulted(proxy_globals):
     """A query engine that is missing or version-skewed cannot resolve any key until the deployment is
     repaired, so the resolver reports "faulted" (still statused 503 by the mint) rather than "unavailable",
     whose wording promises the outage is transient and asks the client to retry."""
     from prisma.engine.errors import BinaryNotFoundError
 
     from token_iq.gateway.proxy._experimental.mcp_server.bridge_token_flow import (
-        _resolve_active_litellm_key,
+        _resolve_active_gateway_key,
     )
     from token_iq.gateway.proxy.common_utils.user_api_key_cache import UserApiKeyCache
 
@@ -7180,11 +7180,11 @@ async def test_resolve_active_litellm_key_permanent_engine_fault_is_faulted(prox
     proxy_globals.prisma_client = _FaultedPrisma()
 
     request = _token_request({"x-litellm-api-key": "sk-during-engine-fault"})
-    assert await _resolve_active_litellm_key(request) == "faulted"
+    assert await _resolve_active_gateway_key(request) == "faulted"
 
 
 @pytest.mark.asyncio
-async def test_resolve_active_litellm_key_transport_error_over_permanent_fault_is_faulted(proxy_globals):
+async def test_resolve_active_gateway_key_transport_error_over_permanent_fault_is_faulted(proxy_globals):
     """A reconnect that dies on a missing engine binary raises the transport error last, with the
     BinaryNotFoundError as __context__. The binary is what blocks recovery, so the key read is "faulted",
     not the "unavailable" that the outer ConnectError alone would suggest."""
@@ -7192,7 +7192,7 @@ async def test_resolve_active_litellm_key_transport_error_over_permanent_fault_i
     from prisma.engine.errors import BinaryNotFoundError
 
     from token_iq.gateway.proxy._experimental.mcp_server.bridge_token_flow import (
-        _resolve_active_litellm_key,
+        _resolve_active_gateway_key,
     )
     from token_iq.gateway.proxy.common_utils.user_api_key_cache import UserApiKeyCache
 
@@ -7207,16 +7207,16 @@ async def test_resolve_active_litellm_key_transport_error_over_permanent_fault_i
     proxy_globals.prisma_client = _ReconnectFailedPrisma()
 
     request = _token_request({"x-litellm-api-key": "sk-during-failed-reconnect"})
-    assert await _resolve_active_litellm_key(request) == "faulted"
+    assert await _resolve_active_gateway_key(request) == "faulted"
 
 
 @pytest.mark.asyncio
-async def test_resolve_active_litellm_key_no_database_is_unresolvable(proxy_globals):
+async def test_resolve_active_gateway_key_no_database_is_unresolvable(proxy_globals):
     """With no database connection configured the gateway cannot verify the presented key at all, so
     the resolver reports "unresolvable" (the mint statuses it 500) instead of blaming the caller.
     Mirrors admission, which 500s a missing prisma_client on the egress side."""
     from token_iq.gateway.proxy._experimental.mcp_server.bridge_token_flow import (
-        _resolve_active_litellm_key,
+        _resolve_active_gateway_key,
     )
     from token_iq.gateway.proxy.common_utils.user_api_key_cache import UserApiKeyCache
 
@@ -7224,7 +7224,7 @@ async def test_resolve_active_litellm_key_no_database_is_unresolvable(proxy_glob
     proxy_globals.prisma_client = None
 
     request = _token_request({"x-litellm-api-key": "sk-no-db"})
-    assert await _resolve_active_litellm_key(request) == "unresolvable"
+    assert await _resolve_active_gateway_key(request) == "unresolvable"
 
 
 def _wrapped_user_lookup_error(original: BaseException) -> ValueError:
@@ -10410,9 +10410,9 @@ def test_introspect_route_requires_virtual_key_auth_and_is_advertised():
     assert route.methods == {"POST"}
     assert any(dependency.call is user_api_key_auth for dependency in route.dependant.dependencies)
 
-    from token_iq.gateway.proxy._types import LiteLLMRoutes
+    from token_iq.gateway.proxy._types import GatewayRoutes
 
-    assert "/introspect" in LiteLLMRoutes.mcp_routes.value
+    assert "/introspect" in GatewayRoutes.mcp_routes.value
 
     from token_iq.gateway.proxy._lazy_features import LAZY_FEATURES
 

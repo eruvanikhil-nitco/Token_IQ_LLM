@@ -362,7 +362,7 @@ from token_iq.gateway.router_utils.pre_call_checks.encrypted_content_affinity_ch
 
 
 @pytest.mark.asyncio
-async def test_encrypted_content_affinity_does_not_create_litellm_metadata_for_chat():
+async def test_encrypted_content_affinity_does_not_create_gateway_metadata_for_chat():
     """
     For chat completions / embeddings, request_kwargs uses 'metadata' (not
     'litellm_metadata').  The affinity check must NOT create a spurious
@@ -392,7 +392,7 @@ async def test_encrypted_content_affinity_does_not_create_litellm_metadata_for_c
 
 
 @pytest.mark.asyncio
-async def test_encrypted_content_affinity_preserves_litellm_metadata_for_responses():
+async def test_encrypted_content_affinity_preserves_gateway_metadata_for_responses():
     """
     For Responses API calls, litellm_metadata already exists.  The affinity
     check should set the flag there and preserve existing keys.
@@ -504,7 +504,7 @@ def test_boundary_fallback_originating_deployment_removed_returns_empty():
     mock_router.get_deployment.assert_called_once_with(model_id="dep-removed")
 
 
-def test_boundary_key_accepts_pydantic_litellm_params_instance():
+def test_boundary_key_accepts_pydantic_gateway_params_instance():
     """
     Regression: ``_encryption_boundary_key`` must accept any object exposing
     dict-style ``.get()`` (incl. ``LiteLLM_Params`` Pydantic instances) — not

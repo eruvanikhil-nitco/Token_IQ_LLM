@@ -9,7 +9,7 @@ from token_iq import gateway
 if TYPE_CHECKING:
     from aiohttp import ClientSession
 from token_iq.gateway.core_utils.audio_utils.utils import get_audio_file_name
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.llms.base_llm.audio_transcription.transformation import (
     BaseAudioTranscriptionConfig,
 )
@@ -77,7 +77,7 @@ class OpenAIAudioTranscription(OpenAIChatCompletion):
         model_response: TranscriptionResponse,
         timeout: float,
         max_retries: int,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         api_key: str | None,
         api_base: str | None,
         client=None,
@@ -166,7 +166,7 @@ class OpenAIAudioTranscription(OpenAIChatCompletion):
         data: dict,
         model_response: TranscriptionResponse,
         timeout: float,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         api_key: str | None = None,
         api_base: str | None = None,
         client=None,

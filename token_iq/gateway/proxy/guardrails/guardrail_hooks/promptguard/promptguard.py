@@ -27,7 +27,7 @@ from token_iq.gateway.types.utils import GenericGuardrailAPIInputs
 
 if TYPE_CHECKING:
     from token_iq.gateway.core_utils.litellm_logging import (
-        Logging as LiteLLMLoggingObj,
+        Logging as GatewayLoggingObj,
     )
     from token_iq.gateway.types.proxy.guardrails.guardrail_hooks.base import (
         GuardrailConfigModel,
@@ -117,7 +117,7 @@ class PromptGuardGuardrail(CustomGuardrail):
         inputs: GenericGuardrailAPIInputs,
         request_data: dict[str, object],
         input_type: Literal["request", "response"],
-        logging_obj: Optional["LiteLLMLoggingObj"] = None,
+        logging_obj: Optional["GatewayLoggingObj"] = None,
     ) -> GenericGuardrailAPIInputs:
         texts: Final = inputs.get("texts", [])
         images: Final = inputs.get("images", [])

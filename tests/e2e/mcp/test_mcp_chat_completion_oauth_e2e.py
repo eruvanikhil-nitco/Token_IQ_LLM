@@ -70,7 +70,7 @@ class TestMcpChatCompletionOauth:
 
     @pytest.mark.covers("mcp.list_tools.oauth.succeeds")
     @pytest.mark.covers("mcp.call_tool.oauth.succeeds")
-    def test_chat_completion_uses_linear_with_x_litellm_api_key_header(
+    def test_chat_completion_uses_linear_with_x_gateway_api_key_header(
         self, chat_client: ChatMcpClient, resources: ResourceManager
     ) -> None:
         marker = unique_marker()

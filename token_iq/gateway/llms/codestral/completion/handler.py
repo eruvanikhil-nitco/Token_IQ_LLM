@@ -10,7 +10,7 @@ import httpx
 from typing_extensions import NotRequired, ReadOnly, TypedDict
 
 from token_iq import gateway
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLogging
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLogging
 from token_iq.gateway.core_utils.logging_utils import track_llm_api_timing
 from token_iq.gateway.core_utils.prompt_templates.factory import (
     custom_prompt,
@@ -166,7 +166,7 @@ class CodestralTextCompletion:
         response: _CodestralHTTPResponse,
         model_response: TextCompletionResponse,
         stream: bool,
-        logging_obj: LiteLLMLogging,
+        logging_obj: GatewayLogging,
         optional_params: dict,
         api_key: str,
         data: dict | str,
@@ -243,7 +243,7 @@ class CodestralTextCompletion:
         print_verbose: Callable,
         encoding,
         api_key: str,
-        logging_obj: LiteLLMLogging,
+        logging_obj: GatewayLogging,
         optional_params: dict,
         timeout: float | httpx.Timeout,
         acompletion=None,
@@ -431,7 +431,7 @@ class CodestralTextCompletion:
         print_verbose: Callable,
         encoding,
         api_key,
-        logging_obj: LiteLLMLogging,
+        logging_obj: GatewayLogging,
         data: dict,
         timeout: float | httpx.Timeout,
         optional_params=None,

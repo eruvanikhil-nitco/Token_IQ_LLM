@@ -420,7 +420,7 @@ class LangfuseOtelLogger(OpenTelemetry):
             langfuse_host=langfuse_host,
         )
 
-    def create_litellm_proxy_request_started_span(
+    def create_gateway_proxy_request_started_span(
         self,
         start_time: datetime,
         headers: dict,

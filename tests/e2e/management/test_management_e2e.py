@@ -27,7 +27,7 @@ from management_client import (
 from models import (
     KeyGenerateBody,
     KeyUpdateBody,
-    LiteLLMParamsBody,
+    GatewayParamsBody,
     ModelInfoEntry,
     OrgInfoResponse,
     OrgNewBody,
@@ -633,7 +633,7 @@ class TestModelRoutes:
         model_name = f"e2e-mgmt-model-{unique_marker()}"
         model_id = client.proxy.create_model(
             model_name,
-            LiteLLMParamsBody(
+            GatewayParamsBody(
                 model="gpt-4o-mini",
                 mock_response="ok",
                 input_cost_per_token=_INITIAL_INPUT_COST,
@@ -650,7 +650,7 @@ class TestModelRoutes:
 
         client.proxy.update_model(
             model_id,
-            LiteLLMParamsBody(model="gpt-4o-mini", input_cost_per_token=_UPDATED_INPUT_COST),
+            GatewayParamsBody(model="gpt-4o-mini", input_cost_per_token=_UPDATED_INPUT_COST),
         )
 
         def updated() -> ModelInfoEntry | None:
@@ -677,7 +677,7 @@ class TestModelRoutes:
         design: it is the safety net if this test fails before the in-body delete, and
         a repeat /model/delete is a warn-only no-op the teardown absorbs."""
         model_name = f"e2e-mgmt-model-{unique_marker()}"
-        model_id = client.proxy.create_model(model_name, LiteLLMParamsBody(model="openai/gpt-5.5", api_key="dummy"))
+        model_id = client.proxy.create_model(model_name, GatewayParamsBody(model="openai/gpt-5.5", api_key="dummy"))
         resources.defer(lambda: client.proxy.delete_model(model_id))
 
         assert model_name in [entry.model_name for entry in client.proxy.model_info()], (
@@ -698,7 +698,7 @@ class TestModelRoutes:
         model_name = f"e2e-mgmt-model-{unique_marker()}"
         model_id = client.proxy.create_model(
             model_name,
-            LiteLLMParamsBody(model="openai/gpt-5.5", api_key="e2e-dummy-key"),
+            GatewayParamsBody(model="openai/gpt-5.5", api_key="e2e-dummy-key"),
         )
         resources.defer(lambda: client.proxy.delete_model(model_id))
 

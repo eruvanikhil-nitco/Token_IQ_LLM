@@ -91,7 +91,7 @@ def _make_iterator(initial_chunks) -> MCPEnhancedStreamingIterator:
         base_iterator=_FakeAsyncStream(initial_chunks),
         mcp_events=[],
         tool_server_map={"read_wiki_contents": "deepwiki"},
-        mcp_tools_with_litellm_proxy=[{"require_approval": "never"}],
+        mcp_tools_with_gateway_proxy=[{"require_approval": "never"}],
         user_api_key_auth=None,
         original_request_params={
             "model": "gpt-4",

@@ -38,7 +38,7 @@ from token_iq.gateway.core_utils.get_supported_openai_params import (
     get_supported_openai_params,
 )
 from token_iq.gateway.core_utils.internal_call_metadata import is_unbilled_non_inference_call_from_params
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.core_utils.llm_cost_calc.guardrail_cost import guardrail_information_cost
 from token_iq.gateway.core_utils.llm_response_utils.get_headers import (
     get_response_headers,
@@ -259,14 +259,14 @@ async def _record_streaming_client_disconnect_if_needed(
         request_data["metadata"] = _rd_metadata
     _apply_client_disconnect_metadata(_rd_metadata)
 
-    _rd_litellm_params = request_data.get("litellm_params")
-    if _rd_litellm_params is None:
-        _rd_litellm_params = {}
-        request_data["litellm_params"] = _rd_litellm_params
-    _rd_lp_metadata = _rd_litellm_params.get("metadata")
+    _rd_gateway_params = request_data.get("litellm_params")
+    if _rd_gateway_params is None:
+        _rd_gateway_params = {}
+        request_data["litellm_params"] = _rd_gateway_params
+    _rd_lp_metadata = _rd_gateway_params.get("metadata")
     if _rd_lp_metadata is None:
         _rd_lp_metadata = {}
-        _rd_litellm_params["metadata"] = _rd_lp_metadata
+        _rd_gateway_params["metadata"] = _rd_lp_metadata
     _apply_client_disconnect_metadata(_rd_lp_metadata)
 
     verbose_proxy_logger.debug(
@@ -350,7 +350,7 @@ async def _bill_partial_streamed_spend_on_disconnect(request_data: dict, respons
     if gateway.disable_streaming_logging is True:
         return False
     logging_obj: Final = request_data.get("litellm_logging_obj")
-    if not isinstance(logging_obj, LiteLLMLoggingObj):
+    if not isinstance(logging_obj, GatewayLoggingObj):
         return False
     if logging_obj.model_call_details.get("has_dispatched_final_stream_success"):
         # A natural end-of-stream success event already fired and released the
@@ -411,7 +411,7 @@ async def _cancel_pending_gather_tasks(tasks: list["asyncio.Task[Any]"]) -> None
 
 
 @lru_cache(maxsize=512)
-def _litellm_model_supports_stream_options(litellm_model: str) -> bool:
+def _gateway_model_supports_stream_options(litellm_model: str) -> bool:
     try:
         supported_params: Final = get_supported_openai_params(model=litellm_model)
     except Exception:  # noqa: BLE001  # unmapped or malformed model strings must disable injection, not fail the request
@@ -427,10 +427,10 @@ def _model_deployments_support_stream_options(
     if not isinstance(model, str):
         return False
     deployment_models: Final = (
-        llm_router.resolved_litellm_models(model, team_id=team_id) if llm_router is not None else ()
+        llm_router.resolved_gateway_models(model, team_id=team_id) if llm_router is not None else ()
     )
     candidate_models: Final = deployment_models if deployment_models else (model,)
-    return all(_litellm_model_supports_stream_options(m) for m in candidate_models)
+    return all(_gateway_model_supports_stream_options(m) for m in candidate_models)
 
 
 def _stream_usage_tracking_updates(
@@ -1335,7 +1335,7 @@ def _totals_to_zero(response_cost: float | str | None) -> bool:
 
 
 def _get_cost_breakdown_from_logging_obj(
-    litellm_logging_obj: LiteLLMLoggingObj | None,
+    litellm_logging_obj: GatewayLoggingObj | None,
     response_cost: float | str | None = None,
 ) -> CostBreakdownHeaderValues:
     """Extract discount, margin, and per-component cost information from logging object's cost breakdown.
@@ -1480,7 +1480,7 @@ async def _await_llm_call_cancelling_on_disconnect(
 def _timing_values(
     *,
     hidden_params: Mapping[str, object],
-    logging_obj: LiteLLMLoggingObj | None,
+    logging_obj: GatewayLoggingObj | None,
     use_logging_obj: bool,
 ) -> Mapping[str, object]:
     """Both timing values from one source, so the two headers always describe the same window.
@@ -1541,7 +1541,7 @@ class ProxyBaseLLMRequestProcessing:
         fastest_response_batch_completion: bool | None = None,
         request_data: dict | None = {},
         timeout: float | httpx.Timeout | None = None,
-        litellm_logging_obj: LiteLLMLoggingObj | None = None,
+        litellm_logging_obj: GatewayLoggingObj | None = None,
         read_timing_from_logging_obj: bool = True,
         **kwargs,
     ) -> dict:
@@ -1653,13 +1653,13 @@ class ProxyBaseLLMRequestProcessing:
             return {}
 
     @staticmethod
-    async def build_litellm_proxy_success_headers_from_llm_response(
+    async def build_gateway_proxy_success_headers_from_llm_response(
         *,
         response: object,
         request_data: dict,
         request: Request,
         user_api_key_dict: UserAPIKeyAuth,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         version: str | None,
         proxy_logging_obj: ProxyLogging,
     ) -> dict[str, str]:
@@ -1815,7 +1815,7 @@ class ProxyBaseLLMRequestProcessing:
         user_api_base: str | None = None,
         model: str | None = None,
         llm_router: Router | None = None,
-    ) -> tuple[dict, LiteLLMLoggingObj]:
+    ) -> tuple[dict, GatewayLoggingObj]:
         start_time: Final = datetime.now()  # start before calling guardrail hooks
 
         self.data = await add_litellm_data_to_request(
@@ -2003,7 +2003,7 @@ class ProxyBaseLLMRequestProcessing:
         model: str | None,
         route_type: str,
         llm_router: Router | None,
-    ) -> tuple[dict, LiteLLMLoggingObj]:
+    ) -> tuple[dict, GatewayLoggingObj]:
         from token_iq.gateway.proxy.common_utils.proxy_rate_limit_error import ProxyRateLimitError
 
         try:
@@ -2113,7 +2113,7 @@ class ProxyBaseLLMRequestProcessing:
 
     @staticmethod
     def _get_deployment_model_name(
-        litellm_logging_obj: LiteLLMLoggingObj | None,
+        litellm_logging_obj: GatewayLoggingObj | None,
     ) -> str | None:
         """Extract the underlying deployment model string (e.g. ``azure/gpt-4o``).
 
@@ -2136,7 +2136,7 @@ class ProxyBaseLLMRequestProcessing:
     def _response_cost_from_logging_obj(
         *,
         response: Any,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> float | str:
         """
         Recover the response cost when the response never recorded one in its
@@ -3106,7 +3106,7 @@ class ProxyBaseLLMRequestProcessing:
         response: object,
         route_type: str,
         user_api_key_dict: "UserAPIKeyAuth",
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> None:
         """
         Streaming with post-call guardrails active: attach a closure that
@@ -3162,10 +3162,10 @@ class ProxyBaseLLMRequestProcessing:
             return
 
         from token_iq.gateway.responses.litellm_completion_transformation.streaming_iterator import (
-            LiteLLMCompletionStreamingIterator,
+            GatewayCompletionStreamingIterator,
         )
 
-        if isinstance(unwrapped, LiteLLMCompletionStreamingIterator):
+        if isinstance(unwrapped, GatewayCompletionStreamingIterator):
             _captured_bridge_logging_obj: Final = logging_obj
 
             async def _on_deferred_bridged_stream_complete(assembled_response: object, cache_hit: object) -> None:
@@ -3193,7 +3193,7 @@ class ProxyBaseLLMRequestProcessing:
     async def _run_deferred_stream_guardrails(
         captured_data: dict,
         captured_user_api_key_dict: "UserAPIKeyAuth",
-        captured_logging_obj: LiteLLMLoggingObj,
+        captured_logging_obj: GatewayLoggingObj,
         assembled_response: Any,
         cache_hit: object,
     ) -> None:
@@ -3319,18 +3319,18 @@ class ProxyBaseLLMRequestProcessing:
         timeout: Final = getattr(
             e, "timeout", None
         )  # returns the timeout set by the wrapper. Used for testing if model-specific timeout are set correctly
-        _litellm_logging_obj: Final[LiteLLMLoggingObj | None] = self.data.get("litellm_logging_obj", None)
+        _gateway_logging_obj: Final[GatewayLoggingObj | None] = self.data.get("litellm_logging_obj", None)
 
         # Attempt to get model_id from logging object
         #
         # Note: We check the direct model_info path first (not nested in metadata) because that's where the router sets it.
         # The nested metadata path is only a fallback for cases where model_info wasn't set at the top level.
-        model_id: Final = self.maybe_get_model_id(_litellm_logging_obj)
+        model_id: Final = self.maybe_get_model_id(_gateway_logging_obj)
 
         custom_headers: Final = ProxyBaseLLMRequestProcessing.get_custom_headers(
             user_api_key_dict=user_api_key_dict,
             call_id=(
-                _litellm_logging_obj.litellm_call_id if _litellm_logging_obj else self.data.get("litellm_call_id")
+                _gateway_logging_obj.litellm_call_id if _gateway_logging_obj else self.data.get("litellm_call_id")
             ),
             model_id=model_id,
             version=version,
@@ -3338,7 +3338,7 @@ class ProxyBaseLLMRequestProcessing:
             model_region=getattr(user_api_key_dict, "allowed_model_region", ""),
             request_data=self.data,
             timeout=timeout,
-            litellm_logging_obj=_litellm_logging_obj,
+            litellm_logging_obj=_gateway_logging_obj,
             # a failed request reports no timing, matching /v1/chat/completions
             read_timing_from_logging_obj=False,
         )
@@ -3685,18 +3685,18 @@ class ProxyBaseLLMRequestProcessing:
     @overload
     @staticmethod
     def _process_chunk_with_cost_injection(
-        chunk: bytes, model_name: str, litellm_logging_obj: LiteLLMLoggingObj | None = None
+        chunk: bytes, model_name: str, litellm_logging_obj: GatewayLoggingObj | None = None
     ) -> bytes: ...
 
     @overload
     @staticmethod
     def _process_chunk_with_cost_injection(
-        chunk: object, model_name: str, litellm_logging_obj: LiteLLMLoggingObj | None = None
+        chunk: object, model_name: str, litellm_logging_obj: GatewayLoggingObj | None = None
     ) -> object: ...
 
     @staticmethod
     def _process_chunk_with_cost_injection(
-        chunk: object, model_name: str, litellm_logging_obj: LiteLLMLoggingObj | None = None
+        chunk: object, model_name: str, litellm_logging_obj: GatewayLoggingObj | None = None
     ) -> object:
         """
         Process a streaming chunk and inject cost information if enabled.
@@ -3746,7 +3746,7 @@ class ProxyBaseLLMRequestProcessing:
 
     @staticmethod
     def _inject_cost_into_sse_frame_str(
-        frame_str: str, model_name: str, litellm_logging_obj: LiteLLMLoggingObj | None = None
+        frame_str: str, model_name: str, litellm_logging_obj: GatewayLoggingObj | None = None
     ) -> str | None:
         """
         Inject cost information into an SSE frame string by modifying the JSON in the 'data:' line.
@@ -3822,7 +3822,7 @@ class ProxyBaseLLMRequestProcessing:
 
     @staticmethod
     def _logging_obj_cost_or_none(
-        model_response: ModelResponse, litellm_logging_obj: LiteLLMLoggingObj
+        model_response: ModelResponse, litellm_logging_obj: GatewayLoggingObj
     ) -> float | None:
         # Pricing a frame stamps cost_breakdown and, on failure, the cost-failure debug key onto
         # the live logging object. The pass-through handlers never recompute either one, so a
@@ -3852,7 +3852,7 @@ class ProxyBaseLLMRequestProcessing:
         model_response: ModelResponse,
         model_name: str,
         service_tier: str | None,
-        litellm_logging_obj: LiteLLMLoggingObj | None,
+        litellm_logging_obj: GatewayLoggingObj | None,
     ) -> float | None:
         # Pricing via the logging object inherits the deployment's custom pricing, so the
         # streamed cost matches what the logging callback records instead of sticker price
@@ -3867,7 +3867,7 @@ class ProxyBaseLLMRequestProcessing:
 
     @staticmethod
     def _inject_cost_into_usage_dict(
-        obj: dict, model_name: str, litellm_logging_obj: LiteLLMLoggingObj | None = None
+        obj: dict, model_name: str, litellm_logging_obj: GatewayLoggingObj | None = None
     ) -> dict | None:
         """
         Inject cost information into the usage object of a streamed usage event
@@ -3898,7 +3898,7 @@ class ProxyBaseLLMRequestProcessing:
             return None
         return {**obj, "usage": {**usage, "cost": cost_val}}
 
-    def maybe_get_model_id(self, _logging_obj: LiteLLMLoggingObj | None) -> str | None:
+    def maybe_get_model_id(self, _logging_obj: GatewayLoggingObj | None) -> str | None:
         """
         Get model_id from logging object or request metadata.
 

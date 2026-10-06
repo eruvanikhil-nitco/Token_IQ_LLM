@@ -75,7 +75,7 @@ from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.sso_as
 from token_iq.gateway.proxy._types import (
     CommonProxyErrors,
     LiteLLM_UserTable,
-    LitellmUserRoles,
+    GatewayUserRoles,
     Member,
     NewTeamRequest,
     NewUserRequest,
@@ -114,8 +114,8 @@ from token_iq.gateway.proxy.management_endpoints.team_endpoints import new_team,
 from token_iq.gateway.proxy.management_endpoints.types import (
     LITELLM_USER_ROLE_HIERARCHY,
     CustomOpenID,
-    get_litellm_user_role,
-    is_valid_litellm_user_role,
+    get_gateway_user_role,
+    is_valid_gateway_user_role,
 )
 from token_iq.gateway.proxy.utils import (
     PrismaClient,
@@ -813,7 +813,7 @@ def normalize_email(email: str | None) -> str | None:
 def determine_role_from_groups(
     user_groups: list[str],
     role_mappings: "RoleMappings",
-) -> LitellmUserRoles | None:
+) -> GatewayUserRoles | None:
     """
     Determine the highest privilege role for a user based on their groups.
 
@@ -909,7 +909,7 @@ def process_sso_jwt_access_token(
         # Extract user role from access token if not already set from UserInfo
         existing_role = result.get("user_role") if isinstance(result, dict) else getattr(result, "user_role", None)
         if existing_role is None:
-            user_role: LitellmUserRoles | None = None
+            user_role: GatewayUserRoles | None = None
 
             # Try role_mappings first (group-based role determination)
             if role_mappings is not None and role_mappings.roles:
@@ -938,7 +938,7 @@ def process_sso_jwt_access_token(
                 generic_user_role_attribute_name: Final = os.getenv("GENERIC_USER_ROLE_ATTRIBUTE", "role")
                 user_role_from_token: Final = get_nested_value(access_token_payload, generic_user_role_attribute_name)
                 if user_role_from_token is not None:
-                    user_role = get_litellm_user_role(user_role_from_token)
+                    user_role = get_gateway_user_role(user_role_from_token)
                     verbose_proxy_logger.debug(
                         "Extracted role '%s' from access token field '%s'", user_role, generic_user_role_attribute_name
                     )
@@ -1188,7 +1188,7 @@ def generic_response_convertor(
 
     # Determine user role based on role_mappings if available
     # Only apply role_mappings for GENERIC SSO provider
-    user_role: LitellmUserRoles | None = None
+    user_role: GatewayUserRoles | None = None
 
     if role_mappings is not None and role_mappings.provider.lower() in [
         "generic",
@@ -1228,7 +1228,7 @@ def generic_response_convertor(
     if user_role is None:
         user_role_from_sso: Final = get_nested_value(response, generic_user_role_attribute_name)
         if user_role_from_sso is not None:
-            role: Final = get_litellm_user_role(user_role_from_sso)
+            role: Final = get_gateway_user_role(user_role_from_sso)
             if role is not None:
                 user_role = role
                 verbose_proxy_logger.debug(
@@ -1390,7 +1390,7 @@ async def _setup_role_mappings() -> Optional["RoleMappings"]:
         import ast
 
         try:
-            generic_user_role_mappings_data: dict[LitellmUserRoles, list[str]] = ast.literal_eval(generic_role_mappings)
+            generic_user_role_mappings_data: dict[GatewayUserRoles, list[str]] = ast.literal_eval(generic_role_mappings)
             if isinstance(generic_user_role_mappings_data, dict):
                 role_mappings_data = {
                     "provider": "generic",
@@ -1690,7 +1690,7 @@ async def create_team_member_add_task(team_id, user_info):
         )
         return await team_member_add(
             data=team_member_add_request,
-            user_api_key_dict=UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN),
+            user_api_key_dict=UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN),
         )
     except Exception as e:
         verbose_proxy_logger.debug("[Non-Blocking] Error trying to add sso user to db: %s", e)
@@ -1817,7 +1817,7 @@ def _should_use_role_from_sso_response(sso_role: str | None) -> bool:
     if sso_role is None:
         return False
 
-    if not is_valid_litellm_user_role(sso_role):
+    if not is_valid_gateway_user_role(sso_role):
         verbose_proxy_logger.debug(
             "SSO role '%s' is not a valid LiteLLM user role. Ignoring role from SSO response. See LitellmUserRoles enum for valid roles.",
             sso_role,
@@ -1848,7 +1848,7 @@ def _build_sso_user_update_data(
     sso_role: Final = getattr(result, "user_role", None)
     if sso_role is not None:
         # Convert enum to string if needed
-        sso_role_str: Final = sso_role.value if isinstance(sso_role, LitellmUserRoles) else sso_role
+        sso_role_str: Final = sso_role.value if isinstance(sso_role, GatewayUserRoles) else sso_role
 
         # Only include if it's a valid LiteLLM role
         if _should_use_role_from_sso_response(sso_role_str):
@@ -1881,7 +1881,7 @@ async def _sync_user_role_from_jwt_role_map(
     if not jwt_handler.litellm_jwtauth.jwt_litellm_role_map:
         return
 
-    mapped_role: Final = jwt_handler.map_jwt_role_to_litellm_role(received_response)
+    mapped_role: Final = jwt_handler.map_jwt_role_to_gateway_role(received_response)
     if mapped_role is None:
         return
 
@@ -1925,7 +1925,7 @@ def apply_user_info_values_to_sso_user_defined_values(
     else:
         # SSO didn't provide a valid role, fall back to DB role or default
         if user_info is None or user_info.user_role is None:
-            user_defined_values["user_role"] = LitellmUserRoles.INTERNAL_USER_VIEW_ONLY.value
+            user_defined_values["user_role"] = GatewayUserRoles.INTERNAL_USER_VIEW_ONLY.value
             verbose_proxy_logger.debug("No SSO or DB role found, using default: INTERNAL_USER_VIEW_ONLY")
         else:
             user_defined_values["user_role"] = user_info.user_role
@@ -1945,16 +1945,16 @@ async def check_and_update_if_proxy_admin_id(user_role: str, user_id: str, prism
     """
     proxy_admin_id: Final = os.getenv("PROXY_ADMIN_ID")
     if proxy_admin_id is not None and proxy_admin_id == user_id:
-        if user_role and user_role == LitellmUserRoles.PROXY_ADMIN.value:
+        if user_role and user_role == GatewayUserRoles.PROXY_ADMIN.value:
             return user_role
 
         if prisma_client:
             await _user_meta_db(UserRepository(prisma_client)).update(
                 where={"user_id": user_id},
-                data={"user_role": LitellmUserRoles.PROXY_ADMIN.value},
+                data={"user_role": GatewayUserRoles.PROXY_ADMIN.value},
             )
 
-        user_role = LitellmUserRoles.PROXY_ADMIN.value
+        user_role = GatewayUserRoles.PROXY_ADMIN.value
 
     return user_role
 
@@ -2571,14 +2571,14 @@ async def insert_sso_user(
             user_defined_values.update(gateway.default_internal_user_params)
 
     # Set budget for internal users
-    if user_defined_values.get("user_role") == LitellmUserRoles.INTERNAL_USER.value:
+    if user_defined_values.get("user_role") == GatewayUserRoles.INTERNAL_USER.value:
         if user_defined_values.get("max_budget") is None:
             user_defined_values["max_budget"] = gateway.max_internal_user_budget
         if user_defined_values.get("budget_duration") is None:
             user_defined_values["budget_duration"] = gateway.internal_user_budget_duration
 
     if user_defined_values["user_role"] is None:
-        user_defined_values["user_role"] = LitellmUserRoles.INTERNAL_USER_VIEW_ONLY
+        user_defined_values["user_role"] = GatewayUserRoles.INTERNAL_USER_VIEW_ONLY
 
     new_user_request: Final = NewUserRequest(
         user_id=user_defined_values["user_id"],
@@ -2595,7 +2595,7 @@ async def insert_sso_user(
 
     response: Final = await new_user(
         data=new_user_request,
-        user_api_key_dict=UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN),
+        user_api_key_dict=UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN),
     )
 
     return response
@@ -3287,9 +3287,9 @@ class SSOAuthenticationHandler:
         return True
 
     @staticmethod
-    async def create_litellm_team_from_sso_group(
-        litellm_team_id: str,
-        litellm_team_name: str | None = None,
+    async def create_gateway_team_from_sso_group(
+        gateway_team_id: str,
+        gateway_team_name: str | None = None,
     ):
         """
         Creates a Litellm Team from a SSO Group ID
@@ -3313,24 +3313,24 @@ class SSOAuthenticationHandler:
             )
         try:
             team_obj: Final = await _team_detail_db(TeamRepository(prisma_client)).find_first(
-                where={"team_id": litellm_team_id}
+                where={"team_id": gateway_team_id}
             )
             verbose_proxy_logger.debug("Team object: %s", team_obj)
 
             # only create a new team if it doesn't exist
             if team_obj:
-                verbose_proxy_logger.debug("Team already exists: %s - %s", litellm_team_id, litellm_team_name)
+                verbose_proxy_logger.debug("Team already exists: %s - %s", gateway_team_id, gateway_team_name)
                 return
 
             team_request: NewTeamRequest = NewTeamRequest(
-                team_id=litellm_team_id,
-                team_alias=litellm_team_name,
+                team_id=gateway_team_id,
+                team_alias=gateway_team_name,
             )
             if gateway.default_team_params:
-                team_request = SSOAuthenticationHandler._cast_and_deepcopy_litellm_default_team_params(
+                team_request = SSOAuthenticationHandler._cast_and_deepcopy_gateway_default_team_params(
                     default_team_params=gateway.default_team_params,
-                    litellm_team_id=litellm_team_id,
-                    litellm_team_name=litellm_team_name,
+                    gateway_team_id=gateway_team_id,
+                    gateway_team_name=gateway_team_name,
                     team_request=team_request,
                 )
 
@@ -3347,11 +3347,11 @@ class SSOAuthenticationHandler:
             verbose_proxy_logger.exception("Error creating Litellm Team: %s", e)
 
     @staticmethod
-    def _cast_and_deepcopy_litellm_default_team_params(
+    def _cast_and_deepcopy_gateway_default_team_params(
         default_team_params: DefaultTeamSSOParams | dict,
         team_request: NewTeamRequest,
-        litellm_team_id: str,
-        litellm_team_name: str | None = None,
+        gateway_team_id: str,
+        gateway_team_name: str | None = None,
     ) -> NewTeamRequest:
         """
         Casts and deepcopies the litellm.default_team_params to a NewTeamRequest object
@@ -3362,8 +3362,8 @@ class SSOAuthenticationHandler:
         """
         if isinstance(default_team_params, dict):
             _team_request: Final = deepcopy(default_team_params)
-            _team_request["team_id"] = litellm_team_id
-            _team_request["team_alias"] = litellm_team_name
+            _team_request["team_id"] = gateway_team_id
+            _team_request["team_alias"] = gateway_team_name
             team_request = NewTeamRequest(**_team_request)
         elif isinstance(gateway.default_team_params, DefaultTeamSSOParams):
             _default_team_params: Final = deepcopy(gateway.default_team_params)
@@ -3427,7 +3427,7 @@ class SSOAuthenticationHandler:
             _user_role: Final = getattr(result, "user_role", None)
             if _user_role is not None:
                 # Convert enum to string if needed
-                user_role = _user_role.value if isinstance(_user_role, LitellmUserRoles) else _user_role
+                user_role = _user_role.value if isinstance(_user_role, GatewayUserRoles) else _user_role
                 verbose_proxy_logger.debug("Extracted user_role from SSO result: %s", user_role)
 
         # generic client id - override with custom attribute name if specified
@@ -3440,7 +3440,7 @@ class SSOAuthenticationHandler:
                 if _role_from_attr is not None:
                     # Convert enum to string if needed
                     user_role = (
-                        _role_from_attr.value if isinstance(_role_from_attr, LitellmUserRoles) else _role_from_attr
+                        _role_from_attr.value if isinstance(_role_from_attr, GatewayUserRoles) else _role_from_attr
                     )
 
         if user_id is None and result is not None:
@@ -3581,7 +3581,7 @@ class SSOAuthenticationHandler:
         key = response["token"]
         user_id = response["user_id"]
 
-        user_role = user_defined_values["user_role"] or LitellmUserRoles.INTERNAL_USER_VIEW_ONLY.value
+        user_role = user_defined_values["user_role"] or GatewayUserRoles.INTERNAL_USER_VIEW_ONLY.value
         if user_id and isinstance(user_id, str):
             user_role = await check_and_update_if_proxy_admin_id(
                 user_role=user_role, user_id=user_id, prisma_client=prisma_client
@@ -3604,7 +3604,7 @@ class SSOAuthenticationHandler:
             await retain_sso_identity_assertion_for_ema(user_id=user_id, assertion=sso_assertion)
 
         disabled_non_admin_personal_key_creation: Final = get_disabled_non_admin_personal_key_creation()
-        litellm_dashboard_ui = get_custom_url(request_base_url=str(request.base_url), route="ui/")
+        gateway_dashboard_ui = get_custom_url(request_base_url=str(request.base_url), route="ui/")
 
         if get_secret_bool("EXPERIMENTAL_UI_LOGIN"):
             _user_info: LiteLLM_UserTable | None = None
@@ -3627,7 +3627,7 @@ class SSOAuthenticationHandler:
             user_id=cast(str, user_id),
             key=key,
             user_email=user_email,
-            user_role=user_role or LitellmUserRoles.INTERNAL_USER_VIEW_ONLY.value,
+            user_role=user_role or GatewayUserRoles.INTERNAL_USER_VIEW_ONLY.value,
             login_method="sso",
             premium_user=premium_user,
             auth_header_name=general_settings.get("litellm_key_header_name", "Authorization"),
@@ -3653,9 +3653,9 @@ class SSOAuthenticationHandler:
             return return_to_redirect
 
         if user_id is not None and isinstance(user_id, str):
-            litellm_dashboard_ui += "?login=success"
-        verbose_proxy_logger.info("Redirecting to %s", litellm_dashboard_ui)
-        redirect_response: Final = RedirectResponse(url=litellm_dashboard_ui, status_code=303)
+            gateway_dashboard_ui += "?login=success"
+        verbose_proxy_logger.info("Redirecting to %s", gateway_dashboard_ui)
+        redirect_response: Final = RedirectResponse(url=gateway_dashboard_ui, status_code=303)
         set_session_token_cookie(redirect_response, request, jwt_token)
         return redirect_response
 
@@ -4278,7 +4278,7 @@ class MicrosoftSSOHandler:
     def openid_from_response(
         response: dict | None,
         team_ids: list[str],
-        user_role: LitellmUserRoles | None,
+        user_role: GatewayUserRoles | None,
     ) -> CustomOpenID:
         response = response or {}
         verbose_proxy_logger.debug("Microsoft SSO Callback Response: %s", response)
@@ -4298,7 +4298,7 @@ class MicrosoftSSOHandler:
     @staticmethod
     def get_user_role_from_app_roles(
         app_roles: Sequence[str] | None,
-    ) -> LitellmUserRoles | None:
+    ) -> GatewayUserRoles | None:
         """
         Resolve the one role LiteLLM stores for a user from their Entra app roles.
 
@@ -4307,7 +4307,7 @@ class MicrosoftSSOHandler:
         listed first. Roles the hierarchy does not rank (org_admin, team, customer)
         resolve by name to stay deterministic
         """
-        return get_litellm_user_role(tuple(app_roles or ()))
+        return get_gateway_user_role(tuple(app_roles or ()))
 
     @staticmethod
     def get_app_roles_from_id_token(id_token: str | None) -> list[str]:
@@ -4380,7 +4380,7 @@ class MicrosoftSSOHandler:
                 )
                 verbose_proxy_logger.debug("Service principal group IDs: %s", service_principal_group_ids)
                 if len(service_principal_group_ids) > 0:
-                    await MicrosoftSSOHandler.create_litellm_teams_from_service_principal_team_ids(
+                    await MicrosoftSSOHandler.create_gateway_teams_from_service_principal_team_ids(
                         service_principal_teams=service_principal_teams,
                     )
 
@@ -4513,7 +4513,7 @@ class MicrosoftSSOHandler:
         return group_ids, service_principal_teams
 
     @staticmethod
-    async def create_litellm_teams_from_service_principal_team_ids(
+    async def create_gateway_teams_from_service_principal_team_ids(
         service_principal_teams: list[MicrosoftServicePrincipalTeam],
     ):
         """
@@ -4523,17 +4523,17 @@ class MicrosoftSSOHandler:
         """
         verbose_proxy_logger.debug("Creating Litellm Teams from Service Principal Teams: %s", service_principal_teams)
         for service_principal_team in service_principal_teams:
-            litellm_team_id: str | None = service_principal_team.get("principalId")
-            litellm_team_name: str | None = service_principal_team.get("principalDisplayName")
-            if not litellm_team_id:
+            gateway_team_id: str | None = service_principal_team.get("principalId")
+            gateway_team_name: str | None = service_principal_team.get("principalDisplayName")
+            if not gateway_team_id:
                 verbose_proxy_logger.debug(
-                    "Skipping team creation for %s because it has no principalId", litellm_team_name
+                    "Skipping team creation for %s because it has no principalId", gateway_team_name
                 )
                 continue
 
-            await SSOAuthenticationHandler.create_litellm_team_from_sso_group(
-                litellm_team_id=litellm_team_id,
-                litellm_team_name=litellm_team_name,
+            await SSOAuthenticationHandler.create_gateway_team_from_sso_group(
+                gateway_team_id=gateway_team_id,
+                gateway_team_name=gateway_team_name,
             )
 
 

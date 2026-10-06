@@ -20,7 +20,7 @@ import pytest
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
-from token_iq.gateway.exceptions import Timeout as LitellmTimeout
+from token_iq.gateway.exceptions import Timeout as GatewayTimeout
 from token_iq.gateway.llms.custom_httpx.http_handler import (
     MaskedHTTPStatusError,
     _get_httpx_client,
@@ -52,7 +52,7 @@ def test_post_delay_exceeds_per_request_timeout_raises():
 
     handler = _get_httpx_client(params={"timeout": _CLIENT_DEFAULT_TIMEOUT_S})
     try:
-        with pytest.raises(LitellmTimeout):
+        with pytest.raises(GatewayTimeout):
             handler.post(
                 f"http://{host}:{port}/delay",
                 headers={"content-type": "application/json"},

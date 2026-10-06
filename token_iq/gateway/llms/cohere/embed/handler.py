@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Final
 import httpx
 
 from token_iq import gateway
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.llms.custom_httpx.http_handler import (
     AsyncHTTPHandler,
     HTTPHandler,
@@ -55,7 +55,7 @@ async def async_embedding(
     input: list,
     model_response: gateway.utils.EmbeddingResponse,
     timeout: float | httpx.Timeout | None,
-    logging_obj: LiteLLMLoggingObj,
+    logging_obj: GatewayLoggingObj,
     optional_params: dict,
     api_base: str,
     api_key: str | None,
@@ -119,7 +119,7 @@ def embedding(
     model: str,
     input: list,
     model_response: EmbeddingResponse,
-    logging_obj: LiteLLMLoggingObj,
+    logging_obj: GatewayLoggingObj,
     optional_params: dict,
     headers: dict,
     encoding: "tiktoken.Encoding | None",

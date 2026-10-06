@@ -6,11 +6,11 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from token_iq.gateway.proxy._types import LitellmUserRoles, NewProjectRequest, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import GatewayUserRoles, NewProjectRequest, UserAPIKeyAuth
 
-ADMIN = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN, api_key="sk-admin", user_id="admin")
-OUTSIDER = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-out", user_id="outsider")
-VIEWER = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY, api_key="sk-view", user_id="viewer")
+ADMIN = UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN, api_key="sk-admin", user_id="admin")
+OUTSIDER = UserAPIKeyAuth(user_role=GatewayUserRoles.INTERNAL_USER, api_key="sk-out", user_id="outsider")
+VIEWER = UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY, api_key="sk-view", user_id="viewer")
 
 
 def _team_row(team_id: str = "t1", members_with_roles: list | None = None) -> SimpleNamespace:
@@ -84,7 +84,7 @@ async def test_a_team_admin_may_create_a_project_in_their_own_team():
     from token_iq.gateway.proxy._types import Member
     from token_iq.api.projects import new_project
 
-    lead = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-l", user_id="lead")
+    lead = UserAPIKeyAuth(user_role=GatewayUserRoles.INTERNAL_USER, api_key="sk-l", user_id="lead")
     team = _team_row(members_with_roles=[Member(user_id="lead", role="admin").model_dump()])
     created = MagicMock(project_id="p2", project_alias="batch", team_id="t1")
 
@@ -129,7 +129,7 @@ async def test_a_member_of_the_owning_team_may_read_a_project():
     said a non-admin may call them."""
     from token_iq.api.projects import project_info
 
-    member = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-m", user_id="m", team_id="t1")
+    member = UserAPIKeyAuth(user_role=GatewayUserRoles.INTERNAL_USER, api_key="sk-m", user_id="m", team_id="t1")
     with (
         patch("token_iq.gateway.proxy.proxy_server.prisma_client", _prisma()),
         patch(
@@ -234,7 +234,7 @@ async def test_listing_without_a_team_shows_a_team_admin_only_the_teams_they_run
     from token_iq.gateway.proxy._types import Member
     from token_iq.api.projects import project_list
 
-    lead = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-l", user_id="lead")
+    lead = UserAPIKeyAuth(user_role=GatewayUserRoles.INTERNAL_USER, api_key="sk-l", user_id="lead")
     mine = _team_row("t1", members_with_roles=[Member(user_id="lead", role="admin").model_dump()])
     theirs = _team_row("t2", members_with_roles=[Member(user_id="someone-else", role="admin").model_dump()])
     by_teams = AsyncMock(return_value=[_project("p1", "t1")])
@@ -255,7 +255,7 @@ async def test_listing_without_a_team_includes_the_team_the_caller_s_key_belongs
     list has to agree with that rule."""
     from token_iq.api.projects import project_list
 
-    member = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-m", user_id="m", team_id="t2")
+    member = UserAPIKeyAuth(user_role=GatewayUserRoles.INTERNAL_USER, api_key="sk-m", user_id="m", team_id="t2")
     by_teams = AsyncMock(return_value=[_project("p2", "t2")])
 
     with (
@@ -407,7 +407,7 @@ async def test_deleting_is_authorised_per_project_not_once_for_the_batch():
     from token_iq.gateway.proxy._types import Member
     from token_iq.api.projects import ProjectDeleteRequest, delete_project
 
-    lead = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-l", user_id="lead")
+    lead = UserAPIKeyAuth(user_role=GatewayUserRoles.INTERNAL_USER, api_key="sk-l", user_id="lead")
     mine = _team_row("t1", members_with_roles=[Member(user_id="lead", role="admin").model_dump()])
     theirs = _team_row("t-other")
 
@@ -491,7 +491,7 @@ async def test_daily_activity_without_named_projects_gives_a_team_admin_only_the
     from token_iq.gateway.proxy._types import Member
     from token_iq.api.projects import get_project_daily_activity
 
-    lead: Final = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-l", user_id="lead")
+    lead: Final = UserAPIKeyAuth(user_role=GatewayUserRoles.INTERNAL_USER, api_key="sk-l", user_id="lead")
     mine: Final = _team_row("t1", members_with_roles=(Member(user_id="lead", role="admin").model_dump(),))
     recorded, capture = _capture_daily_activity()
     with (
@@ -533,7 +533,7 @@ async def test_daily_activity_asking_for_a_readable_and_an_unreadable_project_is
     from token_iq.gateway.proxy._types import Member
     from token_iq.api.projects import get_project_daily_activity
 
-    lead: Final = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-l", user_id="lead")
+    lead: Final = UserAPIKeyAuth(user_role=GatewayUserRoles.INTERNAL_USER, api_key="sk-l", user_id="lead")
     mine: Final = _team_row("t1", members_with_roles=(Member(user_id="lead", role="admin").model_dump(),))
     report: Final = AsyncMock()
     with (
@@ -676,7 +676,7 @@ async def test_a_view_only_admin_cannot_delete_a_project():
 def _lead_of_t1() -> tuple[UserAPIKeyAuth, SimpleNamespace]:
     from token_iq.gateway.proxy._types import Member
 
-    lead: Final = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-l", user_id="lead")
+    lead: Final = UserAPIKeyAuth(user_role=GatewayUserRoles.INTERNAL_USER, api_key="sk-l", user_id="lead")
     return lead, _team_row("t1", members_with_roles=(Member(user_id="lead", role="admin").model_dump(),))
 
 

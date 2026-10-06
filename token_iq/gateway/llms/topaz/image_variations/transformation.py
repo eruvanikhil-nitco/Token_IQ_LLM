@@ -9,7 +9,7 @@ from httpx import Headers, Response
 
 from token_iq.gateway.llms.base_llm.chat.transformation import (
     BaseLLMException,
-    LiteLLMLoggingObj,
+    GatewayLoggingObj,
 )
 from token_iq.gateway.types.llms.openai import OpenAIImageVariationOptionalParams
 from token_iq.gateway.types.utils import (
@@ -134,7 +134,7 @@ class TopazImageVariationConfig(TopazModelInfo, BaseImageVariationConfig):
         model: str | None,
         raw_response: ClientResponse,
         model_response: ImageResponse,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         request_data: dict,
         image: FileTypes,
         optional_params: dict,
@@ -153,7 +153,7 @@ class TopazImageVariationConfig(TopazModelInfo, BaseImageVariationConfig):
         model: str | None,
         raw_response: Response,
         model_response: ImageResponse,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         request_data: dict,
         image: FileTypes,
         optional_params: dict,

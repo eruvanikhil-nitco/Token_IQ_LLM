@@ -10,10 +10,10 @@ from datetime import datetime
 
 from pydantic import ConfigDict, model_validator
 
-from token_iq.gateway.types.llms.base import LiteLLMPydanticObjectBase
+from token_iq.gateway.types.llms.base import GatewayPydanticObjectBase
 
 
-class LiteLLM_ProxyModelTable(LiteLLMPydanticObjectBase):
+class LiteLLM_ProxyModelTable(GatewayPydanticObjectBase):
     model_id: str
     model_name: str
     litellm_params: dict

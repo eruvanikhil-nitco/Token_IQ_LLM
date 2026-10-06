@@ -811,7 +811,7 @@ def test_llm_passthrough_route_propagates_allm_passthrough_route_to_logging_obj(
     """
     import asyncio
 
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LitellmLogging
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLogging
 
     client = HTTPHandler()
 
@@ -825,11 +825,11 @@ def test_llm_passthrough_route_propagates_allm_passthrough_route_to_logging_obj(
     mock_provider_config.sign_request.return_value = ({}, None)
     mock_provider_config.is_streaming_request.return_value = False
 
-    captured_litellm_params: dict = {}
+    captured_gateway_params: dict = {}
 
     def _capture_update_env(*args, **kwargs):
-        captured_litellm_params.clear()
-        captured_litellm_params.update(kwargs.get("litellm_params") or {})
+        captured_gateway_params.clear()
+        captured_gateway_params.update(kwargs.get("litellm_params") or {})
 
     mock_logging_obj = MagicMock()
     mock_logging_obj.update_environment_variables.side_effect = _capture_update_env
@@ -871,5 +871,5 @@ def test_llm_passthrough_route_propagates_allm_passthrough_route_to_logging_obj(
     if asyncio.iscoroutine(result):
         result.close()
 
-    assert captured_litellm_params.get("allm_passthrough_route") is True
-    assert LitellmLogging._is_sync_litellm_request(captured_litellm_params) is False
+    assert captured_gateway_params.get("allm_passthrough_route") is True
+    assert GatewayLogging._is_sync_gateway_request(captured_gateway_params) is False

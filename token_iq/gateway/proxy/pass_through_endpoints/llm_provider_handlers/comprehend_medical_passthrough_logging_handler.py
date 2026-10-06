@@ -7,7 +7,7 @@ from typing import Final
 import httpx
 
 from token_iq.gateway._logging import verbose_proxy_logger
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.core_utils.litellm_logging import (
     get_standard_logging_object_payload,
 )
@@ -44,7 +44,7 @@ class ComprehendMedicalPassthroughLoggingHandler:
     @staticmethod
     def comprehend_medical_passthrough_handler(
         httpx_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         url_route: str,
         result: str,
         start_time: datetime,

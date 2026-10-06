@@ -566,7 +566,7 @@ def test_gemini_subsequent_guardrail_session_update_dropped_with_warning(caplog)
         "session": {"turn_detection": {"type": "server_vad", "create_response": False}},
     }
 
-    with caplog.at_level(logging.WARNING, logger="LiteLLM"):
+    with caplog.at_level(logging.WARNING, logger="Gateway"):
         messages = config.transform_realtime_request(
             json.dumps(follow_up),
             "gemini-2.5-flash",

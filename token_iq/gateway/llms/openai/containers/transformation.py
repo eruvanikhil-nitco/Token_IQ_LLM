@@ -19,20 +19,20 @@ from token_iq.gateway.types.containers.main import (
     DeleteContainerResult,
     ExpiresAfter,
 )
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 
 from ...base_llm.containers.transformation import BaseContainerConfig
 from .utils import join_container_api_base_path
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as _LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as _GatewayLoggingObj
 
     from ...base_llm.chat.transformation import BaseLLMException as _BaseLLMException
 
-    LiteLLMLoggingObj = _LiteLLMLoggingObj
+    GatewayLoggingObj = _GatewayLoggingObj
     BaseLLMException = _BaseLLMException
 else:
-    LiteLLMLoggingObj = Any
+    GatewayLoggingObj = Any
     BaseLLMException = Any
 
 
@@ -132,7 +132,7 @@ class OpenAIContainerConfig(BaseContainerConfig):
         self,
         name: str,
         container_create_optional_request_params: Mapping[str, object],
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> dict:
         """Transform the container creation request for OpenAI API."""
@@ -152,7 +152,7 @@ class OpenAIContainerConfig(BaseContainerConfig):
     def transform_container_create_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> ContainerObject:
         """Transform the OpenAI container creation response."""
         container_obj: Final = ContainerObject.model_validate(raw_response.json())
@@ -176,7 +176,7 @@ class OpenAIContainerConfig(BaseContainerConfig):
     def transform_container_list_request(
         self,
         api_base: str,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
         after: str | None = None,
         limit: int | None = None,
@@ -209,7 +209,7 @@ class OpenAIContainerConfig(BaseContainerConfig):
     def transform_container_list_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> ContainerListResponse:
         """Transform the OpenAI container list response."""
         container_list: Final = ContainerListResponse.model_validate(raw_response.json())
@@ -220,7 +220,7 @@ class OpenAIContainerConfig(BaseContainerConfig):
         self,
         container_id: str,
         api_base: str,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> tuple[str, dict]:
         """Transform the OpenAI container retrieve request."""
@@ -236,7 +236,7 @@ class OpenAIContainerConfig(BaseContainerConfig):
     def transform_container_retrieve_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> ContainerObject:
         """Transform the OpenAI container retrieve response."""
         container_obj: Final = ContainerObject.model_validate(raw_response.json())
@@ -247,7 +247,7 @@ class OpenAIContainerConfig(BaseContainerConfig):
         self,
         container_id: str,
         api_base: str,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> tuple[str, dict]:
         """Transform the container delete request for OpenAI API.
@@ -267,7 +267,7 @@ class OpenAIContainerConfig(BaseContainerConfig):
     def transform_container_delete_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> DeleteContainerResult:
         """Transform the OpenAI container delete response."""
         delete_result: Final = DeleteContainerResult.model_validate(raw_response.json())
@@ -278,7 +278,7 @@ class OpenAIContainerConfig(BaseContainerConfig):
         self,
         container_id: str,
         api_base: str,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
         after: str | None = None,
         limit: int | None = None,
@@ -312,7 +312,7 @@ class OpenAIContainerConfig(BaseContainerConfig):
     def transform_container_file_list_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> ContainerFileListResponse:
         """Transform the OpenAI container file list response."""
         file_list: Final = ContainerFileListResponse.model_validate(raw_response.json())
@@ -324,7 +324,7 @@ class OpenAIContainerConfig(BaseContainerConfig):
         container_id: str,
         file_id: str,
         api_base: str,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> tuple[str, dict]:
         """Transform the container file content request for OpenAI API.
@@ -345,7 +345,7 @@ class OpenAIContainerConfig(BaseContainerConfig):
     def transform_container_file_content_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> bytes:
         """Transform the OpenAI container file content response.
 

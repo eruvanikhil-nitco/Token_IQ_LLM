@@ -46,8 +46,8 @@ from token_iq.gateway.proxy._types import (
     LiteLLM_TeamTable,
     LiteLLM_TeamTableCachedObj,
     LiteLLM_UserTable,
-    LitellmTableNames,
-    LitellmUserRoles,
+    GatewayTableNames,
+    GatewayUserRoles,
     Member,
     NewTeamRequest,
     OrgMember,
@@ -441,7 +441,7 @@ async def _verify_team_access(
 
     Raises HTTPException(403) otherwise.
     """
-    if user_api_key_dict.user_role == LitellmUserRoles.PROXY_ADMIN:
+    if user_api_key_dict.user_role == GatewayUserRoles.PROXY_ADMIN:
         return
 
     if _is_user_team_admin(user_api_key_dict=user_api_key_dict, team_obj=team_obj):
@@ -1143,7 +1143,7 @@ def _check_team_budget_update_authority(
     Setting a finite budget on a team that has no cap is a restriction and is
     allowed. Org-scoped teams are governed by _check_org_team_limits().
     """
-    if user_api_key_dict.user_role == LitellmUserRoles.PROXY_ADMIN:
+    if user_api_key_dict.user_role == GatewayUserRoles.PROXY_ADMIN:
         return
     if existing_team_max_budget is None:
         return
@@ -1172,7 +1172,7 @@ def _should_auto_add_team_creator(
 ) -> bool:
     if user_api_key_dict.user_id is None:
         return False
-    if user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN:
+    if user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN:
         return True
     return general_settings.get("disable_auto_add_proxy_admin_to_teams") is not True
 
@@ -1428,7 +1428,7 @@ async def new_team(
             )
 
         if (
-            user_api_key_dict.user_role is None or user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN
+            user_api_key_dict.user_role is None or user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN
         ):  # don't restrict proxy admin
             # Only validate user budget/models/tpm/rpm for standalone teams (not org-scoped)
             # For org-scoped teams, validation is done by _check_org_team_limits()
@@ -1479,7 +1479,7 @@ async def new_team(
         await enforce_all_proxy_mcp_servers_grant_is_admin_only(
             requested_mcp_servers=(data.object_permission.mcp_servers if data.object_permission is not None else None),
             existing_object_permission_id=None,
-            is_proxy_admin=user_api_key_dict.user_role == LitellmUserRoles.PROXY_ADMIN,
+            is_proxy_admin=user_api_key_dict.user_role == GatewayUserRoles.PROXY_ADMIN,
             prisma_client=prisma_client,
         )
         data_json = await _set_object_permission(
@@ -1606,7 +1606,7 @@ async def new_team(
                             litellm_proxy_admin_name=litellm_proxy_admin_name,
                         ),
                         changed_by_api_key=user_api_key_dict.api_key,
-                        table_name=LitellmTableNames.TEAM_TABLE_NAME,
+                        table_name=GatewayTableNames.TEAM_TABLE_NAME,
                         object_id=data.team_id,
                         action="created",
                         updated_values=_updated_values,
@@ -1662,7 +1662,7 @@ async def _create_team_update_audit_log(
                     litellm_proxy_admin_name=litellm_proxy_admin_name,
                 ),
                 changed_by_api_key=user_api_key_dict.api_key,
-                table_name=LitellmTableNames.TEAM_TABLE_NAME,
+                table_name=GatewayTableNames.TEAM_TABLE_NAME,
                 object_id=team_id,
                 action="updated",
                 updated_values=_after_value,
@@ -1732,7 +1732,7 @@ async def _auto_add_team_members_to_organization(
             await add_member_to_organization(
                 member=OrgMember(
                     user_id=member.user_id,
-                    role=LitellmUserRoles.INTERNAL_USER,
+                    role=GatewayUserRoles.INTERNAL_USER,
                 ),
                 organization_id=organization.organization_id,
                 prisma_client=prisma_client,
@@ -1781,7 +1781,7 @@ async def fetch_and_validate_organization(
             detail={"error": f"Organization not found, passed organization_id={organization_id}"},
         )
 
-    is_proxy_admin = user_api_key_dict is not None and user_api_key_dict.user_role == LitellmUserRoles.PROXY_ADMIN
+    is_proxy_admin = user_api_key_dict is not None and user_api_key_dict.user_role == GatewayUserRoles.PROXY_ADMIN
     organization: Final = LiteLLM_OrganizationTableWithMembers.model_validate(organization_row.model_dump())
     validate_team_org_change(
         team=LiteLLM_TeamTable.model_validate(existing_team_row.model_dump()),
@@ -2090,7 +2090,7 @@ async def update_team(
             current_org_id: Final = getattr(existing_team_row, "organization_id", None)
             if (
                 data.organization_id != current_org_id
-                and user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN.value
+                and user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN.value
             ):
                 # Is the caller org_admin of the destination org?
                 caller_memberships: Final = (
@@ -2098,7 +2098,7 @@ async def update_team(
                         where={
                             "user_id": user_api_key_dict.user_id,
                             "organization_id": data.organization_id,
-                            "user_role": LitellmUserRoles.ORG_ADMIN.value,
+                            "user_role": GatewayUserRoles.ORG_ADMIN.value,
                         }
                     )
                     if user_api_key_dict.user_id
@@ -2234,7 +2234,7 @@ async def update_team(
             await enforce_all_proxy_mcp_servers_grant_is_admin_only(
                 requested_mcp_servers=data.object_permission.mcp_servers,
                 existing_object_permission_id=existing_team_row.object_permission_id,
-                is_proxy_admin=user_api_key_dict.user_role == LitellmUserRoles.PROXY_ADMIN,
+                is_proxy_admin=user_api_key_dict.user_role == GatewayUserRoles.PROXY_ADMIN,
                 prisma_client=prisma_client,
             )
             updated_kv = await handle_update_object_permission(
@@ -2534,7 +2534,7 @@ async def _validate_team_member_add_permissions(
     the request matches the caller's own ``user_id`` and is being
     added with ``role="user"``.
     """
-    if getattr(user_api_key_dict, "user_role", None) == LitellmUserRoles.PROXY_ADMIN.value:
+    if getattr(user_api_key_dict, "user_role", None) == GatewayUserRoles.PROXY_ADMIN.value:
         return
     if _is_user_team_admin(user_api_key_dict=user_api_key_dict, team_obj=complete_team_data):
         return
@@ -2862,8 +2862,8 @@ def _validate_member_user_id_provisioning(
     invite new ones by user_email, where the user_id is allocated server-side.
     """
     if user_api_key_dict.user_role in (
-        LitellmUserRoles.PROXY_ADMIN,
-        LitellmUserRoles.PROXY_ADMIN.value,
+        GatewayUserRoles.PROXY_ADMIN,
+        GatewayUserRoles.PROXY_ADMIN.value,
     ):
         return
 
@@ -2923,7 +2923,7 @@ async def _create_team_member_add_audit_logs(
             litellm_changed_by=None,
             user_api_key_dict=user_api_key_dict,
             litellm_proxy_admin_name=litellm_proxy_admin_name,
-            table_name=LitellmTableNames.USER_TABLE_NAME,
+            table_name=GatewayTableNames.USER_TABLE_NAME,
             before_value=None,
             after_value=safe_dumps(user.model_dump(exclude_none=True)),
         )
@@ -2937,7 +2937,7 @@ async def _create_team_member_add_audit_logs(
         litellm_changed_by=None,
         user_api_key_dict=user_api_key_dict,
         litellm_proxy_admin_name=litellm_proxy_admin_name,
-        table_name=LitellmTableNames.TEAM_TABLE_NAME,
+        table_name=GatewayTableNames.TEAM_TABLE_NAME,
         before_value=_members_audit_value(before_members),
         after_value=_members_audit_value(after_members),
     )
@@ -3268,7 +3268,7 @@ async def team_member_delete(
     ## CHECK IF USER IS PROXY ADMIN OR TEAM ADMIN OR ORG ADMIN
 
     if (
-        user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN.value
+        user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN.value
         and not _is_user_team_admin(user_api_key_dict=user_api_key_dict, team_obj=existing_team_row)
         and not await _is_user_org_admin_for_team(user_api_key_dict=user_api_key_dict, team_obj=existing_team_row)
     ):
@@ -3449,7 +3449,7 @@ async def team_member_update(
     ## CHECK IF USER IS PROXY ADMIN OR TEAM ADMIN OR ORG ADMIN
 
     if (
-        user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN.value
+        user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN.value
         and not _is_user_team_admin(user_api_key_dict=user_api_key_dict, team_obj=existing_team_row)
         and not await _is_user_org_admin_for_team(user_api_key_dict=user_api_key_dict, team_obj=existing_team_row)
     ):
@@ -3565,7 +3565,7 @@ def _check_not_resetting_own_spend(user_id: str, user_api_key_dict: UserAPIKeyAu
     consuming the shared team budget without the configured limit ever binding.
     Only a proxy admin may reset an admin's own spend.
     """
-    if user_id == user_api_key_dict.user_id and user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN:
+    if user_id == user_api_key_dict.user_id and user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN:
         _raise_reset_spend_error(status.HTTP_403_FORBIDDEN, "Cannot reset your own spend. Ask a proxy admin.")
 
 
@@ -3778,7 +3778,7 @@ async def bulk_team_member_add(
         # regardless of org. Any team admin could use it to capture every
         # user across every org into a team they control. Restrict to
         # PROXY_ADMIN.
-        if user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN.value:
+        if user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN.value:
             raise HTTPException(
                 status_code=403,
                 detail={
@@ -3957,7 +3957,7 @@ async def delete_team(
                             litellm_proxy_admin_name=litellm_proxy_admin_name,
                         ),
                         changed_by_api_key=user_api_key_dict.api_key,
-                        table_name=LitellmTableNames.TEAM_TABLE_NAME,
+                        table_name=GatewayTableNames.TEAM_TABLE_NAME,
                         object_id=team_id,
                         action="deleted",
                         updated_values="{}",
@@ -4208,8 +4208,8 @@ async def _persist_deleted_team_records(
 
 async def validate_membership(user_api_key_dict: UserAPIKeyAuth, team_table: LiteLLM_TeamTable):
     if (
-        user_api_key_dict.user_role == LitellmUserRoles.PROXY_ADMIN.value
-        or user_api_key_dict.user_role == LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY.value
+        user_api_key_dict.user_role == GatewayUserRoles.PROXY_ADMIN.value
+        or user_api_key_dict.user_role == GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY.value
     ):
         return
 
@@ -4783,7 +4783,7 @@ async def _get_org_admin_org_ids(
     org_ids: Final = [
         m.organization_id
         for m in (caller_user.organization_memberships or [])
-        if m.user_role == LitellmUserRoles.ORG_ADMIN.value and m.organization_id is not None
+        if m.user_role == GatewayUserRoles.ORG_ADMIN.value and m.organization_id is not None
     ]
     return org_ids if org_ids else None
 
@@ -5246,7 +5246,7 @@ async def _authorize_and_filter_teams(
                 allowed_org_ids = [
                     m.organization_id
                     for m in (caller_user.organization_memberships or [])
-                    if m.user_role == LitellmUserRoles.ORG_ADMIN.value and m.organization_id is not None
+                    if m.user_role == GatewayUserRoles.ORG_ADMIN.value and m.organization_id is not None
                 ]
                 if not allowed_org_ids:
                     allowed_org_ids = None
@@ -5533,7 +5533,7 @@ async def team_model_add(
 
     # Authorization check - only proxy admin, team admin, or org admin can add models
     if (
-        user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN.value
+        user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN.value
         and not _is_user_team_admin(user_api_key_dict=user_api_key_dict, team_obj=team_obj)
         and not await _is_user_org_admin_for_team(user_api_key_dict=user_api_key_dict, team_obj=team_obj)
     ):
@@ -5638,7 +5638,7 @@ async def team_model_delete(
 
     # Authorization check - only proxy admin, team admin, or org admin can remove models
     if (
-        user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN.value
+        user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN.value
         and not _is_user_team_admin(user_api_key_dict=user_api_key_dict, team_obj=team_obj)
         and not await _is_user_org_admin_for_team(user_api_key_dict=user_api_key_dict, team_obj=team_obj)
     ):
@@ -5780,7 +5780,7 @@ async def update_team_member_permissions(
     # permission policies; only proxy/team/org admins can update them.
     if (
         hasattr(user_api_key_dict, "user_role")
-        and user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN.value
+        and user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN.value
         and not _is_user_team_admin(user_api_key_dict=user_api_key_dict, team_obj=complete_team_data)
         and not await _is_user_org_admin_for_team(user_api_key_dict=user_api_key_dict, team_obj=complete_team_data)
     ):
@@ -5831,7 +5831,7 @@ async def bulk_update_team_member_permissions(
     if prisma_client is None:
         raise HTTPException(status_code=500, detail={"error": "No db connected"})
 
-    if user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN.value:
+    if user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN.value:
         raise HTTPException(
             status_code=403,
             detail={"error": "Only proxy admins can bulk-update team permissions"},

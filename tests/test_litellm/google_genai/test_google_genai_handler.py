@@ -207,9 +207,9 @@ async def test_stream_transformation_error_async():
     ):
         # Mock litellm.acompletion at the module level where it's imported
         # We need to patch it in the handler module, not in litellm itself
-        with patch("token_iq.gateway.google_genai.adapters.handler.gateway") as mock_litellm:
+        with patch("token_iq.gateway.google_genai.adapters.handler.gateway") as mock_gateway:
             # Use AsyncMock for async function
-            mock_litellm.acompletion = AsyncMock(return_value=mock_stream)
+            mock_gateway.acompletion = AsyncMock(return_value=mock_stream)
             # Call the handler with stream=True and expect a ValueError
             with pytest.raises(
                 ValueError, match="Failed to transform streaming response"
@@ -231,7 +231,7 @@ def test_citation_metadata_transformation():
 
     import httpx
 
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
     from token_iq.gateway.llms.gemini.google_genai.transformation import GoogleGenAIConfig
 
     # Create a mock response with citationMetadata.citationSources (the problematic format)
@@ -286,7 +286,7 @@ def test_citation_metadata_transformation():
     mock_httpx_response.headers = {}
 
     # Create logging object
-    logging_obj = LiteLLMLoggingObj(
+    logging_obj = GatewayLoggingObj(
         model="gemini-2.5-flash",
         messages=[],
         stream=False,

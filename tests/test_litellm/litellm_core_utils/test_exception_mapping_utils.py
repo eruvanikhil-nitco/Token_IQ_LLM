@@ -10,7 +10,7 @@ from token_iq.gateway.core_utils.exception_mapping_utils import (
     ExceptionCheckers,
     _get_body_error_code,
     exception_type,
-    extract_and_raise_litellm_exception,
+    extract_and_raise_gateway_exception,
 )
 from token_iq.gateway.llms.openai.common_utils import OpenAIError
 from token_iq.gateway.types.utils import LlmProviders
@@ -568,7 +568,7 @@ def test_gemini_upstream_error_body_code_429_maps_to_rate_limit(
     assert isinstance(excinfo.value, expected_exception), description
 
 
-class TestExtractAndRaiseLitellmException:
+class TestExtractAndRaiseGatewayException:
     """Tests for extract_and_raise_litellm_exception function"""
 
     def test_extract_and_raise_api_connection_error_without_response(self):
@@ -584,7 +584,7 @@ class TestExtractAndRaiseLitellmException:
         error_str = "litellm.APIConnectionError: GeminiException - some error message"
 
         with pytest.raises(gateway.APIConnectionError) as excinfo:
-            extract_and_raise_litellm_exception(
+            extract_and_raise_gateway_exception(
                 response=None,
                 error_str=error_str,
                 model="gemini/gemini-3-pro-preview",
@@ -602,7 +602,7 @@ class TestExtractAndRaiseLitellmException:
         error_str = "litellm.BadRequestError: Invalid request format"
 
         with pytest.raises(gateway.BadRequestError) as excinfo:
-            extract_and_raise_litellm_exception(
+            extract_and_raise_gateway_exception(
                 response=None,
                 error_str=error_str,
                 model="gpt-4",
@@ -618,7 +618,7 @@ class TestExtractAndRaiseLitellmException:
         error_str = "litellm.ContextWindowExceededError: Token limit exceeded"
 
         with pytest.raises(gateway.ContextWindowExceededError) as excinfo:
-            extract_and_raise_litellm_exception(
+            extract_and_raise_gateway_exception(
                 response=None,
                 error_str=error_str,
                 model="gpt-4",
@@ -627,14 +627,14 @@ class TestExtractAndRaiseLitellmException:
 
         assert "ContextWindowExceededError" in str(excinfo.value)
 
-    def test_no_exception_raised_for_non_litellm_error(self):
+    def test_no_exception_raised_for_non_gateway_error(self):
         """
         Test that no exception is raised for non-litellm error strings.
         """
         error_str = "Some generic error that is not a litellm exception"
 
         # Should not raise any exception
-        result = extract_and_raise_litellm_exception(
+        result = extract_and_raise_gateway_exception(
             response=None,
             error_str=error_str,
             model="gpt-4",
@@ -941,7 +941,7 @@ def test_a_mapped_exception_keeps_the_provider_and_model_it_came_from(
 
 
 @pytest.mark.parametrize("provider", PROVIDERS_WITH_A_HANDLER)
-def test_an_already_mapped_litellm_exception_passes_through_untouched(
+def test_an_already_mapped_gateway_exception_passes_through_untouched(
     provider, quiet_exception_mapping
 ):
     already_mapped = gateway.RateLimitError(

@@ -39,7 +39,7 @@ class WXORequestParams(NamedTuple):
     thread_id: str | None
 
 
-class WXOLitellmParams(TypedDict, total=False):
+class WXOGatewayParams(TypedDict, total=False):
     """litellm_params keys read when routing an A2A request to watsonx Orchestrate."""
 
     cp4d_host: ReadOnly[str]
@@ -247,7 +247,7 @@ class WatsonxOrchestrateHandler:
         return accumulated_text
 
     @staticmethod
-    def _extract_litellm_params(litellm_params: WXOLitellmParams) -> WXORequestParams:
+    def _extract_gateway_params(litellm_params: WXOGatewayParams) -> WXORequestParams:
         cp4d_host: Final = litellm_params.get("cp4d_host") or ""
         instance_id: Final = litellm_params.get("instance_id") or ""
         wxo_agent_id: Final = litellm_params.get("wxo_agent_id") or ""
@@ -276,9 +276,9 @@ class WatsonxOrchestrateHandler:
     async def handle_non_streaming(
         request_id: str,
         params: dict[str, object],
-        litellm_params: WXOLitellmParams,
+        litellm_params: WXOGatewayParams,
     ) -> dict[str, object]:
-        wxo: Final = WatsonxOrchestrateHandler._extract_litellm_params(litellm_params)
+        wxo: Final = WatsonxOrchestrateHandler._extract_gateway_params(litellm_params)
 
         client: Final = WatsonxOrchestrateHandler._http_client(timeout=90.0)
         token: Final = await WatsonxOrchestrateHandler._get_bearer_token(
@@ -323,11 +323,11 @@ class WatsonxOrchestrateHandler:
     async def handle_streaming(
         request_id: str,
         params: dict[str, object],
-        litellm_params: WXOLitellmParams,
+        litellm_params: WXOGatewayParams,
         chunk_size: int = 50,
         delay_ms: int = 10,
     ) -> AsyncIterator[dict[str, object]]:
-        wxo: Final = WatsonxOrchestrateHandler._extract_litellm_params(litellm_params)
+        wxo: Final = WatsonxOrchestrateHandler._extract_gateway_params(litellm_params)
 
         client: Final = WatsonxOrchestrateHandler._http_client(timeout=120.0)
         token: Final = await WatsonxOrchestrateHandler._get_bearer_token(

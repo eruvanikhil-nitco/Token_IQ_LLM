@@ -397,7 +397,7 @@ def test_reset_budget_for_enduser(reset_budget_job, mock_prisma_client):
     mock_prisma_client.data["budget"] = [test_budget]
     mock_prisma_client.data["enduser"] = [test_enduser]
 
-    asyncio.run(reset_budget_job.reset_budget_for_litellm_budget_table())
+    asyncio.run(reset_budget_job.reset_budget_for_gateway_budget_table())
 
     assert _batch_writes(mock_prisma_client, "enduser") == [
         {
@@ -545,7 +545,7 @@ def test_budget_table_reset_zeroes_spend_on_every_linked_table(
     """
     mock_prisma_client.data["budget"] = [_budget_row(budget_id="7d-budget-tier", budget_duration="7d")]
 
-    asyncio.run(reset_budget_job.reset_budget_for_litellm_budget_table())
+    asyncio.run(reset_budget_job.reset_budget_for_gateway_budget_table())
 
     writes = _batch_writes(mock_prisma_client, table, op="update_many")
     assert len(writes) == 1, f"expected exactly 1 {table} write, got {writes}"
@@ -555,7 +555,7 @@ def test_budget_table_reset_zeroes_spend_on_every_linked_table(
 
 def test_budget_table_reset_writes_nothing_when_no_budget_is_due(reset_budget_job, mock_prisma_client):
     """Nothing due means no transaction is opened at all."""
-    asyncio.run(reset_budget_job.reset_budget_for_litellm_budget_table())
+    asyncio.run(reset_budget_job.reset_budget_for_gateway_budget_table())
 
     assert mock_prisma_client.db.batchers == []
     assert mock_prisma_client.db.batch_calls == []
@@ -568,7 +568,7 @@ def _run_reset_at_fixed_now(job, fixed_now):
     with patch("token_iq.gateway.proxy.common_utils.timezone_utils.datetime") as mock_dt:
         mock_dt.now.return_value = fixed_now
         mock_dt.side_effect = lambda *args, **kwargs: datetime(*args, **kwargs)
-        asyncio.run(job.reset_budget_for_litellm_budget_table())
+        asyncio.run(job.reset_budget_for_gateway_budget_table())
 
 
 @pytest.mark.parametrize(
@@ -628,7 +628,7 @@ def test_budget_with_no_duration_gets_no_reset_at_write(reset_budget_job, mock_p
         )
     ]
 
-    asyncio.run(reset_budget_job.reset_budget_for_litellm_budget_table())
+    asyncio.run(reset_budget_job.reset_budget_for_gateway_budget_table())
 
     assert _batch_writes(mock_prisma_client, "budget") == []
 
@@ -718,7 +718,7 @@ def test_reset_budget_resets_endusers_with_null_budget_id(reset_budget_job, mock
     # Set up the DB mock for NULL-budget-id end users
     mock_prisma_client.db.litellm_endusertable.set_find_many_results([enduser_no_budget_row])
 
-    asyncio.run(reset_budget_job.reset_budget_for_litellm_budget_table())
+    asyncio.run(reset_budget_job.reset_budget_for_gateway_budget_table())
 
     # Both end users are zeroed by the same committed statement.
     enduser_writes = _batch_writes(mock_prisma_client, "enduser")
@@ -761,7 +761,7 @@ def test_reset_budget_skips_null_budget_id_endusers_when_default_not_configured(
 
     mock_prisma_client.data["budget"] = [test_budget]
 
-    asyncio.run(reset_budget_job.reset_budget_for_litellm_budget_table())
+    asyncio.run(reset_budget_job.reset_budget_for_gateway_budget_table())
 
     # Should NOT have queried for NULL-budget-id end users
     find_many_calls = mock_prisma_client.db.litellm_endusertable.find_many_calls
@@ -798,7 +798,7 @@ def test_reset_budget_skips_null_budget_id_endusers_when_default_not_in_reset_li
 
     mock_prisma_client.data["budget"] = [test_budget]
 
-    asyncio.run(reset_budget_job.reset_budget_for_litellm_budget_table())
+    asyncio.run(reset_budget_job.reset_budget_for_gateway_budget_table())
 
     # Should NOT have queried for NULL-budget-id end users
     find_many_calls = mock_prisma_client.db.litellm_endusertable.find_many_calls
@@ -1473,7 +1473,7 @@ def test_budget_table_reset_invalidates_counters_and_management_cache(
     mock_prisma_client.data["budget"] = [_budget_row(budget_id="budget-1")]
     getattr(mock_prisma_client.db, table_attr).set_find_many_results([linked_row])
 
-    asyncio.run(reset_budget_job.reset_budget_for_litellm_budget_table())
+    asyncio.run(reset_budget_job.reset_budget_for_gateway_budget_table())
 
     counter_cache.in_memory_cache.set_cache.assert_any_call(key=counter_key, value=0.0, ttl=60)
     counter_cache.redis_cache.async_set_cache.assert_any_await(key=counter_key, value=0.0, ttl=60)
@@ -1489,7 +1489,7 @@ def test_budget_table_reset_invalidates_every_tag_not_just_the_first(reset_budge
         [type("Tag", (), {"tag_name": name}) for name in ("tenant-a", "tenant-b", "tenant-c")]
     )
 
-    asyncio.run(reset_budget_job.reset_budget_for_litellm_budget_table())
+    asyncio.run(reset_budget_job.reset_budget_for_gateway_budget_table())
 
     deleted = {call.kwargs.get("key") for call in counter_cache.user_api_key_cache.async_delete_cache.await_args_list}
     assert deleted == {"tag:tenant-a", "tag:tenant-b", "tag:tenant-c"}
@@ -1502,7 +1502,7 @@ def test_budget_table_reset_commits_even_when_cache_eviction_fails(reset_budget_
     mock_prisma_client.data["budget"] = [_budget_row(budget_id="budget-1")]
     mock_prisma_client.db.litellm_tagtable.set_find_many_results([type("Tag", (), {"tag_name": "tenant-42"})])
 
-    asyncio.run(reset_budget_job.reset_budget_for_litellm_budget_table())
+    asyncio.run(reset_budget_job.reset_budget_for_gateway_budget_table())
 
     assert len(_batch_writes(mock_prisma_client, "tag", op="update_many")) == 1
     assert mock_prisma_client.db.batchers[0].committed is True
@@ -1531,7 +1531,7 @@ def test_access_group_reset_only_matches_rows_that_have_spend(reset_budget_job, 
         [_model_access_group_row(budget_id="budget-due")]
     )
 
-    asyncio.run(reset_budget_job.reset_budget_for_litellm_budget_table())
+    asyncio.run(reset_budget_job.reset_budget_for_gateway_budget_table())
 
     expected_where = {"budget_id": {"in": ["budget-due"]}, "spend": {"gt": 0}}
     assert mock_prisma_client.db.litellm_modelaccessgroupbudgettable.find_many_calls == [{"where": expected_where}]
@@ -1546,7 +1546,7 @@ def test_access_groups_are_untouched_when_no_budget_is_due(reset_budget_job, moc
     counter_cache = _make_counter_invalidation_job(monkeypatch)
     mock_prisma_client.db.litellm_modelaccessgroupbudgettable.set_find_many_results([_model_access_group_row()])
 
-    asyncio.run(reset_budget_job.reset_budget_for_litellm_budget_table())
+    asyncio.run(reset_budget_job.reset_budget_for_gateway_budget_table())
 
     assert mock_prisma_client.db.litellm_modelaccessgroupbudgettable.find_many_calls == []
     assert _batch_writes(mock_prisma_client, "model_access_group") == []
@@ -1564,7 +1564,7 @@ def test_budget_table_reset_invalidates_every_access_group_not_just_the_first(
         [_model_access_group_row(name=name) for name in ("group-a", "group-b", "group-c")]
     )
 
-    asyncio.run(reset_budget_job.reset_budget_for_litellm_budget_table())
+    asyncio.run(reset_budget_job.reset_budget_for_gateway_budget_table())
 
     deleted = {call.kwargs.get("key") for call in counter_cache.user_api_key_cache.async_delete_cache.await_args_list}
     assert deleted == {"model_access_group:group-a", "model_access_group:group-b", "model_access_group:group-c"}
@@ -1584,7 +1584,7 @@ def test_budget_cascade_carries_access_group_overage_when_rollover_enabled(
         [_model_access_group_row(spend=15.0, budget_id="budget-roll")]
     )
 
-    asyncio.run(reset_budget_job.reset_budget_for_litellm_budget_table())
+    asyncio.run(reset_budget_job.reset_budget_for_gateway_budget_table())
 
     writes = _batch_writes(mock_prisma_client, "model_access_group")
     assert {
@@ -1687,7 +1687,7 @@ def test_budget_reset_at_is_not_advanced_when_the_cascade_fails(db_factory, monk
     counter_cache = _make_counter_invalidation_job(monkeypatch)
     job, prisma_client = _job_with_expired_budget(db_factory())
 
-    asyncio.run(job.reset_budget_for_litellm_budget_table())  # swallowed, retried next tick
+    asyncio.run(job.reset_budget_for_gateway_budget_table())  # swallowed, retried next tick
 
     assert prisma_client.db.batch_calls == [], "a failed cascade must not persist any write"
     assert prisma_client.db.batchers[0].committed is False
@@ -1706,7 +1706,7 @@ def test_budget_cascade_writes_land_in_a_single_transaction(reset_budget_job, mo
         type("EndUser", (), {"spend": 5.0, "litellm_budget_table": budget, "user_id": "enduser-1", "budget_id": "budget-1"})
     ]
 
-    asyncio.run(reset_budget_job.reset_budget_for_litellm_budget_table())
+    asyncio.run(reset_budget_job.reset_budget_for_gateway_budget_table())
 
     assert len(mock_prisma_client.db.batchers) == 1, "the cascade must not be split across transactions"
     batcher = mock_prisma_client.db.batchers[0]
@@ -1733,7 +1733,7 @@ def test_caches_are_invalidated_only_after_the_transaction_commits(monkeypatch):
 
     job, _ = _job_with_expired_budget(OrderRecordingDB(events))
 
-    asyncio.run(job.reset_budget_for_litellm_budget_table())
+    asyncio.run(job.reset_budget_for_gateway_budget_table())
 
     assert events == ["commit", "counter"]
 
@@ -1747,7 +1747,7 @@ def test_failed_cascade_is_logged_as_a_cascade_failure(monkeypatch):
     job, _ = _job_with_expired_budget(FailingTeamMembershipDB())
 
     with patch("token_iq.gateway.proxy.common_utils.reset_budget_job.verbose_proxy_logger.exception") as mock_exception:
-        asyncio.run(job.reset_budget_for_litellm_budget_table())
+        asyncio.run(job.reset_budget_for_gateway_budget_table())
 
     assert mock_exception.call_count == 1
     message = mock_exception.call_args.args[0]
@@ -2036,7 +2036,7 @@ def test_budget_table_reset_walks_chunks_until_it_runs_dry(monkeypatch):
     monkeypatch.setattr(reset_budget_job_module, "RESET_BUDGET_JOB_BATCH_SIZE", 2)
     client, job = _chunked_job({"budget": [[_budget_row("b1"), _budget_row("b2")], [_budget_row("b3")]]})
 
-    asyncio.run(job.reset_budget_for_litellm_budget_table())
+    asyncio.run(job.reset_budget_for_gateway_budget_table())
 
     assert client.fetches_by_table["budget"] == 2
     assert _fetch_limits(client, "budget") == [2, 2]
@@ -2053,7 +2053,7 @@ def test_budget_table_reset_stops_when_a_full_chunk_advances_no_window(monkeypat
     stuck_chunk = [_budget_row("b1", budget_duration=None), _budget_row("b2", budget_duration=None)]
     client, job = _chunked_job({"budget": [stuck_chunk]})
 
-    asyncio.run(job.reset_budget_for_litellm_budget_table())
+    asyncio.run(job.reset_budget_for_gateway_budget_table())
 
     assert client.fetches_by_table["budget"] == 1
     assert _batch_writes(client, "budget", op="update_many") == []
@@ -2064,7 +2064,7 @@ def test_budget_table_reset_stops_when_the_cascade_fails(monkeypatch):
     client, job = _chunked_job({"budget": [[_budget_row("b1"), _budget_row("b2")]]})
     client.db = FailingCommitDB()
 
-    asyncio.run(job.reset_budget_for_litellm_budget_table())
+    asyncio.run(job.reset_budget_for_gateway_budget_table())
 
     assert client.fetches_by_table["budget"] == 1
 
@@ -2096,7 +2096,7 @@ def test_budget_table_reset_stops_when_the_new_window_is_not_in_the_future(monke
     stuck_chunk = [_budget_row("b1", budget_duration="0s"), _budget_row("b2", budget_duration="0s")]
     client, job = _chunked_job({"budget": [stuck_chunk]})
 
-    asyncio.run(job.reset_budget_for_litellm_budget_table())
+    asyncio.run(job.reset_budget_for_gateway_budget_table())
 
     assert client.fetches_by_table["budget"] == 1
     assert len(_batch_writes(client, "budget", op="update_many")) == 2
@@ -2674,7 +2674,7 @@ def test_transport_error_on_budget_cascade_read_reconnects_and_commits():
     client.data["budget"] = [budget]
     job = ResetBudgetJob(proxy_logging_obj=MockProxyLogging(), prisma_client=client)
 
-    asyncio.run(job.reset_budget_for_litellm_budget_table())
+    asyncio.run(job.reset_budget_for_gateway_budget_table())
 
     assert client.reconnect_reasons == ["reset_budget_read_budgets_failure"]
     assert [w["where"]["budget_id"] for w in _batch_writes(client, "budget", op="update_many")] == ["b-1"]
@@ -2979,7 +2979,7 @@ def test_budget_cascade_carries_overage_per_tier_when_rollover_enabled(
     )
     mock_prisma_client.db.litellm_teammembership.set_find_many_results([membership])
 
-    asyncio.run(reset_budget_job.reset_budget_for_litellm_budget_table())
+    asyncio.run(reset_budget_job.reset_budget_for_gateway_budget_table())
 
     membership_writes = _batch_writes(mock_prisma_client, "team_membership")
     assert {
@@ -3011,7 +3011,7 @@ def test_budget_cascade_carries_enduser_overage_when_rollover_enabled(
         )
     ]
 
-    asyncio.run(reset_budget_job.reset_budget_for_litellm_budget_table())
+    asyncio.run(reset_budget_job.reset_budget_for_gateway_budget_table())
 
     enduser_writes = _batch_writes(mock_prisma_client, "enduser")
     assert {
@@ -3068,7 +3068,7 @@ def test_cascade_rollover_writes_survive_sequential_execution(
         )
     ]
 
-    asyncio.run(reset_budget_job.reset_budget_for_litellm_budget_table())
+    asyncio.run(reset_budget_job.reset_budget_for_gateway_budget_table())
 
     writes = _batch_writes(mock_prisma_client, table)
     assert _replay_spend_writes(writes, 15.0) == 5.0
@@ -3082,7 +3082,7 @@ def test_budget_cascade_zeroes_everything_when_rollover_disabled(reset_budget_jo
     budget = _budget_row(budget_id="budget-off", budget_duration="7d", max_budget=10.0)
     mock_prisma_client.data["budget"] = [budget]
 
-    asyncio.run(reset_budget_job.reset_budget_for_litellm_budget_table())
+    asyncio.run(reset_budget_job.reset_budget_for_gateway_budget_table())
 
     membership_writes = _batch_writes(mock_prisma_client, "team_membership")
     assert membership_writes == [

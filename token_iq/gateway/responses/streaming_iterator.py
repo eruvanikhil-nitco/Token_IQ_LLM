@@ -24,7 +24,7 @@ from token_iq.gateway.constants import (
 from token_iq.gateway.exceptions import MidStreamFallbackError, RateLimitError
 from token_iq.gateway.core_utils.asyncify import run_async_function
 from token_iq.gateway.core_utils.core_helpers import process_response_headers
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.core_utils.llm_response_utils.get_api_base import get_api_base
 from token_iq.gateway.core_utils.llm_response_utils.response_metadata import (
     update_response_metadata,
@@ -103,7 +103,7 @@ class _MutableJsonObject(Protocol):
     def items(self) -> Iterable[tuple[str, object]]: ...
 
 
-class _GetsLitellmParams(Protocol):
+class _GetsGatewayParams(Protocol):
     def __call__(self, key: str, default: Mapping[str, object], /) -> LiteLLM_Params: ...
 
 
@@ -130,7 +130,7 @@ class _HasPostStreamingDeploymentHook(Protocol):
     async_post_call_streaming_deployment_hook: _PostStreamingDeploymentHook
 
 
-def _typed_gets_litellm_params(fn: _GetsLitellmParams) -> _GetsLitellmParams:
+def _typed_gets_gateway_params(fn: _GetsGatewayParams) -> _GetsGatewayParams:
     return fn
 
 
@@ -232,7 +232,7 @@ class BaseResponsesAPIStreamingIterator:
         response: httpx.Response,
         model: str,
         responses_api_provider_config: BaseResponsesAPIConfig | None,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         litellm_metadata: dict[str, object] | None = None,
         custom_llm_provider: str | None = None,
         request_data: dict[str, object] | None = None,
@@ -264,7 +264,7 @@ class BaseResponsesAPIStreamingIterator:
         # This matches the stream wrapper in token_iq/gateway/core_utils/streaming_handler.py
         _api_base: Final = get_api_base(
             model=model or "",
-            optional_params=_typed_gets_litellm_params(self.logging_obj.model_call_details.get)("litellm_params", {}),
+            optional_params=_typed_gets_gateway_params(self.logging_obj.model_call_details.get)("litellm_params", {}),
         )
         self._hidden_params: dict[str, object] = {
             "model_id": _model_id_from_metadata(litellm_metadata),
@@ -850,7 +850,7 @@ class ResponsesAPIStreamingIterator(BaseResponsesAPIStreamingIterator):
         response: httpx.Response,
         model: str,
         responses_api_provider_config: BaseResponsesAPIConfig,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         litellm_metadata: dict[str, object] | None = None,
         custom_llm_provider: str | None = None,
         request_data: dict[str, object] | None = None,
@@ -932,7 +932,7 @@ class SyncResponsesAPIStreamingIterator(BaseResponsesAPIStreamingIterator):
         response: httpx.Response,
         model: str,
         responses_api_provider_config: BaseResponsesAPIConfig,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         litellm_metadata: dict[str, object] | None = None,
         custom_llm_provider: str | None = None,
         request_data: dict[str, object] | None = None,
@@ -1019,7 +1019,7 @@ class MockResponsesAPIStreamingIterator(BaseResponsesAPIStreamingIterator):
         response: httpx.Response,
         model: str,
         responses_api_provider_config: BaseResponsesAPIConfig,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         litellm_metadata: dict[str, object] | None = None,
         custom_llm_provider: str | None = None,
         request_data: dict[str, object] | None = None,
@@ -1045,7 +1045,7 @@ class MockResponsesAPIStreamingIterator(BaseResponsesAPIStreamingIterator):
     def _set_events_from_response(
         self,
         transformed: ResponsesAPIResponse,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> None:
         self._events: Sequence[ResponsesAPIStreamingResponse] = build_synthetic_response_events(
             transformed=transformed,
@@ -1088,7 +1088,7 @@ class CachedResponsesAPIStreamingIterator(BaseResponsesAPIStreamingIterator):
     def __init__(
         self,
         response: ResponsesAPIResponse,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         request_data: dict[str, object] | None = None,
         call_type: str | None = None,
     ):
@@ -1112,7 +1112,7 @@ class CachedResponsesAPIStreamingIterator(BaseResponsesAPIStreamingIterator):
     def _set_events_from_response(
         self,
         transformed: ResponsesAPIResponse,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> None:
         self._events = build_synthetic_response_events(
             transformed=transformed,
@@ -1299,7 +1299,7 @@ def _add_text_like_part_events(
 
 
 def _stamp_responses_usage_cost(
-    response_obj: ResponsesAPIResponse | None, logging_obj: LiteLLMLoggingObj | None
+    response_obj: ResponsesAPIResponse | None, logging_obj: GatewayLoggingObj | None
 ) -> None:
     if response_obj is None or logging_obj is None:
         return
@@ -1319,7 +1319,7 @@ def _stamp_responses_usage_cost(
 def build_synthetic_response_events(
     *,
     transformed: ResponsesAPIResponse,
-    logging_obj: LiteLLMLoggingObj | None,
+    logging_obj: GatewayLoggingObj | None,
     chunk_size: int,
 ) -> list[ResponsesAPIStreamingResponse]:
     openai_types: Final = _get_openai_response_types()
@@ -1341,7 +1341,7 @@ def build_synthetic_response_events(
             openai_types.OutputItemAddedEvent(
                 type=openai_types.ResponsesAPIStreamEvents.OUTPUT_ITEM_ADDED,
                 output_index=output_index,
-                item=openai_types.BaseLiteLLMOpenAIResponseObject(**output_item_payload),
+                item=openai_types.BaseGatewayOpenAIResponseObject(**output_item_payload),
             )
         )
 
@@ -1355,7 +1355,7 @@ def build_synthetic_response_events(
                         item_id=item_id,
                         output_index=output_index,
                         content_index=content_index,
-                        part=openai_types.BaseLiteLLMOpenAIResponseObject(**part_payload),
+                        part=openai_types.BaseGatewayOpenAIResponseObject(**part_payload),
                     )
                 )
                 _add_text_like_part_events(
@@ -1427,7 +1427,7 @@ def build_synthetic_response_events(
                         output_index=output_index,
                         sequence_number=sequence_number,
                         summary_index=summary_index,
-                        part=openai_types.BaseLiteLLMOpenAIResponseObject(**summary_payload),
+                        part=openai_types.BaseGatewayOpenAIResponseObject(**summary_payload),
                     )
                 )
 
@@ -1437,7 +1437,7 @@ def build_synthetic_response_events(
                 type=openai_types.ResponsesAPIStreamEvents.OUTPUT_ITEM_DONE,
                 output_index=output_index,
                 sequence_number=sequence_number,
-                item=openai_types.BaseLiteLLMOpenAIResponseObject(**output_item_payload),
+                item=openai_types.BaseGatewayOpenAIResponseObject(**output_item_payload),
             )
         )
 
@@ -1562,7 +1562,7 @@ class ResponsesWebSocketStreaming:
         self,
         websocket: ResponsesClientWebSocket,
         backend_ws: ResponsesBackendWebSocket,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         user_api_key_dict: UserAPIKeyAuth | None = None,
         request_data: dict[str, object] | None = None,
         first_message: str | None = None,
@@ -2105,7 +2105,7 @@ class ManagedResponsesWebSocketHandler:
         self,
         websocket: ResponsesClientWebSocket,
         model: str,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         user_api_key_dict: UserAPIKeyAuth | None = None,
         litellm_metadata: Mapping[str, object] | None = None,
         api_key: str | None = None,

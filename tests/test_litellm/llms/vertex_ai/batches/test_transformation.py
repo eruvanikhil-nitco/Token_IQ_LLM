@@ -25,7 +25,7 @@ from token_iq.gateway.llms.vertex_ai.common_utils import (  # noqa: E402
     VertexAIError,
     _convert_vertex_datetime_to_openai_datetime,
 )
-from token_iq.gateway.types.utils import LiteLLMBatch  # noqa: E402
+from token_iq.gateway.types.utils import GatewayBatch  # noqa: E402
 
 T = VertexAIBatchTransformation
 
@@ -103,7 +103,7 @@ def test_transform_vertex_response_full_mapping():
     }
     batch = T.transform_vertex_ai_batch_response_to_openai_batch_response(response)
 
-    assert isinstance(batch, LiteLLMBatch)
+    assert isinstance(batch, GatewayBatch)
     assert batch.id == "3814889423749775360"
     assert batch.completion_window == "24h"
     # created_at is parsed via the shared helper (uses local tz); assert the

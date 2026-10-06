@@ -13,7 +13,7 @@ from models import (
     ChatBody,
     ChatMessage,
     KeyGenerateBody,
-    LiteLLMParamsBody,
+    GatewayParamsBody,
     ModelInfoBody,
     ModelNewBody,
     TeamDeleteBody,
@@ -142,7 +142,7 @@ class AccessControlClient:
             headers=self.proxy.transport.bearer(key),
             json=ModelNewBody(
                 model_name=model_name,
-                litellm_params=LiteLLMParamsBody(model="openai/gpt-4o-mini"),
+                litellm_params=GatewayParamsBody(model="openai/gpt-4o-mini"),
                 model_info=ModelInfoBody(id=model_name),
             ),
         )

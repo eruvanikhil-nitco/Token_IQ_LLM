@@ -21,7 +21,7 @@ import pytest
 
 
 from token_iq.gateway.llms.anthropic.batches.handler import AnthropicBatchesHandler
-from token_iq.gateway.types.utils import LiteLLMBatch
+from token_iq.gateway.types.utils import GatewayBatch
 
 
 def _ok_batch_response():
@@ -86,7 +86,7 @@ async def test_aretrieve_batch_fires_get_with_correct_url_and_headers(
     assert headers["anthropic-beta"] == "message-batches-2024-09-24"
 
     # Response parsed through the config transform.
-    assert isinstance(batch, LiteLLMBatch)
+    assert isinstance(batch, GatewayBatch)
     assert batch.id == "msgbatch_abc"
     assert batch.status == "completed"
     assert batch.request_counts.completed == 2
@@ -278,6 +278,6 @@ def test_retrieve_batch_sync_runs_to_result(handler, patched_client):
         timeout=60.0,
         max_retries=0,
     )
-    assert isinstance(batch, LiteLLMBatch)
+    assert isinstance(batch, GatewayBatch)
     assert batch.id == "msgbatch_abc"
     assert batch.status == "completed"

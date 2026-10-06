@@ -290,12 +290,12 @@ class GuardrailRegistry:
         try:
             guardrail_name: Final = guardrail.get("guardrail_name")
             # Properly serialize LitellmParams Pydantic model to dict
-            litellm_params_obj: Final = guardrail.get("litellm_params", {})
-            if hasattr(litellm_params_obj, "model_dump"):
-                litellm_params_dict = litellm_params_obj.model_dump()
+            gateway_params_obj: Final = guardrail.get("litellm_params", {})
+            if hasattr(gateway_params_obj, "model_dump"):
+                gateway_params_dict = gateway_params_obj.model_dump()
             else:
-                litellm_params_dict = dict(litellm_params_obj) if litellm_params_obj else {}
-            litellm_params: Final[str] = safe_dumps(litellm_params_dict)
+                gateway_params_dict = dict(gateway_params_obj) if gateway_params_obj else {}
+            litellm_params: Final[str] = safe_dumps(gateway_params_dict)
             guardrail_info: Final[str] = safe_dumps(guardrail.get("guardrail_info", {}))
 
             # Create guardrail in DB
@@ -336,12 +336,12 @@ class GuardrailRegistry:
         try:
             guardrail_name: Final = guardrail.get("guardrail_name")
             # Properly serialize LitellmParams Pydantic model to dict
-            litellm_params_obj: Final = guardrail.get("litellm_params", {})
-            if hasattr(litellm_params_obj, "model_dump"):
-                litellm_params_dict = litellm_params_obj.model_dump()
+            gateway_params_obj: Final = guardrail.get("litellm_params", {})
+            if hasattr(gateway_params_obj, "model_dump"):
+                gateway_params_dict = gateway_params_obj.model_dump()
             else:
-                litellm_params_dict = dict(litellm_params_obj) if litellm_params_obj else {}
-            litellm_params: Final[str] = safe_dumps(litellm_params_dict)
+                gateway_params_dict = dict(gateway_params_obj) if gateway_params_obj else {}
+            litellm_params: Final[str] = safe_dumps(gateway_params_dict)
             guardrail_info: Final[str] = safe_dumps(guardrail.get("guardrail_info", {}))
 
             # Update in DB
@@ -513,16 +513,16 @@ class InMemoryGuardrailHandler:
             self._sources[guardrail_id] = source
             return self.IN_MEMORY_GUARDRAILS[guardrail_id]
 
-        litellm_params_data: Final = guardrail["litellm_params"]
-        verbose_proxy_logger.debug("litellm_params= %s", litellm_params_data)
+        gateway_params_data: Final = guardrail["litellm_params"]
+        verbose_proxy_logger.debug("litellm_params= %s", gateway_params_data)
 
-        if isinstance(litellm_params_data, dict):
-            litellm_params = LitellmParams(**litellm_params_data)
+        if isinstance(gateway_params_data, dict):
+            litellm_params = LitellmParams(**gateway_params_data)
         else:
-            litellm_params = litellm_params_data
+            litellm_params = gateway_params_data
 
-        if "category_thresholds" in litellm_params_data and litellm_params_data["category_thresholds"]:
-            lakera_category_thresholds: Final = LakeraCategoryThresholds(**litellm_params_data["category_thresholds"])
+        if "category_thresholds" in gateway_params_data and gateway_params_data["category_thresholds"]:
+            lakera_category_thresholds: Final = LakeraCategoryThresholds(**gateway_params_data["category_thresholds"])
             litellm_params.category_thresholds = lakera_category_thresholds
 
         if litellm_params.api_key and litellm_params.api_key.startswith("os.environ/"):
@@ -665,11 +665,11 @@ class InMemoryGuardrailHandler:
         tracked_callbacks: Final = self._tracked_callbacks(guardrail_id)
         if not tracked_callbacks:
             return
-        updated_litellm_params: Final = cast(LitellmParams, guardrail.get("litellm_params", {}))
-        tracked_callbacks[0].update_in_memory_litellm_params(litellm_params=updated_litellm_params)
+        updated_gateway_params: Final = cast(LitellmParams, guardrail.get("litellm_params", {}))
+        tracked_callbacks[0].update_in_memory_gateway_params(litellm_params=updated_gateway_params)
         for sibling_callback in tracked_callbacks[1:]:
             sibling_stage = sibling_callback.event_hook
-            sibling_callback.update_in_memory_litellm_params(litellm_params=updated_litellm_params)
+            sibling_callback.update_in_memory_gateway_params(litellm_params=updated_gateway_params)
             sibling_callback.event_hook = sibling_stage
 
     def delete_in_memory_guardrail(self, guardrail_id: str) -> None:
@@ -752,7 +752,7 @@ class InMemoryGuardrailHandler:
         return stale_ids
 
     @staticmethod
-    def _normalize_litellm_params_for_comparison(
+    def _normalize_gateway_params_for_comparison(
         params: LitellmParams | Mapping[str, object] | None,
     ) -> Mapping[str, object] | None:
         """
@@ -793,8 +793,8 @@ class InMemoryGuardrailHandler:
             return True
 
         # Compare litellm_params
-        existing_dict: Final = self._normalize_litellm_params_for_comparison(existing.get("litellm_params"))
-        new_dict: Final = self._normalize_litellm_params_for_comparison(new_guardrail.get("litellm_params"))
+        existing_dict: Final = self._normalize_gateway_params_for_comparison(existing.get("litellm_params"))
+        new_dict: Final = self._normalize_gateway_params_for_comparison(new_guardrail.get("litellm_params"))
 
         # Compare and identify specific differences
         changed_fields = {}

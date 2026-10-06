@@ -9,16 +9,16 @@ from token_iq.gateway.types.utils import StandardLoggingMCPToolCall
 
 if TYPE_CHECKING:
     from token_iq.gateway.core_utils.litellm_logging import (
-        Logging as LitellmLoggingObject,
+        Logging as GatewayLoggingObject,
     )
 else:
-    LitellmLoggingObject = Any
+    GatewayLoggingObject = Any
 
 
 class MCPCostCalculator:
     @staticmethod
     def calculate_mcp_tool_call_cost(
-        litellm_logging_obj: LitellmLoggingObject | None,
+        litellm_logging_obj: GatewayLoggingObject | None,
     ) -> float:
         """
         Calculate the cost of an MCP tool call.

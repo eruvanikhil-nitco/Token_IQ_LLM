@@ -549,8 +549,8 @@ async def get_global_activity(
 
         db_response: Sequence[_ActivityRow] | None
         if (
-            user_api_key_dict.user_role == LitellmUserRoles.INTERNAL_USER
-            or user_api_key_dict.user_role == LitellmUserRoles.INTERNAL_USER_VIEW_ONLY
+            user_api_key_dict.user_role == GatewayUserRoles.INTERNAL_USER
+            or user_api_key_dict.user_role == GatewayUserRoles.INTERNAL_USER_VIEW_ONLY
         ):
             db_response = await get_global_activity_internal_user(user_api_key_dict, start_date_obj, end_date_obj)
         else:
@@ -714,8 +714,8 @@ async def get_global_activity_model(
 
         db_response: Sequence[_ActivityModelRow] | None
         if (
-            user_api_key_dict.user_role == LitellmUserRoles.INTERNAL_USER
-            or user_api_key_dict.user_role == LitellmUserRoles.INTERNAL_USER_VIEW_ONLY
+            user_api_key_dict.user_role == GatewayUserRoles.INTERNAL_USER
+            or user_api_key_dict.user_role == GatewayUserRoles.INTERNAL_USER_VIEW_ONLY
         ):
             db_response = await get_global_activity_model_internal_user(user_api_key_dict, start_date_obj, end_date_obj)
         else:
@@ -1095,8 +1095,8 @@ async def get_global_spend_provider(
 
         db_response: Sequence[_ModelIdSpendRow] | None
         if (
-            user_api_key_dict.user_role == LitellmUserRoles.INTERNAL_USER
-            or user_api_key_dict.user_role == LitellmUserRoles.INTERNAL_USER_VIEW_ONLY
+            user_api_key_dict.user_role == GatewayUserRoles.INTERNAL_USER
+            or user_api_key_dict.user_role == GatewayUserRoles.INTERNAL_USER_VIEW_ONLY
         ):
             user_id: Final = user_api_key_dict.user_id
             if user_id is None:
@@ -2143,10 +2143,10 @@ async def calculate_spend(request: SpendCalculateRequest):
             
             """
             if _model_in_llm_router is not None:
-                _litellm_params: Final = _model_in_llm_router.get("litellm_params")
-                _litellm_model_name: Final = _litellm_params.get("model")
-                input_cost_per_token: Final = _litellm_params.get("input_cost_per_token")
-                output_cost_per_token: Final = _litellm_params.get("output_cost_per_token")
+                _gateway_params: Final = _model_in_llm_router.get("litellm_params")
+                _gateway_model_name: Final = _gateway_params.get("model")
+                input_cost_per_token: Final = _gateway_params.get("input_cost_per_token")
+                output_cost_per_token: Final = _gateway_params.get("output_cost_per_token")
                 if input_cost_per_token is not None or output_cost_per_token is not None:
                     cost_per_token = CostPerToken(
                         input_cost_per_token=input_cost_per_token,
@@ -2154,7 +2154,7 @@ async def calculate_spend(request: SpendCalculateRequest):
                     )
 
                 _cost = completion_cost(
-                    model=_litellm_model_name,
+                    model=_gateway_model_name,
                     messages=request.messages,
                     custom_cost_per_token=cost_per_token,
                 )
@@ -2979,8 +2979,8 @@ async def view_spend_logs(
     from token_iq.gateway.proxy.proxy_server import prisma_client
 
     if (
-        user_api_key_dict.user_role == LitellmUserRoles.INTERNAL_USER
-        or user_api_key_dict.user_role == LitellmUserRoles.INTERNAL_USER_VIEW_ONLY
+        user_api_key_dict.user_role == GatewayUserRoles.INTERNAL_USER
+        or user_api_key_dict.user_role == GatewayUserRoles.INTERNAL_USER_VIEW_ONLY
     ):
         user_id = user_api_key_dict.user_id
 
@@ -3320,8 +3320,8 @@ async def global_spend_logs(
 
         response: Sequence[Mapping[str, object]]
         if (
-            user_api_key_dict.user_role == LitellmUserRoles.INTERNAL_USER
-            or user_api_key_dict.user_role == LitellmUserRoles.INTERNAL_USER_VIEW_ONLY
+            user_api_key_dict.user_role == GatewayUserRoles.INTERNAL_USER
+            or user_api_key_dict.user_role == GatewayUserRoles.INTERNAL_USER_VIEW_ONLY
         ):
             response = await global_spend_for_internal_user(api_key=api_key, user_api_key_dict=user_api_key_dict)
 
@@ -3485,8 +3485,8 @@ async def global_spend_keys(
 
     response: Sequence[Mapping[str, object]]
     if (
-        user_api_key_dict.user_role == LitellmUserRoles.INTERNAL_USER
-        or user_api_key_dict.user_role == LitellmUserRoles.INTERNAL_USER_VIEW_ONLY
+        user_api_key_dict.user_role == GatewayUserRoles.INTERNAL_USER
+        or user_api_key_dict.user_role == GatewayUserRoles.INTERNAL_USER_VIEW_ONLY
     ):
         response = await global_spend_key_internal_user(user_api_key_dict=user_api_key_dict)
 
@@ -3736,8 +3736,8 @@ async def global_spend_models(
     from token_iq.gateway.proxy.proxy_server import prisma_client
 
     if (
-        user_api_key_dict.user_role == LitellmUserRoles.INTERNAL_USER
-        or user_api_key_dict.user_role == LitellmUserRoles.INTERNAL_USER_VIEW_ONLY
+        user_api_key_dict.user_role == GatewayUserRoles.INTERNAL_USER
+        or user_api_key_dict.user_role == GatewayUserRoles.INTERNAL_USER_VIEW_ONLY
     ):
         response = await global_spend_models_internal_user(user_api_key_dict=user_api_key_dict, limit=limit)
         return response
@@ -4241,8 +4241,8 @@ def _is_admin_view_safe(user_api_key_dict: UserAPIKeyAuth) -> bool:
         if user_role is None:
             return False
         return user_role in (
-            LitellmUserRoles.PROXY_ADMIN,
-            LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY,
+            GatewayUserRoles.PROXY_ADMIN,
+            GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY,
         )
     except Exception:
         return False
@@ -4287,8 +4287,8 @@ def _can_user_view_spend_log(user_api_key_dict: UserAPIKeyAuth) -> bool:
     return (
         user_role
         in (
-            LitellmUserRoles.INTERNAL_USER,
-            LitellmUserRoles.INTERNAL_USER_VIEW_ONLY,
+            GatewayUserRoles.INTERNAL_USER,
+            GatewayUserRoles.INTERNAL_USER_VIEW_ONLY,
         )
         and user_id is not None
     )

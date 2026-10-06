@@ -22,7 +22,7 @@ from budget_client import BudgetClient, is_budget_block
 from e2e_config import unique_marker
 from e2e_http import StreamingResponse, require_successful_call
 from lifecycle import ResourceManager
-from models import KeyGenerateBody, LiteLLMParamsBody, ModelInfoBody, ModelNewBody
+from models import KeyGenerateBody, GatewayParamsBody, ModelInfoBody, ModelNewBody
 
 pytestmark = pytest.mark.e2e
 
@@ -52,7 +52,7 @@ def _provider_key(env_var: str) -> str:
 def _grouped_model(model_name: str, access_group: str) -> ModelNewBody:
     return ModelNewBody(
         model_name=model_name,
-        litellm_params=LiteLLMParamsBody(model=BACKEND, api_key=_provider_key("OPENAI_API_KEY")),
+        litellm_params=GatewayParamsBody(model=BACKEND, api_key=_provider_key("OPENAI_API_KEY")),
         model_info=ModelInfoBody(access_groups=[access_group]),
     )
 

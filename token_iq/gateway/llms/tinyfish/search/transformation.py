@@ -15,7 +15,7 @@ from pydantic import TypeAdapter, ValidationError
 
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.core_utils.core_helpers import process_response_headers
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.llms.base_llm.chat.transformation import BaseLLMException
 from token_iq.gateway.llms.base_llm.search.transformation import (
     BaseSearchConfig,
@@ -160,7 +160,7 @@ class TinyfishSearchConfig(BaseSearchConfig):
     def transform_search_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj | None,
+        logging_obj: GatewayLoggingObj | None,
         **kwargs: object,
     ) -> SearchResponse:
         """

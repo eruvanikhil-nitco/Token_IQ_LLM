@@ -20,12 +20,12 @@ from token_iq.gateway.types.router import ConsumedRequestTagsStamp, DeploymentTy
 if TYPE_CHECKING:
     from token_iq.gateway.router import Router as _Router
 
-    LitellmRouter = _Router
+    GatewayRouter = _Router
 else:
-    LitellmRouter = Any
+    GatewayRouter = Any
 
 
-class _TagLitellmParamsLike(Protocol):
+class _TagGatewayParamsLike(Protocol):
     @overload
     def get(self, key: Literal["tags"], /) -> Sequence[str] | None: ...
     @overload
@@ -43,7 +43,7 @@ class _ModelInfoLike(Protocol):
 
 class _DeploymentLike(Protocol):
     @overload
-    def get(self, key: Literal["litellm_params"], default: Mapping[str, object], /) -> _TagLitellmParamsLike: ...
+    def get(self, key: Literal["litellm_params"], default: Mapping[str, object], /) -> _TagGatewayParamsLike: ...
     @overload
     def get(self, key: Literal["model_info"], /) -> _ModelInfoLike | None: ...
     @overload
@@ -63,7 +63,7 @@ class _MetadataLike(Protocol):
     def __setitem__(self, key: Literal["tag_routing"], value: Mapping[str, object], /) -> None: ...
 
 
-class _NestedLitellmParamsLike(Protocol):
+class _NestedGatewayParamsLike(Protocol):
     def get(
         self, key: Literal["metadata", "litellm_metadata"], default: Mapping[str, object], /
     ) -> _MetadataLike | None: ...
@@ -78,7 +78,7 @@ class _RequestKwargsLike(Protocol):
     @overload
     def __getitem__(self, key: Literal["metadata", "litellm_metadata"], /) -> _MetadataLike: ...
     @overload
-    def __getitem__(self, key: Literal["litellm_params"], /) -> _NestedLitellmParamsLike: ...
+    def __getitem__(self, key: Literal["litellm_params"], /) -> _NestedGatewayParamsLike: ...
 
 
 _DeploymentPool = Sequence[_DeploymentLike] | Mapping[_DeploymentLike, object]
@@ -380,7 +380,7 @@ def _resolve_constraint_only_pool(
 
 
 def _all_deployments_or_fallback(
-    llm_router_instance: LitellmRouter,
+    llm_router_instance: GatewayRouter,
     model: str,
     fallback: _DeploymentPool,
 ) -> Sequence[_DeploymentLike | DeploymentTypedDict] | Mapping[_DeploymentLike, object]:
@@ -391,7 +391,7 @@ def _all_deployments_or_fallback(
 
 
 def _chain_tag_filtering_override(
-    llm_router_instance: LitellmRouter,
+    llm_router_instance: GatewayRouter,
     model: str,
     healthy_deployments: _DeploymentPool,
 ) -> bool | None:
@@ -435,7 +435,7 @@ def _inherited_constraint_sets(
 
 
 def _tag_known_to_group(
-    llm_router_instance: LitellmRouter,
+    llm_router_instance: GatewayRouter,
     model: str,
     positive_tags: Sequence[str],
     routing_confirmed: frozenset[str],
@@ -474,7 +474,7 @@ def _request_tags_after_router_consumption(metadata: object, model: str) -> Sequ
 
 
 async def get_deployments_for_tag(
-    llm_router_instance: LitellmRouter,
+    llm_router_instance: GatewayRouter,
     model: str,  # used to raise the correct error
     healthy_deployments: _DeploymentPool,
     request_kwargs: _RequestKwargsLike | None = None,
@@ -689,6 +689,6 @@ def _get_tags_from_request_kwargs(
         litellm_params: Final = request_kwargs["litellm_params"]
         if not isinstance(litellm_params, Mapping):
             return []
-        typed_litellm_params: Final[Mapping[str, object]] = litellm_params
-        return _tags_in_metadata(typed_litellm_params.get(resolved_variable_name))
+        typed_gateway_params: Final[Mapping[str, object]] = litellm_params
+        return _tags_in_metadata(typed_gateway_params.get(resolved_variable_name))
     return []

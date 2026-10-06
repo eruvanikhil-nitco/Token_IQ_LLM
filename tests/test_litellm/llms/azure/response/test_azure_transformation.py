@@ -11,13 +11,13 @@ from token_iq.gateway.llms.azure.responses.o_series_transformation import (
 )
 from token_iq.gateway.llms.azure.responses.transformation import AzureOpenAIResponsesAPIConfig
 from token_iq.gateway.types.llms.openai import ResponsesAPIOptionalRequestParams
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 
 
 @pytest.mark.serial
-def test_validate_environment_api_key_within_litellm_params():
+def test_validate_environment_api_key_within_gateway_params():
     azure_openai_responses_apiconfig = AzureOpenAIResponsesAPIConfig()
-    litellm_params = GenericLiteLLMParams(api_key="test-api-key")
+    litellm_params = GenericGatewayParams(api_key="test-api-key")
 
     result = azure_openai_responses_apiconfig.validate_environment(
         headers={}, model="", litellm_params=litellm_params
@@ -29,11 +29,11 @@ def test_validate_environment_api_key_within_litellm_params():
 
 
 @pytest.mark.serial
-def test_validate_environment_api_key_within_litellm():
+def test_validate_environment_api_key_within_gateway():
     azure_openai_responses_apiconfig = AzureOpenAIResponsesAPIConfig()
 
     with patch("token_iq.gateway.api_key", "test-api-key"):
-        litellm_params = GenericLiteLLMParams()
+        litellm_params = GenericGatewayParams()
         result = azure_openai_responses_apiconfig.validate_environment(
             headers={}, model="", litellm_params=litellm_params
         )
@@ -44,11 +44,11 @@ def test_validate_environment_api_key_within_litellm():
 
 
 @pytest.mark.serial
-def test_validate_environment_azure_key_within_litellm():
+def test_validate_environment_azure_key_within_gateway():
     azure_openai_responses_apiconfig = AzureOpenAIResponsesAPIConfig()
 
     with patch("token_iq.gateway.azure_key", "test-azure-key"):
-        litellm_params = GenericLiteLLMParams()
+        litellm_params = GenericGatewayParams()
         result = azure_openai_responses_apiconfig.validate_environment(
             headers={}, model="", litellm_params=litellm_params
         )
@@ -62,7 +62,7 @@ def test_validate_environment_azure_key_within_litellm():
 def test_validate_environment_azure_key_within_headers():
     azure_openai_responses_apiconfig = AzureOpenAIResponsesAPIConfig()
     headers = {"api-key": "test-api-key-from-headers"}
-    litellm_params = GenericLiteLLMParams()
+    litellm_params = GenericGatewayParams()
 
     result = azure_openai_responses_apiconfig.validate_environment(
         headers=headers, model="", litellm_params=litellm_params
@@ -102,7 +102,7 @@ def test_response_id_path_requests_encode_response_id():
     url, params = config.transform_cancel_response_api_request(
         response_id="../../responses/other?x=1#frag",
         api_base=api_base,
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         headers={},
     )
 
@@ -314,11 +314,11 @@ class TestAzureResponsesAPIConfig:
 
     def test_azure_cancel_response_api_request(self):
         """Test Azure cancel response API request transformation"""
-        from token_iq.gateway.types.router import GenericLiteLLMParams
+        from token_iq.gateway.types.router import GenericGatewayParams
 
         response_id = "resp_test123"
         api_base = "https://test.openai.azure.com/openai/responses?api-version=2024-05-01-preview"
-        litellm_params = GenericLiteLLMParams(api_version="2024-05-01-preview")
+        litellm_params = GenericGatewayParams(api_version="2024-05-01-preview")
         headers = {"Authorization": "Bearer test-key"}
 
         url, data = self.config.transform_cancel_response_api_request(
@@ -333,14 +333,14 @@ class TestAzureResponsesAPIConfig:
         assert data == {}
 
     def test_azure_list_input_items_request_url_path_before_query(self):
-        from token_iq.gateway.types.router import GenericLiteLLMParams
+        from token_iq.gateway.types.router import GenericGatewayParams
 
         api_base = "https://test.openai.azure.com/openai/responses?api-version=2025-03-01-preview"
 
         url, params = self.config.transform_list_input_items_request(
             response_id="resp_test123",
             api_base=api_base,
-            litellm_params=GenericLiteLLMParams(api_version="2025-03-01-preview"),
+            litellm_params=GenericGatewayParams(api_version="2025-03-01-preview"),
             headers={},
         )
 
@@ -385,7 +385,7 @@ class TestAzureResponsesAPIConfig:
 
     def test_azure_responses_api_tool_flattening_nested_to_flat(self):
         """Test that nested tools are flattened correctly"""
-        from token_iq.gateway.types.router import GenericLiteLLMParams
+        from token_iq.gateway.types.router import GenericGatewayParams
 
         # Setup
         nested_tools = [
@@ -400,7 +400,7 @@ class TestAzureResponsesAPIConfig:
         ]
 
         response_api_params = {"tools": nested_tools}
-        litellm_params = GenericLiteLLMParams()
+        litellm_params = GenericGatewayParams()
 
         # Execute
         self.config.transform_responses_api_request(
@@ -424,7 +424,7 @@ class TestAzureResponsesAPIConfig:
 
     def test_azure_responses_api_tool_flattening_already_flat(self):
         """Test that already flat tools are passed through unchanged"""
-        from token_iq.gateway.types.router import GenericLiteLLMParams
+        from token_iq.gateway.types.router import GenericGatewayParams
 
         # Setup
         flat_tools = [
@@ -438,7 +438,7 @@ class TestAzureResponsesAPIConfig:
 
         # Make a copy to check it doesn't change
         response_api_params = {"tools": list(flat_tools)}
-        litellm_params = GenericLiteLLMParams()
+        litellm_params = GenericGatewayParams()
 
         # Execute
         self.config.transform_responses_api_request(
@@ -454,7 +454,7 @@ class TestAzureResponsesAPIConfig:
 
     def test_azure_responses_api_tool_flattening_preserves_original(self):
         """Test that the original tool dictionary is not mutated"""
-        from token_iq.gateway.types.router import GenericLiteLLMParams
+        from token_iq.gateway.types.router import GenericGatewayParams
 
         # Setup
         original_tool = {
@@ -464,7 +464,7 @@ class TestAzureResponsesAPIConfig:
         original_tool_copy = deepcopy(original_tool)
 
         response_api_params = {"tools": [original_tool]}
-        litellm_params = GenericLiteLLMParams()
+        litellm_params = GenericGatewayParams()
 
         # Execute
         self.config.transform_responses_api_request(
@@ -479,7 +479,7 @@ class TestAzureResponsesAPIConfig:
 
     def test_azure_responses_api_tool_flattening_mixed_tools(self):
         """Test mixed nested and flat tools"""
-        from token_iq.gateway.types.router import GenericLiteLLMParams
+        from token_iq.gateway.types.router import GenericGatewayParams
 
         # Setup
         nested_tool = {
@@ -489,7 +489,7 @@ class TestAzureResponsesAPIConfig:
         flat_tool = {"type": "function", "name": "flat", "parameters": {}}
 
         response_api_params = {"tools": [nested_tool, flat_tool]}
-        litellm_params = GenericLiteLLMParams()
+        litellm_params = GenericGatewayParams()
 
         # Execute
         self.config.transform_responses_api_request(
@@ -512,11 +512,11 @@ class TestAzureResponsesAPIConfig:
 
     def test_azure_responses_api_tool_flattening_no_tools(self):
         """Test handling when no tools are present"""
-        from token_iq.gateway.types.router import GenericLiteLLMParams
+        from token_iq.gateway.types.router import GenericGatewayParams
 
         # Setup
         response_api_params = {}
-        litellm_params = GenericLiteLLMParams()
+        litellm_params = GenericGatewayParams()
 
         # Execute - should not crash
         self.config.transform_responses_api_request(
@@ -565,7 +565,7 @@ class TestAzureResponsesAPIConfig:
             model="gpt-4o",
             input="hi",
             response_api_optional_request_params={"tools": [self._anyof_tool()]},
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 
@@ -580,7 +580,7 @@ class TestAzureResponsesAPIConfig:
             model="my-eastus-deployment",
             input="hi",
             response_api_optional_request_params={"tools": [self._anyof_tool()]},
-            litellm_params=GenericLiteLLMParams(model_info={"base_model": "azure/gpt-4o"}),
+            litellm_params=GenericGatewayParams(model_info={"base_model": "azure/gpt-4o"}),
             headers={},
         )
 
@@ -593,7 +593,7 @@ class TestAzureResponsesAPIConfig:
             model="my-eastus-deployment",
             input="hi",
             response_api_optional_request_params={"tools": [tool]},
-            litellm_params=GenericLiteLLMParams(model_info={"base_model": "azure/gpt-5.4-mini"}),
+            litellm_params=GenericGatewayParams(model_info={"base_model": "azure/gpt-5.4-mini"}),
             headers={},
         )
 
@@ -607,7 +607,7 @@ class TestAzureResponsesAPIConfig:
             model="my-eastus-deployment",
             input="hi",
             response_api_optional_request_params={"tools": [tool]},
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 

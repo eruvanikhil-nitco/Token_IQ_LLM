@@ -384,12 +384,12 @@ class GeminiModelInfo(BaseLLMModelInfo):
         return model.replace("gemini/", "")
 
     def process_model_name(self, models: list[dict[str, str]]) -> list[str]:
-        litellm_model_names: Final = []
+        gateway_model_names: Final = []
         for model in models:
             stripped_model_name = model["name"].replace("models/", "")
             litellm_model_name = "gemini/" + stripped_model_name
-            litellm_model_names.append(litellm_model_name)
-        return litellm_model_names
+            gateway_model_names.append(litellm_model_name)
+        return gateway_model_names
 
     def get_models(self, api_key: str | None = None, api_base: str | None = None) -> list[str]:
         api_base = GeminiModelInfo.get_api_base(api_base)
@@ -412,8 +412,8 @@ class GeminiModelInfo(BaseLLMModelInfo):
 
         models: Final[list[dict[str, str]]] = response.json()["models"]
 
-        litellm_model_names: Final = self.process_model_name(models)
-        return litellm_model_names
+        gateway_model_names: Final = self.process_model_name(models)
+        return gateway_model_names
 
     def get_error_class(self, error_message: str, status_code: int, headers: dict | httpx.Headers) -> BaseLLMException:
         return GeminiError(status_code=status_code, message=error_message, headers=headers)

@@ -961,8 +961,8 @@ class AnthropicModelInfo(BaseLLMModelInfo):
 
         models: Final[Sequence[Mapping[str, str]]] = response.json()["data"]
 
-        litellm_model_names: Final = ["anthropic/" + model["id"] for model in models]
-        return litellm_model_names
+        gateway_model_names: Final = ["anthropic/" + model["id"] for model in models]
+        return gateway_model_names
 
     def get_token_counter(self) -> BaseTokenCounter | None:
         """

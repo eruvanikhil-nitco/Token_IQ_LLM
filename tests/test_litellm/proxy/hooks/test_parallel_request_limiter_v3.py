@@ -2200,10 +2200,10 @@ async def test_async_log_success_event_with_dict_usage(
     )
 
     # Create a mock response object with usage as a dict (Responses API format)
-    from token_iq.gateway.types.utils import BaseLiteLLMOpenAIResponseObject
+    from token_iq.gateway.types.utils import BaseGatewayOpenAIResponseObject
 
     # Use spec to make isinstance checks work correctly with MagicMock
-    mock_response = MagicMock(spec=BaseLiteLLMOpenAIResponseObject)
+    mock_response = MagicMock(spec=BaseGatewayOpenAIResponseObject)
     mock_response.usage = {
         "prompt_tokens": 25,
         "completion_tokens": 35,
@@ -2296,10 +2296,10 @@ async def test_async_log_success_event_with_dict_usage_missing_fields(monkeypatc
         # completion_tokens is missing
         # total_tokens is missing
     }
-    from token_iq.gateway.types.utils import BaseLiteLLMOpenAIResponseObject
+    from token_iq.gateway.types.utils import BaseGatewayOpenAIResponseObject
 
     mock_response.__class__ = type(
-        "MockResponse", (BaseLiteLLMOpenAIResponseObject,), {}
+        "MockResponse", (BaseGatewayOpenAIResponseObject,), {}
     )
 
     # Create mock kwargs for the success event
@@ -3572,7 +3572,7 @@ async def test_log_events_from_nested_calls_leave_owner_stash_alone(monkeypatch)
 
     stash = get_request_stash()
     assert stash is not None
-    assert stash.owner_litellm_call_id == "owner-call-id"
+    assert stash.owner_gateway_call_id == "owner-call-id"
     reserved = stash.reserved_tokens
     assert reserved > 0
 
@@ -3635,7 +3635,7 @@ async def test_stash_applies_when_owner_or_callback_call_id_missing():
     assert unclaimed.reservation_released is True
 
     claimed = RequestRateLimiterStash(
-        owner_litellm_call_id="owner-1", reserved_tokens=42
+        owner_gateway_call_id="owner-1", reserved_tokens=42
     )
     _request_stash.set(claimed)
     await handler.async_log_failure_event(
@@ -3901,7 +3901,7 @@ async def _build_seeded_limiter():
 
 
 @contextmanager
-def _override_litellm_callbacks(new_callbacks):
+def _override_gateway_callbacks(new_callbacks):
     """Swap litellm.callbacks so _callback_capabilities recomputes deterministically."""
     saved = gateway.callbacks
     gateway.callbacks = new_callbacks
@@ -4346,7 +4346,7 @@ async def test_async_streaming_data_generator_releases_counter_on_disconnect_v3(
         slot_id=_TEST_SLOT_ID,
         counter_keys=[counter_key],
     )
-    with _override_litellm_callbacks([]):
+    with _override_gateway_callbacks([]):
         gen = ProxyBaseLLMRequestProcessing.async_sse_data_generator(
             response=upstream(),
             user_api_key_dict=user_api_key_dict,
@@ -4396,7 +4396,7 @@ async def test_async_data_generator_releases_counter_on_disconnect_v3(disconnect
         counter_keys=[counter_key],
     )
     try:
-        with _override_litellm_callbacks([]):
+        with _override_gateway_callbacks([]):
             assert proxy_logging_obj.needs_iterator_wrap() is False
             gen = proxy_server.async_data_generator(
                 response=upstream(),
@@ -4455,7 +4455,7 @@ async def test_async_data_generator_releases_counter_when_wrapped_v3():
         counter_keys=[counter_key],
     )
     try:
-        with _override_litellm_callbacks([_PassthroughIteratorOverride()]):
+        with _override_gateway_callbacks([_PassthroughIteratorOverride()]):
             assert proxy_logging_obj.needs_iterator_wrap() is True
             gen = proxy_server.async_data_generator(
                 response=upstream(),

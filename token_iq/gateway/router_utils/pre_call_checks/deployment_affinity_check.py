@@ -147,7 +147,7 @@ class DeploymentAffinityCheck(CustomLogger):
         return hashlib.sha256(user_key.encode("utf-8")).hexdigest()
 
     @staticmethod
-    def _get_model_map_key_from_litellm_model_name(
+    def _get_model_map_key_from_gateway_model_name(
         litellm_model_name: str,
     ) -> str | None:
         """
@@ -204,7 +204,7 @@ class DeploymentAffinityCheck(CustomLogger):
                 return base_model
             litellm_model_name: Final = litellm_params.get("model")
             if isinstance(litellm_model_name, str) and litellm_model_name:
-                return DeploymentAffinityCheck._get_model_map_key_from_litellm_model_name(litellm_model_name)
+                return DeploymentAffinityCheck._get_model_map_key_from_gateway_model_name(litellm_model_name)
 
         return None
 

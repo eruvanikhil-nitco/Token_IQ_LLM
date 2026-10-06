@@ -130,7 +130,7 @@ class AutoRouter(CustomLogger):
 
         from token_iq.gateway.core_utils.prompt_templates.factory import resolve_structured_messages
         from token_iq.gateway.router_strategy.auto_router.litellm_encoder import (
-            LiteLLMRouterEncoder,
+            GatewayRouterEncoder,
         )
         from token_iq.gateway.types.router import PreRoutingHookResponse
 
@@ -149,7 +149,7 @@ class AutoRouter(CustomLogger):
             #######################
             routelayer = SemanticRouter(
                 routes=self.loaded_routes,
-                encoder=LiteLLMRouterEncoder(
+                encoder=GatewayRouterEncoder(
                     litellm_router_instance=self.litellm_router_instance,
                     model_name=self.embedding_model,
                     max_input_chars=self.max_input_chars,

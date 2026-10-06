@@ -16,7 +16,7 @@ from token_iq import gateway
 from token_iq.gateway import Router
 from token_iq.gateway.proxy._types import (
     LiteLLM_BudgetTable,
-    Litellm_EntityType,
+    Gateway_EntityType,
     LiteLLM_OrganizationTable,
     LiteLLM_ProjectTableCachedObj,
     LiteLLM_TeamMembership,
@@ -419,7 +419,7 @@ async def test_group_over_its_max_budget_blocks_the_request_and_names_the_group(
         )
 
     assert exc_info.value.entity_id == "tier-a"
-    assert exc_info.value.entity_type == Litellm_EntityType.MODEL_ACCESS_GROUP.value
+    assert exc_info.value.entity_type == Gateway_EntityType.MODEL_ACCESS_GROUP.value
     assert exc_info.value.current_cost == 10.5
     assert exc_info.value.max_budget == 10.0
     assert "tier-a" in str(exc_info.value)

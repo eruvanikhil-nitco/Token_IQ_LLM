@@ -150,7 +150,7 @@ def _make_request_mock() -> Request:
 
 
 @pytest.mark.asyncio
-async def test_add_litellm_data_to_request_rejects_url_valued_model():
+async def test_add_gateway_data_to_request_rejects_url_valued_model():
     user_api_key_dict = UserAPIKeyAuth(
         api_key="hashed-key",
         metadata={},

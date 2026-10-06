@@ -63,7 +63,7 @@ class TestPresetCacheKeyFix:
         assert result is not None
         assert isinstance(result, str)
 
-    def test_preset_cache_key_is_set_in_litellm_params(self):
+    def test_preset_cache_key_is_set_in_gateway_params(self):
         """Verify that preset_cache_key is correctly set in litellm_params."""
         from token_iq.gateway.caching.caching import Cache
 

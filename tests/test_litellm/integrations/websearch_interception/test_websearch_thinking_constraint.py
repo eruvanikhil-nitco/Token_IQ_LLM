@@ -280,7 +280,7 @@ class TestLoggingObjExcludedFromFollowUp:
     """
 
     @pytest.mark.asyncio
-    async def test_litellm_logging_obj_excluded_from_anthropic_followup(self):
+    async def test_gateway_logging_obj_excluded_from_anthropic_followup(self):
         """The Anthropic messages follow-up must NOT receive litellm_logging_obj."""
         logger = WebSearchInterceptionLogger(enabled_providers=["bedrock"])
         captured_kwargs: Dict[str, Any] = {}

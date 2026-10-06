@@ -165,7 +165,7 @@ async def test_custom_secret_manager_async_delete():
     assert secret_manager.sync_read_secret("TEST_API_KEY") is None
 
 
-def test_custom_secret_manager_integration_with_litellm():
+def test_custom_secret_manager_integration_with_gateway():
     """
     Test that the custom secret manager integrates with LiteLLM's secret management system.
     """

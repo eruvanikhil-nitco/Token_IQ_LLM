@@ -11,7 +11,7 @@ import pytest
 
 from token_iq.gateway.core_utils.litellm_logging import StandardLoggingPayloadSetup
 from token_iq.gateway.proxy._types import LiteLLM_VerificationTokenView, UserAPIKeyAuth
-from token_iq.gateway.proxy.litellm_pre_call_utils import LiteLLMProxyRequestSetup
+from token_iq.gateway.proxy.litellm_pre_call_utils import GatewayProxyRequestSetup
 from token_iq.gateway.types.utils import StandardLoggingUserAPIKeyMetadata
 
 
@@ -72,7 +72,7 @@ class TestProjectAliasThroughMetadataPipeline:
             team_alias="my-team",
         )
 
-        result = LiteLLMProxyRequestSetup.get_sanitized_user_information_from_key(
+        result = GatewayProxyRequestSetup.get_sanitized_user_information_from_key(
             user_api_key_dict=user_api_key_dict
         )
 
@@ -82,7 +82,7 @@ class TestProjectAliasThroughMetadataPipeline:
     def test_get_sanitized_user_information_project_alias_none_when_no_project(self):
         user_api_key_dict = UserAPIKeyAuth(api_key="sk-hashed")
 
-        result = LiteLLMProxyRequestSetup.get_sanitized_user_information_from_key(
+        result = GatewayProxyRequestSetup.get_sanitized_user_information_from_key(
             user_api_key_dict=user_api_key_dict
         )
 
@@ -116,7 +116,7 @@ class TestProjectAliasThroughMetadataPipeline:
         )
 
         # Step 1: Auth → sanitized metadata
-        sanitized = LiteLLMProxyRequestSetup.get_sanitized_user_information_from_key(
+        sanitized = GatewayProxyRequestSetup.get_sanitized_user_information_from_key(
             user_api_key_dict=auth
         )
 

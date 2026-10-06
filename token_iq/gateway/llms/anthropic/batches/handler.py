@@ -11,12 +11,12 @@ import httpx
 from token_iq.gateway.llms.custom_httpx.http_handler import (
     get_async_httpx_client,
 )
-from token_iq.gateway.types.utils import LiteLLMBatch, LlmProviders
+from token_iq.gateway.types.utils import GatewayBatch, LlmProviders
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 else:
-    LiteLLMLoggingObj = Any
+    GatewayLoggingObj = Any
 
 from ..common_utils import AnthropicModelInfo
 from .transformation import AnthropicBatchesConfig
@@ -41,8 +41,8 @@ class AnthropicBatchesHandler:
         api_key: str | None,
         timeout: float | httpx.Timeout,
         max_retries: int | None,
-        logging_obj: LiteLLMLoggingObj | None = None,
-    ) -> LiteLLMBatch:
+        logging_obj: GatewayLoggingObj | None = None,
+    ) -> GatewayBatch:
         """
         Async: Retrieve a batch from Anthropic.
 
@@ -67,10 +67,10 @@ class AnthropicBatchesHandler:
         # Create a minimal logging object if not provided
         if logging_obj is None:
             from token_iq.gateway.core_utils.litellm_logging import (
-                Logging as LiteLLMLoggingObjClass,
+                Logging as GatewayLoggingObjClass,
             )
 
-            logging_obj = LiteLLMLoggingObjClass(
+            logging_obj = GatewayLoggingObjClass(
                 model="anthropic/unknown",
                 messages=[],
                 stream=False,
@@ -129,8 +129,8 @@ class AnthropicBatchesHandler:
         api_key: str | None,
         timeout: float | httpx.Timeout,
         max_retries: int | None,
-        logging_obj: LiteLLMLoggingObj | None = None,
-    ) -> LiteLLMBatch | Coroutine[Any, Any, LiteLLMBatch]:
+        logging_obj: GatewayLoggingObj | None = None,
+    ) -> GatewayBatch | Coroutine[Any, Any, GatewayBatch]:
         """
         Retrieve a batch from Anthropic.
 

@@ -19,7 +19,7 @@ from tests.test_litellm.conftest import (  # noqa: F401  # re-exported for pytes
     isolate_host_aws_config,
     isolate_host_os_keychain,
     isolate_host_proxy_base_url,
-    isolate_litellm_state,
+    isolate_gateway_state,
     isolated_aws_credentials_dir,
     local_model_cost_map,
     pytest_collection_modifyitems,

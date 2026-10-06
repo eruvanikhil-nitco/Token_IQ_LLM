@@ -9,7 +9,7 @@ pytest.importorskip("opentelemetry")
 from token_iq.gateway.integrations.otel import (  # noqa: E402
     GenAI,
     HTTP,
-    LiteLLM,
+    Gateway,
     OpenTelemetryV2Config,
     promoted_baggage,
 )
@@ -72,8 +72,8 @@ def test_identity_promoted_onto_every_span():
     spans = exporter.get_finished_spans()
     assert len(spans) == 4
     for span in spans:
-        assert span.attributes.get(LiteLLM.TEAM_ID) == "t1"
-        assert span.attributes.get(LiteLLM.TEAM_ALIAS) == "team one"
+        assert span.attributes.get(Gateway.TEAM_ID) == "t1"
+        assert span.attributes.get(Gateway.TEAM_ALIAS) == "team one"
         assert span.attributes.get(GenAI.REQUEST_MODEL) == "gpt-4o"
 
 
@@ -96,9 +96,9 @@ def test_team_metadata_promoted_only_for_allowlisted_subkeys():
     (span,) = exporter.get_finished_spans()
 
     # only the allowlisted sub-key is promoted; ``cost_center`` is excluded
-    assert json.loads(span.attributes[LiteLLM.TEAM_METADATA]) == {"tier": "gold"}
+    assert json.loads(span.attributes[Gateway.TEAM_METADATA]) == {"tier": "gold"}
     # provider model is distinct from the user-facing request model
-    assert span.attributes.get(LiteLLM.PROVIDER_MODEL) == "azure/my-deployment"
+    assert span.attributes.get(Gateway.PROVIDER_MODEL) == "azure/my-deployment"
     assert span.attributes.get(GenAI.REQUEST_MODEL) == "gpt-4o"
 
 
@@ -109,7 +109,7 @@ def test_team_metadata_not_promoted_by_default():
     # raw dict is carried on the identity for promotion-time filtering
     assert data.identity.team_metadata == {"tier": "gold", "cost_center": "42"}
     bag = promoted_baggage(data.identity, data.request_model, BAGGAGE_PROMOTED_KEYS)
-    assert LiteLLM.TEAM_METADATA not in bag
+    assert Gateway.TEAM_METADATA not in bag
 
 
 def test_team_metadata_dropped_when_no_allowlisted_key_present():
@@ -122,7 +122,7 @@ def test_team_metadata_dropped_when_no_allowlisted_key_present():
         BAGGAGE_PROMOTED_KEYS,
         team_metadata_keys=("absent_key",),
     )
-    assert LiteLLM.TEAM_METADATA not in bag
+    assert Gateway.TEAM_METADATA not in bag
 
 
 def test_team_metadata_not_promoted_when_key_excluded_from_promoted_keys():
@@ -132,10 +132,10 @@ def test_team_metadata_not_promoted_when_key_excluded_from_promoted_keys():
     bag = promoted_baggage(
         data.identity,
         data.request_model,
-        (LiteLLM.TEAM_ID,),
+        (Gateway.TEAM_ID,),
         team_metadata_keys=("tier",),
     )
-    assert LiteLLM.TEAM_METADATA not in bag
+    assert Gateway.TEAM_METADATA not in bag
 
 
 def test_empty_team_metadata_is_dropped():
@@ -149,8 +149,8 @@ def test_empty_team_metadata_is_dropped():
     # provider model falls back to the call model — so it's present, not dropped.
     assert data.identity.provider_model == "gpt-4o"
     bag = promoted_baggage(data.identity, data.request_model, BAGGAGE_PROMOTED_KEYS)
-    assert LiteLLM.TEAM_METADATA not in bag
-    assert bag[LiteLLM.PROVIDER_MODEL] == "gpt-4o"
+    assert Gateway.TEAM_METADATA not in bag
+    assert bag[Gateway.PROVIDER_MODEL] == "gpt-4o"
 
 
 def test_allowlisted_metadata_subkey_promoted_blob_excluded():
@@ -162,7 +162,7 @@ def test_allowlisted_metadata_subkey_promoted_blob_excluded():
     (span,) = exporter.get_finished_spans()
     # allowlisted metadata sub-key is promoted
     assert (
-        span.attributes.get(f"{LiteLLM.METADATA_PREFIX}user_api_key_org_id") == "org1"
+        span.attributes.get(f"{Gateway.METADATA_PREFIX}user_api_key_org_id") == "org1"
     )
     # non-allowlisted metadata is NOT promoted (no full-blob dumping)
     assert all("private_note" not in k for k in span.attributes)
@@ -174,14 +174,14 @@ def test_http_attributes_never_promoted():
     engine, exporter = _engine_and_exporter()
     ctx = ctx_mod.set_request_baggage(
         {
-            LiteLLM.TEAM_ID: "t1",
+            Gateway.TEAM_ID: "t1",
             HTTP.ROUTE: "/chat/completions",
             HTTP.REQUEST_METHOD: "POST",
         }
     )
     engine.emit(SpanRole.SERVICE, ServiceSpanData("redis", call_type="set"), ctx)
     (span,) = exporter.get_finished_spans()
-    assert span.attributes.get(LiteLLM.TEAM_ID) == "t1"
+    assert span.attributes.get(Gateway.TEAM_ID) == "t1"
     assert HTTP.ROUTE not in span.attributes
     assert HTTP.REQUEST_METHOD not in span.attributes
 
@@ -189,23 +189,23 @@ def test_http_attributes_never_promoted():
 def test_arbitrary_upstream_baggage_not_promoted():
     engine, exporter = _engine_and_exporter()
     ctx = ctx_mod.set_request_baggage(
-        {LiteLLM.TEAM_ID: "t1", "some.upstream.key": "leak"}
+        {Gateway.TEAM_ID: "t1", "some.upstream.key": "leak"}
     )
     engine.emit(SpanRole.SERVICE, ServiceSpanData("redis", call_type="set"), ctx)
     (span,) = exporter.get_finished_spans()
-    assert span.attributes.get(LiteLLM.TEAM_ID) == "t1"
+    assert span.attributes.get(Gateway.TEAM_ID) == "t1"
     assert "some.upstream.key" not in span.attributes
 
 
 def test_baggage_processor_allowlist_can_be_widened():
     cfg = OpenTelemetryV2Config(
         exporter="in_memory",
-        baggage_promoted_keys=[LiteLLM.TEAM_ID, "custom.key"],
+        baggage_promoted_keys=[Gateway.TEAM_ID, "custom.key"],
     )
     engine, exporter = _engine_and_exporter(cfg)
-    ctx = ctx_mod.set_request_baggage({"custom.key": "v", LiteLLM.TEAM_ALIAS: "ta"})
+    ctx = ctx_mod.set_request_baggage({"custom.key": "v", Gateway.TEAM_ALIAS: "ta"})
     engine.emit(SpanRole.SERVICE, ServiceSpanData("redis"), ctx)
     (span,) = exporter.get_finished_spans()
     assert span.attributes.get("custom.key") == "v"
     # team_alias not in this config's allowlist -> not promoted
-    assert LiteLLM.TEAM_ALIAS not in span.attributes
+    assert Gateway.TEAM_ALIAS not in span.attributes

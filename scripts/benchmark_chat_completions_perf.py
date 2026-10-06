@@ -200,11 +200,11 @@ def format_optional_ms(value: Optional[float]) -> str:
     return "n/a" if value is None else f"{value:.2f}"
 
 
-def get_git_revision(litellm_dir: Path) -> str:
+def get_git_revision(gateway_dir: Path) -> str:
     try:
         result = subprocess.run(
             ["git", "rev-parse", "--short", "HEAD"],
-            cwd=litellm_dir,
+            cwd=gateway_dir,
             check=True,
             capture_output=True,
             text=True,
@@ -251,7 +251,7 @@ async def wait_for_proxy(base_url: str, timeout_s: float) -> None:
 
 
 def start_proxy_process(
-    litellm_dir: Path,
+    gateway_dir: Path,
     proxy_command: str,
     config_path: Path,
     port: int,
@@ -271,7 +271,7 @@ def start_proxy_process(
     log_file = log_path.open("w", encoding="utf-8")
     return subprocess.Popen(
         command,
-        cwd=litellm_dir,
+        cwd=gateway_dir,
         env=env,
         stdout=log_file,
         stderr=subprocess.STDOUT,
@@ -696,8 +696,8 @@ def parse_args() -> argparse.Namespace:
 
 async def async_main() -> None:
     args = parse_args()
-    litellm_dir = Path(args.litellm_dir).resolve()
-    revision = get_git_revision(litellm_dir)
+    gateway_dir = Path(args.gateway_dir).resolve()
+    revision = get_git_revision(gateway_dir)
     proxy_base_url = f"http://{args.proxy_host}:{args.proxy_port}"
     proxy_url = f"{proxy_base_url}/v1/chat/completions"
     headers = {
@@ -738,7 +738,7 @@ async def async_main() -> None:
         try:
             if not args.no_start_proxy:
                 proxy_process = start_proxy_process(
-                    litellm_dir=litellm_dir,
+                    gateway_dir=gateway_dir,
                     proxy_command=args.proxy_command,
                     config_path=config_path,
                     port=args.proxy_port,

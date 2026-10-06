@@ -134,10 +134,10 @@ _AGENT_PARAMS_ADAPTER: Final[TypeAdapter[dict[str, object]]] = TypeAdapter(
     dict[str, object]
 )  # mutable-ok: safe_dumps() and AgentResponse.litellm_params both require a real dict, not a Mapping
 _AGENT_PARAMS_SEQUENCE_ADAPTER: Final[TypeAdapter[tuple[object, ...]]] = TypeAdapter(tuple[object, ...])
-_EMPTY_LITELLM_PARAMS: Final[Mapping[str, object]] = MappingProxyType({})
+_EMPTY_GATEWAY_PARAMS: Final[Mapping[str, object]] = MappingProxyType({})
 
 
-def redact_sensitive_agent_litellm_params(litellm_params: object, _depth: int = 0) -> object:
+def redact_sensitive_agent_gateway_params(litellm_params: object, _depth: int = 0) -> object:
     """
     Replace credential-bearing values in an agent's litellm_params with
     ``REDACTED_BY_LITELM_STRING`` while preserving non-secret keys (``model``,
@@ -187,7 +187,7 @@ def _redact_agent_params_tree(value: object, _depth: int) -> object:
     }  # mutable-ok: consumed by json.dumps()/AgentResponse.litellm_params, both of which require a real dict
 
 
-def parse_agent_litellm_params(value: object) -> Mapping[str, object]:
+def parse_agent_gateway_params(value: object) -> Mapping[str, object]:
     """Normalize a stored litellm_params column to a read-only mapping.
 
     The prisma Json column comes back as either an already-parsed dict or a
@@ -199,13 +199,13 @@ def parse_agent_litellm_params(value: object) -> Mapping[str, object]:
         try:
             return _AGENT_PARAMS_ADAPTER.validate_json(value)
         except ValidationError:
-            return _EMPTY_LITELLM_PARAMS
+            return _EMPTY_GATEWAY_PARAMS
     if isinstance(value, Mapping):
         try:
             return _AGENT_PARAMS_ADAPTER.validate_python(value)
         except ValidationError:
-            return _EMPTY_LITELLM_PARAMS
-    return _EMPTY_LITELLM_PARAMS
+            return _EMPTY_GATEWAY_PARAMS
+    return _EMPTY_GATEWAY_PARAMS
 
 
 _MISSING_AGENT_PARAM: Final = object()
@@ -245,9 +245,9 @@ def _restore_redacted_nested_value(incoming_value: object, existing_value: objec
         existing_map: Final = (
             _AGENT_PARAMS_ADAPTER.validate_python(existing_value)
             if isinstance(existing_value, Mapping)
-            else _EMPTY_LITELLM_PARAMS
+            else _EMPTY_GATEWAY_PARAMS
         )
-        return _restore_redacted_litellm_params(typed_incoming_map, existing_map, _depth + 1)
+        return _restore_redacted_gateway_params(typed_incoming_map, existing_map, _depth + 1)
     if isinstance(incoming_value, (list, tuple)):
         typed_incoming_seq: Final = _AGENT_PARAMS_SEQUENCE_ADAPTER.validate_python(incoming_value)
         existing_seq: Final = (
@@ -284,7 +284,7 @@ def _resolved_agent_param_value(
     return _MISSING_AGENT_PARAM
 
 
-def _restore_redacted_litellm_params(
+def _restore_redacted_gateway_params(
     incoming: Mapping[str, object],
     existing: Mapping[str, object],
     _depth: int = 0,
@@ -494,11 +494,11 @@ class AgentRegistry:
             # secret behind, so a sensitive key submitted as the redaction
             # marker (e.g. a stray client re-post) is dropped rather than
             # persisted as the literal placeholder string.
-            litellm_params_obj: Final = agent.get("litellm_params", {})
-            litellm_params_dict: Final = _restore_redacted_litellm_params(
-                _dump_agent_params(litellm_params_obj), _EMPTY_LITELLM_PARAMS
+            gateway_params_obj: Final = agent.get("litellm_params", {})
+            gateway_params_dict: Final = _restore_redacted_gateway_params(
+                _dump_agent_params(gateway_params_obj), _EMPTY_GATEWAY_PARAMS
             )
-            litellm_params: Final[str] = safe_dumps(litellm_params_dict)
+            litellm_params: Final[str] = safe_dumps(gateway_params_dict)
 
             # Serialize agent_card_params
             agent_card_params_obj: Final = agent.get("agent_card_params", {})
@@ -605,11 +605,11 @@ class AgentRegistry:
             if augment_agent.get("agent_name"):
                 update_data["agent_name"] = augment_agent.get("agent_name")
             if "litellm_params" in agent:
-                existing_litellm_params: Final = parse_agent_litellm_params(existing_agent.get("litellm_params"))
+                existing_gateway_params: Final = parse_agent_gateway_params(existing_agent.get("litellm_params"))
                 update_data["litellm_params"] = safe_dumps(
-                    _restore_redacted_litellm_params(
-                        _dump_agent_params(agent.get("litellm_params") or _EMPTY_LITELLM_PARAMS),
-                        existing_litellm_params,
+                    _restore_redacted_gateway_params(
+                        _dump_agent_params(agent.get("litellm_params") or _EMPTY_GATEWAY_PARAMS),
+                        existing_gateway_params,
                     )
                 )
             if augment_agent.get("agent_card_params"):
@@ -681,16 +681,16 @@ class AgentRegistry:
             existing_row: Final = await agents_table(prisma_client).find_unique(
                 where={"agent_id": agent_id}  # mutable-ok: prisma's query builder rejects a Mapping/MappingProxyType
             )
-            existing_litellm_params: Final = parse_agent_litellm_params(
+            existing_gateway_params: Final = parse_agent_gateway_params(
                 existing_row.litellm_params if existing_row is not None else None
             )
 
             # Serialize litellm_params
-            litellm_params_obj: Final = agent.get("litellm_params", {})
-            litellm_params_dict: Final = _restore_redacted_litellm_params(
-                _dump_agent_params(litellm_params_obj), existing_litellm_params
+            gateway_params_obj: Final = agent.get("litellm_params", {})
+            gateway_params_dict: Final = _restore_redacted_gateway_params(
+                _dump_agent_params(gateway_params_obj), existing_gateway_params
             )
-            litellm_params: Final[str] = safe_dumps(litellm_params_dict)
+            litellm_params: Final[str] = safe_dumps(gateway_params_dict)
 
             # Serialize agent_card_params
             agent_card_params_obj: Final = agent.get("agent_card_params", {})

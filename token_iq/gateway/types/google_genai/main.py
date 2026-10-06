@@ -1,7 +1,7 @@
 # Import types from the Google GenAI SDK
 from typing import TYPE_CHECKING, Any
 
-from token_iq.gateway.types.llms.openai import BaseLiteLLMOpenAIResponseObject
+from token_iq.gateway.types.llms.openai import BaseGatewayOpenAIResponseObject
 
 # During static type-checking we can rely on the real google-genai types.
 if TYPE_CHECKING:
@@ -20,7 +20,7 @@ if TYPE_CHECKING:
         generationConfig: Any | None
         tools: ToolConfigDict | None
 
-    class GenerateContentResponse(GoogleGenAIGenerateContentResponse, BaseLiteLLMOpenAIResponseObject):
+    class GenerateContentResponse(GoogleGenAIGenerateContentResponse, BaseGatewayOpenAIResponseObject):
         _hidden_params: dict = {}
 
 else:
@@ -49,7 +49,7 @@ else:
             self.tools = kwargs.get("tools")
             super().__init__(**kwargs)
 
-    class GenerateContentResponse(BaseLiteLLMOpenAIResponseObject):
+    class GenerateContentResponse(BaseGatewayOpenAIResponseObject):
         def __init__(self, **kwargs) -> None:
             super().__init__(**kwargs)
             self._hidden_params = kwargs.get("_hidden_params", {})

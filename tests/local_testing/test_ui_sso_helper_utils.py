@@ -19,7 +19,7 @@ from token_iq.gateway.proxy.management_endpoints.sso_helper_utils import (
     check_is_admin_only_access,
     has_admin_ui_access,
 )
-from token_iq.gateway.proxy._types import LitellmUserRoles
+from token_iq.gateway.proxy._types import GatewayUserRoles
 
 
 def test_check_is_admin_only_access():
@@ -28,6 +28,6 @@ def test_check_is_admin_only_access():
 
 
 def test_has_admin_ui_access():
-    assert has_admin_ui_access(LitellmUserRoles.PROXY_ADMIN.value) is True
-    assert has_admin_ui_access(LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY.value) is True
-    assert has_admin_ui_access(LitellmUserRoles.INTERNAL_USER_VIEW_ONLY.value) is False
+    assert has_admin_ui_access(GatewayUserRoles.PROXY_ADMIN.value) is True
+    assert has_admin_ui_access(GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY.value) is True
+    assert has_admin_ui_access(GatewayUserRoles.INTERNAL_USER_VIEW_ONLY.value) is False

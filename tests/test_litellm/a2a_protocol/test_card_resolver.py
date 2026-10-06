@@ -10,7 +10,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from token_iq.gateway.a2a_protocol.card_resolver import (
-    LiteLLMA2ACardResolver,
+    GatewayA2ACardResolver,
     fix_agent_card_url,
     is_localhost_or_internal_url,
     normalize_agent_card_interfaces,
@@ -50,11 +50,11 @@ async def test_card_resolver_fallback_from_new_to_old_path():
     # Patch the parent class's get_agent_card method
     # We need to patch the actual parent class method that super() calls
     with patch.object(
-        LiteLLMA2ACardResolver.__bases__[0],
+        GatewayA2ACardResolver.__bases__[0],
         "get_agent_card",
         mock_parent_get_agent_card,
     ):
-        resolver = LiteLLMA2ACardResolver(
+        resolver = GatewayA2ACardResolver(
             httpx_client=mock_httpx_client, base_url="http://test-agent:8000"
         )
         result = await resolver.get_agent_card()

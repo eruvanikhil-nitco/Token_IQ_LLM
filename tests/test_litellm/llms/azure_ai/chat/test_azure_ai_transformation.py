@@ -137,7 +137,7 @@ def test_azure_model_router_response_shows_actual_model():
     """
     from httpx import Response
 
-    from token_iq.gateway.llms.base_llm.chat.transformation import LiteLLMLoggingObj
+    from token_iq.gateway.llms.base_llm.chat.transformation import GatewayLoggingObj
     from token_iq.gateway.types.utils import ModelResponse
 
     config = AzureModelRouterConfig()
@@ -175,7 +175,7 @@ def test_azure_model_router_response_shows_actual_model():
     model_response = ModelResponse()
 
     # Create mock logging object with required methods
-    logging_obj = MagicMock(spec=LiteLLMLoggingObj)
+    logging_obj = MagicMock(spec=GatewayLoggingObj)
     logging_obj.post_call = MagicMock()
     logging_obj.model_call_details = {}
 
@@ -213,7 +213,7 @@ def test_azure_model_router_stamps_selected_model_on_hidden_params():
         AZURE_MODEL_ROUTER_SELECTED_MODEL_KEY,
         AzureFoundryModelInfo,
     )
-    from token_iq.gateway.llms.base_llm.chat.transformation import LiteLLMLoggingObj
+    from token_iq.gateway.llms.base_llm.chat.transformation import GatewayLoggingObj
     from token_iq.gateway.types.utils import ModelResponse
 
     raw_response_json = {
@@ -236,7 +236,7 @@ def test_azure_model_router_stamps_selected_model_on_hidden_params():
     mock_response.text = json.dumps(raw_response_json)
     mock_response.headers = {}
 
-    logging_obj = MagicMock(spec=LiteLLMLoggingObj)
+    logging_obj = MagicMock(spec=GatewayLoggingObj)
     logging_obj.post_call = MagicMock()
     logging_obj.model_call_details = {}
 

@@ -19,7 +19,7 @@ from pydantic import BaseModel
 from e2e_config import unique_marker
 from e2e_http import StreamingResponse, unwrap
 from lifecycle import ResourceManager
-from models import ChatBody, ChatMessage, ChatResponse, LiteLLMParamsBody
+from models import ChatBody, ChatMessage, ChatResponse, GatewayParamsBody
 from passthrough_client import PassthroughClient
 
 pytestmark = pytest.mark.e2e
@@ -76,7 +76,7 @@ def _register_bedrock_model(
     model = f"{prefix}-{unique_marker()}"
     model_id = client.proxy.create_model(
         model,
-        LiteLLMParamsBody(
+        GatewayParamsBody(
             model=backend,
             aws_access_key_id="os.environ/AWS_ACCESS_KEY_ID",
             aws_secret_access_key="os.environ/AWS_SECRET_ACCESS_KEY",

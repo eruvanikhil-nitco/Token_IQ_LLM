@@ -7,7 +7,7 @@ from typing import Any, Final, Literal, Optional, Union
 from pydantic import BaseModel, Field
 from typing_extensions import TypedDict
 
-from token_iq.gateway.types.utils import LiteLLMPydanticObjectBase
+from token_iq.gateway.types.utils import GatewayPydanticObjectBase
 
 DEFAULT_DIGEST_INTERVAL: Final = 86400  # 24 hours in seconds
 
@@ -49,7 +49,7 @@ class SlackAlertingArgsEnum(Enum):
     max_outage_alert_list_size = 1 * 10
 
 
-class SlackAlertingArgs(LiteLLMPydanticObjectBase):
+class SlackAlertingArgs(GatewayPydanticObjectBase):
     daily_report_frequency: int = Field(
         default=int(
             os.getenv(
@@ -127,7 +127,7 @@ class SlackAlertingArgs(LiteLLMPydanticObjectBase):
     )
 
 
-class DeploymentMetrics(LiteLLMPydanticObjectBase):
+class DeploymentMetrics(GatewayPydanticObjectBase):
     """
     Metrics per deployment, stored in cache
 
@@ -246,7 +246,7 @@ class HangingRequestData(BaseModel):
     alerted: bool = False
 
 
-class AlertTypeConfig(LiteLLMPydanticObjectBase):
+class AlertTypeConfig(GatewayPydanticObjectBase):
     """Per-alert-type configuration, including digest mode settings."""
 
     digest: bool = Field(

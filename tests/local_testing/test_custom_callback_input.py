@@ -16,7 +16,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from token_iq import gateway
 from token_iq.gateway import Cache, completion, embedding
 from token_iq.gateway.integrations.custom_logger import CustomLogger
-from token_iq.gateway.types.utils import LiteLLMCommonStrings
+from token_iq.gateway.types.utils import GatewayCommonStrings
 from tests._wait_helpers import await_until, wait_until
 
 # Test Scenarios (test across completion, streaming, embedding)
@@ -82,7 +82,7 @@ class CompletionCustomHandler(
                 if gateway.turn_off_message_logging is True:
                     assert (
                         metadata_value["raw_request"]
-                        is LiteLLMCommonStrings.redacted_by_litellm.value
+                        is GatewayCommonStrings.redacted_by_gateway.value
                     )
                 else:
                     assert "raw_request" not in metadata_value or isinstance(
@@ -1575,7 +1575,7 @@ def test_standard_logging_retries():
 
 
 @pytest.mark.parametrize("disable_no_log_param", [True, False])
-def test_litellm_logging_no_log_param(monkeypatch, disable_no_log_param):
+def test_gateway_logging_no_log_param(monkeypatch, disable_no_log_param):
     monkeypatch.setattr(gateway, "global_disable_no_log_param", disable_no_log_param)
     from token_iq.gateway.core_utils.litellm_logging import Logging
 

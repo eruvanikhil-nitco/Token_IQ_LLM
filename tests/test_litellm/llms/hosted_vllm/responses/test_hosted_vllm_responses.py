@@ -17,7 +17,7 @@ from token_iq import gateway
 from token_iq.gateway.llms.hosted_vllm.responses.transformation import (
     HostedVLLMResponsesAPIConfig,
 )
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.types.utils import LlmProviders
 from token_iq.gateway.utils import ProviderConfigManager
 
@@ -171,7 +171,7 @@ def test_hosted_vllm_validate_environment_default_api_key():
     headers = config.validate_environment(
         headers={},
         model="Qwen/Qwen3-8B",
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
     )
 
     assert headers.get("Authorization") == "Bearer fake-api-key"
@@ -184,7 +184,7 @@ def test_hosted_vllm_validate_environment_custom_api_key():
     headers = config.validate_environment(
         headers={},
         model="Qwen/Qwen3-8B",
-        litellm_params=GenericLiteLLMParams(api_key="my-custom-key"),
+        litellm_params=GenericGatewayParams(api_key="my-custom-key"),
     )
 
     assert headers.get("Authorization") == "Bearer my-custom-key"

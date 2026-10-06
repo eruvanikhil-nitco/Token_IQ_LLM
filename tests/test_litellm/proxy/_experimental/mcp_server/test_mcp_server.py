@@ -84,7 +84,7 @@ async def test_mcp_server_tool_call_body_contains_request_data():
     # Mock the add_litellm_data_to_request function to capture the data
     captured_data = {}
 
-    async def mock_add_litellm_data_to_request(data, request, user_api_key_dict, proxy_config, **kwargs):
+    async def mock_add_gateway_data_to_request(data, request, user_api_key_dict, proxy_config, **kwargs):
         captured_data.update(data)
         # Simulate the proxy_server_request creation
         captured_data["proxy_server_request"] = {
@@ -101,7 +101,7 @@ async def test_mcp_server_tool_call_body_contains_request_data():
 
     with patch(
         "token_iq.gateway.proxy.litellm_pre_call_utils.add_litellm_data_to_request",
-        mock_add_litellm_data_to_request,
+        mock_add_gateway_data_to_request,
     ):
         with patch(
             "token_iq.gateway.proxy._experimental.mcp_server.server.call_mcp_tool",
@@ -148,7 +148,7 @@ async def test_mcp_server_tool_call_forwards_client_headers_to_logging():
 
     captured_headers = {}
 
-    async def mock_add_litellm_data_to_request(data, request, user_api_key_dict, proxy_config, **kwargs):
+    async def mock_add_gateway_data_to_request(data, request, user_api_key_dict, proxy_config, **kwargs):
         captured_headers.update(request.headers)
         return data
 
@@ -157,7 +157,7 @@ async def test_mcp_server_tool_call_forwards_client_headers_to_logging():
 
     with patch(
         "token_iq.gateway.proxy.litellm_pre_call_utils.add_litellm_data_to_request",
-        mock_add_litellm_data_to_request,
+        mock_add_gateway_data_to_request,
     ):
         with patch(
             "token_iq.gateway.proxy._experimental.mcp_server.server.call_mcp_tool",
@@ -173,7 +173,7 @@ async def test_mcp_server_tool_call_forwards_client_headers_to_logging():
 
 
 @pytest.mark.asyncio
-async def test_mcp_server_tool_call_strips_custom_litellm_key_header():
+async def test_mcp_server_tool_call_strips_custom_gateway_key_header():
     """The deployment can rename the proxy key header via general_settings.litellm_key_header_name.
     The pre-call pipeline only knows that name if it is passed in, so without it the virtual key
     reaches metadata.headers and proxy_server_request.headers in plaintext."""
@@ -194,7 +194,7 @@ async def test_mcp_server_tool_call_strips_custom_litellm_key_header():
 
     captured_data = {}
 
-    async def capturing_add_litellm_data_to_request(**kwargs):
+    async def capturing_add_gateway_data_to_request(**kwargs):
         data = await add_litellm_data_to_request(**kwargs)
         captured_data.update(data)
         return data
@@ -204,7 +204,7 @@ async def test_mcp_server_tool_call_strips_custom_litellm_key_header():
 
     with patch(
         "token_iq.gateway.proxy.litellm_pre_call_utils.add_litellm_data_to_request",
-        capturing_add_litellm_data_to_request,
+        capturing_add_gateway_data_to_request,
     ):
         with patch(
             "token_iq.gateway.proxy._experimental.mcp_server.server.call_mcp_tool",
@@ -241,7 +241,7 @@ async def test_mcp_server_tool_call_relays_upstream_auth_error_as_iserror():
 
     set_auth_context(UserAPIKeyAuth(api_key="test_key", user_id="test_user"))
 
-    async def mock_add_litellm_data_to_request(data, request, user_api_key_dict, proxy_config, **kwargs):
+    async def mock_add_gateway_data_to_request(data, request, user_api_key_dict, proxy_config, **kwargs):
         return data
 
     async def mock_call_mcp_tool(*args, **kwargs):
@@ -250,7 +250,7 @@ async def test_mcp_server_tool_call_relays_upstream_auth_error_as_iserror():
     mock_logger = MagicMock()
     with patch(
         "token_iq.gateway.proxy.litellm_pre_call_utils.add_litellm_data_to_request",
-        mock_add_litellm_data_to_request,
+        mock_add_gateway_data_to_request,
     ):
         with patch(
             "token_iq.gateway.proxy._experimental.mcp_server.server.call_mcp_tool",
@@ -1353,7 +1353,7 @@ async def test_mcp_server_tool_call_body_with_none_arguments():
     # Mock the add_litellm_data_to_request function to capture the data
     captured_data = {}
 
-    async def mock_add_litellm_data_to_request(data, request, user_api_key_dict, proxy_config, **kwargs):
+    async def mock_add_gateway_data_to_request(data, request, user_api_key_dict, proxy_config, **kwargs):
         captured_data.update(data)
         captured_data["proxy_server_request"] = {
             "url": str(request.url),
@@ -1369,7 +1369,7 @@ async def test_mcp_server_tool_call_body_with_none_arguments():
 
     with patch(
         "token_iq.gateway.proxy.litellm_pre_call_utils.add_litellm_data_to_request",
-        mock_add_litellm_data_to_request,
+        mock_add_gateway_data_to_request,
     ):
         with patch(
             "token_iq.gateway.proxy._experimental.mcp_server.server.call_mcp_tool",
@@ -4298,7 +4298,7 @@ class TestMCPServerManagerReload:
                 AsyncMock(side_effect=build_server),
             ),
             patch.object(manager, "_maybe_register_openapi_tools", AsyncMock()),
-            caplog.at_level("ERROR", logger="LiteLLM"),
+            caplog.at_level("ERROR", logger="Gateway"),
         ):
             await manager.reload_servers_from_database()
 
@@ -4372,7 +4372,7 @@ class TestMCPServerManagerReload:
                 "_maybe_register_openapi_tools",
                 AsyncMock(side_effect=register_openapi_tools),
             ),
-            caplog.at_level("ERROR", logger="LiteLLM"),
+            caplog.at_level("ERROR", logger="Gateway"),
         ):
             await manager.reload_servers_from_database()
 
@@ -5663,7 +5663,7 @@ def test_get_forwarded_auth_from_scope_returns_none_when_missing():
     assert _get_forwarded_auth_from_scope({"headers": []}) is None
 
 
-def test_get_forwarded_auth_from_scope_skips_when_no_litellm_key_header():
+def test_get_forwarded_auth_from_scope_skips_when_no_gateway_key_header():
     """Skip when ``x-litellm-api-key`` is absent.
 
     Without ``x-litellm-api-key``, the ``Authorization`` header may itself be
@@ -6654,13 +6654,13 @@ async def test_execute_mcp_tool_sets_model_in_model_call_details():
     from datetime import timezone
 
     from token_iq.gateway.proxy._experimental.mcp_server import server as mcp_module
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
     from token_iq.gateway.utils import Rules, function_setup
 
     user = UserAPIKeyAuth(
         api_key="sk-user",
         user_id="alice",
-        user_role=LitellmUserRoles.INTERNAL_USER.value,
+        user_role=GatewayUserRoles.INTERNAL_USER.value,
     )
 
     fake_server = MagicMock()
@@ -7287,17 +7287,17 @@ async def test_get_allowed_mcp_servers_includes_active_servers_submitted_by_user
     from token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager import (
         global_mcp_server_manager,
     )
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
 
     submitted_server = _make_mcp_server_for_scope_filter("submitted-1", "user_mcp")
     submitter = UserAPIKeyAuth(
         user_id="submitter-user",
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         api_key="sk-submitter",
     )
     other_user = UserAPIKeyAuth(
         user_id="other-user",
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         api_key="sk-other",
     )
 
@@ -8090,7 +8090,7 @@ class TestPreemptive401ModeAware:
         discovery.assert_not_awaited()
 
     @pytest.mark.asyncio
-    async def test_gateway_managed_interactive_no_token_challenges_with_x_litellm_api_key(self):
+    async def test_gateway_managed_interactive_no_token_challenges_with_x_gateway_api_key(self):
         """No stored token, key in x-litellm-api-key (oauth2_headers empty): 401."""
         with pytest.raises(HTTPException) as exc:
             await self._run(_make_oauth2_server("interactive"), None, has_stored_token=False)

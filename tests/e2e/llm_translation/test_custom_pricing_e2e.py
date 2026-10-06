@@ -30,7 +30,7 @@ from lifecycle import ResourceManager
 from models import (
     ChatBody,
     ChatMessage,
-    LiteLLMParamsBody,
+    GatewayParamsBody,
     ModelInfoEntry,
     SpendLogsParams,
 )
@@ -86,7 +86,7 @@ def _provision(
     model_name = f"{prefix}-{unique_marker()}"
     model_id = endpoints_client.create_model(
         model_name,
-        LiteLLMParamsBody(
+        GatewayParamsBody(
             model=BACKEND_MODEL,
             api_key=GEMINI_API_KEY,
             input_cost_per_token=input_cost_per_token,

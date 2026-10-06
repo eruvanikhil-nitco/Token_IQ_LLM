@@ -20,7 +20,7 @@ from token_iq.gateway.core_utils.core_helpers import (
     get_or_create_metadata_bucket,
 )
 from token_iq.gateway.core_utils.sensitive_data_masker import SensitiveDataMasker
-from token_iq.gateway.proxy._types import CommonProxyErrors, LiteLLMPromptInjectionParams
+from token_iq.gateway.proxy._types import CommonProxyErrors, GatewayPromptInjectionParams
 from token_iq.gateway.proxy.common_utils.encrypt_decrypt_utils import (
     decrypt_value_helper,
     encrypt_value_helper,
@@ -52,7 +52,7 @@ TRUSTED_PILLAR_RESPONSE_HEADERS_METADATA_KEY: Final = "_pillar_response_headers_
 GUARDRAIL_SCAN_IDS_METADATA_KEY: Final = "guardrail_scan_ids"
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLogging
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLogging
 
 
 @dataclass(frozen=True, slots=True)
@@ -314,7 +314,7 @@ def initialize_callbacks_on_proxy(
                 prompt_injection_params = None
                 if "prompt_injection_params" in litellm_settings:
                     prompt_injection_params_in_config = litellm_settings["prompt_injection_params"]
-                    prompt_injection_params = LiteLLMPromptInjectionParams(**prompt_injection_params_in_config)
+                    prompt_injection_params = GatewayPromptInjectionParams(**prompt_injection_params_in_config)
 
                 prompt_injection_detection_obj = _OPTIONAL_PromptInjectionDetection(
                     prompt_injection_params=prompt_injection_params,
@@ -400,9 +400,9 @@ def initialize_callbacks_on_proxy(
     verbose_proxy_logger.debug("%s Initialized Callbacks - %s %s", blue_color_code, gateway.callbacks, reset_color_code)
 
 
-def get_model_group_from_litellm_kwargs(kwargs: dict) -> str | None:
-    _litellm_params: Final = kwargs.get("litellm_params", None) or {}
-    _metadata: Final = _litellm_params.get(get_metadata_variable_name_from_kwargs(kwargs)) or {}
+def get_model_group_from_gateway_kwargs(kwargs: dict) -> str | None:
+    _gateway_params: Final = kwargs.get("litellm_params", None) or {}
+    _metadata: Final = _gateway_params.get(get_metadata_variable_name_from_kwargs(kwargs)) or {}
     _model_group: Final = _metadata.get("model_group", None)
     if _model_group is not None:
         return _model_group
@@ -451,13 +451,13 @@ def get_remaining_tokens_and_requests_from_request_data(data: dict) -> dict[str,
 def get_logging_caching_headers(request_data: dict) -> dict | None:
     _metadata: Final[dict] = {}
     metadata_bucket: Final = request_data.get("metadata")
-    litellm_metadata_bucket: Final = request_data.get("litellm_metadata")
+    gateway_metadata_bucket: Final = request_data.get("litellm_metadata")
     if isinstance(metadata_bucket, dict):
         _metadata.update(metadata_bucket)
-    if isinstance(litellm_metadata_bucket, dict):
+    if isinstance(gateway_metadata_bucket, dict):
         # Batch/file routes store proxy tracking in litellm_metadata while
         # user-facing metadata stays in metadata; merge both for headers.
-        _metadata.update(litellm_metadata_bucket)
+        _metadata.update(gateway_metadata_bucket)
     headers: Final = {}
     if "applied_guardrails" in _metadata:
         headers["x-litellm-applied-guardrails"] = ",".join(_metadata["applied_guardrails"])
@@ -613,7 +613,7 @@ def add_policy_sources_to_metadata(request_data: dict, policy_sources: dict[str,
 
 
 def add_guardrail_response_to_standard_logging_object(
-    litellm_logging_obj: Optional["LiteLLMLogging"],
+    litellm_logging_obj: Optional["GatewayLogging"],
     guardrail_response: StandardLoggingGuardrailInformation,
 ):
     if litellm_logging_obj is None:

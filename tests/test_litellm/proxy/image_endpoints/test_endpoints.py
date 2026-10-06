@@ -16,7 +16,7 @@ from token_iq.gateway.proxy.image_endpoints import endpoints
 async def test_image_generation_prompt_rerouting(monkeypatch):
     """Ensure image prompts are exposed to guardrails and restored afterwards."""
 
-    async def fake_add_litellm_data_to_request(**kwargs):
+    async def fake_add_gateway_data_to_request(**kwargs):
         return kwargs["data"]
 
     async def fake_update_request_status(**_: Any) -> None:
@@ -84,7 +84,7 @@ async def test_image_generation_prompt_rerouting(monkeypatch):
 
     monkeypatch.setattr(
         "token_iq.gateway.proxy.proxy_server.add_litellm_data_to_request",
-        fake_add_litellm_data_to_request,
+        fake_add_gateway_data_to_request,
     )
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.general_settings", {})
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", None)

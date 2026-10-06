@@ -128,13 +128,13 @@ class InMemoryPromptRegistry:
         return parsed_prompt
 
     def _build_prompt_callback(self, prompt: PromptSpec) -> tuple[PromptSpec, CustomPromptManagement]:
-        litellm_params_data: Final = prompt.litellm_params
-        verbose_proxy_logger.debug("litellm_params= %s", litellm_params_data)
+        gateway_params_data: Final = prompt.litellm_params
+        verbose_proxy_logger.debug("litellm_params= %s", gateway_params_data)
 
-        if isinstance(litellm_params_data, dict):
-            litellm_params = PromptLiteLLMParams(**litellm_params_data)
+        if isinstance(gateway_params_data, dict):
+            litellm_params = PromptLiteLLMParams(**gateway_params_data)
         else:
-            litellm_params = litellm_params_data
+            litellm_params = gateway_params_data
 
         prompt_integration: Final = litellm_params.prompt_integration
         if prompt_integration is None:

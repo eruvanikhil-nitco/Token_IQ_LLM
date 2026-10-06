@@ -6,7 +6,7 @@ from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.transfor
     AnthropicMessagesConfig,
 )
 from token_iq.gateway.secret_managers.main import get_secret_str
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 
 from .common_utils import BedrockClaudePlatformMixin, strip_claude_platform_route
 
@@ -55,7 +55,7 @@ class BedrockClaudePlatformMessagesConfig(BedrockClaudePlatformMixin, AnthropicM
         model: str,
         messages: list[dict],
         anthropic_messages_optional_request_params: dict,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> dict:
         return super().transform_anthropic_messages_request(

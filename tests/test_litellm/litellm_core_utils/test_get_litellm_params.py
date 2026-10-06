@@ -13,7 +13,7 @@ from token_iq.gateway.core_utils.get_litellm_params import (
 )
 
 
-class TestGetBaseModelFromLitellmCallMetadata:
+class TestGetBaseModelFromGatewayCallMetadata:
     def test_none_metadata_returns_none(self):
         assert _get_base_model_from_litellm_call_metadata(None) is None
 
@@ -36,7 +36,7 @@ class TestGetBaseModelFromLitellmCallMetadata:
         assert result == "gpt-4"
 
 
-class TestGetLitellmParamsKwargsExtraction:
+class TestGetGatewayParamsKwargsExtraction:
     """Verify that optional kwargs are correctly extracted via sparse extraction."""
 
     def test_no_kwargs_omits_optional_keys(self):
@@ -74,7 +74,7 @@ class TestGetLitellmParamsKwargsExtraction:
             assert result[key] == f"val_{key}"
 
 
-class TestGetLitellmParamsBaseModel:
+class TestGetGatewayParamsBaseModel:
     """Verify base_model resolution precedence."""
 
     def test_explicit_base_model_takes_precedence(self):
@@ -95,7 +95,7 @@ class TestGetLitellmParamsBaseModel:
         assert result["base_model"] is None
 
 
-class TestGetLitellmParamsExplicitFields:
+class TestGetGatewayParamsExplicitFields:
     """Verify explicit parameters are always present in the result."""
 
     def test_explicit_params_always_present(self):
@@ -127,7 +127,7 @@ class TestGetLitellmParamsExplicitFields:
         assert result["no-log"] is True
 
 
-class TestGetLitellmParamsDataResidency:
+class TestGetGatewayParamsDataResidency:
     """Verify that data_residency is inferred from OpenAI regional api_base."""
 
     def test_eu_host_resolves_to_eu(self):
@@ -164,13 +164,13 @@ class TestGetLitellmParamsDataResidency:
         assert result["data_residency"] is None
 
 
-class TestMetadataFallsBackToLitellmMetadata:
-    def test_metadata_falls_back_to_litellm_metadata_when_absent(self):
+class TestMetadataFallsBackToGatewayMetadata:
+    def test_metadata_falls_back_to_gateway_metadata_when_absent(self):
         result = get_litellm_params(litellm_metadata={"trace_id": "trace-1"})
         assert result["metadata"] == {"trace_id": "trace-1"}
         assert result["litellm_metadata"] == {"trace_id": "trace-1"}
 
-    def test_empty_metadata_falls_back_to_litellm_metadata(self):
+    def test_empty_metadata_falls_back_to_gateway_metadata(self):
         result = get_litellm_params(metadata={}, litellm_metadata={"trace_id": "trace-1"})
         assert result["metadata"] == {"trace_id": "trace-1"}
 
@@ -182,15 +182,15 @@ class TestMetadataFallsBackToLitellmMetadata:
         assert result["metadata"] == {"trace_id": "from-metadata"}
 
     @pytest.mark.parametrize("bad_value", ["not-json-a-string", 12345, ["a"], True])
-    def test_non_dict_litellm_metadata_is_ignored(self, bad_value):
+    def test_non_dict_gateway_metadata_is_ignored(self, bad_value):
         result = get_litellm_params(litellm_metadata=bad_value)
         assert result["metadata"] is None
 
-    def test_metadata_stays_none_without_litellm_metadata(self):
+    def test_metadata_stays_none_without_gateway_metadata(self):
         result = get_litellm_params(api_key="test-key")
         assert result["metadata"] is None
 
-    def test_session_and_trace_id_derived_from_litellm_metadata(self):
+    def test_session_and_trace_id_derived_from_gateway_metadata(self):
         result = get_litellm_params(
             litellm_metadata={"trace_id": "trace-1", "session_id": "session-1"},
         )
@@ -206,7 +206,7 @@ class TestMetadataFallsBackToLitellmMetadata:
         assert result["litellm_session_id"] == "explicit-session"
         assert result["litellm_trace_id"] == "explicit-trace"
 
-    def test_litellm_metadata_fallback_is_copied_not_aliased(self):
+    def test_gateway_metadata_fallback_is_copied_not_aliased(self):
         litellm_metadata = {"trace_id": "trace-1"}
 
         result = get_litellm_params(litellm_metadata=litellm_metadata)
@@ -233,7 +233,7 @@ class TestRustOptIn:
 
         assert "rust" in FORWARDED_KWARGS_KEYS
 
-    def test_rust_survives_into_litellm_params(self):
+    def test_rust_survives_into_gateway_params(self):
         params = get_litellm_params(rust=True)
         assert params["rust"] is True
 

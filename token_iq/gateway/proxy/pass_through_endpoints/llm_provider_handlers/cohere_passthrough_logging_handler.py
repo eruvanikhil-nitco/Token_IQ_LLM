@@ -5,7 +5,7 @@ import httpx
 
 from token_iq import gateway
 from token_iq.gateway import stream_chunk_builder
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.core_utils.litellm_logging import (
     get_standard_logging_object_payload,
 )
@@ -40,14 +40,14 @@ class CoherePassthroughLoggingHandler(BasePassthroughLoggingHandler):
     def _build_complete_streaming_response(
         self,
         all_chunks: list[str],
-        litellm_logging_obj: LiteLLMLoggingObj,
+        litellm_logging_obj: GatewayLoggingObj,
         model: str,
     ) -> ModelResponse | TextCompletionResponse | None:
         cohere_model_response_iterator: Final = CohereModelResponseIterator(
             streaming_response=None,
             sync_stream=False,
         )
-        litellm_custom_stream_wrapper: Final = CustomStreamWrapper(
+        gateway_custom_stream_wrapper: Final = CustomStreamWrapper(
             completion_stream=cohere_model_response_iterator,
             model=model,
             logging_obj=litellm_logging_obj,
@@ -57,9 +57,9 @@ class CoherePassthroughLoggingHandler(BasePassthroughLoggingHandler):
         for _chunk_str in all_chunks:
             try:
                 generic_chunk = cohere_model_response_iterator.convert_str_chunk_to_generic_chunk(chunk=_chunk_str)
-                litellm_chunk = litellm_custom_stream_wrapper.chunk_creator(chunk=generic_chunk)
-                if litellm_chunk is not None:
-                    all_openai_chunks.append(litellm_chunk)
+                gateway_chunk = gateway_custom_stream_wrapper.chunk_creator(chunk=generic_chunk)
+                if gateway_chunk is not None:
+                    all_openai_chunks.append(gateway_chunk)
             except (StopIteration, StopAsyncIteration):
                 break
         complete_streaming_response: Final = stream_chunk_builder(chunks=all_openai_chunks)
@@ -69,7 +69,7 @@ class CoherePassthroughLoggingHandler(BasePassthroughLoggingHandler):
         self,
         httpx_response: httpx.Response,
         response_body: dict,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         url_route: str,
         result: str,
         start_time: datetime,
@@ -86,7 +86,7 @@ class CoherePassthroughLoggingHandler(BasePassthroughLoggingHandler):
             model: Final = request_body.get("model", response_body.get("model", ""))
             try:
                 cohere_embed_config: Final = CohereEmbeddingConfig()
-                litellm_model_response = gateway.EmbeddingResponse()
+                gateway_model_response = gateway.EmbeddingResponse()
                 handler_instance: Final = CoherePassthroughLoggingHandler()
 
                 input_texts = request_body.get("texts", [])
@@ -94,12 +94,12 @@ class CoherePassthroughLoggingHandler(BasePassthroughLoggingHandler):
                     input_texts = request_body.get("input", [])
 
                 # Transform the response
-                litellm_model_response = cohere_embed_config._transform_response(
+                gateway_model_response = cohere_embed_config._transform_response(
                     response=httpx_response,
                     api_key="",
                     logging_obj=logging_obj,
                     data=request_body,
-                    model_response=litellm_model_response,
+                    model_response=gateway_model_response,
                     model=model,
                     encoding=gateway.encoding,
                     input=input_texts,
@@ -107,16 +107,16 @@ class CoherePassthroughLoggingHandler(BasePassthroughLoggingHandler):
 
                 # Calculate cost using LiteLLM's cost calculator
                 response_cost: Final = gateway.completion_cost(
-                    completion_response=litellm_model_response,
+                    completion_response=gateway_model_response,
                     model=model,
                     custom_llm_provider="cohere",
                     call_type="aembedding",
                 )
 
                 # Set the calculated cost in _hidden_params to prevent recalculation
-                if not hasattr(litellm_model_response, "_hidden_params"):
-                    litellm_model_response._hidden_params = {}
-                litellm_model_response._hidden_params["response_cost"] = response_cost
+                if not hasattr(gateway_model_response, "_hidden_params"):
+                    gateway_model_response._hidden_params = {}
+                gateway_model_response._hidden_params["response_cost"] = response_cost
 
                 kwargs["response_cost"] = response_cost
                 kwargs["model"] = model
@@ -135,10 +135,10 @@ class CoherePassthroughLoggingHandler(BasePassthroughLoggingHandler):
                         kwargs["litellm_params"].update({"proxy_server_request": {"body": {"user": user}}})
 
                 # Create standard logging object
-                if litellm_model_response is not None:
+                if gateway_model_response is not None:
                     get_standard_logging_object_payload(
                         kwargs=kwargs,
-                        init_response_obj=litellm_model_response,
+                        init_response_obj=gateway_model_response,
                         start_time=start_time,
                         end_time=end_time,
                         logging_obj=logging_obj,
@@ -151,7 +151,7 @@ class CoherePassthroughLoggingHandler(BasePassthroughLoggingHandler):
                 logging_obj.model_call_details["response_cost"] = response_cost
 
                 return {
-                    "result": litellm_model_response,
+                    "result": gateway_model_response,
                     "kwargs": kwargs,
                 }
             except Exception:

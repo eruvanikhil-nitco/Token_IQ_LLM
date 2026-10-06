@@ -13,15 +13,15 @@ if TYPE_CHECKING:
 
     from token_iq.gateway.router import Router as _Router
 
-    LitellmRouter = _Router
+    GatewayRouter = _Router
     Span = _Span | Any
 else:
-    LitellmRouter = Any
+    GatewayRouter = Any
     Span = Any
 
 
 async def send_llm_exception_alert(
-    litellm_router_instance: LitellmRouter,
+    litellm_router_instance: GatewayRouter,
     request_kwargs: dict,
     error_traceback_str: str,
     original_exception,
@@ -69,7 +69,7 @@ async def send_llm_exception_alert(
 
 
 async def async_raise_no_deployment_exception(
-    litellm_router_instance: LitellmRouter, model: str, parent_otel_span: Span | None
+    litellm_router_instance: GatewayRouter, model: str, parent_otel_span: Span | None
 ):
     """
     Raises a RouterRateLimitError if no deployment is found for the given model.

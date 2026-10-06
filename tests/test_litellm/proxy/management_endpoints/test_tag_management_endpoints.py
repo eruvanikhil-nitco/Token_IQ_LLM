@@ -13,7 +13,7 @@ from contextlib import contextmanager
 from unittest.mock import AsyncMock, Mock, patch
 
 from token_iq import gateway
-from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
 from token_iq.gateway.proxy.proxy_server import app
 from token_iq.gateway.types.tag_management import TagDeleteRequest, TagInfoRequest, TagNewRequest
 
@@ -54,7 +54,7 @@ async def test_create_and_get_tag():
 
     mock_user_auth = UserAPIKeyAuth(
         user_id="test-user-123",
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
     )
     app.dependency_overrides[user_api_key_auth] = lambda: mock_user_auth
 
@@ -150,7 +150,7 @@ async def test_update_tag():
 
     mock_user_auth = UserAPIKeyAuth(
         user_id="test-user-123",
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
     )
     app.dependency_overrides[user_api_key_auth] = lambda: mock_user_auth
 
@@ -228,7 +228,7 @@ async def test_delete_tag():
 
     mock_user_auth = UserAPIKeyAuth(
         user_id="test-user-123",
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
     )
     app.dependency_overrides[user_api_key_auth] = lambda: mock_user_auth
 
@@ -316,7 +316,7 @@ async def test_new_tag_invalidates_tag_and_registry_caches():
 
     app.dependency_overrides[user_api_key_auth] = lambda: UserAPIKeyAuth(
         user_id="test-user-123",
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
     )
 
     try:
@@ -372,7 +372,7 @@ async def test_update_tag_invalidates_only_the_tag_cache():
 
     app.dependency_overrides[user_api_key_auth] = lambda: UserAPIKeyAuth(
         user_id="test-user-123",
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
     )
 
     try:
@@ -426,7 +426,7 @@ async def test_delete_tag_invalidates_tag_and_registry_caches():
 
     app.dependency_overrides[user_api_key_auth] = lambda: UserAPIKeyAuth(
         user_id="test-user-123",
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
     )
 
     try:
@@ -468,7 +468,7 @@ async def test_list_tags_with_dynamic_tags():
 
     mock_user_auth = UserAPIKeyAuth(
         user_id="test-user-123",
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
     )
     app.dependency_overrides[user_api_key_auth] = lambda: mock_user_auth
 
@@ -549,7 +549,7 @@ async def test_list_tags_no_dynamic_tags():
 
     mock_user_auth = UserAPIKeyAuth(
         user_id="test-user-123",
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
     )
     app.dependency_overrides[user_api_key_auth] = lambda: mock_user_auth
 
@@ -599,7 +599,7 @@ async def test_internal_user_list_tags_only_returns_tags_used_by_their_keys():
     mock_user_auth = UserAPIKeyAuth(
         api_key="current-owned-key",
         user_id="internal-user-123",
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
     )
     app.dependency_overrides[user_api_key_auth] = lambda: mock_user_auth
 
@@ -690,7 +690,7 @@ async def test_internal_user_list_tags_does_not_500_on_unsupported_prisma_kwarg(
     mock_user_auth = UserAPIKeyAuth(
         api_key="new-user-key",
         user_id="brand-new-internal-user",
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
     )
     app.dependency_overrides[user_api_key_auth] = lambda: mock_user_auth
 
@@ -732,7 +732,7 @@ async def test_list_tags_with_date_range_filters_dynamic_tags():
 
     mock_user_auth = UserAPIKeyAuth(
         user_id="test-user-123",
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
     )
     app.dependency_overrides[user_api_key_auth] = lambda: mock_user_auth
 
@@ -774,7 +774,7 @@ async def test_internal_user_tag_daily_activity_is_scoped_to_their_keys():
 
     mock_user_auth = UserAPIKeyAuth(
         user_id="internal-user-123",
-        user_role=LitellmUserRoles.INTERNAL_USER_VIEW_ONLY,
+        user_role=GatewayUserRoles.INTERNAL_USER_VIEW_ONLY,
     )
 
     with (
@@ -820,7 +820,7 @@ async def test_internal_user_tag_daily_activity_rejects_unowned_api_key_filter()
 
     mock_user_auth = UserAPIKeyAuth(
         user_id="internal-user-123",
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
     )
 
     with (
@@ -866,7 +866,7 @@ async def test_internal_user_tag_daily_activity_scopes_to_current_key_without_us
     mock_user_auth = UserAPIKeyAuth(
         api_key="current-owned-key",
         user_id=None,
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
     )
 
     with (
@@ -910,7 +910,7 @@ async def test_internal_user_tag_daily_activity_without_any_scoped_keys_returns_
 
     mock_user_auth = UserAPIKeyAuth(
         user_id=None,
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
     )
 
     with (
@@ -950,7 +950,7 @@ async def test_get_tag_daily_activity_requires_database_connection():
 
     mock_user_auth = UserAPIKeyAuth(
         user_id="internal-user-123",
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
     )
 
     with patch("token_iq.gateway.proxy.proxy_server.prisma_client", None):
@@ -974,7 +974,7 @@ async def test_list_tags_without_date_range_omits_date_filter():
 
     mock_user_auth = UserAPIKeyAuth(
         user_id="test-user-123",
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
     )
     app.dependency_overrides[user_api_key_auth] = lambda: mock_user_auth
 
@@ -1015,7 +1015,7 @@ async def test_list_tags_rejects_invalid_date_range(query, expected_detail_fragm
 
     mock_user_auth = UserAPIKeyAuth(
         user_id="test-user-123",
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
     )
     app.dependency_overrides[user_api_key_auth] = lambda: mock_user_auth
 

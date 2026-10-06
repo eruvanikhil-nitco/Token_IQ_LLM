@@ -14,12 +14,12 @@ import token_iq.gateway.proxy.proxy_server
 from token_iq import gateway
 from token_iq.gateway.caching.dual_cache import DualCache
 from token_iq.gateway.proxy._types import (
-    LiteLLMRoutes,
+    GatewayRoutes,
     LiteLLM_JWTAuth,
     LiteLLM_BudgetTable,
     LiteLLM_EndUserTable,
     LiteLLM_UserTable,
-    LitellmUserRoles,
+    GatewayUserRoles,
     ProxyErrorTypes,
     ProxyException,
     UserAPIKeyAuth,
@@ -30,7 +30,7 @@ from token_iq.gateway.proxy.auth.auth_checks import get_key_object, _cache_key_o
 from token_iq.gateway.proxy.auth.route_checks import RouteChecks
 from token_iq.gateway.proxy.auth.user_api_key_auth import (
     _check_key_model_budget_with_fallback,
-    _ensure_litellm_received_at_on_request_state,
+    _ensure_gateway_received_at_on_request_state,
     _ensure_parent_otel_span_on_request_state,
     _PendingAutoRegister,
     _matches_routing_override,
@@ -57,7 +57,7 @@ def test_get_api_key():
     api_key = "sk-12345678"
     passed_in_key = "Bearer sk-12345678"
     assert get_api_key(
-        custom_litellm_key_header=None,
+        custom_gateway_key_header=None,
         api_key=bearer_token,
         azure_api_key_header=None,
         anthropic_api_key_header=None,
@@ -88,7 +88,7 @@ def test_public_ai_hub_routes_remain_public():
         "/public/mcp_hub",
         "/public/skill_hub",
     ):
-        assert route in LiteLLMRoutes.public_routes.value
+        assert route in GatewayRoutes.public_routes.value
         assert _route_requires_auth_despite_public(route, {}) is False
 
 
@@ -493,13 +493,13 @@ async def test_user_custom_auth_skips_post_custom_auth_checks_by_default():
 
     from token_iq import gateway
     import token_iq.gateway.proxy.proxy_server as _proxy_server_mod
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
     from token_iq.gateway.proxy.auth.user_api_key_auth import _user_api_key_auth_builder
 
     trusted_token = UserAPIKeyAuth(
         api_key="sk-custom-auth-trusted",
         user_id="custom-user-123",
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
     )
     mock_user_custom_auth = AsyncMock(return_value=trusted_token)
 
@@ -551,13 +551,13 @@ async def test_user_custom_auth_runs_post_custom_auth_checks_when_opt_in():
 
     from token_iq import gateway
     import token_iq.gateway.proxy.proxy_server as _proxy_server_mod
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
     from token_iq.gateway.proxy.auth.user_api_key_auth import _user_api_key_auth_builder
 
     trusted_token = UserAPIKeyAuth(
         api_key="sk-custom-auth-trusted",
         user_id="custom-user-123",
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
     )
     mock_user_custom_auth = AsyncMock(return_value=trusted_token)
 
@@ -608,13 +608,13 @@ async def test_enterprise_custom_auth_skips_post_custom_auth_checks_by_default()
 
     from token_iq import gateway
     import token_iq.gateway.proxy.proxy_server as _proxy_server_mod
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
     from token_iq.gateway.proxy.auth.user_api_key_auth import _user_api_key_auth_builder
 
     trusted_token = UserAPIKeyAuth(
         api_key="sk-enterprise-custom-auth-trusted",
         user_id="enterprise-user-456",
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
     )
     mock_enterprise_custom_auth = AsyncMock(return_value=trusted_token)
 
@@ -671,13 +671,13 @@ async def test_enterprise_custom_auth_runs_post_custom_auth_checks_when_opt_in()
 
     from token_iq import gateway
     import token_iq.gateway.proxy.proxy_server as _proxy_server_mod
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
     from token_iq.gateway.proxy.auth.user_api_key_auth import _user_api_key_auth_builder
 
     trusted_token = UserAPIKeyAuth(
         api_key="sk-enterprise-custom-auth-trusted",
         user_id="enterprise-user-456",
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
     )
     mock_enterprise_custom_auth = AsyncMock(return_value=trusted_token)
 
@@ -722,11 +722,11 @@ async def test_enterprise_custom_auth_runs_post_custom_auth_checks_when_opt_in()
         gateway.enable_post_custom_auth_checks = original_flag
 
 
-def _assert_get_api_key_with_custom_litellm_key_header(
-    custom_litellm_key_header, api_key, passed_in_key
+def _assert_get_api_key_with_custom_gateway_key_header(
+    custom_gateway_key_header, api_key, passed_in_key
 ):
     assert get_api_key(
-        custom_litellm_key_header=custom_litellm_key_header,
+        custom_gateway_key_header=custom_gateway_key_header,
         api_key=None,
         azure_api_key_header=None,
         anthropic_api_key_header=None,
@@ -883,46 +883,46 @@ def test_matches_routing_override_parametrized(override, token_claims, expected)
     )
 
 
-def test_get_api_key_with_custom_litellm_key_header_bearer_prefix():
+def test_get_api_key_with_custom_gateway_key_header_bearer_prefix():
     token = "sk-" + "1" * 8
     header = f"Bearer {token}"
-    _assert_get_api_key_with_custom_litellm_key_header(
-        custom_litellm_key_header=header, api_key=token, passed_in_key=header
+    _assert_get_api_key_with_custom_gateway_key_header(
+        custom_gateway_key_header=header, api_key=token, passed_in_key=header
     )
 
 
-def test_get_api_key_with_custom_litellm_key_header_basic_prefix():
+def test_get_api_key_with_custom_gateway_key_header_basic_prefix():
     token = "sk-" + "1" * 8
     header = f"Basic {token}"
-    _assert_get_api_key_with_custom_litellm_key_header(
-        custom_litellm_key_header=header, api_key=token, passed_in_key=header
+    _assert_get_api_key_with_custom_gateway_key_header(
+        custom_gateway_key_header=header, api_key=token, passed_in_key=header
     )
 
 
-def test_get_api_key_with_custom_litellm_key_header_lowercase_bearer_prefix():
+def test_get_api_key_with_custom_gateway_key_header_lowercase_bearer_prefix():
     token = "sk-" + "1" * 8
     header = f"bearer {token}"
-    _assert_get_api_key_with_custom_litellm_key_header(
-        custom_litellm_key_header=header, api_key=token, passed_in_key=header
+    _assert_get_api_key_with_custom_gateway_key_header(
+        custom_gateway_key_header=header, api_key=token, passed_in_key=header
     )
 
 
-def test_get_api_key_with_custom_litellm_key_header_no_prefix():
+def test_get_api_key_with_custom_gateway_key_header_no_prefix():
     token = "sk-" + "1" * 8
-    _assert_get_api_key_with_custom_litellm_key_header(
-        custom_litellm_key_header=token, api_key=token, passed_in_key=token
+    _assert_get_api_key_with_custom_gateway_key_header(
+        custom_gateway_key_header=token, api_key=token, passed_in_key=token
     )
 
 
-def test_get_api_key_with_custom_litellm_key_header_aws_sigv4():
+def test_get_api_key_with_custom_gateway_key_header_aws_sigv4():
     """AWS Signature V4 format (LangChain AWS SDK)."""
     token = "sk-" + "1" * 8
     header = (
         f"AWS4-HMAC-SHA256 Credential=Bearer {token}/20260210/us-east-1/bedrock/"
         "aws4_request, SignedHeaders=host, Signature=abc123"
     )
-    _assert_get_api_key_with_custom_litellm_key_header(
-        custom_litellm_key_header=header, api_key=token, passed_in_key=header
+    _assert_get_api_key_with_custom_gateway_key_header(
+        custom_gateway_key_header=header, api_key=token, passed_in_key=header
     )
 
 
@@ -1145,7 +1145,7 @@ async def test_proxy_admin_expired_key_from_cache():
     from starlette.datastructures import URL
 
     from token_iq.gateway.proxy._types import (
-        LitellmUserRoles,
+        GatewayUserRoles,
         ProxyErrorTypes,
         ProxyException,
         UserAPIKeyAuth,
@@ -1160,7 +1160,7 @@ async def test_proxy_admin_expired_key_from_cache():
 
     expired_token = UserAPIKeyAuth(
         api_key=api_key,
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
         expires=expired_time,
         token=hashed_key,
     )
@@ -1387,7 +1387,7 @@ async def test_cached_proxy_admin_key_sets_via_virtual_key_marker():
         api_key=api_key,
         token=hashed_key,
         user_id="cached-admin-user",
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
     )
     assert cached_token.via_virtual_key is False
 
@@ -1445,7 +1445,7 @@ async def test_cached_proxy_admin_key_sets_via_virtual_key_marker():
             )
 
         assert isinstance(result, UserAPIKeyAuth)
-        assert result.user_role == LitellmUserRoles.PROXY_ADMIN
+        assert result.user_role == GatewayUserRoles.PROXY_ADMIN
         assert result.via_virtual_key is True
         assert result.api_key == hashed_key
     finally:
@@ -1678,7 +1678,7 @@ def test_proxy_admin_jwt_auth_includes_identity_fields():
     and parent_otel_span, discarding all identity fields resolved from the JWT.
     This caused blank Team Name and Internal User in Request Logs UI.
     """
-    from token_iq.gateway.proxy._types import LiteLLM_TeamTable, LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import LiteLLM_TeamTable, GatewayUserRoles, UserAPIKeyAuth
 
     team_object = LiteLLM_TeamTable(
         team_id="team-123",
@@ -1689,7 +1689,7 @@ def test_proxy_admin_jwt_auth_includes_identity_fields():
     # Simulate the proxy admin early-return path (user_api_key_auth.py ~line 586)
     result = UserAPIKeyAuth(
         api_key=None,
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
         user_id="user-abc",
         team_id="team-123",
         team_alias=(team_object.team_alias if team_object is not None else None),
@@ -1699,7 +1699,7 @@ def test_proxy_admin_jwt_auth_includes_identity_fields():
         parent_otel_span=None,
     )
 
-    assert result.user_role == LitellmUserRoles.PROXY_ADMIN
+    assert result.user_role == GatewayUserRoles.PROXY_ADMIN
     assert result.user_id == "user-abc"
     assert result.team_id == "team-123"
     assert result.team_alias == "my-team"
@@ -1714,13 +1714,13 @@ def test_proxy_admin_jwt_auth_handles_no_team_object():
     Test that the proxy admin early-return path works correctly when
     team_object is None (user has admin role but no team association).
     """
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
 
     team_object = None
 
     result = UserAPIKeyAuth(
         api_key=None,
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
         user_id="admin-user",
         team_id=None,
         team_alias=(team_object.team_alias if team_object is not None else None),
@@ -1730,7 +1730,7 @@ def test_proxy_admin_jwt_auth_handles_no_team_object():
         parent_otel_span=None,
     )
 
-    assert result.user_role == LitellmUserRoles.PROXY_ADMIN
+    assert result.user_role == GatewayUserRoles.PROXY_ADMIN
     assert result.user_id == "admin-user"
     assert result.team_id is None
     assert result.team_alias is None
@@ -3235,7 +3235,7 @@ async def test_user_api_key_auth_builder_no_blocking_calls():
     from starlette.datastructures import URL
     from starlette.requests import Request
 
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
     from token_iq.gateway.proxy.auth.user_api_key_auth import _user_api_key_auth_builder
 
     _blocking_methods = [
@@ -3250,7 +3250,7 @@ async def test_user_api_key_auth_builder_no_blocking_calls():
     valid_token = UserAPIKeyAuth(
         api_key=api_key,
         token=api_key,
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         team_id="team-abc",
     )
 
@@ -3369,7 +3369,7 @@ async def test_team_metadata_refreshed_from_team_object_during_auth():
 
     from token_iq.gateway.proxy._types import (
         LiteLLM_TeamTableCachedObj,
-        LitellmUserRoles,
+        GatewayUserRoles,
         UserAPIKeyAuth,
     )
     from token_iq.gateway.proxy.auth.user_api_key_auth import _user_api_key_auth_builder
@@ -3382,7 +3382,7 @@ async def test_team_metadata_refreshed_from_team_object_during_auth():
     valid_token = UserAPIKeyAuth(
         api_key=api_key,
         token=api_key,
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         team_id="team-guardrail-test",
         team_metadata=stale_team_metadata,
     )
@@ -3486,14 +3486,14 @@ async def test_auth_flow_never_persists_fallback_team_object_lit_4391():
     from starlette.requests import Request
     from fastapi import HTTPException
 
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
     from token_iq.gateway.proxy.auth.user_api_key_auth import _user_api_key_auth_builder
 
     api_key = "sk-test-lit-4391-no-team-writeback"
     valid_token = UserAPIKeyAuth(
         api_key=api_key,
         token=api_key,
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         team_id="team-lit-4391",
         team_models=["model-a"],
         models=["all-team-models"],
@@ -3587,7 +3587,7 @@ async def test_auth_flow_fallback_team_resolves_object_permission_by_id():
 
     from token_iq.gateway.proxy._types import (
         LiteLLM_ObjectPermissionTable,
-        LitellmUserRoles,
+        GatewayUserRoles,
         UserAPIKeyAuth,
     )
     from token_iq.gateway.proxy.auth.user_api_key_auth import _user_api_key_auth_builder
@@ -3596,7 +3596,7 @@ async def test_auth_flow_fallback_team_resolves_object_permission_by_id():
     valid_token = UserAPIKeyAuth(
         api_key=api_key,
         token=api_key,
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         team_id="team-fallback-object-permission",
         team_object_permission_id="op-fallback-object-permission",
     )
@@ -3690,14 +3690,14 @@ async def test_auth_flow_fallback_team_object_permission_none_when_unreadable():
     from starlette.requests import Request
     from fastapi import HTTPException
 
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
     from token_iq.gateway.proxy.auth.user_api_key_auth import _user_api_key_auth_builder
 
     api_key = "sk-test-fallback-team-object-permission-unreadable"
     valid_token = UserAPIKeyAuth(
         api_key=api_key,
         token=api_key,
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         team_id="team-fallback-object-permission-unreadable",
         team_object_permission_id="op-fallback-object-permission-unreadable",
     )
@@ -3843,7 +3843,7 @@ async def test_centralized_common_checks_runs_for_standard_auth():
         "/v1/messages",
     ],
 )
-async def test_centralized_common_checks_routes_header_tags_to_litellm_metadata(route):
+async def test_centralized_common_checks_routes_header_tags_to_gateway_metadata(route):
     """GH#30629: on LITELLM_METADATA_ROUTES the tag-budget read resolves to
     litellm_metadata, so the litellm_metadata pre-seed must run before
     apply_client_tag_policy_pre_auth merges x-litellm-tags. Otherwise header tags
@@ -4332,10 +4332,10 @@ async def test_centralized_common_checks_short_circuits_when_master_key_unset():
     from fastapi import Request
     from starlette.datastructures import URL
 
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
     token = UserAPIKeyAuth(
-        api_key="sk-test", user_id="u", user_role=LitellmUserRoles.INTERNAL_USER
+        api_key="sk-test", user_id="u", user_role=GatewayUserRoles.INTERNAL_USER
     )
     request = Request(scope={"type": "http"})
     request._url = URL(url="/get/config/callbacks")
@@ -4372,7 +4372,7 @@ async def test_centralized_common_checks_skips_public_routes():
     from fastapi import Request
     from starlette.datastructures import URL
 
-    token = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER_VIEW_ONLY)
+    token = UserAPIKeyAuth(user_role=GatewayUserRoles.INTERNAL_USER_VIEW_ONLY)
     request = Request(scope={"type": "http"})
     request._url = URL(url="/health/liveness")
 
@@ -4504,7 +4504,7 @@ async def test_centralized_common_checks_master_key_admin_overrides_db_user_role
     token = UserAPIKeyAuth(
         api_key="sk-master",
         user_id="default_user_id",
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
     )
     request = Request(scope={"type": "http"})
     request._url = URL(url="/team/update")
@@ -4513,7 +4513,7 @@ async def test_centralized_common_checks_master_key_admin_overrides_db_user_role
     # with user_role=internal_user (the default for new user rows).
     db_user = LiteLLM_UserTable(
         user_id="default_user_id",
-        user_role=LitellmUserRoles.INTERNAL_USER.value,
+        user_role=GatewayUserRoles.INTERNAL_USER.value,
         spend=1.5,
         max_budget=None,
     )
@@ -4543,7 +4543,7 @@ async def test_centralized_common_checks_master_key_admin_overrides_db_user_role
             mock_checks.assert_awaited_once()
             forwarded = mock_checks.call_args.kwargs["user_object"]
             assert forwarded is not None
-            assert forwarded.user_role == LitellmUserRoles.PROXY_ADMIN
+            assert forwarded.user_role == GatewayUserRoles.PROXY_ADMIN
             assert forwarded.user_id == "default_user_id"
     finally:
         for k, v in originals.items():
@@ -4630,7 +4630,7 @@ async def test_centralized_common_checks_team_404_does_not_zero_other_contexts()
 
     fetched_user = LiteLLM_UserTable(
         user_id="u",
-        user_role=LitellmUserRoles.INTERNAL_USER.value,
+        user_role=GatewayUserRoles.INTERNAL_USER.value,
         max_budget=10.0,
         spend=2.0,
     )
@@ -5054,7 +5054,7 @@ async def test_builder_ui_sentinel_team_never_hits_get_team_object():  # test-qu
         api_key=api_key,
         token=hash_token(api_key),
         user_id="ui-session-user",
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         team_id=UI_TEAM_ID,
     )
 
@@ -5888,7 +5888,7 @@ def _mint_cli_session_token(monkeypatch, *, user_id="cli-admin"):
     user_info = LiteLLM_UserTable(
         user_id=user_id,
         user_email="cli@example.com",
-        user_role=LitellmUserRoles.PROXY_ADMIN.value,
+        user_role=GatewayUserRoles.PROXY_ADMIN.value,
         models=["gpt-3.5-turbo"],
         max_budget=100.0,
     )
@@ -5974,7 +5974,7 @@ async def test_expired_cli_session_token_is_rejected(monkeypatch):
     user_info = LiteLLM_UserTable(
         user_id="cli-admin",
         user_email="cli@example.com",
-        user_role=LitellmUserRoles.PROXY_ADMIN.value,
+        user_role=GatewayUserRoles.PROXY_ADMIN.value,
         models=["gpt-3.5-turbo"],
         max_budget=100.0,
     )
@@ -6020,7 +6020,7 @@ async def test_non_admin_cli_session_token_reaches_production_auth_path(monkeypa
     user_info = LiteLLM_UserTable(
         user_id="internal-user-1",
         user_email="user@example.com",
-        user_role=LitellmUserRoles.INTERNAL_USER.value,
+        user_role=GatewayUserRoles.INTERNAL_USER.value,
         models=[],
     )
     cli_token = ExperimentalUIJWTToken.get_cli_jwt_auth_token(
@@ -6078,7 +6078,7 @@ async def test_non_admin_cli_session_token_reaches_production_auth_path(monkeypa
     assert call_kwargs["valid_token_dict"]["user_id"] == "internal-user-1"
     assert call_kwargs["valid_token_dict"]["team_id"] == "team-abc"
     assert call_kwargs["valid_token_dict"]["is_session_token"] is True
-    assert call_kwargs["valid_token_dict"]["user_role"] == LitellmUserRoles.INTERNAL_USER
+    assert call_kwargs["valid_token_dict"]["user_role"] == GatewayUserRoles.INTERNAL_USER
     assert result.is_session_token is True
 
 
@@ -6154,7 +6154,7 @@ async def test_real_jwt_still_requires_license_when_jwt_auth_enabled(monkeypatch
 
     message = str(getattr(exc_info.value, "message", exc_info.value))
     assert "Token IQ plan" in message
-    assert "LiteLLM" not in message
+    assert "Gateway" not in message
 
 
 @pytest.mark.asyncio
@@ -6297,7 +6297,7 @@ class TestJWTAuthUserEmail:
             "user_object": LiteLLM_UserTable(
                 user_id="jwt-human-user",
                 user_email="row@example.com",
-                user_role=LitellmUserRoles.INTERNAL_USER.value,
+                user_role=GatewayUserRoles.INTERNAL_USER.value,
             ),
             "end_user_object": None,
             "org_object": None,
@@ -6337,7 +6337,7 @@ class TestJWTAuthUserEmail:
 
         result = await self._run_jwt_auth(mock_jwt_result, jwt_token)
 
-        assert result.user_role == LitellmUserRoles.PROXY_ADMIN
+        assert result.user_role == GatewayUserRoles.PROXY_ADMIN
         assert result.user_id == "jwt-admin-user"
         assert result.user_email == "admin@example.com"
 
@@ -6837,7 +6837,7 @@ async def test_unlicensed_jwt_auth_is_forbidden_not_unauthorized():
     assert "token iq plan" in error.message.lower()
 
 
-class TestLitellmReceivedAtStamping:
+class TestGatewayReceivedAtStamping:
     """request.state.litellm_received_at must be stamped unconditionally at the
     top of auth (LIT-6012), so request-latency Prometheus metrics don't depend
     on OTEL being configured to see a true request-arrival timestamp."""
@@ -6857,8 +6857,8 @@ class TestLitellmReceivedAtStamping:
         request = MagicMock()
         request.state = SimpleNamespace()
 
-        first = _ensure_litellm_received_at_on_request_state(request)
-        second = _ensure_litellm_received_at_on_request_state(request)
+        first = _ensure_gateway_received_at_on_request_state(request)
+        second = _ensure_gateway_received_at_on_request_state(request)
 
         assert first == second
         assert request.state.litellm_received_at == first
@@ -6870,7 +6870,7 @@ class TestLitellmReceivedAtStamping:
         earlier = datetime(2020, 1, 1)
         request.state = SimpleNamespace(litellm_received_at=earlier)
 
-        result = _ensure_litellm_received_at_on_request_state(request)
+        result = _ensure_gateway_received_at_on_request_state(request)
 
         assert result == earlier
         assert request.state.litellm_received_at == earlier

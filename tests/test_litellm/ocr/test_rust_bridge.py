@@ -240,7 +240,7 @@ def fake_async_bridge():
     return bridge
 
 
-def test_use_litellm_rust_toggles_flag():
+def test_use_gateway_rust_toggles_flag():
     assert rust_bridge.rust_ocr_enabled() is False
     gateway.use_litellm_rust()
     assert rust_bridge.rust_ocr_enabled() is True

@@ -29,7 +29,7 @@ def guardrail():
 
 
 class TestExtractMCPServerNames:
-    def test_extracts_litellm_proxy_mcp_servers(self):
+    def test_extracts_gateway_proxy_mcp_servers(self):
         tools = [
             {"type": "mcp", "server_url": "litellm_proxy/mcp/zapier"},
             {"type": "mcp", "server_url": "litellm_proxy/mcp/github"},

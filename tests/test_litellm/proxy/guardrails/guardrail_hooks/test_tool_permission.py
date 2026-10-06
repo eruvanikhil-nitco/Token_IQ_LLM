@@ -938,7 +938,7 @@ class TestToolPermissionGuardrailInMemoryUpdate:
             is True
         )
 
-        guardrail.update_in_memory_litellm_params(
+        guardrail.update_in_memory_gateway_params(
             LitellmParams(
                 guardrail="tool_permission",
                 mode=["pre_call", "post_call"],
@@ -977,7 +977,7 @@ class TestToolPermissionGuardrailInMemoryUpdate:
         # No rules: default_action allow lets Bash through.
         assert guardrail._get_permission_for_tool_call(self._bash("echo x"))[0] is True
 
-        guardrail.update_in_memory_litellm_params(
+        guardrail.update_in_memory_gateway_params(
             LitellmParams(
                 guardrail="tool_permission",
                 mode=["pre_call", "post_call"],
@@ -1009,7 +1009,7 @@ class TestToolPermissionGuardrailInMemoryUpdate:
 
         # A partial update that does not carry `rules` must NOT wipe the existing
         # ruleset / compiled maps.
-        guardrail.update_in_memory_litellm_params(
+        guardrail.update_in_memory_gateway_params(
             LitellmParams(
                 guardrail="tool_permission",
                 mode=["pre_call", "post_call"],
@@ -1040,7 +1040,7 @@ class TestToolPermissionGuardrailInMemoryUpdate:
         assert guardrail._check_tool_permission("Other")[0] is True
 
         with pytest.raises(ValueError, match="Invalid regex for tool_name in rule 'bad': unterminated"):
-            guardrail.update_in_memory_litellm_params(
+            guardrail.update_in_memory_gateway_params(
                 LitellmParams(
                     guardrail="tool_permission",
                     mode=["pre_call", "post_call"],

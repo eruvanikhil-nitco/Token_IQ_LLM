@@ -61,7 +61,7 @@ def test_get_provider_create_fields():
     ), "Expected at least one provider to have detailed credential fields"
 
 
-def test_get_litellm_model_cost_map_returns_cost_map():
+def test_get_gateway_model_cost_map_returns_cost_map():
     app = FastAPI()
     app.include_router(router)
     client = TestClient(app)

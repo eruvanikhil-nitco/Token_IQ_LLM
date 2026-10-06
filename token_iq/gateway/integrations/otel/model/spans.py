@@ -74,7 +74,7 @@ class SpanRole(str, Enum):
     SERVICE = "service"
 
 
-class LiteLLMSpanKind(str, Enum):
+class GatewaySpanKind(str, Enum):
     SERVER = "server"
     CLIENT = "client"
     INTERNAL = "internal"
@@ -85,24 +85,24 @@ class LiteLLMSpanKind(str, Enum):
 @dataclass(frozen=True)
 class SpanSpec:
     role: SpanRole
-    kind: LiteLLMSpanKind
+    kind: GatewaySpanKind
     parent: SpanRole | None
 
 
 SPAN_REGISTRY: Final[dict[SpanRole, SpanSpec]] = {
-    SpanRole.PROXY_REQUEST: SpanSpec(SpanRole.PROXY_REQUEST, LiteLLMSpanKind.SERVER, parent=None),
-    SpanRole.LLM_CALL: SpanSpec(SpanRole.LLM_CALL, LiteLLMSpanKind.CLIENT, parent=SpanRole.PROXY_REQUEST),
+    SpanRole.PROXY_REQUEST: SpanSpec(SpanRole.PROXY_REQUEST, GatewaySpanKind.SERVER, parent=None),
+    SpanRole.LLM_CALL: SpanSpec(SpanRole.LLM_CALL, GatewaySpanKind.CLIENT, parent=SpanRole.PROXY_REQUEST),
     # The proxy is an MCP client to the upstream server, so MCP spans are CLIENT
     # spans. ``resolve_mcp_span_context`` nests them under the PROXY_REQUEST
     # transport span of the request carrying that message (resolved per message at
     # emit time), keeping the call in one trace. Trace context the client
     # propagated in ``params._meta`` becomes a span *link* to that remote context,
     # which is not a registry role, so ``SpanSpec`` has no link field.
-    SpanRole.MCP_TOOL_CALL: SpanSpec(SpanRole.MCP_TOOL_CALL, LiteLLMSpanKind.CLIENT, parent=SpanRole.PROXY_REQUEST),
-    SpanRole.MCP_LIST_TOOLS: SpanSpec(SpanRole.MCP_LIST_TOOLS, LiteLLMSpanKind.CLIENT, parent=SpanRole.PROXY_REQUEST),
-    SpanRole.GUARDRAIL: SpanSpec(SpanRole.GUARDRAIL, LiteLLMSpanKind.INTERNAL, parent=SpanRole.PROXY_REQUEST),
-    SpanRole.DB_CALL: SpanSpec(SpanRole.DB_CALL, LiteLLMSpanKind.CLIENT, parent=SpanRole.PROXY_REQUEST),
-    SpanRole.SERVICE: SpanSpec(SpanRole.SERVICE, LiteLLMSpanKind.INTERNAL, parent=SpanRole.PROXY_REQUEST),
+    SpanRole.MCP_TOOL_CALL: SpanSpec(SpanRole.MCP_TOOL_CALL, GatewaySpanKind.CLIENT, parent=SpanRole.PROXY_REQUEST),
+    SpanRole.MCP_LIST_TOOLS: SpanSpec(SpanRole.MCP_LIST_TOOLS, GatewaySpanKind.CLIENT, parent=SpanRole.PROXY_REQUEST),
+    SpanRole.GUARDRAIL: SpanSpec(SpanRole.GUARDRAIL, GatewaySpanKind.INTERNAL, parent=SpanRole.PROXY_REQUEST),
+    SpanRole.DB_CALL: SpanSpec(SpanRole.DB_CALL, GatewaySpanKind.CLIENT, parent=SpanRole.PROXY_REQUEST),
+    SpanRole.SERVICE: SpanSpec(SpanRole.SERVICE, GatewaySpanKind.INTERNAL, parent=SpanRole.PROXY_REQUEST),
 }
 
 

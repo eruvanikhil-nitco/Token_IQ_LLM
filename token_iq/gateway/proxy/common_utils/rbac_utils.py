@@ -9,7 +9,7 @@ from typing import Final, Literal
 
 from fastapi import HTTPException
 
-from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
 
 FeatureName = Literal["agents", "vector_stores"]
 
@@ -28,10 +28,10 @@ async def check_feature_access_for_user(
     """
     # Proxy admins (and view-only admins) are never blocked.
     if user_api_key_dict.user_role in (
-        LitellmUserRoles.PROXY_ADMIN,
-        LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY,
-        LitellmUserRoles.PROXY_ADMIN.value,
-        LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY.value,
+        GatewayUserRoles.PROXY_ADMIN,
+        GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY,
+        GatewayUserRoles.PROXY_ADMIN.value,
+        GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY.value,
     ):
         return
 
@@ -80,8 +80,8 @@ async def check_org_admin_can_generate_keys(
     checks.
     """
     if user_api_key_dict.user_role not in (
-        LitellmUserRoles.ORG_ADMIN,
-        LitellmUserRoles.ORG_ADMIN.value,
+        GatewayUserRoles.ORG_ADMIN,
+        GatewayUserRoles.ORG_ADMIN.value,
     ):
         return
 

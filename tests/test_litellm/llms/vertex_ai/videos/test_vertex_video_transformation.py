@@ -19,7 +19,7 @@ from token_iq.gateway.llms.vertex_ai.videos.transformation import (
     VertexAIVideoConfig,
     _convert_image_to_vertex_format,
 )
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.types.videos.main import VideoObject
 
 VEO_31_LITE_VERTEX_MODEL = "vertex_ai/veo-3.1-lite-generate-001"
@@ -196,7 +196,7 @@ class TestVertexAIVideoConfig:
             prompt=prompt,
             api_base=api_base,
             video_create_optional_request_params={},
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 
@@ -228,7 +228,7 @@ class TestVertexAIVideoConfig:
                 "aspectRatio": "16:9",
                 "durationSeconds": 8,
             },
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 
@@ -256,7 +256,7 @@ class TestVertexAIVideoConfig:
                 prompt=prompt,
                 api_base=api_base,
                 video_create_optional_request_params={"image": mock_image},
-                litellm_params=GenericLiteLLMParams(),
+                litellm_params=GenericGatewayParams(),
                 headers={},
             )
 
@@ -445,7 +445,7 @@ class TestVertexAIVideoConfig:
         url, params = self.config.transform_video_status_retrieve_request(
             video_id=operation_name,
             api_base=api_base,
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 
@@ -466,7 +466,7 @@ class TestVertexAIVideoConfig:
             self.config.transform_video_status_retrieve_request(
                 video_id=invalid_operation_name,
                 api_base=None,
-                litellm_params=GenericLiteLLMParams(),
+                litellm_params=GenericGatewayParams(),
                 headers={},
             )
 
@@ -549,7 +549,7 @@ class TestVertexAIVideoConfig:
         url, params = self.config.transform_video_content_request(
             video_id=operation_name,
             api_base=api_base,
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 
@@ -616,7 +616,7 @@ class TestVertexAIVideoConfig:
         fetch_url, fetch_body = self.config.get_video_edit_prefetch_params(
             video_id=operation_name,
             api_base=api_base,
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 
@@ -641,7 +641,7 @@ class TestVertexAIVideoConfig:
             prompt="Make it brighter",
             video_id=operation_name,
             api_base=api_base,
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={"Authorization": "Bearer token"},
             prefetched_source_data=prefetched,
         )
@@ -670,7 +670,7 @@ class TestVertexAIVideoConfig:
             prompt="Make it darker",
             video_id=operation_name,
             api_base=api_base,
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
             prefetched_source_data=prefetched,
         )
@@ -687,7 +687,7 @@ class TestVertexAIVideoConfig:
                 prompt="Make it brighter",
                 video_id=operation_name,
                 api_base=api_base,
-                litellm_params=GenericLiteLLMParams(),
+                litellm_params=GenericGatewayParams(),
                 headers={},
                 prefetched_source_data={"done": False},
             )
@@ -737,7 +737,7 @@ class TestVertexAIVideoConfig:
                 video_id="test-video-id",
                 prompt="new prompt",
                 api_base="https://example.com",
-                litellm_params=GenericLiteLLMParams(),
+                litellm_params=GenericGatewayParams(),
                 headers={},
             )
 
@@ -746,7 +746,7 @@ class TestVertexAIVideoConfig:
         with pytest.raises(NotImplementedError, match="Video list is not supported"):
             self.config.transform_video_list_request(
                 api_base="https://example.com",
-                litellm_params=GenericLiteLLMParams(),
+                litellm_params=GenericGatewayParams(),
                 headers={},
             )
 
@@ -756,7 +756,7 @@ class TestVertexAIVideoConfig:
             self.config.transform_video_delete_request(
                 video_id="test-video-id",
                 api_base="https://example.com",
-                litellm_params=GenericLiteLLMParams(),
+                litellm_params=GenericGatewayParams(),
                 headers={},
             )
 
@@ -883,7 +883,7 @@ class TestImageAndParametersPassthrough:
             prompt="Cinematic drone shot",
             api_base=self.api_base,
             video_create_optional_request_params={"image": image},
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 
@@ -898,7 +898,7 @@ class TestImageAndParametersPassthrough:
             prompt="Cinematic drone shot",
             api_base=self.api_base,
             video_create_optional_request_params={"image": gs_uri},
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 
@@ -912,7 +912,7 @@ class TestImageAndParametersPassthrough:
             prompt="Cinematic drone shot",
             api_base=self.api_base,
             video_create_optional_request_params={"image": image},
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 
@@ -930,7 +930,7 @@ class TestImageAndParametersPassthrough:
             prompt="Cinematic drone shot",
             api_base=self.api_base,
             video_create_optional_request_params={"parameters": params},
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 
@@ -969,7 +969,7 @@ class TestImageAndParametersPassthrough:
             prompt="Cinematic drone shot moving forward along the beach boardwalk",
             api_base=self.api_base,
             video_create_optional_request_params=mapped,
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 

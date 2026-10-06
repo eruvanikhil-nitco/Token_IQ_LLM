@@ -48,7 +48,7 @@ class PurviewGuardrailBase:
         tenant_id: str,
         client_id: str,
         client_secret: str,
-        purview_app_name: str = "LiteLLM",
+        purview_app_name: str = "Gateway",
         user_id_field: str = "user_id",
         **kwargs: object,
     ) -> None:

@@ -57,7 +57,7 @@ from models import (
     ChatMessage,
     ChatMetadata,
     KeyGenerateBody,
-    LiteLLMParamsBody,
+    GatewayParamsBody,
     RouterSettingsOverride,
     SpendLogRow,
 )
@@ -223,23 +223,23 @@ def split(proxy: ProxyClient) -> Iterator[TagSplitDeployments]:
         tier_b=f"e2e-tier-b-{marker}",
     )
     anthropic_key: Final = _provider_key("ANTHROPIC_API_KEY")
-    marker_params_a: Final = LiteLLMParamsBody(
+    marker_params_a: Final = GatewayParamsBody(
         model="auto_router/complexity_router",
         complexity_router_config=_uniform_tier_config(deployments.tier_a),
         tags=[deployments.tag_a],
     )
-    marker_params_b: Final = LiteLLMParamsBody(
+    marker_params_b: Final = GatewayParamsBody(
         model="auto_router/complexity_router",
         complexity_router_config=_uniform_tier_config(deployments.tier_b),
         tags=[deployments.tag_b],
     )
-    registrations: Final[tuple[tuple[str, LiteLLMParamsBody], ...]] = (
-        (deployments.shared_a, LiteLLMParamsBody(model=PLAIN_MODEL, api_key=anthropic_key)),
-        (deployments.tier_a, LiteLLMParamsBody(model=CHEAP_MODEL, api_key=anthropic_key, tags=[deployments.tag_a])),
+    registrations: Final[tuple[tuple[str, GatewayParamsBody], ...]] = (
+        (deployments.shared_a, GatewayParamsBody(model=PLAIN_MODEL, api_key=anthropic_key)),
+        (deployments.tier_a, GatewayParamsBody(model=CHEAP_MODEL, api_key=anthropic_key, tags=[deployments.tag_a])),
         (deployments.shared_a, marker_params_a),
         (deployments.shared_b, marker_params_b),
-        (deployments.tier_b, LiteLLMParamsBody(model=CHEAP_MODEL, api_key=anthropic_key)),
-        (deployments.shared_b, LiteLLMParamsBody(model=PLAIN_MODEL, api_key=anthropic_key)),
+        (deployments.tier_b, GatewayParamsBody(model=CHEAP_MODEL, api_key=anthropic_key)),
+        (deployments.shared_b, GatewayParamsBody(model=PLAIN_MODEL, api_key=anthropic_key)),
     )
     created: Final = tuple(proxy.create_model(name, params) for name, params in registrations)
     try:
@@ -253,14 +253,14 @@ def split(proxy: ProxyClient) -> Iterator[TagSplitDeployments]:
 def zero_priced_alias(proxy: ProxyClient) -> Iterator[ZeroPricedAlias]:
     marker: Final = unique_marker()
     named: Final = ZeroPricedAlias(alias=f"e2e-priced-alias-{marker}", tier=f"e2e-priced-tier-{marker}")
-    alias_params: Final = LiteLLMParamsBody(
+    alias_params: Final = GatewayParamsBody(
         model="auto_router/complexity_router",
         complexity_router_config=_uniform_tier_config(named.tier),
         input_cost_per_token=0.0,
         output_cost_per_token=0.0,
     )
-    registrations: Final[tuple[tuple[str, LiteLLMParamsBody], ...]] = (
-        (named.tier, LiteLLMParamsBody(model=CHEAP_MODEL, api_key=_provider_key("ANTHROPIC_API_KEY"))),
+    registrations: Final[tuple[tuple[str, GatewayParamsBody], ...]] = (
+        (named.tier, GatewayParamsBody(model=CHEAP_MODEL, api_key=_provider_key("ANTHROPIC_API_KEY"))),
         (named.alias, alias_params),
     )
     created: Final = tuple(proxy.create_model(name, params) for name, params in registrations)
@@ -284,10 +284,10 @@ def heuristic_split(proxy: ProxyClient) -> Iterator[HeuristicSplit]:
         "token_thresholds": {"simple": 15, "complex": 400},
         "tiers": {"SIMPLE": named.cheap, "MEDIUM": named.strong, "COMPLEX": named.strong, "REASONING": named.strong},
     }
-    registrations: Final[tuple[tuple[str, LiteLLMParamsBody], ...]] = (
-        (named.cheap, LiteLLMParamsBody(model=CHEAP_MODEL, api_key=_provider_key("ANTHROPIC_API_KEY"))),
-        (named.strong, LiteLLMParamsBody(model=STRONG_MODEL, api_key=_provider_key("OPENAI_API_KEY"))),
-        (named.alias, LiteLLMParamsBody(model="auto_router/complexity_router", complexity_router_config=config)),
+    registrations: Final[tuple[tuple[str, GatewayParamsBody], ...]] = (
+        (named.cheap, GatewayParamsBody(model=CHEAP_MODEL, api_key=_provider_key("ANTHROPIC_API_KEY"))),
+        (named.strong, GatewayParamsBody(model=STRONG_MODEL, api_key=_provider_key("OPENAI_API_KEY"))),
+        (named.alias, GatewayParamsBody(model="auto_router/complexity_router", complexity_router_config=config)),
     )
     created: Final = tuple(proxy.create_model(name, params) for name, params in registrations)
     try:
@@ -309,16 +309,16 @@ def semantic_auto_router(proxy: ProxyClient) -> Iterator[SemanticAutoRouter]:
     router_config: Final = json.dumps(
         {"routes": [{"name": named.target, "utterances": [SEMANTIC_ROUTE_UTTERANCE], "score_threshold": 0.3}]}
     )
-    marker_params: Final = LiteLLMParamsBody(
+    marker_params: Final = GatewayParamsBody(
         model=f"auto_router/{named.marker}",
         auto_router_config=router_config,
         auto_router_default_model=named.fallback,
         auto_router_embedding_model=named.embedding,
     )
-    registrations: Final[tuple[tuple[str, LiteLLMParamsBody], ...]] = (
-        (named.embedding, LiteLLMParamsBody(model=EMBEDDING_MODEL, api_key=_provider_key("OPENAI_API_KEY"))),
-        (named.target, LiteLLMParamsBody(model=CHEAP_MODEL, api_key=_provider_key("ANTHROPIC_API_KEY"))),
-        (named.fallback, LiteLLMParamsBody(model=PLAIN_MODEL, api_key=_provider_key("ANTHROPIC_API_KEY"))),
+    registrations: Final[tuple[tuple[str, GatewayParamsBody], ...]] = (
+        (named.embedding, GatewayParamsBody(model=EMBEDDING_MODEL, api_key=_provider_key("OPENAI_API_KEY"))),
+        (named.target, GatewayParamsBody(model=CHEAP_MODEL, api_key=_provider_key("ANTHROPIC_API_KEY"))),
+        (named.fallback, GatewayParamsBody(model=PLAIN_MODEL, api_key=_provider_key("ANTHROPIC_API_KEY"))),
         (named.marker, marker_params),
     )
     created: Final = tuple(proxy.create_model(name, params) for name, params in registrations)
@@ -333,13 +333,13 @@ def semantic_auto_router(proxy: ProxyClient) -> Iterator[SemanticAutoRouter]:
 def credentialed_alias(proxy: ProxyClient) -> Iterator[CredentialedAlias]:
     marker: Final = unique_marker()
     named: Final = CredentialedAlias(alias=f"e2e-cred-alias-{marker}", tier=f"e2e-cred-tier-{marker}")
-    alias_params: Final = LiteLLMParamsBody(
+    alias_params: Final = GatewayParamsBody(
         model="auto_router/complexity_router",
         complexity_router_config=_uniform_tier_config(named.tier),
         api_key=f"sk-alias-never-used-{marker}",
     )
-    registrations: Final[tuple[tuple[str, LiteLLMParamsBody], ...]] = (
-        (named.tier, LiteLLMParamsBody(model=CHEAP_MODEL, api_key=_provider_key("ANTHROPIC_API_KEY"))),
+    registrations: Final[tuple[tuple[str, GatewayParamsBody], ...]] = (
+        (named.tier, GatewayParamsBody(model=CHEAP_MODEL, api_key=_provider_key("ANTHROPIC_API_KEY"))),
         (named.alias, alias_params),
     )
     created: Final = tuple(proxy.create_model(name, params) for name, params in registrations)

@@ -10,7 +10,7 @@ import pytest
 from e2e_config import unique_marker
 from e2e_http import require_successful_call
 from lifecycle import ResourceManager
-from models import ChatBody, ChatMessage, LiteLLMParamsBody
+from models import ChatBody, ChatMessage, GatewayParamsBody
 from proxy_client import ProxyClient
 
 pytestmark = pytest.mark.e2e
@@ -22,7 +22,7 @@ class TestChatStreamContract:
         model = f"e2e-chat-stream-{unique_marker()}"
         model_id = proxy.create_model(
             model,
-            LiteLLMParamsBody(model="openai/gpt-4o-mini", api_key="os.environ/OPENAI_API_KEY"),
+            GatewayParamsBody(model="openai/gpt-4o-mini", api_key="os.environ/OPENAI_API_KEY"),
         )
         resources.defer(lambda: proxy.delete_model(model_id))
         key = resources.key()

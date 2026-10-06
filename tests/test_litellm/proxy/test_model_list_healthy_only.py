@@ -12,7 +12,7 @@ import pytest
 from fastapi import HTTPException
 
 from token_iq.gateway.proxy import proxy_server
-from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
 
 HEALTHY_ONLY_SETTING = {"model_list_healthy_only": True}
 
@@ -84,7 +84,7 @@ def _admin_key() -> UserAPIKeyAuth:
     return UserAPIKeyAuth(
         api_key="sk-test",
         user_id="u",
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
         team_models=[],
     )
 

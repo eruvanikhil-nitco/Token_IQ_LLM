@@ -11,7 +11,7 @@ from fastapi import APIRouter, Depends, HTTPException
 
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.core_utils.sensitive_data_masker import SensitiveDataMasker
-from token_iq.gateway.proxy._types import CommonProxyErrors, LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import CommonProxyErrors, GatewayUserRoles, UserAPIKeyAuth
 from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 from token_iq.gateway.proxy.common_utils.encrypt_decrypt_utils import (
     decrypt_value_helper,
@@ -213,7 +213,7 @@ async def update_cloudzero_settings(
     Only admin users can update CloudZero settings.
     """
     # Validation
-    if user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN:
+    if user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN:
         raise HTTPException(
             status_code=403,
             detail={"error": CommonProxyErrors.not_allowed_access.value},
@@ -366,7 +366,7 @@ async def init_cloudzero_settings(
     Only admin users can configure CloudZero settings.
     """
     # Validation
-    if user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN:
+    if user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN:
         raise HTTPException(
             status_code=403,
             detail={"error": CommonProxyErrors.not_allowed_access.value},
@@ -419,7 +419,7 @@ async def cloudzero_dry_run_export(
     Only admin users can perform CloudZero exports.
     """
     # Validation
-    if user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN:
+    if user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN:
         raise HTTPException(
             status_code=403,
             detail={"error": CommonProxyErrors.not_allowed_access.value},
@@ -472,7 +472,7 @@ async def cloudzero_export(
     Only admin users can perform CloudZero exports.
     """
 
-    if user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN:
+    if user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN:
         raise HTTPException(
             status_code=403,
             detail={"error": CommonProxyErrors.not_allowed_access.value},
@@ -534,7 +534,7 @@ async def delete_cloudzero_settings(
     Only admin users can delete CloudZero settings.
     """
     # Validation
-    if user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN:
+    if user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN:
         raise HTTPException(
             status_code=403,
             detail={"error": CommonProxyErrors.not_allowed_access.value},

@@ -12,7 +12,7 @@ from token_iq import gateway
 
 from tests.vector_store_tests.base_vector_store_test import BaseVectorStoreTest
 from token_iq.gateway.llms.ragflow.vector_stores.transformation import RAGFlowVectorStoreConfig
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.types.vector_stores import VectorStoreCreateOptionalRequestParams
 from token_iq.gateway.llms.base_llm.chat.transformation import BaseLLMException
 
@@ -81,17 +81,17 @@ class TestRAGFlowVectorStore(BaseVectorStoreTest):
     def test_validate_environment(self):
         """Test environment validation and header setting."""
         config = RAGFlowVectorStoreConfig()
-        from token_iq.gateway.types.router import GenericLiteLLMParams
+        from token_iq.gateway.types.router import GenericGatewayParams
 
         # Test with api_key in litellm_params
-        litellm_params = GenericLiteLLMParams(api_key="test-key")
+        litellm_params = GenericGatewayParams(api_key="test-key")
         headers = config.validate_environment({}, litellm_params)
         assert headers["Authorization"] == "Bearer test-key"
         assert headers["Content-Type"] == "application/json"
 
         # Test with missing api_key
         with pytest.raises(ValueError, match="RAGFLOW_API_KEY"):
-            config.validate_environment({}, GenericLiteLLMParams())
+            config.validate_environment({}, GenericGatewayParams())
 
     def test_get_vector_store_endpoints_by_type(self):
         """Test that endpoints are correctly configured (empty for management only)."""
@@ -256,7 +256,7 @@ class TestRAGFlowVectorStore(BaseVectorStoreTest):
     def test_transform_search_vector_store_request_not_implemented(self):
         """Test that search operations raise NotImplementedError."""
         config = RAGFlowVectorStoreConfig()
-        logging_obj = MagicMock(spec=LiteLLMLoggingObj)
+        logging_obj = MagicMock(spec=GatewayLoggingObj)
 
         with pytest.raises(NotImplementedError, match="management only"):
             config.transform_search_vector_store_request(
@@ -272,7 +272,7 @@ class TestRAGFlowVectorStore(BaseVectorStoreTest):
     def test_transform_search_vector_store_response_not_implemented(self):
         """Test that search response transformation raises NotImplementedError."""
         config = RAGFlowVectorStoreConfig()
-        logging_obj = MagicMock(spec=LiteLLMLoggingObj)
+        logging_obj = MagicMock(spec=GatewayLoggingObj)
         mock_response = Mock(spec=httpx.Response)
 
         with pytest.raises(NotImplementedError, match="management only"):

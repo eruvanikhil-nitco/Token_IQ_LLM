@@ -4,7 +4,7 @@ import pytest
 from token_iq.gateway.llms.openai.vector_store_files.transformation import (
     OpenAIVectorStoreFilesConfig,
 )
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 
 
 @pytest.fixture()
@@ -14,7 +14,7 @@ def config() -> OpenAIVectorStoreFilesConfig:
 
 def test_validate_environment_sets_headers(config: OpenAIVectorStoreFilesConfig):
     headers: dict = {}
-    params = GenericLiteLLMParams(api_key="sk-test")
+    params = GenericGatewayParams(api_key="sk-test")
 
     result = config.validate_environment(headers=headers, litellm_params=params)
 

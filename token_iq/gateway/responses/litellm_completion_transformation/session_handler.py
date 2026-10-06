@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Any, Final, cast
 
 from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
-from token_iq.gateway.constants import REDACTED_BY_LITELLM, REDACTED_TOOL_CALL_ARGUMENTS_PLACEHOLDER
+from token_iq.gateway.constants import REDACTED_BY_GATEWAY, REDACTED_TOOL_CALL_ARGUMENTS_PLACEHOLDER
 from token_iq.gateway.proxy._types import SpendLogsMetadata, SpendLogsPayload
 from token_iq.gateway.proxy.spend_tracking.cold_storage_handler import ColdStorageHandler
 from token_iq.gateway.responses.utils import ResponsesAPIRequestUtils
@@ -34,10 +34,10 @@ def _normalize_redacted_tool_call_arguments(message: Message) -> None:
     """Redaction stores the bare sentinel (invalid JSON) in tool-call arguments;
     normalize replayed history to "{}" so provider converters can parse it."""
     for tool_call in message.tool_calls or []:
-        if (function := getattr(tool_call, "function", None)) is not None and function.arguments == REDACTED_BY_LITELLM:
+        if (function := getattr(tool_call, "function", None)) is not None and function.arguments == REDACTED_BY_GATEWAY:
             function.arguments = REDACTED_TOOL_CALL_ARGUMENTS_PLACEHOLDER
     function_call: Final = message.function_call
-    if function_call is not None and function_call.arguments == REDACTED_BY_LITELLM:
+    if function_call is not None and function_call.arguments == REDACTED_BY_GATEWAY:
         function_call.arguments = REDACTED_TOOL_CALL_ARGUMENTS_PLACEHOLDER
 
 
@@ -102,7 +102,7 @@ class ResponsesSessionHandler:
         Extend the chat completion message history with the spend log payload
         """
         from token_iq.gateway.responses.litellm_completion_transformation.transformation import (
-            LiteLLMCompletionResponsesConfig,
+            GatewayCompletionResponsesConfig,
         )
 
         proxy_server_request_dict: Final = await ResponsesSessionHandler.get_proxy_server_request_from_spend_log(
@@ -126,7 +126,7 @@ class ResponsesSessionHandler:
                 )
 
         if response_input_param:
-            chat_completion_messages = LiteLLMCompletionResponsesConfig.transform_responses_api_input_to_messages(
+            chat_completion_messages = GatewayCompletionResponsesConfig.transform_responses_api_input_to_messages(
                 input=response_input_param,
                 responses_api_request=proxy_server_request_dict or {},
                 replay_reasoning=True,
@@ -139,7 +139,7 @@ class ResponsesSessionHandler:
         elif _messages:
             # ensure all messages are /chat/completions/messages
             # certain requests can be stored as Responses API format - this ensures they are transformed to /chat/completions/messages
-            chat_completion_messages = LiteLLMCompletionResponsesConfig.transform_responses_api_input_to_messages(
+            chat_completion_messages = GatewayCompletionResponsesConfig.transform_responses_api_input_to_messages(
                 input=_messages,
                 responses_api_request=proxy_server_request_dict or {},
                 replay_reasoning=True,

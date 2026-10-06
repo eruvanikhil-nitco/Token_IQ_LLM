@@ -45,7 +45,7 @@ def prisma_client():
         database_url=os.environ["DATABASE_URL"], proxy_logging_obj=proxy_logging_obj
     )
 
-    proxy_server.litellm_proxy_budget_name = f"litellm-proxy-budget-{time.time()}"
+    proxy_server.gateway_proxy_budget_name = f"litellm-proxy-budget-{time.time()}"
     proxy_server.user_custom_key_generate = None
 
     return prisma_client
@@ -91,10 +91,10 @@ async def test_search_api_logging_and_cost_tracking(prisma_client):
     )
     from token_iq.gateway.proxy._types import GenerateKeyRequest
 
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
     user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
         api_key="sk-1234",
         user_id="test_user",
     )

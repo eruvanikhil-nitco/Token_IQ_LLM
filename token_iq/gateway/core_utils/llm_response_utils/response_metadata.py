@@ -7,7 +7,7 @@ import httpx
 from token_iq.gateway.constants import LITELLM_DETAILED_TIMING
 from token_iq.gateway.core_utils.core_helpers import process_response_headers
 from token_iq.gateway.core_utils.llm_response_utils.get_api_base import get_api_base
-from token_iq.gateway.core_utils.logging_utils import LiteLLMLoggingObject
+from token_iq.gateway.core_utils.logging_utils import GatewayLoggingObject
 from token_iq.gateway.types.utils import (
     EmbeddingResponse,
     HiddenParams,
@@ -19,7 +19,7 @@ from token_iq.gateway.types.utils import (
 def response_timing_metrics(
     start_time: datetime.datetime,
     end_time: datetime.datetime,
-    logging_obj: LiteLLMLoggingObject,
+    logging_obj: GatewayLoggingObject,
     include_overhead: bool = True,
 ) -> Mapping[str, float]:
     """``_response_ms`` for the whole call, plus ``litellm_overhead_time_ms`` when it can be derived.
@@ -63,7 +63,7 @@ class ResponseMetadata:
         """Check if response type supports timing metrics"""
         return isinstance(self.result, (ModelResponse, EmbeddingResponse, TranscriptionResponse))
 
-    def set_hidden_params(self, logging_obj: LiteLLMLoggingObject, model: str | None, kwargs: dict) -> None:
+    def set_hidden_params(self, logging_obj: GatewayLoggingObject, model: str | None, kwargs: dict) -> None:
         """Set hidden parameters on the response"""
 
         ## ADD OTHER HIDDEN PARAMS
@@ -78,7 +78,7 @@ class ResponseMetadata:
             ),
             "additional_headers": process_response_headers(
                 self._get_additional_headers_from_hidden_params() or {},
-                preserve_litellm_internal_headers=True,
+                preserve_gateway_internal_headers=True,
             ),
             "litellm_model_name": model,
         }
@@ -107,7 +107,7 @@ class ResponseMetadata:
         self,
         start_time: datetime.datetime,
         end_time: datetime.datetime,
-        logging_obj: LiteLLMLoggingObject,
+        logging_obj: GatewayLoggingObject,
         include_overhead: bool = True,
     ) -> None:
         """Set response timing metrics"""
@@ -169,7 +169,7 @@ class ResponseMetadata:
 
 def update_response_metadata(
     result: Any,
-    logging_obj: LiteLLMLoggingObject,
+    logging_obj: GatewayLoggingObject,
     model: str | None,
     kwargs: dict,
     start_time: datetime.datetime,

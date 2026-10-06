@@ -20,7 +20,7 @@ import fastapi
 from fastapi import Depends, HTTPException
 from pydantic import BaseModel, Field
 
-from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
 from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 from token_iq.api.audit_log_diff import FieldChange, diff_snapshots, summarise
 
@@ -124,7 +124,7 @@ async def list_audit_logs(
     than an error, because "nothing has been recorded yet" and "recording is off" look the
     same from here and the settings page is the place that knows the difference.
     """
-    if user_api_key_dict.user_role not in (LitellmUserRoles.PROXY_ADMIN, LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY):
+    if user_api_key_dict.user_role not in (GatewayUserRoles.PROXY_ADMIN, GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY):
         raise HTTPException(status_code=403, detail={"error": "Only proxy admins can read the audit trail"})
     from token_iq.gateway.proxy.proxy_server import prisma_client
 

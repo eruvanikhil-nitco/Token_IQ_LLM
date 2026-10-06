@@ -20,7 +20,7 @@ from token_iq.gateway.types.llms.anthropic_skills import (
     ListSkillsResponse,
     Skill,
 )
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 
 
 FAKE_API_KEY = "sk-ant-test-key-1234"
@@ -103,8 +103,8 @@ class TestAnthropicSkillsConfigHeaderValidation:
     def setup_method(self):
         self.config = AnthropicSkillsConfig()
 
-    def _make_litellm_params(self, api_key=FAKE_API_KEY):
-        return GenericLiteLLMParams(api_key=api_key)
+    def _make_gateway_params(self, api_key=FAKE_API_KEY):
+        return GenericGatewayParams(api_key=api_key)
 
     def test_sets_api_key_header(self):
         with patch(
@@ -112,7 +112,7 @@ class TestAnthropicSkillsConfigHeaderValidation:
             return_value=FAKE_API_KEY,
         ):
             headers = self.config.validate_environment(
-                headers={}, litellm_params=self._make_litellm_params()
+                headers={}, litellm_params=self._make_gateway_params()
             )
         assert headers["x-api-key"] == FAKE_API_KEY
 
@@ -122,7 +122,7 @@ class TestAnthropicSkillsConfigHeaderValidation:
             return_value=FAKE_API_KEY,
         ):
             headers = self.config.validate_environment(
-                headers={}, litellm_params=self._make_litellm_params()
+                headers={}, litellm_params=self._make_gateway_params()
             )
         assert headers["anthropic-version"] == "2023-06-01"
 
@@ -132,7 +132,7 @@ class TestAnthropicSkillsConfigHeaderValidation:
             return_value=FAKE_API_KEY,
         ):
             headers = self.config.validate_environment(
-                headers={}, litellm_params=self._make_litellm_params()
+                headers={}, litellm_params=self._make_gateway_params()
             )
         assert headers["anthropic-beta"] == ANTHROPIC_SKILLS_API_BETA_VERSION
 
@@ -143,7 +143,7 @@ class TestAnthropicSkillsConfigHeaderValidation:
         ):
             headers = self.config.validate_environment(
                 headers={"anthropic-beta": "other-beta-2024-01-01"},
-                litellm_params=self._make_litellm_params(),
+                litellm_params=self._make_gateway_params(),
             )
         assert isinstance(headers["anthropic-beta"], list)
         assert "other-beta-2024-01-01" in headers["anthropic-beta"]
@@ -156,7 +156,7 @@ class TestAnthropicSkillsConfigHeaderValidation:
         ):
             headers = self.config.validate_environment(
                 headers={"anthropic-beta": ["other-beta-2024-01-01"]},
-                litellm_params=self._make_litellm_params(),
+                litellm_params=self._make_gateway_params(),
             )
         assert ANTHROPIC_SKILLS_API_BETA_VERSION in headers["anthropic-beta"]
         assert "other-beta-2024-01-01" in headers["anthropic-beta"]
@@ -168,7 +168,7 @@ class TestAnthropicSkillsConfigHeaderValidation:
         ):
             headers = self.config.validate_environment(
                 headers={"anthropic-beta": ANTHROPIC_SKILLS_API_BETA_VERSION},
-                litellm_params=self._make_litellm_params(),
+                litellm_params=self._make_gateway_params(),
             )
         beta = headers["anthropic-beta"]
         if isinstance(beta, list):
@@ -183,14 +183,14 @@ class TestAnthropicSkillsConfigHeaderValidation:
         ):
             with pytest.raises(ValueError, match="ANTHROPIC_API_KEY"):
                 self.config.validate_environment(
-                    headers={}, litellm_params=self._make_litellm_params(api_key=None)
+                    headers={}, litellm_params=self._make_gateway_params(api_key=None)
                 )
 
 
 class TestAnthropicSkillsConfigCreateRequestTransformation:
     def setup_method(self):
         self.config = AnthropicSkillsConfig()
-        self.litellm_params = GenericLiteLLMParams(api_key=FAKE_API_KEY)
+        self.litellm_params = GenericGatewayParams(api_key=FAKE_API_KEY)
 
     def test_display_title_included(self):
         create_request: CreateSkillRequest = {"display_title": "My Skill"}
@@ -224,7 +224,7 @@ class TestAnthropicSkillsConfigCreateRequestTransformation:
 class TestAnthropicSkillsConfigListRequestTransformation:
     def setup_method(self):
         self.config = AnthropicSkillsConfig()
-        self.litellm_params = GenericLiteLLMParams(api_key=FAKE_API_KEY)
+        self.litellm_params = GenericGatewayParams(api_key=FAKE_API_KEY)
 
     def test_limit_included_in_query_params(self):
         list_params: ListSkillsParams = {"limit": 25}

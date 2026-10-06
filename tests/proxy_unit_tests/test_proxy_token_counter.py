@@ -546,8 +546,8 @@ async def test_factory_gpt4_endpoint_does_not_call_anthropic_counter():
         mock_handler,
     ):
         # Mock litellm token counter
-        with patch("token_iq.gateway.token_counter") as mock_litellm_counter:
-            mock_litellm_counter.return_value = 50
+        with patch("token_iq.gateway.token_counter") as mock_gateway_counter:
+            mock_gateway_counter.return_value = 50
 
             # Mock router to return GPT-4 deployment
             with patch("token_iq.gateway.proxy.proxy_server.llm_router") as mock_router:
@@ -605,8 +605,8 @@ async def test_factory_normal_token_counter_endpoint_does_not_call_anthropic():
         mock_handler,
     ):
         # Mock litellm token counter
-        with patch("token_iq.gateway.token_counter") as mock_litellm_counter:
-            mock_litellm_counter.return_value = 35
+        with patch("token_iq.gateway.token_counter") as mock_gateway_counter:
+            mock_gateway_counter.return_value = 35
 
             # Mock router to return Anthropic deployment
             with patch("token_iq.gateway.proxy.proxy_server.llm_router") as mock_router:

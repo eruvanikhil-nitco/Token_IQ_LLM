@@ -59,8 +59,8 @@ def _patched_init_cache(litellm_settings: dict, cache_params: dict):
     """
     fake_redis = _FakeRedisCache()
 
-    mock_litellm_cache = MagicMock()
-    mock_litellm_cache.cache = fake_redis
+    mock_gateway_cache = MagicMock()
+    mock_gateway_cache.cache = fake_redis
 
     fresh_user_cache = DualCache()
     fresh_spend_cache = DualCache()
@@ -74,7 +74,7 @@ def _patched_init_cache(litellm_settings: dict, cache_params: dict):
         patch.object(ps, "cli_sso_session_cache", fresh_cli_sso_cache),
         patch.object(ps, "llm_router", None),
         # Cache is locally imported inside _init_cache: patch it at source.
-        patch("token_iq.gateway.Cache", return_value=mock_litellm_cache),
+        patch("token_iq.gateway.Cache", return_value=mock_gateway_cache),
     ):
         gateway.cache = None
         ps.ProxyConfig()._init_cache(cache_params, enable_redis_auth_cache)

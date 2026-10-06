@@ -45,7 +45,7 @@ from token_iq.gateway.types.llms.openai import (
 )
 
 
-class LiteLLMAnthropicToResponsesAPIAdapter:
+class GatewayAnthropicToResponsesAPIAdapter:
     """
     Converts Anthropic /v1/messages requests to OpenAI Responses API format and
     converts Responses API responses back to Anthropic format.
@@ -62,12 +62,12 @@ class LiteLLMAnthropicToResponsesAPIAdapter:
             return AnthropicUsage(input_tokens=0, output_tokens=0)
 
         from token_iq.gateway.llms.anthropic.experimental_pass_through.adapters.transformation import (
-            LiteLLMAnthropicMessagesAdapter,
+            GatewayAnthropicMessagesAdapter,
         )
         from token_iq.gateway.responses.utils import ResponseAPILoggingUtils
 
         chat_usage = ResponseAPILoggingUtils._transform_response_api_usage_to_chat_usage(raw_usage)
-        return LiteLLMAnthropicMessagesAdapter._translate_openai_usage_to_anthropic_usage(chat_usage)
+        return GatewayAnthropicMessagesAdapter._translate_openai_usage_to_anthropic_usage(chat_usage)
 
     # ------------------------------------------------------------------ #
     # Request translation: Anthropic -> Responses API                     #

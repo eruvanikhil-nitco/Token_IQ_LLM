@@ -202,7 +202,7 @@ def _get_response_headers(original_exception: Exception) -> httpx.Headers | None
     return _response_headers
 
 
-def extract_and_raise_litellm_exception(
+def extract_and_raise_gateway_exception(
     response: Any | None,
     error_str: str,
     model: str,
@@ -2419,7 +2419,7 @@ def exception_type(
             if (
                 custom_llm_provider == "litellm_proxy"
             ):  # handle special case where calling litellm proxy + exception str contains error message
-                extract_and_raise_litellm_exception(
+                extract_and_raise_gateway_exception(
                     response=getattr(original_exception, "response", None),
                     error_str=error_str,
                     model=model,

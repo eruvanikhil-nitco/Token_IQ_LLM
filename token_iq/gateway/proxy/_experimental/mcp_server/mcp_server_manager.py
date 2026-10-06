@@ -172,7 +172,7 @@ if TYPE_CHECKING:
     from mcp.types import CreateMessageRequestParams
 
     from token_iq.gateway.caching.caching import InMemoryCache
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
     from token_iq.gateway.types.mcp_server.mcp_toolset import MCPToolset
 
 try:
@@ -820,11 +820,11 @@ def _should_strip_caller_authorization(
     if not (mcp_server.is_oauth_passthrough or mcp_server.is_oauth_delegate):
         return False
 
-    has_explicit_litellm_admission_header: Final = _has_explicit_litellm_admission_header(raw_headers)
+    has_explicit_gateway_admission_header: Final = _has_explicit_gateway_admission_header(raw_headers)
     if mcp_server.is_oauth_delegate:
-        return not has_explicit_litellm_admission_header
-    return _authorization_is_litellm_admission_credential(raw_headers, user_api_key_auth) or (
-        user_api_key_auth is None and not has_explicit_litellm_admission_header
+        return not has_explicit_gateway_admission_header
+    return _authorization_is_gateway_admission_credential(raw_headers, user_api_key_auth) or (
+        user_api_key_auth is None and not has_explicit_gateway_admission_header
     )
 
 
@@ -835,12 +835,12 @@ def _raw_header_value(raw_headers: Mapping[str, str] | None, name: str) -> str |
     return next((v for k, v in (raw_headers or {}).items() if isinstance(k, str) and k.lower() == name), None)
 
 
-def _has_explicit_litellm_admission_header(raw_headers: Mapping[str, str] | None) -> bool:
+def _has_explicit_gateway_admission_header(raw_headers: Mapping[str, str] | None) -> bool:
     """Admission only consumes a non-empty ``x-litellm-api-key``; an empty one falls back to ``Authorization``."""
     return bool(_raw_header_value(raw_headers, "x-litellm-api-key"))
 
 
-def _authorization_is_litellm_admission_credential(
+def _authorization_is_gateway_admission_credential(
     raw_headers: Mapping[str, str] | None,
     user_api_key_auth: UserAPIKeyAuth | None,
 ) -> bool:
@@ -3335,7 +3335,7 @@ class MCPServerManager:
         Rejects the key admission validated and, because virtual keys always carry the ``sk-`` prefix,
         any other LiteLLM key a client puts in ``Authorization`` next to ``x-litellm-api-key``.
         """
-        if _authorization_is_litellm_admission_credential(raw_headers, user_api_key_auth):
+        if _authorization_is_gateway_admission_credential(raw_headers, user_api_key_auth):
             return None
         bearer: Final = MCPServerManager._extract_bearer_token(oauth2_headers, raw_headers)
         if bearer is not None and bearer.startswith(LITELLM_VIRTUAL_KEY_PREFIX):

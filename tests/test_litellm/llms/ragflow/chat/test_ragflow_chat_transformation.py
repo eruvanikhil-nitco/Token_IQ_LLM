@@ -175,18 +175,18 @@ class TestRAGFlowChatTransformation:
             == "http://localhost:9380/api/v1/agents_openai/my-agent-id/chat/completions"
         )
 
-    def test_get_complete_url_from_litellm_params(self):
+    def test_get_complete_url_from_gateway_params(self):
         """Test URL construction with api_base from litellm_params."""
         config = RAGFlowConfig()
 
         model = "ragflow/chat/my-chat-id/gpt-4o-mini"
 
         # Create a simple dict-like object for litellm_params
-        class LiteLLMParams:
+        class GatewayParams:
             def __init__(self):
                 self.api_base = "http://ragflow-server:9380"
 
-        litellm_params = LiteLLMParams()
+        litellm_params = GatewayParams()
 
         url = config.get_complete_url(
             api_base=None,
@@ -303,7 +303,7 @@ class TestRAGFlowChatTransformation:
 
         assert result_headers["Authorization"] == "Bearer env-api-key"
 
-    def test_validate_environment_from_litellm_params(self):
+    def test_validate_environment_from_gateway_params(self):
         """Test that validate_environment gets api_key from litellm_params."""
         config = RAGFlowConfig()
 
@@ -312,14 +312,14 @@ class TestRAGFlowChatTransformation:
         messages = [{"role": "user", "content": "Hello"}]
 
         # Create a simple object for litellm_params with api_key attribute
-        class LiteLLMParams:
+        class GatewayParams:
             def __init__(self):
                 self.api_key = "litellm-params-key"
 
             def __setitem__(self, key, value):
                 setattr(self, key, value)
 
-        litellm_params = LiteLLMParams()
+        litellm_params = GatewayParams()
 
         result_headers = config.validate_environment(
             headers=headers,

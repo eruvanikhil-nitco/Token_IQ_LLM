@@ -1,6 +1,6 @@
 import pytest
 
-from token_iq.gateway.proxy._types import LitellmUserRoles
+from token_iq.gateway.proxy._types import GatewayUserRoles
 
 from .actors import ORG_A, ORG_B
 from .conftest import MASTER_KEY, SCRATCH_PREFIX, create_scratch_actor
@@ -31,7 +31,7 @@ async def test_a2_scratch_actor_lands_in_db(proxy_client, prisma, scratch):
     actor = await create_scratch_actor(
         prisma,
         scratch.prefix,
-        user_role=LitellmUserRoles.ORG_ADMIN.value,
+        user_role=GatewayUserRoles.ORG_ADMIN.value,
         org_admin_of=(ORG_A, ORG_B),
     )
     user_row = await prisma.db.litellm_usertable.find_unique(

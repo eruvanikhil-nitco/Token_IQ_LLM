@@ -57,7 +57,7 @@ class TestPreCallChecksOptimization:
         # Capture the original state
         original_length = len(deployments)
         original_deployment_ids = [id(d) for d in deployments]
-        original_litellm_params_ids = [id(d["litellm_params"]) for d in deployments]
+        original_gateway_params_ids = [id(d["litellm_params"]) for d in deployments]
         snapshot = copy.deepcopy(deployments)
 
         # Call the function under test
@@ -77,7 +77,7 @@ class TestPreCallChecksOptimization:
         # 3. Same nested objects (not replaced with copies)
         assert [
             id(d["litellm_params"]) for d in deployments
-        ] == original_litellm_params_ids, "Nested dicts replaced!"
+        ] == original_gateway_params_ids, "Nested dicts replaced!"
         # 4. Same values (catches any mutation)
         assert deployments == snapshot, "Values were mutated!"
 

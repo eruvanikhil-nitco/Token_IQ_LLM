@@ -7,7 +7,7 @@ from token_iq import gateway
 from token_iq.gateway.llms.databricks.responses.transformation import (
     DatabricksResponsesAPIConfig,
 )
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.types.utils import LlmProviders
 from token_iq.gateway.utils import ProviderConfigManager
 
@@ -47,7 +47,7 @@ class TestDatabricksResponsesAPIConfig:
             model="databricks/databricks-gpt-5-nano",
             input="Hello!",
             response_api_optional_request_params={},
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
         assert request["model"] == "databricks-gpt-5-nano"
@@ -58,7 +58,7 @@ class TestDatabricksResponsesAPIConfig:
             model="databricks-gpt-5-nano",
             input="Hello!",
             response_api_optional_request_params={},
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
         assert request["model"] == "databricks-gpt-5-nano"
@@ -82,7 +82,7 @@ class TestDatabricksResponsesAPIConfig:
             model="databricks-gpt-5-nano",
             input="Hello!",
             response_api_optional_request_params={"text": text_param},
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
         assert request["text"] == text_param
@@ -92,7 +92,7 @@ class TestDatabricksResponsesAPIConfig:
         headers = config.validate_environment(
             headers={},
             model="databricks-gpt-5-nano",
-            litellm_params=GenericLiteLLMParams(
+            litellm_params=GenericGatewayParams(
                 api_key="dapi_test_key",
                 api_base="https://my-workspace.cloud.databricks.com/serving-endpoints",
             ),

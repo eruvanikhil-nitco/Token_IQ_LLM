@@ -54,7 +54,7 @@ if TYPE_CHECKING:
     )
     from pydantic import BaseModel
 
-    from token_iq.gateway import LiteLLMLoggingObj, ModelResponse
+    from token_iq.gateway import GatewayLoggingObj, ModelResponse
     from token_iq.gateway.llms.base_llm.base_model_iterator import BaseModelResponseIterator
     from token_iq.gateway.types.llms.openai import (
         ALL_RESPONSES_API_TOOL_PARAMS,
@@ -209,7 +209,7 @@ def _tool_call_dict_from_output_item(item: Mapping[str, Any], index: int) -> _Ch
     any other tool call. The single conversion rule shared by the non-streaming
     accumulator and the streaming ``output_item.added`` branch."""
     from token_iq.gateway.responses.litellm_completion_transformation.transformation import (
-        LiteLLMCompletionResponsesConfig,
+        GatewayCompletionResponsesConfig,
     )
 
     item_type: Final[object] = item.get("type")
@@ -218,7 +218,7 @@ def _tool_call_dict_from_output_item(item: Mapping[str, Any], index: int) -> _Ch
     name: Final = item.get("name") or ("custom_tool" if is_custom else "")
     function_chunk: Final = ChatCompletionToolCallFunctionChunk(name=name, arguments=arguments)
     tool_call_dict: Final = _ChatToolCallDict(
-        id=LiteLLMCompletionResponsesConfig._tool_call_id_from_responses_item(item.get("id"), item.get("call_id")),
+        id=GatewayCompletionResponsesConfig._tool_call_id_from_responses_item(item.get("id"), item.get("call_id")),
         type="function",
         function=function_chunk,
         index=index,
@@ -257,7 +257,7 @@ def _reasoning_item_to_response_input(
     return r_input
 
 
-class LiteLLMResponsesTransformationHandler(CompletionTransformationBridge):
+class GatewayResponsesTransformationHandler(CompletionTransformationBridge):
     """
     Handler for transforming /chat/completions api requests to litellm.responses requests
     """
@@ -312,7 +312,7 @@ class LiteLLMResponsesTransformationHandler(CompletionTransformationBridge):
                     if content_type == "output_text":
                         response_text = content_item.get("text", "")
                         # Extract annotations from content if present
-                        annotations = LiteLLMResponsesTransformationHandler._convert_annotations_to_chat_format(
+                        annotations = GatewayResponsesTransformationHandler._convert_annotations_to_chat_format(
                             content_item.get("annotations", None)
                         )
                         msg = Message(
@@ -487,21 +487,21 @@ class LiteLLMResponsesTransformationHandler(CompletionTransformationBridge):
             elif key == "web_search_options":
                 self._add_web_search_tool(responses_api_request, value)
 
-    def _build_sanitized_litellm_params(self, litellm_params: dict) -> dict[str, object]:
+    def _build_sanitized_gateway_params(self, litellm_params: dict) -> dict[str, object]:
         """Build sanitized litellm_params with merged metadata."""
         responses_optional_param_keys: Final = set(ResponsesAPIOptionalRequestParams.__annotations__.keys())
         sanitized: Final[dict[str, object]] = {
             key: value for key, value in litellm_params.items() if key not in responses_optional_param_keys
         }
         legacy_metadata: Final = litellm_params.get("metadata")
-        existing_litellm_metadata: Final = litellm_params.get("litellm_metadata")
-        merged_litellm_metadata: Final[dict[str, object]] = {}
+        existing_gateway_metadata: Final = litellm_params.get("litellm_metadata")
+        merged_gateway_metadata: Final[dict[str, object]] = {}
         if isinstance(legacy_metadata, dict):
-            merged_litellm_metadata.update(legacy_metadata)
-        if isinstance(existing_litellm_metadata, dict):
-            merged_litellm_metadata.update(existing_litellm_metadata)
-        if merged_litellm_metadata:
-            sanitized["litellm_metadata"] = merged_litellm_metadata
+            merged_gateway_metadata.update(legacy_metadata)
+        if isinstance(existing_gateway_metadata, dict):
+            merged_gateway_metadata.update(existing_gateway_metadata)
+        if merged_gateway_metadata:
+            sanitized["litellm_metadata"] = merged_gateway_metadata
         else:
             sanitized.pop("litellm_metadata", None)
         return sanitized
@@ -534,7 +534,7 @@ class LiteLLMResponsesTransformationHandler(CompletionTransformationBridge):
         optional_params: dict,
         litellm_params: dict,
         headers: dict,
-        litellm_logging_obj: "LiteLLMLoggingObj",
+        litellm_logging_obj: "GatewayLoggingObj",
         client: object | None = None,
     ) -> dict:
         (
@@ -588,13 +588,13 @@ class LiteLLMResponsesTransformationHandler(CompletionTransformationBridge):
 
         setattr(litellm_logging_obj, "call_type", CallTypes.responses.value)
 
-        sanitized_litellm_params: Final = self._build_sanitized_litellm_params(litellm_params)
+        sanitized_gateway_params: Final = self._build_sanitized_gateway_params(litellm_params)
 
         request_data: Final = {
             "model": api_model,
             "input": input_items,
             "litellm_logging_obj": litellm_logging_obj,
-            **sanitized_litellm_params,
+            **sanitized_gateway_params,
             "client": client,
         }
 
@@ -661,7 +661,7 @@ class LiteLLMResponsesTransformationHandler(CompletionTransformationBridge):
                     response_text = getattr(content, "text", "")
                     # Extract annotations from content if present
                     raw_annotations = getattr(content, "annotations", None)
-                    annotations = LiteLLMResponsesTransformationHandler._convert_annotations_to_chat_format(
+                    annotations = GatewayResponsesTransformationHandler._convert_annotations_to_chat_format(
                         raw_annotations
                     )
                     msg = Message(
@@ -689,11 +689,11 @@ class LiteLLMResponsesTransformationHandler(CompletionTransformationBridge):
 
             elif isinstance(item, ResponseFunctionToolCall):
                 from token_iq.gateway.responses.litellm_completion_transformation.transformation import (
-                    LiteLLMCompletionResponsesConfig,
+                    GatewayCompletionResponsesConfig,
                 )
 
                 tool_call_dict = (
-                    LiteLLMCompletionResponsesConfig.convert_response_function_tool_call_to_chat_completion_tool_call(
+                    GatewayCompletionResponsesConfig.convert_response_function_tool_call_to_chat_completion_tool_call(
                         tool_call_item=item,
                         index=tool_call_index,
                     )
@@ -703,11 +703,11 @@ class LiteLLMResponsesTransformationHandler(CompletionTransformationBridge):
 
             elif ResponseApplyPatchToolCall is not None and isinstance(item, ResponseApplyPatchToolCall):
                 from token_iq.gateway.responses.litellm_completion_transformation.transformation import (
-                    LiteLLMCompletionResponsesConfig,
+                    GatewayCompletionResponsesConfig,
                 )
 
                 tool_call_dict = (
-                    LiteLLMCompletionResponsesConfig.convert_apply_patch_tool_call_to_chat_completion_tool_call(
+                    GatewayCompletionResponsesConfig.convert_apply_patch_tool_call_to_chat_completion_tool_call(
                         tool_call_item=item,
                         index=tool_call_index,
                     )
@@ -831,7 +831,7 @@ class LiteLLMResponsesTransformationHandler(CompletionTransformationBridge):
         return []
 
     @classmethod
-    def _recover_output_items_from_logging(cls, logging_obj: "LiteLLMLoggingObj") -> list[dict[str, object]]:
+    def _recover_output_items_from_logging(cls, logging_obj: "GatewayLoggingObj") -> list[dict[str, object]]:
         model_call_details: Final = getattr(logging_obj, "model_call_details", {}) or {}
         original_response: Final = model_call_details.get("original_response")
         return cls._recover_output_items_from_raw_sse(original_response)
@@ -841,7 +841,7 @@ class LiteLLMResponsesTransformationHandler(CompletionTransformationBridge):
         model: str,
         raw_response: "BaseModel",
         model_response: "ModelResponse",
-        logging_obj: "LiteLLMLoggingObj",
+        logging_obj: "GatewayLoggingObj",
         request_data: dict,
         messages: list["AllMessageValues"],
         optional_params: dict,

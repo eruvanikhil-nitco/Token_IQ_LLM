@@ -468,9 +468,9 @@ async def test_mock_azure_create_fine_tune_job_with_azure_specific_params():
     from openai.types.fine_tuning.fine_tuning_job import (
         Hyperparameters as OAIHyperparameters,
     )
-    from token_iq.gateway.types.utils import LiteLLMFineTuningJob
+    from token_iq.gateway.types.utils import GatewayFineTuningJob
 
-    mock_response = LiteLLMFineTuningJob(
+    mock_response = GatewayFineTuningJob(
         id="ft-azure-123",
         model="gpt-4.1-mini-2025-04-14",
         created_at=1677610602,

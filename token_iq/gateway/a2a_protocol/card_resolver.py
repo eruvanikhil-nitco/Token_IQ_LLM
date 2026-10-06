@@ -140,7 +140,7 @@ def fix_agent_card_url(agent_card: "AgentCard", base_url: str) -> "AgentCard":
     return agent_card
 
 
-class LiteLLMA2ACardResolver(_A2ACardResolver):
+class GatewayA2ACardResolver(_A2ACardResolver):
     """
     Custom A2A card resolver that supports multiple well-known paths.
 

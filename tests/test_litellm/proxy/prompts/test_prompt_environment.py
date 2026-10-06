@@ -79,12 +79,12 @@ def test_create_versioned_prompt_spec_includes_environment():
 async def test_create_prompt_stores_environment_and_created_by():
     """create_prompt should pass environment and created_by to the DB."""
     from unittest.mock import AsyncMock, patch
-    from token_iq.gateway.proxy._types import UserAPIKeyAuth, LitellmUserRoles
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth, GatewayUserRoles
     from token_iq.gateway.proxy.prompts.prompt_endpoints import create_prompt, Prompt
 
     mock_user_auth = UserAPIKeyAuth(
         api_key="sk-1234",
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
         user_id="user-789",
     )
 
@@ -142,12 +142,12 @@ async def test_create_prompt_stores_environment_and_created_by():
 async def test_update_prompt_stores_environment_and_created_by():
     """update_prompt should pass environment and created_by to new version."""
     from unittest.mock import AsyncMock, patch
-    from token_iq.gateway.proxy._types import UserAPIKeyAuth, LitellmUserRoles
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth, GatewayUserRoles
     from token_iq.gateway.proxy.prompts.prompt_endpoints import update_prompt, Prompt
 
     mock_user_auth = UserAPIKeyAuth(
         api_key="sk-1234",
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
         user_id="user-update",
     )
 
@@ -217,12 +217,12 @@ async def test_update_prompt_stores_environment_and_created_by():
 async def test_delete_prompt_scoped_to_environment():
     """delete_prompt with environment param should scope deletion."""
     from unittest.mock import AsyncMock, patch
-    from token_iq.gateway.proxy._types import UserAPIKeyAuth, LitellmUserRoles
+    from token_iq.gateway.proxy._types import UserAPIKeyAuth, GatewayUserRoles
     from token_iq.gateway.proxy.prompts.prompt_endpoints import delete_prompt
 
     mock_user_auth = UserAPIKeyAuth(
         api_key="sk-1234",
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
     )
 
     mock_prisma_client = MagicMock()

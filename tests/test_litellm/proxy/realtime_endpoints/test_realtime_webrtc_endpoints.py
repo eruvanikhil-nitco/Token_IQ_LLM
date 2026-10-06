@@ -160,7 +160,7 @@ def mock_route_request_realtime_calls():
 
 
 @pytest.fixture
-def mock_add_litellm_data():
+def mock_add_gateway_data():
     async def _mock(data, **kwargs):
         return data
 
@@ -198,7 +198,7 @@ def test_client_secrets_requires_auth(proxy_app):
 async def test_client_secrets_success_with_mock(
     proxy_app,
     mock_route_request_client_secrets,
-    mock_add_litellm_data,
+    mock_add_gateway_data,
     mock_pre_call_hook,
 ):
     """POST /v1/realtime/client_secrets returns 200 with valid auth and mocked upstream."""
@@ -214,7 +214,7 @@ async def test_client_secrets_success_with_mock(
             ),
             patch(
                 "token_iq.gateway.proxy.proxy_server.add_litellm_data_to_request",
-                side_effect=mock_add_litellm_data,
+                side_effect=mock_add_gateway_data,
             ),
             patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj") as mock_logging,
         ):
@@ -283,7 +283,7 @@ async def test_client_secrets_transcription_rejects_disallowed_nested_model(
 @pytest.mark.asyncio
 async def test_client_secrets_transcription_routes_on_nested_model(
     proxy_app,
-    mock_add_litellm_data,
+    mock_add_gateway_data,
     mock_pre_call_hook,
 ):
     proxy_app.dependency_overrides[user_api_key_auth] = lambda: UserAPIKeyAuth(
@@ -323,7 +323,7 @@ async def test_client_secrets_transcription_routes_on_nested_model(
             ),
             patch(
                 "token_iq.gateway.proxy.proxy_server.add_litellm_data_to_request",
-                side_effect=mock_add_litellm_data,
+                side_effect=mock_add_gateway_data,
             ),
             patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj") as mock_logging,
         ):
@@ -405,7 +405,7 @@ def test_realtime_calls_invalid_token_returns_401(proxy_app):
 async def test_realtime_calls_success_with_valid_encrypted_token(
     proxy_app,
     mock_route_request_realtime_calls,
-    mock_add_litellm_data,
+    mock_add_gateway_data,
     mock_pre_call_hook,
 ):
     """POST /v1/realtime/calls returns 201 with valid encrypted token from client_secrets."""
@@ -428,7 +428,7 @@ async def test_realtime_calls_success_with_valid_encrypted_token(
         ),
         patch(
             "token_iq.gateway.proxy.proxy_server.add_litellm_data_to_request",
-            side_effect=mock_add_litellm_data,
+            side_effect=mock_add_gateway_data,
         ),
         patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj") as mock_logging,
     ):
@@ -464,7 +464,7 @@ def test_token_payload_carries_session_type():
 @pytest.mark.asyncio
 async def test_realtime_calls_replays_transcription_session_type(
     proxy_app,
-    mock_add_litellm_data,
+    mock_add_gateway_data,
     mock_pre_call_hook,
 ):
     """
@@ -503,7 +503,7 @@ async def test_realtime_calls_replays_transcription_session_type(
         ),
         patch(
             "token_iq.gateway.proxy.proxy_server.add_litellm_data_to_request",
-            side_effect=mock_add_litellm_data,
+            side_effect=mock_add_gateway_data,
         ),
         patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj") as mock_logging,
     ):
@@ -927,7 +927,7 @@ async def test_realtime_websocket_phase2_failure_on_closed_socket_does_not_escap
 async def test_transcription_sessions_encrypts_client_secret(
     proxy_app,
     mock_route_request_transcription_sessions,
-    mock_add_litellm_data,
+    mock_add_gateway_data,
     mock_pre_call_hook,
 ):
     """
@@ -952,7 +952,7 @@ async def test_transcription_sessions_encrypts_client_secret(
             ),
             patch(
                 "token_iq.gateway.proxy.proxy_server.add_litellm_data_to_request",
-                side_effect=mock_add_litellm_data,
+                side_effect=mock_add_gateway_data,
             ),
             patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj") as mock_logging,
         ):
@@ -1074,7 +1074,7 @@ async def test_client_secrets_realtime_explicit_model_blocked_when_not_in_key_sc
 async def test_client_secrets_realtime_default_model_allowed_when_in_key_scope(
     proxy_app,
     mock_route_request_client_secrets,
-    mock_add_litellm_data,
+    mock_add_gateway_data,
     mock_pre_call_hook,
 ):
     """Omitting model should succeed when the default (gpt-4o-realtime-preview) is in scope."""
@@ -1091,7 +1091,7 @@ async def test_client_secrets_realtime_default_model_allowed_when_in_key_scope(
             ),
             patch(
                 "token_iq.gateway.proxy.proxy_server.add_litellm_data_to_request",
-                side_effect=mock_add_litellm_data,
+                side_effect=mock_add_gateway_data,
             ),
             patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj") as mock_logging,
         ):
@@ -1112,7 +1112,7 @@ async def test_client_secrets_realtime_default_model_allowed_when_in_key_scope(
 @pytest.mark.asyncio
 async def test_transcription_sessions_returns_upstream_error_verbatim(
     proxy_app,
-    mock_add_litellm_data,
+    mock_add_gateway_data,
     mock_pre_call_hook,
 ):
     """Non-200 upstream response is forwarded unchanged (no encryption attempted)."""
@@ -1141,7 +1141,7 @@ async def test_transcription_sessions_returns_upstream_error_verbatim(
             ),
             patch(
                 "token_iq.gateway.proxy.proxy_server.add_litellm_data_to_request",
-                side_effect=mock_add_litellm_data,
+                side_effect=mock_add_gateway_data,
             ),
             patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj") as mock_logging,
         ):
@@ -1162,7 +1162,7 @@ async def test_transcription_sessions_returns_upstream_error_verbatim(
 @pytest.mark.asyncio
 async def test_transcription_sessions_wraps_route_exception(
     proxy_app,
-    mock_add_litellm_data,
+    mock_add_gateway_data,
     mock_pre_call_hook,
 ):
     """A route exception is wrapped in a ProxyException with a human-readable message."""
@@ -1183,7 +1183,7 @@ async def test_transcription_sessions_wraps_route_exception(
             ),
             patch(
                 "token_iq.gateway.proxy.proxy_server.add_litellm_data_to_request",
-                side_effect=mock_add_litellm_data,
+                side_effect=mock_add_gateway_data,
             ),
             patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj") as mock_logging,
         ):

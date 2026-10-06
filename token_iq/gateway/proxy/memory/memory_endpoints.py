@@ -26,7 +26,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.proxy._types import (
     CommonProxyErrors,
-    LitellmUserRoles,
+    GatewayUserRoles,
     UserAPIKeyAuth,
     user_api_key_has_admin_view,
 )
@@ -70,7 +70,7 @@ def _serialize_metadata_for_prisma(metadata: object) -> str:
 
 
 def _is_admin(user_api_key_dict: UserAPIKeyAuth) -> bool:
-    return user_api_key_dict.user_role == LitellmUserRoles.PROXY_ADMIN
+    return user_api_key_dict.user_role == GatewayUserRoles.PROXY_ADMIN
 
 
 def _visibility_filter(user_api_key_dict: UserAPIKeyAuth) -> Mapping[str, object] | None:

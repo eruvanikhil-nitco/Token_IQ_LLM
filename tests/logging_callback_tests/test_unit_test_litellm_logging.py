@@ -54,7 +54,7 @@ def test_get_callback_name():
     assert logging._get_callback_name("callback_string") == "callback_string"
 
 
-def test_is_internal_litellm_proxy_callback():
+def test_is_internal_gateway_proxy_callback():
     """
     Ensure we can determine if a callback is an internal litellm proxy callback
 
@@ -62,16 +62,16 @@ def test_is_internal_litellm_proxy_callback():
     """
     logging = setup_logging()
 
-    assert logging._is_internal_litellm_proxy_callback(_PROXY_MaxBudgetLimiter) == True
+    assert logging._is_internal_gateway_proxy_callback(_PROXY_MaxBudgetLimiter) == True
 
     # Test non-internal callbacks
     def regular_callback():
         pass
 
-    assert logging._is_internal_litellm_proxy_callback(regular_callback) == False
+    assert logging._is_internal_gateway_proxy_callback(regular_callback) == False
 
     # Test string callback
-    assert logging._is_internal_litellm_proxy_callback("callback_string") == False
+    assert logging._is_internal_gateway_proxy_callback("callback_string") == False
 
 
 def test_should_run_sync_callbacks_for_async_calls():
@@ -99,7 +99,7 @@ def test_should_run_sync_callbacks_for_async_calls():
     assert logging._should_run_sync_callbacks_for_async_calls() == False
 
 
-def test_remove_internal_litellm_callbacks():
+def test_remove_internal_gateway_callbacks():
     logging = setup_logging()
 
     def regular_callback():
@@ -112,7 +112,7 @@ def test_remove_internal_litellm_callbacks():
         "string_callback",
     ]
 
-    filtered = logging._remove_internal_litellm_callbacks(callbacks)
+    filtered = logging._remove_internal_gateway_callbacks(callbacks)
     assert len(filtered) == 2  # Should only keep regular_callback and string_callback
     assert regular_callback in filtered
     assert "string_callback" in filtered

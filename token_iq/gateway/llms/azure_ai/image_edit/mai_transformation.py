@@ -15,12 +15,12 @@ from token_iq.gateway.llms.openai.image_edit.transformation import OpenAIImageEd
 from token_iq.gateway.secret_managers.main import get_secret_str
 from token_iq.gateway.types.images.main import ImageEditOptionalRequestParams
 from token_iq.gateway.types.llms.openai import FileTypes
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.types.utils import ImageResponse
 from token_iq.gateway.utils import convert_to_model_response_object
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.logging import Logging as GatewayLoggingObj
 
 
 class AzureFoundryMAIImageEditConfig(OpenAIImageEditConfig):
@@ -129,7 +129,7 @@ class AzureFoundryMAIImageEditConfig(OpenAIImageEditConfig):
         prompt: str | None,
         image: FileTypes | None,
         image_edit_optional_request_params: dict,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> tuple[dict, RequestFiles]:
         request_params: Final = {
@@ -159,7 +159,7 @@ class AzureFoundryMAIImageEditConfig(OpenAIImageEditConfig):
         self,
         model: str,
         raw_response: httpx.Response,
-        logging_obj: "LiteLLMLoggingObj",
+        logging_obj: "GatewayLoggingObj",
     ) -> ImageResponse:
         try:
             response: Final = raw_response.json()

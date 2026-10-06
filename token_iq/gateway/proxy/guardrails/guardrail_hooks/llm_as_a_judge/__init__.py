@@ -21,7 +21,7 @@ from token_iq.gateway.types.utils import GenericGuardrailAPIInputs, GuardrailSta
 
 if TYPE_CHECKING:
     from token_iq.gateway import Router
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
     from token_iq.gateway.types.guardrails import Guardrail, LitellmParams
     from token_iq.gateway.types.llms.openai import AllMessageValues
     from token_iq.gateway.types.utils import StandardLoggingEvalInformation
@@ -45,7 +45,7 @@ _extract_text_from_content: Final = extract_text_from_content
 _ParamT = TypeVar("_ParamT")
 
 
-class _LitellmParamView(TypedDict, Generic[_ParamT]):
+class _GatewayParamView(TypedDict, Generic[_ParamT]):
     """Typed read of a single entry in an untyped ``litellm_params`` mapping."""
 
     value: ReadOnly[_ParamT]
@@ -66,7 +66,7 @@ class JudgeMessage(TypedDict):
     content: ReadOnly[NotRequired[object]]
 
 
-def _get_litellm_param(
+def _get_gateway_param(
     litellm_params: "LitellmParams",
     guardrail: "Guardrail",
     key: str,
@@ -77,7 +77,7 @@ def _get_litellm_param(
         return val
     raw: Final = guardrail.get("litellm_params")
     if isinstance(raw, dict) and key in raw:
-        entry: Final[_LitellmParamView[_ParamT]] = {"value": raw[key]}
+        entry: Final[_GatewayParamView[_ParamT]] = {"value": raw[key]}
         return entry["value"]
     if raw is not None and not isinstance(raw, dict):
         attr: Final[_ParamT | None] = getattr(raw, key, None)
@@ -172,7 +172,7 @@ class LLMAsAJudgeGuardrail(CustomGuardrail):
         inputs: GenericGuardrailAPIInputs,
         request_data: dict,
         input_type: Literal["request", "response"],
-        logging_obj: Optional["LiteLLMLoggingObj"] = None,
+        logging_obj: Optional["GatewayLoggingObj"] = None,
     ) -> GenericGuardrailAPIInputs:
         # Only evaluate post-call (response text). Fail open on pre-call.
         if input_type != "response":
@@ -264,11 +264,11 @@ def initialize_guardrail(
     if not guardrail_name:
         raise ValueError("llm_as_a_judge guardrail requires a guardrail_name")
 
-    judge_model: Final[str] = _get_litellm_param(litellm_params, guardrail, "judge_model", "")
+    judge_model: Final[str] = _get_gateway_param(litellm_params, guardrail, "judge_model", "")
     if not judge_model:
         raise ValueError("llm_as_a_judge guardrail requires judge_model in litellm_params")
 
-    criteria: Final[Sequence[JudgeCriterion]] = _get_litellm_param(litellm_params, guardrail, "criteria", ()) or ()
+    criteria: Final[Sequence[JudgeCriterion]] = _get_gateway_param(litellm_params, guardrail, "criteria", ()) or ()
     if not criteria:
         raise ValueError("llm_as_a_judge guardrail requires at least one criterion")
 
@@ -276,13 +276,13 @@ def initialize_guardrail(
     if abs(weight_total - 100) > 0.5:
         raise ValueError(f"llm_as_a_judge criterion weights must sum to 100 (got {weight_total})")
 
-    on_failure: Final[Literal["block", "log"]] = _get_litellm_param(litellm_params, guardrail, "on_failure", "block")
+    on_failure: Final[Literal["block", "log"]] = _get_gateway_param(litellm_params, guardrail, "on_failure", "block")
     if on_failure not in _VALID_ON_FAILURE:
         raise ValueError(f"llm_as_a_judge on_failure must be 'block' or 'log', got '{on_failure}'")
 
-    overall_threshold: Final = float(_get_litellm_param(litellm_params, guardrail, "overall_threshold", 80.0))
+    overall_threshold: Final = float(_get_gateway_param(litellm_params, guardrail, "overall_threshold", 80.0))
 
-    mode: Final[str | None] = _get_litellm_param(litellm_params, guardrail, "mode", None)
+    mode: Final[str | None] = _get_gateway_param(litellm_params, guardrail, "mode", None)
     event_hook: GuardrailEventHooks | None = None
     if isinstance(mode, str) and mode in {e.value for e in GuardrailEventHooks}:
         event_hook = GuardrailEventHooks(mode)
@@ -294,7 +294,7 @@ def initialize_guardrail(
         overall_threshold=overall_threshold,
         on_failure=on_failure,
         event_hook=event_hook,
-        default_on=bool(_get_litellm_param(litellm_params, guardrail, "default_on", False)),
+        default_on=bool(_get_gateway_param(litellm_params, guardrail, "default_on", False)),
     )
     gateway.logging_callback_manager.add_litellm_callback(instance)
     return instance

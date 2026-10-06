@@ -891,12 +891,12 @@ def test_model_armor_hot_reload_null_stays_sanitized():
         project_id="test-project",
         guardrail_name="model-armor-test",
     )
-    guardrail.update_in_memory_litellm_params(
+    guardrail.update_in_memory_gateway_params(
         LitellmParams(guardrail="model_armor", mode="pre_call", sanitize_error_detail=None)
     )
     assert guardrail.sanitize_error_detail is True
 
-    guardrail.update_in_memory_litellm_params(
+    guardrail.update_in_memory_gateway_params(
         LitellmParams(guardrail="model_armor", mode="pre_call", sanitize_error_detail=False)
     )
     assert guardrail.sanitize_error_detail is False

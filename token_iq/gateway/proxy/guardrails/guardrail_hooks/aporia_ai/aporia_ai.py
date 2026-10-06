@@ -21,7 +21,7 @@ from token_iq.gateway.integrations.custom_guardrail import (
     log_guardrail_information,
 )
 from token_iq.gateway.core_utils.logging_utils import (
-    convert_litellm_response_object_to_str,
+    convert_gateway_response_object_to_str,
 )
 from token_iq.gateway.llms.custom_httpx.http_handler import (
     get_async_httpx_client,
@@ -156,7 +156,7 @@ class AporiaGuardrail(CustomGuardrail):
         if self.should_run_guardrail(data=data, event_type=event_type) is not True:
             return
 
-        response_str: Final[str | None] = convert_litellm_response_object_to_str(response)
+        response_str: Final[str | None] = convert_gateway_response_object_to_str(response)
         if response_str is not None:
             await self.make_aporia_api_request(
                 request_data=data,

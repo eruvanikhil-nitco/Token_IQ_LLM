@@ -3905,7 +3905,7 @@ class TestPanwAirsTrIdOverride:
         assert payload["metadata"]["litellm_trace_id"] == trace_id
 
     @pytest.mark.asyncio
-    async def test_top_level_litellm_trace_id_is_correlation_only(
+    async def test_top_level_gateway_trace_id_is_correlation_only(
         self, mock_panw_client
     ):
         """Top-level data['litellm_trace_id'] is correlation-only, NOT a tr_id override."""
@@ -5638,7 +5638,7 @@ class TestPanwAirsTimeoutCoercion:
         handler = make_handler()
         assert handler.timeout == 10.0
 
-    def test_litellm_params_coerces_string_timeout(self):
+    def test_gateway_params_coerces_string_timeout(self):
         """Boundary validation: the Pydantic model itself should normalize
         string timeouts before any handler reads the value via model_dump()."""
         params = LitellmParams(
@@ -5651,7 +5651,7 @@ class TestPanwAirsTimeoutCoercion:
         assert params.timeout == 30.0
         assert isinstance(params.timeout, float)
 
-    def test_litellm_params_rejects_garbage_timeout(self):
+    def test_gateway_params_rejects_garbage_timeout(self):
         with pytest.raises(ValueError, match='validation error for LitellmParams'):
             LitellmParams(
                 guardrail="panw_prisma_airs",
@@ -5661,7 +5661,7 @@ class TestPanwAirsTimeoutCoercion:
                 timeout="not-a-number",
             )
 
-    def test_litellm_params_empty_string_timeout_becomes_none(self):
+    def test_gateway_params_empty_string_timeout_becomes_none(self):
         """Empty-string timeout (which the dashboard form can send) should
         be coerced to None, not crash, and not produce float('')."""
         params = LitellmParams(

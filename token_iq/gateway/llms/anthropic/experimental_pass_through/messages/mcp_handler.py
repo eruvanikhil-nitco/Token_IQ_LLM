@@ -114,7 +114,7 @@ async def anthropic_messages_with_mcp(
     all_tools: Final = [*anthropic_tools, *(other_tools or ())]
 
     should_auto_execute: Final = LiteLLM_Proxy_MCP_Handler._should_auto_execute_tools(
-        mcp_tools_with_litellm_proxy=mcp_references
+        mcp_tools_with_gateway_proxy=mcp_references
     )
     stream: Final = bool(kwargs.pop("stream", False))
 

@@ -324,7 +324,7 @@ class TestResolveModelForCostLookup:
         assert resolved.model == "azure/gpt-4o"
         mock_router.get_model_list.assert_called_once_with(model_name="gpt-5.3-codex")
 
-    def test_falls_back_to_litellm_params_model_when_no_base_model(self):
+    def test_falls_back_to_gateway_params_model_when_no_base_model(self):
         """
         When no base_model is set, should fall back to litellm_params.model.
         """
@@ -353,7 +353,7 @@ class TestResolveModelForCostLookup:
 
         assert resolved.model == "openai/gpt-4"
 
-    def test_resolves_base_model_from_litellm_params(self):
+    def test_resolves_base_model_from_gateway_params(self):
         """
         When base_model is in litellm_params (not model_info),
         it should still be resolved.
@@ -452,7 +452,7 @@ class TestResolveModelForCostLookup:
         assert resolved.model == "openai/gpt-4"
         assert resolved.provider == "openai"
 
-    def test_resolves_base_model_when_deployment_has_no_litellm_params(self):
+    def test_resolves_base_model_when_deployment_has_no_gateway_params(self):
         """A deployment can omit litellm_params entirely; base_model from
         model_info must still resolve (the .get default must be {} not None,
         else the later litellm_params.get(...) raises and resolution is lost)."""
@@ -641,7 +641,7 @@ class TestEstimateCostOnPremProvider:
         assert response.output_cost_per_token == pytest.approx(0.000004)
 
     @pytest.mark.asyncio
-    async def test_estimate_cost_litellm_params_pricing_overrides_model_info(self):
+    async def test_estimate_cost_gateway_params_pricing_overrides_model_info(self):
         """
         When pricing is set in both places, litellm_params wins, matching the
         router's cost-map registration precedence.

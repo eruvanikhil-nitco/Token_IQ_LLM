@@ -182,7 +182,7 @@ def _update_internal_new_user_params(data_json: dict, data: NewUserRequest) -> d
         data_json["table_name"] = "user"  # only create a user, don't create key if 'auto_create_key' set to False
 
     if gateway.default_internal_user_params and (
-        data.user_role != LitellmUserRoles.PROXY_ADMIN.value and data.user_role != LitellmUserRoles.PROXY_ADMIN
+        data.user_role != GatewayUserRoles.PROXY_ADMIN.value and data.user_role != GatewayUserRoles.PROXY_ADMIN
     ):
         for key, value in gateway.default_internal_user_params.items():
             if key == "available_teams":
@@ -197,7 +197,7 @@ def _update_internal_new_user_params(data_json: dict, data: NewUserRequest) -> d
                 data_json[key] = value
 
     ## INTERNAL USER ROLE ONLY DEFAULT PARAMS ##
-    if data.user_role is not None and data.user_role == LitellmUserRoles.INTERNAL_USER.value:
+    if data.user_role is not None and data.user_role == GatewayUserRoles.INTERNAL_USER.value:
         if gateway.max_internal_user_budget is not None and data_json.get("max_budget") is None:
             data_json["max_budget"] = gateway.max_internal_user_budget
 
@@ -297,7 +297,7 @@ async def _add_user_to_organizations(
                     member=[
                         OrgMember(
                             user_id=user_id,
-                            role=LitellmUserRoles.INTERNAL_USER,
+                            role=GatewayUserRoles.INTERNAL_USER,
                         )
                     ],
                 ),
@@ -533,9 +533,9 @@ async def new_user(
         # Check if user_api_key_dict is actually a UserAPIKeyAuth instance (not a Depends object)
         # This can happen when the function is called directly in tests
         if (
-            data.user_role in [LitellmUserRoles.PROXY_ADMIN, LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY]
+            data.user_role in [GatewayUserRoles.PROXY_ADMIN, GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY]
             and isinstance(user_api_key_dict, UserAPIKeyAuth)
-            and user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN
+            and user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN
         ):
             raise HTTPException(
                 status_code=403,
@@ -642,13 +642,13 @@ async def ui_get_available_role(
     """
 
     _data_to_return: Final = {}
-    for role in LitellmUserRoles:
+    for role in GatewayUserRoles:
         # We only show a subset of roles on UI
         if role in [
-            LitellmUserRoles.PROXY_ADMIN,
-            LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY,
-            LitellmUserRoles.INTERNAL_USER,
-            LitellmUserRoles.INTERNAL_USER_VIEW_ONLY,
+            GatewayUserRoles.PROXY_ADMIN,
+            GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY,
+            GatewayUserRoles.INTERNAL_USER,
+            GatewayUserRoles.INTERNAL_USER_VIEW_ONLY,
         ]:
             _data_to_return[role.value] = {
                 "description": role.description,
@@ -941,7 +941,7 @@ async def user_info(
             team_list=team_list,
             teams_1=teams_1,
             model_max_budget_usage=await build_model_max_budget_usage(
-                entity_type=Litellm_EntityType.USER,
+                entity_type=Gateway_EntityType.USER,
                 entity_id=user_id,
                 model_max_budget=getattr(user_info, "model_max_budget", None),
                 cache=model_max_budget_limiter.dual_cache,
@@ -1108,7 +1108,7 @@ async def user_info_v2(
             object_permission=user_data.get("object_permission"),
             model_max_budget=user_data.get("model_max_budget"),
             model_max_budget_usage=await build_model_max_budget_usage(
-                entity_type=Litellm_EntityType.USER,
+                entity_type=Gateway_EntityType.USER,
                 entity_id=user_data.get("user_id", user_id),
                 model_max_budget=user_data.get("model_max_budget"),
                 cache=model_max_budget_limiter.dual_cache,
@@ -1195,7 +1195,7 @@ def _process_keys_for_user_info(
     all_teams: list[LiteLLM_TeamTable] | list[TeamListResponseObject] | None,
 ):
     from token_iq.gateway.constants import UI_SESSION_TOKEN_TEAM_ID
-    from token_iq.gateway.proxy.proxy_server import general_settings, litellm_master_key_hash
+    from token_iq.gateway.proxy.proxy_server import general_settings, gateway_master_key_hash
 
     returned_keys: Final = []
     if keys is None:
@@ -1203,7 +1203,7 @@ def _process_keys_for_user_info(
     else:
         for key in keys:
             if (
-                key.token == litellm_master_key_hash
+                key.token == gateway_master_key_hash
                 and general_settings.get("disable_master_key_return", False)
                 is True  ## [IMPORTANT] used by hosted proxy-ui to prevent sharing master key on ui
             ):
@@ -1252,7 +1252,7 @@ def _update_internal_user_params(data_json: dict, data: UpdateUserRequest | Upda
             non_default_values[k] = v
 
     is_internal_user = False
-    if data.user_role == LitellmUserRoles.INTERNAL_USER:
+    if data.user_role == GatewayUserRoles.INTERNAL_USER:
         is_internal_user = True
 
     if "budget_duration" in non_default_values:
@@ -1317,7 +1317,7 @@ def _check_user_update_authz(
     existing_user_row: BaseModel | None,
 ) -> None:
     """Authorization checks for /user/update — raises HTTPException on failure."""
-    if user_request.user_role is not None and user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN.value:
+    if user_request.user_role is not None and user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN.value:
         raise HTTPException(status_code=403, detail="Only proxy admins can modify user roles.")
 
     if existing_user_row is not None:
@@ -1329,7 +1329,7 @@ def _check_user_update_authz(
                     "error": "User does not have permission to update this user. Only PROXY_ADMIN can update other users."
                 },
             )
-    elif user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN.value:
+    elif user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN.value:
         # Silent-create guard: only PROXY_ADMIN may create via /user/update.
         raise HTTPException(
             status_code=404,
@@ -1445,7 +1445,7 @@ async def _update_single_user_helper(
         getattr(existing_user_row, "user_id", None) if existing_user_row is not None else None
     )
     _is_self_update: Final = _target_user_id is not None and user_api_key_dict.user_id == _target_user_id
-    if _is_self_update and user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN.value:
+    if _is_self_update and user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN.value:
         # object_permission is a CEILING on what this human may reach, so a self-write is an
         # escalation path: sending an empty grant list means "no restriction" and would lift a
         # restriction an admin placed on them. Checked against the fields the caller actually SENT,
@@ -1566,7 +1566,7 @@ def can_user_call_user_update(
     Helper to check if the user has access to the key's info
     """
     if (
-        user_api_key_dict.user_role == LitellmUserRoles.PROXY_ADMIN.value
+        user_api_key_dict.user_role == GatewayUserRoles.PROXY_ADMIN.value
         or user_api_key_dict.user_id == user_info.user_id
     ):
         return True
@@ -1802,7 +1802,7 @@ async def bulk_user_update(
     _bulk_role = getattr(data.user_updates, "user_role", None) if data.user_updates else None
     if _bulk_role is None and data.users:
         _bulk_role = next((u.user_role for u in data.users if u.user_role is not None), None)
-    if _bulk_role is not None and user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN.value:
+    if _bulk_role is not None and user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN.value:
         raise HTTPException(
             status_code=403,
             detail="Only proxy admins can modify user roles.",
@@ -1813,7 +1813,7 @@ async def bulk_user_update(
 
     if data.all_users and data.user_updates:
         # Only proxy admins can update all users at once
-        if user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN.value:
+        if user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN.value:
             raise HTTPException(
                 status_code=403,
                 detail="Only proxy admins can update all users at once.",
@@ -2048,7 +2048,7 @@ async def _authorize_user_list_request(
     allowed_org_ids = [
         m.organization_id
         for m in (caller_user.organization_memberships or [])
-        if m.user_role == LitellmUserRoles.ORG_ADMIN.value
+        if m.user_role == GatewayUserRoles.ORG_ADMIN.value
     ]
     if not allowed_org_ids:
         raise HTTPException(
@@ -2290,14 +2290,14 @@ async def delete_user(
     # cross-check data.user_ids against the caller's scope, so without this
     # loop an org-admin of org-A could delete users in org-B by supplying
     # {"user_ids": [victim_in_org_B], "organization_id": "org-A"}.
-    caller_is_proxy_admin: Final = user_api_key_dict.user_role == LitellmUserRoles.PROXY_ADMIN.value
+    caller_is_proxy_admin: Final = user_api_key_dict.user_role == GatewayUserRoles.PROXY_ADMIN.value
     caller_admin_org_ids: set[str] = set()
     if not caller_is_proxy_admin:
         caller_memberships: Final[Sequence[prisma_models.LiteLLM_OrganizationMembership]] = (
             await _organization_membership_table(prisma_client).find_many(
                 where={
                     "user_id": user_api_key_dict.user_id,
-                    "user_role": LitellmUserRoles.ORG_ADMIN.value,
+                    "user_role": GatewayUserRoles.ORG_ADMIN.value,
                 }
             )
             if user_api_key_dict.user_id
@@ -2365,7 +2365,7 @@ async def delete_user(
                             litellm_proxy_admin_name=litellm_proxy_admin_name,
                         ),
                         changed_by_api_key=user_api_key_dict.api_key,
-                        table_name=LitellmTableNames.USER_TABLE_NAME,
+                        table_name=GatewayTableNames.USER_TABLE_NAME,
                         object_id=user_id,
                         action="deleted",
                         updated_values="{}",
@@ -2430,7 +2430,7 @@ async def delete_user(
 async def add_internal_user_to_organization(
     user_id: str,
     organization_id: str,
-    user_role: LitellmUserRoles,
+    user_role: GatewayUserRoles,
 ) -> "prisma_models.LiteLLM_OrganizationMembership":
     """
     Helper function to add an internal user to an organization

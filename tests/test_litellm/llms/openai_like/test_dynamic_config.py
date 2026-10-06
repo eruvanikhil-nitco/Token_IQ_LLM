@@ -3,7 +3,7 @@ import pytest
 from token_iq.gateway.llms.openai_like import dynamic_config
 from token_iq.gateway.llms.openai_like.dynamic_config import create_responses_config_class
 from token_iq.gateway.llms.openai_like.json_loader import SimpleProviderConfig
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 
 _BASE = {"base_url": "https://api.example.com/v1", "api_key_env": "EXAMPLE_API_KEY"}
 
@@ -48,7 +48,7 @@ class TestValidateEnvironment:
     def test_explicit_api_key_becomes_a_bearer_header(self):
         config = create_responses_config_class(_provider("ve_explicit"))()
         headers = config.validate_environment(
-            headers={}, model="m", litellm_params=GenericLiteLLMParams(api_key="sk-explicit")
+            headers={}, model="m", litellm_params=GenericGatewayParams(api_key="sk-explicit")
         )
         assert headers["Authorization"] == "Bearer sk-explicit"
 
@@ -62,7 +62,7 @@ class TestValidateEnvironment:
         monkeypatch.setenv("VE_LOSER_KEY", "sk-from-env")
         config = create_responses_config_class(_provider("ve_precedence", api_key_env="VE_LOSER_KEY"))()
         headers = config.validate_environment(
-            headers={}, model="m", litellm_params=GenericLiteLLMParams(api_key="sk-wins")
+            headers={}, model="m", litellm_params=GenericGatewayParams(api_key="sk-wins")
         )
         assert headers["Authorization"] == "Bearer sk-wins"
 
@@ -76,7 +76,7 @@ class TestValidateEnvironment:
         headers = config.validate_environment(
             headers={"X-Trace": "abc"},
             model="m",
-            litellm_params=GenericLiteLLMParams(api_key="sk-1"),
+            litellm_params=GenericGatewayParams(api_key="sk-1"),
         )
         assert headers["X-Trace"] == "abc"
 
@@ -126,7 +126,7 @@ class TestForceStoreFalse:
             model="m",
             input="hi",
             response_api_optional_request_params=params,
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
         assert params["store"] is False
@@ -138,7 +138,7 @@ class TestForceStoreFalse:
             model="m",
             input="hi",
             response_api_optional_request_params=params,
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
         assert params["store"] is True

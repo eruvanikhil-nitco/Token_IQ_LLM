@@ -87,18 +87,18 @@ class TestBedrockMantleConfig:
         assert api_base == "https://bedrock-mantle.ca-central-1.api.aws/v1"
 
     def test_aws_region_name_param_overrides_env(self, monkeypatch):
-        from token_iq.gateway.types.router import GenericLiteLLMParams
+        from token_iq.gateway.types.router import GenericGatewayParams
 
         monkeypatch.setenv("BEDROCK_MANTLE_REGION", "us-west-2")
         monkeypatch.delenv("BEDROCK_MANTLE_API_BASE", raising=False)
         cfg = BedrockMantleChatConfig()
         api_base, _ = cfg._get_openai_compatible_provider_info(
-            None, None, litellm_params=GenericLiteLLMParams(aws_region_name="us-east-2")
+            None, None, litellm_params=GenericGatewayParams(aws_region_name="us-east-2")
         )
         assert api_base == "https://bedrock-mantle.us-east-2.api.aws/v1"
 
     def test_malicious_aws_region_name_rejected(self, monkeypatch):
-        from token_iq.gateway.types.router import GenericLiteLLMParams
+        from token_iq.gateway.types.router import GenericGatewayParams
 
         monkeypatch.delenv("BEDROCK_MANTLE_REGION", raising=False)
         monkeypatch.delenv("BEDROCK_MANTLE_API_BASE", raising=False)
@@ -108,13 +108,13 @@ class TestBedrockMantleConfig:
             cfg._get_openai_compatible_provider_info(
                 None,
                 None,
-                litellm_params=GenericLiteLLMParams(
+                litellm_params=GenericGatewayParams(
                     aws_region_name="us-east-1.api.aws.attacker.example/"
                 ),
             )
 
     def test_get_llm_provider_rejects_malicious_aws_region_name(self, monkeypatch):
-        from token_iq.gateway.types.router import GenericLiteLLMParams
+        from token_iq.gateway.types.router import GenericGatewayParams
 
         monkeypatch.delenv("BEDROCK_MANTLE_REGION", raising=False)
         monkeypatch.delenv("BEDROCK_MANTLE_API_BASE", raising=False)
@@ -123,7 +123,7 @@ class TestBedrockMantleConfig:
             gateway.get_llm_provider(
                 model="openai.gpt-5.5",
                 custom_llm_provider="bedrock_mantle",
-                litellm_params=GenericLiteLLMParams(
+                litellm_params=GenericGatewayParams(
                     aws_region_name="us-east-1.api.aws.attacker.example/"
                 ),
             )
@@ -131,7 +131,7 @@ class TestBedrockMantleConfig:
     def test_get_llm_provider_uses_aws_region_name_for_responses(
         self, monkeypatch, local_cost_map
     ):
-        from token_iq.gateway.types.router import GenericLiteLLMParams
+        from token_iq.gateway.types.router import GenericGatewayParams
 
         monkeypatch.delenv("BEDROCK_MANTLE_REGION", raising=False)
         monkeypatch.delenv("BEDROCK_MANTLE_API_BASE", raising=False)
@@ -139,7 +139,7 @@ class TestBedrockMantleConfig:
         _, provider, _, api_base = gateway.get_llm_provider(
             model="openai.gpt-5.5",
             custom_llm_provider="bedrock_mantle",
-            litellm_params=GenericLiteLLMParams(aws_region_name="us-east-2"),
+            litellm_params=GenericGatewayParams(aws_region_name="us-east-2"),
         )
         assert provider == "bedrock_mantle"
         # gpt-5.x carries use_openai_responses_path, so it is served on the

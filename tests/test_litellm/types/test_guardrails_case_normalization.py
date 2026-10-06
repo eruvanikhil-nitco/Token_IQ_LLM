@@ -8,7 +8,7 @@ from pydantic import ValidationError
 from token_iq.gateway.types.guardrails import BaseLitellmParams, LitellmParams
 
 
-class TestLitellmParamsCaseNormalization:
+class TestGatewayParamsCaseNormalization:
     """Test that LitellmParams normalizes case for all guardrail types"""
 
     def test_presidio_guardrail_with_capitalized_default_action(self):

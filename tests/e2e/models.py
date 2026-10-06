@@ -93,7 +93,7 @@ class KeyInfoParams(BaseModel):
     key: str
 
 
-class LiteLLMBudgetTable(BaseModel):
+class GatewayBudgetTable(BaseModel):
     max_budget: float | None = None
     soft_budget: float | None = None
     budget_duration: str | None = None
@@ -112,7 +112,7 @@ class KeyInfo(BaseModel):
     max_budget: float | None = None
     budget_reset_at: str | None = None
     budget_id: str | None = None
-    litellm_budget_table: LiteLLMBudgetTable | None = None
+    litellm_budget_table: GatewayBudgetTable | None = None
     budget_limits: list[BudgetWindowState] | None = None
     object_permission: ObjectPermission | None = None
 
@@ -759,7 +759,7 @@ class FineTuningJobsResponse(BaseModel):
 # ---------- model management ----------
 
 
-class LiteLLMParamsBody(BaseModel):
+class GatewayParamsBody(BaseModel):
     """POST /model/new litellm_params: `model` is the only required field; `api_key`
     et al may be an `os.environ/FOO` reference the proxy resolves at call time.
     The `*_cost_per_token` / `*_token_cost` fields register a per-deployment custom
@@ -827,7 +827,7 @@ class ModelInfoBody(BaseModel):
 class ModelNewBody(BaseModel):
     model_config = ConfigDict(protected_namespaces=())
     model_name: str
-    litellm_params: LiteLLMParamsBody
+    litellm_params: GatewayParamsBody
     model_info: ModelInfoBody
 
 
@@ -843,7 +843,7 @@ class ModelUpdateBody(BaseModel):
     deployment while leaving its other params intact."""
 
     model_config = ConfigDict(protected_namespaces=())
-    litellm_params: LiteLLMParamsBody
+    litellm_params: GatewayParamsBody
     model_info: ModelInfoBody
 
 
@@ -870,7 +870,7 @@ class ConnectionTestBody(BaseModel):
     rejects `os.environ/` references, so credentials are either literal values or
     omitted to fall through to the proxy's own environment."""
 
-    litellm_params: LiteLLMParamsBody
+    litellm_params: GatewayParamsBody
     mode: Literal["chat", "completion", "embedding", "responses"]
 
 

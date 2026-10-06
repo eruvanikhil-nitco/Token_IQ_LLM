@@ -49,7 +49,7 @@ def get_litellm_web_search_tool() -> dict[str, Any]:
     }
 
 
-def get_litellm_web_search_tool_openai() -> dict[str, Any]:
+def get_gateway_web_search_tool_openai() -> dict[str, Any]:
     """
     Get the standard LiteLLM web search tool definition in OpenAI format.
 
@@ -82,7 +82,7 @@ def get_litellm_web_search_tool_openai() -> dict[str, Any]:
     }
 
 
-def get_litellm_web_search_tool_responses() -> dict[str, Any]:
+def get_gateway_web_search_tool_responses() -> dict[str, Any]:
     """
     Get the standard LiteLLM web search tool definition in Responses API format.
 

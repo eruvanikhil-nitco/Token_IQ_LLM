@@ -110,7 +110,7 @@ async def test_async_completion_with_fallbacks_header_is_zero_when_primary_succe
     assert response.choices[0].message.content == "primary-resp"
 
 
-def test_process_response_headers_preserves_x_litellm_headers_when_internal():
+def test_process_response_headers_preserves_x_gateway_headers_when_internal():
     """
     `process_response_headers` must not add the `llm_provider-` prefix to
     LiteLLM's own internal headers (anything starting with `x-litellm-`) when
@@ -124,14 +124,14 @@ def test_process_response_headers_preserves_x_litellm_headers_when_internal():
             "x-litellm-model-group": "gpt-4",
             "x-stainless-arch": "arm64",
         },
-        preserve_litellm_internal_headers=True,
+        preserve_gateway_internal_headers=True,
     )
     assert result["x-litellm-attempted-fallbacks"] == 1
     assert result["x-litellm-model-group"] == "gpt-4"
     assert result["llm_provider-x-stainless-arch"] == "arm64"
 
 
-def test_process_response_headers_prefixes_x_litellm_from_raw_provider():
+def test_process_response_headers_prefixes_x_gateway_from_raw_provider():
     """
     On raw upstream-provider headers (default `preserve_litellm_internal_headers=False`),
     a header whose name starts with `x-litellm-` MUST still get the
@@ -164,6 +164,6 @@ def test_process_response_headers_ignores_preserve_flag_for_httpx_headers():
             "content-type": "application/json",
         }
     )
-    result = process_response_headers(raw, preserve_litellm_internal_headers=True)
+    result = process_response_headers(raw, preserve_gateway_internal_headers=True)
     assert "x-litellm-attempted-fallbacks" not in result
     assert result["llm_provider-x-litellm-attempted-fallbacks"] == "1"

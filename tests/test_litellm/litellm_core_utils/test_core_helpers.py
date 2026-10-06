@@ -15,7 +15,7 @@ class TestGetOrCreateMetadataBucket:
     """The single owner every guardrail writer and reader shares, so the response
     header and the spend log can never disagree about which dict a record lives in."""
 
-    def test_prefers_litellm_metadata_when_both_present(self):
+    def test_prefers_gateway_metadata_when_both_present(self):
         request_data = {"metadata": {"user_id": "caller"}, "litellm_metadata": {}}
 
         key, bucket = get_or_create_metadata_bucket(request_data)
@@ -23,7 +23,7 @@ class TestGetOrCreateMetadataBucket:
         assert key == "litellm_metadata"
         assert bucket is request_data["litellm_metadata"]
 
-    def test_uses_metadata_when_litellm_metadata_absent(self):
+    def test_uses_metadata_when_gateway_metadata_absent(self):
         request_data = {"metadata": {"user_id": "caller"}}
 
         key, bucket = get_or_create_metadata_bucket(request_data)
@@ -323,11 +323,11 @@ class TestIsExpectedClientError:
         assert over_budget.llm_provider == "anthropic"
         assert is_expected_client_error(over_budget) is True
 
-        litellm_limit = RateLimitError(
+        gateway_limit = RateLimitError(
             message="key over rpm", llm_provider="anthropic", model="claude-haiku-4-5",
             category=RateLimitErrorCategory.LITELLM_RATE_LIMIT,
         )
-        assert is_expected_client_error(litellm_limit) is True
+        assert is_expected_client_error(gateway_limit) is True
 
         vendor_limit = RateLimitError(
             message="rate limited upstream", llm_provider="anthropic", model="claude-haiku-4-5",

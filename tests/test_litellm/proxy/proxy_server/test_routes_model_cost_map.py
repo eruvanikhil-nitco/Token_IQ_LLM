@@ -26,7 +26,7 @@ _VOLATILE = VOLATILE_KEYS | frozenset({"timestamp"})
 # ---------------------------------------------------------------------------
 
 
-def _attach_litellm_config(mock_prisma):
+def _attach_gateway_config(mock_prisma):
     """Attach a litellm_config table mock (not in conftest's _PRISMA_TABLES)."""
     table = MagicMock()
     table.find_unique = AsyncMock(return_value=None)
@@ -51,9 +51,9 @@ def test_reload_model_cost_map_happy(client, auth_as, monkeypatch, mock_prisma):
     """Admin can trigger a manual reload; handler returns model count + status."""
     from token_iq.gateway.core_utils.get_model_cost_map import ModelCostMapReloaded
     from token_iq.gateway.proxy import proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
-    table = _attach_litellm_config(mock_prisma)
+    table = _attach_gateway_config(mock_prisma)
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
 
     fake_cost_map = {"gpt-4": {"input_cost": 0.03}, "gpt-3.5": {"input_cost": 0.002}}
@@ -74,7 +74,7 @@ def test_reload_model_cost_map_happy(client, auth_as, monkeypatch, mock_prisma):
 
     monkeypatch.setattr(ps, "invalidate_config_param", _fake_invalidate)
 
-    with auth_as(LitellmUserRoles.PROXY_ADMIN):
+    with auth_as(GatewayUserRoles.PROXY_ADMIN):
         response = client.post("/reload/model_cost_map")
     assert response.status_code == 200
     body = normalize(response.json(), volatile=_VOLATILE)
@@ -102,9 +102,9 @@ def test_reload_model_cost_map_fetch_failure_502_keeps_map(
         ModelCostMapReloadUnavailable,
     )
     from token_iq.gateway.proxy import proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
-    table = _attach_litellm_config(mock_prisma)
+    table = _attach_gateway_config(mock_prisma)
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
 
     sentinel_map = {"existing-model": {"input_cost": 0.01}}
@@ -118,7 +118,7 @@ def test_reload_model_cost_map_fetch_failure_502_keeps_map(
         ),
     )
 
-    with auth_as(LitellmUserRoles.PROXY_ADMIN):
+    with auth_as(GatewayUserRoles.PROXY_ADMIN):
         response = client.post("/reload/model_cost_map")
     assert response.status_code == 502
     detail = response.json().get("detail", "")
@@ -132,9 +132,9 @@ def test_reload_model_cost_map_fetch_failure_502_keeps_map(
 
 def test_reload_model_cost_map_not_admin_forbidden(client, auth_as):
     """Non-admin caller gets 403 with a role-specific detail."""
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
-    with auth_as(LitellmUserRoles.INTERNAL_USER):
+    with auth_as(GatewayUserRoles.INTERNAL_USER):
         response = client.post("/reload/model_cost_map")
     assert response.status_code == 403
     assert "Admin role required" in response.json().get("detail", "")
@@ -143,10 +143,10 @@ def test_reload_model_cost_map_not_admin_forbidden(client, auth_as):
 def test_reload_model_cost_map_no_db_500(client, auth_as, monkeypatch):
     """Admin path but prisma_client is None — handler raises 500."""
     from token_iq.gateway.proxy import proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
     monkeypatch.setattr(ps, "prisma_client", None)
-    with auth_as(LitellmUserRoles.PROXY_ADMIN):
+    with auth_as(GatewayUserRoles.PROXY_ADMIN):
         response = client.post("/reload/model_cost_map")
     assert response.status_code == 500
     assert "Database connection not available" in response.json().get("detail", "")
@@ -162,9 +162,9 @@ def test_schedule_model_cost_map_reload_happy(
 ):
     """Admin schedules a reload — handler upserts config and echoes interval."""
     from token_iq.gateway.proxy import proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
-    table = _attach_litellm_config(mock_prisma)
+    table = _attach_gateway_config(mock_prisma)
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
 
     async def _fake_invalidate(name):
@@ -172,7 +172,7 @@ def test_schedule_model_cost_map_reload_happy(
 
     monkeypatch.setattr(ps, "invalidate_config_param", _fake_invalidate)
 
-    with auth_as(LitellmUserRoles.PROXY_ADMIN):
+    with auth_as(GatewayUserRoles.PROXY_ADMIN):
         response = client.post("/schedule/model_cost_map_reload?hours=6")
     assert response.status_code == 200
     body = normalize(response.json(), volatile=_VOLATILE)
@@ -193,12 +193,12 @@ def test_schedule_model_cost_map_reload_invalid_hours(
 ):
     """hours <= 0 is rejected with 400."""
     from token_iq.gateway.proxy import proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
-    _attach_litellm_config(mock_prisma)
+    _attach_gateway_config(mock_prisma)
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
 
-    with auth_as(LitellmUserRoles.PROXY_ADMIN):
+    with auth_as(GatewayUserRoles.PROXY_ADMIN):
         response = client.post("/schedule/model_cost_map_reload?hours=0")
     assert response.status_code == 400
     assert "Hours must be greater than 0" in response.json().get("detail", "")
@@ -206,9 +206,9 @@ def test_schedule_model_cost_map_reload_invalid_hours(
 
 def test_schedule_model_cost_map_reload_not_admin_forbidden(client, auth_as):
     """Non-admin caller blocked with 403."""
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
-    with auth_as(LitellmUserRoles.INTERNAL_USER):
+    with auth_as(GatewayUserRoles.INTERNAL_USER):
         response = client.post("/schedule/model_cost_map_reload?hours=6")
     assert response.status_code == 403
     assert "Admin role required" in response.json().get("detail", "")
@@ -224,12 +224,12 @@ def test_cancel_model_cost_map_reload_happy(client, auth_as, monkeypatch, mock_p
     it also holds the reload revision, and a counter restarted by a delete reissues a number
     pods already applied, silently skipping their next manual reload."""
     from token_iq.gateway.proxy import proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
-    table = _attach_litellm_config(mock_prisma)
+    table = _attach_gateway_config(mock_prisma)
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
 
-    with auth_as(LitellmUserRoles.PROXY_ADMIN):
+    with auth_as(GatewayUserRoles.PROXY_ADMIN):
         response = client.delete("/schedule/model_cost_map_reload")
     assert response.status_code == 200
     body = normalize(response.json(), volatile=_VOLATILE)
@@ -243,9 +243,9 @@ def test_cancel_model_cost_map_reload_happy(client, auth_as, monkeypatch, mock_p
 
 
 def test_cancel_model_cost_map_reload_not_admin_forbidden(client, auth_as):
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
-    with auth_as(LitellmUserRoles.INTERNAL_USER):
+    with auth_as(GatewayUserRoles.INTERNAL_USER):
         response = client.delete("/schedule/model_cost_map_reload")
     assert response.status_code == 403
     assert "Admin role required" in response.json().get("detail", "")
@@ -253,10 +253,10 @@ def test_cancel_model_cost_map_reload_not_admin_forbidden(client, auth_as):
 
 def test_cancel_model_cost_map_reload_no_db_500(client, auth_as, monkeypatch):
     from token_iq.gateway.proxy import proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
     monkeypatch.setattr(ps, "prisma_client", None)
-    with auth_as(LitellmUserRoles.PROXY_ADMIN):
+    with auth_as(GatewayUserRoles.PROXY_ADMIN):
         response = client.delete("/schedule/model_cost_map_reload")
     assert response.status_code == 500
     assert "Database connection not available" in response.json().get("detail", "")
@@ -272,10 +272,10 @@ def test_get_model_cost_map_reload_status_no_db_not_scheduled(
 ):
     """No prisma client → returns the not-scheduled shape (4 keys, all-null)."""
     from token_iq.gateway.proxy import proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
     monkeypatch.setattr(ps, "prisma_client", None)
-    with auth_as(LitellmUserRoles.PROXY_ADMIN):
+    with auth_as(GatewayUserRoles.PROXY_ADMIN):
         response = client.get("/schedule/model_cost_map_reload/status")
     assert response.status_code == 200
     assert normalize(response.json()) == {
@@ -291,9 +291,9 @@ def test_get_model_cost_map_reload_status_scheduled(
 ):
     """A valid config row → scheduled=True and the interval is echoed."""
     from token_iq.gateway.proxy import proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
-    table = _attach_litellm_config(mock_prisma)
+    table = _attach_gateway_config(mock_prisma)
     config_row = MagicMock()
     config_row.param_value = {"interval_hours": 12}
     config_row.reload_revision = 0
@@ -301,7 +301,7 @@ def test_get_model_cost_map_reload_status_scheduled(
     table.find_unique = AsyncMock(return_value=config_row)
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
 
-    with auth_as(LitellmUserRoles.PROXY_ADMIN):
+    with auth_as(GatewayUserRoles.PROXY_ADMIN):
         response = client.get("/schedule/model_cost_map_reload/status")
     assert response.status_code == 200
     assert normalize(response.json()) == {
@@ -319,9 +319,9 @@ def test_get_model_cost_map_reload_status_reports_persisted_last_run(
     from datetime import datetime, timezone
 
     from token_iq.gateway.proxy import proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
-    table = _attach_litellm_config(mock_prisma)
+    table = _attach_gateway_config(mock_prisma)
     config_row = MagicMock()
     config_row.param_value = {"interval_hours": 6}
     config_row.reload_revision = 0
@@ -329,7 +329,7 @@ def test_get_model_cost_map_reload_status_reports_persisted_last_run(
     table.find_unique = AsyncMock(return_value=config_row)
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
 
-    with auth_as(LitellmUserRoles.PROXY_ADMIN):
+    with auth_as(GatewayUserRoles.PROXY_ADMIN):
         response = client.get("/schedule/model_cost_map_reload/status")
     assert response.status_code == 200
     assert normalize(response.json()) == {
@@ -347,9 +347,9 @@ def test_get_model_cost_map_reload_status_no_config_not_scheduled(
     from datetime import datetime, timezone
 
     from token_iq.gateway.proxy import proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
-    table = _attach_litellm_config(mock_prisma)
+    table = _attach_gateway_config(mock_prisma)
     config_row = MagicMock()
     config_row.param_value = {"interval_hours": None}
     config_row.reload_revision = 3
@@ -357,7 +357,7 @@ def test_get_model_cost_map_reload_status_no_config_not_scheduled(
     table.find_unique = AsyncMock(return_value=config_row)
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
 
-    with auth_as(LitellmUserRoles.PROXY_ADMIN):
+    with auth_as(GatewayUserRoles.PROXY_ADMIN):
         response = client.get("/schedule/model_cost_map_reload/status")
     assert response.status_code == 200
     assert normalize(response.json()) == {
@@ -369,9 +369,9 @@ def test_get_model_cost_map_reload_status_no_config_not_scheduled(
 
 
 def test_get_model_cost_map_reload_status_not_admin_forbidden(client, auth_as):
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
-    with auth_as(LitellmUserRoles.INTERNAL_USER):
+    with auth_as(GatewayUserRoles.INTERNAL_USER):
         response = client.get("/schedule/model_cost_map_reload/status")
     assert response.status_code == 403
     assert "Admin role required" in response.json().get("detail", "")
@@ -384,7 +384,7 @@ def test_get_model_cost_map_reload_status_not_admin_forbidden(client, auth_as):
 
 def test_get_model_cost_map_source_happy(client, auth_as, monkeypatch):
     """Admin gets the source-info dict, augmented with the current model_count."""
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
     fake_info = {
         "source": "remote",
@@ -398,7 +398,7 @@ def test_get_model_cost_map_source_happy(client, auth_as, monkeypatch):
     )
     monkeypatch.setattr("token_iq.gateway.model_cost", {"a": 1, "b": 2, "c": 3}, raising=False)
 
-    with auth_as(LitellmUserRoles.PROXY_ADMIN):
+    with auth_as(GatewayUserRoles.PROXY_ADMIN):
         response = client.get("/model/cost_map/source")
     assert response.status_code == 200
     assert normalize(response.json()) == {
@@ -414,7 +414,7 @@ def test_get_model_cost_map_source_admin_view_only_allowed(
     client, auth_as, monkeypatch
 ):
     """PROXY_ADMIN_VIEW_ONLY can read source info — pins the read-only ACL."""
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
     fake_info = {
         "source": "local",
@@ -428,7 +428,7 @@ def test_get_model_cost_map_source_admin_view_only_allowed(
     )
     monkeypatch.setattr("token_iq.gateway.model_cost", {"a": 1}, raising=False)
 
-    with auth_as(LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY):
+    with auth_as(GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY):
         response = client.get("/model/cost_map/source")
     assert response.status_code == 200
     assert normalize(response.json()) == {
@@ -441,9 +441,9 @@ def test_get_model_cost_map_source_admin_view_only_allowed(
 
 
 def test_get_model_cost_map_source_not_admin_forbidden(client, auth_as):
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
-    with auth_as(LitellmUserRoles.INTERNAL_USER):
+    with auth_as(GatewayUserRoles.INTERNAL_USER):
         response = client.get("/model/cost_map/source")
     assert response.status_code == 403
     assert "Admin role required" in response.json().get("detail", "")

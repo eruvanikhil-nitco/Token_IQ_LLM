@@ -13,15 +13,15 @@ import pytest
 from fastapi import HTTPException
 
 from token_iq.gateway.proxy import proxy_server
-from token_iq.gateway.proxy._types import LitellmUserRoles
+from token_iq.gateway.proxy._types import GatewayUserRoles
 from token_iq.gateway.proxy.management_endpoints import credential_migration as cm
 from token_iq.gateway.proxy.management_endpoints.key_management_endpoints import (
     check_encryption_endpoint,
     migrate_encryption_endpoint,
 )
 
-ADMIN = SimpleNamespace(user_role=LitellmUserRoles.PROXY_ADMIN.value)
-NONADMIN = SimpleNamespace(user_role=LitellmUserRoles.INTERNAL_USER.value)
+ADMIN = SimpleNamespace(user_role=GatewayUserRoles.PROXY_ADMIN.value)
+NONADMIN = SimpleNamespace(user_role=GatewayUserRoles.INTERNAL_USER.value)
 
 
 def _sample_report() -> cm.MigrationReport:

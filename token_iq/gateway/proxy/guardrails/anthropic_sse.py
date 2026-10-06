@@ -167,13 +167,13 @@ def is_sse_error_stream(all_chunks: Sequence[object]) -> bool:
 
 def anthropic_sse_chunks_from_response(assembled: ModelResponse) -> tuple[bytes, ...]:
     from token_iq.gateway.llms.anthropic.experimental_pass_through.adapters.transformation import (
-        LiteLLMAnthropicMessagesAdapter,
+        GatewayAnthropicMessagesAdapter,
     )
     from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.fake_stream_iterator import (
         FakeAnthropicMessagesStreamIterator,
     )
 
-    anthropic_response: Final = LiteLLMAnthropicMessagesAdapter().translate_openai_response_to_anthropic(
+    anthropic_response: Final = GatewayAnthropicMessagesAdapter().translate_openai_response_to_anthropic(
         response=assembled
     )
     return tuple(FakeAnthropicMessagesStreamIterator(response=anthropic_response).chunks)

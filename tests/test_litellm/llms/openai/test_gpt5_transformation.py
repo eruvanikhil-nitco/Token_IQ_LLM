@@ -3,7 +3,7 @@ import re
 import pytest
 
 from token_iq import gateway
-import token_iq.gateway.main as litellm_main
+import token_iq.gateway.main as gateway_main
 from token_iq.gateway.core_utils.get_model_cost_map import get_model_cost_map
 from token_iq.gateway.llms.openai.chat.gpt_5_transformation import OpenAIGPT5Config
 from token_iq.gateway.llms.openai.openai import OpenAIConfig
@@ -1025,7 +1025,7 @@ def test_gpt5_chat_strips_reasoning_summary_aliases_after_bridge_check(
         return {}
 
     monkeypatch.setattr(
-        litellm_main.openai_chat_completions,
+        gateway_main.openai_chat_completions,
         "completion",
         fake_openai_completion,
     )

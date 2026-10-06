@@ -158,7 +158,7 @@ class TestResponsesAPIRequestUtils:
         assert decoded.get("model_id") == "gpt-4o"
         assert decoded.get("custom_llm_provider") == "openai"
 
-    def test_update_responses_api_response_id_with_model_id_is_idempotent_for_litellm_ids(self):
+    def test_update_responses_api_response_id_with_model_id_is_idempotent_for_gateway_ids(self):
         raw = "resp_" + "a" * 48
         litellm_metadata = {"model_info": {"id": "model-123"}}
 
@@ -585,7 +585,7 @@ def test_responses_extra_body_forwarded_to_completion_transformation_handler():
             return_value=None,
         ),
         patch(
-            "token_iq.gateway.responses.main.litellm_completion_transformation_handler.response_api_handler",
+            "token_iq.gateway.responses.main.gateway_completion_transformation_handler.response_api_handler",
         ) as mock_handler,
     ):
         mock_handler.return_value = MagicMock()
@@ -602,7 +602,7 @@ def test_responses_extra_body_forwarded_to_completion_transformation_handler():
         assert call_kwargs.kwargs.get("extra_body") == {"custom_key": "custom_value"}
 
 
-def test_responses_maps_reasoning_effort_from_litellm_params_to_reasoning():
+def test_responses_maps_reasoning_effort_from_gateway_params_to_reasoning():
     """
     Test that when reasoning_effort is passed in kwargs (e.g. from proxy litellm_params)
     and reasoning is None, it is mapped to reasoning before the request.
@@ -616,7 +616,7 @@ def test_responses_maps_reasoning_effort_from_litellm_params_to_reasoning():
             return_value=None,
         ),
         patch(
-            "token_iq.gateway.responses.main.litellm_completion_transformation_handler.response_api_handler",
+            "token_iq.gateway.responses.main.gateway_completion_transformation_handler.response_api_handler",
         ) as mock_handler,
     ):
         mock_handler.return_value = MagicMock()

@@ -3356,7 +3356,7 @@ def test_get_tool_calls_from_response_silences_redacted_arguments(caplog):
         ]
     }
 
-    with caplog.at_level(logging.WARNING, logger="LiteLLM"):
+    with caplog.at_level(logging.WARNING, logger="Gateway"):
         tool_calls: Final = get_tool_calls_from_response(response)
 
     assert tool_calls == [{"id": "call_1", "name": "Read", "arguments": {}}]
@@ -3386,7 +3386,7 @@ def test_get_tool_calls_from_response_warns_for_malformed_arguments(caplog):
         ]
     }
 
-    with caplog.at_level(logging.WARNING, logger="LiteLLM"):
+    with caplog.at_level(logging.WARNING, logger="Gateway"):
         tool_calls: Final = get_tool_calls_from_response(response)
 
     assert tool_calls == [{"id": "call_1", "name": "Read", "arguments": {}}]

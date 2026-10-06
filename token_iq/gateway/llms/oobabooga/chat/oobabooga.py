@@ -10,7 +10,7 @@ from ..common_utils import OobaboogaError
 from .transformation import OobaboogaConfig
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 
 oobabooga_config: Final = OobaboogaConfig()
 
@@ -95,7 +95,7 @@ def embedding(
     model_response: EmbeddingResponse,
     api_key: str | None,
     api_base: str | None,
-    logging_obj: "LiteLLMLoggingObj",
+    logging_obj: "GatewayLoggingObj",
     optional_params: dict,
     encoding=None,
 ):

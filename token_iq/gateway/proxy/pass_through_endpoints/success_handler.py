@@ -5,7 +5,7 @@ from urllib.parse import urlparse
 
 import httpx
 
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.proxy._types import PassThroughEndpointLoggingResultValues
 from token_iq.gateway.types.passthrough_endpoints.pass_through_endpoints import (
     PassthroughStandardLoggingPayload,
@@ -92,7 +92,7 @@ class PassThroughEndpointLogging:
 
     async def _handle_logging(
         self,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         standard_logging_response_object: StandardPassThroughResponseObject
         | PassThroughEndpointLoggingResultValues
         | dict,
@@ -124,7 +124,7 @@ class PassThroughEndpointLogging:
         httpx_response: httpx.Response,
         response_body: dict | list[dict[str, object]] | None,
         request_body: dict,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         url_route: str,
         result: str,
         start_time: datetime,
@@ -300,7 +300,7 @@ class PassThroughEndpointLogging:
         self,
         httpx_response: httpx.Response,
         response_body: dict | list[dict[str, object]] | None,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         url_route: str,
         result: str,
         start_time: datetime,
@@ -483,7 +483,7 @@ class PassThroughEndpointLogging:
 
     def _set_cost_per_request(
         self,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         passthrough_logging_payload: PassthroughStandardLoggingPayload,
         kwargs: dict,
     ):

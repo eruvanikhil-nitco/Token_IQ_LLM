@@ -90,7 +90,7 @@ async def test_get_organization_daily_activity_admin_param_passing(monkeypatch):
     """
     As admin, ensure parsed params are forwarded to get_daily_activity with correct values.
     """
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
     from token_iq.gateway.proxy.management_endpoints import organization_endpoints
     from token_iq.gateway.proxy.management_endpoints.organization_endpoints import (
         get_organization_daily_activity,
@@ -112,7 +112,7 @@ async def test_get_organization_daily_activity_admin_param_passing(monkeypatch):
     get_daily_activity_mock = AsyncMock(return_value=mocked_response)
     monkeypatch.setattr(organization_endpoints, "get_daily_activity", get_daily_activity_mock)
 
-    auth = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin1")
+    auth = UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin1")
     result = await get_organization_daily_activity(
         organization_ids="org1,org2",
         start_date="2024-01-01",
@@ -151,7 +151,7 @@ async def test_get_organization_daily_activity_non_admin_defaults_to_admin_orgs(
     """
     from types import SimpleNamespace
 
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
     from token_iq.gateway.proxy.management_endpoints import organization_endpoints
     from token_iq.gateway.proxy.management_endpoints.organization_endpoints import (
         get_organization_daily_activity,
@@ -162,8 +162,8 @@ async def test_get_organization_daily_activity_non_admin_defaults_to_admin_orgs(
     mock_prisma_client.db.litellm_organizationtable.find_many = AsyncMock(return_value=[])
     mock_prisma_client.db.litellm_organizationmembership.find_many = AsyncMock(
         return_value=[
-            SimpleNamespace(organization_id="orgA", user_role=LitellmUserRoles.ORG_ADMIN.value),
-            SimpleNamespace(organization_id="orgB", user_role=LitellmUserRoles.ORG_ADMIN.value),
+            SimpleNamespace(organization_id="orgA", user_role=GatewayUserRoles.ORG_ADMIN.value),
+            SimpleNamespace(organization_id="orgB", user_role=GatewayUserRoles.ORG_ADMIN.value),
         ]
     )
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
@@ -179,7 +179,7 @@ async def test_get_organization_daily_activity_non_admin_defaults_to_admin_orgs(
     get_daily_activity_mock = AsyncMock(return_value=mocked_response)
     monkeypatch.setattr(organization_endpoints, "get_daily_activity", get_daily_activity_mock)
 
-    auth = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, user_id="regular-user")
+    auth = UserAPIKeyAuth(user_role=GatewayUserRoles.INTERNAL_USER, user_id="regular-user")
     await get_organization_daily_activity(
         organization_ids=None,
         start_date="2024-02-01",
@@ -207,7 +207,7 @@ async def test_get_organization_daily_activity_non_admin_unauthorized_org_raises
     """
     from types import SimpleNamespace
 
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
     from token_iq.gateway.proxy.management_endpoints.organization_endpoints import (
         get_organization_daily_activity,
     )
@@ -215,7 +215,7 @@ async def test_get_organization_daily_activity_non_admin_unauthorized_org_raises
     # Mock prisma client and memberships (only orgA is admin)
     mock_prisma_client = AsyncMock()
     mock_prisma_client.db.litellm_organizationmembership.find_many = AsyncMock(
-        return_value=[SimpleNamespace(organization_id="orgA", user_role=LitellmUserRoles.ORG_ADMIN.value)]
+        return_value=[SimpleNamespace(organization_id="orgA", user_role=GatewayUserRoles.ORG_ADMIN.value)]
     )
     mock_prisma_client.db.litellm_organizationtable.find_many = AsyncMock(return_value=[])
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
@@ -226,7 +226,7 @@ async def test_get_organization_daily_activity_non_admin_unauthorized_org_raises
         lambda _: False,
     )
 
-    auth = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, user_id="regular-user")
+    auth = UserAPIKeyAuth(user_role=GatewayUserRoles.INTERNAL_USER, user_id="regular-user")
 
     with pytest.raises(HTTPException) as exc:
         await get_organization_daily_activity(
@@ -388,7 +388,7 @@ async def test_list_organization_filter_by_org_id(monkeypatch):
     """
     from types import SimpleNamespace
 
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
     from token_iq.gateway.proxy.management_endpoints.organization_endpoints import (
         list_organization,
     )
@@ -412,7 +412,7 @@ async def test_list_organization_filter_by_org_id(monkeypatch):
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
 
     # Test as proxy admin
-    auth = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin-user")
+    auth = UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin-user")
 
     result = await list_organization(org_id="org-123", org_alias=None, user_api_key_dict=auth)
 
@@ -442,7 +442,7 @@ async def test_list_organization_filter_by_org_alias(monkeypatch):
     """
     from types import SimpleNamespace
 
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
     from token_iq.gateway.proxy.management_endpoints.organization_endpoints import (
         list_organization,
     )
@@ -474,7 +474,7 @@ async def test_list_organization_filter_by_org_alias(monkeypatch):
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
 
     # Test as proxy admin with org_alias filter
-    auth = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin-user")
+    auth = UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin-user")
 
     result = await list_organization(org_id=None, org_alias="test", user_api_key_dict=auth)
 
@@ -529,10 +529,10 @@ async def test_organization_info_includes_user_email(monkeypatch):
 
 @pytest.fixture
 def unauthorized_caller():
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
 
     return UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="random_authenticated_user",
         api_key="sk-random",
     )
@@ -676,7 +676,7 @@ async def _run_update_organization_v2(
     existing_object_permission_row=None,
 ):
     from token_iq.gateway.proxy._types import (
-        LitellmUserRoles,
+        GatewayUserRoles,
         OrganizationUpdateRequestV2,
         UserAPIKeyAuth,
     )
@@ -717,7 +717,7 @@ async def _run_update_organization_v2(
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
     monkeypatch.setattr(organization_endpoints, "_verify_org_access", AsyncMock())
 
-    auth = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin-1")
+    auth = UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin-1")
     await update_organization_v2(
         organization_id="org-1",
         data=OrganizationUpdateRequestV2.model_validate(body),
@@ -779,11 +779,11 @@ async def test_v2_update_metadata_replaces_not_merges(monkeypatch):
 @pytest.mark.asyncio
 async def test_v2_rejects_null_clear_of_non_nullable_fields(monkeypatch):
     """organization_alias and models are non-nullable columns, so a null clear is a 422, not a 500."""
-    from token_iq.gateway.proxy._types import LitellmUserRoles, OrganizationUpdateRequestV2, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, OrganizationUpdateRequestV2, UserAPIKeyAuth
     from token_iq.gateway.proxy.management_endpoints.organization_endpoints import update_organization_v2
 
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", AsyncMock())
-    auth = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin-1")
+    auth = UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin-1")
 
     for body in ({"organization_alias": None}, {"models": None}):
         with pytest.raises(HTTPException) as exc:
@@ -798,12 +798,12 @@ async def test_v2_rejects_null_clear_of_non_nullable_fields(monkeypatch):
 @pytest.mark.asyncio
 async def test_v2_rejects_negative_max_budget(monkeypatch):
     """v2 rejects a negative max_budget with a 422 before touching the DB."""
-    from token_iq.gateway.proxy._types import LitellmUserRoles, OrganizationUpdateRequestV2, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, OrganizationUpdateRequestV2, UserAPIKeyAuth
     from token_iq.gateway.proxy.management_endpoints.organization_endpoints import update_organization_v2
 
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", AsyncMock())
 
-    auth = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin-1")
+    auth = UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin-1")
     with pytest.raises(HTTPException) as exc:
         await update_organization_v2(
             organization_id="org-1",
@@ -817,7 +817,7 @@ async def test_v2_rejects_negative_max_budget(monkeypatch):
 @pytest.mark.asyncio
 async def test_v2_rejects_caller_without_org_access(monkeypatch):
     """v2 runs the real _verify_org_access guard: a non-admin without ORG_ADMIN on the org gets 403 and no write."""
-    from token_iq.gateway.proxy._types import LitellmUserRoles, OrganizationUpdateRequestV2, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, OrganizationUpdateRequestV2, UserAPIKeyAuth
     from token_iq.gateway.proxy.management_endpoints import organization_endpoints
     from token_iq.gateway.proxy.management_endpoints.organization_endpoints import update_organization_v2
 
@@ -829,7 +829,7 @@ async def test_v2_rejects_caller_without_org_access(monkeypatch):
     caller.organization_memberships = []
     monkeypatch.setattr(organization_endpoints, "get_user_object", AsyncMock(return_value=caller))
 
-    auth = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, user_id="user-1")
+    auth = UserAPIKeyAuth(user_role=GatewayUserRoles.INTERNAL_USER, user_id="user-1")
     with pytest.raises(HTTPException) as exc:
         await update_organization_v2(
             organization_id="org-1",
@@ -908,7 +908,7 @@ async def test_v2_clears_object_permission_when_sent_null(monkeypatch):
 @pytest.mark.asyncio
 async def test_v2_rejects_empty_object_permission(monkeypatch):
     """object_permission: {} merges nothing, so it is rejected (send null to clear) rather than silently leaving grants."""
-    from token_iq.gateway.proxy._types import LitellmUserRoles, OrganizationUpdateRequestV2, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, OrganizationUpdateRequestV2, UserAPIKeyAuth
     from token_iq.gateway.proxy.management_endpoints import organization_endpoints
     from token_iq.gateway.proxy.management_endpoints.organization_endpoints import update_organization_v2
 
@@ -916,7 +916,7 @@ async def test_v2_rejects_empty_object_permission(monkeypatch):
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
     monkeypatch.setattr(organization_endpoints, "_verify_org_access", AsyncMock())
 
-    auth = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin-1")
+    auth = UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin-1")
     with pytest.raises(HTTPException) as exc:
         await update_organization_v2(
             organization_id="org-1",
@@ -1002,7 +1002,7 @@ async def test_get_organization_daily_activity_non_admin_without_org_admin_role_
     organization-alias lookup must be scoped by that same empty list rather than
     reading the whole table.
     """
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
     from token_iq.gateway.proxy.management_endpoints import organization_endpoints
     from token_iq.gateway.proxy.management_endpoints.organization_endpoints import (
         get_organization_daily_activity,
@@ -1022,7 +1022,7 @@ async def test_get_organization_daily_activity_non_admin_without_org_admin_role_
     get_daily_activity_mock = AsyncMock(return_value=MagicMock(name="SpendAnalyticsPaginatedResponse"))
     monkeypatch.setattr(organization_endpoints, "get_daily_activity", get_daily_activity_mock)
 
-    auth = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, user_id="no-orgs-user")
+    auth = UserAPIKeyAuth(user_role=GatewayUserRoles.INTERNAL_USER, user_id="no-orgs-user")
     await get_organization_daily_activity(
         organization_ids=None,
         start_date="2024-04-01",

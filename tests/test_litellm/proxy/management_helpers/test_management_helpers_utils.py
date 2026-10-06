@@ -172,7 +172,7 @@ async def test_add_new_member_clones_default_team_budget_id():
     Cloning (rather than sharing the same budget row) is what lets admins later
     edit one member's budget without mutating every other member's budget.
     """
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
     # Setup test data
     test_user_id = "test_user_123"
@@ -184,7 +184,7 @@ async def test_add_new_member_clones_default_team_budget_id():
     new_member = Member(user_id=test_user_id, role="user")
 
     user_api_key_dict = UserAPIKeyAuth(
-        user_id="admin_user", user_role=LitellmUserRoles.PROXY_ADMIN
+        user_id="admin_user", user_role=GatewayUserRoles.PROXY_ADMIN
     )
 
     mock_prisma_client = AsyncMock()
@@ -286,11 +286,11 @@ async def test_add_new_member_budget_duration_only_clones_default_max_budget():
     budget, the member must clone the default (keeping its max_budget) and just
     override the reset window. Creating a fresh duration-only row instead would
     silently drop the team default's cap, leaving the member uncapped."""
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
     new_member = Member(user_id="dur-clone-user", role="user")
     user_api_key_dict = UserAPIKeyAuth(
-        user_id="admin_user", user_role=LitellmUserRoles.PROXY_ADMIN
+        user_id="admin_user", user_role=GatewayUserRoles.PROXY_ADMIN
     )
 
     mock_prisma_client = AsyncMock()
@@ -364,7 +364,7 @@ async def test_add_new_member_no_budget_when_no_default_and_no_max_budget():
 
     When the team has no default member budget, new members get nothing.
     """
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
     test_user_id = "test_user_no_budget"
     test_team_id = "test_team_no_budget"
@@ -373,7 +373,7 @@ async def test_add_new_member_no_budget_when_no_default_and_no_max_budget():
     new_member = Member(user_id=test_user_id, role="user")
 
     user_api_key_dict = UserAPIKeyAuth(
-        user_id="admin_user", user_role=LitellmUserRoles.PROXY_ADMIN
+        user_id="admin_user", user_role=GatewayUserRoles.PROXY_ADMIN
     )
 
     mock_prisma_client = AsyncMock()
@@ -425,7 +425,7 @@ async def test_add_new_member_creates_new_budget_when_max_budget_provided():
     2. A new budget is created in the litellm_budgettable
     3. The new budget_id is used for the team membership
     """
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
     # Setup test data
     test_user_id = "test_user_123"
@@ -439,7 +439,7 @@ async def test_add_new_member_creates_new_budget_when_max_budget_provided():
 
     # Create UserAPIKeyAuth object
     user_api_key_dict = UserAPIKeyAuth(
-        user_id="admin_user", user_role=LitellmUserRoles.PROXY_ADMIN
+        user_id="admin_user", user_role=GatewayUserRoles.PROXY_ADMIN
     )
 
     # Mock the prisma client
@@ -515,11 +515,11 @@ async def test_add_new_member_persists_budget_duration():
     a budget_duration passed to add_new_member must be written to the new
     member budget along with a future budget_reset_at, so the per-member budget
     recurs instead of acting as a lifetime cap."""
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
     new_member = Member(user_id="user-dur", role="user")
     user_api_key_dict = UserAPIKeyAuth(
-        user_id="admin_user", user_role=LitellmUserRoles.PROXY_ADMIN
+        user_id="admin_user", user_role=GatewayUserRoles.PROXY_ADMIN
     )
 
     mock_prisma_client = AsyncMock()
@@ -579,11 +579,11 @@ async def test_add_new_member_persists_budget_duration():
 async def test_add_new_member_persists_budget_duration_without_max_budget():
     """budget_duration alone must still create a member budget; otherwise an
     explicit recurring window passed without a cap would be silently dropped."""
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
     new_member = Member(user_id="user-dur2", role="user")
     user_api_key_dict = UserAPIKeyAuth(
-        user_id="admin_user", user_role=LitellmUserRoles.PROXY_ADMIN
+        user_id="admin_user", user_role=GatewayUserRoles.PROXY_ADMIN
     )
 
     mock_prisma_client = AsyncMock()
@@ -642,7 +642,7 @@ async def test_add_new_member_with_user_email_clones_default_budget():
     budget. The default budget should be CLONED into a new private row for
     this user, not shared with other members of the team.
     """
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
     test_user_email = "test@example.com"
     test_team_id = "test_team_456"
@@ -653,7 +653,7 @@ async def test_add_new_member_with_user_email_clones_default_budget():
     new_member = Member(user_email=test_user_email, role="user")
 
     user_api_key_dict = UserAPIKeyAuth(
-        user_id="admin_user", user_role=LitellmUserRoles.PROXY_ADMIN
+        user_id="admin_user", user_role=GatewayUserRoles.PROXY_ADMIN
     )
 
     mock_prisma_client = AsyncMock()
@@ -1013,11 +1013,11 @@ async def test_add_new_member_appends_team_only_if_absent_for_existing_user():
     the team is already present, and it must not fall through to creating a new
     user row for a user that already exists.
     """
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
     new_member = Member(user_id="existing-user", role="user")
     user_api_key_dict = UserAPIKeyAuth(
-        user_id="admin_user", user_role=LitellmUserRoles.PROXY_ADMIN
+        user_id="admin_user", user_role=GatewayUserRoles.PROXY_ADMIN
     )
 
     mock_prisma_client = AsyncMock()
@@ -1079,11 +1079,11 @@ async def test_add_new_member_creates_missing_user_atomically_via_upsert():
     "Unique constraint failed on the fields: (user_id)", so the shape of both
     branches is pinned here.
     """
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
     new_member = Member(user_id="brand-new-user", role="user")
     user_api_key_dict = UserAPIKeyAuth(
-        user_id="admin_user", user_role=LitellmUserRoles.PROXY_ADMIN
+        user_id="admin_user", user_role=GatewayUserRoles.PROXY_ADMIN
     )
 
     mock_prisma_client = AsyncMock()
@@ -1170,7 +1170,7 @@ async def test_add_new_member_runs_every_write_on_the_caller_transaction(new_mem
     lock while the holder waits for a free one, so nothing ever commits or releases the lock.
     Given a transaction, every read and write has to go through it.
     """
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
     tx = _member_write_tx()
     prisma_client = AsyncMock()
@@ -1181,7 +1181,7 @@ async def test_add_new_member_runs_every_write_on_the_caller_transaction(new_mem
         prisma_client=prisma_client,
         team_id="team-pool",
         user_api_key_dict=UserAPIKeyAuth(
-            user_id="admin_user", user_role=LitellmUserRoles.PROXY_ADMIN
+            user_id="admin_user", user_role=GatewayUserRoles.PROXY_ADMIN
         ),
         litellm_proxy_admin_name="admin",
         tx=tx,

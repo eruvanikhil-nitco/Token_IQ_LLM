@@ -26,7 +26,7 @@ from token_iq.gateway.types.llms.openai import (
     AllMessageValues,
     CreateBatchRequest,
 )
-from token_iq.gateway.types.utils import LiteLLMBatch, LlmProviders
+from token_iq.gateway.types.utils import GatewayBatch, LlmProviders
 
 from ..base_aws_llm import BaseAWSLLM
 from ..common_utils import (
@@ -36,7 +36,7 @@ from ..common_utils import (
 )
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 
 # Bedrock batch input files are uploaded as
 # s3://bucket/litellm-bedrock-files-{model, ":" -> "-"}-{uuid4}.jsonl (see
@@ -268,9 +268,9 @@ class BedrockBatchesConfig(BaseAWSLLM, BaseBatchesConfig):
         self,
         model: str | None,
         raw_response: Response,
-        logging_obj: "LiteLLMLoggingObj",
+        logging_obj: "GatewayLoggingObj",
         litellm_params: dict,
-    ) -> LiteLLMBatch:
+    ) -> GatewayBatch:
         """
         Transform Bedrock batch creation response to LiteLLM format.
         """
@@ -315,7 +315,7 @@ class BedrockBatchesConfig(BaseAWSLLM, BaseBatchesConfig):
         original_request: Final = litellm_params.get("original_batch_request", {})
 
         # Create LiteLLM batch object
-        return LiteLLMBatch(
+        return GatewayBatch(
             id=job_arn,  # Use ARN as the batch ID
             object="batch",
             endpoint=original_request.get("endpoint", "/v1/chat/completions"),
@@ -536,9 +536,9 @@ class BedrockBatchesConfig(BaseAWSLLM, BaseBatchesConfig):
         self,
         model: str | None,
         raw_response: Response,
-        logging_obj: "LiteLLMLoggingObj",
+        logging_obj: "GatewayLoggingObj",
         litellm_params: dict,
-    ) -> LiteLLMBatch:
+    ) -> GatewayBatch:
         """
         Transform Bedrock batch retrieval response to LiteLLM format.
         """
@@ -595,7 +595,7 @@ class BedrockBatchesConfig(BaseAWSLLM, BaseBatchesConfig):
         # Extract errors and metadata
         errors, enriched_metadata = self._extract_errors_and_metadata(response_data, raw_response)
 
-        return LiteLLMBatch(
+        return GatewayBatch(
             id=job_arn,
             object="batch",
             endpoint="/v1/chat/completions",

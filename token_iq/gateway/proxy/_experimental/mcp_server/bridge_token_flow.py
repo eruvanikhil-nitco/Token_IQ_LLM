@@ -26,7 +26,7 @@ if TYPE_CHECKING:
     from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
 
-def _litellm_key_from_request(request: Request) -> str | None:
+def _gateway_key_from_request(request: Request) -> str | None:
     """Return the LiteLLM API key presented on the request, or ``None``.
 
     Accepts the key from ``x-litellm-api-key`` (what MCP clients such as Claude Desktop/Code
@@ -124,7 +124,7 @@ def _database_failure(exc: Exception) -> Literal["unavailable", "faulted"]:
     return "faulted" if PrismaDBExceptionHandler.is_permanent_database_fault(fault) else "unavailable"
 
 
-async def _resolve_active_litellm_key(request: Request) -> "_ResolvedKey | _KeyResolutionFailure":
+async def _resolve_active_gateway_key(request: Request) -> "_ResolvedKey | _KeyResolutionFailure":
     """Resolve the presented litellm key to an active key record, or say precisely why not.
 
     Single resolution path the OAuth token endpoint reuses, resolving authoritatively via
@@ -137,7 +137,7 @@ async def _resolve_active_litellm_key(request: Request) -> "_ResolvedKey | _KeyR
     fault, a ``ProxyException`` / ``HTTPException`` from ``get_key_object`` is an unknown or invalid key,
     a database-service-unavailable error is a retryable outage, and anything else is an unexpected
     gateway fault."""
-    token: Final = _litellm_key_from_request(request)
+    token: Final = _gateway_key_from_request(request)
     if not token:
         return "no_active_key"
     from token_iq.gateway.proxy._types import hash_token  # noqa: PLC0415  # inline import avoids a module-load circular import
@@ -306,7 +306,7 @@ async def _extract_user_id_from_request(request: Request) -> str | None:
     (including a transient DB outage) collapses to ``None`` here and the caller simply skips the store;
     the bridge mint, which must status those outcomes differently, consumes
     :func:`_resolve_active_litellm_key` directly."""
-    resolved: Final = await _resolve_active_litellm_key(request)
+    resolved: Final = await _resolve_active_gateway_key(request)
     if not isinstance(resolved, _ResolvedKey):
         return None
     return _active_key_user_id(resolved.key)
@@ -558,7 +558,7 @@ async def _prepare_bridge_mint(
     if bridge_identity is not None:
         identity = user_identity(server_id=mcp_server.server_id, user_id=bridge_identity.litellm_user_id)
         return _BridgeMintReady(identity=identity, keys=keys)
-    resolved: Final = await _resolve_active_litellm_key(request)
+    resolved: Final = await _resolve_active_gateway_key(request)
     if not isinstance(resolved, _ResolvedKey):
         return _key_resolution_failure_to_mint_error(resolved)
     identity = key_hash_identity(server_id=mcp_server.server_id, key_hash=resolved.key_hash)

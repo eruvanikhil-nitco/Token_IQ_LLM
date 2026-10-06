@@ -40,9 +40,9 @@ def isolated_home(monkeypatch, tmp_path):
 
 
 def _write_home_json(home: Path, filename: str, payload: dict[str, object]) -> None:
-    litellm_dir = home / ".litellm"
-    litellm_dir.mkdir(exist_ok=True)
-    (litellm_dir / filename).write_text(json.dumps(payload))
+    gateway_dir = home / ".litellm"
+    gateway_dir.mkdir(exist_ok=True)
+    (gateway_dir / filename).write_text(json.dumps(payload))
 
 
 def _write_token_file(home: Path, *, key: str | None) -> None:

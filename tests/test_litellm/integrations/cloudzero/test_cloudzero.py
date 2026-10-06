@@ -6,7 +6,7 @@ import pytest
 
 from token_iq.gateway.integrations.cloudzero.cloudzero import CloudZeroLogger
 from token_iq.gateway.integrations.cloudzero.cz_stream_api import CloudZeroStreamer
-from token_iq.gateway.integrations.cloudzero.database import LiteLLMDatabase
+from token_iq.gateway.integrations.cloudzero.database import GatewayDatabase
 
 
 class TestCloudZeroHourlyExport:
@@ -65,7 +65,7 @@ class TestCloudZeroHourlyExport:
 
         with (
             patch.object(
-                LiteLLMDatabase, "_ensure_prisma_client"
+                GatewayDatabase, "_ensure_prisma_client"
             ) as mock_prisma_client_getter,
             patch.object(CloudZeroStreamer, "send_batched") as send_batched_mock,
             patch("token_iq.gateway.integrations.cloudzero.cloudzero.datetime") as mock_datetime,

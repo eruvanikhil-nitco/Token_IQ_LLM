@@ -650,7 +650,7 @@ def test_requires_headers_spec_skipped_without_headers():
     processors = provider._active_span_processor._span_processors
     # Only the baggage processor: the keyless spec must not export (New Relic
     # rejects unauthenticated posts with a 4xx per span batch).
-    assert [type(p).__name__ for p in processors] == ["LiteLLMBaggageSpanProcessor"]
+    assert [type(p).__name__ for p in processors] == ["GatewayBaggageSpanProcessor"]
 
     keyed = OpenTelemetryV2Config(
         exporters=[

@@ -13,7 +13,7 @@ from typing import Final
 import httpx
 
 from token_iq.gateway._logging import verbose_proxy_logger
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.types.utils import Usage
 
 UPSTREAM_RESPONSE_COST_HEADER: Final = "x-litellm-response-cost"
@@ -107,7 +107,7 @@ def parse_upstream_reported_usage(headers: httpx.Headers) -> UpstreamReportedUsa
 
 
 def apply_upstream_reported_usage(
-    logging_obj: LiteLLMLoggingObj,
+    logging_obj: GatewayLoggingObj,
     headers: httpx.Headers,
 ) -> UpstreamReportedUsage | None:
     """Record the upstream's reported totals on the request's logging object.
@@ -127,7 +127,7 @@ def apply_upstream_reported_usage(
     return reported
 
 
-def has_upstream_reported_usage(logging_obj: LiteLLMLoggingObj) -> bool:
+def has_upstream_reported_usage(logging_obj: GatewayLoggingObj) -> bool:
     """Whether the upstream spoke this contract on the request's response.
 
     True even when the value it sent was unusable: a target that reports its

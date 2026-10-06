@@ -29,7 +29,7 @@ if TYPE_CHECKING:
 
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.constants import TOOL_SPEND_TOP_TOOLS
-from token_iq.gateway.proxy._types import CommonProxyErrors, LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import CommonProxyErrors, GatewayUserRoles, UserAPIKeyAuth
 from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 from token_iq.gateway.repositories.object_permission_repository import ObjectPermissionRepository
 from token_iq.gateway.repositories.table_repositories import (
@@ -258,8 +258,8 @@ async def get_tool_spend(
     from token_iq.gateway.proxy.proxy_server import prisma_client
 
     if user_api_key_dict.user_role not in (
-        LitellmUserRoles.PROXY_ADMIN,
-        LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY,
+        GatewayUserRoles.PROXY_ADMIN,
+        GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY,
     ):
         raise HTTPException(
             status_code=403,

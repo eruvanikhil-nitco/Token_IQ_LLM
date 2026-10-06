@@ -13,8 +13,8 @@ from token_iq.gateway.proxy._types import (
     AUDIT_ACTIONS,
     CommonProxyErrors,
     LiteLLM_AuditLogs,
-    Litellm_EntityType,
-    LitellmTableNames,
+    Gateway_EntityType,
+    GatewayTableNames,
     NewUserRequest,
     NewUserResponse,
     UserAPIKeyAuth,
@@ -88,7 +88,7 @@ class UserManagementEventHooks:
         """
         event: Final = WebhookEvent(
             event="internal_user_created",
-            event_group=Litellm_EntityType.USER,
+            event_group=Gateway_EntityType.USER,
             event_message="Welcome to Token IQ",
             token=response.token,
             spend=response.spend or 0.0,
@@ -223,7 +223,7 @@ class UserManagementEventHooks:
                     litellm_proxy_admin_name=litellm_proxy_admin_name,
                 ),
                 changed_by_api_key=user_api_key_dict.api_key,
-                table_name=LitellmTableNames.USER_TABLE_NAME,
+                table_name=GatewayTableNames.USER_TABLE_NAME,
                 object_id=user_id,
                 action=action,
                 updated_values=after_value,

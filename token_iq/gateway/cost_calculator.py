@@ -91,7 +91,7 @@ from token_iq.gateway.llms.vertex_ai.cost_calculator import (
 from token_iq.gateway.llms.vertex_ai.cost_calculator import cost_router as google_cost_router
 from token_iq.gateway.llms.xai.cost_calculator import cost_per_token as xai_cost_per_token
 from token_iq.gateway.responses.utils import ResponseAPILoggingUtils
-from token_iq.gateway.types.agents import LiteLLMSendMessageResponse
+from token_iq.gateway.types.agents import GatewaySendMessageResponse
 from token_iq.gateway.types.llms.openai import (
     HttpxBinaryResponseContent,
     ImageGenerationRequestQuality,
@@ -105,7 +105,7 @@ from token_iq.gateway.types.llms.openai import (
 from token_iq.gateway.types.rerank import RerankBilledUnits, RerankResponse
 from token_iq.gateway.types.utils import (
     CallTypesLiteral,
-    LiteLLMRealtimeStreamLoggingObject,
+    GatewayRealtimeStreamLoggingObject,
     LlmProviders,
     LlmProvidersSet,
     ModelInfo,
@@ -133,10 +133,10 @@ from token_iq.gateway.utils import (
 
 if TYPE_CHECKING:
     from token_iq.gateway.core_utils.litellm_logging import (
-        Logging as LitellmLoggingObject,
+        Logging as GatewayLoggingObject,
     )
 else:
-    LitellmLoggingObject = Any
+    GatewayLoggingObject = Any
 
 # Pre-resolved CallTypes enum values for fast membership checks
 _A2A_CALL_TYPES: Final = frozenset(
@@ -990,7 +990,7 @@ def _infer_call_type(call_type: CallTypesLiteral | None, completion_response: An
         return "image_generation"
     elif isinstance(completion_response, TextCompletionResponse):
         return "text_completion"
-    elif isinstance(completion_response, LiteLLMSendMessageResponse):
+    elif isinstance(completion_response, GatewaySendMessageResponse):
         return "send_message"
 
     return call_type
@@ -1097,7 +1097,7 @@ def _apply_cost_margin(
 
 
 def _store_cost_breakdown_in_logging_obj(
-    litellm_logging_obj: LitellmLoggingObject | None,
+    litellm_logging_obj: GatewayLoggingObject | None,
     prompt_tokens_cost_usd_dollar: float,
     completion_tokens_cost_usd_dollar: float,
     cost_for_built_in_tools_cost_usd_dollar: float,
@@ -1196,7 +1196,7 @@ def completion_cost(
     standard_built_in_tools_params: StandardBuiltInToolsParams | None = None,
     litellm_model_name: str | None = None,
     router_model_id: str | None = None,
-    litellm_logging_obj: LitellmLoggingObject | None = None,
+    litellm_logging_obj: GatewayLoggingObject | None = None,
     ### SERVICE TIER ###
     service_tier: str | None = None,  # for OpenAI service tier pricing
     ### DATA RESIDENCY ###
@@ -1422,13 +1422,13 @@ def completion_cost(
                     # Extract custom model_info for deployment-specific pricing
                     _video_model_info: ModelInfo | None = None
                     if custom_pricing and litellm_logging_obj is not None:
-                        _litellm_params = getattr(litellm_logging_obj, "litellm_params", None)
-                        if _litellm_params is not None:
+                        _gateway_params = getattr(litellm_logging_obj, "litellm_params", None)
+                        if _gateway_params is not None:
                             _video_model_info = next(
                                 (
                                     model_info
                                     for _metadata_key in ("metadata", "litellm_metadata")
-                                    if (model_info := (_litellm_params.get(_metadata_key) or {}).get("model_info"))
+                                    if (model_info := (_gateway_params.get(_metadata_key) or {}).get("model_info"))
                                     is not None
                                 ),
                                 None,
@@ -1574,7 +1574,7 @@ def completion_cost(
 
                     return _final_cost
                 elif call_type == _AREALTIME_CALL_TYPE and isinstance(
-                    completion_response, LiteLLMRealtimeStreamLoggingObject
+                    completion_response, GatewayRealtimeStreamLoggingObject
                 ):
                     if cost_per_token_usage_object is None or custom_llm_provider is None:
                         raise ValueError(
@@ -1802,7 +1802,7 @@ def response_cost_calculator(
     | HttpxBinaryResponseContent
     | RerankResponse
     | ResponsesAPIResponse
-    | LiteLLMRealtimeStreamLoggingObject
+    | GatewayRealtimeStreamLoggingObject
     | OpenAIModerationResponse
     | Response
     | SearchResponse,
@@ -1836,7 +1836,7 @@ def response_cost_calculator(
     standard_built_in_tools_params: StandardBuiltInToolsParams | None = None,
     litellm_model_name: str | None = None,
     router_model_id: str | None = None,
-    litellm_logging_obj: LitellmLoggingObject | None = None,
+    litellm_logging_obj: GatewayLoggingObject | None = None,
     ### SERVICE TIER ###
     service_tier: str | None = None,  # for OpenAI service tier pricing
     ### DATA RESIDENCY ###
@@ -2400,8 +2400,8 @@ class RealtimeAPITokenUsageProcessor(BaseTokenUsageProcessor):
     @staticmethod
     def create_logging_realtime_object(
         usage: Usage, results: OpenAIRealtimeStreamList
-    ) -> LiteLLMRealtimeStreamLoggingObject:
-        return LiteLLMRealtimeStreamLoggingObject(
+    ) -> GatewayRealtimeStreamLoggingObject:
+        return GatewayRealtimeStreamLoggingObject(
             usage=usage,
             results=results,
         )
@@ -2474,7 +2474,7 @@ def handle_realtime_stream_cost_calculation(
     custom_llm_provider: str,
     litellm_model_name: str,
     data_residency: str | None = None,
-    litellm_logging_obj: LitellmLoggingObject | None = None,
+    litellm_logging_obj: GatewayLoggingObject | None = None,
 ) -> float:
     """
     Handles the cost calculation for realtime stream responses.

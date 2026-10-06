@@ -15,7 +15,7 @@ import token_iq.gateway.proxy.proxy_server as ps
 from token_iq.gateway.proxy.proxy_server import app
 from token_iq.gateway.proxy._types import (
     CommonProxyErrors,
-    LitellmUserRoles,
+    GatewayUserRoles,
     UserAPIKeyAuth,
 )
 
@@ -148,7 +148,7 @@ def client_and_mocks(monkeypatch):
 
     admin_user = UserAPIKeyAuth(
         user_id="admin_user",
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
     )
     app.dependency_overrides[ps.user_api_key_auth] = lambda: admin_user
 
@@ -231,7 +231,7 @@ def test_create_access_group_race_condition_returns_409(
 
 @pytest.mark.parametrize(
     "user_role",
-    [LitellmUserRoles.INTERNAL_USER, LitellmUserRoles.INTERNAL_USER_VIEW_ONLY],
+    [GatewayUserRoles.INTERNAL_USER, GatewayUserRoles.INTERNAL_USER_VIEW_ONLY],
 )
 def test_create_access_group_forbidden_non_admin(client_and_mocks, user_role):
     """Non-admin users cannot create access groups."""
@@ -338,7 +338,7 @@ def test_list_access_groups_ordered_by_created_at_desc(client_and_mocks, base_pa
 
 @pytest.mark.parametrize(
     "user_role",
-    [LitellmUserRoles.INTERNAL_USER, LitellmUserRoles.INTERNAL_USER_VIEW_ONLY],
+    [GatewayUserRoles.INTERNAL_USER, GatewayUserRoles.INTERNAL_USER_VIEW_ONLY],
 )
 def test_list_access_groups_forbidden_non_admin(client_and_mocks, user_role):
     """Non-admin users cannot list access groups."""
@@ -386,7 +386,7 @@ def test_get_access_group_not_found(client_and_mocks):
 
 @pytest.mark.parametrize(
     "user_role",
-    [LitellmUserRoles.INTERNAL_USER, LitellmUserRoles.INTERNAL_USER_VIEW_ONLY],
+    [GatewayUserRoles.INTERNAL_USER, GatewayUserRoles.INTERNAL_USER_VIEW_ONLY],
 )
 def test_get_access_group_forbidden_non_admin(client_and_mocks, user_role):
     """Non-admin users cannot get access group."""
@@ -445,7 +445,7 @@ def test_update_access_group_not_found(client_and_mocks):
 
 @pytest.mark.parametrize(
     "user_role",
-    [LitellmUserRoles.INTERNAL_USER, LitellmUserRoles.INTERNAL_USER_VIEW_ONLY],
+    [GatewayUserRoles.INTERNAL_USER, GatewayUserRoles.INTERNAL_USER_VIEW_ONLY],
 )
 def test_update_access_group_forbidden_non_admin(client_and_mocks, user_role):
     """Non-admin users cannot update access groups."""
@@ -579,7 +579,7 @@ def test_delete_access_group_not_found(client_and_mocks):
 
 @pytest.mark.parametrize(
     "user_role",
-    [LitellmUserRoles.INTERNAL_USER, LitellmUserRoles.INTERNAL_USER_VIEW_ONLY],
+    [GatewayUserRoles.INTERNAL_USER, GatewayUserRoles.INTERNAL_USER_VIEW_ONLY],
 )
 def test_delete_access_group_forbidden_non_admin(client_and_mocks, user_role):
     """Non-admin users cannot delete access groups."""

@@ -44,7 +44,7 @@ from endpoints_client import (
     TextBlock,
 )
 from lifecycle import ResourceManager
-from models import LiteLLMParamsBody
+from models import GatewayParamsBody
 
 pytestmark = pytest.mark.e2e
 
@@ -53,16 +53,16 @@ CACHE_PRIMING_INTERVAL_SECONDS = 3.0
 CACHE_WARM_CONSECUTIVE_READS = 3
 
 
-def _azure_params(model: str) -> LiteLLMParamsBody:
-    return LiteLLMParamsBody(
+def _azure_params(model: str) -> GatewayParamsBody:
+    return GatewayParamsBody(
         model=model,
         api_base="os.environ/AZURE_AI_API_BASE",
         api_key="os.environ/AZURE_AI_API_KEY",
     )
 
 
-def _vertex_params(model: str, location: str) -> LiteLLMParamsBody:
-    return LiteLLMParamsBody(
+def _vertex_params(model: str, location: str) -> GatewayParamsBody:
+    return GatewayParamsBody(
         model=model,
         vertex_project="os.environ/VERTEXAI_PROJECT",
         vertex_location=location,
@@ -104,7 +104,7 @@ def _post_messages(client: EndpointsClient, key: str, body: RichMessagesRequest)
 
 
 def _register_deployment(
-    client: EndpointsClient, resources: ResourceManager, params: LiteLLMParamsBody
+    client: EndpointsClient, resources: ResourceManager, params: GatewayParamsBody
 ) -> str:
     model = f"e2e-midsys-{unique_marker()}"
     model_id = client.create_model(model, params)
@@ -209,7 +209,7 @@ MID_CONVERSATION_CACHE_SKIP_REASON = (
 
 
 def _assert_flagged_model_keeps_cache(
-    client: EndpointsClient, resources: ResourceManager, params: LiteLLMParamsBody
+    client: EndpointsClient, resources: ResourceManager, params: GatewayParamsBody
 ) -> None:
     model = _register_deployment(client, resources, params)
     key = resources.key(models=[model])
@@ -242,7 +242,7 @@ def _assert_flagged_model_keeps_cache(
 
 
 def _assert_unflagged_model_converts_and_succeeds(
-    client: EndpointsClient, resources: ResourceManager, params: LiteLLMParamsBody
+    client: EndpointsClient, resources: ResourceManager, params: GatewayParamsBody
 ) -> None:
     model = _register_deployment(client, resources, params)
     key = resources.key(models=[model])

@@ -13,7 +13,7 @@ from ..common_utils import BedrockEventStreamDecoderBase, BedrockModelInfo
 if TYPE_CHECKING:
     from httpx import URL
 
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
     from token_iq.gateway.types.utils import CostResponseTypes
 
 
@@ -144,7 +144,7 @@ class BedrockPassthroughConfig(BaseAWSLLM, BedrockModelInfo, BedrockEventStreamD
         if provider_chat_config is None:
             raise ValueError(f"No provider config found for model: {model}")
 
-        litellm_model_response: Final[ModelResponse] = provider_chat_config.transform_response(
+        gateway_model_response: Final[ModelResponse] = provider_chat_config.transform_response(
             model=model,
             messages=[{"role": "user", "content": "no-message-pass-through-endpoint"}],
             raw_response=httpx_response,
@@ -157,7 +157,7 @@ class BedrockPassthroughConfig(BaseAWSLLM, BedrockModelInfo, BedrockEventStreamD
             encoding=encoding,
         )
 
-        return litellm_model_response
+        return gateway_model_response
 
     def _convert_raw_bytes_to_str_lines(self, raw_bytes: list[bytes]) -> list[str]:
         from botocore.eventstream import EventStreamBuffer
@@ -176,7 +176,7 @@ class BedrockPassthroughConfig(BaseAWSLLM, BedrockModelInfo, BedrockEventStreamD
     def handle_logging_collected_chunks(
         self,
         all_chunks: list[str],
-        litellm_logging_obj: "LiteLLMLoggingObj",
+        litellm_logging_obj: "GatewayLoggingObj",
         model: str,
         custom_llm_provider: str,
         endpoint: str,

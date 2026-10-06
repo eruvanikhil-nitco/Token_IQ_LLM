@@ -6,7 +6,7 @@ from collections.abc import Mapping, Sequence
 import pytest
 
 from token_iq.gateway.core_utils.internal_call_metadata import MODEL_ACCESS_GROUP_METADATA_KEY
-from token_iq.gateway.proxy._types import DBSpendUpdateTransactions, Litellm_EntityType, SpendUpdateQueueItem
+from token_iq.gateway.proxy._types import DBSpendUpdateTransactions, Gateway_EntityType, SpendUpdateQueueItem
 from token_iq.gateway.proxy.db.db_spend_update_writer import DBSpendUpdateWriter, debitable_model_access_groups
 from token_iq.gateway.proxy.db.db_transaction_queue.daily_spend_update_queue import DailySpendUpdateQueue
 from token_iq.gateway.proxy.db.db_transaction_queue.redis_update_buffer import RedisUpdateBuffer
@@ -122,7 +122,7 @@ async def test_single_matched_group_enqueues_one_item_with_full_cost():
     updates = await _drain(writer.spend_update_queue)
     assert updates == [
         SpendUpdateQueueItem(
-            entity_type=Litellm_EntityType.MODEL_ACCESS_GROUP,
+            entity_type=Gateway_EntityType.MODEL_ACCESS_GROUP,
             entity_id="premium-pool",
             response_cost=0.42,
         )
@@ -144,7 +144,7 @@ async def test_every_matched_group_is_charged_the_full_cost_not_a_split():
     updates = await _drain(writer.spend_update_queue)
     assert [update["entity_id"] for update in updates] == ["pool-a", "pool-b", "pool-c"]
     assert [update["response_cost"] for update in updates] == [0.30, 0.30, 0.30]
-    assert {update["entity_type"] for update in updates} == {Litellm_EntityType.MODEL_ACCESS_GROUP}
+    assert {update["entity_type"] for update in updates} == {Gateway_EntityType.MODEL_ACCESS_GROUP}
 
 
 @pytest.mark.parametrize("attributed", [None, [], ()])
@@ -261,7 +261,7 @@ def test_access_groups_read_from_request_metadata():
     assert get_request_model_access_groups(kwargs) == ("pool-a", "pool-b")
 
 
-def test_access_groups_read_from_litellm_metadata():
+def test_access_groups_read_from_gateway_metadata():
     kwargs = {"litellm_params": {"litellm_metadata": {MODEL_ACCESS_GROUP_METADATA_KEY: ["pool-a"]}}}
     assert get_request_model_access_groups(kwargs) == ("pool-a",)
 
@@ -376,15 +376,15 @@ def test_access_group_updates_aggregate_into_their_own_bucket():
     transactions = queue.get_aggregated_db_spend_update_transactions(
         [
             SpendUpdateQueueItem(
-                entity_type=Litellm_EntityType.MODEL_ACCESS_GROUP, entity_id="pool-a", response_cost=0.1
+                entity_type=Gateway_EntityType.MODEL_ACCESS_GROUP, entity_id="pool-a", response_cost=0.1
             ),
             SpendUpdateQueueItem(
-                entity_type=Litellm_EntityType.MODEL_ACCESS_GROUP, entity_id="pool-a", response_cost=0.2
+                entity_type=Gateway_EntityType.MODEL_ACCESS_GROUP, entity_id="pool-a", response_cost=0.2
             ),
             SpendUpdateQueueItem(
-                entity_type=Litellm_EntityType.MODEL_ACCESS_GROUP, entity_id="pool-b", response_cost=0.5
+                entity_type=Gateway_EntityType.MODEL_ACCESS_GROUP, entity_id="pool-b", response_cost=0.5
             ),
-            SpendUpdateQueueItem(entity_type=Litellm_EntityType.TAG, entity_id="pool-a", response_cost=9.0),
+            SpendUpdateQueueItem(entity_type=Gateway_EntityType.TAG, entity_id="pool-a", response_cost=9.0),
         ]
     )
 
@@ -430,7 +430,7 @@ async def test_redis_buffer_requeues_access_group_transactions_as_queue_items():
     updates = await _drain(queue)
     assert updates == [
         SpendUpdateQueueItem(
-            entity_type=Litellm_EntityType.MODEL_ACCESS_GROUP,
+            entity_type=Gateway_EntityType.MODEL_ACCESS_GROUP,
             entity_id="pool-a",
             response_cost=0.75,
         )
@@ -476,7 +476,7 @@ async def test_batch_database_updates_enqueues_access_group_spend():
         project_id=None,
         end_user_id=None,
         prisma_client=object(),
-        litellm_proxy_budget_name=None,
+        gateway_proxy_budget_name=None,
         payload={"model_id": "deployment-1", "spend": 0.15},
         request_model_access_groups=("pool-a", "pool-b"),
     )
@@ -485,7 +485,7 @@ async def test_batch_database_updates_enqueues_access_group_spend():
     access_group_updates = [
         update
         for update in await _drain(writer.spend_update_queue)
-        if update["entity_type"] is Litellm_EntityType.MODEL_ACCESS_GROUP
+        if update["entity_type"] is Gateway_EntityType.MODEL_ACCESS_GROUP
     ]
     assert [(update["entity_id"], update["response_cost"]) for update in access_group_updates] == [
         ("pool-a", 0.15),
@@ -506,10 +506,10 @@ async def test_batch_database_updates_enqueues_nothing_without_access_groups():
         project_id=None,
         end_user_id=None,
         prisma_client=object(),
-        litellm_proxy_budget_name=None,
+        gateway_proxy_budget_name=None,
         payload={"model_id": "deployment-1", "spend": 0.15},
     )
     await asyncio.sleep(0)
 
     updates = await _drain(writer.spend_update_queue)
-    assert [update for update in updates if update["entity_type"] is Litellm_EntityType.MODEL_ACCESS_GROUP] == []
+    assert [update for update in updates if update["entity_type"] is Gateway_EntityType.MODEL_ACCESS_GROUP] == []

@@ -12,7 +12,7 @@ import httpx
 
 from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.core_utils.litellm_logging import (
     get_standard_logging_object_payload,
 )
@@ -234,13 +234,13 @@ class OpenAIPassthroughLoggingHandler(BasePassthroughLoggingHandler):
 
     @staticmethod
     def _calculate_embeddings_cost(
-        litellm_model_response: EmbeddingResponse,
+        gateway_model_response: EmbeddingResponse,
         model: str,
         custom_llm_provider: str,
     ) -> float:
         try:
             return gateway.completion_cost(
-                completion_response=litellm_model_response,
+                completion_response=gateway_model_response,
                 model=model,
                 custom_llm_provider=custom_llm_provider,
                 call_type="aembedding",
@@ -255,7 +255,7 @@ class OpenAIPassthroughLoggingHandler(BasePassthroughLoggingHandler):
     def _build_responses_api_response_and_cost(
         model: str,
         httpx_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         custom_llm_provider: str,
     ) -> tuple[ResponsesAPIResponse, float]:
         """Transform a Responses API raw response into a ResponsesAPIResponse
@@ -274,24 +274,24 @@ class OpenAIPassthroughLoggingHandler(BasePassthroughLoggingHandler):
         to build inline; the Responses payload needs a real transformer).
         """
         responses_config: Final = OpenAIResponsesAPIConfig()
-        litellm_model_response: Final = responses_config.transform_response_api_response(
+        gateway_model_response: Final = responses_config.transform_response_api_response(
             model=model,
             raw_response=httpx_response,
             logging_obj=logging_obj,
         )
         response_cost: Final = gateway.completion_cost(
-            completion_response=litellm_model_response,
+            completion_response=gateway_model_response,
             model=model,
             custom_llm_provider=custom_llm_provider,
             call_type="responses",
         )
-        return litellm_model_response, response_cost
+        return gateway_model_response, response_cost
 
     @staticmethod
     def openai_passthrough_handler(
         httpx_response: httpx.Response,
         response_body: dict,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         url_route: str,
         result: str,
         start_time: datetime,
@@ -335,7 +335,7 @@ class OpenAIPassthroughLoggingHandler(BasePassthroughLoggingHandler):
 
         try:
             response_cost = 0.0
-            litellm_model_response: (
+            gateway_model_response: (
                 ModelResponse | TextCompletionResponse | EmbeddingResponse | ImageResponse | ResponsesAPIResponse | None
             ) = None
             handler_instance: Final = OpenAIPassthroughLoggingHandler()
@@ -346,8 +346,8 @@ class OpenAIPassthroughLoggingHandler(BasePassthroughLoggingHandler):
                 # Handle chat completions with existing logic
                 provider_config: Final = handler_instance.get_provider_config(model=model)
                 # Preserve existing litellm_params to maintain metadata tags
-                existing_litellm_params: Final = kwargs.get("litellm_params", {}) or {}
-                litellm_model_response = provider_config.transform_response(
+                existing_gateway_params: Final = kwargs.get("litellm_params", {}) or {}
+                gateway_model_response = provider_config.transform_response(
                     raw_response=httpx_response,
                     model_response=gateway.ModelResponse(),
                     model=model,
@@ -358,27 +358,27 @@ class OpenAIPassthroughLoggingHandler(BasePassthroughLoggingHandler):
                     request_data=request_body,
                     encoding=getattr(gateway, "encoding", None),
                     json_mode=request_body.get("response_format", {}).get("type") == "json_object",
-                    litellm_params=existing_litellm_params,
+                    litellm_params=existing_gateway_params,
                 )
 
                 # Calculate cost using LiteLLM's cost calculator
                 response_cost = gateway.completion_cost(
-                    completion_response=litellm_model_response,
+                    completion_response=gateway_model_response,
                     model=model,
                     custom_llm_provider=custom_llm_provider,
                 )
             elif is_embeddings:
-                litellm_model_response = convert_to_model_response_object(
+                gateway_model_response = convert_to_model_response_object(
                     response_object=response_body,
                     model_response_object=EmbeddingResponse(),
                     response_type="embedding",
                 )
                 response_cost = OpenAIPassthroughLoggingHandler._calculate_embeddings_cost(
-                    litellm_model_response=litellm_model_response,
+                    gateway_model_response=gateway_model_response,
                     model=model,
                     custom_llm_provider=custom_llm_provider,
                 )
-                litellm_model_response._hidden_params["response_cost"] = response_cost
+                gateway_model_response._hidden_params["response_cost"] = response_cost
             elif is_image_generation:
                 # Handle image generation cost calculation
                 response_cost = OpenAIPassthroughLoggingHandler._calculate_image_generation_cost(
@@ -392,14 +392,14 @@ class OpenAIPassthroughLoggingHandler(BasePassthroughLoggingHandler):
                 except Exception:
                     pass
                 # Create a simple response object for logging
-                litellm_model_response = ImageResponse(
+                gateway_model_response = ImageResponse(
                     data=response_body.get("data", []),
                     model=model,
                 )
                 # Set the calculated cost in _hidden_params to prevent recalculation
-                if not hasattr(litellm_model_response, "_hidden_params"):
-                    litellm_model_response._hidden_params = {}
-                litellm_model_response._hidden_params["response_cost"] = response_cost
+                if not hasattr(gateway_model_response, "_hidden_params"):
+                    gateway_model_response._hidden_params = {}
+                gateway_model_response._hidden_params["response_cost"] = response_cost
             elif is_image_editing:
                 # Handle image editing cost calculation
                 response_cost = OpenAIPassthroughLoggingHandler._calculate_image_editing_cost(
@@ -413,21 +413,21 @@ class OpenAIPassthroughLoggingHandler(BasePassthroughLoggingHandler):
                 except Exception:
                     pass
                 # Create a simple response object for logging
-                litellm_model_response = ImageResponse(
+                gateway_model_response = ImageResponse(
                     data=response_body.get("data", []),
                     model=model,
                 )
                 # Set the calculated cost in _hidden_params to prevent recalculation
-                if not hasattr(litellm_model_response, "_hidden_params"):
-                    litellm_model_response._hidden_params = {}
-                litellm_model_response._hidden_params["response_cost"] = response_cost
+                if not hasattr(gateway_model_response, "_hidden_params"):
+                    gateway_model_response._hidden_params = {}
+                gateway_model_response._hidden_params["response_cost"] = response_cost
             elif is_responses:
                 # Responses-API cost tracking — see
                 # `_build_responses_api_response_and_cost` for why this needs
                 # a dedicated transformer (the chat-completions transform
                 # crashes on the Responses payload shape).
                 (
-                    litellm_model_response,
+                    gateway_model_response,
                     response_cost,
                 ) = OpenAIPassthroughLoggingHandler._build_responses_api_response_and_cost(
                     model=model,
@@ -455,10 +455,10 @@ class OpenAIPassthroughLoggingHandler(BasePassthroughLoggingHandler):
                     )
 
             # Create standard logging object
-            if litellm_model_response is not None:
+            if gateway_model_response is not None:
                 get_standard_logging_object_payload(
                     kwargs=kwargs,
-                    init_response_obj=litellm_model_response,
+                    init_response_obj=gateway_model_response,
                     start_time=start_time,
                     end_time=end_time,
                     logging_obj=logging_obj,
@@ -486,7 +486,7 @@ class OpenAIPassthroughLoggingHandler(BasePassthroughLoggingHandler):
             )
 
             return {
-                "result": litellm_model_response,
+                "result": gateway_model_response,
                 "kwargs": kwargs,
             }
 
@@ -516,7 +516,7 @@ class OpenAIPassthroughLoggingHandler(BasePassthroughLoggingHandler):
     def _build_complete_streaming_response(
         self,
         all_chunks: list[str],
-        litellm_logging_obj: LiteLLMLoggingObj,
+        litellm_logging_obj: GatewayLoggingObj,
         model: str,
     ) -> ModelResponse | TextCompletionResponse | None:
         """
@@ -571,7 +571,7 @@ class OpenAIPassthroughLoggingHandler(BasePassthroughLoggingHandler):
 
     @staticmethod
     def _handle_logging_openai_collected_chunks(
-        litellm_logging_obj: LiteLLMLoggingObj,
+        litellm_logging_obj: GatewayLoggingObj,
         passthrough_success_handler_obj: PassThroughEndpointLogging,
         url_route: str,
         request_body: dict,
@@ -627,7 +627,7 @@ class OpenAIPassthroughLoggingHandler(BasePassthroughLoggingHandler):
             )
 
             # Preserve existing litellm_params to maintain metadata tags
-            existing_litellm_params: Final = litellm_logging_obj.model_call_details.get("litellm_params", {}) or {}
+            existing_gateway_params: Final = litellm_logging_obj.model_call_details.get("litellm_params", {}) or {}
 
             # Prepare kwargs for logging
             kwargs: Final = {
@@ -636,7 +636,7 @@ class OpenAIPassthroughLoggingHandler(BasePassthroughLoggingHandler):
                 "custom_llm_provider": custom_llm_provider,
                 "call_type": litellm_logging_obj.call_type,
                 "messages": litellm_logging_obj.model_call_details.get("messages"),
-                "litellm_params": existing_litellm_params.copy(),
+                "litellm_params": existing_gateway_params.copy(),
             }
 
             # Extract user information for tracking

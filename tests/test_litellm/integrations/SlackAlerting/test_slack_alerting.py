@@ -11,7 +11,7 @@ import pytest
 from token_iq import gateway
 from token_iq.gateway.caching.caching import DualCache
 from token_iq.gateway.integrations.SlackAlerting.slack_alerting import SlackAlerting
-from token_iq.gateway.proxy._types import CallInfo, Litellm_EntityType
+from token_iq.gateway.proxy._types import CallInfo, Gateway_EntityType
 from token_iq.gateway.types.integrations.slack_alerting import AlertType, SlackAlertingCacheKeys
 
 
@@ -21,27 +21,27 @@ class TestSlackAlerting(unittest.TestCase):
 
     def test_get_percent_of_max_budget_left(self):
         # Test case 1: When max_budget is None
-        user_info = CallInfo(max_budget=None, spend=50.0, event_group=Litellm_EntityType.KEY)
+        user_info = CallInfo(max_budget=None, spend=50.0, event_group=Gateway_EntityType.KEY)
         result = self.slack_alerting._get_percent_of_max_budget_left(user_info)
         self.assertEqual(result, 0.0)
 
         # Test case 2: When max_budget is 0
-        user_info = CallInfo(max_budget=0.0, spend=50.0, event_group=Litellm_EntityType.KEY)
+        user_info = CallInfo(max_budget=0.0, spend=50.0, event_group=Gateway_EntityType.KEY)
         result = self.slack_alerting._get_percent_of_max_budget_left(user_info)
         self.assertEqual(result, 0.0)
 
         # Test case 3: When spend is less than max_budget
-        user_info = CallInfo(max_budget=100.0, spend=75.0, event_group=Litellm_EntityType.KEY)
+        user_info = CallInfo(max_budget=100.0, spend=75.0, event_group=Gateway_EntityType.KEY)
         result = self.slack_alerting._get_percent_of_max_budget_left(user_info)
         self.assertEqual(result, 0.25)
 
         # Test case 4: When spend equals max_budget
-        user_info = CallInfo(max_budget=100.0, spend=100.0, event_group=Litellm_EntityType.KEY)
+        user_info = CallInfo(max_budget=100.0, spend=100.0, event_group=Gateway_EntityType.KEY)
         result = self.slack_alerting._get_percent_of_max_budget_left(user_info)
         self.assertEqual(result, 0.0)
 
         # Test case 5: When spend exceeds max_budget
-        user_info = CallInfo(max_budget=100.0, spend=120.0, event_group=Litellm_EntityType.KEY)
+        user_info = CallInfo(max_budget=100.0, spend=120.0, event_group=Gateway_EntityType.KEY)
         result = self.slack_alerting._get_percent_of_max_budget_left(user_info)
         self.assertEqual(result, -0.2)
 
@@ -55,7 +55,7 @@ class TestSlackAlerting(unittest.TestCase):
             max_budget=100.0,
             spend=120.0,
             soft_budget=None,
-            event_group=Litellm_EntityType.KEY,
+            event_group=Gateway_EntityType.KEY,
         )
         event, event_message = self.slack_alerting._get_event_and_event_message(
             user_info=user_info, event=event, event_message=event_message
@@ -68,7 +68,7 @@ class TestSlackAlerting(unittest.TestCase):
             max_budget=100.0,
             spend=95.0,
             soft_budget=None,
-            event_group=Litellm_EntityType.KEY,
+            event_group=Gateway_EntityType.KEY,
         )
         event, event_message = self.slack_alerting._get_event_and_event_message(
             user_info=user_info, event=event, event_message=event_message
@@ -81,7 +81,7 @@ class TestSlackAlerting(unittest.TestCase):
             max_budget=100.0,
             spend=85.0,
             soft_budget=None,
-            event_group=Litellm_EntityType.KEY,
+            event_group=Gateway_EntityType.KEY,
         )
         event, event_message = self.slack_alerting._get_event_and_event_message(
             user_info=user_info, event=event, event_message=event_message
@@ -99,7 +99,7 @@ class TestSlackAlerting(unittest.TestCase):
             max_budget=None,
             spend=120.0,
             soft_budget=100.0,
-            event_group=Litellm_EntityType.KEY,
+            event_group=Gateway_EntityType.KEY,
         )
         event, event_message = self.slack_alerting._get_event_and_event_message(
             user_info=user_info, event=event, event_message=event_message
@@ -112,7 +112,7 @@ class TestSlackAlerting(unittest.TestCase):
             max_budget=None,
             spend=90.0,
             soft_budget=100.0,
-            event_group=Litellm_EntityType.KEY,
+            event_group=Gateway_EntityType.KEY,
         )
         event, event_message = self.slack_alerting._get_event_and_event_message(
             user_info=user_info, event=None, event_message=event_message
@@ -131,7 +131,7 @@ class TestSlackAlerting(unittest.TestCase):
             max_budget=150.0,
             spend=160.0,
             soft_budget=100.0,
-            event_group=Litellm_EntityType.KEY,
+            event_group=Gateway_EntityType.KEY,
         )
         event, event_message = self.slack_alerting._get_event_and_event_message(
             user_info=user_info, event=event, event_message=event_message
@@ -145,7 +145,7 @@ class TestSlackAlerting(unittest.TestCase):
             max_budget=150.0,
             spend=120.0,
             soft_budget=100.0,
-            event_group=Litellm_EntityType.KEY,
+            event_group=Gateway_EntityType.KEY,
         )
         event, event_message = self.slack_alerting._get_event_and_event_message(
             user_info=user_info, event=event, event_message=event_message

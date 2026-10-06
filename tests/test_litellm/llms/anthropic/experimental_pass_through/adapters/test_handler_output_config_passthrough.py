@@ -40,7 +40,7 @@ sys.path.insert(
 
 from token_iq.gateway.llms.anthropic.experimental_pass_through.adapters.handler import (
     ANTHROPIC_ONLY_REQUEST_KEYS,
-    LiteLLMMessagesToCompletionTransformationHandler,
+    GatewayMessagesToCompletionTransformationHandler,
 )
 
 MESSAGES = [{"role": "user", "content": "hello"}]
@@ -57,7 +57,7 @@ def _call_prepare(extra_kwargs, model="gpt-4o", output_format=None, **overrides)
     falsy-empty-dict path. The fallback ``or {}`` pattern PR #22727 used here
     masked the no-extra-kwargs case from ever exercising the test's intent.
     """
-    return LiteLLMMessagesToCompletionTransformationHandler._prepare_completion_kwargs(
+    return GatewayMessagesToCompletionTransformationHandler._prepare_completion_kwargs(
         max_tokens=overrides.get("max_tokens", 1024),
         messages=overrides.get("messages", MESSAGES),
         model=model,

@@ -29,7 +29,7 @@ class _FakeLogging:
         self.model_call_details: dict = {"litellm_params": self.litellm_params}
 
 
-def test_syncs_from_litellm_metadata_key():
+def test_syncs_from_gateway_metadata_key():
     """When guardrail info is in request_data["litellm_metadata"], it is copied."""
     entry = _make_slg_entry()
     request_data = {
@@ -59,7 +59,7 @@ def test_syncs_from_metadata_key():
     assert result == [entry]
 
 
-def test_litellm_metadata_wins_over_caller_metadata():
+def test_gateway_metadata_wins_over_caller_metadata():
     """When both keys are present the helper must read the bucket the writer used,
     which get_or_create_metadata_bucket resolves to litellm_metadata. Reading the
     caller's metadata instead is how a guardrail entry went missing from spend logs

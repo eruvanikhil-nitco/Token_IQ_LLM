@@ -7,7 +7,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from token_iq import gateway
-from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
 from token_iq.gateway.proxy.a2a.discovery import (
     AGENT_CARD_WELL_KNOWN_PATHS,
     AgentCardDiscoveryError,
@@ -210,7 +210,7 @@ async def test_langgraph_mode_falls_back_to_older_well_known_paths():
 # ---------------------------------------------------------------------------
 
 
-def _client_for_role(role: LitellmUserRoles) -> TestClient:
+def _client_for_role(role: GatewayUserRoles) -> TestClient:
     app = FastAPI()
     app.include_router(a2a_router)
     app.dependency_overrides[user_api_key_auth] = lambda: UserAPIKeyAuth(
@@ -220,7 +220,7 @@ def _client_for_role(role: LitellmUserRoles) -> TestClient:
 
 
 def test_discover_admin_returns_raw_card():
-    client = _client_for_role(LitellmUserRoles.PROXY_ADMIN)
+    client = _client_for_role(GatewayUserRoles.PROXY_ADMIN)
     with patch(
         "token_iq.gateway.proxy.a2a.endpoints.fetch_well_known_card",
         new=AsyncMock(return_value={"name": "Upstream"}),
@@ -234,13 +234,13 @@ def test_discover_admin_returns_raw_card():
 
 
 def test_discover_non_admin_forbidden():
-    client = _client_for_role(LitellmUserRoles.INTERNAL_USER)
+    client = _client_for_role(GatewayUserRoles.INTERNAL_USER)
     resp = client.post("/v1/a2a/discover", json={"url": "https://upstream.example"})
     assert resp.status_code == 403
 
 
 def test_discover_returns_400_when_upstream_unreachable():
-    client = _client_for_role(LitellmUserRoles.PROXY_ADMIN)
+    client = _client_for_role(GatewayUserRoles.PROXY_ADMIN)
     with patch(
         "token_iq.gateway.proxy.a2a.endpoints.fetch_well_known_card",
         new=AsyncMock(side_effect=AgentCardDiscoveryError("no luck")),
@@ -253,7 +253,7 @@ def test_discover_returns_400_when_upstream_unreachable():
 
 def test_discover_forwards_mode_and_params_to_fetcher():
     """The endpoint must hand discovery_mode + params to fetch_well_known_card."""
-    client = _client_for_role(LitellmUserRoles.PROXY_ADMIN)
+    client = _client_for_role(GatewayUserRoles.PROXY_ADMIN)
     fetch_stub = AsyncMock(return_value={"name": "support-agent"})
     with patch("token_iq.gateway.proxy.a2a.endpoints.fetch_well_known_card", new=fetch_stub):
         resp = client.post(
@@ -275,7 +275,7 @@ def test_discover_forwards_mode_and_params_to_fetcher():
 
 def test_discover_rejects_unknown_mode():
     """Pydantic should 422 on an enum value we don't recognize."""
-    client = _client_for_role(LitellmUserRoles.PROXY_ADMIN)
+    client = _client_for_role(GatewayUserRoles.PROXY_ADMIN)
     resp = client.post(
         "/v1/a2a/discover",
         json={"url": "http://localhost:2024", "discovery_mode": "bogus"},

@@ -30,7 +30,7 @@ _NEGATIVE_SKILL_SENTINEL: Final = "__litellm_skill_not_found__"
 _SKILL_CACHE: Final = InMemoryCache(max_size_in_memory=10000, default_ttl=60)
 
 
-def _prisma_skill_to_litellm(prisma_skill) -> LiteLLM_SkillsTable:
+def _prisma_skill_to_gateway(prisma_skill) -> LiteLLM_SkillsTable:
     """Convert a Prisma skill record to LiteLLM_SkillsTable.
 
     Handles Base64 decoding of file_content field — model_dump() converts
@@ -47,7 +47,7 @@ def _prisma_skill_to_litellm(prisma_skill) -> LiteLLM_SkillsTable:
     return LiteLLM_SkillsTable(**data)
 
 
-class LiteLLMSkillsHandler:
+class GatewaySkillsHandler:
     """CRUD for skills stored in ``litellm_skillstable``."""
 
     @staticmethod
@@ -64,7 +64,7 @@ class LiteLLMSkillsHandler:
         user_id: str | None = None,
         user_api_key_dict: UserAPIKeyAuth | None = None,
     ) -> LiteLLM_SkillsTable:
-        prisma_client: Final = await LiteLLMSkillsHandler._get_prisma_client()
+        prisma_client: Final = await GatewaySkillsHandler._get_prisma_client()
 
         skill_id: Final = f"{LITELLM_SKILL_ID_PREFIX}{uuid.uuid4()}"
         owner: Final = get_primary_resource_owner_scope(user_api_key_dict) or user_id
@@ -103,7 +103,7 @@ class LiteLLMSkillsHandler:
         verbose_logger.debug("LiteLLMSkillsHandler: Creating skill %s with title=%s", skill_id, data.display_title)
 
         new_skill: Final = await SkillsRepository(prisma_client).table.create(data=skill_data)
-        return _prisma_skill_to_litellm(new_skill)
+        return _prisma_skill_to_gateway(new_skill)
 
     @staticmethod
     async def list_skills(
@@ -111,7 +111,7 @@ class LiteLLMSkillsHandler:
         offset: int = 0,
         user_api_key_dict: UserAPIKeyAuth | None = None,
     ) -> list[LiteLLM_SkillsTable]:
-        prisma_client: Final = await LiteLLMSkillsHandler._get_prisma_client()
+        prisma_client: Final = await GatewaySkillsHandler._get_prisma_client()
 
         verbose_logger.debug("LiteLLMSkillsHandler: Listing skills with limit=%s, offset=%s", limit, offset)
 
@@ -127,7 +127,7 @@ class LiteLLMSkillsHandler:
             find_many_kwargs["where"] = {"created_by": {"in": owner_scopes}}
 
         skills: Final = await SkillsRepository(prisma_client).table.find_many(**find_many_kwargs)
-        return [_prisma_skill_to_litellm(s) for s in skills]
+        return [_prisma_skill_to_gateway(s) for s in skills]
 
     @staticmethod
     async def _load_skill(skill_id: str) -> Any | None:
@@ -140,7 +140,7 @@ class LiteLLMSkillsHandler:
         if cached is not None:
             return cached
 
-        prisma_client: Final = await LiteLLMSkillsHandler._get_prisma_client()
+        prisma_client: Final = await GatewaySkillsHandler._get_prisma_client()
         skill: Final = await SkillsRepository(prisma_client).table.find_unique(where={"skill_id": skill_id})
         _SKILL_CACHE.set_cache(skill_id, skill if skill is not None else _NEGATIVE_SKILL_SENTINEL)
         return skill
@@ -152,23 +152,23 @@ class LiteLLMSkillsHandler:
     ) -> LiteLLM_SkillsTable:
         verbose_logger.debug("LiteLLMSkillsHandler: Getting skill %s", skill_id)
 
-        skill: Final = await LiteLLMSkillsHandler._load_skill(skill_id)
+        skill: Final = await GatewaySkillsHandler._load_skill(skill_id)
         # Same "not found" message for both "missing" and "cross-tenant"
         # so callers can't enumerate skill IDs they don't own.
         if skill is None or not user_can_access_resource_owner(getattr(skill, "created_by", None), user_api_key_dict):
             raise ValueError(f"Skill not found: {skill_id}")
 
-        return _prisma_skill_to_litellm(skill)
+        return _prisma_skill_to_gateway(skill)
 
     @staticmethod
     async def delete_skill(
         skill_id: str,
         user_api_key_dict: UserAPIKeyAuth | None = None,
     ) -> dict[str, str]:
-        prisma_client: Final = await LiteLLMSkillsHandler._get_prisma_client()
+        prisma_client: Final = await GatewaySkillsHandler._get_prisma_client()
         verbose_logger.debug("LiteLLMSkillsHandler: Deleting skill %s", skill_id)
 
-        skill: Final = await LiteLLMSkillsHandler._load_skill(skill_id)
+        skill: Final = await GatewaySkillsHandler._load_skill(skill_id)
         if skill is None or not user_can_access_resource_owner(getattr(skill, "created_by", None), user_api_key_dict):
             raise ValueError(f"Skill not found: {skill_id}")
 
@@ -185,7 +185,7 @@ class LiteLLMSkillsHandler:
         """Skills-injection-hook helper: returns None instead of raising on
         not-found / not-authorized so the hook can silently skip."""
         try:
-            return await LiteLLMSkillsHandler.get_skill(skill_id, user_api_key_dict=user_api_key_dict)
+            return await GatewaySkillsHandler.get_skill(skill_id, user_api_key_dict=user_api_key_dict)
         except ValueError:
             return None
         except Exception as e:

@@ -84,7 +84,7 @@ class TestFilterTeamBasedModels:
         result_ids = [d.get("model_info", {}).get("id") for d in result]
         assert sorted(result_ids) == sorted(expected_ids)
 
-    def test_filter_team_based_models_team_match_litellm_metadata(
+    def test_filter_team_based_models_team_match_gateway_metadata(
         self, sample_deployments_with_teams
     ):
         """Test filtering when team_id is in litellm_metadata"""
@@ -101,7 +101,7 @@ class TestFilterTeamBasedModels:
         result_ids = [d.get("model_info", {}).get("id") for d in result]
         assert sorted(result_ids) == sorted(expected_ids)
 
-    def test_filter_team_based_models_priority_metadata_over_litellm(
+    def test_filter_team_based_models_priority_metadata_over_gateway(
         self, sample_deployments_with_teams
     ):
         """Test that metadata.user_api_key_team_id takes priority over litellm_metadata.user_api_key_team_id"""
@@ -613,7 +613,7 @@ class TestWarnOnProviderCredentialMismatch:
         assert "vertex_ai/claude-sonnet-5" in warning
         assert "bedrock" not in warning
 
-    def test_silent_for_a_model_litellm_cannot_classify(self):
+    def test_silent_for_a_model_gateway_cannot_classify(self):
         """An unresolvable model must not warn and must not raise: this runs on
         the router startup path, so a wrong guess would spam every boot."""
         assert (

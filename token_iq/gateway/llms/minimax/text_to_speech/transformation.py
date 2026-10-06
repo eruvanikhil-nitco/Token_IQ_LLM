@@ -19,10 +19,10 @@ from token_iq.gateway.llms.base_llm.text_to_speech.transformation import (
 from token_iq.gateway.secret_managers.main import get_secret_str
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
     from token_iq.gateway.types.llms.openai import HttpxBinaryResponseContent
 else:
-    LiteLLMLoggingObj = Any
+    GatewayLoggingObj = Any
     HttpxBinaryResponseContent = Any
 
 
@@ -277,7 +277,7 @@ class MinimaxTextToSpeechConfig(BaseTextToSpeechConfig):
         self,
         model: str,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> "HttpxBinaryResponseContent":
         """
         Transform MiniMax response to standard format.

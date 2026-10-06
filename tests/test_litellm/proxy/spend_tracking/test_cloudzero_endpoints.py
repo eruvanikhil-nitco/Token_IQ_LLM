@@ -5,7 +5,7 @@ from fastapi.testclient import TestClient
 
 
 import token_iq.gateway.proxy.proxy_server as ps
-from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
 from token_iq.gateway.proxy.proxy_server import app
 
 
@@ -24,18 +24,18 @@ async def test_delete_cloudzero_settings_success(client, monkeypatch):
         "timezone": "UTC",
     }
 
-    mock_litellm_config = MagicMock()
-    mock_litellm_config.find_first = AsyncMock(return_value=mock_config)
-    mock_litellm_config.delete = AsyncMock(return_value=mock_config)
+    mock_gateway_config = MagicMock()
+    mock_gateway_config.find_first = AsyncMock(return_value=mock_config)
+    mock_gateway_config.delete = AsyncMock(return_value=mock_config)
 
     mock_prisma = MagicMock()
     mock_prisma.db = MagicMock()
-    mock_prisma.db.litellm_config = mock_litellm_config
+    mock_prisma.db.litellm_config = mock_gateway_config
 
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin_user"
+        user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin_user"
     )
 
     try:
@@ -44,25 +44,25 @@ async def test_delete_cloudzero_settings_success(client, monkeypatch):
         data = response.json()
         assert data["message"] == "CloudZero settings deleted successfully"
         assert data["status"] == "success"
-        mock_litellm_config.find_first.assert_awaited_once()
-        mock_litellm_config.delete.assert_awaited_once()
+        mock_gateway_config.find_first.assert_awaited_once()
+        mock_gateway_config.delete.assert_awaited_once()
     finally:
         app.dependency_overrides.pop(ps.user_api_key_auth, None)
 
 
 @pytest.mark.asyncio
 async def test_delete_cloudzero_settings_not_found(client, monkeypatch):
-    mock_litellm_config = MagicMock()
-    mock_litellm_config.find_first = AsyncMock(return_value=None)
+    mock_gateway_config = MagicMock()
+    mock_gateway_config.find_first = AsyncMock(return_value=None)
 
     mock_prisma = MagicMock()
     mock_prisma.db = MagicMock()
-    mock_prisma.db.litellm_config = mock_litellm_config
+    mock_prisma.db.litellm_config = mock_gateway_config
 
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin_user"
+        user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin_user"
     )
 
     try:
@@ -71,8 +71,8 @@ async def test_delete_cloudzero_settings_not_found(client, monkeypatch):
         data = response.json()
         assert "error" in data["detail"]
         assert "CloudZero settings not found" in data["detail"]["error"]
-        mock_litellm_config.find_first.assert_awaited_once()
-        mock_litellm_config.delete.assert_not_called()
+        mock_gateway_config.find_first.assert_awaited_once()
+        mock_gateway_config.delete.assert_not_called()
     finally:
         app.dependency_overrides.pop(ps.user_api_key_auth, None)
 
@@ -88,12 +88,12 @@ async def test_get_cloudzero_settings_success(client, monkeypatch):
         "timezone": "UTC",
     }
 
-    mock_litellm_config = MagicMock()
-    mock_litellm_config.find_first = AsyncMock(return_value=mock_config)
+    mock_gateway_config = MagicMock()
+    mock_gateway_config.find_first = AsyncMock(return_value=mock_config)
 
     mock_prisma = MagicMock()
     mock_prisma.db = MagicMock()
-    mock_prisma.db.litellm_config = mock_litellm_config
+    mock_prisma.db.litellm_config = mock_gateway_config
 
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
 
@@ -110,7 +110,7 @@ async def test_get_cloudzero_settings_success(client, monkeypatch):
             mock_masker.mask_dict.return_value = {"api_key": "test****key"}
 
             app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-                user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin_user"
+                user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin_user"
             )
 
             try:
@@ -121,7 +121,7 @@ async def test_get_cloudzero_settings_success(client, monkeypatch):
                 assert data["timezone"] == "UTC"
                 assert data["status"] == "configured"
                 assert data["api_key_masked"] == "test****key"
-                mock_litellm_config.find_first.assert_awaited_once()
+                mock_gateway_config.find_first.assert_awaited_once()
             finally:
                 app.dependency_overrides.pop(ps.user_api_key_auth, None)
 
@@ -129,17 +129,17 @@ async def test_get_cloudzero_settings_success(client, monkeypatch):
 @pytest.mark.asyncio
 async def test_get_cloudzero_settings_not_configured(client, monkeypatch):
     """Test GET /cloudzero/settings returns 200 with null values when not configured (consistent with other endpoints)"""
-    mock_litellm_config = MagicMock()
-    mock_litellm_config.find_first = AsyncMock(return_value=None)
+    mock_gateway_config = MagicMock()
+    mock_gateway_config.find_first = AsyncMock(return_value=None)
 
     mock_prisma = MagicMock()
     mock_prisma.db = MagicMock()
-    mock_prisma.db.litellm_config = mock_litellm_config
+    mock_prisma.db.litellm_config = mock_gateway_config
 
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin_user"
+        user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin_user"
     )
 
     try:
@@ -151,7 +151,7 @@ async def test_get_cloudzero_settings_not_configured(client, monkeypatch):
         assert data["connection_id"] is None
         assert data["timezone"] is None
         assert data["status"] is None
-        mock_litellm_config.find_first.assert_awaited_once()
+        mock_gateway_config.find_first.assert_awaited_once()
     finally:
         app.dependency_overrides.pop(ps.user_api_key_auth, None)
 
@@ -163,17 +163,17 @@ async def test_get_cloudzero_settings_empty_param_value(client, monkeypatch):
     mock_config.param_name = "cloudzero_settings"
     mock_config.param_value = None
 
-    mock_litellm_config = MagicMock()
-    mock_litellm_config.find_first = AsyncMock(return_value=mock_config)
+    mock_gateway_config = MagicMock()
+    mock_gateway_config.find_first = AsyncMock(return_value=mock_config)
 
     mock_prisma = MagicMock()
     mock_prisma.db = MagicMock()
-    mock_prisma.db.litellm_config = mock_litellm_config
+    mock_prisma.db.litellm_config = mock_gateway_config
 
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
 
     app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin_user"
+        user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin_user"
     )
 
     try:
@@ -185,6 +185,6 @@ async def test_get_cloudzero_settings_empty_param_value(client, monkeypatch):
         assert data["connection_id"] is None
         assert data["timezone"] is None
         assert data["status"] is None
-        mock_litellm_config.find_first.assert_awaited_once()
+        mock_gateway_config.find_first.assert_awaited_once()
     finally:
         app.dependency_overrides.pop(ps.user_api_key_auth, None)

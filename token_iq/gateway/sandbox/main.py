@@ -29,7 +29,7 @@ __all__ = [
     "arun_code",
 ]
 
-_LITELLM_INTERNAL_KWARGS: Final = {
+_GATEWAY_INTERNAL_KWARGS: Final = {
     "litellm_logging_obj",
     "litellm_call_id",
     "litellm_trace_id",
@@ -45,7 +45,7 @@ def _get_config(provider: str) -> BaseSandboxConfig:
 
 
 def _forward_kwargs(kwargs: dict) -> dict:
-    return {k: v for k, v in kwargs.items() if k not in _LITELLM_INTERNAL_KWARGS}
+    return {k: v for k, v in kwargs.items() if k not in _GATEWAY_INTERNAL_KWARGS}
 
 
 def _update_logging(kwargs: dict, provider: str, operation: str) -> None:

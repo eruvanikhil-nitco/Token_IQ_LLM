@@ -10,7 +10,7 @@ from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.constants import ANTHROPIC_BATCHES_ROUTE
 from token_iq.gateway.core_utils.core_helpers import map_finish_reason
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.core_utils.litellm_logging import use_custom_pricing_for_model
 from token_iq.gateway.core_utils.prompt_templates.common_utils import (
     get_content_from_model_response,
@@ -33,7 +33,7 @@ from token_iq.gateway.types.passthrough_endpoints.pass_through_endpoints import 
 )
 from token_iq.gateway.types.utils import (
     Choices,
-    LiteLLMBatch,
+    GatewayBatch,
     Message,
     ModelResponse,
     TextCompletionResponse,
@@ -53,7 +53,7 @@ class AnthropicPassthroughLoggingHandler:
     def anthropic_passthrough_handler(
         httpx_response: httpx.Response,
         response_body: dict,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         url_route: str,
         result: str,
         start_time: datetime,
@@ -86,7 +86,7 @@ class AnthropicPassthroughLoggingHandler:
             request_body or kwargs.get("request_body")
         )
         anthropic_config: Final = get_anthropic_config(url_route)
-        litellm_model_response: Final[ModelResponse] = anthropic_config().transform_response(
+        gateway_model_response: Final[ModelResponse] = anthropic_config().transform_response(
             raw_response=httpx_response,
             model_response=gateway.ModelResponse(),
             model=model,
@@ -101,7 +101,7 @@ class AnthropicPassthroughLoggingHandler:
         )
 
         kwargs = AnthropicPassthroughLoggingHandler._create_anthropic_response_logging_payload(
-            litellm_model_response=litellm_model_response,
+            gateway_model_response=gateway_model_response,
             model=model,
             kwargs=kwargs,
             start_time=start_time,
@@ -110,7 +110,7 @@ class AnthropicPassthroughLoggingHandler:
         )
 
         return {
-            "result": litellm_model_response,
+            "result": gateway_model_response,
             "kwargs": kwargs,
         }
 
@@ -135,7 +135,7 @@ class AnthropicPassthroughLoggingHandler:
         return None
 
     @staticmethod
-    def _resolve_costing_model(model: str, logging_obj: LiteLLMLoggingObj) -> str:
+    def _resolve_costing_model(model: str, logging_obj: GatewayLoggingObj) -> str:
         if model and model != "unknown":
             return model
         litellm_params: Final = (getattr(logging_obj, "model_call_details", {}) or {}).get("litellm_params", {}) or {}
@@ -245,12 +245,12 @@ class AnthropicPassthroughLoggingHandler:
 
     @staticmethod
     def _create_anthropic_response_logging_payload(
-        litellm_model_response: ModelResponse | TextCompletionResponse,
+        gateway_model_response: ModelResponse | TextCompletionResponse,
         model: str,
         kwargs: dict,
         start_time: datetime,
         end_time: datetime,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ):
         """
         Create the standard logging object for Anthropic passthrough
@@ -261,7 +261,7 @@ class AnthropicPassthroughLoggingHandler:
         # perform_redaction scrubs this field only when stream is True, so setting
         # it on a non-streaming response would bypass message redaction.
         if logging_obj.model_call_details.get("stream") is True:
-            logging_obj.model_call_details["complete_streaming_response"] = litellm_model_response
+            logging_obj.model_call_details["complete_streaming_response"] = gateway_model_response
         try:
             # Get custom_llm_provider from logging object if available (e.g., azure_ai for Azure Anthropic)
             custom_llm_provider: Final = logging_obj.model_call_details.get("custom_llm_provider")
@@ -282,7 +282,7 @@ class AnthropicPassthroughLoggingHandler:
                 0.0
                 if logging_obj.model_call_details.get("cache_hit") is True
                 else gateway.completion_cost(
-                    completion_response=litellm_model_response,
+                    completion_response=gateway_model_response,
                     model=model_for_cost,
                     custom_llm_provider=custom_llm_provider,
                     custom_pricing=custom_pricing,
@@ -313,8 +313,8 @@ class AnthropicPassthroughLoggingHandler:
             )
 
             # set litellm_call_id to logging response object
-            litellm_model_response.id = logging_obj.litellm_call_id
-            litellm_model_response.model = model
+            gateway_model_response.id = logging_obj.litellm_call_id
+            gateway_model_response.model = model
             logging_obj.model_call_details["model"] = model
             if not logging_obj.model_call_details.get("custom_llm_provider"):
                 logging_obj.model_call_details["custom_llm_provider"] = gateway.LlmProviders.ANTHROPIC.value
@@ -325,7 +325,7 @@ class AnthropicPassthroughLoggingHandler:
 
     @staticmethod
     def _handle_logging_anthropic_collected_chunks(
-        litellm_logging_obj: LiteLLMLoggingObj,
+        litellm_logging_obj: GatewayLoggingObj,
         passthrough_success_handler_obj: PassThroughEndpointLogging,
         url_route: str,
         request_body: dict,
@@ -407,7 +407,7 @@ class AnthropicPassthroughLoggingHandler:
             model=model,
         )
         kwargs: Final = AnthropicPassthroughLoggingHandler._create_anthropic_response_logging_payload(
-            litellm_model_response=complete_streaming_response,
+            gateway_model_response=complete_streaming_response,
             model=model,
             kwargs={},
             start_time=start_time,
@@ -447,7 +447,7 @@ class AnthropicPassthroughLoggingHandler:
     @staticmethod
     def _build_complete_streaming_response(
         all_chunks: Sequence[str | bytes],
-        litellm_logging_obj: LiteLLMLoggingObj,
+        litellm_logging_obj: GatewayLoggingObj,
         model: str,
         speed: str | None = None,
     ) -> ModelResponse | TextCompletionResponse | None:
@@ -606,7 +606,7 @@ class AnthropicPassthroughLoggingHandler:
     @staticmethod
     def _build_complete_streaming_response_legacy(
         all_chunks: Sequence[str | bytes],
-        litellm_logging_obj: LiteLLMLoggingObj,
+        litellm_logging_obj: GatewayLoggingObj,
         model: str,
         speed: str | None = None,
     ) -> ModelResponse | TextCompletionResponse | None:
@@ -803,7 +803,7 @@ class AnthropicPassthroughLoggingHandler:
     @staticmethod
     def batch_creation_handler(
         httpx_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         url_route: str,
         result: str,
         start_time: datetime,
@@ -829,7 +829,7 @@ class AnthropicPassthroughLoggingHandler:
             if httpx_response.status_code == 200 and "id" in _json_response:
                 # Transform Anthropic response to LiteLLM batch format
                 anthropic_batches_config: Final = AnthropicBatchesConfig()
-                litellm_batch_response: Final = anthropic_batches_config.transform_retrieve_batch_response(
+                gateway_batch_response: Final = anthropic_batches_config.transform_retrieve_batch_response(
                     model=None,
                     raw_response=httpx_response,
                     logging_obj=logging_obj,
@@ -837,7 +837,7 @@ class AnthropicPassthroughLoggingHandler:
                 )
                 # Set status to "validating" for newly created batches so polling mechanism picks them up
                 # The polling mechanism only looks for status="validating" jobs
-                litellm_batch_response.status = "validating"
+                gateway_batch_response.status = "validating"
 
                 # Extract batch ID from the response
                 batch_id: Final = _json_response.get("id", "")
@@ -880,21 +880,21 @@ class AnthropicPassthroughLoggingHandler:
                 if is_collection_route(url_route, ANTHROPIC_BATCHES_ROUTE):
                     AnthropicPassthroughLoggingHandler._store_batch_managed_object(
                         unified_object_id=unified_object_id,
-                        batch_object=litellm_batch_response,
+                        batch_object=gateway_batch_response,
                         model_object_id=batch_id,
                         logging_obj=logging_obj,
                         **kwargs,
                     )
 
                 # Create a batch job response for logging
-                litellm_model_response = ModelResponse()
-                litellm_model_response.id = str(uuid.uuid4())
-                litellm_model_response.model = model_name
-                litellm_model_response.object = "batch"
-                litellm_model_response.created = int(start_time.timestamp())
+                gateway_model_response = ModelResponse()
+                gateway_model_response.id = str(uuid.uuid4())
+                gateway_model_response.model = model_name
+                gateway_model_response.object = "batch"
+                gateway_model_response.created = int(start_time.timestamp())
 
                 # Add batch-specific metadata to indicate this is a pending batch job
-                litellm_model_response.choices = [
+                gateway_model_response.choices = [
                     Choices(
                         finish_reason="stop",
                         index=0,
@@ -926,19 +926,19 @@ class AnthropicPassthroughLoggingHandler:
                 logging_obj.model_call_details["batch_id"] = batch_id
 
                 return {
-                    "result": litellm_model_response,
+                    "result": gateway_model_response,
                     "kwargs": kwargs,
                 }
             else:
                 # Handle non-successful responses
-                litellm_model_response = ModelResponse()
-                litellm_model_response.id = str(uuid.uuid4())
-                litellm_model_response.model = "anthropic_batch"
-                litellm_model_response.object = "batch"
-                litellm_model_response.created = int(start_time.timestamp())
+                gateway_model_response = ModelResponse()
+                gateway_model_response.id = str(uuid.uuid4())
+                gateway_model_response.model = "anthropic_batch"
+                gateway_model_response.object = "batch"
+                gateway_model_response.created = int(start_time.timestamp())
 
                 # Add error-specific metadata
-                litellm_model_response.choices = [
+                gateway_model_response.choices = [
                     Choices(
                         finish_reason="stop",
                         index=0,
@@ -960,21 +960,21 @@ class AnthropicPassthroughLoggingHandler:
                 kwargs["batch_job_state"] = "failed"
 
                 return {
-                    "result": litellm_model_response,
+                    "result": gateway_model_response,
                     "kwargs": kwargs,
                 }
 
         except Exception as e:
             verbose_proxy_logger.error("Error in batch_creation_handler: %s", e)
             # Return basic response on error
-            litellm_model_response = ModelResponse()
-            litellm_model_response.id = str(uuid.uuid4())
-            litellm_model_response.model = "anthropic_batch"
-            litellm_model_response.object = "batch"
-            litellm_model_response.created = int(start_time.timestamp())
+            gateway_model_response = ModelResponse()
+            gateway_model_response.id = str(uuid.uuid4())
+            gateway_model_response.model = "anthropic_batch"
+            gateway_model_response.object = "batch"
+            gateway_model_response.created = int(start_time.timestamp())
 
             # Add error-specific metadata
-            litellm_model_response.choices = [
+            gateway_model_response.choices = [
                 Choices(
                     finish_reason="stop",
                     index=0,
@@ -996,16 +996,16 @@ class AnthropicPassthroughLoggingHandler:
             kwargs["batch_job_state"] = "failed"
 
             return {
-                "result": litellm_model_response,
+                "result": gateway_model_response,
                 "kwargs": kwargs,
             }
 
     @staticmethod
     def _store_batch_managed_object(
         unified_object_id: str,
-        batch_object: LiteLLMBatch,
+        batch_object: GatewayBatch,
         model_object_id: str,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         **kwargs,
     ) -> None:
         """
@@ -1024,7 +1024,7 @@ class AnthropicPassthroughLoggingHandler:
             managed_files_hook: Final = proxy_logging_obj.get_proxy_hook("managed_files")
             if managed_files_hook is not None and hasattr(managed_files_hook, "store_unified_object_id"):
                 # Create a mock user API key dict for the managed object storage
-                from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+                from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
 
                 _request_metadata: Final = (kwargs.get("litellm_params", {}) or {}).get("metadata", {}) or {}
 
@@ -1033,7 +1033,7 @@ class AnthropicPassthroughLoggingHandler:
                     api_key=optional_str(_request_metadata.get("user_api_key")),
                     team_id=_request_metadata.get("user_api_key_team_id"),
                     team_alias=None,
-                    user_role=LitellmUserRoles.CUSTOMER,  # Use proper enum value
+                    user_role=GatewayUserRoles.CUSTOMER,  # Use proper enum value
                     user_email=None,
                     max_budget=None,
                     spend=0.0,  # Set to 0.0 instead of None

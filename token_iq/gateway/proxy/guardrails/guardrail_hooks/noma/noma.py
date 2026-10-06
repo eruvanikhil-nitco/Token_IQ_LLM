@@ -25,7 +25,7 @@ from token_iq import gateway
 from token_iq.gateway import DualCache, ModelResponse
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
-    LiteLLMResponsesTransformationHandler,
+    GatewayResponsesTransformationHandler,
 )
 from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
 from token_iq.gateway.llms.base_llm.base_model_iterator import MockResponseIterator
@@ -130,7 +130,7 @@ class NomaGuardrail(CustomGuardrail):
             _LEGACY_NOMA_DEPRECATION_WARNED = True
 
         self.async_handler = get_async_httpx_client(llm_provider=httpxSpecialProvider.GuardrailCallback)
-        self._responses_transform_handler = LiteLLMResponsesTransformationHandler()
+        self._responses_transform_handler = GatewayResponsesTransformationHandler()
         self.api_key = api_key or os.environ.get("NOMA_API_KEY")
         self.api_base = api_base or os.environ.get("NOMA_API_BASE", NomaGuardrail._DEFAULT_API_BASE)
         self.application_id = application_id or os.environ.get("NOMA_APPLICATION_ID")

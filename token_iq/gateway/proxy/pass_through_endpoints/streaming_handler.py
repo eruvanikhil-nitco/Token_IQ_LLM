@@ -6,7 +6,7 @@ import httpx
 
 from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.core_utils.logging_worker import GLOBAL_LOGGING_WORKER
 from token_iq.gateway.proxy._types import PassThroughEndpointLoggingResultValues
 from token_iq.gateway.proxy.common_request_processing import ProxyBaseLLMRequestProcessing
@@ -33,7 +33,7 @@ class RouteStreamingLogging(Protocol):
     def __call__(
         self,
         *,
-        litellm_logging_obj: LiteLLMLoggingObj,
+        litellm_logging_obj: GatewayLoggingObj,
         passthrough_success_handler_obj: PassThroughEndpointLogging,
         url_route: str,
         request_body: dict,
@@ -46,7 +46,7 @@ class RouteStreamingLogging(Protocol):
 
 class PassThroughStreamingHandler:
     @staticmethod
-    def _stamp_first_chunk_if_needed(litellm_logging_obj: LiteLLMLoggingObj) -> None:
+    def _stamp_first_chunk_if_needed(litellm_logging_obj: GatewayLoggingObj) -> None:
         if litellm_logging_obj.completion_start_time is None:
             litellm_logging_obj._update_completion_start_time(completion_start_time=datetime.now())
 
@@ -54,7 +54,7 @@ class PassThroughStreamingHandler:
     async def chunk_processor(
         response: httpx.Response,
         request_body: dict | None,
-        litellm_logging_obj: LiteLLMLoggingObj,
+        litellm_logging_obj: GatewayLoggingObj,
         endpoint_type: EndpointType,
         start_time: datetime,
         passthrough_success_handler_obj: PassThroughEndpointLogging,
@@ -162,7 +162,7 @@ class PassThroughStreamingHandler:
 
     @staticmethod
     async def _route_streaming_logging_to_handler(
-        litellm_logging_obj: LiteLLMLoggingObj,
+        litellm_logging_obj: GatewayLoggingObj,
         passthrough_success_handler_obj: PassThroughEndpointLogging,
         url_route: str,
         request_body: dict,
@@ -212,7 +212,7 @@ class PassThroughStreamingHandler:
 
     @staticmethod
     def _build_passthrough_logging_result(
-        litellm_logging_obj: LiteLLMLoggingObj,
+        litellm_logging_obj: GatewayLoggingObj,
         passthrough_success_handler_obj: PassThroughEndpointLogging,
         url_route: str,
         request_body: dict,
@@ -324,7 +324,7 @@ class PassThroughStreamingHandler:
         request_body: dict | None,
         url_route: str,
         endpoint_type: EndpointType,
-        litellm_logging_obj: LiteLLMLoggingObj,
+        litellm_logging_obj: GatewayLoggingObj,
     ) -> str | None:
         """
         Extract model name for cost injection from various sources.

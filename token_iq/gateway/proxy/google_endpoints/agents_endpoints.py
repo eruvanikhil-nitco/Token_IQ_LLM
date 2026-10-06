@@ -20,7 +20,7 @@ from typing import Final
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from fastapi.responses import ORJSONResponse
 
-from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
 from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 from token_iq.gateway.proxy.common_request_processing import ProxyBaseLLMRequestProcessing
 from token_iq.gateway.proxy.common_utils.http_parsing_utils import (
@@ -33,8 +33,8 @@ router: Final = APIRouter(tags=["gemini managed agents"])
 
 def _is_proxy_admin(user_api_key_dict: UserAPIKeyAuth) -> bool:
     return (
-        user_api_key_dict.user_role == LitellmUserRoles.PROXY_ADMIN
-        or user_api_key_dict.user_role == LitellmUserRoles.PROXY_ADMIN.value
+        user_api_key_dict.user_role == GatewayUserRoles.PROXY_ADMIN
+        or user_api_key_dict.user_role == GatewayUserRoles.PROXY_ADMIN.value
     )
 
 

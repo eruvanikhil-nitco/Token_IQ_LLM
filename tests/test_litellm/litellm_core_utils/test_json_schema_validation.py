@@ -129,7 +129,7 @@ class TestPerRequestJsonSchemaValidation:
             Rules(),
         )
 
-    def test_per_request_flag_is_in_all_litellm_params(self):
+    def test_per_request_flag_is_in_all_gateway_params(self):
         """Ensure the param is registered so it doesn't leak to provider APIs."""
         from token_iq.gateway.types.utils import all_litellm_params
 

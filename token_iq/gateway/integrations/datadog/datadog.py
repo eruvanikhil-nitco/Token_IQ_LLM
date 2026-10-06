@@ -318,10 +318,10 @@ class DataDogLogger(
             user_context: dict[str, object] = {}
             try:
                 from token_iq.gateway.proxy.litellm_pre_call_utils import (
-                    LiteLLMProxyRequestSetup,
+                    GatewayProxyRequestSetup,
                 )
 
-                _meta: Final = LiteLLMProxyRequestSetup.get_sanitized_user_information_from_key(
+                _meta: Final = GatewayProxyRequestSetup.get_sanitized_user_information_from_key(
                     user_api_key_dict=user_api_key_dict
                 )
                 user_context = dict(_meta) if isinstance(_meta, dict) else _meta

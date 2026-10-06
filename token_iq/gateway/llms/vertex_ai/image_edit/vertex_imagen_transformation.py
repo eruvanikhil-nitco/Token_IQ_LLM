@@ -15,15 +15,15 @@ from token_iq.gateway.llms.vertex_ai.common_utils import get_vertex_base_url
 from token_iq.gateway.llms.vertex_ai.gemini.vertex_and_google_ai_studio_gemini import VertexLLM
 from token_iq.gateway.secret_managers.main import get_secret_str
 from token_iq.gateway.types.images.main import ImageEditOptionalRequestParams
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.types.utils import FileTypes, ImageObject, ImageResponse, OpenAIImage
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as _LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as _GatewayLoggingObj
 
-    LiteLLMLoggingObj = _LiteLLMLoggingObj
+    GatewayLoggingObj = _GatewayLoggingObj
 else:
-    LiteLLMLoggingObj = Any
+    GatewayLoggingObj = Any
 
 
 class VertexAIImagenImageEditConfig(BaseImageEditConfig, VertexLLM):
@@ -149,7 +149,7 @@ class VertexAIImagenImageEditConfig(BaseImageEditConfig, VertexLLM):
         prompt: str | None,
         image: FileTypes | None,
         image_edit_optional_request_params: dict[str, Any],
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> tuple[dict[str, Any], RequestFiles | None]:
         # Prepare reference images in the correct Imagen format
@@ -195,7 +195,7 @@ class VertexAIImagenImageEditConfig(BaseImageEditConfig, VertexLLM):
         self,
         model: str,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> ImageResponse:
         model_response: Final = ImageResponse()
         try:

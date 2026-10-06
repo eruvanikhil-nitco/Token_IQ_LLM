@@ -23,7 +23,7 @@ def test_managed_files_hook_registered():
     pytest.importorskip("litellm_enterprise")
     assert "managed_files" in PROXY_HOOKS
     hook_cls = get_proxy_hook("managed_files")
-    assert hook_cls.__name__ == "_PROXY_LiteLLMManagedFiles"
+    assert hook_cls.__name__ == "_PROXY_GatewayManagedFiles"
 
 
 def test_managed_vector_stores_hook_registered():

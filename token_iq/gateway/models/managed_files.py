@@ -8,12 +8,12 @@ Canonical definitions for the ``litellm_managed*`` tables. Re-exported from
 from datetime import datetime
 from typing import Any, Literal
 
-from token_iq.gateway.types.llms.base import LiteLLMPydanticObjectBase
+from token_iq.gateway.types.llms.base import GatewayPydanticObjectBase
 from token_iq.gateway.types.llms.openai import OpenAIFileObject, ResponsesAPIResponse
-from token_iq.gateway.types.utils import LiteLLMBatch, LiteLLMFineTuningJob
+from token_iq.gateway.types.utils import GatewayBatch, GatewayFineTuningJob
 
 
-class LiteLLM_ManagedFileTable(LiteLLMPydanticObjectBase):
+class LiteLLM_ManagedFileTable(GatewayPydanticObjectBase):
     unified_file_id: str
     file_object: OpenAIFileObject | None = None
     model_mappings: dict[str, str]
@@ -25,16 +25,16 @@ class LiteLLM_ManagedFileTable(LiteLLMPydanticObjectBase):
     storage_url: str | None = None
 
 
-class LiteLLM_ManagedObjectTable(LiteLLMPydanticObjectBase):
+class LiteLLM_ManagedObjectTable(GatewayPydanticObjectBase):
     unified_object_id: str
     model_object_id: str
     file_purpose: Literal["batch", "fine-tune", "response", "container"]
-    file_object: LiteLLMBatch | LiteLLMFineTuningJob | ResponsesAPIResponse
+    file_object: GatewayBatch | GatewayFineTuningJob | ResponsesAPIResponse
     created_by: str | None = None
     team_id: str | None = None
 
 
-class LiteLLM_ManagedVectorStoreTable(LiteLLMPydanticObjectBase):
+class LiteLLM_ManagedVectorStoreTable(GatewayPydanticObjectBase):
     """Table for managing vector stores with target_model_names support."""
 
     unified_resource_id: str
@@ -48,7 +48,7 @@ class LiteLLM_ManagedVectorStoreTable(LiteLLMPydanticObjectBase):
     storage_url: str | None = None
 
 
-class LiteLLM_ManagedVectorStoresTable(LiteLLMPydanticObjectBase):
+class LiteLLM_ManagedVectorStoresTable(GatewayPydanticObjectBase):
     vector_store_id: str
     custom_llm_provider: str
     vector_store_name: str | None = None

@@ -15,7 +15,7 @@ from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.streamin
 
 if TYPE_CHECKING:
     from token_iq.gateway.caching.caching_handler import LLMCachingHandler
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 
 CACHED_STREAM_EVENTS_KEY: Final = "litellm_cached_anthropic_sse_events"
 
@@ -104,7 +104,7 @@ class CachedAnthropicMessagesStreamIterator(BaseAnthropicMessagesStreamingIterat
     def __init__(
         self,
         events: Sequence[str],
-        litellm_logging_obj: "LiteLLMLoggingObj",
+        litellm_logging_obj: "GatewayLoggingObj",
         request_body: Mapping[str, object],
     ) -> None:
         body: Final = dict(request_body)  # mutable-ok: the base iterator takes a plain dict
@@ -139,7 +139,7 @@ def get_cached_stream_events(cached_result: Mapping[str, object]) -> tuple[str, 
 
 def convert_cached_anthropic_messages_result(
     cached_result: Mapping[str, object],
-    logging_obj: "LiteLLMLoggingObj",
+    logging_obj: "GatewayLoggingObj",
     kwargs: Mapping[str, object],
 ) -> Mapping[str, object] | CachedAnthropicMessagesStreamIterator:
     events: Final = get_cached_stream_events(cached_result)

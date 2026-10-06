@@ -22,7 +22,7 @@ from typing import TYPE_CHECKING, ClassVar, Final, Optional
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.constants import SPEND_COUNTER_RESEED_LOCKS_MAX_SIZE
 from token_iq.gateway.core_utils.duration_parser import duration_in_seconds
-from token_iq.gateway.proxy._types import Litellm_EntityType
+from token_iq.gateway.proxy._types import Gateway_EntityType
 from token_iq.gateway.repositories.organization_repository import OrganizationRepository
 from token_iq.gateway.repositories.table_repositories import (
     BudgetWindowSpendRepository,
@@ -42,8 +42,8 @@ if TYPE_CHECKING:
 
 _WINDOW_SPEND_ENTITY_TYPES: Final[Mapping[str, str]] = MappingProxyType(
     {
-        "Key": Litellm_EntityType.KEY.value,
-        "Team": Litellm_EntityType.TEAM.value,
+        "Key": Gateway_EntityType.KEY.value,
+        "Team": Gateway_EntityType.TEAM.value,
     }
 )
 

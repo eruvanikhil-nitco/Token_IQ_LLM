@@ -14,7 +14,7 @@ from pydantic import BaseModel
 
 from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
-from token_iq.gateway.core_utils.litellm_logging import Logging as LitellmLogging
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLogging
 from token_iq.gateway.llms.bedrock.image_edit.amazon_nova_canvas_image_edit_transformation import (
     BedrockAmazonNovaCanvasImageEditConfig,
 )
@@ -73,7 +73,7 @@ class BedrockImageEdit(BaseAWSLLM):
         prompt: str | None,
         model_response: ImageResponse,
         optional_params: dict,
-        logging_obj: LitellmLogging,
+        logging_obj: GatewayLogging,
         timeout: float | httpx.Timeout | None,
         aimage_edit: bool = False,
         api_base: str | None = None,
@@ -134,7 +134,7 @@ class BedrockImageEdit(BaseAWSLLM):
         prepared_request: BedrockImageEditPreparedRequest,
         timeout: float | httpx.Timeout | None,
         model: str,
-        logging_obj: LitellmLogging,
+        logging_obj: GatewayLogging,
         prompt: str | None,
         model_response: ImageResponse,
         client: AsyncHTTPHandler | None = None,
@@ -179,7 +179,7 @@ class BedrockImageEdit(BaseAWSLLM):
         optional_params: dict,
         api_base: str | None,
         extra_headers: dict | None,
-        logging_obj: LitellmLogging,
+        logging_obj: GatewayLogging,
         api_key: str | None,
     ) -> BedrockImageEditPreparedRequest:
         """
@@ -285,7 +285,7 @@ class BedrockImageEdit(BaseAWSLLM):
         self,
         model_response: ImageResponse,
         model: str,
-        logging_obj: LitellmLogging,
+        logging_obj: GatewayLogging,
         prompt: str | None,
         response: httpx.Response,
         data: dict,

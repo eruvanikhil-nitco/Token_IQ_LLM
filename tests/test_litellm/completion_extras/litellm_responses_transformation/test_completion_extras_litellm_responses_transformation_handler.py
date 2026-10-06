@@ -8,9 +8,9 @@ from token_iq import gateway
 from token_iq.gateway.completion_extras.litellm_responses_transformation.handler import (
     ResponsesToCompletionBridgeHandler,
 )
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLogging
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLogging
 from token_iq.gateway.core_utils.streaming_handler import CustomStreamWrapper
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.types.utils import ModelResponse
 
 
@@ -42,7 +42,7 @@ def test_is_preformatted_cached_chat_stream_false_wrong_type():
 
 
 def _bridge_kwargs(stream: bool):
-    logging_obj = LiteLLMLogging(
+    logging_obj = GatewayLogging(
         litellm_call_id="test-call",
         call_type="completion",
         model="gpt-5.4",
@@ -276,7 +276,7 @@ _PROVIDER_NATIVE_MODEL_CASES = [
 def _upstream_model_for(handed_model: str, custom_llm_provider: str) -> str:
     upstream_model, _, _, _ = gateway.get_llm_provider(
         model=handed_model,
-        litellm_params=GenericLiteLLMParams(custom_llm_provider=custom_llm_provider),
+        litellm_params=GenericGatewayParams(custom_llm_provider=custom_llm_provider),
     )
     return upstream_model
 

@@ -39,7 +39,7 @@ def test_rerank_does_not_log_request_content_at_info(caplog):
     so logging it at INFO leaks raw request content into stdout and any log sink.
     """
     gateway.cohere_key = "test_api_key"
-    caplog.set_level(logging.DEBUG, logger="LiteLLM")
+    caplog.set_level(logging.DEBUG, logger="Gateway")
 
     with patch(
         "token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post",
@@ -52,16 +52,16 @@ def test_rerank_does_not_log_request_content_at_info(caplog):
             top_n=2,
         )
 
-    litellm_records = [r for r in caplog.records if r.name == "LiteLLM"]
+    gateway_records = [r for r in caplog.records if r.name == "Gateway"]
 
     info_or_above = [
         r.getMessage()
-        for r in litellm_records
+        for r in gateway_records
         if r.levelno >= logging.INFO and (MARKER_QUERY in r.getMessage() or MARKER_DOC in r.getMessage())
     ]
     assert not info_or_above, f"rerank leaked request content at INFO+: {info_or_above}"
 
-    optional_params_logs = [r for r in litellm_records if "optional_rerank_params" in r.getMessage()]
+    optional_params_logs = [r for r in gateway_records if "optional_rerank_params" in r.getMessage()]
     assert optional_params_logs, "expected the optional_rerank_params line to be logged"
     assert all(
         r.levelno == logging.DEBUG for r in optional_params_logs
@@ -147,7 +147,7 @@ def test_rerank_error_names_provider_and_keeps_body(respx_mock: respx.MockRouter
 
 
 @pytest.mark.asyncio
-async def test_arerank_error_is_mapped_to_litellm_exception(respx_mock: respx.MockRouter, monkeypatch):
+async def test_arerank_error_is_mapped_to_gateway_exception(respx_mock: respx.MockRouter, monkeypatch):
     """Regression for arerank's bare re-raise: provider errors escaped as raw
     provider exception classes instead of the mapped litellm exception contract."""
     monkeypatch.delenv("DASHSCOPE_API_BASE", raising=False)

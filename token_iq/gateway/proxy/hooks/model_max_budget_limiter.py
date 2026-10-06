@@ -11,7 +11,7 @@ from token_iq.gateway.caching.caching import DualCache
 from token_iq.gateway.integrations.custom_logger import Span
 from token_iq.gateway.core_utils.duration_parser import duration_in_seconds
 from token_iq.gateway.llms.bedrock.common_utils import get_bedrock_base_model
-from token_iq.gateway.proxy._types import Litellm_EntityType, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import Gateway_EntityType, UserAPIKeyAuth
 from token_iq.gateway.router_strategy.budget_limiter import RouterBudgetLimiting
 from token_iq.gateway.types.llms.openai import AllMessageValues
 from token_iq.gateway.types.utils import BudgetConfig, StandardLoggingPayload
@@ -22,21 +22,21 @@ USER_SPEND_CACHE_KEY_PREFIX: Final = "user_model_spend"
 
 _SPEND_CACHE_KEY_PREFIXES: Final = MappingProxyType(
     {
-        Litellm_EntityType.KEY: VIRTUAL_KEY_SPEND_CACHE_KEY_PREFIX,
-        Litellm_EntityType.USER: USER_SPEND_CACHE_KEY_PREFIX,
-        Litellm_EntityType.END_USER: END_USER_SPEND_CACHE_KEY_PREFIX,
+        Gateway_EntityType.KEY: VIRTUAL_KEY_SPEND_CACHE_KEY_PREFIX,
+        Gateway_EntityType.USER: USER_SPEND_CACHE_KEY_PREFIX,
+        Gateway_EntityType.END_USER: END_USER_SPEND_CACHE_KEY_PREFIX,
     }
 )
 
-_LEGACY_REQUEST_MODEL_SCOPES: Final = frozenset({Litellm_EntityType.KEY, Litellm_EntityType.END_USER})
+_LEGACY_REQUEST_MODEL_SCOPES: Final = frozenset({Gateway_EntityType.KEY, Gateway_EntityType.END_USER})
 
 _PROCESS_STARTED_AT: Final = time.monotonic()
 
 _BUDGET_START_TIME_KEY_PREFIXES: Final = MappingProxyType(
     {
-        Litellm_EntityType.KEY: "virtual_key_budget_start_time",
-        Litellm_EntityType.USER: "user_model_budget_start_time",
-        Litellm_EntityType.END_USER: "end_user_budget_start_time",
+        Gateway_EntityType.KEY: "virtual_key_budget_start_time",
+        Gateway_EntityType.USER: "user_model_budget_start_time",
+        Gateway_EntityType.END_USER: "end_user_budget_start_time",
     }
 )
 
@@ -56,7 +56,7 @@ class ResolvedModelBudget:
 
 
 def model_budget_spend_cache_key(
-    entity_type: Litellm_EntityType,
+    entity_type: Gateway_EntityType,
     entity_id: str | None,
     budget_model: str,
     budget_duration: str | None,
@@ -66,7 +66,7 @@ def model_budget_spend_cache_key(
 
 
 def _legacy_request_model_spend_cache_key(
-    entity_type: Litellm_EntityType,
+    entity_type: Gateway_EntityType,
     entity_id: str | None,
     model: str,
     resolved: ResolvedModelBudget,
@@ -100,7 +100,7 @@ def _legacy_request_model_spend_cache_key(
 
 
 def model_budget_start_time_cache_key(
-    entity_type: Litellm_EntityType,
+    entity_type: Gateway_EntityType,
     entity_id: str | None,
     budget_model: str,
     budget_duration: str | None,
@@ -168,7 +168,7 @@ def _bedrock_candidates(model: str) -> tuple[str, ...]:
 
 
 async def build_model_max_budget_usage(
-    entity_type: Litellm_EntityType,
+    entity_type: Gateway_EntityType,
     entity_id: str | None,
     model_max_budget: Mapping[str, object] | None,
     cache: DualCache | None,
@@ -246,8 +246,8 @@ def _as_spend(current_spend: object) -> float:
 
 def _resolve_entity_model_budgets(
     model: str,
-    entity_budgets: Iterable[tuple[Litellm_EntityType, str | None, object]],
-) -> tuple[tuple[Litellm_EntityType, str, ResolvedModelBudget], ...]:
+    entity_budgets: Iterable[tuple[Gateway_EntityType, str | None, object]],
+) -> tuple[tuple[Gateway_EntityType, str, ResolvedModelBudget], ...]:
     """Drop the scopes that do not budget `model`, keeping only what can be incremented."""
     return tuple(
         (entity_type, entity_id, resolved)
@@ -282,7 +282,7 @@ class _PROXY_VirtualKeyModelMaxBudgetLimiter(RouterBudgetLimiting):
             BudgetExceededError: If the user_api_key_dict has exceeded the model budget
         """
         return await self._is_entity_within_model_budget(
-            entity_type=Litellm_EntityType.KEY,
+            entity_type=Gateway_EntityType.KEY,
             entity_id=user_api_key_dict.token,
             model_max_budget=user_api_key_dict.model_max_budget,
             model=model,
@@ -319,7 +319,7 @@ class _PROXY_VirtualKeyModelMaxBudgetLimiter(RouterBudgetLimiting):
             BudgetExceededError: If the user has exceeded the model budget
         """
         return await self._is_entity_within_model_budget(
-            entity_type=Litellm_EntityType.USER,
+            entity_type=Gateway_EntityType.USER,
             entity_id=user_id,
             model_max_budget=user_model_max_budget,
             model=model,
@@ -339,7 +339,7 @@ class _PROXY_VirtualKeyModelMaxBudgetLimiter(RouterBudgetLimiting):
             BudgetExceededError: If the end_user has exceeded the model budget
         """
         return await self._is_entity_within_model_budget(
-            entity_type=Litellm_EntityType.END_USER,
+            entity_type=Gateway_EntityType.END_USER,
             entity_id=end_user_id,
             model_max_budget=end_user_model_max_budget,
             model=model,
@@ -348,7 +348,7 @@ class _PROXY_VirtualKeyModelMaxBudgetLimiter(RouterBudgetLimiting):
 
     async def _is_entity_within_model_budget(
         self,
-        entity_type: Litellm_EntityType,
+        entity_type: Gateway_EntityType,
         entity_id: str | None,
         model_max_budget: Mapping[str, object] | None,
         model: str,
@@ -383,7 +383,7 @@ class _PROXY_VirtualKeyModelMaxBudgetLimiter(RouterBudgetLimiting):
 
     async def _get_spend_for_model_budget(
         self,
-        entity_type: Litellm_EntityType,
+        entity_type: Gateway_EntityType,
         entity_id: str | None,
         model: str,
         resolved: ResolvedModelBudget,
@@ -441,8 +441,8 @@ class _PROXY_VirtualKeyModelMaxBudgetLimiter(RouterBudgetLimiting):
             )
             return
 
-        _litellm_params: Final[dict] = kwargs.get("litellm_params", {}) or {}
-        _metadata: Final[dict] = _litellm_params.get("metadata", {}) or {}
+        _gateway_params: Final[dict] = kwargs.get("litellm_params", {}) or {}
+        _metadata: Final[dict] = _gateway_params.get("metadata", {}) or {}
         payload_metadata: Final = standard_logging_payload.get("metadata") or {}
 
         # Use model_group (the user-facing model alias, e.g. "gpt-4o") when
@@ -458,17 +458,17 @@ class _PROXY_VirtualKeyModelMaxBudgetLimiter(RouterBudgetLimiting):
         response_cost: Final[float] = standard_logging_payload.get("response_cost", 0)
         entity_budgets: Final = (
             (
-                Litellm_EntityType.KEY,
+                Gateway_EntityType.KEY,
                 payload_metadata.get("user_api_key_hash"),
                 _metadata.get("user_api_key_model_max_budget"),
             ),
             (
-                Litellm_EntityType.USER,
+                Gateway_EntityType.USER,
                 payload_metadata.get("user_api_key_user_id"),
                 _metadata.get("user_api_key_user_model_max_budget"),
             ),
             (
-                Litellm_EntityType.END_USER,
+                Gateway_EntityType.END_USER,
                 standard_logging_payload.get("end_user") or payload_metadata.get("user_api_key_end_user_id"),
                 _metadata.get("user_api_key_end_user_model_max_budget"),
             ),

@@ -182,7 +182,7 @@ class TestGuardrailSpanOnViolation(unittest.TestCase):
     """Bug 1: when a pre-call guardrail blocks, the guardrail span and the
     litellm_request span must both appear with the correct status."""
 
-    def test_handle_failure_creates_litellm_request_and_guardrail_spans(self):
+    def test_handle_failure_creates_gateway_request_and_guardrail_spans(self):
         """Driving ``_handle_failure`` with a populated
         ``standard_logging_object['guardrail_information']`` entry must
         emit both spans, parented correctly, with ERROR on the parent."""
@@ -200,15 +200,15 @@ class TestGuardrailSpanOnViolation(unittest.TestCase):
         otel._handle_failure(kwargs, response_obj=None, start_time=start, end_time=end)
 
         spans = exporter.get_finished_spans()
-        litellm_spans = [s for s in spans if s.name == LITELLM_REQUEST_SPAN_NAME]
+        gateway_spans = [s for s in spans if s.name == LITELLM_REQUEST_SPAN_NAME]
         guardrail_spans = [s for s in spans if s.name == GUARDRAIL_SPAN_NAME]
 
         self.assertEqual(
-            len(litellm_spans),
+            len(gateway_spans),
             1,
             "Expected exactly one litellm_request span on guardrail block",
         )
-        self.assertEqual(litellm_spans[0].status.status_code, StatusCode.ERROR)
+        self.assertEqual(gateway_spans[0].status.status_code, StatusCode.ERROR)
 
         self.assertEqual(
             len(guardrail_spans),
@@ -223,7 +223,7 @@ class TestGuardrailSpanOnViolation(unittest.TestCase):
         )
         self.assertEqual(
             guardrail_spans[0].parent.span_id,
-            litellm_spans[0].context.span_id,
+            gateway_spans[0].context.span_id,
         )
 
     def test_async_post_call_failure_hook_emits_guardrail_span(self):

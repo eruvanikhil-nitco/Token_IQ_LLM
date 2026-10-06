@@ -16,7 +16,7 @@ from fastapi import HTTPException
 from token_iq import gateway
 from token_iq.gateway.proxy import utils as utils_mod
 from token_iq.gateway.proxy.utils import (
-    _accepts_litellm_call_info,
+    _accepts_gateway_call_info,
     _enrich_http_exception_with_guardrail_context,
     _get_email_logger_class,
     _lookup_deprecated_key,
@@ -127,12 +127,12 @@ class _CbRejectsInfo:
         return None
 
 
-def test_accepts_litellm_call_info_matrix(monkeypatch):
+def test_accepts_gateway_call_info_matrix(monkeypatch):
     monkeypatch.setattr(utils_mod, "_CALLBACK_ACCEPTS_CALL_INFO", {})
     cache = {id(_CbAcceptsInfo): True}
     monkeypatch.setattr(utils_mod, "_CALLBACK_ACCEPTS_CALL_INFO", cache)
     snapshot = {
-        "cache_hit_returns_true": _accepts_litellm_call_info(_CbAcceptsInfo()),
+        "cache_hit_returns_true": _accepts_gateway_call_info(_CbAcceptsInfo()),
         "cache_size_after_hit": len(cache),
         "cache_keyed_by_type_id": id(_CbAcceptsInfo) in cache,
     }
@@ -143,11 +143,11 @@ def test_accepts_litellm_call_info_matrix(monkeypatch):
     }
 
 
-def test_accepts_litellm_call_info_signature_inspection(monkeypatch):
+def test_accepts_gateway_call_info_signature_inspection(monkeypatch):
     monkeypatch.setattr(utils_mod, "_CALLBACK_ACCEPTS_CALL_INFO", {})
     snapshot = {
-        "accepts_param_true": _accepts_litellm_call_info(_CbAcceptsInfo()),
-        "rejects_param_false": _accepts_litellm_call_info(_CbRejectsInfo()),
+        "accepts_param_true": _accepts_gateway_call_info(_CbAcceptsInfo()),
+        "rejects_param_false": _accepts_gateway_call_info(_CbRejectsInfo()),
         "cache_populated": len(utils_mod._CALLBACK_ACCEPTS_CALL_INFO) == 2,
     }
     assert snapshot == {
@@ -157,14 +157,14 @@ def test_accepts_litellm_call_info_signature_inspection(monkeypatch):
     }
 
 
-def test_accepts_litellm_call_info_error_on_callback_without_hook_raises(monkeypatch):
+def test_accepts_gateway_call_info_error_on_callback_without_hook_raises(monkeypatch):
     monkeypatch.setattr(utils_mod, "_CALLBACK_ACCEPTS_CALL_INFO", {})
 
     class _Bad:
         pass
 
     with pytest.raises(AttributeError):
-        _accepts_litellm_call_info(_Bad())  # type: ignore[arg-type]
+        _accepts_gateway_call_info(_Bad())  # type: ignore[arg-type]
 
 
 # ---------------------------------------------------------------------------

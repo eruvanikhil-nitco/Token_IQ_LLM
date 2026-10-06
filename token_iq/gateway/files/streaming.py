@@ -9,7 +9,7 @@ from token_iq.gateway.files.types import FileContentProvider
 
 if TYPE_CHECKING:
     from token_iq.gateway.core_utils.litellm_logging import (
-        Logging as LiteLLMLoggingObj,
+        Logging as GatewayLoggingObj,
     )
     from token_iq.gateway.types.utils import StandardLoggingHiddenParams, StandardLoggingPayload
 
@@ -26,7 +26,7 @@ class FileContentStreamingResponse:
         file_id: str,
         model: str | None,
         custom_llm_provider: FileContentProvider | str | None,
-        logging_obj: Optional["LiteLLMLoggingObj"],
+        logging_obj: Optional["GatewayLoggingObj"],
     ) -> None:
         self.stream_iterator = stream_iterator
         self.file_id = file_id

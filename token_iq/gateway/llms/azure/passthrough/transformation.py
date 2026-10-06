@@ -8,7 +8,7 @@ from token_iq.gateway.llms.azure.common_utils import BaseAzureLLM
 from token_iq.gateway.llms.base_llm.passthrough.transformation import BasePassthroughConfig
 from token_iq.gateway.secret_managers.main import get_secret_str
 from token_iq.gateway.types.llms.openai import AllMessageValues
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 
 if TYPE_CHECKING:
     from httpx import URL
@@ -62,7 +62,7 @@ class AzurePassthroughConfig(BasePassthroughConfig):
     ) -> dict:
         return BaseAzureLLM._base_validate_azure_environment(
             headers=headers,
-            litellm_params=GenericLiteLLMParams(**{**litellm_params, "api_key": api_key}),
+            litellm_params=GenericGatewayParams(**{**litellm_params, "api_key": api_key}),
         )
 
     @staticmethod
@@ -102,7 +102,7 @@ class AzurePassthroughConfig(BasePassthroughConfig):
 
         openai_chat_config: Final = OpenAIGPTConfig()
 
-        litellm_model_response: Final[ModelResponse] = openai_chat_config.transform_response(
+        gateway_model_response: Final[ModelResponse] = openai_chat_config.transform_response(
             model=model,
             messages=[{"role": "user", "content": "no-message-pass-through-endpoint"}],
             raw_response=httpx_response,
@@ -115,4 +115,4 @@ class AzurePassthroughConfig(BasePassthroughConfig):
             encoding=encoding,
         )
 
-        return litellm_model_response
+        return gateway_model_response

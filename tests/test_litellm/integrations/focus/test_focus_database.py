@@ -6,14 +6,14 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from token_iq.gateway.integrations.focus.database import FocusLiteLLMDatabase
+from token_iq.gateway.integrations.focus.database import FocusGatewayDatabase
 
 
 def _setup_db(monkeypatch: pytest.MonkeyPatch, query_return):
     """Create a database instance with a stubbed prisma client."""
     query_mock = AsyncMock(return_value=query_return)
     mock_client = SimpleNamespace(db=SimpleNamespace(query_raw=query_mock))
-    db = FocusLiteLLMDatabase()
+    db = FocusGatewayDatabase()
     monkeypatch.setattr(db, "_ensure_prisma_client", lambda: mock_client)
     return db, query_mock
 

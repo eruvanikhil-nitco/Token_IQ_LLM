@@ -16,7 +16,7 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 
 from token_iq.gateway.responses.litellm_completion_transformation.streaming_iterator import (
-    LiteLLMCompletionStreamingIterator,
+    GatewayCompletionStreamingIterator,
 )
 from token_iq.gateway.responses.utils import ResponsesAPIRequestUtils
 from token_iq.gateway.types.llms.openai import ResponsesAPIStreamEvents
@@ -71,10 +71,10 @@ class _FakeStreamWrapper:
         return self._chunks.pop(0)
 
 
-def _build_iterator(chunks) -> LiteLLMCompletionStreamingIterator:
-    return LiteLLMCompletionStreamingIterator(
+def _build_iterator(chunks) -> GatewayCompletionStreamingIterator:
+    return GatewayCompletionStreamingIterator(
         model="claude-haiku-4-5",
-        litellm_custom_stream_wrapper=_FakeStreamWrapper(chunks),
+        gateway_custom_stream_wrapper=_FakeStreamWrapper(chunks),
         request_input="What is the weather in San Francisco?",
         responses_api_request={},
         custom_llm_provider="anthropic",
@@ -91,9 +91,9 @@ def _response_ids(events) -> list[str]:
 
 
 def test_tool_call_delta_is_emitted_as_responses_events():
-    iterator = LiteLLMCompletionStreamingIterator(
+    iterator = GatewayCompletionStreamingIterator(
         model="test-model",
-        litellm_custom_stream_wrapper=AsyncMock(),
+        gateway_custom_stream_wrapper=AsyncMock(),
         request_input="Test input",
         responses_api_request={},
     )
@@ -139,9 +139,9 @@ def test_tool_call_delta_is_emitted_as_responses_events():
 
 
 def test_tool_calls_present_only_in_final_response_are_emitted_before_completed():
-    iterator = LiteLLMCompletionStreamingIterator(
+    iterator = GatewayCompletionStreamingIterator(
         model="test-model",
-        litellm_custom_stream_wrapper=AsyncMock(),
+        gateway_custom_stream_wrapper=AsyncMock(),
         request_input="Test input",
         responses_api_request={},
     )
@@ -172,7 +172,7 @@ def test_tool_calls_present_only_in_final_response_are_emitted_before_completed(
             }
         ],
     )
-    iterator.litellm_model_response = response
+    iterator.gateway_model_response = response
 
     # First common_done_event_logic call should yield tool events, not response.completed.
     evt1 = iterator.common_done_event_logic(sync_mode=True)
@@ -214,9 +214,9 @@ def test_tool_call_arguments_are_chunked_to_match_openai_behavior():
     This is especially important for providers like Bedrock that send complete
     arguments at once, which need to be split to match OpenAI's token-by-token streaming.
     """
-    iterator = LiteLLMCompletionStreamingIterator(
+    iterator = GatewayCompletionStreamingIterator(
         model="test-model",
-        litellm_custom_stream_wrapper=AsyncMock(),
+        gateway_custom_stream_wrapper=AsyncMock(),
         request_input="Test input",
         responses_api_request={},
     )
@@ -306,9 +306,9 @@ def test_tool_call_arguments_are_chunked_to_match_openai_behavior():
 
 
 def test_tool_call_delta_without_id_uses_index_mapping():
-    iterator = LiteLLMCompletionStreamingIterator(
+    iterator = GatewayCompletionStreamingIterator(
         model="test-model",
-        litellm_custom_stream_wrapper=AsyncMock(),
+        gateway_custom_stream_wrapper=AsyncMock(),
         request_input="Test input",
         responses_api_request={},
     )
@@ -354,9 +354,9 @@ def test_tool_call_delta_without_id_uses_index_mapping():
 
 
 def test_parallel_tool_calls_without_ids_use_index_mapping():
-    iterator = LiteLLMCompletionStreamingIterator(
+    iterator = GatewayCompletionStreamingIterator(
         model="test-model",
-        litellm_custom_stream_wrapper=AsyncMock(),
+        gateway_custom_stream_wrapper=AsyncMock(),
         request_input="Test input",
         responses_api_request={},
     )
@@ -410,9 +410,9 @@ def test_parallel_tool_calls_without_ids_use_index_mapping():
 
 
 def test_reused_index_with_new_call_id_marks_fallback_ambiguous():
-    iterator = LiteLLMCompletionStreamingIterator(
+    iterator = GatewayCompletionStreamingIterator(
         model="test-model",
-        litellm_custom_stream_wrapper=AsyncMock(),
+        gateway_custom_stream_wrapper=AsyncMock(),
         request_input="Test input",
         responses_api_request={},
     )
@@ -534,9 +534,9 @@ def test_object_tool_call_arguments_stream_as_valid_json():
     parsing function_call_arguments reject with errors like
     "Expecting ',' delimiter".
     """
-    iterator = LiteLLMCompletionStreamingIterator(
+    iterator = GatewayCompletionStreamingIterator(
         model="test-model",
-        litellm_custom_stream_wrapper=AsyncMock(),
+        gateway_custom_stream_wrapper=AsyncMock(),
         request_input="Test input",
         responses_api_request={},
     )
@@ -561,9 +561,9 @@ def test_object_tool_call_arguments_stream_as_valid_json():
 
 
 def test_streamed_anthropic_tool_call_events_correlate_on_normalized_item_id():
-    iterator = LiteLLMCompletionStreamingIterator(
+    iterator = GatewayCompletionStreamingIterator(
         model="test-model",
-        litellm_custom_stream_wrapper=AsyncMock(),
+        gateway_custom_stream_wrapper=AsyncMock(),
         request_input="Test input",
         responses_api_request={},
     )
@@ -592,7 +592,7 @@ def test_streamed_anthropic_tool_call_events_correlate_on_normalized_item_id():
             }
         ],
     )
-    iterator.litellm_model_response = response
+    iterator.gateway_model_response = response
 
     events = []
     while True:

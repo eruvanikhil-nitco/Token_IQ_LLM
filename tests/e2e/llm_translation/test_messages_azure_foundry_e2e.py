@@ -21,7 +21,7 @@ from models import (
     AnthropicMessagesBody,
     ChatMessage,
     JsonSchemaProperty,
-    LiteLLMParamsBody,
+    GatewayParamsBody,
     ToolInputSchema,
 )
 
@@ -66,7 +66,7 @@ class TestAzureFoundryMessages:
         model = f"e2e-azure-foundry-messages-{unique_marker()}"
         model_id = endpoints_client.create_model(
             model,
-            LiteLLMParamsBody(
+            GatewayParamsBody(
                 model=AZURE_FOUNDRY_MODEL,
                 api_base="os.environ/AZURE_AI_API_BASE",
                 api_key="os.environ/AZURE_AI_API_KEY",

@@ -332,7 +332,7 @@ class TestNomaApplicationIdResolution:
         assert application_id == "alias-app"
 
     @pytest.mark.asyncio
-    async def test_application_id_defaults_to_litellm(
+    async def test_application_id_defaults_to_gateway(
         self, noma_guardrail, mock_user_api_key_dict, mock_request_data
     ):
         request_data = self._clone_request_data(mock_request_data)
@@ -1159,10 +1159,10 @@ class TestNomaImageProcessing:
     def test_extract_user_message_with_image_url(self):
         """User message with only image_url becomes a single input_image content item."""
         from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
-            LiteLLMResponsesTransformationHandler,
+            GatewayResponsesTransformationHandler,
         )
 
-        handler = LiteLLMResponsesTransformationHandler()
+        handler = GatewayResponsesTransformationHandler()
         messages: list[AllMessageValues] = [
             {
                 "role": "user",
@@ -1189,10 +1189,10 @@ class TestNomaImageProcessing:
     def test_extract_user_message_with_mixed_content(self):
         """User message with text + image becomes input_text then input_image in content list."""
         from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
-            LiteLLMResponsesTransformationHandler,
+            GatewayResponsesTransformationHandler,
         )
 
-        handler = LiteLLMResponsesTransformationHandler()
+        handler = GatewayResponsesTransformationHandler()
         messages: list[AllMessageValues] = [
             {
                 "role": "user",
@@ -1228,10 +1228,10 @@ class TestNomaImageProcessing:
     def test_extract_user_message_with_multiple_images(self):
         """User message with multiple images becomes multiple input_image items."""
         from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
-            LiteLLMResponsesTransformationHandler,
+            GatewayResponsesTransformationHandler,
         )
 
-        handler = LiteLLMResponsesTransformationHandler()
+        handler = GatewayResponsesTransformationHandler()
 
         messages: list[AllMessageValues] = [
             {
@@ -1454,7 +1454,7 @@ class TestNomaImageProcessing:
     async def test_image_with_base64_data(self, noma_guardrail, mock_user_api_key_dict):
         """Test extracting image with base64 data URL"""
         from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
-            LiteLLMResponsesTransformationHandler,
+            GatewayResponsesTransformationHandler,
         )
 
         data = {
@@ -1473,7 +1473,7 @@ class TestNomaImageProcessing:
             ]
         }
 
-        handler = LiteLLMResponsesTransformationHandler()
+        handler = GatewayResponsesTransformationHandler()
         messages = cast(list[AllMessageValues], data["messages"])
 
         input_items, _ = handler.convert_chat_completion_messages_to_responses_api(

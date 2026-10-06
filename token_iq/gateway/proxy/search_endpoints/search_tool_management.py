@@ -13,7 +13,7 @@ from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.constants import UI_SESSION_TOKEN_TEAM_ID
 from token_iq.gateway.proxy._types import (
     LiteLLM_TeamTable,
-    LitellmUserRoles,
+    GatewayUserRoles,
     UserAPIKeyAuth,
 )
 from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
@@ -108,8 +108,8 @@ async def _filter_visible_search_tools(
     key/team object_permission allowlists enforced on /search. Admins see all tools.
     """
     if user_api_key_dict.user_role in (
-        LitellmUserRoles.PROXY_ADMIN,
-        LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY,
+        GatewayUserRoles.PROXY_ADMIN,
+        GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY,
     ):
         return search_tools
 
@@ -206,9 +206,9 @@ async def list_search_tools(
         for config_search_tool in config_search_tools:
             tool_name = config_search_tool.get("search_tool_name")
             if tool_name:
-                litellm_params_dict = dict(config_search_tool.get("litellm_params", {}))
-                masked_litellm_params_dict = _get_masked_values(
-                    litellm_params_dict,
+                gateway_params_dict = dict(config_search_tool.get("litellm_params", {}))
+                masked_gateway_params_dict = _get_masked_values(
+                    gateway_params_dict,
                     unmasked_length=4,
                     number_of_asterisks=4,
                 )
@@ -218,7 +218,7 @@ async def list_search_tools(
                     SearchToolInfoResponse(
                         search_tool_id=None,
                         search_tool_name=tool_name,
-                        litellm_params=masked_litellm_params_dict,
+                        litellm_params=masked_gateway_params_dict,
                         search_tool_info=(dict(config_tool_info) if config_tool_info else None),
                         created_at=None,
                         updated_at=None,
@@ -231,9 +231,9 @@ async def list_search_tools(
         ]
 
         for db_search_tool in search_tools_from_db:
-            litellm_params_dict = dict(db_search_tool.get("litellm_params", {}))
-            masked_litellm_params_dict = _get_masked_values(
-                litellm_params_dict,
+            gateway_params_dict = dict(db_search_tool.get("litellm_params", {}))
+            masked_gateway_params_dict = _get_masked_values(
+                gateway_params_dict,
                 unmasked_length=4,
                 number_of_asterisks=4,
             )
@@ -242,7 +242,7 @@ async def list_search_tools(
                 SearchToolInfoResponse(
                     search_tool_id=db_search_tool.get("search_tool_id"),
                     search_tool_name=db_search_tool.get("search_tool_name", ""),
-                    litellm_params=masked_litellm_params_dict,
+                    litellm_params=masked_gateway_params_dict,
                     search_tool_info=db_search_tool.get("search_tool_info"),
                     created_at=_convert_datetime_to_str(db_search_tool.get("created_at")),
                     updated_at=_convert_datetime_to_str(db_search_tool.get("updated_at")),
@@ -525,9 +525,9 @@ async def get_search_tool_info(search_tool_id: str):
             )
 
         # Mask sensitive data
-        litellm_params_dict: Final = dict(result.get("litellm_params", {}))
-        masked_litellm_params_dict: Final = _get_masked_values(
-            litellm_params_dict,
+        gateway_params_dict: Final = dict(result.get("litellm_params", {}))
+        masked_gateway_params_dict: Final = _get_masked_values(
+            gateway_params_dict,
             unmasked_length=4,
             number_of_asterisks=4,
         )
@@ -535,7 +535,7 @@ async def get_search_tool_info(search_tool_id: str):
         return SearchToolInfoResponse(
             search_tool_id=result.get("search_tool_id"),
             search_tool_name=result.get("search_tool_name", ""),
-            litellm_params=masked_litellm_params_dict,
+            litellm_params=masked_gateway_params_dict,
             search_tool_info=result.get("search_tool_info"),
             created_at=_convert_datetime_to_str(result.get("created_at")),
             updated_at=_convert_datetime_to_str(result.get("updated_at")),

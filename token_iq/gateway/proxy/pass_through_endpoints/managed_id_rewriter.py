@@ -1220,7 +1220,7 @@ async def list_passthrough_ids_from_db(
 # ---------------------------------------------------------------------------
 
 
-def _is_litellm_internal_key(key: object) -> bool:
+def _is_gateway_internal_key(key: object) -> bool:
     return isinstance(key, str) and key.startswith("litellm_")
 
 
@@ -1343,7 +1343,7 @@ async def rewrite_body_ids(
         changed_inner = False  # rebind-ok: flips when any child rewrite returns a new object
         for k, v in node.items():
             # Skip litellm internal injection keys (e.g. litellm_logging_obj)
-            if _is_litellm_internal_key(k):
+            if _is_gateway_internal_key(k):
                 result[k] = v
                 continue
             new_v = await _walk(v, depth + 1)

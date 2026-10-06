@@ -25,7 +25,7 @@ from .base import BaseLLM
 
 if TYPE_CHECKING:
     from token_iq.gateway import CustomStreamWrapper
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 
 
 class CustomLLMError(Exception):  # use this for all your exceptions
@@ -135,7 +135,7 @@ class CustomLLM(BaseLLM):
         api_base: str | None,
         model_response: ImageResponse,
         optional_params: dict,
-        logging_obj: "LiteLLMLoggingObj",
+        logging_obj: "GatewayLoggingObj",
         timeout: float | httpx.Timeout | None = None,
         client: HTTPHandler | None = None,
     ) -> ImageResponse:
@@ -149,7 +149,7 @@ class CustomLLM(BaseLLM):
         api_key: str | None, # dynamically set api_key
         api_base: str | None, # dynamically set api_base
         optional_params: dict,
-        logging_obj: "LiteLLMLoggingObj",
+        logging_obj: "GatewayLoggingObj",
         timeout: float | httpx.Timeout | None = None,
         client: AsyncHTTPHandler | None = None,
     ) -> ImageResponse:
@@ -161,7 +161,7 @@ class CustomLLM(BaseLLM):
         input: list,
         model_response: EmbeddingResponse,
         print_verbose: Callable,
-        logging_obj: "LiteLLMLoggingObj",
+        logging_obj: "GatewayLoggingObj",
         optional_params: dict,
         api_key: str | None = None,
         api_base: str | None = None,
@@ -176,7 +176,7 @@ class CustomLLM(BaseLLM):
         input: list,
         model_response: EmbeddingResponse,
         print_verbose: Callable,
-        logging_obj: "LiteLLMLoggingObj",
+        logging_obj: "GatewayLoggingObj",
         optional_params: dict,
         api_key: str | None = None,
         api_base: str | None = None,
@@ -194,7 +194,7 @@ class CustomLLM(BaseLLM):
         api_key: str | None,
         api_base: str | None,
         optional_params: dict,
-        logging_obj: "LiteLLMLoggingObj",
+        logging_obj: "GatewayLoggingObj",
         timeout: float | httpx.Timeout | None = None,
         client: HTTPHandler | None = None,
     ) -> ImageResponse:
@@ -209,7 +209,7 @@ class CustomLLM(BaseLLM):
         api_key: str | None,
         api_base: str | None,
         optional_params: dict,
-        logging_obj: "LiteLLMLoggingObj",
+        logging_obj: "GatewayLoggingObj",
         timeout: float | httpx.Timeout | None = None,
         client: AsyncHTTPHandler | None = None,
     ) -> ImageResponse:

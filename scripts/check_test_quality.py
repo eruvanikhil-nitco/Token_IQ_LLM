@@ -445,10 +445,10 @@ def iter_environ_violations(path: Path, tree: ast.Module) -> Iterator[Violation]
                 )
 
 
-def _litellm_attribute_targets(target: ast.expr) -> Iterator[ast.Attribute]:
+def _gateway_attribute_targets(target: ast.expr) -> Iterator[ast.Attribute]:
     if isinstance(target, ast.Tuple):
         for element in target.elts:
-            yield from _litellm_attribute_targets(element)
+            yield from _gateway_attribute_targets(element)
         return
     if isinstance(target, ast.Attribute) and _dotted_name(target.value) == "litellm":
         yield target
@@ -462,7 +462,7 @@ def iter_global_mutation_violations(path: Path, tree: ast.Module) -> Iterator[Vi
             else ()
         )
         for target in targets:
-            for attribute in _litellm_attribute_targets(target):
+            for attribute in _gateway_attribute_targets(target):
                 yield Violation(
                     path,
                     attribute.lineno,

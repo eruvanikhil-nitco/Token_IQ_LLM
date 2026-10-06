@@ -43,7 +43,7 @@ from models import (
     AnthropicMessagesBody,
     AnthropicWebSearchTool,
     ChatMessage,
-    LiteLLMParamsBody,
+    GatewayParamsBody,
 )
 
 pytestmark = pytest.mark.e2e
@@ -75,7 +75,7 @@ class TestBedrockWebSearchServerTool:
         model = f"e2e-bedrock-websearch-{unique_marker()}"
         model_id = endpoints_client.create_model(
             model,
-            LiteLLMParamsBody(
+            GatewayParamsBody(
                 model=BEDROCK_INVOKE_BACKEND,
                 aws_region_name="us-east-1",
             ),

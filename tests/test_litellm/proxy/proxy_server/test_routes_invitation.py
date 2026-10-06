@@ -59,7 +59,7 @@ def _make_invitation(
 def test_invitation_new_admin_happy(client, auth_as, monkeypatch, mock_prisma):
     """Proxy admin → create_invitation_for_user returns invitation → 200."""
     from token_iq.gateway.proxy import proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
     from token_iq.gateway.proxy.management_helpers import user_invitation
 
     invitation = _make_invitation(user_id="user-target")
@@ -72,7 +72,7 @@ def test_invitation_new_admin_happy(client, auth_as, monkeypatch, mock_prisma):
         user_invitation, "create_invitation_for_user", _fake_create_invitation
     )
 
-    with auth_as(LitellmUserRoles.PROXY_ADMIN):
+    with auth_as(GatewayUserRoles.PROXY_ADMIN):
         response = client.post("/invitation/new", json={"user_id": "user-target"})
 
     assert response.status_code == 200
@@ -92,7 +92,7 @@ def test_invitation_new_admin_happy(client, auth_as, monkeypatch, mock_prisma):
 def test_invitation_new_non_admin_forbidden(client, auth_as, monkeypatch, mock_prisma):
     """Internal user without team/org admin privileges → 400 not-allowed."""
     from token_iq.gateway.proxy import proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
     from token_iq.gateway.proxy.management_endpoints import common_utils
 
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
@@ -104,7 +104,7 @@ def test_invitation_new_non_admin_forbidden(client, auth_as, monkeypatch, mock_p
     monkeypatch.setattr(ps, "_user_has_admin_privileges", _no_privileges)
     monkeypatch.setattr(common_utils, "_user_has_admin_privileges", _no_privileges)
 
-    with auth_as(LitellmUserRoles.INTERNAL_USER):
+    with auth_as(GatewayUserRoles.INTERNAL_USER):
         response = client.post("/invitation/new", json={"user_id": "user-target"})
 
     assert response.status_code == 400
@@ -116,11 +116,11 @@ def test_invitation_new_non_admin_forbidden(client, auth_as, monkeypatch, mock_p
 def test_invitation_new_db_not_connected_400(client, auth_as, monkeypatch):
     """prisma_client is None → 400 db_not_connected_error."""
     from token_iq.gateway.proxy import proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
     monkeypatch.setattr(ps, "prisma_client", None)
 
-    with auth_as(LitellmUserRoles.PROXY_ADMIN):
+    with auth_as(GatewayUserRoles.PROXY_ADMIN):
         response = client.post("/invitation/new", json={"user_id": "user-target"})
 
     assert response.status_code == 400
@@ -134,11 +134,11 @@ def test_invitation_new_db_not_connected_400(client, auth_as, monkeypatch):
 def test_invitation_new_missing_user_id_422(client, auth_as, monkeypatch, mock_prisma):
     """Body missing the required ``user_id`` field → FastAPI 422."""
     from token_iq.gateway.proxy import proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
 
-    with auth_as(LitellmUserRoles.PROXY_ADMIN):
+    with auth_as(GatewayUserRoles.PROXY_ADMIN):
         response = client.post("/invitation/new", json={})
 
     assert response.status_code == 422
@@ -155,13 +155,13 @@ def test_invitation_new_missing_user_id_422(client, auth_as, monkeypatch, mock_p
 def test_invitation_info_admin_happy(client, auth_as, monkeypatch, mock_prisma):
     """Admin requesting an existing invitation id → returns the invitation."""
     from token_iq.gateway.proxy import proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
     invitation = _make_invitation(invitation_id="inv-xyz", user_id="user-target")
     mock_prisma.db.litellm_invitationlink.find_unique.return_value = invitation
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
 
-    with auth_as(LitellmUserRoles.PROXY_ADMIN):
+    with auth_as(GatewayUserRoles.PROXY_ADMIN):
         response = client.get("/invitation/info", params={"invitation_id": "inv-xyz"})
 
     assert response.status_code == 200
@@ -181,14 +181,14 @@ def test_invitation_info_admin_happy(client, auth_as, monkeypatch, mock_prisma):
 def test_invitation_info_not_admin_forbidden(client, auth_as, monkeypatch, mock_prisma):
     """Non-admin viewer (no admin-view privileges) → 400 not-allowed."""
     from token_iq.gateway.proxy import proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
 
     # _user_has_admin_view is referenced from proxy_server's import.
     monkeypatch.setattr(ps, "_user_has_admin_view", lambda u: False)
 
-    with auth_as(LitellmUserRoles.INTERNAL_USER):
+    with auth_as(GatewayUserRoles.INTERNAL_USER):
         response = client.get("/invitation/info", params={"invitation_id": "inv-xyz"})
 
     assert response.status_code == 400
@@ -199,12 +199,12 @@ def test_invitation_info_not_admin_forbidden(client, auth_as, monkeypatch, mock_
 def test_invitation_info_not_found_400(client, auth_as, monkeypatch, mock_prisma):
     """Admin requesting an unknown invitation id → 400 does-not-exist."""
     from token_iq.gateway.proxy import proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
     mock_prisma.db.litellm_invitationlink.find_unique.return_value = None
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
 
-    with auth_as(LitellmUserRoles.PROXY_ADMIN):
+    with auth_as(GatewayUserRoles.PROXY_ADMIN):
         response = client.get(
             "/invitation/info", params={"invitation_id": "does-not-exist"}
         )
@@ -223,7 +223,7 @@ def test_invitation_info_not_found_400(client, auth_as, monkeypatch, mock_prisma
 def test_invitation_update_happy(client, auth_as, monkeypatch, mock_prisma):
     """Authenticated user → invitation marked accepted → returns updated row."""
     from token_iq.gateway.proxy import proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
     accepted = _make_invitation(
         invitation_id="inv-1",
@@ -234,7 +234,7 @@ def test_invitation_update_happy(client, auth_as, monkeypatch, mock_prisma):
     mock_prisma.db.litellm_invitationlink.update.return_value = accepted
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
 
-    with auth_as(LitellmUserRoles.PROXY_ADMIN):
+    with auth_as(GatewayUserRoles.PROXY_ADMIN):
         response = client.post(
             "/invitation/update",
             json={"invitation_id": "inv-1", "is_accepted": True},
@@ -259,12 +259,12 @@ def test_invitation_update_happy(client, auth_as, monkeypatch, mock_prisma):
 def test_invitation_update_unknown_id_400(client, auth_as, monkeypatch, mock_prisma):
     """Update against an invitation id the DB returns None for → 400."""
     from token_iq.gateway.proxy import proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
     mock_prisma.db.litellm_invitationlink.update.return_value = None
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
 
-    with auth_as(LitellmUserRoles.PROXY_ADMIN):
+    with auth_as(GatewayUserRoles.PROXY_ADMIN):
         response = client.post(
             "/invitation/update",
             json={"invitation_id": "ghost", "is_accepted": True},
@@ -279,11 +279,11 @@ def test_invitation_update_unknown_id_400(client, auth_as, monkeypatch, mock_pri
 def test_invitation_update_no_user_id_500(client, auth_as, monkeypatch, mock_prisma):
     """If the auth principal lacks a user_id, handler returns 500."""
     from token_iq.gateway.proxy import proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
 
-    with auth_as(LitellmUserRoles.PROXY_ADMIN, user_id=None):
+    with auth_as(GatewayUserRoles.PROXY_ADMIN, user_id=None):
         response = client.post(
             "/invitation/update",
             json={"invitation_id": "inv-1", "is_accepted": True},
@@ -302,13 +302,13 @@ def test_invitation_update_no_user_id_500(client, auth_as, monkeypatch, mock_pri
 def test_invitation_delete_admin_happy(client, auth_as, monkeypatch, mock_prisma):
     """Proxy admin deletes by invitation_id → 200 with deleted row."""
     from token_iq.gateway.proxy import proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
     deleted = _make_invitation(invitation_id="inv-del", user_id="user-target")
     mock_prisma.db.litellm_invitationlink.delete.return_value = deleted
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
 
-    with auth_as(LitellmUserRoles.PROXY_ADMIN):
+    with auth_as(GatewayUserRoles.PROXY_ADMIN):
         response = client.post(
             "/invitation/delete", json={"invitation_id": "inv-del"}
         )
@@ -332,7 +332,7 @@ def test_invitation_delete_non_admin_forbidden(
 ):
     """Non-admin user without elevated privileges → 400 not-allowed."""
     from token_iq.gateway.proxy import proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
 
@@ -341,7 +341,7 @@ def test_invitation_delete_non_admin_forbidden(
 
     monkeypatch.setattr(ps, "_user_has_admin_privileges", _no_privileges)
 
-    with auth_as(LitellmUserRoles.INTERNAL_USER):
+    with auth_as(GatewayUserRoles.INTERNAL_USER):
         response = client.post(
             "/invitation/delete", json={"invitation_id": "inv-del"}
         )
@@ -354,12 +354,12 @@ def test_invitation_delete_non_admin_forbidden(
 def test_invitation_delete_unknown_id_400(client, auth_as, monkeypatch, mock_prisma):
     """Delete returns None (no row) → 400 does-not-exist."""
     from token_iq.gateway.proxy import proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
     mock_prisma.db.litellm_invitationlink.delete.return_value = None
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
 
-    with auth_as(LitellmUserRoles.PROXY_ADMIN):
+    with auth_as(GatewayUserRoles.PROXY_ADMIN):
         response = client.post(
             "/invitation/delete", json={"invitation_id": "ghost"}
         )
@@ -373,11 +373,11 @@ def test_invitation_delete_unknown_id_400(client, auth_as, monkeypatch, mock_pri
 def test_invitation_delete_db_not_connected_400(client, auth_as, monkeypatch):
     """prisma_client is None → 400 db_not_connected_error."""
     from token_iq.gateway.proxy import proxy_server as ps
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
     monkeypatch.setattr(ps, "prisma_client", None)
 
-    with auth_as(LitellmUserRoles.PROXY_ADMIN):
+    with auth_as(GatewayUserRoles.PROXY_ADMIN):
         response = client.post(
             "/invitation/delete", json={"invitation_id": "inv-del"}
         )

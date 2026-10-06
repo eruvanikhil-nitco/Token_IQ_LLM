@@ -167,13 +167,13 @@ class VeoVideoGenerator:
         else:
             download_path = video_uri
 
-        litellm_download_url = f"{self.base_url}/{download_path}"
-        print(f"Download URL: {litellm_download_url}")
+        gateway_download_url = f"{self.base_url}/{download_path}"
+        print(f"Download URL: {gateway_download_url}")
 
         try:
             # Download with streaming and redirect handling
             response = requests.get(
-                litellm_download_url,
+                gateway_download_url,
                 headers=self.headers,
                 stream=True,
                 allow_redirects=True,  # Handle redirects automatically

@@ -2,7 +2,7 @@
 Test filter_out_litellm_params helper function.
 """
 
-from token_iq.gateway.utils import filter_out_litellm_params
+from token_iq.gateway.utils import filter_out_gateway_params
 
 
 def test_filter_out_litellm_params():
@@ -21,7 +21,7 @@ def test_filter_out_litellm_params():
         "custom_param": "should_be_kept",
     }
 
-    filtered = filter_out_litellm_params(kwargs=kwargs)
+    filtered = filter_out_gateway_params(kwargs=kwargs)
 
     # Provider-specific params are kept
     assert filtered["query"] == "test query"

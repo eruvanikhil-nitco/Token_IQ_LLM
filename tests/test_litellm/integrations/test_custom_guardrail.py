@@ -150,7 +150,7 @@ class TestCustomGuardrailDeploymentHook:
 
         assert guardrail.pre_call_count == 1
 
-    def test_mark_pre_call_hook_ran_uses_litellm_metadata(self):
+    def test_mark_pre_call_hook_ran_uses_gateway_metadata(self):
         """The marker is recorded in litellm_metadata when that is the metadata
         bucket in use, and is then visible to the skip check."""
         from token_iq.gateway.constants import PRE_CALL_EXECUTED_GUARDRAILS_KEY
@@ -198,7 +198,7 @@ class TestCustomGuardrailDeploymentHook:
 
 class TestCustomGuardrailShouldRunGuardrail:
 
-    def test_should_run_guardrail_with_litellm_metadata(self):
+    def test_should_run_guardrail_with_gateway_metadata(self):
         """Test that should_run_guardrail works with litellm_metadata pattern"""
         from token_iq.gateway.types.guardrails import GuardrailEventHooks
 
@@ -640,7 +640,7 @@ class TestGuardrailLoggingAggregation:
         assert info[0]["guardrail_name"] == "legacy"
         assert info[1]["guardrail_name"] == "test_guardrail"
 
-    def test_appends_to_litellm_metadata(self):
+    def test_appends_to_gateway_metadata(self):
         request_data = {
             "litellm_metadata": {
                 "standard_logging_guardrail_information": [
@@ -2131,7 +2131,7 @@ class TestOnlyScanNewMessages:
         assert again == []
 
     @pytest.mark.asyncio
-    async def test_session_id_from_litellm_metadata_is_used_for_dedupe(self):
+    async def test_session_id_from_gateway_metadata_is_used_for_dedupe(self):
         guardrail = self._guardrail()
         cache = self._cache()
         request = {"litellm_metadata": {"session_id": "sess-lmeta"}}

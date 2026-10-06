@@ -23,7 +23,7 @@ from token_iq.gateway.llms.xai.oauth import (
 )
 from token_iq.gateway.llms.xai.chat.transformation import XAIChatConfig
 from token_iq.gateway.llms.xai.responses.transformation import XAIResponsesAPIConfig
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.utils import get_optional_params, validate_environment
 
 
@@ -695,7 +695,7 @@ def test_validate_environment_still_reports_xai_api_key(monkeypatch):
 
 
 def test_xai_oauth_flag_uses_xai_optional_param_mapping():
-    litellm_params = GenericLiteLLMParams(use_xai_oauth=True)
+    litellm_params = GenericGatewayParams(use_xai_oauth=True)
     optional_params = get_optional_params(
         model="grok-4",
         custom_llm_provider="xai",
@@ -723,7 +723,7 @@ def test_responses_config_injects_flagged_oauth_bearer_token(tmp_path, monkeypat
     headers = XAIResponsesAPIConfig().validate_environment(
         headers={},
         model="grok-4",
-        litellm_params=GenericLiteLLMParams(use_xai_oauth=True),
+        litellm_params=GenericGatewayParams(use_xai_oauth=True),
     )
 
     assert headers["Authorization"] == "Bearer responses-token"
@@ -768,7 +768,7 @@ def test_responses_config_wraps_flagged_oauth_errors_as_authentication_error(
         XAIResponsesAPIConfig().validate_environment(
             headers={},
             model="grok-4",
-            litellm_params=GenericLiteLLMParams(use_xai_oauth=True),
+            litellm_params=GenericGatewayParams(use_xai_oauth=True),
         )
 
     assert XAIResponsesAPIConfig().custom_llm_provider.value == "xai"

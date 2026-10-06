@@ -9,10 +9,10 @@ from datetime import datetime
 
 from pydantic import ConfigDict
 
-from token_iq.gateway.types.llms.base import LiteLLMPydanticObjectBase
+from token_iq.gateway.types.llms.base import GatewayPydanticObjectBase
 
 
-class LiteLLM_BudgetTable(LiteLLMPydanticObjectBase):
+class LiteLLM_BudgetTable(GatewayPydanticObjectBase):
     """Represents user-controllable params for a LiteLLM_BudgetTable record.
 
     Budget-write paths use `model_fields.keys` on this class as an allowlist

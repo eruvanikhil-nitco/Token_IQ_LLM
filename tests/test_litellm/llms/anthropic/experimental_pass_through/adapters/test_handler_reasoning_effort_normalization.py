@@ -9,14 +9,14 @@ leaves the adapter, in the shape the target expects.
 import pytest
 
 from token_iq.gateway.llms.anthropic.experimental_pass_through.adapters.handler import (
-    LiteLLMMessagesToCompletionTransformationHandler,
+    GatewayMessagesToCompletionTransformationHandler,
 )
 
 MESSAGES = [{"role": "user", "content": "hello"}]
 
 
 def _reasoning_effort_sent(model: str, provider: str, reasoning_effort: object) -> object:
-    completion_kwargs, _ = LiteLLMMessagesToCompletionTransformationHandler._prepare_completion_kwargs(
+    completion_kwargs, _ = GatewayMessagesToCompletionTransformationHandler._prepare_completion_kwargs(
         max_tokens=1024,
         messages=MESSAGES,
         model=model,

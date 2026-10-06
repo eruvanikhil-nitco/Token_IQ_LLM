@@ -45,13 +45,13 @@ from token_iq.gateway.types.llms.custom_http import *
 if TYPE_CHECKING:
     from token_iq.gateway import LlmProviders
     from token_iq.gateway.core_utils.litellm_logging import (
-        Logging as LiteLLMLoggingObject,
+        Logging as GatewayLoggingObject,
     )
-    from token_iq.gateway.llms.custom_httpx.aiohttp_transport import LiteLLMAiohttpTransport
+    from token_iq.gateway.llms.custom_httpx.aiohttp_transport import GatewayAiohttpTransport
 else:
     LlmProviders = Any
-    LiteLLMLoggingObject = Any
-    LiteLLMAiohttpTransport = Any
+    GatewayLoggingObject = Any
+    GatewayAiohttpTransport = Any
 
 try:
     from token_iq.gateway._version import version
@@ -680,7 +680,7 @@ class AsyncHTTPHandler:
         headers: dict | None = None,
         timeout: float | httpx.Timeout | None = None,
         stream: bool = False,
-        logging_obj: LiteLLMLoggingObject | None = None,
+        logging_obj: GatewayLoggingObject | None = None,
         files: RequestFiles | None = None,
         content: _RequestContent | None = None,
     ):
@@ -971,11 +971,11 @@ class AsyncHTTPHandler:
         """True when the wrapped aiohttp session is bound to a loop other than
         ``loop`` — awaiting ``aclose()`` here would touch that loop's internals."""
         from token_iq.gateway.llms.custom_httpx.aiohttp_transport import (
-            LiteLLMAiohttpTransport,
+            GatewayAiohttpTransport,
         )
 
         transport: Final = getattr(self._client, "_transport", None)
-        if not isinstance(transport, LiteLLMAiohttpTransport):
+        if not isinstance(transport, GatewayAiohttpTransport):
             return False
         session: Final = transport.client
         if not isinstance(session, ClientSession) or session.closed:
@@ -994,11 +994,11 @@ class AsyncHTTPHandler:
         garbage collection.
         """
         from token_iq.gateway.llms.custom_httpx.aiohttp_transport import (
-            LiteLLMAiohttpTransport,
+            GatewayAiohttpTransport,
         )
 
         transport: Final = getattr(self._client, "_transport", None)
-        if not isinstance(transport, LiteLLMAiohttpTransport):
+        if not isinstance(transport, GatewayAiohttpTransport):
             return
         # A shared session (e.g. the proxy's) is never this handler's to close.
         if not getattr(transport, "_owns_session", False):
@@ -1037,7 +1037,7 @@ class AsyncHTTPHandler:
         ssl_context: ssl.SSLContext | None = None,
         ssl_verify: bool | None = None,
         shared_session: Optional["ClientSession"] = None,
-    ) -> LiteLLMAiohttpTransport | AsyncHTTPTransport | None:
+    ) -> GatewayAiohttpTransport | AsyncHTTPTransport | None:
         """
         - Creates a transport for httpx.AsyncClient
             - if litellm.force_ipv4 is True, it will return AsyncHTTPTransport with local_address="0.0.0.0"
@@ -1128,7 +1128,7 @@ class AsyncHTTPHandler:
         ssl_verify: bool | None = None,
         ssl_context: ssl.SSLContext | None = None,
         shared_session: Optional["ClientSession"] = None,
-    ) -> LiteLLMAiohttpTransport:
+    ) -> GatewayAiohttpTransport:
         """
         Creates an AiohttpTransport with RequestNotRead error handling
 
@@ -1136,7 +1136,7 @@ class AsyncHTTPHandler:
         - SSLContext: custom SSL context
         - False: disable SSL verification
         """
-        from token_iq.gateway.llms.custom_httpx.aiohttp_transport import LiteLLMAiohttpTransport
+        from token_iq.gateway.llms.custom_httpx.aiohttp_transport import GatewayAiohttpTransport
         from token_iq.gateway.secret_managers.main import str_to_bool
 
         connector_kwargs = AsyncHTTPHandler._get_ssl_connector_kwargs(ssl_verify=ssl_verify, ssl_context=ssl_context)
@@ -1187,7 +1187,7 @@ class AsyncHTTPHandler:
         # Use shared session if provided and valid
         if shared_session is not None and not shared_session.closed:
             verbose_logger.debug("SHARED SESSION: Reusing existing ClientSession (ID: %s)", id(shared_session))
-            return LiteLLMAiohttpTransport(
+            return GatewayAiohttpTransport(
                 client=shared_session,
                 ssl_verify=ssl_for_transport,
                 owns_session=False,
@@ -1196,7 +1196,7 @@ class AsyncHTTPHandler:
 
         # Create new session only if none provided or existing one is invalid
         verbose_logger.debug("NEW SESSION: Creating new ClientSession (no shared session provided)")
-        return LiteLLMAiohttpTransport(
+        return GatewayAiohttpTransport(
             client=session_factory,
             ssl_verify=ssl_for_transport,
         )
@@ -1216,7 +1216,7 @@ class AsyncHTTPHandler:
 
     @staticmethod
     def _create_httpx_proxy_mounts(
-        transport: LiteLLMAiohttpTransport | AsyncHTTPTransport | None,
+        transport: GatewayAiohttpTransport | AsyncHTTPTransport | None,
         verify: VerifyTypes,
         cert: CertTypes | None,
     ) -> Mapping[str, AsyncHTTPTransport | None] | None:
@@ -1332,7 +1332,7 @@ class HTTPHandler:
         timeout: float | httpx.Timeout | None = None,
         files: dict | RequestFiles | None = None,
         content: _RequestContent | None = None,
-        logging_obj: LiteLLMLoggingObject | None = None,
+        logging_obj: GatewayLoggingObject | None = None,
     ):
         try:
             # Prepare data/content parameters to prevent httpx DeprecationWarning (memory leak fix)
@@ -1602,7 +1602,7 @@ def get_async_httpx_client(
         key=_cache_key_name,
         value=_new_client,
         ttl=_DEFAULT_TTL_FOR_HTTPX_CLIENTS,
-        litellm_owned_client=True,
+        gateway_owned_client=True,
     )
     return _new_client
 
@@ -1648,6 +1648,6 @@ def _get_httpx_client(params: dict | None = None) -> HTTPHandler:
         key=_cache_key_name,
         value=_new_client,
         ttl=_DEFAULT_TTL_FOR_HTTPX_CLIENTS,
-        litellm_owned_client=True,
+        gateway_owned_client=True,
     )
     return _new_client

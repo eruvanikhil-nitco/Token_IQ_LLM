@@ -7,12 +7,12 @@ we normalize it to text/image blocks or a string.
 """
 
 from token_iq.gateway.responses.litellm_completion_transformation.transformation import (
-    LiteLLMCompletionResponsesConfig,
+    GatewayCompletionResponsesConfig,
 )
 
 
 def test_function_call_output_list_input_text_is_converted_to_tool_string_content():
-    out = LiteLLMCompletionResponsesConfig._transform_responses_api_tool_call_output_to_chat_completion_message(
+    out = GatewayCompletionResponsesConfig._transform_responses_api_tool_call_output_to_chat_completion_message(
         tool_call_output={
             "type": "function_call_output",
             "call_id": "call_1",
@@ -31,7 +31,7 @@ def test_function_call_output_list_input_text_is_converted_to_tool_string_conten
 
 
 def test_function_call_output_string_passthrough():
-    out = LiteLLMCompletionResponsesConfig._transform_responses_api_tool_call_output_to_chat_completion_message(
+    out = GatewayCompletionResponsesConfig._transform_responses_api_tool_call_output_to_chat_completion_message(
         tool_call_output={
             "type": "function_call_output",
             "call_id": "call_1",

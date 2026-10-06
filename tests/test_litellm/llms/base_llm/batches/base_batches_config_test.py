@@ -25,7 +25,7 @@ import httpx
 import pytest
 
 
-from token_iq.gateway.types.utils import LiteLLMBatch, LlmProviders
+from token_iq.gateway.types.utils import GatewayBatch, LlmProviders
 
 # The OpenAI BatchJobStatus literal set - every provider must map into this.
 VALID_BATCH_STATUSES = {
@@ -108,7 +108,7 @@ class BatchesConfigContractTests:
                 litellm_params={},
             )
 
-    def test_contract__retrieve_response_is_valid_litellm_batch(self):
+    def test_contract__retrieve_response_is_valid_gateway_batch(self):
         if not self.supports_retrieve_response:
             pytest.skip("provider handles retrieve outside the transformation layer")
         out = self.make_config().transform_retrieve_batch_response(
@@ -117,7 +117,7 @@ class BatchesConfigContractTests:
             logging_obj=MagicMock(),
             litellm_params={},
         )
-        assert isinstance(out, LiteLLMBatch)
+        assert isinstance(out, GatewayBatch)
         assert out.object == "batch"
         assert out.status in VALID_BATCH_STATUSES
         assert isinstance(out.created_at, int)

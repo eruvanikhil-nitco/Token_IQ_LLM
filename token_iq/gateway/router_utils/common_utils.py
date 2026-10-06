@@ -11,7 +11,7 @@ from token_iq.gateway._logging import verbose_logger, verbose_router_logger
 from token_iq.gateway.constants import ROUTER_FALLBACK_ERROR_DETAIL_MAX_CHARS
 from token_iq.gateway.exceptions import BadRequestError
 from token_iq.gateway.core_utils.get_llm_provider_logic import get_llm_provider
-from token_iq.gateway.types.router import CredentialLiteLLMParams
+from token_iq.gateway.types.router import CredentialGatewayParams
 from token_iq.gateway.types.utils import LlmProviders
 
 
@@ -19,9 +19,9 @@ def _is_proxy_admin_request(request_kwargs: Mapping[str, object] | None) -> bool
     if request_kwargs is None:
         return False
     metadata_value: Final = request_kwargs.get("metadata")
-    litellm_metadata_value: Final = request_kwargs.get("litellm_metadata")
+    gateway_metadata_value: Final = request_kwargs.get("litellm_metadata")
     metadata: Final = metadata_value if isinstance(metadata_value, Mapping) else {}
-    litellm_metadata: Final = litellm_metadata_value if isinstance(litellm_metadata_value, Mapping) else {}
+    litellm_metadata: Final = gateway_metadata_value if isinstance(gateway_metadata_value, Mapping) else {}
     user_api_key_auth: Final = metadata.get("user_api_key_auth") or litellm_metadata.get("user_api_key_auth")
     return getattr(user_api_key_auth, "user_role", None) == "proxy_admin"
 
@@ -63,11 +63,11 @@ def truncate_fallback_error_detail(detail: str) -> str:
     return f"{detail[:ROUTER_FALLBACK_ERROR_DETAIL_MAX_CHARS]}... [truncated {dropped} characters]"
 
 
-def get_litellm_params_sensitive_credential_hash(litellm_params: dict) -> str:
+def get_gateway_params_sensitive_credential_hash(litellm_params: dict) -> str:
     """
     Hash of the credential params, used for mapping the file id to the right model
     """
-    sensitive_params: Final = CredentialLiteLLMParams(**litellm_params)
+    sensitive_params: Final = CredentialGatewayParams(**litellm_params)
     return hashlib.sha256(json.dumps(sensitive_params.model_dump()).encode()).hexdigest()
 
 

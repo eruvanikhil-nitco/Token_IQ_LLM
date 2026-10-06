@@ -1625,7 +1625,7 @@ async def test_sap_embedding_required_headers(
         "Authorization": "Bearer FAKE_TOKEN",
         "AI-Resource-Group": "fake-group",
         "Content-Type": "application/json",
-        "AI-Client-Type": "LiteLLM",
+        "AI-Client-Type": "Gateway",
     }
 
     gateway.disable_aiohttp_transport = True

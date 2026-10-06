@@ -17,7 +17,7 @@ from token_iq.gateway.proxy._types import (
     LiteLLM_OrganizationMembershipTable,
     LiteLLM_TeamTable,
     LiteLLM_UserTable,
-    LitellmUserRoles,
+    GatewayUserRoles,
     UserAPIKeyAuth,
 )
 from token_iq.gateway.proxy.management_endpoints.common_utils import (
@@ -213,10 +213,10 @@ class TestUserHasAdminView:
     @pytest.mark.parametrize(
         "user_role,expected",
         [
-            (LitellmUserRoles.PROXY_ADMIN, True),
-            (LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY, True),
-            (LitellmUserRoles.INTERNAL_USER, False),
-            (LitellmUserRoles.INTERNAL_USER_VIEW_ONLY, False),
+            (GatewayUserRoles.PROXY_ADMIN, True),
+            (GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY, True),
+            (GatewayUserRoles.INTERNAL_USER, False),
+            (GatewayUserRoles.INTERNAL_USER_VIEW_ONLY, False),
         ],
     )
     def test_user_has_admin_view_by_role(self, user_role, expected):
@@ -230,12 +230,12 @@ class TestUserHasAdminView:
         auth_admin = UserAPIKeyAuth(
             user_id="u1",
             api_key="sk-xxx",
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
         )
         auth_user = UserAPIKeyAuth(
             user_id="u2",
             api_key="sk-yyy",
-            user_role=LitellmUserRoles.INTERNAL_USER,
+            user_role=GatewayUserRoles.INTERNAL_USER,
         )
         assert _user_has_admin_view(auth_admin) is True
         assert _user_has_admin_view(auth_user) is False
@@ -320,14 +320,14 @@ class TestOrgAdminCanInviteUser:
         admin_user = LiteLLM_UserTable(
             user_id="admin",
             organization_memberships=[
-                self._make_membership(oid, LitellmUserRoles.ORG_ADMIN.value)
+                self._make_membership(oid, GatewayUserRoles.ORG_ADMIN.value)
                 for oid in admin_orgs
             ],
         )
         target_user = LiteLLM_UserTable(
             user_id="target",
             organization_memberships=[
-                self._make_membership(oid, LitellmUserRoles.INTERNAL_USER.value)
+                self._make_membership(oid, GatewayUserRoles.INTERNAL_USER.value)
                 for oid in target_orgs
             ],
         )
@@ -338,13 +338,13 @@ class TestOrgAdminCanInviteUser:
         admin_user = LiteLLM_UserTable(
             user_id="admin",
             organization_memberships=[
-                self._make_membership("org1", LitellmUserRoles.INTERNAL_USER.value),
+                self._make_membership("org1", GatewayUserRoles.INTERNAL_USER.value),
             ],
         )
         target_user = LiteLLM_UserTable(
             user_id="target",
             organization_memberships=[
-                self._make_membership("org1", LitellmUserRoles.INTERNAL_USER.value),
+                self._make_membership("org1", GatewayUserRoles.INTERNAL_USER.value),
             ],
         )
         assert _org_admin_can_invite_user(admin_user, target_user) is False
@@ -418,7 +418,7 @@ class TestUserHasAdminPrivileges:
         auth = UserAPIKeyAuth(
             user_id="admin",
             api_key="sk-x",
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
         )
         result = await _user_has_admin_privileges(
             user_api_key_dict=auth,
@@ -432,7 +432,7 @@ class TestUserHasAdminPrivileges:
         auth = UserAPIKeyAuth(
             user_id="user1",
             api_key="sk-x",
-            user_role=LitellmUserRoles.INTERNAL_USER,
+            user_role=GatewayUserRoles.INTERNAL_USER,
         )
         result = await _user_has_admin_privileges(
             user_api_key_dict=auth,
@@ -450,7 +450,7 @@ class TestAdminCanInviteUser:
         auth = UserAPIKeyAuth(
             user_id="admin",
             api_key="sk-x",
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
         )
         result = await admin_can_invite_user(
             target_user_id="any-user",
@@ -465,7 +465,7 @@ class TestAdminCanInviteUser:
         auth = UserAPIKeyAuth(
             user_id="user1",
             api_key="sk-x",
-            user_role=LitellmUserRoles.INTERNAL_USER,
+            user_role=GatewayUserRoles.INTERNAL_USER,
         )
         result = await admin_can_invite_user(
             target_user_id="other-user",
@@ -550,7 +550,7 @@ class TestRequireCallerUserIdForNonAdmin:
 
         key_dict = UserAPIKeyAuth(
             user_id="user-abc",
-            user_role=LitellmUserRoles.INTERNAL_USER,
+            user_role=GatewayUserRoles.INTERNAL_USER,
         )
         assert require_caller_user_id_for_non_admin(key_dict) == "user-abc"
 
@@ -564,7 +564,7 @@ class TestRequireCallerUserIdForNonAdmin:
         # Simulates a service-account key (user_id forced to None at key creation)
         service_account_key = UserAPIKeyAuth(
             user_id=None,
-            user_role=LitellmUserRoles.INTERNAL_USER,
+            user_role=GatewayUserRoles.INTERNAL_USER,
         )
         with pytest.raises(HTTPException) as exc_info:
             require_caller_user_id_for_non_admin(service_account_key)
@@ -693,7 +693,7 @@ class TestRequireCallerUserIdErrorDetail:
 
         service_account_key = UserAPIKeyAuth(
             user_id=None,
-            user_role=LitellmUserRoles.INTERNAL_USER,
+            user_role=GatewayUserRoles.INTERNAL_USER,
         )
         with pytest.raises(HTTPException) as exc_info:
             require_caller_user_id_for_non_admin(service_account_key)
@@ -709,7 +709,7 @@ class TestCheckPassthroughRoutesCallerPermission:
 
     def _non_admin(self):
         return UserAPIKeyAuth(
-            user_id="u1", api_key="sk-x", user_role=LitellmUserRoles.INTERNAL_USER
+            user_id="u1", api_key="sk-x", user_role=GatewayUserRoles.INTERNAL_USER
         )
 
     def test_top_level_routes_rejected_with_default_entity(self):
@@ -783,7 +783,7 @@ class TestIsUserOrgAdminForTeam:
             team_id="t1", organization_id="org1", members_with_roles=[]
         )
         key = UserAPIKeyAuth(
-            user_id="u1", api_key="sk-x", user_role=LitellmUserRoles.INTERNAL_USER
+            user_id="u1", api_key="sk-x", user_role=GatewayUserRoles.INTERNAL_USER
         )
         fake_prisma, fake_cache, fake_logging = MagicMock(), MagicMock(), MagicMock()
         mock_get_user = AsyncMock(return_value=None)
@@ -821,7 +821,7 @@ class TestTeamMemberHasPermission:
             members_with_roles=[Member(user_id="someone-else", role="user")],
         )
         key = UserAPIKeyAuth(
-            user_id="u1", api_key="sk-x", user_role=LitellmUserRoles.INTERNAL_USER
+            user_id="u1", api_key="sk-x", user_role=GatewayUserRoles.INTERNAL_USER
         )
         assert _team_member_has_permission(key, team, "/key/generate") is False
 
@@ -831,7 +831,7 @@ class TestUserHasAdminPrivilegesGuard:
     async def test_no_user_lookup_when_prisma_is_none(self):
         """With no DB the guard short-circuits before any user lookup."""
         auth = UserAPIKeyAuth(
-            user_id="user1", api_key="sk-x", user_role=LitellmUserRoles.INTERNAL_USER
+            user_id="user1", api_key="sk-x", user_role=GatewayUserRoles.INTERNAL_USER
         )
         mock_get_user = AsyncMock(return_value=None)
         with patch("token_iq.gateway.proxy.auth.auth_checks.get_user_object", mock_get_user):
@@ -845,7 +845,7 @@ class TestUserHasAdminPrivilegesGuard:
     async def test_org_admin_membership_grants_privileges(self):
         """With DB + user_id present, an ORG_ADMIN membership yields True."""
         auth = UserAPIKeyAuth(
-            user_id="user1", api_key="sk-x", user_role=LitellmUserRoles.INTERNAL_USER
+            user_id="user1", api_key="sk-x", user_role=GatewayUserRoles.INTERNAL_USER
         )
         now = datetime.now(timezone.utc)
         user_obj = LiteLLM_UserTable(
@@ -854,7 +854,7 @@ class TestUserHasAdminPrivilegesGuard:
                 LiteLLM_OrganizationMembershipTable(
                     user_id="user1",
                     organization_id="org1",
-                    user_role=LitellmUserRoles.ORG_ADMIN.value,
+                    user_role=GatewayUserRoles.ORG_ADMIN.value,
                     created_at=now,
                     updated_at=now,
                 )
@@ -872,7 +872,7 @@ class TestAdminCanInviteUserGuard:
     @pytest.mark.asyncio
     async def test_no_user_lookup_when_prisma_is_none(self):
         auth = UserAPIKeyAuth(
-            user_id="admin1", api_key="sk-x", user_role=LitellmUserRoles.INTERNAL_USER
+            user_id="admin1", api_key="sk-x", user_role=GatewayUserRoles.INTERNAL_USER
         )
         mock_get_user = AsyncMock(return_value=None)
         with patch("token_iq.gateway.proxy.auth.auth_checks.get_user_object", mock_get_user):
@@ -888,7 +888,7 @@ class TestAdminCanInviteUserGuard:
     async def test_org_admin_can_invite_user_in_shared_org(self):
         now = datetime.now(timezone.utc)
         auth = UserAPIKeyAuth(
-            user_id="admin1", api_key="sk-x", user_role=LitellmUserRoles.INTERNAL_USER
+            user_id="admin1", api_key="sk-x", user_role=GatewayUserRoles.INTERNAL_USER
         )
 
         def membership(role):
@@ -902,11 +902,11 @@ class TestAdminCanInviteUserGuard:
 
         admin_obj = LiteLLM_UserTable(
             user_id="admin1",
-            organization_memberships=[membership(LitellmUserRoles.ORG_ADMIN.value)],
+            organization_memberships=[membership(GatewayUserRoles.ORG_ADMIN.value)],
         )
         target_obj = LiteLLM_UserTable(
             user_id="target1",
-            organization_memberships=[membership(LitellmUserRoles.INTERNAL_USER.value)],
+            organization_memberships=[membership(GatewayUserRoles.INTERNAL_USER.value)],
         )
         mock_get_user = AsyncMock(side_effect=[admin_obj, target_obj])
         with patch("token_iq.gateway.proxy.auth.auth_checks.get_user_object", mock_get_user):

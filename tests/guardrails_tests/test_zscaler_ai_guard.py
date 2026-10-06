@@ -282,7 +282,7 @@ async def test_should_preserve_policy_id_zero_in_init():
 
 
 @pytest.mark.asyncio
-async def test_should_resolve_from_litellm_metadata_during_post_call():
+async def test_should_resolve_from_gateway_metadata_during_post_call():
     """Test that user_api_key_alias is resolved from litellm_metadata during post-call"""
     request_data = {"litellm_metadata": {"user_api_key_alias": "test-alias-post-call"}}
     result = ZscalerAIGuard._resolve_metadata_value(request_data, "user_api_key_alias")
@@ -493,7 +493,7 @@ def test_non_positive_timeout_falls_back_to_default(bad_timeout):
     assert guardrail.timeout == 5.0
 
 
-def test_update_in_memory_litellm_params_keeps_timeout_resolved():
+def test_update_in_memory_gateway_params_keeps_timeout_resolved():
     """
     Regression: the base implementation copies every LitellmParams attribute
     onto the guardrail, so an unset timeout would overwrite the resolved value
@@ -504,12 +504,12 @@ def test_update_in_memory_litellm_params_keeps_timeout_resolved():
     guardrail = ZscalerAIGuard(api_key="test_key", policy_id=1, timeout=30)
     assert guardrail.timeout == 30
 
-    guardrail.update_in_memory_litellm_params(
+    guardrail.update_in_memory_gateway_params(
         LitellmParams(guardrail="zscaler_ai_guard", mode="pre_call", api_key="test_key")
     )
     assert guardrail.timeout == 5.0
 
-    guardrail.update_in_memory_litellm_params(
+    guardrail.update_in_memory_gateway_params(
         LitellmParams(
             guardrail="zscaler_ai_guard", mode="pre_call", api_key="test_key", timeout=45
         )

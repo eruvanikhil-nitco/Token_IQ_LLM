@@ -13,10 +13,10 @@ from token_iq.gateway.models.object_permission import LiteLLM_ObjectPermissionTa
 from token_iq.gateway.models.organization_membership import (
     LiteLLM_OrganizationMembershipTable,
 )
-from token_iq.gateway.types.llms.base import LiteLLMPydanticObjectBase
+from token_iq.gateway.types.llms.base import GatewayPydanticObjectBase
 
 
-class LiteLLM_UserTable(LiteLLMPydanticObjectBase):
+class LiteLLM_UserTable(GatewayPydanticObjectBase):
     user_id: str
     user_alias: str | None = None
     team_id: str | None = None

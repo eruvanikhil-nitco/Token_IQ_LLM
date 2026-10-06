@@ -13,7 +13,7 @@ import httpx
 
 from token_iq.gateway.constants import request_timeout
 from token_iq.gateway.interactions.http_handler import InteractionsHTTPHandler
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.llms.base_llm.agents.transformation import BaseAgentsAPIConfig
 from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
 from token_iq.gateway.types.agents import (
@@ -22,7 +22,7 @@ from token_iq.gateway.types.agents import (
     AgentListResponse,
     AgentVersionsResponse,
 )
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 
 
 class AgentsHTTPHandler(InteractionsHTTPHandler):
@@ -36,8 +36,8 @@ class AgentsHTTPHandler(InteractionsHTTPHandler):
         self,
         agents_api_config: BaseAgentsAPIConfig,
         name: str,
-        litellm_params: GenericLiteLLMParams,
-        logging_obj: LiteLLMLoggingObj,
+        litellm_params: GenericGatewayParams,
+        logging_obj: GatewayLoggingObj,
         extra_headers: dict[str, Any] | None = None,
         extra_body: dict[str, Any] | None = None,
         timeout: float | httpx.Timeout | None = None,
@@ -91,8 +91,8 @@ class AgentsHTTPHandler(InteractionsHTTPHandler):
         self,
         agents_api_config: BaseAgentsAPIConfig,
         name: str,
-        litellm_params: GenericLiteLLMParams,
-        logging_obj: LiteLLMLoggingObj,
+        litellm_params: GenericGatewayParams,
+        logging_obj: GatewayLoggingObj,
         extra_headers: dict[str, Any] | None = None,
         extra_body: dict[str, Any] | None = None,
         timeout: float | httpx.Timeout | None = None,
@@ -139,8 +139,8 @@ class AgentsHTTPHandler(InteractionsHTTPHandler):
     def list_agents(
         self,
         agents_api_config: BaseAgentsAPIConfig,
-        litellm_params: GenericLiteLLMParams,
-        logging_obj: LiteLLMLoggingObj,
+        litellm_params: GenericGatewayParams,
+        logging_obj: GatewayLoggingObj,
         extra_headers: dict[str, Any] | None = None,
         timeout: float | httpx.Timeout | None = None,
         client: HTTPHandler | None = None,
@@ -179,8 +179,8 @@ class AgentsHTTPHandler(InteractionsHTTPHandler):
     async def async_list_agents(
         self,
         agents_api_config: BaseAgentsAPIConfig,
-        litellm_params: GenericLiteLLMParams,
-        logging_obj: LiteLLMLoggingObj,
+        litellm_params: GenericGatewayParams,
+        logging_obj: GatewayLoggingObj,
         extra_headers: dict[str, Any] | None = None,
         timeout: float | httpx.Timeout | None = None,
         client: AsyncHTTPHandler | None = None,
@@ -214,8 +214,8 @@ class AgentsHTTPHandler(InteractionsHTTPHandler):
         self,
         agents_api_config: BaseAgentsAPIConfig,
         name: str,
-        litellm_params: GenericLiteLLMParams,
-        logging_obj: LiteLLMLoggingObj,
+        litellm_params: GenericGatewayParams,
+        logging_obj: GatewayLoggingObj,
         extra_headers: dict[str, Any] | None = None,
         timeout: float | httpx.Timeout | None = None,
         client: HTTPHandler | None = None,
@@ -257,8 +257,8 @@ class AgentsHTTPHandler(InteractionsHTTPHandler):
         self,
         agents_api_config: BaseAgentsAPIConfig,
         name: str,
-        litellm_params: GenericLiteLLMParams,
-        logging_obj: LiteLLMLoggingObj,
+        litellm_params: GenericGatewayParams,
+        logging_obj: GatewayLoggingObj,
         extra_headers: dict[str, Any] | None = None,
         timeout: float | httpx.Timeout | None = None,
         client: AsyncHTTPHandler | None = None,
@@ -293,8 +293,8 @@ class AgentsHTTPHandler(InteractionsHTTPHandler):
         self,
         agents_api_config: BaseAgentsAPIConfig,
         name: str,
-        litellm_params: GenericLiteLLMParams,
-        logging_obj: LiteLLMLoggingObj,
+        litellm_params: GenericGatewayParams,
+        logging_obj: GatewayLoggingObj,
         extra_headers: dict[str, Any] | None = None,
         timeout: float | httpx.Timeout | None = None,
         client: HTTPHandler | None = None,
@@ -336,8 +336,8 @@ class AgentsHTTPHandler(InteractionsHTTPHandler):
         self,
         agents_api_config: BaseAgentsAPIConfig,
         name: str,
-        litellm_params: GenericLiteLLMParams,
-        logging_obj: LiteLLMLoggingObj,
+        litellm_params: GenericGatewayParams,
+        logging_obj: GatewayLoggingObj,
         extra_headers: dict[str, Any] | None = None,
         timeout: float | httpx.Timeout | None = None,
         client: AsyncHTTPHandler | None = None,
@@ -372,8 +372,8 @@ class AgentsHTTPHandler(InteractionsHTTPHandler):
         self,
         agents_api_config: BaseAgentsAPIConfig,
         name: str,
-        litellm_params: GenericLiteLLMParams,
-        logging_obj: LiteLLMLoggingObj,
+        litellm_params: GenericGatewayParams,
+        logging_obj: GatewayLoggingObj,
         extra_headers: dict[str, Any] | None = None,
         timeout: float | httpx.Timeout | None = None,
         client: HTTPHandler | None = None,
@@ -415,8 +415,8 @@ class AgentsHTTPHandler(InteractionsHTTPHandler):
         self,
         agents_api_config: BaseAgentsAPIConfig,
         name: str,
-        litellm_params: GenericLiteLLMParams,
-        logging_obj: LiteLLMLoggingObj,
+        litellm_params: GenericGatewayParams,
+        logging_obj: GatewayLoggingObj,
         extra_headers: dict[str, Any] | None = None,
         timeout: float | httpx.Timeout | None = None,
         client: AsyncHTTPHandler | None = None,

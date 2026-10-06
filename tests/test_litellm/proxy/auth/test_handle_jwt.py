@@ -11,12 +11,12 @@ import pytest
 
 from token_iq.gateway.proxy._types import (
     DEFAULT_JWKS_STALE_TTL,
-    JWTLiteLLMRoleMap,
+    JWTGatewayRoleMap,
     LiteLLM_JWTAuth,
     LiteLLM_TeamMembership,
     LiteLLM_TeamTable,
     LiteLLM_UserTable,
-    LitellmUserRoles,
+    GatewayUserRoles,
     Member,
     ProxyErrorTypes,
     ProxyException,
@@ -294,7 +294,7 @@ async def test_auth_builder_proxy_admin_user_role():
 
     # Create user object with PROXY_ADMIN role
     user_object = LiteLLM_UserTable(
-        user_id="test_user_1", user_role=LitellmUserRoles.PROXY_ADMIN
+        user_id="test_user_1", user_role=GatewayUserRoles.PROXY_ADMIN
     )
 
     # Create mock JWT handler
@@ -389,7 +389,7 @@ async def test_auth_builder_non_proxy_admin_user_role():
 
     # Create user object with regular USER role
     user_object = LiteLLM_UserTable(
-        user_id="test_user_1", user_role=LitellmUserRoles.INTERNAL_USER
+        user_id="test_user_1", user_role=GatewayUserRoles.INTERNAL_USER
     )
 
     # Create mock JWT handler
@@ -493,7 +493,7 @@ async def test_auth_builder_result_includes_user_email(row_email, expected_email
     user_object = LiteLLM_UserTable(
         user_id="test_user_1",
         user_email=row_email,
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
     )
 
     jwt_handler = JWTHandler()
@@ -599,8 +599,8 @@ async def test_sync_user_role_and_teams():
         user_api_key_cache=mock_user_api_key_cache,
         litellm_jwtauth=LiteLLM_JWTAuth(
             jwt_litellm_role_map=[
-                JWTLiteLLMRoleMap(
-                    jwt_role="ADMIN", litellm_role=LitellmUserRoles.PROXY_ADMIN
+                JWTGatewayRoleMap(
+                    jwt_role="ADMIN", litellm_role=GatewayUserRoles.PROXY_ADMIN
                 )
             ],
             roles_jwt_field="roles",
@@ -612,7 +612,7 @@ async def test_sync_user_role_and_teams():
     token = {"roles": ["ADMIN"], "my_id_teams": ["team1", "team2"]}
 
     user = LiteLLM_UserTable(
-        user_id="u1", user_role=LitellmUserRoles.INTERNAL_USER.value, teams=["team2"]
+        user_id="u1", user_role=GatewayUserRoles.INTERNAL_USER.value, teams=["team2"]
     )
 
     prisma = AsyncMock()
@@ -626,7 +626,7 @@ async def test_sync_user_role_and_teams():
 
     prisma.db.litellm_usertable.update.assert_called_once()
     mock_patch.assert_called_once()
-    assert user.user_role == LitellmUserRoles.PROXY_ADMIN.value
+    assert user.user_role == GatewayUserRoles.PROXY_ADMIN.value
     assert set(user.teams) == {"team1", "team2"}
 
 
@@ -641,8 +641,8 @@ async def test_sync_user_role_and_teams_cache_invalidation_on_role_change():
         user_api_key_cache=AsyncMock(),
         litellm_jwtauth=LiteLLM_JWTAuth(
             jwt_litellm_role_map=[
-                JWTLiteLLMRoleMap(
-                    jwt_role="ADMIN", litellm_role=LitellmUserRoles.PROXY_ADMIN
+                JWTGatewayRoleMap(
+                    jwt_role="ADMIN", litellm_role=GatewayUserRoles.PROXY_ADMIN
                 )
             ],
             roles_jwt_field="roles",
@@ -654,7 +654,7 @@ async def test_sync_user_role_and_teams_cache_invalidation_on_role_change():
     token = {"roles": ["ADMIN"], "my_id_teams": ["team1"]}
     user = LiteLLM_UserTable(
         user_id="u1",
-        user_role=LitellmUserRoles.INTERNAL_USER.value,
+        user_role=GatewayUserRoles.INTERNAL_USER.value,
         teams=["team1"],  # teams already match — only role differs
     )
 
@@ -669,7 +669,7 @@ async def test_sync_user_role_and_teams_cache_invalidation_on_role_change():
     call_kwargs = mock_cache.async_set_cache.call_args
     assert call_kwargs.kwargs["key"] == "u1"
     assert isinstance(call_kwargs.kwargs["value"], LiteLLM_UserTable)
-    assert call_kwargs.kwargs["value"].user_role == LitellmUserRoles.PROXY_ADMIN.value
+    assert call_kwargs.kwargs["value"].user_role == GatewayUserRoles.PROXY_ADMIN.value
     assert call_kwargs.kwargs["model_type"] == LiteLLM_UserTable
 
 
@@ -684,8 +684,8 @@ async def test_sync_user_role_and_teams_cache_invalidation_on_team_change():
         user_api_key_cache=AsyncMock(),
         litellm_jwtauth=LiteLLM_JWTAuth(
             jwt_litellm_role_map=[
-                JWTLiteLLMRoleMap(
-                    jwt_role="ADMIN", litellm_role=LitellmUserRoles.PROXY_ADMIN
+                JWTGatewayRoleMap(
+                    jwt_role="ADMIN", litellm_role=GatewayUserRoles.PROXY_ADMIN
                 )
             ],
             roles_jwt_field="roles",
@@ -697,7 +697,7 @@ async def test_sync_user_role_and_teams_cache_invalidation_on_team_change():
     token = {"roles": ["ADMIN"], "my_id_teams": ["team1", "team2"]}
     user = LiteLLM_UserTable(
         user_id="u1",
-        user_role=LitellmUserRoles.PROXY_ADMIN.value,  # role already matches
+        user_role=GatewayUserRoles.PROXY_ADMIN.value,  # role already matches
         teams=["team2"],  # teams differ
     )
 
@@ -731,8 +731,8 @@ async def test_sync_user_role_and_teams_no_cache_write_when_nothing_changes():
         user_api_key_cache=AsyncMock(),
         litellm_jwtauth=LiteLLM_JWTAuth(
             jwt_litellm_role_map=[
-                JWTLiteLLMRoleMap(
-                    jwt_role="ADMIN", litellm_role=LitellmUserRoles.PROXY_ADMIN
+                JWTGatewayRoleMap(
+                    jwt_role="ADMIN", litellm_role=GatewayUserRoles.PROXY_ADMIN
                 )
             ],
             roles_jwt_field="roles",
@@ -744,7 +744,7 @@ async def test_sync_user_role_and_teams_no_cache_write_when_nothing_changes():
     token = {"roles": ["ADMIN"], "my_id_teams": ["team1"]}
     user = LiteLLM_UserTable(
         user_id="u1",
-        user_role=LitellmUserRoles.PROXY_ADMIN.value,
+        user_role=GatewayUserRoles.PROXY_ADMIN.value,
         teams=["team1"],
     )
 
@@ -836,7 +836,7 @@ def test_get_all_jwt_team_ids_does_not_use_team_id_default():
 
 
 @pytest.mark.asyncio
-async def test_map_jwt_role_to_litellm_role():
+async def test_map_jwt_role_to_gateway_role():
     """Test JWT role mapping to LiteLLM roles with various patterns"""
     from unittest.mock import MagicMock
 
@@ -850,18 +850,18 @@ async def test_map_jwt_role_to_litellm_role():
         litellm_jwtauth=LiteLLM_JWTAuth(
             jwt_litellm_role_map=[
                 # Exact match
-                JWTLiteLLMRoleMap(
-                    jwt_role="ADMIN", litellm_role=LitellmUserRoles.PROXY_ADMIN
+                JWTGatewayRoleMap(
+                    jwt_role="ADMIN", litellm_role=GatewayUserRoles.PROXY_ADMIN
                 ),
                 # Wildcard patterns
-                JWTLiteLLMRoleMap(
-                    jwt_role="user_*", litellm_role=LitellmUserRoles.INTERNAL_USER
+                JWTGatewayRoleMap(
+                    jwt_role="user_*", litellm_role=GatewayUserRoles.INTERNAL_USER
                 ),
-                JWTLiteLLMRoleMap(
-                    jwt_role="team_?", litellm_role=LitellmUserRoles.TEAM
+                JWTGatewayRoleMap(
+                    jwt_role="team_?", litellm_role=GatewayUserRoles.TEAM
                 ),
-                JWTLiteLLMRoleMap(
-                    jwt_role="dev_[123]", litellm_role=LitellmUserRoles.INTERNAL_USER
+                JWTGatewayRoleMap(
+                    jwt_role="dev_[123]", litellm_role=GatewayUserRoles.INTERNAL_USER
                 ),
             ],
             roles_jwt_field="roles",
@@ -870,88 +870,88 @@ async def test_map_jwt_role_to_litellm_role():
 
     # Test exact match
     token = {"roles": ["ADMIN"]}
-    result = jwt_handler.map_jwt_role_to_litellm_role(token)
-    assert result == LitellmUserRoles.PROXY_ADMIN
+    result = jwt_handler.map_jwt_role_to_gateway_role(token)
+    assert result == GatewayUserRoles.PROXY_ADMIN
 
     # Test wildcard match with *
     token = {"roles": ["user_manager"]}
-    result = jwt_handler.map_jwt_role_to_litellm_role(token)
-    assert result == LitellmUserRoles.INTERNAL_USER
+    result = jwt_handler.map_jwt_role_to_gateway_role(token)
+    assert result == GatewayUserRoles.INTERNAL_USER
 
     token = {"roles": ["user_"]}
-    result = jwt_handler.map_jwt_role_to_litellm_role(token)
-    assert result == LitellmUserRoles.INTERNAL_USER
+    result = jwt_handler.map_jwt_role_to_gateway_role(token)
+    assert result == GatewayUserRoles.INTERNAL_USER
 
     # Test wildcard match with ?
     token = {"roles": ["team_1"]}
-    result = jwt_handler.map_jwt_role_to_litellm_role(token)
-    assert result == LitellmUserRoles.TEAM
+    result = jwt_handler.map_jwt_role_to_gateway_role(token)
+    assert result == GatewayUserRoles.TEAM
 
     token = {"roles": ["team_a"]}
-    result = jwt_handler.map_jwt_role_to_litellm_role(token)
-    assert result == LitellmUserRoles.TEAM
+    result = jwt_handler.map_jwt_role_to_gateway_role(token)
+    assert result == GatewayUserRoles.TEAM
 
     # Test character class match
     token = {"roles": ["dev_1"]}
-    result = jwt_handler.map_jwt_role_to_litellm_role(token)
-    assert result == LitellmUserRoles.INTERNAL_USER
+    result = jwt_handler.map_jwt_role_to_gateway_role(token)
+    assert result == GatewayUserRoles.INTERNAL_USER
 
     token = {"roles": ["dev_2"]}
-    result = jwt_handler.map_jwt_role_to_litellm_role(token)
-    assert result == LitellmUserRoles.INTERNAL_USER
+    result = jwt_handler.map_jwt_role_to_gateway_role(token)
+    assert result == GatewayUserRoles.INTERNAL_USER
 
     # Test no match
     token = {"roles": ["unknown_role"]}
-    result = jwt_handler.map_jwt_role_to_litellm_role(token)
+    result = jwt_handler.map_jwt_role_to_gateway_role(token)
     assert result is None
 
     # Test multiple roles - should return first mapping match
     token = {"roles": ["user_test", "ADMIN"]}
-    result = jwt_handler.map_jwt_role_to_litellm_role(token)
-    assert result == LitellmUserRoles.PROXY_ADMIN  # ADMIN matches first mapping
+    result = jwt_handler.map_jwt_role_to_gateway_role(token)
+    assert result == GatewayUserRoles.PROXY_ADMIN  # ADMIN matches first mapping
 
     # Test empty roles
     token = {"roles": []}
-    result = jwt_handler.map_jwt_role_to_litellm_role(token)
+    result = jwt_handler.map_jwt_role_to_gateway_role(token)
     assert result is None
 
     # Test no roles field
     token = {}
-    result = jwt_handler.map_jwt_role_to_litellm_role(token)
+    result = jwt_handler.map_jwt_role_to_gateway_role(token)
     assert result is None
 
     # Test no role mappings configured
     jwt_handler.litellm_jwtauth.jwt_litellm_role_map = None
     token = {"roles": ["ADMIN"]}
-    result = jwt_handler.map_jwt_role_to_litellm_role(token)
+    result = jwt_handler.map_jwt_role_to_gateway_role(token)
     assert result is None
 
     # Test empty role mappings
     jwt_handler.litellm_jwtauth.jwt_litellm_role_map = []
     token = {"roles": ["ADMIN"]}
-    result = jwt_handler.map_jwt_role_to_litellm_role(token)
+    result = jwt_handler.map_jwt_role_to_gateway_role(token)
     assert result is None
 
     # Test patterns that don't match character classes
     jwt_handler.litellm_jwtauth.jwt_litellm_role_map = [
-        JWTLiteLLMRoleMap(
-            jwt_role="dev_[123]", litellm_role=LitellmUserRoles.INTERNAL_USER
+        JWTGatewayRoleMap(
+            jwt_role="dev_[123]", litellm_role=GatewayUserRoles.INTERNAL_USER
         ),
     ]
     token = {"roles": ["dev_4"]}  # 4 is not in [123]
-    result = jwt_handler.map_jwt_role_to_litellm_role(token)
+    result = jwt_handler.map_jwt_role_to_gateway_role(token)
     assert result is None
 
     # Test ? pattern that requires exactly one character
     jwt_handler.litellm_jwtauth.jwt_litellm_role_map = [
-        JWTLiteLLMRoleMap(jwt_role="team_?", litellm_role=LitellmUserRoles.TEAM),
+        JWTGatewayRoleMap(jwt_role="team_?", litellm_role=GatewayUserRoles.TEAM),
     ]
     token = {"roles": ["team_12"]}  # More than one character after underscore
-    result = jwt_handler.map_jwt_role_to_litellm_role(token)
+    result = jwt_handler.map_jwt_role_to_gateway_role(token)
     assert result is None
 
     token = {"roles": ["team_"]}  # No character after underscore
-    result = jwt_handler.map_jwt_role_to_litellm_role(token)
+    result = jwt_handler.map_jwt_role_to_gateway_role(token)
     assert result is None
 
 
@@ -1027,12 +1027,12 @@ async def test_nested_jwt_field_access():
     assert jwt_handler.get_org_id(flat_token, None) == "org456"
 
     # Test 5: object_id_jwt_field with nested access (requires role_mappings)
-    from token_iq.gateway.proxy._types import LitellmUserRoles, RoleMapping
+    from token_iq.gateway.proxy._types import GatewayUserRoles, RoleMapping
 
     jwt_handler.litellm_jwtauth = LiteLLM_JWTAuth(
         object_id_jwt_field="profile.object_id",
         role_mappings=[
-            RoleMapping(role="admin", internal_role=LitellmUserRoles.INTERNAL_USER)
+            RoleMapping(role="admin", internal_role=GatewayUserRoles.INTERNAL_USER)
         ],
     )
     assert jwt_handler.get_object_id(nested_token, None) == "obj789"
@@ -1041,7 +1041,7 @@ async def test_nested_jwt_field_access():
     jwt_handler.litellm_jwtauth = LiteLLM_JWTAuth(
         object_id_jwt_field="object_id",
         role_mappings=[
-            RoleMapping(role="admin", internal_role=LitellmUserRoles.INTERNAL_USER)
+            RoleMapping(role="admin", internal_role=GatewayUserRoles.INTERNAL_USER)
         ],
     )
     assert jwt_handler.get_object_id(flat_token, None) == "obj789"
@@ -1127,12 +1127,12 @@ async def test_nested_jwt_field_missing_paths():
     assert jwt_handler.get_org_id(incomplete_token, "default_org") == "default_org"
 
     # Test 5: Missing profile.object_id should return default (requires role_mappings)
-    from token_iq.gateway.proxy._types import LitellmUserRoles, RoleMapping
+    from token_iq.gateway.proxy._types import GatewayUserRoles, RoleMapping
 
     jwt_handler.litellm_jwtauth = LiteLLM_JWTAuth(
         object_id_jwt_field="profile.object_id",
         role_mappings=[
-            RoleMapping(role="admin", internal_role=LitellmUserRoles.INTERNAL_USER)
+            RoleMapping(role="admin", internal_role=GatewayUserRoles.INTERNAL_USER)
         ],
     )
     assert jwt_handler.get_object_id(incomplete_token, "default_obj") == "default_obj"
@@ -1328,7 +1328,7 @@ def test_default_team_allowed_routes_cover_messages_but_not_skills(route, expect
 
     assert (
         allowed_routes_check(
-            user_role=LitellmUserRoles.TEAM,
+            user_role=GatewayUserRoles.TEAM,
             user_route=route,
             litellm_proxy_roles=LiteLLM_JWTAuth(),
         )
@@ -1363,7 +1363,7 @@ async def test_auth_builder_returns_team_membership_object():
     )
 
     user_object = LiteLLM_UserTable(
-        user_id=_user_id, user_role=LitellmUserRoles.INTERNAL_USER
+        user_id=_user_id, user_role=GatewayUserRoles.INTERNAL_USER
     )
 
     team_object = LiteLLM_TeamTable(team_id=_team_id)
@@ -1488,7 +1488,7 @@ async def test_auth_builder_with_oidc_userinfo_enabled():
     route = "/chat/completions"
 
     user_object = LiteLLM_UserTable(
-        user_id="test_user_1", user_role=LitellmUserRoles.INTERNAL_USER
+        user_id="test_user_1", user_role=GatewayUserRoles.INTERNAL_USER
     )
 
     # Create JWT handler with OIDC UserInfo enabled
@@ -1615,7 +1615,7 @@ async def test_auth_builder_with_oidc_userinfo_disabled():
     route = "/chat/completions"
 
     user_object = LiteLLM_UserTable(
-        user_id="test_user_1", user_role=LitellmUserRoles.INTERNAL_USER
+        user_id="test_user_1", user_role=GatewayUserRoles.INTERNAL_USER
     )
 
     # Create JWT handler with OIDC UserInfo disabled
@@ -1744,7 +1744,7 @@ async def test_auth_builder_oidc_enabled_falls_back_to_jwt_auth_for_jwt_tokens()
     route = "/chat/completions"
 
     user_object = LiteLLM_UserTable(
-        user_id="test_user_1", user_role=LitellmUserRoles.INTERNAL_USER
+        user_id="test_user_1", user_role=GatewayUserRoles.INTERNAL_USER
     )
 
     jwt_handler = JWTHandler()
@@ -1880,7 +1880,7 @@ async def test_auth_builder_uses_team_from_header_e2e():
 
     team_object = LiteLLM_TeamTable(team_id="team-2")
     user_object = LiteLLM_UserTable(
-        user_id="user-1", user_role=LitellmUserRoles.INTERNAL_USER
+        user_id="user-1", user_role=GatewayUserRoles.INTERNAL_USER
     )
 
     with (
@@ -2100,7 +2100,7 @@ async def test_auth_builder_rbac_team_loads_team_for_passthrough_allowlist():
 
     with (
         patch.object(jwt_handler, "auth_jwt", new_callable=AsyncMock) as mock_auth_jwt,
-        patch.object(jwt_handler, "get_rbac_role", return_value=LitellmUserRoles.TEAM),
+        patch.object(jwt_handler, "get_rbac_role", return_value=GatewayUserRoles.TEAM),
         patch.object(jwt_handler, "get_object_id", return_value="team-rbac"),
         patch.object(JWTAuthManager, "check_rbac_role", new_callable=AsyncMock),
         patch.object(
@@ -2175,7 +2175,7 @@ async def test_auth_builder_rbac_team_denies_passthrough_without_allowlist():
 
     with (
         patch.object(jwt_handler, "auth_jwt", new_callable=AsyncMock) as mock_auth_jwt,
-        patch.object(jwt_handler, "get_rbac_role", return_value=LitellmUserRoles.TEAM),
+        patch.object(jwt_handler, "get_rbac_role", return_value=GatewayUserRoles.TEAM),
         patch.object(jwt_handler, "get_object_id", return_value="team-rbac"),
         patch.object(JWTAuthManager, "check_rbac_role", new_callable=AsyncMock),
         patch.object(
@@ -3085,7 +3085,7 @@ async def test_auth_builder_single_team_db_fallback_when_jwt_has_no_team(
 
     user_object = LiteLLM_UserTable(
         user_id=user_id,
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         teams=user_teams,
     )
     jwt_handler = JWTHandler()
@@ -3202,7 +3202,7 @@ async def test_auth_builder_single_team_fallback_membership_error_skips_no_raise
     team_id_val = "team_mem_fail"
     user_object = LiteLLM_UserTable(
         user_id=user_id,
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         teams=[team_id_val],
     )
     team_table = LiteLLM_TeamTable(team_id=team_id_val)
@@ -5227,7 +5227,7 @@ async def test_resolve_db_team_fallback_skips_unresolvable_membership():
     resolvable DB team is selected instead of aborting the fallback."""
     user_object = LiteLLM_UserTable(
         user_id="u_skip",
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         teams=["ghost_team", "real_team"],
     )
     resolved = LiteLLM_TeamTable(team_id="real_team")
@@ -5337,7 +5337,7 @@ async def test_auth_builder_db_team_fallback_when_jwt_has_no_team(
     user_id = "u_db_fallback"
     user_object = LiteLLM_UserTable(
         user_id=user_id,
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         teams=user_teams,
     )
     jwt_handler = JWTHandler()
@@ -5467,7 +5467,7 @@ async def test_sync_user_role_and_teams_no_claim_team_preservation(
     token = {"sub": "u1"}
     user = LiteLLM_UserTable(
         user_id="u1",
-        user_role=LitellmUserRoles.INTERNAL_USER.value,
+        user_role=GatewayUserRoles.INTERNAL_USER.value,
         teams=["team_a", "team_b"],
     )
     prisma = AsyncMock()
@@ -5497,7 +5497,7 @@ async def test_resolve_db_team_fallback_skips_team_without_model_access():
     in favor of one that can, instead of selecting the first membership blindly."""
     user_object = LiteLLM_UserTable(
         user_id="u_model_access",
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         teams=["restricted_team", "allowed_team"],
     )
     teams = {
@@ -5563,7 +5563,7 @@ async def test_resolve_db_team_fallback_enforces_team_allowed_routes():
     info/management routes an admin narrowed team_allowed_routes to exclude."""
     user_object = LiteLLM_UserTable(
         user_id="u_routes",
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         teams=["team_a"],
     )
     team = LiteLLM_TeamTable(team_id="team_a", models=["gpt-4"])
@@ -5617,7 +5617,7 @@ def test_validate_header_team_in_db_membership_does_not_leak_team_ids():
     valid-JWT caller could otherwise probe header values to discover team IDs."""
     user_object = LiteLLM_UserTable(
         user_id="u_leak",
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         teams=["secret_team_alpha", "secret_team_beta"],
     )
 
@@ -5717,7 +5717,7 @@ async def test_auth_builder_header_team_not_found_matches_non_membership_denial(
     valid-JWT caller an oracle to probe which team ids exist."""
     user_object = LiteLLM_UserTable(
         user_id="u_oracle",
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         teams=["team_member"],
     )
     config = LiteLLM_JWTAuth(
@@ -5753,7 +5753,7 @@ async def test_auth_builder_claim_backed_header_team_lookup_error_propagates() -
     surfaces unchanged instead of being rewritten into the membership 403."""
     user_object = LiteLLM_UserTable(
         user_id="u_claimed",
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         teams=["team_member"],
     )
     config = LiteLLM_JWTAuth(
@@ -5779,7 +5779,7 @@ async def test_resolve_db_team_fallback_loads_team_membership():
     would silently skip LiteLLM_TeamMembership budget checks for every request."""
     user_object = LiteLLM_UserTable(
         user_id="u_membership",
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         teams=["team_with_budget"],
     )
     membership = LiteLLM_TeamMembership(
@@ -5841,7 +5841,7 @@ async def test_resolve_db_team_fallback_survives_membership_lookup_error():
     enforcement degrades gracefully) instead of treating it as a denial."""
     user_object = LiteLLM_UserTable(
         user_id="u_flaky",
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         teams=["team_flaky"],
     )
 
@@ -5898,7 +5898,7 @@ async def test_auth_builder_db_fallback_does_not_validate_rbac_team_against_db_m
     user_id = "u_rbac"
     user_object = LiteLLM_UserTable(
         user_id=user_id,
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         teams=["unrelated_db_team"],
     )
     jwt_handler = JWTHandler()
@@ -5913,7 +5913,7 @@ async def test_auth_builder_db_fallback_does_not_validate_rbac_team_against_db_m
     with (
         patch.object(jwt_handler, "auth_jwt", new_callable=AsyncMock) as mock_auth_jwt,
         patch.object(JWTAuthManager, "check_rbac_role", new_callable=AsyncMock),
-        patch.object(jwt_handler, "get_rbac_role", return_value=LitellmUserRoles.TEAM),
+        patch.object(jwt_handler, "get_rbac_role", return_value=GatewayUserRoles.TEAM),
         patch.object(jwt_handler, "get_scopes", return_value=[]),
         patch.object(jwt_handler, "get_object_id", return_value=rbac_team),
         patch.object(
@@ -5973,12 +5973,12 @@ async def test_resolve_db_team_fallback_distinguishes_no_membership_vs_model_den
     cause and diverges from find_team_with_model_access's claim-based message."""
     membership_user = LiteLLM_UserTable(
         user_id="u_no_model",
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         teams=["only_team"],
     )
     no_membership_user = LiteLLM_UserTable(
         user_id="u_empty",
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         teams=[],
     )
 
@@ -6053,7 +6053,7 @@ async def test_auth_builder_db_fallback_runs_when_only_team_id_default_set():
     user_id = "u_default_token"
     user_object = LiteLLM_UserTable(
         user_id=user_id,
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         teams=["db_team_for_user"],
     )
     jwt_handler = JWTHandler()
@@ -6134,7 +6134,7 @@ async def test_auth_builder_alias_only_token_resolves_alias_not_db_fallback():
     user_id = "u_alias_only"
     user_object = LiteLLM_UserTable(
         user_id=user_id,
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         teams=["db_membership_team"],
     )
     jwt_handler = JWTHandler()
@@ -6322,7 +6322,7 @@ async def test_auth_builder_db_fallback_enforces_passthrough_route_access():
     user_id = "u_passthrough"
     user_object = LiteLLM_UserTable(
         user_id=user_id,
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         teams=["team_no_passthrough"],
     )
     jwt_handler = JWTHandler()
@@ -6425,7 +6425,7 @@ async def test_sync_user_role_and_teams_singular_claim_reconciles_memberships():
     token = {"sub": "u_singular", "primary_team": "team_primary"}
     user = LiteLLM_UserTable(
         user_id="u_singular",
-        user_role=LitellmUserRoles.INTERNAL_USER.value,
+        user_role=GatewayUserRoles.INTERNAL_USER.value,
         teams=["team_stale_a", "team_stale_b"],
     )
 
@@ -6459,7 +6459,7 @@ async def test_auth_builder_provisional_header_team_is_not_upserted():
     header_team = "header_supplied_team"
     user_object = LiteLLM_UserTable(
         user_id=user_id,
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         teams=[header_team],
     )
     jwt_handler = JWTHandler()
@@ -6542,7 +6542,7 @@ async def test_auth_builder_header_cannot_override_rbac_team_under_db_fallback()
     other_team = "other_db_team"
     user_object = LiteLLM_UserTable(
         user_id=user_id,
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         teams=[other_team],
     )
     jwt_handler = JWTHandler()
@@ -6554,7 +6554,7 @@ async def test_auth_builder_header_cannot_override_rbac_team_under_db_fallback()
     with (
         patch.object(jwt_handler, "auth_jwt", new_callable=AsyncMock) as mock_auth_jwt,
         patch.object(JWTAuthManager, "check_rbac_role", new_callable=AsyncMock),
-        patch.object(jwt_handler, "get_rbac_role", return_value=LitellmUserRoles.TEAM),
+        patch.object(jwt_handler, "get_rbac_role", return_value=GatewayUserRoles.TEAM),
         patch.object(jwt_handler, "get_scopes", return_value=[]),
         patch.object(jwt_handler, "get_object_id", return_value=rbac_team),
         patch.object(
@@ -6618,7 +6618,7 @@ async def test_auth_builder_header_team_enforces_team_allowed_routes_under_db_fa
     header_team = "header_supplied_team"
     user_object = LiteLLM_UserTable(
         user_id=user_id,
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         teams=[header_team],
     )
     jwt_handler = JWTHandler()
@@ -6716,7 +6716,7 @@ async def test_sync_user_role_and_teams_singular_claim_only_recognized_under_fla
     token = {"sub": "u_flag_off", "primary_team": "team_primary"}
     user = LiteLLM_UserTable(
         user_id="u_flag_off",
-        user_role=LitellmUserRoles.INTERNAL_USER.value,
+        user_role=GatewayUserRoles.INTERNAL_USER.value,
         teams=["team_existing"],
     )
 

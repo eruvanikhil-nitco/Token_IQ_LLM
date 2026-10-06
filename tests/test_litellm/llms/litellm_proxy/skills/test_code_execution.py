@@ -3,9 +3,9 @@ import pytest
 from token_iq.gateway.llms.litellm_proxy.skills.code_execution import (
     LITELLM_CODE_EXECUTION_TOOL,
     CodeExecutionHandler,
-    LiteLLMInternalTools,
+    GatewayInternalTools,
     get_litellm_code_execution_tool,
-    get_litellm_code_execution_tool_anthropic,
+    get_gateway_code_execution_tool_anthropic,
 )
 from token_iq.gateway.llms.litellm_proxy.skills.constants import (
     DEFAULT_MAX_ITERATIONS,
@@ -21,10 +21,10 @@ _DESCRIPTION = (
 
 class TestInternalToolName:
     def test_code_execution_tool_name_is_stable(self):
-        assert LiteLLMInternalTools.CODE_EXECUTION.value == "litellm_code_execution"
+        assert GatewayInternalTools.CODE_EXECUTION.value == "litellm_code_execution"
 
     def test_enum_is_str_subclass_so_it_serializes_as_the_bare_name(self):
-        assert isinstance(LiteLLMInternalTools.CODE_EXECUTION, str)
+        assert isinstance(GatewayInternalTools.CODE_EXECUTION, str)
 
 
 class TestOpenAIToolSchema:
@@ -53,7 +53,7 @@ class TestOpenAIToolSchema:
 
 class TestAnthropicToolSchema:
     def test_schema_matches_anthropic_messages_tool_contract_exactly(self):
-        assert get_litellm_code_execution_tool_anthropic() == {
+        assert get_gateway_code_execution_tool_anthropic() == {
             "name": "litellm_code_execution",
             "description": _DESCRIPTION,
             "input_schema": {
@@ -64,19 +64,19 @@ class TestAnthropicToolSchema:
         }
 
     def test_anthropic_shape_is_flat_and_carries_no_openai_only_keys(self):
-        tool = get_litellm_code_execution_tool_anthropic()
+        tool = get_gateway_code_execution_tool_anthropic()
         assert "input_schema" in tool
         assert "type" not in tool
         assert "function" not in tool
         assert "parameters" not in tool
 
     def test_returns_a_fresh_dict_each_call(self):
-        get_litellm_code_execution_tool_anthropic()["name"] = "clobbered"
-        assert get_litellm_code_execution_tool_anthropic()["name"] == "litellm_code_execution"
+        get_gateway_code_execution_tool_anthropic()["name"] = "clobbered"
+        assert get_gateway_code_execution_tool_anthropic()["name"] == "litellm_code_execution"
 
     def test_both_surfaces_agree_on_name_and_description(self):
         openai_tool = get_litellm_code_execution_tool()
-        anthropic_tool = get_litellm_code_execution_tool_anthropic()
+        anthropic_tool = get_gateway_code_execution_tool_anthropic()
         assert anthropic_tool["name"] == openai_tool["function"]["name"]
         assert anthropic_tool["description"] == openai_tool["function"]["description"]
         assert anthropic_tool["input_schema"] == openai_tool["function"]["parameters"]

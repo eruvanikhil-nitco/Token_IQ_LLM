@@ -13,7 +13,7 @@ from fastapi import HTTPException
 from token_iq import gateway
 from token_iq.gateway.caching.caching import RedisCache
 from token_iq.gateway.caching.redis_cluster_cache import RedisClusterCache
-from token_iq.gateway.proxy._types import LitellmTableNames, LitellmUserRoles
+from token_iq.gateway.proxy._types import GatewayTableNames, GatewayUserRoles
 from token_iq.gateway.proxy.auth.user_api_key_auth import UserAPIKeyAuth
 from token_iq.gateway.proxy.management_endpoints.coordination_redis_endpoints import (
     _REDACTED_VALUE,
@@ -39,7 +39,7 @@ def _admin_auth() -> UserAPIKeyAuth:
     return UserAPIKeyAuth(
         api_key="hashed",
         user_id="admin-user",
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
     )
 
 
@@ -202,7 +202,7 @@ async def test_get_source_does_not_build_a_client(monkeypatch):
 async def test_get_rejects_non_admin():
     with pytest.raises(HTTPException) as exc_info:
         await get_coordination_redis_settings(
-            user_api_key_dict=UserAPIKeyAuth(api_key="hashed", user_role=LitellmUserRoles.INTERNAL_USER)
+            user_api_key_dict=UserAPIKeyAuth(api_key="hashed", user_role=GatewayUserRoles.INTERNAL_USER)
         )
     assert exc_info.value.status_code == 403
 
@@ -219,7 +219,7 @@ async def test_get_allows_proxy_admin_viewer():
     ):
         response = await get_coordination_redis_settings(
             user_api_key_dict=UserAPIKeyAuth(
-                api_key="hashed", user_role=LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY
+                api_key="hashed", user_role=GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY
             )
         )
 
@@ -402,7 +402,7 @@ async def test_update_emits_audit_log_with_values_redacted(monkeypatch):
 
     assert len(audit_calls) == 1
     log = audit_calls[0]
-    assert log.table_name == LitellmTableNames.CONFIG_TABLE_NAME
+    assert log.table_name == GatewayTableNames.CONFIG_TABLE_NAME
     assert log.object_id == "coordination_redis"
     assert log.action == "created"  # no prior block → create
 
@@ -449,7 +449,7 @@ async def test_update_rejects_non_admin():
     with pytest.raises(HTTPException) as exc_info:
         await update_coordination_redis_settings(
             request=CoordinationRedisSettingsRequest(settings={"host": "coord-redis.example.com"}),
-            user_api_key_dict=UserAPIKeyAuth(api_key="hashed", user_role=LitellmUserRoles.INTERNAL_USER),
+            user_api_key_dict=UserAPIKeyAuth(api_key="hashed", user_role=GatewayUserRoles.INTERNAL_USER),
             litellm_changed_by=None,
         )
     assert exc_info.value.status_code == 403
@@ -461,7 +461,7 @@ async def test_update_rejects_proxy_admin_viewer():
     with pytest.raises(HTTPException) as exc_info:
         await update_coordination_redis_settings(
             request=CoordinationRedisSettingsRequest(settings={"host": "coord-redis.example.com"}),
-            user_api_key_dict=UserAPIKeyAuth(api_key="hashed", user_role=LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY),
+            user_api_key_dict=UserAPIKeyAuth(api_key="hashed", user_role=GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY),
             litellm_changed_by=None,
         )
     assert exc_info.value.status_code == 403
@@ -602,7 +602,7 @@ async def test_connection_test_rejects_non_admin():
     with pytest.raises(HTTPException) as exc_info:
         await check_coordination_redis_connection(
             request=CoordinationRedisSettingsRequest(settings={"host": "coord-redis.example.com"}),
-            user_api_key_dict=UserAPIKeyAuth(api_key="hashed", user_role=LitellmUserRoles.INTERNAL_USER),
+            user_api_key_dict=UserAPIKeyAuth(api_key="hashed", user_role=GatewayUserRoles.INTERNAL_USER),
         )
     assert exc_info.value.status_code == 403
 
@@ -613,6 +613,6 @@ async def test_connection_test_rejects_proxy_admin_viewer():
     with pytest.raises(HTTPException) as exc_info:
         await check_coordination_redis_connection(
             request=CoordinationRedisSettingsRequest(settings={"host": "coord-redis.example.com"}),
-            user_api_key_dict=UserAPIKeyAuth(api_key="hashed", user_role=LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY),
+            user_api_key_dict=UserAPIKeyAuth(api_key="hashed", user_role=GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY),
         )
     assert exc_info.value.status_code == 403

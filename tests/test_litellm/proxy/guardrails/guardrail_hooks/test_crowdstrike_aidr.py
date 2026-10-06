@@ -1582,13 +1582,13 @@ async def test_unparseable_transformed_response_fails_closed_under_fail_open() -
     assert "failing closed" in exc_info.value.detail["error"]
 
 
-def _initialize_from_config(**litellm_params_kwargs: object) -> CrowdStrikeAIDRHandler:
+def _initialize_from_config(**gateway_params_kwargs: object) -> CrowdStrikeAIDRHandler:
     litellm_params = LitellmParams(
         guardrail="crowdstrike_aidr",
         api_key="pts_crowdstrike_tokenid",
         api_base="https://api.crowdstrike.com/aidr/aiguard",
         default_on=True,
-        **litellm_params_kwargs,
+        **gateway_params_kwargs,
     )
     guardrail = Guardrail(guardrail_name="crowdstrike-aidr-guard", litellm_params=litellm_params)
     return initialize_guardrail(litellm_params=litellm_params, guardrail=guardrail)
@@ -1638,10 +1638,10 @@ def test_initialize_guardrail_rejects_non_positive_sampling_rate() -> None:
         _initialize_from_config(mode="post_call", streaming_sampling_rate=0)
 
 
-def test_update_in_memory_litellm_params_reapplies_streaming_params() -> None:
+def test_update_in_memory_gateway_params_reapplies_streaming_params() -> None:
     handler = _initialize_from_config(mode="post_call")
 
-    handler.update_in_memory_litellm_params(
+    handler.update_in_memory_gateway_params(
         LitellmParams(
             guardrail="crowdstrike_aidr",
             mode="post_call",

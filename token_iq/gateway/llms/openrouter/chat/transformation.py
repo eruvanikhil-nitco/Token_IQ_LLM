@@ -25,7 +25,7 @@ from ..common_utils import OpenRouterException
 if TYPE_CHECKING:
     import tiktoken
 
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 
 
 class CacheControlSupportedModels(str, Enum):
@@ -177,7 +177,7 @@ class OpenrouterConfig(OpenAIGPTConfig):
         model: str,
         raw_response: httpx.Response,
         model_response: ModelResponse,
-        logging_obj: "LiteLLMLoggingObj",
+        logging_obj: "GatewayLoggingObj",
         request_data: dict,
         messages: list[AllMessageValues],
         optional_params: dict,

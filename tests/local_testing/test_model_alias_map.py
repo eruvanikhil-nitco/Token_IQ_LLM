@@ -26,7 +26,7 @@ def test_model_alias_map(caplog):
         print(response.model)
 
         for rec in caplog.records:
-            if rec.levelname == "ERROR" and rec.name.startswith("LiteLLM"):
+            if rec.levelname == "ERROR" and rec.name.startswith("Gateway"):
                 pytest.fail(f"Unexpected litellm ERROR log: {rec.getMessage()}")
 
         assert "gpt-oss-120b" in response.model

@@ -22,9 +22,9 @@ except ImportError:
     _CRYPTOGRAPHY_AVAILABLE = False
 
 try:
-    from token_iq.gateway._version import version as _litellm_version
+    from token_iq.gateway._version import version as _gateway_version
 except ImportError:
-    _litellm_version = "0.0.0"
+    _gateway_version = "0.0.0"
 
 
 # OCI GenAI REST API version — stable since service launch, unlikely to change
@@ -395,7 +395,7 @@ def validate_oci_environment(
     at construction time.
     """
     headers.setdefault("content-type", "application/json")
-    headers.setdefault("user-agent", f"litellm/{_litellm_version}")
+    headers.setdefault("user-agent", f"litellm/{_gateway_version}")
     return headers
 
 

@@ -155,7 +155,7 @@ class TestQualifireGuardrailInit:
             guardrail="qualifire", mode="pre_call", on_flagged="inject_system_message"
         )
         with pytest.raises(ValueError, match="does not support on_flagged"):
-            guardrail.update_in_memory_litellm_params(litellm_params=updated_params)
+            guardrail.update_in_memory_gateway_params(litellm_params=updated_params)
         assert guardrail.on_flagged == "block", "a rejected update must leave the live instance untouched"
 
 

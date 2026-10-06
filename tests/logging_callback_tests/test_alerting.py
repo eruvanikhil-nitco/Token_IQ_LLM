@@ -29,7 +29,7 @@ from token_iq.gateway.integrations.SlackAlerting.slack_alerting import (
     DeploymentMetrics,
     SlackAlerting,
 )
-from token_iq.gateway.proxy._types import CallInfo, Litellm_EntityType, WebhookEvent
+from token_iq.gateway.proxy._types import CallInfo, Gateway_EntityType, WebhookEvent
 from token_iq.gateway.proxy.utils import ProxyLogging
 from token_iq.gateway.router import AlertingConfig, Router
 from token_iq.gateway.utils import get_api_base
@@ -185,7 +185,7 @@ async def test_budget_alerts_crossed(slack_alerting):
                 token="",
                 spend=user_current_spend,
                 max_budget=user_max_budget,
-                event_group=Litellm_EntityType.USER,
+                event_group=Gateway_EntityType.USER,
             ),
         )
         mock_send_alert.assert_awaited_once()
@@ -203,7 +203,7 @@ async def test_budget_alerts_crossed_again(slack_alerting):
                 token="",
                 spend=user_current_spend,
                 max_budget=user_max_budget,
-                event_group=Litellm_EntityType.USER,
+                event_group=Gateway_EntityType.USER,
             ),
         )
         mock_send_alert.assert_awaited_once()
@@ -214,7 +214,7 @@ async def test_budget_alerts_crossed_again(slack_alerting):
                 token="",
                 spend=user_current_spend,
                 max_budget=user_max_budget,
-                event_group=Litellm_EntityType.USER,
+                event_group=Gateway_EntityType.USER,
             ),
         )
         mock_send_alert.assert_not_awaited()
@@ -489,7 +489,7 @@ async def test_send_token_budget_crossed_alerts(alerting_type):
             "key_alias": "my-test-key",
             "projected_exceeded_date": "10/20/2024",
             "projected_spend": 200,
-            "event_group": Litellm_EntityType.KEY,
+            "event_group": Gateway_EntityType.KEY,
         }
 
         user_info = CallInfo(**user_info)
@@ -529,7 +529,7 @@ async def test_webhook_alerting(alerting_type):
             "key_alias": "my-test-key",
             "projected_exceeded_date": "10/20/2024",
             "projected_spend": 200,
-            "event_group": Litellm_EntityType.KEY,
+            "event_group": Gateway_EntityType.KEY,
         }
 
         user_info = CallInfo(**user_info)
@@ -917,7 +917,7 @@ async def test_spend_report_cache(report_type):
             user_id="test@test.com",
             user_email="test@test.com",
             key_alias="test-key",
-            event_group=Litellm_EntityType.KEY,
+            event_group=Gateway_EntityType.KEY,
         )
 
         with patch.object(
@@ -957,7 +957,7 @@ async def test_soft_budget_alerts():
             user_id="test@test.com",
             user_email="test@test.com",
             key_alias="test-key",
-            event_group=Litellm_EntityType.KEY,
+            event_group=Gateway_EntityType.KEY,
         )
 
         await slack_alerting.budget_alerts(
@@ -992,7 +992,7 @@ key_info = CallInfo(
     user_id="test@test.com",
     user_email="test@test.com",
     key_alias="test-key",
-    event_group=Litellm_EntityType.KEY,
+    event_group=Gateway_EntityType.KEY,
 )
 
 team_info = CallInfo(
@@ -1002,7 +1002,7 @@ team_info = CallInfo(
     max_budget=200,
     team_id="team-123",
     team_alias="engineering-team",
-    event_group=Litellm_EntityType.TEAM,
+    event_group=Gateway_EntityType.TEAM,
 )
 
 user_info = CallInfo(
@@ -1011,7 +1011,7 @@ user_info = CallInfo(
     soft_budget=40,
     max_budget=50,
     user_id="user123",
-    event_group=Litellm_EntityType.USER,
+    event_group=Gateway_EntityType.USER,
 )
 
 key_no_max_budget_info = CallInfo(
@@ -1021,7 +1021,7 @@ key_no_max_budget_info = CallInfo(
     user_id="dev@test.com",
     user_email="dev@test.com",
     key_alias="dev-key",
-    event_group=Litellm_EntityType.KEY,
+    event_group=Gateway_EntityType.KEY,
 )
 
 

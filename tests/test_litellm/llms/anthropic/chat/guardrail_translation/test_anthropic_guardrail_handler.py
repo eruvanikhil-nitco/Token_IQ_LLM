@@ -269,7 +269,7 @@ class TestAnthropicMessagesHandlerInputProcessing:
     """Test input processing preserves litellm_metadata for dynamic guardrails."""
 
     @pytest.mark.asyncio
-    async def test_process_input_messages_preserves_litellm_metadata_guardrails(self):
+    async def test_process_input_messages_preserves_gateway_metadata_guardrails(self):
         handler = AnthropicMessagesHandler()
         guardrail = MockDynamicGuardrail(guardrail_name="cygnal-monitor")
 

@@ -33,7 +33,7 @@ _embedding_repeat_count = (100000 // len(_embedding_base_text)) + 1
 _DEFAULT_EMBEDDING_TEXT = (_embedding_base_text * _embedding_repeat_count)[:100000]
 
 
-class LiteLLMHealthCheckClient:
+class GatewayHealthCheckClient:
     """Client for health checking LiteLLM proxy models."""
 
     def __init__(
@@ -429,7 +429,7 @@ async def main():
     models_only_raw = os.environ.get("LITELLM_MODELS_ONLY", "")
     models_only = [m.strip() for m in models_only_raw.split(",") if m.strip()] or None
 
-    client = LiteLLMHealthCheckClient(
+    client = GatewayHealthCheckClient(
         base_url=base_url,
         api_key=api_key,
         timeout=timeout,

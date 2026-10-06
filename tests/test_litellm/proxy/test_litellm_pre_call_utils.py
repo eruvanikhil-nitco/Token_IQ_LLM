@@ -17,7 +17,7 @@ from token_iq import gateway
 from token_iq.gateway.proxy._types import AddTeamCallback, ProxyException, TeamCallbackMetadata, UserAPIKeyAuth
 from token_iq.gateway.proxy.litellm_pre_call_utils import (
     KeyAndTeamLoggingSettings,
-    LiteLLMProxyRequestSetup,
+    GatewayProxyRequestSetup,
     _apply_credential_overrides_from_model_config,
     _extract_credential_from_entry,
     _get_dynamic_logging_metadata,
@@ -77,23 +77,23 @@ class TestGetMetadataVariableName:
         request.url.path = path
         return request
 
-    def test_returns_litellm_metadata_for_thread_routes(self):
+    def test_returns_gateway_metadata_for_thread_routes(self):
         request = self._make_request("/v1/threads/thread_123/messages")
         assert _get_metadata_variable_name(request) == "litellm_metadata"
 
-    def test_returns_litellm_metadata_for_assistant_routes(self):
+    def test_returns_gateway_metadata_for_assistant_routes(self):
         request = self._make_request("/v1/assistants/asst_123")
         assert _get_metadata_variable_name(request) == "litellm_metadata"
 
-    def test_returns_litellm_metadata_for_batches_route(self):
+    def test_returns_gateway_metadata_for_batches_route(self):
         request = self._make_request("/v1/batches")
         assert _get_metadata_variable_name(request) == "litellm_metadata"
 
-    def test_returns_litellm_metadata_for_messages_route(self):
+    def test_returns_gateway_metadata_for_messages_route(self):
         request = self._make_request("/v1/messages")
         assert _get_metadata_variable_name(request) == "litellm_metadata"
 
-    def test_returns_litellm_metadata_for_files_route(self):
+    def test_returns_gateway_metadata_for_files_route(self):
         request = self._make_request("/v1/files")
         assert _get_metadata_variable_name(request) == "litellm_metadata"
 
@@ -109,7 +109,7 @@ class TestGetMetadataVariableName:
         request = self._make_request("/v1/embeddings")
         assert _get_metadata_variable_name(request) == "metadata"
 
-    def test_returns_litellm_metadata_for_bedrock_invoke(self):
+    def test_returns_gateway_metadata_for_bedrock_invoke(self):
         # GH#30629: bedrock passthrough must use litellm_metadata
         # to prevent key-level tags from leaking into provider body
         request = self._make_request(
@@ -117,7 +117,7 @@ class TestGetMetadataVariableName:
         )
         assert _get_metadata_variable_name(request) == "litellm_metadata"
 
-    def test_returns_litellm_metadata_for_bedrock_converse(self):
+    def test_returns_gateway_metadata_for_bedrock_converse(self):
         request = self._make_request(
             "/bedrock/model/us.anthropic.claude-sonnet-4-6/converse"
         )
@@ -193,7 +193,7 @@ def test_get_enforced_params(
 
 
 @pytest.mark.asyncio
-async def test_add_litellm_data_to_request_parses_string_metadata():
+async def test_add_gateway_data_to_request_parses_string_metadata():
     from token_iq.gateway.proxy.litellm_pre_call_utils import add_litellm_data_to_request
 
     # Setup
@@ -310,7 +310,7 @@ async def test_stamped_auth_object_reflects_header_derived_identity():
 
 
 @pytest.mark.asyncio
-async def test_arrival_time_prefers_litellm_received_at_over_time_time():
+async def test_arrival_time_prefers_gateway_received_at_over_time_time():
     """LIT-6012: by the time this function runs, auth has already completed, so
     time.time() here would silently exclude the whole auth phase from the
     queue-time window. request.state.litellm_received_at (stamped at the top of
@@ -344,7 +344,7 @@ async def test_arrival_time_prefers_litellm_received_at_over_time_time():
 
 
 @pytest.mark.asyncio
-async def test_arrival_time_falls_back_to_time_time_without_litellm_received_at():
+async def test_arrival_time_falls_back_to_time_time_without_gateway_received_at():
     """Callers that never went through user_api_key_auth (no stamp on request.state)
     must still get a usable arrival_time instead of erroring."""
     from token_iq.gateway.proxy.litellm_pre_call_utils import add_litellm_data_to_request
@@ -379,7 +379,7 @@ async def test_arrival_time_falls_back_to_time_time_without_litellm_received_at(
 
 
 @pytest.mark.asyncio
-async def test_add_litellm_data_to_request_strips_admin_injection_slots():
+async def test_add_gateway_data_to_request_strips_admin_injection_slots():
     """User-supplied user_api_key_metadata / user_api_key_team_metadata /
     _pipeline_managed_guardrails must be stripped from both metadata keys
     before the proxy writes its own admin-populated values. Otherwise a
@@ -452,7 +452,7 @@ async def test_add_litellm_data_to_request_strips_admin_injection_slots():
 
 
 @pytest.mark.asyncio
-async def test_add_litellm_data_to_request_strips_all_user_api_key_prefix_keys():
+async def test_add_gateway_data_to_request_strips_all_user_api_key_prefix_keys():
     """Strip must cover the full user_api_key_* family, not a hand-maintained
     list of 2-3 names. Proxy writes a dozen such fields (user_id, alias,
     spend, team_id, request_route, …) and an attacker populating any of them
@@ -514,7 +514,7 @@ async def test_add_litellm_data_to_request_strips_all_user_api_key_prefix_keys()
 
 
 @pytest.mark.asyncio
-async def test_add_litellm_data_to_request_string_metadata_does_not_crash():
+async def test_add_gateway_data_to_request_string_metadata_does_not_crash():
     """Regression: pre-strip code that pre-populated data['metadata'][k]=v
     before the string-to-dict parse would crash on JSON-string metadata.
     The snapshot / strip / admin-population pipeline must survive metadata
@@ -590,7 +590,7 @@ def _batches_request_mock() -> MagicMock:
         ("metadata", True, "a boolean"),
     ],
 )
-async def test_add_litellm_data_to_request_rejects_non_object_metadata(field, value, received_type):
+async def test_add_gateway_data_to_request_rejects_non_object_metadata(field, value, received_type):
     """Regression for https://github.com/BerriAI/litellm/issues/37147: a
     non-object metadata was silently dropped with a 200, and a non-object
     litellm_metadata crashed later with a 500 ('str' object has no attribute
@@ -614,7 +614,7 @@ async def test_add_litellm_data_to_request_rejects_non_object_metadata(field, va
 
 
 @pytest.mark.asyncio
-async def test_add_litellm_data_to_request_removes_every_invalid_metadata_field_before_raising():
+async def test_add_gateway_data_to_request_removes_every_invalid_metadata_field_before_raising():
     """When both fields are invalid, the raise for the first must not leave the
     second invalid value in data, or failure-logging hooks that inspect the body
     can crash on it and mask the 400 as a 500."""
@@ -636,7 +636,7 @@ async def test_add_litellm_data_to_request_removes_every_invalid_metadata_field_
 
 
 @pytest.mark.asyncio
-async def test_add_litellm_data_to_request_parses_json_object_string_litellm_metadata():
+async def test_add_gateway_data_to_request_parses_json_object_string_gateway_metadata():
     data = {"input_file_id": "file-abc", "litellm_metadata": json.dumps({"cost_centre": "research"})}
 
     updated = await add_litellm_data_to_request(
@@ -652,7 +652,7 @@ async def test_add_litellm_data_to_request_parses_json_object_string_litellm_met
 
 
 @pytest.mark.asyncio
-async def test_add_litellm_data_to_request_proxy_server_request_body_is_post_strip():
+async def test_add_gateway_data_to_request_proxy_server_request_body_is_post_strip():
     """Regression: proxy_server_request['body'] used to be snapshotted before
     the admin-slot strip, so standard_logging_object and spend-tracking
     readers saw attacker-injected payload. Snapshot must now be post-strip."""
@@ -703,7 +703,7 @@ async def test_add_litellm_data_to_request_proxy_server_request_body_is_post_str
 
 
 @pytest.mark.asyncio
-async def test_add_litellm_data_to_request_body_snapshot_excludes_secret_fields():
+async def test_add_gateway_data_to_request_body_snapshot_excludes_secret_fields():
     """Security: proxy_server_request['body'] must never contain secret_fields
     because that dict holds raw HTTP headers including Authorization Bearer
     tokens. The body snapshot is persisted in spend logs and other audit trails,
@@ -768,7 +768,7 @@ async def test_add_litellm_data_to_request_body_snapshot_excludes_secret_fields(
 
 
 @pytest.mark.asyncio
-async def test_add_litellm_data_to_request_body_snapshot_excludes_proxy_server_request():
+async def test_add_gateway_data_to_request_body_snapshot_excludes_proxy_server_request():
     """Regression: the body snapshot used to include the proxy_server_request
     key itself, producing the path
     ``proxy_server_request.body.proxy_server_request.body == body``. Custom
@@ -869,7 +869,7 @@ def test_refresh_proxy_server_request_body_snapshot_picks_up_guardrail_masking()
 
 
 @pytest.mark.asyncio
-async def test_add_litellm_data_to_request_strips_string_encoded_admin_injection():
+async def test_add_gateway_data_to_request_strips_string_encoded_admin_injection():
     """Regression: metadata arriving as a JSON string (multipart/form-data or
     extra_body) must not bypass the admin-injection strip. The parse happens
     AFTER receipt, so the strip has to run after the parse, not before.
@@ -933,7 +933,7 @@ async def test_add_litellm_data_to_request_strips_string_encoded_admin_injection
 
 
 @pytest.mark.asyncio
-async def test_add_litellm_data_to_request_strips_user_control_fields():
+async def test_add_gateway_data_to_request_strips_user_control_fields():
     """Strip untrusted proxy-control fields before guardrails, logging, and headers read metadata."""
     request_mock = MagicMock(spec=Request)
     request_mock.url.path = "/v1/chat/completions"
@@ -1081,7 +1081,7 @@ async def test_key_metadata_enable_prompt_caching_promoted_to_request_root(key_v
         "max_agentic_loops",
     ],
 )
-async def test_add_litellm_data_to_request_strips_callback_control_fields(
+async def test_add_gateway_data_to_request_strips_callback_control_fields(
     control_field,
 ):
     """``callbacks`` / ``service_callback`` / ``logger_fn`` get appended to
@@ -1139,7 +1139,7 @@ async def test_add_litellm_data_to_request_strips_callback_control_fields(
 
 @pytest.mark.asyncio
 @pytest.mark.parametrize("timeout_field", ["timeout", "request_timeout", "stream_timeout"])
-async def test_add_litellm_data_to_request_marks_body_timeout_as_client_side(timeout_field):
+async def test_add_gateway_data_to_request_marks_body_timeout_as_client_side(timeout_field):
     """Router._get_timeout resolves the effective timeout from any of kwargs["timeout"],
     kwargs["request_timeout"], or kwargs["stream_timeout"], all settable directly in the
     request body. Without recognizing all three, a caller could force a 408 on every
@@ -1172,7 +1172,7 @@ async def test_add_litellm_data_to_request_marks_body_timeout_as_client_side(tim
 
 
 @pytest.mark.asyncio
-async def test_add_litellm_data_to_request_ignores_forged_client_side_timeout():
+async def test_add_gateway_data_to_request_ignores_forged_client_side_timeout():
     """The client_side_timeout marker itself must never be trusted verbatim from the
     request body: a caller forging client_side_timeout=True without a real timeout
     override could dodge cooldown protection on an actual deployment failure."""
@@ -1262,7 +1262,7 @@ async def test_client_side_timeout_marker_never_reaches_the_provider():
 
 
 @pytest.mark.asyncio
-async def test_add_litellm_data_to_request_allows_client_mock_response_with_admin_opt_in():
+async def test_add_gateway_data_to_request_allows_client_mock_response_with_admin_opt_in():
     request_mock = MagicMock(spec=Request)
     request_mock.url.path = "/v1/chat/completions"
     request_mock.url = MagicMock()
@@ -1295,7 +1295,7 @@ async def test_add_litellm_data_to_request_allows_client_mock_response_with_admi
 
 
 @pytest.mark.asyncio
-async def test_add_litellm_data_to_request_strips_client_redaction_bypass_controls():
+async def test_add_gateway_data_to_request_strips_client_redaction_bypass_controls():
     request_mock = MagicMock(spec=Request)
     request_mock.url.path = "/v1/chat/completions"
     request_mock.url = MagicMock()
@@ -1392,7 +1392,7 @@ async def test_add_litellm_data_to_request_strips_client_redaction_bypass_contro
     ],
 )
 @pytest.mark.asyncio
-async def test_add_litellm_data_to_request_admin_callback_vars_turn_off_message_logging_overrides_global(
+async def test_add_gateway_data_to_request_admin_callback_vars_turn_off_message_logging_overrides_global(
     admin_metadata_kwargs,
 ):
     from token_iq.gateway.core_utils.initialize_dynamic_callback_params import (
@@ -1468,7 +1468,7 @@ async def test_add_litellm_data_to_request_admin_callback_vars_turn_off_message_
     ],
 )
 @pytest.mark.asyncio
-async def test_add_litellm_data_to_request_admin_callback_vars_turn_off_message_logging_enables_redaction_when_global_off(
+async def test_add_gateway_data_to_request_admin_callback_vars_turn_off_message_logging_enables_redaction_when_global_off(
     admin_metadata_kwargs,
 ):
     from token_iq.gateway.core_utils.initialize_dynamic_callback_params import (
@@ -1524,7 +1524,7 @@ async def test_add_litellm_data_to_request_admin_callback_vars_turn_off_message_
     ],
 )
 @pytest.mark.asyncio
-async def test_add_litellm_data_to_request_allows_redaction_opt_out_with_admin_opt_in(
+async def test_add_gateway_data_to_request_allows_redaction_opt_out_with_admin_opt_in(
     auth_kwargs,
 ):
     request_mock = MagicMock(spec=Request)
@@ -1585,7 +1585,7 @@ async def test_add_litellm_data_to_request_allows_redaction_opt_out_with_admin_o
 
 
 @pytest.mark.asyncio
-async def test_add_litellm_data_to_request_honors_header_tags():
+async def test_add_gateway_data_to_request_honors_header_tags():
     """Header-supplied tags flow through to request metadata."""
     from token_iq.gateway.proxy.litellm_pre_call_utils import add_litellm_data_to_request
 
@@ -1628,7 +1628,7 @@ async def test_add_litellm_data_to_request_honors_header_tags():
 
 
 @pytest.mark.asyncio
-async def test_add_litellm_data_to_request_preserves_caller_metadata_tags():
+async def test_add_gateway_data_to_request_preserves_caller_metadata_tags():
     """Caller-supplied metadata.tags are preserved and reach the router."""
     from token_iq.gateway.proxy.litellm_pre_call_utils import add_litellm_data_to_request
 
@@ -1671,7 +1671,7 @@ async def test_add_litellm_data_to_request_preserves_caller_metadata_tags():
 
 
 @pytest.mark.asyncio
-async def test_add_litellm_data_to_request_unions_caller_header_tags_with_static_key_tags():
+async def test_add_gateway_data_to_request_unions_caller_header_tags_with_static_key_tags():
     """Caller-supplied `x-litellm-tags` must union with static key-level
     tags, not overwrite them."""
     from token_iq.gateway.proxy.litellm_pre_call_utils import add_litellm_data_to_request
@@ -1718,7 +1718,7 @@ async def test_add_litellm_data_to_request_unions_caller_header_tags_with_static
 
 
 @pytest.mark.asyncio
-async def test_add_litellm_data_to_request_unions_caller_header_tags_with_static_team_tags():
+async def test_add_gateway_data_to_request_unions_caller_header_tags_with_static_team_tags():
     """Same union behavior must hold for team-level static tags."""
     from token_iq.gateway.proxy.litellm_pre_call_utils import add_litellm_data_to_request
 
@@ -1764,7 +1764,7 @@ async def test_add_litellm_data_to_request_unions_caller_header_tags_with_static
 
 
 @pytest.mark.asyncio
-async def test_add_litellm_data_to_request_unions_dedups_overlapping_caller_and_static_tags():
+async def test_add_gateway_data_to_request_unions_dedups_overlapping_caller_and_static_tags():
     """A tag that appears in both the static set and the caller header
     must show up exactly once in the merged list."""
     from token_iq.gateway.proxy.litellm_pre_call_utils import add_litellm_data_to_request
@@ -1811,7 +1811,7 @@ async def test_add_litellm_data_to_request_unions_dedups_overlapping_caller_and_
 
 
 @pytest.mark.asyncio
-async def test_add_litellm_data_to_request_user_spend_and_budget():
+async def test_add_gateway_data_to_request_user_spend_and_budget():
     from token_iq.gateway.proxy.litellm_pre_call_utils import add_litellm_data_to_request
 
     request_mock = MagicMock(spec=Request)
@@ -1852,7 +1852,7 @@ async def test_add_litellm_data_to_request_user_spend_and_budget():
 
 
 @pytest.mark.asyncio
-async def test_add_litellm_data_to_request_audio_transcription_multipart():
+async def test_add_gateway_data_to_request_audio_transcription_multipart():
     from token_iq.gateway.proxy.litellm_pre_call_utils import add_litellm_data_to_request
 
     # Setup request mock for /v1/audio/transcriptions
@@ -1914,7 +1914,7 @@ async def test_add_litellm_data_to_request_audio_transcription_multipart():
 
 
 @pytest.mark.asyncio
-async def test_add_litellm_data_to_request_disabled_callbacks():
+async def test_add_gateway_data_to_request_disabled_callbacks():
     """
     Test that litellm_disabled_callbacks from key metadata is properly added to the request data.
     """
@@ -1967,7 +1967,7 @@ async def test_add_litellm_data_to_request_disabled_callbacks():
 
 
 @pytest.mark.asyncio
-async def test_add_litellm_data_to_request_disabled_callbacks_empty():
+async def test_add_gateway_data_to_request_disabled_callbacks_empty():
     """
     Test that litellm_disabled_callbacks is not added when it's empty.
     """
@@ -2019,7 +2019,7 @@ async def test_add_litellm_data_to_request_disabled_callbacks_empty():
 
 
 @pytest.mark.asyncio
-async def test_add_litellm_data_to_request_disabled_callbacks_not_present():
+async def test_add_gateway_data_to_request_disabled_callbacks_not_present():
     """
     Test that litellm_disabled_callbacks is not added when it's not present in metadata.
     """
@@ -2071,7 +2071,7 @@ async def test_add_litellm_data_to_request_disabled_callbacks_not_present():
 
 
 @pytest.mark.asyncio
-async def test_add_litellm_data_to_request_disabled_callbacks_invalid_type():
+async def test_add_gateway_data_to_request_disabled_callbacks_invalid_type():
     """
     Test that litellm_disabled_callbacks is not added when it's not a list.
     """
@@ -2123,7 +2123,7 @@ async def test_add_litellm_data_to_request_disabled_callbacks_invalid_type():
 
 
 @pytest.mark.asyncio
-async def test_add_litellm_data_to_request_disabled_callbacks_with_logging_settings():
+async def test_add_gateway_data_to_request_disabled_callbacks_with_logging_settings():
     """
     Test that litellm_disabled_callbacks works correctly alongside logging settings.
     """
@@ -2401,31 +2401,31 @@ def test_get_num_retries_from_request():
     """
     # Test case 1: Header is present with valid integer string
     headers_with_retries = {"x-litellm-num-retries": "3"}
-    result = LiteLLMProxyRequestSetup._get_num_retries_from_request(
+    result = GatewayProxyRequestSetup._get_num_retries_from_request(
         headers_with_retries
     )
     assert result == 3
 
     # Test case 2: Header is not present
     headers_without_retries = {"Content-Type": "application/json"}
-    result = LiteLLMProxyRequestSetup._get_num_retries_from_request(
+    result = GatewayProxyRequestSetup._get_num_retries_from_request(
         headers_without_retries
     )
     assert result is None
 
     # Test case 3: Empty headers dictionary
     empty_headers = {}
-    result = LiteLLMProxyRequestSetup._get_num_retries_from_request(empty_headers)
+    result = GatewayProxyRequestSetup._get_num_retries_from_request(empty_headers)
     assert result is None
 
     # Test case 4: Header present with zero value
     headers_with_zero = {"x-litellm-num-retries": "0"}
-    result = LiteLLMProxyRequestSetup._get_num_retries_from_request(headers_with_zero)
+    result = GatewayProxyRequestSetup._get_num_retries_from_request(headers_with_zero)
     assert result == 0
 
     # Test case 5: Header present with large number
     headers_with_large_number = {"x-litellm-num-retries": "100"}
-    result = LiteLLMProxyRequestSetup._get_num_retries_from_request(
+    result = GatewayProxyRequestSetup._get_num_retries_from_request(
         headers_with_large_number
     )
     assert result == 100
@@ -2436,22 +2436,22 @@ def test_get_num_retries_from_request():
         "x-litellm-num-retries": "5",
         "Authorization": "Bearer token",
     }
-    result = LiteLLMProxyRequestSetup._get_num_retries_from_request(headers_multiple)
+    result = GatewayProxyRequestSetup._get_num_retries_from_request(headers_multiple)
     assert result == 5
 
     # Test case 7: Header present with invalid value (should raise ValueError when int() is called)
     headers_with_invalid = {"x-litellm-num-retries": "invalid"}
     with pytest.raises(ValueError, match='invalid literal for int\\(\\) with base'):
-        LiteLLMProxyRequestSetup._get_num_retries_from_request(headers_with_invalid)
+        GatewayProxyRequestSetup._get_num_retries_from_request(headers_with_invalid)
 
     # Test case 8: Header present with float string (should raise ValueError when int() is called)
     headers_with_float = {"x-litellm-num-retries": "3.5"}
     with pytest.raises(ValueError, match='invalid literal for int\\(\\) with base'):
-        LiteLLMProxyRequestSetup._get_num_retries_from_request(headers_with_float)
+        GatewayProxyRequestSetup._get_num_retries_from_request(headers_with_float)
 
     # Test case 9: Header present with negative number
     headers_with_negative = {"x-litellm-num-retries": "-1"}
-    result = LiteLLMProxyRequestSetup._get_num_retries_from_request(
+    result = GatewayProxyRequestSetup._get_num_retries_from_request(
         headers_with_negative
     )
     assert result == -1
@@ -2463,23 +2463,23 @@ def test_get_keepalive_seconds_from_request():
     """
     # Header present with valid float string
     headers_with_keepalive = {"x-litellm-keepalive-seconds": "15"}
-    result = LiteLLMProxyRequestSetup._get_keepalive_seconds_from_request(
+    result = GatewayProxyRequestSetup._get_keepalive_seconds_from_request(
         headers_with_keepalive
     )
     assert result == 15.0
 
     # Header not present
-    result = LiteLLMProxyRequestSetup._get_keepalive_seconds_from_request(
+    result = GatewayProxyRequestSetup._get_keepalive_seconds_from_request(
         {"Content-Type": "application/json"}
     )
     assert result is None
 
     # Empty headers dictionary
-    result = LiteLLMProxyRequestSetup._get_keepalive_seconds_from_request({})
+    result = GatewayProxyRequestSetup._get_keepalive_seconds_from_request({})
     assert result is None
 
     # Header present with a fractional value
-    result = LiteLLMProxyRequestSetup._get_keepalive_seconds_from_request(
+    result = GatewayProxyRequestSetup._get_keepalive_seconds_from_request(
         {"x-litellm-keepalive-seconds": "1.5"}
     )
     assert result == 1.5
@@ -2487,18 +2487,18 @@ def test_get_keepalive_seconds_from_request():
     # Header present with invalid value raises ValueError, matching the other
     # x-litellm-* numeric header helpers (_get_timeout_from_request, etc.)
     with pytest.raises(ValueError, match="could not convert string to float: 'not-a-number"):
-        LiteLLMProxyRequestSetup._get_keepalive_seconds_from_request(
+        GatewayProxyRequestSetup._get_keepalive_seconds_from_request(
             {"x-litellm-keepalive-seconds": "not-a-number"}
         )
 
 
-def test_add_litellm_data_for_backend_llm_call_merges_keepalive_seconds_header():
+def test_add_gateway_data_for_backend_llm_call_merges_keepalive_seconds_header():
     """
     The x-litellm-keepalive-seconds header must be merged into the data dict
     that add_litellm_data_to_request later data.update()s onto the request body,
     the same way x-litellm-timeout/x-litellm-num-retries already are.
     """
-    result = LiteLLMProxyRequestSetup.add_litellm_data_for_backend_llm_call(
+    result = GatewayProxyRequestSetup.add_gateway_data_for_backend_llm_call(
         headers={"x-litellm-keepalive-seconds": "20"},
         request_data={},
         user_api_key_dict=UserAPIKeyAuth(api_key="sk-test"),
@@ -2533,7 +2533,7 @@ def test_add_user_api_key_auth_to_request_metadata():
     metadata_variable_name = "litellm_metadata"
 
     # Call the function
-    result = LiteLLMProxyRequestSetup.add_user_api_key_auth_to_request_metadata(
+    result = GatewayProxyRequestSetup.add_user_api_key_auth_to_request_metadata(
         data=data,
         user_api_key_dict=user_api_key_dict,
         _metadata_variable_name=metadata_variable_name,
@@ -2602,7 +2602,7 @@ def test_stamped_auth_object_carries_no_callback_credentials():
     user_api_key_dict.via_virtual_key = True
     data = {"litellm_metadata": {}}
 
-    result = LiteLLMProxyRequestSetup.add_user_api_key_auth_to_request_metadata(
+    result = GatewayProxyRequestSetup.add_user_api_key_auth_to_request_metadata(
         data=data,
         user_api_key_dict=user_api_key_dict,
         _metadata_variable_name="litellm_metadata",
@@ -2651,7 +2651,7 @@ def test_stamping_does_not_mutate_the_cached_auth_object():
     metadata_before = copy.deepcopy(user_api_key_dict.metadata)
     team_metadata_before = copy.deepcopy(user_api_key_dict.team_metadata)
 
-    LiteLLMProxyRequestSetup.add_user_api_key_auth_to_request_metadata(
+    GatewayProxyRequestSetup.add_user_api_key_auth_to_request_metadata(
         data={"litellm_metadata": {}},
         user_api_key_dict=user_api_key_dict,
         _metadata_variable_name="litellm_metadata",
@@ -2668,7 +2668,7 @@ def test_management_endpoint_metadata_drops_callback_credentials():
     """
     data = {"litellm_metadata": {}}
 
-    result = LiteLLMProxyRequestSetup.add_management_endpoint_metadata_to_request_metadata(
+    result = GatewayProxyRequestSetup.add_management_endpoint_metadata_to_request_metadata(
         data=data,
         management_endpoint_metadata={
             "callback_settings": {"langfuse": {"callback_vars": {"langfuse_secret_key": "sk-TEAM-CANARY"}}},
@@ -2767,7 +2767,7 @@ def test_add_headers_to_llm_call_by_model_group(
         }
 
         with patch.object(
-            LiteLLMProxyRequestSetup,
+            GatewayProxyRequestSetup,
             "add_headers_to_llm_call",
             return_value=expected_returned_headers if expected_headers_added else {},
         ) as mock_add_headers:
@@ -2776,7 +2776,7 @@ def test_add_headers_to_llm_call_by_model_group(
             original_data = copy.deepcopy(data)
 
             # Call the method under test
-            result = LiteLLMProxyRequestSetup.add_headers_to_llm_call_by_model_group(
+            result = GatewayProxyRequestSetup.add_headers_to_llm_call_by_model_group(
                 data=data, headers=headers, user_api_key_dict=user_api_key_dict
             )
 
@@ -2824,12 +2824,12 @@ def test_add_headers_to_llm_call_by_model_group_empty_headers_returned():
 
     try:
         with patch.object(
-            LiteLLMProxyRequestSetup,
+            GatewayProxyRequestSetup,
             "add_headers_to_llm_call",
             return_value={},  # Return empty dict
         ) as mock_add_headers:
 
-            result = LiteLLMProxyRequestSetup.add_headers_to_llm_call_by_model_group(
+            result = GatewayProxyRequestSetup.add_headers_to_llm_call_by_model_group(
                 data=data, headers=headers, user_api_key_dict=user_api_key_dict
             )
 
@@ -2872,12 +2872,12 @@ def test_add_headers_to_llm_call_by_model_group_existing_headers_in_data():
         new_headers = {"X-LiteLLM-User": "test-user"}
 
         with patch.object(
-            LiteLLMProxyRequestSetup,
+            GatewayProxyRequestSetup,
             "add_headers_to_llm_call",
             return_value=new_headers,
         ) as mock_add_headers:
 
-            result = LiteLLMProxyRequestSetup.add_headers_to_llm_call_by_model_group(
+            result = GatewayProxyRequestSetup.add_headers_to_llm_call_by_model_group(
                 data=data, headers=headers, user_api_key_dict=user_api_key_dict
             )
 
@@ -2923,7 +2923,7 @@ class TestCustomLogger(CustomLogger):
 
 
 @pytest.mark.asyncio
-async def test_add_litellm_metadata_from_request_headers():
+async def test_add_gateway_metadata_from_request_headers():
     """
     Test that add_litellm_metadata_from_request_headers properly adds litellm metadata from request headers,
     makes an LLM request using base_process_llm_request, sleeps for 3 seconds, and checks standard_logging_payload has spend_logs_metadata from headers
@@ -3133,11 +3133,11 @@ async def test_anthropic_messages_standard_logging_object_matches_fixture():
         gateway.callbacks = original_callbacks
 
 
-def test_add_litellm_metadata_from_request_headers_x_litellm_trace_id_sets_chain_id():
+def test_add_gateway_metadata_from_request_headers_x_gateway_trace_id_sets_chain_id():
     """x-litellm-trace-id sets both metadata and top-level litellm_session_id/litellm_trace_id for call chaining."""
     headers = {"x-litellm-trace-id": "foo"}
     data = {"metadata": {}}
-    LiteLLMProxyRequestSetup.add_litellm_metadata_from_request_headers(
+    GatewayProxyRequestSetup.add_gateway_metadata_from_request_headers(
         headers=headers, data=data, _metadata_variable_name="metadata"
     )
     assert data["metadata"]["trace_id"] == "foo"
@@ -3146,11 +3146,11 @@ def test_add_litellm_metadata_from_request_headers_x_litellm_trace_id_sets_chain
     assert data["litellm_trace_id"] == "foo"
 
 
-def test_add_litellm_metadata_from_request_headers_x_litellm_session_id_sets_chain_id():
+def test_add_gateway_metadata_from_request_headers_x_gateway_session_id_sets_chain_id():
     """x-litellm-session-id sets both metadata and top-level litellm_session_id/litellm_trace_id for call chaining."""
     headers = {"x-litellm-session-id": "bar"}
     data = {"metadata": {}}
-    LiteLLMProxyRequestSetup.add_litellm_metadata_from_request_headers(
+    GatewayProxyRequestSetup.add_gateway_metadata_from_request_headers(
         headers=headers, data=data, _metadata_variable_name="metadata"
     )
     assert data["metadata"]["trace_id"] == "bar"
@@ -3159,14 +3159,14 @@ def test_add_litellm_metadata_from_request_headers_x_litellm_session_id_sets_cha
     assert data["litellm_trace_id"] == "bar"
 
 
-def test_add_litellm_metadata_from_request_headers_both_headers_trace_id_precedence():
+def test_add_gateway_metadata_from_request_headers_both_headers_trace_id_precedence():
     """When both x-litellm-trace-id and x-litellm-session-id are present, trace-id takes precedence for chain_id."""
     headers = {
         "x-litellm-trace-id": "trace-value",
         "x-litellm-session-id": "session-value",
     }
     data = {"metadata": {}}
-    LiteLLMProxyRequestSetup.add_litellm_metadata_from_request_headers(
+    GatewayProxyRequestSetup.add_gateway_metadata_from_request_headers(
         headers=headers, data=data, _metadata_variable_name="metadata"
     )
     assert data["metadata"]["trace_id"] == "trace-value"
@@ -3175,11 +3175,11 @@ def test_add_litellm_metadata_from_request_headers_both_headers_trace_id_precede
     assert data["litellm_trace_id"] == "trace-value"
 
 
-def test_add_litellm_metadata_from_request_headers_generic_session_id_header():
+def test_add_gateway_metadata_from_request_headers_generic_session_id_header():
     """A generic x-<vendor>-session-id header is used when no explicit litellm header is set."""
     headers = {"x-claude-code-session-id": "e96634a3-fa28-4083-b354-55542e2dca01"}
     data = {"metadata": {}}
-    LiteLLMProxyRequestSetup.add_litellm_metadata_from_request_headers(
+    GatewayProxyRequestSetup.add_gateway_metadata_from_request_headers(
         headers=headers, data=data, _metadata_variable_name="metadata"
     )
     assert data["metadata"]["session_id"] == "e96634a3-fa28-4083-b354-55542e2dca01"
@@ -3187,13 +3187,13 @@ def test_add_litellm_metadata_from_request_headers_generic_session_id_header():
     assert data["litellm_trace_id"] == "e96634a3-fa28-4083-b354-55542e2dca01"
 
 
-def test_add_litellm_metadata_from_anthropic_user_id_sets_session_id():
+def test_add_gateway_metadata_from_anthropic_user_id_sets_session_id():
     data = {
         "metadata": {
             "user_id": "user_abc123_account__session_e96634a3-fa28-4083-b354-55542e2dca01"
         }
     }
-    LiteLLMProxyRequestSetup.add_litellm_metadata_from_request_headers(
+    GatewayProxyRequestSetup.add_gateway_metadata_from_request_headers(
         headers={}, data=data, _metadata_variable_name="metadata"
     )
     assert data["metadata"]["session_id"] == "e96634a3-fa28-4083-b354-55542e2dca01"
@@ -3201,7 +3201,7 @@ def test_add_litellm_metadata_from_anthropic_user_id_sets_session_id():
     assert "litellm_trace_id" not in data
 
 
-def test_add_litellm_metadata_from_anthropic_user_id_dict_sets_session_id():
+def test_add_gateway_metadata_from_anthropic_user_id_dict_sets_session_id():
     data = {
         "metadata": {
             "user_id": {
@@ -3211,7 +3211,7 @@ def test_add_litellm_metadata_from_anthropic_user_id_dict_sets_session_id():
             }
         }
     }
-    LiteLLMProxyRequestSetup.add_litellm_metadata_from_request_headers(
+    GatewayProxyRequestSetup.add_gateway_metadata_from_request_headers(
         headers={}, data=data, _metadata_variable_name="metadata"
     )
     assert data["metadata"]["user_id"] == "sess_4f8c1d2a-1234"
@@ -3220,13 +3220,13 @@ def test_add_litellm_metadata_from_anthropic_user_id_dict_sets_session_id():
     assert "litellm_trace_id" not in data
 
 
-def test_add_litellm_metadata_from_headers_session_id_beats_anthropic_user_id():
+def test_add_gateway_metadata_from_headers_session_id_beats_anthropic_user_id():
     data = {
         "metadata": {
             "user_id": "user_abc123_account__session_body-session-id",
         }
     }
-    LiteLLMProxyRequestSetup.add_litellm_metadata_from_request_headers(
+    GatewayProxyRequestSetup.add_gateway_metadata_from_request_headers(
         headers={"x-litellm-session-id": "header-session-id"},
         data=data,
         _metadata_variable_name="metadata",
@@ -3236,7 +3236,7 @@ def test_add_litellm_metadata_from_headers_session_id_beats_anthropic_user_id():
     assert data["litellm_trace_id"] == "header-session-id"
 
 
-def test_add_litellm_metadata_from_headers_session_id_beats_anthropic_user_id_dict():
+def test_add_gateway_metadata_from_headers_session_id_beats_anthropic_user_id_dict():
     data = {
         "metadata": {
             "user_id": {
@@ -3244,7 +3244,7 @@ def test_add_litellm_metadata_from_headers_session_id_beats_anthropic_user_id_di
             }
         }
     }
-    LiteLLMProxyRequestSetup.add_litellm_metadata_from_request_headers(
+    GatewayProxyRequestSetup.add_gateway_metadata_from_request_headers(
         headers={"x-litellm-session-id": "header-session-id"},
         data=data,
         _metadata_variable_name="metadata",
@@ -3262,9 +3262,9 @@ def test_add_litellm_metadata_from_headers_session_id_beats_anthropic_user_id_di
         "user_abc123_account__session_invalid!",
     ],
 )
-def test_add_litellm_metadata_from_anthropic_user_id_ignores_invalid_session_id(user_id: str):
+def test_add_gateway_metadata_from_anthropic_user_id_ignores_invalid_session_id(user_id: str):
     data = {"metadata": {"user_id": user_id}}
-    LiteLLMProxyRequestSetup.add_litellm_metadata_from_request_headers(
+    GatewayProxyRequestSetup.add_gateway_metadata_from_request_headers(
         headers={}, data=data, _metadata_variable_name="metadata"
     )
     assert data == {"metadata": {"user_id": user_id}}
@@ -3279,24 +3279,24 @@ def test_add_litellm_metadata_from_anthropic_user_id_ignores_invalid_session_id(
         {"session_id": ""},
     ],
 )
-def test_add_litellm_metadata_from_anthropic_user_id_dict_ignores_invalid_session_id(
+def test_add_gateway_metadata_from_anthropic_user_id_dict_ignores_invalid_session_id(
     user_id: object,
 ):
     data = {"metadata": {"user_id": user_id}}
-    LiteLLMProxyRequestSetup.add_litellm_metadata_from_request_headers(
+    GatewayProxyRequestSetup.add_gateway_metadata_from_request_headers(
         headers={}, data=data, _metadata_variable_name="metadata"
     )
     assert data == {"metadata": {"user_id": user_id}}
 
 
-def test_add_litellm_metadata_from_request_headers_explicit_header_beats_generic():
+def test_add_gateway_metadata_from_request_headers_explicit_header_beats_generic():
     """Explicit x-litellm-trace-id wins over a generic x-*-session-id header."""
     headers = {
         "x-litellm-trace-id": "explicit-trace-id-value",
         "x-claude-code-session-id": "e96634a3-fa28-4083-b354-55542e2dca01",
     }
     data = {"metadata": {}}
-    LiteLLMProxyRequestSetup.add_litellm_metadata_from_request_headers(
+    GatewayProxyRequestSetup.add_gateway_metadata_from_request_headers(
         headers=headers, data=data, _metadata_variable_name="metadata"
     )
     assert data["litellm_session_id"] == "explicit-trace-id-value"
@@ -3436,12 +3436,12 @@ def test_get_chain_id_from_headers_explicit_beats_codex_header():
     )
 
 
-def test_add_litellm_metadata_groups_codex_turns_into_one_session():
+def test_add_gateway_metadata_groups_codex_turns_into_one_session():
     """Every turn of a Codex session must log under one session id, not a fresh per-call trace id."""
     headers = {"user-agent": CODEX_USER_AGENT, "session-id": CODEX_SESSION_UUID}
     turns = [{"litellm_metadata": {}}, {"litellm_metadata": {}}]
     for turn in turns:
-        LiteLLMProxyRequestSetup.add_litellm_metadata_from_request_headers(
+        GatewayProxyRequestSetup.add_gateway_metadata_from_request_headers(
             headers=headers, data=turn, _metadata_variable_name="litellm_metadata"
         )
 
@@ -3503,12 +3503,12 @@ def test_session_id_from_baggage_absent_or_empty(baggage: str):
     assert _session_id_from_baggage(baggage) is None
 
 
-def test_add_litellm_metadata_from_request_headers_traceparent_sets_trace_id_only():
+def test_add_gateway_metadata_from_request_headers_traceparent_sets_trace_id_only():
     """A bare traceparent header (no litellm-specific headers) sets litellm_trace_id
     from its trace-id component and leaves litellm_session_id unset."""
     headers = {"traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01"}
     data = {"metadata": {}}
-    LiteLLMProxyRequestSetup.add_litellm_metadata_from_request_headers(
+    GatewayProxyRequestSetup.add_gateway_metadata_from_request_headers(
         headers=headers, data=data, _metadata_variable_name="metadata"
     )
     assert data["litellm_trace_id"] == "4bf92f3577b34da6a3ce929d0e0e4736"
@@ -3516,12 +3516,12 @@ def test_add_litellm_metadata_from_request_headers_traceparent_sets_trace_id_onl
     assert "litellm_session_id" not in data
 
 
-def test_add_litellm_metadata_from_request_headers_baggage_sets_session_id_only():
+def test_add_gateway_metadata_from_request_headers_baggage_sets_session_id_only():
     """A bare baggage header (no litellm-specific headers) sets litellm_session_id
     from its session.id entry and leaves litellm_trace_id unset."""
     headers = {"baggage": "session.id=baggage-session-42,user.id=7"}
     data = {"metadata": {}}
-    LiteLLMProxyRequestSetup.add_litellm_metadata_from_request_headers(
+    GatewayProxyRequestSetup.add_gateway_metadata_from_request_headers(
         headers=headers, data=data, _metadata_variable_name="metadata"
     )
     assert data["litellm_session_id"] == "baggage-session-42"
@@ -3529,7 +3529,7 @@ def test_add_litellm_metadata_from_request_headers_baggage_sets_session_id_only(
     assert "litellm_trace_id" not in data
 
 
-def test_add_litellm_metadata_from_request_headers_baggage_session_id_not_logged_raw(caplog):
+def test_add_gateway_metadata_from_request_headers_baggage_session_id_not_logged_raw(caplog):
     """The raw baggage session.id value must never reach the debug log line -
     it isn't sanitized until set_session_id() runs much later in
     Logging.__init__(), so logging it here would let a caller with control
@@ -3540,14 +3540,14 @@ def test_add_litellm_metadata_from_request_headers_baggage_session_id_not_logged
     headers = {"baggage": f"session.id={poisoned}"}
     data = {"metadata": {}}
     with caplog.at_level(logging.DEBUG, logger="LiteLLM Proxy"):
-        LiteLLMProxyRequestSetup.add_litellm_metadata_from_request_headers(
+        GatewayProxyRequestSetup.add_gateway_metadata_from_request_headers(
             headers=headers, data=data, _metadata_variable_name="metadata"
         )
     assert data["litellm_session_id"] == poisoned
     assert not any(poisoned in record.getMessage() for record in caplog.records)
 
 
-def test_add_litellm_metadata_from_request_headers_traceparent_and_baggage_together():
+def test_add_gateway_metadata_from_request_headers_traceparent_and_baggage_together():
     """traceparent and baggage are resolved independently - trace_id and
     session_id do not have to be the same value, unlike the chain_id path."""
     headers = {
@@ -3555,14 +3555,14 @@ def test_add_litellm_metadata_from_request_headers_traceparent_and_baggage_toget
         "baggage": "session.id=baggage-session-42",
     }
     data = {"metadata": {}}
-    LiteLLMProxyRequestSetup.add_litellm_metadata_from_request_headers(
+    GatewayProxyRequestSetup.add_gateway_metadata_from_request_headers(
         headers=headers, data=data, _metadata_variable_name="metadata"
     )
     assert data["litellm_trace_id"] == "4bf92f3577b34da6a3ce929d0e0e4736"
     assert data["litellm_session_id"] == "baggage-session-42"
 
 
-def test_add_litellm_metadata_from_request_headers_explicit_trace_id_beats_traceparent():
+def test_add_gateway_metadata_from_request_headers_explicit_trace_id_beats_traceparent():
     """x-litellm-trace-id must win over a traceparent header carrying a
     different trace-id - explicit litellm headers are always highest priority."""
     headers = {
@@ -3570,14 +3570,14 @@ def test_add_litellm_metadata_from_request_headers_explicit_trace_id_beats_trace
         "traceparent": "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01",
     }
     data = {"metadata": {}}
-    LiteLLMProxyRequestSetup.add_litellm_metadata_from_request_headers(
+    GatewayProxyRequestSetup.add_gateway_metadata_from_request_headers(
         headers=headers, data=data, _metadata_variable_name="metadata"
     )
     assert data["litellm_trace_id"] == "explicit-trace-id-value"
     assert data["litellm_session_id"] == "explicit-trace-id-value"
 
 
-def test_add_litellm_metadata_from_request_headers_anthropic_metadata_beats_baggage():
+def test_add_gateway_metadata_from_request_headers_anthropic_metadata_beats_baggage():
     """The existing Anthropic metadata.user_id session_id path must win over a
     baggage session.id fallback."""
     data = {
@@ -3585,7 +3585,7 @@ def test_add_litellm_metadata_from_request_headers_anthropic_metadata_beats_bagg
             "user_id": "user_abc123_account__session_e96634a3-fa28-4083-b354-55542e2dca01",
         }
     }
-    LiteLLMProxyRequestSetup.add_litellm_metadata_from_request_headers(
+    GatewayProxyRequestSetup.add_gateway_metadata_from_request_headers(
         headers={"baggage": "session.id=baggage-session-42"},
         data=data,
         _metadata_variable_name="metadata",
@@ -3600,7 +3600,7 @@ def test_get_internal_user_header_from_mapping_returns_expected_header():
         {"header_name": "X-OpenWebUI-User-Email", "litellm_user_role": "customer"},
     ]
 
-    header_name = LiteLLMProxyRequestSetup.get_internal_user_header_from_mapping(
+    header_name = GatewayProxyRequestSetup.get_internal_user_header_from_mapping(
         mappings
     )
     assert header_name == "X-OpenWebUI-User-Id"
@@ -3610,13 +3610,13 @@ def test_get_internal_user_header_from_mapping_none_when_absent():
     mappings = [
         {"header_name": "X-OpenWebUI-User-Email", "litellm_user_role": "customer"}
     ]
-    header_name = LiteLLMProxyRequestSetup.get_internal_user_header_from_mapping(
+    header_name = GatewayProxyRequestSetup.get_internal_user_header_from_mapping(
         mappings
     )
     assert header_name is None
 
     single = {"header_name": "X-Only-Customer", "litellm_user_role": "customer"}
-    header_name = LiteLLMProxyRequestSetup.get_internal_user_header_from_mapping(single)
+    header_name = GatewayProxyRequestSetup.get_internal_user_header_from_mapping(single)
     assert header_name is None
 
 
@@ -3633,7 +3633,7 @@ def test_add_internal_user_from_user_mapping_sets_user_id_when_header_present():
         ]
     }
 
-    result = LiteLLMProxyRequestSetup.add_internal_user_from_user_mapping(
+    result = GatewayProxyRequestSetup.add_internal_user_from_user_mapping(
         general_settings, user_api_key_dict, headers
     )
 
@@ -3644,7 +3644,7 @@ def test_add_internal_user_from_user_mapping_sets_user_id_when_header_present():
 def test_add_internal_user_from_user_mapping_no_header_or_mapping_returns_unchanged():
     user_api_key_dict = UserAPIKeyAuth(api_key="test-key")
 
-    result = LiteLLMProxyRequestSetup.add_internal_user_from_user_mapping(
+    result = GatewayProxyRequestSetup.add_internal_user_from_user_mapping(
         None, user_api_key_dict, {"X-OpenWebUI-User-Id": "abc"}
     )
     assert result is user_api_key_dict
@@ -3655,7 +3655,7 @@ def test_add_internal_user_from_user_mapping_no_header_or_mapping_returns_unchan
             {"header_name": "X-OpenWebUI-User-Id", "litellm_user_role": "internal_user"}
         ]
     }
-    result = LiteLLMProxyRequestSetup.add_internal_user_from_user_mapping(
+    result = GatewayProxyRequestSetup.add_internal_user_from_user_mapping(
         general_settings, user_api_key_dict, {"Other": "value"}
     )
     assert result is user_api_key_dict
@@ -3673,7 +3673,7 @@ def test_get_sanitized_user_information_from_key_includes_guardrails_metadata():
         metadata={"guardrails": ["presidio", "aporia"], "other_field": "value"},
     )
 
-    result = LiteLLMProxyRequestSetup.get_sanitized_user_information_from_key(
+    result = GatewayProxyRequestSetup.get_sanitized_user_information_from_key(
         user_api_key_dict=user_api_key_dict
     )
 
@@ -3704,7 +3704,7 @@ def test_user_and_team_spend_and_budget_flow_to_standard_logging_metadata():
         team_max_budget=1000.0,
     )
 
-    sanitized = LiteLLMProxyRequestSetup.get_sanitized_user_information_from_key(
+    sanitized = GatewayProxyRequestSetup.get_sanitized_user_information_from_key(
         user_api_key_dict=user_api_key_dict
     )
 
@@ -3734,7 +3734,7 @@ def test_user_and_team_spend_and_budget_default_to_none_in_standard_logging_meta
 
     user_api_key_dict = UserAPIKeyAuth(api_key="test-key-hash")
 
-    sanitized = LiteLLMProxyRequestSetup.get_sanitized_user_information_from_key(
+    sanitized = GatewayProxyRequestSetup.get_sanitized_user_information_from_key(
         user_api_key_dict=user_api_key_dict
     )
     logging_metadata = StandardLoggingPayloadSetup.get_standard_logging_metadata(
@@ -5165,7 +5165,7 @@ async def test_team_guardrail_merges_with_global_policy():
 
 
 @pytest.mark.asyncio
-async def test_get_guardrail_from_metadata_prefers_metadata_over_litellm_metadata():
+async def test_get_guardrail_from_metadata_prefers_metadata_over_gateway_metadata():
     """
     Unit test: get_guardrail_from_metadata must read from data["metadata"] first.
     A non-empty data["litellm_metadata"] without a 'guardrails' key must not
@@ -5190,7 +5190,7 @@ async def test_get_guardrail_from_metadata_prefers_metadata_over_litellm_metadat
     ], f"Expected guardrails from metadata, got: {result}"
 
 
-def test_get_guardrail_from_metadata_reads_litellm_metadata_when_no_metadata():
+def test_get_guardrail_from_metadata_reads_gateway_metadata_when_no_metadata():
     """
     get_guardrail_from_metadata must still read from litellm_metadata when
     data["metadata"] has no 'guardrails' key (thread/assistant endpoint path).
@@ -5247,7 +5247,7 @@ class TestApplyClientTagPolicyPreAuth:
             team_metadata={},
         )
 
-        LiteLLMProxyRequestSetup.apply_client_tag_policy_pre_auth(
+        GatewayProxyRequestSetup.apply_client_tag_policy_pre_auth(
             request=request_mock,
             request_data=data,
             user_api_key_dict=user_api_key_dict,
@@ -5269,7 +5269,7 @@ class TestApplyClientTagPolicyPreAuth:
             team_metadata={},
         )
 
-        LiteLLMProxyRequestSetup.apply_client_tag_policy_pre_auth(
+        GatewayProxyRequestSetup.apply_client_tag_policy_pre_auth(
             request=request_mock,
             request_data=data,
             user_api_key_dict=user_api_key_dict,
@@ -5297,7 +5297,7 @@ class TestApplyClientTagPolicyPreAuth:
             team_metadata={},
         )
 
-        LiteLLMProxyRequestSetup.apply_client_tag_policy_pre_auth(
+        GatewayProxyRequestSetup.apply_client_tag_policy_pre_auth(
             request=request_mock,
             request_data=data,
             user_api_key_dict=user_api_key_dict,
@@ -5311,7 +5311,7 @@ class TestApplyClientTagPolicyPreAuth:
             "tenant:acme",
         ]
 
-    def test_uses_litellm_metadata_when_present(self):
+    def test_uses_gateway_metadata_when_present(self):
         request_mock = _build_request_mock_with_headers(
             {"x-litellm-tags": "tenant:acme"}
         )
@@ -5325,7 +5325,7 @@ class TestApplyClientTagPolicyPreAuth:
             team_metadata={},
         )
 
-        LiteLLMProxyRequestSetup.apply_client_tag_policy_pre_auth(
+        GatewayProxyRequestSetup.apply_client_tag_policy_pre_auth(
             request=request_mock,
             request_data=data,
             user_api_key_dict=user_api_key_dict,
@@ -5346,7 +5346,7 @@ class TestApplyClientTagPolicyPreAuth:
             team_metadata={},
         )
 
-        LiteLLMProxyRequestSetup.apply_client_tag_policy_pre_auth(
+        GatewayProxyRequestSetup.apply_client_tag_policy_pre_auth(
             request=request_mock,
             request_data=data,
             user_api_key_dict=user_api_key_dict,
@@ -5369,7 +5369,7 @@ class TestApplyClientTagPolicyPreAuth:
             team_metadata={},
         )
 
-        LiteLLMProxyRequestSetup.apply_client_tag_policy_pre_auth(
+        GatewayProxyRequestSetup.apply_client_tag_policy_pre_auth(
             request=request_mock,
             request_data=data,
             user_api_key_dict=user_api_key_dict,
@@ -5397,7 +5397,7 @@ class TestApplyClientTagPolicyPreAuth:
             team_metadata={},
         )
 
-        LiteLLMProxyRequestSetup.apply_client_tag_policy_pre_auth(
+        GatewayProxyRequestSetup.apply_client_tag_policy_pre_auth(
             request=request_mock,
             request_data=data,
             user_api_key_dict=user_api_key_dict,
@@ -5456,7 +5456,7 @@ class TestApplyClientTagPolicyPreAuth:
             team_metadata={},
         )
 
-        LiteLLMProxyRequestSetup.apply_client_tag_policy_pre_auth(
+        GatewayProxyRequestSetup.apply_client_tag_policy_pre_auth(
             request=request_mock,
             request_data=data,
             user_api_key_dict=user_api_key_dict,
@@ -5532,11 +5532,11 @@ class TestApplyClientTagPolicyPreAuth:
             team_metadata={},
         )
 
-        LiteLLMProxyRequestSetup.pre_seed_litellm_metadata_for_route(
+        GatewayProxyRequestSetup.pre_seed_gateway_metadata_for_route(
             request_data=data,
             route=route,
         )
-        LiteLLMProxyRequestSetup.apply_client_tag_policy_pre_auth(
+        GatewayProxyRequestSetup.apply_client_tag_policy_pre_auth(
             request=request_mock,
             request_data=data,
             user_api_key_dict=valid_token,
@@ -5600,7 +5600,7 @@ class TestApplyKeyTagsPreAuth:
             team_metadata={},
         )
 
-        LiteLLMProxyRequestSetup.apply_key_tags_pre_auth(
+        GatewayProxyRequestSetup.apply_key_tags_pre_auth(
             request_data=data,
             user_api_key_dict=user_api_key_dict,
         )
@@ -5618,7 +5618,7 @@ class TestApplyKeyTagsPreAuth:
             team_metadata={},
         )
 
-        LiteLLMProxyRequestSetup.apply_key_tags_pre_auth(
+        GatewayProxyRequestSetup.apply_key_tags_pre_auth(
             request_data=data,
             user_api_key_dict=user_api_key_dict,
         )
@@ -5634,7 +5634,7 @@ class TestApplyKeyTagsPreAuth:
             team_metadata={},
         )
 
-        LiteLLMProxyRequestSetup.apply_key_tags_pre_auth(
+        GatewayProxyRequestSetup.apply_key_tags_pre_auth(
             request_data=data,
             user_api_key_dict=user_api_key_dict,
         )
@@ -5649,14 +5649,14 @@ class TestApplyKeyTagsPreAuth:
             team_metadata={},
         )
 
-        LiteLLMProxyRequestSetup.apply_key_tags_pre_auth(
+        GatewayProxyRequestSetup.apply_key_tags_pre_auth(
             request_data=data,
             user_api_key_dict=user_api_key_dict,
         )
 
         assert "metadata" not in data
 
-    def test_uses_litellm_metadata_when_present(self):
+    def test_uses_gateway_metadata_when_present(self):
         data = {
             "model": "gpt-3.5-turbo",
             "litellm_metadata": {"foo": "bar"},
@@ -5667,7 +5667,7 @@ class TestApplyKeyTagsPreAuth:
             team_metadata={},
         )
 
-        LiteLLMProxyRequestSetup.apply_key_tags_pre_auth(
+        GatewayProxyRequestSetup.apply_key_tags_pre_auth(
             request_data=data,
             user_api_key_dict=user_api_key_dict,
         )
@@ -5686,7 +5686,7 @@ class TestApplyKeyTagsPreAuth:
             team_metadata={},
         )
 
-        LiteLLMProxyRequestSetup.apply_key_tags_pre_auth(
+        GatewayProxyRequestSetup.apply_key_tags_pre_auth(
             request_data=data,
             user_api_key_dict=user_api_key_dict,
         )
@@ -5707,7 +5707,7 @@ class TestApplyKeyTagsPreAuth:
             team_metadata={},
         )
 
-        LiteLLMProxyRequestSetup.apply_key_tags_pre_auth(
+        GatewayProxyRequestSetup.apply_key_tags_pre_auth(
             request_data=data,
             user_api_key_dict=user_api_key_dict,
         )
@@ -5760,7 +5760,7 @@ class TestApplyKeyTagsPreAuth:
             team_metadata={},
         )
 
-        LiteLLMProxyRequestSetup.apply_key_tags_pre_auth(
+        GatewayProxyRequestSetup.apply_key_tags_pre_auth(
             request_data=data,
             user_api_key_dict=user_api_key_dict,
         )
@@ -5804,7 +5804,7 @@ class TestApplyKeyTagsPreAuth:
 # ============================================================================
 
 
-def test_resolve_provider_from_deployment_uses_litellm_params_model():
+def test_resolve_provider_from_deployment_uses_gateway_params_model():
     """When custom_llm_provider is unset, fall back to the prefix of model."""
     router = MagicMock()
     deployment = MagicMock()
@@ -5996,7 +5996,7 @@ def _make_request_mock(path: str, headers: dict) -> MagicMock:
         (None, None, None, None),
     ],
 )
-async def test_add_litellm_data_to_request_agentic_cli_drop_params(
+async def test_add_gateway_data_to_request_agentic_cli_drop_params(
     user_agent, request_drop_params, operator_drop_params, expected_drop_params
 ):
     """Claude Code sends Anthropic-specific params and Codex sends
@@ -6034,7 +6034,7 @@ async def test_add_litellm_data_to_request_agentic_cli_drop_params(
 
 
 @pytest.mark.asyncio
-async def test_add_litellm_data_to_request_merges_metadata_tags_on_responses_route():
+async def test_add_gateway_data_to_request_merges_metadata_tags_on_responses_route():
     """Regression for #31584: user-supplied metadata.tags must be merged into
     litellm_metadata.tags on /v1/responses so they reach SpendLogs.request_tags."""
     from token_iq.gateway.proxy.litellm_pre_call_utils import add_litellm_data_to_request
@@ -6076,7 +6076,7 @@ async def test_add_litellm_data_to_request_merges_metadata_tags_on_responses_rou
 
 
 @pytest.mark.asyncio
-async def test_add_litellm_data_to_request_unions_metadata_tags_with_header_tags_on_responses_route():
+async def test_add_gateway_data_to_request_unions_metadata_tags_with_header_tags_on_responses_route():
     """On /v1/responses, tags from metadata.tags AND x-litellm-tags header
     must both appear in litellm_metadata.tags."""
     from token_iq.gateway.proxy.litellm_pre_call_utils import add_litellm_data_to_request
@@ -6338,7 +6338,7 @@ def test_get_sanitized_user_information_from_key_drops_callback_config():
         },
     )
 
-    result = LiteLLMProxyRequestSetup.get_sanitized_user_information_from_key(
+    result = GatewayProxyRequestSetup.get_sanitized_user_information_from_key(
         user_api_key_dict=user_api_key_dict
     )
 
@@ -6466,7 +6466,7 @@ def _all_header_dicts(data: dict, metadata_variable_name: str) -> list[dict]:
         ("/v1/chat/completions", "metadata"),
     ],
 )
-async def test_add_litellm_data_to_request_redacts_oauth_header_from_logging_copies(path, metadata_variable_name):
+async def test_add_gateway_data_to_request_redacts_oauth_header_from_logging_copies(path, metadata_variable_name):
     """The Anthropic subscription token is forwarded upstream but never handed to logging."""
     request_mock = _make_request_mock(
         path,
@@ -6509,7 +6509,7 @@ async def test_add_litellm_data_to_request_redacts_oauth_header_from_logging_cop
 
 
 @pytest.mark.asyncio
-async def test_add_litellm_data_to_request_keeps_every_forwarded_credential_out_of_logging_copies():
+async def test_add_gateway_data_to_request_keeps_every_forwarded_credential_out_of_logging_copies():
     """Credentials kept for transport must not survive anywhere under proxy_server_request."""
     secrets = {
         "x-api-key": "sk-byok-provider-key-lit5108",
@@ -6573,7 +6573,7 @@ def test_redact_credential_headers_classifies_each_header(header, expected_redac
 
 
 @pytest.mark.asyncio
-async def test_add_litellm_data_to_request_debug_log_does_not_print_credentials():
+async def test_add_gateway_data_to_request_debug_log_does_not_print_credentials():
     """The request-header debug line carries values the stdout secret filter does not match."""
     import token_iq.gateway.proxy.litellm_pre_call_utils as pre_call_utils
 
@@ -6629,7 +6629,7 @@ _DATADOG_TEAM_KEY = UserAPIKeyAuth(
 
 
 @pytest.mark.asyncio
-async def test_add_litellm_data_to_request_strips_caller_supplied_callback_credentials():
+async def test_add_gateway_data_to_request_strips_caller_supplied_callback_credentials():
     """
     The team admin sets dd_api_key only; a caller pairing its own dd_site with that key
     would ship the team's Datadog credential to a host it controls.
@@ -6668,7 +6668,7 @@ async def test_add_litellm_data_to_request_strips_caller_supplied_callback_crede
 
 
 @pytest.mark.asyncio
-async def test_add_litellm_data_to_request_strips_caller_supplied_callback_credentials_with_clientside_creds_allowed():
+async def test_add_gateway_data_to_request_strips_caller_supplied_callback_credentials_with_clientside_creds_allowed():
     """`allow_client_side_credentials` opens the auth-layer ban; the strip must still hold."""
     data = {
         "model": "gpt-3.5-turbo",
@@ -6690,7 +6690,7 @@ async def test_add_litellm_data_to_request_strips_caller_supplied_callback_crede
 
 
 @pytest.mark.asyncio
-async def test_add_litellm_data_to_request_omits_trusted_callback_vars_without_team_callbacks():
+async def test_add_gateway_data_to_request_omits_trusted_callback_vars_without_team_callbacks():
     """Without team/key callback settings the trusted field must not exist for a callback to read."""
     data = {
         "model": "gpt-3.5-turbo",
@@ -6794,7 +6794,7 @@ class TestPromotedTraceControlFields:
             version="test-version",
         )
 
-    def test_returns_litellm_metadata_for_responses_route(self):
+    def test_returns_gateway_metadata_for_responses_route(self):
         assert _get_metadata_variable_name(self._make_request("/v1/responses")) == "litellm_metadata"
 
     def test_promotes_trace_prefixed_and_allow_listed_fields(self):
@@ -6858,7 +6858,7 @@ class TestPromotedTraceControlFields:
 
         assert dict(promoted) == {"trace_id": "trace-1"}
 
-    def test_existing_litellm_metadata_value_wins(self):
+    def test_existing_gateway_metadata_value_wins(self):
         promoted = _promoted_trace_control_fields(
             requester_metadata={"trace_id": "from-body", "session_id": "from-body", "trace_name": "from-body"},
             litellm_metadata={"trace_id": "from-header", "session_id": "from-header"},
@@ -6946,7 +6946,7 @@ class TestPromotedTraceControlFields:
 
 
 @pytest.mark.asyncio
-async def test_add_litellm_data_to_request_inherited_tags_excludes_caller_tags():
+async def test_add_gateway_data_to_request_inherited_tags_excludes_caller_tags():
     """inherited_tags must carry only what key/team/project policy contributed,
     never anything the caller's own request (header/body) supplied, even when the
     caller resubmits the identical value -- it's a snapshot taken before the
@@ -6996,7 +6996,7 @@ async def test_add_litellm_data_to_request_inherited_tags_excludes_caller_tags()
 
 
 @pytest.mark.asyncio
-async def test_add_litellm_data_to_request_inherited_tags_survives_pre_auth_header_merge():
+async def test_add_gateway_data_to_request_inherited_tags_survives_pre_auth_header_merge():
     """Regression: apply_client_tag_policy_pre_auth (run from user_api_key_auth,
     for _tag_max_budget_check) merges the caller's x-litellm-tags header into the
     same metadata.tags list this function later reads from -- before this
@@ -7030,7 +7030,7 @@ async def test_add_litellm_data_to_request_inherited_tags_survives_pre_auth_head
 
     # Simulate the real request pipeline: the pre-auth merge runs first, on the
     # same data dict, before add_litellm_data_to_request is ever called.
-    LiteLLMProxyRequestSetup.apply_client_tag_policy_pre_auth(
+    GatewayProxyRequestSetup.apply_client_tag_policy_pre_auth(
         request=request_mock,
         request_data=data,
         user_api_key_dict=user_api_key_dict,
@@ -7052,7 +7052,7 @@ async def test_add_litellm_data_to_request_inherited_tags_survives_pre_auth_head
 
 
 @pytest.mark.asyncio
-async def test_add_litellm_data_to_request_caller_tags_excludes_key_and_team_tags():
+async def test_add_gateway_data_to_request_caller_tags_excludes_key_and_team_tags():
     """caller_tags must carry only what the caller itself sent (header + body
     tags), never anything merged in from key/team metadata, even though the
     merged "tags" field (used for matching) legitimately contains all three."""
@@ -7097,7 +7097,7 @@ async def test_add_litellm_data_to_request_caller_tags_excludes_key_and_team_tag
 
 
 @pytest.mark.asyncio
-async def test_add_litellm_data_to_request_caller_tags_includes_header_tags():
+async def test_add_gateway_data_to_request_caller_tags_includes_header_tags():
     """The x-litellm-tags header is as much a caller-controlled input as the
     body's "tags" field; both must land in caller_tags."""
     request_mock = MagicMock(spec=Request)
@@ -7138,7 +7138,7 @@ async def test_add_litellm_data_to_request_caller_tags_includes_header_tags():
 
 
 @pytest.mark.asyncio
-async def test_add_litellm_data_to_request_caller_tags_empty_when_caller_sends_nothing():
+async def test_add_gateway_data_to_request_caller_tags_empty_when_caller_sends_nothing():
     """caller_tags must be present (an empty tuple), not absent, when the caller
     supplied no tags of their own -- an empty-but-present value tells
     tag_based_routing.py's allow_fail_open that any required/excluded tag on the
@@ -7490,7 +7490,7 @@ _PLANTED_STAMPS = {"attempted_fallbacks": 99, "original_model_group": "spoofed-g
 
 
 @pytest.mark.asyncio
-async def test_add_litellm_data_to_request_strips_router_reserved_stamps_from_both_buckets():
+async def test_add_gateway_data_to_request_strips_router_reserved_stamps_from_both_buckets():
     """attempted_fallbacks and original_model_group are router-written facts the spend row
     reads back; a client planting them in either bucket is dropped at the boundary so the
     router never sees a reserved key it did not write."""
@@ -7519,7 +7519,7 @@ async def test_add_litellm_data_to_request_strips_router_reserved_stamps_from_bo
 
 
 @pytest.mark.asyncio
-async def test_add_litellm_data_to_request_strips_router_reserved_stamps_from_json_string_litellm_metadata():
+async def test_add_gateway_data_to_request_strips_router_reserved_stamps_from_json_string_gateway_metadata():
     from token_iq.gateway.proxy.litellm_pre_call_utils import add_litellm_data_to_request
 
     data = {
@@ -7544,7 +7544,7 @@ async def test_add_litellm_data_to_request_strips_router_reserved_stamps_from_js
 
 
 @pytest.mark.asyncio
-async def test_add_litellm_data_to_request_strips_router_reserved_stamps_despite_pricing_override_opt_in():
+async def test_add_gateway_data_to_request_strips_router_reserved_stamps_despite_pricing_override_opt_in():
     """The pricing strip is gated on allow_client_pricing_override; the reserved-stamp strip
     is not, because no key or team setting makes a client-written fallback count valid."""
     from token_iq.gateway.proxy.litellm_pre_call_utils import add_litellm_data_to_request
@@ -7571,7 +7571,7 @@ async def test_add_litellm_data_to_request_strips_router_reserved_stamps_despite
 
 
 @pytest.mark.asyncio
-async def test_add_litellm_data_to_request_strips_router_reserved_stamps_on_responses_route():
+async def test_add_gateway_data_to_request_strips_router_reserved_stamps_on_responses_route():
     """On the Responses family the proxy-owned bucket is litellm_metadata and the client's
     OpenAI metadata param is the sibling; both lose the reserved keys."""
     from token_iq.gateway.proxy.litellm_pre_call_utils import add_litellm_data_to_request
@@ -7652,7 +7652,7 @@ async def test_router_keeps_proxy_metadata_bucket_identity_after_reserved_stamp_
 
 
 @pytest.mark.asyncio
-async def test_add_litellm_data_to_request_folds_litellm_metadata_into_metadata_on_chat_routes():
+async def test_add_gateway_data_to_request_folds_gateway_metadata_into_metadata_on_chat_routes():
     data = {
         "model": "gpt-3.5-turbo",
         "metadata": {"tags": ["from-metadata"]},
@@ -7674,7 +7674,7 @@ async def test_add_litellm_data_to_request_folds_litellm_metadata_into_metadata_
 
 
 @pytest.mark.asyncio
-async def test_add_litellm_data_to_request_keeps_litellm_metadata_on_litellm_metadata_routes():
+async def test_add_gateway_data_to_request_keeps_gateway_metadata_on_gateway_metadata_routes():
     data = {"model": "claude-sonnet-5", "litellm_metadata": {"trace_id": "abc"}}
 
     updated = await add_litellm_data_to_request(
@@ -7692,7 +7692,7 @@ async def test_add_litellm_data_to_request_keeps_litellm_metadata_on_litellm_met
 def _stamp_model_access_groups(matched_model_access_groups, metadata_variable_name="metadata"):
     user_api_key_dict = UserAPIKeyAuth(api_key="hashed-key")
     user_api_key_dict.matched_model_access_groups = matched_model_access_groups
-    return LiteLLMProxyRequestSetup.add_user_api_key_auth_to_request_metadata(
+    return GatewayProxyRequestSetup.add_user_api_key_auth_to_request_metadata(
         data={metadata_variable_name: {}},
         user_api_key_dict=user_api_key_dict,
         _metadata_variable_name=metadata_variable_name,
@@ -7707,7 +7707,7 @@ def test_matched_model_access_groups_are_stamped_into_request_metadata():
     assert MODEL_ACCESS_GROUP_METADATA_KEY not in _stamp_model_access_groups(None)
 
 
-def test_stamped_model_access_groups_survive_the_litellm_metadata_merge():
+def test_stamped_model_access_groups_survive_the_gateway_metadata_merge():
     """
     The key must keep its ``user_api_key`` prefix: when a request carries both metadata dicts,
     get_litellm_metadata_from_kwargs returns litellm_metadata and copies a key over from metadata

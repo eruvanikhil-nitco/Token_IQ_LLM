@@ -56,7 +56,7 @@ from token_iq.gateway.proxy._types import (
     NewUserRequest,
     UpdateKeyRequest,
     SpendUpdateQueueItem,
-    Litellm_EntityType,
+    Gateway_EntityType,
 )
 
 proxy_logging_obj = ProxyLogging(user_api_key_cache=DualCache())
@@ -78,7 +78,7 @@ def prisma_client():
     )
 
     # Reset litellm.proxy.proxy_server.prisma_client to None
-    gateway.proxy.proxy_server.litellm_proxy_budget_name = (
+    gateway.proxy.proxy_server.gateway_proxy_budget_name = (
         f"litellm-proxy-budget-{time.time()}"
     )
     gateway.proxy.proxy_server.user_custom_key_generate = None
@@ -91,7 +91,7 @@ def prisma_client():
 async def test_batch_update_spend(prisma_client):
     await proxy_logging_obj.db_spend_update_writer.spend_update_queue.add_update(
         SpendUpdateQueueItem(
-            entity_type=Litellm_EntityType.USER,
+            entity_type=Gateway_EntityType.USER,
             entity_id="test-litellm-user-5",
             response_cost=23,
         )

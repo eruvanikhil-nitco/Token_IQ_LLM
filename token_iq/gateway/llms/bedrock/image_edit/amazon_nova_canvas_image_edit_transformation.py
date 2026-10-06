@@ -21,7 +21,7 @@ import httpx
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.llms.base_llm.image_edit.transformation import BaseImageEditConfig
 from token_iq.gateway.types.images.main import ImageEditOptionalRequestParams
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.types.utils import FileTypes, ImageObject, ImageResponse
 from token_iq.gateway.utils import (
     _get_model_cost_key,
@@ -30,11 +30,11 @@ from token_iq.gateway.utils import (
 )
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as _LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as _GatewayLoggingObj
 
-    LiteLLMLoggingObj = _LiteLLMLoggingObj
+    GatewayLoggingObj = _GatewayLoggingObj
 else:
-    LiteLLMLoggingObj = Any
+    GatewayLoggingObj = Any
 
 
 def _nova_canvas_task_body(
@@ -301,7 +301,7 @@ class BedrockAmazonNovaCanvasImageEditConfig(BaseImageEditConfig):
         prompt: str | None,
         image: FileTypes | None,
         image_edit_optional_request_params: dict,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> tuple[dict, Any]:
         op: Final = dict(image_edit_optional_request_params)
@@ -379,7 +379,7 @@ class BedrockAmazonNovaCanvasImageEditConfig(BaseImageEditConfig):
         self,
         model: str,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         api_key: str | None = None,
         json_mode: bool | None = None,
     ) -> ImageResponse:

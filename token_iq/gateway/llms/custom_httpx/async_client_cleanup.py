@@ -6,7 +6,7 @@ import asyncio
 from typing import Final
 
 
-async def close_litellm_async_clients():
+async def close_gateway_async_clients():
     """
     Close all cached async HTTP clients to prevent resource leaks.
 
@@ -88,7 +88,7 @@ def register_async_client_cleanup():
             loop: Final = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
             try:
-                loop.run_until_complete(close_litellm_async_clients())
+                loop.run_until_complete(close_gateway_async_clients())
             finally:
                 # Clean up the loop we created
                 loop.close()

@@ -13,7 +13,7 @@ from token_iq.gateway.proxy.common_request_processing import ProxyBaseLLMRequest
 from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
 
-def test_maybe_get_model_id_from_litellm_params():
+def test_maybe_get_model_id_from_gateway_params():
     """
     Test extraction of model_id from logging_obj.litellm_params (used by /v1/chat/completions).
     """
@@ -32,7 +32,7 @@ def test_maybe_get_model_id_from_litellm_params():
     assert model_id == "test-model-id-from-litellm-params"
 
 
-def test_maybe_get_model_id_from_litellm_params_nested():
+def test_maybe_get_model_id_from_gateway_params_nested():
     """
     Test extraction of model_id from nested metadata in logging_obj.litellm_params.
     """
@@ -123,7 +123,7 @@ def test_maybe_get_model_id_not_found():
     assert model_id is None
 
 
-def test_maybe_get_model_id_priority_litellm_params_over_data():
+def test_maybe_get_model_id_priority_gateway_params_over_data():
     """
     Test that model_id from logging_obj.litellm_params takes priority over self.data.
     """

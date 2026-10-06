@@ -13,7 +13,7 @@ from pydantic import BaseModel
 
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway._uuid import uuid
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.llms.base_llm.realtime.transformation import BaseRealtimeConfig
 from token_iq.gateway.llms.bedrock.realtime.trigger_audio import ready_trigger_pcm
 from token_iq.gateway.types.llms.openai import (
@@ -660,7 +660,7 @@ class BedrockRealtimeConfig(BaseRealtimeConfig):
     def _session_object(
         self,
         model: str,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         modalities: list[str] | None = None,
     ) -> OpenAIRealtimeStreamSession:
         session: Final = OpenAIRealtimeStreamSession(
@@ -674,7 +674,7 @@ class BedrockRealtimeConfig(BaseRealtimeConfig):
     def session_created_event(
         self,
         model: str,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> OpenAIRealtimeStreamSessionEvents:
         """Build the OpenAI session.created event for this realtime session."""
         return OpenAIRealtimeStreamSessionEvents(
@@ -686,7 +686,7 @@ class BedrockRealtimeConfig(BaseRealtimeConfig):
     def session_updated_event(
         self,
         model: str,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         modalities: list[str] | None = None,
     ) -> OpenAIRealtimeStreamSessionEvents:
         """Build the OpenAI session.updated ack reflecting the client's requested modalities."""
@@ -1266,7 +1266,7 @@ class BedrockRealtimeConfig(BaseRealtimeConfig):
         self,
         message: str | bytes,
         model: str,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         realtime_response_transform_input: RealtimeResponseTransformInput,
     ) -> RealtimeResponseTypedDict:
         """

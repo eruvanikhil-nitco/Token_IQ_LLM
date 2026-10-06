@@ -11,10 +11,10 @@ from typing import Any
 from pydantic import ConfigDict, model_validator
 
 from token_iq.gateway.models.budget import LiteLLM_BudgetTable
-from token_iq.gateway.types.llms.base import LiteLLMPydanticObjectBase
+from token_iq.gateway.types.llms.base import GatewayPydanticObjectBase
 
 
-class LiteLLM_OrganizationMembershipTable(LiteLLMPydanticObjectBase):
+class LiteLLM_OrganizationMembershipTable(GatewayPydanticObjectBase):
     """Tracks which organizations a user belongs to and their spend within it."""
 
     user_id: str

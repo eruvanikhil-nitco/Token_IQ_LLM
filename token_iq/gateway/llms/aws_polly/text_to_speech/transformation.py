@@ -19,10 +19,10 @@ from token_iq.gateway.llms.base_llm.text_to_speech.transformation import (
 from token_iq.gateway.llms.bedrock.base_aws_llm import BaseAWSLLM
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
     from token_iq.gateway.types.llms.openai import HttpxBinaryResponseContent
 else:
-    LiteLLMLoggingObj = Any
+    GatewayLoggingObj = Any
     HttpxBinaryResponseContent = Any
 
 
@@ -72,8 +72,8 @@ class AWSPollyTextToSpeechConfig(BaseTextToSpeechConfig, BaseAWSLLM):
         input: str,
         voice: str | dict | None,
         optional_params: dict,
-        litellm_params_dict: dict,
-        logging_obj: "LiteLLMLoggingObj",
+        gateway_params_dict: dict,
+        logging_obj: "GatewayLoggingObj",
         timeout: float | httpx.Timeout,
         extra_headers: dict[str, Any] | None,
         base_llm_http_handler: Any,
@@ -108,9 +108,9 @@ class AWSPollyTextToSpeechConfig(BaseTextToSpeechConfig, BaseAWSLLM):
         # Update litellm_params with resolved values
         # Note: AWS credentials (aws_access_key_id, aws_secret_access_key, etc.)
         # are already in litellm_params_dict via get_litellm_params() in main.py
-        litellm_params_dict["aws_region_name"] = aws_region_name
-        litellm_params_dict["api_base"] = api_base
-        litellm_params_dict["api_key"] = api_key
+        gateway_params_dict["aws_region_name"] = aws_region_name
+        gateway_params_dict["api_base"] = api_base
+        gateway_params_dict["api_key"] = api_key
 
         # Call the text_to_speech_handler
         response: Final = base_llm_http_handler.text_to_speech_handler(
@@ -120,7 +120,7 @@ class AWSPollyTextToSpeechConfig(BaseTextToSpeechConfig, BaseAWSLLM):
             text_to_speech_provider_config=self,
             text_to_speech_optional_params=optional_params,
             custom_llm_provider="aws_polly",
-            litellm_params=litellm_params_dict,
+            litellm_params=gateway_params_dict,
             logging_obj=logging_obj,
             timeout=timeout,
             extra_headers=extra_headers,
@@ -380,7 +380,7 @@ class AWSPollyTextToSpeechConfig(BaseTextToSpeechConfig, BaseAWSLLM):
         self,
         model: str,
         raw_response: httpx.Response,
-        logging_obj: "LiteLLMLoggingObj",
+        logging_obj: "GatewayLoggingObj",
     ) -> "HttpxBinaryResponseContent":
         """
         Transform AWS Polly response to standard format.

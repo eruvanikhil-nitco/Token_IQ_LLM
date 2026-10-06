@@ -10,10 +10,10 @@ from datetime import datetime
 from pydantic import model_validator
 
 from token_iq.gateway.models.budget import LiteLLM_BudgetTable
-from token_iq.gateway.types.llms.base import LiteLLMPydanticObjectBase
+from token_iq.gateway.types.llms.base import GatewayPydanticObjectBase
 
 
-class LiteLLM_TagTable(LiteLLMPydanticObjectBase):
+class LiteLLM_TagTable(GatewayPydanticObjectBase):
     tag_name: str
     description: str | None = None
     models: list[str] = []

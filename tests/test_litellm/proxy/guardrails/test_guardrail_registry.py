@@ -326,7 +326,7 @@ def test_sync_guardrail_from_db_marks_source_db_when_unchanged():
     assert handler.get_source("collide") == "db"
 
 
-def _db_litellm_params() -> dict:
+def _db_gateway_params() -> dict:
     """
     Shape produced by GuardrailRegistry.get_all_guardrails_from_db: litellm_params
     is a raw dict (not a LitellmParams), holding only the keys originally stored,
@@ -349,7 +349,7 @@ def test_unchanged_db_params_do_not_register_as_changed():
     every poll cycle re-initializes the guardrail indefinitely.
     """
     handler = InMemoryGuardrailHandler()
-    raw = _db_litellm_params()
+    raw = _db_gateway_params()
     gid = "11111111-1111-1111-1111-111111111111"
     handler.IN_MEMORY_GUARDRAILS[gid] = Guardrail(
         guardrail_id=gid,
@@ -364,7 +364,7 @@ def test_unchanged_db_params_do_not_register_as_changed():
 def test_changed_db_params_register_as_changed():
     """Normalizing both sides must still surface a genuine config change."""
     handler = InMemoryGuardrailHandler()
-    raw = _db_litellm_params()
+    raw = _db_gateway_params()
     gid = "22222222-2222-2222-2222-222222222222"
     handler.IN_MEMORY_GUARDRAILS[gid] = Guardrail(
         guardrail_id=gid,
@@ -385,7 +385,7 @@ def test_unnormalizable_db_params_register_as_changed_without_raising():
     validation error up through the polling cycle.
     """
     handler = InMemoryGuardrailHandler()
-    raw = _db_litellm_params()
+    raw = _db_gateway_params()
     gid = "55555555-5555-5555-5555-555555555555"
     handler.IN_MEMORY_GUARDRAILS[gid] = Guardrail(
         guardrail_id=gid,
@@ -459,7 +459,7 @@ def test_repeated_db_sync_does_not_accumulate_runner_instances():
 
     def db_guardrail(word: str) -> Guardrail:
         params = {
-            **_db_litellm_params(),
+            **_db_gateway_params(),
             "blocked_words": [{"keyword": word, "action": "BLOCK"}],
         }
         return Guardrail(guardrail_id=gid, guardrail_name=name, litellm_params=params)
@@ -467,10 +467,10 @@ def test_repeated_db_sync_does_not_accumulate_runner_instances():
     def promote_into_request_lists() -> None:
         manager = gateway.logging_callback_manager
         for callback in list(gateway.callbacks):
-            manager.add_litellm_success_callback(callback)
-            manager.add_litellm_failure_callback(callback)
-            manager.add_litellm_async_success_callback(callback)
-            manager.add_litellm_async_failure_callback(callback)
+            manager.add_gateway_success_callback(callback)
+            manager.add_gateway_failure_callback(callback)
+            manager.add_gateway_async_success_callback(callback)
+            manager.add_gateway_async_failure_callback(callback)
 
     def distinct_runner_instances() -> int:
         seen = set()
@@ -692,8 +692,8 @@ def test_reinitialized_judge_guardrail_uses_lazy_router_provider():
             cb_list[:] = snapshot
 
 
-def _lakera_guardrail(guardrail_id: str, **litellm_params_overrides) -> Guardrail:
-    params = {"guardrail": "lakera_v2", "mode": "pre_call", "on_flagged": "block", **litellm_params_overrides}
+def _lakera_guardrail(guardrail_id: str, **gateway_params_overrides) -> Guardrail:
+    params = {"guardrail": "lakera_v2", "mode": "pre_call", "on_flagged": "block", **gateway_params_overrides}
     return Guardrail(
         guardrail_id=guardrail_id,
         guardrail_name="lakera-test",

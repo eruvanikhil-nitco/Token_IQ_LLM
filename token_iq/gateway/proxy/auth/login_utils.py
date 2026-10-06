@@ -20,7 +20,7 @@ from token_iq.gateway.constants import LITELLM_PROXY_ADMIN_NAME, LITELLM_UI_SESS
 from token_iq.gateway.core_utils.duration_parser import duration_in_seconds
 from token_iq.gateway.proxy._types import (
     LiteLLM_UserTable,
-    LitellmUserRoles,
+    GatewayUserRoles,
     ProxyErrorTypes,
     ProxyException,
     UpdateUserRequest,
@@ -176,10 +176,10 @@ async def authenticate_user(
     _user_row: LiteLLM_UserTable | None = None
     user_role: (
         Literal[
-            LitellmUserRoles.PROXY_ADMIN,
-            LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY,
-            LitellmUserRoles.INTERNAL_USER,
-            LitellmUserRoles.INTERNAL_USER_VIEW_ONLY,
+            GatewayUserRoles.PROXY_ADMIN,
+            GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY,
+            GatewayUserRoles.INTERNAL_USER,
+            GatewayUserRoles.INTERNAL_USER_VIEW_ONLY,
         ]
         | None
     ) = None
@@ -201,7 +201,7 @@ async def authenticate_user(
         password.encode("utf-8"), ui_password.encode("utf-8")
     ):
         # Non SSO -> If user is using UI_USERNAME and UI_PASSWORD they are Proxy admin
-        user_role = LitellmUserRoles.PROXY_ADMIN
+        user_role = GatewayUserRoles.PROXY_ADMIN
         user_id = LITELLM_PROXY_ADMIN_NAME
 
         # we want the key created to have PROXY_ADMIN_PERMISSIONS
@@ -221,7 +221,7 @@ async def authenticate_user(
                 user_role=user_role,
             ),
             user_api_key_dict=UserAPIKeyAuth(
-                user_role=LitellmUserRoles.PROXY_ADMIN,
+                user_role=GatewayUserRoles.PROXY_ADMIN,
             ),
         )
 
@@ -229,7 +229,7 @@ async def authenticate_user(
             response = await generate_key_helper_fn(
                 request_type="key",
                 **{
-                    "user_role": LitellmUserRoles.PROXY_ADMIN,
+                    "user_role": GatewayUserRoles.PROXY_ADMIN,
                     "duration": LITELLM_UI_SESSION_DURATION,
                     "key_max_budget": gateway.max_ui_session_budget,
                     "models": [],
@@ -286,7 +286,7 @@ async def authenticate_user(
         -> if the user has no role in the DB assume they are only a viewer
         """
         user_id = getattr(_user_row, "user_id", "unknown")
-        user_role = getattr(_user_row, "user_role", LitellmUserRoles.INTERNAL_USER_VIEW_ONLY)
+        user_role = getattr(_user_row, "user_role", GatewayUserRoles.INTERNAL_USER_VIEW_ONLY)
         user_email: Final = getattr(_user_row, "user_email", "unknown")
         _password: Final = getattr(_user_row, "password", "unknown")
 

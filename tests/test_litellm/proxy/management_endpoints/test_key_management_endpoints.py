@@ -22,7 +22,7 @@ from token_iq.gateway.proxy._types import (
     LiteLLM_TeamTableCachedObj,
     LiteLLM_UserTable,
     LiteLLM_VerificationToken,
-    LitellmUserRoles,
+    GatewayUserRoles,
     Member,
     ProxyException,
     ResetSpendRequest,
@@ -285,7 +285,7 @@ async def test_key_token_handling(monkeypatch):
         )
     )
 
-    from token_iq.gateway.proxy._types import GenerateKeyRequest, LitellmUserRoles
+    from token_iq.gateway.proxy._types import GenerateKeyRequest, GatewayUserRoles
     from token_iq.gateway.proxy.auth.user_api_key_auth import UserAPIKeyAuth
     from token_iq.gateway.proxy.management_endpoints.key_management_endpoints import (
         generate_key_fn,
@@ -299,7 +299,7 @@ async def test_key_token_handling(monkeypatch):
     response = await generate_key_fn(
         data=GenerateKeyRequest(),
         user_api_key_dict=UserAPIKeyAuth(
-            user_role=LitellmUserRoles.PROXY_ADMIN, api_key="sk-1234", user_id="1234"
+            user_role=GatewayUserRoles.PROXY_ADMIN, api_key="sk-1234", user_id="1234"
         ),
     )
 
@@ -506,7 +506,7 @@ async def test_key_generation_with_object_permission(monkeypatch):
     from token_iq.gateway.proxy._types import (
         GenerateKeyRequest,
         LiteLLM_ObjectPermissionBase,
-        LitellmUserRoles,
+        GatewayUserRoles,
     )
     from token_iq.gateway.proxy.auth.user_api_key_auth import UserAPIKeyAuth
     from token_iq.gateway.proxy.management_endpoints.key_management_endpoints import (
@@ -521,7 +521,7 @@ async def test_key_generation_with_object_permission(monkeypatch):
     await generate_key_fn(
         data=request_data,
         user_api_key_dict=UserAPIKeyAuth(
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
             api_key="sk-1234",
             user_id="user-1",
         ),
@@ -569,7 +569,7 @@ async def test_generate_key_debug_log_never_contains_raw_token(monkeypatch, capl
         AsyncMock(return_value={}),
     )
 
-    from token_iq.gateway.proxy._types import GenerateKeyRequest, LitellmUserRoles
+    from token_iq.gateway.proxy._types import GenerateKeyRequest, GatewayUserRoles
     from token_iq.gateway.proxy.auth.user_api_key_auth import UserAPIKeyAuth
     from token_iq.gateway.proxy.management_endpoints.key_management_endpoints import (
         generate_key_fn,
@@ -580,7 +580,7 @@ async def test_generate_key_debug_log_never_contains_raw_token(monkeypatch, capl
         await generate_key_fn(
             data=GenerateKeyRequest(key=raw_key),
             user_api_key_dict=UserAPIKeyAuth(
-                user_role=LitellmUserRoles.PROXY_ADMIN,
+                user_role=GatewayUserRoles.PROXY_ADMIN,
                 api_key="sk-1234",
                 user_id="user-1",
             ),
@@ -639,7 +639,7 @@ async def test_generate_key_personal_non_admin_denied_for_team_scoped_fields(
     from token_iq.gateway.proxy._types import (
         GenerateKeyRequest,
         LiteLLM_ObjectPermissionBase,
-        LitellmUserRoles,
+        GatewayUserRoles,
     )
     from token_iq.gateway.proxy.auth.user_api_key_auth import UserAPIKeyAuth
     from token_iq.gateway.proxy.management_endpoints.key_management_endpoints import (
@@ -661,7 +661,7 @@ async def test_generate_key_personal_non_admin_denied_for_team_scoped_fields(
         await generate_key_fn(
             data=request_data,
             user_api_key_dict=UserAPIKeyAuth(
-                user_role=LitellmUserRoles.INTERNAL_USER,
+                user_role=GatewayUserRoles.INTERNAL_USER,
                 api_key="sk-alice",
                 user_id="alice",
             ),
@@ -693,7 +693,7 @@ async def test_update_key_personal_non_admin_denied_vector_stores(monkeypatch):
 
     from token_iq.gateway.proxy._types import (
         LiteLLM_ObjectPermissionBase,
-        LitellmUserRoles,
+        GatewayUserRoles,
         UpdateKeyRequest,
     )
     from token_iq.gateway.proxy.auth.user_api_key_auth import UserAPIKeyAuth
@@ -720,7 +720,7 @@ async def test_update_key_personal_non_admin_denied_vector_stores(monkeypatch):
             data=data,
             existing_key_row=existing_key_row,
             user_api_key_dict=UserAPIKeyAuth(
-                user_role=LitellmUserRoles.INTERNAL_USER,
+                user_role=GatewayUserRoles.INTERNAL_USER,
                 api_key="sk-alice",
                 user_id="alice",
             ),
@@ -806,7 +806,7 @@ async def test_update_key_personal_non_admin_denied_access_groups(
     mock_prisma_client.jsonify_object = lambda data: data  # type: ignore
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
 
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UpdateKeyRequest
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UpdateKeyRequest
     from token_iq.gateway.proxy.auth.user_api_key_auth import UserAPIKeyAuth
     from token_iq.gateway.proxy.management_endpoints.key_management_endpoints import (
         _validate_update_key_data,
@@ -831,7 +831,7 @@ async def test_update_key_personal_non_admin_denied_access_groups(
             data=data,
             existing_key_row=existing_key_row,
             user_api_key_dict=UserAPIKeyAuth(
-                user_role=LitellmUserRoles.INTERNAL_USER,
+                user_role=GatewayUserRoles.INTERNAL_USER,
                 api_key="sk-alice",
                 user_id="alice",
             ),
@@ -990,7 +990,7 @@ async def test_key_generation_with_mcp_tool_permissions(monkeypatch):
     from token_iq.gateway.proxy._types import (
         GenerateKeyRequest,
         LiteLLM_ObjectPermissionBase,
-        LitellmUserRoles,
+        GatewayUserRoles,
     )
     from token_iq.gateway.proxy.auth.user_api_key_auth import UserAPIKeyAuth
     from token_iq.gateway.proxy.management_endpoints.key_management_endpoints import (
@@ -1008,7 +1008,7 @@ async def test_key_generation_with_mcp_tool_permissions(monkeypatch):
     await generate_key_fn(
         data=request_data,
         user_api_key_dict=UserAPIKeyAuth(
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
             api_key="sk-1234",
             user_id="user-mcp-1",
         ),
@@ -1267,7 +1267,7 @@ async def test_key_update_object_permission_does_not_add_null_fields():
     existing_key_row.project_id = None
 
     user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
         api_key="sk-admin",
         user_id="admin_user",
     )
@@ -1359,7 +1359,7 @@ async def test_key_info_returns_object_permission(monkeypatch):
 
     # Create user API key dict
     user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
         api_key="sk-test-key-456",
     )
 
@@ -1484,7 +1484,7 @@ async def test_generate_key_fn_rejects_short_custom_key(monkeypatch, short_key):
     mock_prisma_client.db.litellm_verificationtoken.find_unique = AsyncMock(return_value=None)
     mock_prisma_client.db.litellm_verificationtoken.find_many = AsyncMock(return_value=[])
 
-    from token_iq.gateway.proxy._types import GenerateKeyRequest, LitellmUserRoles, ProxyException
+    from token_iq.gateway.proxy._types import GenerateKeyRequest, GatewayUserRoles, ProxyException
     from token_iq.gateway.proxy.auth.user_api_key_auth import UserAPIKeyAuth
     from token_iq.gateway.proxy.management_endpoints.key_management_endpoints import (
         generate_key_fn,
@@ -1502,7 +1502,7 @@ async def test_generate_key_fn_rejects_short_custom_key(monkeypatch, short_key):
         await generate_key_fn(
             data=GenerateKeyRequest(key=short_key),
             user_api_key_dict=UserAPIKeyAuth(
-                user_role=LitellmUserRoles.PROXY_ADMIN, api_key="sk-1234", user_id="1234"
+                user_role=GatewayUserRoles.PROXY_ADMIN, api_key="sk-1234", user_id="1234"
             ),
         )
 
@@ -1524,7 +1524,7 @@ async def test_generate_key_fn_accepts_custom_key_at_minimum_length(monkeypatch)
     mock_prisma_client.db.litellm_verificationtoken.find_many = AsyncMock(return_value=[])
     mock_prisma_client.db.litellm_verificationtoken.count = AsyncMock(return_value=0)
 
-    from token_iq.gateway.proxy._types import GenerateKeyRequest, LitellmUserRoles
+    from token_iq.gateway.proxy._types import GenerateKeyRequest, GatewayUserRoles
     from token_iq.gateway.proxy.auth.user_api_key_auth import UserAPIKeyAuth
     from token_iq.gateway.proxy.management_endpoints.key_management_endpoints import (
         generate_key_fn,
@@ -1542,7 +1542,7 @@ async def test_generate_key_fn_accepts_custom_key_at_minimum_length(monkeypatch)
     response = await generate_key_fn(
         data=GenerateKeyRequest(key=custom_key),
         user_api_key_dict=UserAPIKeyAuth(
-            user_role=LitellmUserRoles.PROXY_ADMIN, api_key="sk-1234", user_id="1234"
+            user_role=GatewayUserRoles.PROXY_ADMIN, api_key="sk-1234", user_id="1234"
         ),
     )
 
@@ -1681,7 +1681,7 @@ async def test_generate_service_account_requires_team_id():
                 team_id=None,
             ),
             user_api_key_dict=UserAPIKeyAuth(
-                user_role=LitellmUserRoles.PROXY_ADMIN, api_key="sk-1"
+                user_role=GatewayUserRoles.PROXY_ADMIN, api_key="sk-1"
             ),
             litellm_changed_by=None,
             team_table=None,
@@ -1720,7 +1720,7 @@ async def test_generate_service_account_works_with_team_id():
                 team_id="IJ",
             ),
             user_api_key_dict=UserAPIKeyAuth(
-                user_role=LitellmUserRoles.PROXY_ADMIN, api_key="sk-1"
+                user_role=GatewayUserRoles.PROXY_ADMIN, api_key="sk-1"
             ),
             litellm_changed_by=None,
             team_table=None,
@@ -1740,7 +1740,7 @@ async def test_generate_key_throttle_rejected_for_non_admin():
             await _common_key_generation_helper(
                 data=GenerateKeyRequest(throttle_on_budget_exceeded=True),
                 user_api_key_dict=UserAPIKeyAuth(
-                    user_role=LitellmUserRoles.INTERNAL_USER,
+                    user_role=GatewayUserRoles.INTERNAL_USER,
                     api_key="sk-alice",
                     user_id="alice",
                 ),
@@ -1771,7 +1771,7 @@ async def test_generate_key_throttle_allowed_for_admin():
         }
         await _common_key_generation_helper(
             data=GenerateKeyRequest(throttle_on_budget_exceeded=True),
-            user_api_key_dict=UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN, api_key="sk-1"),
+            user_api_key_dict=UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN, api_key="sk-1"),
             litellm_changed_by=None,
             team_table=None,
         )
@@ -2260,7 +2260,7 @@ async def test_generate_service_account_key_endpoint_validation():
             await generate_service_account_key_fn(
                 data=GenerateKeyRequest(team_id=None),
                 user_api_key_dict=UserAPIKeyAuth(
-                    user_role=LitellmUserRoles.PROXY_ADMIN, api_key="sk-1"
+                    user_role=GatewayUserRoles.PROXY_ADMIN, api_key="sk-1"
                 ),
                 litellm_changed_by=None,
             )
@@ -2280,7 +2280,7 @@ async def test_generate_service_account_key_endpoint_validation():
             await generate_service_account_key_fn(
                 data=GenerateKeyRequest(team_id="non-existent-team"),
                 user_api_key_dict=UserAPIKeyAuth(
-                    user_role=LitellmUserRoles.PROXY_ADMIN, api_key="sk-1"
+                    user_role=GatewayUserRoles.PROXY_ADMIN, api_key="sk-1"
                 ),
                 litellm_changed_by=None,
             )
@@ -2358,7 +2358,7 @@ async def test_unblock_key_supports_both_sk_and_hashed_tokens(monkeypatch):
     # Create mock request and user auth
     mock_request = MagicMock()
     user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, api_key="sk-admin", user_id="admin_user"
+        user_role=GatewayUserRoles.PROXY_ADMIN, api_key="sk-admin", user_id="admin_user"
     )
 
     # Test Case 1: Using sk- prefixed token
@@ -2416,7 +2416,7 @@ async def test_unblock_key_invalid_key_format(monkeypatch):
     # Mock request and user auth
     mock_request = MagicMock()
     user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, api_key="sk-admin", user_id="admin_user"
+        user_role=GatewayUserRoles.PROXY_ADMIN, api_key="sk-admin", user_id="admin_user"
     )
 
     # Test with invalid key format
@@ -2472,7 +2472,7 @@ async def test_block_key_nonexistent_key_returns_404(monkeypatch):
 
     mock_request = MagicMock()
     user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, api_key="sk-admin", user_id="admin_user"
+        user_role=GatewayUserRoles.PROXY_ADMIN, api_key="sk-admin", user_id="admin_user"
     )
 
     data = BlockKeyRequest(key="sk-does-not-exist-key")
@@ -2528,7 +2528,7 @@ async def test_unblock_key_nonexistent_key_returns_404(monkeypatch):
 
     mock_request = MagicMock()
     user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, api_key="sk-admin", user_id="admin_user"
+        user_role=GatewayUserRoles.PROXY_ADMIN, api_key="sk-admin", user_id="admin_user"
     )
 
     data = BlockKeyRequest(key="sk-does-not-exist-key")
@@ -2579,7 +2579,7 @@ async def test_update_key_nonexistent_key_returns_404(monkeypatch):
 
     mock_request = MagicMock()
     user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, api_key="sk-admin", user_id="admin_user"
+        user_role=GatewayUserRoles.PROXY_ADMIN, api_key="sk-admin", user_id="admin_user"
     )
 
     data = UpdateKeyRequest(key="sk-does-not-exist-key")
@@ -2632,7 +2632,7 @@ async def test_update_key_rejects_a_duration_that_never_advances(monkeypatch, ba
             request=MagicMock(),
             data=UpdateKeyRequest(key=hashed_token, budget_duration=bad_duration),
             user_api_key_dict=UserAPIKeyAuth(
-                user_role=LitellmUserRoles.PROXY_ADMIN, api_key="sk-admin", user_id="admin-user"
+                user_role=GatewayUserRoles.PROXY_ADMIN, api_key="sk-admin", user_id="admin-user"
             ),
             litellm_changed_by=None,
         )
@@ -2663,7 +2663,7 @@ async def test_generate_key_rejects_a_duration_that_never_advances(monkeypatch, 
             await generate_key_fn(
                 data=GenerateKeyRequest(budget_duration=bad_duration),
                 user_api_key_dict=UserAPIKeyAuth(
-                    user_role=LitellmUserRoles.PROXY_ADMIN, api_key="sk-1234", user_id="1234"
+                    user_role=GatewayUserRoles.PROXY_ADMIN, api_key="sk-1234", user_id="1234"
                 ),
             )
 
@@ -2703,7 +2703,7 @@ async def test_update_key_by_alias_only(monkeypatch):
     _setup_update_key_mocks(monkeypatch, mock_prisma_client)
 
     user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, api_key="sk-admin", user_id="admin-user"
+        user_role=GatewayUserRoles.PROXY_ADMIN, api_key="sk-admin", user_id="admin-user"
     )
 
     request_data = UpdateKeyRequest(key_alias="prod-alias", max_budget=50.0)
@@ -2748,7 +2748,7 @@ async def test_update_key_by_alias_not_found_returns_404(monkeypatch):
     _setup_update_key_mocks(monkeypatch, mock_prisma_client)
 
     user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, api_key="sk-admin", user_id="admin-user"
+        user_role=GatewayUserRoles.PROXY_ADMIN, api_key="sk-admin", user_id="admin-user"
     )
 
     with pytest.raises(ProxyException) as exc_info:
@@ -2785,7 +2785,7 @@ async def test_update_key_by_duplicate_alias_returns_400(monkeypatch):
     _setup_update_key_mocks(monkeypatch, mock_prisma_client)
 
     user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, api_key="sk-admin", user_id="admin-user"
+        user_role=GatewayUserRoles.PROXY_ADMIN, api_key="sk-admin", user_id="admin-user"
     )
 
     with pytest.raises(ProxyException) as exc_info:
@@ -2832,7 +2832,7 @@ async def test_update_key_with_key_and_alias_selects_by_key(monkeypatch):
     _setup_update_key_mocks(monkeypatch, mock_prisma_client)
 
     user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, api_key="sk-admin", user_id="admin-user"
+        user_role=GatewayUserRoles.PROXY_ADMIN, api_key="sk-admin", user_id="admin-user"
     )
 
     with patch(
@@ -2912,7 +2912,7 @@ async def test_block_key_existing_key_succeeds(monkeypatch):
 
     mock_request = MagicMock()
     user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, api_key="sk-admin", user_id="admin_user"
+        user_role=GatewayUserRoles.PROXY_ADMIN, api_key="sk-admin", user_id="admin_user"
     )
 
     data = BlockKeyRequest(key="sk-test123456789")
@@ -3028,7 +3028,7 @@ async def test_validate_key_team_change_skips_all_team_models_sentinel():
 
     mock_change_initiator = MagicMock()
     mock_change_initiator.user_id = "test-user-123"
-    mock_change_initiator.user_role = LitellmUserRoles.PROXY_ADMIN.value
+    mock_change_initiator.user_role = GatewayUserRoles.PROXY_ADMIN.value
 
     mock_router = MagicMock()
 
@@ -3907,7 +3907,7 @@ async def test_generate_key_with_object_permission():
     from token_iq.gateway.proxy._types import (
         GenerateKeyRequest,
         LiteLLM_ObjectPermissionBase,
-        LitellmUserRoles,
+        GatewayUserRoles,
     )
     from token_iq.gateway.proxy.auth.user_api_key_auth import UserAPIKeyAuth
     from token_iq.gateway.proxy.management_endpoints.key_management_endpoints import (
@@ -3946,7 +3946,7 @@ async def test_generate_key_with_object_permission():
     )
 
     mock_admin_auth = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
         user_id="admin_user",
     )
 
@@ -4009,7 +4009,7 @@ async def test_generate_key_team_member_inherits_org_skips_membership_check():
     """
     from unittest.mock import AsyncMock, MagicMock, patch
 
-    from token_iq.gateway.proxy._types import GenerateKeyRequest, LitellmUserRoles
+    from token_iq.gateway.proxy._types import GenerateKeyRequest, GatewayUserRoles
     from token_iq.gateway.proxy.auth.user_api_key_auth import UserAPIKeyAuth
     from token_iq.gateway.proxy.management_endpoints.key_management_endpoints import (
         _common_key_generation_helper,
@@ -4072,7 +4072,7 @@ async def test_generate_key_team_member_inherits_org_skips_membership_check():
             ),
             user_api_key_dict=UserAPIKeyAuth(
                 user_id="alice",
-                user_role=LitellmUserRoles.INTERNAL_USER.value,
+                user_role=GatewayUserRoles.INTERNAL_USER.value,
             ),
             litellm_changed_by=None,
             team_table=mock_team_table,
@@ -4097,7 +4097,7 @@ async def test_generate_key_foreign_org_without_team_still_enforces_membership()
     """
     from unittest.mock import AsyncMock, MagicMock, patch
 
-    from token_iq.gateway.proxy._types import GenerateKeyRequest, LitellmUserRoles
+    from token_iq.gateway.proxy._types import GenerateKeyRequest, GatewayUserRoles
     from token_iq.gateway.proxy.auth.user_api_key_auth import UserAPIKeyAuth
     from token_iq.gateway.proxy.management_endpoints.key_management_endpoints import (
         _common_key_generation_helper,
@@ -4145,7 +4145,7 @@ async def test_generate_key_foreign_org_without_team_still_enforces_membership()
             ),
             user_api_key_dict=UserAPIKeyAuth(
                 user_id="alice",
-                user_role=LitellmUserRoles.INTERNAL_USER.value,
+                user_role=GatewayUserRoles.INTERNAL_USER.value,
             ),
             litellm_changed_by=None,
             team_table=None,
@@ -4162,7 +4162,7 @@ async def test_generate_key_foreign_org_with_mismatched_team_still_enforces_memb
     organization_id on the key request, the org-membership check must still run."""
     from unittest.mock import AsyncMock, MagicMock, patch
 
-    from token_iq.gateway.proxy._types import GenerateKeyRequest, LitellmUserRoles
+    from token_iq.gateway.proxy._types import GenerateKeyRequest, GatewayUserRoles
     from token_iq.gateway.proxy.auth.user_api_key_auth import UserAPIKeyAuth
     from token_iq.gateway.proxy.management_endpoints.key_management_endpoints import (
         _common_key_generation_helper,
@@ -4228,7 +4228,7 @@ async def test_generate_key_foreign_org_with_mismatched_team_still_enforces_memb
             ),
             user_api_key_dict=UserAPIKeyAuth(
                 user_id="alice",
-                user_role=LitellmUserRoles.INTERNAL_USER.value,
+                user_role=GatewayUserRoles.INTERNAL_USER.value,
             ),
             litellm_changed_by=None,
             team_table=mock_team_table,
@@ -4794,7 +4794,7 @@ def test_transform_verification_tokens_to_deleted_records():
     user_api_key_dict = UserAPIKeyAuth(
         user_id="user-123",
         api_key="sk-test",
-        user_role=LitellmUserRoles.PROXY_ADMIN.value,
+        user_role=GatewayUserRoles.PROXY_ADMIN.value,
     )
 
     config_stamp = datetime(2026, 8, 10, 12, 30, 45, tzinfo=timezone.utc)
@@ -4878,7 +4878,7 @@ def test_transform_verification_tokens_to_deleted_records_empty_list():
     user_api_key_dict = UserAPIKeyAuth(
         user_id="user-123",
         api_key="sk-test",
-        user_role=LitellmUserRoles.PROXY_ADMIN.value,
+        user_role=GatewayUserRoles.PROXY_ADMIN.value,
     )
 
     records = _transform_verification_tokens_to_deleted_records(
@@ -4945,7 +4945,7 @@ async def test_persist_deleted_verification_tokens():
     user_api_key_dict = UserAPIKeyAuth(
         user_id="user-123",
         api_key="sk-test",
-        user_role=LitellmUserRoles.PROXY_ADMIN.value,
+        user_role=GatewayUserRoles.PROXY_ADMIN.value,
     )
 
     key = LiteLLM_VerificationToken(
@@ -4991,7 +4991,7 @@ async def test_delete_verification_tokens_persists_deleted_keys(monkeypatch):
     user_api_key_dict = UserAPIKeyAuth(
         user_id="admin-user",
         api_key="sk-admin",
-        user_role=LitellmUserRoles.PROXY_ADMIN.value,
+        user_role=GatewayUserRoles.PROXY_ADMIN.value,
     )
 
     key1 = LiteLLM_VerificationToken(
@@ -5100,7 +5100,7 @@ async def test_delete_key_fn_persists_deleted_keys(monkeypatch):
     user_api_key_dict = UserAPIKeyAuth(
         user_id="admin-user",
         api_key="sk-admin",
-        user_role=LitellmUserRoles.PROXY_ADMIN.value,
+        user_role=GatewayUserRoles.PROXY_ADMIN.value,
     )
 
     key1 = LiteLLM_VerificationToken(
@@ -5162,7 +5162,7 @@ async def test_can_delete_verification_token_proxy_admin_team_key(monkeypatch):
     )
 
     user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="team-admin-user",
         api_key="sk-user",
     )
@@ -5213,7 +5213,7 @@ async def test_can_delete_verification_token_team_admin_different_team(monkeypat
     )
 
     user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="team-admin-user",
         api_key="sk-user",
     )
@@ -5264,7 +5264,7 @@ async def test_can_delete_verification_token_key_owner_team_key(monkeypatch):
     )
 
     user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="key-owner-user",
         api_key="sk-user",
     )
@@ -5314,7 +5314,7 @@ async def test_can_delete_verification_token_key_owner_personal_key(monkeypatch)
     )
 
     user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="key-owner-user",
         api_key="sk-user",
     )
@@ -5342,7 +5342,7 @@ async def test_can_delete_verification_token_other_user_team_key(monkeypatch):
     )
 
     user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="other-user",
         api_key="sk-user",
     )
@@ -5394,7 +5394,7 @@ async def test_can_delete_verification_token_other_user_personal_key(monkeypatch
     )
 
     user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="other-user",
         api_key="sk-user",
     )
@@ -5422,7 +5422,7 @@ async def test_can_delete_verification_token_team_key_no_team_found(monkeypatch)
     )
 
     user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="key-owner-user",
         api_key="sk-user",
     )
@@ -5458,7 +5458,7 @@ async def test_can_delete_verification_token_personal_key_no_user_id(monkeypatch
     )
 
     user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="some-user",
         api_key="sk-user",
     )
@@ -5486,7 +5486,7 @@ async def test_can_modify_verification_token_proxy_admin_team_key(monkeypatch):
     )
 
     user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
         user_id="admin-user",
         api_key="sk-admin",
     )
@@ -5514,7 +5514,7 @@ async def test_can_modify_verification_token_proxy_admin_personal_key(monkeypatc
     )
 
     user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
         user_id="admin-user",
         api_key="sk-admin",
     )
@@ -5851,12 +5851,12 @@ async def test_list_keys_with_invalid_status():
     mock_prisma_client = AsyncMock()
 
     # Mock the endpoint function directly to test validation
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
     from token_iq.gateway.proxy.management_endpoints.key_management_endpoints import list_keys
     from token_iq.gateway.proxy.utils import ProxyException
 
     mock_request = Mock()
-    mock_user_api_key_dict = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN)
+    mock_user_api_key_dict = UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN)
 
     # Mock prisma_client to be non-None
     with patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client):
@@ -5887,7 +5887,7 @@ async def test_list_keys_non_admin_user_id_auto_set():
     # Create a non-admin user with a user_id
     test_user_id = "test-user-123"
     mock_user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id=test_user_id,
     )
 
@@ -6028,7 +6028,7 @@ async def test_list_keys_team_member_with_key_list_permission_sees_all_team_keys
     member_user_id = "member-user-1"
     team_id = "team-with-permission"
     user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id=member_user_id,
     )
     team_objects = [
@@ -6064,7 +6064,7 @@ async def test_list_keys_team_member_without_key_list_permission_only_service_ac
     member_user_id = "member-user-2"
     team_id = "team-no-permission"
     user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id=member_user_id,
     )
     team_objects = [
@@ -6098,7 +6098,7 @@ async def test_list_keys_team_member_with_permission_in_one_team_only():
     team_with_permission = "team-A"
     team_without_permission = "team-B"
     user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id=member_user_id,
     )
     team_objects = [
@@ -6138,7 +6138,7 @@ async def test_list_keys_team_admin_unaffected_by_member_permission_logic():
     admin_user_id = "team-admin-user"
     team_id = "team-with-admin"
     user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id=admin_user_id,
     )
     team_objects = [
@@ -6432,7 +6432,7 @@ async def test_generate_key_with_router_settings(monkeypatch):
 
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
 
-    from token_iq.gateway.proxy._types import GenerateKeyRequest, LitellmUserRoles
+    from token_iq.gateway.proxy._types import GenerateKeyRequest, GatewayUserRoles
     from token_iq.gateway.proxy.auth.user_api_key_auth import UserAPIKeyAuth
     from token_iq.gateway.proxy.management_endpoints.key_management_endpoints import (
         generate_key_fn,
@@ -6454,7 +6454,7 @@ async def test_generate_key_with_router_settings(monkeypatch):
     await generate_key_fn(
         data=request_data,
         user_api_key_dict=UserAPIKeyAuth(
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
             api_key="sk-1234",
             user_id="user-router-1",
         ),
@@ -6733,7 +6733,7 @@ async def test_process_single_key_update():
                             )
 
                             user_api_key_dict = UserAPIKeyAuth(
-                                user_role=LitellmUserRoles.PROXY_ADMIN,
+                                user_role=GatewayUserRoles.PROXY_ADMIN,
                                 api_key="sk-admin",
                                 user_id="admin-user",
                             )
@@ -6892,7 +6892,7 @@ async def test_bulk_update_keys_success(monkeypatch):
                             )
 
                             user_api_key_dict = UserAPIKeyAuth(
-                                user_role=LitellmUserRoles.PROXY_ADMIN,
+                                user_role=GatewayUserRoles.PROXY_ADMIN,
                                 api_key="sk-admin",
                                 user_id="admin-user",
                             )
@@ -7020,7 +7020,7 @@ async def test_bulk_update_keys_partial_failures(monkeypatch):
                             )
 
                             user_api_key_dict = UserAPIKeyAuth(
-                                user_role=LitellmUserRoles.PROXY_ADMIN,
+                                user_role=GatewayUserRoles.PROXY_ADMIN,
                                 api_key="sk-admin",
                                 user_id="admin-user",
                             )
@@ -7207,7 +7207,7 @@ async def test_reset_key_spend_success(monkeypatch):
         )
 
         user_api_key_dict = UserAPIKeyAuth(
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
             api_key="sk-admin",
             user_id="admin-user",
         )
@@ -7318,7 +7318,7 @@ async def test_reset_key_spend_resets_budget_windows(monkeypatch):
         mock_delete_cache.return_value = None
 
         user_api_key_dict = UserAPIKeyAuth(
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
             api_key="sk-admin",
             user_id="admin-user",
         )
@@ -7427,7 +7427,7 @@ async def test_reset_key_spend_no_budget_limits_skips_window_reset(monkeypatch):
         mock_delete_cache.return_value = None
 
         user_api_key_dict = UserAPIKeyAuth(
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
             api_key="sk-admin",
             user_id="admin-user",
         )
@@ -7528,7 +7528,7 @@ async def test_update_key_spend_updates_counter(monkeypatch):
         mock_delete_cache.return_value = None
 
         user_api_key_dict = UserAPIKeyAuth(
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
             api_key="sk-admin",
             user_id="admin-user",
         )
@@ -7627,7 +7627,7 @@ async def test_reset_key_spend_success_team_admin(monkeypatch):
         mock_delete_cache.return_value = None
 
         user_api_key_dict = UserAPIKeyAuth(
-            user_role=LitellmUserRoles.INTERNAL_USER,
+            user_role=GatewayUserRoles.INTERNAL_USER,
             api_key="sk-team-admin",
             user_id="team-admin-user",
         )
@@ -7660,7 +7660,7 @@ async def test_reset_key_spend_key_not_found(monkeypatch):
         mock_hash_token.return_value = "hashed-key"
 
         user_api_key_dict = UserAPIKeyAuth(
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
             api_key="sk-admin",
             user_id="admin-user",
         )
@@ -7684,7 +7684,7 @@ async def test_reset_key_spend_db_not_connected(monkeypatch):
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", None)
 
     user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
         api_key="sk-admin",
         user_id="admin-user",
     )
@@ -7722,7 +7722,7 @@ async def test_reset_key_spend_validation_error(monkeypatch):
         mock_hash_token.return_value = "hashed-key"
 
         user_api_key_dict = UserAPIKeyAuth(
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
             api_key="sk-admin",
             user_id="admin-user",
         )
@@ -7775,7 +7775,7 @@ async def test_reset_key_spend_authorization_failure(monkeypatch):
         )
 
         user_api_key_dict = UserAPIKeyAuth(
-            user_role=LitellmUserRoles.INTERNAL_USER,
+            user_role=GatewayUserRoles.INTERNAL_USER,
             api_key="sk-user",
             user_id="user-1",
         )
@@ -7841,7 +7841,7 @@ async def test_reset_key_spend_hashed_key(monkeypatch):
         mock_delete_cache.return_value = None
 
         user_api_key_dict = UserAPIKeyAuth(
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
             api_key="sk-admin",
             user_id="admin-user",
         )
@@ -7863,7 +7863,7 @@ async def test_reset_key_spend_hashed_key(monkeypatch):
 async def test_validate_key_list_check_proxy_admin():
     mock_prisma_client = AsyncMock()
     user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
         user_id="admin-user",
     )
 
@@ -7895,7 +7895,7 @@ async def test_validate_key_list_check_team_admin_success():
     )
 
     user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="test-user",
     )
 
@@ -7928,7 +7928,7 @@ async def test_validate_key_list_check_team_admin_fail():
     )
 
     user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="test-user",
     )
 
@@ -7970,7 +7970,7 @@ async def test_validate_key_list_check_key_hash_authorized():
     )
 
     user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="test-user",
     )
 
@@ -8016,7 +8016,7 @@ async def test_validate_key_list_check_key_hash_unauthorized():
     )
 
     user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="test-user",
     )
 
@@ -8058,7 +8058,7 @@ async def test_validate_key_list_check_key_hash_not_found():
     )
 
     user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="test-user",
     )
 
@@ -8095,7 +8095,7 @@ async def test_validate_key_list_check_key_hash_row_missing():
     )
 
     user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="test-user",
         api_key="sk-caller",
     )
@@ -8131,7 +8131,7 @@ async def test_validate_key_list_check_proxy_admin_viewer_skips_db_lookup():
     )
 
     user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY,
+        user_role=GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY,
         user_id="viewer-user",
     )
 
@@ -8165,7 +8165,7 @@ async def test_validate_key_list_check_internal_user_cannot_query_other_user():
     )
 
     user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="test-user",
     )
 
@@ -8225,7 +8225,7 @@ async def test_key_with_budget_id_does_not_store_budget_duration():
                 # NOTE: budget_duration is intentionally NOT set here
             ),
             user_api_key_dict=UserAPIKeyAuth(
-                user_role=LitellmUserRoles.PROXY_ADMIN,
+                user_role=GatewayUserRoles.PROXY_ADMIN,
                 api_key="sk-1234",
                 user_id="admin-user",
             ),
@@ -8289,7 +8289,7 @@ async def test_key_does_not_override_explicit_budget_duration():
                 budget_duration="30d",  # explicit budget_duration should take precedence
             ),
             user_api_key_dict=UserAPIKeyAuth(
-                user_role=LitellmUserRoles.PROXY_ADMIN,
+                user_role=GatewayUserRoles.PROXY_ADMIN,
                 api_key="sk-1234",
                 user_id="admin-user",
             ),
@@ -8328,7 +8328,7 @@ async def test_rotate_master_key_reencrypts_model_params_in_place(
     """
     from unittest.mock import AsyncMock, MagicMock
 
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
     from token_iq.gateway.proxy.management_endpoints.key_management_endpoints import (
         _rotate_master_key,
     )
@@ -8389,7 +8389,7 @@ async def test_rotate_master_key_reencrypts_model_params_in_place(
     ]
 
     user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
         api_key="sk-1234",
         user_id="test-user",
     )
@@ -8475,7 +8475,7 @@ async def test_default_key_generate_params_duration(monkeypatch):
     response = await _common_key_generation_helper(
         data=request,
         user_api_key_dict=UserAPIKeyAuth(
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
             api_key="sk-1234",
             user_id="1234",
         ),
@@ -8536,7 +8536,7 @@ async def test_default_key_generate_params_object_permission_applied_when_absent
     await _common_key_generation_helper(
         data=request,
         user_api_key_dict=UserAPIKeyAuth(
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
             api_key="sk-1234",
             user_id="1234",
         ),
@@ -8601,7 +8601,7 @@ async def test_default_key_generate_params_object_permission_merges_partial(
     await _common_key_generation_helper(
         data=request,
         user_api_key_dict=UserAPIKeyAuth(
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
             api_key="sk-1234",
             user_id="1234",
         ),
@@ -8668,7 +8668,7 @@ async def test_default_key_generate_params_object_permission_does_not_override_e
     await _common_key_generation_helper(
         data=request,
         user_api_key_dict=UserAPIKeyAuth(
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
             api_key="sk-1234",
             user_id="1234",
         ),
@@ -8732,7 +8732,7 @@ async def test_default_key_generate_params_object_permission_not_rejected_for_no
     response = await _common_key_generation_helper(
         data=request,
         user_api_key_dict=UserAPIKeyAuth(
-            user_role=LitellmUserRoles.INTERNAL_USER,
+            user_role=GatewayUserRoles.INTERNAL_USER,
             api_key="sk-alice",
             user_id="alice",
         ),
@@ -9279,7 +9279,7 @@ async def test_get_member_team_ids():
     )
 
     user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         api_key="sk-test",
         user_id=user_id,
     )
@@ -9405,7 +9405,7 @@ async def test_generate_key_helper_fn_agent_id():
 
 def _make_admin_key_dict() -> UserAPIKeyAuth:
     return UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN.value,
+        user_role=GatewayUserRoles.PROXY_ADMIN.value,
         user_id="admin-user",
     )
 
@@ -9542,7 +9542,7 @@ async def test_key_aliases_internal_user_scoped_to_own_keys_and_teams():
     )
 
     internal_user = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER.value,
+        user_role=GatewayUserRoles.INTERNAL_USER.value,
         user_id="user-123",
     )
 
@@ -9971,7 +9971,7 @@ async def test_block_key_rejected_for_internal_user(monkeypatch):
 
     mock_request = MagicMock()
     user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         api_key="sk-internal",
         user_id="internal_user",
     )
@@ -9998,7 +9998,7 @@ async def test_unblock_key_rejected_for_internal_user(monkeypatch):
 
     mock_request = MagicMock()
     user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         api_key="sk-internal",
         user_id="internal_user",
     )
@@ -10025,7 +10025,7 @@ async def test_block_key_allowed_for_proxy_admin(monkeypatch):
 
     mock_request = MagicMock()
     user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
         api_key="sk-admin",
         user_id="admin_user",
     )
@@ -10066,7 +10066,7 @@ async def test_block_key_allowed_for_team_admin(monkeypatch):
 
     mock_request = MagicMock()
     user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         api_key="sk-teamadmin",
         user_id="team_admin_user",
     )
@@ -10128,7 +10128,7 @@ async def test_update_key_max_budget_rejected_for_internal_user(monkeypatch):
     mock_request = MagicMock()
     mock_request.query_params = {}
     user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         api_key="sk-internal",
         user_id="internal_user",
     )
@@ -10224,7 +10224,7 @@ async def test_update_key_non_budget_fields_allowed_for_internal_user(monkeypatc
     mock_request = MagicMock()
     mock_request.query_params = {}
     user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         api_key="sk-internal",
         user_id="internal_user",
     )
@@ -10293,7 +10293,7 @@ async def test_update_key_throttle_on_budget_exceeded_rejected_for_internal_user
     mock_request = MagicMock()
     mock_request.query_params = {}
     user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         api_key="sk-internal",
         user_id="internal_user",
     )
@@ -10380,7 +10380,7 @@ async def test_update_key_throttle_unchanged_allows_non_budget_edit_for_internal
     mock_request = MagicMock()
     mock_request.query_params = {}
     user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         api_key="sk-internal",
         user_id="internal_user",
     )
@@ -10446,7 +10446,7 @@ async def test_update_key_non_budget_rejects_cross_user_modification(monkeypatch
     mock_request = MagicMock()
     mock_request.query_params = {}
     attacker = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         api_key="sk-attacker",
         user_id="attacker_user",  # NOT the owner
     )
@@ -10509,7 +10509,7 @@ async def test_update_key_creator_reassigned_key_blocked(monkeypatch):
     )
 
     demoted_admin = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         api_key="sk-demoted",
         user_id="demoted-admin",
     )
@@ -10623,7 +10623,7 @@ async def test_update_key_team_member_with_permission_can_update_non_budget(
     mock_request = MagicMock()
     mock_request.query_params = {}
     team_member = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         api_key="sk-team-member",
         user_id=member_user_id,
         team_id=team_id,
@@ -10714,7 +10714,7 @@ async def test_update_key_team_member_cannot_change_budget(monkeypatch):
     mock_request = MagicMock()
     mock_request.query_params = {}
     team_member = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         api_key="sk-team-member",
         user_id=member_user_id,
         team_id=team_id,
@@ -10752,7 +10752,7 @@ class TestLIT1884KeyGenerateValidation:
 
         user_api_key_dict = UserAPIKeyAuth(
             user_id="internal-user-123",
-            user_role=LitellmUserRoles.INTERNAL_USER,
+            user_role=GatewayUserRoles.INTERNAL_USER,
         )
 
         # Patch _common_key_generation_helper to avoid needing full DB mocks.
@@ -10791,7 +10791,7 @@ class TestLIT1884KeyGenerateValidation:
 
         user_api_key_dict = UserAPIKeyAuth(
             user_id="internal-user-123",
-            user_role=LitellmUserRoles.INTERNAL_USER,
+            user_role=GatewayUserRoles.INTERNAL_USER,
         )
 
         with (
@@ -10826,7 +10826,7 @@ class TestLIT1884KeyGenerateValidation:
 
         user_api_key_dict = UserAPIKeyAuth(
             user_id="admin-user",
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
         )
 
         mock_prisma_client = AsyncMock()
@@ -10864,7 +10864,7 @@ class TestLIT1884KeyGenerateValidation:
 
         user_api_key_dict = UserAPIKeyAuth(
             user_id="admin-user",
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
         )
 
         mock_prisma_client = AsyncMock()
@@ -10896,7 +10896,7 @@ class TestLIT1884KeyGenerateValidation:
         data = GenerateKeyRequest(team_id="some-team-id")
         user_api_key_dict = UserAPIKeyAuth(
             user_id="internal-user",
-            user_role=LitellmUserRoles.INTERNAL_USER,
+            user_role=GatewayUserRoles.INTERNAL_USER,
         )
 
         with patch.object(gateway, "key_generation_settings", None):
@@ -10917,7 +10917,7 @@ class TestLIT1884KeyGenerateValidation:
         data = GenerateKeyRequest(team_id="some-team-id")
         user_api_key_dict = UserAPIKeyAuth(
             user_id="admin-user",
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
         )
 
         with patch.object(gateway, "key_generation_settings", None):
@@ -10946,7 +10946,7 @@ class TestLIT1884KeyUpdateValidation:
 
         user_api_key_dict = UserAPIKeyAuth(
             user_id="internal-user-123",
-            user_role=LitellmUserRoles.INTERNAL_USER,
+            user_role=GatewayUserRoles.INTERNAL_USER,
         )
 
         with pytest.raises(HTTPException) as exc_info:
@@ -10978,7 +10978,7 @@ class TestLIT1884KeyUpdateValidation:
 
         user_api_key_dict = UserAPIKeyAuth(
             user_id="internal-user-123",
-            user_role=LitellmUserRoles.INTERNAL_USER,
+            user_role=GatewayUserRoles.INTERNAL_USER,
         )
 
         with patch(
@@ -11018,7 +11018,7 @@ class TestLIT1884KeyUpdateValidation:
 
         user_api_key_dict = UserAPIKeyAuth(
             user_id="admin-user",
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
         )
 
         mock_prisma_client = AsyncMock()
@@ -11052,7 +11052,7 @@ class TestLIT4891SafePresetKeyTypeTransition:
     def _make_auth(self):
         return UserAPIKeyAuth(
             user_id="internal-user-123",
-            user_role=LitellmUserRoles.INTERNAL_USER,
+            user_role=GatewayUserRoles.INTERNAL_USER,
         )
 
     async def _run_update(self, data, existing_key_row):
@@ -11178,7 +11178,7 @@ class TestKeyOwnerPrivilegeEscalation:
     def _make_auth(self, user_id="creator-123"):
         return UserAPIKeyAuth(
             user_id=user_id,
-            user_role=LitellmUserRoles.INTERNAL_USER,
+            user_role=GatewayUserRoles.INTERNAL_USER,
         )
 
     @pytest.mark.asyncio
@@ -11357,7 +11357,7 @@ class TestKeyOwnerPrivilegeEscalation:
         existing = self._make_existing_key(created_by="someone-else")
         auth = UserAPIKeyAuth(
             user_id="admin-user",
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
         )
 
         mock_check = AsyncMock()
@@ -11383,7 +11383,7 @@ class TestKeyOwnerPrivilegeEscalation:
         existing.max_budget = 1.0
         auth = UserAPIKeyAuth(
             user_id="admin-user",
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
         )
 
         mock_check = AsyncMock()
@@ -11698,7 +11698,7 @@ def _make_regenerate_mock_prisma():
 
 def _make_regenerate_user_api_key_dict():
     return UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
         api_key="sk-admin",
         user_id="admin-user",
     )
@@ -12002,7 +12002,7 @@ class TestAllowedRoutesCallerPermission:
         )
         user_api_key_dict = UserAPIKeyAuth(
             user_id="internal-user-123",
-            user_role=LitellmUserRoles.INTERNAL_USER,
+            user_role=GatewayUserRoles.INTERNAL_USER,
         )
         mock_prisma_client = AsyncMock()
 
@@ -12034,7 +12034,7 @@ class TestAllowedRoutesCallerPermission:
         )
         user_api_key_dict = UserAPIKeyAuth(
             user_id="admin-user",
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
         )
         mock_prisma_client = AsyncMock()
         stub_response = MagicMock()
@@ -12066,7 +12066,7 @@ class TestAllowedRoutesCallerPermission:
         data = GenerateKeyRequest(key_alias="plain-key")
         user_api_key_dict = UserAPIKeyAuth(
             user_id="internal-user-123",
-            user_role=LitellmUserRoles.INTERNAL_USER,
+            user_role=GatewayUserRoles.INTERNAL_USER,
         )
         mock_prisma_client = AsyncMock()
         stub_response = MagicMock()
@@ -12097,7 +12097,7 @@ class TestAllowedRoutesCallerPermission:
         data = UpdateKeyRequest(key="sk-test", allowed_routes=["/*"])
         user_api_key_dict = UserAPIKeyAuth(
             user_id="internal-user-123",
-            user_role=LitellmUserRoles.INTERNAL_USER,
+            user_role=GatewayUserRoles.INTERNAL_USER,
         )
         mock_prisma_client = AsyncMock()
 
@@ -12138,7 +12138,7 @@ class TestAllowedRoutesCallerPermission:
         assert "allowed_routes" in data.model_fields_set
         user_api_key_dict = UserAPIKeyAuth(
             user_id="internal-user-123",
-            user_role=LitellmUserRoles.INTERNAL_USER,
+            user_role=GatewayUserRoles.INTERNAL_USER,
         )
         mock_prisma_client = AsyncMock()
 
@@ -12177,7 +12177,7 @@ class TestAllowedRoutesCallerPermission:
         assert "allowed_routes" in data.model_fields_set
         user_api_key_dict = UserAPIKeyAuth(
             user_id="internal-user-123",
-            user_role=LitellmUserRoles.INTERNAL_USER,
+            user_role=GatewayUserRoles.INTERNAL_USER,
         )
         mock_prisma_client = AsyncMock()
 
@@ -12217,7 +12217,7 @@ class TestAllowedRoutesCallerPermission:
         assert "allowed_routes" in data.model_fields_set
         user_api_key_dict = UserAPIKeyAuth(
             user_id="internal-user-123",
-            user_role=LitellmUserRoles.INTERNAL_USER,
+            user_role=GatewayUserRoles.INTERNAL_USER,
         )
 
         with patch("token_iq.gateway.proxy.proxy_server.premium_user", True):
@@ -12245,7 +12245,7 @@ class TestAllowedRoutesCallerPermission:
         data = RegenerateKeyRequest(key="sk-test", allowed_routes=["/*"])
         user_api_key_dict = UserAPIKeyAuth(
             user_id="internal-user-123",
-            user_role=LitellmUserRoles.INTERNAL_USER,
+            user_role=GatewayUserRoles.INTERNAL_USER,
         )
 
         with patch("token_iq.gateway.proxy.proxy_server.premium_user", False):
@@ -12270,7 +12270,7 @@ class TestAllowedRoutesCallerPermission:
         assert "allowed_routes" in data.model_fields_set
         user_api_key_dict = UserAPIKeyAuth(
             user_id="internal-user-123",
-            user_role=LitellmUserRoles.INTERNAL_USER,
+            user_role=GatewayUserRoles.INTERNAL_USER,
         )
         mock_prisma_client = AsyncMock()
 
@@ -12307,7 +12307,7 @@ class TestAllowedRoutesCallerPermission:
             allowed_routes=["llm_api_routes"],
             user_api_key_dict=UserAPIKeyAuth(
                 user_id="internal-user-123",
-                user_role=LitellmUserRoles.INTERNAL_USER,
+                user_role=GatewayUserRoles.INTERNAL_USER,
             ),
             allow_safe_presets=True,
         )
@@ -12315,7 +12315,7 @@ class TestAllowedRoutesCallerPermission:
             allowed_routes=["info_routes"],
             user_api_key_dict=UserAPIKeyAuth(
                 user_id="internal-user-123",
-                user_role=LitellmUserRoles.INTERNAL_USER,
+                user_role=GatewayUserRoles.INTERNAL_USER,
             ),
             allow_safe_presets=True,
         )
@@ -12336,7 +12336,7 @@ class TestAllowedRoutesCallerPermission:
                 allowed_routes=["management_routes"],
                 user_api_key_dict=UserAPIKeyAuth(
                     user_id="internal-user-123",
-                    user_role=LitellmUserRoles.INTERNAL_USER,
+                    user_role=GatewayUserRoles.INTERNAL_USER,
                 ),
                 allow_safe_presets=True,
             )
@@ -12360,7 +12360,7 @@ class TestAllowedRoutesCallerPermission:
                 allowed_routes=None,
                 user_api_key_dict=UserAPIKeyAuth(
                     user_id="internal-user-123",
-                    user_role=LitellmUserRoles.INTERNAL_USER,
+                    user_role=GatewayUserRoles.INTERNAL_USER,
                 ),
                 allowed_routes_was_provided=True,
                 allow_safe_presets=True,
@@ -12470,7 +12470,7 @@ async def test_process_single_key_update_cache_invalidation_with_token_hash():
         )
 
         user_api_key_dict = UserAPIKeyAuth(
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
             api_key="sk-admin",
             user_id="admin-user",
         )
@@ -12504,7 +12504,7 @@ async def test_process_single_key_update_non_admin_permissions_rejected():
     assert "permissions" in update_key_request.model_fields_set
 
     non_admin = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         api_key="sk-non-admin",
         user_id="user-1",
     )
@@ -12533,7 +12533,7 @@ async def test_process_single_key_update_non_admin_permissions_explicit_empty_re
     assert "permissions" in update_key_request.model_fields_set
 
     non_admin = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         api_key="sk-non-admin",
         user_id="user-1",
     )
@@ -12599,7 +12599,7 @@ async def test_execute_virtual_key_regeneration_cache_invalidation_with_token_ha
     mock_proxy_logging_obj = MagicMock()
 
     user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
         api_key="sk-admin",
         user_id="admin-user",
     )
@@ -12666,13 +12666,13 @@ def _make_team_key(token: str, team_id: str = "team-abc") -> LiteLLM_Verificatio
 
 def _admin() -> UserAPIKeyAuth:
     return UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN, api_key="sk-admin", user_id="admin"
+        user_role=GatewayUserRoles.PROXY_ADMIN, api_key="sk-admin", user_id="admin"
     )
 
 
 def _internal_user() -> UserAPIKeyAuth:
     return UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-iu", user_id="iu"
+        user_role=GatewayUserRoles.INTERNAL_USER, api_key="sk-iu", user_id="iu"
     )
 
 
@@ -12966,15 +12966,15 @@ def test_handle_key_type_persists_key_type_and_derives_routes():
     the token) while still deriving the `allowed_routes` preset. Regression for
     the UI showing scoped keys as "All Proxy Models": the frontend now reads the
     persisted `key_type` instead of reverse-mapping the preset string."""
-    from token_iq.gateway.proxy._types import GenerateKeyRequest, LiteLLMKeyType
+    from token_iq.gateway.proxy._types import GenerateKeyRequest, GatewayKeyType
     from token_iq.gateway.proxy.management_endpoints.key_management_endpoints import (
         handle_key_type,
     )
 
     cases = {
-        LiteLLMKeyType.MANAGEMENT: ("management", ["management_routes"]),
-        LiteLLMKeyType.READ_ONLY: ("read_only", ["info_routes"]),
-        LiteLLMKeyType.LLM_API: ("llm_api", ["llm_api_routes"]),
+        GatewayKeyType.MANAGEMENT: ("management", ["management_routes"]),
+        GatewayKeyType.READ_ONLY: ("read_only", ["info_routes"]),
+        GatewayKeyType.LLM_API: ("llm_api", ["llm_api_routes"]),
     }
     for key_type, (expected_type, expected_routes) in cases.items():
         data = GenerateKeyRequest(key_type=key_type)
@@ -12986,13 +12986,13 @@ def test_handle_key_type_persists_key_type_and_derives_routes():
 def test_handle_key_type_default_persists_type_without_forcing_routes():
     """`default` is persisted but must not overwrite an explicit `allowed_routes`
     (e.g. a SCIM key created with `["/scim/*"]` and no explicit key_type)."""
-    from token_iq.gateway.proxy._types import GenerateKeyRequest, LiteLLMKeyType
+    from token_iq.gateway.proxy._types import GenerateKeyRequest, GatewayKeyType
     from token_iq.gateway.proxy.management_endpoints.key_management_endpoints import (
         handle_key_type,
     )
 
-    data = GenerateKeyRequest(key_type=LiteLLMKeyType.DEFAULT)
-    out = handle_key_type(data, {"allowed_routes": ["/scim/*"], "key_type": LiteLLMKeyType.DEFAULT})
+    data = GenerateKeyRequest(key_type=GatewayKeyType.DEFAULT)
+    out = handle_key_type(data, {"allowed_routes": ["/scim/*"], "key_type": GatewayKeyType.DEFAULT})
     assert out["key_type"] == "default"
     assert out["allowed_routes"] == ["/scim/*"]
 
@@ -13284,7 +13284,7 @@ import contextlib  # noqa: E402
 
 def _non_admin_user_api_key_dict():
     return UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         api_key="sk-internal",
         user_id="user-1",
     )
@@ -13420,7 +13420,7 @@ async def test_regenerate_premium_gate_allows_actual_master_key_holder():
             key=master,
             data=data,
             user_api_key_dict=UserAPIKeyAuth(
-                user_role=LitellmUserRoles.PROXY_ADMIN,
+                user_role=GatewayUserRoles.PROXY_ADMIN,
                 api_key=master,
                 user_id="admin",
             ),
@@ -13498,7 +13498,7 @@ async def test_regenerate_applies_normalized_mcp_object_permission():
             key="sk-old",
             data=data,
             user_api_key_dict=UserAPIKeyAuth(
-                user_role=LitellmUserRoles.PROXY_ADMIN.value,
+                user_role=GatewayUserRoles.PROXY_ADMIN.value,
                 api_key="sk-admin",
                 user_id="admin",
             ),
@@ -13521,7 +13521,7 @@ async def test_ghsa_q775_non_admin_unlimited_can_delegate_budget():
     """
     data = GenerateKeyRequest(max_budget=999999)
     user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         api_key="sk-internal",
         user_id="user-1",
         max_budget=None,
@@ -13555,7 +13555,7 @@ async def test_ghsa_q775_non_admin_cannot_exceed_own_budget():
     """
     data = GenerateKeyRequest(max_budget=500)
     user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         api_key="sk-internal",
         user_id="user-1",
         max_budget=100,
@@ -13588,7 +13588,7 @@ async def test_ghsa_q775_non_admin_within_budget_allowed():
     """
     data = GenerateKeyRequest(max_budget=50)
     user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         api_key="sk-internal",
         user_id="user-1",
         max_budget=100,
@@ -13624,7 +13624,7 @@ async def test_ghsa_q775_upperbound_default_not_rejected():
     assert data.max_budget is None
 
     user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         api_key="sk-internal",
         user_id="user-1",
         max_budget=None,
@@ -13664,7 +13664,7 @@ async def test_ghsa_q775_default_key_generate_params_not_rejected():
     assert data.max_budget is None
 
     user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         api_key="sk-internal",
         user_id="user-1",
         max_budget=None,
@@ -13701,7 +13701,7 @@ async def test_ghsa_q775_admin_bypasses_budget_ceiling():
     """
     data = GenerateKeyRequest(max_budget=999999)
     user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
         api_key="sk-admin",
         user_id="admin-1",
         max_budget=None,
@@ -13742,7 +13742,7 @@ async def test_ghsa_q775_ui_session_token_team_key_exempt_from_budget_ceiling():
 
     data = GenerateKeyRequest(max_budget=500, team_id="team-abc")
     user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         api_key="sk-ui-session",
         user_id="user-1",
         team_id=UI_SESSION_TOKEN_TEAM_ID,
@@ -13784,7 +13784,7 @@ async def test_ghsa_q775_ui_session_token_personal_key_still_capped():
 
     data = GenerateKeyRequest(max_budget=500)
     user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         api_key="sk-ui-session",
         user_id="user-1",
         team_id=UI_SESSION_TOKEN_TEAM_ID,
@@ -13827,7 +13827,7 @@ async def test_ghsa_q775_default_team_id_does_not_grant_session_token_exemption(
     data = GenerateKeyRequest(max_budget=500)
     assert data.team_id is None
     user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         api_key="sk-ui-session",
         user_id="user-1",
         team_id=UI_SESSION_TOKEN_TEAM_ID,
@@ -13985,7 +13985,7 @@ async def test_info_key_fn_includes_model_max_budget_usage(monkeypatch):
     mock_prisma_client.db.query_raw = AsyncMock()
 
     user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
         api_key="sk-test-budget-key",
     )
 
@@ -14046,7 +14046,7 @@ async def test_info_key_fn_no_model_max_budget_skips_usage(monkeypatch):
     mock_prisma_client.db.query_raw = AsyncMock()
 
     user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
         api_key="sk-test-no-budget",
     )
 
@@ -14103,7 +14103,7 @@ async def test_info_key_fn_v2_includes_model_max_budget_usage(monkeypatch):
     mock_prisma_client.db.query_raw = AsyncMock()
 
     user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
         api_key="sk-admin",
     )
 
@@ -14177,7 +14177,7 @@ async def test_info_key_fn_budget_table_fallback(monkeypatch):
     mock_prisma_client.db.query_raw = AsyncMock()
 
     user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
         api_key="sk-test-bt-key",
     )
 
@@ -14245,7 +14245,7 @@ async def test_info_key_fn_v2_budget_table_fallback(monkeypatch):
     mock_prisma_client.db.query_raw = AsyncMock()
 
     user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
         api_key="sk-admin-v2-bt",
     )
 
@@ -14315,7 +14315,7 @@ async def test_info_key_fn_reports_budget_limits_usage(monkeypatch):
     )
 
     user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
         api_key="sk-test-window-key",
     )
 
@@ -14379,7 +14379,7 @@ async def test_info_key_fn_no_budget_limits_skips_spend_lookup(monkeypatch):
     )
 
     user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
         api_key="sk-test-no-window-key",
     )
 
@@ -14444,7 +14444,7 @@ async def test_info_key_fn_v2_reports_budget_limits_usage(monkeypatch):
     mock_prisma_client.get_data = AsyncMock(return_value=[mock_key])
 
     user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
         api_key="sk-admin-v2-w",
     )
 
@@ -14620,7 +14620,7 @@ async def test_info_key_fn_reads_the_configured_budget_model_key(monkeypatch):
     mock_prisma_client.db.query_raw = AsyncMock()
 
     user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
         api_key="sk-prefix-test",
     )
 
@@ -14842,7 +14842,7 @@ async def test_list_keys_admin_exact_by_default():
     """Security regression: an admin calling /key/list with an exact user_id and
     no substring_matching flag must get exact matching, so an integration scoping
     to one user with an admin key never receives other users' keys."""
-    admin = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin-1")
+    admin = UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin-1")
     kwargs = await _list_keys_capture_helper_kwargs(
         admin, user_id="alice", substring_matching=False
     )
@@ -14853,7 +14853,7 @@ async def test_list_keys_admin_exact_by_default():
 @pytest.mark.asyncio
 async def test_list_keys_admin_substring_opt_in():
     """An admin may opt back into substring matching (dashboard search)."""
-    admin = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin-1")
+    admin = UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin-1")
     kwargs = await _list_keys_capture_helper_kwargs(
         admin, user_id="alice", substring_matching=True
     )
@@ -14864,7 +14864,7 @@ async def test_list_keys_admin_substring_opt_in():
 async def test_list_keys_non_admin_cannot_opt_into_substring():
     """substring_matching is admin-only: a non-admin requesting it still gets
     exact matching, scoped to their own user_id."""
-    user = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, user_id="alice")
+    user = UserAPIKeyAuth(user_role=GatewayUserRoles.INTERNAL_USER, user_id="alice")
     kwargs = await _list_keys_capture_helper_kwargs(
         user, user_id=None, substring_matching=True
     )
@@ -14876,7 +14876,7 @@ async def test_list_keys_non_admin_cannot_opt_into_substring():
 async def test_cli_session_token_delegation_ceiling_blocked_by_team_budget():
     team = LiteLLM_TeamTableCachedObj(team_id="team-1", max_budget=50.0)
     caller = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="user-1",
         team_id="team-1",
         is_session_token=True,
@@ -14896,7 +14896,7 @@ async def test_cli_session_token_delegation_ceiling_blocked_by_team_budget():
 async def test_cli_session_token_delegation_allowed_within_team_budget():
     team = LiteLLM_TeamTableCachedObj(team_id="team-1", max_budget=50.0)
     caller = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="user-1",
         team_id="team-1",
         is_session_token=True,
@@ -14919,7 +14919,7 @@ async def test_cli_session_token_delegation_allowed_within_team_budget():
 async def test_regular_unlimited_user_delegation_ceiling_not_applied():
     team = LiteLLM_TeamTableCachedObj(team_id="team-1", max_budget=50.0)
     caller = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="user-1",
         team_id="team-1",
         is_session_token=False,
@@ -14941,7 +14941,7 @@ async def test_regular_unlimited_user_delegation_ceiling_not_applied():
 @pytest.mark.asyncio
 async def test_cli_session_token_personal_key_with_budget_blocked():
     caller = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="user-1",
         team_id="team-1",
         is_session_token=True,
@@ -14960,7 +14960,7 @@ async def test_cli_session_token_personal_key_with_budget_blocked():
 @pytest.mark.asyncio
 async def test_cli_session_token_personal_key_without_budget_allowed():
     caller = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="user-1",
         team_id="team-1",
         is_session_token=True,
@@ -14989,7 +14989,7 @@ async def test_budget_limits_window_cannot_exceed_caller_max_budget(monkeypatch)
         raising=False,
     )
     caller = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="user-1",
         max_budget=10.0,
     )
@@ -15019,7 +15019,7 @@ async def test_budget_limits_window_within_caller_max_budget_allowed(monkeypatch
         raising=False,
     )
     caller = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="user-1",
         max_budget=100.0,
     )
@@ -15049,7 +15049,7 @@ async def test_budget_limits_admin_unrestricted(monkeypatch):
         raising=False,
     )
     admin = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
         user_id="admin-1",
         max_budget=10.0,
     )
@@ -15082,7 +15082,7 @@ async def test_budget_limits_window_non_finite_rejected_for_non_admin(monkeypatc
         raising=False,
     )
     caller = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="user-1",
         max_budget=10.0,
     )
@@ -15111,7 +15111,7 @@ async def test_budget_limits_window_non_finite_rejected_for_admin(monkeypatch, n
         raising=False,
     )
     admin = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
         user_id="admin-1",
     )
     request = GenerateKeyRequest(
@@ -15138,7 +15138,7 @@ async def test_budget_limits_session_token_personal_key_rejected(monkeypatch):
         raising=False,
     )
     caller = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="user-1",
         is_session_token=True,
     )
@@ -15167,7 +15167,7 @@ async def test_budget_limits_session_token_team_key_uses_team_ceiling(monkeypatc
     )
     team = LiteLLM_TeamTableCachedObj(team_id="team-1", max_budget=50.0)
     caller = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="user-1",
         team_id="team-1",
         is_session_token=True,
@@ -15200,7 +15200,7 @@ async def test_budget_limits_session_token_team_key_over_team_budget_rejected(mo
     )
     team = LiteLLM_TeamTableCachedObj(team_id="team-1", max_budget=50.0)
     caller = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="user-1",
         team_id="team-1",
         is_session_token=True,
@@ -15230,7 +15230,7 @@ async def test_budget_limits_session_token_personal_key_admin_unaffected(monkeyp
         raising=False,
     )
     admin = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
         user_id="admin-1",
         is_session_token=True,
     )
@@ -15261,7 +15261,7 @@ async def test_permissions_field_rejected_for_non_admin(monkeypatch):
         raising=False,
     )
     caller = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="user-1",
         max_budget=100.0,
     )
@@ -15289,7 +15289,7 @@ async def test_permissions_empty_default_allowed_for_non_admin(monkeypatch):
         raising=False,
     )
     caller = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="user-1",
         max_budget=100.0,
     )
@@ -15316,7 +15316,7 @@ async def test_permissions_admin_can_set_any(monkeypatch):
         raising=False,
     )
     admin = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
         user_id="admin-1",
     )
     request = GenerateKeyRequest(permissions={"get_spend_routes": True})
@@ -15346,7 +15346,7 @@ async def test_permissions_explicit_empty_rejected_for_non_admin_on_generate(mon
         raising=False,
     )
     caller = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="user-1",
         max_budget=100.0,
     )
@@ -15377,7 +15377,7 @@ def _make_personal_key_row_for_alice():
 
 def _make_alice_internal_user():
     return UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         api_key="sk-alice",
         user_id="alice",
     )
@@ -15499,7 +15499,7 @@ async def test_update_key_admin_can_set_permissions(monkeypatch):
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
 
     admin = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
         api_key="sk-admin",
         user_id="admin-1",
     )
@@ -15786,7 +15786,7 @@ async def test_list_keys_rejects_invalid_expires():
     from unittest.mock import Mock, patch
 
     mock_prisma_client = AsyncMock()
-    mock_user_api_key_dict = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN)
+    mock_user_api_key_dict = UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN)
 
     with patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client):
         with pytest.raises(ProxyException) as exc_info:
@@ -15811,7 +15811,7 @@ async def test_list_keys_forwards_expires_filter(expires_value, expected_forward
     from unittest.mock import Mock, patch
 
     mock_prisma_client = AsyncMock()
-    mock_user_api_key_dict = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN)
+    mock_user_api_key_dict = UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN)
     mock_user_info = LiteLLM_UserTable(
         user_id="admin-user",
         user_email="admin@example.com",
@@ -15850,7 +15850,7 @@ async def test_list_keys_without_expires_param_forwards_none():
     from unittest.mock import Mock, patch
 
     mock_prisma_client = AsyncMock()
-    mock_user_api_key_dict = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN)
+    mock_user_api_key_dict = UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN)
     mock_user_info = LiteLLM_UserTable(
         user_id="admin-user",
         user_email="admin@example.com",
@@ -15906,7 +15906,7 @@ async def test_rotate_master_key_rotates_sso_identity_assertions(
     assertion (step 4d)."""
     from unittest.mock import AsyncMock, MagicMock
 
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
     from token_iq.gateway.proxy.management_endpoints.key_management_endpoints import (
         _rotate_master_key,
     )
@@ -15933,7 +15933,7 @@ async def test_rotate_master_key_rotates_sso_identity_assertions(
     mock_proxy_config.decrypt_model_list_from_db.return_value = []
 
     user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
         api_key="sk-1234",
         user_id="test-user",
     )
@@ -15965,7 +15965,7 @@ async def test_check_encryption_endpoint_rejects_proxy_admin_viewer():
     )
 
     user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY,
+        user_role=GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY,
         user_id="viewer-user",
     )
     mock_check = AsyncMock(return_value=cm.MigrationReport())
@@ -15989,7 +15989,7 @@ async def test_migrate_encryption_endpoint_rejects_proxy_admin_viewer():
     )
 
     user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY,
+        user_role=GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY,
         user_id="viewer-user",
     )
     mock_migrate = AsyncMock(return_value=cm.MigrationReport())
@@ -16076,7 +16076,7 @@ def test_output_token_estimate_admin_gate_matrix(label, request_body, existing_m
         )
 
     non_admin = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         api_key="sk-non-admin",
         user_id="alice",
     )
@@ -16090,7 +16090,7 @@ def test_output_token_estimate_admin_gate_matrix(label, request_body, existing_m
 
     _call(
         UserAPIKeyAuth(
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
             api_key="sk-admin",
             user_id="admin",
         )
@@ -16107,7 +16107,7 @@ async def test_generate_key_output_token_estimate_rejected_for_non_admin():
             await _common_key_generation_helper(
                 data=GenerateKeyRequest(default_estimated_output_tokens=1, tpm_limit=100000),
                 user_api_key_dict=UserAPIKeyAuth(
-                    user_role=LitellmUserRoles.INTERNAL_USER,
+                    user_role=GatewayUserRoles.INTERNAL_USER,
                     api_key="sk-alice",
                     user_id="alice",
                 ),
@@ -16128,7 +16128,7 @@ async def test_generate_key_output_token_estimate_in_metadata_rejected_for_non_a
             await _common_key_generation_helper(
                 data=GenerateKeyRequest(metadata={"default_estimated_output_tokens": 1}),
                 user_api_key_dict=UserAPIKeyAuth(
-                    user_role=LitellmUserRoles.INTERNAL_USER,
+                    user_role=GatewayUserRoles.INTERNAL_USER,
                     api_key="sk-alice",
                     user_id="alice",
                 ),
@@ -16157,7 +16157,7 @@ async def test_generate_key_output_token_estimate_allowed_for_admin():
         }
         await _common_key_generation_helper(
             data=GenerateKeyRequest(default_estimated_output_tokens=200),
-            user_api_key_dict=UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN, api_key="sk-1"),
+            user_api_key_dict=UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN, api_key="sk-1"),
             litellm_changed_by=None,
             team_table=None,
         )
@@ -16235,7 +16235,7 @@ async def test_update_key_output_token_estimate_lowered_rejected_for_non_admin(m
             request=mock_request,
             data=UpdateKeyRequest(key=token, default_estimated_output_tokens=1),
             user_api_key_dict=UserAPIKeyAuth(
-                user_role=LitellmUserRoles.INTERNAL_USER,
+                user_role=GatewayUserRoles.INTERNAL_USER,
                 api_key="sk-internal",
                 user_id="internal_user",
             ),
@@ -16264,7 +16264,7 @@ async def test_update_key_output_token_estimate_unchanged_allows_non_admin_edit(
         request=mock_request,
         data=UpdateKeyRequest(key=token, key_alias="my-alias", default_estimated_output_tokens=4000),
         user_api_key_dict=UserAPIKeyAuth(
-            user_role=LitellmUserRoles.INTERNAL_USER,
+            user_role=GatewayUserRoles.INTERNAL_USER,
             api_key="sk-internal",
             user_id="internal_user",
         ),
@@ -16302,7 +16302,7 @@ async def test_regenerate_key_output_token_estimate_lowered_rejected_for_non_adm
             key="sk-original",
             data=RegenerateKeyRequest(key="sk-original", default_estimated_output_tokens=1),
             user_api_key_dict=UserAPIKeyAuth(
-                user_role=LitellmUserRoles.INTERNAL_USER,
+                user_role=GatewayUserRoles.INTERNAL_USER,
                 api_key="sk-internal",
                 user_id="internal_user",
             ),
@@ -16349,7 +16349,7 @@ def test_batch_enqueued_token_limit_admin_gate_matrix(label, request_body, exist
         )
 
     non_admin = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         api_key="sk-non-admin",
         user_id="alice",
     )
@@ -16363,7 +16363,7 @@ def test_batch_enqueued_token_limit_admin_gate_matrix(label, request_body, exist
 
     _call(
         UserAPIKeyAuth(
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
             api_key="sk-admin",
             user_id="admin",
         )
@@ -16379,7 +16379,7 @@ async def test_generate_key_batch_enqueued_token_limit_rejected_for_non_admin():
             await _common_key_generation_helper(
                 data=GenerateKeyRequest(metadata={_BATCH_LIMIT: 100000}, rpm_limit=2),
                 user_api_key_dict=UserAPIKeyAuth(
-                    user_role=LitellmUserRoles.INTERNAL_USER,
+                    user_role=GatewayUserRoles.INTERNAL_USER,
                     api_key="sk-alice",
                     user_id="alice",
                 ),
@@ -16409,7 +16409,7 @@ async def test_update_key_batch_enqueued_token_limit_raised_rejected_for_non_adm
             request=mock_request,
             data=UpdateKeyRequest(key=token, metadata={_BATCH_LIMIT: 10**12}),
             user_api_key_dict=UserAPIKeyAuth(
-                user_role=LitellmUserRoles.INTERNAL_USER,
+                user_role=GatewayUserRoles.INTERNAL_USER,
                 api_key="sk-internal",
                 user_id="internal_user",
             ),
@@ -16438,7 +16438,7 @@ async def test_update_key_batch_enqueued_token_limit_unchanged_allows_non_admin_
         request=mock_request,
         data=UpdateKeyRequest(key=token, key_alias="my-alias", metadata={_BATCH_LIMIT: 100000}),
         user_api_key_dict=UserAPIKeyAuth(
-            user_role=LitellmUserRoles.INTERNAL_USER,
+            user_role=GatewayUserRoles.INTERNAL_USER,
             api_key="sk-internal",
             user_id="internal_user",
         ),
@@ -16472,7 +16472,7 @@ async def test_regenerate_key_batch_enqueued_token_limit_rejected_for_non_admin(
             key="sk-original",
             data=RegenerateKeyRequest(key="sk-original", metadata={_BATCH_LIMIT: 10**12}),
             user_api_key_dict=UserAPIKeyAuth(
-                user_role=LitellmUserRoles.INTERNAL_USER,
+                user_role=GatewayUserRoles.INTERNAL_USER,
                 api_key="sk-internal",
                 user_id="internal_user",
             ),
@@ -16500,7 +16500,7 @@ async def test_bulk_key_update_batch_enqueued_token_limit_rejected_for_non_admin
         await _process_single_key_update(
             update_key_request=UpdateKeyRequest(key=token, metadata={_BATCH_LIMIT: 10**12}),
             user_api_key_dict=UserAPIKeyAuth(
-                user_role=LitellmUserRoles.INTERNAL_USER,
+                user_role=GatewayUserRoles.INTERNAL_USER,
                 api_key="sk-internal",
                 user_id="internal_user",
             ),
@@ -16563,7 +16563,7 @@ async def test_block_key_stamps_settings_updated_at(monkeypatch):
         data=BlockKeyRequest(key="sk-test123456789"),
         http_request=MagicMock(),
         user_api_key_dict=UserAPIKeyAuth(
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
             api_key="sk-admin",
             user_id="admin_user",
         ),
@@ -16591,7 +16591,7 @@ async def test_unblock_key_stamps_settings_updated_at(monkeypatch):
         data=BlockKeyRequest(key="sk-test123456789"),
         http_request=MagicMock(),
         user_api_key_dict=UserAPIKeyAuth(
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
             api_key="sk-admin",
             user_id="admin_user",
         ),
@@ -16625,7 +16625,7 @@ async def _generate_key_and_get_persisted_row(data: GenerateKeyRequest, mock_ins
     await _common_key_generation_helper(
         data=data,
         user_api_key_dict=UserAPIKeyAuth(
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
             api_key="sk-1234",
             user_id="1234",
         ),
@@ -16882,7 +16882,7 @@ async def test_update_key_syncs_access_group_assigned_key_ids_in_both_directions
                 key=ACCESS_GROUP_SYNC_TOKEN, access_group_ids=["ag-keep", "ag-add"]
             ),
             user_api_key_dict=UserAPIKeyAuth(
-                user_role=LitellmUserRoles.PROXY_ADMIN,
+                user_role=GatewayUserRoles.PROXY_ADMIN,
                 api_key="sk-admin",
                 user_id="admin-user",
             ),
@@ -16962,7 +16962,7 @@ async def test_update_key_leaves_access_groups_alone_when_field_is_unset(monkeyp
             request=MagicMock(),
             data=UpdateKeyRequest(key=ACCESS_GROUP_SYNC_TOKEN, max_budget=50.0),
             user_api_key_dict=UserAPIKeyAuth(
-                user_role=LitellmUserRoles.PROXY_ADMIN,
+                user_role=GatewayUserRoles.PROXY_ADMIN,
                 api_key="sk-admin",
                 user_id="admin-user",
             ),
@@ -17020,7 +17020,7 @@ async def test_bulk_update_keys_syncs_access_group_assigned_key_ids(monkeypatch)
                 key=ACCESS_GROUP_SYNC_TOKEN, access_group_ids=["ag-add"]
             ),
             user_api_key_dict=UserAPIKeyAuth(
-                user_role=LitellmUserRoles.PROXY_ADMIN,
+                user_role=GatewayUserRoles.PROXY_ADMIN,
                 api_key="sk-admin",
                 user_id="admin-user",
             ),
@@ -17081,7 +17081,7 @@ async def test_delete_key_withdraws_token_from_its_access_groups(monkeypatch):
             tokens=[ACCESS_GROUP_SYNC_TOKEN],
             user_api_key_cache=mock_cache,
             user_api_key_dict=UserAPIKeyAuth(
-                user_role=LitellmUserRoles.PROXY_ADMIN,
+                user_role=GatewayUserRoles.PROXY_ADMIN,
                 api_key="sk-admin",
                 user_id="admin-user",
             ),
@@ -17272,7 +17272,7 @@ async def test_key_write_paths_revoke_the_key_cache_before_syncing_access_groups
             request=MagicMock(),
             data=UpdateKeyRequest(key=ACCESS_GROUP_SYNC_TOKEN, access_group_ids=[]),
             user_api_key_dict=UserAPIKeyAuth(
-                user_role=LitellmUserRoles.PROXY_ADMIN,
+                user_role=GatewayUserRoles.PROXY_ADMIN,
                 api_key="sk-admin",
                 user_id="admin-user",
             ),
@@ -17347,7 +17347,7 @@ async def test_update_key_syncs_many_access_groups_in_one_statement_per_directio
                 key=ACCESS_GROUP_SYNC_TOKEN, access_group_ids=added
             ),
             user_api_key_dict=UserAPIKeyAuth(
-                user_role=LitellmUserRoles.PROXY_ADMIN,
+                user_role=GatewayUserRoles.PROXY_ADMIN,
                 api_key="sk-admin",
                 user_id="admin-user",
             ),
@@ -17528,7 +17528,7 @@ def test_key_generation_check_blank_team_id_uses_personal_permissions(monkeypatc
         key_generation_check(
             team_table=None,
             user_api_key_dict=UserAPIKeyAuth(
-                user_role=LitellmUserRoles.INTERNAL_USER,
+                user_role=GatewayUserRoles.INTERNAL_USER,
                 api_key="sk-alice",
                 user_id="alice",
             ),
@@ -17540,7 +17540,7 @@ def test_key_generation_check_blank_team_id_uses_personal_permissions(monkeypatc
 
 
 _KM: Final = "token_iq.gateway.proxy.management_endpoints.key_management_endpoints"
-_PROXY_ADMIN: Final = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN, api_key="sk-admin", user_id="admin")
+_PROXY_ADMIN: Final = UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN, api_key="sk-admin", user_id="admin")
 
 
 async def _generate_key_with_project(
@@ -17591,7 +17591,7 @@ async def test_generate_key_refuses_a_project_of_another_team():
 @pytest.mark.asyncio
 async def test_generate_key_refuses_a_project_the_caller_cannot_read():
     """A plain member of a team reads none of its projects, so they cannot attach a key to one."""
-    member: Final = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-m", user_id="member")
+    member: Final = UserAPIKeyAuth(user_role=GatewayUserRoles.INTERNAL_USER, api_key="sk-m", user_id="member")
 
     with pytest.raises(ProxyException) as exc:
         await _generate_key_with_project(
@@ -17623,7 +17623,7 @@ async def test_generate_key_refuses_an_unknown_project_the_same_way_as_another_t
 
 @pytest.mark.asyncio
 async def test_generate_key_accepts_a_readable_project_of_the_key_s_own_team():
-    lead: Final = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-l", user_id="lead")
+    lead: Final = UserAPIKeyAuth(user_role=GatewayUserRoles.INTERNAL_USER, api_key="sk-l", user_id="lead")
 
     helper: Final = await _generate_key_with_project(
         GenerateKeyRequest(team_id="t1", project_id="p1"),

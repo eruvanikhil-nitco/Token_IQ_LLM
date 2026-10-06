@@ -12,7 +12,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 from token_iq import gateway
 from token_iq.gateway.proxy._types import UserAPIKeyAuth
-from token_iq.gateway.proxy.proxy_server import LitellmUserRoles
+from token_iq.gateway.proxy.proxy_server import GatewayUserRoles
 from token_iq.gateway.types.proxy.claude_code_endpoints import (
     RegisterPluginRequest,
     UpdatePluginRequest,
@@ -70,13 +70,13 @@ def _make_mock_prisma():
 
 
 _USER = UserAPIKeyAuth(
-    user_role=LitellmUserRoles.PROXY_ADMIN,
+    user_role=GatewayUserRoles.PROXY_ADMIN,
     api_key="sk-1234",
     user_id="test-user",
 )
 
 _NON_ADMIN_USER = UserAPIKeyAuth(
-    user_role=LitellmUserRoles.INTERNAL_USER,
+    user_role=GatewayUserRoles.INTERNAL_USER,
     api_key="sk-5678",
     user_id="regular-user",
 )

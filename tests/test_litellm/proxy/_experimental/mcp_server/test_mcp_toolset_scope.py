@@ -8,7 +8,7 @@ import pytest
 
 from token_iq.gateway.proxy._types import (
     LiteLLM_ObjectPermissionTable,
-    LitellmUserRoles,
+    GatewayUserRoles,
     UserAPIKeyAuth,
 )
 
@@ -71,7 +71,7 @@ class TestApplyToolsetScope:
         ):
             auth = UserAPIKeyAuth(
                 api_key="sk-test",
-                user_role=LitellmUserRoles.PROXY_ADMIN,
+                user_role=GatewayUserRoles.PROXY_ADMIN,
                 object_permission=None,
             )
             result = await _apply_toolset_scope(auth, "toolset-123")
@@ -94,7 +94,7 @@ class TestApplyToolsetScope:
         assert exc_info.value.status_code == 403
 
     @pytest.mark.asyncio
-    @pytest.mark.parametrize("user_role", [None, LitellmUserRoles.PROXY_ADMIN.value])
+    @pytest.mark.parametrize("user_role", [None, GatewayUserRoles.PROXY_ADMIN.value])
     async def test_no_mcp_servers_sentinel_denies_toolset_access(self, user_role):
         """A key scoped to the no-mcp-servers sentinel cannot reach a toolset it
         would otherwise be granted (even as admin); the opt-out covers the
@@ -162,7 +162,7 @@ class TestFetchMCPToolsetsAccess:
 
         auth = UserAPIKeyAuth(
             api_key="sk-test",
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
             object_permission=None,
         )
         fake_toolsets = [MagicMock(), MagicMock()]

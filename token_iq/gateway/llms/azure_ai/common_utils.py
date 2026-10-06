@@ -5,7 +5,7 @@ from token_iq import gateway
 from token_iq.gateway.llms.base_llm.base_utils import BaseLLMModelInfo, BaseTokenCounter
 from token_iq.gateway.secret_managers.main import get_secret_str
 from token_iq.gateway.types.llms.openai import AllMessageValues
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 
 AzureAIApiKeyHeader = Literal["Authorization", "api-key", "Api-Key", "Ocp-Apim-Subscription-Key"]
 
@@ -20,7 +20,7 @@ def get_azure_ai_entra_token(litellm_params: Mapping[str, object] | None = None)
     """
     from token_iq.gateway.llms.azure.common_utils import get_azure_ad_token
 
-    params = GenericLiteLLMParams.model_validate(litellm_params) if litellm_params else GenericLiteLLMParams()
+    params = GenericGatewayParams.model_validate(litellm_params) if litellm_params else GenericGatewayParams()
 
     return get_azure_ad_token(params)
 

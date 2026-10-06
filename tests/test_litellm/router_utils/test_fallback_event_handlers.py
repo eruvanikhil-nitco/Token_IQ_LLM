@@ -862,7 +862,7 @@ class TestTriggerCooldownForFailedDeployment:
 
             mock_set_cooldown.assert_not_called()
 
-    def test_uses_deployment_litellm_params_cooldown_time_override(self):
+    def test_uses_deployment_gateway_params_cooldown_time_override(self):
         mock_router = MagicMock()
         mock_router.cooldown_time = 300.0
         mock_router.get_model_info.return_value = {"litellm_params": {"cooldown_time": 30.0}}
@@ -1126,7 +1126,7 @@ class TestPreRoutingSelectionCarriesToFallbacks:
         assert kwargs["metadata"]["pre_routing_selected_model"] == "tier1"
         assert get_pre_routing_selection(kwargs) == "tier1"
 
-    def test_selection_is_recorded_in_the_litellm_metadata_bucket(self):
+    def test_selection_is_recorded_in_the_gateway_metadata_bucket(self):
         kwargs = {"model": "smart-router", "litellm_metadata": {}}
         record_pre_routing_selection(kwargs, "tier2")
         assert get_pre_routing_selection(kwargs) == "tier2"

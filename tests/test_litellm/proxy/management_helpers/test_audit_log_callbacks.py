@@ -13,7 +13,7 @@ import pytest
 
 from token_iq import gateway
 from token_iq.gateway.integrations.custom_logger import CustomLogger
-from token_iq.gateway.proxy._types import LiteLLM_AuditLogs, LitellmTableNames
+from token_iq.gateway.proxy._types import LiteLLM_AuditLogs, GatewayTableNames
 from token_iq.gateway.proxy.management_helpers.audit_logs import (
     _audit_log_task_done_callback,
     _build_audit_log_payload,
@@ -32,7 +32,7 @@ def reset_audit_log_callbacks(monkeypatch: pytest.MonkeyPatch) -> None:
 
 def _make_audit_log(
     action: str = "created",
-    table_name: LitellmTableNames = LitellmTableNames.TEAM_TABLE_NAME,
+    table_name: GatewayTableNames = GatewayTableNames.TEAM_TABLE_NAME,
 ) -> LiteLLM_AuditLogs:
     return LiteLLM_AuditLogs(
         id="test-audit-id",
@@ -97,7 +97,7 @@ class TestBuildAuditLogPayload:
             changed_by=None,
             changed_by_api_key=None,
             action="deleted",
-            table_name=LitellmTableNames.KEY_TABLE_NAME,
+            table_name=GatewayTableNames.KEY_TABLE_NAME,
             object_id="key-789",
             updated_values=None,
             before_value=None,

@@ -15,7 +15,7 @@ from token_iq.gateway.types.utils import StandardCallbackDynamicParams
 LITELLM_AGENT_PREFIX: Final = "litellm_agent/"
 
 
-class LiteLLMAgentModelResolver(CustomLogger):
+class GatewayAgentModelResolver(CustomLogger):
     """
     CustomLogger that strips litellm_agent/ prefix from model names.
 

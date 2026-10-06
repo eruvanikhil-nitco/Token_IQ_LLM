@@ -174,7 +174,7 @@ class KeyRotationManager:
         # Create a system user for key rotation
         from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
-        system_user: Final = UserAPIKeyAuth.get_litellm_internal_jobs_user_api_key_auth()
+        system_user: Final = UserAPIKeyAuth.get_gateway_internal_jobs_user_api_key_auth()
 
         # Use existing regenerate key function
         response: Final = await regenerate_key_fn(

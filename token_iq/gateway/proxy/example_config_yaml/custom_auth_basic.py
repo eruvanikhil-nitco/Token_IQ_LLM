@@ -1,6 +1,6 @@
 from fastapi import Request
 
-from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
 
 
 async def user_api_key_auth(request: Request, api_key: str) -> UserAPIKeyAuth:
@@ -9,7 +9,7 @@ async def user_api_key_auth(request: Request, api_key: str) -> UserAPIKeyAuth:
             api_key="best-api-key-ever",
             user_id="best-user-id-ever",
             team_id="best-team-id-ever",
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
         )
     except Exception:
         raise Exception

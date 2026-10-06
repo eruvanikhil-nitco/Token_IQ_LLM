@@ -5,7 +5,7 @@ from typing import Final
 from openai import AsyncOpenAI, OpenAI
 
 from token_iq import gateway
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.core_utils.streaming_handler import CustomStreamWrapper
 from token_iq.gateway.llms.base import BaseLLM
 from token_iq.gateway.types.llms.openai import AllMessageValues, OpenAITextCompletionUserMessage
@@ -38,7 +38,7 @@ class OpenAITextCompletion(BaseLLM):
         messages: list[AllMessageValues] | list[OpenAITextCompletionUserMessage],
         timeout: float,
         custom_llm_provider: str,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         optional_params: dict,
         print_verbose: Callable | None = None,
         api_base: str | None = None,
@@ -217,7 +217,7 @@ class OpenAITextCompletion(BaseLLM):
 
     def streaming(
         self,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         api_key: str,
         data: dict,
         headers: dict,
@@ -274,7 +274,7 @@ class OpenAITextCompletion(BaseLLM):
 
     async def async_streaming(
         self,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         api_key: str,
         data: dict,
         headers: dict,

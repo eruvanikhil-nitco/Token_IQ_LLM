@@ -14,7 +14,7 @@ from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 from token_iq.gateway.proxy.proxy_server import app
 from token_iq.gateway.proxy.utils import ProxyLogging
 from token_iq.gateway.router import Router
-from token_iq.gateway.types.utils import LiteLLMBatch
+from token_iq.gateway.types.utils import GatewayBatch
 
 from fastapi.testclient import TestClient
 
@@ -50,8 +50,8 @@ def _setup_proxy(monkeypatch, llm_router: Router):
     )
 
 
-def _make_batch_response() -> LiteLLMBatch:
-    return LiteLLMBatch(
+def _make_batch_response() -> GatewayBatch:
+    return GatewayBatch(
         id="batch_abc123",
         completion_window="24h",
         created_at=1234567890,

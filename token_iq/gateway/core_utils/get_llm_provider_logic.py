@@ -9,7 +9,7 @@ from token_iq.gateway.core_utils.fallback_generalizations import (
 from token_iq.gateway.llms.openai_like.json_loader import JSONProviderRegistry
 from token_iq.gateway.secret_managers.main import get_secret, get_secret_str
 
-from ..types.router import GenericLiteLLMParams, LiteLLM_Params
+from ..types.router import GenericGatewayParams, LiteLLM_Params
 
 
 def _endpoint_matches_api_base(endpoint: str, api_base: str) -> bool:
@@ -144,7 +144,7 @@ def get_llm_provider(
     custom_llm_provider: str | None = None,
     api_base: str | None = None,
     api_key: str | None = None,
-    litellm_params: GenericLiteLLMParams | None = None,
+    litellm_params: GenericGatewayParams | None = None,
 ) -> tuple[str, str, str | None, str | None]:
     """
     Returns the provider for a given model name - e.g. 'azure/chatgpt-v-2' -> 'azure'
@@ -160,10 +160,10 @@ def get_llm_provider(
         if model is None:
             raise ValueError("model parameter is required but was None. Please provide a valid model name.")
 
-        if gateway.LiteLLMProxyChatConfig._should_use_litellm_proxy_by_default(
+        if gateway.GatewayProxyChatConfig._should_use_gateway_proxy_by_default(
             litellm_params=cast(LiteLLM_Params | None, litellm_params)
         ):
-            return gateway.LiteLLMProxyChatConfig.litellm_proxy_get_custom_llm_provider_info(
+            return gateway.GatewayProxyChatConfig.gateway_proxy_get_custom_llm_provider_info(
                 model=model, api_base=api_base, api_key=api_key
             )
 
@@ -549,7 +549,7 @@ def _get_openai_compatible_provider_info(
     api_base: str | None,
     api_key: str | None,
     dynamic_api_key: str | None,
-    litellm_params: GenericLiteLLMParams | None = None,
+    litellm_params: GenericGatewayParams | None = None,
 ) -> tuple[str, str, str | None, str | None]:
     """
     Returns:
@@ -714,7 +714,7 @@ def _get_openai_compatible_provider_info(
         (
             api_base,
             dynamic_api_key,
-        ) = gateway.LiteLLMProxyChatConfig()._get_openai_compatible_provider_info(api_base=api_base, api_key=api_key)
+        ) = gateway.GatewayProxyChatConfig()._get_openai_compatible_provider_info(api_base=api_base, api_key=api_key)
 
     elif custom_llm_provider == "mistral":
         (

@@ -421,7 +421,7 @@ class TestUserAgentFromEnvironment:
         assert headers["User-Agent"].startswith("parampartner_litellm/")
 
 
-class TestLiteLLMCompletionUserAgent:
+class TestGatewayCompletionUserAgent:
     """Test User-Agent is correctly passed through LiteLLM completion calls."""
 
     def test_completion_passes_user_agent_to_headers(self):
@@ -492,7 +492,7 @@ class TestLiteLLMCompletionUserAgent:
             assert optional_params.get("temperature") == 0.7
 
 
-class TestLiteLLMEmbeddingUserAgent:
+class TestGatewayEmbeddingUserAgent:
     """Test User-Agent is correctly passed through LiteLLM embedding calls."""
 
     def test_embedding_passes_user_agent_to_headers(self):

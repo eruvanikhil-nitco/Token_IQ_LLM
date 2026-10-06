@@ -137,7 +137,7 @@ async def test_google_gemini_httpx_request_direct():
     """
     from token_iq.gateway.llms.custom_httpx.llm_http_handler import BaseLLMHTTPHandler
     from token_iq.gateway.llms.gemini.google_genai.transformation import GoogleGenAIConfig
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 
     # Sample request payload
     sample_payload = {
@@ -198,17 +198,17 @@ async def test_google_gemini_httpx_request_direct():
         mock_post.return_value = mock_http_response
 
         # Create the HTTP handler and provider config
-        from token_iq.gateway.types.router import GenericLiteLLMParams
+        from token_iq.gateway.types.router import GenericGatewayParams
 
         http_handler = BaseLLMHTTPHandler()
         provider_config = GoogleGenAIConfig()
 
         # Create proper litellm params
-        litellm_params = GenericLiteLLMParams(
+        litellm_params = GenericGatewayParams(
             api_base="https://generativelanguage.googleapis.com", api_key="test_api_key"
         )
 
-        logging_obj = LiteLLMLoggingObj(
+        logging_obj = GatewayLoggingObj(
             model="gemini/gemini-2.5-flash",
             messages=[],
             stream=False,

@@ -183,7 +183,7 @@ async def test_internal_flags_filtered_from_followup_kwargs():
 
 
 @pytest.mark.asyncio
-async def test_execute_search_passes_selected_search_tool_litellm_params(monkeypatch):
+async def test_execute_search_passes_selected_search_tool_gateway_params(monkeypatch):
     from token_iq import gateway
     from token_iq.gateway.proxy import proxy_server
 
@@ -507,7 +507,7 @@ async def test_async_pre_call_deployment_hook_skips_no_websearch_tools():
 
 
 @pytest.mark.asyncio
-async def test_async_pre_call_deployment_hook_nested_litellm_params_fallback():
+async def test_async_pre_call_deployment_hook_nested_gateway_params_fallback():
     """Test that the hook still works when custom_llm_provider is in nested litellm_params.
 
     This is the Anthropic experimental pass-through path where litellm_params is

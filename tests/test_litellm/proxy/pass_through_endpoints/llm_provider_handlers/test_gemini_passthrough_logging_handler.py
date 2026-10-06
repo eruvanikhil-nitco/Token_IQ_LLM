@@ -6,7 +6,7 @@ import httpx
 import pytest
 
 
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.proxy.pass_through_endpoints.llm_provider_handlers.gemini_passthrough_logging_handler import (
     GeminiPassthroughLoggingHandler,
 )
@@ -73,9 +73,9 @@ class TestGeminiPassthroughLoggingHandler:
         mock_response.headers = {"content-type": "application/json"}
         return mock_response
 
-    def _create_mock_logging_obj(self) -> LiteLLMLoggingObj:
+    def _create_mock_logging_obj(self) -> GatewayLoggingObj:
         """Create a mock logging object for testing"""
-        mock_logging_obj = MagicMock(spec=LiteLLMLoggingObj)
+        mock_logging_obj = MagicMock(spec=GatewayLoggingObj)
         mock_logging_obj.model_call_details = {}
         mock_logging_obj.optional_params = {}
         mock_logging_obj.litellm_call_id = "test-call-id-123"

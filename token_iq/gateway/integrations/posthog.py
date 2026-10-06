@@ -42,14 +42,14 @@ class PostHogBatchPayload(TypedDict):
     batch: ReadOnly[Sequence[PostHogEventPayload]]
 
 
-class PostHogLiteLLMParams(TypedDict, total=False):
+class PostHogGatewayParams(TypedDict, total=False):
     metadata: ReadOnly[Mapping[str, object]]
 
 
 class PostHogLogKwargs(TypedDict, total=False):
     standard_logging_object: ReadOnly[StandardLoggingPayload]
     standard_callback_dynamic_params: ReadOnly[StandardCallbackDynamicParams]
-    litellm_params: ReadOnly[PostHogLiteLLMParams]
+    litellm_params: ReadOnly[PostHogGatewayParams]
 
 
 class PostHogLogger(CustomBatchLogger):
@@ -259,7 +259,7 @@ class PostHogLogger(CustomBatchLogger):
         if not isinstance(metadata, dict):
             return
 
-        litellm_internal_fields: Final = {
+        gateway_internal_fields: Final = {
             "endpoint",
             "caching_groups",
             "user_api_key_hash",
@@ -295,7 +295,7 @@ class PostHogLogger(CustomBatchLogger):
         }
 
         for key, value in metadata.items():
-            if key not in litellm_internal_fields:
+            if key not in gateway_internal_fields:
                 properties[key] = value
 
     def _get_distinct_id(self, standard_logging_object: StandardLoggingPayload, kwargs: PostHogLogKwargs) -> str:
@@ -402,7 +402,7 @@ class PostHogLogger(CustomBatchLogger):
                 raise
 
     def _extract_metadata(self, kwargs: PostHogLogKwargs) -> Mapping[str, object]:
-        litellm_params: Final[PostHogLiteLLMParams] = kwargs.get("litellm_params", {}) or {}
+        litellm_params: Final[PostHogGatewayParams] = kwargs.get("litellm_params", {}) or {}
         metadata: Final[Mapping[str, object]] = litellm_params.get("metadata", {}) or {}
         return metadata
 

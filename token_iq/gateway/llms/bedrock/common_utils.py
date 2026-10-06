@@ -490,7 +490,7 @@ def init_bedrock_client(
     timeout: float | httpx.Timeout | None = None,
 ):
     # check for custom AWS_REGION_NAME and use it if not passed to init_bedrock_client
-    litellm_aws_region_name: Final = get_secret("AWS_REGION_NAME", None)
+    gateway_aws_region_name: Final = get_secret("AWS_REGION_NAME", None)
     standard_aws_region_name: Final = get_secret("AWS_REGION", None)
     ## CHECK IS  'os.environ/' passed in
     # Define the list of parameters to check
@@ -527,7 +527,7 @@ def init_bedrock_client(
     resolved_region_name: Final = next(
         (
             candidate
-            for candidate in (region_name, aws_region_name, litellm_aws_region_name, standard_aws_region_name)
+            for candidate in (region_name, aws_region_name, gateway_aws_region_name, standard_aws_region_name)
             if isinstance(candidate, str) and candidate
         ),
         None,
@@ -1034,7 +1034,7 @@ class BedrockModelInfo(BaseLLMModelInfo):
         return extract_model_name_from_bedrock_arn(model)
 
     @staticmethod
-    def get_non_litellm_routing_model_name(model: str) -> str:
+    def get_non_gateway_routing_model_name(model: str) -> str:
         """Wrapper for standalone function. See strip_bedrock_routing_prefix()."""
         return strip_bedrock_routing_prefix(model)
 
@@ -1107,7 +1107,7 @@ class BedrockModelInfo(BaseLLMModelInfo):
             return "converse"
 
         base_model: Final = BedrockModelInfo.get_base_model(model)
-        alt_model: Final = BedrockModelInfo.get_non_litellm_routing_model_name(model=model)
+        alt_model: Final = BedrockModelInfo.get_non_gateway_routing_model_name(model=model)
         if base_model in gateway.bedrock_converse_models or alt_model in gateway.bedrock_converse_models:
             return "converse"
         return "invoke"
@@ -1504,7 +1504,7 @@ class CommonBatchFilesUtils:
 
         self._base_aws = BaseAWSLLM()
 
-    def get_bedrock_model_id_from_litellm_model(self, model: str) -> str:
+    def get_bedrock_model_id_from_gateway_model(self, model: str) -> str:
         """
         Extract the actual Bedrock model ID from LiteLLM model name.
 
@@ -1549,7 +1549,7 @@ class CommonBatchFilesUtils:
         """
         # Check if model is provided in optional_params first
         if "model" in optional_params and optional_params["model"]:
-            return self.get_bedrock_model_id_from_litellm_model(optional_params["model"])
+            return self.get_bedrock_model_id_from_gateway_model(optional_params["model"])
 
         # Extract model from S3 URI path
         # Expected format: s3://bucket/litellm-bedrock-files-{model}-{uuid}.jsonl

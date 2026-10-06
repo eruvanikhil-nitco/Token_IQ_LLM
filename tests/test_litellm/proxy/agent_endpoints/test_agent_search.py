@@ -10,7 +10,7 @@ from fastapi.testclient import TestClient
 from openai import APIConnectionError
 
 from token_iq import gateway
-from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
 from token_iq.gateway.proxy.agent_endpoints.agent_search import (
     AgentSearchEmbeddingFailed,
     AgentSearchHits,
@@ -273,7 +273,7 @@ class TestSearchAgents:
         assert metadata["user_api_key_user_id"] == "user-1"
 
 
-def _client(role: LitellmUserRoles) -> TestClient:
+def _client(role: GatewayUserRoles) -> TestClient:
     app = FastAPI()
     app.include_router(router)
     app.dependency_overrides[user_api_key_auth] = lambda: UserAPIKeyAuth(user_id="u", user_role=role)
@@ -315,7 +315,7 @@ class TestGetAgentsQuery:
     def test_query_ranks_and_scores_and_truncates(
         self, registry: MagicMock, embedding_router: MagicMock, no_db: None
     ) -> None:
-        response = _client(LitellmUserRoles.PROXY_ADMIN).get(
+        response = _client(GatewayUserRoles.PROXY_ADMIN).get(
             "/v1/agents", params={"query": "language translation", "top_k": 2}, headers={"Authorization": "Bearer k"}
         )
         assert response.status_code == 200
@@ -327,7 +327,7 @@ class TestGetAgentsQuery:
     def test_without_query_the_list_is_unchanged_and_unscored(
         self, registry: MagicMock, embedding_router: MagicMock, no_db: None
     ) -> None:
-        response = _client(LitellmUserRoles.PROXY_ADMIN).get("/v1/agents", headers={"Authorization": "Bearer k"})
+        response = _client(GatewayUserRoles.PROXY_ADMIN).get("/v1/agents", headers={"Authorization": "Bearer k"})
         assert response.status_code == 200
         assert [agent["agent_id"] for agent in response.json()] == ["translator", "sql", "trip"]
         assert all(agent["search_score"] is None for agent in response.json())
@@ -340,7 +340,7 @@ class TestGetAgentsQuery:
             "token_iq.gateway.proxy.agent_endpoints.auth.agent_permission_handler.AgentRequestHandler.resolve_agent_access",
             AsyncMock(return_value=RestrictedAgentAccess(frozenset({"sql"}))),
         )
-        response = _client(LitellmUserRoles.INTERNAL_USER).get(
+        response = _client(GatewayUserRoles.INTERNAL_USER).get(
             "/v1/agents", params={"query": "language translation"}, headers={"Authorization": "Bearer k"}
         )
         assert response.status_code == 200
@@ -350,7 +350,7 @@ class TestGetAgentsQuery:
         self, registry: MagicMock, embedding_router: MagicMock, no_db: None, monkeypatch: pytest.MonkeyPatch
     ) -> None:
         monkeypatch.setattr(gateway, "agent_search_embedding_model", None)
-        response = _client(LitellmUserRoles.PROXY_ADMIN).get(
+        response = _client(GatewayUserRoles.PROXY_ADMIN).get(
             "/v1/agents", params={"query": "anything"}, headers={"Authorization": "Bearer k"}
         )
         assert response.status_code == 400
@@ -360,14 +360,14 @@ class TestGetAgentsQuery:
         self, registry: MagicMock, embedding_router: MagicMock, no_db: None
     ) -> None:
         embedding_router.aembedding = AsyncMock(side_effect=APIConnectionError(request=MagicMock()))
-        response = _client(LitellmUserRoles.PROXY_ADMIN).get(
+        response = _client(GatewayUserRoles.PROXY_ADMIN).get(
             "/v1/agents", params={"query": "anything"}, headers={"Authorization": "Bearer k"}
         )
         assert response.status_code == 503
         assert response.json()["detail"]["error"] == "agent_search_unavailable"
 
     def test_top_k_is_validated(self, registry: MagicMock, embedding_router: MagicMock, no_db: None) -> None:
-        response = _client(LitellmUserRoles.PROXY_ADMIN).get(
+        response = _client(GatewayUserRoles.PROXY_ADMIN).get(
             "/v1/agents", params={"query": "anything", "top_k": 0}, headers={"Authorization": "Bearer k"}
         )
         assert response.status_code == 422

@@ -43,14 +43,14 @@ from token_iq.gateway.types.utils import (
 )
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 
 LITELLM_CODE_EXECUTION_TOOL_NAME: Final = "litellm_code_execution"
 _INTERCEPTION_ACTIVE_KEY: Final = "_code_interpreter_interception_active"
 _SANDBOX_KEY: Final = "_code_interpreter_interception_sandbox_key"
 _SESSION_SCOPED_KEY: Final = "_code_interpreter_interception_session_scoped"
 _CONVERTED_STREAM_KEY: Final = "_code_interpreter_interception_converted_stream"
-_LITELLM_METADATA_KEY: Final = "litellm_metadata"
+_GATEWAY_METADATA_KEY: Final = "litellm_metadata"
 _CACHE_TTL_SECONDS: Final = 15 * 60
 _SESSION_SCOPED_PER_IDENTITY_CAP: Final = 10
 
@@ -305,7 +305,7 @@ class CodeInterpreterInterceptionLogger(CustomLogger):
 
     @staticmethod
     def _strip_interception_metadata(kwargs: dict[str, object]) -> None:
-        metadata: Final = kwargs.get(_LITELLM_METADATA_KEY)
+        metadata: Final = kwargs.get(_GATEWAY_METADATA_KEY)
         if not isinstance(metadata, dict):
             return
         current_metadata: Final[dict[str, object]] = metadata
@@ -318,18 +318,18 @@ class CodeInterpreterInterceptionLogger(CustomLogger):
             and key != _SESSION_SCOPED_KEY
         }
         if filtered_metadata:
-            kwargs[_LITELLM_METADATA_KEY] = filtered_metadata
+            kwargs[_GATEWAY_METADATA_KEY] = filtered_metadata
         else:
-            kwargs.pop(_LITELLM_METADATA_KEY, None)
+            kwargs.pop(_GATEWAY_METADATA_KEY, None)
 
     @staticmethod
     def _write_interception_metadata(kwargs: dict[str, object]) -> None:
-        existing: Final = kwargs.get(_LITELLM_METADATA_KEY)
+        existing: Final = kwargs.get(_GATEWAY_METADATA_KEY)
         metadata: Final[dict[str, object]] = dict(existing) if isinstance(existing, dict) else {}
         for key in (_INTERCEPTION_ACTIVE_KEY, _SANDBOX_KEY, _SESSION_SCOPED_KEY, _CONVERTED_STREAM_KEY):
             if key in kwargs:
                 metadata[key] = kwargs[key]
-        kwargs[_LITELLM_METADATA_KEY] = metadata
+        kwargs[_GATEWAY_METADATA_KEY] = metadata
 
     @staticmethod
     def _get_function_parameters() -> CodeExecutionFunctionParameters:
@@ -431,7 +431,7 @@ class CodeInterpreterInterceptionLogger(CustomLogger):
         response: object,
         anthropic_messages_provider_config: object,
         anthropic_messages_optional_request_params: dict[str, object],
-        logging_obj: "LiteLLMLoggingObj",
+        logging_obj: "GatewayLoggingObj",
         stream: bool,
         kwargs: dict[str, object],
     ) -> AgenticLoopPlan:

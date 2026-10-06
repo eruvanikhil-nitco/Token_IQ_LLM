@@ -15,7 +15,7 @@ from token_iq.gateway.llms.volcengine.responses.transformation import (
 )
 from token_iq.gateway.types.llms.openai import ResponsesAPIOptionalRequestParams
 from token_iq.gateway.types.responses.main import DeleteResponseResult
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.types.utils import LlmProviders
 from token_iq.gateway.utils import ProviderConfigManager
 
@@ -68,7 +68,7 @@ class TestVolcengineResponsesAPITransformation:
                 "metadata": {"k": "v"},
                 "extra_body": {"unsupported_custom_param": 1, "temperature": 0.3},
             },
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 
@@ -99,7 +99,7 @@ class TestVolcengineResponsesAPITransformation:
         url, params = config.transform_cancel_response_api_request(
             response_id="../../responses/other?x=1#frag",
             api_base="https://custom.volc.com/api/v3/responses",
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 
@@ -110,7 +110,7 @@ class TestVolcengineResponsesAPITransformation:
         "litellm_params, expected_key",
         [
             ({"api_key": "dict-key"}, "dict-key"),
-            (GenericLiteLLMParams(api_key="attr-key"), "attr-key"),
+            (GenericGatewayParams(api_key="attr-key"), "attr-key"),
         ],
     )
     def test_validate_environment_uses_api_key(self, monkeypatch, litellm_params, expected_key):
@@ -150,7 +150,7 @@ class TestVolcengineResponsesAPITransformation:
                 "metadata": {"k": "v"},
                 "extra_body": {"unsupported_custom_param": 1, "temperature": 0.3},
             },
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 
@@ -174,7 +174,7 @@ class TestVolcengineResponsesAPITransformation:
                 "expire_at": 1234567890,
                 "temperature": 0.5,
             },
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 
@@ -321,7 +321,7 @@ class TestVolcengineResponsesAPITransformation:
         url, data = config.transform_delete_response_api_request(
             response_id="resp_123",
             api_base="https://custom.volc.com/api/v3/responses",
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 
@@ -334,7 +334,7 @@ class TestVolcengineResponsesAPITransformation:
         url, data = config.transform_get_response_api_request(
             response_id="resp 123",
             api_base="https://custom.volc.com/api/v3/responses",
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
         )
 
@@ -394,7 +394,7 @@ class TestVolcengineResponsesAPITransformation:
         url, params = config.transform_list_input_items_request(
             response_id="resp_123",
             api_base="https://custom.volc.com/api/v3/responses",
-            litellm_params=GenericLiteLLMParams(),
+            litellm_params=GenericGatewayParams(),
             headers={},
             after="item_a",
             before="item_b",

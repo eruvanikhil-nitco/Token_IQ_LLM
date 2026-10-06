@@ -39,7 +39,7 @@ from token_iq.gateway.proxy.proxy_server import (
     _resolve_typed_dict_type,
     cleanup_router_config_variables,
     cost_tracking,
-    get_litellm_model_info,
+    get_gateway_model_info,
     initialize,
     load_from_azure_key_vault,
     proxy_shutdown_event,
@@ -643,7 +643,7 @@ def test_resolve_pydantic_type_invalid_non_union_non_model_returns_empty():
 # ---------------------------------------------------------------------------
 
 
-def test_get_litellm_model_info_uses_base_model_for_lookup(monkeypatch):
+def test_get_gateway_model_info_uses_base_model_for_lookup(monkeypatch):
     from token_iq import gateway
 
     expected_info = {"max_tokens": 8192, "input_cost_per_token": 0.00003}
@@ -654,7 +654,7 @@ def test_get_litellm_model_info_uses_base_model_for_lookup(monkeypatch):
         "model_info": {"base_model": "gpt-4"},
         "litellm_params": {"model": "azure/my-deployment"},
     }
-    result = get_litellm_model_info(model=model)
+    result = get_gateway_model_info(model=model)
 
     observed = {
         "called_arg": (
@@ -670,10 +670,10 @@ def test_get_litellm_model_info_uses_base_model_for_lookup(monkeypatch):
     }
 
 
-def test_get_litellm_model_info_invalid_empty_dict_returns_empty():
+def test_get_gateway_model_info_invalid_empty_dict_returns_empty():
     """Empty input means model_to_lookup is None — internal exception is caught
     and the function returns {}."""
-    result = get_litellm_model_info(model={})
+    result = get_gateway_model_info(model={})
     assert result == {}
 
 

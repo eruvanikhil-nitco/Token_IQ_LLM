@@ -73,7 +73,7 @@ def _extract_grpc_details(error: Any) -> str | None:
     return None
 
 
-def grpc_error_to_litellm_exception(error: Exception) -> NvidiaRivaException:
+def grpc_error_to_gateway_exception(error: Exception) -> NvidiaRivaException:
     """
     Convert a gRPC error (or any exception raised from the Riva client) into
     a ``NvidiaRivaException`` with an appropriate HTTP-equivalent status code.

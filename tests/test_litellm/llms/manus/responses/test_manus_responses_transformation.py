@@ -11,7 +11,7 @@ Source: token_iq/gateway/llms/manus/responses/transformation.py
 
 from token_iq.gateway.llms.manus.responses.transformation import ManusResponsesAPIConfig
 from token_iq.gateway.types.llms.openai import ResponsesAPIOptionalRequestParams
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 
 
 def test_extract_agent_profile():
@@ -40,7 +40,7 @@ def test_transform_responses_api_request_adds_manus_params():
     ]
 
     optional_params = ResponsesAPIOptionalRequestParams()
-    litellm_params = GenericLiteLLMParams()
+    litellm_params = GenericGatewayParams()
     headers = {}
 
     result = config.transform_responses_api_request(
@@ -64,7 +64,7 @@ def test_get_response_request_encodes_response_id():
     url, params = config.transform_get_response_api_request(
         response_id="../../files?x=1#frag",
         api_base="https://api.manus.im/v1/responses",
-        litellm_params=GenericLiteLLMParams(),
+        litellm_params=GenericGatewayParams(),
         headers={},
     )
 

@@ -18,10 +18,10 @@ from token_iq.gateway.llms.base_llm.text_to_speech.transformation import (
 from token_iq.gateway.secret_managers.main import get_secret_str
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
     from token_iq.gateway.types.llms.openai import HttpxBinaryResponseContent
 else:
-    LiteLLMLoggingObj = Any
+    GatewayLoggingObj = Any
     HttpxBinaryResponseContent = Any
 
 
@@ -64,8 +64,8 @@ class AzureAVATextToSpeechConfig(BaseTextToSpeechConfig):
         input: str,
         voice: str | dict | None,
         optional_params: dict,
-        litellm_params_dict: dict,
-        logging_obj: "LiteLLMLoggingObj",
+        gateway_params_dict: dict,
+        logging_obj: "GatewayLoggingObj",
         timeout: float | httpx.Timeout,
         extra_headers: dict[str, Any] | None,
         base_llm_http_handler: Any,
@@ -87,13 +87,13 @@ class AzureAVATextToSpeechConfig(BaseTextToSpeechConfig):
         """
         # Resolve api_base from multiple sources
         api_base = (
-            api_base or litellm_params_dict.get("api_base") or gateway.api_base or get_secret_str("AZURE_API_BASE")
+            api_base or gateway_params_dict.get("api_base") or gateway.api_base or get_secret_str("AZURE_API_BASE")
         )
 
         # Resolve api_key from multiple sources (Azure-specific)
         api_key = (
             api_key
-            or litellm_params_dict.get("api_key")
+            or gateway_params_dict.get("api_key")
             or gateway.api_key
             or gateway.azure_key
             or get_secret_str("AZURE_OPENAI_API_KEY")
@@ -108,7 +108,7 @@ class AzureAVATextToSpeechConfig(BaseTextToSpeechConfig):
             # Extract voice name from dict if needed
             voice_str = voice.get("name") if voice else None
 
-        litellm_params_dict.update(
+        gateway_params_dict.update(
             {
                 "api_key": api_key,
                 "api_base": api_base,
@@ -122,7 +122,7 @@ class AzureAVATextToSpeechConfig(BaseTextToSpeechConfig):
             text_to_speech_provider_config=self,
             text_to_speech_optional_params=optional_params,
             custom_llm_provider="azure",
-            litellm_params=litellm_params_dict,
+            litellm_params=gateway_params_dict,
             logging_obj=logging_obj,
             timeout=timeout,
             extra_headers=extra_headers,
@@ -480,7 +480,7 @@ class AzureAVATextToSpeechConfig(BaseTextToSpeechConfig):
         self,
         model: str,
         raw_response: httpx.Response,
-        logging_obj: "LiteLLMLoggingObj",
+        logging_obj: "GatewayLoggingObj",
     ) -> "HttpxBinaryResponseContent":
         """
         Transform Azure AVA TTS response to standard format

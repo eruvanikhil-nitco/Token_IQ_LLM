@@ -5,8 +5,8 @@ import time
 import pytest
 from fastapi import HTTPException
 
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLogging
-from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLogging
+from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
 from token_iq.gateway.proxy.logging_endpoints.callback_logs_endpoints import (
     CallbackLogsReplayer,
     ingest_callback_logs,
@@ -82,7 +82,7 @@ async def test_success_record_invokes_success_handler(monkeypatch):
         )
         captured["result"] = result
 
-    monkeypatch.setattr(LiteLLMLogging, "async_success_handler", fake_success)
+    monkeypatch.setattr(GatewayLogging, "async_success_handler", fake_success)
 
     body = CallbackLogsRequest(
         records=[
@@ -92,7 +92,7 @@ async def test_success_record_invokes_success_handler(monkeypatch):
         ]
     )
     resp = await ingest_callback_logs(
-        body, user_api_key_dict=UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN)
+        body, user_api_key_dict=UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN)
     )
     assert resp.processed == 1 and resp.failed == 0
     assert captured["standard_logging_object"]["id"] == REQ_ID
@@ -108,7 +108,7 @@ async def test_failure_record_invokes_failure_handler(monkeypatch):
     ):
         captured["exception"] = str(exception)
 
-    monkeypatch.setattr(LiteLLMLogging, "async_failure_handler", fake_failure)
+    monkeypatch.setattr(GatewayLogging, "async_failure_handler", fake_failure)
 
     body = CallbackLogsRequest(
         records=[
@@ -120,7 +120,7 @@ async def test_failure_record_invokes_failure_handler(monkeypatch):
         ]
     )
     resp = await ingest_callback_logs(
-        body, user_api_key_dict=UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN)
+        body, user_api_key_dict=UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN)
     )
     assert resp.processed == 1 and resp.failed == 0
     assert captured["exception"] == "upstream exploded"
@@ -131,7 +131,7 @@ async def test_non_admin_is_rejected(monkeypatch):
     async def fake_success(self, **kwargs):
         return None
 
-    monkeypatch.setattr(LiteLLMLogging, "async_success_handler", fake_success)
+    monkeypatch.setattr(GatewayLogging, "async_success_handler", fake_success)
 
     body = CallbackLogsRequest(
         records=[
@@ -143,7 +143,7 @@ async def test_non_admin_is_rejected(monkeypatch):
     with pytest.raises(HTTPException) as exc_info:
         await ingest_callback_logs(
             body,
-            user_api_key_dict=UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER),
+            user_api_key_dict=UserAPIKeyAuth(user_role=GatewayUserRoles.INTERNAL_USER),
         )
     assert exc_info.value.status_code == 403
 
@@ -159,7 +159,7 @@ async def test_one_bad_record_does_not_sink_the_batch(monkeypatch):
         if calls["n"] == 1:
             raise ValueError("boom on first record")
 
-    monkeypatch.setattr(LiteLLMLogging, "async_success_handler", flaky_success)
+    monkeypatch.setattr(GatewayLogging, "async_success_handler", flaky_success)
 
     body = CallbackLogsRequest(
         records=[
@@ -172,7 +172,7 @@ async def test_one_bad_record_does_not_sink_the_batch(monkeypatch):
         ]
     )
     resp = await ingest_callback_logs(
-        body, user_api_key_dict=UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN)
+        body, user_api_key_dict=UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN)
     )
     assert resp.processed == 1 and resp.failed == 1
     # The failed record is reported back by index + error, not silently dropped.

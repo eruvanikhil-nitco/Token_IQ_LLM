@@ -31,7 +31,7 @@ from token_iq.gateway.proxy._experimental.mcp_server.tool_search import (
     search_mcp_tools,
     search_tools,
 )
-from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
 from token_iq.gateway.proxy.common_utils.semantic_text_index import EmbeddingFailed, SemanticTextIndex, Vector
 from token_iq.gateway.types.mcp import MCPToolSearchSettings
 
@@ -450,7 +450,7 @@ class TestListToolRestApiWithToolSearch:
 
         user_api_key_dict = UserAPIKeyAuth(
             api_key="admin_key",
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
             object_permission=_make_perm(
                 mcp_tool_search_enabled=True,
                 mcp_servers=["github"],

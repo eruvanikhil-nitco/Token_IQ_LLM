@@ -10,7 +10,7 @@ from typing_extensions import TypedDict
 from token_iq.gateway.types.llms.openai import ResponsesAPIResponse
 
 if TYPE_CHECKING:
-    from token_iq.gateway import CustomStreamWrapper, LiteLLMLoggingObj, ModelResponse
+    from token_iq.gateway import CustomStreamWrapper, GatewayLoggingObj, ModelResponse
 
 
 class ResponsesToCompletionBridgeHandlerInputKwargs(TypedDict):
@@ -20,7 +20,7 @@ class ResponsesToCompletionBridgeHandlerInputKwargs(TypedDict):
     litellm_params: dict
     headers: dict
     model_response: "ModelResponse"
-    logging_obj: "LiteLLMLoggingObj"
+    logging_obj: "GatewayLoggingObj"
     custom_llm_provider: str
     encoding: object
 
@@ -32,10 +32,10 @@ def _restore_routing_prefix(model: str, custom_llm_provider: str) -> str:
 
 class ResponsesToCompletionBridgeHandler:
     def __init__(self):
-        from .transformation import LiteLLMResponsesTransformationHandler
+        from .transformation import GatewayResponsesTransformationHandler
 
         super().__init__()
-        self.transformation_handler = LiteLLMResponsesTransformationHandler()
+        self.transformation_handler = GatewayResponsesTransformationHandler()
 
     @staticmethod
     def _resolve_stream_flag(optional_params: dict, litellm_params: dict) -> bool:
@@ -105,7 +105,7 @@ class ResponsesToCompletionBridgeHandler:
         return response
 
     def validate_input_kwargs(self, kwargs: dict) -> ResponsesToCompletionBridgeHandlerInputKwargs:
-        from token_iq.gateway import LiteLLMLoggingObj
+        from token_iq.gateway import GatewayLoggingObj
         from token_iq.gateway.types.utils import ModelResponse
 
         typed_kwargs: Final[dict[str, object]] = kwargs
@@ -139,7 +139,7 @@ class ResponsesToCompletionBridgeHandler:
             raise ValueError("model_response is required")
 
         logging_obj: Final = typed_kwargs.get("logging_obj")
-        if logging_obj is None or not isinstance(logging_obj, LiteLLMLoggingObj):
+        if logging_obj is None or not isinstance(logging_obj, GatewayLoggingObj):
             raise ValueError("logging_obj is required")
 
         return ResponsesToCompletionBridgeHandlerInputKwargs(
@@ -357,7 +357,7 @@ class ResponsesToCompletionBridgeHandler:
         response: "ModelResponse",
         model: str,
         custom_llm_provider: str,
-        logging_obj: "LiteLLMLoggingObj",
+        logging_obj: "GatewayLoggingObj",
         json_mode: bool | None,
     ) -> "CustomStreamWrapper":
         from token_iq.gateway.core_utils.streaming_handler import CustomStreamWrapper

@@ -18,15 +18,15 @@ from token_iq.gateway.types.llms.openai import (
     ResponseInputParam,
     ResponsesAPIResponse,
 )
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.types.utils import LlmProviders
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as _LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as _GatewayLoggingObj
 
-    LiteLLMLoggingObj = _LiteLLMLoggingObj
+    GatewayLoggingObj = _GatewayLoggingObj
 else:
-    LiteLLMLoggingObj = Any
+    GatewayLoggingObj = Any
 
 MANUS_API_BASE: Final = "https://api.manus.im"
 
@@ -75,13 +75,13 @@ class ManusResponsesAPIConfig(OpenAIResponsesAPIConfig):
         # If no slash, assume the model name itself is the agent profile
         return model
 
-    def validate_environment(self, headers: dict, model: str, litellm_params: GenericLiteLLMParams | None) -> dict:
+    def validate_environment(self, headers: dict, model: str, litellm_params: GenericGatewayParams | None) -> dict:
         """
         Validate environment and set up headers for Manus API.
 
         Manus uses `API_KEY` header instead of `Authorization: Bearer`.
         """
-        litellm_params = litellm_params or GenericLiteLLMParams()
+        litellm_params = litellm_params or GenericGatewayParams()
         api_key: Final = litellm_params.api_key or gateway.api_key or get_secret_str("MANUS_API_KEY")
 
         if not api_key:
@@ -125,7 +125,7 @@ class ManusResponsesAPIConfig(OpenAIResponsesAPIConfig):
         model: str,
         input: str | ResponseInputParam,
         response_api_optional_request_params: dict,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> dict:
         """
@@ -165,7 +165,7 @@ class ManusResponsesAPIConfig(OpenAIResponsesAPIConfig):
         self,
         model: str,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> ResponsesAPIResponse:
         """
         Transform Manus API response to OpenAI-compatible format.
@@ -237,7 +237,7 @@ class ManusResponsesAPIConfig(OpenAIResponsesAPIConfig):
         self,
         response_id: str,
         api_base: str,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> tuple[str, dict]:
         """
@@ -256,7 +256,7 @@ class ManusResponsesAPIConfig(OpenAIResponsesAPIConfig):
     def transform_get_response_api_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> ResponsesAPIResponse:
         """
         Transform Manus API GET response to OpenAI-compatible format.

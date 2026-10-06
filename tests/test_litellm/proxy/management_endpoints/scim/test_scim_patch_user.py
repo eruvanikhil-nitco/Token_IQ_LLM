@@ -68,7 +68,7 @@ async def test_patch_user_updates_fields():
     with (
         patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_client),
         patch(
-            "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_litellm_user_to_scim_user",
+            "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_gateway_user_to_scim_user",
             AsyncMock(return_value=mock_scim_user),
         ),
     ):
@@ -148,7 +148,7 @@ async def test_patch_user_manages_group_memberships():
             AsyncMock(side_effect=mock_delete),
         ) as mock_del_fn,
         patch(
-            "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_litellm_user_to_scim_user",
+            "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_gateway_user_to_scim_user",
             AsyncMock(return_value=mock_scim_user),
         ),
     ):
@@ -221,7 +221,7 @@ async def test_patch_user_deprovision_without_path():
     with (
         patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_client),
         patch(
-            "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_litellm_user_to_scim_user",
+            "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_gateway_user_to_scim_user",
             AsyncMock(return_value=mock_scim_user),
         ),
     ):
@@ -307,7 +307,7 @@ async def test_patch_user_multiple_fields_without_path():
     with (
         patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_client),
         patch(
-            "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_litellm_user_to_scim_user",
+            "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.ScimTransformations.transform_gateway_user_to_scim_user",
             AsyncMock(return_value=mock_scim_user),
         ),
     ):

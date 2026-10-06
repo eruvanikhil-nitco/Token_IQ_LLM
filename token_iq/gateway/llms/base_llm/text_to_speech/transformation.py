@@ -5,18 +5,18 @@ from typing import TYPE_CHECKING, Any, TypedDict
 import httpx
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as _LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as _GatewayLoggingObj
     from token_iq.gateway.types.llms.openai import (
         HttpxBinaryResponseContent as _HttpxBinaryResponseContent,
     )
 
     from ..chat.transformation import BaseLLMException as _BaseLLMException
 
-    LiteLLMLoggingObj = _LiteLLMLoggingObj
+    GatewayLoggingObj = _GatewayLoggingObj
     BaseLLMException = _BaseLLMException
     HttpxBinaryResponseContent = _HttpxBinaryResponseContent
 else:
-    LiteLLMLoggingObj = Any
+    GatewayLoggingObj = Any
     BaseLLMException = Any
     HttpxBinaryResponseContent = Any
 
@@ -127,7 +127,7 @@ class BaseTextToSpeechConfig(ABC):
         self,
         model: str,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> "HttpxBinaryResponseContent":
         """
         Transform provider response to standard format

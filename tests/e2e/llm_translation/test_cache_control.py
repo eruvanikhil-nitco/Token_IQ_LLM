@@ -29,7 +29,7 @@ from e2e_config import unique_marker
 from e2e_http import Result, unwrap
 from endpoints_client import CacheControl, RichMessage, TextBlock
 from lifecycle import ResourceManager
-from models import ChatResponse, LiteLLMParamsBody, Usage
+from models import ChatResponse, GatewayParamsBody, Usage
 from passthrough_client import PassthroughClient
 import os
 
@@ -122,7 +122,7 @@ class TestCacheControl:
         model = f"e2e-bedrock-cache-{unique_marker()}"
         model_id = client.proxy.create_model(
             model,
-            LiteLLMParamsBody(model=BEDROCK_MODEL, aws_region_name="us-east-1"),
+            GatewayParamsBody(model=BEDROCK_MODEL, aws_region_name="us-east-1"),
         )
         resources.defer(lambda: client.proxy.delete_model(model_id))
         _assert_cache_read_on_second_call(client, resources.key(), model)
@@ -137,7 +137,7 @@ class TestCacheControl:
         model = f"e2e-vertex-cache-{unique_marker()}"
         model_id = client.proxy.create_model(
             model,
-            LiteLLMParamsBody(
+            GatewayParamsBody(
                 model=VERTEX_MODEL,
                 vertex_project=os.environ.get("VERTEXAI_PROJECT"),
                 vertex_location="us-central1",

@@ -16,7 +16,7 @@ from token_iq.gateway.llms.azure.common_utils import (
 from token_iq.gateway.secret_managers.get_azure_ad_token_provider import (
     get_azure_ad_token_provider,
 )
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.types.secret_managers.get_azure_ad_token_provider import (
     AzureCredentialType,
 )
@@ -48,15 +48,15 @@ def setup_mocks(monkeypatch):
         patch(
             "token_iq.gateway.llms.azure.common_utils.get_azure_ad_token_provider"
         ) as mock_token_provider,
-        patch("token_iq.gateway.llms.azure.common_utils.gateway") as mock_litellm,
+        patch("token_iq.gateway.llms.azure.common_utils.gateway") as mock_gateway,
         patch("token_iq.gateway.llms.azure.common_utils.verbose_logger") as mock_logger,
         patch(
             "token_iq.gateway.llms.azure.common_utils.select_azure_base_url_or_endpoint"
         ) as mock_select_url,
     ):
         # Configure mocks
-        mock_litellm.AZURE_DEFAULT_API_VERSION = "2023-05-15"
-        mock_litellm.enable_azure_ad_token_refresh = False
+        mock_gateway.AZURE_DEFAULT_API_VERSION = "2023-05-15"
+        mock_gateway.enable_azure_ad_token_refresh = False
 
         mock_entra_token.return_value = lambda: "mock-entra-token"
         mock_username_password_token.return_value = (
@@ -74,7 +74,7 @@ def setup_mocks(monkeypatch):
             "username_password_token": mock_username_password_token,
             "oidc_token": mock_oidc_token,
             "token_provider": mock_token_provider,
-            "litellm": mock_litellm,
+            "litellm": mock_gateway,
             "logger": mock_logger,
             "select_url": mock_select_url,
         }
@@ -1057,7 +1057,7 @@ def test_scope_always_string_in_initialize_azure_sdk_client(setup_mocks, monkeyp
 def test_with_existing_token_provider(setup_mocks):
     """Test get_azure_ad_token with an existing token provider."""
     token_provider = lambda: "test-token"
-    litellm_params = GenericLiteLLMParams(azure_ad_token_provider=token_provider)
+    litellm_params = GenericGatewayParams(azure_ad_token_provider=token_provider)
 
     token = get_azure_ad_token(litellm_params)
 
@@ -1066,7 +1066,7 @@ def test_with_existing_token_provider(setup_mocks):
 
 def test_with_existing_azure_ad_token(setup_mocks):
     """Test get_azure_ad_token with an existing azure ad token."""
-    litellm_params = GenericLiteLLMParams(azure_ad_token="test-token")
+    litellm_params = GenericGatewayParams(azure_ad_token="test-token")
 
     token = get_azure_ad_token(litellm_params)
 
@@ -1083,7 +1083,7 @@ def test_with_existing_azure_ad_token_from_env(setup_mocks):
             "test-token" if key == "AZURE_AD_TOKEN" else None
         )
 
-        litellm_params = GenericLiteLLMParams()
+        litellm_params = GenericGatewayParams()
 
         token = get_azure_ad_token(litellm_params)
 
@@ -1099,7 +1099,7 @@ def test_get_azure_ad_token_with_client_id_and_client_secret(setup_mocks):
 
     # Create test parameters with username, password, and client_id
     # but no other authentication methods
-    litellm_params = GenericLiteLLMParams(
+    litellm_params = GenericGatewayParams(
         tenant_id="test-tenant-id",
         client_id="test-client-id",
         client_secret="test-client-secret",
@@ -1141,7 +1141,7 @@ def test_get_azure_ad_token_with_client_id_and_client_secret_from_env(
 
     # Create test parameters with username, password, and client_id
     # but no other authentication methods
-    litellm_params = GenericLiteLLMParams()
+    litellm_params = GenericGatewayParams()
 
     # Call the function
     token = get_azure_ad_token(litellm_params)
@@ -1170,7 +1170,7 @@ def test_get_azure_ad_token_with_username_password(setup_mocks):
 
     # Create test parameters with username, password, and client_id
     # but no other authentication methods
-    litellm_params = GenericLiteLLMParams(
+    litellm_params = GenericGatewayParams(
         azure_username="test-username",
         azure_password="test-password",
         client_id="test-client-id",
@@ -1210,19 +1210,19 @@ def test_get_azure_ad_token_with_missing_username_password(setup_mocks):
     # Test cases with missing credentials
     test_cases = [
         # Missing username
-        GenericLiteLLMParams(
+        GenericGatewayParams(
             azure_username=None,
             azure_password="test-password",
             client_id="test-client-id",
         ),
         # Missing password
-        GenericLiteLLMParams(
+        GenericGatewayParams(
             azure_username="test-username",
             azure_password=None,
             client_id="test-client-id",
         ),
         # Missing client_id
-        GenericLiteLLMParams(
+        GenericGatewayParams(
             azure_username="test-username",
             azure_password="test-password",
             client_id=None,
@@ -1252,7 +1252,7 @@ def test_get_azure_ad_token_with_username_password_from_env(setup_mocks, monkeyp
     monkeypatch.setenv("AZURE_SCOPE", "test-azure-scope")
 
     # Create test parameters with no explicit credentials
-    litellm_params = GenericLiteLLMParams(
+    litellm_params = GenericGatewayParams(
         # Ensure no other auth methods are available
         azure_ad_token_provider=None,
         azure_ad_token=None,
@@ -1292,7 +1292,7 @@ def test_get_azure_ad_token_with_oidc_token(setup_mocks, monkeypatch):
     monkeypatch.delenv("AZURE_CLIENT_SECRET", raising=False)
 
     # Create test parameters with OIDC token, client_id, and tenant_id
-    litellm_params = GenericLiteLLMParams(
+    litellm_params = GenericGatewayParams(
         azure_ad_token="oidc/test-token",
         client_id="test-client-id",
         tenant_id="test-tenant-id",
@@ -1335,7 +1335,7 @@ def test_get_azure_ad_token_with_token_refresh(setup_mocks, monkeypatch):
     setup_mocks["litellm"].enable_azure_ad_token_refresh = True
 
     # Create test parameters with no other auth methods available
-    litellm_params = GenericLiteLLMParams()
+    litellm_params = GenericGatewayParams()
 
     # Call the function
     token = get_azure_ad_token(litellm_params)
@@ -1362,7 +1362,7 @@ def test_get_azure_ad_token_with_token_refresh_error(setup_mocks):
     setup_mocks["token_provider"].side_effect = ValueError("Token provider error")
 
     # Create test parameters with no other auth methods available
-    litellm_params = GenericLiteLLMParams()
+    litellm_params = GenericGatewayParams()
 
     # Call the function
     token = get_azure_ad_token(litellm_params)
@@ -1390,7 +1390,7 @@ def test_token_provider_returns_non_string(setup_mocks):
     non_string_provider = lambda: 123  # Returns an integer instead of a string
 
     # Create test parameters with the non-string token provider
-    litellm_params = GenericLiteLLMParams(azure_ad_token_provider=non_string_provider)
+    litellm_params = GenericGatewayParams(azure_ad_token_provider=non_string_provider)
 
     # Call the function and expect a TypeError
     with pytest.raises(TypeError) as excinfo:
@@ -1412,7 +1412,7 @@ def test_token_provider_raises_exception(setup_mocks):
     error_provider = lambda: exec('raise ValueError("' + error_message + '")')
 
     # Create test parameters with the error-raising token provider
-    litellm_params = GenericLiteLLMParams(azure_ad_token_provider=error_provider)
+    litellm_params = GenericGatewayParams(azure_ad_token_provider=error_provider)
 
     # Call the function and expect a RuntimeError
     with pytest.raises(RuntimeError) as excinfo:
@@ -1494,7 +1494,7 @@ def test_get_azure_ad_token_fallback_to_default_azure_credential(
     setup_mocks["token_provider"].side_effect = mock_token_provider_side_effect
 
     # Create test parameters with no other auth methods available
-    litellm_params = GenericLiteLLMParams()
+    litellm_params = GenericGatewayParams()
 
     # Call the function
     token = get_azure_ad_token(litellm_params)
@@ -2102,7 +2102,7 @@ def test_evicting_an_azure_client_built_on_the_callers_session_leaves_it_open(mo
     assert shared_session.is_closed is False, "closed the session the caller configured"
 
 
-def test_an_azure_client_litellm_built_its_own_http_client_for_is_still_closed(monkeypatch):
+def test_an_azure_client_gateway_built_its_own_http_client_for_is_still_closed(monkeypatch):
     """The ownership check must not turn the reclaim off for the ordinary case."""
     from token_iq.gateway.caching.evicted_client_closer import EvictedClientCloser
     from token_iq.gateway.caching.llm_caching_handler import LLMClientCache

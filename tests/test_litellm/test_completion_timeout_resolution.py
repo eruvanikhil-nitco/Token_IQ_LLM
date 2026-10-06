@@ -50,7 +50,7 @@ def test_request_timeout_alias_in_kwargs():
     )
 
 
-def test_global_timeout_from_litellm_settings():
+def test_global_timeout_from_gateway_settings():
     assert (
         CompletionTimeout.resolve(
             None,

@@ -117,7 +117,7 @@ async def test_metadata_passed_to_custom_callback_codex_models():
 
 
 @pytest.mark.asyncio
-async def test_metadata_passed_via_litellm_metadata_responses_api():
+async def test_metadata_passed_via_gateway_metadata_responses_api():
     """
     Test that when calling responses() directly with litellm_metadata,
     metadata is preserved for custom callbacks.

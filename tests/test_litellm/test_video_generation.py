@@ -10,7 +10,7 @@ import pytest
 from token_iq import gateway
 from token_iq.gateway.cost_calculator import default_video_cost_calculator
 from token_iq.gateway.integrations.custom_logger import CustomLogger
-from token_iq.gateway.core_utils.litellm_logging import Logging as LitellmLogging
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLogging
 from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler
 from token_iq.gateway.llms.custom_httpx.llm_http_handler import BaseLLMHTTPHandler
 from token_iq.gateway.llms.gemini.videos.transformation import GeminiVideoConfig
@@ -421,7 +421,7 @@ class TestVideoGeneration:
         )
         assert cost == 0.5
 
-    def test_completion_cost_video_custom_pricing_under_litellm_metadata(self):
+    def test_completion_cost_video_custom_pricing_under_gateway_metadata(self):
         """Video routes store deployment model_info under litellm_metadata, not metadata.
 
         Regression for https://github.com/BerriAI/litellm/issues/36483: custom video
@@ -604,7 +604,7 @@ class TestVideoGeneration:
         assert "Authorization" in headers
         assert headers["Authorization"] == "Bearer test-api-key"
 
-    def test_video_generation_uses_api_key_from_litellm_params(self):
+    def test_video_generation_uses_api_key_from_gateway_params(self):
         """Test that video generation handler uses api_key from litellm_params when function parameter is None."""
         handler = BaseLLMHTTPHandler()
         config = OpenAIVideoConfig()
@@ -1191,7 +1191,7 @@ def test_openai_transform_video_content_request_variant_none_no_query_param():
 def test_video_content_handler_passes_variant_to_url():
     """HTTP handler should pass variant through to the final URL."""
     from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
-    from token_iq.gateway.types.router import GenericLiteLLMParams
+    from token_iq.gateway.types.router import GenericGatewayParams
 
     if hasattr(gateway, "in_memory_llm_clients_cache"):
         gateway.in_memory_llm_clients_cache.flush_cache()
@@ -1212,7 +1212,7 @@ def test_video_content_handler_passes_variant_to_url():
             video_id="video_abc",
             video_content_provider_config=config,
             custom_llm_provider="openai",
-            litellm_params=GenericLiteLLMParams(api_base="https://api.openai.com/v1"),
+            litellm_params=GenericGatewayParams(api_base="https://api.openai.com/v1"),
             logging_obj=MagicMock(),
             timeout=5.0,
             api_key="sk-test",
@@ -1232,7 +1232,7 @@ def test_video_content_handler_passes_variant_to_url():
 def test_video_content_handler_uses_get_for_openai():
     """HTTP handler must use GET (not POST) for OpenAI content download."""
     from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
-    from token_iq.gateway.types.router import GenericLiteLLMParams
+    from token_iq.gateway.types.router import GenericGatewayParams
 
     # Clear the HTTP client cache to prevent test isolation issues
     # In CI, a cached real HTTPHandler from a previous test might bypass the mock
@@ -1260,7 +1260,7 @@ def test_video_content_handler_uses_get_for_openai():
             video_id="video_abc",
             video_content_provider_config=config,
             custom_llm_provider="openai",
-            litellm_params=GenericLiteLLMParams(api_base="https://api.openai.com/v1"),
+            litellm_params=GenericGatewayParams(api_base="https://api.openai.com/v1"),
             logging_obj=MagicMock(),
             timeout=5.0,
             api_key="sk-test",
@@ -1280,15 +1280,15 @@ def test_video_content_respects_api_base_and_api_key_from_kwargs():
     from token_iq.gateway.videos.main import video_content
 
     # Mock the handler to capture litellm_params
-    captured_litellm_params = None
+    captured_gateway_params = None
 
-    def capture_litellm_params(*args, **kwargs):
-        nonlocal captured_litellm_params
-        captured_litellm_params = kwargs.get("litellm_params")
+    def capture_gateway_params(*args, **kwargs):
+        nonlocal captured_gateway_params
+        captured_gateway_params = kwargs.get("litellm_params")
         return b"mp4-bytes"
 
     with patch("token_iq.gateway.videos.main.base_llm_http_handler") as mock_handler:
-        mock_handler.video_content_handler = capture_litellm_params
+        mock_handler.video_content_handler = capture_gateway_params
 
         # Call video_content with api_base and api_key in kwargs (simulating database entry)
         # This simulates how the router passes model config from database via **kwargs
@@ -1300,12 +1300,12 @@ def test_video_content_respects_api_base_and_api_key_from_kwargs():
         )
 
     # Verify that api_base and api_key from kwargs were included in litellm_params
-    assert captured_litellm_params is not None
+    assert captured_gateway_params is not None
     assert (
-        captured_litellm_params.get("api_base")
+        captured_gateway_params.get("api_base")
         == "https://test-resource.openai.azure.com/"
     )
-    assert captured_litellm_params.get("api_key") == "test-api-key-from-db"
+    assert captured_gateway_params.get("api_key") == "test-api-key-from-db"
     assert result == b"mp4-bytes"
 
 
@@ -1557,7 +1557,7 @@ class TestVideoListTransformation:
         assert params["after"] == "video_bbb"
 
 
-class TestVideoEndpointsProxyLitellmParams:
+class TestVideoEndpointsProxyGatewayParams:
     """Test that video proxy endpoints (status, content, remix) respect litellm_params from proxy config."""
 
     @pytest.fixture
@@ -1655,7 +1655,7 @@ class TestVideoEndpointsProxyLitellmParams:
         return b"fake_video_content_bytes"
 
     @pytest.mark.asyncio
-    async def test_video_status_respects_litellm_params(
+    async def test_video_status_respects_gateway_params(
         self,
         client_with_vertex_config,
         mock_video_generation_response,
@@ -1724,7 +1724,7 @@ class TestVideoEndpointsProxyLitellmParams:
                 )
 
     @pytest.mark.asyncio
-    async def test_video_content_respects_litellm_params(
+    async def test_video_content_respects_gateway_params(
         self,
         client_with_vertex_config,
         mock_video_generation_response,
@@ -1859,7 +1859,7 @@ class TestVideoEndpointsProxyLitellmParams:
                 )
 
 
-def test_video_remix_handler_uses_api_key_from_litellm_params():
+def test_video_remix_handler_uses_api_key_from_gateway_params():
     """Sync remix handler should fall back to litellm_params api_key when api_key param is None."""
     handler = BaseLLMHTTPHandler()
     config = OpenAIVideoConfig()
@@ -1903,7 +1903,7 @@ def test_video_remix_handler_uses_api_key_from_litellm_params():
 
 
 @pytest.mark.asyncio
-async def test_async_video_remix_handler_uses_api_key_from_litellm_params():
+async def test_async_video_remix_handler_uses_api_key_from_gateway_params():
     """Async remix handler should fall back to litellm_params api_key when api_key param is None."""
     handler = BaseLLMHTTPHandler()
     config = OpenAIVideoConfig()

@@ -7,16 +7,16 @@ from token_iq import gateway
 from token_iq.gateway.images.utils import ImageEditRequestUtils
 from token_iq.gateway.types.images.main import ImageEditRequestParams
 from token_iq.gateway.types.llms.openai import FileTypes
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 
 from .transformation import OpenAIImageEditConfig
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as _LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as _GatewayLoggingObj
 
-    LiteLLMLoggingObj = _LiteLLMLoggingObj
+    GatewayLoggingObj = _GatewayLoggingObj
 else:
-    LiteLLMLoggingObj = Any
+    GatewayLoggingObj = Any
 
 
 class DallE2ImageEditConfig(OpenAIImageEditConfig):
@@ -33,7 +33,7 @@ class DallE2ImageEditConfig(OpenAIImageEditConfig):
         prompt: str | None,
         image: FileTypes | None,
         image_edit_optional_request_params: dict,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> tuple[dict, RequestFiles]:
         """

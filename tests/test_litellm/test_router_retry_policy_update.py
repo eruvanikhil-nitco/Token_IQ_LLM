@@ -36,7 +36,7 @@ from token_iq.gateway.types.router import RetryPolicy, UpdateRouterConfig
 
 
 @pytest.fixture(autouse=True)
-def isolate_litellm_callbacks():
+def isolate_gateway_callbacks():
     callbacks_before: Final = gateway.callbacks.copy()
     yield
     gateway.callbacks = callbacks_before  # test-quality-ok: required callback-state restoration fixture
@@ -349,7 +349,7 @@ async def test_config_update_persists_and_reads_back_retry_policy(monkeypatch):
     real ``/config/update`` -> DB -> apply -> ``/get/config/callbacks`` path,
     not snap back to the ``num_retries`` fallback the ticket reported."""
     import token_iq.gateway.proxy.proxy_server as proxy_server
-    from token_iq.gateway.proxy._types import ConfigYAML, LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import ConfigYAML, GatewayUserRoles, UserAPIKeyAuth
 
     router = _build_router()
     assert router.retry_policy is None
@@ -381,7 +381,7 @@ async def test_config_update_persists_and_reads_back_retry_policy(monkeypatch):
     await proxy_server.update_config(
         config_info=ConfigYAML(router_settings=posted),
         request=request,
-        user_api_key_dict=UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN, api_key="sk-1234"),
+        user_api_key_dict=UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN, api_key="sk-1234"),
     )
 
     persisted = fake_table.rows["router_settings"].param_value["retry_policy"]
@@ -397,7 +397,7 @@ async def test_config_update_persists_and_reads_back_retry_policy(monkeypatch):
     read_back = (
         await proxy_server.get_config(
             user_api_key_dict=UserAPIKeyAuth(
-                user_role=LitellmUserRoles.PROXY_ADMIN, api_key="sk-1234"
+                user_role=GatewayUserRoles.PROXY_ADMIN, api_key="sk-1234"
             )
         )
     )["router_settings"]["retry_policy"]

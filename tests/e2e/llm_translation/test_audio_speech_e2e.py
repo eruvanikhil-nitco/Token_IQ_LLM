@@ -13,7 +13,7 @@ from e2e_config import unique_marker
 from e2e_http import assert_client_error, require_successful_call
 from endpoints_client import EndpointsClient
 from lifecycle import ResourceManager
-from models import LiteLLMParamsBody
+from models import GatewayParamsBody
 from pydantic import BaseModel
 
 pytestmark = pytest.mark.e2e
@@ -31,7 +31,7 @@ def _register_tts(
     model = f"e2e-speech-{unique_marker()}"
     model_id = endpoints_client.create_model(
         model,
-        LiteLLMParamsBody(model="openai/gpt-4o-mini-tts", api_key="os.environ/OPENAI_API_KEY"),
+        GatewayParamsBody(model="openai/gpt-4o-mini-tts", api_key="os.environ/OPENAI_API_KEY"),
     )
     resources.defer(lambda: endpoints_client.delete_model(model_id))
     return model, resources.key()

@@ -6,7 +6,7 @@ from ..base_utils import BaseLLMModelInfo
 if TYPE_CHECKING:
     from httpx import URL, Headers, Response
 
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
     from token_iq.gateway.types.utils import CostResponseTypes
 
     from ..chat.transformation import BaseLLMException
@@ -101,7 +101,7 @@ class BasePassthroughConfig(BaseLLMModelInfo):
         custom_llm_provider: str,
         httpx_response: "Response",
         request_data: dict,
-        logging_obj: "LiteLLMLoggingObj",
+        logging_obj: "GatewayLoggingObj",
         endpoint: str,
     ) -> Optional["CostResponseTypes"]:
         pass
@@ -109,7 +109,7 @@ class BasePassthroughConfig(BaseLLMModelInfo):
     def handle_logging_collected_chunks(
         self,
         all_chunks: list[str],
-        litellm_logging_obj: "LiteLLMLoggingObj",
+        litellm_logging_obj: "GatewayLoggingObj",
         model: str,
         custom_llm_provider: str,
         endpoint: str,

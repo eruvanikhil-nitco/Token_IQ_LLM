@@ -340,7 +340,7 @@ async def _update_request_data_with_model_routing_hint(
     return data
 
 
-def _update_request_data_with_litellm_managed_vector_store_registry(
+def _update_request_data_with_gateway_managed_vector_store_registry(
     data: dict,
     vector_store_id: str,
     llm_router: Optional["Router"] = None,
@@ -419,7 +419,7 @@ def _update_request_data_with_litellm_managed_vector_store_registry(
     # Legacy path: Check vector store registry for non-managed vector stores.
     vector_store_to_run = managed_vector_store
     if vector_store_to_run is None and should_lookup_registry and gateway.vector_store_registry is not None:
-        vector_store_to_run = gateway.vector_store_registry.get_litellm_managed_vector_store_from_registry(
+        vector_store_to_run = gateway.vector_store_registry.get_gateway_managed_vector_store_from_registry(
             vector_store_id=vector_store_id
         )
 
@@ -532,7 +532,7 @@ async def vector_store_file_create(
         )
 
     # Then handle managed vector store IDs
-    data = _update_request_data_with_litellm_managed_vector_store_registry(
+    data = _update_request_data_with_gateway_managed_vector_store_registry(
         data=data,
         vector_store_id=vector_store_id,
         llm_router=llm_router,
@@ -627,7 +627,7 @@ async def vector_store_file_list(
         user_api_key_dict=user_api_key_dict,
     )
 
-    data = _update_request_data_with_litellm_managed_vector_store_registry(
+    data = _update_request_data_with_gateway_managed_vector_store_registry(
         data=data,
         vector_store_id=vector_store_id,
         llm_router=llm_router,
@@ -735,7 +735,7 @@ async def vector_store_file_retrieve(
     )
 
     # Then handle managed vector store IDs
-    data = _update_request_data_with_litellm_managed_vector_store_registry(
+    data = _update_request_data_with_gateway_managed_vector_store_registry(
         data=data,
         vector_store_id=vector_store_id,
         llm_router=llm_router,
@@ -842,7 +842,7 @@ async def vector_store_file_content(
     )
 
     # Then handle managed vector store IDs
-    data = _update_request_data_with_litellm_managed_vector_store_registry(
+    data = _update_request_data_with_gateway_managed_vector_store_registry(
         data=data,
         vector_store_id=vector_store_id,
         llm_router=llm_router,
@@ -952,7 +952,7 @@ async def vector_store_file_update(
     )
 
     # Then handle managed vector store IDs
-    data = _update_request_data_with_litellm_managed_vector_store_registry(
+    data = _update_request_data_with_gateway_managed_vector_store_registry(
         data=data,
         vector_store_id=vector_store_id,
         llm_router=llm_router,
@@ -1059,7 +1059,7 @@ async def vector_store_file_delete(
     )
 
     # Then handle managed vector store IDs
-    data = _update_request_data_with_litellm_managed_vector_store_registry(
+    data = _update_request_data_with_gateway_managed_vector_store_registry(
         data=data,
         vector_store_id=vector_store_id,
         llm_router=llm_router,

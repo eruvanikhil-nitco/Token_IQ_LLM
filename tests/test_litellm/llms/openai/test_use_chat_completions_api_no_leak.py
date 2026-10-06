@@ -15,7 +15,7 @@ from token_iq.gateway.types.utils import all_litellm_params
 from token_iq.gateway.utils import get_non_default_completion_params
 
 
-def test_use_chat_completions_api_is_a_known_litellm_param():
+def test_use_chat_completions_api_is_a_known_gateway_param():
     assert "use_chat_completions_api" in all_litellm_params
 
 

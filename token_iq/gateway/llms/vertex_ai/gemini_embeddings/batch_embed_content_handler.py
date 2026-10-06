@@ -30,7 +30,7 @@ from .batch_embed_content_transformation import (
 )
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 
 
 class GoogleBatchEmbeddings(VertexLLM):
@@ -128,7 +128,7 @@ class GoogleBatchEmbeddings(VertexLLM):
         model_response: EmbeddingResponse,
         custom_llm_provider: Literal["gemini", "vertex_ai"],
         optional_params: dict,
-        logging_obj: "LiteLLMLoggingObj",
+        logging_obj: "GatewayLoggingObj",
         api_key: str | None = None,
         api_base: str | None = None,
         encoding=None,

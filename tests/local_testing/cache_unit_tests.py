@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from token_iq.gateway.caching import LiteLLMCacheType
+from token_iq.gateway.caching import GatewayCacheType
 import time
 import traceback
 from token_iq.gateway._uuid import uuid
@@ -22,7 +22,7 @@ from token_iq.gateway import completion, embedding
 class LLMCachingUnitTests(ABC):
 
     @abstractmethod
-    def get_cache_type(self) -> LiteLLMCacheType:
+    def get_cache_type(self) -> GatewayCacheType:
         pass
 
     @pytest.mark.parametrize("sync_mode", [True, False])

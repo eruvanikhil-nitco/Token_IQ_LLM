@@ -3,13 +3,13 @@ from typing import TYPE_CHECKING, Any, Final
 from token_iq.gateway.core_utils.url_utils import encode_url_path_segment
 from token_iq.gateway.llms.openai.vector_stores.transformation import OpenAIVectorStoreConfig
 from token_iq.gateway.secret_managers.main import get_secret_str
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.types.vector_stores import VectorStoreSearchOptionalRequestParams
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 else:
-    LiteLLMLoggingObj = Any
+    GatewayLoggingObj = Any
 
 
 class PGVectorStoreConfig(OpenAIVectorStoreConfig):
@@ -27,11 +27,11 @@ class PGVectorStoreConfig(OpenAIVectorStoreConfig):
     - api_key: API key for authentication with the PG vector service
     """
 
-    def validate_environment(self, headers: dict, litellm_params: GenericLiteLLMParams | None) -> dict:
+    def validate_environment(self, headers: dict, litellm_params: GenericGatewayParams | None) -> dict:
         """
         Validate environment and set headers for PG vector service authentication
         """
-        litellm_params = litellm_params or GenericLiteLLMParams()
+        litellm_params = litellm_params or GenericGatewayParams()
 
         # Get API key from various sources
         api_key: Final = litellm_params.api_key or get_secret_str("PG_VECTOR_API_KEY")
@@ -77,7 +77,7 @@ class PGVectorStoreConfig(OpenAIVectorStoreConfig):
         query: str | list[str],
         vector_store_search_optional_params: VectorStoreSearchOptionalRequestParams,
         api_base: str,
-        litellm_logging_obj: LiteLLMLoggingObj,
+        litellm_logging_obj: GatewayLoggingObj,
         litellm_params: dict,
         extra_body: dict[str, Any] | None = None,
     ) -> tuple[str, dict]:

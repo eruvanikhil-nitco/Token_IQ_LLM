@@ -1426,7 +1426,7 @@ class TestOpenTelemetry(unittest.TestCase):
     @patch.dict(os.environ, {}, clear=True)
     @patch("opentelemetry.sdk.resources.Resource.create")
     @patch("opentelemetry.sdk.resources.OTELResourceDetector")
-    def test_get_litellm_resource_with_defaults(
+    def test_get_gateway_resource_with_defaults(
         self, mock_detector_cls, mock_resource_create
     ):
         """Test _get_litellm_resource with default values when no environment variables are set."""
@@ -1445,7 +1445,7 @@ class TestOpenTelemetry(unittest.TestCase):
         mock_base_resource.merge.return_value = mock_merged_resource
 
         config = OpenTelemetryConfig()
-        result = OpenTelemetry._get_litellm_resource(config)
+        result = OpenTelemetry._get_gateway_resource(config)
 
         # Verify Resource.create was called with correct default attributes
         expected_attributes = {
@@ -1469,7 +1469,7 @@ class TestOpenTelemetry(unittest.TestCase):
     )
     @patch("opentelemetry.sdk.resources.Resource.create")
     @patch("opentelemetry.sdk.resources.OTELResourceDetector")
-    def test_get_litellm_resource_with_litellm_env_vars(
+    def test_get_gateway_resource_with_gateway_env_vars(
         self, mock_detector_cls, mock_resource_create
     ):
         """Test _get_litellm_resource with LiteLLM-specific environment variables."""
@@ -1488,7 +1488,7 @@ class TestOpenTelemetry(unittest.TestCase):
         mock_base_resource.merge.return_value = mock_merged_resource
 
         config = OpenTelemetryConfig.from_env()
-        result = OpenTelemetry._get_litellm_resource(config)
+        result = OpenTelemetry._get_gateway_resource(config)
 
         # Verify Resource.create was called with environment variable values
         expected_attributes = {
@@ -1511,7 +1511,7 @@ class TestOpenTelemetry(unittest.TestCase):
     )
     @patch("opentelemetry.sdk.resources.Resource.create")
     @patch("opentelemetry.sdk.resources.OTELResourceDetector")
-    def test_get_litellm_resource_with_otel_resource_attributes(
+    def test_get_gateway_resource_with_otel_resource_attributes(
         self, mock_detector_cls, mock_resource_create
     ):
         """Test _get_litellm_resource with OTEL_RESOURCE_ATTRIBUTES environment variable."""
@@ -1531,7 +1531,7 @@ class TestOpenTelemetry(unittest.TestCase):
         mock_base_resource.merge.return_value = mock_merged_resource
 
         config = OpenTelemetryConfig.from_env()
-        result = OpenTelemetry._get_litellm_resource(config)
+        result = OpenTelemetry._get_gateway_resource(config)
 
         # Verify Resource.create was called with the base attributes
         # The actual OTEL_RESOURCE_ATTRIBUTES parsing is handled by OpenTelemetry SDK
@@ -1546,10 +1546,10 @@ class TestOpenTelemetry(unittest.TestCase):
         self.assertEqual(result, mock_merged_resource)
 
     @patch.dict(os.environ, {}, clear=True)
-    def test_get_litellm_resource_integration_with_real_resource(self):
+    def test_get_gateway_resource_integration_with_real_resource(self):
         """Integration test to verify _get_litellm_resource works with actual OpenTelemetry Resource."""
         config = OpenTelemetryConfig()
-        result = OpenTelemetry._get_litellm_resource(config)
+        result = OpenTelemetry._get_gateway_resource(config)
 
         # Verify the result is a Resource instance
         from opentelemetry.sdk.resources import Resource
@@ -1569,10 +1569,10 @@ class TestOpenTelemetry(unittest.TestCase):
         },
         clear=True,
     )
-    def test_get_litellm_resource_real_otel_resource_attributes(self):
+    def test_get_gateway_resource_real_otel_resource_attributes(self):
         """Integration test to verify OTEL_RESOURCE_ATTRIBUTES is properly handled."""
         config = OpenTelemetryConfig.from_env()
-        result = OpenTelemetry._get_litellm_resource(config)
+        result = OpenTelemetry._get_gateway_resource(config)
 
         print("RESULT", result)
 
@@ -1597,10 +1597,10 @@ class TestOpenTelemetry(unittest.TestCase):
         },
         clear=True,
     )
-    def test_get_litellm_resource_precedence(self):
+    def test_get_gateway_resource_precedence(self):
         """Test that OTEL_SERVICE_NAME takes precedence over OTEL_RESOURCE_ATTRIBUTES according to OpenTelemetry spec."""
         config = OpenTelemetryConfig.from_env()
-        result = OpenTelemetry._get_litellm_resource(config)
+        result = OpenTelemetry._get_gateway_resource(config)
 
         # Verify the result is a Resource instance
         from opentelemetry.sdk.resources import Resource
@@ -2503,7 +2503,7 @@ class TestOpenTelemetryExternalSpan(unittest.TestCase):
         return [s for s in spans if s.name == name]
 
     @patch.dict(os.environ, {"USE_OTEL_LITELLM_REQUEST_SPAN": "false"}, clear=False)
-    def test_external_span_not_closed_with_use_otel_litellm_request_span_false(self):
+    def test_external_span_not_closed_with_use_otel_gateway_request_span_false(self):
         """
         Test that external spans are not closed when USE_OTEL_LITELLM_REQUEST_SPAN=false (default).
 
@@ -2588,9 +2588,9 @@ class TestOpenTelemetryExternalSpan(unittest.TestCase):
         # Note: May be 0 if message_logging is off, or 2 if on
 
         # Should NOT have litellm_request spans (USE_OTEL_LITELLM_REQUEST_SPAN=false)
-        litellm_spans = self._get_spans_by_name("litellm_request")
+        gateway_spans = self._get_spans_by_name("litellm_request")
         self.assertEqual(
-            len(litellm_spans),
+            len(gateway_spans),
             0,
             "Should NOT have litellm_request spans when USE_OTEL_LITELLM_REQUEST_SPAN=false",
         )
@@ -2604,7 +2604,7 @@ class TestOpenTelemetryExternalSpan(unittest.TestCase):
             )
 
     @patch.dict(os.environ, {"USE_OTEL_LITELLM_REQUEST_SPAN": "true"}, clear=False)
-    def test_external_span_not_closed_with_use_otel_litellm_request_span_true(self):
+    def test_external_span_not_closed_with_use_otel_gateway_request_span_true(self):
         """
         Test that external spans are not closed when USE_OTEL_LITELLM_REQUEST_SPAN=true.
 
@@ -2664,17 +2664,17 @@ class TestOpenTelemetryExternalSpan(unittest.TestCase):
             )
 
         # Should have litellm_request spans (USE_OTEL_LITELLM_REQUEST_SPAN=true)
-        litellm_spans = self._get_spans_by_name("litellm_request")
+        gateway_spans = self._get_spans_by_name("litellm_request")
         self.assertEqual(
-            len(litellm_spans),
+            len(gateway_spans),
             2,
             "Should have 2 litellm_request spans when USE_OTEL_LITELLM_REQUEST_SPAN=true",
         )
 
         # Verify litellm_request spans are children of external span
-        for litellm_span in litellm_spans:
+        for gateway_span in gateway_spans:
             self.assertEqual(
-                litellm_span.parent.span_id if litellm_span.parent else None,
+                gateway_span.parent.span_id if gateway_span.parent else None,
                 parent_span_id,
                 "litellm_request should be child of external_parent_span",
             )
@@ -2682,11 +2682,11 @@ class TestOpenTelemetryExternalSpan(unittest.TestCase):
         # Verify raw_gen_ai_request spans (if present) are children of litellm_request
         raw_spans = self._get_spans_by_name("raw_gen_ai_request")
         if raw_spans:
-            litellm_span_ids = {s.context.span_id for s in litellm_spans}
+            gateway_span_ids = {s.context.span_id for s in gateway_spans}
             for raw_span in raw_spans:
                 self.assertIn(
                     raw_span.parent.span_id if raw_span.parent else None,
-                    litellm_span_ids,
+                    gateway_span_ids,
                     "raw_gen_ai_request should be child of litellm_request",
                 )
 
@@ -3545,7 +3545,7 @@ class TestGuardrailSpanParenting(unittest.TestCase):
     """Issue #5: Guardrail spans must not be orphaned — they should always
     be children of the litellm_request span (or parent span)."""
 
-    def test_guardrail_span_is_child_of_litellm_request(self):
+    def test_guardrail_span_is_child_of_gateway_request(self):
         """When no parent proxy span exists, guardrail spans should be
         children of the litellm_request span, not orphaned root spans."""
         span_exporter = InMemorySpanExporter()
@@ -3598,17 +3598,17 @@ class TestGuardrailSpanParenting(unittest.TestCase):
 
         spans = span_exporter.get_finished_spans()
         guardrail_spans = [s for s in spans if s.name == "guardrail"]
-        litellm_spans = [s for s in spans if s.name == "litellm_request"]
+        gateway_spans = [s for s in spans if s.name == "litellm_request"]
 
         self.assertTrue(guardrail_spans, "Expected at least one guardrail span")
-        self.assertTrue(litellm_spans, "Expected a litellm_request span")
+        self.assertTrue(gateway_spans, "Expected a litellm_request span")
 
-        litellm_span = litellm_spans[0]
+        gateway_span = gateway_spans[0]
         for gs in guardrail_spans:
             # All spans should share the same trace_id (not orphaned)
             self.assertEqual(
                 gs.context.trace_id,
-                litellm_span.context.trace_id,
+                gateway_span.context.trace_id,
                 "Guardrail span should share trace_id with litellm_request (not orphaned)",
             )
             # Guardrail should be a child of the litellm_request span
@@ -3618,7 +3618,7 @@ class TestGuardrailSpanParenting(unittest.TestCase):
             )
             self.assertEqual(
                 gs.parent.span_id,
-                litellm_span.context.span_id,
+                gateway_span.context.span_id,
                 "Guardrail span should be a child of litellm_request",
             )
 
@@ -3771,7 +3771,7 @@ class TestResponseIdFallback(unittest.TestCase):
             "gen_ai.response.id", "litellm-img-call-101"
         )
 
-    def test_litellm_call_id_emitted_as_span_attribute(self):
+    def test_gateway_call_id_emitted_as_span_attribute(self):
         """litellm.call_id must be set on the span from standard_logging_payload."""
         otel = OpenTelemetry()
         mock_span = MagicMock()
@@ -4470,7 +4470,7 @@ class TestOpenTelemetryProxyParentSpanChildEmission(unittest.TestCase):
         )
         parent_span.end()
 
-    def test_litellm_request_emitted_as_child_of_proxy_parent_span(self):
+    def test_gateway_request_emitted_as_child_of_proxy_parent_span(self):
         """End-to-end: proxy span in metadata should yield exactly one
         litellm_request span parented to it, with no extra root span."""
         from token_iq.gateway.integrations.opentelemetry import (
@@ -4493,22 +4493,22 @@ class TestOpenTelemetryProxyParentSpanChildEmission(unittest.TestCase):
         otel._handle_success(kwargs, response_obj=None, start_time=start, end_time=end)
 
         spans = span_exporter.get_finished_spans()
-        litellm_spans = [s for s in spans if s.name == LITELLM_REQUEST_SPAN_NAME]
+        gateway_spans = [s for s in spans if s.name == LITELLM_REQUEST_SPAN_NAME]
         proxy_spans = [s for s in spans if s.name == LITELLM_PROXY_REQUEST_SPAN_NAME]
 
         self.assertEqual(
-            len(litellm_spans), 1, "Exactly one litellm_request span must be emitted"
+            len(gateway_spans), 1, "Exactly one litellm_request span must be emitted"
         )
         self.assertEqual(
             len(proxy_spans), 1, "Proxy span should be closed exactly once"
         )
 
-        litellm_span = litellm_spans[0]
+        gateway_span = gateway_spans[0]
         self.assertIsNotNone(
-            litellm_span.parent, "litellm_request must have a parent (not root)"
+            gateway_span.parent, "litellm_request must have a parent (not root)"
         )
         self.assertEqual(
-            litellm_span.parent.span_id,
+            gateway_span.parent.span_id,
             proxy_spans[0].context.span_id,
             "litellm_request must be a child of the proxy span",
         )
@@ -4740,7 +4740,7 @@ class TestOpenTelemetrySpanDedupe(unittest.TestCase):
         self.assertTrue(otel._emit_once(kwargs, "success"))
         self.assertFalse(otel._emit_once(kwargs, "success"))
 
-    def test_emit_once_handles_missing_litellm_params(self):
+    def test_emit_once_handles_missing_gateway_params(self):
         otel = OpenTelemetry()
         kwargs = {}
         self.assertTrue(otel._emit_once(kwargs, "success"))
@@ -4849,7 +4849,7 @@ class TestOpenTelemetrySpanDedupe(unittest.TestCase):
             "across repeated lifecycle entrypoints",
         )
 
-    def test_handle_success_emits_single_litellm_request_span_on_double_call(self):
+    def test_handle_success_emits_single_gateway_request_span_on_double_call(self):
         """Sync + async callback paths firing for the same kwargs must
         result in exactly one litellm_request span."""
         from token_iq.gateway.integrations.opentelemetry import LITELLM_REQUEST_SPAN_NAME
@@ -4869,11 +4869,11 @@ class TestOpenTelemetrySpanDedupe(unittest.TestCase):
         otel._handle_success(kwargs, response_obj=None, start_time=start, end_time=end)
 
         spans = span_exporter.get_finished_spans()
-        litellm_spans = [s for s in spans if s.name == LITELLM_REQUEST_SPAN_NAME]
+        gateway_spans = [s for s in spans if s.name == LITELLM_REQUEST_SPAN_NAME]
         self.assertEqual(
-            len(litellm_spans),
+            len(gateway_spans),
             1,
-            f"Exactly one litellm_request span expected, got {len(litellm_spans)}",
+            f"Exactly one litellm_request span expected, got {len(gateway_spans)}",
         )
 
     def test_handle_success_dedupe_skip_still_closes_proxy_span(self):
@@ -4926,13 +4926,13 @@ class TestOpenTelemetrySpanDedupe(unittest.TestCase):
         otel._handle_failure(kwargs, response_obj=None, start_time=start, end_time=end)
 
         spans = span_exporter.get_finished_spans()
-        litellm_spans = [s for s in spans if s.name == LITELLM_REQUEST_SPAN_NAME]
+        gateway_spans = [s for s in spans if s.name == LITELLM_REQUEST_SPAN_NAME]
         self.assertEqual(
-            len(litellm_spans),
+            len(gateway_spans),
             1,
-            f"Exactly one litellm_request ERROR span expected, got {len(litellm_spans)}",
+            f"Exactly one litellm_request ERROR span expected, got {len(gateway_spans)}",
         )
-        self.assertEqual(litellm_spans[0].status.status_code, StatusCode.ERROR)
+        self.assertEqual(gateway_spans[0].status.status_code, StatusCode.ERROR)
 
     def test_create_guardrail_span_dedupes_across_lifecycle_entrypoints(self):
         """``_create_guardrail_span`` is called from post-call-success hook,
@@ -5330,7 +5330,7 @@ class TestOpenTelemetryPreprocessingDuration(unittest.TestCase):
         assert "litellm.preprocessing.duration_ms" not in self._attr(span, exp)
 
 
-class TestGetSpanContextLitellmMetadataFallback(unittest.TestCase):
+class TestGetSpanContextGatewayMetadataFallback(unittest.TestCase):
     """
     Tests for _get_span_context() falling back to litellm_metadata.
 
@@ -5359,7 +5359,7 @@ class TestGetSpanContextLitellmMetadataFallback(unittest.TestCase):
         # Should NOT fall through to "no parent context" path
         self.assertIsNone(detected_span)
 
-    def test_span_context_from_litellm_metadata_fallback(self):
+    def test_span_context_from_gateway_metadata_fallback(self):
         """Parent span is found when stored in litellm_params['litellm_metadata'] (Anthropic path)."""
         otel = OpenTelemetry()
         mock_span = MagicMock()
@@ -5423,7 +5423,7 @@ class TestGetSpanContextLitellmMetadataFallback(unittest.TestCase):
         self.assertIsNone(detected_span)
 
 
-class TestEndProxySpanLitellmMetadataFallback(unittest.TestCase):
+class TestEndProxySpanGatewayMetadataFallback(unittest.TestCase):
     """
     Tests for _end_proxy_span_from_kwargs() falling back to litellm_metadata.
 
@@ -5446,7 +5446,7 @@ class TestEndProxySpanLitellmMetadataFallback(unittest.TestCase):
         otel._end_proxy_span_from_kwargs(kwargs, end_time=datetime.now())
         mock_span.end.assert_called_once()
 
-    def test_end_proxy_span_from_litellm_metadata(self):
+    def test_end_proxy_span_from_gateway_metadata(self):
         """Proxy span is found and ended from litellm_params['litellm_metadata'] (fallback)."""
         otel = OpenTelemetry()
         mock_span = MagicMock()
@@ -6224,7 +6224,7 @@ class TestDynamicTracerProviderCache(unittest.TestCase):
         entries = list(logger._tracer_provider_cache.values())
         self.assertEqual(len(entries), 4)
         self.assertEqual(len({id(entry.provider.resource) for entry in entries}), 1)
-        self.assertIs(entries[0].provider.resource, logger._litellm_resource())
+        self.assertIs(entries[0].provider.resource, logger._gateway_resource())
 
     def test_resource_is_memoized_per_logger_not_shared(self):
         """Two loggers must not share a Resource; the second's service.name would be wrong."""
@@ -6234,8 +6234,8 @@ class TestDynamicTracerProviderCache(unittest.TestCase):
         )
         self.addCleanup(second._tracer_provider.shutdown)
 
-        self.assertIsNot(first._litellm_resource(), second._litellm_resource())
-        self.assertEqual(second._litellm_resource().attributes.get("service.name"), "svc-second")
+        self.assertIsNot(first._gateway_resource(), second._gateway_resource())
+        self.assertEqual(second._gateway_resource().attributes.get("service.name"), "svc-second")
 
 
 class TestOpenTelemetryDatabaseSemconvAttributes(unittest.TestCase):

@@ -46,7 +46,7 @@ from token_iq.gateway.proxy.management_endpoints.team_endpoints import (
     update_team,
 )
 from token_iq.gateway.proxy.proxy_server import (
-    LitellmUserRoles,
+    GatewayUserRoles,
     audio_transcriptions,
     chat_completion,
     completion,
@@ -96,7 +96,7 @@ def prisma_client():
     )
 
     # Reset litellm.proxy.proxy_server.prisma_client to None
-    gateway.proxy.proxy_server.litellm_proxy_budget_name = (
+    gateway.proxy.proxy_server.gateway_proxy_budget_name = (
         f"litellm-proxy-budget-{time.time()}"
     )
     gateway.proxy.proxy_server.user_custom_key_generate = None
@@ -122,9 +122,9 @@ RBAC Tests
 @pytest.mark.parametrize(
     "user_role",
     [
-        LitellmUserRoles.ORG_ADMIN,
-        LitellmUserRoles.INTERNAL_USER,
-        LitellmUserRoles.INTERNAL_USER_VIEW_ONLY,
+        GatewayUserRoles.ORG_ADMIN,
+        GatewayUserRoles.INTERNAL_USER,
+        GatewayUserRoles.INTERNAL_USER_VIEW_ONLY,
     ],
 )
 @pytest.mark.skip(reason="Requires reliable external DB connection (prisma).")
@@ -148,7 +148,7 @@ async def test_create_new_user_in_organization(prisma_client, user_role):
         ),
         user_api_key_dict=UserAPIKeyAuth(
             user_id=created_user_id,
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
         ),
     )
 
@@ -185,7 +185,7 @@ async def test_create_new_user_in_organization(prisma_client, user_role):
     if user_role != None:
         assert _membership.user_role == user_role
     else:
-        assert _membership.user_role == LitellmUserRoles.INTERNAL_USER_VIEW_ONLY
+        assert _membership.user_role == GatewayUserRoles.INTERNAL_USER_VIEW_ONLY
 
 
 @pytest.mark.asyncio
@@ -210,7 +210,7 @@ async def test_org_admin_create_team_permissions(prisma_client):
             organization_alias=f"new-org-{uuid.uuid4()}",
         ),
         user_api_key_dict=UserAPIKeyAuth(
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
         ),
     )
 
@@ -219,7 +219,7 @@ async def test_org_admin_create_team_permissions(prisma_client):
     response = await organization_member_add(
         data=OrganizationMemberAddRequest(
             organization_id=org_id,
-            member=OrgMember(role=LitellmUserRoles.ORG_ADMIN, user_id=created_user_id),
+            member=OrgMember(role=GatewayUserRoles.ORG_ADMIN, user_id=created_user_id),
         ),
         http_request=None,
     )
@@ -284,7 +284,7 @@ async def test_org_admin_create_user_permissions(prisma_client):
             organization_alias=f"new-org-{uuid.uuid4()}",
         ),
         user_api_key_dict=UserAPIKeyAuth(
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
         ),
     )
     # Create Org Admin
@@ -293,7 +293,7 @@ async def test_org_admin_create_user_permissions(prisma_client):
     response = await organization_member_add(
         data=OrganizationMemberAddRequest(
             organization_id=org_id,
-            member=OrgMember(role=LitellmUserRoles.ORG_ADMIN, user_id=created_user_id),
+            member=OrgMember(role=GatewayUserRoles.ORG_ADMIN, user_id=created_user_id),
         ),
         http_request=None,
     )
@@ -325,7 +325,7 @@ async def test_org_admin_create_user_permissions(prisma_client):
         data=OrganizationMemberAddRequest(
             organization_id=org_id,
             member=OrgMember(
-                role=LitellmUserRoles.INTERNAL_USER, user_id=new_internal_user_for_org
+                role=GatewayUserRoles.INTERNAL_USER, user_id=new_internal_user_for_org
             ),
         ),
         http_request=request,
@@ -356,7 +356,7 @@ async def test_org_admin_create_user_team_wrong_org_permissions(prisma_client):
             organization_alias=f"new-org-{uuid.uuid4()}",
         ),
         user_api_key_dict=UserAPIKeyAuth(
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
         ),
     )
 
@@ -365,7 +365,7 @@ async def test_org_admin_create_user_team_wrong_org_permissions(prisma_client):
             organization_alias=f"new-org-{uuid.uuid4()}",
         ),
         user_api_key_dict=UserAPIKeyAuth(
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
         ),
     )
 
@@ -378,7 +378,7 @@ async def test_org_admin_create_user_team_wrong_org_permissions(prisma_client):
     response = await organization_member_add(
         data=OrganizationMemberAddRequest(
             organization_id=org1_id,
-            member=OrgMember(role=LitellmUserRoles.ORG_ADMIN, user_id=created_user_id),
+            member=OrgMember(role=GatewayUserRoles.ORG_ADMIN, user_id=created_user_id),
         ),
         http_request=None,
     )
@@ -388,7 +388,7 @@ async def test_org_admin_create_user_team_wrong_org_permissions(prisma_client):
             user_id=created_user_id,
         ),
         user_api_key_dict=UserAPIKeyAuth(
-            user_role=LitellmUserRoles.ORG_ADMIN,
+            user_role=GatewayUserRoles.ORG_ADMIN,
             user_id=created_user_id,
         ),
     )
@@ -439,41 +439,41 @@ async def test_org_admin_create_user_team_wrong_org_permissions(prisma_client):
     "route, user_role, expected_result",
     [
         # Proxy Admin checks
-        ("/global/spend/logs", LitellmUserRoles.PROXY_ADMIN, True),
-        ("/key/delete", LitellmUserRoles.PROXY_ADMIN, True),
-        ("/key/generate", LitellmUserRoles.PROXY_ADMIN, True),
-        ("/key/regenerate", LitellmUserRoles.PROXY_ADMIN, True),
+        ("/global/spend/logs", GatewayUserRoles.PROXY_ADMIN, True),
+        ("/key/delete", GatewayUserRoles.PROXY_ADMIN, True),
+        ("/key/generate", GatewayUserRoles.PROXY_ADMIN, True),
+        ("/key/regenerate", GatewayUserRoles.PROXY_ADMIN, True),
         # # Internal User checks - allowed routes
         # /global/spend/logs returns proxy-wide spend; non-admin roles must be blocked
-        ("/global/spend/logs", LitellmUserRoles.INTERNAL_USER, False),
-        ("/key/delete", LitellmUserRoles.INTERNAL_USER, True),
-        ("/key/generate", LitellmUserRoles.INTERNAL_USER, True),
-        ("/key/82akk800000000jjsk/regenerate", LitellmUserRoles.INTERNAL_USER, True),
+        ("/global/spend/logs", GatewayUserRoles.INTERNAL_USER, False),
+        ("/key/delete", GatewayUserRoles.INTERNAL_USER, True),
+        ("/key/generate", GatewayUserRoles.INTERNAL_USER, True),
+        ("/key/82akk800000000jjsk/regenerate", GatewayUserRoles.INTERNAL_USER, True),
         # Internal User Viewer
-        ("/key/generate", LitellmUserRoles.INTERNAL_USER_VIEW_ONLY, False),
+        ("/key/generate", GatewayUserRoles.INTERNAL_USER_VIEW_ONLY, False),
         (
             "/key/82akk800000000jjsk/regenerate",
-            LitellmUserRoles.INTERNAL_USER_VIEW_ONLY,
+            GatewayUserRoles.INTERNAL_USER_VIEW_ONLY,
             False,
         ),
-        ("/key/delete", LitellmUserRoles.INTERNAL_USER_VIEW_ONLY, False),
-        ("/team/new", LitellmUserRoles.INTERNAL_USER_VIEW_ONLY, False),
-        ("/team/delete", LitellmUserRoles.INTERNAL_USER_VIEW_ONLY, False),
-        ("/team/update", LitellmUserRoles.INTERNAL_USER_VIEW_ONLY, False),
+        ("/key/delete", GatewayUserRoles.INTERNAL_USER_VIEW_ONLY, False),
+        ("/team/new", GatewayUserRoles.INTERNAL_USER_VIEW_ONLY, False),
+        ("/team/delete", GatewayUserRoles.INTERNAL_USER_VIEW_ONLY, False),
+        ("/team/update", GatewayUserRoles.INTERNAL_USER_VIEW_ONLY, False),
         # Proxy Admin Viewer
-        ("/global/spend/logs", LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY, True),
-        ("/key/delete", LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY, False),
-        ("/key/generate", LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY, False),
+        ("/global/spend/logs", GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY, True),
+        ("/key/delete", GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY, False),
+        ("/key/generate", GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY, False),
         (
             "/key/82akk800000000jjsk/regenerate",
-            LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY,
+            GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY,
             False,
         ),
-        ("/team/new", LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY, False),
-        ("/team/delete", LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY, False),
-        ("/team/update", LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY, False),
+        ("/team/new", GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY, False),
+        ("/team/delete", GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY, False),
+        ("/team/update", GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY, False),
         # Internal User checks - disallowed routes
-        ("/organization/member_add", LitellmUserRoles.INTERNAL_USER, False),
+        ("/organization/member_add", GatewayUserRoles.INTERNAL_USER, False),
     ],
 )
 @pytest.mark.skip(reason="Requires reliable external DB connection (prisma).")
@@ -487,7 +487,7 @@ async def test_user_role_permissions(prisma_client, route, user_role, expected_r
 
         # Admin - admin creates a new user
         user_api_key_dict = UserAPIKeyAuth(
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
             api_key="sk-1234",
             user_id="1234",
         )

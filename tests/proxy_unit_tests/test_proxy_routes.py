@@ -14,7 +14,7 @@ from fastapi import Request
 from starlette.datastructures import URL, Headers, QueryParams
 
 from token_iq import gateway
-from token_iq.gateway.proxy._types import LiteLLMRoutes
+from token_iq.gateway.proxy._types import GatewayRoutes
 from token_iq.gateway.proxy.auth.auth_utils import get_request_route
 from token_iq.gateway.proxy.auth.route_checks import RouteChecks
 from token_iq.gateway.proxy.proxy_server import app
@@ -26,7 +26,7 @@ logging.basicConfig(
 )
 
 
-def test_routes_on_litellm_proxy():
+def test_routes_on_gateway_proxy():
     """
     Goal of this test: Test that we have all the critical OpenAI Routes on the Proxy server Fast API router
 
@@ -61,9 +61,9 @@ def test_routes_on_litellm_proxy():
 
     print("ALL ROUTES on LiteLLM Proxy:", _all_routes)
     print("\n\n")
-    print("ALL OPENAI ROUTES:", LiteLLMRoutes.openai_routes.value)
+    print("ALL OPENAI ROUTES:", GatewayRoutes.openai_routes.value)
 
-    for route in LiteLLMRoutes.openai_routes.value:
+    for route in GatewayRoutes.openai_routes.value:
         # realtime routes - /realtime?model=gpt-4o
         if "realtime" in route:
             assert "/realtime" in _all_routes

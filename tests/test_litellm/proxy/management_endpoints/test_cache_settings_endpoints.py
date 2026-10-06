@@ -10,7 +10,7 @@ import pytest
 
 
 from token_iq import gateway
-from token_iq.gateway.proxy._types import LitellmTableNames, LitellmUserRoles
+from token_iq.gateway.proxy._types import GatewayTableNames, GatewayUserRoles
 from token_iq.gateway.proxy.auth.user_api_key_auth import UserAPIKeyAuth
 from token_iq.gateway.proxy.management_endpoints.cache_settings_endpoints import (
     _CACHE_SENSITIVE_FIELDS,
@@ -47,7 +47,7 @@ async def test_test_cache_connection_calls_cache_test_connection_with_params():
     }
 
     request = CacheTestRequest(cache_settings=cache_settings)
-    user_api_key_dict = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN, api_key="sk-test", user_id="test-user")
+    user_api_key_dict = UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN, api_key="sk-test", user_id="test-user")
 
     # Mock Cache class and its test_connection method
     mock_cache_instance = MagicMock()
@@ -169,7 +169,7 @@ async def test_test_cache_connection_url_takes_precedence_over_discrete_fields()
     }
 
     request = CacheTestRequest(cache_settings=cache_settings)
-    user_api_key_dict = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN, api_key="sk-test", user_id="test-user")
+    user_api_key_dict = UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN, api_key="sk-test", user_id="test-user")
 
     mock_cache_instance = MagicMock()
     mock_cache_instance.cache = MagicMock()
@@ -439,7 +439,7 @@ def _admin_auth() -> UserAPIKeyAuth:
     return UserAPIKeyAuth(
         api_key="hashed",
         user_id="admin-user",
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
     )
 
 
@@ -881,7 +881,7 @@ async def test_update_cache_settings_is_refused_in_this_build():
     with pytest.raises(HTTPException) as excinfo:
         await update_cache_settings(
             request=CacheSettingsUpdateRequest(cache_settings={"type": "redis", "host": "localhost"}),
-            user_api_key_dict=UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN),
+            user_api_key_dict=UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN),
         )
 
     assert excinfo.value.status_code == 400

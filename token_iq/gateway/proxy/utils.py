@@ -154,7 +154,7 @@ from token_iq.gateway.proxy.hooks.parallel_request_limiter_v3 import (
 from token_iq.gateway.proxy.hooks.sensitive_data_routing import (
     _PROXY_SensitiveDataRoutingHandler,
 )
-from token_iq.gateway.proxy.litellm_pre_call_utils import LiteLLMProxyRequestSetup
+from token_iq.gateway.proxy.litellm_pre_call_utils import GatewayProxyRequestSetup
 from token_iq.gateway.proxy.management_helpers.key_settings_audit import with_settings_updated_at
 from token_iq.gateway.proxy.pass_through_endpoints.common_utils import assert_passthrough_body_fidelity
 from token_iq.gateway.proxy.policy_engine.pipeline_executor import PipelineExecutor
@@ -179,7 +179,7 @@ from token_iq.gateway.types.mcp import (
     MCPPreCallResponseObject,
 )
 from token_iq.gateway.types.proxy.policy_engine.pipeline_types import PipelineExecutionResult
-from token_iq.gateway.types.utils import LLMResponseTypes, LoggedLiteLLMParams
+from token_iq.gateway.types.utils import LLMResponseTypes, LoggedGatewayParams
 
 if TYPE_CHECKING:
     from mcp.types import CallToolResult
@@ -190,7 +190,7 @@ if TYPE_CHECKING:
     from prisma.models import LiteLLM_DeprecatedVerificationToken
     from prisma.types import HttpConfig
 
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
     from token_iq.gateway.models.team import LiteLLM_TeamTableCachedObj
     from token_iq.gateway.proxy.db.autorouter_session_rollup import AutoRouterTurnTransaction
     from token_iq.gateway.proxy.db.spend_log_tool_index import ToolUsageTransaction
@@ -378,7 +378,7 @@ class InternalUsageCache:
 _CALLBACK_ACCEPTS_CALL_INFO: Final[dict[int, bool]] = {}
 
 
-def _accepts_litellm_call_info(cb: CustomLogger) -> bool:
+def _accepts_gateway_call_info(cb: CustomLogger) -> bool:
     key: Final = id(type(cb))
     if key not in _CALLBACK_ACCEPTS_CALL_INFO:
         sig: Final = inspect.signature(cb.async_post_call_response_headers_hook)
@@ -784,7 +784,7 @@ class ProxyLogging:
                     or "region_outage_alerts" in self.alert_types
                 ):
                     gateway.logging_callback_manager.add_litellm_callback(self.slack_alerting_instance)
-                gateway.logging_callback_manager.add_litellm_success_callback(
+                gateway.logging_callback_manager.add_gateway_success_callback(
                     self.slack_alerting_instance.response_taking_too_long_callback
                 )
 
@@ -858,10 +858,10 @@ class ProxyLogging:
         # ``function_setup``.
         for callback in gateway.callbacks:
             if isinstance(callback, CustomLogger):
-                gateway.logging_callback_manager.add_litellm_success_callback(callback)
-                gateway.logging_callback_manager.add_litellm_failure_callback(callback)
-                gateway.logging_callback_manager.add_litellm_async_success_callback(callback)
-                gateway.logging_callback_manager.add_litellm_async_failure_callback(callback)
+                gateway.logging_callback_manager.add_gateway_success_callback(callback)
+                gateway.logging_callback_manager.add_gateway_failure_callback(callback)
+                gateway.logging_callback_manager.add_gateway_async_success_callback(callback)
+                gateway.logging_callback_manager.add_gateway_async_failure_callback(callback)
 
     async def update_request_status(self, litellm_call_id: str, status: Literal["success", "fail"]):
         # only use this if slack alerting is being used
@@ -1477,7 +1477,7 @@ class ProxyLogging:
     async def _process_prompt_template(
         self,
         data: dict,
-        litellm_logging_obj: "LiteLLMLoggingObj",
+        litellm_logging_obj: "GatewayLoggingObj",
         prompt_id: str,
         prompt_version: int | None,
         call_type: CallTypesLiteral,
@@ -1556,20 +1556,20 @@ class ProxyLogging:
         )
 
         metadata_standard: Final = data.get("metadata") or {}
-        metadata_litellm: Final = data.get("litellm_metadata") or {}
+        metadata_gateway: Final = data.get("litellm_metadata") or {}
 
         guardrails_in_metadata = []
         if isinstance(metadata_standard, dict) and "guardrails" in metadata_standard:
             guardrails_in_metadata = metadata_standard.get("guardrails", [])
-        elif isinstance(metadata_litellm, dict) and "guardrails" in metadata_litellm:
-            guardrails_in_metadata = metadata_litellm.get("guardrails", [])
+        elif isinstance(metadata_gateway, dict) and "guardrails" in metadata_gateway:
+            guardrails_in_metadata = metadata_gateway.get("guardrails", [])
 
         if guardrails_in_metadata and isinstance(guardrails_in_metadata, list):
             applied_guardrails = []
             if isinstance(metadata_standard, dict) and "applied_guardrails" in metadata_standard:
                 applied_guardrails = metadata_standard.get("applied_guardrails", [])
-            elif isinstance(metadata_litellm, dict) and "applied_guardrails" in metadata_litellm:
-                applied_guardrails = metadata_litellm.get("applied_guardrails", [])
+            elif isinstance(metadata_gateway, dict) and "applied_guardrails" in metadata_gateway:
+                applied_guardrails = metadata_gateway.get("applied_guardrails", [])
 
             if not isinstance(applied_guardrails, list):
                 applied_guardrails = []
@@ -1754,7 +1754,7 @@ class ProxyLogging:
         if data is None:
             return None
 
-        litellm_logging_obj: Final = cast(Optional["LiteLLMLoggingObj"], data.get("litellm_logging_obj", None))
+        litellm_logging_obj: Final = cast(Optional["GatewayLoggingObj"], data.get("litellm_logging_obj", None))
         prompt_id: Final[str | None] = data.get("prompt_id", None)
         prompt_version: Final[int | None] = data.get("prompt_version", None)
 
@@ -2660,7 +2660,7 @@ class ProxyLogging:
             from token_iq.gateway._uuid import uuid
 
             request_data["litellm_call_id"] = str(uuid.uuid4())
-            user_api_key_logged_metadata: Final = LiteLLMProxyRequestSetup.get_sanitized_user_information_from_key(
+            user_api_key_logged_metadata: Final = GatewayProxyRequestSetup.get_sanitized_user_information_from_key(
                 user_api_key_dict=user_api_key_dict
             )
 
@@ -2677,12 +2677,12 @@ class ProxyLogging:
         if litellm_logging_obj is not None:
             ## UPDATE LOGGING INPUT
             _optional_params: Final = {}
-            _litellm_params: Final = {}
+            _gateway_params: Final = {}
 
-            litellm_param_keys: Final = LoggedLiteLLMParams.__annotations__.keys()
+            gateway_param_keys: Final = LoggedGatewayParams.__annotations__.keys()
             for k, v in request_data.items():
-                if k in litellm_param_keys:
-                    _litellm_params[k] = v
+                if k in gateway_param_keys:
+                    _gateway_params[k] = v
                 elif k not in ("model", "user", "litellm_logging_obj"):
                     _optional_params[k] = v
 
@@ -2690,7 +2690,7 @@ class ProxyLogging:
                 model=request_data.get("model", ""),
                 user=request_data.get("user", ""),
                 optional_params=_optional_params,
-                litellm_params=_litellm_params,
+                litellm_params=_gateway_params,
             )
 
             input: list | str | dict = ""
@@ -3007,7 +3007,7 @@ class ProxyLogging:
 
         try:
             # Build litellm_call_info — normalized routing metadata for callbacks
-            litellm_call_info: Final = self._build_litellm_call_info(data=data, response=response)
+            litellm_call_info: Final = self._build_gateway_call_info(data=data, response=response)
 
             for callback in gateway.callbacks:
                 _callback: CustomLogger | None = None
@@ -3019,7 +3019,7 @@ class ProxyLogging:
                     _callback = callback
 
                 if _callback is not None and isinstance(_callback, CustomLogger):
-                    if _accepts_litellm_call_info(_callback):
+                    if _accepts_gateway_call_info(_callback):
                         result = await _callback.async_post_call_response_headers_hook(
                             data=data,
                             user_api_key_dict=user_api_key_dict,
@@ -3042,7 +3042,7 @@ class ProxyLogging:
         return merged_headers
 
     @staticmethod
-    def _build_litellm_call_info(data: dict, response: object) -> dict[str, object]:
+    def _build_gateway_call_info(data: dict, response: object) -> dict[str, object]:
         """
         Build a normalized dict of routing metadata from response._hidden_params
         and data, abstracting away the metadata vs litellm_metadata split.
@@ -6973,8 +6973,8 @@ def _check_and_merge_model_level_guardrails(
         seen: Final[set] = set()
         union: Final[list] = []
         for dep in deployments:
-            litellm_params_dep = dep.get("litellm_params") or {}
-            guardrails = litellm_params_dep.get("guardrails")
+            gateway_params_dep = dep.get("litellm_params") or {}
+            guardrails = gateway_params_dep.get("guardrails")
             if isinstance(guardrails, str):
                 guardrails = [guardrails]
             elif not isinstance(guardrails, list):

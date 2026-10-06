@@ -1076,10 +1076,10 @@ class TestDeferredStreamingClosure:
         import time
 
         from token_iq.gateway.core_utils.litellm_logging import (
-            Logging as LiteLLMLoggingObj,
+            Logging as GatewayLoggingObj,
         )
 
-        logging_obj = LiteLLMLoggingObj(
+        logging_obj = GatewayLoggingObj(
             model="gpt-4o-mini",
             messages=[{"role": "user", "content": "hi"}],
             stream=True,
@@ -1090,7 +1090,7 @@ class TestDeferredStreamingClosure:
         )
         # litellm_params with no recognized async marker -> classified sync.
         logging_obj.model_call_details["litellm_params"] = {}
-        assert LiteLLMLoggingObj._is_sync_litellm_request({}) is True
+        assert GatewayLoggingObj._is_sync_gateway_request({}) is True
 
         with (
             patch.object(
@@ -1330,11 +1330,11 @@ class TestArmDeferredStreamDispatch:
     @pytest.mark.asyncio
     async def test_bridged_responses_iterator_gets_csw_arg_shape(self):
         from token_iq.gateway.responses.litellm_completion_transformation.streaming_iterator import (
-            LiteLLMCompletionStreamingIterator,
+            GatewayCompletionStreamingIterator,
         )
 
         logging_obj, recorded = self._dispatch_recording_logging_obj()
-        bridged = object.__new__(LiteLLMCompletionStreamingIterator)
+        bridged = object.__new__(GatewayCompletionStreamingIterator)
 
         self._processor()._arm_deferred_stream_dispatch(
             response=bridged,
@@ -1361,14 +1361,14 @@ class TestArmDeferredStreamDispatch:
         native closure against the CSW's 2-arg stored shape and leaked a
         TypeError 500 frame into the stream."""
         from token_iq.gateway.responses.litellm_completion_transformation.streaming_iterator import (
-            LiteLLMCompletionStreamingIterator,
+            GatewayCompletionStreamingIterator,
         )
         from token_iq.gateway.router_utils.add_retry_fallback_headers import (
             HiddenParamsAsyncIteratorWrapper,
         )
 
         logging_obj, recorded = self._dispatch_recording_logging_obj()
-        wrapped = HiddenParamsAsyncIteratorWrapper(object.__new__(LiteLLMCompletionStreamingIterator))
+        wrapped = HiddenParamsAsyncIteratorWrapper(object.__new__(GatewayCompletionStreamingIterator))
 
         self._processor()._arm_deferred_stream_dispatch(
             response=wrapped,

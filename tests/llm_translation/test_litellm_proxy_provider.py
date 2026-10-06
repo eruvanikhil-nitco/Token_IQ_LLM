@@ -16,7 +16,7 @@ from openai import AsyncOpenAI
 
 
 @pytest.mark.asyncio
-async def test_litellm_gateway_from_sdk():
+async def test_gateway_gateway_from_sdk():
     gateway.set_verbose = True
     messages = [
         {
@@ -51,7 +51,7 @@ async def test_litellm_gateway_from_sdk():
 
 
 @pytest.mark.asyncio
-async def test_litellm_gateway_from_sdk_structured_output():
+async def test_gateway_gateway_from_sdk_structured_output():
     from pydantic import BaseModel
 
     class Result(BaseModel):
@@ -89,7 +89,7 @@ async def test_litellm_gateway_from_sdk_structured_output():
 
 @pytest.mark.parametrize("is_async", [False, True])
 @pytest.mark.asyncio
-async def test_litellm_gateway_from_sdk_embedding(is_async):
+async def test_gateway_gateway_from_sdk_embedding(is_async):
     gateway.set_verbose = True
     gateway._turn_on_debug()
 
@@ -145,7 +145,7 @@ async def test_litellm_gateway_from_sdk_embedding(is_async):
 
 @pytest.mark.parametrize("is_async", [False, True])
 @pytest.mark.asyncio
-async def test_litellm_gateway_from_sdk_image_generation(is_async):
+async def test_gateway_gateway_from_sdk_image_generation(is_async):
     gateway._turn_on_debug()
 
     if is_async:
@@ -194,7 +194,7 @@ async def test_litellm_gateway_from_sdk_image_generation(is_async):
 
 @pytest.mark.parametrize("is_async", [False, True])
 @pytest.mark.asyncio
-async def test_litellm_gateway_image_generation_direct(is_async):
+async def test_gateway_gateway_image_generation_direct(is_async):
     """Test image generation using the litellm_proxy provider directly."""
     gateway._turn_on_debug()
 
@@ -266,7 +266,7 @@ async def test_litellm_gateway_image_generation_direct(is_async):
 
 @pytest.mark.parametrize("is_async", [False, True])
 @pytest.mark.asyncio
-async def test_litellm_gateway_from_sdk_image_edit(is_async):
+async def test_gateway_gateway_from_sdk_image_edit(is_async):
     gateway._turn_on_debug()
 
     mock_response = {
@@ -319,7 +319,7 @@ async def test_litellm_gateway_from_sdk_image_edit(is_async):
 
 @pytest.mark.parametrize("is_async", [False, True])
 @pytest.mark.asyncio
-async def test_litellm_gateway_from_sdk_transcription(is_async):
+async def test_gateway_gateway_from_sdk_transcription(is_async):
     gateway.set_verbose = True
     gateway._turn_on_debug()
 
@@ -364,7 +364,7 @@ async def test_litellm_gateway_from_sdk_transcription(is_async):
 
 @pytest.mark.parametrize("is_async", [False, True])
 @pytest.mark.asyncio
-async def test_litellm_gateway_from_sdk_speech(is_async):
+async def test_gateway_gateway_from_sdk_speech(is_async):
     gateway.set_verbose = True
 
     if is_async:
@@ -415,7 +415,7 @@ async def test_litellm_gateway_from_sdk_speech(is_async):
 
 @pytest.mark.parametrize("is_async", [False, True])
 @pytest.mark.asyncio
-async def test_litellm_gateway_from_sdk_rerank(is_async):
+async def test_gateway_gateway_from_sdk_rerank(is_async):
     gateway.set_verbose = True
     gateway._turn_on_debug()
 
@@ -509,7 +509,7 @@ async def test_litellm_gateway_from_sdk_rerank(is_async):
         assert len(request_body["documents"]) == 2
 
 
-def test_litellm_gateway_from_sdk_with_response_cost_in_additional_headers():
+def test_gateway_gateway_from_sdk_with_response_cost_in_additional_headers():
     gateway.set_verbose = True
     gateway._turn_on_debug()
 
@@ -584,7 +584,7 @@ def test_litellm_gateway_from_sdk_with_response_cost_in_additional_headers():
         assert response._hidden_params["response_cost"] == 120
 
 
-def test_litellm_gateway_from_sdk_with_thinking_param():
+def test_gateway_gateway_from_sdk_with_thinking_param():
     with pytest.raises(Exception, match=re.escape("Connection error.")) as exc_info:
         response = gateway.completion(
             model="litellm_proxy/anthropic.claude-sonnet-4-5-20250929-v1:0",

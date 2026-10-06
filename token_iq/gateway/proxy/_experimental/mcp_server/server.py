@@ -26,7 +26,7 @@ from starlette.types import Message, Receive, Scope, Send
 
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.constants import MAXIMUM_TRACEBACK_LINES_TO_LOG
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.llms.custom_httpx.http_handler import (
     get_async_httpx_client,
     httpxSpecialProvider,
@@ -74,7 +74,7 @@ from token_iq.gateway.proxy._types import (
 )
 from token_iq.gateway.proxy.auth.ip_address_utils import IPAddressUtils
 from token_iq.gateway.proxy.litellm_pre_call_utils import (
-    LiteLLMProxyRequestSetup,
+    GatewayProxyRequestSetup,
     get_chain_id_from_headers,
 )
 from token_iq.gateway.types.mcp import MCPAuth, MCPSpecVersion
@@ -866,7 +866,7 @@ if MCP_AVAILABLE:
         user_api_key_auth: UserAPIKeyAuth,
         raw_headers: Mapping[str, str] | None = None,
         client_ip: str | None = None,
-    ) -> LiteLLMLoggingObj | None:
+    ) -> GatewayLoggingObj | None:
         """Run the pre-call pipeline (guardrails + logging setup) for a virtual
         mcp_tool_call so the SSE path spend-logs like the REST path."""
         from token_iq.gateway.proxy.common_request_processing import (
@@ -1891,7 +1891,7 @@ if MCP_AVAILABLE:
             return AggregateToolListing(tools=[], outcomes={})
 
         list_tools_start_time: Final = datetime.now()
-        litellm_logging_obj: LiteLLMLoggingObj | None = None
+        litellm_logging_obj: GatewayLoggingObj | None = None
         list_tools_request_data: dict[str, object] = {}
 
         if log_list_tools_to_spendlogs:
@@ -1899,7 +1899,7 @@ if MCP_AVAILABLE:
             rules_obj: Final = Rules()
             list_tools_call_id: Final = str(uuid.uuid4())
             # Derive trace_id from raw_headers when not explicitly passed (same as A2A / MCP call_tool)
-            effective_litellm_trace_id: Final = litellm_trace_id or get_chain_id_from_headers(raw_headers)
+            effective_gateway_trace_id: Final = litellm_trace_id or get_chain_id_from_headers(raw_headers)
             spend_logs_metadata: Final[dict[str, object]] = {
                 "mcp_operation": "list_tools",
             }
@@ -1912,7 +1912,7 @@ if MCP_AVAILABLE:
                 "model": "MCP: list_tools",
                 "call_type": CallTypes.list_mcp_tools.value,
                 "litellm_call_id": list_tools_call_id,
-                "litellm_trace_id": effective_litellm_trace_id,
+                "litellm_trace_id": effective_gateway_trace_id,
                 "metadata": {
                     "spend_logs_metadata": spend_logs_metadata,
                     "headers": logging_safe_mcp_headers(raw_headers),
@@ -1932,7 +1932,7 @@ if MCP_AVAILABLE:
 
             # Attach user identifiers using the standard helper
             if user_api_key_auth is not None:
-                LiteLLMProxyRequestSetup.add_user_api_key_auth_to_request_metadata(
+                GatewayProxyRequestSetup.add_user_api_key_auth_to_request_metadata(
                     data=list_tools_request_data,
                     user_api_key_dict=user_api_key_auth,
                     _metadata_variable_name="metadata",
@@ -2759,7 +2759,7 @@ if MCP_AVAILABLE:
             server_name=server_name,
             session_id=_mcp_session_id_from_headers(raw_headers),
         )
-        litellm_logging_obj: Final[LiteLLMLoggingObj | None] = kwargs.get("litellm_logging_obj", None)
+        litellm_logging_obj: Final[GatewayLoggingObj | None] = kwargs.get("litellm_logging_obj", None)
         if litellm_logging_obj:
             litellm_logging_obj.model_call_details["mcp_tool_call_metadata"] = standard_logging_mcp_tool_call
             litellm_logging_obj.model = f"MCP: {name}"
@@ -2963,7 +2963,7 @@ if MCP_AVAILABLE:
 
     async def _run_post_mcp_call_guardrails(
         result: CallToolResult,
-        litellm_logging_obj: LiteLLMLoggingObj | None,
+        litellm_logging_obj: GatewayLoggingObj | None,
         user_api_key_auth: UserAPIKeyAuth | None,
         request_data: Mapping[str, object],
     ) -> CallToolResult:
@@ -2998,7 +2998,7 @@ if MCP_AVAILABLE:
     )
 
     async def _fire_mcp_tool_call_logging(
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         result: CallToolResult,
         start_time: datetime,
         end_time: datetime,
@@ -3079,7 +3079,7 @@ if MCP_AVAILABLE:
         Call a specific tool with the provided arguments (handles prefixed tool names).
         """
         start_time: Final = datetime.now()
-        litellm_logging_obj: Final[LiteLLMLoggingObj | None] = kwargs.get("litellm_logging_obj", None)
+        litellm_logging_obj: Final[GatewayLoggingObj | None] = kwargs.get("litellm_logging_obj", None)
 
         try:
             if arguments is None:
@@ -3309,7 +3309,7 @@ if MCP_AVAILABLE:
         mcp_server_auth_headers: dict[str, dict[str, str]] | None = None,
         oauth2_headers: dict[str, str] | None = None,
         raw_headers: dict[str, str] | None = None,
-        litellm_logging_obj: LiteLLMLoggingObj | None = None,
+        litellm_logging_obj: GatewayLoggingObj | None = None,
         host_progress_callback: Callable | None = None,
     ) -> CallToolResult:
         """Handle tool execution for managed server tools"""
@@ -3963,8 +3963,8 @@ if MCP_AVAILABLE:
         would leak the proxy key to a third-party MCP server.
         """
         scope_headers: Final[Sequence[tuple[bytes, bytes]]] = scope.get("headers", [])
-        has_litellm_key_header: Final = any(key.lower() == b"x-litellm-api-key" for key, _ in scope_headers)
-        if not has_litellm_key_header:
+        has_gateway_key_header: Final = any(key.lower() == b"x-litellm-api-key" for key, _ in scope_headers)
+        if not has_gateway_key_header:
             return None
         return _get_authorization_header_from_scope(scope)
 

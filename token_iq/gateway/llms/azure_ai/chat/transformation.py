@@ -15,13 +15,13 @@ from token_iq.gateway.core_utils.prompt_templates.common_utils import (
     filter_value_from_dict,
 )
 from token_iq.gateway.llms.azure.common_utils import BaseAzureLLM
-from token_iq.gateway.llms.base_llm.chat.transformation import LiteLLMLoggingObj
+from token_iq.gateway.llms.base_llm.chat.transformation import GatewayLoggingObj
 from token_iq.gateway.llms.openai.common_utils import drop_params_from_unprocessable_entity_error
 from token_iq.gateway.llms.openai.openai import OpenAIConfig
 from token_iq.gateway.llms.xai.chat.transformation import XAIChatConfig
 from token_iq.gateway.secret_managers.main import get_secret_str
 from token_iq.gateway.types.llms.openai import AllMessageValues
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.types.utils import ModelResponse, ProviderField
 from token_iq.gateway.utils import _add_path_to_api_base, supports_tool_choice
 
@@ -87,8 +87,8 @@ class AzureAIStudioConfig(OpenAIConfig):
                 headers["Authorization"] = f"Bearer {api_key}"
         else:
             # No api_key provided — fall back to Azure AD token-based auth
-            litellm_params_obj = GenericLiteLLMParams(**(litellm_params if isinstance(litellm_params, dict) else {}))
-            headers = BaseAzureLLM._base_validate_azure_environment(headers=headers, litellm_params=litellm_params_obj)
+            gateway_params_obj = GenericGatewayParams(**(litellm_params if isinstance(litellm_params, dict) else {}))
+            headers = BaseAzureLLM._base_validate_azure_environment(headers=headers, litellm_params=gateway_params_obj)
 
         headers["Content-Type"] = "application/json"
 
@@ -256,7 +256,7 @@ class AzureAIStudioConfig(OpenAIConfig):
         model: str,
         raw_response: Response,
         model_response: ModelResponse,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         request_data: dict,
         messages: list[AllMessageValues],
         optional_params: dict,

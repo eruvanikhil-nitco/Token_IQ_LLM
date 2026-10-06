@@ -13,17 +13,17 @@ from token_iq.gateway.types.images.main import (
     ImageEditRequestParams,
 )
 from token_iq.gateway.types.llms.openai import FileTypes
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.utils import ImageResponse
 
 from ..common_utils import OpenAIError
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as _LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as _GatewayLoggingObj
 
-    LiteLLMLoggingObj = _LiteLLMLoggingObj
+    GatewayLoggingObj = _GatewayLoggingObj
 else:
-    LiteLLMLoggingObj = Any
+    GatewayLoggingObj = Any
 
 
 class OpenAIImageEditConfig(BaseImageEditConfig):
@@ -83,7 +83,7 @@ class OpenAIImageEditConfig(BaseImageEditConfig):
         prompt: str | None,
         image: FileTypes | None,
         image_edit_optional_request_params: dict,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> tuple[dict, RequestFiles]:
         """
@@ -143,7 +143,7 @@ class OpenAIImageEditConfig(BaseImageEditConfig):
         self,
         model: str,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> ImageResponse:
         """No transform applied since outputs are in OpenAI spec already"""
         try:

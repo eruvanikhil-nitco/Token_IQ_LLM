@@ -12,7 +12,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.core_utils.sensitive_data_masker import SensitiveDataMasker
-from token_iq.gateway.proxy._types import CommonProxyErrors, LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import CommonProxyErrors, GatewayUserRoles, UserAPIKeyAuth
 from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 from token_iq.gateway.proxy.common_utils.encrypt_decrypt_utils import (
     decrypt_value_helper,
@@ -212,7 +212,7 @@ async def update_vantage_settings(
     Allows updating individual Vantage configuration fields without requiring all fields.
     Only admin users can update Vantage settings.
     """
-    if user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN:
+    if user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN:
         raise HTTPException(
             status_code=403,
             detail={"error": CommonProxyErrors.not_allowed_access.value},
@@ -327,7 +327,7 @@ async def init_vantage_settings(
 
     Only admin users can configure Vantage settings.
     """
-    if user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN:
+    if user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN:
         raise HTTPException(
             status_code=403,
             detail={"error": CommonProxyErrors.not_allowed_access.value},
@@ -374,7 +374,7 @@ async def vantage_dry_run_export(
 
     Only admin users can perform Vantage exports.
     """
-    if user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN:
+    if user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN:
         raise HTTPException(
             status_code=403,
             detail={"error": CommonProxyErrors.not_allowed_access.value},
@@ -383,11 +383,11 @@ async def vantage_dry_run_export(
     try:
         # Dry-run uses the FOCUS database + transformer directly,
         # bypassing the destination so no Vantage credentials are required.
-        from token_iq.gateway.integrations.focus.database import FocusLiteLLMDatabase
+        from token_iq.gateway.integrations.focus.database import FocusGatewayDatabase
         from token_iq.gateway.integrations.focus.export_engine import FocusExportEngine
         from token_iq.gateway.integrations.focus.transformer import FocusTransformer
 
-        database: Final = FocusLiteLLMDatabase()
+        database: Final = FocusGatewayDatabase()
         transformer: Final = FocusTransformer()
 
         import polars as pl
@@ -467,7 +467,7 @@ async def vantage_export(
 
     Only admin users can perform Vantage exports.
     """
-    if user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN:
+    if user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN:
         raise HTTPException(
             status_code=403,
             detail={"error": CommonProxyErrors.not_allowed_access.value},
@@ -532,7 +532,7 @@ async def delete_vantage_settings(
 
     Only admin users can delete Vantage settings.
     """
-    if user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN:
+    if user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN:
         raise HTTPException(
             status_code=403,
             detail={"error": CommonProxyErrors.not_allowed_access.value},

@@ -13,7 +13,7 @@ from token_iq.gateway.types.utils import FileTypes, ImageResponse, LlmProviders
 from token_iq.gateway.utils import ProviderConfigManager
 
 from ...base_llm.image_variations.transformation import BaseImageVariationConfig
-from ...custom_httpx.llm_http_handler import LiteLLMLoggingObj
+from ...custom_httpx.llm_http_handler import GatewayLoggingObj
 from ..common_utils import OpenAIError
 
 
@@ -51,7 +51,7 @@ class OpenAIImageVariationsHandler:
         model: str | None,
         timeout: float | None,
         max_retries: int,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         model_response: ImageResponse,
         optional_params: dict,
         litellm_params: dict,
@@ -118,7 +118,7 @@ class OpenAIImageVariationsHandler:
         image: FileTypes,
         timeout: float | None,
         custom_llm_provider: str,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         optional_params: dict,
         litellm_params: dict,
         print_verbose: Callable | None = None,

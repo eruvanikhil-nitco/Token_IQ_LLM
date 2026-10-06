@@ -142,7 +142,7 @@ class TestVertexAIGeminiImageEditTransformation:
                 headers={},
             )
 
-    def test_validate_environment_with_litellm_params(self) -> None:
+    def test_validate_environment_with_gateway_params(self) -> None:
         """Test validate_environment uses credentials from litellm_params"""
         with patch.object(
             self.config,
@@ -173,7 +173,7 @@ class TestVertexAIGeminiImageEditTransformation:
                 assert call_kwargs["project_id"] == "custom-project"
                 assert result == {"Authorization": "Bearer test-token"}
 
-    def test_get_complete_url_from_litellm_params(self) -> None:
+    def test_get_complete_url_from_gateway_params(self) -> None:
         """Test vertex_project/vertex_location read from litellm_params first"""
         url = self.config.get_complete_url(
             model="gemini-2.5-flash",
@@ -200,7 +200,7 @@ class TestVertexAIGeminiImageEditTransformation:
         assert "global-aiplatform.googleapis.com" not in url
         assert "/locations/global/" in url
 
-    def test_get_complete_url_litellm_params_overrides_env(self) -> None:
+    def test_get_complete_url_gateway_params_overrides_env(self) -> None:
         """Test litellm_params takes precedence over environment variables"""
         with patch.dict(
             os.environ,

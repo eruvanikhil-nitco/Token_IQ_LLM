@@ -9,8 +9,8 @@ from token_iq.gateway.proxy._types import (
     CommonProxyErrors,
     KeyManagementRoutes,
     LiteLLM_UserTable,
-    LiteLLMRoutes,
-    LitellmUserRoles,
+    GatewayRoutes,
+    GatewayUserRoles,
     UserAPIKeyAuth,
 )
 
@@ -112,12 +112,12 @@ class RouteChecks:
                 return True
 
         ## check if 'allowed_route' is a field name in LiteLLMRoutes
-        if any(allowed_route in LiteLLMRoutes._member_names_ for allowed_route in valid_token.allowed_routes):
+        if any(allowed_route in GatewayRoutes._member_names_ for allowed_route in valid_token.allowed_routes):
             for allowed_route in valid_token.allowed_routes:
-                if allowed_route in LiteLLMRoutes._member_names_:
+                if allowed_route in GatewayRoutes._member_names_:
                     if RouteChecks.check_route_access(
                         route=route,
-                        allowed_routes=LiteLLMRoutes._member_map_[allowed_route].value,
+                        allowed_routes=GatewayRoutes._member_map_[allowed_route].value,
                     ):
                         if (
                             allowed_route in _AUTH_ENFORCED_PASS_THROUGH_ROUTE_GROUPS
@@ -175,7 +175,7 @@ class RouteChecks:
                         # enforce proxy-admin on writes and scope reads by role.
                         if RouteChecks.check_route_access(
                             route=route,
-                            allowed_routes=LiteLLMRoutes.agent_management_routes.value,
+                            allowed_routes=GatewayRoutes.agent_management_routes.value,
                         ):
                             return True
 
@@ -242,7 +242,7 @@ class RouteChecks:
     @staticmethod
     def non_proxy_admin_allowed_routes_check(
         user_obj: LiteLLM_UserTable | None,
-        _user_role: LitellmUserRoles | None,
+        _user_role: GatewayUserRoles | None,
         route: str,
         request: Request,
         valid_token: UserAPIKeyAuth,
@@ -277,7 +277,7 @@ class RouteChecks:
                 if (
                     user_id
                     and user_id != valid_token.user_id
-                    and _user_role != LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY.value
+                    and _user_role != GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY.value
                 ):
                     raise HTTPException(
                         status_code=status.HTTP_403_FORBIDDEN,
@@ -292,12 +292,12 @@ class RouteChecks:
             elif route == "/team/info":
                 pass  # handled by function itself
         elif (
-            route in LiteLLMRoutes.global_spend_tracking_routes.value
+            route in GatewayRoutes.global_spend_tracking_routes.value
             and getattr(valid_token, "permissions", None) is not None
             and "get_spend_routes" in getattr(valid_token, "permissions", [])
         ):
             pass
-        elif _user_role == LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY.value:
+        elif _user_role == GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY.value:
             RouteChecks._check_proxy_admin_viewer_access(
                 route=route,
                 _user_role=_user_role,
@@ -305,16 +305,16 @@ class RouteChecks:
                 request=request,
             )
         elif (
-            _user_role == LitellmUserRoles.INTERNAL_USER.value
-            and RouteChecks.check_route_access(route=route, allowed_routes=LiteLLMRoutes.internal_user_routes.value)
+            _user_role == GatewayUserRoles.INTERNAL_USER.value
+            and RouteChecks.check_route_access(route=route, allowed_routes=GatewayRoutes.internal_user_routes.value)
             or _user_is_org_admin(request_data=request_data, user_object=user_obj)
-            and RouteChecks.check_route_access(route=route, allowed_routes=LiteLLMRoutes.org_admin_allowed_routes.value)
-            or _user_role == LitellmUserRoles.INTERNAL_USER_VIEW_ONLY.value
+            and RouteChecks.check_route_access(route=route, allowed_routes=GatewayRoutes.org_admin_allowed_routes.value)
+            or _user_role == GatewayUserRoles.INTERNAL_USER_VIEW_ONLY.value
             and RouteChecks.check_route_access(
                 route=route,
-                allowed_routes=LiteLLMRoutes.internal_user_view_only_routes.value,
+                allowed_routes=GatewayRoutes.internal_user_view_only_routes.value,
             )
-            or RouteChecks.check_route_access(route=route, allowed_routes=LiteLLMRoutes.self_managed_routes.value)
+            or RouteChecks.check_route_access(route=route, allowed_routes=GatewayRoutes.self_managed_routes.value)
         ):
             pass
         elif route.startswith("/v1/mcp/") or route.startswith("/mcp-rest/"):
@@ -369,27 +369,27 @@ class RouteChecks:
         if not isinstance(route, str):
             return False
 
-        if route in LiteLLMRoutes.openai_routes.value:
+        if route in GatewayRoutes.openai_routes.value:
             return True
 
-        if route in LiteLLMRoutes.anthropic_routes.value:
+        if route in GatewayRoutes.anthropic_routes.value:
             return True
 
-        if route in LiteLLMRoutes.google_routes.value:
+        if route in GatewayRoutes.google_routes.value:
             return True
 
-        if RouteChecks.check_route_access(route=route, allowed_routes=LiteLLMRoutes.mcp_inference_routes.value):
+        if RouteChecks.check_route_access(route=route, allowed_routes=GatewayRoutes.mcp_inference_routes.value):
             return True
 
-        if RouteChecks.check_route_access(route=route, allowed_routes=LiteLLMRoutes.agent_inference_routes.value):
+        if RouteChecks.check_route_access(route=route, allowed_routes=GatewayRoutes.agent_inference_routes.value):
             return True
 
-        if route in LiteLLMRoutes.litellm_native_routes.value:
+        if route in GatewayRoutes.gateway_native_routes.value:
             return True
 
         # fuzzy match routes like "/v1/threads/thread_49EIN5QF32s4mH20M7GFKdlZ"
         # Check for routes with placeholders or wildcard patterns
-        for openai_route in LiteLLMRoutes.openai_routes.value:
+        for openai_route in GatewayRoutes.openai_routes.value:
             # Replace placeholders with regex pattern
             # placeholders are written as "/threads/{thread_id}"
             if "{" in openai_route:
@@ -401,13 +401,13 @@ class RouteChecks:
                     return True
 
         # Check for Google routes with placeholders like "/v1beta/models/{model_name}:generateContent"
-        for google_route in LiteLLMRoutes.google_routes.value:
+        for google_route in GatewayRoutes.google_routes.value:
             if "{" in google_route:
                 if RouteChecks._route_matches_pattern(route=route, pattern=google_route):
                     return True
 
         # Check for Anthropic routes with placeholders
-        for anthropic_route in LiteLLMRoutes.anthropic_routes.value:
+        for anthropic_route in GatewayRoutes.anthropic_routes.value:
             if "{" in anthropic_route:
                 if RouteChecks._route_matches_pattern(route=route, pattern=anthropic_route):
                     return True
@@ -415,7 +415,7 @@ class RouteChecks:
         if RouteChecks._is_azure_openai_route(route=route):
             return True
 
-        for _llm_passthrough_route in LiteLLMRoutes.mapped_pass_through_routes.value:
+        for _llm_passthrough_route in GatewayRoutes.mapped_pass_through_routes.value:
             if route == _llm_passthrough_route or route.startswith(_llm_passthrough_route + "/"):
                 return True
         return False
@@ -448,14 +448,14 @@ class RouteChecks:
         """
         Check if route is a management route
         """
-        return RouteChecks.check_route_access(route=route, allowed_routes=LiteLLMRoutes.management_routes.value)
+        return RouteChecks.check_route_access(route=route, allowed_routes=GatewayRoutes.management_routes.value)
 
     @staticmethod
     def is_info_route(route: str) -> bool:
         """
         Check if route is an info route
         """
-        return route in LiteLLMRoutes.info_routes.value
+        return route in GatewayRoutes.info_routes.value
 
     @staticmethod
     def _is_azure_openai_route(route: str) -> bool:
@@ -797,7 +797,7 @@ class RouteChecks:
             )
 
         # Check if this is a write operation on management routes
-        if RouteChecks.check_route_access(route=route, allowed_routes=LiteLLMRoutes.management_routes.value):
+        if RouteChecks.check_route_access(route=route, allowed_routes=GatewayRoutes.management_routes.value):
             # For management routes, only allow read operations or specific allowed updates
             if route == "/user/update":
                 # Check the Request params are valid for PROXY_ADMIN_VIEW_ONLY
@@ -855,9 +855,9 @@ class RouteChecks:
         # Legacy explicit-allow sets (kept for routes that are POST but
         # semantically read-only, e.g. /spend/calculate). Both admin_viewer_routes
         # and global_spend_tracking_routes are reads/listings.
-        if RouteChecks.check_route_access(route=route, allowed_routes=LiteLLMRoutes.admin_viewer_routes.value):
+        if RouteChecks.check_route_access(route=route, allowed_routes=GatewayRoutes.admin_viewer_routes.value):
             return
-        if RouteChecks.check_route_access(route=route, allowed_routes=LiteLLMRoutes.global_spend_tracking_routes.value):
+        if RouteChecks.check_route_access(route=route, allowed_routes=GatewayRoutes.global_spend_tracking_routes.value):
             return
 
         # NOTE: We intentionally do NOT fall back to allowing all

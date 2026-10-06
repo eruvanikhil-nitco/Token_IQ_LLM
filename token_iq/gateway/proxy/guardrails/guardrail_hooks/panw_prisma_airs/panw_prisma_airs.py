@@ -91,7 +91,7 @@ class _ToolCallSlice(BaseModel):
 
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
     from token_iq.gateway.types.proxy.guardrails.guardrail_hooks.base import GuardrailConfigModel
 
 
@@ -169,7 +169,7 @@ class PanwPrismaAirsHandler(CustomGuardrail):
         if app_name:
             self.app_name = f"LiteLLM-{app_name}"
         else:
-            self.app_name = "LiteLLM"
+            self.app_name = "Gateway"
 
         # Validate required configuration
         if not self.api_key:
@@ -1539,7 +1539,7 @@ class PanwPrismaAirsHandler(CustomGuardrail):
     @staticmethod
     def _is_anthropic_request(
         request_data: Mapping[str, object],
-        logging_obj: Optional["LiteLLMLoggingObj"] = None,
+        logging_obj: Optional["GatewayLoggingObj"] = None,
     ) -> bool:
         """Detect if the current request is an Anthropic /v1/messages call."""
         if logging_obj:
@@ -1564,7 +1564,7 @@ class PanwPrismaAirsHandler(CustomGuardrail):
     def _use_latest_user_only(
         self,
         request_data: Mapping[str, object],
-        logging_obj: Optional["LiteLLMLoggingObj"] = None,
+        logging_obj: Optional["GatewayLoggingObj"] = None,
     ) -> bool:
         """Resolve whether to scan only the latest user message.
 
@@ -1695,7 +1695,7 @@ class PanwPrismaAirsHandler(CustomGuardrail):
         inputs: GenericGuardrailAPIInputs,
         request_data: dict[str, object],
         input_type: Literal["request", "response"],
-        logging_obj: Optional["LiteLLMLoggingObj"] = None,
+        logging_obj: Optional["GatewayLoggingObj"] = None,
     ) -> GenericGuardrailAPIInputs:
         """
         Unified guardrail method for the apply_guardrail framework.

@@ -32,7 +32,7 @@ def _client() -> tuple[MagicMock, MagicMock]:
     table.create = AsyncMock()
     table.find_many = AsyncMock(return_value=[])
     client = MagicMock()
-    client.db.litellm_providersyncrun = table
+    client.db.gateway_providersyncrun = table
     return client, table
 
 

@@ -163,7 +163,7 @@ class TestGate:
         assert _accepts(custom_llm_provider=None) is False
         assert gate.calls == []
 
-    def test_declines_an_anthropic_request_carrying_a_litellm_metadata_user_id(self, monkeypatch):
+    def test_declines_an_anthropic_request_carrying_a_gateway_metadata_user_id(self, monkeypatch):
         """`AnthropicConfig.transform_request` copies a valid `user_id` into the Messages body.
 
         It does that inside the function the Rust route replaces, and the core is

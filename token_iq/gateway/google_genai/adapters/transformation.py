@@ -20,7 +20,7 @@ from token_iq.gateway.types.llms.openai import (
     ChatCompletionToolParam,
     ChatCompletionUserMessage,
 )
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.types.utils import (
     AdapterCompletionStreamWrapper,
     ChatCompletionDeltaCustomToolCall,
@@ -252,7 +252,7 @@ class GoogleGenAIAdapter:
         model: str,
         contents: _JsonDictList | _JsonDict,
         config: Mapping[str, object] | None = None,
-        litellm_params: GenericLiteLLMParams | None = None,
+        litellm_params: GenericGatewayParams | None = None,
         **kwargs,
     ) -> dict[str, Any]:
         """
@@ -336,17 +336,17 @@ class GoogleGenAIAdapter:
         #########################################################
         completion_request_dict = dict(completion_request)
         if litellm_params:
-            completion_request_dict = self._add_generic_litellm_params_to_request(
+            completion_request_dict = self._add_generic_gateway_params_to_request(
                 completion_request_dict=completion_request_dict,
                 litellm_params=litellm_params,
             )
 
         return completion_request_dict
 
-    def _add_generic_litellm_params_to_request(
+    def _add_generic_gateway_params_to_request(
         self,
         completion_request_dict: _JsonDict,
-        litellm_params: GenericLiteLLMParams | None = None,
+        litellm_params: GenericGatewayParams | None = None,
     ) -> _JsonDict:
         """Add generic litellm params to request. e.g add api_base, api_key, api_version, etc.
 
@@ -357,10 +357,10 @@ class GoogleGenAIAdapter:
         Returns:
             Dict[str, Any]
         """
-        allowed_fields: Final = GenericLiteLLMParams.model_fields.keys()
+        allowed_fields: Final = GenericGatewayParams.model_fields.keys()
         if litellm_params:
-            litellm_dict: Final[_JsonDict] = litellm_params.model_dump(exclude_none=True)
-            for key, value in litellm_dict.items():
+            gateway_dict: Final[_JsonDict] = litellm_params.model_dump(exclude_none=True)
+            for key, value in gateway_dict.items():
                 if key in allowed_fields:
                     completion_request_dict[key] = value
         return completion_request_dict

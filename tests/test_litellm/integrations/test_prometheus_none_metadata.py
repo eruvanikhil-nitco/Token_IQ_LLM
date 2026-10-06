@@ -81,7 +81,7 @@ class TestNoneMetadataHandling:
             output_tokens=10.0,
         )
 
-    def test_set_llm_deployment_success_metrics_with_missing_litellm_params(
+    def test_set_llm_deployment_success_metrics_with_missing_gateway_params(
         self, prometheus_logger
     ):
         """
@@ -124,7 +124,7 @@ class TestNoneMetadataHandling:
             output_tokens=10.0,
         )
 
-    def test_set_llm_deployment_success_metrics_with_litellm_metadata_key(
+    def test_set_llm_deployment_success_metrics_with_gateway_metadata_key(
         self, prometheus_logger
     ):
         """

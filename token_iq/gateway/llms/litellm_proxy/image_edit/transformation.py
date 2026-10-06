@@ -2,7 +2,7 @@ from token_iq.gateway.llms.openai.image_edit.transformation import OpenAIImageEd
 from token_iq.gateway.secret_managers.main import get_secret_str
 
 
-class LiteLLMProxyImageEditConfig(OpenAIImageEditConfig):
+class GatewayProxyImageEditConfig(OpenAIImageEditConfig):
     """Configuration for image edit requests routed through LiteLLM Proxy."""
 
     def validate_environment(

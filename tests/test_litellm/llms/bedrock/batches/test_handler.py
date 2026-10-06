@@ -470,7 +470,7 @@ def test_cancel_batch_reraises_other_client_errors(patched_boto3):
     fake_client.get_model_invocation_job.assert_not_called()
 
 
-def test_litellm_cancel_batch_dispatches_to_bedrock(patched_boto3):
+def test_gateway_cancel_batch_dispatches_to_bedrock(patched_boto3):
     from token_iq import gateway
 
     fake_client, _ = patched_boto3

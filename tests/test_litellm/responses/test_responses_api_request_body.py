@@ -535,7 +535,7 @@ async def _aresponses_body_with_system_point(**request_kwargs) -> dict:
 
 @pytest.mark.asyncio
 @pytest.mark.usefixtures("_no_openai_api_base_override")
-async def test_aresponses_litellm_proxy_target_sends_no_openai_markers():
+async def test_aresponses_gateway_proxy_target_sends_no_openai_markers():
     body = await _aresponses_body_with_system_point(model="litellm_proxy/gpt-5.6", api_base=_CUSTOM_API_BASE)
     assert body["input"] == _INJECTION_POINT_INPUT
     assert "prompt_cache_options" not in body

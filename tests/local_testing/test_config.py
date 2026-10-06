@@ -46,16 +46,16 @@ async def test_delete_deployment():
         api_base=os.getenv("AZURE_AI_API_BASE"),
         api_version=os.getenv("AZURE_API_VERSION"),
     )
-    encrypted_litellm_params = litellm_params.dict(exclude_none=True)
+    encrypted_gateway_params = litellm_params.dict(exclude_none=True)
 
     master_key = "sk-1234"
 
     setattr(gateway.proxy.proxy_server, "master_key", master_key)
 
-    for k, v in encrypted_litellm_params.items():
+    for k, v in encrypted_gateway_params.items():
         if isinstance(v, str):
             encrypted_value = encrypt_value(v, master_key)
-            encrypted_litellm_params[k] = base64.b64encode(encrypted_value).decode(
+            encrypted_gateway_params[k] = base64.b64encode(encrypted_value).decode(
                 "utf-8"
             )
 
@@ -78,7 +78,7 @@ async def test_delete_deployment():
     db_model = DBModel(
         model_id=deployment.model_info.id,
         model_name="gpt-3.5-turbo",
-        litellm_params=encrypted_litellm_params,
+        litellm_params=encrypted_gateway_params,
         model_info={"id": deployment.model_info.id},
     )
 
@@ -106,7 +106,7 @@ async def test_delete_deployment():
     db_model = DBModel(
         model_id=deployment.model_info.id,
         model_name="gpt-3.5-turbo",
-        litellm_params=encrypted_litellm_params,
+        litellm_params=encrypted_gateway_params,
         model_info={"id": deployment.model_info.id},
     )
 
@@ -151,18 +151,18 @@ async def test_add_existing_deployment():
     setattr(gateway.proxy.proxy_server, "master_key", master_key)
     pc = ProxyConfig()
 
-    encrypted_litellm_params = litellm_params.dict(exclude_none=True)
+    encrypted_gateway_params = litellm_params.dict(exclude_none=True)
 
-    for k, v in encrypted_litellm_params.items():
+    for k, v in encrypted_gateway_params.items():
         if isinstance(v, str):
             encrypted_value = encrypt_value(v, master_key)
-            encrypted_litellm_params[k] = base64.b64encode(encrypted_value).decode(
+            encrypted_gateway_params[k] = base64.b64encode(encrypted_value).decode(
                 "utf-8"
             )
     db_model = DBModel(
         model_id=deployment.model_info.id,
         model_name="gpt-3.5-turbo",
-        litellm_params=encrypted_litellm_params,
+        litellm_params=encrypted_gateway_params,
         model_info={"id": deployment.model_info.id},
     )
 
@@ -206,18 +206,18 @@ async def test_db_error_new_model_check():
     setattr(gateway.proxy.proxy_server, "master_key", master_key)
     pc = ProxyConfig()
 
-    encrypted_litellm_params = litellm_params.dict(exclude_none=True)
+    encrypted_gateway_params = litellm_params.dict(exclude_none=True)
 
-    for k, v in encrypted_litellm_params.items():
+    for k, v in encrypted_gateway_params.items():
         if isinstance(v, str):
             encrypted_value = encrypt_value(v, master_key)
-            encrypted_litellm_params[k] = base64.b64encode(encrypted_value).decode(
+            encrypted_gateway_params[k] = base64.b64encode(encrypted_value).decode(
                 "utf-8"
             )
     db_model = DBModel(
         model_id=deployment.model_info.id,
         model_name="gpt-3.5-turbo",
-        litellm_params=encrypted_litellm_params,
+        litellm_params=encrypted_gateway_params,
         model_info={"id": deployment.model_info.id},
     )
 
@@ -266,25 +266,25 @@ def _create_model_list(flag_value: Literal[0, 1], master_key: str):
     """
     import base64
 
-    new_litellm_params = LiteLLM_Params(
+    new_gateway_params = LiteLLM_Params(
         model="azure/gpt-4.1-mini-3",
         api_key=os.getenv("AZURE_AI_API_KEY"),
         api_base=os.getenv("AZURE_AI_API_BASE"),
         api_version=os.getenv("AZURE_API_VERSION"),
     )
 
-    encrypted_litellm_params = new_litellm_params.dict(exclude_none=True)
+    encrypted_gateway_params = new_gateway_params.dict(exclude_none=True)
 
-    for k, v in encrypted_litellm_params.items():
+    for k, v in encrypted_gateway_params.items():
         if isinstance(v, str):
             encrypted_value = encrypt_value(v, master_key)
-            encrypted_litellm_params[k] = base64.b64encode(encrypted_value).decode(
+            encrypted_gateway_params[k] = base64.b64encode(encrypted_value).decode(
                 "utf-8"
             )
     db_model = DBModel(
         model_id="12345",
         model_name="gpt-3.5-turbo",
-        litellm_params=encrypted_litellm_params,
+        litellm_params=encrypted_gateway_params,
         model_info={"id": "12345"},
     )
 
@@ -420,10 +420,10 @@ def test_provider_config_manager_bedrock_converse_like():
 #         _check_provider_config(config, provider)
 
 
-def test_litellm_proxy_responses_api_config():
+def test_gateway_proxy_responses_api_config():
     """Test that litellm_proxy provider returns correct Responses API config"""
     from token_iq.gateway.llms.litellm_proxy.responses.transformation import (
-        LiteLLMProxyResponsesAPIConfig,
+        GatewayProxyResponsesAPIConfig,
     )
 
     config = ProviderConfigManager.get_provider_responses_api_config(
@@ -433,7 +433,7 @@ def test_litellm_proxy_responses_api_config():
     print(f"config: {config}")
     assert config is not None, "Config should not be None for litellm_proxy provider"
     assert isinstance(
-        config, LiteLLMProxyResponsesAPIConfig
+        config, GatewayProxyResponsesAPIConfig
     ), f"Expected LiteLLMProxyResponsesAPIConfig, got {type(config)}"
     assert (
         config.custom_llm_provider == LlmProviders.LITELLM_PROXY

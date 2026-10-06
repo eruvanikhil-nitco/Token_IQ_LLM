@@ -7,7 +7,7 @@ from token_iq import gateway
 from token_iq.gateway.llms.base_llm.chat.transformation import BaseLLMException
 from token_iq.gateway.llms.custom_httpx.container_handler import generic_container_handler
 from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.utils import ProviderConfigManager
 
 FILE_NOT_FOUND_BODY = {
@@ -38,7 +38,7 @@ def _handle(endpoint_name: str, client, **overrides):
         container_provider_config=ProviderConfigManager.get_provider_container_config(
             provider=gateway.LlmProviders.OPENAI
         ),
-        litellm_params=GenericLiteLLMParams(api_key="sk-test"),
+        litellm_params=GenericGatewayParams(api_key="sk-test"),
         logging_obj=MagicMock(),
         client=client,
         container_id="cntr_real",

@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Final, Literal
 
-from token_iq.gateway.proxy._types import CallInfo, Litellm_EntityType
+from token_iq.gateway.proxy._types import CallInfo, Gateway_EntityType
 
 
 class BaseBudgetAlertType(ABC):
@@ -29,7 +29,7 @@ class SoftBudgetAlert(BaseBudgetAlertType):
         return "Soft Budget Crossed: "
 
     def get_id(self, user_info: CallInfo) -> str:
-        if user_info.event_group == Litellm_EntityType.TEAM:
+        if user_info.event_group == Gateway_EntityType.TEAM:
             return user_info.team_id or "default_id"
         return user_info.token or "default_id"
 

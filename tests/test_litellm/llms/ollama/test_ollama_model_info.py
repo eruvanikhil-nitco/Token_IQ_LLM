@@ -325,7 +325,7 @@ class TestOllamaGetModelInfo:
 
         assert captured_headers[0] == {}
 
-    def test_litellm_get_model_info_does_not_leak_server_key_to_provided_api_base(
+    def test_gateway_get_model_info_does_not_leak_server_key_to_provided_api_base(
         self, monkeypatch
     ):
         """Global model info should not send server-side keys to caller-supplied bases."""
@@ -357,7 +357,7 @@ class TestOllamaGetModelInfo:
         assert model_info["max_input_tokens"] == 32768
         assert captured_headers[0] == {}
 
-    def test_litellm_get_model_info_forwards_explicit_api_key_to_provided_base(
+    def test_gateway_get_model_info_forwards_explicit_api_key_to_provided_base(
         self, monkeypatch
     ):
         """An explicit api_key passed to litellm.get_model_info must reach the provided base."""
@@ -388,7 +388,7 @@ class TestOllamaGetModelInfo:
         assert model_info["max_input_tokens"] == 32768
         assert captured_headers[0] == {"Authorization": "Bearer explicit-api-key"}
 
-    def test_litellm_get_model_info_does_not_cache_on_api_key(self, monkeypatch):
+    def test_gateway_get_model_info_does_not_cache_on_api_key(self, monkeypatch):
         """Regression: api_key must not be part of the get_model_info cache key.
 
         Distinct api_keys for the same (model, api_base) must not each create their
@@ -530,7 +530,7 @@ class TestOllamaGetModelInfo:
         config = OllamaConfig()
         assert config.get_model_info("ollama/llama2") is None
 
-    def test_litellm_get_model_info_uses_provider_hook_for_unknown_model(
+    def test_gateway_get_model_info_uses_provider_hook_for_unknown_model(
         self, monkeypatch
     ):
         """Unmapped Ollama models should use the provider-level dynamic hook."""
@@ -559,7 +559,7 @@ class TestOllamaGetModelInfo:
         assert model_info["supports_function_calling"] is True
         assert captured_json[0]["name"] == "unknown-model"
 
-    def test_litellm_get_model_info_keeps_static_map_for_known_model(self, monkeypatch):
+    def test_gateway_get_model_info_keeps_static_map_for_known_model(self, monkeypatch):
         """Mapped Ollama models should keep using the static model map."""
 
         def mock_post(url, json, headers=None):

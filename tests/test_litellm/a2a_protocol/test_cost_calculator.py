@@ -157,7 +157,7 @@ async def test_asend_message_uses_cost_per_query():
 
 
 @pytest.mark.asyncio
-async def test_asend_message_uses_cost_per_query_from_litellm_params_dict():
+async def test_asend_message_uses_cost_per_query_from_gateway_params_dict():
     """
     Proxy passes agent pricing as the litellm_params dict param (not top-level
     kwargs). Regression for cost_per_query landing at $0 on the native path.
@@ -361,7 +361,7 @@ async def test_asend_message_streaming_propagates_metadata():
     # Setup logger
     gateway.logging_callback_manager._reset_all_callbacks()
     metadata_logger = MetadataLogger()
-    gateway.logging_callback_manager.add_litellm_async_success_callback(metadata_logger)
+    gateway.logging_callback_manager.add_gateway_async_success_callback(metadata_logger)
 
     # Mock A2A client
     mock_client = MagicMock()
@@ -408,8 +408,8 @@ async def test_asend_message_streaming_triggers_callbacks():
     # Setup logger - must use logging_callback_manager to properly register
     gateway.logging_callback_manager._reset_all_callbacks()
     callback_logger = AgentIdLogger()
-    gateway.logging_callback_manager.add_litellm_async_success_callback(callback_logger)
-    gateway.logging_callback_manager.add_litellm_success_callback(callback_logger)
+    gateway.logging_callback_manager.add_gateway_async_success_callback(callback_logger)
+    gateway.logging_callback_manager.add_gateway_success_callback(callback_logger)
 
     # Mock A2A client
     mock_client = MagicMock()

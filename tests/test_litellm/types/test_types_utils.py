@@ -6,7 +6,7 @@ import pytest
 from token_iq.gateway.types.utils import HiddenParams, all_litellm_params
 
 
-def test_rust_is_a_known_litellm_param():
+def test_rust_is_a_known_gateway_param():
     assert "rust" in all_litellm_params
 
 

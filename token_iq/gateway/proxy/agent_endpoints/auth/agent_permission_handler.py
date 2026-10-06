@@ -13,7 +13,7 @@ from token_iq.gateway.proxy._types import (
     UI_TEAM_ID,
     LiteLLM_ObjectPermissionTable,
     LiteLLM_TeamTable,
-    LitellmUserRoles,
+    GatewayUserRoles,
     UserAPIKeyAuth,
 )
 from token_iq.gateway.repositories.table_repositories import AgentsRepository
@@ -448,7 +448,7 @@ async def accessible_agents(user_api_key_auth: UserAPIKeyAuth) -> tuple[AgentRes
     from token_iq.gateway.proxy.agent_endpoints.agent_registry import global_agent_registry
 
     all_agents: Final = global_agent_registry.get_agent_list()
-    if user_api_key_auth.user_role in (LitellmUserRoles.PROXY_ADMIN, LitellmUserRoles.PROXY_ADMIN.value):
+    if user_api_key_auth.user_role in (GatewayUserRoles.PROXY_ADMIN, GatewayUserRoles.PROXY_ADMIN.value):
         return all_agents
     match await AgentRequestHandler.resolve_agent_access(user_api_key_auth=user_api_key_auth):
         case UnrestrictedAgentAccess():

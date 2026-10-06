@@ -24,7 +24,7 @@ from token_iq.gateway.llms.hosted_vllm.responses.transformation import (
     HostedVLLMResponsesAPIConfig,
 )
 from token_iq.gateway.llms.litellm_proxy.responses.transformation import (
-    LiteLLMProxyResponsesAPIConfig,
+    GatewayProxyResponsesAPIConfig,
 )
 from token_iq.gateway.llms.manus.responses.transformation import ManusResponsesAPIConfig
 from token_iq.gateway.llms.openai.responses.transformation import OpenAIResponsesAPIConfig
@@ -123,9 +123,9 @@ class TestResponsesAPIWebSocketSupport:
             config.supports_native_websocket() is False
         ), "ChatGPT should use managed websocket handler"
 
-    def test_litellm_proxy_uses_managed_websocket(self):
+    def test_gateway_proxy_uses_managed_websocket(self):
         """LiteLLM Proxy should use managed websocket handler"""
-        config = LiteLLMProxyResponsesAPIConfig()
+        config = GatewayProxyResponsesAPIConfig()
         assert (
             config.supports_native_websocket() is False
         ), "LiteLLM Proxy should use managed websocket handler"
@@ -2575,7 +2575,7 @@ class TestNativeWebSocketUrlConstruction:
         ], f"existing param lost: {captured_urls[0]}"
 
     @pytest.mark.asyncio
-    async def test_ws_passes_litellm_params_to_get_websocket_url(self):
+    async def test_ws_passes_gateway_params_to_get_websocket_url(self):
         """Deployment api_version must reach get_websocket_url (Azure WS URL)."""
         from unittest.mock import AsyncMock, MagicMock, patch
 

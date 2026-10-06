@@ -518,7 +518,7 @@ class TestTransformSearchResponse:
         assert raw["x-example-header-a"] == "value-a"
         assert raw["x-example-header-b"] == "value-b"
 
-    def test_response_headers_strips_x_litellm_spoof(self):
+    def test_response_headers_strips_x_gateway_spoof(self):
         # A provider setting `x-litellm-*` in its response must not be able to
         # spoof LiteLLM-internal markers via _hidden_params["additional_headers"].
         # The raw copy preserves the header (opt-in debug view); the sanitized

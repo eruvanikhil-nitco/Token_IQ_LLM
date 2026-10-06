@@ -14,7 +14,7 @@ from token_iq.gateway.proxy._types import (
     LiteLLM_OrganizationTableWithMembers,
     LiteLLM_OrganizationMembershipTable,
     LiteLLM_TeamTable,
-    LitellmUserRoles,
+    GatewayUserRoles,
     Member,
     OrgMember,
     SpecialProxyStrings,
@@ -71,7 +71,7 @@ def _make_org_membership(user_id):
     return LiteLLM_OrganizationMembershipTable(
         user_id=user_id,
         organization_id="org-1",
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         spend=0.0,
         budget_id=None,
         created_at=datetime.now(),

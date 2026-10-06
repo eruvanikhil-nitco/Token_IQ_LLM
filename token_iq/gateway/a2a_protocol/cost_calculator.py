@@ -9,16 +9,16 @@ from typing import TYPE_CHECKING, Any, Final
 
 if TYPE_CHECKING:
     from token_iq.gateway.core_utils.litellm_logging import (
-        Logging as LitellmLoggingObject,
+        Logging as GatewayLoggingObject,
     )
 else:
-    LitellmLoggingObject = Any
+    GatewayLoggingObject = Any
 
 
 class A2ACostCalculator:
     @staticmethod
     def calculate_a2a_cost(
-        litellm_logging_obj: LitellmLoggingObject | None,
+        litellm_logging_obj: GatewayLoggingObject | None,
     ) -> float:
         """
         Calculate the cost of an A2A send_message call.

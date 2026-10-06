@@ -49,13 +49,13 @@ from token_iq.gateway.types.utils import (
 )
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
     from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.response_cache import (
         AnthropicMessagesStreamCacheWriter,
     )
     from token_iq.gateway.types.utils import PromptTokensDetailsWrapper
 else:
-    LiteLLMLoggingObj = Any
+    GatewayLoggingObj = Any
 
 _StreamResultT = TypeVar("_StreamResultT")
 
@@ -180,7 +180,7 @@ class LLMCachingHandler:
         self,
         model: str,
         original_function: Callable,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         start_time: datetime.datetime,
         call_type: str,
         kwargs: dict[str, Any],
@@ -253,7 +253,7 @@ class LLMCachingHandler:
                         api_key=kwargs.get("api_key", None),
                     )
                     cache_duration_ms: Final = (cache_check_end_time - cache_check_start_time) * 1000
-                    self._update_litellm_logging_obj_environment(
+                    self._update_gateway_logging_obj_environment(
                         logging_obj=logging_obj,
                         model=model,
                         kwargs=kwargs,
@@ -326,7 +326,7 @@ class LLMCachingHandler:
         self,
         model: str,
         original_function: Callable,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         start_time: datetime.datetime,
         call_type: str,
         kwargs: dict[str, Any],
@@ -387,7 +387,7 @@ class LLMCachingHandler:
                         api_base=kwargs.get("api_base", None),
                         api_key=kwargs.get("api_key", None),
                     )
-                    self._update_litellm_logging_obj_environment(
+                    self._update_gateway_logging_obj_environment(
                         logging_obj=logging_obj,
                         model=f"{custom_llm_provider}/{model}",
                         kwargs=kwargs,
@@ -443,7 +443,7 @@ class LLMCachingHandler:
         final_embedding_cached_response: EmbeddingResponse | None,
         cached_result: list[CachedEmbedding | None],
         kwargs: dict[str, Any],
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         start_time: datetime.datetime,
         model: str,
     ) -> tuple[EmbeddingResponse | None, bool]:
@@ -551,7 +551,7 @@ class LLMCachingHandler:
                 api_key=kwargs.get("api_key", None),
             )
 
-            self._update_litellm_logging_obj_environment(
+            self._update_gateway_logging_obj_environment(
                 logging_obj=logging_obj,
                 model=model,
                 kwargs=kwargs,
@@ -683,7 +683,7 @@ class LLMCachingHandler:
 
     def _async_log_cache_hit_on_callbacks(
         self,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         cached_result: Any,
         start_time: datetime.datetime,
         end_time: datetime.datetime,
@@ -799,7 +799,7 @@ class LLMCachingHandler:
         cached_result: Any,
         call_type: str,
         kwargs: dict[str, object],
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         model: str,
         args: tuple[object, ...],
         custom_llm_provider: str | None = None,
@@ -967,7 +967,7 @@ class LLMCachingHandler:
         self,
         cached_result: Any,
         call_type: str,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         model: str,
     ) -> CustomStreamWrapper:
         from token_iq.gateway.utils import (
@@ -1191,9 +1191,9 @@ class LLMCachingHandler:
                 kwargs=self.request_kwargs,
             )
 
-    def _update_litellm_logging_obj_environment(
+    def _update_gateway_logging_obj_environment(
         self,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         model: str,
         kwargs: dict[str, Any],
         cached_result: Any,

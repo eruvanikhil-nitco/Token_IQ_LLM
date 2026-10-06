@@ -234,7 +234,7 @@ def test_build_claims_scope_without_tool():
     assert not any(s.endswith(":call") for s in scopes)
 
 
-def test_build_claims_act_fallback_to_litellm_proxy():
+def test_build_claims_act_fallback_to_gateway_proxy():
     """_build_claims() falls back to 'litellm-proxy' when team_id and org_id are absent."""
     signer = _make_signer()
     user_dict = _make_user_api_key_dict()
@@ -259,7 +259,7 @@ def test_build_claims_sub_fallback_to_token_hash():
     assert len(claims["sub"]) == len("apikey:") + 16  # sha256 hex[:16]
 
 
-def test_build_claims_sub_fallback_to_litellm_proxy_when_no_token():
+def test_build_claims_sub_fallback_to_gateway_proxy_when_no_token():
     """_build_claims() falls back to 'litellm-proxy' when user_id and token are both absent."""
     signer = _make_signer()
     user_dict = _make_user_api_key_dict(user_id="")
@@ -480,7 +480,7 @@ def test_end_user_claim_sources_token_sub():
     assert claims["sub"] == "idp-user-123"
 
 
-def test_end_user_claim_sources_falls_back_to_litellm_user_id():
+def test_end_user_claim_sources_falls_back_to_gateway_user_id():
     """Falls back to litellm:user_id when token:sub is absent."""
     signer = _make_signer(end_user_claim_sources=["token:sub", "litellm:user_id"])
     user_dict = _make_user_api_key_dict(user_id="litellm-user")
@@ -503,7 +503,7 @@ def test_end_user_claim_sources_email_source():
     assert claims["sub"] == "alice@corp.com"
 
 
-def test_end_user_claim_sources_litellm_email():
+def test_end_user_claim_sources_gateway_email():
     """litellm:email resolves from UserAPIKeyAuth.user_email."""
     signer = _make_signer(end_user_claim_sources=["litellm:email"])
     user_dict = _make_user_api_key_dict(user_email="proxy-user@example.com")

@@ -9,7 +9,7 @@ from fastapi.testclient import TestClient
 
 from token_iq.gateway.proxy._types import (
     LiteLLM_EndUserTable,
-    LitellmUserRoles,
+    GatewayUserRoles,
     ProxyException,
 )
 from token_iq.gateway.proxy.auth.user_api_key_auth import UserAPIKeyAuth, user_api_key_auth
@@ -52,7 +52,7 @@ def mock_prisma_client():
 def mock_user_api_key_auth():
     original_overrides = app.dependency_overrides.copy()
     app.dependency_overrides[user_api_key_auth] = lambda: UserAPIKeyAuth(
-        user_id="test-user", user_role=LitellmUserRoles.PROXY_ADMIN
+        user_id="test-user", user_role=GatewayUserRoles.PROXY_ADMIN
     )
     try:
         yield
@@ -493,7 +493,7 @@ def test_delete_customer_success_serializes_through_response_model(mock_prisma_c
 
 @pytest.mark.asyncio
 async def test_get_customer_daily_activity_admin_param_passing(monkeypatch):
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
     from token_iq.gateway.proxy.management_endpoints import customer_endpoints
     from token_iq.gateway.proxy.management_endpoints.customer_endpoints import (
         get_customer_daily_activity,
@@ -507,7 +507,7 @@ async def test_get_customer_daily_activity_admin_param_passing(monkeypatch):
     get_daily_activity_mock = AsyncMock(return_value=mocked_response)
     monkeypatch.setattr(customer_endpoints, "get_daily_activity", get_daily_activity_mock)
 
-    auth = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin1")
+    auth = UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin1")
     result = await get_customer_daily_activity(
         end_user_ids="end-user-1,end-user-2",
         start_date="2024-01-01",
@@ -538,7 +538,7 @@ async def test_get_customer_daily_activity_admin_param_passing(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_get_customer_daily_activity_with_end_user_aliases(monkeypatch):
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
     from token_iq.gateway.proxy.management_endpoints import customer_endpoints
     from token_iq.gateway.proxy.management_endpoints.customer_endpoints import (
         get_customer_daily_activity,
@@ -559,7 +559,7 @@ async def test_get_customer_daily_activity_with_end_user_aliases(monkeypatch):
     get_daily_activity_mock = AsyncMock(return_value=mocked_response)
     monkeypatch.setattr(customer_endpoints, "get_daily_activity", get_daily_activity_mock)
 
-    auth = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN, user_id="admin1")
+    auth = UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN, user_id="admin1")
     await get_customer_daily_activity(
         end_user_ids="end-user-1,end-user-2",
         start_date="2024-01-01",
@@ -608,7 +608,7 @@ async def test_get_customer_daily_activity_non_admin_is_rejected(monkeypatch):
 
     non_admin_key = UserAPIKeyAuth(
         user_id="regular-user-abc",
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
     )
 
     with pytest.raises(HTTPException) as exc_info:
@@ -652,7 +652,7 @@ async def test_get_customer_daily_activity_service_account_key_is_rejected(monke
 
     service_account_key = UserAPIKeyAuth(
         user_id=None,
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
     )
 
     with pytest.raises(HTTPException) as exc_info:

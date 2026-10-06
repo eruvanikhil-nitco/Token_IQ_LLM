@@ -4,7 +4,7 @@ from openai._models import BaseModel as OpenAIObject
 from pydantic import BaseModel, ConfigDict
 
 
-class LiteLLMPydanticObjectBase(BaseModel):
+class GatewayPydanticObjectBase(BaseModel):
     """
     Implements default functions, all pydantic objects should have.
     """
@@ -26,7 +26,7 @@ class LiteLLMPydanticObjectBase(BaseModel):
     model_config = ConfigDict(protected_namespaces=())
 
 
-class BaseLiteLLMOpenAIResponseObject(BaseModel):
+class BaseGatewayOpenAIResponseObject(BaseModel):
     model_config = ConfigDict(extra="allow", protected_namespaces=())
 
     def __getitem__(self, key):

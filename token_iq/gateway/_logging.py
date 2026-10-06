@@ -540,7 +540,7 @@ def _setup_json_exception_handlers(formatter):
     # Setup excepthook for uncaught exceptions
     def json_excepthook(exc_type, exc_value, exc_traceback):
         record: Final = logging.LogRecord(
-            name="LiteLLM",
+            name="Gateway",
             level=logging.ERROR,
             pathname="",
             lineno=0,
@@ -561,7 +561,7 @@ def _setup_json_exception_handlers(formatter):
             if exception:
                 exc_type: Final = type(exception)
                 record: Final = logging.LogRecord(
-                    name="LiteLLM",
+                    name="Gateway",
                     level=logging.ERROR,
                     pathname="",
                     lineno=0,
@@ -595,7 +595,7 @@ verbose_proxy_logger = logging.getLogger("LiteLLM Proxy")
 # writes its WARNING records to stdout. It has no handler or level of its own.
 verbose_proxy_stdout_logger: Final = verbose_proxy_logger.getChild("stdout")
 verbose_router_logger = logging.getLogger("LiteLLM Router")
-verbose_logger = logging.getLogger("LiteLLM")
+verbose_logger = logging.getLogger("Gateway")
 
 # Add the handler to the loggers
 verbose_router_logger.addHandler(handler)

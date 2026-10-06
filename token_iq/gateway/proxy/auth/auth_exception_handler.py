@@ -14,7 +14,7 @@ from token_iq.gateway.constants import EMPTY_MAPPING
 from token_iq.gateway.integrations.otel.runtime import seed_request_identity
 from token_iq.gateway.core_utils.core_helpers import is_expected_client_error
 from token_iq.gateway.proxy._types import (
-    LitellmUserRoles,
+    GatewayUserRoles,
     ProxyErrorTypes,
     ProxyException,
     UserAPIKeyAuth,
@@ -139,7 +139,7 @@ class UserAPIKeyAuthExceptionHandler:
                 key_name="failed-to-connect-to-db",
                 token="failed-to-connect-to-db",
                 user_id=DB_UNAVAILABLE_FALLBACK_USER_ID,
-                user_role=LitellmUserRoles.INTERNAL_USER,
+                user_role=GatewayUserRoles.INTERNAL_USER,
                 request_route=route,
             )
         else:

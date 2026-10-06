@@ -109,7 +109,7 @@ class CloudZeroLogger(CustomLogger):
             operation: CloudZero operation type ("replace_hourly" or "sum")
         """
         from token_iq.gateway.integrations.cloudzero.cz_stream_api import CloudZeroStreamer
-        from token_iq.gateway.integrations.cloudzero.database import LiteLLMDatabase
+        from token_iq.gateway.integrations.cloudzero.database import GatewayDatabase
         from token_iq.gateway.integrations.cloudzero.transform import CBFTransformer
 
         try:
@@ -122,7 +122,7 @@ class CloudZeroLogger(CustomLogger):
                 )
 
             # Initialize database connection and load data
-            database: Final = LiteLLMDatabase()
+            database: Final = GatewayDatabase()
             verbose_logger.debug("CloudZero Logger: Loading usage data from database")
             data = await database.get_usage_data(limit=limit, start_time_utc=start_time_utc, end_time_utc=end_time_utc)
 
@@ -166,14 +166,14 @@ class CloudZeroLogger(CustomLogger):
         Returns:
             dict: Contains usage_data, cbf_data, and summary statistics
         """
-        from token_iq.gateway.integrations.cloudzero.database import LiteLLMDatabase
+        from token_iq.gateway.integrations.cloudzero.database import GatewayDatabase
         from token_iq.gateway.integrations.cloudzero.transform import CBFTransformer
 
         try:
             verbose_logger.debug("CloudZero Logger: Starting dry run export")
 
             # Initialize database connection and load data
-            database: Final = LiteLLMDatabase()
+            database: Final = GatewayDatabase()
             verbose_logger.debug("CloudZero Logger: Loading usage data for dry run")
             data: Final = await database.get_usage_data(limit=limit)
 

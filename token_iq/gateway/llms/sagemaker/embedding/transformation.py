@@ -7,7 +7,7 @@ In the Huggingface TGI format.
 from typing import TYPE_CHECKING, Any, Final
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
     from token_iq.gateway.types.llms.openai import AllEmbeddingInputValues
 
 from httpx._models import Headers, Response
@@ -85,7 +85,7 @@ class SagemakerEmbeddingConfig(BaseEmbeddingConfig):
         model: str,
         raw_response: Response,
         model_response: "EmbeddingResponse",
-        logging_obj: "LiteLLMLoggingObj",
+        logging_obj: "GatewayLoggingObj",
         api_key: str | None = None,
         request_data: dict = {},
         optional_params: dict = {},

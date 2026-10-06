@@ -230,13 +230,13 @@ def test_model_info_team_key_sees_own_byok_model(client, auth_as, byok_team_rout
     user's team memberships, returned an empty set for a team key, and the
     BYOK row was dropped -> `{"data": []}`.
     """
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
     monkeypatch.setattr(proxy_server, "prisma_client", mock_prisma)
     mock_prisma.db.litellm_usertable.find_unique.return_value = None
 
     with auth_as(
-        role=LitellmUserRoles.INTERNAL_USER,
+        role=GatewayUserRoles.INTERNAL_USER,
         user_id=None,
         team_id=_BYOK_TEAM_ID,
         team_models=[_BYOK_PUBLIC_NAME],
@@ -258,13 +258,13 @@ def test_model_info_team_key_cannot_see_other_teams_byok_model(
 
     Guards the fix from over-broadening into a cross-team metadata leak.
     """
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
     monkeypatch.setattr(proxy_server, "prisma_client", mock_prisma)
     mock_prisma.db.litellm_usertable.find_unique.return_value = None
 
     with auth_as(
-        role=LitellmUserRoles.INTERNAL_USER,
+        role=GatewayUserRoles.INTERNAL_USER,
         user_id=None,
         team_id="other-team",
         team_models=[_BYOK_PUBLIC_NAME],
@@ -419,7 +419,7 @@ async def test_model_info_v2_query_sentinel_does_not_filter(monkeypatch, mixed_a
     Guarding on `is True` is what stops every direct-call test from silently filtering."""
     from unittest.mock import AsyncMock
 
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
 
     monkeypatch.setattr(proxy_server, "prisma_client", MagicMock())
     monkeypatch.setattr(proxy_server.proxy_config, "get_config", AsyncMock(return_value={}))
@@ -434,7 +434,7 @@ async def test_model_info_v2_query_sentinel_does_not_filter(monkeypatch, mixed_a
 
     monkeypatch.setattr(mlh, "append_agents_to_model_info", AsyncMock(side_effect=lambda models, **kw: models))
 
-    admin = UserAPIKeyAuth(user_id="u", user_role=LitellmUserRoles.PROXY_ADMIN)
+    admin = UserAPIKeyAuth(user_id="u", user_role=GatewayUserRoles.PROXY_ADMIN)
     # Deliberately omit exclude_auto_routers, exactly as the pre-existing direct-call tests do.
     resp = await proxy_server.model_info_v2(
         user_api_key_dict=admin,

@@ -119,7 +119,7 @@ class ArizePhoenixLogger(OpenTelemetry):
             except Exception as e:
                 verbose_logger.debug("ArizePhoenixLogger: TracerProvider force_flush failed: %s", e)
 
-    def _get_litellm_resource_for_project(self, project_name: str):
+    def _get_gateway_resource_for_project(self, project_name: str):
         """
         Build an OTEL Resource with project routing attrs that win over env detector.
 
@@ -146,7 +146,7 @@ class ArizePhoenixLogger(OpenTelemetry):
         """Create a TracerProvider for *project_name* (caller holds no cache lock)."""
         from opentelemetry.sdk.trace import TracerProvider
 
-        provider: Final = TracerProvider(resource=self._get_litellm_resource_for_project(project_name))
+        provider: Final = TracerProvider(resource=self._get_gateway_resource_for_project(project_name))
         provider.add_span_processor(self._shared_span_processor)
         return provider
 
@@ -186,7 +186,7 @@ class ArizePhoenixLogger(OpenTelemetry):
             return self.tracer
         return self._resolve_tracer_for_kwargs(kwargs)[1]
 
-    def _init_otel_logger_on_litellm_proxy(self):
+    def _init_otel_logger_on_gateway_proxy(self):
         """
         Override: Arize Phoenix should NOT overwrite the proxy's
         ``open_telemetry_logger``.  That attribute is reserved for the

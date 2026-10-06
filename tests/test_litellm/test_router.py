@@ -62,7 +62,7 @@ def test_update_kwargs_does_not_mutate_defaults_and_merges_metadata():
     kwargs: dict = {}
 
     # invoke the helper
-    router._update_kwargs_with_default_litellm_params(
+    router._update_kwargs_with_default_gateway_params(
         kwargs=kwargs,
         metadata_variable_name="litellm_metadata",
     )
@@ -309,7 +309,7 @@ async def test_async_router_acreate_file_uses_deployment_custom_llm_provider():
 
 
 @pytest.mark.asyncio
-async def test_async_router_acreate_file_forwards_target_model_names_to_litellm_proxy():
+async def test_async_router_acreate_file_forwards_target_model_names_to_gateway_proxy():
     import json
     from io import BytesIO
     from unittest.mock import MagicMock, patch
@@ -374,7 +374,7 @@ async def test_async_router_acreate_file_does_not_inject_target_model_names_for_
 
 
 @pytest.mark.asyncio
-async def test_async_router_acreate_file_litellm_proxy_sends_target_model_names_in_multipart_form():
+async def test_async_router_acreate_file_gateway_proxy_sends_target_model_names_in_multipart_form():
     import json
     from io import BytesIO
 
@@ -2233,14 +2233,14 @@ def _make_responses_iterator(
     isinstance check (used by usage extraction) matches.
     """
     from token_iq.gateway.responses.litellm_completion_transformation.streaming_iterator import (
-        LiteLLMCompletionStreamingIterator,
+        GatewayCompletionStreamingIterator,
     )
     from token_iq.gateway.responses.streaming_iterator import (
         BaseResponsesAPIStreamingIterator,
     )
 
     base = (
-        LiteLLMCompletionStreamingIterator
+        GatewayCompletionStreamingIterator
         if bridge
         else BaseResponsesAPIStreamingIterator
     )
@@ -3132,7 +3132,7 @@ def test_get_deployment_model_info_base_model_flow():
         "supported_openai_params": ["temperature", "max_tokens"],
     }
 
-    mock_litellm_model_name_info = {
+    mock_gateway_model_name_info = {
         "key": "test-model",
         "max_tokens": 2048,
         "max_input_tokens": 2048,
@@ -3152,7 +3152,7 @@ def test_get_deployment_model_info_base_model_flow():
             # Configure mock returns
             mock_get_model_info.side_effect = lambda model: {
                 "gpt-3.5-turbo": mock_base_model_info,
-                "test-model": mock_litellm_model_name_info,
+                "test-model": mock_gateway_model_name_info,
             }.get(model)
 
             result = router.get_deployment_model_info(
@@ -3209,7 +3209,7 @@ def test_get_deployment_model_info_base_model_flow():
     ):
         with patch.object(gateway, "get_model_info") as mock_get_model_info:
             mock_get_model_info.side_effect = lambda model: {
-                "test-model": mock_litellm_model_name_info,
+                "test-model": mock_gateway_model_name_info,
             }.get(model)
 
             result = router.get_deployment_model_info(
@@ -3231,7 +3231,7 @@ def test_get_deployment_model_info_base_model_flow():
     with patch.object(gateway, "model_cost", {}):  # Empty model cost
         with patch.object(gateway, "get_model_info") as mock_get_model_info:
             mock_get_model_info.side_effect = lambda model: {
-                "test-model": mock_litellm_model_name_info,
+                "test-model": mock_gateway_model_name_info,
             }.get(model)
 
             result = router.get_deployment_model_info(
@@ -3244,7 +3244,7 @@ def test_get_deployment_model_info_base_model_flow():
 
             # Result should be just the litellm model name info
             assert result is not None
-            assert result == mock_litellm_model_name_info
+            assert result == mock_gateway_model_name_info
 
     # Test Case 4: Base model info retrieval fails (exception handling)
     mock_custom_model_info_invalid_base = {
@@ -3264,7 +3264,7 @@ def test_get_deployment_model_info_base_model_flow():
                 if model == "invalid-base-model":
                     raise Exception("Model not found")
                 elif model == "test-model":
-                    return mock_litellm_model_name_info
+                    return mock_gateway_model_name_info
                 return None
 
             mock_get_model_info.side_effect = mock_get_model_info_side_effect
@@ -3392,7 +3392,7 @@ def test_get_deployment_model_info_base_model_merge_priority():
         "base_only_field": "base_value",
     }
 
-    mock_litellm_model_name_info = {
+    mock_gateway_model_name_info = {
         "key": "test-model",
         "max_tokens": 2048,  # Should be overridden by final custom model info
         "input_cost_per_token": 0.005,  # Should be overridden by final custom model info
@@ -3407,7 +3407,7 @@ def test_get_deployment_model_info_base_model_merge_priority():
         with patch.object(gateway, "get_model_info") as mock_get_model_info:
             mock_get_model_info.side_effect = lambda model: {
                 "gpt-4": mock_base_model_info,
-                "test-model": mock_litellm_model_name_info,
+                "test-model": mock_gateway_model_name_info,
             }.get(model)
 
             result = router.get_deployment_model_info(
@@ -4507,7 +4507,7 @@ def test_credential_name_not_injected_when_absent():
     assert kwargs["metadata"]["tags"] == ["A.101"]
 
 
-def test_update_kwargs_with_deployment_model_info_in_litellm_metadata():
+def test_update_kwargs_with_deployment_model_info_in_gateway_metadata():
     """For generic_api_call, model_info with pricing must go to litellm_metadata.
 
     Routes like /messages and /responses use generic_api_call which stores
@@ -6150,7 +6150,7 @@ class TestConsumedRequestTagsStamp:
         )
 
     @pytest.mark.asyncio
-    async def test_stamps_into_litellm_metadata_when_the_request_uses_that_bucket(self):
+    async def test_stamps_into_gateway_metadata_when_the_request_uses_that_bucket(self):
         from token_iq.gateway.constants import CONSUMED_REQUEST_TAGS_METADATA_KEY
         from token_iq.gateway.types.router import ConsumedRequestTagsStamp
 
@@ -6346,7 +6346,7 @@ class TestTaggedAutoRouterOnSharedModelName:
             )
             assert deployment["litellm_params"]["model"] == "openai/gpt-4o"
 
-    def test_deployment_without_litellm_params_mapping_is_not_a_marker(self):
+    def test_deployment_without_gateway_params_mapping_is_not_a_marker(self):
         assert gateway.Router._is_strategy_marker_deployment({"model_name": "gpt4o"}) is False
 
     def test_model_name_has_plain_deployments_reflects_the_pool(self):
@@ -8235,7 +8235,7 @@ async def test_async_function_with_fallbacks_stamps_zero_attempted_fallbacks():
 
 
 @pytest.mark.asyncio
-async def test_async_function_with_fallbacks_stamps_route_bucket_not_litellm_metadata():
+async def test_async_function_with_fallbacks_stamps_route_bucket_not_gateway_metadata():
     """A chat completion carrying both metadata buckets gets stamped in the route's bucket
     (metadata), matching where run_async_fallback rewrites, so the two never diverge."""
     router = gateway.Router(
@@ -8586,7 +8586,7 @@ async def test_prompt_management_factory_marks_injection_for_every_deployment(mo
     the provisional deployment's id, or a differently-billed deployment loses the credit."""
     import time
 
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLogging
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLogging
 
     router = gateway.Router(
         model_list=[
@@ -8607,7 +8607,7 @@ async def test_prompt_management_factory_marks_injection_for_every_deployment(mo
         return gateway.ModelResponse()
 
     monkeypatch.setattr(gateway, "acompletion", _capture_acompletion)
-    logging_obj = LiteLLMLogging(
+    logging_obj = GatewayLogging(
         model="cached-claude",
         messages=[{"role": "user", "content": "hi"}],
         stream=False,

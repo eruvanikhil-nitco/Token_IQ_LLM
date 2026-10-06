@@ -97,7 +97,7 @@ def test_should_extract_vendor_category_for_vanilla_rate_limit_error():
     assert rate_limit_type is None
 
 
-def test_should_extract_litellm_category_and_type_for_proxy_rate_limit_error():
+def test_should_extract_gateway_category_and_type_for_proxy_rate_limit_error():
     err = ProxyRateLimitError(
         detail={"error": "tpm exceeded"},
         category=RateLimitErrorCategory.LITELLM_RATE_LIMIT,

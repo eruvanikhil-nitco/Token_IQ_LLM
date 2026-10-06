@@ -192,7 +192,7 @@ class OpenTelemetryV2(CustomLogger):
         )
         self._tenant_tracers = TenantTracerCache(self.config, callback_name, LITELLM_TRACER_NAME)
         self._open_llm_calls: OrderedDict[str, _LLMCallSpan] = OrderedDict()
-        self._init_otel_logger_on_litellm_proxy()
+        self._init_otel_logger_on_gateway_proxy()
 
     def _init_metrics(self, meter_provider: "MeterProvider | None") -> "GenAIMetricRecorder | None":
         """Create the six GenAI histograms when metrics are enabled, else ``None``.
@@ -235,7 +235,7 @@ class OpenTelemetryV2(CustomLogger):
         if not already_otel:
             callbacks.append(self)
 
-    def _init_otel_logger_on_litellm_proxy(self) -> None:
+    def _init_otel_logger_on_gateway_proxy(self) -> None:
         try:
             from token_iq.gateway.proxy import proxy_server
         except Exception:
@@ -807,7 +807,7 @@ class OpenTelemetryV2(CustomLogger):
             end_time_ns=to_ns(data.end_time),
         )
 
-    def create_litellm_proxy_request_started_span(
+    def create_gateway_proxy_request_started_span(
         self, start_time: datetime, headers: Mapping[str, str] | None
     ) -> Span | None:
         span: Final = get_current_span()

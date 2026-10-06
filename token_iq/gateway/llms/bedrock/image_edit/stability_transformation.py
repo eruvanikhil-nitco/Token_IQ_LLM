@@ -31,16 +31,16 @@ from token_iq.gateway.types.images.main import ImageEditOptionalRequestParams
 from token_iq.gateway.types.llms.stability import (
     OPENAI_SIZE_TO_STABILITY_ASPECT_RATIO,
 )
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.types.utils import FileTypes, ImageObject, ImageResponse
 from token_iq.gateway.utils import get_model_info
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as _LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as _GatewayLoggingObj
 
-    LiteLLMLoggingObj = _LiteLLMLoggingObj
+    GatewayLoggingObj = _GatewayLoggingObj
 else:
-    LiteLLMLoggingObj = Any
+    GatewayLoggingObj = Any
 
 
 class BedrockStabilityImageEditConfig(BaseImageEditConfig):
@@ -154,7 +154,7 @@ class BedrockStabilityImageEditConfig(BaseImageEditConfig):
         prompt: str | None,
         image: FileTypes | None,
         image_edit_optional_request_params: dict,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> tuple[dict, Any]:
         """
@@ -271,7 +271,7 @@ class BedrockStabilityImageEditConfig(BaseImageEditConfig):
         self,
         model: str,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         api_key: str | None = None,
         json_mode: bool | None = None,
     ) -> ImageResponse:

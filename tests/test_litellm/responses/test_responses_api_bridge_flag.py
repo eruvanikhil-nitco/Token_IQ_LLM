@@ -18,7 +18,7 @@ class TestUseResponsesApiBridgeFlag:
     """Test that bridge opt-in forces the chat completions path."""
 
     @patch(
-        "token_iq.gateway.responses.main.litellm_completion_transformation_handler.response_api_handler"
+        "token_iq.gateway.responses.main.gateway_completion_transformation_handler.response_api_handler"
     )
     @patch(
         "token_iq.gateway.responses.main.ProviderConfigManager.get_provider_responses_api_config"
@@ -40,7 +40,7 @@ class TestUseResponsesApiBridgeFlag:
         mock_bridge_handler.assert_called_once()
 
     @patch(
-        "token_iq.gateway.responses.main.litellm_completion_transformation_handler.response_api_handler"
+        "token_iq.gateway.responses.main.gateway_completion_transformation_handler.response_api_handler"
     )
     @patch(
         "token_iq.gateway.responses.main.ProviderConfigManager.get_provider_responses_api_config"
@@ -83,7 +83,7 @@ class TestUseResponsesApiBridgeFlag:
         mock_native_handler.assert_called_once()
 
     @patch(
-        "token_iq.gateway.responses.main.litellm_completion_transformation_handler.response_api_handler"
+        "token_iq.gateway.responses.main.gateway_completion_transformation_handler.response_api_handler"
     )
     @patch(
         "token_iq.gateway.responses.main.ProviderConfigManager.get_provider_responses_api_config"
@@ -105,7 +105,7 @@ class TestUseResponsesApiBridgeFlag:
         assert "use_chat_completions_api" not in all_kwargs
 
     @patch(
-        "token_iq.gateway.responses.main.litellm_completion_transformation_handler.response_api_handler"
+        "token_iq.gateway.responses.main.gateway_completion_transformation_handler.response_api_handler"
     )
     @patch(
         "token_iq.gateway.responses.main.ProviderConfigManager.get_provider_responses_api_config"
@@ -207,7 +207,7 @@ class TestUseResponsesApiBridgeFlag:
         ), "use_chat_completions_api should be forwarded to inner aresponses call"
 
     @patch(
-        "token_iq.gateway.responses.main.litellm_completion_transformation_handler.response_api_handler"
+        "token_iq.gateway.responses.main.gateway_completion_transformation_handler.response_api_handler"
     )
     @patch("token_iq.gateway.vector_stores.main.asearch")
     @patch(

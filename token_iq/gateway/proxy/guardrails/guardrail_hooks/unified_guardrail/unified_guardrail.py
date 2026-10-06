@@ -124,7 +124,7 @@ def _a2a_jsonrpc_error_chunk(exc: HTTPException, request_id: str | None) -> Mapp
 endpoint_guardrail_translation_mappings = None
 
 
-def _ensure_litellm_metadata(data: dict, user_api_key_dict: UserAPIKeyAuth) -> None:
+def _ensure_gateway_metadata(data: dict, user_api_key_dict: UserAPIKeyAuth) -> None:
     """Populate data['litellm_metadata'] from user_api_key_dict if absent."""
     if "litellm_metadata" not in data:
         from token_iq.gateway.llms.base_llm.guardrail_translation.base_translation import (
@@ -199,7 +199,7 @@ class UnifiedLLMGuardrails(CustomLogger):
             endpoint_guardrail_translation_mappings[CallTypes(call_type)]()
         )
 
-        _ensure_litellm_metadata(data, user_api_key_dict)
+        _ensure_gateway_metadata(data, user_api_key_dict)
 
         data = await endpoint_translation.process_input_messages(
             data=data,
@@ -250,7 +250,7 @@ class UnifiedLLMGuardrails(CustomLogger):
             endpoint_guardrail_translation_mappings[CallTypes(call_type)]()
         )
 
-        _ensure_litellm_metadata(data, user_api_key_dict)
+        _ensure_gateway_metadata(data, user_api_key_dict)
 
         return await endpoint_translation.process_input_messages(
             data=data,

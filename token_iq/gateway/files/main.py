@@ -36,9 +36,9 @@ from token_iq import gateway
 from token_iq.gateway import get_secret_str
 from token_iq.gateway.files.streaming import FileContentStreamingResponse
 from token_iq.gateway.files.types import FileContentProvider, FileContentStreamingResult
-from token_iq.gateway.core_utils.get_litellm_params import add_trusted_model_credentials_to_litellm_params
+from token_iq.gateway.core_utils.get_litellm_params import add_trusted_model_credentials_to_gateway_params
 from token_iq.gateway.core_utils.get_llm_provider_logic import get_llm_provider
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.llms.azure.common_utils import get_azure_credentials
 from token_iq.gateway.llms.azure.files.handler import AzureOpenAIFilesAPI
 from token_iq.gateway.llms.bedrock.files.handler import BedrockFilesHandler
@@ -152,9 +152,9 @@ def create_file(
     """
     try:
         _is_async: Final = kwargs.pop("acreate_file", False) is True
-        optional_params: Final = GenericLiteLLMParams(**kwargs)
-        litellm_params_dict: Final = dict(**kwargs)
-        logging_obj: Final = cast(LiteLLMLoggingObj | None, kwargs.get("litellm_logging_obj"))
+        optional_params: Final = GenericGatewayParams(**kwargs)
+        gateway_params_dict: Final = dict(**kwargs)
+        logging_obj: Final = cast(GatewayLoggingObj | None, kwargs.get("litellm_logging_obj"))
         if logging_obj is None:
             raise ValueError("logging_obj is required")
         client: Final = kwargs.get("client")
@@ -198,7 +198,7 @@ def create_file(
         if provider_config is not None:
             response = base_llm_http_handler.create_file(
                 provider_config=provider_config,
-                litellm_params=litellm_params_dict,
+                litellm_params=gateway_params_dict,
                 create_file_data=_create_file_request,
                 headers=extra_headers or {},
                 api_base=optional_params.api_base,
@@ -237,7 +237,7 @@ def create_file(
                 timeout=timeout,
                 max_retries=optional_params.max_retries,
                 create_file_data=_create_file_request,
-                litellm_params=litellm_params_dict,
+                litellm_params=gateway_params_dict,
             )
         else:
             raise gateway.exceptions.BadRequestError(
@@ -310,7 +310,7 @@ def file_retrieve(
     LiteLLM Equivalent of POST: POST https://api.openai.com/v1/files
     """
     try:
-        optional_params: Final = GenericLiteLLMParams(**kwargs)
+        optional_params: Final = GenericGatewayParams(**kwargs)
         ### TIMEOUT LOGIC ###
         timeout = optional_params.timeout or kwargs.get("request_timeout", 600) or 600
         # set timeout for 10 minutes by default
@@ -366,21 +366,21 @@ def file_retrieve(
                 provider=LlmProviders(custom_llm_provider),
             )
             if provider_config is not None:
-                litellm_params_dict: Final = get_litellm_params(**kwargs)
-                add_trusted_model_credentials_to_litellm_params(
-                    litellm_params_dict=litellm_params_dict,
+                gateway_params_dict: Final = get_litellm_params(**kwargs)
+                add_trusted_model_credentials_to_gateway_params(
+                    gateway_params_dict=gateway_params_dict,
                     kwargs=kwargs,
                 )
-                litellm_params_dict["api_key"] = optional_params.api_key
-                litellm_params_dict["api_base"] = optional_params.api_base
+                gateway_params_dict["api_key"] = optional_params.api_key
+                gateway_params_dict["api_base"] = optional_params.api_base
 
                 logging_obj = kwargs.get("litellm_logging_obj")
                 if logging_obj is None:
                     from token_iq.gateway.core_utils.litellm_logging import (
-                        Logging as LiteLLMLoggingObj,
+                        Logging as GatewayLoggingObj,
                     )
 
-                    logging_obj = LiteLLMLoggingObj(
+                    logging_obj = GatewayLoggingObj(
                         model="",
                         messages=[],
                         stream=False,
@@ -394,7 +394,7 @@ def file_retrieve(
                 response = base_llm_http_handler.retrieve_file(
                     file_id=file_id,
                     provider_config=provider_config,
-                    litellm_params=litellm_params_dict,
+                    litellm_params=gateway_params_dict,
                     headers=extra_headers or {},
                     logging_obj=logging_obj,
                     _is_async=_is_async,
@@ -487,10 +487,10 @@ def file_delete(
                 _, custom_llm_provider, _, _ = get_llm_provider(model, custom_llm_provider)
         except Exception:
             pass
-        optional_params: Final = GenericLiteLLMParams(**kwargs)
-        litellm_params_dict: Final = get_litellm_params(**kwargs)
-        add_trusted_model_credentials_to_litellm_params(
-            litellm_params_dict=litellm_params_dict,
+        optional_params: Final = GenericGatewayParams(**kwargs)
+        gateway_params_dict: Final = get_litellm_params(**kwargs)
+        add_trusted_model_credentials_to_gateway_params(
+            gateway_params_dict=gateway_params_dict,
             kwargs=kwargs,
         )
         ### TIMEOUT LOGIC ###
@@ -540,7 +540,7 @@ def file_delete(
                 max_retries=optional_params.max_retries,
                 file_id=file_id,
                 client=client,
-                litellm_params=litellm_params_dict,
+                litellm_params=gateway_params_dict,
             )
         else:
             # Try using provider config pattern (for Manus, Bedrock, etc.)
@@ -549,16 +549,16 @@ def file_delete(
                 provider=LlmProviders(custom_llm_provider),
             )
             if provider_config is not None:
-                litellm_params_dict["api_key"] = optional_params.api_key
-                litellm_params_dict["api_base"] = optional_params.api_base
+                gateway_params_dict["api_key"] = optional_params.api_key
+                gateway_params_dict["api_base"] = optional_params.api_base
 
                 logging_obj = kwargs.get("litellm_logging_obj")
                 if logging_obj is None:
                     from token_iq.gateway.core_utils.litellm_logging import (
-                        Logging as LiteLLMLoggingObj,
+                        Logging as GatewayLoggingObj,
                     )
 
-                    logging_obj = LiteLLMLoggingObj(
+                    logging_obj = GatewayLoggingObj(
                         model="",
                         messages=[],
                         stream=False,
@@ -571,7 +571,7 @@ def file_delete(
                 response = base_llm_http_handler.delete_file(
                     file_id=file_id,
                     provider_config=provider_config,
-                    litellm_params=litellm_params_dict,
+                    litellm_params=gateway_params_dict,
                     headers=extra_headers or {},
                     logging_obj=logging_obj,
                     _is_async=_is_async,
@@ -655,7 +655,7 @@ def file_list(
     LiteLLM Equivalent of GET https://api.openai.com/v1/files
     """
     try:
-        optional_params: Final = GenericLiteLLMParams(**kwargs)
+        optional_params: Final = GenericGatewayParams(**kwargs)
         ### TIMEOUT LOGIC ###
         timeout = optional_params.timeout or kwargs.get("request_timeout", 600) or 600
         # set timeout for 10 minutes by default
@@ -680,17 +680,17 @@ def file_list(
             provider=LlmProviders(custom_llm_provider),
         )
         if provider_config is not None:
-            litellm_params_dict: Final = get_litellm_params(**kwargs)
-            litellm_params_dict["api_key"] = optional_params.api_key
-            litellm_params_dict["api_base"] = optional_params.api_base
+            gateway_params_dict: Final = get_litellm_params(**kwargs)
+            gateway_params_dict["api_key"] = optional_params.api_key
+            gateway_params_dict["api_base"] = optional_params.api_base
 
             logging_obj = kwargs.get("litellm_logging_obj")
             if logging_obj is None:
                 from token_iq.gateway.core_utils.litellm_logging import (
-                    Logging as LiteLLMLoggingObj,
+                    Logging as GatewayLoggingObj,
                 )
 
-                logging_obj = LiteLLMLoggingObj(
+                logging_obj = GatewayLoggingObj(
                     model="",
                     messages=[],
                     stream=False,
@@ -704,7 +704,7 @@ def file_list(
             response = base_llm_http_handler.list_files(
                 purpose=purpose,
                 provider_config=provider_config,
-                litellm_params=litellm_params_dict,
+                litellm_params=gateway_params_dict,
                 headers=extra_headers or {},
                 logging_obj=logging_obj,
                 _is_async=_is_async,
@@ -827,10 +827,10 @@ def file_content(
     LiteLLM Equivalent of POST: POST https://api.openai.com/v1/files
     """
     try:
-        optional_params: Final = GenericLiteLLMParams(**kwargs)
-        litellm_params_dict: Final = get_litellm_params(**kwargs)
-        add_trusted_model_credentials_to_litellm_params(
-            litellm_params_dict=litellm_params_dict,
+        optional_params: Final = GenericGatewayParams(**kwargs)
+        gateway_params_dict: Final = get_litellm_params(**kwargs)
+        add_trusted_model_credentials_to_gateway_params(
+            gateway_params_dict=gateway_params_dict,
             kwargs=kwargs,
         )
         ### TIMEOUT LOGIC ###
@@ -874,7 +874,7 @@ def file_content(
                 chunk_size=chunk_size,
                 optional_params=optional_params,
                 timeout=timeout,
-                logging_obj=cast(LiteLLMLoggingObj | None, kwargs.get("litellm_logging_obj")),
+                logging_obj=cast(GatewayLoggingObj | None, kwargs.get("litellm_logging_obj")),
                 _is_async=_is_async,
                 client=client,
             )
@@ -885,12 +885,12 @@ def file_content(
             provider=LlmProviders(custom_llm_provider),
         )
         if provider_config is not None:
-            litellm_params_dict["api_key"] = optional_params.api_key
-            litellm_params_dict["api_base"] = optional_params.api_base
+            gateway_params_dict["api_key"] = optional_params.api_key
+            gateway_params_dict["api_base"] = optional_params.api_base
 
             logging_obj = kwargs.get("litellm_logging_obj")
             if logging_obj is None:
-                logging_obj = LiteLLMLoggingObj(
+                logging_obj = GatewayLoggingObj(
                     model="",
                     messages=[],
                     stream=False,
@@ -903,7 +903,7 @@ def file_content(
             response = base_llm_http_handler.retrieve_file_content(
                 file_content_request=_file_content_request,
                 provider_config=provider_config,
-                litellm_params=litellm_params_dict,
+                litellm_params=gateway_params_dict,
                 headers=extra_headers or {},
                 logging_obj=logging_obj,
                 _is_async=_is_async,
@@ -942,7 +942,7 @@ def file_content(
                 max_retries=optional_params.max_retries,
                 file_content_request=_file_content_request,
                 client=client,
-                litellm_params=litellm_params_dict,
+                litellm_params=gateway_params_dict,
             )
         elif custom_llm_provider == "vertex_ai":
             api_base: Final = optional_params.api_base or ""
@@ -963,14 +963,14 @@ def file_content(
                 vertex_location=vertex_ai_location,
                 timeout=timeout,
                 max_retries=optional_params.max_retries,
-                litellm_params=litellm_params_dict,
+                litellm_params=gateway_params_dict,
             )
         elif custom_llm_provider == "bedrock":
             response = bedrock_files_instance.file_content(
                 _is_async=_is_async,
                 file_content_request=_file_content_request,
                 api_base=optional_params.api_base,
-                optional_params=litellm_params_dict,
+                optional_params=gateway_params_dict,
                 timeout=timeout,
                 max_retries=optional_params.max_retries,
             )
@@ -998,9 +998,9 @@ def file_content_streaming(
     extra_headers: dict[str, str] | None,
     extra_body: dict[str, str] | None,
     chunk_size: int,
-    optional_params: GenericLiteLLMParams,
+    optional_params: GenericGatewayParams,
     timeout: float | httpx.Timeout,
-    logging_obj: LiteLLMLoggingObj | None,
+    logging_obj: GatewayLoggingObj | None,
     _is_async: bool,
     client: Any | None,
 ) -> FileContentStreamingResult | Coroutine[Any, Any, FileContentStreamingResult]:

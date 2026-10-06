@@ -98,14 +98,14 @@ def test_extract_partial_responses_usage_bridge_iterator_no_completed_response()
     fallbacks. The attribute must always exist and default to None.
     """
     from token_iq.gateway.responses.litellm_completion_transformation.streaming_iterator import (
-        LiteLLMCompletionStreamingIterator,
+        GatewayCompletionStreamingIterator,
     )
 
     wrapper = MagicMock()
     wrapper.logging_obj = MagicMock()
-    iterator = LiteLLMCompletionStreamingIterator(
+    iterator = GatewayCompletionStreamingIterator(
         model="anthropic/claude-sonnet-4-5",
-        litellm_custom_stream_wrapper=wrapper,
+        gateway_custom_stream_wrapper=wrapper,
         request_input="hi",
         responses_api_request={},
     )
@@ -304,7 +304,7 @@ async def test_aresponses_fallback_on_in_stream_error_event():
 
     from token_iq import gateway
     from token_iq.gateway.exceptions import MidStreamFallbackError
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
     from token_iq.gateway.llms.base_llm.responses.transformation import BaseResponsesAPIConfig
     from token_iq.gateway.responses.streaming_iterator import ResponsesAPIStreamingIterator
     from token_iq.gateway.types.llms.openai import ErrorEvent, ErrorEventError
@@ -323,7 +323,7 @@ async def test_aresponses_fallback_on_in_stream_error_event():
     mock_response = Mock()
     mock_response.headers = {}
     mock_response.aiter_bytes = mock_aiter_bytes
-    mock_logging_obj = MagicMock(spec=LiteLLMLoggingObj)
+    mock_logging_obj = MagicMock(spec=GatewayLoggingObj)
     mock_logging_obj.model_call_details = {"litellm_params": {}}
     mock_logging_obj.completion_start_time = None
     mock_config = Mock(spec=BaseResponsesAPIConfig)
@@ -386,7 +386,7 @@ async def test_aresponses_fallback_uses_continuation_input_after_partial_content
     from unittest.mock import Mock
 
     from token_iq.gateway.exceptions import MidStreamFallbackError
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
     from token_iq.gateway.llms.base_llm.responses.transformation import BaseResponsesAPIConfig
     from token_iq.gateway.responses.streaming_iterator import ResponsesAPIStreamingIterator
     from token_iq.gateway.types.llms.openai import ErrorEvent, ErrorEventError
@@ -405,7 +405,7 @@ async def test_aresponses_fallback_uses_continuation_input_after_partial_content
     mock_response = Mock()
     mock_response.headers = {}
     mock_response.aiter_bytes = mock_aiter_bytes
-    mock_logging_obj = MagicMock(spec=LiteLLMLoggingObj)
+    mock_logging_obj = MagicMock(spec=GatewayLoggingObj)
     mock_logging_obj.model_call_details = {"litellm_params": {}}
     mock_logging_obj.completion_start_time = None
     mock_config = Mock(spec=BaseResponsesAPIConfig)

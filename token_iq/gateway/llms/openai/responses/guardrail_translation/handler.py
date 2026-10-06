@@ -56,11 +56,11 @@ from token_iq.gateway.llms.base_llm.guardrail_translation.utils import (
 )
 from token_iq.gateway.llms.openai.responses.guardrail_translation.tool_merge import merge_guardrailed_tools
 from token_iq.gateway.responses.litellm_completion_transformation.transformation import (
-    LiteLLMCompletionResponsesConfig,
+    GatewayCompletionResponsesConfig,
 )
 from token_iq.gateway.types.llms.openai import (
     AllMessageValues,
-    BaseLiteLLMOpenAIResponseObject,
+    BaseGatewayOpenAIResponseObject,
     ChatCompletionToolCallChunk,
     ChatCompletionToolParam,
     ContentPartAddedEvent,
@@ -92,7 +92,7 @@ if TYPE_CHECKING:
         CustomGuardrail,
         ModifyResponseException,
     )
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
     from token_iq.gateway.proxy._types import UserAPIKeyAuth
     from token_iq.gateway.types.llms.openai import ResponseInputParam
 
@@ -144,7 +144,7 @@ class OpenAIResponsesHandler(BaseTranslation):
         input_data: Final = data.get("input")
         if input_data is None:
             return None
-        messages: Final = LiteLLMCompletionResponsesConfig.transform_responses_api_input_to_messages(
+        messages: Final = GatewayCompletionResponsesConfig.transform_responses_api_input_to_messages(
             input=input_data,
             responses_api_request=data,
         )
@@ -171,7 +171,7 @@ class OpenAIResponsesHandler(BaseTranslation):
             tuple(raw_tools) if isinstance(raw_tools, list) else ()
         )
         flattened_tool_groups: Final = tuple(
-            form.chat_tools for form in LiteLLMCompletionResponsesConfig.responses_tools_to_chat_forms(original_tools)
+            form.chat_tools for form in GatewayCompletionResponsesConfig.responses_tools_to_chat_forms(original_tools)
         )
         flattened_tools: Final = tuple(
             cast(ChatCompletionToolParam, tool)  # cast-ok: mcp tools ride along in the guardrail's tool list
@@ -762,7 +762,7 @@ class OpenAIResponsesHandler(BaseTranslation):
         ):
             if tool_calls_to_check is not None:
                 tool_call_dict = (
-                    LiteLLMCompletionResponsesConfig.convert_response_function_tool_call_to_chat_completion_tool_call(
+                    GatewayCompletionResponsesConfig.convert_response_function_tool_call_to_chat_completion_tool_call(
                         tool_call_item=output_item,
                         index=output_idx,
                     )
@@ -775,7 +775,7 @@ class OpenAIResponsesHandler(BaseTranslation):
                 # Convert dict to ResponseFunctionToolCall for processing
                 try:
                     tool_call_obj: Final = ResponseFunctionToolCall(**output_item)
-                    tool_call_dict = LiteLLMCompletionResponsesConfig.convert_response_function_tool_call_to_chat_completion_tool_call(
+                    tool_call_dict = GatewayCompletionResponsesConfig.convert_response_function_tool_call_to_chat_completion_tool_call(
                         tool_call_item=tool_call_obj,
                         index=output_idx,
                     )
@@ -951,7 +951,7 @@ class OpenAIResponsesHandler(BaseTranslation):
                 item_id=item_id,
                 output_index=output_index,
                 content_index=0,
-                part=BaseLiteLLMOpenAIResponseObject.model_validate(part),
+                part=BaseGatewayOpenAIResponseObject.model_validate(part),
             ),
             OutputTextDeltaEvent(
                 type=ResponsesAPIStreamEvents.OUTPUT_TEXT_DELTA,
@@ -1162,7 +1162,7 @@ def _open_item_closing_events(responses_so_far: Sequence[object]) -> Sequence[Re
             OutputItemDoneEvent(
                 type=ResponsesAPIStreamEvents.OUTPUT_ITEM_DONE,
                 output_index=open_item.output_index,
-                item=BaseLiteLLMOpenAIResponseObject.model_validate(
+                item=BaseGatewayOpenAIResponseObject.model_validate(
                     MappingProxyType({**_incomplete_item_fields(open_item.payload), "status": "incomplete"})
                 ),
             ),

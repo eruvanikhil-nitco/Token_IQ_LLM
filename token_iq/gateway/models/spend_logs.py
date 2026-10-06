@@ -10,10 +10,10 @@ from datetime import datetime
 from pydantic import Json
 
 from token_iq.gateway._uuid import uuid
-from token_iq.gateway.types.llms.base import LiteLLMPydanticObjectBase
+from token_iq.gateway.types.llms.base import GatewayPydanticObjectBase
 
 
-class LiteLLM_SpendLogs(LiteLLMPydanticObjectBase):
+class LiteLLM_SpendLogs(GatewayPydanticObjectBase):
     request_id: str
     api_key: str
     model: str | None = ""
@@ -37,7 +37,7 @@ class LiteLLM_SpendLogs(LiteLLMPydanticObjectBase):
     updated_at: datetime | None = None
 
 
-class LiteLLM_ErrorLogs(LiteLLMPydanticObjectBase):
+class LiteLLM_ErrorLogs(GatewayPydanticObjectBase):
     request_id: str | None = str(uuid.uuid4())
     api_base: str | None = ""
     model_group: str | None = ""

@@ -7,7 +7,7 @@ from typing import Final
 from token_iq.gateway.llms.anthropic.chat.transformation import AnthropicConfig
 from token_iq.gateway.llms.azure.common_utils import BaseAzureLLM
 from token_iq.gateway.types.llms.openai import AllMessageValues
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 
 
 def _promote_extra_body_to_optional_params(optional_params: dict) -> None:
@@ -48,7 +48,7 @@ class AzureAnthropicConfig(AnthropicConfig):
         model: str,
         messages: list[AllMessageValues],
         optional_params: dict,
-        litellm_params: dict | GenericLiteLLMParams,
+        litellm_params: dict | GenericGatewayParams,
         api_key: str | None = None,
         api_base: str | None = None,
     ) -> dict:
@@ -65,15 +65,15 @@ class AzureAnthropicConfig(AnthropicConfig):
             # Ensure api_key is included if provided
             if api_key and "api_key" not in litellm_params:
                 litellm_params = {**litellm_params, "api_key": api_key}
-            litellm_params_obj = GenericLiteLLMParams(**litellm_params)
+            gateway_params_obj = GenericGatewayParams(**litellm_params)
         else:
-            litellm_params_obj = litellm_params or GenericLiteLLMParams()
+            gateway_params_obj = litellm_params or GenericGatewayParams()
             # Set api_key if provided and not already set
-            if api_key and not litellm_params_obj.api_key:
-                litellm_params_obj.api_key = api_key
+            if api_key and not gateway_params_obj.api_key:
+                gateway_params_obj.api_key = api_key
 
         # Use Azure authentication logic
-        headers = BaseAzureLLM._base_validate_azure_environment(headers=headers, litellm_params=litellm_params_obj)
+        headers = BaseAzureLLM._base_validate_azure_environment(headers=headers, litellm_params=gateway_params_obj)
 
         # Get tools and other anthropic-specific setup
         tools: Final = optional_params.get("tools")

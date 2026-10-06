@@ -9,7 +9,7 @@ from unittest.mock import MagicMock
 from token_iq.gateway.llms.anthropic.chat.handler import ModelResponseIterator
 from token_iq.gateway.main import stream_chunk_builder
 from token_iq.gateway.responses.litellm_completion_transformation.transformation import (
-    LiteLLMCompletionResponsesConfig,
+    GatewayCompletionResponsesConfig,
 )
 from token_iq.gateway.types.responses.main import (
     OutputCodeInterpreterCall,
@@ -51,7 +51,7 @@ def test_extract_tool_result_output_items_from_pydantic_objects():
         ),
     ]
     resp = _make_model_response(code_interpreter_results=items)
-    result = LiteLLMCompletionResponsesConfig._extract_tool_result_output_items(resp)
+    result = GatewayCompletionResponsesConfig._extract_tool_result_output_items(resp)
     assert len(result) == 2
     assert result[0].id == "srvtoolu_01AAA"
     assert result[1].id == "srvtoolu_01BBB"
@@ -71,7 +71,7 @@ def test_extract_tool_result_output_items_from_dicts():
         },
     ]
     resp = _make_model_response(code_interpreter_results=items)
-    result = LiteLLMCompletionResponsesConfig._extract_tool_result_output_items(resp)
+    result = GatewayCompletionResponsesConfig._extract_tool_result_output_items(resp)
     assert len(result) == 1
     assert isinstance(result[0], OutputCodeInterpreterCall)
     assert result[0].id == "srvtoolu_01AAA"
@@ -80,7 +80,7 @@ def test_extract_tool_result_output_items_from_dicts():
 def test_extract_tool_result_output_items_empty():
     """No code_interpreter_results → empty list."""
     resp = _make_model_response()
-    result = LiteLLMCompletionResponsesConfig._extract_tool_result_output_items(resp)
+    result = GatewayCompletionResponsesConfig._extract_tool_result_output_items(resp)
     assert result == []
 
 
@@ -90,7 +90,7 @@ def test_extract_tool_result_output_items_no_provider_specific_fields():
     choice = Choices(index=0, message=msg, finish_reason="stop")
     resp = ModelResponse()
     resp.choices = [choice]
-    result = LiteLLMCompletionResponsesConfig._extract_tool_result_output_items(resp)
+    result = GatewayCompletionResponsesConfig._extract_tool_result_output_items(resp)
     assert result == []
 
 
@@ -137,7 +137,7 @@ def test_in_place_substitution_preserves_ordering():
 
     # Apply the same logic as _transform_chat_completion_choices_to_responses_output
     tool_result_items = (
-        LiteLLMCompletionResponsesConfig._extract_tool_result_output_items(resp)
+        GatewayCompletionResponsesConfig._extract_tool_result_output_items(resp)
     )
     if tool_result_items:
         result_by_id = {
@@ -256,7 +256,7 @@ def test_end_to_end_streaming_chunks_to_code_interpreter_output():
 
     # Step 3: Extract via _extract_tool_result_output_items (Responses API layer)
     tool_result_items = (
-        LiteLLMCompletionResponsesConfig._extract_tool_result_output_items(assembled)
+        GatewayCompletionResponsesConfig._extract_tool_result_output_items(assembled)
     )
     assert len(tool_result_items) == 1
     item = tool_result_items[0]

@@ -130,7 +130,7 @@ async def test_openai_prediction_param_with_caching():
     """
     Tests using `prediction` parameter with caching
     """
-    from token_iq.gateway.caching.caching import LiteLLMCacheType
+    from token_iq.gateway.caching.caching import GatewayCacheType
     import logging
     from token_iq.gateway._logging import verbose_logger
 
@@ -138,7 +138,7 @@ async def test_openai_prediction_param_with_caching():
     import time
 
     gateway.set_verbose = True
-    gateway.cache = gateway.Cache(type=LiteLLMCacheType.LOCAL)
+    gateway.cache = gateway.Cache(type=GatewayCacheType.LOCAL)
     code = """
     /// <summary>
     /// Represents a user with a first name, last name, and username.

@@ -46,14 +46,14 @@ async def fetch_available_models(base_url: str, api_key: str) -> list[str]:
         ]
 
 
-def setup_litellm_env(config: Config):
+def setup_gateway_env(config: Config):
     """
     Configure environment variables to point Agent SDK to LiteLLM
     """
-    litellm_base_url = config.LITELLM_PROXY_URL.rstrip("/")
-    os.environ["ANTHROPIC_BASE_URL"] = litellm_base_url
+    gateway_base_url = config.LITELLM_PROXY_URL.rstrip("/")
+    os.environ["ANTHROPIC_BASE_URL"] = gateway_base_url
     os.environ["ANTHROPIC_API_KEY"] = config.LITELLM_API_KEY
-    return litellm_base_url
+    return gateway_base_url
 
 
 def print_header(base_url: str, current_model: str, has_mcp: bool = False):

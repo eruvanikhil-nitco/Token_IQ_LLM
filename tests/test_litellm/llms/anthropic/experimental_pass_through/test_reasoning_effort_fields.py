@@ -173,10 +173,10 @@ class TestAdapterAdaptiveThinking:
     def test_messages_adapter_adaptive_returns_medium_default(self):
         """Adaptive thinking returns 'medium' as default reasoning_effort."""
         from token_iq.gateway.llms.anthropic.experimental_pass_through.adapters.transformation import (
-            LiteLLMAnthropicMessagesAdapter,
+            GatewayAnthropicMessagesAdapter,
         )
 
-        adapter = LiteLLMAnthropicMessagesAdapter()
+        adapter = GatewayAnthropicMessagesAdapter()
         result = adapter.translate_anthropic_thinking_to_reasoning_effort(
             {"type": "adaptive"}
         )
@@ -185,11 +185,11 @@ class TestAdapterAdaptiveThinking:
     def test_messages_adapter_adaptive_overridden_by_output_config(self):
         """For adaptive thinking, output_config.effort overrides reasoning_effort."""
         from token_iq.gateway.llms.anthropic.experimental_pass_through.adapters.transformation import (
-            LiteLLMAnthropicMessagesAdapter,
+            GatewayAnthropicMessagesAdapter,
         )
         from token_iq.gateway.types.llms.anthropic import AnthropicMessagesRequest
 
-        adapter = LiteLLMAnthropicMessagesAdapter()
+        adapter = GatewayAnthropicMessagesAdapter()
         request = AnthropicMessagesRequest(
             model="test-model",
             messages=[{"role": "user", "content": "hello"}],
@@ -208,10 +208,10 @@ class TestAdapterAdaptiveThinking:
     def test_responses_adapter_adaptive_with_output_config(self):
         """Responses adapter: adaptive thinking + output_config.effort."""
         from token_iq.gateway.llms.anthropic.experimental_pass_through.responses_adapters.transformation import (
-            LiteLLMAnthropicToResponsesAPIAdapter,
+            GatewayAnthropicToResponsesAPIAdapter,
         )
 
-        result = LiteLLMAnthropicToResponsesAPIAdapter.translate_thinking_to_reasoning(
+        result = GatewayAnthropicToResponsesAPIAdapter.translate_thinking_to_reasoning(
             thinking={"type": "adaptive"},
             output_config={"effort": "xhigh"},
         )
@@ -221,10 +221,10 @@ class TestAdapterAdaptiveThinking:
     def test_responses_adapter_adaptive_default_medium(self):
         """Responses adapter: adaptive thinking without output_config defaults to medium."""
         from token_iq.gateway.llms.anthropic.experimental_pass_through.responses_adapters.transformation import (
-            LiteLLMAnthropicToResponsesAPIAdapter,
+            GatewayAnthropicToResponsesAPIAdapter,
         )
 
-        result = LiteLLMAnthropicToResponsesAPIAdapter.translate_thinking_to_reasoning(
+        result = GatewayAnthropicToResponsesAPIAdapter.translate_thinking_to_reasoning(
             thinking={"type": "adaptive"},
         )
         assert result is not None

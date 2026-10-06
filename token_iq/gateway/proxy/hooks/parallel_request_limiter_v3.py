@@ -53,7 +53,7 @@ from token_iq.gateway.proxy.hooks.batch_enqueued_tokens import (
 )
 from token_iq.gateway.proxy.hooks.rate_limiter_utils import resolve_llm_provider_for_rate_limit
 from token_iq.gateway.types.caching import RedisPipelineIncrementOperation
-from token_iq.gateway.types.llms.openai import BaseLiteLLMOpenAIResponseObject, ResponseAPIUsage
+from token_iq.gateway.types.llms.openai import BaseGatewayOpenAIResponseObject, ResponseAPIUsage
 from token_iq.gateway.types.utils import (
     CallTypes,
     EmbeddingResponse,
@@ -512,7 +512,7 @@ class RequestRateLimiterStash:
     mint fresh ids and are ignored.
     """
 
-    owner_litellm_call_id: str | None = None
+    owner_gateway_call_id: str | None = None
     rate_limit_response: RateLimitResponse | None = None
     parallel_slot: ParallelSlotAcquisition | None = None
     reserved_tokens: int = 0
@@ -553,7 +553,7 @@ def claim_request_stash_for_data(data: dict) -> RequestRateLimiterStash:
     stash: Final = get_or_create_request_stash()
     owner_call_id: Final = data.get("litellm_call_id")
     if isinstance(owner_call_id, str):
-        stash.owner_litellm_call_id = owner_call_id
+        stash.owner_gateway_call_id = owner_call_id
     return stash
 
 
@@ -561,9 +561,9 @@ def get_request_stash_for_call(litellm_call_id: str | None) -> RequestRateLimite
     stash: Final = _request_stash.get()
     if stash is None:
         return None
-    if stash.owner_litellm_call_id is None or litellm_call_id is None:
+    if stash.owner_gateway_call_id is None or litellm_call_id is None:
         return stash
-    return stash if litellm_call_id == stash.owner_litellm_call_id else None
+    return stash if litellm_call_id == stash.owner_gateway_call_id else None
 
 
 def _call_id_from_callback_kwargs(kwargs: object) -> str | None:
@@ -3136,12 +3136,12 @@ class _PROXY_MaxParallelRequestsHandler_v3(CustomLogger):
         zero tokens via its ``text`` path, which only joins plain strings.
         """
         from token_iq.gateway.responses.litellm_completion_transformation.transformation import (
-            LiteLLMCompletionResponsesConfig,
+            GatewayCompletionResponsesConfig,
         )
 
         if not isinstance(data, dict):
             return ()
-        return LiteLLMCompletionResponsesConfig.transform_responses_api_input_to_messages(
+        return GatewayCompletionResponsesConfig.transform_responses_api_input_to_messages(
             input=data.get("input") or "",
             responses_api_request=data,
         )
@@ -3772,7 +3772,7 @@ class _PROXY_MaxParallelRequestsHandler_v3(CustomLogger):
             return response_obj
         if isinstance(
             response_obj,
-            (ModelResponse, EmbeddingResponse, TextCompletionResponse, BaseLiteLLMOpenAIResponseObject),
+            (ModelResponse, EmbeddingResponse, TextCompletionResponse, BaseGatewayOpenAIResponseObject),
         ):
             usage: Final = getattr(response_obj, "usage", None)
             return usage if isinstance(usage, (Usage, ResponseAPIUsage, dict)) else None
@@ -4322,7 +4322,7 @@ class _PROXY_MaxParallelRequestsHandler_v3(CustomLogger):
         """Build Redis pipeline increment ops for TPM / parallel-request counters."""
         from token_iq.gateway.core_utils.core_helpers import get_litellm_metadata_from_kwargs
         from token_iq.gateway.proxy.common_utils.callback_utils import (
-            get_model_group_from_litellm_kwargs,
+            get_model_group_from_gateway_kwargs,
         )
 
         # Get metadata from standard_logging_object - this correctly handles both
@@ -4335,7 +4335,7 @@ class _PROXY_MaxParallelRequestsHandler_v3(CustomLogger):
             return []
         standard_logging_metadata: Final = standard_logging_object.get("metadata") or {}
 
-        model_group: Final = get_model_group_from_litellm_kwargs(kwargs)
+        model_group: Final = get_model_group_from_gateway_kwargs(kwargs)
 
         # Get total tokens from response. Responses LiteLLM does not model
         # (e.g. pass-through, whose usage is reported by the upstream rather
@@ -4349,7 +4349,7 @@ class _PROXY_MaxParallelRequestsHandler_v3(CustomLogger):
                 ModelResponse,
                 EmbeddingResponse,
                 TextCompletionResponse,
-                BaseLiteLLMOpenAIResponseObject,
+                BaseGatewayOpenAIResponseObject,
             ),
         ):
             _usage = getattr(response_obj, "usage", None)

@@ -4,7 +4,7 @@ from aiohttp import ClientResponse
 from httpx import Headers, Response
 
 from token_iq.gateway.llms.base_llm.chat.transformation import BaseLLMException
-from token_iq.gateway.llms.base_llm.image_variations.transformation import LiteLLMLoggingObj
+from token_iq.gateway.llms.base_llm.image_variations.transformation import GatewayLoggingObj
 from token_iq.gateway.types.llms.openai import OpenAIImageVariationOptionalParams
 from token_iq.gateway.types.utils import FileTypes, HttpHandlerRequestFields, ImageResponse
 
@@ -48,7 +48,7 @@ class OpenAIImageVariationConfig(BaseImageVariationConfig):
         model: str | None,
         raw_response: ClientResponse,
         model_response: ImageResponse,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         request_data: dict,
         image: FileTypes,
         optional_params: dict,
@@ -63,7 +63,7 @@ class OpenAIImageVariationConfig(BaseImageVariationConfig):
         model: str | None,
         raw_response: Response,
         model_response: ImageResponse,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         request_data: dict,
         image: FileTypes,
         optional_params: dict,

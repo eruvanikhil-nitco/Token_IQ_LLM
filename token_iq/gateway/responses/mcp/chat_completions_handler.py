@@ -104,11 +104,11 @@ async def acompletion_with_mcp(
 
     # Parse MCP tools and separate from other tools
     (
-        mcp_tools_with_litellm_proxy,
+        mcp_tools_with_gateway_proxy,
         other_tools,
     ) = LiteLLM_Proxy_MCP_Handler._parse_mcp_tools(tools)
 
-    if not mcp_tools_with_litellm_proxy:
+    if not mcp_tools_with_gateway_proxy:
         # No MCP tools, proceed with regular completion
         return await litellm_acompletion(
             model=model,
@@ -131,7 +131,7 @@ async def acompletion_with_mcp(
         tool_server_map,
     ) = await LiteLLM_Proxy_MCP_Handler._process_mcp_tools_without_openai_transform(
         user_api_key_auth=user_api_key_auth,
-        mcp_tools_with_litellm_proxy=mcp_tools_with_litellm_proxy,
+        mcp_tools_with_gateway_proxy=mcp_tools_with_gateway_proxy,
         litellm_trace_id=context.litellm_trace_id,
         mcp_auth_header=mcp_auth_header,
         mcp_server_auth_headers=mcp_server_auth_headers,
@@ -148,7 +148,7 @@ async def acompletion_with_mcp(
 
     # Determine if we should auto-execute tools
     should_auto_execute: Final = LiteLLM_Proxy_MCP_Handler._should_auto_execute_tools(
-        mcp_tools_with_litellm_proxy=mcp_tools_with_litellm_proxy
+        mcp_tools_with_gateway_proxy=mcp_tools_with_gateway_proxy
     )
 
     # Prepare call parameters
@@ -311,7 +311,7 @@ async def acompletion_with_mcp(
                 except StopAsyncIteration:
                     pass
                 except Exception:
-                    logging.getLogger("LiteLLM").exception(
+                    logging.getLogger("Gateway").exception(
                         "Error draining inner MCP stream after final chunk; spend logging may be incomplete"
                     )
 

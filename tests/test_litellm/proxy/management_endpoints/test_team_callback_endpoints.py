@@ -15,8 +15,8 @@ from fastapi import HTTPException, Request
 from token_iq import gateway
 from token_iq.gateway.proxy._types import (
     AddTeamCallback,
-    LitellmTableNames,
-    LitellmUserRoles,
+    GatewayTableNames,
+    GatewayUserRoles,
     UserAPIKeyAuth,
 )
 from token_iq.gateway.proxy.management_endpoints.team_callback_endpoints import (
@@ -63,7 +63,7 @@ def _admin_auth() -> UserAPIKeyAuth:
     return UserAPIKeyAuth(
         api_key="hashed",
         user_id="admin-user",
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
     )
 
 
@@ -87,7 +87,7 @@ def stub_team_cache_refresh():
 @pytest.fixture
 def unauthorized_caller():
     return UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="random_authenticated_user",
         api_key="sk-random",
     )
@@ -184,7 +184,7 @@ async def test_team_admin_of_target_team_can_add_callbacks(patched_prisma):
     )
 
     team_admin = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         user_id="team_admin_user",
         api_key="sk-team-admin",
     )
@@ -246,7 +246,7 @@ async def test_disable_team_logging_emits_audit_log_when_enabled(monkeypatch):
 
     assert len(audit_calls) == 1
     log = audit_calls[0]
-    assert log.table_name == LitellmTableNames.TEAM_TABLE_NAME
+    assert log.table_name == GatewayTableNames.TEAM_TABLE_NAME
     assert log.object_id == "team-1"
     assert log.action == "updated"
     assert log.changed_by == "admin-user"
@@ -337,7 +337,7 @@ async def test_add_team_callbacks_emits_audit_log_when_enabled(monkeypatch):
 
     assert len(audit_calls) == 1
     log = audit_calls[0]
-    assert log.table_name == LitellmTableNames.TEAM_TABLE_NAME
+    assert log.table_name == GatewayTableNames.TEAM_TABLE_NAME
     assert log.object_id == "team-1"
     assert log.action == "updated"
     assert log.changed_by == "ops-on-call"
@@ -1322,7 +1322,7 @@ async def test_delete_team_callback_emits_redacted_audit_log(monkeypatch):
 
     assert len(audit_calls) == 1
     log = audit_calls[0]
-    assert log.table_name == LitellmTableNames.TEAM_TABLE_NAME
+    assert log.table_name == GatewayTableNames.TEAM_TABLE_NAME
     assert log.object_id == "team-1"
     assert log.action == "updated"
 

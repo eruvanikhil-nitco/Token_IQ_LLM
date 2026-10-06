@@ -16,7 +16,7 @@ from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.constants import STREAM_SSE_DONE_STRING
 from token_iq.gateway.core_utils.asyncify import run_async_function
 from token_iq.gateway.core_utils.core_helpers import process_response_headers
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.core_utils.llm_response_utils.get_api_base import get_api_base
 from token_iq.gateway.core_utils.thread_pool_executor import executor
 from token_iq.gateway.llms.base_llm.interactions.transformation import BaseInteractionsAPIConfig
@@ -38,7 +38,7 @@ class BaseInteractionsAPIStreamingIterator:
         response: httpx.Response,
         model: str | None,
         interactions_api_config: BaseInteractionsAPIConfig,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         litellm_metadata: dict[str, Any] | None = None,
         custom_llm_provider: str | None = None,
     ):
@@ -126,7 +126,7 @@ class InteractionsAPIStreamingIterator(BaseInteractionsAPIStreamingIterator):
         response: httpx.Response,
         model: str | None,
         interactions_api_config: BaseInteractionsAPIConfig,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         litellm_metadata: dict[str, Any] | None = None,
         custom_llm_provider: str | None = None,
     ):
@@ -193,7 +193,7 @@ class SyncInteractionsAPIStreamingIterator(BaseInteractionsAPIStreamingIterator)
         response: httpx.Response,
         model: str | None,
         interactions_api_config: BaseInteractionsAPIConfig,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         litellm_metadata: dict[str, Any] | None = None,
         custom_llm_provider: str | None = None,
     ):

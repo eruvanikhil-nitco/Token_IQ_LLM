@@ -25,7 +25,7 @@ from token_iq.gateway.proxy.db.db_spend_update_writer import (
     debitable_model_access_groups,
     get_llm_router,
 )
-from token_iq.gateway.proxy.litellm_pre_call_utils import LiteLLMProxyRequestSetup
+from token_iq.gateway.proxy.litellm_pre_call_utils import GatewayProxyRequestSetup
 from token_iq.gateway.proxy.spend_tracking.spend_log_error_logger import (
     should_suppress_spend_log_tracebacks,
     spend_log_error,
@@ -105,7 +105,7 @@ class _ProxyDBLogger(CustomLogger):
         from token_iq.gateway.proxy.proxy_server import proxy_logging_obj
 
         _metadata = dict(
-            LiteLLMProxyRequestSetup.get_sanitized_user_information_from_key(user_api_key_dict=user_api_key_dict)
+            GatewayProxyRequestSetup.get_sanitized_user_information_from_key(user_api_key_dict=user_api_key_dict)
         )
         _metadata["user_api_key"] = user_api_key_dict.api_key
         _metadata["status"] = "failure"
@@ -136,35 +136,35 @@ class _ProxyDBLogger(CustomLogger):
         existing_metadata: Final[dict] = request_data.get("metadata", None) or {}
         existing_metadata.update(_metadata)
 
-        litellm_metadata_bucket: Final = request_data.get("litellm_metadata")
+        gateway_metadata_bucket: Final = request_data.get("litellm_metadata")
         if (
-            isinstance(litellm_metadata_bucket, dict)
+            isinstance(gateway_metadata_bucket, dict)
             and "standard_logging_guardrail_information" not in existing_metadata
         ):
-            guardrail_info: Final = litellm_metadata_bucket.get("standard_logging_guardrail_information")
+            guardrail_info: Final = gateway_metadata_bucket.get("standard_logging_guardrail_information")
             if guardrail_info is not None:
                 existing_metadata["standard_logging_guardrail_information"] = guardrail_info
 
         if "litellm_params" not in request_data:
             request_data["litellm_params"] = {}
 
-        existing_litellm_params: Final = request_data.get("litellm_params", {})
-        existing_litellm_metadata: Final = existing_litellm_params.get("metadata", {}) or {}
+        existing_gateway_params: Final = request_data.get("litellm_params", {})
+        existing_gateway_metadata: Final = existing_gateway_params.get("metadata", {}) or {}
 
         # Preserve tags from existing metadata
-        if existing_litellm_metadata.get("tags"):
-            existing_metadata["tags"] = existing_litellm_metadata.get("tags")
+        if existing_gateway_metadata.get("tags"):
+            existing_metadata["tags"] = existing_gateway_metadata.get("tags")
 
         request_data["litellm_params"]["proxy_server_request"] = (
-            request_data.get("proxy_server_request") or existing_litellm_params.get("proxy_server_request") or {}
+            request_data.get("proxy_server_request") or existing_gateway_params.get("proxy_server_request") or {}
         )
         request_data["litellm_params"]["metadata"] = existing_metadata
 
         # Preserve model name and custom_llm_provider
         if "model" not in request_data:
-            request_data["model"] = existing_litellm_params.get("model") or request_data.get("model", "")
+            request_data["model"] = existing_gateway_params.get("model") or request_data.get("model", "")
         if "custom_llm_provider" not in request_data:
-            request_data["custom_llm_provider"] = existing_litellm_params.get(
+            request_data["custom_llm_provider"] = existing_gateway_params.get(
                 "custom_llm_provider"
             ) or request_data.get("custom_llm_provider", "")
 
@@ -173,20 +173,20 @@ class _ProxyDBLogger(CustomLogger):
         # trace_id that Langfuse received (via async_failure_handler).
         # Without this, the DB session_id would be a random UUID that doesn't
         # match the Langfuse trace_id, making failed requests unsearchable.
-        _litellm_logging_obj: Final = request_data.get("litellm_logging_obj")
-        if _litellm_logging_obj is not None:
+        _gateway_logging_obj: Final = request_data.get("litellm_logging_obj")
+        if _gateway_logging_obj is not None:
             if not request_data.get("standard_logging_object"):
-                request_data["standard_logging_object"] = getattr(_litellm_logging_obj, "model_call_details", {}).get(
+                request_data["standard_logging_object"] = getattr(_gateway_logging_obj, "model_call_details", {}).get(
                     "standard_logging_object"
                 )
             if request_data.get("litellm_trace_id") is None:
-                request_data["litellm_trace_id"] = getattr(_litellm_logging_obj, "litellm_trace_id", None)
+                request_data["litellm_trace_id"] = getattr(_gateway_logging_obj, "litellm_trace_id", None)
 
         # Use the actual request start time from the logging object so that
         # failed requests record the real duration instead of 0.
         actual_start_time = datetime.now()
-        if _litellm_logging_obj is not None:
-            obj_start: Final = getattr(_litellm_logging_obj, "start_time", None)
+        if _gateway_logging_obj is not None:
+            obj_start: Final = getattr(_gateway_logging_obj, "start_time", None)
             if obj_start is not None:
                 actual_start_time = obj_start
 

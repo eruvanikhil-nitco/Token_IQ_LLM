@@ -10,15 +10,15 @@ from token_iq.gateway.llms.azure.common_utils import BaseAzureLLM
 from token_iq.gateway.llms.openai.responses.transformation import OpenAIResponsesAPIConfig
 from token_iq.gateway.types.llms.openai import *
 from token_iq.gateway.types.responses.main import *
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.types.utils import LlmProviders
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as _LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as _GatewayLoggingObj
 
-    LiteLLMLoggingObj = _LiteLLMLoggingObj
+    GatewayLoggingObj = _GatewayLoggingObj
 else:
-    LiteLLMLoggingObj = Any
+    GatewayLoggingObj = Any
 
 
 class AzureOpenAIResponsesAPIConfig(OpenAIResponsesAPIConfig):
@@ -36,7 +36,7 @@ class AzureOpenAIResponsesAPIConfig(OpenAIResponsesAPIConfig):
         base_supported_params: Final = super().get_supported_openai_params(model)
         return [param for param in base_supported_params if param not in self.AZURE_UNSUPPORTED_PARAMS]
 
-    def validate_environment(self, headers: dict, model: str, litellm_params: GenericLiteLLMParams | None) -> dict:
+    def validate_environment(self, headers: dict, model: str, litellm_params: GenericGatewayParams | None) -> dict:
         return BaseAzureLLM._base_validate_azure_environment(headers=headers, litellm_params=litellm_params)
 
     def get_stripped_model_name(self, model: str) -> str:
@@ -113,7 +113,7 @@ class AzureOpenAIResponsesAPIConfig(OpenAIResponsesAPIConfig):
         model: str,
         input: str | ResponseInputParam,
         response_api_optional_request_params: dict,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> dict:
         """No transform applied since inputs are in OpenAI spec already"""
@@ -237,7 +237,7 @@ class AzureOpenAIResponsesAPIConfig(OpenAIResponsesAPIConfig):
         self,
         response_id: str,
         api_base: str,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> tuple[str, dict]:
         """
@@ -262,7 +262,7 @@ class AzureOpenAIResponsesAPIConfig(OpenAIResponsesAPIConfig):
         self,
         response_id: str,
         api_base: str,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> tuple[str, dict]:
         """
@@ -280,7 +280,7 @@ class AzureOpenAIResponsesAPIConfig(OpenAIResponsesAPIConfig):
         self,
         response_id: str,
         api_base: str,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
         after: str | None = None,
         before: str | None = None,
@@ -312,7 +312,7 @@ class AzureOpenAIResponsesAPIConfig(OpenAIResponsesAPIConfig):
         self,
         response_id: str,
         api_base: str,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> tuple[str, dict]:
         """
@@ -335,7 +335,7 @@ class AzureOpenAIResponsesAPIConfig(OpenAIResponsesAPIConfig):
     def transform_cancel_response_api_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> ResponsesAPIResponse:
         """
         Transform the cancel response API response into a ResponsesAPIResponse

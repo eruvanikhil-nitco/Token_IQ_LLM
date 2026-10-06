@@ -22,11 +22,11 @@ from token_iq.gateway.types.llms.openai import ResponsesAPIResponse
 
 from ..utils import local_model_name
 from .streaming_iterator import AnthropicResponsesStreamWrapper
-from .transformation import LiteLLMAnthropicToResponsesAPIAdapter
+from .transformation import GatewayAnthropicToResponsesAPIAdapter
 
 AnthropicRequestMessages: TypeAlias = list[AllAnthropicMessageValues] | list[dict[str, object]]
 
-_ADAPTER: Final = LiteLLMAnthropicToResponsesAPIAdapter()
+_ADAPTER: Final = GatewayAnthropicToResponsesAPIAdapter()
 
 
 def _forwarded_kwargs(extra_kwargs: Mapping[str, object] | None) -> Mapping[str, object]:
@@ -115,11 +115,11 @@ def _build_responses_kwargs(
     for key, value in forwarded_kwargs.items():
         if key == "litellm_logging_obj" and value is not None:
             from token_iq.gateway.core_utils.litellm_logging import (
-                Logging as LiteLLMLoggingObject,
+                Logging as GatewayLoggingObject,
             )
             from token_iq.gateway.types.utils import CallTypes
 
-            if isinstance(value, LiteLLMLoggingObject):
+            if isinstance(value, GatewayLoggingObject):
                 # Keep call_type as anthropic_messages so spend_logs are billed
                 # against /v1/messages; the success handler translates the
                 # Responses API result back to a ModelResponse for the row.
@@ -135,7 +135,7 @@ def _build_responses_kwargs(
     return responses_kwargs
 
 
-class LiteLLMMessagesToResponsesAPIHandler:
+class GatewayMessagesToResponsesAPIHandler:
     """
     Handles Anthropic /v1/messages requests for OpenAI / Azure models by
     calling litellm.responses() / litellm.aresponses() directly and translating
@@ -221,7 +221,7 @@ class LiteLLMMessagesToResponsesAPIHandler:
         | Coroutine[None, None, AnthropicMessagesResponse | AsyncIterator[bytes]]
     ):
         if _is_async:
-            return LiteLLMMessagesToResponsesAPIHandler.async_anthropic_messages_handler(
+            return GatewayMessagesToResponsesAPIHandler.async_anthropic_messages_handler(
                 max_tokens=max_tokens,
                 messages=messages,
                 model=model,

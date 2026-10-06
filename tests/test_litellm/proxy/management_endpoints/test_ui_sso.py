@@ -605,7 +605,7 @@ async def test_default_team_params(team_params):
     with patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma):
         # Act
         team_id = str(uuid.uuid4())
-        await MicrosoftSSOHandler.create_litellm_teams_from_service_principal_team_ids(
+        await MicrosoftSSOHandler.create_gateway_teams_from_service_principal_team_ids(
             service_principal_teams=[
                 MicrosoftServicePrincipalTeam(
                     principalId=team_id,
@@ -662,7 +662,7 @@ async def test_default_team_params_organization_id_reaches_sso_created_team(team
         AsyncMock(return_value=mock_org),
     ) as mock_get_org:
         team_id = str(uuid.uuid4())
-        await MicrosoftSSOHandler.create_litellm_teams_from_service_principal_team_ids(
+        await MicrosoftSSOHandler.create_gateway_teams_from_service_principal_team_ids(
             service_principal_teams=[
                 MicrosoftServicePrincipalTeam(
                     principalId=team_id,
@@ -701,7 +701,7 @@ async def test_create_team_without_default_params():
     with patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma):
         # Act
         team_id = str(uuid.uuid4())
-        await MicrosoftSSOHandler.create_litellm_teams_from_service_principal_team_ids(
+        await MicrosoftSSOHandler.create_gateway_teams_from_service_principal_team_ids(
             service_principal_teams=[
                 MicrosoftServicePrincipalTeam(
                     principalId=team_id,
@@ -832,7 +832,7 @@ def test_build_sso_user_update_data_with_valid_role():
     """
     Test that _build_sso_user_update_data includes role when SSO provides a valid role.
     """
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
     from token_iq.gateway.proxy.management_endpoints.types import CustomOpenID
     from token_iq.gateway.proxy.management_endpoints.ui_sso import _build_sso_user_update_data
 
@@ -842,7 +842,7 @@ def test_build_sso_user_update_data_with_valid_role():
         display_name="Test User",
         provider="microsoft",
         team_ids=[],
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
     )
 
     update_data = _build_sso_user_update_data(
@@ -968,7 +968,7 @@ async def test_upsert_sso_user_updates_role_for_existing_user():
     When a user's role is updated in the SSO provider (e.g., Azure), the role should be
     updated in the LiteLLM database on subsequent logins, not just at initial user creation.
     """
-    from token_iq.gateway.proxy._types import LiteLLM_UserTable, LitellmUserRoles
+    from token_iq.gateway.proxy._types import LiteLLM_UserTable, GatewayUserRoles
     from token_iq.gateway.proxy.management_endpoints.types import CustomOpenID
     from token_iq.gateway.proxy.management_endpoints.ui_sso import SSOAuthenticationHandler
 
@@ -991,7 +991,7 @@ async def test_upsert_sso_user_updates_role_for_existing_user():
         display_name="Test User",
         provider="microsoft",
         team_ids=["team-1"],
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
     )
 
     # Act
@@ -1113,7 +1113,7 @@ def test_get_user_email_and_id_extracts_microsoft_role():
     This ensures Microsoft SSO roles (from app_roles in id_token) are properly
     extracted and converted from enum to string.
     """
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
     from token_iq.gateway.proxy.management_endpoints.types import CustomOpenID
     from token_iq.gateway.proxy.management_endpoints.ui_sso import SSOAuthenticationHandler
 
@@ -1123,7 +1123,7 @@ def test_get_user_email_and_id_extracts_microsoft_role():
         display_name="Test User",
         provider="microsoft",
         team_ids=["team-1"],
-        user_role=LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY,
+        user_role=GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY,
     )
 
     parsed = SSOAuthenticationHandler._get_user_email_and_id_from_result(
@@ -1420,7 +1420,7 @@ async def test_check_and_update_if_proxy_admin_id():
     """
     Test that a user with matching PROXY_ADMIN_ID gets their role updated to admin
     """
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
     from token_iq.gateway.proxy.management_endpoints.ui_sso import (
         check_and_update_if_proxy_admin_id,
     )
@@ -1440,10 +1440,10 @@ async def test_check_and_update_if_proxy_admin_id():
         )
 
         # Assert
-        assert updated_role == LitellmUserRoles.PROXY_ADMIN.value
+        assert updated_role == GatewayUserRoles.PROXY_ADMIN.value
         mock_prisma.db.litellm_usertable.update.assert_called_once_with(
             where={"user_id": test_user_id},
-            data={"user_role": LitellmUserRoles.PROXY_ADMIN.value},
+            data={"user_role": GatewayUserRoles.PROXY_ADMIN.value},
         )
 
 
@@ -1452,7 +1452,7 @@ async def test_check_and_update_if_proxy_admin_id_already_admin():
     """
     Test that a user who is already an admin doesn't get their role updated
     """
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
     from token_iq.gateway.proxy.management_endpoints.ui_sso import (
         check_and_update_if_proxy_admin_id,
     )
@@ -1463,7 +1463,7 @@ async def test_check_and_update_if_proxy_admin_id_already_admin():
 
     # Set up test data
     test_user_id = "test_admin_123"
-    test_user_role = LitellmUserRoles.PROXY_ADMIN.value
+    test_user_role = GatewayUserRoles.PROXY_ADMIN.value
 
     with patch.dict(os.environ, {"PROXY_ADMIN_ID": test_user_id}):
         # Act
@@ -1472,7 +1472,7 @@ async def test_check_and_update_if_proxy_admin_id_already_admin():
         )
 
         # Assert
-        assert updated_role == LitellmUserRoles.PROXY_ADMIN.value
+        assert updated_role == GatewayUserRoles.PROXY_ADMIN.value
         mock_prisma.db.litellm_usertable.update.assert_not_called()
 
 
@@ -1616,7 +1616,7 @@ async def test_get_generic_sso_response_includes_token_claims_when_enabled(monke
     import jwt as pyjwt
 
     from token_iq.gateway.proxy.management_endpoints.ui_sso import get_generic_sso_response
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
     mock_request = MagicMock(spec=Request)
     mock_jwt_handler = MagicMock(spec=JWTHandler)
@@ -1680,7 +1680,7 @@ async def test_get_generic_sso_response_includes_token_claims_when_enabled(monke
     assert result.last_name == "User"
     assert result.display_name == "Token User"
     assert result.team_ids == ["team-from-userinfo"]
-    assert result.user_role == LitellmUserRoles.PROXY_ADMIN
+    assert result.user_role == GatewayUserRoles.PROXY_ADMIN
     assert received_response is not None
     assert "access_token" not in received_response
     assert "id_token" not in received_response
@@ -1691,7 +1691,7 @@ async def test_get_generic_sso_response_includes_token_claims_when_enabled(monke
 async def test_get_generic_sso_response_does_not_include_token_claims_when_disabled(monkeypatch):
     import jwt as pyjwt
 
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
     from token_iq.gateway.proxy.management_endpoints.ui_sso import get_generic_sso_response
 
     mock_request = MagicMock(spec=Request)
@@ -1737,7 +1737,7 @@ async def test_get_generic_sso_response_does_not_include_token_claims_when_disab
     assert result.email is None
     assert result.display_name is None
     assert result.team_ids == ["team-from-userinfo"]
-    assert result.user_role == LitellmUserRoles.PROXY_ADMIN
+    assert result.user_role == GatewayUserRoles.PROXY_ADMIN
     assert received_response == {"sub": "subject-only", "groups": ["admins"]}
 
 
@@ -2626,7 +2626,7 @@ class TestCLIKeyRegenerationFlow:
         a real Redis serialization round trip.
         """
         from token_iq.gateway.caching.redis_cache import RedisCache
-        from token_iq.gateway.proxy._types import LitellmUserRoles
+        from token_iq.gateway.proxy._types import GatewayUserRoles
         from token_iq.gateway.proxy.management_endpoints.ui_sso import (
             _get_cli_sso_flow_or_raise,
             _set_cli_sso_flow,
@@ -2639,7 +2639,7 @@ class TestCLIKeyRegenerationFlow:
             "user_code_verified": False,
             "session_data": {
                 "user_id": "user-1",
-                "user_role": LitellmUserRoles.INTERNAL_USER_VIEW_ONLY,
+                "user_role": GatewayUserRoles.INTERNAL_USER_VIEW_ONLY,
                 "models": [],
                 "teams": ["team-1"],
                 "team_details": [{"team_id": "team-1", "team_alias": "alias"}],
@@ -2661,7 +2661,7 @@ class TestCLIKeyRegenerationFlow:
         flow = _get_cli_sso_flow_or_raise(login_id=login_id, cache=cache)
 
         assert flow["sso_complete"] is True
-        assert flow["session_data"]["user_role"] == LitellmUserRoles.INTERNAL_USER_VIEW_ONLY.value
+        assert flow["session_data"]["user_role"] == GatewayUserRoles.INTERNAL_USER_VIEW_ONLY.value
         assert flow["session_data"]["team_details"] == [{"team_id": "team-1", "team_alias": "alias"}]
 
     @pytest.mark.asyncio
@@ -4330,9 +4330,9 @@ class TestProcessSSOJWTAccessToken:
         assert result.team_ids == ["team_alpha", "team_beta"]
 
         # Role should be extracted from the "role" field in the JWT
-        from token_iq.gateway.proxy._types import LitellmUserRoles
+        from token_iq.gateway.proxy._types import GatewayUserRoles
 
-        assert result.user_role == LitellmUserRoles.PROXY_ADMIN
+        assert result.user_role == GatewayUserRoles.PROXY_ADMIN
 
     def test_process_sso_jwt_access_token_real_jwt_without_role_and_teams(self):
         """Test that a real JWT without role/team fields leaves result unchanged."""
@@ -4480,7 +4480,7 @@ class TestGenericResponseConvertorUserRole:
         Test that generic_response_convertor extracts a valid LiteLLM user role
         from the SSO token using the GENERIC_USER_ROLE_ATTRIBUTE env var.
         """
-        from token_iq.gateway.proxy._types import LitellmUserRoles
+        from token_iq.gateway.proxy._types import GatewayUserRoles
         from token_iq.gateway.proxy.management_endpoints.ui_sso import generic_response_convertor
 
         mock_jwt_handler = MagicMock(spec=JWTHandler)
@@ -4504,7 +4504,7 @@ class TestGenericResponseConvertorUserRole:
             )
 
             assert isinstance(result, CustomOpenID)
-            assert result.user_role == LitellmUserRoles.PROXY_ADMIN
+            assert result.user_role == GatewayUserRoles.PROXY_ADMIN
 
     def test_generic_response_convertor_ignores_invalid_user_role(self):
         """
@@ -5828,7 +5828,7 @@ class TestAddMissingTeamMember:
             }
 
     @pytest.mark.asyncio
-    async def test_add_missing_team_member_with_litellm_user_table_empty_teams(self):
+    async def test_add_missing_team_member_with_gateway_user_table_empty_teams(self):
         """
         Control test: When a LiteLLM_UserTable has teams=[] (existing user, no teams),
         add_missing_team_member() should add the user to SSO teams.
@@ -6162,13 +6162,13 @@ class TestSSOReadinessEndpoint:
         """Test that readiness returns healthy when no SSO is configured"""
         from fastapi.testclient import TestClient
 
-        from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+        from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
         from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
         from token_iq.gateway.proxy.proxy_server import app
 
         mock_user_auth = UserAPIKeyAuth(
             user_id="test-user-123",
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
         )
         app.dependency_overrides[user_api_key_auth] = lambda: mock_user_auth
 
@@ -6191,13 +6191,13 @@ class TestSSOReadinessEndpoint:
         """Test that readiness returns healthy when Google SSO is fully configured"""
         from fastapi.testclient import TestClient
 
-        from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+        from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
         from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
         from token_iq.gateway.proxy.proxy_server import app
 
         mock_user_auth = UserAPIKeyAuth(
             user_id="test-user-123",
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
         )
         app.dependency_overrides[user_api_key_auth] = lambda: mock_user_auth
 
@@ -6228,13 +6228,13 @@ class TestSSOReadinessEndpoint:
         """Test that readiness returns unhealthy when Google SSO is missing GOOGLE_CLIENT_SECRET"""
         from fastapi.testclient import TestClient
 
-        from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+        from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
         from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
         from token_iq.gateway.proxy.proxy_server import app
 
         mock_user_auth = UserAPIKeyAuth(
             user_id="test-user-123",
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
         )
         app.dependency_overrides[user_api_key_auth] = lambda: mock_user_auth
 
@@ -6289,13 +6289,13 @@ class TestSSOReadinessEndpoint:
         """Test Microsoft SSO readiness with both fully configured and missing variables"""
         from fastapi.testclient import TestClient
 
-        from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+        from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
         from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
         from token_iq.gateway.proxy.proxy_server import app
 
         mock_user_auth = UserAPIKeyAuth(
             user_id="test-user-123",
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
         )
         app.dependency_overrides[user_api_key_auth] = lambda: mock_user_auth
 
@@ -6359,13 +6359,13 @@ class TestSSOReadinessEndpoint:
         """Test Generic SSO readiness with both fully configured and missing variables"""
         from fastapi.testclient import TestClient
 
-        from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+        from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
         from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
         from token_iq.gateway.proxy.proxy_server import app
 
         mock_user_auth = UserAPIKeyAuth(
             user_id="test-user-123",
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
         )
         app.dependency_overrides[user_api_key_auth] = lambda: mock_user_auth
 
@@ -6561,40 +6561,40 @@ async def test_setup_team_mappings():
 # ============================================================================
 
 
-def test_get_litellm_user_role_with_string():
+def test_get_gateway_user_role_with_string():
     """Test that get_litellm_user_role works with a plain string."""
-    from token_iq.gateway.proxy._types import LitellmUserRoles
-    from token_iq.gateway.proxy.management_endpoints.types import get_litellm_user_role
+    from token_iq.gateway.proxy._types import GatewayUserRoles
+    from token_iq.gateway.proxy.management_endpoints.types import get_gateway_user_role
 
-    result = get_litellm_user_role("proxy_admin")
-    assert result == LitellmUserRoles.PROXY_ADMIN
+    result = get_gateway_user_role("proxy_admin")
+    assert result == GatewayUserRoles.PROXY_ADMIN
 
 
-def test_get_litellm_user_role_with_list():
+def test_get_gateway_user_role_with_list():
     """
     Test that get_litellm_user_role handles list inputs.
     Keycloak returns roles as arrays like ["proxy_admin"] instead of strings.
     """
-    from token_iq.gateway.proxy._types import LitellmUserRoles
-    from token_iq.gateway.proxy.management_endpoints.types import get_litellm_user_role
+    from token_iq.gateway.proxy._types import GatewayUserRoles
+    from token_iq.gateway.proxy.management_endpoints.types import get_gateway_user_role
 
-    result = get_litellm_user_role(["proxy_admin"])
-    assert result == LitellmUserRoles.PROXY_ADMIN
+    result = get_gateway_user_role(["proxy_admin"])
+    assert result == GatewayUserRoles.PROXY_ADMIN
 
 
-def test_get_litellm_user_role_with_empty_list():
+def test_get_gateway_user_role_with_empty_list():
     """Test that get_litellm_user_role returns None for empty lists."""
-    from token_iq.gateway.proxy.management_endpoints.types import get_litellm_user_role
+    from token_iq.gateway.proxy.management_endpoints.types import get_gateway_user_role
 
-    result = get_litellm_user_role([])
+    result = get_gateway_user_role([])
     assert result is None
 
 
-def test_get_litellm_user_role_with_invalid_role():
+def test_get_gateway_user_role_with_invalid_role():
     """Test that get_litellm_user_role returns None for invalid roles."""
-    from token_iq.gateway.proxy.management_endpoints.types import get_litellm_user_role
+    from token_iq.gateway.proxy.management_endpoints.types import get_gateway_user_role
 
-    result = get_litellm_user_role("not_a_real_role")
+    result = get_gateway_user_role("not_a_real_role")
     assert result is None
 
 
@@ -6605,12 +6605,12 @@ def test_get_litellm_user_role_with_invalid_role():
         ["internal_user", "proxy_admin"],
     ],
 )
-def test_get_litellm_user_role_picks_highest_privilege_regardless_of_order(role_claim):
+def test_get_gateway_user_role_picks_highest_privilege_regardless_of_order(role_claim):
     """A multi-valued role claim resolves to the most privileged role, not the first one listed."""
-    from token_iq.gateway.proxy._types import LitellmUserRoles
-    from token_iq.gateway.proxy.management_endpoints.types import get_litellm_user_role
+    from token_iq.gateway.proxy._types import GatewayUserRoles
+    from token_iq.gateway.proxy.management_endpoints.types import get_gateway_user_role
 
-    assert get_litellm_user_role(role_claim) == LitellmUserRoles.PROXY_ADMIN
+    assert get_gateway_user_role(role_claim) == GatewayUserRoles.PROXY_ADMIN
 
 
 @pytest.mark.parametrize(
@@ -6620,31 +6620,31 @@ def test_get_litellm_user_role_picks_highest_privilege_regardless_of_order(role_
         ["internal_user", "proxy_admin_viewer"],
     ],
 )
-def test_get_litellm_user_role_keeps_org_spend_visibility_for_mixed_roles(role_claim):
+def test_get_gateway_user_role_keeps_org_spend_visibility_for_mixed_roles(role_claim):
     """
     Regression for LIT-6077: a user holding both proxy_admin_viewer and internal_user kept
     losing org-level spend visibility whenever the IdP happened to list internal_user first.
     """
-    from token_iq.gateway.proxy._types import LitellmUserRoles
-    from token_iq.gateway.proxy.management_endpoints.types import get_litellm_user_role
+    from token_iq.gateway.proxy._types import GatewayUserRoles
+    from token_iq.gateway.proxy.management_endpoints.types import get_gateway_user_role
 
-    assert get_litellm_user_role(role_claim) == LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY
+    assert get_gateway_user_role(role_claim) == GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY
 
 
-def test_get_litellm_user_role_ignores_unrecognised_entries():
+def test_get_gateway_user_role_ignores_unrecognised_entries():
     """Roles LiteLLM does not know about are skipped rather than swallowing the whole claim."""
-    from token_iq.gateway.proxy._types import LitellmUserRoles
-    from token_iq.gateway.proxy.management_endpoints.types import get_litellm_user_role
+    from token_iq.gateway.proxy._types import GatewayUserRoles
+    from token_iq.gateway.proxy.management_endpoints.types import get_gateway_user_role
 
-    assert get_litellm_user_role(["some_idp_group", "internal_user"]) == LitellmUserRoles.INTERNAL_USER
-    assert get_litellm_user_role(["some_idp_group", "another_group"]) is None
+    assert get_gateway_user_role(["some_idp_group", "internal_user"]) == GatewayUserRoles.INTERNAL_USER
+    assert get_gateway_user_role(["some_idp_group", "another_group"]) is None
 
 
-def test_get_litellm_user_role_list_lookup_is_case_insensitive():
-    from token_iq.gateway.proxy._types import LitellmUserRoles
-    from token_iq.gateway.proxy.management_endpoints.types import get_litellm_user_role
+def test_get_gateway_user_role_list_lookup_is_case_insensitive():
+    from token_iq.gateway.proxy._types import GatewayUserRoles
+    from token_iq.gateway.proxy.management_endpoints.types import get_gateway_user_role
 
-    assert get_litellm_user_role(["INTERNAL_USER", "Proxy_Admin"]) == LitellmUserRoles.PROXY_ADMIN
+    assert get_gateway_user_role(["INTERNAL_USER", "Proxy_Admin"]) == GatewayUserRoles.PROXY_ADMIN
 
 
 @pytest.mark.parametrize(
@@ -6654,12 +6654,12 @@ def test_get_litellm_user_role_list_lookup_is_case_insensitive():
         ["team", "org_admin"],
     ],
 )
-def test_get_litellm_user_role_is_deterministic_for_unranked_roles(role_claim):
+def test_get_gateway_user_role_is_deterministic_for_unranked_roles(role_claim):
     """Roles outside the privilege hierarchy still resolve the same way in either claim order."""
-    from token_iq.gateway.proxy._types import LitellmUserRoles
-    from token_iq.gateway.proxy.management_endpoints.types import get_litellm_user_role
+    from token_iq.gateway.proxy._types import GatewayUserRoles
+    from token_iq.gateway.proxy.management_endpoints.types import get_gateway_user_role
 
-    assert get_litellm_user_role(role_claim) == LitellmUserRoles.ORG_ADMIN
+    assert get_gateway_user_role(role_claim) == GatewayUserRoles.ORG_ADMIN
 
 
 @pytest.mark.parametrize(
@@ -6669,23 +6669,23 @@ def test_get_litellm_user_role_is_deterministic_for_unranked_roles(role_claim):
         ["internal_user", "org_admin"],
     ],
 )
-def test_get_litellm_user_role_prefers_a_ranked_role_over_an_unranked_one(role_claim):
+def test_get_gateway_user_role_prefers_a_ranked_role_over_an_unranked_one(role_claim):
     """
     org_admin, team and customer sit outside the privilege ladder, so a claim mixing one of
     them with a ranked role settles on the ranked role in either order. Same rule the Entra
     app_roles and role_mappings paths already follow.
     """
-    from token_iq.gateway.proxy._types import LitellmUserRoles
-    from token_iq.gateway.proxy.management_endpoints.types import get_litellm_user_role
+    from token_iq.gateway.proxy._types import GatewayUserRoles
+    from token_iq.gateway.proxy.management_endpoints.types import get_gateway_user_role
 
-    assert get_litellm_user_role(role_claim) == LitellmUserRoles.INTERNAL_USER
+    assert get_gateway_user_role(role_claim) == GatewayUserRoles.INTERNAL_USER
 
 
-def test_get_litellm_user_role_returns_none_for_non_string_claims():
-    from token_iq.gateway.proxy.management_endpoints.types import get_litellm_user_role
+def test_get_gateway_user_role_returns_none_for_non_string_claims():
+    from token_iq.gateway.proxy.management_endpoints.types import get_gateway_user_role
 
-    assert get_litellm_user_role(None) is None
-    assert get_litellm_user_role({"role": "proxy_admin"}) is None
+    assert get_gateway_user_role(None) is None
+    assert get_gateway_user_role({"role": "proxy_admin"}) is None
 
 
 # ============================================================================
@@ -6704,7 +6704,7 @@ def test_process_sso_jwt_access_token_extracts_role_from_access_token():
     """
     import jwt as pyjwt
 
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
     # Create a JWT access token with role claims (as Keycloak would)
     access_token_payload = {
@@ -6732,7 +6732,7 @@ def test_process_sso_jwt_access_token_extracts_role_from_access_token():
             role_mappings=None,
         )
 
-    assert result.user_role == LitellmUserRoles.PROXY_ADMIN
+    assert result.user_role == GatewayUserRoles.PROXY_ADMIN
 
 
 @pytest.mark.parametrize(
@@ -6749,7 +6749,7 @@ def test_process_sso_jwt_access_token_resolves_highest_privilege_role(role_claim
     """
     import jwt as pyjwt
 
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
     access_token_str = pyjwt.encode(
         {"sub": "user-123", "email": "mixed@test.com", "litellm_role": role_claim},
@@ -6772,7 +6772,7 @@ def test_process_sso_jwt_access_token_resolves_highest_privilege_role(role_claim
             role_mappings=None,
         )
 
-    assert result.user_role == LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY
+    assert result.user_role == GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY
 
 
 def test_process_sso_jwt_access_token_does_not_override_existing_role():
@@ -6782,7 +6782,7 @@ def test_process_sso_jwt_access_token_does_not_override_existing_role():
     """
     import jwt as pyjwt
 
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
     access_token_payload = {
         "sub": "user-123",
@@ -6796,7 +6796,7 @@ def test_process_sso_jwt_access_token_does_not_override_existing_role():
         email="admin@test.com",
         display_name="Admin User",
         team_ids=[],
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
     )
 
     with patch.dict(os.environ, {"GENERIC_USER_ROLE_ATTRIBUTE": "litellm_role"}):
@@ -6808,7 +6808,7 @@ def test_process_sso_jwt_access_token_does_not_override_existing_role():
         )
 
     # Should keep the original role
-    assert result.user_role == LitellmUserRoles.PROXY_ADMIN
+    assert result.user_role == GatewayUserRoles.PROXY_ADMIN
 
 
 def test_process_sso_jwt_access_token_extracts_role_from_nested_field():
@@ -6817,7 +6817,7 @@ def test_process_sso_jwt_access_token_extracts_role_from_nested_field():
     """
     import jwt as pyjwt
 
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
 
     access_token_payload = {
         "sub": "user-123",
@@ -6843,7 +6843,7 @@ def test_process_sso_jwt_access_token_extracts_role_from_nested_field():
             role_mappings=None,
         )
 
-    assert result.user_role == LitellmUserRoles.PROXY_ADMIN
+    assert result.user_role == GatewayUserRoles.PROXY_ADMIN
 
 
 def test_process_sso_jwt_access_token_with_role_mappings():
@@ -6853,7 +6853,7 @@ def test_process_sso_jwt_access_token_with_role_mappings():
     """
     import jwt as pyjwt
 
-    from token_iq.gateway.proxy._types import LitellmUserRoles
+    from token_iq.gateway.proxy._types import GatewayUserRoles
     from token_iq.gateway.types.proxy.management_endpoints.ui_sso import RoleMappings
 
     access_token_payload = {
@@ -6873,10 +6873,10 @@ def test_process_sso_jwt_access_token_with_role_mappings():
     role_mappings = RoleMappings(
         provider="generic",
         group_claim="groups",
-        default_role=LitellmUserRoles.INTERNAL_USER,
+        default_role=GatewayUserRoles.INTERNAL_USER,
         roles={
-            LitellmUserRoles.PROXY_ADMIN: ["keycloak-admins"],
-            LitellmUserRoles.INTERNAL_USER: ["developers"],
+            GatewayUserRoles.PROXY_ADMIN: ["keycloak-admins"],
+            GatewayUserRoles.INTERNAL_USER: ["developers"],
         },
     )
 
@@ -6888,7 +6888,7 @@ def test_process_sso_jwt_access_token_with_role_mappings():
     )
 
     # Should get highest privilege role
-    assert result.user_role == LitellmUserRoles.PROXY_ADMIN
+    assert result.user_role == GatewayUserRoles.PROXY_ADMIN
 
 
 def test_generic_response_convertor_with_extra_attributes(monkeypatch):
@@ -7423,9 +7423,9 @@ class TestSyncUserRoleFromJwtRoleMap:
     def _make_jwt_handler():
         from token_iq.gateway.caching.caching import DualCache
         from token_iq.gateway.proxy._types import (
-            JWTLiteLLMRoleMap,
+            JWTGatewayRoleMap,
             LiteLLM_JWTAuth,
-            LitellmUserRoles,
+            GatewayUserRoles,
         )
 
         handler = JWTHandler()
@@ -7437,13 +7437,13 @@ class TestSyncUserRoleFromJwtRoleMap:
                 user_id_upsert=True,
                 sync_user_role_and_teams=True,
                 jwt_litellm_role_map=[
-                    JWTLiteLLMRoleMap(
+                    JWTGatewayRoleMap(
                         jwt_role="my-admin",
-                        litellm_role=LitellmUserRoles.PROXY_ADMIN,
+                        litellm_role=GatewayUserRoles.PROXY_ADMIN,
                     ),
-                    JWTLiteLLMRoleMap(
+                    JWTGatewayRoleMap(
                         jwt_role="my-viewer",
-                        litellm_role=LitellmUserRoles.INTERNAL_USER,
+                        litellm_role=GatewayUserRoles.INTERNAL_USER,
                     ),
                 ],
             ),
@@ -7487,7 +7487,7 @@ class TestSyncUserRoleFromJwtRoleMap:
     async def test_decoded_access_token_maps_role(self):
         """Decoded JWT payload with role claims maps correctly."""
         from token_iq.gateway.caching.caching import DualCache
-        from token_iq.gateway.proxy._types import LitellmUserRoles
+        from token_iq.gateway.proxy._types import GatewayUserRoles
 
         handler = self._make_jwt_handler()
         sso_values = self._make_sso_values()
@@ -7504,13 +7504,13 @@ class TestSyncUserRoleFromJwtRoleMap:
             user_defined_values=sso_values,
         )
 
-        assert sso_values["user_role"] == LitellmUserRoles.PROXY_ADMIN.value
+        assert sso_values["user_role"] == GatewayUserRoles.PROXY_ADMIN.value
 
     @pytest.mark.asyncio
     async def test_existing_user_role_updated_in_db_and_cache(self):
         """Existing user with stale role gets updated in DB and cache."""
         from token_iq.gateway.caching.caching import DualCache
-        from token_iq.gateway.proxy._types import LitellmUserRoles
+        from token_iq.gateway.proxy._types import GatewayUserRoles
 
         handler = self._make_jwt_handler()
         cache = DualCache()
@@ -7520,14 +7520,14 @@ class TestSyncUserRoleFromJwtRoleMap:
 
         existing_user = LiteLLM_UserTable(
             user_id=user_id,
-            user_role=LitellmUserRoles.INTERNAL_USER_VIEW_ONLY.value,
+            user_role=GatewayUserRoles.INTERNAL_USER_VIEW_ONLY.value,
         )
         await cache.async_set_cache(
             key=user_id, value=existing_user.model_dump(), ttl=60
         )
 
         sso_values = self._make_sso_values(
-            user_role=LitellmUserRoles.INTERNAL_USER_VIEW_ONLY.value,
+            user_role=GatewayUserRoles.INTERNAL_USER_VIEW_ONLY.value,
         )
 
         await _sync_user_role_from_jwt_role_map(
@@ -7541,16 +7541,16 @@ class TestSyncUserRoleFromJwtRoleMap:
 
         prisma.db.litellm_usertable.update.assert_called_once_with(
             where={"user_id": user_id},
-            data={"user_role": LitellmUserRoles.PROXY_ADMIN.value},
+            data={"user_role": GatewayUserRoles.PROXY_ADMIN.value},
         )
-        assert existing_user.user_role == LitellmUserRoles.PROXY_ADMIN.value
-        assert sso_values["user_role"] == LitellmUserRoles.PROXY_ADMIN.value
+        assert existing_user.user_role == GatewayUserRoles.PROXY_ADMIN.value
+        assert sso_values["user_role"] == GatewayUserRoles.PROXY_ADMIN.value
 
     @pytest.mark.asyncio
     async def test_same_role_no_db_write(self):
         """No DB update when the mapped role matches the existing role."""
         from token_iq.gateway.caching.caching import DualCache
-        from token_iq.gateway.proxy._types import LitellmUserRoles
+        from token_iq.gateway.proxy._types import GatewayUserRoles
 
         handler = self._make_jwt_handler()
         prisma = AsyncMock()
@@ -7558,11 +7558,11 @@ class TestSyncUserRoleFromJwtRoleMap:
 
         existing_user = LiteLLM_UserTable(
             user_id="testuser@example.com",
-            user_role=LitellmUserRoles.PROXY_ADMIN.value,
+            user_role=GatewayUserRoles.PROXY_ADMIN.value,
         )
 
         sso_values = self._make_sso_values(
-            user_role=LitellmUserRoles.PROXY_ADMIN.value,
+            user_role=GatewayUserRoles.PROXY_ADMIN.value,
         )
 
         await _sync_user_role_from_jwt_role_map(
@@ -9020,14 +9020,14 @@ async def test_sso_beyond_the_free_user_count_names_the_token_iq_plan():
             await _raise_if_sso_exceeds_free_user_limit(premium_user=False, prisma_client=MagicMock())
 
     assert "Token IQ plan" in refused.value.message
-    assert "LiteLLM" not in refused.value.message
+    assert "Gateway" not in refused.value.message
     assert "litellm.ai" not in refused.value.message
 
 
-def test_plan_refusals_never_send_customers_to_litellm():
+def test_plan_refusals_never_send_customers_to_gateway():
     from token_iq.gateway.proxy._types import CommonProxyErrors
 
     for message in (CommonProxyErrors.not_premium_user.value, CommonProxyErrors.missing_enterprise_package.value):
-        assert "LiteLLM" not in message
+        assert "Gateway" not in message
         assert "LITELLM_LICENSE" not in message
         assert "litellm.ai" not in message

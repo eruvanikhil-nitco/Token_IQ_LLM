@@ -330,7 +330,7 @@ class VertexAILivePassthroughLoggingHandler(BasePassthroughLoggingHandler):
             )
 
             # Create a mock ModelResponse for standard logging
-            litellm_model_response: Final = ModelResponse(
+            gateway_model_response: Final = ModelResponse(
                 id=f"vertex-ai-live-{start_time.timestamp()}",
                 object="chat.completion",
                 created=int(start_time.timestamp()),
@@ -357,7 +357,7 @@ class VertexAILivePassthroughLoggingHandler(BasePassthroughLoggingHandler):
             )
 
             return {
-                "result": litellm_model_response,
+                "result": gateway_model_response,
                 "kwargs": kwargs,
             }
 

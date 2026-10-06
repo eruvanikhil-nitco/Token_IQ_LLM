@@ -9,7 +9,7 @@ from typing import TYPE_CHECKING, Any, Final, NoReturn, Protocol, runtime_checka
 import httpx
 from pydantic import TypeAdapter
 
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.types.utils import EmbeddingResponse
 from token_iq.gateway.types.vector_stores import (
     VECTOR_STORE_OPENAI_PARAMS,
@@ -22,15 +22,15 @@ from token_iq.gateway.types.vector_stores import (
 )
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as _LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as _GatewayLoggingObj
     from token_iq.gateway.router import Router
 
     from ..chat.transformation import BaseLLMException as _BaseLLMException
 
-    LiteLLMLoggingObj = _LiteLLMLoggingObj
+    GatewayLoggingObj = _GatewayLoggingObj
     BaseLLMException = _BaseLLMException
 else:
-    LiteLLMLoggingObj = Any
+    GatewayLoggingObj = Any
     BaseLLMException = Any
 
 
@@ -42,7 +42,7 @@ class VectorStoreEmbeddingExecutor(Protocol):
 
 
 @dataclass(frozen=True, slots=True)
-class LiteLLMVectorStoreEmbeddingExecutor:
+class GatewayVectorStoreEmbeddingExecutor:
     def embed(self, model: str, query: str, configuration: Mapping[str, object]) -> EmbeddingResponse:
         from token_iq import gateway
 
@@ -93,7 +93,7 @@ class RouterVectorStoreEmbeddingExecutor:
 
     def _router_serves(self, model: str) -> bool:
         team_id: Final = self.metadata.get("user_api_key_team_id")
-        resolved: Final = self.router.resolved_litellm_models(model, team_id if isinstance(team_id, str) else None)
+        resolved: Final = self.router.resolved_gateway_models(model, team_id if isinstance(team_id, str) else None)
         deployment_models: Final = (
             deployment.get("litellm_params", {}).get("model") for deployment in self.router.get_model_list() or ()
         )
@@ -102,7 +102,7 @@ class RouterVectorStoreEmbeddingExecutor:
     def embed(self, model: str, query: str, configuration: Mapping[str, object]) -> EmbeddingResponse:
         embedding_kwargs: Final = self._embedding_kwargs(configuration)
         if not self._router_serves(model):
-            return LiteLLMVectorStoreEmbeddingExecutor().embed(model, query, embedding_kwargs)
+            return GatewayVectorStoreEmbeddingExecutor().embed(model, query, embedding_kwargs)
         return self.router.embedding(  # pyright: ignore[reportUnknownMemberType]  # Router embedding input retains a legacy untyped list
             model=model,
             input=[query],  # mutable-ok: Router embedding requires a mutable input list
@@ -112,7 +112,7 @@ class RouterVectorStoreEmbeddingExecutor:
     async def aembed(self, model: str, query: str, configuration: Mapping[str, object]) -> EmbeddingResponse:
         embedding_kwargs: Final = self._embedding_kwargs(configuration)
         if not self._router_serves(model):
-            return await LiteLLMVectorStoreEmbeddingExecutor().aembed(model, query, embedding_kwargs)
+            return await GatewayVectorStoreEmbeddingExecutor().aembed(model, query, embedding_kwargs)
         return await self.router.aembedding(  # pyright: ignore[reportUnknownMemberType]  # Router embedding input retains a legacy untyped list
             model=model,
             input=[query],  # mutable-ok: Router embedding requires a mutable input list
@@ -147,7 +147,7 @@ class BaseVectorStoreConfig:
         query: str | list[str],
         vector_store_search_optional_params: VectorStoreSearchOptionalRequestParams,
         api_base: str,
-        litellm_logging_obj: LiteLLMLoggingObj,
+        litellm_logging_obj: GatewayLoggingObj,
         litellm_params: dict,
         extra_body: dict[str, Any] | None = None,
     ) -> tuple[str, dict]:
@@ -159,7 +159,7 @@ class BaseVectorStoreConfig:
         query: str | list[str],
         vector_store_search_optional_params: VectorStoreSearchOptionalRequestParams,
         api_base: str,
-        litellm_logging_obj: LiteLLMLoggingObj,
+        litellm_logging_obj: GatewayLoggingObj,
         litellm_params: dict,
         extra_body: dict[str, Any] | None = None,
     ) -> tuple[str, dict]:
@@ -181,7 +181,7 @@ class BaseVectorStoreConfig:
 
     @abstractmethod
     def transform_search_vector_store_response(
-        self, response: httpx.Response, litellm_logging_obj: LiteLLMLoggingObj
+        self, response: httpx.Response, litellm_logging_obj: GatewayLoggingObj
     ) -> VectorStoreSearchResponse:
         pass
 
@@ -198,7 +198,7 @@ class BaseVectorStoreConfig:
         pass
 
     @abstractmethod
-    def validate_environment(self, headers: dict, litellm_params: GenericLiteLLMParams | None) -> dict:
+    def validate_environment(self, headers: dict, litellm_params: GenericGatewayParams | None) -> dict:
         return {}
 
     @abstractmethod
@@ -262,7 +262,7 @@ class BaseQueryEmbeddingVectorStoreConfig(BaseVectorStoreConfig):
         query: str | Sequence[str],
         vector_store_search_optional_params: VectorStoreSearchOptionalRequestParams,
         api_base: str,
-        litellm_logging_obj: LiteLLMLoggingObj,
+        litellm_logging_obj: GatewayLoggingObj,
         litellm_params: Mapping[str, object],
         extra_body: Mapping[str, object] | None = None,
         embedding_executor: VectorStoreEmbeddingExecutor | None = None,
@@ -275,7 +275,7 @@ class BaseQueryEmbeddingVectorStoreConfig(BaseVectorStoreConfig):
         query: str | Sequence[str],
         vector_store_search_optional_params: VectorStoreSearchOptionalRequestParams,
         api_base: str,
-        litellm_logging_obj: LiteLLMLoggingObj,
+        litellm_logging_obj: GatewayLoggingObj,
         litellm_params: Mapping[str, object],
         extra_body: Mapping[str, object] | None = None,
         embedding_executor: VectorStoreEmbeddingExecutor | None = None,
@@ -322,7 +322,7 @@ class BaseQueryEmbeddingVectorStoreConfig(BaseVectorStoreConfig):
             return embedding_executor
         if router is not None:
             return RouterVectorStoreEmbeddingExecutor(router=router, metadata=request_metadata)
-        return LiteLLMVectorStoreEmbeddingExecutor()
+        return GatewayVectorStoreEmbeddingExecutor()
 
     def embed_query(
         self,
@@ -368,7 +368,7 @@ class BaseDirectVectorStoreConfig(BaseVectorStoreConfig):
         vector_store_id: str,
         query: str | Sequence[str],
         vector_store_search_optional_params: VectorStoreSearchOptionalRequestParams,
-        litellm_logging_obj: LiteLLMLoggingObj,
+        litellm_logging_obj: GatewayLoggingObj,
         litellm_params: Mapping[str, object],
         embedding_executor: VectorStoreEmbeddingExecutor | None = None,
         timeout: float | httpx.Timeout | None = None,
@@ -381,7 +381,7 @@ class BaseDirectVectorStoreConfig(BaseVectorStoreConfig):
         vector_store_id: str,
         query: str | Sequence[str],
         vector_store_search_optional_params: VectorStoreSearchOptionalRequestParams,
-        litellm_logging_obj: LiteLLMLoggingObj,
+        litellm_logging_obj: GatewayLoggingObj,
         litellm_params: Mapping[str, object],
         embedding_executor: VectorStoreEmbeddingExecutor | None = None,
         timeout: float | httpx.Timeout | None = None,
@@ -394,14 +394,14 @@ class BaseDirectVectorStoreConfig(BaseVectorStoreConfig):
         query: str | Sequence[str],
         vector_store_search_optional_params: VectorStoreSearchOptionalRequestParams,
         api_base: str,
-        litellm_logging_obj: LiteLLMLoggingObj,
+        litellm_logging_obj: GatewayLoggingObj,
         litellm_params: Mapping[str, object],
         extra_body: Mapping[str, object] | None = None,
     ) -> NoReturn:
         raise NotImplementedError("Direct vector store providers execute the search themselves; no HTTP request shape")
 
     def transform_search_vector_store_response(
-        self, response: httpx.Response, litellm_logging_obj: LiteLLMLoggingObj
+        self, response: httpx.Response, litellm_logging_obj: GatewayLoggingObj
     ) -> NoReturn:
         raise NotImplementedError("Direct vector store providers execute the search themselves; no HTTP response shape")
 

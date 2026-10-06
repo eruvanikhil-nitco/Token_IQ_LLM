@@ -43,7 +43,7 @@ from token_iq.gateway.proxy.management_endpoints.team_endpoints import (
     update_team,
 )
 from token_iq.gateway.proxy.proxy_server import (
-    LitellmUserRoles,
+    GatewayUserRoles,
     audio_transcriptions,
     chat_completion,
     completion,
@@ -109,7 +109,7 @@ def prisma_client():
     )
 
     # Reset litellm.proxy.proxy_server.prisma_client to None
-    gateway.proxy.proxy_server.litellm_proxy_budget_name = (
+    gateway.proxy.proxy_server.gateway_proxy_budget_name = (
         f"litellm-proxy-budget-{time.time()}"
     )
     gateway.proxy.proxy_server.user_custom_key_generate = None
@@ -136,7 +136,7 @@ async def test_regenerate_api_key(prisma_client):
             key_alias=key_alias, spend=spend, max_budget=max_budget, models=models
         ),
         user_api_key_dict=UserAPIKeyAuth(
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
             api_key="sk-1234",
             user_id="1234",
         ),
@@ -163,7 +163,7 @@ async def test_regenerate_api_key(prisma_client):
     new_key = await regenerate_key_fn(
         key=generated_key,
         user_api_key_dict=UserAPIKeyAuth(
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
             api_key="sk-1234",
             user_id="1234",
         ),
@@ -233,7 +233,7 @@ async def test_regenerate_api_key_with_new_alias_and_expiration(prisma_client):
             key_alias=key_alias, spend=spend, max_budget=max_budget, models=models
         ),
         user_api_key_dict=UserAPIKeyAuth(
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
             api_key="sk-1234",
             user_id="1234",
         ),
@@ -250,7 +250,7 @@ async def test_regenerate_api_key_with_new_alias_and_expiration(prisma_client):
             duration="30d",
         ),
         user_api_key_dict=UserAPIKeyAuth(
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
             api_key="sk-1234",
             user_id="1234",
         ),
@@ -285,7 +285,7 @@ async def test_regenerate_key_ui(prisma_client):
             key_alias=key_alias, spend=spend, max_budget=max_budget, models=models
         ),
         user_api_key_dict=UserAPIKeyAuth(
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
             api_key="sk-1234",
             user_id="1234",
         ),
@@ -312,7 +312,7 @@ async def test_regenerate_key_ui(prisma_client):
         key=generated_key,
         data=RegenerateKeyRequest(duration=""),
         user_api_key_dict=UserAPIKeyAuth(
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
             api_key="sk-1234",
             user_id="1234",
         ),
@@ -338,9 +338,9 @@ async def test_get_users(prisma_client):
         NewUserRequest(
             user_id=f"test_user_{i}_{uuid.uuid4()}",
             user_role=(
-                LitellmUserRoles.INTERNAL_USER.value
+                GatewayUserRoles.INTERNAL_USER.value
                 if i % 2 == 0
-                else LitellmUserRoles.PROXY_ADMIN.value
+                else GatewayUserRoles.PROXY_ADMIN.value
             ),
         )
         for i in range(5)
@@ -349,7 +349,7 @@ async def test_get_users(prisma_client):
         await new_user(
             user,
             UserAPIKeyAuth(
-                user_role=LitellmUserRoles.PROXY_ADMIN,
+                user_role=GatewayUserRoles.PROXY_ADMIN,
                 api_key="sk-1234",
                 user_id="admin",
             ),
@@ -389,14 +389,14 @@ async def test_get_users_filters_dashboard_keys(prisma_client):
     new_user_id = f"test_user_with_keys-{uuid.uuid4()}"
     test_user = NewUserRequest(
         user_id=new_user_id,
-        user_role=LitellmUserRoles.INTERNAL_USER.value,
+        user_role=GatewayUserRoles.INTERNAL_USER.value,
         auto_create_key=False,
     )
 
     await new_user(
         test_user,
         UserAPIKeyAuth(
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
             api_key="sk-1234",
             user_id="admin",
         ),
@@ -474,14 +474,14 @@ async def test_get_users_key_count(prisma_client):
     test_user_id = f"test_user_key_count-{uuid.uuid4()}"
     test_user_request = NewUserRequest(
         user_id=test_user_id,
-        user_role=LitellmUserRoles.INTERNAL_USER.value,
+        user_role=GatewayUserRoles.INTERNAL_USER.value,
         auto_create_key=False,  # Ensure we start with 0 keys
     )
 
     await new_user(
         test_user_request,
         UserAPIKeyAuth(
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
             api_key="sk-1234",
             user_id="admin",
         ),
@@ -511,7 +511,7 @@ async def test_get_users_key_count(prisma_client):
             models=["fake-model"],
         ),
         user_api_key_dict=UserAPIKeyAuth(
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
             api_key="sk-1234",
             user_id="admin",
         ),
@@ -576,7 +576,7 @@ async def test_list_teams(prisma_client):
         ),
         http_request=Request(scope={"type": "http"}),
         user_api_key_dict=UserAPIKeyAuth(
-            user_role=LitellmUserRoles.PROXY_ADMIN, api_key="sk-1234", user_id="admin"
+            user_role=GatewayUserRoles.PROXY_ADMIN, api_key="sk-1234", user_id="admin"
         ),
     )
 
@@ -587,7 +587,7 @@ async def test_list_teams(prisma_client):
             key_alias=f"test_key_{uuid.uuid4()}",
         ),
         user_api_key_dict=UserAPIKeyAuth(
-            user_role=LitellmUserRoles.PROXY_ADMIN, api_key="sk-1234", user_id="admin"
+            user_role=GatewayUserRoles.PROXY_ADMIN, api_key="sk-1234", user_id="admin"
         ),
     )
 
@@ -595,7 +595,7 @@ async def test_list_teams(prisma_client):
     teams = await list_team(
         http_request=Request(scope={"type": "http"}),
         user_api_key_dict=UserAPIKeyAuth(
-            user_role=LitellmUserRoles.PROXY_ADMIN, api_key="sk-1234", user_id="admin"
+            user_role=GatewayUserRoles.PROXY_ADMIN, api_key="sk-1234", user_id="admin"
         ),
         user_id=None,
     )
@@ -683,7 +683,7 @@ def test_team_key_generation_team_member_check():
         team_table=team_table,
         user_api_key_dict=UserAPIKeyAuth(
             user_id="test_user_id",
-            user_role=LitellmUserRoles.INTERNAL_USER,
+            user_role=GatewayUserRoles.INTERNAL_USER,
             api_key="sk-1234",
             team_member=Member(role="admin", user_id="test_user_id"),
         ),
@@ -701,7 +701,7 @@ def test_team_key_generation_team_member_check():
         _team_key_generation_check(
             team_table=team_table,
             user_api_key_dict=UserAPIKeyAuth(
-                user_role=LitellmUserRoles.INTERNAL_USER,
+                user_role=GatewayUserRoles.INTERNAL_USER,
                 api_key="sk-1234",
                 user_id="test_user_id",
                 team_member=Member(role="user", user_id="test_user_id"),
@@ -740,7 +740,7 @@ def test_key_generation_required_params_check(
     from fastapi import HTTPException
 
     user_api_key_dict = UserAPIKeyAuth(
-        user_role=LitellmUserRoles.INTERNAL_USER,
+        user_role=GatewayUserRoles.INTERNAL_USER,
         api_key="sk-1234",
         user_id="test_user_id",
         team_id="test_team_id",
@@ -805,7 +805,7 @@ def test_personal_key_generation_check():
 
     assert _personal_key_generation_check(
         user_api_key_dict=UserAPIKeyAuth(
-            user_role=LitellmUserRoles.PROXY_ADMIN, api_key="sk-1234", user_id="admin"
+            user_role=GatewayUserRoles.PROXY_ADMIN, api_key="sk-1234", user_id="admin"
         ),
         data=GenerateKeyRequest(),
     )
@@ -813,7 +813,7 @@ def test_personal_key_generation_check():
     with pytest.raises(HTTPException):
         _personal_key_generation_check(
             user_api_key_dict=UserAPIKeyAuth(
-                user_role=LitellmUserRoles.INTERNAL_USER,
+                user_role=GatewayUserRoles.INTERNAL_USER,
                 api_key="sk-1234",
                 user_id="admin",
             ),
@@ -887,7 +887,7 @@ async def test_key_update_with_model_specific_params(prisma_client):
     new_key = await generate_key_fn(
         data=GenerateKeyRequest(models=["gpt-4"]),
         user_api_key_dict=UserAPIKeyAuth(
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
             api_key="sk-1234",
             user_id="1234",
         ),
@@ -939,7 +939,7 @@ async def test_key_update_with_model_specific_params(prisma_client):
         request=request,
         data=UpdateKeyRequest(**args),
         user_api_key_dict=UserAPIKeyAuth(
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
             api_key="sk-1234",
             user_id="1234",
         ),
@@ -983,7 +983,7 @@ async def test_list_key_helper(prisma_client):
                 key_alias=f"team_key_{uuid.uuid4()}",  # Make unique with UUID
             ),
             user_api_key_dict=UserAPIKeyAuth(
-                user_role=LitellmUserRoles.PROXY_ADMIN,
+                user_role=GatewayUserRoles.PROXY_ADMIN,
                 api_key="sk-1234",
                 user_id="admin",
             ),
@@ -997,7 +997,7 @@ async def test_list_key_helper(prisma_client):
             key_alias=test_key_alias,  # Already unique from earlier UUID generation
         ),
         user_api_key_dict=UserAPIKeyAuth(
-            user_role=LitellmUserRoles.PROXY_ADMIN,
+            user_role=GatewayUserRoles.PROXY_ADMIN,
             api_key="sk-1234",
             user_id="admin",
         ),
@@ -1012,7 +1012,7 @@ async def test_list_key_helper(prisma_client):
                 key_alias=f"other_key_{uuid.uuid4()}",  # Make unique with UUID
             ),
             user_api_key_dict=UserAPIKeyAuth(
-                user_role=LitellmUserRoles.PROXY_ADMIN,
+                user_role=GatewayUserRoles.PROXY_ADMIN,
                 api_key="sk-1234",
                 user_id="admin",
             ),
@@ -1096,7 +1096,7 @@ async def test_list_key_helper(prisma_client):
         await delete_key_fn(
             data=KeyRequest(keys=[key.key]),
             user_api_key_dict=UserAPIKeyAuth(
-                user_role=LitellmUserRoles.PROXY_ADMIN,
+                user_role=GatewayUserRoles.PROXY_ADMIN,
                 api_key="sk-1234",
                 user_id="admin",
             ),
@@ -1134,7 +1134,7 @@ async def test_list_key_helper_team_filtering(prisma_client):
                 key_alias=f"no_team_key_{i}.{uuid.uuid4()}",
             ),
             user_api_key_dict=UserAPIKeyAuth(
-                user_role=LitellmUserRoles.PROXY_ADMIN,
+                user_role=GatewayUserRoles.PROXY_ADMIN,
                 api_key="sk-1234",
                 user_id="admin",
             ),
@@ -1149,7 +1149,7 @@ async def test_list_key_helper_team_filtering(prisma_client):
                 key_alias=f"dashboard_key_{i}.{uuid.uuid4()}",
             ),
             user_api_key_dict=UserAPIKeyAuth(
-                user_role=LitellmUserRoles.PROXY_ADMIN,
+                user_role=GatewayUserRoles.PROXY_ADMIN,
                 api_key="sk-1234",
                 user_id="admin",
             ),
@@ -1165,7 +1165,7 @@ async def test_list_key_helper_team_filtering(prisma_client):
                 key_alias=f"other_team_key_{i}.{uuid.uuid4()}",
             ),
             user_api_key_dict=UserAPIKeyAuth(
-                user_role=LitellmUserRoles.PROXY_ADMIN,
+                user_role=GatewayUserRoles.PROXY_ADMIN,
                 api_key="sk-1234",
                 user_id="admin",
             ),
@@ -1218,7 +1218,7 @@ async def test_list_key_helper_team_filtering(prisma_client):
             await delete_key_fn(
                 data=KeyRequest(keys=[key.key]),
                 user_api_key_dict=UserAPIKeyAuth(
-                    user_role=LitellmUserRoles.PROXY_ADMIN,
+                    user_role=GatewayUserRoles.PROXY_ADMIN,
                     api_key="sk-1234",
                     user_id="admin",
                 ),
@@ -1239,7 +1239,7 @@ async def test_key_generate_always_db_team(mock_get_team_object):
         await generate_key_fn(
             data=GenerateKeyRequest(team_id="1234"),
             user_api_key_dict=UserAPIKeyAuth(
-                user_role=LitellmUserRoles.PROXY_ADMIN,
+                user_role=GatewayUserRoles.PROXY_ADMIN,
                 api_key="sk-1234",
                 user_id="admin",
             ),
@@ -1285,7 +1285,7 @@ async def test_team_model_alias(prisma_client, requested_model, should_pass):
         ),
         http_request=Request(scope={"type": "http"}),
         user_api_key_dict=UserAPIKeyAuth(
-            user_role=LitellmUserRoles.PROXY_ADMIN, api_key="sk-1234", user_id="admin"
+            user_role=GatewayUserRoles.PROXY_ADMIN, api_key="sk-1234", user_id="admin"
         ),
     )
 
@@ -1296,7 +1296,7 @@ async def test_team_model_alias(prisma_client, requested_model, should_pass):
             models=["gpt-4o-team1"],
         ),
         user_api_key_dict=UserAPIKeyAuth(
-            user_role=LitellmUserRoles.PROXY_ADMIN, api_key="sk-1234", user_id="admin"
+            user_role=GatewayUserRoles.PROXY_ADMIN, api_key="sk-1234", user_id="admin"
         ),
     )
 

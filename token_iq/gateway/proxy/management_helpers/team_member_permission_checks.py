@@ -4,8 +4,8 @@ from token_iq.gateway.proxy._types import (
     KeyManagementRoutes,
     LiteLLM_TeamTableCachedObj,
     LiteLLM_VerificationToken,
-    LiteLLMRoutes,
-    LitellmUserRoles,
+    GatewayRoutes,
+    GatewayUserRoles,
     Member,
     ProxyErrorTypes,
     ProxyException,
@@ -71,7 +71,7 @@ class TeamMemberPermissionChecks:
         )
 
         # 1. Don't execute these checks if the user role is proxy admin
-        if user_api_key_dict.user_role == LitellmUserRoles.PROXY_ADMIN.value:
+        if user_api_key_dict.user_role == GatewayUserRoles.PROXY_ADMIN.value:
             return
 
         # 2. Check if the operation is being done on a team key
@@ -164,7 +164,7 @@ class TeamMemberPermissionChecks:
             return
 
         # Proxy admins always bypass.
-        if user_api_key_dict.user_role == LitellmUserRoles.PROXY_ADMIN.value:
+        if user_api_key_dict.user_role == GatewayUserRoles.PROXY_ADMIN.value:
             return
 
         if team_table is None:
@@ -238,7 +238,7 @@ class TeamMemberPermissionChecks:
         Returns all available team member permissions
         """
         all_available_permissions: Final = []
-        for route in LiteLLMRoutes.key_management_routes.value:
+        for route in GatewayRoutes.key_management_routes.value:
             all_available_permissions.append(route)
         return all_available_permissions
 

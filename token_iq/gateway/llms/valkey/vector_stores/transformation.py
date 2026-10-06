@@ -36,7 +36,7 @@ if TYPE_CHECKING:
     from redis.commands.search.query import Query
     from redis.commands.search.result import Result
 
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 
 DEFAULT_VALKEY_PORT: Final = 6379
 DEFAULT_SOCKET_CONNECT_TIMEOUT_SECONDS: Final = 5.0
@@ -214,7 +214,7 @@ class ValkeyVectorStoreConfig(BaseDirectVectorStoreConfig):
         vector_store_id: str,
         query: str | Sequence[str],
         vector_store_search_optional_params: VectorStoreSearchOptionalRequestParams,
-        litellm_logging_obj: "LiteLLMLoggingObj",
+        litellm_logging_obj: "GatewayLoggingObj",
         litellm_params: Mapping[str, object],
         embedding_executor: VectorStoreEmbeddingExecutor | None = None,
         timeout: float | httpx.Timeout | None = None,
@@ -262,7 +262,7 @@ class ValkeyVectorStoreConfig(BaseDirectVectorStoreConfig):
         vector_store_id: str,
         query: str | Sequence[str],
         vector_store_search_optional_params: VectorStoreSearchOptionalRequestParams,
-        litellm_logging_obj: "LiteLLMLoggingObj",
+        litellm_logging_obj: "GatewayLoggingObj",
         litellm_params: Mapping[str, object],
         embedding_executor: VectorStoreEmbeddingExecutor | None = None,
         timeout: float | httpx.Timeout | None = None,

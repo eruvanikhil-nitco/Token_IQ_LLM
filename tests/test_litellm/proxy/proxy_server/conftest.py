@@ -199,10 +199,10 @@ def auth_as(app) -> Callable[..., contextlib.AbstractContextManager]:
         api_key: str = "sk-test-key",
         **kwargs: Any,
     ) -> Iterator[Any]:
-        from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+        from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
 
         if role is None:
-            role = LitellmUserRoles.PROXY_ADMIN
+            role = GatewayUserRoles.PROXY_ADMIN
 
         fake_auth = UserAPIKeyAuth(
             api_key=api_key,
@@ -456,10 +456,10 @@ def make_user(
     spend: float = 0.0,
     **kwargs: Any,
 ) -> Any:
-    from token_iq.gateway.proxy._types import LiteLLM_UserTable, LitellmUserRoles
+    from token_iq.gateway.proxy._types import LiteLLM_UserTable, GatewayUserRoles
 
     if role is None:
-        role = LitellmUserRoles.INTERNAL_USER
+        role = GatewayUserRoles.INTERNAL_USER
 
     return LiteLLM_UserTable(
         user_id=user_id,

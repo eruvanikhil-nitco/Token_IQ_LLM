@@ -45,8 +45,8 @@ class TestRouterEmbeddingHeaders:
             "_update_kwargs_before_fallbacks",
             wraps=router._update_kwargs_before_fallbacks,
         ) as mock_update:
-            with patch("token_iq.gateway.embedding") as mock_litellm_embedding:
-                mock_litellm_embedding.return_value = MagicMock(
+            with patch("token_iq.gateway.embedding") as mock_gateway_embedding:
+                mock_gateway_embedding.return_value = MagicMock(
                     data=[{"embedding": [0.1, 0.2, 0.3]}]
                 )
 
@@ -85,8 +85,8 @@ class TestRouterEmbeddingHeaders:
         ) as mock_update:
             with patch(
                 "token_iq.gateway.aembedding", new_callable=AsyncMock
-            ) as mock_litellm_aembedding:
-                mock_litellm_aembedding.return_value = MagicMock(
+            ) as mock_gateway_aembedding:
+                mock_gateway_aembedding.return_value = MagicMock(
                     data=[{"embedding": [0.1, 0.2, 0.3]}]
                 )
 
@@ -100,7 +100,7 @@ class TestRouterEmbeddingHeaders:
                 assert call_kwargs["model"] == "text-embedding-3-small"
                 assert "kwargs" in call_kwargs
 
-    def test_embedding_propagates_default_litellm_params(self):
+    def test_embedding_propagates_default_gateway_params(self):
         """
         Test that embedding calls properly propagate default_litellm_params including headers.
 
@@ -128,16 +128,16 @@ class TestRouterEmbeddingHeaders:
             },
         )
 
-        with patch("token_iq.gateway.embedding") as mock_litellm_embedding:
-            mock_litellm_embedding.return_value = MagicMock(
+        with patch("token_iq.gateway.embedding") as mock_gateway_embedding:
+            mock_gateway_embedding.return_value = MagicMock(
                 data=[{"embedding": [0.1, 0.2, 0.3]}]
             )
 
             router.embedding(model="text-embedding-3-small", input=["test input"])
 
             # Verify that litellm.embedding was called with the headers
-            mock_litellm_embedding.assert_called_once()
-            call_kwargs = mock_litellm_embedding.call_args[1]
+            mock_gateway_embedding.assert_called_once()
+            call_kwargs = mock_gateway_embedding.call_args[1]
 
             # Check that headers were included
             assert "headers" in call_kwargs
@@ -149,7 +149,7 @@ class TestRouterEmbeddingHeaders:
             assert call_kwargs["metadata"]["model_group"] == "text-embedding-3-small"
 
     @pytest.mark.asyncio
-    async def test_aembedding_propagates_default_litellm_params(self):
+    async def test_aembedding_propagates_default_gateway_params(self):
         """
         Test that async embedding calls properly propagate default_litellm_params including headers.
         """
@@ -176,8 +176,8 @@ class TestRouterEmbeddingHeaders:
 
         with patch(
             "token_iq.gateway.aembedding", new_callable=AsyncMock
-        ) as mock_litellm_aembedding:
-            mock_litellm_aembedding.return_value = MagicMock(
+        ) as mock_gateway_aembedding:
+            mock_gateway_aembedding.return_value = MagicMock(
                 data=[{"embedding": [0.1, 0.2, 0.3]}]
             )
 
@@ -186,8 +186,8 @@ class TestRouterEmbeddingHeaders:
             )
 
             # Verify that litellm.aembedding was called with the headers
-            mock_litellm_aembedding.assert_called_once()
-            call_kwargs = mock_litellm_aembedding.call_args[1]
+            mock_gateway_aembedding.assert_called_once()
+            call_kwargs = mock_gateway_aembedding.call_args[1]
 
             # Check that headers were included
             assert "headers" in call_kwargs
@@ -216,14 +216,14 @@ class TestRouterEmbeddingHeaders:
 
         router = Router(model_list=model_list)
 
-        with patch("token_iq.gateway.embedding") as mock_litellm_embedding:
-            mock_litellm_embedding.return_value = MagicMock(
+        with patch("token_iq.gateway.embedding") as mock_gateway_embedding:
+            mock_gateway_embedding.return_value = MagicMock(
                 data=[{"embedding": [0.1, 0.2, 0.3]}]
             )
 
             router.embedding(model="test-embedding-model", input=["test input"])
 
-            call_kwargs = mock_litellm_embedding.call_args[1]
+            call_kwargs = mock_gateway_embedding.call_args[1]
 
             # Verify metadata contains model_group
             assert "metadata" in call_kwargs
@@ -249,8 +249,8 @@ class TestRouterEmbeddingHeaders:
         # Create router with num_retries set
         router = Router(model_list=model_list, num_retries=3)
 
-        with patch("token_iq.gateway.embedding") as mock_litellm_embedding:
-            mock_litellm_embedding.return_value = MagicMock(
+        with patch("token_iq.gateway.embedding") as mock_gateway_embedding:
+            mock_gateway_embedding.return_value = MagicMock(
                 data=[{"embedding": [0.1, 0.2, 0.3]}]
             )
 
@@ -259,9 +259,9 @@ class TestRouterEmbeddingHeaders:
             # Verify num_retries was not set in the call (it's handled by function_with_fallbacks)
             # The important thing is that it was set in kwargs before being passed to function_with_fallbacks
             # We verify this indirectly by checking that _update_kwargs_before_fallbacks was called
-            mock_litellm_embedding.assert_called_once()
+            mock_gateway_embedding.assert_called_once()
 
-    def test_embedding_sets_litellm_trace_id(self):
+    def test_embedding_sets_gateway_trace_id(self):
         """
         Test that embedding calls include a litellm_trace_id.
 
@@ -279,14 +279,14 @@ class TestRouterEmbeddingHeaders:
 
         router = Router(model_list=model_list)
 
-        with patch("token_iq.gateway.embedding") as mock_litellm_embedding:
-            mock_litellm_embedding.return_value = MagicMock(
+        with patch("token_iq.gateway.embedding") as mock_gateway_embedding:
+            mock_gateway_embedding.return_value = MagicMock(
                 data=[{"embedding": [0.1, 0.2, 0.3]}]
             )
 
             router.embedding(model="text-embedding-3-small", input=["test input"])
 
-            call_kwargs = mock_litellm_embedding.call_args[1]
+            call_kwargs = mock_gateway_embedding.call_args[1]
 
             # Verify litellm_trace_id was set
             assert "litellm_trace_id" in call_kwargs
@@ -363,8 +363,8 @@ if __name__ == "__main__":
     # Run a simple test
     test = TestRouterEmbeddingHeaders()
     test.test_embedding_calls_update_kwargs_before_fallbacks()
-    test.test_embedding_propagates_default_litellm_params()
+    test.test_embedding_propagates_default_gateway_params()
     test.test_embedding_metadata_includes_model_group()
-    test.test_embedding_sets_litellm_trace_id()
+    test.test_embedding_sets_gateway_trace_id()
     test.test_embedding_consistency_with_completion()
     print("All tests passed!")  # noqa: T201

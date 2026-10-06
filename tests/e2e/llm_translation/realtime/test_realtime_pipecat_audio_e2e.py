@@ -71,7 +71,7 @@ from pipecat.services.llm_service import FunctionCallParams  # noqa: E402
 from pipecat.services.openai.realtime import events as rt_events  # noqa: E402
 from pipecat.services.openai.realtime.llm import OpenAIRealtimeLLMService  # noqa: E402
 
-from pipecat_service import LiteLLMRealtimeLLMService  # noqa: E402
+from pipecat_service import GatewayRealtimeLLMService  # noqa: E402
 
 PROVIDER_PARAMS = [pytest.param(p, id=p.id) for p in PROVIDERS]
 
@@ -152,7 +152,7 @@ async def _run_pipeline(
         city = (params.arguments or {}).get("city", "Paris")
         await params.result_callback({"city": city, "temperature_f": 72})
 
-    llm = LiteLLMRealtimeLLMService(
+    llm = GatewayRealtimeLLMService(
         api_key=key,
         base_url=f"{ws_base_url()}/v1/realtime",
         settings=OpenAIRealtimeLLMService.Settings(
@@ -274,7 +274,7 @@ async def _run_audio_input_pipeline(
     silence_chunk = b"\x00" * silence_frames * 2  # 16-bit zero samples
     chunks.append(silence_chunk)
 
-    llm = LiteLLMRealtimeLLMService(
+    llm = GatewayRealtimeLLMService(
         api_key=key,
         base_url=f"{ws_base_url()}/v1/realtime",
         settings=OpenAIRealtimeLLMService.Settings(

@@ -13,7 +13,7 @@ from token_iq.gateway.interactions.background_cost_polling import (
     maybe_settle_background_interaction_before_delete,
     poll_and_log_background_interaction_cost,
 )
-from token_iq.gateway.core_utils.litellm_logging import Logging as LitellmLogging
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLogging
 from token_iq.gateway.types.interactions import InteractionsAPIResponse
 
 USAGE_BLOCK = {
@@ -31,8 +31,8 @@ USAGE_BLOCK = {
 def _logging_obj(
     call_type: str = "acreate_interaction",
     litellm_params: Optional[dict] = None,
-) -> LitellmLogging:
-    logging_obj = LitellmLogging(
+) -> GatewayLogging:
+    logging_obj = GatewayLogging(
         model="gemini-2.5-flash",
         messages=[],
         stream=False,
@@ -55,7 +55,7 @@ def _reservation() -> dict:
     return {"reserved_cost": 0.05, "entries": [], "finalized": False, "input_cost": 0.001}
 
 
-def _logging_obj_with_reservation(reservation: dict) -> LitellmLogging:
+def _logging_obj_with_reservation(reservation: dict) -> GatewayLogging:
     return _logging_obj(litellm_params={"metadata": {"user_api_key_budget_reservation": reservation}})
 
 
@@ -63,7 +63,7 @@ async def _raise_on_billing(result: InteractionsAPIResponse) -> None:
     raise RuntimeError("cost calculation failed for a settled background interaction")
 
 
-def _context(logging_obj: LitellmLogging, timeout_seconds: float = 1.0) -> BackgroundInteractionPollContext:
+def _context(logging_obj: GatewayLogging, timeout_seconds: float = 1.0) -> BackgroundInteractionPollContext:
     return BackgroundInteractionPollContext(
         interaction_id="interactions/bg-abc",
         custom_llm_provider="gemini",
@@ -280,7 +280,7 @@ async def test_schedule_skips_non_pollable_results(response, create_kwargs):
     assert task is None
 
 
-def _register_poll(logging_obj: LitellmLogging, poll_fetch=None) -> asyncio.Task:
+def _register_poll(logging_obj: GatewayLogging, poll_fetch=None) -> asyncio.Task:
     import token_iq.gateway.interactions.background_cost_polling as bg
 
     if poll_fetch is None:

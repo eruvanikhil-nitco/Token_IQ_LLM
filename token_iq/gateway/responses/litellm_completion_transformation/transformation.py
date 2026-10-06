@@ -33,11 +33,11 @@ from typing_extensions import ReadOnly, TypedDict
 
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.caching import InMemoryCache
-from token_iq.gateway.constants import REDACTED_BY_LITELLM, REDACTED_TOOL_CALL_ARGUMENTS_PLACEHOLDER
+from token_iq.gateway.constants import REDACTED_BY_GATEWAY, REDACTED_TOOL_CALL_ARGUMENTS_PLACEHOLDER
 from token_iq.gateway.core_utils.get_supported_openai_params import (
     get_supported_openai_params,
 )
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.responses.litellm_completion_transformation.session_handler import (
     ResponsesSessionHandler,
 )
@@ -181,7 +181,7 @@ class ChatCompletionSession(TypedDict, total=False):
 ########### End of Initialize Classes used for Responses API  ###########
 
 
-class LiteLLMCompletionResponsesConfig:
+class GatewayCompletionResponsesConfig:
     @staticmethod
     def get_supported_openai_params(model: str) -> list:
         """
@@ -299,11 +299,11 @@ class LiteLLMCompletionResponsesConfig:
         (
             tools,
             web_search_options,
-        ) = LiteLLMCompletionResponsesConfig.transform_responses_api_tools_to_chat_completion_tools(
+        ) = GatewayCompletionResponsesConfig.transform_responses_api_tools_to_chat_completion_tools(
             responses_api_request.get("tools") or []
         )
 
-        if web_search_options is not None and LiteLLMCompletionResponsesConfig._should_drop_derived_web_search_options(
+        if web_search_options is not None and GatewayCompletionResponsesConfig._should_drop_derived_web_search_options(
             model=model, custom_llm_provider=custom_llm_provider
         ):
             web_search_options = None
@@ -311,7 +311,7 @@ class LiteLLMCompletionResponsesConfig:
         response_format = None
         text_param: Final = responses_api_request.get("text")
         if text_param:
-            response_format = LiteLLMCompletionResponsesConfig._transform_text_format_to_response_format(text_param)
+            response_format = GatewayCompletionResponsesConfig._transform_text_format_to_response_format(text_param)
 
         # Extract reasoning_effort from reasoning parameter
         reasoning_effort: Reasoning | str | None = None
@@ -331,14 +331,14 @@ class LiteLLMCompletionResponsesConfig:
                 # reasoning could be a string directly
                 reasoning_effort = reasoning_param
 
-        litellm_completion_request: dict = {
-            "messages": LiteLLMCompletionResponsesConfig.transform_responses_api_input_to_messages(
+        gateway_completion_request: dict = {
+            "messages": GatewayCompletionResponsesConfig.transform_responses_api_input_to_messages(
                 input=input,
                 responses_api_request=responses_api_request,
                 replay_reasoning=True,
             ),
             "model": model,
-            "tool_choice": LiteLLMCompletionResponsesConfig._transform_tool_choice(
+            "tool_choice": GatewayCompletionResponsesConfig._transform_tool_choice(
                 responses_api_request.get("tool_choice")
             ),
             "tools": tools,
@@ -359,22 +359,22 @@ class LiteLLMCompletionResponsesConfig:
             "extra_headers": extra_headers,
         }
         if not tools:
-            litellm_completion_request.pop("tool_choice", None)
-            litellm_completion_request.pop("tools", None)
+            gateway_completion_request.pop("tool_choice", None)
+            gateway_completion_request.pop("tools", None)
 
         # Responses API `Completed` events require usage, we pass `stream_options` to litellm.completion to include usage
         if stream is True:
             stream_options: Final = {
                 "include_usage": True,
             }
-            litellm_completion_request["stream_options"] = stream_options
-            litellm_logging_obj: Final[LiteLLMLoggingObj | None] = kwargs.get("litellm_logging_obj")
+            gateway_completion_request["stream_options"] = stream_options
+            litellm_logging_obj: Final[GatewayLoggingObj | None] = kwargs.get("litellm_logging_obj")
             if litellm_logging_obj:
                 litellm_logging_obj.stream_options = stream_options
 
         # only pass non-None values
-        litellm_completion_request = {k: v for k, v in litellm_completion_request.items() if v is not None}
-        return litellm_completion_request
+        gateway_completion_request = {k: v for k, v in gateway_completion_request.items() if v is not None}
+        return gateway_completion_request
 
     @staticmethod
     def transform_responses_api_input_to_messages(
@@ -410,13 +410,13 @@ class LiteLLMCompletionResponsesConfig:
         ] = []
         if responses_api_request.get("instructions"):
             messages.append(
-                LiteLLMCompletionResponsesConfig.transform_instructions_to_system_message(
+                GatewayCompletionResponsesConfig.transform_instructions_to_system_message(
                     responses_api_request.get("instructions")
                 )
             )
 
         messages.extend(
-            LiteLLMCompletionResponsesConfig._transform_response_input_param_to_chat_completion_message(
+            GatewayCompletionResponsesConfig._transform_response_input_param_to_chat_completion_message(
                 input=input,
                 replay_reasoning=replay_reasoning,
             )
@@ -427,7 +427,7 @@ class LiteLLMCompletionResponsesConfig:
     @staticmethod
     async def async_responses_api_session_handler(
         previous_response_id: str,
-        litellm_completion_request: dict,
+        gateway_completion_request: dict,
     ) -> dict:
         """
         Async hook to get the chain of previous input and output pairs and return a list of Chat Completion messages
@@ -439,7 +439,7 @@ class LiteLLMCompletionResponsesConfig:
                     previous_response_id=previous_response_id
                 )
             )
-        _messages: Final = litellm_completion_request.get("messages") or []
+        _messages: Final = gateway_completion_request.get("messages") or []
         session_messages: Final = chat_completion_session.get("messages") or []
 
         # If session messages are empty (e.g., no database in test environment),
@@ -451,8 +451,8 @@ class LiteLLMCompletionResponsesConfig:
 
         # Fix: Ensure tool_results have corresponding tool_calls in previous assistant message
         # Pass tools parameter to help reconstruct tool_calls if not in cache
-        tools: Final = litellm_completion_request.get("tools") or []
-        combined_messages = LiteLLMCompletionResponsesConfig._ensure_tool_results_have_corresponding_tool_calls(
+        tools: Final = gateway_completion_request.get("tools") or []
+        combined_messages = GatewayCompletionResponsesConfig._ensure_tool_results_have_corresponding_tool_calls(
             messages=combined_messages, tools=tools
         )
 
@@ -484,13 +484,13 @@ class LiteLLMCompletionResponsesConfig:
                         f"Please ensure function_call_output has a valid call_id from a previous response. "
                         f"Original request: previous_response_id={previous_response_id}"
                     ),
-                    model=litellm_completion_request.get("model", ""),
-                    llm_provider=litellm_completion_request.get("custom_llm_provider", ""),
+                    model=gateway_completion_request.get("model", ""),
+                    llm_provider=gateway_completion_request.get("custom_llm_provider", ""),
                 )
 
-        litellm_completion_request["messages"] = combined_messages
-        litellm_completion_request["litellm_trace_id"] = chat_completion_session.get("litellm_session_id")
-        return litellm_completion_request
+        gateway_completion_request["messages"] = combined_messages
+        gateway_completion_request["litellm_trace_id"] = chat_completion_session.get("litellm_session_id")
+        return gateway_completion_request
 
     @staticmethod
     def _transform_response_input_param_to_chat_completion_message(
@@ -518,13 +518,13 @@ class LiteLLMCompletionResponsesConfig:
             existing_tool_call_ids: Final[set[str]] = set()
             for _input in input:
                 chat_completion_messages = (
-                    LiteLLMCompletionResponsesConfig._transform_responses_api_input_item_to_chat_completion_message(
+                    GatewayCompletionResponsesConfig._transform_responses_api_input_item_to_chat_completion_message(
                         input_item=_input,
                         replay_reasoning=replay_reasoning,
                     )
                 )
 
-                if LiteLLMCompletionResponsesConfig._is_input_item_function_call(input_item=_input):
+                if GatewayCompletionResponsesConfig._is_input_item_function_call(input_item=_input):
                     call_id_raw = _input.get("call_id") or _input.get("id") or ""
                     if call_id_raw:
                         existing_tool_call_ids.add(str(call_id_raw))
@@ -556,7 +556,7 @@ class LiteLLMCompletionResponsesConfig:
                                     )
                                     new_tcs: list = _raw_tcs if isinstance(_raw_tcs, list) else []
                                     for tc in new_tcs:
-                                        LiteLLMCompletionResponsesConfig._add_tool_call_to_assistant(last_msg, tc)
+                                        GatewayCompletionResponsesConfig._add_tool_call_to_assistant(last_msg, tc)
                             continue
 
                 #########################################################
@@ -564,7 +564,7 @@ class LiteLLMCompletionResponsesConfig:
                 # preserving the ordering of tool call outputs. Some models require the tool
                 # result to immediately follow the assistant tool call.
                 #########################################################
-                if LiteLLMCompletionResponsesConfig._is_input_item_tool_call_output(input_item=_input):
+                if GatewayCompletionResponsesConfig._is_input_item_tool_call_output(input_item=_input):
                     if not chat_completion_messages:
                         continue
 
@@ -607,7 +607,7 @@ class LiteLLMCompletionResponsesConfig:
                     messages.extend(deduped_in_place)
                     continue
 
-                merged_assistant = LiteLLMCompletionResponsesConfig._merged_trailing_assistant_message(
+                merged_assistant = GatewayCompletionResponsesConfig._merged_trailing_assistant_message(
                     messages=messages,
                     chat_completion_messages=chat_completion_messages,
                 )
@@ -618,7 +618,7 @@ class LiteLLMCompletionResponsesConfig:
                 messages.extend(chat_completion_messages)
         if not replay_reasoning:
             return messages
-        return LiteLLMCompletionResponsesConfig._merge_reasoning_only_assistant_messages(messages)
+        return GatewayCompletionResponsesConfig._merge_reasoning_only_assistant_messages(messages)
 
     @staticmethod
     def _reasoning_only_assistant_message(
@@ -727,7 +727,7 @@ class LiteLLMCompletionResponsesConfig:
                 else:
                     setattr(msg, "thinking_blocks", replayed)  # noqa: B010  # attribute name is fixed, not dynamic
 
-        _standalone: Final = LiteLLMCompletionResponsesConfig._reasoning_only_assistant_message
+        _standalone: Final = GatewayCompletionResponsesConfig._reasoning_only_assistant_message
 
         merged: list[  # mutable-ok: accumulator  # rebind-ok: accumulator
             AllMessageValues
@@ -1006,16 +1006,16 @@ class LiteLLMCompletionResponsesConfig:
         tool_use_definition: Mapping[object, object], tool_call_id: str, index: int
     ) -> ChatCompletionToolCallChunk:
         """Create a ChatCompletionToolCallChunk from tool_use_definition."""
-        function_raw = LiteLLMCompletionResponsesConfig._get_mapping_or_attr_value(tool_use_definition, "function")
-        function_name_raw: Final = LiteLLMCompletionResponsesConfig._get_mapping_or_attr_value(function_raw, "name")
-        function_arguments_raw = LiteLLMCompletionResponsesConfig._get_mapping_or_attr_value(function_raw, "arguments")
+        function_raw = GatewayCompletionResponsesConfig._get_mapping_or_attr_value(tool_use_definition, "function")
+        function_name_raw: Final = GatewayCompletionResponsesConfig._get_mapping_or_attr_value(function_raw, "name")
+        function_arguments_raw = GatewayCompletionResponsesConfig._get_mapping_or_attr_value(function_raw, "arguments")
         function: Final[dict[str, object]] = {
             "name": function_name_raw or "",
             "arguments": function_arguments_raw or "{}",
         }
-        tool_use_id_raw: Final = LiteLLMCompletionResponsesConfig._get_mapping_or_attr_value(tool_use_definition, "id")
+        tool_use_id_raw: Final = GatewayCompletionResponsesConfig._get_mapping_or_attr_value(tool_use_definition, "id")
         tool_use_id: Final[str] = str(tool_use_id_raw) if tool_use_id_raw is not None else str(tool_call_id)
-        tool_use_type_raw = LiteLLMCompletionResponsesConfig._get_mapping_or_attr_value(tool_use_definition, "type")
+        tool_use_type_raw = GatewayCompletionResponsesConfig._get_mapping_or_attr_value(tool_use_definition, "type")
         tool_use_type: Final[str] = str(tool_use_type_raw) if tool_use_type_raw is not None else "function"
         return ChatCompletionToolCallChunk(
             id=tool_use_id,
@@ -1038,9 +1038,9 @@ class LiteLLMCompletionResponsesConfig:
         if isinstance(tool_use_definition, dict):
             normalized_definition: dict[object, object] = _ANY_KEY_DICT_ADAPTER.validate_python(tool_use_definition)
         else:
-            tool_use_id_raw = LiteLLMCompletionResponsesConfig._get_mapping_or_attr_value(tool_use_definition, "id")
-            tool_use_type_raw = LiteLLMCompletionResponsesConfig._get_mapping_or_attr_value(tool_use_definition, "type")
-            function_raw = LiteLLMCompletionResponsesConfig._get_mapping_or_attr_value(tool_use_definition, "function")
+            tool_use_id_raw = GatewayCompletionResponsesConfig._get_mapping_or_attr_value(tool_use_definition, "id")
+            tool_use_type_raw = GatewayCompletionResponsesConfig._get_mapping_or_attr_value(tool_use_definition, "type")
+            function_raw = GatewayCompletionResponsesConfig._get_mapping_or_attr_value(tool_use_definition, "function")
 
             # Object does not expose the expected tool_call fields.
             if tool_use_id_raw is None and tool_use_type_raw is None and function_raw is None:
@@ -1054,8 +1054,8 @@ class LiteLLMCompletionResponsesConfig:
 
         function_raw = normalized_definition.get("function")
         if function_raw is not None and not isinstance(function_raw, dict):
-            function_name_raw: Final = LiteLLMCompletionResponsesConfig._get_mapping_or_attr_value(function_raw, "name")
-            function_arguments_raw: Final = LiteLLMCompletionResponsesConfig._get_mapping_or_attr_value(
+            function_name_raw: Final = GatewayCompletionResponsesConfig._get_mapping_or_attr_value(function_raw, "name")
+            function_arguments_raw: Final = GatewayCompletionResponsesConfig._get_mapping_or_attr_value(
                 function_raw, "arguments"
             )
             if function_name_raw is not None or function_arguments_raw is not None:
@@ -1145,12 +1145,12 @@ class LiteLLMCompletionResponsesConfig:
             )
             tool_call_id: str = str(tool_call_id_raw) if tool_call_id_raw is not None else ""
 
-            prev_assistant_idx = LiteLLMCompletionResponsesConfig._find_previous_assistant_idx(fixed_messages, i)
+            prev_assistant_idx = GatewayCompletionResponsesConfig._find_previous_assistant_idx(fixed_messages, i)
 
             # Try to recover empty tool_call_id from previous assistant message
             if not tool_call_id and prev_assistant_idx is not None:
                 prev_assistant = fixed_messages[prev_assistant_idx]
-                tool_call_id = LiteLLMCompletionResponsesConfig._recover_tool_call_id_from_assistant(
+                tool_call_id = GatewayCompletionResponsesConfig._recover_tool_call_id_from_assistant(
                     prev_assistant, message
                 )
                 if tool_call_id:
@@ -1179,27 +1179,27 @@ class LiteLLMCompletionResponsesConfig:
             # not just those that had an empty tool_call_id initially
             if prev_assistant_idx is not None and tool_call_id:
                 prev_assistant = fixed_messages[prev_assistant_idx]
-                tool_calls = LiteLLMCompletionResponsesConfig._get_tool_calls_list(prev_assistant)
+                tool_calls = GatewayCompletionResponsesConfig._get_tool_calls_list(prev_assistant)
 
-                if not LiteLLMCompletionResponsesConfig._check_tool_call_exists(tool_calls, tool_call_id):
+                if not GatewayCompletionResponsesConfig._check_tool_call_exists(tool_calls, tool_call_id):
                     _tool_use_definition: object = TOOL_CALLS_CACHE.get_cache(key=tool_call_id)
 
                     if not _tool_use_definition and tools:
-                        _tool_use_definition = LiteLLMCompletionResponsesConfig._reconstruct_tool_call_from_tools(
+                        _tool_use_definition = GatewayCompletionResponsesConfig._reconstruct_tool_call_from_tools(
                             tool_call_id, tools
                         )
 
-                    normalized_tool_use_definition = LiteLLMCompletionResponsesConfig._normalize_tool_use_definition(
+                    normalized_tool_use_definition = GatewayCompletionResponsesConfig._normalize_tool_use_definition(
                         _tool_use_definition, tool_call_id
                     )
 
                     if normalized_tool_use_definition:
-                        tool_call_chunk = LiteLLMCompletionResponsesConfig._create_tool_call_chunk(
+                        tool_call_chunk = GatewayCompletionResponsesConfig._create_tool_call_chunk(
                             normalized_tool_use_definition,
                             tool_call_id,
                             len(tool_calls),
                         )
-                        LiteLLMCompletionResponsesConfig._add_tool_call_to_assistant(prev_assistant, tool_call_chunk)
+                        GatewayCompletionResponsesConfig._add_tool_call_to_assistant(prev_assistant, tool_call_chunk)
 
         # Remove messages with empty tool_call_id that couldn't be fixed
         for idx in reversed(messages_to_remove):
@@ -1227,16 +1227,16 @@ class LiteLLMCompletionResponsesConfig:
         - ResponseReasoningItemParam
         - ItemReference
         """
-        if LiteLLMCompletionResponsesConfig._is_input_item_tool_call_output(input_item):
+        if GatewayCompletionResponsesConfig._is_input_item_tool_call_output(input_item):
             # handle executed tool call results
             return (
-                LiteLLMCompletionResponsesConfig._transform_responses_api_tool_call_output_to_chat_completion_message(
+                GatewayCompletionResponsesConfig._transform_responses_api_tool_call_output_to_chat_completion_message(
                     tool_call_output=input_item
                 )
             )
-        elif LiteLLMCompletionResponsesConfig._is_input_item_function_call(input_item):
+        elif GatewayCompletionResponsesConfig._is_input_item_function_call(input_item):
             # handle function call input items
-            return LiteLLMCompletionResponsesConfig._transform_responses_api_function_call_to_chat_completion_message(
+            return GatewayCompletionResponsesConfig._transform_responses_api_function_call_to_chat_completion_message(
                 function_call=cast(  # cast-ok: callee coerces every field it reads with `or ""` / str()
                     Mapping[str, str], input_item
                 )
@@ -1256,8 +1256,8 @@ class LiteLLMCompletionResponsesConfig:
                 # the summary text, which is what that branch replays instead.
                 inspectable: Final[object] = (
                     input_item.get("content")
-                    if LiteLLMCompletionResponsesConfig._reasoning_text_from_content(input_item) is not None
-                    else LiteLLMCompletionResponsesConfig._reasoning_text_from_summary(input_item)
+                    if GatewayCompletionResponsesConfig._reasoning_text_from_content(input_item) is not None
+                    else GatewayCompletionResponsesConfig._reasoning_text_from_summary(input_item)
                     or input_item.get("content")
                 )
                 if inspectable is None:
@@ -1265,21 +1265,21 @@ class LiteLLMCompletionResponsesConfig:
                 return [  # mutable-ok: single message result
                     GenericChatCompletionMessage(
                         role=_input_item_role(input_item),
-                        content=LiteLLMCompletionResponsesConfig._transform_responses_api_content_to_chat_completion_content(
+                        content=GatewayCompletionResponsesConfig._transform_responses_api_content_to_chat_completion_content(
                             inspectable
                         ),
                     )
                 ]
-            reasoning_text = LiteLLMCompletionResponsesConfig._extract_reasoning_text_from_input_item(  # rebind-ok: extraction result
+            reasoning_text = GatewayCompletionResponsesConfig._extract_reasoning_text_from_input_item(  # rebind-ok: extraction result
                 input_item
             )
-            thinking_blocks = LiteLLMCompletionResponsesConfig._decode_thinking_blocks_from_input_item(  # rebind-ok: extraction result
+            thinking_blocks = GatewayCompletionResponsesConfig._decode_thinking_blocks_from_input_item(  # rebind-ok: extraction result
                 input_item
             )
             if not reasoning_text and not thinking_blocks:
                 return []  # mutable-ok: empty drop result
             return [  # mutable-ok: single message result
-                LiteLLMCompletionResponsesConfig._reasoning_only_assistant_message(
+                GatewayCompletionResponsesConfig._reasoning_only_assistant_message(
                     reasoning_text=reasoning_text,
                     thinking_blocks=thinking_blocks,
                 )
@@ -1293,7 +1293,7 @@ class LiteLLMCompletionResponsesConfig:
             return [
                 GenericChatCompletionMessage(
                     role=_input_item_role(input_item),
-                    content=LiteLLMCompletionResponsesConfig._transform_responses_api_content_to_chat_completion_content(
+                    content=GatewayCompletionResponsesConfig._transform_responses_api_content_to_chat_completion_content(
                         content
                     ),
                 )
@@ -1350,9 +1350,9 @@ class LiteLLMCompletionResponsesConfig:
         ``content`` wins, ``summary`` is the fallback. Returns None when only
         opaque forms (e.g. encrypted_content) are present.
         """
-        return LiteLLMCompletionResponsesConfig._reasoning_text_from_content(
+        return GatewayCompletionResponsesConfig._reasoning_text_from_content(
             input_item
-        ) or LiteLLMCompletionResponsesConfig._reasoning_text_from_summary(input_item)
+        ) or GatewayCompletionResponsesConfig._reasoning_text_from_summary(input_item)
 
     @staticmethod
     def _decode_thinking_blocks_from_input_item(
@@ -1387,7 +1387,7 @@ class LiteLLMCompletionResponsesConfig:
                 block,
             )
             for block in decoded
-            if isinstance(block, Mapping) and LiteLLMCompletionResponsesConfig._is_replayable_thinking_block(block)
+            if isinstance(block, Mapping) and GatewayCompletionResponsesConfig._is_replayable_thinking_block(block)
         )
         return blocks or None
 
@@ -1587,7 +1587,7 @@ class LiteLLMCompletionResponsesConfig:
         # store their payload in "input" (raw string) rather than
         # "arguments" (JSON string), so normalize to arguments here.
         raw_arguments = function_call.get("arguments")
-        if raw_arguments == REDACTED_BY_LITELLM:
+        if raw_arguments == REDACTED_BY_GATEWAY:
             # redaction stores the bare sentinel (invalid JSON) in arguments
             raw_arguments = REDACTED_TOOL_CALL_ARGUMENTS_PLACEHOLDER
         if not raw_arguments and function_call.get("type") == "custom_tool_call":
@@ -1636,7 +1636,7 @@ class LiteLLMCompletionResponsesConfig:
             Dictionary with transformed file structure for Chat Completion
         """
         file_dict: Final[dict[str, object]] = {}
-        file_id: Final = LiteLLMCompletionResponsesConfig._resolve_file_id(item)
+        file_id: Final = GatewayCompletionResponsesConfig._resolve_file_id(item)
         if file_id:
             file_dict["file_id"] = file_id
         if item.get("file_data"):
@@ -1686,11 +1686,11 @@ class LiteLLMCompletionResponsesConfig:
                 elif isinstance(item, dict):
                     if item.get("type") == "input_file":
                         content_list.append(
-                            LiteLLMCompletionResponsesConfig._transform_input_file_item_to_file_item(item)
+                            GatewayCompletionResponsesConfig._transform_input_file_item_to_file_item(item)
                         )
                     elif item.get("type") == "input_image":
                         image_block = _STR_KEY_DICT_ADAPTER.validate_python(
-                            dict(LiteLLMCompletionResponsesConfig._transform_input_image_item_to_image_item(item))
+                            dict(GatewayCompletionResponsesConfig._transform_input_image_item_to_image_item(item))
                         )
                         if "cache_control" in item:
                             image_block["cache_control"] = item["cache_control"]
@@ -1707,7 +1707,7 @@ class LiteLLMCompletionResponsesConfig:
                         if text_value is None:
                             continue
                         content_block: dict[str, object] = {
-                            "type": LiteLLMCompletionResponsesConfig._get_chat_completion_request_content_type(
+                            "type": GatewayCompletionResponsesConfig._get_chat_completion_request_content_type(
                                 item.get("type") or "text"
                             ),
                             "text": text_value,
@@ -1812,7 +1812,7 @@ class LiteLLMCompletionResponsesConfig:
                 for raw_tool in namespace_tools
                 if isinstance(raw_tool, Mapping)
                 if (
-                    chat_tool := LiteLLMCompletionResponsesConfig._build_ns_chat_tool(
+                    chat_tool := GatewayCompletionResponsesConfig._build_ns_chat_tool(
                         namespace,
                         namespace_description,
                         raw_tool,
@@ -1821,7 +1821,7 @@ class LiteLLMCompletionResponsesConfig:
                 )
                 is not None
             )
-        flat_tool: Final = LiteLLMCompletionResponsesConfig._build_ns_chat_tool(
+        flat_tool: Final = GatewayCompletionResponsesConfig._build_ns_chat_tool(
             namespace, namespace_description, tool, False
         )
         return (flat_tool,) if flat_tool is not None else ()
@@ -1897,7 +1897,7 @@ class LiteLLMCompletionResponsesConfig:
             )
         if tool_type == "namespace":
             return ResponsesToolChatForm(
-                chat_tools=LiteLLMCompletionResponsesConfig._namespace_chat_tools(tool), web_search_options=None
+                chat_tools=GatewayCompletionResponsesConfig._namespace_chat_tools(tool), web_search_options=None
             )
         if tool_type == "custom":
             converted: Final = convert_custom_tool_to_function_tool(tool)
@@ -1913,8 +1913,8 @@ class LiteLLMCompletionResponsesConfig:
 
     @staticmethod
     def responses_tools_to_chat_forms(tools: ResponseTools) -> tuple[ResponsesToolChatForm, ...]:
-        LiteLLMCompletionResponsesConfig._validate_namespace_name_collisions(tools)
-        return tuple(LiteLLMCompletionResponsesConfig._responses_tool_to_chat_form(tool) for tool in tools or ())
+        GatewayCompletionResponsesConfig._validate_namespace_name_collisions(tools)
+        return tuple(GatewayCompletionResponsesConfig._responses_tool_to_chat_form(tool) for tool in tools or ())
 
     @staticmethod
     def transform_responses_api_tools_to_chat_completion_tools(
@@ -1928,7 +1928,7 @@ class LiteLLMCompletionResponsesConfig:
         """
         if tools is None:
             return [], None
-        forms: Final = LiteLLMCompletionResponsesConfig.responses_tools_to_chat_forms(tools)
+        forms: Final = GatewayCompletionResponsesConfig.responses_tools_to_chat_forms(tools)
         web_search_options: Final = next(
             (form.web_search_options for form in reversed(forms) if form.web_search_options is not None),
             None,
@@ -2037,7 +2037,7 @@ class LiteLLMCompletionResponsesConfig:
 
         request_tools: Final = responses_api_request.get("tools") if responses_api_request is not None else None
         custom_tool_names: Final = extract_custom_tool_names(request_tools)
-        namespace_tool_names: Final = LiteLLMCompletionResponsesConfig.namespace_tool_name_map(request_tools)
+        namespace_tool_names: Final = GatewayCompletionResponsesConfig.namespace_tool_name_map(request_tools)
 
         responses_tools: Final[list[ResponseFunctionToolCall | CustomToolCallOutputItem]] = []
         for tool in all_chat_completion_tools:
@@ -2062,7 +2062,7 @@ class LiteLLMCompletionResponsesConfig:
                     responses_tools.append(custom_item)
                 else:
                     # Build regular function_call output item
-                    restore_name = LiteLLMCompletionResponsesConfig._restore_namespace_tool_name
+                    restore_name = GatewayCompletionResponsesConfig._restore_namespace_tool_name
                     tool_name, namespace = restore_name(tool_name, namespace_tool_names)
 
                     provider_specific_fields: dict | None = None
@@ -2183,7 +2183,7 @@ class LiteLLMCompletionResponsesConfig:
             function_dict["provider_specific_fields"] = provider_specific_fields
 
         tool_call_dict: Final[dict[str, object]] = {
-            "id": LiteLLMCompletionResponsesConfig._tool_call_id_from_responses_item(
+            "id": GatewayCompletionResponsesConfig._tool_call_id_from_responses_item(
                 getattr(tool_call_item, "id", None),
                 getattr(tool_call_item, "call_id", None),
             ),
@@ -2256,7 +2256,7 @@ class LiteLLMCompletionResponsesConfig:
             incomplete_details=getattr(chat_completion_response, "incomplete_details", None),
             instructions=getattr(chat_completion_response, "instructions", None),
             metadata=getattr(chat_completion_response, "metadata", {}),
-            output=LiteLLMCompletionResponsesConfig._transform_chat_completion_choices_to_responses_output(
+            output=GatewayCompletionResponsesConfig._transform_chat_completion_choices_to_responses_output(
                 chat_completion_response=chat_completion_response,
                 choices=getattr(chat_completion_response, "choices", []),
                 responses_api_request=responses_api_request,
@@ -2269,12 +2269,12 @@ class LiteLLMCompletionResponsesConfig:
             max_output_tokens=getattr(chat_completion_response, "max_output_tokens", None),
             previous_response_id=getattr(chat_completion_response, "previous_response_id", None),
             reasoning=None,
-            status=LiteLLMCompletionResponsesConfig._map_chat_completion_finish_reason_to_responses_status(
+            status=GatewayCompletionResponsesConfig._map_chat_completion_finish_reason_to_responses_status(
                 finish_reason
             ),
             text={},
             truncation=getattr(chat_completion_response, "truncation", None),
-            usage=LiteLLMCompletionResponsesConfig._transform_chat_completion_usage_to_responses_usage(
+            usage=GatewayCompletionResponsesConfig._transform_chat_completion_usage_to_responses_usage(
                 chat_completion_response=chat_completion_response
             ),
             user=getattr(chat_completion_response, "user", None),
@@ -2311,13 +2311,13 @@ class LiteLLMCompletionResponsesConfig:
         ] = []
 
         responses_output.extend(
-            LiteLLMCompletionResponsesConfig._extract_reasoning_output_items(chat_completion_response, choices)
+            GatewayCompletionResponsesConfig._extract_reasoning_output_items(chat_completion_response, choices)
         )
         responses_output.extend(
-            LiteLLMCompletionResponsesConfig._extract_message_output_items(chat_completion_response, choices)
+            GatewayCompletionResponsesConfig._extract_message_output_items(chat_completion_response, choices)
         )
         responses_output.extend(
-            LiteLLMCompletionResponsesConfig.transform_chat_completion_tools_to_responses_tools(
+            GatewayCompletionResponsesConfig.transform_chat_completion_tools_to_responses_tools(
                 chat_completion_response=chat_completion_response,
                 responses_api_request=responses_api_request,
             )
@@ -2326,7 +2326,7 @@ class LiteLLMCompletionResponsesConfig:
         # Convert server-side tool results (e.g. Anthropic code execution)
         # into code_interpreter_call output items, replacing the corresponding
         # function_call items so the output matches OpenAI's native shape.
-        tool_result_items = LiteLLMCompletionResponsesConfig._extract_tool_result_output_items(chat_completion_response)
+        tool_result_items = GatewayCompletionResponsesConfig._extract_tool_result_output_items(chat_completion_response)
         if tool_result_items:
             result_by_id: Final = {item.id: item for item in tool_result_items}
             replaced_ids: Final = set(result_by_id.keys())
@@ -2390,14 +2390,14 @@ class LiteLLMCompletionResponsesConfig:
             if hasattr(choice, "message") and choice.message:
                 message = choice.message
                 reasoning_content: str = getattr(message, "reasoning_content", None) or ""
-                encrypted_content = LiteLLMCompletionResponsesConfig._encode_thinking_blocks(message)
+                encrypted_content = GatewayCompletionResponsesConfig._encode_thinking_blocks(message)
                 if reasoning_content or encrypted_content:
                     # Only check the first choice for reasoning content
                     return [
                         GenericResponseOutputItem(
                             type="reasoning",
                             id=f"rs_{uuid.uuid4()}",
-                            status=LiteLLMCompletionResponsesConfig._map_chat_completion_finish_reason_to_responses_status(
+                            status=GatewayCompletionResponsesConfig._map_chat_completion_finish_reason_to_responses_status(
                                 choice.finish_reason
                             ),
                             role="assistant",
@@ -2448,14 +2448,14 @@ class LiteLLMCompletionResponsesConfig:
             image_url = _TEXT_ADAPTER.validate_python(
                 _ANY_KEY_DICT_ADAPTER.validate_python(image_item.get("image_url", {})).get("url", "")
             )
-            base64_data = LiteLLMCompletionResponsesConfig._extract_base64_from_data_url(image_url)
+            base64_data = GatewayCompletionResponsesConfig._extract_base64_from_data_url(image_url)
 
             if base64_data:
                 image_generation_items.append(
                     OutputImageGenerationCall(
                         type="image_generation_call",
                         id=f"ig_{uuid.uuid4()}",
-                        status=LiteLLMCompletionResponsesConfig._map_finish_reason_to_image_generation_status(
+                        status=GatewayCompletionResponsesConfig._map_finish_reason_to_image_generation_status(
                             choice.finish_reason
                         ),
                         result=base64_data,
@@ -2518,7 +2518,7 @@ class LiteLLMCompletionResponsesConfig:
             # Check if message has images (image generation)
             if hasattr(choice.message, "images") and choice.message.images:
                 # Extract image generation output
-                image_generation_items = LiteLLMCompletionResponsesConfig._extract_image_generation_output_items(
+                image_generation_items = GatewayCompletionResponsesConfig._extract_image_generation_output_items(
                     choice=choice,
                 )
                 message_output_items.extend(image_generation_items)
@@ -2527,12 +2527,12 @@ class LiteLLMCompletionResponsesConfig:
                     GenericResponseOutputItem(
                         type="message",
                         id=f"msg_{uuid.uuid4()}",
-                        status=LiteLLMCompletionResponsesConfig._map_chat_completion_finish_reason_to_responses_status(
+                        status=GatewayCompletionResponsesConfig._map_chat_completion_finish_reason_to_responses_status(
                             choice.finish_reason
                         ),
                         role=choice.message.role,
                         content=[
-                            LiteLLMCompletionResponsesConfig._transform_chat_message_to_response_output_text(
+                            GatewayCompletionResponsesConfig._transform_chat_message_to_response_output_text(
                                 choice.message
                             )
                         ],
@@ -2551,7 +2551,7 @@ class LiteLLMCompletionResponsesConfig:
             if output_item.get("type") == "function_call":
                 # handle function call output
                 messages.append(
-                    LiteLLMCompletionResponsesConfig._transform_responses_output_tool_call_to_chat_completion_output_tool_call(
+                    GatewayCompletionResponsesConfig._transform_responses_output_tool_call_to_chat_completion_output_tool_call(
                         tool_call=output_item
                     )
                 )
@@ -2563,7 +2563,7 @@ class LiteLLMCompletionResponsesConfig:
                     messages.append(
                         GenericChatCompletionMessage(
                             role=str(output_item.get("role")) or "user",
-                            content=LiteLLMCompletionResponsesConfig._transform_responses_api_content_to_chat_completion_content(
+                            content=GatewayCompletionResponsesConfig._transform_responses_api_content_to_chat_completion_content(
                                 content
                             ),
                         )
@@ -2589,7 +2589,7 @@ class LiteLLMCompletionResponsesConfig:
     ) -> OutputText:
         annotations: Final = getattr(message, "annotations", None)
         transformed_annotations: Final = (
-            LiteLLMCompletionResponsesConfig._transform_chat_completion_annotations_to_response_output_annotations(
+            GatewayCompletionResponsesConfig._transform_chat_completion_annotations_to_response_output_annotations(
                 annotations=annotations
             )
         )

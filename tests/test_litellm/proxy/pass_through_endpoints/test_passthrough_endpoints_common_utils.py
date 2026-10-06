@@ -14,23 +14,23 @@ from token_iq.gateway.passthrough.utils import CommonUtils
 
 from unittest.mock import Mock
 
-from token_iq.gateway.proxy.pass_through_endpoints.common_utils import get_litellm_virtual_key
+from token_iq.gateway.proxy.pass_through_endpoints.common_utils import get_gateway_virtual_key
 
 
 @pytest.mark.asyncio
-async def test_get_litellm_virtual_key():
+async def test_get_gateway_virtual_key():
     """
     Test that the get_litellm_virtual_key function correctly handles the API key authentication
     """
     # Test with x-litellm-api-key
     mock_request = Mock()
     mock_request.headers = {"x-litellm-api-key": "test-key-123"}
-    result = get_litellm_virtual_key(mock_request)
+    result = get_gateway_virtual_key(mock_request)
     assert result == "Bearer test-key-123"
 
     # Test with Authorization header
     mock_request.headers = {"Authorization": "Bearer auth-key-456"}
-    result = get_litellm_virtual_key(mock_request)
+    result = get_gateway_virtual_key(mock_request)
     assert result == "Bearer auth-key-456"
 
     # Test with both headers (x-litellm-api-key should take precedence)
@@ -38,7 +38,7 @@ async def test_get_litellm_virtual_key():
         "x-litellm-api-key": "test-key-123",
         "Authorization": "Bearer auth-key-456",
     }
-    result = get_litellm_virtual_key(mock_request)
+    result = get_gateway_virtual_key(mock_request)
     assert result == "Bearer test-key-123"
 
 

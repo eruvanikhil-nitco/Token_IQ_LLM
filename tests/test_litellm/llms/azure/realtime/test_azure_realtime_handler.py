@@ -433,11 +433,11 @@ async def test_realtime_protocol_env_var_fallback():
     Fixes #22127: no way to set realtime_protocol from config.
     """
     from token_iq.gateway.realtime_api.main import _arealtime
-    from token_iq.gateway.types.router import GenericLiteLLMParams
+    from token_iq.gateway.types.router import GenericGatewayParams
 
     with patch.dict(os.environ, {"LITELLM_AZURE_REALTIME_PROTOCOL": "v1"}):
         # Create a GenericLiteLLMParams without realtime_protocol
-        litellm_params = GenericLiteLLMParams()
+        litellm_params = GenericGatewayParams()
         # The env var should be picked up as fallback
         realtime_protocol = (
             {}.get("realtime_protocol")
@@ -449,15 +449,15 @@ async def test_realtime_protocol_env_var_fallback():
 
 
 @pytest.mark.asyncio
-async def test_realtime_protocol_from_litellm_params():
+async def test_realtime_protocol_from_gateway_params():
     """
     Test that realtime_protocol is read from litellm_params (config.yaml extra field).
     Fixes #22127: realtime_protocol in litellm_params was not used.
     """
-    from token_iq.gateway.types.router import GenericLiteLLMParams
+    from token_iq.gateway.types.router import GenericGatewayParams
 
     # Simulate config.yaml with realtime_protocol as an extra field
-    litellm_params = GenericLiteLLMParams(realtime_protocol="GA")
+    litellm_params = GenericGatewayParams(realtime_protocol="GA")
     assert litellm_params.get("realtime_protocol") == "GA"
 
 

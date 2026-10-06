@@ -1101,7 +1101,7 @@ def test_from_config_yaml_reads_fields():
     assert logger.sandbox_tool_name == "e2b_default"
 
 
-def test_initialize_from_proxy_config_prefers_litellm_settings():
+def test_initialize_from_proxy_config_prefers_gateway_settings():
     logger = CodeInterpreterInterceptionLogger.initialize_from_proxy_config(
         litellm_settings={
             "code_interpreter_interception_params": {
@@ -1198,7 +1198,7 @@ async def test_pre_call_uses_session_id_from_metadata_as_sandbox_key():
 
 
 @pytest.mark.asyncio
-async def test_pre_call_uses_session_id_from_litellm_metadata():
+async def test_pre_call_uses_session_id_from_gateway_metadata():
     """session_id in litellm_metadata also works as the sticky key."""
     logger = CodeInterpreterInterceptionLogger(sandbox_config=FakeSandbox())
     session_id = "sess-xyz-789"

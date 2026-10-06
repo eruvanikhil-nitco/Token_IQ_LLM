@@ -4,13 +4,13 @@ Test for response_format to text.format conversion in completion -> responses br
 
 import pytest
 from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
-    LiteLLMResponsesTransformationHandler,
+    GatewayResponsesTransformationHandler,
 )
 
 
 def test_transform_response_format_to_text_format_json_schema():
     """Test conversion of response_format with json_schema to text.format"""
-    handler = LiteLLMResponsesTransformationHandler()
+    handler = GatewayResponsesTransformationHandler()
 
     # Chat Completion format
     response_format = {
@@ -43,7 +43,7 @@ def test_transform_response_format_to_text_format_json_schema():
 
 def test_transform_response_format_to_text_format_json_object():
     """Test conversion of response_format with json_object to text.format"""
-    handler = LiteLLMResponsesTransformationHandler()
+    handler = GatewayResponsesTransformationHandler()
 
     response_format = {"type": "json_object"}
 
@@ -56,7 +56,7 @@ def test_transform_response_format_to_text_format_json_object():
 
 def test_transform_response_format_to_text_format_text():
     """Test conversion of response_format with text to text.format"""
-    handler = LiteLLMResponsesTransformationHandler()
+    handler = GatewayResponsesTransformationHandler()
 
     response_format = {"type": "text"}
 
@@ -69,7 +69,7 @@ def test_transform_response_format_to_text_format_text():
 
 def test_transform_response_format_to_text_format_none():
     """Test that None input returns None"""
-    handler = LiteLLMResponsesTransformationHandler()
+    handler = GatewayResponsesTransformationHandler()
 
     result = handler._transform_response_format_to_text_format(None)
 
@@ -78,7 +78,7 @@ def test_transform_response_format_to_text_format_none():
 
 def test_transform_request_with_response_format():
     """Test that transform_request correctly handles response_format parameter"""
-    handler = LiteLLMResponsesTransformationHandler()
+    handler = GatewayResponsesTransformationHandler()
 
     messages = [
         {"role": "user", "content": "Extract person info: John Doe, 30 years old"}
@@ -132,7 +132,7 @@ def test_transform_request_with_response_format():
 
 def test_transform_request_includes_extra_headers():
     """Test that transform_request forwards headers as extra_headers for upstream call."""
-    handler = LiteLLMResponsesTransformationHandler()
+    handler = GatewayResponsesTransformationHandler()
     messages = [{"role": "user", "content": "Hello"}]
     optional_params = {}
     litellm_params = {}
@@ -152,8 +152,8 @@ def test_transform_request_includes_extra_headers():
     assert result.get("extra_headers") == headers
 
 
-def test_transform_request_strips_internal_metadata_to_litellm_metadata():
-    handler = LiteLLMResponsesTransformationHandler()
+def test_transform_request_strips_internal_metadata_to_gateway_metadata():
+    handler = GatewayResponsesTransformationHandler()
     messages = [{"role": "user", "content": "Hello"}]
     optional_params = {}
     litellm_params = {
@@ -180,7 +180,7 @@ def test_transform_request_strips_internal_metadata_to_litellm_metadata():
 
 
 def test_transform_request_preserves_user_metadata():
-    handler = LiteLLMResponsesTransformationHandler()
+    handler = GatewayResponsesTransformationHandler()
     messages = [{"role": "user", "content": "Hello"}]
     optional_params = {"metadata": {"customer_id": "cust-123"}}
     litellm_params = {"metadata": {"internal_key": "secret"}}
@@ -205,7 +205,7 @@ def test_transform_request_preserves_user_metadata():
 def test_transform_request_drops_user_metadata_with_additional_drop_params():
     from token_iq.gateway.utils import get_optional_params
 
-    handler = LiteLLMResponsesTransformationHandler()
+    handler = GatewayResponsesTransformationHandler()
     messages = [{"role": "user", "content": "Hello"}]
     optional_params = get_optional_params(
         model="gpt-4o",

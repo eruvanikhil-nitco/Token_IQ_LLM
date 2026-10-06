@@ -38,7 +38,7 @@ class LoggingCallbackManager:
         except Exception:
             return False
 
-    def add_litellm_input_callback(self, callback: CustomLogger | str | Callable):
+    def add_gateway_input_callback(self, callback: CustomLogger | str | Callable):
         """
         Add a input callback to litellm.input_callback.
         Auto-routes async callbacks to litellm._async_input_callback.
@@ -48,7 +48,7 @@ class LoggingCallbackManager:
         else:
             self._safe_add_callback_to_list(callback=callback, parent_list=gateway.input_callback)
 
-    def add_litellm_service_callback(self, callback: CustomLogger | str | Callable):
+    def add_gateway_service_callback(self, callback: CustomLogger | str | Callable):
         """
         Add a service callback to litellm.service_callback
         """
@@ -65,7 +65,7 @@ class LoggingCallbackManager:
             parent_list=gateway.callbacks,
         )
 
-    def add_litellm_success_callback(self, callback: CustomLogger | str | Callable):
+    def add_gateway_success_callback(self, callback: CustomLogger | str | Callable):
         """
         Add a success callback to `litellm.success_callback`.
         Auto-routes async callbacks to litellm._async_success_callback.
@@ -81,7 +81,7 @@ class LoggingCallbackManager:
         else:
             self._safe_add_callback_to_list(callback=callback, parent_list=gateway.success_callback)
 
-    def add_litellm_failure_callback(self, callback: CustomLogger | str | Callable):
+    def add_gateway_failure_callback(self, callback: CustomLogger | str | Callable):
         """
         Add a failure callback to `litellm.failure_callback`.
         Auto-routes async callbacks to litellm._async_failure_callback.
@@ -91,13 +91,13 @@ class LoggingCallbackManager:
         else:
             self._safe_add_callback_to_list(callback=callback, parent_list=gateway.failure_callback)
 
-    def add_litellm_async_success_callback(self, callback: CustomLogger | Callable | str):
+    def add_gateway_async_success_callback(self, callback: CustomLogger | Callable | str):
         """
         Add a success callback to litellm._async_success_callback
         """
         self._safe_add_callback_to_list(callback=callback, parent_list=gateway._async_success_callback)
 
-    def add_litellm_async_failure_callback(self, callback: CustomLogger | Callable | str):
+    def add_gateway_async_failure_callback(self, callback: CustomLogger | Callable | str):
         """
         Add a failure callback to litellm._async_failure_callback
         """

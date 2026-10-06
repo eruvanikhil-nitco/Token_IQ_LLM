@@ -4,7 +4,7 @@ import pytest
 
 from token_iq.gateway.llms.custom_httpx.llm_http_handler import _rust_responses_websocket_enabled
 from token_iq.gateway.rust_bridge import configuration, responses_websocket
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 
 
 class _FakeNativeConnection:
@@ -49,21 +49,21 @@ def reset_responses_websocket():
 
 
 def test_rust_websocket_bridge_is_disabled_without_flag() -> None:
-    assert not _rust_responses_websocket_enabled("openai", GenericLiteLLMParams())
-    assert not _rust_responses_websocket_enabled("anthropic", GenericLiteLLMParams(rust=True))
-    assert _rust_responses_websocket_enabled("openai", GenericLiteLLMParams(rust=True))
+    assert not _rust_responses_websocket_enabled("openai", GenericGatewayParams())
+    assert not _rust_responses_websocket_enabled("anthropic", GenericGatewayParams(rust=True))
+    assert _rust_responses_websocket_enabled("openai", GenericGatewayParams(rust=True))
 
 
 def test_explicit_false_overrides_process_enable() -> None:
     configuration.use_litellm_rust(True)
 
-    assert not _rust_responses_websocket_enabled("openai", GenericLiteLLMParams(rust=False))
+    assert not _rust_responses_websocket_enabled("openai", GenericGatewayParams(rust=False))
 
 
 def test_process_enable_applies_without_request_override() -> None:
     configuration.use_litellm_rust(True)
 
-    assert _rust_responses_websocket_enabled("openai", GenericLiteLLMParams())
+    assert _rust_responses_websocket_enabled("openai", GenericGatewayParams())
 
 
 @pytest.mark.asyncio

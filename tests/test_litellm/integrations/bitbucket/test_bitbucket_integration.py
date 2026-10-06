@@ -10,7 +10,7 @@ from token_iq.gateway.integrations.bitbucket.bitbucket_client import _sanitize_f
 
 
 @patch("token_iq.gateway.integrations.bitbucket.bitbucket_prompt_manager.BitBucketClient")
-def test_bitbucket_prompt_integration_with_litellm(mock_client_class):
+def test_bitbucket_prompt_integration_with_gateway(mock_client_class):
     """Test BitBucket prompt integration with LiteLLM completion."""
     # Mock the BitBucket client
     mock_client = MagicMock()

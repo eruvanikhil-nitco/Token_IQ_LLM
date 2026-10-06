@@ -32,7 +32,7 @@ from token_iq.gateway.types.proxy.guardrails.guardrail_hooks.crowdstrike_aidr im
 from token_iq.gateway.types.utils import GenericGuardrailAPIInputs
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
     from token_iq.gateway.types.proxy.guardrails.guardrail_hooks.base import GuardrailConfigModel
 
 
@@ -156,7 +156,7 @@ def _merge_metadata_bags(request_data: Mapping[str, Any]) -> Mapping[str, Any] |
     return merged if present else None
 
 
-def streaming_params_from_litellm_params(
+def streaming_params_from_gateway_params(
     litellm_params: LitellmParams,
 ) -> CrowdStrikeAIDRGuardrailConfigModelOptionalParams:
     extras: Final[Mapping[str, object]] = litellm_params.model_extra or {}
@@ -308,9 +308,9 @@ class CrowdStrikeAIDRHandler(CustomGuardrail):
         self.streaming_sampling_rate: int = streaming_params.streaming_sampling_rate or 5
 
     @override
-    def update_in_memory_litellm_params(self, litellm_params: LitellmParams) -> None:
-        super().update_in_memory_litellm_params(litellm_params)
-        self._set_streaming_params(streaming_params_from_litellm_params(litellm_params))
+    def update_in_memory_gateway_params(self, litellm_params: LitellmParams) -> None:
+        super().update_in_memory_gateway_params(litellm_params)
+        self._set_streaming_params(streaming_params_from_gateway_params(litellm_params))
 
     async def _call_crowdstrike_aidr_guard(
         self, payload: dict[str, Any], hook_name: str
@@ -479,7 +479,7 @@ class CrowdStrikeAIDRHandler(CustomGuardrail):
         inputs: GenericGuardrailAPIInputs,
         request_data: dict,
         input_type: Literal["request", "response"],
-        logging_obj: Optional["LiteLLMLoggingObj"] = None,
+        logging_obj: Optional["GatewayLoggingObj"] = None,
     ) -> GenericGuardrailAPIInputs:
         verbose_proxy_logger.debug("CrowdStrike AIDR Guardrail: Applying guardrail to %s", input_type)
 

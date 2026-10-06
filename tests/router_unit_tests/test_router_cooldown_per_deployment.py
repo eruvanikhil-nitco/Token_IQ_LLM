@@ -468,7 +468,7 @@ class TestFallbackDeploymentCooldown:
 
             mock_set_cooldown.assert_not_called()
 
-    def test_trigger_cooldown_falls_back_to_litellm_params_cooldown_time(self):
+    def test_trigger_cooldown_falls_back_to_gateway_params_cooldown_time(self):
         """
         cooldown_time has pre-existing litellm_params support on the primary
         failure path (Router.deployment_callback_on_failure), so it must still be
@@ -494,7 +494,7 @@ class TestFallbackDeploymentCooldown:
                 "litellm_params.cooldown_time must still be honored as a fallback"
             )
 
-    def test_trigger_cooldown_prefers_model_info_cooldown_time_over_litellm_params(self):
+    def test_trigger_cooldown_prefers_model_info_cooldown_time_over_gateway_params(self):
         mock_router = MagicMock()
         mock_router.cooldown_time = 300.0
         mock_router.get_model_info.return_value = {
@@ -659,7 +659,7 @@ class TestDeploymentCallbackOnFailureCooldownTimePrecedence:
                 "model_info.cooldown_time must be honored in the primary sync failure-callback path"
             )
 
-    def test_litellm_params_cooldown_time_still_honored_as_fallback(self):
+    def test_gateway_params_cooldown_time_still_honored_as_fallback(self):
         """cooldown_time has pre-existing litellm_params support on this primary
         path; it must keep working when model_info doesn't set it."""
         router = _make_router(

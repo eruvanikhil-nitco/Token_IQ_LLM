@@ -6,7 +6,7 @@ import httpx
 
 from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.llms.gemini.videos.transformation import GeminiVideoConfig
 from token_iq.gateway.llms.vertex_ai.gemini.vertex_and_google_ai_studio_gemini import (
     ModelResponseIterator as GeminiModelResponseIterator,
@@ -31,7 +31,7 @@ class GeminiPassthroughLoggingHandler:
     def gemini_passthrough_handler(
         httpx_response: httpx.Response,
         response_body: dict,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         url_route: str,
         result: str,
         start_time: datetime,
@@ -44,7 +44,7 @@ class GeminiPassthroughLoggingHandler:
             model = GeminiPassthroughLoggingHandler.extract_model_from_url(url_route)
 
             gemini_video_config: Final = GeminiVideoConfig()
-            litellm_video_response: Final = gemini_video_config.transform_video_create_response(
+            gateway_video_response: Final = gemini_video_config.transform_video_create_response(
                 model=model,
                 raw_response=httpx_response,
                 logging_obj=logging_obj,
@@ -57,23 +57,23 @@ class GeminiPassthroughLoggingHandler:
             logging_obj.custom_llm_provider = "gemini"
 
             response_cost: Final = gateway.completion_cost(
-                completion_response=litellm_video_response,
+                completion_response=gateway_video_response,
                 model=model,
                 custom_llm_provider="gemini",
                 call_type="create_video",
             )
 
             # Set response_cost in _hidden_params to prevent recalculation
-            if not hasattr(litellm_video_response, "_hidden_params"):
-                litellm_video_response._hidden_params = {}
-            litellm_video_response._hidden_params["response_cost"] = response_cost
+            if not hasattr(gateway_video_response, "_hidden_params"):
+                gateway_video_response._hidden_params = {}
+            gateway_video_response._hidden_params["response_cost"] = response_cost
 
             kwargs["response_cost"] = response_cost
             kwargs["model"] = model
             kwargs["custom_llm_provider"] = "gemini"
             logging_obj.model_call_details["response_cost"] = response_cost
             return {
-                "result": litellm_video_response,
+                "result": gateway_video_response,
                 "kwargs": kwargs,
             }
 
@@ -82,7 +82,7 @@ class GeminiPassthroughLoggingHandler:
 
             # Use Gemini config for transformation
             instance_of_gemini_llm: Final = gateway.GoogleAIStudioGeminiConfig()
-            litellm_model_response: Final[ModelResponse] = instance_of_gemini_llm.transform_response(
+            gateway_model_response: Final[ModelResponse] = instance_of_gemini_llm.transform_response(
                 model=model,
                 messages=[{"role": "user", "content": "no-message-pass-through-endpoint"}],
                 raw_response=httpx_response,
@@ -95,7 +95,7 @@ class GeminiPassthroughLoggingHandler:
                 encoding=getattr(gateway, "encoding", None),
             )
             kwargs = GeminiPassthroughLoggingHandler._create_gemini_response_logging_payload_for_generate_content(
-                litellm_model_response=litellm_model_response,
+                gateway_model_response=gateway_model_response,
                 model=model,
                 kwargs=kwargs,
                 start_time=start_time,
@@ -105,7 +105,7 @@ class GeminiPassthroughLoggingHandler:
             )
 
             return {
-                "result": litellm_model_response,
+                "result": gateway_model_response,
                 "kwargs": kwargs,
             }
         else:
@@ -116,7 +116,7 @@ class GeminiPassthroughLoggingHandler:
 
     @staticmethod
     def _handle_logging_gemini_collected_chunks(
-        litellm_logging_obj: LiteLLMLoggingObj,
+        litellm_logging_obj: GatewayLoggingObj,
         passthrough_success_handler_obj: PassThroughEndpointLogging,
         url_route: str,
         request_body: dict,
@@ -152,7 +152,7 @@ class GeminiPassthroughLoggingHandler:
             }
 
         kwargs = GeminiPassthroughLoggingHandler._create_gemini_response_logging_payload_for_generate_content(
-            litellm_model_response=complete_streaming_response,
+            gateway_model_response=complete_streaming_response,
             model=model,
             kwargs=kwargs,
             start_time=start_time,
@@ -169,7 +169,7 @@ class GeminiPassthroughLoggingHandler:
     @staticmethod
     def _build_complete_streaming_response(
         all_chunks: list[str],
-        litellm_logging_obj: LiteLLMLoggingObj,
+        litellm_logging_obj: GatewayLoggingObj,
         model: str,
         url_route: str,
     ) -> ModelResponse | TextCompletionResponse | None:
@@ -208,12 +208,12 @@ class GeminiPassthroughLoggingHandler:
 
     @staticmethod
     def _create_gemini_response_logging_payload_for_generate_content(
-        litellm_model_response: ModelResponse | TextCompletionResponse,
+        gateway_model_response: ModelResponse | TextCompletionResponse,
         model: str,
         kwargs: dict,
         start_time: datetime,
         end_time: datetime,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         custom_llm_provider: str,
     ):
         """
@@ -221,7 +221,7 @@ class GeminiPassthroughLoggingHandler:
         """
 
         response_cost: Final = gateway.completion_cost(
-            completion_response=litellm_model_response,
+            completion_response=gateway_model_response,
             model=model,
             custom_llm_provider="gemini",
         )
@@ -234,8 +234,8 @@ class GeminiPassthroughLoggingHandler:
         verbose_proxy_logger.debug("kwargs= %s", kwargs)
 
         # set litellm_call_id to logging response object
-        litellm_model_response.id = logging_obj.litellm_call_id
-        logging_obj.model = litellm_model_response.model or model
+        gateway_model_response.id = logging_obj.litellm_call_id
+        logging_obj.model = gateway_model_response.model or model
         logging_obj.model_call_details["model"] = logging_obj.model
         logging_obj.model_call_details["custom_llm_provider"] = custom_llm_provider
         logging_obj.model_call_details["response_cost"] = response_cost

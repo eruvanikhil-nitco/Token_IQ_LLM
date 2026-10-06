@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 from token_iq import gateway
 from token_iq.gateway.llms.azure.image_edit.transformation import AzureImageEditConfig
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 
 
 def test_validate_environment_uses_api_key_header_for_subscription_key():
@@ -26,7 +26,7 @@ def test_validate_environment_uses_api_key_header_for_subscription_key():
     assert "Authorization" not in headers
 
 
-def test_validate_environment_prefers_litellm_params_api_key():
+def test_validate_environment_prefers_gateway_params_api_key():
     config = AzureImageEditConfig()
     headers = config.validate_environment(
         headers={},
@@ -38,7 +38,7 @@ def test_validate_environment_prefers_litellm_params_api_key():
     assert "Authorization" not in headers
 
 
-def test_validate_environment_litellm_params_api_key_beats_positional_arg():
+def test_validate_environment_gateway_params_api_key_beats_positional_arg():
     """
     Precedence pin: when both ``api_key`` (positional) and
     ``litellm_params["api_key"]`` are set with different values, the
@@ -117,7 +117,7 @@ def test_azure_finalize_image_edit_strips_model_after_openai_transform():
     model = "gpt-image-2-dep"
     prompt = "add a hat"
     image = b"fake_png_bytes"
-    litellm_params = GenericLiteLLMParams(
+    litellm_params = GenericGatewayParams(
         api_base="https://example.openai.azure.com",
         api_version="2025-02-01-preview",
     )
@@ -166,7 +166,7 @@ def _query_params(url: str) -> dict:
     return dict(urllib.parse.parse_qsl(urllib.parse.urlparse(url).query))
 
 
-def test_api_version_uses_litellm_params_first(monkeypatch):
+def test_api_version_uses_gateway_params_first(monkeypatch):
     monkeypatch.setattr(gateway, "api_version", "from-global", raising=False)
     monkeypatch.setenv("AZURE_API_VERSION", "from-env")
 
@@ -179,7 +179,7 @@ def test_api_version_uses_litellm_params_first(monkeypatch):
     assert _query_params(url) == {"api-version": "from-params"}
 
 
-def test_api_version_falls_back_to_litellm_global(monkeypatch):
+def test_api_version_falls_back_to_gateway_global(monkeypatch):
     monkeypatch.setattr(gateway, "api_version", "from-global", raising=False)
     monkeypatch.setenv("AZURE_API_VERSION", "from-env")
 

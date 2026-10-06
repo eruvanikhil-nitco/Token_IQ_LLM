@@ -4,15 +4,15 @@ import re
 import pytest
 
 from token_iq.gateway.caching.caching import Cache
-from token_iq.gateway.types.caching import LiteLLMCacheType
+from token_iq.gateway.types.caching import GatewayCacheType
 from token_iq.gateway.types.utils import Embedding, EmbeddingResponse, Usage
 
 
 def test_cache_key_debug_log_does_not_include_prompt_material(caplog):
-    cache = Cache(type=LiteLLMCacheType.LOCAL)
+    cache = Cache(type=GatewayCacheType.LOCAL)
     prompt_marker = "secret prompt material "
 
-    with caplog.at_level(logging.DEBUG, logger="LiteLLM"):
+    with caplog.at_level(logging.DEBUG, logger="Gateway"):
         cache_key = cache.get_cache_key(
             model="gpt-4.1-mini",
             messages=[
@@ -67,13 +67,13 @@ def _embedding_response(prompt_tokens, num_items):
 
 
 def test_get_per_item_prompt_tokens_single_item_returns_full_value():
-    cache = Cache(type=LiteLLMCacheType.LOCAL)
+    cache = Cache(type=GatewayCacheType.LOCAL)
     result = _embedding_response(prompt_tokens=0, num_items=1)
     assert cache._get_per_item_prompt_tokens(result, 0) == 0
 
 
 def test_get_per_item_prompt_tokens_distributes_with_remainder():
-    cache = Cache(type=LiteLLMCacheType.LOCAL)
+    cache = Cache(type=GatewayCacheType.LOCAL)
     result = _embedding_response(prompt_tokens=10, num_items=3)
     per_item = [cache._get_per_item_prompt_tokens(result, i) for i in range(3)]
     assert sum(per_item) == 10  # 4 + 3 + 3
@@ -82,7 +82,7 @@ def test_get_per_item_prompt_tokens_distributes_with_remainder():
 
 def _semantic_cache():
     return Cache(
-        type=LiteLLMCacheType.VALKEY_SEMANTIC,
+        type=GatewayCacheType.VALKEY_SEMANTIC,
         host="localhost",
         port="6379",
         similarity_threshold=0.8,
@@ -91,7 +91,7 @@ def _semantic_cache():
 
 @pytest.mark.parametrize(
     "cache_type",
-    [LiteLLMCacheType.REDIS_SEMANTIC, LiteLLMCacheType.VALKEY_SEMANTIC],
+    [GatewayCacheType.REDIS_SEMANTIC, GatewayCacheType.VALKEY_SEMANTIC],
 )
 def test_semantic_cache_embedding_max_input_tokens_reaches_backend(cache_type):
     cache = Cache(
@@ -154,7 +154,7 @@ def test_semantic_cache_key_still_separates_models_and_params():
 
 
 def test_exact_cache_key_still_includes_prompt():
-    cache = Cache(type=LiteLLMCacheType.LOCAL)
+    cache = Cache(type=GatewayCacheType.LOCAL)
     key_a = cache.get_cache_key(
         model="gpt-4o-mini", messages=[{"role": "user", "content": "a"}]
     )
@@ -175,7 +175,7 @@ def test_exact_cache_key_still_includes_prompt():
 def test_exact_cache_key_includes_anthropic_messages_params(anthropic_param):
     """Anthropic /v1/messages params with no OpenAI equivalent must still key the
     cache; without them two requests that differ only by system prompt collide."""
-    cache = Cache(type=LiteLLMCacheType.LOCAL)
+    cache = Cache(type=GatewayCacheType.LOCAL)
     messages = [{"role": "user", "content": "which greek letter?"}]
     baseline = cache.get_cache_key(model="claude-sonnet-4-5", messages=messages)
     assert baseline != cache.get_cache_key(

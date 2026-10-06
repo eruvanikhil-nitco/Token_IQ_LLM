@@ -12,7 +12,7 @@ from token_iq.gateway.llms.vertex_ai.vertex_ai_partner_models.gpt_oss.transforma
 
 
 @pytest.fixture(autouse=True)
-def _reset_litellm_http_client_cache():
+def _reset_gateway_http_client_cache():
     """Ensure each test gets a fresh async HTTP client mock."""
     from token_iq.gateway import in_memory_llm_clients_cache
 

@@ -128,7 +128,7 @@ def test_responses_bridge_function_tool_does_not_reach_bedrock_with_strict() -> 
     function tool even when the caller never sent one, which is how Codex CLI requests
     acquired the key. Assert the fabricated value does not survive to toolSpec."""
     from token_iq.gateway.responses.litellm_completion_transformation.transformation import (
-        LiteLLMCompletionResponsesConfig,
+        GatewayCompletionResponsesConfig,
     )
 
     responses_tool = {
@@ -142,7 +142,7 @@ def test_responses_bridge_function_tool_does_not_reach_bedrock_with_strict() -> 
         },
     }
     chat_tools, _ = (
-        LiteLLMCompletionResponsesConfig.transform_responses_api_tools_to_chat_completion_tools(
+        GatewayCompletionResponsesConfig.transform_responses_api_tools_to_chat_completion_tools(
             [responses_tool]
         )
     )

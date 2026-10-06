@@ -18,34 +18,34 @@ from collections.abc import Callable, Mapping
 from typing import Final
 
 from token_iq.gateway.integrations.otel.model.metadata import RequestIdentity
-from token_iq.gateway.integrations.otel.model.semconv import GenAI, LiteLLM
+from token_iq.gateway.integrations.otel.model.semconv import GenAI, Gateway
 
 # Attribute key -> value extractor over (identity, request_model,
 # team_metadata_keys). The single definition of what may be promoted and under
 # which key. Only the ``TEAM_METADATA`` extractor consults team_metadata_keys
 # (to filter the team's metadata to an allowlist); the rest ignore it.
 _PROMOTABLE: Final[dict[str, Callable[[RequestIdentity, str | None, tuple[str, ...]], str | None]]] = {
-    LiteLLM.TEAM_ID: lambda identity, model, team_metadata_keys: identity.team_id,
-    LiteLLM.TEAM_ALIAS: lambda identity, model, team_metadata_keys: identity.team_alias,
-    LiteLLM.TEAM_METADATA: lambda identity, model, team_metadata_keys: _filtered_team_metadata_json(
+    Gateway.TEAM_ID: lambda identity, model, team_metadata_keys: identity.team_id,
+    Gateway.TEAM_ALIAS: lambda identity, model, team_metadata_keys: identity.team_alias,
+    Gateway.TEAM_METADATA: lambda identity, model, team_metadata_keys: _filtered_team_metadata_json(
         identity.team_metadata, team_metadata_keys
     ),
-    LiteLLM.KEY_HASH: lambda identity, model, team_metadata_keys: identity.key_hash,
-    LiteLLM.END_USER: lambda identity, model, team_metadata_keys: identity.end_user,
+    Gateway.KEY_HASH: lambda identity, model, team_metadata_keys: identity.key_hash,
+    Gateway.END_USER: lambda identity, model, team_metadata_keys: identity.end_user,
     GenAI.REQUEST_MODEL: lambda identity, model, team_metadata_keys: model,
-    LiteLLM.PROVIDER_MODEL: lambda identity, model, team_metadata_keys: identity.provider_model,
+    Gateway.PROVIDER_MODEL: lambda identity, model, team_metadata_keys: identity.provider_model,
 }
 
 # Keys promoted by default (a subset of ``_PROMOTABLE``). ``END_USER`` is
 # promotable but off by default — it identifies an individual user, so stamping
 # it onto every span is opt-in via ``config.baggage_promoted_keys``.
 BAGGAGE_PROMOTED_KEYS: Final[tuple[str, ...]] = (
-    LiteLLM.TEAM_ID,
-    LiteLLM.TEAM_ALIAS,
-    LiteLLM.TEAM_METADATA,
-    LiteLLM.KEY_HASH,
+    Gateway.TEAM_ID,
+    Gateway.TEAM_ALIAS,
+    Gateway.TEAM_METADATA,
+    Gateway.KEY_HASH,
     GenAI.REQUEST_MODEL,
-    LiteLLM.PROVIDER_MODEL,
+    Gateway.PROVIDER_MODEL,
 )
 
 # Metadata sub-keys eligible for promotion under the ``litellm.metadata.*``
@@ -88,7 +88,7 @@ def promoted_baggage(
     for meta_key in metadata_keys:
         value = identity.metadata.get(meta_key)
         if value:
-            out[f"{LiteLLM.METADATA_PREFIX}{meta_key}"] = value
+            out[f"{Gateway.METADATA_PREFIX}{meta_key}"] = value
     return out
 
 

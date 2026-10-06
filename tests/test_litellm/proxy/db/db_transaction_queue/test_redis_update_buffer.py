@@ -85,7 +85,7 @@ async def test_store_in_memory_spend_updates_restores_on_rpush_failure(redis_upd
     put back into the in-memory queues so the next scheduler tick retries.
     Without this, any transient Redis hiccup silently loses spend data.
     """
-    from token_iq.gateway.proxy._types import Litellm_EntityType
+    from token_iq.gateway.proxy._types import Gateway_EntityType
     from token_iq.gateway.proxy.db.db_transaction_queue.daily_spend_update_queue import (
         DailySpendUpdateQueue,
     )
@@ -106,14 +106,14 @@ async def test_store_in_memory_spend_updates_restores_on_rpush_failure(redis_upd
     # Seed real queues with data so flush_and_get_aggregated returns it
     await spend_queue.add_update(
         {
-            "entity_type": Litellm_EntityType.KEY,
+            "entity_type": Gateway_EntityType.KEY,
             "entity_id": "key-abc",
             "response_cost": 1.5,
         }
     )
     await spend_queue.add_update(
         {
-            "entity_type": Litellm_EntityType.TEAM,
+            "entity_type": Gateway_EntityType.TEAM,
             "entity_id": "team-xyz",
             "response_cost": 2.5,
         }

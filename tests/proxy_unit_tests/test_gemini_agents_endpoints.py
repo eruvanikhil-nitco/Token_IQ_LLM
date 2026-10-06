@@ -62,7 +62,7 @@ class TestMergeQueryParamsIntoData:
         assert data["name"] == "my-agent"
         assert "api_key" not in data
 
-    def test_litellm_params_template_json_is_expanded(self):
+    def test_gateway_params_template_json_is_expanded(self):
         template = json.dumps(
             {"api_key": "AIzaFromTemplate", "api_base": "https://example.com"}
         )
@@ -76,7 +76,7 @@ class TestMergeQueryParamsIntoData:
         # The raw template key itself must NOT appear in data
         assert "litellm_params_template" not in data
 
-    def test_litellm_params_template_does_not_overwrite_existing(self):
+    def test_gateway_params_template_does_not_overwrite_existing(self):
         template = json.dumps(
             {"api_key": "FromTemplate", "custom_llm_provider": "openai"}
         )
@@ -89,7 +89,7 @@ class TestMergeQueryParamsIntoData:
         assert data["custom_llm_provider"] == "gemini"
         assert data["api_key"] == "FromTemplate"
 
-    def test_invalid_litellm_params_template_json_is_ignored(self):
+    def test_invalid_gateway_params_template_json_is_ignored(self):
         request = _make_request("litellm_params_template=NOT_VALID_JSON")
         data = {"custom_llm_provider": "gemini"}
         _merge_query_params_into_data(data, request)
@@ -347,11 +347,11 @@ async def test_list_agents_template_via_query_param(mock_srv, user_api_key_dict)
 
 @pytest.fixture
 def proxy_admin_user_api_key_dict():
-    from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+    from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
 
     return UserAPIKeyAuth(
         api_key="sk-admin",
-        user_role=LitellmUserRoles.PROXY_ADMIN,
+        user_role=GatewayUserRoles.PROXY_ADMIN,
     )
 
 

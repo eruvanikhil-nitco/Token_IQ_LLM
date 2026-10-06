@@ -200,7 +200,7 @@ class TestImageEditCustomPricing:
             "model_info": custom_model_info,
         }
 
-        captured_litellm_params = {}
+        captured_gateway_params = {}
 
         mock_logging_obj = MagicMock()
         mock_logging_obj.model_call_details = {}
@@ -208,10 +208,10 @@ class TestImageEditCustomPricing:
         original_update = mock_logging_obj.update_from_kwargs
 
         def capturing_update(**update_kwargs):
-            captured_litellm_params.update(update_kwargs.get("litellm_params", {}))
+            captured_gateway_params.update(update_kwargs.get("litellm_params", {}))
             inner_kwargs = update_kwargs.get("kwargs", {})
             if "metadata" in inner_kwargs:
-                captured_litellm_params["metadata"] = inner_kwargs["metadata"]
+                captured_gateway_params["metadata"] = inner_kwargs["metadata"]
             return original_update(**update_kwargs)
 
         mock_logging_obj.update_from_kwargs = capturing_update
@@ -248,10 +248,10 @@ class TestImageEditCustomPricing:
             except Exception:
                 pass
 
-        assert "model_info" in captured_litellm_params
-        assert captured_litellm_params["model_info"] == custom_model_info
-        assert "metadata" in captured_litellm_params
-        assert captured_litellm_params["metadata"] == custom_metadata
+        assert "model_info" in captured_gateway_params
+        assert captured_gateway_params["model_info"] == custom_model_info
+        assert "metadata" in captured_gateway_params
+        assert captured_gateway_params["metadata"] == custom_metadata
 
     def test_custom_pricing_detected_from_model_info_in_metadata(self):
         litellm_params = {
@@ -279,7 +279,7 @@ class TestImageEditHandlerCredentialsForwarding:
     through to Application Default Credentials.
     """
 
-    def test_vertex_gemini_image_edit_reads_credentials_from_litellm_params(self):
+    def test_vertex_gemini_image_edit_reads_credentials_from_gateway_params(self):
         """
         VertexAIGeminiImageEditConfig.validate_environment should read
         vertex_ai_project/vertex_ai_credentials from litellm_params first.
@@ -310,7 +310,7 @@ class TestImageEditHandlerCredentialsForwarding:
             assert call_kwargs["credentials"] == "/path/to/creds.json"
             assert call_kwargs["project_id"] == "test-project-from-params"
 
-    def test_vertex_imagen_image_edit_reads_credentials_from_litellm_params(self):
+    def test_vertex_imagen_image_edit_reads_credentials_from_gateway_params(self):
         """
         VertexAIImagenImageEditConfig.validate_environment should read
         vertex_ai_project/vertex_ai_credentials from litellm_params first.
@@ -341,7 +341,7 @@ class TestImageEditHandlerCredentialsForwarding:
             assert call_kwargs["credentials"] == "/path/to/creds.json"
             assert call_kwargs["project_id"] == "test-project-from-params"
 
-    def test_vertex_imagen_get_complete_url_reads_project_and_location_from_litellm_params(
+    def test_vertex_imagen_get_complete_url_reads_project_and_location_from_gateway_params(
         self,
     ):
         """
@@ -369,7 +369,7 @@ class TestImageEditHandlerCredentialsForwarding:
         assert "param-project" in url
         assert "us-east1" in url
 
-    def test_validate_environment_signature_includes_litellm_params(self):
+    def test_validate_environment_signature_includes_gateway_params(self):
         """
         All image_edit config validate_environment methods should accept
         litellm_params to allow credentials to be forwarded from the handler.

@@ -15,7 +15,7 @@ from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.core_utils.duration_parser import duration_in_seconds
 from token_iq.gateway.core_utils.llm_cost_calc.tiered_pricing import select_tier_for_input, tier_rate
 from token_iq.gateway.proxy._types import (
-    Litellm_EntityType,
+    Gateway_EntityType,
     LiteLLM_TeamMembership,
     LiteLLM_TeamTable,
     LiteLLM_UserTable,
@@ -52,14 +52,14 @@ class _BudgetCounter:
 
 
 _COUNTER_ENTITY_TYPES: Final[Mapping[str, str]] = {
-    "Key": Litellm_EntityType.KEY.value,
-    "Team": Litellm_EntityType.TEAM.value,
-    "TeamMember": Litellm_EntityType.TEAM_MEMBER.value,
-    "User": Litellm_EntityType.USER.value,
-    "EndUser": Litellm_EntityType.END_USER.value,
-    "Tag": Litellm_EntityType.TAG.value,
-    "Model access group": Litellm_EntityType.MODEL_ACCESS_GROUP.value,
-    "Organization": Litellm_EntityType.ORGANIZATION.value,
+    "Key": Gateway_EntityType.KEY.value,
+    "Team": Gateway_EntityType.TEAM.value,
+    "TeamMember": Gateway_EntityType.TEAM_MEMBER.value,
+    "User": Gateway_EntityType.USER.value,
+    "EndUser": Gateway_EntityType.END_USER.value,
+    "Tag": Gateway_EntityType.TAG.value,
+    "Model access group": Gateway_EntityType.MODEL_ACCESS_GROUP.value,
+    "Organization": Gateway_EntityType.ORGANIZATION.value,
 }
 
 

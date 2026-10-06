@@ -18,7 +18,7 @@ from typing import Final
 import fastapi
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from token_iq.gateway.proxy._types import CommonProxyErrors, LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import CommonProxyErrors, GatewayUserRoles, UserAPIKeyAuth
 from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 from token_iq.api.types.seats import (
     SeatBody,
@@ -61,7 +61,7 @@ def _proxy_error(status_code: int, message: str) -> HTTPException:
 
 
 def _admin_or_403(user_api_key_dict: UserAPIKeyAuth) -> None:
-    if user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN:
+    if user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN:
         raise _proxy_error(status.HTTP_403_FORBIDDEN, "Only a proxy admin may read or change seats.")
 
 
@@ -70,7 +70,7 @@ def _self_or_admin_or_403(user_api_key_dict: UserAPIKeyAuth, user_id: str) -> No
 
     What one person costs is personal, so this is checked here rather than left to the screen.
     """
-    if user_api_key_dict.user_role == LitellmUserRoles.PROXY_ADMIN:
+    if user_api_key_dict.user_role == GatewayUserRoles.PROXY_ADMIN:
         return
     if user_api_key_dict.user_id == user_id:
         return

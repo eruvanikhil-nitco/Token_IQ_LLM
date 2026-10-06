@@ -21,7 +21,7 @@ class FakeCustomLogger(CustomLogger):
     pass
 
 
-class TestInitLitellmCallbacks:
+class TestInitGatewayCallbacks:
     """Tests for ProxyLogging._init_litellm_callbacks."""
 
     def _make_proxy_logging(self):

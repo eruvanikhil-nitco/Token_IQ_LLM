@@ -130,7 +130,7 @@ def validate_config(config: AutorouteConfig, discovered: tuple[DiscoveredModel, 
         )
 
 
-def _litellm_proxy_deployment(name: str, base_url: str, api_key: str) -> dict[str, JsonValue]:
+def _gateway_proxy_deployment(name: str, base_url: str, api_key: str) -> dict[str, JsonValue]:
     return {
         "model_name": name,
         "litellm_params": {
@@ -156,7 +156,7 @@ def build_generated_model_list(config: AutorouteConfig) -> list[JsonValue]:
         referenced_names.add(config.semantic_matching.embedding_model)
 
     proxy_deployments: Final = [
-        _litellm_proxy_deployment(name, config.base_url, config.api_key) for name in sorted(referenced_names)
+        _gateway_proxy_deployment(name, config.base_url, config.api_key) for name in sorted(referenced_names)
     ]
 
     complexity_router_config: Final[dict[str, JsonValue]] = {
@@ -179,7 +179,7 @@ def build_generated_model_list(config: AutorouteConfig) -> list[JsonValue]:
     if config.adaptive:
         complexity_router_config["adaptive"] = True
 
-    auto_router_litellm_params: Final[dict[str, JsonValue]] = {
+    auto_router_gateway_params: Final[dict[str, JsonValue]] = {
         "model": "auto_router/complexity_router",
         "complexity_router_config": complexity_router_config,
     }
@@ -192,7 +192,7 @@ def build_generated_model_list(config: AutorouteConfig) -> list[JsonValue]:
     # ANTHROPIC_DEFAULT_*_MODEL in settings.py's merge_claude_settings_static_token).
     return [
         *proxy_deployments,
-        {"model_name": AUTOROUTER_MODEL_NAME, "litellm_params": auto_router_litellm_params},
+        {"model_name": AUTOROUTER_MODEL_NAME, "litellm_params": auto_router_gateway_params},
     ]
 
 

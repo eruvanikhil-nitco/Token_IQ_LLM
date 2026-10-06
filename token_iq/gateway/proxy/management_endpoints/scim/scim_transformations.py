@@ -23,7 +23,7 @@ class ScimTransformations:
     DEFAULT_SCIM_MEMBER_VALUE = "Unknown Member Value"
 
     @staticmethod
-    async def transform_litellm_user_to_scim_user(
+    async def transform_gateway_user_to_scim_user(
         user: LiteLLM_UserTable | NewUserResponse,
     ) -> SCIMUser:
         from token_iq.gateway.proxy.proxy_server import prisma_client

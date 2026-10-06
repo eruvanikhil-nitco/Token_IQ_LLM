@@ -30,7 +30,7 @@ from token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints import
     websocket_passthrough_request,
 )
 from token_iq.gateway.integrations.custom_logger import CustomLogger
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.proxy._types import ProxyException, UserAPIKeyAuth
 from token_iq.gateway.types.passthrough_endpoints.pass_through_endpoints import (
     LITELLM_PASS_THROUGH_RAW_BODY_STATE_KEY,
@@ -505,7 +505,7 @@ async def test_custom_passthrough_predict_path_logs_via_generic_handler():
     """
     from datetime import datetime
 
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
     from token_iq.gateway.types.passthrough_endpoints.pass_through_endpoints import (
         PassthroughStandardLoggingPayload,
     )
@@ -513,7 +513,7 @@ async def test_custom_passthrough_predict_path_logs_via_generic_handler():
     handler = PassThroughEndpointLogging()
     handler._handle_logging = AsyncMock()
 
-    mock_logging_obj = MagicMock(spec=LiteLLMLoggingObj)
+    mock_logging_obj = MagicMock(spec=GatewayLoggingObj)
     mock_logging_obj.model_call_details = {}
 
     mock_response = MagicMock(spec=httpx.Response)
@@ -555,7 +555,7 @@ async def test_langfuse_passthrough_no_logging():
     """
     from datetime import datetime
 
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
     from token_iq.gateway.types.passthrough_endpoints.pass_through_endpoints import (
         PassthroughStandardLoggingPayload,
     )
@@ -563,7 +563,7 @@ async def test_langfuse_passthrough_no_logging():
     handler = PassThroughEndpointLogging()
 
     # Mock the logging object
-    mock_logging_obj = MagicMock(spec=LiteLLMLoggingObj)
+    mock_logging_obj = MagicMock(spec=GatewayLoggingObj)
     mock_logging_obj.model_call_details = {}
 
     # Mock httpx response for langfuse request
@@ -891,7 +891,7 @@ def test_set_cost_per_request():
     Test that _set_cost_per_request correctly sets the cost in logging object and kwargs
     """
 
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
     from token_iq.gateway.types.passthrough_endpoints.pass_through_endpoints import (
         PassthroughStandardLoggingPayload,
     )
@@ -899,7 +899,7 @@ def test_set_cost_per_request():
     handler = PassThroughEndpointLogging()
 
     # Mock the logging object
-    mock_logging_obj = MagicMock(spec=LiteLLMLoggingObj)
+    mock_logging_obj = MagicMock(spec=GatewayLoggingObj)
     mock_logging_obj.model_call_details = {}
 
     # Test with cost_per_request set
@@ -929,7 +929,7 @@ def test_set_cost_per_request_none():
     """
     Test that _set_cost_per_request does nothing when cost_per_request is None
     """
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
     from token_iq.gateway.types.passthrough_endpoints.pass_through_endpoints import (
         PassthroughStandardLoggingPayload,
     )
@@ -937,7 +937,7 @@ def test_set_cost_per_request_none():
     handler = PassThroughEndpointLogging()
 
     # Mock the logging object
-    mock_logging_obj = MagicMock(spec=LiteLLMLoggingObj)
+    mock_logging_obj = MagicMock(spec=GatewayLoggingObj)
     mock_logging_obj.model_call_details = {}
 
     # Test with cost_per_request not set (None)
@@ -970,7 +970,7 @@ async def test_pass_through_success_handler_with_cost_per_request():
     """
     from datetime import datetime
 
-    from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
     from token_iq.gateway.types.passthrough_endpoints.pass_through_endpoints import (
         PassthroughStandardLoggingPayload,
     )
@@ -978,7 +978,7 @@ async def test_pass_through_success_handler_with_cost_per_request():
     handler = PassThroughEndpointLogging()
 
     # Mock the logging object
-    mock_logging_obj = MagicMock(spec=LiteLLMLoggingObj)
+    mock_logging_obj = MagicMock(spec=GatewayLoggingObj)
     mock_logging_obj.model_call_details = {}
 
     # Mock the _handle_logging method to capture the call
@@ -2919,7 +2919,7 @@ async def test_bedrock_router_passthrough_metadata_initialization():
 
 
 @pytest.mark.asyncio
-async def test_add_litellm_data_to_request_adds_headers_to_metadata():
+async def test_add_gateway_data_to_request_adds_headers_to_metadata():
     """
     Test that add_litellm_data_to_request adds headers to metadata for guardrails.
 
@@ -5468,8 +5468,8 @@ def test_the_marker_check_distinguishes_the_two_route_kinds():
 
 async def _drive_passthrough_request_and_capture_logging(
     user_api_key_dict: UserAPIKeyAuth,
-    on_pre_call: Callable[[LiteLLMLoggingObj | None], None] | None = None,
-) -> tuple[int, LiteLLMLoggingObj | None]:
+    on_pre_call: Callable[[GatewayLoggingObj | None], None] | None = None,
+) -> tuple[int, GatewayLoggingObj | None]:
     from token_iq import gateway
     from token_iq.gateway.llms.custom_httpx.http_handler import get_async_httpx_client
     from token_iq.gateway.types.llms.custom_http import httpxSpecialProvider
@@ -5659,7 +5659,7 @@ async def test_pass_through_request_leaves_guardrail_readable_metadata():
 
     observed: dict[str, dict[str, str] | BaseException] = {}  # mutable-ok: the pre-call hook records into it
 
-    def read_headers_the_way_a_guardrail_does(logging_obj: LiteLLMLoggingObj | None) -> None:
+    def read_headers_the_way_a_guardrail_does(logging_obj: GatewayLoggingObj | None) -> None:
         assert logging_obj is not None
         try:
             observed["headers"] = _logged_request_headers(logging_obj)

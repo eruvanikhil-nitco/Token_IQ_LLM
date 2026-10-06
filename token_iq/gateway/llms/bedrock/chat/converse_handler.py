@@ -9,7 +9,7 @@ from token_iq import gateway
 from token_iq.gateway.anthropic_beta_headers_manager import (
     update_headers_with_filtered_beta,
 )
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObject
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObject
 from token_iq.gateway.llms.custom_httpx.http_handler import (
     AsyncHTTPHandler,
     HTTPHandler,
@@ -49,7 +49,7 @@ def make_sync_call(
     data: str,
     model: str,
     messages: list,
-    logging_obj: LiteLLMLoggingObject,
+    logging_obj: GatewayLoggingObject,
     json_mode: bool | None = False,
     fake_stream: bool = False,
     stream_chunk_size: int | None = None,
@@ -109,7 +109,7 @@ class BedrockConverseLLM(BaseAWSLLM):
         model_response: ModelResponse,
         timeout: float | httpx.Timeout | None,
         encoding,
-        logging_obj: LiteLLMLoggingObject,
+        logging_obj: GatewayLoggingObject,
         stream,
         optional_params: dict,
         litellm_params: dict,
@@ -181,7 +181,7 @@ class BedrockConverseLLM(BaseAWSLLM):
         model_response: ModelResponse,
         timeout: float | httpx.Timeout | None,
         encoding,
-        logging_obj: LiteLLMLoggingObject,
+        logging_obj: GatewayLoggingObject,
         stream,
         optional_params: dict,
         litellm_params: dict,
@@ -274,7 +274,7 @@ class BedrockConverseLLM(BaseAWSLLM):
         custom_prompt_dict: dict,
         model_response: ModelResponse,
         encoding,
-        logging_obj: LiteLLMLoggingObject,
+        logging_obj: GatewayLoggingObject,
         optional_params: dict,
         acompletion: bool,
         timeout: float | httpx.Timeout | None,

@@ -19,7 +19,7 @@ from token_iq.gateway.responses.litellm_completion_transformation.custom_tools i
 from token_iq.gateway.secret_managers.main import get_secret_str
 from token_iq.gateway.types.llms.openai import *
 from token_iq.gateway.types.responses.main import *
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.types.utils import LlmProviders
 
 from ..common_utils import OpenAIError
@@ -28,11 +28,11 @@ from ..workload_identity import get_workload_identity_bearer_token, resolve_open
 OPENAI_RESPONSES_API_MIN_MAX_OUTPUT_TOKENS: Final = 16
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as _LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as _GatewayLoggingObj
 
-    LiteLLMLoggingObj = _LiteLLMLoggingObj
+    GatewayLoggingObj = _GatewayLoggingObj
 else:
-    LiteLLMLoggingObj = Any
+    GatewayLoggingObj = Any
 
 _NO_TOOL_UPDATE: Final[Mapping[str, object]] = MappingProxyType({})
 _MODEL_FAMILIES_REJECTING_TOP_LEVEL_SCHEMA_COMBINATORS: Final = ("gpt-4", "gpt-3.5", "chatgpt-4o", "o1", "o3", "o4")
@@ -193,7 +193,7 @@ class OpenAIResponsesAPIConfig(BaseResponsesAPIConfig):
         model: str,
         input: str | ResponseInputParam,
         response_api_optional_request_params: dict,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> dict:
         """Strip Anthropic-only `cache_control` markers before sending to OpenAI.
@@ -272,7 +272,7 @@ class OpenAIResponsesAPIConfig(BaseResponsesAPIConfig):
         self,
         model: str,
         tools: list[ALL_RESPONSES_API_TOOL_PARAMS] | None,  # mutable-ok: request tools are a JSON list
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
     ) -> list[ALL_RESPONSES_API_TOOL_PARAMS] | None:  # mutable-ok: request tools are a JSON list
         """Flatten top-level schema combinators only where OpenAI's validator rejects them.
 
@@ -305,7 +305,7 @@ class OpenAIResponsesAPIConfig(BaseResponsesAPIConfig):
         return base_model.startswith(_MODEL_FAMILIES_REJECTING_TOP_LEVEL_SCHEMA_COMBINATORS)
 
     @staticmethod
-    def _combinator_gate_model(model: str, litellm_params: GenericLiteLLMParams) -> str:
+    def _combinator_gate_model(model: str, litellm_params: GenericGatewayParams) -> str:
         model_info: Final[object] = getattr(litellm_params, "model_info", None)
         base_model: Final[object] = model_info.get("base_model") if isinstance(model_info, dict) else None
         return base_model if isinstance(base_model, str) and base_model else model
@@ -413,7 +413,7 @@ class OpenAIResponsesAPIConfig(BaseResponsesAPIConfig):
         self,
         model: str,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> ResponsesAPIResponse:
         """No transform applied since outputs are in OpenAI spec already"""
         try:
@@ -440,8 +440,8 @@ class OpenAIResponsesAPIConfig(BaseResponsesAPIConfig):
         response._hidden_params["headers"] = raw_response_headers
         return response
 
-    def validate_environment(self, headers: dict, model: str, litellm_params: GenericLiteLLMParams | None) -> dict:
-        litellm_params = litellm_params or GenericLiteLLMParams()
+    def validate_environment(self, headers: dict, model: str, litellm_params: GenericGatewayParams | None) -> dict:
+        litellm_params = litellm_params or GenericGatewayParams()
         api_key = litellm_params.api_key or gateway.api_key or gateway.openai_key or get_secret_str("OPENAI_API_KEY")
         headers.setdefault("Content-Type", "application/json")
         workload_identity_config: Final = (
@@ -480,7 +480,7 @@ class OpenAIResponsesAPIConfig(BaseResponsesAPIConfig):
         self,
         model: str,
         parsed_chunk: dict,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> ResponsesAPIStreamingResponse:
         """
         Transform a parsed streaming response chunk into a ResponsesAPIStreamingResponse
@@ -520,7 +520,7 @@ class OpenAIResponsesAPIConfig(BaseResponsesAPIConfig):
         return None
 
     @staticmethod
-    def get_event_model_class(event_type: str) -> type[BaseLiteLLMOpenAIResponseObject]:
+    def get_event_model_class(event_type: str) -> type[BaseGatewayOpenAIResponseObject]:
         """
         Returns the appropriate event model class based on the event type.
 
@@ -611,7 +611,7 @@ class OpenAIResponsesAPIConfig(BaseResponsesAPIConfig):
         self,
         response_id: str,
         api_base: str,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> tuple[str, dict]:
         """
@@ -628,7 +628,7 @@ class OpenAIResponsesAPIConfig(BaseResponsesAPIConfig):
     def transform_delete_response_api_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> DeleteResponseResult:
         """
         Transform the delete response API response into a DeleteResponseResult
@@ -646,7 +646,7 @@ class OpenAIResponsesAPIConfig(BaseResponsesAPIConfig):
         self,
         response_id: str,
         api_base: str,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> tuple[str, dict]:
         """
@@ -663,7 +663,7 @@ class OpenAIResponsesAPIConfig(BaseResponsesAPIConfig):
     def transform_get_response_api_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> ResponsesAPIResponse:
         """
         Transform the get response API response into a ResponsesAPIResponse
@@ -687,7 +687,7 @@ class OpenAIResponsesAPIConfig(BaseResponsesAPIConfig):
         self,
         response_id: str,
         api_base: str,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
         after: str | None = None,
         before: str | None = None,
@@ -713,7 +713,7 @@ class OpenAIResponsesAPIConfig(BaseResponsesAPIConfig):
     def transform_list_input_items_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> dict:
         try:
             return _json_object_body(raw_response)
@@ -727,7 +727,7 @@ class OpenAIResponsesAPIConfig(BaseResponsesAPIConfig):
         self,
         response_id: str,
         api_base: str,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> tuple[str, dict]:
         """
@@ -744,7 +744,7 @@ class OpenAIResponsesAPIConfig(BaseResponsesAPIConfig):
     def transform_cancel_response_api_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> ResponsesAPIResponse:
         """
         Transform the cancel response API response into a ResponsesAPIResponse
@@ -771,7 +771,7 @@ class OpenAIResponsesAPIConfig(BaseResponsesAPIConfig):
         input: str | ResponseInputParam,
         response_api_optional_request_params: dict,
         api_base: str,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> tuple[str, dict]:
         """
@@ -803,7 +803,7 @@ class OpenAIResponsesAPIConfig(BaseResponsesAPIConfig):
     def transform_compact_response_api_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> ResponsesAPIResponse:
         """
         Transform the compact response API response into a ResponsesAPIResponse

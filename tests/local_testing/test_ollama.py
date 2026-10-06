@@ -273,10 +273,10 @@ async def test_async_ollama_ssl_verify(stream):
     # check client
     print("type of transport in client=", type(client.client._transport))
     print("vars in transport in client=", vars(client.client._transport))
-    litellm_created_session = client.client._transport._get_valid_client_session()
-    print("litellm_created_session=", litellm_created_session)
+    gateway_created_session = client.client._transport._get_valid_client_session()
+    print("litellm_created_session=", gateway_created_session)
     # check session ssl
-    print("litellm_created_session ssl=", litellm_created_session.connector._ssl)
+    print("litellm_created_session ssl=", gateway_created_session.connector._ssl)
 
     # create aiohttp transport with ssl_verify=False
     import aiohttp
@@ -284,8 +284,8 @@ async def test_async_ollama_ssl_verify(stream):
     aiohttp_session = aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=False))
     print("aiohttp_session ssl=", aiohttp_session.connector._ssl)
 
-    assert litellm_created_session.connector._ssl is False
-    assert litellm_created_session.connector._ssl == aiohttp_session.connector._ssl
+    assert gateway_created_session.connector._ssl is False
+    assert gateway_created_session.connector._ssl == aiohttp_session.connector._ssl
 
 
 @pytest.mark.skip(reason="local only test")

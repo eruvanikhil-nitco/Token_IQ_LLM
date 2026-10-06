@@ -12,7 +12,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 
-from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
 from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 from token_iq.gateway.proxy.proxy_server import app
 
@@ -22,7 +22,7 @@ def client_internal_user_viewer():
     """Test client with internal_user_viewer auth."""
     mock_auth = UserAPIKeyAuth(
         user_id="test_viewer_user",
-        user_role=LitellmUserRoles.INTERNAL_USER_VIEW_ONLY.value,
+        user_role=GatewayUserRoles.INTERNAL_USER_VIEW_ONLY.value,
     )
     original_overrides = app.dependency_overrides.copy()
     app.dependency_overrides[user_api_key_auth] = lambda: mock_auth
@@ -37,7 +37,7 @@ def client_internal_user():
     """Test client with internal_user auth (can create new vector stores)."""
     mock_auth = UserAPIKeyAuth(
         user_id="test_internal_user",
-        user_role=LitellmUserRoles.INTERNAL_USER.value,
+        user_role=GatewayUserRoles.INTERNAL_USER.value,
     )
     original_overrides = app.dependency_overrides.copy()
     app.dependency_overrides[user_api_key_auth] = lambda: mock_auth
@@ -345,7 +345,7 @@ def test_rag_query_merges_managed_store_params(client_internal_user):
         },
     }
     mock_registry = MagicMock()
-    mock_registry.get_litellm_managed_vector_store_from_registry.return_value = mock_vector_store
+    mock_registry.get_gateway_managed_vector_store_from_registry.return_value = mock_vector_store
 
     mock_response = ModelResponse(
         id="chatcmpl-test",
@@ -391,7 +391,7 @@ def test_rag_query_store_params_win_over_user_retrieval_config(client_internal_u
         "litellm_params": {"aws_region_name": "eu-west-1"},
     }
     mock_registry = MagicMock()
-    mock_registry.get_litellm_managed_vector_store_from_registry.return_value = mock_vector_store
+    mock_registry.get_gateway_managed_vector_store_from_registry.return_value = mock_vector_store
 
     mock_response = ModelResponse(
         id="chatcmpl-test",

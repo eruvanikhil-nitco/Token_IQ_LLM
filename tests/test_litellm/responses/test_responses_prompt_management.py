@@ -22,7 +22,7 @@ import pytest
 from token_iq.gateway.integrations.anthropic_cache_control_hook import (
     AnthropicCacheControlHook,
 )
-from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
+from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
 from token_iq.gateway.types.llms.openai import (
     AllMessageValues,
     ResponseInputParam,
@@ -43,7 +43,7 @@ def _make_logging_obj(
     if merged_optional_params is None:
         merged_optional_params = {}
     logging_obj = MagicMock()
-    logging_obj.__class__ = LiteLLMLoggingObj
+    logging_obj.__class__ = GatewayLoggingObj
     logging_obj.should_run_prompt_management_hooks.return_value = should_run
     prompt_return = (merged_model, merged_messages, merged_optional_params)
     logging_obj.get_chat_completion_prompt.return_value = prompt_return
@@ -77,7 +77,7 @@ def _patch_responses_dispatch():
             return_value=None,
         ),
         patch(
-            "token_iq.gateway.responses.main.litellm_completion_transformation_handler"
+            "token_iq.gateway.responses.main.gateway_completion_transformation_handler"
             ".response_api_handler",
             return_value=MagicMock(),
         ),
@@ -236,7 +236,7 @@ class TestResponsesAPIPromptManagement:
         merged_kwargs = {"temperature": 0.2}
 
         logging_obj = MagicMock()
-        logging_obj.__class__ = LiteLLMLoggingObj
+        logging_obj.__class__ = GatewayLoggingObj
         logging_obj.should_run_prompt_management_hooks.return_value = True
         logging_obj.get_chat_completion_prompt.return_value = (
             "openai/gpt-4o",

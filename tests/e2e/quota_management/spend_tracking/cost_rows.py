@@ -37,7 +37,7 @@ from pydantic import BaseModel, RootModel
 from e2e_config import unique_marker
 from e2e_http import Success
 from lifecycle import ResourceManager
-from models import LiteLLMParamsBody, SpendLogsParams
+from models import GatewayParamsBody, SpendLogsParams
 from proxy_client import ProxyClient
 
 
@@ -186,7 +186,7 @@ def register_priced_model(
     proxy: ProxyClient,
     resources: ResourceManager,
     name_prefix: str,
-    litellm_params: LiteLLMParamsBody,
+    litellm_params: GatewayParamsBody,
 ) -> str:
     """Register a deployment with explicit custom rates (deleted on teardown) and
     return its unique model name."""

@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Any, Final, Literal
 from pydantic import BaseModel, PrivateAttr, StrictInt
 from typing_extensions import Required, TypedDict
 
-from token_iq.gateway.types.llms.base import LiteLLMPydanticObjectBase
+from token_iq.gateway.types.llms.base import GatewayPydanticObjectBase
 
 if TYPE_CHECKING:
     from a2a.types import SendMessageResponse
@@ -237,7 +237,7 @@ class ListAgentsResponse(BaseModel):
     agents: list[AgentResponse]
 
 
-class AgentCreateResponse(LiteLLMPydanticObjectBase):
+class AgentCreateResponse(GatewayPydanticObjectBase):
     """
     Response from a provider-side agent creation or get call (e.g. Gemini v1beta/agents).
 
@@ -255,7 +255,7 @@ class AgentCreateResponse(LiteLLMPydanticObjectBase):
     _hidden_params: dict[str, object] = PrivateAttr(default_factory=dict)
 
 
-class AgentDeleteResult(LiteLLMPydanticObjectBase):
+class AgentDeleteResult(GatewayPydanticObjectBase):
     """Result of a provider-side agent deletion (e.g. Gemini DELETE /v1beta/agents/{name}).
 
     Gemini returns an empty body ``{}`` on success; we synthesise ``name`` and
@@ -269,7 +269,7 @@ class AgentDeleteResult(LiteLLMPydanticObjectBase):
     _hidden_params: dict[str, object] = PrivateAttr(default_factory=dict)
 
 
-class AgentListResponse(LiteLLMPydanticObjectBase):
+class AgentListResponse(GatewayPydanticObjectBase):
     """Response from listing agents on the provider side (e.g. Gemini GET /v1beta/agents).
 
     Gemini returns ``{"agents": [{"id": "..."}, ...]}``; each item is kept as
@@ -283,7 +283,7 @@ class AgentListResponse(LiteLLMPydanticObjectBase):
     _hidden_params: dict[str, object] = PrivateAttr(default_factory=dict)
 
 
-class AgentVersionsResponse(LiteLLMPydanticObjectBase):
+class AgentVersionsResponse(GatewayPydanticObjectBase):
     """Response from listing versions of an agent (e.g. Gemini GET /v1beta/agents/{name}/versions).
 
     Gemini returns ``{"agentVersions": [...]}``; each version has a ``name``
@@ -337,7 +337,7 @@ def _normalize_a2a_jsonrpc_response(
     return normalized
 
 
-class LiteLLMSendMessageResponse(LiteLLMPydanticObjectBase):
+class GatewaySendMessageResponse(GatewayPydanticObjectBase):
     """
     LiteLLM wrapper for A2A SendMessageResponse.
 
@@ -364,7 +364,7 @@ class LiteLLMSendMessageResponse(LiteLLMPydanticObjectBase):
         cls,
         response: "SendMessageResponse",
         request_id: object | None = None,
-    ) -> "LiteLLMSendMessageResponse":
+    ) -> "GatewaySendMessageResponse":
         """
         Create a LiteLLMSendMessageResponse from an a2a SDK SendMessageResponse.
 
@@ -385,7 +385,7 @@ class LiteLLMSendMessageResponse(LiteLLMPydanticObjectBase):
         cls,
         response_dict: Mapping[str, object],
         request_id: object | None = None,
-    ) -> "LiteLLMSendMessageResponse":
+    ) -> "GatewaySendMessageResponse":
         """
         Create a LiteLLMSendMessageResponse from a dict.
 

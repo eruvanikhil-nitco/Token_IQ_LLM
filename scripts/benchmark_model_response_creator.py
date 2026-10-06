@@ -24,7 +24,7 @@ from typing import List
 from unittest.mock import MagicMock
 
 os.environ.setdefault("LITELLM_LOG", "ERROR")
-logging.getLogger("LiteLLM").setLevel(logging.ERROR)
+logging.getLogger("Gateway").setLevel(logging.ERROR)
 
 from token_iq import gateway  # noqa: E402
 

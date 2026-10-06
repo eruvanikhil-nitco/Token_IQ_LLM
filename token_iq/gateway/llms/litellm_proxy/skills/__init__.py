@@ -18,7 +18,7 @@ Main components:
 from token_iq.gateway.llms.litellm_proxy.skills.code_execution import (
     LITELLM_CODE_EXECUTION_TOOL,
     CodeExecutionHandler,
-    LiteLLMInternalTools,
+    GatewayInternalTools,
     add_code_execution_tool,
     code_execution_handler,
     get_litellm_code_execution_tool,
@@ -28,13 +28,13 @@ from token_iq.gateway.llms.litellm_proxy.skills.constants import (
     DEFAULT_MAX_ITERATIONS,
     DEFAULT_SANDBOX_TIMEOUT,
 )
-from token_iq.gateway.llms.litellm_proxy.skills.handler import LiteLLMSkillsHandler
+from token_iq.gateway.llms.litellm_proxy.skills.handler import GatewaySkillsHandler
 from token_iq.gateway.llms.litellm_proxy.skills.prompt_injection import (
     SkillPromptInjectionHandler,
 )
 from token_iq.gateway.llms.litellm_proxy.skills.sandbox_executor import SkillsSandboxExecutor
 from token_iq.gateway.llms.litellm_proxy.skills.transformation import (
-    LiteLLMSkillsTransformationHandler,
+    GatewaySkillsTransformationHandler,
 )
 
 __all__ = [
@@ -42,9 +42,9 @@ __all__ = [
     "DEFAULT_SANDBOX_TIMEOUT",
     "LITELLM_CODE_EXECUTION_TOOL",
     "CodeExecutionHandler",
-    "LiteLLMInternalTools",
-    "LiteLLMSkillsHandler",
-    "LiteLLMSkillsTransformationHandler",
+    "GatewayInternalTools",
+    "GatewaySkillsHandler",
+    "GatewaySkillsTransformationHandler",
     "SkillPromptInjectionHandler",
     "SkillsSandboxExecutor",
     "add_code_execution_tool",

@@ -396,7 +396,7 @@ class TestExtractAllMessagesContentDisabled:
             assert "content" not in msg
 
 
-class TestExtractAllMessagesRespectsLitellmRedaction:
+class TestExtractAllMessagesRespectsGatewayRedaction:
     """Regression tests for the async-streaming redaction bypass.
 
     NR-specific switches alone are insufficient: when
@@ -654,7 +654,7 @@ class TestExplicitNoneValues:
         self.logger = make_logger()
 
     # _get_trace_context — chained dict lookups
-    def test_trace_context_litellm_params_none(self):
+    def test_trace_context_gateway_params_none(self):
         kwargs = make_kwargs()
         kwargs["litellm_params"] = None
         trace_id = self.logger._get_trace_context(kwargs)
@@ -1038,7 +1038,7 @@ class TestCheckAndEmitPeriodicMetric:
 # ---------------------------------------------------------------------------
 
 
-class TestGetLitellmVersion:
+class TestGetGatewayVersion:
     def setup_method(self):
         self.logger = make_logger()
 
@@ -1260,7 +1260,7 @@ class TestExtractCompletionId:
     def setup_method(self):
         self.logger = make_logger()
 
-    def test_uses_litellm_call_id_when_response_has_no_id(self):
+    def test_uses_gateway_call_id_when_response_has_no_id(self):
         result = self.logger._extract_completion_id(
             kwargs={"litellm_call_id": "call-abc-123"},
             response_obj={},

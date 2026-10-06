@@ -6,7 +6,7 @@ import pytest
 from fastapi import HTTPException
 from pydantic import ValidationError
 
-from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
 from token_iq.api.seats import user_cost_response
 from token_iq.seats.user_cost import SeatLine, UserCost
 from token_iq.api.types.seats import SeatBody
@@ -24,11 +24,11 @@ COST_40: Final = UserCost(
     tool_usage_known=False,
 )
 
-ADMIN: Final = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN, api_key="sk-test")
+ADMIN: Final = UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN, api_key="sk-test")
 
 
 def _member(user_id: str) -> UserAPIKeyAuth:
-    return UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-test", user_id=user_id)
+    return UserAPIKeyAuth(user_role=GatewayUserRoles.INTERNAL_USER, api_key="sk-test", user_id=user_id)
 
 
 def test_every_amount_crosses_as_a_string_and_the_parts_stay_separate() -> None:

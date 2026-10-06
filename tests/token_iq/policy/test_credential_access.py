@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from token_iq.gateway.proxy._types import LitellmUserRoles, Member, UserAPIKeyAuth
+from token_iq.gateway.proxy._types import GatewayUserRoles, Member, UserAPIKeyAuth
 from token_iq.policy.credential_access import (
     credential_team,
     may_change_credential,
@@ -54,7 +54,7 @@ def test_someone_who_administers_no_team_may_neither_read_nor_change():
 
 @pytest.mark.asyncio
 async def test_the_teams_a_user_administers_come_from_their_membership():
-    caller = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-l", user_id="lead")
+    caller = UserAPIKeyAuth(user_role=GatewayUserRoles.INTERNAL_USER, api_key="sk-l", user_id="lead")
     rows = [
         MagicMock(model_dump=lambda: {"team_id": "team-a", "members_with_roles": [Member(user_id="lead", role="admin").model_dump()]}),
         MagicMock(model_dump=lambda: {"team_id": "team-b", "members_with_roles": [Member(user_id="lead", role="user").model_dump()]}),
@@ -68,7 +68,7 @@ async def test_the_teams_a_user_administers_come_from_their_membership():
 @pytest.mark.asyncio
 async def test_an_admin_needs_no_team_lookup():
     """The lookup reads every team row, so it must not run for a caller who can see them all."""
-    admin = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN, api_key="sk-a", user_id="admin")
+    admin = UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN, api_key="sk-a", user_id="admin")
     prisma = MagicMock()
     prisma.db.litellm_teamtable.find_many = AsyncMock(return_value=[])
 
@@ -79,7 +79,7 @@ async def test_an_admin_needs_no_team_lookup():
 @pytest.mark.asyncio
 async def test_a_malformed_team_row_is_skipped_not_fatal():
     """One bad row must not deny every team admin access to every credential."""
-    caller = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-l", user_id="lead")
+    caller = UserAPIKeyAuth(user_role=GatewayUserRoles.INTERNAL_USER, api_key="sk-l", user_id="lead")
     rows = [
         MagicMock(model_dump=lambda: {"team_id": None, "members_with_roles": []}),
         MagicMock(model_dump=lambda: {"team_id": "team-a", "members_with_roles": [Member(user_id="lead", role="admin").model_dump()]}),
@@ -92,7 +92,7 @@ async def test_a_malformed_team_row_is_skipped_not_fatal():
 
 @pytest.mark.asyncio
 async def test_every_row_malformed_yields_an_empty_set_not_an_exception():
-    caller = UserAPIKeyAuth(user_role=LitellmUserRoles.INTERNAL_USER, api_key="sk-l", user_id="lead")
+    caller = UserAPIKeyAuth(user_role=GatewayUserRoles.INTERNAL_USER, api_key="sk-l", user_id="lead")
     rows = [
         MagicMock(model_dump=lambda: {"team_id": None, "members_with_roles": []}),
         MagicMock(model_dump=lambda: {"team_id": "team-b", "members_with_roles": [{"user_id": "lead", "role": "owner"}]}),

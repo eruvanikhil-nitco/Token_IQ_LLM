@@ -317,13 +317,13 @@ def test_get_model_cost_information():
         custom_llm_provider="openai",
         init_response_obj={},
     )
-    litellm_info_gpt_3_5_turbo_model_map_value = gateway.get_model_info(
+    gateway_info_gpt_3_5_turbo_model_map_value = gateway.get_model_info(
         model="gpt-5-mini", custom_llm_provider="openai"
     )
     print("result", result)
     assert result["model_map_key"] == "gpt-5-mini"
     assert result["model_map_value"] is not None
-    assert result["model_map_value"] == litellm_info_gpt_3_5_turbo_model_map_value
+    assert result["model_map_value"] == gateway_info_gpt_3_5_turbo_model_map_value
     # assert all fields in StandardLoggingModelInformation are present
     assert all(
         field in result for field in StandardLoggingModelInformation.__annotations__
@@ -676,7 +676,7 @@ def test_get_error_information():
     assert result["llm_provider"] == ""
 
     # Test with litellm exception from provider
-    litellm_exception = gateway.exceptions.RateLimitError(
+    gateway_exception = gateway.exceptions.RateLimitError(
         message="Test error",
         llm_provider="openai",
         model="gpt-5-mini",
@@ -685,7 +685,7 @@ def test_get_error_information():
         max_retries=None,
         num_retries=None,
     )
-    result = StandardLoggingPayloadSetup.get_error_information(litellm_exception)
+    result = StandardLoggingPayloadSetup.get_error_information(gateway_exception)
     print("error_information", json.dumps(result, indent=2))
     assert result["error_code"] == "429"
     assert result["error_class"] == "RateLimitError"
@@ -1082,7 +1082,7 @@ def test_standard_logging_payload_uses_actual_model_for_azure_router_with_unders
     assert payload["model"] == "azure_ai/gpt-5-nano-2025-08-07"
 
 
-def test_merge_litellm_metadata_basic():
+def test_merge_gateway_metadata_basic():
     """
     Test that merge_litellm_metadata correctly merges metadata and litellm_metadata.
     User API key fields (from metadata) should take precedence over model-related fields (from litellm_metadata).
@@ -1100,7 +1100,7 @@ def test_merge_litellm_metadata_basic():
         },
     }
 
-    result = StandardLoggingPayloadSetup.merge_litellm_metadata(litellm_params)
+    result = StandardLoggingPayloadSetup.merge_gateway_metadata(litellm_params)
 
     # Check that user API key fields are present
     assert result["user_api_key"] == "test-key-123"
@@ -1113,7 +1113,7 @@ def test_merge_litellm_metadata_basic():
     assert result["tags"] == ["tag1", "tag2"]
 
 
-def test_merge_litellm_metadata_precedence():
+def test_merge_gateway_metadata_precedence():
     """
     Test that metadata fields take precedence over litellm_metadata when there are conflicts.
     """
@@ -1129,7 +1129,7 @@ def test_merge_litellm_metadata_precedence():
         },
     }
 
-    result = StandardLoggingPayloadSetup.merge_litellm_metadata(litellm_params)
+    result = StandardLoggingPayloadSetup.merge_gateway_metadata(litellm_params)
 
     # metadata values should take precedence
     assert result["tags"] == ["user-tag1", "user-tag2"]
@@ -1139,7 +1139,7 @@ def test_merge_litellm_metadata_precedence():
     assert result["model_group"] == "gpt-4-group"
 
 
-def test_merge_litellm_metadata_skip_non_serializable():
+def test_merge_gateway_metadata_skip_non_serializable():
     """
     Test that non-serializable objects like UserAPIKeyAuth are skipped.
     """
@@ -1162,7 +1162,7 @@ def test_merge_litellm_metadata_skip_non_serializable():
         },
     }
 
-    result = StandardLoggingPayloadSetup.merge_litellm_metadata(litellm_params)
+    result = StandardLoggingPayloadSetup.merge_gateway_metadata(litellm_params)
 
     # user_api_key_auth should be skipped
     assert "user_api_key_auth" not in result
@@ -1173,12 +1173,12 @@ def test_merge_litellm_metadata_skip_non_serializable():
     assert result["model_group"] == "gpt-4-group"
 
 
-def test_merge_litellm_metadata_empty_params():
+def test_merge_gateway_metadata_empty_params():
     """
     Test that merge_litellm_metadata handles empty or missing metadata gracefully.
     """
     # Test with empty litellm_params
-    result = StandardLoggingPayloadSetup.merge_litellm_metadata({})
+    result = StandardLoggingPayloadSetup.merge_gateway_metadata({})
     assert result == {}
 
     # Test with only metadata
@@ -1187,7 +1187,7 @@ def test_merge_litellm_metadata_empty_params():
             "user_api_key": "test-key",
         }
     }
-    result = StandardLoggingPayloadSetup.merge_litellm_metadata(litellm_params)
+    result = StandardLoggingPayloadSetup.merge_gateway_metadata(litellm_params)
     assert result == {"user_api_key": "test-key"}
 
     # Test with only litellm_metadata
@@ -1196,7 +1196,7 @@ def test_merge_litellm_metadata_empty_params():
             "model_group": "gpt-4-group",
         }
     }
-    result = StandardLoggingPayloadSetup.merge_litellm_metadata(litellm_params)
+    result = StandardLoggingPayloadSetup.merge_gateway_metadata(litellm_params)
     assert result == {"model_group": "gpt-4-group"}
 
     # Test with None values
@@ -1204,11 +1204,11 @@ def test_merge_litellm_metadata_empty_params():
         "metadata": None,
         "litellm_metadata": None,
     }
-    result = StandardLoggingPayloadSetup.merge_litellm_metadata(litellm_params)
+    result = StandardLoggingPayloadSetup.merge_gateway_metadata(litellm_params)
     assert result == {}
 
 
-def test_merge_litellm_metadata_bedrock_passthrough_scenario():
+def test_merge_gateway_metadata_bedrock_passthrough_scenario():
     """
     Test merge_litellm_metadata in a Bedrock passthrough scenario where both
     user API key metadata and model metadata need to be merged.
@@ -1241,7 +1241,7 @@ def test_merge_litellm_metadata_bedrock_passthrough_scenario():
         },
     }
 
-    result = StandardLoggingPayloadSetup.merge_litellm_metadata(litellm_params)
+    result = StandardLoggingPayloadSetup.merge_gateway_metadata(litellm_params)
 
     # Verify all user API key fields are present
     assert result["user_api_key"] == "sk-bedrock-test-key-123"

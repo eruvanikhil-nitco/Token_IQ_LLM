@@ -45,7 +45,7 @@ from token_iq.gateway.proxy._types import (
     LiteLLM_AccessGroupTable,
     LiteLLM_BudgetTable,
     LiteLLM_EndUserTable,
-    Litellm_EntityType,
+    Gateway_EntityType,
     LiteLLM_JWTAuth,
     LiteLLM_ManagedVectorStoresTable,
     LiteLLM_ObjectPermissionTable,
@@ -57,8 +57,8 @@ from token_iq.gateway.proxy._types import (
     LiteLLM_TeamTable,
     LiteLLM_TeamTableCachedObj,
     LiteLLM_UserTable,
-    LiteLLMRoutes,
-    LitellmUserRoles,
+    GatewayRoutes,
+    GatewayUserRoles,
     NewTeamRequest,
     ProxyErrorTypes,
     ProxyException,
@@ -322,7 +322,7 @@ _safe_json_loads_obj: Final = _typed_json_loads(safe_json_loads)
 last_db_access_time: Final = LimitedSizeOrderedDict(max_size=100)
 db_cache_expiry: Final = DEFAULT_IN_MEMORY_TTL  # refresh every 5s
 
-all_routes: Final = LiteLLMRoutes.openai_routes.value + LiteLLMRoutes.management_routes.value
+all_routes: Final = GatewayRoutes.openai_routes.value + GatewayRoutes.management_routes.value
 
 
 def _log_budget_lookup_failure(entity: str, error: Exception) -> None:
@@ -662,8 +662,8 @@ def _enforce_user_param_check(general_settings: dict, request: Request, request_
     http_method: Final = request.method if hasattr(request, "method") else None
     is_post_method: Final = http_method and http_method.upper() == "POST"
     is_openai_route: Final = RouteChecks.is_llm_api_route(route=route)
-    is_mcp_route: Final = route in LiteLLMRoutes.mcp_routes.value or RouteChecks.check_route_access(
-        route=route, allowed_routes=LiteLLMRoutes.mcp_routes.value
+    is_mcp_route: Final = route in GatewayRoutes.mcp_routes.value or RouteChecks.check_route_access(
+        route=route, allowed_routes=GatewayRoutes.mcp_routes.value
     )
 
     if is_post_method and is_openai_route and not is_mcp_route and "user" not in request_body:
@@ -701,7 +701,7 @@ def _global_proxy_budget_check(global_proxy_spend: float | None, skip_budget_che
             raise gateway.BudgetExceededError(
                 current_cost=global_proxy_spend,
                 max_budget=gateway.max_budget,
-                entity_type=Litellm_EntityType.PROXY.value,
+                entity_type=Gateway_EntityType.PROXY.value,
             )
 
 
@@ -997,14 +997,14 @@ async def common_checks(
         # Key metadata.tags are injected into request_body here so the tag budget
         # check can read them; this mutation must run before the gathered checks.
         if valid_token is not None:
-            from token_iq.gateway.proxy.litellm_pre_call_utils import LiteLLMProxyRequestSetup
+            from token_iq.gateway.proxy.litellm_pre_call_utils import GatewayProxyRequestSetup
 
-            LiteLLMProxyRequestSetup.pre_seed_litellm_metadata_for_route(
+            GatewayProxyRequestSetup.pre_seed_gateway_metadata_for_route(
                 request_data=request_body,
                 route=route,
             )
 
-            LiteLLMProxyRequestSetup.apply_key_tags_pre_auth(
+            GatewayProxyRequestSetup.apply_key_tags_pre_auth(
                 request_data=request_body,
                 user_api_key_dict=valid_token,
             )
@@ -1030,7 +1030,7 @@ async def common_checks(
                     current_cost=user_spend,
                     max_budget=user_budget,
                     message=f"ExceededBudget: User={user_object.user_id} over budget. Spend={user_spend}, Budget={user_budget}",
-                    entity_type=Litellm_EntityType.USER.value,
+                    entity_type=Gateway_EntityType.USER.value,
                     entity_id=user_object.user_id,
                 )
 
@@ -1153,7 +1153,7 @@ async def common_checks(
 
 def _get_user_role(
     user_obj: LiteLLM_UserTable | None,
-) -> LitellmUserRoles | None:
+) -> GatewayUserRoles | None:
     if user_obj is None:
         return None
 
@@ -1161,9 +1161,9 @@ def _get_user_role(
 
     _user_role: Final = _user.user_role
     try:
-        role: Final = LitellmUserRoles(_user_role)
+        role: Final = GatewayUserRoles(_user_role)
     except ValueError:
-        return LitellmUserRoles.INTERNAL_USER
+        return GatewayUserRoles.INTERNAL_USER
 
     return role
 
@@ -1199,7 +1199,7 @@ def _is_user_proxy_admin(user_obj: LiteLLM_UserTable | None):
     if user_obj is None:
         return False
 
-    if user_obj.user_role is not None and user_obj.user_role == LitellmUserRoles.PROXY_ADMIN.value:
+    if user_obj.user_role is not None and user_obj.user_role == GatewayUserRoles.PROXY_ADMIN.value:
         return True
 
     return False
@@ -1217,8 +1217,8 @@ def _allowed_routes_check(user_route: str, allowed_routes: list) -> bool:
     from starlette.routing import compile_path
 
     for allowed_route in allowed_routes:
-        if allowed_route in LiteLLMRoutes.__members__:
-            for template in LiteLLMRoutes[allowed_route].value:
+        if allowed_route in GatewayRoutes.__members__:
+            for template in GatewayRoutes[allowed_route].value:
                 regex, _, _ = compile_path(template)
                 if regex.match(user_route):
                     return True
@@ -1228,7 +1228,7 @@ def _allowed_routes_check(user_route: str, allowed_routes: list) -> bool:
 
 
 def allowed_routes_check(
-    user_role: LitellmUserRoles,
+    user_role: GatewayUserRoles,
     user_route: str,
     litellm_proxy_roles: LiteLLM_JWTAuth,
 ) -> bool:
@@ -1236,14 +1236,14 @@ def allowed_routes_check(
     Check if user -> not admin - allowed to access these routes
     """
 
-    if user_role == LitellmUserRoles.PROXY_ADMIN:
+    if user_role == GatewayUserRoles.PROXY_ADMIN:
         is_allowed = _allowed_routes_check(
             user_route=user_route,
             allowed_routes=litellm_proxy_roles.admin_allowed_routes,
         )
         return is_allowed
 
-    elif user_role == LitellmUserRoles.TEAM:
+    elif user_role == GatewayUserRoles.TEAM:
         if litellm_proxy_roles.team_allowed_routes is None:
             """
             By default allow a team to call openai + info routes
@@ -1265,8 +1265,8 @@ def allowed_route_check_inside_route(
 ) -> bool:
     ret_val = True
     if (
-        user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN
-        and user_api_key_dict.user_role != LitellmUserRoles.PROXY_ADMIN_VIEW_ONLY
+        user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN
+        and user_api_key_dict.user_role != GatewayUserRoles.PROXY_ADMIN_VIEW_ONLY
     ):
         ret_val = False
     if requested_user_id is not None and user_api_key_dict.user_id is not None:
@@ -1279,7 +1279,7 @@ def get_actual_routes(allowed_routes: list) -> list:
     actual_routes: Final[list] = []
     for route_name in allowed_routes:
         try:
-            route_value = LiteLLMRoutes[route_name].value
+            route_value = GatewayRoutes[route_name].value
             if isinstance(route_value, set):
                 actual_routes.extend(list(route_value))
             else:
@@ -1486,7 +1486,7 @@ async def _check_end_user_budget(
             current_cost=end_user_spend,
             max_budget=end_user_budget,
             message=f"ExceededBudget: End User={end_user_obj.user_id} over budget. Spend={end_user_spend}, Budget={end_user_budget}",
-            entity_type=Litellm_EntityType.END_USER.value,
+            entity_type=Gateway_EntityType.END_USER.value,
             entity_id=end_user_obj.user_id,
         )
 
@@ -2451,7 +2451,7 @@ async def get_user_object(
                     await add_new_user_to_default_team(
                         user_id=user_id,
                         user_email=user_email,
-                        user_api_key_dict=UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN),
+                        user_api_key_dict=UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN),
                         teams=default_teams,
                         prisma_client=prisma_client,
                     )
@@ -2862,7 +2862,7 @@ async def _get_team_db_check(
         new_team_data: Final = NewTeamRequest(team_id=team_id)
 
         mock_request: Final = Request(scope={"type": "http"})
-        system_admin_user: Final = UserAPIKeyAuth(user_role=LitellmUserRoles.PROXY_ADMIN)
+        system_admin_user: Final = UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN)
 
         created_team_dict: Final = await new_team(
             data=new_team_data,
@@ -3338,7 +3338,7 @@ class ExperimentalUIJWTToken:
             team_id="litellm-dashboard",
             models=user_info.models,
             max_parallel_requests=None,
-            user_role=LitellmUserRoles(user_info.user_role),
+            user_role=GatewayUserRoles(user_info.user_role),
         )
 
         return encrypt_value_helper(valid_token.model_dump_json(exclude_none=True))
@@ -3406,7 +3406,7 @@ class ExperimentalUIJWTToken:
             team_model_aliases=dict(team_model_aliases) if team_model_aliases is not None else None,
             models=[] if _team_id is not None else user_info.models,
             max_parallel_requests=None,
-            user_role=LitellmUserRoles(user_info.user_role),
+            user_role=GatewayUserRoles(user_info.user_role),
             is_session_token=True,
         )
 
@@ -4780,7 +4780,7 @@ async def _virtual_key_max_budget_check(
             organization_id=valid_token.org_id,
             user_email=user_email,
             key_alias=valid_token.key_alias,
-            event_group=Litellm_EntityType.KEY,
+            event_group=Gateway_EntityType.KEY,
         )
         asyncio.create_task(
             proxy_logging_obj.budget_alerts(
@@ -4812,7 +4812,7 @@ async def _virtual_key_max_budget_check(
                 current_cost=spend,
                 max_budget=valid_token.max_budget,
                 message=f"Budget has been exceeded! Key={key_descriptor} Current cost: {spend}, Max budget: {valid_token.max_budget}",
-                entity_type=Litellm_EntityType.KEY.value,
+                entity_type=Gateway_EntityType.KEY.value,
                 entity_id=valid_token.token,
             )
 
@@ -4856,7 +4856,7 @@ async def _virtual_key_multi_budget_check(
                     f"ExceededBudget: Key over {w['budget_duration']} budget. "
                     f"Spend=${window_spend:.4f}, Limit=${w['max_budget']:.2f}"
                 ),
-                entity_type=Litellm_EntityType.KEY.value,
+                entity_type=Gateway_EntityType.KEY.value,
                 entity_id=valid_token.token,
             )
 
@@ -4889,7 +4889,7 @@ async def _virtual_key_soft_budget_check(
             organization_id=valid_token.org_id,
             user_email=user_obj.user_email if user_obj else None,
             key_alias=valid_token.key_alias,
-            event_group=Litellm_EntityType.KEY,
+            event_group=Gateway_EntityType.KEY,
         )
 
         asyncio.create_task(
@@ -4980,7 +4980,7 @@ async def _virtual_key_max_budget_alert_check(
                 organization_id=valid_token.org_id,
                 user_email=owner_email,
                 key_alias=valid_token.key_alias,
-                event_group=Litellm_EntityType.KEY,
+                event_group=Gateway_EntityType.KEY,
                 max_budget_alert_emails=alert_email_config,
             )
             asyncio.create_task(
@@ -5012,7 +5012,7 @@ async def _virtual_key_max_budget_alert_check(
                     organization_id=valid_token.org_id,
                     user_email=owner_email,
                     key_alias=valid_token.key_alias,
-                    event_group=Litellm_EntityType.KEY,
+                    event_group=Gateway_EntityType.KEY,
                 )
 
                 asyncio.create_task(
@@ -5089,7 +5089,7 @@ async def _check_team_member_budget(
                     current_cost=team_member_spend,
                     max_budget=team_member_budget,
                     message=f"Budget has been exceeded! User={valid_token.user_id} in Team={team_object.team_id} Current cost: {team_member_spend}, Max budget: {team_member_budget}",
-                    entity_type=Litellm_EntityType.TEAM_MEMBER.value,
+                    entity_type=Gateway_EntityType.TEAM_MEMBER.value,
                     entity_id=f"{valid_token.user_id}:{team_object.team_id}",
                 )
 
@@ -5177,7 +5177,7 @@ async def _team_max_budget_check(
                     team_id=valid_token.team_id,
                     team_alias=valid_token.team_alias,
                     organization_id=valid_token.org_id,
-                    event_group=Litellm_EntityType.TEAM,
+                    event_group=Gateway_EntityType.TEAM,
                 )
                 asyncio.create_task(
                     proxy_logging_obj.budget_alerts(
@@ -5190,7 +5190,7 @@ async def _team_max_budget_check(
                 current_cost=spend,
                 max_budget=team_object.max_budget,
                 message=f"Budget has been exceeded! Team={team_object.team_id} Current cost: {spend}, Max budget: {team_object.max_budget}",
-                entity_type=Litellm_EntityType.TEAM.value,
+                entity_type=Gateway_EntityType.TEAM.value,
                 entity_id=team_object.team_id,
             )
 
@@ -5230,7 +5230,7 @@ async def _team_multi_budget_check(
                     f"ExceededBudget: Team={team_object.team_id} over {w['budget_duration']} budget. "
                     f"Spend=${window_spend:.4f}, Limit=${w['max_budget']:.2f}"
                 ),
-                entity_type=Litellm_EntityType.TEAM.value,
+                entity_type=Gateway_EntityType.TEAM.value,
                 entity_id=team_object.team_id,
             )
 
@@ -5294,7 +5294,7 @@ async def _team_soft_budget_check(
                 organization_id=valid_token.org_id,
                 user_email=None,  # Team-level alert, no specific user email
                 key_alias=valid_token.key_alias,
-                event_group=Litellm_EntityType.TEAM,
+                event_group=Gateway_EntityType.TEAM,
                 alert_emails=alert_emails,
             )
 
@@ -5340,7 +5340,7 @@ async def _project_max_budget_check(
                 team_id=valid_token.team_id,
                 team_alias=valid_token.team_alias,
                 organization_id=valid_token.org_id,
-                event_group=Litellm_EntityType.PROJECT,
+                event_group=Gateway_EntityType.PROJECT,
             )
             asyncio.create_task(
                 proxy_logging_obj.budget_alerts(
@@ -5353,7 +5353,7 @@ async def _project_max_budget_check(
             current_cost=project_object.spend,
             max_budget=max_budget,
             message=f"Budget has been exceeded! Project={project_object.project_id} Current cost: {project_object.spend}, Max budget: {max_budget}",
-            entity_type=Litellm_EntityType.PROJECT.value,
+            entity_type=Gateway_EntityType.PROJECT.value,
             entity_id=project_object.project_id,
         )
 
@@ -5392,7 +5392,7 @@ async def _project_soft_budget_check(
                 team_id=valid_token.team_id,
                 team_alias=valid_token.team_alias,
                 organization_id=valid_token.org_id,
-                event_group=Litellm_EntityType.PROJECT,
+                event_group=Gateway_EntityType.PROJECT,
             )
             asyncio.create_task(
                 proxy_logging_obj.budget_alerts(
@@ -5550,7 +5550,7 @@ async def _organization_max_budget_check(
             team_id=valid_token.team_id,
             team_alias=valid_token.team_alias,
             organization_id=org_id,
-            event_group=Litellm_EntityType.ORGANIZATION,
+            event_group=Gateway_EntityType.ORGANIZATION,
         )
         asyncio.create_task(
             proxy_logging_obj.budget_alerts(
@@ -5563,7 +5563,7 @@ async def _organization_max_budget_check(
             current_cost=org_spend,
             max_budget=org_max_budget,
             message=f"Budget has been exceeded! Organization={org_id} Current cost: {org_spend}, Max budget: {org_max_budget}",
-            entity_type=Litellm_EntityType.ORGANIZATION.value,
+            entity_type=Gateway_EntityType.ORGANIZATION.value,
             entity_id=org_id,
         )
 
@@ -5622,7 +5622,7 @@ async def _tag_max_budget_check(
                 current_cost=tag_spend,
                 max_budget=tag_object.litellm_budget_table.max_budget,
                 message=f"Budget has been exceeded! Tag={tag_name} Current cost: {tag_spend}, Max budget: {tag_object.litellm_budget_table.max_budget}",
-                entity_type=Litellm_EntityType.TAG.value,
+                entity_type=Gateway_EntityType.TAG.value,
                 entity_id=tag_name,
             )
 
@@ -5677,7 +5677,7 @@ async def _model_access_group_max_budget_check(
             current_cost=group_spend,
             max_budget=budget.max_budget,
             message=f"Budget has been exceeded! Model access group={group} Current cost: {group_spend}, Max budget: {budget.max_budget}",
-            entity_type=Litellm_EntityType.MODEL_ACCESS_GROUP.value,
+            entity_type=Gateway_EntityType.MODEL_ACCESS_GROUP.value,
             entity_id=group,
         )
 

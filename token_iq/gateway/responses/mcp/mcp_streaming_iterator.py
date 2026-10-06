@@ -5,7 +5,7 @@ from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway._uuid import uuid
 from token_iq.gateway.responses.streaming_iterator import BaseResponsesAPIStreamingIterator
 from token_iq.gateway.types.llms.openai import (
-    BaseLiteLLMOpenAIResponseObject,
+    BaseGatewayOpenAIResponseObject,
     ErrorEvent,
     ErrorEventError,
     MCPCallArgumentsDeltaEvent,
@@ -35,7 +35,7 @@ MAX_MCP_TOOL_CALL_ROUNDS: Final = 5
 
 
 async def create_mcp_list_tools_events(
-    mcp_tools_with_litellm_proxy: Sequence[Mapping[str, object]],
+    mcp_tools_with_gateway_proxy: Sequence[Mapping[str, object]],
     user_api_key_auth: "UserAPIKeyAuth | None",
     base_item_id: str,
     pre_processed_mcp_tools: list[MCPTool],
@@ -48,7 +48,7 @@ async def create_mcp_list_tools_events(
         # Extract MCP server names
         _mcp_servers: Final = [
             server_url.split("/")[-1]
-            for tool in mcp_tools_with_litellm_proxy
+            for tool in mcp_tools_with_gateway_proxy
             if isinstance(tool, dict)
             and "server_url" in tool
             and isinstance(server_url := tool.get("server_url"), str)
@@ -91,8 +91,8 @@ async def create_mcp_list_tools_events(
 
         # Extract server label from the first MCP tool config
         server_label = ""
-        if mcp_tools_with_litellm_proxy:
-            first_tool: Final = mcp_tools_with_litellm_proxy[0]
+        if mcp_tools_with_gateway_proxy:
+            first_tool: Final = mcp_tools_with_gateway_proxy[0]
             if isinstance(first_tool, dict):
                 server_label_value: Final = first_tool.get("server_label", "")
                 server_label = str(server_label_value) if server_label_value is not None else ""
@@ -115,7 +115,7 @@ async def create_mcp_list_tools_events(
         output_item_done_event = OutputItemDoneEvent(
             type=ResponsesAPIStreamEvents.OUTPUT_ITEM_DONE,
             output_index=0,
-            item=BaseLiteLLMOpenAIResponseObject(
+            item=BaseGatewayOpenAIResponseObject(
                 **{
                     "id": base_item_id,
                     "type": "mcp_list_tools",
@@ -149,7 +149,7 @@ async def create_mcp_list_tools_events(
         output_item_done_event = OutputItemDoneEvent(
             type=ResponsesAPIStreamEvents.OUTPUT_ITEM_DONE,
             output_index=0,
-            item=BaseLiteLLMOpenAIResponseObject(
+            item=BaseGatewayOpenAIResponseObject(
                 **{
                     "id": base_item_id,
                     "type": "mcp_list_tools",
@@ -220,7 +220,7 @@ def create_mcp_call_events(
         output_item_done_event: Final = OutputItemDoneEvent(
             type=ResponsesAPIStreamEvents.OUTPUT_ITEM_DONE,
             output_index=0,
-            item=BaseLiteLLMOpenAIResponseObject(
+            item=BaseGatewayOpenAIResponseObject(
                 **{
                     "id": item_id,
                     "type": "mcp_call",
@@ -263,12 +263,12 @@ class MCPEnhancedStreamingIterator(BaseResponsesAPIStreamingIterator):
         base_iterator: "BaseResponsesAPIStreamingIterator | ResponsesAPIResponse | None",  # created internally when None
         mcp_events: list[ResponsesAPIStreamingResponse],
         tool_server_map: dict[str, str],
-        mcp_tools_with_litellm_proxy: Sequence[Mapping[str, object]] | None = None,
+        mcp_tools_with_gateway_proxy: Sequence[Mapping[str, object]] | None = None,
         user_api_key_auth: "UserAPIKeyAuth | None" = None,
         original_request_params: dict[str, Any] | None = None,
     ):
         # MCP setup
-        self.mcp_tools_with_litellm_proxy = mcp_tools_with_litellm_proxy or []
+        self.mcp_tools_with_gateway_proxy = mcp_tools_with_gateway_proxy or []
         self.user_api_key_auth = user_api_key_auth
         self.original_request_params = original_request_params or {}
         self.should_auto_execute = self._should_auto_execute_tools()
@@ -393,7 +393,7 @@ class MCPEnhancedStreamingIterator(BaseResponsesAPIStreamingIterator):
             LiteLLM_Proxy_MCP_Handler,
         )
 
-        return LiteLLM_Proxy_MCP_Handler._should_auto_execute_tools(self.mcp_tools_with_litellm_proxy)
+        return LiteLLM_Proxy_MCP_Handler._should_auto_execute_tools(self.mcp_tools_with_gateway_proxy)
 
     def _make_stream_error_event(self) -> ResponsesAPIStreamingResponse:
         err: Final = self._stream_error
@@ -736,7 +736,7 @@ class MCPEnhancedStreamingIterator(BaseResponsesAPIStreamingIterator):
                 output_item_done_event = OutputItemDoneEvent(
                     type=ResponsesAPIStreamEvents.OUTPUT_ITEM_DONE,
                     output_index=0,
-                    item=BaseLiteLLMOpenAIResponseObject(
+                    item=BaseGatewayOpenAIResponseObject(
                         **{
                             "id": item_id,
                             "type": "mcp_call",

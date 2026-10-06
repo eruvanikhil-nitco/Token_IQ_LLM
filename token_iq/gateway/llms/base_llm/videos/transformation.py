@@ -7,22 +7,22 @@ import httpx
 from httpx._types import FileContent, RequestFiles
 
 from token_iq.gateway.types.responses.main import *
-from token_iq.gateway.types.router import GenericLiteLLMParams
+from token_iq.gateway.types.router import GenericGatewayParams
 from token_iq.gateway.types.videos.main import VideoCreateOptionalRequestParams
 
 if TYPE_CHECKING:
-    from token_iq.gateway.core_utils.litellm_logging import Logging as _LiteLLMLoggingObj
+    from token_iq.gateway.core_utils.litellm_logging import Logging as _GatewayLoggingObj
     from token_iq.gateway.types.videos.main import CharacterObject as _CharacterObject
     from token_iq.gateway.types.videos.main import VideoObject as _VideoObject
 
     from ..chat.transformation import BaseLLMException as _BaseLLMException
 
-    LiteLLMLoggingObj = _LiteLLMLoggingObj
+    GatewayLoggingObj = _GatewayLoggingObj
     BaseLLMException = _BaseLLMException
     VideoObject = _VideoObject
     CharacterObject = _CharacterObject
 else:
-    LiteLLMLoggingObj = Any
+    GatewayLoggingObj = Any
     BaseLLMException = Any
     VideoObject = Any
     CharacterObject = Any
@@ -70,7 +70,7 @@ class BaseVideoConfig(ABC):
         headers: dict,
         model: str,
         api_key: str | None = None,
-        litellm_params: GenericLiteLLMParams | None = None,
+        litellm_params: GenericGatewayParams | None = None,
     ) -> dict:
         return {}
 
@@ -107,7 +107,7 @@ class BaseVideoConfig(ABC):
         prompt: str,
         api_base: str,
         video_create_optional_request_params: dict,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> tuple[dict, RequestFiles, str]:
         pass
@@ -117,7 +117,7 @@ class BaseVideoConfig(ABC):
         self,
         model: str,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         custom_llm_provider: str | None = None,
         request_data: dict | None = None,
     ) -> VideoObject:
@@ -128,7 +128,7 @@ class BaseVideoConfig(ABC):
         self,
         video_id: str,
         api_base: str,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
         variant: str | None = None,
     ) -> tuple[str, dict]:
@@ -143,14 +143,14 @@ class BaseVideoConfig(ABC):
     def transform_video_content_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> bytes:
         pass
 
     async def async_transform_video_content_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> bytes:
         """
         Async transform video content download response to bytes.
@@ -178,7 +178,7 @@ class BaseVideoConfig(ABC):
         video_id: str,
         prompt: str,
         api_base: str,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
         extra_body: dict[str, Any] | None = None,
     ) -> tuple[str, dict]:
@@ -193,7 +193,7 @@ class BaseVideoConfig(ABC):
     def transform_video_remix_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         custom_llm_provider: str | None = None,
     ) -> VideoObject:
         pass
@@ -202,7 +202,7 @@ class BaseVideoConfig(ABC):
     def transform_video_list_request(
         self,
         api_base: str,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
         after: str | None = None,
         limit: int | None = None,
@@ -220,7 +220,7 @@ class BaseVideoConfig(ABC):
     def transform_video_list_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         custom_llm_provider: str | None = None,
     ) -> dict[str, str]:
         pass
@@ -230,7 +230,7 @@ class BaseVideoConfig(ABC):
         self,
         video_id: str,
         api_base: str,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> tuple[str, dict]:
         """
@@ -244,7 +244,7 @@ class BaseVideoConfig(ABC):
     def transform_video_delete_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> VideoObject:
         pass
 
@@ -253,7 +253,7 @@ class BaseVideoConfig(ABC):
         self,
         video_id: str,
         api_base: str,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> tuple[str, dict]:
         """
@@ -267,7 +267,7 @@ class BaseVideoConfig(ABC):
     def transform_video_status_retrieve_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         custom_llm_provider: str | None = None,
     ) -> VideoObject:
         pass
@@ -277,7 +277,7 @@ class BaseVideoConfig(ABC):
         name: str,
         video: Any,
         api_base: str,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> tuple[str, list]:
         """
@@ -291,7 +291,7 @@ class BaseVideoConfig(ABC):
     def transform_video_create_character_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> CharacterObject:
         raise NotImplementedError("video create character is not supported for this provider")
 
@@ -299,7 +299,7 @@ class BaseVideoConfig(ABC):
         self,
         character_id: str,
         api_base: str,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> tuple[str, dict]:
         """
@@ -313,7 +313,7 @@ class BaseVideoConfig(ABC):
     def transform_video_get_character_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
     ) -> CharacterObject:
         raise NotImplementedError("video get character is not supported for this provider")
 
@@ -321,7 +321,7 @@ class BaseVideoConfig(ABC):
         self,
         video_id: str,
         api_base: str,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
     ) -> tuple[str, dict] | None:
         """
@@ -339,7 +339,7 @@ class BaseVideoConfig(ABC):
         prompt: str,
         video_id: str,
         api_base: str,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
         video_file: FileContent | None = None,
         extra_body: dict[str, Any] | None = None,
@@ -359,7 +359,7 @@ class BaseVideoConfig(ABC):
     def transform_video_edit_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         custom_llm_provider: str | None = None,
         request_data: dict | None = None,
     ) -> VideoObject:
@@ -371,7 +371,7 @@ class BaseVideoConfig(ABC):
         video_id: str,
         seconds: str,
         api_base: str,
-        litellm_params: GenericLiteLLMParams,
+        litellm_params: GenericGatewayParams,
         headers: dict,
         extra_body: dict[str, Any] | None = None,
     ) -> tuple[str, dict]:
@@ -386,7 +386,7 @@ class BaseVideoConfig(ABC):
     def transform_video_extension_response(
         self,
         raw_response: httpx.Response,
-        logging_obj: LiteLLMLoggingObj,
+        logging_obj: GatewayLoggingObj,
         custom_llm_provider: str | None = None,
     ) -> VideoObject:
         raise NotImplementedError("video extension is not supported for this provider")

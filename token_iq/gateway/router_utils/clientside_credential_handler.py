@@ -26,9 +26,9 @@ def _admin_config_fields_to_clear_on_base_override() -> list[str]:
     is gated automatically — plus a fixed list of kwargs-only fields that
     aren't declared on the typed model.
     """
-    from token_iq.gateway.types.router import CredentialLiteLLMParams
+    from token_iq.gateway.types.router import CredentialGatewayParams
 
-    typed_fields: Final = [f for f in CredentialLiteLLMParams.model_fields if f not in clientside_credential_keys]
+    typed_fields: Final = [f for f in CredentialGatewayParams.model_fields if f not in clientside_credential_keys]
     kwargs_only_fields: Final = [
         # Caller-supplied via **kwargs, not declared on CredentialLiteLLMParams.
         "organization",
@@ -73,7 +73,7 @@ def is_clientside_credential(request_kwargs: dict) -> bool:
     return any(key in request_kwargs for key in clientside_credential_keys)
 
 
-def get_dynamic_litellm_params(litellm_params: dict, request_kwargs: dict) -> dict:
+def get_dynamic_gateway_params(litellm_params: dict, request_kwargs: dict) -> dict:
     """
     Generate a unique model_id for the deployment.
 
