@@ -1037,3 +1037,104 @@ Next, in order:
 **Two things need the owner and cannot be done from here.** Whether the inherited usage dashboard
 embedded in the Usage page stays, written up above; and running the Playwright walk, which needs the
 proxy, Postgres and the mock upstream up.
+
+---
+
+## Phase 6, first half: the engine package has moved
+
+`litellm/` is now `token_iq/gateway/`, and `litellm/litellm_core_utils/` is `token_iq/gateway/core_utils/`.
+4,058 files changed, by `scripts/rename/move_engine_package.py`, which is committed.
+
+The name each module binds is deliberately unchanged: `import litellm` became
+`from token_iq import gateway as litellm`, so the 58,000 `litellm.<attr>` uses are untouched.
+Renaming that bound name to `gateway` is the second half and is a local-name rename from here.
+
+### Why it was split
+
+So that this half could be checked. It must not change what the proxy serves or what it discovers,
+and three dumps taken beforehand say what those were:
+
+| what | before | after |
+|---|---|---|
+| routes on the live app | 589 | 589, same paths and methods, every handler remapped and in no other way |
+| names the four string-path registries discover | 130 | 130, byte-identical |
+| public names on the package | 1,505 | 1,505, with `litellm_core_utils` becoming `core_utils` |
+| `mock.patch` targets that resolve | not checked | 9,015, all of them |
+| engine test slice | 3 failed, 5,080 passed | identical, and the three were already failing |
+| engine tests that collect | 45,666 with 31 errors | 45,685 with the same 31 |
+
+A single pass doing both halves would have failed the same diff with no way to tell which half
+caused it.
+
+### The five things that were not import statements
+
+Each of these would have shipped quietly, and together they are why the dumps exist rather than a
+grep for the old name:
+
+- **The package's own globals.** The lazy-import machinery reads them through
+  `sys.modules["litellm"]` and passes `package="litellm"` on every relative import. Leaving either
+  behind let the package import and then fail on the first attribute anyone asked for
+- **Three registries build their module path at runtime**, concatenating a prefix onto a directory
+  name. Leaving those turns every guardrail off while the code still compiles, lints and type-checks.
+  Proved by doing it: the dump went from 51 guardrail initializers to 0, with nothing louder than a
+  debug log
+- **JSON logging resolves its formatter through a `dictConfig` "()" key**, so neither a call nor an
+  import sits anywhere near the name
+- **A loader found the repository root by counting parents.** The extra directory made the count
+  wrong and the only sign was the proxy failing to start on a missing price file. It now finds the
+  package by name, which cannot go stale the next time something moves
+- **The bundled tokenizers.** `TIKTOKEN_CACHE_DIR` pointed at a relative path that no longer existed.
+  The wrong directory was created empty on demand and tiktoken went to the network for four files
+  sitting in the tree, which an air-gapped installation would have discovered first
+
+### What the codemod decides, and why it refuses by default
+
+A dotted string moves by where it sits, never by how it looks. 11,470 moved. The ones left behind all
+resolve to something real, which is exactly why resolving cannot be the test: `"litellm.trace_id"` is
+an OpenTelemetry attribute, `"litellm.completion"` a `call_type` value, `"litellm.RateLimitError"` a
+sentinel a caller passes as `mock_response` to force an error, and
+`tracer.trace("litellm.proxy.auth.budget_checks")` a span name. A rule that rewrote whatever resolves
+would have renamed a public sentinel and a customer's dashboards with it.
+
+Default-deny is chosen for the shape of its failures. A reference the pass misses raises
+`ModuleNotFoundError`, fails the patch-target gate, or drops a route, and all three are loud. A string
+rewritten that should not have been is silent.
+
+Positions context cannot settle, a plain assignment, a dict key, a tuple element, ask instead whether
+an importable module is in the name. That rule has a two-dot floor, and the floor is the whole thing
+that keeps `litellm.request_timeout`, a real setting on the package and a field in the health
+endpoint's response, from being renamed.
+
+### Three defects in the codemod that only the engine's own tests found
+
+All three passed every dump, which is the point worth keeping:
+
+- **The inner-package rule was unanchored** and rewrote expressions, not just imports, putting
+  `token_iq.gateway.` into modules where only the old name is bound. Fifteen tests in one file went
+  red with a `NameError`
+- **It asked whether a module was importable while it was rewriting.** `find_spec` on a submodule
+  imports its parent, so halfway through a run the engine imports itself through paths that do not
+  exist yet, every answer comes back False, and every reference after that point is silently left
+  behind. It now settles every question in one read-only sweep first
+- **It rewrote its own source.** Every literal it looks for became the thing it replaces them with,
+  after which it matched nothing anywhere and reported a clean run over four thousand files. The same
+  trap as the phase 2 codemod, caught the same way
+
+### The patch-target gate now covers the whole engine
+
+It was built in phase 3 for Token IQ's own modules and checked a handful of targets. Every patch
+target in the engine's tests now starts with `token_iq.`, so it checks 9,015 of them, which makes it
+the strongest single check on this move. It had to learn the two things `mock.patch` accepts that a
+`hasattr` walk does not: an attribute that exists holding `None`, which is what `llm_router` is before
+the proxy starts, and a builtin named as the last step.
+
+### What is left in phase 6
+
+- The bound name: `litellm` becomes `gateway`, and `tiq_gateway` where a module already binds
+  `gateway`. The rename map lists the collisions
+- `tests/test_litellm/` becomes `tests/gateway/`, with the CI shards, `SHARDED_ROOTS` and the
+  path-keyed budget files following it
+- Packaging: `pyproject.toml` name and scripts, the Dockerfile and entrypoints, and the bundled UI
+  path `_experimental/out` becoming `ui_bundle/`. `version("litellm")` in the New Relic integration
+  reads the distribution name and has to move with it
+- The check: `rg -n "\blitellm\b" --type py` matching only names phases 7 to 9 own
