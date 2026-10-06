@@ -37,7 +37,7 @@ from token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials.types 
 from pydantic import SecretStr
 
 _PATCH_TARGET = (
-    "litellm.proxy._experimental.mcp_server.outbound_credentials."
+    "token_iq.gateway.proxy._experimental.mcp_server.outbound_credentials."
     "token_endpoint.get_async_httpx_client"
 )
 

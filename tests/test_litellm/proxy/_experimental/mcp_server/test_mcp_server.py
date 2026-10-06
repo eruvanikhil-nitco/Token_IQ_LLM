@@ -6924,7 +6924,7 @@ async def test_get_allowed_mcp_servers_from_mcp_server_names_unknown_name_fails_
     ]
 
     with patch(
-        "litellm.proxy._experimental.mcp_server.auth.user_api_key_auth_mcp."
+        "token_iq.gateway.proxy._experimental.mcp_server.auth.user_api_key_auth_mcp."
         "MCPRequestHandler._get_mcp_servers_from_access_groups",
         new_callable=AsyncMock,
         return_value=[],
@@ -6983,7 +6983,7 @@ async def test_get_allowed_mcp_servers_from_mcp_server_names_known_alias_returns
     ]
 
     with patch(
-        "litellm.proxy._experimental.mcp_server.auth.user_api_key_auth_mcp."
+        "token_iq.gateway.proxy._experimental.mcp_server.auth.user_api_key_auth_mcp."
         "MCPRequestHandler._get_mcp_servers_from_access_groups",
         new_callable=AsyncMock,
         return_value=[],
@@ -7016,7 +7016,7 @@ async def test_get_allowed_mcp_servers_from_mcp_server_names_mixed_known_and_unk
     ]
 
     with patch(
-        "litellm.proxy._experimental.mcp_server.auth.user_api_key_auth_mcp."
+        "token_iq.gateway.proxy._experimental.mcp_server.auth.user_api_key_auth_mcp."
         "MCPRequestHandler._get_mcp_servers_from_access_groups",
         new_callable=AsyncMock,
         return_value=[],
@@ -7049,7 +7049,7 @@ async def test_get_allowed_mcp_servers_from_mcp_server_names_access_group_resolv
     ]
 
     with patch(
-        "litellm.proxy._experimental.mcp_server.auth.user_api_key_auth_mcp."
+        "token_iq.gateway.proxy._experimental.mcp_server.auth.user_api_key_auth_mcp."
         "MCPRequestHandler._get_mcp_servers_from_access_groups",
         new_callable=AsyncMock,
         return_value=["id-b"],
@@ -7311,7 +7311,7 @@ async def test_get_allowed_mcp_servers_includes_active_servers_submitted_by_user
             return_value={"submitted-1": submitted_server},
         ),
         patch(
-            "litellm.proxy._experimental.mcp_server.auth.user_api_key_auth_mcp."
+            "token_iq.gateway.proxy._experimental.mcp_server.auth.user_api_key_auth_mcp."
             "MCPRequestHandler.get_allowed_mcp_servers",
             AsyncMock(return_value=[]),
         ),

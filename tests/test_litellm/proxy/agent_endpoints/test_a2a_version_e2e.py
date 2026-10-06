@@ -172,7 +172,7 @@ def _proxy_patches(agent: MagicMock) -> List[Any]:
     return [
         patch.object(a2a_endpoints_mod, "_get_agent", return_value=agent),
         patch(
-            "litellm.proxy.agent_endpoints.auth.agent_permission_handler"
+            "token_iq.gateway.proxy.agent_endpoints.auth.agent_permission_handler"
             ".AgentRequestHandler.is_agent_allowed",
             new=AsyncMock(return_value=True),
         ),

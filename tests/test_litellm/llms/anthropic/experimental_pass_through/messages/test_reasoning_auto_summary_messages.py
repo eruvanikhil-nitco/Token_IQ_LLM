@@ -30,10 +30,10 @@ def _call_handler_and_capture_optional_params(thinking=None, **extra_kwargs):
     captured = {}
 
     with patch(
-        "litellm.llms.anthropic.experimental_pass_through.messages.handler."
+        "token_iq.gateway.llms.anthropic.experimental_pass_through.messages.handler."
         "base_llm_http_handler"
     ) as mock_handler, patch(
-        "litellm.llms.anthropic.experimental_pass_through.messages.handler."
+        "token_iq.gateway.llms.anthropic.experimental_pass_through.messages.handler."
         "ProviderConfigManager"
     ) as mock_pcm:
         # Make get_provider_anthropic_messages_config return a non-None config

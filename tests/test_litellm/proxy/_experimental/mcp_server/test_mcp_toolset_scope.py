@@ -42,7 +42,7 @@ class TestApplyToolsetScope:
             "server-b": ["tool3"],
         }
         with patch(
-            "litellm.proxy._experimental.mcp_server.server."
+            "token_iq.gateway.proxy._experimental.mcp_server.server."
             "global_mcp_server_manager.resolve_toolset_tool_permissions",
             new=AsyncMock(return_value=toolset_perms),
         ):
@@ -65,7 +65,7 @@ class TestApplyToolsetScope:
 
         toolset_perms = {"server-a": ["tool1"]}
         with patch(
-            "litellm.proxy._experimental.mcp_server.server."
+            "token_iq.gateway.proxy._experimental.mcp_server.server."
             "global_mcp_server_manager.resolve_toolset_tool_permissions",
             new=AsyncMock(return_value=toolset_perms),
         ):
@@ -114,7 +114,7 @@ class TestApplyToolsetScope:
 
         resolve = AsyncMock(return_value={"server-a": ["tool1"]})
         with patch(
-            "litellm.proxy._experimental.mcp_server.server."
+            "token_iq.gateway.proxy._experimental.mcp_server.server."
             "global_mcp_server_manager.resolve_toolset_tool_permissions",
             new=resolve,
         ):
@@ -294,12 +294,12 @@ class TestToolsetPrefixResolution:
 
         with (
             patch(
-                "litellm.proxy._experimental.mcp_server.server."
+                "token_iq.gateway.proxy._experimental.mcp_server.server."
                 "MCPRequestHandler.get_allowed_tools_for_server",
                 new=AsyncMock(return_value=allowed),
             ),
             patch(
-                "litellm.proxy._experimental.mcp_server.server."
+                "token_iq.gateway.proxy._experimental.mcp_server.server."
                 "global_mcp_server_manager.get_mcp_server_by_id",
                 return_value=server,
             ),
@@ -365,7 +365,7 @@ class TestToolsetPrefixResolution:
         )
         with (
             patch(
-                "litellm.proxy._experimental.mcp_server.mcp_server_manager."
+                "token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager."
                 "global_mcp_server_manager.get_mcp_server_by_id",
                 return_value=server,
             ),
@@ -421,12 +421,12 @@ class TestToolsetPrefixResolution:
 
         with (
             patch(
-                "litellm.proxy._experimental.mcp_server.server."
+                "token_iq.gateway.proxy._experimental.mcp_server.server."
                 "MCPRequestHandler.get_allowed_tools_for_server",
                 new=AsyncMock(return_value=resolved["srv-collide"]),
             ),
             patch(
-                "litellm.proxy._experimental.mcp_server.server."
+                "token_iq.gateway.proxy._experimental.mcp_server.server."
                 "global_mcp_server_manager.get_mcp_server_by_id",
                 return_value=server,
             ),
@@ -478,12 +478,12 @@ class TestToolsetPrefixResolution:
 
         with (
             patch(
-                "litellm.proxy._experimental.mcp_server.server."
+                "token_iq.gateway.proxy._experimental.mcp_server.server."
                 "MCPRequestHandler.get_allowed_tools_for_server",
                 new=AsyncMock(return_value=resolved["srv-lonely"]),
             ),
             patch(
-                "litellm.proxy._experimental.mcp_server.server."
+                "token_iq.gateway.proxy._experimental.mcp_server.server."
                 "global_mcp_server_manager.get_mcp_server_by_id",
                 return_value=server,
             ),

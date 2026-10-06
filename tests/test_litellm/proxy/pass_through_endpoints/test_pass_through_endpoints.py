@@ -3708,7 +3708,7 @@ async def _drive_pass_through_block(raised_exception):
         ),
         patch(f"{_PT_MODULE}._safe_get_request_headers", return_value={}),
         patch(
-            "litellm.proxy.pass_through_endpoints.passthrough_guardrails."
+            "token_iq.gateway.proxy.pass_through_endpoints.passthrough_guardrails."
             "PassthroughGuardrailHandler.collect_guardrails",
             return_value=[],
         ),
@@ -5024,7 +5024,7 @@ async def test_websocket_passthrough_does_not_close_twice_when_success_logging_f
     with (
         _patched_websocket_passthrough_environment(upstream_ws),
         patch(
-            "litellm.proxy.pass_through_endpoints.pass_through_endpoints."
+            "token_iq.gateway.proxy.pass_through_endpoints.pass_through_endpoints."
             "GLOBAL_LOGGING_WORKER.ensure_initialized_and_enqueue",
             side_effect=RuntimeError("logging worker down"),
         ),

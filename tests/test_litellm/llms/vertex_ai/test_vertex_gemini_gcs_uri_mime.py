@@ -319,7 +319,7 @@ def test_async_transform_request_body_offloads_extensionless_gs_not_plain_text()
             return_value=mock_http,
         ),
         patch(
-            "litellm.llms.vertex_ai.context_caching.vertex_ai_context_caching."
+            "token_iq.gateway.llms.vertex_ai.context_caching.vertex_ai_context_caching."
             "ContextCachingEndpoints.async_check_and_create_cache",
             new=fake_check_and_create_cache,
         ),
@@ -357,7 +357,7 @@ def test_async_transform_request_body_offloads_extensionless_gs_not_plain_text()
             )
 
     with patch(
-        "litellm.llms.vertex_ai.context_caching.vertex_ai_context_caching."
+        "token_iq.gateway.llms.vertex_ai.context_caching.vertex_ai_context_caching."
         "ContextCachingEndpoints.async_check_and_create_cache",
         new=fake_cache2,
     ):

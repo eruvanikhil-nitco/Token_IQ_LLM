@@ -67,17 +67,17 @@ def _patch_responses_dispatch():
             side_effect=_provider_by_model,
         ),
         patch(
-            "litellm.responses.mcp.litellm_proxy_mcp_handler."
+            "token_iq.gateway.responses.mcp.litellm_proxy_mcp_handler."
             "LiteLLM_Proxy_MCP_Handler._should_use_litellm_mcp_gateway",
             return_value=False,
         ),
         patch(
-            "litellm.responses.main.ProviderConfigManager"
+            "token_iq.gateway.responses.main.ProviderConfigManager"
             ".get_provider_responses_api_config",
             return_value=None,
         ),
         patch(
-            "litellm.responses.main.litellm_completion_transformation_handler"
+            "token_iq.gateway.responses.main.litellm_completion_transformation_handler"
             ".response_api_handler",
             return_value=MagicMock(),
         ),

@@ -4858,7 +4858,7 @@ class TestAllmPassthroughStreamingProviderGate:
             "_has_post_call_guardrails_for_passthrough",
             return_value=True,
         ), patch(
-            "litellm.llms.bedrock.passthrough.guardrail_translation.handler."
+            "token_iq.gateway.llms.bedrock.passthrough.guardrail_translation.handler."
             "BedrockPassthroughGuardrailHandler.de_anonymize_event_stream",
             new=AsyncMock(return_value=b"modified-body"),
         ) as mock_handler:
@@ -4886,7 +4886,7 @@ class TestAllmPassthroughStreamingProviderGate:
             "_has_post_call_guardrails_for_passthrough",
             return_value=True,
         ), patch(
-            "litellm.llms.bedrock.passthrough.guardrail_translation.handler."
+            "token_iq.gateway.llms.bedrock.passthrough.guardrail_translation.handler."
             "BedrockPassthroughGuardrailHandler.de_anonymize_event_stream",
             new=AsyncMock(return_value=b"modified-body"),
         ) as mock_handler:

@@ -115,6 +115,14 @@ def _resolves(target: str) -> bool:
 
 TOKEN_IQ_TARGETS: Final = tuple(t for t in _patch_targets() if t[1].startswith("token_iq."))
 
+STALE_TARGETS: Final = tuple(t for t in _patch_targets() if t[1].startswith("litellm."))
+"""Targets still naming the package by the name it had before phase 6 moved it.
+
+Every one of these is now wrong, so they are a failure rather than something to skip. Filtering them
+out is how 32 of them survived the move: each is a module path written as two adjacent string literals,
+which Python folds into one value spanning two lines, and the pass that rewrote the rest skipped any
+literal that was not on a single line."""
+
 
 class TestTokenIqPatchTargets:
     def test_there_are_some_to_check(self) -> None:
@@ -124,3 +132,13 @@ class TestTokenIqPatchTargets:
     @pytest.mark.parametrize(("where", "target", "line"), TOKEN_IQ_TARGETS)
     def test_the_target_exists(self, where: str, target: str, line: int) -> None:
         assert _resolves(target), f"{where}:{line} patches {target}, which resolves to nothing"
+
+
+class TestNoTargetNamesTheOldPackage:
+    def test_no_patch_target_still_names_the_package_by_its_old_name(self) -> None:
+        """A target naming `litellm.` resolves to nothing now, and `mock.patch` only finds out when the
+        test enters the patch, so this says it at collection time instead."""
+        assert not STALE_TARGETS, chr(10).join(
+            f"{where}:{line} patches {target}, which moved to token_iq.gateway in phase 6"
+            for where, target, line in STALE_TARGETS
+        )

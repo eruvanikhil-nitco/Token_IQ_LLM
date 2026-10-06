@@ -39,6 +39,7 @@ from __future__ import annotations
 import argparse
 import ast
 import importlib.util
+import io
 import pathlib
 import re
 import subprocess
@@ -407,16 +408,20 @@ def rewrite_strings(text: str, *, whole_file: bool, can_import: Importable = imp
     lines = text.split(chr(10))  # rebind-ok: edited back to front, so offsets hold
     edited = 0  # rebind-ok: a tally of literals actually rewritten
     for node in found:
-        if node.end_lineno is None or node.end_col_offset is None or node.lineno != node.end_lineno:
+        if node.end_lineno is None or node.end_col_offset is None:
             continue
         raw = lines[node.lineno - 1].encode("utf-8")
-        literal = raw[node.col_offset : node.end_col_offset].decode("utf-8")
+        # A literal written as adjacent pieces on separate lines is one node after Python folds it, and
+        # the old name is only ever at its start, so the first physical line is the only one to edit.
+        # 32 patch targets are written that way, each one a module path split across two lines.
+        end = node.end_col_offset if node.lineno == node.end_lineno else len(raw)  # rebind-ok: one span per literal
+        literal = raw[node.col_offset : end].decode("utf-8")
         if OLD_PACKAGE not in literal:
             continue
         lines[node.lineno - 1] = (
             raw[: node.col_offset].decode("utf-8")
             + literal.replace(OLD_PACKAGE, NEW_PACKAGE, 1)
-            + raw[node.end_col_offset :].decode("utf-8")
+            + raw[end:].decode("utf-8")
         )
         edited += 1
     return chr(10).join(lines), edited
@@ -576,12 +581,24 @@ def run(
     return totals, tuple(broken)
 
 
+def _print_utf8() -> None:
+    """Let the report hold any character a source line holds.
+
+    This console is cp1252, and one arrow in one file otherwise turns the whole report into a
+    UnicodeEncodeError, after which only the count is printed and that reads as nothing to report.
+    """
+    stream: Final = sys.stdout
+    if isinstance(stream, io.TextIOWrapper):
+        stream.reconfigure(encoding="utf-8", errors="replace")
+
+
 def main(argv: Sequence[str] | None = None) -> int:
     parser: Final = argparse.ArgumentParser(description=__doc__)
     _ = parser.add_argument("--apply", action="store_true", help="write the rewrites")
     _ = parser.add_argument("--dry-run", action="store_true", help="report and change nothing")
     _ = parser.add_argument("--audit", action="store_true", help="list imports no rule would rewrite")
     options: Final = Options.model_validate(vars(parser.parse_args(argv)))
+    _print_utf8()
     if sum((options.apply, options.dry_run, options.audit)) != 1:
         sys.stderr.write("pass exactly one of --apply, --dry-run and --audit\n")
         return 2

@@ -219,7 +219,7 @@ class TestBedrockMoonshotInvoke(BaseLLMChatTest):
             return iter([]), httpx.Headers()
 
         with patch(
-            "litellm.llms.bedrock.chat.invoke_transformations."
+            "token_iq.gateway.llms.bedrock.chat.invoke_transformations."
             "base_invoke_transformation.make_sync_call",
             new=fake_make_sync_call,
         ):
