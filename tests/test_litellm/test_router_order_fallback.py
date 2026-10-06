@@ -13,7 +13,7 @@ import httpx
 import pytest
 from openai import AsyncOpenAI
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import Router
 from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.router_utils.prompt_caching_cache import PromptCachingCache

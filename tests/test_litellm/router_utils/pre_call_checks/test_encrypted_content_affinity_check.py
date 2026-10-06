@@ -22,7 +22,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.responses.utils import ResponsesAPIRequestUtils
 from token_iq.gateway.types.llms.openai import ResponsesAPIResponse
 
@@ -272,7 +272,7 @@ async def test_encrypted_content_affinity_no_effect_on_chat_completions():
     """
     Encrypted content affinity should not affect regular chat completions.
     """
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "gpt-3.5-turbo",

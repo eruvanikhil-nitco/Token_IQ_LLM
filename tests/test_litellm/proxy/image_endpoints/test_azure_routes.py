@@ -6,7 +6,7 @@ from unittest import mock
 import pytest
 from fastapi.testclient import TestClient
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy.proxy_server import app, initialize
 
 example_image_generation_result = {
@@ -99,7 +99,7 @@ def test_azure_image_generation_route(client_no_auth):
 
 
 def test_azure_image_edit_route(client_no_auth):
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
     client, _, mock_aimage_edit = client_no_auth
     image_path = os.path.join(
         os.path.dirname(__file__),

@@ -9,7 +9,7 @@ from unittest import mock
 import httpx
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.inception.completion.transformation import (
     InceptionTextCompletionConfig,
 )
@@ -61,12 +61,12 @@ def test_text_completion_inception_in_provider_lists():
     from token_iq.gateway.types.utils import LlmProviders
 
     assert LlmProviders.TEXT_COMPLETION_INCEPTION == "text-completion-inception"
-    assert "text-completion-inception" in litellm.provider_list
+    assert "text-completion-inception" in gateway.provider_list
 
 
 def test_inception_get_supported_openai_params_dispatch():
     """litellm.get_supported_openai_params routes the FIM provider to our config"""
-    params = litellm.get_supported_openai_params(
+    params = gateway.get_supported_openai_params(
         model="mercury-edit-2", custom_llm_provider="text-completion-inception"
     )
     assert "suffix" in params
@@ -82,12 +82,12 @@ def test_inception_validate_environment(provider):
     )
 
     with mock.patch.dict(os.environ, {}, clear=True):
-        result = litellm.validate_environment(model)
+        result = gateway.validate_environment(model)
         assert result["keys_in_environment"] is False
         assert "INCEPTION_API_KEY" in result["missing_keys"]
 
     with mock.patch.dict(os.environ, {"INCEPTION_API_KEY": "sk-x"}, clear=True):
-        result = litellm.validate_environment(model)
+        result = gateway.validate_environment(model)
         assert result["keys_in_environment"] is True
 
 
@@ -106,7 +106,7 @@ def test_inception_completion_endpoint_returns_chat_object():
         )
 
     with mock.patch("httpx.Client.send", new=fake_send):
-        r = litellm.completion(
+        r = gateway.completion(
             model="text-completion-inception/mercury-edit-2",
             messages=[{"role": "user", "content": "def add(a, b): return "}],
             api_key="sk-x",
@@ -131,7 +131,7 @@ async def test_inception_fim_async():
         )
 
     with mock.patch("httpx.AsyncClient.send", new=fake_asend):
-        r = await litellm.atext_completion(
+        r = await gateway.atext_completion(
             model="text-completion-inception/mercury-edit-2",
             prompt="def add(a, b): return ",
             suffix="\n",
@@ -147,13 +147,13 @@ def test_inception_fim_model_configuration(monkeypatch):
     from token_iq.gateway import get_model_info
 
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    litellm.model_cost = litellm.get_model_cost_map()
-    litellm.text_completion_inception_models = set()
-    litellm.add_known_models()
+    gateway.model_cost = gateway.get_model_cost_map()
+    gateway.text_completion_inception_models = set()
+    gateway.add_known_models()
 
     assert (
         "text-completion-inception/mercury-edit-2"
-        in litellm.text_completion_inception_models
+        in gateway.text_completion_inception_models
     )
     info = get_model_info("text-completion-inception/mercury-edit-2")
     assert info.get("litellm_provider") == "text-completion-inception"
@@ -201,7 +201,7 @@ def test_inception_fim_targets_fim_endpoint():
         )
 
     with mock.patch("httpx.Client.send", new=fake_send):
-        response = litellm.text_completion(
+        response = gateway.text_completion(
             model="text-completion-inception/mercury-edit-2",
             prompt="def add(a, b):\n    return ",
             suffix="\n",
@@ -238,10 +238,10 @@ def test_inception_fim_does_not_leak_global_api_key():
     with mock.patch.dict(
         os.environ, {"INCEPTION_API_KEY": "sk-inception-correct"}, clear=True
     ):
-        with mock.patch.object(litellm, "inception_key", None):
-            with mock.patch.object(litellm, "api_key", "sk-global-should-not-leak"):
+        with mock.patch.object(gateway, "inception_key", None):
+            with mock.patch.object(gateway, "api_key", "sk-global-should-not-leak"):
                 with mock.patch("httpx.Client.send", new=fake_send):
-                    litellm.text_completion(
+                    gateway.text_completion(
                         model="text-completion-inception/mercury-edit-2",
                         prompt="def add(a, b): return ",
                         max_tokens=10,
@@ -285,7 +285,7 @@ def test_inception_fim_extra_body_forwards_vllm_params():
         )
 
     with mock.patch("httpx.Client.send", new=fake_send):
-        litellm.text_completion(
+        gateway.text_completion(
             model="text-completion-inception/mercury-edit-2",
             prompt="def f(",
             suffix=")",

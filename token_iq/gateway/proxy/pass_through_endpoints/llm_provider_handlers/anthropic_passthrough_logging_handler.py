@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Any, Final, cast
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.constants import ANTHROPIC_BATCHES_ROUTE
 from token_iq.gateway.core_utils.core_helpers import map_finish_reason
@@ -88,14 +88,14 @@ class AnthropicPassthroughLoggingHandler:
         anthropic_config: Final = get_anthropic_config(url_route)
         litellm_model_response: Final[ModelResponse] = anthropic_config().transform_response(
             raw_response=httpx_response,
-            model_response=litellm.ModelResponse(),
+            model_response=gateway.ModelResponse(),
             model=model,
             messages=[],
             logging_obj=logging_obj,
             optional_params={"speed": speed} if speed else {},
             api_key="",
             request_data={},
-            encoding=litellm.encoding,
+            encoding=gateway.encoding,
             json_mode=False,
             litellm_params={},
         )
@@ -226,7 +226,7 @@ class AnthropicPassthroughLoggingHandler:
         if not output_text:
             return
         try:
-            recovered_output_tokens = litellm.token_counter(model=model, text=output_text, count_response_tokens=True)
+            recovered_output_tokens = gateway.token_counter(model=model, text=output_text, count_response_tokens=True)
         except Exception:
             verbose_proxy_logger.warning(
                 "Could not re-tokenize interrupted stream output; keeping placeholder completion token count."
@@ -281,7 +281,7 @@ class AnthropicPassthroughLoggingHandler:
             response_cost: Final = (
                 0.0
                 if logging_obj.model_call_details.get("cache_hit") is True
-                else litellm.completion_cost(
+                else gateway.completion_cost(
                     completion_response=litellm_model_response,
                     model=model_for_cost,
                     custom_llm_provider=custom_llm_provider,
@@ -317,7 +317,7 @@ class AnthropicPassthroughLoggingHandler:
             litellm_model_response.model = model
             logging_obj.model_call_details["model"] = model
             if not logging_obj.model_call_details.get("custom_llm_provider"):
-                logging_obj.model_call_details["custom_llm_provider"] = litellm.LlmProviders.ANTHROPIC.value
+                logging_obj.model_call_details["custom_llm_provider"] = gateway.LlmProviders.ANTHROPIC.value
             return kwargs
         except Exception as e:
             verbose_proxy_logger.exception("Error creating Anthropic response logging payload: %s", e)
@@ -658,7 +658,7 @@ class AnthropicPassthroughLoggingHandler:
                     )
                     continue
 
-        complete_streaming_response: Final = litellm.stream_chunk_builder(
+        complete_streaming_response: Final = gateway.stream_chunk_builder(
             chunks=all_openai_chunks,
             logging_obj=litellm_logging_obj,
         )

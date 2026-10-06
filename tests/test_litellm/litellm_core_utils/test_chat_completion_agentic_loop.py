@@ -26,7 +26,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.integrations.code_interpreter_interception.handler import (
     CodeInterpreterInterceptionLogger,
@@ -63,11 +63,11 @@ _INTERNAL_CONTROL_FIELDS = (
 def restore_callbacks():
     """Save/restore litellm.callbacks so a registered fake logger never pollutes
     other tests in the suite."""
-    saved = list(litellm.callbacks)
+    saved = list(gateway.callbacks)
     try:
         yield
     finally:
-        litellm.callbacks = saved
+        gateway.callbacks = saved
 
 
 class _SandboxResult:
@@ -154,7 +154,7 @@ async def test_internal_control_fields_never_leak_into_provider_body(restore_cal
     body. None of the internal control fields may appear at top-level or inside
     extra_body on ANY of the captured calls."""
     logger = CodeInterpreterInterceptionLogger(sandbox_config=FakeSandboxConfig())
-    litellm.callbacks = [logger]
+    gateway.callbacks = [logger]
 
     # First create -> model emits a code_execution tool call (triggers the loop).
     # Second create -> model returns a plain answer (loop terminates).
@@ -167,7 +167,7 @@ async def test_internal_control_fields_never_leak_into_provider_body(restore_cal
     mock_client = MagicMock()
     mock_client.chat.completions.with_raw_response.create = create
 
-    response = await litellm.acompletion(
+    response = await gateway.acompletion(
         model="openai/gpt-4o-mini",
         messages=[{"role": "user", "content": "what is 6*7?"}],
         tools=[{"type": "code_interpreter"}],
@@ -277,7 +277,7 @@ def _patched_messages() -> List[Dict[str, Any]]:
 async def test_dispatcher_returns_none_when_no_callback_gates(restore_callbacks):
     """No callback overrides the gate -> dispatcher returns None so the caller
     keeps the original response untouched."""
-    litellm.callbacks = []
+    gateway.callbacks = []
 
     result = await maybe_run_chat_completion_agentic_loop(
         response=_plain_model_response(),
@@ -309,10 +309,10 @@ async def test_dispatcher_runs_followup_with_incremented_depth_and_patched_messa
         request_patch=AgenticLoopRequestPatch(messages=_patched_messages()),
     )
     logger = _GateOnlyLogger(plan=plan, tool_calls={"tool_calls": [{"id": "call_abc"}]})
-    litellm.callbacks = [logger]
+    gateway.callbacks = [logger]
 
     acompletion_mock = AsyncMock(return_value=followup)
-    with patch.object(litellm, "acompletion", acompletion_mock):
+    with patch.object(gateway, "acompletion", acompletion_mock):
         result = await maybe_run_chat_completion_agentic_loop(
             response=_tool_call_model_response(),
             model="gpt-4o-mini",
@@ -353,10 +353,10 @@ async def test_dispatcher_raises_when_depth_reaches_max_agentic_loops(
         plan=AgenticLoopPlan(run_agentic_loop=True),
         tool_calls={"tool_calls": [{"id": "call_abc"}]},
     )
-    litellm.callbacks = [logger]
+    gateway.callbacks = [logger]
 
     acompletion_mock = AsyncMock()
-    with patch.object(litellm, "acompletion", acompletion_mock):
+    with patch.object(gateway, "acompletion", acompletion_mock):
         with pytest.raises(ValueError, match="max_agentic_loops"):
             await maybe_run_chat_completion_agentic_loop(
                 response=_tool_call_model_response(),
@@ -388,10 +388,10 @@ async def test_dispatcher_raises_on_repeated_tool_call_fingerprint(restore_callb
         plan=AgenticLoopPlan(run_agentic_loop=True),
         tool_calls=gate_tool_calls,
     )
-    litellm.callbacks = [logger]
+    gateway.callbacks = [logger]
 
     acompletion_mock = AsyncMock()
-    with patch.object(litellm, "acompletion", acompletion_mock):
+    with patch.object(gateway, "acompletion", acompletion_mock):
         with pytest.raises(ValueError, match="fingerprint"):
             await maybe_run_chat_completion_agentic_loop(
                 response=_tool_call_model_response(),

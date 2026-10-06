@@ -1,4 +1,4 @@
-from token_iq import gateway as litellm
+from token_iq import gateway
 import pytest
 
 from .actors import Actor
@@ -233,7 +233,7 @@ async def test_team_member_add_available_team_self_join(
     # nor org admin, so it lands on the available-team branch.
     await create_scratch_team(prisma, scratch.prefix)
     monkeypatch.setattr(
-        litellm, "default_internal_user_params", {"available_teams": [scratch.prefix]}
+        gateway, "default_internal_user_params", {"available_teams": [scratch.prefix]}
     )
 
     caller = world.keys[Actor.INTERNAL_USER]

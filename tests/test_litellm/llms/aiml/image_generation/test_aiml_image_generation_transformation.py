@@ -5,9 +5,9 @@ import pytest
 
 os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
-litellm.model_cost = litellm.get_model_cost_map()
+gateway.model_cost = gateway.get_model_cost_map()
 
 from token_iq.gateway.llms.aiml.image_generation.cost_calculator import (
     cost_calculator as aiml_cost_calculator,

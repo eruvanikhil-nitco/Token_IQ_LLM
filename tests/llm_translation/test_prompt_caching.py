@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock
 import httpx
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import Choices, Message, ModelResponse
 from token_iq.gateway.types.utils import PromptTokensDetails
 
@@ -18,7 +18,7 @@ async def test_prompt_caching():
     Tests that:
     - prompt_tokens_details is correctly handled and returned as PromptTokensDetails type
     """
-    response1 = await litellm.acompletion(
+    response1 = await gateway.acompletion(
         model="gpt-4o-mini",
         messages=[{"role": "user", "content": "hi"}],
     )

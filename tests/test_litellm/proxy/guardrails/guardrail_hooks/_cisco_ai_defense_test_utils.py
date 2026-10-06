@@ -38,7 +38,7 @@ def _make_model_response_with_content(content: str) -> ModelResponse:
     )
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import DualCache
 from token_iq.gateway.proxy._types import UserAPIKeyAuth
 from token_iq.gateway.proxy.guardrails.guardrail_hooks.cisco_ai_defense import (
@@ -249,7 +249,7 @@ def _find_callback(name):
         CiscoAIDefenseGuardrail,
     )
 
-    for cb in litellm.callbacks:
+    for cb in gateway.callbacks:
         if isinstance(cb, CiscoAIDefenseGuardrail) and cb.guardrail_name == name:
             return cb
     raise AssertionError(f"Cisco guardrail {name!r} not in litellm.callbacks")
@@ -352,7 +352,7 @@ __all__ = [
     "datetime",
     "init_guardrails_v2",
     "json",
-    "litellm",
+    "gateway",
     "os",
     "patch",
     "pytest",

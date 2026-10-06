@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Final, Literal
 
 from fastapi import HTTPException
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import ModelResponse, Router
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.caching.caching import DualCache
@@ -45,7 +45,7 @@ def _get_priority_settings() -> "PriorityReservationSettings":
     The settings are lazy-loaded in litellm.__init__ and always return an instance.
     This helper provides proper type narrowing for mypy.
     """
-    settings: Final = litellm.priority_reservation_settings
+    settings: Final = gateway.priority_reservation_settings
     if settings is None:
         # This should never happen due to lazy loading, but satisfy mypy
         from token_iq.gateway.types.utils import PriorityReservationSettings
@@ -117,9 +117,9 @@ class _PROXY_DynamicRateLimitHandlerV3(CustomLogger):
     def _get_priority_weight(self, priority: str | None, model_info: ModelGroupInfo | None = None) -> float:
         """Get the weight for a given priority from litellm.priority_reservation"""
         weight: float = _get_priority_settings().default_priority
-        if litellm.priority_reservation is None or priority not in litellm.priority_reservation:
+        if gateway.priority_reservation is None or priority not in gateway.priority_reservation:
             verbose_proxy_logger.debug("Priority Reservation not set for the given priority.")
-        elif priority is not None and litellm.priority_reservation is not None:
+        elif priority is not None and gateway.priority_reservation is not None:
             from token_iq.gateway.proxy.proxy_server import premium_user
 
             if premium_user is not True:
@@ -127,7 +127,7 @@ class _PROXY_DynamicRateLimitHandlerV3(CustomLogger):
                     "Reserving tpm/rpm by priority is not included in this installation's Token IQ plan"
                 )
             else:
-                value: Final = litellm.priority_reservation[priority]
+                value: Final = gateway.priority_reservation[priority]
                 weight = convert_priority_to_percent(value, model_info)
         return weight
 
@@ -162,12 +162,12 @@ class _PROXY_DynamicRateLimitHandlerV3(CustomLogger):
         Handles over-allocation: {key_a: 0.60, key_b: 0.80} -> {key_a: 0.43, key_b: 0.57}
         Converts absolute rpm/tpm values to percentages based on model capacity.
         """
-        if litellm.priority_reservation is None:
+        if gateway.priority_reservation is None:
             return {}
 
         # Convert all values to percentages first
         weights: Final[dict[str, float]] = {}
-        for k, v in litellm.priority_reservation.items():
+        for k, v in gateway.priority_reservation.items():
             weights[k] = convert_priority_to_percent(v, model_info)
 
         total_weight: Final = sum(weights.values())
@@ -204,8 +204,8 @@ class _PROXY_DynamicRateLimitHandlerV3(CustomLogger):
         # Check if this key has an explicit priority in litellm.priority_reservation
         has_explicit_priority: Final = (
             priority is not None
-            and litellm.priority_reservation is not None
-            and priority in litellm.priority_reservation
+            and gateway.priority_reservation is not None
+            and priority in gateway.priority_reservation
         )
 
         if has_explicit_priority and priority is not None:
@@ -303,7 +303,7 @@ class _PROXY_DynamicRateLimitHandlerV3(CustomLogger):
         """
         descriptors: Final[list[RateLimitDescriptor]] = []
 
-        if litellm.priority_reservation is None:
+        if gateway.priority_reservation is None:
             return descriptors
 
         # Get model group info
@@ -756,8 +756,8 @@ class _PROXY_DynamicRateLimitHandlerV3(CustomLogger):
             # Determine priority key (same logic as _get_priority_allocation)
             has_explicit_priority: Final = (
                 key_priority is not None
-                and litellm.priority_reservation is not None
-                and key_priority in litellm.priority_reservation
+                and gateway.priority_reservation is not None
+                and key_priority in gateway.priority_reservation
             )
 
             if has_explicit_priority and key_priority is not None:

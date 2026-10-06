@@ -8,7 +8,7 @@ from token_iq.gateway.llms.vertex_ai.context_caching.transformation import (
     separate_cached_messages,
     transform_openai_messages_to_gemini_context_caching,
 )
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import completion
 import json
 
@@ -94,9 +94,9 @@ class TestGoogleAIStudioGemini(BaseLLMChatTest):
         from token_iq.gateway.utils import supports_url_context
 
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-        litellm.model_cost = litellm.get_model_cost_map()
+        gateway.model_cost = gateway.get_model_cost_map()
 
-        litellm._turn_on_debug()
+        gateway._turn_on_debug()
 
         base_completion_call_args = self.get_base_completion_call_args()
 
@@ -384,7 +384,7 @@ def test_gemini_flash_image_preview_models(model_name: str):
         mock_post.return_value = mock_http_response
 
         # Test that the function works without throwing the original 400 error
-        response = litellm.image_generation(
+        response = gateway.image_generation(
             model=model_name,
             prompt="Generate a simple test image",
             api_key="test_api_key",
@@ -457,7 +457,7 @@ def test_gemini_image_generation_forwards_image_config(
         mock_http_response.status_code = 200
         mock_post.return_value = mock_http_response
 
-        litellm.image_generation(
+        gateway.image_generation(
             model=model,
             prompt="Generate a simple test image",
             api_key="test_api_key",
@@ -577,7 +577,7 @@ def test_gemini_imagen_models_use_predict_endpoint():
         mock_post.return_value = mock_http_response
 
         # Test an Imagen model
-        response = litellm.image_generation(
+        response = gateway.image_generation(
             model="gemini/imagen-3.0-generate-001",
             prompt="Generate a simple test image",
             size="1280x896",
@@ -610,7 +610,7 @@ def test_gemini_imagen_models_use_predict_endpoint():
 
 
 def test_gemini_thinking():
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
     from token_iq.gateway.types.utils import Message, CallTypes
     from token_iq.gateway.utils import return_raw_request
     import json
@@ -650,7 +650,7 @@ def test_gemini_thinking():
 
 
 def test_gemini_thinking_budget_0():
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
     from token_iq.gateway.types.utils import Message, CallTypes
     from token_iq.gateway.utils import return_raw_request
     import json
@@ -676,7 +676,7 @@ def test_gemini_finish_reason():
     import os
     from token_iq.gateway import completion
 
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
     response = completion(
         model="gemini/gemini-2.5-flash-lite",
         messages=[{"role": "user", "content": "give me 3 random words"}],
@@ -691,7 +691,7 @@ def test_gemini_finish_reason():
 def test_gemini_url_context():
     from token_iq.gateway import completion
 
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
     URL1 = "https://www.foodnetwork.com/recipes/ina-garten/perfect-roast-chicken-recipe-1940592"
 
     prompt = f"""
@@ -717,8 +717,8 @@ def test_gemini_url_context():
 def test_gemini_with_grounding():
     from token_iq.gateway import completion, Usage, stream_chunk_builder
 
-    litellm._turn_on_debug()
-    litellm.set_verbose = True
+    gateway._turn_on_debug()
+    gateway.set_verbose = True
     tools = [{"googleSearch": {}}]
 
     # response = completion(model="gemini/gemini-2.0-flash", messages=[{"role": "user", "content": "What is the capital of France?"}], tools=tools)
@@ -753,7 +753,7 @@ def test_gemini_with_grounding():
 def test_gemini_with_empty_function_call_arguments():
     from token_iq.gateway import completion
 
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
     tools = [
         {
             "type": "function",
@@ -865,7 +865,7 @@ async def test_claude_tool_use_with_gemini():
     with patch("token_iq.gateway.acompletion", new_callable=AsyncMock) as mock_acompletion:
         mock_acompletion.return_value = MockAsyncStream()
 
-        response = await litellm.anthropic.messages.acreate(
+        response = await gateway.anthropic.messages.acreate(
             messages=[
                 {
                     "role": "user",
@@ -1002,7 +1002,7 @@ def test_gemini_tool_use():
         "stream_options": {"include_usage": True},
     }
 
-    response = litellm.completion(**data)
+    response = gateway.completion(**data)
     print(response)
 
     stop_reason = None
@@ -1016,8 +1016,8 @@ def test_gemini_tool_use():
 
 @pytest.mark.asyncio
 async def test_gemini_image_generation_async():
-    litellm._turn_on_debug()
-    response = await litellm.acompletion(
+    gateway._turn_on_debug()
+    response = await gateway.acompletion(
         messages=[
             {
                 "role": "user",
@@ -1050,7 +1050,7 @@ async def test_gemini_image_generation_async():
 @pytest.mark.asyncio
 async def test_gemini_image_generation_async_stream():
     # litellm._turn_on_debug()
-    response = await litellm.acompletion(
+    response = await gateway.acompletion(
         messages=[
             {
                 "role": "user",
@@ -1093,7 +1093,7 @@ def test_system_message_with_no_user_message():
         },
     ]
 
-    response = litellm.completion(
+    response = gateway.completion(
         model="gemini/gemini-2.5-flash",
         messages=messages,
     )
@@ -1119,8 +1119,8 @@ def get_current_weather(location, unit="fahrenheit"):
 def test_gemini_with_thinking():
     from token_iq.gateway import completion
 
-    litellm._turn_on_debug()
-    litellm.modify_params = True
+    gateway._turn_on_debug()
+    gateway.modify_params = True
     model = "gemini/gemini-2.5-flash"
     messages = [
         {
@@ -1152,7 +1152,7 @@ def test_gemini_with_thinking():
             },
         }
     ]
-    response = litellm.completion(
+    response = gateway.completion(
         model=model,
         messages=messages,
         tools=tools,
@@ -1197,7 +1197,7 @@ def test_gemini_with_thinking():
                 }
             )  # extend conversation with function response
         print(f"messages: {messages}")
-        second_response = litellm.completion(
+        second_response = gateway.completion(
             model=model,
             messages=messages,
             seed=22,
@@ -1419,8 +1419,8 @@ def l(status_code, expected_exception):
 
 
 def test_gemini_embedding():
-    litellm._turn_on_debug()
-    response = litellm.embedding(
+    gateway._turn_on_debug()
+    response = gateway.embedding(
         model="gemini/gemini-embedding-001",
         input="Hello, world!",
     )
@@ -1534,8 +1534,8 @@ def test_anthropic_thinking_param_to_gemini_3_provider_defaults():
     )
     from token_iq.gateway.types.llms.anthropic import AnthropicThinkingParam
 
-    original_force_low_flag = litellm.enable_gemini_default_thinking_level_low
-    litellm.enable_gemini_default_thinking_level_low = False
+    original_force_low_flag = gateway.enable_gemini_default_thinking_level_low
+    gateway.enable_gemini_default_thinking_level_low = False
 
     # Test 1: Anthropic thinking enabled with budget_tokens for Gemini 3 model
     thinking_param: AnthropicThinkingParam = {
@@ -1601,7 +1601,7 @@ def test_anthropic_thinking_param_to_gemini_3_provider_defaults():
         assert "thinkingBudget" not in result_gemini3flashpreview
         assert result_gemini3flashpreview["includeThoughts"] is True
     finally:
-        litellm.enable_gemini_default_thinking_level_low = original_force_low_flag
+        gateway.enable_gemini_default_thinking_level_low = original_force_low_flag
 
 
 def test_anthropic_thinking_param_to_gemini_3_force_low_feature_flag():
@@ -1613,8 +1613,8 @@ def test_anthropic_thinking_param_to_gemini_3_force_low_feature_flag():
     )
     from token_iq.gateway.types.llms.anthropic import AnthropicThinkingParam
 
-    original_force_low_flag = litellm.enable_gemini_default_thinking_level_low
-    litellm.enable_gemini_default_thinking_level_low = True
+    original_force_low_flag = gateway.enable_gemini_default_thinking_level_low
+    gateway.enable_gemini_default_thinking_level_low = True
 
     thinking_param: AnthropicThinkingParam = {
         "type": "enabled",
@@ -1636,7 +1636,7 @@ def test_anthropic_thinking_param_to_gemini_3_force_low_feature_flag():
         assert result_pro["thinkingLevel"] == "low"
         assert result_pro["includeThoughts"] is True
     finally:
-        litellm.enable_gemini_default_thinking_level_low = original_force_low_flag
+        gateway.enable_gemini_default_thinking_level_low = original_force_low_flag
 
 
 def test_anthropic_thinking_param_to_gemini_2_thinkingBudget():
@@ -1833,7 +1833,7 @@ def test_gemini_image_size_limit_exceeded(monkeypatch):
         "safe_get",
         lambda client, url, **kw: client.get(url, follow_redirects=True),
     )
-    monkeypatch.setattr(litellm, "module_level_client", LargeImageClient())
+    monkeypatch.setattr(gateway, "module_level_client", LargeImageClient())
 
     messages = [
         {
@@ -1848,7 +1848,7 @@ def test_gemini_image_size_limit_exceeded(monkeypatch):
         }
     ]
 
-    with pytest.raises(litellm.ImageFetchError) as excinfo:
+    with pytest.raises(gateway.ImageFetchError) as excinfo:
         completion(model="gemini/gemini-2.5-flash-lite", messages=messages)
 
     error_message = str(excinfo.value)
@@ -1864,7 +1864,7 @@ async def test_gemini_openai_web_search_tool_to_google_search():
     When passing {"type": "web_search"} or {"type": "web_search_preview"} to Gemini,
     these should be transformed to googleSearch, not silently ignored.
     """
-    response = await litellm.acompletion(
+    response = await gateway.acompletion(
         model="gemini/gemini-2.5-flash",
         messages=[{"role": "user", "content": "What is the capital of France?"}],
         tools=[{"type": "web_search"}],

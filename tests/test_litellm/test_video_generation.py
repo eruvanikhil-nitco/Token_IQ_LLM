@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.cost_calculator import default_video_cost_calculator
 from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.core_utils.litellm_logging import Logging as LitellmLogging
@@ -147,7 +147,7 @@ class TestVideoGeneration:
             "video_generation_handler",
             side_effect=Exception("API Error"),
         ):
-            with pytest.raises(litellm.APIConnectionError):
+            with pytest.raises(gateway.APIConnectionError):
                 video_generation(prompt="Test video", model="sora-2")
 
     def test_video_generation_provider_config(self):
@@ -257,7 +257,7 @@ class TestVideoGeneration:
                 pytest.skip("model_prices_and_context_window.json not found")
 
         with open(cost_map_path, "r") as f:
-            litellm.model_cost = json.load(f)
+            gateway.model_cost = json.load(f)
 
         # Test with sora-2 model
         cost = default_video_cost_calculator(
@@ -510,7 +510,7 @@ class TestVideoGeneration:
             os.path.dirname(__file__), "..", "..", "model_prices_and_context_window.json"
         )
         with open(local_map_path, "r") as f:
-            monkeypatch.setattr(litellm, "model_cost", json.load(f))
+            monkeypatch.setattr(gateway, "model_cost", json.load(f))
 
         def cost_for(model: str, resolution: str | None, duration: float) -> float:
             mock_response = MagicMock()
@@ -540,7 +540,7 @@ class TestVideoGeneration:
             os.path.dirname(__file__), "..", "..", "model_prices_and_context_window.json"
         )
         with open(local_map_path, "r") as f:
-            monkeypatch.setattr(litellm, "model_cost", json.load(f))
+            monkeypatch.setattr(gateway, "model_cost", json.load(f))
 
         def cost_for(model: str, provider: str, resolution: str | None, duration: float) -> float:
             mock_response = MagicMock()
@@ -880,7 +880,7 @@ class TestVideoGeneration:
             "video_status_handler",
             side_effect=Exception("API Error"),
         ):
-            with pytest.raises(litellm.APIConnectionError):
+            with pytest.raises(gateway.APIConnectionError):
                 video_status(video_id="test_video_id", model="sora-2")
 
     def test_video_status_request_transformation(self):
@@ -1082,8 +1082,8 @@ class TestVideoLogging:
         Note: Uses AsyncMock with side_effect pattern for reliable parallel execution.
         """
         custom_logger = self.TestVideoLogger()
-        litellm.logging_callback_manager._reset_all_callbacks()
-        litellm.callbacks = [custom_logger]
+        gateway.logging_callback_manager._reset_all_callbacks()
+        gateway.callbacks = [custom_logger]
 
         # Mock video generation response
         mock_response = VideoObject(
@@ -1106,7 +1106,7 @@ class TestVideoLogging:
             "async_video_generation_handler",
             side_effect=mock_async_handler,
         ):
-            response = await litellm.avideo_generation(
+            response = await gateway.avideo_generation(
                 prompt="A cat running in a garden",
                 model="sora-2",
                 seconds="8",
@@ -1193,8 +1193,8 @@ def test_video_content_handler_passes_variant_to_url():
     from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
     from token_iq.gateway.types.router import GenericLiteLLMParams
 
-    if hasattr(litellm, "in_memory_llm_clients_cache"):
-        litellm.in_memory_llm_clients_cache.flush_cache()
+    if hasattr(gateway, "in_memory_llm_clients_cache"):
+        gateway.in_memory_llm_clients_cache.flush_cache()
 
     handler = BaseLLMHTTPHandler()
     config = OpenAIVideoConfig()
@@ -1236,8 +1236,8 @@ def test_video_content_handler_uses_get_for_openai():
 
     # Clear the HTTP client cache to prevent test isolation issues
     # In CI, a cached real HTTPHandler from a previous test might bypass the mock
-    if hasattr(litellm, "in_memory_llm_clients_cache"):
-        litellm.in_memory_llm_clients_cache.flush_cache()
+    if hasattr(gateway, "in_memory_llm_clients_cache"):
+        gateway.in_memory_llm_clients_cache.flush_cache()
 
     handler = BaseLLMHTTPHandler()
     config = OpenAIVideoConfig()

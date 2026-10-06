@@ -25,7 +25,7 @@ from fastapi import (
 from pydantic import TypeAdapter
 from typing_extensions import ReadOnly
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import CreateFileRequest, get_secret_str
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.core_utils.cloud_storage_security import (
@@ -275,7 +275,7 @@ async def route_create_file(
         )
 
         # Create the file with model credentials
-        response = await litellm.acreate_file(
+        response = await gateway.acreate_file(
             **_create_file_request,
             custom_llm_provider=credentials["custom_llm_provider"],
         )
@@ -323,7 +323,7 @@ async def route_create_file(
             user_api_key_dict=user_api_key_dict,
         )
     # EXISTING: Deprecated loadbalancing approach (for backwards compatibility when not using managed files)
-    elif litellm.enable_loadbalancing_on_batch_endpoints is True and is_router_model and router_model is not None:
+    elif gateway.enable_loadbalancing_on_batch_endpoints is True and is_router_model and router_model is not None:
         response = await _deprecated_loadbalanced_create_file(
             llm_router=llm_router,
             router_model=router_model,
@@ -343,7 +343,7 @@ async def route_create_file(
             _create_file_request.update(llm_provider_config)
         _create_file_request.pop("custom_llm_provider", None)
         # for now use custom_llm_provider=="openai" -> this will change as LiteLLM adds more providers for acreate_batch
-        response = await litellm.acreate_file(**_create_file_request, custom_llm_provider=custom_llm_provider)
+        response = await gateway.acreate_file(**_create_file_request, custom_llm_provider=custom_llm_provider)
 
     return response
 
@@ -614,7 +614,7 @@ async def create_file(
         ## check if model is a loadbalanced model
         router_model: str | None = None
         is_router_model = False
-        if litellm.enable_loadbalancing_on_batch_endpoints is True:
+        if gateway.enable_loadbalancing_on_batch_endpoints is True:
             json_obj: Final = get_first_json_object(upload_source)
             if json_obj:
                 router_model = get_model_from_json_obj(json_object=json_obj)
@@ -962,7 +962,7 @@ async def get_file_content(
                     file_id=original_file_id,  # Use decoded file ID if from encoded ID
                     include_internal_credentials=True,
                 )
-                response = await litellm.afile_content(
+                response = await gateway.afile_content(
                     custom_llm_provider=credentials["custom_llm_provider"],
                     **data,
                 )
@@ -973,7 +973,7 @@ async def get_file_content(
                 )
             else:
                 # Fallback to default behavior (uses env variables or provider-based routing)
-                response = await litellm.afile_content(
+                response = await gateway.afile_content(
                     **{
                         "custom_llm_provider": custom_llm_provider,
                         "file_id": file_id,
@@ -1134,7 +1134,7 @@ async def get_file(
                 include_internal_credentials=True,
             )
 
-            response = await litellm.afile_retrieve(**data)
+            response = await gateway.afile_retrieve(**data)
 
             # Keep the encoded ID in response if it was originally encoded
             if original_file_id and response and hasattr(response, "id") and response.id:
@@ -1177,7 +1177,7 @@ async def get_file(
                 user_api_key_dict=user_api_key_dict,
                 custom_llm_provider=custom_llm_provider,
             )
-            response = await litellm.afile_retrieve(
+            response = await gateway.afile_retrieve(
                 custom_llm_provider=custom_llm_provider,
                 file_id=file_id,
                 **data,
@@ -1339,7 +1339,7 @@ async def delete_file(
                 include_internal_credentials=True,
             )
 
-            response = await litellm.afile_delete(
+            response = await gateway.afile_delete(
                 custom_llm_provider=credentials["custom_llm_provider"],
                 **data,
             )
@@ -1390,7 +1390,7 @@ async def delete_file(
                 user_api_key_dict=user_api_key_dict,
                 custom_llm_provider=custom_llm_provider,
             )
-            response = await litellm.afile_delete(
+            response = await gateway.afile_delete(
                 custom_llm_provider=custom_llm_provider,
                 file_id=file_id,
                 **data,
@@ -1520,7 +1520,7 @@ async def list_files(
         if should_route and credentials is not None:
             # Use model-based routing with credentials from config
             prepare_data_with_credentials(data=data, credentials=credentials)
-            response = await litellm.afile_list(
+            response = await gateway.afile_list(
                 custom_llm_provider=credentials["custom_llm_provider"],
                 purpose=purpose,
                 **data,
@@ -1546,7 +1546,7 @@ async def list_files(
                 operation_context="file list",
             )
             prepare_data_with_credentials(data=data, credentials=credentials)
-            response = await litellm.afile_list(
+            response = await gateway.afile_list(
                 custom_llm_provider=credentials["custom_llm_provider"],
                 purpose=purpose,
                 **data,
@@ -1576,7 +1576,7 @@ async def list_files(
                     custom_llm_provider=resolved_custom_llm_provider,
                 )
 
-                response = await litellm.afile_list(
+                response = await gateway.afile_list(
                     custom_llm_provider=resolved_custom_llm_provider,
                     purpose=purpose,
                     **data,

@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Any, Final, Literal, TypedDict
 
 from fastapi import HTTPException
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.integrations.custom_guardrail import (
     CustomGuardrail,
@@ -74,7 +74,7 @@ class GuardrailsAI(CustomGuardrail):
             **self.get_guardrail_dynamic_request_body_params(request_data=request_data),
         }
         _json_data: Final = json.dumps(data)
-        response: Final = await litellm.module_level_aclient.post(
+        response: Final = await gateway.module_level_aclient.post(
             url=str(URL(self.guardrails_ai_api_base).join(f"guards/{self.guardrails_ai_guard_name}/validate")),
             data=_json_data,
             headers={
@@ -111,7 +111,7 @@ class GuardrailsAI(CustomGuardrail):
             ]
         }
         _json_data: Final = json.dumps(data)
-        response = await litellm.module_level_aclient.post(
+        response = await gateway.module_level_aclient.post(
             url=str(URL(self.guardrails_ai_api_base).join(f"guards/{self.guardrails_ai_guard_name}/validate")),
             data=_json_data,
             headers={
@@ -163,7 +163,7 @@ class GuardrailsAI(CustomGuardrail):
     async def async_pre_call_hook(
         self,
         user_api_key_dict: UserAPIKeyAuth,
-        cache: litellm.DualCache,
+        cache: gateway.DualCache,
         data: dict,
         call_type: Literal[
             "completion",
@@ -207,7 +207,7 @@ class GuardrailsAI(CustomGuardrail):
         if self.should_run_guardrail(data=data, event_type=event_type) is not True:
             return
 
-        if not isinstance(response, litellm.ModelResponse):
+        if not isinstance(response, gateway.ModelResponse):
             return
 
         response_str: Final[str] = get_content_from_model_response(response)

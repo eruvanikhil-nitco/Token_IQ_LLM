@@ -6,7 +6,7 @@ import asyncio
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import Router
 from token_iq.gateway.caching.dual_cache import DualCache
 from token_iq.gateway.router_utils.pre_call_checks.io_token_rate_limit_check import (
@@ -151,7 +151,7 @@ class TestModelRateLimitingCheckIOTokens:
             }
         )
 
-        with pytest.raises(litellm.RateLimitError) as exc_info:
+        with pytest.raises(gateway.RateLimitError) as exc_info:
             await check.async_pre_call_check(deployment)
 
         assert "ITPM limit=5" in str(exc_info.value)
@@ -185,7 +185,7 @@ class TestModelRateLimitingCheckIOTokens:
             try:
                 await check.async_pre_call_check(deployment)
                 return True
-            except litellm.RateLimitError:
+            except gateway.RateLimitError:
                 return False
 
         results = await asyncio.gather(*[_attempt() for _ in range(8)])
@@ -237,7 +237,7 @@ class TestModelRateLimitingCheckIOTokens:
             try:
                 await check.async_pre_call_check(deployment)
                 return True
-            except litellm.RateLimitError:
+            except gateway.RateLimitError:
                 return False
 
         results = await asyncio.gather(*[_attempt() for _ in range(8)])
@@ -347,7 +347,7 @@ class TestModelRateLimitingCheckIOTokens:
 
         # A third exceeds the limit and is rejected.
         set_io_token_rate_limit_request_kwargs({"max_tokens": 5, "metadata": {}})
-        with pytest.raises(litellm.RateLimitError):
+        with pytest.raises(gateway.RateLimitError):
             await check.async_pre_call_check(deployment)
 
     @pytest.mark.asyncio
@@ -856,7 +856,7 @@ class TestModelRateLimitingCheckIOTokens:
         set_io_token_rate_limit_request_kwargs(request_kwargs)
 
         with caplog.at_level(logging.WARNING, logger="LiteLLM Router"):
-            with pytest.raises(litellm.RateLimitError):
+            with pytest.raises(gateway.RateLimitError):
                 await check.async_pre_call_check(deployment)
 
         assert await dual_cache.async_get_cache(key=rpm_key) == 6

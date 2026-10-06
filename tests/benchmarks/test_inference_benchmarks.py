@@ -11,7 +11,7 @@ completion runs.
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.llm_response_utils.convert_dict_to_response import (
     convert_to_model_response_object,
 )
@@ -71,19 +71,19 @@ PROVIDER_RESPONSE = {
 @pytest.mark.benchmark
 def test_completion_simple_message():
     """Benchmark a single-message completion through the full SDK path."""
-    litellm.completion(model="gpt-4o", messages=SIMPLE_MESSAGES, mock_response=MOCK_RESPONSE)
+    gateway.completion(model="gpt-4o", messages=SIMPLE_MESSAGES, mock_response=MOCK_RESPONSE)
 
 
 @pytest.mark.benchmark
 def test_completion_multi_turn():
     """Benchmark a multi-turn completion through the full SDK path."""
-    litellm.completion(model="gpt-4o", messages=MULTI_TURN_MESSAGES, mock_response=MOCK_RESPONSE)
+    gateway.completion(model="gpt-4o", messages=MULTI_TURN_MESSAGES, mock_response=MOCK_RESPONSE)
 
 
 @pytest.mark.benchmark
 def test_completion_with_tools():
     """Benchmark a completion that has to process tool schemas."""
-    litellm.completion(
+    gateway.completion(
         model="gpt-4o",
         messages=SIMPLE_MESSAGES,
         tools=TOOL_DEFINITIONS,
@@ -94,7 +94,7 @@ def test_completion_with_tools():
 @pytest.mark.benchmark
 def test_completion_streaming():
     """Benchmark consuming a full streamed completion (CustomStreamWrapper)."""
-    stream = litellm.completion(
+    stream = gateway.completion(
         model="gpt-4o",
         messages=SIMPLE_MESSAGES,
         mock_response=MOCK_RESPONSE,

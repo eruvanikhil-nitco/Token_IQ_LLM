@@ -12,7 +12,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import httpx
 import pytest
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
 from token_iq.gateway.types.passthrough_endpoints.pass_through_endpoints import EndpointType
 from token_iq.gateway.proxy.pass_through_endpoints.success_handler import (
@@ -30,8 +30,8 @@ async def test_vertex_ai_anthropic_streaming_cost_injection_enabled():
     when include_cost_in_streaming_usage is enabled.
     """
     # Enable cost injection
-    original_value = getattr(litellm, "include_cost_in_streaming_usage", False)
-    litellm.include_cost_in_streaming_usage = True
+    original_value = getattr(gateway, "include_cost_in_streaming_usage", False)
+    gateway.include_cost_in_streaming_usage = True
 
     try:
         # Mock response with Anthropic SSE format chunks
@@ -104,7 +104,7 @@ async def test_vertex_ai_anthropic_streaming_cost_injection_enabled():
 
     finally:
         # Restore original value
-        litellm.include_cost_in_streaming_usage = original_value
+        gateway.include_cost_in_streaming_usage = original_value
 
 
 @pytest.mark.asyncio
@@ -113,8 +113,8 @@ async def test_vertex_ai_anthropic_streaming_cost_injection_disabled():
     Test that cost is NOT injected when include_cost_in_streaming_usage is disabled.
     """
     # Disable cost injection
-    original_value = getattr(litellm, "include_cost_in_streaming_usage", False)
-    litellm.include_cost_in_streaming_usage = False
+    original_value = getattr(gateway, "include_cost_in_streaming_usage", False)
+    gateway.include_cost_in_streaming_usage = False
 
     try:
         # Mock response with Anthropic SSE format chunks
@@ -166,7 +166,7 @@ async def test_vertex_ai_anthropic_streaming_cost_injection_disabled():
 
     finally:
         # Restore original value
-        litellm.include_cost_in_streaming_usage = original_value
+        gateway.include_cost_in_streaming_usage = original_value
 
 
 @pytest.mark.asyncio
@@ -174,8 +174,8 @@ async def test_vertex_ai_anthropic_streaming_cost_injection_no_usage_chunk():
     """
     Test that chunks without usage are not modified.
     """
-    original_value = getattr(litellm, "include_cost_in_streaming_usage", False)
-    litellm.include_cost_in_streaming_usage = True
+    original_value = getattr(gateway, "include_cost_in_streaming_usage", False)
+    gateway.include_cost_in_streaming_usage = True
 
     try:
         response = AsyncMock(spec=httpx.Response)
@@ -223,7 +223,7 @@ async def test_vertex_ai_anthropic_streaming_cost_injection_no_usage_chunk():
             assert chunk == chunks_without_usage[i]
 
     finally:
-        litellm.include_cost_in_streaming_usage = original_value
+        gateway.include_cost_in_streaming_usage = original_value
 
 
 @pytest.mark.asyncio
@@ -231,8 +231,8 @@ async def test_vertex_ai_anthropic_streaming_model_extraction():
     """
     Test that model name is correctly extracted for cost calculation.
     """
-    original_value = getattr(litellm, "include_cost_in_streaming_usage", False)
-    litellm.include_cost_in_streaming_usage = True
+    original_value = getattr(gateway, "include_cost_in_streaming_usage", False)
+    gateway.include_cost_in_streaming_usage = True
 
     try:
         response = AsyncMock(spec=httpx.Response)
@@ -280,4 +280,4 @@ async def test_vertex_ai_anthropic_streaming_model_extraction():
             assert call_args[1]["model"] == "claude-sonnet-4@20250514"
 
     finally:
-        litellm.include_cost_in_streaming_usage = original_value
+        gateway.include_cost_in_streaming_usage = original_value

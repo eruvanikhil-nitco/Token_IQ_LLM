@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Final
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.constants import DEFAULT_MAX_TOKENS
 from token_iq.gateway.core_utils.prompt_templates.factory import (
     custom_prompt,
@@ -57,7 +57,7 @@ class AnthropicTextConfig(BaseConfig):
     to pass metadata to anthropic, it's {"user_id": "any-relevant-information"}
     """
 
-    max_tokens_to_sample: int | None = litellm.max_tokens  # anthropic requires a default
+    max_tokens_to_sample: int | None = gateway.max_tokens  # anthropic requires a default
     stop_sequences: list | None = None
     temperature: int | None = None
     top_p: int | None = None
@@ -112,7 +112,7 @@ class AnthropicTextConfig(BaseConfig):
     ) -> dict:
         prompt: Final = self._get_anthropic_text_prompt_from_messages(messages=messages, model=model)
         ## Load Config
-        config: Final = litellm.AnthropicTextConfig.get_config()
+        config: Final = gateway.AnthropicTextConfig.get_config()
         for k, v in config.items():
             if (
                 k not in optional_params
@@ -163,7 +163,7 @@ class AnthropicTextConfig(BaseConfig):
             if param == "stream" and value is True:
                 optional_params["stream"] = value
             if param == "stop" and (isinstance(value, str) or isinstance(value, list)):
-                _value = litellm.AnthropicConfig()._map_stop_sequences(value)
+                _value = gateway.AnthropicConfig()._map_stop_sequences(value)
                 if _value is not None:
                     optional_params["stop_sequences"] = _value
             if param == "temperature":
@@ -205,7 +205,7 @@ class AnthropicTextConfig(BaseConfig):
             model_response.choices[0].finish_reason = completion_response["stop_reason"]
 
         ## CALCULATING USAGE
-        tokenizer: Final = encoding if encoding is not None else litellm.encoding
+        tokenizer: Final = encoding if encoding is not None else gateway.encoding
         prompt_tokens: Final = len(tokenizer.encode(prompt))  ##[TODO] use the anthropic tokenizer here
         completion_tokens: Final = len(
             tokenizer.encode(model_response["choices"][0]["message"].get("content", ""))
@@ -233,7 +233,7 @@ class AnthropicTextConfig(BaseConfig):
         return model == "claude-2" or model == "claude-instant-1"
 
     def _get_anthropic_text_prompt_from_messages(self, messages: list[AllMessageValues], model: str) -> str:
-        custom_prompt_dict: Final = litellm.custom_prompt_dict
+        custom_prompt_dict: Final = gateway.custom_prompt_dict
         if model in custom_prompt_dict:
             # check if the model has a registered custom prompt
             model_prompt_details: Final = custom_prompt_dict[model]

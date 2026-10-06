@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.azure.common_utils import (
     BaseAzureLLM,
     _cached_entra_id_token_provider,
@@ -48,7 +48,7 @@ def setup_mocks(monkeypatch):
         patch(
             "token_iq.gateway.llms.azure.common_utils.get_azure_ad_token_provider"
         ) as mock_token_provider,
-        patch("token_iq.gateway.llms.azure.common_utils.litellm") as mock_litellm,
+        patch("token_iq.gateway.llms.azure.common_utils.gateway") as mock_litellm,
         patch("token_iq.gateway.llms.azure.common_utils.verbose_logger") as mock_logger,
         patch(
             "token_iq.gateway.llms.azure.common_utils.select_azure_base_url_or_endpoint"
@@ -306,7 +306,7 @@ def test_initialize_with_ad_token_provider(setup_mocks, monkeypatch):
 
 
 def test_initialize_with_enable_token_refresh(setup_mocks, monkeypatch):
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
     # Enable token refresh
     monkeypatch.delenv("AZURE_CLIENT_ID", raising=False)
     monkeypatch.delenv("AZURE_CLIENT_SECRET", raising=False)
@@ -855,10 +855,10 @@ async def test_azure_client_reuse(function_name, is_async, args):
                 # Call the appropriate function based on parameters
                 if is_async:
                     # Add 'a' prefix for async functions
-                    func = getattr(litellm, f"a{function_name}")
+                    func = getattr(gateway, f"a{function_name}")
                     await func(**args)
                 else:
-                    func = getattr(litellm, function_name)
+                    func = getattr(gateway, function_name)
                     func(**args)
             except Exception:
                 # We expect exceptions since we're mocking the client
@@ -891,7 +891,7 @@ async def test_azure_client_cache_separates_sync_and_async():
     from token_iq.gateway.llms.azure.common_utils import BaseAzureLLM
 
     # Clear the in-memory cache before test
-    litellm.in_memory_llm_clients_cache._cache = {}
+    gateway.in_memory_llm_clients_cache._cache = {}
 
     # Create mock sync and async clients
     mock_sync_client = MagicMock()
@@ -1799,7 +1799,7 @@ def test_azure_v1_client_cache_separates_distinct_ad_providers(api_version):
     """
     from openai import AsyncOpenAI
 
-    litellm.in_memory_llm_clients_cache._cache = {}
+    gateway.in_memory_llm_clients_cache._cache = {}
 
     base_llm = BaseAzureLLM()
     api_base = "https://test.openai.azure.com"
@@ -1852,7 +1852,7 @@ def test_azure_v1_client_cache_separates_distinct_entra_credentials(api_version)
     """
     from openai import AsyncOpenAI
 
-    litellm.in_memory_llm_clients_cache._cache = {}
+    gateway.in_memory_llm_clients_cache._cache = {}
 
     base_llm = BaseAzureLLM()
     api_base = "https://test.openai.azure.com"
@@ -1911,7 +1911,7 @@ def test_azure_v1_client_cache_reuses_for_identical_ad_config(api_version):
     """
     from openai import AsyncOpenAI
 
-    litellm.in_memory_llm_clients_cache._cache = {}
+    gateway.in_memory_llm_clients_cache._cache = {}
 
     base_llm = BaseAzureLLM()
     api_base = "https://test.openai.azure.com"
@@ -2077,9 +2077,9 @@ def test_evicting_an_azure_client_built_on_the_callers_session_leaves_it_open(mo
 
     shared_session = httpx.AsyncClient()
     closer = EvictedClientCloser(grace_seconds=0.0)
-    monkeypatch.setattr(litellm, "aclient_session", shared_session)
+    monkeypatch.setattr(gateway, "aclient_session", shared_session)
     monkeypatch.setattr(
-        litellm,
+        gateway,
         "in_memory_llm_clients_cache",
         LLMClientCache(evicted_client_closer=closer),
     )
@@ -2108,10 +2108,10 @@ def test_an_azure_client_litellm_built_its_own_http_client_for_is_still_closed(m
     from token_iq.gateway.caching.llm_caching_handler import LLMClientCache
 
     closer = EvictedClientCloser(grace_seconds=0.0)
-    monkeypatch.setattr(litellm, "aclient_session", None)
-    monkeypatch.setattr(litellm, "client_session", None)
+    monkeypatch.setattr(gateway, "aclient_session", None)
+    monkeypatch.setattr(gateway, "client_session", None)
     monkeypatch.setattr(
-        litellm,
+        gateway,
         "in_memory_llm_clients_cache",
         LLMClientCache(evicted_client_closer=closer),
     )

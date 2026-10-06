@@ -8,7 +8,7 @@ Tests both streaming and non-streaming requests.
 import sys
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.integrations.websearch_interception import (
     WebSearchInterceptionLogger,
 )
@@ -21,7 +21,7 @@ async def test_websearch_interception_non_streaming():
     Test WebSearch interception with non-streaming request.
     Validates that agentic loop executes transparently.
     """
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
 
     print("\n" + "=" * 80)
     print("E2E TEST 1: WebSearch Interception (Non-Streaming)")
@@ -51,8 +51,8 @@ async def test_websearch_interception_non_streaming():
         enabled_providers=[LlmProviders.BEDROCK],
         search_tool_name="my-perplexity-search",
     )
-    litellm.callbacks = [websearch_logger]
-    litellm.set_verbose = True
+    gateway.callbacks = [websearch_logger]
+    gateway.set_verbose = True
 
     print("\n✅ Configured WebSearch interception for Bedrock")
     print("✅ Will use search tool from router")
@@ -921,14 +921,14 @@ async def test_pre_request_hook_modifies_request_body():
     from unittest.mock import AsyncMock, patch, MagicMock
     from token_iq.gateway.constants import LITELLM_WEB_SEARCH_TOOL_NAME
 
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
 
     print("\n" + "=" * 80)
     print("UNIT TEST: Pre-Request Hook Modifies Request Body")
     print("=" * 80)
 
     # Initialize WebSearchInterceptionLogger
-    litellm.callbacks = [
+    gateway.callbacks = [
         WebSearchInterceptionLogger(
             enabled_providers=[LlmProviders.BEDROCK],
             search_tool_name="test-search-tool",

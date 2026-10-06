@@ -1,16 +1,16 @@
 """OpenAI realtime HTTP transformation config (client_secrets + realtime_calls)."""
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.base_llm.realtime.http_transformation import BaseRealtimeHTTPConfig
 from token_iq.gateway.secret_managers.main import get_secret_str
 
 
 class OpenAIRealtimeHTTPConfig(BaseRealtimeHTTPConfig):
     def get_api_base(self, api_base: str | None, **kwargs) -> str:
-        return api_base or litellm.api_base or get_secret_str("OPENAI_API_BASE") or "https://api.openai.com"
+        return api_base or gateway.api_base or get_secret_str("OPENAI_API_BASE") or "https://api.openai.com"
 
     def get_api_key(self, api_key: str | None, **kwargs) -> str:
-        return api_key or litellm.api_key or litellm.openai_key or get_secret_str("OPENAI_API_KEY") or ""
+        return api_key or gateway.api_key or gateway.openai_key or get_secret_str("OPENAI_API_KEY") or ""
 
     def get_complete_url(self, api_base: str | None, model: str, api_version: str | None = None) -> str:
         base = self.get_api_base(api_base).rstrip("/")

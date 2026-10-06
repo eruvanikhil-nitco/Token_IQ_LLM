@@ -275,15 +275,15 @@ class TestGigaChatProviderRegistration:
 
     def test_gigachat_key_exists(self):
         """gigachat_key should be available"""
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
-        assert hasattr(litellm, "gigachat_key")
+        assert hasattr(gateway, "gigachat_key")
 
     def test_gigachat_config_exists(self):
         """GigaChatConfig should be available"""
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
-        assert hasattr(litellm, "GigaChatConfig")
+        assert hasattr(gateway, "GigaChatConfig")
 
 
 class TestGigaChatTransformRequest:

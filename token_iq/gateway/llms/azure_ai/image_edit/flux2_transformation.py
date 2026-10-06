@@ -4,7 +4,7 @@ from typing import Any, Final
 
 from httpx._types import RequestFiles
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.azure_ai.common_utils import (
     AzureFoundryModelInfo,
     get_azure_ai_auth_headers,
@@ -162,7 +162,7 @@ class AzureFoundryFlux2ImageEditConfig(OpenAIImageEditConfig):
 
         api_version: Final = (
             litellm_params.get("api_version")
-            or litellm.api_version
+            or gateway.api_version
             or get_secret_str("AZURE_AI_API_VERSION")
             or "preview"
         )

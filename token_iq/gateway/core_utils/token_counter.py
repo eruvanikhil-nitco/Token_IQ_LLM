@@ -9,7 +9,7 @@ from typing import Final, Literal, cast
 import httpx
 import tiktoken
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import verbose_logger
 from token_iq.gateway.constants import (
     DEFAULT_IMAGE_HEIGHT,
@@ -65,15 +65,15 @@ def get_modified_max_tokens(
             return None
 
         ## MODEL INFO
-        _model_info: Final = litellm.get_model_info(model=model)
+        _model_info: Final = gateway.get_model_info(model=model)
 
-        max_output_tokens: Final = litellm.get_max_tokens(model=base_model)  # assume min context window is 4k tokens
+        max_output_tokens: Final = gateway.get_max_tokens(model=base_model)  # assume min context window is 4k tokens
 
         ## UNKNOWN MAX OUTPUT TOKENS - return user defined amount
         if max_output_tokens is None:
             return user_max_tokens
 
-        input_tokens = litellm.token_counter(model=base_model, messages=messages)
+        input_tokens = gateway.token_counter(model=base_model, messages=messages)
 
         # token buffer
         if buffer_perc is None:
@@ -344,7 +344,7 @@ class _MessageCountParams:
         if actual_model == "gpt-3.5-turbo-0301":
             self.tokens_per_message = 4  # every message follows <|start|>{role/name}\n{content}<|end|>\n
             self.tokens_per_name = -1  # if there's a name, the role is omitted
-        elif actual_model in litellm.open_ai_chat_completion_models or actual_model in litellm.azure_llms:
+        elif actual_model in gateway.open_ai_chat_completion_models or actual_model in gateway.azure_llms:
             self.tokens_per_message = 3
             self.tokens_per_name = 1
         else:
@@ -390,7 +390,7 @@ def token_counter(
     # exposing this flag to allow users to disable
     # it to confirm if this is indeed the issue
     #########################################################
-    if litellm.disable_token_counter is True:
+    if gateway.disable_token_counter is True:
         return 0
 
     verbose_logger.debug("messages in token_counter: %s, text in token_counter: %s", messages, text)
@@ -582,10 +582,10 @@ def _get_count_function(
 
 def _fix_model_name(model: str) -> str:
     """We normalize some model names to others"""
-    if model in litellm.azure_llms:
+    if model in gateway.azure_llms:
         # azure llms use gpt-35-turbo instead of gpt-3.5-turbo 🙃
         return model.replace("-35", "-3.5")
-    elif model in litellm.open_ai_chat_completion_models:
+    elif model in gateway.open_ai_chat_completion_models:
         return model
     else:
         return "gpt-3.5-turbo"

@@ -3,7 +3,7 @@ import os
 
 
 import asyncio
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 import logging
 import time
@@ -19,11 +19,11 @@ def test_otel_logging_async():
         os.environ["OTEL_HEADERS"] = "Authorization=K0BSwd"
 
         def single_run():
-            litellm.callbacks = []
+            gateway.callbacks = []
             start_time_empty = asyncio.run(make_async_calls())
             print(f"Time with empty callback: {start_time_empty}")
 
-            litellm.callbacks = ["otel"]
+            gateway.callbacks = ["otel"]
             start_time_otel = asyncio.run(make_async_calls())
             print(f"Time with otel callback: {start_time_otel}")
 
@@ -43,7 +43,7 @@ def test_otel_logging_async():
             avg_percent_diff < 30
         ), f"Average performance difference of {avg_percent_diff:.2f}% exceeds 30% threshold"
 
-    except litellm.Timeout as e:
+    except gateway.Timeout as e:
         pass
     except Exception as e:
         pytest.fail(f"An exception occurred - {e}")
@@ -94,4 +94,4 @@ def create_async_task(**completion_kwargs):
         "mock_response": "Mock response",
     }
     completion_args.update(completion_kwargs)
-    return asyncio.create_task(litellm.acompletion(**completion_args))
+    return asyncio.create_task(gateway.acompletion(**completion_args))

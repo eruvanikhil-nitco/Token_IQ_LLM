@@ -31,9 +31,9 @@ from unittest.mock import MagicMock
 os.environ.setdefault("LITELLM_LOG", "ERROR")
 logging.getLogger("LiteLLM").setLevel(logging.ERROR)
 
-from token_iq import gateway as litellm  # noqa: E402
+from token_iq import gateway  # noqa: E402
 
-litellm.suppress_debug_info = True
+gateway.suppress_debug_info = True
 
 from token_iq.gateway.core_utils.streaming_handler import (
     CustomStreamWrapper,

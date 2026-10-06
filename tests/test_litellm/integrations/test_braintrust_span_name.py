@@ -4,7 +4,7 @@ import unittest
 from datetime import datetime
 from unittest.mock import MagicMock, Mock, patch
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.integrations.braintrust_logging import BraintrustLogger
 
 
@@ -24,7 +24,7 @@ class TestBraintrustSpanName(unittest.TestCase):
         logger.default_project_id = "test-project-id"
 
         # Create a properly structured mock response
-        response_obj = litellm.ModelResponse(
+        response_obj = gateway.ModelResponse(
             id="test-id",
             object="chat.completion",
             created=1234567890,
@@ -71,7 +71,7 @@ class TestBraintrustSpanName(unittest.TestCase):
         logger.default_project_id = "test-project-id"
 
         # Create a properly structured mock response
-        response_obj = litellm.ModelResponse(
+        response_obj = gateway.ModelResponse(
             id="test-id",
             object="chat.completion",
             created=1234567890,
@@ -118,7 +118,7 @@ class TestBraintrustSpanName(unittest.TestCase):
         logger.default_project_id = "test-project-id"
 
         # Create a properly structured mock response
-        response_obj = litellm.ModelResponse(
+        response_obj = gateway.ModelResponse(
             id="test-id",
             object="chat.completion",
             created=1234567890,
@@ -188,7 +188,7 @@ class TestBraintrustSpanName(unittest.TestCase):
         logger.default_project_id = "test-project-id"
 
         # Create a properly structured mock response
-        response_obj = litellm.ModelResponse(
+        response_obj = gateway.ModelResponse(
             id="test-id",
             object="chat.completion",
             created=1234567890,
@@ -247,10 +247,10 @@ class TestBraintrustSpanName(unittest.TestCase):
         choice_mock.dict = Mock(return_value={"message": {"content": "test"}})
         choice_mock.__getitem__ = Mock(return_value=message_mock)
 
-        response_obj = Mock(spec=litellm.ModelResponse)
+        response_obj = Mock(spec=gateway.ModelResponse)
         response_obj.choices = [choice_mock]
         response_obj.__getitem__ = Mock(return_value=[choice_mock])
-        response_obj.usage = litellm.Usage(
+        response_obj.usage = gateway.Usage(
             prompt_tokens=10, completion_tokens=20, total_tokens=30
         )
 

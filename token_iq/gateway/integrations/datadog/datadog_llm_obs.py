@@ -16,7 +16,7 @@ from typing import Any, Final, Literal
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway._uuid import uuid
 from token_iq.gateway.constants import REDACTED_BY_LITELLM
@@ -432,13 +432,13 @@ class DataDogLLMObsLogger(CustomBatchLogger):
         These are params specific to initializing the DataDogLLMObsLogger e.g. turn_off_message_logging
         """
         dict_datadog_llm_obs_params: dict = {}
-        if litellm.datadog_llm_observability_params is not None:
-            if isinstance(litellm.datadog_llm_observability_params, DatadogLLMObsInitParams):
-                dict_datadog_llm_obs_params = litellm.datadog_llm_observability_params.model_dump(exclude_unset=True)
-            elif isinstance(litellm.datadog_llm_observability_params, dict):
+        if gateway.datadog_llm_observability_params is not None:
+            if isinstance(gateway.datadog_llm_observability_params, DatadogLLMObsInitParams):
+                dict_datadog_llm_obs_params = gateway.datadog_llm_observability_params.model_dump(exclude_unset=True)
+            elif isinstance(gateway.datadog_llm_observability_params, dict):
                 # only allow params that are of DatadogLLMObsInitParams
                 dict_datadog_llm_obs_params = DatadogLLMObsInitParams(
-                    **litellm.datadog_llm_observability_params
+                    **gateway.datadog_llm_observability_params
                 ).model_dump(exclude_unset=True)
         return dict_datadog_llm_obs_params
 

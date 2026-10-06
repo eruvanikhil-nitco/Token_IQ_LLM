@@ -4,7 +4,7 @@ import os
 
 
 import asyncio
-from token_iq import gateway as litellm
+from token_iq import gateway
 import gzip
 import httpx
 import json
@@ -52,10 +52,10 @@ async def test_generic_api_callback():
         endpoint=test_endpoint, headers=test_headers, flush_interval=1
     )
     generic_logger.async_httpx_client.post = mock_post
-    litellm.callbacks = [generic_logger]
+    gateway.callbacks = [generic_logger]
 
     # Make the completion call
-    response = await litellm.acompletion(
+    response = await gateway.acompletion(
         model="gpt-5.5",
         messages=[{"role": "user", "content": "Hello, world!"}],
         mock_response="hi",
@@ -139,11 +139,11 @@ async def test_generic_api_callback_multiple_logs():
         endpoint=test_endpoint, headers=test_headers, flush_interval=5
     )
     generic_logger.async_httpx_client.post = mock_post
-    litellm.callbacks = [generic_logger]
+    gateway.callbacks = [generic_logger]
 
     # Make the completion call
     for _ in range(10):
-        response = await litellm.acompletion(
+        response = await gateway.acompletion(
             model="gpt-5.5",
             messages=[{"role": "user", "content": "Hello, world!"}],
             mock_response="hi",
@@ -231,11 +231,11 @@ async def test_generic_api_callback_ndjson_format():
         log_format="ndjson",  # Set NDJSON format
     )
     generic_logger.async_httpx_client.post = mock_post
-    litellm.callbacks = [generic_logger]
+    gateway.callbacks = [generic_logger]
 
     # Make multiple completion calls to generate multiple logs
     for i in range(3):
-        response = await litellm.acompletion(
+        response = await gateway.acompletion(
             model="gpt-5.5",
             messages=[{"role": "user", "content": f"Hello, world! {i}"}],
             mock_response="hi",
@@ -306,11 +306,11 @@ async def test_generic_api_callback_single_format():
         log_format="single",  # Set single format
     )
     generic_logger.async_httpx_client.post = mock_post
-    litellm.callbacks = [generic_logger]
+    gateway.callbacks = [generic_logger]
 
     # Make 3 completion calls
     for i in range(3):
-        response = await litellm.acompletion(
+        response = await gateway.acompletion(
             model="gpt-5.5",
             messages=[{"role": "user", "content": f"Hello, world! {i}"}],
             mock_response="hi",
@@ -369,11 +369,11 @@ async def test_generic_api_callback_json_array_format_explicit():
         log_format="json_array",  # Explicitly set json_array
     )
     generic_logger.async_httpx_client.post = mock_post
-    litellm.callbacks = [generic_logger]
+    gateway.callbacks = [generic_logger]
 
     # Make multiple completion calls
     for i in range(5):
-        response = await litellm.acompletion(
+        response = await gateway.acompletion(
             model="gpt-5.5",
             messages=[{"role": "user", "content": f"Hello, world! {i}"}],
             mock_response="hi",
@@ -423,14 +423,14 @@ async def test_generic_api_callback_sumologic_uses_ndjson():
     # Initialize using callback_name (loads from JSON config)
     generic_logger = GenericAPILogger(callback_name="sumologic", flush_interval=1)
     generic_logger.async_httpx_client.post = mock_post
-    litellm.callbacks = [generic_logger]
+    gateway.callbacks = [generic_logger]
 
     # Verify the logger has ndjson format
     assert generic_logger.log_format == "ndjson", "Sumologic should use ndjson format"
 
     # Make completion calls
     for i in range(2):
-        await litellm.acompletion(
+        await gateway.acompletion(
             model="gpt-5.5",
             messages=[{"role": "user", "content": f"Test {i}"}],
             mock_response="response",
@@ -485,7 +485,7 @@ async def test_generic_api_callback_retries_timeout_then_succeeds():
 
     mock_post = AsyncMock()
     mock_post.side_effect = [
-        litellm.Timeout(
+        gateway.Timeout(
             message="Connection timed out",
             model="default-model-name",
             llm_provider="litellm-httpx-handler",

@@ -31,16 +31,16 @@ def check_environment_is_base_only() -> str:
 def check_import() -> str:
     from importlib.metadata import version
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    _require(bool(litellm.__file__), "litellm has no __file__")
+    _require(bool(gateway.__file__), "litellm has no __file__")
     return f"imported litellm {version('litellm')}"
 
 
 def check_completion() -> str:
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    response = litellm.completion(
+    response = gateway.completion(
         model="gpt-4o",
         messages=[{"role": "user", "content": "ping"}],
         mock_response="pong",
@@ -51,9 +51,9 @@ def check_completion() -> str:
 
 
 def check_embedding() -> str:
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    response = litellm.embedding(
+    response = gateway.embedding(
         model="text-embedding-3-small",
         input=["ping"],
         mock_response=[[0.1, 0.2]],
@@ -63,14 +63,14 @@ def check_embedding() -> str:
 
 
 def check_bundled_model_metadata() -> str:
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    max_input_tokens = litellm.get_model_info("gpt-4o")["max_input_tokens"]
+    max_input_tokens = gateway.get_model_info("gpt-4o")["max_input_tokens"]
     _require(
         isinstance(max_input_tokens, int) and max_input_tokens > 0,
         f"get_model_info returned max_input_tokens={max_input_tokens!r}",
     )
-    prompt_cost, completion_cost = litellm.cost_per_token(model="gpt-4o", prompt_tokens=1000, completion_tokens=1000)
+    prompt_cost, completion_cost = gateway.cost_per_token(model="gpt-4o", prompt_tokens=1000, completion_tokens=1000)
     _require(
         prompt_cost > 0 and completion_cost > 0,
         f"cost_per_token returned ({prompt_cost}, {completion_cost})",
@@ -79,9 +79,9 @@ def check_bundled_model_metadata() -> str:
 
 
 def check_token_counter() -> str:
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    count = litellm.token_counter(model="gpt-4o", text="hello world")
+    count = gateway.token_counter(model="gpt-4o", text="hello world")
     _require(count > 0, f"token_counter returned {count!r}")
     return f"token_counter returned {count}"
 

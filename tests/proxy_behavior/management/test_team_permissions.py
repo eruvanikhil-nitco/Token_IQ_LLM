@@ -1,4 +1,4 @@
-from token_iq import gateway as litellm
+from token_iq import gateway
 import pytest
 
 from token_iq.gateway.proxy._types import KeyManagementRoutes
@@ -100,7 +100,7 @@ async def test_team_permissions_available_team_self_join_divergence(
     module-level litellm.* state, so monkeypatch save/restores it."""
     await create_scratch_team(prisma, scratch.prefix, organization_id=world.org_a_id)
     monkeypatch.setattr(
-        litellm, "default_internal_user_params", {"available_teams": [scratch.prefix]}
+        gateway, "default_internal_user_params", {"available_teams": [scratch.prefix]}
     )
     caller = world.keys[Actor.CROSS_ORG_USER]  # non-admin, unrelated to the team
 

@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 # client is imported from litellm as it's a decorator
 from token_iq.gateway import client
@@ -220,7 +220,7 @@ def image_generation(
         base_model: Final = kwargs.get("base_model", None)
         if extra_headers is not None:
             headers.update(extra_headers)
-        model_response: ImageResponse = litellm.utils.ImageResponse()
+        model_response: ImageResponse = gateway.utils.ImageResponse()
         dynamic_api_key: str | None = None
         if model is not None or custom_llm_provider is not None:
             model, custom_llm_provider, dynamic_api_key, api_base = get_llm_provider(
@@ -304,14 +304,14 @@ def image_generation(
             # azure configs
             api_type: Final = get_secret_str("AZURE_API_TYPE") or "azure"
 
-            api_base = api_base or litellm.api_base or get_secret_str("AZURE_API_BASE")
+            api_base = api_base or gateway.api_base or get_secret_str("AZURE_API_BASE")
 
-            api_version = api_version or litellm.api_version or get_secret_str("AZURE_API_VERSION")
+            api_version = api_version or gateway.api_version or get_secret_str("AZURE_API_VERSION")
 
             api_key = (
                 api_key
-                or litellm.api_key
-                or litellm.azure_key
+                or gateway.api_key
+                or gateway.azure_key
                 or get_secret_str("AZURE_OPENAI_API_KEY")
                 or get_secret_str("AZURE_API_KEY")
             )
@@ -377,23 +377,23 @@ def image_generation(
         # Providers using llm_http_handler
         #########################################################
         elif custom_llm_provider in (
-            litellm.LlmProviders.RECRAFT,
-            litellm.LlmProviders.AIML,
-            litellm.LlmProviders.GEMINI,
-            litellm.LlmProviders.FAL_AI,
-            litellm.LlmProviders.STABILITY,
-            litellm.LlmProviders.RUNWAYML,
-            litellm.LlmProviders.VERTEX_AI,
-            litellm.LlmProviders.OPENROUTER,
-            litellm.LlmProviders.DASHSCOPE,
-            litellm.LlmProviders.QWENCLOUD,
-            litellm.LlmProviders.QWEN_AI_PLATFORM,
+            gateway.LlmProviders.RECRAFT,
+            gateway.LlmProviders.AIML,
+            gateway.LlmProviders.GEMINI,
+            gateway.LlmProviders.FAL_AI,
+            gateway.LlmProviders.STABILITY,
+            gateway.LlmProviders.RUNWAYML,
+            gateway.LlmProviders.VERTEX_AI,
+            gateway.LlmProviders.OPENROUTER,
+            gateway.LlmProviders.DASHSCOPE,
+            gateway.LlmProviders.QWENCLOUD,
+            gateway.LlmProviders.QWEN_AI_PLATFORM,
         ):
             if image_generation_config is None:
                 raise ValueError(f"image generation config is not supported for {custom_llm_provider}")
 
             # Resolve api_base from litellm.api_base if not explicitly provided
-            _api_base: Final = api_base or litellm.api_base
+            _api_base: Final = api_base or gateway.api_base
             litellm_params_dict["api_base"] = _api_base
 
             return llm_http_handler.image_generation_handler(
@@ -472,7 +472,7 @@ def image_generation(
         elif (
             custom_llm_provider == "openai"
             or custom_llm_provider == LlmProviders.LITELLM_PROXY.value
-            or custom_llm_provider in litellm.openai_compatible_providers
+            or custom_llm_provider in gateway.openai_compatible_providers
         ):
             if extra_headers is not None:
                 optional_params["extra_headers"] = extra_headers
@@ -507,10 +507,10 @@ def image_generation(
                 api_base=api_base,
                 api_key=api_key,
             )
-        elif custom_llm_provider in litellm._custom_providers:  # Assume custom LLM provider
+        elif custom_llm_provider in gateway._custom_providers:  # Assume custom LLM provider
             # Get the Custom Handler
             custom_handler: CustomLLM | None = None
-            for item in litellm.custom_provider_map:
+            for item in gateway.custom_provider_map:
                 if item["provider"] == custom_llm_provider:
                     custom_handler = item["custom_handler"]
 
@@ -788,9 +788,9 @@ def image_edit(
         )
 
         # Check for custom provider
-        if custom_llm_provider in litellm._custom_providers:
+        if custom_llm_provider in gateway._custom_providers:
             custom_handler: CustomLLM | None = None
-            for item in litellm.custom_provider_map:
+            for item in gateway.custom_provider_map:
                 if item["provider"] == custom_llm_provider:
                     custom_handler = item["custom_handler"]
 
@@ -837,7 +837,7 @@ def image_edit(
         # get provider config
         image_edit_provider_config: BaseImageEditConfig | None = ProviderConfigManager.get_provider_image_edit_config(
             model=model,
-            provider=litellm.LlmProviders(custom_llm_provider),
+            provider=gateway.LlmProviders(custom_llm_provider),
         )
 
         if image_edit_provider_config is None:
@@ -860,7 +860,7 @@ def image_edit(
         if (
             custom_llm_provider == "openai"
             or custom_llm_provider == "azure"
-            or custom_llm_provider in litellm.openai_compatible_providers
+            or custom_llm_provider in gateway.openai_compatible_providers
         ):
             image_edit_request_params.update(
                 flatten_form_field_values(
@@ -954,7 +954,7 @@ def image_edit(
         )
 
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=model,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -1001,7 +1001,7 @@ async def aimage_edit(
 
         # get custom llm provider so we can use this for mapping exceptions
         if custom_llm_provider is None:
-            _, custom_llm_provider, _, _ = litellm.get_llm_provider(
+            _, custom_llm_provider, _, _ = gateway.get_llm_provider(
                 model=model, api_base=local_vars.get("base_url", None)
             )
 
@@ -1037,7 +1037,7 @@ async def aimage_edit(
 
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=model,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,

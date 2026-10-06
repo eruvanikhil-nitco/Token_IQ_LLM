@@ -6,7 +6,7 @@ from typing import Final
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.utils import Choices, Message, ModelResponse, Usage
 
 
@@ -74,7 +74,7 @@ class AlephAlphaConfig:
     - `control_log_additive` (boolean; default value: true): Method of applying control to attention scores.
     """
 
-    maximum_tokens: int | None = litellm.max_tokens  # aleph alpha requires max tokens
+    maximum_tokens: int | None = gateway.max_tokens  # aleph alpha requires max tokens
     minimum_tokens: int | None = None
     echo: bool | None = None
     temperature: int | None = None
@@ -191,7 +191,7 @@ def completion(
     headers: Final = validate_environment(api_key)
 
     ## Load Config
-    config: Final = litellm.AlephAlphaConfig.get_config()
+    config: Final = gateway.AlephAlphaConfig.get_config()
     for k, v in config.items():
         if (
             k not in optional_params
@@ -230,7 +230,7 @@ def completion(
         additional_args={"complete_input_dict": data},
     )
     ## COMPLETION CALL
-    response: Final = litellm.module_level_client.post(
+    response: Final = gateway.module_level_client.post(
         completion_url,
         headers=headers,
         data=json.dumps(data),

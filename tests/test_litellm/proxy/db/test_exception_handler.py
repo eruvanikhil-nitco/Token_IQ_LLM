@@ -23,7 +23,7 @@ from prisma.errors import (
 )
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.proxy._types import ProxyErrorTypes, ProxyException
 from token_iq.gateway.proxy.db.exception_handler import PrismaDBExceptionHandler
@@ -459,11 +459,11 @@ def test_handle_db_exception_with_non_db_error():
     """
     Test that non-DB errors are always raised regardless of allow_requests_on_db_unavailable setting
     """
-    regular_error = litellm.BudgetExceededError(
+    regular_error = gateway.BudgetExceededError(
         current_cost=10,
         max_budget=10,
     )
-    with pytest.raises(litellm.BudgetExceededError):
+    with pytest.raises(gateway.BudgetExceededError):
         PrismaDBExceptionHandler.handle_db_exception(regular_error)
 
 

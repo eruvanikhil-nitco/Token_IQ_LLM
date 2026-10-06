@@ -8,7 +8,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.google_genai.adapters.handler import GenerateContentToCompletionHandler
 from token_iq.gateway.google_genai.adapters.transformation import GoogleGenAIAdapter
 from token_iq.gateway.types.utils import ModelResponse
@@ -207,7 +207,7 @@ async def test_stream_transformation_error_async():
     ):
         # Mock litellm.acompletion at the module level where it's imported
         # We need to patch it in the handler module, not in litellm itself
-        with patch("token_iq.gateway.google_genai.adapters.handler.litellm") as mock_litellm:
+        with patch("token_iq.gateway.google_genai.adapters.handler.gateway") as mock_litellm:
             # Use AsyncMock for async function
             mock_litellm.acompletion = AsyncMock(return_value=mock_stream)
             # Call the handler with stream=True and expect a ValueError

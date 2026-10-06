@@ -10,7 +10,7 @@ from click.testing import CliRunner
 
 
 import token_iq.gateway.proxy.client.cli
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._version import version as litellm_version
 from token_iq.gateway.proxy.client.cli import cli
 
@@ -39,7 +39,7 @@ def test_cli_version_flag(cli_runner):
 def test_cli_source_is_ascii_only():
     """Non-ASCII output (emoji, box-drawing chars) raises UnicodeEncodeError on legacy Windows
     consoles (cp1252), so the whole CLI package must stay ASCII-only."""
-    cli_root = Path(litellm.proxy.client.cli.__file__).parent
+    cli_root = Path(gateway.proxy.client.cli.__file__).parent
     offenders = [
         f"{path.relative_to(cli_root)}:{line_number}: {line.strip()}"
         for path in sorted(cli_root.rglob("*.py"))

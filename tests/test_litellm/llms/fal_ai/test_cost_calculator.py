@@ -1,6 +1,6 @@
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.llm_cost_calc.utils import CostCalculatorUtils
 from token_iq.gateway.llms.fal_ai.cost_calculator import cost_calculator
 from token_iq.gateway.types.utils import ImageObject, ImageResponse
@@ -9,10 +9,10 @@ from token_iq.gateway.types.utils import ImageObject, ImageResponse
 @pytest.fixture(autouse=True)
 def _use_local_model_cost_map(monkeypatch):
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map())
-    litellm.get_model_info.cache_clear()
+    monkeypatch.setattr(gateway, "model_cost", gateway.get_model_cost_map())
+    gateway.get_model_info.cache_clear()
     yield
-    litellm.get_model_info.cache_clear()
+    gateway.get_model_info.cache_clear()
 
 
 def _image_response(num_images: int = 1) -> ImageResponse:

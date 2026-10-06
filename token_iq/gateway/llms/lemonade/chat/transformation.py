@@ -7,7 +7,7 @@ from urllib.parse import quote
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
 from token_iq.gateway.secret_managers.main import get_secret_str
@@ -90,7 +90,7 @@ class LemonadeChatConfig(OpenAILikeChatConfig):
 
         # Getting the list of models from lemonade
         try:
-            response: Final = litellm.module_level_client.get(
+            response: Final = gateway.module_level_client.get(
                 url=f"{api_base}/models",
                 headers=self._get_auth_headers(api_key),
             )
@@ -178,7 +178,7 @@ class LemonadeChatConfig(OpenAILikeChatConfig):
         encoded_model: Final = quote(model, safe="")
 
         try:
-            response: Final = litellm.module_level_client.get(
+            response: Final = gateway.module_level_client.get(
                 url=f"{api_base}/models/{encoded_model}",
                 headers=self._get_auth_headers(api_key),
             )
@@ -213,7 +213,7 @@ class LemonadeChatConfig(OpenAILikeChatConfig):
         api_base = api_base or get_secret_str("LEMONADE_API_BASE") or "http://localhost:8000/api/v1"
         key = self._DEFAULT_API_KEY
         if passed_api_base is None or api_key:
-            key = api_key or litellm.lemonade_key or get_secret_str("LEMONADE_API_KEY") or self._DEFAULT_API_KEY
+            key = api_key or gateway.lemonade_key or get_secret_str("LEMONADE_API_KEY") or self._DEFAULT_API_KEY
         return api_base, key
 
     def _get_auth_headers(self, api_key: str | None) -> dict:

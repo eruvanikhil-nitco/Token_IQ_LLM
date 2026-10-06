@@ -8,7 +8,7 @@ sys.path.insert(0, os.path.abspath("../.."))  # Adds the parent directory to the
 
 import inspect
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.integrations.custom_logger import CustomLogger
 from typing import Final
 
@@ -16,7 +16,7 @@ from typing import Final
 # This file includes the custom callbacks for LiteLLM Proxy
 # Once defined, these can be passed in proxy_config.yaml
 def print_verbose(print_statement):
-    if litellm.set_verbose:
+    if gateway.set_verbose:
         print(print_statement)  # noqa
 
 
@@ -50,7 +50,7 @@ class MyCustomHandler(CustomLogger):
 
     async def async_log_success_event(self, kwargs, response_obj, start_time, end_time):
         print_verbose("On Async Success!")
-        response_cost: Final = litellm.completion_cost(completion_response=response_obj)
+        response_cost: Final = gateway.completion_cost(completion_response=response_obj)
         assert response_cost > 0.0
         return
 

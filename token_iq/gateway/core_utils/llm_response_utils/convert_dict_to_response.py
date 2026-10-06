@@ -6,7 +6,7 @@ import traceback
 from collections.abc import Iterable, Sequence
 from typing import Final, Literal, cast
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.constants import RESPONSE_FORMAT_TOOL_NAME
 from token_iq.gateway.core_utils.prompt_templates.common_utils import (
@@ -110,7 +110,7 @@ def convert_tool_call_to_json_mode(
         # to support 'json_schema' logic on older models
         json_mode_content_str: Final[str | None] = tool_calls[0]["function"].get("arguments")
         if json_mode_content_str is not None:
-            message: Final = litellm.Message(content=json_mode_content_str)
+            message: Final = gateway.Message(content=json_mode_content_str)
             finish_reason: Final = "stop"
             return message, finish_reason
     return None, None
@@ -658,7 +658,7 @@ def convert_to_model_response_object(
                     # to support 'json_schema' logic on older models
                     json_mode_content_str: str | None = tool_calls[0]["function"].get("arguments")
                     if json_mode_content_str is not None:
-                        message = litellm.Message(content=json_mode_content_str)
+                        message = gateway.Message(content=json_mode_content_str)
                         finish_reason = "stop"
                 if message is None:
                     # Preserve provider_specific_fields if already present
@@ -714,7 +714,7 @@ def convert_to_model_response_object(
             model_response_object.choices = choice_list
 
             if "usage" in response_object and response_object["usage"] is not None:
-                usage_object: Final = litellm.Usage(**response_object["usage"])
+                usage_object: Final = gateway.Usage(**response_object["usage"])
                 setattr(model_response_object, "usage", usage_object)
             if "created" in response_object:
                 model_response_object.created = _safe_convert_created_field(response_object["created"])

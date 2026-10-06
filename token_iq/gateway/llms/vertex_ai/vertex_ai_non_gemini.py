@@ -6,7 +6,7 @@ from typing import Any, Final, cast
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.core_helpers import map_finish_reason
 from token_iq.gateway.llms.bedrock.common_utils import ModelResponseIterator
 from token_iq.gateway.llms.custom_httpx.http_handler import _DEFAULT_TTL_FOR_HTTPX_CLIENTS
@@ -61,11 +61,11 @@ def _get_client_cache_key(model: str, vertex_project: str | None, vertex_locatio
 
 
 def _get_client_from_cache(client_cache_key: str):
-    return litellm.in_memory_llm_clients_cache.get_cache(client_cache_key)
+    return gateway.in_memory_llm_clients_cache.get_cache(client_cache_key)
 
 
 def _set_client_in_cache(client_cache_key: str, vertex_llm_model: Any):
-    litellm.in_memory_llm_clients_cache.set_cache(
+    gateway.in_memory_llm_clients_cache.set_cache(
         key=client_cache_key,
         value=vertex_llm_model,
         ttl=_DEFAULT_TTL_FOR_HTTPX_CLIENTS,
@@ -152,7 +152,7 @@ def completion(
             )
 
         ## Load Config
-        config: Final = litellm.VertexAIConfig.get_config()
+        config: Final = gateway.VertexAIConfig.get_config()
         for k, v in config.items():
             if k not in optional_params:
                 optional_params[k] = v
@@ -180,24 +180,24 @@ def completion(
         instances = None
         client_options: Final = {"api_endpoint": f"{vertex_location}-aiplatform.googleapis.com"}
         fake_stream = False
-        if model in litellm.vertex_language_models or model in litellm.vertex_vision_models:
+        if model in gateway.vertex_language_models or model in gateway.vertex_vision_models:
             llm_model: Any = _vertex_llm_model_object or GenerativeModel(model)
             mode = "vision"
             request_str += f"llm_model = GenerativeModel({model})\n"
-        elif model in litellm.vertex_chat_models:
+        elif model in gateway.vertex_chat_models:
             llm_model = _vertex_llm_model_object or ChatModel.from_pretrained(model)
             mode = "chat"
             request_str += f"llm_model = ChatModel.from_pretrained({model})\n"
-        elif model in litellm.vertex_text_models:
+        elif model in gateway.vertex_text_models:
             llm_model = _vertex_llm_model_object or TextGenerationModel.from_pretrained(model)
             mode = "text"
             request_str += f"llm_model = TextGenerationModel.from_pretrained({model})\n"
-        elif model in litellm.vertex_code_text_models:
+        elif model in gateway.vertex_code_text_models:
             llm_model = _vertex_llm_model_object or CodeGenerationModel.from_pretrained(model)
             mode = "text"
             request_str += f"llm_model = CodeGenerationModel.from_pretrained({model})\n"
             fake_stream = True
-        elif model in litellm.vertex_code_chat_models:  # vertex_code_llm_models
+        elif model in gateway.vertex_code_chat_models:  # vertex_code_llm_models
             llm_model = _vertex_llm_model_object or CodeChatModel.from_pretrained(model)
             mode = "chat"
             request_str += f"llm_model = CodeChatModel.from_pretrained({model})\n"
@@ -378,14 +378,14 @@ def completion(
         logging_obj.post_call(input=prompt, api_key=None, original_response=completion_response)
 
         ## RESPONSE OBJECT
-        if isinstance(completion_response, litellm.Message):
+        if isinstance(completion_response, gateway.Message):
             model_response.choices[0].message = completion_response
         elif len(str(completion_response)) > 0:
             model_response.choices[0].message.content = str(completion_response)
         model_response.created = int(time.time())
         model_response.model = model
         ## CALCULATING USAGE
-        if model in litellm.vertex_language_models and response_obj is not None:
+        if model in gateway.vertex_language_models and response_obj is not None:
             model_response.choices[0].finish_reason = map_finish_reason(response_obj.candidates[0].finish_reason.name)
             usage = Usage(
                 prompt_tokens=response_obj.usage_metadata.prompt_token_count,
@@ -419,7 +419,7 @@ def completion(
     except Exception as e:
         if isinstance(e, VertexAIError):
             raise e
-        raise litellm.APIConnectionError(message=str(e), llm_provider="vertex_ai", model=model)
+        raise gateway.APIConnectionError(message=str(e), llm_provider="vertex_ai", model=model)
 
 
 async def async_completion(
@@ -525,14 +525,14 @@ async def async_completion(
         logging_obj.post_call(input=prompt, api_key=None, original_response=completion_response)
 
         ## RESPONSE OBJECT
-        if isinstance(completion_response, litellm.Message):
+        if isinstance(completion_response, gateway.Message):
             model_response.choices[0].message = completion_response
         elif len(str(completion_response)) > 0:
             model_response.choices[0].message.content = str(completion_response)
         model_response.created = int(time.time())
         model_response.model = model
         ## CALCULATING USAGE
-        if model in litellm.vertex_language_models and response_obj is not None:
+        if model in gateway.vertex_language_models and response_obj is not None:
             model_response.choices[0].finish_reason = map_finish_reason(response_obj.candidates[0].finish_reason.name)
             usage = Usage(
                 prompt_tokens=response_obj.usage_metadata.prompt_token_count,

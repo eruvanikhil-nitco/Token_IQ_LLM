@@ -1,7 +1,7 @@
 import traceback
 from dotenv import load_dotenv
 import token_iq.gateway.types
-from token_iq import gateway as litellm
+from token_iq import gateway
 import pytest
 from token_iq.gateway import AmazonInvokeConfig
 import json

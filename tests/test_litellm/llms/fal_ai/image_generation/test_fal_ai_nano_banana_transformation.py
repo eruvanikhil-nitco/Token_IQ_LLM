@@ -5,9 +5,9 @@ import pytest
 
 os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
-litellm.model_cost = litellm.get_model_cost_map()
+gateway.model_cost = gateway.get_model_cost_map()
 from token_iq.gateway.llms.fal_ai.cost_calculator import cost_calculator
 from token_iq.gateway.llms.fal_ai.image_generation import (
     FalAIImagen4Config,
@@ -149,8 +149,8 @@ def test_transform_request_includes_prompt_and_mapped_params():
     "model", ["fal-ai/nano-banana", "fal-ai/gemini-25-flash-image"]
 )
 def test_nano_banana_pricing_registered(model):
-    info = litellm.get_model_info(
-        model=model, custom_llm_provider=litellm.LlmProviders.FAL_AI.value
+    info = gateway.get_model_info(
+        model=model, custom_llm_provider=gateway.LlmProviders.FAL_AI.value
     )
     assert info["output_cost_per_image"] == 0.039
     assert info["mode"] == "image_generation"

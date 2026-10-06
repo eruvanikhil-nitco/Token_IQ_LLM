@@ -4,7 +4,7 @@ DeepSeek Anthropic-compatible messages transformation config.
 
 from typing import Any, Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.transformation import (
     AnthropicMessagesConfig,
 )
@@ -31,7 +31,7 @@ class DeepSeekAnthropicMessagesConfig(AnthropicMessagesConfig):
 
     @staticmethod
     def get_api_key(api_key: str | None = None) -> str | None:
-        return api_key or get_secret_str("DEEPSEEK_API_KEY") or litellm.api_key
+        return api_key or get_secret_str("DEEPSEEK_API_KEY") or gateway.api_key
 
     @staticmethod
     def get_api_base(api_base: str | None = None) -> str:

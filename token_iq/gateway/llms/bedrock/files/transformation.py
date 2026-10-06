@@ -878,14 +878,14 @@ class BedrockFilesConfig(BaseAWSLLM, BaseFilesConfig):
         }
         """
 
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         bedrock_jsonl_content: Final = []
         for idx, _openai_jsonl_content in enumerate(openai_jsonl_content):
             # Extract the request body from OpenAI format
             openai_body = _openai_jsonl_content.get("body", {})
             record_model = openai_body.get("model", "")
-            resolved_model = litellm.model_alias_map.get(record_model, record_model)
+            resolved_model = gateway.model_alias_map.get(record_model, record_model)
             model_for_transform, provider = self._resolve_batch_record_model_and_provider(
                 record_model=resolved_model, target_model=target_model
             )

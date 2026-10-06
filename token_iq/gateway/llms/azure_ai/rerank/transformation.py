@@ -7,7 +7,7 @@ from typing import Final
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
 from token_iq.gateway.llms.azure_ai.common_utils import get_azure_ai_auth_headers
 from token_iq.gateway.llms.cohere.rerank.transformation import CohereRerankConfig
@@ -69,7 +69,7 @@ class AzureAIRerankConfig(CohereRerankConfig):
         litellm_params: Mapping[str, object] | None = None,
     ) -> dict:
         if api_key is None:
-            api_key = get_secret_str("AZURE_AI_API_KEY") or litellm.azure_key
+            api_key = get_secret_str("AZURE_AI_API_KEY") or gateway.azure_key
 
         default_headers: Final = {
             **get_azure_ai_auth_headers(api_key=api_key, litellm_params=litellm_params),

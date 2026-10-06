@@ -1,19 +1,19 @@
 import json
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 import pytest
 
 
 @pytest.fixture()
 def disable_aiohttp_transport():
-    original_disable_aiohttp = litellm.disable_aiohttp_transport
-    litellm.disable_aiohttp_transport = True
-    litellm.in_memory_llm_clients_cache.flush_cache()
+    original_disable_aiohttp = gateway.disable_aiohttp_transport
+    gateway.disable_aiohttp_transport = True
+    gateway.in_memory_llm_clients_cache.flush_cache()
     try:
         yield
     finally:
-        litellm.disable_aiohttp_transport = original_disable_aiohttp
-        litellm.in_memory_llm_clients_cache.flush_cache()
+        gateway.disable_aiohttp_transport = original_disable_aiohttp
+        gateway.in_memory_llm_clients_cache.flush_cache()
 
 
 @pytest.mark.asyncio
@@ -37,7 +37,7 @@ async def test_parse_legacy_wraps_enhance_under_options(
         }
     )
 
-    response = await litellm.aocr(
+    response = await gateway.aocr(
         model="reducto/parse-legacy",
         document={
             "type": "file",

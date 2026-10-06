@@ -7,7 +7,7 @@ import pytest
 
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import Router
 from token_iq.gateway.integrations.custom_logger import CustomLogger
 from typing import Any, Dict, List
@@ -85,10 +85,10 @@ async def test_run_async_fallback(function_name):
     router = create_test_router()
     original_function = getattr(router, function_name)
 
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     fallback_model_group = ["gpt-4"]
     original_model_group = "gpt-3.5-turbo"
-    original_exception = litellm.exceptions.InternalServerError(
+    original_exception = gateway.exceptions.InternalServerError(
         message="Simulated error",
         llm_provider="openai",
         model="gpt-3.5-turbo",
@@ -121,11 +121,11 @@ async def test_run_async_fallback(function_name):
     assert result is not None
 
     if function_name == "_acompletion":
-        assert isinstance(result, litellm.ModelResponse)
+        assert isinstance(result, gateway.ModelResponse)
     elif function_name == "_atext_completion":
-        assert isinstance(result, litellm.TextCompletionResponse)
+        assert isinstance(result, gateway.TextCompletionResponse)
     elif function_name == "_aembedding":
-        assert isinstance(result, litellm.EmbeddingResponse)
+        assert isinstance(result, gateway.EmbeddingResponse)
 
 
 class CustomTestLogger(CustomLogger):
@@ -164,14 +164,14 @@ async def test_log_success_fallback_event():
     """
     original_model_group = "gpt-3.5-turbo"
     kwargs = {"messages": [{"role": "user", "content": "Hello, world!"}]}
-    original_exception = litellm.exceptions.InternalServerError(
+    original_exception = gateway.exceptions.InternalServerError(
         message="Simulated error",
         llm_provider="openai",
         model="gpt-3.5-turbo",
     )
 
     logger = CustomTestLogger()
-    litellm.callbacks = [logger]
+    gateway.callbacks = [logger]
 
     # This test mainly checks if the function runs without errors
     await log_success_fallback_event(original_model_group, kwargs, original_exception)
@@ -193,14 +193,14 @@ async def test_log_failure_fallback_event():
     """
     original_model_group = "gpt-3.5-turbo"
     kwargs = {"messages": [{"role": "user", "content": "Hello, world!"}]}
-    original_exception = litellm.exceptions.InternalServerError(
+    original_exception = gateway.exceptions.InternalServerError(
         message="Simulated error",
         llm_provider="openai",
         model="gpt-3.5-turbo",
     )
 
     logger = CustomTestLogger()
-    litellm.callbacks = [logger]
+    gateway.callbacks = [logger]
 
     # This test mainly checks if the function runs without errors
     await log_failure_fallback_event(original_model_group, kwargs, original_exception)
@@ -229,7 +229,7 @@ async def test_failed_fallbacks_raise_most_recent_exception(function_name):
 
     fallback_model_group = ["gpt-4"]
     original_model_group = "gpt-3.5-turbo"
-    original_exception = litellm.exceptions.InternalServerError(
+    original_exception = gateway.exceptions.InternalServerError(
         message="Simulated error",
         llm_provider="openai",
         model="gpt-3.5-turbo",
@@ -246,7 +246,7 @@ async def test_failed_fallbacks_raise_most_recent_exception(function_name):
     elif function_name == "_acompletion":
         request_kwargs["messages"] = [{"role": "user", "content": "Hello, world!"}]
 
-    with pytest.raises(litellm.exceptions.RateLimitError):
+    with pytest.raises(gateway.exceptions.RateLimitError):
         await run_async_fallback(
             litellm_router=router,
             original_function=original_function,

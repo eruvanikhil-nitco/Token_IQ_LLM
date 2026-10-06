@@ -24,7 +24,7 @@ from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
 from pydantic import BaseModel, JsonValue
 from typing_extensions import ReadOnly, TypedDict
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway._uuid import uuid
 from token_iq.gateway.integrations.prometheus import PrometheusLogger
@@ -738,7 +738,7 @@ def _get_default_team_param(field: str) -> object:
 
     For list fields containing enums (e.g. team_member_permissions), converts enum values to strings.
     """
-    default_params: Final = litellm.default_team_params
+    default_params: Final = gateway.default_team_params
     if default_params is None:
         return None
     if isinstance(default_params, dict):
@@ -754,10 +754,10 @@ def _get_default_team_param(field: str) -> object:
 
 
 def _is_available_team(team_id: str, user_api_key_dict: UserAPIKeyAuth) -> bool:
-    if litellm.default_internal_user_params is None:
+    if gateway.default_internal_user_params is None:
         return False
-    if "available_teams" in litellm.default_internal_user_params:
-        return team_id in litellm.default_internal_user_params["available_teams"]
+    if "available_teams" in gateway.default_internal_user_params:
+        return team_id in gateway.default_internal_user_params["available_teams"]
     return False
 
 
@@ -1396,11 +1396,11 @@ async def new_team(
         # if still not set after checking default_team_params.
         if data.max_budget is None:
             if (
-                isinstance(litellm.default_team_settings, list)
-                and len(litellm.default_team_settings) > 0
-                and isinstance(litellm.default_team_settings[0], dict)
+                isinstance(gateway.default_team_settings, list)
+                and len(gateway.default_team_settings) > 0
+                and isinstance(gateway.default_team_settings[0], dict)
             ):
-                default_budget: Final = litellm.default_team_settings[0].get("max_budget")
+                default_budget: Final = gateway.default_team_settings[0].get("max_budget")
                 if default_budget is not None:
                     data.max_budget = default_budget
 
@@ -4728,8 +4728,8 @@ async def list_available_teams(
     available_teams = cast(
         list[str] | None,
         (
-            litellm.default_internal_user_params.get("available_teams")
-            if litellm.default_internal_user_params is not None
+            gateway.default_internal_user_params.get("available_teams")
+            if gateway.default_internal_user_params is not None
             else None
         ),
     )

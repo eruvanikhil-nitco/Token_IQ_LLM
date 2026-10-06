@@ -8,7 +8,7 @@ from typing import Final
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
 from token_iq.gateway.llms.custom_httpx.http_handler import (
     AsyncHTTPHandler,
@@ -69,7 +69,7 @@ class PredibaseChatCompletion:
         logger_fn=None,
         headers: dict = {},
     ) -> ModelResponse | CustomStreamWrapper:
-        predibase_config: Final = litellm.PredibaseConfig()
+        predibase_config: Final = gateway.PredibaseConfig()
         headers = predibase_config.validate_environment(
             api_key=api_key,
             headers=headers,
@@ -155,7 +155,7 @@ class PredibaseChatCompletion:
 
         ### SYNC STREAMING
         if stream is True:
-            response = litellm.module_level_client.post(
+            response = gateway.module_level_client.post(
                 completion_url,
                 headers=headers,
                 data=json.dumps(data),
@@ -171,7 +171,7 @@ class PredibaseChatCompletion:
             return _response
         ### SYNC COMPLETION
         else:
-            response = litellm.module_level_client.post(
+            response = gateway.module_level_client.post(
                 url=completion_url,
                 headers=headers,
                 data=json.dumps(data),
@@ -210,9 +210,9 @@ class PredibaseChatCompletion:
         predibase_config=None,
     ) -> ModelResponse:
         if predibase_config is None:
-            predibase_config = litellm.PredibaseConfig()
+            predibase_config = gateway.PredibaseConfig()
         async_handler: Final = get_async_httpx_client(
-            llm_provider=litellm.LlmProviders.PREDIBASE,
+            llm_provider=gateway.LlmProviders.PREDIBASE,
             params={"timeout": timeout},
         )
         try:
@@ -223,7 +223,7 @@ class PredibaseChatCompletion:
                 message=f"HTTPStatusError - received status_code={e.response.status_code}, error_message={e.response.text}",
             )
         except Exception as e:
-            for exception in litellm.LITELLM_EXCEPTION_TYPES:
+            for exception in gateway.LITELLM_EXCEPTION_TYPES:
                 if isinstance(e, exception):
                     raise e
             raise PredibaseError(

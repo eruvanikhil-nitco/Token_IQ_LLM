@@ -6,7 +6,7 @@ from urllib.parse import quote
 import httpx
 import yaml
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.caching import InMemoryCache
 from token_iq.gateway.llms.custom_httpx.http_handler import (
@@ -45,8 +45,8 @@ class CyberArkSecretManager(BaseSecretManager):
                 "Missing CyberArk credentials. Please set CYBERARK_API_KEY or both CYBERARK_CLIENT_CERT and CYBERARK_CLIENT_KEY in your environment."
             )
 
-        litellm.secret_manager_client = self
-        litellm._key_management_system = KeyManagementSystem.CYBERARK
+        gateway.secret_manager_client = self
+        gateway._key_management_system = KeyManagementSystem.CYBERARK
 
         # Tokens expire after ~8 minutes, so we cache for 5 minutes to be safe
         _refresh_interval: Final = int(os.environ.get("CYBERARK_REFRESH_INTERVAL", "300"))

@@ -1,6 +1,6 @@
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.tencent.cost_calculator import cost_per_token
 from token_iq.gateway.types.utils import Usage
 

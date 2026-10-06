@@ -45,7 +45,7 @@ class OpenAIEvalsConfig(BaseEvalsAPIConfig):
 
     def validate_environment(self, headers: dict, litellm_params: GenericLiteLLMParams | None) -> dict:
         """Add OpenAI-specific headers"""
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.secret_managers.main import get_secret_str
 
         # Get API key following OpenAI pattern
@@ -53,7 +53,7 @@ class OpenAIEvalsConfig(BaseEvalsAPIConfig):
         if litellm_params:
             api_key = litellm_params.api_key
 
-        api_key = api_key or litellm.api_key or litellm.openai_key or get_secret_str("OPENAI_API_KEY")
+        api_key = api_key or gateway.api_key or gateway.openai_key or get_secret_str("OPENAI_API_KEY")
 
         if not api_key:
             raise ValueError("OPENAI_API_KEY is required for Evals API")

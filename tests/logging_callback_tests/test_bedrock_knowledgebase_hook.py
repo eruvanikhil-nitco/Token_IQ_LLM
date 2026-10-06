@@ -4,9 +4,9 @@ import os
 
 
 import asyncio
-from token_iq import gateway as litellm
+from token_iq import gateway
 import token_iq.gateway.vector_stores.main
-from token_iq import gateway as litellm
+from token_iq import gateway
 import gzip
 import json
 import logging
@@ -16,7 +16,7 @@ from unittest.mock import AsyncMock, patch, Mock
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import completion
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.integrations.vector_store_integrations.vector_store_pre_call_hook import (
@@ -63,7 +63,7 @@ def setup_vector_store_registry():
     )
 
     # Init vector store registry
-    litellm.vector_store_registry = VectorStoreRegistry(
+    gateway.vector_store_registry = VectorStoreRegistry(
         vector_stores=[
             LiteLLM_ManagedVectorStore(
                 vector_store_id="T37J8R4WTM", custom_llm_provider="bedrock"
@@ -118,9 +118,9 @@ async def test_vector_store_hook_routes_search_through_proxy_router(
 async def test_e2e_bedrock_knowledgebase_retrieval_with_completion(
     setup_vector_store_registry,
 ):
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
     client = AsyncHTTPHandler()
-    print("value of litellm.vector_store_registry:", litellm.vector_store_registry)
+    print("value of litellm.vector_store_registry:", gateway.vector_store_registry)
 
     with patch.object(client, "post") as mock_post:
         # Mock the response for the LLM call
@@ -149,7 +149,7 @@ async def test_e2e_bedrock_knowledgebase_retrieval_with_completion(
         mock_post.return_value = mock_response
 
         try:
-            response = await litellm.acompletion(
+            response = await gateway.acompletion(
                 model="anthropic/claude-3.5-sonnet",
                 messages=[{"role": "user", "content": "what is litellm?"}],
                 vector_store_ids=["T37J8R4WTM"],
@@ -188,9 +188,9 @@ async def test_e2e_bedrock_knowledgebase_retrieval_with_llm_api_call(
     """
 
     # Init client
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
     async_client = AsyncHTTPHandler()
-    response = await litellm.acompletion(
+    response = await gateway.acompletion(
         model="bedrock/us.anthropic.claude-haiku-4-5-20251001-v1:0",
         messages=[{"role": "user", "content": "what is litellm?"}],
         vector_store_ids=["T37J8R4WTM"],
@@ -234,7 +234,7 @@ async def test_e2e_bedrock_knowledgebase_retrieval_with_llm_api_call_streaming(
     # Init client
     # litellm._turn_on_debug()
     async_client = AsyncHTTPHandler()
-    response = await litellm.acompletion(
+    response = await gateway.acompletion(
         model=f"anthropic/{os.environ.get('CI_CD_DEFAULT_ANTHROPIC_MODEL', 'claude-haiku-4-5-20251001')}",
         messages=[{"role": "user", "content": "what is litellm?"}],
         vector_store_ids=["T37J8R4WTM"],
@@ -291,8 +291,8 @@ async def test_e2e_bedrock_knowledgebase_retrieval_with_llm_api_call_with_tools(
     """
 
     # Init client
-    litellm._turn_on_debug()
-    response = await litellm.acompletion(
+    gateway._turn_on_debug()
+    response = await gateway.acompletion(
         model=f"anthropic/{os.environ.get('CI_CD_DEFAULT_ANTHROPIC_MODEL', 'claude-haiku-4-5-20251001')}",
         messages=[{"role": "user", "content": "what is litellm?"}],
         max_tokens=10,
@@ -311,9 +311,9 @@ async def test_e2e_bedrock_knowledgebase_retrieval_with_llm_api_call_with_tools_
 
     In this case we filter for a non-existent user_id, which should return no results.
     """
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
 
-    response = await litellm.acompletion(
+    response = await gateway.acompletion(
         model=f"anthropic/{os.environ.get('CI_CD_DEFAULT_ANTHROPIC_MODEL', 'claude-haiku-4-5-20251001')}",
         messages=[{"role": "user", "content": "what is litellm?"}],
         max_tokens=10,
@@ -418,11 +418,11 @@ async def test_bedrock_kb_request_body_has_transformed_filters(
         )
 
     with patch.object(
-        litellm.vector_stores.main.base_llm_http_handler,
+        gateway.vector_stores.main.base_llm_http_handler,
         "async_vector_store_search_handler",
         new=AsyncMock(side_effect=fake_async_vector_store_search_handler),
     ):
-        response = await litellm.acompletion(
+        response = await gateway.acompletion(
             model=f"anthropic/{os.environ.get('CI_CD_DEFAULT_ANTHROPIC_MODEL', 'claude-haiku-4-5-20251001')}",
             messages=[{"role": "user", "content": "what is litellm?"}],
             max_tokens=10,
@@ -462,7 +462,7 @@ async def test_openai_with_knowledge_base_mock_openai(setup_vector_store_registr
     """
     Tests that knowledge base content is correctly passed to the OpenAI API call
     """
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     from openai import AsyncOpenAI
 
     client = AsyncOpenAI(api_key="fake-api-key")
@@ -500,7 +500,7 @@ async def test_openai_with_knowledge_base_mock_openai(setup_vector_store_registr
         mock_client.side_effect = mock_create
 
         try:
-            await litellm.acompletion(
+            await gateway.acompletion(
                 model="gpt-5.5",
                 messages=[{"role": "user", "content": "what is litellm?"}],
                 vector_store_ids=["T37J8R4WTM"],
@@ -538,7 +538,7 @@ async def test_openai_with_vector_store_ids_in_tool_call_mock_openai(
 
     This is the OpenAI format
     """
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     from openai import AsyncOpenAI
 
     client = AsyncOpenAI(api_key="fake-api-key")
@@ -576,7 +576,7 @@ async def test_openai_with_vector_store_ids_in_tool_call_mock_openai(
         mock_client.side_effect = mock_create
 
         try:
-            await litellm.acompletion(
+            await gateway.acompletion(
                 model="gpt-5.5",
                 messages=[{"role": "user", "content": "what is litellm?"}],
                 tools=[{"type": "file_search", "vector_store_ids": ["T37J8R4WTM"]}],
@@ -649,7 +649,7 @@ async def test_openai_with_mixed_tool_call_mock_openai(setup_vector_store_regist
         mock_client.side_effect = mock_create
 
         try:
-            await litellm.acompletion(
+            await gateway.acompletion(
                 model="gpt-5.5",
                 messages=[{"role": "user", "content": "what is litellm?"}],
                 tools=[
@@ -732,9 +732,9 @@ async def test_openai_with_mixed_tool_call_mock_openai(setup_vector_store_regist
 async def test_e2e_bedrock_knowledgebase_retrieval_without_vector_store_registry(
     setup_vector_store_registry,
 ):
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
     client = AsyncHTTPHandler()
-    litellm.vector_store_registry = None
+    gateway.vector_store_registry = None
 
     with patch.object(client, "post") as mock_post:
         # Mock the response for the LLM call
@@ -762,7 +762,7 @@ async def test_e2e_bedrock_knowledgebase_retrieval_without_vector_store_registry
         mock_response.json = lambda: json.loads(mock_response.text)
         mock_post.return_value = mock_response
         try:
-            response = await litellm.acompletion(
+            response = await gateway.acompletion(
                 model="anthropic/claude-3.5-sonnet",
                 messages=[{"role": "user", "content": "what is litellm?"}],
                 vector_store_ids=["T37J8R4WTM"],
@@ -797,11 +797,11 @@ async def test_e2e_bedrock_knowledgebase_retrieval_with_vector_store_not_in_regi
 
     In this test newUnknownVectorStoreId is not in the registry, so no vector store request is made
     """
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
     client = AsyncHTTPHandler()
 
-    if litellm.vector_store_registry is not None:
-        print("Registry iniitalized:", litellm.vector_store_registry.vector_stores)
+    if gateway.vector_store_registry is not None:
+        print("Registry iniitalized:", gateway.vector_store_registry.vector_stores)
     else:
         print("Registry is None")
 
@@ -831,7 +831,7 @@ async def test_e2e_bedrock_knowledgebase_retrieval_with_vector_store_not_in_regi
         mock_response.json = lambda: json.loads(mock_response.text)
         mock_post.return_value = mock_response
         try:
-            response = await litellm.acompletion(
+            response = await gateway.acompletion(
                 model="anthropic/claude-3.5-sonnet",
                 messages=[{"role": "user", "content": "what is litellm?"}],
                 vector_store_ids=["newUnknownVectorStoreId"],
@@ -897,7 +897,7 @@ async def test_provider_specific_fields_in_proxy_http_response(
     client = TestClient(app)
 
     # Create mock response with provider_specific_fields
-    mock_response = litellm.ModelResponse(
+    mock_response = gateway.ModelResponse(
         id="test-123",
         model="gpt-5-mini",
         created=1234567890,
@@ -905,7 +905,7 @@ async def test_provider_specific_fields_in_proxy_http_response(
     )
 
     # Create message with provider_specific_fields
-    mock_message = litellm.Message(
+    mock_message = gateway.Message(
         content="LiteLLM is a tool that simplifies working with multiple LLMs.",
         role="assistant",
         provider_specific_fields={
@@ -926,10 +926,10 @@ async def test_provider_specific_fields_in_proxy_http_response(
         },
     )
 
-    mock_choice = litellm.Choices(finish_reason="stop", index=0, message=mock_message)
+    mock_choice = gateway.Choices(finish_reason="stop", index=0, message=mock_message)
 
     mock_response.choices = [mock_choice]
-    mock_response.usage = litellm.Usage(
+    mock_response.usage = gateway.Usage(
         prompt_tokens=10, completion_tokens=20, total_tokens=30
     )
 

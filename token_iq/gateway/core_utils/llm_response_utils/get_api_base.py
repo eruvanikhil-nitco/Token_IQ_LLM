@@ -1,6 +1,6 @@
 from typing import Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import verbose_logger
 
 from ...core_utils.get_llm_provider_logic import get_llm_provider
@@ -40,8 +40,8 @@ def get_api_base(model: str, optional_params: dict | LiteLLM_Params) -> str | No
     if _optional_params.api_base is not None:
         return _optional_params.api_base
 
-    if litellm.model_alias_map and model in litellm.model_alias_map:
-        model = litellm.model_alias_map[model]
+    if gateway.model_alias_map and model in gateway.model_alias_map:
+        model = gateway.model_alias_map[model]
     try:
         (
             model,

@@ -11,7 +11,7 @@ from datetime import datetime
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import completion
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.integrations.gcs_bucket.gcs_bucket import (
@@ -75,8 +75,8 @@ async def test_aaabasic_gcs_logger():
     ):
         gcs_logger = GCSBucketLogger()
 
-        litellm.callbacks = [gcs_logger]
-        response = await litellm.acompletion(
+        gateway.callbacks = [gcs_logger]
+        response = await gateway.acompletion(
             model="gpt-3.5-turbo",
             temperature=0.7,
             messages=[{"role": "user", "content": "This is a test"}],
@@ -196,16 +196,16 @@ async def test_basic_gcs_logger_failure():
     ):
         gcs_logger = GCSBucketLogger()
 
-        litellm.callbacks = [gcs_logger]
+        gateway.callbacks = [gcs_logger]
 
         try:
-            response = await litellm.acompletion(
+            response = await gateway.acompletion(
                 model="gpt-3.5-turbo",
                 temperature=0.7,
                 messages=[{"role": "user", "content": "This is a test"}],
                 max_tokens=10,
                 user="ishaan-2",
-                mock_response=litellm.BadRequestError(
+                mock_response=gateway.BadRequestError(
                     model="gpt-3.5-turbo",
                     message="Error: 400: Bad Request: Invalid API key, please check your API key and try again.",
                     llm_provider="openai",

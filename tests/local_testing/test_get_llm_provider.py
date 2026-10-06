@@ -9,12 +9,12 @@ import io
 from unittest.mock import patch
 
 import pytest
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.types.router import LiteLLM_Params
 
 
 def test_get_llm_provider():
-    _, response, _, _ = litellm.get_llm_provider(model="anthropic.claude-v2:1")
+    _, response, _, _ = gateway.get_llm_provider(model="anthropic.claude-v2:1")
 
     assert response == "bedrock"
 
@@ -23,7 +23,7 @@ def test_get_llm_provider():
 
 
 def test_get_llm_provider_fireworks():  # tests finetuned fireworks models - https://github.com/BerriAI/litellm/issues/4923
-    model, custom_llm_provider, _, _ = litellm.get_llm_provider(
+    model, custom_llm_provider, _, _ = gateway.get_llm_provider(
         model="fireworks_ai/accounts/my-test-1234"
     )
 
@@ -32,18 +32,18 @@ def test_get_llm_provider_fireworks():  # tests finetuned fireworks models - htt
 
 
 def test_get_llm_provider_catch_all():
-    _, response, _, _ = litellm.get_llm_provider(model="*")
+    _, response, _, _ = gateway.get_llm_provider(model="*")
     assert response == "openai"
 
 
 def test_get_llm_provider_gpt_instruct():
-    _, response, _, _ = litellm.get_llm_provider(model="gpt-3.5-turbo-instruct-0914")
+    _, response, _, _ = gateway.get_llm_provider(model="gpt-3.5-turbo-instruct-0914")
 
     assert response == "text-completion-openai"
 
 
 def test_get_llm_provider_mistral_custom_api_base():
-    model, custom_llm_provider, dynamic_api_key, api_base = litellm.get_llm_provider(
+    model, custom_llm_provider, dynamic_api_key, api_base = gateway.get_llm_provider(
         model="mistral/mistral-large-fr",
         api_base="https://mistral-large-fr-ishaan.francecentral.inference.ai.azure.com/v1",
     )
@@ -57,7 +57,7 @@ def test_get_llm_provider_mistral_custom_api_base():
 
 def test_get_llm_provider_deepseek_custom_api_base():
     os.environ["DEEPSEEK_API_BASE"] = "MY-FAKE-BASE"
-    model, custom_llm_provider, dynamic_api_key, api_base = litellm.get_llm_provider(
+    model, custom_llm_provider, dynamic_api_key, api_base = gateway.get_llm_provider(
         model="deepseek/deep-chat",
     )
     assert custom_llm_provider == "deepseek"
@@ -68,14 +68,14 @@ def test_get_llm_provider_deepseek_custom_api_base():
 
 
 def test_get_llm_provider_vertex_ai_image_models():
-    model, custom_llm_provider, dynamic_api_key, api_base = litellm.get_llm_provider(
+    model, custom_llm_provider, dynamic_api_key, api_base = gateway.get_llm_provider(
         model="imagegeneration@006", custom_llm_provider=None
     )
     assert custom_llm_provider == "vertex_ai"
 
 
 def test_get_llm_provider_ai21_chat():
-    model, custom_llm_provider, dynamic_api_key, api_base = litellm.get_llm_provider(
+    model, custom_llm_provider, dynamic_api_key, api_base = gateway.get_llm_provider(
         model="jamba-1.5-large",
     )
     assert custom_llm_provider == "ai21_chat"
@@ -87,7 +87,7 @@ def test_get_llm_provider_ai21_chat_test2():
     """
     if user prefix with ai21/ but calls jamba-1.5-large then it should be ai21_chat provider
     """
-    model, custom_llm_provider, dynamic_api_key, api_base = litellm.get_llm_provider(
+    model, custom_llm_provider, dynamic_api_key, api_base = gateway.get_llm_provider(
         model="ai21/jamba-1.5-large",
     )
 
@@ -103,7 +103,7 @@ def test_get_llm_provider_cohere_chat_test2():
     """
     if user prefix with cohere/ but calls command-r-plus then it should be cohere_chat provider
     """
-    model, custom_llm_provider, dynamic_api_key, api_base = litellm.get_llm_provider(
+    model, custom_llm_provider, dynamic_api_key, api_base = gateway.get_llm_provider(
         model="cohere/command-r-plus",
     )
 
@@ -116,7 +116,7 @@ def test_get_llm_provider_cohere_chat_test2():
 
 def test_get_llm_provider_azure_o1():
 
-    model, custom_llm_provider, dynamic_api_key, api_base = litellm.get_llm_provider(
+    model, custom_llm_provider, dynamic_api_key, api_base = gateway.get_llm_provider(
         model="azure/o1-mini",
     )
     assert custom_llm_provider == "azure"
@@ -131,7 +131,7 @@ def test_default_api_base():
 
     # Patch environment variable to remove API base if it's set
     with patch.dict(os.environ, {}, clear=True):
-        for provider in litellm.openai_compatible_providers:
+        for provider in gateway.openai_compatible_providers:
             # Get the API base for the given provider
             if provider == "github_copilot":
                 continue
@@ -178,7 +178,7 @@ def test_hosted_vllm_default_api_key():
 
 
 def test_get_llm_provider_jina_ai():
-    model, custom_llm_provider, dynamic_api_key, api_base = litellm.get_llm_provider(
+    model, custom_llm_provider, dynamic_api_key, api_base = gateway.get_llm_provider(
         model="jina_ai/jina-embeddings-v3",
     )
     assert custom_llm_provider == "jina_ai"
@@ -187,7 +187,7 @@ def test_get_llm_provider_jina_ai():
 
 
 def test_get_llm_provider_hosted_vllm():
-    model, custom_llm_provider, dynamic_api_key, api_base = litellm.get_llm_provider(
+    model, custom_llm_provider, dynamic_api_key, api_base = gateway.get_llm_provider(
         model="hosted_vllm/llama-3.1-70b-instruct",
     )
     assert custom_llm_provider == "hosted_vllm"
@@ -196,7 +196,7 @@ def test_get_llm_provider_hosted_vllm():
 
 
 def test_get_llm_provider_llamafile():
-    model, custom_llm_provider, dynamic_api_key, api_base = litellm.get_llm_provider(
+    model, custom_llm_provider, dynamic_api_key, api_base = gateway.get_llm_provider(
         model="llamafile/mistralai/mistral-7b-instruct-v0.2",
     )
     assert custom_llm_provider == "llamafile"
@@ -206,7 +206,7 @@ def test_get_llm_provider_llamafile():
 
 
 def test_get_llm_provider_watson_text():
-    model, custom_llm_provider, dynamic_api_key, api_base = litellm.get_llm_provider(
+    model, custom_llm_provider, dynamic_api_key, api_base = gateway.get_llm_provider(
         model="watsonx_text/watson-text-to-speech",
     )
     assert custom_llm_provider == "watsonx_text"
@@ -214,7 +214,7 @@ def test_get_llm_provider_watson_text():
 
 
 def test_azure_global_standard_get_llm_provider():
-    model, custom_llm_provider, dynamic_api_key, api_base = litellm.get_llm_provider(
+    model, custom_llm_provider, dynamic_api_key, api_base = gateway.get_llm_provider(
         model="azure_ai/gpt-4o-global-standard",
         api_base="https://my-deployment-francecentral.services.ai.azure.com/models/chat/completions?api-version=2024-05-01-preview",
         api_key="fake-api-key",
@@ -223,7 +223,7 @@ def test_azure_global_standard_get_llm_provider():
 
 
 def test_nova_bedrock_converse():
-    model, custom_llm_provider, dynamic_api_key, api_base = litellm.get_llm_provider(
+    model, custom_llm_provider, dynamic_api_key, api_base = gateway.get_llm_provider(
         model="amazon.nova-micro-v1:0",
     )
     assert custom_llm_provider == "bedrock"
@@ -231,7 +231,7 @@ def test_nova_bedrock_converse():
 
 
 def test_bedrock_invoke_anthropic():
-    model, custom_llm_provider, dynamic_api_key, api_base = litellm.get_llm_provider(
+    model, custom_llm_provider, dynamic_api_key, api_base = gateway.get_llm_provider(
         model="bedrock/invoke/anthropic.claude-haiku-4-5-20251001-v1:0",
     )
     assert custom_llm_provider == "bedrock"
@@ -247,7 +247,7 @@ def test_xai_api_base(model):
         "api_key": "xai-my-specialkey",
         "litellm_params": None,
     }
-    model, custom_llm_provider, dynamic_api_key, api_base = litellm.get_llm_provider(
+    model, custom_llm_provider, dynamic_api_key, api_base = gateway.get_llm_provider(
         **args
     )
     assert custom_llm_provider == "xai"
@@ -280,7 +280,7 @@ def test_get_litellm_proxy_custom_llm_provider():
             provider,
             key,
             base,
-        ) = litellm.LiteLLMProxyChatConfig().litellm_proxy_get_custom_llm_provider_info(
+        ) = gateway.LiteLLMProxyChatConfig().litellm_proxy_get_custom_llm_provider_info(
             model=test_model
         )
 
@@ -311,7 +311,7 @@ def test_get_litellm_proxy_with_args_override_env_vars():
             provider,
             key,
             base,
-        ) = litellm.LiteLLMProxyChatConfig().litellm_proxy_get_custom_llm_provider_info(
+        ) = gateway.LiteLLMProxyChatConfig().litellm_proxy_get_custom_llm_provider_info(
             model=test_model, api_base=arg_api_base, api_key=arg_api_key
         )
 
@@ -343,7 +343,7 @@ def test_get_litellm_proxy_model_prefix_stripping():
             provider,
             key,
             base,
-        ) = litellm.LiteLLMProxyChatConfig().litellm_proxy_get_custom_llm_provider_info(
+        ) = gateway.LiteLLMProxyChatConfig().litellm_proxy_get_custom_llm_provider_info(
             model=original_model
         )
 
@@ -374,7 +374,7 @@ def test_get_llm_provider_LITELLM_PROXY_ALWAYS_true():
         },
         clear=True,
     ):
-        model, provider, key, base = litellm.get_llm_provider(model=test_model_input)
+        model, provider, key, base = gateway.get_llm_provider(model=test_model_input)
 
     print("get_llm_provider", model, provider, key, base)
 
@@ -402,7 +402,7 @@ def test_get_llm_provider_LITELLM_PROXY_ALWAYS_true_model_prefix():
         },
         clear=True,
     ):
-        model, provider, key, base = litellm.get_llm_provider(model=test_model_input)
+        model, provider, key, base = gateway.get_llm_provider(model=test_model_input)
 
     assert model == expected_model_output
     assert provider == "litellm_proxy"
@@ -430,7 +430,7 @@ def test_get_llm_provider_use_proxy_arg_true():
         },
         clear=True,
     ):  # clear=True removes LITELLM_PROXY_ALWAYS if it was set by other tests
-        model, provider, key, base = litellm.get_llm_provider(
+        model, provider, key, base = gateway.get_llm_provider(
             model=test_model_input,
             litellm_params=LiteLLM_Params(
                 use_litellm_proxy=True, model=test_model_input
@@ -466,7 +466,7 @@ def test_get_llm_provider_use_proxy_arg_true_with_direct_args():
         },
         clear=True,
     ):
-        model, provider, key, base = litellm.get_llm_provider(
+        model, provider, key, base = gateway.get_llm_provider(
             model=test_model_input,
             api_base=arg_api_base,
             api_key=arg_api_key,
@@ -536,7 +536,7 @@ class TestClaudeModelPatternMatching:
         ],
     )
     def test_unknown_claude_routes_to_anthropic(self, model, shipped_generalizations):
-        _, custom_llm_provider, _, _ = litellm.get_llm_provider(model=model)
+        _, custom_llm_provider, _, _ = gateway.get_llm_provider(model=model)
         assert custom_llm_provider == "anthropic"
 
     @pytest.mark.parametrize(
@@ -570,5 +570,5 @@ class TestClaudeModelPatternMatching:
         )
 
         set_fallback_generalizations([])
-        with pytest.raises(litellm.BadRequestError):
-            litellm.get_llm_provider(model="claude-opus-4-9")
+        with pytest.raises(gateway.BadRequestError):
+            gateway.get_llm_provider(model="claude-opus-4-9")

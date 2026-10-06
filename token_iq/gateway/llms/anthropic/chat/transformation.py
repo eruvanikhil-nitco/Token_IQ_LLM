@@ -9,7 +9,7 @@ import httpx
 from pydantic import ValidationError
 from typing_extensions import ReadOnly, TypedDict
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.constants import (
     ANTHROPIC_MIN_THINKING_BUDGET_TOKENS,
     ANTHROPIC_WEB_SEARCH_TOOL_MAX_USES,
@@ -442,9 +442,9 @@ class AnthropicConfig(AnthropicModelInfo, BaseConfig):
             return
         if AnthropicConfig._model_supports_speed_param(model, custom_llm_provider):
             return
-        if not (litellm.drop_params or drop_params):
+        if not (gateway.drop_params or drop_params):
             speed_value: Final = optional_params.get("speed")
-            raise litellm.utils.UnsupportedParamsError(
+            raise gateway.utils.UnsupportedParamsError(
                 message=(
                     f"{model} does not support speed={speed_value!r}. "
                     "To drop unsupported params, set "
@@ -452,7 +452,7 @@ class AnthropicConfig(AnthropicModelInfo, BaseConfig):
                 ),
                 status_code=400,
             )
-        litellm.verbose_logger.warning(
+        gateway.verbose_logger.warning(
             DROP_UNSUPPORTED_SPEED_WARNING,
             model,
         )
@@ -471,7 +471,7 @@ class AnthropicConfig(AnthropicModelInfo, BaseConfig):
         Raises:
             litellm.exceptions.BadRequestError: Always.
         """
-        raise litellm.exceptions.BadRequestError(
+        raise gateway.exceptions.BadRequestError(
             message=(
                 f"Invalid reasoning_effort: {value!r}. "
                 f"Must be one of: 'minimal', 'low', 'medium', "
@@ -1209,7 +1209,7 @@ class AnthropicConfig(AnthropicModelInfo, BaseConfig):
         new_stop: list[str] | None = None
         if isinstance(stop, str):
             if (
-                stop.isspace() and litellm.drop_params is True
+                stop.isspace() and gateway.drop_params is True
             ):  # anthropic doesn't allow whitespace characters as stop-sequences
                 return new_stop
             new_stop = [stop]
@@ -1217,7 +1217,7 @@ class AnthropicConfig(AnthropicModelInfo, BaseConfig):
             new_v: Final = []
             for v in stop:
                 if (
-                    v.isspace() and litellm.drop_params is True
+                    v.isspace() and gateway.drop_params is True
                 ):  # anthropic doesn't allow whitespace characters as stop-sequences
                     continue
                 new_v.append(v)
@@ -1276,7 +1276,7 @@ class AnthropicConfig(AnthropicModelInfo, BaseConfig):
                 ),
             )
         else:
-            raise litellm.exceptions.BadRequestError(
+            raise gateway.exceptions.BadRequestError(
                 message=(
                     f"Unmapped reasoning effort: {reasoning_effort!r}. "
                     f"Must be one of: 'minimal', 'low', 'medium', 'high', "
@@ -1558,7 +1558,7 @@ class AnthropicConfig(AnthropicModelInfo, BaseConfig):
                     if capped_thinking is not None:
                         optional_params["thinking"] = capped_thinking
                     else:
-                        litellm.verbose_logger.warning(
+                        gateway.verbose_logger.warning(
                             DROP_UNSUPPORTED_ADAPTIVE_THINKING_WARNING,
                             model,
                         )
@@ -1873,9 +1873,9 @@ class AnthropicConfig(AnthropicModelInfo, BaseConfig):
             and last_assistant_with_tool_calls_has_no_thinking_blocks(messages)
             and not any_assistant_message_has_thinking_blocks(messages)
         ):
-            if litellm.modify_params:
+            if gateway.modify_params:
                 optional_params.pop("thinking", None)
-                litellm.verbose_logger.warning(
+                gateway.verbose_logger.warning(
                     "Dropping 'thinking' param because the last assistant message with tool_calls "
                     "has no thinking_blocks. The model won't use extended thinking for this turn."
                 )
@@ -1883,7 +1883,7 @@ class AnthropicConfig(AnthropicModelInfo, BaseConfig):
         AnthropicConfig._maybe_drop_speed_param(
             model=model,
             optional_params=optional_params,
-            drop_params=litellm.drop_params or litellm_params.get("drop_params") is True,
+            drop_params=gateway.drop_params or litellm_params.get("drop_params") is True,
             custom_llm_provider=self.custom_llm_provider,
         )
 
@@ -1961,7 +1961,7 @@ class AnthropicConfig(AnthropicModelInfo, BaseConfig):
             optional_params["tools"] = tools
 
         ## Load Config
-        config: Final = litellm.AnthropicConfig.get_config(model=model)
+        config: Final = gateway.AnthropicConfig.get_config(model=model)
         for k, v in config.items():
             if (
                 k not in optional_params
@@ -2029,11 +2029,11 @@ class AnthropicConfig(AnthropicModelInfo, BaseConfig):
         if not output_config or not isinstance(output_config, dict):
             return
         if (
-            litellm.drop_params is True
+            gateway.drop_params is True
             and any(key != "format" for key in output_config)
             and not self._model_supports_effort_param(model, self._resolved_provider)
         ):
-            litellm.verbose_logger.warning(
+            gateway.verbose_logger.warning(
                 DROP_UNSUPPORTED_OUTPUT_CONFIG_WARNING,
                 model,
             )
@@ -2049,14 +2049,14 @@ class AnthropicConfig(AnthropicModelInfo, BaseConfig):
         effort: Final = output_config.get("effort")
         valid_efforts: Final = ["high", "medium", "low", "xhigh", "max"]
         if effort is not None and effort not in valid_efforts:
-            raise litellm.exceptions.BadRequestError(
+            raise gateway.exceptions.BadRequestError(
                 message=(f"Invalid effort value: {effort!r}. Must be one of: 'high', 'medium', 'low', 'xhigh', 'max'"),
                 model=model,
                 llm_provider=self._resolved_provider,
             )
         gate_error: Final = self._validate_effort_for_model(model, effort, self._resolved_provider)
         if gate_error is not None:
-            raise litellm.exceptions.BadRequestError(
+            raise gateway.exceptions.BadRequestError(
                 message=gate_error,
                 model=model,
                 llm_provider=self._resolved_provider,
@@ -2531,7 +2531,7 @@ class AnthropicConfig(AnthropicModelInfo, BaseConfig):
         if (
             prefix_prompt is not None
             and not text_content.startswith(prefix_prompt)
-            and not litellm.disable_add_prefix_to_prompt
+            and not gateway.disable_add_prefix_to_prompt
         ):
             text_content = prefix_prompt + text_content
 
@@ -2553,7 +2553,7 @@ class AnthropicConfig(AnthropicModelInfo, BaseConfig):
         if json_extra_content:
             merged_text = merged_text + json_extra_content if merged_text else json_extra_content
 
-        _message = litellm.Message(
+        _message = gateway.Message(
             tool_calls=tool_calls_for_message,
             content=merged_text or None,
             provider_specific_fields=provider_specific_fields,
@@ -2673,16 +2673,16 @@ class AnthropicConfig(AnthropicModelInfo, BaseConfig):
             if json_mode_content_str is not None:
                 args: Final = json.loads(json_mode_content_str)
                 if isinstance(args, dict) and (values := args.get("values")) is not None:
-                    _message = litellm.Message(content=json.dumps(values))
+                    _message = gateway.Message(content=json.dumps(values))
                     return _message
                 else:
                     # a lot of the times the `values` key is not present in the tool response
                     # relevant issue
-                    _message = litellm.Message(content=json.dumps(args))
+                    _message = gateway.Message(content=json.dumps(args))
                     return _message
         except json.JSONDecodeError:
             # json decode error does occur, return the original tool response str
-            return litellm.Message(content=json_mode_content_str)
+            return gateway.Message(content=json_mode_content_str)
         return None
 
     def get_error_class(self, error_message: str, status_code: int, headers: dict | httpx.Headers) -> BaseLLMException:

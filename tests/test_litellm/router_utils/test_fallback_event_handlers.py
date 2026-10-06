@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, patch
 import httpx
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.router_utils.cooldown_handlers import mark_advisor_orchestration_failure
 from token_iq.gateway.router_utils.fallback_event_handlers import (
     AttemptedFallbackTargets,
@@ -781,7 +781,7 @@ class TestTriggerCooldownForFailedDeployment:
         mock_router.cooldown_time = 60.0
         mock_router.get_model_info.return_value = None
 
-        exc = litellm.RateLimitError("Rate limit", "openai", "gpt-4")
+        exc = gateway.RateLimitError("Rate limit", "openai", "gpt-4")
         exc.failed_deployment_id = "fallback-deployment"
 
         with patch("token_iq.gateway.router_utils.fallback_event_handlers._set_cooldown_deployments") as mock_set_cooldown:
@@ -801,7 +801,7 @@ class TestTriggerCooldownForFailedDeployment:
         mock_router.cooldown_time = 60.0
         mock_router.get_model_info.return_value = None
 
-        exc = litellm.RateLimitError("Rate limit", "openai", "gpt-4")
+        exc = gateway.RateLimitError("Rate limit", "openai", "gpt-4")
         kwargs = {
             "metadata": {
                 "model_info": {"id": "attacker-chosen-deployment"},
@@ -822,7 +822,7 @@ class TestTriggerCooldownForFailedDeployment:
         mock_router.cooldown_time = 60.0
         mock_router.get_model_info.return_value = None
 
-        exc = litellm.RateLimitError("Rate limit", "openai", "gpt-4")
+        exc = gateway.RateLimitError("Rate limit", "openai", "gpt-4")
         exc.failed_deployment_id = "fallback-deployment"
 
         with (
@@ -853,7 +853,7 @@ class TestTriggerCooldownForFailedDeployment:
         mock_router.cooldown_time = 60.0
         mock_router.get_model_info.return_value = None
 
-        exc = litellm.RateLimitError("Rate limit", "openai", "gpt-4")
+        exc = gateway.RateLimitError("Rate limit", "openai", "gpt-4")
         exc.failed_deployment_id = "fallback-deployment"
         mark_advisor_orchestration_failure(exc)
 
@@ -867,7 +867,7 @@ class TestTriggerCooldownForFailedDeployment:
         mock_router.cooldown_time = 300.0
         mock_router.get_model_info.return_value = {"litellm_params": {"cooldown_time": 30.0}}
 
-        exc = litellm.RateLimitError("Rate limit", "openai", "gpt-4")
+        exc = gateway.RateLimitError("Rate limit", "openai", "gpt-4")
         exc.failed_deployment_id = "fallback-deployment"
 
         with patch("token_iq.gateway.router_utils.fallback_event_handlers._set_cooldown_deployments") as mock_set_cooldown:
@@ -917,7 +917,7 @@ class TestTriggerCooldownForFailedDeployment:
         mock_router.cooldown_time = 60.0
         mock_router.get_model_info.return_value = None
 
-        exc = litellm.NotFoundError("not found", "openai", "gpt-4")
+        exc = gateway.NotFoundError("not found", "openai", "gpt-4")
         exc.failed_deployment_id = "fallback-deployment"
 
         with (
@@ -943,7 +943,7 @@ class TestTriggerCooldownForFailedDeployment:
         mock_router.cooldown_time = 60.0
         mock_router.get_model_info.return_value = None
 
-        exc = litellm.NotFoundError("not found", "openai", "gpt-4")
+        exc = gateway.NotFoundError("not found", "openai", "gpt-4")
         exc.failed_deployment_id = "fallback-deployment"
 
         with patch("token_iq.gateway.router_utils.fallback_event_handlers._set_cooldown_deployments") as mock_set_cooldown:
@@ -960,7 +960,7 @@ class TestTriggerCooldownForFailedDeployment:
         mock_router.cooldown_time = 60.0
         mock_router.get_model_info.return_value = None
 
-        exc = litellm.Timeout(message="timeout", model="gpt-4", llm_provider="openai")
+        exc = gateway.Timeout(message="timeout", model="gpt-4", llm_provider="openai")
         exc.failed_deployment_id = "fallback-deployment"
 
         with (
@@ -986,7 +986,7 @@ class TestTriggerCooldownForFailedDeployment:
         mock_router.cooldown_time = 60.0
         mock_router.get_model_info.return_value = None
 
-        exc = litellm.Timeout(message="timeout", model="gpt-4", llm_provider="openai")
+        exc = gateway.Timeout(message="timeout", model="gpt-4", llm_provider="openai")
         exc.failed_deployment_id = "fallback-deployment"
 
         with patch("token_iq.gateway.router_utils.fallback_event_handlers._set_cooldown_deployments") as mock_set_cooldown:

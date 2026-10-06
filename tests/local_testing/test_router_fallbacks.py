@@ -10,7 +10,7 @@ import pytest
 
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import Router
 from token_iq.gateway.integrations.custom_logger import CustomLogger
 
@@ -115,9 +115,9 @@ def test_sync_fallbacks():
             },
         ]
 
-        litellm.set_verbose = True
+        gateway.set_verbose = True
         customHandler = MyCustomHandler()
-        litellm.callbacks = [customHandler]
+        gateway.callbacks = [customHandler]
         router = Router(
             model_list=model_list,
             fallbacks=[{"azure/gpt-3.5-turbo": ["gpt-3.5-turbo"]}],
@@ -145,7 +145,7 @@ def test_sync_fallbacks():
 
 @pytest.mark.asyncio
 async def test_async_fallbacks():
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     model_list = [
         {  # list of model deployments
             "model_name": "azure/gpt-3.5-turbo",  # openai model name
@@ -210,7 +210,7 @@ async def test_async_fallbacks():
         set_verbose=False,
     )
     customHandler = MyCustomHandler()
-    litellm.callbacks = [customHandler]
+    gateway.callbacks = [customHandler]
     user_message = "Hello, how are you?"
     messages = [{"content": user_message, "role": "user"}]
     try:
@@ -224,7 +224,7 @@ async def test_async_fallbacks():
             customHandler.previous_models == 3
         )  # 1 init call + 2 retries (fallback not counted as previous)
         router.reset()
-    except litellm.Timeout as e:
+    except gateway.Timeout as e:
         pass
     except Exception as e:
         pytest.fail(f"An exception occurred: {e}")
@@ -236,7 +236,7 @@ async def test_async_fallbacks():
 
 
 def test_sync_fallbacks_embeddings():
-    litellm.set_verbose = False
+    gateway.set_verbose = False
     model_list = [
         {  # list of model deployments
             "model_name": "bad-azure-embedding-model",  # openai model name
@@ -266,7 +266,7 @@ def test_sync_fallbacks_embeddings():
         set_verbose=False,
     )
     customHandler = MyCustomHandler()
-    litellm.callbacks = [customHandler]
+    gateway.callbacks = [customHandler]
     user_message = "Hello, how are you?"
     input = [user_message]
     try:
@@ -276,7 +276,7 @@ def test_sync_fallbacks_embeddings():
         time.sleep(0.05)  # allow a delay as success_callbacks are on a separate thread
         assert customHandler.previous_models == 1  # 1 init call, 2 retries, 1 fallback
         router.reset()
-    except litellm.Timeout as e:
+    except gateway.Timeout as e:
         pass
     except Exception as e:
         pytest.fail(f"An exception occurred: {e}")
@@ -286,7 +286,7 @@ def test_sync_fallbacks_embeddings():
 
 @pytest.mark.asyncio
 async def test_async_fallbacks_embeddings():
-    litellm.set_verbose = False
+    gateway.set_verbose = False
     model_list = [
         {  # list of model deployments
             "model_name": "bad-azure-embedding-model",  # openai model name
@@ -316,7 +316,7 @@ async def test_async_fallbacks_embeddings():
         set_verbose=False,
     )
     customHandler = MyCustomHandler()
-    litellm.callbacks = [customHandler]
+    gateway.callbacks = [customHandler]
     user_message = "Hello, how are you?"
     input = [user_message]
     try:
@@ -328,7 +328,7 @@ async def test_async_fallbacks_embeddings():
         )  # allow a delay as success_callbacks are on a separate thread
         assert customHandler.previous_models == 1  # 1 init call with a bad key
         router.reset()
-    except litellm.Timeout as e:
+    except gateway.Timeout as e:
         pass
     except Exception as e:
         pytest.fail(f"An exception occurred: {e}")
@@ -342,7 +342,7 @@ def test_dynamic_fallbacks_sync():
     """
     try:
         customHandler = MyCustomHandler()
-        litellm.callbacks = [customHandler]
+        gateway.callbacks = [customHandler]
         model_list = [
             {  # list of model deployments
                 "model_name": "azure/gpt-3.5-turbo",  # openai model name
@@ -482,7 +482,7 @@ async def test_dynamic_fallbacks_async():
         print()
         print(f"STARTING DYNAMIC ASYNC")
         customHandler = MyCustomHandler()
-        litellm.callbacks = [customHandler]
+        gateway.callbacks = [customHandler]
         router = Router(model_list=model_list, set_verbose=True)
         kwargs = {}
         kwargs["model"] = "azure/gpt-3.5-turbo"
@@ -507,7 +507,7 @@ async def test_dynamic_fallbacks_async():
 @pytest.mark.asyncio
 async def test_async_fallbacks_streaming():
     """Test that router.acompletion with stream=True and mock_response works correctly."""
-    litellm.set_verbose = False
+    gateway.set_verbose = False
     model_list = [
         {
             "model_name": "azure/gpt-3.5-turbo",
@@ -537,7 +537,7 @@ async def test_async_fallbacks_streaming():
         set_verbose=False,
     )
     customHandler = MyCustomHandler()
-    litellm.callbacks = [customHandler]
+    gateway.callbacks = [customHandler]
     user_message = "Hello, how are you?"
     try:
         response = await router.acompletion(
@@ -551,7 +551,7 @@ async def test_async_fallbacks_streaming():
             chunks.append(chunk)
         assert len(chunks) > 0, "Expected at least one streaming chunk"
         router.reset()
-    except litellm.Timeout as e:
+    except gateway.Timeout as e:
         pass
     except Exception as e:
         pytest.fail(f"An exception occurred: {e}")
@@ -615,9 +615,9 @@ def test_sync_fallbacks_streaming():
             },
         ]
 
-        litellm.set_verbose = True
+        gateway.set_verbose = True
         customHandler = MyCustomHandler()
-        litellm.callbacks = [customHandler]
+        gateway.callbacks = [customHandler]
         router = Router(
             model_list=model_list,
             fallbacks=[{"azure/gpt-3.5-turbo": ["gpt-3.5-turbo"]}],
@@ -640,8 +640,8 @@ def test_sync_fallbacks_streaming():
 
 @pytest.mark.asyncio
 async def test_async_fallbacks_max_retries_per_request():
-    litellm.set_verbose = False
-    litellm.num_retries_per_request = 0
+    gateway.set_verbose = False
+    gateway.num_retries_per_request = 0
     model_list = [
         {  # list of model deployments
             "model_name": "azure/gpt-3.5-turbo",  # openai model name
@@ -706,7 +706,7 @@ async def test_async_fallbacks_max_retries_per_request():
         set_verbose=False,
     )
     customHandler = MyCustomHandler()
-    litellm.callbacks = [customHandler]
+    gateway.callbacks = [customHandler]
     user_message = "Hello, how are you?"
     messages = [{"content": user_message, "role": "user"}]
     try:
@@ -720,7 +720,7 @@ async def test_async_fallbacks_max_retries_per_request():
         )  # allow a delay as success_callbacks are on a separate thread
         assert customHandler.previous_models == 0  # 0 retries, 0 fallback
         router.reset()
-    except litellm.Timeout as e:
+    except gateway.Timeout as e:
         pass
     except Exception as e:
         pytest.fail(f"An exception occurred: {e}")
@@ -731,9 +731,9 @@ async def test_async_fallbacks_max_retries_per_request():
 @pytest.mark.flaky(retries=6, delay=2)
 def test_ausage_based_routing_fallbacks():
     try:
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
-        litellm.set_verbose = False
+        gateway.set_verbose = False
         # [Prod Test]
         # IT tests Usage Based Routing with fallbacks
         # The Request should fail azure/gpt-4-fast. Then fallback -> "azure/gpt-4-basic" -> "openai-gpt-4"
@@ -742,7 +742,7 @@ def test_ausage_based_routing_fallbacks():
 
         from dotenv import load_dotenv
 
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway import Router
 
         load_dotenv()
@@ -877,7 +877,7 @@ def test_custom_cooldown_times():
             },
         ]
 
-        litellm.set_verbose = False
+        gateway.set_verbose = False
 
         router = Router(
             model_list=model_list,
@@ -994,7 +994,7 @@ async def test_default_model_fallbacks(sync_mode, litellm_module_fallbacks):
     If model misconfigured, setup a default model for generic fallback
     """
     if litellm_module_fallbacks:
-        litellm.default_fallbacks = ["my-good-model"]
+        gateway.default_fallbacks = ["my-good-model"]
     router = Router(
         model_list=[
             {
@@ -1032,7 +1032,7 @@ async def test_default_model_fallbacks(sync_mode, litellm_module_fallbacks):
             mock_response="Hey! nice day",
         )
 
-    assert isinstance(response, litellm.ModelResponse)
+    assert isinstance(response, gateway.ModelResponse)
     assert response.model is not None and response.model == "gpt-4o"
 
 
@@ -1082,7 +1082,7 @@ async def test_client_side_fallbacks_list(sync_mode):
             mock_response="Hey! nice day",
         )
 
-    assert isinstance(response, litellm.ModelResponse)
+    assert isinstance(response, gateway.ModelResponse)
     assert response.model is not None and response.model == "gpt-4o"
 
 
@@ -1098,10 +1098,10 @@ async def test_router_content_policy_fallbacks(
     if content_filter_response_exception:
         mock_response = Exception("content filtering policy")
     else:
-        mock_response = litellm.ModelResponse(
-            choices=[litellm.Choices(finish_reason="content_filter")],
+        mock_response = gateway.ModelResponse(
+            choices=[gateway.Choices(finish_reason="content_filter")],
             model="gpt-3.5-turbo",
-            usage=litellm.Usage(prompt_tokens=10, completion_tokens=0, total_tokens=10),
+            usage=gateway.Usage(prompt_tokens=10, completion_tokens=0, total_tokens=10),
         )
     router = Router(
         model_list=[
@@ -1173,7 +1173,7 @@ async def test_router_content_policy_fallbacks(
 @pytest.mark.parametrize("sync_mode", [False, True])
 @pytest.mark.asyncio
 async def test_using_default_fallback(sync_mode):
-    litellm.set_verbose = True
+    gateway.set_verbose = True
 
     import logging
 
@@ -1181,7 +1181,7 @@ async def test_using_default_fallback(sync_mode):
 
     verbose_logger.setLevel(logging.DEBUG)
     verbose_router_logger.setLevel(logging.DEBUG)
-    litellm.default_fallbacks = ["very-bad-model"]
+    gateway.default_fallbacks = ["very-bad-model"]
     router = Router(
         model_list=[
             {
@@ -1211,7 +1211,7 @@ async def test_using_default_fallback(sync_mode):
 @pytest.mark.parametrize("sync_mode", [False])
 @pytest.mark.asyncio
 async def test_using_default_working_fallback(sync_mode):
-    litellm.set_verbose = True
+    gateway.set_verbose = True
 
     import logging
 
@@ -1219,7 +1219,7 @@ async def test_using_default_working_fallback(sync_mode):
 
     verbose_logger.setLevel(logging.DEBUG)
     verbose_router_logger.setLevel(logging.DEBUG)
-    litellm.default_fallbacks = ["openai/gpt-3.5-turbo"]
+    gateway.default_fallbacks = ["openai/gpt-3.5-turbo"]
     router = Router(
         model_list=[
             {
@@ -1259,7 +1259,7 @@ def mock_post_streaming(url, **kwargs):
 @pytest.mark.parametrize("sync_mode", [True, False])
 @pytest.mark.asyncio
 async def test_anthropic_streaming_fallbacks(sync_mode):
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
 
     if sync_mode:
@@ -1323,7 +1323,7 @@ def test_router_fallbacks_with_custom_model_costs():
     Goal: make sure custom model doesn't override default model costs.
     """
 
-    default_model_info = litellm.get_model_info(model="claude-sonnet-4-5-20250929")
+    default_model_info = gateway.get_model_info(model="claude-sonnet-4-5-20250929")
 
     model_list = [
         {
@@ -1359,7 +1359,7 @@ def test_router_fallbacks_with_custom_model_costs():
         messages=[{"role": "user", "content": "Hey, how's it going?"}],
     )
 
-    model_info = litellm.get_model_info(model="claude-sonnet-4-5-20250929")
+    model_info = gateway.get_model_info(model="claude-sonnet-4-5-20250929")
 
     print(f"key: {model_info['key']}")
 
@@ -1374,7 +1374,7 @@ def test_router_fallbacks_with_custom_model_costs():
 
     assert response._hidden_params["response_cost"] > 10
 
-    model_info = litellm.get_model_info(model="claude-sonnet-4-5-20250929")
+    model_info = gateway.get_model_info(model="claude-sonnet-4-5-20250929")
 
     print(f"key: {model_info['key']}")
 
@@ -1426,7 +1426,7 @@ async def test_router_fallbacks_default_and_model_specific_fallbacks(sync_mode):
     with pytest.raises(Exception, match='litellm\\.AuthenticationError: AuthenticationError') as exc_info:
         await _call_bad_model()
     assert isinstance(
-        exc_info.value, litellm.AuthenticationError
+        exc_info.value, gateway.AuthenticationError
     ), f"Expected AuthenticationError, but got {type(exc_info.value).__name__}"
 
 

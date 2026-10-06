@@ -3,7 +3,7 @@ from typing import Final, Literal
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
 from token_iq.gateway.llms.custom_httpx.http_handler import (
     AsyncHTTPHandler,
@@ -161,7 +161,7 @@ class VertexMultimodalEmbedding(VertexLLM):
                     timeout = httpx.Timeout(timeout)
                 _params["timeout"] = timeout
             client = get_async_httpx_client(
-                llm_provider=litellm.LlmProviders.VERTEX_AI,
+                llm_provider=gateway.LlmProviders.VERTEX_AI,
                 params={"timeout": timeout},
             )
         else:

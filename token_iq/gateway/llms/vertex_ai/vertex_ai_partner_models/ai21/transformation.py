@@ -1,7 +1,7 @@
 import types
 from typing import Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.openai.chat.gpt_transformation import OpenAIGPTConfig
 
 
@@ -50,7 +50,7 @@ class VertexAIAi21Config(OpenAIGPTConfig):
     ):
         if "max_completion_tokens" in non_default_params:
             non_default_params["max_tokens"] = non_default_params.pop("max_completion_tokens")
-        return litellm.OpenAIConfig().map_openai_params(
+        return gateway.OpenAIConfig().map_openai_params(
             non_default_params=non_default_params,
             optional_params=optional_params,
             model=model,

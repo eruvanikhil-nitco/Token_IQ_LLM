@@ -5,17 +5,17 @@ import traceback
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import completion, embedding
 
-litellm.set_verbose = True
+gateway.set_verbose = True
 
 model_alias_map = {"good-model": "groq/openai/gpt-oss-120b"}
 
 
 def test_model_alias_map(caplog):
     try:
-        litellm.model_alias_map = model_alias_map
+        gateway.model_alias_map = model_alias_map
         response = completion(
             "good-model",
             messages=[{"role": "user", "content": "Hey, how's it going?"}],
@@ -30,7 +30,7 @@ def test_model_alias_map(caplog):
                 pytest.fail(f"Unexpected litellm ERROR log: {rec.getMessage()}")
 
         assert "gpt-oss-120b" in response.model
-    except litellm.ServiceUnavailableError:
+    except gateway.ServiceUnavailableError:
         pass
     except Exception as e:
         pytest.fail(f"Error occurred: {e}")

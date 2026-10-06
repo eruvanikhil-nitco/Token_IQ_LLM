@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, Any, Final, cast
 
 from httpx._types import RequestFiles
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.images.utils import ImageEditRequestUtils
 from token_iq.gateway.types.images.main import ImageEditRequestParams
 from token_iq.gateway.types.llms.openai import FileTypes
@@ -67,7 +67,7 @@ class DallE2ImageEditConfig(OpenAIImageEditConfig):
 
             # Validate only one image is provided
             if len(image_list) > 1:
-                raise litellm.BadRequestError(
+                raise gateway.BadRequestError(
                     message="DALL-E-2 only supports editing a single image. Please provide one image.",
                     model=model,
                     llm_provider="openai",

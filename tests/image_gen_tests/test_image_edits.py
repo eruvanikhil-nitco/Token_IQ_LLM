@@ -11,7 +11,7 @@ import json
 from abc import ABC, abstractmethod
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.utils import ImageResponse
 from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.types.utils import StandardLoggingPayload
@@ -36,11 +36,11 @@ class BaseLLMImageEditTest(ABC):
 
     @property
     def image_edit_function(self):
-        return litellm.image_edit
+        return gateway.image_edit
 
     @property
     def async_image_edit_function(self):
-        return litellm.aimage_edit
+        return gateway.aimage_edit
 
     @abstractmethod
     def get_base_image_edit_call_args(self) -> dict:
@@ -52,9 +52,9 @@ class BaseLLMImageEditTest(ABC):
         """Fixture to handle rate limit errors for all test methods"""
         try:
             yield
-        except litellm.RateLimitError:
+        except gateway.RateLimitError:
             pytest.skip("Rate limit exceeded")
-        except litellm.InternalServerError:
+        except gateway.InternalServerError:
             pytest.skip("Model is overloaded")
 
     @pytest.mark.parametrize("sync_mode", [True, False])
@@ -64,7 +64,7 @@ class BaseLLMImageEditTest(ABC):
         """
         Test image edit functionality with both sync and async modes.
         """
-        litellm._turn_on_debug()
+        gateway._turn_on_debug()
         try:
             prompt = """
             Create a studio ghibli style image that combines all the reference images. Make sure the person looks like a CTO.
@@ -91,7 +91,7 @@ class BaseLLMImageEditTest(ABC):
                     # Save the image to a file
                     with open("test_image_edit.png", "wb") as f:
                         f.write(image_bytes)
-        except litellm.ContentPolicyViolationError as e:
+        except gateway.ContentPolicyViolationError as e:
             pass
 
 
@@ -156,12 +156,12 @@ class TestAzureAIFlux2ImageEdit(BaseLLMImageEditTest):
 @pytest.mark.flaky(retries=3, delay=2)
 @pytest.mark.asyncio
 async def test_openai_image_edit_litellm_router():
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
     try:
         prompt = """
         Create a studio ghibli style image that combines all the reference images. Make sure the person looks like a CTO.
         """
-        router = litellm.Router(
+        router = gateway.Router(
             model_list=[
                 {
                     "model_name": "gpt-image-1",
@@ -189,7 +189,7 @@ async def test_openai_image_edit_litellm_router():
                 # Save the image to a file
                 with open("test_image_edit.png", "wb") as f:
                     f.write(image_bytes)
-    except litellm.ContentPolicyViolationError as e:
+    except gateway.ContentPolicyViolationError as e:
         pass
 
 
@@ -199,7 +199,7 @@ async def test_openai_image_edit_with_bytesio():
     """Test image editing using BytesIO objects instead of file readers"""
     from token_iq.gateway import image_edit, aimage_edit
 
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
     try:
         prompt = """
         Create a studio ghibli style image that combines all the reference images. Make sure the person looks like a CTO.
@@ -226,7 +226,7 @@ async def test_openai_image_edit_with_bytesio():
                 # Save the image to a file
                 with open("test_image_edit_bytesio.png", "wb") as f:
                     f.write(image_bytes)
-    except litellm.ContentPolicyViolationError as e:
+    except gateway.ContentPolicyViolationError as e:
         pass
 
 
@@ -261,7 +261,7 @@ async def test_azure_image_edit_litellm_sdk():
         # Configure the mock to return our response
         mock_post.return_value = MockResponse(mock_response, 200)
 
-        litellm._turn_on_debug()
+        gateway._turn_on_debug()
 
         prompt = """
         Create a studio ghibli style image that combines all the reference images. Make sure the person looks like a CTO.
@@ -346,8 +346,8 @@ async def test_openai_image_edit_cost_tracking():
     from token_iq.gateway import image_edit, aimage_edit
 
     test_custom_logger = TestCustomLogger()
-    litellm.logging_callback_manager._reset_all_callbacks()
-    litellm.callbacks = [test_custom_logger]
+    gateway.logging_callback_manager._reset_all_callbacks()
+    gateway.callbacks = [test_custom_logger]
 
     # Mock response for Azure image edit with usage data for cost tracking
     mock_response = {
@@ -381,7 +381,7 @@ async def test_openai_image_edit_cost_tracking():
         # Configure the mock to return our response
         mock_post.return_value = MockResponse(mock_response, 200)
 
-        litellm._turn_on_debug()
+        gateway._turn_on_debug()
 
         prompt = """
         Create a studio ghibli style image that combines all the reference images. Make sure the person looks like a CTO.
@@ -436,8 +436,8 @@ async def test_azure_image_edit_cost_tracking():
     from token_iq.gateway import image_edit, aimage_edit
 
     test_custom_logger = TestCustomLogger()
-    litellm.logging_callback_manager._reset_all_callbacks()
-    litellm.callbacks = [test_custom_logger]
+    gateway.logging_callback_manager._reset_all_callbacks()
+    gateway.callbacks = [test_custom_logger]
 
     # Mock response for Azure image edit with usage data for cost tracking
     mock_response = {
@@ -471,7 +471,7 @@ async def test_azure_image_edit_cost_tracking():
         # Configure the mock to return our response
         mock_post.return_value = MockResponse(mock_response, 200)
 
-        litellm._turn_on_debug()
+        gateway._turn_on_debug()
 
         prompt = """
         Create a studio ghibli style image that combines all the reference images. Make sure the person looks like a CTO.
@@ -530,7 +530,7 @@ async def test_recraft_image_edit_api():
     from token_iq.gateway import aimage_edit
     import requests
 
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
     try:
         prompt = """
         Create a studio ghibli style image that combines all the reference images. Make sure the person looks like a CTO.
@@ -552,7 +552,7 @@ async def test_recraft_image_edit_api():
             image_bytes = requests.get(image_url).content
             with open("test_image_edit.png", "wb") as f:
                 f.write(image_bytes)
-    except litellm.ContentPolicyViolationError as e:
+    except gateway.ContentPolicyViolationError as e:
         pass
 
 
@@ -626,7 +626,7 @@ async def test_multiple_vs_single_image_edit(sync_mode):
     """Test that both single and multiple image editing work correctly"""
     from token_iq.gateway import image_edit, aimage_edit
 
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
 
     try:
         prompt = "Add a soft blue tint to the image(s)"
@@ -673,7 +673,7 @@ async def test_multiple_vs_single_image_edit(sync_mode):
         assert len(single_result.data) > 0
         assert len(multiple_result.data) > 0
 
-    except litellm.ContentPolicyViolationError as e:
+    except gateway.ContentPolicyViolationError as e:
         pytest.skip(f"Content policy violation: {e}")
 
 
@@ -683,7 +683,7 @@ async def test_multiple_image_edit_with_different_formats():
     """Test multiple images editing with different file formats and types"""
     from token_iq.gateway import aimage_edit
 
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
 
     try:
         prompt = "Create a cohesive artistic style across all images"
@@ -712,7 +712,7 @@ async def test_multiple_image_edit_with_different_formats():
             with open("test_multiple_image_edit_mixed.png", "wb") as f:
                 f.write(image_bytes)
 
-    except litellm.ContentPolicyViolationError as e:
+    except gateway.ContentPolicyViolationError as e:
         pytest.skip(f"Content policy violation: {e}")
 
 

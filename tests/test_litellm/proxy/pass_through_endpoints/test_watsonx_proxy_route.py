@@ -12,7 +12,7 @@ import pytest
 from fastapi import HTTPException, Request, Response
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy._types import UserAPIKeyAuth
 from token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints import (
     watsonx_proxy_route,
@@ -85,7 +85,7 @@ class TestWatsonxProxyRoute:
             assert call_args["custom_llm_provider"] == "watsonx"
             assert (
                 call_args["query_params"]["version"]
-                == litellm.WATSONX_DEFAULT_API_VERSION
+                == gateway.WATSONX_DEFAULT_API_VERSION
             )
 
             # Verify endpoint function was called
@@ -324,7 +324,7 @@ class TestWatsonxProxyRoute:
             assert "version" in call_args["query_params"]
             assert (
                 call_args["query_params"]["version"]
-                == litellm.WATSONX_DEFAULT_API_VERSION
+                == gateway.WATSONX_DEFAULT_API_VERSION
             )
 
     @pytest.mark.asyncio

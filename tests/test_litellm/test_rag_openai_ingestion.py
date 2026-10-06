@@ -26,7 +26,7 @@ async def _run_openai_existing_file_id_attach_test():
             new_callable=AsyncMock,
         ) as mock_attach,
         patch(
-            "token_iq.gateway.rag.ingestion.openai_ingestion.litellm.acreate_file",
+            "token_iq.gateway.rag.ingestion.openai_ingestion.gateway.acreate_file",
             new_callable=AsyncMock,
         ) as mock_upload,
     ):

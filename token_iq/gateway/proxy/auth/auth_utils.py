@@ -10,7 +10,7 @@ from typing import Any, Final, Protocol
 from fastapi import HTTPException, Request, status
 from pydantic import PositiveInt, TypeAdapter, ValidationError
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import Router, provider_list
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.constants import (
@@ -139,7 +139,7 @@ def check_complete_credentials(request_body: dict) -> bool:
     # ``async_safe_get`` do. Mirror that here so admins who explicitly
     # disabled URL validation (e.g. for an internal Ollama endpoint they
     # accept the SSRF risk for) aren't blocked at the proxy boundary.
-    if getattr(litellm, "user_url_validation", False):
+    if getattr(gateway, "user_url_validation", False):
         for url_field in ("api_base", "base_url"):
             url_value = request_body.get(url_field)
             if not url_value or not isinstance(url_value, str):
@@ -447,7 +447,7 @@ def _iter_fallback_field_values(request_body: Mapping[str, object]) -> Iterator[
 
 
 def _iter_fallback_targets(value: object, depth: int) -> Iterator[str | Mapping[str, object]]:
-    if depth > 2 * litellm.ROUTER_MAX_FALLBACKS:
+    if depth > 2 * gateway.ROUTER_MAX_FALLBACKS:
         raise ValueError("Rejected Request: fallback nesting exceeds the allowed validation depth.")
     if not isinstance(value, list):
         return
@@ -472,7 +472,7 @@ def iter_request_fallback_targets(request_body: Mapping[str, object]) -> Iterato
 
 
 def _reject_url_valued_fallback_target(value: str) -> None:
-    allowed_hosts: Final = getattr(litellm, "provider_url_destination_allowed_hosts", []) or []
+    allowed_hosts: Final = getattr(gateway, "provider_url_destination_allowed_hosts", []) or []
     for candidate in provider_url_destination_candidates(value):
         if not candidate.lower().startswith(("http://", "https://")):
             continue
@@ -1585,7 +1585,7 @@ def _coerce_user_id_to_str(value: Any) -> str | None:
         # only when the operator has opted into end-user validation. Gating
         # behind the flag preserves backwards compatibility for deployments
         # that intentionally pass JSON-encoded user identifiers.
-        if litellm.validate_end_user_id_in_db and stripped[:1] in ("{", "["):
+        if gateway.validate_end_user_id_in_db and stripped[:1] in ("{", "["):
             parsed: Final = safe_json_loads(stripped)
             if isinstance(parsed, (dict, list)):
                 return None

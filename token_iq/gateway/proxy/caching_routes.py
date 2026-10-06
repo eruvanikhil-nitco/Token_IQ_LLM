@@ -2,7 +2,7 @@ from typing import Any, Final
 
 from fastapi import APIRouter, Depends, HTTPException, Request
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.caching.caching import RedisCache
 from token_iq.gateway.core_utils.safe_json_dumps import safe_dumps
@@ -36,10 +36,10 @@ def _extract_cache_params() -> dict[str, Any]:
     Returns:
         Dict containing cleaned and masked cache parameters
     """
-    if litellm.cache is None:
+    if gateway.cache is None:
         return {}
     try:
-        cache_params: Final = vars(litellm.cache.cache)
+        cache_params: Final = vars(gateway.cache.cache)
         cleaned_params: Final = HealthCheckCacheParams(**cache_params).model_dump() if cache_params else {}
         return masker.mask_dict(cleaned_params)
     except (AttributeError, TypeError) as e:
@@ -58,7 +58,7 @@ async def cache_ping():
     """
     litellm_cache_params: dict[str, Any] = {}
     cleaned_cache_params: dict[str, Any] = {}
-    if litellm.cache is None:
+    if gateway.cache is None:
         raise ProxyException(
             message=safe_dumps(
                 {
@@ -72,16 +72,16 @@ async def cache_ping():
             code=503,
         )
     try:
-        litellm_cache_params = masker.mask_dict(vars(litellm.cache))
+        litellm_cache_params = masker.mask_dict(vars(gateway.cache))
         # remove field that might reference itself
         litellm_cache_params.pop("cache", None)
         cleaned_cache_params = _extract_cache_params()
 
-        if litellm.cache.type == "redis":
-            ping_response: Final = await litellm.cache.ping()
+        if gateway.cache.type == "redis":
+            ping_response: Final = await gateway.cache.ping()
             verbose_proxy_logger.debug("/cache/ping: ping_response: " + str(ping_response))
             # add cache does not return anything
-            await litellm.cache.async_add_cache(
+            await gateway.cache.async_add_cache(
                 result="test_key",
                 model="test-model",
                 messages=[{"role": "user", "content": "test from litellm"}],
@@ -90,7 +90,7 @@ async def cache_ping():
 
             return CachePingResponse(
                 status="healthy",
-                cache_type=str(litellm.cache.type),
+                cache_type=str(gateway.cache.type),
                 ping_response=True,
                 set_cache_response="success",
                 litellm_cache_params=safe_dumps(litellm_cache_params),
@@ -99,7 +99,7 @@ async def cache_ping():
         else:
             return CachePingResponse(
                 status="healthy",
-                cache_type=str(litellm.cache.type),
+                cache_type=str(gateway.cache.type),
                 litellm_cache_params=safe_dumps(litellm_cache_params),
             )
     except HTTPException:
@@ -139,21 +139,21 @@ async def cache_delete(request: Request):
 
     """
     try:
-        if litellm.cache is None:
+        if gateway.cache is None:
             raise HTTPException(status_code=503, detail="Cache not initialized. litellm.cache is None")
 
         request_data: Final = await request.json()
         keys: Final = request_data.get("keys", None)
 
-        if litellm.cache.type == "redis":
-            await litellm.cache.delete_cache_keys(keys=keys)
+        if gateway.cache.type == "redis":
+            await gateway.cache.delete_cache_keys(keys=keys)
             return {
                 "status": "success",
             }
         else:
             raise HTTPException(
                 status_code=500,
-                detail=f"Cache type {litellm.cache.type} does not support deleting a key. only `redis` is supported",
+                detail=f"Cache type {gateway.cache.type} does not support deleting a key. only `redis` is supported",
             )
     except Exception as e:
         raise HTTPException(
@@ -186,20 +186,20 @@ async def cache_redis_info():
     Endpoint for getting /redis/info
     """
     try:
-        if litellm.cache is None:
+        if gateway.cache is None:
             raise HTTPException(status_code=503, detail="Cache not initialized. litellm.cache is None")
 
-        if not (litellm.cache.type == "redis" and isinstance(litellm.cache.cache, RedisCache)):
+        if not (gateway.cache.type == "redis" and isinstance(gateway.cache.cache, RedisCache)):
             raise HTTPException(
                 status_code=500,
-                detail=f"Cache type {litellm.cache.type} does not support redis info",
+                detail=f"Cache type {gateway.cache.type} does not support redis info",
             )
 
         # Get client information (handles CLIENT LIST restrictions gracefully)
-        client_list, num_clients = _get_redis_client_info(litellm.cache.cache)
+        client_list, num_clients = _get_redis_client_info(gateway.cache.cache)
 
         # Get Redis server information
-        redis_info: Final = litellm.cache.cache.info()
+        redis_info: Final = gateway.cache.cache.info()
 
         return {
             "num_clients": num_clients,
@@ -230,17 +230,17 @@ async def cache_flushall():
     ```
     """
     try:
-        if litellm.cache is None:
+        if gateway.cache is None:
             raise HTTPException(status_code=503, detail="Cache not initialized. litellm.cache is None")
-        if litellm.cache.type == "redis" and isinstance(litellm.cache.cache, RedisCache):
-            litellm.cache.cache.flushall()
+        if gateway.cache.type == "redis" and isinstance(gateway.cache.cache, RedisCache):
+            gateway.cache.cache.flushall()
             return {
                 "status": "success",
             }
         else:
             raise HTTPException(
                 status_code=500,
-                detail=f"Cache type {litellm.cache.type} does not support flushing",
+                detail=f"Cache type {gateway.cache.type} does not support flushing",
             )
     except Exception as e:
         raise HTTPException(

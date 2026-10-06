@@ -302,7 +302,7 @@ async def test_aresponses_fallback_on_in_stream_error_event():
     import json
     from unittest.mock import Mock
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.exceptions import MidStreamFallbackError
     from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
     from token_iq.gateway.llms.base_llm.responses.transformation import BaseResponsesAPIConfig
@@ -372,7 +372,7 @@ async def test_aresponses_fallback_on_in_stream_error_event():
     raised = mock_fallback.await_args.kwargs["e"]
     assert isinstance(raised, MidStreamFallbackError)
     assert raised.status_code == 429
-    assert isinstance(raised.original_exception, litellm.APIError)
+    assert isinstance(raised.original_exception, gateway.APIError)
     assert raised.original_exception.status_code == 429
     assert mock_fallback.await_args.kwargs["kwargs"]["input"] == "original question"
 
@@ -475,7 +475,7 @@ async def test_aresponses_fallback_uses_continuation_input_after_partial_content
 async def test_aresponses_client_error_event_skips_fallback():
     """A 400-mapped in-stream error (raised as APIError, not MidStreamFallbackError)
     must surface to the caller without invoking the router's fallback path."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     router = _make_router()
 
@@ -486,7 +486,7 @@ async def test_aresponses_client_error_event_skips_fallback():
             return self
 
         async def __anext__(self):
-            raise litellm.APIError(
+            raise gateway.APIError(
                 status_code=400,
                 message="bad request",
                 llm_provider="openai",
@@ -503,7 +503,7 @@ async def test_aresponses_client_error_event_skips_fallback():
         "async_function_with_fallbacks_common_utils",
         new=AsyncMock(),
     ) as mock_fallback:
-        with pytest.raises(litellm.APIError) as exc_info:
+        with pytest.raises(gateway.APIError) as exc_info:
             async for _ in wrapped:
                 pass
 

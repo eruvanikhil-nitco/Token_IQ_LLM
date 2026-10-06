@@ -11,7 +11,7 @@ have been aggregated across models.
 from collections.abc import Callable, Mapping
 from typing import TYPE_CHECKING, Final, NamedTuple
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.constants import INTERNAL_CALL_ORIGIN_METADATA_KEY
 from token_iq.gateway.core_utils.llm_cost_calc.utils import _get_cost_per_unit, generic_cost_per_token
@@ -88,7 +88,7 @@ def _resolve_model(model: str | None, custom_llm_provider: str | None) -> _Model
     if not model:
         return None
     try:
-        resolved_model, provider, _, _ = litellm.get_llm_provider(model=model, custom_llm_provider=custom_llm_provider)
+        resolved_model, provider, _, _ = gateway.get_llm_provider(model=model, custom_llm_provider=custom_llm_provider)
     except Exception as e:  # noqa: BLE001  # get_llm_provider raises for unroutable names; degrade to zero savings
         verbose_proxy_logger.debug(
             "savings: cannot resolve provider for model=%s custom_llm_provider=%s (%s)", model, custom_llm_provider, e
@@ -118,7 +118,7 @@ def _effective_model_info(router: "Router | None", deployment_id: str | None, mo
 def _model_info(model: _ModelIdentity) -> ModelInfo | None:
     """The public rates for ``model``, or ``None`` when it has none."""
     try:
-        return litellm.get_model_info(model=model.model, custom_llm_provider=model.provider)
+        return gateway.get_model_info(model=model.model, custom_llm_provider=model.provider)
     except Exception as e:  # noqa: BLE001  # get_model_info raises bare Exception for unmapped models
         verbose_proxy_logger.debug("savings: no pricing for provider=%s model=%s (%s)", model.provider, model.model, e)
         return None

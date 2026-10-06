@@ -7,7 +7,7 @@ from typing import Final
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import verbose_logger
 from token_iq.gateway.integrations.braintrust_mock_client import (
     create_mock_braintrust_client,
@@ -135,16 +135,16 @@ class BraintrustLogger(CustomLogger):
             output = None
             choices = []
             if response_obj is not None and (
-                kwargs.get("call_type", None) == "embedding" or isinstance(response_obj, litellm.EmbeddingResponse)
+                kwargs.get("call_type", None) == "embedding" or isinstance(response_obj, gateway.EmbeddingResponse)
             ):
                 output = None
-            elif response_obj is not None and isinstance(response_obj, litellm.ModelResponse):
+            elif response_obj is not None and isinstance(response_obj, gateway.ModelResponse):
                 output = response_obj["choices"][0]["message"].json()
                 choices = response_obj["choices"]
-            elif response_obj is not None and isinstance(response_obj, litellm.TextCompletionResponse):
+            elif response_obj is not None and isinstance(response_obj, gateway.TextCompletionResponse):
                 output = response_obj.choices[0].text
                 choices = response_obj.choices
-            elif response_obj is not None and isinstance(response_obj, litellm.ImageResponse):
+            elif response_obj is not None and isinstance(response_obj, gateway.ImageResponse):
                 output = response_obj["data"]
 
             litellm_params: Final = kwargs.get("litellm_params", {}) or {}
@@ -167,9 +167,9 @@ class BraintrustLogger(CustomLogger):
                 for key, value in dynamic_metadata.items():
                     # generate langfuse tags - Default Tags sent to Langfuse from LiteLLM Proxy
                     if (
-                        litellm.langfuse_default_tags is not None
-                        and isinstance(litellm.langfuse_default_tags, list)
-                        and key in litellm.langfuse_default_tags
+                        gateway.langfuse_default_tags is not None
+                        and isinstance(gateway.langfuse_default_tags, list)
+                        and key in gateway.langfuse_default_tags
                     ):
                         tags.append(f"{key}:{value}")
 
@@ -182,8 +182,8 @@ class BraintrustLogger(CustomLogger):
 
             metrics: dict | None = None
             usage_obj: Final = getattr(response_obj, "usage", None)
-            if usage_obj and isinstance(usage_obj, litellm.Usage):
-                litellm.utils.get_logging_id(start_time, response_obj)
+            if usage_obj and isinstance(usage_obj, gateway.Usage):
+                gateway.utils.get_logging_id(start_time, response_obj)
                 metrics = {
                     "prompt_tokens": usage_obj.prompt_tokens,
                     "completion_tokens": usage_obj.completion_tokens,
@@ -260,16 +260,16 @@ class BraintrustLogger(CustomLogger):
             output = None
             choices = []
             if response_obj is not None and (
-                kwargs.get("call_type", None) == "embedding" or isinstance(response_obj, litellm.EmbeddingResponse)
+                kwargs.get("call_type", None) == "embedding" or isinstance(response_obj, gateway.EmbeddingResponse)
             ):
                 output = None
-            elif response_obj is not None and isinstance(response_obj, litellm.ModelResponse):
+            elif response_obj is not None and isinstance(response_obj, gateway.ModelResponse):
                 output = response_obj["choices"][0]["message"].json()
                 choices = response_obj["choices"]
-            elif response_obj is not None and isinstance(response_obj, litellm.TextCompletionResponse):
+            elif response_obj is not None and isinstance(response_obj, gateway.TextCompletionResponse):
                 output = response_obj.choices[0].text
                 choices = response_obj.choices
-            elif response_obj is not None and isinstance(response_obj, litellm.ImageResponse):
+            elif response_obj is not None and isinstance(response_obj, gateway.ImageResponse):
                 output = response_obj["data"]
 
             litellm_params: Final = kwargs.get("litellm_params", {})
@@ -292,9 +292,9 @@ class BraintrustLogger(CustomLogger):
                 for key, value in dynamic_metadata.items():
                     # generate langfuse tags - Default Tags sent to Langfuse from LiteLLM Proxy
                     if (
-                        litellm.langfuse_default_tags is not None
-                        and isinstance(litellm.langfuse_default_tags, list)
-                        and key in litellm.langfuse_default_tags
+                        gateway.langfuse_default_tags is not None
+                        and isinstance(gateway.langfuse_default_tags, list)
+                        and key in gateway.langfuse_default_tags
                     ):
                         tags.append(f"{key}:{value}")
 
@@ -307,8 +307,8 @@ class BraintrustLogger(CustomLogger):
 
             metrics: dict | None = None
             usage_obj: Final = getattr(response_obj, "usage", None)
-            if usage_obj and isinstance(usage_obj, litellm.Usage):
-                litellm.utils.get_logging_id(start_time, response_obj)
+            if usage_obj and isinstance(usage_obj, gateway.Usage):
+                gateway.utils.get_logging_id(start_time, response_obj)
                 metrics = {
                     "prompt_tokens": usage_obj.prompt_tokens,
                     "completion_tokens": usage_obj.completion_tokens,

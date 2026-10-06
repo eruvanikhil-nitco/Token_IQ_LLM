@@ -49,7 +49,7 @@ class LiteLLMResponsesInteractionsStreamingIterator:
         custom_llm_provider: str | None = None,
         litellm_metadata: dict[str, Any] | None = None,
     ):
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         self.model = model
         self.responses_stream_iterator = litellm_custom_stream_wrapper
@@ -64,7 +64,7 @@ class LiteLLMResponsesInteractionsStreamingIterator:
         # Capture the schema flag once at construction time so all events
         # emitted by this stream use a consistent schema, even if the global
         # flag is mutated mid-stream (e.g. by a config reload).
-        self._use_legacy: bool = litellm.use_legacy_interactions_schema
+        self._use_legacy: bool = gateway.use_legacy_interactions_schema
         # Buffer of events that have been derived from upstream chunks but not
         # yet returned to the caller. A single Responses API chunk may expand
         # into multiple Interactions API events (e.g. the first text delta

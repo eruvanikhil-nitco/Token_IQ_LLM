@@ -17,7 +17,7 @@ from fastapi.testclient import TestClient
 from starlette.datastructures import FormData
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy.common_request_processing import ProxyBaseLLMRequestProcessing
 from token_iq.gateway.constants import LITELLM_PROXY_MASTER_KEY_ALIAS
 from token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints import (
@@ -83,7 +83,7 @@ class TestBaseOpenAIPassThroughHandler:
         base_url = httpx.URL("https://api.example.com")
         path = "/v1/chat/completions"
         result = _join_url_paths(
-            base_url, path, litellm.LlmProviders.OPENAI.value
+            base_url, path, gateway.LlmProviders.OPENAI.value
         )
         print(f"Base URL with no path: '{base_url}' + '{path}' → '{result}'")
         assert str(result) == "https://api.example.com/v1/chat/completions"
@@ -92,7 +92,7 @@ class TestBaseOpenAIPassThroughHandler:
         base_url = httpx.URL("https://api.example.com/v1")
         path = "/chat/completions"
         result = _join_url_paths(
-            base_url, path, litellm.LlmProviders.OPENAI.value
+            base_url, path, gateway.LlmProviders.OPENAI.value
         )
         print(f"Base URL with path: '{base_url}' + '{path}' → '{result}'")
         assert str(result) == "https://api.example.com/v1/chat/completions"
@@ -101,7 +101,7 @@ class TestBaseOpenAIPassThroughHandler:
         base_url = httpx.URL("https://api.example.com/v1")
         path = "chat/completions"
         result = _join_url_paths(
-            base_url, path, litellm.LlmProviders.OPENAI.value
+            base_url, path, gateway.LlmProviders.OPENAI.value
         )
         print(f"Path without leading slash: '{base_url}' + '{path}' → '{result}'")
         assert str(result) == "https://api.example.com/v1/chat/completions"
@@ -110,7 +110,7 @@ class TestBaseOpenAIPassThroughHandler:
         base_url = httpx.URL("https://api.example.com/v1/")
         path = "/chat/completions"
         result = _join_url_paths(
-            base_url, path, litellm.LlmProviders.OPENAI.value
+            base_url, path, gateway.LlmProviders.OPENAI.value
         )
         print(f"Base URL with trailing slash: '{base_url}' + '{path}' → '{result}'")
         assert str(result) == "https://api.example.com/v1/chat/completions"
@@ -206,7 +206,7 @@ class TestBaseOpenAIPassThroughHandler:
             user_api_key_dict=mock_user_api_key_dict,
             base_target_url="https://api.openai.com",
             api_key="test_api_key",
-            custom_llm_provider=litellm.LlmProviders.OPENAI.value,
+            custom_llm_provider=gateway.LlmProviders.OPENAI.value,
         )
 
         # Verify the result
@@ -1128,10 +1128,10 @@ class TestVertexAIPassThroughHandler:
 
         monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
         monkeypatch.setattr(
-            litellm,
+            gateway,
             "model_cost",
             {
-                **litellm.get_model_cost_map(),
+                **gateway.get_model_cost_map(),
                 "vertex_ai/gemini-fake-regional": {
                     "litellm_provider": "vertex_ai",
                     "mode": "chat",
@@ -2009,7 +2009,7 @@ class TestLLMPassthroughFactoryProxyRoute:
 
             assert result == "success"
             mock_get_provider.assert_called_once_with(
-                provider=litellm.LlmProviders(LlmProviders.VLLM), model=None
+                provider=gateway.LlmProviders(LlmProviders.VLLM), model=None
             )
             mock_get_creds.assert_called_once_with(
                 custom_llm_provider=LlmProviders.VLLM,
@@ -2765,8 +2765,8 @@ class TestMilvusProxyRoute:
             patch(
                 "token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints.create_pass_through_route"
             ) as mock_create_route,
-            patch.object(litellm, "vector_store_index_registry") as mock_index_registry,
-            patch.object(litellm, "vector_store_registry") as mock_vector_registry,
+            patch.object(gateway, "vector_store_index_registry") as mock_index_registry,
+            patch.object(gateway, "vector_store_registry") as mock_vector_registry,
         ):
             # Setup mocks
             mock_provider_config = MagicMock()
@@ -2907,7 +2907,7 @@ class TestMilvusProxyRoute:
             patch(
                 "token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints.ProviderConfigManager.get_provider_vector_stores_config"
             ) as mock_get_config,
-            patch.object(litellm, "vector_store_index_registry", None),
+            patch.object(gateway, "vector_store_index_registry", None),
         ):
             mock_get_config.return_value = MagicMock()
 
@@ -2946,8 +2946,8 @@ class TestMilvusProxyRoute:
             patch(
                 "token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints.ProviderConfigManager.get_provider_vector_stores_config"
             ) as mock_get_config,
-            patch.object(litellm, "vector_store_index_registry") as mock_index_registry,
-            patch.object(litellm, "vector_store_registry", MagicMock()),
+            patch.object(gateway, "vector_store_index_registry") as mock_index_registry,
+            patch.object(gateway, "vector_store_registry", MagicMock()),
         ):
             mock_get_config.return_value = MagicMock()
             mock_index_registry.is_vector_store_index.return_value = False
@@ -2998,8 +2998,8 @@ class TestMilvusProxyRoute:
             patch(
                 "token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints._safe_set_request_parsed_body"
             ),
-            patch.object(litellm, "vector_store_index_registry") as mock_index_registry,
-            patch.object(litellm, "vector_store_registry") as mock_vector_registry,
+            patch.object(gateway, "vector_store_index_registry") as mock_index_registry,
+            patch.object(gateway, "vector_store_registry") as mock_vector_registry,
         ):
             mock_get_config.return_value = MagicMock()
             mock_index_registry.is_vector_store_index.return_value = True
@@ -3056,8 +3056,8 @@ class TestMilvusProxyRoute:
             patch(
                 "token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints._safe_set_request_parsed_body"
             ),
-            patch.object(litellm, "vector_store_index_registry") as mock_index_registry,
-            patch.object(litellm, "vector_store_registry") as mock_vector_registry,
+            patch.object(gateway, "vector_store_index_registry") as mock_index_registry,
+            patch.object(gateway, "vector_store_registry") as mock_vector_registry,
         ):
             mock_provider_config = MagicMock()
             mock_provider_config.get_auth_credentials.return_value = {"headers": {}}
@@ -3123,8 +3123,8 @@ class TestMilvusProxyRoute:
             patch(
                 "token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints.create_pass_through_route"
             ) as mock_create_route,
-            patch.object(litellm, "vector_store_index_registry") as mock_index_registry,
-            patch.object(litellm, "vector_store_registry") as mock_vector_registry,
+            patch.object(gateway, "vector_store_index_registry") as mock_index_registry,
+            patch.object(gateway, "vector_store_registry") as mock_vector_registry,
         ):
             mock_provider_config = MagicMock()
             mock_provider_config.get_auth_credentials.return_value = {"headers": {}}
@@ -3451,7 +3451,7 @@ class TestCursorProxyRoute:
                 return_value=None,
             ),
             patch(
-                "token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints.litellm.credential_list",
+                "token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints.gateway.credential_list",
                 [],
             ),
         ):
@@ -3493,7 +3493,7 @@ class TestCursorProxyRoute:
                 return_value=None,
             ),
             patch(
-                "token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints.litellm.credential_list",
+                "token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints.gateway.credential_list",
                 [ui_credential],
             ),
             patch(
@@ -4304,8 +4304,8 @@ class TestAzureProxyRouteCrossIndexAuthorization:
                 "token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints.BaseOpenAIPassThroughHandler._base_openai_pass_through_handler",
                 new=AsyncMock(return_value=Response()),
             ),
-            patch.object(litellm, "vector_store_index_registry") as mock_index_registry,
-            patch.object(litellm, "vector_store_registry") as mock_vector_registry,
+            patch.object(gateway, "vector_store_index_registry") as mock_index_registry,
+            patch.object(gateway, "vector_store_registry") as mock_vector_registry,
         ):
             mock_get_config.return_value.get_auth_credentials.return_value = {"headers": {"api-key": "k"}}
             mock_index_registry.is_vector_store_index.side_effect = lambda vector_store_index_name: (
@@ -4350,7 +4350,7 @@ class TestAzureProxyRouteCrossIndexAuthorization:
                 "token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints.BaseOpenAIPassThroughHandler._base_openai_pass_through_handler",
                 new=AsyncMock(return_value=Response()),
             ) as mock_handler,
-            patch.object(litellm, "vector_store_index_registry") as mock_index_registry,
+            patch.object(gateway, "vector_store_index_registry") as mock_index_registry,
         ):
             mock_index_registry.is_vector_store_index.side_effect = lambda vector_store_index_name: (
                 vector_store_index_name == "index"
@@ -4365,7 +4365,7 @@ class TestAzureProxyRouteCrossIndexAuthorization:
 
             mock_is_allowed.assert_not_called()
             mock_handler.assert_awaited_once()
-            assert mock_handler.await_args.kwargs["custom_llm_provider"] == litellm.LlmProviders.AZURE
+            assert mock_handler.await_args.kwargs["custom_llm_provider"] == gateway.LlmProviders.AZURE
 
 
 class TestAzureProxyRouteServiceLevelIndexCreate:
@@ -4667,7 +4667,7 @@ class TestVertexAILiveWebsocketPassthrough:
             llm_passthrough_endpoints as passthrough_module,
         )
 
-        llm_router = litellm.Router(
+        llm_router = gateway.Router(
             model_list=[
                 {
                     "model_name": "gemini-live",
@@ -4738,7 +4738,7 @@ class TestVertexAILiveWebsocketPassthrough:
             llm_passthrough_endpoints as passthrough_module,
         )
 
-        llm_router = litellm.Router(
+        llm_router = gateway.Router(
             model_list=[
                 {
                     "model_name": "gemini-live",
@@ -4770,7 +4770,7 @@ class TestVertexAILiveWebsocketPassthrough:
             VertexPassThroughCredentials,
         )
 
-        llm_router = litellm.Router(
+        llm_router = gateway.Router(
             model_list=[
                 {
                     "model_name": "gemini-live",

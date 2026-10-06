@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Final, cast
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.rag.ingestion.base_ingestion import BaseRAGIngestion
 from token_iq.gateway.vector_store_files.main import acreate as vector_store_file_acreate
 from token_iq.gateway.vector_stores.main import acreate as vector_store_acreate
@@ -116,7 +116,7 @@ class OpenAIRAGIngestion(BaseRAGIngestion):
         result_file_id = None
         if file_content is not None and filename and vector_store_id:
             # Upload file to OpenAI
-            file_response: Final = await litellm.acreate_file(
+            file_response: Final = await gateway.acreate_file(
                 file=(
                     filename,
                     file_content,

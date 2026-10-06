@@ -5,7 +5,7 @@ from fastapi.testclient import TestClient
 
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.caching import RedisCache
 from token_iq.gateway.proxy.proxy_server import app
 
@@ -31,7 +31,7 @@ def mock_redis_success(mocker):
         password="hello",
     )
 
-    mocker.patch.object(litellm, "cache", mock_cache)
+    mocker.patch.object(gateway, "cache", mock_cache)
     return mock_cache
 
 
@@ -45,7 +45,7 @@ def mock_redis_failure(mocker):
     mock_cache.type = "redis"
     mock_cache.ping = mock_ping
 
-    mocker.patch.object(litellm, "cache", mock_cache)
+    mocker.patch.object(gateway, "cache", mock_cache)
     return mock_cache
 
 
@@ -157,8 +157,8 @@ def test_cache_ping_no_cache_initialized():
     (e.g. message moving to a different field, or extra internal details leaking)
     are caught immediately.
     """
-    original_cache = litellm.cache
-    litellm.cache = None
+    original_cache = gateway.cache
+    gateway.cache = None
 
     try:
         response = client.get(
@@ -175,7 +175,7 @@ def test_cache_ping_no_cache_initialized():
             error_details["message"] == "Cache not initialized. litellm.cache is None"
         )
     finally:
-        litellm.cache = original_cache
+        gateway.cache = original_cache
 
 
 def test_cache_ping_no_cache_does_not_expose_internals():
@@ -185,8 +185,8 @@ def test_cache_ping_no_cache_does_not_expose_internals():
     response is {"error": {"message": "...", ...}} — same envelope as other 503s from
     this endpoint — with no tracebacks, source paths, or extra fields leaking.
     """
-    original_cache = litellm.cache
-    litellm.cache = None
+    original_cache = gateway.cache
+    gateway.cache = None
 
     try:
         response = client.get(
@@ -211,7 +211,7 @@ def test_cache_ping_no_cache_does_not_expose_internals():
             error_details["message"] == "Cache not initialized. litellm.cache is None"
         )
     finally:
-        litellm.cache = original_cache
+        gateway.cache = original_cache
 
 
 def test_cache_ping_health_check_includes_only_cache_attributes(mock_redis_success):
@@ -288,7 +288,7 @@ def mock_redis_client_list_restricted(mocker):
     mock_cache.cache.client_list = mock_client_list
     mock_cache.cache.info = mock_info
 
-    mocker.patch.object(litellm, "cache", mock_cache)
+    mocker.patch.object(gateway, "cache", mock_cache)
     return mock_cache
 
 
@@ -315,14 +315,14 @@ def mock_redis_client_list_success(mocker):
     mock_cache.cache.client_list = mock_client_list
     mock_cache.cache.info = mock_info
 
-    mocker.patch.object(litellm, "cache", mock_cache)
+    mocker.patch.object(gateway, "cache", mock_cache)
     return mock_cache
 
 
 def test_cache_redis_info_no_cache():
     """Test /cache/redis/info when no cache is initialized"""
-    original_cache = litellm.cache
-    litellm.cache = None
+    original_cache = gateway.cache
+    gateway.cache = None
 
     response = client.get(
         "/cache/redis/info", headers={"Authorization": "Bearer sk-1234"}
@@ -333,4 +333,4 @@ def test_cache_redis_info_no_cache():
     assert "Cache not initialized" in data["detail"]
 
     # Restore original cache
-    litellm.cache = original_cache
+    gateway.cache = original_cache

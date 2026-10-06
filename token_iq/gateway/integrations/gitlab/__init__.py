@@ -26,9 +26,9 @@ def set_global_gitlab_config(config: dict) -> None:
                 - access_token: gitlab access token
                 - branch: Branch to fetch prompts from (default: main)
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    litellm.global_gitlab_config = config
+    gateway.global_gitlab_config = config
 
 
 def prompt_initializer(litellm_params: "PromptLiteLLMParams", prompt_spec: "PromptSpec") -> "CustomPromptManagement":

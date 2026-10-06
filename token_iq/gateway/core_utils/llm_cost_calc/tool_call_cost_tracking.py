@@ -5,7 +5,7 @@ Helper utilities for tracking the cost of built-in tools.
 from collections.abc import Mapping
 from typing import Final, Literal
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.constants import OPENAI_FILE_SEARCH_COST_PER_1K_CALLS
 from token_iq.gateway.core_utils.llm_cost_calc.utils import (
     get_web_search_requests_from_usage,
@@ -506,7 +506,7 @@ class StandardBuiltInToolCostTracking:
     @staticmethod
     def _safe_get_model_info(model: str, custom_llm_provider: str | None = None) -> ModelInfo | None:
         try:
-            return litellm.get_model_info(model=model, custom_llm_provider=custom_llm_provider)
+            return gateway.get_model_info(model=model, custom_llm_provider=custom_llm_provider)
         except Exception:
             return None
 
@@ -661,15 +661,15 @@ class StandardBuiltInToolCostTracking:
         """
         Get code interpreter cost per session from model cost map.
         """
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         try:
             container_model: Final = f"{provider}/container"
-            model_info: Final = litellm.get_model_info(model=container_model, custom_llm_provider=provider)
+            model_info: Final = gateway.get_model_info(model=container_model, custom_llm_provider=provider)
             model_key = model_info.get("key") if isinstance(model_info, dict) else getattr(model_info, "key", None)
 
-            if model_key and model_key in litellm.model_cost:
-                return litellm.model_cost[model_key].get("code_interpreter_cost_per_session")
+            if model_key and model_key in gateway.model_cost:
+                return gateway.model_cost[model_key].get("code_interpreter_cost_per_session")
 
         except Exception:
             pass

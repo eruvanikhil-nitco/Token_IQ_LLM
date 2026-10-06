@@ -631,7 +631,7 @@ async def test_pre_call_merges_model_level_guardrails_before_pre_call_hook():
             side_effect=passthrough_add_litellm_data,
         ),
         patch(
-            "token_iq.gateway.proxy.common_request_processing.litellm.utils.function_setup",
+            "token_iq.gateway.proxy.common_request_processing.gateway.utils.function_setup",
             return_value=(MagicMock(), processing.data),
         ),
         patch(

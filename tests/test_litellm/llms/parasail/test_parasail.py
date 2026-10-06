@@ -6,11 +6,11 @@ PARASAIL_RESPONSES_GATEWAY = "https://api-webflux.saas.parasail.io/v1"
 
 
 def test_parasail_json_registry():
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.llms.openai_like.json_loader import JSONProviderRegistry
 
-    assert litellm.LlmProviders.PARASAIL.value == "parasail"
-    assert litellm.LlmProviders("parasail") == litellm.LlmProviders.PARASAIL
+    assert gateway.LlmProviders.PARASAIL.value == "parasail"
+    assert gateway.LlmProviders("parasail") == gateway.LlmProviders.PARASAIL
     assert JSONProviderRegistry.exists("parasail")
     config = JSONProviderRegistry.get("parasail")
     assert config is not None

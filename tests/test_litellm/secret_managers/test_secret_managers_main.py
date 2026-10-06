@@ -7,7 +7,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.integrations.custom_secret_manager import CustomSecretManager
 from token_iq.gateway.secret_managers.main import (
     get_secret,
@@ -409,10 +409,10 @@ def test_secret_manager_would_be_consulted_matches_get_secret(
     lookup that never happened.
     """
     asked = []
-    monkeypatch.setattr(litellm, "secret_manager_client", _SpySecretManager(asked))
-    monkeypatch.setattr(litellm, "_key_management_system", KeyManagementSystem.CUSTOM)
+    monkeypatch.setattr(gateway, "secret_manager_client", _SpySecretManager(asked))
+    monkeypatch.setattr(gateway, "_key_management_system", KeyManagementSystem.CUSTOM)
     monkeypatch.setattr(
-        litellm,
+        gateway,
         "_key_management_settings",
         KeyManagementSettings(access_mode=access_mode, hosted_keys=hosted_keys),
     )
@@ -428,6 +428,6 @@ def test_secret_manager_would_be_consulted_matches_get_secret(
 
 
 def test_secret_manager_would_be_consulted_is_false_without_a_client(monkeypatch):
-    monkeypatch.setattr(litellm, "secret_manager_client", None)
+    monkeypatch.setattr(gateway, "secret_manager_client", None)
 
     assert secret_manager_would_be_consulted("os.environ/ANY_NAME") is False

@@ -7,7 +7,7 @@ import base64
 import httpx
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler, AsyncHTTPHandler
 
 titan_embedding_response = {"embedding": [0.1, 0.2, 0.3], "inputTextTokenCount": 10}
@@ -54,7 +54,7 @@ img_base_64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAGQAAABkBAMAAACCzIh
 )
 def test_bedrock_embedding_models(model, input_type, embed_response):
     """Test embedding functionality for all Bedrock models with different input types"""
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     client = HTTPHandler()
 
     with patch.object(client, "post") as mock_post:
@@ -70,7 +70,7 @@ def test_bedrock_embedding_models(model, input_type, embed_response):
         )
 
         try:
-            response = litellm.embedding(
+            response = gateway.embedding(
                 model=model,
                 input=input_data,
                 client=client,
@@ -79,7 +79,7 @@ def test_bedrock_embedding_models(model, input_type, embed_response):
             )
 
             # Verify response structure
-            assert isinstance(response, litellm.EmbeddingResponse)
+            assert isinstance(response, gateway.EmbeddingResponse)
             print(response.data)
             assert isinstance(response.data[0]["embedding"], list)
             assert len(response.data[0]["embedding"]) == 3  # Based on mock response
@@ -108,15 +108,15 @@ def test_e2e_bedrock_embedding():
 
     os.environ["AWS_REGION_NAME"] = "us-east-1"
 
-    litellm._turn_on_debug()
-    response = litellm.embedding(
+    gateway._turn_on_debug()
+    response = gateway.embedding(
         model="bedrock/us.twelvelabs.marengo-embed-2-7-v1:0",
         input=["Hello world from LiteLLM with TwelveLabs Marengo!"],
     )
 
     # Validate response structure
     assert isinstance(
-        response, litellm.EmbeddingResponse
+        response, gateway.EmbeddingResponse
     ), "Response should be EmbeddingResponse type"
     assert hasattr(response, "data"), "Response should have 'data' attribute"
     assert len(response.data) > 0, "Response data should not be empty"
@@ -162,7 +162,7 @@ def test_e2e_bedrock_embedding_image_twelvelabs_marengo():
     print("Testing image embedding...")
     original_region_name = os.environ.get("AWS_REGION_NAME")
     os.environ["AWS_REGION_NAME"] = "us-east-1"
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
 
     # Load duck.png and convert to base64
     duck_img_path = os.path.join(os.path.dirname(__file__), "duck.png")
@@ -170,7 +170,7 @@ def test_e2e_bedrock_embedding_image_twelvelabs_marengo():
         duck_img_data = base64.b64encode(img_file.read()).decode("utf-8")
         duck_img_base64 = f"data:image/png;base64,{duck_img_data}"
 
-        response = litellm.embedding(
+        response = gateway.embedding(
             model="bedrock/us.twelvelabs.marengo-embed-2-7-v1:0",
             input=[duck_img_base64],
             aws_region_name="us-east-1",
@@ -179,7 +179,7 @@ def test_e2e_bedrock_embedding_image_twelvelabs_marengo():
 
         # Validate response structure
         assert isinstance(
-            response, litellm.EmbeddingResponse
+            response, gateway.EmbeddingResponse
         ), "Response should be EmbeddingResponse type"
         assert hasattr(response, "data"), "Response should have 'data' attribute"
         assert len(response.data) > 0, "Response data should not be empty"
@@ -231,7 +231,7 @@ def test_e2e_bedrock_async_invoke_embedding_twelvelabs_marengo():
     print("Testing async invoke embedding...")
     original_region_name = os.environ.get("AWS_REGION_NAME")
     os.environ["AWS_REGION_NAME"] = "us-east-1"
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
 
     # Mock the HTTP call to return async invoke response
     with patch(
@@ -241,7 +241,7 @@ def test_e2e_bedrock_async_invoke_embedding_twelvelabs_marengo():
             "invocationArn": "arn:aws:bedrock:us-east-1:123456789012:async-invoke/test-job-123"
         }
 
-        response = litellm.embedding(
+        response = gateway.embedding(
             model="bedrock/async_invoke/us.twelvelabs.marengo-embed-2-7-v1:0",
             input=["Hello world from LiteLLM async invoke!"],
             aws_region_name="us-east-1",
@@ -251,7 +251,7 @@ def test_e2e_bedrock_async_invoke_embedding_twelvelabs_marengo():
 
         # Validate response structure
         assert isinstance(
-            response, litellm.EmbeddingResponse
+            response, gateway.EmbeddingResponse
         ), "Response should be EmbeddingResponse type"
         assert hasattr(
             response, "_hidden_params"
@@ -294,7 +294,7 @@ async def test_e2e_bedrock_async_invoke_embedding_async_twelvelabs_marengo():
     print("Testing async invoke embedding with async calls...")
     original_region_name = os.environ.get("AWS_REGION_NAME")
     os.environ["AWS_REGION_NAME"] = "us-east-1"
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
 
     # Mock the async HTTP call to return async invoke response
     with patch(
@@ -304,7 +304,7 @@ async def test_e2e_bedrock_async_invoke_embedding_async_twelvelabs_marengo():
             "invocationArn": "arn:aws:bedrock:us-east-1:123456789012:async-invoke/test-async-job-456"
         }
 
-        response = await litellm.aembedding(
+        response = await gateway.aembedding(
             model="bedrock/async_invoke/us.twelvelabs.marengo-embed-2-7-v1:0",
             input=["Hello world from LiteLLM async invoke async!"],
             aws_region_name="us-east-1",
@@ -314,7 +314,7 @@ async def test_e2e_bedrock_async_invoke_embedding_async_twelvelabs_marengo():
 
         # Validate response structure
         assert isinstance(
-            response, litellm.EmbeddingResponse
+            response, gateway.EmbeddingResponse
         ), "Response should be EmbeddingResponse type"
         assert hasattr(
             response, "_hidden_params"
@@ -366,7 +366,7 @@ def test_bedrock_embedding_uses_correct_region_when_specified():
             mock_post.return_value = mock_response
 
             # Call with explicit region
-            response = litellm.embedding(
+            response = gateway.embedding(
                 model="bedrock/amazon.titan-embed-image-v1",
                 input=["test input"],
                 client=client,
@@ -419,7 +419,7 @@ def test_bedrock_embedding_region_bug_reproduction():
             mock_post.return_value = mock_response
 
             # Call with explicit region (as in the bug report)
-            response = litellm.embedding(
+            response = gateway.embedding(
                 model="bedrock/amazon.titan-embed-image-v1",
                 input=["test input"],
                 client=client,
@@ -462,7 +462,7 @@ def test_bedrock_embedding_region_bug_reproduction():
 
 def test_bedrock_titan_g1_text_02_model_info():
     """Test that amazon.titan-embed-g1-text-02 has correct pricing metadata"""
-    model_info = litellm.get_model_info("amazon.titan-embed-g1-text-02")
+    model_info = gateway.get_model_info("amazon.titan-embed-g1-text-02")
     assert model_info is not None, "Model info should not be None"
     assert model_info["litellm_provider"] == "bedrock"
     assert model_info["mode"] == "embedding"

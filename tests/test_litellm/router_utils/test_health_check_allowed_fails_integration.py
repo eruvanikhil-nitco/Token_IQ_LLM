@@ -10,7 +10,7 @@ from unittest.mock import patch
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy.health_check import run_with_timeout
 from token_iq.gateway.router import Router
 from token_iq.gateway.types.router import AllowedFailsPolicy
@@ -39,7 +39,7 @@ class TestAhealthCheckExceptionPreservation:
 
         assert "error" in result
         assert "exception" in result
-        assert isinstance(result["exception"], litellm.Timeout)
+        assert isinstance(result["exception"], gateway.Timeout)
 
 
 class TestHealthCheckEndpointExceptionPropagation:
@@ -54,7 +54,7 @@ class TestHealthCheckEndpointExceptionPropagation:
 
         from token_iq.gateway.proxy.health_check import _perform_health_check
 
-        auth_error = litellm.AuthenticationError(
+        auth_error = gateway.AuthenticationError(
             message="Invalid key", llm_provider="openai", model="gpt-4"
         )
         model_list = [
@@ -66,7 +66,7 @@ class TestHealthCheckEndpointExceptionPropagation:
         ]
 
         with patch(
-            "token_iq.gateway.proxy.health_check.litellm.ahealth_check",
+            "token_iq.gateway.proxy.health_check.gateway.ahealth_check",
             new=AsyncMock(
                 return_value={"error": "auth failed", "exception": auth_error}
             ),
@@ -85,7 +85,7 @@ class TestHealthCheckEndpointExceptionPropagation:
 
         from token_iq.gateway.proxy.health_check import _perform_health_check
 
-        raw_exc = litellm.RateLimitError(
+        raw_exc = gateway.RateLimitError(
             message="Rate limited", llm_provider="openai", model="gpt-4"
         )
         model_list = [
@@ -247,7 +247,7 @@ class TestHealthCheckIgnoreTransientErrors:
             health_check_ignore_transient_errors=True,
         )
 
-        rate_exc = litellm.RateLimitError(
+        rate_exc = gateway.RateLimitError(
             message="Rate limited", model="gpt-4", llm_provider="openai"
         )
 

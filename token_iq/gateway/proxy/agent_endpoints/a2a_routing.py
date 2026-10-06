@@ -9,7 +9,7 @@ from typing import Any, Final
 
 from fastapi import HTTPException
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
 
@@ -78,4 +78,4 @@ async def route_a2a_agent_request(
     data["api_base"] = agent.agent_card_params["url"]
     verbose_proxy_logger.debug("[A2A] Routing %s to %s", model_name, data["api_base"])
 
-    return getattr(litellm, f"{route_type}")(**data)
+    return getattr(gateway, f"{route_type}")(**data)

@@ -6,7 +6,7 @@ import pytest
 from fastapi.exceptions import HTTPException
 from httpx import ReadTimeout, Request, Response
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy.guardrails.guardrail_hooks.prompt_security.prompt_security import (
     PromptSecurityGuardrail,
     PromptSecurityGuardrailMissingSecrets,
@@ -16,8 +16,8 @@ from token_iq.gateway.proxy.guardrails.init_guardrails import init_guardrails_v2
 
 def test_prompt_security_guard_config(monkeypatch: pytest.MonkeyPatch):
     """Test guardrail initialization with proper configuration"""
-    monkeypatch.setattr(litellm, "guardrail_name_config_map", {})
-    monkeypatch.setattr(litellm, "callbacks", [])
+    monkeypatch.setattr(gateway, "guardrail_name_config_map", {})
+    monkeypatch.setattr(gateway, "callbacks", [])
 
     monkeypatch.setenv("PROMPT_SECURITY_API_KEY", "test-key")
     monkeypatch.setenv("PROMPT_SECURITY_API_BASE", "https://test.prompt.security")
@@ -37,7 +37,7 @@ def test_prompt_security_guard_config(monkeypatch: pytest.MonkeyPatch):
         config_file_path="",
     )
 
-    registered = [c for c in litellm.callbacks if isinstance(c, PromptSecurityGuardrail)]
+    registered = [c for c in gateway.callbacks if isinstance(c, PromptSecurityGuardrail)]
     assert len(registered) == 1
     assert registered[0].guardrail_name == "prompt_security"
     assert registered[0].default_on is True
@@ -50,7 +50,7 @@ def test_prompt_security_guard_config(monkeypatch: pytest.MonkeyPatch):
 
 def test_prompt_security_guard_config_no_api_key(monkeypatch: pytest.MonkeyPatch):
     """Test that initialization fails when API key is missing"""
-    monkeypatch.setattr(litellm, "guardrail_name_config_map", {})
+    monkeypatch.setattr(gateway, "guardrail_name_config_map", {})
 
     monkeypatch.delenv("PROMPT_SECURITY_API_KEY", raising=False)
     monkeypatch.delenv("PROMPT_SECURITY_API_BASE", raising=False)
@@ -383,7 +383,7 @@ async def test_file_sanitization(monkeypatch: pytest.MonkeyPatch):
 @pytest.mark.parametrize(
     "timeout",
     (
-        litellm.Timeout(
+        gateway.Timeout(
             message="Prompt Security upload timed out",
             model="default-model-name",
             llm_provider="litellm-httpx-handler",

@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Any, Final, cast
 import httpx
 from httpx._types import RequestFiles
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.images.utils import ImageEditRequestUtils
 from token_iq.gateway.llms.base_llm.image_edit.transformation import BaseImageEditConfig
 from token_iq.gateway.secret_managers.main import get_secret_str
@@ -160,7 +160,7 @@ class OpenAIImageEditConfig(BaseImageEditConfig):
         litellm_params: dict | None = None,
         api_base: str | None = None,
     ) -> dict:
-        api_key = api_key or litellm.api_key or litellm.openai_key or get_secret_str("OPENAI_API_KEY")
+        api_key = api_key or gateway.api_key or gateway.openai_key or get_secret_str("OPENAI_API_KEY")
         headers.update(
             {
                 "Authorization": f"Bearer {api_key}",
@@ -179,7 +179,7 @@ class OpenAIImageEditConfig(BaseImageEditConfig):
         """
         api_base = (
             api_base
-            or litellm.api_base
+            or gateway.api_base
             or get_secret_str("OPENAI_BASE_URL")
             or get_secret_str("OPENAI_API_BASE")
             or "https://api.openai.com/v1"

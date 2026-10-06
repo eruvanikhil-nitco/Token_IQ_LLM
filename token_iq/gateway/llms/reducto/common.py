@@ -17,9 +17,9 @@ def _normalize_api_base(api_base: str | None) -> str:
 
 
 def _raise_bad_request(message: str, model: str) -> NoReturn:
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    raise litellm.BadRequestError(
+    raise gateway.BadRequestError(
         message=message,
         model=model,
         llm_provider="reducto",
@@ -79,9 +79,9 @@ def upload_bytes_sync(
     api_key: str,
     api_base: str | None,
 ) -> str:
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    response: Final = litellm.module_level_client.post(
+    response: Final = gateway.module_level_client.post(
         url="{}{}".format(_normalize_api_base(api_base), "/upload"),
         headers={"Authorization": f"Bearer {api_key}"},
         files={"file": ("document", raw_bytes, mime or "application/octet-stream")},
@@ -97,9 +97,9 @@ async def upload_bytes_async(
     api_key: str,
     api_base: str | None,
 ) -> str:
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    response: Final = await litellm.module_level_aclient.post(
+    response: Final = await gateway.module_level_aclient.post(
         url="{}{}".format(_normalize_api_base(api_base), "/upload"),
         headers={"Authorization": f"Bearer {api_key}"},
         files={"file": ("document", raw_bytes, mime or "application/octet-stream")},

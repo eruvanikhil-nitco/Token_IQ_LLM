@@ -4,7 +4,7 @@ from typing import Final, cast
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import verbose_logger
 from token_iq.gateway._uuid import uuid
 from token_iq.gateway.caching.caching import InMemoryCache
@@ -161,13 +161,13 @@ async def make_call(
     logging_obj: Logging,
     fake_stream: bool = False,
     json_mode: bool | None = False,
-    bedrock_invoke_provider: litellm.BEDROCK_INVOKE_PROVIDERS_LITERAL | None = None,
+    bedrock_invoke_provider: gateway.BEDROCK_INVOKE_PROVIDERS_LITERAL | None = None,
     stream_chunk_size: int | None = None,
 ) -> tuple[Any, httpx.Headers]:
     try:
         if client is None:
             client = get_async_httpx_client(
-                llm_provider=litellm.LlmProviders.BEDROCK,
+                llm_provider=gateway.LlmProviders.BEDROCK,
                 params=(
                     {"ssl_verify": logging_obj.litellm_params.get("ssl_verify")}
                     if logging_obj and logging_obj.litellm_params and logging_obj.litellm_params.get("ssl_verify")
@@ -187,17 +187,17 @@ async def make_call(
             raise BedrockError(status_code=response.status_code, message=response.text)
 
         if fake_stream:
-            model_response: Final[ModelResponse] = litellm.AmazonConverseConfig()._transform_response(
+            model_response: Final[ModelResponse] = gateway.AmazonConverseConfig()._transform_response(
                 model=model,
                 response=response,
-                model_response=litellm.ModelResponse(),
+                model_response=gateway.ModelResponse(),
                 stream=True,
                 logging_obj=logging_obj,
                 optional_params={},
                 api_key="",
                 data=data,
                 messages=messages,
-                encoding=litellm.encoding,
+                encoding=gateway.encoding,
             )
             completion_stream: Any = MockResponseIterator(model_response=model_response, json_mode=json_mode)
         elif bedrock_invoke_provider == "anthropic":
@@ -246,7 +246,7 @@ def make_sync_call(
     logging_obj: Logging,
     fake_stream: bool = False,
     json_mode: bool | None = False,
-    bedrock_invoke_provider: litellm.BEDROCK_INVOKE_PROVIDERS_LITERAL | None = None,
+    bedrock_invoke_provider: gateway.BEDROCK_INVOKE_PROVIDERS_LITERAL | None = None,
     stream_chunk_size: int | None = None,
 ) -> tuple[Any, httpx.Headers]:
     try:
@@ -271,17 +271,17 @@ def make_sync_call(
             raise BedrockError(status_code=response.status_code, message=response.text)
 
         if fake_stream:
-            model_response: Final[ModelResponse] = litellm.AmazonConverseConfig()._transform_response(
+            model_response: Final[ModelResponse] = gateway.AmazonConverseConfig()._transform_response(
                 model=model,
                 response=response,
-                model_response=litellm.ModelResponse(),
+                model_response=gateway.ModelResponse(),
                 stream=True,
                 logging_obj=logging_obj,
                 optional_params={},
                 api_key="",
                 data=data,
                 messages=messages,
-                encoding=litellm.encoding,
+                encoding=gateway.encoding,
             )
             completion_stream: Any = MockResponseIterator(model_response=model_response, json_mode=json_mode)
         elif bedrock_invoke_provider == "anthropic":
@@ -788,7 +788,7 @@ class MockResponseIterator:  # for returning ai21 streaming responses
         """
         tool_use: ChatCompletionToolCallChunk | None = None
         if self.json_mode is True and tool_calls is not None:
-            message: Final = litellm.AnthropicConfig()._convert_tool_response_to_message(tool_calls=tool_calls)
+            message: Final = gateway.AnthropicConfig()._convert_tool_response_to_message(tool_calls=tool_calls)
             if message is not None:
                 text = message.content or ""
                 tool_use = None

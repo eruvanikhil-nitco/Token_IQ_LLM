@@ -9,7 +9,7 @@ import pytest
 
 from unittest.mock import MagicMock, patch
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.prompt_templates.factory import map_system_message_pt
 from token_iq.gateway.types.completion import (
     ChatCompletionMessageParam,
@@ -45,11 +45,11 @@ def test_supports_system_message():
 
     ## confirm you can make a openai call with this param
 
-    response = litellm.completion(
+    response = gateway.completion(
         model="gpt-3.5-turbo", messages=new_messages, supports_system_message=False
     )
 
-    assert isinstance(response, litellm.ModelResponse)
+    assert isinstance(response, gateway.ModelResponse)
 
 
 @pytest.mark.parametrize(
@@ -59,7 +59,7 @@ def test_anthropic_optional_params(stop_sequence, expected_count):
     """
     Test if whitespace character optional param is dropped by anthropic
     """
-    litellm.drop_params = True
+    gateway.drop_params = True
     optional_params = get_optional_params(
         model="claude-3", custom_llm_provider="anthropic", stop=stop_sequence
     )
@@ -82,20 +82,20 @@ def test_requester_metadata_forwarded_to_openai(mock_completion):
         }
     }
 
-    original_api_key = litellm.api_key
-    litellm.api_key = "sk-test"
-    original_preview_flag = litellm.enable_preview_features
-    litellm.enable_preview_features = True
+    original_api_key = gateway.api_key
+    gateway.api_key = "sk-test"
+    original_preview_flag = gateway.enable_preview_features
+    gateway.enable_preview_features = True
 
     try:
-        litellm.completion(
+        gateway.completion(
             model="gpt-4o",
             messages=[{"role": "user", "content": "hi"}],
             metadata=metadata,
         )
     finally:
-        litellm.api_key = original_api_key
-        litellm.enable_preview_features = original_preview_flag
+        gateway.api_key = original_api_key
+        gateway.enable_preview_features = original_preview_flag
 
     sent_metadata = mock_completion.call_args.kwargs["optional_params"]["metadata"]
     assert sent_metadata == {"custom_meta_key": "value"}
@@ -105,7 +105,7 @@ def test_get_optional_params_with_allowed_openai_params():
     """
     Test if use can dynamically pass in allowed_openai_params to override default behavior
     """
-    litellm.drop_params = True
+    gateway.drop_params = True
     tools = [
         {
             "type": "function",
@@ -181,7 +181,7 @@ def test_allowed_openai_params_does_not_forward_unset_params():
 
 
 def test_bedrock_optional_params_embeddings():
-    litellm.drop_params = True
+    gateway.drop_params = True
     optional_params = get_optional_params_embeddings(
         model="", user="John", encoding_format=None, custom_llm_provider="bedrock"
     )
@@ -245,7 +245,7 @@ def test_bedrock_optional_params_completions(model):
     ],
 )
 def test_bedrock_optional_params_simple(model):
-    litellm.drop_params = True
+    gateway.drop_params = True
     get_optional_params(
         model=model,
         max_tokens=10,
@@ -266,7 +266,7 @@ def test_bedrock_optional_params_simple(model):
 def test_bedrock_optional_params_embeddings_dimension(
     model, expected_dimensions, dimensions_kwarg
 ):
-    litellm.drop_params = True
+    gateway.drop_params = True
     optional_params = get_optional_params_embeddings(
         model=model,
         user="John",
@@ -295,7 +295,7 @@ def test_google_ai_studio_optional_params_embeddings():
 
 
 def test_openai_optional_params_embeddings():
-    litellm.drop_params = True
+    gateway.drop_params = True
     optional_params = get_optional_params_embeddings(
         model="", user="John", encoding_format=None, custom_llm_provider="openai"
     )
@@ -304,7 +304,7 @@ def test_openai_optional_params_embeddings():
 
 
 def test_azure_optional_params_embeddings():
-    litellm.drop_params = True
+    gateway.drop_params = True
     optional_params = get_optional_params_embeddings(
         model="chatgpt-v-3",
         user="John",
@@ -316,7 +316,7 @@ def test_azure_optional_params_embeddings():
 
 
 def test_databricks_optional_params():
-    litellm.drop_params = True
+    gateway.drop_params = True
     optional_params = get_optional_params(
         model="",
         user="John",
@@ -331,7 +331,7 @@ def test_databricks_optional_params():
 
 
 def test_azure_ai_mistral_optional_params():
-    litellm.drop_params = True
+    gateway.drop_params = True
     optional_params = get_optional_params(
         model="mistral-large-latest",
         user="John",
@@ -343,8 +343,8 @@ def test_azure_ai_mistral_optional_params():
 
 
 def test_vertex_ai_llama_3_optional_params():
-    litellm.vertex_llama3_models = ["meta/llama3-405b-instruct-maas"]
-    litellm.drop_params = True
+    gateway.vertex_llama3_models = ["meta/llama3-405b-instruct-maas"]
+    gateway.drop_params = True
     optional_params = get_optional_params(
         model="meta/llama3-405b-instruct-maas",
         user="John",
@@ -356,8 +356,8 @@ def test_vertex_ai_llama_3_optional_params():
 
 
 def test_vertex_ai_mistral_optional_params():
-    litellm.vertex_mistral_models = ["mistral-large@2407"]
-    litellm.drop_params = True
+    gateway.vertex_mistral_models = ["mistral-large@2407"]
+    gateway.drop_params = True
     optional_params = get_optional_params(
         model="mistral-large@2407",
         user="John",
@@ -372,7 +372,7 @@ def test_vertex_ai_mistral_optional_params():
 
 def test_azure_gpt_optional_params_gpt_vision():
     # for OpenAI, Azure all extra params need to get passed as extra_body to OpenAI python. We assert we actually set extra_body here
-    optional_params = litellm.utils.get_optional_params(
+    optional_params = gateway.utils.get_optional_params(
         model="",
         user="John",
         custom_llm_provider="azure",
@@ -412,7 +412,7 @@ def test_azure_gpt_optional_params_gpt_vision():
 
 def test_azure_gpt_optional_params_gpt_vision_with_extra_body():
     # if user passes extra_body, we should not over write it, we should pass it along to OpenAI python
-    optional_params = litellm.utils.get_optional_params(
+    optional_params = gateway.utils.get_optional_params(
         model="",
         user="John",
         custom_llm_provider="azure",
@@ -455,7 +455,7 @@ def test_azure_gpt_optional_params_gpt_vision_with_extra_body():
 
 
 def test_openai_extra_headers():
-    optional_params = litellm.utils.get_optional_params(
+    optional_params = gateway.utils.get_optional_params(
         model="",
         user="John",
         custom_llm_provider="openai",
@@ -483,8 +483,8 @@ def test_azure_tool_choice(api_version):
     """
     Test azure tool choice on older + new version
     """
-    litellm.drop_params = True
-    optional_params = litellm.utils.get_optional_params(
+    gateway.drop_params = True
+    optional_params = gateway.utils.get_optional_params(
         model="chatgpt-v-3",
         user="John",
         custom_llm_provider="azure",
@@ -512,7 +512,7 @@ def test_dynamic_drop_params(drop_params):
     Make a call to cohere w/ drop params = True vs. false.
     """
     if drop_params is True:
-        optional_params = litellm.utils.get_optional_params(
+        optional_params = gateway.utils.get_optional_params(
             model="command-r",
             custom_llm_provider="cohere",
             response_format={"type": "json"},
@@ -520,7 +520,7 @@ def test_dynamic_drop_params(drop_params):
         )
     else:
         try:
-            optional_params = litellm.utils.get_optional_params(
+            optional_params = gateway.utils.get_optional_params(
                 model="command-r",
                 custom_llm_provider="cohere",
                 response_format={"type": "json"},
@@ -536,7 +536,7 @@ def test_dynamic_drop_params_e2e():
         "token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post", new=MagicMock()
     ) as mock_response:
         try:
-            response = litellm.completion(
+            response = gateway.completion(
                 model="command-r",
                 messages=[{"role": "user", "content": "Hey, how's it going?"}],
                 response_format={"key": "value"},
@@ -555,7 +555,7 @@ def test_dynamic_pass_additional_params():
         "token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post", new=MagicMock()
     ) as mock_response:
         try:
-            response = litellm.completion(
+            response = gateway.completion(
                 model="command-r",
                 messages=[{"role": "user", "content": "Hey, how's it going?"}],
                 custom_param="test",
@@ -579,7 +579,7 @@ def test_drop_params_parallel_tool_calls(model, provider, should_drop):
     """
     https://github.com/BerriAI/litellm/issues/4584
     """
-    response = litellm.utils.get_optional_params(
+    response = gateway.utils.get_optional_params(
         model=model,
         custom_llm_provider=provider,
         response_format={"type": "json"},
@@ -605,7 +605,7 @@ def test_dynamic_drop_params_parallel_tool_calls():
         "token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post", new=MagicMock()
     ) as mock_response:
         try:
-            response = litellm.completion(
+            response = gateway.completion(
                 model="command-r",
                 messages=[{"role": "user", "content": "Hey, how's it going?"}],
                 parallel_tool_calls=True,
@@ -625,7 +625,7 @@ def test_dynamic_drop_additional_params(drop_params):
     Make a call to cohere, dropping 'response_format' specifically
     """
     if drop_params is True:
-        optional_params = litellm.utils.get_optional_params(
+        optional_params = gateway.utils.get_optional_params(
             model="command-r",
             custom_llm_provider="cohere",
             response_format={"type": "json"},
@@ -633,7 +633,7 @@ def test_dynamic_drop_additional_params(drop_params):
         )
     else:
         try:
-            optional_params = litellm.utils.get_optional_params(
+            optional_params = gateway.utils.get_optional_params(
                 model="command-r",
                 custom_llm_provider="cohere",
                 response_format={"type": "json"},
@@ -647,7 +647,7 @@ def test_dynamic_drop_additional_params_stream_options():
     """
     Make a call to vertex ai, dropping 'stream_options' specifically
     """
-    optional_params = litellm.utils.get_optional_params(
+    optional_params = gateway.utils.get_optional_params(
         model="mistral-large-2411@001",
         custom_llm_provider="vertex_ai",
         stream_options={"include_usage": True},
@@ -662,7 +662,7 @@ def test_dynamic_drop_additional_params_e2e():
         "token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post", new=MagicMock()
     ) as mock_response:
         try:
-            response = litellm.completion(
+            response = gateway.completion(
                 model="command-r",
                 messages=[{"role": "user", "content": "Hey, how's it going?"}],
                 response_format={"key": "value"},
@@ -679,14 +679,14 @@ def test_dynamic_drop_additional_params_e2e():
 
 
 def test_get_optional_params_image_gen():
-    response = litellm.utils.get_optional_params_image_gen(
+    response = gateway.utils.get_optional_params_image_gen(
         aws_region_name="us-east-1", custom_llm_provider="openai"
     )
 
     print(response)
 
     assert "aws_region_name" not in response
-    response = litellm.utils.get_optional_params_image_gen(
+    response = gateway.utils.get_optional_params_image_gen(
         aws_region_name="us-east-1", custom_llm_provider="bedrock"
     )
 
@@ -712,7 +712,7 @@ def test_get_optional_params_num_retries():
         "token_iq.gateway.main.get_optional_params",
         new=MagicMock(return_value={"max_retries": 0}),
     ) as mock_client:
-        _ = litellm.completion(
+        _ = gateway.completion(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": "Hello world"}],
             num_retries=10,
@@ -732,7 +732,7 @@ def test_get_optional_params_num_retries():
     ],
 )
 def test_vertex_safety_settings(provider):
-    litellm.vertex_ai_safety_settings = [
+    gateway.vertex_ai_safety_settings = [
         {
             "category": "HARM_CATEGORY_HARASSMENT",
             "threshold": "BLOCK_NONE",
@@ -832,7 +832,7 @@ def test_azure_o1_model_params():
 @pytest.mark.parametrize("provider", ["openai", "azure"])
 def test_o1_model_temperature_params(provider, temperature, expected_error):
     if expected_error:
-        with pytest.raises(litellm.UnsupportedParamsError):
+        with pytest.raises(gateway.UnsupportedParamsError):
             get_optional_params(
                 model="o1",
                 custom_llm_provider=provider,
@@ -1182,7 +1182,7 @@ def test_litellm_proxy_claude_3_5_sonnet():
 
 def test_is_vertex_anthropic_model():
     assert (
-        litellm.VertexAIAnthropicConfig().is_supported_model(
+        gateway.VertexAIAnthropicConfig().is_supported_model(
             model="claude-3-5-sonnet", custom_llm_provider="litellm_proxy"
         )
         is False
@@ -1796,7 +1796,7 @@ def test_gemini_modalities_param():
 
 
 def test_azure_response_format_param():
-    optional_params = litellm.get_optional_params(
+    optional_params = gateway.get_optional_params(
         model="azure/o_series/test-o3-mini",
         custom_llm_provider="azure/o_series",
         tools=[
@@ -1905,7 +1905,7 @@ def test_optional_params_responses_api_allowed_openai_params():
 
     with patch.object(client, "post") as mock_post:
         try:
-            response = litellm.responses(
+            response = gateway.responses(
                 model="openai/o1-pro",
                 input="Tell me a three sentence bedtime story about a unicorn.",
                 max_output_tokens=100,
@@ -1968,25 +1968,25 @@ def test_validate_openai_optional_params_disable_stop_sequence_limit():
     When litellm.disable_stop_sequence_limit is True, stop sequences should not be truncated.
     """
     # Save original value
-    original_value = litellm.disable_stop_sequence_limit
+    original_value = gateway.disable_stop_sequence_limit
 
     try:
         # Test with disable_stop_sequence_limit = True - should NOT truncate
-        litellm.disable_stop_sequence_limit = True
+        gateway.disable_stop_sequence_limit = True
         stop_sequences = ["stop1", "stop2", "stop3", "stop4", "stop5", "stop6"]
         result = validate_openai_optional_params(stop=stop_sequences)
         assert result == ["stop1", "stop2", "stop3", "stop4", "stop5", "stop6"]
         assert len(result) == 6
 
         # Test with disable_stop_sequence_limit = False - should truncate to 4
-        litellm.disable_stop_sequence_limit = False
+        gateway.disable_stop_sequence_limit = False
         stop_sequences = ["stop1", "stop2", "stop3", "stop4", "stop5", "stop6"]
         result = validate_openai_optional_params(stop=stop_sequences)
         assert result == ["stop1", "stop2", "stop3", "stop4"]
         assert len(result) == 4
     finally:
         # Restore original value
-        litellm.disable_stop_sequence_limit = original_value
+        gateway.disable_stop_sequence_limit = original_value
 
 
 def test_validate_openai_optional_params_integration():
@@ -2012,7 +2012,7 @@ def test_validate_openai_optional_params_integration():
             )
 
             # Call completion with more than 4 stop sequences
-            response = litellm.completion(
+            response = gateway.completion(
                 model="gpt-3.5-turbo",
                 messages=[{"role": "user", "content": "Hello"}],
                 stop=["stop1", "stop2", "stop3", "stop4", "stop5", "stop6"],

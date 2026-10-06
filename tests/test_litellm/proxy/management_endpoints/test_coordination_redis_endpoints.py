@@ -10,7 +10,7 @@ import pytest
 from fastapi import HTTPException
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.caching.caching import RedisCache
 from token_iq.gateway.caching.redis_cluster_cache import RedisClusterCache
 from token_iq.gateway.proxy._types import LitellmTableNames, LitellmUserRoles
@@ -99,7 +99,7 @@ async def test_get_redacts_every_credential_field():
 @pytest.mark.asyncio
 async def test_get_source_is_coordination_redis_when_block_present(monkeypatch):
     """An explicit block wins even when a Redis cache backend and REDIS_* env both exist."""
-    monkeypatch.setattr(litellm, "cache", MagicMock(cache=MagicMock(spec=RedisCache)))
+    monkeypatch.setattr(gateway, "cache", MagicMock(cache=MagicMock(spec=RedisCache)))
     monkeypatch.setenv("REDIS_HOST", "env-redis")
 
     with (
@@ -117,7 +117,7 @@ async def test_get_source_is_coordination_redis_when_block_present(monkeypatch):
 @pytest.mark.asyncio
 async def test_get_source_reads_block_from_yaml_config_when_db_row_absent(monkeypatch):
     """A block set in config.yaml (not the DB) still reports source=coordination_redis."""
-    monkeypatch.setattr(litellm, "cache", None)
+    monkeypatch.setattr(gateway, "cache", None)
     monkeypatch.delenv("REDIS_HOST", raising=False)
 
     with (
@@ -138,7 +138,7 @@ async def test_get_source_reads_block_from_yaml_config_when_db_row_absent(monkey
 async def test_get_source_is_cache_backend_when_no_block(monkeypatch, cache_backend_cls):
     """With no explicit block, a plain-Redis response-cache backend is borrowed —
     which beats the REDIS_* env fallback."""
-    monkeypatch.setattr(litellm, "cache", MagicMock(cache=MagicMock(spec=cache_backend_cls)))
+    monkeypatch.setattr(gateway, "cache", MagicMock(cache=MagicMock(spec=cache_backend_cls)))
     monkeypatch.setenv("REDIS_HOST", "env-redis")
 
     with (
@@ -154,7 +154,7 @@ async def test_get_source_is_cache_backend_when_no_block(monkeypatch, cache_back
 @pytest.mark.asyncio
 async def test_get_source_is_environment_when_no_block_and_non_redis_cache(monkeypatch):
     """A non-Redis cache backend falls through to the REDIS_* env fallback."""
-    monkeypatch.setattr(litellm, "cache", MagicMock(cache=MagicMock()))
+    monkeypatch.setattr(gateway, "cache", MagicMock(cache=MagicMock()))
     monkeypatch.setenv("REDIS_HOST", "env-redis")
 
     with (
@@ -168,7 +168,7 @@ async def test_get_source_is_environment_when_no_block_and_non_redis_cache(monke
 
 @pytest.mark.asyncio
 async def test_get_source_is_none_when_nothing_configured(monkeypatch):
-    monkeypatch.setattr(litellm, "cache", None)
+    monkeypatch.setattr(gateway, "cache", None)
     for env_var in ("REDIS_HOST", "REDIS_URL", "REDIS_CLUSTER_NODES", "REDIS_SENTINEL_NODES"):
         monkeypatch.delenv(env_var, raising=False)
 
@@ -184,7 +184,7 @@ async def test_get_source_is_none_when_nothing_configured(monkeypatch):
 @pytest.mark.asyncio
 async def test_get_source_does_not_build_a_client(monkeypatch):
     """The env-fallback probe is read-only: no Redis client is constructed on GET."""
-    monkeypatch.setattr(litellm, "cache", None)
+    monkeypatch.setattr(gateway, "cache", None)
     monkeypatch.setenv("REDIS_HOST", "env-redis")
 
     with (
@@ -250,7 +250,7 @@ def test_fields_cover_every_coordination_redis_param():
 async def test_update_rejects_settings_without_a_connection_target(monkeypatch):
     """A block with no host/url/startup_nodes/sentinel_nodes would blow up at
     startup; reject it at write time and persist nothing."""
-    monkeypatch.setattr(litellm, "store_audit_logs", False)
+    monkeypatch.setattr(gateway, "store_audit_logs", False)
     mock_prisma = _prisma_with_general_settings({})
 
     with (
@@ -274,7 +274,7 @@ async def test_update_persists_into_the_general_settings_config_row(monkeypatch)
     """Settings land under `general_settings.coordination_redis` in LiteLLM_Config
     (the row startup merges over the yaml config), and sibling general_settings
     keys survive the write."""
-    monkeypatch.setattr(litellm, "store_audit_logs", False)
+    monkeypatch.setattr(gateway, "store_audit_logs", False)
     mock_prisma = _prisma_with_general_settings({"master_key": "sk-1234"})
     invalidated: list[str] = []
 
@@ -318,7 +318,7 @@ async def test_update_persists_into_the_general_settings_config_row(monkeypatch)
 async def test_update_persists_os_environ_refs_verbatim(monkeypatch):
     """`os.environ/VAR` refs are resolved only to validate; the ref itself is what
     gets stored, so the credential never lands in the DB."""
-    monkeypatch.setattr(litellm, "store_audit_logs", False)
+    monkeypatch.setattr(gateway, "store_audit_logs", False)
     monkeypatch.setenv("MY_REDIS_HOST", "resolved-host")
     mock_prisma = _prisma_with_general_settings({})
 
@@ -345,7 +345,7 @@ async def test_update_persists_os_environ_refs_verbatim(monkeypatch):
 async def test_update_keeps_saved_credential_when_client_echoes_the_redaction_marker(monkeypatch):
     """The UI reads settings back redacted; re-submitting them must not persist
     `***REDACTED***` as the password."""
-    monkeypatch.setattr(litellm, "store_audit_logs", False)
+    monkeypatch.setattr(gateway, "store_audit_logs", False)
     mock_prisma = _prisma_with_general_settings({"coordination_redis": _SAVED_SETTINGS})
 
     with (
@@ -372,7 +372,7 @@ async def test_update_keeps_saved_credential_when_client_echoes_the_redaction_ma
 
 @pytest.mark.asyncio
 async def test_update_emits_audit_log_with_values_redacted(monkeypatch):
-    monkeypatch.setattr(litellm, "store_audit_logs", True)
+    monkeypatch.setattr(gateway, "store_audit_logs", True)
     mock_prisma = _prisma_with_general_settings({})
     audit_calls = []
 
@@ -414,7 +414,7 @@ async def test_update_emits_audit_log_with_values_redacted(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_update_audit_action_is_updated_when_a_block_already_exists(monkeypatch):
-    monkeypatch.setattr(litellm, "store_audit_logs", True)
+    monkeypatch.setattr(gateway, "store_audit_logs", True)
     mock_prisma = _prisma_with_general_settings({"coordination_redis": {"host": "old-host"}})
     audit_calls = []
 

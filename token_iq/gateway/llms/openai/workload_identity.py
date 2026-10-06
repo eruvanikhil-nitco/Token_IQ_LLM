@@ -5,7 +5,7 @@ from functools import lru_cache
 from typing import TYPE_CHECKING, Final
 from urllib.parse import urlparse
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.secret_managers.main import get_secret_str, normalize_nonempty_secret_str
 
 from .common_utils import OpenAIError
@@ -51,7 +51,7 @@ def resolve_openai_workload_identity_config(
     if static_api_key is not None:
         return None
     effective_api_base: Final = (
-        api_base or litellm.api_base or get_secret_str("OPENAI_BASE_URL") or get_secret_str("OPENAI_API_BASE")
+        api_base or gateway.api_base or get_secret_str("OPENAI_BASE_URL") or get_secret_str("OPENAI_API_BASE")
     )
     if not _targets_openai_api(effective_api_base):
         return None

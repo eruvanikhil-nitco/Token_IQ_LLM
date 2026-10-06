@@ -43,10 +43,10 @@ async def test_atexit_cleanup():
         close_litellm_async_clients,
     )
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     # Use the actual global base_llm_aiohttp_handler from litellm
-    handler = litellm.base_llm_aiohttp_handler
+    handler = gateway.base_llm_aiohttp_handler
     session = handler._get_async_client_session()
 
     assert not session.closed, "Session should be open after creation"

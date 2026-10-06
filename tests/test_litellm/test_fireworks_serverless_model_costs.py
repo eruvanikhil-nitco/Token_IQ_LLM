@@ -14,7 +14,7 @@ import os
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.utils import get_model_info
 
 
@@ -27,7 +27,7 @@ def _local_model_cost_map():
     """
     mp = pytest.MonkeyPatch()
     mp.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    mp.setattr(litellm, "model_cost", litellm.get_model_cost_map())
+    mp.setattr(gateway, "model_cost", gateway.get_model_cost_map())
     get_model_info.cache_clear()
     yield
     mp.undo()

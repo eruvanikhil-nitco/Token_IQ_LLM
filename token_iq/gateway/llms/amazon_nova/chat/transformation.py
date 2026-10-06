@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Final
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
 from token_iq.gateway.secret_managers.main import get_secret_str
 from token_iq.gateway.types.llms.openai import (
@@ -58,7 +58,7 @@ class AmazonNovaChatConfig(OpenAILikeChatConfig):
         api_base = api_base or get_secret_str("AMAZON_NOVA_API_BASE") or "https://api.nova.amazon.com/v1"
 
         # Get API key from multiple sources
-        key: Final = api_key or litellm.amazon_nova_api_key or get_secret_str("AMAZON_NOVA_API_KEY") or litellm.api_key
+        key: Final = api_key or gateway.amazon_nova_api_key or get_secret_str("AMAZON_NOVA_API_KEY") or gateway.api_key
         return api_base, key
 
     def get_supported_openai_params(self, model: str) -> list:

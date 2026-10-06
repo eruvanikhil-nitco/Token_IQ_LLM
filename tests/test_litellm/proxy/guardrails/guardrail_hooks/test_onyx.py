@@ -6,7 +6,7 @@ import pytest
 from fastapi import HTTPException
 from httpx import Request, Response
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import ModelResponse
 from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
 from token_iq.gateway.proxy.guardrails.guardrail_hooks.onyx.onyx import OnyxGuardrail
@@ -16,8 +16,8 @@ from token_iq.gateway.types.utils import Choices, GenericGuardrailAPIInputs, Mes
 
 def test_onyx_guard_config(monkeypatch: pytest.MonkeyPatch):
     """Test Onyx guard configuration with init_guardrails_v2."""
-    monkeypatch.setattr(litellm, "guardrail_name_config_map", {})
-    monkeypatch.setattr(litellm, "callbacks", [])
+    monkeypatch.setattr(gateway, "guardrail_name_config_map", {})
+    monkeypatch.setattr(gateway, "callbacks", [])
 
     monkeypatch.setenv("ONYX_API_BASE", "https://test.onyx.security")
     monkeypatch.setenv("ONYX_API_KEY", "test-api-key")
@@ -36,7 +36,7 @@ def test_onyx_guard_config(monkeypatch: pytest.MonkeyPatch):
         config_file_path="",
     )
 
-    registered = [c for c in litellm.callbacks if isinstance(c, OnyxGuardrail)]
+    registered = [c for c in gateway.callbacks if isinstance(c, OnyxGuardrail)]
     assert len(registered) == 1
     assert registered[0].guardrail_name == "onyx-guard"
     assert registered[0].default_on is True
@@ -908,8 +908,8 @@ class TestOnyxIntegration:
             config_file_path="",
         )
 
-        custom_loggers = litellm.logging_callback_manager.get_custom_loggers_for_type(
-            callback_type=litellm.integrations.custom_guardrail.CustomGuardrail
+        custom_loggers = gateway.logging_callback_manager.get_custom_loggers_for_type(
+            callback_type=gateway.integrations.custom_guardrail.CustomGuardrail
         )
         assert len(custom_loggers) >= 3
 

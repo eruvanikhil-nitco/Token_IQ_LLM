@@ -10,7 +10,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import completion
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.proxy.utils import log_db_metrics, ServiceTypes
@@ -223,7 +223,7 @@ async def test_dd_log_db_spend_failure_metrics():
     with patch.object(dd_logger, "async_service_failure_hook", new_callable=AsyncMock):
         service_logging_obj = ServiceLogging()
 
-        litellm.service_callback = [dd_logger]
+        gateway.service_callback = [dd_logger]
 
         await service_logging_obj.async_service_failure_hook(
             service=ServiceTypes.DB,

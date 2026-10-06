@@ -14,7 +14,7 @@ gpt-image-1 uses token-based pricing:
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.types.utils import (
     CompletionTokensDetailsWrapper,
     ImageResponse,
@@ -28,15 +28,15 @@ from token_iq.gateway.types.utils import (
 
 @pytest.fixture(autouse=True)
 def _use_local_model_cost_map(monkeypatch):
-    original_model_cost = litellm.model_cost
+    original_model_cost = gateway.model_cost
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    litellm.model_cost = litellm.get_model_cost_map()
-    litellm.get_model_info.cache_clear()
+    gateway.model_cost = gateway.get_model_cost_map()
+    gateway.get_model_info.cache_clear()
     try:
         yield
     finally:
-        litellm.model_cost = original_model_cost
-        litellm.get_model_info.cache_clear()
+        gateway.model_cost = original_model_cost
+        gateway.get_model_info.cache_clear()
 
 
 class TestGPTImageCostCalculator:
@@ -320,7 +320,7 @@ class TestGPTImage15OutputImageTokens:
         image_response.usage = usage
         image_response._hidden_params = {"custom_llm_provider": "openai"}
 
-        cost = litellm.completion_cost(
+        cost = gateway.completion_cost(
             completion_response=image_response,
             model="gpt-image-1.5",
             call_type="image_generation",
@@ -367,7 +367,7 @@ class TestCompletionCostIntegration:
         image_response.usage = usage
         image_response._hidden_params = {"custom_llm_provider": "openai"}
 
-        cost = litellm.completion_cost(
+        cost = gateway.completion_cost(
             completion_response=image_response,
             model="gpt-image-1",
             call_type="image_generation",

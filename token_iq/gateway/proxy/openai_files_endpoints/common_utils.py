@@ -950,9 +950,9 @@ def validate_managed_files_requirement(
     """
     from fastapi import HTTPException
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    if litellm.require_managed_files is not True:
+    if gateway.require_managed_files is not True:
         return
 
     if not target_model_names:
@@ -997,9 +997,9 @@ async def validate_managed_id_requirement(
     """
     from fastapi import HTTPException
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    if litellm.require_managed_files is not True:
+    if gateway.require_managed_files is not True:
         return
 
     if not resource_id:
@@ -1396,7 +1396,7 @@ async def update_batch_in_database(
             callers that record no cost themselves.
     """
     import token_iq.gateway.utils
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     if managed_files_obj is None or not unified_batch_id:
         return
@@ -1441,7 +1441,7 @@ async def update_batch_in_database(
         update_data: Final[dict[str, object]] = {
             "status": db_status,
             "file_object": response.model_dump_json(),
-            "updated_at": litellm.utils.get_utc_datetime(),
+            "updated_at": gateway.utils.get_utc_datetime(),
         }
 
         poller_owns: Final = batch_cost_poller_is_active() if poller_owns_accounting is None else poller_owns_accounting

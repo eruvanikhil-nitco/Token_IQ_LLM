@@ -4,7 +4,7 @@ import json
 from collections.abc import AsyncIterator, Iterator, Mapping, Sequence
 from typing import TYPE_CHECKING, Any, Final, Literal, TypeAlias, TypeVar, cast
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.anthropic.experimental_pass_through.utils import (
     is_reasoning_auto_summary_enabled,
     prompt_cache_key_from_user_id,
@@ -908,7 +908,7 @@ class LiteLLMAnthropicMessagesAdapter:
             return False
         if custom_llm_provider in PROVIDERS_PROXYING_AN_UNKNOWN_BACKEND:
             return False
-        supported_params: Final = litellm.get_supported_openai_params(
+        supported_params: Final = gateway.get_supported_openai_params(
             model=model, custom_llm_provider=custom_llm_provider
         )
         return "prompt_cache_key" in (supported_params or ())
@@ -933,7 +933,7 @@ class LiteLLMAnthropicMessagesAdapter:
         """
         if not model or not custom_llm_provider:
             return False
-        supported_params: Final = litellm.get_supported_openai_params(
+        supported_params: Final = gateway.get_supported_openai_params(
             model=model, custom_llm_provider=custom_llm_provider
         )
         return "reasoning_effort" in (supported_params or ())

@@ -14,7 +14,7 @@ from typing import Any, Final, cast
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.constants import request_timeout
 from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
@@ -99,7 +99,7 @@ def _prepare_ocr_request(
         custom_llm_provider,
         dynamic_api_key,
         dynamic_api_base,
-    ) = litellm.get_llm_provider(
+    ) = gateway.get_llm_provider(
         model=model,
         custom_llm_provider=custom_llm_provider,
         api_base=api_base,
@@ -118,7 +118,7 @@ def _prepare_ocr_request(
 
     ocr_provider_config: Final = ProviderConfigManager.get_provider_ocr_config(
         model=model,
-        provider=litellm.LlmProviders(custom_llm_provider),
+        provider=gateway.LlmProviders(custom_llm_provider),
     )
 
     if ocr_provider_config is None:
@@ -134,11 +134,11 @@ def _prepare_ocr_request(
         try:
             parsed_format: Final = parse_ocr_request_format(requested_format)
         except ValueError as e:
-            raise litellm.exceptions.UnsupportedParamsError(
+            raise gateway.exceptions.UnsupportedParamsError(
                 message=f"{e}", model=model, llm_provider=custom_llm_provider
             ) from e
         if OCR_REQUEST_FORMAT_PARAM not in supported_params and parsed_format == "native":
-            raise litellm.exceptions.UnsupportedParamsError(
+            raise gateway.exceptions.UnsupportedParamsError(
                 message=(
                     f"`{OCR_REQUEST_FORMAT_PARAM}='native'` is not supported for provider: {custom_llm_provider}, "
                     f"model: {model}"
@@ -209,13 +209,13 @@ def _rust_bridge_optional_params(
         vertex_project: Final = (
             prepared_request.litellm_params.get("vertex_project")
             or prepared_request.litellm_params.get("vertex_ai_project")
-            or litellm.vertex_project
+            or gateway.vertex_project
             or resolve_secret("VERTEXAI_PROJECT")
         )
         vertex_location: Final = (
             prepared_request.litellm_params.get("vertex_location")
             or prepared_request.litellm_params.get("vertex_ai_location")
-            or litellm.vertex_location
+            or gateway.vertex_location
             or resolve_secret("VERTEXAI_LOCATION")
             or resolve_secret("VERTEX_LOCATION")
         )
@@ -366,7 +366,7 @@ async def aocr(
 
     Example:
         ```python
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         # OCR with PDF
         response = await litellm.aocr(
@@ -463,7 +463,7 @@ async def aocr(
 
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=model,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -632,7 +632,7 @@ def ocr(
 
     Example:
         ```python
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         # OCR with PDF
         response = litellm.ocr(
@@ -729,7 +729,7 @@ def ocr(
 
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=model,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,

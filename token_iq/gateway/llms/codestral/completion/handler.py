@@ -9,7 +9,7 @@ from typing import Final, Protocol
 import httpx
 from typing_extensions import NotRequired, ReadOnly, TypedDict
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLogging
 from token_iq.gateway.core_utils.logging_utils import track_llm_api_timing
 from token_iq.gateway.core_utils.prompt_templates.factory import (
@@ -213,7 +213,7 @@ class CodestralTextCompletion:
             _logprobs = None
 
             _choice_message = choice.get("message", {})
-            _choice = litellm.utils.TextChoices(
+            _choice = gateway.utils.TextChoices(
                 finish_reason=choice.get("finish_reason"),
                 index=choice.get("index"),
                 text=_choice_message.get("content"),
@@ -222,7 +222,7 @@ class CodestralTextCompletion:
 
             _choices.append(_choice)
 
-        _response: Final = litellm.TextCompletionResponse(
+        _response: Final = gateway.TextCompletionResponse(
             id=completion_response.get("id"),
             choices=_choices,
             created=completion_response.get("created"),
@@ -271,7 +271,7 @@ class CodestralTextCompletion:
             prompt = prompt_factory(model=model, messages=messages)
 
         ## Load Config
-        config: Final = litellm.CodestralTextCompletionConfig.get_config()
+        config: Final = gateway.CodestralTextCompletionConfig.get_config()
         for k, v in config.items():
             if (
                 k not in optional_params
@@ -339,7 +339,7 @@ class CodestralTextCompletion:
 
         ### SYNC STREAMING
         if stream is True:
-            response = litellm.module_level_client.post(
+            response = gateway.module_level_client.post(
                 completion_url,
                 headers=headers,
                 data=json.dumps(data),
@@ -354,7 +354,7 @@ class CodestralTextCompletion:
             return _response
         ### SYNC COMPLETION
         else:
-            response = litellm.module_level_client.post(
+            response = gateway.module_level_client.post(
                 url=completion_url,
                 headers=headers,
                 data=json.dumps(data),
@@ -393,7 +393,7 @@ class CodestralTextCompletion:
         headers={},
     ) -> TextCompletionResponse:
         async_handler: Final = get_async_httpx_client(
-            llm_provider=litellm.LlmProviders.TEXT_COMPLETION_CODESTRAL,
+            llm_provider=gateway.LlmProviders.TEXT_COMPLETION_CODESTRAL,
             params={"timeout": timeout},
         )
         try:

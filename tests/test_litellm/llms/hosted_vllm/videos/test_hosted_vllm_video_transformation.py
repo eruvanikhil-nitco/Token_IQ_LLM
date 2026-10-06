@@ -6,7 +6,7 @@ from io import BytesIO
 import httpx
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.url_utils import SSRFError
 from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 from token_iq.gateway.llms.hosted_vllm.videos import get_hosted_vllm_video_config
@@ -218,7 +218,7 @@ def test_video_generation_posts_multipart_not_json():
             },
         )
 
-    response = litellm.video_generation(
+    response = gateway.video_generation(
         model="hosted_vllm/MiniMax-H3",
         prompt="three cats march into a bedroom playing tiny brass instruments",
         api_base="http://localhost:8091",

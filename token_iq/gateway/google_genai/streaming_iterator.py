@@ -2,7 +2,7 @@ import asyncio
 from datetime import datetime
 from typing import TYPE_CHECKING, Any, Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
 from token_iq.gateway.proxy.pass_through_endpoints.success_handler import (
     PassThroughEndpointLogging,
@@ -76,7 +76,7 @@ class BaseGoogleGenAIGenerateContentStreamingIterator:
         self.model = model
         self.custom_llm_provider = custom_llm_provider
         self.endpoint_type: Final = (
-            EndpointType.GEMINI if custom_llm_provider == litellm.LlmProviders.GEMINI.value else EndpointType.VERTEX_AI
+            EndpointType.GEMINI if custom_llm_provider == gateway.LlmProviders.GEMINI.value else EndpointType.VERTEX_AI
         )
         self._hidden_params: dict[str, Any] = hidden_params or {}
 

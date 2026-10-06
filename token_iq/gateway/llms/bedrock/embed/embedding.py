@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, Any, Final, get_args
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.constants import BEDROCK_EMBEDDING_PROVIDERS_LITERAL
 from token_iq.gateway.llms.cohere.embed.handler import embedding as cohere_embedding
 from token_iq.gateway.llms.custom_httpx.http_handler import (
@@ -137,7 +137,7 @@ class BedrockEmbedding(BaseAWSLLM):
                 if isinstance(timeout, float) or isinstance(timeout, int):
                     timeout = httpx.Timeout(timeout)
                 _params["timeout"] = timeout
-            client = get_async_httpx_client(params=_params, llm_provider=litellm.LlmProviders.BEDROCK)
+            client = get_async_httpx_client(params=_params, llm_provider=gateway.LlmProviders.BEDROCK)
         else:
             client = client
 

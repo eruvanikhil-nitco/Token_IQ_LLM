@@ -10,9 +10,9 @@ import openai
 import pytest
 
 import token_iq.gateway.types
-from token_iq import gateway as litellm
+from token_iq import gateway
 import token_iq.gateway.types.router
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor
@@ -21,7 +21,7 @@ import httpx
 from dotenv import load_dotenv
 from pydantic import BaseModel
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import Router
 from token_iq.gateway.router import Deployment, LiteLLM_Params
 from token_iq.gateway.types.router import ModelInfo
@@ -49,7 +49,7 @@ def test_router_multi_org_list():
     Pass list of orgs in 1 model definition,
     expect a unique deployment for each to be created
     """
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "*",
@@ -72,8 +72,8 @@ async def test_router_provider_wildcard_routing():
     Pass list of orgs in 1 model definition,
     expect a unique deployment for each to be created
     """
-    litellm.set_verbose = True
-    router = litellm.Router(
+    gateway.set_verbose = True
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "openai/*",
@@ -137,7 +137,7 @@ async def test_router_provider_wildcard_routing_regex():
     Pass list of orgs in 1 model definition,
     expect a unique deployment for each to be created
     """
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "openai/fo::*:static::*",
@@ -237,7 +237,7 @@ def test_router_azure_ad_token_provider():
     }
     for azure_cred in ["DefaultAzureCredential", "AzureCliCredential"]:
         os.environ["AZURE_CREDENTIAL"] = azure_cred
-        litellm.enable_azure_ad_token_refresh = True
+        gateway.enable_azure_ad_token_refresh = True
         router = Router(model_list=[_deployment])
 
         _client = router._get_client(
@@ -317,7 +317,7 @@ def test_router_order():
             messages=[{"role": "user", "content": "Hey, how's it going?"}],
         )
 
-        assert isinstance(response, litellm.ModelResponse)
+        assert isinstance(response, gateway.ModelResponse)
         assert response._hidden_params["model_id"] == "1"
 
 
@@ -360,7 +360,7 @@ async def test_router_retries(sync_mode):
 def test_exception_raising():
     # this tests if the router raises an exception when invalid params are set
     # in this test both deployments have bad keys - Keep this test. It validates if the router raises the most recent exception
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     import openai
 
     try:
@@ -422,7 +422,7 @@ def test_reading_key_from_model_list():
     # [PROD TEST CASE]
     # this tests if the router can read key from model list and make completion call, and completion + stream call. This is 90% of the router use case
     # DO NOT REMOVE THIS TEST. It's an IMP ONE. Speak to Ishaan, if you are tring to remove this
-    litellm.set_verbose = False
+    gateway.set_verbose = False
     import openai
 
     try:
@@ -511,7 +511,7 @@ def test_call_one_endpoint():
                 "rpm": 10000,
             },
         ]
-        litellm.set_verbose = True
+        gateway.set_verbose = True
         router = Router(
             model_list=model_list,
             routing_strategy="simple-shuffle",
@@ -562,8 +562,8 @@ async def test_async_router_context_window_fallback(sync_mode):
 
     from large_text import text
 
-    litellm.set_verbose = False
-    litellm._turn_on_debug()
+    gateway.set_verbose = False
+    gateway._turn_on_debug()
 
     print(f"len(text): {len(text)}")
     try:
@@ -654,7 +654,7 @@ def test_router_context_window_check_pre_call_check_in_group_custom_model_info()
 
     from large_text import text
 
-    litellm.set_verbose = False
+    gateway.set_verbose = False
 
     print(f"len(text): {len(text)}")
     try:
@@ -708,7 +708,7 @@ def test_router_context_window_check_pre_call_check():
 
     from large_text import text
 
-    litellm.set_verbose = False
+    gateway.set_verbose = False
 
     print(f"len(text): {len(text)}")
     try:
@@ -762,7 +762,7 @@ def test_router_context_window_check_pre_call_check_out_group():
 
     from large_text import text
 
-    litellm.set_verbose = False
+    gateway.set_verbose = False
 
     print(f"len(text): {len(text)}")
     try:
@@ -940,7 +940,7 @@ def test_function_calling():
 
 def test_function_calling_on_router():
     try:
-        litellm.set_verbose = True
+        gateway.set_verbose = True
         model_list = [
             {
                 "model_name": "gpt-3.5-turbo",
@@ -990,7 +990,7 @@ def test_function_calling_on_router():
 ### IMAGE GENERATION
 @pytest.mark.asyncio
 async def test_aimg_gen_on_router():
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     try:
         model_list = [
             {
@@ -1007,7 +1007,7 @@ async def test_aimg_gen_on_router():
         print(response)
         assert len(response.data) > 0
         router.reset()
-    except litellm.InternalServerError as e:
+    except gateway.InternalServerError as e:
         pass
     except Exception as e:
         if "Your task failed as a result of our safety system." in str(e):
@@ -1025,7 +1025,7 @@ async def test_aimg_gen_on_router():
 
 
 def test_img_gen_on_router():
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     try:
         model_list = [
             {
@@ -1042,7 +1042,7 @@ def test_img_gen_on_router():
         print(response)
         assert len(response.data) > 0
         router.reset()
-    except litellm.RateLimitError as e:
+    except gateway.RateLimitError as e:
         pass
     except Exception as e:
         traceback.print_exc()
@@ -1054,7 +1054,7 @@ def test_img_gen_on_router():
 
 
 def test_aembedding_on_router():
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     try:
         model_list = [
             {
@@ -1121,7 +1121,7 @@ def test_azure_embedding_on_router():
     """
     [PROD Use Case] - Makes an aembedding call + embedding call
     """
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     try:
         model_list = [
             {
@@ -1167,7 +1167,7 @@ def test_azure_embedding_on_router():
 # test openai-compatible endpoint
 @pytest.mark.asyncio
 async def test_mistral_on_router():
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
     model_list = [
         {
             "model_name": "gpt-3.5-turbo",
@@ -1195,7 +1195,7 @@ async def test_mistral_on_router():
 def test_openai_completion_on_router():
     # [PROD Use Case] - Makes an acompletion call + async acompletion call, and sync acompletion call, sync completion + stream
     # 4 LLM API calls made here. If it fails, add retries. Do not remove this test.
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     print("\n Testing OpenAI on router\n")
     try:
         model_list = [
@@ -1544,7 +1544,7 @@ def test_router_anthropic_key_dynamic():
 
 
 def test_router_timeout():
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     import logging
 
     from token_iq.gateway._logging import verbose_logger
@@ -1568,7 +1568,7 @@ def test_router_timeout():
         )
         print(res)
         pytest.fail("this should have timed out")
-    except litellm.exceptions.Timeout as e:
+    except gateway.exceptions.Timeout as e:
         print("got timeout exception")
         print(e)
         print(vars(e))
@@ -1661,8 +1661,8 @@ async def test_router_text_completion_client():
 
 
 @pytest.fixture
-def mock_response() -> litellm.ModelResponse:
-    return litellm.ModelResponse(
+def mock_response() -> gateway.ModelResponse:
+    return gateway.ModelResponse(
         **{
             "id": "chatcmpl-abc123",
             "object": "chat.completion",
@@ -1704,7 +1704,7 @@ async def test_router_model_usage(mock_response):
     setattr(
         mock_response,
         "usage",
-        litellm.Usage(prompt_tokens=5, completion_tokens=5, total_tokens=10),
+        gateway.Usage(prompt_tokens=5, completion_tokens=5, total_tokens=10),
     )
 
     print(f"mock_response: {mock_response}")
@@ -1885,13 +1885,13 @@ def test_router_context_window_pre_call_check(model, base_model, llm_provider):
             num_retries=0,
         )
 
-        litellm.token_counter = MagicMock()
+        gateway.token_counter = MagicMock()
 
         def token_counter_side_effect(*args, **kwargs):
             # Process args and kwargs if needed
             return 1000000
 
-        litellm.token_counter.side_effect = token_counter_side_effect
+        gateway.token_counter.side_effect = token_counter_side_effect
         try:
             updated_list = router._pre_call_checks(
                 model="gpt-4",
@@ -1914,8 +1914,8 @@ def test_router_context_window_pre_call_check(model, base_model, llm_provider):
 def test_router_cooldown_api_connection_error():
     from token_iq.gateway.router_utils.cooldown_handlers import _is_cooldown_required
 
-    with pytest.raises(litellm.APIConnectionError) as exc_info:
-        _ = litellm.completion(
+    with pytest.raises(gateway.APIConnectionError) as exc_info:
+        _ = gateway.completion(
             model="vertex_ai/gemini-1.5-pro",
             messages=[{"role": "admin", "content": "Fail on this!"}],
         )
@@ -1944,7 +1944,7 @@ def test_router_cooldown_api_connection_error():
             model="gemini-1.5-pro",
             messages=[{"role": "admin", "content": "Fail on this!"}],
         )
-    except litellm.APIConnectionError:
+    except gateway.APIConnectionError:
         pass
 
 
@@ -1973,7 +1973,7 @@ def test_router_correctly_reraise_error():
             model="gemini-1.5-pro",
             messages=[{"role": "admin", "content": "Fail on this!"}],
         )
-    except litellm.RateLimitError:
+    except gateway.RateLimitError:
         pass
 
 
@@ -2040,7 +2040,7 @@ def test_router_dynamic_cooldown_correct_retry_after_time():
     ):
         new_retry_after_mock_client = MagicMock(return_value=-1)
 
-        litellm.utils._get_retry_after_from_exception_header = (
+        gateway.utils._get_retry_after_from_exception_header = (
             new_retry_after_mock_client
         )
 
@@ -2050,7 +2050,7 @@ def test_router_dynamic_cooldown_correct_retry_after_time():
                 input="Hello world!",
                 client=openai_client,
             )
-        except litellm.RateLimitError:
+        except gateway.RateLimitError:
             pass
 
         new_retry_after_mock_client.assert_called()
@@ -2093,7 +2093,7 @@ async def test_aaarouter_dynamic_cooldown_message_retry_time(sync_mode):
     )
 
     # Build a 429 exception with retry-after header, matching what the OpenAI SDK raises
-    mock_exception = litellm.RateLimitError(
+    mock_exception = gateway.RateLimitError(
         message="Rate Limit Error!",
         llm_provider="openai",
         model="text-embedding-ada-002",
@@ -2140,14 +2140,14 @@ async def test_aaarouter_dynamic_cooldown_message_retry_time(sync_mode):
 
     # Verify that a subsequent call raises RouterRateLimitError with correct cooldown_time
     if sync_mode:
-        with pytest.raises(litellm.types.router.RouterRateLimitError) as exc_info:
+        with pytest.raises(gateway.types.router.RouterRateLimitError) as exc_info:
             router.embedding(
                 model="text-embedding-ada-002",
                 input="Hello world!",
                 mock_response=[0.1, 0.2, 0.3],
             )
     else:
-        with pytest.raises(litellm.types.router.RouterRateLimitError) as exc_info:
+        with pytest.raises(gateway.types.router.RouterRateLimitError) as exc_info:
             await router.aembedding(
                 model="text-embedding-ada-002",
                 input="Hello world!",

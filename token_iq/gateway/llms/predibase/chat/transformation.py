@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Any, Final, Literal
 
 from httpx import Headers, Response
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.constants import DEFAULT_MAX_TOKENS
 from token_iq.gateway.core_utils.core_helpers import map_finish_reason
 from token_iq.gateway.core_utils.prompt_templates.factory import (
@@ -212,7 +212,7 @@ class PredibaseConfig(BaseConfig):
 
         prompt_tokens = 0
         try:
-            prompt_tokens = litellm.token_counter(messages=messages)
+            prompt_tokens = gateway.token_counter(messages=messages)
         except Exception:
             # Keep usage calculation non-blocking if token counting fails.
             pass

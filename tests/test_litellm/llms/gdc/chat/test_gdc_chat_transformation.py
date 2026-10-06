@@ -4,7 +4,7 @@ import pytest
 
 # Adds the parent directory to the system path
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.gdc.chat.transformation import GDCGeminiConfig
 
 TEST_API_KEY = '{"type": "gdch_service_account", "project_id": "test-project"}'
@@ -237,8 +237,8 @@ class TestGDCGeminiConfig:
         mock_creds.with_gdch_audience.assert_called_once_with(TEST_API_BASE)
 
     def test_validate_environment_missing_api_base(self, monkeypatch):
-        monkeypatch.setattr(litellm, "api_base", None, raising=False)
-        monkeypatch.setattr(litellm, "gdc_api_base", None, raising=False)
+        monkeypatch.setattr(gateway, "api_base", None, raising=False)
+        monkeypatch.setattr(gateway, "gdc_api_base", None, raising=False)
         config = GDCGeminiConfig()
         with pytest.raises(Exception, match="api_base/host is required for GDC Gemini"):
             config.validate_environment(
@@ -689,13 +689,13 @@ class TestCompleteGDC:
         from token_iq.gateway.main import gdc_transformation
 
         mock_completion.return_value = MagicMock()
-        monkeypatch.setattr(litellm, "gdc_key", "resolved-key", raising=False)
+        monkeypatch.setattr(gateway, "gdc_key", "resolved-key", raising=False)
         monkeypatch.setattr(
-            litellm, "gdc_api_base", "https://resolved-base.com", raising=False
+            gateway, "gdc_api_base", "https://resolved-base.com", raising=False
         )
-        monkeypatch.setattr(litellm, "api_base", None, raising=False)
+        monkeypatch.setattr(gateway, "api_base", None, raising=False)
 
-        litellm.completion(
+        gateway.completion(
             model="gdc/gemini-2.5-flash",
             messages=[{"role": "user", "content": "hi"}],
             vertex_project=TEST_PROJECT,
@@ -714,15 +714,15 @@ class TestCompleteGDC:
         self, mock_completion, monkeypatch
     ):
         mock_completion.return_value = MagicMock()
-        monkeypatch.setattr(litellm, "gdc_key", "resolved-key", raising=False)
+        monkeypatch.setattr(gateway, "gdc_key", "resolved-key", raising=False)
         monkeypatch.setattr(
-            litellm, "gdc_api_base", "https://gdc-specific.com", raising=False
+            gateway, "gdc_api_base", "https://gdc-specific.com", raising=False
         )
         monkeypatch.setattr(
-            litellm, "api_base", "https://other-provider.com", raising=False
+            gateway, "api_base", "https://other-provider.com", raising=False
         )
 
-        litellm.completion(
+        gateway.completion(
             model="gdc/gemini-2.5-flash",
             messages=[{"role": "user", "content": "hi"}],
             vertex_project=TEST_PROJECT,

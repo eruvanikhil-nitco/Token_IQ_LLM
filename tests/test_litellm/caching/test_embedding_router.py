@@ -1,7 +1,7 @@
 from unittest.mock import MagicMock
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.caching._embedding_router import (
     build_router_embedding_metadata,
     resolve_embedding_max_input_tokens,
@@ -92,7 +92,7 @@ def test_truncate_embedding_input_keeps_prompt_within_limit():
     prompt = "The quick brown fox jumps over the lazy dog"
     assert truncate_embedding_input(prompt, "sem-embed", None) == prompt
     assert truncate_embedding_input(prompt, "sem-embed", 100) == prompt
-    token_count = len(litellm.encode(model="sem-embed", text=prompt))
+    token_count = len(gateway.encode(model="sem-embed", text=prompt))
     assert truncate_embedding_input(prompt, "sem-embed", token_count) == prompt
 
 
@@ -101,4 +101,4 @@ def test_truncate_embedding_input_cuts_prompt_to_token_limit():
     truncated = truncate_embedding_input(prompt, "sem-embed", 50)
     assert prompt.startswith(truncated)
     assert len(truncated) < len(prompt)
-    assert len(litellm.encode(model="sem-embed", text=truncated)) == 50
+    assert len(gateway.encode(model="sem-embed", text=truncated)) == 50

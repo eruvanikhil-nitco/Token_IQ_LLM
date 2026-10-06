@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING, Any, Final
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_router_logger
 from token_iq.gateway.caching.dual_cache import DualCache
 from token_iq.gateway.integrations.custom_logger import CustomLogger
@@ -171,7 +171,7 @@ class ModelRateLimitingCheck(CustomLogger):
                 # First check local cache
                 current_tpm: Final = self.dual_cache.get_cache(key=tpm_key, local_only=True)
                 if current_tpm is not None and current_tpm >= tpm_limit:
-                    raise litellm.RateLimitError(
+                    raise gateway.RateLimitError(
                         message=f"Model rate limit exceeded. TPM limit={tpm_limit}, current usage={current_tpm}",
                         llm_provider="",
                         model=model_name,
@@ -190,7 +190,7 @@ class ModelRateLimitingCheck(CustomLogger):
             if rpm_limit is not None:
                 current_rpm: Final = self.dual_cache.increment_cache(key=rpm_key, value=1, ttl=RoutingArgs.ttl)
                 if current_rpm is not None and current_rpm > rpm_limit:
-                    raise litellm.RateLimitError(
+                    raise gateway.RateLimitError(
                         message=f"Model rate limit exceeded. RPM limit={rpm_limit}, current usage={current_rpm}",
                         llm_provider="",
                         model=model_name,
@@ -207,7 +207,7 @@ class ModelRateLimitingCheck(CustomLogger):
 
             return deployment
 
-        except litellm.RateLimitError:
+        except gateway.RateLimitError:
             if io_reservation_made:
                 self._refund_io_token_reservation_if_any()
             raise
@@ -252,7 +252,7 @@ class ModelRateLimitingCheck(CustomLogger):
                 # First check local cache
                 current_tpm: Final = await self.dual_cache.async_get_cache(key=tpm_key, local_only=True)
                 if current_tpm is not None and current_tpm >= tpm_limit:
-                    raise litellm.RateLimitError(
+                    raise gateway.RateLimitError(
                         message=f"Model rate limit exceeded. TPM limit={tpm_limit}, current usage={current_tpm}",
                         llm_provider="",
                         model=model_name,
@@ -277,7 +277,7 @@ class ModelRateLimitingCheck(CustomLogger):
                     parent_otel_span=parent_otel_span,
                 )
                 if current_rpm is not None and current_rpm > rpm_limit:
-                    raise litellm.RateLimitError(
+                    raise gateway.RateLimitError(
                         message=f"Model rate limit exceeded. RPM limit={rpm_limit}, current usage={current_rpm}",
                         llm_provider="",
                         model=model_name,
@@ -295,7 +295,7 @@ class ModelRateLimitingCheck(CustomLogger):
 
             return deployment
 
-        except litellm.RateLimitError:
+        except gateway.RateLimitError:
             if io_reservation_made:
                 await self._async_refund_io_token_reservation_if_any(parent_otel_span=parent_otel_span)
             raise

@@ -1,12 +1,12 @@
 import io
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import completion
 
-litellm.failure_callback = ["lunary"]
-litellm.success_callback = ["lunary"]
-litellm.set_verbose = True
+gateway.failure_callback = ["lunary"]
+gateway.success_callback = ["lunary"]
+gateway.set_verbose = True
 
 
 def test_lunary_logging():
@@ -53,7 +53,7 @@ def test_lunary_logging_with_metadata():
 
 
 def test_lunary_with_tools():
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     messages = [
         {
@@ -82,7 +82,7 @@ def test_lunary_with_tools():
         }
     ]
 
-    response = litellm.completion(
+    response = gateway.completion(
         model="gpt-3.5-turbo-1106",
         messages=messages,
         tools=tools,

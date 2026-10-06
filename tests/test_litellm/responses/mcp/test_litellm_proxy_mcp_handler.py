@@ -646,7 +646,7 @@ def test_completion_with_function_tools_works_without_fastapi_installed():
 
         sys.meta_path.insert(0, _FastapiBlocker())
 
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         response = litellm.completion(
             model="openai/gpt-5.5",

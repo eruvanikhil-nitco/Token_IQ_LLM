@@ -23,7 +23,7 @@ import pytest
 from fastapi import Request, Response
 from starlette.datastructures import URL
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import Router, mock_completion
 from token_iq.gateway.caching.caching import DualCache
 from token_iq.gateway.integrations.custom_logger import CustomLogger
@@ -96,11 +96,11 @@ def _register_proxy_test_logger(callback_logger: testLogger) -> None:
     constructs a new ``testLogger`` and must replace the global lists, not
     only ``litellm.callbacks``.
     """
-    litellm.callbacks = [callback_logger]
-    litellm.success_callback = [callback_logger]
-    litellm.failure_callback = [callback_logger]
-    litellm._async_success_callback = [callback_logger]
-    litellm._async_failure_callback = [callback_logger]
+    gateway.callbacks = [callback_logger]
+    gateway.success_callback = [callback_logger]
+    gateway.failure_callback = [callback_logger]
+    gateway._async_success_callback = [callback_logger]
+    gateway._async_failure_callback = [callback_logger]
 
 
 @pytest.mark.parametrize(
@@ -142,7 +142,7 @@ async def test_chat_completion_request_with_redaction(route, body):
     setattr(proxy_server, "llm_router", router)
     _test_logger = testLogger()
     _register_proxy_test_logger(_test_logger)
-    litellm.set_verbose = True
+    gateway.set_verbose = True
 
     # Prepare the query string
     query_params = "param1=value1&param2=value2"

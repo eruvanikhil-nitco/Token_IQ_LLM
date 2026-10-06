@@ -2,13 +2,13 @@
 Test that all standard HTTP error exceptions are exported from litellm.__init__.
 """
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 
 def test_permission_denied_error_is_exported():
     """PermissionDeniedError (403) should be accessible as litellm.PermissionDeniedError."""
-    assert hasattr(litellm, "PermissionDeniedError")
-    assert litellm.PermissionDeniedError is not None
+    assert hasattr(gateway, "PermissionDeniedError")
+    assert gateway.PermissionDeniedError is not None
 
 
 def test_all_http_error_exceptions_exported():
@@ -27,5 +27,5 @@ def test_all_http_error_exceptions_exported():
     ]
     for exc_name in expected_exceptions:
         assert hasattr(
-            litellm, exc_name
+            gateway, exc_name
         ), f"litellm.{exc_name} is not exported from litellm.__init__"

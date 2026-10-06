@@ -19,7 +19,7 @@ from botocore.exceptions import (
     ProfileNotFound,
 )
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.bedrock_mantle.responses.transformation import (
     BedrockMantleResponsesAPIConfig,
 )
@@ -407,7 +407,7 @@ class TestBedrockMantleServiceTier:
     @pytest.mark.parametrize("tier", ["priority", "flex"])
     def test_unsupported_service_tier_raises_when_drop_params_false(self, tier):
         cfg = BedrockMantleResponsesAPIConfig()
-        with pytest.raises(litellm.UnsupportedParamsError) as excinfo:
+        with pytest.raises(gateway.UnsupportedParamsError) as excinfo:
             cfg.map_openai_params(
                 response_api_optional_params={"service_tier": tier},
                 model="openai.gpt-5.5",
@@ -916,8 +916,8 @@ class TestBedrockMantleResponsesRegistry:
         # change, never a code change (see the register_model tests below).
         from token_iq.gateway.utils import ProviderConfigManager
 
-        litellm.model_cost.pop("bedrock_mantle/openai.gpt-6", None)
-        litellm.get_model_info.cache_clear()
+        gateway.model_cost.pop("bedrock_mantle/openai.gpt-6", None)
+        gateway.get_model_info.cache_clear()
         cfg = ProviderConfigManager.get_provider_responses_api_config(
             provider="bedrock_mantle",
             model="openai.gpt-6",
@@ -953,13 +953,13 @@ class TestBedrockMantleResponsesRegistry:
         # The gpt-5.x entries must carry the data-driven flag so frontier routing
         # does not rely on the name-string fallback alone.
         assert (
-            litellm.model_cost["bedrock_mantle/openai.gpt-5.5"].get(
+            gateway.model_cost["bedrock_mantle/openai.gpt-5.5"].get(
                 "use_openai_responses_path"
             )
             is True
         )
         assert (
-            litellm.model_cost["bedrock_mantle/openai.gpt-5.4"].get(
+            gateway.model_cost["bedrock_mantle/openai.gpt-5.4"].get(
                 "use_openai_responses_path"
             )
             is True
@@ -1048,8 +1048,8 @@ class TestBedrockMantleResponsesRegistry:
         # returns None (chat-completions emulation) rather than crashing.
         from token_iq.gateway.utils import ProviderConfigManager
 
-        litellm.model_cost.pop("bedrock_mantle/somelab.unmapped-model", None)
-        litellm.get_model_info.cache_clear()
+        gateway.model_cost.pop("bedrock_mantle/somelab.unmapped-model", None)
+        gateway.get_model_info.cache_clear()
         cfg = ProviderConfigManager.get_provider_responses_api_config(
             provider="bedrock_mantle",
             model="somelab.unmapped-model",
@@ -1067,8 +1067,8 @@ class TestBedrockMantleResponsesRegistry:
         # of the register/restore from the model's own (lack of) capability.
         from token_iq.gateway.utils import ProviderConfigManager, register_model
 
-        snapshot = copy.deepcopy(litellm.model_cost)
-        litellm.get_model_info.cache_clear()
+        snapshot = copy.deepcopy(gateway.model_cost)
+        gateway.get_model_info.cache_clear()
         try:
             register_model(
                 {
@@ -1083,9 +1083,9 @@ class TestBedrockMantleResponsesRegistry:
             )
             assert isinstance(during, BedrockMantleResponsesAPIConfig)
         finally:
-            litellm.model_cost.clear()
-            litellm.model_cost.update(snapshot)
-            litellm.get_model_info.cache_clear()
+            gateway.model_cost.clear()
+            gateway.model_cost.update(snapshot)
+            gateway.get_model_info.cache_clear()
         after = ProviderConfigManager.get_provider_responses_api_config(
             provider="bedrock_mantle", model="openai.gpt-oss-safeguard-120b"
         )
@@ -1255,14 +1255,14 @@ def restore_model_cost():
        TestBedrockMantleResponsesPricing. Mutating the original object in place
        restores the contents conftest's reference points at.
     """
-    original_model_cost = copy.deepcopy(litellm.model_cost)
-    litellm.get_model_info.cache_clear()
+    original_model_cost = copy.deepcopy(gateway.model_cost)
+    gateway.get_model_info.cache_clear()
     try:
         yield
     finally:
-        litellm.model_cost.clear()
-        litellm.model_cost.update(original_model_cost)
-        litellm.get_model_info.cache_clear()
+        gateway.model_cost.clear()
+        gateway.model_cost.update(original_model_cost)
+        gateway.get_model_info.cache_clear()
 
 
 @pytest.fixture
@@ -1274,16 +1274,16 @@ def local_cost_map(monkeypatch):
     only re-buckets whatever is already in ``model_cost``, so the cost map must
     first be reloaded from the local backup before the new keys appear.
     """
-    original_model_cost = litellm.model_cost
+    original_model_cost = gateway.model_cost
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "true")
-    litellm.model_cost = litellm.get_model_cost_map()
-    litellm.get_model_info.cache_clear()
-    litellm.add_known_models()
+    gateway.model_cost = gateway.get_model_cost_map()
+    gateway.get_model_info.cache_clear()
+    gateway.add_known_models()
     try:
         yield
     finally:
-        litellm.model_cost = original_model_cost
-        litellm.get_model_info.cache_clear()
+        gateway.model_cost = original_model_cost
+        gateway.get_model_info.cache_clear()
 
 
 class TestBedrockMantleResponsesSigV4:
@@ -1668,7 +1668,7 @@ class TestBedrockMantleResponsesSigV4:
 
 class TestBedrockMantleResponsesPricing:
     def test_gpt_5_5_pricing_and_mode(self, local_cost_map):
-        info = litellm.get_model_info("bedrock_mantle/openai.gpt-5.5")
+        info = gateway.get_model_info("bedrock_mantle/openai.gpt-5.5")
         assert info["mode"] == "responses"
         assert info["input_cost_per_token"] == pytest.approx(5.5e-06)
         assert info["output_cost_per_token"] == pytest.approx(3.3e-05)
@@ -1676,7 +1676,7 @@ class TestBedrockMantleResponsesPricing:
         assert info["max_input_tokens"] == 1050000
 
     def test_gpt_5_4_pricing_and_mode(self, local_cost_map):
-        info = litellm.get_model_info("bedrock_mantle/openai.gpt-5.4")
+        info = gateway.get_model_info("bedrock_mantle/openai.gpt-5.4")
         assert info["mode"] == "responses"
         assert info["input_cost_per_token"] == pytest.approx(2.75e-06)
         assert info["output_cost_per_token"] == pytest.approx(1.65e-05)
@@ -1684,7 +1684,7 @@ class TestBedrockMantleResponsesPricing:
         assert info["max_input_tokens"] == 1050000
 
     def test_gpt_5_6_cyber_pricing_and_mode(self, local_cost_map):
-        info = litellm.get_model_info("bedrock_mantle/openai.gpt-5.6-cyber")
+        info = gateway.get_model_info("bedrock_mantle/openai.gpt-5.6-cyber")
         assert info["mode"] == "responses"
         assert info["input_cost_per_token"] == pytest.approx(1.375e-05)
         assert info["cache_creation_input_token_cost"] == pytest.approx(1.71875e-05)
@@ -1703,7 +1703,7 @@ class TestBedrockMantleResponsesPricing:
     def test_gpt_5_6_pricing_and_mode(
         self, local_cost_map, model, input_cost, cache_creation_cost, cache_read_cost, output_cost
     ):
-        info = litellm.get_model_info(f"bedrock_mantle/{model}")
+        info = gateway.get_model_info(f"bedrock_mantle/{model}")
         assert info["mode"] == "responses"
         assert info["input_cost_per_token"] == pytest.approx(input_cost)
         assert info["cache_creation_input_token_cost"] == pytest.approx(cache_creation_cost)
@@ -1740,7 +1740,7 @@ class TestBedrockMantleResponsesPricing:
             ),
         )
 
-        cost = litellm.completion_cost(
+        cost = gateway.completion_cost(
             completion_response=response,
             model=f"bedrock_mantle/{model}",
             custom_llm_provider="bedrock_mantle",
@@ -1749,8 +1749,8 @@ class TestBedrockMantleResponsesPricing:
         assert cost == pytest.approx(input_tokens * input_cost + output_tokens * output_cost)
 
     def test_models_registered(self, local_cost_map):
-        assert "bedrock_mantle/openai.gpt-5.5" in litellm.bedrock_mantle_models
-        assert "bedrock_mantle/openai.gpt-5.4" in litellm.bedrock_mantle_models
+        assert "bedrock_mantle/openai.gpt-5.5" in gateway.bedrock_mantle_models
+        assert "bedrock_mantle/openai.gpt-5.4" in gateway.bedrock_mantle_models
 
 
 def _repo_cost_map(map_name: str) -> dict[str, dict[str, object]]:

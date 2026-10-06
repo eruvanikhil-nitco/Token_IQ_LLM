@@ -14,7 +14,7 @@ import fastapi
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from typing_extensions import ReadOnly
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger, verbose_proxy_logger
 from token_iq.gateway.constants import HEALTH_CHECK_TIMEOUT_SECONDS
 from token_iq.gateway.integrations.SlackAlerting.ms_teams import (
@@ -276,10 +276,10 @@ async def health_services_endpoint(
             )
 
         service_in_success_callbacks = False
-        if service in litellm.success_callback:
+        if service in gateway.success_callback:
             service_in_success_callbacks = True
         else:
-            for cb in litellm.success_callback:
+            for cb in gateway.success_callback:
                 if getattr(cb, "callback_name", None) == service:
                     service_in_success_callbacks = True
                     break
@@ -294,7 +294,7 @@ async def health_services_endpoint(
             or service == "generic_api"
             or (service_in_success_callbacks and service != "langfuse")
         ):
-            _ = await litellm.acompletion(
+            _ = await gateway.acompletion(
                 model="openai/litellm-mock-response-model",
                 messages=[{"role": "user", "content": "Hey, how's it going?"}],
                 user="litellm:/health/services",
@@ -355,7 +355,7 @@ async def health_services_endpoint(
 
             langfuse_logger: Final = LangFuseLogger()
             langfuse_logger.Langfuse.auth_check()
-            _ = litellm.completion(
+            _ = gateway.completion(
                 model="openai/litellm-mock-response-model",
                 messages=[{"role": "user", "content": "Hey, how's it going?"}],
                 user="litellm:/health/services",
@@ -1413,13 +1413,13 @@ async def active_callbacks():
     _alerting: Final = str(general_settings.get("alerting"))
     # get success callbacks
 
-    litellm_callbacks: Final = [str(x) for x in litellm.callbacks]
-    litellm_input_callbacks: Final = [str(x) for x in litellm.input_callback]
-    litellm_failure_callbacks: Final = [str(x) for x in litellm.failure_callback]
-    litellm_success_callbacks: Final = [str(x) for x in litellm.success_callback]
-    litellm_async_success_callbacks: Final = [str(x) for x in litellm._async_success_callback]
-    litellm_async_failure_callbacks: Final = [str(x) for x in litellm._async_failure_callback]
-    litellm_async_input_callbacks: Final = [str(x) for x in litellm._async_input_callback]
+    litellm_callbacks: Final = [str(x) for x in gateway.callbacks]
+    litellm_input_callbacks: Final = [str(x) for x in gateway.input_callback]
+    litellm_failure_callbacks: Final = [str(x) for x in gateway.failure_callback]
+    litellm_success_callbacks: Final = [str(x) for x in gateway.success_callback]
+    litellm_async_success_callbacks: Final = [str(x) for x in gateway._async_success_callback]
+    litellm_async_failure_callbacks: Final = [str(x) for x in gateway._async_failure_callback]
+    litellm_async_input_callbacks: Final = [str(x) for x in gateway._async_input_callback]
 
     all_litellm_callbacks: Final = (
         litellm_callbacks
@@ -1448,7 +1448,7 @@ async def active_callbacks():
         "all_litellm_callbacks": all_litellm_callbacks,
         "num_callbacks": len(all_litellm_callbacks),
         "num_alerting": _num_alerting,
-        "litellm.request_timeout": litellm.request_timeout,
+        "litellm.request_timeout": gateway.request_timeout,
     }
 
 
@@ -1511,24 +1511,24 @@ async def _get_health_readiness_details(
         try:
             # this was returning a JSON of the values in some of the callbacks
             # all we need is the callback name, hence we do str(callback)
-            success_callback_names = [callback_name(x) for x in litellm.success_callback]
+            success_callback_names = [callback_name(x) for x in gateway.success_callback]
         except AttributeError:
             # don't let this block the /health/readiness response, if we can't convert to str -> return litellm.success_callback
-            success_callback_names = litellm.success_callback
+            success_callback_names = gateway.success_callback
 
         # check Cache
         cache_type: Any = None
-        if litellm.cache is not None:
+        if gateway.cache is not None:
             from token_iq.gateway.caching.caching import RedisSemanticCache
 
-            cache_type = litellm.cache.type
+            cache_type = gateway.cache.type
 
-            if isinstance(litellm.cache.cache, RedisSemanticCache):
+            if isinstance(gateway.cache.cache, RedisSemanticCache):
                 # ping the cache
                 # TODO: @ishaan-jaff - we should probably not ping the cache on every /health/readiness check
                 index_info: Any
                 try:
-                    index_info = await litellm.cache.cache._index_info()
+                    index_info = await gateway.cache.cache._index_info()
                 except Exception as e:
                     index_info = "index does not exist - error: " + str(e)
                 cache_type = {"type": cache_type, "index_info": index_info}
@@ -1999,7 +1999,7 @@ async def test_model_connection(
         mode = mode or litellm_params.pop("mode", None)
 
         result: Final = await run_with_timeout(
-            litellm.ahealth_check(
+            gateway.ahealth_check(
                 model_params=litellm_params,
                 mode=mode,
                 prompt="test from litellm",

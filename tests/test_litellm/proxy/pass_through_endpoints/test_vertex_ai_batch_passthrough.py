@@ -751,7 +751,7 @@ class TestVertexAIBatchCostCalculation:
         calling calculate_vertex_ai_batch_cost_and_usage (which only reads raw
         usageMetadata fields).
         """
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.batches.batch_utils import calculate_batch_cost_and_usage
 
         openai_shaped_responses = [
@@ -810,10 +810,10 @@ class TestVertexAIBatchCostCalculation:
         ]
 
         original_flag = getattr(
-            litellm, "disable_vertex_batch_output_transformation", False
+            gateway, "disable_vertex_batch_output_transformation", False
         )
         try:
-            litellm.disable_vertex_batch_output_transformation = False
+            gateway.disable_vertex_batch_output_transformation = False
 
             result = await calculate_batch_cost_and_usage(
                 file_content_dictionary=openai_shaped_responses,
@@ -821,7 +821,7 @@ class TestVertexAIBatchCostCalculation:
                 model_name="gemini-2.0-flash-001",
             )
         finally:
-            litellm.disable_vertex_batch_output_transformation = original_flag
+            gateway.disable_vertex_batch_output_transformation = original_flag
 
         assert (
             result.usage.prompt_tokens == 18
@@ -842,7 +842,7 @@ class TestVertexAIBatchCostCalculation:
         When disable_vertex_batch_output_transformation=True the GCS file is returned
         as raw Vertex predictions.jsonl; the specialized reader must be used.
         """
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.batches.batch_utils import calculate_batch_cost_and_usage
 
         raw_vertex_responses = [
@@ -862,10 +862,10 @@ class TestVertexAIBatchCostCalculation:
         ]
 
         original_flag = getattr(
-            litellm, "disable_vertex_batch_output_transformation", False
+            gateway, "disable_vertex_batch_output_transformation", False
         )
         try:
-            litellm.disable_vertex_batch_output_transformation = True
+            gateway.disable_vertex_batch_output_transformation = True
 
             result = await calculate_batch_cost_and_usage(
                 file_content_dictionary=raw_vertex_responses,
@@ -873,7 +873,7 @@ class TestVertexAIBatchCostCalculation:
                 model_name="gemini-2.0-flash-001",
             )
         finally:
-            litellm.disable_vertex_batch_output_transformation = original_flag
+            gateway.disable_vertex_batch_output_transformation = original_flag
 
         assert result.usage.prompt_tokens == 10
         assert result.usage.completion_tokens == 5

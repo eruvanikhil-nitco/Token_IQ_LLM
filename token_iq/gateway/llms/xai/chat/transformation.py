@@ -4,7 +4,7 @@ from typing import Any, Final
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.constants import XAI_API_BASE
 from token_iq.gateway.exceptions import AuthenticationError
@@ -151,7 +151,7 @@ class XAIChatConfig(OpenAIGPTConfig):
         # reasoning check
         #########################################################
         try:
-            if litellm.supports_reasoning(model=model, custom_llm_provider=self.custom_llm_provider):
+            if gateway.supports_reasoning(model=model, custom_llm_provider=self.custom_llm_provider):
                 base_openai_params.append("reasoning_effort")
         except Exception as e:
             verbose_logger.debug("Error checking if model supports reasoning: %s", e)

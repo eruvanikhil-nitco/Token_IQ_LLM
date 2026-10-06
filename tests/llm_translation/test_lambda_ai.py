@@ -7,7 +7,7 @@ from unittest import mock
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import completion
 from token_iq.gateway.llms.lambda_ai.chat.transformation import LambdaAIChatConfig
 
@@ -74,9 +74,9 @@ def test_get_llm_provider_lambda_ai():
 
 def test_lambda_ai_in_provider_lists():
     """Test that Lambda AI is registered in all necessary provider lists"""
-    assert "lambda_ai" in litellm.openai_compatible_providers
-    assert "lambda_ai" in litellm.provider_list
-    assert "https://api.lambda.ai/v1" in litellm.openai_compatible_endpoints
+    assert "lambda_ai" in gateway.openai_compatible_providers
+    assert "lambda_ai" in gateway.provider_list
+    assert "https://api.lambda.ai/v1" in gateway.openai_compatible_endpoints
 
 
 @pytest.mark.asyncio
@@ -87,7 +87,7 @@ async def test_lambda_ai_completion_call():
         pytest.skip("LAMBDA_API_KEY not set")
 
     try:
-        response = await litellm.acompletion(
+        response = await gateway.acompletion(
             model="lambda_ai/llama3.1-8b-instruct",
             messages=[{"role": "user", "content": "Hello, this is a test"}],
             max_tokens=10,
@@ -109,11 +109,11 @@ def test_lambda_ai_models_configuration():
 
     # Reload model cost map to pick up local changes
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-    litellm.model_cost = litellm.get_model_cost_map()
+    gateway.model_cost = gateway.get_model_cost_map()
 
     # Clear and repopulate lambda_ai_models list after reloading model_cost
-    litellm.lambda_ai_models = set()
-    litellm.add_known_models()
+    gateway.lambda_ai_models = set()
+    gateway.add_known_models()
 
     # Some Lambda AI models to test
     lambda_ai_models = [
@@ -149,19 +149,19 @@ def test_lambda_ai_model_list_populated():
     """Test that lambda_ai_models list is populated correctly"""
     # Ensure we're using local model cost map and repopulate models
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-    litellm.model_cost = litellm.get_model_cost_map()
+    gateway.model_cost = gateway.get_model_cost_map()
 
     # Clear and repopulate all model lists after reloading model_cost
-    litellm.lambda_ai_models = set()
-    litellm.add_known_models()
+    gateway.lambda_ai_models = set()
+    gateway.add_known_models()
 
     # This should be populated by the add_known_models function
     assert (
-        len(litellm.lambda_ai_models) > 0
+        len(gateway.lambda_ai_models) > 0
     ), "lambda_ai_models list should not be empty"
 
     # Check that all models in the list are Lambda AI models
-    for model in litellm.lambda_ai_models:
+    for model in gateway.lambda_ai_models:
         assert model.startswith(
             "lambda_ai/"
         ), f"Model {model} should start with 'lambda_ai/'"
@@ -175,5 +175,5 @@ def test_lambda_ai_model_list_populated():
 
     for model in expected_models:
         assert (
-            model in litellm.lambda_ai_models
+            model in gateway.lambda_ai_models
         ), f"{model} should be in lambda_ai_models list"

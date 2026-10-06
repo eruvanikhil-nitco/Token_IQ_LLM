@@ -9,7 +9,7 @@ from typing import Any, Final
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.llms.custom_httpx.http_handler import get_async_httpx_client
 from token_iq.gateway.llms.openai.common_utils import OpenAIError
@@ -60,9 +60,9 @@ class OpenAICountTokensHandler(OpenAICountTokensConfig):
 
             headers: Final = self.get_required_headers(api_key)
 
-            async_client: Final = get_async_httpx_client(llm_provider=litellm.LlmProviders.OPENAI)
+            async_client: Final = get_async_httpx_client(llm_provider=gateway.LlmProviders.OPENAI)
 
-            request_timeout: Final = timeout if timeout is not None else litellm.request_timeout
+            request_timeout: Final = timeout if timeout is not None else gateway.request_timeout
 
             response: Final = await async_client.post(
                 endpoint_url,

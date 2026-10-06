@@ -1,7 +1,7 @@
 from io import BufferedReader, BytesIO
 from typing import Any, Final, cast, get_type_hints
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.token_counter import get_image_type
 from token_iq.gateway.llms.base_llm.image_edit.transformation import BaseImageEditConfig
 from token_iq.gateway.types.files import FILE_MIME_TYPES, FileType
@@ -32,7 +32,7 @@ class ImageEditRequestUtils:
         """
         supported_params: Final = image_edit_provider_config.get_supported_openai_params(model)
 
-        should_drop: Final = litellm.drop_params is True or drop_params is True
+        should_drop: Final = gateway.drop_params is True or drop_params is True
 
         filtered_optional_params: Final = dict(image_edit_optional_params)
         if additional_drop_params:
@@ -46,7 +46,7 @@ class ImageEditRequestUtils:
                 for param in unsupported_params:
                     filtered_optional_params.pop(param, None)
             else:
-                raise litellm.UnsupportedParamsError(
+                raise gateway.UnsupportedParamsError(
                     model=model,
                     message=f"The following parameters are not supported for model {model}: {', '.join(unsupported_params)}",
                 )

@@ -18,7 +18,7 @@ from typing import TYPE_CHECKING, Any, Final
 if TYPE_CHECKING:
     from token_iq.gateway.types.caching import RedisPipelineIncrementOperation
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import print_verbose, verbose_logger
 from token_iq.gateway.constants import DEFAULT_MAX_REDIS_BATCH_CACHE_SIZE
 
@@ -72,10 +72,10 @@ class DualCache(BaseCache):
         self.last_redis_batch_access_time = LimitedSizeOrderedDict(max_size=default_max_redis_batch_cache_size)
         self._last_redis_batch_access_time_lock = Lock()
         self.redis_batch_cache_expiry = (
-            default_redis_batch_cache_expiry or litellm.default_redis_batch_cache_expiry or 10
+            default_redis_batch_cache_expiry or gateway.default_redis_batch_cache_expiry or 10
         )
-        self.default_in_memory_ttl = default_in_memory_ttl or litellm.default_in_memory_ttl
-        self.default_redis_ttl = default_redis_ttl or litellm.default_redis_ttl
+        self.default_in_memory_ttl = default_in_memory_ttl or gateway.default_in_memory_ttl
+        self.default_redis_ttl = default_redis_ttl or gateway.default_redis_ttl
 
     def update_cache_ttl(self, default_in_memory_ttl: float | None, default_redis_ttl: float | None):
         if default_in_memory_ttl is not None:

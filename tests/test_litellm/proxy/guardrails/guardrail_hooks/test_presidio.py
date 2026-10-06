@@ -10,7 +10,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.caching.caching import DualCache
 from token_iq.gateway.proxy._types import UserAPIKeyAuth
 from token_iq.gateway.proxy.guardrails.guardrail_hooks.presidio import (
@@ -829,7 +829,7 @@ async def test_presidio_filter_scope_initializer(monkeypatch):
             self.added.append(cb)
 
     mgr = DummyManager()
-    monkeypatch.setattr(litellm, "logging_callback_manager", mgr, raising=False)
+    monkeypatch.setattr(gateway, "logging_callback_manager", mgr, raising=False)
     import token_iq.gateway.proxy.guardrails.guardrail_hooks.presidio as presidio_mod
     import token_iq.gateway.proxy.guardrails.guardrail_initializers as gi
 

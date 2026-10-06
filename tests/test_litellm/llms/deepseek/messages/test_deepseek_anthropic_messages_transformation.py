@@ -1,4 +1,4 @@
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.transformation import (
     AnthropicMessagesConfig,
 )
@@ -12,7 +12,7 @@ from token_iq.gateway.utils import ProviderConfigManager
 def test_deepseek_provider_uses_anthropic_messages_config():
     config = ProviderConfigManager.get_provider_anthropic_messages_config(
         model="deepseek-v4-pro",
-        provider=litellm.LlmProviders.DEEPSEEK,
+        provider=gateway.LlmProviders.DEEPSEEK,
     )
 
     assert isinstance(config, DeepSeekAnthropicMessagesConfig)
@@ -29,7 +29,7 @@ def test_deepseek_anthropic_messages_config_defaults():
 def test_anthropic_provider_keeps_default_config_for_deepseek_named_model():
     config = ProviderConfigManager.get_provider_anthropic_messages_config(
         model="deepseek-v4-pro",
-        provider=litellm.LlmProviders.ANTHROPIC,
+        provider=gateway.LlmProviders.ANTHROPIC,
     )
 
     assert isinstance(config, AnthropicMessagesConfig)

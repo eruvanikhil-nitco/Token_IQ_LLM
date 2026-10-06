@@ -14,7 +14,7 @@ from typing import Final, Protocol, TypedDict
 import httpx
 from typing_extensions import ReadOnly
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
 from token_iq.gateway.llms.custom_httpx.http_handler import (
@@ -224,7 +224,7 @@ class BlackForestLabsImageGeneration:
 
         if client is None:
             async_client = get_async_httpx_client(
-                llm_provider=litellm.LlmProviders.BLACK_FOREST_LABS,
+                llm_provider=gateway.LlmProviders.BLACK_FOREST_LABS,
             )
         else:
             async_client = client

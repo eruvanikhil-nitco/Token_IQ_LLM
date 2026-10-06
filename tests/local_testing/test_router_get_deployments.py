@@ -13,7 +13,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 from dotenv import load_dotenv
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import Router
 
 load_dotenv()
@@ -24,7 +24,7 @@ def test_weighted_selection_router():
     # it's a fast test, only tests get_available_deployment
     # users can pass rpms as a litellm_param
     try:
-        litellm.set_verbose = False
+        gateway.set_verbose = False
         model_list = [
             {
                 "model_name": "gpt-3.5-turbo",
@@ -80,7 +80,7 @@ def test_weighted_selection_router_tpm():
     # users can pass rpms as a litellm_param
     try:
         print("\ntest weighted selection based on TPM\n")
-        litellm.set_verbose = False
+        gateway.set_verbose = False
         model_list = [
             {
                 "model_name": "gpt-3.5-turbo",
@@ -136,7 +136,7 @@ def test_weighted_selection_router_tpm_as_router_param():
     # users can pass rpms as a litellm_param
     try:
         print("\ntest weighted selection based on TPM\n")
-        litellm.set_verbose = False
+        gateway.set_verbose = False
         model_list = [
             {
                 "model_name": "gpt-3.5-turbo",
@@ -192,7 +192,7 @@ def test_weighted_selection_router_rpm_as_router_param():
     # users can pass rpms as a litellm_param
     try:
         print("\ntest weighted selection based on RPM\n")
-        litellm.set_verbose = False
+        gateway.set_verbose = False
         model_list = [
             {
                 "model_name": "gpt-3.5-turbo",
@@ -249,7 +249,7 @@ def test_weighted_selection_router_no_rpm_set():
     # it's a fast test, only tests get_available_deployment
     # users can pass rpms as a litellm_param
     try:
-        litellm.set_verbose = False
+        gateway.set_verbose = False
         model_list = [
             {
                 "model_name": "gpt-3.5-turbo",
@@ -308,7 +308,7 @@ def test_weighted_selection_router_no_rpm_set():
 
 def test_model_group_aliases():
     try:
-        litellm.set_verbose = False
+        gateway.set_verbose = False
         model_list = [
             {
                 "model_name": "gpt-3.5-turbo",
@@ -535,7 +535,7 @@ async def test_weighted_selection_router_async(rpm_list, tpm_list):
     # it's a fast test, only tests get_available_deployment
     # users can pass rpms as a litellm_param
     try:
-        litellm.set_verbose = False
+        gateway.set_verbose = False
         model_list = [
             {
                 "model_name": "gpt-3.5-turbo",
@@ -597,7 +597,7 @@ def test_get_available_deployment_for_pass_through():
     - Tests that BadRequestError is raised when no pass-through deployments exist
     """
     try:
-        litellm.set_verbose = False
+        gateway.set_verbose = False
         model_list = [
             {
                 "model_name": "gpt-3.5-turbo",
@@ -641,7 +641,7 @@ def test_get_available_deployment_for_pass_through_no_deployments():
     when no deployments have use_in_pass_through=True
     """
     try:
-        litellm.set_verbose = False
+        gateway.set_verbose = False
         model_list = [
             {
                 "model_name": "gpt-3.5-turbo",
@@ -667,14 +667,14 @@ def test_get_available_deployment_for_pass_through_no_deployments():
         )
 
         # Test that BadRequestError is raised when no pass-through deployments exist
-        with pytest.raises(litellm.BadRequestError) as exc_info:
+        with pytest.raises(gateway.BadRequestError) as exc_info:
             router.get_available_deployment_for_pass_through("gpt-3.5-turbo")
         e = exc_info.value
         assert "use_in_pass_through=True" in str(e)
 
         router.reset()
     except Exception as e:
-        if isinstance(e, litellm.BadRequestError):
+        if isinstance(e, gateway.BadRequestError):
             pass  # Expected error
         else:
             traceback.print_exc()
@@ -689,7 +689,7 @@ async def test_async_get_available_deployment_for_pass_through():
     - Tests async version works correctly
     """
     try:
-        litellm.set_verbose = False
+        gateway.set_verbose = False
         model_list = [
             {
                 "model_name": "gpt-3.5-turbo",
@@ -733,7 +733,7 @@ def test_filter_pass_through_deployments():
     - Tests that it correctly filters deployments with use_in_pass_through=True
     """
     try:
-        litellm.set_verbose = False
+        gateway.set_verbose = False
         model_list = [
             {
                 "model_name": "gpt-3.5-turbo",

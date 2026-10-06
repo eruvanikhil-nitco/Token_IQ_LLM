@@ -6,7 +6,7 @@ import asyncio
 import unittest.mock
 from unittest.mock import AsyncMock, MagicMock
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 import pytest
 from dotenv import load_dotenv
 from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.handler import (
@@ -38,15 +38,15 @@ def event_loop():
 def setup_and_teardown(event_loop):  # Add event_loop as a dependency
     curr_dir = os.getcwd()
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway import Router
 
-    importlib.reload(litellm)
+    importlib.reload(gateway)
 
     # Set the event loop from the fixture
     asyncio.set_event_loop(event_loop)
 
-    print(litellm)
+    print(gateway)
     yield
 
     # Clean up any pending tasks
@@ -133,7 +133,7 @@ async def test_anthropic_messages_streaming_with_bad_request():
     """
     error = None
     try:
-        response = await litellm.anthropic.messages.acreate(
+        response = await gateway.anthropic.messages.acreate(
             messages=[{"role": "user", "content": "hi"}],
             api_key=os.getenv("ANTHROPIC_API_KEY"),
             model="claude-haiku-4-5-20251001",
@@ -192,7 +192,7 @@ async def test_anthropic_messages_litellm_router_non_streaming():
     """
     Test the anthropic_messages with non-streaming request
     """
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
     router = Router(
         model_list=[
             {
@@ -230,7 +230,7 @@ async def test_anthropic_messages_litellm_router_routing_strategy():
     """
     Test the anthropic_messages with routing strategy + non-streaming request
     """
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
     router = Router(
         model_list=[
             {
@@ -272,7 +272,7 @@ async def test_anthropic_messages_fallbacks():
     """
     E2E test the anthropic_messages fallbacks from Anthropic API to Bedrock
     """
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
     router = Router(
         model_list=[
             {
@@ -444,8 +444,8 @@ async def test_anthropic_messages_litellm_router_non_streaming_with_logging():
     - Ensure Cost + Usage is tracked
     """
     test_custom_logger = TestCustomLogger()
-    litellm.callbacks = [test_custom_logger]
-    litellm._turn_on_debug()
+    gateway.callbacks = [test_custom_logger]
+    gateway._turn_on_debug()
     MODEL_GROUP = "claude-special-alias"
     router = Router(
         model_list=[
@@ -546,7 +546,7 @@ async def test_anthropic_messages_with_extra_headers():
     mock_client.post = AsyncMock(return_value=mock_response)
 
     # Call the handler with extra_headers and our mocked client
-    response = await litellm.anthropic.messages.acreate(
+    response = await gateway.anthropic.messages.acreate(
         messages=messages,
         api_key=api_key,
         model="claude-haiku-4-5-20251001",
@@ -692,7 +692,7 @@ async def test_anthropic_messages_with_thinking():
     mock_client.post = AsyncMock(return_value=mock_response)
 
     # Call the handler with extra_headers and our mocked client
-    response = await litellm.anthropic.messages.acreate(
+    response = await gateway.anthropic.messages.acreate(
         messages=messages,
         api_key=api_key,
         model="claude-haiku-4-5-20251001",
@@ -771,7 +771,7 @@ async def test_anthropic_messages_bedrock_credentials_passthrough():
                 }
 
                 # Call the function with AWS credentials
-                await litellm.anthropic.messages.acreate(
+                await gateway.anthropic.messages.acreate(
                     messages=[{"role": "user", "content": "Hello, test credentials"}],
                     model="bedrock/us.anthropic.claude-haiku-4-5-20251001-v1:0",
                     max_tokens=100,
@@ -830,7 +830,7 @@ async def test_anthropic_messages_bedrock_dynamic_region():
         test_region = "us-east-1"
 
         # Call anthropic.messages.acreate with aws_region_name
-        response = await litellm.anthropic.messages.acreate(
+        response = await gateway.anthropic.messages.acreate(
             messages=[{"role": "user", "content": "Hello, test region"}],
             model="bedrock/us.anthropic.claude-haiku-4-5-20251001-v1:0",
             max_tokens=100,
@@ -861,8 +861,8 @@ def test_sync_openai_messages():
     """
     Test the anthropic_messages with sync request
     """
-    litellm._turn_on_debug()
-    response = litellm.anthropic.messages.create(
+    gateway._turn_on_debug()
+    response = gateway.anthropic.messages.create(
         messages=[{"role": "user", "content": "Hello, can you tell me a short joke?"}],
         model="openai/gpt-4.1-mini",
         max_tokens=100,

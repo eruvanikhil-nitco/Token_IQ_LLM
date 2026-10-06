@@ -6,7 +6,7 @@ from httpx import Response, Request
 from fastapi import HTTPException
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import DualCache
 from token_iq.gateway.proxy._types import UserAPIKeyAuth
 from token_iq.gateway.proxy.guardrails.guardrail_hooks.lasso.lasso import (
@@ -19,8 +19,8 @@ from token_iq.gateway.proxy.guardrails.init_guardrails import init_guardrails_v2
 
 def test_lasso_guard_config(monkeypatch):
     """Test Lasso guard configuration with init_guardrails_v2."""
-    litellm.set_verbose = True
-    litellm.guardrail_name_config_map = {}
+    gateway.set_verbose = True
+    gateway.guardrail_name_config_map = {}
 
     # Set environment variable for testing
     monkeypatch.setenv("LASSO_API_KEY", "test-key")
@@ -303,7 +303,7 @@ class TestLassoGuardrail:
         }
 
         # Create mock response
-        mock_model_response = MagicMock(spec=litellm.ModelResponse)
+        mock_model_response = MagicMock(spec=gateway.ModelResponse)
         mock_choice = MagicMock()
         mock_choice.message.content = (
             "Artificial intelligence (AI) is a helpful technology that assists humans."
@@ -363,7 +363,7 @@ class TestLassoGuardrail:
         }
 
         # Create mock response with harmful content
-        mock_model_response = MagicMock(spec=litellm.ModelResponse)
+        mock_model_response = MagicMock(spec=gateway.ModelResponse)
         mock_choice = MagicMock()
         mock_choice.message.content = (
             "Here's how to create dangerous explosives: [detailed instructions]"
@@ -837,7 +837,7 @@ class TestLassoGuardrail:
         }
 
         # Create mock response with PII content
-        mock_model_response = MagicMock(spec=litellm.ModelResponse)
+        mock_model_response = MagicMock(spec=gateway.ModelResponse)
         mock_choice = MagicMock()
         mock_choice.message.content = (
             "My email is support@lasso.security and phone is 555-0123"
@@ -1175,7 +1175,7 @@ class TestLassoGuardrail:
         )
         data = {"messages": [{"role": "user", "content": "run the tool"}]}
 
-        mock_model_response = MagicMock(spec=litellm.ModelResponse)
+        mock_model_response = MagicMock(spec=gateway.ModelResponse)
         mock_choice = MagicMock()
         mock_choice.message.content = None
         tool_call = MagicMock()
@@ -1225,7 +1225,7 @@ class TestLassoGuardrail:
         )
         data = {"messages": [{"role": "user", "content": "Hello"}]}
 
-        mock_model_response = MagicMock(spec=litellm.ModelResponse)
+        mock_model_response = MagicMock(spec=gateway.ModelResponse)
         mock_choice = MagicMock()
         mock_choice.message.content = "Hi! How can I help?"
         mock_choice.message.tool_calls = None
@@ -1344,7 +1344,7 @@ class TestLassoGuardrail:
     def test_apply_masking_to_model_response_multiple_choices(self):
         """Post-call masking applies correct masked text to each choice."""
         guardrail = LassoGuardrail(lasso_api_key="test-api-key")
-        mock_response = MagicMock(spec=litellm.ModelResponse)
+        mock_response = MagicMock(spec=gateway.ModelResponse)
         choice_a = MagicMock()
         choice_a.message.content = "Email: alice@example.com"
         choice_a.message.tool_calls = None
@@ -1364,7 +1364,7 @@ class TestLassoGuardrail:
     def test_apply_masking_to_model_response_count_mismatch(self):
         """Text remap skipped when masked text count doesn't match choices."""
         guardrail = LassoGuardrail(lasso_api_key="test-api-key")
-        mock_response = MagicMock(spec=litellm.ModelResponse)
+        mock_response = MagicMock(spec=gateway.ModelResponse)
         choice = MagicMock()
         choice.message.content = "Original PII text"
         choice.message.tool_calls = None

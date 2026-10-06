@@ -1022,22 +1022,22 @@ class TestCoerceUserIdToStr:
         This preserves backwards compatibility: existing deployments that
         intentionally pass JSON-encoded user identifiers keep working.
         """
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.proxy.auth.auth_utils import _coerce_user_id_to_str
 
         blob = (
             '{"device_id":"d5abe9199ee7759a0558974e9371e78c7b38d7621aae26d6609c1de61af6afb0",'
             '"account_uuid":"","session_id":"c284b8cb-a050-4278-8599-cc4e016a10ab"}'
         )
-        original = litellm.validate_end_user_id_in_db
-        litellm.validate_end_user_id_in_db = False
+        original = gateway.validate_end_user_id_in_db
+        gateway.validate_end_user_id_in_db = False
         try:
             assert _coerce_user_id_to_str(blob) == blob
         finally:
-            litellm.validate_end_user_id_in_db = original
+            gateway.validate_end_user_id_in_db = original
 
     def test_json_encoded_dict_string_returns_none_when_validation_enabled(self):
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.proxy.auth.auth_utils import _coerce_user_id_to_str
 
         # Same broken shape we saw in spend logs, but pre-stringified to JSON.
@@ -1045,34 +1045,34 @@ class TestCoerceUserIdToStr:
             '{"device_id":"d5abe9199ee7759a0558974e9371e78c7b38d7621aae26d6609c1de61af6afb0",'
             '"account_uuid":"","session_id":"c284b8cb-a050-4278-8599-cc4e016a10ab"}'
         )
-        original = litellm.validate_end_user_id_in_db
-        litellm.validate_end_user_id_in_db = True
+        original = gateway.validate_end_user_id_in_db
+        gateway.validate_end_user_id_in_db = True
         try:
             assert _coerce_user_id_to_str(blob) is None
         finally:
-            litellm.validate_end_user_id_in_db = original
+            gateway.validate_end_user_id_in_db = original
 
     def test_json_encoded_list_string_passes_through_by_default(self):
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.proxy.auth.auth_utils import _coerce_user_id_to_str
 
-        original = litellm.validate_end_user_id_in_db
-        litellm.validate_end_user_id_in_db = False
+        original = gateway.validate_end_user_id_in_db
+        gateway.validate_end_user_id_in_db = False
         try:
             assert _coerce_user_id_to_str('["a","b"]') == '["a","b"]'
         finally:
-            litellm.validate_end_user_id_in_db = original
+            gateway.validate_end_user_id_in_db = original
 
     def test_json_encoded_list_string_returns_none_when_validation_enabled(self):
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.proxy.auth.auth_utils import _coerce_user_id_to_str
 
-        original = litellm.validate_end_user_id_in_db
-        litellm.validate_end_user_id_in_db = True
+        original = gateway.validate_end_user_id_in_db
+        gateway.validate_end_user_id_in_db = True
         try:
             assert _coerce_user_id_to_str('["a","b"]') is None
         finally:
-            litellm.validate_end_user_id_in_db = original
+            gateway.validate_end_user_id_in_db = original
 
     def test_int_returns_str(self):
         from token_iq.gateway.proxy.auth.auth_utils import _coerce_user_id_to_str
@@ -1132,7 +1132,7 @@ class TestGetEndUserIdDropsMalformedBodyValues:
         deployments that send JSON-encoded identifiers working until they
         explicitly opt into the stricter extraction.
         """
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         blob = (
             '{"device_id":"d5abe9199ee7759a","account_uuid":"",'
@@ -1140,20 +1140,20 @@ class TestGetEndUserIdDropsMalformedBodyValues:
         )
         request_body = {"user": blob}
 
-        original = litellm.validate_end_user_id_in_db
-        litellm.validate_end_user_id_in_db = False
+        original = gateway.validate_end_user_id_in_db
+        gateway.validate_end_user_id_in_db = False
         try:
             with patch("token_iq.gateway.proxy.proxy_server.general_settings", {}):
                 result = get_end_user_id_from_request_body(
                     request_body=request_body, request_headers={}
                 )
         finally:
-            litellm.validate_end_user_id_in_db = original
+            gateway.validate_end_user_id_in_db = original
 
         assert result == blob
 
     def test_json_encoded_user_string_returns_none_when_validation_enabled(self):
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         request_body = {
             "user": (
@@ -1162,15 +1162,15 @@ class TestGetEndUserIdDropsMalformedBodyValues:
             ),
         }
 
-        original = litellm.validate_end_user_id_in_db
-        litellm.validate_end_user_id_in_db = True
+        original = gateway.validate_end_user_id_in_db
+        gateway.validate_end_user_id_in_db = True
         try:
             with patch("token_iq.gateway.proxy.proxy_server.general_settings", {}):
                 result = get_end_user_id_from_request_body(
                     request_body=request_body, request_headers={}
                 )
         finally:
-            litellm.validate_end_user_id_in_db = original
+            gateway.validate_end_user_id_in_db = original
 
         assert result is None
 
@@ -1562,9 +1562,9 @@ class TestCheckCompleteCredentialsBlocksSSRF:
 
     @pytest.fixture(autouse=True)
     def _enable_url_validation(self, monkeypatch):
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
-        monkeypatch.setattr(litellm, "user_url_validation", True, raising=False)
+        monkeypatch.setattr(gateway, "user_url_validation", True, raising=False)
 
     @pytest.mark.parametrize(
         "url_field",
@@ -1617,9 +1617,9 @@ class TestCheckCompleteCredentialsBlocksSSRF:
         # Admins who disable ``user_url_validation`` (default) should not
         # have requests rejected at the proxy boundary even if the URL
         # would fail the SSRF guard.
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
-        monkeypatch.setattr(litellm, "user_url_validation", False, raising=False)
+        monkeypatch.setattr(gateway, "user_url_validation", False, raising=False)
         with patch(
             "token_iq.gateway.proxy.auth.auth_utils.validate_url",
         ) as mocked:
@@ -1851,10 +1851,10 @@ class TestClientsideBaseOverrideOutboundKey:
 
     @pytest.fixture(autouse=True)
     def _ambient_server_key(self, monkeypatch):
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         monkeypatch.setenv("OPENAI_API_KEY", "sk-SERVER-ENV")
-        monkeypatch.setattr(litellm, "api_key", None, raising=False)
+        monkeypatch.setattr(gateway, "api_key", None, raising=False)
 
     def test_caller_key_override_sends_caller_key_never_server_key(self):
         import httpx
@@ -1890,9 +1890,9 @@ class TestIsRequestBodySafeBlocksFallbackSmuggle:
 
     @pytest.fixture(autouse=True)
     def _disable_url_validation(self, monkeypatch):
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
-        monkeypatch.setattr(litellm, "user_url_validation", False, raising=False)
+        monkeypatch.setattr(gateway, "user_url_validation", False, raising=False)
 
     @pytest.mark.parametrize(
         "fallback_key",
@@ -2020,11 +2020,11 @@ class TestIsRequestBodySafeBlocksFallbackSmuggle:
     def test_nested_api_base_caught_across_router_fallback_rounds(self):
         """An ``api_base`` target nested ``ROUTER_MAX_FALLBACKS - 1`` rounds deep
         is still reached and rejected."""
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         with pytest.raises(ValueError, match="api_base"):
             is_request_body_safe(
-                request_body=_rounds_deep_api_base_payload(litellm.ROUTER_MAX_FALLBACKS - 1, "fallbacks"),
+                request_body=_rounds_deep_api_base_payload(gateway.ROUTER_MAX_FALLBACKS - 1, "fallbacks"),
                 general_settings={},
                 llm_router=None,
                 model="gpt-4",
@@ -2124,9 +2124,9 @@ class TestIsRequestBodySafeBlocksEndpointTargetingFields:
         # The new banned-params entries should be rejected even when
         # ``user_url_validation`` is off — the gate isn't the URL guard,
         # it's the banned-params list.
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
-        monkeypatch.setattr(litellm, "user_url_validation", False, raising=False)
+        monkeypatch.setattr(gateway, "user_url_validation", False, raising=False)
 
     @pytest.mark.parametrize(
         "field",
@@ -2692,9 +2692,9 @@ class TestObservabilityCallbackBans:
 
     @pytest.fixture(autouse=True)
     def _disable_url_validation(self, monkeypatch):
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
-        monkeypatch.setattr(litellm, "user_url_validation", False, raising=False)
+        monkeypatch.setattr(gateway, "user_url_validation", False, raising=False)
 
     @pytest.mark.parametrize(
         "field",

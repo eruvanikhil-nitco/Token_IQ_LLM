@@ -38,7 +38,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 import token_iq.gateway.proxy.batches_endpoints.endpoints as endpoints
 import token_iq.gateway.proxy.proxy_server as proxy_server
 from token_iq.gateway.proxy._types import ProxyException, UserAPIKeyAuth
@@ -126,8 +126,8 @@ def openai_env_creds(monkeypatch):
 def no_openai_creds(monkeypatch):
     """Neutralize every credential source the 404 gate checks."""
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
-    monkeypatch.setattr(litellm, "api_key", None)
-    monkeypatch.setattr(litellm, "openai_key", None)
+    monkeypatch.setattr(gateway, "api_key", None)
+    monkeypatch.setattr(gateway, "openai_key", None)
 
 
 @dataclass
@@ -204,8 +204,8 @@ def harness():
             )
         )
         stack.enter_context(patch.object(endpoints, "is_known_model", is_known_model))
-        stack.enter_context(patch.object(litellm, "acreate_batch", litellm_acreate))
-        stack.enter_context(patch.object(litellm, "enable_loadbalancing_on_batch_endpoints", False))
+        stack.enter_context(patch.object(gateway, "acreate_batch", litellm_acreate))
+        stack.enter_context(patch.object(gateway, "enable_loadbalancing_on_batch_endpoints", False))
         stack.enter_context(patch.object(proxy_server, "llm_router", router))
         stack.enter_context(patch.object(proxy_server, "proxy_logging_obj", logging))
         stack.enter_context(patch.object(proxy_server, "general_settings", {}))
@@ -480,8 +480,8 @@ async def test_create__fallback_explicit_provider_bypasses_not_found_gate(harnes
 
 @pytest.mark.asyncio
 async def test_create__fallback_env_key_alone_forwards(harness, monkeypatch):
-    monkeypatch.setattr(litellm, "api_key", None)
-    monkeypatch.setattr(litellm, "openai_key", None)
+    monkeypatch.setattr(gateway, "api_key", None)
+    monkeypatch.setattr(gateway, "openai_key", None)
     monkeypatch.setenv("OPENAI_API_KEY", "sk-env-openai")
     set_body(
         harness,
@@ -684,7 +684,7 @@ async def test_create__multi_model_unified_file_with_loadbalancing_keeps_router_
     harness.is_known_model.return_value = True
 
     with (
-        patch.object(litellm, "enable_loadbalancing_on_batch_endpoints", True),
+        patch.object(gateway, "enable_loadbalancing_on_batch_endpoints", True),
         patch.object(endpoints, "_is_base64_encoded_unified_file_id", return_value="unified-xyz"),
         patch.object(endpoints, "get_models_from_unified_file_id", return_value=["model-a", "model-b"]),
     ):
@@ -799,7 +799,7 @@ async def test_create__loadbalancing_routes_to_router(harness):
         },
     )
     harness.is_known_model.return_value = True
-    with patch.object(litellm, "enable_loadbalancing_on_batch_endpoints", True):
+    with patch.object(gateway, "enable_loadbalancing_on_batch_endpoints", True):
         await call_create(harness)
 
     harness.is_known_model.assert_called_once_with(model="lb-model", llm_router=harness.router)
@@ -820,7 +820,7 @@ async def test_create__model_encoded_beats_loadbalancing(harness):
         },
     )
     harness.is_known_model.return_value = True
-    with patch.object(litellm, "enable_loadbalancing_on_batch_endpoints", True):
+    with patch.object(gateway, "enable_loadbalancing_on_batch_endpoints", True):
         await call_create(harness)
 
     assert harness.litellm_acreate.call_count == 1
@@ -1138,8 +1138,8 @@ def retrieve_harness():
         stack.enter_context(patch.object(endpoints, "get_batch_from_database", get_batch_from_db))
         stack.enter_context(patch.object(endpoints, "update_batch_in_database", update_batch_in_db))
         stack.enter_context(patch.object(endpoints, "ensure_batch_response_managed_file_ids", ensure_managed_files))
-        stack.enter_context(patch.object(litellm, "aretrieve_batch", litellm_aretrieve))
-        stack.enter_context(patch.object(litellm, "enable_loadbalancing_on_batch_endpoints", False))
+        stack.enter_context(patch.object(gateway, "aretrieve_batch", litellm_aretrieve))
+        stack.enter_context(patch.object(gateway, "enable_loadbalancing_on_batch_endpoints", False))
         stack.enter_context(patch.object(proxy_server, "llm_router", router))
         stack.enter_context(patch.object(proxy_server, "proxy_logging_obj", logging))
         stack.enter_context(patch.object(proxy_server, "general_settings", {}))
@@ -1251,7 +1251,7 @@ async def test_retrieve__model_encoded_id__encodes_output_and_error_ids(
 async def test_retrieve__model_encoded_beats_loadbalancing(retrieve_harness):
     """Precedence: model-encoded id is checked before the loadbalancing/unified
     elif, so it wins even with loadbalancing enabled."""
-    with patch.object(litellm, "enable_loadbalancing_on_batch_endpoints", True):
+    with patch.object(gateway, "enable_loadbalancing_on_batch_endpoints", True):
         await call_retrieve(retrieve_harness, AZURE_BATCH_ID)
 
     assert retrieve_harness.litellm_aretrieve.call_count == 1
@@ -1296,7 +1296,7 @@ async def test_retrieve__unified_batch_id_routes_to_router(retrieve_harness):
 async def test_retrieve__loadbalancing_raw_id_routes_to_router(retrieve_harness):
     """Loadbalancing on + a plain (non-encoded, non-unified) batch id routes to
     the router. Locks the current dispatch contract of the shared elif."""
-    with patch.object(litellm, "enable_loadbalancing_on_batch_endpoints", True):
+    with patch.object(gateway, "enable_loadbalancing_on_batch_endpoints", True):
         resp = await call_retrieve(retrieve_harness, "batch-raw-xyz")
 
     assert retrieve_harness.router_aretrieve.call_count == 1
@@ -1351,8 +1351,8 @@ async def test_retrieve__fallback_explicit_provider_bypasses_not_found_gate(retr
 
 @pytest.mark.asyncio
 async def test_retrieve__fallback_env_key_alone_forwards(retrieve_harness, monkeypatch):
-    monkeypatch.setattr(litellm, "api_key", None)
-    monkeypatch.setattr(litellm, "openai_key", None)
+    monkeypatch.setattr(gateway, "api_key", None)
+    monkeypatch.setattr(gateway, "openai_key", None)
     monkeypatch.setenv("OPENAI_API_KEY", "sk-env-openai")
 
     await call_retrieve(retrieve_harness, "batch-raw-xyz")
@@ -1588,7 +1588,7 @@ def list_harness():
                 provider_from_query,
             )
         )
-        stack.enter_context(patch.object(litellm, "alist_batches", litellm_alist))
+        stack.enter_context(patch.object(gateway, "alist_batches", litellm_alist))
         stack.enter_context(patch.object(proxy_server, "llm_router", router))
         stack.enter_context(patch.object(proxy_server, "proxy_logging_obj", logging))
         stack.enter_context(patch.object(proxy_server, "general_settings", {}))
@@ -1986,8 +1986,8 @@ def cancel_harness():
             )
         )
         stack.enter_context(patch.object(endpoints, "update_batch_in_database", update_batch_in_db))
-        stack.enter_context(patch.object(litellm, "acancel_batch", litellm_acancel))
-        stack.enter_context(patch.object(litellm, "enable_loadbalancing_on_batch_endpoints", False))
+        stack.enter_context(patch.object(gateway, "acancel_batch", litellm_acancel))
+        stack.enter_context(patch.object(gateway, "enable_loadbalancing_on_batch_endpoints", False))
         stack.enter_context(patch.object(proxy_server, "llm_router", router))
         stack.enter_context(patch.object(proxy_server, "proxy_logging_obj", logging))
         stack.enter_context(patch.object(proxy_server, "general_settings", {}))
@@ -2197,8 +2197,8 @@ async def test_cancel__fallback_explicit_provider_bypasses_not_found_gate(cancel
 
 @pytest.mark.asyncio
 async def test_cancel__fallback_env_key_alone_forwards(cancel_harness, monkeypatch):
-    monkeypatch.setattr(litellm, "api_key", None)
-    monkeypatch.setattr(litellm, "openai_key", None)
+    monkeypatch.setattr(gateway, "api_key", None)
+    monkeypatch.setattr(gateway, "openai_key", None)
     monkeypatch.setenv("OPENAI_API_KEY", "sk-env-openai")
 
     await call_cancel(cancel_harness, "batch-raw-xyz")
@@ -2301,7 +2301,7 @@ async def test_create__loadbalancing_no_router_500(harness):
     )
     harness.is_known_model.return_value = True
     with (
-        patch.object(litellm, "enable_loadbalancing_on_batch_endpoints", True),
+        patch.object(gateway, "enable_loadbalancing_on_batch_endpoints", True),
         patch.object(proxy_server, "llm_router", None),
     ):
         with pytest.raises(ProxyException) as exc:
@@ -2395,7 +2395,7 @@ async def test_create__provider_only_resolves_named_vertex_credentials(harness):
     )
     harness.provider_from_headers.return_value = "vertex_ai"
 
-    with patch.object(litellm, "credential_list", [VERTEX_NAMED_CREDENTIAL]):
+    with patch.object(gateway, "credential_list", [VERTEX_NAMED_CREDENTIAL]):
         with patch.object(proxy_server, "llm_router", vertex_named_credential_router()):
             await call_create(harness)
 
@@ -2450,7 +2450,7 @@ async def test_create__provider_only_ignores_other_provider_deployments(harness)
 async def test_retrieve__provider_only_resolves_named_vertex_credentials(retrieve_harness):
     retrieve_harness.provider_from_headers.return_value = "vertex_ai"
 
-    with patch.object(litellm, "credential_list", [VERTEX_NAMED_CREDENTIAL]):
+    with patch.object(gateway, "credential_list", [VERTEX_NAMED_CREDENTIAL]):
         with patch.object(proxy_server, "llm_router", vertex_named_credential_router()):
             await call_retrieve(retrieve_harness, "batch-raw-xyz")
 
@@ -2467,7 +2467,7 @@ async def test_retrieve__provider_only_resolves_named_vertex_credentials(retriev
 async def test_list__provider_only_resolves_named_vertex_credentials(list_harness):
     list_harness.provider_from_headers.return_value = "vertex_ai"
 
-    with patch.object(litellm, "credential_list", [VERTEX_NAMED_CREDENTIAL]):
+    with patch.object(gateway, "credential_list", [VERTEX_NAMED_CREDENTIAL]):
         with patch.object(proxy_server, "llm_router", vertex_named_credential_router()):
             await call_list(list_harness)
 
@@ -2485,7 +2485,7 @@ async def test_list__provider_only_resolves_named_vertex_credentials(list_harnes
 async def test_cancel__provider_only_resolves_named_vertex_credentials(cancel_harness):
     cancel_harness.provider_from_headers.return_value = "vertex_ai"
 
-    with patch.object(litellm, "credential_list", [VERTEX_NAMED_CREDENTIAL]):
+    with patch.object(gateway, "credential_list", [VERTEX_NAMED_CREDENTIAL]):
         with patch.object(proxy_server, "llm_router", vertex_named_credential_router()):
             await call_cancel(cancel_harness, "batch-raw-xyz")
 
@@ -2560,7 +2560,7 @@ async def test_create__raw_input_file_id_rejected_when_managed_files_required(ha
         },
     )
 
-    with patch.object(litellm, "require_managed_files", True):
+    with patch.object(gateway, "require_managed_files", True):
         with pytest.raises(ProxyException) as exc:
             await call_create(harness)
 
@@ -2582,7 +2582,7 @@ async def test_create__model_encoded_input_file_id_rejected_when_managed_files_r
         },
     )
 
-    with patch.object(litellm, "require_managed_files", True):
+    with patch.object(gateway, "require_managed_files", True):
         with pytest.raises(ProxyException) as exc:
             await call_create(harness)
 
@@ -2602,7 +2602,7 @@ async def test_create__raw_input_file_id_allowed_when_managed_files_not_required
         },
     )
 
-    with patch.object(litellm, "require_managed_files", False):
+    with patch.object(gateway, "require_managed_files", False):
         await call_create(harness)
 
     assert harness.acreate_kwargs()["input_file_id"] == "file-victim-abc123"
@@ -2620,7 +2620,7 @@ async def test_create__other_teams_unified_input_file_id_rejected(harness):
     )
     harness.logging.get_proxy_hook.return_value = ManagedResourceAccessCheckerStub(file_access=False)
 
-    with patch.object(litellm, "require_managed_files", True):
+    with patch.object(gateway, "require_managed_files", True):
         with pytest.raises(ProxyException) as exc:
             await call_create(harness)
 
@@ -2631,7 +2631,7 @@ async def test_create__other_teams_unified_input_file_id_rejected(harness):
 
 @pytest.mark.asyncio
 async def test_retrieve__raw_batch_id_rejected_when_managed_files_required(retrieve_harness):
-    with patch.object(litellm, "require_managed_files", True):
+    with patch.object(gateway, "require_managed_files", True):
         with pytest.raises(ProxyException) as exc:
             await call_retrieve(retrieve_harness, "batch-victim-abc123")
 
@@ -2644,7 +2644,7 @@ async def test_retrieve__raw_batch_id_rejected_when_managed_files_required(retri
 async def test_retrieve__unified_batch_id_allowed_when_managed_files_required(retrieve_harness):
     retrieve_harness.logging.get_proxy_hook.return_value = ManagedResourceAccessCheckerStub()
 
-    with patch.object(litellm, "require_managed_files", True):
+    with patch.object(gateway, "require_managed_files", True):
         await call_retrieve(retrieve_harness, _unified_batch_id())
 
     assert retrieve_harness.router_aretrieve.call_count == 1
@@ -2652,7 +2652,7 @@ async def test_retrieve__unified_batch_id_allowed_when_managed_files_required(re
 
 @pytest.mark.asyncio
 async def test_cancel__raw_batch_id_rejected_when_managed_files_required(cancel_harness):
-    with patch.object(litellm, "require_managed_files", True):
+    with patch.object(gateway, "require_managed_files", True):
         with pytest.raises(ProxyException) as exc:
             await call_cancel(cancel_harness, "batch-victim-abc123")
 
@@ -2665,7 +2665,7 @@ async def test_cancel__raw_batch_id_rejected_when_managed_files_required(cancel_
 async def test_cancel__unified_batch_id_allowed_when_managed_files_required(cancel_harness):
     cancel_harness.logging.get_proxy_hook.return_value = ManagedResourceAccessCheckerStub()
 
-    with patch.object(litellm, "require_managed_files", True):
+    with patch.object(gateway, "require_managed_files", True):
         await call_cancel(cancel_harness, _unified_batch_id())
 
     assert cancel_harness.router_acancel.call_count == 1

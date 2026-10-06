@@ -11,7 +11,7 @@ from typing import cast
 
 from fastapi import FastAPI
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.integrations.datadog.datadog import DataDogLogger
 from token_iq.gateway.integrations.langfuse.langfuse import LangFuseLogger
 from token_iq.gateway.proxy.management_endpoints.callback_management_endpoints import router
@@ -20,7 +20,7 @@ from token_iq.gateway.proxy.proxy_server import app
 
 @pytest.fixture(autouse=True, scope="session")
 def clear_existing_callbacks():
-    litellm.logging_callback_manager._reset_all_callbacks()
+    gateway.logging_callback_manager._reset_all_callbacks()
 
 
 class TestCallbackManagementEndpoints:
@@ -30,20 +30,20 @@ class TestCallbackManagementEndpoints:
     def setup_and_teardown(self):
         """Setup and teardown for each test"""
         # Reset callbacks before each test
-        litellm.success_callback = []
-        litellm.failure_callback = []
-        litellm._async_success_callback = []
-        litellm._async_failure_callback = []
-        litellm.callbacks = []
+        gateway.success_callback = []
+        gateway.failure_callback = []
+        gateway._async_success_callback = []
+        gateway._async_failure_callback = []
+        gateway.callbacks = []
 
         yield
 
         # Clean up after each test
-        litellm.success_callback = []
-        litellm.failure_callback = []
-        litellm._async_success_callback = []
-        litellm._async_failure_callback = []
-        litellm.callbacks = []
+        gateway.success_callback = []
+        gateway.failure_callback = []
+        gateway._async_success_callback = []
+        gateway._async_failure_callback = []
+        gateway.callbacks = []
 
     def test_alist_callbacks_no_active_callbacks(self):
         """Test /callbacks/list endpoint with no active callbacks"""
@@ -88,8 +88,8 @@ class TestCallbackManagementEndpoints:
             mock_langfuse.return_value = mock_langfuse_client
 
             # Add string representation to callback lists (this is how the system typically works)
-            litellm.success_callback.append("langfuse")
-            litellm._async_success_callback.append("langfuse")
+            gateway.success_callback.append("langfuse")
+            gateway._async_success_callback.append("langfuse")
 
             # Make request to list callbacks endpoint
             response = client.get(
@@ -118,9 +118,9 @@ class TestCallbackManagementEndpoints:
 
         # Test with datadog callbacks added directly (without initializing the logger to avoid async issues)
         # Add string representations to different callback types to test comprehensive categorization
-        litellm.success_callback.append("datadog")
-        litellm.failure_callback.append("datadog")
-        litellm.callbacks.append("datadog")
+        gateway.success_callback.append("datadog")
+        gateway.failure_callback.append("datadog")
+        gateway.callbacks.append("datadog")
 
         # Make request to list callbacks endpoint
         response = client.get(
@@ -155,9 +155,9 @@ class TestCallbackManagementEndpoints:
         client = TestClient(app)
 
         # Setup mixed callbacks
-        litellm.success_callback.append("langfuse")
-        litellm.failure_callback.append("datadog")
-        litellm.callbacks.append("prometheus")
+        gateway.success_callback.append("langfuse")
+        gateway.failure_callback.append("datadog")
+        gateway.callbacks.append("prometheus")
 
         # Make request to list callbacks endpoint
         response = client.get(

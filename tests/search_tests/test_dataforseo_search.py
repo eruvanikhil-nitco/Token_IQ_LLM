@@ -9,7 +9,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.base_llm.search.transformation import SearchResponse, SearchResult
 
 
@@ -43,7 +43,7 @@ async def test_dataforseo_search_basic():
     ) as mock_search:
         mock_search.return_value = mock_response
 
-        response = await litellm.asearch(
+        response = await gateway.asearch(
             query="latest developments in AI",
             search_provider="dataforseo",
         )

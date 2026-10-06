@@ -147,7 +147,7 @@ async def test_sdk_fn_routes_openai_transcription_session(monkeypatch):
     litellm.acreate_realtime_transcription_session resolves the OpenAI provider
     from the transcription model and POSTs to the OpenAI transcription_sessions URL.
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     monkeypatch.setenv("OPENAI_API_KEY", "sk-unit-test")
 
@@ -155,7 +155,7 @@ async def test_sdk_fn_routes_openai_transcription_session(monkeypatch):
     mock_client = MagicMock(spec=AsyncHTTPHandler)
     mock_client.post = AsyncMock(return_value=mock_response)
 
-    result = await litellm.acreate_realtime_transcription_session(
+    result = await gateway.acreate_realtime_transcription_session(
         model="openai/gpt-realtime-whisper",
         transcription_session={
             "input_audio_format": "pcm16",

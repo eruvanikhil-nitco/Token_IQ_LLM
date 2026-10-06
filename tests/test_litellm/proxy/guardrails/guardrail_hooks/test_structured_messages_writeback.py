@@ -186,14 +186,14 @@ async def test_write_back_keeps_real_tool_results_under_modify_params():
     assistant row whose results are converted separately reads as an orphaned
     tool call: with modify_params on, the sanitizer answers it with a synthetic
     "tool execution skipped" result and drops the real one."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    original = litellm.modify_params
-    litellm.modify_params = True
+    original = gateway.modify_params
+    gateway.modify_params = True
     try:
         written = await _write_back_identity([dict(m) for m in AGENTIC_ANTHROPIC_MESSAGES])
     finally:
-        litellm.modify_params = original
+        gateway.modify_params = original
 
     serialized = json.dumps(written)
     assert "FILE BODY" in serialized

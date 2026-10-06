@@ -2,7 +2,7 @@ import json
 from datetime import datetime
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 import pytest
 from datetime import timedelta
 from token_iq.gateway.types.utils import ImageResponse, ImageObject

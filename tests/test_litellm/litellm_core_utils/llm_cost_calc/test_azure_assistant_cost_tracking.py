@@ -19,7 +19,7 @@ from token_iq.gateway.constants import (
     AZURE_COMPUTER_USE_OUTPUT_COST_PER_1K_TOKENS,
     AZURE_VECTOR_STORE_COST_PER_GB_PER_DAY,
 )
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 
 class TestAzureAssistantCostTracking:
@@ -30,7 +30,7 @@ class TestAzureAssistantCostTracking:
         """Set up test environment to use local model cost map."""
         # Force use of local model cost map for CI/CD consistency
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-        litellm.model_cost = litellm.get_model_cost_map()
+        gateway.model_cost = gateway.get_model_cost_map()
 
         yield
 
@@ -75,7 +75,7 @@ class TestAzureAssistantCostTracking:
             provider="azure",
         )
         # Read expected cost from model cost map (azure/container)
-        azure_container_info = litellm.model_cost.get("azure/container", {})
+        azure_container_info = gateway.model_cost.get("azure/container", {})
         cost_per_session = azure_container_info.get(
             "code_interpreter_cost_per_session", 0.03
         )
@@ -227,7 +227,7 @@ class TestAzureAssistantCostTracking:
         assert AZURE_FILE_SEARCH_COST_PER_GB_PER_DAY == 0.1
 
         # Code interpreter cost is now in model cost map
-        azure_container_info = litellm.model_cost.get("azure/container", {})
+        azure_container_info = gateway.model_cost.get("azure/container", {})
         assert azure_container_info.get("code_interpreter_cost_per_session") == 0.03
 
         assert AZURE_COMPUTER_USE_INPUT_COST_PER_1K_TOKENS == 3.0

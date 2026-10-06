@@ -414,9 +414,9 @@ def safe_deep_copy(data):
     """
     import copy
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    if litellm.safe_memory_mode is True:
+    if gateway.safe_memory_mode is True:
         return data
 
     litellm_parent_otel_span: Any | None = None

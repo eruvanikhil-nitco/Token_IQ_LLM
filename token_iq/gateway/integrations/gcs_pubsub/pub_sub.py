@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 else:
     SpendLogsPayload = Any
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.integrations.custom_batch_logger import CustomBatchLogger
 from token_iq.gateway.llms.custom_httpx.http_handler import (
@@ -116,7 +116,7 @@ class GcsPubSubLogger(CustomBatchLogger):
             standard_logging_payload: Final = kwargs.get("standard_logging_object", None)
 
             # Backwards compatibility with old logging payload
-            if litellm.gcs_pub_sub_use_v1 is True:
+            if gateway.gcs_pub_sub_use_v1 is True:
                 spend_logs_payload: Final = get_logging_payload(
                     kwargs=kwargs,
                     response_obj=response_obj,

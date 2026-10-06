@@ -2,7 +2,7 @@
 ## Cost calculation for Google AI Studio / Vertex AI models
 from typing import Final, Literal
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import verbose_logger
 from token_iq.gateway.core_utils.llm_cost_calc.utils import (
     _is_above_128k,
@@ -87,7 +87,7 @@ def cost_per_character(
         Exception if model requires >128k pricing, but model cost not mapped
     """
     ## GET MODEL INFO
-    model_info = litellm.get_model_info(model=model, custom_llm_provider=custom_llm_provider)
+    model_info = gateway.get_model_info(model=model, custom_llm_provider=custom_llm_provider)
 
     ## CALCULATE INPUT COST
     if prompt_characters is None:
@@ -229,7 +229,7 @@ def cost_per_token(
     """
 
     ## GET MODEL INFO
-    model_info: Final = litellm.get_model_info(model=model, custom_llm_provider=custom_llm_provider)
+    model_info: Final = gateway.get_model_info(model=model, custom_llm_provider=custom_llm_provider)
 
     ## HANDLE 128k+ PRICING
     input_cost_per_token_above_128k_tokens: Final = model_info.get("input_cost_per_token_above_128k_tokens")

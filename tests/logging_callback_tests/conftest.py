@@ -13,7 +13,7 @@ import os
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 from tests._vcr_conftest_common import (  # noqa: E402,F401
     VerboseReporterState,
@@ -107,12 +107,12 @@ _SCALAR_ATTRS = (
 # This runs BEFORE any test modules are imported, so values are clean.
 _DEFAULTS: dict = {}
 for _attr in _LIST_ATTRS:
-    if hasattr(litellm, _attr):
-        _val = getattr(litellm, _attr)
+    if hasattr(gateway, _attr):
+        _val = getattr(gateway, _attr)
         _DEFAULTS[_attr] = _val.copy() if isinstance(_val, list) else _val
 for _attr in _SCALAR_ATTRS:
-    if hasattr(litellm, _attr):
-        _DEFAULTS[_attr] = getattr(litellm, _attr)
+    if hasattr(gateway, _attr):
+        _DEFAULTS[_attr] = getattr(gateway, _attr)
 
 
 @pytest.fixture(scope="function", autouse=True)
@@ -129,8 +129,8 @@ def isolate_litellm_state():
     from token_iq.gateway.proxy.management_helpers import audit_logs as ll_audit_logs
 
     # Flush cache and clear internal logger instances before test
-    if hasattr(litellm, "in_memory_llm_clients_cache"):
-        litellm.in_memory_llm_clients_cache.flush_cache()
+    if hasattr(gateway, "in_memory_llm_clients_cache"):
+        gateway.in_memory_llm_clients_cache.flush_cache()
 
     # Clear cached logger instances (LangsmithLogger, SlackAlerting, etc.)
     ll_logging._in_memory_loggers.clear()
@@ -142,18 +142,18 @@ def isolate_litellm_state():
         if attr in _DEFAULTS:
             default = _DEFAULTS[attr]
             setattr(
-                litellm, attr, default.copy() if isinstance(default, list) else default
+                gateway, attr, default.copy() if isinstance(default, list) else default
             )
 
     for attr in _SCALAR_ATTRS:
         if attr in _DEFAULTS:
-            setattr(litellm, attr, _DEFAULTS[attr])
+            setattr(gateway, attr, _DEFAULTS[attr])
 
     yield
 
     # Teardown: reset back to defaults again (belt-and-suspenders)
-    if hasattr(litellm, "in_memory_llm_clients_cache"):
-        litellm.in_memory_llm_clients_cache.flush_cache()
+    if hasattr(gateway, "in_memory_llm_clients_cache"):
+        gateway.in_memory_llm_clients_cache.flush_cache()
 
     ll_logging._in_memory_loggers.clear()
     ll_audit_logs._audit_log_callback_cache.clear()
@@ -162,12 +162,12 @@ def isolate_litellm_state():
         if attr in _DEFAULTS:
             default = _DEFAULTS[attr]
             setattr(
-                litellm, attr, default.copy() if isinstance(default, list) else default
+                gateway, attr, default.copy() if isinstance(default, list) else default
             )
 
     for attr in _SCALAR_ATTRS:
         if attr in _DEFAULTS:
-            setattr(litellm, attr, _DEFAULTS[attr])
+            setattr(gateway, attr, _DEFAULTS[attr])
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -177,23 +177,23 @@ def setup_and_teardown():
     (skipped under xdist to avoid cross-worker interference).
     """
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     worker_id = os.environ.get("PYTEST_XDIST_WORKER", None)
     if worker_id is None:
-        importlib.reload(litellm)
+        importlib.reload(gateway)
 
         try:
-            if hasattr(litellm, "proxy") and hasattr(litellm.proxy, "proxy_server"):
+            if hasattr(gateway, "proxy") and hasattr(gateway.proxy, "proxy_server"):
                 import token_iq.gateway.proxy.proxy_server
-                from token_iq import gateway as litellm
+                from token_iq import gateway
 
-                importlib.reload(litellm.proxy.proxy_server)
+                importlib.reload(gateway.proxy.proxy_server)
         except Exception as e:
             print(f"Error reloading litellm.proxy.proxy_server: {e}")
 
-        if hasattr(litellm, "in_memory_llm_clients_cache"):
-            litellm.in_memory_llm_clients_cache.flush_cache()
+        if hasattr(gateway, "in_memory_llm_clients_cache"):
+            gateway.in_memory_llm_clients_cache.flush_cache()
 
     yield
 

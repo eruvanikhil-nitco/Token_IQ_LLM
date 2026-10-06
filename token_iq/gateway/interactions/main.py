@@ -7,7 +7,7 @@ Per OpenAPI spec (https://ai.google.dev/static/api/interactions.openapi.json):
 - Delete interaction: DELETE /{api_version}/interactions/{interaction_id}
 
 Usage:
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     # Create an interaction with a model
     response = litellm.interactions.create(
@@ -39,7 +39,7 @@ from typing import Any, Final
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.interactions.background_cost_polling import (
     maybe_schedule_background_interaction_cost_polling,
     maybe_settle_background_interaction_before_delete,
@@ -139,7 +139,7 @@ async def acreate(
         kwargs["acreate_interaction"] = True
 
         if custom_llm_provider is None and model:
-            _, custom_llm_provider, _, _ = litellm.get_llm_provider(model=model, api_base=kwargs.get("api_base", None))
+            _, custom_llm_provider, _, _ = gateway.get_llm_provider(model=model, api_base=kwargs.get("api_base", None))
         elif custom_llm_provider is None:
             custom_llm_provider = "gemini"
 
@@ -183,7 +183,7 @@ async def acreate(
 
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=model,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -279,7 +279,7 @@ def create(
         if agent and not model:
             custom_llm_provider = custom_llm_provider or "gemini"
         elif model:
-            model, custom_llm_provider, _, _ = litellm.get_llm_provider(
+            model, custom_llm_provider, _, _ = gateway.get_llm_provider(
                 model=model,
                 custom_llm_provider=custom_llm_provider,
                 api_base=litellm_params.api_base,
@@ -342,7 +342,7 @@ def create(
 
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=model,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -390,7 +390,7 @@ async def aget(
 
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=None,
             custom_llm_provider=custom_llm_provider or "gemini",
             original_exception=e,
@@ -444,7 +444,7 @@ def get(
             _is_async=_is_async,
         )
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=None,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -494,7 +494,7 @@ async def adelete(
 
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=None,
             custom_llm_provider=custom_llm_provider or "gemini",
             original_exception=e,
@@ -548,7 +548,7 @@ def delete(
             _is_async=_is_async,
         )
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=None,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -596,7 +596,7 @@ async def acancel(
 
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=None,
             custom_llm_provider=custom_llm_provider or "gemini",
             original_exception=e,
@@ -650,7 +650,7 @@ def cancel(
             _is_async=_is_async,
         )
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=None,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,

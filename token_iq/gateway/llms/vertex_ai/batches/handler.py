@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Final, Protocol
 import httpx
 from typing_extensions import ReadOnly, TypedDict
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.url_utils import (
     async_safe_get,
     encode_url_path_segment,
@@ -149,7 +149,7 @@ class VertexAIBatchPrediction(VertexLLM):
         headers: dict[str, str],
     ) -> LiteLLMBatch:
         client: Final = get_async_httpx_client(
-            llm_provider=litellm.LlmProviders.VERTEX_AI,
+            llm_provider=gateway.LlmProviders.VERTEX_AI,
         )
         try:
             response: Final = await client.post(
@@ -159,7 +159,7 @@ class VertexAIBatchPrediction(VertexLLM):
             )
         except httpx.HTTPStatusError as e:
             error_body: Final = e.response.text
-            litellm.verbose_logger.error(
+            gateway.verbose_logger.error(
                 "Vertex AI batch create failed: status=%s, body=%s",
                 e.response.status_code,
                 error_body[:1000],
@@ -296,7 +296,7 @@ class VertexAIBatchPrediction(VertexLLM):
         logging_obj: "LiteLLMLoggingObj | None" = None,
     ) -> LiteLLMBatch:
         client: Final = get_async_httpx_client(
-            llm_provider=litellm.LlmProviders.VERTEX_AI,
+            llm_provider=gateway.LlmProviders.VERTEX_AI,
         )
 
         # Log the request using logging_obj if available
@@ -425,7 +425,7 @@ class VertexAIBatchPrediction(VertexLLM):
         params: dict[str, str],
     ):
         client: Final = get_async_httpx_client(
-            llm_provider=litellm.LlmProviders.VERTEX_AI,
+            llm_provider=gateway.LlmProviders.VERTEX_AI,
         )
         response: Final = await client.get(
             url=api_base,
@@ -512,7 +512,7 @@ class VertexAIBatchPrediction(VertexLLM):
                 timeout=timeout,
             )
         except httpx.HTTPStatusError as e:
-            litellm.verbose_logger.error(
+            gateway.verbose_logger.error(
                 "Vertex AI batch cancel failed: status=%s, body=%s",
                 e.response.status_code,
                 e.response.text[:1000],
@@ -525,7 +525,7 @@ class VertexAIBatchPrediction(VertexLLM):
             headers=headers,
         )
         if retrieve_response.status_code != 200:
-            litellm.verbose_logger.error(
+            gateway.verbose_logger.error(
                 "Vertex AI batch retrieve-after-cancel failed: status=%s, body=%s",
                 retrieve_response.status_code,
                 retrieve_response.text[:1000],
@@ -548,7 +548,7 @@ class VertexAIBatchPrediction(VertexLLM):
         timeout: float | httpx.Timeout = 600.0,
     ) -> LiteLLMBatch:
         client: Final = get_async_httpx_client(
-            llm_provider=litellm.LlmProviders.VERTEX_AI,
+            llm_provider=gateway.LlmProviders.VERTEX_AI,
         )
         try:
             await client.post(
@@ -558,7 +558,7 @@ class VertexAIBatchPrediction(VertexLLM):
                 timeout=timeout,
             )
         except httpx.HTTPStatusError as e:
-            litellm.verbose_logger.error(
+            gateway.verbose_logger.error(
                 "Vertex AI batch cancel failed: status=%s, body=%s",
                 e.response.status_code,
                 e.response.text[:1000],
@@ -571,7 +571,7 @@ class VertexAIBatchPrediction(VertexLLM):
             headers=headers,
         )
         if retrieve_response.status_code != 200:
-            litellm.verbose_logger.error(
+            gateway.verbose_logger.error(
                 "Vertex AI batch retrieve-after-cancel failed: status=%s, body=%s",
                 retrieve_response.status_code,
                 retrieve_response.text[:1000],

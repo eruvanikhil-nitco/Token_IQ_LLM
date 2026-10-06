@@ -11,7 +11,7 @@ Related issue: https://github.com/BerriAI/litellm/issues/22189
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.openrouter.responses.transformation import (
     OpenRouterResponsesAPIConfig,
 )
@@ -68,7 +68,7 @@ class TestOpenRouterResponsesAPIConfig:
         from token_iq.gateway.types.router import GenericLiteLLMParams
 
         # Clear any globally set API keys so the validation correctly raises
-        monkeypatch.setattr(litellm, "api_key", None)
+        monkeypatch.setattr(gateway, "api_key", None)
         monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
         monkeypatch.delenv("OR_API_KEY", raising=False)
 

@@ -12,7 +12,7 @@ import os
 import pytest
 from unittest.mock import AsyncMock, patch, MagicMock
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.bedrock.search.transformation import (
     AGENTCORE_DEFAULT_MCP_PROTOCOL_VERSION,
     AgentCoreSearchConfig,
@@ -82,7 +82,7 @@ class TestAgentCoreSearch:
         ):
             mock_post.return_value = mock_response
 
-            response = await litellm.asearch(
+            response = await gateway.asearch(
                 query="latest developments in AI",
                 search_provider="agentcore",
                 max_results=5,
@@ -633,5 +633,5 @@ class TestAgentCoreSearchEdgeCases:
         from token_iq.gateway.core_utils.get_model_cost_map import GetModelCostMap
         from token_iq.gateway.search.cost_calculator import search_provider_cost_per_query
 
-        monkeypatch.setattr(litellm, "model_cost", GetModelCostMap.load_local_model_cost_map())
+        monkeypatch.setattr(gateway, "model_cost", GetModelCostMap.load_local_model_cost_map())
         assert search_provider_cost_per_query(model="agentcore/search", custom_llm_provider="agentcore") == (0.0, 0.0)

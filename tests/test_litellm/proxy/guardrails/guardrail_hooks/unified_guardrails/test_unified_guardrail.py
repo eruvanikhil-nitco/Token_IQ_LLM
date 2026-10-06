@@ -4,7 +4,7 @@ import logging
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.caching import DualCache
 from token_iq.gateway.integrations.custom_guardrail import (
     CustomGuardrail,
@@ -104,7 +104,7 @@ class TestUnifiedLLMGuardrails:
 
         def test_effective_skip_respects_per_guardrail_over_global(self, monkeypatch):
             monkeypatch.setattr(
-                litellm, "skip_system_message_in_guardrail", True, raising=False
+                gateway, "skip_system_message_in_guardrail", True, raising=False
             )
 
             class G:
@@ -122,7 +122,7 @@ class TestUnifiedLLMGuardrails:
             self, monkeypatch
         ):
             monkeypatch.setattr(
-                litellm, "skip_system_message_in_guardrail", True, raising=False
+                gateway, "skip_system_message_in_guardrail", True, raising=False
             )
 
             captured = {}
@@ -161,7 +161,7 @@ class TestUnifiedLLMGuardrails:
             self, monkeypatch
         ):
             monkeypatch.setattr(
-                litellm, "skip_system_message_in_guardrail", True, raising=False
+                gateway, "skip_system_message_in_guardrail", True, raising=False
             )
 
             captured = {}
@@ -221,7 +221,7 @@ class TestUnifiedLLMGuardrails:
             self, monkeypatch
         ):
             monkeypatch.setattr(
-                litellm, "skip_tool_message_in_guardrail", True, raising=False
+                gateway, "skip_tool_message_in_guardrail", True, raising=False
             )
 
             class G:
@@ -237,7 +237,7 @@ class TestUnifiedLLMGuardrails:
         @pytest.mark.asyncio
         async def test_openai_handler_skips_tool_in_guardrail_inputs(self, monkeypatch):
             monkeypatch.setattr(
-                litellm, "skip_tool_message_in_guardrail", True, raising=False
+                gateway, "skip_tool_message_in_guardrail", True, raising=False
             )
 
             captured = {}
@@ -291,7 +291,7 @@ class TestUnifiedLLMGuardrails:
             self, monkeypatch
         ):
             monkeypatch.setattr(
-                litellm, "skip_tool_message_in_guardrail", True, raising=False
+                gateway, "skip_tool_message_in_guardrail", True, raising=False
             )
 
             captured = {}

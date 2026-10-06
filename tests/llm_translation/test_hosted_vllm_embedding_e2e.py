@@ -9,7 +9,7 @@ import os
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 
 class TestHostedVLLMEmbeddingE2E:
@@ -28,13 +28,13 @@ class TestHostedVLLMEmbeddingE2E:
         input_text = "Hello, this is a test embedding"
 
         if sync_mode:
-            response = litellm.embedding(
+            response = gateway.embedding(
                 model=model,
                 input=input_text,
                 api_base=api_base,
             )
         else:
-            response = await litellm.aembedding(
+            response = await gateway.aembedding(
                 model=model,
                 input=input_text,
                 api_base=api_base,
@@ -72,13 +72,13 @@ class TestHostedVLLMEmbeddingE2E:
         ]
 
         if sync_mode:
-            response = litellm.embedding(
+            response = gateway.embedding(
                 model=model,
                 input=inputs,
                 api_base=api_base,
             )
         else:
-            response = await litellm.aembedding(
+            response = await gateway.aembedding(
                 model=model,
                 input=inputs,
                 api_base=api_base,
@@ -105,7 +105,7 @@ class TestHostedVLLMEmbeddingE2E:
         model = "hosted_vllm/nomic-ai/nomic-embed-text-v1.5"
         input_text = "Test with API key"
 
-        response = litellm.embedding(
+        response = gateway.embedding(
             model=model,
             input=input_text,
             api_base=api_base,
@@ -126,13 +126,13 @@ class TestHostedVLLMEmbeddingE2E:
         model = "hosted_vllm/nomic-ai/nomic-embed-text-v1.5"
         input_text = "This should produce the same embedding every time"
 
-        response1 = litellm.embedding(
+        response1 = gateway.embedding(
             model=model,
             input=input_text,
             api_base=api_base,
         )
 
-        response2 = litellm.embedding(
+        response2 = gateway.embedding(
             model=model,
             input=input_text,
             api_base=api_base,

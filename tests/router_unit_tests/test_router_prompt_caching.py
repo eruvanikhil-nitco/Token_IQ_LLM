@@ -6,7 +6,7 @@ from datetime import datetime
 
 from token_iq.gateway import Router
 import pytest
-from token_iq import gateway as litellm
+from token_iq import gateway
 from unittest.mock import patch, MagicMock, AsyncMock
 from create_mock_standard_logging_payload import create_standard_logging_payload
 from token_iq.gateway.types.utils import StandardLoggingPayload

@@ -17,13 +17,13 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
 
 def test_braintrust_logging():
 
-    litellm.set_verbose = True
+    gateway.set_verbose = True
 
     http_client = HTTPHandler()
 
@@ -32,10 +32,10 @@ def test_braintrust_logging():
         new=MagicMock(),
     ) as mock_client:
         # set braintrust as a callback, litellm will send the data to braintrust
-        litellm.callbacks = ["braintrust"]
+        gateway.callbacks = ["braintrust"]
 
         # openai call
-        response = litellm.completion(
+        response = gateway.completion(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": "Hi 👋 - i'm openai"}],
         )
@@ -46,16 +46,16 @@ def test_braintrust_logging():
 
 def test_braintrust_logging_specific_project_id():
 
-    litellm.set_verbose = True
+    gateway.set_verbose = True
 
     with patch(
         "token_iq.gateway.integrations.braintrust_logging.HTTPHandler.post",
         new=MagicMock(),
     ) as mock_client:
         # set braintrust as a callback, litellm will send the data to braintrust
-        litellm.callbacks = ["braintrust"]
+        gateway.callbacks = ["braintrust"]
 
-        response = litellm.completion(
+        response = gateway.completion(
             model="openai/gpt-4o",
             messages=[{"content": "Hello, how are you?", "role": "user"}],
             metadata={"project_id": "123"},

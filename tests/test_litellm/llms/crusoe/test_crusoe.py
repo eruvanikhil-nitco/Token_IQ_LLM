@@ -107,13 +107,13 @@ def test_crusoe_provider_detection_by_prefix():
 
 def test_crusoe_model_list_populated(monkeypatch):
     """Test Crusoe models are present in model_prices_and_context_window.json"""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    original_model_cost = litellm.model_cost
+    original_model_cost = gateway.model_cost
     original_env = os.environ.get("LITELLM_LOCAL_MODEL_COST_MAP")
     try:
         monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-        litellm.model_cost = litellm.get_model_cost_map()
+        gateway.model_cost = gateway.get_model_cost_map()
 
         expected = [
             "crusoe/meta-llama/Llama-3.3-70B-Instruct",
@@ -125,10 +125,10 @@ def test_crusoe_model_list_populated(monkeypatch):
             "crusoe/google/gemma-3-12b-it",
         ]
         for model in expected:
-            assert model in litellm.model_cost, f"{model} not found in model_cost"
-            assert litellm.model_cost[model].get("litellm_provider") == "crusoe"
+            assert model in gateway.model_cost, f"{model} not found in model_cost"
+            assert gateway.model_cost[model].get("litellm_provider") == "crusoe"
     finally:
-        litellm.model_cost = original_model_cost
+        gateway.model_cost = original_model_cost
         if original_env is None:
             os.environ.pop("LITELLM_LOCAL_MODEL_COST_MAP", None)
         else:

@@ -16,7 +16,7 @@ from collections.abc import AsyncIterator, Coroutine, Mapping
 from types import ModuleType
 from typing import TYPE_CHECKING, Any, Final, Optional, cast
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger, verbose_proxy_logger
 from token_iq.gateway.a2a_protocol.streaming_iterator import A2AStreamingIterator
 from token_iq.gateway.a2a_protocol.utils import A2ARequestUtils
@@ -100,7 +100,7 @@ def _set_usage_on_logging_obj(
     """
     litellm_logging_obj: Final = kwargs.get("litellm_logging_obj")
     if isinstance(litellm_logging_obj, Logging):
-        usage: Final = litellm.Usage(
+        usage: Final = gateway.Usage(
             prompt_tokens=prompt_tokens,
             completion_tokens=completion_tokens,
             total_tokens=prompt_tokens + completion_tokens,

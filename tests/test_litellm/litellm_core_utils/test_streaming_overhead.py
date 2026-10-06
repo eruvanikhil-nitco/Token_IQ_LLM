@@ -10,7 +10,7 @@ import time
 from typing import List, Optional
 from unittest.mock import MagicMock, patch
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.streaming_handler import (
     CustomStreamWrapper,
     _GCHUNK_FIELDS,
@@ -373,7 +373,7 @@ def test_post_streaming_hooks_cached_after_first_call():
 
     async def _run():
         # Simulate hook resolution with an empty callback list
-        with patch.object(litellm, "callbacks", []):
+        with patch.object(gateway, "callbacks", []):
             await wrapper._call_post_streaming_deployment_hook(
                 MagicMock(spec=ModelResponseStream)
             )
@@ -381,7 +381,7 @@ def test_post_streaming_hooks_cached_after_first_call():
         assert isinstance(first_list, list)
 
         # Second call must reuse the same list object
-        with patch.object(litellm, "callbacks", []):
+        with patch.object(gateway, "callbacks", []):
             await wrapper._call_post_streaming_deployment_hook(
                 MagicMock(spec=ModelResponseStream)
             )
@@ -411,7 +411,7 @@ def test_post_streaming_hooks_filters_correctly():
     wrapper = _make_wrapper([], provider="anthropic")
 
     async def _run():
-        with patch.object(litellm, "callbacks", [MyLogger(), plain_callable]):
+        with patch.object(gateway, "callbacks", [MyLogger(), plain_callable]):
             await wrapper._call_post_streaming_deployment_hook(
                 MagicMock(spec=ModelResponseStream)
             )

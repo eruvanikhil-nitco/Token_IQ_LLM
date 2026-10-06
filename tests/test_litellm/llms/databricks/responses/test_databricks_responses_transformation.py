@@ -3,7 +3,7 @@ import pytest
 
 from unittest.mock import patch
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.databricks.responses.transformation import (
     DatabricksResponsesAPIConfig,
 )

@@ -17,7 +17,7 @@ import pytest
 from token_iq.gateway.llms.bedrock.image_generation.cost_calculator import cost_calculator
 from token_iq.gateway.types.utils import ImageResponse, ImageObject
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.bedrock.image_generation.amazon_stability3_transformation import (
     AmazonStability3Config,
 )
@@ -508,7 +508,7 @@ def test_amazon_nova_canvas_image_gen():
 
     model_id = "bedrock/amazon.nova-canvas-v1:0"
 
-    response = litellm.image_generation(
+    response = gateway.image_generation(
         model=model_id,
         prompt="A serene mountain landscape at sunset with a lake reflection",
         aws_region_name="us-east-1",

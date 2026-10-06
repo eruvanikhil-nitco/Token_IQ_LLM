@@ -327,13 +327,13 @@ def _session_header(params: dict, litellm_params: dict) -> str:
 
 @pytest.fixture
 def httpx_transport(monkeypatch):
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    monkeypatch.setattr(litellm, "disable_aiohttp_transport", True)
+    monkeypatch.setattr(gateway, "disable_aiohttp_transport", True)
     monkeypatch.setenv("DISABLE_AIOHTTP_TRANSPORT", "True")
-    litellm.in_memory_llm_clients_cache.flush_cache()
+    gateway.in_memory_llm_clients_cache.flush_cache()
     yield
-    litellm.in_memory_llm_clients_cache.flush_cache()
+    gateway.in_memory_llm_clients_cache.flush_cache()
 
 
 class TestRequestScopedRuntimeSession:
@@ -397,29 +397,29 @@ class TestRequestScopedRuntimeSession:
         ],
     )
     def test_invalid_context_id_rejected_with_clear_error(self, context_id):
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
-        with pytest.raises(litellm.BadRequestError, match="Invalid AgentCore runtime session id") as exc_info:
+        with pytest.raises(gateway.BadRequestError, match="Invalid AgentCore runtime session id") as exc_info:
             _session_header(_params_with_context(context_id), SAMPLE_LITELLM_PARAMS)
         assert exc_info.value.status_code == 400
         assert "33-256" in str(exc_info.value)
 
     def test_scoped_context_id_shorter_than_33_rejected(self):
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.a2a_protocol.litellm_completion_bridge.handler import (
             A2A_USER_API_KEY_HASH_PARAM,
         )
 
         litellm_params = {**SAMPLE_LITELLM_PARAMS, A2A_USER_API_KEY_HASH_PARAM: KEY_HASH}
-        with pytest.raises(litellm.BadRequestError, match=_scoped("c" * 15, KEY_HASH)):
+        with pytest.raises(gateway.BadRequestError, match=_scoped("c" * 15, KEY_HASH)):
             _session_header(_params_with_context("c" * 15), litellm_params)
         assert _session_header(_params_with_context("c" * 16), litellm_params) == _scoped("c" * 16, KEY_HASH)
 
     def test_invalid_configured_session_rejected(self):
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         litellm_params = {**SAMPLE_LITELLM_PARAMS, "runtimeSessionId": "too-short"}
-        with pytest.raises(litellm.BadRequestError, match="Invalid AgentCore runtime session id"):
+        with pytest.raises(gateway.BadRequestError, match="Invalid AgentCore runtime session id"):
             _session_header(SAMPLE_PARAMS, litellm_params)
 
     def test_non_string_context_id_falls_back(self):

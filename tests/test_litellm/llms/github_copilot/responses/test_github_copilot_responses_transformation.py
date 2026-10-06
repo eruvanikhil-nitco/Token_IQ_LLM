@@ -11,7 +11,7 @@ from unittest.mock import patch, MagicMock
 
 
 import pytest
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.get_model_cost_map import get_model_cost_map
 from token_iq.gateway.types.utils import LlmProviders
 from token_iq.gateway.utils import ProviderConfigManager
@@ -27,9 +27,9 @@ def use_local_model_cost_map(monkeypatch: pytest.MonkeyPatch):
     on remote catalog fetches (and don't change behavior across remote refreshes)."""
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
     monkeypatch.setattr(
-        litellm, "model_cost", get_model_cost_map()
+        gateway, "model_cost", get_model_cost_map()
     )
-    litellm.add_known_models(model_cost_map=litellm.model_cost)
+    gateway.add_known_models(model_cost_map=gateway.model_cost)
 
 
 class TestGithubCopilotResponsesAPITransformation:
@@ -440,7 +440,7 @@ class TestGithubCopilotResponsesAPIRouting:
         from the raw ``litellm.model_cost`` entry; a mock-based test would
         mask that.
         """
-        litellm.register_model(
+        gateway.register_model(
             {
                 "github_copilot/test-endpoints-only-model": {
                     "litellm_provider": "github_copilot",
@@ -469,7 +469,7 @@ class TestGithubCopilotResponsesAPIRouting:
         ``register_model`` (no mock) so the ``mode``-over-endpoints precedence
         is verified against the actual model-info resolution.
         """
-        litellm.register_model(
+        gateway.register_model(
             {
                 "github_copilot/test-chat-override-model": {
                     "litellm_provider": "github_copilot",

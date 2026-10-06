@@ -8,7 +8,7 @@ from urllib.parse import quote
 import httpx
 from httpx._types import FileContent, FileTypes, RequestFiles
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.url_utils import encode_url_path_segment
 from token_iq.gateway.llms.base_llm.videos.transformation import BaseVideoConfig
 from token_iq.gateway.llms.openai.image_edit.transformation import ImageEditRequestUtils
@@ -81,7 +81,7 @@ class OpenAIVideoConfig(BaseVideoConfig):
         if litellm_params and litellm_params.api_key:
             api_key = api_key or litellm_params.api_key
 
-        api_key = api_key or litellm.api_key or litellm.openai_key or get_secret_str("OPENAI_API_KEY")
+        api_key = api_key or gateway.api_key or gateway.openai_key or get_secret_str("OPENAI_API_KEY")
         headers.update(
             {
                 "Authorization": f"Bearer {api_key}",

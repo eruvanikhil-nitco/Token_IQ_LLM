@@ -5,7 +5,7 @@ Handler for transforming responses api requests to litellm.completion requests
 from collections.abc import Coroutine, Mapping
 from typing import Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.responses.litellm_completion_transformation.streaming_iterator import (
     LiteLLMCompletionStreamingIterator,
 )
@@ -62,7 +62,7 @@ class LiteLLMCompletionTransformationHandler:
         completion_args.update(litellm_completion_request)
         completion_args["_skip_responses_api_bridge"] = True
 
-        litellm_completion_response: Final[ModelResponse | litellm.CustomStreamWrapper] = litellm.completion(
+        litellm_completion_response: Final[ModelResponse | gateway.CustomStreamWrapper] = gateway.completion(
             **completion_args,
         )
 
@@ -77,7 +77,7 @@ class LiteLLMCompletionTransformationHandler:
 
             return responses_api_response
 
-        elif isinstance(litellm_completion_response, litellm.CustomStreamWrapper):
+        elif isinstance(litellm_completion_response, gateway.CustomStreamWrapper):
             return LiteLLMCompletionStreamingIterator(
                 model=model,
                 litellm_custom_stream_wrapper=litellm_completion_response,
@@ -107,7 +107,7 @@ class LiteLLMCompletionTransformationHandler:
         acompletion_args.update(litellm_completion_request)
         acompletion_args["_skip_responses_api_bridge"] = True
 
-        litellm_completion_response: Final[ModelResponse | litellm.CustomStreamWrapper] = await litellm.acompletion(
+        litellm_completion_response: Final[ModelResponse | gateway.CustomStreamWrapper] = await gateway.acompletion(
             **acompletion_args,
         )
 
@@ -122,7 +122,7 @@ class LiteLLMCompletionTransformationHandler:
 
             return responses_api_response
 
-        elif isinstance(litellm_completion_response, litellm.CustomStreamWrapper):
+        elif isinstance(litellm_completion_response, gateway.CustomStreamWrapper):
             return LiteLLMCompletionStreamingIterator(
                 model=litellm_completion_request.get("model") or "",
                 litellm_custom_stream_wrapper=litellm_completion_response,

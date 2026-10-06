@@ -2,7 +2,7 @@ import os
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.llm_cost_calc.tool_call_cost_tracking import (
     StandardBuiltInToolCostTracking,
 )
@@ -14,7 +14,7 @@ from token_iq.gateway.types.utils import ModelResponse, StandardBuiltInToolsPara
 
 def test_web_search_cost_low():
     web_search_options = WebSearchOptions(search_context_size="low")
-    model_info = litellm.get_model_info("gpt-4o-search-preview")
+    model_info = gateway.get_model_info("gpt-4o-search-preview")
 
     cost = StandardBuiltInToolCostTracking.get_cost_for_web_search(
         web_search_options=web_search_options, model_info=model_info
@@ -27,7 +27,7 @@ def test_web_search_cost_low():
 
 def test_web_search_cost_medium():
     web_search_options = WebSearchOptions(search_context_size="medium")
-    model_info = litellm.get_model_info("gpt-4o-search-preview")
+    model_info = gateway.get_model_info("gpt-4o-search-preview")
 
     cost = StandardBuiltInToolCostTracking.get_cost_for_web_search(
         web_search_options=web_search_options, model_info=model_info
@@ -41,7 +41,7 @@ def test_web_search_cost_medium():
 
 def test_web_search_cost_high():
     web_search_options = WebSearchOptions(search_context_size="high")
-    model_info = litellm.get_model_info("gpt-4o-search-preview")
+    model_info = gateway.get_model_info("gpt-4o-search-preview")
 
     cost = StandardBuiltInToolCostTracking.get_cost_for_web_search(
         web_search_options=web_search_options, model_info=model_info
@@ -184,7 +184,7 @@ def test_anthropic_web_search_cost_from_raw_response_dict_when_usage_drops_serve
         standard_built_in_tools_params=None,
     )
 
-    per_query_cost = litellm.get_model_info(model)["search_context_cost_per_query"][
+    per_query_cost = gateway.get_model_info(model)["search_context_cost_per_query"][
         "search_context_size_medium"
     ]
     assert cost == per_query_cost * web_search_requests
@@ -224,7 +224,7 @@ def test_anthropic_web_search_cost_from_raw_response_dict_when_usage_is_none():
         standard_built_in_tools_params=None,
     )
 
-    per_query_cost = litellm.get_model_info(model)["search_context_cost_per_query"][
+    per_query_cost = gateway.get_model_info(model)["search_context_cost_per_query"][
         "search_context_size_medium"
     ]
     assert cost == per_query_cost * web_search_requests
@@ -379,7 +379,7 @@ def test_azure_assistant_features_integrated_cost_tracking(monkeypatch):
     """
     # Force use of local model cost map for CI/CD consistency
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    litellm.model_cost = litellm.get_model_cost_map()
+    gateway.model_cost = gateway.get_model_cost_map()
 
     model = "azure/gpt-4o"
 
@@ -439,7 +439,7 @@ def test_completion_cost_includes_web_search_without_standard_built_in_tools_par
         prompt_tokens_details=PromptTokensDetailsWrapper(web_search_requests=1),
     )
 
-    cost = litellm.completion_cost(
+    cost = gateway.completion_cost(
         completion_response=response,
         model="gemini-2.5-flash",
         custom_llm_provider="vertex_ai",
@@ -482,7 +482,7 @@ def test_gemini_3x_web_search_billed_per_query(model, local_model_cost_map):
     from token_iq.gateway.types.utils import PromptTokensDetailsWrapper, Usage
 
     web_search_requests = 2
-    model_info = litellm.get_model_info(model)
+    model_info = gateway.get_model_info(model)
     assert model_info["web_search_billing_unit"] == "per_query"
     per_query_cost = model_info["search_context_cost_per_query"][
         "search_context_size_medium"
@@ -528,7 +528,7 @@ def test_gemini_2x_maps_grounding_billed_at_maps_rate(model, custom_llm_provider
     """
     from token_iq.gateway.types.utils import PromptTokensDetailsWrapper, Usage
 
-    model_info = litellm.get_model_info(model)
+    model_info = gateway.get_model_info(model)
     expected_cost = model_info["google_maps_grounding_cost_per_query"]
     assert expected_cost == pytest.approx(0.025)
 
@@ -553,7 +553,7 @@ def test_gemini_3x_maps_grounding_billed_per_query(local_model_cost_map):
     from token_iq.gateway.types.utils import PromptTokensDetailsWrapper, Usage
 
     model = "vertex_ai/gemini-3.5-flash"
-    model_info = litellm.get_model_info(model)
+    model_info = gateway.get_model_info(model)
     assert model_info["web_search_billing_unit"] == "per_query"
     expected_cost = model_info["google_maps_grounding_cost_per_query"] * 2
 
@@ -579,7 +579,7 @@ def test_gemini_combined_search_and_maps_costs_are_additive(local_model_cost_map
     from token_iq.gateway.types.utils import PromptTokensDetailsWrapper, Usage
 
     model = "gemini/gemini-3.5-flash"
-    model_info = litellm.get_model_info(model)
+    model_info = gateway.get_model_info(model)
     search_rate = model_info["search_context_cost_per_query"]["search_context_size_medium"]
     maps_rate = model_info["google_maps_grounding_cost_per_query"]
 
@@ -611,7 +611,7 @@ def test_gemini_2x_web_search_still_billed_per_prompt(local_model_cost_map):
     from token_iq.gateway.types.utils import PromptTokensDetailsWrapper, Usage
 
     model = "vertex_ai/gemini-2.5-flash"
-    model_info = litellm.get_model_info(model)
+    model_info = gateway.get_model_info(model)
     assert not model_info.get("web_search_billing_unit")
     expected_cost = model_info["search_context_cost_per_query"][
         "search_context_size_medium"
@@ -654,7 +654,7 @@ def test_web_search_provider_prefix_fallback_does_not_misprice_non_gemini_model(
     from token_iq.gateway.types.utils import PromptTokensDetailsWrapper, Usage
 
     model = "openrouter/google/gemini-3.1-flash-lite"
-    model_info = litellm.get_model_info(model)
+    model_info = gateway.get_model_info(model)
     assert model_info["litellm_provider"] == "openrouter"
     assert not model_info.get("search_context_cost_per_query")
 
@@ -719,7 +719,7 @@ def test_openai_responses_web_search_priced_per_call(local_model_cost_map):
     from token_iq.gateway.types.utils import Usage
 
     model = "gpt-5-nano"
-    per_call = litellm.get_model_info(model)["search_context_cost_per_query"][
+    per_call = gateway.get_model_info(model)["search_context_cost_per_query"][
         "search_context_size_medium"
     ]
     assert per_call == 0.01
@@ -747,7 +747,7 @@ def test_openai_responses_web_search_multiplied_by_call_count(local_model_cost_m
     from token_iq.gateway.types.utils import Usage
 
     model = "gpt-4o-search-preview"
-    per_call = litellm.get_model_info(model)["search_context_cost_per_query"][
+    per_call = gateway.get_model_info(model)["search_context_cost_per_query"][
         "search_context_size_medium"
     ]
     usage = Usage(prompt_tokens=10, completion_tokens=5, total_tokens=15)
@@ -777,7 +777,7 @@ def test_web_search_call_count_reads_dict_output_items(local_model_cost_map):
     from token_iq.gateway.types.utils import Usage
 
     model = "gpt-4o-search-preview"
-    per_call = litellm.get_model_info(model)["search_context_cost_per_query"][
+    per_call = gateway.get_model_info(model)["search_context_cost_per_query"][
         "search_context_size_medium"
     ]
 
@@ -823,8 +823,8 @@ def test_dated_search_preview_entries_carry_search_pricing(local_model_cost_map)
         ("gpt-4o-mini-search-preview-2025-03-11", "gpt-4o-mini-search-preview"),
     ):
         assert (
-            litellm.get_model_info(dated)["search_context_cost_per_query"]
-            == litellm.get_model_info(undated)["search_context_cost_per_query"]
+            gateway.get_model_info(dated)["search_context_cost_per_query"]
+            == gateway.get_model_info(undated)["search_context_cost_per_query"]
         )
 
     response = ModelResponse(

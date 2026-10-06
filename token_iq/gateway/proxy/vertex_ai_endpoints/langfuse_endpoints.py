@@ -17,7 +17,7 @@ from urllib.parse import unquote
 import httpx
 from fastapi import APIRouter, HTTPException, Request, Response, status
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.url_utils import SSRFError, validate_url
 from token_iq.gateway.proxy._types import *
 from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
@@ -116,8 +116,8 @@ def _get_langfuse_proxy_credentials(
         return dynamic_langfuse_public_key, dynamic_langfuse_secret_key
 
     return (
-        dynamic_langfuse_public_key or litellm.utils.get_secret(secret_name="LANGFUSE_PUBLIC_KEY"),
-        dynamic_langfuse_secret_key or litellm.utils.get_secret(secret_name="LANGFUSE_SECRET_KEY"),
+        dynamic_langfuse_public_key or gateway.utils.get_secret(secret_name="LANGFUSE_PUBLIC_KEY"),
+        dynamic_langfuse_secret_key or gateway.utils.get_secret(secret_name="LANGFUSE_SECRET_KEY"),
     )
 
 
@@ -132,7 +132,7 @@ def _build_langfuse_proxy_target(
     updated_url: Final = base_url.copy_with(path=endpoint_path)
     custom_headers: Final = {}
 
-    if dynamic_host_supplied and getattr(litellm, "user_url_validation", True):
+    if dynamic_host_supplied and getattr(gateway, "user_url_validation", True):
         try:
             target_url, host_header = validate_url(str(updated_url))
         except SSRFError as e:

@@ -12,7 +12,7 @@ from uuid import uuid4
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.types.utils import StandardLoggingPayload
 
@@ -25,7 +25,7 @@ async def test_asend_message_with_client_decorator():
     Test asend_message standalone function with @client decorator.
     This tests the LiteLLM logging integration.
     """
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
     from token_iq.gateway.a2a_protocol import asend_message, create_a2a_client
 
     # Create the A2A client first
@@ -85,9 +85,9 @@ async def test_a2a_logging_payload():
     Validates the @client decorator integration with LiteLLM logging.
     """
     # Reset callbacks and set up custom logger
-    litellm.logging_callback_manager._reset_all_callbacks()
+    gateway.logging_callback_manager._reset_all_callbacks()
     test_logger = TestA2ALogger()
-    litellm.callbacks = [test_logger]
+    gateway.callbacks = [test_logger]
 
     from token_iq.gateway.a2a_protocol import asend_message, create_a2a_client
 
@@ -191,7 +191,7 @@ async def test_pydantic_ai_non_streaming():
     Pydantic AI agents follow A2A protocol but don't support streaming.
     This test validates non-streaming requests work correctly.
     """
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
     from token_iq.gateway.a2a_protocol import asend_message
 
     # Build the request
@@ -272,7 +272,7 @@ async def test_pydantic_ai_fake_streaming():
     This test validates that fake streaming works by converting
     non-streaming responses into streaming chunks.
     """
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
     from token_iq.gateway.a2a_protocol import asend_message_streaming
 
     # Build the request

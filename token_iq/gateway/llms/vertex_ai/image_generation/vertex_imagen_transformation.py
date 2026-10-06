@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, Any, Final
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.base_llm.image_generation.transformation import (
     BaseImageGenerationConfig,
 )
@@ -88,7 +88,7 @@ class VertexAIImagenImageGenerationConfig(BaseImageGenerationConfig, VertexLLM):
         return (
             getattr(self, "_vertex_project", None)
             or os.environ.get("VERTEXAI_PROJECT")
-            or getattr(litellm, "vertex_project", None)
+            or getattr(gateway, "vertex_project", None)
             or get_secret_str("VERTEXAI_PROJECT")
         )
 
@@ -97,7 +97,7 @@ class VertexAIImagenImageGenerationConfig(BaseImageGenerationConfig, VertexLLM):
             getattr(self, "_vertex_location", None)
             or os.environ.get("VERTEXAI_LOCATION")
             or os.environ.get("VERTEX_LOCATION")
-            or getattr(litellm, "vertex_location", None)
+            or getattr(gateway, "vertex_location", None)
             or get_secret_str("VERTEXAI_LOCATION")
             or get_secret_str("VERTEX_LOCATION")
         )
@@ -106,7 +106,7 @@ class VertexAIImagenImageGenerationConfig(BaseImageGenerationConfig, VertexLLM):
         return (
             getattr(self, "_vertex_credentials", None)
             or os.environ.get("VERTEXAI_CREDENTIALS")
-            or getattr(litellm, "vertex_credentials", None)
+            or getattr(gateway, "vertex_credentials", None)
             or os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
             or get_secret_str("VERTEXAI_CREDENTIALS")
         )

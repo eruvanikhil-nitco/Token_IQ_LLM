@@ -14,7 +14,7 @@ from httpx import Headers, Response
 from openai.types.file_deleted import FileDeleted
 from typing_extensions import ReadOnly, Required
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._uuid import uuid
 from token_iq.gateway.files.utils import FilesAPIUtils
 from token_iq.gateway.core_utils.cloud_storage_security import (
@@ -1009,7 +1009,7 @@ class VertexAIFilesConfig(VertexBase, BaseFilesConfig):
         try:
             # Allow users to opt out of automatic Vertex batch output -> OpenAI
             # transformation, e.g. if they consume raw `predictions.jsonl` directly.
-            if getattr(litellm, "disable_vertex_batch_output_transformation", False):
+            if getattr(gateway, "disable_vertex_batch_output_transformation", False):
                 return HttpxBinaryResponseContent(response=raw_response)
 
             # Try to transform batch output if it's a JSONL file

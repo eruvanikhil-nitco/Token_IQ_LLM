@@ -39,7 +39,7 @@ from token_iq.gateway.proxy.pass_through_endpoints.success_handler import (
     PassThroughEndpointLogging,
 )
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 MESSAGE_START_SSE_FRAME = b'event: message_start\ndata: {"type": "message_start"}\n\n'
 
@@ -1502,7 +1502,7 @@ async def test_pass_through_request_streamed_response_is_owned_by_the_caller():
     POST /openai_passthrough/v1/responses left the raw resp_ id in the stream and
     recorded no owner, so any other key could read, continue, and delete it.
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.llms.custom_httpx.http_handler import get_async_httpx_client
     from token_iq.gateway.types.llms.custom_http import httpxSpecialProvider
 
@@ -1523,7 +1523,7 @@ async def test_pass_through_request_streamed_response_is_owned_by_the_caller():
         llm_provider=httpxSpecialProvider.PassThroughEndpoint,
         params={"timeout": resolve_pass_through_request_timeout(None)},
     )
-    cache_dict = litellm.in_memory_llm_clients_cache.cache_dict
+    cache_dict = gateway.in_memory_llm_clients_cache.cache_dict
     cache_key = next(key for key, cached in cache_dict.items() if cached is real_handler)
     cache_dict[cache_key] = SimpleNamespace(client=httpx.AsyncClient(transport=httpx.MockTransport(transport_handler)))
 
@@ -2401,7 +2401,7 @@ async def _run_pass_through_and_capture_wire_url(
     managed_files_hook: Optional[_FakeManagedFilesHook] = None,
     user_api_key_dict: Optional[UserAPIKeyAuth] = None,
 ) -> httpx.URL:
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.llms.custom_httpx.http_handler import get_async_httpx_client
     from token_iq.gateway.types.llms.custom_http import httpxSpecialProvider
 
@@ -2415,7 +2415,7 @@ async def _run_pass_through_and_capture_wire_url(
         llm_provider=httpxSpecialProvider.PassThroughEndpoint,
         params={"timeout": resolve_pass_through_request_timeout(None)},
     )
-    cache_dict = litellm.in_memory_llm_clients_cache.cache_dict
+    cache_dict = gateway.in_memory_llm_clients_cache.cache_dict
     cache_key = next((key for key, cached in cache_dict.items() if cached is real_handler), None)
     assert cache_key is not None, (
         "PassThroughEndpoint client not found in in_memory_llm_clients_cache; "
@@ -4116,7 +4116,7 @@ def _inject_fake_passthrough_client(transport, timeout):
     returned, so the internal cache-key format is never duplicated here. Must
     run inside the test's event loop because cache keys are loop-scoped.
     Returns (client, cleanup)."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.llms.custom_httpx.http_handler import get_async_httpx_client
     from token_iq.gateway.types.llms.custom_http import httpxSpecialProvider
 
@@ -4124,7 +4124,7 @@ def _inject_fake_passthrough_client(transport, timeout):
         httpxSpecialProvider.PassThroughEndpoint,
         params={"timeout": resolve_pass_through_request_timeout(timeout)},
     )
-    cache = litellm.in_memory_llm_clients_cache
+    cache = gateway.in_memory_llm_clients_cache
     cache_key = next(
         (key for key, cached in cache.cache_dict.items() if cached is real_handler),
         None,
@@ -4461,15 +4461,15 @@ class _StandardLoggingPayloadRecorder(CustomLogger):
 
 @contextmanager
 def _recording_success_callback():
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     recorder = _StandardLoggingPayloadRecorder()
-    original = litellm._async_success_callback
-    litellm._async_success_callback = [*original, recorder]
+    original = gateway._async_success_callback
+    gateway._async_success_callback = [*original, recorder]
     try:
         yield recorder
     finally:
-        litellm._async_success_callback = original
+        gateway._async_success_callback = original
 
 
 def _enter_upstream_usage_mocks(stack, parsed_body):
@@ -4574,7 +4574,7 @@ async def test_passthrough_records_upstream_reported_cost_on_error_response():
     the error response, so the spend must land on the failure row rather than
     being dropped because the status code was >= 400.
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     _, mock_proxy_logging = await _run_upstream_reporting_passthrough(
         {
@@ -4587,7 +4587,7 @@ async def test_passthrough_records_upstream_reported_cost_on_error_response():
     mock_proxy_logging.post_call_failure_hook.assert_awaited_once()
     request_data = mock_proxy_logging.post_call_failure_hook.await_args.kwargs["request_data"]
     assert request_data["response_cost"] == 0.00021
-    assert request_data["combined_usage_object"] == litellm.Usage(total_tokens=930)
+    assert request_data["combined_usage_object"] == gateway.Usage(total_tokens=930)
 
 
 @pytest.mark.asyncio
@@ -4942,7 +4942,7 @@ async def test_websocket_passthrough_rewrites_setup_model_to_full_resource(setup
 
 @pytest.mark.asyncio
 async def test_websocket_passthrough_rewrites_gateway_alias_setup_model():
-    llm_router = litellm.Router(
+    llm_router = gateway.Router(
         model_list=[
             {
                 "model_name": "gemini-live",
@@ -5228,7 +5228,7 @@ async def test_pass_through_sse_stream_emits_keepalive_before_the_first_upstream
     Both dispatch branches are covered: a request that declared stream=true, and
     one whose response is only recognised as a stream from its content-type.
     """
-    with patch.object(litellm, "sse_keepalive_ping_interval_seconds", 0.05):
+    with patch.object(gateway, "sse_keepalive_ping_interval_seconds", 0.05):
         collected = await _drive_streaming_pass_through(
             upstream_content_type="text/event-stream",
             chunk_delay_seconds=0.2,
@@ -5241,7 +5241,7 @@ async def test_pass_through_sse_stream_emits_keepalive_before_the_first_upstream
 
 @pytest.mark.asyncio
 async def test_pass_through_sse_stream_stays_silent_when_keepalive_is_unconfigured():
-    with patch.object(litellm, "sse_keepalive_ping_interval_seconds", None):
+    with patch.object(gateway, "sse_keepalive_ping_interval_seconds", None):
         collected = await _drive_streaming_pass_through(
             upstream_content_type="text/event-stream", chunk_delay_seconds=0.2
         )
@@ -5252,7 +5252,7 @@ async def test_pass_through_sse_stream_stays_silent_when_keepalive_is_unconfigur
 @pytest.mark.asyncio
 async def test_pass_through_binary_event_stream_is_never_given_an_sse_comment():
     """An AWS event stream is a binary transport: a ": ping" frame would corrupt it."""
-    with patch.object(litellm, "sse_keepalive_ping_interval_seconds", 0.05):
+    with patch.object(gateway, "sse_keepalive_ping_interval_seconds", 0.05):
         collected = await _drive_streaming_pass_through(
             upstream_content_type="application/vnd.amazon.eventstream",
             chunk_delay_seconds=0.2,
@@ -5293,7 +5293,7 @@ async def test_pass_through_route_pings_while_the_upstream_call_is_still_running
             )
         )
         stack.enter_context(patch(f"{module}.pass_through_request", slow_pass_through))
-        stack.enter_context(patch.object(litellm, "sse_keepalive_ping_interval_seconds", configured_interval))
+        stack.enter_context(patch.object(gateway, "sse_keepalive_ping_interval_seconds", configured_interval))
 
         endpoint_func = create_pass_through_route(
             endpoint="/v1/messages",
@@ -5470,7 +5470,7 @@ async def _drive_passthrough_request_and_capture_logging(
     user_api_key_dict: UserAPIKeyAuth,
     on_pre_call: Callable[[LiteLLMLoggingObj | None], None] | None = None,
 ) -> tuple[int, LiteLLMLoggingObj | None]:
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.llms.custom_httpx.http_handler import get_async_httpx_client
     from token_iq.gateway.types.llms.custom_http import httpxSpecialProvider
 
@@ -5481,7 +5481,7 @@ async def _drive_passthrough_request_and_capture_logging(
         llm_provider=httpxSpecialProvider.PassThroughEndpoint,
         params={"timeout": resolve_pass_through_request_timeout(None)},
     )
-    cache_dict = litellm.in_memory_llm_clients_cache.cache_dict
+    cache_dict = gateway.in_memory_llm_clients_cache.cache_dict
     cache_key = next((key for key, cached in cache_dict.items() if cached is real_handler), None)
     assert cache_key is not None
     cache_dict[cache_key] = SimpleNamespace(client=httpx.AsyncClient(transport=httpx.MockTransport(transport_handler)))

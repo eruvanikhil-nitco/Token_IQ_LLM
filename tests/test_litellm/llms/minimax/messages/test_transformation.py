@@ -8,7 +8,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import completion
 from token_iq.gateway.llms.minimax.messages.transformation import MinimaxMessagesConfig
 

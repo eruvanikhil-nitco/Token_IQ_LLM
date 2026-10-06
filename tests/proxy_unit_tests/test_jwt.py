@@ -24,7 +24,7 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from fastapi import Request, HTTPException
 from fastapi.routing import APIRoute
 from fastapi.responses import Response
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.caching.caching import DualCache
 from token_iq.gateway.proxy._types import (
     LiteLLM_JWTAuth,
@@ -218,7 +218,7 @@ async def test_valid_invalid_token(audience, monkeypatch):
 
 @pytest.fixture
 def prisma_client():
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.proxy.proxy_cli import append_query_params
     from token_iq.gateway.proxy.utils import PrismaClient, ProxyLogging
 
@@ -250,7 +250,7 @@ def team_token_tuple():
     from fastapi import Request
     from starlette.datastructures import URL
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.proxy._types import NewTeamRequest, UserAPIKeyAuth
     from token_iq.gateway.proxy.proxy_server import user_api_key_auth
 
@@ -316,12 +316,12 @@ async def test_team_token_output(prisma_client, audience, monkeypatch):
     from fastapi import Request
     from starlette.datastructures import URL
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.proxy._types import NewTeamRequest, UserAPIKeyAuth
     from token_iq.gateway.proxy.proxy_server import user_api_key_auth
 
-    setattr(litellm.proxy.proxy_server, "prisma_client", prisma_client)
-    await litellm.proxy.proxy_server.prisma_client.connect()
+    setattr(gateway.proxy.proxy_server, "prisma_client", prisma_client)
+    await gateway.proxy.proxy_server.prisma_client.connect()
 
     os.environ.pop("JWT_AUDIENCE", None)
     if audience:
@@ -420,15 +420,15 @@ async def test_team_token_output(prisma_client, audience, monkeypatch):
 
     ## 1. INITIAL TEAM CALL - should fail
     # use generated key to auth in
-    setattr(litellm.proxy.proxy_server, "premium_user", True)
+    setattr(gateway.proxy.proxy_server, "premium_user", True)
     setattr(
-        litellm.proxy.proxy_server,
+        gateway.proxy.proxy_server,
         "general_settings",
         {
             "enable_jwt_auth": True,
         },
     )
-    setattr(litellm.proxy.proxy_server, "jwt_handler", jwt_handler)
+    setattr(gateway.proxy.proxy_server, "jwt_handler", jwt_handler)
     try:
         result = await user_api_key_auth(request=request, api_key=bearer_token)
         pytest.fail("Team doesn't exist. This should fail")
@@ -503,7 +503,7 @@ async def aaaatest_user_token_output(
     from fastapi import Request
     from starlette.datastructures import URL
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.proxy._types import NewTeamRequest, NewUserRequest, UserAPIKeyAuth
     from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import (
         new_user,
@@ -511,8 +511,8 @@ async def aaaatest_user_token_output(
     )
     from token_iq.gateway.proxy.proxy_server import user_api_key_auth
 
-    setattr(litellm.proxy.proxy_server, "prisma_client", prisma_client)
-    await litellm.proxy.proxy_server.prisma_client.connect()
+    setattr(gateway.proxy.proxy_server, "prisma_client", prisma_client)
+    await gateway.proxy.proxy_server.prisma_client.connect()
 
     os.environ.pop("JWT_AUDIENCE", None)
     if audience:
@@ -622,8 +622,8 @@ async def aaaatest_user_token_output(
 
     ## 1. INITIAL TEAM CALL - should fail
     # use generated key to auth in
-    setattr(litellm.proxy.proxy_server, "general_settings", {"enable_jwt_auth": True})
-    setattr(litellm.proxy.proxy_server, "jwt_handler", jwt_handler)
+    setattr(gateway.proxy.proxy_server, "general_settings", {"enable_jwt_auth": True})
+    setattr(gateway.proxy.proxy_server, "jwt_handler", jwt_handler)
     try:
         result = await user_api_key_auth(request=request, api_key=bearer_token)
         pytest.fail("Team doesn't exist. This should fail")
@@ -738,11 +738,11 @@ async def test_allowed_routes_admin(
     from fastapi import Request
     from starlette.datastructures import URL
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.proxy._types import NewTeamRequest, UserAPIKeyAuth
     from token_iq.gateway.proxy.proxy_server import user_api_key_auth
 
-    setattr(litellm.proxy.proxy_server, "prisma_client", prisma_client)
+    setattr(gateway.proxy.proxy_server, "prisma_client", prisma_client)
 
     monkeypatch.setenv("JWT_PUBLIC_KEY_URL", "https://example.com/public-key")
 
@@ -842,15 +842,15 @@ async def test_allowed_routes_admin(
 
         ## 1. INITIAL TEAM CALL - should fail
         # use generated key to auth in
-        setattr(litellm.proxy.proxy_server, "premium_user", True)
+        setattr(gateway.proxy.proxy_server, "premium_user", True)
         setattr(
-            litellm.proxy.proxy_server,
+            gateway.proxy.proxy_server,
             "general_settings",
             {
                 "enable_jwt_auth": True,
             },
         )
-        setattr(litellm.proxy.proxy_server, "jwt_handler", jwt_handler)
+        setattr(gateway.proxy.proxy_server, "jwt_handler", jwt_handler)
         try:
             result = await user_api_key_auth(request=request, api_key=bearer_token)
         except Exception as e:
@@ -862,14 +862,14 @@ import pytest
 
 @pytest.mark.asyncio
 async def test_team_cache_update_called():
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.proxy.proxy_server import user_api_key_cache
 
     # Use setattr to replace the method on the user_api_key_cache object
     cache = DualCache()
 
     setattr(
-        litellm.proxy.proxy_server,
+        gateway.proxy.proxy_server,
         "user_api_key_cache",
         cache,
     )
@@ -877,7 +877,7 @@ async def test_team_cache_update_called():
     with patch.object(cache, "async_get_cache", new=AsyncMock()) as mock_call_cache:
         cache.async_get_cache = mock_call_cache
         # Call the function under test
-        await litellm.proxy.proxy_server.update_cache(
+        await gateway.proxy.proxy_server.update_cache(
             token=None,
             user_id=None,
             end_user_id=None,
@@ -1014,16 +1014,16 @@ async def test_allow_access_by_email(
 
     ## 1. INITIAL TEAM CALL - should fail
     # use generated key to auth in
-    setattr(litellm.proxy.proxy_server, "premium_user", True)
+    setattr(gateway.proxy.proxy_server, "premium_user", True)
     setattr(
-        litellm.proxy.proxy_server,
+        gateway.proxy.proxy_server,
         "general_settings",
         {
             "enable_jwt_auth": True,
         },
     )
-    setattr(litellm.proxy.proxy_server, "jwt_handler", jwt_handler)
-    setattr(litellm.proxy.proxy_server, "prisma_client", {})
+    setattr(gateway.proxy.proxy_server, "jwt_handler", jwt_handler)
+    setattr(gateway.proxy.proxy_server, "prisma_client", {})
 
     # AsyncMock(
     #     return_value=LiteLLM_UserTable(
@@ -1031,7 +1031,7 @@ async def test_allow_access_by_email(
     #     )
     # ),
     with patch.object(
-        litellm.proxy.auth.handle_jwt,
+        gateway.proxy.auth.handle_jwt,
         "get_user_object",
         side_effect=mock_user_object,
     ) as mock_client:
@@ -1046,7 +1046,7 @@ async def test_allow_access_by_email(
 
 
 def test_get_public_key_from_jwk_url():
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.proxy.auth.handle_jwt import JWTHandler
 
     jwt_handler = JWTHandler()
@@ -1073,7 +1073,7 @@ def test_get_public_key_from_jwk_url():
 
 @pytest.mark.asyncio
 async def test_end_user_jwt_auth(monkeypatch):
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.proxy.auth.handle_jwt import JWTHandler
     from token_iq.gateway.caching import DualCache
     from token_iq.gateway.proxy._types import LiteLLM_JWTAuth
@@ -1171,19 +1171,19 @@ async def test_end_user_jwt_auth(monkeypatch):
         router_general_settings=RouterGeneralSettings(pass_through_all_models=True),
     )
 
-    setattr(litellm.proxy.proxy_server, "premium_user", True)
+    setattr(gateway.proxy.proxy_server, "premium_user", True)
     setattr(
-        litellm.proxy.proxy_server,
+        gateway.proxy.proxy_server,
         "general_settings",
         {"enable_jwt_auth": True},
     )
     setattr(
-        litellm.proxy.proxy_server,
+        gateway.proxy.proxy_server,
         "llm_router",
         router,
     )
-    setattr(litellm.proxy.proxy_server, "prisma_client", {})
-    setattr(litellm.proxy.proxy_server, "jwt_handler", jwt_handler)
+    setattr(gateway.proxy.proxy_server, "prisma_client", {})
+    setattr(gateway.proxy.proxy_server, "jwt_handler", jwt_handler)
     from token_iq.gateway.proxy.proxy_server import cost_tracking
 
     cost_tracking()
@@ -1198,13 +1198,13 @@ async def test_end_user_jwt_auth(monkeypatch):
     )
 
     # Mock the actual LLM completion call
-    mock_response = litellm.ModelResponse(
+    mock_response = gateway.ModelResponse(
         id="chatcmpl-mock",
         choices=[
-            litellm.Choices(
+            gateway.Choices(
                 finish_reason="stop",
                 index=0,
-                message=litellm.Message(
+                message=gateway.Message(
                     content="Hello! I'm doing well, thank you for asking.",
                     role="assistant",
                 ),
@@ -1213,7 +1213,7 @@ async def test_end_user_jwt_auth(monkeypatch):
         created=1234567890,
         model="gpt-4o",
         object="chat.completion",
-        usage=litellm.Usage(
+        usage=gateway.Usage(
             prompt_tokens=10,
             completion_tokens=15,
             total_tokens=25,

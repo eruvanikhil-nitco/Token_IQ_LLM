@@ -17,7 +17,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from mcp.types import Tool
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.models.object_permission import LiteLLM_ObjectPermissionTable
 from token_iq.gateway.proxy._experimental.mcp_server.faults.list_outcomes import AggregateToolListing
 from token_iq.gateway.proxy._experimental.mcp_server.tool_search import (
@@ -767,7 +767,7 @@ class TestCallToolRestApiVirtualTools:
     async def test_mcp_tool_search_ranks_the_callers_catalog_with_the_configured_embedding_model(
         self, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        monkeypatch.setattr(litellm, "mcp_tool_search", {"embedding_model": "emb", "similarity_threshold": 0.5})
+        monkeypatch.setattr(gateway, "mcp_tool_search", {"embedding_model": "emb", "similarity_threshold": 0.5})
         user_api_key_dict = UserAPIKeyAuth(
             api_key="k", team_id="team-1", object_permission=_make_perm(mcp_tool_search_enabled=True)
         )
@@ -800,7 +800,7 @@ class TestCallToolRestApiVirtualTools:
 
     @pytest.mark.asyncio
     async def test_mcp_tool_search_reports_missing_router_as_tool_error(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        monkeypatch.setattr(litellm, "mcp_tool_search", {"embedding_model": "emb"})
+        monkeypatch.setattr(gateway, "mcp_tool_search", {"embedding_model": "emb"})
         user_api_key_dict = UserAPIKeyAuth(api_key="k", object_permission=_make_perm(mcp_tool_search_enabled=True))
         with patch(  # test-quality-ok: the proxy's router is a module global; the handler reaches it the way production does
             "token_iq.gateway.proxy.proxy_server.llm_router", None
@@ -811,7 +811,7 @@ class TestCallToolRestApiVirtualTools:
 
     @pytest.mark.asyncio
     async def test_mcp_tool_search_reports_invalid_settings_as_tool_error(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        monkeypatch.setattr(litellm, "mcp_tool_search", {"top_k": 0})
+        monkeypatch.setattr(gateway, "mcp_tool_search", {"top_k": 0})
         user_api_key_dict = UserAPIKeyAuth(api_key="k", object_permission=_make_perm(mcp_tool_search_enabled=True))
         result = await self._get_call_fn()(request=self._semantic_request(), user_api_key_dict=user_api_key_dict)
         assert result.isError is True

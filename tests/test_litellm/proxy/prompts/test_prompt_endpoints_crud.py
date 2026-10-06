@@ -562,7 +562,7 @@ def test_create_versioned_prompt_spec_populates_version():
 
 
 def test_initialize_prompt_keeps_version_and_created_by():
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.proxy.prompts.prompt_registry import InMemoryPromptRegistry
 
     registry = InMemoryPromptRegistry()
@@ -579,7 +579,7 @@ def test_initialize_prompt_keeps_version_and_created_by():
         created_by="user-1",
     )
 
-    with patch.object(litellm.logging_callback_manager, "add_litellm_callback"):  # test-quality-ok: keeps initialize_prompt from registering a global callback that would leak across tests
+    with patch.object(gateway.logging_callback_manager, "add_litellm_callback"):  # test-quality-ok: keeps initialize_prompt from registering a global callback that would leak across tests
         initialized_prompt = registry.initialize_prompt(prompt=prompt_spec)
 
     assert initialized_prompt is not None

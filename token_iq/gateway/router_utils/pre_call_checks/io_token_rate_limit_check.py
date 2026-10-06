@@ -17,7 +17,7 @@ from typing import TYPE_CHECKING, Any, Final
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import token_counter
 from token_iq.gateway._logging import verbose_router_logger
 from token_iq.gateway.caching.dual_cache import DualCache
@@ -125,7 +125,7 @@ def _model_max_output_tokens(model_name: str) -> int | None:
     # litellm.get_model_info raises a bare Exception for an unrecognized model;
     # this lookup is a fallback default and must never fail the request.
     with contextlib.suppress(Exception):
-        info: Final = litellm.get_model_info(model=model_name)
+        info: Final = gateway.get_model_info(model=model_name)
         model_max: Final = info.get("max_output_tokens") or info.get("max_tokens")
         if model_max is not None:
             return max(0, int(model_max))
@@ -321,8 +321,8 @@ def _reservation_value(value: int, limit: int | None) -> int:
     return 1
 
 
-def _rate_limit_error(limit_label: str, limit: int, current: float) -> litellm.RateLimitError:
-    return litellm.RateLimitError(
+def _rate_limit_error(limit_label: str, limit: int, current: float) -> gateway.RateLimitError:
+    return gateway.RateLimitError(
         message=f"Model rate limit exceeded. {limit_label} limit={limit}, current usage={current}",
         llm_provider="",
         model="",

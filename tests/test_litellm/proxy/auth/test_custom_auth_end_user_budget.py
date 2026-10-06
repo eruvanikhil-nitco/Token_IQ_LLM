@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import AsyncMock, patch
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy.auth.user_api_key_auth import (
     _run_post_custom_auth_checks,
     update_valid_token_with_end_user_params,
@@ -77,11 +77,11 @@ async def test_custom_auth_run_post_custom_auth_checks_with_end_user_budget_exce
             "token_iq.gateway.proxy.proxy_server.model_max_budget_limiter.is_end_user_within_model_budget",
             new_callable=AsyncMock,
         ) as mock_budget_check:
-            mock_budget_check.side_effect = litellm.BudgetExceededError(
+            mock_budget_check.side_effect = gateway.BudgetExceededError(
                 message="Exceeded budget", current_cost=20.0, max_budget=10.0
             )
 
-            with pytest.raises(litellm.BudgetExceededError):
+            with pytest.raises(gateway.BudgetExceededError):
                 await _run_post_custom_auth_checks(
                     valid_token=valid_token,
                     request=None,
@@ -122,7 +122,7 @@ async def test_custom_auth_enforces_end_user_budget_when_common_checks_skipped()
         patch("token_iq.gateway.proxy.proxy_server.get_current_spend", mock_get_current_spend),
         patch("token_iq.gateway.proxy.proxy_server.general_settings", {}),
     ):
-        with pytest.raises(litellm.BudgetExceededError):
+        with pytest.raises(gateway.BudgetExceededError):
             await _run_post_custom_auth_checks(
                 valid_token=valid_token,
                 request=None,

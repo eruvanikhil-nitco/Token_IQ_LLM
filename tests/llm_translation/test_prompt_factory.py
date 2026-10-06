@@ -7,7 +7,7 @@ import pytest
 from typing import List
 
 # from litellm.core_utils.prompt_templates.factory import prompt_factory
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.prompt_templates.factory import (
     _bedrock_tools_pt,
     anthropic_messages_pt,
@@ -622,8 +622,8 @@ def test_convert_url(monkeypatch):
         200, content=image_bytes, headers={"Content-Type": "image/png"}
     )
 
-    monkeypatch.setattr(litellm, "user_url_validation", False, raising=False)
-    monkeypatch.setattr(litellm, "module_level_client", mock_client, raising=False)
+    monkeypatch.setattr(gateway, "user_url_validation", False, raising=False)
+    monkeypatch.setattr(gateway, "module_level_client", mock_client, raising=False)
     in_memory_cache.flush_cache()
 
     result = convert_url_to_base64(url)
@@ -640,7 +640,7 @@ def test_azure_tool_call_invoke_helper():
         {"role": "assistant", "function_call": {"name": "get_weather"}},
     ]
 
-    transformed_messages = litellm.AzureOpenAIConfig().transform_request(
+    transformed_messages = gateway.AzureOpenAIConfig().transform_request(
         model="gpt-4o",
         messages=messages,
         optional_params={},
@@ -1201,12 +1201,12 @@ def test_alternating_roles_e2e():
     from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
     import json
 
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     http_handler = HTTPHandler()
 
     with patch.object(http_handler, "post", new=MagicMock()) as mock_post:
         try:
-            response = litellm.completion(
+            response = gateway.completion(
                 **{
                     "model": "databricks/databricks-meta-llama-3-1-70b-instruct",
                     "messages": [
@@ -1279,7 +1279,7 @@ def test_just_system_message():
         _bedrock_converse_messages_pt,
     )
 
-    with pytest.raises(litellm.BadRequestError) as e:
+    with pytest.raises(gateway.BadRequestError) as e:
         _bedrock_converse_messages_pt(
             messages=[],
             model="anthropic.claude-3-sonnet-20240229-v1:0",
@@ -1308,7 +1308,7 @@ def test_hf_chat_template():
     )
 
     model = "llama/arn:aws:bedrock:us-east-1:1234:imported-model/45d34re"
-    litellm.register_prompt_template(
+    gateway.register_prompt_template(
         model=model,
         tokenizer_config={
             "add_bos_token": True,

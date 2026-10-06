@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING, Any, Final
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.constants import REPLICATE_MODEL_NAME_WITH_ID_LENGTH
 from token_iq.gateway.core_utils.prompt_templates.common_utils import (
     convert_content_list_to_str,
@@ -164,7 +164,7 @@ class ReplicateConfig(BaseConfig):
         headers: dict,
     ) -> dict:
         ## Load Config
-        config: Final = litellm.ReplicateConfig.get_config()
+        config: Final = gateway.ReplicateConfig.get_config()
         for k, v in config.items():
             if (
                 k not in optional_params
@@ -184,9 +184,9 @@ class ReplicateConfig(BaseConfig):
                     system_prompt = convert_content_list_to_str(first_sys_message)
                     break
 
-        if model in litellm.custom_prompt_dict:
+        if model in gateway.custom_prompt_dict:
             # check if the model has a registered custom prompt
-            model_prompt_details: Final = litellm.custom_prompt_dict[model]
+            model_prompt_details: Final = gateway.custom_prompt_dict[model]
             prompt = custom_prompt(
                 role_dict=model_prompt_details.get("roles", {}),
                 initial_prompt_value=model_prompt_details.get("initial_prompt_value", ""),

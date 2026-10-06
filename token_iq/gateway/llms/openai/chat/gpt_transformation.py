@@ -11,7 +11,7 @@ from urllib.parse import urlparse
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.core_helpers import map_finish_reason
 from token_iq.gateway.core_utils.llm_response_utils.convert_dict_to_response import (
     _extract_reasoning_content,
@@ -185,8 +185,8 @@ class OpenAIGPTConfig(BaseLLMModelInfo, BaseConfig):
     def is_openai_catalog_model(model: str) -> bool:
         model_for_check: Final = model.split("responses/", 1)[1] if "responses/" in model else model
         return (
-            model_for_check in litellm.open_ai_chat_completion_models
-            or model_for_check in litellm.open_ai_text_completion_models
+            model_for_check in gateway.open_ai_chat_completion_models
+            or model_for_check in gateway.open_ai_text_completion_models
         )
 
     def _map_openai_params(
@@ -280,7 +280,7 @@ class OpenAIGPTConfig(BaseLLMModelInfo, BaseConfig):
             content_item = cast(ChatCompletionFileObject, content_item)
             file_obj: Final = content_item.get("file")
             if file_obj is None:
-                raise litellm.BadRequestError(
+                raise gateway.BadRequestError(
                     message="Content block has type='file' but is missing the required 'file' field",
                     model=None,
                     llm_provider="openai",
@@ -409,7 +409,7 @@ class OpenAIGPTConfig(BaseLLMModelInfo, BaseConfig):
     ) -> bool:
         if custom_llm_provider != "openai":
             return False
-        resolved_api_base = api_base or litellm.api_base or os.getenv("OPENAI_BASE_URL") or os.getenv("OPENAI_API_BASE")
+        resolved_api_base = api_base or gateway.api_base or os.getenv("OPENAI_BASE_URL") or os.getenv("OPENAI_API_BASE")
         if not resolved_api_base:
             return True
         hostname: Final = urlparse(resolved_api_base).hostname
@@ -759,7 +759,7 @@ class OpenAIGPTConfig(BaseLLMModelInfo, BaseConfig):
         if parsed_url.port:
             base_url += f":{parsed_url.port}"
 
-        response: Final = litellm.module_level_client.get(
+        response: Final = gateway.module_level_client.get(
             url=f"{base_url}/v1/models",
             headers={"Authorization": f"Bearer {api_key}"},
         )
@@ -772,13 +772,13 @@ class OpenAIGPTConfig(BaseLLMModelInfo, BaseConfig):
 
     @staticmethod
     def get_api_key(api_key: str | None = None) -> str | None:
-        return api_key or litellm.api_key or litellm.openai_key or get_secret_str("OPENAI_API_KEY")
+        return api_key or gateway.api_key or gateway.openai_key or get_secret_str("OPENAI_API_KEY")
 
     @staticmethod
     def get_api_base(api_base: str | None = None) -> str | None:
         return (
             api_base
-            or litellm.api_base
+            or gateway.api_base
             or get_secret_str("OPENAI_BASE_URL")
             or get_secret_str("OPENAI_API_BASE")
             or "https://api.openai.com/v1"

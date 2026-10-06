@@ -10,7 +10,7 @@ import pytest
 from fastapi.testclient import TestClient
 from httpx import Response
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy.proxy_server import app
 
 
@@ -725,7 +725,7 @@ def test_cursor_chat_completions_messages_body_uses_chat_pipeline():
 
     mock_router = MagicMock()
     mock_router.acompletion = AsyncMock(
-        return_value=litellm.ModelResponse(
+        return_value=gateway.ModelResponse(
             id="chatcmpl-cursor-1",
             choices=[
                 {
@@ -1790,8 +1790,8 @@ class TestGuardrailBlockedResponsesUsage:
         assert body["usage"]["total_tokens"] == 34
 
     def test_post_call_block_maps_bridged_chat_usage(self):
-        original = litellm.ModelResponse()
-        original.usage = litellm.Usage(prompt_tokens=14, completion_tokens=18, total_tokens=32)
+        original = gateway.ModelResponse()
+        original.usage = gateway.Usage(prompt_tokens=14, completion_tokens=18, total_tokens=32)
 
         response = self._post_blocked_responses(original)
 

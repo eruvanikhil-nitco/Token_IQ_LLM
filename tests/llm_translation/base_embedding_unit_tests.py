@@ -6,7 +6,7 @@ from typing import Any, Dict, List
 from unittest.mock import MagicMock, Mock, patch
 import os
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import embedding
 from token_iq.gateway.exceptions import BadRequestError
 from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
@@ -41,24 +41,24 @@ class BaseLLMEmbeddingTest(ABC):
         pass
 
     @abstractmethod
-    def get_custom_llm_provider(self) -> litellm.LlmProviders:
+    def get_custom_llm_provider(self) -> gateway.LlmProviders:
         """Must return the custom llm provider"""
         pass
 
     @pytest.mark.asyncio()
     @pytest.mark.parametrize("sync_mode", [True, False])
     async def test_basic_embedding(self, sync_mode):
-        litellm.set_verbose = True
+        gateway.set_verbose = True
         embedding_call_args = self.get_base_embedding_call_args()
         if sync_mode is True:
-            response = litellm.embedding(
+            response = gateway.embedding(
                 **embedding_call_args,
                 input=["hello", "world"],
             )
 
             print("embedding response: ", response)
         else:
-            response = await litellm.aembedding(
+            response = await gateway.aembedding(
                 **embedding_call_args,
                 input=["hello", "world"],
             )
@@ -77,11 +77,11 @@ class BaseLLMEmbeddingTest(ABC):
         assert optional_params["max_retries"] == 20
 
     def test_image_embedding(self):
-        litellm.set_verbose = True
+        gateway.set_verbose = True
         from token_iq.gateway.utils import supports_embedding_image_input
 
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-        litellm.model_cost = litellm.get_model_cost_map()
+        gateway.model_cost = gateway.get_model_cost_map()
 
         base_embedding_call_args = self.get_base_embedding_call_args()
         if not supports_embedding_image_input(base_embedding_call_args["model"], None):

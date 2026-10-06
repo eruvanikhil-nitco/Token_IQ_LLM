@@ -2,7 +2,7 @@ from datetime import datetime, time, timezone
 
 from pydantic import BaseModel, ConfigDict
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.duration_parser import get_next_standardized_reset_time
 
 
@@ -49,7 +49,7 @@ def get_budget_reset_timezone() -> str:
     litellm_settings values are set as attributes on the litellm module
     by proxy_server.py at startup (via setattr(litellm, key, value)).
     """
-    return getattr(litellm, "timezone", None) or "UTC"
+    return getattr(gateway, "timezone", None) or "UTC"
 
 
 def get_budget_reset_settings() -> BudgetResetSettings:
@@ -57,7 +57,7 @@ def get_budget_reset_settings() -> BudgetResetSettings:
     `budget_reset_time`, which lets the proxy fail fast at startup."""
     return BudgetResetSettings(
         timezone=get_budget_reset_timezone(),
-        reset_time_of_day=parse_budget_reset_time(getattr(litellm, "budget_reset_time", None)),
+        reset_time_of_day=parse_budget_reset_time(getattr(gateway, "budget_reset_time", None)),
     )
 
 

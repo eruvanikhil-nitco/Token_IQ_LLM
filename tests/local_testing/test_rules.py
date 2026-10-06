@@ -7,7 +7,7 @@ import traceback
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import acompletion, completion
 
 
@@ -22,7 +22,7 @@ def my_pre_call_rule(input: str):
 ## Test 1: Pre-call rule
 def test_pre_call_rule():
     try:
-        litellm.pre_call_rules = [my_pre_call_rule]
+        gateway.pre_call_rules = [my_pre_call_rule]
         ### completion
         response = completion(
             model="gpt-3.5-turbo",
@@ -43,7 +43,7 @@ def test_pre_call_rule():
             pass
 
     asyncio.run(test_async_response())
-    litellm.pre_call_rules = []
+    gateway.pre_call_rules = []
 
 
 def my_post_call_rule(input: str):
@@ -74,8 +74,8 @@ def my_post_call_rule_2(input: str):
 # Test 2: Post-call rule
 # commenting out of ci/cd since llm's have variable output which was causing our pipeline to fail erratically.
 def test_post_call_rule():
-    litellm.pre_call_rules = []
-    litellm.post_call_rules = [my_post_call_rule]
+    gateway.pre_call_rules = []
+    gateway.post_call_rules = [my_post_call_rule]
 
     ### completion
     with pytest.raises(Exception, match=re.escape("This violates LiteLLM Proxy Rules. Response too short")) as exc_info:
@@ -96,16 +96,16 @@ def test_post_call_rule():
     #     except Exception as e:
     #         pass
     # asyncio.run(test_async_response())
-    litellm.pre_call_rules = []
-    litellm.post_call_rules = []
+    gateway.pre_call_rules = []
+    gateway.post_call_rules = []
 
 
 # test_post_call_rule()
 
 
 def test_post_call_rule_streaming():
-    litellm.pre_call_rules = []
-    litellm.post_call_rules = [my_post_call_rule_2]
+    gateway.pre_call_rules = []
+    gateway.post_call_rules = [my_post_call_rule_2]
     ### completion
     response = completion(
         model="gpt-3.5-turbo",

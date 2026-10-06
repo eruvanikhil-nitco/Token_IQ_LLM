@@ -10,7 +10,7 @@ import io
 import time
 import json
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.router import Router
 import asyncio
 from typing import Optional
@@ -43,7 +43,7 @@ async def test_moderations_api_logging(model):
     When moderations API is called, it should log the event on standard_logging_payload
     """
     custom_logger = TestCustomLogger()
-    litellm.logging_callback_manager.add_litellm_callback(custom_logger)
+    gateway.logging_callback_manager.add_litellm_callback(custom_logger)
 
     MODEL_GROUP = "internal-moderation-model"
     router = Router(
@@ -64,7 +64,7 @@ async def test_moderations_api_logging(model):
             model=MODEL_GROUP,
         )
     else:
-        response = await litellm.amoderation(
+        response = await gateway.amoderation(
             input=input_content,
             model=model,
         )
@@ -81,12 +81,12 @@ async def test_moderations_api_logging(model):
     )
     assert (
         standard_logging_payload["call_type"]
-        == litellm.utils.CallTypes.amoderation.value
+        == gateway.utils.CallTypes.amoderation.value
     )
     assert standard_logging_payload["status"] == "success"
     assert (
         standard_logging_payload["custom_llm_provider"]
-        == litellm.LlmProviders.OPENAI.value
+        == gateway.LlmProviders.OPENAI.value
     )
 
     # assert the logged input == input

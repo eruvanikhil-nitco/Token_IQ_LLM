@@ -5,7 +5,7 @@ Translates from OpenAI's `/v1/chat/completions` to DeepSeek's `/v1/chat/completi
 from collections.abc import Coroutine, Mapping, Sequence
 from typing import Any, Final, Literal, cast, overload
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.prompt_templates.common_utils import (
     convert_content_list_to_str,
     extract_search_results_text,
@@ -85,7 +85,7 @@ class DeepSeekChatConfig(OpenAIGPTConfig):
                     cleaned.pop("reasoning_content", None)
                     patched["provider_specific_fields"] = cleaned
                 else:
-                    litellm.verbose_logger.warning(
+                    gateway.verbose_logger.warning(
                         "DeepSeek thinking mode: assistant message is missing "
                         "`reasoning_content` and none was saved in "
                         "`provider_specific_fields`. A single-space placeholder "
@@ -277,7 +277,7 @@ class DeepSeekChatConfig(OpenAIGPTConfig):
                 if not _is_function_tool(tool)
             }
         )
-        litellm.verbose_logger.warning(
+        gateway.verbose_logger.warning(
             "DeepSeek chat completions only supports function tools; dropping "
             "unsupported tool type(s) %s before sending the request",
             dropped_types,

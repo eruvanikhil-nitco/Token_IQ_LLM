@@ -17,7 +17,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy._types import CommonProxyErrors
 from token_iq.gateway.proxy.proxy_server import (
     ProxyConfig,
@@ -789,11 +789,11 @@ def test_ProxyConfig_load_team_config_no_settings_returns_empty():
 
 def test_ProxyConfig__init_cache_sets_litellm_cache(monkeypatch):
     pc = ProxyConfig()
-    monkeypatch.setattr(litellm, "cache", None, raising=False)
+    monkeypatch.setattr(gateway, "cache", None, raising=False)
     pc._init_cache(cache_params={"type": "local"})
     snapshot = {
-        "cache_is_set": litellm.cache is not None,
-        "cache_type_name": type(litellm.cache).__name__,
+        "cache_is_set": gateway.cache is not None,
+        "cache_type_name": type(gateway.cache).__name__,
         "params_used": "local",
     }
     assert snapshot == {
@@ -820,7 +820,7 @@ def test_ProxyConfig_switch_on_llm_response_caching_sets_flag(monkeypatch):
     fake_router.cache_responses = False
     fake_cache = MagicMock()
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", fake_router)
-    monkeypatch.setattr(litellm, "cache", fake_cache, raising=False)
+    monkeypatch.setattr(gateway, "cache", fake_cache, raising=False)
     pc.switch_on_llm_response_caching()
     snapshot = {
         "cache_responses": fake_router.cache_responses,
@@ -837,7 +837,7 @@ def test_ProxyConfig_switch_on_llm_response_caching_sets_flag(monkeypatch):
 def test_ProxyConfig_switch_on_llm_response_caching_missing_router_noop(monkeypatch):
     pc = ProxyConfig()
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", None)
-    monkeypatch.setattr(litellm, "cache", None, raising=False)
+    monkeypatch.setattr(gateway, "cache", None, raising=False)
     # No router and no cache — should silently no-op (no raise).
     pc.switch_on_llm_response_caching()
     # Error-style: prove no router was created.
@@ -932,7 +932,7 @@ def _write_vault_backed_config(tmp_path, monkeypatch, config_yaml: str) -> str:
     monkeypatch.delenv("LITELLM_MASTER_KEY", raising=False)
     monkeypatch.delenv("MY_PROVIDER_KEY", raising=False)
     monkeypatch.setenv("VAULT_CONSTRUCTION_LOG", str(tmp_path / "constructions.log"))
-    monkeypatch.setattr(litellm, "secret_manager_client", None)
+    monkeypatch.setattr(gateway, "secret_manager_client", None)
     return str(config_file)
 
 
@@ -956,7 +956,7 @@ async def test_ProxyConfig_get_config_resolves_keys_held_only_by_the_secret_mana
     assert {
         "master_key": cfg["general_settings"]["master_key"],
         "api_key": cfg["model_list"][0]["litellm_params"]["api_key"],
-        "hosted_keys": litellm._key_management_settings.hosted_keys,
+        "hosted_keys": gateway._key_management_settings.hosted_keys,
     } == {
         "master_key": "master-from-vault",
         "api_key": "provider-from-vault",
@@ -992,11 +992,11 @@ async def test_ProxyConfig_get_config_reuses_an_already_initialized_secret_manag
     config_file_path = _write_vault_backed_config(tmp_path, monkeypatch, VAULT_BACKED_CONFIG)
 
     await ProxyConfig().get_config(config_file_path=config_file_path)
-    first_client = litellm.secret_manager_client
+    first_client = gateway.secret_manager_client
     second = await ProxyConfig().get_config(config_file_path=config_file_path)
 
     assert {
-        "client_reused": litellm.secret_manager_client is first_client,
+        "client_reused": gateway.secret_manager_client is first_client,
         "master_key": second["general_settings"]["master_key"],
     } == {"client_reused": True, "master_key": "master-from-vault"}
 
@@ -1017,7 +1017,7 @@ async def test_ProxyConfig_get_config_without_key_management_system_leaves_secre
     assert {
         "master_key": cfg["general_settings"]["master_key"],
         "api_key": cfg["model_list"][0]["litellm_params"]["api_key"],
-        "client": litellm.secret_manager_client,
+        "client": gateway.secret_manager_client,
         "warned_about": [call.args[1] for call in warn.call_args_list],
     } == {"master_key": None, "api_key": None, "client": None, "warned_about": []}
 
@@ -1056,7 +1056,7 @@ async def test_ProxyConfig_get_config_does_not_warn_for_a_name_outside_hosted_ke
 
     assert {
         "api_key": cfg["model_list"][0]["litellm_params"]["api_key"],
-        "client_is_up": litellm.secret_manager_client is not None,
+        "client_is_up": gateway.secret_manager_client is not None,
         "warned_about": [call.args[1] for call in warn.call_args_list],
     } == {"api_key": None, "client_is_up": True, "warned_about": []}
 
@@ -1079,7 +1079,7 @@ async def test_ProxyConfig_get_config_does_not_warn_under_write_only_access_mode
 
     assert {
         "master_key": cfg["general_settings"]["master_key"],
-        "client_is_up": litellm.secret_manager_client is not None,
+        "client_is_up": gateway.secret_manager_client is not None,
         "warned_about": [call.args[1] for call in warn.call_args_list],
     } == {"master_key": None, "client_is_up": True, "warned_about": []}
 
@@ -1530,18 +1530,18 @@ async def test_ProxyConfig_load_config_wires_general_settings_url_validation(tmp
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.store_model_in_db", False)
     monkeypatch.delenv("LITELLM_CONFIG_BUCKET_NAME", raising=False)
 
-    original_validation = litellm.user_url_validation
-    original_hosts = list(litellm.user_url_allowed_hosts)
-    original_provider_hosts = list(litellm.provider_url_destination_allowed_hosts)
+    original_validation = gateway.user_url_validation
+    original_hosts = list(gateway.user_url_allowed_hosts)
+    original_provider_hosts = list(gateway.provider_url_destination_allowed_hosts)
     try:
         await ProxyConfig().load_config(router=None, config_file_path=str(f))
-        assert litellm.user_url_validation is False
-        assert litellm.user_url_allowed_hosts == ["internal.corp"]
-        assert litellm.provider_url_destination_allowed_hosts == ["api.example.com"]
+        assert gateway.user_url_validation is False
+        assert gateway.user_url_allowed_hosts == ["internal.corp"]
+        assert gateway.provider_url_destination_allowed_hosts == ["api.example.com"]
     finally:
-        litellm.user_url_validation = original_validation
-        litellm.user_url_allowed_hosts = original_hosts
-        litellm.provider_url_destination_allowed_hosts = original_provider_hosts
+        gateway.user_url_validation = original_validation
+        gateway.user_url_allowed_hosts = original_hosts
+        gateway.provider_url_destination_allowed_hosts = original_provider_hosts
 
 
 @pytest.mark.asyncio
@@ -1651,15 +1651,15 @@ async def test_ProxyConfig_load_config_blank_callback_settings_does_not_crash(tm
         CompressionInterceptionLogger,
     )
 
-    original_callbacks = list(litellm.callbacks) if isinstance(litellm.callbacks, list) else []
-    litellm.callbacks = []
+    original_callbacks = list(gateway.callbacks) if isinstance(gateway.callbacks, list) else []
+    gateway.callbacks = []
     try:
         pc = ProxyConfig()
         await pc.load_config(router=None, config_file_path=str(f))
 
-        assert any(isinstance(c, CompressionInterceptionLogger) for c in litellm.callbacks)
+        assert any(isinstance(c, CompressionInterceptionLogger) for c in gateway.callbacks)
     finally:
-        litellm.callbacks = original_callbacks
+        gateway.callbacks = original_callbacks
 
 
 # ---------------------------------------------------------------------------
@@ -2393,7 +2393,7 @@ async def test_ProxyConfig__update_llm_router_bad_proxy_logging_raises(monkeypat
 def test_ProxyConfig__add_callback_from_db_to_in_memory_litellm_callbacks_adds(
     monkeypatch,
 ):
-    monkeypatch.setattr(litellm, "callbacks", [], raising=False)
+    monkeypatch.setattr(gateway, "callbacks", [], raising=False)
     pc = ProxyConfig()
     pc._add_callback_from_db_to_in_memory_litellm_callbacks(
         callback="my_custom_cb",
@@ -2401,8 +2401,8 @@ def test_ProxyConfig__add_callback_from_db_to_in_memory_litellm_callbacks_adds(
         existing_callbacks=[],
     )
     snapshot = {
-        "in_callbacks": "my_custom_cb" in litellm.callbacks,
-        "count": len(litellm.callbacks),
+        "in_callbacks": "my_custom_cb" in gateway.callbacks,
+        "count": len(gateway.callbacks),
         "method_called": True,
     }
     assert snapshot == {"in_callbacks": True, "count": 1, "method_called": True}
@@ -2411,7 +2411,7 @@ def test_ProxyConfig__add_callback_from_db_to_in_memory_litellm_callbacks_adds(
 def test_ProxyConfig__add_callback_from_db_to_in_memory_litellm_callbacks_invalid_event_raises(
     monkeypatch,
 ):
-    monkeypatch.setattr(litellm, "callbacks", [], raising=False)
+    monkeypatch.setattr(gateway, "callbacks", [], raising=False)
     pc = ProxyConfig()
     # For a "known" callback, event_types is iterated — non-iterable raises TypeError.
     with pytest.raises(TypeError):
@@ -2428,9 +2428,9 @@ def test_ProxyConfig__add_callback_from_db_to_in_memory_litellm_callbacks_invali
 
 
 def test_ProxyConfig__add_callbacks_from_db_config_processes_lists(monkeypatch):
-    monkeypatch.setattr(litellm, "callbacks", [], raising=False)
-    monkeypatch.setattr(litellm, "success_callback", [], raising=False)
-    monkeypatch.setattr(litellm, "failure_callback", [], raising=False)
+    monkeypatch.setattr(gateway, "callbacks", [], raising=False)
+    monkeypatch.setattr(gateway, "success_callback", [], raising=False)
+    monkeypatch.setattr(gateway, "failure_callback", [], raising=False)
     pc = ProxyConfig()
     cfg = {
         "litellm_settings": {
@@ -2441,9 +2441,9 @@ def test_ProxyConfig__add_callbacks_from_db_config_processes_lists(monkeypatch):
     }
     pc._add_callbacks_from_db_config(cfg)
     snapshot = {
-        "cb_added": "cb_a" in litellm.callbacks,
-        "success_added": "s_a" in litellm.success_callback,
-        "failure_added": "f_a" in litellm.failure_callback,
+        "cb_added": "cb_a" in gateway.callbacks,
+        "success_added": "s_a" in gateway.success_callback,
+        "failure_added": "f_a" in gateway.failure_callback,
     }
     assert snapshot == {
         "cb_added": True,
@@ -3079,8 +3079,8 @@ async def test_ProxyConfig_load_config_redacts_secret_litellm_setting_keeps_plai
     handler = LogRecordHandler()
     handler.setLevel(logging.DEBUG)
     original_level = verbose_proxy_logger.level
-    original_api_key = getattr(litellm, "api_key", None)
-    original_num_retries = getattr(litellm, "num_retries", None)
+    original_api_key = getattr(gateway, "api_key", None)
+    original_num_retries = getattr(gateway, "num_retries", None)
     verbose_proxy_logger.setLevel(logging.DEBUG)
     verbose_proxy_logger.addHandler(handler)
     try:
@@ -3089,8 +3089,8 @@ async def test_ProxyConfig_load_config_redacts_secret_litellm_setting_keeps_plai
     finally:
         verbose_proxy_logger.removeHandler(handler)
         verbose_proxy_logger.setLevel(original_level)
-        litellm.api_key = original_api_key
-        litellm.num_retries = original_num_retries
+        gateway.api_key = original_api_key
+        gateway.num_retries = original_num_retries
 
     assert api_key_secret not in rendered, f"api_key leaked in logs: {rendered!r}"
     assert "num_retries=7" in rendered, (

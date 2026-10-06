@@ -2,7 +2,7 @@ import json
 from datetime import datetime, timedelta, timezone
 from typing import Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 import pytest
 import yaml
 from fastapi.testclient import TestClient
@@ -8442,7 +8442,7 @@ async def test_default_key_generate_params_duration(monkeypatch):
     Regression test for bug where 'duration' was missing from the list
     of fields populated from default_key_generate_params.
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     mock_prisma_client = AsyncMock()
     mock_insert_data = AsyncMock(
@@ -8469,7 +8469,7 @@ async def test_default_key_generate_params_duration(monkeypatch):
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
 
     # Set default_key_generate_params with duration
-    monkeypatch.setattr(litellm, "default_key_generate_params", {"duration": "180d"})
+    monkeypatch.setattr(gateway, "default_key_generate_params", {"duration": "180d"})
 
     request = GenerateKeyRequest()  # No duration specified
     response = await _common_key_generation_helper(
@@ -8494,7 +8494,7 @@ async def test_default_key_generate_params_object_permission_applied_when_absent
     default_key_generate_params.object_permission is applied to a key that
     doesn't specify object_permission at all.
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     mock_prisma_client = AsyncMock()
     mock_insert_data = AsyncMock(
@@ -8525,7 +8525,7 @@ async def test_default_key_generate_params_object_permission_applied_when_absent
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
 
     monkeypatch.setattr(
-        litellm,
+        gateway,
         "default_key_generate_params",
         {
                 "object_permission": {"vector_stores": ["default-vs"]}
@@ -8556,7 +8556,7 @@ async def test_default_key_generate_params_object_permission_merges_partial(
     caller left unset - an explicitly supplied field (agents here) is
     preserved alongside the defaulted field (vector_stores).
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.proxy._types import LiteLLM_ObjectPermissionBase
 
     mock_prisma_client = AsyncMock()
@@ -8588,7 +8588,7 @@ async def test_default_key_generate_params_object_permission_merges_partial(
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
 
     monkeypatch.setattr(
-        litellm,
+        gateway,
         "default_key_generate_params",
         {
                 "object_permission": {"vector_stores": ["default-vs"]}
@@ -8621,7 +8621,7 @@ async def test_default_key_generate_params_object_permission_does_not_override_e
     A field the caller explicitly set on object_permission must win over the
     same field in default_key_generate_params.
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.proxy._types import LiteLLM_ObjectPermissionBase
 
     mock_prisma_client = AsyncMock()
@@ -8653,7 +8653,7 @@ async def test_default_key_generate_params_object_permission_does_not_override_e
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
 
     monkeypatch.setattr(
-        litellm,
+        gateway,
         "default_key_generate_params",
         {
                 "object_permission": {"vector_stores": ["default-vs"]}
@@ -8690,7 +8690,7 @@ async def test_default_key_generate_params_object_permission_not_rejected_for_no
     caller-scope validation, so it is never mistaken for a caller-requested
     permission.
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     mock_prisma_client = AsyncMock()
     mock_insert_data = AsyncMock(
@@ -8721,7 +8721,7 @@ async def test_default_key_generate_params_object_permission_not_rejected_for_no
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
 
     monkeypatch.setattr(
-        litellm,
+        gateway,
         "default_key_generate_params",
         {
                 "object_permission": {"vector_stores": ["default-vs"]}
@@ -9602,7 +9602,7 @@ async def test_key_aliases_admin_sees_all():
 class TestValidateKeyAliasFormat:
     @pytest.fixture(autouse=True)
     def reset_key_alias_flag(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        monkeypatch.setattr(litellm, "enable_key_alias_format_validation", False)
+        monkeypatch.setattr(gateway, "enable_key_alias_format_validation", False)
 
     def test_validation_skipped_when_flag_disabled(self):
         """When enable_key_alias_format_validation is False (default), no charset/length validation occurs."""
@@ -9648,7 +9648,7 @@ class TestValidateKeyAliasFormat:
             _validate_key_alias_format,
         )
 
-        monkeypatch.setattr(litellm, "enable_key_alias_format_validation", True)
+        monkeypatch.setattr(gateway, "enable_key_alias_format_validation", True)
         # Valid cases
         _validate_key_alias_format(None)  # OK
         _validate_key_alias_format("valid-alias")
@@ -9666,7 +9666,7 @@ class TestValidateKeyAliasFormat:
         )
         from token_iq.gateway.proxy._types import ProxyException
 
-        monkeypatch.setattr(litellm, "enable_key_alias_format_validation", True)
+        monkeypatch.setattr(gateway, "enable_key_alias_format_validation", True)
         invalid_aliases = [
             "",  # empty
             " ",  # whitespace
@@ -10899,7 +10899,7 @@ class TestLIT1884KeyGenerateValidation:
             user_role=LitellmUserRoles.INTERNAL_USER,
         )
 
-        with patch.object(litellm, "key_generation_settings", None):
+        with patch.object(gateway, "key_generation_settings", None):
             with pytest.raises(HTTPException) as exc_info:
                 key_generation_check(
                     team_table=None,
@@ -10920,7 +10920,7 @@ class TestLIT1884KeyGenerateValidation:
             user_role=LitellmUserRoles.PROXY_ADMIN,
         )
 
-        with patch.object(litellm, "key_generation_settings", None):
+        with patch.object(gateway, "key_generation_settings", None):
             result = key_generation_check(
                 team_table=None,
                 user_api_key_dict=user_api_key_dict,
@@ -11412,7 +11412,7 @@ class TestKeyAliasSkipValidationOnUnchanged:
 
     @pytest.fixture(autouse=True)
     def enable_validation(self, monkeypatch: pytest.MonkeyPatch) -> None:
-        monkeypatch.setattr(litellm, "enable_key_alias_format_validation", True)
+        monkeypatch.setattr(gateway, "enable_key_alias_format_validation", True)
 
     @pytest.fixture
     def mock_prisma(self):
@@ -11530,13 +11530,13 @@ class TestKeyAliasSkipValidationOnUnchanged:
 
 def test_enforce_upperbound_rejects_over_limit_on_generate(monkeypatch):
     """Test that key generation is rejected when values exceed upperbound."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.types.proxy.management_endpoints.ui_sso import (
         LiteLLM_UpperboundKeyGenerateParams,
     )
 
     monkeypatch.setattr(
-        litellm,
+        gateway,
         "upperbound_key_generate_params",
         LiteLLM_UpperboundKeyGenerateParams(
                     tpm_limit=1000, rpm_limit=100, max_budget=10.0
@@ -11551,13 +11551,13 @@ def test_enforce_upperbound_rejects_over_limit_on_generate(monkeypatch):
 
 def test_enforce_upperbound_fills_defaults_on_generate(monkeypatch):
     """Test that None values are filled with upperbound defaults during generation."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.types.proxy.management_endpoints.ui_sso import (
         LiteLLM_UpperboundKeyGenerateParams,
     )
 
     monkeypatch.setattr(
-        litellm,
+        gateway,
         "upperbound_key_generate_params",
         LiteLLM_UpperboundKeyGenerateParams(
                     tpm_limit=1000, rpm_limit=100
@@ -11571,13 +11571,13 @@ def test_enforce_upperbound_fills_defaults_on_generate(monkeypatch):
 
 def test_enforce_upperbound_skips_none_on_update(monkeypatch):
     """Test that None values are NOT filled during update (fill_defaults=False)."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.types.proxy.management_endpoints.ui_sso import (
         LiteLLM_UpperboundKeyGenerateParams,
     )
 
     monkeypatch.setattr(
-        litellm,
+        gateway,
         "upperbound_key_generate_params",
         LiteLLM_UpperboundKeyGenerateParams(
                     tpm_limit=1000, rpm_limit=100
@@ -11591,13 +11591,13 @@ def test_enforce_upperbound_skips_none_on_update(monkeypatch):
 
 def test_enforce_upperbound_rejects_over_limit_on_update(monkeypatch):
     """Test that key update is rejected when values exceed upperbound."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.types.proxy.management_endpoints.ui_sso import (
         LiteLLM_UpperboundKeyGenerateParams,
     )
 
     monkeypatch.setattr(
-        litellm,
+        gateway,
         "upperbound_key_generate_params",
         LiteLLM_UpperboundKeyGenerateParams(
                     tpm_limit=1000, rpm_limit=100, max_budget=10.0
@@ -11612,13 +11612,13 @@ def test_enforce_upperbound_rejects_over_limit_on_update(monkeypatch):
 
 def test_enforce_upperbound_allows_within_limit_on_update(monkeypatch):
     """Test that key update passes when values are within upperbound."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.types.proxy.management_endpoints.ui_sso import (
         LiteLLM_UpperboundKeyGenerateParams,
     )
 
     monkeypatch.setattr(
-        litellm,
+        gateway,
         "upperbound_key_generate_params",
         LiteLLM_UpperboundKeyGenerateParams(
                     tpm_limit=1000, rpm_limit=100, max_budget=10.0
@@ -11636,13 +11636,13 @@ def test_enforce_upperbound_allows_within_limit_on_update(monkeypatch):
 
 def test_enforce_upperbound_duration_over_limit(monkeypatch):
     """Test that duration exceeding upperbound is rejected."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.types.proxy.management_endpoints.ui_sso import (
         LiteLLM_UpperboundKeyGenerateParams,
     )
 
     monkeypatch.setattr(
-        litellm,
+        gateway,
         "upperbound_key_generate_params",
         LiteLLM_UpperboundKeyGenerateParams(
                     duration="7d"
@@ -11657,9 +11657,9 @@ def test_enforce_upperbound_duration_over_limit(monkeypatch):
 
 def test_enforce_upperbound_no_config_is_noop(monkeypatch):
     """Test that no enforcement happens when upperbound params are not configured."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    monkeypatch.setattr(litellm, "upperbound_key_generate_params", None)
+    monkeypatch.setattr(gateway, "upperbound_key_generate_params", None)
     data = UpdateKeyRequest(key="sk-test", tpm_limit=999999)
     _enforce_upperbound_key_params(data, fill_defaults=False)
     # Should not raise — no enforcement configured
@@ -11727,7 +11727,7 @@ async def test_execute_virtual_key_regeneration_rejects_over_limit_duration(monk
     )
 
     monkeypatch.setattr(
-        litellm,
+        gateway,
         "upperbound_key_generate_params",
         LiteLLM_UpperboundKeyGenerateParams(
                     duration="1h"
@@ -11783,7 +11783,7 @@ async def test_execute_virtual_key_regeneration_allows_within_limit_duration(mon
     )
 
     monkeypatch.setattr(
-        litellm,
+        gateway,
         "upperbound_key_generate_params",
         LiteLLM_UpperboundKeyGenerateParams(
                     duration="1h"
@@ -11839,7 +11839,7 @@ async def test_execute_virtual_key_regeneration_rejects_over_limit_max_budget(mo
     )
 
     monkeypatch.setattr(
-        litellm,
+        gateway,
         "upperbound_key_generate_params",
         LiteLLM_UpperboundKeyGenerateParams(
                     max_budget=10.0
@@ -11895,7 +11895,7 @@ async def test_execute_virtual_key_regeneration_skips_none_values(monkeypatch):
     )
 
     monkeypatch.setattr(
-        litellm,
+        gateway,
         "upperbound_key_generate_params",
         LiteLLM_UpperboundKeyGenerateParams(
                     duration="1h"
@@ -11947,7 +11947,7 @@ async def test_execute_virtual_key_regeneration_no_upperbound_config_is_noop(mon
         _execute_virtual_key_regeneration,
     )
 
-    monkeypatch.setattr(litellm, "upperbound_key_generate_params", None)
+    monkeypatch.setattr(gateway, "upperbound_key_generate_params", None)
     existing_key = _make_regenerate_existing_key()
     data = RegenerateKeyRequest(duration="30d")
     user_api_key_dict = _make_regenerate_user_api_key_dict()
@@ -14984,7 +14984,7 @@ async def test_budget_limits_window_cannot_exceed_caller_max_budget(monkeypatch)
     """A non-admin caller may not set a `budget_limits` window above
     their own `max_budget`."""
     monkeypatch.setattr(
-        "token_iq.gateway.proxy.management_endpoints.key_management_endpoints.litellm.default_key_generate_params",
+        "token_iq.gateway.proxy.management_endpoints.key_management_endpoints.gateway.default_key_generate_params",
         None,
         raising=False,
     )
@@ -15014,7 +15014,7 @@ async def test_budget_limits_window_cannot_exceed_caller_max_budget(monkeypatch)
 async def test_budget_limits_window_within_caller_max_budget_allowed(monkeypatch):
     """Counterpart: a window within the caller's ceiling must still pass."""
     monkeypatch.setattr(
-        "token_iq.gateway.proxy.management_endpoints.key_management_endpoints.litellm.default_key_generate_params",
+        "token_iq.gateway.proxy.management_endpoints.key_management_endpoints.gateway.default_key_generate_params",
         None,
         raising=False,
     )
@@ -15044,7 +15044,7 @@ async def test_budget_limits_window_within_caller_max_budget_allowed(monkeypatch
 async def test_budget_limits_admin_unrestricted(monkeypatch):
     """Proxy admin can set any window budget regardless of their own max_budget."""
     monkeypatch.setattr(
-        "token_iq.gateway.proxy.management_endpoints.key_management_endpoints.litellm.default_key_generate_params",
+        "token_iq.gateway.proxy.management_endpoints.key_management_endpoints.gateway.default_key_generate_params",
         None,
         raising=False,
     )
@@ -15077,7 +15077,7 @@ async def test_budget_limits_window_non_finite_rejected_for_non_admin(monkeypatc
     gets 400. The finite-number invariant applies before role / ceiling
     checks."""
     monkeypatch.setattr(
-        "token_iq.gateway.proxy.management_endpoints.key_management_endpoints.litellm.default_key_generate_params",
+        "token_iq.gateway.proxy.management_endpoints.key_management_endpoints.gateway.default_key_generate_params",
         None,
         raising=False,
     )
@@ -15106,7 +15106,7 @@ async def test_budget_limits_window_non_finite_rejected_for_admin(monkeypatch, n
     """The finite-number invariant applies to every caller including
     proxy admin."""
     monkeypatch.setattr(
-        "token_iq.gateway.proxy.management_endpoints.key_management_endpoints.litellm.default_key_generate_params",
+        "token_iq.gateway.proxy.management_endpoints.key_management_endpoints.gateway.default_key_generate_params",
         None,
         raising=False,
     )
@@ -15133,7 +15133,7 @@ async def test_budget_limits_session_token_personal_key_rejected(monkeypatch):
     """A CLI session token caller may not set `budget_limits` on a
     personal key (no `team_id`). Mirrors the scalar `max_budget` guard."""
     monkeypatch.setattr(
-        "token_iq.gateway.proxy.management_endpoints.key_management_endpoints.litellm.default_key_generate_params",
+        "token_iq.gateway.proxy.management_endpoints.key_management_endpoints.gateway.default_key_generate_params",
         None,
         raising=False,
     )
@@ -15161,7 +15161,7 @@ async def test_budget_limits_session_token_team_key_uses_team_ceiling(monkeypatc
     """A CLI session token acting on a team key uses the team's
     `max_budget` as the ceiling; values within it are permitted."""
     monkeypatch.setattr(
-        "token_iq.gateway.proxy.management_endpoints.key_management_endpoints.litellm.default_key_generate_params",
+        "token_iq.gateway.proxy.management_endpoints.key_management_endpoints.gateway.default_key_generate_params",
         None,
         raising=False,
     )
@@ -15194,7 +15194,7 @@ async def test_budget_limits_session_token_team_key_uses_team_ceiling(monkeypatc
 async def test_budget_limits_session_token_team_key_over_team_budget_rejected(monkeypatch):
     """Same shape, but window exceeds the team's `max_budget`."""
     monkeypatch.setattr(
-        "token_iq.gateway.proxy.management_endpoints.key_management_endpoints.litellm.default_key_generate_params",
+        "token_iq.gateway.proxy.management_endpoints.key_management_endpoints.gateway.default_key_generate_params",
         None,
         raising=False,
     )
@@ -15225,7 +15225,7 @@ async def test_budget_limits_session_token_personal_key_admin_unaffected(monkeyp
     """A proxy admin using a session token is exempt from the personal-key
     reject; the role short-circuit runs first."""
     monkeypatch.setattr(
-        "token_iq.gateway.proxy.management_endpoints.key_management_endpoints.litellm.default_key_generate_params",
+        "token_iq.gateway.proxy.management_endpoints.key_management_endpoints.gateway.default_key_generate_params",
         None,
         raising=False,
     )
@@ -15256,7 +15256,7 @@ async def test_permissions_field_rejected_for_non_admin(monkeypatch):
     """A non-admin caller may not set the `permissions` field on a key
     they create."""
     monkeypatch.setattr(
-        "token_iq.gateway.proxy.management_endpoints.key_management_endpoints.litellm.default_key_generate_params",
+        "token_iq.gateway.proxy.management_endpoints.key_management_endpoints.gateway.default_key_generate_params",
         None,
         raising=False,
     )
@@ -15284,7 +15284,7 @@ async def test_permissions_empty_default_allowed_for_non_admin(monkeypatch):
     to pass for non-admin callers; only a non-empty dict triggers the gate.
     """
     monkeypatch.setattr(
-        "token_iq.gateway.proxy.management_endpoints.key_management_endpoints.litellm.default_key_generate_params",
+        "token_iq.gateway.proxy.management_endpoints.key_management_endpoints.gateway.default_key_generate_params",
         None,
         raising=False,
     )
@@ -15311,7 +15311,7 @@ async def test_permissions_empty_default_allowed_for_non_admin(monkeypatch):
 async def test_permissions_admin_can_set_any(monkeypatch):
     """Proxy admin can still set `permissions` on a key."""
     monkeypatch.setattr(
-        "token_iq.gateway.proxy.management_endpoints.key_management_endpoints.litellm.default_key_generate_params",
+        "token_iq.gateway.proxy.management_endpoints.key_management_endpoints.gateway.default_key_generate_params",
         None,
         raising=False,
     )
@@ -15341,7 +15341,7 @@ async def test_permissions_explicit_empty_rejected_for_non_admin_on_generate(mon
     stays allowed; that carve-out lives in
     `test_permissions_empty_default_allowed_for_non_admin`."""
     monkeypatch.setattr(
-        "token_iq.gateway.proxy.management_endpoints.key_management_endpoints.litellm.default_key_generate_params",
+        "token_iq.gateway.proxy.management_endpoints.key_management_endpoints.gateway.default_key_generate_params",
         None,
         raising=False,
     )
@@ -16643,7 +16643,7 @@ async def test_key_generate_explicit_null_budget_duration_beats_default_key_gene
     Gating on the value alone made that indistinguishable from omitting the field,
     so the configured default overrode the opt-out and budget_reset_at got stamped.
     """
-    monkeypatch.setattr(litellm, "default_key_generate_params", {"budget_duration": "30d"})
+    monkeypatch.setattr(gateway, "default_key_generate_params", {"budget_duration": "30d"})
     mock_insert_data = _wire_key_generation_prisma(monkeypatch)
 
     key_row = await _generate_key_and_get_persisted_row(GenerateKeyRequest(budget_duration=None), mock_insert_data)
@@ -16655,7 +16655,7 @@ async def test_key_generate_explicit_null_budget_duration_beats_default_key_gene
 @pytest.mark.asyncio
 async def test_key_generate_omitted_budget_duration_still_takes_default_key_generate_params(monkeypatch):
     """Omitting the field keeps applying the default, the behavior the explicit-null fix must not break."""
-    monkeypatch.setattr(litellm, "default_key_generate_params", {"budget_duration": "30d"})
+    monkeypatch.setattr(gateway, "default_key_generate_params", {"budget_duration": "30d"})
     mock_insert_data = _wire_key_generation_prisma(monkeypatch)
 
     key_row = await _generate_key_and_get_persisted_row(GenerateKeyRequest(), mock_insert_data)
@@ -16672,9 +16672,9 @@ async def test_key_generate_explicit_null_budget_duration_cannot_bypass_upperbou
         LiteLLM_UpperboundKeyGenerateParams,
     )
 
-    monkeypatch.setattr(litellm, "default_key_generate_params", None)
+    monkeypatch.setattr(gateway, "default_key_generate_params", None)
     monkeypatch.setattr(
-        litellm,
+        gateway,
         "upperbound_key_generate_params",
         LiteLLM_UpperboundKeyGenerateParams(budget_duration="30d"),
     )
@@ -16693,9 +16693,9 @@ async def test_key_generate_omitted_budget_duration_still_filled_by_upperbound(m
         LiteLLM_UpperboundKeyGenerateParams,
     )
 
-    monkeypatch.setattr(litellm, "default_key_generate_params", None)
+    monkeypatch.setattr(gateway, "default_key_generate_params", None)
     monkeypatch.setattr(
-        litellm,
+        gateway,
         "upperbound_key_generate_params",
         LiteLLM_UpperboundKeyGenerateParams(budget_duration="30d"),
     )
@@ -17516,7 +17516,7 @@ def test_key_generation_check_blank_team_id_uses_personal_permissions(monkeypatc
     )
 
     monkeypatch.setattr(
-        litellm,
+        gateway,
         "key_generation_settings",
         {
             "team_key_generation": {"allowed_team_member_roles": ["admin"]},

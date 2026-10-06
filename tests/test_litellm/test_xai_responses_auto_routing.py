@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 
 
 import pytest
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.main import responses_api_bridge_check
 
 
@@ -229,7 +229,7 @@ class TestXAIResponsesAutoRouting:
         ]
 
         try:
-            litellm.completion(
+            gateway.completion(
                 model=model,
                 messages=messages,
                 tools=tools,

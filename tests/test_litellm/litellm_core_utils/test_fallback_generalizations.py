@@ -12,7 +12,7 @@ import logging
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.core_utils.fallback_generalizations import (
     get_fallback_generalization_rules,
@@ -208,19 +208,19 @@ def test_legacy_main_schema_keeps_unmapped_claude_working(restore_generalization
     copied verbatim above) must keep unmapped-Claude inference and info resolution
     working until the new-schema JSON reaches main."""
     restore_generalizations([dict(rule) for rule in LEGACY_MAIN_RULES])
-    litellm.get_model_info.cache_clear()
+    gateway.get_model_info.cache_clear()
 
-    _, provider, _, _ = litellm.get_llm_provider(model="claude-opus-9-9")
+    _, provider, _, _ = gateway.get_llm_provider(model="claude-opus-9-9")
     assert provider == "anthropic"
 
-    info = litellm.get_model_info("claude-opus-9-9")
+    info = gateway.get_model_info("claude-opus-9-9")
     assert info["litellm_provider"] == "anthropic"
     assert info["supports_adaptive_thinking"] is True
     assert info["supports_function_calling"] is True
     assert info["max_input_tokens"] == 200000
     assert not info.get("input_cost_per_token")
 
-    low = litellm.get_model_info("claude-opus-4-0")
+    low = gateway.get_model_info("claude-opus-4-0")
     assert low["litellm_provider"] == "anthropic"
     assert low["supports_function_calling"] is True
     assert low.get("supports_adaptive_thinking") is None
@@ -254,7 +254,7 @@ def test_malformed_rules_are_skipped_not_fatal(restore_generalizations):
 
 def test_unknown_model_routes_via_routing_rule(restore_generalizations):
     restore_generalizations([{"name": "myco", "pattern": r"^myco-", "model_info": {"litellm_provider": "openai"}}])
-    _, provider, _, _ = litellm.get_llm_provider(model="myco-fast-1")
+    _, provider, _, _ = gateway.get_llm_provider(model="myco-fast-1")
     assert provider == "openai"
 
 
@@ -273,28 +273,28 @@ def test_capability_info_backfills_requested_provider(restore_generalizations):
             }
         ]
     )
-    litellm.get_model_info.cache_clear()
-    info = litellm.get_model_info("beeco-fast-1", custom_llm_provider="groq")
+    gateway.get_model_info.cache_clear()
+    info = gateway.get_model_info("beeco-fast-1", custom_llm_provider="groq")
     assert info["litellm_provider"] == "groq"
     assert info["max_input_tokens"] == 12345
     assert info["supports_vision"] is True
-    other = litellm.get_model_info("beeco-fast-1", custom_llm_provider="openai")
+    other = gateway.get_model_info("beeco-fast-1", custom_llm_provider="openai")
     assert other["litellm_provider"] == "openai"
 
 
 def test_routing_only_match_does_not_resolve_model_info(restore_generalizations):
     restore_generalizations([{"name": "route", "pattern": r"^ceeco-", "model_info": {"litellm_provider": "openai"}}])
-    litellm.get_model_info.cache_clear()
+    gateway.get_model_info.cache_clear()
     with pytest.raises(Exception, match="This model isn't mapped yet"):
-        litellm.get_model_info("ceeco-fast-1", custom_llm_provider="openai")
+        gateway.get_model_info("ceeco-fast-1", custom_llm_provider="openai")
 
 
 def test_exact_entry_takes_precedence_over_rule(restore_generalizations):
     restore_generalizations(
         [{"name": "shadow-gpt4o", "pattern": r"^gpt-4o$", "model_info": {"input_cost_per_token": 999.0}}]
     )
-    litellm.get_model_info.cache_clear()
-    info = litellm.get_model_info("gpt-4o")
+    gateway.get_model_info.cache_clear()
+    info = gateway.get_model_info("gpt-4o")
     assert info["litellm_provider"] == "openai"
     assert info["input_cost_per_token"] != 999.0
 
@@ -307,21 +307,21 @@ def test_exact_entry_takes_precedence_over_rule(restore_generalizations):
 @pytest.fixture
 def shipped_cost_map(monkeypatch):
     """Activate the bundled cost map so the shipped rules are installed."""
-    original_cost = litellm.model_cost
+    original_cost = gateway.model_cost
     previous_rules = list(get_fallback_generalization_rules())
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    litellm.model_cost = litellm.get_model_cost_map()
-    litellm.get_model_info.cache_clear()
+    gateway.model_cost = gateway.get_model_cost_map()
+    gateway.get_model_info.cache_clear()
     try:
         yield
     finally:
-        litellm.model_cost = original_cost
-        litellm.get_model_info.cache_clear()
+        gateway.model_cost = original_cost
+        gateway.get_model_info.cache_clear()
         set_fallback_generalizations(previous_rules)
 
 
 def test_shipped_bare_claude_id_routes_to_anthropic(shipped_cost_map):
-    _, provider, _, _ = litellm.get_llm_provider(model="claude-haiku-4-6")
+    _, provider, _, _ = gateway.get_llm_provider(model="claude-haiku-4-6")
     assert provider == "anthropic"
 
 
@@ -335,15 +335,15 @@ def test_shipped_bedrock_syntax_claude_id_routes_to_bedrock(shipped_cost_map):
         "anthropic.claude-haiku-4-6",
         "eu.anthropic.claude-opus-5-0",
     ]:
-        assert model not in litellm.model_cost
-        _, provider, _, _ = litellm.get_llm_provider(model=model)
+        assert model not in gateway.model_cost
+        _, provider, _, _ = gateway.get_llm_provider(model=model)
         assert provider == "bedrock", model
 
 
 def test_shipped_rules_resolve_unmapped_bedrock_claude_with_bedrock_provider(shipped_cost_map):
     model = "us.anthropic.claude-haiku-4-6"
-    assert model not in litellm.model_cost
-    info = litellm.get_model_info(model, custom_llm_provider="bedrock")
+    assert model not in gateway.model_cost
+    info = gateway.get_model_info(model, custom_llm_provider="bedrock")
     assert info["litellm_provider"] == "bedrock"
     assert info["supports_adaptive_thinking"] is True
     assert info["supports_function_calling"] is True
@@ -355,8 +355,8 @@ def test_shipped_rules_resolve_unmapped_bedrock_claude_with_bedrock_provider(shi
 
 def test_shipped_rules_stack_adaptive_and_mid_conversation_flags(shipped_cost_map):
     model = "claude-opus-4-9"
-    assert model not in litellm.model_cost
-    info = litellm.get_model_info(model, custom_llm_provider="anthropic")
+    assert model not in gateway.model_cost
+    info = gateway.get_model_info(model, custom_llm_provider="anthropic")
     assert info["litellm_provider"] == "anthropic"
     assert info["supports_adaptive_thinking"] is True
     assert info["supports_mid_conversation_system"] is True
@@ -367,10 +367,10 @@ def test_shipped_rules_flag_unmapped_fable_as_always_on_thinking(shipped_cost_ma
     """An unmapped Fable/Mythos id picks up ``thinking_always_on`` from the
     claude-always-on-thinking rule, while other unmapped Claudes stay unflagged."""
     model = "claude-fable-6-1"
-    assert model not in litellm.model_cost
-    info = litellm.get_model_info(model, custom_llm_provider="anthropic")
+    assert model not in gateway.model_cost
+    info = gateway.get_model_info(model, custom_llm_provider="anthropic")
     assert info["thinking_always_on"] is True
-    other = litellm.get_model_info("claude-opus-4-9", custom_llm_provider="anthropic")
+    other = gateway.get_model_info("claude-opus-4-9", custom_llm_provider="anthropic")
     assert other.get("thinking_always_on") is None
 
 
@@ -382,8 +382,8 @@ def test_shipped_rules_flag_unmapped_fable_as_always_on_thinking(shipped_cost_ma
     ],
 )
 def test_shipped_rules_are_provider_neutral_for_unmapped_ids(shipped_cost_map, model, provider):
-    assert model not in litellm.model_cost
-    info = litellm.get_model_info(model, custom_llm_provider=provider)
+    assert model not in gateway.model_cost
+    info = gateway.get_model_info(model, custom_llm_provider=provider)
     assert info["litellm_provider"] == provider
     assert info["supports_adaptive_thinking"] is True
     assert info["supports_mid_conversation_system"] is True
@@ -406,8 +406,8 @@ def test_shipped_rules_are_provider_neutral_for_unmapped_ids(shipped_cost_map, m
     ],
 )
 def test_shipped_version_boundaries(shipped_cost_map, model, provider, adaptive, mid_conversation):
-    assert model not in litellm.model_cost
-    info = litellm.get_model_info(model, custom_llm_provider=provider)
+    assert model not in gateway.model_cost
+    info = gateway.get_model_info(model, custom_llm_provider=provider)
     assert info["litellm_provider"] == provider
     assert info["supports_function_calling"] is True
     assert not info.get("input_cost_per_token")
@@ -420,8 +420,8 @@ def test_shipped_rules_cover_new_families_like_fable_at_5_plus(shipped_cost_map)
     major or major-minor, so a new family shaped like claude-fable-5 gets adaptive
     thinking and mid-conversation system support without a cost-map entry."""
     model = "claude-fable-6-1"
-    assert model not in litellm.model_cost
-    info = litellm.get_model_info(model, custom_llm_provider="anthropic")
+    assert model not in gateway.model_cost
+    info = gateway.get_model_info(model, custom_llm_provider="anthropic")
     assert info["supports_mid_conversation_system"] is True
     assert info["supports_adaptive_thinking"] is True
     assert info["supports_function_calling"] is True
@@ -442,12 +442,12 @@ def test_shipped_version_gates_are_family_agnostic_at_4x(shipped_cost_map):
     family at 4.9 gets adaptive and mid-conversation, while the same family at 4.5
     gets baseline only. Only opus/sonnet/haiku ever shipped 4.x ids, so the
     family-agnostic 4.6+ gate changes nothing for real models."""
-    high = litellm.get_model_info("claude-newfam-4-9", custom_llm_provider="anthropic")
+    high = gateway.get_model_info("claude-newfam-4-9", custom_llm_provider="anthropic")
     assert high["supports_adaptive_thinking"] is True
     assert high["supports_mid_conversation_system"] is True
     assert high["supports_function_calling"] is True
 
-    low = litellm.get_model_info("claude-newfam-4-5", custom_llm_provider="anthropic")
+    low = gateway.get_model_info("claude-newfam-4-5", custom_llm_provider="anthropic")
     assert low.get("supports_adaptive_thinking") is None
     assert low.get("supports_mid_conversation_system") is None
     assert low["supports_function_calling"] is True
@@ -458,8 +458,8 @@ def test_shipped_rules_give_bare_majors_the_full_baseline_union(shipped_cost_map
     major-minor sibling: the baseline pattern's minor is optional, so claude-newt-5
     is not left with version flags but no mode, token limits, or capability facts."""
     model = "anthropic/claude-newt-5"
-    assert model not in litellm.model_cost
-    info = litellm.get_model_info(model)
+    assert model not in gateway.model_cost
+    info = gateway.get_model_info(model)
     assert info["litellm_provider"] == "anthropic"
     assert info["mode"] == "chat"
     assert info["max_tokens"] == 64000
@@ -469,7 +469,7 @@ def test_shipped_rules_give_bare_majors_the_full_baseline_union(shipped_cost_map
 
 
 def test_shipped_routing_rule_covers_bare_majors(shipped_cost_map):
-    _, provider, _, _ = litellm.get_llm_provider(model="claude-newt-5")
+    _, provider, _, _ = gateway.get_llm_provider(model="claude-newt-5")
     assert provider == "anthropic"
 
 
@@ -478,16 +478,16 @@ def test_shipped_adaptive_rule_requires_claude_prefix(shipped_cost_map):
     resolve from the rules; serving it a zero-priced rule entry would silently
     swallow cost tracking for arbitrary custom deployment names."""
     model = "openai/team-sonnet-5-1-alias"
-    assert model not in litellm.model_cost
+    assert model not in gateway.model_cost
     assert match_capability_generalizations("team-sonnet-5-1-alias") is None
     with pytest.raises(Exception, match="This model isn't mapped yet"):
-        litellm.get_model_info(model)
+        gateway.get_model_info(model)
 
 
 def test_shipped_exact_entry_beats_rules(shipped_cost_map):
     model = "us.anthropic.claude-sonnet-4-6"
-    assert model in litellm.model_cost
-    info = litellm.get_model_info(model, custom_llm_provider="bedrock")
+    assert model in gateway.model_cost
+    info = gateway.get_model_info(model, custom_llm_provider="bedrock")
     assert info["litellm_provider"] == "bedrock_converse"
     assert info["input_cost_per_token"] == 3.3e-06
     assert info["max_input_tokens"] == 1000000
@@ -505,11 +505,11 @@ def test_shipped_rules_lose_to_exact_entries_across_cost_ladder_variants(shipped
     from token_iq.gateway import completion_cost
     from token_iq.gateway.types.utils import ModelResponse, Usage
 
-    assert "claude-haiku-4-5-20251001" in litellm.model_cost
+    assert "claude-haiku-4-5-20251001" in gateway.model_cost
     with pytest.raises(Exception, match="This model isn't mapped yet"):
-        litellm.get_model_info("claude-haiku-4-5-20251001", custom_llm_provider="bedrock")
+        gateway.get_model_info("claude-haiku-4-5-20251001", custom_llm_provider="bedrock")
 
-    entry = litellm.model_cost["us.anthropic.claude-haiku-4-5-20251001-v1:0"]
+    entry = gateway.model_cost["us.anthropic.claude-haiku-4-5-20251001-v1:0"]
     response = ModelResponse(model="claude-haiku-4-5-20251001", usage=Usage(prompt_tokens=100, completion_tokens=50))
     cost = completion_cost(
         completion_response=response,
@@ -528,8 +528,8 @@ def test_shipped_adaptive_rule_gates_on_version_not_pricing(shipped_cost_map):
 
     adaptive = "us.anthropic.claude-opus-4-9"
     non_adaptive = "us.anthropic.claude-opus-4-20250514"
-    assert adaptive not in litellm.model_cost
-    assert non_adaptive not in litellm.model_cost
+    assert adaptive not in gateway.model_cost
+    assert non_adaptive not in gateway.model_cost
     assert AnthropicModelInfo._is_adaptive_thinking_model(adaptive, "anthropic") is True
     assert AnthropicModelInfo._is_adaptive_thinking_model(non_adaptive, "anthropic") is False
 
@@ -539,8 +539,8 @@ def test_shipped_rules_resolve_unmapped_future_bedrock_claude_with_both_flags(sh
     baseline capabilities, both version-gated flags, the bedrock provider backfilled, and
     no fabricated pricing."""
     model = "us.anthropic.claude-opus-4-9"
-    assert model not in litellm.model_cost
-    info = litellm.get_model_info(model, custom_llm_provider="bedrock")
+    assert model not in gateway.model_cost
+    info = gateway.get_model_info(model, custom_llm_provider="bedrock")
     assert info["litellm_provider"] == "bedrock"
     assert info["supports_mid_conversation_system"] is True
     assert info["supports_adaptive_thinking"] is True

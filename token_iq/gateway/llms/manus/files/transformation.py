@@ -16,7 +16,7 @@ from typing import Any, Final
 import httpx
 from openai.types.file_deleted import FileDeleted
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.core_utils.prompt_templates.common_utils import extract_file_data
 from token_iq.gateway.core_utils.url_utils import encode_url_path_segment
@@ -75,7 +75,7 @@ class ManusFilesConfig(BaseFilesConfig):
         Manus uses API_KEY header instead of Authorization: Bearer.
         For file uploads, don't set Content-Type - httpx will set it for multipart.
         """
-        api_key = api_key or litellm.api_key or get_secret_str("MANUS_API_KEY")
+        api_key = api_key or gateway.api_key or get_secret_str("MANUS_API_KEY")
 
         if not api_key:
             raise ValueError(
@@ -127,7 +127,7 @@ class ManusFilesConfig(BaseFilesConfig):
         Returns:
             str: The full URL for the Manus /v1/files endpoint
         """
-        api_base = api_base or litellm.api_base or get_secret_str("MANUS_API_BASE") or MANUS_API_BASE
+        api_base = api_base or gateway.api_base or get_secret_str("MANUS_API_BASE") or MANUS_API_BASE
 
         # Remove trailing slashes
         api_base = api_base.rstrip("/")
@@ -186,7 +186,7 @@ class ManusFilesConfig(BaseFilesConfig):
         )
 
         # Get API key
-        api_key: Final = litellm_params.get("api_key") or litellm.api_key or get_secret_str("MANUS_API_KEY")
+        api_key: Final = litellm_params.get("api_key") or gateway.api_key or get_secret_str("MANUS_API_KEY")
 
         if not api_key:
             raise ValueError(

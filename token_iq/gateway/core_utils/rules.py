@@ -1,4 +1,4 @@
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 
 class Rules:
@@ -6,7 +6,7 @@ class Rules:
     Fail calls based on the input or llm api output
 
     Example usage:
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     def my_custom_rule(input): # receives the model response
             if "i don't think i can answer" in input: # trigger fallback if the model refuses to answer
                     return False
@@ -24,14 +24,14 @@ class Rules:
     @staticmethod
     def has_pre_call_rules() -> bool:
         """Check if any pre-call rules are configured"""
-        return len(litellm.pre_call_rules) > 0
+        return len(gateway.pre_call_rules) > 0
 
     def pre_call_rules(self, input: str, model: str):
-        for rule in litellm.pre_call_rules:
+        for rule in gateway.pre_call_rules:
             if callable(rule):
                 decision = rule(input)
                 if decision is False:
-                    raise litellm.APIResponseValidationError(
+                    raise gateway.APIResponseValidationError(
                         message="LLM Response failed post-call-rule check",
                         llm_provider="",
                         model=model,
@@ -41,12 +41,12 @@ class Rules:
     def post_call_rules(self, input: str | None, model: str) -> bool:
         if input is None:
             return True
-        for rule in litellm.post_call_rules:
+        for rule in gateway.post_call_rules:
             if callable(rule):
                 decision = rule(input)
                 if isinstance(decision, bool):
                     if decision is False:
-                        raise litellm.APIResponseValidationError(
+                        raise gateway.APIResponseValidationError(
                             message="LLM Response failed post-call-rule check",
                             llm_provider="",
                             model=model,
@@ -55,5 +55,5 @@ class Rules:
                     decision_val = decision.get("decision", True)
                     decision_message = decision.get("message", "LLM Response failed post-call-rule check")
                     if decision_val is False:
-                        raise litellm.APIResponseValidationError(message=decision_message, llm_provider="", model=model)
+                        raise gateway.APIResponseValidationError(message=decision_message, llm_provider="", model=model)
         return True

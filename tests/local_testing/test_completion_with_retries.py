@@ -6,7 +6,7 @@ load_dotenv()
 
 import pytest
 import openai
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import completion_with_retries, completion, acompletion_with_retries
 from token_iq.gateway import responses_with_retries, aresponses_with_retries
 from token_iq.gateway.responses.main import responses, aresponses
@@ -30,7 +30,7 @@ def logger_fn(user_model_dict):
 # test_completion_with_num_retries()
 def test_completion_with_0_num_retries():
     try:
-        litellm.set_verbose = False
+        gateway.set_verbose = False
         print("making request")
 
         # Use the completion function
@@ -63,7 +63,7 @@ async def test_completion_with_retry_policy(sync_mode):
 
     target_function = "completion_with_retries"
 
-    with patch.object(litellm, target_function) as mock_completion_with_retries:
+    with patch.object(gateway, target_function) as mock_completion_with_retries:
         data = {
             "model": "azure/gpt-3.5-turbo",
             "messages": [{"gm": "vibe", "role": "user"}],
@@ -127,7 +127,7 @@ async def test_completion_with_retries(sync_mode):
     else:
         target_function = "acompletion"
 
-    with patch.object(litellm, target_function) as mock_completion:
+    with patch.object(gateway, target_function) as mock_completion:
         if sync_mode:
             completion_with_retries(
                 model="gpt-3.5-turbo",
@@ -208,7 +208,7 @@ async def test_responses_retry_on_auth_error(sync_mode):
 
     # Mock the responses/aresponses to raise an authentication error
     if sync_mode:
-        with patch.object(litellm, "responses_with_retries") as mock_retry:
+        with patch.object(gateway, "responses_with_retries") as mock_retry:
             mock_retry.return_value = None
             try:
                 responses(
@@ -224,7 +224,7 @@ async def test_responses_retry_on_auth_error(sync_mode):
             if mock_retry.called:
                 assert mock_retry.call_args.kwargs.get("num_retries") == num_retries
     else:
-        with patch.object(litellm, "aresponses_with_retries") as mock_retry:
+        with patch.object(gateway, "aresponses_with_retries") as mock_retry:
             mock_retry.return_value = None
             try:
                 await aresponses(

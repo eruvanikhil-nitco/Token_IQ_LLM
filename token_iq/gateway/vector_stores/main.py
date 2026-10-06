@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Final
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.constants import request_timeout
 from token_iq.gateway.core_utils.get_llm_provider_logic import get_llm_provider
 from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
@@ -160,7 +160,7 @@ async def acreate(
 
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=None,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -230,7 +230,7 @@ def create(
 
         # get provider config - using vector store custom logger for now
         vector_store_provider_config: Final = ProviderConfigManager.get_provider_vector_stores_config(
-            provider=litellm.LlmProviders(custom_llm_provider),
+            provider=gateway.LlmProviders(custom_llm_provider),
             api_type=api_type,
         )
 
@@ -273,7 +273,7 @@ def create(
 
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=None,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -348,7 +348,7 @@ async def asearch(
 
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=None,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -401,9 +401,9 @@ def search(
         litellm_call_id: Final[str | None] = kwargs.get("litellm_call_id", None)
         _is_async: Final = kwargs.pop("asearch", False) is True
         # pull credentials from registry if available
-        if litellm.vector_store_registry is not None and vector_store_id is not None:
+        if gateway.vector_store_registry is not None and vector_store_id is not None:
             try:
-                registry_credentials = litellm.vector_store_registry.get_credentials_for_vector_store(vector_store_id)
+                registry_credentials = gateway.vector_store_registry.get_credentials_for_vector_store(vector_store_id)
                 kwargs.update(registry_credentials)
             except Exception:
                 pass
@@ -434,7 +434,7 @@ def search(
 
         # get provider config - using vector store custom logger for now
         vector_store_provider_config: Final = ProviderConfigManager.get_provider_vector_stores_config(
-            provider=litellm.LlmProviders(custom_llm_provider),
+            provider=gateway.LlmProviders(custom_llm_provider),
             api_type=api_type,
         )
 
@@ -486,7 +486,7 @@ def search(
 
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=None,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -538,7 +538,7 @@ async def aretrieve(
 
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=None,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -588,7 +588,7 @@ def retrieve(
             custom_llm_provider = custom_llm_provider
 
         vector_store_provider_config: Final = ProviderConfigManager.get_provider_vector_stores_config(
-            provider=litellm.LlmProviders(custom_llm_provider),
+            provider=gateway.LlmProviders(custom_llm_provider),
             api_type=api_type,
         )
 
@@ -618,7 +618,7 @@ def retrieve(
 
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=None,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -676,7 +676,7 @@ async def alist(
 
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=None,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -732,7 +732,7 @@ def list(
             custom_llm_provider = custom_llm_provider
 
         vector_store_provider_config: Final = ProviderConfigManager.get_provider_vector_stores_config(
-            provider=litellm.LlmProviders(custom_llm_provider),
+            provider=gateway.LlmProviders(custom_llm_provider),
             api_type=api_type,
         )
 
@@ -770,7 +770,7 @@ def list(
 
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=None,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -828,7 +828,7 @@ async def aupdate(
 
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=None,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -884,7 +884,7 @@ def update(
             custom_llm_provider = custom_llm_provider
 
         vector_store_provider_config: Final = ProviderConfigManager.get_provider_vector_stores_config(
-            provider=litellm.LlmProviders(custom_llm_provider),
+            provider=gateway.LlmProviders(custom_llm_provider),
             api_type=api_type,
         )
 
@@ -925,7 +925,7 @@ def update(
 
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=None,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -977,7 +977,7 @@ async def adelete(
 
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=None,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -1027,7 +1027,7 @@ def delete(
             custom_llm_provider = custom_llm_provider
 
         vector_store_provider_config: Final = ProviderConfigManager.get_provider_vector_stores_config(
-            provider=litellm.LlmProviders(custom_llm_provider),
+            provider=gateway.LlmProviders(custom_llm_provider),
             api_type=api_type,
         )
 
@@ -1057,7 +1057,7 @@ def delete(
 
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=None,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,

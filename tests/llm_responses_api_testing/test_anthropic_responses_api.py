@@ -11,7 +11,7 @@ from token_iq.gateway.responses.litellm_completion_transformation.transformation
 from token_iq.gateway.types.utils import ModelResponse
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.integrations.custom_logger import CustomLogger
 import json
 from token_iq.gateway.types.utils import StandardLoggingPayload
@@ -53,7 +53,7 @@ class TestAnthropicResponsesAPITest(BaseResponsesAPITest):
 
 def test_multiturn_tool_calls():
     # Test streaming response with tools for Anthropic
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
     shell_tool = dict(
         FunctionTool(
             type="function",
@@ -75,7 +75,7 @@ def test_multiturn_tool_calls():
     )
 
     # Step 1: Initial request with the tool
-    response = litellm.responses(
+    response = gateway.responses(
         input=[
             {
                 "role": "user",
@@ -110,7 +110,7 @@ def test_multiturn_tool_calls():
         )
 
     # Use await with asyncio.run for the async function
-    follow_up_response = litellm.responses(
+    follow_up_response = gateway.responses(
         model="anthropic/claude-haiku-4-5-20251001",
         previous_response_id=response_id,
         input=[
@@ -196,7 +196,7 @@ async def test_aresponses_forwards_timeout_to_acompletion():
             choices=[],
         )
 
-        await litellm.aresponses(
+        await gateway.aresponses(
             model="anthropic/claude-sonnet-4-5",
             input="hello",
             timeout=42,

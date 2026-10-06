@@ -9,7 +9,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 
 def assert_response_shape(response, custom_llm_provider):
@@ -47,7 +47,7 @@ def test_basic_rerank_huggingface(mock_sync_post, mock_async_post, sync_mode):
         mock_response.headers = {"content-type": "application/json"}
         mock_sync_post.return_value = mock_response
 
-        response = litellm.rerank(
+        response = gateway.rerank(
             model="huggingface/BAAI/bge-reranker-base",
             query="hello",
             documents=["hello", "world"],
@@ -68,7 +68,7 @@ def test_basic_rerank_huggingface(mock_sync_post, mock_async_post, sync_mode):
         mock_async_post.return_value = mock_response
 
         response = asyncio.run(
-            litellm.arerank(
+            gateway.arerank(
                 model="huggingface/BAAI/bge-reranker-base",
                 query="hello",
                 documents=["hello", "world"],
@@ -103,7 +103,7 @@ def test_huggingface_rerank_custom_api_base(mock_sync_post, mock_async_post, syn
         mock_response.headers = {"content-type": "application/json"}
         mock_sync_post.return_value = mock_response
 
-        response = litellm.rerank(
+        response = gateway.rerank(
             model="huggingface/BAAI/bge-reranker-base",
             query="hello",
             documents=["hello", "world"],
@@ -129,7 +129,7 @@ def test_huggingface_rerank_custom_api_base(mock_sync_post, mock_async_post, syn
         mock_async_post.return_value = mock_response
 
         response = asyncio.run(
-            litellm.arerank(
+            gateway.arerank(
                 model="huggingface/BAAI/bge-reranker-base",
                 query="hello",
                 documents=["hello", "world"],
@@ -163,7 +163,7 @@ def test_huggingface_rerank_with_env_vars(mock_post, monkeypatch):
     mock_response.headers = {"content-type": "application/json"}
     mock_post.return_value = mock_response
 
-    response = litellm.rerank(
+    response = gateway.rerank(
         model="huggingface/BAAI/bge-reranker-base",
         query="hello",
         documents=["hello", "world"],
@@ -198,7 +198,7 @@ def test_huggingface_rerank_return_documents(mock_post):
     mock_response.headers = {"content-type": "application/json"}
     mock_post.return_value = mock_response
 
-    response = litellm.rerank(
+    response = gateway.rerank(
         model="huggingface/BAAI/bge-reranker-base",
         query="hello",
         documents=["hello", "world"],
@@ -232,8 +232,8 @@ def test_huggingface_rerank_error_handling(mock_post):
     mock_response.text = "Unauthorized"
     mock_post.return_value = mock_response
 
-    with pytest.raises(litellm.APIConnectionError):
-        litellm.rerank(
+    with pytest.raises(gateway.APIConnectionError):
+        gateway.rerank(
             model="huggingface/BAAI/bge-reranker-base",
             query="hello",
             documents=["hello", "world"],
@@ -390,7 +390,7 @@ def test_huggingface_rerank_request_payload(mock_post):
     mock_response.headers = {"content-type": "application/json"}
     mock_post.return_value = mock_response
 
-    response = litellm.rerank(
+    response = gateway.rerank(
         model="huggingface/BAAI/bge-reranker-base",
         query="hello",
         documents=["hello", "world"],

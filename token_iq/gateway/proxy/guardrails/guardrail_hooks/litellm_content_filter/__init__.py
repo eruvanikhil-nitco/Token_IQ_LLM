@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING, Final, Optional
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy.guardrails.guardrail_hooks.litellm_content_filter.content_filter import (
     ContentFilterGuardrail,
 )
@@ -50,7 +50,7 @@ def initialize_guardrail(
         realtime_violation_message=getattr(litellm_params, "realtime_violation_message", None),
     )
 
-    litellm.logging_callback_manager.add_litellm_callback(content_filter_guardrail)
+    gateway.logging_callback_manager.add_litellm_callback(content_filter_guardrail)
 
     return content_filter_guardrail
 

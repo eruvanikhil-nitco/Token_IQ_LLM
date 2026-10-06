@@ -9,7 +9,7 @@ import warnings
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 
 @pytest.mark.asyncio
@@ -20,7 +20,7 @@ async def test_acompletion_resource_cleanup():
         warnings.simplefilter("always")
 
         # Make an async completion call
-        response = await litellm.acompletion(
+        response = await gateway.acompletion(
             model="gemini/gemini-2.0-flash-lite-001",
             messages=[{"role": "user", "content": "Hello"}],
             mock_response="Hi there! How can I help you today?",
@@ -32,7 +32,7 @@ async def test_acompletion_resource_cleanup():
         )
 
         # Manually close async clients
-        await litellm.close_litellm_async_clients()
+        await gateway.close_litellm_async_clients()
 
         # Give a small delay for any warnings to appear
         await asyncio.sleep(0.1)
@@ -62,7 +62,7 @@ async def test_multiple_acompletion_calls_cleanup():
 
         # Make multiple async completion calls
         for i in range(3):
-            response = await litellm.acompletion(
+            response = await gateway.acompletion(
                 model="gemini/gemini-2.0-flash-lite-001",
                 messages=[{"role": "user", "content": f"Hello {i}"}],
                 mock_response=f"Response {i}",
@@ -70,7 +70,7 @@ async def test_multiple_acompletion_calls_cleanup():
             assert response.choices[0].message.content == f"Response {i}"
 
         # Clean up
-        await litellm.close_litellm_async_clients()
+        await gateway.close_litellm_async_clients()
 
         # Give a small delay for any warnings to appear
         await asyncio.sleep(0.1)
@@ -95,12 +95,12 @@ async def test_multiple_acompletion_calls_cleanup():
 async def test_cleanup_function_is_safe_to_call_multiple_times():
     """Test that the cleanup function can be called multiple times safely."""
     # This should not raise any errors
-    await litellm.close_litellm_async_clients()
-    await litellm.close_litellm_async_clients()
-    await litellm.close_litellm_async_clients()
+    await gateway.close_litellm_async_clients()
+    await gateway.close_litellm_async_clients()
+    await gateway.close_litellm_async_clients()
 
     # Should still work after multiple cleanups
-    response = await litellm.acompletion(
+    response = await gateway.acompletion(
         model="gemini/gemini-2.0-flash-lite-001",
         messages=[{"role": "user", "content": "Hello"}],
         mock_response="Hi!",
@@ -108,7 +108,7 @@ async def test_cleanup_function_is_safe_to_call_multiple_times():
     assert response.choices[0].message.content == "Hi!"
 
     # Clean up again
-    await litellm.close_litellm_async_clients()
+    await gateway.close_litellm_async_clients()
 
 
 if __name__ == "__main__":

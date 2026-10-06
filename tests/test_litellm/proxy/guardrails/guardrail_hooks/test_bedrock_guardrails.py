@@ -11,7 +11,7 @@ import pytest
 from fastapi import HTTPException
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.caching.caching import DualCache
 from token_iq.gateway.exceptions import ModifyResponseException
 from token_iq.gateway.proxy._types import UserAPIKeyAuth
@@ -1082,9 +1082,9 @@ async def test_make_apply_guardrail_request_skips_output_scan_without_response_t
     guardrail = BedrockGuardrail(guardrailIdentifier="test-guardrail", guardrailVersion="DRAFT")
     response = ModelResponse(
         choices=[
-            litellm.Choices(
+            gateway.Choices(
                 index=0,
-                message=litellm.Message(role="assistant", content=None, tool_calls=[]),
+                message=gateway.Message(role="assistant", content=None, tool_calls=[]),
                 finish_reason="tool_calls",
             )
         ]
@@ -1848,9 +1848,9 @@ async def test_during_call_hook_invokes_bedrock_async_moderation_hook():
         default_on=True,
     )
     mock_mod = AsyncMock(return_value=None)
-    original_callbacks = litellm.callbacks.copy() if litellm.callbacks else []
+    original_callbacks = gateway.callbacks.copy() if gateway.callbacks else []
     try:
-        litellm.callbacks = [guardrail]
+        gateway.callbacks = [guardrail]
         with patch.object(guardrail, "async_moderation_hook", new=mock_mod):
             await proxy_logging.during_call_hook(
                 data={
@@ -1861,7 +1861,7 @@ async def test_during_call_hook_invokes_bedrock_async_moderation_hook():
                 call_type="completion",
             )
     finally:
-        litellm.callbacks = original_callbacks
+        gateway.callbacks = original_callbacks
 
     mock_mod.assert_awaited_once()
 
@@ -2200,11 +2200,11 @@ async def test_streaming_post_call_only_runs_output_scan():
         default_on=True,
     )
     mock_chunks = [
-        litellm.ModelResponseStream(
+        gateway.ModelResponseStream(
             id="tid",
             choices=[
-                litellm.types.utils.StreamingChoices(
-                    delta=litellm.types.utils.Delta(content="Hi", role="assistant"),
+                gateway.types.utils.StreamingChoices(
+                    delta=gateway.types.utils.Delta(content="Hi", role="assistant"),
                     finish_reason=None,
                     index=0,
                 )
@@ -2213,11 +2213,11 @@ async def test_streaming_post_call_only_runs_output_scan():
             model="gpt-4o-mini",
             object="chat.completion.chunk",
         ),
-        litellm.ModelResponseStream(
+        gateway.ModelResponseStream(
             id="tid",
             choices=[
-                litellm.types.utils.StreamingChoices(
-                    delta=litellm.types.utils.Delta(content="!", role="assistant"),
+                gateway.types.utils.StreamingChoices(
+                    delta=gateway.types.utils.Delta(content="!", role="assistant"),
                     finish_reason="stop",
                     index=0,
                 )
@@ -2266,11 +2266,11 @@ async def test_streaming_post_call_output_only_path_passes_request_data_to_make_
         default_on=True,
     )
     mock_chunks = [
-        litellm.ModelResponseStream(
+        gateway.ModelResponseStream(
             id="tid",
             choices=[
-                litellm.types.utils.StreamingChoices(
-                    delta=litellm.types.utils.Delta(content="x", role="assistant"),
+                gateway.types.utils.StreamingChoices(
+                    delta=gateway.types.utils.Delta(content="x", role="assistant"),
                     finish_reason="stop",
                     index=0,
                 )
@@ -2330,8 +2330,8 @@ async def test_post_call_success_hook_only_runs_output_scan():
     }
     response = ModelResponse(
         choices=[
-            litellm.Choices(
-                message=litellm.Message(role="assistant", content="hello"),
+            gateway.Choices(
+                message=gateway.Message(role="assistant", content="hello"),
                 index=0,
                 finish_reason="stop",
             )
@@ -2980,7 +2980,7 @@ async def test_streaming_hook_frames_a_service_failure_once_a_keepalive_ping_flu
 
     with (
         patch.object(guardrail, "make_bedrock_api_request", new_callable=AsyncMock) as mock_api,
-        patch.object(litellm, "anthropic_sse_ping_interval_seconds", 0.0001),
+        patch.object(gateway, "anthropic_sse_ping_interval_seconds", 0.0001),
     ):
         mock_api.side_effect = HTTPException(status_code=503, detail="Bedrock is unavailable")
         delivered = await _drain_streaming_hook(guardrail)
@@ -3064,7 +3064,7 @@ async def test_streaming_hook_fails_closed_when_assembler_raises_api_error():
         "token_iq.gateway.proxy.pass_through_endpoints.llm_provider_handlers."
         "anthropic_passthrough_logging_handler.AnthropicPassthroughLoggingHandler."
         "_build_complete_streaming_response",
-        side_effect=litellm.APIError(
+        side_effect=gateway.APIError(
             status_code=500,
             message="Error building chunks for logging/streaming usage calculation",
             llm_provider="",
@@ -3281,7 +3281,7 @@ async def test_chat_completion_modify_response_exception_streaming_logging_obj_n
     mocked to raise ModifyResponseException, so a revert of the fix in
     proxy_server.py causes this test to fail.
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.exceptions import ModifyResponseException
     from token_iq.gateway.proxy._types import UserAPIKeyAuth
     from token_iq.gateway.proxy.proxy_server import chat_completion
@@ -3318,7 +3318,7 @@ async def test_chat_completion_modify_response_exception_streaming_logging_obj_n
     mock_proxy_logging.post_call_failure_hook = AsyncMock(side_effect=_fake_post_call_failure_hook)
 
     captured_logging_obj: list = []
-    original_init = litellm.CustomStreamWrapper.__init__
+    original_init = gateway.CustomStreamWrapper.__init__
 
     def _patched_init(self, *args, **kwargs):
         captured_logging_obj.append(kwargs.get("logging_obj"))
@@ -3334,7 +3334,7 @@ async def test_chat_completion_modify_response_exception_streaming_logging_obj_n
             "token_iq.gateway.proxy.proxy_server.ProxyBaseLLMRequestProcessing.base_process_llm_request",
             _raise_modify_response,
         ),
-        patch.object(litellm.CustomStreamWrapper, "__init__", _patched_init),
+        patch.object(gateway.CustomStreamWrapper, "__init__", _patched_init),
     ):
         response = await chat_completion(
             request=fastapi_request,
@@ -3601,7 +3601,7 @@ async def test_apply_guardrail_does_not_chunk_when_grounding_present():
         {"role": "user", "content": "what does the source say?"},
     ]
     model_response = ModelResponse()
-    model_response.choices = [litellm.Choices(message=litellm.Message(content="a grounded answer", role="assistant"))]
+    model_response.choices = [gateway.Choices(message=gateway.Message(content="a grounded answer", role="assistant"))]
 
     mock_credentials = MagicMock()
     mock_credentials.access_key = "k"
@@ -4020,7 +4020,7 @@ async def test_apply_guardrail_unrecoverable_failure_logs_exactly_once_as_failed
         {"role": "user", "content": "what does the source say?"},
     ]
     model_response = ModelResponse()
-    model_response.choices = [litellm.Choices(message=litellm.Message(content="a grounded answer", role="assistant"))]
+    model_response.choices = [gateway.Choices(message=gateway.Message(content="a grounded answer", role="assistant"))]
 
     mock_credentials = MagicMock()
     mock_credentials.access_key = "k"
@@ -5080,7 +5080,7 @@ async def test_apply_guardrail_failure_logs_a_dict_not_a_bare_string():
 def test_build_tracing_detail_surfaces_usage_counters_and_cost(monkeypatch):
     """LIT-5650/LIT-5651: AWS-billed usage must land as guardrail_usage priced into guardrail_cost."""
     monkeypatch.setattr(
-        litellm,
+        gateway,
         "model_cost",
         {
             "bedrock/guardrails": {
@@ -5121,7 +5121,7 @@ def test_build_tracing_detail_omits_guardrail_usage_when_bedrock_reports_none():
 async def test_blocked_chunk_logs_usage_and_cost_of_prior_passed_chunks(monkeypatch):
     """LIT-5651 regression: a block on a later chunk must still bill the chunks AWS already processed."""
     monkeypatch.setattr(
-        litellm,
+        gateway,
         "model_cost",
         {
             "bedrock/guardrails": {
@@ -5202,7 +5202,7 @@ async def test_blocked_chunk_logs_usage_and_cost_of_prior_passed_chunks(monkeypa
 async def test_terminal_failure_logs_usage_and_cost_of_prior_passed_chunks(monkeypatch):
     """LIT-5651 regression: a terminal failure on a later chunk must still bill the chunks AWS already processed."""
     monkeypatch.setattr(
-        litellm,
+        gateway,
         "model_cost",
         {
             "bedrock/guardrails": {
@@ -5344,15 +5344,15 @@ def test_initialize_bedrock_forwards_aws_external_id():
     try:
         assert guardrail.optional_params["aws_external_id"] == "external-id-123"
     finally:
-        litellm.logging_callback_manager.remove_callback_from_list_by_object(litellm.callbacks, guardrail)
+        gateway.logging_callback_manager.remove_callback_from_list_by_object(gateway.callbacks, guardrail)
 
 
-def _chat_chunk(content: str, finish_reason: str | None) -> litellm.ModelResponseStream:
-    return litellm.ModelResponseStream(
+def _chat_chunk(content: str, finish_reason: str | None) -> gateway.ModelResponseStream:
+    return gateway.ModelResponseStream(
         id="tid",
         choices=[
-            litellm.types.utils.StreamingChoices(
-                delta=litellm.types.utils.Delta(content=content, role="assistant"),
+            gateway.types.utils.StreamingChoices(
+                delta=gateway.types.utils.Delta(content=content, role="assistant"),
                 finish_reason=finish_reason,
                 index=0,
             )
@@ -5391,7 +5391,7 @@ def test_initialize_bedrock_wires_streaming_flags():
         {"guardrail_name": "bedrock-defaults"},
     )
     for registered in (configured, defaulted):
-        litellm.logging_callback_manager.remove_callback_from_list_by_object(litellm.callbacks, registered)
+        gateway.logging_callback_manager.remove_callback_from_list_by_object(gateway.callbacks, registered)
 
     assert configured.streaming_buffer_until_moderated is False
     assert configured.streaming_sampling_rate == 3

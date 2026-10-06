@@ -17,7 +17,7 @@ from unittest.mock import patch
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.integrations.datadog.datadog_llm_obs import DataDogLLMObsLogger
 from token_iq.gateway.core_utils.safe_json_dumps import safe_dumps
 
@@ -515,7 +515,7 @@ def test_an_explicit_redaction_setting_survives_the_global_params(logger: DataDo
     with patch.dict(os.environ, {"DD_API_KEY": "k", "DD_SITE": "us5.datadoghq.com"}, clear=True):
         with patch("asyncio.create_task"):
             with patch.object(  # test-quality-ok: the ctor reads this module global with no injection seam
-                litellm, "datadog_llm_observability_params", {}
+                gateway, "datadog_llm_observability_params", {}
             ):
                 configured_logger = DataDogLLMObsLogger(
                     turn_off_message_logging=True

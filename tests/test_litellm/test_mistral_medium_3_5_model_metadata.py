@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.get_llm_provider_logic import get_llm_provider
 
 REPO_ROOT = Path(__file__).parents[2]
@@ -58,7 +58,7 @@ def test_medium_3_5_specs(model):
 def test_mistral_medium_latest_resolves_to_medium_3_5(local_model_cost_map):
     """LIT-3883: the -latest alias was retargeted to Medium 3.5; get_model_info must
     return the 3.5 pricing/context/reasoning, not the stale Medium 3.1 values."""
-    info = litellm.get_model_info(model="mistral/mistral-medium-latest")
+    info = gateway.get_model_info(model="mistral/mistral-medium-latest")
 
     assert info["input_cost_per_token"] == 1.5e-06
     assert info["output_cost_per_token"] == 7.5e-06

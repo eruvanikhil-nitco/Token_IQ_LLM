@@ -104,7 +104,7 @@ def _make_guardrail_dict(name="g", **litellm_params_overrides):
     return {"guardrail_name": name, "litellm_params": raw}
 
 
-@patch("token_iq.gateway.proxy.guardrails.guardrail_hooks.llm_as_a_judge.litellm.logging_callback_manager")
+@patch("token_iq.gateway.proxy.guardrails.guardrail_hooks.llm_as_a_judge.gateway.logging_callback_manager")
 def test_initialize_guardrail_ok(mock_mgr):
     lp = _make_litellm_params()
     g = _make_guardrail_dict()
@@ -158,7 +158,7 @@ async def test_apply_guardrail_empty_response_passthrough():
 
 
 @pytest.mark.asyncio
-@patch("token_iq.gateway.proxy.guardrails.guardrail_hooks.llm_as_a_judge.litellm.acompletion")
+@patch("token_iq.gateway.proxy.guardrails.guardrail_hooks.llm_as_a_judge.gateway.acompletion")
 async def test_apply_guardrail_passes_above_threshold(mock_completion):
     mock_completion.return_value = MagicMock(
         choices=[MagicMock(message=MagicMock(content=json.dumps(_make_verdict_response(90.0))))]
@@ -172,7 +172,7 @@ async def test_apply_guardrail_passes_above_threshold(mock_completion):
 
 
 @pytest.mark.asyncio
-@patch("token_iq.gateway.proxy.guardrails.guardrail_hooks.llm_as_a_judge.litellm.acompletion")
+@patch("token_iq.gateway.proxy.guardrails.guardrail_hooks.llm_as_a_judge.gateway.acompletion")
 async def test_apply_guardrail_blocks_below_threshold(mock_completion):
     mock_completion.return_value = MagicMock(
         choices=[MagicMock(message=MagicMock(content=json.dumps(_make_verdict_response(50.0))))]
@@ -186,7 +186,7 @@ async def test_apply_guardrail_blocks_below_threshold(mock_completion):
 
 
 @pytest.mark.asyncio
-@patch("token_iq.gateway.proxy.guardrails.guardrail_hooks.llm_as_a_judge.litellm.acompletion")
+@patch("token_iq.gateway.proxy.guardrails.guardrail_hooks.llm_as_a_judge.gateway.acompletion")
 async def test_apply_guardrail_log_mode_does_not_block(mock_completion):
     mock_completion.return_value = MagicMock(
         choices=[MagicMock(message=MagicMock(content=json.dumps(_make_verdict_response(50.0))))]
@@ -235,7 +235,7 @@ def test_parse_judge_verdict_rejects_json_non_object():
 
 
 @pytest.mark.asyncio
-@patch("token_iq.gateway.proxy.guardrails.guardrail_hooks.llm_as_a_judge.litellm.acompletion")
+@patch("token_iq.gateway.proxy.guardrails.guardrail_hooks.llm_as_a_judge.gateway.acompletion")
 async def test_apply_guardrail_enforces_fenced_verdict(mock_completion):
     """A failing verdict wrapped in a code fence blocks with a 422."""
     fenced = "```json\n" + json.dumps(_make_verdict_response(50.0)) + "\n```"
@@ -249,7 +249,7 @@ async def test_apply_guardrail_enforces_fenced_verdict(mock_completion):
 
 
 @pytest.mark.asyncio
-@patch("token_iq.gateway.proxy.guardrails.guardrail_hooks.llm_as_a_judge.litellm.acompletion")
+@patch("token_iq.gateway.proxy.guardrails.guardrail_hooks.llm_as_a_judge.gateway.acompletion")
 async def test_apply_guardrail_non_object_verdict_fails_open_with_status(mock_completion):
     """A non-object verdict fails open and logs guardrail_failed_to_respond."""
     mock_completion.return_value = MagicMock(
@@ -265,7 +265,7 @@ async def test_apply_guardrail_non_object_verdict_fails_open_with_status(mock_co
 
 
 @pytest.mark.asyncio
-@patch("token_iq.gateway.proxy.guardrails.guardrail_hooks.llm_as_a_judge.litellm.acompletion")
+@patch("token_iq.gateway.proxy.guardrails.guardrail_hooks.llm_as_a_judge.gateway.acompletion")
 async def test_apply_guardrail_parses_fenced_json_verdict(mock_completion):
     """Fencing-prone judge models wrap the verdict in a ```json fence; the guardrail
     must parse it and evaluate rather than failing open on json.loads."""
@@ -280,7 +280,7 @@ async def test_apply_guardrail_parses_fenced_json_verdict(mock_completion):
 
 
 @pytest.mark.asyncio
-@patch("token_iq.gateway.proxy.guardrails.guardrail_hooks.llm_as_a_judge.litellm.acompletion")
+@patch("token_iq.gateway.proxy.guardrails.guardrail_hooks.llm_as_a_judge.gateway.acompletion")
 async def test_apply_guardrail_judge_error_fails_open(mock_completion):
     mock_completion.side_effect = RuntimeError("judge down")
     guardrail = _make_guardrail()
@@ -337,7 +337,7 @@ def _real_router(model_list, **router_kwargs):
     ids=["plain-deployment", "wildcard-route", "model-group-alias", "hidden-model-group-alias"],
 )
 @pytest.mark.asyncio
-@patch("token_iq.gateway.proxy.guardrails.guardrail_hooks.llm_as_a_judge.litellm.acompletion", new_callable=AsyncMock)
+@patch("token_iq.gateway.proxy.guardrails.guardrail_hooks.llm_as_a_judge.gateway.acompletion", new_callable=AsyncMock)
 async def test_judge_routes_through_router_for_router_served_model(
     mock_sdk_completion, model_list, router_kwargs, judge_model
 ):
@@ -362,7 +362,7 @@ async def test_judge_routes_through_router_for_router_served_model(
 
 
 @pytest.mark.asyncio
-@patch("token_iq.gateway.proxy.guardrails.guardrail_hooks.llm_as_a_judge.litellm.acompletion", new_callable=AsyncMock)
+@patch("token_iq.gateway.proxy.guardrails.guardrail_hooks.llm_as_a_judge.gateway.acompletion", new_callable=AsyncMock)
 async def test_judge_call_falls_back_to_sdk_when_model_not_in_router(mock_sdk_completion):
     """A judge_model the Router cannot serve (e.g. a raw provider model resolved
     from the environment) must fall back to the SDK."""
@@ -383,7 +383,7 @@ async def test_judge_call_falls_back_to_sdk_when_model_not_in_router(mock_sdk_co
 
 
 @pytest.mark.asyncio
-@patch("token_iq.gateway.proxy.guardrails.guardrail_hooks.llm_as_a_judge.litellm.acompletion", new_callable=AsyncMock)
+@patch("token_iq.gateway.proxy.guardrails.guardrail_hooks.llm_as_a_judge.gateway.acompletion", new_callable=AsyncMock)
 async def test_judge_call_uses_sdk_when_no_router(mock_sdk_completion):
     mock_sdk_completion.return_value = _judge_response_mock()
     guardrail = _make_guardrail(judge_model="gpt-4o-mini", router_provider=lambda: None)
@@ -397,7 +397,7 @@ async def test_judge_call_uses_sdk_when_no_router(mock_sdk_completion):
 
 
 @pytest.mark.asyncio
-@patch("token_iq.gateway.proxy.guardrails.guardrail_hooks.llm_as_a_judge.litellm.acompletion", new_callable=AsyncMock)
+@patch("token_iq.gateway.proxy.guardrails.guardrail_hooks.llm_as_a_judge.gateway.acompletion", new_callable=AsyncMock)
 async def test_judge_resolves_router_lazily_per_call(mock_sdk_completion):
     """The Router is resolved at call time, not captured at construction. A
     guardrail built before the proxy Router exists (provider returns None) starts
@@ -441,7 +441,7 @@ def test_default_router_provider_reads_global_router():
         assert _default_router_provider() is sentinel
 
 
-@patch("token_iq.gateway.proxy.guardrails.guardrail_hooks.llm_as_a_judge.litellm.logging_callback_manager")
+@patch("token_iq.gateway.proxy.guardrails.guardrail_hooks.llm_as_a_judge.gateway.logging_callback_manager")
 def test_initialize_guardrail_uses_default_router_provider(mock_mgr):
     from token_iq.gateway.proxy.guardrails.guardrail_hooks.llm_as_a_judge import _default_router_provider
 
@@ -452,7 +452,7 @@ def test_initialize_guardrail_uses_default_router_provider(mock_mgr):
 
 
 @pytest.mark.asyncio
-@patch("token_iq.gateway.proxy.guardrails.guardrail_hooks.llm_as_a_judge.litellm.acompletion")
+@patch("token_iq.gateway.proxy.guardrails.guardrail_hooks.llm_as_a_judge.gateway.acompletion")
 async def test_apply_guardrail_clamps_score(mock_completion):
     response_payload = {"verdicts": [], "overall_score": 150}
     mock_completion.return_value = MagicMock(

@@ -5,7 +5,7 @@ Utils used for slack alerting
 import asyncio
 from typing import TYPE_CHECKING, Any, Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy._types import AlertType
 from token_iq.gateway.secret_managers.main import get_secret
 
@@ -66,7 +66,7 @@ async def _add_langfuse_trace_id_to_alert(
     -> trace_id
     -> litellm_call_id
     """
-    if "langfuse" not in litellm.logging_callback_manager._get_all_callbacks():
+    if "langfuse" not in gateway.logging_callback_manager._get_all_callbacks():
         return None
     #########################################################
     # Only run if langfuse is added as a callback

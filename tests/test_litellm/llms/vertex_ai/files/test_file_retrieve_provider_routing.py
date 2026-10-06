@@ -88,7 +88,7 @@ class TestFileRetrieveProviderRouting:
         Before the fix, vertex_ai fell through to the else-branch which raised
         BadRequestError. Verify it no longer does.
         """
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         mock_file = self._make_mock_file_object()
 
@@ -101,12 +101,12 @@ class TestFileRetrieveProviderRouting:
                     file_id="gs://my-bucket/file.jsonl",
                     custom_llm_provider="vertex_ai",
                 )
-            except litellm.exceptions.BadRequestError as e:
+            except gateway.exceptions.BadRequestError as e:
                 pytest.fail(f"file_retrieve raised BadRequestError for vertex_ai: {e}")
 
     def test_should_not_raise_bad_request_for_gemini(self):
         """Same as above but for 'gemini'."""
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         mock_file = self._make_mock_file_object()
 
@@ -119,5 +119,5 @@ class TestFileRetrieveProviderRouting:
                     file_id="some-file-id",
                     custom_llm_provider="gemini",
                 )
-            except litellm.exceptions.BadRequestError as e:
+            except gateway.exceptions.BadRequestError as e:
                 pytest.fail(f"file_retrieve raised BadRequestError for gemini: {e}")

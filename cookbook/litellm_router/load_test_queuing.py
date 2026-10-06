@@ -9,9 +9,9 @@ sys.path.insert(
 )  # Adds the parent directory to the system path
 
 from token_iq.gateway import Router
-from token_iq import gateway as litellm
+from token_iq import gateway
 
-litellm.set_verbose = False
+gateway.set_verbose = False
 # os.environ.pop("AZURE_AD_TOKEN")
 
 model_list = [

@@ -11,7 +11,7 @@ enable_preview_features=True to be enabled.
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.prompt_templates.factory import (
     THOUGHT_SIGNATURE_SEPARATOR,
     _encode_tool_call_id_with_signature,

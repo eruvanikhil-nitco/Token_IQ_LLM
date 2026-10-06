@@ -246,7 +246,7 @@ def test_chat_completion(config: dict):
     print("TEST: Chat Completion")
     print("=" * 60)
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     model = config.get("TEST_CHAT_MODEL", "databricks-gpt-oss-120b")
     full_model = f"databricks/{model}"
@@ -255,7 +255,7 @@ def test_chat_completion(config: dict):
     print(f"  API Base: {os.environ.get('DATABRICKS_API_BASE', 'Not set')}")
 
     try:
-        response = litellm.completion(
+        response = gateway.completion(
             model=full_model,
             messages=[
                 {
@@ -285,7 +285,7 @@ def test_chat_completion_default_user_agent(config: dict):
     print("TEST: Chat Completion with DEFAULT User-Agent")
     print("=" * 60)
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     # Clear any custom user agent from environment
     saved_user_agent = os.environ.pop("DATABRICKS_USER_AGENT", None)
@@ -304,7 +304,7 @@ def test_chat_completion_default_user_agent(config: dict):
     print(f"  (No custom user agent set)")
 
     try:
-        response = litellm.completion(
+        response = gateway.completion(
             model=full_model,
             messages=[{"role": "user", "content": "Say 'default' only."}],
             max_tokens=10,
@@ -336,7 +336,7 @@ def test_chat_completion_with_custom_user_agent(config: dict):
     print("TEST: Chat Completion with Custom User-Agent (parameter)")
     print("=" * 60)
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     # Clear any env user agent to ensure parameter takes precedence
     saved_user_agent = os.environ.pop("DATABRICKS_USER_AGENT", None)
@@ -355,7 +355,7 @@ def test_chat_completion_with_custom_user_agent(config: dict):
     print(f"  Expected User-Agent: testpartner_litellm/{version}")
 
     try:
-        response = litellm.completion(
+        response = gateway.completion(
             model=full_model,
             messages=[{"role": "user", "content": "Say 'test' only."}],
             max_tokens=10,
@@ -387,7 +387,7 @@ def test_chat_completion_with_env_user_agent(config: dict):
     print("TEST: Chat Completion with User-Agent from ENV VAR")
     print("=" * 60)
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     # Set a specific user agent via environment
     test_partner = "envpartner"
@@ -406,7 +406,7 @@ def test_chat_completion_with_env_user_agent(config: dict):
     print(f"  Expected User-Agent: {test_partner}_litellm/{version}")
 
     try:
-        response = litellm.completion(
+        response = gateway.completion(
             model=full_model,
             messages=[{"role": "user", "content": "Say 'env' only."}],
             max_tokens=10,
@@ -435,7 +435,7 @@ def test_embedding(config: dict):
     print("TEST: Embeddings")
     print("=" * 60)
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     model = config.get("TEST_EMBEDDING_MODEL", "databricks-bge-large-en")
     full_model = f"databricks/{model}"
@@ -443,7 +443,7 @@ def test_embedding(config: dict):
     print(f"  Model: {full_model}")
 
     try:
-        response = litellm.embedding(
+        response = gateway.embedding(
             model=full_model,
             input=["Hello, world!"],
         )
@@ -524,7 +524,7 @@ def test_litellm_sdk_with_config_user_agent(config: dict):
     print("TEST: LiteLLM SDK with Config User-Agent")
     print("=" * 60)
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.llms.databricks.common_utils import DatabricksBase
 
     custom_ua = config.get("CUSTOM_USER_AGENT")
@@ -548,7 +548,7 @@ def test_litellm_sdk_with_config_user_agent(config: dict):
     print(f"  >>> Final User-Agent sent: {final_user_agent}")
 
     try:
-        response = litellm.completion(
+        response = gateway.completion(
             model=full_model,
             messages=[{"role": "user", "content": "Say 'LiteLLM SDK test' only."}],
             max_tokens=20,
@@ -665,7 +665,7 @@ def test_litellm_async_completion(config: dict):
     print("=" * 60)
 
     import asyncio
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.llms.databricks.common_utils import DatabricksBase
 
     custom_ua = config.get("CUSTOM_USER_AGENT")
@@ -684,7 +684,7 @@ def test_litellm_async_completion(config: dict):
     print(f"  >>> Final User-Agent sent: {final_user_agent}")
 
     async def run_async_completion():
-        response = await litellm.acompletion(
+        response = await gateway.acompletion(
             model=full_model,
             messages=[{"role": "user", "content": "Say 'LiteLLM async test' only."}],
             max_tokens=20,
@@ -720,7 +720,7 @@ def test_litellm_streaming_completion(config: dict):
     print("TEST: LiteLLM Streaming Completion with Config User-Agent")
     print("=" * 60)
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.llms.databricks.common_utils import DatabricksBase
 
     custom_ua = config.get("CUSTOM_USER_AGENT")
@@ -740,7 +740,7 @@ def test_litellm_streaming_completion(config: dict):
 
     try:
         # Use streaming completion
-        response = litellm.completion(
+        response = gateway.completion(
             model=full_model,
             messages=[
                 {"role": "user", "content": "Say 'LiteLLM streaming test' only."}
@@ -780,7 +780,7 @@ def test_litellm_embedding_with_user_agent(config: dict):
     print("TEST: LiteLLM Embedding with Config User-Agent")
     print("=" * 60)
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.llms.databricks.common_utils import DatabricksBase
 
     custom_ua = config.get("CUSTOM_USER_AGENT")
@@ -799,7 +799,7 @@ def test_litellm_embedding_with_user_agent(config: dict):
     print(f"  >>> Final User-Agent sent: {final_user_agent}")
 
     try:
-        response = litellm.embedding(
+        response = gateway.embedding(
             model=full_model,
             input=["Hello, this is a LiteLLM embedding test with custom user agent!"],
             user_agent=custom_ua,

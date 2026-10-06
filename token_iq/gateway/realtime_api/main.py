@@ -6,7 +6,7 @@ from collections.abc import Mapping
 from types import MappingProxyType
 from typing import Any, Final, Literal, cast
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.constants import (
     REALTIME_CREDENTIAL_RESOLUTION_TIMEOUT_SECONDS,
     REALTIME_WEBSOCKET_MAX_MESSAGE_SIZE_BYTES,
@@ -97,9 +97,9 @@ def _get_realtime_http_provider_config(
         resolved_api_key = provider_config.get_api_key(api_key=raw_api_key)
     else:
         # Fallback for providers without a dedicated HTTP config (treated as OpenAI-compatible).
-        resolved_api_base = raw_api_base or litellm.api_base or "https://api.openai.com"
+        resolved_api_base = raw_api_base or gateway.api_base or "https://api.openai.com"
         resolved_api_key = (
-            raw_api_key or litellm.api_key or litellm.openai_key or get_secret_str("OPENAI_API_KEY") or ""
+            raw_api_key or gateway.api_key or gateway.openai_key or get_secret_str("OPENAI_API_KEY") or ""
         )
 
     return provider_config, resolved_api_base.rstrip("/"), resolved_api_key
@@ -401,9 +401,9 @@ async def _arealtime(
             query_params=query_params,
         )
     elif _custom_llm_provider == "azure":
-        api_base = dynamic_api_base or litellm_params.api_base or litellm.api_base or get_secret_str("AZURE_API_BASE")
+        api_base = dynamic_api_base or litellm_params.api_base or gateway.api_base or get_secret_str("AZURE_API_BASE")
         # set API KEY
-        api_key = dynamic_api_key or litellm.api_key or litellm.openai_key or get_secret_str("AZURE_API_KEY")
+        api_key = dynamic_api_key or gateway.api_key or gateway.openai_key or get_secret_str("AZURE_API_KEY")
 
         api_version = api_version or litellm_params.api_version or "2024-10-01-preview"
 
@@ -434,9 +434,9 @@ async def _arealtime(
             litellm_metadata=_build_litellm_metadata(kwargs),
         )
     elif _custom_llm_provider == "openai":
-        api_base = dynamic_api_base or litellm_params.api_base or litellm.api_base or "https://api.openai.com/"
+        api_base = dynamic_api_base or litellm_params.api_base or gateway.api_base or "https://api.openai.com/"
         # set API KEY
-        api_key = dynamic_api_key or litellm.api_key or litellm.openai_key or get_secret_str("OPENAI_API_KEY")
+        api_key = dynamic_api_key or gateway.api_key or gateway.openai_key or get_secret_str("OPENAI_API_KEY")
 
         await openai_realtime.async_realtime(
             model=model,
@@ -511,13 +511,13 @@ async def _arealtime(
         vertex_project: Final = (
             kwargs.get("vertex_project")
             or kwargs.get("vertex_ai_project")
-            or litellm.vertex_project
+            or gateway.vertex_project
             or get_secret_str("VERTEXAI_PROJECT")
         )
         vertex_location: Final = (
             kwargs.get("vertex_location")
             or kwargs.get("vertex_ai_location")
-            or litellm.vertex_location
+            or gateway.vertex_location
             or get_secret_str("VERTEXAI_LOCATION")
         )
 
@@ -559,7 +559,7 @@ async def _arealtime(
 
 def _is_transcription_only_realtime_model(model: str, custom_llm_provider: str) -> bool:
     try:
-        model_info: Final = litellm.get_model_info(model=model, custom_llm_provider=custom_llm_provider)
+        model_info: Final = gateway.get_model_info(model=model, custom_llm_provider=custom_llm_provider)
     except Exception:  # noqa: BLE001  # get_model_info raises bare Exception for unmapped models
         return False
     if model_info.get("mode") == "audio_transcription":

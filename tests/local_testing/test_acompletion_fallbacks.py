@@ -8,12 +8,12 @@ import pytest
 import concurrent
 
 from dotenv import load_dotenv
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 
 @pytest.mark.asyncio
 async def test_acompletion_fallbacks_basic():
-    response = await litellm.acompletion(
+    response = await gateway.acompletion(
         model="openai/unknown-model",
         messages=[{"role": "user", "content": "Hello, world!"}],
         fallbacks=["openai/gpt-4o-mini"],
@@ -30,7 +30,7 @@ async def test_acompletion_fallbacks_bad_models():
     try:
         # Wrap the acompletion call with asyncio.wait_for to enforce a timeout
         response = await asyncio.wait_for(
-            litellm.acompletion(
+            gateway.acompletion(
                 model="openai/unknown-model",
                 messages=[{"role": "user", "content": "Hello, world!"}],
                 fallbacks=["openai/bad-model", "openai/unknown-model"],
@@ -50,7 +50,7 @@ async def test_acompletion_fallbacks_with_dict_config():
     """
     Test fallbacks with dictionary configuration that includes model-specific settings
     """
-    response = await litellm.acompletion(
+    response = await gateway.acompletion(
         model="openai/gpt-4o-mini",
         messages=[{"role": "user", "content": "Hello, world!"}],
         api_key="very-bad-api-key",
@@ -64,14 +64,14 @@ async def test_acompletion_fallbacks_empty_list():
     """
     Test behavior when fallbacks list is empty
     """
-    with pytest.raises(litellm.NotFoundError) as exc_info:
-        response = await litellm.acompletion(
+    with pytest.raises(gateway.NotFoundError) as exc_info:
+        response = await gateway.acompletion(
             model="openai/unknown-model",
             messages=[{"role": "user", "content": "Hello, world!"}],
             fallbacks=[],
         )
     e = exc_info.value
-    assert isinstance(e, litellm.NotFoundError)
+    assert isinstance(e, gateway.NotFoundError)
 
 
 @pytest.mark.asyncio
@@ -80,7 +80,7 @@ async def test_acompletion_fallbacks_none_response():
     Test handling when a fallback model returns None
     Should continue to next fallback rather than returning None
     """
-    response = await litellm.acompletion(
+    response = await gateway.acompletion(
         model="openai/unknown-model",
         messages=[{"role": "user", "content": "Hello, world!"}],
         fallbacks=["gpt-3.5-turbo"],  # replace with a model you know works
@@ -89,7 +89,7 @@ async def test_acompletion_fallbacks_none_response():
 
 
 async def test_completion_fallbacks_sync():
-    response = litellm.completion(
+    response = gateway.completion(
         model="openai/unknown-model",
         messages=[{"role": "user", "content": "Hello, world!"}],
         fallbacks=["openai/gpt-4o-mini"],

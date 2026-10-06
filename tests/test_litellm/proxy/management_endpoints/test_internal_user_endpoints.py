@@ -1419,7 +1419,7 @@ async def test_new_user_default_teams_flow(mocker):
     - Teams are NOT sent to generate_key_helper_fn
     - Teams ARE sent to _add_user_to_team
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.proxy._types import NewUserRequest, NewUserRequestTeam, UserAPIKeyAuth
     from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import new_user
 
@@ -1465,8 +1465,8 @@ async def test_new_user_default_teams_flow(mocker):
     mock_user_created_hook = mocker.AsyncMock()
 
     # Setup default_internal_user_params with teams
-    original_default_params = getattr(litellm, "default_internal_user_params", None)
-    litellm.default_internal_user_params = {
+    original_default_params = getattr(gateway, "default_internal_user_params", None)
+    gateway.default_internal_user_params = {
         "teams": [
             {
                 "team_id": "96fed65b-0182-4ff4-8429-2721cd7d42af",
@@ -1533,22 +1533,22 @@ async def test_new_user_default_teams_flow(mocker):
     finally:
         # Restore original default params (always assign, never delattr — the attribute
         # is defined in token_iq/gateway/__init__.py and delattr-ing it breaks parallel tests)
-        litellm.default_internal_user_params = original_default_params
+        gateway.default_internal_user_params = original_default_params
 
 
 def test_update_internal_new_user_params_proxy_admin_role():
     """
     Test that default_internal_user_params are NOT applied when user_role is PROXY_ADMIN
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.proxy._types import LitellmUserRoles, NewUserRequest
     from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import (
         _update_internal_new_user_params,
     )
 
     # Set up default_internal_user_params
-    original_default_params = getattr(litellm, "default_internal_user_params", None)
-    litellm.default_internal_user_params = {
+    original_default_params = getattr(gateway, "default_internal_user_params", None)
+    gateway.default_internal_user_params = {
         "max_budget": 1000,
         "models": ["gpt-3.5-turbo", "gpt-4"],
         "tpm_limit": 5000,
@@ -1580,22 +1580,22 @@ def test_update_internal_new_user_params_proxy_admin_role():
         assert result["user_role"] == LitellmUserRoles.PROXY_ADMIN.value
 
     finally:
-        litellm.default_internal_user_params = original_default_params
+        gateway.default_internal_user_params = original_default_params
 
 
 def test_update_internal_new_user_params_no_role_specified():
     """
     Test that default_internal_user_params ARE applied when user_role is not set
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.proxy._types import NewUserRequest
     from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import (
         _update_internal_new_user_params,
     )
 
     # Set up default_internal_user_params
-    original_default_params = getattr(litellm, "default_internal_user_params", None)
-    litellm.default_internal_user_params = {
+    original_default_params = getattr(gateway, "default_internal_user_params", None)
+    gateway.default_internal_user_params = {
         "max_budget": 1000,
         "models": ["gpt-3.5-turbo", "gpt-4"],
         "tpm_limit": 5000,
@@ -1616,22 +1616,22 @@ def test_update_internal_new_user_params_no_role_specified():
         assert result["user_email"] == "user@example.com"
 
     finally:
-        litellm.default_internal_user_params = original_default_params
+        gateway.default_internal_user_params = original_default_params
 
 
 def test_update_internal_new_user_params_internal_user_role():
     """
     Test that default_internal_user_params ARE applied when user_role is INTERNAL_USER
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.proxy._types import LitellmUserRoles, NewUserRequest
     from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import (
         _update_internal_new_user_params,
     )
 
     # Set up default_internal_user_params
-    original_default_params = getattr(litellm, "default_internal_user_params", None)
-    litellm.default_internal_user_params = {
+    original_default_params = getattr(gateway, "default_internal_user_params", None)
+    gateway.default_internal_user_params = {
         "max_budget": 1000,
         "models": ["gpt-3.5-turbo", "gpt-4"],
         "tpm_limit": 5000,
@@ -1656,7 +1656,7 @@ def test_update_internal_new_user_params_internal_user_role():
         assert result["user_role"] == LitellmUserRoles.INTERNAL_USER.value
 
     finally:
-        litellm.default_internal_user_params = original_default_params
+        gateway.default_internal_user_params = original_default_params
 
 
 @pytest.mark.asyncio

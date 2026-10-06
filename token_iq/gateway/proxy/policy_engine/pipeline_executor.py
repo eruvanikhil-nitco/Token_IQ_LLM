@@ -9,7 +9,7 @@ import time
 from collections.abc import Sequence
 from typing import Any, Final, Literal
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.integrations.custom_guardrail import (
     CustomGuardrail,
@@ -237,7 +237,7 @@ class PipelineExecutor:
     @staticmethod
     def find_guardrail_callback(guardrail_name: str) -> CustomGuardrail | None:
         """Look up an initialized guardrail callback by name from litellm.callbacks."""
-        for callback in litellm.callbacks:
+        for callback in gateway.callbacks:
             if isinstance(callback, CustomGuardrail):
                 if callback.guardrail_name == guardrail_name:
                     return callback

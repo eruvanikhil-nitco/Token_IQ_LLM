@@ -8,7 +8,7 @@ from typing import (
 
 from typing_extensions import TypedDict
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.core_utils.asyncify import run_async_function
 from token_iq.gateway.llms.anthropic.experimental_pass_through.adapters.transformation import (
@@ -337,7 +337,7 @@ class LiteLLMMessagesToCompletionTransformationHandler:
         custom_llm_provider = completion_kwargs.get("custom_llm_provider")
         if custom_llm_provider is None:
             try:
-                _, inferred_provider, _, _ = litellm.utils.get_llm_provider(
+                _, inferred_provider, _, _ = gateway.utils.get_llm_provider(
                     model=cast(str, completion_kwargs.get("model"))
                 )
                 custom_llm_provider = inferred_provider
@@ -612,7 +612,7 @@ class LiteLLMMessagesToCompletionTransformationHandler:
             extra_kwargs=kwargs,
         )
 
-        completion_response: Final = await litellm.acompletion(**completion_kwargs)
+        completion_response: Final = await gateway.acompletion(**completion_kwargs)
 
         if stream:
             transformed_stream: Final = ANTHROPIC_ADAPTER.translate_completion_output_params_streaming(
@@ -746,7 +746,7 @@ class LiteLLMMessagesToCompletionTransformationHandler:
             extra_kwargs=kwargs,
         )
 
-        completion_response: Final = litellm.completion(**completion_kwargs)
+        completion_response: Final = gateway.completion(**completion_kwargs)
 
         if stream:
             transformed_stream: Final = ANTHROPIC_ADAPTER.translate_completion_output_params_streaming(

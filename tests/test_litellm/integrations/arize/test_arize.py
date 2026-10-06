@@ -9,7 +9,7 @@ import asyncio
 import pytest
 from opentelemetry.sdk.trace.export.in_memory_span_exporter import InMemorySpanExporter
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.integrations.arize.arize import ArizeLogger
 from token_iq.gateway.integrations.opentelemetry import OpenTelemetryConfig
 
@@ -35,10 +35,10 @@ async def test_arize_dynamic_params():
     arize_logger.get_tracer_to_use_for_request = mock_get_tracer_to_use_for_request
 
     # Set up callbacks
-    litellm.callbacks = [arize_logger]
+    gateway.callbacks = [arize_logger]
 
     # First request with team1 credentials
-    await litellm.acompletion(
+    await gateway.acompletion(
         model="gpt-3.5-turbo",
         messages=[{"role": "user", "content": "hi test from arize dynamic config"}],
         temperature=0.1,
@@ -48,7 +48,7 @@ async def test_arize_dynamic_params():
     )
 
     # Second request with team2 credentials
-    await litellm.acompletion(
+    await gateway.acompletion(
         model="gpt-3.5-turbo",
         messages=[{"role": "user", "content": "hi test from arize dynamic config"}],
         temperature=0.1,
@@ -120,10 +120,10 @@ async def test_arize_dynamic_headers_in_grpc_requests():
             exporter="otlp_http", endpoint="https://otlp.arize.com/v1"
         )
         arize_logger = ArizeLogger(config=config)
-        litellm.callbacks = [arize_logger]
+        gateway.callbacks = [arize_logger]
 
         # Request 1: team1 dynamic params
-        await litellm.acompletion(
+        await gateway.acompletion(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": "hi from team1"}],
             mock_response="response1",
@@ -132,7 +132,7 @@ async def test_arize_dynamic_headers_in_grpc_requests():
         )
 
         # Request 2: team2 dynamic params
-        await litellm.acompletion(
+        await gateway.acompletion(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": "hi from team2"}],
             mock_response="response2",

@@ -7,7 +7,7 @@ import os
 
 
 import asyncio
-from token_iq import gateway as litellm
+from token_iq import gateway
 import pytest
 import time
 from statistics import mean, median
@@ -65,7 +65,7 @@ async def create_async_vertex_embedding_task():
         "api_base": base_url,
     }
     start_time = time.time()
-    response = await litellm.aembedding(**embedding_args)
+    response = await gateway.aembedding(**embedding_args)
     end_time = time.time()
     print(f"Vertex AI embedding time: {end_time - start_time:.2f} seconds")
     return response, end_time - start_time
@@ -113,7 +113,7 @@ async def test_embedding_performance(monkeypatch):
 
     20 RPS for 20 seconds
     """
-    monkeypatch.setattr(litellm, "api_base", None)
+    monkeypatch.setattr(gateway, "api_base", None)
     duration_seconds = 20
     requests_per_second = 20
     vertex_times = await run_load_test(duration_seconds, requests_per_second)

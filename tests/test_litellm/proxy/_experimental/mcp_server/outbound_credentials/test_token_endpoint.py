@@ -13,7 +13,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import httpx
 import jwt
-from token_iq import gateway as litellm
+from token_iq import gateway
 import pytest
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
@@ -156,7 +156,7 @@ async def test_fetch_http_error_maps_to_upstream_unavailable_with_status():
     [
         httpx.ConnectError("connection refused", request=MagicMock()),
         httpx.ReadTimeout("timed out", request=MagicMock()),
-        litellm.Timeout(
+        gateway.Timeout(
             message="Connection timed out",
             model="default-model-name",
             llm_provider="litellm-httpx-handler",

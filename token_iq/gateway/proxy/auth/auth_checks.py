@@ -21,7 +21,7 @@ from fastapi import HTTPException, Request, status
 from pydantic import BaseModel
 from typing_extensions import ReadOnly, TypedDict
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.caching.dual_cache import LimitedSizeOrderedDict
 from token_iq.gateway.constants import (
@@ -507,7 +507,7 @@ def _is_cost_explicitly_configured(model: str, llm_router: "Router") -> bool:
         model_id = deployment.get("model_info", {}).get("id")
         if model_id is None:
             continue
-        raw_entry = litellm.model_cost.get(model_id, {})
+        raw_entry = gateway.model_cost.get(model_id, {})
         if "input_cost_per_token" in raw_entry or "output_cost_per_token" in raw_entry:
             return True
     return False
@@ -574,7 +574,7 @@ def _group_declares_explicit_cost(model: str, llm_router: "Router") -> bool:
         model_id = (deployment.get("model_info") or _EMPTY_COST_ENTRY).get("id")
         if model_id is None:
             continue
-        raw_entry = litellm.model_cost.get(model_id, _EMPTY_COST_ENTRY)
+        raw_entry = gateway.model_cost.get(model_id, _EMPTY_COST_ENTRY)
         if "input_cost_per_token" in raw_entry or "output_cost_per_token" in raw_entry:
             return True
     return False
@@ -690,17 +690,17 @@ def _reject_clientside_metadata_tags_check(general_settings: dict, request_body:
 
 def _global_proxy_budget_check(global_proxy_spend: float | None, skip_budget_checks: bool, route: str) -> None:
     if (
-        litellm.max_budget > 0
+        gateway.max_budget > 0
         and not skip_budget_checks
         and global_proxy_spend is not None
         and RouteChecks.is_llm_api_route(route=route)
         and route != "/v1/models"
         and route != "/models"
     ):
-        if math.isfinite(litellm.max_budget) and global_proxy_spend > litellm.max_budget:
-            raise litellm.BudgetExceededError(
+        if math.isfinite(gateway.max_budget) and global_proxy_spend > gateway.max_budget:
+            raise gateway.BudgetExceededError(
                 current_cost=global_proxy_spend,
-                max_budget=litellm.max_budget,
+                max_budget=gateway.max_budget,
                 entity_type=Litellm_EntityType.PROXY.value,
             )
 
@@ -883,7 +883,7 @@ async def common_checks(
 
     unpriced_models: Final = (
         _unpriced_models_in_request(model=_model, llm_router=llm_router)
-        if litellm.block_requests_for_models_without_pricing and RouteChecks.is_llm_api_route(route=route)
+        if gateway.block_requests_for_models_without_pricing and RouteChecks.is_llm_api_route(route=route)
         else ()
     )
     if unpriced_models:
@@ -1026,7 +1026,7 @@ async def common_checks(
                 max_budget=user_budget,
             )
             if math.isfinite(user_budget) and user_spend >= user_budget:
-                raise litellm.BudgetExceededError(
+                raise gateway.BudgetExceededError(
                     current_cost=user_spend,
                     max_budget=user_budget,
                     message=f"ExceededBudget: User={user_object.user_id} over budget. Spend={user_spend}, Budget={user_budget}",
@@ -1309,10 +1309,10 @@ async def get_default_end_user_budget(
     Returns:
         LiteLLM_BudgetTable if configured and found, None otherwise
     """
-    if prisma_client is None or litellm.max_end_user_budget_id is None:
+    if prisma_client is None or gateway.max_end_user_budget_id is None:
         return None
 
-    cache_key: Final = f"default_end_user_budget:{litellm.max_end_user_budget_id}"
+    cache_key: Final = f"default_end_user_budget:{gateway.max_end_user_budget_id}"
 
     # Check cache first
     cached_budget: Final = await user_api_key_cache.async_get_cache(
@@ -1325,12 +1325,12 @@ async def get_default_end_user_budget(
     # Fetch from database
     try:
         budget_record: Final = await _dictable_table(BudgetRepository(prisma_client)).find_unique(
-            where={"budget_id": litellm.max_end_user_budget_id}
+            where={"budget_id": gateway.max_end_user_budget_id}
         )
 
         if budget_record is None:
             verbose_proxy_logger.warning(
-                "Default end user budget not found in database: %s", litellm.max_end_user_budget_id
+                "Default end user budget not found in database: %s", gateway.max_end_user_budget_id
             )
             return None
 
@@ -1429,7 +1429,7 @@ async def _apply_default_budget_to_end_user(
         return end_user_obj
 
     # If no default budget configured, return as-is
-    if litellm.max_end_user_budget_id is None:
+    if gateway.max_end_user_budget_id is None:
         return end_user_obj
 
     # Fetch and apply default budget
@@ -1443,7 +1443,7 @@ async def _apply_default_budget_to_end_user(
         # Apply default budget to end user object
         end_user_obj.litellm_budget_table = default_budget
         verbose_proxy_logger.debug(
-            "Applied default budget %s to end user %s", litellm.max_end_user_budget_id, end_user_obj.user_id
+            "Applied default budget %s to end user %s", gateway.max_end_user_budget_id, end_user_obj.user_id
         )
 
     return end_user_obj
@@ -1482,7 +1482,7 @@ async def _check_end_user_budget(
         fallback_authoritative=True,
     )
     if end_user_spend > end_user_budget:
-        raise litellm.BudgetExceededError(
+        raise gateway.BudgetExceededError(
             current_cost=end_user_spend,
             max_budget=end_user_budget,
             message=f"ExceededBudget: End User={end_user_obj.user_id} over budget. Spend={end_user_spend}, Budget={end_user_budget}",
@@ -1664,8 +1664,8 @@ async def _end_user_is_known_unrestricted(
     unrestricted row) is enforced against the row's recorded spend.
     """
     if (
-        litellm.max_end_user_budget_id is not None
-        or litellm.validate_end_user_id_in_db
+        gateway.max_end_user_budget_id is not None
+        or gateway.validate_end_user_id_in_db
         or token_end_user_max_budget is not None
     ):
         return False
@@ -1809,7 +1809,7 @@ async def resolve_and_validate_end_user_id(
     """
     if raw_end_user_id is None:
         return None
-    if not litellm.validate_end_user_id_in_db:
+    if not gateway.validate_end_user_id_in_db:
         return raw_end_user_id
     if prisma_client is None:
         return raw_end_user_id
@@ -1819,7 +1819,7 @@ async def resolve_and_validate_end_user_id(
     if cached == "valid":
         return raw_end_user_id
     if cached == "invalid":
-        return raw_end_user_id if litellm.max_end_user_budget_id else None
+        return raw_end_user_id if gateway.max_end_user_budget_id else None
 
     is_valid: Final = await _end_user_id_exists_in_db(
         end_user_id=raw_end_user_id,
@@ -1839,7 +1839,7 @@ async def resolve_and_validate_end_user_id(
     if is_valid:
         return raw_end_user_id
     # Preserve id so the caller can still apply litellm.max_end_user_budget_id.
-    if litellm.max_end_user_budget_id:
+    if gateway.max_end_user_budget_id:
         return raw_end_user_id
     return None
 
@@ -2424,7 +2424,7 @@ async def get_user_object(
                     check_if_default_team_set,
                 )
 
-                default_params: Final = litellm.default_internal_user_params or {}
+                default_params: Final = gateway.default_internal_user_params or {}
                 scalar_default_params: Final = {
                     key: value for key, value in default_params.items() if key not in ("teams", "available_teams")
                 }
@@ -3331,7 +3331,7 @@ class ExperimentalUIJWTToken:
             token="ui-token",
             key_name="ui-token",
             key_alias="ui-token",
-            max_budget=litellm.max_ui_session_budget,
+            max_budget=gateway.max_ui_session_budget,
             rpm_limit=100,  # allow user to have a conversation on test key pane of UI
             expires=expires,
             user_id=user_info.user_id,
@@ -3991,8 +3991,8 @@ def _can_object_call_model(
         return True
 
     potential_models: Final = [model]
-    if model in litellm.model_alias_map:
-        potential_models.append(litellm.model_alias_map[model])
+    if model in gateway.model_alias_map:
+        potential_models.append(gateway.model_alias_map[model])
     elif llm_router and model in llm_router.model_group_alias:
         _model: Final = llm_router._get_model_from_alias(model)
         if _model:
@@ -4243,7 +4243,7 @@ async def can_key_call_model(
     model: str | list[str],
     llm_model_list: list | None,
     valid_token: UserAPIKeyAuth,
-    llm_router: litellm.Router | None,
+    llm_router: gateway.Router | None,
 ) -> Literal[True]:
     """
     Checks if token can call a given model
@@ -4290,7 +4290,7 @@ async def can_key_call_resolved_model(
     model: str,
     llm_model_list: list | None,
     valid_token: UserAPIKeyAuth,
-    llm_router: litellm.Router | None,
+    llm_router: gateway.Router | None,
 ) -> None:
     from token_iq.gateway.proxy.proxy_server import (
         prisma_client,
@@ -4808,7 +4808,7 @@ async def _virtual_key_max_budget_check(
                 if valid_token.key_name and _MASKED_KEY_NAME_RE.fullmatch(valid_token.key_name)
                 else key_label
             )
-            raise litellm.BudgetExceededError(
+            raise gateway.BudgetExceededError(
                 current_cost=spend,
                 max_budget=valid_token.max_budget,
                 message=f"Budget has been exceeded! Key={key_descriptor} Current cost: {spend}, Max budget: {valid_token.max_budget}",
@@ -4849,7 +4849,7 @@ async def _virtual_key_multi_budget_check(
             window_start=get_budget_window_start(w),
         )
         if math.isfinite(w["max_budget"]) and window_spend >= w["max_budget"]:
-            raise litellm.BudgetExceededError(
+            raise gateway.BudgetExceededError(
                 current_cost=window_spend,
                 max_budget=w["max_budget"],
                 message=(
@@ -4956,7 +4956,7 @@ async def _virtual_key_max_budget_alert_check(
     if valid_token.max_budget is not None and valid_token.spend is not None and valid_token.spend > 0:
         owner_email: Final = user_obj.user_email if user_obj else None
         alert_email_config: Final[dict[str, list[str]] | None] = _merge_budget_alert_email_configs(
-            global_cfg=litellm.default_key_max_budget_alert_emails,
+            global_cfg=gateway.default_key_max_budget_alert_emails,
             per_key_cfg=(valid_token.metadata or {}).get("max_budget_alert_emails"),
         )
 
@@ -5085,7 +5085,7 @@ async def _check_team_member_budget(
             )
 
             if math.isfinite(team_member_budget) and team_member_spend >= team_member_budget:
-                raise litellm.BudgetExceededError(
+                raise gateway.BudgetExceededError(
                     current_cost=team_member_spend,
                     max_budget=team_member_budget,
                     message=f"Budget has been exceeded! User={valid_token.user_id} in Team={team_object.team_id} Current cost: {team_member_spend}, Max budget: {team_member_budget}",
@@ -5186,7 +5186,7 @@ async def _team_max_budget_check(
                     )
                 )
 
-            raise litellm.BudgetExceededError(
+            raise gateway.BudgetExceededError(
                 current_cost=spend,
                 max_budget=team_object.max_budget,
                 message=f"Budget has been exceeded! Team={team_object.team_id} Current cost: {spend}, Max budget: {team_object.max_budget}",
@@ -5223,7 +5223,7 @@ async def _team_multi_budget_check(
             window_start=get_budget_window_start(w),
         )
         if math.isfinite(w["max_budget"]) and window_spend >= w["max_budget"]:
-            raise litellm.BudgetExceededError(
+            raise gateway.BudgetExceededError(
                 current_cost=window_spend,
                 max_budget=w["max_budget"],
                 message=(
@@ -5349,7 +5349,7 @@ async def _project_max_budget_check(
                 )
             )
 
-        raise litellm.BudgetExceededError(
+        raise gateway.BudgetExceededError(
             current_cost=project_object.spend,
             max_budget=max_budget,
             message=f"Budget has been exceeded! Project={project_object.project_id} Current cost: {project_object.spend}, Max budget: {max_budget}",
@@ -5559,7 +5559,7 @@ async def _organization_max_budget_check(
             )
         )
 
-        raise litellm.BudgetExceededError(
+        raise gateway.BudgetExceededError(
             current_cost=org_spend,
             max_budget=org_max_budget,
             message=f"Budget has been exceeded! Organization={org_id} Current cost: {org_spend}, Max budget: {org_max_budget}",
@@ -5618,7 +5618,7 @@ async def _tag_max_budget_check(
             )
             if tag_spend <= tag_object.litellm_budget_table.max_budget:
                 continue
-            raise litellm.BudgetExceededError(
+            raise gateway.BudgetExceededError(
                 current_cost=tag_spend,
                 max_budget=tag_object.litellm_budget_table.max_budget,
                 message=f"Budget has been exceeded! Tag={tag_name} Current cost: {tag_spend}, Max budget: {tag_object.litellm_budget_table.max_budget}",
@@ -5673,7 +5673,7 @@ async def _model_access_group_max_budget_check(
         )
         if group_spend < budget.max_budget:
             continue
-        raise litellm.BudgetExceededError(
+        raise gateway.BudgetExceededError(
             current_cost=group_spend,
             max_budget=budget.max_budget,
             message=f"Budget has been exceeded! Model access group={group} Current cost: {group_spend}, Max budget: {budget.max_budget}",
@@ -5788,11 +5788,11 @@ async def vector_store_access_check(
         verbose_proxy_logger.debug("Prisma client not found, skipping vector store access check")
         return True
 
-    if litellm.vector_store_registry is None:
+    if gateway.vector_store_registry is None:
         verbose_proxy_logger.debug("Vector store registry not found, skipping vector store access check")
         return True
 
-    vector_store_ids_to_run: Final = litellm.vector_store_registry.get_vector_store_ids_to_run(
+    vector_store_ids_to_run: Final = gateway.vector_store_registry.get_vector_store_ids_to_run(
         non_default_params=request_body, tools=request_body.get("tools", None)
     )
     if vector_store_ids_to_run is None:

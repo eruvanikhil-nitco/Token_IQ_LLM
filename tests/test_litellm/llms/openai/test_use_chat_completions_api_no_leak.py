@@ -10,7 +10,7 @@ body. OpenAI/Anthropic reject unknown body params with HTTP 400.
 from unittest.mock import MagicMock
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.types.utils import all_litellm_params
 from token_iq.gateway.utils import get_non_default_completion_params
 
@@ -56,7 +56,7 @@ def test_completion_does_not_leak_flag_into_provider_request_body():
         mock_raw_response
     )
 
-    litellm.completion(
+    gateway.completion(
         model="openai/gpt-4o-mini",
         messages=[{"role": "user", "content": "hi"}],
         use_chat_completions_api=True,

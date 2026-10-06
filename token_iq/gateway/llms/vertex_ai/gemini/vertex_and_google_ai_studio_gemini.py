@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, Any, Final, Literal, Optional, Union, cast
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import verbose_logger
 from token_iq.gateway._uuid import uuid
 from token_iq.gateway.constants import (
@@ -340,7 +340,7 @@ class VertexGeminiConfig(VertexAIBaseConfig, BaseConfig):
             name: Final = tool_choice.get("function", {}).get("name", "")
             return ToolConfig(functionCallingConfig=FunctionCallingConfig(mode="ANY", allowed_function_names=[name]))
         else:
-            raise litellm.utils.UnsupportedParamsError(
+            raise gateway.utils.UnsupportedParamsError(
                 message=f"VertexAI doesn't support tool_choice={tool_choice}. Supported tool_choice values=['auto', 'required', json object]. To drop it from the call, set `litellm.drop_params = True.",
                 status_code=400,
             )
@@ -908,7 +908,7 @@ class VertexGeminiConfig(VertexAIBaseConfig, BaseConfig):
         if "thinkingConfig" in optional_params:
             existing_config: Final = optional_params["thinkingConfig"]
             if "thinkingLevel" in existing_config:
-                raise litellm.utils.UnsupportedParamsError(
+                raise gateway.utils.UnsupportedParamsError(
                     message=(
                         f"Cannot specify both `{param_name}` (which maps to `{param_description}`) "
                         "and `thinking_level` in the same request. "
@@ -928,7 +928,7 @@ class VertexGeminiConfig(VertexAIBaseConfig, BaseConfig):
         if "thinkingConfig" in optional_params:
             existing_config: Final = optional_params["thinkingConfig"]
             if "thinkingBudget" in existing_config:
-                raise litellm.utils.UnsupportedParamsError(
+                raise gateway.utils.UnsupportedParamsError(
                     message=(
                         "Cannot specify both `thinking_level` and `thinking_budget` in the same request. "
                         "For Gemini 3 models, use `thinking_level` instead of `thinking_budget`."
@@ -954,7 +954,7 @@ class VertexGeminiConfig(VertexAIBaseConfig, BaseConfig):
                 else:
                     params["includeThoughts"] = True
                     # Follow provider defaults unless explicitly opted into legacy behavior.
-                    if litellm.enable_gemini_default_thinking_level_low is True:
+                    if gateway.enable_gemini_default_thinking_level_low is True:
                         is_gemini3flash: Final = "gemini-3" in model.lower() and "flash" in model.lower()
                         params["thinkingLevel"] = "minimal" if is_gemini3flash else "low"
             else:
@@ -988,7 +988,7 @@ class VertexGeminiConfig(VertexAIBaseConfig, BaseConfig):
         tools: Final = non_default_params.get("tools", non_default_params.get("functions"))
         num_function_declarations: Final = len(tools) if isinstance(tools, list) else 0
         if num_function_declarations > 1:
-            raise litellm.utils.UnsupportedParamsError(
+            raise gateway.utils.UnsupportedParamsError(
                 message=(
                     "`parallel_tool_calls=False` is not supported by Gemini when multiple tools are "
                     "provided. Specify a single tool, or set "
@@ -1197,8 +1197,8 @@ class VertexGeminiConfig(VertexAIBaseConfig, BaseConfig):
                 self._map_service_tier_param(value, optional_params)
             elif param == "include_server_side_tool_invocations" and value is True:
                 optional_params["include_server_side_tool_invocations"] = True
-        if litellm.vertex_ai_safety_settings is not None:
-            optional_params["safety_settings"] = litellm.vertex_ai_safety_settings
+        if gateway.vertex_ai_safety_settings is not None:
+            optional_params["safety_settings"] = gateway.vertex_ai_safety_settings
 
         # if audio param is set, ensure responseModalities is set to AUDIO
         audio_param: Final = optional_params.get("speechConfig")
@@ -1640,7 +1640,7 @@ class VertexGeminiConfig(VertexAIBaseConfig, BaseConfig):
             "content": None,
         }
 
-        choice: Final = litellm.Choices(
+        choice: Final = gateway.Choices(
             finish_reason="content_filter",
             index=0,
             message=chat_completion_message,
@@ -1674,7 +1674,7 @@ class VertexGeminiConfig(VertexAIBaseConfig, BaseConfig):
             "content": None,
         }
 
-        choice: Final = litellm.Choices(
+        choice: Final = gateway.Choices(
             finish_reason="content_filter",
             index=0,
             message=_chat_completion_message,
@@ -2344,7 +2344,7 @@ class VertexGeminiConfig(VertexAIBaseConfig, BaseConfig):
                 )
                 model_response.choices.append(choice)
             elif isinstance(model_response, ModelResponse):
-                choice = litellm.Choices(
+                choice = gateway.Choices(
                     finish_reason=VertexGeminiConfig._check_finish_reason(
                         chat_completion_message, candidate.get("finishReason")
                     ),
@@ -2566,7 +2566,7 @@ async def make_call(
         client = gemini_client
     if client is None:
         client = get_async_httpx_client(
-            llm_provider=litellm.LlmProviders.VERTEX_AI,
+            llm_provider=gateway.LlmProviders.VERTEX_AI,
         )
 
     try:
@@ -2817,7 +2817,7 @@ class VertexLLM(VertexBase):
         if timeout:
             _async_client_params["timeout"] = timeout
         if client is None or not isinstance(client, AsyncHTTPHandler):
-            client = get_async_httpx_client(params=_async_client_params, llm_provider=litellm.LlmProviders.VERTEX_AI)
+            client = get_async_httpx_client(params=_async_client_params, llm_provider=gateway.LlmProviders.VERTEX_AI)
         else:
             client = client
         ## LOGGING
@@ -3305,7 +3305,7 @@ class ModelResponseIterator:
         return self.chunk_parser(chunk=json_chunk)
 
     def handle_accumulated_json_chunk(self, chunk: str, is_final: bool = False) -> Optional["ModelResponseStream"]:
-        message: Final = (litellm.CustomStreamWrapper._strip_sse_data_from_chunk(chunk) or "").replace("\n\n", "")
+        message: Final = (gateway.CustomStreamWrapper._strip_sse_data_from_chunk(chunk) or "").replace("\n\n", "")
         self._json_buffer.append(message)
 
         # Mid-stream, defer parsing until the buffer's last byte can close a value:
@@ -3334,7 +3334,7 @@ class ModelResponseIterator:
 
     def _common_chunk_parsing_logic(self, chunk: str) -> Optional["ModelResponseStream"]:
         try:
-            chunk = litellm.CustomStreamWrapper._strip_sse_data_from_chunk(chunk) or ""
+            chunk = gateway.CustomStreamWrapper._strip_sse_data_from_chunk(chunk) or ""
             if len(chunk) > 0:
                 """
                 Check if initial chunk valid json

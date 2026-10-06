@@ -5,7 +5,7 @@ import pytest
 
 import json
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.caching.dual_cache import DualCache
 from token_iq.gateway.constants import SESSION_DEPLOYMENT_AFFINITY_TTL_METADATA_KEY, SESSION_ID_GENERATED_METADATA_KEY
 from token_iq.gateway.router_utils.pre_call_checks.deployment_affinity_check import (
@@ -139,7 +139,7 @@ MOCK_RESPONSES_API_RESPONSE = {
 
 
 def _smart_router(session_affinity=True, ttl_seconds=777, deployment_affinity=True):
-    return litellm.Router(
+    return gateway.Router(
         model_list=[
             {
                 "model_name": "smart-router",
@@ -191,7 +191,7 @@ def _session_pin_key(session_id, user_key):
 
 def _cleanup_router_callbacks(router):
     for callback in router.optional_callbacks or []:
-        litellm.logging_callback_manager.remove_callback_from_all_lists(callback)
+        gateway.logging_callback_manager.remove_callback_from_all_lists(callback)
 
 
 async def _one_turn(router, model, session_id, key_hash):

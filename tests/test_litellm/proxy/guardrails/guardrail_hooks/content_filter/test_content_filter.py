@@ -2852,12 +2852,12 @@ class TestContentFilterMCPPreCall:
 @pytest.fixture
 def restore_callbacks():
     """Restore the process-wide callback state post_mcp_call_hook reads."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.proxy.utils import ProxyLogging
 
-    original = list(litellm.callbacks)
+    original = list(gateway.callbacks)
     yield
-    litellm.callbacks = original
+    gateway.callbacks = original
     ProxyLogging._callback_capabilities_cache.clear()
 
 
@@ -2882,11 +2882,11 @@ class TestContentFilterMCPPostCall:
 
     @staticmethod
     def _proxy_logging(guardrail):
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.caching.caching import DualCache
         from token_iq.gateway.proxy.utils import ProxyLogging
 
-        litellm.callbacks = [guardrail]
+        gateway.callbacks = [guardrail]
         ProxyLogging._callback_capabilities_cache.clear()
         return ProxyLogging(user_api_key_cache=DualCache())
 

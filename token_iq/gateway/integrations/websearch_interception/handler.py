@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING, Any, Final, Literal, TypedDict, TypeVar, cast
 
 from typing_extensions import Never, ReadOnly
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.anthropic_interface import messages as anthropic_messages
 from token_iq.gateway.constants import LITELLM_WEB_SEARCH_TOOL_NAME
@@ -405,7 +405,7 @@ class WebSearchInterceptionLogger(CustomLogger):
         )
         if not custom_llm_provider:
             try:
-                _, custom_llm_provider, _, _ = litellm.get_llm_provider(model=call_kwargs_view["model"])
+                _, custom_llm_provider, _, _ = gateway.get_llm_provider(model=call_kwargs_view["model"])
             except Exception:
                 custom_llm_provider = ""
         if custom_llm_provider not in self.enabled_providers:
@@ -1511,11 +1511,11 @@ class WebSearchInterceptionLogger(CustomLogger):
                 if key != "search_provider" and value is not None
             }
             result: Final = (
-                await litellm.asearch(
+                await gateway.asearch(
                     query=query, search_provider=search_provider, **_NO_ASEARCH_NAMED, **search_kwargs
                 )
                 if search_metadata is None
-                else await litellm.asearch(
+                else await gateway.asearch(
                     query=query,
                     search_provider=search_provider,
                     litellm_metadata=search_metadata,
@@ -1697,7 +1697,7 @@ class WebSearchInterceptionLogger(CustomLogger):
         params.update(request_patch.optional_params)
         params.pop("tool_choice", None)
         patch_kwargs: Final = dict[str, object](request_patch.kwargs)
-        return await litellm.acompletion(
+        return await gateway.acompletion(
             model=request_patch.model or model,
             messages=request_patch.messages,
             **_NO_ACOMPLETION_NAMED,

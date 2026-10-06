@@ -3,7 +3,7 @@ from typing import Any, Final
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
 from token_iq.gateway.llms.base_llm.chat.transformation import BaseLLMException
 from token_iq.gateway.llms.base_llm.rerank.transformation import BaseRerankConfig
@@ -85,7 +85,7 @@ class CohereRerankConfig(BaseRerankConfig):
         litellm_params: Mapping[str, object] | None = None,
     ) -> dict:
         if api_key is None:
-            api_key = get_secret_str("COHERE_API_KEY") or get_secret_str("CO_API_KEY") or litellm.cohere_key
+            api_key = get_secret_str("COHERE_API_KEY") or get_secret_str("CO_API_KEY") or gateway.cohere_key
 
         if api_key is None:
             raise ValueError(

@@ -830,7 +830,7 @@ def test_resolve_advisor_credentials_propagates_ssrf_error():
 
 
 def test_resolve_advisor_credentials_skips_validation_when_url_validation_disabled():
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.interceptors.advisor import (
         _resolve_advisor_credentials,
@@ -841,7 +841,7 @@ def test_resolve_advisor_credentials_skips_validation_when_url_validation_disabl
             "token_iq.gateway.llms.anthropic.experimental_pass_through.messages.interceptors.advisor._allow_client_side_advisor_credentials",
             return_value=True,
         ),
-        patch.object(litellm, "user_url_validation", False),
+        patch.object(gateway, "user_url_validation", False),
         patch(
             "token_iq.gateway.llms.anthropic.experimental_pass_through.messages.interceptors.advisor.validate_url",
             side_effect=AssertionError("validate_url must not run when user_url_validation is disabled"),
@@ -887,7 +887,7 @@ def test_resolve_advisor_credentials_rejects_non_https_api_base():
 
 
 def test_resolve_advisor_credentials_rejects_api_base_when_ssl_verify_disabled():
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.interceptors.advisor import (
         _resolve_advisor_credentials,
@@ -899,7 +899,7 @@ def test_resolve_advisor_credentials_rejects_api_base_when_ssl_verify_disabled()
             "token_iq.gateway.llms.anthropic.experimental_pass_through.messages.interceptors.advisor._allow_client_side_advisor_credentials",
             return_value=True,
         ),
-        patch.object(litellm, "ssl_verify", False),
+        patch.object(gateway, "ssl_verify", False),
     ):
         with pytest.raises(ValueError, match="ssl_verify"):
             _resolve_advisor_credentials(tool)
@@ -932,7 +932,7 @@ def test_resolve_advisor_credentials_allows_real_public_ip_address():
 async def test_advisor_sub_call_failure_is_tagged():
     """When the advisor sub-call raises, the exception that propagates out of
     handle() must be tagged as an advisor orchestration failure."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.interceptors.advisor import (
         AdvisorOrchestrationHandler,
     )
@@ -945,7 +945,7 @@ async def test_advisor_sub_call_failure_is_tagged():
         call_count += 1
         if call_count == 1:
             return _make_advisor_tool_use_response()  # executor: calls advisor
-        raise litellm.AuthenticationError(  # advisor sub-call: 401
+        raise gateway.AuthenticationError(  # advisor sub-call: 401
             message="x-api-key header is required",
             llm_provider="anthropic",
             model=model,
@@ -956,7 +956,7 @@ async def test_advisor_sub_call_failure_is_tagged():
         side_effect=mock_call,
     ):
         h = AdvisorOrchestrationHandler()
-        with pytest.raises(litellm.AuthenticationError) as exc_info:
+        with pytest.raises(gateway.AuthenticationError) as exc_info:
             await h.handle(
                 model="openai/gpt-4o-mini",
                 messages=MESSAGES,
@@ -1012,14 +1012,14 @@ async def test_advisor_max_iterations_failure_is_tagged():
 async def test_executor_failure_is_not_tagged():
     """A failure of the executor call (not advisor orchestration) must NOT be
     tagged — the selected deployment genuinely failed and should cool down."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.interceptors.advisor import (
         AdvisorOrchestrationHandler,
     )
     from token_iq.gateway.router_utils.cooldown_handlers import is_advisor_orchestration_failure
 
     async def mock_call(model, messages, tools, stream, max_tokens, **kwargs):
-        raise litellm.AuthenticationError(  # executor (first call) fails
+        raise gateway.AuthenticationError(  # executor (first call) fails
             message="invalid deployment credentials",
             llm_provider="openai",
             model=model,
@@ -1030,7 +1030,7 @@ async def test_executor_failure_is_not_tagged():
         side_effect=mock_call,
     ):
         h = AdvisorOrchestrationHandler()
-        with pytest.raises(litellm.AuthenticationError) as exc_info:
+        with pytest.raises(gateway.AuthenticationError) as exc_info:
             await h.handle(
                 model="openai/gpt-4o-mini",
                 messages=MESSAGES,
@@ -1059,7 +1059,7 @@ def _router_with_advisor_deployment(
     because Router binds it at init time, so the returned Router exercises the
     real deployment-resolution path and records what it dispatched.
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.router import Router
 
     with patch("token_iq.gateway.anthropic_messages", new=recorder):
@@ -1239,7 +1239,7 @@ async def test_advisor_sub_call_bypasses_router_for_unconfigured_model():
 @pytest.mark.asyncio
 async def test_advisor_sub_call_client_override_bypasses_router():
     """A caller-supplied api_key/api_base override must not be re-routed."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     import token_iq.gateway.proxy.proxy_server as proxy_server
     from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.interceptors.advisor import (
         AdvisorOrchestrationHandler,
@@ -1277,7 +1277,7 @@ async def test_advisor_sub_call_client_override_bypasses_router():
         ),
         patch.object(proxy_server, "llm_router", router),
         patch.dict(proxy_server.general_settings, {"allow_client_side_credentials": True}),
-        patch.object(litellm, "user_url_validation", False),
+        patch.object(gateway, "user_url_validation", False),
     ):
         h = AdvisorOrchestrationHandler()
         await h.handle(

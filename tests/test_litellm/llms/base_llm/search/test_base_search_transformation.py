@@ -14,7 +14,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.apiserpent.search.transformation import APISerpentSearchConfig
 from token_iq.gateway.llms.azure.search.transformation import BingGroundingSearchConfig
 from token_iq.gateway.llms.base_llm.search.transformation import (
@@ -273,8 +273,8 @@ async def test_asearch_does_not_leak_server_key_to_caller_api_base(
             new_callable=AsyncMock,
         ) as mock_get,
     ):
-        with pytest.raises(litellm.APIConnectionError):
-            await litellm.asearch(
+        with pytest.raises(gateway.APIConnectionError):
+            await gateway.asearch(
                 query="secrets",
                 search_provider="serper",
                 api_base=ATTACKER_BASE,
@@ -322,8 +322,8 @@ async def test_query_param_key_not_leaked_with_dummy_caller_key(
         "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.get",
         fake_get,
     ):
-        with pytest.raises(litellm.APIConnectionError):
-            await litellm.asearch(
+        with pytest.raises(gateway.APIConnectionError):
+            await gateway.asearch(
                 query="secrets",
                 search_provider=provider,
                 api_key="sk-CALLER-DUMMY",

@@ -2,7 +2,7 @@ import asyncio
 import json
 from typing import TYPE_CHECKING, Any, Final, cast
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.constants import REDACTED_BY_LITELLM, REDACTED_TOOL_CALL_ARGUMENTS_PLACEHOLDER
 from token_iq.gateway.proxy._types import SpendLogsMetadata, SpendLogsPayload
@@ -251,7 +251,7 @@ class ResponsesSessionHandler:
         """
         from token_iq.gateway.constants import LITELLM_TRUNCATED_PAYLOAD_FIELD
 
-        configured_cold_storage_custom_logger: Final = litellm.cold_storage_custom_logger
+        configured_cold_storage_custom_logger: Final = gateway.cold_storage_custom_logger
         if configured_cold_storage_custom_logger is None:
             return False
         if proxy_server_request_dict is None:

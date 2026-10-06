@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from mcp.types import CallToolResult, TextContent
 
-from token_iq import gateway as litellm  # noqa: F401 - ensures litellm.responses.main is registered in sys.modules
+from token_iq import gateway  # noqa: F401 - ensures litellm.responses.main is registered in sys.modules
 from token_iq.gateway.responses.mcp.mcp_streaming_iterator import (
     MAX_MCP_TOOL_CALL_ROUNDS,
     MCPEnhancedStreamingIterator,

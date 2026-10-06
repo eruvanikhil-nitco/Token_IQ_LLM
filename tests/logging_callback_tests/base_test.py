@@ -5,7 +5,7 @@ import pytest
 from typing import Any, Dict, List
 from unittest.mock import MagicMock, Mock, patch
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.exceptions import BadRequestError
 from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
 from token_iq.gateway.utils import CustomStreamWrapper

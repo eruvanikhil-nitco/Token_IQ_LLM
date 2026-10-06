@@ -11,7 +11,7 @@ from typing import Any, Dict, List, Optional
 
 
 import pytest
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 
 class BaseAnthropicMessagesStructuredOutputTest(ABC):
@@ -80,7 +80,7 @@ class BaseAnthropicMessagesStructuredOutputTest(ABC):
         """
         E2E test: Make actual API call with structured output and validate JSON response.
         """
-        litellm._turn_on_debug()
+        gateway._turn_on_debug()
         messages = self.get_test_messages()
         output_format = self.get_output_format_schema()
 
@@ -100,7 +100,7 @@ class BaseAnthropicMessagesStructuredOutputTest(ABC):
         if api_key:
             kwargs["api_key"] = api_key
 
-        response = await litellm.anthropic.messages.acreate(**kwargs)
+        response = await gateway.anthropic.messages.acreate(**kwargs)
 
         print(f"Response: {response}")
 

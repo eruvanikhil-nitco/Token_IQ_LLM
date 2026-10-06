@@ -9,7 +9,7 @@ from unittest.mock import AsyncMock, MagicMock, Mock, patch
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import completion
 from token_iq.gateway.llms.replicate.chat.handler import (
     async_completion,
@@ -78,9 +78,9 @@ class TestReplicateStartingStatus:
         )
 
         # Create mock model response
-        model_response = litellm.ModelResponse()
-        model_response.choices = [litellm.Choices()]
-        model_response.choices[0].message = litellm.Message(content="")
+        model_response = gateway.ModelResponse()
+        model_response.choices = [gateway.Choices()]
+        model_response.choices[0].message = gateway.Message(content="")
 
         # Create mock logging object
         mock_logging = Mock()
@@ -153,9 +153,9 @@ class TestReplicateStartingStatus:
         mock_client.get.side_effect = [get_response_starting, get_response_succeeded]
 
         # Create mock objects
-        model_response = litellm.ModelResponse()
-        model_response.choices = [litellm.Choices()]
-        model_response.choices[0].message = litellm.Message(content="")
+        model_response = gateway.ModelResponse()
+        model_response.choices = [gateway.Choices()]
+        model_response.choices[0].message = gateway.Message(content="")
 
         mock_logging = Mock()
         mock_logging.post_call = Mock()
@@ -203,9 +203,9 @@ class TestReplicateOutputFormats:
         mock_response.text = json.dumps(mock_response.json.return_value)
         mock_response.headers = {}
 
-        model_response = litellm.ModelResponse()
-        model_response.choices = [litellm.Choices()]
-        model_response.choices[0].message = litellm.Message(content="")
+        model_response = gateway.ModelResponse()
+        model_response.choices = [gateway.Choices()]
+        model_response.choices[0].message = gateway.Message(content="")
 
         mock_logging = Mock()
         mock_logging.post_call = Mock()
@@ -241,9 +241,9 @@ class TestReplicateOutputFormats:
         mock_response.text = json.dumps(mock_response.json.return_value)
         mock_response.headers = {}
 
-        model_response = litellm.ModelResponse()
-        model_response.choices = [litellm.Choices()]
-        model_response.choices[0].message = litellm.Message(content="")
+        model_response = gateway.ModelResponse()
+        model_response.choices = [gateway.Choices()]
+        model_response.choices[0].message = gateway.Message(content="")
 
         mock_logging = Mock()
         mock_logging.post_call = Mock()

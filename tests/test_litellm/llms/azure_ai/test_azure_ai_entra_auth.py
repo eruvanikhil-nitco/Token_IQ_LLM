@@ -9,7 +9,7 @@ from unittest.mock import patch
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.azure_ai.common_utils import get_azure_ai_auth_headers
 from token_iq.gateway.llms.azure_ai.ocr.transformation import AzureAIOCRConfig
 
@@ -30,8 +30,8 @@ def clear_azure_env(monkeypatch):
         "AZURE_DOCUMENT_INTELLIGENCE_API_KEY",
     ):
         monkeypatch.delenv(env_var, raising=False)
-    monkeypatch.setattr(litellm, "api_key", None)
-    monkeypatch.setattr(litellm, "openai_key", None)
+    monkeypatch.setattr(gateway, "api_key", None)
+    monkeypatch.setattr(gateway, "openai_key", None)
 
 
 def test_api_key_wins_over_entra_credentials():
@@ -92,10 +92,10 @@ def test_ocr_authenticates_with_entra_token():
 def test_embedding_falls_back_to_entra_token_instead_of_openai_key(monkeypatch):  # test-quality-ok: asserts the embedding handler is authed with the Entra token, not the OpenAI key fallback; live path proven by the PR's Azure Foundry e2e QA
     monkeypatch.setenv("OPENAI_API_KEY", "sk-openai-key")
 
-    with patch.object(litellm.main.azure_ai_embedding, "embedding") as mock_embedding:  # test-quality-ok: no injection seam for the embedding handler through the public embedding() API; live path proven by the PR's Azure Foundry e2e QA
-        mock_embedding.return_value = litellm.EmbeddingResponse()
+    with patch.object(gateway.main.azure_ai_embedding, "embedding") as mock_embedding:  # test-quality-ok: no injection seam for the embedding handler through the public embedding() API; live path proven by the PR's Azure Foundry e2e QA
+        mock_embedding.return_value = gateway.EmbeddingResponse()
 
-        litellm.embedding(
+        gateway.embedding(
             model="azure_ai/cohere-embed-v3-english",
             input=["hello"],
             api_base="https://my-resource.services.ai.azure.com",
@@ -106,10 +106,10 @@ def test_embedding_falls_back_to_entra_token_instead_of_openai_key(monkeypatch):
 
 
 def test_image_generation_authenticates_with_entra_token():
-    with patch.object(litellm.images.main.azure_chat_completions, "image_generation") as mock_image_generation:  # test-quality-ok: asserts image_generation forwards the computed Entra bearer header; no injection seam through the public API; live path proven by the PR's Azure Foundry e2e QA
-        mock_image_generation.return_value = litellm.ImageResponse()
+    with patch.object(gateway.images.main.azure_chat_completions, "image_generation") as mock_image_generation:  # test-quality-ok: asserts image_generation forwards the computed Entra bearer header; no injection seam through the public API; live path proven by the PR's Azure Foundry e2e QA
+        mock_image_generation.return_value = gateway.ImageResponse()
 
-        litellm.image_generation(
+        gateway.image_generation(
             model="azure_ai/FLUX-1.1-pro",
             prompt="a red circle",
             api_base="https://my-resource.services.ai.azure.com",
@@ -123,10 +123,10 @@ def test_image_generation_authenticates_with_entra_token():
 
 @pytest.mark.parametrize("header_name", ["Authorization", "authorization", "api-key", "API-KEY"])
 def test_image_generation_keeps_caller_supplied_auth_header(header_name):
-    with patch.object(litellm.images.main.azure_chat_completions, "image_generation") as mock_image_generation:  # test-quality-ok: asserts a caller-supplied auth header is preserved over Entra; no injection seam through the public API; live path proven by the PR's Azure Foundry e2e QA
-        mock_image_generation.return_value = litellm.ImageResponse()
+    with patch.object(gateway.images.main.azure_chat_completions, "image_generation") as mock_image_generation:  # test-quality-ok: asserts a caller-supplied auth header is preserved over Entra; no injection seam through the public API; live path proven by the PR's Azure Foundry e2e QA
+        mock_image_generation.return_value = gateway.ImageResponse()
 
-        litellm.image_generation(
+        gateway.image_generation(
             model="azure_ai/FLUX-1.1-pro",
             prompt="a red circle",
             api_base="https://my-resource.services.ai.azure.com",
@@ -139,10 +139,10 @@ def test_image_generation_keeps_caller_supplied_auth_header(header_name):
 
 
 def test_image_generation_still_uses_api_key_header():
-    with patch.object(litellm.images.main.azure_chat_completions, "image_generation") as mock_image_generation:  # test-quality-ok: asserts the api-key header path still works alongside Entra; no injection seam through the public API; live path proven by the PR's Azure Foundry e2e QA
-        mock_image_generation.return_value = litellm.ImageResponse()
+    with patch.object(gateway.images.main.azure_chat_completions, "image_generation") as mock_image_generation:  # test-quality-ok: asserts the api-key header path still works alongside Entra; no injection seam through the public API; live path proven by the PR's Azure Foundry e2e QA
+        mock_image_generation.return_value = gateway.ImageResponse()
 
-        litellm.image_generation(
+        gateway.image_generation(
             model="azure_ai/FLUX-1.1-pro",
             prompt="a red circle",
             api_base="https://my-resource.services.ai.azure.com",

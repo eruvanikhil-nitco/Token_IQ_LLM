@@ -16,7 +16,7 @@ import base64
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING, Any, Final, cast
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway._uuid import uuid4
 from token_iq.gateway.constants import DEFAULT_CHUNK_OVERLAP, DEFAULT_CHUNK_SIZE
@@ -79,7 +79,7 @@ class BaseRAGIngestion(ABC):
         from token_iq.gateway.core_utils.credential_accessor import CredentialAccessor
 
         credential_name: Final = self.vector_store_config.get("litellm_credential_name")
-        if credential_name and litellm.credential_list:
+        if credential_name and gateway.credential_list:
             credential_values: Final = CredentialAccessor.get_credential_values(credential_name)
             if not credential_values:
                 return
@@ -170,7 +170,7 @@ class BaseRAGIngestion(ABC):
                 document={"type": doc_type, url_key: data_url},
             )
         else:
-            ocr_response = await litellm.aocr(
+            ocr_response = await gateway.aocr(
                 model=ocr_model,
                 document={"type": doc_type, url_key: data_url},
             )
@@ -262,7 +262,7 @@ class BaseRAGIngestion(ABC):
         if self.router is not None:
             response = await self.router.aembedding(model=embedding_model, input=chunks)
         else:
-            response = await litellm.aembedding(model=embedding_model, input=chunks)
+            response = await gateway.aembedding(model=embedding_model, input=chunks)
 
         return [item["embedding"] for item in response.data]
 

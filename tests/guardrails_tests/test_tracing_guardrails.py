@@ -6,7 +6,7 @@ import time
 from token_iq.gateway import mock_completion
 from unittest.mock import MagicMock, AsyncMock, patch
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy.guardrails.guardrail_hooks.presidio import (
     _OPTIONAL_PresidioPIIMasking,
     PresidioPerRequestConfig,
@@ -38,7 +38,7 @@ async def test_standard_logging_payload_includes_guardrail_information():
     Test that the standard logging payload includes the guardrail information when a guardrail is applied
     """
     test_custom_logger = CustomLoggerForTesting()
-    litellm.callbacks = [test_custom_logger]
+    gateway.callbacks = [test_custom_logger]
     presidio_guard = _OPTIONAL_PresidioPIIMasking(
         guardrail_name="presidio_guard",
         event_hook=GuardrailEventHooks.pre_call,
@@ -138,7 +138,7 @@ async def test_standard_logging_payload_includes_guardrail_information():
         )
 
     # 2. call litellm.acompletion
-    response = await litellm.acompletion(**request_data)
+    response = await gateway.acompletion(**request_data)
 
     # 3. assert that the standard logging payload includes the guardrail information
     await asyncio.sleep(1)
@@ -209,8 +209,8 @@ async def test_langfuse_trace_includes_guardrail_information():
     mock_post.return_value = mock_response
 
     with patch("httpx.Client.post", mock_post):
-        litellm._turn_on_debug()
-        litellm.callbacks = [callback]
+        gateway._turn_on_debug()
+        gateway.callbacks = [callback]
         presidio_guard = _OPTIONAL_PresidioPIIMasking(
             guardrail_name="presidio_guard",
             event_hook=GuardrailEventHooks.pre_call,
@@ -238,7 +238,7 @@ async def test_langfuse_trace_includes_guardrail_information():
         )
 
         # 2. call litellm.acompletion
-        response = await litellm.acompletion(**request_data)
+        response = await gateway.acompletion(**request_data)
 
         # 3. Wait for async logging operations to complete
         await asyncio.sleep(5)
@@ -311,11 +311,11 @@ async def test_bedrock_guardrail_status_blocked():
     from token_iq.gateway.proxy._types import UserAPIKeyAuth
     from unittest.mock import AsyncMock, MagicMock, patch
 
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
 
     # Setup custom logger to capture standard logging payload
     test_custom_logger = CustomLoggerForTesting()
-    litellm.callbacks = [test_custom_logger]
+    gateway.callbacks = [test_custom_logger]
 
     # Create Bedrock guardrail with mock AWS credentials
     bedrock_guard = BedrockGuardrail(
@@ -363,7 +363,7 @@ async def test_bedrock_guardrail_status_blocked():
 
         # Call litellm.acompletion to trigger logging callbacks
         # This populates the standard_logging_payload in our custom logger
-        response = await litellm.acompletion(**request_data)
+        response = await gateway.acompletion(**request_data)
         await asyncio.sleep(1)
 
     # Verify the standard logging payload was captured
@@ -408,12 +408,12 @@ async def test_bedrock_guardrail_status_success():
     from unittest.mock import AsyncMock, MagicMock, patch
 
     # Reset callbacks completely to avoid event loop conflicts
-    litellm.callbacks = []
+    gateway.callbacks = []
     await asyncio.sleep(0.1)  # Let previous callbacks finish
 
     # Setup custom logger to capture standard logging payload
     test_custom_logger = CustomLoggerForTesting()
-    litellm.callbacks = [test_custom_logger]
+    gateway.callbacks = [test_custom_logger]
 
     # Create Bedrock guardrail
     bedrock_guard = BedrockGuardrail(
@@ -454,7 +454,7 @@ async def test_bedrock_guardrail_status_success():
             )
 
         # Call litellm.acompletion to trigger logging
-        response = await litellm.acompletion(**request_data)
+        response = await gateway.acompletion(**request_data)
         await asyncio.sleep(1)
 
     # Check standard logging payload status fields
@@ -497,12 +497,12 @@ async def test_bedrock_guardrail_status_failure():
     import httpx
 
     # Reset callbacks completely to avoid event loop conflicts
-    litellm.callbacks = []
+    gateway.callbacks = []
     await asyncio.sleep(0.1)
 
     # Setup custom logger to capture standard logging payload
     test_custom_logger = CustomLoggerForTesting()
-    litellm.callbacks = [test_custom_logger]
+    gateway.callbacks = [test_custom_logger]
 
     # Create Bedrock guardrail
     bedrock_guard = BedrockGuardrail(
@@ -543,7 +543,7 @@ async def test_bedrock_guardrail_status_failure():
                 pass
 
         # Call litellm.acompletion to trigger logging
-        response = await litellm.acompletion(**request_data)
+        response = await gateway.acompletion(**request_data)
         await asyncio.sleep(1)
 
     # Check standard logging payload status fields
@@ -583,12 +583,12 @@ async def test_noma_guardrail_status_blocked():
     from unittest.mock import AsyncMock, MagicMock, patch
 
     # Reset callbacks completely to avoid event loop conflicts
-    litellm.callbacks = []
+    gateway.callbacks = []
     await asyncio.sleep(0.1)  # Let previous callbacks finish
 
     # Setup custom logger to capture standard logging payload
     test_custom_logger = CustomLoggerForTesting()
-    litellm.callbacks = [test_custom_logger]
+    gateway.callbacks = [test_custom_logger]
 
     # Create Noma guardrail
     noma_guard = NomaGuardrail(
@@ -633,7 +633,7 @@ async def test_noma_guardrail_status_blocked():
                 pass
 
         # Call litellm.acompletion to trigger logging
-        response = await litellm.acompletion(**request_data)
+        response = await gateway.acompletion(**request_data)
         await asyncio.sleep(1)
 
     # Check standard logging payload status fields
@@ -673,12 +673,12 @@ async def test_noma_guardrail_status_success():
     from unittest.mock import AsyncMock, MagicMock, patch
 
     # Reset callbacks completely to avoid event loop conflicts
-    litellm.callbacks = []
+    gateway.callbacks = []
     await asyncio.sleep(0.1)  # Let previous callbacks finish
 
     # Setup custom logger to capture standard logging payload
     test_custom_logger = CustomLoggerForTesting()
-    litellm.callbacks = [test_custom_logger]
+    gateway.callbacks = [test_custom_logger]
 
     # Create Noma guardrail
     noma_guard = NomaGuardrail(
@@ -717,7 +717,7 @@ async def test_noma_guardrail_status_success():
             )
 
         # Call litellm.acompletion to trigger logging
-        response = await litellm.acompletion(**request_data)
+        response = await gateway.acompletion(**request_data)
         await asyncio.sleep(1)
 
     # Check standard logging payload status fields

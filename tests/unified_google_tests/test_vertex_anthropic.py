@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, AsyncMock, patch
 import httpx
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.google_genai import agenerate_content, agenerate_content_stream
 from google.genai.types import ContentDict, PartDict, GenerateContentResponse
 from token_iq.gateway.integrations.custom_logger import CustomLogger

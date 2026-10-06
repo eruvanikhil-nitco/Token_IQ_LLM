@@ -16,7 +16,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy._types import (
     LiteLLM_BudgetTable,
     LiteLLM_OrganizationTable,
@@ -81,7 +81,7 @@ async def test_organization_budget_exceeded_blocks_request():
                 mock_get_org.return_value = org_object
 
                 # BUG: This should raise BudgetExceededError but currently passes
-                with pytest.raises(litellm.BudgetExceededError) as exc_info:
+                with pytest.raises(gateway.BudgetExceededError) as exc_info:
                     await common_checks(
                         request_body={"model": "gpt-4"},
                         team_object=team_object,
@@ -158,7 +158,7 @@ async def test_multiple_teams_exceed_organization_budget():
                 mock_get_org.return_value = org_object
 
                 # Org is at budget limit, should raise BudgetExceededError
-                with pytest.raises(litellm.BudgetExceededError) as exc_info:
+                with pytest.raises(gateway.BudgetExceededError) as exc_info:
                     await common_checks(
                         request_body={"model": "gpt-4"},
                         team_object=team_a,
@@ -230,7 +230,7 @@ async def test_organization_budget_fields_are_checked():
                 mock_get_org.return_value = org_over_budget
 
                 # Organization is over budget, should raise BudgetExceededError
-                with pytest.raises(litellm.BudgetExceededError) as exc_info:
+                with pytest.raises(gateway.BudgetExceededError) as exc_info:
                     await common_checks(
                         request_body={"model": "gpt-4"},
                         team_object=team_object,
@@ -279,7 +279,7 @@ async def test_both_team_and_org_budget_enforced():
 
     with patch("token_iq.gateway.proxy.proxy_server.prisma_client") as mock_prisma:
         with patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache") as mock_cache:
-            with pytest.raises(litellm.BudgetExceededError) as exc_info:
+            with pytest.raises(gateway.BudgetExceededError) as exc_info:
                 await common_checks(
                     request_body={"model": "gpt-4"},
                     team_object=team_over_budget,
@@ -329,7 +329,7 @@ async def test_both_team_and_org_budget_enforced():
                 mock_get_org.return_value = org_over_budget
 
                 # Organization is over budget, should raise BudgetExceededError
-                with pytest.raises(litellm.BudgetExceededError) as exc_info:
+                with pytest.raises(gateway.BudgetExceededError) as exc_info:
                     await common_checks(
                         request_body={"model": "gpt-4"},
                         team_object=team_under_budget,

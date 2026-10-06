@@ -4,7 +4,7 @@ import os
 
 
 import asyncio
-from token_iq import gateway as litellm
+from token_iq import gateway
 import gzip
 import json
 import logging
@@ -199,10 +199,10 @@ async def test_async_gcs_pub_sub():
     mock_construct_request_headers = AsyncMock()
     mock_construct_request_headers.return_value = {"Authorization": "Bearer mock_token"}
     gcs_pub_sub_logger.construct_request_headers = mock_construct_request_headers
-    litellm.callbacks = [gcs_pub_sub_logger]
+    gateway.callbacks = [gcs_pub_sub_logger]
 
     # Make the completion call
-    response = await litellm.acompletion(
+    response = await gateway.acompletion(
         model="gpt-4o",
         messages=[{"role": "user", "content": "Hello, world!"}],
         mock_response="hi",
@@ -242,7 +242,7 @@ async def test_async_gcs_pub_sub():
 @pytest.mark.asyncio
 async def test_async_gcs_pub_sub_v1():
     # Create a mock for the async_httpx_client's post method
-    litellm.gcs_pub_sub_use_v1 = True
+    gateway.gcs_pub_sub_use_v1 = True
     mock_post = AsyncMock()
     mock_post.return_value.status_code = 202
     mock_post.return_value.text = "Accepted"
@@ -256,10 +256,10 @@ async def test_async_gcs_pub_sub_v1():
     mock_construct_request_headers = AsyncMock()
     mock_construct_request_headers.return_value = {"Authorization": "Bearer mock_token"}
     gcs_pub_sub_logger.construct_request_headers = mock_construct_request_headers
-    litellm.callbacks = [gcs_pub_sub_logger]
+    gateway.callbacks = [gcs_pub_sub_logger]
 
     # Make the completion call
-    response = await litellm.acompletion(
+    response = await gateway.acompletion(
         model="gpt-4o",
         messages=[{"role": "user", "content": "Hello, world!"}],
         mock_response="hi",

@@ -5,7 +5,7 @@ import sys, os, time
 import traceback, asyncio
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import Router
 from token_iq.gateway.router import Deployment, LiteLLM_Params
 from token_iq.gateway.types.router import ModelInfo
@@ -20,7 +20,7 @@ load_dotenv()
 def test_returned_settings():
     # this tests if the router raises an exception when invalid params are set
     # in this test both deployments have bad keys - Keep this test. It validates if the router raises the most recent exception
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     import openai
 
     try:
@@ -176,7 +176,7 @@ async def test_update_kwargs_before_fallbacks(call_type):
 
 def test_router_get_model_info_wildcard_routes():
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-    litellm.model_cost = litellm.get_model_cost_map()
+    gateway.model_cost = gateway.get_model_cost_map()
     router = Router(
         model_list=[
             {
@@ -199,7 +199,7 @@ def test_router_get_model_info_wildcard_routes():
 @pytest.mark.flaky(retries=3, delay=1)
 async def test_router_get_model_group_usage_wildcard_routes():
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-    litellm.model_cost = litellm.get_model_cost_map()
+    gateway.model_cost = gateway.get_model_cost_map()
     router = Router(
         model_list=[
             {
@@ -280,7 +280,7 @@ async def test_call_router_callbacks_on_failure():
     with patch.object(
         router.cache, "async_increment_cache", new=AsyncMock()
     ) as mock_callback:
-        with pytest.raises(litellm.RateLimitError):
+        with pytest.raises(gateway.RateLimitError):
             await router.acompletion(
                 model="gemini/gemini-1.5-flash",
                 messages=[{"role": "user", "content": "Hello, how are you?"}],
@@ -301,7 +301,7 @@ async def test_call_router_callbacks_on_failure():
 @pytest.mark.asyncio
 async def test_router_model_group_headers():
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-    litellm.model_cost = litellm.get_model_cost_map()
+    gateway.model_cost = gateway.get_model_cost_map()
     from token_iq.gateway.types.utils import OPENAI_RESPONSE_HEADERS
 
     router = Router(
@@ -334,7 +334,7 @@ async def test_router_model_group_headers():
 @pytest.mark.asyncio
 async def test_get_remaining_model_group_usage():
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-    litellm.model_cost = litellm.get_model_cost_map()
+    gateway.model_cost = gateway.get_model_cost_map()
     from token_iq.gateway.types.utils import OPENAI_RESPONSE_HEADERS
 
     router = Router(

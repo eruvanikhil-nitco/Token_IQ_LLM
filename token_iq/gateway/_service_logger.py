@@ -2,7 +2,7 @@ import asyncio
 from datetime import datetime, timedelta
 from typing import TYPE_CHECKING, Any, Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 
 from .integrations.custom_logger import CustomLogger
@@ -51,7 +51,7 @@ class ServiceLogging(CustomLogger):
         self.mock_testing_async_success_hook = 0
         self.mock_testing_sync_failure_hook = 0
         self.mock_testing_async_failure_hook = 0
-        if "prometheus_system" in litellm.service_callback:
+        if "prometheus_system" in gateway.service_callback:
             self.prometheusServicesLogger = PrometheusServicesLogger()
 
     def _resolve_otel_service_logger(self, callback: Any) -> Any | None:
@@ -179,7 +179,7 @@ class ServiceLogging(CustomLogger):
         # present, unlike V1). Without this guard each such reference emits its own
         # span, so a single DB call shows up as duplicate ``postgres ...`` spans.
         emitted_otel_logger_ids: Final[set] = set()
-        for callback in litellm.service_callback:
+        for callback in gateway.service_callback:
             if callback == "prometheus_system":
                 await self.init_prometheus_services_logger_if_none()
                 await self.prometheusServicesLogger.async_service_success_hook(payload=payload)
@@ -279,7 +279,7 @@ class ServiceLogging(CustomLogger):
         # Dedupe OTel loggers per event — see ``async_service_success_hook`` for why
         # the same logger can be referenced twice in ``service_callback``.
         emitted_otel_logger_ids: Final[set] = set()
-        for callback in litellm.service_callback:
+        for callback in gateway.service_callback:
             if callback == "prometheus_system":
                 await self.init_prometheus_services_logger_if_none()
                 await self.prometheusServicesLogger.async_service_failure_hook(

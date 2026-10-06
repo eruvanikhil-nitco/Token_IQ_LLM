@@ -522,7 +522,7 @@ def test_importing_caching_does_not_require_redis():
                      "redis.commands.search"):
             sys.modules[name] = None
         import token_iq.gateway.caching.caching  # must not import redis at module top
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.types.caching import LiteLLMCacheType
         assert LiteLLMCacheType.VALKEY_SEMANTIC == "valkey-semantic"
         print("ok")

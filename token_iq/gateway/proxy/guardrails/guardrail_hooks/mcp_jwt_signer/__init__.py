@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 
 
 def initialize_guardrail(litellm_params: "LitellmParams", guardrail: "Guardrail") -> MCPJWTSigner:
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     guardrail_name: Final = guardrail.get("guardrail_name")
     if not guardrail_name:
@@ -63,7 +63,7 @@ def initialize_guardrail(litellm_params: "LitellmParams", guardrail: "Guardrail"
         # FR-10: configurable scopes
         allowed_scopes=_get("allowed_scopes"),
     )
-    litellm.logging_callback_manager.add_litellm_callback(signer)
+    gateway.logging_callback_manager.add_litellm_callback(signer)
     return signer
 
 

@@ -11,7 +11,7 @@ import httpx
 import openai
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 
 @pytest.mark.parametrize(
@@ -32,11 +32,11 @@ async def test_httpx_timeout(model, provider, sync_mode):
     messages = [{"role": "user", "content": "Hey, how's it going?"}]
 
     if sync_mode:
-        response = litellm.completion(
+        response = gateway.completion(
             model=model, messages=messages, timeout=timeout_val
         )
     else:
-        response = await litellm.acompletion(
+        response = await gateway.acompletion(
             model=model, messages=messages, timeout=timeout_val
         )
 
@@ -45,9 +45,9 @@ async def test_httpx_timeout(model, provider, sync_mode):
 
 def test_timeout():
     # this Will Raise a timeout
-    litellm.set_verbose = False
+    gateway.set_verbose = False
     try:
-        response = litellm.completion(
+        response = gateway.completion(
             model="gpt-3.5-turbo",
             timeout=0.01,
             messages=[{"role": "user", "content": "hello, write a 20 pg essay"}],
@@ -69,9 +69,9 @@ def test_timeout():
 
 def test_bedrock_timeout():
     # this Will Raise a timeout
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     try:
-        response = litellm.completion(
+        response = gateway.completion(
             model="bedrock/us.anthropic.claude-haiku-4-5-20251001-v1:0",
             timeout=0.01,
             messages=[{"role": "user", "content": "hello, write a 20 pg essay"}],
@@ -96,12 +96,12 @@ def test_hanging_request_azure():
     Uses a mock to simulate a slow HTTP response so the timeout fires reliably,
     rather than racing against real network latency.
     """
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     import asyncio
     from unittest.mock import AsyncMock, patch
 
     try:
-        router = litellm.Router(
+        router = gateway.Router(
             model_list=[
                 {
                     "model_name": "azure-gpt",
@@ -119,7 +119,7 @@ def test_hanging_request_azure():
             num_retries=0,
         )
 
-        encoded = litellm.utils.encode(model="gpt-3.5-turbo", text="blue")[0]
+        encoded = gateway.utils.encode(model="gpt-3.5-turbo", text="blue")[0]
 
         original_send = httpx.AsyncClient.send
 
@@ -163,9 +163,9 @@ def test_hanging_request_azure():
 
 
 def test_hanging_request_openai():
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     try:
-        router = litellm.Router(
+        router = gateway.Router(
             model_list=[
                 {
                     "model_name": "azure-gpt",
@@ -183,7 +183,7 @@ def test_hanging_request_openai():
             num_retries=0,
         )
 
-        encoded = litellm.utils.encode(model="gpt-3.5-turbo", text="blue")[0]
+        encoded = gateway.utils.encode(model="gpt-3.5-turbo", text="blue")[0]
         response = router.completion(
             model="openai-gpt",
             messages=[{"role": "user", "content": "what color is red"}],
@@ -213,9 +213,9 @@ def test_hanging_request_openai():
 
 def test_timeout_streaming():
     # this Will Raise a timeout
-    litellm.set_verbose = False
+    gateway.set_verbose = False
     try:
-        response = litellm.completion(
+        response = gateway.completion(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": "hello, write a 20 pg essay"}],
             timeout=0.0001,
@@ -241,20 +241,20 @@ def test_timeout_streaming():
 @pytest.mark.skip(reason="local test")
 def test_timeout_ollama():
     # this Will Raise a timeout
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     try:
-        litellm.request_timeout = 0.1
-        litellm.set_verbose = True
-        response = litellm.completion(
+        gateway.request_timeout = 0.1
+        gateway.set_verbose = True
+        response = gateway.completion(
             model="ollama/phi",
             messages=[{"role": "user", "content": "hello, what llm are u"}],
             max_tokens=1,
             api_base="https://test-ollama-endpoint.onrender.com",
         )
         # Add any assertions here to check the response
-        litellm.request_timeout = None
+        gateway.request_timeout = None
         print(response)
     except openai.APITimeoutError as e:
         print("got a timeout error! Passed ! ")
@@ -268,27 +268,27 @@ def test_timeout_ollama():
 @pytest.mark.parametrize("sync_mode", [True, False])
 @pytest.mark.asyncio
 async def test_anthropic_timeout(streaming, sync_mode):
-    litellm.set_verbose = False
+    gateway.set_verbose = False
 
     try:
         if sync_mode:
-            response = litellm.completion(
+            response = gateway.completion(
                 model="claude-sonnet-4-5-20250929",
                 timeout=0.01,
                 messages=[{"role": "user", "content": "hello, write a 20 pg essay"}],
                 stream=streaming,
             )
-            if isinstance(response, litellm.CustomStreamWrapper):
+            if isinstance(response, gateway.CustomStreamWrapper):
                 for chunk in response:
                     pass
         else:
-            response = await litellm.acompletion(
+            response = await gateway.acompletion(
                 model="claude-sonnet-4-5-20250929",
                 timeout=0.01,
                 messages=[{"role": "user", "content": "hello, write a 20 pg essay"}],
                 stream=streaming,
             )
-            if isinstance(response, litellm.CustomStreamWrapper):
+            if isinstance(response, gateway.CustomStreamWrapper):
                 async for chunk in response:
                     pass
         pytest.fail("Did not raise error `openai.APITimeoutError`")

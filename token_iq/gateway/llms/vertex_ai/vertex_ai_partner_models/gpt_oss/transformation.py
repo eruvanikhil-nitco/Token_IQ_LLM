@@ -1,6 +1,6 @@
 from typing import Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.openai.chat.gpt_transformation import OpenAIGPTConfig
 
 
@@ -22,7 +22,7 @@ class VertexAIGPTOSSTransformation(OpenAIGPTConfig):
         #########################################################
         # VertexAI - GPT-OSS does not support tool calls
         #########################################################
-        if litellm.supports_function_calling(model=model) is False:
+        if gateway.supports_function_calling(model=model) is False:
             TOOL_CALLING_PARAMS_TO_REMOVE: Final = [
                 "tool",
                 "tool_choice",

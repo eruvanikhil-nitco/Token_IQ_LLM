@@ -9,7 +9,7 @@ from token_iq.gateway import Choices
 import pytest
 from dotenv import load_dotenv
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger, verbose_proxy_logger
 from token_iq.gateway.integrations.arize.arize import ArizeConfig, ArizeLogger
 
@@ -18,13 +18,13 @@ load_dotenv()
 
 @pytest.mark.asyncio()
 async def test_async_otel_callback():
-    litellm.set_verbose = True
+    gateway.set_verbose = True
 
     verbose_proxy_logger.setLevel(logging.DEBUG)
     verbose_logger.setLevel(logging.DEBUG)
-    litellm.success_callback = ["arize"]
+    gateway.success_callback = ["arize"]
 
-    await litellm.acompletion(
+    await gateway.acompletion(
         model="gpt-3.5-turbo",
         messages=[{"role": "user", "content": "hi test from local arize"}],
         mock_response="hello",
@@ -37,13 +37,13 @@ async def test_async_otel_callback():
 
 @pytest.mark.asyncio()
 async def test_async_dynamic_arize_config():
-    litellm.set_verbose = True
+    gateway.set_verbose = True
 
     verbose_proxy_logger.setLevel(logging.DEBUG)
     verbose_logger.setLevel(logging.DEBUG)
-    litellm.success_callback = ["arize"]
+    gateway.success_callback = ["arize"]
 
-    await litellm.acompletion(
+    await gateway.acompletion(
         model="gpt-3.5-turbo",
         messages=[{"role": "user", "content": "hi test from arize dynamic config"}],
         temperature=0.1,
@@ -92,7 +92,7 @@ def test_get_arize_config_with_endpoints(mock_env_vars, monkeypatch):
     reason="Works locally but not in CI/CD. We'll need a better way to test Arize on CI/CD"
 )
 def test_arize_callback():
-    litellm.callbacks = ["arize"]
+    gateway.callbacks = ["arize"]
     os.environ["ARIZE_SPACE_KEY"] = "test_space_key"
     os.environ["ARIZE_API_KEY"] = "test_api_key"
     os.environ["ARIZE_ENDPOINT"] = "https://otlp.arize.com/v1"
@@ -110,7 +110,7 @@ def test_arize_callback():
             "export",
             new=Mock(),
         ) as patched_export:
-            litellm.completion(
+            gateway.completion(
                 model="openai/test-model",
                 messages=[{"role": "user", "content": "arize test content"}],
                 stream=False,
@@ -134,4 +134,4 @@ def test_arize_callback():
                 del os.environ[key]
 
         # Reset callbacks
-        litellm.callbacks = []
+        gateway.callbacks = []

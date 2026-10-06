@@ -1,6 +1,6 @@
 from typing import Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.openai.chat.gpt_transformation import OpenAIGPTConfig
 from token_iq.gateway.secret_managers.main import get_secret_str
 
@@ -82,11 +82,11 @@ class FeatherlessAIConfig(OpenAIGPTConfig):
                     optional_params[param] = value
                 else:  # https://featherless.ai/docs/completions
                     ## UNSUPPORTED TOOL CHOICE VALUE
-                    if litellm.drop_params is True or drop_params is True:
+                    if gateway.drop_params is True or drop_params is True:
                         value = None
                     else:
                         error_message = f"Featherless AI doesn't support {param}={value}. To drop unsupported openai params from the call, set `litellm.drop_params = True`"
-                        raise litellm.utils.UnsupportedParamsError(
+                        raise gateway.utils.UnsupportedParamsError(
                             message=error_message,
                             status_code=400,
                         )

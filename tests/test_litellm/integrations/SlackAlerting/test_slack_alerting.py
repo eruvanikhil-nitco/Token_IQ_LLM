@@ -8,7 +8,7 @@ from unittest.mock import ANY, AsyncMock, MagicMock, Mock, patch
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.caching.caching import DualCache
 from token_iq.gateway.integrations.SlackAlerting.slack_alerting import SlackAlerting
 from token_iq.gateway.proxy._types import CallInfo, Litellm_EntityType

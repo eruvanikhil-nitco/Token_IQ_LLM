@@ -3,7 +3,7 @@ import unittest
 from datetime import datetime
 from unittest.mock import MagicMock, Mock, patch
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.integrations.braintrust_logging import BraintrustLogger
 
 
@@ -71,11 +71,11 @@ class TestBraintrustLogger(unittest.TestCase):
         # Mock the __getitem__ to support response_obj["choices"][0]["message"]
         choice_mock.__getitem__ = Mock(return_value=message_mock)
 
-        response_obj = Mock(spec=litellm.ModelResponse)
+        response_obj = Mock(spec=gateway.ModelResponse)
         response_obj.choices = [choice_mock]
         # Mock the __getitem__ to support response_obj["choices"]
         response_obj.__getitem__ = Mock(return_value=[choice_mock])
-        response_obj.usage = litellm.Usage(
+        response_obj.usage = gateway.Usage(
             prompt_tokens=10, completion_tokens=20, total_tokens=30
         )
 
@@ -121,10 +121,10 @@ class TestBraintrustLogger(unittest.TestCase):
         choice_mock.dict = Mock(return_value={"message": {"content": "test"}})
         choice_mock.__getitem__ = Mock(return_value=message_mock)
 
-        response_obj = Mock(spec=litellm.ModelResponse)
+        response_obj = Mock(spec=gateway.ModelResponse)
         response_obj.choices = [choice_mock]
         response_obj.__getitem__ = Mock(return_value=[choice_mock])
-        response_obj.usage = litellm.Usage(
+        response_obj.usage = gateway.Usage(
             prompt_tokens=10, completion_tokens=20, total_tokens=30
         )
 
@@ -172,10 +172,10 @@ class TestBraintrustLogger(unittest.TestCase):
         choice_mock.dict = Mock(return_value={"message": {"content": "test"}})
         choice_mock.__getitem__ = Mock(return_value=message_mock)
 
-        response_obj = Mock(spec=litellm.ModelResponse)
+        response_obj = Mock(spec=gateway.ModelResponse)
         response_obj.choices = [choice_mock]
         response_obj.__getitem__ = Mock(return_value=[choice_mock])
-        response_obj.usage = litellm.Usage(
+        response_obj.usage = gateway.Usage(
             prompt_tokens=10, completion_tokens=20, total_tokens=30
         )
 
@@ -225,10 +225,10 @@ class TestBraintrustLogger(unittest.TestCase):
         choice_mock.dict = Mock(return_value={"message": {"content": "test"}})
         choice_mock.__getitem__ = Mock(return_value=message_mock)
 
-        response_obj = Mock(spec=litellm.ModelResponse)
+        response_obj = Mock(spec=gateway.ModelResponse)
         response_obj.choices = [choice_mock]
         response_obj.__getitem__ = Mock(return_value=[choice_mock])
-        response_obj.usage = litellm.Usage(
+        response_obj.usage = gateway.Usage(
             prompt_tokens=10, completion_tokens=20, total_tokens=30
         )
 
@@ -276,10 +276,10 @@ class TestBraintrustLogger(unittest.TestCase):
         choice_mock.dict = Mock(return_value={"message": {"content": "test"}})
         choice_mock.__getitem__ = Mock(return_value=message_mock)
 
-        response_obj = Mock(spec=litellm.ModelResponse)
+        response_obj = Mock(spec=gateway.ModelResponse)
         response_obj.choices = [choice_mock]
         response_obj.__getitem__ = Mock(return_value=[choice_mock])
-        response_obj.usage = litellm.Usage(
+        response_obj.usage = gateway.Usage(
             prompt_tokens=10, completion_tokens=20, total_tokens=30
         )
 

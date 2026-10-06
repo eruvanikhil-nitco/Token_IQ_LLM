@@ -9,7 +9,7 @@ from typing import Any, Final, Protocol, TypedDict
 
 from typing_extensions import NotRequired, ReadOnly
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.types.utils import EmbeddingResponse
 
 
@@ -71,7 +71,7 @@ def _process_ollama_embedding_response(
     model_response.object = "list"
     model_response.data = output_data
     model_response.model = "ollama/" + model
-    model_response.usage = litellm.Usage(
+    model_response.usage = gateway.Usage(
         prompt_tokens=input_tokens,
         completion_tokens=0,
         total_tokens=input_tokens,
@@ -95,7 +95,7 @@ async def ollama_aembeddings(
 
     data: Final = _prepare_ollama_embedding_payload(model, prompts, optional_params)
 
-    response: Final = await litellm.module_level_aclient.post(url=api_base, json=data)
+    response: Final = await gateway.module_level_aclient.post(url=api_base, json=data)
     response_json: Final[OllamaEmbeddingResponse] = response.json()
 
     return _process_ollama_embedding_response(
@@ -122,7 +122,7 @@ def ollama_embeddings(
 
     data: Final = _prepare_ollama_embedding_payload(model, prompts, optional_params)
 
-    response: Final = litellm.module_level_client.post(url=api_base, json=data)
+    response: Final = gateway.module_level_client.post(url=api_base, json=data)
     response_json: Final[OllamaEmbeddingResponse] = response.json()
 
     return _process_ollama_embedding_response(

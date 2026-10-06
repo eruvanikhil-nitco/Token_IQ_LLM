@@ -5,7 +5,7 @@ from fastapi import HTTPException
 from httpx import ConnectError, Request, Response
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import DualCache
 from token_iq.gateway.proxy._types import UserAPIKeyAuth
 from token_iq.gateway.proxy.guardrails.guardrail_hooks.repelloai.repelloai import (
@@ -145,7 +145,7 @@ class TestRepelloAIInitialization:
 
     def test_init_guardrails_v2_wiring(self, monkeypatch: pytest.MonkeyPatch):
         """The guardrail registers and constructs via the config.yaml path."""
-        monkeypatch.setattr(litellm, "guardrail_name_config_map", {})
+        monkeypatch.setattr(gateway, "guardrail_name_config_map", {})
         monkeypatch.setenv("REPELLOAI_API_KEY", "test-key")
         init_guardrails_v2(
             all_guardrails=[

@@ -239,9 +239,9 @@ async def test_replication_fires_on_create(caplog):
 
 def test_load_aws_secret_manager_passes_replica_regions():
     """load_aws_secret_manager must forward replica_regions from key_management_settings."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    original = litellm.secret_manager_client
+    original = gateway.secret_manager_client
     settings = MagicMock()
     settings.aws_region_name = "us-east-1"
     settings.aws_role_name = None
@@ -258,13 +258,13 @@ def test_load_aws_secret_manager_passes_replica_regions():
             key_management_settings=settings,
         )
 
-        assert isinstance(litellm.secret_manager_client, AWSSecretsManagerV2)
-        assert litellm.secret_manager_client.replica_regions == [
+        assert isinstance(gateway.secret_manager_client, AWSSecretsManagerV2)
+        assert gateway.secret_manager_client.replica_regions == [
             "us-west-2",
             "eu-west-1",
         ]
     finally:
-        litellm.secret_manager_client = original
+        gateway.secret_manager_client = original
 
 
 def _http_status_error(status_code: int, body: str) -> httpx.HTTPStatusError:

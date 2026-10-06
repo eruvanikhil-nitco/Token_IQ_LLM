@@ -13,7 +13,7 @@ import pytest
 
 # Add the project root to Python path
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import ModelResponse
 from token_iq.gateway.cost_calculator import completion_cost, cost_per_token
 from token_iq.gateway.llms.perplexity.chat.transformation import PerplexityChatConfig
@@ -34,10 +34,10 @@ class TestPerplexityIntegration:
         try:
             with open("model_prices_and_context_window.json", "r") as f:
                 model_cost_map = json.load(f)
-            litellm.model_cost = model_cost_map
+            gateway.model_cost = model_cost_map
         except FileNotFoundError:
             # Fallback to ensure we have the Perplexity model configuration
-            litellm.model_cost = {
+            gateway.model_cost = {
                 "perplexity/sonar-deep-research": {
                     "max_tokens": 128000,
                     "max_input_tokens": 128000,

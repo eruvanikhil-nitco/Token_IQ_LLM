@@ -28,7 +28,7 @@ import pytest
 from pydantic import ValidationError
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.router_strategy.budget_limiter import RouterBudgetLimiting
 from token_iq.gateway.router_utils.pre_call_checks.model_rate_limit_check import ModelRateLimitingCheck
 from token_iq.gateway.router_utils.pre_call_checks.prompt_caching_deployment_check import PromptCachingDeploymentCheck
@@ -37,9 +37,9 @@ from token_iq.gateway.types.router import RetryPolicy, UpdateRouterConfig
 
 @pytest.fixture(autouse=True)
 def isolate_litellm_callbacks():
-    callbacks_before: Final = litellm.callbacks.copy()
+    callbacks_before: Final = gateway.callbacks.copy()
     yield
-    litellm.callbacks = callbacks_before  # test-quality-ok: required callback-state restoration fixture
+    gateway.callbacks = callbacks_before  # test-quality-ok: required callback-state restoration fixture
 
 
 # ---------------------------------------------------------------------------
@@ -97,8 +97,8 @@ def test_update_router_config_rejects_malformed_model_group_retry_policy():
 # ---------------------------------------------------------------------------
 
 
-def _build_router() -> litellm.Router:
-    return litellm.Router(
+def _build_router() -> gateway.Router:
+    return gateway.Router(
         model_list=[
             {
                 "model_name": "test-model",
@@ -132,7 +132,7 @@ def test_update_settings_clears_omitted_toggleable_pre_call_checks():
     router.update_settings(optional_pre_call_checks=[])
 
     assert not any(isinstance(callback, PromptCachingDeploymentCheck) for callback in (router.optional_callbacks or []))
-    assert not any(isinstance(callback, PromptCachingDeploymentCheck) for callback in litellm.callbacks)
+    assert not any(isinstance(callback, PromptCachingDeploymentCheck) for callback in gateway.callbacks)
 
 
 def test_set_optional_pre_call_checks_reconciles_callback_types():
@@ -142,7 +142,7 @@ def test_set_optional_pre_call_checks_reconciles_callback_types():
     router.set_optional_pre_call_checks([])
 
     assert not any(isinstance(callback, PromptCachingDeploymentCheck) for callback in (router.optional_callbacks or []))
-    assert not any(isinstance(callback, PromptCachingDeploymentCheck) for callback in litellm.callbacks)
+    assert not any(isinstance(callback, PromptCachingDeploymentCheck) for callback in gateway.callbacks)
 
 
 def test_remove_optional_pre_call_check_removes_local_and_global_callbacks():
@@ -152,7 +152,7 @@ def test_remove_optional_pre_call_check_removes_local_and_global_callbacks():
     router._remove_optional_callbacks_of_type(PromptCachingDeploymentCheck)
 
     assert not any(type(callback) is PromptCachingDeploymentCheck for callback in (router.optional_callbacks or []))
-    assert not any(type(callback) is PromptCachingDeploymentCheck for callback in litellm.callbacks)
+    assert not any(type(callback) is PromptCachingDeploymentCheck for callback in gateway.callbacks)
 
 
 def test_remove_optional_pre_call_check_keeps_global_callback_for_another_router():
@@ -166,12 +166,12 @@ def test_remove_optional_pre_call_check_keeps_global_callback_for_another_router
 
     assert not any(type(callback) is PromptCachingDeploymentCheck for callback in (router_a.optional_callbacks or []))
     assert any(type(callback) is PromptCachingDeploymentCheck for callback in (router_b.optional_callbacks or []))
-    assert any(type(callback) is PromptCachingDeploymentCheck for callback in litellm.callbacks)
+    assert any(type(callback) is PromptCachingDeploymentCheck for callback in gateway.callbacks)
 
     router_b.update_settings(optional_pre_call_checks=[])
 
     assert not any(type(callback) is PromptCachingDeploymentCheck for callback in (router_b.optional_callbacks or []))
-    assert not any(type(callback) is PromptCachingDeploymentCheck for callback in litellm.callbacks)
+    assert not any(type(callback) is PromptCachingDeploymentCheck for callback in gateway.callbacks)
 
 
 def test_remove_optional_pre_call_check_keeps_global_callback_when_second_router_clears_first():
@@ -185,11 +185,11 @@ def test_remove_optional_pre_call_check_keeps_global_callback_when_second_router
 
     assert any(type(callback) is PromptCachingDeploymentCheck for callback in (router_a.optional_callbacks or []))
     assert not any(type(callback) is PromptCachingDeploymentCheck for callback in (router_b.optional_callbacks or []))
-    assert any(type(callback) is PromptCachingDeploymentCheck for callback in litellm.callbacks)
+    assert any(type(callback) is PromptCachingDeploymentCheck for callback in gateway.callbacks)
 
     router_a.update_settings(optional_pre_call_checks=[])
 
-    assert not any(type(callback) is PromptCachingDeploymentCheck for callback in litellm.callbacks)
+    assert not any(type(callback) is PromptCachingDeploymentCheck for callback in gateway.callbacks)
 
 
 def test_update_settings_replaces_toggleable_pre_call_checks():
@@ -199,7 +199,7 @@ def test_update_settings_replaces_toggleable_pre_call_checks():
     router.update_settings(optional_pre_call_checks=["enforce_model_rate_limits"])
 
     assert not any(isinstance(callback, PromptCachingDeploymentCheck) for callback in (router.optional_callbacks or []))
-    assert not any(isinstance(callback, PromptCachingDeploymentCheck) for callback in litellm.callbacks)
+    assert not any(isinstance(callback, PromptCachingDeploymentCheck) for callback in gateway.callbacks)
     assert any(isinstance(callback, ModelRateLimitingCheck) for callback in (router.optional_callbacks or []))
 
 

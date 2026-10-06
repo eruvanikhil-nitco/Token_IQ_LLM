@@ -16,7 +16,7 @@ from typing import Literal, get_args, get_type_hints
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 import token_iq.gateway.batches.batch_utils as bu
 from token_iq.gateway.types.llms.openai import CreateBatchRequest
 
@@ -67,7 +67,7 @@ def test_responses_shaped_usage_maps_onto_prompt_and_completion_tokens():
 async def test_responses_batch_reconciles_to_real_tokens_and_spend(local_model_cost_map):
     """A completed Responses batch records the provider's token counts and a
     non-zero spend at the model's batch rates."""
-    model_info = litellm.get_model_info(model=MODEL, custom_llm_provider="openai")
+    model_info = gateway.get_model_info(model=MODEL, custom_llm_provider="openai")
     input_tokens = 33
     output_tokens = 57
 
@@ -94,7 +94,7 @@ async def test_responses_batch_reconciles_to_real_tokens_and_spend(local_model_c
 async def test_mixed_shape_batch_output_sums_across_both_line_shapes(local_model_cost_map):
     """An output file carrying both line shapes sums both. A fix keyed off the
     batch's declared endpoint rather than each line's shape would miss this."""
-    model_info = litellm.get_model_info(model=MODEL, custom_llm_provider="openai")
+    model_info = gateway.get_model_info(model=MODEL, custom_llm_provider="openai")
 
     result = await bu.calculate_batch_cost_and_usage(
         file_content_dictionary=[_responses_line(100, 50), _chat_line(33, 57)],
@@ -115,5 +115,5 @@ def test_create_batch_endpoint_accepts_v1_responses():
     endpoint_annotation = get_type_hints(CreateBatchRequest)["endpoint"]
     assert "/v1/responses" in get_args(endpoint_annotation)
 
-    for create_fn in (litellm.create_batch, litellm.acreate_batch):
+    for create_fn in (gateway.create_batch, gateway.acreate_batch):
         assert "/v1/responses" in get_args(get_type_hints(create_fn)["endpoint"])

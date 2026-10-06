@@ -1,6 +1,6 @@
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.fal_ai.cost_calculator import cost_calculator
 from token_iq.gateway.llms.fal_ai.image_generation import (
     FalAIGPTImage2Config,
@@ -139,8 +139,8 @@ def test_cost_calculator_uses_registry_price(
     model, expected_cost_for_two_images, monkeypatch: pytest.MonkeyPatch
 ):
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map())
-    litellm.get_model_info.cache_clear()
+    monkeypatch.setattr(gateway, "model_cost", gateway.get_model_cost_map())
+    gateway.get_model_info.cache_clear()
     response = ImageResponse(
         data=[
             ImageObject(url="https://v3b.fal.media/files/b/one.png"),

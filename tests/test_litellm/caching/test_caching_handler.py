@@ -626,7 +626,7 @@ def test_async_cache_write_completes_when_asyncio_run_closes_the_loop(monkeypatc
     asyncio.run cancelled it at loop close before the write landed (LIT-6184,
     deterministic with hiredis installed). The write must survive loop shutdown.
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     writes = []
 
@@ -646,11 +646,11 @@ def test_async_cache_write_completes_when_asyncio_run_closes_the_loop(monkeypatc
         request_kwargs={},
         start_time=datetime.now(),
     )
-    monkeypatch.setattr(litellm, "cache", _SlowWriteCache())
+    monkeypatch.setattr(gateway, "cache", _SlowWriteCache())
 
     async def _short_lived_script():
         await handler.async_set_cache(
-            result=litellm.ModelResponse(),
+            result=gateway.ModelResponse(),
             original_function=acompletion,
             kwargs={},
         )

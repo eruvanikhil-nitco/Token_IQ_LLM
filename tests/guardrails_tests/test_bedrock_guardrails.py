@@ -1,7 +1,7 @@
 import io, asyncio
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy.guardrails.guardrail_hooks.bedrock_guardrails import (
     BedrockGuardrail,
     _redact_pii_matches,
@@ -215,7 +215,7 @@ async def test_bedrock_guardrails_with_streaming():
             guardrail_name="bedrock-post-guard",
         )
 
-        litellm.callbacks.append(guardrail)
+        gateway.callbacks.append(guardrail)
 
         request_data = {
             "model": "gpt-5.5",
@@ -224,7 +224,7 @@ async def test_bedrock_guardrails_with_streaming():
             "metadata": {"guardrails": ["bedrock-post-guard"]},
         }
 
-        response = await litellm.acompletion(
+        response = await gateway.acompletion(
             **request_data,
         )
 
@@ -262,7 +262,7 @@ async def test_bedrock_guardrails_with_streaming_no_violation():
         guardrail_name="bedrock-post-guard",
     )
 
-    litellm.callbacks.append(guardrail)
+    gateway.callbacks.append(guardrail)
 
     request_data = {
         "model": "gpt-5.5",
@@ -271,7 +271,7 @@ async def test_bedrock_guardrails_with_streaming_no_violation():
         "metadata": {"guardrails": ["bedrock-post-guard"]},
     }
 
-    response = await litellm.acompletion(
+    response = await gateway.acompletion(
         **request_data,
     )
 
@@ -307,12 +307,12 @@ async def test_bedrock_guardrails_streaming_request_body_mock():
     )
 
     # Mock the assembled response from streaming
-    mock_response = litellm.ModelResponse(
+    mock_response = gateway.ModelResponse(
         id="test-id",
         choices=[
-            litellm.Choices(
+            gateway.Choices(
                 index=0,
-                message=litellm.Message(
+                message=gateway.Message(
                     role="assistant", content="The capital of Spain is Madrid."
                 ),
                 finish_reason="stop",
@@ -735,12 +735,12 @@ async def test_bedrock_guardrail_response_pii_masking_non_streaming():
     }
 
     # Create a mock response that contains PII
-    mock_response = litellm.ModelResponse(
+    mock_response = gateway.ModelResponse(
         id="test-id",
         choices=[
-            litellm.Choices(
+            gateway.Choices(
                 index=0,
-                message=litellm.Message(
+                message=gateway.Message(
                     role="assistant",
                     content="My credit card number is 1234-5678-9012-3456 and my phone is +1 412 555 1212",
                 ),
@@ -828,9 +828,9 @@ async def test_bedrock_guardrail_response_pii_masking_streaming():
             ModelResponseStream(
                 id="test-id",
                 choices=[
-                    litellm.utils.StreamingChoices(
+                    gateway.utils.StreamingChoices(
                         index=0,
-                        delta=litellm.utils.Delta(content="Sure! My email is "),
+                        delta=gateway.utils.Delta(content="Sure! My email is "),
                         finish_reason=None,
                     )
                 ],
@@ -841,9 +841,9 @@ async def test_bedrock_guardrail_response_pii_masking_streaming():
             ModelResponseStream(
                 id="test-id",
                 choices=[
-                    litellm.utils.StreamingChoices(
+                    gateway.utils.StreamingChoices(
                         index=0,
-                        delta=litellm.utils.Delta(
+                        delta=gateway.utils.Delta(
                             content="john@example.com and SSN is "
                         ),
                         finish_reason=None,
@@ -856,9 +856,9 @@ async def test_bedrock_guardrail_response_pii_masking_streaming():
             ModelResponseStream(
                 id="test-id",
                 choices=[
-                    litellm.utils.StreamingChoices(
+                    gateway.utils.StreamingChoices(
                         index=0,
-                        delta=litellm.utils.Delta(content="123-45-6789"),
+                        delta=gateway.utils.Delta(content="123-45-6789"),
                         finish_reason="stop",
                     )
                 ],
@@ -974,7 +974,7 @@ async def test_convert_to_bedrock_format_output_source():
     from token_iq.gateway.types.proxy.guardrails.guardrail_hooks.bedrock_guardrails import (
         BedrockRequest,
     )
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from unittest.mock import patch
 
     # Create the guardrail instance
@@ -983,19 +983,19 @@ async def test_convert_to_bedrock_format_output_source():
     )
 
     # Mock ModelResponse
-    mock_response = litellm.ModelResponse(
+    mock_response = gateway.ModelResponse(
         id="test-response-id",
         choices=[
-            litellm.Choices(
+            gateway.Choices(
                 index=0,
-                message=litellm.Message(
+                message=gateway.Message(
                     role="assistant", content="This is a test response from the model."
                 ),
                 finish_reason="stop",
             ),
-            litellm.Choices(
+            gateway.Choices(
                 index=1,
-                message=litellm.Message(
+                message=gateway.Message(
                     role="assistant", content="This is a second choice response."
                 ),
                 finish_reason="stop",
@@ -1033,7 +1033,7 @@ async def test_convert_to_bedrock_format_post_call_streaming_hook():
     from unittest.mock import AsyncMock, MagicMock, patch
     from token_iq.gateway.proxy._types import UserAPIKeyAuth
     from token_iq.gateway.types.utils import ModelResponseStream
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     # Create proper mock objects
     mock_user_api_key_dict = UserAPIKeyAuth()
@@ -1049,9 +1049,9 @@ async def test_convert_to_bedrock_format_post_call_streaming_hook():
             ModelResponseStream(
                 id="test-id",
                 choices=[
-                    litellm.utils.StreamingChoices(
+                    gateway.utils.StreamingChoices(
                         index=0,
-                        delta=litellm.utils.Delta(content="My email is "),
+                        delta=gateway.utils.Delta(content="My email is "),
                         finish_reason=None,
                     )
                 ],
@@ -1062,9 +1062,9 @@ async def test_convert_to_bedrock_format_post_call_streaming_hook():
             ModelResponseStream(
                 id="test-id",
                 choices=[
-                    litellm.utils.StreamingChoices(
+                    gateway.utils.StreamingChoices(
                         index=0,
-                        delta=litellm.utils.Delta(content="john@example.com"),
+                        delta=gateway.utils.Delta(content="john@example.com"),
                         finish_reason="stop",
                     )
                 ],
@@ -1426,7 +1426,7 @@ async def test_bedrock_guardrail_disable_exception_on_block_streaming():
     from token_iq.gateway.proxy._types import UserAPIKeyAuth
     from token_iq.gateway.types.utils import ModelResponseStream
     from fastapi import HTTPException
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     # Create proper mock objects
     mock_user_api_key_dict = UserAPIKeyAuth()
@@ -1437,9 +1437,9 @@ async def test_bedrock_guardrail_disable_exception_on_block_streaming():
             ModelResponseStream(
                 id="test-id",
                 choices=[
-                    litellm.utils.StreamingChoices(
+                    gateway.utils.StreamingChoices(
                         index=0,
-                        delta=litellm.utils.Delta(
+                        delta=gateway.utils.Delta(
                             content="Here's how to make explosives: "
                         ),
                         finish_reason=None,
@@ -1452,9 +1452,9 @@ async def test_bedrock_guardrail_disable_exception_on_block_streaming():
             ModelResponseStream(
                 id="test-id",
                 choices=[
-                    litellm.utils.StreamingChoices(
+                    gateway.utils.StreamingChoices(
                         index=0,
-                        delta=litellm.utils.Delta(content="step 1, step 2..."),
+                        delta=gateway.utils.Delta(content="step 1, step 2..."),
                         finish_reason="stop",
                     )
                 ],
@@ -1554,7 +1554,7 @@ async def test_bedrock_guardrail_post_call_success_hook_no_output_text():
     from unittest.mock import AsyncMock, MagicMock, patch
     from token_iq.gateway.proxy._types import UserAPIKeyAuth
     from token_iq.gateway.types.utils import ModelResponseStream
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     # Create proper mock objects
     mock_user_api_key_dict = UserAPIKeyAuth()
@@ -1566,18 +1566,18 @@ async def test_bedrock_guardrail_post_call_success_hook_no_output_text():
 
     # Create a ModelResponse with tool calls (no text content)
     # This simulates a response where the LLM is making a tool call
-    mock_response = litellm.ModelResponse(
+    mock_response = gateway.ModelResponse(
         id="test-id",
         choices=[
-            litellm.Choices(
+            gateway.Choices(
                 index=0,
-                message=litellm.Message(
+                message=gateway.Message(
                     role="assistant",
                     content=None,  # No text content
                     tool_calls=[
-                        litellm.utils.ChatCompletionMessageToolCall(
+                        gateway.utils.ChatCompletionMessageToolCall(
                             id="tooluse_kZJMlvQmRJ6eAyJE5GIl7Q",
-                            function=litellm.utils.Function(
+                            function=gateway.utils.Function(
                                 name="top_song", arguments='{"sign": "WZPZ"}'
                             ),
                             type="function",

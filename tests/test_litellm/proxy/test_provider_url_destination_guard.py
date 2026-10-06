@@ -11,7 +11,7 @@ from unittest.mock import MagicMock
 import pytest
 from fastapi import HTTPException, Request
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy._types import UserAPIKeyAuth
 from token_iq.gateway.proxy.litellm_pre_call_utils import (
     _reject_url_valued_destinations,
@@ -68,7 +68,7 @@ class TestRejectUrlValuedDestinations:
 
     def test_provider_prefixed_url_respects_allowlist(self, monkeypatch):
         monkeypatch.setattr(
-            litellm,
+            gateway,
             "provider_url_destination_allowed_hosts",
             ["trusted.example"],
         )
@@ -97,7 +97,7 @@ class TestRejectUrlValuedDestinations:
 
     def test_allowlisted_host_passes(self, monkeypatch):
         monkeypatch.setattr(
-            litellm,
+            gateway,
             "provider_url_destination_allowed_hosts",
             ["trusted.example"],
         )
@@ -105,7 +105,7 @@ class TestRejectUrlValuedDestinations:
 
     def test_allowlisted_origin_rejects_mismatched_scheme(self, monkeypatch):
         monkeypatch.setattr(
-            litellm,
+            gateway,
             "provider_url_destination_allowed_hosts",
             ["https://trusted.example"],
         )
@@ -115,7 +115,7 @@ class TestRejectUrlValuedDestinations:
 
     def test_allowlisted_host_port_rejects_other_ports(self, monkeypatch):
         monkeypatch.setattr(
-            litellm,
+            gateway,
             "provider_url_destination_allowed_hosts",
             ["trusted.example:8443"],
         )
@@ -126,7 +126,7 @@ class TestRejectUrlValuedDestinations:
     def test_userinfo_in_url_rejected_even_when_host_allowlisted(self, monkeypatch):
         # Embedded credentials in URL are an exfil channel — must never pass.
         monkeypatch.setattr(
-            litellm,
+            gateway,
             "provider_url_destination_allowed_hosts",
             ["trusted.example"],
         )

@@ -12,7 +12,7 @@ from unittest.mock import AsyncMock, MagicMock, call, patch
 import pytest
 from redis.exceptions import DataError
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy._types import Litellm_EntityType
 from token_iq.gateway.proxy.db.db_spend_update_writer import DBSpendUpdateWriter
 from token_iq.gateway.proxy.db.db_transaction_queue.window_spend_update_queue import (
@@ -2264,7 +2264,7 @@ async def test_spend_update_path_never_queries_user_cache_with_none_user_id():
     strict_redis_backed_cache.async_get_cache = AsyncMock(side_effect=DataError("Invalid input of type: 'NoneType'"))
 
     with (
-        patch.object(litellm, "max_budget", 0),
+        patch.object(gateway, "max_budget", 0),
         patch("token_iq.gateway.proxy.proxy_server.disable_spend_logs", True),
         patch("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock()),
         patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", strict_redis_backed_cache),
@@ -2311,7 +2311,7 @@ async def test_update_user_db_enqueues_user_spend_without_cache_dependency():
     """
     db_writer = DBSpendUpdateWriter()
 
-    with patch.object(litellm, "max_budget", 0):
+    with patch.object(gateway, "max_budget", 0):
         await db_writer._update_user_db(
             response_cost=0.25,
             user_id="user-123",
@@ -2383,7 +2383,7 @@ async def test_daily_transaction_carries_compression_saved_tokens():
     assert transaction["cache_read_input_tokens"] == 40
     assert transaction["cache_creation_input_tokens"] == 15
 
-    model_info = litellm.get_model_info(model="claude-sonnet-5", custom_llm_provider="anthropic")
+    model_info = gateway.get_model_info(model="claude-sonnet-5", custom_llm_provider="anthropic")
     input_cost = model_info["input_cost_per_token"] or 0.0
     cache_read_cost = model_info.get("cache_read_input_token_cost") or input_cost
     cache_write_cost = model_info.get("cache_creation_input_token_cost") or input_cost

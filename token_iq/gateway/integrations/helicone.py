@@ -4,7 +4,7 @@ import os
 import traceback
 from typing import Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.integrations.helicone_mock_client import (
     create_mock_helicone_client,
@@ -143,7 +143,7 @@ class HeliconeLogger:
                 else "gpt-3.5-turbo"
             )
             provider_request: Final = {"model": model, "messages": messages}
-            if isinstance(response_obj, litellm.EmbeddingResponse) or isinstance(response_obj, litellm.ModelResponse):
+            if isinstance(response_obj, gateway.EmbeddingResponse) or isinstance(response_obj, gateway.ModelResponse):
                 response_obj = response_obj.json()
 
             if "claude" in model and not is_vertex_ai:
@@ -195,7 +195,7 @@ class HeliconeLogger:
                     },
                 },  # {"seconds": .., "milliseconds": ..}
             }
-            response: Final = litellm.module_level_client.post(url, headers=headers, json=data)
+            response: Final = gateway.module_level_client.post(url, headers=headers, json=data)
             if response.status_code == 200:
                 if self.is_mock_mode:
                     print_verbose("[HELICONE MOCK] Helicone Logging - Successfully mocked!")

@@ -12,7 +12,7 @@ load_dotenv()
 
 import pytest
 from typing import Optional
-from token_iq import gateway as litellm
+from token_iq import gateway
 from unittest.mock import patch, MagicMock
 import httpx
 from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler
@@ -121,7 +121,7 @@ async def test_async_create_file():
     2. Create Batch Request
     3. Retrieve the specific batch
     """
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
     print("Testing async create batch")
 
     file_name = "bedrock_batch_completions.jsonl"
@@ -132,7 +132,7 @@ async def test_async_create_file():
         patch.dict(os.environ, _BEDROCK_TEST_AWS_ENV),
         open(file_path, "rb") as batch_file,
     ):
-        file_obj = await litellm.acreate_file(
+        file_obj = await gateway.acreate_file(
             file=batch_file,
             purpose="batch",
             custom_llm_provider="bedrock",
@@ -162,14 +162,14 @@ async def test_async_file_and_batch():
     """
     Test file retrieval
     """
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
     file_name = "bedrock_batch_completions.jsonl"
     _current_dir = os.path.dirname(os.path.abspath(__file__))
     file_path = os.path.join(_current_dir, file_name)
     capture_client = _CaptureAsyncHTTPHandler()
     with patch.dict(os.environ, _BEDROCK_TEST_AWS_ENV):
         with open(file_path, "rb") as batch_file:
-            file_obj = await litellm.acreate_file(
+            file_obj = await gateway.acreate_file(
                 file=batch_file,
                 purpose="batch",
                 custom_llm_provider="bedrock",
@@ -184,7 +184,7 @@ async def test_async_file_and_batch():
             return_value=capture_client,
         ):
             # create batch
-            create_batch_response = await litellm.acreate_batch(
+            create_batch_response = await gateway.acreate_batch(
                 completion_window="24h",
                 endpoint="/v1/chat/completions",
                 input_file_id=file_obj.id,
@@ -205,7 +205,7 @@ async def test_async_file_and_batch():
                 lambda jobIdentifier: capture_client.batch_jobs[jobIdentifier]
             )
             with patch("boto3.client", return_value=mock_bedrock_client):
-                retrieve_batch_response = await litellm.aretrieve_batch(
+                retrieve_batch_response = await gateway.aretrieve_batch(
                     batch_id=create_batch_response.id,
                     custom_llm_provider="bedrock",
                     model="us.anthropic.claude-haiku-4-5-20251001-v1:0",
@@ -242,7 +242,7 @@ async def test_mock_bedrock_file_url_mapping():
             "rb",
         ) as batch_file,
     ):
-        file_obj = await litellm.acreate_file(
+        file_obj = await gateway.acreate_file(
             file=batch_file,
             purpose="batch",
             custom_llm_provider="bedrock",
@@ -303,7 +303,7 @@ async def test_bedrock_retrieve_batch():
             return_value=mock_creds,
         ),
     ):
-        batch_response = await litellm.aretrieve_batch(
+        batch_response = await gateway.aretrieve_batch(
             batch_id="arn:aws:bedrock:us-west-2:123456789012:model-invocation-job/test-job-123",
             custom_llm_provider="bedrock",
             model="us.anthropic.claude-haiku-4-5-20251001-v1:0",
@@ -331,7 +331,7 @@ def test_bedrock_batch_with_encryption_key_in_post_request():
     Test that s3_encryption_key_id is included in the AWS POST request payload.
     """
     import json
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     test_kms_key_id = (
         "arn:aws:kms:us-west-2:123456789012:key/12345678-1234-1234-1234-123456789012"
@@ -361,7 +361,7 @@ def test_bedrock_batch_with_encryption_key_in_post_request():
             side_effect=mock_post,
         ),
     ):
-        response = litellm.create_batch(
+        response = gateway.create_batch(
             completion_window="24h",
             endpoint="/v1/chat/completions",
             input_file_id="s3://test-bucket/input/test.jsonl",

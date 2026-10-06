@@ -5,11 +5,11 @@ NEOSANTARA_API_BASE = "https://api.neosantara.xyz/v1"
 
 
 def test_neosantara_json_registry():
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.llms.openai_like.json_loader import JSONProviderRegistry
 
-    assert litellm.LlmProviders.NEOSANTARA.value == "neosantara"
-    assert litellm.LlmProviders("neosantara") == litellm.LlmProviders.NEOSANTARA
+    assert gateway.LlmProviders.NEOSANTARA.value == "neosantara"
+    assert gateway.LlmProviders("neosantara") == gateway.LlmProviders.NEOSANTARA
     assert JSONProviderRegistry.exists("neosantara")
     config = JSONProviderRegistry.get("neosantara")
     assert config is not None

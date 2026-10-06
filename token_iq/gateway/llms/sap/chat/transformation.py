@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Any, Final, Union
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.types.llms.openai import AllMessageValues
 from token_iq.gateway.types.utils import ModelResponse
 
@@ -170,7 +170,7 @@ class GenAIHubOrchestrationConfig(OpenAIGPTConfig):
     @cached_property
     def deployment_url(self) -> str:
         # Keep a short, tight client lifecycle here to avoid fd leaks
-        client: Final = litellm.module_level_client
+        client: Final = gateway.module_level_client
         # with httpx.Client(timeout=30) as client:
         deployments: Final = client.get(f"{self.base_url}/lm/deployments", headers=self.headers).json()
         valid: Final[list[tuple[str, str]]] = []

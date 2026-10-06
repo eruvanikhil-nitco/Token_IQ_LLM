@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, Mock, patch, MagicMock
 
 import httpx
 import pytest
-from token_iq import gateway as litellm
+from token_iq import gateway
 from typing import AsyncGenerator
 from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
 from token_iq.gateway.types.passthrough_endpoints.pass_through_endpoints import EndpointType

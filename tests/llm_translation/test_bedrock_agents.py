@@ -3,7 +3,7 @@ import traceback
 from dotenv import load_dotenv
 
 import token_iq.gateway.types
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 load_dotenv()
 import io
@@ -17,8 +17,8 @@ import pytest
 @pytest.mark.asyncio
 @pytest.mark.skip(reason="Skipping bedrock agents test - arn not working")
 async def test_bedrock_agents():
-    litellm._turn_on_debug()
-    response = litellm.completion(
+    gateway._turn_on_debug()
+    response = gateway.completion(
         model="bedrock/agent/L1RT58GYRW/MFPSBCXYTW",
         messages=[{"role": "user", "content": "Hi just respond with a ping message"}],
     )
@@ -43,7 +43,7 @@ async def test_bedrock_agents():
 @pytest.mark.skip(reason="Skipping bedrock agents test - arn not working")
 async def test_bedrock_agents_with_streaming():
     # litellm._turn_on_debug()
-    response = litellm.completion(
+    response = gateway.completion(
         model="bedrock/agent/L1RT58GYRW/MFPSBCXYTW",
         messages=[
             {
@@ -61,7 +61,7 @@ async def test_bedrock_agents_with_streaming():
 
 
 def test_bedrock_agents_with_custom_params():
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
     from unittest.mock import MagicMock
     from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
@@ -69,7 +69,7 @@ def test_bedrock_agents_with_custom_params():
 
     with patch.object(client, "post", return_value=MagicMock()) as mock_post:
         try:
-            response = litellm.completion(
+            response = gateway.completion(
                 model="bedrock/agent/L1RT58GYRW/MFPSBCXYTW",
                 messages=[
                     {

@@ -38,7 +38,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from fastapi import HTTPException
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.caching.caching import DualCache
 from token_iq.gateway.exceptions import RateLimitError
 from token_iq.gateway.proxy._types import UserAPIKeyAuth
@@ -159,7 +159,7 @@ class TestResolveLLMProviderForRateLimit:
         # No router is registered in this test, so the alias-fallback path
         # also yields None and we land at PROXY_LLM_PROVIDER_FALLBACK.
         with patch.object(
-            litellm,
+            gateway,
             "get_llm_provider",
             side_effect=RuntimeError("boom"),
         ):
@@ -1106,7 +1106,7 @@ def test_prometheus_exception_class_name_back_compat_for_budget_exceeded_error()
     """
     from token_iq.gateway.integrations.prometheus import PrometheusLogger
 
-    err = litellm.BudgetExceededError(
+    err = gateway.BudgetExceededError(
         current_cost=1.0,
         max_budget=0.5,
         llm_provider="openai",
@@ -1114,7 +1114,7 @@ def test_prometheus_exception_class_name_back_compat_for_budget_exceeded_error()
     assert PrometheusLogger._get_exception_class_name(err) == "BudgetExceededError"
 
     # Default (empty llm_provider) path — same literal label.
-    err_no_provider = litellm.BudgetExceededError(current_cost=1.0, max_budget=0.5)
+    err_no_provider = gateway.BudgetExceededError(current_cost=1.0, max_budget=0.5)
     assert (
         PrometheusLogger._get_exception_class_name(err_no_provider)
         == "BudgetExceededError"

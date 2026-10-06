@@ -15,7 +15,7 @@ import jwt
 import pytest
 from fastapi import HTTPException
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy._types import InvitationClaim
 
 # ---------------------------------------------------------------------------
@@ -37,7 +37,7 @@ class _AsyncTx:
 def _make_invite(
     *, is_accepted: bool, expired: bool = False, claimed: bool = False
 ) -> MagicMock:
-    now = litellm.utils.get_utc_datetime()
+    now = gateway.utils.get_utc_datetime()
     invite = MagicMock()
     invite.id = "invite-abc"
     invite.user_id = "user-123"
@@ -78,7 +78,7 @@ def _make_onboarding_token(
             "token_type": token_type,
             "invitation_link": invitation_link,
             "user_id": user_id,
-            "exp": litellm.utils.get_utc_datetime() + timedelta(minutes=15),
+            "exp": gateway.utils.get_utc_datetime() + timedelta(minutes=15),
         },
         master_key,
         algorithm="HS256",

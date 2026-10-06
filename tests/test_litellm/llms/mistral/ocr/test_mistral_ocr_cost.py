@@ -10,7 +10,7 @@ from pathlib import Path
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.cost_calculator import completion_cost
 from token_iq.gateway.llms.base_llm.ocr.transformation import OCRPage, OCRResponse, OCRUsageInfo
 
@@ -46,7 +46,7 @@ def _annotated_ocr_response(model: str, pages_processed: int | None, annotation_
 
 @pytest.mark.parametrize("model", ["mistral-ocr-4-0", "mistral-ocr-latest"])
 def test_model_info_ocr4_price(model: str) -> None:
-    info = litellm.get_model_info(model=f"mistral/{model}", custom_llm_provider="mistral")
+    info = gateway.get_model_info(model=f"mistral/{model}", custom_llm_provider="mistral")
     assert info["ocr_cost_per_page"] == OCR4_COST_PER_PAGE
 
 
@@ -77,7 +77,7 @@ def test_ocr3_pricing_entry(cost_map_path: Path) -> None:
 
 
 def test_ocr3_model_info_price(local_model_cost_map) -> None:
-    info = litellm.get_model_info(model=OCR3_MODEL, custom_llm_provider="mistral")
+    info = gateway.get_model_info(model=OCR3_MODEL, custom_llm_provider="mistral")
     assert info["ocr_cost_per_page"] == OCR3_COST_PER_PAGE
 
 
@@ -123,7 +123,7 @@ def test_ocr3_bills_annotation_pages_when_pages_processed_missing(local_model_co
 
 
 def test_azure_doc_ai_annotation_pages_fall_back_to_ocr_rate(local_model_cost_map) -> None:
-    info = litellm.get_model_info(model=AZURE_DOC_AI_MODEL, custom_llm_provider="azure_ai")
+    info = gateway.get_model_info(model=AZURE_DOC_AI_MODEL, custom_llm_provider="azure_ai")
     assert info.get("annotation_cost_per_page") is None
     assert info["ocr_cost_per_page"] == AZURE_DOC_AI_COST_PER_PAGE
     cost = completion_cost(

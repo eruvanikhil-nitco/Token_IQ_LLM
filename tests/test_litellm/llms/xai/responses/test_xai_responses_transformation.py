@@ -12,7 +12,7 @@ from unittest.mock import MagicMock, Mock
 import httpx
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.xai.cost_calculator import cost_per_token
 from token_iq.gateway.llms.xai.responses.transformation import XAIResponsesAPIConfig
 from token_iq.gateway.responses.utils import ResponseAPILoggingUtils
@@ -371,12 +371,12 @@ class TestXAIResponsesWebSearchBilling:
         assert getattr(bridged, "server_side_tool_usage_details") == self._TOOL_DETAILS
 
     def test_completion_cost_bills_web_search_calls(self):
-        with_search = litellm.completion_cost(
+        with_search = gateway.completion_cost(
             completion_response=self._transform(include_web_search=True),
             model="xai/grok-4",
             custom_llm_provider="xai",
         )
-        without_search = litellm.completion_cost(
+        without_search = gateway.completion_cost(
             completion_response=self._transform(include_web_search=False),
             model="xai/grok-4",
             custom_llm_provider="xai",

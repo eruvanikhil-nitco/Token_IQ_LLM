@@ -419,18 +419,18 @@ def test_provider_config_manager_reuses_vertex_anthropic_messages_config_instanc
     Regression test: repeated provider config lookups for the same Vertex Claude model
     should return the same config instance (which preserves auth cache state).
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.utils import ProviderConfigManager
 
     ProviderConfigManager._get_provider_anthropic_messages_config_cached.cache_clear()
     try:
         first_config = ProviderConfigManager.get_provider_anthropic_messages_config(
             model="claude-opus-4-6",
-            provider=litellm.LlmProviders.VERTEX_AI,
+            provider=gateway.LlmProviders.VERTEX_AI,
         )
         second_config = ProviderConfigManager.get_provider_anthropic_messages_config(
             model="claude-opus-4-6",
-            provider=litellm.LlmProviders.VERTEX_AI,
+            provider=gateway.LlmProviders.VERTEX_AI,
         )
 
         assert isinstance(first_config, VertexAIPartnerModelsAnthropicMessagesConfig)
@@ -521,7 +521,7 @@ def test_messages_thinking_shape_follows_exact_vertex_entry_flag(local_model_cos
     ``vertex_ai/claude-opus-4-8`` entry beats the unmodified ``anthropic`` entry.
     With the inherited ``"anthropic"`` provider default the flip was ignored and
     the transform kept emitting ``thinking.type='adaptive'``."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     config = VertexAIPartnerModelsAnthropicMessagesConfig()
 
@@ -542,10 +542,10 @@ def test_messages_thinking_shape_follows_exact_vertex_entry_flag(local_model_cos
     assert result.get("output_config") == {"effort": "medium"}
 
     monkeypatch.setitem(
-        litellm.model_cost["vertex_ai/claude-opus-4-8"], "supports_adaptive_thinking", False
+        gateway.model_cost["vertex_ai/claude-opus-4-8"], "supports_adaptive_thinking", False
     )
-    litellm.get_model_info.cache_clear()
-    assert litellm.model_cost["claude-opus-4-8"]["supports_adaptive_thinking"] is True
+    gateway.get_model_info.cache_clear()
+    assert gateway.model_cost["claude-opus-4-8"]["supports_adaptive_thinking"] is True
 
     flipped = transform()
     thinking = flipped.get("thinking")
@@ -658,10 +658,10 @@ def test_vertex_claude_4_8_plus_cost_map_entries_carry_mid_conversation_system_f
     cache. Every mapped vertex_ai entry the rule matches must carry the flag."""
     import re
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     cost_map_path = os.path.join(
-        os.path.dirname(litellm.__file__), "model_prices_and_context_window_backup.json"
+        os.path.dirname(gateway.__file__), "model_prices_and_context_window_backup.json"
     )
     with open(cost_map_path) as f:
         cost_map = json.load(f)

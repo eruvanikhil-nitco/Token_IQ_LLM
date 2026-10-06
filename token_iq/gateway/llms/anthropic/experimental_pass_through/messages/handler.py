@@ -11,7 +11,7 @@ from collections.abc import AsyncIterator, Coroutine, Iterator
 from functools import partial
 from typing import Any, Final, cast
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.exception_mapping_utils import exception_type
 from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
 from token_iq.gateway.llms.anthropic.common_utils import (
@@ -77,7 +77,7 @@ def _should_route_to_responses_api(
     Set ``litellm.use_chat_completions_url_for_anthropic_messages = True`` to
     opt out and route OpenAI/Azure requests through chat/completions instead.
     """
-    if litellm.use_chat_completions_url_for_anthropic_messages:
+    if gateway.use_chat_completions_url_for_anthropic_messages:
         return False
     if custom_llm_provider in _RESPONSES_API_PROVIDERS:
         return True
@@ -137,7 +137,7 @@ async def _execute_pre_request_hooks(
     # If custom_llm_provider not provided, extract from model
     if not custom_llm_provider:
         try:
-            _, custom_llm_provider, _, _ = litellm.get_llm_provider(model=model)
+            _, custom_llm_provider, _, _ = gateway.get_llm_provider(model=model)
         except Exception:
             # If extraction fails, continue without provider
             pass
@@ -152,12 +152,12 @@ async def _execute_pre_request_hooks(
         **kwargs,
     }
 
-    if not litellm.callbacks:
+    if not gateway.callbacks:
         return request_kwargs
 
     from token_iq.gateway.integrations.custom_logger import CustomLogger as _CustomLogger
 
-    for callback in litellm.callbacks:
+    for callback in gateway.callbacks:
         if not isinstance(callback, _CustomLogger):
             continue
 
@@ -191,14 +191,14 @@ async def _try_websearch_short_circuit(
     Returns the synthetic response if short-circuited, or None to continue
     normal processing.
     """
-    if not litellm.callbacks:
+    if not gateway.callbacks:
         return None
 
     from token_iq.gateway.integrations.websearch_interception.handler import (
         WebSearchInterceptionLogger,
     )
 
-    for callback in litellm.callbacks:
+    for callback in gateway.callbacks:
         if not isinstance(callback, WebSearchInterceptionLogger):
             continue
 
@@ -310,7 +310,7 @@ async def anthropic_messages(
         custom_llm_provider = request_kwargs.get("litellm_params", {}).get("custom_llm_provider")
         if not custom_llm_provider:
             try:
-                _, custom_llm_provider, _, _ = litellm.get_llm_provider(model=model)
+                _, custom_llm_provider, _, _ = gateway.get_llm_provider(model=model)
             except Exception:
                 pass
     # Remove litellm_params from kwargs (only needed for hooks)
@@ -492,7 +492,7 @@ def anthropic_messages_handler(
         custom_llm_provider,
         dynamic_api_key,
         dynamic_api_base,
-    ) = litellm.get_llm_provider(
+    ) = gateway.get_llm_provider(
         model=model,
         custom_llm_provider=custom_llm_provider,
         api_base=litellm_params.api_base,
@@ -563,7 +563,7 @@ def anthropic_messages_handler(
     if custom_llm_provider is not None and custom_llm_provider in [provider.value for provider in LlmProviders]:
         anthropic_messages_provider_config = ProviderConfigManager.get_provider_anthropic_messages_config(
             model=model,
-            provider=litellm.LlmProviders(custom_llm_provider),
+            provider=gateway.LlmProviders(custom_llm_provider),
         )
     if anthropic_messages_provider_config is None and _deployment_passes_through_anthropic_messages(
         kwargs.get("model_info")

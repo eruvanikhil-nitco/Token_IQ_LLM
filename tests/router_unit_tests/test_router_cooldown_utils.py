@@ -2,7 +2,7 @@ import sys, os, time
 import traceback, asyncio
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import Router
 from token_iq.gateway.router import Deployment, LiteLLM_Params
 from token_iq.gateway.types.router import ModelInfo
@@ -126,7 +126,7 @@ def test_should_run_cooldown_logic_generic_bad_request_excluded_by_default(
     cooldown evaluation by _is_cooldown_required when no allowed_fails_policy is
     configured for that exception type. This is the pre-existing, intentional
     default: a client error is usually not the deployment's fault."""
-    exc = litellm.BadRequestError("bad request", "openai", "gpt-5-mini")
+    exc = gateway.BadRequestError("bad request", "openai", "gpt-5-mini")
     assert (
         _should_run_cooldown_logic(single_deployment_router, "dep-1", 400, exc) is False
     )
@@ -140,7 +140,7 @@ def test_should_run_cooldown_logic_router_level_policy_does_not_override_bad_req
     and stay subject to the generic 4XX exclusion. Only an explicit deployment-level
     policy (an unambiguous per-exception opt-in for that one deployment) overrides it;
     see test_should_run_cooldown_logic_explicit_deployment_level_policy_overrides_content_policy_exclusion."""
-    exc = litellm.BadRequestError("bad request", "openai", "gpt-5-mini")
+    exc = gateway.BadRequestError("bad request", "openai", "gpt-5-mini")
     single_deployment_router.allowed_fails_policy = AllowedFailsPolicy(
         BadRequestErrorAllowedFails=5
     )
@@ -154,7 +154,7 @@ def test_should_run_cooldown_logic_explicit_deployment_level_policy_overrides_co
 ):
     """Same as the router-level case, but for a deployment-level allowed_fails_policy
     entry (this PR's per-deployment feature) targeting ContentPolicyViolationError."""
-    exc = litellm.ContentPolicyViolationError("flagged content", "openai", "gpt-5-mini")
+    exc = gateway.ContentPolicyViolationError("flagged content", "openai", "gpt-5-mini")
     deployment_dict = single_deployment_router.get_model_info(id="dep-1")
     deployment_dict["model_info"]["allowed_fails_policy"] = {
         "ContentPolicyViolationErrorAllowedFails": 0
@@ -166,7 +166,7 @@ def test_should_run_cooldown_logic_explicit_deployment_level_policy_overrides_co
 
 class TestHasExplicitAllowedFailsPolicyForException:
     def test_no_policy_anywhere_returns_false(self, single_deployment_router):
-        exc = litellm.BadRequestError("bad request", "openai", "gpt-5-mini")
+        exc = gateway.BadRequestError("bad request", "openai", "gpt-5-mini")
         assert (
             _has_explicit_allowed_fails_policy_for_exception(
                 single_deployment_router, "dep-1", exc
@@ -180,7 +180,7 @@ class TestHasExplicitAllowedFailsPolicyForException:
         """Deliberately scoped to deployment-level only: a router-level policy
         predates this feature and must not be treated as an explicit per-exception
         opt-in for cooldown-gate purposes."""
-        exc = litellm.RateLimitError("rate limited", "openai", "gpt-5-mini")
+        exc = gateway.RateLimitError("rate limited", "openai", "gpt-5-mini")
         single_deployment_router.allowed_fails_policy = AllowedFailsPolicy(
             RateLimitErrorAllowedFails=3
         )
@@ -194,7 +194,7 @@ class TestHasExplicitAllowedFailsPolicyForException:
     def test_router_level_policy_for_different_exception_returns_false(
         self, single_deployment_router
     ):
-        exc = litellm.BadRequestError("bad request", "openai", "gpt-5-mini")
+        exc = gateway.BadRequestError("bad request", "openai", "gpt-5-mini")
         single_deployment_router.allowed_fails_policy = AllowedFailsPolicy(
             RateLimitErrorAllowedFails=3
         )
@@ -208,7 +208,7 @@ class TestHasExplicitAllowedFailsPolicyForException:
     def test_deployment_level_policy_for_matching_exception_returns_true(
         self, single_deployment_router
     ):
-        exc = litellm.ContentPolicyViolationError("flagged", "openai", "gpt-5-mini")
+        exc = gateway.ContentPolicyViolationError("flagged", "openai", "gpt-5-mini")
         deployment_dict = single_deployment_router.get_model_info(id="dep-1")
         deployment_dict["model_info"]["allowed_fails_policy"] = {
             "ContentPolicyViolationErrorAllowedFails": 0
@@ -221,7 +221,7 @@ class TestHasExplicitAllowedFailsPolicyForException:
         )
 
     def test_none_deployment_returns_false(self, single_deployment_router):
-        exc = litellm.RateLimitError("rate limited", "openai", "gpt-5-mini")
+        exc = gateway.RateLimitError("rate limited", "openai", "gpt-5-mini")
         single_deployment_router.allowed_fails_policy = AllowedFailsPolicy(
             RateLimitErrorAllowedFails=3
         )
@@ -238,7 +238,7 @@ def test_should_cooldown_deployment_rate_limit_error(testing_litellm_router):
     Test the _should_cooldown_deployment function when a rate limit error occurs
     """
     # Test 429 error (rate limit) -> always cooldown a deployment returning 429s
-    _exception = litellm.exceptions.RateLimitError(
+    _exception = gateway.exceptions.RateLimitError(
         "Rate limit", "openai", "gpt-5-mini"
     )
     assert (
@@ -254,7 +254,7 @@ def test_should_cooldown_deployment_auth_limit_error(testing_litellm_router):
     Test the _should_cooldown_deployment function when an auth limit error occurs
     """
     # Test 401 error (auth limit) -> always cooldown a deployment returning 401s
-    _exception = litellm.exceptions.AuthenticationError(
+    _exception = gateway.exceptions.AuthenticationError(
         "Unauthorized", "openai", "gpt-5-mini"
     )
     assert (
@@ -276,7 +276,7 @@ async def test_should_cooldown_deployment(testing_litellm_router):
     verbose_router_logger.setLevel(logging.DEBUG)
 
     # Test 429 error (rate limit) -> always cooldown a deployment returning 429s
-    _exception = litellm.exceptions.RateLimitError(
+    _exception = gateway.exceptions.RateLimitError(
         "Rate limit", "openai", "gpt-5-mini"
     )
     assert (
@@ -570,7 +570,7 @@ def test_should_cooldown_deployment_minimum_request_threshold(testing_litellm_ro
         litellm_router_instance=testing_litellm_router, deployment_id=deployment_id
     )
 
-    _exception = litellm.exceptions.InternalServerError(
+    _exception = gateway.exceptions.InternalServerError(
         "Internal error", "openai", "gpt-5-mini"
     )
 

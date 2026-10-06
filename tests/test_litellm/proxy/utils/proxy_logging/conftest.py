@@ -68,13 +68,13 @@ def mock_router():
 @pytest.fixture
 def mock_callbacks_disabled(monkeypatch):
     """Disable all litellm callbacks for the duration of a test."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    monkeypatch.setattr(litellm, "callbacks", [])
-    monkeypatch.setattr(litellm, "success_callback", [])
-    monkeypatch.setattr(litellm, "failure_callback", [])
-    monkeypatch.setattr(litellm, "_async_success_callback", [])
-    monkeypatch.setattr(litellm, "_async_failure_callback", [])
+    monkeypatch.setattr(gateway, "callbacks", [])
+    monkeypatch.setattr(gateway, "success_callback", [])
+    monkeypatch.setattr(gateway, "failure_callback", [])
+    monkeypatch.setattr(gateway, "_async_success_callback", [])
+    monkeypatch.setattr(gateway, "_async_failure_callback", [])
     yield
 
 

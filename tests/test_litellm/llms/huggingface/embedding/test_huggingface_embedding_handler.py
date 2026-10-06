@@ -2,7 +2,7 @@ import json
 from unittest.mock import patch, MagicMock, AsyncMock
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 import pytest
 import respx
 
@@ -66,7 +66,7 @@ class TestHuggingFaceEmbedding:
         self.model = "huggingface/BAAI/bge-m3"
         self.mock_http = mock_embedding_http_handler
         self.mock_async_http = mock_embedding_async_http_handler
-        litellm.set_verbose = False
+        gateway.set_verbose = False
 
         yield
 
@@ -75,7 +75,7 @@ class TestHuggingFaceEmbedding:
     def test_input_type_preserved_in_optional_params(self):
         input_text = ["hello world"]
 
-        response = litellm.embedding(
+        response = gateway.embedding(
             model=self.model,
             input=input_text,
             input_type="embed",
@@ -97,7 +97,7 @@ class TestHuggingFaceEmbedding:
     def test_embedding_allows_special_token_looking_input(self):
         input_text = ["hello <|fim_prefix|> world"]
 
-        response = litellm.embedding(
+        response = gateway.embedding(
             model=self.model,
             input=input_text,
             input_type="embed",
@@ -114,7 +114,7 @@ class TestHuggingFaceEmbedding:
     def test_model_name_with_https_substring_uses_api_base(self):
         api_base = "https://legit.example/embed"
 
-        litellm.embedding(
+        gateway.embedding(
             model="huggingface/my-https-endpoint",
             input=["hello world"],
             input_type="embed",
@@ -139,7 +139,7 @@ class TestHuggingFaceEmbedding:
             "This is sentence two",
         ]
 
-        response = litellm.embedding(
+        response = gateway.embedding(
             model=self.model,
             input=input_text,
             # Use the model's natural task type (sentence-similarity)

@@ -8,13 +8,13 @@ load_dotenv()
 import io
 
 import pytest
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import embedding
 from token_iq.gateway.utils import get_optional_params_embeddings, get_llm_provider
 
 
 def test_vertex_projects():
-    litellm.drop_params = True
+    gateway.drop_params = True
     model, custom_llm_provider, _, _ = get_llm_provider(
         model="vertex_ai/textembedding-gecko"
     )
@@ -53,7 +53,7 @@ def test_bedrock_embed_v2_regular():
 
 
 def test_bedrock_embed_v2_with_drop_params():
-    litellm.drop_params = True
+    gateway.drop_params = True
     model, custom_llm_provider, _, _ = get_llm_provider(
         model="bedrock/amazon.titan-embed-text-v2:0"
     )
@@ -95,8 +95,8 @@ def test_openai_non_text_embedding_3_without_allowed_openai_params_raises():
     from token_iq.gateway.exceptions import UnsupportedParamsError
 
     # ensure global drop_params is off (other tests in this file flip it on)
-    prev_drop_params = litellm.drop_params
-    litellm.drop_params = False
+    prev_drop_params = gateway.drop_params
+    gateway.drop_params = False
     try:
         model, custom_llm_provider, _, _ = get_llm_provider(
             model="openai/nvidia/llama-3.2-nv-embedqa-1b-v2"
@@ -108,7 +108,7 @@ def test_openai_non_text_embedding_3_without_allowed_openai_params_raises():
                 custom_llm_provider=custom_llm_provider,
             )
     finally:
-        litellm.drop_params = prev_drop_params
+        gateway.drop_params = prev_drop_params
 
 
 def test_openai_non_text_embedding_3_drop_params_per_call():
@@ -119,8 +119,8 @@ def test_openai_non_text_embedding_3_drop_params_per_call():
     stripped for a non-`text-embedding-3` OpenAI-provider model instead of
     raising UnsupportedParamsError.
     """
-    prev_drop_params = litellm.drop_params
-    litellm.drop_params = False  # ensure only per-call flag is in effect
+    prev_drop_params = gateway.drop_params
+    gateway.drop_params = False  # ensure only per-call flag is in effect
     try:
         model, custom_llm_provider, _, _ = get_llm_provider(
             model="openai/Qwen/Qwen3-Embedding-0.6B"
@@ -134,7 +134,7 @@ def test_openai_non_text_embedding_3_drop_params_per_call():
         print(f"received optional_params: {optional_params}")
         assert "dimensions" not in optional_params
     finally:
-        litellm.drop_params = prev_drop_params
+        gateway.drop_params = prev_drop_params
 
 
 def test_openai_non_text_embedding_3_drop_params_global():
@@ -145,8 +145,8 @@ def test_openai_non_text_embedding_3_drop_params_global():
     silently stripped for a non-`text-embedding-3` OpenAI-provider model
     instead of raising UnsupportedParamsError.
     """
-    prev_drop_params = litellm.drop_params
-    litellm.drop_params = True
+    prev_drop_params = gateway.drop_params
+    gateway.drop_params = True
     try:
         model, custom_llm_provider, _, _ = get_llm_provider(
             model="openai/Qwen/Qwen3-Embedding-0.6B"
@@ -159,4 +159,4 @@ def test_openai_non_text_embedding_3_drop_params_global():
         print(f"received optional_params: {optional_params}")
         assert "dimensions" not in optional_params
     finally:
-        litellm.drop_params = prev_drop_params
+        gateway.drop_params = prev_drop_params

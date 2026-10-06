@@ -3,7 +3,7 @@ import uuid
 from collections.abc import Sequence
 from typing import Any, Final, cast
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.main import stream_chunk_builder
 from token_iq.gateway.responses.litellm_completion_transformation.custom_tools import (
     build_tool_call_item_kwargs,
@@ -78,14 +78,14 @@ class LiteLLMCompletionStreamingIterator(ResponsesAPIStreamingIterator):
     def __init__(
         self,
         model: str,
-        litellm_custom_stream_wrapper: litellm.CustomStreamWrapper,
+        litellm_custom_stream_wrapper: gateway.CustomStreamWrapper,
         request_input: str | ResponseInputParam,
         responses_api_request: ResponsesAPIOptionalRequestParams,
         custom_llm_provider: str | None = None,
         litellm_metadata: dict | None = None,
     ):
         self.model: str = model
-        self.litellm_custom_stream_wrapper: litellm.CustomStreamWrapper = litellm_custom_stream_wrapper
+        self.litellm_custom_stream_wrapper: gateway.CustomStreamWrapper = litellm_custom_stream_wrapper
         self.request_input: str | ResponseInputParam = request_input
         self.responses_api_request: ResponsesAPIOptionalRequestParams = responses_api_request
         self.custom_llm_provider: str | None = custom_llm_provider

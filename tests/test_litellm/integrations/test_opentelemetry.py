@@ -23,7 +23,7 @@ from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import SimpleSpanProcessor
 from opentelemetry.sdk.trace.export.in_memory_span_exporter import InMemorySpanExporter
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.integrations import opentelemetry as otel_module
 from token_iq.gateway.integrations.opentelemetry import (
     OpenTelemetry,
@@ -5769,8 +5769,8 @@ class TestOpenTelemetryMetricAttributeFiltering(unittest.TestCase):
         time rather than at __init__. Otherwise metrics ship at full cardinality
         (the bug the live proxy surfaced; constructing with the kwarg, or with
         callback_settings already set, hid it)."""
-        previous = litellm.callback_settings
-        litellm.callback_settings = {}  # not yet populated when the logger is built
+        previous = gateway.callback_settings
+        gateway.callback_settings = {}  # not yet populated when the logger is built
         try:
             metric_reader = InMemoryMetricReader()
             meter_provider = MeterProvider(metric_readers=[metric_reader])
@@ -5785,7 +5785,7 @@ class TestOpenTelemetryMetricAttributeFiltering(unittest.TestCase):
             )
             otel.tracer = tracer_provider.get_tracer(__name__)
             # The proxy sets this only after the logger already exists.
-            litellm.callback_settings = {
+            gateway.callback_settings = {
                 "otel": {
                     "attributes": {"exclude_list": list(self.HIGH_CARDINALITY_KEYS)}
                 }
@@ -5796,7 +5796,7 @@ class TestOpenTelemetryMetricAttributeFiltering(unittest.TestCase):
                 kwargs, response_obj, start, start + timedelta(seconds=1)
             )
         finally:
-            litellm.callback_settings = previous
+            gateway.callback_settings = previous
 
         excluded = set(self.HIGH_CARDINALITY_KEYS)
         for metric_name in (self.DURATION_METRIC, self.TOKEN_METRIC):
@@ -5814,8 +5814,8 @@ class TestOpenTelemetryMetricAttributeFiltering(unittest.TestCase):
         the bad config. Once the operator corrects
         callback_settings['otel']['attributes'], the next record resolves the
         fixed filter instead of re-raising the stale error until a restart."""
-        previous = litellm.callback_settings
-        litellm.callback_settings = {
+        previous = gateway.callback_settings
+        gateway.callback_settings = {
             "otel": {
                 "attributes": {
                     "include_list": ["gen_ai.system"],
@@ -5830,12 +5830,12 @@ class TestOpenTelemetryMetricAttributeFiltering(unittest.TestCase):
             with self.assertRaises(ValueError):
                 otel._filter_metric_attributes(attrs)
 
-            litellm.callback_settings = {
+            gateway.callback_settings = {
                 "otel": {"attributes": {"exclude_list": ["hidden_params"]}}
             }
             filtered = otel._filter_metric_attributes(attrs)
         finally:
-            litellm.callback_settings = previous
+            gateway.callback_settings = previous
 
         self.assertEqual(filtered, {"gen_ai.system": "openai"})
 

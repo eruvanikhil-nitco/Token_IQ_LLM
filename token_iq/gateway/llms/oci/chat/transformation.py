@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING, Any, Final
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.constants import DEFAULT_OCI_CHAT_MAX_TOKENS
 from token_iq.gateway.core_utils.logging_utils import track_llm_api_timing
 from token_iq.gateway.core_utils.streaming_handler import CustomStreamWrapper
@@ -354,7 +354,7 @@ class OCIChatConfig(BaseConfig):
                 # has no numGenerations field.
                 if key == "n" and (value is None or value == 1):
                     continue
-                if drop_params or litellm.drop_params:
+                if drop_params or gateway.drop_params:
                     continue
                 raise OCIError(
                     status_code=400,
@@ -444,7 +444,7 @@ class OCIChatConfig(BaseConfig):
         litellm_params: dict,
         stream: bool | None = None,
     ) -> str:
-        base: Final = get_oci_base_url(optional_params, api_base or litellm.api_base)
+        base: Final = get_oci_base_url(optional_params, api_base or gateway.api_base)
         return f"{base}/{OCI_API_VERSION}/actions/chat"
 
     def _get_optional_params(self, vendor: OCIVendors, optional_params: dict, model: str = "") -> dict:

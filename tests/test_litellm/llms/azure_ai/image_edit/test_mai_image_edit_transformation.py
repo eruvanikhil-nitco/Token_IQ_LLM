@@ -5,7 +5,7 @@ import httpx
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.azure_ai.image_edit import (
     AzureFoundryMAIImageEditConfig,
     get_azure_ai_image_edit_config,
@@ -171,7 +171,7 @@ class TestAzureMAIImageEdit:
 
 def test_mai_validate_environment_with_entra_token(monkeypatch):
     monkeypatch.delenv("AZURE_AI_API_KEY", raising=False)
-    monkeypatch.setattr(litellm, "api_key", None)
+    monkeypatch.setattr(gateway, "api_key", None)
 
     headers = AzureFoundryMAIImageEditConfig().validate_environment(
         headers={},

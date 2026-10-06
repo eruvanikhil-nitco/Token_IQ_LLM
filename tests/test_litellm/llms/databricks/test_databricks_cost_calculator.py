@@ -5,7 +5,7 @@ from typing import Final
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.databricks.cost_calculator import cost_per_token
 from token_iq.gateway.types.utils import ModelInfo, Usage
 
@@ -82,7 +82,7 @@ CACHE_FIELDS: Final = ("cache_creation_input_token_cost", "cache_read_input_toke
 
 
 def _model_info(model: str) -> ModelInfo:
-    return litellm.get_model_info(model=model, custom_llm_provider="databricks")
+    return gateway.get_model_info(model=model, custom_llm_provider="databricks")
 
 
 def _dollars_per_token(dbu_per_million: str) -> float:
@@ -170,7 +170,7 @@ def test_new_models_carry_cache_pricing(local_model_cost_map: None, model: str) 
 def test_every_priced_databricks_model_declares_cache_rates(local_model_cost_map: None) -> None:
     undeclared: Final = [
         model
-        for model, info in litellm.model_cost.items()
+        for model, info in gateway.model_cost.items()
         if model.startswith("databricks/")
         and info.get("input_cost_per_token") is not None
         and any(info.get(field) is None for field in CACHE_FIELDS)
@@ -202,7 +202,7 @@ def test_every_model_without_published_cache_dbu_bills_cache_at_its_own_input_ra
 ) -> None:
     without_published_rates: Final = [
         model
-        for model, info in litellm.model_cost.items()
+        for model, info in gateway.model_cost.items()
         if model.startswith("databricks/")
         and info.get("input_cost_per_token")
         and model not in PUBLISHED_DBU_PER_MILLION

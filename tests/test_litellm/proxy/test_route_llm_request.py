@@ -44,11 +44,11 @@ async def test_route_request_dynamic_credentials(route_type, required_body_param
 
 @pytest.mark.asyncio
 async def test_route_request_proxy_admin_can_call_all_team_scoped_deployments_without_team_id():
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
 
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "internal-team-azure-east",
@@ -176,7 +176,7 @@ async def test_route_request_proxy_admin_can_call_all_team_scoped_deployments_wi
         )
         await ambiguous_call
 
-    with pytest.raises(litellm.BadRequestError, match="multiple teams"):
+    with pytest.raises(gateway.BadRequestError, match="multiple teams"):
         await _route_and_await()
 
     router.add_deployment(
@@ -212,7 +212,7 @@ async def test_route_request_proxy_admin_can_call_all_team_scoped_deployments_wi
         )
     )
 
-    with pytest.raises(litellm.BadRequestError, match="multiple teams"):
+    with pytest.raises(gateway.BadRequestError, match="multiple teams"):
         await router.async_get_healthy_deployments(
             model="team-azure",
             request_kwargs=data,
@@ -355,7 +355,7 @@ async def test_route_request_no_model_required_with_router_settings_and_no_route
     """Test route types that don't require model parameter with router settings and no router"""
     from unittest.mock import patch
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.proxy.route_llm_request import route_request
 
     data = {
@@ -364,7 +364,7 @@ async def test_route_request_no_model_required_with_router_settings_and_no_route
         "messages": [{"role": "user", "content": "what llm are you"}],
     }
 
-    with patch.object(litellm, "acompletion", return_value="fake_response") as mock_completion:
+    with patch.object(gateway, "acompletion", return_value="fake_response") as mock_completion:
         await route_request(data, None, "gpt-3.5-turbo", "acompletion")
 
         mock_completion.assert_called_once_with(**data)
@@ -416,7 +416,7 @@ async def test_route_request_with_router_settings_override_no_router():
     Test that router_settings_override works when no router is provided,
     falling back to litellm module directly.
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     data = {
         "model": "gpt-3.5-turbo",
@@ -429,8 +429,8 @@ async def test_route_request_with_router_settings_override_no_router():
 
     # Use MagicMock explicitly to avoid auto-AsyncMock behavior in Python 3.12+
     mock_completion = MagicMock(return_value="success")
-    original_acompletion = litellm.acompletion
-    litellm.acompletion = mock_completion
+    original_acompletion = gateway.acompletion
+    gateway.acompletion = mock_completion
 
     try:
         response = await route_request(data, None, None, "acompletion")
@@ -441,7 +441,7 @@ async def test_route_request_with_router_settings_override_no_router():
         assert call_kwargs["fallbacks"] == [{"gpt-3.5-turbo": ["gpt-4"]}]
         assert call_kwargs["num_retries"] == 3
     finally:
-        litellm.acompletion = original_acompletion
+        gateway.acompletion = original_acompletion
 
 
 @pytest.mark.asyncio
@@ -722,10 +722,10 @@ async def _invoke_realtime_route(
 
 @pytest.fixture
 def openai_realtime_credential():
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.types.utils import CredentialItem
 
-    litellm.credential_list = [
+    gateway.credential_list = [
         CredentialItem(
             credential_name="openai-realtime-cred",
             credential_info={"custom_llm_provider": "openai"},
@@ -733,7 +733,7 @@ def openai_realtime_credential():
         )
     ]
     yield
-    litellm.credential_list = []
+    gateway.credential_list = []
 
 
 @pytest.mark.asyncio
@@ -745,12 +745,12 @@ async def test_route_request_realtime_wildcard_model_resolves_credentials(
     must match an openai/* deployment and forward its api_key upstream.
     """
     import httpx
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from unittest.mock import AsyncMock, patch
 
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
 
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "openai/*",
@@ -783,12 +783,12 @@ async def test_route_request_realtime_team_scoped_model_resolves_credentials(
     user_api_key_team_id is present, same as /chat/completions.
     """
     import httpx
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from unittest.mock import AsyncMock, patch
 
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
 
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "internal-realtime",
@@ -829,12 +829,12 @@ async def test_route_request_realtime_litellm_credential_name_resolves_api_key(
     api_key when routing acreate_realtime_client_secret through the router.
     """
     import httpx
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from unittest.mock import AsyncMock, patch
 
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
 
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "openai/*",
@@ -863,14 +863,14 @@ async def test_route_request_realtime_unresolvable_model_raises_not_found(
     An unknown model must not silently fall through to litellm with an empty
     OPENAI_API_KEY env var.
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from unittest.mock import AsyncMock, patch
 
     from token_iq.gateway.proxy.route_llm_request import ProxyModelNotFoundError
 
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
 
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "other-model",
@@ -896,13 +896,13 @@ async def test_route_request_realtime_calls_resolves_api_base(monkeypatch):
     defaulting to https://api.openai.com.
     """
     import httpx
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from unittest.mock import AsyncMock, patch
 
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
     monkeypatch.delenv("OPENAI_API_BASE", raising=False)
 
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "my-realtime",
@@ -939,12 +939,12 @@ async def test_route_request_realtime_transcription_session_resolves_credentials
     (wildcard deployment) rather than falling back to an empty OPENAI_API_KEY.
     """
     import httpx
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from unittest.mock import AsyncMock, patch
 
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
 
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "openai/*",
@@ -1152,11 +1152,11 @@ def _db_model_row(model_name: str, mock_response: str):
 async def test_route_request_read_through_recovers_model_created_on_sibling_replica(monkeypatch):
     """Regression: a model written to the DB by another replica must be served on
     first request instead of 400ing until the periodic config reload."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     import token_iq.gateway.proxy.proxy_server as proxy_server
 
     model_name = "e2e-sibling-replica-model"
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "some-other-model",
@@ -1184,11 +1184,11 @@ async def test_route_request_read_through_recovers_model_created_on_sibling_repl
 
 @pytest.mark.asyncio
 async def test_route_request_unknown_model_raises_and_hits_db_once_within_ttl(monkeypatch):
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     import token_iq.gateway.proxy.proxy_server as proxy_server
 
     model_name = "e2e-model-nobody-created"
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "some-other-model",
@@ -1212,11 +1212,11 @@ async def test_route_request_unknown_model_raises_and_hits_db_once_within_ttl(mo
 
 @pytest.mark.asyncio
 async def test_route_request_read_through_disabled_without_store_model_in_db(monkeypatch):
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     import token_iq.gateway.proxy.proxy_server as proxy_server
 
     model_name = "e2e-config-only-proxy-model"
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "some-other-model",
@@ -1268,11 +1268,11 @@ async def test_route_request_a2a_agent_miss_does_not_consume_model_read_through(
     from types import SimpleNamespace
     from unittest.mock import AsyncMock
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     import token_iq.gateway.proxy.proxy_server as proxy_server
 
     model_name = "a2a/agent-nobody-created"
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "some-other-model",

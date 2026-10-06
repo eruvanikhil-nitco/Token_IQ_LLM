@@ -13,7 +13,7 @@ from unittest.mock import MagicMock, AsyncMock, patch
 
 # Add the project root to the path
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.exceptions import BlockedPiiEntityError, GuardrailRaisedException
 from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
 from token_iq.gateway.integrations.custom_logger import CustomLogger

@@ -85,7 +85,7 @@ async def test_the_lookup_returns_only_the_credential_marked_for_that_providers_
     from types import SimpleNamespace
     from unittest.mock import patch
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.connectors.billing.credential_purpose import BILLING_PURPOSE
     from token_iq.connectors.billing.scheduled import build_billing_credentials_lookup
     from token_iq.types.provider_billing import BillingCredential
@@ -105,7 +105,7 @@ async def test_the_lookup_returns_only_the_credential_marked_for_that_providers_
         for name, info, key in stored
     ]
 
-    with patch.object(litellm, "credential_list", credentials):
+    with patch.object(gateway, "credential_list", credentials):
         credentials_for = build_billing_credentials_lookup(prisma_client=prisma_client)
         openai = await credentials_for("openai")
         openrouter = await credentials_for("openrouter")
@@ -121,7 +121,7 @@ async def test_the_lookup_returns_every_matching_credential_not_just_the_first()
     from types import SimpleNamespace
     from unittest.mock import patch
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.connectors.billing.credential_purpose import BILLING_PURPOSE
     from token_iq.connectors.billing.scheduled import build_billing_credentials_lookup
     from token_iq.types.provider_billing import BillingCredential
@@ -140,7 +140,7 @@ async def test_the_lookup_returns_every_matching_credential_not_just_the_first()
         for name, info, key in stored
     ]
 
-    with patch.object(litellm, "credential_list", credentials):
+    with patch.object(gateway, "credential_list", credentials):
         openai = await build_billing_credentials_lookup(prisma_client=prisma_client)("openai")
 
     assert openai == (

@@ -11,7 +11,7 @@ from typing import List
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import (
     _COLOR_LOG_FORMAT,
     _MAX_SCRUBBED_ACCESS_ARG,
@@ -308,14 +308,14 @@ async def test_cache_hit_includes_custom_llm_provider():
     Test that when there's a cache hit, the standard logging payload includes the custom_llm_provider
     """
     # Set up caching and custom logger
-    litellm.cache = litellm.Cache()
+    gateway.cache = gateway.Cache()
     test_custom_logger = CacheHitCustomLogger()
-    original_callbacks = litellm.callbacks.copy() if litellm.callbacks else []
-    litellm.callbacks = [test_custom_logger]
+    original_callbacks = gateway.callbacks.copy() if gateway.callbacks else []
+    gateway.callbacks = [test_custom_logger]
 
     try:
         # First call - should be a cache miss
-        response1 = await litellm.acompletion(
+        response1 = await gateway.acompletion(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": "test cache hit message"}],
             mock_response="test response",
@@ -326,7 +326,7 @@ async def test_cache_hit_includes_custom_llm_provider():
         await asyncio.sleep(0.5)
 
         # Second identical call - should be a cache hit
-        response2 = await litellm.acompletion(
+        response2 = await gateway.acompletion(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": "test cache hit message"}],
             mock_response="test response",
@@ -369,8 +369,8 @@ async def test_cache_hit_includes_custom_llm_provider():
 
     finally:
         # Clean up
-        litellm.callbacks = original_callbacks
-        litellm.cache = None
+        gateway.callbacks = original_callbacks
+        gateway.cache = None
 
 
 LITELLM_LOGGER_NAMES = frozenset(
@@ -457,7 +457,7 @@ def _make_capture_logger(name: str) -> tuple[logging.Logger, _JsonCapture]:
 
 def test_trace_id_injected_into_json_record(monkeypatch):
     """trace_id set via set_trace_id() appears in every JSON record in that context."""
-    monkeypatch.setattr(litellm, "request_correlation_in_logs", True)
+    monkeypatch.setattr(gateway, "request_correlation_in_logs", True)
     lg, cap = _make_capture_logger("test.trace_inject")
     set_trace_id("trace-abc-123")
     try:
@@ -470,7 +470,7 @@ def test_trace_id_injected_into_json_record(monkeypatch):
 
 def test_session_id_injected_when_set(monkeypatch):
     """session_id set via set_session_id() appears in JSON record."""
-    monkeypatch.setattr(litellm, "request_correlation_in_logs", True)
+    monkeypatch.setattr(gateway, "request_correlation_in_logs", True)
     lg, cap = _make_capture_logger("test.session_inject")
     set_session_id("sess-xyz-456")
     try:
@@ -484,7 +484,7 @@ def test_trace_id_and_session_id_cannot_be_spoofed_by_message_content(monkeypatc
     """A log message that happens to parse as JSON/dict with "trace_id"/"session_id"
     keys (e.g. the proxy logging a raw request-header dict) must not override the
     real correlation ids set via set_trace_id()/set_session_id()."""
-    monkeypatch.setattr(litellm, "request_correlation_in_logs", True)
+    monkeypatch.setattr(gateway, "request_correlation_in_logs", True)
     lg, cap = _make_capture_logger("test.spoof_attempt")
     set_trace_id("real-trace-id")
     set_session_id("real-session-id")
@@ -502,7 +502,7 @@ def test_trace_id_and_session_id_cannot_be_injected_with_no_active_context(monke
     must not surface those fields at all when CorrelationContextFilter hasn't stamped
     this record - e.g. a log line emitted before Logging.__init__() runs for a request
     (request_correlation_in_logs on, but no genuine trace/session id active yet)."""
-    monkeypatch.setattr(litellm, "request_correlation_in_logs", True)
+    monkeypatch.setattr(gateway, "request_correlation_in_logs", True)
     lg, cap = _make_capture_logger("test.no_context_spoof_attempt")
     trace_id_var.set("")
     session_id_var.set("")
@@ -518,7 +518,7 @@ def test_trace_id_and_session_id_are_redacted_when_credential_shaped(monkeypatch
     record after SecretRedactionFilter has already run, so those two fields would
     otherwise bypass credential redaction entirely - the fix redacts at set_trace_id()/
     set_session_id() time instead, before the value ever reaches a log record."""
-    monkeypatch.setattr(litellm, "request_correlation_in_logs", True)
+    monkeypatch.setattr(gateway, "request_correlation_in_logs", True)
     lg, cap = _make_capture_logger("test.credential_shaped_correlation_id")
     poisoned_trace_id = "sk-ant-api03-" + "A" * 40
     poisoned_session_id = "AKIA" + "B" * 16
@@ -572,7 +572,7 @@ async def test_contextvar_isolation_between_tasks():
 
 def test_trace_id_not_in_log_when_flag_disabled(monkeypatch):
     """When request_correlation_in_logs is False (default), trace_id must not appear in JSON records even when set."""
-    monkeypatch.setattr(litellm, "request_correlation_in_logs", False)
+    monkeypatch.setattr(gateway, "request_correlation_in_logs", False)
     lg, cap = _make_capture_logger("test.no_trace_gated")
     set_trace_id("trace-should-not-appear")
     try:
@@ -584,7 +584,7 @@ def test_trace_id_not_in_log_when_flag_disabled(monkeypatch):
 
 def test_session_id_not_in_log_when_flag_disabled(monkeypatch):
     """When request_correlation_in_logs is False (default), session_id must not appear in JSON records even when set."""
-    monkeypatch.setattr(litellm, "request_correlation_in_logs", False)
+    monkeypatch.setattr(gateway, "request_correlation_in_logs", False)
     lg, cap = _make_capture_logger("test.no_session_gated")
     set_session_id("sess-should-not-appear")
     try:
@@ -615,7 +615,7 @@ def _make_plain_capture_logger(name: str) -> tuple[logging.Logger, _PlainCapture
 
 def test_plain_formatter_appends_trace_id_and_session_id(monkeypatch):
     """CorrelationPlainFormatter must append trace_id/session_id to non-JSON log lines too."""
-    monkeypatch.setattr(litellm, "request_correlation_in_logs", True)
+    monkeypatch.setattr(gateway, "request_correlation_in_logs", True)
     lg, cap = _make_plain_capture_logger("test.plain_trace_session")
     set_trace_id("plain-trace-1")
     set_session_id("plain-session-1")
@@ -629,7 +629,7 @@ def test_plain_formatter_appends_trace_id_and_session_id(monkeypatch):
 
 def test_plain_formatter_appends_only_trace_id_when_session_id_absent(monkeypatch):
     """Only trace_id is appended when session_id was never set."""
-    monkeypatch.setattr(litellm, "request_correlation_in_logs", True)
+    monkeypatch.setattr(gateway, "request_correlation_in_logs", True)
     lg, cap = _make_plain_capture_logger("test.plain_trace_only")
     set_trace_id("plain-trace-2")
     session_id_var.set("")
@@ -642,7 +642,7 @@ def test_plain_formatter_appends_only_trace_id_when_session_id_absent(monkeypatc
 
 def test_plain_formatter_unchanged_when_flag_disabled(monkeypatch):
     """When request_correlation_in_logs is False, plain log lines are unmodified even if the contextvars are set."""
-    monkeypatch.setattr(litellm, "request_correlation_in_logs", False)
+    monkeypatch.setattr(gateway, "request_correlation_in_logs", False)
     lg, cap = _make_plain_capture_logger("test.plain_flag_off")
     set_trace_id("should-not-appear")
     set_session_id("should-not-appear")

@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 import pytest
 from fastapi import HTTPException
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import ModelResponse
 from token_iq.gateway.proxy._types import UserAPIKeyAuth
 from token_iq.gateway.proxy.utils import (
@@ -68,7 +68,7 @@ def test_is_known_model_error_path_none_router():
 def test_is_known_vector_store_index_happy_path(monkeypatch):
     registry = MagicMock()
     registry.get_vector_store_indexes.return_value = ["index-a", "index-b"]
-    monkeypatch.setattr(litellm, "vector_store_index_registry", registry)
+    monkeypatch.setattr(gateway, "vector_store_index_registry", registry)
     summary = {
         "result": is_known_vector_store_index("index-a"),
         "indexes": ["index-a", "index-b"],
@@ -84,7 +84,7 @@ def test_is_known_vector_store_index_happy_path(monkeypatch):
 def test_is_known_vector_store_index_returns_false_when_missing(monkeypatch):
     registry = MagicMock()
     registry.get_vector_store_indexes.return_value = ["index-a"]
-    monkeypatch.setattr(litellm, "vector_store_index_registry", registry)
+    monkeypatch.setattr(gateway, "vector_store_index_registry", registry)
     summary = {
         "result": is_known_vector_store_index("missing"),
         "indexes": ["index-a"],
@@ -98,7 +98,7 @@ def test_is_known_vector_store_index_returns_false_when_missing(monkeypatch):
 
 
 def test_is_known_vector_store_index_error_path_no_registry(monkeypatch):
-    monkeypatch.setattr(litellm, "vector_store_index_registry", None)
+    monkeypatch.setattr(gateway, "vector_store_index_registry", None)
     assert is_known_vector_store_index("anything") is False
 
 

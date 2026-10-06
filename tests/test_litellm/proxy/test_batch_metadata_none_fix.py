@@ -10,7 +10,7 @@ from unittest.mock import patch, MagicMock, AsyncMock
 import pytest
 from openai import OpenAI
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy.litellm_pre_call_utils import LiteLLMProxyRequestSetup
 from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
@@ -104,7 +104,7 @@ def test_batch_create_with_litellm_sdk():
 
         # This should not raise an exception
         try:
-            response = litellm.create_batch(
+            response = gateway.create_batch(
                 completion_window="24h",
                 endpoint="/v1/chat/completions",
                 input_file_id="file-test123",

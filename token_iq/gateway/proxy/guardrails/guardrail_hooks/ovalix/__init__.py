@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 
 def initialize_guardrail(litellm_params: "LitellmParams", guardrail: "Guardrail"):
     """Create and register an Ovalix guardrail callback from proxy config."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     tracker_api_base: Final = getattr(litellm_params, "tracker_api_base", None)
     tracker_api_key: Final = getattr(litellm_params, "tracker_api_key", None)
@@ -30,7 +30,7 @@ def initialize_guardrail(litellm_params: "LitellmParams", guardrail: "Guardrail"
         event_hook=litellm_params.mode,
         default_on=litellm_params.default_on,
     )
-    litellm.logging_callback_manager.add_litellm_callback(_ovalix_callback)
+    gateway.logging_callback_manager.add_litellm_callback(_ovalix_callback)
 
     return _ovalix_callback
 

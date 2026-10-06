@@ -204,9 +204,9 @@ class TestRouterFallbackFailureTracebackRedaction:
         so an exc_info=True regression there would degrade to (None, None, None) and
         this test would pass against it.
         """
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
-        router = litellm.Router(
+        router = gateway.Router(
             model_list=[
                 {
                     "model_name": "gpt-3.5-turbo",

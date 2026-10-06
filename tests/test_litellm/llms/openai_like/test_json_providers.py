@@ -17,7 +17,7 @@ except ImportError:
 workspace_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../.."))
 sys.path.insert(0, workspace_path)
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 
 class TestJSONProviderLoader:
@@ -350,7 +350,7 @@ class TestPublicAIIntegration:
             return
 
         try:
-            response = litellm.completion(
+            response = gateway.completion(
                 model="publicai/swiss-ai/apertus-8b-instruct",
                 messages=[
                     {
@@ -392,7 +392,7 @@ class TestPublicAIIntegration:
             return
 
         try:
-            response = litellm.completion(
+            response = gateway.completion(
                 model="publicai/swiss-ai/apertus-8b-instruct",
                 messages=[{"role": "user", "content": "Count to 3"}],
                 max_tokens=20,
@@ -432,7 +432,7 @@ class TestPublicAIIntegration:
 
         try:
             # Use max_completion_tokens (OpenAI's newer parameter)
-            response = litellm.completion(
+            response = gateway.completion(
                 model="publicai/swiss-ai/apertus-8b-instruct",
                 messages=[{"role": "user", "content": "Hi"}],
                 max_completion_tokens=5,  # This should be mapped to max_tokens
@@ -459,7 +459,7 @@ class TestPublicAIIntegration:
 
         try:
             # Send message with content as list (should be converted to string)
-            response = litellm.completion(
+            response = gateway.completion(
                 model="publicai/swiss-ai/apertus-8b-instruct",
                 messages=[
                     {"role": "user", "content": [{"type": "text", "text": "Say hello"}]}

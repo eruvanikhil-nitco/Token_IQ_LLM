@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING, Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy.guardrails.guardrail_hooks.openai.moderations import (
     OpenAIModerationGuardrail,
 )
@@ -33,7 +33,7 @@ def initialize_guardrail(litellm_params: "LitellmParams", guardrail: "Guardrail"
         },
     )
 
-    litellm.logging_callback_manager.add_litellm_callback(openai_moderation_guardrail)
+    gateway.logging_callback_manager.add_litellm_callback(openai_moderation_guardrail)
 
     return openai_moderation_guardrail
 

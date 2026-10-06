@@ -9,7 +9,7 @@ from typing import Any, Final
 from fastapi import Request
 from starlette.types import ASGIApp, Receive, Scope, Send
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy._types import SpecialHeaders
 from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
 
@@ -41,7 +41,7 @@ class PrometheusAuthMiddleware:
             return
 
         # Run auth by default; allow legacy public metrics only when explicitly disabled.
-        if litellm.require_auth_for_metrics_endpoint is not False:
+        if gateway.require_auth_for_metrics_endpoint is not False:
             # user_api_key_auth reads the request body, which consumes ASGI `receive`.
             # Buffer those messages and replay them for the inner app; otherwise a
             # successful auth would forward an exhausted receive and /metrics hangs.

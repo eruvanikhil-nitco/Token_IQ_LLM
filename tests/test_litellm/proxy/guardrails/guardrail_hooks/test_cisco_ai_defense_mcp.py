@@ -22,14 +22,14 @@ from tests.test_litellm.proxy.guardrails.guardrail_hooks._cisco_ai_defense_test_
     datetime,
     init_guardrails_v2,
     json,
-    litellm,
+    gateway,
     pytest,
 )
 
 
 def test_cisco_ai_defense_config_via_init_v2_mcp(monkeypatch):
     monkeypatch.setenv("CISCO_AI_DEFENSE_API_KEY", "test-key")
-    litellm.guardrail_name_config_map = {}
+    gateway.guardrail_name_config_map = {}
 
     init_guardrails_v2(
         all_guardrails=[

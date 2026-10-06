@@ -20,7 +20,7 @@ from opentelemetry.trace import (
     use_span,
 )
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.integrations.otel.emitter import SpanEmitter, stamp_error
@@ -241,10 +241,10 @@ class OpenTelemetryV2(CustomLogger):
         except Exception:
             return
         try:
-            self._register_in_callback_list(litellm.service_callback)
-            self._register_in_callback_list(litellm.input_callback)
-            self._register_in_callback_list(litellm._async_success_callback)
-            self._register_in_callback_list(litellm._async_failure_callback)
+            self._register_in_callback_list(gateway.service_callback)
+            self._register_in_callback_list(gateway.input_callback)
+            self._register_in_callback_list(gateway._async_success_callback)
+            self._register_in_callback_list(gateway._async_failure_callback)
         except Exception:
             pass
         if getattr(proxy_server, "open_telemetry_logger", None) is None:

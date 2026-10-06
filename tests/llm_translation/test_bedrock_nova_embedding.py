@@ -16,7 +16,7 @@ from unittest.mock import MagicMock, Mock, patch
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.bedrock.embed.amazon_nova_transformation import (
     AmazonNovaEmbeddingConfig,
 )
@@ -535,7 +535,7 @@ class TestNovaEmbeddingIntegration:
     @pytest.mark.skip(reason="Requires AWS credentials and actual API calls")
     def test_sync_text_embedding_e2e(self):
         """End-to-end test for synchronous text embedding."""
-        response = litellm.embedding(
+        response = gateway.embedding(
             model="bedrock/amazon.nova-2-multimodal-embeddings-v1:0",
             input=["Hello, world!"],
             aws_region_name="us-east-1",
@@ -548,7 +548,7 @@ class TestNovaEmbeddingIntegration:
     @pytest.mark.skip(reason="Requires AWS credentials and actual API calls")
     def test_async_text_embedding_e2e(self):
         """End-to-end test for asynchronous text embedding."""
-        response = litellm.embedding(
+        response = gateway.embedding(
             model="bedrock/async_invoke/amazon.nova-2-multimodal-embeddings-v1:0",
             input=["Long text content for segmentation..."],
             aws_region_name="us-east-1",
@@ -563,7 +563,7 @@ class TestNovaEmbeddingIntegration:
     @pytest.mark.skip(reason="Requires AWS credentials and actual API calls")
     def test_image_embedding_e2e(self):
         """End-to-end test for image embedding."""
-        response = litellm.embedding(
+        response = gateway.embedding(
             model="bedrock/amazon.nova-2-multimodal-embeddings-v1:0",
             input=["s3://my-bucket/image.png"],
             aws_region_name="us-east-1",
@@ -578,7 +578,7 @@ class TestNovaEmbeddingIntegration:
     @pytest.mark.skip(reason="Requires AWS credentials and actual API calls")
     def test_video_embedding_e2e(self):
         """End-to-end test for video embedding."""
-        response = litellm.embedding(
+        response = gateway.embedding(
             model="bedrock/amazon.nova-2-multimodal-embeddings-v1:0",
             input=["s3://my-bucket/video.mp4"],
             aws_region_name="us-east-1",
@@ -595,7 +595,7 @@ class TestNovaEmbeddingIntegration:
     def test_different_dimensions(self):
         """Test different embedding dimensions."""
         for dimension in [256, 384, 1024, 3072]:
-            response = litellm.embedding(
+            response = gateway.embedding(
                 model="bedrock/amazon.nova-2-multimodal-embeddings-v1:0",
                 input=["Test text"],
                 aws_region_name="us-east-1",
@@ -617,7 +617,7 @@ class TestNovaEmbeddingIntegration:
         ]
 
         for purpose in purposes:
-            response = litellm.embedding(
+            response = gateway.embedding(
                 model="bedrock/amazon.nova-2-multimodal-embeddings-v1:0",
                 input=["Test text"],
                 aws_region_name="us-east-1",

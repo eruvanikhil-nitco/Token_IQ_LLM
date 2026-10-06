@@ -1,7 +1,7 @@
 from concurrent.futures import FIRST_COMPLETED, ThreadPoolExecutor, wait
 from typing import Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import print_verbose
 from token_iq.gateway.utils import get_optional_params
 
@@ -62,7 +62,7 @@ def batch_completion(
     completions: Final = []
     model = model
     custom_llm_provider = None
-    if model.split("/", 1)[0] in litellm.provider_list:
+    if model.split("/", 1)[0] in gateway.provider_list:
         custom_llm_provider = model.split("/", 1)[0]
         model = model.split("/", 1)[1]
     if custom_llm_provider == "vllm":
@@ -86,7 +86,7 @@ def batch_completion(
         results = vllm_handler.batch_completions(
             model=model,
             messages=batch_messages,
-            custom_prompt_dict=litellm.custom_prompt_dict,
+            custom_prompt_dict=gateway.custom_prompt_dict,
             optional_params=optional_params,
         )
     # all non VLLM models for batch completion models
@@ -106,7 +106,7 @@ def batch_completion(
                     original_kwargs = {}
                     if "kwargs" in kwargs_modified:
                         original_kwargs = kwargs_modified.pop("kwargs")
-                    future = executor.submit(litellm.completion, **kwargs_modified, **original_kwargs)
+                    future = executor.submit(gateway.completion, **kwargs_modified, **original_kwargs)
                     completions.append(future)
 
         # Retrieve the results from the futures
@@ -151,7 +151,7 @@ def batch_completion_models(*args, **kwargs):
         futures = {}
         with ThreadPoolExecutor(max_workers=len(models)) as executor:
             for model in models:
-                futures[model] = executor.submit(litellm.completion, *args, model=model, **kwargs)
+                futures[model] = executor.submit(gateway.completion, *args, model=model, **kwargs)
 
             for model, future in sorted(futures.items(), key=lambda x: models.index(x[0])):
                 if future.result() is not None:
@@ -168,7 +168,7 @@ def batch_completion_models(*args, **kwargs):
                     if key not in deployment:  # don't override deployment values e.g. model name, api base, etc.
                         deployment[key] = kwargs[key]
                 kwargs = {**deployment, **nested_kwargs}
-                futures[deployment["model"]] = executor.submit(litellm.completion, **kwargs)
+                futures[deployment["model"]] = executor.submit(gateway.completion, **kwargs)
 
             while futures:
                 # wait for the first returned future
@@ -242,7 +242,7 @@ def batch_completion_models_all_responses(*args, **kwargs):
     responses: Final = []
 
     with concurrent.futures.ThreadPoolExecutor(max_workers=len(models)) as executor:
-        futures: Final = [executor.submit(litellm.completion, *args, model=model, **kwargs) for model in models]
+        futures: Final = [executor.submit(gateway.completion, *args, model=model, **kwargs) for model in models]
 
         for future in futures:
             try:

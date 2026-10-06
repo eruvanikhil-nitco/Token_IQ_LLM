@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Any, Final
 import httpx
 from httpx._types import RequestFiles
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.constants import DEFAULT_GOOGLE_VIDEO_DURATION_SECONDS
 from token_iq.gateway.images.utils import ImageEditRequestUtils
 from token_iq.gateway.llms.base_llm.videos.transformation import BaseVideoConfig
@@ -205,7 +205,7 @@ class GeminiVideoConfig(BaseVideoConfig):
         if litellm_params and litellm_params.api_key:
             api_key = api_key or litellm_params.api_key
 
-        api_key = api_key or litellm.api_key or get_secret_str("GOOGLE_API_KEY") or get_secret_str("GEMINI_API_KEY")
+        api_key = api_key or gateway.api_key or get_secret_str("GOOGLE_API_KEY") or get_secret_str("GEMINI_API_KEY")
 
         if not api_key:
             raise ValueError(
@@ -446,7 +446,7 @@ class GeminiVideoConfig(BaseVideoConfig):
         operation_name: Final = extract_original_video_id(video_id)
 
         status_url: Final = f"{api_base.rstrip('/')}/v1beta/{operation_name}"
-        client: Final = litellm.module_level_client
+        client: Final = gateway.module_level_client
         status_response: Final = client.get(url=status_url, headers=headers)
         status_response.raise_for_status()
         response_data: Final = _json_payload(status_response)

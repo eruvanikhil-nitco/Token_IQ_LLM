@@ -8,7 +8,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 import respx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import completion
 from token_iq.gateway.llms.vercel_ai_gateway.chat.transformation import VercelAIGatewayConfig
 from token_iq.gateway.cost_calculator import cost_per_token
@@ -65,9 +65,9 @@ def test_get_llm_provider_vercel_ai_gateway():
 
 def test_vercel_ai_gateway_in_provider_lists():
     """Test that vercel_ai_gateway is registered in all necessary provider lists"""
-    assert "vercel_ai_gateway" in litellm.openai_compatible_providers
-    assert "vercel_ai_gateway" in litellm.provider_list
-    assert "https://ai-gateway.vercel.sh/v1" in litellm.openai_compatible_endpoints
+    assert "vercel_ai_gateway" in gateway.openai_compatible_providers
+    assert "vercel_ai_gateway" in gateway.provider_list
+    assert "https://ai-gateway.vercel.sh/v1" in gateway.openai_compatible_endpoints
 
 
 @pytest.mark.asyncio
@@ -76,13 +76,13 @@ async def test_vercel_ai_gateway_completion_call(
 ):
     """Test completion call with vercel_ai_gateway provider using mocked response"""
     monkeypatch.setenv("VERCEL_AI_GATEWAY_API_KEY", "test-api-key")
-    litellm.disable_aiohttp_transport = True
+    gateway.disable_aiohttp_transport = True
 
     respx_mock.post("https://ai-gateway.vercel.sh/v1/chat/completions").respond(
         json=vercel_ai_gateway_response
     )
 
-    response = await litellm.acompletion(
+    response = await gateway.acompletion(
         model="vercel_ai_gateway/openai/gpt-3.5-turbo",
         messages=[{"role": "user", "content": "Hello, this is a test"}],
         max_tokens=20,
@@ -110,13 +110,13 @@ async def test_vercel_ai_gateway_with_oidc_token(
 ):
     """Test completion call with vercel_ai_gateway provider using VERCEL_OIDC_TOKEN"""
     monkeypatch.setenv("VERCEL_OIDC_TOKEN", "test-oidc-token")
-    litellm.disable_aiohttp_transport = True
+    gateway.disable_aiohttp_transport = True
 
     respx_mock.post("https://ai-gateway.vercel.sh/v1/chat/completions").respond(
         json=vercel_ai_gateway_response
     )
 
-    response = await litellm.acompletion(
+    response = await gateway.acompletion(
         model="vercel_ai_gateway/openai/gpt-3.5-turbo",
         messages=[{"role": "user", "content": "Hello, this is a test"}],
         max_tokens=20,
@@ -186,7 +186,7 @@ def test_vercel_ai_gateway_sync_completion(
 ):
     """Test synchronous completion call"""
     monkeypatch.setenv("VERCEL_AI_GATEWAY_API_KEY", "test-api-key")
-    litellm.disable_aiohttp_transport = True
+    gateway.disable_aiohttp_transport = True
 
     respx_mock.post("https://ai-gateway.vercel.sh/v1/chat/completions").respond(
         json=vercel_ai_gateway_response
@@ -211,7 +211,7 @@ def test_vercel_ai_gateway_with_provider_options(
 ):
     """Test vercel_ai_gateway with providerOptions parameter"""
     monkeypatch.setenv("VERCEL_AI_GATEWAY_API_KEY", "test-api-key")
-    litellm.disable_aiohttp_transport = True
+    gateway.disable_aiohttp_transport = True
 
     respx_mock.post("https://ai-gateway.vercel.sh/v1/chat/completions").respond(
         json=vercel_ai_gateway_response
@@ -282,10 +282,10 @@ def test_vercel_ai_gateway_glm46_cost_math():
     """Test the cost math for glm-4.6"""
 
     with open("model_prices_and_context_window.json", "r") as f:
-        litellm.model_cost = json.load(f)
+        gateway.model_cost = json.load(f)
 
     key = "vercel_ai_gateway/zai/glm-4.6"
-    info = litellm.model_cost[key]
+    info = gateway.model_cost[key]
 
     prompt_cost, completion_cost = cost_per_token(
         model="vercel_ai_gateway/zai/glm-4.6",

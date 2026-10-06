@@ -18,7 +18,7 @@ import uuid
 from collections.abc import AsyncIterator
 from typing import TYPE_CHECKING, Any, Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 import token_iq.gateway.constants as _c
 from token_iq.gateway.core_utils.url_utils import validate_url
 from token_iq.gateway.llms.anthropic.common_utils import strip_advisor_blocks_from_messages
@@ -237,13 +237,13 @@ def _resolve_advisor_credentials(advisor_tool: dict) -> tuple[str | None, str | 
         )
     if not api_base.startswith("https://"):
         raise ValueError(f"advisor tool definition sets 'api_base'={api_base!r}, which must use the https scheme.")
-    if getattr(litellm, "ssl_verify", True) is False:
+    if getattr(gateway, "ssl_verify", True) is False:
         raise ValueError(
             "advisor tool definition sets 'api_base' but the proxy has TLS verification "
             "disabled (litellm.ssl_verify=False), so a caller-supplied api_base can't be "
             "safely validated against DNS rebinding."
         )
-    if getattr(litellm, "user_url_validation", True):
+    if getattr(gateway, "user_url_validation", True):
         validate_url(api_base)
     return api_key, api_base
 

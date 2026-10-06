@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Any, Final
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
 from token_iq.gateway.core_utils.litellm_logging import (
@@ -58,14 +58,14 @@ class BasePassthroughLoggingHandler(ABC):
         provider_config: Final = self.get_provider_config(model=model)
         litellm_model_response: Final[ModelResponse] = provider_config.transform_response(
             raw_response=httpx_response,
-            model_response=litellm.ModelResponse(),
+            model_response=gateway.ModelResponse(),
             model=model,
             messages=[],
             logging_obj=logging_obj,
             optional_params={},
             api_key="",
             request_data={},
-            encoding=litellm.encoding,
+            encoding=gateway.encoding,
             json_mode=False,
             litellm_params={},
         )
@@ -109,7 +109,7 @@ class BasePassthroughLoggingHandler(ABC):
         """
 
         try:
-            response_cost: Final = litellm.completion_cost(
+            response_cost: Final = gateway.completion_cost(
                 completion_response=litellm_model_response,
                 model=model,
             )

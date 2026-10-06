@@ -26,7 +26,7 @@ from typing import TYPE_CHECKING, Any, Final
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.base_llm.chat.transformation import BaseLLMException
 from token_iq.gateway.llms.base_llm.embedding.transformation import BaseEmbeddingConfig
 from token_iq.gateway.llms.oci.common_utils import (
@@ -147,7 +147,7 @@ class OCIEmbedConfig(BaseEmbeddingConfig):
         litellm_params: dict,
         stream: bool | None = None,
     ) -> str:
-        base: Final = get_oci_base_url(optional_params, api_base or litellm.api_base)
+        base: Final = get_oci_base_url(optional_params, api_base or gateway.api_base)
         return f"{base}/{OCI_API_VERSION}/actions/embedText"
 
     def sign_request(

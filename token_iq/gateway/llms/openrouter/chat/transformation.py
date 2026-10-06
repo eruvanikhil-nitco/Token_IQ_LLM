@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING, Any, Final, cast
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.base_llm.base_model_iterator import BaseModelResponseIterator
 from token_iq.gateway.llms.base_llm.chat.transformation import BaseLLMException
 from token_iq.gateway.types.llms.openai import AllMessageValues, ChatCompletionToolParam
@@ -45,7 +45,7 @@ class OpenrouterConfig(OpenAIGPTConfig):
         """
         supported_params: Final = super().get_supported_openai_params(model=model)
         try:
-            if litellm.supports_reasoning(model=model, custom_llm_provider="openrouter") or litellm.supports_reasoning(
+            if gateway.supports_reasoning(model=model, custom_llm_provider="openrouter") or gateway.supports_reasoning(
                 model=model
             ):
                 supported_params.append("reasoning_effort")

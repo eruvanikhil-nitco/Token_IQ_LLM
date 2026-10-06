@@ -7,7 +7,7 @@ from typing import Final, Literal
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway._uuid import uuid
 from token_iq.gateway.integrations.custom_logger import CustomLogger
@@ -68,7 +68,7 @@ class LagoLogger(CustomLogger):
         usage = {}
 
         if (
-            isinstance(response_obj, litellm.ModelResponse) or isinstance(response_obj, litellm.EmbeddingResponse)
+            isinstance(response_obj, gateway.ModelResponse) or isinstance(response_obj, gateway.EmbeddingResponse)
         ) and hasattr(response_obj, "usage"):
             usage = {
                 "prompt_tokens": response_obj["usage"].get("prompt_tokens", 0),

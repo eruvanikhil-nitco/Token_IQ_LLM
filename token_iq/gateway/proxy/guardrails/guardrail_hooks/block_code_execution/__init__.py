@@ -37,7 +37,7 @@ def initialize_guardrail(
     guardrail: "Guardrail",
 ) -> BlockCodeExecutionGuardrail:
     """Initialize the Block Code Execution guardrail from config."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     guardrail_name: Final = guardrail.get("guardrail_name")
     if not guardrail_name:
@@ -73,7 +73,7 @@ def initialize_guardrail(
         event_hook=event_hook,
         default_on=bool(_get_param(litellm_params, guardrail, "default_on", False)),
     )
-    litellm.logging_callback_manager.add_litellm_callback(instance)
+    gateway.logging_callback_manager.add_litellm_callback(instance)
     return instance
 
 

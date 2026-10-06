@@ -8,7 +8,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import httpx
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.logging_worker import GLOBAL_LOGGING_WORKER
 from token_iq.gateway.proxy.pass_through_endpoints.streaming_handler import (
     PassThroughStreamingHandler,
@@ -339,7 +339,7 @@ async def test_chunk_processor_does_not_reset_completion_start_time_on_later_chu
 @pytest.mark.asyncio
 async def test_chunk_processor_stamps_completion_start_time_on_cost_injection_path():
     """The cost-injection branch runs alongside a hot path; both must stamp TTFT."""
-    from token_iq import gateway as litellm_mod
+    from token_iq import gateway as gateway_mod
 
     chunks = [b"event: message_start\ndata: {}\n\n"]
     response = _make_streaming_response(chunks)
@@ -348,8 +348,8 @@ async def test_chunk_processor_stamps_completion_start_time_on_cost_injection_pa
     mock_logging_obj.model_call_details = {"model": "claude-haiku-4-5"}
     mock_passthrough_handler = MagicMock()
 
-    original = getattr(litellm_mod, "include_cost_in_streaming_usage", False)
-    litellm_mod.include_cost_in_streaming_usage = True
+    original = getattr(gateway_mod, "include_cost_in_streaming_usage", False)
+    gateway_mod.include_cost_in_streaming_usage = True
     try:
         with patch.object(
             PassThroughStreamingHandler,
@@ -367,7 +367,7 @@ async def test_chunk_processor_stamps_completion_start_time_on_cost_injection_pa
             ):
                 pass
     finally:
-        litellm_mod.include_cost_in_streaming_usage = original
+        gateway_mod.include_cost_in_streaming_usage = original
 
     mock_logging_obj._update_completion_start_time.assert_called_once()
 
@@ -413,7 +413,7 @@ async def test_chunk_processor_injects_cost_into_openai_passthrough_usage_frame(
     """Regression: issue #36492 — with include_cost_in_streaming_usage on, the final
     OpenAI passthrough chat.completion.chunk usage frame must carry usage.cost, like
     every other streaming surface already does."""
-    monkeypatch.setattr(litellm, "include_cost_in_streaming_usage", True)
+    monkeypatch.setattr(gateway, "include_cost_in_streaming_usage", True)
     chunks = _openai_passthrough_stream_chunks()
 
     received = await _collect_openai_passthrough_chunks(chunks, EndpointType.OPENAI)
@@ -422,7 +422,7 @@ async def test_chunk_processor_injects_cost_into_openai_passthrough_usage_frame(
     assert received[1] == chunks[1]
     assert received[3] == chunks[3]
     final_payload = json.loads(received[2].decode("utf-8").split("data:", 1)[1].strip())
-    pricing = litellm.model_cost["gpt-4o-mini"]
+    pricing = gateway.model_cost["gpt-4o-mini"]
     expected_cost = 11 * pricing["input_cost_per_token"] + 4 * pricing["output_cost_per_token"]
     assert final_payload["usage"]["cost"] == pytest.approx(expected_cost)
     assert final_payload["usage"]["cost"] > 0
@@ -435,7 +435,7 @@ async def test_chunk_processor_injects_cost_into_openai_passthrough_usage_frame(
 async def test_chunk_processor_injects_cost_into_usage_frame_fragmented_across_chunks(monkeypatch):
     """Regression: an SSE usage frame split across transport chunks must still get
     cost injected once the frame completes, instead of passing through untouched."""
-    monkeypatch.setattr(litellm, "include_cost_in_streaming_usage", True)
+    monkeypatch.setattr(gateway, "include_cost_in_streaming_usage", True)
     whole = _openai_passthrough_stream_chunks()
     usage_frame = whole[2]
     split_at = len(usage_frame) // 2
@@ -456,7 +456,7 @@ async def test_chunk_processor_injects_cost_into_usage_frame_fragmented_across_c
 async def test_chunk_processor_streams_crlf_delimited_frames_live_and_injects_cost(monkeypatch):
     """Regression: CRLF-delimited SSE frames must flow as they complete instead of
     buffering until EOF, and the usage frame must still get cost injected."""
-    monkeypatch.setattr(litellm, "include_cost_in_streaming_usage", True)
+    monkeypatch.setattr(gateway, "include_cost_in_streaming_usage", True)
     chunks = [chunk.replace(b"\n\n", b"\r\n\r\n") for chunk in _openai_passthrough_stream_chunks()]
 
     received = await _collect_openai_passthrough_chunks(chunks, EndpointType.OPENAI)
@@ -475,7 +475,7 @@ async def test_chunk_processor_streams_crlf_delimited_frames_live_and_injects_co
 
 @pytest.mark.asyncio
 async def test_chunk_processor_flag_off_leaves_openai_passthrough_stream_byte_identical(monkeypatch):
-    monkeypatch.setattr(litellm, "include_cost_in_streaming_usage", False)
+    monkeypatch.setattr(gateway, "include_cost_in_streaming_usage", False)
     chunks = _openai_passthrough_stream_chunks()
 
     received = await _collect_openai_passthrough_chunks(chunks, EndpointType.OPENAI)
@@ -485,7 +485,7 @@ async def test_chunk_processor_flag_off_leaves_openai_passthrough_stream_byte_id
 
 @pytest.mark.asyncio
 async def test_chunk_processor_flag_on_leaves_openai_frames_without_usage_untouched(monkeypatch):
-    monkeypatch.setattr(litellm, "include_cost_in_streaming_usage", True)
+    monkeypatch.setattr(gateway, "include_cost_in_streaming_usage", True)
     chunks = [
         (
             b'data: {"id":"chatcmpl-1","object":"chat.completion.chunk",'
@@ -503,7 +503,7 @@ async def test_chunk_processor_flag_on_leaves_openai_frames_without_usage_untouc
 
 @pytest.mark.asyncio
 async def test_chunk_processor_flag_on_leaves_generic_passthrough_untouched(monkeypatch):
-    monkeypatch.setattr(litellm, "include_cost_in_streaming_usage", True)
+    monkeypatch.setattr(gateway, "include_cost_in_streaming_usage", True)
     chunks = _openai_passthrough_stream_chunks()
 
     received = await _collect_openai_passthrough_chunks(chunks, EndpointType.GENERIC)

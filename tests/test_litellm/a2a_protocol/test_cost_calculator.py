@@ -8,7 +8,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.integrations.custom_logger import CustomLogger
 
 
@@ -129,9 +129,9 @@ async def test_asend_message_uses_cost_per_query():
     from token_iq.gateway.a2a_protocol import asend_message
 
     # Setup logger
-    litellm.logging_callback_manager._reset_all_callbacks()
+    gateway.logging_callback_manager._reset_all_callbacks()
     cost_logger = CostLogger()
-    litellm.callbacks = [cost_logger]
+    gateway.callbacks = [cost_logger]
 
     # Mock A2A client
     mock_client = MagicMock()
@@ -164,9 +164,9 @@ async def test_asend_message_uses_cost_per_query_from_litellm_params_dict():
     """
     from token_iq.gateway.a2a_protocol import asend_message
 
-    litellm.logging_callback_manager._reset_all_callbacks()
+    gateway.logging_callback_manager._reset_all_callbacks()
     cost_logger = CostLogger()
-    litellm.callbacks = [cost_logger]
+    gateway.callbacks = [cost_logger]
 
     mock_client = MagicMock()
     mock_client._litellm_agent_card = MagicMock()
@@ -225,9 +225,9 @@ async def test_asend_message_uses_input_output_cost_per_token():
     from token_iq.gateway.a2a_protocol import asend_message
 
     # Setup logger
-    litellm.logging_callback_manager._reset_all_callbacks()
+    gateway.logging_callback_manager._reset_all_callbacks()
     token_cost_logger = TokenAndCostLogger()
-    litellm.callbacks = [token_cost_logger]
+    gateway.callbacks = [token_cost_logger]
 
     # Mock A2A client
     mock_client = MagicMock()
@@ -299,9 +299,9 @@ async def test_asend_message_passes_agent_id_to_callback():
     from token_iq.gateway.a2a_protocol import asend_message
 
     # Setup logger
-    litellm.logging_callback_manager._reset_all_callbacks()
+    gateway.logging_callback_manager._reset_all_callbacks()
     agent_id_logger = AgentIdLogger()
-    litellm.callbacks = [agent_id_logger]
+    gateway.callbacks = [agent_id_logger]
 
     # Mock A2A client
     mock_client = MagicMock()
@@ -359,9 +359,9 @@ async def test_asend_message_streaming_propagates_metadata():
     from token_iq.gateway.a2a_protocol import asend_message_streaming
 
     # Setup logger
-    litellm.logging_callback_manager._reset_all_callbacks()
+    gateway.logging_callback_manager._reset_all_callbacks()
     metadata_logger = MetadataLogger()
-    litellm.logging_callback_manager.add_litellm_async_success_callback(metadata_logger)
+    gateway.logging_callback_manager.add_litellm_async_success_callback(metadata_logger)
 
     # Mock A2A client
     mock_client = MagicMock()
@@ -406,10 +406,10 @@ async def test_asend_message_streaming_triggers_callbacks():
     from token_iq.gateway.a2a_protocol import asend_message_streaming
 
     # Setup logger - must use logging_callback_manager to properly register
-    litellm.logging_callback_manager._reset_all_callbacks()
+    gateway.logging_callback_manager._reset_all_callbacks()
     callback_logger = AgentIdLogger()
-    litellm.logging_callback_manager.add_litellm_async_success_callback(callback_logger)
-    litellm.logging_callback_manager.add_litellm_success_callback(callback_logger)
+    gateway.logging_callback_manager.add_litellm_async_success_callback(callback_logger)
+    gateway.logging_callback_manager.add_litellm_success_callback(callback_logger)
 
     # Mock A2A client
     mock_client = MagicMock()

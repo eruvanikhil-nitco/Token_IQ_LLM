@@ -14,7 +14,7 @@ from datetime import datetime
 import httpx
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.responses.main import mock_responses_api_response
@@ -40,10 +40,10 @@ class TestCustomLogger(CustomLogger):
 
 @pytest.mark.asyncio
 async def test_global_redaction_on():
-    litellm.turn_off_message_logging = True
+    gateway.turn_off_message_logging = True
     test_custom_logger = TestCustomLogger()
-    litellm.callbacks = [test_custom_logger]
-    response = await litellm.acompletion(
+    gateway.callbacks = [test_custom_logger]
+    response = await gateway.acompletion(
         model="gpt-5-mini",
         messages=[{"role": "user", "content": "hi"}],
         mock_response="hello",
@@ -67,10 +67,10 @@ async def test_global_redaction_on():
 )
 @pytest.mark.asyncio
 async def test_dynamic_turn_off_message_logging_overrides_global_on(dynamic_turn_off, expect_redacted):
-    litellm.turn_off_message_logging = True
+    gateway.turn_off_message_logging = True
     test_custom_logger = TestCustomLogger()
-    litellm.callbacks = [test_custom_logger]
-    await litellm.acompletion(
+    gateway.callbacks = [test_custom_logger]
+    await gateway.acompletion(
         model="gpt-5-mini",
         messages=[{"role": "user", "content": "hi"}],
         turn_off_message_logging=dynamic_turn_off,
@@ -93,10 +93,10 @@ async def test_dynamic_turn_off_message_logging_overrides_global_on(dynamic_turn
 )
 @pytest.mark.asyncio
 async def test_dynamic_turn_off_message_logging_overrides_global_off(dynamic_turn_off, expect_redacted):
-    litellm.turn_off_message_logging = False
+    gateway.turn_off_message_logging = False
     test_custom_logger = TestCustomLogger()
-    litellm.callbacks = [test_custom_logger]
-    await litellm.acompletion(
+    gateway.callbacks = [test_custom_logger]
+    await gateway.acompletion(
         model="gpt-5-mini",
         messages=[{"role": "user", "content": "hi"}],
         turn_off_message_logging=dynamic_turn_off,
@@ -122,7 +122,7 @@ async def test_redaction_with_custom_logger_streaming():
         def success_handler(self, result=None, start_time=None, end_time=None, cache_hit=None, **kwargs):
             pass
 
-    litellm.turn_off_message_logging = True
+    gateway.turn_off_message_logging = True
     test_custom_logger = TestCustomLogger()
 
     try:
@@ -137,7 +137,7 @@ async def test_redaction_with_custom_logger_streaming():
             dynamic_async_success_callbacks=[test_custom_logger],
         )
 
-        response = await litellm.acompletion(
+        response = await gateway.acompletion(
             model="gpt-5-mini",
             messages=[{"role": "user", "content": "hi"}],
             mock_response="hello",
@@ -155,19 +155,19 @@ async def test_redaction_with_custom_logger_streaming():
         assert async_complete_streaming_response is not None
         assert async_complete_streaming_response.choices[0].message.content == "redacted-by-litellm"
     finally:
-        litellm.turn_off_message_logging = False
+        gateway.turn_off_message_logging = False
 
 
 @pytest.mark.asyncio
 async def test_streaming_redaction_scoped_to_opted_out_logger():
     """One logger opting out of message logging must not blank the response for other loggers"""
-    litellm.turn_off_message_logging = False
+    gateway.turn_off_message_logging = False
     opted_out_logger = TestCustomLogger(message_logging=False)
     compliant_logger = TestCustomLogger()
-    litellm.callbacks = [opted_out_logger, compliant_logger]
+    gateway.callbacks = [opted_out_logger, compliant_logger]
 
     try:
-        response = await litellm.acompletion(
+        response = await gateway.acompletion(
             model="gpt-5-mini",
             messages=[{"role": "user", "content": "hi"}],
             mock_response="hello",
@@ -182,17 +182,17 @@ async def test_streaming_redaction_scoped_to_opted_out_logger():
         assert compliant_logger.response_obj is not None
         assert compliant_logger.response_obj.choices[0].message.content == "hello"
     finally:
-        litellm.callbacks = []
+        gateway.callbacks = []
 
 
 @pytest.mark.asyncio
 async def test_redaction_responses_api():
     """Test redaction with ResponsesAPIResponse format"""
-    litellm.turn_off_message_logging = True
+    gateway.turn_off_message_logging = True
     test_custom_logger = TestCustomLogger(turn_off_message_logging=True)
-    litellm.callbacks = [test_custom_logger]
+    gateway.callbacks = [test_custom_logger]
 
-    response = await litellm.aresponses(
+    response = await gateway.aresponses(
         model="gpt-5-mini",
         input="hi",
         mock_response="This is a test response",
@@ -232,9 +232,9 @@ async def test_redaction_responses_api():
 @pytest.mark.asyncio
 async def test_redaction_responses_api_stream():
     """Test redaction with ResponsesAPIResponse format"""
-    litellm.turn_off_message_logging = True
+    gateway.turn_off_message_logging = True
     test_custom_logger = TestCustomLogger(turn_off_message_logging=True)
-    litellm.callbacks = [test_custom_logger]
+    gateway.callbacks = [test_custom_logger]
 
     mocked_response_payload = mock_responses_api_response(
         "This is a test response"
@@ -261,7 +261,7 @@ async def test_redaction_responses_api_stream():
         "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         new=mock_post,
     ):
-        response = await litellm.aresponses(
+        response = await gateway.aresponses(
             model="gpt-5-mini",
             input="hi",
             stream=True,
@@ -314,10 +314,10 @@ async def test_redaction_responses_api_stream():
 @pytest.mark.asyncio
 async def test_redaction_responses_api_with_reasoning_summary():
     """Test that reasoning summary in ResponsesAPIResponse output is properly redacted"""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.core_utils.redact_messages import perform_redaction
 
-    response = litellm.ResponsesAPIResponse(
+    response = gateway.ResponsesAPIResponse(
         id="resp_123",
         created_at=1234567890,
         output=[
@@ -357,7 +357,7 @@ async def test_redaction_responses_api_with_reasoning_summary():
     redacted_result = perform_redaction(model_call_details, response)
 
     assert isinstance(
-        redacted_result, litellm.ResponsesAPIResponse
+        redacted_result, gateway.ResponsesAPIResponse
     ), "Redaction should preserve the ResponsesAPIResponse type"
 
     reasoning_item = redacted_result.output[0]
@@ -427,13 +427,13 @@ async def test_redaction_with_coroutine_objects():
 @pytest.mark.asyncio
 async def test_redaction_with_streaming_response():
     """Test that redaction works correctly with streaming responses that return coroutines"""
-    litellm.turn_off_message_logging = True
+    gateway.turn_off_message_logging = True
     test_custom_logger = TestCustomLogger()
-    litellm.callbacks = [test_custom_logger]
+    gateway.callbacks = [test_custom_logger]
 
     # This simulates the scenario where a streaming response returns a coroutine
     # that would normally cause the pickle error
-    response = await litellm.acompletion(
+    response = await gateway.acompletion(
         model="gpt-5-mini",
         messages=[{"role": "user", "content": "hi"}],
         stream=True,
@@ -467,12 +467,12 @@ async def test_disable_redaction_header_responses_api():
     This test verifies the fix for the issue where the header wasn't respected
     because Responses API uses 'litellm_metadata' instead of 'metadata'.
     """
-    litellm.turn_off_message_logging = True
+    gateway.turn_off_message_logging = True
     test_custom_logger = TestCustomLogger()
-    litellm.callbacks = [test_custom_logger]
+    gateway.callbacks = [test_custom_logger]
 
     # Pass the header via litellm_metadata (as the proxy does for Responses API)
-    response = await litellm.aresponses(
+    response = await gateway.aresponses(
         model="gpt-5-mini",
         input="hi",
         mock_response="This is a test response",
@@ -502,14 +502,14 @@ async def test_redaction_with_metadata_completion_api():
     This test verifies that get_metadata_variable_name_from_kwargs properly
     selects the appropriate metadata field for header detection.
     """
-    litellm.turn_off_message_logging = True
+    gateway.turn_off_message_logging = True
     test_custom_logger = TestCustomLogger()
-    litellm.callbacks = [test_custom_logger]
+    gateway.callbacks = [test_custom_logger]
 
     # When metadata is passed, the system uses get_metadata_variable_name_from_kwargs
     # to determine which field to check. No headers means redaction should happen
     # based on the global setting (litellm.turn_off_message_logging = True)
-    response = await litellm.acompletion(
+    response = await gateway.acompletion(
         model="gpt-5-mini",
         messages=[{"role": "user", "content": "hi"}],
         mock_response="hello",

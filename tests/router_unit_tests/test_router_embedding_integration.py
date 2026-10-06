@@ -12,7 +12,7 @@ import httpx
 import pytest
 import respx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import Router
 from token_iq.gateway.llms.base_llm.vector_store.transformation import (
     LiteLLMVectorStoreEmbeddingExecutor,
@@ -114,7 +114,7 @@ class TestRouterEmbeddingIntegration:
     async def test_vector_store_embedding_executors_cover_sdk_and_router_paths(
         self, respx_mock: respx.MockRouter, monkeypatch: pytest.MonkeyPatch
     ):
-        monkeypatch.setattr(litellm, "disable_aiohttp_transport", True)
+        monkeypatch.setattr(gateway, "disable_aiohttp_transport", True)
         monkeypatch.delenv("OPENAI_API_KEY", raising=False)
         openai_route = _mock_embedding_route(respx_mock, OPENAI_EMBEDDINGS_URL)
         store_route = _mock_embedding_route(respx_mock, STORE_EMBEDDINGS_URL)
@@ -169,7 +169,7 @@ class TestRouterEmbeddingIntegration:
     async def test_router_executor_falls_back_to_sdk_for_models_the_router_does_not_serve(
         self, respx_mock: respx.MockRouter, monkeypatch: pytest.MonkeyPatch
     ):
-        monkeypatch.setattr(litellm, "disable_aiohttp_transport", True)
+        monkeypatch.setattr(gateway, "disable_aiohttp_transport", True)
         monkeypatch.delenv("OPENAI_API_KEY", raising=False)
         store_route = _mock_embedding_route(respx_mock, STORE_EMBEDDINGS_URL)
         executor = RouterVectorStoreEmbeddingExecutor(
@@ -190,7 +190,7 @@ class TestRouterEmbeddingIntegration:
     async def test_router_executor_embeds_unserved_models_through_the_sdk(
         self, respx_mock: respx.MockRouter, monkeypatch: pytest.MonkeyPatch
     ):
-        monkeypatch.setattr(litellm, "disable_aiohttp_transport", True)
+        monkeypatch.setattr(gateway, "disable_aiohttp_transport", True)
         monkeypatch.setenv("OPENAI_API_KEY", "env-key")
         openai_route = _mock_embedding_route(respx_mock, OPENAI_EMBEDDINGS_URL)
         executor = RouterVectorStoreEmbeddingExecutor(

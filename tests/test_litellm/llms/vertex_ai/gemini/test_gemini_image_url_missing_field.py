@@ -1,7 +1,7 @@
 import pytest
 from typing import List, cast
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.vertex_ai.gemini.transformation import (
     _gemini_convert_messages_with_history,
 )
@@ -14,7 +14,7 @@ def test_missing_image_url_field_raises_bad_request_error():
         List[AllMessageValues],
         [{"role": "user", "content": [{"type": "image_url"}]}],
     )
-    with pytest.raises(litellm.BadRequestError) as exc_info:
+    with pytest.raises(gateway.BadRequestError) as exc_info:
         _gemini_convert_messages_with_history(messages, model="gemini-1.5-pro")
     assert "'image_url' field is missing" in str(exc_info.value)
 
@@ -25,7 +25,7 @@ def test_missing_url_inside_image_url_dict_raises_bad_request_error():
         List[AllMessageValues],
         [{"role": "user", "content": [{"type": "image_url", "image_url": {"detail": "high"}}]}],
     )
-    with pytest.raises(litellm.BadRequestError) as exc_info:
+    with pytest.raises(gateway.BadRequestError) as exc_info:
         _gemini_convert_messages_with_history(messages, model="gemini-1.5-pro")
     assert "'url' field is missing inside" in str(exc_info.value)
 
@@ -36,7 +36,7 @@ def test_explicit_null_image_url_raises_bad_request_error():
         List[AllMessageValues],
         [{"role": "user", "content": [{"type": "image_url", "image_url": None}]}],
     )
-    with pytest.raises(litellm.BadRequestError) as exc_info:
+    with pytest.raises(gateway.BadRequestError) as exc_info:
         _gemini_convert_messages_with_history(messages, model="gemini-1.5-pro")
     assert "'image_url' field is missing" in str(exc_info.value)
 
@@ -47,6 +47,6 @@ def test_empty_dict_image_url_raises_bad_request_error():
         List[AllMessageValues],
         [{"role": "user", "content": [{"type": "image_url", "image_url": {}}]}],
     )
-    with pytest.raises(litellm.BadRequestError) as exc_info:
+    with pytest.raises(gateway.BadRequestError) as exc_info:
         _gemini_convert_messages_with_history(messages, model="gemini-1.5-pro")
     assert "'url' field is missing inside" in str(exc_info.value)

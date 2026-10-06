@@ -3,7 +3,7 @@ import asyncio
 import aiohttp
 import time
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._uuid import uuid
 
 """
@@ -155,7 +155,7 @@ def compute_expected_spend(responses) -> float:
     total = 0.0
     for r in responses:
         usage = r.usage
-        prompt_cost, completion_cost = litellm.cost_per_token(
+        prompt_cost, completion_cost = gateway.cost_per_token(
             model=UPSTREAM_MODEL,
             prompt_tokens=usage.prompt_tokens,
             completion_tokens=usage.completion_tokens,

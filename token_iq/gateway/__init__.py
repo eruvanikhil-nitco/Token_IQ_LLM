@@ -2321,9 +2321,9 @@ def __getattr__(name: str) -> Any:
         if "_service_logger" not in _globals:
             # Import the module lazily
             import token_iq.gateway._service_logger
-            from token_iq import gateway as litellm
+            from token_iq import gateway
 
-            _globals["_service_logger"] = litellm._service_logger
+            _globals["_service_logger"] = gateway._service_logger
         return _globals["_service_logger"]
 
     # Lazy load evals module functions

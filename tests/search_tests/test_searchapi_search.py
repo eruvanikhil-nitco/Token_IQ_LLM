@@ -234,9 +234,9 @@ class TestSearchAPIIntegration:
         Test a real search request to SearchAPI.io.
         This test is skipped if SEARCHAPI_API_KEY is not set.
         """
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
-        response = litellm.search(
+        response = gateway.search(
             query="Python programming", search_provider="searchapi", max_results=5
         )
 

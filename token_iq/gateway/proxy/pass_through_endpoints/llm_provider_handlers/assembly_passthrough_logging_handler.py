@@ -9,7 +9,7 @@ from urllib.parse import urlparse
 import httpx
 from typing_extensions import TypedDict
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
 from token_iq.gateway.core_utils.litellm_logging import (
@@ -253,7 +253,7 @@ class AssemblyAIPassthroughLoggingHandler:
         try:
             # First try with the provided speech model
             try:
-                model_info = litellm.get_model_info(
+                model_info = gateway.get_model_info(
                     model=speech_model,
                     custom_llm_provider="assemblyai",
                 )
@@ -264,7 +264,7 @@ class AssemblyAIPassthroughLoggingHandler:
 
             # Fallback to assemblyai/nano if speech model info not found
             try:
-                model_info = litellm.get_model_info(
+                model_info = gateway.get_model_info(
                     model="assemblyai/nano",
                     custom_llm_provider="assemblyai",
                 )

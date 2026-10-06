@@ -277,12 +277,12 @@ class TestProviderConfigManagerAzureAnthropicMessages:
 
     def test_get_provider_anthropic_messages_config_returns_azure_config(self):
         """Test that ProviderConfigManager returns AzureAnthropicMessagesConfig for azure_ai provider with claude model"""
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.utils import ProviderConfigManager
 
         config = ProviderConfigManager.get_provider_anthropic_messages_config(
             model="claude-sonnet-4-5_gb_20250929",
-            provider=litellm.LlmProviders.AZURE_AI,
+            provider=gateway.LlmProviders.AZURE_AI,
         )
 
         assert config is not None
@@ -290,13 +290,13 @@ class TestProviderConfigManagerAzureAnthropicMessages:
 
     def test_get_provider_anthropic_messages_config_case_insensitive_model_name(self):
         """Test that model name check is case insensitive"""
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.utils import ProviderConfigManager
 
         # Test with uppercase CLAUDE
         config = ProviderConfigManager.get_provider_anthropic_messages_config(
             model="CLAUDE-SONNET-4-5",
-            provider=litellm.LlmProviders.AZURE_AI,
+            provider=gateway.LlmProviders.AZURE_AI,
         )
 
         assert config is not None
@@ -306,12 +306,12 @@ class TestProviderConfigManagerAzureAnthropicMessages:
         self,
     ):
         """Test that ProviderConfigManager returns None for non-claude model on azure_ai"""
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.utils import ProviderConfigManager
 
         config = ProviderConfigManager.get_provider_anthropic_messages_config(
             model="gpt-4o",
-            provider=litellm.LlmProviders.AZURE_AI,
+            provider=gateway.LlmProviders.AZURE_AI,
         )
 
         assert config is None
@@ -324,7 +324,7 @@ def test_messages_thinking_shape_follows_exact_azure_entry_flag(local_model_cost
     ``azure_ai/claude-opus-4-8`` entry beats the unmodified ``anthropic`` entry.
     With the inherited ``"anthropic"`` provider default the flip was ignored and
     the transform kept emitting ``thinking.type='adaptive'``."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     config = AzureAnthropicMessagesConfig()
 
@@ -345,10 +345,10 @@ def test_messages_thinking_shape_follows_exact_azure_entry_flag(local_model_cost
     assert result.get("output_config") == {"effort": "medium"}
 
     monkeypatch.setitem(
-        litellm.model_cost["azure_ai/claude-opus-4-8"], "supports_adaptive_thinking", False
+        gateway.model_cost["azure_ai/claude-opus-4-8"], "supports_adaptive_thinking", False
     )
-    litellm.get_model_info.cache_clear()
-    assert litellm.model_cost["claude-opus-4-8"]["supports_adaptive_thinking"] is True
+    gateway.get_model_info.cache_clear()
+    assert gateway.model_cost["claude-opus-4-8"]["supports_adaptive_thinking"] is True
 
     flipped = transform()
     thinking = flipped.get("thinking")
@@ -448,10 +448,10 @@ def test_azure_claude_4_8_plus_cost_map_entries_carry_mid_conversation_system_fl
     cache. Every mapped azure_ai entry the rule matches must carry the flag."""
     import re
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     cost_map_path = os.path.join(
-        os.path.dirname(litellm.__file__), "model_prices_and_context_window_backup.json"
+        os.path.dirname(gateway.__file__), "model_prices_and_context_window_backup.json"
     )
     with open(cost_map_path) as f:
         cost_map = json.load(f)

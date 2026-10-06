@@ -4,7 +4,7 @@ from typing import Final
 
 from pydantic import BaseModel, ConfigDict, TypeAdapter, ValidationError
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.types.utils import CostBreakdown
 
@@ -33,10 +33,10 @@ _GUARDRAIL_COST_ENTRY_ADAPTER: Final[TypeAdapter[GuardrailCostEntry]] = TypeAdap
 def _bedrock_guardrail_pricing(aws_region_name: str | None) -> GuardrailPricing | None:
     regional_key: Final = f"bedrock/{aws_region_name}/guardrails" if aws_region_name else None
     for key in (regional_key, BEDROCK_GUARDRAIL_PRICING_KEY):
-        if key is None or key not in litellm.model_cost:
+        if key is None or key not in gateway.model_cost:
             continue
         try:
-            return GuardrailPricing.model_validate(litellm.model_cost[key])
+            return GuardrailPricing.model_validate(gateway.model_cost[key])
         except ValidationError as e:
             verbose_logger.warning("Ignoring malformed guardrail pricing entry %s: %s", key, e)
     return None

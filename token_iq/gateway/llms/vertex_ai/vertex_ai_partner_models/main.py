@@ -6,7 +6,7 @@ from typing import Final
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import LlmProviders
 from token_iq.gateway.types.llms.vertex_ai import VertexPartnerProvider
 from token_iq.gateway.utils import ModelResponse
@@ -169,7 +169,7 @@ class VertexAIPartnerModels(VertexBase):
 
             if "codestral" in model and litellm_params.get("text_completion") is True:
                 optional_params["model"] = model
-                text_completion_model_response: Final = litellm.TextCompletionResponse(stream=stream)
+                text_completion_model_response: Final = gateway.TextCompletionResponse(stream=stream)
                 return codestral_fim_completions.completion(
                     model=model,
                     messages=messages,
@@ -205,7 +205,7 @@ class VertexAIPartnerModels(VertexBase):
                     messages=messages,
                     api_base=api_base,
                     acompletion=acompletion,
-                    custom_prompt_dict=litellm.custom_prompt_dict,
+                    custom_prompt_dict=gateway.custom_prompt_dict,
                     model_response=model_response,
                     print_verbose=print_verbose,
                     optional_params=optional_params,

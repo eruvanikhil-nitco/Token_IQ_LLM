@@ -15,7 +15,7 @@ import httpx
 import pytest
 from openai import AsyncAzureOpenAI, AsyncOpenAI
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.integrations.custom_logger import CustomLogger
 
 
@@ -111,14 +111,14 @@ class _FakeAsyncAzureOpenAI(AsyncAzureOpenAI):
 @pytest.fixture
 def recorder(monkeypatch):
     recorder: Final = _PreCallRecorder()
-    monkeypatch.setattr(litellm, "callbacks", [recorder])
-    monkeypatch.setattr(litellm, "success_callback", [])
+    monkeypatch.setattr(gateway, "callbacks", [recorder])
+    monkeypatch.setattr(gateway, "success_callback", [])
     return recorder
 
 
 def test_async_speech_opens_an_llm_span(recorder):
     asyncio.run(
-        litellm.aspeech(
+        gateway.aspeech(
             model="openai/tts-1",
             input="hello",
             voice="alloy",
@@ -134,7 +134,7 @@ def test_azure_async_speech_opens_an_llm_span_without_api_base(recorder, monkeyp
     whole callback dispatch was skipped."""
     monkeypatch.delenv("AZURE_API_BASE", raising=False)
     asyncio.run(
-        litellm.aspeech(
+        gateway.aspeech(
             model="azure/tts-deployment",
             input="hello",
             voice="alloy",
@@ -152,7 +152,7 @@ def test_azure_async_speech_keeps_caller_headers_out_of_the_logged_body(recorder
     headers: Final = {"authorization": "Bearer caller-secret"}
     client: Final = _FakeAsyncAzureOpenAI()
     asyncio.run(
-        litellm.aspeech(
+        gateway.aspeech(
             model="azure/tts-deployment",
             input="hello",
             voice="alloy",
@@ -167,7 +167,7 @@ def test_azure_async_speech_keeps_caller_headers_out_of_the_logged_body(recorder
 
 def test_async_image_generation_opens_an_llm_span(recorder):
     asyncio.run(
-        litellm.aimage_generation(
+        gateway.aimage_generation(
             model="openai/dall-e-3",
             prompt="a cat",
             client=_FakeAsyncOpenAI(),
@@ -178,7 +178,7 @@ def test_async_image_generation_opens_an_llm_span(recorder):
 
 def test_async_moderation_opens_an_llm_span(recorder):
     asyncio.run(
-        litellm.amoderation(
+        gateway.amoderation(
             model="omni-moderation-latest",
             input="hello",
             client=_FakeAsyncOpenAI(base_url="https://gateway.example/v1"),

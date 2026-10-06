@@ -6,7 +6,7 @@ from openai.types.beta.assistant_deleted import AssistantDeleted
 
 load_dotenv()
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import create_thread, get_thread
 from token_iq.gateway.llms.openai.openai import (
     AssistantEventHandler,
@@ -271,10 +271,10 @@ async def test_get_assistants(provider, sync_mode, assistant_client):
     data = _request_data(provider, assistant_client)
 
     if sync_mode:
-        assistants = litellm.get_assistants(**data)
+        assistants = gateway.get_assistants(**data)
         assert isinstance(assistants, SyncCursorPage)
     else:
-        assistants = await litellm.aget_assistants(**data)
+        assistants = await gateway.aget_assistants(**data)
         assert isinstance(assistants, AsyncCursorPage)
 
 
@@ -292,12 +292,12 @@ async def test_create_delete_assistants(provider, sync_mode, assistant_client):
     )
 
     if sync_mode:
-        assistant = litellm.create_assistants(**data)
+        assistant = gateway.create_assistants(**data)
         assert isinstance(assistant, Assistant)
         assert assistant.instructions == ASSISTANT_INSTRUCTIONS
         assert assistant.id is not None
 
-        response = litellm.delete_assistant(
+        response = gateway.delete_assistant(
             **_request_data(
                 provider,
                 assistant_client,
@@ -306,12 +306,12 @@ async def test_create_delete_assistants(provider, sync_mode, assistant_client):
         )
         assert response.id == assistant.id
     else:
-        assistant = await litellm.acreate_assistants(**data)
+        assistant = await gateway.acreate_assistants(**data)
         assert isinstance(assistant, Assistant)
         assert assistant.instructions == ASSISTANT_INSTRUCTIONS
         assert assistant.id is not None
 
-        response = await litellm.adelete_assistant(
+        response = await gateway.adelete_assistant(
             **_request_data(
                 provider,
                 assistant_client,
@@ -328,7 +328,7 @@ async def _create_thread_litellm(sync_mode, provider, assistant_client) -> Threa
     if sync_mode:
         new_thread = create_thread(**data)
     else:
-        new_thread = await litellm.acreate_thread(**data)
+        new_thread = await gateway.acreate_thread(**data)
 
     assert isinstance(new_thread, Thread)
     return new_thread
@@ -351,7 +351,7 @@ async def test_get_thread_litellm(provider, sync_mode, assistant_client):
     if sync_mode:
         received_thread = get_thread(**data)
     else:
-        received_thread = await litellm.aget_thread(**data)
+        received_thread = await gateway.aget_thread(**data)
 
     assert isinstance(received_thread, Thread)
 
@@ -365,9 +365,9 @@ async def test_add_message_litellm(sync_mode, provider, assistant_client):
     data = _request_data(provider, assistant_client, thread_id=new_thread.id, **message)
 
     if sync_mode:
-        added_message = litellm.add_message(**data)
+        added_message = gateway.add_message(**data)
     else:
-        added_message = await litellm.a_add_message(**data)
+        added_message = await gateway.a_add_message(**data)
 
     assert isinstance(added_message, Message)
 
@@ -381,9 +381,9 @@ async def test_aarun_thread_litellm(
 ):
     get_assistants_data = _request_data(provider, assistant_client)
     if sync_mode:
-        assistants = litellm.get_assistants(**get_assistants_data)
+        assistants = gateway.get_assistants(**get_assistants_data)
     else:
-        assistants = await litellm.aget_assistants(**get_assistants_data)
+        assistants = await gateway.aget_assistants(**get_assistants_data)
 
     assistant_id = assistants.data[0].id
     new_thread = await _create_thread_litellm(sync_mode, provider, assistant_client)
@@ -394,37 +394,37 @@ async def test_aarun_thread_litellm(
     )
 
     if sync_mode:
-        added_message = litellm.add_message(**message_data)
+        added_message = gateway.add_message(**message_data)
         assert isinstance(added_message, Message)
 
         if is_streaming:
-            run = litellm.run_thread_stream(assistant_id=assistant_id, **thread_data)
+            run = gateway.run_thread_stream(assistant_id=assistant_id, **thread_data)
             with run as run:
                 assert isinstance(run, AssistantEventHandler)
                 run.until_done()
         else:
-            run = litellm.run_thread(
+            run = gateway.run_thread(
                 assistant_id=assistant_id, stream=is_streaming, **thread_data
             )
             assert run.status == "completed"
-            messages = litellm.get_messages(**thread_data)
+            messages = gateway.get_messages(**thread_data)
             assert isinstance(messages.data[0], Message)
     else:
-        added_message = await litellm.a_add_message(**message_data)
+        added_message = await gateway.a_add_message(**message_data)
         assert isinstance(added_message, Message)
 
         if is_streaming:
-            run = litellm.arun_thread_stream(assistant_id=assistant_id, **thread_data)
+            run = gateway.arun_thread_stream(assistant_id=assistant_id, **thread_data)
             async with run as run:
                 assert isinstance(run, AsyncAssistantEventHandler)
                 await run.until_done()
         else:
-            run = await litellm.arun_thread(
+            run = await gateway.arun_thread(
                 custom_llm_provider=provider,
                 thread_id=new_thread.id,
                 assistant_id=assistant_id,
                 client=assistant_client,
             )
             assert run.status == "completed"
-            messages = await litellm.aget_messages(**thread_data)
+            messages = await gateway.aget_messages(**thread_data)
             assert isinstance(messages.data[0], Message)

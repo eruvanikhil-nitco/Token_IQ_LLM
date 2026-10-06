@@ -12,7 +12,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.nvidia_nim.rerank.ranking_transformation import (
     NvidiaNimRankingConfig,
 )
@@ -163,7 +163,7 @@ async def test_nvidia_nim_ranking_endpoint_image_documents_and_top_n():
         "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=mock_response,
     ) as mock_post:
-        response = await litellm.arerank(
+        response = await gateway.arerank(
             model="nvidia_nim/ranking/nvidia/llama-nemotron-rerank-vl-1b-v2",
             query="which passage shows a cat?",
             documents=[IMAGE_DOC, TEXT_DOC],

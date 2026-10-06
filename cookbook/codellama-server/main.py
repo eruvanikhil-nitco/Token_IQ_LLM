@@ -1,7 +1,7 @@
 import traceback
 from flask import Flask, request, Response
 from flask_cors import CORS
-from token_iq import gateway as litellm
+from token_iq import gateway
 from util import handle_error
 from token_iq.gateway import completion
 import os
@@ -26,7 +26,7 @@ os.environ["PROMPTLAYER_API_KEY"] = (
 )
 
 # set callbacks
-litellm.success_callback = ["promptlayer"]
+gateway.success_callback = ["promptlayer"]
 ############ HELPER FUNCTIONS ###################################
 
 
@@ -89,7 +89,7 @@ def api_completion():
 @app.route("/get_models", methods=["POST"])
 def get_models():
     try:
-        return litellm.model_list
+        return gateway.model_list
     except Exception as e:
         traceback.print_exc()
         response = {"error": str(e)}

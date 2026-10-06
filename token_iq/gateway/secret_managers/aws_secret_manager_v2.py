@@ -20,7 +20,7 @@ from typing import Any, Final
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.core_utils.aws_partition import get_aws_dns_suffix
 from token_iq.gateway.llms.bedrock.base_aws_llm import BaseAWSLLM
@@ -106,8 +106,8 @@ class AWSSecretsManagerV2(BaseAWSLLM, BaseSecretManager):
                 # Remove None values
                 aws_kwargs = {k: v for k, v in aws_kwargs.items() if v is not None}
 
-            litellm.secret_manager_client = cls(**aws_kwargs)
-            litellm._key_management_system = KeyManagementSystem.AWS_SECRET_MANAGER
+            gateway.secret_manager_client = cls(**aws_kwargs)
+            gateway._key_management_system = KeyManagementSystem.AWS_SECRET_MANAGER
 
         except Exception as e:
             raise e

@@ -14,7 +14,7 @@ from concurrent.futures import ThreadPoolExecutor
 import httpx
 from dotenv import load_dotenv
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import Router
 from token_iq.gateway.router import Deployment, LiteLLM_Params
 from token_iq.gateway.types.router import ModelInfo
@@ -25,9 +25,9 @@ load_dotenv()
 @pytest.mark.parametrize("mode", ["all_responses", "fastest_response"])
 @pytest.mark.asyncio
 async def test_batch_completion_multiple_models(mode):
-    litellm.set_verbose = True
+    gateway.set_verbose = True
 
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "gpt-3.5-turbo",
@@ -86,9 +86,9 @@ async def test_batch_completion_fastest_response_unit_test():
 
     2 models -> 1 is cached, the other is a real llm api call => assert cached response always returned
     """
-    litellm.set_verbose = True
+    gateway.set_verbose = True
 
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "gpt-4",
@@ -123,10 +123,10 @@ async def test_batch_completion_fastest_response_unit_test():
 
 @pytest.mark.asyncio
 async def test_batch_completion_fastest_response_streaming():
-    litellm.set_verbose = True
-    litellm._turn_on_debug()
+    gateway.set_verbose = True
+    gateway._turn_on_debug()
 
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "gpt-3.5-turbo",
@@ -160,9 +160,9 @@ async def test_batch_completion_fastest_response_streaming():
 
 @pytest.mark.asyncio
 async def test_batch_completion_multiple_models_multiple_messages():
-    litellm.set_verbose = True
+    gateway.set_verbose = True
 
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "gpt-3.5-turbo",
@@ -191,7 +191,7 @@ async def test_batch_completion_multiple_models_multiple_messages():
     print("response from batches =", response)
     assert len(response) == 2
     assert len(response[0]) == 2
-    assert isinstance(response[0][0], litellm.ModelResponse)
+    assert isinstance(response[0][0], gateway.ModelResponse)
 
     # models_in_responses = []
     # for individual_response in response:

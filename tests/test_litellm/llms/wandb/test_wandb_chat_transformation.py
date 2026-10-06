@@ -9,7 +9,7 @@ Nebius AI Studio is an OpenAI-compatible provider with minor customizations.
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import completion
 from token_iq.gateway.llms.wandb.chat.transformation import WandbConfig
 
@@ -49,7 +49,7 @@ class TestWandbConfig:
         This test mocks the actual HTTP request to test the integration properly.
         """
 
-        litellm.disable_aiohttp_transport = (
+        gateway.disable_aiohttp_transport = (
             True  # since this uses respx, we need to set use_aiohttp_transport to False
         )
 

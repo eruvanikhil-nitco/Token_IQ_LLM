@@ -8,7 +8,7 @@ import pytest
 import pytest_asyncio
 from unittest.mock import patch
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import Router
 from token_iq.gateway.types.router import RetryPolicy
 from token_iq.gateway.integrations.custom_logger import CustomLogger
@@ -273,12 +273,12 @@ class TestNumRetriesNoneGuard:
         router.num_retries = None  # simulate update_settings(num_retries=None)
 
         async def failing_fn(*args, **kwargs):
-            raise litellm.RateLimitError(
+            raise gateway.RateLimitError(
                 message="boom", model="mock-model", llm_provider="openai"
             )
 
         with patch("asyncio.sleep", return_value=None):
-            with pytest.raises(litellm.RateLimitError):
+            with pytest.raises(gateway.RateLimitError):
                 await router.async_function_with_retries(
                     original_function=failing_fn,
                     model="mock-model",
@@ -298,12 +298,12 @@ class TestNumRetriesNoneGuard:
 
         async def failing_fn(*args, **kwargs):
             calls["n"] += 1
-            raise litellm.InternalServerError(
+            raise gateway.InternalServerError(
                 message="boom", model="mock-model", llm_provider="openai"
             )
 
         with patch("asyncio.sleep", return_value=None):
-            with pytest.raises(litellm.InternalServerError):
+            with pytest.raises(gateway.InternalServerError):
                 await router.async_function_with_retries(
                     original_function=failing_fn,
                     model="mock-model",
@@ -345,16 +345,16 @@ class TestNoProviderRetryAmplification:
                 json={"error": {"message": "boom", "type": "server_error"}},
             )
 
-        litellm.aclient_session = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+        gateway.aclient_session = httpx.AsyncClient(transport=httpx.MockTransport(handler))
         return counter
 
     @pytest_asyncio.fixture(autouse=True)
     async def _isolate_clients(self):
-        litellm.in_memory_llm_clients_cache.flush_cache()
+        gateway.in_memory_llm_clients_cache.flush_cache()
         yield
-        session = litellm.aclient_session
-        litellm.aclient_session = None
-        litellm.in_memory_llm_clients_cache.flush_cache()
+        session = gateway.aclient_session
+        gateway.aclient_session = None
+        gateway.in_memory_llm_clients_cache.flush_cache()
         if session is not None:
             await session.aclose()
 
@@ -367,7 +367,7 @@ class TestNoProviderRetryAmplification:
     async def _call_and_count(self, router: Router, **call_kwargs) -> int:
         counter = self._install_counting_upstream()
         with patch("asyncio.sleep", return_value=None):
-            with pytest.raises(litellm.InternalServerError):
+            with pytest.raises(gateway.InternalServerError):
                 await router.acompletion(
                     model="mock", messages=[{"role": "user", "content": "hi"}], **call_kwargs
                 )
@@ -386,7 +386,7 @@ class TestNoProviderRetryAmplification:
             f"https://amp-{num_retries}.local/v1", {"num_retries": num_retries}, num_retries=1
         )
         with patch("asyncio.sleep", return_value=None):
-            with pytest.raises(litellm.InternalServerError):
+            with pytest.raises(gateway.InternalServerError):
                 await router.acompletion(model="mock", messages=[{"role": "user", "content": "hi"}])
         assert counter["n"] == num_retries + 1
 
@@ -447,8 +447,8 @@ class TestNoProviderRetryAmplification:
         counter = self._install_counting_upstream()
         num_retries = 2
         with patch("asyncio.sleep", return_value=None):
-            with pytest.raises(litellm.InternalServerError):
-                await litellm.acompletion(
+            with pytest.raises(gateway.InternalServerError):
+                await gateway.acompletion(
                     model="openai/gpt-4o-mini",
                     api_base="https://direct.local/v1",
                     api_key="sk-fake",
@@ -483,11 +483,11 @@ class TestRequestNumRetriesBeatsGlobal:
 
     @pytest.fixture(autouse=True)
     def _restore_litellm_globals(self):
-        prev_num_retries = litellm.num_retries
-        prev_callbacks = litellm.callbacks
+        prev_num_retries = gateway.num_retries
+        prev_callbacks = gateway.callbacks
         yield
-        litellm.num_retries = prev_num_retries
-        litellm.callbacks = prev_callbacks
+        gateway.num_retries = prev_num_retries
+        gateway.callbacks = prev_callbacks
 
     @staticmethod
     def _router(global_num_retries):
@@ -507,14 +507,14 @@ class TestRequestNumRetriesBeatsGlobal:
 
     async def _count_attempts(self, *, global_num_retries, request_num_retries):
         counter = _AttemptCounter()
-        litellm.callbacks = [counter]
-        litellm.num_retries = global_num_retries
+        gateway.callbacks = [counter]
+        gateway.num_retries = global_num_retries
         router = self._router(global_num_retries)
         kwargs = {"model": "mock", "messages": [{"role": "user", "content": "hi"}]}
         if request_num_retries is not None:
             kwargs["num_retries"] = request_num_retries
         with patch("asyncio.sleep", return_value=None):
-            with pytest.raises(litellm.InternalServerError):
+            with pytest.raises(gateway.InternalServerError):
                 await router.acompletion(**kwargs)
         return counter.attempts
 
@@ -544,8 +544,8 @@ class TestRequestNumRetriesBeatsGlobal:
         exception, and is applied: deployment 2 -> 1 initial + 2 retries = 3 (not 1).
         """
         counter = _AttemptCounter()
-        litellm.callbacks = [counter]
-        litellm.num_retries = None
+        gateway.callbacks = [counter]
+        gateway.num_retries = None
         router = Router(
             model_list=[
                 {
@@ -561,7 +561,7 @@ class TestRequestNumRetriesBeatsGlobal:
             num_retries=0,
         )
         with patch("asyncio.sleep", return_value=None):
-            with pytest.raises(litellm.InternalServerError):
+            with pytest.raises(gateway.InternalServerError):
                 await router.acompletion(
                     model="mock", messages=[{"role": "user", "content": "hi"}]
                 )
@@ -584,11 +584,11 @@ class TestRequestNumRetriesBeatsDeployment:
 
     @pytest.fixture(autouse=True)
     def _restore_litellm_globals(self):
-        prev_num_retries = litellm.num_retries
-        prev_callbacks = litellm.callbacks
+        prev_num_retries = gateway.num_retries
+        prev_callbacks = gateway.callbacks
         yield
-        litellm.num_retries = prev_num_retries
-        litellm.callbacks = prev_callbacks
+        gateway.num_retries = prev_num_retries
+        gateway.callbacks = prev_callbacks
 
     @staticmethod
     def _router(*, global_num_retries, deployment_num_retries):
@@ -613,8 +613,8 @@ class TestRequestNumRetriesBeatsDeployment:
         mock_testing_rate_limit_error=False,
     ):
         counter = _AttemptCounter()
-        litellm.callbacks = [counter]
-        litellm.num_retries = global_num_retries
+        gateway.callbacks = [counter]
+        gateway.num_retries = global_num_retries
         router = self._router(
             global_num_retries=global_num_retries,
             deployment_num_retries=deployment_num_retries,
@@ -625,7 +625,7 @@ class TestRequestNumRetriesBeatsDeployment:
         if mock_testing_rate_limit_error:
             kwargs["mock_testing_rate_limit_error"] = True
         with patch("asyncio.sleep", return_value=None):
-            with pytest.raises((litellm.InternalServerError, litellm.RateLimitError)):
+            with pytest.raises((gateway.InternalServerError, gateway.RateLimitError)):
                 await router.acompletion(**kwargs)
         return counter.attempts
 
@@ -698,13 +698,13 @@ class TestDeploymentNumRetriesOnNonCompletionEntryPoints:
 
     @pytest.fixture(autouse=True)
     def _isolate(self):
-        prev = litellm.num_retries
-        litellm.num_retries = None
-        litellm.in_memory_llm_clients_cache.flush_cache()
+        prev = gateway.num_retries
+        gateway.num_retries = None
+        gateway.in_memory_llm_clients_cache.flush_cache()
         yield
-        litellm.num_retries = prev
-        litellm.aclient_session = None
-        litellm.in_memory_llm_clients_cache.flush_cache()
+        gateway.num_retries = prev
+        gateway.aclient_session = None
+        gateway.in_memory_llm_clients_cache.flush_cache()
 
     async def _upstream_count(self, label, deployment_num_retries=None, **call_kwargs):
         counter = {"n": 0}
@@ -713,8 +713,8 @@ class TestDeploymentNumRetriesOnNonCompletionEntryPoints:
             counter["n"] += 1
             return httpx.Response(500, headers={"retry-after": "0"}, json={"error": {"message": "boom"}})
 
-        litellm.aclient_session = httpx.AsyncClient(transport=httpx.MockTransport(handler))
-        litellm.in_memory_llm_clients_cache.flush_cache()
+        gateway.aclient_session = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+        gateway.in_memory_llm_clients_cache.flush_cache()
         litellm_params = {
             "model": "openai/dall-e-3",
             "api_key": "sk-fake",
@@ -727,7 +727,7 @@ class TestDeploymentNumRetriesOnNonCompletionEntryPoints:
             num_retries=0,
         )
         with patch("asyncio.sleep", return_value=None):
-            with pytest.raises(litellm.InternalServerError):
+            with pytest.raises(gateway.InternalServerError):
                 await router.aimage_generation(model="img", prompt="a cat", **call_kwargs)
         return counter["n"]
 

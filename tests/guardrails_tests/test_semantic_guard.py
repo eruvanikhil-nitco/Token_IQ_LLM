@@ -236,7 +236,7 @@ class TestContentFilterSqlInjectionTemplate:
 
     @pytest.fixture
     def sql_injection_guardrail(self):
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.proxy.guardrails.guardrail_hooks.litellm_content_filter.content_filter import (
             ContentFilterGuardrail,
         )
@@ -265,7 +265,7 @@ class TestContentFilterSqlInjectionTemplate:
         return ContentFilterGuardrail(
             guardrail_name="sql-injection-keyword-test",
             categories=categories,
-            event_hook=litellm.types.guardrails.GuardrailEventHooks.pre_call,
+            event_hook=gateway.types.guardrails.GuardrailEventHooks.pre_call,
         )
 
     # --- TRUE POSITIVES: always_block_keywords ---
@@ -488,7 +488,7 @@ class TestContentFilterPromptInjectionTemplate:
 
     @pytest.fixture
     def content_filter_guardrail(self):
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.proxy.guardrails.guardrail_hooks.litellm_content_filter.content_filter import (
             ContentFilterGuardrail,
         )
@@ -517,7 +517,7 @@ class TestContentFilterPromptInjectionTemplate:
         return ContentFilterGuardrail(
             guardrail_name="prompt-injection-keyword-test",
             categories=categories,
-            event_hook=litellm.types.guardrails.GuardrailEventHooks.pre_call,
+            event_hook=gateway.types.guardrails.GuardrailEventHooks.pre_call,
         )
 
     # --- TRUE POSITIVES: always_block_keywords ---

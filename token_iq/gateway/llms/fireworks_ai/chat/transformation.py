@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Any, Final, Literal, cast
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway._uuid import uuid
 from token_iq.gateway.constants import RESPONSE_FORMAT_TOOL_NAME
@@ -293,7 +293,7 @@ class FireworksAIConfig(FireworksAIMixin, OpenAIGPTConfig):
         supported_openai_params: Final = self.get_supported_openai_params(model=model)
         is_tools_set: Final = any(param == "tools" and value is not None for param, value in non_default_params.items())
         if non_default_params.get("thinking") is not None and non_default_params.get("reasoning_effort") is not None:
-            raise litellm.BadRequestError(
+            raise gateway.BadRequestError(
                 message=(
                     "Fireworks AI chat completions does not support specifying both "
                     "`thinking` and `reasoning_effort` in the same request."
@@ -478,7 +478,7 @@ class FireworksAIConfig(FireworksAIMixin, OpenAIGPTConfig):
                         if not isinstance(content, dict):
                             continue
                         if content.get("type") == "file":
-                            raise litellm.BadRequestError(
+                            raise gateway.BadRequestError(
                                 message=(
                                     "Fireworks AI chat completions does not support "
                                     "file content blocks. For PDFs, convert pages to "
@@ -490,7 +490,7 @@ class FireworksAIConfig(FireworksAIMixin, OpenAIGPTConfig):
                                 llm_provider="fireworks_ai",
                             )
                         if content.get("type") == "image_url" and supports_vision_value is False:
-                            raise litellm.BadRequestError(
+                            raise gateway.BadRequestError(
                                 message=(
                                     f"Fireworks AI model {model} does not support "
                                     "image inputs. Use a Fireworks vision model or "
@@ -521,7 +521,7 @@ class FireworksAIConfig(FireworksAIMixin, OpenAIGPTConfig):
 
     @classmethod
     def _get_fireworks_index(cls) -> list[tuple[str, dict]]:
-        model_cost: Final = litellm.model_cost
+        model_cost: Final = gateway.model_cost
         signature: Final = (id(model_cost), get_model_cost_mutation_generation())
         cached: Final = cls._fireworks_index_cache
         if cached is not None and cached[0] == signature[0] and cached[1] == signature[1]:
@@ -571,7 +571,7 @@ class FireworksAIConfig(FireworksAIMixin, OpenAIGPTConfig):
             f"fireworks_ai/accounts/fireworks/models/{short_name}",
         )
         for candidate_key in candidate_keys:
-            model_info = litellm.model_cost.get(candidate_key)
+            model_info = gateway.model_cost.get(candidate_key)
             if model_info is not None and model_info.get(capability) is not None:
                 return cast(bool | None, model_info.get(capability))
         return None
@@ -779,7 +779,7 @@ class FireworksAIConfig(FireworksAIMixin, OpenAIGPTConfig):
 
         base = api_base.rstrip("/")
         base = base.removesuffix("/v1")
-        response: Final = litellm.module_level_client.get(
+        response: Final = gateway.module_level_client.get(
             url=f"{base}/v1/accounts/{account_id}/models",
             headers={"Authorization": f"Bearer {api_key}"},
         )

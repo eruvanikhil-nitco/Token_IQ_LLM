@@ -1,6 +1,6 @@
 import os
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 import requests
 from bs4 import BeautifulSoup
 
@@ -190,9 +190,9 @@ def _check_if_model_name_in_pricing(
     output_cost_per_1k_tokens: str,
 ):
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-    litellm.model_cost = litellm.get_model_cost_map()
+    gateway.model_cost = gateway.get_model_cost_map()
 
-    for model, value in litellm.model_cost.items():
+    for model, value in gateway.model_cost.items():
         if model.startswith(bedrock_model_name):
             input_cost_per_token = (
                 _convert_str_to_float(input_cost_per_1k_tokens) / 1000

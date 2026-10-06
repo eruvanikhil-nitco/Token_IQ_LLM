@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Any, Final, Literal, cast
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
 from token_iq.gateway.llms.base_llm.google_genai.transformation import (
     BaseGoogleGenAIGenerateContentConfig,
@@ -169,7 +169,7 @@ class GoogleGenAIConfig(BaseGoogleGenAIGenerateContentConfig, VertexLLM):
             litellm_params.pop("api_key", None)
             or litellm_params.pop("gemini_api_key", None)
             or get_api_key_from_env()
-            or litellm.api_key
+            or gateway.api_key
         )
 
     def _get_common_auth_components(

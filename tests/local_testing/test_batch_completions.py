@@ -6,9 +6,9 @@ import traceback
 import pytest
 
 from openai import APITimeoutError as Timeout
-from token_iq import gateway as litellm
+from token_iq import gateway
 
-litellm.num_retries = 0
+gateway.num_retries = 0
 from token_iq.gateway import (
     batch_completion,
     batch_completion_models,
@@ -19,13 +19,13 @@ from token_iq.gateway import (
 # litellm.set_verbose=True
 
 
-TOLERATED_UPSTREAM_FAILURES = (Timeout, litellm.InternalServerError)
+TOLERATED_UPSTREAM_FAILURES = (Timeout, gateway.InternalServerError)
 
 
 def test_batch_completions():
     messages = [[{"role": "user", "content": "write a short poem"}] for _ in range(3)]
     model = "gpt-3.5-turbo"
-    litellm.set_verbose = True
+    gateway.set_verbose = True
 
     result = batch_completion(
         model=model,
@@ -77,7 +77,7 @@ def test_batch_completion_models_all_responses():
         assert len(responses) == 2
     except Timeout as e:
         pass
-    except litellm.APIError as e:
+    except gateway.APIError as e:
         pass
     except Exception as e:
         pytest.fail(f"An error occurred: {e}")

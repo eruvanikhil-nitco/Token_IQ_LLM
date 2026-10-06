@@ -4,7 +4,7 @@ import copy
 from collections.abc import Sequence
 from typing import Any, Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.core_utils.credential_accessor import CredentialAccessor
 from token_iq.gateway.proxy._types import SpecialModelNames, UserAPIKeyAuth
@@ -42,7 +42,7 @@ def get_provider_models(provider: str, litellm_params: LiteLLM_Params | None = N
     if provider == "*":
         return get_valid_models(litellm_params=litellm_params)
 
-    if provider in litellm.models_by_provider:
+    if provider in gateway.models_by_provider:
         provider_models: Final = get_valid_models(custom_llm_provider=provider, litellm_params=litellm_params)
         return provider_models
     return None

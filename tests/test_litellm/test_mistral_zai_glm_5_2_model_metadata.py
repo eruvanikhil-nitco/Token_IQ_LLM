@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.get_llm_provider_logic import get_llm_provider
 from token_iq.gateway.types.utils import PromptTokensDetailsWrapper, Usage
 from token_iq.gateway.utils import supports_prompt_caching, supports_reasoning
@@ -29,10 +29,10 @@ def local_model_cost_map(monkeypatch):
     """Force get_model_info to resolve against the in-repo cost map instead of the
     remote one fetched at import time, which still carries the pre-merge pricing."""
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map())
-    litellm.get_model_info.cache_clear()
+    monkeypatch.setattr(gateway, "model_cost", gateway.get_model_cost_map())
+    gateway.get_model_info.cache_clear()
     yield
-    litellm.get_model_info.cache_clear()
+    gateway.get_model_info.cache_clear()
 
 
 @pytest.mark.parametrize("model", GLM_5_2_MODELS)
@@ -70,7 +70,7 @@ def test_zai_glm_5_2_capabilities_are_visible_to_callers(local_model_cost_map, m
     assert supports_reasoning(model=model) is True
     assert supports_prompt_caching(model=model) is True
 
-    info = litellm.get_model_info(model=model)
+    info = gateway.get_model_info(model=model)
     assert info["max_input_tokens"] == 1048576
     assert info["max_output_tokens"] == 131072
 
@@ -86,7 +86,7 @@ def test_cached_prompt_tokens_bill_at_the_cached_rate(local_model_cost_map, mode
         prompt_tokens_details=PromptTokensDetailsWrapper(cached_tokens=20992),
     )
 
-    prompt_cost, completion_cost = litellm.cost_per_token(
+    prompt_cost, completion_cost = gateway.cost_per_token(
         model=model, usage_object=usage, custom_llm_provider="mistral"
     )
 

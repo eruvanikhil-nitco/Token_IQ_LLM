@@ -2,7 +2,7 @@ import importlib
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.bedrock.audio_transcription import BedrockAudioTranscriptionRustDispatch
 
 rust_bridge = importlib.import_module("token_iq.gateway.rust_bridge.transcription")
@@ -124,7 +124,7 @@ def test_bedrock_transcription_uses_rust_only_path() -> None:
         atranscription=None,
     )
     try:
-        response = litellm.transcription(
+        response = gateway.transcription(
             model="bedrock/mistral.voxtral-mini-3b-2507",
             file=("audio.wav", b"audio", "audio/wav"),
         )
@@ -141,7 +141,7 @@ async def test_bedrock_atranscription_uses_rust_only_path() -> None:
 
     rust_bridge.configure_rust_transcription(transcription=None, atranscription=rust_response)
     try:
-        response = await litellm.atranscription(
+        response = await gateway.atranscription(
             model="bedrock/mistral.voxtral-mini-3b-2507",
             file=("audio.wav", b"audio", "audio/wav"),
         )

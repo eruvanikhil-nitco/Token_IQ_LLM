@@ -6,7 +6,7 @@ from typing import Any, Final, Literal
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler, get_async_httpx_client
 from token_iq.gateway.llms.vertex_ai.common_utils import get_vertex_base_url
@@ -32,7 +32,7 @@ class VertexFineTuningAPI(VertexLLM):
     def __init__(self) -> None:
         super().__init__()
         self.async_handler = get_async_httpx_client(
-            llm_provider=litellm.LlmProviders.VERTEX_AI,
+            llm_provider=gateway.LlmProviders.VERTEX_AI,
             params={"timeout": 600.0},
         )
 

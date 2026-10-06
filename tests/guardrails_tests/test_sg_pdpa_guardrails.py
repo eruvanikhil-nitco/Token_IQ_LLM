@@ -18,7 +18,7 @@ Each sub-guardrail validates:
 import os
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy.guardrails.guardrail_hooks.litellm_content_filter.content_filter import (
     ContentFilterGuardrail,
 )
@@ -53,7 +53,7 @@ def _make_guardrail(yaml_filename: str, category_name: str) -> ContentFilterGuar
     return ContentFilterGuardrail(
         guardrail_name=f"sg-pdpa-{category_name}-test",
         categories=categories,
-        event_hook=litellm.types.guardrails.GuardrailEventHooks.pre_call,
+        event_hook=gateway.types.guardrails.GuardrailEventHooks.pre_call,
     )
 
 

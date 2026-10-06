@@ -13,7 +13,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import DualCache, Router
 from token_iq.gateway.proxy._types import UserAPIKeyAuth
 from token_iq.gateway.proxy.hooks.dynamic_rate_limiter_v3 import (
@@ -53,7 +53,7 @@ async def test_priority_weight_allocation(monkeypatch):
     # Set up environment for premium feature
 
     # Set up priority reservations
-    litellm.priority_reservation = {"high": 0.9, "low": 0.1}
+    gateway.priority_reservation = {"high": 0.9, "low": 0.1}
 
     dual_cache = DualCache()
     handler = DynamicRateLimitHandler(internal_usage_cache=dual_cache)
@@ -133,7 +133,7 @@ async def test_concurrent_priority_requests(monkeypatch):
     # Set up environment for premium feature
 
     # Set up the exact scenario from the issue
-    litellm.priority_reservation = {"high": 0.9, "low": 0.1}
+    gateway.priority_reservation = {"high": 0.9, "low": 0.1}
 
     dual_cache = DualCache()
     handler = DynamicRateLimitHandler(internal_usage_cache=dual_cache)
@@ -218,7 +218,7 @@ async def test_100_concurrent_priority_requests(time_controller, monkeypatch):
     # Set up environment for premium feature
 
     # Set up priority reservations
-    litellm.priority_reservation = {"high": 0.9, "low": 0.1}
+    gateway.priority_reservation = {"high": 0.9, "low": 0.1}
 
     dual_cache = DualCache()
     handler = DynamicRateLimitHandler(internal_usage_cache=dual_cache, time_provider=time_controller.now)
@@ -362,7 +362,7 @@ async def test_concurrent_pre_call_hooks_stress(monkeypatch):
     """
     # Set up environment for premium feature
 
-    litellm.priority_reservation = {"premium": 0.8, "standard": 0.2}
+    gateway.priority_reservation = {"premium": 0.8, "standard": 0.2}
 
     dual_cache = DualCache()
     handler = DynamicRateLimitHandler(internal_usage_cache=dual_cache)
@@ -588,7 +588,7 @@ async def test_fake_calls_case_1_no_rate_limiting_at_capacity(monkeypatch):
     """
 
     # Set up priority reservations
-    litellm.priority_reservation = {"key_a": 0.75, "key_b": 0.25}
+    gateway.priority_reservation = {"key_a": 0.75, "key_b": 0.25}
 
     dual_cache = DualCache()
     handler = DynamicRateLimitHandler(internal_usage_cache=dual_cache)
@@ -705,7 +705,7 @@ async def test_fake_calls_case_2_priority_queue_during_saturation(monkeypatch):
     When total traffic exceeds capacity, rate limiting enforces priority reservations.
     """
 
-    litellm.priority_reservation = {"key_a": 0.75, "key_b": 0.25}
+    gateway.priority_reservation = {"key_a": 0.75, "key_b": 0.25}
 
     dual_cache = DualCache()
     handler = DynamicRateLimitHandler(internal_usage_cache=dual_cache)
@@ -829,8 +829,8 @@ async def test_fake_calls_case_3_spillover_capacity_default_keys(monkeypatch):
     Tests spillover behavior where default keys share remaining capacity.
     """
 
-    litellm.priority_reservation = {"key_a": 0.75}
-    litellm.priority_reservation_settings.default_priority = 0.25
+    gateway.priority_reservation = {"key_a": 0.75}
+    gateway.priority_reservation_settings.default_priority = 0.25
 
     dual_cache = DualCache()
     handler = DynamicRateLimitHandler(internal_usage_cache=dual_cache)
@@ -954,7 +954,7 @@ async def test_fake_calls_case_4_over_allocated_with_normalization(monkeypatch):
     - This test verifies normalization works and total capacity is reasonably bounded
     """
 
-    litellm.priority_reservation = {"key_a": 0.60, "key_b": 0.80}
+    gateway.priority_reservation = {"key_a": 0.60, "key_b": 0.80}
 
     dual_cache = DualCache()
     handler = DynamicRateLimitHandler(internal_usage_cache=dual_cache)
@@ -1082,8 +1082,8 @@ async def test_fake_calls_case_5_default_value_priority_reservation(monkeypatch)
     Tests complex scenario with explicit priorities and default priority.
     """
 
-    litellm.priority_reservation = {"key_a": 0.50, "key_b": 0.20, "key_c": 0.05}
-    litellm.priority_reservation_settings.default_priority = 0.05
+    gateway.priority_reservation = {"key_a": 0.50, "key_b": 0.20, "key_c": 0.05}
+    gateway.priority_reservation_settings.default_priority = 0.05
 
     dual_cache = DualCache()
     handler = DynamicRateLimitHandler(internal_usage_cache=dual_cache)
@@ -1201,8 +1201,8 @@ async def test_default_priority_shared_pool(monkeypatch):
     - NOT get 25 RPM each (which would be 75 RPM total)
     """
 
-    litellm.priority_reservation = {"prod": 0.75}
-    litellm.priority_reservation_settings.default_priority = 0.25
+    gateway.priority_reservation = {"prod": 0.75}
+    gateway.priority_reservation_settings.default_priority = 0.25
 
     dual_cache = DualCache()
     handler = DynamicRateLimitHandler(internal_usage_cache=dual_cache)
@@ -1281,7 +1281,7 @@ async def test_async_log_success_event_increments_by_actual_tokens(monkeypatch):
 
     from token_iq.gateway.types.utils import ModelResponse, Usage
 
-    litellm.priority_reservation = {"dev": 0.1, "prod": 0.9}
+    gateway.priority_reservation = {"dev": 0.1, "prod": 0.9}
 
     dual_cache = DualCache()
     handler = DynamicRateLimitHandler(internal_usage_cache=dual_cache)
@@ -1376,8 +1376,8 @@ async def test_saturation_check_cache_ttl_configuration(monkeypatch):
     """
 
     # Set a short TTL for testing (5 seconds)
-    original_ttl = litellm.priority_reservation_settings.saturation_check_cache_ttl
-    litellm.priority_reservation_settings.saturation_check_cache_ttl = 5
+    original_ttl = gateway.priority_reservation_settings.saturation_check_cache_ttl
+    gateway.priority_reservation_settings.saturation_check_cache_ttl = 5
 
     try:
         dual_cache = DualCache()
@@ -1439,7 +1439,7 @@ async def test_saturation_check_cache_ttl_configuration(monkeypatch):
 
         # Test with different TTL value
         get_cache_calls.clear()
-        litellm.priority_reservation_settings.saturation_check_cache_ttl = 30
+        gateway.priority_reservation_settings.saturation_check_cache_ttl = 30
 
         await handler._get_saturation_value_from_cache(counter_key=counter_key)
 
@@ -1452,7 +1452,7 @@ async def test_saturation_check_cache_ttl_configuration(monkeypatch):
 
     finally:
         # Restore original TTL
-        litellm.priority_reservation_settings.saturation_check_cache_ttl = original_ttl
+        gateway.priority_reservation_settings.saturation_check_cache_ttl = original_ttl
 
 
 @pytest.mark.asyncio
@@ -1467,7 +1467,7 @@ async def test_async_log_success_event_uses_team_priority_from_auth_metadata(mon
 
     from token_iq.gateway.types.utils import ModelResponse, Usage
 
-    litellm.priority_reservation = {"team_priority": 0.8, "default": 0.2}
+    gateway.priority_reservation = {"team_priority": 0.8, "default": 0.2}
 
     dual_cache = DualCache()
     handler = DynamicRateLimitHandler(internal_usage_cache=dual_cache)
@@ -1559,7 +1559,7 @@ async def test_priority_429_includes_model_name_and_configured_limits(monkeypatc
     """
     from fastapi import HTTPException
 
-    litellm.priority_reservation = {"prod": 0.5}
+    gateway.priority_reservation = {"prod": 0.5}
 
     dual_cache = DualCache()
     handler = DynamicRateLimitHandler(internal_usage_cache=dual_cache)
@@ -1653,7 +1653,7 @@ async def test_tpm_only_model_enforces_priority_and_model_capacity(monkeypatch):
 
     from token_iq.gateway.types.utils import ModelResponse, Usage
 
-    litellm.priority_reservation = {"dev": 0.25, "prod": 0.5}
+    gateway.priority_reservation = {"dev": 0.25, "prod": 0.5}
 
     dual_cache = DualCache()
     handler = DynamicRateLimitHandler(internal_usage_cache=dual_cache)
@@ -1735,7 +1735,7 @@ def test_priority_reservation_follows_the_token_iq_plan_not_a_litellm_licence(mo
 
     monkeypatch.delenv("LITELLM_LICENSE", raising=False)
     monkeypatch.setattr(proxy_server, "premium_user", premium)
-    monkeypatch.setattr(litellm, "priority_reservation", {"high": 0.9})
+    monkeypatch.setattr(gateway, "priority_reservation", {"high": 0.9})
     handler = DynamicRateLimitHandler(internal_usage_cache=DualCache())
 
     expected = 0.9 if premium else _get_priority_settings().default_priority

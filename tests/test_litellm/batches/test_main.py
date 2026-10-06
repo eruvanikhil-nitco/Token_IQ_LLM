@@ -32,7 +32,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 import token_iq.gateway.batches.main as bm
 
 
@@ -175,7 +175,7 @@ def test_create__provider_config_routes_to_base_http_handler(seams):
 
 
 def test_create__unsupported_provider_raises_badrequest(seams):
-    with pytest.raises(litellm.exceptions.BadRequestError):
+    with pytest.raises(gateway.exceptions.BadRequestError):
         bm.create_batch(**CREATE_KW, custom_llm_provider="cohere")  # type: ignore[arg-type]
 
     for m in _all_seam_methods(seams, "create_batch"):
@@ -280,7 +280,7 @@ def test_retrieve__bedrock_model_invocation_job_arn(seams):
 
 
 def test_retrieve__unsupported_provider_raises_badrequest(seams):
-    with pytest.raises(litellm.exceptions.BadRequestError):
+    with pytest.raises(gateway.exceptions.BadRequestError):
         bm.retrieve_batch(batch_id="batch-1", custom_llm_provider="cohere")  # type: ignore[arg-type]
 
     for m in _all_seam_methods(seams, "retrieve_batch"):
@@ -327,7 +327,7 @@ def test_list__vertex_ai_dispatch(seams):
 
 def test_list__unsupported_provider_raises_badrequest(seams):
     # anthropic supports retrieve but NOT list - good negative case.
-    with pytest.raises(litellm.exceptions.BadRequestError):
+    with pytest.raises(gateway.exceptions.BadRequestError):
         bm.list_batches(custom_llm_provider="anthropic")  # type: ignore[arg-type]
 
     for m in _all_seam_methods(seams, "list_batches"):
@@ -369,7 +369,7 @@ def test_cancel__vertex_ai_dispatch(seams):
 
 
 def test_cancel__unsupported_provider_raises_badrequest(seams):
-    with pytest.raises(litellm.exceptions.BadRequestError):
+    with pytest.raises(gateway.exceptions.BadRequestError):
         bm.cancel_batch(batch_id="batch-1", custom_llm_provider="cohere")
 
     for m in _all_seam_methods(seams, "cancel_batch"):

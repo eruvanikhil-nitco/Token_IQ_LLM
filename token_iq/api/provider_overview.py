@@ -28,7 +28,7 @@ from typing import Final
 
 from pydantic import BaseModel, Field
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 # The daily table buckets by whole UTC day, so "today" here means the current UTC day
 # plus the previous one. Calling it 24h would overstate what the rollup can answer.
@@ -130,7 +130,7 @@ def _catalogue_entries() -> Mapping[str, Mapping[str, object]]:
     """Catalogue rows that name a provider, keyed by model name."""
     return {
         name: entry
-        for name, entry in litellm.model_cost.items()
+        for name, entry in gateway.model_cost.items()
         if isinstance(entry, dict) and isinstance(entry.get("litellm_provider"), str)
     }
 

@@ -2,7 +2,7 @@ import asyncio
 
 import pytest
 
-from token_iq import gateway as litellm  # noqa: E402,F401
+from token_iq import gateway  # noqa: E402,F401
 
 from tests._vcr_conftest_common import (  # noqa: E402,F401
     VerboseReporterState,

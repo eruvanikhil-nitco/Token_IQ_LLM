@@ -8,7 +8,7 @@ from typing import Any, Final, Protocol
 from fastapi import HTTPException, Request
 from pydantic import BaseModel
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway._uuid import uuid
 from token_iq.gateway.integrations.otel.model.config import is_otel_v2_enabled
@@ -156,12 +156,12 @@ async def _create_user_row(
 
 
 def get_new_internal_user_defaults(user_id: str, user_email: str | None = None) -> dict[str, object]:
-    user_info: Final = litellm.default_internal_user_params or {}
+    user_info: Final = gateway.default_internal_user_params or {}
 
     returned_dict: Final[SSOUserDefinedValues] = {
         "models": user_info.get("models") or [],
-        "max_budget": user_info.get("max_budget", litellm.max_internal_user_budget),
-        "budget_duration": user_info.get("budget_duration", litellm.internal_user_budget_duration),
+        "max_budget": user_info.get("max_budget", gateway.max_internal_user_budget),
+        "budget_duration": user_info.get("budget_duration", gateway.internal_user_budget_duration),
         "user_email": user_email or user_info.get("user_email", None),
         "user_id": user_id,
         "user_role": "internal_user",

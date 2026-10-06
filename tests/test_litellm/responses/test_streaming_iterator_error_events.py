@@ -20,7 +20,7 @@ from unittest.mock import Mock, patch
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.exceptions import MidStreamFallbackError
 from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
 from token_iq.gateway.llms.base_llm.responses.transformation import BaseResponsesAPIConfig
@@ -65,7 +65,7 @@ def test_maybe_raise_for_error_event_wraps_unknown_error_in_mid_stream_fallback(
     with pytest.raises(MidStreamFallbackError) as exc_info:
         iterator._maybe_raise_for_error_event(chunk)
     assert exc_info.value.status_code == 500
-    assert isinstance(exc_info.value.original_exception, litellm.APIError)
+    assert isinstance(exc_info.value.original_exception, gateway.APIError)
     assert exc_info.value.original_exception.status_code == 500
 
 
@@ -78,7 +78,7 @@ def test_maybe_raise_for_error_event_maps_rate_limit_code_to_429_mid_stream_fall
     assert exc_info.value.status_code == 429
     assert exc_info.value.generated_content == ""
     assert exc_info.value.is_pre_first_chunk is True
-    assert isinstance(exc_info.value.original_exception, litellm.APIError)
+    assert isinstance(exc_info.value.original_exception, gateway.APIError)
     assert exc_info.value.original_exception.status_code == 429
 
 
@@ -86,7 +86,7 @@ def test_maybe_raise_for_error_event_maps_invalid_request_type_to_400():
     """Client errors classified via the `type` field must raise APIError directly (no fallback)."""
     iterator = _make_iterator()
     chunk = _make_error_chunk("invalid_request_error", "invalid_prompt", "bad request")
-    with pytest.raises(litellm.APIError) as exc_info:
+    with pytest.raises(gateway.APIError) as exc_info:
         iterator._maybe_raise_for_error_event(chunk)
     assert exc_info.value.status_code == 400
     assert not isinstance(exc_info.value, MidStreamFallbackError)
@@ -98,7 +98,7 @@ def test_maybe_raise_for_error_event_maps_context_length_code_to_400():
     chunk = Mock()
     chunk.type = "error"
     chunk.error = {"code": "context_length_exceeded", "message": "too long"}
-    with pytest.raises(litellm.APIError) as exc_info:
+    with pytest.raises(gateway.APIError) as exc_info:
         iterator._maybe_raise_for_error_event(chunk)
     assert exc_info.value.status_code == 400
     assert not isinstance(exc_info.value, MidStreamFallbackError)
@@ -185,7 +185,7 @@ async def test_async_iterator_raises_mid_stream_fallback_on_rate_limit_error_eve
     assert exc_info.value.status_code == 429
     assert exc_info.value.is_pre_first_chunk is True
     assert exc_info.value.generated_content == ""
-    assert isinstance(exc_info.value.original_exception, litellm.APIError)
+    assert isinstance(exc_info.value.original_exception, gateway.APIError)
     assert exc_info.value.original_exception.status_code == 429
 
 
@@ -264,7 +264,7 @@ def test_handle_logging_failed_response_maps_rate_limit_to_429():
     ):
         iterator._handle_logging_failed_response()
     logged_exception = mock_run_async.call_args.kwargs["exception"]
-    assert isinstance(logged_exception, litellm.APIError)
+    assert isinstance(logged_exception, gateway.APIError)
     assert logged_exception.status_code == 429
     assert "throttled" in str(logged_exception)
 
@@ -281,7 +281,7 @@ def test_handle_logging_failed_response_maps_type_field_to_400():
     ):
         iterator._handle_logging_failed_response()
     logged_exception = mock_run_async.call_args.kwargs["exception"]
-    assert isinstance(logged_exception, litellm.APIError)
+    assert isinstance(logged_exception, gateway.APIError)
     assert logged_exception.status_code == 400
 
 
@@ -301,7 +301,7 @@ def test_handle_logging_failed_response_records_usage_and_cost():
     ):
         iterator._handle_logging_failed_response()
     combined_usage = iterator.logging_obj.model_call_details["combined_usage_object"]
-    assert isinstance(combined_usage, litellm.Usage)
+    assert isinstance(combined_usage, gateway.Usage)
     assert combined_usage.prompt_tokens == 10
     assert combined_usage.completion_tokens == 5
     assert combined_usage.total_tokens == 15
@@ -356,7 +356,7 @@ def test_sync_iterator_raises_mid_stream_fallback_on_rate_limit_error_event():
         for _ in iterator:
             pass
     assert exc_info.value.status_code == 429
-    assert isinstance(exc_info.value.original_exception, litellm.APIError)
+    assert isinstance(exc_info.value.original_exception, gateway.APIError)
 
 
 def test_every_openai_sdk_response_error_code_has_explicit_status_mapping():
@@ -412,7 +412,7 @@ def test_maybe_raise_for_response_failed_event_maps_image_code_to_400():
     chunk = Mock()
     chunk.type = "response.failed"
     chunk.response = mock_response_obj
-    with pytest.raises(litellm.APIError) as exc_info:
+    with pytest.raises(gateway.APIError) as exc_info:
         iterator._maybe_raise_for_error_event(chunk)
     assert exc_info.value.status_code == 400
     assert not isinstance(exc_info.value, MidStreamFallbackError)

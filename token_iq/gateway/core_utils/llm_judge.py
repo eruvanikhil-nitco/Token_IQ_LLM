@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from functools import lru_cache
 from typing import TYPE_CHECKING, Final, Literal
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 if TYPE_CHECKING:
     from token_iq.gateway import Router
@@ -70,7 +70,7 @@ def _provider_qualified(model: str) -> str | None:
     correctly-spelled public model unresolvable.
     """
     try:
-        stripped, provider, _, _ = litellm.get_llm_provider(model=model)
+        stripped, provider, _, _ = gateway.get_llm_provider(model=model)
     except Exception:  # noqa: BLE001  # an unmapped name has no provider, which is the answer
         return None
     return f"{provider}/{stripped}" if provider and stripped else None
@@ -135,4 +135,4 @@ async def judge_acompletion(
             drop_params=True,
             **params,
         )
-    return await litellm.acompletion(model=judge_model, messages=messages, num_retries=0, drop_params=True, **params)
+    return await gateway.acompletion(model=judge_model, messages=messages, num_retries=0, drop_params=True, **params)

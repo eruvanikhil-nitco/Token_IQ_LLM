@@ -21,7 +21,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
 from token_iq.gateway.core_utils.realtime_streaming import RealTimeStreaming
 from token_iq.gateway.types.guardrails import GuardrailEventHooks
@@ -133,7 +133,7 @@ async def test_text_message_blocked_by_guardrail_no_ai_response():
     import websockets
 
     guardrail = _make_guardrail(GuardrailEventHooks.pre_call)
-    litellm.callbacks = [guardrail]
+    gateway.callbacks = [guardrail]
 
     client_events: List[dict] = []
 
@@ -220,7 +220,7 @@ async def test_text_message_blocked_by_guardrail_no_ai_response():
             assert BLOCKED_PHRASE not in real_ai_text, f"Blocked phrase leaked into AI response: {real_ai_text!r}"
 
     finally:
-        litellm.callbacks = []
+        gateway.callbacks = []
 
 
 @pytest.mark.asyncio
@@ -232,7 +232,7 @@ async def test_voice_transcript_blocked_by_guardrail():
     from websockets.exceptions import ConnectionClosed
 
     guardrail = _make_guardrail(GuardrailEventHooks.realtime_input_transcription)
-    litellm.callbacks = [guardrail]
+    gateway.callbacks = [guardrail]
 
     client_events: List[dict] = []
 
@@ -282,7 +282,7 @@ async def test_voice_transcript_blocked_by_guardrail():
         # (assertion #1) is the primary signal that the blocked content was handled.
 
     finally:
-        litellm.callbacks = []
+        gateway.callbacks = []
 
 
 @pytest.mark.asyncio
@@ -294,7 +294,7 @@ async def test_clean_text_message_passes_through_to_openai():
     import websockets
 
     guardrail = _make_guardrail(GuardrailEventHooks.pre_call)
-    litellm.callbacks = [guardrail]
+    gateway.callbacks = [guardrail]
 
     client_events: List[dict] = []
 
@@ -347,4 +347,4 @@ async def test_clean_text_message_passes_through_to_openai():
         )
 
     finally:
-        litellm.callbacks = []
+        gateway.callbacks = []

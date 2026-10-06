@@ -7,7 +7,7 @@ import pytest
 from urllib.parse import urlparse, parse_qs
 from unittest.mock import AsyncMock, patch, MagicMock
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from tests.search_tests.base_search_unit_tests import BaseSearchTest
 
 
@@ -51,7 +51,7 @@ class TestBraveSearch(BaseSearchTest):
             mock_get.return_value = mock_response
 
             # Make the search call
-            response = await litellm.asearch(
+            response = await gateway.asearch(
                 query="Brave browser features",
                 search_provider="brave",
                 max_results=5,

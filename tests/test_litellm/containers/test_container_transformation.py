@@ -6,7 +6,7 @@ import httpx
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.openai.containers.transformation import OpenAIContainerConfig
 from token_iq.gateway.llms.base_llm.containers.transformation import BaseContainerConfig
 from token_iq.gateway.types.containers.main import (
@@ -341,7 +341,7 @@ class TestOpenAIContainerTransformation:
         """Test that container create response includes code interpreter cost calculation."""
         # Force use of local model cost map for CI/CD consistency
         monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-        litellm.model_cost = litellm.get_model_cost_map()
+        gateway.model_cost = gateway.get_model_cost_map()
 
         from token_iq.gateway.core_utils.llm_cost_calc.tool_call_cost_tracking import (
             StandardBuiltInToolCostTracking,

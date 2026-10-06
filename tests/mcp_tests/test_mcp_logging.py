@@ -8,7 +8,7 @@ from typing import Optional
 from unittest.mock import AsyncMock, patch
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.types.utils import StandardLoggingPayload
 from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.proxy._experimental.mcp_server.server import (
@@ -60,7 +60,7 @@ def _set_authorized_user(server_ids):
 @pytest.mark.asyncio
 async def test_mcp_cost_tracking():
     # Create a mock tool call result
-    litellm.logging_callback_manager._reset_all_callbacks()
+    gateway.logging_callback_manager._reset_all_callbacks()
     mock_result = CallToolResult(
         content=[TextContent(type="text", text="Test response")], isError=False
     )
@@ -108,7 +108,7 @@ async def test_mcp_cost_tracking():
 
         # Set up the test logger
         test_logger = TestMCPLogger()
-        litellm.callbacks = [test_logger]
+        gateway.callbacks = [test_logger]
 
         # Initialize the tool mapping
         await local_mcp_server_manager._initialize_tool_name_to_mcp_server_name_mapping()
@@ -185,7 +185,7 @@ async def test_mcp_cost_tracking():
 async def test_mcp_cost_tracking_per_tool():
     """Test that individual tool costs are tracked correctly when tool_name_to_cost_per_query is configured"""
     # Create a mock tool call result
-    litellm.logging_callback_manager._reset_all_callbacks()
+    gateway.logging_callback_manager._reset_all_callbacks()
     mock_result = CallToolResult(
         content=[TextContent(type="text", text="Test response")], isError=False
     )
@@ -245,7 +245,7 @@ async def test_mcp_cost_tracking_per_tool():
 
         # Set up the test logger
         test_logger = TestMCPLogger()
-        litellm.callbacks = [test_logger]
+        gateway.callbacks = [test_logger]
 
         # Initialize the tool mapping
         await local_mcp_server_manager._initialize_tool_name_to_mcp_server_name_mapping()
@@ -366,7 +366,7 @@ class MCPLoggerHook(TestMCPLogger):
 @pytest.mark.asyncio
 async def test_mcp_tool_call_hook():
     # Create a mock tool call result
-    litellm.logging_callback_manager._reset_all_callbacks()
+    gateway.logging_callback_manager._reset_all_callbacks()
     mock_result = CallToolResult(
         content=[TextContent(type="text", text="Test response")], isError=False
     )
@@ -409,7 +409,7 @@ async def test_mcp_tool_call_hook():
 
         # Set up the test logger
         test_logger = MCPLoggerHook()
-        litellm.callbacks = [test_logger]
+        gateway.callbacks = [test_logger]
 
         # Initialize the tool mapping
         await local_mcp_server_manager._initialize_tool_name_to_mcp_server_name_mapping()

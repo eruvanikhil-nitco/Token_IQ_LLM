@@ -11,7 +11,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from fastapi import HTTPException
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.caching.caching import DualCache
 from token_iq.gateway.llms.base_llm.guardrail_translation.utils import (
     filter_messages_by_skip_flags,
@@ -112,7 +112,7 @@ class TestFilterSkippedMessages:
         assert was_skipped is True
 
     def test_keeps_system_when_flag_false_and_no_global_default(self, monkeypatch):
-        monkeypatch.setattr(litellm, "skip_system_message_in_guardrail", False)
+        monkeypatch.setattr(gateway, "skip_system_message_in_guardrail", False)
         guardrail = LakeraAIGuardrail(api_key="test_key", skip_system_message_in_guardrail=False)
         filtered, was_skipped = guardrail._filter_skipped_messages([SYSTEM_MSG, USER_MSG])
         assert list(filtered) == [SYSTEM_MSG, USER_MSG]
@@ -135,7 +135,7 @@ class TestFilterSkippedMessages:
         assert was_skipped is True
 
     def test_global_default_used_when_per_instance_flag_is_none(self, monkeypatch):
-        monkeypatch.setattr(litellm, "skip_system_message_in_guardrail", True)
+        monkeypatch.setattr(gateway, "skip_system_message_in_guardrail", True)
         guardrail = LakeraAIGuardrail(api_key="test_key")
         assert guardrail.skip_system_message_in_guardrail is None
         filtered, was_skipped = guardrail._filter_skipped_messages([SYSTEM_MSG, USER_MSG])

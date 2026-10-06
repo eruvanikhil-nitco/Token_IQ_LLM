@@ -15,7 +15,7 @@ from token_iq.gateway.types.guardrails import GuardrailEventHooks
 
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
 from token_iq.gateway.proxy.auth.auth_utils import (
     check_complete_credentials,
@@ -102,7 +102,7 @@ async def test_traceparent_not_added_by_default(endpoint, mock_request):
     from token_iq.gateway.integrations.opentelemetry import OpenTelemetry
 
     otel_logger = OpenTelemetry()
-    setattr(litellm.proxy.proxy_server, "open_telemetry_logger", otel_logger)
+    setattr(gateway.proxy.proxy_server, "open_telemetry_logger", otel_logger)
 
     mock_request.url.path = endpoint
     user_api_key_dict = UserAPIKeyAuth(
@@ -120,7 +120,7 @@ async def test_traceparent_not_added_by_default(endpoint, mock_request):
     _extra_headers = data.get("extra_headers") or {}
     assert "traceparent" not in _extra_headers
 
-    setattr(litellm.proxy.proxy_server, "open_telemetry_logger", None)
+    setattr(gateway.proxy.proxy_server, "open_telemetry_logger", None)
 
 
 @pytest.mark.parametrize(
@@ -309,7 +309,7 @@ def test_dynamic_logging_metadata_ignores_env_references_from_key_metadata(
 ):
     monkeypatch.setenv("LANGFUSE_SECRET_KEY_TEMP", "server-side-secret")
     monkeypatch.setattr(
-        litellm.utils,
+        gateway.utils,
         "get_secret",
         lambda *args, **kwargs: pytest.fail("get_secret should not be called"),
     )
@@ -569,7 +569,7 @@ def test_add_litellm_data_for_backend_llm_call(
 def test_foward_litellm_user_info_to_backend_llm_call():
     import json
 
-    litellm.add_user_information_to_llm_headers = True
+    gateway.add_user_information_to_llm_headers = True
 
     from token_iq.gateway.proxy._types import UserAPIKeyAuth
     from token_iq.gateway.proxy.litellm_pre_call_utils import LiteLLMProxyRequestSetup
@@ -609,7 +609,7 @@ def test_update_internal_user_params():
         _update_internal_new_user_params,
     )
 
-    litellm.default_internal_user_params = {
+    gateway.default_internal_user_params = {
         "max_budget": 100,
         "budget_duration": "30d",
         "models": ["gpt-3.5-turbo"],
@@ -618,14 +618,14 @@ def test_update_internal_user_params():
     data = NewUserRequest(user_role="internal_user", user_email="krrish3@berri.ai")
     data_json = data.model_dump()
     updated_data_json = _update_internal_new_user_params(data_json, data)
-    assert updated_data_json["models"] == litellm.default_internal_user_params["models"]
+    assert updated_data_json["models"] == gateway.default_internal_user_params["models"]
     assert (
         updated_data_json["max_budget"]
-        == litellm.default_internal_user_params["max_budget"]
+        == gateway.default_internal_user_params["max_budget"]
     )
     assert (
         updated_data_json["budget_duration"]
-        == litellm.default_internal_user_params["budget_duration"]
+        == gateway.default_internal_user_params["budget_duration"]
     )
 
 
@@ -635,7 +635,7 @@ def test_update_internal_new_user_params_with_no_initial_role_set():
         _update_internal_new_user_params,
     )
 
-    litellm.default_internal_user_params = {
+    gateway.default_internal_user_params = {
         "max_budget": 100,
         "budget_duration": "30d",
         "models": ["gpt-3.5-turbo"],
@@ -644,14 +644,14 @@ def test_update_internal_new_user_params_with_no_initial_role_set():
     data = NewUserRequest(user_email="krrish3@berri.ai")
     data_json = data.model_dump()
     updated_data_json = _update_internal_new_user_params(data_json, data)
-    assert updated_data_json["models"] == litellm.default_internal_user_params["models"]
+    assert updated_data_json["models"] == gateway.default_internal_user_params["models"]
     assert (
         updated_data_json["max_budget"]
-        == litellm.default_internal_user_params["max_budget"]
+        == gateway.default_internal_user_params["max_budget"]
     )
     assert (
         updated_data_json["budget_duration"]
-        == litellm.default_internal_user_params["budget_duration"]
+        == gateway.default_internal_user_params["budget_duration"]
     )
 
 
@@ -661,7 +661,7 @@ def test_update_internal_new_user_params_with_user_defined_values():
         _update_internal_new_user_params,
     )
 
-    litellm.default_internal_user_params = {
+    gateway.default_internal_user_params = {
         "max_budget": 100,
         "budget_duration": "30d",
         "models": ["gpt-3.5-turbo"],
@@ -1140,7 +1140,7 @@ def test_update_config_fields_default_internal_user_params(monkeypatch):
 
     proxy_config = ProxyConfig()
 
-    monkeypatch.setattr(litellm, "default_internal_user_params", None)
+    monkeypatch.setattr(gateway, "default_internal_user_params", None)
 
     args = {
         "current_config": {},
@@ -1155,14 +1155,14 @@ def test_update_config_fields_default_internal_user_params(monkeypatch):
     }
     proxy_config._update_config_fields(**args)
 
-    assert litellm.default_internal_user_params == {
+    assert gateway.default_internal_user_params == {
         "user_role": "proxy_admin",
         "max_budget": 1000,
         "budget_duration": "1mo",
     }
 
     monkeypatch.setattr(
-        litellm, "default_internal_user_params", None
+        gateway, "default_internal_user_params", None
     )  # reset to default
 
 
@@ -2549,7 +2549,7 @@ async def test_handle_logging_proxy_only_error_syncs_normalized_call_type(
     cache = DualCache()
     proxy_logging = ProxyLogging(user_api_key_cache=cache)
     captured_logging_obj = {}
-    original_function_setup = litellm.utils.function_setup
+    original_function_setup = gateway.utils.function_setup
 
     def _capture_function_setup(*args, **kwargs):
         logging_obj, data = original_function_setup(*args, **kwargs)
@@ -2558,7 +2558,7 @@ async def test_handle_logging_proxy_only_error_syncs_normalized_call_type(
 
     with (
         patch(
-            "token_iq.gateway.proxy.utils.litellm.utils.function_setup",
+            "token_iq.gateway.proxy.utils.gateway.utils.function_setup",
             side_effect=_capture_function_setup,
         ),
         patch.object(
@@ -2616,10 +2616,10 @@ async def test_during_call_hook_parallel_execution():
             execution_order.append(f"{self.name}_end")
             return data
 
-    original_callbacks = litellm.callbacks.copy() if litellm.callbacks else []
+    original_callbacks = gateway.callbacks.copy() if gateway.callbacks else []
 
     try:
-        litellm.callbacks = [TestGuardrail(f"g{i}") for i in range(3)]
+        gateway.callbacks = [TestGuardrail(f"g{i}") for i in range(3)]
 
         start_time = asyncio.get_event_loop().time()
         result = await proxy_logging.during_call_hook(
@@ -2646,7 +2646,7 @@ async def test_during_call_hook_parallel_execution():
         ), f"Parallel execution took {execution_time}s, expected < 0.2s"
         assert result["model"] == "gpt-4"
     finally:
-        litellm.callbacks = original_callbacks
+        gateway.callbacks = original_callbacks
 
 
 @pytest.mark.asyncio
@@ -2673,10 +2673,10 @@ async def test_during_call_hook_parallel_execution_with_error():
         async def async_moderation_hook(self, data, user_api_key_dict, call_type):
             raise ValueError("Guardrail violation detected!")
 
-    original_callbacks = litellm.callbacks.copy() if litellm.callbacks else []
+    original_callbacks = gateway.callbacks.copy() if gateway.callbacks else []
 
     try:
-        litellm.callbacks = [FailingGuardrail()]
+        gateway.callbacks = [FailingGuardrail()]
 
         with pytest.raises(ValueError, match='Guardrail violation detected!') as exc_info:
             await proxy_logging.during_call_hook(
@@ -2692,7 +2692,7 @@ async def test_during_call_hook_parallel_execution_with_error():
 
         assert "Guardrail violation detected!" in str(exc_info.value)
     finally:
-        litellm.callbacks = original_callbacks
+        gateway.callbacks = original_callbacks
 
 
 class _PreCallGuardrail(CustomGuardrail):
@@ -2728,10 +2728,10 @@ async def test_pre_call_hook_runs_opted_in_guardrails_in_parallel():
 
     proxy_logging = ProxyLogging(user_api_key_cache=DualCache())
     execution_order = []
-    original_callbacks = litellm.callbacks.copy() if litellm.callbacks else []
+    original_callbacks = gateway.callbacks.copy() if gateway.callbacks else []
 
     try:
-        litellm.callbacks = [
+        gateway.callbacks = [
             _PreCallGuardrail(f"g{i}", run_in_parallel=True, execution_order=execution_order) for i in range(3)
         ]
 
@@ -2746,7 +2746,7 @@ async def test_pre_call_hook_runs_opted_in_guardrails_in_parallel():
         assert starts_before_first_end == 3, f"expected 3 concurrent starts, got {starts_before_first_end}"
         assert result["model"] == "gpt-4"
     finally:
-        litellm.callbacks = original_callbacks
+        gateway.callbacks = original_callbacks
 
 
 @pytest.mark.asyncio
@@ -2757,10 +2757,10 @@ async def test_pre_call_hook_runs_default_guardrails_sequentially():
 
     proxy_logging = ProxyLogging(user_api_key_cache=DualCache())
     execution_order = []
-    original_callbacks = litellm.callbacks.copy() if litellm.callbacks else []
+    original_callbacks = gateway.callbacks.copy() if gateway.callbacks else []
 
     try:
-        litellm.callbacks = [
+        gateway.callbacks = [
             _PreCallGuardrail(f"g{i}", run_in_parallel=False, execution_order=execution_order) for i in range(2)
         ]
 
@@ -2775,7 +2775,7 @@ async def test_pre_call_hook_runs_default_guardrails_sequentially():
         assert execution_order == ["g0_start", "g0_end", "g1_start", "g1_end"]
         assert elapsed >= 0.18, f"sequential run took {elapsed}s, expected >= 0.18s"
     finally:
-        litellm.callbacks = original_callbacks
+        gateway.callbacks = original_callbacks
 
 
 @pytest.mark.asyncio
@@ -2786,7 +2786,7 @@ async def test_pre_call_hook_sequential_mutations_precede_parallel_batch():
 
     proxy_logging = ProxyLogging(user_api_key_cache=DualCache())
     execution_order = []
-    original_callbacks = litellm.callbacks.copy() if litellm.callbacks else []
+    original_callbacks = gateway.callbacks.copy() if gateway.callbacks else []
 
     class MaskingGuardrail(CustomGuardrail):
         def __init__(self):
@@ -2804,7 +2804,7 @@ async def test_pre_call_hook_sequential_mutations_precede_parallel_batch():
     parallel_observer = _PreCallGuardrail("observer", run_in_parallel=True, execution_order=execution_order)
 
     try:
-        litellm.callbacks = [parallel_observer, MaskingGuardrail()]
+        gateway.callbacks = [parallel_observer, MaskingGuardrail()]
 
         await proxy_logging.pre_call_hook(
             user_api_key_dict=UserAPIKeyAuth(api_key="test_key", user_id="test_user"),
@@ -2814,7 +2814,7 @@ async def test_pre_call_hook_sequential_mutations_precede_parallel_batch():
 
         assert parallel_observer.observed_content == "MASKED"
     finally:
-        litellm.callbacks = original_callbacks
+        gateway.callbacks = original_callbacks
 
 
 @pytest.mark.asyncio
@@ -2824,7 +2824,7 @@ async def test_pre_call_hook_parallel_guardrail_blocks_request():
     from token_iq.gateway.proxy.utils import ProxyLogging
 
     proxy_logging = ProxyLogging(user_api_key_cache=DualCache())
-    original_callbacks = litellm.callbacks.copy() if litellm.callbacks else []
+    original_callbacks = gateway.callbacks.copy() if gateway.callbacks else []
 
     class BlockingGuardrail(CustomGuardrail):
         def __init__(self):
@@ -2839,7 +2839,7 @@ async def test_pre_call_hook_parallel_guardrail_blocks_request():
             raise HTTPException(status_code=400, detail="blocked by guardrail")
 
     try:
-        litellm.callbacks = [BlockingGuardrail()]
+        gateway.callbacks = [BlockingGuardrail()]
 
         with pytest.raises(HTTPException) as exc_info:
             await proxy_logging.pre_call_hook(
@@ -2851,7 +2851,7 @@ async def test_pre_call_hook_parallel_guardrail_blocks_request():
         assert exc_info.value.status_code == 400
         assert "blocked by guardrail" in str(exc_info.value.detail)
     finally:
-        litellm.callbacks = original_callbacks
+        gateway.callbacks = original_callbacks
 
 
 @pytest.mark.asyncio
@@ -2862,13 +2862,13 @@ async def test_pre_call_hook_parallel_guardrail_skipped_when_should_not_run():
 
     proxy_logging = ProxyLogging(user_api_key_cache=DualCache())
     execution_order = []
-    original_callbacks = litellm.callbacks.copy() if litellm.callbacks else []
+    original_callbacks = gateway.callbacks.copy() if gateway.callbacks else []
 
     try:
         guardrail = _PreCallGuardrail(
             "off_by_default", run_in_parallel=True, execution_order=execution_order, default_on=False
         )
-        litellm.callbacks = [guardrail]
+        gateway.callbacks = [guardrail]
 
         result = await proxy_logging.pre_call_hook(
             user_api_key_dict=UserAPIKeyAuth(api_key="test_key", user_id="test_user"),
@@ -2879,7 +2879,7 @@ async def test_pre_call_hook_parallel_guardrail_skipped_when_should_not_run():
         assert guardrail.was_called is False
         assert result["model"] == "gpt-4"
     finally:
-        litellm.callbacks = original_callbacks
+        gateway.callbacks = original_callbacks
 
 
 @pytest.mark.asyncio
@@ -2890,7 +2890,7 @@ async def test_pre_call_hook_parallel_block_wins_over_reroute():
     from token_iq.gateway.proxy.utils import ProxyLogging
 
     proxy_logging = ProxyLogging(user_api_key_cache=DualCache())
-    original_callbacks = litellm.callbacks.copy() if litellm.callbacks else []
+    original_callbacks = gateway.callbacks.copy() if gateway.callbacks else []
 
     class FastRerouteGuardrail(CustomGuardrail):
         def __init__(self):
@@ -2918,7 +2918,7 @@ async def test_pre_call_hook_parallel_block_wins_over_reroute():
             raise HTTPException(status_code=400, detail="blocked by guardrail")
 
     try:
-        litellm.callbacks = [FastRerouteGuardrail(), SlowBlockingGuardrail()]
+        gateway.callbacks = [FastRerouteGuardrail(), SlowBlockingGuardrail()]
 
         with pytest.raises(HTTPException) as exc_info:
             await proxy_logging.pre_call_hook(
@@ -2930,7 +2930,7 @@ async def test_pre_call_hook_parallel_block_wins_over_reroute():
         assert exc_info.value.status_code == 400
         assert "blocked by guardrail" in str(exc_info.value.detail)
     finally:
-        litellm.callbacks = original_callbacks
+        gateway.callbacks = original_callbacks
 
 
 @pytest.mark.asyncio
@@ -2940,7 +2940,7 @@ async def test_pre_call_hook_parallel_awaits_all_when_one_blocks():
     from token_iq.gateway.proxy.utils import ProxyLogging
 
     proxy_logging = ProxyLogging(user_api_key_cache=DualCache())
-    original_callbacks = litellm.callbacks.copy() if litellm.callbacks else []
+    original_callbacks = gateway.callbacks.copy() if gateway.callbacks else []
     completed = []
 
     class FastBlockingGuardrail(CustomGuardrail):
@@ -2970,7 +2970,7 @@ async def test_pre_call_hook_parallel_awaits_all_when_one_blocks():
             return None
 
     try:
-        litellm.callbacks = [FastBlockingGuardrail(), SlowGuardrail()]
+        gateway.callbacks = [FastBlockingGuardrail(), SlowGuardrail()]
 
         with pytest.raises(HTTPException):
             await proxy_logging.pre_call_hook(
@@ -2981,7 +2981,7 @@ async def test_pre_call_hook_parallel_awaits_all_when_one_blocks():
 
         assert completed == ["slow"], "slow guardrail was orphaned instead of awaited to completion"
     finally:
-        litellm.callbacks = original_callbacks
+        gateway.callbacks = original_callbacks
 
 
 class _PostCallGuardrail(CustomGuardrail):
@@ -3015,16 +3015,16 @@ async def test_post_call_hook_runs_opted_in_guardrails_in_parallel():
 
     proxy_logging = ProxyLogging(user_api_key_cache=DualCache())
     execution_order = []
-    original_callbacks = litellm.callbacks.copy() if litellm.callbacks else []
+    original_callbacks = gateway.callbacks.copy() if gateway.callbacks else []
 
     try:
-        litellm.callbacks = [
+        gateway.callbacks = [
             _PostCallGuardrail(f"g{i}", run_in_parallel=True, execution_order=execution_order) for i in range(3)
         ]
 
         await proxy_logging.post_call_success_hook(
             data={"model": "gpt-4", "messages": [{"role": "user", "content": "hi"}]},
-            response=litellm.ModelResponse(),
+            response=gateway.ModelResponse(),
             user_api_key_dict=UserAPIKeyAuth(api_key="test_key", user_id="test_user"),
         )
 
@@ -3032,7 +3032,7 @@ async def test_post_call_hook_runs_opted_in_guardrails_in_parallel():
         starts_before_first_end = sum(1 for item in execution_order[:first_end_idx] if "start" in item)
         assert starts_before_first_end == 3, f"expected 3 concurrent starts, got {starts_before_first_end}"
     finally:
-        litellm.callbacks = original_callbacks
+        gateway.callbacks = original_callbacks
 
 
 @pytest.mark.asyncio
@@ -3043,17 +3043,17 @@ async def test_post_call_hook_runs_default_guardrails_sequentially():
 
     proxy_logging = ProxyLogging(user_api_key_cache=DualCache())
     execution_order = []
-    original_callbacks = litellm.callbacks.copy() if litellm.callbacks else []
+    original_callbacks = gateway.callbacks.copy() if gateway.callbacks else []
 
     try:
-        litellm.callbacks = [
+        gateway.callbacks = [
             _PostCallGuardrail(f"g{i}", run_in_parallel=False, execution_order=execution_order) for i in range(2)
         ]
 
         start = asyncio.get_event_loop().time()
         await proxy_logging.post_call_success_hook(
             data={"model": "gpt-4", "messages": [{"role": "user", "content": "hi"}]},
-            response=litellm.ModelResponse(),
+            response=gateway.ModelResponse(),
             user_api_key_dict=UserAPIKeyAuth(api_key="test_key", user_id="test_user"),
         )
         elapsed = asyncio.get_event_loop().time() - start
@@ -3061,7 +3061,7 @@ async def test_post_call_hook_runs_default_guardrails_sequentially():
         assert execution_order == ["g0_start", "g0_end", "g1_start", "g1_end"]
         assert elapsed >= 0.18, f"sequential run took {elapsed}s, expected >= 0.18s"
     finally:
-        litellm.callbacks = original_callbacks
+        gateway.callbacks = original_callbacks
 
 
 @pytest.mark.asyncio
@@ -3071,7 +3071,7 @@ async def test_post_call_hook_parallel_guardrail_blocks_response():
     from token_iq.gateway.proxy.utils import ProxyLogging
 
     proxy_logging = ProxyLogging(user_api_key_cache=DualCache())
-    original_callbacks = litellm.callbacks.copy() if litellm.callbacks else []
+    original_callbacks = gateway.callbacks.copy() if gateway.callbacks else []
 
     class BlockingPostCallGuardrail(CustomGuardrail):
         def __init__(self):
@@ -3086,19 +3086,19 @@ async def test_post_call_hook_parallel_guardrail_blocks_response():
             raise HTTPException(status_code=400, detail="blocked response by guardrail")
 
     try:
-        litellm.callbacks = [BlockingPostCallGuardrail()]
+        gateway.callbacks = [BlockingPostCallGuardrail()]
 
         with pytest.raises(HTTPException) as exc_info:
             await proxy_logging.post_call_success_hook(
                 data={"model": "gpt-4", "messages": [{"role": "user", "content": "hi"}]},
-                response=litellm.ModelResponse(),
+                response=gateway.ModelResponse(),
                 user_api_key_dict=UserAPIKeyAuth(api_key="test_key", user_id="test_user"),
             )
 
         assert exc_info.value.status_code == 400
         assert "blocked response by guardrail" in str(exc_info.value.detail)
     finally:
-        litellm.callbacks = original_callbacks
+        gateway.callbacks = original_callbacks
 
 
 @pytest.mark.asyncio
@@ -3108,7 +3108,7 @@ async def test_post_call_hook_parallel_awaits_all_when_one_blocks():
     from token_iq.gateway.proxy.utils import ProxyLogging
 
     proxy_logging = ProxyLogging(user_api_key_cache=DualCache())
-    original_callbacks = litellm.callbacks.copy() if litellm.callbacks else []
+    original_callbacks = gateway.callbacks.copy() if gateway.callbacks else []
     completed = []
 
     class FastBlockingPostCall(CustomGuardrail):
@@ -3138,18 +3138,18 @@ async def test_post_call_hook_parallel_awaits_all_when_one_blocks():
             return None
 
     try:
-        litellm.callbacks = [FastBlockingPostCall(), SlowPostCall()]
+        gateway.callbacks = [FastBlockingPostCall(), SlowPostCall()]
 
         with pytest.raises(HTTPException):
             await proxy_logging.post_call_success_hook(
                 data={"model": "gpt-4", "messages": [{"role": "user", "content": "hi"}]},
-                response=litellm.ModelResponse(),
+                response=gateway.ModelResponse(),
                 user_api_key_dict=UserAPIKeyAuth(api_key="test_key", user_id="test_user"),
             )
 
         assert completed == ["slow"], "slow post_call guardrail was orphaned instead of awaited to completion"
     finally:
-        litellm.callbacks = original_callbacks
+        gateway.callbacks = original_callbacks
 
 
 @pytest.mark.asyncio
@@ -3293,7 +3293,7 @@ def test_handle_exception_on_proxy_preserves_status_code():
     """
     from token_iq.gateway.proxy.utils import handle_exception_on_proxy
 
-    rate_limit_error = litellm.RateLimitError(
+    rate_limit_error = gateway.RateLimitError(
         message="Rate limit exceeded: batch creation limit of 2000/hour hit",
         llm_provider="openai",
         model="gpt-4o",
@@ -3321,7 +3321,7 @@ def test_handle_exception_on_proxy_preserves_auth_error_status_code():
     """
     from token_iq.gateway.proxy.utils import handle_exception_on_proxy
 
-    auth_error = litellm.AuthenticationError(
+    auth_error = gateway.AuthenticationError(
         message="Invalid API key",
         llm_provider="openai",
         model="gpt-4o",

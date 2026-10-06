@@ -4,7 +4,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
 
 # Mock responses for different embedding models
@@ -72,9 +72,9 @@ def test_bedrock_embedding_with_api_key_bearer_token(model, input_type, embed_re
         if "twelvelabs.marengo-embed" in model:
             kwargs["input_type"] = input_type
 
-        response = litellm.embedding(**kwargs)
+        response = gateway.embedding(**kwargs)
 
-        assert isinstance(response, litellm.EmbeddingResponse)
+        assert isinstance(response, gateway.EmbeddingResponse)
         assert isinstance(response.data[0]["embedding"], list)
         assert len(response.data[0]["embedding"]) == 3  # Based on mock response
 
@@ -107,7 +107,7 @@ def test_bedrock_embedding_with_env_variable_bearer_token(
         mock_response.json = lambda: json.loads(mock_response.text)
         mock_post.return_value = mock_response
 
-        response = litellm.embedding(
+        response = gateway.embedding(
             model=model,
             input=test_input,
             client=client,
@@ -115,7 +115,7 @@ def test_bedrock_embedding_with_env_variable_bearer_token(
             aws_bedrock_runtime_endpoint="https://bedrock-runtime.us-west-2.amazonaws.com",
         )
 
-        assert isinstance(response, litellm.EmbeddingResponse)
+        assert isinstance(response, gateway.EmbeddingResponse)
         headers = mock_post.call_args.kwargs.get("headers", {})
         assert "Authorization" in headers
         assert headers["Authorization"] == f"Bearer {test_api_key}"
@@ -135,7 +135,7 @@ async def test_async_bedrock_embedding_with_bearer_token():
         mock_response.json = Mock(return_value=titan_embedding_response)
         mock_post.return_value = mock_response
 
-        response = await litellm.aembedding(
+        response = await gateway.aembedding(
             model=model,
             input=test_input,
             client=client,
@@ -144,7 +144,7 @@ async def test_async_bedrock_embedding_with_bearer_token():
             api_key=test_api_key,
         )
 
-        assert isinstance(response, litellm.EmbeddingResponse)
+        assert isinstance(response, gateway.EmbeddingResponse)
 
         headers = mock_post.call_args.kwargs.get("headers", {})
         assert "Authorization" in headers
@@ -158,17 +158,17 @@ def test_bedrock_embedding_with_sigv4():
     with patch(
         "token_iq.gateway.llms.bedrock.embed.embedding.BedrockEmbedding.embeddings"
     ) as mock_bedrock_embed:
-        mock_embedding_response = litellm.EmbeddingResponse()
+        mock_embedding_response = gateway.EmbeddingResponse()
         mock_embedding_response.data = [{"embedding": [0.1, 0.2, 0.3]}]
         mock_bedrock_embed.return_value = mock_embedding_response
 
-        response = litellm.embedding(
+        response = gateway.embedding(
             model=model,
             input=test_input,
             aws_region_name="us-west-2",
         )
 
-        assert isinstance(response, litellm.EmbeddingResponse)
+        assert isinstance(response, gateway.EmbeddingResponse)
         mock_bedrock_embed.assert_called_once()
 
 
@@ -188,7 +188,7 @@ def test_bedrock_titan_v2_encoding_format_float():
         mock_response.json = lambda: json.loads(mock_response.text)
         mock_post.return_value = mock_response
 
-        response = litellm.embedding(
+        response = gateway.embedding(
             model=model,
             input=test_input,
             encoding_format="float",  # This should work but currently throws UnsupportedParamsError
@@ -198,7 +198,7 @@ def test_bedrock_titan_v2_encoding_format_float():
             api_key=test_api_key,
         )
 
-        assert isinstance(response, litellm.EmbeddingResponse)
+        assert isinstance(response, gateway.EmbeddingResponse)
         assert isinstance(response.data[0]["embedding"], list)
         assert len(response.data[0]["embedding"]) == 3
 
@@ -230,7 +230,7 @@ def test_bedrock_titan_v2_encoding_format_base64():
         mock_response.json = lambda: json.loads(mock_response.text)
         mock_post.return_value = mock_response
 
-        response = litellm.embedding(
+        response = gateway.embedding(
             model=model,
             input=test_input,
             encoding_format="base64",  # This should map to embeddingTypes: ["binary"]
@@ -240,7 +240,7 @@ def test_bedrock_titan_v2_encoding_format_base64():
             api_key=test_api_key,
         )
 
-        assert isinstance(response, litellm.EmbeddingResponse)
+        assert isinstance(response, gateway.EmbeddingResponse)
 
         # Verify that the request contains embeddingTypes: ["binary"] for base64 encoding
         request_body = json.loads(mock_post.call_args.kwargs.get("data", "{}"))
@@ -266,7 +266,7 @@ def test_twelvelabs_input_type_parameter_mapping():
         mock_post.return_value = mock_response
 
         # Test with input_type parameter (new LiteLLM parameter)
-        response = litellm.embedding(
+        response = gateway.embedding(
             model=model,
             input=test_input,
             client=client,
@@ -276,7 +276,7 @@ def test_twelvelabs_input_type_parameter_mapping():
             input_type="text",  # New parameter that should map to inputType
         )
 
-        assert isinstance(response, litellm.EmbeddingResponse)
+        assert isinstance(response, gateway.EmbeddingResponse)
         assert isinstance(response.data[0]["embedding"], list)
         assert len(response.data[0]["embedding"]) == 3
 
@@ -305,7 +305,7 @@ def test_twelvelabs_input_type_parameter_mapping_async_invoke():
         mock_post.return_value = mock_response
 
         # Test with input_type parameter for async invoke
-        response = litellm.embedding(
+        response = gateway.embedding(
             model=model,
             input=test_input,
             client=client,
@@ -316,7 +316,7 @@ def test_twelvelabs_input_type_parameter_mapping_async_invoke():
             input_type="text",  # New parameter that should map to inputType
         )
 
-        assert isinstance(response, litellm.EmbeddingResponse)
+        assert isinstance(response, gateway.EmbeddingResponse)
         assert hasattr(response, "_hidden_params")
         assert response._hidden_params is not None
         assert hasattr(response._hidden_params, "_invocation_arn")
@@ -348,7 +348,7 @@ def test_twelvelabs_missing_input_type_error():
         mock_post.return_value = mock_response
 
         # Test that missing input_type defaults to "text" for TwelveLabs
-        response = litellm.embedding(
+        response = gateway.embedding(
             model=twelvelabs_model,
             input=test_input,
             client=client,
@@ -359,7 +359,7 @@ def test_twelvelabs_missing_input_type_error():
         )
 
         # Verify the response is successful
-        assert isinstance(response, litellm.EmbeddingResponse)
+        assert isinstance(response, gateway.EmbeddingResponse)
 
         # Verify that the request contains inputType: "text" by default
         request_body = json.loads(mock_post.call_args.kwargs.get("data", "{}"))
@@ -378,7 +378,7 @@ def test_twelvelabs_missing_input_type_error():
         mock_post.return_value = mock_response
 
         # Test that missing input_type does NOT throw an error for Amazon Titan
-        response = litellm.embedding(
+        response = gateway.embedding(
             model=titan_model,
             input=test_input,
             client=client,
@@ -389,7 +389,7 @@ def test_twelvelabs_missing_input_type_error():
         )
 
         # Should succeed without input_type
-        assert isinstance(response, litellm.EmbeddingResponse)
+        assert isinstance(response, gateway.EmbeddingResponse)
 
 
 @pytest.mark.parametrize(
@@ -429,7 +429,7 @@ def test_bedrock_embedding_header_forwarding(model, embed_response):
         try:
             # Call embedding with custom headers via kwargs
             # This simulates what the proxy does when forward_client_headers_to_llm_api is set
-            response = litellm.embedding(
+            response = gateway.embedding(
                 model=model,
                 input=test_input,
                 client=client,
@@ -439,7 +439,7 @@ def test_bedrock_embedding_header_forwarding(model, embed_response):
                 api_key=test_api_key,
             )
 
-            assert isinstance(response, litellm.EmbeddingResponse)
+            assert isinstance(response, gateway.EmbeddingResponse)
 
             # Verify that the request was made
             assert mock_post.called, "HTTP client post should be called"
@@ -496,7 +496,7 @@ def test_bedrock_embedding_extra_headers_and_headers_merge():
         mock_post.return_value = mock_response
 
         try:
-            response = litellm.embedding(
+            response = gateway.embedding(
                 model=model,
                 input=test_input,
                 client=client,
@@ -507,7 +507,7 @@ def test_bedrock_embedding_extra_headers_and_headers_merge():
                 api_key=test_api_key,
             )
 
-            assert isinstance(response, litellm.EmbeddingResponse)
+            assert isinstance(response, gateway.EmbeddingResponse)
 
             call_kwargs = mock_post.call_args.kwargs
             headers = call_kwargs.get("headers", {})
@@ -561,7 +561,7 @@ def test_bedrock_cohere_v4_embedding_response_parsing():
         mock_response.json = lambda: json.loads(mock_response.text)
         mock_post.return_value = mock_response
 
-        response = litellm.embedding(
+        response = gateway.embedding(
             model=model,
             input=["test input"],
             client=client,
@@ -570,7 +570,7 @@ def test_bedrock_cohere_v4_embedding_response_parsing():
             api_key=test_api_key,
         )
 
-        assert isinstance(response, litellm.EmbeddingResponse)
+        assert isinstance(response, gateway.EmbeddingResponse)
 
         # Verify we get two embedding objects back (one for float, one for int8)
         assert len(response.data) == 2
@@ -630,7 +630,7 @@ def test_bedrock_embedding_custom_headers_with_iam_role_and_custom_api_base():
         mock_post.return_value = mock_response
 
         try:
-            response = litellm.embedding(
+            response = gateway.embedding(
                 model="bedrock/amazon.titan-embed-text-v1",
                 input=test_input,
                 client=client,
@@ -642,7 +642,7 @@ def test_bedrock_embedding_custom_headers_with_iam_role_and_custom_api_base():
                 aws_region_name="us-east-1",
             )
 
-            assert isinstance(response, litellm.EmbeddingResponse)
+            assert isinstance(response, gateway.EmbeddingResponse)
 
             # Verify that the request was made
             assert mock_post.called, "HTTP client post should be called"
@@ -746,7 +746,7 @@ async def test_bedrock_embedding_custom_headers_with_iam_role_and_custom_api_bas
         mock_post.return_value = mock_response
 
         try:
-            response = await litellm.aembedding(
+            response = await gateway.aembedding(
                 model="bedrock/amazon.titan-embed-text-v1",
                 input=test_input,
                 client=client,
@@ -758,7 +758,7 @@ async def test_bedrock_embedding_custom_headers_with_iam_role_and_custom_api_bas
                 aws_region_name="us-west-2",
             )
 
-            assert isinstance(response, litellm.EmbeddingResponse)
+            assert isinstance(response, gateway.EmbeddingResponse)
 
             # Verify that the request was made
             assert mock_post.called, "HTTP client post should be called"
@@ -926,7 +926,7 @@ def test_titan_image_embedding_cost_uses_per_image_rate():
         mock_response.json = lambda: json.loads(mock_response.text)
         mock_post.return_value = mock_response
 
-        response = litellm.embedding(
+        response = gateway.embedding(
             model="bedrock/amazon.titan-embed-image-v1",
             input=["data:image/png;base64,iVBORw0KGgoAAAANSUhEUg=="],
             client=client,
@@ -935,7 +935,7 @@ def test_titan_image_embedding_cost_uses_per_image_rate():
             aws_region_name="us-east-1",
         )
 
-        assert isinstance(response, litellm.EmbeddingResponse)
+        assert isinstance(response, gateway.EmbeddingResponse)
         assert response.usage is not None
         assert response.usage.prompt_tokens_details is not None
         assert response.usage.prompt_tokens_details.image_count == 1
@@ -969,7 +969,7 @@ def test_bedrock_cohere_embedding_types_wrapped_as_list(
         mock_response.json = lambda: json.loads(mock_response.text)
         mock_post.return_value = mock_response
 
-        response = litellm.embedding(
+        response = gateway.embedding(
             model=model,
             input=test_input,
             encoding_format=encoding_format,
@@ -979,7 +979,7 @@ def test_bedrock_cohere_embedding_types_wrapped_as_list(
             api_key="test-bearer-token-12345",
         )
 
-        assert isinstance(response, litellm.EmbeddingResponse)
+        assert isinstance(response, gateway.EmbeddingResponse)
 
         request_body = json.loads(mock_post.call_args.kwargs.get("data", "{}"))
         assert "embedding_types" in request_body

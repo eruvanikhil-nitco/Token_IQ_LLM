@@ -1288,7 +1288,7 @@ def test_bedrock_messages_strips_output_config_with_output_format():
 
 def test_bedrock_messages_drop_params_strips_output_config_for_pre_4_5():
     """``drop_params=True`` strips ``output_config`` for pre-4.5 Anthropic on /v1/messages."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.types.router import GenericLiteLLMParams
 
     cfg = AmazonAnthropicClaudeMessagesConfig()
@@ -1298,8 +1298,8 @@ def test_bedrock_messages_drop_params_strips_output_config_for_pre_4_5():
         "output_config": {"effort": "low"},
     }
 
-    original = litellm.drop_params
-    litellm.drop_params = True
+    original = gateway.drop_params
+    gateway.drop_params = True
     try:
         result = cfg.transform_anthropic_messages_request(
             model="anthropic.claude-3-haiku-20240307-v1:0",
@@ -1309,7 +1309,7 @@ def test_bedrock_messages_drop_params_strips_output_config_for_pre_4_5():
             headers={},
         )
     finally:
-        litellm.drop_params = original
+        gateway.drop_params = original
 
     assert "output_config" not in result
 
@@ -1318,7 +1318,7 @@ def test_bedrock_messages_drop_params_keeps_output_config_for_4_7():
     """``drop_params=True`` does not strip on opus-4-7 (supports effort)."""
     from unittest.mock import patch
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.types.router import GenericLiteLLMParams
 
     cfg = AmazonAnthropicClaudeMessagesConfig()
@@ -1328,8 +1328,8 @@ def test_bedrock_messages_drop_params_keeps_output_config_for_4_7():
         "output_config": {"effort": "high"},
     }
 
-    original = litellm.drop_params
-    litellm.drop_params = True
+    original = gateway.drop_params
+    gateway.drop_params = True
     try:
         with patch(
             "token_iq.gateway.llms.bedrock.common_utils._bedrock_model_supports",
@@ -1343,7 +1343,7 @@ def test_bedrock_messages_drop_params_keeps_output_config_for_4_7():
                 headers={},
             )
     finally:
-        litellm.drop_params = original
+        gateway.drop_params = original
 
     assert result.get("output_config") == {"effort": "high"}
 
@@ -2511,9 +2511,9 @@ def test_bedrock_claude_4_8_plus_cost_map_entries_carry_mid_conversation_system_
     flag explicitly."""
     import re
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    cost_map_path = os.path.join(os.path.dirname(litellm.__file__), "model_prices_and_context_window_backup.json")
+    cost_map_path = os.path.join(os.path.dirname(gateway.__file__), "model_prices_and_context_window_backup.json")
     with open(cost_map_path) as f:
         cost_map = json.load(f)
     rules = cost_map["fallback_generalizations"]["rules"]
@@ -2875,7 +2875,7 @@ def test_bedrock_messages_tool_search_model_map_flag_is_authoritative(local_mode
     ``_supports_tool_search_on_bedrock`` are only a fallback for ids the map
     cannot resolve. Flipping the mapped entry's flag to ``False`` must win even
     though the model name still matches the ``haiku-4-5`` pattern."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.llms.anthropic.common_utils import AnthropicModelInfo
 
     model = "us.anthropic.claude-haiku-4-5-20251001-v1:0"
@@ -2884,8 +2884,8 @@ def test_bedrock_messages_tool_search_model_map_flag_is_authoritative(local_mode
     assert AnthropicModelInfo._get_provider_resolved_capability(model, "supports_tool_search", "bedrock") is True
     assert cfg._supports_tool_search_on_bedrock(model) is True
 
-    monkeypatch.setitem(litellm.model_cost[model], "supports_tool_search", False)
-    litellm.get_model_info.cache_clear()
+    monkeypatch.setitem(gateway.model_cost[model], "supports_tool_search", False)
+    gateway.get_model_info.cache_clear()
 
     assert cfg._supports_tool_search_on_bedrock(model) is False
 
@@ -2915,7 +2915,7 @@ def test_bedrock_messages_thinking_shape_follows_exact_bedrock_entry_flag(
     entry was rejected by the provider match and the anthropic-scoped fallback rule
     forced ``thinking.type='adaptive'`` even with ``supports_adaptive_thinking``
     explicitly set to ``false`` on the entry."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     from token_iq.gateway.types.router import GenericLiteLLMParams
 
@@ -2938,8 +2938,8 @@ def test_bedrock_messages_thinking_shape_follows_exact_bedrock_entry_flag(
     assert result.get("thinking") == {"type": "adaptive", "display": "summarized"}
     assert result.get("output_config") == {"effort": "medium"}
 
-    monkeypatch.setitem(litellm.model_cost[model], "supports_adaptive_thinking", False)
-    litellm.get_model_info.cache_clear()
+    monkeypatch.setitem(gateway.model_cost[model], "supports_adaptive_thinking", False)
+    gateway.get_model_info.cache_clear()
 
     flipped = transform()
     thinking = flipped.get("thinking")
@@ -3018,11 +3018,11 @@ def test_bedrock_invoke_messages_rejects_server_web_search_tool(tool_type: str):
     """Bedrock can't execute Anthropic's server-side web search; the transform
     must raise an actionable 400 pointing at the interception docs instead of
     letting Bedrock return an opaque "provided request is not valid"."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.types.router import GenericLiteLLMParams
 
     cfg = AmazonAnthropicClaudeMessagesConfig()
-    with pytest.raises(litellm.BadRequestError) as exc_info:
+    with pytest.raises(gateway.BadRequestError) as exc_info:
         cfg.transform_anthropic_messages_request(
             model="us.anthropic.claude-haiku-4-5-20251001-v1:0",
             messages=[{"role": "user", "content": "search the web for litellm"}],
@@ -3203,10 +3203,10 @@ def test_bedrock_messages_legacy_output_format_wins_over_output_config_format(lo
 def test_bedrock_messages_drop_params_keeps_native_output_config_format(local_model_cost_map, monkeypatch):
     """``drop_params=True`` must not strip a natively forwarded
     ``output_config.format`` on models without effort support (Sonnet 4.5)."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.types.router import GenericLiteLLMParams
 
-    monkeypatch.setattr(litellm, "drop_params", True)
+    monkeypatch.setattr(gateway, "drop_params", True)
     cfg = AmazonAnthropicClaudeMessagesConfig()
     schema_format = {
         "type": "json_schema",

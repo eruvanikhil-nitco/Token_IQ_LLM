@@ -20,14 +20,14 @@ class TestBedrockEmbeddingPricing:
         monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
 
         import token_iq.gateway.core_utils.get_model_cost_map
-        from token_iq import gateway as litellm
-        from token_iq import gateway as litellm
+        from token_iq import gateway
+        from token_iq import gateway
 
         # Reload so the cost map is re-read from the local file with the flag set.
-        importlib.reload(litellm.core_utils.get_model_cost_map)
-        importlib.reload(litellm)
+        importlib.reload(gateway.core_utils.get_model_cost_map)
+        importlib.reload(gateway)
 
-        model = litellm.model_cost["amazon.titan-embed-text-v2:0"]
+        model = gateway.model_cost["amazon.titan-embed-text-v2:0"]
 
         assert model["input_cost_per_token"] == 2e-08
         assert model["output_cost_per_token"] == 0.0

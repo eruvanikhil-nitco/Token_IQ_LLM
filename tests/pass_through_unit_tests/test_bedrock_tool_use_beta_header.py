@@ -8,7 +8,7 @@ for Bedrock Invoke API, which doesn't support it and returns a 400 "invalid beta
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 
 @pytest.mark.asyncio
@@ -19,8 +19,8 @@ async def test_bedrock_sonnet_4_5_with_advanced_tool_use_beta_header():
     This should work without throwing "invalid beta flag" error because LiteLLM
     filters out the advanced-tool-use beta header for Bedrock Invoke API.
     """
-    litellm._turn_on_debug()
-    response = await litellm.anthropic.messages.acreate(
+    gateway._turn_on_debug()
+    response = await gateway.anthropic.messages.acreate(
         model="bedrock/invoke/us.anthropic.claude-sonnet-4-5-20250929-v1:0",
         messages=[{"role": "user", "content": "What is 2+2?"}],
         max_tokens=100,

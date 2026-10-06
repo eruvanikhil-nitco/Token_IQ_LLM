@@ -10,7 +10,7 @@ from typing import Any, Final
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.constants import request_timeout
 from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
@@ -91,7 +91,7 @@ async def asearch(
 
     Example:
         ```python
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         # Basic search
         response = await litellm.asearch(
@@ -150,7 +150,7 @@ async def asearch(
         return response
     except Exception as e:
         model_name: Final = f"{search_provider}/search"
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=model_name,
             custom_llm_provider=search_provider,
             original_exception=e,
@@ -194,7 +194,7 @@ def search(
 
     Example:
         ```python
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         # Basic search
         response = litellm.search(
@@ -311,7 +311,7 @@ def search(
         return response
     except Exception as e:
         model_name = f"{search_provider}/search"
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=model_name,
             custom_llm_provider=search_provider,
             original_exception=e,

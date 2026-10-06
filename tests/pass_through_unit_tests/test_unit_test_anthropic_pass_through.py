@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import httpx
 import pytest
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
 
 # Import the class we're testing
@@ -79,7 +79,7 @@ async def test_anthropic_passthrough_handler(
         cache_hit=False,
     )
 
-    assert isinstance(result["result"], litellm.ModelResponse)
+    assert isinstance(result["result"], gateway.ModelResponse)
 
 
 @pytest.mark.parametrize(
@@ -88,7 +88,7 @@ async def test_anthropic_passthrough_handler(
 )
 def test_create_anthropic_response_logging_payload(mock_logging_obj, metadata_params):
     # Test the logging payload creation
-    model_response = litellm.ModelResponse()
+    model_response = gateway.ModelResponse()
     model_response.choices = [{"message": {"content": "Test response"}}]
 
     start_time = datetime.now()

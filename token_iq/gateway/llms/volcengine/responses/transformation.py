@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Any, Final, Literal, Protocol, Union, get_args
 import httpx
 from pydantic import fields as pyd_fields
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.core_utils.core_helpers import process_response_headers
 from token_iq.gateway.core_utils.llm_response_utils.convert_dict_to_response import (
@@ -106,7 +106,7 @@ class VolcEngineResponsesAPIConfig(OpenAIResponsesAPIConfig):
 
         api_key: Final = (
             litellm_params.api_key
-            or litellm.api_key
+            or gateway.api_key
             or get_secret_str("ARK_API_KEY")
             or get_secret_str("VOLCENGINE_API_KEY")
         )
@@ -126,7 +126,7 @@ class VolcEngineResponsesAPIConfig(OpenAIResponsesAPIConfig):
         """
         base_url = (
             api_base
-            or litellm.api_base
+            or gateway.api_base
             or get_secret_str("VOLCENGINE_API_BASE")
             or get_secret_str("ARK_API_BASE")
             or get_volcengine_base_url()

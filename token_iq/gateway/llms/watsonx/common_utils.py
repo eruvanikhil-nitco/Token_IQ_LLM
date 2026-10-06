@@ -2,7 +2,7 @@ from typing import Final, cast
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import verbose_logger
 from token_iq.gateway.caching import InMemoryCache
 from token_iq.gateway.core_utils.prompt_templates import factory as ptf
@@ -56,7 +56,7 @@ def generate_iam_token(api_key=None, **params) -> str:
             headers,
             data,
         )
-        response: Final = litellm.module_level_client.post(url=iam_token_url, data=data, headers=headers)
+        response: Final = gateway.module_level_client.post(url=iam_token_url, data=data, headers=headers)
         response.raise_for_status()
         json_data: Final = response.json()
 
@@ -274,7 +274,7 @@ class IBMWatsonXMixin:
         return url
 
     def _add_api_version_to_url(self, url: str, api_version: str | None) -> str:
-        api_version = api_version or litellm.WATSONX_DEFAULT_API_VERSION
+        api_version = api_version or gateway.WATSONX_DEFAULT_API_VERSION
         url = url + f"?version={api_version}"
 
         return url

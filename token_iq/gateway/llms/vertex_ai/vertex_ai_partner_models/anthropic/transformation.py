@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Final
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.base_llm.chat.transformation import LiteLLMLoggingObj
 from token_iq.gateway.types.llms.openai import AllMessageValues
 from token_iq.gateway.types.utils import ModelResponse
@@ -221,6 +221,6 @@ class VertexAIAnthropicConfig(AnthropicConfig):
         """
         if custom_llm_provider != "vertex_ai" and custom_llm_provider != "vertex_ai_beta":
             return False
-        if "claude" in model.lower() or model in litellm.vertex_anthropic_models:
+        if "claude" in model.lower() or model in gateway.vertex_anthropic_models:
             return True
         return False

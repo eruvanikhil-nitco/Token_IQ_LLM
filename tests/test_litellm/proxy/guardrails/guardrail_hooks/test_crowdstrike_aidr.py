@@ -5,7 +5,7 @@ import pytest
 from fastapi import HTTPException
 from pydantic import ValidationError
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.exceptions import Timeout
 from token_iq.gateway.core_utils.core_helpers import get_or_create_metadata_bucket
 from token_iq.gateway.proxy.guardrails.guardrail_hooks.crowdstrike_aidr import initialize_guardrail
@@ -1658,7 +1658,7 @@ def _stream_chunk(content: str, finish_reason: str | None) -> ModelResponseStrea
     return ModelResponseStream(
         model="gpt-4",
         choices=[
-            litellm.StreamingChoices(
+            gateway.StreamingChoices(
                 index=0, delta=Delta(role="assistant", content=content), finish_reason=finish_reason
             )
         ],

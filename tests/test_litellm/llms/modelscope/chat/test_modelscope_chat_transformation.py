@@ -15,7 +15,7 @@ import httpx
 import pytest
 import respx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import completion
 from token_iq.gateway.llms.modelscope.chat.transformation import ModelScopeChatConfig
 
@@ -48,7 +48,7 @@ class TestModelScopeConfig:
     def test_modelscope_completion_mock(self, respx_mock):
         """Mock test for basic ModelScope completion."""
 
-        litellm.disable_aiohttp_transport = True
+        gateway.disable_aiohttp_transport = True
 
         api_key = "fake-modelscope-key"
         api_base = "https://api-inference.modelscope.cn/v1"
@@ -277,7 +277,7 @@ class TestModelScopeConfig:
     @pytest.mark.respx()
     def test_completion_with_text_content_list(self, respx_mock):
         """Verify that text-only content list messages are flattened before sending."""
-        litellm.disable_aiohttp_transport = True
+        gateway.disable_aiohttp_transport = True
 
         api_key = "fake-modelscope-key"
         api_base = "https://api-inference.modelscope.cn/v1"
@@ -329,7 +329,7 @@ class TestModelScopeConfig:
     @pytest.mark.respx()
     def test_completion_with_multimodal_messages(self, respx_mock):
         """Verify that multimodal messages (text + image_url) are sent as content lists."""
-        litellm.disable_aiohttp_transport = True
+        gateway.disable_aiohttp_transport = True
 
         api_key = "fake-modelscope-key"
         api_base = "https://api-inference.modelscope.cn/v1"

@@ -11,7 +11,7 @@ import asyncio
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.integrations.custom_logger import CustomLogger
 
 
@@ -76,13 +76,13 @@ async def test_async_no_duplicate_spend_logs():
     spend_logger = SpendLogCounter(tracking_id=test_request_id)
 
     # Save original callbacks and append our logger (don't replace to avoid affecting other tests)
-    original_callbacks = litellm.callbacks.copy() if litellm.callbacks else []
-    litellm.callbacks = original_callbacks + [spend_logger]
+    original_callbacks = gateway.callbacks.copy() if gateway.callbacks else []
+    gateway.callbacks = original_callbacks + [spend_logger]
 
     try:
         # Call responses API with Anthropic model using mock_response
         # Pass our unique ID as litellm_call_id to track this specific request
-        response = await litellm.aresponses(
+        response = await gateway.aresponses(
             model="anthropic/claude-3-7-sonnet-latest",
             input=[
                 {
@@ -121,4 +121,4 @@ async def test_async_no_duplicate_spend_logs():
 
     finally:
         # Restore original callbacks
-        litellm.callbacks = original_callbacks
+        gateway.callbacks = original_callbacks

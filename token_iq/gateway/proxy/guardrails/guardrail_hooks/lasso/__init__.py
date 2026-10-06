@@ -9,7 +9,7 @@ if TYPE_CHECKING:
 
 
 def initialize_guardrail(litellm_params: "LitellmParams", guardrail: "Guardrail"):
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     _lasso_callback: Final = LassoGuardrail(
         guardrail_name=guardrail.get("guardrail_name", ""),
@@ -20,7 +20,7 @@ def initialize_guardrail(litellm_params: "LitellmParams", guardrail: "Guardrail"
         event_hook=litellm_params.mode,
         default_on=litellm_params.default_on,
     )
-    litellm.logging_callback_manager.add_litellm_callback(_lasso_callback)
+    gateway.logging_callback_manager.add_litellm_callback(_lasso_callback)
 
     return _lasso_callback
 

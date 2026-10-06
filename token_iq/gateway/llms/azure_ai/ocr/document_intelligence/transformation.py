@@ -581,10 +581,10 @@ class AzureDocumentIntelligenceOCRConfig(BaseOCRConfig):
         Returns:
             Final response with completed analysis
         """
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.llms.custom_httpx.http_handler import get_async_httpx_client
 
-        client: Final = get_async_httpx_client(llm_provider=litellm.LlmProviders.AZURE_AI)
+        client: Final = get_async_httpx_client(llm_provider=gateway.LlmProviders.AZURE_AI)
         start_time: Final = time.time()
 
         verbose_logger.debug("Polling Azure DI operation (async): %s", operation_url)

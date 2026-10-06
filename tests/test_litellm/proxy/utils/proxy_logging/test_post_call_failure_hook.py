@@ -10,7 +10,7 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from fastapi import HTTPException
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.proxy._types import AlertType, ProxyErrorTypes
 from token_iq.gateway.proxy.utils import ProxyLogging
@@ -104,7 +104,7 @@ async def test_post_call_failure_hook_callback_returns_http_exception(
         async def async_post_call_failure_hook(self, **kwargs):  # type: ignore[override]
             return transformed
 
-    monkeypatch.setattr(litellm, "callbacks", [_Cb()])
+    monkeypatch.setattr(gateway, "callbacks", [_Cb()])
     proxy_logging.alert_types = []
     out = await proxy_logging.post_call_failure_hook(
         request_data={"litellm_call_id": "abc"},
@@ -124,7 +124,7 @@ async def test_post_call_failure_hook_callback_raises_http_exception_first_wins(
         async def async_post_call_failure_hook(self, **kwargs):  # type: ignore[override]
             raise err
 
-    monkeypatch.setattr(litellm, "callbacks", [_Cb()])
+    monkeypatch.setattr(gateway, "callbacks", [_Cb()])
     proxy_logging.alert_types = []
     out = await proxy_logging.post_call_failure_hook(
         request_data={"litellm_call_id": "abc"},
@@ -142,7 +142,7 @@ async def test_post_call_failure_hook_non_http_exception_in_callback_swallowed(
         async def async_post_call_failure_hook(self, **kwargs):  # type: ignore[override]
             raise RuntimeError("non-http inside cb")
 
-    monkeypatch.setattr(litellm, "callbacks", [_Cb()])
+    monkeypatch.setattr(gateway, "callbacks", [_Cb()])
     proxy_logging.alert_types = []
     out = await proxy_logging.post_call_failure_hook(
         request_data={"litellm_call_id": "abc"},
@@ -235,7 +235,7 @@ async def test_handle_logging_proxy_only_path_no_logging_obj_creates_one(
     def fake_function_setup(**kwargs):
         return fake_logging_obj, {}
 
-    monkeypatch.setattr(litellm.utils, "function_setup", fake_function_setup)
+    monkeypatch.setattr(gateway.utils, "function_setup", fake_function_setup)
     request_data = {"messages": [{"role": "user"}], "model": "m"}
     await proxy_logging._handle_logging_proxy_only_error(
         request_data=request_data,

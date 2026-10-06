@@ -7,7 +7,7 @@ from typing import Final
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.custom_httpx.http_handler import (
     AsyncHTTPHandler,
     HTTPHandler,
@@ -38,7 +38,7 @@ class OpenAILikeEmbeddingHandler(OpenAILikeBase):
         try:
             if client is None or not isinstance(client, AsyncHTTPHandler):
                 async_client = get_async_httpx_client(
-                    llm_provider=litellm.LlmProviders.OPENAI,
+                    llm_provider=gateway.LlmProviders.OPENAI,
                     params={"timeout": timeout},
                 )
             else:
@@ -159,4 +159,4 @@ class OpenAILikeEmbeddingHandler(OpenAILikeBase):
             original_response=response_json,
         )
 
-        return litellm.EmbeddingResponse(**response_json)
+        return gateway.EmbeddingResponse(**response_json)

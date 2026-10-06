@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 
 @pytest.mark.asyncio
@@ -47,11 +47,11 @@ async def test_mlflow_logging_functionality():
 
         # Create MlflowLogger instance
         mlflow_logger = MlflowLogger()
-        litellm.callbacks = [mlflow_logger]
+        gateway.callbacks = [mlflow_logger]
 
         # Test completion with request_tags and prediction parameter
         test_prediction = {"type": "content", "content": "This is a predicted output"}
-        await litellm.acompletion(
+        await gateway.acompletion(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": "test message"}],
             prediction=test_prediction,

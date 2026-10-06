@@ -602,9 +602,9 @@ def test_bedrock_chat_invoke_forwards_output_config_format_natively(local_model_
 def test_bedrock_chat_invoke_drop_params_keeps_native_output_config_format(local_model_cost_map, monkeypatch):
     """``drop_params=True`` must not eat ``output_config.format`` before the
     native-forwarding router runs (Sonnet 4.5 has no effort flags)."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    monkeypatch.setattr(litellm, "drop_params", True)
+    monkeypatch.setattr(gateway, "drop_params", True)
     schema_format = {
         "type": "json_schema",
         "schema": {"type": "object", "properties": {"zebra_count": {"type": "integer"}}},
@@ -624,9 +624,9 @@ def test_bedrock_chat_invoke_drop_params_keeps_native_output_config_format(local
 def test_bedrock_chat_invoke_drop_params_still_inlines_for_non_native(local_model_cost_map, monkeypatch):
     """``drop_params=True`` on a model without native structured-output support
     still reaches the inline-schema fallback instead of losing the schema."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    monkeypatch.setattr(litellm, "drop_params", True)
+    monkeypatch.setattr(gateway, "drop_params", True)
     schema = {"type": "object", "properties": {"zebra_count": {"type": "integer"}}}
 
     result = AmazonAnthropicClaudeConfig().transform_request(

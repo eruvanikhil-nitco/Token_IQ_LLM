@@ -19,7 +19,7 @@ from typing import TYPE_CHECKING, Any, Final, Literal, Optional, Union, cast
 from httpx import Response
 from pydantic import BaseModel
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import (
     _custom_logger_compatible_callbacks_literal,
     json_logs,
@@ -349,11 +349,11 @@ def deployment_pricing_model_info(model_id: str | None, deployment_model: str | 
     """
     if model_id is None:
         return None
-    registered: Final = litellm.model_cost.get(model_id)
+    registered: Final = gateway.model_cost.get(model_id)
     if not isinstance(registered, dict) or not any(registered.get(key) is not None for key in _DEPLOYMENT_PRICING_KEYS):
         return None
     try:
-        merged: Final = litellm.get_model_info(model=model_id).copy()
+        merged: Final = gateway.get_model_info(model=model_id).copy()
     except Exception:  # noqa: BLE001  # get_model_info raises for ids it cannot resolve a provider for
         return None
     published: Final = _published_pricing(deployment_model)
@@ -380,7 +380,7 @@ def _published_pricing(deployment_model: str | None) -> ModelInfo | None:
     if deployment_model is None:
         return None
     try:
-        return litellm.get_model_info(model=deployment_model)
+        return gateway.get_model_info(model=deployment_model)
     except Exception:  # noqa: BLE001  # no published entry to layer the declared rates over
         return None
 
@@ -624,7 +624,7 @@ class Logging(LiteLLMLoggingBaseClass):
 
         processed_list: Final[list[str | Callable | CustomLogger]] = []
         for callback in callback_list:
-            if isinstance(callback, str) and callback in litellm._known_custom_logger_compatible_callbacks:
+            if isinstance(callback, str) and callback in gateway._known_custom_logger_compatible_callbacks:
                 for callback_instance in self._resolve_dynamic_callback_string(callback):
                     processed_list.append(callback_instance)
 
@@ -882,8 +882,8 @@ class Logging(LiteLLMLoggingBaseClass):
         #############################################################################
         # Check if Vector Store / Knowledge Base hooks should be applied to the prompt
         #############################################################################
-        if litellm.vector_store_registry is not None:
-            if litellm.vector_store_registry.get_vector_store_to_run(
+        if gateway.vector_store_registry is not None:
+            if gateway.vector_store_registry.get_vector_store_to_run(
                 non_default_params=non_default_params, tools=tools
             ):
                 return True
@@ -1011,7 +1011,7 @@ class Logging(LiteLLMLoggingBaseClass):
         Returns:
             A CustomLogger instance if a matching prompt management system is found, None otherwise
         """
-        prompt_management_loggers: Final = litellm.logging_callback_manager.get_custom_loggers_for_type(
+        prompt_management_loggers: Final = gateway.logging_callback_manager.get_custom_loggers_for_type(
             callback_type=CustomPromptManagement
         )
 
@@ -1072,7 +1072,7 @@ class Logging(LiteLLMLoggingBaseClass):
         """
         # First check if model starts with a known custom logger compatible callback
         # This takes precedence for backward compatibility
-        for callback_name in litellm._known_custom_logger_compatible_callbacks:
+        for callback_name in gateway._known_custom_logger_compatible_callbacks:
             if model.startswith(callback_name):
                 custom_logger = _init_custom_logger_compatible_class(
                     logging_integration=callback_name,
@@ -1094,7 +1094,7 @@ class Logging(LiteLLMLoggingBaseClass):
                 return auto_detected_logger
 
         # Then check for any registered CustomPromptManagement loggers (fallback)
-        prompt_management_loggers: Final = litellm.logging_callback_manager.get_custom_loggers_for_type(
+        prompt_management_loggers: Final = gateway.logging_callback_manager.get_custom_loggers_for_type(
             callback_type=CustomPromptManagement
         )
 
@@ -1118,7 +1118,7 @@ class Logging(LiteLLMLoggingBaseClass):
         #########################################################
         # Vector Store / Knowledge Base hooks
         #########################################################
-        if litellm.vector_store_registry is not None:
+        if gateway.vector_store_registry is not None:
             vector_store_custom_logger: Final = _init_custom_logger_compatible_class(
                 logging_integration="vector_store_pre_call_hook",
                 internal_usage_cache=None,
@@ -1126,8 +1126,8 @@ class Logging(LiteLLMLoggingBaseClass):
             )
             self.model_call_details["prompt_integration"] = vector_store_custom_logger.__class__.__name__
             # Add to global callbacks so post-call hooks are invoked
-            if vector_store_custom_logger and vector_store_custom_logger not in litellm.callbacks:
-                litellm.logging_callback_manager.add_litellm_callback(vector_store_custom_logger)
+            if vector_store_custom_logger and vector_store_custom_logger not in gateway.callbacks:
+                gateway.logging_callback_manager.add_litellm_callback(vector_store_custom_logger)
             return vector_store_custom_logger
 
         return None
@@ -1251,7 +1251,7 @@ class Logging(LiteLLMLoggingBaseClass):
             if self.model_call_details.get("first_api_call_start_time") is None:
                 self.model_call_details["first_api_call_start_time"] = self.model_call_details["api_call_start_time"]
             # Input Integration Logging -> If you want to log the fact that an attempt to call the model was made
-            callbacks: Final = litellm.input_callback + (self.dynamic_input_callbacks or [])
+            callbacks: Final = gateway.input_callback + (self.dynamic_input_callbacks or [])
             for callback in callbacks:
                 try:
                     if callback == "supabase" and supabaseClient is not None:
@@ -1271,7 +1271,7 @@ class Logging(LiteLLMLoggingBaseClass):
                             details_to_log = copy.deepcopy(self.model_call_details)
                         except Exception:
                             details_to_log = self.model_call_details
-                        if litellm.turn_off_message_logging:
+                        if gateway.turn_off_message_logging:
                             # make a copy of the _model_Call_details and log it
                             details_to_log.pop("messages", None)
                             details_to_log.pop("input", None)
@@ -1429,7 +1429,7 @@ class Logging(LiteLLMLoggingBaseClass):
             )
             # Input Integration Logging -> If you want to log the fact that an attempt to call the model was made
 
-            callbacks: Final = litellm.input_callback + (self.dynamic_input_callbacks or [])
+            callbacks: Final = gateway.input_callback + (self.dynamic_input_callbacks or [])
             for callback in callbacks:
                 try:
                     if callback == "sentry" and add_breadcrumb:
@@ -1438,7 +1438,7 @@ class Logging(LiteLLMLoggingBaseClass):
                             details_to_log = copy.deepcopy(self.model_call_details)
                         except Exception:
                             details_to_log = self.model_call_details
-                        if litellm.turn_off_message_logging:
+                        if gateway.turn_off_message_logging:
                             # make a copy of the _model_Call_details and log it
                             details_to_log.pop("messages", None)
                             details_to_log.pop("input", None)
@@ -1486,7 +1486,7 @@ class Logging(LiteLLMLoggingBaseClass):
 
         callbacks: Final = self.get_combined_callback_list(
             dynamic_success_callbacks=self.dynamic_success_callbacks,
-            global_callbacks=litellm.success_callback,
+            global_callbacks=gateway.success_callback,
         )
         post_mcp_tool_call_response_obj: Final[MCPPostCallResponseObject] = MCPPostCallResponseObject(
             mcp_tool_call_response=response_obj, hidden_params=HiddenParams()
@@ -1715,7 +1715,7 @@ class Logging(LiteLLMLoggingBaseClass):
             return None
 
         try:
-            response_cost: Final = litellm.response_cost_calculator(**response_cost_calculator_kwargs)
+            response_cost: Final = gateway.response_cost_calculator(**response_cost_calculator_kwargs)
 
             verbose_logger.debug("response_cost: %s", response_cost)
             additional_response_cost: Final[object] = self.model_call_details.get("additional_response_cost")
@@ -1773,7 +1773,7 @@ class Logging(LiteLLMLoggingBaseClass):
             import httpx
 
             completion_response = result.model_dump(by_alias=True) if isinstance(result, BaseModel) else dict(result)
-            return litellm.VertexGeminiConfig()._transform_google_generate_content_to_openai_model_response(
+            return gateway.VertexGeminiConfig()._transform_google_generate_content_to_openai_model_response(
                 completion_response=completion_response,
                 model_response=ModelResponse(),
                 model=self.model or "",
@@ -1942,8 +1942,8 @@ class Logging(LiteLLMLoggingBaseClass):
         self.model_call_details[f"has_logged_{event_type}"] = True
         return
 
-    def should_run_callback(self, callback: litellm.CALLBACK_TYPES, litellm_params: dict, event_hook: str) -> bool:
-        if litellm.global_disable_no_log_param:
+    def should_run_callback(self, callback: gateway.CALLBACK_TYPES, litellm_params: dict, event_hook: str) -> bool:
+        if gateway.global_disable_no_log_param:
             return True
 
         if litellm_params.get("no-log", False) is True:
@@ -2174,7 +2174,7 @@ class Logging(LiteLLMLoggingBaseClass):
             result = self._transform_usage_objects(result=result)
 
             if (
-                litellm.max_budget
+                gateway.max_budget
                 and self.stream is False
                 and result is not None
                 and isinstance(result, dict)
@@ -2182,7 +2182,7 @@ class Logging(LiteLLMLoggingBaseClass):
             ):
                 time_diff: Final = (end_time - start_time).total_seconds()
                 float_diff: Final = float(time_diff)
-                litellm._current_cost += litellm.completion_cost(
+                gateway._current_cost += gateway.completion_cost(
                     model=self.model,
                     prompt="",
                     completion=getattr(result, "content", ""),
@@ -2473,7 +2473,7 @@ class Logging(LiteLLMLoggingBaseClass):
                         emit_standard_logging_payload(standard_logging_payload)
             callbacks: Final = self.get_combined_callback_list(
                 dynamic_success_callbacks=self.dynamic_success_callbacks,
-                global_callbacks=litellm.success_callback,
+                global_callbacks=gateway.success_callback,
             )
 
             ## REDACT MESSAGES ##
@@ -2958,7 +2958,7 @@ class Logging(LiteLLMLoggingBaseClass):
                     )
 
                 verbose_logger.debug("Model=%s; cost=%s", self.model, self.model_call_details["response_cost"])
-            except litellm.NotFoundError:
+            except gateway.NotFoundError:
                 verbose_logger.warning(
                     "Model=%s not found in completion cost map. Setting 'response_cost' to None", self.model
                 )
@@ -3010,7 +3010,7 @@ class Logging(LiteLLMLoggingBaseClass):
                     emit_standard_logging_payload(standard_logging_payload)
         callbacks: Final = self.get_combined_callback_list(
             dynamic_success_callbacks=self.dynamic_async_success_callbacks,
-            global_callbacks=litellm._async_success_callback,
+            global_callbacks=gateway._async_success_callback,
         )
 
         result = redact_message_input_output_from_logging(
@@ -3191,7 +3191,7 @@ class Logging(LiteLLMLoggingBaseClass):
         try:
             callback_name: Final = self._get_callback_name(callback)
 
-            all_callbacks: Final = litellm.logging_callback_manager._get_all_callbacks()
+            all_callbacks: Final = gateway.logging_callback_manager._get_all_callbacks()
 
             for callback_obj in all_callbacks:
                 if hasattr(callback_obj, "increment_callback_logging_failure"):
@@ -3276,7 +3276,7 @@ class Logging(LiteLLMLoggingBaseClass):
         ## get original model group ##
 
         model_group: Final = metadata.get("model_group") or None
-        for callback in litellm._async_failure_callback:
+        for callback in gateway._async_failure_callback:
             if isinstance(callback, CustomLogger):  # custom logger class
                 await callback.log_model_group_rate_limit_error(
                     exception=exception,
@@ -3310,7 +3310,7 @@ class Logging(LiteLLMLoggingBaseClass):
         start_time: datetime.datetime | None = None,
         end_time: datetime.datetime | None = None,
     ) -> None:
-        verbose_logger.debug("Logging Details LiteLLM-Failure Call: %s", litellm.failure_callback)
+        verbose_logger.debug("Logging Details LiteLLM-Failure Call: %s", gateway.failure_callback)
         if not self.should_run_logging(event_type="sync_failure"):  # prevent double logging
             return
         litellm_params: Final = self.model_call_details.get("litellm_params", {})
@@ -3325,7 +3325,7 @@ class Logging(LiteLLMLoggingBaseClass):
             )
             callbacks: Final = self.get_combined_callback_list(
                 dynamic_success_callbacks=self.dynamic_failure_callbacks,
-                global_callbacks=litellm.failure_callback,
+                global_callbacks=gateway.failure_callback,
             )
 
             result: object = None  # result sent to all loggers, init this to None incase it's not created
@@ -3519,7 +3519,7 @@ class Logging(LiteLLMLoggingBaseClass):
 
         callbacks: Final = self.get_combined_callback_list(
             dynamic_success_callbacks=self.dynamic_async_failure_callbacks,
-            global_callbacks=litellm._async_failure_callback,
+            global_callbacks=gateway._async_failure_callback,
         )
 
         result: Final = None  # result sent to all loggers, init this to None incase it's not created
@@ -3645,7 +3645,7 @@ class Logging(LiteLLMLoggingBaseClass):
         """
         _combined_sync_callbacks: Final = self.get_combined_callback_list(
             dynamic_success_callbacks=self.dynamic_success_callbacks,
-            global_callbacks=litellm.success_callback,
+            global_callbacks=gateway.success_callback,
         )
         _filtered_success_callbacks = self._remove_internal_custom_logger_callbacks(_combined_sync_callbacks)
         _filtered_success_callbacks = self._remove_internal_litellm_callbacks(_filtered_success_callbacks)
@@ -3663,7 +3663,7 @@ class Logging(LiteLLMLoggingBaseClass):
         """
         _combined_sync_callbacks: Final = self.get_combined_callback_list(
             dynamic_success_callbacks=self.dynamic_failure_callbacks,
-            global_callbacks=litellm.failure_callback,
+            global_callbacks=gateway.failure_callback,
         )
         _filtered_failure_callbacks = self._remove_internal_custom_logger_callbacks(_combined_sync_callbacks)
         _filtered_failure_callbacks = self._remove_internal_litellm_callbacks(_filtered_failure_callbacks)
@@ -3734,7 +3734,7 @@ class Logging(LiteLLMLoggingBaseClass):
             if (
                 isinstance(_c, CustomLogger)
                 or isinstance(_c, str)
-                and _c in litellm._known_custom_logger_compatible_callbacks
+                and _c in gateway._known_custom_logger_compatible_callbacks
             ):
                 continue
             _new_callbacks.append(_c)
@@ -3834,16 +3834,16 @@ class Logging(LiteLLMLoggingBaseClass):
 
         httpx_response: Final = self.model_call_details.get("httpx_response", None)
         if httpx_response and isinstance(httpx_response, httpx.Response):
-            result = litellm.AnthropicConfig().transform_response(
+            result = gateway.AnthropicConfig().transform_response(
                 raw_response=httpx_response,
-                model_response=litellm.ModelResponse(),
+                model_response=gateway.ModelResponse(),
                 model=self.model,
                 messages=[],
                 logging_obj=self,
                 optional_params=self.optional_params or {},
                 api_key="",
                 request_data={},
-                encoding=litellm.encoding,
+                encoding=gateway.encoding,
                 json_mode=False,
                 litellm_params={},
             )
@@ -3853,13 +3853,13 @@ class Logging(LiteLLMLoggingBaseClass):
             pydantic_result: Final = AnthropicResponse.model_validate(result)
             import httpx
 
-            result = litellm.AnthropicConfig().transform_parsed_response(
+            result = gateway.AnthropicConfig().transform_parsed_response(
                 completion_response=pydantic_result.model_dump(),
                 raw_response=httpx.Response(
                     status_code=200,
                     headers={},
                 ),
-                model_response=litellm.ModelResponse(),
+                model_response=gateway.ModelResponse(),
                 json_mode=None,
                 speed=self.optional_params.get("speed") if self.optional_params else None,
             )
@@ -3882,13 +3882,13 @@ class Logging(LiteLLMLoggingBaseClass):
             return LiteLLMResponsesTransformationHandler().transform_response(
                 model=self.model,
                 raw_response=result,
-                model_response=litellm.ModelResponse(),
+                model_response=gateway.ModelResponse(),
                 logging_obj=self,
                 request_data={},
                 messages=[],
                 optional_params={},
                 litellm_params={},
-                encoding=litellm.encoding,
+                encoding=gateway.encoding,
             )
         except Exception as e:
             verbose_logger.debug(
@@ -3897,7 +3897,7 @@ class Logging(LiteLLMLoggingBaseClass):
                 "usage-only ModelResponse to keep the spend_logs row.",
                 str(e),
             )
-            model_response: Final = litellm.ModelResponse()
+            model_response: Final = gateway.ModelResponse()
             model_response.model = self.model
             usage: Final = getattr(result, "usage", None)
             if usage is not None and ResponseAPILoggingUtils._is_response_api_usage(usage):
@@ -3918,9 +3918,9 @@ class Logging(LiteLLMLoggingBaseClass):
         if httpx_response is None:
             raise ValueError("Google GenAI Generate Content: httpx_response is None")
         dict_result: Final = httpx_response.json()
-        result = litellm.VertexGeminiConfig()._transform_google_generate_content_to_openai_model_response(
+        result = gateway.VertexGeminiConfig()._transform_google_generate_content_to_openai_model_response(
             completion_response=dict_result,
-            model_response=litellm.ModelResponse(),
+            model_response=gateway.ModelResponse(),
             model=self.model,
             logging_obj=self,
             raw_response=httpx.Response(
@@ -4514,7 +4514,7 @@ def _init_custom_logger_compatible_class(
 
             dynamic_rate_limiter_obj: Final = _PROXY_DynamicRateLimitHandler(internal_usage_cache=internal_usage_cache)
 
-            if llm_router is not None and isinstance(llm_router, litellm.Router):
+            if llm_router is not None and isinstance(llm_router, gateway.Router):
                 dynamic_rate_limiter_obj.update_variables(llm_router=llm_router)
             _in_memory_loggers.append(dynamic_rate_limiter_obj)
             return dynamic_rate_limiter_obj
@@ -4532,7 +4532,7 @@ def _init_custom_logger_compatible_class(
 
             dynamic_rate_limiter_obj_v3 = _PROXY_DynamicRateLimitHandlerV3(internal_usage_cache=internal_usage_cache)
 
-            if llm_router is not None and isinstance(llm_router, litellm.Router):
+            if llm_router is not None and isinstance(llm_router, gateway.Router):
                 dynamic_rate_limiter_obj_v3.update_variables(llm_router=llm_router)
             _in_memory_loggers.append(dynamic_rate_limiter_obj_v3)
             return dynamic_rate_limiter_obj_v3
@@ -4700,7 +4700,7 @@ def _init_custom_logger_compatible_class(
                     return callback
 
             # Get global BitBucket config
-            bitbucket_config: Final = getattr(litellm, "global_bitbucket_config", None)
+            bitbucket_config: Final = getattr(gateway, "global_bitbucket_config", None)
             if bitbucket_config is None:
                 raise ValueError("BitBucket configuration not found. Please set litellm.global_bitbucket_config first.")
 
@@ -4717,7 +4717,7 @@ def _init_custom_logger_compatible_class(
                     return callback
 
             # Get global BitBucket config
-            gitlab_config: Final = getattr(litellm, "global_gitlab_config", None)
+            gitlab_config: Final = getattr(gateway, "global_gitlab_config", None)
             if gitlab_config is None:
                 raise ValueError("Gitlab configuration not found. Please set litellm.global_gitlab_config first.")
 
@@ -4818,7 +4818,7 @@ def _maybe_auto_initialize_arize_phoenix(_in_memory_loggers: list[CustomLogger])
         _in_memory_loggers.append(phoenix_logger)
 
         # Register as a litellm callback so it receives success/failure events
-        litellm.logging_callback_manager.add_litellm_callback(phoenix_logger)
+        gateway.logging_callback_manager.add_litellm_callback(phoenix_logger)
 
         verbose_logger.info(
             "Auto-initialized Arize Phoenix logger alongside otel (endpoint=%s)",
@@ -5051,8 +5051,8 @@ def _get_custom_logger_settings_from_proxy_server(callback_name: str) -> dict:
         otel:
             message_logging: False
     """
-    if litellm.callback_settings:
-        return dict(litellm.callback_settings.get(callback_name, {}))
+    if gateway.callback_settings:
+        return dict(gateway.callback_settings.get(callback_name, {}))
     return {}
 
 
@@ -5418,7 +5418,7 @@ class StandardLoggingPayloadSetup:
             model_cost_information = StandardLoggingModelInformation(model_map_key="", model_map_value=None)
         else:
             try:
-                _model_cost_information: Final = litellm.get_model_info(
+                _model_cost_information: Final = gateway.get_model_info(
                     model=model_cost_name,
                     custom_llm_provider=custom_llm_provider,
                     api_base=api_base,
@@ -5548,7 +5548,7 @@ class StandardLoggingPayloadSetup:
         from token_iq.gateway.integrations.s3 import get_s3_object_key
 
         # Only generate object key if cold storage is configured
-        cold_storage_custom_logger: Final = litellm.cold_storage_custom_logger
+        cold_storage_custom_logger: Final = gateway.cold_storage_custom_logger
         if cold_storage_custom_logger is None:
             return None
 
@@ -5561,7 +5561,7 @@ class StandardLoggingPayloadSetup:
 
             # Try to get the actual logger instance from the logger name
             try:
-                custom_logger: Final = litellm.logging_callback_manager.get_active_custom_logger_for_callback_name(
+                custom_logger: Final = gateway.logging_callback_manager.get_active_custom_logger_for_callback_name(
                     cold_storage_custom_logger
                 )
                 if custom_logger and hasattr(custom_logger, "s3_path") and getattr(custom_logger, "s3_path"):
@@ -5606,7 +5606,7 @@ class StandardLoggingPayloadSetup:
 
         traceback_info = traceback_str or ""
         if original_exception and (
-            litellm.log_client_error_tracebacks or not is_expected_client_error(original_exception)
+            gateway.log_client_error_tracebacks or not is_expected_client_error(original_exception)
         ):
             tb: Final[TracebackType | None] = getattr(original_exception, "__traceback__", None)
             if tb:
@@ -5725,7 +5725,7 @@ class StandardLoggingPayloadSetup:
 
         ordered_candidates: Final[tuple[object, object, object, object]] = (
             (dynamic_litellm_trace_id, dynamic_litellm_session_id, metadata_trace_id, metadata_session_id)
-            if litellm.request_correlation_in_logs
+            if gateway.request_correlation_in_logs
             else (dynamic_litellm_session_id, dynamic_litellm_trace_id, metadata_session_id, metadata_trace_id)
         )
         for candidate in ordered_candidates:
@@ -5746,7 +5746,7 @@ class StandardLoggingPayloadSetup:
         Unlike `get_standard_logging_payload_trace_id`, this never falls back to a generated
         per-call trace id: it's empty when the caller never supplied a session id.
         """
-        if not litellm.request_correlation_in_logs:
+        if not gateway.request_correlation_in_logs:
             return ""
         dynamic_litellm_session_id: Final[object] = litellm_params.get("litellm_session_id")
         if dynamic_litellm_session_id:
@@ -5762,7 +5762,7 @@ class StandardLoggingPayloadSetup:
         """
         Return the user agent tags from the proxy server request for spend tracking
         """
-        if litellm.disable_add_user_agent_to_request_tags is True:
+        if gateway.disable_add_user_agent_to_request_tags is True:
             return None
         user_agent_tags: list[str] | None = None
         headers: Final = proxy_server_request.get("headers", {})
@@ -5786,7 +5786,7 @@ class StandardLoggingPayloadSetup:
         """
         Extract additional header tags for spend tracking based on config.
         """
-        extra_headers: Final[list[str]] = getattr(litellm, "extra_spend_tag_headers", None) or []
+        extra_headers: Final[list[str]] = getattr(gateway, "extra_spend_tag_headers", None) or []
         if not extra_headers:
             return None
 

@@ -9,7 +9,7 @@ from typing import Any
 from unittest.mock import patch, MagicMock
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.proxy._types import UserAPIKeyAuth
 from token_iq.gateway.types.utils import ModelResponseStream, StreamingChoices, Delta

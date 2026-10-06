@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Any, Final, Literal, NoReturn, Optional, TypeA
 
 from typing_extensions import assert_never
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import get_secret
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.constants import (
@@ -161,7 +161,7 @@ def initialize_callbacks_on_proxy(
             # check if callback is a custom logger compatible callback
             if isinstance(callback, str):
                 callback = LoggingCallbackManager._add_custom_callback_generic_api_str(callback)
-            if isinstance(callback, str) and callback in litellm._known_custom_logger_compatible_callbacks:
+            if isinstance(callback, str) and callback in gateway._known_custom_logger_compatible_callbacks:
                 imported_list.append(callback)
             elif isinstance(callback, str) and callback == "presidio":
                 from token_iq.gateway.proxy.guardrails.guardrail_hooks.presidio import (
@@ -378,17 +378,17 @@ def initialize_callbacks_on_proxy(
                         ),
                     )
                 )
-        if isinstance(litellm.callbacks, list):
-            litellm.callbacks.extend(imported_list)
+        if isinstance(gateway.callbacks, list):
+            gateway.callbacks.extend(imported_list)
         else:
-            litellm.callbacks = imported_list
+            gateway.callbacks = imported_list
 
         if "prometheus" in value:
             from token_iq.gateway.integrations.prometheus import PrometheusLogger
 
             PrometheusLogger._mount_metrics_endpoint()
     else:
-        litellm.callbacks = [
+        gateway.callbacks = [
             _loaded_callback_or_raise(
                 entry=value,
                 loaded=get_instance_fn(
@@ -397,7 +397,7 @@ def initialize_callbacks_on_proxy(
                 ),
             )
         ]
-    verbose_proxy_logger.debug("%s Initialized Callbacks - %s %s", blue_color_code, litellm.callbacks, reset_color_code)
+    verbose_proxy_logger.debug("%s Initialized Callbacks - %s %s", blue_color_code, gateway.callbacks, reset_color_code)
 
 
 def get_model_group_from_litellm_kwargs(kwargs: dict) -> str | None:

@@ -13,7 +13,7 @@ import json
 import os
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 MODEL = "command-r7b-12-2024"
 EXPECTED_INPUT_COST = 3.75e-08
@@ -27,7 +27,7 @@ def _load_json(path: str) -> dict:
 
 def _backup_path() -> str:
     return os.path.join(
-        os.path.dirname(litellm.__file__),
+        os.path.dirname(gateway.__file__),
         "model_prices_and_context_window_backup.json",
     )
 
@@ -68,12 +68,12 @@ class TestCommandR7bPricingModelInfo:
     def test_get_model_info_costs(self):
         # Patch litellm.model_cost with the local backup so the test is not
         # dependent on the remote fetch hitting a not-yet-merged main branch.
-        original = litellm.model_cost
+        original = gateway.model_cost
         try:
-            litellm.model_cost = _load_json(_backup_path())
-            info = litellm.get_model_info(MODEL)
+            gateway.model_cost = _load_json(_backup_path())
+            info = gateway.get_model_info(MODEL)
             assert info["input_cost_per_token"] == EXPECTED_INPUT_COST
             assert info["output_cost_per_token"] == EXPECTED_OUTPUT_COST
             assert info["output_cost_per_token"] > info["input_cost_per_token"]
         finally:
-            litellm.model_cost = original
+            gateway.model_cost = original

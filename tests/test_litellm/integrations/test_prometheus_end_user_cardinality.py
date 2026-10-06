@@ -3,7 +3,7 @@ from time import monotonic
 import pytest
 from prometheus_client import REGISTRY
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.integrations.prometheus import PrometheusLogger
 from token_iq.gateway.integrations.prometheus_helpers import bounded_prometheus_series_tracker
 from token_iq.gateway.integrations.prometheus_helpers.bounded_prometheus_series_tracker import (
@@ -21,21 +21,21 @@ def cleanup_prometheus_registry():
         except Exception:
             pass
 
-    old_enable_end_user = litellm.enable_end_user_cost_tracking_prometheus_only
-    old_metrics_config = litellm.prometheus_metrics_config
-    old_max_series = litellm.prometheus_end_user_metrics_max_series_per_metric
-    old_ttl_seconds = litellm.prometheus_end_user_metrics_ttl_seconds
+    old_enable_end_user = gateway.enable_end_user_cost_tracking_prometheus_only
+    old_metrics_config = gateway.prometheus_metrics_config
+    old_max_series = gateway.prometheus_end_user_metrics_max_series_per_metric
+    old_ttl_seconds = gateway.prometheus_end_user_metrics_ttl_seconds
     old_cleanup_interval_seconds = (
-        litellm.prometheus_end_user_metrics_cleanup_interval_seconds
+        gateway.prometheus_end_user_metrics_cleanup_interval_seconds
     )
 
     yield
 
-    litellm.enable_end_user_cost_tracking_prometheus_only = old_enable_end_user
-    litellm.prometheus_metrics_config = old_metrics_config
-    litellm.prometheus_end_user_metrics_max_series_per_metric = old_max_series
-    litellm.prometheus_end_user_metrics_ttl_seconds = old_ttl_seconds
-    litellm.prometheus_end_user_metrics_cleanup_interval_seconds = (
+    gateway.enable_end_user_cost_tracking_prometheus_only = old_enable_end_user
+    gateway.prometheus_metrics_config = old_metrics_config
+    gateway.prometheus_end_user_metrics_max_series_per_metric = old_max_series
+    gateway.prometheus_end_user_metrics_ttl_seconds = old_ttl_seconds
+    gateway.prometheus_end_user_metrics_cleanup_interval_seconds = (
         old_cleanup_interval_seconds
     )
 
@@ -48,16 +48,16 @@ def cleanup_prometheus_registry():
 
 
 def test_prometheus_end_user_series_are_capped_per_metric():
-    litellm.enable_end_user_cost_tracking_prometheus_only = True
-    litellm.prometheus_metrics_config = [
+    gateway.enable_end_user_cost_tracking_prometheus_only = True
+    gateway.prometheus_metrics_config = [
         {
             "group": "end-user-spend",
             "metrics": ["litellm_spend_metric"],
             "include_labels": ["end_user"],
         }
     ]
-    litellm.prometheus_end_user_metrics_max_series_per_metric = 3
-    litellm.prometheus_end_user_metrics_ttl_seconds = None
+    gateway.prometheus_end_user_metrics_max_series_per_metric = 3
+    gateway.prometheus_end_user_metrics_ttl_seconds = None
     logger = PrometheusLogger()
 
     for index in range(6):
@@ -130,17 +130,17 @@ def test_bounded_prometheus_series_tracker_treats_zero_max_as_unlimited():
 
 
 def test_prometheus_end_user_series_expire_by_ttl(monkeypatch):
-    litellm.enable_end_user_cost_tracking_prometheus_only = True
-    litellm.prometheus_metrics_config = [
+    gateway.enable_end_user_cost_tracking_prometheus_only = True
+    gateway.prometheus_metrics_config = [
         {
             "group": "end-user-spend",
             "metrics": ["litellm_spend_metric"],
             "include_labels": ["end_user"],
         }
     ]
-    litellm.prometheus_end_user_metrics_max_series_per_metric = None
-    litellm.prometheus_end_user_metrics_ttl_seconds = 10.0
-    litellm.prometheus_end_user_metrics_cleanup_interval_seconds = 0.0
+    gateway.prometheus_end_user_metrics_max_series_per_metric = None
+    gateway.prometheus_end_user_metrics_ttl_seconds = 10.0
+    gateway.prometheus_end_user_metrics_cleanup_interval_seconds = 0.0
     logger = PrometheusLogger()
 
     current_time = [monotonic()]
@@ -170,7 +170,7 @@ def test_prometheus_end_user_series_expire_by_ttl(monkeypatch):
 
 
 def test_prometheus_end_user_not_tracked_by_default():
-    litellm.enable_end_user_cost_tracking_prometheus_only = None
+    gateway.enable_end_user_cost_tracking_prometheus_only = None
     labels = PrometheusLogger().get_labels_for_metric("litellm_spend_metric")
     assert "end_user" in labels
 

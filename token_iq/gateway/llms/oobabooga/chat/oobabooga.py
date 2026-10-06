@@ -2,7 +2,7 @@ import json
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.custom_httpx.http_handler import _get_httpx_client
 from token_iq.gateway.utils import EmbeddingResponse, ModelResponse, Usage
 
@@ -128,7 +128,7 @@ def embedding(
         optional_params=optional_params,
         litellm_params={},
     )
-    response: Final = litellm.module_level_client.post(embeddings_url, headers=headers, json=data)
+    response: Final = gateway.module_level_client.post(embeddings_url, headers=headers, json=data)
     completion_response: Final = response.json()
 
     # Check for errors in response

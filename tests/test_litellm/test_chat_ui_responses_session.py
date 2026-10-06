@@ -19,7 +19,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 import httpx
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 
 class TestResponsesSessionChaining:
@@ -27,7 +27,7 @@ class TestResponsesSessionChaining:
 
     def test_responses_api_signature_accepts_previous_response_id(self):
         """aresponses must accept previous_response_id and onResponseId-like params."""
-        sig = inspect.signature(litellm.aresponses)
+        sig = inspect.signature(gateway.aresponses)
         assert (
             "previous_response_id" in sig.parameters
         ), "aresponses must accept previous_response_id for multi-turn session chaining"
@@ -72,7 +72,7 @@ class TestResponsesSessionChaining:
 
         with mock.patch("httpx.AsyncClient.send", mock_send):
             try:
-                await litellm.aresponses(
+                await gateway.aresponses(
                     input="hello",
                     model="gpt-4o-mini",
                     previous_response_id="resp_prev_abc",
@@ -118,7 +118,7 @@ class TestResponsesSessionChaining:
 
         with mock.patch("httpx.AsyncClient.send", mock_send):
             try:
-                await litellm.aresponses(
+                await gateway.aresponses(
                     input="hello",
                     model="gpt-4o-mini",
                     previous_response_id=None,

@@ -8,7 +8,7 @@ from typing import Annotated, Final, Protocol
 from fastapi import APIRouter, Depends, Request
 from typing_extensions import ReadOnly, TypedDict
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.proxy._types import CommonProxyErrors, UserAPIKeyAuth
 from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
@@ -209,11 +209,11 @@ async def public_model_hub_list(
 
         rows: Final[Sequence[ModelGroupInfoProxy]] = (
             ()
-            if litellm.public_model_groups is None
+            if gateway.public_model_groups is None
             else tuple(
                 _get_model_group_info(
                     llm_router=llm_router,
-                    all_models_str=litellm.public_model_groups,
+                    all_models_str=gateway.public_model_groups,
                     model_group=None,
                 )
             )

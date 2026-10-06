@@ -1,7 +1,7 @@
 import datetime
 from typing import Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 
 class AthinaLogger:
@@ -72,7 +72,7 @@ class AthinaLogger:
                 for key in self.additional_keys:
                     if key in metadata:
                         data[key] = metadata[key]
-            response: Final = litellm.module_level_client.post(
+            response: Final = gateway.module_level_client.post(
                 self.athina_logging_url,
                 headers=self.headers,
                 data=json.dumps(data, default=str),

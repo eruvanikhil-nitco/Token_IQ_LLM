@@ -11,7 +11,7 @@ import respx
 from httpx import Response
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import atext_completion, text_completion
 
 
@@ -78,7 +78,7 @@ def test_completion_forwards_extra_headers_to_provider(mock_completions_endpoint
 async def test_acompletion_forwards_client_headers_to_provider(
     mock_completions_endpoint, monkeypatch
 ):
-    monkeypatch.setattr(litellm, "disable_aiohttp_transport", True)
+    monkeypatch.setattr(gateway, "disable_aiohttp_transport", True)
     await atext_completion(
         model="gpt-3.5-turbo-instruct",
         prompt="hello",

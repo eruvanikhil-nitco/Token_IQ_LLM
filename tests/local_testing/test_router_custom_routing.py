@@ -9,7 +9,7 @@ from typing import Dict, List, Optional, Union
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import Router
 from token_iq.gateway.router import CustomRoutingStrategyBase
 
@@ -102,7 +102,7 @@ def test_reset_custom_routing_strategy():
 
 @pytest.mark.asyncio
 async def test_custom_routing():
-    litellm.set_verbose = True
+    gateway.set_verbose = True
 
     router = _create_router()
     router.set_custom_routing_strategy(CustomRoutingStrategy(router))

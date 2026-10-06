@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, Any, Final, cast
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.litellm_logging import Logging as LitellmLogging
 from token_iq.gateway.llms.custom_httpx.http_handler import (
     AsyncHTTPHandler,
@@ -34,7 +34,7 @@ class BedrockRerankHandler(BaseAWSLLM):
         client: AsyncHTTPHandler | None = None,
     ):
         if client is None:
-            client = get_async_httpx_client(llm_provider=litellm.LlmProviders.BEDROCK)
+            client = get_async_httpx_client(llm_provider=gateway.LlmProviders.BEDROCK)
         try:
             response: Final = await client.post(
                 url=prepared_request["endpoint_url"],

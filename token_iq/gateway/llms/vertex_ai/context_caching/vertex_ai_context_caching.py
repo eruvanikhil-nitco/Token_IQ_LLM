@@ -2,7 +2,7 @@ from typing import Final, Literal
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.caching.caching import Cache, LiteLLMCacheType
 from token_iq.gateway.constants import MINIMUM_PROMPT_CACHE_TOKEN_COUNT
@@ -515,7 +515,7 @@ class ContextCachingEndpoints(VertexBase):
             headers.update(extra_headers)
 
         if client is None or not isinstance(client, AsyncHTTPHandler):
-            client = get_async_httpx_client(params={"timeout": timeout}, llm_provider=litellm.LlmProviders.VERTEX_AI)
+            client = get_async_httpx_client(params={"timeout": timeout}, llm_provider=gateway.LlmProviders.VERTEX_AI)
         else:
             client = client
 

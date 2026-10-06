@@ -3,7 +3,7 @@ import httpx
 import openai
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 
 from token_iq.gateway.core_utils.exception_mapping_utils import (
@@ -286,17 +286,17 @@ def test_gemini_context_window_error_mapping(
     original_exception = Exception(error_message)
 
     if should_raise_context_window:
-        with pytest.raises(litellm.ContextWindowExceededError) as excinfo:
+        with pytest.raises(gateway.ContextWindowExceededError) as excinfo:
             exception_type(
                 model=model,
                 original_exception=original_exception,
                 custom_llm_provider=custom_llm_provider,
             )
         # Check if the raised exception is indeed a ContextWindowExceededError
-        assert isinstance(excinfo.value, litellm.ContextWindowExceededError)
+        assert isinstance(excinfo.value, gateway.ContextWindowExceededError)
     else:
         # For the negative case, we expect it to raise a generic APIConnectionError
-        with pytest.raises(litellm.APIConnectionError):
+        with pytest.raises(gateway.APIConnectionError):
             exception_type(
                 model=model,
                 original_exception=original_exception,
@@ -319,7 +319,7 @@ def test_lemonade_context_window_error_mapping():
         headers={},
     )
 
-    with pytest.raises(litellm.ContextWindowExceededError) as excinfo:
+    with pytest.raises(gateway.ContextWindowExceededError) as excinfo:
         exception_type(
             model=model,
             original_exception=original_exception,
@@ -350,7 +350,7 @@ def test_openai_compatible_400_with_bare_429_in_body_maps_to_bad_request():
         headers={},
     )
 
-    with pytest.raises(litellm.BadRequestError) as excinfo:
+    with pytest.raises(gateway.BadRequestError) as excinfo:
         exception_type(
             model="deepseek-ai/DeepSeek-V3",
             original_exception=original_exception,
@@ -369,7 +369,7 @@ def test_openai_compatible_429_still_maps_to_rate_limit():
         headers={},
     )
 
-    with pytest.raises(litellm.RateLimitError) as excinfo:
+    with pytest.raises(gateway.RateLimitError) as excinfo:
         exception_type(
             model="deepseek-ai/DeepSeek-V3",
             original_exception=original_exception,
@@ -395,7 +395,7 @@ def test_anthropic_context_window_error_mapping(error_message):
     fell through to a generic APIConnectionError (500)."""
     original_exception = Exception(error_message)
 
-    with pytest.raises(litellm.ContextWindowExceededError) as excinfo:
+    with pytest.raises(gateway.ContextWindowExceededError) as excinfo:
         exception_type(
             model="claude-sonnet-4-5",
             original_exception=original_exception,
@@ -434,17 +434,17 @@ def test_vertex_ai_rate_limit_error_mapping(error_message, should_raise_rate_lim
     original_exception = Exception(error_message)
 
     if should_raise_rate_limit:
-        with pytest.raises(litellm.RateLimitError) as excinfo:
+        with pytest.raises(gateway.RateLimitError) as excinfo:
             exception_type(
                 model=model,
                 original_exception=original_exception,
                 custom_llm_provider=custom_llm_provider,
             )
         # Check if the raised exception is indeed a RateLimitError
-        assert isinstance(excinfo.value, litellm.RateLimitError)
+        assert isinstance(excinfo.value, gateway.RateLimitError)
     else:
         # For the negative case, we expect it to raise a generic APIConnectionError
-        with pytest.raises(litellm.APIConnectionError):
+        with pytest.raises(gateway.APIConnectionError):
             exception_type(
                 model=model,
                 original_exception=original_exception,
@@ -491,44 +491,44 @@ gemini_body_code_429_test_cases = [
         '{"error":{"message":" This model is currently experiencing high demand.'
         " Spikes in demand are usually temporary. Please try again later."
         ' (request id: x)","type":"upstream_error","param":"","code":429}}',
-        litellm.RateLimitError,
+        gateway.RateLimitError,
         "HTTP 500 envelope with body code:429 -> RateLimitError",
     ),
     (
         503,
         '{"error":{"message":"upstream unavailable","type":"upstream_error",'
         '"param":"","code":429}}',
-        litellm.RateLimitError,
+        gateway.RateLimitError,
         "HTTP 503 envelope with body code:429 -> RateLimitError",
     ),
     (
         502,
         '{"error":{"message":"bad gateway","code":429}}',
-        litellm.RateLimitError,
+        gateway.RateLimitError,
         "HTTP 502 envelope with body code:429 -> RateLimitError",
     ),
     (
         500,
         '{"error":{"message":"server boom","code":500}}',
-        litellm.InternalServerError,
+        gateway.InternalServerError,
         "HTTP 500 with body code:500 stays InternalServerError",
     ),
     (
         500,
         "plain text 500 error",
-        litellm.InternalServerError,
+        gateway.InternalServerError,
         "HTTP 500 with non-JSON body falls through to status_code mapping",
     ),
     (
         400,
         '{"error":{"message":"malformed","code":429}}',
-        litellm.BadRequestError,
+        gateway.BadRequestError,
         "HTTP 400 with body code:429 must NOT be promoted to RateLimitError",
     ),
     (
         401,
         '{"error":{"message":"bad key","code":429}}',
-        litellm.AuthenticationError,
+        gateway.AuthenticationError,
         "HTTP 401 with body code:429 must NOT be promoted to RateLimitError",
     ),
 ]
@@ -583,7 +583,7 @@ class TestExtractAndRaiseLitellmException:
         """
         error_str = "litellm.APIConnectionError: GeminiException - some error message"
 
-        with pytest.raises(litellm.APIConnectionError) as excinfo:
+        with pytest.raises(gateway.APIConnectionError) as excinfo:
             extract_and_raise_litellm_exception(
                 response=None,
                 error_str=error_str,
@@ -601,7 +601,7 @@ class TestExtractAndRaiseLitellmException:
         """
         error_str = "litellm.BadRequestError: Invalid request format"
 
-        with pytest.raises(litellm.BadRequestError) as excinfo:
+        with pytest.raises(gateway.BadRequestError) as excinfo:
             extract_and_raise_litellm_exception(
                 response=None,
                 error_str=error_str,
@@ -617,7 +617,7 @@ class TestExtractAndRaiseLitellmException:
         """
         error_str = "litellm.ContextWindowExceededError: Token limit exceeded"
 
-        with pytest.raises(litellm.ContextWindowExceededError) as excinfo:
+        with pytest.raises(gateway.ContextWindowExceededError) as excinfo:
             extract_and_raise_litellm_exception(
                 response=None,
                 error_str=error_str,
@@ -661,7 +661,7 @@ def test_replicate_model_error_maps_to_bad_request():
     to APIConnectionError."""
     original_exception = ModelError("the deployed model failed to return a prediction")
 
-    with pytest.raises(litellm.BadRequestError) as excinfo:
+    with pytest.raises(gateway.BadRequestError) as excinfo:
         exception_type(
             model="replicate/meta/llama-2-70b-chat",
             original_exception=original_exception,
@@ -680,7 +680,7 @@ def test_cohere_connection_error_maps_to_rate_limit():
     original_exception = CohereConnectionError("connection reset by peer")
     original_exception.message = "connection reset by peer"
 
-    with pytest.raises(litellm.RateLimitError) as excinfo:
+    with pytest.raises(gateway.RateLimitError) as excinfo:
         exception_type(
             model="command-r",
             original_exception=original_exception,
@@ -709,7 +709,7 @@ def test_replicate_422_maps_to_unprocessable_entity():
     surviving branch must still map 422 to UnprocessableEntityError."""
     original_exception = ReplicateError("validation failed for the input", 422)
 
-    with pytest.raises(litellm.UnprocessableEntityError) as excinfo:
+    with pytest.raises(gateway.UnprocessableEntityError) as excinfo:
         exception_type(
             model="replicate/meta/llama-2-70b-chat",
             original_exception=original_exception,
@@ -731,7 +731,7 @@ def test_upstream_4xx_without_model_maps_to_bad_request():
         message='{"error": {"message": "Cannot cancel a synchronous response.", "type": "invalid_request_error"}}',
     )
 
-    with pytest.raises(litellm.BadRequestError) as excinfo:
+    with pytest.raises(gateway.BadRequestError) as excinfo:
         exception_type(
             model=None,
             original_exception=original_exception,
@@ -750,7 +750,7 @@ def test_azure_404_with_invalid_request_error_type_maps_to_not_found():
         message='{"error": {"message": "Response with id \'resp_abc\' not found.", "type": "invalid_request_error"}}',
     )
 
-    with pytest.raises(litellm.NotFoundError) as excinfo:
+    with pytest.raises(gateway.NotFoundError) as excinfo:
         exception_type(
             model=None,
             original_exception=original_exception,
@@ -775,59 +775,59 @@ class _UpstreamHTTPError(Exception):
 UPSTREAM_STATUS_CODES = (400, 401, 403, 404, 408, 422, 429, 500, 503)
 
 OPENAI_SHAPED = {
-    400: (litellm.BadRequestError, 400),
-    401: (litellm.AuthenticationError, 401),
-    403: (litellm.APIError, 403),
-    404: (litellm.NotFoundError, 404),
-    408: (litellm.Timeout, 408),
-    422: (litellm.BadRequestError, 422),
-    429: (litellm.RateLimitError, 429),
-    500: (litellm.InternalServerError, 500),
-    503: (litellm.ServiceUnavailableError, 503),
+    400: (gateway.BadRequestError, 400),
+    401: (gateway.AuthenticationError, 401),
+    403: (gateway.APIError, 403),
+    404: (gateway.NotFoundError, 404),
+    408: (gateway.Timeout, 408),
+    422: (gateway.BadRequestError, 422),
+    429: (gateway.RateLimitError, 429),
+    500: (gateway.InternalServerError, 500),
+    503: (gateway.ServiceUnavailableError, 503),
 }
 
-PERMISSION_DENIED = (litellm.PermissionDeniedError, 403)
+PERMISSION_DENIED = (gateway.PermissionDeniedError, 403)
 
 STATUS_KEYED = {**OPENAI_SHAPED, 403: PERMISSION_DENIED}
 
 DEVIATIONS_FROM_THE_OPENAI_SHAPE = {
     "anthropic": {403: PERMISSION_DENIED},
-    "azure": {500: (litellm.APIError, 500)},
+    "azure": {500: (gateway.APIError, 500)},
     "bedrock": {
         403: PERMISSION_DENIED,
-        500: (litellm.ServiceUnavailableError, 503),
+        500: (gateway.ServiceUnavailableError, 503),
     },
     "cloudflare": {403: PERMISSION_DENIED},
     "cohere": {403: PERMISSION_DENIED},
     "databricks": {
         403: PERMISSION_DENIED,
-        422: (litellm.BadRequestError, 400),
+        422: (gateway.BadRequestError, 400),
     },
     "gemini": {403: PERMISSION_DENIED},
     "huggingface": {
-        404: (litellm.APIError, 404),
-        422: (litellm.APIError, 422),
-        500: (litellm.APIError, 500),
+        404: (gateway.APIError, 404),
+        422: (gateway.APIError, 422),
+        500: (gateway.APIError, 500),
     },
     "nlp_cloud": {
-        403: (litellm.AuthenticationError, 403),
-        404: (litellm.APIError, 404),
-        408: (litellm.APIError, 408),
-        500: (litellm.APIError, 500),
-        503: (litellm.APIError, 503),
+        403: (gateway.AuthenticationError, 403),
+        404: (gateway.APIError, 404),
+        408: (gateway.APIError, 408),
+        500: (gateway.APIError, 500),
+        503: (gateway.APIError, 503),
     },
     "ollama": {403: PERMISSION_DENIED},
-    "openrouter": {500: (litellm.APIError, 500)},
+    "openrouter": {500: (gateway.APIError, 500)},
     "replicate": {
-        403: (litellm.APIError, 500),
-        404: (litellm.APIError, 500),
-        422: (litellm.UnprocessableEntityError, 422),
-        500: (litellm.ServiceUnavailableError, 503),
-        503: (litellm.APIError, 500),
+        403: (gateway.APIError, 500),
+        404: (gateway.APIError, 500),
+        422: (gateway.UnprocessableEntityError, 422),
+        500: (gateway.ServiceUnavailableError, 503),
+        503: (gateway.APIError, 500),
     },
     "sagemaker": {
         403: PERMISSION_DENIED,
-        500: (litellm.ServiceUnavailableError, 503),
+        500: (gateway.ServiceUnavailableError, 503),
     },
     "vertex_ai": {403: PERMISSION_DENIED},
     "vllm": {403: PERMISSION_DENIED},
@@ -884,7 +884,7 @@ PROVIDERS_WITHOUT_A_HANDLER = tuple(
         frozenset(provider.value for provider in LlmProviders)
         - frozenset(PROVIDERS_WITH_A_HANDLER)
         - frozenset(PROVIDER_ALIASES_WITH_A_HANDLER)
-        - frozenset(litellm.openai_compatible_providers)
+        - frozenset(gateway.openai_compatible_providers)
     )
 )
 
@@ -903,7 +903,7 @@ def _expected_for(provider: str, status_code: int) -> tuple[type[Exception], int
 
 @pytest.fixture
 def quiet_exception_mapping(monkeypatch):
-    monkeypatch.setattr(litellm, "suppress_debug_info", True)
+    monkeypatch.setattr(gateway, "suppress_debug_info", True)
 
 
 @pytest.mark.parametrize("status_code", UPSTREAM_STATUS_CODES)
@@ -944,7 +944,7 @@ def test_a_mapped_exception_keeps_the_provider_and_model_it_came_from(
 def test_an_already_mapped_litellm_exception_passes_through_untouched(
     provider, quiet_exception_mapping
 ):
-    already_mapped = litellm.RateLimitError(
+    already_mapped = gateway.RateLimitError(
         message="already mapped", llm_provider=provider, model="test-model"
     )
 
@@ -980,7 +980,7 @@ def test_a_provider_without_a_handler_maps_by_the_upstream_status(
 def test_a_minimax_bad_key_is_an_authentication_error(quiet_exception_mapping):
     from token_iq.gateway.llms.base_llm.chat.transformation import BaseLLMException
 
-    with pytest.raises(litellm.AuthenticationError) as raised:
+    with pytest.raises(gateway.AuthenticationError) as raised:
         exception_type(
             model="MiniMax-M2.5",
             original_exception=BaseLLMException(status_code=401, message=MINIMAX_401_BODY),
@@ -994,7 +994,7 @@ def test_a_minimax_bad_key_is_an_authentication_error(quiet_exception_mapping):
 
 
 def test_an_exception_without_a_status_is_still_a_connection_error(quiet_exception_mapping):
-    with pytest.raises(litellm.APIConnectionError):
+    with pytest.raises(gateway.APIConnectionError):
         exception_type(
             model="MiniMax-M2.5",
             original_exception=RuntimeError("socket hung up"),
@@ -1003,7 +1003,7 @@ def test_an_exception_without_a_status_is_still_a_connection_error(quiet_excepti
 
 
 def test_an_unmapped_exception_with_no_model_or_provider_is_a_connection_error(quiet_exception_mapping):
-    with pytest.raises(litellm.APIConnectionError) as raised:
+    with pytest.raises(gateway.APIConnectionError) as raised:
         exception_type(
             model=None,
             original_exception=ValueError("boom"),
@@ -1031,7 +1031,7 @@ def _raise_and_map(
 def test_an_unmapped_exception_message_keeps_traceback_for_sdk_callers(quiet_exception_mapping):
     """Direct SDK callers debug unmapped provider exceptions with this traceback;
     only the proxy's response boundary strips it."""
-    with pytest.raises(litellm.APIConnectionError) as raised:
+    with pytest.raises(gateway.APIConnectionError) as raised:
         _raise_and_map(
             model="MiniMax-M2.5",
             original_exception=RuntimeError("socket hung up"),
@@ -1045,7 +1045,7 @@ def test_an_unmapped_exception_message_keeps_traceback_for_sdk_callers(quiet_exc
 def test_an_unmapped_exception_with_no_model_or_provider_message_keeps_traceback(
     quiet_exception_mapping,
 ):
-    with pytest.raises(litellm.APIConnectionError) as raised:
+    with pytest.raises(gateway.APIConnectionError) as raised:
         _raise_and_map(
             model=None,
             original_exception=ValueError("boom"),
@@ -1111,9 +1111,9 @@ def test_a_full_context_window_reaches_the_caller_as_the_router_needs_it(
     provider, quiet_exception_mapping
 ):
     if provider in PROVIDERS_THAT_RECOGNISE_A_FULL_CONTEXT_WINDOW:
-        expected_class, expected_status = litellm.ContextWindowExceededError, 400
+        expected_class, expected_status = gateway.ContextWindowExceededError, 400
     else:
-        expected_class, expected_status = litellm.BadRequestError, 400
+        expected_class, expected_status = gateway.BadRequestError, 400
 
     with pytest.raises(openai.APIError) as raised:
         exception_type(
@@ -1131,9 +1131,9 @@ def test_a_content_policy_block_reaches_the_caller_as_the_router_needs_it(
     provider, quiet_exception_mapping
 ):
     if provider in PROVIDERS_THAT_RECOGNISE_A_CONTENT_POLICY_BLOCK:
-        expected_class, expected_status = litellm.ContentPolicyViolationError, 400
+        expected_class, expected_status = gateway.ContentPolicyViolationError, 400
     else:
-        expected_class, expected_status = litellm.BadRequestError, 400
+        expected_class, expected_status = gateway.BadRequestError, 400
 
     with pytest.raises(openai.APIError) as raised:
         exception_type(
@@ -1150,7 +1150,7 @@ def test_a_content_policy_block_reaches_the_caller_as_the_router_needs_it(
 def test_a_timed_out_request_is_a_timeout_for_every_provider(
     provider, quiet_exception_mapping
 ):
-    with pytest.raises(litellm.Timeout) as raised:
+    with pytest.raises(gateway.Timeout) as raised:
         exception_type(
             model="test-model",
             original_exception=_UpstreamErrorWithMessage(TIMEOUT_MESSAGE, 408),
@@ -1172,7 +1172,7 @@ def test_bedrock_mantle_400_maps_to_bad_request():
         ),
     )
 
-    with pytest.raises(litellm.BadRequestError) as excinfo:
+    with pytest.raises(gateway.BadRequestError) as excinfo:
         exception_type(
             model="gpt-5.6-terra",
             original_exception=original_exception,
@@ -1181,7 +1181,7 @@ def test_bedrock_mantle_400_maps_to_bad_request():
 
     assert excinfo.value.status_code == 400
     assert "Invalid 'input'" in excinfo.value.message
-    assert type(excinfo.value) is litellm.BadRequestError
+    assert type(excinfo.value) is gateway.BadRequestError
 
 
 def test_bedrock_mantle_context_overflow_maps_to_context_window_exceeded():
@@ -1196,7 +1196,7 @@ def test_bedrock_mantle_context_overflow_maps_to_context_window_exceeded():
         ),
     )
 
-    with pytest.raises(litellm.ContextWindowExceededError) as excinfo:
+    with pytest.raises(gateway.ContextWindowExceededError) as excinfo:
         exception_type(
             model="openai.gpt-5.6-sol",
             original_exception=original_exception,
@@ -1213,7 +1213,7 @@ def test_branchless_provider_transport_error_maps_to_api_connection_error():
     original_exception = BaseLLMException(status_code=500, message="[Errno 111] Connection refused")
     original_exception.status_code_is_synthesized = True
 
-    with pytest.raises(litellm.APIConnectionError):
+    with pytest.raises(gateway.APIConnectionError):
         exception_type(
             model="test-agent",
             original_exception=original_exception,
@@ -1226,7 +1226,7 @@ def test_branchless_provider_upstream_500_still_maps_to_internal_server_error():
 
     original_exception = BaseLLMException(status_code=500, message="upstream exploded")
 
-    with pytest.raises(litellm.InternalServerError):
+    with pytest.raises(gateway.InternalServerError):
         exception_type(
             model="test-agent",
             original_exception=original_exception,
@@ -1239,7 +1239,7 @@ def test_handle_error_marks_only_a_status_code_it_never_received():
 
     handler = BaseLLMHTTPHandler()
 
-    with pytest.raises(litellm.llms.base_llm.chat.transformation.BaseLLMException) as transport:
+    with pytest.raises(gateway.llms.base_llm.chat.transformation.BaseLLMException) as transport:
         raise handler._handle_error(e=httpx.ConnectError("Connection refused"), provider_config=None)
     assert transport.value.status_code == 500
     assert transport.value.status_code_is_synthesized is True
@@ -1250,7 +1250,7 @@ def test_handle_error_marks_only_a_status_code_it_never_received():
         request=request,
         response=httpx.Response(status_code=500, request=request, text="upstream exploded"),
     )
-    with pytest.raises(litellm.llms.base_llm.chat.transformation.BaseLLMException) as received:
+    with pytest.raises(gateway.llms.base_llm.chat.transformation.BaseLLMException) as received:
         raise handler._handle_error(e=upstream, provider_config=None)
     assert received.value.status_code == 500
     assert received.value.status_code_is_synthesized is False

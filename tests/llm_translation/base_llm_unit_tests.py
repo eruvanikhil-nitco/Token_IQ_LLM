@@ -10,7 +10,7 @@ import time
 import base64
 import inspect
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.exceptions import BadRequestError
 from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
 from token_iq.gateway.utils import (
@@ -32,7 +32,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..",
 from tests._live_test_helpers import _skip_live_prompt_caching_test  # noqa: E402
 
 
-def _usage_format_tests(usage: litellm.Usage):
+def _usage_format_tests(usage: gateway.Usage):
     """
     OpenAI prompt caching
     - prompt_tokens = sum of non-cache hit tokens + cache-hit tokens
@@ -69,11 +69,11 @@ class BaseLLMChatTest(ABC):
 
     @property
     def completion_function(self):
-        return litellm.completion
+        return gateway.completion
 
     @property
     def async_completion_function(self):
-        return litellm.acompletion
+        return gateway.acompletion
 
     @abstractmethod
     def get_base_completion_call_args(self) -> dict:
@@ -89,9 +89,9 @@ class BaseLLMChatTest(ABC):
         """Fixture to handle rate limit errors for all test methods"""
         try:
             yield
-        except litellm.RateLimitError:
+        except gateway.RateLimitError:
             pytest.skip("Rate limit exceeded")
-        except litellm.InternalServerError:
+        except gateway.InternalServerError:
             pytest.skip("Model is overloaded")
 
     def test_developer_role_translation(self):
@@ -117,7 +117,7 @@ class BaseLLMChatTest(ABC):
                 messages=messages,
             )
             assert response is not None
-        except litellm.InternalServerError:
+        except gateway.InternalServerError:
             pytest.skip("Model is overloaded")
 
         assert response.choices[0].message.content is not None
@@ -137,18 +137,18 @@ class BaseLLMChatTest(ABC):
                 messages=messages,
             )
             assert response is not None
-        except litellm.InternalServerError:
+        except gateway.InternalServerError:
             pytest.skip("Model is overloaded")
 
         # for OpenAI the content contains the JSON schema, so we need to assert that the content is not None
         assert response.choices[0].message.content is not None
 
     def test_tool_call_with_property_type_array(self):
-        litellm._turn_on_debug()
+        gateway._turn_on_debug()
         from token_iq.gateway.utils import supports_function_calling
 
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-        litellm.model_cost = litellm.get_model_cost_map()
+        gateway.model_cost = gateway.get_model_cost_map()
 
         base_completion_call_args = self.get_base_completion_call_args()
         if not supports_function_calling(base_completion_call_args["model"], None):
@@ -190,11 +190,11 @@ class BaseLLMChatTest(ABC):
 
     @pytest.mark.flaky(retries=3, delay=1)
     def test_tool_call_with_empty_enum_property(self):
-        litellm._turn_on_debug()
+        gateway._turn_on_debug()
         from token_iq.gateway.utils import supports_function_calling
 
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-        litellm.model_cost = litellm.get_model_cost_map()
+        gateway.model_cost = gateway.get_model_cost_map()
 
         base_completion_call_args = self.get_base_completion_call_args()
         if not supports_function_calling(base_completion_call_args["model"], None):
@@ -264,7 +264,7 @@ class BaseLLMChatTest(ABC):
             )
             assert response is not None
             assert isinstance(response, CustomStreamWrapper)
-        except litellm.InternalServerError:
+        except gateway.InternalServerError:
             pytest.skip("Model is overloaded")
 
         # for OpenAI the content contains the JSON schema, so we need to assert that the content is not None
@@ -278,7 +278,7 @@ class BaseLLMChatTest(ABC):
                     created_at = chunk.created
                 assert chunk.created == created_at
 
-        resp = litellm.stream_chunk_builder(chunks=chunks)
+        resp = gateway.stream_chunk_builder(chunks=chunks)
         print(resp)
 
         # assert resp.usage.prompt_tokens > 0
@@ -286,7 +286,7 @@ class BaseLLMChatTest(ABC):
         # assert resp.usage.total_tokens > 0
 
     def test_pydantic_model_input(self):
-        litellm.set_verbose = True
+        gateway.set_verbose = True
 
         from token_iq.gateway import completion, Message
 
@@ -299,9 +299,9 @@ class BaseLLMChatTest(ABC):
         from token_iq.gateway.utils import supports_web_search
 
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-        litellm.model_cost = litellm.get_model_cost_map()
+        gateway.model_cost = gateway.get_model_cost_map()
 
-        litellm._turn_on_debug()
+        gateway._turn_on_debug()
 
         base_completion_call_args = self.get_base_completion_call_args()
 
@@ -325,9 +325,9 @@ class BaseLLMChatTest(ABC):
         from token_iq.gateway.utils import supports_url_context
 
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-        litellm.model_cost = litellm.get_model_cost_map()
+        gateway.model_cost = gateway.get_model_cost_map()
 
-        litellm._turn_on_debug()
+        gateway._turn_on_debug()
 
         base_completion_call_args = self.get_base_completion_call_args()
 
@@ -354,9 +354,9 @@ class BaseLLMChatTest(ABC):
         from token_iq.gateway.utils import supports_pdf_input
 
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-        litellm.model_cost = litellm.get_model_cost_map()
+        gateway.model_cost = gateway.get_model_cost_map()
 
-        litellm._turn_on_debug()
+        gateway._turn_on_debug()
 
         image_content = [
             {"type": "text", "text": "What's this file about?"},
@@ -393,9 +393,9 @@ class BaseLLMChatTest(ABC):
         from token_iq.gateway.utils import supports_pdf_input
 
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-        litellm.model_cost = litellm.get_model_cost_map()
+        gateway.model_cost = gateway.get_model_cost_map()
 
-        litellm._turn_on_debug()
+        gateway._turn_on_debug()
 
         image_content = [
             {"type": "text", "text": "What's this file about?"},
@@ -461,7 +461,7 @@ class BaseLLMChatTest(ABC):
 
     def test_message_with_name(self):
         try:
-            litellm.set_verbose = True
+            gateway.set_verbose = True
             base_completion_call_args = self.get_base_completion_call_args()
             messages = [
                 {"role": "user", "content": "Hello", "name": "test_name"},
@@ -470,7 +470,7 @@ class BaseLLMChatTest(ABC):
                 **base_completion_call_args, messages=messages
             )
             assert response is not None
-        except litellm.RateLimitError:
+        except gateway.RateLimitError:
             pass
 
     @pytest.mark.parametrize(
@@ -488,7 +488,7 @@ class BaseLLMChatTest(ABC):
         from token_iq.gateway.utils import supports_response_schema
 
         base_completion_call_args = self.get_base_completion_call_args()
-        litellm.set_verbose = True
+        gateway.set_verbose = True
 
         if not supports_response_schema(base_completion_call_args["model"], None):
             pytest.skip("Model does not support response schema")
@@ -563,7 +563,7 @@ class BaseLLMChatTest(ABC):
                 drop_params=True,
             )
             print(f"RESPONSE={response}")
-        except litellm.ContextWindowExceededError:
+        except gateway.ContextWindowExceededError:
             pytest.skip("Model exceeded context window")
         assert response is not None
 
@@ -574,9 +574,9 @@ class BaseLLMChatTest(ABC):
         from token_iq.gateway import LlmProviders
 
         base_completion_call_args = self.get_base_completion_call_args()
-        litellm.set_verbose = True
+        gateway.set_verbose = True
 
-        _, provider, _, _ = litellm.get_llm_provider(
+        _, provider, _, _ = gateway.get_llm_provider(
             model=base_completion_call_args["model"]
         )
 
@@ -602,12 +602,12 @@ class BaseLLMChatTest(ABC):
 
     @pytest.mark.flaky(retries=6, delay=1)
     def test_json_response_pydantic_obj(self):
-        litellm._turn_on_debug()
+        gateway._turn_on_debug()
         from pydantic import BaseModel
         from token_iq.gateway.utils import supports_response_schema
 
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-        litellm.model_cost = litellm.get_model_cost_map()
+        gateway.model_cost = gateway.get_model_cost_map()
 
         class TestModel(BaseModel):
             first_response: str
@@ -635,19 +635,19 @@ class BaseLLMChatTest(ABC):
 
             assert res.choices[0].message.content is not None
             assert res.choices[0].message.tool_calls is None
-        except litellm.Timeout:
+        except gateway.Timeout:
             pytest.skip("Model took too long to respond")
-        except litellm.InternalServerError:
+        except gateway.InternalServerError:
             pytest.skip("Model is overloaded")
 
     @pytest.mark.flaky(retries=6, delay=1)
     def test_json_response_pydantic_obj_nested_obj(self):
-        litellm.set_verbose = True
+        gateway.set_verbose = True
         from pydantic import BaseModel
         from token_iq.gateway.utils import supports_response_schema
 
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-        litellm.model_cost = litellm.get_model_cost_map()
+        gateway.model_cost = gateway.get_model_cost_map()
 
     @pytest.mark.flaky(retries=6, delay=1)
     def test_json_response_nested_pydantic_obj(self):
@@ -655,7 +655,7 @@ class BaseLLMChatTest(ABC):
         from token_iq.gateway.utils import supports_response_schema
 
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-        litellm.model_cost = litellm.get_model_cost_map()
+        gateway.model_cost = gateway.get_model_cost_map()
 
         class CalendarEvent(BaseModel):
             name: str
@@ -688,9 +688,9 @@ class BaseLLMChatTest(ABC):
 
             assert res.choices[0].message.content is not None
             assert res.choices[0].message.tool_calls is None
-        except litellm.Timeout:
+        except gateway.Timeout:
             pytest.skip("Model took too long to respond")
-        except litellm.InternalServerError:
+        except gateway.InternalServerError:
             pytest.skip("Model is overloaded")
 
     @pytest.mark.flaky(retries=6, delay=1)
@@ -698,13 +698,13 @@ class BaseLLMChatTest(ABC):
         """
         PROD Test: ensure nested json schema sent to proxy works as expected.
         """
-        litellm._turn_on_debug()
+        gateway._turn_on_debug()
         from pydantic import BaseModel
         from token_iq.gateway.utils import supports_response_schema
         from token_iq.gateway.llms.base_llm.base_utils import type_to_response_format_param
 
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-        litellm.model_cost = litellm.get_model_cost_map()
+        gateway.model_cost = gateway.get_model_cost_map()
 
         class CalendarEvent(BaseModel):
             name: str
@@ -739,9 +739,9 @@ class BaseLLMChatTest(ABC):
 
             assert res.choices[0].message.content is not None
             assert res.choices[0].message.tool_calls is None
-        except litellm.Timeout:
+        except gateway.Timeout:
             pytest.skip("Model took too long to respond")
-        except litellm.InternalServerError:
+        except gateway.InternalServerError:
             pytest.skip("Model is overloaded")
 
     @pytest.mark.flaky(retries=6, delay=1)
@@ -751,7 +751,7 @@ class BaseLLMChatTest(ABC):
         """
         from token_iq.gateway.utils import supports_audio_input
 
-        litellm._turn_on_debug()
+        gateway._turn_on_debug()
         base_completion_call_args = self.get_base_completion_call_args()
         if not supports_audio_input(base_completion_call_args["model"], None):
             pytest.skip(
@@ -790,7 +790,7 @@ class BaseLLMChatTest(ABC):
         from token_iq.gateway.utils import supports_response_schema
 
         base_completion_call_args = self.get_base_completion_call_args()
-        litellm.set_verbose = True
+        gateway.set_verbose = True
 
         base_completion_call_args = self.get_base_completion_call_args()
         if not supports_response_schema(base_completion_call_args["model"], None):
@@ -814,7 +814,7 @@ class BaseLLMChatTest(ABC):
                 response_format={"type": "json_object"},
                 stream=True,
             )
-        except litellm.InternalServerError:
+        except gateway.InternalServerError:
             pytest.skip("Model is overloaded")
 
         print(response)
@@ -864,11 +864,11 @@ class BaseLLMChatTest(ABC):
     )
     @pytest.mark.flaky(retries=4, delay=2)
     def test_image_url(self, detail, image_url):
-        litellm.set_verbose = True
+        gateway.set_verbose = True
         from token_iq.gateway.utils import supports_vision
 
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-        litellm.model_cost = litellm.get_model_cost_map()
+        gateway.model_cost = gateway.get_model_cost_map()
 
         base_completion_call_args = self.get_base_completion_call_args()
         if not supports_vision(base_completion_call_args["model"], None):
@@ -917,17 +917,17 @@ class BaseLLMChatTest(ABC):
             response = self.completion_function(
                 **base_completion_call_args, messages=messages
             )
-        except litellm.InternalServerError:
+        except gateway.InternalServerError:
             pytest.skip("Model is overloaded")
 
         assert response is not None
 
     def test_image_url_string(self):
-        litellm.set_verbose = True
+        gateway.set_verbose = True
         from token_iq.gateway.utils import supports_vision
 
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-        litellm.model_cost = litellm.get_model_cost_map()
+        gateway.model_cost = gateway.get_model_cost_map()
 
         image_url = "https://awsmp-logos.s3.amazonaws.com/seller-xw5kijmvmzasy/c233c9ade2ccb5491072ae232c814942.png"
 
@@ -957,7 +957,7 @@ class BaseLLMChatTest(ABC):
             response = self.completion_function(
                 **base_completion_call_args, messages=messages
             )
-        except litellm.InternalServerError:
+        except gateway.InternalServerError:
             pytest.skip("Model is overloaded")
 
         assert response is not None
@@ -966,11 +966,11 @@ class BaseLLMChatTest(ABC):
     def test_prompt_caching(self):
         _skip_live_prompt_caching_test()
         print("test_prompt_caching")
-        litellm.set_verbose = True
+        gateway.set_verbose = True
         from token_iq.gateway.utils import supports_prompt_caching
 
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-        litellm.model_cost = litellm.get_model_cost_map()
+        gateway.model_cost = gateway.get_model_cost_map()
 
         base_completion_call_args = self.get_base_completion_call_args()
         if not supports_prompt_caching(base_completion_call_args["model"], None):
@@ -1061,7 +1061,7 @@ class BaseLLMChatTest(ABC):
                 assert (
                     response.usage.prompt_tokens_details.cached_tokens > 0
                 ), f"cached_tokens={response.usage.prompt_tokens_details.cached_tokens} should be greater than 0. Got usage={response.usage}"
-        except litellm.InternalServerError as e:
+        except gateway.InternalServerError as e:
             print("InternalServerError", e)
 
     @pytest.fixture
@@ -1089,12 +1089,12 @@ class BaseLLMChatTest(ABC):
         try:
             from token_iq.gateway import completion, ModelResponse
 
-            litellm.set_verbose = True
-            litellm._turn_on_debug()
+            gateway.set_verbose = True
+            gateway._turn_on_debug()
             from token_iq.gateway.utils import supports_function_calling
 
             os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-            litellm.model_cost = litellm.get_model_cost_map()
+            gateway.model_cost = gateway.get_model_cost_map()
 
             base_completion_call_args = self.get_base_completion_call_args()
             if not supports_function_calling(base_completion_call_args["model"], None):
@@ -1108,11 +1108,11 @@ class BaseLLMChatTest(ABC):
             )  # just make sure call doesn't fail
             print("response: ", response)
             assert response is not None
-        except litellm.ContentPolicyViolationError:
+        except gateway.ContentPolicyViolationError:
             pass
-        except litellm.InternalServerError:
+        except gateway.InternalServerError:
             pytest.skip("Model is overloaded")
-        except litellm.RateLimitError:
+        except gateway.RateLimitError:
             pass
         except Exception as e:
             pytest.fail(f"Error occurred: {e}")
@@ -1122,12 +1122,12 @@ class BaseLLMChatTest(ABC):
         try:
             from token_iq.gateway import completion, ModelResponse
 
-            litellm.set_verbose = True
-            litellm._turn_on_debug()
+            gateway.set_verbose = True
+            gateway._turn_on_debug()
             from token_iq.gateway.utils import supports_function_calling
 
             os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-            litellm.model_cost = litellm.get_model_cost_map()
+            gateway.model_cost = gateway.get_model_cost_map()
 
             base_completion_call_args = self.get_base_completion_call_args()
             if not supports_function_calling(base_completion_call_args["model"], None):
@@ -1231,11 +1231,11 @@ class BaseLLMChatTest(ABC):
                 second_response.choices[0].message.content is not None
                 or second_response.choices[0].message.tool_calls is not None
             )
-        except litellm.ServiceUnavailableError:
+        except gateway.ServiceUnavailableError:
             pytest.skip("Model is overloaded")
-        except litellm.InternalServerError:
+        except gateway.InternalServerError:
             pytest.skip("Model is overloaded")
-        except litellm.RateLimitError:
+        except gateway.RateLimitError:
             pass
         except Exception as e:
             pytest.fail(f"Error occurred: {e}")
@@ -1245,12 +1245,12 @@ class BaseLLMChatTest(ABC):
     async def test_completion_cost(self):
         from token_iq.gateway import completion_cost
 
-        litellm._turn_on_debug()
+        gateway._turn_on_debug()
 
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-        litellm.model_cost = litellm.get_model_cost_map()
+        gateway.model_cost = gateway.get_model_cost_map()
 
-        litellm.set_verbose = True
+        gateway.set_verbose = True
         response = await self.async_completion_function(
             **self.get_base_completion_call_args(),
             messages=[{"role": "user", "content": "Hello, how are you?"}],
@@ -1266,9 +1266,9 @@ class BaseLLMChatTest(ABC):
         from token_iq.gateway.types.utils import CallTypes
 
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-        litellm.model_cost = litellm.get_model_cost_map()
+        gateway.model_cost = gateway.get_model_cost_map()
 
-        litellm.drop_params = True
+        gateway.drop_params = True
         base_completion_call_args = self.get_base_completion_call_args()
         if not supports_audio_input(base_completion_call_args["model"], None):
             print("Model does not support audio input")
@@ -1332,11 +1332,11 @@ class BaseLLMChatTest(ABC):
         from token_iq.gateway.utils import supports_function_calling
         from token_iq.gateway import completion
 
-        litellm._turn_on_debug()
+        gateway._turn_on_debug()
         try:
 
             os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-            litellm.model_cost = litellm.get_model_cost_map()
+            gateway.model_cost = gateway.get_model_cost_map()
 
             base_completion_call_args = self.get_base_completion_call_args()
             if not supports_function_calling(base_completion_call_args["model"], None):
@@ -1423,7 +1423,7 @@ class BaseLLMChatTest(ABC):
                     break
 
             print(response)
-        except litellm.ServiceUnavailableError:
+        except gateway.ServiceUnavailableError:
             pass
 
     def test_reasoning_effort(self):
@@ -1432,7 +1432,7 @@ class BaseLLMChatTest(ABC):
         from token_iq.gateway import completion
 
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-        litellm.model_cost = litellm.get_model_cost_map()
+        gateway.model_cost = gateway.get_model_cost_map()
 
         base_completion_call_args = (
             self.get_base_completion_call_args_with_reasoning_model()
@@ -1444,7 +1444,7 @@ class BaseLLMChatTest(ABC):
             print("Model does not support reasoning")
             pytest.skip("Model does not support reasoning")
 
-        _, provider, _, _ = litellm.get_llm_provider(
+        _, provider, _, _ = gateway.get_llm_provider(
             model=base_completion_call_args["model"]
         )
 
@@ -1462,7 +1462,7 @@ class BaseLLMChatTest(ABC):
         ) in json.dumps(optional_params)
 
         try:
-            litellm._turn_on_debug()
+            gateway._turn_on_debug()
             response = completion(
                 **base_completion_call_args,
                 reasoning_effort="low",
@@ -1598,7 +1598,7 @@ class BaseAnthropicChatTest(ABC):
 
     @property
     def completion_function(self):
-        return litellm.completion
+        return gateway.completion
 
     def test_anthropic_response_format_streaming_vs_non_streaming(self):
         args = {
@@ -1665,7 +1665,7 @@ class BaseAnthropicChatTest(ABC):
     def test_completion_thinking_with_response_format(self):
         from pydantic import BaseModel
 
-        litellm._turn_on_debug()
+        gateway._turn_on_debug()
 
         class RFormat(BaseModel):
             question: str
@@ -1685,7 +1685,7 @@ class BaseAnthropicChatTest(ABC):
     def test_completion_thinking_with_max_tokens(self):
         from pydantic import BaseModel
 
-        litellm._turn_on_debug()
+        gateway._turn_on_debug()
 
         base_completion_call_args = self.get_base_completion_call_args_with_thinking()
 
@@ -1701,7 +1701,7 @@ class BaseAnthropicChatTest(ABC):
     def test_completion_thinking_without_max_tokens(self):
         from pydantic import BaseModel
 
-        litellm._turn_on_debug()
+        gateway._turn_on_debug()
 
         base_completion_call_args = self.get_base_completion_call_args_with_thinking()
 
@@ -1714,7 +1714,7 @@ class BaseAnthropicChatTest(ABC):
         print(response)
 
     def test_completion_with_thinking_basic(self):
-        litellm._turn_on_debug()
+        gateway._turn_on_debug()
         base_completion_call_args = self.get_base_completion_call_args_with_thinking()
 
         messages = [{"role": "user", "content": "Generate 5 question + answer pairs"}]
@@ -1738,7 +1738,7 @@ class BaseAnthropicChatTest(ABC):
             base_completion_call_args = (
                 self.get_base_completion_call_args_with_thinking()
             )
-            resp = litellm.completion(
+            resp = gateway.completion(
                 **base_completion_call_args,
                 messages=[{"role": "user", "content": "Tell me a joke."}],
                 stream=True,
@@ -1767,12 +1767,12 @@ class BaseAnthropicChatTest(ABC):
             assert not tool_call_exists
             assert reasoning_content_exists
             assert signature_block_exists
-        except litellm.Timeout:
+        except gateway.Timeout:
             pytest.skip("Model is timing out")
 
     def test_anthropic_reasoning_effort_thinking_translation(self):
         base_completion_call_args = self.get_base_completion_call_args_with_thinking()
-        _, provider, _, _ = litellm.get_llm_provider(
+        _, provider, _, _ = gateway.get_llm_provider(
             model=base_completion_call_args["model"]
         )
 
@@ -1806,7 +1806,7 @@ class BaseReasoningLLMTests(ABC):
 
     @property
     def completion_function(self):
-        return litellm.completion
+        return gateway.completion
 
     def test_non_streaming_reasoning_effort(self):
         """
@@ -1815,7 +1815,7 @@ class BaseReasoningLLMTests(ABC):
         - Assert that `reasoning_content` is not None from response message
         - Assert that `reasoning_tokens` is greater than 0 from usage
         """
-        litellm._turn_on_debug()
+        gateway._turn_on_debug()
         base_completion_call_args = self.get_base_completion_call_args()
         response: ModelResponse = self.completion_function(
             **base_completion_call_args, reasoning_effort="low"

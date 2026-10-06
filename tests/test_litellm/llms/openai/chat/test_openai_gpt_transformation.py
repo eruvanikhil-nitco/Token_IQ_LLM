@@ -6,7 +6,7 @@ Tests for OpenAI GPT transformation (token_iq/gateway/llms/openai/chat/gpt_trans
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.prompt_templates.common_utils import TOOL_RESULT_IMAGE_BOUNDARY
 from token_iq.gateway.llms.openai.chat.gpt_5_transformation import OpenAIGPT5Config
 from token_iq.gateway.llms.openai.chat.gpt_transformation import (
@@ -201,7 +201,7 @@ class TestGetOptionalParamsIntegration:
         """A real OpenAI model that doesn't reason still rejects the param client-side."""
         from token_iq.gateway.utils import get_optional_params
 
-        with pytest.raises(litellm.utils.UnsupportedParamsError):
+        with pytest.raises(gateway.utils.UnsupportedParamsError):
             get_optional_params(
                 model="gpt-4o",
                 custom_llm_provider="openai",
@@ -615,14 +615,14 @@ class TestGPT5ReasoningEffortPreservation:
         When reasoning_effort={"effort": "xhigh", "summary": "detailed"} is passed to a model
         that doesn't support xhigh (e.g. gpt-5.1), the xhigh guard must fire.
         """
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         non_default_params = {
             "reasoning_effort": {"effort": "xhigh", "summary": "detailed"}
         }
         optional_params = {}
 
-        with pytest.raises(litellm.utils.UnsupportedParamsError):
+        with pytest.raises(gateway.utils.UnsupportedParamsError):
             self.config.map_openai_params(
                 non_default_params=non_default_params,
                 optional_params=optional_params,
@@ -731,7 +731,7 @@ class TestCacheControlPreservationForCustomEndpoint:
     def _clean_openai_base_env(self, monkeypatch):
         monkeypatch.delenv("OPENAI_BASE_URL", raising=False)
         monkeypatch.delenv("OPENAI_API_BASE", raising=False)
-        monkeypatch.setattr(litellm, "api_base", None, raising=False)
+        monkeypatch.setattr(gateway, "api_base", None, raising=False)
 
     @staticmethod
     def _cache_controlled_messages():
@@ -1129,7 +1129,7 @@ class TestOpenAIPromptCacheBreakpointChatPath:
     EXPLICIT = {"mode": "explicit"}
 
     def test_prompt_cache_options_travels_in_extra_body(self):
-        optional_params = litellm.get_optional_params(
+        optional_params = gateway.get_optional_params(
             model="gpt-5.6", custom_llm_provider="openai", prompt_cache_options=self.EXPLICIT
         )
         assert optional_params["extra_body"]["prompt_cache_options"] == self.EXPLICIT
@@ -1182,7 +1182,7 @@ class TestToolSchemaCombinatorFlatteningForOpenAI:
     def _clean_openai_base_env(self, monkeypatch):
         monkeypatch.delenv("OPENAI_BASE_URL", raising=False)
         monkeypatch.delenv("OPENAI_API_BASE", raising=False)
-        monkeypatch.setattr(litellm, "api_base", None, raising=False)
+        monkeypatch.setattr(gateway, "api_base", None, raising=False)
 
     @staticmethod
     def _anyof_tool():

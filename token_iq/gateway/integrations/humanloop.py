@@ -9,7 +9,7 @@ from typing import Any, Final, cast
 import httpx
 from typing_extensions import TypedDict
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.caching import DualCache
 from token_iq.gateway.llms.custom_httpx.http_handler import _get_httpx_client
 from token_iq.gateway.secret_managers.main import get_secret_str
@@ -89,7 +89,7 @@ class HumanLoopPromptManager(DualCache):
         template_model: Final = json_response["model"]
         optional_params: Final = {}
         for k, v in json_response.items():
-            if k in litellm.OPENAI_CHAT_COMPLETION_PARAMS:
+            if k in gateway.OPENAI_CHAT_COMPLETION_PARAMS:
                 optional_params[k] = v
         return PromptManagementClient(
             prompt_id=humanloop_prompt_id,
@@ -105,7 +105,7 @@ class HumanLoopPromptManager(DualCache):
             self.set_cache(
                 key=humanloop_prompt_id,
                 value=prompt,
-                ttl=litellm.HUMANLOOP_PROMPT_CACHE_TTL_SECONDS,
+                ttl=gateway.HUMANLOOP_PROMPT_CACHE_TTL_SECONDS,
             )
         return prompt
 

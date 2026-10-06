@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.rust_bridge import chat_completions as bridge
 from token_iq.gateway.rust_bridge import configuration
 from token_iq.gateway.types.utils import ModelResponse
@@ -204,12 +204,12 @@ class TestGate:
             "model": "bedrock/us-east-1/anthropic.claude-v2",
         }
 
-        monkeypatch.setattr(litellm, "bedrock_request_metadata_fields", ["user_api_key_team_id"])
+        monkeypatch.setattr(gateway, "bedrock_request_metadata_fields", ["user_api_key_team_id"])
         assert _accepts(**bedrock) is False
         assert gate.calls == [], "the core must not be consulted for a field it cannot write"
         assert _accepts() is True, "arming Bedrock attribution must not decline Anthropic"
 
-        monkeypatch.setattr(litellm, "bedrock_request_metadata_fields", None)
+        monkeypatch.setattr(gateway, "bedrock_request_metadata_fields", None)
         assert _accepts(**bedrock) is True, "the decline follows the operator's opt-in alone"
 
     def test_declines_when_the_core_declines(self, monkeypatch):

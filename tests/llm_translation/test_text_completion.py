@@ -2,7 +2,7 @@ import json
 from datetime import datetime
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 import pytest
 
 from token_iq.gateway.utils import (
@@ -120,7 +120,7 @@ async def test_text_completion_include_usage(sync_mode):
     """Test text completion with include_usage"""
     last_chunk = None
     if sync_mode:
-        response = await litellm.atext_completion(
+        response = await gateway.atext_completion(
             model="gpt-3.5-turbo",
             prompt="Hello, world!",
             stream=True,
@@ -131,7 +131,7 @@ async def test_text_completion_include_usage(sync_mode):
             print(chunk)
             last_chunk = chunk
     else:
-        response = litellm.text_completion(
+        response = gateway.text_completion(
             model="gpt-3.5-turbo",
             prompt="Hello, world!",
             stream=True,

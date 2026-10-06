@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Any, Final, cast
 import httpx
 from httpx._types import RequestFiles
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.constants import DEFAULT_MAX_RECURSE_DEPTH
 from token_iq.gateway.llms.base_llm.image_edit.transformation import BaseImageEditConfig
 from token_iq.gateway.llms.vertex_ai.common_utils import get_vertex_base_url
@@ -69,7 +69,7 @@ class VertexAIImagenImageEditConfig(BaseImageEditConfig, VertexLLM):
         return (
             getattr(self, "_vertex_project", None)
             or os.environ.get("VERTEXAI_PROJECT")
-            or getattr(litellm, "vertex_project", None)
+            or getattr(gateway, "vertex_project", None)
             or get_secret_str("VERTEXAI_PROJECT")
         )
 
@@ -78,7 +78,7 @@ class VertexAIImagenImageEditConfig(BaseImageEditConfig, VertexLLM):
             getattr(self, "_vertex_location", None)
             or os.environ.get("VERTEXAI_LOCATION")
             or os.environ.get("VERTEX_LOCATION")
-            or getattr(litellm, "vertex_location", None)
+            or getattr(gateway, "vertex_location", None)
             or get_secret_str("VERTEXAI_LOCATION")
             or get_secret_str("VERTEX_LOCATION")
         )
@@ -87,7 +87,7 @@ class VertexAIImagenImageEditConfig(BaseImageEditConfig, VertexLLM):
         return (
             getattr(self, "_vertex_credentials", None)
             or os.environ.get("VERTEXAI_CREDENTIALS")
-            or getattr(litellm, "vertex_credentials", None)
+            or getattr(gateway, "vertex_credentials", None)
             or os.environ.get("GOOGLE_APPLICATION_CREDENTIALS")
             or get_secret_str("VERTEXAI_CREDENTIALS")
         )

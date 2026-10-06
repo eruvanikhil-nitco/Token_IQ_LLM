@@ -1,6 +1,6 @@
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.caching.caching import DualCache
 from token_iq.gateway.router_strategy.budget_limiter import RouterBudgetLimiting
 from token_iq.gateway.types.router import LiteLLM_Params
@@ -66,7 +66,7 @@ async def test_get_llm_provider_for_deployment_dict_view_supports_mapping_and_at
         return model, "openai", None, None
 
     monkeypatch.setattr(
-        "token_iq.gateway.router_strategy.budget_limiter.litellm.get_llm_provider",
+        "token_iq.gateway.router_strategy.budget_limiter.gateway.get_llm_provider",
         _future_style_get_llm_provider,
     )
 
@@ -204,7 +204,7 @@ def _legacy_provider_resolution(deployment):
         _litellm_params = LiteLLM_Params(
             **deployment.get("litellm_params", {"model": ""})
         )
-        _, custom_llm_provider, _, _ = litellm.get_llm_provider(
+        _, custom_llm_provider, _, _ = gateway.get_llm_provider(
             model=_litellm_params.model,
             litellm_params=_litellm_params,
         )

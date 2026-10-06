@@ -14,9 +14,9 @@ verbose_logger.setLevel(logging.DEBUG)
 
 # Minimal setup for module-level instantiation
 import token_iq.gateway.proxy.proxy_server
-from token_iq import gateway as litellm
+from token_iq import gateway
 
-litellm.proxy.proxy_server.premium_user = True
+gateway.proxy.proxy_server.premium_user = True
 
 from token_iq.gateway.secret_managers.hashicorp_secret_manager import HashicorpSecretManager
 

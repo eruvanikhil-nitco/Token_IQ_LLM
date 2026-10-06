@@ -5,7 +5,7 @@ from typing import List, cast
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.caching.dual_cache import DualCache
 from token_iq.gateway.constants import DEFAULT_MINIMUM_PROMPT_CACHE_TOKEN_COUNT
 from token_iq.gateway.integrations.anthropic_cache_control_hook import AnthropicCacheControlHook
@@ -246,12 +246,12 @@ async def test_affinity_key_matches_the_messages_auto_caching_actually_sends(mon
     every request. Routing must derive the same key the success event writes from the messages the
     request was actually sent with, otherwise auto-injected caching gets no affinity at all.
     """
-    monkeypatch.setattr(litellm, "enable_anthropic_prompt_caching", True)
+    monkeypatch.setattr(gateway, "enable_anthropic_prompt_caching", True)
     capture = _SentMessagesCapture()
-    monkeypatch.setattr(litellm, "callbacks", [capture])
+    monkeypatch.setattr(gateway, "callbacks", [capture])
     messages = _auto_caching_messages()
 
-    await litellm.acompletion(
+    await gateway.acompletion(
         model=AUTO_CACHING_MODEL,
         messages=copy.deepcopy(messages),
         mock_response="ok",
@@ -275,7 +275,7 @@ async def test_per_request_enable_prompt_caching_reaches_the_affinity_key(monkey
     off, so routing has to read it too. Ignore it and the key comes off unmarked messages, which is
     never what the request goes on to send, and the pin is lost for every per-key enablement.
     """
-    monkeypatch.setattr(litellm, "enable_anthropic_prompt_caching", False)
+    monkeypatch.setattr(gateway, "enable_anthropic_prompt_caching", False)
     cache = DualCache()
     check = PromptCachingDeploymentCheck(cache=cache)
     deployments = _deployments(AUTO_CACHING_MODEL, AUTO_CACHING_MODEL)
@@ -305,7 +305,7 @@ async def test_tool_marked_cache_control_keeps_routing_off_another_requests_pref
     keys off the injected prefix, pinning the request to whichever deployment cached a different,
     tool-less request whose prefix it can never actually reuse.
     """
-    monkeypatch.setattr(litellm, "enable_anthropic_prompt_caching", True)
+    monkeypatch.setattr(gateway, "enable_anthropic_prompt_caching", True)
     cache = DualCache()
     check = PromptCachingDeploymentCheck(cache=cache)
     deployments = _deployments(AUTO_CACHING_MODEL, AUTO_CACHING_MODEL)
@@ -343,7 +343,7 @@ def test_client_supplied_cache_control_keeps_its_own_prefix_boundary(monkeypatch
     keep keying off the client's boundary. Injecting on top would push the boundary to the trailing
     turn and break affinity for prompts that already worked.
     """
-    monkeypatch.setattr(litellm, "enable_anthropic_prompt_caching", True)
+    monkeypatch.setattr(gateway, "enable_anthropic_prompt_caching", True)
     messages = cast(
         List[AllMessageValues],
         [

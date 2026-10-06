@@ -8,7 +8,7 @@ import pytest
 
 # Add the litellm directory to the path
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 
 class TestSharedSessionIntegration:
@@ -19,7 +19,7 @@ class TestSharedSessionIntegration:
         import inspect
 
         # Get the function signature
-        sig = inspect.signature(litellm.acompletion)
+        sig = inspect.signature(gateway.acompletion)
         params = list(sig.parameters.keys())
 
         # Verify shared_session parameter exists
@@ -37,7 +37,7 @@ class TestSharedSessionIntegration:
         import inspect
 
         # Get the function signature
-        sig = inspect.signature(litellm.completion)
+        sig = inspect.signature(gateway.completion)
         params = list(sig.parameters.keys())
 
         # Verify shared_session parameter exists
@@ -69,11 +69,11 @@ class TestSharedSessionIntegration:
             try:
                 # We can't actually call acompletion without proper setup,
                 # but we can verify the parameter is accepted
-                sig = inspect.signature(litellm.acompletion)
+                sig = inspect.signature(gateway.acompletion)
                 assert "shared_session" in sig.parameters
             except Exception as e:
                 # Expected to fail due to missing API keys, but parameter should be valid
-                sig = inspect.signature(litellm.acompletion)
+                sig = inspect.signature(gateway.acompletion)
                 assert "shared_session" in sig.parameters
 
     def test_shared_session_passed_to_completion_kwargs(self):
@@ -85,7 +85,7 @@ class TestSharedSessionIntegration:
         # but we can verify the parameter exists in the function signature
         import inspect
 
-        sig = inspect.signature(litellm.acompletion)
+        sig = inspect.signature(gateway.acompletion)
         shared_session_param = sig.parameters["shared_session"]
 
         # Verify the parameter is properly typed
@@ -97,7 +97,7 @@ class TestSharedSessionIntegration:
         import inspect
 
         # Verify that shared_session has a default value of None
-        sig = inspect.signature(litellm.acompletion)
+        sig = inspect.signature(gateway.acompletion)
         shared_session_param = sig.parameters["shared_session"]
 
         # This ensures backward compatibility
@@ -108,8 +108,8 @@ class TestSharedSessionIntegration:
         import inspect
 
         # Get signatures for both functions
-        acompletion_sig = inspect.signature(litellm.acompletion)
-        completion_sig = inspect.signature(litellm.completion)
+        acompletion_sig = inspect.signature(gateway.acompletion)
+        completion_sig = inspect.signature(gateway.completion)
 
         # Get the shared_session parameters
         acompletion_param = acompletion_sig.parameters["shared_session"]
@@ -125,7 +125,7 @@ class TestSharedSessionIntegration:
         """Test that shared_session parameter is in the correct position"""
         import inspect
 
-        sig = inspect.signature(litellm.acompletion)
+        sig = inspect.signature(gateway.acompletion)
         params = list(sig.parameters.keys())
 
         # Find the position of shared_session
@@ -151,7 +151,7 @@ class TestSharedSessionUsage:
         import inspect
 
         # Verify the function signature allows for the expected usage
-        sig = inspect.signature(litellm.acompletion)
+        sig = inspect.signature(gateway.acompletion)
         params = sig.parameters
 
         # Verify all expected parameters exist
@@ -169,7 +169,7 @@ class TestSharedSessionUsage:
         """Test that shared_session works with other parameters"""
         import inspect
 
-        sig = inspect.signature(litellm.acompletion)
+        sig = inspect.signature(gateway.acompletion)
         params = sig.parameters
 
         # Verify shared_session doesn't conflict with other parameters

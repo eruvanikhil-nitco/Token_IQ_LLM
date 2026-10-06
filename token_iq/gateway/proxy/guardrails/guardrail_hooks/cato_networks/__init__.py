@@ -9,7 +9,7 @@ if TYPE_CHECKING:
 
 
 def initialize_guardrail(litellm_params: "LitellmParams", guardrail: "Guardrail"):
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.proxy.guardrails.guardrail_hooks.cato_networks import (
         CatoNetworksGuardrail,
     )
@@ -22,7 +22,7 @@ def initialize_guardrail(litellm_params: "LitellmParams", guardrail: "Guardrail"
         default_on=litellm_params.default_on,
         ssl_verify=getattr(litellm_params, "ssl_verify", None),
     )
-    litellm.logging_callback_manager.add_litellm_callback(_cato_callback)
+    gateway.logging_callback_manager.add_litellm_callback(_cato_callback)
 
     return _cato_callback
 

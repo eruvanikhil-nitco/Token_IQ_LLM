@@ -8,9 +8,9 @@ import traceback
 from dotenv import load_dotenv
 
 import token_iq.gateway.types
-from token_iq import gateway as litellm
+from token_iq import gateway
 import token_iq.gateway.types.utils
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.anthropic.chat import ModelResponseIterator
 
 load_dotenv()
@@ -21,7 +21,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import (
     AnthropicConfig,
     Router,
@@ -245,7 +245,7 @@ def test_anthropic_tool_streaming():
     Anthropic gives tool_use indexes starting at the first chunk, meaning they often start at 1
     when they should start at 0
     """
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     response_iter = ModelResponseIterator([], False)
 
     # First index is 0, we'll start earlier because incrementing is easier
@@ -358,7 +358,7 @@ def test_process_anthropic_headers_with_no_matching_headers():
 def test_anthropic_tool_use(tool_type, tool_config, message_content):
     """Test Anthropic tool use with computer use and web fetch tools."""
 
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
 
     tools = [tool_config]
     model = "claude-sonnet-4-5-20250929"
@@ -373,7 +373,7 @@ def test_anthropic_tool_use(tool_type, tool_config, message_content):
         print(f"Tool type: {tool_type}")
         print(resp)
         assert resp is not None
-    except litellm.InternalServerError:
+    except gateway.InternalServerError:
         pass
 
 
@@ -389,7 +389,7 @@ def test_anthropic_tool_use(tool_type, tool_config, message_content):
 def test_anthropic_beta_header(
     computer_tool_used, prompt_caching_set, expected_beta_header
 ):
-    headers = litellm.AnthropicConfig().get_anthropic_headers(
+    headers = gateway.AnthropicConfig().get_anthropic_headers(
         api_key="fake-api-key",
         computer_tool_used=computer_tool_used,
         prompt_caching_set=prompt_caching_set,
@@ -502,12 +502,12 @@ class TestAnthropicCompletion(BaseLLMChatTest, BaseAnthropicChatTest):
         """
         Test that the tool call and JSON response format is supported by the LLM API
         """
-        litellm.set_verbose = True
+        gateway.set_verbose = True
         from pydantic import BaseModel
         from token_iq.gateway.utils import supports_response_schema
 
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-        litellm.model_cost = litellm.get_model_cost_map()
+        gateway.model_cost = gateway.get_model_cost_map()
 
         class RFormat(BaseModel):
             question: str
@@ -518,7 +518,7 @@ class TestAnthropicCompletion(BaseLLMChatTest, BaseAnthropicChatTest):
             pytest.skip("Model does not support response schema")
 
         try:
-            res = litellm.completion(
+            res = gateway.completion(
                 **base_completion_call_args,
                 messages=[
                     {
@@ -556,7 +556,7 @@ class TestAnthropicCompletion(BaseLLMChatTest, BaseAnthropicChatTest):
             assert res is not None
 
             assert res.choices[0].message.tool_calls is not None
-        except litellm.InternalServerError:
+        except gateway.InternalServerError:
             pytest.skip("Model is overloaded")
 
 
@@ -754,7 +754,7 @@ def test_anthropic_map_openai_params_tools_and_json_schema():
         }
     }
 
-    mapped_params = litellm.AnthropicConfig().map_openai_params(
+    mapped_params = gateway.AnthropicConfig().map_openai_params(
         non_default_params=args["non_default_params"],
         optional_params={},
         model="claude-sonnet-4-5-20250929",
@@ -796,7 +796,7 @@ def test_anthropic_map_openai_params_tools_with_defs():
         }
     }
 
-    mapped_params = litellm.AnthropicConfig().map_openai_params(
+    mapped_params = gateway.AnthropicConfig().map_openai_params(
         non_default_params=args["non_default_params"],
         optional_params={},
         model="claude-sonnet-4-5-20250929",
@@ -866,7 +866,7 @@ from token_iq.gateway.constants import RESPONSE_FORMAT_TOOL_NAME
 def test_anthropic_json_mode_and_tool_call_response(
     json_mode, tool_calls, expect_null_response
 ):
-    result, _, _ = litellm.AnthropicConfig()._resolve_json_mode_non_streaming(
+    result, _, _ = gateway.AnthropicConfig()._resolve_json_mode_non_streaming(
         json_mode=json_mode,
         tool_calls=tool_calls,
     )
@@ -906,7 +906,7 @@ def test_anthropic_json_mode_and_tool_call_response(
 )
 def test_map_stop_sequences(stop_input, expected_output, drop_params):
     """Test the _map_stop_sequences method of AnthropicConfig"""
-    litellm.drop_params = drop_params
+    gateway.drop_params = drop_params
     config = AnthropicConfig()
     result = config._map_stop_sequences(stop_input)
     assert result == expected_output
@@ -975,7 +975,7 @@ def test_anthropic_citations_api():
             ],
         )
 
-    except litellm.InternalServerError:
+    except gateway.InternalServerError:
         pytest.skip("Anthropic overloaded")
 
     citations = resp.choices[0].message.provider_specific_fields["citations"]
@@ -1039,7 +1039,7 @@ def test_anthropic_citations_api_streaming():
 )
 def test_anthropic_thinking_output(model):
 
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
 
     resp = completion(
         model=model,
@@ -1067,10 +1067,10 @@ def test_anthropic_thinking_output(model):
     ],
 )
 def test_anthropic_thinking_output_stream(model):
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     try:
         # litellm._turn_on_debug()
-        resp = litellm.completion(
+        resp = gateway.completion(
             model=model,
             messages=[{"role": "user", "content": "Tell me a joke."}],
             stream=True,
@@ -1099,7 +1099,7 @@ def test_anthropic_thinking_output_stream(model):
                     )
         assert reasoning_content_exists
         assert signature_block_exists
-    except litellm.Timeout:
+    except gateway.Timeout:
         pytest.skip("Model is timing out")
 
 
@@ -1149,7 +1149,7 @@ def test_anthropic_custom_headers():
     ],
 )
 def test_anthropic_thinking_in_assistant_message(model):
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
     params = {
         "model": model,
         "messages": [
@@ -1173,7 +1173,7 @@ def test_anthropic_thinking_in_assistant_message(model):
         "thinking": {"type": "enabled", "budget_tokens": 30720},
     }
 
-    response = litellm.completion(**params)
+    response = gateway.completion(**params)
 
     assert response is not None
 
@@ -1186,7 +1186,7 @@ def test_anthropic_thinking_in_assistant_message(model):
     ],
 )
 def test_anthropic_redacted_thinking_in_assistant_message(model):
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
     params = {
         "model": model,
         "messages": [
@@ -1209,20 +1209,20 @@ def test_anthropic_redacted_thinking_in_assistant_message(model):
         "thinking": {"type": "enabled", "budget_tokens": 30720},
     }
 
-    response = litellm.completion(**params)
+    response = gateway.completion(**params)
 
     assert response is not None
 
 
 def test_just_system_message():
-    litellm._turn_on_debug()
-    litellm.modify_params = True
+    gateway._turn_on_debug()
+    gateway.modify_params = True
     params = {
         "model": "anthropic/claude-sonnet-4-5-20250929",
         "messages": [{"role": "system", "content": "You are a helpful assistant."}],
     }
 
-    response = litellm.completion(**params)
+    response = gateway.completion(**params)
 
     assert response is not None
 
@@ -1237,7 +1237,7 @@ async def test_anthropic_api_max_completion_tokens(model: str):
     Tests that:
     - max_completion_tokens is passed as max_tokens to anthropic models
     """
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     mock_response = {
@@ -1257,7 +1257,7 @@ async def test_anthropic_api_max_completion_tokens(model: str):
 
     with patch.object(client, "post") as mock_client:
         try:
-            response = await litellm.acompletion(
+            response = await gateway.acompletion(
                 model=model,
                 max_completion_tokens=10,
                 messages=[{"role": "user", "content": "Hello!"}],
@@ -1293,7 +1293,7 @@ async def test_anthropic_api_max_completion_tokens(model: str):
     ],
 )
 def test_anthropic_websearch(optional_params: dict):
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
     params = {
         "model": "anthropic/claude-sonnet-4-5-20250929",
         "messages": [
@@ -1306,8 +1306,8 @@ def test_anthropic_websearch(optional_params: dict):
     }
 
     try:
-        response = litellm.completion(**params)
-    except litellm.InternalServerError as e:
+        response = gateway.completion(**params)
+    except gateway.InternalServerError as e:
         print(e)
 
     assert response is not None
@@ -1319,7 +1319,7 @@ def test_anthropic_websearch(optional_params: dict):
 
 
 def test_anthropic_text_editor():
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
     params = {
         "model": "anthropic/claude-sonnet-4-5-20250929",
         "messages": [
@@ -1334,8 +1334,8 @@ def test_anthropic_text_editor():
     }
 
     try:
-        response = litellm.completion(**params)
-    except litellm.InternalServerError as e:
+        response = gateway.completion(**params)
+    except gateway.InternalServerError as e:
         print(e)
 
     assert response is not None
@@ -1346,7 +1346,7 @@ def test_anthropic_text_editor():
     os.getenv("ZAPIER_CI_CD_MCP_TOKEN") is None, reason="ZAPIER_CI_CD_MCP_TOKEN not set"
 )
 def test_anthropic_mcp_server_tool_use(spec: str):
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
 
     if spec == "anthropic":
         tools = [
@@ -1377,9 +1377,9 @@ def test_anthropic_mcp_server_tool_use(spec: str):
     }
 
     try:
-        response = litellm.completion(**params)
+        response = gateway.completion(**params)
         assert response is not None
-    except litellm.InternalServerError as e:
+    except gateway.InternalServerError as e:
         pytest.skip(f"Skipping test due to internal server error: {e}")
 
 
@@ -1392,7 +1392,7 @@ def test_anthropic_mcp_server_tool_use(spec: str):
 def test_anthropic_mcp_server_responses_api(model: str):
     from token_iq.gateway import responses
 
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
     tools = [
         {
             "type": "mcp",
@@ -1405,7 +1405,7 @@ def test_anthropic_mcp_server_responses_api(model: str):
         },
     ]
 
-    response = litellm.responses(
+    response = gateway.responses(
         model=model,
         input="Who won the World Cup in 2022?",
         max_output_tokens=100,
@@ -1424,7 +1424,7 @@ def test_anthropic_prefix_prompt():
         ],
     }
 
-    response = litellm.completion(**params)
+    response = gateway.completion(**params)
     print(f"response: {response}")
     assert response is not None
     assert response.choices[0].message.content.startswith("Argentina")
@@ -1432,7 +1432,7 @@ def test_anthropic_prefix_prompt():
 
 @pytest.mark.asyncio
 async def test_claude_tool_use_with_anthropic_acreate():
-    response = await litellm.anthropic.messages.acreate(
+    response = await gateway.anthropic.messages.acreate(
         messages=[
             {"role": "user", "content": "Hello, can you tell me the weather in Boston?"}
         ],
@@ -1577,7 +1577,7 @@ def test_anthropic_streaming():
 def test_anthropic_via_responses_api():
     from token_iq.gateway.types.llms.openai import ResponsesAPIStreamEvents
 
-    response = litellm.responses(
+    response = gateway.responses(
         model="anthropic/claude-sonnet-4-5",
         input="Who won the World Cup in 2022?",
         max_output_tokens=100,
@@ -1721,7 +1721,7 @@ def test_anthropic_strict_parameter_passthrough():
         }
     }
 
-    mapped_params = litellm.AnthropicConfig().map_openai_params(
+    mapped_params = gateway.AnthropicConfig().map_openai_params(
         non_default_params=args["non_default_params"],
         optional_params={},
         model="claude-sonnet-4-5-20250929",
@@ -1759,7 +1759,7 @@ def test_anthropic_strict_not_present():
         }
     }
 
-    mapped_params = litellm.AnthropicConfig().map_openai_params(
+    mapped_params = gateway.AnthropicConfig().map_openai_params(
         non_default_params=args["non_default_params"],
         optional_params={},
         model="claude-sonnet-4-5-20250929",
@@ -1775,7 +1775,7 @@ def test_anthropic_strict_not_present():
 
 
 def test_anthropic_structured_output_chat_completion_api():
-    response = litellm.completion(
+    response = gateway.completion(
         model="claude-sonnet-4-5-20250929",
         messages=[{"role": "user", "content": "What is the capital of France?"}],
         response_format={
@@ -1879,7 +1879,7 @@ def test_metadata_filter_applies_to_azure_anthropic():
 
 
 def test_anthropic_basic_completion_replay():
-    response = litellm.completion(
+    response = gateway.completion(
         model="anthropic/claude-sonnet-4-5-20250929",
         messages=[{"role": "user", "content": "Hello!"}],
     )
@@ -1893,7 +1893,7 @@ def test_anthropic_basic_completion_replay():
 
 
 def test_anthropic_streaming_completion_replay():
-    stream = litellm.completion(
+    stream = gateway.completion(
         model="anthropic/claude-sonnet-4-5-20250929",
         messages=[{"role": "user", "content": "Hello!"}],
         stream=True,

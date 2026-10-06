@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, Any, Final
 import httpx
 from httpx import Headers
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.base_llm.chat.transformation import BaseLLMException
 from token_iq.gateway.llms.base_llm.text_to_speech.transformation import (
     BaseTextToSpeechConfig,
@@ -186,7 +186,7 @@ class MinimaxTextToSpeechConfig(BaseTextToSpeechConfig):
         """
         Validate MiniMax environment and set up authentication headers
         """
-        api_key = api_key or litellm.api_key or get_secret_str("MINIMAX_API_KEY")
+        api_key = api_key or gateway.api_key or get_secret_str("MINIMAX_API_KEY")
 
         if api_key is None:
             raise ValueError(

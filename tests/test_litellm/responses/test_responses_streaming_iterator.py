@@ -12,7 +12,7 @@ import time
 import httpx
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.core_utils import thread_pool_executor as thread_pool_executor_module
 from token_iq.gateway.responses import streaming_iterator as responses_streaming_iterator_module
@@ -55,19 +55,19 @@ class RecordingExecutor:
 @pytest.fixture(autouse=True)
 def _isolate_callbacks():
     saved = (
-        litellm.callbacks,
-        litellm.success_callback,
-        litellm._async_success_callback,
-        litellm.failure_callback,
-        litellm._async_failure_callback,
+        gateway.callbacks,
+        gateway.success_callback,
+        gateway._async_success_callback,
+        gateway.failure_callback,
+        gateway._async_failure_callback,
     )
     yield
     (
-        litellm.callbacks,
-        litellm.success_callback,
-        litellm._async_success_callback,
-        litellm.failure_callback,
-        litellm._async_failure_callback,
+        gateway.callbacks,
+        gateway.success_callback,
+        gateway._async_success_callback,
+        gateway.failure_callback,
+        gateway._async_failure_callback,
     ) = saved
 
 
@@ -122,8 +122,8 @@ def _make_iterator(logging_obj: LitellmLogging) -> ResponsesAPIStreamingIterator
 @pytest.mark.asyncio
 async def test_custom_logger_only_never_submits_sync_success_handler(recording_executor):
     recorder = RecordingCustomLogger()
-    litellm.success_callback = [recorder]
-    litellm._async_success_callback = [recorder]
+    gateway.success_callback = [recorder]
+    gateway._async_success_callback = [recorder]
 
     logging_obj = _make_logging_obj()
     iterator = _make_iterator(logging_obj)
@@ -143,8 +143,8 @@ async def test_sync_callbacks_run_only_after_async_handler_completes(recording_e
     def sync_callback(kwargs, response_obj, start_time, end_time):
         sync_events.append(time.monotonic())
 
-    litellm.success_callback = [recorder, sync_callback]
-    litellm._async_success_callback = [recorder]
+    gateway.success_callback = [recorder, sync_callback]
+    gateway._async_success_callback = [recorder]
 
     logging_obj = _make_logging_obj()
     iterator = _make_iterator(logging_obj)

@@ -5,7 +5,7 @@ from datetime import datetime
 from unittest.mock import AsyncMock, patch, MagicMock
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.core_utils.logging_callback_manager import LoggingCallbackManager
 from token_iq.gateway.integrations.langfuse.langfuse_prompt_management import (
@@ -42,11 +42,11 @@ def test_add_string_callback():
 
     # Add string callback
     manager.add_litellm_callback(test_callback)
-    assert test_callback in litellm.callbacks
+    assert test_callback in gateway.callbacks
 
     # Test duplicate prevention
     manager.add_litellm_callback(test_callback)
-    assert litellm.callbacks.count(test_callback) == 1
+    assert gateway.callbacks.count(test_callback) == 1
 
 
 def test_duplicate_langfuse_logger_test():
@@ -54,8 +54,8 @@ def test_duplicate_langfuse_logger_test():
     for _ in range(10):
         langfuse_logger = LangfusePromptManagement()
         manager.add_litellm_success_callback(langfuse_logger)
-    print("litellm.success_callback: ", litellm.success_callback)
-    assert len(litellm.success_callback) == 1
+    print("litellm.success_callback: ", gateway.success_callback)
+    assert len(gateway.success_callback) == 1
 
 
 def test_duplicate_multiple_loggers_test():
@@ -65,18 +65,18 @@ def test_duplicate_multiple_loggers_test():
         otel_logger = OpenTelemetry()
         manager.add_litellm_success_callback(langfuse_logger)
         manager.add_litellm_success_callback(otel_logger)
-    print("litellm.success_callback: ", litellm.success_callback)
-    assert len(litellm.success_callback) == 2
+    print("litellm.success_callback: ", gateway.success_callback)
+    assert len(gateway.success_callback) == 2
 
     # Check exactly one instance of each logger type
     langfuse_count = sum(
         1
-        for callback in litellm.success_callback
+        for callback in gateway.success_callback
         if isinstance(callback, LangfusePromptManagement)
     )
     otel_count = sum(
         1
-        for callback in litellm.success_callback
+        for callback in gateway.success_callback
         if isinstance(callback, OpenTelemetry)
     )
 
@@ -94,11 +94,11 @@ def test_add_function_callback():
 
     # Add function callback
     manager.add_litellm_callback(test_func)
-    assert test_func in litellm.callbacks
+    assert test_func in gateway.callbacks
 
     # Test duplicate prevention
     manager.add_litellm_callback(test_func)
-    assert litellm.callbacks.count(test_func) == 1
+    assert gateway.callbacks.count(test_func) == 1
 
 
 def test_add_custom_logger(mock_custom_logger):
@@ -106,7 +106,7 @@ def test_add_custom_logger(mock_custom_logger):
 
     # Add custom logger
     manager.add_litellm_callback(mock_custom_logger)
-    assert mock_custom_logger in litellm.callbacks
+    assert mock_custom_logger in gateway.callbacks
 
 
 def test_add_multiple_callback_types(mock_custom_logger):
@@ -122,10 +122,10 @@ def test_add_multiple_callback_types(mock_custom_logger):
     manager.add_litellm_callback(test_func)
     manager.add_litellm_callback(mock_custom_logger)
 
-    assert string_callback in litellm.callbacks
-    assert test_func in litellm.callbacks
-    assert mock_custom_logger in litellm.callbacks
-    assert len(litellm.callbacks) == 3
+    assert string_callback in gateway.callbacks
+    assert test_func in gateway.callbacks
+    assert mock_custom_logger in gateway.callbacks
+    assert len(gateway.callbacks) == 3
 
 
 def test_success_failure_callbacks():
@@ -138,8 +138,8 @@ def test_success_failure_callbacks():
     manager.add_litellm_success_callback(success_callback)
     manager.add_litellm_failure_callback(failure_callback)
 
-    assert success_callback in litellm.success_callback
-    assert failure_callback in litellm.failure_callback
+    assert success_callback in gateway.success_callback
+    assert failure_callback in gateway.failure_callback
 
 
 def test_async_callbacks():
@@ -152,8 +152,8 @@ def test_async_callbacks():
     manager.add_litellm_async_success_callback(async_success)
     manager.add_litellm_async_failure_callback(async_failure)
 
-    assert async_success in litellm._async_success_callback
-    assert async_failure in litellm._async_failure_callback
+    assert async_success in gateway._async_success_callback
+    assert async_failure in gateway._async_failure_callback
 
 
 def test_remove_callback_from_list_by_object():
@@ -174,18 +174,18 @@ def test_remove_callback_from_list_by_object():
 
     obj = TestObject()
 
-    manager.remove_callback_from_list_by_object(litellm.callbacks, obj)
-    manager.remove_callback_from_list_by_object(litellm.success_callback, obj)
-    manager.remove_callback_from_list_by_object(litellm.failure_callback, obj)
-    manager.remove_callback_from_list_by_object(litellm._async_success_callback, obj)
-    manager.remove_callback_from_list_by_object(litellm._async_failure_callback, obj)
+    manager.remove_callback_from_list_by_object(gateway.callbacks, obj)
+    manager.remove_callback_from_list_by_object(gateway.success_callback, obj)
+    manager.remove_callback_from_list_by_object(gateway.failure_callback, obj)
+    manager.remove_callback_from_list_by_object(gateway._async_success_callback, obj)
+    manager.remove_callback_from_list_by_object(gateway._async_failure_callback, obj)
 
     # Verify all callback lists are empty
-    assert len(litellm.callbacks) == 0
-    assert len(litellm.success_callback) == 0
-    assert len(litellm.failure_callback) == 0
-    assert len(litellm._async_success_callback) == 0
-    assert len(litellm._async_failure_callback) == 0
+    assert len(gateway.callbacks) == 0
+    assert len(gateway.success_callback) == 0
+    assert len(gateway.failure_callback) == 0
+    assert len(gateway._async_success_callback) == 0
+    assert len(gateway._async_failure_callback) == 0
 
 
 def test_remove_callback_from_all_lists():
@@ -204,11 +204,11 @@ def test_remove_callback_from_all_lists():
 
     manager.remove_callback_from_all_lists(obj)
 
-    assert obj not in litellm.callbacks
-    assert obj not in litellm.success_callback
-    assert obj not in litellm.failure_callback
-    assert obj not in litellm._async_success_callback
-    assert obj not in litellm._async_failure_callback
+    assert obj not in gateway.callbacks
+    assert obj not in gateway.success_callback
+    assert obj not in gateway.failure_callback
+    assert obj not in gateway._async_success_callback
+    assert obj not in gateway._async_failure_callback
 
 
 def test_reset_callbacks(callback_manager):
@@ -223,11 +223,11 @@ def test_reset_callbacks(callback_manager):
     callback_manager._reset_all_callbacks()
 
     # Verify all callback lists are empty
-    assert len(litellm.callbacks) == 0
-    assert len(litellm.success_callback) == 0
-    assert len(litellm.failure_callback) == 0
-    assert len(litellm._async_success_callback) == 0
-    assert len(litellm._async_failure_callback) == 0
+    assert len(gateway.callbacks) == 0
+    assert len(gateway.success_callback) == 0
+    assert len(gateway.failure_callback) == 0
+    assert len(gateway._async_success_callback) == 0
+    assert len(gateway._async_failure_callback) == 0
 
 
 @pytest.mark.asyncio
@@ -254,39 +254,39 @@ async def test_slack_alerting_callback_registration(callback_manager):
         proxy_logging.update_values(
             alerting=None, alert_types=["outage_alerts", "region_outage_alerts"]
         )
-        assert len(litellm.callbacks) == 0
+        assert len(gateway.callbacks) == 0
 
         # Test 2: Callbacks should be added when slack alerting is enabled with outage alerts
         proxy_logging.update_values(alerting=["slack"], alert_types=["outage_alerts"])
-        assert len(litellm.callbacks) == 1
-        assert isinstance(litellm.callbacks[0], SlackAlerting)
+        assert len(gateway.callbacks) == 1
+        assert isinstance(gateway.callbacks[0], SlackAlerting)
 
         # Test 3: Callbacks should be added when slack alerting is enabled with region outage alerts
         callback_manager._reset_all_callbacks()  # Reset callbacks
         proxy_logging.update_values(
             alerting=["slack"], alert_types=["region_outage_alerts"]
         )
-        assert len(litellm.callbacks) == 1
-        assert isinstance(litellm.callbacks[0], SlackAlerting)
+        assert len(gateway.callbacks) == 1
+        assert isinstance(gateway.callbacks[0], SlackAlerting)
 
         # Test 4: No callbacks should be added for other alert types
         callback_manager._reset_all_callbacks()  # Reset callbacks
         proxy_logging.update_values(
             alerting=["slack"], alert_types=["budget_alerts"]  # Some other alert type
         )
-        assert len(litellm.callbacks) == 0
+        assert len(gateway.callbacks) == 0
 
         # Test 5: Both success and regular callbacks should be added
         callback_manager._reset_all_callbacks()  # Reset callbacks
         proxy_logging.update_values(alerting=["slack"], alert_types=["outage_alerts"])
-        assert len(litellm.callbacks) == 1  # Regular callback for outage alerts
-        assert isinstance(litellm.callbacks[0], SlackAlerting)
+        assert len(gateway.callbacks) == 1  # Regular callback for outage alerts
+        assert isinstance(gateway.callbacks[0], SlackAlerting)
         # response_taking_too_long_callback is async, so it should be in the async success callback list
         response_taking_too_long_callback = (
             proxy_logging.slack_alerting_instance.response_taking_too_long_callback
         )
-        assert len(litellm._async_success_callback) == 1
-        assert litellm._async_success_callback[0] == response_taking_too_long_callback
+        assert len(gateway._async_success_callback) == 1
+        assert gateway._async_success_callback[0] == response_taking_too_long_callback
 
         # Cleanup
         callback_manager._reset_all_callbacks()
@@ -399,7 +399,7 @@ async def test_generic_api_callback_settings_retry_config():
 
     callback_name = "test_generic_api_retry_config"
     _generic_api_logger_cache.pop(callback_name, None)
-    litellm.callback_settings[callback_name] = {
+    gateway.callback_settings[callback_name] = {
         "callback_type": "generic_api",
         "endpoint": "https://example.com/api/logs",
         "headers": {"Content-Type": "application/json"},
@@ -420,5 +420,5 @@ async def test_generic_api_callback_settings_retry_config():
         assert result.retry_delay == 0.5
         assert result.timeout == 3
     finally:
-        litellm.callback_settings.pop(callback_name, None)
+        gateway.callback_settings.pop(callback_name, None)
         _generic_api_logger_cache.pop(callback_name, None)

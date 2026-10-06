@@ -13,7 +13,7 @@ from fastapi import Request
 from pydantic import ValidationError as PydanticValidationError
 from starlette.datastructures import Headers
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy._types import AddTeamCallback, ProxyException, TeamCallbackMetadata, UserAPIKeyAuth
 from token_iq.gateway.proxy.litellm_pre_call_utils import (
     KeyAndTeamLoggingSettings,
@@ -1247,7 +1247,7 @@ async def test_client_side_timeout_marker_never_reaches_the_provider():
     converse_response.text = json.dumps(converse_response.json.return_value)
     client = AsyncHTTPHandler()
     with patch.object(client, "post", return_value=converse_response) as mock_post:
-        await litellm.acompletion(
+        await gateway.acompletion(
             **updated,
             aws_access_key_id="fake-access-key",
             aws_secret_access_key="fake-secret-key",
@@ -1309,8 +1309,8 @@ async def test_add_litellm_data_to_request_strips_client_redaction_bypass_contro
     request_mock.client = MagicMock()
     request_mock.client.host = "127.0.0.1"
 
-    original_turn_off_message_logging = litellm.turn_off_message_logging
-    litellm.turn_off_message_logging = True
+    original_turn_off_message_logging = gateway.turn_off_message_logging
+    gateway.turn_off_message_logging = True
     try:
         updated = await add_litellm_data_to_request(
             data={
@@ -1338,7 +1338,7 @@ async def test_add_litellm_data_to_request_strips_client_redaction_bypass_contro
             version="test-version",
         )
     finally:
-        litellm.turn_off_message_logging = original_turn_off_message_logging
+        gateway.turn_off_message_logging = original_turn_off_message_logging
 
     assert "turn_off_message_logging" not in updated
     assert "turn_off_message_logging" not in (updated.get("litellm_params") or {}).get("metadata", {})
@@ -1410,8 +1410,8 @@ async def test_add_litellm_data_to_request_admin_callback_vars_turn_off_message_
     request_mock.client = MagicMock()
     request_mock.client.host = "127.0.0.1"
 
-    original_turn_off_message_logging = litellm.turn_off_message_logging
-    litellm.turn_off_message_logging = True
+    original_turn_off_message_logging = gateway.turn_off_message_logging
+    gateway.turn_off_message_logging = True
     try:
         updated = await add_litellm_data_to_request(
             data={
@@ -1437,7 +1437,7 @@ async def test_add_litellm_data_to_request_admin_callback_vars_turn_off_message_
             is False
         )
     finally:
-        litellm.turn_off_message_logging = original_turn_off_message_logging
+        gateway.turn_off_message_logging = original_turn_off_message_logging
 
 
 @pytest.mark.parametrize(
@@ -1486,8 +1486,8 @@ async def test_add_litellm_data_to_request_admin_callback_vars_turn_off_message_
     request_mock.client = MagicMock()
     request_mock.client.host = "127.0.0.1"
 
-    original_turn_off_message_logging = litellm.turn_off_message_logging
-    litellm.turn_off_message_logging = False
+    original_turn_off_message_logging = gateway.turn_off_message_logging
+    gateway.turn_off_message_logging = False
     try:
         updated = await add_litellm_data_to_request(
             data={
@@ -1513,7 +1513,7 @@ async def test_add_litellm_data_to_request_admin_callback_vars_turn_off_message_
             is True
         )
     finally:
-        litellm.turn_off_message_logging = original_turn_off_message_logging
+        gateway.turn_off_message_logging = original_turn_off_message_logging
 
 
 @pytest.mark.parametrize(
@@ -1540,8 +1540,8 @@ async def test_add_litellm_data_to_request_allows_redaction_opt_out_with_admin_o
     request_mock.client = MagicMock()
     request_mock.client.host = "127.0.0.1"
 
-    original_turn_off_message_logging = litellm.turn_off_message_logging
-    litellm.turn_off_message_logging = True
+    original_turn_off_message_logging = gateway.turn_off_message_logging
+    gateway.turn_off_message_logging = True
     try:
         updated = await add_litellm_data_to_request(
             data={
@@ -1563,7 +1563,7 @@ async def test_add_litellm_data_to_request_allows_redaction_opt_out_with_admin_o
             version="test-version",
         )
     finally:
-        litellm.turn_off_message_logging = original_turn_off_message_logging
+        gateway.turn_off_message_logging = original_turn_off_message_logging
 
     assert updated["turn_off_message_logging"] is False
     assert updated["metadata"]["turn_off_message_logging"] is False
@@ -2368,7 +2368,7 @@ def test_get_dynamic_logging_metadata_ignores_env_reference_from_key_metadata(
 ):
     monkeypatch.setenv("LANGFUSE_SECRET_KEY_TEMP", "server-side-secret")
     monkeypatch.setattr(
-        litellm.utils,
+        gateway.utils,
         "get_secret",
         lambda *args, **kwargs: pytest.fail("get_secret should not be called"),
     )
@@ -2742,7 +2742,7 @@ def test_add_headers_to_llm_call_by_model_group(
     5. When data has no model
     6. When model is None
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     # Setup test headers and user API key
     headers = {
@@ -2756,8 +2756,8 @@ def test_add_headers_to_llm_call_by_model_group(
     )
 
     # Mock the model_group_settings
-    original_model_group_settings = getattr(litellm, "model_group_settings", None)
-    litellm.model_group_settings = model_group_settings
+    original_model_group_settings = getattr(gateway, "model_group_settings", None)
+    gateway.model_group_settings = model_group_settings
 
     try:
         # Mock the add_headers_to_llm_call method to return expected headers
@@ -2803,14 +2803,14 @@ def test_add_headers_to_llm_call_by_model_group(
 
     finally:
         # Restore original model_group_settings
-        litellm.model_group_settings = original_model_group_settings
+        gateway.model_group_settings = original_model_group_settings
 
 
 def test_add_headers_to_llm_call_by_model_group_empty_headers_returned():
     """
     Test that when add_headers_to_llm_call returns empty dict, no headers are added to data
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     # Setup test data
     data = {"model": "gpt-4", "messages": [{"role": "user", "content": "Hello"}]}
@@ -2819,8 +2819,8 @@ def test_add_headers_to_llm_call_by_model_group_empty_headers_returned():
 
     # Mock model_group_settings with model in the list
     mock_settings = MagicMock(forward_client_headers_to_llm_api=["gpt-4"])
-    original_model_group_settings = getattr(litellm, "model_group_settings", None)
-    litellm.model_group_settings = mock_settings
+    original_model_group_settings = getattr(gateway, "model_group_settings", None)
+    gateway.model_group_settings = mock_settings
 
     try:
         with patch.object(
@@ -2845,14 +2845,14 @@ def test_add_headers_to_llm_call_by_model_group_empty_headers_returned():
 
     finally:
         # Restore original model_group_settings
-        litellm.model_group_settings = original_model_group_settings
+        gateway.model_group_settings = original_model_group_settings
 
 
 def test_add_headers_to_llm_call_by_model_group_existing_headers_in_data():
     """
     Test that existing headers in data are overwritten when new headers are added
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     # Setup test data with existing headers
     data = {
@@ -2865,8 +2865,8 @@ def test_add_headers_to_llm_call_by_model_group_existing_headers_in_data():
 
     # Mock model_group_settings with model in the list
     mock_settings = MagicMock(forward_client_headers_to_llm_api=["gpt-4"])
-    original_model_group_settings = getattr(litellm, "model_group_settings", None)
-    litellm.model_group_settings = mock_settings
+    original_model_group_settings = getattr(gateway, "model_group_settings", None)
+    gateway.model_group_settings = mock_settings
 
     try:
         new_headers = {"X-LiteLLM-User": "test-user"}
@@ -2895,7 +2895,7 @@ def test_add_headers_to_llm_call_by_model_group_existing_headers_in_data():
 
     finally:
         # Restore original model_group_settings
-        litellm.model_group_settings = original_model_group_settings
+        gateway.model_group_settings = original_model_group_settings
 
 
 from typing import Optional
@@ -2931,10 +2931,10 @@ async def test_add_litellm_metadata_from_request_headers():
     Relevant issue: https://github.com/BerriAI/litellm/issues/14008
     """
     # Set up test logger
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
     test_logger = TestCustomLogger()
-    original_callbacks = litellm.callbacks
-    litellm.callbacks = [test_logger]
+    original_callbacks = gateway.callbacks
+    gateway.callbacks = [test_logger]
 
     try:
         # Prepare test data (ensure no streaming, add mock_response and api_key to route to litellm.acompletion)
@@ -3039,7 +3039,7 @@ async def test_add_litellm_metadata_from_request_headers():
             json.loads(headers["x-litellm-spend-logs-metadata"])
         ), "spend_logs_metadata should be the same as the headers"
     finally:
-        litellm.callbacks = original_callbacks
+        gateway.callbacks = original_callbacks
 
 
 @pytest.mark.asyncio
@@ -3048,10 +3048,10 @@ async def test_anthropic_messages_standard_logging_object_matches_fixture():
     Regression: /v1/messages calls routed to non-Anthropic providers should keep
     call_type=anthropic_messages in standard logging payloads.
     """
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
     test_logger = TestCustomLogger()
-    original_callbacks = litellm.callbacks
-    litellm.callbacks = [test_logger]
+    original_callbacks = gateway.callbacks
+    gateway.callbacks = [test_logger]
 
     try:
         data = {
@@ -3130,7 +3130,7 @@ async def test_anthropic_messages_standard_logging_object_matches_fixture():
         assert actual_projection == expected
         assert actual.get("call_type") == "anthropic_messages"
     finally:
-        litellm.callbacks = original_callbacks
+        gateway.callbacks = original_callbacks
 
 
 def test_add_litellm_metadata_from_request_headers_x_litellm_trace_id_sets_chain_id():
@@ -4099,7 +4099,7 @@ async def test_embedding_header_forwarding_without_model_group_config():
     Test that headers are NOT forwarded for embedding requests when
     the model is not in the forward_client_headers_to_llm_api list.
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     # Setup mock request for embeddings
     request_mock = MagicMock(spec=Request)
@@ -4128,8 +4128,8 @@ async def test_embedding_header_forwarding_without_model_group_config():
 
     # Mock model_group_settings with a different model in the forward list
     mock_settings = MagicMock(forward_client_headers_to_llm_api=["gpt-4", "claude-*"])
-    original_model_group_settings = getattr(litellm, "model_group_settings", None)
-    litellm.model_group_settings = mock_settings
+    original_model_group_settings = getattr(gateway, "model_group_settings", None)
+    gateway.model_group_settings = mock_settings
 
     try:
         updated_data = await add_litellm_data_to_request(
@@ -4152,7 +4152,7 @@ async def test_embedding_header_forwarding_without_model_group_config():
 
     finally:
         # Restore original model_group_settings
-        litellm.model_group_settings = original_model_group_settings
+        gateway.model_group_settings = original_model_group_settings
 
 
 @pytest.mark.asyncio
@@ -4476,10 +4476,10 @@ async def test_bearer_token_not_in_debug_logs():
 @pytest.fixture()
 def setup_test_credentials():
     """Populate litellm.credential_list with test credentials and enable feature flag, clean up after."""
-    original = litellm.credential_list[:]
-    original_flag = litellm.enable_model_config_credential_overrides
-    litellm.enable_model_config_credential_overrides = True
-    litellm.credential_list.extend(
+    original = gateway.credential_list[:]
+    original_flag = gateway.enable_model_config_credential_overrides
+    gateway.enable_model_config_credential_overrides = True
+    gateway.credential_list.extend(
         [
             CredentialItem(
                 credential_name="hotel-azure-eastus",
@@ -4525,8 +4525,8 @@ def setup_test_credentials():
         ]
     )
     yield
-    litellm.credential_list[:] = original
-    litellm.enable_model_config_credential_overrides = original_flag
+    gateway.credential_list[:] = original
+    gateway.enable_model_config_credential_overrides = original_flag
 
 
 # --- Unit tests for _extract_credential_from_entry ---
@@ -4936,7 +4936,7 @@ def test_apply_overrides_with_alias(setup_test_credentials):
 
 def test_apply_overrides_feature_flag_disabled_by_default():
     """Feature flag defaults to False — credential overrides are inert until explicitly enabled."""
-    assert litellm.enable_model_config_credential_overrides is False
+    assert gateway.enable_model_config_credential_overrides is False
     data = {"model": "gpt-4"}
     user_api_key_dict = UserAPIKeyAuth(
         api_key="test-key",
@@ -5427,7 +5427,7 @@ class TestApplyClientTagPolicyPreAuth:
                 return_value={"paid": paid_tag},
             ),
         ):
-            with pytest.raises(litellm.BudgetExceededError) as exc_info:
+            with pytest.raises(gateway.BudgetExceededError) as exc_info:
                 await _tag_max_budget_check(
                     request_body=data,
                     prisma_client=MagicMock(),
@@ -5486,7 +5486,7 @@ class TestApplyClientTagPolicyPreAuth:
                 return_value={"tenant:acme": tag_object},
             ),
         ):
-            with pytest.raises(litellm.BudgetExceededError) as exc_info:
+            with pytest.raises(gateway.BudgetExceededError) as exc_info:
                 await _tag_max_budget_check(
                     request_body=data,
                     prisma_client=MagicMock(),
@@ -5570,7 +5570,7 @@ class TestApplyClientTagPolicyPreAuth:
                 return_value={"tenant:acme": tag_object},
             ),
         ):
-            with pytest.raises(litellm.BudgetExceededError) as exc_info:
+            with pytest.raises(gateway.BudgetExceededError) as exc_info:
                 await common_checks(
                     request_body=data,
                     team_object=None,
@@ -5736,7 +5736,7 @@ class TestApplyKeyTagsPreAuth:
                 return_value={"engineering": tag_object},
             ),
         ):
-            with pytest.raises(litellm.BudgetExceededError) as exc_info:
+            with pytest.raises(gateway.BudgetExceededError) as exc_info:
                 await _tag_max_budget_check(
                     request_body=data,
                     prisma_client=MagicMock(),
@@ -5868,14 +5868,14 @@ def test_apply_overrides_multi_provider_default_picks_correct_provider(
     request model has no '/' prefix, the deployment's custom_llm_provider must
     drive provider matching instead of falling through to dict insertion order.
     """
-    litellm.credential_list.append(
+    gateway.credential_list.append(
         CredentialItem(
             credential_name="bedrock-team-1",
             credential_info={},
             credential_values={"api_key": "ABSK-bedrock-key-for-team-1"},
         )
     )
-    litellm.credential_list.append(
+    gateway.credential_list.append(
         CredentialItem(
             credential_name="gemini-team-1",
             credential_info={},
@@ -6131,7 +6131,7 @@ async def test_overwrite_user_with_key_hash_clobbers_caller_supplied_user(monkey
     `user` must never survive, and the raw sk- key must never be forwarded."""
     from token_iq.gateway.proxy._types import hash_token
 
-    monkeypatch.setattr(litellm, "overwrite_user_with_key_hash", True)
+    monkeypatch.setattr(gateway, "overwrite_user_with_key_hash", True)
 
     raw_key = "sk-overwrite-user-test-1234"
     user_api_key_dict = UserAPIKeyAuth(api_key=raw_key)
@@ -6156,7 +6156,7 @@ async def test_overwrite_user_with_key_hash_clobbers_caller_supplied_user(monkey
 async def test_overwrite_user_with_key_hash_sets_user_when_absent(monkeypatch):
     from token_iq.gateway.proxy._types import hash_token
 
-    monkeypatch.setattr(litellm, "overwrite_user_with_key_hash", True)
+    monkeypatch.setattr(gateway, "overwrite_user_with_key_hash", True)
 
     raw_key = "sk-overwrite-user-test-5678"
     user_api_key_dict = UserAPIKeyAuth(api_key=raw_key)
@@ -6177,7 +6177,7 @@ async def test_overwrite_user_with_key_hash_sets_user_when_absent(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_overwrite_user_with_key_hash_disabled_preserves_caller_user():
-    assert litellm.overwrite_user_with_key_hash is False
+    assert gateway.overwrite_user_with_key_hash is False
 
     user_api_key_dict = UserAPIKeyAuth(api_key="sk-overwrite-user-test-9999")
     user_api_key_dict.via_virtual_key = True
@@ -6199,7 +6199,7 @@ async def test_overwrite_user_with_key_hash_disabled_preserves_caller_user():
 async def test_overwrite_user_with_key_hash_skips_custom_auth_credential(monkeypatch):
     """Custom-auth credentials are not sk-prefixed or JWTs, so UserAPIKeyAuth stores
     them raw; the stamp must skip them entirely so auth material never leaks."""
-    monkeypatch.setattr(litellm, "overwrite_user_with_key_hash", True)
+    monkeypatch.setattr(gateway, "overwrite_user_with_key_hash", True)
 
     raw_credential = "my-custom-auth-credential-abc123"
     user_api_key_dict = UserAPIKeyAuth(api_key=raw_credential)
@@ -6223,7 +6223,7 @@ async def test_overwrite_user_with_key_hash_skips_jwt_auth(monkeypatch):
     ban id; JWT-authenticated requests are not stamped."""
     from token_iq.gateway.proxy._types import hash_token
 
-    monkeypatch.setattr(litellm, "overwrite_user_with_key_hash", True)
+    monkeypatch.setattr(gateway, "overwrite_user_with_key_hash", True)
 
     hashed_jwt = f"hashed-jwt-{hash_token('some-jwt-token')}"
     user_api_key_dict = UserAPIKeyAuth(api_key=hashed_jwt)
@@ -6245,7 +6245,7 @@ async def test_overwrite_user_with_key_hash_skips_hex_shaped_custom_credential(m
     """A custom-auth credential that happens to be 64 hex chars is indistinguishable
     from a key hash by shape alone; only the server-set via_virtual_key marker may
     authorize stamping, so this raw credential must never be forwarded."""
-    monkeypatch.setattr(litellm, "overwrite_user_with_key_hash", True)
+    monkeypatch.setattr(gateway, "overwrite_user_with_key_hash", True)
 
     hex_shaped_credential = "a" * 64
     user_api_key_dict = UserAPIKeyAuth(api_key=hex_shaped_credential)
@@ -6278,7 +6278,7 @@ async def test_overwrite_user_with_key_hash_stamps_master_key_alias(monkeypatch)
     key never propagates anywhere); the alias is the stampable id for them."""
     from token_iq.gateway.constants import LITELLM_PROXY_MASTER_KEY_ALIAS
 
-    monkeypatch.setattr(litellm, "overwrite_user_with_key_hash", True)
+    monkeypatch.setattr(gateway, "overwrite_user_with_key_hash", True)
 
     user_api_key_dict = UserAPIKeyAuth(api_key=LITELLM_PROXY_MASTER_KEY_ALIAS)
     user_api_key_dict.via_virtual_key = True
@@ -6299,7 +6299,7 @@ async def test_overwrite_user_with_key_hash_stamps_master_key_alias(monkeypatch)
 async def test_overwrite_user_with_key_hash_rejects_alias_without_marker(monkeypatch):
     from token_iq.gateway.constants import LITELLM_PROXY_MASTER_KEY_ALIAS
 
-    monkeypatch.setattr(litellm, "overwrite_user_with_key_hash", True)
+    monkeypatch.setattr(gateway, "overwrite_user_with_key_hash", True)
 
     user_api_key_dict = UserAPIKeyAuth(api_key=LITELLM_PROXY_MASTER_KEY_ALIAS)
     assert user_api_key_dict.via_virtual_key is False
@@ -7624,7 +7624,7 @@ async def test_router_keeps_proxy_metadata_bucket_identity_after_reserved_stamp_
     proxy_bucket = request_data["metadata"]
     assert "attempted_fallbacks" not in proxy_bucket
     assert "original_model_group" not in proxy_bucket
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "gpt-3.5-turbo",
@@ -7765,7 +7765,7 @@ async def test_missing_session_id_generate_makes_spend_log_and_callback_session_
     """Without a session header, SpendLogs.session_id and the metadata.session_id that Langfuse logs
     must be the same generated id, so cross-referencing the two by session_id works. The id is marked
     as generated so affinity consumers (Fireworks x-session-affinity, router session pins) skip it."""
-    monkeypatch.setattr(litellm, "request_correlation_in_logs", request_correlation_in_logs)
+    monkeypatch.setattr(gateway, "request_correlation_in_logs", request_correlation_in_logs)
     data = {"model": "gpt-4o", "messages": [{"role": "user", "content": "hi"}]}
 
     updated = await add_litellm_data_to_request(

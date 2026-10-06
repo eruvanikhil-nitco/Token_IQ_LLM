@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.router import Router
 
 
@@ -154,11 +154,11 @@ async def test_router_silent_experiment_acompletion():
     router = Router(model_list=model_list)
 
     # Use AsyncMock for async function mocking
-    mock_response = litellm.ModelResponse(choices=[{"message": {"content": "hello"}}])
+    mock_response = gateway.ModelResponse(choices=[{"message": {"content": "hello"}}])
     mock_acompletion = AsyncMock(return_value=mock_response)
 
     # Patch at the litellm.router module level where it's imported and used
-    with patch.object(litellm, "acompletion", mock_acompletion):
+    with patch.object(gateway, "acompletion", mock_acompletion):
         response = await router.acompletion(
             model="primary-model",
             messages=[{"role": "user", "content": "hi"}],
@@ -234,7 +234,7 @@ def test_router_silent_experiment_completion():
     router = Router(model_list=model_list)
 
     # Mock litellm.acompletion
-    mock_response = litellm.ModelResponse(choices=[{"message": {"content": "hello"}}])
+    mock_response = gateway.ModelResponse(choices=[{"message": {"content": "hello"}}])
 
     # We need an async mock for acompletion
     async def mock_acompletion(*args, **kwargs):
@@ -245,8 +245,8 @@ def test_router_silent_experiment_completion():
 
     # Patch at the litellm module level
     with (
-        patch.object(litellm, "acompletion", mock_acompletion_mock),
-        patch.object(litellm, "completion", mock_completion_mock),
+        patch.object(gateway, "acompletion", mock_acompletion_mock),
+        patch.object(gateway, "completion", mock_completion_mock),
     ):
         response = router.completion(
             model="primary-model",

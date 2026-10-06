@@ -5,7 +5,7 @@ Translates from OpenAI's `/v1/chat/completions` to Moonshot AI's `/v1/chat/compl
 from collections.abc import Coroutine, Mapping
 from typing import Any, Final, Literal, cast, overload
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.prompt_templates.common_utils import (
     handle_messages_with_content_list_to_str_conversion,
 )
@@ -191,7 +191,7 @@ class MoonshotChatConfig(OpenAIGPTConfig):
                     cleaned_provider_fields.pop("reasoning_content", None)
                     patched["provider_specific_fields"] = cleaned_provider_fields
                 else:
-                    litellm.verbose_logger.warning(
+                    gateway.verbose_logger.warning(
                         "Moonshot reasoning model: assistant tool-call message is missing "
                         "`reasoning_content`. Injecting a placeholder to satisfy API validation. "
                         "For best results, preserve `reasoning_content` from the original "

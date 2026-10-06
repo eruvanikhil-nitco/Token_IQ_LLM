@@ -105,10 +105,10 @@ async def test_proxy_shutdown_event_disconnects_prisma_and_resets(monkeypatch):
     monkeypatch.setattr(ps, "jwt_handler", fake_jwt, raising=False)
     monkeypatch.setattr(ps, "db_writer_client", None, raising=False)
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    monkeypatch.setattr(litellm, "cache", None, raising=False)
-    monkeypatch.setattr(litellm, "success_callback", [], raising=False)
+    monkeypatch.setattr(gateway, "cache", None, raising=False)
+    monkeypatch.setattr(gateway, "success_callback", [], raising=False)
 
     await proxy_shutdown_event()
 
@@ -154,10 +154,10 @@ async def test_proxy_shutdown_drains_gateway_requests_before_disconnecting(monke
     monkeypatch.setattr(ps, "jwt_handler", fake_jwt, raising=False)
     monkeypatch.setattr(ps, "db_writer_client", None, raising=False)
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    monkeypatch.setattr(litellm, "cache", None, raising=False)
-    monkeypatch.setattr(litellm, "success_callback", [], raising=False)
+    monkeypatch.setattr(gateway, "cache", None, raising=False)
+    monkeypatch.setattr(gateway, "success_callback", [], raising=False)
 
     await proxy_shutdown_event()
 
@@ -176,10 +176,10 @@ async def test_proxy_shutdown_skips_gateway_flush_without_a_database(monkeypatch
     monkeypatch.setattr(ps, "jwt_handler", fake_jwt, raising=False)
     monkeypatch.setattr(ps, "db_writer_client", None, raising=False)
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    monkeypatch.setattr(litellm, "cache", None, raising=False)
-    monkeypatch.setattr(litellm, "success_callback", [], raising=False)
+    monkeypatch.setattr(gateway, "cache", None, raising=False)
+    monkeypatch.setattr(gateway, "success_callback", [], raising=False)
 
     await proxy_shutdown_event()
 
@@ -196,10 +196,10 @@ async def test_proxy_shutdown_event_prisma_disconnect_raises_error(monkeypatch):
     fake_jwt.close = AsyncMock()
     monkeypatch.setattr(ps, "jwt_handler", fake_jwt, raising=False)
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    monkeypatch.setattr(litellm, "cache", None, raising=False)
-    monkeypatch.setattr(litellm, "success_callback", [], raising=False)
+    monkeypatch.setattr(gateway, "cache", None, raising=False)
+    monkeypatch.setattr(gateway, "success_callback", [], raising=False)
 
     with pytest.raises(RuntimeError, match="db gone"):
         await proxy_shutdown_event()
@@ -491,16 +491,16 @@ async def test_initialize_invalid_unexpected_kwarg_raises_type_error():
 
 
 def test_load_from_azure_key_vault_disabled_no_side_effect(monkeypatch):
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     sentinel_secret_mgr = object()
-    monkeypatch.setattr(litellm, "secret_manager_client", sentinel_secret_mgr, raising=False)
+    monkeypatch.setattr(gateway, "secret_manager_client", sentinel_secret_mgr, raising=False)
 
     result = load_from_azure_key_vault(use_azure_key_vault=False)
 
     observed = {
         "return_value": result,
-        "secret_manager_unchanged": litellm.secret_manager_client is sentinel_secret_mgr,
+        "secret_manager_unchanged": gateway.secret_manager_client is sentinel_secret_mgr,
         "called_with": False,
     }
     assert normalize(observed) == {
@@ -525,24 +525,24 @@ def test_load_from_azure_key_vault_missing_uri_failure_is_swallowed(monkeypatch)
 
 
 def test_cost_tracking_adds_db_and_shadow_eval_callbacks_when_prisma_set(monkeypatch):
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.integrations.shadow_eval_logger import ShadowEvalLogger
 
     fake_prisma = MagicMock()
     monkeypatch.setattr(ps, "prisma_client", fake_prisma, raising=False)
-    monkeypatch.setattr(litellm, "callbacks", [], raising=False)
-    monkeypatch.setattr(litellm, "_async_success_callback", [], raising=False)
+    monkeypatch.setattr(gateway, "callbacks", [], raising=False)
+    monkeypatch.setattr(gateway, "_async_success_callback", [], raising=False)
 
-    before_callbacks = len(litellm.callbacks)
-    before_async = len(litellm._async_success_callback)
+    before_callbacks = len(gateway.callbacks)
+    before_async = len(gateway._async_success_callback)
 
     cost_tracking()
     cost_tracking()
 
     observed = {
-        "added_to_callbacks": len(litellm.callbacks) - before_callbacks,
-        "added_to_async_success": len(litellm._async_success_callback) - before_async,
-        "shadow_eval_loggers": sum(isinstance(cb, ShadowEvalLogger) for cb in litellm.callbacks),
+        "added_to_callbacks": len(gateway.callbacks) - before_callbacks,
+        "added_to_async_success": len(gateway._async_success_callback) - before_async,
+        "shadow_eval_loggers": sum(isinstance(cb, ShadowEvalLogger) for cb in gateway.callbacks),
         "prisma_was_set": True,
     }
     assert normalize(observed) == {
@@ -555,16 +555,16 @@ def test_cost_tracking_adds_db_and_shadow_eval_callbacks_when_prisma_set(monkeyp
 
 def test_cost_tracking_no_op_when_prisma_missing(monkeypatch):
     """Without a prisma_client cost_tracking is a no-op — not an error."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     monkeypatch.setattr(ps, "prisma_client", None, raising=False)
-    monkeypatch.setattr(litellm, "callbacks", [], raising=False)
-    monkeypatch.setattr(litellm, "_async_success_callback", [], raising=False)
+    monkeypatch.setattr(gateway, "callbacks", [], raising=False)
+    monkeypatch.setattr(gateway, "_async_success_callback", [], raising=False)
 
     cost_tracking()
 
-    assert litellm.callbacks == []
-    assert litellm._async_success_callback == []
+    assert gateway.callbacks == []
+    assert gateway._async_success_callback == []
 
 
 # ---------------------------------------------------------------------------
@@ -644,11 +644,11 @@ def test_resolve_pydantic_type_invalid_non_union_non_model_returns_empty():
 
 
 def test_get_litellm_model_info_uses_base_model_for_lookup(monkeypatch):
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     expected_info = {"max_tokens": 8192, "input_cost_per_token": 0.00003}
     fake_get = MagicMock(return_value=expected_info)
-    monkeypatch.setattr(litellm, "get_model_info", fake_get, raising=False)
+    monkeypatch.setattr(gateway, "get_model_info", fake_get, raising=False)
 
     model = {
         "model_info": {"base_model": "gpt-4"},

@@ -7,7 +7,7 @@ import pytest
 
 from pydantic import BaseModel
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.cost_calculator import (
     BaseTokenUsageProcessor,
     RealtimeAPITokenUsageProcessor,
@@ -30,7 +30,7 @@ from token_iq.gateway.utils import TranscriptionResponse
 @pytest.fixture
 def _local_model_cost_map(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map())
+    monkeypatch.setattr(gateway, "model_cost", gateway.get_model_cost_map())
 
 
 def test_cost_per_token_duplicate_openai_prefix_matches_model_cost(monkeypatch):
@@ -39,7 +39,7 @@ def test_cost_per_token_duplicate_openai_prefix_matches_model_cost(monkeypatch):
     resolve to model_prices keys (e.g. gpt-5.5), not fail or multiply prefixes.
     """
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map())
+    monkeypatch.setattr(gateway, "model_cost", gateway.get_model_cost_map())
 
     prompt_usd, completion_usd = cost_per_token(
         model="openai/openai/gpt-5.5",
@@ -58,7 +58,7 @@ def test_cost_per_token_tiered_only_model_bills_at_tier_rate(monkeypatch):
     recording zero spend.
     """
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map())
+    monkeypatch.setattr(gateway, "model_cost", gateway.get_model_cost_map())
 
     prompt_usd, completion_usd = cost_per_token(
         model="volcengine/doubao-seed-2-0-pro-260215",
@@ -163,7 +163,7 @@ def test_baseten_model_api_pricing_entries(_local_model_cost_map):
     }
 
     for model_name, (input_cost, output_cost) in expected_pricing.items():
-        model_info = litellm.model_cost.get(model_name)
+        model_info = gateway.model_cost.get(model_name)
         assert model_info is not None, f"Missing model pricing entry: {model_name}"
         assert model_info["litellm_provider"] == "baseten"
         assert model_info["input_cost_per_token"] == input_cost
@@ -178,7 +178,7 @@ def test_wandb_model_api_pricing_entries(_local_model_cost_map):
     }
 
     for model_name, (input_cost, output_cost) in expected_pricing.items():
-        model_info = litellm.model_cost.get(model_name)
+        model_info = gateway.model_cost.get(model_name)
         assert model_info is not None, f"Missing model pricing entry: {model_name}"
         assert model_info["litellm_provider"] == "wandb"
         assert model_info["input_cost_per_token"] == input_cost
@@ -187,7 +187,7 @@ def test_wandb_model_api_pricing_entries(_local_model_cost_map):
 
 def test_openrouter_qwen36_plus_model_info(_local_model_cost_map):
 
-    model_info = litellm.model_cost.get("openrouter/qwen/qwen3.6-plus")
+    model_info = gateway.model_cost.get("openrouter/qwen/qwen3.6-plus")
 
     assert model_info is not None
     assert model_info["litellm_provider"] == "openrouter"
@@ -211,7 +211,7 @@ def test_openrouter_qwen36_plus_model_info(_local_model_cost_map):
 )
 def test_github_copilot_mai_code_1_flash_pricing(_local_model_cost_map, model):
 
-    model_info = litellm.model_cost.get(model)
+    model_info = gateway.model_cost.get(model)
 
     assert model_info is not None, f"Missing model pricing entry: {model}"
     assert model_info["litellm_provider"] == "github_copilot"
@@ -260,7 +260,7 @@ def test_cost_calculator_with_usage(_local_model_cost_map, monkeypatch):
         base_model=None,
     )
 
-    model_info = litellm.model_cost["gemini-2.0-flash-001"]
+    model_info = gateway.model_cost["gemini-2.0-flash-001"]
 
     # Step 1: Test a model where input_cost_per_image_token is not set.
     # In this case the calculation should use input_cost_per_token as fallback.
@@ -284,7 +284,7 @@ def test_cost_calculator_with_usage(_local_model_cost_map, monkeypatch):
     temp_model_info_object["input_cost_per_image_token"] = 0.5
 
     monkeypatch.setattr(
-        litellm,
+        gateway,
         "model_cost",
         {"gemini-2.0-flash-001": temp_model_info_object},
     )
@@ -703,7 +703,7 @@ def test_realtime_transcription_duration_cost(monkeypatch):
     from token_iq.gateway.core_utils.litellm_logging import Logging
 
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map())
+    monkeypatch.setattr(gateway, "model_cost", gateway.get_model_cost_map())
 
     from token_iq.gateway.cost_calculator import RealtimeAPITokenUsageProcessor
 
@@ -774,7 +774,7 @@ def test_realtime_transcription_duration_cost_resolves_model_from_litellm_name(
 ):
     """When no session event carries the ASR model, the litellm_model_name is used."""
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map())
+    monkeypatch.setattr(gateway, "model_cost", gateway.get_model_cost_map())
 
     results: OpenAIRealtimeStreamList = [
         {
@@ -794,7 +794,7 @@ def test_realtime_transcription_duration_cost_resolves_model_from_litellm_name(
 def test_realtime_transcription_no_completed_events_is_zero(monkeypatch):
     """A realtime stream without transcription completed events adds no extra cost."""
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map())
+    monkeypatch.setattr(gateway, "model_cost", gateway.get_model_cost_map())
 
     from token_iq.gateway.cost_calculator import handle_realtime_transcription_cost_calculation
 
@@ -818,13 +818,13 @@ def test_realtime_transcription_token_billed_fallback(monkeypatch):
     fallback path multiplies audio tokens by the model's audio token cost.
     """
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map())
+    monkeypatch.setattr(gateway, "model_cost", gateway.get_model_cost_map())
 
     from token_iq.gateway.cost_calculator import _transcription_usage_cost
 
     # gpt-4o-transcribe: input_cost_per_audio_token = 2.5e-06, input_cost_per_token = 2.5e-06,
     # output_cost_per_token = 1e-05
-    model_info = litellm.get_model_info(
+    model_info = gateway.get_model_info(
         model="gpt-4o-transcribe", custom_llm_provider="openai"
     )
     usage = {
@@ -854,7 +854,7 @@ def test_transcription_usage_cost_returns_zero_for_unknown_type():
 def test_get_transcription_model_falls_back_to_session_model(monkeypatch):
     """session.model is used when transcription-specific model fields are absent."""
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map())
+    monkeypatch.setattr(gateway, "model_cost", gateway.get_model_cost_map())
 
     from token_iq.gateway.cost_calculator import _get_transcription_model_name_from_results
 
@@ -940,7 +940,7 @@ def test_custom_pricing_cost_calc_uses_router_model_id_from_litellm_metadata():
         "max_tokens": 8192,
         "litellm_provider": "anthropic",
     }
-    litellm.register_model(model_cost={custom_model_id: custom_pricing_info})
+    gateway.register_model(model_cost={custom_model_id: custom_pricing_info})
 
     litellm_params = {
         "litellm_metadata": {
@@ -1007,13 +1007,13 @@ def test_per_request_custom_pricing_with_router():
     router_model_id = deployment["model_info"]["id"]
 
     # The router registered this hash in model_cost but without custom pricing
-    assert router_model_id in litellm.model_cost
-    entry = litellm.model_cost[router_model_id]
+    assert router_model_id in gateway.model_cost
+    entry = gateway.model_cost[router_model_id]
     # No custom pricing was set in model_list, so these should be None
     assert entry.get("input_cost_per_token") is None
 
     # Now simulate what completion() does: register custom pricing under the model name
-    litellm.register_model(
+    gateway.register_model(
         {
             "openai/gpt-3.5-turbo": {
                 "input_cost_per_token": 2.0,
@@ -1069,12 +1069,12 @@ def test_tiered_pricing_only_deployment_selects_router_model_id():
     )
     router_model_id = router.model_list[0]["model_info"]["id"]
 
-    entry = litellm.model_cost[router_model_id]
+    entry = gateway.model_cost[router_model_id]
     assert entry.get("input_cost_per_token") is None
     assert entry.get("tiered_pricing") is not None
     # The stripped shared alias must not carry tiered pricing.
     assert (
-        litellm.model_cost["dashscope/qwen-tier-only-test"].get("tiered_pricing") is None
+        gateway.model_cost["dashscope/qwen-tier-only-test"].get("tiered_pricing") is None
     )
 
     selected = _select_model_name_for_cost_calc(
@@ -1217,7 +1217,7 @@ def test_azure_audio_output_cost_calculation(_local_model_cost_map):
 
     cost = completion_cost(completion, model="azure/gpt-audio-2025-08-28")
 
-    model_info = litellm.get_model_info("azure/gpt-audio-2025-08-28")
+    model_info = gateway.get_model_info("azure/gpt-audio-2025-08-28")
 
     # Calculate expected cost
     expected_input_cost = model_info["input_cost_per_token"] * 17  # text tokens
@@ -1251,7 +1251,7 @@ def test_default_image_cost_calculator(monkeypatch):
     }
 
     monkeypatch.setattr(
-        litellm,
+        gateway,
         "model_cost",
         {
             "azure/bf9001cd7209f5734ecb4ab937a5a0e2ba5f119708bd68f184db362930f9dc7b": temp_object
@@ -1698,7 +1698,7 @@ def test_azure_ai_cache_cost_calculation(_local_model_cost_map):
 
     # Register a custom azure_ai model with cache pricing
     test_model_id = "test-azure-ai-claude-model"
-    litellm.register_model(
+    gateway.register_model(
         model_cost={
             test_model_id: {
                 "input_cost_per_token": 5.0e-06,
@@ -1732,7 +1732,7 @@ def test_azure_ai_cache_cost_calculation(_local_model_cost_map):
     total_cost = input_cost + output_cost
 
     # Calculate expected cost manually
-    model_info = litellm.model_cost[test_model_id]
+    model_info = gateway.model_cost[test_model_id]
     expected_input_cost = (
         model_info["input_cost_per_token"] * 100  # text tokens
         + model_info["cache_read_input_token_cost"] * 800  # cached tokens
@@ -1801,7 +1801,7 @@ def test_azure_gpt_5_6_rates_match_azure_price_page(_local_model_cost_map, model
     1.25x input on every gpt-5.6 tier, and Data Zone costs 1.1x Global for
     standard and priority alike (us/eu priority rates previously sat at 1.25x).
     """
-    entry = litellm.model_cost[model]
+    entry = gateway.model_cost[model]
     input_keys = [key for key in entry if key.startswith("input_cost_per_token")]
     assert input_keys
     for key in input_keys:
@@ -1810,7 +1810,7 @@ def test_azure_gpt_5_6_rates_match_azure_price_page(_local_model_cost_map, model
 
     zone = model.split("/")[1]
     if zone in ("us", "eu"):
-        global_entry = litellm.model_cost["azure/" + model.split("/", 2)[2]]
+        global_entry = gateway.model_cost["azure/" + model.split("/", 2)[2]]
         prefixes = ("input_cost_per_token", "output_cost_per_token", "cache_read", "cache_creation")
         token_cost_keys = [key for key in entry if key.startswith(prefixes)]
         global_token_cost_keys = [key for key in global_entry if key.startswith(prefixes)]
@@ -1829,7 +1829,7 @@ def test_vertex_regional_deployment_costs_uplift_over_global(monkeypatch):
     cost_per_character's token fallback).
     """
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map())
+    monkeypatch.setattr(gateway, "model_cost", gateway.get_model_cost_map())
 
     usage = Usage(prompt_tokens=15, completion_tokens=5, total_tokens=20)
     for model in ("claude-haiku-4-5@20251001", "gemini-3.5-flash"):
@@ -1859,10 +1859,10 @@ def test_vertex_uplift_composes_with_above_128k_pricing(monkeypatch):
     prices regional above-128k usage at 1.1x the above-128k rate."""
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
     monkeypatch.setattr(
-        litellm,
+        gateway,
         "model_cost",
         {
-            **litellm.get_model_cost_map(),
+            **gateway.get_model_cost_map(),
             "vertex_ai/fake-regional-128k-model": {
                 "litellm_provider": "vertex_ai",
                 "mode": "chat",
@@ -1913,7 +1913,7 @@ def test_cost_discount_vertex_ai(monkeypatch):
     )
 
     # Calculate cost without discount
-    monkeypatch.setattr(litellm, "cost_discount_config", {})
+    monkeypatch.setattr(gateway, "cost_discount_config", {})
     cost_without_discount = completion_cost(
         completion_response=response,
         model="vertex_ai/gemini-3-pro-preview",
@@ -1921,7 +1921,7 @@ def test_cost_discount_vertex_ai(monkeypatch):
     )
 
     # Set 5% discount for vertex_ai
-    monkeypatch.setattr(litellm, "cost_discount_config", {"vertex_ai": 0.05})
+    monkeypatch.setattr(gateway, "cost_discount_config", {"vertex_ai": 0.05})
 
     # Calculate cost with discount
     cost_with_discount = completion_cost(
@@ -1960,7 +1960,7 @@ def test_cost_discount_not_applied_to_other_providers(monkeypatch):
     )
 
     # Set discount only for vertex_ai (not openai)
-    monkeypatch.setattr(litellm, "cost_discount_config", {"vertex_ai": 0.05})
+    monkeypatch.setattr(gateway, "cost_discount_config", {"vertex_ai": 0.05})
 
     # Calculate cost for OpenAI - should NOT have discount applied
     cost_with_selective_discount = completion_cost(
@@ -1970,7 +1970,7 @@ def test_cost_discount_not_applied_to_other_providers(monkeypatch):
     )
 
     # Clear discount config
-    monkeypatch.setattr(litellm, "cost_discount_config", {})
+    monkeypatch.setattr(gateway, "cost_discount_config", {})
     cost_without_discount = completion_cost(
         completion_response=response,
         model="gpt-4",
@@ -2005,7 +2005,7 @@ def test_cost_margin_percentage(monkeypatch):
     )
 
     # Calculate cost without margin
-    monkeypatch.setattr(litellm, "cost_margin_config", {})
+    monkeypatch.setattr(gateway, "cost_margin_config", {})
     cost_without_margin = completion_cost(
         completion_response=response,
         model="gpt-4",
@@ -2013,7 +2013,7 @@ def test_cost_margin_percentage(monkeypatch):
     )
 
     # Set 10% margin for openai
-    monkeypatch.setattr(litellm, "cost_margin_config", {"openai": 0.10})
+    monkeypatch.setattr(gateway, "cost_margin_config", {"openai": 0.10})
 
     # Calculate cost with margin
     cost_with_margin = completion_cost(
@@ -2052,7 +2052,7 @@ def test_cost_margin_fixed_amount(monkeypatch):
     )
 
     # Calculate cost without margin
-    monkeypatch.setattr(litellm, "cost_margin_config", {})
+    monkeypatch.setattr(gateway, "cost_margin_config", {})
     cost_without_margin = completion_cost(
         completion_response=response,
         model="gpt-4",
@@ -2060,7 +2060,7 @@ def test_cost_margin_fixed_amount(monkeypatch):
     )
 
     # Set $0.001 fixed margin for openai
-    monkeypatch.setattr(litellm, "cost_margin_config", {"openai": {"fixed_amount": 0.001}})
+    monkeypatch.setattr(gateway, "cost_margin_config", {"openai": {"fixed_amount": 0.001}})
 
     # Calculate cost with margin
     cost_with_margin = completion_cost(
@@ -2099,7 +2099,7 @@ def test_cost_margin_combined(monkeypatch):
     )
 
     # Calculate cost without margin
-    monkeypatch.setattr(litellm, "cost_margin_config", {})
+    monkeypatch.setattr(gateway, "cost_margin_config", {})
     cost_without_margin = completion_cost(
         completion_response=response,
         model="gpt-4",
@@ -2107,7 +2107,7 @@ def test_cost_margin_combined(monkeypatch):
     )
 
     # Set 8% margin + $0.0005 fixed for openai
-    monkeypatch.setattr(litellm, "cost_margin_config", {
+    monkeypatch.setattr(gateway, "cost_margin_config", {
         "openai": {"percentage": 0.08, "fixed_amount": 0.0005}
     })
 
@@ -2148,7 +2148,7 @@ def test_cost_margin_global(monkeypatch):
     )
 
     # Calculate cost without margin
-    monkeypatch.setattr(litellm, "cost_margin_config", {})
+    monkeypatch.setattr(gateway, "cost_margin_config", {})
     cost_without_margin = completion_cost(
         completion_response=response,
         model="gpt-4",
@@ -2156,7 +2156,7 @@ def test_cost_margin_global(monkeypatch):
     )
 
     # Set 5% global margin (no provider-specific margin)
-    monkeypatch.setattr(litellm, "cost_margin_config", {"global": 0.05})
+    monkeypatch.setattr(gateway, "cost_margin_config", {"global": 0.05})
 
     # Calculate cost with global margin
     cost_with_global_margin = completion_cost(
@@ -2195,7 +2195,7 @@ def test_cost_margin_provider_overrides_global(monkeypatch):
     )
 
     # Calculate cost without margin
-    monkeypatch.setattr(litellm, "cost_margin_config", {})
+    monkeypatch.setattr(gateway, "cost_margin_config", {})
     cost_without_margin = completion_cost(
         completion_response=response,
         model="gpt-4",
@@ -2203,7 +2203,7 @@ def test_cost_margin_provider_overrides_global(monkeypatch):
     )
 
     # Set 5% global margin and 10% provider-specific margin
-    monkeypatch.setattr(litellm, "cost_margin_config", {"global": 0.05, "openai": 0.10})
+    monkeypatch.setattr(gateway, "cost_margin_config", {"global": 0.05, "openai": 0.10})
 
     # Calculate cost - should use provider-specific margin (10%), not global (5%)
     cost_with_provider_margin = completion_cost(
@@ -2244,8 +2244,8 @@ def test_cost_margin_with_discount(monkeypatch):
     )
 
     # Calculate base cost
-    monkeypatch.setattr(litellm, "cost_margin_config", {})
-    monkeypatch.setattr(litellm, "cost_discount_config", {})
+    monkeypatch.setattr(gateway, "cost_margin_config", {})
+    monkeypatch.setattr(gateway, "cost_discount_config", {})
     base_cost = completion_cost(
         completion_response=response,
         model="gpt-4",
@@ -2253,8 +2253,8 @@ def test_cost_margin_with_discount(monkeypatch):
     )
 
     # Set 5% discount and 10% margin
-    monkeypatch.setattr(litellm, "cost_discount_config", {"openai": 0.05})
-    monkeypatch.setattr(litellm, "cost_margin_config", {"openai": 0.10})
+    monkeypatch.setattr(gateway, "cost_discount_config", {"openai": 0.05})
+    monkeypatch.setattr(gateway, "cost_margin_config", {"openai": 0.10})
 
     # Calculate cost with both discount and margin
     cost_with_both = completion_cost(
@@ -2500,7 +2500,7 @@ def test_completion_cost_service_tier_for_bedrock(_local_model_cost_map):
 
 
     model = "bedrock/us-east-1/test-bedrock-service-tier-cost-model"
-    litellm.register_model(
+    gateway.register_model(
         model_cost={
             model: {
                 "input_cost_per_token": 0.001,
@@ -2556,7 +2556,7 @@ def test_completion_cost_service_tier_for_anthropic(_local_model_cost_map):
 
 
     model = "claude-test-service-tier-cost-model"
-    litellm.register_model(
+    gateway.register_model(
         model_cost={
             model: {
                 "input_cost_per_token": 3e-6,
@@ -2609,7 +2609,7 @@ def test_completion_cost_anthropic_auto_tier_uses_served_priority_rate(_local_mo
 
 
     model = "claude-test-auto-tier-cost-model"
-    litellm.register_model(
+    gateway.register_model(
         model_cost={
             model: {
                 "input_cost_per_token": 3e-6,
@@ -2657,7 +2657,7 @@ def test_completion_cost_vertex_ai_gemini_flex_traffic_type(_local_model_cost_ma
     from token_iq.gateway import completion_cost
 
     model = "gemini-3-test-flex-tier-cost-model"
-    litellm.register_model(
+    gateway.register_model(
         model_cost={
             model: {
                 "input_cost_per_token": 1.5e-6,
@@ -2703,7 +2703,7 @@ def test_completion_cost_non_string_service_tier_defers_to_served_tier(_local_mo
 
 
     model = "claude-test-non-string-tier-cost-model"
-    litellm.register_model(
+    gateway.register_model(
         model_cost={
             model: {
                 "input_cost_per_token": 3e-6,
@@ -2753,7 +2753,7 @@ def test_completion_cost_non_string_response_service_tier_defers_to_served_tier(
 
 
     model = "claude-test-response-non-string-tier-cost-model"
-    litellm.register_model(
+    gateway.register_model(
         model_cost={
             model: {
                 "input_cost_per_token": 3e-6,
@@ -2801,7 +2801,7 @@ def test_completion_cost_non_string_usage_service_tier_prices_standard(_local_mo
 
 
     model = "claude-test-usage-non-string-tier-cost-model"
-    litellm.register_model(
+    gateway.register_model(
         model_cost={
             model: {
                 "input_cost_per_token": 3e-6,
@@ -2848,7 +2848,7 @@ def test_anthropic_cost_per_token_prices_cache_at_served_tier_with_multiplier(_l
 
 
     model = "claude-test-priority-cache-fast-model"
-    litellm.register_model(
+    gateway.register_model(
         model_cost={
             model: {
                 "input_cost_per_token": 3e-6,
@@ -2883,7 +2883,7 @@ def test_anthropic_cost_per_token_prices_cache_at_served_tier_with_multiplier(_l
 
 
 def _register_anthropic_geo_cache_model(model: str) -> None:
-    litellm.register_model(
+    gateway.register_model(
         model_cost={
             model: {
                 "input_cost_per_token": 5e-6,
@@ -2996,7 +2996,7 @@ def test_anthropic_fast_multiplier_only_on_models_with_fast_mode(_local_model_co
     ``fast`` multiplier on their map entries overbills every request that asked
     for fast and was served standard.
     """
-    entry = litellm.model_cost[model]
+    entry = gateway.model_cost[model]
     assert entry["provider_specific_entry"].get("fast") == expected_fast
 
 
@@ -3194,9 +3194,9 @@ def test_gemini_implicit_caching_cost_calculation():
     )
 
     # Get model pricing for verification
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    model_info = litellm.get_model_info("gemini/gemini-2.0-flash")
+    model_info = gateway.get_model_info("gemini/gemini-2.0-flash")
     input_cost = model_info.get("input_cost_per_token", 0)
     cache_read_cost = model_info.get("cache_read_input_token_cost", input_cost)
     output_cost = model_info.get("output_cost_per_token", 0)
@@ -3264,7 +3264,7 @@ def test_openrouter_gemini_3_1_flash_lite_preview_pricing(_local_model_cost_map)
     """
 
     model_name = "openrouter/google/gemini-3.1-flash-lite-preview"
-    model_info = litellm.model_cost.get(model_name)
+    model_info = gateway.model_cost.get(model_name)
 
     assert model_info is not None, f"Missing model pricing entry: {model_name}"
     assert model_info["litellm_provider"] == "openrouter"
@@ -3281,7 +3281,7 @@ def test_gemini_3_1_flash_lite_pricing(_local_model_cost_map):
         "gemini/gemini-3.1-flash-lite",
         "vertex_ai/gemini-3.1-flash-lite",
     ):
-        model_info = litellm.model_cost.get(model_name)
+        model_info = gateway.model_cost.get(model_name)
         assert model_info is not None, f"Missing model pricing entry: {model_name}"
         assert model_info["input_cost_per_token"] == 2.5e-07
         assert model_info["input_cost_per_audio_token"] == 5e-07
@@ -3315,7 +3315,7 @@ def test_custom_pricing_applies_cache_read_input_cost():
         usage=usage,
     )
 
-    cost = litellm.completion_cost(
+    cost = gateway.completion_cost(
         completion_response=response,
         model="openai/gpt-5.4",
         custom_llm_provider="openai",
@@ -3356,7 +3356,7 @@ def test_custom_pricing_applies_cache_creation_input_cost_via_prompt_details():
         usage=usage,
     )
 
-    cost = litellm.completion_cost(
+    cost = gateway.completion_cost(
         completion_response=response,
         model="openai/gpt-5.4",
         custom_llm_provider="openai",
@@ -3537,7 +3537,7 @@ def test_custom_pricing_anthropic_style_cache_tokens_not_double_counted():
         usage=usage,
     )
 
-    cost = litellm.completion_cost(
+    cost = gateway.completion_cost(
         completion_response=response,
         model="anthropic/claude-3-5-sonnet",
         custom_llm_provider="anthropic",
@@ -3581,7 +3581,7 @@ def test_custom_pricing_without_cache_keys_preserves_legacy_behavior():
         usage=usage,
     )
 
-    cost = litellm.completion_cost(
+    cost = gateway.completion_cost(
         completion_response=response,
         model="openai/gpt-5.4",
         custom_llm_provider="openai",
@@ -3615,7 +3615,7 @@ def test_openrouter_gemini_3_1_flash_lite_stable_pricing(_local_model_cost_map):
     """
 
     model_name = "openrouter/google/gemini-3.1-flash-lite"
-    model_info = litellm.model_cost.get(model_name)
+    model_info = gateway.model_cost.get(model_name)
 
     assert model_info is not None, f"Missing model pricing entry: {model_name}"
     assert model_info["litellm_provider"] == "openrouter"
@@ -3673,7 +3673,7 @@ def test_completion_cost_logs_reasoning_and_cache_breakdown(_local_model_cost_ma
         ),
     )
 
-    litellm.completion_cost(
+    gateway.completion_cost(
         completion_response=response,
         model="gemini-2.5-flash",
         custom_llm_provider="vertex_ai",
@@ -3691,10 +3691,10 @@ def test_cost_per_token_per_second_pricing(monkeypatch):
     must be billed as cost_per_second * response_time_ms / 1000 in cost_per_token.
     """
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map())
+    monkeypatch.setattr(gateway, "model_cost", gateway.get_model_cost_map())
 
     model = "test-per-second-pricing-model"
-    litellm.register_model(
+    gateway.register_model(
         model_cost={
             model: {
                 "input_cost_per_second": 0.02,
@@ -3781,7 +3781,7 @@ def test_batch_cost_calculator_cache_creation_falls_back_to_input_rate():
 def test_completion_cost_bills_interactions_api_response():
     from token_iq.gateway.types.interactions import InteractionsAPIResponse
 
-    model_info = litellm.get_model_info(model="gemini-2.5-flash", custom_llm_provider="gemini")
+    model_info = gateway.get_model_info(model="gemini-2.5-flash", custom_llm_provider="gemini")
     response = InteractionsAPIResponse(
         id="interactions/abc123",
         model="gemini-2.5-flash",
@@ -3814,7 +3814,7 @@ def test_completion_cost_bills_interactions_api_response():
 def test_completion_cost_bills_interactions_google_search_per_query():
     from token_iq.gateway.types.interactions import InteractionsAPIResponse
 
-    model_info = litellm.get_model_info(model="gemini-3-flash-preview", custom_llm_provider="gemini")
+    model_info = gateway.get_model_info(model="gemini-3-flash-preview", custom_llm_provider="gemini")
     response = InteractionsAPIResponse(
         id="interactions/search123",
         model="gemini-3-flash-preview",
@@ -3850,7 +3850,7 @@ def test_completion_cost_bills_interactions_google_search_per_query():
 def test_completion_cost_bills_interactions_video_output_at_video_rate():
     from token_iq.gateway.types.interactions import InteractionsAPIResponse
 
-    model_info = litellm.get_model_info(model="gemini-omni-flash-preview", custom_llm_provider="gemini")
+    model_info = gateway.get_model_info(model="gemini-omni-flash-preview", custom_llm_provider="gemini")
     video_tokens = 5792 * 8
     response = InteractionsAPIResponse(
         id="interactions/video123",
@@ -3968,7 +3968,7 @@ def test_completion_cost_prices_anthropic_shaped_cache_read_tokens(_local_model_
         "usage": {"input_tokens": 3, "output_tokens": 5, "cache_read_input_tokens": 4014},
     }
 
-    cost = litellm.completion_cost(
+    cost = gateway.completion_cost(
         completion_response=response,
         model="gpt-5.6-sol",
         custom_llm_provider="openai",
@@ -4035,7 +4035,7 @@ def test_completion_cost_together_unmapped_model_still_uses_size_bucket(_local_m
 
 
 def test_completion_cost_together_metadata_only_model_still_uses_size_bucket(_local_model_cost_map):
-    assert "input_cost_per_token" not in litellm.model_cost["together_ai/togethercomputer/CodeLlama-34b-Instruct"]
+    assert "input_cost_per_token" not in gateway.model_cost["together_ai/togethercomputer/CodeLlama-34b-Instruct"]
 
     cost = completion_cost(
         completion_response=_together_chat_response(
@@ -4056,7 +4056,7 @@ def test_select_model_name_strips_unregistered_alias_prefix(_local_model_cost_ma
 
     from token_iq.gateway.cost_calculator import _select_model_name_for_cost_calc
 
-    response = litellm.ModelResponse(
+    response = gateway.ModelResponse(
         id="x",
         choices=[
             {
@@ -4084,7 +4084,7 @@ def test_select_model_name_strips_duplicated_region_segment(_local_model_cost_ma
 
     from token_iq.gateway.cost_calculator import _select_model_name_for_cost_calc
 
-    response = litellm.ModelResponse(
+    response = gateway.ModelResponse(
         id="x",
         choices=[
             {
@@ -4106,8 +4106,8 @@ def test_select_model_name_strips_duplicated_region_segment(_local_model_cost_ma
     assert selected == "bedrock/us-east-1/anthropic.claude-v2:1"
 
 
-def _bedrock_response_with_private_model(model: str, region_name: str) -> litellm.ModelResponse:
-    response = litellm.ModelResponse(
+def _bedrock_response_with_private_model(model: str, region_name: str) -> gateway.ModelResponse:
+    response = gateway.ModelResponse(
         id="x",
         choices=[
             {
@@ -4156,7 +4156,7 @@ def test_select_model_name_keeps_base_model_free_of_region(_local_model_cost_map
 def test_completion_cost_nonzero_for_slash_alias_model_name(_local_model_cost_map):
     """End-to-end cost through a "/"-containing alias must price above zero (#38069)."""
 
-    response = litellm.ModelResponse(
+    response = gateway.ModelResponse(
         id="x",
         choices=[
             {
@@ -4168,9 +4168,9 @@ def test_completion_cost_nonzero_for_slash_alias_model_name(_local_model_cost_ma
         model="vertex/claude-opus-5",
     )
     response._hidden_params = {"custom_llm_provider": "vertex_ai"}
-    response.usage = litellm.Usage(prompt_tokens=100, completion_tokens=50)
+    response.usage = gateway.Usage(prompt_tokens=100, completion_tokens=50)
 
-    cost = litellm.completion_cost(
+    cost = gateway.completion_cost(
         completion_response=response,
         custom_llm_provider="vertex_ai",
     )
@@ -4183,7 +4183,7 @@ def test_select_model_name_unresolvable_alias_unchanged(_local_model_cost_map):
 
     from token_iq.gateway.cost_calculator import _select_model_name_for_cost_calc
 
-    response = litellm.ModelResponse(
+    response = gateway.ModelResponse(
         id="x",
         choices=[
             {
@@ -4211,7 +4211,7 @@ def test_completion_cost_keeps_custom_priced_slash_router_id(_local_model_cost_m
 
     from token_iq.gateway.cost_calculator import _select_model_name_for_cost_calc
 
-    litellm.register_model(
+    gateway.register_model(
         model_cost={
             "vertex/claude-opus-5": {
                 "input_cost_per_token": 7e-6,
@@ -4230,7 +4230,7 @@ def test_completion_cost_keeps_custom_priced_slash_router_id(_local_model_cost_m
     )
     assert selected == "vertex_ai/vertex/claude-opus-5"
 
-    response = litellm.ModelResponse(
+    response = gateway.ModelResponse(
         id="x",
         choices=[
             {
@@ -4242,9 +4242,9 @@ def test_completion_cost_keeps_custom_priced_slash_router_id(_local_model_cost_m
         model="vertex/claude-opus-5",
     )
     response._hidden_params = {"custom_llm_provider": "vertex_ai"}
-    response.usage = litellm.Usage(prompt_tokens=100, completion_tokens=50)
+    response.usage = gateway.Usage(prompt_tokens=100, completion_tokens=50)
 
-    cost = litellm.completion_cost(
+    cost = gateway.completion_cost(
         completion_response=response,
         custom_llm_provider="vertex_ai",
         custom_pricing=True,
@@ -4346,12 +4346,12 @@ def test_realtime_priceless_deployment_entry_falls_through_to_priced_model(
 ) -> None:
     """Regression for https://github.com/BerriAI/litellm/issues/31087 (router-registered priceless entries)."""
     monkeypatch.setitem(
-        litellm.model_cost,
+        gateway.model_cost,
         "vertex_ai/some-unmapped-live-model",
         priceless_entry,
     )
     priced_model = "vertex_ai/gemini-live-2.5-flash-preview-native-audio-09-2025"
-    priced_entry = litellm.model_cost["gemini-live-2.5-flash-preview-native-audio-09-2025"]
+    priced_entry = gateway.model_cost["gemini-live-2.5-flash-preview-native-audio-09-2025"]
 
     results: OpenAIRealtimeStreamList = [
         {"type": "session.created", "session": {"model": "some-unmapped-live-model"}},
@@ -4374,7 +4374,7 @@ def test_realtime_explicitly_free_session_model_still_bills_zero(
     _local_model_cost_map: None, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     monkeypatch.setitem(
-        litellm.model_cost,
+        gateway.model_cost,
         "vertex_ai/free-live-model",
         {
             "litellm_provider": "vertex_ai",
@@ -4403,7 +4403,7 @@ def test_completion_cost_prefers_private_provider_response_model(
     _local_model_cost_map: None, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     monkeypatch.setitem(
-        litellm.model_cost,
+        gateway.model_cost,
         "openai/selected-cost-model",
         {
             "input_cost_per_token": 0.000002,
@@ -4411,7 +4411,7 @@ def test_completion_cost_prefers_private_provider_response_model(
             "litellm_provider": "openai",
         },
     )
-    response = litellm.ModelResponse(
+    response = gateway.ModelResponse(
         id="x",
         choices=[
             {
@@ -4426,9 +4426,9 @@ def test_completion_cost_prefers_private_provider_response_model(
         "custom_llm_provider": "openai",
         "provider_response_model": "selected-cost-model",
     }
-    response.usage = litellm.Usage(prompt_tokens=100, completion_tokens=50)
+    response.usage = gateway.Usage(prompt_tokens=100, completion_tokens=50)
 
-    cost = litellm.completion_cost(
+    cost = gateway.completion_cost(
         completion_response=response,
         custom_llm_provider="openai",
     )
@@ -4451,7 +4451,7 @@ def test_explicit_pricing_precedes_private_provider_response_model(
 ) -> None:
     from token_iq.gateway.cost_calculator import _select_model_name_for_cost_calc
 
-    response = litellm.ModelResponse(
+    response = gateway.ModelResponse(
         id="x",
         choices=[
             {

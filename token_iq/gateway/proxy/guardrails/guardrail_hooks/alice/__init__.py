@@ -9,7 +9,7 @@ if TYPE_CHECKING:
 
 
 def initialize_guardrail(litellm_params: "LitellmParams", guardrail: "Guardrail"):
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     _alice_guardrail_callback: Final = AliceGuardrail(
         api_key=litellm_params.api_key,
@@ -20,7 +20,7 @@ def initialize_guardrail(litellm_params: "LitellmParams", guardrail: "Guardrail"
         default_on=litellm_params.default_on,
     )
 
-    litellm.logging_callback_manager.add_litellm_callback(_alice_guardrail_callback)
+    gateway.logging_callback_manager.add_litellm_callback(_alice_guardrail_callback)
     return _alice_guardrail_callback
 
 

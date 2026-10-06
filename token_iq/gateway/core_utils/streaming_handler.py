@@ -16,7 +16,7 @@ import httpx
 from pydantic import BaseModel, ValidationError
 from typing_extensions import NotRequired, TypedDict
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import verbose_logger
 from token_iq.gateway._uuid import uuid
 from token_iq.gateway.core_utils.model_response_utils import (
@@ -86,7 +86,7 @@ def is_async_iterable(obj: object) -> bool:
 
 def print_verbose(print_statement: object):
     try:
-        if litellm.set_verbose:
+        if gateway.set_verbose:
             print(print_statement)  # noqa: T201
     except Exception:
         pass
@@ -326,7 +326,7 @@ class CustomStreamWrapper:
             return
         elapsed: Final = time.time() - self._stream_created_time
         if elapsed > LITELLM_MAX_STREAMING_DURATION_SECONDS:
-            raise litellm.Timeout(
+            raise gateway.Timeout(
                 message=f"Stream exceeded max streaming duration of {LITELLM_MAX_STREAMING_DURATION_SECONDS}s (elapsed {elapsed:.1f}s)",
                 model=self.model or "",
                 llm_provider=self.custom_llm_provider or "",
@@ -489,9 +489,9 @@ class CustomStreamWrapper:
         else:
             self._repeated_messages_count = 1
 
-        if self._repeated_messages_count >= litellm.REPEATED_STREAMING_CHUNK_LIMIT:
+        if self._repeated_messages_count >= gateway.REPEATED_STREAMING_CHUNK_LIMIT:
             # All last n chunks are identical
-            raise litellm.InternalServerError(
+            raise gateway.InternalServerError(
                 message=f"The model is repeating the same chunk = {last_content}.",
                 model="",
                 llm_provider="",
@@ -1232,7 +1232,7 @@ class CustomStreamWrapper:
         if (
             isinstance(chunk, ModelResponseStream)
             and self.custom_llm_provider is not None
-            and self.custom_llm_provider in litellm._custom_providers
+            and self.custom_llm_provider in gateway._custom_providers
         ):
             _has_content: Final = bool(
                 chunk.choices
@@ -1255,7 +1255,7 @@ class CustomStreamWrapper:
         if (
             isinstance(chunk, dict)
             and generic_chunk_has_all_required_fields(chunk=chunk)  # check if chunk is a generic streaming chunk
-        ) or (self.custom_llm_provider and self.custom_llm_provider in litellm._custom_providers):
+        ) or (self.custom_llm_provider and self.custom_llm_provider in gateway._custom_providers):
             if self.received_finish_reason is not None:
                 _chunk_has_content: Final = isinstance(chunk, dict) and (
                     bool(chunk.get("text", ""))
@@ -1278,7 +1278,7 @@ class CustomStreamWrapper:
                 setattr(
                     model_response,
                     "usage",
-                    litellm.Usage(**anthropic_response_obj["usage"]),
+                    gateway.Usage(**anthropic_response_obj["usage"]),
                 )
 
             if "tool_use" in anthropic_response_obj and anthropic_response_obj["tool_use"] is not None:
@@ -1367,7 +1367,7 @@ class CustomStreamWrapper:
                                 args_str: Final = json.dumps(args_dict)
                             except Exception as e:
                                 raise e
-                            _delta_obj: Final = litellm.utils.Delta(
+                            _delta_obj: Final = gateway.utils.Delta(
                                 content=None,
                                 tool_calls=[
                                     {
@@ -1437,7 +1437,7 @@ class CustomStreamWrapper:
                 setattr(
                     model_response,
                     "usage",
-                    litellm.Usage(
+                    gateway.Usage(
                         prompt_tokens=_text_completion_usage.prompt_tokens,
                         completion_tokens=_text_completion_usage.completion_tokens,
                         total_tokens=_text_completion_usage.total_tokens,
@@ -1448,7 +1448,7 @@ class CustomStreamWrapper:
                 raise ValueError(f"chunk is not a string: {chunk}")
             response_obj = cast(
                 dict[str, object],
-                litellm.CodestralTextCompletionConfig()._chunk_parser(chunk),
+                gateway.CodestralTextCompletionConfig()._chunk_parser(chunk),
             )
             completion_obj["content"] = response_obj["text"]
             print_verbose(f"completion obj content: {completion_obj['content']}")
@@ -1459,7 +1459,7 @@ class CustomStreamWrapper:
                 setattr(
                     model_response,
                     "usage",
-                    litellm.Usage(
+                    gateway.Usage(
                         prompt_tokens=_codestral_usage.prompt_tokens,
                         completion_tokens=_codestral_usage.completion_tokens,
                         total_tokens=_codestral_usage.total_tokens,
@@ -1530,7 +1530,7 @@ class CustomStreamWrapper:
                     setattr(
                         model_response,
                         "usage",
-                        litellm.Usage(
+                        gateway.Usage(
                             prompt_tokens=response_obj["usage"].get("prompt_tokens", None) or None,
                             completion_tokens=response_obj["usage"].get("completion_tokens", None) or None,
                             total_tokens=response_obj["usage"].get("total_tokens", None) or None,
@@ -1546,7 +1546,7 @@ class CustomStreamWrapper:
                     setattr(
                         model_response,
                         "usage",
-                        litellm.Usage(**response_obj["usage"].model_dump()),
+                        gateway.Usage(**response_obj["usage"].model_dump()),
                     )
         return _ProviderChunkParsed(response_obj)
 
@@ -1702,14 +1702,14 @@ class CustomStreamWrapper:
         This allows callbacks to modify streaming chunks before they're returned.
         """
         try:
-            from token_iq import gateway as litellm
+            from token_iq import gateway
             from token_iq.gateway.integrations.custom_logger import CustomLogger
             from token_iq.gateway.types.utils import CallTypes
 
             if self._post_streaming_hooks is None:
                 self._post_streaming_hooks = [
                     cb
-                    for cb in litellm.callbacks
+                    for cb in gateway.callbacks
                     if isinstance(cb, CustomLogger) and hasattr(cb, "async_post_call_streaming_deployment_hook")
                 ]
 
@@ -1836,7 +1836,7 @@ class CustomStreamWrapper:
         """
         Runs success logging in a thread and adds the response to the cache
         """
-        if litellm.disable_streaming_logging is True:
+        if gateway.disable_streaming_logging is True:
             """
             [NOT RECOMMENDED]
             Set this via `litellm.disable_streaming_logging = True`.
@@ -1942,7 +1942,7 @@ class CustomStreamWrapper:
                     if self.logging_obj.completion_start_time is None:
                         self.logging_obj._update_completion_start_time(completion_start_time=datetime.datetime.now())
                     ## LOGGING
-                    if not litellm.disable_streaming_logging:
+                    if not gateway.disable_streaming_logging:
                         executor.submit(
                             self.run_success_logging_and_cache_storage,
                             response,
@@ -1995,7 +1995,7 @@ class CustomStreamWrapper:
         except StopIteration:
             if self.sent_last_chunk is True:
                 try:
-                    complete_streaming_response = litellm.stream_chunk_builder(
+                    complete_streaming_response = gateway.stream_chunk_builder(
                         chunks=self.chunks,
                         messages=self.messages,
                         logging_obj=self.logging_obj,
@@ -2107,7 +2107,7 @@ class CustomStreamWrapper:
     def fetch_sync_stream(self):
         if self.completion_stream is None and self.make_call is not None:
             # Call make_call to get the completion stream
-            self.completion_stream = self.make_call(client=litellm.module_level_client)
+            self.completion_stream = self.make_call(client=gateway.module_level_client)
             self._stream_iter = self.completion_stream.__iter__()
 
         return self.completion_stream
@@ -2115,7 +2115,7 @@ class CustomStreamWrapper:
     async def fetch_stream(self):
         if self.completion_stream is None and self.make_call is not None:
             # Call make_call to get the completion stream
-            self.completion_stream = await self.make_call(client=litellm.module_level_aclient)
+            self.completion_stream = await self.make_call(client=gateway.module_level_aclient)
             self._stream_iter = self.completion_stream.__aiter__()
 
         return self.completion_stream
@@ -2228,7 +2228,7 @@ class CustomStreamWrapper:
         except httpx.TimeoutException as e:  # if httpx read timeout error occues
             traceback_exception = traceback.format_exc()
             ## ADD DEBUG INFORMATION - E.G. LITELLM REQUEST TIMEOUT
-            traceback_exception += f"\nLiteLLM Default Request Timeout - {litellm.request_timeout}"
+            traceback_exception += f"\nLiteLLM Default Request Timeout - {gateway.request_timeout}"
             if self.logging_obj is not None:
                 self._record_partial_usage_for_failure()
                 ## LOGGING
@@ -2247,7 +2247,7 @@ class CustomStreamWrapper:
         if self.sent_last_chunk is True:
             # log the final chunk with accurate streaming values
             try:
-                complete_streaming_response = litellm.stream_chunk_builder(
+                complete_streaming_response = gateway.stream_chunk_builder(
                     chunks=self.chunks,
                     messages=self.messages,
                     logging_obj=self.logging_obj,
@@ -2367,7 +2367,7 @@ class CustomStreamWrapper:
         if self.logging_obj is None or not self.chunks:
             return
         try:
-            partial_response: Final = litellm.stream_chunk_builder(
+            partial_response: Final = gateway.stream_chunk_builder(
                 chunks=self.chunks,
                 messages=self.messages if isinstance(self.messages, list) else None,
                 logging_obj=self.logging_obj,

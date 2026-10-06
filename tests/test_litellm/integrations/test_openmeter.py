@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.integrations.openmeter import OpenMeterLogger
 
 
@@ -215,7 +215,7 @@ class TestOpenMeterIntegration:
             "id": "cloudevents-test-response-id",
             "usage": {"prompt_tokens": 15, "completion_tokens": 8, "total_tokens": 23},
         }
-        response_obj = litellm.ModelResponse(**response_data)
+        response_obj = gateway.ModelResponse(**response_data)
 
         result = logger._common_logic(kwargs, response_obj)
 

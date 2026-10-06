@@ -15,7 +15,7 @@ See: https://github.com/BerriAI/litellm/issues/16353
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 
 class TestOpenRouterNativeModelRouting:
@@ -36,7 +36,7 @@ class TestOpenRouterNativeModelRouting:
     )
     def test_double_prefixed_strips_once(self, input_model, expected_model):
         """openrouter/openrouter/<model> should yield model=openrouter/<model>."""
-        result_model, provider, _, _ = litellm.get_llm_provider(model=input_model)
+        result_model, provider, _, _ = gateway.get_llm_provider(model=input_model)
         assert provider == "openrouter"
         assert result_model == expected_model
 
@@ -60,13 +60,13 @@ class TestOpenRouterNativeModelRouting:
             openrouter/<model> → openrouter/<model>  (no further stripping)
         """
         # First call: bridge resolves provider
-        model_first, provider, _, _ = litellm.get_llm_provider(model=input_model)
+        model_first, provider, _, _ = gateway.get_llm_provider(model=input_model)
         assert provider == "openrouter"
         expected_model = input_model.split("/", 1)[1]  # openrouter/<model>
         assert model_first == expected_model
 
         # Second call: completion receives model + custom_llm_provider from bridge
-        model_second, provider2, _, _ = litellm.get_llm_provider(
+        model_second, provider2, _, _ = gateway.get_llm_provider(
             model=model_first,
             custom_llm_provider="openrouter",
         )
@@ -85,13 +85,13 @@ class TestOpenRouterNativeModelRouting:
     )
     def test_regular_models_still_strip_normally(self, input_model, expected_model):
         """Non-native OpenRouter models should still have their prefix stripped."""
-        result_model, provider, _, _ = litellm.get_llm_provider(model=input_model)
+        result_model, provider, _, _ = gateway.get_llm_provider(model=input_model)
         assert provider == "openrouter"
         assert result_model == expected_model
 
     def test_wildcard_deployment_strips_routing_prefix(self):
         """openrouter/* proxy deployments pass custom_llm_provider; strip LiteLLM prefix."""
-        result_model, provider, _, _ = litellm.get_llm_provider(
+        result_model, provider, _, _ = gateway.get_llm_provider(
             model="openrouter/anthropic/claude-3.5-sonnet",
             custom_llm_provider="openrouter",
         )

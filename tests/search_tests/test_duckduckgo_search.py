@@ -7,7 +7,7 @@ import pytest
 from unittest.mock import AsyncMock, patch, MagicMock
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from tests.search_tests.base_search_unit_tests import BaseSearchTest
 
 
@@ -28,13 +28,13 @@ class TestDuckDuckGoSearch(BaseSearchTest):
         Test basic search functionality with a simple query.
         """
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-        litellm.model_cost = litellm.get_model_cost_map()
-        litellm._turn_on_debug()
+        gateway.model_cost = gateway.get_model_cost_map()
+        gateway._turn_on_debug()
         search_provider = self.get_search_provider()
         print("Search Provider=", search_provider)
 
         try:
-            response = await litellm.asearch(
+            response = await gateway.asearch(
                 query="india",
                 search_provider=search_provider,
             )
@@ -106,10 +106,10 @@ class TestDuckDuckGoSearch(BaseSearchTest):
         """
         Test that the Search response has the correct structure.
         """
-        litellm.set_verbose = True
+        gateway.set_verbose = True
         search_provider = self.get_search_provider()
 
-        response = litellm.search(
+        response = gateway.search(
             query="india",
             search_provider=search_provider,
         )
@@ -248,7 +248,7 @@ class TestDuckDuckGoSearchMocked:
             mock_get.return_value = mock_response
 
             # Make the search call
-            response = await litellm.asearch(
+            response = await gateway.asearch(
                 query="python programming", search_provider="duckduckgo", max_results=5
             )
 
@@ -341,7 +341,7 @@ class TestDuckDuckGoSearchMocked:
             mock_get.return_value = mock_response
 
             # Make the search call
-            response = await litellm.asearch(
+            response = await gateway.asearch(
                 query="India", search_provider="duckduckgo"
             )
 

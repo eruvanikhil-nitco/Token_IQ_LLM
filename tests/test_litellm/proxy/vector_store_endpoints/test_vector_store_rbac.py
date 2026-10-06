@@ -55,7 +55,7 @@ async def test_list_vector_stores_allowed_when_not_disabled():
         list_vector_stores,
     )
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     user = _make_internal_user()
     mock_prisma = MagicMock()
@@ -67,7 +67,7 @@ async def test_list_vector_stores_allowed_when_not_disabled():
         "token_iq.gateway.proxy.proxy_server.general_settings", _ENABLED_GS, clear=True
     ):
         with patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma):
-            with patch.object(litellm, "vector_store_registry", None):
+            with patch.object(gateway, "vector_store_registry", None):
                 with patch(
                     "token_iq.gateway.proxy.vector_store_endpoints.management_endpoints.VectorStoreRegistry._get_vector_stores_from_db",
                     new=AsyncMock(return_value=[]),
@@ -112,7 +112,7 @@ async def test_list_vector_stores_admin_not_blocked():
         list_vector_stores,
     )
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     admin = UserAPIKeyAuth(
         user_role=LitellmUserRoles.PROXY_ADMIN.value,
@@ -128,7 +128,7 @@ async def test_list_vector_stores_admin_not_blocked():
         "token_iq.gateway.proxy.proxy_server.general_settings", _DISABLED_GS, clear=True
     ):
         with patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma):
-            with patch.object(litellm, "vector_store_registry", None):
+            with patch.object(gateway, "vector_store_registry", None):
                 with patch(
                     "token_iq.gateway.proxy.vector_store_endpoints.management_endpoints.VectorStoreRegistry._get_vector_stores_from_db",
                     new=AsyncMock(return_value=[]),

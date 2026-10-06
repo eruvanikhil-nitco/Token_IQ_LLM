@@ -6,7 +6,7 @@ import asyncio
 from datetime import datetime, timezone
 from typing import Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway._uuid import uuid
 from token_iq.gateway.proxy._types import (
@@ -138,7 +138,7 @@ class UserManagementEventHooks:
 
         email_loggers: Final = tuple(
             email_logger
-            for email_logger in litellm.logging_callback_manager.get_custom_loggers_for_type(
+            for email_logger in gateway.logging_callback_manager.get_custom_loggers_for_type(
                 callback_type=BaseEmailLogger
             )
             if isinstance(email_logger, BaseEmailLogger)

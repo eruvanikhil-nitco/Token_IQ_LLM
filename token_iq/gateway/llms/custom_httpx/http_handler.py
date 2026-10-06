@@ -19,7 +19,7 @@ from httpx import USE_CLIENT_DEFAULT, AsyncHTTPTransport, HTTPTransport
 from httpx._types import CertTypes, RequestFiles
 from httpx._utils import get_environment_proxies
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.constants import (
     _DEFAULT_TTL_FOR_HTTPX_CLIENTS,
@@ -306,7 +306,7 @@ def get_ssl_verify(
     from token_iq.gateway.secret_managers.main import str_to_bool
 
     if ssl_verify is None:
-        ssl_verify = os.getenv("SSL_VERIFY", litellm.ssl_verify)
+        ssl_verify = os.getenv("SSL_VERIFY", gateway.ssl_verify)
 
     # Convert string "False"/"True" to boolean if applicable
     if isinstance(ssl_verify, str):
@@ -363,8 +363,8 @@ def get_ssl_configuration(
     # Get resolved ssl_verify
     ssl_verify = get_ssl_verify(ssl_verify=ssl_verify)
 
-    ssl_security_level: Final = os.getenv("SSL_SECURITY_LEVEL", litellm.ssl_security_level)
-    ssl_ecdh_curve: Final = os.getenv("SSL_ECDH_CURVE", litellm.ssl_ecdh_curve)
+    ssl_security_level: Final = os.getenv("SSL_SECURITY_LEVEL", gateway.ssl_security_level)
+    ssl_ecdh_curve: Final = os.getenv("SSL_ECDH_CURVE", gateway.ssl_ecdh_curve)
 
     cafile = None
     if isinstance(ssl_verify, str) and os.path.exists(ssl_verify):
@@ -608,7 +608,7 @@ class AsyncHTTPHandler:
 
         # An SSL certificate used by the requested host to authenticate the client.
         # /path/to/client.pem
-        cert: Final = os.getenv("SSL_CERTIFICATE", litellm.ssl_certificate)
+        cert: Final = os.getenv("SSL_CERTIFICATE", gateway.ssl_certificate)
 
         if timeout is None:
             timeout = _DEFAULT_TIMEOUT
@@ -730,7 +730,7 @@ class AsyncHTTPHandler:
                 for key, value in error_response.headers.items():
                     headers[f"response_headers-{key}"] = value
 
-            raise litellm.Timeout(
+            raise gateway.Timeout(
                 message=f"Connection timed out. Timeout passed={timeout}, time taken={time_delta} seconds",
                 model="default-model-name",
                 llm_provider="litellm-httpx-handler",
@@ -794,7 +794,7 @@ class AsyncHTTPHandler:
                 for key, value in error_response.headers.items():
                     headers[f"response_headers-{key}"] = value
 
-            raise litellm.Timeout(
+            raise gateway.Timeout(
                 message=f"Connection timed out after {timeout} seconds.",
                 model="default-model-name",
                 llm_provider="litellm-httpx-handler",
@@ -858,7 +858,7 @@ class AsyncHTTPHandler:
                 for key, value in error_response.headers.items():
                     headers[f"response_headers-{key}"] = value
 
-            raise litellm.Timeout(
+            raise gateway.Timeout(
                 message=f"Connection timed out after {timeout} seconds.",
                 model="default-model-name",
                 llm_provider="litellm-httpx-handler",
@@ -1084,7 +1084,7 @@ class AsyncHTTPHandler:
         # Check if user disabled aiohttp transport
         ########################################################
         if (
-            litellm.disable_aiohttp_transport is True
+            gateway.disable_aiohttp_transport is True
             or str_to_bool(os.getenv("DISABLE_AIOHTTP_TRANSPORT", "False")) is True
         ):
             return False
@@ -1111,7 +1111,7 @@ class AsyncHTTPHandler:
             Dict with appropriate SSL configuration for TCPConnector
         """
         connector_kwargs: Final[_TCPConnectorKwargs] = {
-            "local_addr": ("0.0.0.0", 0) if litellm.force_ipv4 else None,
+            "local_addr": ("0.0.0.0", 0) if gateway.force_ipv4 else None,
         }
 
         if ssl_context is not None:
@@ -1144,7 +1144,7 @@ class AsyncHTTPHandler:
         # Check if user enabled aiohttp trust env
         # use for HTTP_PROXY, HTTPS_PROXY, etc.
         ########################################################
-        trust_env: bool = litellm.aiohttp_trust_env
+        trust_env: bool = gateway.aiohttp_trust_env
         if str_to_bool(os.getenv("AIOHTTP_TRUST_ENV", "False")) is True:
             trust_env = True
 
@@ -1209,7 +1209,7 @@ class AsyncHTTPHandler:
         - If force_ipv4 is True, it will create an AsyncHTTPTransport with local_address set to "0.0.0.0"
         - [Default] If force_ipv4 is False, it will return None
         """
-        if litellm.force_ipv4:
+        if gateway.force_ipv4:
             return AsyncHTTPTransport(local_address=_IPV4_LOCAL_ADDRESS)
         else:
             return None
@@ -1250,7 +1250,7 @@ class HTTPHandler:
 
         # An SSL certificate used by the requested host to authenticate the client.
         # /path/to/client.pem
-        cert: Final = os.getenv("SSL_CERTIFICATE", litellm.ssl_certificate)
+        cert: Final = os.getenv("SSL_CERTIFICATE", gateway.ssl_certificate)
 
         # Get default headers (User-Agent, overridable via LITELLM_USER_AGENT)
         default_headers: Final = get_default_headers() if not self.disable_default_headers else None
@@ -1365,7 +1365,7 @@ class HTTPHandler:
             response.raise_for_status()
             return response
         except httpx.TimeoutException:
-            raise litellm.Timeout(
+            raise gateway.Timeout(
                 message=f"Connection timed out after {timeout} seconds.",
                 model="default-model-name",
                 llm_provider="litellm-httpx-handler",
@@ -1415,7 +1415,7 @@ class HTTPHandler:
             response.raise_for_status()
             return response
         except httpx.TimeoutException:
-            raise litellm.Timeout(
+            raise gateway.Timeout(
                 message=f"Connection timed out after {timeout} seconds.",
                 model="default-model-name",
                 llm_provider="litellm-httpx-handler",
@@ -1464,7 +1464,7 @@ class HTTPHandler:
             response: Final = self.client.send(req, stream=stream)
             return response
         except httpx.TimeoutException:
-            raise litellm.Timeout(
+            raise gateway.Timeout(
                 message=f"Connection timed out after {timeout} seconds.",
                 model="default-model-name",
                 llm_provider="litellm-httpx-handler",
@@ -1514,7 +1514,7 @@ class HTTPHandler:
             response.raise_for_status()
             return response
         except httpx.TimeoutException:
-            raise litellm.Timeout(
+            raise gateway.Timeout(
                 message=f"Connection timed out after {timeout} seconds.",
                 model="default-model-name",
                 llm_provider="litellm-httpx-handler",
@@ -1538,17 +1538,17 @@ class HTTPHandler:
 
         Some users have seen httpx ConnectionError when using ipv6 - forcing ipv4 resolves the issue for them
         """
-        if litellm.force_ipv4:
+        if gateway.force_ipv4:
             return HTTPTransport(local_address=_IPV4_LOCAL_ADDRESS)
         else:
-            return getattr(litellm, "sync_transport", None)
+            return getattr(gateway, "sync_transport", None)
 
     @staticmethod
     def _create_sync_proxy_mounts(
         verify: VerifyTypes,
         cert: CertTypes | None,
     ) -> Mapping[str, HTTPTransport | None] | None:
-        if not litellm.force_ipv4:
+        if not gateway.force_ipv4:
             return None
         return _environment_proxy_mounts(lambda proxy_url: HTTPTransport(proxy=proxy_url, verify=verify, cert=cert))
 
@@ -1576,12 +1576,12 @@ def get_async_httpx_client(
 
     # Lazily initialize the global in-memory client cache to avoid relying on
     # litellm globals being fully populated during import time.
-    cache = getattr(litellm, "in_memory_llm_clients_cache", None)
+    cache = getattr(gateway, "in_memory_llm_clients_cache", None)
     if cache is None:
         from token_iq.gateway.caching.llm_caching_handler import LLMClientCache
 
         cache = LLMClientCache()
-        setattr(litellm, "in_memory_llm_clients_cache", cache)
+        setattr(gateway, "in_memory_llm_clients_cache", cache)
 
     _cached_client: Final = cache.get_cache(_cache_key_name)
     if _cached_client:
@@ -1626,12 +1626,12 @@ def _get_httpx_client(params: dict | None = None) -> HTTPHandler:
 
     # Lazily initialize the global in-memory client cache to avoid relying on
     # litellm globals being fully populated during import time.
-    cache = getattr(litellm, "in_memory_llm_clients_cache", None)
+    cache = getattr(gateway, "in_memory_llm_clients_cache", None)
     if cache is None:
         from token_iq.gateway.caching.llm_caching_handler import LLMClientCache
 
         cache = LLMClientCache()
-        setattr(litellm, "in_memory_llm_clients_cache", cache)
+        setattr(gateway, "in_memory_llm_clients_cache", cache)
 
     _cached_client: Final = cache.get_cache(_cache_key_name)
     if _cached_client:

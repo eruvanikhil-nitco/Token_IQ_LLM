@@ -12,7 +12,7 @@ import pytest
 from fastapi import HTTPException, Request, Response
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy._types import UserAPIKeyAuth
 from token_iq.gateway.proxy.common_request_processing import ProxyBaseLLMRequestProcessing
 
@@ -111,7 +111,7 @@ class TestPollingEndpointPreCallGuard:
             ResponsePollingHandler,
         )
 
-        rate_limit_exc = litellm.RateLimitError(
+        rate_limit_exc = gateway.RateLimitError(
             message="TPM limit exceeded",
             llm_provider="",
             model="gpt-4",

@@ -12,7 +12,7 @@ from typing import Final, Protocol
 
 from pydantic import JsonValue, TypeAdapter
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import _redact_string, verbose_proxy_logger
 from token_iq.gateway.core_utils.aws_partition import get_aws_dns_suffix
 from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLogging
@@ -39,8 +39,8 @@ def _json_str(value: JsonValue) -> str | None:
 
 def _should_log_event(openai_message: Mapping[str, object]) -> bool:
     logged_types: Final = (
-        litellm.logged_real_time_event_types
-        if litellm.logged_real_time_event_types is not None
+        gateway.logged_real_time_event_types
+        if gateway.logged_real_time_event_types is not None
         else DefaultLoggedRealTimeEventTypes
     )
     if logged_types == "*":

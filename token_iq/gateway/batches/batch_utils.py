@@ -5,7 +5,7 @@ from dataclasses import replace as dataclasses_replace
 from enum import Enum
 from typing import Any, Final, Literal
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.core_utils.get_litellm_params import AWS_CREDENTIAL_KWARGS_KEYS
 from token_iq.gateway.core_utils.llm_cost_calc.utils import parse_prompt_tokens_details
@@ -43,7 +43,7 @@ async def calculate_batch_cost_and_usage(
     if (
         custom_llm_provider == "vertex_ai"
         and model_name
-        and getattr(litellm, "disable_vertex_batch_output_transformation", False)
+        and getattr(gateway, "disable_vertex_batch_output_transformation", False)
     ):
         return calculate_vertex_ai_batch_cost_and_usage(file_content_dictionary, model_name)
 
@@ -104,7 +104,7 @@ async def _handle_completed_batch(
         if (
             custom_llm_provider == "vertex_ai"
             and model_name
-            and getattr(litellm, "disable_vertex_batch_output_transformation", False)
+            and getattr(gateway, "disable_vertex_batch_output_transformation", False)
         )
         else _aggregate_batch_cost_usage_models(
             entries=_iter_batch_output_entries(file_content),
@@ -223,7 +223,7 @@ def _output_line_cost(
     from token_iq.gateway.cost_calculator import batch_cost_calculator
 
     if model_info is None and custom_llm_provider not in ("anthropic", "bedrock"):
-        return litellm.completion_cost(
+        return gateway.completion_cost(
             completion_response=response_body,
             custom_llm_provider=custom_llm_provider,
             call_type=CallTypes.aretrieve_batch.value,

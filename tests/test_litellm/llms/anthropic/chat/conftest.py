@@ -8,7 +8,7 @@ See https://github.com/BerriAI/litellm/issues/27122.
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.get_model_cost_map import get_model_cost_map
 
 
@@ -16,7 +16,7 @@ from token_iq.gateway.core_utils.get_model_cost_map import get_model_cost_map
 def _use_pr_local_model_cost_map(monkeypatch):
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
     monkeypatch.setattr(
-        litellm,
+        gateway,
         "model_cost",
         get_model_cost_map(),
     )

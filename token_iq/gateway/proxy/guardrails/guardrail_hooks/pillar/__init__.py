@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 
 
 def initialize_guardrail(litellm_params: "LitellmParams", guardrail: "Guardrail"):
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     guardrail_name: Final = guardrail.get("guardrail_name")
     if not guardrail_name:
@@ -39,7 +39,7 @@ def initialize_guardrail(litellm_params: "LitellmParams", guardrail: "Guardrail"
         fallback_on_error=_get_config_value(litellm_params, optional_params, "fallback_on_error"),
         timeout=_get_config_value(litellm_params, optional_params, "timeout"),
     )
-    litellm.logging_callback_manager.add_litellm_callback(_pillar_callback)
+    gateway.logging_callback_manager.add_litellm_callback(_pillar_callback)
 
     return _pillar_callback
 

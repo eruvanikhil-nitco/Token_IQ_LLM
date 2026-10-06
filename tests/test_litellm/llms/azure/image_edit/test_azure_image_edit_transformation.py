@@ -1,7 +1,7 @@
 import urllib.parse
 from unittest.mock import patch
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.azure.image_edit.transformation import AzureImageEditConfig
 from token_iq.gateway.types.router import GenericLiteLLMParams
 
@@ -167,7 +167,7 @@ def _query_params(url: str) -> dict:
 
 
 def test_api_version_uses_litellm_params_first(monkeypatch):
-    monkeypatch.setattr(litellm, "api_version", "from-global", raising=False)
+    monkeypatch.setattr(gateway, "api_version", "from-global", raising=False)
     monkeypatch.setenv("AZURE_API_VERSION", "from-env")
 
     url = AzureImageEditConfig().get_complete_url(
@@ -180,7 +180,7 @@ def test_api_version_uses_litellm_params_first(monkeypatch):
 
 
 def test_api_version_falls_back_to_litellm_global(monkeypatch):
-    monkeypatch.setattr(litellm, "api_version", "from-global", raising=False)
+    monkeypatch.setattr(gateway, "api_version", "from-global", raising=False)
     monkeypatch.setenv("AZURE_API_VERSION", "from-env")
 
     url = AzureImageEditConfig().get_complete_url(
@@ -193,7 +193,7 @@ def test_api_version_falls_back_to_litellm_global(monkeypatch):
 
 
 def test_api_version_falls_back_to_env_var(monkeypatch):
-    monkeypatch.setattr(litellm, "api_version", None, raising=False)
+    monkeypatch.setattr(gateway, "api_version", None, raising=False)
     monkeypatch.setenv("AZURE_API_VERSION", "from-env")
 
     url = AzureImageEditConfig().get_complete_url(
@@ -206,7 +206,7 @@ def test_api_version_falls_back_to_env_var(monkeypatch):
 
 
 def test_api_version_falls_back_to_azure_default(monkeypatch):
-    monkeypatch.setattr(litellm, "api_version", None, raising=False)
+    monkeypatch.setattr(gateway, "api_version", None, raising=False)
     monkeypatch.delenv("AZURE_API_VERSION", raising=False)
 
     url = AzureImageEditConfig().get_complete_url(
@@ -215,12 +215,12 @@ def test_api_version_falls_back_to_azure_default(monkeypatch):
         litellm_params={},
     )
 
-    assert _query_params(url) == {"api-version": litellm.AZURE_DEFAULT_API_VERSION}
+    assert _query_params(url) == {"api-version": gateway.AZURE_DEFAULT_API_VERSION}
 
 
 def test_api_version_in_api_base_query_is_preserved(monkeypatch):
     """``api_base`` already carrying ``?api-version=...`` must not be overridden."""
-    monkeypatch.setattr(litellm, "api_version", None, raising=False)
+    monkeypatch.setattr(gateway, "api_version", None, raising=False)
     monkeypatch.delenv("AZURE_API_VERSION", raising=False)
 
     url = AzureImageEditConfig().get_complete_url(
@@ -236,7 +236,7 @@ def test_api_version_in_api_base_query_is_preserved(monkeypatch):
 
 
 def test_v1_api_version_uses_v1_route_and_keeps_model(monkeypatch):
-    monkeypatch.setattr(litellm, "api_version", None, raising=False)
+    monkeypatch.setattr(gateway, "api_version", None, raising=False)
     monkeypatch.delenv("AZURE_API_VERSION", raising=False)
     config = AzureImageEditConfig()
 
@@ -255,7 +255,7 @@ def test_v1_api_version_uses_v1_route_and_keeps_model(monkeypatch):
 
 
 def test_v1_api_version_from_global_uses_v1_route(monkeypatch):
-    monkeypatch.setattr(litellm, "api_version", "preview", raising=False)
+    monkeypatch.setattr(gateway, "api_version", "preview", raising=False)
     monkeypatch.delenv("AZURE_API_VERSION", raising=False)
 
     url = AzureImageEditConfig().get_complete_url(
@@ -268,7 +268,7 @@ def test_v1_api_version_from_global_uses_v1_route(monkeypatch):
 
 
 def test_dated_api_version_still_uses_deployment_route(monkeypatch):
-    monkeypatch.setattr(litellm, "api_version", None, raising=False)
+    monkeypatch.setattr(gateway, "api_version", None, raising=False)
     monkeypatch.delenv("AZURE_API_VERSION", raising=False)
 
     url = AzureImageEditConfig().get_complete_url(
@@ -281,7 +281,7 @@ def test_dated_api_version_still_uses_deployment_route(monkeypatch):
 
 
 def test_v1_api_version_replaces_deployment_scoped_api_base(monkeypatch):
-    monkeypatch.setattr(litellm, "api_version", None, raising=False)
+    monkeypatch.setattr(gateway, "api_version", None, raising=False)
     monkeypatch.delenv("AZURE_API_VERSION", raising=False)
 
     url = AzureImageEditConfig().get_complete_url(

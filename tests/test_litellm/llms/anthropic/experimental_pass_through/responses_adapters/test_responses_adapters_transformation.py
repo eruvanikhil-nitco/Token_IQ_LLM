@@ -958,23 +958,23 @@ class TestTranslateThinkingToReasoning:
 
     def test_summary_added_when_auto_summary_enabled(self):
         """When reasoning_auto_summary is True, summary='detailed' is included."""
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
-        original = litellm.reasoning_auto_summary
+        original = gateway.reasoning_auto_summary
         try:
-            litellm.reasoning_auto_summary = True
+            gateway.reasoning_auto_summary = True
             result = _ADAPTER.translate_thinking_to_reasoning({"type": "enabled", "budget_tokens": 10000})
             assert result == {"effort": "high", "summary": "detailed"}
         finally:
-            litellm.reasoning_auto_summary = original
+            gateway.reasoning_auto_summary = original
 
     def test_summary_added_when_env_var_set(self, monkeypatch):
         """When LITELLM_REASONING_AUTO_SUMMARY env var is true, summary is included."""
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
-        original = litellm.reasoning_auto_summary
+        original = gateway.reasoning_auto_summary
         try:
-            litellm.reasoning_auto_summary = False
+            gateway.reasoning_auto_summary = False
             monkeypatch.setenv("LITELLM_REASONING_AUTO_SUMMARY", "true")
             result = _ADAPTER.translate_thinking_to_reasoning(
                 {
@@ -984,7 +984,7 @@ class TestTranslateThinkingToReasoning:
             )
             assert result == {"effort": "medium", "summary": "detailed"}
         finally:
-            litellm.reasoning_auto_summary = original
+            gateway.reasoning_auto_summary = original
             os.environ.pop("LITELLM_REASONING_AUTO_SUMMARY", None)
 
 

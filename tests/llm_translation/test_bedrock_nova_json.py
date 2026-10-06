@@ -1,12 +1,12 @@
 from base_llm_unit_tests import BaseLLMChatTest
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 
 class TestBedrockNovaJson(BaseLLMChatTest):
     def get_base_completion_call_args(self) -> dict:
-        litellm._turn_on_debug()
+        gateway._turn_on_debug()
         return {
             "model": "bedrock/converse/us.amazon.nova-micro-v1:0",
         }

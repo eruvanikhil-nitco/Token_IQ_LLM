@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 import pytest
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy.hooks.prompt_injection_detection import (
     _OPTIONAL_PromptInjectionDetection,
 )
@@ -54,7 +54,7 @@ async def test_prompt_injection_attack_invalid_attack():
     """
     Tests if prompt injection detection passes an invalid attack, which contains just 1 word
     """
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     prompt_injection_detection = _OPTIONAL_PromptInjectionDetection()
 
     _api_key = "sk-12345"
@@ -84,7 +84,7 @@ async def test_prompt_injection_llm_eval():
     """
     Tests if prompt injection detection fails a prompt attack
     """
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     _prompt_injection_params = LiteLLMPromptInjectionParams(
         heuristics_check=False,
         vector_db_check=False,

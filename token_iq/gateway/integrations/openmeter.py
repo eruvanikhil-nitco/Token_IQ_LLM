@@ -7,7 +7,7 @@ from typing import Final
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.llms.custom_httpx.http_handler import (
     HTTPHandler,
@@ -55,7 +55,7 @@ class OpenMeterLogger(CustomLogger):
         model: Final = kwargs.get("model")
         usage = {}
         if (
-            isinstance(response_obj, litellm.ModelResponse) or isinstance(response_obj, litellm.EmbeddingResponse)
+            isinstance(response_obj, gateway.ModelResponse) or isinstance(response_obj, gateway.EmbeddingResponse)
         ) and hasattr(response_obj, "usage"):
             usage = {
                 "prompt_tokens": response_obj["usage"].get("prompt_tokens", 0),

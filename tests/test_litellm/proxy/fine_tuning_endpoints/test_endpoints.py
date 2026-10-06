@@ -20,7 +20,7 @@ import pytest
 
 from fastapi import Response
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 import token_iq.gateway.proxy.fine_tuning_endpoints.endpoints as endpoints
 import token_iq.gateway.proxy.proxy_server as proxy_server
 from token_iq.gateway.proxy._types import ProxyException, UserAPIKeyAuth
@@ -137,7 +137,7 @@ def seams():
         )
         stack.enter_context(patch.object(ProxyBaseLLMRequestProcessing, "get_custom_headers", MagicMock(return_value={})))
         for name, mock in litellm_calls.items():
-            stack.enter_context(patch.object(litellm, name, mock))
+            stack.enter_context(patch.object(gateway, name, mock))
         stack.enter_context(patch.object(proxy_server, "llm_router", router))
         stack.enter_context(patch.object(proxy_server, "proxy_logging_obj", logging))
         stack.enter_context(patch.object(proxy_server, "premium_user", True))
@@ -183,7 +183,7 @@ async def _cancel(job_id: str):
 
 @pytest.mark.asyncio
 async def test_create__raw_training_file_rejected_when_managed_files_required(seams):
-    with patch.object(litellm, "require_managed_files", True):
+    with patch.object(gateway, "require_managed_files", True):
         with pytest.raises(ProxyException) as exc:
             await _create(RAW_FILE_ID)
 
@@ -197,7 +197,7 @@ async def test_create__raw_validation_file_rejected_when_managed_files_required(
     so a managed training_file must not smuggle a raw validation_file past the guard."""
     seams.logging.get_proxy_hook.return_value = ManagedResourceAccessCheckerStub()
 
-    with patch.object(litellm, "require_managed_files", True):
+    with patch.object(gateway, "require_managed_files", True):
         with pytest.raises(ProxyException) as exc:
             await _create(_unified_file_id(), validation_file=RAW_FILE_ID)
 
@@ -209,7 +209,7 @@ async def test_create__raw_validation_file_rejected_when_managed_files_required(
 async def test_create__unified_training_file_allowed_when_managed_files_required(seams):
     seams.logging.get_proxy_hook.return_value = ManagedResourceAccessCheckerStub()
 
-    with patch.object(litellm, "require_managed_files", True):
+    with patch.object(gateway, "require_managed_files", True):
         await _create(_unified_file_id())
 
     assert seams.router.acreate_fine_tuning_job.call_count == 1
@@ -219,7 +219,7 @@ async def test_create__unified_training_file_allowed_when_managed_files_required
 async def test_create__other_teams_unified_training_file_rejected(seams):
     seams.logging.get_proxy_hook.return_value = ManagedResourceAccessCheckerStub(file_access=False)
 
-    with patch.object(litellm, "require_managed_files", True):
+    with patch.object(gateway, "require_managed_files", True):
         with pytest.raises(ProxyException) as exc:
             await _create(_unified_file_id())
 
@@ -229,7 +229,7 @@ async def test_create__other_teams_unified_training_file_rejected(seams):
 
 @pytest.mark.asyncio
 async def test_create__raw_training_file_allowed_when_managed_files_not_required(seams):
-    with patch.object(litellm, "require_managed_files", False):
+    with patch.object(gateway, "require_managed_files", False):
         await _create(RAW_FILE_ID)
 
     assert seams.litellm_calls["acreate_fine_tuning_job"].call_count == 1
@@ -237,7 +237,7 @@ async def test_create__raw_training_file_allowed_when_managed_files_not_required
 
 @pytest.mark.asyncio
 async def test_retrieve__raw_job_id_rejected_when_managed_files_required(seams):
-    with patch.object(litellm, "require_managed_files", True):
+    with patch.object(gateway, "require_managed_files", True):
         with pytest.raises(ProxyException) as exc:
             await _retrieve(RAW_JOB_ID)
 
@@ -249,7 +249,7 @@ async def test_retrieve__raw_job_id_rejected_when_managed_files_required(seams):
 async def test_retrieve__unified_job_id_allowed_when_managed_files_required(seams):
     seams.logging.get_proxy_hook.return_value = ManagedResourceAccessCheckerStub()
 
-    with patch.object(litellm, "require_managed_files", True):
+    with patch.object(gateway, "require_managed_files", True):
         await _retrieve(_unified_job_id())
 
     assert seams.router.aretrieve_fine_tuning_job.call_count == 1
@@ -257,7 +257,7 @@ async def test_retrieve__unified_job_id_allowed_when_managed_files_required(seam
 
 @pytest.mark.asyncio
 async def test_cancel__raw_job_id_rejected_when_managed_files_required(seams):
-    with patch.object(litellm, "require_managed_files", True):
+    with patch.object(gateway, "require_managed_files", True):
         with pytest.raises(ProxyException) as exc:
             await _cancel(RAW_JOB_ID)
 
@@ -269,7 +269,7 @@ async def test_cancel__raw_job_id_rejected_when_managed_files_required(seams):
 async def test_cancel__unified_job_id_allowed_when_managed_files_required(seams):
     seams.logging.get_proxy_hook.return_value = ManagedResourceAccessCheckerStub()
 
-    with patch.object(litellm, "require_managed_files", True):
+    with patch.object(gateway, "require_managed_files", True):
         await _cancel(_unified_job_id())
 
     assert seams.router.acancel_fine_tuning_job.call_count == 1

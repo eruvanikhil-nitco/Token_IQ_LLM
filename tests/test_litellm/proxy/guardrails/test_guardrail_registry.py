@@ -399,14 +399,14 @@ def test_unnormalizable_db_params_register_as_changed_without_raising():
 
 
 def _all_callback_lists():
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     return [
-        litellm.callbacks,
-        litellm.success_callback,
-        litellm.failure_callback,
-        litellm._async_success_callback,
-        litellm._async_failure_callback,
+        gateway.callbacks,
+        gateway.success_callback,
+        gateway.failure_callback,
+        gateway._async_success_callback,
+        gateway._async_failure_callback,
     ]
 
 
@@ -451,7 +451,7 @@ def test_repeated_db_sync_does_not_accumulate_runner_instances():
     the stale instance lingers in the success/failure lists and the distinct count
     climbs above one.
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     handler = InMemoryGuardrailHandler()
     gid = "44444444-4444-4444-4444-444444444444"
@@ -465,8 +465,8 @@ def test_repeated_db_sync_does_not_accumulate_runner_instances():
         return Guardrail(guardrail_id=gid, guardrail_name=name, litellm_params=params)
 
     def promote_into_request_lists() -> None:
-        manager = litellm.logging_callback_manager
-        for callback in list(litellm.callbacks):
+        manager = gateway.logging_callback_manager
+        for callback in list(gateway.callbacks):
             manager.add_litellm_success_callback(callback)
             manager.add_litellm_failure_callback(callback)
             manager.add_litellm_async_success_callback(callback)
@@ -474,7 +474,7 @@ def test_repeated_db_sync_does_not_accumulate_runner_instances():
 
     def distinct_runner_instances() -> int:
         seen = set()
-        for callback in litellm.logging_callback_manager._get_all_callbacks():
+        for callback in gateway.logging_callback_manager._get_all_callbacks():
             if isinstance(callback, CustomGuardrail) and getattr(callback, "guardrail_name", None) == name:
                 seen.add(id(callback))
         return len(seen)
@@ -527,7 +527,7 @@ def test_presidio_siblings_are_tracked_and_deleted_together():
     the post_call unmask and mask-output siblings. Deleting the guardrail must remove
     all three from every callback list, not just the primary.
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     handler = InMemoryGuardrailHandler()
     lists = _all_callback_lists()
@@ -535,7 +535,7 @@ def test_presidio_siblings_are_tracked_and_deleted_together():
     try:
         handler.initialize_guardrail(_presidio_db_guardrail({"EMAIL_ADDRESS": "MASK"}))
 
-        registered = _presidio_callbacks_in(litellm.callbacks)
+        registered = _presidio_callbacks_in(gateway.callbacks)
         assert len(registered) == 3
         primary = handler.guardrail_id_to_custom_guardrail[PRESIDIO_SIBLINGS_GID]
         siblings = handler.guardrail_id_to_sibling_callbacks[PRESIDIO_SIBLINGS_GID]
@@ -558,14 +558,14 @@ def test_presidio_siblings_are_tracked_and_deleted_together():
 
 
 def test_update_in_memory_guardrail_reaches_presidio_siblings_and_keeps_their_stage():
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     handler = InMemoryGuardrailHandler()
     lists = _all_callback_lists()
     snapshots = [list(cb_list) for cb_list in lists]
     try:
         handler.initialize_guardrail(_presidio_db_guardrail({"EMAIL_ADDRESS": "MASK", "IP_ADDRESS": "MASK"}))
-        tracked = _presidio_callbacks_in(litellm.callbacks)
+        tracked = _presidio_callbacks_in(gateway.callbacks)
         roles_before = [
             (callback.apply_to_output, callback.output_parse_pii, callback.event_hook) for callback in tracked
         ]
@@ -595,7 +595,7 @@ def test_update_in_memory_guardrail_reaches_presidio_siblings_and_keeps_their_st
         assert [
             (callback.apply_to_output, callback.output_parse_pii, callback.event_hook) for callback in tracked
         ] == roles_before
-        assert _presidio_callbacks_in(litellm.callbacks) == tracked
+        assert _presidio_callbacks_in(gateway.callbacks) == tracked
     finally:
         for cb_list, snapshot in zip(lists, snapshots):
             cb_list[:] = snapshot
@@ -608,7 +608,7 @@ def test_repeated_db_sync_replaces_presidio_siblings_instead_of_leaking_stale_on
     keeps serving the previous entity config. After every DB re-sync, each callback
     list must hold exactly the three current instances, all on the latest config.
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     handler = InMemoryGuardrailHandler()
     lists = _all_callback_lists()
@@ -619,7 +619,7 @@ def test_repeated_db_sync_replaces_presidio_siblings_instead_of_leaking_stale_on
             latest = entity_configs[cycle % 2]
             handler.sync_guardrail_from_db(_presidio_db_guardrail(latest))
             for cb_list in lists[1:]:
-                cb_list.extend(_presidio_callbacks_in(litellm.callbacks))
+                cb_list.extend(_presidio_callbacks_in(gateway.callbacks))
 
             for cb_list in lists:
                 current = _presidio_callbacks_in(cb_list)

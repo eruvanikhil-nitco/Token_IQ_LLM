@@ -15,7 +15,7 @@ import pytest
 import websockets
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 
 class RealTimeWebSocketClient:
@@ -178,7 +178,7 @@ class BaseRealtimeTest(ABC):
         2. Initial event is received
         3. Messages are properly forwarded
         """
-        litellm._turn_on_debug()
+        gateway._turn_on_debug()
         if self.should_skip():
             pytest.skip(self.get_skip_reason())
 
@@ -192,7 +192,7 @@ class BaseRealtimeTest(ABC):
         print(f"{'='*80}\n")
 
         try:
-            await litellm._arealtime(
+            await gateway._arealtime(
                 model=self.get_model(),
                 websocket=websocket_client,
                 api_key=os.environ.get(self.get_api_key_env_var()),
@@ -248,7 +248,7 @@ class BaseRealtimeTest(ABC):
         Test realtime connection with explicit query parameters.
         Verifies that query params are properly passed to the backend.
         """
-        litellm._turn_on_debug()
+        gateway._turn_on_debug()
         if self.should_skip():
             pytest.skip(self.get_skip_reason())
 
@@ -265,7 +265,7 @@ class BaseRealtimeTest(ABC):
         query_params: RealtimeQueryParams = {"model": model_name}
 
         try:
-            await litellm._arealtime(
+            await gateway._arealtime(
                 model=self.get_model(),
                 websocket=websocket_client,
                 api_key=os.environ.get(self.get_api_key_env_var()),
@@ -310,7 +310,7 @@ class BaseRealtimeTest(ABC):
         if self.should_skip():
             pytest.skip(self.get_skip_reason())
 
-        litellm._turn_on_debug()
+        gateway._turn_on_debug()
 
         # Create a custom websocket client that sends a message
         class InteractiveWebSocketClient(RealTimeWebSocketClient):
@@ -410,7 +410,7 @@ class BaseRealtimeTest(ABC):
         print(f"{'='*80}\n")
 
         try:
-            await litellm._arealtime(
+            await gateway._arealtime(
                 model=self.get_model(),
                 websocket=websocket_client,
                 api_key=os.environ.get(self.get_api_key_env_var()),

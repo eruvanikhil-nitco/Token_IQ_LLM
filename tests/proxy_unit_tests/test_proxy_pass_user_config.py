@@ -8,7 +8,7 @@ import io
 # this file is to test token_iq/gateway/proxy
 
 import pytest, logging, asyncio
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import embedding, completion, completion_cost, Timeout
 from token_iq.gateway import RateLimitError
 

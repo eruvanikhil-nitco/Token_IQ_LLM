@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.exceptions import ContentPolicyViolationError
 from token_iq.gateway.core_utils.exception_mapping_utils import exception_type
 

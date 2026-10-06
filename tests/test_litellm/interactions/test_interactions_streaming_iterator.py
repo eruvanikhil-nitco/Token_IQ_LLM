@@ -10,7 +10,7 @@ import time
 import httpx
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.interactions import streaming_iterator as interactions_streaming_iterator_module
 from token_iq.gateway.interactions.streaming_iterator import InteractionsAPIStreamingIterator
@@ -47,19 +47,19 @@ class RecordingExecutor:
 @pytest.fixture(autouse=True)
 def _isolate_callbacks():
     saved = (
-        litellm.callbacks,
-        litellm.success_callback,
-        litellm._async_success_callback,
-        litellm.failure_callback,
-        litellm._async_failure_callback,
+        gateway.callbacks,
+        gateway.success_callback,
+        gateway._async_success_callback,
+        gateway.failure_callback,
+        gateway._async_failure_callback,
     )
     yield
     (
-        litellm.callbacks,
-        litellm.success_callback,
-        litellm._async_success_callback,
-        litellm.failure_callback,
-        litellm._async_failure_callback,
+        gateway.callbacks,
+        gateway.success_callback,
+        gateway._async_success_callback,
+        gateway.failure_callback,
+        gateway._async_failure_callback,
     ) = saved
 
 
@@ -70,8 +70,8 @@ async def test_custom_logger_only_never_submits_sync_success_handler(monkeypatch
     monkeypatch.setattr(interactions_streaming_iterator_module, "executor", recording_executor)
 
     recorder = RecordingCustomLogger()
-    litellm.success_callback = [recorder]
-    litellm._async_success_callback = [recorder]
+    gateway.success_callback = [recorder]
+    gateway._async_success_callback = [recorder]
 
     logging_obj = LitellmLogging(
         model="gemini/gemini-3-pro-preview",

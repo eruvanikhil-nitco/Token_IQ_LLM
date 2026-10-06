@@ -4,7 +4,7 @@ from typing import Any, Final, Literal
 import httpx
 from typing_extensions import Required, TypedDict
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._uuid import uuid
 from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
 from token_iq.gateway.llms.base_llm.chat.transformation import BaseLLMException
@@ -159,7 +159,7 @@ class NvidiaNimRerankConfig(BaseRerankConfig):
         Validate that the Nvidia NIM API key is present.
         """
         if api_key is None:
-            api_key = get_secret_str("NVIDIA_NIM_API_KEY") or litellm.api_key
+            api_key = get_secret_str("NVIDIA_NIM_API_KEY") or gateway.api_key
 
         if api_key is None:
             raise ValueError("Nvidia NIM API key is required. Please set 'NVIDIA_NIM_API_KEY' in your environment")

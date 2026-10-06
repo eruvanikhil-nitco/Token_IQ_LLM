@@ -11,7 +11,7 @@ from unittest import mock
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 ## for ollama we can't test making the completion call
 from token_iq.gateway.utils import EmbeddingResponse, get_llm_provider, get_optional_params
@@ -83,7 +83,7 @@ def test_ollama_vision_model():
 
     with patch.object(client, "post") as mock_post:
         try:
-            litellm.completion(
+            gateway.completion(
                 model="ollama/llama3.2-vision:11b",
                 messages=[
                     {
@@ -124,7 +124,7 @@ mock_ollama_embedding_response = EmbeddingResponse(model="ollama/nomic-embed-tex
 def test_ollama_embeddings(mock_embeddings):
     # assert that ollama_embeddings is called with the right parameters
     try:
-        embeddings = litellm.embedding(
+        embeddings = gateway.embedding(
             model="ollama/nomic-embed-text", input=["hello world"]
         )
         print(embeddings)
@@ -152,7 +152,7 @@ def test_ollama_aembeddings(mock_aembeddings):
     # assert that ollama_aembeddings is called with the right parameters
     try:
         embeddings = asyncio.run(
-            litellm.aembedding(model="ollama/nomic-embed-text", input=["hello world"])
+            gateway.aembedding(model="ollama/nomic-embed-text", input=["hello world"])
         )
         print(embeddings)
         mock_aembeddings.assert_called_once_with(
@@ -200,7 +200,7 @@ def test_ollama_chat_function_calling():
         {"role": "user", "content": "What's the weather like in San Francisco?"}
     ]
 
-    response = litellm.completion(
+    response = gateway.completion(
         model="ollama_chat/llama3.1",
         messages=messages,
         tools=tools,
@@ -220,7 +220,7 @@ def test_ollama_ssl_verify():
     import httpx
 
     try:
-        response = litellm.completion(
+        response = gateway.completion(
             model="ollama/llama3.1",
             messages=[
                 {
@@ -233,7 +233,7 @@ def test_ollama_ssl_verify():
     except Exception as e:
         print(e)
 
-    client: HTTPHandler = litellm.in_memory_llm_clients_cache.get_cache(
+    client: HTTPHandler = gateway.in_memory_llm_clients_cache.get_cache(
         "httpx_clientssl_verify_False"
     )
 
@@ -252,7 +252,7 @@ async def test_async_ollama_ssl_verify(stream):
     import httpx
 
     try:
-        response = await litellm.acompletion(
+        response = await gateway.acompletion(
             model="ollama/llama3.1",
             messages=[
                 {
@@ -266,7 +266,7 @@ async def test_async_ollama_ssl_verify(stream):
     except Exception as e:
         print(e)
 
-    client: AsyncHTTPHandler = litellm.in_memory_llm_clients_cache.get_cache(
+    client: AsyncHTTPHandler = gateway.in_memory_llm_clients_cache.get_cache(
         "async_httpx_clientssl_verify_Falseollama"
     )
 
@@ -325,7 +325,7 @@ def test_ollama_streaming_with_chunk_builder():
         "tools": tools,
         "stream": True,
     }
-    response = litellm.completion(**completion_kwargs)
+    response = gateway.completion(**completion_kwargs)
     response = stream_chunk_builder(list(response))
 
     assert response.choices[0].message.tool_calls, "No tool call detected"

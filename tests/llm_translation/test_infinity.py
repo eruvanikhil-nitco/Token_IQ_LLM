@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock
 
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 from unittest.mock import patch, MagicMock
 
@@ -43,7 +43,7 @@ async def test_infinity_rerank():
         "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=mock_response,
     ) as mock_post:
-        response = await litellm.arerank(
+        response = await gateway.arerank(
             model="infinity/rerank-model",
             query="hello",
             documents=["hello", "world"],
@@ -99,7 +99,7 @@ async def test_infinity_rerank_with_return_documents():
         "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=mock_response,
     ) as mock_post:
-        response = await litellm.arerank(
+        response = await gateway.arerank(
             model="infinity/rerank-model",
             query="hello",
             documents=["hello", "world"],
@@ -141,7 +141,7 @@ async def test_infinity_rerank_with_env(monkeypatch):
         "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=mock_response,
     ) as mock_post:
-        response = await litellm.arerank(
+        response = await gateway.arerank(
             model="infinity/rerank-model",
             query="hello",
             documents=["hello", "world"],
@@ -203,7 +203,7 @@ async def test_infinity_embedding():
         "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=mock_response,
     ) as mock_post:
-        response = await litellm.aembedding(
+        response = await gateway.aembedding(
             model="infinity/custom-model/embedding-v1",
             input=["hello world"],
             dimensions=512,
@@ -258,7 +258,7 @@ async def test_infinity_embedding_with_env(monkeypatch):
         "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=mock_response,
     ) as mock_post:
-        response = await litellm.aembedding(
+        response = await gateway.aembedding(
             model="infinity/custom-model/embedding-v1",
             input=["hello world"],
             dimensions=512,
@@ -305,7 +305,7 @@ async def test_infinity_embedding_extra_params():
         "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=mock_response,
     ) as mock_post:
-        response = await litellm.aembedding(
+        response = await gateway.aembedding(
             model="infinity/custom-model/embedding-v1",
             input=["test input"],
             dimensions=512,
@@ -345,7 +345,7 @@ async def test_infinity_embedding_prompt_token_mapping():
         "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=mock_response,
     ) as mock_post:
-        response = await litellm.aembedding(
+        response = await gateway.aembedding(
             model="infinity/custom-model/embedding-v1",
             input=["a"],
             dimensions=512,

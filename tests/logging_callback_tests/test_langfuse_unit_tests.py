@@ -307,17 +307,17 @@ def test_get_langfuse_flush_interval():
 
 def test_langfuse_e2e_sync(monkeypatch):
     from token_iq.gateway import completion
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     import respx
     import httpx
     import time
 
-    litellm.disable_aiohttp_transport = (
+    gateway.disable_aiohttp_transport = (
         True  # since this uses respx, we need to set use_aiohttp_transport to False
     )
 
-    litellm._turn_on_debug()
-    monkeypatch.setattr(litellm, "success_callback", ["langfuse"])
+    gateway._turn_on_debug()
+    monkeypatch.setattr(gateway, "success_callback", ["langfuse"])
 
     with respx.mock:
         # Mock Langfuse

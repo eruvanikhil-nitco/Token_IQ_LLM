@@ -2,7 +2,7 @@ import re
 import types
 from typing import Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.base_llm.chat.transformation import BaseConfig
 from token_iq.gateway.llms.bedrock.chat.invoke_transformations.base_invoke_transformation import (
     AmazonInvokeConfig,
@@ -70,7 +70,7 @@ class AmazonTitanConfig(AmazonInvokeConfig, BaseConfig):
         filter params to fit the required provider format, drop those that don't fit if user sets `litellm.drop_params = True`.
         """
         filtered_stop = None
-        if "stop" in supported_params and litellm.drop_params:
+        if "stop" in supported_params and gateway.drop_params:
             if provider == "bedrock" and "amazon" in model:
                 filtered_stop = []
                 if isinstance(stop, list):

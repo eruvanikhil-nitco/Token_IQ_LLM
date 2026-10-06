@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import TYPE_CHECKING, Any, Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_router_logger
 from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.core_utils.core_helpers import get_metadata_variable_name_from_kwargs
@@ -108,11 +108,11 @@ def _trigger_cooldown_for_failed_deployment(
             if deployment_dict is not None
             else None
         )
-        exception_headers: Final = litellm.core_utils.exception_mapping_utils._get_response_headers(
+        exception_headers: Final = gateway.core_utils.exception_mapping_utils._get_response_headers(
             original_exception=exception
         )
         _get_retry_after: Final = (
-            litellm.utils._get_retry_after_from_exception_header  # pyright: ignore[reportPrivateUsage] - as router.py
+            gateway.utils._get_retry_after_from_exception_header  # pyright: ignore[reportPrivateUsage] - as router.py
         )
         header_cooldown: Final = (
             _get_retry_after(response_headers=exception_headers) if exception_headers is not None else None
@@ -203,7 +203,7 @@ def _check_stripped_model_group(model_group: str, fallback_key: str) -> bool:
     Returns:
     - True if the stripped model group == fallback_key
     """
-    for provider in litellm.provider_list:
+    for provider in gateway.provider_list:
         if isinstance(provider, Enum):
             _provider = provider.value
         else:
@@ -598,7 +598,7 @@ async def log_success_fallback_event(original_model_group: str, kwargs: dict, or
         Errors during logging are caught and reported but do not interrupt the process.
     """
     # Get deduplicated CustomLogger instances from all callback lists
-    custom_loggers: Final = litellm.logging_callback_manager.get_custom_loggers_for_type(CustomLogger)
+    custom_loggers: Final = gateway.logging_callback_manager.get_custom_loggers_for_type(CustomLogger)
 
     for _callback_custom_logger in custom_loggers:
         try:
@@ -626,7 +626,7 @@ async def log_failure_fallback_event(original_model_group: str, kwargs: dict, or
         Errors during logging are caught and reported but do not interrupt the process.
     """
     # Get deduplicated CustomLogger instances from all callback lists
-    custom_loggers: Final = litellm.logging_callback_manager.get_custom_loggers_for_type(CustomLogger)
+    custom_loggers: Final = gateway.logging_callback_manager.get_custom_loggers_for_type(CustomLogger)
 
     for _callback_custom_logger in custom_loggers:
         try:

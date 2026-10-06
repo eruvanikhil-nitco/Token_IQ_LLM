@@ -7,7 +7,7 @@ in your Python scripts after running `litellm-proxy login`.
 """
 
 from textwrap import indent
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 LITELLM_BASE_URL = "http://localhost:4000/"
 
@@ -19,7 +19,7 @@ def main():
     # litellm._turn_on_debug()
 
     # Get the CLI token
-    api_key = litellm.get_litellm_gateway_api_key()
+    api_key = gateway.get_litellm_gateway_api_key()
 
     if not api_key:
         print("❌ No CLI token found. Please run 'litellm-proxy login' first.")
@@ -27,7 +27,7 @@ def main():
 
     print("✅ Found CLI token.")
 
-    available_models = litellm.get_valid_models(
+    available_models = gateway.get_valid_models(
         check_provider_endpoint=True,
         custom_llm_provider="litellm_proxy",
         api_key=api_key,
@@ -43,7 +43,7 @@ def main():
 
     # Use with LiteLLM
     try:
-        response = litellm.completion(
+        response = gateway.completion(
             model="litellm_proxy/gemini/gemini-2.5-flash",
             messages=[{"role": "user", "content": "Hello from CLI token!"}],
             api_key=api_key,

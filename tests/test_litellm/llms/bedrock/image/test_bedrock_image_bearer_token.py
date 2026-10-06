@@ -4,7 +4,7 @@ from unittest.mock import Mock, patch
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler, AsyncHTTPHandler
 
 # Mock response for Bedrock image generation
@@ -22,11 +22,11 @@ class TestBedrockImageGeneration:
             "token_iq.gateway.llms.bedrock.image_generation.image_handler.BedrockImageGeneration.image_generation"
         ) as mock_bedrock_image_gen:
             # Setup mock response
-            mock_image_response_obj = litellm.ImageResponse()
+            mock_image_response_obj = gateway.ImageResponse()
             mock_image_response_obj.data = [{"url": "https://example.com/image.jpg"}]
             mock_bedrock_image_gen.return_value = mock_image_response_obj
 
-            response = litellm.image_generation(
+            response = gateway.image_generation(
                 model=model,
                 prompt=prompt,
                 aws_region_name="us-west-2",
@@ -60,11 +60,11 @@ class TestBedrockImageGeneration:
             ) as mock_bedrock_image_gen,
         ):
 
-            mock_image_response_obj = litellm.ImageResponse()
+            mock_image_response_obj = gateway.ImageResponse()
             mock_image_response_obj.data = [{"url": "https://example.com/image.jpg"}]
             mock_bedrock_image_gen.return_value = mock_image_response_obj
 
-            response = litellm.image_generation(
+            response = gateway.image_generation(
                 model=model, prompt=prompt, aws_region_name="us-west-2"
             )
 
@@ -91,12 +91,12 @@ class TestBedrockImageGeneration:
         with patch(
             "token_iq.gateway.llms.bedrock.image_generation.image_handler.BedrockImageGeneration.async_image_generation"
         ) as mock_async_bedrock_image_gen:
-            mock_image_response_obj = litellm.ImageResponse()
+            mock_image_response_obj = gateway.ImageResponse()
             mock_image_response_obj.data = [{"url": "https://example.com/image.jpg"}]
             mock_async_bedrock_image_gen.return_value = mock_image_response_obj
 
             # Call async image generation with api_key parameter
-            response = await litellm.aimage_generation(
+            response = await gateway.aimage_generation(
                 model=model,
                 prompt=prompt,
                 aws_region_name="us-west-2",
@@ -124,11 +124,11 @@ class TestBedrockImageGeneration:
         with patch(
             "token_iq.gateway.llms.bedrock.image_generation.image_handler.BedrockImageGeneration.image_generation"
         ) as mock_bedrock_image_gen:
-            mock_image_response_obj = litellm.ImageResponse()
+            mock_image_response_obj = gateway.ImageResponse()
             mock_image_response_obj.data = [{"url": "https://example.com/image.jpg"}]
             mock_bedrock_image_gen.return_value = mock_image_response_obj
 
-            response = litellm.image_generation(
+            response = gateway.image_generation(
                 model=model, prompt=prompt, aws_region_name="us-west-2"
             )
 

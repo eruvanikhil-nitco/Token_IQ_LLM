@@ -11,7 +11,7 @@ from unittest.mock import Mock, patch
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.hosted_vllm.embedding.transformation import (
     HostedVLLMEmbeddingConfig,
 )
@@ -262,7 +262,7 @@ class TestHostedVLLMEmbeddingTransformation:
             mock_response.text = json.dumps(mock_response.json.return_value)
             mock_post.return_value = mock_response
 
-            litellm.embedding(
+            gateway.embedding(
                 model=self.model,
                 input=["Hello world"],
                 api_base="https://test-vllm.example.com/v1",
@@ -309,7 +309,7 @@ class TestHostedVLLMEmbeddingTransformation:
             mock_response.text = json.dumps(mock_response.json.return_value)
             mock_post.return_value = mock_response
 
-            litellm.embedding(
+            gateway.embedding(
                 model="hosted_vllm/nvidia/nv-embedqa-e5-v5",
                 input=["Hello world"],
                 api_base="https://integrate.api.nvidia.com/v1",

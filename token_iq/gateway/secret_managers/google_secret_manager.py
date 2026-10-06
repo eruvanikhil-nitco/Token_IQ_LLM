@@ -2,7 +2,7 @@ import base64
 import os
 from typing import Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.caching.caching import InMemoryCache
 from token_iq.gateway.constants import SECRET_MANAGER_REFRESH_INTERVAL
@@ -35,8 +35,8 @@ class GoogleSecretManager(GCSBucketBase):
                 "Google Secret Manager requires a project ID, please set 'GOOGLE_SECRET_MANAGER_PROJECT_ID' in your .env"
             )
         self.sync_httpx_client = _get_httpx_client()
-        litellm.secret_manager_client = self
-        litellm._key_management_system = KeyManagementSystem.GOOGLE_SECRET_MANAGER
+        gateway.secret_manager_client = self
+        gateway._key_management_system = KeyManagementSystem.GOOGLE_SECRET_MANAGER
         _refresh_interval = os.environ.get("GOOGLE_SECRET_MANAGER_REFRESH_INTERVAL", refresh_interval)
         _refresh_interval = int(_refresh_interval) if _refresh_interval else refresh_interval
         self.cache = InMemoryCache(default_ttl=_refresh_interval)  # store in memory for 1 day

@@ -4,7 +4,7 @@ E2E test for all Manus Files API methods.
 
 import os
 import pytest
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 
 @pytest.mark.asyncio
@@ -12,7 +12,7 @@ async def test_manus_files_api_e2e_all_methods():
     """
     E2E test for Manus Files API: create, retrieve, list, delete.
     """
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
 
     api_key = os.getenv("MANUS_API_KEY")
     if api_key is None:
@@ -24,7 +24,7 @@ async def test_manus_files_api_e2e_all_methods():
 
     # Step 1: Create file
     print("Step 1: Creating file...")
-    created_file = await litellm.acreate_file(
+    created_file = await gateway.acreate_file(
         file=(test_filename, test_content),
         purpose="assistants",
         custom_llm_provider="manus",
@@ -38,7 +38,7 @@ async def test_manus_files_api_e2e_all_methods():
 
     # Step 2: Retrieve file
     print(f"\nStep 2: Retrieving file {file_id}...")
-    retrieved_file = await litellm.afile_retrieve(
+    retrieved_file = await gateway.afile_retrieve(
         file_id=file_id,
         custom_llm_provider="manus",
         api_key=api_key,
@@ -49,7 +49,7 @@ async def test_manus_files_api_e2e_all_methods():
 
     # Step 3: List files
     print("\nStep 3: Listing files...")
-    files_list = await litellm.afile_list(
+    files_list = await gateway.afile_list(
         custom_llm_provider="manus",
         api_key=api_key,
     )
@@ -59,7 +59,7 @@ async def test_manus_files_api_e2e_all_methods():
 
     # Step 4: Delete file
     print(f"\nStep 4: Deleting file {file_id}...")
-    deleted_file = await litellm.afile_delete(
+    deleted_file = await gateway.afile_delete(
         file_id=file_id,
         custom_llm_provider="manus",
         api_key=api_key,

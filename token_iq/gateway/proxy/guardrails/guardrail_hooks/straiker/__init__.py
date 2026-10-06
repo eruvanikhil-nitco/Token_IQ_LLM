@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING, Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.types.guardrails import SupportedGuardrailIntegrations
 
 from .straiker import StraikerGuardrail
@@ -58,7 +58,7 @@ def initialize_guardrail(litellm_params: "LitellmParams", guardrail: "Guardrail"
         **kwargs,
     )
 
-    litellm.logging_callback_manager.add_litellm_callback(_callback)
+    gateway.logging_callback_manager.add_litellm_callback(_callback)
     return _callback
 
 

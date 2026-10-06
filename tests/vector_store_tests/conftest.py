@@ -5,7 +5,7 @@ import os
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 
 @pytest.fixture(scope="function", autouse=True)
@@ -17,11 +17,11 @@ def setup_and_teardown():
 
     from token_iq.gateway import Router
 
-    importlib.reload(litellm)
+    importlib.reload(gateway)
 
     try:
-        if hasattr(litellm, "proxy") and hasattr(litellm.proxy, "proxy_server"):
-            importlib.reload(litellm.proxy.proxy_server)
+        if hasattr(gateway, "proxy") and hasattr(gateway.proxy, "proxy_server"):
+            importlib.reload(gateway.proxy.proxy_server)
     except Exception as e:
         print(f"Error reloading litellm.proxy.proxy_server: {e}")
 
@@ -29,7 +29,7 @@ def setup_and_teardown():
 
     loop = asyncio.get_event_loop_policy().new_event_loop()
     asyncio.set_event_loop(loop)
-    print(litellm)
+    print(gateway)
     # from litellm import Router, completion, aembedding, acompletion, embedding
     yield
 

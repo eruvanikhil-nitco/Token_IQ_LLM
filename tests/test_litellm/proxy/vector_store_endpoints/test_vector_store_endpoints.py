@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from fastapi import HTTPException, Request
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.integrations.vector_store_integrations.vector_store_pre_call_hook import (
     LiteLLM_ManagedVectorStore,
 )
@@ -56,7 +56,7 @@ def test_direct_vector_store_embedding_executor_rejects_invalid_value():
 
 
 def test_router_vector_store_search_injects_executor_and_request_metadata():
-    router = litellm.Router(model_list=[])
+    router = gateway.Router(model_list=[])
     original = MagicMock(return_value="searched")
     wrapped = router.factory_function(original, call_type="vector_store_search")
 
@@ -75,10 +75,10 @@ def test_router_vector_store_search_injects_executor_and_request_metadata():
     executor = call_kwargs["_direct_vector_store_embedding_executor"]
     assert isinstance(executor, RouterVectorStoreEmbeddingExecutor)
     assert executor.metadata == {"user_api_key_team_id": "team-a"}
-    assert litellm.Router._vector_store_request_metadata({"metadata": {"user_api_key_team_id": "team-b"}}) == {
+    assert gateway.Router._vector_store_request_metadata({"metadata": {"user_api_key_team_id": "team-b"}}) == {
         "user_api_key_team_id": "team-b"
     }
-    assert litellm.Router._vector_store_request_metadata({}) == {}
+    assert gateway.Router._vector_store_request_metadata({}) == {}
 
     with patch.object(  # test-quality-ok: fallback dispatch is the boundary this wrapper delegates to
         router, "_generic_api_call_with_fallbacks", return_value="routed"
@@ -166,7 +166,7 @@ async def test_router_avector_store_search_passes_correct_args():
     to downstream litellm.vector_stores.asearch() with custom_llm_provider and query.
     """
     # Create a router
-    router = litellm.Router(model_list=[])
+    router = gateway.Router(model_list=[])
 
     # Mock the router's _init_vector_store_api_endpoints method to avoid real API calls
     with patch.object(router, "_init_vector_store_api_endpoints") as mock_init:
@@ -199,7 +199,7 @@ async def test_router_avector_store_search_passes_correct_args():
 
 @pytest.mark.asyncio
 async def test_vector_store_embedding_executor_uses_team_scoped_router_deployment():
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "shared-embedding",
@@ -232,7 +232,7 @@ async def test_router_avector_store_file_list_passes_correct_args():
         "token_iq.gateway.vector_store_files.main.alist",
         new=AsyncMock(return_value={"object": "list", "data": []}),
     ) as mock_alist:
-        router = litellm.Router(model_list=[])
+        router = gateway.Router(model_list=[])
 
         result = await router.avector_store_file_list(
             vector_store_id="test_store_id",
@@ -255,7 +255,7 @@ def test_router_vector_store_file_delete_passes_correct_args():
         "token_iq.gateway.vector_store_files.main.delete",
         return_value={"deleted": True},
     ) as mock_delete:
-        router = litellm.Router(model_list=[])
+        router = gateway.Router(model_list=[])
 
         result = router.vector_store_file_delete(
             vector_store_id="test_store_id",
@@ -598,7 +598,7 @@ async def test_update_request_data_with_litellm_managed_vector_store_registry():
     )
 
     # Test with vector store registry
-    with patch.object(litellm, "vector_store_registry", mock_registry):
+    with patch.object(gateway, "vector_store_registry", mock_registry):
         result = await _update_request_data_with_litellm_managed_vector_store_registry(
             data=data, vector_store_id=vector_store_id
         )
@@ -617,7 +617,7 @@ async def test_update_request_data_with_litellm_managed_vector_store_registry():
 
     # Test with no vector store registry or DB fallback
     with (
-        patch.object(litellm, "vector_store_registry", None),
+        patch.object(gateway, "vector_store_registry", None),
         patch("token_iq.gateway.proxy.proxy_server.prisma_client", None),
     ):
         original_data = {"existing_key": "existing_value"}
@@ -643,7 +643,7 @@ async def test_managed_vector_store_keeps_embedding_reference_and_explicit_confi
     mock_registry = MagicMock()
     mock_registry.get_litellm_managed_vector_store_from_registry.return_value = managed_vector_store
 
-    with patch.object(litellm, "vector_store_registry", mock_registry):
+    with patch.object(gateway, "vector_store_registry", mock_registry):
         result = await _update_request_data_with_litellm_managed_vector_store_registry(
             data={},
             vector_store_id="test_store",
@@ -2119,7 +2119,7 @@ async def test_new_vector_store_persists_embedding_reference_without_credentials
 
     with (
         patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client),
-        patch.object(litellm, "vector_store_registry", mock_registry),
+        patch.object(gateway, "vector_store_registry", mock_registry),
     ):
         result = await new_vector_store(vector_store=vector_store_data, user_api_key_dict=mock_user_api_key)
 
@@ -2198,7 +2198,7 @@ async def test_new_vector_store_auto_resolves_from_router():
     with (
         patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client),
         patch("token_iq.gateway.proxy.proxy_server.llm_router", mock_router),
-        patch.object(litellm, "vector_store_registry", mock_registry),
+        patch.object(gateway, "vector_store_registry", mock_registry),
     ):
         result = await new_vector_store(
             vector_store=vector_store_data, user_api_key_dict=mock_user_api_key
@@ -2336,7 +2336,7 @@ async def test_create_vector_store_in_db():
     mock_registry = MagicMock()
     mock_registry.add_vector_store_to_registry = MagicMock()
 
-    with patch.object(litellm, "vector_store_registry", mock_registry):
+    with patch.object(gateway, "vector_store_registry", mock_registry):
         result = await create_vector_store_in_db(
             vector_store_id=vector_store_id,
             custom_llm_provider=custom_llm_provider,
@@ -3029,7 +3029,7 @@ class TestVectorStoreCredentialAttachmentRequiresProxyAdmin:
                 new_callable=AsyncMock,
             ),
             patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
-            patch.object(litellm, "vector_store_registry", None),
+            patch.object(gateway, "vector_store_registry", None),
         ):
             with pytest.raises(HTTPException) as exc_info:
                 await new_vector_store(
@@ -3058,7 +3058,7 @@ class TestVectorStoreCredentialAttachmentRequiresProxyAdmin:
                 new_callable=AsyncMock,
             ),
             patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
-            patch.object(litellm, "vector_store_registry", None),
+            patch.object(gateway, "vector_store_registry", None),
         ):
             result = await new_vector_store(
                 vector_store={
@@ -3086,7 +3086,7 @@ class TestVectorStoreCredentialAttachmentRequiresProxyAdmin:
                 new_callable=AsyncMock,
             ),
             patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
-            patch.object(litellm, "vector_store_registry", None),
+            patch.object(gateway, "vector_store_registry", None),
         ):
             result = await new_vector_store(
                 vector_store={
@@ -3124,7 +3124,7 @@ class TestVectorStoreCredentialAttachmentRequiresProxyAdmin:
                 return_value=True,
             ),
             patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
-            patch.object(litellm, "vector_store_registry", None),
+            patch.object(gateway, "vector_store_registry", None),
         ):
             with pytest.raises(HTTPException) as exc_info:
                 await update_vector_store(
@@ -3171,7 +3171,7 @@ class TestVectorStoreCredentialAttachmentRequiresProxyAdmin:
                 return_value=True,
             ),
             patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
-            patch.object(litellm, "vector_store_registry", None),
+            patch.object(gateway, "vector_store_registry", None),
         ):
             with pytest.raises(HTTPException) as exc_info:
                 await update_vector_store(
@@ -3212,7 +3212,7 @@ class TestVectorStoreCredentialAttachmentRequiresProxyAdmin:
                 return_value=True,
             ),
             patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
-            patch.object(litellm, "vector_store_registry", None),
+            patch.object(gateway, "vector_store_registry", None),
         ):
             response = await update_vector_store(
                 data=VectorStoreUpdateRequest(
@@ -3251,7 +3251,7 @@ class TestVectorStoreCredentialAttachmentRequiresProxyAdmin:
                 return_value=True,
             ),
             patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
-            patch.object(litellm, "vector_store_registry", None),
+            patch.object(gateway, "vector_store_registry", None),
         ):
             response = await update_vector_store(
                 data=VectorStoreUpdateRequest(
@@ -3289,7 +3289,7 @@ class TestVectorStoreCredentialAttachmentRequiresProxyAdmin:
                 return_value=True,
             ),
             patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
-            patch.object(litellm, "vector_store_registry", None),
+            patch.object(gateway, "vector_store_registry", None),
         ):
             response = await update_vector_store(
                 data=VectorStoreUpdateRequest(

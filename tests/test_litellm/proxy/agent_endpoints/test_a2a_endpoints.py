@@ -782,7 +782,7 @@ async def test_subscribe_to_task_runs_post_call_streaming_guardrail():
     streaming hook so output guardrails configured on the agent inspect the
     streamed task content. Regression: the SSE path previously returned the raw
     upstream stream and bypassed guardrails entirely."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
     from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
@@ -829,7 +829,7 @@ async def test_subscribe_to_task_runs_post_call_streaming_guardrail():
                 return_value=mock_handler,
             )
         )
-        stack.enter_context(patch.object(litellm, "callbacks", [guardrail]))
+        stack.enter_context(patch.object(gateway, "callbacks", [guardrail]))
 
         from token_iq.gateway.proxy.agent_endpoints.a2a_endpoints import invoke_agent_a2a
 
@@ -2398,9 +2398,9 @@ async def test_forward_jsonrpc_sse_pings_while_the_upstream_agent_is_still_silen
     connection."""
     import asyncio
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    monkeypatch.setattr(litellm, "sse_keepalive_ping_interval_seconds", 0.05)
+    monkeypatch.setattr(gateway, "sse_keepalive_ping_interval_seconds", 0.05)
 
     async def _slow_lines():
         await asyncio.sleep(0.3)
@@ -2426,9 +2426,9 @@ async def test_forward_jsonrpc_sse_is_untouched_while_keepalives_are_unconfigure
     monkeypatch,
 ):
     """Off until an operator sets an interval, so the default stream is unchanged."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    monkeypatch.setattr(litellm, "sse_keepalive_ping_interval_seconds", None)
+    monkeypatch.setattr(gateway, "sse_keepalive_ping_interval_seconds", None)
 
     async def _lines():
         yield 'data: {"jsonrpc": "2.0", "id": "req-1", "result": {"kind": "task"}}'
@@ -2470,9 +2470,9 @@ async def test_handle_stream_message_pings_while_the_upstream_agent_is_still_sil
     time-to-first-token."""
     import asyncio
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    monkeypatch.setattr(litellm, "sse_keepalive_ping_interval_seconds", 0.05)
+    monkeypatch.setattr(gateway, "sse_keepalive_ping_interval_seconds", 0.05)
 
     async def fake_stream(**kwargs):
         await asyncio.sleep(0.3)
@@ -2501,9 +2501,9 @@ async def test_handle_stream_message_is_untouched_while_keepalives_are_unconfigu
     monkeypatch,
 ):
     """Off until an operator sets an interval, so the default stream is unchanged."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    monkeypatch.setattr(litellm, "sse_keepalive_ping_interval_seconds", None)
+    monkeypatch.setattr(gateway, "sse_keepalive_ping_interval_seconds", None)
 
     async def fake_stream(**kwargs):
         yield {"jsonrpc": "2.0", "id": "req-1", "result": {"kind": "task", "id": "t-1"}}

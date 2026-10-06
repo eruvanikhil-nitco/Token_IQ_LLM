@@ -136,13 +136,13 @@ def _job_for(poller):
 )
 def test_batch_cost_poller_is_active(monkeypatch, polling_enabled, job, expected):
     import token_iq.gateway.constants
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     import token_iq.gateway.proxy.proxy_server as proxy_server_module
     from token_iq.gateway.proxy.openai_files_endpoints.common_utils import (
         batch_cost_poller_is_active,
     )
 
-    monkeypatch.setattr(litellm.constants, "PROXY_BATCH_POLLING_ENABLED", polling_enabled, raising=False)
+    monkeypatch.setattr(gateway.constants, "PROXY_BATCH_POLLING_ENABLED", polling_enabled, raising=False)
     monkeypatch.setattr(proxy_server_module, "scheduler", _FakeScheduler(job), raising=False)
 
     assert batch_cost_poller_is_active() is expected
@@ -150,13 +150,13 @@ def test_batch_cost_poller_is_active(monkeypatch, polling_enabled, job, expected
 
 def test_batch_cost_poller_is_active_is_false_when_no_scheduler_exists(monkeypatch):
     import token_iq.gateway.constants
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     import token_iq.gateway.proxy.proxy_server as proxy_server_module
     from token_iq.gateway.proxy.openai_files_endpoints.common_utils import (
         batch_cost_poller_is_active,
     )
 
-    monkeypatch.setattr(litellm.constants, "PROXY_BATCH_POLLING_ENABLED", True, raising=False)
+    monkeypatch.setattr(gateway.constants, "PROXY_BATCH_POLLING_ENABLED", True, raising=False)
     monkeypatch.setattr(proxy_server_module, "scheduler", None, raising=False)
 
     assert batch_cost_poller_is_active() is False
@@ -221,7 +221,7 @@ async def test_retrieving_a_completed_batch_still_marks_processed_without_a_cost
 
 def test_batch_cost_poller_is_active_is_false_when_the_job_has_no_bound_poller(monkeypatch):
     import token_iq.gateway.constants
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     import token_iq.gateway.proxy.proxy_server as proxy_server_module
     from token_iq.gateway.proxy.openai_files_endpoints.common_utils import (
         batch_cost_poller_is_active,
@@ -233,7 +233,7 @@ def test_batch_cost_poller_is_active_is_false_when_the_job_has_no_bound_poller(m
     job = MagicMock()
     job.func = unbound_check_batch_cost
 
-    monkeypatch.setattr(litellm.constants, "PROXY_BATCH_POLLING_ENABLED", True, raising=False)
+    monkeypatch.setattr(gateway.constants, "PROXY_BATCH_POLLING_ENABLED", True, raising=False)
     monkeypatch.setattr(proxy_server_module, "scheduler", _FakeScheduler(job), raising=False)
 
     assert batch_cost_poller_is_active() is False
@@ -241,7 +241,7 @@ def test_batch_cost_poller_is_active_is_false_when_the_job_has_no_bound_poller(m
 
 def test_batch_cost_poller_is_active_is_false_when_get_job_raises(monkeypatch):
     import token_iq.gateway.constants
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     import token_iq.gateway.proxy.proxy_server as proxy_server_module
     from token_iq.gateway.proxy.openai_files_endpoints.common_utils import (
         batch_cost_poller_is_active,
@@ -251,7 +251,7 @@ def test_batch_cost_poller_is_active_is_false_when_get_job_raises(monkeypatch):
         def get_job(self, job_id):
             raise RuntimeError("scheduler not started")
 
-    monkeypatch.setattr(litellm.constants, "PROXY_BATCH_POLLING_ENABLED", True, raising=False)
+    monkeypatch.setattr(gateway.constants, "PROXY_BATCH_POLLING_ENABLED", True, raising=False)
     monkeypatch.setattr(proxy_server_module, "scheduler", _ExplodingScheduler(), raising=False)
 
     assert batch_cost_poller_is_active() is False

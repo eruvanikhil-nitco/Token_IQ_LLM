@@ -10,7 +10,7 @@ import pytest
 from fastapi import HTTPException
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import DualCache
 from token_iq.gateway.proxy._types import UserAPIKeyAuth
 from token_iq.gateway.proxy.hooks.batch_rate_limiter import (
@@ -51,7 +51,7 @@ def get_expected_batch_file_usage(file_path: str) -> tuple[int, int]:
         model = body.get("model", "")
         messages = body.get("messages", [])
         if messages:
-            item_tokens = litellm.token_counter(model=model, messages=messages)
+            item_tokens = gateway.token_counter(model=model, messages=messages)
             expected_total_tokens += item_tokens
 
     return expected_request_count, expected_total_tokens
@@ -73,7 +73,7 @@ async def test_batch_rate_limits():
     Integration test for batch rate limits with real OpenAI API calls.
     Tests the full flow: file creation -> token counting -> cleanup
     """
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
     CUSTOM_LLM_PROVIDER = "openai"
     BATCH_LIMITER = _build_batch_limiter()
 
@@ -83,7 +83,7 @@ async def test_batch_rate_limits():
 
     # Create file on OpenAI
     print(f"Creating file from {file_path}")
-    file_obj = await litellm.acreate_file(
+    file_obj = await gateway.acreate_file(
         file=open(file_path, "rb"),
         purpose="batch",
         custom_llm_provider=CUSTOM_LLM_PROVIDER,
@@ -166,7 +166,7 @@ async def test_batch_rate_limit_single_file(tmp_path):
     try:
         # Upload file to OpenAI
         with open(small_file_path, "rb") as batch_file:
-            file_obj_small = await litellm.acreate_file(
+            file_obj_small = await gateway.acreate_file(
                 file=batch_file,
                 purpose="batch",
                 custom_llm_provider=CUSTOM_LLM_PROVIDER,
@@ -233,7 +233,7 @@ async def test_batch_rate_limit_single_file(tmp_path):
 
     # Upload file to OpenAI
     with open(large_file_path, "rb") as batch_file:
-        file_obj_large = await litellm.acreate_file(
+        file_obj_large = await gateway.acreate_file(
             file=batch_file,
             purpose="batch",
             custom_llm_provider=CUSTOM_LLM_PROVIDER,
@@ -322,7 +322,7 @@ async def test_batch_rate_limit_multiple_requests(tmp_path):
     try:
         # Upload file to OpenAI
         with open(file_path_1, "rb") as batch_file:
-            file_obj_1 = await litellm.acreate_file(
+            file_obj_1 = await gateway.acreate_file(
                 file=batch_file,
                 purpose="batch",
                 custom_llm_provider=CUSTOM_LLM_PROVIDER,
@@ -378,7 +378,7 @@ async def test_batch_rate_limit_multiple_requests(tmp_path):
 
     # Upload file to OpenAI
     with open(file_path_2, "rb") as batch_file:
-        file_obj_2 = await litellm.acreate_file(
+        file_obj_2 = await gateway.acreate_file(
             file=batch_file,
             purpose="batch",
             custom_llm_provider=CUSTOM_LLM_PROVIDER,
@@ -478,7 +478,7 @@ async def test_batch_rate_limiter_with_managed_files(tmp_path):
         # Step 1: Upload file to OpenAI (simulating user upload)
         print("\n1. Uploading batch input file...")
         with open(file_path, "rb") as batch_file:
-            file_obj = await litellm.acreate_file(
+            file_obj = await gateway.acreate_file(
                 file=batch_file,
                 purpose="batch",
                 custom_llm_provider=CUSTOM_LLM_PROVIDER,
@@ -492,7 +492,7 @@ async def test_batch_rate_limiter_with_managed_files(tmp_path):
         print("\n2. Testing rate limiter file access with user context...")
 
         # Track if user_api_key_dict was passed to afile_content
-        original_afile_content = litellm.afile_content
+        original_afile_content = gateway.afile_content
         user_context_passed = {"value": False}
 
         async def mock_afile_content(*args, **kwargs):
@@ -594,7 +594,7 @@ async def test_batch_rate_limiter_without_user_context(tmp_path):
 
     # Upload file
     with open(file_path, "rb") as batch_file:
-        file_obj = await litellm.acreate_file(
+        file_obj = await gateway.acreate_file(
             file=batch_file,
             purpose="batch",
             custom_llm_provider=CUSTOM_LLM_PROVIDER,

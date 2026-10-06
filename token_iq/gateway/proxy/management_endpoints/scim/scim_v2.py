@@ -25,7 +25,7 @@ from fastapi import (
 from pydantic import BaseModel, TypeAdapter, ValidationError
 from typing_extensions import ReadOnly, TypedDict, assert_never
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway._uuid import uuid
 from token_iq.gateway.core_utils.safe_json_dumps import safe_dumps
@@ -391,8 +391,8 @@ ScimUserRole = Literal[
 
 def _default_scim_user_role() -> ScimUserRole:
     """Non-admin default role for SCIM-provisioned users."""
-    if litellm.default_internal_user_params:
-        configured_role: Final = litellm.default_internal_user_params.get("user_role")
+    if gateway.default_internal_user_params:
+        configured_role: Final = gateway.default_internal_user_params.get("user_role")
         if configured_role is not None:
             return configured_role
     return LitellmUserRoles.INTERNAL_USER_VIEW_ONLY
@@ -1116,8 +1116,8 @@ async def _create_user_if_not_exists(user_id: str, created_via: str = "scim_grou
             ]
             | None
         ) = LitellmUserRoles.INTERNAL_USER_VIEW_ONLY
-        if litellm.default_internal_user_params:
-            default_role = litellm.default_internal_user_params.get("user_role")
+        if gateway.default_internal_user_params:
+            default_role = gateway.default_internal_user_params.get("user_role")
 
         new_user_request: Final = NewUserRequest(
             user_id=user_id,
@@ -2495,7 +2495,7 @@ def _new_team_request_with_defaults(
 ) -> NewTeamRequest:
     """Build the SCIM group's team request, applying litellm.default_team_params
     (including models) the same way SSO auto-created teams do."""
-    default_params: Final = litellm.default_team_params
+    default_params: Final = gateway.default_team_params
     defaults: Final[Mapping[str, object]] = (
         deepcopy(default_params)
         if isinstance(default_params, dict)

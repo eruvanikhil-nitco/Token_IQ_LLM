@@ -14,7 +14,7 @@ from unittest.mock import patch
 import pytest
 from prometheus_client import REGISTRY
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.integrations.prometheus import (
     UNRECOGNIZED_REQUESTED_MODEL_LABEL,
     PrometheusLogger,
@@ -45,7 +45,7 @@ def cleanup_prometheus_registry():
 
 @pytest.fixture
 def router():
-    return litellm.Router(
+    return gateway.Router(
         model_list=[
             {
                 "model_name": "gpt-4o-mini",
@@ -62,7 +62,7 @@ def router():
 
 @pytest.fixture
 def team_router():
-    return litellm.Router(
+    return gateway.Router(
         model_list=[
             {
                 "model_name": "team-internal-gpt",

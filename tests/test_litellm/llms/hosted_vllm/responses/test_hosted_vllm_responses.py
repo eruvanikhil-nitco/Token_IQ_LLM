@@ -13,7 +13,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.hosted_vllm.responses.transformation import (
     HostedVLLMResponsesAPIConfig,
 )
@@ -76,7 +76,7 @@ def test_hosted_vllm_responses_create_with_string_input():
         "token_iq.gateway.llms.custom_httpx.llm_http_handler._get_httpx_client",
         return_value=mock_client,
     ):
-        response = litellm.responses(
+        response = gateway.responses(
             model="hosted_vllm/Qwen/Qwen3-8B",
             input="Hello, how are you?",
             api_base="https://test-vllm.example.com/v1",

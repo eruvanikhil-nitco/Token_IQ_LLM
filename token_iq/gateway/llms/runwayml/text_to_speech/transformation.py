@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING, Any, Final, TypedDict, Union
 import httpx
 from typing_extensions import ReadOnly
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.constants import (
     RUNWAYML_DEFAULT_API_VERSION,
@@ -95,7 +95,7 @@ class RunwayMLTextToSpeechConfig(BaseTextToSpeechConfig):
         api_base = (
             api_base
             or litellm_params_dict.get("api_base")
-            or litellm.api_base
+            or gateway.api_base
             or get_secret_str("RUNWAYML_API_BASE")
             or self.DEFAULT_BASE_URL
         )
@@ -104,7 +104,7 @@ class RunwayMLTextToSpeechConfig(BaseTextToSpeechConfig):
         api_key = (
             api_key
             or litellm_params_dict.get("api_key")
-            or litellm.api_key
+            or gateway.api_key
             or get_secret_str("RUNWAYML_API_SECRET")
             or get_secret_str("RUNWAYML_API_KEY")
         )
@@ -355,7 +355,7 @@ class RunwayMLTextToSpeechConfig(BaseTextToSpeechConfig):
         """
         from token_iq.gateway.llms.custom_httpx.http_handler import get_async_httpx_client
 
-        client: Final = get_async_httpx_client(llm_provider=litellm.LlmProviders.RUNWAYML)
+        client: Final = get_async_httpx_client(llm_provider=gateway.LlmProviders.RUNWAYML)
         start_time: Final = time.time()
 
         # Build task status URL
@@ -577,7 +577,7 @@ class RunwayMLTextToSpeechConfig(BaseTextToSpeechConfig):
         # Download the audio file (async)
         from token_iq.gateway.llms.custom_httpx.http_handler import get_async_httpx_client
 
-        client: Final = get_async_httpx_client(llm_provider=litellm.LlmProviders.RUNWAYML)
+        client: Final = get_async_httpx_client(llm_provider=gateway.LlmProviders.RUNWAYML)
         audio_response: Final = await client.get(url=audio_url)
         audio_response.raise_for_status()
 

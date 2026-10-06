@@ -10,7 +10,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import Router
 from token_iq.gateway.caching.dual_cache import DualCache
 from token_iq.gateway.router_utils.pre_call_checks.model_rate_limit_check import (
@@ -101,7 +101,7 @@ class TestModelRateLimitingCheck:
             "model_name": "test-model",
         }
 
-        with pytest.raises(litellm.RateLimitError) as exc_info:
+        with pytest.raises(gateway.RateLimitError) as exc_info:
             check.pre_call_check(deployment)
 
         assert "RPM limit=10" in str(exc_info.value)
@@ -138,7 +138,7 @@ class TestModelRateLimitingCheck:
             "model_name": "test-model",
         }
 
-        with pytest.raises(litellm.RateLimitError) as exc_info:
+        with pytest.raises(gateway.RateLimitError) as exc_info:
             check.pre_call_check(deployment)
 
         assert "TPM limit=1000" in str(exc_info.value)
@@ -201,7 +201,7 @@ class TestModelRateLimitingCheckAsync:
             "model_name": "test-model",
         }
 
-        with pytest.raises(litellm.RateLimitError) as exc_info:
+        with pytest.raises(gateway.RateLimitError) as exc_info:
             await check.async_pre_call_check(deployment)
 
         assert "RPM limit=10" in str(exc_info.value)
@@ -240,7 +240,7 @@ class TestModelRateLimitingCheckAsync:
             "model_name": "test-model",
         }
 
-        with pytest.raises(litellm.RateLimitError) as exc_info:
+        with pytest.raises(gateway.RateLimitError) as exc_info:
             await check.async_pre_call_check(deployment)
 
         assert "TPM limit=1000" in str(exc_info.value)
@@ -309,7 +309,7 @@ class TestRouterWithEnforceModelRateLimits:
 
         # Find the ModelRateLimitingCheck in litellm.callbacks
         found = False
-        for callback in litellm.callbacks:
+        for callback in gateway.callbacks:
             if isinstance(callback, ModelRateLimitingCheck):
                 found = True
                 break
@@ -349,7 +349,7 @@ class TestModelRateLimitConcurrency:
         )
 
         successes = [r for r in results if not isinstance(r, Exception)]
-        failures = [r for r in results if isinstance(r, litellm.RateLimitError)]
+        failures = [r for r in results if isinstance(r, gateway.RateLimitError)]
 
         assert len(successes) == 2, f"Expected 2 successes, got {len(successes)}"
         assert len(failures) == 2, f"Expected 2 rate limit errors, got {len(failures)}"

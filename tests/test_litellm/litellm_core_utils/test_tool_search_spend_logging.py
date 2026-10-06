@@ -28,7 +28,7 @@ These tests exercise the real public entry points (not the private
 
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import stream_chunk_builder
 from token_iq.gateway.types.utils import Delta, ModelResponseStream, StreamingChoices
 
@@ -58,7 +58,7 @@ def test_completion_cost_with_tool_reference_records_spend():
     callback then dropped the SpendLogs row. A positive cost here means the
     row is recorded instead of silently dropped.
     """
-    cost = litellm.completion_cost(model=ANTHROPIC_MODEL, messages=TOOL_SEARCH_MESSAGES)
+    cost = gateway.completion_cost(model=ANTHROPIC_MODEL, messages=TOOL_SEARCH_MESSAGES)
 
     assert cost is not None, "response_cost is None -> SpendLogs row would be dropped"
     assert cost > 0, f"Expected a positive cost for tool-search traffic, got {cost}"
@@ -74,7 +74,7 @@ def test_completion_cost_with_empty_tool_name_records_spend():
         }
     ]
 
-    cost = litellm.completion_cost(model=ANTHROPIC_MODEL, messages=messages)
+    cost = gateway.completion_cost(model=ANTHROPIC_MODEL, messages=messages)
 
     assert cost is not None
     assert cost >= 0

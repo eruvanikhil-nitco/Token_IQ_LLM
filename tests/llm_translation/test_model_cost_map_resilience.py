@@ -18,7 +18,7 @@ import pytest
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.get_model_cost_map import (
     GetModelCostMap,
     get_model_cost_map,
@@ -255,15 +255,15 @@ class TestBadHostedModelCostMap:
         with patch("httpx.get", return_value=mock_response):
             fallback_map = get_model_cost_map("https://fake-url.com/bad.json")
 
-        original = litellm.model_cost
-        litellm.model_cost = fallback_map
+        original = gateway.model_cost
+        gateway.model_cost = fallback_map
         try:
             # gpt-4o is in every backup — should work fine
-            info = litellm.get_model_info("gpt-4o")
+            info = gateway.get_model_info("gpt-4o")
             assert info is not None
             assert info["input_cost_per_token"] > 0
         finally:
-            litellm.model_cost = original
+            gateway.model_cost = original
 
     def test_should_completion_pass_after_bad_hosted_map(self):
         """
@@ -281,12 +281,12 @@ class TestBadHostedModelCostMap:
         with patch("httpx.get", return_value=mock_http):
             fallback_map = get_model_cost_map("https://fake-url.com/bad.json")
 
-        original = litellm.model_cost
-        litellm.model_cost = fallback_map
+        original = gateway.model_cost
+        gateway.model_cost = fallback_map
         try:
             # mock_response goes through the real completion path —
             # routing, cost calculator, logging — but skips the HTTP call
-            response = litellm.completion(
+            response = gateway.completion(
                 model="gpt-4o-mini",
                 messages=[{"role": "user", "content": "say hi"}],
                 mock_response="hello from mock",
@@ -294,4 +294,4 @@ class TestBadHostedModelCostMap:
             assert response is not None
             assert response.choices[0].message.content == "hello from mock"
         finally:
-            litellm.model_cost = original
+            gateway.model_cost = original

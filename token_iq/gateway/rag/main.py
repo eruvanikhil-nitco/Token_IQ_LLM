@@ -19,7 +19,7 @@ from typing import TYPE_CHECKING, Any, Final
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._internal_context import is_internal_call
 from token_iq.gateway.cost_calculator import vector_store_search_cost
 from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
@@ -191,7 +191,7 @@ async def aingest(
 
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=None,
             custom_llm_provider=ingest_options.get("vector_store", {}).get("custom_llm_provider"),
             original_exception=e,
@@ -247,7 +247,7 @@ async def _execute_query_pipeline(
     )
     forwarded_search_params: Final = MappingProxyType({**provider_search_params, **kwargs})
     with _suppressed_sub_call_billing():
-        search_response: Final = await litellm.vector_stores.asearch(
+        search_response: Final = await gateway.vector_stores.asearch(
             vector_store_id=retrieval_config["vector_store_id"],
             query=query_text,
             max_num_results=retrieval_config.get("top_k", 10),
@@ -277,7 +277,7 @@ async def _execute_query_pipeline(
         documents: Final = RAGQuery.extract_documents_from_search(search_response)
         if documents:
             with _suppressed_sub_call_billing():
-                rerank_response = await litellm.arerank(
+                rerank_response = await gateway.arerank(
                     model=rerank["model"],
                     query=query_text,
                     documents=documents,
@@ -303,7 +303,7 @@ async def _execute_query_pipeline(
                 **kwargs,
             )
         else:
-            response = await litellm.acompletion(
+            response = await gateway.acompletion(
                 model=model,
                 messages=modified_messages,
                 stream=stream,
@@ -370,7 +370,7 @@ async def aquery(
 
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=model,
             custom_llm_provider=retrieval_config.get("custom_llm_provider"),
             original_exception=e,
@@ -416,7 +416,7 @@ def query(
                 )
             )
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=model,
             custom_llm_provider=retrieval_config.get("custom_llm_provider"),
             original_exception=e,
@@ -492,7 +492,7 @@ def ingest(
                 )
             )
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=None,
             custom_llm_provider=ingest_options.get("vector_store", {}).get("custom_llm_provider"),
             original_exception=e,

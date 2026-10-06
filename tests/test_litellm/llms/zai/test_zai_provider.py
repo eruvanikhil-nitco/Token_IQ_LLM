@@ -8,7 +8,7 @@ import math
 import pytest
 import respx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import completion
 from token_iq.gateway.cost_calculator import cost_per_token
 
@@ -16,7 +16,7 @@ from token_iq.gateway.cost_calculator import cost_per_token
 @pytest.fixture
 def local_model_cost_map(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map())
+    monkeypatch.setattr(gateway, "model_cost", gateway.get_model_cost_map())
 
 
 @pytest.fixture
@@ -53,8 +53,8 @@ def test_get_llm_provider_zai():
 
 def test_zai_in_provider_lists():
     """Test that zai is registered in all necessary provider lists"""
-    assert "zai" in litellm.openai_compatible_providers
-    assert "zai" in litellm.provider_list
+    assert "zai" in gateway.openai_compatible_providers
+    assert "zai" in gateway.provider_list
 
 
 def test_zai_models_in_model_cost(local_model_cost_map):
@@ -73,15 +73,15 @@ def test_zai_models_in_model_cost(local_model_cost_map):
     ]
 
     for model in zai_models:
-        assert model in litellm.model_cost, f"Model {model} not found in model_cost"
-        assert litellm.model_cost[model]["litellm_provider"] == "zai"
+        assert model in gateway.model_cost, f"Model {model} not found in model_cost"
+        assert gateway.model_cost[model]["litellm_provider"] == "zai"
 
 
 def test_zai_glm46_cost_calculation(local_model_cost_map):
     """Test the cost calculation for glm-4.6"""
 
     key = "zai/glm-4.6"
-    info = litellm.model_cost[key]
+    info = gateway.model_cost[key]
 
     prompt_cost, completion_cost = cost_per_token(
         model="zai/glm-4.6",
@@ -98,7 +98,7 @@ def test_zai_flash_model_is_free(local_model_cost_map):
     """Test that glm-4.5-flash has zero cost"""
 
     key = "zai/glm-4.5-flash"
-    info = litellm.model_cost[key]
+    info = gateway.model_cost[key]
 
     assert info["input_cost_per_token"] == 0
     assert info["output_cost_per_token"] == 0
@@ -108,9 +108,9 @@ def test_glm47_supports_reasoning(local_model_cost_map):
     """Test that GLM-4.7 supports reasoning"""
 
     key = "zai/glm-4.7"
-    assert key in litellm.model_cost, f"Model {key} not found in model_cost"
+    assert key in gateway.model_cost, f"Model {key} not found in model_cost"
 
-    info = litellm.model_cost[key]
+    info = gateway.model_cost[key]
     assert info["supports_reasoning"] is True
 
 
@@ -132,13 +132,13 @@ def test_glm47_cost_calculation(local_model_cost_map):
 async def test_zai_completion_call(respx_mock, zai_response, monkeypatch):
     """Test completion call with zai provider using mocked response"""
     monkeypatch.setenv("ZAI_API_KEY", "test-api-key")
-    monkeypatch.setattr(litellm, "disable_aiohttp_transport", True)
+    monkeypatch.setattr(gateway, "disable_aiohttp_transport", True)
 
     respx_mock.post("https://api.z.ai/api/paas/v4/chat/completions").respond(
         json=zai_response
     )
 
-    response = await litellm.acompletion(
+    response = await gateway.acompletion(
         model="zai/glm-4.6",
         messages=[{"role": "user", "content": "Hello"}],
         max_tokens=20,
@@ -158,7 +158,7 @@ async def test_zai_completion_call(respx_mock, zai_response, monkeypatch):
 def test_zai_sync_completion(respx_mock, zai_response, monkeypatch):
     """Test synchronous completion call"""
     monkeypatch.setenv("ZAI_API_KEY", "test-api-key")
-    monkeypatch.setattr(litellm, "disable_aiohttp_transport", True)
+    monkeypatch.setattr(gateway, "disable_aiohttp_transport", True)
 
     respx_mock.post("https://api.z.ai/api/paas/v4/chat/completions").respond(
         json=zai_response

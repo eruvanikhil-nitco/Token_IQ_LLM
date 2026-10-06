@@ -8,7 +8,7 @@ from unittest.mock import ANY, MagicMock, Mock, patch
 import httpx
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
     LiteLLMResponsesTransformationHandler,
 )
@@ -1515,7 +1515,7 @@ def test_map_reasoning_effort_adds_summary_detailed(monkeypatch):
     When flag is enabled (flag=True or env var), summary="detailed" is added.
     """
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
         LiteLLMResponsesTransformationHandler,
     )
@@ -1526,12 +1526,12 @@ def test_map_reasoning_effort_adds_summary_detailed(monkeypatch):
     effort_levels = ["none", "low", "medium", "high", "xhigh", "minimal"]
 
     # Save original flag value
-    original_flag = litellm.reasoning_auto_summary
+    original_flag = gateway.reasoning_auto_summary
     original_env = os.environ.get("LITELLM_REASONING_AUTO_SUMMARY")
 
     try:
         # Test 1: Default behavior (flag=False, no env var) - NO summary
-        litellm.reasoning_auto_summary = False
+        gateway.reasoning_auto_summary = False
         if "LITELLM_REASONING_AUTO_SUMMARY" in os.environ:
             del os.environ["LITELLM_REASONING_AUTO_SUMMARY"]
 
@@ -1549,7 +1549,7 @@ def test_map_reasoning_effort_adds_summary_detailed(monkeypatch):
             )
 
         # Test 2: With flag enabled - summary IS added
-        litellm.reasoning_auto_summary = True
+        gateway.reasoning_auto_summary = True
 
         for effort in effort_levels:
             result = handler._map_reasoning_effort(effort)
@@ -1565,7 +1565,7 @@ def test_map_reasoning_effort_adds_summary_detailed(monkeypatch):
             )
 
         # Test 3: With env var enabled (flag disabled) - summary IS added
-        litellm.reasoning_auto_summary = False
+        gateway.reasoning_auto_summary = False
         monkeypatch.setenv("LITELLM_REASONING_AUTO_SUMMARY", "true")
 
         result = handler._map_reasoning_effort("high")
@@ -1575,7 +1575,7 @@ def test_map_reasoning_effort_adds_summary_detailed(monkeypatch):
         print("✓ LITELLM_REASONING_AUTO_SUMMARY env var works correctly")
 
         # Test 4: Dict input is passed through as-is (no modification)
-        litellm.reasoning_auto_summary = False
+        gateway.reasoning_auto_summary = False
         if "LITELLM_REASONING_AUTO_SUMMARY" in os.environ:
             del os.environ["LITELLM_REASONING_AUTO_SUMMARY"]
 
@@ -1602,7 +1602,7 @@ def test_map_reasoning_effort_adds_summary_detailed(monkeypatch):
 
     finally:
         # Restore original values
-        litellm.reasoning_auto_summary = original_flag
+        gateway.reasoning_auto_summary = original_flag
         if original_env is not None:
             monkeypatch.setenv("LITELLM_REASONING_AUTO_SUMMARY", original_env)
         elif "LITELLM_REASONING_AUTO_SUMMARY" in os.environ:
@@ -2451,7 +2451,7 @@ def test_transform_request_bedrock_mantle_tools_keeps_reasoning_effort(monkeypat
         LiteLLMResponsesTransformationHandler,
     )
 
-    monkeypatch.setattr(litellm, "reasoning_auto_summary", False)
+    monkeypatch.setattr(gateway, "reasoning_auto_summary", False)
     monkeypatch.delenv("LITELLM_REASONING_AUTO_SUMMARY", raising=False)
     handler: Final = LiteLLMResponsesTransformationHandler()
 
@@ -2993,7 +2993,7 @@ async def test_acompletion_bridge_normalizes_stream_options_on_the_wire(
     with patch.object(AsyncHTTPHandler, "post", new_callable=AsyncMock) as mock_post:
         mock_post.return_value = mock_response
 
-        await litellm.acompletion(
+        await gateway.acompletion(
             model="openai/responses/gpt-5.5",
             messages=[{"role": "user", "content": "hi"}],
             api_key="fake-api-key",
@@ -3499,7 +3499,7 @@ async def test_acompletion_bridge_normalizes_tool_choice_on_the_wire(
     with patch.object(AsyncHTTPHandler, "post", new_callable=AsyncMock) as mock_post:
         mock_post.return_value = mock_response
 
-        await litellm.acompletion(
+        await gateway.acompletion(
             model="openai/responses/gpt-5.5",
             messages=[{"role": "user", "content": "what is the DJIA today"}],
             api_key="fake-api-key",

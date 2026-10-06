@@ -6,7 +6,7 @@ LiteLLM supports the re rank API format, no paramter transformation occurs
 
 from typing import Any, Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.base import BaseLLM
 from token_iq.gateway.llms.custom_httpx.http_handler import (
     _get_httpx_client,
@@ -76,7 +76,7 @@ class TogetherAIRerank(BaseLLM):
         api_key: str,
         api_base: str,
     ) -> RerankResponse:
-        client: Final = get_async_httpx_client(llm_provider=litellm.LlmProviders.TOGETHER_AI)  # Use async client
+        client: Final = get_async_httpx_client(llm_provider=gateway.LlmProviders.TOGETHER_AI)  # Use async client
 
         response: Final = await client.post(
             _rerank_url(api_base),

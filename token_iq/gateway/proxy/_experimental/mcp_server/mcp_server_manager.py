@@ -36,7 +36,7 @@ from mcp.types import Tool as MCPTool
 from pydantic import AnyUrl, BaseModel
 from typing_extensions import ReadOnly
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.constants import (
     MCP_CLIENT_TIMEOUT,
@@ -1313,7 +1313,7 @@ def _create_sampling_callback(user_api_key_auth: UserAPIKeyAuth | None = None):
         context: "RequestContext[ClientSession, object]",
         params: "CreateMessageRequestParams",
     ):
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.proxy._experimental.mcp_server.sampling_handler import (
             handle_sampling_create_message,
         )
@@ -1333,7 +1333,7 @@ def _create_sampling_callback(user_api_key_auth: UserAPIKeyAuth | None = None):
         return await handle_sampling_create_message(
             context=context,
             params=params,
-            default_model=getattr(litellm, "default_mcp_sampling_model", None),
+            default_model=getattr(gateway, "default_mcp_sampling_model", None),
             user_api_key_auth=resolved_auth,
             raw_headers=_raw_headers,
             client_ip=_client_ip,
@@ -6112,7 +6112,7 @@ class MCPServerManager:
         if server.available_on_public_internet:
             return True
         # Check backwards compat: litellm.public_mcp_servers
-        public_ids: Final = set(litellm.public_mcp_servers or [])
+        public_ids: Final = set(gateway.public_mcp_servers or [])
         if server.server_id in public_ids:
             return True
         # Non-public server: only accessible from internal IPs
@@ -6147,13 +6147,13 @@ class MCPServerManager:
         deployments that relied on the OR-with-default semantics; will be
         removed in a future release.
         """
-        if litellm.public_mcp_hub_strict_whitelist:
-            if litellm.public_mcp_servers is None:
+        if gateway.public_mcp_hub_strict_whitelist:
+            if gateway.public_mcp_servers is None:
                 return []
-            public_ids = set(litellm.public_mcp_servers)
+            public_ids = set(gateway.public_mcp_servers)
             return [server for server in self.get_registry().values() if server.server_id in public_ids]
 
-        public_ids = set(litellm.public_mcp_servers or [])
+        public_ids = set(gateway.public_mcp_servers or [])
         return [
             server
             for server in self.get_registry().values()

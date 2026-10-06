@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, Final
 
 from fastapi import HTTPException
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
 from token_iq.gateway.llms.custom_httpx.http_handler import (
@@ -162,7 +162,7 @@ class JavelinGuardrail(CustomGuardrail):
     async def async_pre_call_hook(
         self,
         user_api_key_dict: UserAPIKeyAuth,
-        cache: litellm.DualCache,
+        cache: gateway.DualCache,
         data: dict,
         call_type: CallTypesLiteral,
     ) -> Exception | str | dict | None:

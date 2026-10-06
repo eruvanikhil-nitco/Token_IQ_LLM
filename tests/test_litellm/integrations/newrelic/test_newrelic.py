@@ -18,7 +18,7 @@ _mock_newrelic.agent = _mock_newrelic_agent
 sys.modules["newrelic"] = _mock_newrelic
 sys.modules["newrelic.agent"] = _mock_newrelic_agent
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 import token_iq.gateway.integrations.newrelic.newrelic as nr_module
 from token_iq.gateway.integrations.newrelic.newrelic import NewRelicLogger
 
@@ -425,7 +425,7 @@ class TestExtractAllMessagesRespectsLitellmRedaction:
         assert any(m.get("is_response") for m in messages)
 
     def test_global_turn_off_message_logging_blocks_content(self, monkeypatch):
-        monkeypatch.setattr(litellm, "turn_off_message_logging", True)
+        monkeypatch.setattr(gateway, "turn_off_message_logging", True)
         logger = make_logger()
         assert logger.record_content is True
 
@@ -456,7 +456,7 @@ class TestExtractAllMessagesRespectsLitellmRedaction:
         """The dynamic param has higher priority than the global flag (see
         should_redact_message_logging). When a caller explicitly opts back into
         message logging per-request, NR must record content again."""
-        monkeypatch.setattr(litellm, "turn_off_message_logging", True)
+        monkeypatch.setattr(gateway, "turn_off_message_logging", True)
         logger = make_logger()
 
         kwargs = make_kwargs(messages=[{"role": "user", "content": "ok to log"}])

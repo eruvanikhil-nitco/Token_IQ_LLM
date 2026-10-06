@@ -13,7 +13,7 @@ from unittest.mock import MagicMock, patch, AsyncMock
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.vertex_ai.vertex_llm_base import VertexBase
 from token_iq.gateway.types.llms.vertex_ai import VertexPartnerProvider
 
@@ -50,7 +50,7 @@ class TestVertexBaseGetVertexRegion:
         vertex_base = VertexBase()
 
         with patch.dict(
-            litellm.model_cost,
+            gateway.model_cost,
             {
                 "vertex_ai/qwen/qwen3-next-80b-a3b-instruct-maas": {
                     "supported_regions": ["global"]
@@ -69,7 +69,7 @@ class TestVertexBaseGetVertexRegion:
         vertex_base = VertexBase()
 
         with patch.dict(
-            litellm.model_cost,
+            gateway.model_cost,
             {
                 "vertex_ai/qwen/qwen3-next-80b-a3b-instruct-maas": {
                     "supported_regions": ["global"]
@@ -87,7 +87,7 @@ class TestVertexBaseGetVertexRegion:
         """Test that non-global models use the provided region."""
         vertex_base = VertexBase()
 
-        with patch.dict(litellm.model_cost, {}, clear=False):
+        with patch.dict(gateway.model_cost, {}, clear=False):
             result = vertex_base.get_vertex_region(
                 vertex_region="europe-west1",
                 model="gemini-1.5-pro",
@@ -98,7 +98,7 @@ class TestVertexBaseGetVertexRegion:
         """Test that non-global models with None region fallback to us-central1."""
         vertex_base = VertexBase()
 
-        with patch.dict(litellm.model_cost, {}, clear=False):
+        with patch.dict(gateway.model_cost, {}, clear=False):
             result = vertex_base.get_vertex_region(
                 vertex_region=None,
                 model="unknown-model-xyz",
@@ -182,7 +182,7 @@ async def test_vertex_ai_qwen_global_endpoint_url():
             {"vertexai": mock_vertexai, "vertexai.preview": mock_vertexai.preview},
         ),
         patch.dict(
-            litellm.model_cost,
+            gateway.model_cost,
             {
                 "vertex_ai/qwen/qwen3-next-80b-a3b-instruct-maas": {
                     "supported_regions": ["global"]
@@ -193,7 +193,7 @@ async def test_vertex_ai_qwen_global_endpoint_url():
     ):
         mock_http_handler.return_value.post = AsyncMock(return_value=mock_response)
 
-        response = await litellm.acompletion(
+        response = await gateway.acompletion(
             model="vertex_ai/qwen/qwen3-next-80b-a3b-instruct-maas",
             messages=[{"role": "user", "content": "Hello"}],
             vertex_ai_project="test-project",
@@ -223,7 +223,7 @@ class TestGetSupportedRegions:
         """Test that get_supported_regions returns a list when model has supported_regions."""
         # Mock the model_cost to have supported_regions
         with patch.dict(
-            litellm.model_cost,
+            gateway.model_cost,
             {
                 "vertex_ai/qwen/qwen3-next-80b-a3b-instruct-maas": {
                     "supported_regions": ["global"],
@@ -231,7 +231,7 @@ class TestGetSupportedRegions:
                 }
             },
         ):
-            regions = litellm.utils.get_supported_regions(
+            regions = gateway.utils.get_supported_regions(
                 model="vertex_ai/qwen/qwen3-next-80b-a3b-instruct-maas",
                 custom_llm_provider="vertex_ai",
             )
@@ -241,14 +241,14 @@ class TestGetSupportedRegions:
         """Test that get_supported_regions returns None when model doesn't have supported_regions."""
         # Mock the model_cost without supported_regions
         with patch.dict(
-            litellm.model_cost,
+            gateway.model_cost,
             {
                 "vertex_ai/gemini-1.5-pro": {
                     "litellm_provider": "vertex_ai",
                 }
             },
         ):
-            regions = litellm.utils.get_supported_regions(
+            regions = gateway.utils.get_supported_regions(
                 model="vertex_ai/gemini-1.5-pro",
                 custom_llm_provider="vertex_ai",
             )
@@ -256,7 +256,7 @@ class TestGetSupportedRegions:
 
     def test_get_supported_regions_returns_none_for_unknown_model(self):
         """Test that get_supported_regions returns None for unknown models."""
-        regions = litellm.utils.get_supported_regions(
+        regions = gateway.utils.get_supported_regions(
             model="vertex_ai/unknown-model-xyz",
             custom_llm_provider="vertex_ai",
         )

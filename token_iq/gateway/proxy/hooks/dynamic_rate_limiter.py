@@ -7,7 +7,7 @@ from collections.abc import Callable
 from datetime import datetime
 from typing import Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import ModelResponse, Router
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.caching.caching import DualCache
@@ -104,13 +104,13 @@ class _PROXY_DynamicRateLimitHandler(CustomLogger):
             model_group_info: Final[ModelGroupInfo | None] = self.llm_router.get_model_group_info(model_group=model)
 
             weight: float = 1
-            if litellm.priority_reservation is None or priority not in litellm.priority_reservation:
+            if gateway.priority_reservation is None or priority not in gateway.priority_reservation:
                 verbose_proxy_logger.error(
                     "Priority Reservation not set. priority=%s, but litellm.priority_reservation is %s.",
                     priority,
-                    litellm.priority_reservation,
+                    gateway.priority_reservation,
                 )
-            elif priority is not None and litellm.priority_reservation is not None:
+            elif priority is not None and gateway.priority_reservation is not None:
                 from token_iq.gateway.proxy.proxy_server import premium_user
 
                 if premium_user is not True:
@@ -118,7 +118,7 @@ class _PROXY_DynamicRateLimitHandler(CustomLogger):
                         "Reserving tpm/rpm by priority is not included in this installation's Token IQ plan"
                     )
                 else:
-                    value: Final = litellm.priority_reservation[priority]
+                    value: Final = gateway.priority_reservation[priority]
                     weight = convert_priority_to_percent(value, model_group_info)
 
             active_projects: Final = await self.internal_usage_cache.async_get_cache(model=model)

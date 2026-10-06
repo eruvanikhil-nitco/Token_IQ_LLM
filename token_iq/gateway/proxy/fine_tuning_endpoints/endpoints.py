@@ -10,7 +10,7 @@ from typing import Final, cast
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request, Response
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.proxy._types import *
 from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
@@ -41,7 +41,7 @@ def set_fine_tuning_config(config):
         if isinstance(element, dict):
             for key, value in element.items():
                 if isinstance(value, str) and value.startswith("os.environ/"):
-                    element[key] = litellm.get_secret(value)
+                    element[key] = gateway.get_secret(value)
 
     fine_tuning_config = config
 
@@ -172,7 +172,7 @@ async def create_fine_tuning_job(
             if llm_provider_config is not None:
                 data.update(llm_provider_config)
 
-            response = await litellm.acreate_fine_tuning_job(**data)
+            response = await gateway.acreate_fine_tuning_job(**data)
 
         if response is None:
             raise ValueError("Invalid request, No litellm managed file id or custom_llm_provider provided.")
@@ -312,7 +312,7 @@ async def retrieve_fine_tuning_job(
             if llm_provider_config is not None:
                 data.update(llm_provider_config)
 
-            response = await litellm.aretrieve_fine_tuning_job(
+            response = await gateway.aretrieve_fine_tuning_job(
                 **data,
             )
 
@@ -454,7 +454,7 @@ async def list_fine_tuning_jobs(
             if llm_provider_config is not None:
                 data.update(llm_provider_config)
 
-            response = await litellm.alist_fine_tuning_jobs(
+            response = await gateway.alist_fine_tuning_jobs(
                 **data,
                 after=after,
                 limit=limit,
@@ -585,7 +585,7 @@ async def cancel_fine_tuning_job(
             if llm_provider_config is not None:
                 data.update(llm_provider_config)
 
-            response = await litellm.acancel_fine_tuning_job(
+            response = await gateway.acancel_fine_tuning_job(
                 **data,
             )
 

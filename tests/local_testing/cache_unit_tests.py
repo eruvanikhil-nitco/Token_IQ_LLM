@@ -14,7 +14,7 @@ import random
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.caching import Cache
 from token_iq.gateway import completion, embedding
 
@@ -28,7 +28,7 @@ class LLMCachingUnitTests(ABC):
     @pytest.mark.parametrize("sync_mode", [True, False])
     @pytest.mark.asyncio
     async def test_cache_completion(self, sync_mode):
-        litellm._turn_on_debug()
+        gateway._turn_on_debug()
 
         random_number = random.randint(
             1, 100000
@@ -41,7 +41,7 @@ class LLMCachingUnitTests(ABC):
         ]
 
         cache_type = self.get_cache_type()
-        litellm.cache = Cache(
+        gateway.cache = Cache(
             type=cache_type,
         )
 
@@ -54,7 +54,7 @@ class LLMCachingUnitTests(ABC):
                 mock_response="This number is so great!",
             )
         else:
-            response1 = await litellm.acompletion(
+            response1 = await gateway.acompletion(
                 "gpt-3.5-turbo",
                 messages=messages,
                 caching=True,
@@ -74,7 +74,7 @@ class LLMCachingUnitTests(ABC):
                 mock_response="This number is great!",
             )
         else:
-            response2 = await litellm.acompletion(
+            response2 = await gateway.acompletion(
                 "gpt-3.5-turbo",
                 messages=messages,
                 caching=True,
@@ -102,7 +102,7 @@ class LLMCachingUnitTests(ABC):
                 mock_response="This number is awful!",
             )
         else:
-            response3 = await litellm.acompletion(
+            response3 = await gateway.acompletion(
                 "gpt-3.5-turbo",
                 messages=messages,
                 caching=True,
@@ -114,9 +114,9 @@ class LLMCachingUnitTests(ABC):
         print("\nresponse 2", response2)
         print("\nresponse 3", response3)
         # print("\nresponse 4", response4)
-        litellm.cache = None
-        litellm.success_callback = []
-        litellm._async_success_callback = []
+        gateway.cache = None
+        gateway.success_callback = []
+        gateway._async_success_callback = []
 
         # 1 & 2 should be exactly the same
         # 1 & 3 should be different, since input params are diff
@@ -142,13 +142,13 @@ class LLMCachingUnitTests(ABC):
     @pytest.mark.parametrize("sync_mode", [True, False])
     @pytest.mark.asyncio
     async def test_disk_cache_embedding(self, sync_mode):
-        litellm._turn_on_debug()
+        gateway._turn_on_debug()
 
         random_number = random.randint(
             1, 100000
         )  # add a random number to ensure it's always adding / reading from cache
         input = [f"hello {random_number}"]
-        litellm.cache = Cache(
+        gateway.cache = Cache(
             type="disk",
         )
 
@@ -159,7 +159,7 @@ class LLMCachingUnitTests(ABC):
                 caching=True,
             )
         else:
-            response1 = await litellm.aembedding(
+            response1 = await gateway.aembedding(
                 "openai/text-embedding-ada-002",
                 input=input,
                 caching=True,
@@ -175,7 +175,7 @@ class LLMCachingUnitTests(ABC):
                 caching=True,
             )
         else:
-            response2 = await litellm.aembedding(
+            response2 = await gateway.aembedding(
                 "openai/text-embedding-ada-002",
                 input=input,
                 caching=True,
@@ -194,7 +194,7 @@ class LLMCachingUnitTests(ABC):
                 caching=True,
             )
         else:
-            response3 = await litellm.aembedding(
+            response3 = await gateway.aembedding(
                 "openai/text-embedding-ada-002",
                 input=input,
                 caching=True,
@@ -205,9 +205,9 @@ class LLMCachingUnitTests(ABC):
         print("\nresponse 2", response2)
         print("\nresponse 3", response3)
         # print("\nresponse 4", response4)
-        litellm.cache = None
-        litellm.success_callback = []
-        litellm._async_success_callback = []
+        gateway.cache = None
+        gateway.success_callback = []
+        gateway._async_success_callback = []
 
         # 1 & 2 should be exactly the same
         # 1 & 3 should be different, since input params are diff

@@ -7,7 +7,7 @@ import asyncio
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.integrations._types.open_inference import (
     MessageAttributes,
     SpanAttributes,
@@ -394,10 +394,10 @@ async def test_arize_dynamic_params():
     are received inside the callback logger at runtime.
     """
     test_arize_logger = TestArizeLogger()
-    litellm.callbacks = [test_arize_logger]
+    gateway.callbacks = [test_arize_logger]
 
     # Perform a mocked async completion call to trigger logging
-    await litellm.acompletion(
+    await gateway.acompletion(
         model="gpt-4o",
         messages=[{"role": "user", "content": "Basic Request Content"}],
         mock_response="test",

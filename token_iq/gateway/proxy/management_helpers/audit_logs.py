@@ -7,7 +7,7 @@ import json
 from datetime import datetime, timezone
 from typing import Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway._uuid import uuid
 from token_iq.gateway.integrations.custom_logger import CustomLogger
@@ -27,7 +27,7 @@ ALLOW_LITELLM_CHANGED_BY_HEADER_METADATA_KEY: Final = "allow_litellm_changed_by_
 def is_audit_logging_enabled(store_audit_logs: bool | None = None) -> bool:
     from token_iq.gateway.secret_managers.main import get_secret_bool
 
-    configured_value: Final[bool | None] = litellm.store_audit_logs if store_audit_logs is None else store_audit_logs
+    configured_value: Final[bool | None] = gateway.store_audit_logs if store_audit_logs is None else store_audit_logs
     if configured_value is not None:
         return configured_value
 
@@ -73,10 +73,10 @@ def _resolve_audit_log_callback(name: str) -> CustomLogger | None:
         return _audit_log_callback_cache[name]
 
     instance: CustomLogger | None
-    if name == "s3_v2" and getattr(litellm, "s3_audit_callback_params", None) is not None:
+    if name == "s3_v2" and getattr(gateway, "s3_audit_callback_params", None) is not None:
         from token_iq.gateway.integrations.s3_v2 import S3Logger as S3V2Logger
 
-        instance = S3V2Logger(s3_callback_params_override=litellm.s3_audit_callback_params)
+        instance = S3V2Logger(s3_callback_params_override=gateway.s3_audit_callback_params)
     else:
         from token_iq.gateway.core_utils.litellm_logging import (
             _init_custom_logger_compatible_class,
@@ -139,12 +139,12 @@ async def _dispatch_audit_log_to_callbacks(
     request_data: LiteLLM_AuditLogs,
 ) -> None:
     """Dispatch audit log to all registered audit_log_callbacks."""
-    if not litellm.audit_log_callbacks:
+    if not gateway.audit_log_callbacks:
         return
 
     payload: Final = _build_audit_log_payload(request_data)
 
-    for callback in litellm.audit_log_callbacks:
+    for callback in gateway.audit_log_callbacks:
         try:
             resolved: CustomLogger | None = callback if isinstance(callback, CustomLogger) else None
             if isinstance(callback, str):

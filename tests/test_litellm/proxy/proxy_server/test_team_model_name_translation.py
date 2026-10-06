@@ -1421,7 +1421,7 @@ async def test_retrieve_model_by_public_name_returns_200(monkeypatch):
     advertises the public team name, so retrieve must accept the same name,
     resolve it to the internal routing key for lookup, and echo the public name
     back as the model id."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     import token_iq.gateway.proxy.utils as proxy_utils
 
     team_row = _team_row()
@@ -1438,7 +1438,7 @@ async def test_retrieve_model_by_public_name_returns_200(monkeypatch):
         AsyncMock(return_value=["model_name_team-abc-123_4a6b8"]),
     )
     monkeypatch.setattr(
-        litellm, "get_llm_provider", lambda model: (model, "openai", None, None)
+        gateway, "get_llm_provider", lambda model: (model, "openai", None, None)
     )
 
     key = UserAPIKeyAuth(user_id="u", api_key="sk-test", team_models=[])
@@ -1457,7 +1457,7 @@ async def test_retrieve_model_by_internal_name_returns_public_id(monkeypatch):
     public id `/v1/models` advertises for that deployment, not the path. Otherwise
     a client iterating the listing's id and then retrieving each one would observe
     a different id depending on which alias they queried by."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     import token_iq.gateway.proxy.utils as proxy_utils
 
     router = _public_named_router(_team_row())
@@ -1473,7 +1473,7 @@ async def test_retrieve_model_by_internal_name_returns_public_id(monkeypatch):
         AsyncMock(return_value=["model_name_team-abc-123_4a6b8"]),
     )
     monkeypatch.setattr(
-        litellm, "get_llm_provider", lambda model: (model, "openai", None, None)
+        gateway, "get_llm_provider", lambda model: (model, "openai", None, None)
     )
 
     key = UserAPIKeyAuth(user_id="u", api_key="sk-test", team_models=[])
@@ -1490,7 +1490,7 @@ async def test_retrieve_model_by_internal_name_keeps_internal_id_when_flag_disab
 ):
     """With `use_team_public_model_name=false`, retrieve must keep the internal
     routing key as the response id, mirroring `/v1/models`' legacy output."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     import token_iq.gateway.proxy.utils as proxy_utils
 
     router = _public_named_router(_team_row())
@@ -1506,7 +1506,7 @@ async def test_retrieve_model_by_internal_name_keeps_internal_id_when_flag_disab
         AsyncMock(return_value=["model_name_team-abc-123_4a6b8"]),
     )
     monkeypatch.setattr(
-        litellm, "get_llm_provider", lambda model: (model, "openai", None, None)
+        gateway, "get_llm_provider", lambda model: (model, "openai", None, None)
     )
 
     key = UserAPIKeyAuth(user_id="u", api_key="sk-test", team_models=[])
@@ -1521,7 +1521,7 @@ async def test_retrieve_model_by_internal_name_keeps_internal_id_when_flag_disab
 async def test_retrieve_model_by_inaccessible_public_name_404s(monkeypatch):
     """A caller without access to a team model still gets 404 when retrieving by
     its public name; resolution never crosses the access boundary."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     import token_iq.gateway.proxy.utils as proxy_utils
 
     router = _public_named_router(_team_row())
@@ -1537,7 +1537,7 @@ async def test_retrieve_model_by_inaccessible_public_name_404s(monkeypatch):
         AsyncMock(return_value=[]),  # caller has no access
     )
     monkeypatch.setattr(
-        litellm, "get_llm_provider", lambda model: (model, "openai", None, None)
+        gateway, "get_llm_provider", lambda model: (model, "openai", None, None)
     )
 
     key = UserAPIKeyAuth(user_id="u", api_key="sk-test", team_models=[])

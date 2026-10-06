@@ -13,7 +13,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.proxy._types import UserAPIKeyAuth
 from token_iq.gateway.proxy.utils import ProxyLogging
@@ -69,7 +69,7 @@ async def test_streaming_hook_is_async_generator():
     user_api_key_dict = UserAPIKeyAuth(api_key="test_key")
     request_data = {"model": "gpt-4", "messages": []}
 
-    with patch.object(litellm, "callbacks", [callback]):
+    with patch.object(gateway, "callbacks", [callback]):
         # Act
         result = proxy_logging.async_post_call_streaming_iterator_hook(
             response=mock_streaming_response(),
@@ -103,7 +103,7 @@ async def test_streaming_hook_chains_multiple_callbacks():
     user_api_key_dict = UserAPIKeyAuth(api_key="test_key")
     request_data = {"model": "gpt-4", "messages": []}
 
-    with patch.object(litellm, "callbacks", [callback1, callback2]):
+    with patch.object(gateway, "callbacks", [callback1, callback2]):
         # Act
         result = proxy_logging.async_post_call_streaming_iterator_hook(
             response=mock_streaming_response(),
@@ -135,7 +135,7 @@ async def test_streaming_hook_handles_empty_callbacks():
     user_api_key_dict = UserAPIKeyAuth(api_key="test_key")
     request_data = {"model": "gpt-4", "messages": []}
 
-    with patch.object(litellm, "callbacks", []):
+    with patch.object(gateway, "callbacks", []):
         # Act
         result = proxy_logging.async_post_call_streaming_iterator_hook(
             response=mock_streaming_response(),
@@ -173,7 +173,7 @@ async def test_streaming_hook_propagates_callback_errors():
     user_api_key_dict = UserAPIKeyAuth(api_key="test_key")
     request_data = {"model": "gpt-4", "messages": []}
 
-    with patch.object(litellm, "callbacks", [failing_callback]):
+    with patch.object(gateway, "callbacks", [failing_callback]):
         # Act
         result = proxy_logging.async_post_call_streaming_iterator_hook(
             response=mock_streaming_response(),

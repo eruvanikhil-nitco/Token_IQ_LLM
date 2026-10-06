@@ -5,7 +5,7 @@ This is OpenAI compatible - no transformation is applied
 
 from typing import Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 
 class FireworksAIEmbeddingConfig:
@@ -36,8 +36,8 @@ class FireworksAIEmbeddingConfig:
         Fireworks embeddings does not support passing /accounts/fireworks in the model name so we need to know if it's a known embedding model
         """
         if (
-            model in litellm.fireworks_ai_embedding_models
-            or f"fireworks_ai/{model}" in litellm.fireworks_ai_embedding_models
+            model in gateway.fireworks_ai_embedding_models
+            or f"fireworks_ai/{model}" in gateway.fireworks_ai_embedding_models
         ):
             return True
 

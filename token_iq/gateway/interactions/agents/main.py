@@ -2,7 +2,7 @@
 LiteLLM Agents API - Main Module
 
 Usage:
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     # Create
     response = litellm.interactions.agents.create(
@@ -36,7 +36,7 @@ from typing import Any, Final
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.interactions.agents.http_handler import agents_http_handler
 from token_iq.gateway.interactions.agents.utils import get_provider_agents_api_config
 from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
@@ -58,7 +58,7 @@ from token_iq.gateway.utils import client
 def _get_agents_api_config(custom_llm_provider: str):
     config: Final = get_provider_agents_api_config(custom_llm_provider)
     if config is None:
-        raise litellm.BadRequestError(
+        raise gateway.BadRequestError(
             message=(
                 f"Provider '{custom_llm_provider}' does not have a native "
                 "agents API. Use the proxy POST /v1/agents endpoint to store "
@@ -129,7 +129,7 @@ async def acreate(
             return await init_response
         return init_response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=name,
             custom_llm_provider=custom_llm_provider or "gemini",
             original_exception=e,
@@ -190,7 +190,7 @@ def create(
             _is_async=_is_async,
         )
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=name,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -229,7 +229,7 @@ async def alist(
             return await init_response
         return init_response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model="",
             custom_llm_provider=custom_llm_provider or "gemini",
             original_exception=e,
@@ -263,7 +263,7 @@ def list(
             _is_async=_is_async,
         )
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model="",
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -304,7 +304,7 @@ async def aget(
             return await init_response
         return init_response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=name,
             custom_llm_provider=custom_llm_provider or "gemini",
             original_exception=e,
@@ -340,7 +340,7 @@ def get(
             _is_async=_is_async,
         )
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=name,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -381,7 +381,7 @@ async def adelete(
             return await init_response
         return init_response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=name,
             custom_llm_provider=custom_llm_provider or "gemini",
             original_exception=e,
@@ -417,7 +417,7 @@ def delete(
             _is_async=_is_async,
         )
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=name,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -458,7 +458,7 @@ async def alist_versions(
             return await init_response
         return init_response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=name,
             custom_llm_provider=custom_llm_provider or "gemini",
             original_exception=e,
@@ -494,7 +494,7 @@ def list_versions(
             _is_async=_is_async,
         )
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=name,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,

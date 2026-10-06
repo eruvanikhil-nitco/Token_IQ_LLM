@@ -44,11 +44,11 @@ def test_should_register_rate_limit_label_names_on_enum():
 
 
 def test_should_include_rate_limit_labels_on_failed_requests_metric():
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    original = litellm.prometheus_emit_rate_limit_labels
+    original = gateway.prometheus_emit_rate_limit_labels
     try:
-        litellm.prometheus_emit_rate_limit_labels = True
+        gateway.prometheus_emit_rate_limit_labels = True
         labels = PrometheusMetricLabels.get_labels(
             "litellm_proxy_failed_requests_metric"
         )
@@ -58,16 +58,16 @@ def test_should_include_rate_limit_labels_on_failed_requests_metric():
         assert "exception_class" in labels
         assert "exception_status" in labels
     finally:
-        litellm.prometheus_emit_rate_limit_labels = original
+        gateway.prometheus_emit_rate_limit_labels = original
 
 
 def test_should_omit_rate_limit_labels_by_default_for_back_compat():
     """Default-off preserves the metric's historical label set so existing
     dashboards / recording rules keyed on `litellm_proxy_failed_requests_metric`
     keep matching after upgrade."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    assert litellm.prometheus_emit_rate_limit_labels is False
+    assert gateway.prometheus_emit_rate_limit_labels is False
     labels = PrometheusMetricLabels.get_labels("litellm_proxy_failed_requests_metric")
     assert "rate_limit_category" not in labels
     assert "rate_limit_type" not in labels
@@ -125,9 +125,9 @@ def test_should_extract_budget_dimension_for_budget_exceeded_error():
     # the same `.category` / `.rate_limit_type` attributes as the unified
     # RateLimitError path so Prometheus can split budget 429s from other
     # 429s without the customer parsing free-text error messages.
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    err = litellm.BudgetExceededError(current_cost=0.5, max_budget=0.1)
+    err = gateway.BudgetExceededError(current_cost=0.5, max_budget=0.1)
     category, rate_limit_type = PrometheusLogger._extract_rate_limit_labels(err)
     assert category == "litellm_rate_limit"
     assert rate_limit_type == "budget"

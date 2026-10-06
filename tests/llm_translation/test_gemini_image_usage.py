@@ -8,7 +8,7 @@ was returning usage=0 while completion() returned proper token usage.
 import os
 import pytest
 from unittest.mock import patch, MagicMock
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.gemini.image_generation.transformation import GoogleImageGenConfig
 from token_iq.gateway.types.utils import ImageResponse, ImageObject, ImageUsage
 
@@ -68,7 +68,7 @@ def test_gemini_image_generation_usage_metadata(model_name: str):
         mock_post.return_value = mock_http_response
 
         # Call image_generation
-        response = litellm.image_generation(
+        response = gateway.image_generation(
             model=model_name,
             prompt="A cute baby sea otter eating a cute baby spinach with cute starry cereals dressing",
             api_key="test_api_key",
@@ -173,7 +173,7 @@ def test_gemini_image_generation_without_usage_metadata():
         mock_post.return_value = mock_http_response
 
         # Call image_generation
-        response = litellm.image_generation(
+        response = gateway.image_generation(
             model="gemini/gemini-3-pro-image-preview",
             prompt="Test prompt",
             api_key="test_api_key",
@@ -212,7 +212,7 @@ def test_gemini_imagen_models_no_usage_extraction():
         mock_post.return_value = mock_http_response
 
         # Call image_generation with an Imagen model
-        response = litellm.image_generation(
+        response = gateway.image_generation(
             model="gemini/imagen-3.0-generate-001",
             prompt="Test prompt",
             api_key="test_api_key",
@@ -233,10 +233,10 @@ def test_gemini_image_generation_accumulates_multiple_image_prompt_token_details
     These must be accumulated instead of overwritten.
     """
     previous_local_model_cost_map = os.environ.get("LITELLM_LOCAL_MODEL_COST_MAP")
-    previous_model_cost = litellm.model_cost
+    previous_model_cost = gateway.model_cost
     try:
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-        litellm.model_cost = litellm.get_model_cost_map()
+        gateway.model_cost = gateway.get_model_cost_map()
 
         model = "gemini/gemini-3-pro-image-preview"
         config = GoogleImageGenConfig()
@@ -258,13 +258,13 @@ def test_gemini_image_generation_accumulates_multiple_image_prompt_token_details
             usage=parsed_usage,
         )
 
-        observed_cost = litellm.completion_cost(
+        observed_cost = gateway.completion_cost(
             completion_response=image_response,
             model=model,
             custom_llm_provider="gemini",
         )
 
-        model_info = litellm.get_model_info(model=model, custom_llm_provider="gemini")
+        model_info = gateway.get_model_info(model=model, custom_llm_provider="gemini")
         expected_image_tokens = 190
         expected_total_prompt_tokens = 200
         expected_prompt_cost = (
@@ -279,4 +279,4 @@ def test_gemini_image_generation_accumulates_multiple_image_prompt_token_details
             os.environ.pop("LITELLM_LOCAL_MODEL_COST_MAP", None)
         else:
             os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = previous_local_model_cost_map
-        litellm.model_cost = previous_model_cost
+        gateway.model_cost = previous_model_cost

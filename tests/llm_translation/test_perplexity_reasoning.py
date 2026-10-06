@@ -5,7 +5,7 @@ from unittest.mock import patch, MagicMock
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import completion
 from token_iq.gateway.utils import get_optional_params
 
@@ -34,10 +34,10 @@ class TestPerplexityReasoning:
         """
         # Set up local model cost map
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-        litellm.model_cost = litellm.get_model_cost_map()
+        gateway.model_cost = gateway.get_model_cost_map()
 
         # Get provider and optional params
-        _, provider, _, _ = litellm.get_llm_provider(model=model)
+        _, provider, _, _ = gateway.get_llm_provider(model=model)
 
         optional_params = get_optional_params(
             model=model,
@@ -63,7 +63,7 @@ class TestPerplexityReasoning:
         from openai import OpenAI
         from openai.types.chat.chat_completion import ChatCompletion
 
-        litellm.set_verbose = True
+        gateway.set_verbose = True
 
         # Mock successful response with reasoning content
         response_object = {
@@ -144,7 +144,7 @@ class TestPerplexityReasoning:
 
         # Set up local model cost map
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-        litellm.model_cost = litellm.get_model_cost_map()
+        gateway.model_cost = gateway.get_model_cost_map()
 
         reasoning_models = [
             "perplexity/sonar-reasoning",
@@ -162,7 +162,7 @@ class TestPerplexityReasoning:
 
         # Set up local model cost map
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-        litellm.model_cost = litellm.get_model_cost_map()
+        gateway.model_cost = gateway.get_model_cost_map()
 
         non_reasoning_models = [
             "perplexity/sonar",

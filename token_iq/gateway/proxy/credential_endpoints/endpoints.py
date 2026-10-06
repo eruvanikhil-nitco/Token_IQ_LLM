@@ -12,7 +12,7 @@ from typing import (
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Request, Response
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.core_utils.credential_accessor import CredentialAccessor
 from token_iq.gateway.core_utils.litellm_logging import _get_masked_values
@@ -205,7 +205,7 @@ async def get_credentials(
                 "credential_values": _get_masked_values(credential.credential_values),
                 "credential_info": credential.credential_info,
             }
-            for credential in litellm.credential_list
+            for credential in gateway.credential_list
             # Billing credentials are left out rather than emptied. This list feeds the pages that
             # attach a credential to a model deployment, and an organisation admin key that reads a
             # whole account's costs must never be offered there. The billing pages read
@@ -238,7 +238,7 @@ async def get_credential_by_name(
     from token_iq.gateway.proxy.proxy_server import prisma_client
 
     try:
-        for credential in litellm.credential_list:
+        for credential in gateway.credential_list:
             if credential.credential_name == credential_name:
                 is_admin, administered_teams = await _caller_scope(user_api_key_dict, prisma_client)
                 if not may_read_credential(
@@ -348,7 +348,7 @@ async def delete_credential(
         await credentials_repository.delete_by_name(credential_name)
 
         ## DELETE FROM LITELLM ##
-        litellm.credential_list = [cred for cred in litellm.credential_list if cred.credential_name != credential_name]
+        gateway.credential_list = [cred for cred in gateway.credential_list if cred.credential_name != credential_name]
         return {"success": True, "message": "Credential deleted successfully"}
     except Exception as e:
         raise handle_exception_on_proxy(e)
@@ -472,7 +472,7 @@ async def update_credential(
         # Sync in-memory credential_list (skip if not in memory - e.g., proxy restarted)
         new_name: Final = merged_credential.credential_name
         existing_in_memory: CredentialItem | None = None
-        for cred in litellm.credential_list:
+        for cred in gateway.credential_list:
             if cred.credential_name == credential_name:
                 existing_in_memory = cred
                 break
@@ -491,7 +491,7 @@ async def update_credential(
             )
             # Remove old entry if renamed, then use upsert_credentials to handle duplicates
             if new_name != credential_name:
-                litellm.credential_list = [c for c in litellm.credential_list if c.credential_name != credential_name]
+                gateway.credential_list = [c for c in gateway.credential_list if c.credential_name != credential_name]
             CredentialAccessor.upsert_credentials([updated_in_memory])
 
         return {"success": True, "message": "Credential updated successfully"}

@@ -7,7 +7,7 @@ from typing import Any, Dict, Optional
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.types.rag import RAGIngestOptions, OpenAIVectorStoreOptions
 from tests.vector_store_tests.rag.base_rag_tests import BaseRAGTest
 
@@ -29,7 +29,7 @@ class TestRAGOpenAI(BaseRAGTest):
         query: str,
     ) -> Optional[Dict[str, Any]]:
         """Query OpenAI vector store."""
-        search_response = await litellm.vector_stores.asearch(
+        search_response = await gateway.vector_stores.asearch(
             vector_store_id=vector_store_id,
             query=query,
             custom_llm_provider="openai",
@@ -44,7 +44,7 @@ class TestRAGOpenAI(BaseRAGTest):
         """Test basic RAG query flow."""
         import asyncio
 
-        litellm._turn_on_debug()
+        gateway._turn_on_debug()
 
         # First ingest a document
         filename, unique_id = self.get_unique_filename("rag_query")
@@ -52,7 +52,7 @@ class TestRAGOpenAI(BaseRAGTest):
             f"LiteLLM is a unified interface for 100+ LLMs. ID: {unique_id}".encode()
         )
 
-        ingest_response = await litellm.rag.aingest(
+        ingest_response = await gateway.rag.aingest(
             ingest_options=self.get_base_ingest_options(),
             file_data=(filename, text_content, "text/plain"),
         )
@@ -71,7 +71,7 @@ class TestRAGOpenAI(BaseRAGTest):
         await asyncio.sleep(10)
 
         # Query with RAG
-        response = await litellm.rag.aquery(
+        response = await gateway.rag.aquery(
             model="gpt-4o-mini",
             messages=[{"role": "user", "content": "What is LiteLLM?"}],
             retrieval_config={
@@ -91,7 +91,7 @@ class TestRAGOpenAI(BaseRAGTest):
         """Test RAG query with reranking."""
         import asyncio
 
-        litellm._turn_on_debug()
+        gateway._turn_on_debug()
 
         # First ingest a document
         filename, unique_id = self.get_unique_filename("rag_query_rerank")
@@ -99,7 +99,7 @@ class TestRAGOpenAI(BaseRAGTest):
             f"LiteLLM is a unified interface for 100+ LLMs. ID: {unique_id}".encode()
         )
 
-        ingest_response = await litellm.rag.aingest(
+        ingest_response = await gateway.rag.aingest(
             ingest_options=self.get_base_ingest_options(),
             file_data=(filename, text_content, "text/plain"),
         )
@@ -118,7 +118,7 @@ class TestRAGOpenAI(BaseRAGTest):
         await asyncio.sleep(10)
 
         # Query with RAG and rerank
-        response = await litellm.rag.aquery(
+        response = await gateway.rag.aquery(
             model="gpt-4o-mini",
             messages=[{"role": "user", "content": "What is LiteLLM?"}],
             retrieval_config={

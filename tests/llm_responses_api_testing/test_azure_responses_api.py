@@ -3,7 +3,7 @@ import pytest
 import asyncio
 from unittest.mock import patch, AsyncMock
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.integrations.custom_logger import CustomLogger
 import json
 from token_iq.gateway.types.utils import StandardLoggingPayload
@@ -33,8 +33,8 @@ async def test_azure_responses_api_preview_api_version():
     """
     Ensure new azure preview api version is working
     """
-    litellm._turn_on_debug()
-    response = await litellm.aresponses(
+    gateway._turn_on_debug()
+    response = await gateway.aresponses(
         model="azure/gpt-5-mini",
         truncation="auto",
         api_version="preview",
@@ -134,7 +134,7 @@ async def test_azure_responses_api_status_error():
     from unittest.mock import patch
 
     with patch.object(AsyncHTTPHandler, "post", new=mock_post):
-        response = await litellm.aresponses(
+        response = await gateway.aresponses(
             model="azure/computer-use-preview",
             truncation="auto",
             api_version="preview",
@@ -233,7 +233,7 @@ async def test_azure_responses_api_headers_with_llm_provider_prefix():
         return response
 
     with patch.object(AsyncHTTPHandler, "post", new=mock_post):
-        response = await litellm.aresponses(
+        response = await gateway.aresponses(
             model="azure/gpt-5-codex",
             api_version="2025-03-01-preview",
             api_base="https://test.openai.azure.com",

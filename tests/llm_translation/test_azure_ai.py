@@ -8,9 +8,9 @@ import traceback
 from dotenv import load_dotenv
 
 import token_iq.gateway.types
-from token_iq import gateway as litellm
+from token_iq import gateway
 import token_iq.gateway.types.utils
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.anthropic.chat import ModelResponseIterator
 import httpx
 import json
@@ -26,7 +26,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import completion
 from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.types.utils import StandardLoggingPayload
@@ -57,13 +57,13 @@ async def test_azure_ai_with_image_url():
     """
     from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler
 
-    litellm.set_verbose = True
+    gateway.set_verbose = True
 
     client = AsyncHTTPHandler()
 
     with patch.object(client, "post") as mock_client:
         try:
-            await litellm.acompletion(
+            await gateway.acompletion(
                 model="azure_ai/Phi-3-5-vision-instruct-dcvov",
                 api_base="https://Phi-3-5-vision-instruct-dcvov.eastus2.models.ai.azure.com",
                 messages=[
@@ -137,13 +137,13 @@ async def test_azure_ai_with_image_url():
 def test_azure_ai_services_handler(api_base, expected_url):
     from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
-    litellm.set_verbose = True
+    gateway.set_verbose = True
 
     client = HTTPHandler()
 
     with patch.object(client, "post") as mock_client:
         try:
-            response = litellm.completion(
+            response = gateway.completion(
                 model="azure_ai/Meta-Llama-3.1-70B-Instruct",
                 messages=[{"role": "user", "content": "Hello, how are you?"}],
                 api_key="my-fake-api-key",
@@ -168,7 +168,7 @@ def test_azure_ai_services_with_api_version():
 
     with patch.object(client, "post") as mock_client:
         try:
-            response = litellm.completion(
+            response = gateway.completion(
                 model="azure_ai/Meta-Llama-3.1-70B-Instruct",
                 messages=[{"role": "user", "content": "Hello, how are you?"}],
                 api_key="my-fake-api-key",
@@ -216,7 +216,7 @@ def test_azure_deepseek_reasoning_content():
         mock_response.json = lambda: json.loads(mock_response.text)
         mock_post.return_value = mock_response
 
-        response = litellm.completion(
+        response = gateway.completion(
             model="azure_ai/deepseek-r1",
             messages=[{"role": "user", "content": "Hello, world!"}],
             api_base="https://litellm8397336933.services.ai.azure.com/models/chat/completions",
@@ -250,7 +250,7 @@ async def test_azure_ai_request_format():
     """
     from openai import AsyncAzureOpenAI, AzureOpenAI
 
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
 
     # Set up the test parameters
     api_key = os.getenv("AZURE_AI_API_KEY")
@@ -262,7 +262,7 @@ async def test_azure_ai_request_format():
         {"role": "user", "content": "hi"},
     ]
 
-    await litellm.acompletion(
+    await gateway.acompletion(
         custom_llm_provider="azure_ai",
         api_key=api_key,
         api_base=api_base,
@@ -274,8 +274,8 @@ async def test_azure_ai_request_format():
 @pytest.mark.asyncio
 @pytest.mark.parametrize("model", ["azure/gpt5_series/gpt-5-mini", "azure/gpt-5-mini"])
 async def test_azure_gpt5_reasoning(model):
-    litellm._turn_on_debug()
-    response = await litellm.acompletion(
+    gateway._turn_on_debug()
+    response = await gateway.acompletion(
         model=model,
         messages=[{"role": "user", "content": "What is the capital of France?"}],
         reasoning_effort="minimal",
@@ -291,7 +291,7 @@ def test_completion_azure():
     try:
         from token_iq.gateway import completion_cost
 
-        litellm.set_verbose = False
+        gateway.set_verbose = False
         ## Test azure call
         response = completion(
             model="azure_ai/gpt-4.1-mini",
@@ -324,7 +324,7 @@ def test_completion_azure():
 )
 def test_completion_azure_ai_gpt_4o_with_flexible_api_base(api_base):
     try:
-        litellm.set_verbose = True
+        gateway.set_verbose = True
 
         response = completion(
             model="azure_ai/gpt-4.1-mini",
@@ -334,7 +334,7 @@ def test_completion_azure_ai_gpt_4o_with_flexible_api_base(api_base):
         )
 
         print(response)
-    except litellm.Timeout as e:
+    except gateway.Timeout as e:
         pass
     except Exception as e:
         pytest.fail(f"Error occurred: {e}")
@@ -354,8 +354,8 @@ async def test_azure_ai_model_router():
         calculate_azure_model_router_flat_cost,
     )
 
-    litellm._turn_on_debug()
-    response = await litellm.acompletion(
+    gateway._turn_on_debug()
+    response = await gateway.acompletion(
         model="azure_ai/model_router/azure-model-router",
         messages=[{"role": "user", "content": "hi who is this"}],
         api_base=os.getenv("AZURE_MODEL_ROUTER_API_BASE"),
@@ -393,8 +393,8 @@ async def test_azure_ai_model_router_streaming_model_in_chunk():
     Test that Azure AI model router streaming returns the actual model in each chunk.
     The response should contain the actual model used (e.g., gpt-4.1-nano) not the request model (azure-model-router).
     """
-    litellm._turn_on_debug()
-    response = await litellm.acompletion(
+    gateway._turn_on_debug()
+    response = await gateway.acompletion(
         model="azure_ai/azure-model-router",
         messages=[{"role": "user", "content": "hi"}],
         api_base=os.getenv("AZURE_MODEL_ROUTER_API_BASE"),
@@ -425,7 +425,7 @@ async def test_azure_ai_model_router_streaming_model_in_chunk():
 
 
 class AzureModelRouterStreamingCallback(
-    litellm.integrations.custom_logger.CustomLogger
+    gateway.integrations.custom_logger.CustomLogger
 ):
     """
     Custom callback to capture streaming cost tracking for Azure Model Router.
@@ -466,13 +466,13 @@ async def test_azure_ai_model_router_streaming_cost_with_stream_options():
     Test Azure AI model router streaming cost tracking with stream_options include_usage=True.
     This tests the specific case where cost tracking fails with stream_options.
     """
-    litellm.logging_callback_manager._reset_all_callbacks()
+    gateway.logging_callback_manager._reset_all_callbacks()
     test_callback = AzureModelRouterStreamingCallback()
-    litellm.callbacks = [test_callback]
+    gateway.callbacks = [test_callback]
 
     try:
-        litellm._turn_on_debug()
-        response = await litellm.acompletion(
+        gateway._turn_on_debug()
+        response = await gateway.acompletion(
             model="azure_ai/azure-model-router",
             messages=[{"role": "user", "content": "hi"}],
             api_base=os.getenv("AZURE_MODEL_ROUTER_API_BASE"),
@@ -539,5 +539,5 @@ async def test_azure_ai_model_router_streaming_cost_with_stream_options():
         )
 
     finally:
-        litellm.logging_callback_manager._reset_all_callbacks()
-        litellm.callbacks = []
+        gateway.logging_callback_manager._reset_all_callbacks()
+        gateway.callbacks = []

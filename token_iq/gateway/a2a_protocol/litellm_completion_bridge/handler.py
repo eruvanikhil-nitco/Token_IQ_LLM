@@ -13,7 +13,7 @@ A2A Streaming Events (in order):
 from collections.abc import AsyncIterator, Callable, Coroutine, Mapping
 from typing import Any, Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.a2a_protocol.litellm_completion_bridge.transformation import (
     A2ACompletionBridgeTransformation,
@@ -111,7 +111,7 @@ class A2ACompletionBridgeHandler:
     @staticmethod
     async def _acompletion(completion_params: Mapping[str, object]) -> ModelResponse | CustomStreamWrapper:
         acompletion_fn: Final[Callable[..., Coroutine[object, object, ModelResponse | CustomStreamWrapper]]] = vars(
-            litellm
+            gateway
         )["acompletion"]
         return await acompletion_fn(**completion_params)
 

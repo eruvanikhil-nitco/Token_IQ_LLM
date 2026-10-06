@@ -23,7 +23,7 @@ import pytest
 from fastapi import Response
 from fastapi.responses import StreamingResponse
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.constants import RETURN_RAW_MODEL_NAME_METADATA_KEY
 import token_iq.gateway.proxy.proxy_server as ps
 from token_iq.gateway.proxy._types import UserAPIKeyAuth
@@ -1239,20 +1239,20 @@ def test_resolve_keepalive_seconds_global_default_applies_when_unconfigured(monk
     global default: it applies when neither the serving deployment nor the
     request supplies keepalive_seconds, including proxies with no router at
     all."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     monkeypatch.setattr(ps, "llm_router", None)
-    monkeypatch.setattr(litellm, "sse_keepalive_ping_interval_seconds", 15.0)
+    monkeypatch.setattr(gateway, "sse_keepalive_ping_interval_seconds", 15.0)
 
     result = _resolve_keepalive_seconds({}, response=None)
     assert result == 15.0
 
 
 def test_resolve_keepalive_seconds_global_default_is_clamped(monkeypatch):
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     monkeypatch.setattr(ps, "llm_router", None)
-    monkeypatch.setattr(litellm, "sse_keepalive_ping_interval_seconds", 900.0)
+    monkeypatch.setattr(gateway, "sse_keepalive_ping_interval_seconds", 900.0)
 
     result = _resolve_keepalive_seconds({}, response=None)
     assert result == _KEEPALIVE_MAX_SECONDS
@@ -1265,7 +1265,7 @@ def test_resolve_keepalive_seconds_deployment_zero_beats_global_default(monkeypa
     comes with them) for a deployment the operator opted out of."""
     from unittest.mock import MagicMock
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     deployment = MagicMock()
     deployment.litellm_params.keepalive_seconds = 0
@@ -1275,7 +1275,7 @@ def test_resolve_keepalive_seconds_deployment_zero_beats_global_default(monkeypa
     router.get_deployment.return_value = deployment
 
     monkeypatch.setattr(ps, "llm_router", router)
-    monkeypatch.setattr(litellm, "sse_keepalive_ping_interval_seconds", 15.0)
+    monkeypatch.setattr(gateway, "sse_keepalive_ping_interval_seconds", 15.0)
 
     response = MagicMock()
     response._hidden_params = {"model_id": "deploy-disabled"}
@@ -1287,7 +1287,7 @@ def test_resolve_keepalive_seconds_deployment_zero_beats_global_default(monkeypa
 def test_resolve_keepalive_seconds_deployment_value_beats_global_default(monkeypatch):
     from unittest.mock import MagicMock
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     deployment = MagicMock()
     deployment.litellm_params.keepalive_seconds = 30.0
@@ -1297,7 +1297,7 @@ def test_resolve_keepalive_seconds_deployment_value_beats_global_default(monkeyp
     router.get_deployment.return_value = deployment
 
     monkeypatch.setattr(ps, "llm_router", router)
-    monkeypatch.setattr(litellm, "sse_keepalive_ping_interval_seconds", 15.0)
+    monkeypatch.setattr(gateway, "sse_keepalive_ping_interval_seconds", 15.0)
 
     response = MagicMock()
     response._hidden_params = {"model_id": "deploy-tuned"}
@@ -1621,12 +1621,12 @@ async def test_async_data_generator_emits_ping_heartbeat_from_global_default_wit
     interval."""
     import asyncio
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     _patch_logging_flags(monkeypatch)
     monkeypatch.setattr(ps, "_KEEPALIVE_MIN_SECONDS", 0.05)
     monkeypatch.setattr(ps, "llm_router", None)
-    monkeypatch.setattr(litellm, "sse_keepalive_ping_interval_seconds", 0.05)
+    monkeypatch.setattr(gateway, "sse_keepalive_ping_interval_seconds", 0.05)
 
     async def _slow_response():
         yield _simple_chunk(content="hello")
@@ -1729,7 +1729,7 @@ class _SlowAssistantsStream(_FakeAssistantsStream):
 
 
 async def _run_thread_streaming(monkeypatch, interval, delay=0.3, fails_with=None):
-    monkeypatch.setattr(litellm, "sse_keepalive_ping_interval_seconds", interval)
+    monkeypatch.setattr(gateway, "sse_keepalive_ping_interval_seconds", interval)
 
     router = MagicMock()
     router.get_model_list.return_value = []

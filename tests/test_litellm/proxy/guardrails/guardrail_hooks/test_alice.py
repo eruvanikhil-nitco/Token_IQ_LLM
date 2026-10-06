@@ -7,7 +7,7 @@ import httpx
 import pytest
 from httpx import Request, Response
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.exceptions import GuardrailRaisedException
 from token_iq.gateway.proxy.guardrails.guardrail_hooks.alice.alice import (
     GUARDRAIL_NAME,
@@ -34,7 +34,7 @@ def _verdict(payload: dict[str, object], status_code: int = 200) -> Response:
 
 def test_alice_guardrail_config(monkeypatch: pytest.MonkeyPatch):
     """Should register through init_guardrails_v2 like any other provider."""
-    monkeypatch.setattr(litellm, "guardrail_name_config_map", {})
+    monkeypatch.setattr(gateway, "guardrail_name_config_map", {})
     monkeypatch.setenv("ALICE_API_KEY", "test-key")
 
     init_guardrails_v2(
@@ -47,7 +47,7 @@ def test_alice_guardrail_config(monkeypatch: pytest.MonkeyPatch):
         config_file_path="",
     )
 
-    registered = [cb for cb in litellm.callbacks if isinstance(cb, AliceGuardrail)]
+    registered = [cb for cb in gateway.callbacks if isinstance(cb, AliceGuardrail)]
     assert len(registered) == 1
     assert registered[0].guardrail_name == "alice"
 
@@ -424,7 +424,7 @@ class TestAliceTransportFailures:
     async def test_a_timeout_is_unreachable(self):
         guardrail = _guardrail()
         guardrail.async_handler.post = AsyncMock(
-            side_effect=litellm.exceptions.Timeout(message="slow", model="gpt-4o", llm_provider="openai")
+            side_effect=gateway.exceptions.Timeout(message="slow", model="gpt-4o", llm_provider="openai")
         )
 
         with pytest.raises(GuardrailRaisedException, match="unavailable"):

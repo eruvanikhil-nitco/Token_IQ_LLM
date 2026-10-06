@@ -10,7 +10,7 @@ import respx
 from jsonschema import validate
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._internal_context import is_internal_call
 from token_iq.gateway._logging import (
     CorrelationContextFilter,
@@ -111,10 +111,10 @@ def test_get_model_info_surfaces_supports_adaptive_thinking(local_model_cost_map
     in the JSON but was never declared on ModelInfo nor copied during construction, so
     get_model_info (and _supports_factory) silently dropped it for any provider-prefixed
     or unmapped name."""
-    explicit = litellm.get_model_info(model="claude-opus-4-8")
+    explicit = gateway.get_model_info(model="claude-opus-4-8")
     assert explicit["supports_adaptive_thinking"] is True
 
-    generalized = litellm.get_model_info(
+    generalized = gateway.get_model_info(
         model="claude-opus-4-9", custom_llm_provider="anthropic"
     )
     assert generalized["supports_adaptive_thinking"] is True
@@ -126,13 +126,13 @@ def test_get_model_info_surfaces_supports_parallel_function_calling(local_model_
     and litellm.supports_parallel_function_calling. Regression: the key was never copied into
     ModelInfo, so provider-prefixed entries read None / False even when the map said True, and an
     explicit False was indistinguishable from unset."""
-    declared_true = litellm.get_model_info(model="together_ai/zai-org/GLM-5.3-Flash")
+    declared_true = gateway.get_model_info(model="together_ai/zai-org/GLM-5.3-Flash")
     assert declared_true["supports_parallel_function_calling"] is True
-    assert litellm.supports_parallel_function_calling(model="together_ai/zai-org/GLM-5.3-Flash") is True
+    assert gateway.supports_parallel_function_calling(model="together_ai/zai-org/GLM-5.3-Flash") is True
 
-    declared_false = litellm.get_model_info(model="o3-mini")
+    declared_false = gateway.get_model_info(model="o3-mini")
     assert declared_false["supports_parallel_function_calling"] is False
-    assert litellm.supports_parallel_function_calling(model="o3-mini") is False
+    assert gateway.supports_parallel_function_calling(model="o3-mini") is False
 
 
 def test_get_model_info_surfaces_supported_endpoints(local_model_cost_map):
@@ -140,7 +140,7 @@ def test_get_model_info_surfaces_supported_endpoints(local_model_cost_map):
     but the constructor never copied it, so get_model_info always returned None.
     The realtime health check reads it to spot GA-only transcription models
     (LIT-6240)."""
-    info = litellm.get_model_info(model="gpt-realtime-whisper", custom_llm_provider="azure")
+    info = gateway.get_model_info(model="gpt-realtime-whisper", custom_llm_provider="azure")
     assert info["supported_endpoints"] == ["/v1/realtime", "/v1/realtime/transcription_sessions"]
 
 
@@ -176,9 +176,9 @@ def test_get_model_info_resolves_provider_prefixed_model_ids(local_model_cost_ma
         ("perplexity/perplexity/deepseek-v4-flash-0731", True),
         ("perplexity/perplexity/kimi-k2.7-code", False),
     ):
-        assert litellm.supports_reasoning(model=model) is reasoning, model
+        assert gateway.supports_reasoning(model=model) is reasoning, model
 
-    via_provider = litellm.get_model_info(
+    via_provider = gateway.get_model_info(
         model="perplexity/glm-5.2", custom_llm_provider="perplexity"
     )
     assert via_provider["key"] == "perplexity/perplexity/glm-5.2"
@@ -192,12 +192,12 @@ def test_provider_prefixed_lookup_never_outranks_an_existing_row(local_model_cos
     already existed, so no model that resolves today can change answer. `perplexity/sonar`
     is the case that proves it: both `perplexity/sonar` and `perplexity/perplexity/sonar`
     are cost-map keys, and the shorter one must keep winning."""
-    sonar = litellm.get_model_info(model="sonar", custom_llm_provider="perplexity")
+    sonar = gateway.get_model_info(model="sonar", custom_llm_provider="perplexity")
     assert sonar["key"] == "perplexity/sonar"
     assert sonar["mode"] == "chat"
     assert sonar["input_cost_per_token"] == 1e-06
 
-    still_sonar = litellm.get_model_info(
+    still_sonar = gateway.get_model_info(
         model="perplexity/sonar", custom_llm_provider="perplexity"
     )
     assert still_sonar["key"] == "perplexity/sonar"
@@ -209,7 +209,7 @@ def test_provider_prefixed_lookup_never_outranks_an_existing_row(local_model_cos
         ("gemini/gemini-2.0-flash", "gemini", "gemini/gemini-2.0-flash"),
         ("openrouter/openai/gpt-4o", "openrouter", "openrouter/openai/gpt-4o"),
     ):
-        assert litellm.get_model_info(model=model, custom_llm_provider=provider)["key"] == expected_key
+        assert gateway.get_model_info(model=model, custom_llm_provider=provider)["key"] == expected_key
 
 
 def test_check_provider_match_azure_ai_allows_openai_and_azure():
@@ -273,9 +273,9 @@ def test_check_provider_match_github_allows_upstream_provider_metadata():
 
 
 def test_supports_function_calling_github_openai_alias():
-    assert litellm.utils.supports_function_calling(model="github/gpt-4o-mini") is True
+    assert gateway.utils.supports_function_calling(model="github/gpt-4o-mini") is True
     assert (
-        litellm.utils.supports_function_calling(
+        gateway.utils.supports_function_calling(
             model="gpt-4o-mini", custom_llm_provider="github"
         )
         is True
@@ -284,7 +284,7 @@ def test_supports_function_calling_github_openai_alias():
 
 def test_supports_function_calling_github_anthropic_alias():
     assert (
-        litellm.utils.supports_function_calling(
+        gateway.utils.supports_function_calling(
             model="github/claude-3-7-sonnet-20250219"
         )
         is True
@@ -297,7 +297,7 @@ def test_supports_function_calling_deepinfra_llama():
     Regression test for https://github.com/BerriAI/litellm/issues/22619
     """
     assert (
-        litellm.utils.supports_function_calling(
+        gateway.utils.supports_function_calling(
             model="deepinfra/meta-llama/Llama-3.3-70B-Instruct-Turbo"
         )
         is True
@@ -306,7 +306,7 @@ def test_supports_function_calling_deepinfra_llama():
 
 def test_supports_function_calling_unknown_github_alias_returns_false():
     assert (
-        litellm.utils.supports_function_calling(
+        gateway.utils.supports_function_calling(
             model="github/non-existent-model-for-capability-check"
         )
         is False
@@ -380,7 +380,7 @@ def test_get_optional_params_image_gen_filters_empty_values():
 
 def test_gpt_image_provider_detection_covers_existing_family():
     for image_model in ("gpt-image-1", "gpt-image-1-mini", "gpt-image-1.5"):
-        model, custom_llm_provider, _, _ = litellm.get_llm_provider(model=image_model)
+        model, custom_llm_provider, _, _ = gateway.get_llm_provider(model=image_model)
 
         assert model == image_model
         assert custom_llm_provider == "openai"
@@ -388,12 +388,12 @@ def test_gpt_image_provider_detection_covers_existing_family():
 
 def test_gpt_image_2_provider_and_model_info(local_model_cost_map):
 
-    model, custom_llm_provider, _, _ = litellm.get_llm_provider(model="gpt-image-2")
+    model, custom_llm_provider, _, _ = gateway.get_llm_provider(model="gpt-image-2")
 
     assert model == "gpt-image-2"
     assert custom_llm_provider == "openai"
 
-    model_info = litellm.get_model_info(model="gpt-image-2")
+    model_info = gateway.get_model_info(model="gpt-image-2")
     assert model_info["litellm_provider"] == "openai"
     assert model_info["mode"] == "image_generation"
     assert model_info["input_cost_per_token"] == 5e-06
@@ -402,38 +402,38 @@ def test_gpt_image_2_provider_and_model_info(local_model_cost_map):
     assert model_info["output_cost_per_image_token"] == 3e-05
     assert (
         "/v1/images/generations"
-        in litellm.model_cost["gpt-image-2"]["supported_endpoints"]
+        in gateway.model_cost["gpt-image-2"]["supported_endpoints"]
     )
     assert (
-        "/v1/images/edits" in litellm.model_cost["gpt-image-2"]["supported_endpoints"]
+        "/v1/images/edits" in gateway.model_cost["gpt-image-2"]["supported_endpoints"]
     )
     assert model_info["supports_vision"] is True
     assert model_info["supports_pdf_input"] is True
 
 
 def test_gpt_image_2_snapshot_model_info(local_model_cost_map):
-    model, custom_llm_provider, _, _ = litellm.get_llm_provider(
+    model, custom_llm_provider, _, _ = gateway.get_llm_provider(
         model="gpt-image-2-2026-04-21"
     )
 
     assert model == "gpt-image-2-2026-04-21"
     assert custom_llm_provider == "openai"
 
-    model_info = litellm.get_model_info(model="gpt-image-2-2026-04-21")
+    model_info = gateway.get_model_info(model="gpt-image-2-2026-04-21")
     assert model_info["litellm_provider"] == "openai"
     assert model_info["mode"] == "image_generation"
     assert model_info["output_cost_per_image_token"] == 3e-05
 
 
 def test_azure_gpt_image_2_model_info(local_model_cost_map):
-    model, custom_llm_provider, _, _ = litellm.get_llm_provider(
+    model, custom_llm_provider, _, _ = gateway.get_llm_provider(
         model="azure/gpt-image-2"
     )
 
     assert model == "gpt-image-2"
     assert custom_llm_provider == "azure"
 
-    model_info = litellm.get_model_info(
+    model_info = gateway.get_model_info(
         model="gpt-image-2", custom_llm_provider="azure"
     )
     assert model_info["litellm_provider"] == "azure"
@@ -700,7 +700,7 @@ def test_all_model_configs():
 
 def test_anthropic_web_search_in_model_info(monkeypatch):
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    litellm.model_cost = litellm.get_model_cost_map()
+    gateway.model_cost = gateway.get_model_cost_map()
 
     supported_models = [
         "anthropic/claude-4-sonnet-20250514",
@@ -1242,9 +1242,9 @@ def test_get_model_info_gemini(monkeypatch):
     Tests if ALL gemini models have 'tpm' and 'rpm' in the model info
     """
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    litellm.model_cost = litellm.get_model_cost_map()
+    gateway.model_cost = gateway.get_model_cost_map()
 
-    model_map = litellm.model_cost
+    model_map = gateway.model_cost
     for model, info in model_map.items():
         if (
             model.startswith("gemini/")
@@ -1263,8 +1263,8 @@ def test_get_model_info_bedrock_regional_inference_profile_pricing(local_model_c
     """Regression LIT-4056: with the bedrock/ routing prefix (plain, converse/, or
     invoke/), the exact regional cost-map entry must win over the region-stripped
     base entry, matching the unprefixed control form."""
-    regional = litellm.model_cost["au.anthropic.claude-opus-4-8"]
-    base = litellm.model_cost["anthropic.claude-opus-4-8"]
+    regional = gateway.model_cost["au.anthropic.claude-opus-4-8"]
+    base = gateway.model_cost["anthropic.claude-opus-4-8"]
     assert regional["input_cost_per_token"] > base["input_cost_per_token"]
 
     for model in (
@@ -1272,35 +1272,35 @@ def test_get_model_info_bedrock_regional_inference_profile_pricing(local_model_c
         "bedrock/converse/au.anthropic.claude-opus-4-8",
         "bedrock/invoke/au.anthropic.claude-opus-4-8",
     ):
-        info = litellm.get_model_info(model=model)
+        info = gateway.get_model_info(model=model)
         assert info["key"] == "au.anthropic.claude-opus-4-8", model
         assert info["input_cost_per_token"] == regional["input_cost_per_token"], model
         assert info["output_cost_per_token"] == regional["output_cost_per_token"], model
 
-    control = litellm.get_model_info(model="au.anthropic.claude-opus-4-8", custom_llm_provider="bedrock")
+    control = gateway.get_model_info(model="au.anthropic.claude-opus-4-8", custom_llm_provider="bedrock")
     assert control["key"] == "au.anthropic.claude-opus-4-8"
 
 
 def test_get_model_info_bedrock_regional_profile_without_entry_falls_back_to_base(local_model_cost_map):
     """A regional profile with no dedicated cost-map entry must still resolve to its
     region-stripped base entry."""
-    assert "apac.anthropic.claude-opus-4-8" not in litellm.model_cost
-    info = litellm.get_model_info(model="bedrock/apac.anthropic.claude-opus-4-8")
+    assert "apac.anthropic.claude-opus-4-8" not in gateway.model_cost
+    info = gateway.get_model_info(model="bedrock/apac.anthropic.claude-opus-4-8")
     assert info["key"] == "anthropic.claude-opus-4-8"
 
 
 def test_get_model_info_bedrock_double_provider_prefix_resolves(local_model_cost_map):
     """A doubled bedrock/ prefix routes at runtime via strip_bedrock_routing_prefix,
     so model info must resolve it to the same entry the request actually bills as."""
-    info = litellm.get_model_info(model="bedrock/bedrock/us.anthropic.claude-sonnet-4-6")
+    info = gateway.get_model_info(model="bedrock/bedrock/us.anthropic.claude-sonnet-4-6")
     assert info["key"] == "us.anthropic.claude-sonnet-4-6"
 
 
 def test_openai_models_in_model_info(monkeypatch):
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    litellm.model_cost = litellm.get_model_cost_map()
+    gateway.model_cost = gateway.get_model_cost_map()
 
-    model_map = litellm.model_cost
+    model_map = gateway.model_cost
     violated_models = []
     for model, info in model_map.items():
         if (
@@ -1318,22 +1318,22 @@ def test_supports_tool_choice_simple_tests():
     """
     simple sanity checks
     """
-    assert litellm.utils.supports_tool_choice(model="gpt-4o") == True
+    assert gateway.utils.supports_tool_choice(model="gpt-4o") == True
     assert (
-        litellm.utils.supports_tool_choice(
+        gateway.utils.supports_tool_choice(
             model="bedrock/anthropic.claude-3-sonnet-20240229-v1:0"
         )
         == True
     )
     assert (
-        litellm.utils.supports_tool_choice(
+        gateway.utils.supports_tool_choice(
             model="anthropic.claude-3-sonnet-20240229-v1:0"
         )
         is True
     )
 
     assert (
-        litellm.utils.supports_tool_choice(
+        gateway.utils.supports_tool_choice(
             model="anthropic.claude-3-sonnet-20240229-v1:0",
             custom_llm_provider="bedrock_converse",
         )
@@ -1341,20 +1341,20 @@ def test_supports_tool_choice_simple_tests():
     )
 
     assert (
-        litellm.utils.supports_tool_choice(model="us.amazon.nova-micro-v1:0") is False
+        gateway.utils.supports_tool_choice(model="us.amazon.nova-micro-v1:0") is False
     )
     assert (
-        litellm.utils.supports_tool_choice(model="bedrock/us.amazon.nova-micro-v1:0")
+        gateway.utils.supports_tool_choice(model="bedrock/us.amazon.nova-micro-v1:0")
         is False
     )
     assert (
-        litellm.utils.supports_tool_choice(
+        gateway.utils.supports_tool_choice(
             model="us.amazon.nova-micro-v1:0", custom_llm_provider="bedrock_converse"
         )
         is False
     )
 
-    assert litellm.utils.supports_tool_choice(model="perplexity/sonar") is False
+    assert gateway.utils.supports_tool_choice(model="perplexity/sonar") is False
 
 
 def test_check_provider_match():
@@ -1363,17 +1363,17 @@ def test_check_provider_match():
     """
     # Test bedrock and bedrock_converse cases
     model_info = {"litellm_provider": "bedrock"}
-    assert litellm.utils._check_provider_match(model_info, "bedrock") is True
-    assert litellm.utils._check_provider_match(model_info, "bedrock_converse") is True
+    assert gateway.utils._check_provider_match(model_info, "bedrock") is True
+    assert gateway.utils._check_provider_match(model_info, "bedrock_converse") is True
 
     # Test bedrock_converse provider
     model_info = {"litellm_provider": "bedrock_converse"}
-    assert litellm.utils._check_provider_match(model_info, "bedrock") is True
-    assert litellm.utils._check_provider_match(model_info, "bedrock_converse") is True
+    assert gateway.utils._check_provider_match(model_info, "bedrock") is True
+    assert gateway.utils._check_provider_match(model_info, "bedrock_converse") is True
 
     # Test non-matching provider
     model_info = {"litellm_provider": "bedrock"}
-    assert litellm.utils._check_provider_match(model_info, "openai") is False
+    assert gateway.utils._check_provider_match(model_info, "openai") is False
 
 
 def test_check_provider_match_none_value_matches_any_provider():
@@ -1389,17 +1389,17 @@ def test_check_provider_match_none_value_matches_any_provider():
     to drop custom pricing intermittently.
     """
     # Missing key already returned True; None must behave identically.
-    assert litellm.utils._check_provider_match({}, "openai") is True
+    assert gateway.utils._check_provider_match({}, "openai") is True
     assert (
-        litellm.utils._check_provider_match({"litellm_provider": None}, "openai")
+        gateway.utils._check_provider_match({"litellm_provider": None}, "openai")
         is True
     )
     assert (
-        litellm.utils._check_provider_match({"litellm_provider": None}, "anthropic")
+        gateway.utils._check_provider_match({"litellm_provider": None}, "anthropic")
         is True
     )
     # When custom_llm_provider is also None nothing constrains the match.
-    assert litellm.utils._check_provider_match({"litellm_provider": None}, None) is True
+    assert gateway.utils._check_provider_match({"litellm_provider": None}, None) is True
 
 
 def test_get_provider_rerank_config():
@@ -1482,10 +1482,10 @@ def test_supports_computer_use_utility(monkeypatch):
     # as supports_computer_use relies on get_model_info.
     # This also requires litellm.model_cost to be populated.
     original_env_var = os.getenv("LITELLM_LOCAL_MODEL_COST_MAP")
-    original_model_cost = getattr(litellm, "model_cost", None)
+    original_model_cost = getattr(gateway, "model_cost", None)
 
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    litellm.model_cost = litellm.get_model_cost_map()  # Load with local/backup
+    gateway.model_cost = gateway.get_model_cost_map()  # Load with local/backup
 
     try:
         # Test a model known to support computer_use from backup JSON
@@ -1505,9 +1505,9 @@ def test_supports_computer_use_utility(monkeypatch):
             monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", original_env_var)
 
         if original_model_cost is not None:
-            litellm.model_cost = original_model_cost
-        elif hasattr(litellm, "model_cost"):
-            delattr(litellm, "model_cost")
+            gateway.model_cost = original_model_cost
+        elif hasattr(gateway, "model_cost"):
+            delattr(gateway, "model_cost")
 
 
 def test_get_model_info_shows_supports_computer_use(monkeypatch):
@@ -1519,11 +1519,11 @@ def test_get_model_info_shows_supports_computer_use(monkeypatch):
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
     # Ensure litellm.model_cost is loaded, relying on the backup mechanism if primary fails
     # as per previous debugging.
-    litellm.model_cost = litellm.get_model_cost_map()
+    gateway.model_cost = gateway.get_model_cost_map()
 
     # This model should have 'supports_computer_use': True in the backup JSON
     model_known_to_support_computer_use = "claude-4-sonnet-20250514"
-    info = litellm.get_model_info(model_known_to_support_computer_use)
+    info = gateway.get_model_info(model_known_to_support_computer_use)
     print(f"Info for {model_known_to_support_computer_use}: {info}")
 
     # After the fix in utils.py, this should now be present and True
@@ -1532,7 +1532,7 @@ def test_get_model_info_shows_supports_computer_use(monkeypatch):
     # Optionally, test a model known NOT to support it, or where it's undefined (should default to False)
     # For example, if "gpt-3.5-turbo" doesn't have it defined, it should be False.
     model_known_not_to_support_computer_use = "gpt-3.5-turbo"
-    info_gpt = litellm.get_model_info(model_known_not_to_support_computer_use)
+    info_gpt = gateway.get_model_info(model_known_not_to_support_computer_use)
     print(f"Info for {model_known_not_to_support_computer_use}: {info_gpt}")
     assert (
         info_gpt.get("supports_computer_use") is None
@@ -1629,7 +1629,7 @@ def test_provider_supports_vertex_params(custom_llm_provider, expected):
 def test_vertex_params_not_stripped_for_vertex_family(
     model, custom_llm_provider, should_keep
 ):
-    optional_params = litellm.utils.get_optional_params(
+    optional_params = gateway.utils.get_optional_params(
         model=model,
         custom_llm_provider=custom_llm_provider,
         vertex_project="my-project",
@@ -1919,10 +1919,10 @@ class TestProxyFunctionCalling:
     def test_litellm_supports_function_calling_import(self):
         """Test that supports_function_calling can be imported from litellm directly."""
         try:
-            from token_iq import gateway as litellm
+            from token_iq import gateway
 
-            assert hasattr(litellm, "supports_function_calling")
-            assert callable(litellm.supports_function_calling)
+            assert hasattr(gateway, "supports_function_calling")
+            assert callable(gateway.supports_function_calling)
         except Exception as e:
             pytest.fail(f"Failed to access litellm.supports_function_calling: {e}")
 
@@ -2304,9 +2304,9 @@ def test_register_model_with_scientific_notation():
         },
     }
 
-    litellm.register_model(model_cost_dict)
+    gateway.register_model(model_cost_dict)
 
-    registered_model = litellm.model_cost[test_model_name]
+    registered_model = gateway.model_cost[test_model_name]
     print(registered_model)
     assert registered_model["input_cost_per_token"] == 3e-07
     assert registered_model["output_cost_per_token"] == 6e-07
@@ -2314,8 +2314,8 @@ def test_register_model_with_scientific_notation():
     assert registered_model["mode"] == "chat"
 
     # Clean up after test
-    if test_model_name in litellm.model_cost:
-        del litellm.model_cost[test_model_name]
+    if test_model_name in gateway.model_cost:
+        del gateway.model_cost[test_model_name]
     _invalidate_model_cost_lowercase_map()
 
 
@@ -2330,12 +2330,12 @@ def test_register_model_openrouter_without_slash():
     always works.
     """
     # Clear any existing entries
-    litellm.openrouter_models.discard("my-custom-alias")
-    litellm.openrouter_models.discard("gpt-4")
-    litellm.openrouter_models.discard("openai/gpt-4")
+    gateway.openrouter_models.discard("my-custom-alias")
+    gateway.openrouter_models.discard("gpt-4")
+    gateway.openrouter_models.discard("openai/gpt-4")
 
     # Test 1: Model name without '/' (this was the bug - would raise IndexError)
-    litellm.register_model(
+    gateway.register_model(
         {
             "my-custom-alias": {
                 "max_tokens": 8192,
@@ -2346,10 +2346,10 @@ def test_register_model_openrouter_without_slash():
             },
         }
     )
-    assert "my-custom-alias" in litellm.openrouter_models
+    assert "my-custom-alias" in gateway.openrouter_models
 
     # Test 2: Model name with single '/' (openrouter/model format)
-    litellm.register_model(
+    gateway.register_model(
         {
             "openrouter/gpt-4": {
                 "max_tokens": 8192,
@@ -2360,10 +2360,10 @@ def test_register_model_openrouter_without_slash():
             },
         }
     )
-    assert "gpt-4" in litellm.openrouter_models
+    assert "gpt-4" in gateway.openrouter_models
 
     # Test 3: Model name with double '/' (openrouter/provider/model format)
-    litellm.register_model(
+    gateway.register_model(
         {
             "openrouter/openai/gpt-4-turbo": {
                 "max_tokens": 8192,
@@ -2374,7 +2374,7 @@ def test_register_model_openrouter_without_slash():
             },
         }
     )
-    assert "openai/gpt-4-turbo" in litellm.openrouter_models
+    assert "openai/gpt-4-turbo" in gateway.openrouter_models
 
 
 def test_reasoning_content_preserved_in_text_completion_wrapper():
@@ -2729,7 +2729,7 @@ if __name__ == "__main__":
 
 
 def test_model_info_for_vertex_ai_deepseek_model():
-    model_info = litellm.get_model_info(
+    model_info = gateway.get_model_info(
         model="vertex_ai/deepseek-ai/deepseek-r1-0528-maas"
     )
     assert model_info is not None
@@ -2911,10 +2911,10 @@ class TestGetValidModelsWithCLI:
         }
 
         with patch.object(
-            litellm.module_level_client, "get", return_value=mock_response
+            gateway.module_level_client, "get", return_value=mock_response
         ) as mock_get:
             # Test the exact pattern used in cli_token_usage.py
-            result = litellm.get_valid_models(
+            result = gateway.get_valid_models(
                 check_provider_endpoint=True,
                 custom_llm_provider="litellm_proxy",
                 api_key="sk-test-cli-key-123",
@@ -3719,75 +3719,75 @@ class TestCallbackAsyncSyncSeparation:
 
     def setup_method(self):
         """Reset callback lists before each test."""
-        litellm.input_callback = []
-        litellm.success_callback = []
-        litellm.failure_callback = []
-        litellm._async_input_callback = []
-        litellm._async_success_callback = []
-        litellm._async_failure_callback = []
+        gateway.input_callback = []
+        gateway.success_callback = []
+        gateway.failure_callback = []
+        gateway._async_input_callback = []
+        gateway._async_success_callback = []
+        gateway._async_failure_callback = []
 
     def test_async_success_callback_routed_to_async_list(self):
         async def my_async_cb(*args, **kwargs):
             pass
 
-        litellm.logging_callback_manager.add_litellm_success_callback(my_async_cb)
-        assert my_async_cb in litellm._async_success_callback
-        assert my_async_cb not in litellm.success_callback
+        gateway.logging_callback_manager.add_litellm_success_callback(my_async_cb)
+        assert my_async_cb in gateway._async_success_callback
+        assert my_async_cb not in gateway.success_callback
 
     def test_sync_success_callback_stays_in_sync_list(self):
         def my_sync_cb(*args, **kwargs):
             pass
 
-        litellm.logging_callback_manager.add_litellm_success_callback(my_sync_cb)
-        assert my_sync_cb in litellm.success_callback
-        assert my_sync_cb not in litellm._async_success_callback
+        gateway.logging_callback_manager.add_litellm_success_callback(my_sync_cb)
+        assert my_sync_cb in gateway.success_callback
+        assert my_sync_cb not in gateway._async_success_callback
 
     def test_string_callback_stays_in_sync_list(self):
-        litellm.logging_callback_manager.add_litellm_success_callback("langfuse")
-        assert "langfuse" in litellm.success_callback
-        assert "langfuse" not in litellm._async_success_callback
+        gateway.logging_callback_manager.add_litellm_success_callback("langfuse")
+        assert "langfuse" in gateway.success_callback
+        assert "langfuse" not in gateway._async_success_callback
 
     def test_async_failure_callback_routed_to_async_list(self):
         async def my_async_cb(*args, **kwargs):
             pass
 
-        litellm.logging_callback_manager.add_litellm_failure_callback(my_async_cb)
-        assert my_async_cb in litellm._async_failure_callback
-        assert my_async_cb not in litellm.failure_callback
+        gateway.logging_callback_manager.add_litellm_failure_callback(my_async_cb)
+        assert my_async_cb in gateway._async_failure_callback
+        assert my_async_cb not in gateway.failure_callback
 
     def test_sync_failure_callback_stays_in_sync_list(self):
         def my_sync_cb(*args, **kwargs):
             pass
 
-        litellm.logging_callback_manager.add_litellm_failure_callback(my_sync_cb)
-        assert my_sync_cb in litellm.failure_callback
-        assert my_sync_cb not in litellm._async_failure_callback
+        gateway.logging_callback_manager.add_litellm_failure_callback(my_sync_cb)
+        assert my_sync_cb in gateway.failure_callback
+        assert my_sync_cb not in gateway._async_failure_callback
 
     def test_dynamodb_routed_to_async_success(self):
-        litellm.logging_callback_manager.add_litellm_success_callback("dynamodb")
-        assert "dynamodb" in litellm._async_success_callback
-        assert "dynamodb" not in litellm.success_callback
+        gateway.logging_callback_manager.add_litellm_success_callback("dynamodb")
+        assert "dynamodb" in gateway._async_success_callback
+        assert "dynamodb" not in gateway.success_callback
 
     def test_openmeter_routed_to_async_success(self):
-        litellm.logging_callback_manager.add_litellm_success_callback("openmeter")
-        assert "openmeter" in litellm._async_success_callback
-        assert "openmeter" not in litellm.success_callback
+        gateway.logging_callback_manager.add_litellm_success_callback("openmeter")
+        assert "openmeter" in gateway._async_success_callback
+        assert "openmeter" not in gateway.success_callback
 
     def test_async_input_callback_routed_to_async_list(self):
         async def my_async_cb(*args, **kwargs):
             pass
 
-        litellm.logging_callback_manager.add_litellm_input_callback(my_async_cb)
-        assert my_async_cb in litellm._async_input_callback
-        assert my_async_cb not in litellm.input_callback
+        gateway.logging_callback_manager.add_litellm_input_callback(my_async_cb)
+        assert my_async_cb in gateway._async_input_callback
+        assert my_async_cb not in gateway.input_callback
 
     def test_sync_input_callback_stays_in_sync_list(self):
         def my_sync_cb(*args, **kwargs):
             pass
 
-        litellm.logging_callback_manager.add_litellm_input_callback(my_sync_cb)
-        assert my_sync_cb in litellm.input_callback
-        assert my_sync_cb not in litellm._async_input_callback
+        gateway.logging_callback_manager.add_litellm_input_callback(my_sync_cb)
+        assert my_sync_cb in gateway.input_callback
+        assert my_sync_cb not in gateway._async_input_callback
 
 
 class TestMetadataNoneHandling:
@@ -4372,14 +4372,14 @@ class TestGetOptionalParamsTencent:
 
     def test_tencent_messages_config_routing(self):
         """Verify ProviderConfigManager routes tencent to TencentAnthropicMessagesConfig."""
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.llms.tencent.messages.transformation import (
             TencentAnthropicMessagesConfig,
         )
 
         config = ProviderConfigManager.get_provider_anthropic_messages_config(
             model="deepseek-v4-pro",
-            provider=litellm.LlmProviders.TENCENT,
+            provider=gateway.LlmProviders.TENCENT,
         )
         assert isinstance(config, TencentAnthropicMessagesConfig)
         assert config.custom_llm_provider == "tencent"
@@ -4390,14 +4390,14 @@ class TestValidateEnvironmentTencent:
 
     def test_reports_key_present(self):
         with patch.dict(os.environ, {"TENCENT_API_KEY": "sk-tencent"}):
-            result = litellm.validate_environment(model="tencent/deepseek-v4-pro")
+            result = gateway.validate_environment(model="tencent/deepseek-v4-pro")
 
         assert result["keys_in_environment"] is True
         assert result["missing_keys"] == []
 
     def test_reports_key_missing(self):
         with patch.dict(os.environ, {}, clear=True):
-            result = litellm.validate_environment(model="tencent/deepseek-v4-pro")
+            result = gateway.validate_environment(model="tencent/deepseek-v4-pro")
 
         assert result["keys_in_environment"] is False
         assert "TENCENT_API_KEY" in result["missing_keys"]
@@ -4410,7 +4410,7 @@ class TestVertexEmbeddingEncodingFormat:
     drop_params, raise otherwise). Issue #33173."""
 
     def test_encoding_format_float_is_accepted_and_dropped(self):
-        optional_params = litellm.utils.get_optional_params_embeddings(
+        optional_params = gateway.utils.get_optional_params_embeddings(
             model="gemini-embedding-001",
             encoding_format="float",
             custom_llm_provider="vertex_ai",
@@ -4418,7 +4418,7 @@ class TestVertexEmbeddingEncodingFormat:
         assert "encoding_format" not in optional_params
 
     def test_encoding_format_float_accepted_for_gemini_provider(self):
-        optional_params = litellm.utils.get_optional_params_embeddings(
+        optional_params = gateway.utils.get_optional_params_embeddings(
             model="gemini-embedding-001",
             encoding_format="float",
             custom_llm_provider="gemini",
@@ -4427,7 +4427,7 @@ class TestVertexEmbeddingEncodingFormat:
 
     def test_encoding_format_base64_still_rejected_without_drop_params(self):
         with pytest.raises(Exception, match='To drop these, set `litellm\\.drop_params=True` or for proxy') as excinfo:
-            litellm.utils.get_optional_params_embeddings(
+            gateway.utils.get_optional_params_embeddings(
                 model="gemini-embedding-001",
                 encoding_format="base64",
                 custom_llm_provider="vertex_ai",
@@ -4435,7 +4435,7 @@ class TestVertexEmbeddingEncodingFormat:
         assert "encoding_format" in str(excinfo.value)
 
     def test_encoding_format_base64_dropped_with_drop_params(self):
-        optional_params = litellm.utils.get_optional_params_embeddings(
+        optional_params = gateway.utils.get_optional_params_embeddings(
             model="gemini-embedding-001",
             encoding_format="base64",
             custom_llm_provider="vertex_ai",
@@ -4444,7 +4444,7 @@ class TestVertexEmbeddingEncodingFormat:
         assert "encoding_format" not in optional_params
 
     def test_dimensions_still_mapped(self):
-        optional_params = litellm.utils.get_optional_params_embeddings(
+        optional_params = gateway.utils.get_optional_params_embeddings(
             model="gemini-embedding-001",
             encoding_format="float",
             dimensions=256,
@@ -4467,7 +4467,7 @@ class TestBedrockCohereEmbeddingDispatch:
         ],
     )
     def test_cohere_embed_models_accept_encoding_format(self, model):
-        optional_params = litellm.utils.get_optional_params_embeddings(
+        optional_params = gateway.utils.get_optional_params_embeddings(
             model=model,
             encoding_format="float",
             custom_llm_provider="bedrock",
@@ -4483,7 +4483,7 @@ class TestBedrockCohereEmbeddingDispatch:
         ],
     )
     def test_cohere_embed_models_map_base64_to_float(self, model):
-        optional_params = litellm.utils.get_optional_params_embeddings(
+        optional_params = gateway.utils.get_optional_params_embeddings(
             model=model,
             encoding_format="base64",
             custom_llm_provider="bedrock",
@@ -4491,7 +4491,7 @@ class TestBedrockCohereEmbeddingDispatch:
         assert optional_params.get("embedding_types") == ["float"]
 
     def test_cohere_embed_english_v3_maps_dimensions(self):
-        optional_params = litellm.utils.get_optional_params_embeddings(
+        optional_params = gateway.utils.get_optional_params_embeddings(
             model="cohere.embed-english-v3",
             encoding_format="float",
             dimensions=512,
@@ -4520,11 +4520,11 @@ class TestBedrockCohereEmbeddingDispatch:
 def test_gemini_image_models_do_not_support_reasoning(
     model: str, local_model_cost_map: None
 ) -> None:
-    assert model in litellm.model_cost, (
+    assert model in gateway.model_cost, (
         f"{model} is missing from the local model cost map. "
         "Add its entry to litellm/model_prices_and_context_window_backup.json."
     )
-    assert litellm.supports_reasoning(model) is False, (
+    assert gateway.supports_reasoning(model) is False, (
         f"{model} incorrectly classified as reasoning-capable. "
         "Add 'supports_reasoning: false' to its model_cost entry."
     )
@@ -4558,7 +4558,7 @@ def test_get_prompt_cache_min_tokens_uniform_for_fable_5_across_platforms(local_
     prompt-cache-affinity routing for prompts the provider demonstrably caches (issue #35011)."""
     wrong: Final = {
         model: get_prompt_cache_min_tokens(model=model)
-        for model, info in litellm.model_cost.items()
+        for model, info in gateway.model_cost.items()
         if "fable-5" in model
         and info.get("supports_prompt_caching")
         and get_prompt_cache_min_tokens(model=model) != 512
@@ -4621,9 +4621,9 @@ def test_anthropic_reexport_entries_carry_explicit_prompt_cache_min_tokens(local
     models. The entry must be explicit so a default change can never re-break them, which is why
     this asserts the cost-map value itself and not just the resolver's answer."""
     wrong: Final = {
-        model: (litellm.model_cost[model].get("prompt_cache_min_tokens"), get_prompt_cache_min_tokens(model=model))
+        model: (gateway.model_cost[model].get("prompt_cache_min_tokens"), get_prompt_cache_min_tokens(model=model))
         for model, expected in ANTHROPIC_REEXPORT_CACHE_MIN.items()
-        if litellm.model_cost[model].get("prompt_cache_min_tokens") != expected
+        if gateway.model_cost[model].get("prompt_cache_min_tokens") != expected
         or get_prompt_cache_min_tokens(model=model) != expected
     }
     assert not wrong, f"(cost-map value, resolved value) diverge from Anthropic's published minimums: {wrong}"
@@ -4701,7 +4701,7 @@ def test_is_prompt_caching_valid_prompt_uses_per_model_minimum(local_model_cost_
     the flat-1024 check reported claude-opus-4-6 as cacheable and the cache write was rejected
     upstream. Both assertions must live together: is_prompt_caching_valid_prompt returns False on
     any internal error, so the True case is what proves the False case isn't a swallowed exception."""
-    token_count = litellm.token_counter(
+    token_count = gateway.token_counter(
         model="claude-opus-4-6", messages=PROMPT_CACHE_MESSAGES, use_default_image_token_count=True
     )
     assert 1024 <= token_count < 4096, (
@@ -4747,15 +4747,15 @@ def test_custom_logger_guards_ignore_subclass_instances(monkeypatch: pytest.Monk
 
     builtin_instance = BuiltinLogger()
 
-    monkeypatch.setattr(litellm, "success_callback", [UserSubclassLogger()])
-    monkeypatch.setattr(litellm, "failure_callback", [UserSubclassLogger()])
-    monkeypatch.setattr(litellm, "_async_success_callback", [])
-    monkeypatch.setattr(litellm, "_async_failure_callback", [])
+    monkeypatch.setattr(gateway, "success_callback", [UserSubclassLogger()])
+    monkeypatch.setattr(gateway, "failure_callback", [UserSubclassLogger()])
+    monkeypatch.setattr(gateway, "_async_success_callback", [])
+    monkeypatch.setattr(gateway, "_async_failure_callback", [])
     assert _custom_logger_class_exists_in_success_callbacks(builtin_instance) is False
     assert _custom_logger_class_exists_in_failure_callbacks(builtin_instance) is False
 
-    monkeypatch.setattr(litellm, "success_callback", [BuiltinLogger()])
-    monkeypatch.setattr(litellm, "failure_callback", [BuiltinLogger()])
+    monkeypatch.setattr(gateway, "success_callback", [BuiltinLogger()])
+    monkeypatch.setattr(gateway, "failure_callback", [BuiltinLogger()])
     assert _custom_logger_class_exists_in_success_callbacks(builtin_instance) is True
     assert _custom_logger_class_exists_in_failure_callbacks(builtin_instance) is True
 
@@ -4775,17 +4775,17 @@ async def test_s3_v2_success_callback_registers_alongside_user_subclass(
             pass
 
     user_logger = UserS3Logger()
-    monkeypatch.setattr(litellm, "success_callback", [user_logger, "s3_v2"])
-    monkeypatch.setattr(litellm, "_async_success_callback", [user_logger])
-    monkeypatch.setattr(litellm, "failure_callback", [])
-    monkeypatch.setattr(litellm, "_async_failure_callback", [])
+    monkeypatch.setattr(gateway, "success_callback", [user_logger, "s3_v2"])
+    monkeypatch.setattr(gateway, "_async_success_callback", [user_logger])
+    monkeypatch.setattr(gateway, "failure_callback", [])
+    monkeypatch.setattr(gateway, "_async_failure_callback", [])
 
     _add_custom_logger_callback_to_specific_event("s3_v2", "success")
 
-    assert any(type(cb) is S3Logger for cb in litellm.success_callback)
-    assert any(type(cb) is S3Logger for cb in litellm._async_success_callback)
-    assert "s3_v2" not in litellm.success_callback
-    assert user_logger in litellm.success_callback
+    assert any(type(cb) is S3Logger for cb in gateway.success_callback)
+    assert any(type(cb) is S3Logger for cb in gateway._async_success_callback)
+    assert "s3_v2" not in gateway.success_callback
+    assert user_logger in gateway.success_callback
 
 
 @pytest.mark.asyncio
@@ -4802,20 +4802,20 @@ async def test_builtin_string_callback_registers_when_subclass_already_active(
             pass
 
     user_logger = UserS3Logger()
-    monkeypatch.setattr(litellm, "callbacks", ["s3_v2"])
-    monkeypatch.setattr(litellm, "input_callback", [])
-    monkeypatch.setattr(litellm, "success_callback", [user_logger])
-    monkeypatch.setattr(litellm, "failure_callback", [])
-    monkeypatch.setattr(litellm, "_async_success_callback", [user_logger])
-    monkeypatch.setattr(litellm, "_async_failure_callback", [])
+    monkeypatch.setattr(gateway, "callbacks", ["s3_v2"])
+    monkeypatch.setattr(gateway, "input_callback", [])
+    monkeypatch.setattr(gateway, "success_callback", [user_logger])
+    monkeypatch.setattr(gateway, "failure_callback", [])
+    monkeypatch.setattr(gateway, "_async_success_callback", [user_logger])
+    monkeypatch.setattr(gateway, "_async_failure_callback", [])
 
-    await litellm.acompletion(
+    await gateway.acompletion(
         model="gpt-5.6",
         messages=[{"role": "user", "content": "hi"}],
         mock_response="ok",
     )
 
-    assert any(type(cb) is S3Logger for cb in litellm._async_success_callback)
+    assert any(type(cb) is S3Logger for cb in gateway._async_success_callback)
 
 
 def test_reapply_runtime_registrations_replays_register_model_overrides(monkeypatch):
@@ -4842,9 +4842,9 @@ def test_reapply_runtime_registrations_replays_register_model_overrides(monkeypa
     # installed would make this depend on when that happens.
     monkeypatch.setattr(litellm_utils._LiveDeploymentReplay, "callback", None)
 
-    saved_model_cost = litellm.model_cost
+    saved_model_cost = gateway.model_cost
     try:
-        litellm.register_model(
+        gateway.register_model(
             model_cost={
                 "openai/gpt-4o": {
                     "litellm_provider": "openai",
@@ -4854,7 +4854,7 @@ def test_reapply_runtime_registrations_replays_register_model_overrides(monkeypa
             }
         )
 
-        litellm.model_cost = {
+        gateway.model_cost = {
             "openai/gpt-4o": {
                 "litellm_provider": "openai",
                 "mode": "chat",
@@ -4865,10 +4865,10 @@ def test_reapply_runtime_registrations_replays_register_model_overrides(monkeypa
         _invalidate_model_cost_lowercase_map()
         reapply_runtime_model_cost_registrations()
 
-        assert litellm.model_cost["openai/gpt-4o"]["input_cost_per_token"] == 0.000123
-        assert litellm.model_cost["openai/gpt-4o"]["max_input_tokens"] == 4242
+        assert gateway.model_cost["openai/gpt-4o"]["input_cost_per_token"] == 0.000123
+        assert gateway.model_cost["openai/gpt-4o"]["max_input_tokens"] == 4242
     finally:
-        litellm.model_cost = saved_model_cost
+        gateway.model_cost = saved_model_cost
         _invalidate_model_cost_lowercase_map()
 
 
@@ -4891,28 +4891,28 @@ def test_reapply_runtime_registrations_drops_request_scoped_registrations(monkey
         dict(litellm_utils._runtime_registered_model_cost),
     )
 
-    saved_model_cost = litellm.model_cost
+    saved_model_cost = gateway.model_cost
     try:
-        litellm.register_model(
+        gateway.register_model(
             model_cost={"openai/gpt-4o": {"litellm_provider": "openai", "input_cost_per_token": 0.000111}},
             persist_across_reloads=True,
         )
-        litellm.register_model(
+        gateway.register_model(
             model_cost={"openai/gpt-4o-mini": {"litellm_provider": "openai", "input_cost_per_token": 0.000222}},
             persist_across_reloads=False,
         )
 
-        litellm.model_cost = {
+        gateway.model_cost = {
             "openai/gpt-4o": {"litellm_provider": "openai", "input_cost_per_token": 0.000999},
             "openai/gpt-4o-mini": {"litellm_provider": "openai", "input_cost_per_token": 0.000888},
         }
         _invalidate_model_cost_lowercase_map()
         reapply_runtime_model_cost_registrations()
 
-        assert litellm.model_cost["openai/gpt-4o"]["input_cost_per_token"] == 0.000111
-        assert litellm.model_cost["openai/gpt-4o-mini"]["input_cost_per_token"] == 0.000888
+        assert gateway.model_cost["openai/gpt-4o"]["input_cost_per_token"] == 0.000111
+        assert gateway.model_cost["openai/gpt-4o-mini"]["input_cost_per_token"] == 0.000888
     finally:
-        litellm.model_cost = saved_model_cost
+        gateway.model_cost = saved_model_cost
         _invalidate_model_cost_lowercase_map()
 
 
@@ -4944,11 +4944,11 @@ async def test_wrapper_async_restores_originating_task_context_after_success(mon
     finally block (in token_iq/gateway/utils.py) must separately restore the *originating*
     task's trace_id/session_id, since nothing else does.
     """
-    monkeypatch.setattr(litellm, "request_correlation_in_logs", True)
+    monkeypatch.setattr(gateway, "request_correlation_in_logs", True)
     trace_id_var.set("outer-trace-wrapper-test")
     session_id_var.set("outer-session-wrapper-test")
     try:
-        await litellm.acompletion(
+        await gateway.acompletion(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": "hi"}],
             mock_response="Hello there!",
@@ -4971,7 +4971,7 @@ def test_function_setup_failure_after_logging_construction_restores_context(monk
     thread/task until something unrelated happens to reset it."""
     from token_iq.gateway.core_utils.litellm_logging import Logging
 
-    monkeypatch.setattr(litellm, "request_correlation_in_logs", True)
+    monkeypatch.setattr(gateway, "request_correlation_in_logs", True)
 
     def _boom(self, *args, **kwargs):
         raise RuntimeError("simulated failure after Logging() construction")
@@ -4982,7 +4982,7 @@ def test_function_setup_failure_after_logging_construction_restores_context(monk
     session_id_var.set("pre-setup-failure-session")
     try:
         with pytest.raises(RuntimeError, match="simulated failure"):
-            litellm.completion(
+            gateway.completion(
                 model="gpt-3.5-turbo",
                 messages=[{"role": "user", "content": "hi"}],
                 mock_response="Hello there!",
@@ -5004,7 +5004,7 @@ def test_function_setup_failure_log_line_shows_outer_not_doomed_ids(monkeypatch)
     else to be attributed to."""
     from token_iq.gateway.core_utils.litellm_logging import Logging
 
-    monkeypatch.setattr(litellm, "request_correlation_in_logs", True)
+    monkeypatch.setattr(gateway, "request_correlation_in_logs", True)
 
     def _boom(self, *args, **kwargs):
         raise RuntimeError("simulated failure after Logging() construction")
@@ -5019,7 +5019,7 @@ def test_function_setup_failure_log_line_shows_outer_not_doomed_ids(monkeypatch)
         trace_id_var.set("outer-trace")
         session_id_var.set("outer-session")
         with pytest.raises(RuntimeError, match="simulated failure"):
-            litellm.completion(
+            gateway.completion(
                 model="gpt-3.5-turbo",
                 messages=[{"role": "user", "content": "hi"}],
                 mock_response="Hello there!",
@@ -5160,7 +5160,7 @@ def test_completion_does_not_leak_rust_flag_into_provider_request_body():
     mock_client = MagicMock()
     mock_client.chat.completions.with_raw_response.create.return_value = mock_raw_response
 
-    litellm.completion(
+    gateway.completion(
         model="openai/gpt-4o-mini",
         messages=[{"role": "user", "content": "hi"}],
         rust=True,
@@ -5190,7 +5190,7 @@ async def test_async_post_call_failure_deployment_hook_calls_custom_logger_callb
     necessarily the same object - see test_..._snapshots_exception_so_callback_mutations_..._
     below) and the call_type resolved to its CallTypes enum member."""
     recorder = _RecordingDeploymentFailureLogger()
-    monkeypatch.setattr(litellm, "callbacks", [recorder])
+    monkeypatch.setattr(gateway, "callbacks", [recorder])
 
     exc = ValueError("deployment failed")
     await async_post_call_failure_deployment_hook(
@@ -5212,7 +5212,7 @@ async def test_async_post_call_failure_deployment_hook_falls_back_to_none_call_t
 ) -> None:
     """An unrecognized call_type string must resolve to None rather than raising."""
     recorder = _RecordingDeploymentFailureLogger()
-    monkeypatch.setattr(litellm, "callbacks", [recorder])
+    monkeypatch.setattr(gateway, "callbacks", [recorder])
 
     await async_post_call_failure_deployment_hook(
         request_data={}, exception=ValueError("x"), call_type="not_a_real_call_type"
@@ -5228,7 +5228,7 @@ async def test_async_post_call_failure_deployment_hook_passes_through_fallback_d
     """fallback_depth on request_data (set by Router on each fallback hop) must reach the
     callback unchanged, so a subscriber can tell which fallback hop this failure is from."""
     recorder = _RecordingDeploymentFailureLogger()
-    monkeypatch.setattr(litellm, "callbacks", [recorder])
+    monkeypatch.setattr(gateway, "callbacks", [recorder])
 
     await async_post_call_failure_deployment_hook(
         request_data={"fallback_depth": 2}, exception=ValueError("x"), call_type="acompletion"
@@ -5245,7 +5245,7 @@ async def test_async_post_call_failure_deployment_hook_fallback_depth_defaults_t
     no fallback_depth at all (first attempt, or a bare SDK call with no Router) or a
     non-int value there."""
     recorder = _RecordingDeploymentFailureLogger()
-    monkeypatch.setattr(litellm, "callbacks", [recorder])
+    monkeypatch.setattr(gateway, "callbacks", [recorder])
 
     await async_post_call_failure_deployment_hook(request_data={}, exception=ValueError("x"), call_type="acompletion")
     await async_post_call_failure_deployment_hook(
@@ -5272,7 +5272,7 @@ async def test_async_post_call_failure_deployment_hook_swallows_callback_errors(
             raise RuntimeError("hook exploded")
 
     exploding_logger = ExplodingLogger()
-    monkeypatch.setattr(litellm, "callbacks", [exploding_logger])
+    monkeypatch.setattr(gateway, "callbacks", [exploding_logger])
 
     await async_post_call_failure_deployment_hook(request_data={}, exception=ValueError("x"), call_type="acompletion")
 
@@ -5289,7 +5289,7 @@ async def test_async_post_call_failure_deployment_hook_skips_non_custom_logger_c
     async def fn_callback(*args: object, **kwargs: object) -> None:
         called.append(True)
 
-    monkeypatch.setattr(litellm, "callbacks", [fn_callback])
+    monkeypatch.setattr(gateway, "callbacks", [fn_callback])
 
     await async_post_call_failure_deployment_hook(request_data={}, exception=ValueError("x"), call_type="acompletion")
 
@@ -5304,18 +5304,18 @@ async def test_wrapper_async_fires_post_call_failure_deployment_hook_once_per_fa
     exactly once, sourced from wrapper_async's own except block rather than the dedup-gated
     async_log_failure_event path, which would miss retries/fallback chain attempts 2+."""
     recorder = _RecordingDeploymentFailureLogger()
-    monkeypatch.setattr(litellm, "callbacks", [recorder])
+    monkeypatch.setattr(gateway, "callbacks", [recorder])
 
-    with pytest.raises(litellm.AuthenticationError):
-        await litellm.acompletion(
+    with pytest.raises(gateway.AuthenticationError):
+        await gateway.acompletion(
             model="gpt-4o-mini",
             messages=[{"role": "user", "content": "hi"}],
-            mock_response=litellm.AuthenticationError(message="bad key", llm_provider="openai", model="gpt-4o-mini"),
+            mock_response=gateway.AuthenticationError(message="bad key", llm_provider="openai", model="gpt-4o-mini"),
         )
 
     assert len(recorder.calls) == 1
     _, received_exc, call_type, fallback_depth = recorder.calls[0]
-    assert isinstance(received_exc, litellm.AuthenticationError)
+    assert isinstance(received_exc, gateway.AuthenticationError)
     assert call_type == CallTypes.acompletion
     assert fallback_depth is None
 
@@ -5331,13 +5331,13 @@ async def test_wrapper_async_raises_original_exception_even_if_hook_callback_err
         async def async_post_call_failure_deployment_hook(self, request_data, exception, call_type, fallback_depth=None):
             raise RuntimeError("hook exploded")
 
-    monkeypatch.setattr(litellm, "callbacks", [ExplodingLogger()])
+    monkeypatch.setattr(gateway, "callbacks", [ExplodingLogger()])
 
-    with pytest.raises(litellm.AuthenticationError, match="bad key"):
-        await litellm.acompletion(
+    with pytest.raises(gateway.AuthenticationError, match="bad key"):
+        await gateway.acompletion(
             model="gpt-4o-mini",
             messages=[{"role": "user", "content": "hi"}],
-            mock_response=litellm.AuthenticationError(message="bad key", llm_provider="openai", model="gpt-4o-mini"),
+            mock_response=gateway.AuthenticationError(message="bad key", llm_provider="openai", model="gpt-4o-mini"),
         )
 
 
@@ -5347,9 +5347,9 @@ async def test_router_fallback_chain_reports_increasing_fallback_depth(monkeypat
     first, pre-fallback attempt and fallback_depth=1 on the first fallback hop - the
     concrete scenario async_post_call_failure_deployment_hook exists to make visible."""
     recorder = _RecordingDeploymentFailureLogger()
-    monkeypatch.setattr(litellm, "callbacks", [recorder])
+    monkeypatch.setattr(gateway, "callbacks", [recorder])
 
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {"model_name": "bad-group", "litellm_params": {"model": "openai/gpt-4o-mini", "api_key": "bad-a"}},
             {"model_name": "good-group", "litellm_params": {"model": "openai/gpt-4o-mini", "api_key": "bad-b"}},
@@ -5358,11 +5358,11 @@ async def test_router_fallback_chain_reports_increasing_fallback_depth(monkeypat
         fallbacks=[{"bad-group": ["good-group"]}],
     )
 
-    with pytest.raises(litellm.AuthenticationError):
+    with pytest.raises(gateway.AuthenticationError):
         await router.acompletion(
             model="bad-group",
             messages=[{"role": "user", "content": "hi"}],
-            mock_response=litellm.AuthenticationError(message="bad key", llm_provider="openai", model="gpt-4o-mini"),
+            mock_response=gateway.AuthenticationError(message="bad key", llm_provider="openai", model="gpt-4o-mini"),
         )
 
     assert len(recorder.calls) == 2
@@ -5376,9 +5376,9 @@ async def test_router_multi_hop_fallback_chain_reports_depth_per_hop(monkeypatch
     hop (group-a -> group-b -> group-c, all failing), not just report 1 for every
     fallback attempt regardless of how deep the chain has gone."""
     recorder = _RecordingDeploymentFailureLogger()
-    monkeypatch.setattr(litellm, "callbacks", [recorder])
+    monkeypatch.setattr(gateway, "callbacks", [recorder])
 
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {"model_name": "group-a", "litellm_params": {"model": "openai/gpt-4o-mini", "api_key": "bad-a"}},
             {"model_name": "group-b", "litellm_params": {"model": "openai/gpt-4o-mini", "api_key": "bad-b"}},
@@ -5388,11 +5388,11 @@ async def test_router_multi_hop_fallback_chain_reports_depth_per_hop(monkeypatch
         fallbacks=[{"group-a": ["group-b", "group-c"]}],
     )
 
-    with pytest.raises(litellm.AuthenticationError):
+    with pytest.raises(gateway.AuthenticationError):
         await router.acompletion(
             model="group-a",
             messages=[{"role": "user", "content": "hi"}],
-            mock_response=litellm.AuthenticationError(message="bad key", llm_provider="openai", model="gpt-4o-mini"),
+            mock_response=gateway.AuthenticationError(message="bad key", llm_provider="openai", model="gpt-4o-mini"),
         )
 
     assert len(recorder.calls) == 3
@@ -5407,15 +5407,15 @@ async def test_wrapper_async_fires_post_call_failure_deployment_hook_on_internal
     file-search step) must still reach async_post_call_failure_deployment_hook, matching
     async_pre_call_deployment_hook, which already fires unconditionally for such calls."""
     recorder = _RecordingDeploymentFailureLogger()
-    monkeypatch.setattr(litellm, "callbacks", [recorder])
+    monkeypatch.setattr(gateway, "callbacks", [recorder])
 
     token = is_internal_call.set(True)
     try:
-        with pytest.raises(litellm.AuthenticationError):
-            await litellm.acompletion(
+        with pytest.raises(gateway.AuthenticationError):
+            await gateway.acompletion(
                 model="gpt-4o-mini",
                 messages=[{"role": "user", "content": "hi"}],
-                mock_response=litellm.AuthenticationError(
+                mock_response=gateway.AuthenticationError(
                     message="bad key", llm_provider="openai", model="gpt-4o-mini"
                 ),
             )
@@ -5423,7 +5423,7 @@ async def test_wrapper_async_fires_post_call_failure_deployment_hook_on_internal
         is_internal_call.reset(token)
 
     assert len(recorder.calls) == 1
-    assert isinstance(recorder.calls[0][1], litellm.AuthenticationError)
+    assert isinstance(recorder.calls[0][1], gateway.AuthenticationError)
 
 
 @pytest.mark.asyncio
@@ -5434,12 +5434,12 @@ async def test_wrapper_async_does_not_fire_failure_hook_for_pre_call_budget_erro
     (the [OPTIONAL] CHECK BUDGET gate) is not a deployment attempt failure and must not
     reach async_post_call_failure_deployment_hook."""
     recorder = _RecordingDeploymentFailureLogger()
-    monkeypatch.setattr(litellm, "callbacks", [recorder])
-    monkeypatch.setattr(litellm, "max_budget", 0.0001)
-    monkeypatch.setattr(litellm, "_current_cost", 100.0)
+    monkeypatch.setattr(gateway, "callbacks", [recorder])
+    monkeypatch.setattr(gateway, "max_budget", 0.0001)
+    monkeypatch.setattr(gateway, "_current_cost", 100.0)
 
-    with pytest.raises(litellm.BudgetExceededError):
-        await litellm.acompletion(
+    with pytest.raises(gateway.BudgetExceededError):
+        await gateway.acompletion(
             model="gpt-4o-mini",
             messages=[{"role": "user", "content": "hi"}],
             mock_response="should never be reached",
@@ -5468,10 +5468,10 @@ async def test_wrapper_async_does_not_fire_failure_hook_for_post_success_error(
             self.failure_calls.append(exception)
 
     exploding_logger = ExplodingSuccessLogger()
-    monkeypatch.setattr(litellm, "callbacks", [exploding_logger])
+    monkeypatch.setattr(gateway, "callbacks", [exploding_logger])
 
     with pytest.raises(RuntimeError, match="boom in success hook"):
-        await litellm.acompletion(
+        await gateway.acompletion(
             model="gpt-4o-mini",
             messages=[{"role": "user", "content": "hi"}],
             mock_response="this call succeeds",
@@ -5497,17 +5497,17 @@ async def test_wrapper_async_calls_hook_override_missing_fallback_depth_param(
             self.calls.append((request_data, exception, call_type))
 
     three_arg_logger = ThreeArgLogger()
-    monkeypatch.setattr(litellm, "callbacks", [three_arg_logger])
+    monkeypatch.setattr(gateway, "callbacks", [three_arg_logger])
 
-    with pytest.raises(litellm.AuthenticationError):
-        await litellm.acompletion(
+    with pytest.raises(gateway.AuthenticationError):
+        await gateway.acompletion(
             model="gpt-4o-mini",
             messages=[{"role": "user", "content": "hi"}],
-            mock_response=litellm.AuthenticationError(message="bad key", llm_provider="openai", model="gpt-4o-mini"),
+            mock_response=gateway.AuthenticationError(message="bad key", llm_provider="openai", model="gpt-4o-mini"),
         )
 
     assert len(three_arg_logger.calls) == 1
-    assert isinstance(three_arg_logger.calls[0][1], litellm.AuthenticationError)
+    assert isinstance(three_arg_logger.calls[0][1], gateway.AuthenticationError)
 
 
 @pytest.mark.asyncio
@@ -5523,13 +5523,13 @@ async def test_wrapper_async_failure_hook_exception_mutation_does_not_change_rai
         async def async_post_call_failure_deployment_hook(self, request_data, exception, call_type, fallback_depth=None):
             exception.status_code = 429
 
-    monkeypatch.setattr(litellm, "callbacks", [StatusCodeMutatingLogger()])
+    monkeypatch.setattr(gateway, "callbacks", [StatusCodeMutatingLogger()])
 
-    with pytest.raises(litellm.AuthenticationError) as exc_info:
-        await litellm.acompletion(
+    with pytest.raises(gateway.AuthenticationError) as exc_info:
+        await gateway.acompletion(
             model="gpt-4o-mini",
             messages=[{"role": "user", "content": "hi"}],
-            mock_response=litellm.AuthenticationError(message="bad key", llm_provider="openai", model="gpt-4o-mini"),
+            mock_response=gateway.AuthenticationError(message="bad key", llm_provider="openai", model="gpt-4o-mini"),
         )
 
     assert exc_info.value.status_code == 401
@@ -5545,7 +5545,7 @@ async def test_async_post_call_failure_deployment_hook_omits_attempted_targets_f
     on it would make the router skip a deployment it hasn't actually tried, so the
     dispatcher must never hand it to a callback."""
     recorder = _RecordingDeploymentFailureLogger()
-    monkeypatch.setattr(litellm, "callbacks", [recorder])
+    monkeypatch.setattr(gateway, "callbacks", [recorder])
 
     sentinel_targets = object()
     await async_post_call_failure_deployment_hook(
@@ -5578,7 +5578,7 @@ async def test_router_fallback_not_skipped_when_failure_hook_callback_touches_at
             if attempted is not None:
                 attempted.record("good-group")
 
-    monkeypatch.setattr(litellm, "callbacks", [RecordingAttemptLogger()])
+    monkeypatch.setattr(gateway, "callbacks", [RecordingAttemptLogger()])
 
     def _mock_timeout_deployment(model_name: str) -> dict:
         return {
@@ -5592,7 +5592,7 @@ async def test_router_fallback_not_skipped_when_failure_hook_callback_touches_at
             },
         }
 
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             _mock_timeout_deployment("bad-group"),
             _mock_timeout_deployment("mid-group"),
@@ -5631,14 +5631,14 @@ async def test_wrapper_async_preserves_original_exception_when_hook_await_is_can
         async def async_post_call_failure_deployment_hook(self, request_data, exception, call_type, fallback_depth=None):
             await asyncio.sleep(5)
 
-    monkeypatch.setattr(litellm, "callbacks", [SlowLogger()])
+    monkeypatch.setattr(gateway, "callbacks", [SlowLogger()])
 
-    with pytest.raises(litellm.AuthenticationError):
+    with pytest.raises(gateway.AuthenticationError):
         await asyncio.wait_for(
-            litellm.acompletion(
+            gateway.acompletion(
                 model="gpt-4o-mini",
                 messages=[{"role": "user", "content": "hi"}],
-                mock_response=litellm.AuthenticationError(message="bad key", llm_provider="openai", model="gpt-4o-mini"),
+                mock_response=gateway.AuthenticationError(message="bad key", llm_provider="openai", model="gpt-4o-mini"),
             ),
             timeout=0.2,
         )
@@ -5660,13 +5660,13 @@ async def test_wrapper_async_failure_hook_latency_does_not_inflate_reported_dura
         async def async_log_failure_event(self, kwargs, response_obj, start_time, end_time):
             reported_durations.append((end_time - start_time).total_seconds())
 
-    monkeypatch.setattr(litellm, "callbacks", [SlowLoggerWithDurationCapture()])
+    monkeypatch.setattr(gateway, "callbacks", [SlowLoggerWithDurationCapture()])
 
-    with pytest.raises(litellm.AuthenticationError):
-        await litellm.acompletion(
+    with pytest.raises(gateway.AuthenticationError):
+        await gateway.acompletion(
             model="gpt-4o-mini",
             messages=[{"role": "user", "content": "hi"}],
-            mock_response=litellm.AuthenticationError(message="bad key", llm_provider="openai", model="gpt-4o-mini"),
+            mock_response=gateway.AuthenticationError(message="bad key", llm_provider="openai", model="gpt-4o-mini"),
         )
     await asyncio.sleep(0.1)
 
@@ -5688,13 +5688,13 @@ async def test_wrapper_async_failure_hook_exception_snapshot_preserves_traceback
         async def async_post_call_failure_deployment_hook(self, request_data, exception, call_type, fallback_depth=None):
             received.append(exception)
 
-    monkeypatch.setattr(litellm, "callbacks", [TracebackCapturingLogger()])
+    monkeypatch.setattr(gateway, "callbacks", [TracebackCapturingLogger()])
 
-    with pytest.raises(litellm.AuthenticationError):
-        await litellm.acompletion(
+    with pytest.raises(gateway.AuthenticationError):
+        await gateway.acompletion(
             model="gpt-4o-mini",
             messages=[{"role": "user", "content": "hi"}],
-            mock_response=litellm.AuthenticationError(message="bad key", llm_provider="openai", model="gpt-4o-mini"),
+            mock_response=gateway.AuthenticationError(message="bad key", llm_provider="openai", model="gpt-4o-mini"),
         )
 
     assert len(received) == 1
@@ -5793,7 +5793,7 @@ class TestIsVisionExplicitlyDisabled:
             lookups.append((args, kwargs))
             raise RuntimeError("provider resolution must not run for an authenticating provider")
 
-        monkeypatch.setattr(litellm, "get_llm_provider", _record)
+        monkeypatch.setattr(gateway, "get_llm_provider", _record)
 
         assert is_vision_explicitly_disabled(model) is False
         assert lookups == []

@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, Final, Optional
 from fastapi import APIRouter, Depends, Request, Response
 from fastapi.responses import ORJSONResponse
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy._types import UserAPIKeyAuth
 from token_iq.gateway.proxy.auth.auth_checks import _can_object_call_model, can_key_call_model
 from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
@@ -418,8 +418,8 @@ def _update_request_data_with_litellm_managed_vector_store_registry(
 
     # Legacy path: Check vector store registry for non-managed vector stores.
     vector_store_to_run = managed_vector_store
-    if vector_store_to_run is None and should_lookup_registry and litellm.vector_store_registry is not None:
-        vector_store_to_run = litellm.vector_store_registry.get_litellm_managed_vector_store_from_registry(
+    if vector_store_to_run is None and should_lookup_registry and gateway.vector_store_registry is not None:
+        vector_store_to_run = gateway.vector_store_registry.get_litellm_managed_vector_store_from_registry(
             vector_store_id=vector_store_id
         )
 

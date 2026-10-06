@@ -14,7 +14,7 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy._types import UserAPIKeyAuth
 from token_iq.gateway.proxy.proxy_server import LitellmUserRoles
 from token_iq.gateway.caching.caching import DualCache
@@ -139,10 +139,10 @@ def mock_prisma_client():
 @pytest.mark.asyncio
 async def test_register_plugin(mock_prisma_client):
     """Test registering a plugin in the marketplace."""
-    setattr(litellm.proxy.proxy_server, "prisma_client", mock_prisma_client)
-    setattr(litellm.proxy.proxy_server, "master_key", "sk-1234")
+    setattr(gateway.proxy.proxy_server, "prisma_client", mock_prisma_client)
+    setattr(gateway.proxy.proxy_server, "master_key", "sk-1234")
 
-    await litellm.proxy.proxy_server.prisma_client.connect()
+    await gateway.proxy.proxy_server.prisma_client.connect()
 
     # Create a unique plugin name for this test
     plugin_name = f"test-plugin-{int(time.time())}"
@@ -189,10 +189,10 @@ async def test_register_plugin(mock_prisma_client):
 @pytest.mark.asyncio
 async def test_get_marketplace(mock_prisma_client):
     """Test getting marketplace.json with registered plugins."""
-    setattr(litellm.proxy.proxy_server, "prisma_client", mock_prisma_client)
-    setattr(litellm.proxy.proxy_server, "master_key", "sk-1234")
+    setattr(gateway.proxy.proxy_server, "prisma_client", mock_prisma_client)
+    setattr(gateway.proxy.proxy_server, "master_key", "sk-1234")
 
-    await litellm.proxy.proxy_server.prisma_client.connect()
+    await gateway.proxy.proxy_server.prisma_client.connect()
 
     # First register a plugin
     plugin_name = f"test-marketplace-plugin-{int(time.time())}"
@@ -242,10 +242,10 @@ async def test_get_marketplace(mock_prisma_client):
 @pytest.mark.asyncio
 async def test_register_plugin_git_subdir(mock_prisma_client):
     """Test registering a plugin with git-subdir source type."""
-    setattr(litellm.proxy.proxy_server, "prisma_client", mock_prisma_client)
-    setattr(litellm.proxy.proxy_server, "master_key", "sk-1234")
+    setattr(gateway.proxy.proxy_server, "prisma_client", mock_prisma_client)
+    setattr(gateway.proxy.proxy_server, "master_key", "sk-1234")
 
-    await litellm.proxy.proxy_server.prisma_client.connect()
+    await gateway.proxy.proxy_server.prisma_client.connect()
 
     plugin_name = f"test-subdir-plugin-{int(time.time())}"
 

@@ -12,15 +12,15 @@ import io
 
 
 import token_iq.gateway.types
-from token_iq import gateway as litellm
+from token_iq import gateway
 import token_iq.gateway.types.utils
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.router import Router
 from typing import Optional
 from unittest.mock import MagicMock, patch
 
 import pytest
-from token_iq import gateway as litellm
+from token_iq import gateway
 from typing import Callable, Any
 
 import gc
@@ -64,7 +64,7 @@ async def run_memory_test(request_func: Callable, name: str) -> None:
 
 
 async def make_completion_request():
-    return await litellm.acompletion(
+    return await gateway.acompletion(
         model="openai/gpt-4o",
         messages=[{"role": "user", "content": "Test message for memory usage"}],
         api_base="https://exampleopenaiendpoint-production.up.railway.app/",
@@ -72,7 +72,7 @@ async def make_completion_request():
 
 
 async def make_text_completion_request():
-    return await litellm.atext_completion(
+    return await gateway.atext_completion(
         model="openai/gpt-4o",
         prompt="Test message for memory usage",
         api_base="https://exampleopenaiendpoint-production.up.railway.app/",

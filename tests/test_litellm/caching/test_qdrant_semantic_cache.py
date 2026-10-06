@@ -914,9 +914,9 @@ LONG_PROMPT = " ".join(f"token{i}" for i in range(300))
 
 
 def _token_count(model, text):
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    return len(litellm.encode(model=model, text=text))
+    return len(gateway.encode(model=model, text=text))
 
 
 def test_qdrant_get_embedding_truncates_to_deployment_max_input_tokens(monkeypatch):

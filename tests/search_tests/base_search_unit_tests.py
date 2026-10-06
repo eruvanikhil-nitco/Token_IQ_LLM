@@ -5,7 +5,7 @@ This follows the same pattern as BaseOCRTest in tests/ocr_tests/base_ocr_unit_te
 """
 
 import pytest
-from token_iq import gateway as litellm
+from token_iq import gateway
 from abc import ABC, abstractmethod
 import os
 import json
@@ -29,9 +29,9 @@ class BaseSearchTest(ABC):
         """Fixture to handle rate limit errors for all test methods"""
         try:
             yield
-        except litellm.RateLimitError:
+        except gateway.RateLimitError:
             pytest.skip("Rate limit exceeded")
-        except litellm.InternalServerError:
+        except gateway.InternalServerError:
             pytest.skip("Model is overloaded")
 
     @pytest.mark.asyncio
@@ -40,13 +40,13 @@ class BaseSearchTest(ABC):
         Test basic search functionality with a simple query.
         """
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-        litellm.model_cost = litellm.get_model_cost_map()
-        litellm._turn_on_debug()
+        gateway.model_cost = gateway.get_model_cost_map()
+        gateway._turn_on_debug()
         search_provider = self.get_search_provider()
         print("Search Provider=", search_provider)
 
         try:
-            response = await litellm.asearch(
+            response = await gateway.asearch(
                 query="latest developments in AI",
                 search_provider=search_provider,
             )
@@ -118,10 +118,10 @@ class BaseSearchTest(ABC):
         """
         Test that the Search response has the correct structure.
         """
-        litellm.set_verbose = True
+        gateway.set_verbose = True
         search_provider = self.get_search_provider()
 
-        response = litellm.search(
+        response = gateway.search(
             query="artificial intelligence recent news",
             search_provider=search_provider,
         )
@@ -154,10 +154,10 @@ class BaseSearchTest(ABC):
         """
         Test search with optional parameters.
         """
-        litellm.set_verbose = True
+        gateway.set_verbose = True
         search_provider = self.get_search_provider()
 
-        response = litellm.search(
+        response = gateway.search(
             query="machine learning",
             search_provider=search_provider,
             max_results=5,

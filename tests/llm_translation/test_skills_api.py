@@ -12,7 +12,7 @@ from typing import Optional
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.types.llms.anthropic_skills import (
     DeleteSkillResponse,
     ListSkillsResponse,
@@ -110,8 +110,8 @@ class BaseSkillsAPITest(ABC):
         if not api_key:
             pytest.skip(f"No API key provided for {custom_llm_provider}")
 
-        litellm.set_verbose = True
-        litellm._turn_on_debug()
+        gateway.set_verbose = True
+        gateway._turn_on_debug()
 
         # Use helper to create skill zip
         skill_name = "test-skill-litellm"
@@ -123,7 +123,7 @@ class BaseSkillsAPITest(ABC):
 
         # Upload the skill with the zip file
         with create_skill_zip(skill_name, unique_suffix=ts) as zip_file:
-            response = litellm.create_skill(
+            response = gateway.create_skill(
                 display_title=unique_title,
                 files=[zip_file],
                 custom_llm_provider=custom_llm_provider,
@@ -151,13 +151,13 @@ class BaseSkillsAPITest(ABC):
 
         # Enable debug logging
         os.environ["LITELLM_LOG"] = "DEBUG"
-        litellm.set_verbose = True
+        gateway.set_verbose = True
 
         print(f"\n=== Testing list_skills ===")
         print("API Key: [REDACTED]")
         print(f"API Base: {api_base}")
 
-        response = litellm.list_skills(
+        response = gateway.list_skills(
             limit=10,
             custom_llm_provider=custom_llm_provider,
             api_key=api_key,
@@ -180,10 +180,10 @@ class BaseSkillsAPITest(ABC):
         if not api_key:
             pytest.skip(f"No API key provided for {custom_llm_provider}")
 
-        litellm.set_verbose = True
+        gateway.set_verbose = True
 
         # First list existing skills to see if any exist
-        list_response = litellm.list_skills(
+        list_response = gateway.list_skills(
             limit=1,
             custom_llm_provider=custom_llm_provider,
             api_key=api_key,
@@ -201,7 +201,7 @@ class BaseSkillsAPITest(ABC):
             print(f"Using existing skill: {skill_id}")
 
             # Now get the skill
-            response = litellm.get_skill(
+            response = gateway.get_skill(
                 skill_id=skill_id,
                 custom_llm_provider=custom_llm_provider,
                 api_key=api_key,
@@ -233,7 +233,7 @@ class BaseSkillsAPITest(ABC):
             "Anthropic requires deleting all skill versions first - skipping for now"
         )
 
-        litellm.set_verbose = True
+        gateway.set_verbose = True
 
         # Use helper to create skill zip
         skill_name = "test-delete-skill"
@@ -244,7 +244,7 @@ class BaseSkillsAPITest(ABC):
 
         # Create a skill specifically to delete
         with create_skill_zip(skill_name, unique_suffix=ts) as zip_file:
-            created_skill = litellm.create_skill(
+            created_skill = gateway.create_skill(
                 display_title=unique_title,
                 files=[zip_file],
                 custom_llm_provider=custom_llm_provider,
@@ -258,7 +258,7 @@ class BaseSkillsAPITest(ABC):
         print(f"Created skill to delete: {skill_id}")
 
         # Now delete the skill
-        response = litellm.delete_skill(
+        response = gateway.delete_skill(
             skill_id=skill_id,
             custom_llm_provider=custom_llm_provider,
             api_key=api_key,

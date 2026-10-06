@@ -6,7 +6,7 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
 from token_iq.gateway.proxy.a2a.discovery import (
     AGENT_CARD_WELL_KNOWN_PATHS,
@@ -25,7 +25,7 @@ def _disable_url_validation_for_mocks(monkeypatch):
     otherwise resolve those hostnames and either fail DNS or block on the
     SSRF guard. Disabling validation here lets the unit tests focus on
     fallback / parsing logic; SSRF behavior is covered in its own test."""
-    monkeypatch.setattr(litellm, "user_url_validation", False)
+    monkeypatch.setattr(gateway, "user_url_validation", False)
 
 
 # ---------------------------------------------------------------------------

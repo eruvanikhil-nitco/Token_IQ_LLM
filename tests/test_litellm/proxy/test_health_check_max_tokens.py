@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 import respx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.health_check_helpers import HealthCheckHelpers
 from token_iq.gateway.proxy import health_check as hc_module
 from token_iq.gateway.proxy.health_check import (
@@ -621,8 +621,8 @@ def test_health_check_params_apply_to_non_chat_modes():
 async def _pegasus_health_check_request_body(
     model_info: dict[str, object], monkeypatch: pytest.MonkeyPatch
 ) -> dict[str, object]:
-    monkeypatch.setattr(litellm, "disable_aiohttp_transport", True)
-    litellm.in_memory_llm_clients_cache.flush_cache()
+    monkeypatch.setattr(gateway, "disable_aiohttp_transport", True)
+    gateway.in_memory_llm_clients_cache.flush_cache()
 
     litellm_params = _update_litellm_params_for_health_check(
         model_info,
@@ -639,7 +639,7 @@ async def _pegasus_health_check_request_body(
             host="bedrock-runtime.us-east-1.amazonaws.com",
             path__regex=r"/model/.+/invoke",
         ).respond(json={"message": "a person walks a dog", "finishReason": "stop"})
-        result = await litellm.ahealth_check(litellm_params, mode="chat")
+        result = await gateway.ahealth_check(litellm_params, mode="chat")
 
     assert "error" not in result, result
     return json.loads(invoke_route.calls.last.request.content)
@@ -689,7 +689,7 @@ async def test_run_model_health_check_skips_complexity_router_deployment():
 def _router_health_fixture():
     """A real Router whose SIMPLE tier, default and classifier can each be pointed at a dead
     group. That group has two replicas, so a verdict reached on only one of them is visible."""
-    return litellm.Router(
+    return gateway.Router(
         model_list=[
             {
                 "model_name": "live-group",
@@ -813,7 +813,7 @@ def test_dependency_probes_carry_one_row_per_id():
 def test_a_dependency_alias_whose_target_is_gone_reds_the_router():
     """An alias resolving to nothing fails a request exactly like an unknown name, so the
     health check must not read the empty resolution as "no information" and stay green."""
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "smart-router",
@@ -844,7 +844,7 @@ def test_a_dependency_that_opted_out_of_health_checks_is_never_probed():
         "litellm_params": {"model": "openai/gpt-4o-mini", "api_key": "sk-x"},
         "model_info": {"id": "dead-1", "disable_background_health_check": True},
     }
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             disabled_dep,
             {
@@ -878,7 +878,7 @@ def test_narrowing_by_an_id_that_matches_nothing_keeps_the_whole_list():
 
 
 def _nested_router_fixture(parent_tier: str):
-    return litellm.Router(
+    return gateway.Router(
         model_list=[
             {
                 "model_name": "dead-group",
@@ -949,7 +949,7 @@ def test_a_router_routing_to_a_healthy_router_stays_green():
 def test_two_routers_pointing_at_each_other_terminate_instead_of_recursing():
     """The round bound is what makes a cycle finish. Neither has a failing dependency, so
     neither reds, and the walk must not recurse forever proving it."""
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": name,
@@ -987,7 +987,7 @@ def test_a_targeted_check_on_a_nested_router_probes_the_grandchild_models():
 
 def test_transitive_probe_expansion_terminates_on_a_router_cycle():
     """Expansion follows routers through routers, so a cycle must stop rather than recurse."""
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": name,

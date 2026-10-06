@@ -4,7 +4,7 @@ from unittest.mock import Mock, patch
 import httpx
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.azure.text_to_speech.transformation import AzureAVATextToSpeechConfig
 
 
@@ -697,7 +697,7 @@ def test_litellm_speech_with_ssml_passthrough(mock_post):
     mock_response.headers = {"content-type": "audio/mpeg"}
     mock_post.return_value = mock_response
 
-    litellm.speech(
+    gateway.speech(
         model="azure/speech/tts",
         input=raw_ssml,
         voice="en-US-AriaNeural",

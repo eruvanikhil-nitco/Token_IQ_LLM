@@ -124,9 +124,9 @@ def test_reload_model_cost_map_fetch_failure_502_keeps_map(
     detail = response.json().get("detail", "")
     assert "HTTP 429 from upstream" in detail
     assert "Current pricing data was kept" in detail
-    from token_iq import gateway as litellm_module
+    from token_iq import gateway as gateway_module
 
-    assert litellm_module.model_cost is sentinel_map
+    assert gateway_module.model_cost is sentinel_map
     assert table.upsert.await_count == 0
 
 

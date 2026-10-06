@@ -20,7 +20,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.caching.caching import DualCache
 from token_iq.gateway.proxy._types import UserAPIKeyAuth
 from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
@@ -112,7 +112,7 @@ def test_retrieve_batch_passes_model_for_bedrock_encoded_id(
         captured_kwargs.update(kwargs)
         return _make_in_progress_batch_response(BEDROCK_BATCH_ARN)
 
-    monkeypatch.setattr(litellm, "aretrieve_batch", mock_aretrieve_batch)
+    monkeypatch.setattr(gateway, "aretrieve_batch", mock_aretrieve_batch)
 
     try:
         response = client.get(
@@ -147,7 +147,7 @@ def test_retrieve_batch_response_id_is_re_encoded_with_model(
     async def mock_aretrieve_batch(**kwargs):
         return _make_in_progress_batch_response(BEDROCK_BATCH_ARN)
 
-    monkeypatch.setattr(litellm, "aretrieve_batch", mock_aretrieve_batch)
+    monkeypatch.setattr(gateway, "aretrieve_batch", mock_aretrieve_batch)
 
     try:
         response = client.get(
@@ -195,7 +195,7 @@ def test_file_content_routes_to_bedrock_for_encoded_output_file_id(
             )
         )
 
-    monkeypatch.setattr(litellm, "afile_content", mock_afile_content)
+    monkeypatch.setattr(gateway, "afile_content", mock_afile_content)
 
     try:
         response = client.get(

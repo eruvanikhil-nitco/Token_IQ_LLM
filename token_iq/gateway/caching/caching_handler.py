@@ -23,7 +23,7 @@ from typing import TYPE_CHECKING, Any, Final, Optional, TypeVar
 
 from pydantic import BaseModel
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import print_verbose, verbose_logger
 from token_iq.gateway.caching import InMemoryCache
 from token_iq.gateway.caching.caching import S3Cache
@@ -168,9 +168,9 @@ class LLMCachingHandler:
         self.preset_cache_key: str | None = None
         self.original_function = original_function
         self.start_time = start_time
-        if litellm.cache is not None and isinstance(litellm.cache.cache, RedisCache):
+        if gateway.cache is not None and isinstance(gateway.cache.cache, RedisCache):
             self.dual_cache: DualCache | None = DualCache(
-                redis_cache=litellm.cache.cache,
+                redis_cache=gateway.cache.cache,
                 in_memory_cache=in_memory_cache_obj,
             )
         else:
@@ -215,7 +215,7 @@ class LLMCachingHandler:
 
         # Check if caching should be performed BEFORE doing expensive operations
         if (
-            (kwargs.get("caching", None) is None and litellm.cache is not None) or kwargs.get("caching", False) is True
+            (kwargs.get("caching", None) is None and gateway.cache is not None) or kwargs.get("caching", False) is True
         ) and (
             kwargs.get("cache", {}).get("no-cache", False) is not True
         ):  # allow users to control returning cached responses from the completion function
@@ -233,7 +233,7 @@ class LLMCachingHandler:
             parent_otel_span: Final = _get_parent_otel_span_from_kwargs(kwargs)
             kwargs["parent_otel_span"] = parent_otel_span
 
-            if litellm.cache is not None and self._is_call_type_supported_by_cache(original_function=original_function):
+            if gateway.cache is not None and self._is_call_type_supported_by_cache(original_function=original_function):
                 verbose_logger.debug("Checking Async Cache")
                 cached_result = await self._retrieve_from_cache(
                     call_type=call_type,
@@ -246,7 +246,7 @@ class LLMCachingHandler:
                     verbose_logger.debug("Cache Hit!")
                     cache_hit: Final = True
                     end_time: Final = datetime.datetime.now()
-                    model, custom_llm_provider, _, _ = litellm.get_llm_provider(
+                    model, custom_llm_provider, _, _ = gateway.get_llm_provider(
                         model=model,
                         custom_llm_provider=kwargs.get("custom_llm_provider", None),
                         api_base=kwargs.get("api_base", None),
@@ -286,7 +286,7 @@ class LLMCachingHandler:
                     cache_key: Final = (
                         self.preset_cache_key
                         or self.request_kwargs.get("cache_key")
-                        or litellm.cache.get_cache_key(**self.request_kwargs)
+                        or gateway.cache.get_cache_key(**self.request_kwargs)
                     )
                     if hasattr(cached_result, "_hidden_params"):
                         cached_result._hidden_params["cache_key"] = cache_key
@@ -295,8 +295,8 @@ class LLMCachingHandler:
                     call_type == CallTypes.aembedding.value
                     and cached_result is not None
                     and isinstance(cached_result, list)
-                    and litellm.cache is not None
-                    and not isinstance(litellm.cache.cache, S3Cache)  # s3 doesn't support bulk writing. Exclude.
+                    and gateway.cache is not None
+                    and not isinstance(gateway.cache.cache, S3Cache)  # s3 doesn't support bulk writing. Exclude.
                 ):
                     (
                         final_embedding_cached_response,
@@ -340,7 +340,7 @@ class LLMCachingHandler:
         return CachingHandlerResponse(cached_result=None)
 
         # Check if caching should be performed BEFORE doing expensive kwargs copy
-        if litellm.cache is not None and self._is_call_type_supported_by_cache(original_function=original_function):
+        if gateway.cache is not None and self._is_call_type_supported_by_cache(original_function=original_function):
             args = args or ()
             # Now that we confirmed caching will happen, prepare kwargs
             new_kwargs: Final = kwargs.copy()
@@ -353,10 +353,10 @@ class LLMCachingHandler:
             if new_kwargs.get("metadata") is None:
                 new_kwargs.pop("metadata", None)
             if new_kwargs.get("stream") is True and "cache_key" not in new_kwargs:
-                new_kwargs["cache_key"] = litellm.cache.get_cache_key(**new_kwargs)
+                new_kwargs["cache_key"] = gateway.cache.get_cache_key(**new_kwargs)
             self.request_kwargs = _drop_logging_obj_from_kwargs(new_kwargs)
             print_verbose("Checking Sync Cache")
-            cached_result = litellm.cache.get_cache(**new_kwargs)
+            cached_result = gateway.cache.get_cache(**new_kwargs)
             if cached_result is not None:
                 if "detail" in cached_result:
                     # implies an error occurred
@@ -381,7 +381,7 @@ class LLMCachingHandler:
                         custom_llm_provider,
                         dynamic_api_key,
                         api_base,
-                    ) = litellm.get_llm_provider(
+                    ) = gateway.get_llm_provider(
                         model=model or "",
                         custom_llm_provider=kwargs.get("custom_llm_provider", None),
                         api_base=kwargs.get("api_base", None),
@@ -405,7 +405,7 @@ class LLMCachingHandler:
                     cache_key: Final = (
                         self.preset_cache_key
                         or self.request_kwargs.get("cache_key")
-                        or litellm.cache.get_cache_key(**self.request_kwargs)
+                        or gateway.cache.get_cache_key(**self.request_kwargs)
                     )
                     if hasattr(cached_result, "_hidden_params"):
                         cached_result._hidden_params["cache_key"] = cache_key
@@ -544,7 +544,7 @@ class LLMCachingHandler:
                 custom_llm_provider,
                 dynamic_api_key,
                 api_base,
-            ) = litellm.get_llm_provider(
+            ) = gateway.get_llm_provider(
                 model=model,
                 custom_llm_provider=kwargs.get("custom_llm_provider", None),
                 api_base=kwargs.get("api_base", None),
@@ -737,7 +737,7 @@ class LLMCachingHandler:
         Raises:
             None
         """
-        if litellm.cache is None:
+        if gateway.cache is None:
             return None
 
         new_kwargs: Final = kwargs.copy()
@@ -750,7 +750,7 @@ class LLMCachingHandler:
         if new_kwargs.get("metadata") is None:
             new_kwargs.pop("metadata", None)
         if new_kwargs.get("stream") is True and "cache_key" not in new_kwargs:
-            new_kwargs["cache_key"] = litellm.cache.get_cache_key(**new_kwargs)
+            new_kwargs["cache_key"] = gateway.cache.get_cache_key(**new_kwargs)
         self.request_kwargs = _drop_logging_obj_from_kwargs(new_kwargs)
         cached_result: Any | None = None
         if call_type == CallTypes.aembedding.value:
@@ -760,9 +760,9 @@ class LLMCachingHandler:
                 raise ValueError("input must be a string or a list")
             tasks: Final = []
             for idx, i in enumerate(new_kwargs["input"]):
-                preset_cache_key = litellm.cache.get_cache_key(**{**new_kwargs, "input": i})
+                preset_cache_key = gateway.cache.get_cache_key(**{**new_kwargs, "input": i})
                 tasks.append(
-                    litellm.cache.async_get_cache(
+                    gateway.cache.async_get_cache(
                         cache_key=preset_cache_key,
                         dynamic_cache_object=self.dual_cache,
                     )
@@ -777,17 +777,17 @@ class LLMCachingHandler:
             request_kwargs: Final = new_kwargs.copy()
             request_cache_key: Final = _request_cache_key(request_kwargs)
             request_kwargs.pop("cache_key", None)
-            if litellm.cache._supports_async() is True:
+            if gateway.cache._supports_async() is True:
                 ## check if dual cache is supported ##
-                self.preset_cache_key = request_cache_key or litellm.cache.get_cache_key(**request_kwargs)
-                cached_result = await litellm.cache.async_get_cache(
+                self.preset_cache_key = request_cache_key or gateway.cache.get_cache_key(**request_kwargs)
+                cached_result = await gateway.cache.async_get_cache(
                     dynamic_cache_object=self.dual_cache,
                     cache_key=self.preset_cache_key,
                     **request_kwargs,
                 )
             else:  # fallback for caches that don't support async
-                self.preset_cache_key = request_cache_key or litellm.cache.get_cache_key(**request_kwargs)
-                cached_result = litellm.cache.get_cache(
+                self.preset_cache_key = request_cache_key or gateway.cache.get_cache_key(**request_kwargs)
+                cached_result = gateway.cache.get_cache(
                     dynamic_cache_object=self.dual_cache,
                     cache_key=self.preset_cache_key,
                     **request_kwargs,
@@ -1017,9 +1017,9 @@ class LLMCachingHandler:
             _get_parent_otel_span_from_kwargs,
         )
 
-        if litellm.cache is None:
+        if gateway.cache is None:
             return
-        cache: Final = litellm.cache
+        cache: Final = gateway.cache
 
         new_kwargs: Final = kwargs.copy()
         new_kwargs.update(
@@ -1033,8 +1033,8 @@ class LLMCachingHandler:
         # [OPTIONAL] ADD TO CACHE
         if self._should_store_result_in_cache(original_function=original_function, kwargs=new_kwargs):
             if (
-                isinstance(result, litellm.ModelResponse)
-                or isinstance(result, litellm.EmbeddingResponse)
+                isinstance(result, gateway.ModelResponse)
+                or isinstance(result, gateway.EmbeddingResponse)
                 or isinstance(result, TranscriptionResponse)
                 or isinstance(result, RerankResponse)
                 or isinstance(result, ResponsesAPIResponse)
@@ -1077,11 +1077,11 @@ class LLMCachingHandler:
                 args,
             )
         )
-        if litellm.cache is None:
+        if gateway.cache is None:
             return
 
         if self._should_store_result_in_cache(original_function=self.original_function, kwargs=new_kwargs):
-            litellm.cache.add_cache(result, **new_kwargs)
+            gateway.cache.add_cache(result, **new_kwargs)
 
         return
 
@@ -1093,9 +1093,9 @@ class LLMCachingHandler:
             bool: True if the result should be stored in the cache, False otherwise.
         """
         return (
-            (litellm.cache is not None)
-            and litellm.cache.supported_call_types is not None
-            and (str(original_function.__name__) in litellm.cache.supported_call_types)
+            (gateway.cache is not None)
+            and gateway.cache.supported_call_types is not None
+            and (str(original_function.__name__) in gateway.cache.supported_call_types)
             and (kwargs.get("cache", {}).get("no-store", False) is not True)
         )
 
@@ -1107,7 +1107,7 @@ class LLMCachingHandler:
             CallTypes.aanthropic_messages.value,
         ):
             return result
-        if litellm.cache is None or not self._should_store_result_in_cache(
+        if gateway.cache is None or not self._should_store_result_in_cache(
             original_function=self.original_function, kwargs=self.request_kwargs
         ):
             return result
@@ -1134,9 +1134,9 @@ class LLMCachingHandler:
             bool: True if the call type is supported by the cache, False otherwise.
         """
         if (
-            litellm.cache is not None
-            and litellm.cache.supported_call_types is not None
-            and str(original_function.__name__) in litellm.cache.supported_call_types
+            gateway.cache is not None
+            and gateway.cache.supported_call_types is not None
+            and str(original_function.__name__) in gateway.cache.supported_call_types
         ):
             return True
         return False
@@ -1228,8 +1228,8 @@ class LLMCachingHandler:
             "custom_llm_provider": custom_llm_provider,
         }
 
-        if litellm.cache is not None:
-            litellm_params["preset_cache_key"] = litellm.cache._get_preset_cache_key_from_kwargs(**kwargs)
+        if gateway.cache is not None:
+            litellm_params["preset_cache_key"] = gateway.cache._get_preset_cache_key_from_kwargs(**kwargs)
         else:
             litellm_params["preset_cache_key"] = None
 

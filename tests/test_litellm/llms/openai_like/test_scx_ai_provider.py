@@ -2,7 +2,7 @@
 Tests for SCX.ai provider configuration and integration.
 """
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 
 class TestSCXAIProviderConfig:
@@ -11,7 +11,7 @@ class TestSCXAIProviderConfig:
 
         assert hasattr(LlmProviders, "SCX_AI")
         assert LlmProviders.SCX_AI.value == "scx-ai"
-        assert "scx-ai" in litellm.provider_list
+        assert "scx-ai" in gateway.provider_list
 
     def test_scx_ai_json_config_exists(self):
         from token_iq.gateway.llms.openai_like.json_loader import JSONProviderRegistry
@@ -190,9 +190,9 @@ class TestSCXAIDashboardRegistration:
         import json
         from pathlib import Path
 
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
-        path = Path(litellm.__file__).parent / "proxy" / "public_endpoints" / "provider_create_fields.json"
+        path = Path(gateway.__file__).parent / "proxy" / "public_endpoints" / "provider_create_fields.json"
         with open(path) as f:
             return json.load(f)
 

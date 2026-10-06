@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Final
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
 from token_iq.gateway.llms.custom_httpx.http_handler import (
     AsyncHTTPHandler,
@@ -53,7 +53,7 @@ async def async_embedding(
     model: str,
     data: dict | CohereEmbeddingRequest,
     input: list,
-    model_response: litellm.utils.EmbeddingResponse,
+    model_response: gateway.utils.EmbeddingResponse,
     timeout: float | httpx.Timeout | None,
     logging_obj: LiteLLMLoggingObj,
     optional_params: dict,
@@ -77,7 +77,7 @@ async def async_embedding(
 
     if client is None:
         client = get_async_httpx_client(
-            llm_provider=litellm.LlmProviders.COHERE,
+            llm_provider=gateway.LlmProviders.COHERE,
             params={"timeout": timeout},
         )
 

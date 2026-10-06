@@ -471,12 +471,12 @@ def test_cancel_batch_reraises_other_client_errors(patched_boto3):
 
 
 def test_litellm_cancel_batch_dispatches_to_bedrock(patched_boto3):
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     fake_client, _ = patched_boto3
     fake_client.get_model_invocation_job.return_value = _fake_boto3_response(status="Stopped")
 
-    batch = litellm.cancel_batch(batch_id=JOB_ARN, custom_llm_provider="bedrock")
+    batch = gateway.cancel_batch(batch_id=JOB_ARN, custom_llm_provider="bedrock")
 
     fake_client.stop_model_invocation_job.assert_called_once_with(jobIdentifier=JOB_ARN)
     assert batch.status == "cancelled"

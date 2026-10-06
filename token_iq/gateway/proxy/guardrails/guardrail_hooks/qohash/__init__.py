@@ -9,7 +9,7 @@ if TYPE_CHECKING:
 
 
 def initialize_guardrail(litellm_params: "LitellmParams", guardrail: "Guardrail"):
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     _instance: Final = QostodianNexus(
         api_base=litellm_params.api_base,
@@ -20,7 +20,7 @@ def initialize_guardrail(litellm_params: "LitellmParams", guardrail: "Guardrail"
         extra_headers=getattr(litellm_params, "extra_headers", None),
     )
 
-    litellm.logging_callback_manager.add_litellm_callback(_instance)
+    gateway.logging_callback_manager.add_litellm_callback(_instance)
 
     return _instance
 

@@ -18,7 +18,7 @@ from typing import Annotated, Final, TypedDict
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from typing_extensions import ReadOnly, Required, assert_never
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.llms.custom_httpx.http_handler import get_async_httpx_client
 from token_iq.gateway.proxy._types import (
@@ -256,7 +256,7 @@ async def _rank_agents_by_query(
         agents=agents,
         top_k=top_k,
         router=llm_router,
-        embedding_model=litellm.agent_search_embedding_model,
+        embedding_model=gateway.agent_search_embedding_model,
         index=global_agent_search_index,
         user_api_key_dict=user_api_key_dict,
     )
@@ -356,8 +356,8 @@ async def get_agents(
         for agent in returned_agents:
             if agent.litellm_params is None:
                 agent.litellm_params = {}
-            agent.litellm_params["is_public"] = litellm.public_agent_groups is not None and not (
-                global_agent_registry.ids_for_agent(agent.agent_id).isdisjoint(litellm.public_agent_groups)
+            agent.litellm_params["is_public"] = gateway.public_agent_groups is not None and not (
+                global_agent_registry.ids_for_agent(agent.agent_id).isdisjoint(gateway.public_agent_groups)
             )
 
         # litellm_params secrets are always redacted; keys/headers stay
@@ -914,7 +914,7 @@ async def make_agent_public(
 
     try:
         # Update the public model groups
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.proxy.agent_endpoints.agent_registry import (
             global_agent_registry as AGENT_REGISTRY,
         )
@@ -939,15 +939,15 @@ async def make_agent_public(
             if agent is None:
                 raise HTTPException(status_code=404, detail=f"Agent with ID {agent_id} not found")
 
-        if litellm.public_agent_groups is None:
-            litellm.public_agent_groups = []
+        if gateway.public_agent_groups is None:
+            gateway.public_agent_groups = []
         # handle duplicates
-        if not AGENT_REGISTRY.ids_for_agent(agent.agent_id).isdisjoint(litellm.public_agent_groups):
+        if not AGENT_REGISTRY.ids_for_agent(agent.agent_id).isdisjoint(gateway.public_agent_groups):
             raise HTTPException(
                 status_code=400,
                 detail=f"Agent with name {agent.agent_name} already in public agent groups",
             )
-        litellm.public_agent_groups.append(agent.agent_id)
+        gateway.public_agent_groups.append(agent.agent_id)
 
         # Load existing config
         config: Final = await proxy_config.get_config()
@@ -956,18 +956,18 @@ async def make_agent_public(
         if "litellm_settings" not in config or config["litellm_settings"] is None:
             config["litellm_settings"] = {}
 
-        config["litellm_settings"]["public_agent_groups"] = litellm.public_agent_groups
+        config["litellm_settings"]["public_agent_groups"] = gateway.public_agent_groups
 
         # Save the updated config
         await proxy_config.save_config(new_config=config)
 
         verbose_proxy_logger.debug(
-            "Updated public agent groups to: %s by user: %s", litellm.public_agent_groups, user_api_key_dict.user_id
+            "Updated public agent groups to: %s by user: %s", gateway.public_agent_groups, user_api_key_dict.user_id
         )
 
         return {
             "message": "Successfully updated public agent groups",
-            "public_agent_groups": litellm.public_agent_groups,
+            "public_agent_groups": gateway.public_agent_groups,
             "updated_by": user_api_key_dict.user_id,
         }
     except HTTPException:
@@ -1023,7 +1023,7 @@ async def make_agents_public(
 
     try:
         # Update the public model groups
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.proxy.agent_endpoints.agent_registry import (
             global_agent_registry as AGENT_REGISTRY,
         )
@@ -1040,8 +1040,8 @@ async def make_agents_public(
                 },
             )
 
-        if litellm.public_agent_groups is None:
-            litellm.public_agent_groups = []
+        if gateway.public_agent_groups is None:
+            gateway.public_agent_groups = []
 
         for agent_id in request.agent_ids:
             agent = AGENT_REGISTRY.get_agent_by_id(agent_id=agent_id)
@@ -1054,24 +1054,24 @@ async def make_agents_public(
                 if agent is None:
                     raise HTTPException(status_code=404, detail=f"Agent with ID {agent_id} not found")
 
-        litellm.public_agent_groups = request.agent_ids
+        gateway.public_agent_groups = request.agent_ids
 
         # Update config with new settings
         if "litellm_settings" not in config or config["litellm_settings"] is None:
             config["litellm_settings"] = {}
 
-        config["litellm_settings"]["public_agent_groups"] = litellm.public_agent_groups
+        config["litellm_settings"]["public_agent_groups"] = gateway.public_agent_groups
 
         # Save the updated config
         await proxy_config.save_config(new_config=config)
 
         verbose_proxy_logger.debug(
-            "Updated public agent groups to: %s by user: %s", litellm.public_agent_groups, user_api_key_dict.user_id
+            "Updated public agent groups to: %s by user: %s", gateway.public_agent_groups, user_api_key_dict.user_id
         )
 
         return {
             "message": "Successfully updated public agent groups",
-            "public_agent_groups": litellm.public_agent_groups,
+            "public_agent_groups": gateway.public_agent_groups,
             "updated_by": user_api_key_dict.user_id,
         }
     except HTTPException:

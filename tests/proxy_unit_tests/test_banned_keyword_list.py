@@ -10,7 +10,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 import pytest
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy.enterprise.enterprise_hooks.banned_keywords import (
     _ENTERPRISE_BannedKeywords,
 )
@@ -27,7 +27,7 @@ async def test_banned_keywords_check():
     - Test to see if a call with banned keywords is made, an error is raised
     - Test to see if a call without banned keywords is made it passes
     """
-    litellm.banned_keywords_list = ["hello"]
+    gateway.banned_keywords_list = ["hello"]
 
     banned_keywords_obj = _ENTERPRISE_BannedKeywords()
 

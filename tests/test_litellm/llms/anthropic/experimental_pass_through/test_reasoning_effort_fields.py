@@ -13,7 +13,7 @@ from typing import Any, Dict, Optional
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.anthropic.experimental_pass_through.utils import (
     normalize_reasoning_effort_value,
 )
@@ -294,18 +294,18 @@ def declared_effort_entry(local_model_cost_map, request):
     disjoint and empty declarations can be exercised without waiting for a real model to ship one.
     An operator writing this key on a config.yaml model_info block produces exactly these shapes."""
     key = f"synthetic/{request.node.name}"
-    litellm.model_cost[key] = {
+    gateway.model_cost[key] = {
         "litellm_provider": "synthetic",
         "mode": "chat",
         "supports_reasoning": True,
         "reasoning_effort_levels": list(request.param),
     }
-    litellm.get_model_info.cache_clear()
+    gateway.get_model_info.cache_clear()
     try:
         yield key.removeprefix("synthetic/")
     finally:
-        litellm.model_cost.pop(key, None)
-        litellm.get_model_info.cache_clear()
+        gateway.model_cost.pop(key, None)
+        gateway.get_model_info.cache_clear()
 
 
 class TestADeclarationDisjointFromTheChain:

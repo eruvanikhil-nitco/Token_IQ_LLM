@@ -17,7 +17,7 @@ from typing import Final
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.cost_calculator import completion_cost
 from token_iq.gateway.proxy._types import (
@@ -69,7 +69,7 @@ def _extract_custom_pricing(
 
 def _lookup_model_info(model: str) -> ModelInfo | None:
     try:
-        return litellm.get_model_info(model=model)
+        return gateway.get_model_info(model=model)
     except Exception:
         return None
 
@@ -249,7 +249,7 @@ async def update_cost_discount_config(
         await proxy_config.save_config(new_config=config)
 
         # Update in-memory litellm.cost_discount_config
-        litellm.cost_discount_config = cost_discount_config
+        gateway.cost_discount_config = cost_discount_config
 
         verbose_proxy_logger.info("Updated cost_discount_config: %s", cost_discount_config)
 
@@ -423,7 +423,7 @@ async def update_cost_margin_config(
         await proxy_config.save_config(new_config=config)
 
         # Update in-memory litellm.cost_margin_config
-        litellm.cost_margin_config = cost_margin_config
+        gateway.cost_margin_config = cost_margin_config
 
         verbose_proxy_logger.info("Updated cost_margin_config: %s", cost_margin_config)
 
@@ -455,7 +455,7 @@ class BlockUnpricedModelsResponse(BaseModel):
     response_model=BlockUnpricedModelsResponse,
 )
 async def get_block_requests_for_models_without_pricing() -> BlockUnpricedModelsResponse:
-    return BlockUnpricedModelsResponse(enabled=bool(litellm.block_requests_for_models_without_pricing))
+    return BlockUnpricedModelsResponse(enabled=bool(gateway.block_requests_for_models_without_pricing))
 
 
 @router.patch(
@@ -496,7 +496,7 @@ async def update_block_requests_for_models_without_pricing(
         config["litellm_settings"]["block_requests_for_models_without_pricing"] = request.enabled
         await proxy_config.save_config(new_config=config)
 
-        litellm.block_requests_for_models_without_pricing = request.enabled
+        gateway.block_requests_for_models_without_pricing = request.enabled
         verbose_proxy_logger.info("Updated block_requests_for_models_without_pricing: %s", request.enabled)
 
         return BlockUnpricedModelsResponse(enabled=request.enabled)

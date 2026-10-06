@@ -13,7 +13,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.interactions.litellm_responses_transformation.streaming_iterator import (
     LiteLLMResponsesInteractionsStreamingIterator,
 )
@@ -85,7 +85,7 @@ class TestValidateEnvironment:
 
     def test_api_revision_new_schema_by_default(self, config, monkeypatch: pytest.MonkeyPatch):
         # Default: use_legacy_interactions_schema=False → new steps schema
-        monkeypatch.setattr(litellm, "use_legacy_interactions_schema", False)
+        monkeypatch.setattr(gateway, "use_legacy_interactions_schema", False)
         headers = config.validate_environment(
             headers={}, model="gemini-2.5-flash", litellm_params=None
         )
@@ -93,7 +93,7 @@ class TestValidateEnvironment:
 
     def test_api_revision_legacy_schema_when_flag_set(self, config, monkeypatch: pytest.MonkeyPatch):
         # Flag on → legacy outputs schema until June 8, 2026
-        monkeypatch.setattr(litellm, "use_legacy_interactions_schema", True)
+        monkeypatch.setattr(gateway, "use_legacy_interactions_schema", True)
         headers = config.validate_environment(
             headers={}, model="gemini-2.5-flash", litellm_params=None
         )
@@ -224,8 +224,8 @@ class TestStreamingIterator:
     def _make_iterator(
         self, use_legacy: bool = False
     ) -> LiteLLMResponsesInteractionsStreamingIterator:
-        original = litellm.use_legacy_interactions_schema
-        litellm.use_legacy_interactions_schema = use_legacy
+        original = gateway.use_legacy_interactions_schema
+        gateway.use_legacy_interactions_schema = use_legacy
         try:
             return LiteLLMResponsesInteractionsStreamingIterator(
                 model="gpt-5.4",
@@ -234,7 +234,7 @@ class TestStreamingIterator:
                 optional_params={},
             )
         finally:
-            litellm.use_legacy_interactions_schema = original
+            gateway.use_legacy_interactions_schema = original
 
     def _make_text_delta(
         self, text: str, item_id: str = "item_1"
@@ -401,8 +401,8 @@ class TestStreamingIterator:
         sync_iter.__iter__ = lambda self: self
         sync_iter.__next__ = MagicMock(side_effect=[text_event, StopIteration])
 
-        original = litellm.use_legacy_interactions_schema
-        litellm.use_legacy_interactions_schema = False
+        original = gateway.use_legacy_interactions_schema
+        gateway.use_legacy_interactions_schema = False
         try:
             it = LiteLLMResponsesInteractionsStreamingIterator(
                 model="gpt-5.4",
@@ -411,7 +411,7 @@ class TestStreamingIterator:
                 optional_params={},
             )
         finally:
-            litellm.use_legacy_interactions_schema = original
+            gateway.use_legacy_interactions_schema = original
 
         emitted: list = []
         try:
@@ -450,8 +450,8 @@ class TestStreamingIterator:
         sync_iter.__iter__ = lambda self: self
         sync_iter.__next__ = MagicMock(side_effect=[text_event, completed])
 
-        original = litellm.use_legacy_interactions_schema
-        litellm.use_legacy_interactions_schema = False
+        original = gateway.use_legacy_interactions_schema
+        gateway.use_legacy_interactions_schema = False
         try:
             it = LiteLLMResponsesInteractionsStreamingIterator(
                 model="gpt-5.4",
@@ -460,7 +460,7 @@ class TestStreamingIterator:
                 optional_params={},
             )
         finally:
-            litellm.use_legacy_interactions_schema = original
+            gateway.use_legacy_interactions_schema = original
 
         emitted: list = []
         try:
@@ -551,7 +551,7 @@ class TestTransformRequestSchemaCoalescing:
     """Test new-schema request coalescing (Api-Revision: 2026-05-20)."""
 
     def test_response_mime_type_folded_into_response_format(self, config, monkeypatch: pytest.MonkeyPatch):
-        monkeypatch.setattr(litellm, "use_legacy_interactions_schema", False)
+        monkeypatch.setattr(gateway, "use_legacy_interactions_schema", False)
         body = config.transform_request(
             model="gemini/gemini-2.5-flash",
             agent=None,
@@ -572,7 +572,7 @@ class TestTransformRequestSchemaCoalescing:
         assert "schema" in rf
 
     def test_image_config_moved_to_response_format(self, config, monkeypatch: pytest.MonkeyPatch):
-        monkeypatch.setattr(litellm, "use_legacy_interactions_schema", False)
+        monkeypatch.setattr(gateway, "use_legacy_interactions_schema", False)
         body = config.transform_request(
             model="gemini/gemini-2.5-flash",
             agent=None,
@@ -596,7 +596,7 @@ class TestTransformRequestSchemaCoalescing:
 
     def test_response_mime_type_skipped_when_response_format_is_list(self, config, monkeypatch: pytest.MonkeyPatch):
         """Lists are already polymorphic; do not wrap them into schema."""
-        monkeypatch.setattr(litellm, "use_legacy_interactions_schema", False)
+        monkeypatch.setattr(gateway, "use_legacy_interactions_schema", False)
         rf_list = [
             {"type": "text", "mime_type": "application/json"},
             {"type": "image", "aspect_ratio": "1:1"},
@@ -622,7 +622,7 @@ class TestTransformRequestSchemaCoalescing:
         monkeypatch: pytest.MonkeyPatch,
     ):
         """When response_format is already a list, image_config must not mutate optional_params."""
-        monkeypatch.setattr(litellm, "use_legacy_interactions_schema", False)
+        monkeypatch.setattr(gateway, "use_legacy_interactions_schema", False)
         text_rf = {"type": "text", "mime_type": "application/json"}
         optional_params = {
             "response_format": [text_rf],
@@ -661,7 +661,7 @@ class TestTransformRequestSchemaCoalescing:
         assert body_retry["response_format"] == body["response_format"]
 
     def test_legacy_schema_passes_fields_unchanged(self, config, monkeypatch: pytest.MonkeyPatch):
-        monkeypatch.setattr(litellm, "use_legacy_interactions_schema", True)
+        monkeypatch.setattr(gateway, "use_legacy_interactions_schema", True)
         body = config.transform_request(
             model="gemini/gemini-2.5-flash",
             agent=None,

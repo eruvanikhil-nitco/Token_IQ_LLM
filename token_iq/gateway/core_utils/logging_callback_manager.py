@@ -1,7 +1,7 @@
 from collections.abc import Callable
 from typing import TYPE_CHECKING, Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.constants import MAX_CALLBACKS
 from token_iq.gateway.integrations.additional_logging_utils import AdditionalLoggingUtils
@@ -44,15 +44,15 @@ class LoggingCallbackManager:
         Auto-routes async callbacks to litellm._async_input_callback.
         """
         if not isinstance(callback, str) and self._is_async_callable(callback):
-            self._safe_add_callback_to_list(callback=callback, parent_list=litellm._async_input_callback)
+            self._safe_add_callback_to_list(callback=callback, parent_list=gateway._async_input_callback)
         else:
-            self._safe_add_callback_to_list(callback=callback, parent_list=litellm.input_callback)
+            self._safe_add_callback_to_list(callback=callback, parent_list=gateway.input_callback)
 
     def add_litellm_service_callback(self, callback: CustomLogger | str | Callable):
         """
         Add a service callback to litellm.service_callback
         """
-        self._safe_add_callback_to_list(callback=callback, parent_list=litellm.service_callback)
+        self._safe_add_callback_to_list(callback=callback, parent_list=gateway.service_callback)
 
     def add_litellm_callback(self, callback: CustomLogger | str | Callable):
         """
@@ -62,7 +62,7 @@ class LoggingCallbackManager:
         """
         self._safe_add_callback_to_list(
             callback=callback,
-            parent_list=litellm.callbacks,
+            parent_list=gateway.callbacks,
         )
 
     def add_litellm_success_callback(self, callback: CustomLogger | str | Callable):
@@ -77,9 +77,9 @@ class LoggingCallbackManager:
             or not isinstance(callback, str)
             and self._is_async_callable(callback)
         ):
-            self._safe_add_callback_to_list(callback=callback, parent_list=litellm._async_success_callback)
+            self._safe_add_callback_to_list(callback=callback, parent_list=gateway._async_success_callback)
         else:
-            self._safe_add_callback_to_list(callback=callback, parent_list=litellm.success_callback)
+            self._safe_add_callback_to_list(callback=callback, parent_list=gateway.success_callback)
 
     def add_litellm_failure_callback(self, callback: CustomLogger | str | Callable):
         """
@@ -87,21 +87,21 @@ class LoggingCallbackManager:
         Auto-routes async callbacks to litellm._async_failure_callback.
         """
         if not isinstance(callback, str) and self._is_async_callable(callback):
-            self._safe_add_callback_to_list(callback=callback, parent_list=litellm._async_failure_callback)
+            self._safe_add_callback_to_list(callback=callback, parent_list=gateway._async_failure_callback)
         else:
-            self._safe_add_callback_to_list(callback=callback, parent_list=litellm.failure_callback)
+            self._safe_add_callback_to_list(callback=callback, parent_list=gateway.failure_callback)
 
     def add_litellm_async_success_callback(self, callback: CustomLogger | Callable | str):
         """
         Add a success callback to litellm._async_success_callback
         """
-        self._safe_add_callback_to_list(callback=callback, parent_list=litellm._async_success_callback)
+        self._safe_add_callback_to_list(callback=callback, parent_list=gateway._async_success_callback)
 
     def add_litellm_async_failure_callback(self, callback: CustomLogger | Callable | str):
         """
         Add a failure callback to litellm._async_failure_callback
         """
-        self._safe_add_callback_to_list(callback=callback, parent_list=litellm._async_failure_callback)
+        self._safe_add_callback_to_list(callback=callback, parent_list=gateway._async_failure_callback)
 
     def remove_callback_from_list_by_object(self, callback_list, obj, require_self=True):
         """
@@ -177,7 +177,7 @@ class LoggingCallbackManager:
                 headers:
                 Authorization: Bearer sk-1234
         """
-        callback_config: Final = litellm.callback_settings.get(callback)
+        callback_config: Final = gateway.callback_settings.get(callback)
 
         # Check if callback is in callback_settings with callback_type: generic_api
         if isinstance(callback_config, dict) and callback_config.get("callback_type") == "generic_api":
@@ -334,23 +334,23 @@ class LoggingCallbackManager:
 
         Note: this is an internal function and should be used sparingly.
         """
-        litellm.input_callback = []
-        litellm.success_callback = []
-        litellm.failure_callback = []
-        litellm._async_success_callback = []
-        litellm._async_failure_callback = []
-        litellm.callbacks = []
+        gateway.input_callback = []
+        gateway.success_callback = []
+        gateway.failure_callback = []
+        gateway._async_success_callback = []
+        gateway._async_failure_callback = []
+        gateway.callbacks = []
 
     def _get_all_callbacks(self) -> list[CustomLogger | Callable | str]:
         """
         Get all callbacks from litellm.callbacks, litellm.success_callback, litellm.failure_callback, litellm._async_success_callback, litellm._async_failure_callback
         """
         return (
-            litellm.callbacks
-            + litellm.success_callback
-            + litellm.failure_callback
-            + litellm._async_success_callback
-            + litellm._async_failure_callback
+            gateway.callbacks
+            + gateway.success_callback
+            + gateway.failure_callback
+            + gateway._async_success_callback
+            + gateway._async_failure_callback
         )
 
     def remove_callback_from_all_lists(self, obj, require_self=False) -> None:
@@ -359,11 +359,11 @@ class LoggingCallbackManager:
         promoted into, so a re-initialized callback leaves no stale instance behind.
         """
         for callback_list in (
-            litellm.callbacks,
-            litellm.success_callback,
-            litellm.failure_callback,
-            litellm._async_success_callback,
-            litellm._async_failure_callback,
+            gateway.callbacks,
+            gateway.success_callback,
+            gateway.failure_callback,
+            gateway._async_success_callback,
+            gateway._async_failure_callback,
         ):
             self.remove_callback_from_list_by_object(callback_list, obj, require_self=require_self)
 
@@ -411,9 +411,9 @@ class LoggingCallbackManager:
             CallbacksByType: Dict with keys 'success', 'failure', 'success_and_failure' containing lists of callback strings
         """
         # Get callback lists
-        success_callbacks: Final = set(litellm.success_callback + litellm._async_success_callback)
-        failure_callbacks: Final = set(litellm.failure_callback + litellm._async_failure_callback)
-        general_callbacks: Final = set(litellm.callbacks)
+        success_callbacks: Final = set(gateway.success_callback + gateway._async_success_callback)
+        failure_callbacks: Final = set(gateway.failure_callback + gateway._async_failure_callback)
+        general_callbacks: Final = set(gateway.callbacks)
 
         # Get all unique callbacks
         all_callbacks: Final = success_callbacks | failure_callbacks | general_callbacks

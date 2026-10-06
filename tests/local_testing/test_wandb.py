@@ -5,17 +5,17 @@ import io, asyncio
 # logging.basicConfig(level=logging.DEBUG)
 
 from token_iq.gateway import completion
-from token_iq import gateway as litellm
+from token_iq import gateway
 
-litellm.num_retries = 3
-litellm.success_callback = ["wandb"]
+gateway.num_retries = 3
+gateway.success_callback = ["wandb"]
 import time
 import pytest
 
 
 def test_wandb_logging_async():
     try:
-        litellm.set_verbose = False
+        gateway.set_verbose = False
 
         async def _test_langfuse():
             from token_iq.gateway import Router
@@ -43,7 +43,7 @@ def test_wandb_logging_async():
 
         response = asyncio.run(_test_langfuse())
         print(f"response: {response}")
-    except litellm.Timeout as e:
+    except gateway.Timeout as e:
         pass
     except Exception as e:
         pass
@@ -58,7 +58,7 @@ def test_wandb_logging():
             temperature=0.2,
         )
         print(response)
-    except litellm.Timeout as e:
+    except gateway.Timeout as e:
         pass
     except Exception as e:
         print(e)

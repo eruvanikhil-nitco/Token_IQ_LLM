@@ -12,7 +12,7 @@ from unittest.mock import AsyncMock, MagicMock, Mock, patch
 import pytest
 from fastapi import HTTPException, Request
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy._types import (
     AddTeamCallback,
     LitellmTableNames,
@@ -207,7 +207,7 @@ async def test_team_admin_of_target_team_can_add_callbacks(patched_prisma):
 
 @pytest.mark.asyncio
 async def test_disable_team_logging_emits_audit_log_when_enabled(monkeypatch):
-    monkeypatch.setattr(litellm, "store_audit_logs", True)
+    monkeypatch.setattr(gateway, "store_audit_logs", True)
     mock_prisma = _patch_prisma(
         _team_row(
             team_id="team-1",
@@ -263,7 +263,7 @@ async def test_disable_team_logging_emits_audit_log_when_enabled(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_disable_team_logging_no_audit_when_disabled(monkeypatch):
-    monkeypatch.setattr(litellm, "store_audit_logs", False)
+    monkeypatch.setattr(gateway, "store_audit_logs", False)
     mock_prisma = _patch_prisma(
         _team_row(
             team_id="team-1",
@@ -300,7 +300,7 @@ async def test_disable_team_logging_no_audit_when_disabled(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_add_team_callbacks_emits_audit_log_when_enabled(monkeypatch):
-    monkeypatch.setattr(litellm, "store_audit_logs", True)
+    monkeypatch.setattr(gateway, "store_audit_logs", True)
     mock_prisma = _patch_prisma(_team_row(team_id="team-1", metadata={"logging": []}))
 
     audit_calls = []
@@ -359,7 +359,7 @@ async def test_add_team_callbacks_emits_audit_log_when_enabled(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_disable_team_logging_redacts_existing_callback_secrets(monkeypatch):
-    monkeypatch.setattr(litellm, "store_audit_logs", True)
+    monkeypatch.setattr(gateway, "store_audit_logs", True)
     mock_prisma = _patch_prisma(
         _team_row(
             team_id="team-1",
@@ -410,7 +410,7 @@ async def test_disable_team_logging_redacts_existing_callback_secrets(monkeypatc
 
 @pytest.mark.asyncio
 async def test_add_team_callbacks_no_audit_when_disabled(monkeypatch):
-    monkeypatch.setattr(litellm, "store_audit_logs", False)
+    monkeypatch.setattr(gateway, "store_audit_logs", False)
     mock_prisma = _patch_prisma(_team_row(team_id="team-1", metadata={"logging": []}))
 
     audit_calls = []
@@ -1291,7 +1291,7 @@ async def test_delete_team_callback_refreshes_cached_team(stub_team_cache_refres
 @pytest.mark.asyncio
 async def test_delete_team_callback_emits_redacted_audit_log(monkeypatch):
     """The audit row records the removal without becoming a credential sink."""
-    monkeypatch.setattr(litellm, "store_audit_logs", True)
+    monkeypatch.setattr(gateway, "store_audit_logs", True)
     mock_prisma = _patch_prisma(_team_row(team_id="team-1", metadata=_two_callback_metadata()))
 
     audit_calls = []

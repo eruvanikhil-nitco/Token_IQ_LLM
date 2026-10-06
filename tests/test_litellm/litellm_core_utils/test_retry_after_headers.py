@@ -10,7 +10,7 @@ This test module verifies that:
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 
 def test_bad_gateway_error_preserves_retry_after_header():
@@ -21,7 +21,7 @@ def test_bad_gateway_error_preserves_retry_after_header():
         request=httpx.Request("POST", "http://test.com"),
     )
 
-    error = litellm.BadGatewayError(
+    error = gateway.BadGatewayError(
         message="Test bad gateway error",
         llm_provider="test",
         model="test-model",
@@ -44,7 +44,7 @@ def test_service_unavailable_error_preserves_retry_after_header():
         request=httpx.Request("POST", "http://test.com"),
     )
 
-    error = litellm.ServiceUnavailableError(
+    error = gateway.ServiceUnavailableError(
         message="Service unavailable",
         llm_provider="test",
         model="test-model",
@@ -65,7 +65,7 @@ def test_internal_server_error_preserves_retry_after_header():
         request=httpx.Request("POST", "http://test.com"),
     )
 
-    error = litellm.InternalServerError(
+    error = gateway.InternalServerError(
         message="Internal server error",
         llm_provider="test",
         model="test-model",
@@ -80,7 +80,7 @@ def test_internal_server_error_preserves_retry_after_header():
 
 def test_bad_gateway_error_in_exception_types():
     """Test that BadGatewayError is in LITELLM_EXCEPTION_TYPES."""
-    assert litellm.BadGatewayError in litellm.LITELLM_EXCEPTION_TYPES
+    assert gateway.BadGatewayError in gateway.LITELLM_EXCEPTION_TYPES
 
 
 def test_bad_gateway_error_attributes():
@@ -91,7 +91,7 @@ def test_bad_gateway_error_attributes():
         request=httpx.Request("POST", "http://test.com"),
     )
 
-    error = litellm.BadGatewayError(
+    error = gateway.BadGatewayError(
         message="Test error",
         llm_provider="openai",
         model="gpt-3.5-turbo",
@@ -112,7 +112,7 @@ def test_bad_gateway_error_attributes():
 def test_exception_without_response_headers():
     """Test that exceptions work even without response headers."""
     # Test with None response
-    error = litellm.BadGatewayError(
+    error = gateway.BadGatewayError(
         message="Test error",
         llm_provider="test",
         model="test-model",
@@ -134,7 +134,7 @@ def test_exception_with_empty_headers():
         request=httpx.Request("POST", "http://test.com"),
     )
 
-    error = litellm.BadGatewayError(
+    error = gateway.BadGatewayError(
         message="Test error",
         llm_provider="test",
         model="test-model",

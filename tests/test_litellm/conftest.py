@@ -14,7 +14,7 @@ import pytest
 
 import asyncio
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import router as litellm_router_module
 from token_iq.gateway import utils as litellm_utils_module
 from token_iq.gateway._logging import ALL_LOGGERS
@@ -192,15 +192,15 @@ def local_model_cost_map(monkeypatch):
     ``get_model_info`` is lru_cached, so swapping ``model_cost`` is not enough on its
     own; clear on the way in and out so entries warmed against either map never leak
     across tests."""
-    original_model_cost = litellm.model_cost
+    original_model_cost = gateway.model_cost
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    litellm.model_cost = litellm.get_model_cost_map()
-    litellm.get_model_info.cache_clear()
+    gateway.model_cost = gateway.get_model_cost_map()
+    gateway.get_model_info.cache_clear()
     try:
         yield
     finally:
-        litellm.model_cost = original_model_cost
-        litellm.get_model_info.cache_clear()
+        gateway.model_cost = original_model_cost
+        gateway.get_model_info.cache_clear()
 
 
 def _run_coroutine_if_needed(result):
@@ -255,57 +255,57 @@ def isolate_litellm_state():
 
     # Store original callback state (all callback lists)
     original_state = {}
-    if hasattr(litellm, "callbacks"):
+    if hasattr(gateway, "callbacks"):
         original_state["callbacks"] = (
-            litellm.callbacks.copy() if litellm.callbacks else []
+            gateway.callbacks.copy() if gateway.callbacks else []
         )
-    if hasattr(litellm, "success_callback"):
+    if hasattr(gateway, "success_callback"):
         original_state["success_callback"] = (
-            litellm.success_callback.copy() if litellm.success_callback else []
+            gateway.success_callback.copy() if gateway.success_callback else []
         )
-    if hasattr(litellm, "failure_callback"):
+    if hasattr(gateway, "failure_callback"):
         original_state["failure_callback"] = (
-            litellm.failure_callback.copy() if litellm.failure_callback else []
+            gateway.failure_callback.copy() if gateway.failure_callback else []
         )
-    if hasattr(litellm, "input_callback"):
+    if hasattr(gateway, "input_callback"):
         original_state["input_callback"] = (
-            litellm.input_callback.copy() if litellm.input_callback else []
+            gateway.input_callback.copy() if gateway.input_callback else []
         )
-    if hasattr(litellm, "_async_success_callback"):
+    if hasattr(gateway, "_async_success_callback"):
         original_state["_async_success_callback"] = (
-            litellm._async_success_callback.copy()
-            if litellm._async_success_callback
+            gateway._async_success_callback.copy()
+            if gateway._async_success_callback
             else []
         )
-    if hasattr(litellm, "_async_failure_callback"):
+    if hasattr(gateway, "_async_failure_callback"):
         original_state["_async_failure_callback"] = (
-            litellm._async_failure_callback.copy()
-            if litellm._async_failure_callback
+            gateway._async_failure_callback.copy()
+            if gateway._async_failure_callback
             else []
         )
-    if hasattr(litellm, "_async_input_callback"):
+    if hasattr(gateway, "_async_input_callback"):
         original_state["_async_input_callback"] = (
-            litellm._async_input_callback.copy()
-            if litellm._async_input_callback
+            gateway._async_input_callback.copy()
+            if gateway._async_input_callback
             else []
         )
 
     # Store routing globals — leaked model_fallbacks causes tests to route
     # through async_completion_with_fallbacks / Router, bypassing HTTP mocks
-    if hasattr(litellm, "model_fallbacks"):
-        original_state["model_fallbacks"] = litellm.model_fallbacks
+    if hasattr(gateway, "model_fallbacks"):
+        original_state["model_fallbacks"] = gateway.model_fallbacks
 
     # Store transport/network globals — many tests set these without restoring,
     # causing subsequent tests to get None from _create_async_transport()
     for _attr in ("disable_aiohttp_transport", "force_ipv4"):
-        if hasattr(litellm, _attr):
-            original_state[_attr] = getattr(litellm, _attr)
+        if hasattr(gateway, _attr):
+            original_state[_attr] = getattr(gateway, _attr)
 
     # Store request-mapping globals that are frequently mutated in tests.
-    if hasattr(litellm, "drop_params"):
-        original_state["drop_params"] = litellm.drop_params
-    if hasattr(litellm, "cache"):
-        original_state["cache"] = litellm.cache
+    if hasattr(gateway, "drop_params"):
+        original_state["drop_params"] = gateway.drop_params
+    if hasattr(gateway, "cache"):
+        original_state["cache"] = gateway.cache
 
     # Store secret-manager globals. Several tests swap these out, which changes
     # get_secret() behavior for later env-driven tests (for example Redis config).
@@ -314,8 +314,8 @@ def isolate_litellm_state():
         "_key_management_system",
         "_key_management_settings",
     ):
-        if hasattr(litellm, _attr):
-            original_state[_attr] = getattr(litellm, _attr)
+        if hasattr(gateway, _attr):
+            original_state[_attr] = getattr(gateway, _attr)
 
     # Store other commonly-mutated LiteLLM globals that affect provider routing,
     # auth, and request shaping during larger suite runs.
@@ -340,8 +340,8 @@ def isolate_litellm_state():
         "token_counter",
         "initialized_langfuse_clients",
     ):
-        if hasattr(litellm, _attr):
-            original_state[_attr] = getattr(litellm, _attr)
+        if hasattr(gateway, _attr):
+            original_state[_attr] = getattr(gateway, _attr)
 
     original_runtime_registered_model_cost = {
         model_key: dict(model_value)
@@ -365,14 +365,14 @@ def isolate_litellm_state():
     # Store singleton registries that are lazily initialized during tests and
     # can change endpoint behavior later in the suite.
     original_tool_policy_registry = tool_registry_writer_module._tool_policy_registry
-    had_module_level_client = "module_level_client" in litellm.__dict__
-    had_module_level_aclient = "module_level_aclient" in litellm.__dict__
-    original_module_level_client = litellm.__dict__.get("module_level_client")
-    original_module_level_aclient = litellm.__dict__.get("module_level_aclient")
+    had_module_level_client = "module_level_client" in gateway.__dict__
+    had_module_level_aclient = "module_level_aclient" in gateway.__dict__
+    original_module_level_client = gateway.__dict__.get("module_level_client")
+    original_module_level_aclient = gateway.__dict__.get("module_level_aclient")
 
     # Flush cache before test (critical for respx mocks)
-    if hasattr(litellm, "in_memory_llm_clients_cache"):
-        litellm.in_memory_llm_clients_cache.flush_cache()
+    if hasattr(gateway, "in_memory_llm_clients_cache"):
+        gateway.in_memory_llm_clients_cache.flush_cache()
     image_handling_module.in_memory_cache.flush_cache()
     _reset_module_level_aws_auth_caches()
     # litellm.get_model_info() memoizes ModelInfo built from litellm.model_cost, so a
@@ -380,44 +380,44 @@ def isolate_litellm_state():
     litellm_utils_module._invalidate_model_cost_lowercase_map()
 
     # Clear all callback lists to prevent cross-test contamination
-    if hasattr(litellm, "callbacks"):
-        litellm.callbacks = []
-    if hasattr(litellm, "success_callback"):
-        litellm.success_callback = []
-    if hasattr(litellm, "failure_callback"):
-        litellm.failure_callback = []
-    if hasattr(litellm, "input_callback"):
-        litellm.input_callback = []
-    if hasattr(litellm, "_async_success_callback"):
-        litellm._async_success_callback = []
-    if hasattr(litellm, "_async_failure_callback"):
-        litellm._async_failure_callback = []
-    if hasattr(litellm, "_async_input_callback"):
-        litellm._async_input_callback = []
+    if hasattr(gateway, "callbacks"):
+        gateway.callbacks = []
+    if hasattr(gateway, "success_callback"):
+        gateway.success_callback = []
+    if hasattr(gateway, "failure_callback"):
+        gateway.failure_callback = []
+    if hasattr(gateway, "input_callback"):
+        gateway.input_callback = []
+    if hasattr(gateway, "_async_success_callback"):
+        gateway._async_success_callback = []
+    if hasattr(gateway, "_async_failure_callback"):
+        gateway._async_failure_callback = []
+    if hasattr(gateway, "_async_input_callback"):
+        gateway._async_input_callback = []
 
     # Clear routing globals
-    if hasattr(litellm, "model_fallbacks"):
-        litellm.model_fallbacks = None
-    if hasattr(litellm, "cache"):
-        litellm.cache = None
-    litellm.__dict__.pop("module_level_client", None)
-    litellm.__dict__.pop("module_level_aclient", None)
+    if hasattr(gateway, "model_fallbacks"):
+        gateway.model_fallbacks = None
+    if hasattr(gateway, "cache"):
+        gateway.cache = None
+    gateway.__dict__.pop("module_level_client", None)
+    gateway.__dict__.pop("module_level_aclient", None)
     tool_registry_writer_module._tool_policy_registry = None
 
     yield
 
     # Cleanup after test
-    if hasattr(litellm, "in_memory_llm_clients_cache"):
-        litellm.in_memory_llm_clients_cache.flush_cache()
+    if hasattr(gateway, "in_memory_llm_clients_cache"):
+        gateway.in_memory_llm_clients_cache.flush_cache()
     image_handling_module.in_memory_cache.flush_cache()
     _reset_module_level_aws_auth_caches()
-    current_module_level_client = litellm.__dict__.get("module_level_client")
-    current_module_level_aclient = litellm.__dict__.get("module_level_aclient")
+    current_module_level_client = gateway.__dict__.get("module_level_client")
+    current_module_level_aclient = gateway.__dict__.get("module_level_aclient")
 
     # Restore all callback lists to original state
     for attr_name, original_value in original_state.items():
-        if hasattr(litellm, attr_name):
-            setattr(litellm, attr_name, original_value)
+        if hasattr(gateway, attr_name):
+            setattr(gateway, attr_name, original_value)
 
     litellm_utils_module._runtime_registered_model_cost.clear()
     litellm_utils_module._runtime_registered_model_cost.update(original_runtime_registered_model_cost)
@@ -445,13 +445,13 @@ def isolate_litellm_state():
     if current_module_level_aclient is not original_module_level_aclient:
         _close_handler_if_needed(current_module_level_aclient)
     if had_module_level_client:
-        litellm.__dict__["module_level_client"] = original_module_level_client
+        gateway.__dict__["module_level_client"] = original_module_level_client
     else:
-        litellm.__dict__.pop("module_level_client", None)
+        gateway.__dict__.pop("module_level_client", None)
     if had_module_level_aclient:
-        litellm.__dict__["module_level_aclient"] = original_module_level_aclient
+        gateway.__dict__["module_level_aclient"] = original_module_level_aclient
     else:
-        litellm.__dict__.pop("module_level_aclient", None)
+        gateway.__dict__.pop("module_level_aclient", None)
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -463,26 +463,26 @@ def setup_and_teardown():
     Only reload modules here if absolutely necessary.
     """
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     # Only reload if NOT running in parallel (module reload + parallel = bad)
     worker_id = os.environ.get("PYTEST_XDIST_WORKER", None)
     if worker_id is None:
         # Single process mode - safe to reload
-        importlib.reload(litellm)
+        importlib.reload(gateway)
 
         try:
-            if hasattr(litellm, "proxy") and hasattr(litellm.proxy, "proxy_server"):
+            if hasattr(gateway, "proxy") and hasattr(gateway.proxy, "proxy_server"):
                 import token_iq.gateway.proxy.proxy_server
-                from token_iq import gateway as litellm
+                from token_iq import gateway
 
-                importlib.reload(litellm.proxy.proxy_server)
+                importlib.reload(gateway.proxy.proxy_server)
         except Exception as e:
             print(f"Error reloading litellm.proxy.proxy_server: {e}")
 
         # Flush cache after reload (prevents stale client instances)
-        if hasattr(litellm, "in_memory_llm_clients_cache"):
-            litellm.in_memory_llm_clients_cache.flush_cache()
+        if hasattr(gateway, "in_memory_llm_clients_cache"):
+            gateway.in_memory_llm_clients_cache.flush_cache()
 
     print(f"[conftest] Module setup complete (worker: {worker_id or 'master'})")
 
@@ -556,19 +556,19 @@ def strict_isolation():
             pass
     """
     # Force flush all caches
-    if hasattr(litellm, "in_memory_llm_clients_cache"):
-        litellm.in_memory_llm_clients_cache.flush_cache()
+    if hasattr(gateway, "in_memory_llm_clients_cache"):
+        gateway.in_memory_llm_clients_cache.flush_cache()
 
     # Reset all global state
-    if hasattr(litellm, "disable_aiohttp_transport"):
-        original_aiohttp = litellm.disable_aiohttp_transport
-        litellm.disable_aiohttp_transport = False
+    if hasattr(gateway, "disable_aiohttp_transport"):
+        original_aiohttp = gateway.disable_aiohttp_transport
+        gateway.disable_aiohttp_transport = False
     else:
         original_aiohttp = None
 
-    if hasattr(litellm, "set_verbose"):
-        original_verbose = litellm.set_verbose
-        litellm.set_verbose = False
+    if hasattr(gateway, "set_verbose"):
+        original_verbose = gateway.set_verbose
+        gateway.set_verbose = False
     else:
         original_verbose = None
 
@@ -576,23 +576,23 @@ def strict_isolation():
 
     # Restore original state
     if original_aiohttp is not None:
-        litellm.disable_aiohttp_transport = original_aiohttp
+        gateway.disable_aiohttp_transport = original_aiohttp
     if original_verbose is not None:
-        litellm.set_verbose = original_verbose
+        gateway.set_verbose = original_verbose
 
     # Final cache flush
-    if hasattr(litellm, "in_memory_llm_clients_cache"):
-        litellm.in_memory_llm_clients_cache.flush_cache()
+    if hasattr(gateway, "in_memory_llm_clients_cache"):
+        gateway.in_memory_llm_clients_cache.flush_cache()
 
 
 def pytest_sessionfinish(session, exitstatus):
     """Close any globally cached HTTP clients so xdist workers exit cleanly."""
-    _close_handler_if_needed(litellm.__dict__.get("module_level_client"))
-    _close_handler_if_needed(litellm.__dict__.get("module_level_aclient"))
-    litellm.__dict__.pop("module_level_client", None)
-    litellm.__dict__.pop("module_level_aclient", None)
-    _close_handler_if_needed(getattr(litellm, "base_llm_aiohttp_handler", None))
-    _close_handler_if_needed(getattr(litellm, "httpx_client", None))
-    _close_handler_if_needed(getattr(litellm, "aclient", None))
-    _close_handler_if_needed(getattr(litellm, "client", None))
+    _close_handler_if_needed(gateway.__dict__.get("module_level_client"))
+    _close_handler_if_needed(gateway.__dict__.get("module_level_aclient"))
+    gateway.__dict__.pop("module_level_client", None)
+    gateway.__dict__.pop("module_level_aclient", None)
+    _close_handler_if_needed(getattr(gateway, "base_llm_aiohttp_handler", None))
+    _close_handler_if_needed(getattr(gateway, "httpx_client", None))
+    _close_handler_if_needed(getattr(gateway, "aclient", None))
+    _close_handler_if_needed(getattr(gateway, "client", None))
     _run_coroutine_if_needed(close_litellm_async_clients())

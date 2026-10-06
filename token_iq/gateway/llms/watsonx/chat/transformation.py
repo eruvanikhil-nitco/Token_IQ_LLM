@@ -157,7 +157,7 @@ class IBMWatsonXChatConfig(IBMWatsonXMixin, OpenAIGPTConfig):
     @staticmethod
     async def aapply_prompt_template(model: str, messages: list[dict[str, str]]) -> str | None:
         """Apply prompt template (async version)"""
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.core_utils.prompt_templates.factory import (
             ahf_chat_template,
             custom_prompt,
@@ -180,7 +180,7 @@ class IBMWatsonXChatConfig(IBMWatsonXMixin, OpenAIGPTConfig):
                 hf_model = model
             try:
                 # Use sync if cached, async if not
-                if hf_model in litellm.known_tokenizer_config:
+                if hf_model in gateway.known_tokenizer_config:
                     result = hf_chat_template(model=hf_model, messages=messages)
                 else:
                     result = await ahf_chat_template(model=hf_model, messages=messages)

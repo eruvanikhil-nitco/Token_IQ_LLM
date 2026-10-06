@@ -15,7 +15,7 @@ from token_iq.gateway.core_utils.llm_cost_calc.utils import (
 
 if TYPE_CHECKING:
     from token_iq.gateway.types.utils import ModelInfo, Usage
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 
 def cost_per_token(model: str, usage: "Usage", service_tier: str | None = None) -> tuple[float, float]:
@@ -40,7 +40,7 @@ def cost_per_token(model: str, usage: "Usage", service_tier: str | None = None) 
 
     # Apply provider_specific_entry multipliers for geo/speed routing
     try:
-        model_info: Final = litellm.get_model_info(model=model, custom_llm_provider="anthropic")
+        model_info: Final = gateway.get_model_info(model=model, custom_llm_provider="anthropic")
         provider_specific_entry: Final[dict] = model_info.get("provider_specific_entry") or {}
 
         geo_multiplier: Final = get_provider_specific_geo_multiplier(model_info=model_info, usage=usage)

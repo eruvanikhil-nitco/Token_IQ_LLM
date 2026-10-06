@@ -8,7 +8,7 @@ from unittest.mock import AsyncMock, patch, MagicMock
 import httpx
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import Choices, Message, ModelResponse
 from base_llm_unit_tests import BaseLLMChatTest, BaseOSeriesModelsTest
 
@@ -16,7 +16,7 @@ from base_llm_unit_tests import BaseLLMChatTest, BaseOSeriesModelsTest
 class TestAzureOpenAIO3Mini(BaseOSeriesModelsTest, BaseLLMChatTest):
     def get_base_completion_call_args(self):
         # Clear the LLM client cache to prevent test pollution from cached clients
-        litellm.in_memory_llm_clients_cache.flush_cache()
+        gateway.in_memory_llm_clients_cache.flush_cache()
         return {
             "model": "azure/o3-mini",
             "api_key": os.getenv("AZURE_AI_API_KEY"),
@@ -46,7 +46,7 @@ class TestAzureOpenAIO3Mini(BaseOSeriesModelsTest, BaseLLMChatTest):
 
     def test_override_fake_stream(self):
         """Test that native streaming is not supported for o1."""
-        router = litellm.Router(
+        router = gateway.Router(
             model_list=[
                 {
                     "model_name": "azure/o1-preview",
@@ -64,12 +64,12 @@ class TestAzureOpenAIO3Mini(BaseOSeriesModelsTest, BaseLLMChatTest):
 
         ## check model info
 
-        model_info = litellm.get_model_info(
+        model_info = gateway.get_model_info(
             model="azure/o1-preview", custom_llm_provider="azure"
         )
         assert model_info["supports_native_streaming"] is True
 
-        fake_stream = litellm.AzureOpenAIO1Config().should_fake_stream(
+        fake_stream = gateway.AzureOpenAIO1Config().should_fake_stream(
             model="azure/o1-preview", stream=True
         )
         assert fake_stream is False
@@ -157,10 +157,10 @@ def test_azure_o_series_routing():
 
 @patch("token_iq.gateway.main.azure_o1_chat_completions._get_openai_client")
 def test_openai_o_series_max_retries_0(mock_get_openai_client):
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    litellm.set_verbose = True
-    response = litellm.completion(
+    gateway.set_verbose = True
+    response = gateway.completion(
         model="azure/o1-preview",
         messages=[{"role": "user", "content": "hi"}],
         max_retries=0,
@@ -175,11 +175,11 @@ async def test_azure_o1_series_response_format_extra_params():
     """
     Tool calling should work for all azure o_series models.
     """
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
 
     from openai import AsyncAzureOpenAI
 
-    litellm.set_verbose = True
+    gateway.set_verbose = True
 
     client = AsyncAzureOpenAI(
         api_key="fake-api-key",
@@ -212,7 +212,7 @@ async def test_azure_o1_series_response_format_extra_params():
         client.chat.completions.with_raw_response, "create"
     ) as mock_client:
         try:
-            await litellm.acompletion(
+            await gateway.acompletion(
                 client=client,
                 model="azure/o_series/<my-deployment-name>",
                 api_key="xxxxx",

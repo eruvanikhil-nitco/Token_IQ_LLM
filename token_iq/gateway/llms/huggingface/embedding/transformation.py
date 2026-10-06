@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Any, Final, Protocol
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.prompt_templates.common_utils import (
     convert_content_list_to_str,
 )
@@ -220,7 +220,7 @@ class HuggingFaceEmbeddingConfig(BaseConfig):
             raise Exception(f"Invalid hf task - {task}. Valid formats - {hf_tasks}.")
 
         ## Load Config
-        config: Final = litellm.HuggingFaceEmbeddingConfig.get_config()
+        config: Final = gateway.HuggingFaceEmbeddingConfig.get_config()
         for k, v in config.items():
             if (
                 k not in optional_params
@@ -267,9 +267,9 @@ class HuggingFaceEmbeddingConfig(BaseConfig):
 
         elif task == "text-generation-inference":
             # always send "details" and "return_full_text" as params
-            if model in litellm.custom_prompt_dict:
+            if model in gateway.custom_prompt_dict:
                 # check if the model has a registered custom prompt
-                model_prompt_details = litellm.custom_prompt_dict[model]
+                model_prompt_details = gateway.custom_prompt_dict[model]
                 prompt = custom_prompt(
                     role_dict=model_prompt_details.get("roles") or {},
                     initial_prompt_value=model_prompt_details.get("initial_prompt_value", ""),
@@ -292,9 +292,9 @@ class HuggingFaceEmbeddingConfig(BaseConfig):
         else:
             # Non TGI and Conversational llms
             # We need this branch, it removes 'details' and 'return_full_text' from params
-            if model in litellm.custom_prompt_dict:
+            if model in gateway.custom_prompt_dict:
                 # check if the model has a registered custom prompt
-                model_prompt_details = litellm.custom_prompt_dict[model]
+                model_prompt_details = gateway.custom_prompt_dict[model]
                 prompt = custom_prompt(
                     role_dict=model_prompt_details.get("roles", {}),
                     initial_prompt_value=model_prompt_details.get("initial_prompt_value", ""),

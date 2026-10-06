@@ -16,12 +16,12 @@ from token_iq.gateway.proxy.guardrails.guardrail_hooks.cato_networks.cato_networ
 from token_iq.gateway.proxy.proxy_server import UserAPIKeyAuth
 from token_iq.gateway.types.utils import ModelResponse, ResponsesAPIResponse
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy.guardrails.init_guardrails import init_guardrails_v2
 
 
 def test_cato_guard_config():
-    litellm.guardrail_name_config_map = {}
+    gateway.guardrail_name_config_map = {}
 
     init_guardrails_v2(
         all_guardrails=[
@@ -41,7 +41,7 @@ def test_cato_guard_config():
 
 def test_cato_guard_config_no_api_key(monkeypatch):
     monkeypatch.delenv("CATO_API_KEY", raising=False)
-    litellm.guardrail_name_config_map = {}
+    gateway.guardrail_name_config_map = {}
     with pytest.raises(CatoNetworksGuardrailMissingSecrets, match="Couldn't get Cato Networks api key"):
         init_guardrails_v2(
             all_guardrails=[
@@ -75,7 +75,7 @@ async def test_block_callback(mode: str):
         config_file_path="",
     )
     cato_guardrails = [
-        callback for callback in litellm.callbacks if isinstance(callback, CatoNetworksGuardrail)
+        callback for callback in gateway.callbacks if isinstance(callback, CatoNetworksGuardrail)
     ]
     assert len(cato_guardrails) == 1
     cato_guardrail = cato_guardrails[0]
@@ -141,7 +141,7 @@ async def test_anonymize_callback__it_returns_redacted_content(mode: str):
         config_file_path="",
     )
     cato_guardrails = [
-        callback for callback in litellm.callbacks if isinstance(callback, CatoNetworksGuardrail)
+        callback for callback in gateway.callbacks if isinstance(callback, CatoNetworksGuardrail)
     ]
     assert len(cato_guardrails) == 1
     cato_guardrail = cato_guardrails[0]
@@ -188,7 +188,7 @@ async def test_post_call__with_anonymized_entities__it_doesnt_deanonymize_output
         config_file_path="",
     )
     cato_guardrails = [
-        callback for callback in litellm.callbacks if isinstance(callback, CatoNetworksGuardrail)
+        callback for callback in gateway.callbacks if isinstance(callback, CatoNetworksGuardrail)
     ]
     assert len(cato_guardrails) == 1
     cato_guardrail = cato_guardrails[0]

@@ -1044,20 +1044,20 @@ class TestSpendTracking:
 
     @pytest.fixture(autouse=True)
     def _use_local_model_cost_map(self, monkeypatch):
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
-        original_model_cost = litellm.model_cost
+        original_model_cost = gateway.model_cost
         monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-        litellm.model_cost = litellm.get_model_cost_map()
-        litellm.get_model_info.cache_clear()
+        gateway.model_cost = gateway.get_model_cost_map()
+        gateway.get_model_info.cache_clear()
         try:
             yield
         finally:
-            litellm.model_cost = original_model_cost
-            litellm.get_model_info.cache_clear()
+            gateway.model_cost = original_model_cost
+            gateway.get_model_info.cache_clear()
 
     def test_should_charge_by_audio_duration(self, monkeypatch):
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         monkeypatch.setattr("time.sleep", lambda *_: None)
         responses = {
@@ -1089,7 +1089,7 @@ class TestSpendTracking:
             600.0
         )
 
-        cost = litellm.completion_cost(
+        cost = gateway.completion_cost(
             completion_response=resp,
             model="soniox/stt-async-v4",
             call_type="transcription",

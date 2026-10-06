@@ -8,7 +8,7 @@ from unittest.mock import AsyncMock, MagicMock
 import httpx
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.responses import streaming_iterator as streaming_module
 from token_iq.gateway.responses.streaming_iterator import (
@@ -240,8 +240,8 @@ async def test_responses_streaming_calls_post_streaming_deployment_hook(monkeypa
             return response_chunk
 
     # Set callbacks to our fake hook
-    original_callbacks = litellm.callbacks
-    litellm.callbacks = [_HookLogger()]
+    original_callbacks = gateway.callbacks
+    gateway.callbacks = [_HookLogger()]
 
     logging_obj = _FakeLoggingObj()
 
@@ -271,7 +271,7 @@ async def test_responses_streaming_calls_post_streaming_deployment_hook(monkeypa
     assert getattr(chunk, "tagged", False) is True
 
     # reset callbacks
-    litellm.callbacks = original_callbacks
+    gateway.callbacks = original_callbacks
 
 
 @pytest.mark.asyncio
@@ -353,8 +353,8 @@ def test_process_chunk_wraps_encrypted_content_with_model_id():
 
 
 def test_process_chunk_completed_response_updates_id_and_usage_cost(monkeypatch):
-    original_include_cost = litellm.include_cost_in_streaming_usage
-    litellm.include_cost_in_streaming_usage = True
+    original_include_cost = gateway.include_cost_in_streaming_usage
+    gateway.include_cost_in_streaming_usage = True
     openai_types = streaming_module._get_openai_response_types()
 
     class _CompletedConfig:
@@ -402,7 +402,7 @@ def test_process_chunk_completed_response_updates_id_and_usage_cost(monkeypatch)
             )
         )
     finally:
-        litellm.include_cost_in_streaming_usage = original_include_cost
+        gateway.include_cost_in_streaming_usage = original_include_cost
 
     assert iterator.completed_response is event
     assert event.response.id != "resp_live"
@@ -497,8 +497,8 @@ def test_process_chunk_returns_none_for_invalid_json_and_non_dict_payload():
 
 
 def test_process_chunk_cost_annotation_failure_is_nonfatal(monkeypatch):
-    original_include_cost = litellm.include_cost_in_streaming_usage
-    litellm.include_cost_in_streaming_usage = True
+    original_include_cost = gateway.include_cost_in_streaming_usage
+    gateway.include_cost_in_streaming_usage = True
     openai_types = streaming_module._get_openai_response_types()
 
     class _CompletedConfig:
@@ -538,7 +538,7 @@ def test_process_chunk_cost_annotation_failure_is_nonfatal(monkeypatch):
     try:
         event = iterator._process_chunk(json.dumps({"type": "response.completed"}))
     finally:
-        litellm.include_cost_in_streaming_usage = original_include_cost
+        gateway.include_cost_in_streaming_usage = original_include_cost
 
     assert iterator.completed_response is event
     assert event.response.usage.cost is None
@@ -564,8 +564,8 @@ def test_get_completed_response_object_accepts_direct_response():
 @pytest.mark.asyncio
 async def test_responses_streaming_completed_event_persists_async_cache():
     logging_obj = _FakeLoggingObj()
-    original_cache = litellm.cache
-    litellm.cache = SimpleNamespace(
+    original_cache = gateway.cache
+    gateway.cache = SimpleNamespace(
         async_add_cache=AsyncMock(),
         add_cache=MagicMock(),
     )
@@ -580,7 +580,7 @@ async def test_responses_streaming_completed_event_persists_async_cache():
             "custom_llm_provider": "openai",
         },
         preset_cache_key="responses-stream-cache-key",
-        original_function=litellm.aresponses,
+        original_function=gateway.aresponses,
         async_set_cache=AsyncMock(),
         _should_store_result_in_cache=lambda original_function, kwargs: True,
     )
@@ -599,25 +599,25 @@ async def test_responses_streaming_completed_event_persists_async_cache():
     iterator._handle_logging_completed_response()
     await asyncio.sleep(0.2)
 
-    litellm.cache.async_add_cache.assert_called_once()
-    assert litellm.cache.async_add_cache.call_args.kwargs["stream"] is True
+    gateway.cache.async_add_cache.assert_called_once()
+    assert gateway.cache.async_add_cache.call_args.kwargs["stream"] is True
     assert (
-        litellm.cache.async_add_cache.call_args.kwargs["cache_key"]
+        gateway.cache.async_add_cache.call_args.kwargs["cache_key"]
         == "responses-stream-cache-key"
     )
-    assert "metadata" not in litellm.cache.async_add_cache.call_args.kwargs
-    assert "custom_llm_provider" not in litellm.cache.async_add_cache.call_args.kwargs
+    assert "metadata" not in gateway.cache.async_add_cache.call_args.kwargs
+    assert "custom_llm_provider" not in gateway.cache.async_add_cache.call_args.kwargs
     assert (
-        json.loads(litellm.cache.async_add_cache.call_args.args[0])["id"]
+        json.loads(gateway.cache.async_add_cache.call_args.args[0])["id"]
         == iterator.completed_response.response.id
     )
-    litellm.cache = original_cache
+    gateway.cache = original_cache
 
 
 def test_responses_streaming_completed_event_persists_sync_cache():
     logging_obj = _FakeLoggingObj()
-    original_cache = litellm.cache
-    litellm.cache = SimpleNamespace(
+    original_cache = gateway.cache
+    gateway.cache = SimpleNamespace(
         async_add_cache=AsyncMock(),
         add_cache=MagicMock(),
     )
@@ -632,7 +632,7 @@ def test_responses_streaming_completed_event_persists_sync_cache():
             "custom_llm_provider": "openai",
         },
         preset_cache_key="responses-stream-cache-key",
-        original_function=litellm.responses,
+        original_function=gateway.responses,
         sync_set_cache=MagicMock(),
         _should_store_result_in_cache=lambda original_function, kwargs: True,
     )
@@ -650,19 +650,19 @@ def test_responses_streaming_completed_event_persists_sync_cache():
 
     iterator._handle_logging_completed_response()
 
-    litellm.cache.add_cache.assert_called_once()
-    assert litellm.cache.add_cache.call_args.kwargs["stream"] is True
+    gateway.cache.add_cache.assert_called_once()
+    assert gateway.cache.add_cache.call_args.kwargs["stream"] is True
     assert (
-        litellm.cache.add_cache.call_args.kwargs["cache_key"]
+        gateway.cache.add_cache.call_args.kwargs["cache_key"]
         == "responses-stream-cache-key"
     )
-    assert "metadata" not in litellm.cache.add_cache.call_args.kwargs
-    assert "custom_llm_provider" not in litellm.cache.add_cache.call_args.kwargs
+    assert "metadata" not in gateway.cache.add_cache.call_args.kwargs
+    assert "custom_llm_provider" not in gateway.cache.add_cache.call_args.kwargs
     assert (
-        json.loads(litellm.cache.add_cache.call_args.args[0])["id"]
+        json.loads(gateway.cache.add_cache.call_args.args[0])["id"]
         == iterator.completed_response.response.id
     )
-    litellm.cache = original_cache
+    gateway.cache = original_cache
 
 
 def test_log_completed_response_sync_direct_path(monkeypatch):
@@ -780,7 +780,7 @@ def test_persist_completed_response_to_cache_guard_branches(monkeypatch, scenari
                 "custom_llm_provider": "openai",
             },
             preset_cache_key=None,
-            original_function=litellm.responses,
+            original_function=gateway.responses,
             dual_cache=None,
             _should_store_result_in_cache=lambda original_function, kwargs: (
                 scenario != "store_disabled"
@@ -802,8 +802,8 @@ def test_persist_completed_response_to_cache_guard_branches(monkeypatch, scenari
 
 
 def test_build_synthetic_response_events_covers_annotations_function_calls_and_refusals():
-    original_include_cost = litellm.include_cost_in_streaming_usage
-    litellm.include_cost_in_streaming_usage = True
+    original_include_cost = gateway.include_cost_in_streaming_usage
+    gateway.include_cost_in_streaming_usage = True
     logging_obj = _FakeLoggingObj()
     logging_obj._response_cost_calculator = MagicMock(side_effect=RuntimeError("boom"))
     transformed = ResponsesAPIResponse(
@@ -847,7 +847,7 @@ def test_build_synthetic_response_events_covers_annotations_function_calls_and_r
             chunk_size=5,
         )
     finally:
-        litellm.include_cost_in_streaming_usage = original_include_cost
+        gateway.include_cost_in_streaming_usage = original_include_cost
 
     event_types = [
         event.type.value if hasattr(event.type, "value") else str(event.type)
@@ -980,15 +980,15 @@ async def test_cached_responses_stream_async_hit_triggers_success_callbacks(
     )
 
     logging_obj = _FakeLoggingObj()
-    original_cache = litellm.cache
-    litellm.cache = SimpleNamespace(
+    original_cache = gateway.cache
+    gateway.cache = SimpleNamespace(
         async_add_cache=AsyncMock(),
         add_cache=MagicMock(),
     )
     logging_obj._llm_caching_handler = SimpleNamespace(
         request_kwargs={"model": "test-model", "input": "hello", "stream": True},
         preset_cache_key="responses-stream-cache-key",
-        original_function=litellm.aresponses,
+        original_function=gateway.aresponses,
         _should_store_result_in_cache=lambda original_function, kwargs: True,
     )
 
@@ -1009,9 +1009,9 @@ async def test_cached_responses_stream_async_hit_triggers_success_callbacks(
     assert logging_obj.last_async_success_kwargs["cache_hit"] is True
     assert hook_calls["post_call"] == 1
     assert hook_calls["metadata"] == 1
-    litellm.cache.async_add_cache.assert_not_called()
-    litellm.cache.add_cache.assert_not_called()
-    litellm.cache = original_cache
+    gateway.cache.async_add_cache.assert_not_called()
+    gateway.cache.add_cache.assert_not_called()
+    gateway.cache = original_cache
 
 
 def test_cached_responses_stream_sync_hit_triggers_success_callbacks(monkeypatch):
@@ -1035,15 +1035,15 @@ def test_cached_responses_stream_sync_hit_triggers_success_callbacks(monkeypatch
     )
 
     logging_obj = _FakeLoggingObj()
-    original_cache = litellm.cache
-    litellm.cache = SimpleNamespace(
+    original_cache = gateway.cache
+    gateway.cache = SimpleNamespace(
         async_add_cache=AsyncMock(),
         add_cache=MagicMock(),
     )
     logging_obj._llm_caching_handler = SimpleNamespace(
         request_kwargs={"model": "test-model", "input": "hello", "stream": True},
         preset_cache_key="responses-stream-cache-key",
-        original_function=litellm.responses,
+        original_function=gateway.responses,
         _should_store_result_in_cache=lambda original_function, kwargs: True,
     )
 
@@ -1064,6 +1064,6 @@ def test_cached_responses_stream_sync_hit_triggers_success_callbacks(monkeypatch
     assert logging_obj.last_async_success_kwargs["cache_hit"] is True
     assert hook_calls["post_call"] == 1
     assert hook_calls["metadata"] == 1
-    litellm.cache.async_add_cache.assert_not_called()
-    litellm.cache.add_cache.assert_not_called()
-    litellm.cache = original_cache
+    gateway.cache.async_add_cache.assert_not_called()
+    gateway.cache.add_cache.assert_not_called()
+    gateway.cache = original_cache

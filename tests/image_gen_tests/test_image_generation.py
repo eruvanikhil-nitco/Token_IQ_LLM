@@ -17,7 +17,7 @@ load_dotenv()
 import asyncio
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 import json
 import tempfile
 from base_image_generation_test import BaseImageGenTest, TestCustomLogger
@@ -107,7 +107,7 @@ class TestVertexAIGeminiImageGeneration(BaseImageGenTest):
         # comment this when running locally
         load_vertex_ai_credentials()
 
-        litellm.in_memory_llm_clients_cache = InMemoryCache()
+        gateway.in_memory_llm_clients_cache = InMemoryCache()
         return {
             "model": "vertex_ai/gemini-2.5-flash-image",
             "vertex_ai_project": "litellm-ci-cd",
@@ -119,7 +119,7 @@ class TestVertexAIGeminiImageGeneration(BaseImageGenTest):
 
 class TestBedrockNovaCanvasTextToImage(BaseImageGenTest):
     def get_base_image_generation_call_args(self) -> dict:
-        litellm.in_memory_llm_clients_cache = InMemoryCache()
+        gateway.in_memory_llm_clients_cache = InMemoryCache()
         return {
             "model": "bedrock/amazon.nova-canvas-v1:0",
             "n": 1,
@@ -132,7 +132,7 @@ class TestBedrockNovaCanvasTextToImage(BaseImageGenTest):
 
 class TestBedrockNovaCanvasColorGuidedGeneration(BaseImageGenTest):
     def get_base_image_generation_call_args(self) -> dict:
-        litellm.in_memory_llm_clients_cache = InMemoryCache()
+        gateway.in_memory_llm_clients_cache = InMemoryCache()
         return {
             "model": "bedrock/amazon.nova-canvas-v1:0",
             "n": 1,
@@ -188,16 +188,16 @@ class TestAimlImageGeneration(BaseImageGenTest):
             mock_sync_post.return_value = mock_response
 
             try:
-                litellm._turn_on_debug()
+                gateway._turn_on_debug()
                 custom_logger = TestCustomLogger()
-                litellm.logging_callback_manager._reset_all_callbacks()
-                litellm.callbacks = [custom_logger]
+                gateway.logging_callback_manager._reset_all_callbacks()
+                gateway.callbacks = [custom_logger]
                 base_image_generation_call_args = (
                     self.get_base_image_generation_call_args()
                 )
-                litellm.set_verbose = True
+                gateway.set_verbose = True
                 # Pass dummy api_key so validate_environment passes; HTTP is mocked
-                response = await litellm.aimage_generation(
+                response = await gateway.aimage_generation(
                     **base_image_generation_call_args,
                     prompt="A image of a otter",
                     api_key="test-key-mocked-no-credits-needed",
@@ -235,11 +235,11 @@ class TestAimlImageGeneration(BaseImageGenTest):
                     assert isinstance(d, Image)
                     print("data in response.data", d)
                     assert d.b64_json is not None or d.url is not None
-            except litellm.RateLimitError as e:
+            except gateway.RateLimitError as e:
                 pass
-            except litellm.ContentPolicyViolationError:
+            except gateway.ContentPolicyViolationError:
                 pass  # Azure randomly raises these errors - skip when they occur
-            except litellm.InternalServerError:
+            except gateway.InternalServerError:
                 pass
             except Exception as e:
                 if "Your task failed as a result of our safety system." in str(e):
@@ -279,16 +279,16 @@ class TestRunwaymlImageGeneration(BaseImageGenTest):
 @pytest.mark.asyncio
 async def test_aimage_generation_bedrock_with_optional_params():
     try:
-        litellm.in_memory_llm_clients_cache = InMemoryCache()
-        response = await litellm.aimage_generation(
+        gateway.in_memory_llm_clients_cache = InMemoryCache()
+        response = await gateway.aimage_generation(
             prompt="A cute baby sea otter",
             model="bedrock/stability.stable-diffusion-xl-v1",
             size="256x256",
         )
         print(f"response: {response}")
-    except litellm.RateLimitError as e:
+    except gateway.RateLimitError as e:
         pass
-    except litellm.ContentPolicyViolationError:
+    except gateway.ContentPolicyViolationError:
         pass  # Azure randomly raises these errors skip when they occur
     except Exception as e:
         if "Your task failed as a result of our safety system." in str(e):
@@ -341,7 +341,7 @@ async def test_aiml_image_generation_with_dynamic_api_key():
         # Test with dynamic api_key
         test_api_key = "test-dynamic-api-key-12345"
 
-        response = await litellm.aimage_generation(
+        response = await gateway.aimage_generation(
             prompt="A cute baby sea otter",
             model="aiml/flux-pro/v1.1",
             api_key=test_api_key,  # This should be used instead of env vars
@@ -397,7 +397,7 @@ async def test_aiml_openai_gpt_image_2_request_uses_openai_param_shape():
     with patch("token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post") as mock_post:
         mock_post.side_effect = capture_post_call
 
-        await litellm.aimage_generation(
+        await gateway.aimage_generation(
             prompt="A T-Rex relaxing on a beach",
             model="aiml/openai/gpt-image-2",
             api_key="test-key-mocked-no-credits-needed",
@@ -439,7 +439,7 @@ async def test_azure_image_generation_request_body():
     ) as mock_post:
         mock_post.side_effect = Exception("test")
 
-        with pytest.raises(litellm.APIConnectionError):
+        with pytest.raises(gateway.APIConnectionError):
             await aimage_generation(
                 model="azure/gpt-image-1",
                 prompt="test prompt",

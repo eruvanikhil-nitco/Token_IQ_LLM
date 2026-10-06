@@ -2,7 +2,7 @@ from typing import Final
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.base_llm.base_utils import BaseLLMModelInfo
 from token_iq.gateway.llms.base_llm.chat.transformation import BaseLLMException
 from token_iq.gateway.secret_managers.main import get_secret_str
@@ -70,7 +70,7 @@ class VLLMModelInfo(BaseLLMModelInfo):
             )
 
         url: Final = _add_path_to_api_base(api_base, endpoint)
-        response: Final = litellm.module_level_client.get(
+        response: Final = gateway.module_level_client.get(
             url=url,
         )
 

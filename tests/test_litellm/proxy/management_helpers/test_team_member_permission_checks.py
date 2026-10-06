@@ -73,40 +73,40 @@ class TestGetPermissionsForTeamMember:
 class TestGetDefaultTeamParam:
     def test_returns_none_when_no_config(self, monkeypatch):
         """Returns None when litellm.default_team_params is None."""
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         from token_iq.gateway.proxy.management_endpoints.team_endpoints import (
             _get_default_team_param,
         )
 
-        monkeypatch.setattr(litellm, "default_team_params", None)
+        monkeypatch.setattr(gateway, "default_team_params", None)
 
         assert _get_default_team_param("team_member_permissions") is None
         assert _get_default_team_param("max_budget") is None
 
     def test_returns_none_when_field_not_set(self, monkeypatch):
         """Returns None when default_team_params exists but the field is not set."""
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         from token_iq.gateway.proxy.management_endpoints.team_endpoints import (
             _get_default_team_param,
         )
 
-        monkeypatch.setattr(litellm, "default_team_params", {"models": ["gpt-4"]})
+        monkeypatch.setattr(gateway, "default_team_params", {"models": ["gpt-4"]})
 
         assert _get_default_team_param("team_member_permissions") is None
         assert _get_default_team_param("max_budget") is None
 
     def test_returns_permissions_from_dict_config(self, monkeypatch):
         """Returns permissions when default_team_params is a dict."""
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         from token_iq.gateway.proxy.management_endpoints.team_endpoints import (
             _get_default_team_param,
         )
 
         monkeypatch.setattr(
-            litellm,
+            gateway,
             "default_team_params",
             {"team_member_permissions": ["/key/generate", "/key/update"]},
         )
@@ -116,14 +116,14 @@ class TestGetDefaultTeamParam:
 
     def test_returns_scalar_fields_from_dict_config(self, monkeypatch):
         """Returns scalar fields (max_budget, tpm_limit, etc.) from dict config."""
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         from token_iq.gateway.proxy.management_endpoints.team_endpoints import (
             _get_default_team_param,
         )
 
         monkeypatch.setattr(
-            litellm,
+            gateway,
             "default_team_params",
             {
                 "max_budget": 100.0,
@@ -140,7 +140,7 @@ class TestGetDefaultTeamParam:
 
     def test_returns_permissions_from_pydantic_config(self, monkeypatch):
         """Returns permissions when default_team_params is a DefaultTeamSSOParams object."""
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         from token_iq.gateway.proxy.management_endpoints.team_endpoints import (
             _get_default_team_param,
@@ -155,14 +155,14 @@ class TestGetDefaultTeamParam:
                 KeyManagementRoutes.KEY_DELETE,
             ]
         )
-        monkeypatch.setattr(litellm, "default_team_params", params)
+        monkeypatch.setattr(gateway, "default_team_params", params)
 
         result = _get_default_team_param("team_member_permissions")
         assert result == ["/key/generate", "/key/delete"]
 
     def test_returns_scalar_fields_from_pydantic_config(self, monkeypatch):
         """Returns scalar fields from DefaultTeamSSOParams object."""
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         from token_iq.gateway.proxy.management_endpoints.team_endpoints import (
             _get_default_team_param,
@@ -177,7 +177,7 @@ class TestGetDefaultTeamParam:
             tpm_limit=1000,
             rpm_limit=100,
         )
-        monkeypatch.setattr(litellm, "default_team_params", params)
+        monkeypatch.setattr(gateway, "default_team_params", params)
 
         assert _get_default_team_param("max_budget") == 250.0
         assert _get_default_team_param("budget_duration") == "7d"

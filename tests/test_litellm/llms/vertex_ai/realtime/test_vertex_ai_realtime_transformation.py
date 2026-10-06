@@ -15,7 +15,7 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 import websockets.exceptions  # registers websockets.exceptions on the websockets namespace
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.vertex_ai.realtime.transformation import VertexAIRealtimeConfig
 
 # ---------------------------------------------------------------------------
@@ -85,11 +85,11 @@ def test_vertex_requires_session_configuration_feature_flag(monkeypatch):
     )
 
     # Default remains backwards-compatible (auto setup on connect)
-    monkeypatch.setattr(litellm, "gemini_live_defer_setup", False, raising=False)
+    monkeypatch.setattr(gateway, "gemini_live_defer_setup", False, raising=False)
     assert cfg.requires_session_configuration() is True
 
     # Opt-in deferred setup for tool-injection flow
-    monkeypatch.setattr(litellm, "gemini_live_defer_setup", True, raising=False)
+    monkeypatch.setattr(gateway, "gemini_live_defer_setup", True, raising=False)
     assert cfg.requires_session_configuration() is False
 
 
@@ -127,9 +127,9 @@ def patch_native_audio_cost_map_entry(monkeypatch):
     the field may not exist yet. Patch it locally so these unit tests remain
     self-contained and don't depend on the remote cost map state.
     """
-    entry = dict(litellm.model_cost.get(_NATIVE_AUDIO_MODEL, {}))
+    entry = dict(gateway.model_cost.get(_NATIVE_AUDIO_MODEL, {}))
     entry["gemini_native_audio"] = True
-    monkeypatch.setitem(litellm.model_cost, _NATIVE_AUDIO_MODEL, entry)
+    monkeypatch.setitem(gateway.model_cost, _NATIVE_AUDIO_MODEL, entry)
 
 
 def test_vertex_audio_only_live_model_coerces_text_modality_to_audio(

@@ -5,7 +5,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import completion
 from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
@@ -37,7 +37,7 @@ def watsonx_chat_completion_call():
             with (
                 patch.object(client, "post") as mock_post,
                 patch.object(
-                    litellm.module_level_client, "post", return_value=mock_response
+                    gateway.module_level_client, "post", return_value=mock_response
                 ) as mock_get,
             ):
                 try:
@@ -135,11 +135,11 @@ def watsonx_completion_call():
             with (
                 patch.object(client, "post") as mock_post,
                 patch.object(
-                    litellm.module_level_client, "post", return_value=mock_response
+                    gateway.module_level_client, "post", return_value=mock_response
                 ) as mock_get,
             ):
                 try:
-                    litellm.text_completion(
+                    gateway.text_completion(
                         model=model,
                         prompt=prompt,
                         api_key=api_key,
@@ -154,7 +154,7 @@ def watsonx_completion_call():
         else:
             with patch.object(client, "post") as mock_post:
                 try:
-                    litellm.text_completion(
+                    gateway.text_completion(
                         model=model,
                         prompt=prompt,
                         api_key=api_key,
@@ -252,7 +252,7 @@ def test_watsonx_gpt_oss_prompt_transformation(monkeypatch):
     # Isolate known_tokenizer_config so parallel tests don't interfere.
     # monkeypatch.setitem restores the original value on teardown.
     hf_model = "openai/gpt-oss-120b"
-    monkeypatch.setitem(litellm.known_tokenizer_config, hf_model, mock_tokenizer_config)
+    monkeypatch.setitem(gateway.known_tokenizer_config, hf_model, mock_tokenizer_config)
 
     # Mock IAM token generation to avoid real HTTP calls.
     mock_token_response = Mock()
@@ -265,7 +265,7 @@ def test_watsonx_gpt_oss_prompt_transformation(monkeypatch):
     with (
         patch.object(client, "post") as mock_post,
         patch.object(
-            litellm.module_level_client, "post", return_value=mock_token_response
+            gateway.module_level_client, "post", return_value=mock_token_response
         ),
     ):
         try:
@@ -380,7 +380,7 @@ def test_watsonx_chat_completion_with_reasoning_effort(monkeypatch):
     with (
         patch.object(client, "post") as mock_post,
         patch.object(
-            litellm.module_level_client, "post", return_value=mock_token_response
+            gateway.module_level_client, "post", return_value=mock_token_response
         ),
     ):
         try:

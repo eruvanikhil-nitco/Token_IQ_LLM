@@ -3,7 +3,7 @@ from unittest.mock import patch
 import pytest
 from httpx import Request, Response
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import constants
 from token_iq.gateway.core_utils.prompt_templates import image_handling
 from token_iq.gateway.core_utils.prompt_templates.image_handling import (
@@ -28,14 +28,14 @@ class DummyClient:
 
 
 def test_invalid_image_url_raises_bad_request(monkeypatch):
-    monkeypatch.setattr(litellm, "module_level_client", DummyClient())
-    with pytest.raises(litellm.ImageFetchError) as excinfo:
+    monkeypatch.setattr(gateway, "module_level_client", DummyClient())
+    with pytest.raises(gateway.ImageFetchError) as excinfo:
         convert_url_to_base64("https://invalid.example/image.png")
     assert "Unable to fetch image" in str(excinfo.value)
 
 
 def test_completion_with_invalid_image_url(monkeypatch):
-    monkeypatch.setattr(litellm, "module_level_client", DummyClient())
+    monkeypatch.setattr(gateway, "module_level_client", DummyClient())
     messages = [
         {
             "role": "user",
@@ -48,8 +48,8 @@ def test_completion_with_invalid_image_url(monkeypatch):
             ],
         }
     ]
-    with pytest.raises(litellm.ImageFetchError) as excinfo:
-        litellm.completion(model="gemini/gemini-pro", messages=messages, api_key="test")
+    with pytest.raises(gateway.ImageFetchError) as excinfo:
+        gateway.completion(model="gemini/gemini-pro", messages=messages, api_key="test")
     assert excinfo.value.status_code == 400
     assert "Unable to fetch image" in str(excinfo.value)
 
@@ -117,9 +117,9 @@ def test_image_exceeds_size_limit_with_content_length(monkeypatch):
     """
     Test that images exceeding MAX_IMAGE_URL_DOWNLOAD_SIZE_MB are rejected when Content-Length header is present.
     """
-    monkeypatch.setattr(litellm, "module_level_client", LargeImageClient(size_mb=100))
+    monkeypatch.setattr(gateway, "module_level_client", LargeImageClient(size_mb=100))
 
-    with pytest.raises(litellm.ImageFetchError) as excinfo:
+    with pytest.raises(gateway.ImageFetchError) as excinfo:
         convert_url_to_base64("https://example.com/large-image.jpg")
 
     assert "exceeds maximum allowed size" in str(excinfo.value)
@@ -133,12 +133,12 @@ def test_image_exceeds_size_limit_without_content_length(monkeypatch):
     This uses the old non-streaming mock for backward compatibility.
     """
     monkeypatch.setattr(
-        litellm,
+        gateway,
         "module_level_client",
         LargeImageClient(size_mb=100, include_content_length=False),
     )
 
-    with pytest.raises(litellm.ImageFetchError) as excinfo:
+    with pytest.raises(gateway.ImageFetchError) as excinfo:
         convert_url_to_base64("https://example.com/large-image.jpg")
 
     assert "exceeds maximum allowed size" in str(excinfo.value)
@@ -155,9 +155,9 @@ def test_streaming_download_protects_against_huge_files(monkeypatch):
     """
     # Simulate a 1GB file - far larger than the 50MB default limit
     client = StreamingLargeImageClient(size_mb=1024, include_content_length=False)
-    monkeypatch.setattr(litellm, "module_level_client", client)
+    monkeypatch.setattr(gateway, "module_level_client", client)
 
-    with pytest.raises(litellm.ImageFetchError) as excinfo:
+    with pytest.raises(gateway.ImageFetchError) as excinfo:
         convert_url_to_base64("https://example.com/huge-image.jpg")
 
     # Verify the error message shows it was caught during streaming
@@ -190,7 +190,7 @@ def test_image_within_size_limit(monkeypatch):
     """
     Test that images within size limit are processed successfully.
     """
-    monkeypatch.setattr(litellm, "module_level_client", SmallImageClient())
+    monkeypatch.setattr(gateway, "module_level_client", SmallImageClient())
 
     result = convert_url_to_base64("https://example.com/small-image.jpg")
 
@@ -210,9 +210,9 @@ def test_streaming_download_handles_petabyte_file(monkeypatch):
     client = StreamingLargeImageClient(
         size_mb=1_000_000_000, include_content_length=False
     )
-    monkeypatch.setattr(litellm, "module_level_client", client)
+    monkeypatch.setattr(gateway, "module_level_client", client)
 
-    with pytest.raises(litellm.ImageFetchError) as excinfo:
+    with pytest.raises(gateway.ImageFetchError) as excinfo:
         convert_url_to_base64("https://example.com/petabyte-file.jpg")
 
     # Should fail fast without downloading anywhere near 1 petabyte
@@ -229,7 +229,7 @@ def test_data_url_is_returned_unchanged_without_fetch(monkeypatch):
         def get(self, url, follow_redirects=True):
             raise AssertionError("data URLs must not trigger an HTTP fetch")
 
-    monkeypatch.setattr(litellm, "module_level_client", ExplodingClient())
+    monkeypatch.setattr(gateway, "module_level_client", ExplodingClient())
 
     data_url = "data:image/png;base64,iVBORw0KGgo="
 
@@ -247,7 +247,7 @@ async def test_async_data_url_is_returned_unchanged_without_fetch(monkeypatch):
         async def get(self, url, follow_redirects=True):
             raise AssertionError("data URLs must not trigger an HTTP fetch")
 
-    monkeypatch.setattr(litellm, "module_level_aclient", ExplodingAsyncClient())
+    monkeypatch.setattr(gateway, "module_level_aclient", ExplodingAsyncClient())
 
     data_url = "data:image/png;base64,iVBORw0KGgo="
 
@@ -260,10 +260,10 @@ def test_image_size_limit_disabled(monkeypatch):
     """
     import token_iq.gateway.core_utils.prompt_templates.image_handling as image_handling
 
-    monkeypatch.setattr(litellm, "module_level_client", SmallImageClient())
+    monkeypatch.setattr(gateway, "module_level_client", SmallImageClient())
     monkeypatch.setattr(image_handling, "MAX_IMAGE_URL_DOWNLOAD_SIZE_MB", 0)
 
-    with pytest.raises(litellm.ImageFetchError) as excinfo:
+    with pytest.raises(gateway.ImageFetchError) as excinfo:
         convert_url_to_base64("https://example.com/image.jpg")
 
     assert "Image URL download is disabled" in str(excinfo.value)

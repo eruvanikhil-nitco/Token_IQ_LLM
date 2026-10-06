@@ -3,7 +3,7 @@ import os
 
 
 import asyncio
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 import logging
 import time
@@ -24,17 +24,17 @@ def test_langsmith_logging_async():
             print(f"\nRun {run + 1}:")
 
             # Test with empty success_callback
-            litellm.success_callback = []
-            litellm.callbacks = []
-            litellm._async_success_callback = []
-            litellm._async_failure_callback = []
-            litellm.failure_callback = []
+            gateway.success_callback = []
+            gateway.callbacks = []
+            gateway._async_success_callback = []
+            gateway._async_failure_callback = []
+            gateway.failure_callback = []
             start_time_empty_callback = asyncio.run(make_async_calls())
             print("Done with no callback test")
 
             # Test with langsmith callback
             print("Starting langsmith test")
-            litellm.success_callback = ["langsmith"]
+            gateway.success_callback = ["langsmith"]
             start_time_langsmith = asyncio.run(make_async_calls())
             print("Done with langsmith test")
 
@@ -59,7 +59,7 @@ def test_langsmith_logging_async():
             avg_percentage_diff < 10
         ), f"Average performance difference of {avg_percentage_diff:.2f}% exceeds 10% threshold"
 
-    except litellm.Timeout as e:
+    except gateway.Timeout as e:
         pass
     except Exception as e:
         pytest.fail(f"An exception occurred - {e}")
@@ -106,4 +106,4 @@ def create_async_task(**completion_kwargs):
         "mock_response": "hello from my load test",
     }
     completion_args.update(completion_kwargs)
-    return asyncio.create_task(litellm.acompletion(**completion_args))
+    return asyncio.create_task(gateway.acompletion(**completion_args))

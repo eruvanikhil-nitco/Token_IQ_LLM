@@ -6,7 +6,7 @@ import pytest
 import httpx
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.types.containers.main import (
     ContainerObject,
     ContainerListResponse,
@@ -383,14 +383,14 @@ class TestContainerIntegration:
 
         with patch("token_iq.gateway.containers.main.base_llm_http_handler") as mock_handler:
             # Simulate an API error
-            mock_handler.container_create_handler.side_effect = litellm.APIError(
+            mock_handler.container_create_handler.side_effect = gateway.APIError(
                 status_code=400,
                 message="API Error occurred",
                 llm_provider="openai",
                 model="",
             )
 
-            with pytest.raises(litellm.APIError):
+            with pytest.raises(gateway.APIError):
                 create_container_fresh(
                     name="Error Test Container", custom_llm_provider="openai"
                 )

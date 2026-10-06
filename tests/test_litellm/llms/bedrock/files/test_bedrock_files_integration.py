@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.types.llms.openai import HttpxBinaryResponseContent
 from token_iq.gateway.types.utils import SpecialEnums
 
@@ -43,7 +43,7 @@ class TestBedrockFilesIntegration:
             mock_retrieve.return_value = mock_result
 
             # Call litellm.afile_content
-            result = await litellm.afile_content(
+            result = await gateway.afile_content(
                 file_id=file_id,
                 custom_llm_provider="bedrock",
                 aws_region_name="us-west-2",
@@ -96,7 +96,7 @@ class TestBedrockFilesIntegration:
             mock_retrieve.return_value = mock_result
 
             # Call litellm.afile_content with unified file ID
-            result = await litellm.afile_content(
+            result = await gateway.afile_content(
                 file_id=encoded_file_id,
                 custom_llm_provider="bedrock",
                 aws_region_name="us-west-2",

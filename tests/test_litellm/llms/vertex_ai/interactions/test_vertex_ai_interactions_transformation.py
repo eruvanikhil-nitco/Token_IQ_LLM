@@ -1,6 +1,6 @@
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.interactions.utils import get_provider_interactions_api_config
 from token_iq.gateway.llms.gemini.interactions.transformation import (
     GoogleAIStudioInteractionsConfig,
@@ -57,7 +57,7 @@ class TestRegistration:
         assert not isinstance(gemini_config, VertexAIInteractionsConfig)
 
     def test_lazy_import_resolves(self):
-        assert litellm.VertexAIInteractionsConfig is VertexAIInteractionsConfig
+        assert gateway.VertexAIInteractionsConfig is VertexAIInteractionsConfig
 
     def test_custom_llm_provider_is_vertex_ai(self, config):
         assert config.custom_llm_provider == LlmProviders.VERTEX_AI
@@ -150,7 +150,7 @@ class TestGetCompleteUrl:
 
     def test_project_resolved_from_credentials_when_not_passed(self, config, monkeypatch):
         monkeypatch.delenv("VERTEXAI_PROJECT", raising=False)
-        monkeypatch.setattr(litellm, "vertex_project", None)
+        monkeypatch.setattr(gateway, "vertex_project", None)
 
         url = config.get_complete_url(
             api_base=None,
@@ -170,7 +170,7 @@ class TestGetCompleteUrl:
 
     def test_missing_project_rejected(self, monkeypatch):
         monkeypatch.delenv("VERTEXAI_PROJECT", raising=False)
-        monkeypatch.setattr(litellm, "vertex_project", None)
+        monkeypatch.setattr(gateway, "vertex_project", None)
 
         def unresolved_minter(
             credentials: VERTEX_CREDENTIALS_TYPES | None,

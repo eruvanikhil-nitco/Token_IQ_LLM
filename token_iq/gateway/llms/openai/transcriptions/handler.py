@@ -4,7 +4,7 @@ import httpx
 from openai import AsyncOpenAI, OpenAI
 from pydantic import BaseModel
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 if TYPE_CHECKING:
     from aiohttp import ClientSession
@@ -57,7 +57,7 @@ class OpenAIAudioTranscription(OpenAIChatCompletion):
         - call openai_aclient.audio.transcriptions.create by default
         """
         try:
-            if litellm.return_response_headers is True:
+            if gateway.return_response_headers is True:
                 raw_response = openai_client.audio.transcriptions.with_raw_response.create(**data, timeout=timeout)
                 headers: Final = dict(raw_response.headers)
                 response = raw_response.parse()

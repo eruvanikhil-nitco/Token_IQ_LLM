@@ -8,7 +8,7 @@ from typing import Any, Final
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.constants import request_timeout
 from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
 from token_iq.gateway.llms.custom_httpx.llm_http_handler import BaseLLMHTTPHandler
@@ -41,10 +41,10 @@ def _prepare_registry_credentials(
     vector_store_id: str,
     kwargs: dict[str, Any],
 ) -> None:
-    if litellm.vector_store_registry is None:
+    if gateway.vector_store_registry is None:
         return
     try:
-        registry_credentials: Final = litellm.vector_store_registry.get_credentials_for_vector_store(vector_store_id)
+        registry_credentials: Final = gateway.vector_store_registry.get_credentials_for_vector_store(vector_store_id)
         if registry_credentials:
             kwargs.update(registry_credentials)
     except Exception:
@@ -94,7 +94,7 @@ async def acreate(
             response = init_response
         return response
     except Exception as e:  # noqa: BLE001
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=None,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -169,7 +169,7 @@ def create(
         )
         return response
     except Exception as e:  # noqa: BLE001
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=None,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -222,7 +222,7 @@ async def alist(
             response = init_response
         return response
     except Exception as e:  # noqa: BLE001
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=None,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -294,7 +294,7 @@ def list(
         )
         return response
     except Exception as e:  # noqa: BLE001
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=None,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -337,7 +337,7 @@ async def aretrieve(
             response = init_response
         return response
     except Exception as e:  # noqa: BLE001
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=None,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -403,7 +403,7 @@ def retrieve(
         )
         return response
     except Exception as e:  # noqa: BLE001
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=None,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -445,7 +445,7 @@ async def aretrieve_content(
             response = init_response
         return response
     except Exception as e:  # noqa: BLE001
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=None,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -511,7 +511,7 @@ def retrieve_content(
         )
         return response
     except Exception as e:  # noqa: BLE001
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=None,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -557,7 +557,7 @@ async def aupdate(
             response = init_response
         return response
     except Exception as e:  # noqa: BLE001
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=None,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -632,7 +632,7 @@ def update(
         )
         return response
     except Exception as e:  # noqa: BLE001
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=None,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -674,7 +674,7 @@ async def adelete(
             response = init_response
         return response
     except Exception as e:  # noqa: BLE001
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=None,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -740,7 +740,7 @@ def delete(
         )
         return response
     except Exception as e:  # noqa: BLE001
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=None,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,

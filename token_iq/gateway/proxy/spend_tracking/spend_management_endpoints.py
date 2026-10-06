@@ -21,7 +21,7 @@ import fastapi
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from typing_extensions import ReadOnly
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.proxy._types import *
 from token_iq.gateway.proxy._types import ProviderBudgetResponse, ProviderBudgetResponseObject
@@ -1144,7 +1144,7 @@ async def get_global_spend_provider(
                 _deployment = llm_router.get_deployment(model_id=_model_id)
                 if _deployment is not None:
                     try:
-                        _, _provider, _, _ = litellm.get_llm_provider(
+                        _, _provider, _, _ = gateway.get_llm_provider(
                             model=_deployment.litellm_params.model,
                             custom_llm_provider=_deployment.litellm_params.custom_llm_provider,
                             api_base=_deployment.litellm_params.api_base,
@@ -2161,7 +2161,7 @@ async def calculate_spend(request: SpendCalculateRequest):
             else:
                 _cost = completion_cost(model=request.model, messages=request.messages)
         elif request.completion_response is not None:
-            _completion_response: Final = litellm.ModelResponse(**request.completion_response)
+            _completion_response: Final = gateway.ModelResponse(**request.completion_response)
             _cost = completion_cost(completion_response=_completion_response)
         else:
             raise HTTPException(
@@ -2856,7 +2856,7 @@ async def ui_view_request_response_for_request_id(
             request_id=request_id,
         )
 
-    custom_loggers: Final = litellm.logging_callback_manager.get_active_additional_logging_utils_from_custom_logger()
+    custom_loggers: Final = gateway.logging_callback_manager.get_active_additional_logging_utils_from_custom_logger()
     start_date_obj: datetime | None = None
     end_date_obj: datetime | None = None
     if start_date is not None:
@@ -3398,7 +3398,7 @@ async def global_spend():
             if isinstance(response, list) and len(response) > 0:
                 total_spend = response[0].get("total_spend", 0.0)
 
-        return {"spend": total_spend, "max_budget": litellm.max_budget}
+        return {"spend": total_spend, "max_budget": gateway.max_budget}
     except Exception as e:
         error_trace: Final = traceback.format_exc()
         error_str: Final = str(e) + "\n" + error_trace

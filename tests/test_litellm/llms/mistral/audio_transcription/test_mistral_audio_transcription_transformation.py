@@ -3,7 +3,7 @@ from typing import Dict
 from unittest.mock import MagicMock
 
 import httpx
-from token_iq import gateway as litellm
+from token_iq import gateway
 import pytest
 
 from token_iq.gateway.llms.base_llm.audio_transcription.transformation import (
@@ -29,8 +29,8 @@ class TestMistralAudioTranscription(BaseLLMAudioTranscriptionTest):
             "model": "mistral/voxtral-mini-latest",
         }
 
-    def get_custom_llm_provider(self) -> litellm.LlmProviders:
-        return litellm.LlmProviders.MISTRAL
+    def get_custom_llm_provider(self) -> gateway.LlmProviders:
+        return gateway.LlmProviders.MISTRAL
 
     def test_audio_transcription_async(self):  # type: ignore[override]
         pytest.skip(
@@ -43,7 +43,7 @@ def test_mistral_audio_transcription_config_installed():
     """Ensure Mistral audio transcription config is registered with ProviderConfigManager."""
     config = ProviderConfigManager.get_provider_audio_transcription_config(
         model="mistral/voxtral-mini-latest",
-        provider=litellm.LlmProviders.MISTRAL,
+        provider=gateway.LlmProviders.MISTRAL,
     )
     assert config is not None
     assert isinstance(config, BaseAudioTranscriptionConfig)

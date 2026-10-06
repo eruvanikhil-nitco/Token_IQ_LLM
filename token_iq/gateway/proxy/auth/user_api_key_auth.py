@@ -21,7 +21,7 @@ from fastapi import HTTPException, Request, WebSocket, status
 from fastapi.security.api_key import APIKeyHeader
 from starlette.exceptions import WebSocketException
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger, verbose_proxy_logger
 from token_iq.gateway._service_logger import ServiceLogging
 from token_iq.gateway.constants import (
@@ -128,7 +128,7 @@ def _normalize_public_auth_route(route: str) -> str:
 def _route_requires_auth_despite_public(route: str, general_settings: dict | None) -> bool:
     normalized_route: Final = _normalize_public_auth_route(route)
     if normalized_route == "/metrics":
-        return litellm.require_auth_for_metrics_endpoint is not False
+        return gateway.require_auth_for_metrics_endpoint is not False
 
     return False
 
@@ -269,7 +269,7 @@ async def _check_key_model_budget_with_fallback(
     request_data: dict,
     request: Request,
     llm_model_list: list | None = None,
-    llm_router: litellm.Router | None = None,
+    llm_router: gateway.Router | None = None,
 ) -> None:
     """
     Enforce the key's per-model budget for `model_name`. If exceeded and the
@@ -299,7 +299,7 @@ async def _check_key_model_budget_with_fallback(
             user_api_key_dict=valid_token,
             model=model_name,
         )
-    except litellm.BudgetExceededError as e:
+    except gateway.BudgetExceededError as e:
         if request_data.get("model") != model_name:
             raise e
         fallback_model: Final = await model_max_budget_limiter.get_fallback_model_within_budget(
@@ -605,7 +605,7 @@ async def get_global_proxy_spend(
     proxy_logging_obj: ProxyLogging,
 ) -> float | None:
     global_proxy_spend = None
-    if litellm.max_budget > 0 and prisma_client is not None:  # user set proxy max budget
+    if gateway.max_budget > 0 and prisma_client is not None:  # user set proxy max budget
         # Use event-driven coordination to prevent cache stampede
         cache_key: Final = GLOBAL_PROXY_SPEND_CACHE_KEY
         global_proxy_spend = await _fetch_global_spend_with_event_coordination(
@@ -616,7 +616,7 @@ async def get_global_proxy_spend(
         if global_proxy_spend is not None:
             user_info: Final = CallInfo(
                 user_id=litellm_proxy_admin_name,
-                max_budget=litellm.max_budget,
+                max_budget=gateway.max_budget,
                 spend=global_proxy_spend,
                 token=token,
                 event_group=Litellm_EntityType.PROXY,
@@ -1281,7 +1281,7 @@ async def _user_api_key_auth_builder(
                 )
             if response is not None and isinstance(response, UserAPIKeyAuth):
                 validated = UserAPIKeyAuth.model_validate(response)
-                if getattr(litellm, "enable_post_custom_auth_checks", False):
+                if getattr(gateway, "enable_post_custom_auth_checks", False):
                     validated = await _run_post_custom_auth_checks(
                         valid_token=validated,
                         request=request,
@@ -1296,7 +1296,7 @@ async def _user_api_key_auth_builder(
         elif user_custom_auth is not None:
             response = await user_custom_auth(request=request, api_key=api_key)
             validated = UserAPIKeyAuth.model_validate(response)
-            if getattr(litellm, "enable_post_custom_auth_checks", False):
+            if getattr(gateway, "enable_post_custom_auth_checks", False):
                 validated = await _run_post_custom_auth_checks(
                     valid_token=validated,
                     request=request,
@@ -1678,7 +1678,7 @@ async def _user_api_key_auth_builder(
                             budget_info=_end_user_object.litellm_budget_table,
                             end_user_id=end_user_id,
                         )
-                elif litellm.max_end_user_budget_id is not None:
+                elif gateway.max_end_user_budget_id is not None:
                     # End user doesn't exist yet, but apply default budget limits if configured
                     from token_iq.gateway.proxy.auth.auth_checks import (
                         get_default_end_user_budget,
@@ -1696,7 +1696,7 @@ async def _user_api_key_auth_builder(
                             end_user_id=end_user_id,
                         )
             except Exception as e:
-                if isinstance(e, litellm.BudgetExceededError):
+                if isinstance(e, gateway.BudgetExceededError):
                     raise e
                 verbose_proxy_logger.debug("Unable to find user in db. Error - %s", e)
 
@@ -2038,7 +2038,7 @@ async def _user_api_key_auth_builder(
                                 )
                             if team_member_spend > team_member_budget:
                                 _entity_id: Final = f"{valid_token.user_id}:{valid_token.team_id}"
-                                raise litellm.BudgetExceededError(
+                                raise gateway.BudgetExceededError(
                                     current_cost=team_member_spend,
                                     max_budget=team_member_budget,
                                     message=(
@@ -2220,7 +2220,7 @@ async def _user_api_key_auth_builder(
                     valid_token.project_alias = _project_obj.project_alias
 
             global_proxy_spend = None
-            if litellm.max_budget > 0 and prisma_client is not None:  # user set proxy max budget
+            if gateway.max_budget > 0 and prisma_client is not None:  # user set proxy max budget
                 cache_key: Final = GLOBAL_PROXY_SPEND_CACHE_KEY
                 with tracer.trace("litellm.proxy.auth.get_global_proxy_spend"):
                     global_proxy_spend = await _fetch_global_spend_with_event_coordination(
@@ -2233,7 +2233,7 @@ async def _user_api_key_auth_builder(
                     call_info: Final = CallInfo(
                         token=valid_token.token,
                         spend=global_proxy_spend,
-                        max_budget=litellm.max_budget,
+                        max_budget=gateway.max_budget,
                         user_id=litellm_proxy_admin_name,
                         team_id=valid_token.team_id,
                         event_group=Litellm_EntityType.PROXY,
@@ -2304,7 +2304,7 @@ async def _safe_fetch(label: str, awaitable):
     """
     try:
         return await awaitable
-    except (HTTPException, ProxyException, litellm.BudgetExceededError) as e:
+    except (HTTPException, ProxyException, gateway.BudgetExceededError) as e:
         verbose_proxy_logger.debug(
             "centralized auth: %s fetch failed (%s: %s)",
             label,
@@ -2564,7 +2564,7 @@ async def _run_centralized_common_checks(
         end_user_result,
         global_spend_result,
     ):
-        if isinstance(r, (ProxyException, litellm.BudgetExceededError)):
+        if isinstance(r, (ProxyException, gateway.BudgetExceededError)):
             raise r
 
     # Use BaseException (not HTTPException) in the narrowing checks so
@@ -3077,7 +3077,7 @@ async def _lookup_end_user_and_apply_budget(
             valid_token = update_valid_token_with_end_user_params(
                 valid_token=valid_token, end_user_params=end_user_params
             )
-        elif litellm.max_end_user_budget_id is not None:
+        elif gateway.max_end_user_budget_id is not None:
             from token_iq.gateway.proxy.auth.auth_checks import get_default_end_user_budget
 
             default_budget: Final = await get_default_end_user_budget(
@@ -3096,7 +3096,7 @@ async def _lookup_end_user_and_apply_budget(
                     valid_token=valid_token, end_user_params=end_user_params
                 )
     except Exception as e:
-        if isinstance(e, litellm.BudgetExceededError):
+        if isinstance(e, gateway.BudgetExceededError):
             raise e
         verbose_proxy_logger.debug("Unable to find user in db. Error - %s", e)
     return valid_token, end_user_object

@@ -11,7 +11,7 @@ import importlib
 import pytest
 
 
-from token_iq import gateway as litellm  # noqa: E402
+from token_iq import gateway  # noqa: E402
 
 from tests._vcr_conftest_common import (  # noqa: E402,F401
     VerboseReporterState,
@@ -96,17 +96,17 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
 # Capture TRUE defaults at conftest import time (before test modules pollute).
 # ---------------------------------------------------------------------------
 _SCALAR_DEFAULTS = {
-    "num_retries": getattr(litellm, "num_retries", None),
-    "set_verbose": getattr(litellm, "set_verbose", False),
-    "cache": getattr(litellm, "cache", None),
-    "allowed_fails": getattr(litellm, "allowed_fails", 3),
-    "disable_aiohttp_transport": getattr(litellm, "disable_aiohttp_transport", False),
-    "force_ipv4": getattr(litellm, "force_ipv4", False),
-    "drop_params": getattr(litellm, "drop_params", None),
-    "modify_params": getattr(litellm, "modify_params", False),
-    "api_base": getattr(litellm, "api_base", None),
-    "api_key": getattr(litellm, "api_key", None),
-    "cohere_key": getattr(litellm, "cohere_key", None),
+    "num_retries": getattr(gateway, "num_retries", None),
+    "set_verbose": getattr(gateway, "set_verbose", False),
+    "cache": getattr(gateway, "cache", None),
+    "allowed_fails": getattr(gateway, "allowed_fails", 3),
+    "disable_aiohttp_transport": getattr(gateway, "disable_aiohttp_transport", False),
+    "force_ipv4": getattr(gateway, "force_ipv4", False),
+    "drop_params": getattr(gateway, "drop_params", None),
+    "modify_params": getattr(gateway, "modify_params", False),
+    "api_base": getattr(gateway, "api_base", None),
+    "api_key": getattr(gateway, "api_key", None),
+    "cohere_key": getattr(gateway, "cohere_key", None),
 }
 
 
@@ -123,7 +123,7 @@ def event_loop():
 @pytest.fixture(scope="function", autouse=True)
 def setup_and_teardown(event_loop):  # Add event_loop as a dependency
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     # ---- Save current state (for teardown restore) ----
     original_state = {}
@@ -134,19 +134,19 @@ def setup_and_teardown(event_loop):  # Add event_loop as a dependency
         "_async_success_callback",
         "_async_failure_callback",
     ):
-        if hasattr(litellm, attr):
-            val = getattr(litellm, attr)
+        if hasattr(gateway, attr):
+            val = getattr(gateway, attr)
             original_state[attr] = val.copy() if val else []
 
     for attr in _SCALAR_DEFAULTS:
-        if hasattr(litellm, attr):
-            original_state[attr] = getattr(litellm, attr)
+        if hasattr(gateway, attr):
+            original_state[attr] = getattr(gateway, attr)
 
     # ---- Reset to true defaults before the test ----
     from token_iq.gateway.core_utils.logging_worker import GLOBAL_LOGGING_WORKER
 
     asyncio.run(GLOBAL_LOGGING_WORKER.clear_queue())
-    importlib.reload(litellm)
+    importlib.reload(gateway)
 
     # Set the event loop from the fixture
     asyncio.set_event_loop(event_loop)
@@ -155,8 +155,8 @@ def setup_and_teardown(event_loop):  # Add event_loop as a dependency
 
     # ---- Teardown ----
     for attr, original_value in original_state.items():
-        if hasattr(litellm, attr):
-            setattr(litellm, attr, original_value)
+        if hasattr(gateway, attr):
+            setattr(gateway, attr, original_value)
 
     # Clean up any pending tasks
     pending = asyncio.all_tasks(event_loop)

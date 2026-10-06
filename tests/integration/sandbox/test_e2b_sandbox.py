@@ -13,13 +13,13 @@ import os
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 
 @pytest.mark.skipif("E2B_API_KEY" not in os.environ, reason="needs a real E2B_API_KEY")
 @pytest.mark.asyncio
 async def test_integration_ephemeral_real_e2b():
-    result = await litellm.acode_interpreter_tool(
+    result = await gateway.acode_interpreter_tool(
         provider="e2b", code="print(sum(range(10)))"
     )
     assert result.stdout.strip() == "45"
@@ -29,11 +29,11 @@ async def test_integration_ephemeral_real_e2b():
 @pytest.mark.skipif("E2B_API_KEY" not in os.environ, reason="needs a real E2B_API_KEY")
 @pytest.mark.asyncio
 async def test_integration_lifecycle_roundtrip_real_e2b():
-    container = await litellm.acreate_sandbox(provider="e2b")
+    container = await gateway.acreate_sandbox(provider="e2b")
     try:
-        result = await litellm.arun_code(
+        result = await gateway.arun_code(
             provider="e2b", container=container, code="print(6*7)"
         )
         assert result.stdout.strip() == "42"
     finally:
-        assert await litellm.adelete_sandbox(provider="e2b", container=container)
+        assert await gateway.adelete_sandbox(provider="e2b", container=container)

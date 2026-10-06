@@ -11,7 +11,7 @@ from typing import Final, TypedDict
 import httpx
 from typing_extensions import ReadOnly
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import LlmProviders
 from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
 from token_iq.gateway.llms.bedrock.chat.invoke_handler import MockResponseIterator
@@ -55,7 +55,7 @@ async def make_call(
     fake_stream: bool = False,
 ):
     if client is None:
-        client = litellm.module_level_aclient
+        client = gateway.module_level_aclient
 
     response: Final = await client.post(api_base, headers=headers, data=data, stream=not fake_stream)
 
@@ -90,7 +90,7 @@ def make_sync_call(
     timeout: float | httpx.Timeout | None = None,
 ):
     if client is None:
-        client = litellm.module_level_client  # Create a new client if none provided
+        client = gateway.module_level_client  # Create a new client if none provided
 
     response: Final = client.post(api_base, headers=headers, data=data, stream=not fake_stream, timeout=timeout)
 
@@ -189,7 +189,7 @@ class OpenAILikeChatHandler(OpenAILikeBase):
             timeout = httpx.Timeout(timeout=600.0, connect=5.0)
 
         if client is None:
-            client = litellm.module_level_aclient
+            client = gateway.module_level_aclient
 
         try:
             response: Final = await client.post(api_base, headers=headers, data=json.dumps(data), timeout=timeout)

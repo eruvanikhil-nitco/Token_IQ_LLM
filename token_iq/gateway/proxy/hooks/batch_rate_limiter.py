@@ -25,7 +25,7 @@ from typing import TYPE_CHECKING, Any, Final, Literal, NoReturn, TypeAlias
 from fastapi import HTTPException
 from pydantic import BaseModel, Field, TypeAdapter
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.batches.batch_utils import (
     _count_entry_tokens,
@@ -793,7 +793,7 @@ class _PROXY_BatchRateLimiter(CustomLogger):
                     data=data or {},
                 )
                 # For non-managed files, use the standard litellm.afile_content
-                file_content = await litellm.afile_content(
+                file_content = await gateway.afile_content(
                     file_id=provider_file_id,
                     user_api_key_dict=user_api_key_dict,
                     **fetch_kwargs,

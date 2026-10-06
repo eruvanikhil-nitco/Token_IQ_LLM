@@ -4,15 +4,15 @@ import sys, os
 import traceback
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import embedding, completion
 
-litellm.input_callback = ["supabase"]
-litellm.success_callback = ["supabase"]
-litellm.failure_callback = ["supabase"]
+gateway.input_callback = ["supabase"]
+gateway.success_callback = ["supabase"]
+gateway.failure_callback = ["supabase"]
 
 
-litellm.set_verbose = False
+gateway.set_verbose = False
 
 
 def test_supabase_logging():
@@ -37,7 +37,7 @@ def test_acompletion_sync():
 
     async def completion_call():
         try:
-            response = await litellm.acompletion(
+            response = await gateway.acompletion(
                 model="gpt-3.5-turbo",
                 messages=[{"role": "user", "content": "write a poem"}],
                 max_tokens=10,
@@ -58,7 +58,7 @@ def test_acompletion_sync():
                     print("🤗🤗🤗 DONE")
                     return
 
-        except litellm.Timeout as e:
+        except gateway.Timeout as e:
             pass
         except Exception:
             print(f"error occurred: {traceback.format_exc()}")
@@ -71,6 +71,6 @@ def test_acompletion_sync():
 
 
 # reset callbacks
-litellm.input_callback = []
-litellm.success_callback = []
-litellm.failure_callback = []
+gateway.input_callback = []
+gateway.success_callback = []
+gateway.failure_callback = []

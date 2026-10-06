@@ -10,7 +10,7 @@ from typing import Final, NoReturn, SupportsFloat, SupportsIndex, SupportsInt, c
 
 from fastapi import HTTPException, status
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.core_utils.duration_parser import duration_in_seconds
 from token_iq.gateway.core_utils.llm_cost_calc.tiered_pricing import select_tier_for_input, tier_rate
@@ -158,7 +158,7 @@ def _raise_counter_budget_exceeded(
     estimated_cost: float | None = None,
 ) -> NoReturn:
     estimate_detail: Final = "" if estimated_cost is None else f"Estimated request cost: {estimated_cost}, "
-    raise litellm.BudgetExceededError(
+    raise gateway.BudgetExceededError(
         current_cost=current_cost,
         max_budget=counter.max_budget,
         message=(
@@ -1234,7 +1234,7 @@ def _get_model_cost_info(
         model_group_info: Final = llm_router.get_model_group_info(model_group=model)
         if model_group_info is not None:
             return model_group_info.model_dump()
-    return dict(litellm.get_model_info(model=model))
+    return dict(gateway.get_model_info(model=model))
 
 
 def _get_model_cost_infos(
@@ -1362,7 +1362,7 @@ def _approximate_input_size(request_body: Mapping[str, object]) -> int:
 def _count_input_tokens(request_body: dict, model: str) -> int | None:
     try:
         if "messages" in request_body:
-            return litellm.token_counter(
+            return gateway.token_counter(
                 model=model,
                 messages=request_body.get("messages") or [],
                 tools=request_body.get("tools"),
@@ -1449,9 +1449,9 @@ def _count_text_tokens(model: str, text: object) -> int:
             stack.extend(item)
             continue
         if isinstance(item, dict):
-            token_count += litellm.token_counter(model=model, text=json.dumps(item))
+            token_count += gateway.token_counter(model=model, text=json.dumps(item))
             continue
-        token_count += litellm.token_counter(model=model, text=str(item))
+        token_count += gateway.token_counter(model=model, text=str(item))
     return token_count
 
 

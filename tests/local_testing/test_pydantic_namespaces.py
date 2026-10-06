@@ -5,7 +5,7 @@ import pytest
 def test_namespace_conflict_warning():
     with warnings.catch_warnings(record=True) as recorded_warnings:
         warnings.simplefilter("always")  # Capture all warnings
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
     # Check that no warning with the specific message was raised
     assert not any(

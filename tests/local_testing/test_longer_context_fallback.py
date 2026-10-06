@@ -5,7 +5,7 @@ import sys, os
 import traceback
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import longer_context_model_fallback_dict
 
 print(longer_context_model_fallback_dict)

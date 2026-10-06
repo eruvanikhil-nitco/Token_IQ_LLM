@@ -6,7 +6,7 @@ from unittest.mock import MagicMock
 import httpx
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.azure.audio_transcription.transformation import (
     AzureSpeechAudioTranscriptionConfig,
     AzureSpeechAudioTranscriptionException,
@@ -22,7 +22,7 @@ from token_iq.gateway.utils import ProviderConfigManager
 def test_azure_speech_audio_transcription_config_installed():
     config = ProviderConfigManager.get_provider_audio_transcription_config(
         model="speech/azure-stt",
-        provider=litellm.LlmProviders.AZURE,
+        provider=gateway.LlmProviders.AZURE,
     )
 
     assert isinstance(config, BaseAudioTranscriptionConfig)
@@ -206,12 +206,12 @@ def test_azure_speech_transcription_routes_through_provider_config(monkeypatch):
     audio_handler = MagicMock(return_value=expected)
 
     monkeypatch.setattr(
-        litellm.main.base_llm_http_handler,
+        gateway.main.base_llm_http_handler,
         "audio_transcriptions",
         audio_handler,
     )
 
-    response = litellm.transcription(
+    response = gateway.transcription(
         model="azure/speech/azure-stt",
         file=io.BytesIO(b"RIFF....WAVE"),
         api_base="https://eastus.api.cognitive.microsoft.com",

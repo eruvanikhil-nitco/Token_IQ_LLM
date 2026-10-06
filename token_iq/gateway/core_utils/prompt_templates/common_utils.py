@@ -21,7 +21,7 @@ from openai.types.shared_params.custom_tool_input_format import (
     Grammar as ResponsesGrammarFormat,
 )
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import verbose_logger
 from token_iq.gateway.router_utils.batch_utils import InMemoryFile
 from token_iq.gateway.types.llms.openai import (
@@ -1593,7 +1593,7 @@ def migrate_file_to_image_url(
 
     file_sub: Final = message.get("file")
     if file_sub is None:
-        raise litellm.BadRequestError(
+        raise gateway.BadRequestError(
             message="Content block has type='file' but is missing the required 'file' field",
             model=None,
             llm_provider=None,

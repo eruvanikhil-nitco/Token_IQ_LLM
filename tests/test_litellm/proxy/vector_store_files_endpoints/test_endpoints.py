@@ -19,7 +19,7 @@ import pytest
 
 from fastapi import HTTPException
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy._types import UserAPIKeyAuth
 from token_iq.gateway.proxy.vector_store_files_endpoints.endpoints import (
     _update_request_data_with_managed_file_id,
@@ -74,7 +74,7 @@ async def _resolve(
 
 @pytest.mark.asyncio
 async def test_raw_file_id_rejected_when_managed_files_required():
-    with patch.object(litellm, "require_managed_files", True):
+    with patch.object(gateway, "require_managed_files", True):
         with pytest.raises(HTTPException) as exc:
             await _resolve(RAW_FILE_ID)
 
@@ -89,7 +89,7 @@ async def test_model_encoded_file_id_rejected_when_managed_files_required():
 
     encoded = encode_file_id_with_model(RAW_FILE_ID, "gpt-4o-mini", id_type="file")
 
-    with patch.object(litellm, "require_managed_files", True):
+    with patch.object(gateway, "require_managed_files", True):
         with pytest.raises(HTTPException) as exc:
             await _resolve(encoded)
 
@@ -101,7 +101,7 @@ async def test_forged_unified_file_id_rejected_without_ownership_record():
     forged_id = _unified_file_id()
     data = {"vector_store_id": "vs-test", "file_id": forged_id}
 
-    with patch.object(litellm, "require_managed_files", True):
+    with patch.object(gateway, "require_managed_files", True):
         with pytest.raises(HTTPException) as exc:
             await _update_request_data_with_managed_file_id(
                 data=data,
@@ -118,7 +118,7 @@ async def test_forged_unified_file_id_rejected_without_ownership_record():
 
 @pytest.mark.asyncio
 async def test_other_teams_unified_file_id_rejected():
-    with patch.object(litellm, "require_managed_files", True):
+    with patch.object(gateway, "require_managed_files", True):
         with pytest.raises(HTTPException) as exc:
             await _resolve(_unified_file_id(), file_access="deny")
 
@@ -127,7 +127,7 @@ async def test_other_teams_unified_file_id_rejected():
 
 @pytest.mark.asyncio
 async def test_owned_unified_file_id_allowed_when_managed_files_required():
-    with patch.object(litellm, "require_managed_files", True):
+    with patch.object(gateway, "require_managed_files", True):
         data, original = await _resolve(_unified_file_id())
 
     assert original == _unified_file_id()
@@ -136,7 +136,7 @@ async def test_owned_unified_file_id_allowed_when_managed_files_required():
 
 @pytest.mark.asyncio
 async def test_raw_file_id_allowed_when_managed_files_not_required():
-    with patch.object(litellm, "require_managed_files", False):
+    with patch.object(gateway, "require_managed_files", False):
         data, original = await _resolve(RAW_FILE_ID)
 
     assert original is None

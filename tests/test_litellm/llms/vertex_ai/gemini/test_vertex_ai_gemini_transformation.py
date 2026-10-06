@@ -92,7 +92,7 @@ def test_check_if_part_exists_in_parts_camel_case_snake_case():
 
 def test_cached_content_respects_modify_params_for_cache_incompatible_fields():
     """Regression: cachedContent drops system/tools/toolConfig only when modify_params=True."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     cache_name = "projects/p/locations/us-central1/cachedContents/abc123"
     messages = [
@@ -110,10 +110,10 @@ def test_cached_content_respects_modify_params_for_cache_incompatible_fields():
         "tool_choice": {"functionCallingConfig": {"mode": "AUTO"}},
     }
 
-    original_modify_params = litellm.modify_params
+    original_modify_params = gateway.modify_params
     try:
         # With modify_params=False (default), keep fields even with cachedContent.
-        litellm.modify_params = False
+        gateway.modify_params = False
         result = _transform_request_body(
             messages=list(messages),
             model="gemini-2.5-pro",
@@ -129,7 +129,7 @@ def test_cached_content_respects_modify_params_for_cache_incompatible_fields():
         assert "contents" in result
 
         # With modify_params=True, drop cache-incompatible fields.
-        litellm.modify_params = True
+        gateway.modify_params = True
         result_modify_true = _transform_request_body(
             messages=list(messages),
             model="gemini-2.5-pro",
@@ -157,7 +157,7 @@ def test_cached_content_respects_modify_params_for_cache_incompatible_fields():
         assert "tools" in result_no_cache
         assert "toolConfig" in result_no_cache
     finally:
-        litellm.modify_params = original_modify_params
+        gateway.modify_params = original_modify_params
 
 
 # Tests for issue #14556: Labels field provider-aware filtering

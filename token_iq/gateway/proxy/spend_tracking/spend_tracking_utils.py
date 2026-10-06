@@ -8,7 +8,7 @@ from typing import Final, Literal, Protocol, cast, runtime_checkable
 
 from pydantic import BaseModel
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.constants import (
     LITELLM_PROXY_MASTER_KEY_ALIAS,
@@ -387,7 +387,7 @@ def get_logging_payload(kwargs, response_obj, start_time, end_time) -> SpendLogs
     elif not is_unbilled_non_inference_call(call_type, metadata, response_obj_dict):
         # Use response_obj_dict instead of response_obj to avoid calling .get() on Pydantic models
         _usage: Final = response_obj_dict.get("usage", None) or {}
-        if isinstance(_usage, litellm.Usage):
+        if isinstance(_usage, gateway.Usage):
             usage = dict(_usage)
         elif isinstance(_usage, dict):
             usage = _usage
@@ -396,7 +396,7 @@ def get_logging_payload(kwargs, response_obj, start_time, end_time) -> SpendLogs
     # streaming handler may have recovered the usage from the chunks already
     # delivered. Honor that override so the partial usage lands in spend tracking.
     _combined_usage: Final = kwargs.get("combined_usage_object")
-    if not usage and isinstance(_combined_usage, litellm.Usage):
+    if not usage and isinstance(_combined_usage, gateway.Usage):
         usage = _combined_usage.model_dump()
 
     id = get_spend_logs_id(call_type or "acompletion", response_obj_dict, kwargs)
@@ -559,8 +559,8 @@ def get_logging_payload(kwargs, response_obj, start_time, end_time) -> SpendLogs
                 additional_usage_values["cache_creation_input_tokens"] = cache_write_tokens
     clean_metadata["additional_usage_values"] = additional_usage_values
 
-    if litellm.cache is not None:
-        cache_key = litellm.cache.get_cache_key(**kwargs)
+    if gateway.cache is not None:
+        cache_key = gateway.cache.get_cache_key(**kwargs)
     else:
         cache_key = "Cache OFF"
     if cache_hit is True:

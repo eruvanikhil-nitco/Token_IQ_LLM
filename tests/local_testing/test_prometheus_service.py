@@ -11,7 +11,7 @@ from token_iq.gateway._service_logger import ServiceLogging
 from token_iq.gateway.integrations.prometheus_services import PrometheusServicesLogger
 from token_iq.gateway.proxy.utils import ServiceTypes
 from unittest.mock import patch, AsyncMock
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 """
 - Check if it receives a call when redis is used 
@@ -37,13 +37,13 @@ async def test_completion_with_caching():
     - Assert success callback gets called
     """
 
-    litellm.set_verbose = True
-    litellm.cache = Cache(type="redis")
-    litellm.service_callback = ["prometheus_system"]
+    gateway.set_verbose = True
+    gateway.cache = Cache(type="redis")
+    gateway.service_callback = ["prometheus_system"]
 
     sl = ServiceLogging(mock_testing=True)
     sl.prometheusServicesLogger.mock_testing = True
-    litellm.cache.cache.service_logger_obj = sl
+    gateway.cache.cache.service_logger_obj = sl
 
     messages = [{"role": "user", "content": "Hey, how's it going?"}]
     response1 = await acompletion(
@@ -65,12 +65,12 @@ async def test_completion_with_caching_bad_call():
     - Run completion with caching (incorrect credentials)
     - Assert failure callback gets called
     """
-    litellm.set_verbose = True
+    gateway.set_verbose = True
 
     try:
         from token_iq.gateway.caching.caching import RedisCache
 
-        litellm.service_callback = ["prometheus_system"]
+        gateway.service_callback = ["prometheus_system"]
         sl = ServiceLogging(mock_testing=True)
 
         RedisCache(host="hello-world", service_logger_obj=sl)
@@ -111,7 +111,7 @@ async def test_router_with_caching():
             },
         ]
 
-        router = litellm.Router(
+        router = gateway.Router(
             model_list=model_list,
             set_verbose=True,
             debug_level="DEBUG",
@@ -121,7 +121,7 @@ async def test_router_with_caching():
             redis_password=os.environ["REDIS_PASSWORD"],
         )
 
-        litellm.service_callback = ["prometheus_system"]
+        gateway.service_callback = ["prometheus_system"]
 
         sl = ServiceLogging(mock_testing=True)
         sl.prometheusServicesLogger.mock_testing = True
@@ -145,7 +145,7 @@ async def test_service_logger_db_monitoring():
     """
     Test prometheus monitoring for database operations
     """
-    litellm.service_callback = ["prometheus_system"]
+    gateway.service_callback = ["prometheus_system"]
     sl = ServiceLogging()
 
     # Create spy on prometheus logger's async_service_success_hook
@@ -178,7 +178,7 @@ async def test_service_logger_db_monitoring_failure():
     """
     Test prometheus monitoring for failed database operations
     """
-    litellm.service_callback = ["prometheus_system"]
+    gateway.service_callback = ["prometheus_system"]
     sl = ServiceLogging()
 
     # Create spy on prometheus logger's async_service_failure_hook

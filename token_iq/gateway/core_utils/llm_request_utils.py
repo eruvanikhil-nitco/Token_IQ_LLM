@@ -1,7 +1,7 @@
 from collections.abc import Mapping
 from typing import Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.constants import DEFAULT_MAX_RECURSE_DEPTH
 
 
@@ -148,15 +148,15 @@ def pick_cheapest_chat_models_from_llm_provider(custom_llm_provider: str, n=1):
     Returns:
         list[str]: A list of the n cheapest chat models.
     """
-    if custom_llm_provider not in litellm.models_by_provider:
+    if custom_llm_provider not in gateway.models_by_provider:
         return []
 
-    known_models: Final = litellm.models_by_provider.get(custom_llm_provider, [])
+    known_models: Final = gateway.models_by_provider.get(custom_llm_provider, [])
     model_costs: Final = []
 
     for model in known_models:
         try:
-            model_info = litellm.get_model_info(model=model, custom_llm_provider=custom_llm_provider)
+            model_info = gateway.get_model_info(model=model, custom_llm_provider=custom_llm_provider)
         except Exception:
             continue
         if model_info.get("mode") != "chat":

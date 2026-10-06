@@ -24,7 +24,7 @@ if TYPE_CHECKING:
 
     from token_iq.gateway.proxy.utils import PrismaClient
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.core_utils.duration_parser import duration_in_seconds
 from token_iq.gateway.proxy._types import *
@@ -227,24 +227,24 @@ async def unblock_user(data: BlockUsers):
         )
 
     if (
-        not any(isinstance(x, _ENTERPRISE_BlockedUserList) for x in litellm.callbacks)
-        or litellm.blocked_user_list is None
+        not any(isinstance(x, _ENTERPRISE_BlockedUserList) for x in gateway.callbacks)
+        or gateway.blocked_user_list is None
     ):
         raise HTTPException(
             status_code=400,
             detail={"error": "Blocked user check was never set. This call has no effect."},
         )
 
-    if isinstance(litellm.blocked_user_list, list):
+    if isinstance(gateway.blocked_user_list, list):
         for id in data.user_ids:
-            litellm.blocked_user_list.remove(id)
+            gateway.blocked_user_list.remove(id)
     else:
         raise HTTPException(
             status_code=500,
             detail={"error": "`blocked_user_list` must be set as a list. Filepaths can't be updated."},
         )
 
-    return {"blocked_users": litellm.blocked_user_list}
+    return {"blocked_users": gateway.blocked_user_list}
 
 
 def new_budget_request(data: NewCustomerRequest) -> BudgetNewRequest | None:

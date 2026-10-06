@@ -26,7 +26,7 @@ import httpx
 from httpx import Response
 from typing_extensions import ReadOnly, TypedDict
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway._uuid import uuid
 from token_iq.gateway.integrations.custom_batch_logger import CustomBatchLogger
@@ -199,12 +199,12 @@ class DataDogLogger(
         These are params specific to initializing the DataDogLogger e.g. turn_off_message_logging
         """
         dict_datadog_params: dict = {}
-        if litellm.datadog_params is not None:
-            if isinstance(litellm.datadog_params, DatadogInitParams):
-                dict_datadog_params = litellm.datadog_params.model_dump()
-            elif isinstance(litellm.datadog_params, dict):
+        if gateway.datadog_params is not None:
+            if isinstance(gateway.datadog_params, DatadogInitParams):
+                dict_datadog_params = gateway.datadog_params.model_dump()
+            elif isinstance(gateway.datadog_params, dict):
                 # only allow params that are of DatadogInitParams
-                dict_datadog_params = DatadogInitParams(**litellm.datadog_params).model_dump()
+                dict_datadog_params = DatadogInitParams(**gateway.datadog_params).model_dump()
         return dict_datadog_params
 
     def _configure_dd_agent(
@@ -495,7 +495,7 @@ class DataDogLogger(
         - instantly logs it on DD API
         """
         try:
-            if litellm.datadog_use_v1 is True:
+            if gateway.datadog_use_v1 is True:
                 dd_payload = self._create_v0_logging_payload(
                     kwargs=kwargs,
                     response_obj=response_obj,

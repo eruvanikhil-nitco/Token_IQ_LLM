@@ -5,7 +5,7 @@ Handler for transforming interactions API requests to litellm.responses requests
 from collections.abc import AsyncIterator, Callable, Coroutine, Iterator
 from typing import Any, Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.interactions.litellm_responses_transformation.streaming_iterator import (
     LiteLLMResponsesInteractionsStreamingIterator,
 )
@@ -78,7 +78,7 @@ class LiteLLMResponsesInteractionsHandler:
         # Call litellm.responses()
         # Note: litellm.responses() returns Union[ResponsesAPIResponse, BaseResponsesAPIStreamingIterator]
         # but the type checker may see it as a coroutine in some contexts
-        responses_fn: Final[Callable[..., ResponsesAPIResponse | BaseResponsesAPIStreamingIterator]] = vars(litellm)[
+        responses_fn: Final[Callable[..., ResponsesAPIResponse | BaseResponsesAPIStreamingIterator]] = vars(gateway)[
             "responses"
         ]
         responses_response: Final = responses_fn(
@@ -118,7 +118,7 @@ class LiteLLMResponsesInteractionsHandler:
         # Note: litellm.aresponses() returns Union[ResponsesAPIResponse, BaseResponsesAPIStreamingIterator]
         aresponses_fn: Final[
             Callable[..., Coroutine[object, object, ResponsesAPIResponse | BaseResponsesAPIStreamingIterator]]
-        ] = vars(litellm)["aresponses"]
+        ] = vars(gateway)["aresponses"]
         responses_response: Final = await aresponses_fn(
             **responses_request,
         )

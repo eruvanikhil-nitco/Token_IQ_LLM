@@ -270,7 +270,7 @@ class TestGeminiPassthroughLoggingHandler:
 
     @pytest.mark.asyncio
     @patch(
-        "token_iq.gateway.proxy.pass_through_endpoints.llm_provider_handlers.gemini_passthrough_logging_handler.litellm.completion_cost",
+        "token_iq.gateway.proxy.pass_through_endpoints.llm_provider_handlers.gemini_passthrough_logging_handler.gateway.completion_cost",
         return_value=0.000050,
     )
     async def test_pass_through_success_handler_gemini_routing(

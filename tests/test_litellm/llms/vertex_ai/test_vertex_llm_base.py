@@ -7,7 +7,7 @@ import pytest
 from token_iq.gateway.constants import DEFAULT_MAX_RECURSE_DEPTH
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.vertex_ai.vertex_ai_aws_wif import VertexAIAwsWifAuth
 from token_iq.gateway.llms.vertex_ai.vertex_llm_base import VertexBase
 from token_iq.gateway.types.llms.vertex_ai import VertexPartnerProvider

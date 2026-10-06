@@ -10,9 +10,9 @@ import pytest
 import httpx
 from fastapi import HTTPException
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 import token_iq.gateway.types.utils
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.caching import DualCache
 from token_iq.gateway.llms.custom_httpx.http_handler import MaskedHTTPStatusError
@@ -211,10 +211,10 @@ async def test_model_armor_post_call_hook_sanitization():
         guardrail.async_handler, "post", AsyncMock(return_value=mock_response)
     ):
         # Create a mock response
-        mock_llm_response = litellm.ModelResponse()
+        mock_llm_response = gateway.ModelResponse()
         mock_llm_response.choices = [
-            litellm.Choices(
-                message=litellm.Message(
+            gateway.Choices(
+                message=gateway.Message(
                     content="Here is the information: Credit card 1234-5678-9012-3456"
                 )
             )
@@ -285,10 +285,10 @@ async def test_model_armor_post_call_hook_blocked():
         guardrail.async_handler, "post", AsyncMock(return_value=mock_response)
     ):
         # Create a mock response
-        mock_llm_response = litellm.ModelResponse()
+        mock_llm_response = gateway.ModelResponse()
         mock_llm_response.choices = [
-            litellm.Choices(
-                message=litellm.Message(content="Here is some harmful content...")
+            gateway.Choices(
+                message=gateway.Message(content="Here is some harmful content...")
             )
         ]
 
@@ -500,17 +500,17 @@ async def test_model_armor_streaming_response():
         # Create mock streaming chunks
         async def mock_stream():
             chunks = [
-                litellm.ModelResponseStream(
+                gateway.ModelResponseStream(
                     choices=[
-                        litellm.types.utils.StreamingChoices(
-                            delta=litellm.types.utils.Delta(content="Sensitive ")
+                        gateway.types.utils.StreamingChoices(
+                            delta=gateway.types.utils.Delta(content="Sensitive ")
                         )
                     ]
                 ),
-                litellm.ModelResponseStream(
+                gateway.ModelResponseStream(
                     choices=[
-                        litellm.types.utils.StreamingChoices(
-                            delta=litellm.types.utils.Delta(content="information")
+                        gateway.types.utils.StreamingChoices(
+                            delta=gateway.types.utils.Delta(content="information")
                         )
                     ]
                 ),
@@ -586,17 +586,17 @@ async def test_model_armor_streaming_block_yields_sse_error():
 
         async def mock_stream():
             chunks = [
-                litellm.ModelResponseStream(
+                gateway.ModelResponseStream(
                     choices=[
-                        litellm.types.utils.StreamingChoices(
-                            delta=litellm.types.utils.Delta(content="My password is ")
+                        gateway.types.utils.StreamingChoices(
+                            delta=gateway.types.utils.Delta(content="My password is ")
                         )
                     ]
                 ),
-                litellm.ModelResponseStream(
+                gateway.ModelResponseStream(
                     choices=[
-                        litellm.types.utils.StreamingChoices(
-                            delta=litellm.types.utils.Delta(content="hunter2")
+                        gateway.types.utils.StreamingChoices(
+                            delta=gateway.types.utils.Delta(content="hunter2")
                         )
                     ]
                 ),
@@ -758,9 +758,9 @@ async def test_model_armor_api_error_fail_open_moderation_and_post_call(fail_on_
         "messages": [{"role": "user", "content": "synthetic input"}],
         "metadata": {},
     }
-    mock_llm_response = litellm.ModelResponse()
+    mock_llm_response = gateway.ModelResponse()
     mock_llm_response.choices = [
-        litellm.Choices(message=litellm.Message(content="model output"))
+        gateway.Choices(message=gateway.Message(content="model output"))
     ]
 
     if fail_on_error:
@@ -811,10 +811,10 @@ async def test_model_armor_api_error_fail_open_streaming(fail_on_error: bool):
     guardrail.should_run_guardrail = Mock(return_value=True)
 
     async def mock_stream():
-        yield litellm.ModelResponseStream(
+        yield gateway.ModelResponseStream(
             choices=[
-                litellm.types.utils.StreamingChoices(
-                    delta=litellm.types.utils.Delta(content="streamed output")
+                gateway.types.utils.StreamingChoices(
+                    delta=gateway.types.utils.Delta(content="streamed output")
                 )
             ]
         )
@@ -838,7 +838,7 @@ async def test_model_armor_api_error_fail_open_streaming(fail_on_error: bool):
         assert '"code": "500"' in chunks[0]
     else:
         assert len(chunks) == 1
-        assert isinstance(chunks[0], litellm.ModelResponseStream)
+        assert isinstance(chunks[0], gateway.ModelResponseStream)
 
 
 @pytest.mark.asyncio
@@ -1005,9 +1005,9 @@ async def test_model_armor_post_call_logging_redacts_scanned_content(sanitize: b
     guardrail.make_model_armor_request = AsyncMock(return_value=armor_response)
     guardrail.should_run_guardrail = Mock(return_value=True)
 
-    mock_llm_response = litellm.ModelResponse()
+    mock_llm_response = gateway.ModelResponse()
     mock_llm_response.choices = [
-        litellm.Choices(message=litellm.Message(content="model output"))
+        gateway.Choices(message=gateway.Message(content="model output"))
     ]
     request_data = {
         "model": "gpt-4",
@@ -1060,10 +1060,10 @@ async def test_model_armor_streaming_logging_redacts_scanned_content(sanitize: b
     guardrail.should_run_guardrail = Mock(return_value=True)
 
     async def mock_stream():
-        yield litellm.ModelResponseStream(
+        yield gateway.ModelResponseStream(
             choices=[
-                litellm.types.utils.StreamingChoices(
-                    delta=litellm.types.utils.Delta(content="streamed output")
+                gateway.types.utils.StreamingChoices(
+                    delta=gateway.types.utils.Delta(content="streamed output")
                 )
             ]
         )
@@ -1131,7 +1131,7 @@ async def test_model_armor_match_found_sanitizes_caller_and_logging(sanitize: bo
             user_api_key_dict=UserAPIKeyAuth(),
             cache=MagicMock(spec=DualCache),
             data=request_data,
-            call_type=litellm.types.utils.CallTypes.call_mcp_tool.value,
+            call_type=gateway.types.utils.CallTypes.call_mcp_tool.value,
         )
 
     detail = exc_info.value.detail
@@ -1488,9 +1488,9 @@ async def test_model_armor_missing_sanitized_text():
         guardrail.async_handler, "post", AsyncMock(return_value=mock_response)
     ):
         # Create a mock response
-        mock_llm_response = litellm.ModelResponse()
+        mock_llm_response = gateway.ModelResponse()
         mock_llm_response.choices = [
-            litellm.Choices(message=litellm.Message(content="Original content"))
+            gateway.Choices(message=gateway.Message(content="Original content"))
         ]
 
         request_data = {
@@ -3844,19 +3844,19 @@ _MODEL_ARMOR_DEIDENTIFIED = {
 def _chat_completion_chunks():
     """The chat-completions surface: typed ModelResponseStream chunks."""
     return (
-        litellm.types.utils.ModelResponseStream(
+        gateway.types.utils.ModelResponseStream(
             choices=[
-                litellm.types.utils.StreamingChoices(
+                gateway.types.utils.StreamingChoices(
                     index=0,
-                    delta=litellm.types.utils.Delta(content="my card is 4111-1111-1111-1111"),
+                    delta=gateway.types.utils.Delta(content="my card is 4111-1111-1111-1111"),
                 )
             ]
         ),
-        litellm.types.utils.ModelResponseStream(
+        gateway.types.utils.ModelResponseStream(
             choices=[
-                litellm.types.utils.StreamingChoices(
+                gateway.types.utils.StreamingChoices(
                     index=0,
-                    delta=litellm.types.utils.Delta(content=""),
+                    delta=gateway.types.utils.Delta(content=""),
                     finish_reason="stop",
                 )
             ]
@@ -4383,11 +4383,11 @@ async def test_streaming_hook_refuses_a_content_stream_that_ends_with_an_error_f
         ),
         (
             (
-                litellm.types.utils.ModelResponseStream(
+                gateway.types.utils.ModelResponseStream(
                     choices=[
-                        litellm.types.utils.StreamingChoices(
+                        gateway.types.utils.StreamingChoices(
                             index=0,
-                            delta=litellm.types.utils.Delta(content="my card is 4111-1111-1111-1111"),
+                            delta=gateway.types.utils.Delta(content="my card is 4111-1111-1111-1111"),
                         )
                     ]
                 ),
@@ -4414,11 +4414,11 @@ async def test_streaming_hook_does_not_forward_typed_chunks_that_end_with_an_err
     guardrail = _surface_guardrail()
     post = _armor_post_mock(_MODEL_ARMOR_CLEAN)
     chunks = (
-        litellm.types.utils.ModelResponseStream(
+        gateway.types.utils.ModelResponseStream(
             choices=[
-                litellm.types.utils.StreamingChoices(
+                gateway.types.utils.StreamingChoices(
                     index=0,
-                    delta=litellm.types.utils.Delta(content="my card is 4111-1111-1111-1111"),
+                    delta=gateway.types.utils.Delta(content="my card is 4111-1111-1111-1111"),
                 )
             ]
         ),

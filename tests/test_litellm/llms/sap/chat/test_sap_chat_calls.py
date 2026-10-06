@@ -76,9 +76,9 @@ async def test_sap_chat(
     fake_deployment_url,
     sync_mode,
 ):
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    litellm.disable_aiohttp_transport = True
+    gateway.disable_aiohttp_transport = True
     with (
         patch(
             "token_iq.gateway.llms.sap.chat.transformation.GenAIHubOrchestrationConfig.deployment_url",
@@ -97,9 +97,9 @@ async def test_sap_chat(
         )
 
         if sync_mode:
-            response = litellm.completion(model=model, messages=messages)
+            response = gateway.completion(model=model, messages=messages)
         else:
-            response = await litellm.acompletion(model=model, messages=messages)
+            response = await gateway.acompletion(model=model, messages=messages)
 
         assert response.choices[0].message.content == "Hello from SAP!"
         assert response.model.startswith("gpt-4o")
@@ -113,9 +113,9 @@ async def test_sap_streaming(
     fake_token_creator,
     fake_deployment_url,
 ):
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    litellm.disable_aiohttp_transport = True
+    gateway.disable_aiohttp_transport = True
     with (
         patch(
             "token_iq.gateway.llms.sap.chat.transformation.GenAIHubOrchestrationConfig.deployment_url",
@@ -138,7 +138,7 @@ async def test_sap_streaming(
             )
         )
 
-        stream = litellm.completion(model=model, messages=messages, stream=True)
+        stream = gateway.completion(model=model, messages=messages, stream=True)
 
         full = ""
         for chunk in stream:
@@ -156,7 +156,7 @@ async def test_sap_chat_required_headers(
     fake_deployment_url,
 ):
     """Test that required headers are correctly set in SAP chat requests."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     # Define required headers for SAP requests
     required_headers = {
@@ -166,7 +166,7 @@ async def test_sap_chat_required_headers(
         "AI-Client-Type": "LiteLLM",
     }
 
-    litellm.disable_aiohttp_transport = True
+    gateway.disable_aiohttp_transport = True
     with (
         patch(
             "token_iq.gateway.llms.sap.chat.transformation.GenAIHubOrchestrationConfig.deployment_url",
@@ -185,7 +185,7 @@ async def test_sap_chat_required_headers(
         route = respx_mock.post(f"{fake_deployment_url}/v2/completion")
         route.respond(json=sap_api_response)
 
-        response = await litellm.acompletion(model=model, messages=messages)
+        response = await gateway.acompletion(model=model, messages=messages)
 
         # Verify the response is valid
         assert response.choices[0].message.content == "Hello from SAP!"

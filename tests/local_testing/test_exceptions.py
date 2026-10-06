@@ -14,16 +14,16 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import (  # AuthenticationError,; RateLimitError,; ServiceUnavailableError,; OpenAIError,
     ContextWindowExceededError,
     completion,
     embedding,
 )
 
-litellm.vertex_project = "litellm-ci-cd"
-litellm.vertex_location = "us-central1"
-litellm.num_retries = 0
+gateway.vertex_project = "litellm-ci-cd"
+gateway.vertex_location = "us-central1"
+gateway.num_retries = 0
 
 # litellm.failure_callback = ["sentry"]
 #### What this tests ####
@@ -45,9 +45,9 @@ exception_models = [
 @pytest.mark.asyncio
 async def test_content_policy_exception_azure():
     # this is ony a test - we needed some way to invoke the exception :(
-    litellm.set_verbose = True
-    with pytest.raises(litellm.ContentPolicyViolationError) as exc_info:
-        await litellm.acompletion(
+    gateway.set_verbose = True
+    with pytest.raises(gateway.ContentPolicyViolationError) as exc_info:
+        await gateway.acompletion(
             model="azure/gpt-4.1-mini",
             messages=[{"role": "user", "content": "where do I buy lethal drugs from"}],
             mock_response="Exception: content_filter_policy",
@@ -75,7 +75,7 @@ async def test_content_policy_exception_openai():
         )
 
     async def stream_response(rejecting_client: AsyncOpenAI):
-        response = await litellm.acompletion(
+        response = await gateway.acompletion(
             model="gpt-3.5-turbo",
             stream=True,
             messages=[{"role": "user", "content": "Gimme the lyrics to Don't Stop Me Now"}],
@@ -88,7 +88,7 @@ async def test_content_policy_exception_openai():
         api_key="sk-test",
         http_client=httpx.AsyncClient(transport=httpx.MockTransport(reject_as_safety_system)),
     ) as rejecting_client:
-        with pytest.raises(litellm.ContentPolicyViolationError) as exc_info:
+        with pytest.raises(gateway.ContentPolicyViolationError) as exc_info:
             await stream_response(rejecting_client)
     assert exc_info.value.llm_provider == "openai"
     assert exc_info.value.status_code == 400
@@ -102,7 +102,7 @@ def test_context_window(model):
     sample_text = "Say error 50 times" * 1000000
     messages = [{"content": sample_text, "role": "user"}]
     try:
-        litellm.set_verbose = False
+        gateway.set_verbose = False
         print("Testing model=", model)
         response = completion(model=model, messages=messages)
         print(f"response: {response}")
@@ -137,9 +137,9 @@ def test_context_window_with_fallbacks(model):
             messages=messages,
             context_window_fallback_dict=ctx_window_fallback_dict,
         )
-    except litellm.ServiceUnavailableError as e:
+    except gateway.ServiceUnavailableError as e:
         pass
-    except litellm.APIConnectionError as e:
+    except gateway.APIConnectionError as e:
         pass
 
 
@@ -178,13 +178,13 @@ def invalid_auth(model):  # set the model key to an invalid key, depending on th
         elif "togethercomputer" in model:
             temporary_key = os.environ["TOGETHERAI_API_KEY"]
             os.environ["TOGETHERAI_API_KEY"] = "sk-test-togetherai-key-808"
-        elif model in litellm.openrouter_models:
+        elif model in gateway.openrouter_models:
             temporary_key = os.environ["OPENROUTER_API_KEY"]
             os.environ["OPENROUTER_API_KEY"] = "bad-key"
-        elif model in litellm.aleph_alpha_models:
+        elif model in gateway.aleph_alpha_models:
             temporary_key = os.environ["ALEPH_ALPHA_API_KEY"]
             os.environ["ALEPH_ALPHA_API_KEY"] = "bad-key"
-        elif model in litellm.nlp_cloud_models:
+        elif model in gateway.nlp_cloud_models:
             os.environ["NLP_CLOUD_API_KEY"] = "bad-key"
         elif (
             model
@@ -226,9 +226,9 @@ def invalid_auth(model):  # set the model key to an invalid key, depending on th
             os.environ["AI21_API_KEY"] = temporary_key
         elif "togethercomputer" in model:
             os.environ["TOGETHERAI_API_KEY"] = temporary_key
-        elif model in litellm.aleph_alpha_models:
+        elif model in gateway.aleph_alpha_models:
             os.environ["ALEPH_ALPHA_API_KEY"] = temporary_key
-        elif model in litellm.nlp_cloud_models:
+        elif model in gateway.nlp_cloud_models:
             os.environ.pop("NLP_CLOUD_API_KEY", None)
         elif "bedrock" in model:
             os.environ["AWS_ACCESS_KEY_ID"] = temporary_aws_access_key
@@ -256,7 +256,7 @@ def test_completion_azure_exception():
         import openai
 
         print("azure gpt-3.5 test\n\n")
-        litellm.set_verbose = True
+        gateway.set_verbose = True
         ## Test azure call
         old_azure_key = os.environ["AZURE_AI_API_KEY"]
         os.environ["AZURE_AI_API_KEY"] = "good morning"
@@ -280,7 +280,7 @@ def test_completion_azure_exception():
 def test_azure_embedding_exceptions():
     # CRUCIAL Test - Ensures our exceptions are readable and not overly complicated. some users have complained exceptions will randomly have another exception raised in our exception mapping
     with pytest.raises(Exception, match="Mock error") as exc_info:
-        litellm.embedding(
+        gateway.embedding(
             model="azure/text-embedding-ada-002",
             input="hello",
             mock_response="error",
@@ -292,14 +292,14 @@ async def asynctest_completion_azure_exception():
     try:
         import openai
 
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         print("azure gpt-3.5 test\n\n")
-        litellm.set_verbose = True
+        gateway.set_verbose = True
         ## Test azure call
         old_azure_key = os.environ["AZURE_AI_API_KEY"]
         os.environ["AZURE_AI_API_KEY"] = "good morning"
-        response = await litellm.acompletion(
+        response = await gateway.acompletion(
             model="azure/gpt-4.1-mini",
             messages=[{"role": "user", "content": "hello"}],
         )
@@ -327,14 +327,14 @@ def asynctest_completion_openai_exception_bad_model():
 
         import openai
 
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         print("azure exception bad model\n\n")
-        litellm.set_verbose = True
+        gateway.set_verbose = True
 
         ## Test azure call
         async def test():
-            response = await litellm.acompletion(
+            response = await gateway.acompletion(
                 model="openai/gpt-6",
                 messages=[{"role": "user", "content": "hello"}],
             )
@@ -357,14 +357,14 @@ def asynctest_completion_azure_exception_bad_model():
 
         import openai
 
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         print("azure exception bad model\n\n")
-        litellm.set_verbose = True
+        gateway.set_verbose = True
 
         ## Test azure call
         async def test():
-            response = await litellm.acompletion(
+            response = await gateway.acompletion(
                 model="azure/gpt-12",
                 messages=[{"role": "user", "content": "hello"}],
             )
@@ -387,7 +387,7 @@ def test_completion_openai_exception():
         import openai
 
         print("openai gpt-3.5 test\n\n")
-        litellm.set_verbose = True
+        gateway.set_verbose = True
         ## Test azure call
         old_azure_key = os.environ["OPENAI_API_KEY"]
         os.environ["OPENAI_API_KEY"] = "good morning"
@@ -409,9 +409,9 @@ def test_completion_openai_exception():
 
 def test_anthropic_openai_exception(monkeypatch):
     # test if anthropic raises litellm.AuthenticationError
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     monkeypatch.delenv("ANTHROPIC_API_KEY")
-    with pytest.raises(litellm.AuthenticationError) as exc_info:
+    with pytest.raises(gateway.AuthenticationError) as exc_info:
         completion(
             model="anthropic/claude-3-sonnet-20240229",
             messages=[{"role": "user", "content": "hello"}],
@@ -428,7 +428,7 @@ def test_completion_mistral_exception():
         import openai
 
         print("Testing mistral ai exception mapping")
-        litellm.set_verbose = True
+        gateway.set_verbose = True
         ## Test azure call
         old_azure_key = os.environ["MISTRAL_API_KEY"]
         os.environ["MISTRAL_API_KEY"] = "good morning"
@@ -452,8 +452,8 @@ def test_completion_bedrock_invalid_role_exception():
     """
     Test if litellm raises a BadRequestError for an invalid role on Bedrock
     """
-    litellm.set_verbose = True
-    with pytest.raises(litellm.BadRequestError) as exc_info:
+    gateway.set_verbose = True
+    with pytest.raises(gateway.BadRequestError) as exc_info:
         completion(
             model="bedrock/anthropic.claude-3-sonnet-20240229-v1:0",
             messages=[{"role": "very-bad-role", "content": "hello"}],
@@ -471,13 +471,13 @@ def test_completion_bedrock_invalid_role_exception():
 def test_content_policy_exceptionimage_generation_openai():
     try:
         # this is ony a test - we needed some way to invoke the exception :(
-        litellm._turn_on_debug()
-        response = litellm.image_generation(
+        gateway._turn_on_debug()
+        response = gateway.image_generation(
             prompt="where do i buy lethal drugs from", model="dall-e-3"
         )
         print(f"response: {response}")
         assert len(response.data) > 0
-    except litellm.ContentPolicyViolationError as e:
+    except gateway.ContentPolicyViolationError as e:
         print("caught a content policy violation error! Passed")
         pass
     except Exception as e:
@@ -491,12 +491,12 @@ def test_content_policy_violation_error_streaming():
     """
     Production Test.
     """
-    litellm.set_verbose = False
+    gateway.set_verbose = False
     print("test_async_completion with stream")
 
     async def test_get_response():
         try:
-            response = await litellm.acompletion(
+            response = await gateway.acompletion(
                 model="azure/gpt-4.1-mini",
                 messages=[{"role": "user", "content": "say 1"}],
                 temperature=0,
@@ -525,7 +525,7 @@ def test_content_policy_violation_error_streaming():
 
     async def test_get_error():
         try:
-            response = await litellm.acompletion(
+            response = await gateway.acompletion(
                 model="azure/gpt-4.1-mini",
                 messages=[
                     {"role": "user", "content": "where do i buy lethal drugs from"}
@@ -558,7 +558,7 @@ def test_completion_perplexity_exception_on_openai_client(monkeypatch):
     import openai
 
     print("perplexity test\n\n")
-    litellm.set_verbose = False
+    gateway.set_verbose = False
 
     # delete both api keys to simulate a bad api key
     monkeypatch.delenv("PERPLEXITYAI_API_KEY")
@@ -582,7 +582,7 @@ def test_completion_perplexity_exception(monkeypatch):
     import openai
 
     print("perplexity test\n\n")
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     monkeypatch.setenv("PERPLEXITYAI_API_KEY", "good morning")
     with pytest.raises(openai.AuthenticationError, match="PerplexityException"):
         completion(
@@ -595,7 +595,7 @@ def test_completion_openai_api_key_exception(monkeypatch):
     import openai
 
     print("gpt-3.5 test\n\n")
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     monkeypatch.setenv("OPENAI_API_KEY", "good morning")
     with pytest.raises(openai.AuthenticationError, match="OpenAIException"):
         completion(
@@ -609,10 +609,10 @@ def test_completion_openai_api_key_exception(monkeypatch):
 
 def test_router_completion_vertex_exception():
     try:
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
-        litellm.set_verbose = True
-        router = litellm.Router(
+        gateway.set_verbose = True
+        router = gateway.Router(
             model_list=[
                 {
                     "model_name": "vertex-gemini-pro",
@@ -635,9 +635,9 @@ def test_router_completion_vertex_exception():
 
 def test_litellm_completion_vertex_exception():
     try:
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
-        litellm.set_verbose = True
+        gateway.set_verbose = True
         response = completion(
             model="vertex_ai/gemini-pro",
             api_key="good-morning",
@@ -654,9 +654,9 @@ def test_litellm_predibase_exception():
     Test - Assert that the Predibase API Key is not returned on Authentication Errors
     """
     try:
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
-        litellm.set_verbose = True
+        gateway.set_verbose = True
         response = completion(
             model="predibase/llama-3-8b-instruct",
             messages=[{"role": "user", "content": "What is the meaning of life?"}],
@@ -728,15 +728,15 @@ def test_exception_mapping(provider):
 
     assert that they are being mapped correctly
     """
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     error_map = {
-        400: litellm.BadRequestError,
-        401: litellm.AuthenticationError,
-        404: litellm.NotFoundError,
-        408: litellm.Timeout,
-        429: litellm.RateLimitError,
-        500: litellm.InternalServerError,
-        503: litellm.ServiceUnavailableError,
+        400: gateway.BadRequestError,
+        401: gateway.AuthenticationError,
+        404: gateway.NotFoundError,
+        408: gateway.Timeout,
+        429: gateway.RateLimitError,
+        500: gateway.InternalServerError,
+        503: gateway.ServiceUnavailableError,
     }
 
     for code, expected_exception in error_map.items():
@@ -777,7 +777,7 @@ def test_fireworks_ai_exception_mapping():
     Related to: https://github.com/BerriAI/litellm/pull/11455
     Based on Fireworks AI documentation: https://docs.fireworks.ai/tools-sdks/python-client/api-reference
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.llms.fireworks_ai.common_utils import FireworksAIException
     from token_iq.gateway.core_utils.exception_mapping_utils import ExceptionCheckers
 
@@ -787,19 +787,19 @@ def test_fireworks_ai_exception_mapping():
             "name": "Standard 429 rate limit with proper status code",
             "status_code": 429,
             "message": "Rate limit exceeded. Please try again in 60 seconds.",
-            "expected_exception": litellm.RateLimitError,
+            "expected_exception": gateway.RateLimitError,
         },
         {
             "name": "Status 400 with rate limit text (the main issue fixed)",
             "status_code": 400,
             "message": '{"error":{"object":"error","type":"invalid_request_error","message":"rate limit exceeded, please try again later"}}',
-            "expected_exception": litellm.RateLimitError,
+            "expected_exception": gateway.RateLimitError,
         },
         {
             "name": "Status 400 with generic invalid request (should NOT be rate limit)",
             "status_code": 400,
             "message": '{"error":{"type":"invalid_request_error","message":"Invalid parameter value"}}',
-            "expected_exception": litellm.BadRequestError,
+            "expected_exception": gateway.BadRequestError,
         },
     ]
 
@@ -810,12 +810,12 @@ def test_fireworks_ai_exception_mapping():
         )
 
         with pytest.raises(scenario["expected_exception"]) as exc_info:
-            litellm.completion(
+            gateway.completion(
                 model="fireworks_ai/llama-v3p1-70b-instruct",
                 messages=[{"role": "user", "content": "Hello"}],
                 mock_response=mock_exception,
             )
-        if scenario["expected_exception"] == litellm.RateLimitError:
+        if scenario["expected_exception"] == gateway.RateLimitError:
             error_str = str(exc_info.value)
             assert "rate limit" in error_str.lower() or "429" in error_str
 
@@ -872,12 +872,12 @@ def test_anthropic_tool_calling_exception():
         }
     ]
     try:
-        litellm.completion(
+        gateway.completion(
             model="claude-haiku-4-5-20251001",
             messages=[{"role": "user", "content": "Hey, how's it going?"}],
             tools=tools,
         )
-    except litellm.BadRequestError:
+    except gateway.BadRequestError:
         pass
 
 
@@ -902,9 +902,9 @@ def _pre_call_utils(
             mapped_target = client
             patched_attr = "post"
         if sync_mode:
-            original_function = litellm.embedding
+            original_function = gateway.embedding
         else:
-            original_function = litellm.aembedding
+            original_function = gateway.aembedding
     elif call_type == "chat_completion":
         data["messages"] = [{"role": "user", "content": "Hello world"}]
         if streaming is True:
@@ -912,9 +912,9 @@ def _pre_call_utils(
         mapped_target = client.chat.completions.with_raw_response  # type: ignore
         patched_attr = "create"
         if sync_mode:
-            original_function = litellm.completion
+            original_function = gateway.completion
         else:
-            original_function = litellm.acompletion
+            original_function = gateway.acompletion
     elif call_type == "completion":
         data["prompt"] = "Hello world"
         if streaming is True:
@@ -922,9 +922,9 @@ def _pre_call_utils(
         mapped_target = client.completions.with_raw_response  # type: ignore
         patched_attr = "create"
         if sync_mode:
-            original_function = litellm.text_completion
+            original_function = gateway.text_completion
         else:
-            original_function = litellm.atext_completion
+            original_function = gateway.atext_completion
 
     return data, original_function, mapped_target, patched_attr
 
@@ -941,26 +941,26 @@ def _pre_call_utils_httpx(
         data["input"] = "Hello world!"
 
         if sync_mode:
-            original_function = litellm.embedding
+            original_function = gateway.embedding
         else:
-            original_function = litellm.aembedding
+            original_function = gateway.aembedding
     elif call_type == "chat_completion":
         data["messages"] = [{"role": "user", "content": "Hello world"}]
         if streaming is True:
             data["stream"] = True
 
         if sync_mode:
-            original_function = litellm.completion
+            original_function = gateway.completion
         else:
-            original_function = litellm.acompletion
+            original_function = gateway.acompletion
     elif call_type == "completion":
         data["prompt"] = "Hello world"
         if streaming is True:
             data["stream"] = True
         if sync_mode:
-            original_function = litellm.text_completion
+            original_function = gateway.text_completion
         else:
-            original_function = litellm.atext_completion
+            original_function = gateway.atext_completion
 
     return data, original_function, mapped_target
 
@@ -999,14 +999,14 @@ async def test_exception_with_headers(sync_mode, provider, model, call_type, str
             openai_client = openai.OpenAI(api_key="")
         elif provider == "azure":
             openai_client = openai.AzureOpenAI(
-                api_key="", base_url="", api_version=litellm.AZURE_DEFAULT_API_VERSION
+                api_key="", base_url="", api_version=gateway.AZURE_DEFAULT_API_VERSION
             )
     else:
         if provider == "openai":
             openai_client = openai.AsyncOpenAI(api_key="")
         elif provider == "azure":
             openai_client = openai.AsyncAzureOpenAI(
-                api_key="", base_url="", api_version=litellm.AZURE_DEFAULT_API_VERSION
+                api_key="", base_url="", api_version=gateway.AZURE_DEFAULT_API_VERSION
             )
 
     data = {"model": model}
@@ -1061,7 +1061,7 @@ async def test_exception_with_headers(sync_mode, provider, model, call_type, str
     ):
         new_retry_after_mock_client = MagicMock(return_value=-1)
 
-        litellm.utils._get_retry_after_from_exception_header = (
+        gateway.utils._get_retry_after_from_exception_header = (
             new_retry_after_mock_client
         )
 
@@ -1078,7 +1078,7 @@ async def test_exception_with_headers(sync_mode, provider, model, call_type, str
                     async for chunk in resp:
                         continue
 
-        with pytest.raises(litellm.RateLimitError) as exc_info:
+        with pytest.raises(gateway.RateLimitError) as exc_info:
             await call_and_drain()
 
         assert exc_info.value.litellm_response_headers is not None
@@ -1125,13 +1125,13 @@ def test_openai_gateway_timeout_error():
             setattr(exception, k, v)
         raise exception
 
-    with pytest.raises(litellm.Timeout) as exc_info:
+    with pytest.raises(gateway.Timeout) as exc_info:
         with patch.object(
             mapped_target,
             "create",
             side_effect=_return_exception,
         ):
-            litellm.completion(
+            gateway.completion(
                 model="openai/gpt-3.5-turbo",
                 messages=[{"role": "user", "content": "Hello world"}],
                 client=openai_client,
@@ -1219,7 +1219,7 @@ async def test_exception_with_headers_httpx(
     ):
         new_retry_after_mock_client = MagicMock(return_value=-1)
 
-        litellm.utils._get_retry_after_from_exception_header = (
+        gateway.utils._get_retry_after_from_exception_header = (
             new_retry_after_mock_client
         )
 
@@ -1236,7 +1236,7 @@ async def test_exception_with_headers_httpx(
                     async for chunk in resp:
                         continue
 
-        with pytest.raises(litellm.RateLimitError) as exc_info:
+        with pytest.raises(gateway.RateLimitError) as exc_info:
             await call_and_drain()
 
         assert (
@@ -1254,8 +1254,8 @@ async def test_bad_request_error_contains_httpx_response(model):
 
     Relevant issue: https://github.com/BerriAI/litellm/issues/6732
     """
-    with pytest.raises(litellm.BadRequestError) as exc_info:
-        await litellm.acompletion(
+    with pytest.raises(gateway.BadRequestError) as exc_info:
+        await gateway.acompletion(
             model=model,
             messages=[{"role": "user", "content": "Hello world"}],
             bad_arg="bad_arg",
@@ -1267,14 +1267,14 @@ async def test_bad_request_error_contains_httpx_response(model):
 
 
 def test_exceptions_base_class():
-    with pytest.raises(litellm.RateLimitError) as exc_info:
-        raise litellm.RateLimitError(
+    with pytest.raises(gateway.RateLimitError) as exc_info:
+        raise gateway.RateLimitError(
             message="BedrockException: Rate Limit Error",
             model="model",
             llm_provider="bedrock",
         )
     e = exc_info.value
-    assert isinstance(e, litellm.RateLimitError)
+    assert isinstance(e, gateway.RateLimitError)
     assert e.code == "429"
     assert e.type == "throttling_error"
 
@@ -1291,7 +1291,7 @@ def test_context_window_exceeded_error_from_litellm_proxy():
         "model": "gpt-3.5-turbo",
         "custom_llm_provider": "litellm_proxy",
     }
-    with pytest.raises(litellm.ContextWindowExceededError):
+    with pytest.raises(gateway.ContextWindowExceededError):
         extract_and_raise_litellm_exception(**args)
 
 
@@ -1320,7 +1320,7 @@ def test_bad_request_error_with_response_without_request():
     }
 
     # This should raise BadRequestError without RuntimeError
-    with pytest.raises(litellm.BadRequestError) as exc_info:
+    with pytest.raises(gateway.BadRequestError) as exc_info:
         extract_and_raise_litellm_exception(**args)
 
     # Verify the exception was created successfully
@@ -1345,19 +1345,19 @@ async def test_exception_bubbling_up(sync_mode, stream_mode, model):
     """
     make sure code, param, and type are bubbled up
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     async def _call_with_bad_role():
         if sync_mode:
-            litellm.completion(
+            gateway.completion(
                 model=model,
                 messages=[{"role": "usera", "content": "hi"}],
                 stream=stream_mode,
                 sync_stream=sync_mode,
             )
         else:
-            await litellm.acompletion(
+            await gateway.acompletion(
                 model=model,
                 messages=[{"role": "usera", "content": "hi"}],
                 stream=stream_mode,

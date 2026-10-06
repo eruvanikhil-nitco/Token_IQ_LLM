@@ -7573,15 +7573,15 @@ async def test_fire_mcp_tool_call_logging_iserror_builds_failure_payload(monkeyp
     """The standard logging payload for an isError=True result must carry
     status='failure' with the tool's error text, so OTel (whose _parse_error
     keys off status) marks the MCP span ERROR."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.proxy._experimental.mcp_server.server import (
         _fire_mcp_tool_call_logging,
     )
 
-    monkeypatch.setattr(litellm, "failure_callback", [])
-    monkeypatch.setattr(litellm, "_async_failure_callback", [])
-    monkeypatch.setattr(litellm, "success_callback", [])
-    monkeypatch.setattr(litellm, "_async_success_callback", [])
+    monkeypatch.setattr(gateway, "failure_callback", [])
+    monkeypatch.setattr(gateway, "_async_failure_callback", [])
+    monkeypatch.setattr(gateway, "success_callback", [])
+    monkeypatch.setattr(gateway, "_async_success_callback", [])
 
     logging_obj, start_time = _real_mcp_logging_obj("test-mcp-iserror-payload")
 
@@ -7602,15 +7602,15 @@ async def test_fire_mcp_tool_call_logging_iserror_builds_failure_payload(monkeyp
 @pytest.mark.asyncio
 async def test_fire_mcp_tool_call_logging_success_builds_success_payload(monkeypatch):
     """isError=False still produces a status='success' payload."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.proxy._experimental.mcp_server.server import (
         _fire_mcp_tool_call_logging,
     )
 
-    monkeypatch.setattr(litellm, "failure_callback", [])
-    monkeypatch.setattr(litellm, "_async_failure_callback", [])
-    monkeypatch.setattr(litellm, "success_callback", [])
-    monkeypatch.setattr(litellm, "_async_success_callback", [])
+    monkeypatch.setattr(gateway, "failure_callback", [])
+    monkeypatch.setattr(gateway, "_async_failure_callback", [])
+    monkeypatch.setattr(gateway, "success_callback", [])
+    monkeypatch.setattr(gateway, "_async_success_callback", [])
 
     logging_obj, start_time = _real_mcp_logging_obj("test-mcp-success-payload")
 
@@ -7636,7 +7636,7 @@ async def test_fire_mcp_tool_call_logging_iserror_emits_otel_error_span(monkeypa
     )
     from opentelemetry.trace.status import StatusCode
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.integrations.otel import OpenTelemetryV2Config
     from token_iq.gateway.integrations.otel.logger import OpenTelemetryV2
     from token_iq.gateway.integrations.otel.plumbing import providers
@@ -7649,10 +7649,10 @@ async def test_fire_mcp_tool_call_logging_iserror_emits_otel_error_span(monkeypa
     tracer_provider = providers.build_tracer_provider(cfg, exporter=exporter)
     otel_logger = OpenTelemetryV2(config=cfg, tracer_provider=tracer_provider)
 
-    monkeypatch.setattr(litellm, "failure_callback", [])
-    monkeypatch.setattr(litellm, "_async_failure_callback", [otel_logger])
-    monkeypatch.setattr(litellm, "success_callback", [])
-    monkeypatch.setattr(litellm, "_async_success_callback", [otel_logger])
+    monkeypatch.setattr(gateway, "failure_callback", [])
+    monkeypatch.setattr(gateway, "_async_failure_callback", [otel_logger])
+    monkeypatch.setattr(gateway, "success_callback", [])
+    monkeypatch.setattr(gateway, "_async_success_callback", [otel_logger])
 
     logging_obj, start_time = _real_mcp_logging_obj("test-mcp-iserror-otel")
 

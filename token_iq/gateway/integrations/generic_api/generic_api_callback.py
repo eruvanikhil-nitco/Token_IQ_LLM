@@ -15,7 +15,7 @@ from typing import Final, Literal
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway._uuid import uuid
 from token_iq.gateway.integrations.custom_batch_logger import CustomBatchLogger
@@ -222,8 +222,8 @@ class GenericAPILogger(CustomBatchLogger):
                 verbose_logger.warning("Error parsing headers from environment variables: %s", e)
 
         # 2. Update with litellm generic headers if available
-        if litellm.generic_logger_headers:
-            headers_dict.update(litellm.generic_logger_headers)
+        if gateway.generic_logger_headers:
+            headers_dict.update(gateway.generic_logger_headers)
 
         # 3. Override with directly provided headers if any
         if headers:
@@ -232,7 +232,7 @@ class GenericAPILogger(CustomBatchLogger):
         return headers_dict
 
     def _should_retry_exception(self, exception: Exception) -> bool:
-        if isinstance(exception, (litellm.Timeout, httpx.TransportError)):
+        if isinstance(exception, (gateway.Timeout, httpx.TransportError)):
             return True
 
         if isinstance(exception, httpx.HTTPStatusError):
@@ -294,7 +294,7 @@ class GenericAPILogger(CustomBatchLogger):
             standard_logging_payload: Final = kwargs.get("standard_logging_object", None)
 
             # Backwards compatibility with old logging payload
-            if litellm.generic_api_use_v1 is True:
+            if gateway.generic_api_use_v1 is True:
                 payload: Final = self._get_v1_logging_payload(
                     kwargs=kwargs,
                     response_obj=response_obj,
@@ -326,7 +326,7 @@ class GenericAPILogger(CustomBatchLogger):
             verbose_logger.debug("Generic API Logger - Enters logging function for model %s", kwargs)
             standard_logging_payload: Final = kwargs.get("standard_logging_object", None)
 
-            if litellm.generic_api_use_v1 is True:
+            if gateway.generic_api_use_v1 is True:
                 payload: Final = self._get_v1_logging_payload(
                     kwargs=kwargs,
                     response_obj=response_obj,

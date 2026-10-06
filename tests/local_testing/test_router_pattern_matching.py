@@ -9,7 +9,7 @@ import json
 import traceback, asyncio
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import Router
 from token_iq.gateway.router import Deployment, LiteLLM_Params
 from token_iq.gateway.types.router import ModelInfo
@@ -190,7 +190,7 @@ async def test_route_with_no_matching_pattern():
     assert result.choices[0].message.content == "Works"
 
     ## FAILS
-    with pytest.raises(litellm.BadRequestError) as e:
+    with pytest.raises(gateway.BadRequestError) as e:
         await router.acompletion(
             model="my-fake-model",
             messages=[{"role": "user", "content": "Hello, world!"}],
@@ -199,7 +199,7 @@ async def test_route_with_no_matching_pattern():
 
     assert RouterErrors.no_deployments_available.value not in str(e.value)
 
-    with pytest.raises(litellm.BadRequestError):
+    with pytest.raises(gateway.BadRequestError):
         await router.aembedding(
             model="my-fake-model",
             input="Hello, world!",

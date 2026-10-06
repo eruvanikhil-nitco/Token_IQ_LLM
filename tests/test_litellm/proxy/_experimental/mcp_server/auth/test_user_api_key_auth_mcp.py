@@ -6270,9 +6270,9 @@ class TestMCPDcrBridgeDelegateAdmission:
         a misleading 401. Flattening budget to 401 told the caller their credential was invalid, which
         on a DCR client reads as broken auth and triggers a re-authorize that cannot fix a budget
         problem. Regression for the status-flattening finding on the live-policy gate."""
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
-        mapped = await self._enforce_with_gate_error(litellm.BudgetExceededError(current_cost=10.0, max_budget=1.0))
+        mapped = await self._enforce_with_gate_error(gateway.BudgetExceededError(current_cost=10.0, max_budget=1.0))
         assert mapped.status_code == 429
 
     async def test_db_outage_during_policy_surfaces_503_not_401(self):

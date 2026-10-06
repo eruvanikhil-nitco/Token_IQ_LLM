@@ -109,7 +109,7 @@ class HealthCheckHelpers:
         include list_batches, so we fall back to acompletion to verify connectivity and
         credential validity instead.
         """
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         logging_obj: Final = filtered_model_params.get("litellm_logging_obj")
         if logging_obj is not None:
@@ -123,19 +123,19 @@ class HealthCheckHelpers:
             )
 
         if custom_llm_provider in LIST_BATCHES_SUPPORTED_PROVIDERS:
-            return await litellm.alist_batches(**filtered_model_params)
+            return await gateway.alist_batches(**filtered_model_params)
         else:
-            return await litellm.acompletion(**model_params)
+            return await gateway.acompletion(**model_params)
 
     @staticmethod
     async def _image_edit_health_check(edit_request: Callable[[], Awaitable["ImageResponse"]]) -> "ImageResponse":
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         try:
             return await edit_request()
-        except litellm.BadRequestError as e:
-            if isinstance(e, litellm.ContentPolicyViolationError) or "moderation_blocked" in str(e):
-                return litellm.ImageResponse()
+        except gateway.BadRequestError as e:
+            if isinstance(e, gateway.ContentPolicyViolationError) or "moderation_blocked" in str(e):
+                return gateway.ImageResponse()
             raise
 
     @staticmethod
@@ -178,7 +178,7 @@ class HealthCheckHelpers:
         Returns:
             Dictionary mapping mode names to their handler functions
         """
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.core_utils.audio_utils.utils import (
             get_audio_file_for_health_check,
         )
@@ -186,44 +186,44 @@ class HealthCheckHelpers:
         from token_iq.gateway.realtime_api.main import _realtime_health_check
 
         return {
-            "chat": lambda: litellm.acompletion(
+            "chat": lambda: gateway.acompletion(
                 **model_params,
             ),
-            "completion": lambda: litellm.atext_completion(
+            "completion": lambda: gateway.atext_completion(
                 **_filter_model_params(model_params=model_params),
                 prompt=prompt or "test",
             ),
-            "embedding": lambda: litellm.aembedding(
+            "embedding": lambda: gateway.aembedding(
                 **_filter_model_params(model_params=model_params),
                 input=input or ["test"],
             ),
-            "audio_speech": lambda: litellm.aspeech(
+            "audio_speech": lambda: gateway.aspeech(
                 **{
                     **_filter_model_params(model_params=model_params),
                     **({"voice": "alloy"} if "voice" not in _filter_model_params(model_params=model_params) else {}),
                 },
                 input=prompt or "test",
             ),
-            "audio_transcription": lambda: litellm.atranscription(
+            "audio_transcription": lambda: gateway.atranscription(
                 **_filter_model_params(model_params=model_params),
                 file=get_audio_file_for_health_check(),
             ),
-            "image_generation": lambda: litellm.aimage_generation(
+            "image_generation": lambda: gateway.aimage_generation(
                 **_filter_model_params(model_params=model_params),
                 prompt=prompt,
             ),
             "image_edit": lambda: HealthCheckHelpers._image_edit_health_check(
-                edit_request=lambda: litellm.aimage_edit(
+                edit_request=lambda: gateway.aimage_edit(
                     **_filter_model_params(model_params=model_params),
                     image=get_image_file_for_health_check(),
                     prompt=IMAGE_EDIT_HEALTH_CHECK_PROMPT,
                 ),
             ),
-            "video_generation": lambda: litellm.avideo_generation(
+            "video_generation": lambda: gateway.avideo_generation(
                 **_filter_model_params(model_params=model_params),
                 prompt=prompt or "test video generation",
             ),
-            "rerank": lambda: litellm.arerank(
+            "rerank": lambda: gateway.arerank(
                 **_filter_model_params(model_params=model_params),
                 query=prompt or "",
                 documents=["my sample text"],
@@ -241,11 +241,11 @@ class HealthCheckHelpers:
                 model_params=model_params,
                 filtered_model_params=_filter_model_params(model_params=model_params),
             ),
-            "responses": lambda: litellm.aresponses(
+            "responses": lambda: gateway.aresponses(
                 **_filter_model_params(model_params=model_params),
                 input=prompt or "test",
             ),
-            "ocr": lambda: litellm.aocr(
+            "ocr": lambda: gateway.aocr(
                 **_filter_model_params(model_params=model_params),
                 document={
                     "type": "document_url",

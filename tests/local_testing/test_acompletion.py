@@ -39,11 +39,11 @@ def test_acompletion_params():
 
 @pytest.mark.asyncio
 async def test_langfuse_double_logging():
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    litellm.set_verbose = True
-    litellm.success_callback = ["langfuse"]
-    litellm.failure_callback = ["langfuse"]  # logs errors to langfuse
+    gateway.set_verbose = True
+    gateway.success_callback = ["langfuse"]
+    gateway.failure_callback = ["langfuse"]  # logs errors to langfuse
 
     models = ["gpt-4o-mini", "claude-3-5-haiku-20241022"]
 
@@ -51,7 +51,7 @@ async def test_langfuse_double_logging():
         {"role": "user", "content": "Hello, how are you?"},
     ]
 
-    resp = await litellm.acompletion(
+    resp = await gateway.acompletion(
         model=models[0],
         messages=messages,
         temperature=0.0,

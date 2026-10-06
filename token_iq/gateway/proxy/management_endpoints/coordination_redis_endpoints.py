@@ -21,7 +21,7 @@ from typing import Final
 from fastapi import APIRouter, Depends, Header, HTTPException
 from pydantic import BaseModel, Field, TypeAdapter, ValidationError
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway._uuid import uuid
 from token_iq.gateway.caching.caching import RedisCache
@@ -217,7 +217,7 @@ def _coordination_redis_source(settings: Mapping[str, object] | None) -> Coordin
 
     if settings:
         return "coordination_redis"
-    cache_backend: Final = litellm.cache.cache if litellm.cache is not None else None
+    cache_backend: Final = gateway.cache.cache if gateway.cache is not None else None
     if isinstance(cache_backend, (RedisCache, RedisClusterCache)):
         return "cache_backend"
     if _environment_has_redis_connection_target():

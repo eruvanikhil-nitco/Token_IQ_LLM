@@ -3,7 +3,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from fastapi import HTTPException, Request, Response
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy._types import LiteLLM_ManagedVectorStoresTable, UserAPIKeyAuth
 
 
@@ -37,7 +37,7 @@ async def test_vector_store_search_forces_path_id_over_body_id():
                 }
             ),
         ),
-        patch.object(litellm, "vector_store_registry", None),
+        patch.object(gateway, "vector_store_registry", None),
         patch("token_iq.gateway.proxy.proxy_server.prisma_client", None),
         patch(
             "token_iq.gateway.proxy.vector_store_endpoints.endpoints.ProxyBaseLLMRequestProcessing.base_process_llm_request",
@@ -85,7 +85,7 @@ async def test_vector_store_file_create_forces_path_id_over_body_id():
                 }
             ),
         ),
-        patch.object(litellm, "vector_store_registry", mock_registry),
+        patch.object(gateway, "vector_store_registry", mock_registry),
         patch(
             "token_iq.gateway.proxy.vector_store_files_endpoints.endpoints.ProxyBaseLLMRequestProcessing.base_process_llm_request",
             new=fake_base_process,
@@ -194,7 +194,7 @@ async def test_vector_store_file_create_denies_other_team_path_store():
             "token_iq.gateway.proxy.proxy_server._read_request_body",
             new=AsyncMock(return_value={"file_id": "file_123"}),
         ),
-        patch.object(litellm, "vector_store_registry", mock_registry),
+        patch.object(gateway, "vector_store_registry", mock_registry),
         patch(
             "token_iq.gateway.proxy.vector_store_files_endpoints.endpoints.ProxyBaseLLMRequestProcessing.base_process_llm_request",
             new=AsyncMock(),
@@ -235,9 +235,9 @@ async def test_rag_query_denies_nested_other_team_vector_store():
                 }
             ),
         ),
-        patch.object(litellm, "vector_store_registry", mock_registry),
+        patch.object(gateway, "vector_store_registry", mock_registry),
         patch(
-            "token_iq.gateway.proxy.rag_endpoints.endpoints.litellm.aquery",
+            "token_iq.gateway.proxy.rag_endpoints.endpoints.gateway.aquery",
             new=AsyncMock(),
         ) as mock_aquery,
     ):
@@ -281,9 +281,9 @@ async def test_rag_ingest_denies_nested_other_team_vector_store():
                 )
             ),
         ),
-        patch.object(litellm, "vector_store_registry", mock_registry),
+        patch.object(gateway, "vector_store_registry", mock_registry),
         patch(
-            "token_iq.gateway.proxy.rag_endpoints.endpoints.litellm.aingest",
+            "token_iq.gateway.proxy.rag_endpoints.endpoints.gateway.aingest",
             new=AsyncMock(),
         ) as mock_aingest,
     ):
@@ -362,7 +362,7 @@ async def test_responses_file_search_denies_other_team_vector_store():
         "team_id": "team-b",
     }
 
-    with patch.object(litellm, "vector_store_registry", mock_registry):
+    with patch.object(gateway, "vector_store_registry", mock_registry):
         with pytest.raises(HTTPException) as exc_info:
             await _authorize_response_file_search_vector_stores(
                 data={
@@ -436,7 +436,7 @@ async def test_get_managed_vector_store_uses_shared_cache_helper_for_db_fallback
     )
 
     with (
-        patch.object(litellm, "vector_store_registry", mock_registry),
+        patch.object(gateway, "vector_store_registry", mock_registry),
         patch("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock()),
         patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", MagicMock()),
         patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj", MagicMock()),
@@ -466,7 +466,7 @@ async def test_get_managed_vector_store_fails_closed_on_lookup_error():
         RuntimeError("registry unavailable")
     )
 
-    with patch.object(litellm, "vector_store_registry", mock_registry):
+    with patch.object(gateway, "vector_store_registry", mock_registry):
         with pytest.raises(HTTPException) as exc_info:
             await get_litellm_managed_vector_store(vector_store_id="vs_registry_only")
 
@@ -541,8 +541,8 @@ async def test_milvus_passthrough_denies_other_team_vector_store_index():
             "token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints.is_allowed_to_call_vector_store_endpoint",
             return_value=True,
         ),
-        patch.object(litellm, "vector_store_index_registry", mock_index_registry),
-        patch.object(litellm, "vector_store_registry", mock_vector_registry),
+        patch.object(gateway, "vector_store_index_registry", mock_index_registry),
+        patch.object(gateway, "vector_store_registry", mock_vector_registry),
     ):
         with pytest.raises(HTTPException) as exc_info:
             await milvus_proxy_route(
@@ -595,8 +595,8 @@ async def test_azure_passthrough_denies_other_team_vector_store_index():
             "token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints.is_allowed_to_call_vector_store_endpoint",
             return_value=True,
         ),
-        patch.object(litellm, "vector_store_index_registry", mock_index_registry),
-        patch.object(litellm, "vector_store_registry", mock_vector_registry),
+        patch.object(gateway, "vector_store_index_registry", mock_index_registry),
+        patch.object(gateway, "vector_store_registry", mock_vector_registry),
     ):
         with pytest.raises(HTTPException) as exc_info:
             await azure_proxy_route(

@@ -8,7 +8,7 @@ rather than passed explicitly.
 import json
 from unittest.mock import MagicMock, patch
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 
 def _make_responses_api_response_body() -> dict:
@@ -55,7 +55,7 @@ def _make_mock_http_client(response_body: dict) -> MagicMock:
 def _capture_logging_obj():
     captured = {}
 
-    real_init = litellm.Logging.__init__
+    real_init = gateway.Logging.__init__
 
     def init_spy(self, *args, **kwargs):
         real_init(self, *args, **kwargs)
@@ -77,9 +77,9 @@ def test_responses_eu_api_base_sets_data_residency():
             "token_iq.gateway.llms.custom_httpx.llm_http_handler._get_httpx_client",
             return_value=mock_client,
         ),
-        patch.object(litellm.Logging, "__init__", init_spy),
+        patch.object(gateway.Logging, "__init__", init_spy),
     ):
-        litellm.responses(
+        gateway.responses(
             model="gpt-4.1",
             input="hi",
             api_base="https://eu.api.openai.com/v1",
@@ -99,9 +99,9 @@ def test_responses_us_api_base_sets_data_residency():
             "token_iq.gateway.llms.custom_httpx.llm_http_handler._get_httpx_client",
             return_value=mock_client,
         ),
-        patch.object(litellm.Logging, "__init__", init_spy),
+        patch.object(gateway.Logging, "__init__", init_spy),
     ):
-        litellm.responses(
+        gateway.responses(
             model="gpt-4.1",
             input="hi",
             api_base="https://us.api.openai.com/v1",
@@ -121,9 +121,9 @@ def test_responses_global_api_base_leaves_data_residency_none():
             "token_iq.gateway.llms.custom_httpx.llm_http_handler._get_httpx_client",
             return_value=mock_client,
         ),
-        patch.object(litellm.Logging, "__init__", init_spy),
+        patch.object(gateway.Logging, "__init__", init_spy),
     ):
-        litellm.responses(
+        gateway.responses(
             model="gpt-4.1",
             input="hi",
             api_base="https://api.openai.com/v1",

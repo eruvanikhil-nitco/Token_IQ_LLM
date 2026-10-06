@@ -3,7 +3,7 @@ import pytest
 
 from unittest.mock import MagicMock, patch
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.constants import (
     ANTHROPIC_MIN_THINKING_BUDGET_TOKENS,
     DEFAULT_REASONING_EFFORT_HIGH_THINKING_BUDGET,
@@ -184,7 +184,7 @@ def test_calculate_usage_aggregates_cache_creation_split_across_iterations():
     assert details.ephemeral_1h_input_tokens == 20000
     assert usage.prompt_tokens_details.cache_creation_tokens == 20000
 
-    info = litellm.get_model_info(model="claude-opus-4-8", custom_llm_provider="anthropic")
+    info = gateway.get_model_info(model="claude-opus-4-8", custom_llm_provider="anthropic")
     rate_5m = info["cache_creation_input_token_cost"]
     rate_1h = info["cache_creation_input_token_cost_above_1hr"]
     assert rate_1h > rate_5m
@@ -235,7 +235,7 @@ def test_calculate_usage_bills_undetailed_iteration_cache_writes_at_5m_rate():
     assert details.ephemeral_1h_input_tokens == 10000
     assert usage.prompt_tokens_details.cache_creation_tokens == 17000
 
-    info = litellm.get_model_info(model="claude-opus-4-8", custom_llm_provider="anthropic")
+    info = gateway.get_model_info(model="claude-opus-4-8", custom_llm_provider="anthropic")
     rate_5m = info["cache_creation_input_token_cost"]
     rate_1h = info["cache_creation_input_token_cost_above_1hr"]
 
@@ -1306,11 +1306,11 @@ def test_native_structured_output_uses_bundled_capability_when_remote_map_lags(
 ) -> None:
     model = "claude-opus-4-8"
     monkeypatch.setattr(
-        litellm,
+        gateway,
         "model_cost",
         {model: {"supports_response_schema": True}},
     )
-    litellm.get_model_info.cache_clear()
+    gateway.get_model_info.cache_clear()
 
     try:
         optional_params = AnthropicConfig().map_openai_params(
@@ -1332,7 +1332,7 @@ def test_native_structured_output_uses_bundled_capability_when_remote_map_lags(
             drop_params=False,
         )
     finally:
-        litellm.get_model_info.cache_clear()
+        gateway.get_model_info.cache_clear()
 
     assert "output_format" in optional_params
     assert "tools" not in optional_params
@@ -2027,7 +2027,7 @@ def test_effort_validation():
     optional_params = {"output_config": {"effort": "invalid"}}
 
     with pytest.raises(
-        litellm.exceptions.BadRequestError, match="Invalid effort value"
+        gateway.exceptions.BadRequestError, match="Invalid effort value"
     ):
         config.transform_request(
             model="claude-opus-4-5-20251101",
@@ -2085,7 +2085,7 @@ def test_max_effort_rejected_for_opus_45():
     optional_params = {"output_config": {"effort": "max"}}
 
     with pytest.raises(
-        litellm.exceptions.BadRequestError,
+        gateway.exceptions.BadRequestError,
         match="effort='max' is not supported by this model",
     ):
         config.transform_request(
@@ -2143,8 +2143,8 @@ def test_anthropic_drop_params_strips_output_config_for_pre_4_5_models():
     config = AnthropicConfig()
     messages = [{"role": "user", "content": "Hello"}]
 
-    original = litellm.drop_params
-    litellm.drop_params = True
+    original = gateway.drop_params
+    gateway.drop_params = True
     try:
         result = config.transform_request(
             model="claude-3-haiku-20240307",
@@ -2154,7 +2154,7 @@ def test_anthropic_drop_params_strips_output_config_for_pre_4_5_models():
             headers={},
         )
     finally:
-        litellm.drop_params = original
+        gateway.drop_params = original
 
     assert "output_config" not in result
 
@@ -2164,8 +2164,8 @@ def test_anthropic_drop_params_keeps_output_config_for_supporting_models():
     config = AnthropicConfig()
     messages = [{"role": "user", "content": "Hello"}]
 
-    original = litellm.drop_params
-    litellm.drop_params = True
+    original = gateway.drop_params
+    gateway.drop_params = True
     try:
         result = config.transform_request(
             model="claude-opus-4-7",
@@ -2175,7 +2175,7 @@ def test_anthropic_drop_params_keeps_output_config_for_supporting_models():
             headers={},
         )
     finally:
-        litellm.drop_params = original
+        gateway.drop_params = original
 
     assert result.get("output_config") == {"effort": "high"}
 
@@ -2185,8 +2185,8 @@ def test_anthropic_drop_params_false_forwards_to_unsupported_model():
     config = AnthropicConfig()
     messages = [{"role": "user", "content": "Hello"}]
 
-    original = litellm.drop_params
-    litellm.drop_params = False
+    original = gateway.drop_params
+    gateway.drop_params = False
     try:
         result = config.transform_request(
             model="claude-3-haiku-20240307",
@@ -2196,7 +2196,7 @@ def test_anthropic_drop_params_false_forwards_to_unsupported_model():
             headers={},
         )
     finally:
-        litellm.drop_params = original
+        gateway.drop_params = original
 
     assert result.get("output_config") == {"effort": "low"}
 
@@ -2283,7 +2283,7 @@ def test_vertex_anthropic_drops_speed_for_opus_with_drop_params(monkeypatch):
         VertexAIAnthropicConfig,
     )
 
-    monkeypatch.setattr(litellm, "drop_params", True)
+    monkeypatch.setattr(gateway, "drop_params", True)
     result = VertexAIAnthropicConfig().transform_request(
         model="claude-opus-4-8",
         messages=[{"role": "user", "content": "Hello"}],
@@ -2302,8 +2302,8 @@ def test_vertex_anthropic_raises_on_speed_without_drop_params(monkeypatch):
         VertexAIAnthropicConfig,
     )
 
-    monkeypatch.setattr(litellm, "drop_params", False)
-    with pytest.raises(litellm.utils.UnsupportedParamsError, match="drop_params"):
+    monkeypatch.setattr(gateway, "drop_params", False)
+    with pytest.raises(gateway.utils.UnsupportedParamsError, match="drop_params"):
         VertexAIAnthropicConfig().map_openai_params(
             non_default_params={"speed": "fast"},
             optional_params={},
@@ -2590,8 +2590,8 @@ def test_transform_request_injects_dummy_tool_without_tools_param():
     LiteLLM must inject a dummy tool without ``litellm.modify_params``.
     """
     config = AnthropicConfig()
-    prev_modify_params = litellm.modify_params
-    litellm.modify_params = False
+    prev_modify_params = gateway.modify_params
+    gateway.modify_params = False
     try:
         messages = [
             {"role": "user", "content": "Hello"},
@@ -2620,7 +2620,7 @@ def test_transform_request_injects_dummy_tool_without_tools_param():
             headers={},
         )
     finally:
-        litellm.modify_params = prev_modify_params
+        gateway.modify_params = prev_modify_params
 
     assert "tools" in result
     names = [
@@ -3294,7 +3294,7 @@ def test_reasoning_effort_garbage_raises_bad_request(effort):
     """Unmapped reasoning_effort raises BadRequestError (clean 400, not a 500)."""
     config = AnthropicConfig()
 
-    with pytest.raises(litellm.exceptions.BadRequestError):
+    with pytest.raises(gateway.exceptions.BadRequestError):
         config.map_openai_params(
             non_default_params={"reasoning_effort": effort},
             optional_params={},
@@ -3332,7 +3332,7 @@ def test_output_config_effort_empty_string_raises_bad_request():
     """``output_config={"effort": ""}`` is rejected with a 400."""
     config = AnthropicConfig()
 
-    with pytest.raises(litellm.exceptions.BadRequestError, match="Invalid effort"):
+    with pytest.raises(gateway.exceptions.BadRequestError, match="Invalid effort"):
         config.transform_request(
             model="claude-opus-4-7",
             messages=[{"role": "user", "content": "hi"}],
@@ -4343,8 +4343,8 @@ def test_anthropic_drop_params_strips_speed_for_unsupported_models():
     config = AnthropicConfig()
     messages = [{"role": "user", "content": "Hello"}]
 
-    original = litellm.drop_params
-    litellm.drop_params = True
+    original = gateway.drop_params
+    gateway.drop_params = True
     try:
         result = config.transform_request(
             model="claude-sonnet-4-6",
@@ -4354,7 +4354,7 @@ def test_anthropic_drop_params_strips_speed_for_unsupported_models():
             headers={},
         )
     finally:
-        litellm.drop_params = original
+        gateway.drop_params = original
 
     assert "speed" not in result
 
@@ -4364,8 +4364,8 @@ def test_anthropic_drop_params_keeps_speed_for_supporting_models():
     config = AnthropicConfig()
     messages = [{"role": "user", "content": "Hello"}]
 
-    original = litellm.drop_params
-    litellm.drop_params = True
+    original = gateway.drop_params
+    gateway.drop_params = True
     try:
         result = config.transform_request(
             model="claude-opus-4-6",
@@ -4375,16 +4375,16 @@ def test_anthropic_drop_params_keeps_speed_for_supporting_models():
             headers={},
         )
     finally:
-        litellm.drop_params = original
+        gateway.drop_params = original
 
     assert result.get("speed") == "fast"
 
 
 def test_speed_raises_clean_error_without_drop_params(monkeypatch):
-    monkeypatch.setattr(litellm, "drop_params", False)
+    monkeypatch.setattr(gateway, "drop_params", False)
     config = AnthropicConfig()
 
-    with pytest.raises(litellm.utils.UnsupportedParamsError, match="drop_params"):
+    with pytest.raises(gateway.utils.UnsupportedParamsError, match="drop_params"):
         config.map_openai_params(
             non_default_params={"speed": "fast"},
             optional_params={},
@@ -6043,10 +6043,10 @@ def test_sampling_params_dropped_for_models_that_removed_them(model):
 
 @pytest.mark.parametrize("params", [{"temperature": 0.5}, {"top_p": 0.9}, {"top_p": 1}])
 def test_sampling_params_raise_clean_error_without_drop_params(params, monkeypatch):
-    monkeypatch.setattr(litellm, "drop_params", False)
+    monkeypatch.setattr(gateway, "drop_params", False)
     config = AnthropicConfig()
 
-    with pytest.raises(litellm.utils.UnsupportedParamsError, match="drop_params"):
+    with pytest.raises(gateway.utils.UnsupportedParamsError, match="drop_params"):
         config.map_openai_params(
             non_default_params=params,
             optional_params={},
@@ -6089,10 +6089,10 @@ def test_sampling_param_gating_driven_by_model_map_flag(monkeypatch):
     the model map, not just name matching: a flagged entry gates a model whose
     name says nothing, and an explicit ``true`` overrides the name fallback."""
     monkeypatch.setitem(
-        litellm.model_cost, "claude-zeta-9", {"supports_sampling_params": False}
+        gateway.model_cost, "claude-zeta-9", {"supports_sampling_params": False}
     )
     monkeypatch.setitem(
-        litellm.model_cost, "claude-fable-5-test", {"supports_sampling_params": True}
+        gateway.model_cost, "claude-fable-5-test", {"supports_sampling_params": True}
     )
     config = AnthropicConfig()
 
@@ -6131,10 +6131,10 @@ def test_top_k_dropped_at_transform_for_models_that_removed_it():
 
 
 def test_top_k_raises_at_transform_without_drop_params(monkeypatch):
-    monkeypatch.setattr(litellm, "drop_params", False)
+    monkeypatch.setattr(gateway, "drop_params", False)
     config = AnthropicConfig()
 
-    with pytest.raises(litellm.utils.UnsupportedParamsError, match="drop_params"):
+    with pytest.raises(gateway.utils.UnsupportedParamsError, match="drop_params"):
         config.transform_request(
             model="claude-fable-5",
             messages=[{"role": "user", "content": "hello"}],
@@ -6245,10 +6245,10 @@ def test_forced_tool_choice_raises_clean_error_on_fable_5_1_without_drop_params(
     """Fable 5.1 400s on tool_choice type any/tool (thinking is always on and a
     forced call would skip it); without drop_params the caller gets a clean
     client-side 400 that explains the workaround, not a provider error."""
-    monkeypatch.setattr(litellm, "drop_params", False)
+    monkeypatch.setattr(gateway, "drop_params", False)
     config = AnthropicConfig()
 
-    with pytest.raises(litellm.utils.UnsupportedParamsError, match="forced tool use"):
+    with pytest.raises(gateway.utils.UnsupportedParamsError, match="forced tool use"):
         config.map_openai_params(
             non_default_params={"tool_choice": tool_choice},
             optional_params={},
@@ -6293,7 +6293,7 @@ def test_forced_tool_choice_downgrade_keeps_parallel_tool_calls_flag(local_model
 def test_unforced_tool_choice_forwarded_on_fable_5_1(
     local_model_cost_map, tool_choice, expected_type, monkeypatch
 ):
-    monkeypatch.setattr(litellm, "drop_params", False)
+    monkeypatch.setattr(gateway, "drop_params", False)
     config = AnthropicConfig()
 
     result = config.map_openai_params(
@@ -6310,7 +6310,7 @@ def test_unforced_tool_choice_forwarded_on_fable_5_1(
 def test_forced_tool_choice_forwarded_on_models_that_support_it(
     local_model_cost_map, model, monkeypatch
 ):
-    monkeypatch.setattr(litellm, "drop_params", False)
+    monkeypatch.setattr(gateway, "drop_params", False)
     config = AnthropicConfig()
 
     result = config.map_openai_params(
@@ -6326,7 +6326,7 @@ def test_forced_tool_choice_forwarded_on_models_that_support_it(
 def test_forced_tool_choice_gating_driven_by_model_map_flag(local_model_cost_map, monkeypatch):
     """The gate must read ``supports_forced_tool_use`` from the model map, not
     the model name: a flagged entry gates a model whose name says nothing."""
-    monkeypatch.setitem(litellm.model_cost, "claude-zeta-9", {"supports_forced_tool_use": False})
+    monkeypatch.setitem(gateway.model_cost, "claude-zeta-9", {"supports_forced_tool_use": False})
     config = AnthropicConfig()
 
     result = config.map_openai_params(
@@ -6342,7 +6342,7 @@ def test_forced_tool_choice_gating_driven_by_model_map_flag(local_model_cost_map
 def test_anthropic_drop_params_keeps_format_only_output_config(monkeypatch):
     """``drop_params=True`` must not consume ``output_config.format``: the drop
     gate is an effort gate and ``format`` is a structured-output field."""
-    monkeypatch.setattr(litellm, "drop_params", True)
+    monkeypatch.setattr(gateway, "drop_params", True)
     config = AnthropicConfig()
     schema_format = {
         "type": "json_schema",
@@ -6363,7 +6363,7 @@ def test_anthropic_drop_params_keeps_format_only_output_config(monkeypatch):
 def test_anthropic_drop_params_reduces_mixed_output_config_to_format(monkeypatch):
     """``drop_params=True`` drops the effort key on unsupported models but keeps
     ``format`` so structured outputs still reach the provider."""
-    monkeypatch.setattr(litellm, "drop_params", True)
+    monkeypatch.setattr(gateway, "drop_params", True)
     config = AnthropicConfig()
     schema_format = {
         "type": "json_schema",
@@ -6386,7 +6386,7 @@ def test_response_format_tool_path_skips_forced_tool_choice_when_unsupported(loc
     ``supports_forced_tool_use: false`` must not get the forced response-format
     tool_choice the provider would 400 on."""
     monkeypatch.setitem(
-        litellm.model_cost,
+        gateway.model_cost,
         "claude-test-no-forced-tools",
         {"litellm_provider": "anthropic", "mode": "chat", "supports_forced_tool_use": False},
     )

@@ -2,7 +2,7 @@ from typing import Final, cast
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.azure.common_utils import BaseAzureLLM
 from token_iq.gateway.llms.openai.image_edit.transformation import OpenAIImageEditConfig
 from token_iq.gateway.secret_managers.main import get_secret_str
@@ -88,7 +88,7 @@ class AzureImageEditConfig(OpenAIImageEditConfig):
         - A complete URL string, e.g.,
         "https://litellm8397336933.openai.azure.com/openai/deployments/<deployment_name>/images/edits?api-version=2024-05-01-preview"
         """
-        api_base = api_base or litellm.api_base or get_secret_str("AZURE_API_BASE")
+        api_base = api_base or gateway.api_base or get_secret_str("AZURE_API_BASE")
         if api_base is None:
             raise ValueError(
                 f"api_base is required for Azure AI Studio. Please set the api_base parameter. Passed `api_base={api_base}`"
@@ -98,9 +98,9 @@ class AzureImageEditConfig(OpenAIImageEditConfig):
         # so callers that set a global / env api_version don't get an unversioned URL.
         api_version: Final = (
             cast(str | None, litellm_params.get("api_version"))
-            or litellm.api_version
+            or gateway.api_version
             or get_secret_str("AZURE_API_VERSION")
-            or litellm.AZURE_DEFAULT_API_VERSION
+            or gateway.AZURE_DEFAULT_API_VERSION
         )
 
         v1_url: Final = BaseAzureLLM.get_azure_v1_image_url(

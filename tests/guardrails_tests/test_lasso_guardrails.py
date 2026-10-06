@@ -13,13 +13,13 @@ from token_iq.gateway.proxy.guardrails.guardrail_hooks.lasso.lasso import (
     LassoGuardrailAPIError,
 )
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy.guardrails.init_guardrails import init_guardrails_v2
 
 
 def test_lasso_guard_config():
-    litellm.set_verbose = True
-    litellm.guardrail_name_config_map = {}
+    gateway.set_verbose = True
+    gateway.guardrail_name_config_map = {}
 
     # Set environment variable for testing
     os.environ["LASSO_API_KEY"] = "test-key"
@@ -43,8 +43,8 @@ def test_lasso_guard_config():
 
 
 def test_lasso_guard_config_no_api_key():
-    litellm.set_verbose = True
-    litellm.guardrail_name_config_map = {}
+    gateway.set_verbose = True
+    gateway.guardrail_name_config_map = {}
 
     # Ensure LASSO_API_KEY is not in environment
     if "LASSO_API_KEY" in os.environ:
@@ -86,7 +86,7 @@ async def test_callback():
             }
         ],
     )
-    lasso_guardrails = litellm.logging_callback_manager.get_custom_loggers_for_type(
+    lasso_guardrails = gateway.logging_callback_manager.get_custom_loggers_for_type(
         LassoGuardrail
     )
     print("found lasso guardrails", lasso_guardrails)

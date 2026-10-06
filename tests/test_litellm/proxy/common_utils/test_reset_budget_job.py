@@ -653,11 +653,11 @@ def test_reset_budget_resets_endusers_with_null_budget_id(reset_budget_job, mock
     reset.  These users were implicitly created and have no budget_id persisted,
     but are enforced against the default budget in-memory.
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     now = datetime.now(timezone.utc)
     default_budget_id = "default-enduser-budget"
-    litellm.max_end_user_budget_id = default_budget_id
+    gateway.max_end_user_budget_id = default_budget_id
 
     # Budget that is due for reset — matches the default end user budget
     test_budget = type(
@@ -734,7 +734,7 @@ def test_reset_budget_resets_endusers_with_null_budget_id(reset_budget_job, mock
     assert len(find_many_calls) == 1
     assert find_many_calls[0]["where"] == {"budget_id": None, "spend": {"gt": 0}}
 
-    litellm.max_end_user_budget_id = None
+    gateway.max_end_user_budget_id = None
 
 
 def test_reset_budget_skips_null_budget_id_endusers_when_default_not_configured(reset_budget_job, mock_prisma_client):
@@ -742,10 +742,10 @@ def test_reset_budget_skips_null_budget_id_endusers_when_default_not_configured(
     When litellm.max_end_user_budget_id is NOT configured, end users with
     budget_id=NULL should NOT be fetched or reset.
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     now = datetime.now(timezone.utc)
-    litellm.max_end_user_budget_id = None
+    gateway.max_end_user_budget_id = None
 
     test_budget = type(
         "LiteLLM_BudgetTableFull",
@@ -767,7 +767,7 @@ def test_reset_budget_skips_null_budget_id_endusers_when_default_not_configured(
     find_many_calls = mock_prisma_client.db.litellm_endusertable.find_many_calls
     assert len(find_many_calls) == 0
 
-    litellm.max_end_user_budget_id = None
+    gateway.max_end_user_budget_id = None
 
 
 def test_reset_budget_skips_null_budget_id_endusers_when_default_not_in_reset_list(
@@ -778,10 +778,10 @@ def test_reset_budget_skips_null_budget_id_endusers_when_default_not_in_reset_li
     budget is NOT in the budgets-to-reset list (not yet expired), end users
     with budget_id=NULL should NOT be reset.
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     now = datetime.now(timezone.utc)
-    litellm.max_end_user_budget_id = "default-budget-not-expired"
+    gateway.max_end_user_budget_id = "default-budget-not-expired"
 
     # A different budget that IS expiring (not the default one)
     test_budget = type(
@@ -804,7 +804,7 @@ def test_reset_budget_skips_null_budget_id_endusers_when_default_not_in_reset_li
     find_many_calls = mock_prisma_client.db.litellm_endusertable.find_many_calls
     assert len(find_many_calls) == 0
 
-    litellm.max_end_user_budget_id = None
+    gateway.max_end_user_budget_id = None
 
 
 # ---------------------------------------------------------------------------
@@ -2844,9 +2844,9 @@ def test_ambiguous_commit_replay_does_not_erase_newly_accrued_spend(
 
 @pytest.fixture
 def rollover_enabled(monkeypatch):
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    monkeypatch.setattr(litellm, "budget_rollover", True)
+    monkeypatch.setattr(gateway, "budget_rollover", True)
 
 
 @pytest.mark.parametrize(

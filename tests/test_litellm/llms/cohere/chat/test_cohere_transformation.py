@@ -1,7 +1,7 @@
 from unittest.mock import MagicMock
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.cohere.chat.transformation import CohereChatConfig
 from token_iq.gateway.llms.cohere.chat.v2_transformation import CohereV2ChatConfig
 
@@ -105,7 +105,7 @@ class TestCohereV2Transform:
 
     def test_v2_default_route_accepts_max_completion_tokens(self):
         """The default cohere_chat route resolves to v2; max_completion_tokens must not raise"""
-        optional_params = litellm.get_optional_params(
+        optional_params = gateway.get_optional_params(
             model=self.model,
             custom_llm_provider="cohere_chat",
             max_completion_tokens=256,

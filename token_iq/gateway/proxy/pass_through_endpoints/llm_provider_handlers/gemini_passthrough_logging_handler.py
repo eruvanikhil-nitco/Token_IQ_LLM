@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Any, Final
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
 from token_iq.gateway.llms.gemini.videos.transformation import GeminiVideoConfig
@@ -56,7 +56,7 @@ class GeminiPassthroughLoggingHandler:
             logging_obj.model_call_details["custom_llm_provider"] = "gemini"
             logging_obj.custom_llm_provider = "gemini"
 
-            response_cost: Final = litellm.completion_cost(
+            response_cost: Final = gateway.completion_cost(
                 completion_response=litellm_video_response,
                 model=model,
                 custom_llm_provider="gemini",
@@ -81,18 +81,18 @@ class GeminiPassthroughLoggingHandler:
             model = GeminiPassthroughLoggingHandler.extract_model_from_url(url_route)
 
             # Use Gemini config for transformation
-            instance_of_gemini_llm: Final = litellm.GoogleAIStudioGeminiConfig()
+            instance_of_gemini_llm: Final = gateway.GoogleAIStudioGeminiConfig()
             litellm_model_response: Final[ModelResponse] = instance_of_gemini_llm.transform_response(
                 model=model,
                 messages=[{"role": "user", "content": "no-message-pass-through-endpoint"}],
                 raw_response=httpx_response,
-                model_response=litellm.ModelResponse(),
+                model_response=gateway.ModelResponse(),
                 logging_obj=logging_obj,
                 optional_params={},
                 litellm_params={},
                 api_key="",
                 request_data={},
-                encoding=getattr(litellm, "encoding", None),
+                encoding=getattr(gateway, "encoding", None),
             )
             kwargs = GeminiPassthroughLoggingHandler._create_gemini_response_logging_payload_for_generate_content(
                 litellm_model_response=litellm_model_response,
@@ -194,7 +194,7 @@ class GeminiPassthroughLoggingHandler:
                 continue
             all_openai_chunks.append(parsed_chunk)
 
-        complete_streaming_response: Final = litellm.stream_chunk_builder(chunks=all_openai_chunks)
+        complete_streaming_response: Final = gateway.stream_chunk_builder(chunks=all_openai_chunks)
 
         return complete_streaming_response
 
@@ -220,7 +220,7 @@ class GeminiPassthroughLoggingHandler:
         Create the standard logging object for Gemini passthrough generateContent (streaming and non-streaming)
         """
 
-        response_cost: Final = litellm.completion_cost(
+        response_cost: Final = gateway.completion_cost(
             completion_response=litellm_model_response,
             model=model,
             custom_llm_provider="gemini",

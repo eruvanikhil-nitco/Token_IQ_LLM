@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, Any, Final
 
 from httpx._models import Headers, Response
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.asyncify import asyncify
 from token_iq.gateway.core_utils.prompt_templates.factory import (
     custom_prompt,
@@ -164,7 +164,7 @@ class SagemakerConfig(BaseConfig):
         if stream is True:
             data["stream"] = True
 
-        custom_prompt_dict: Final = litellm_params.get("custom_prompt_dict", None) or litellm.custom_prompt_dict
+        custom_prompt_dict: Final = litellm_params.get("custom_prompt_dict", None) or gateway.custom_prompt_dict
 
         hf_model_name: Final = litellm_params.get("hf_model_name", None)
 

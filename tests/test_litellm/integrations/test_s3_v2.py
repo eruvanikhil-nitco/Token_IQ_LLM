@@ -760,11 +760,11 @@ async def test_s3_verify_false_handling(monkeypatch: pytest.MonkeyPatch):
     """
     from unittest.mock import AsyncMock, patch
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     # Set up s3_callback_params with s3_verify=False
     monkeypatch.setattr(
-        litellm,
+        gateway,
         "s3_callback_params",
         {
                 "s3_bucket_name": "test-bucket",
@@ -813,11 +813,11 @@ async def test_s3_verify_none_handling(monkeypatch: pytest.MonkeyPatch):
     """
     from unittest.mock import AsyncMock, patch
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     # Set up s3_callback_params without s3_verify
     monkeypatch.setattr(
-        litellm,
+        gateway,
         "s3_callback_params",
         {
                 "s3_bucket_name": "test-bucket",
@@ -861,11 +861,11 @@ async def test_s3_verify_false_creates_httpx_client_with_verify_false(monkeypatc
     """
     from unittest.mock import patch
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     # Set up s3_callback_params with s3_verify=False
     monkeypatch.setattr(
-        litellm,
+        gateway,
         "s3_callback_params",
         {
                 "s3_bucket_name": "test-bucket",
@@ -902,12 +902,12 @@ async def test_s3_verify_false_async_client(monkeypatch: pytest.MonkeyPatch):
     """
     from unittest.mock import AsyncMock, MagicMock, patch
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.types.integrations.s3_v2 import s3BatchLoggingElement
 
     # Set up s3_callback_params with s3_verify=False
     monkeypatch.setattr(
-        litellm,
+        gateway,
         "s3_callback_params",
         {
                 "s3_bucket_name": "test-bucket",
@@ -1464,9 +1464,9 @@ def test_s3_object_download_filename_drops_characters_that_break_the_header():
 def test_s3_callback_params_override_uses_alternate_dict(monkeypatch):
     """`s3_callback_params_override` makes the logger read its config from
     the override dict instead of `litellm.s3_callback_params`."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    monkeypatch.setattr(litellm, "s3_callback_params", {"s3_bucket_name": "normal-bucket"})
+    monkeypatch.setattr(gateway, "s3_callback_params", {"s3_bucket_name": "normal-bucket"})
     logger = S3Logger(
         s3_callback_params_override={
             "s3_bucket_name": "audit-bucket",
@@ -1482,33 +1482,33 @@ def test_s3_callback_params_override_uses_alternate_dict(monkeypatch):
 def test_s3_callback_params_override_does_not_mutate_inputs(monkeypatch):
     """Resolving `os.environ/X` markers must not mutate the override dict
     or `litellm.s3_callback_params`."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     monkeypatch.setenv("MY_AUDIT_BUCKET", "resolved-bucket")
     override = {"s3_bucket_name": "os.environ/MY_AUDIT_BUCKET"}
-    monkeypatch.setattr(litellm, "s3_callback_params", {"s3_bucket_name": "os.environ/MY_AUDIT_BUCKET"})
+    monkeypatch.setattr(gateway, "s3_callback_params", {"s3_bucket_name": "os.environ/MY_AUDIT_BUCKET"})
     logger = S3Logger(s3_callback_params_override=override)
     assert logger.s3_bucket_name == "resolved-bucket"
     assert override["s3_bucket_name"] == "os.environ/MY_AUDIT_BUCKET"
     assert (
-        litellm.s3_callback_params["s3_bucket_name"] == "os.environ/MY_AUDIT_BUCKET"
+        gateway.s3_callback_params["s3_bucket_name"] == "os.environ/MY_AUDIT_BUCKET"
     )
 
 
 def test_s3_callback_params_override_none_falls_back_to_global(monkeypatch):
     """No override → behaves exactly as today (reads `litellm.s3_callback_params`)."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    monkeypatch.setattr(litellm, "s3_callback_params", {"s3_bucket_name": "from-global"})
+    monkeypatch.setattr(gateway, "s3_callback_params", {"s3_bucket_name": "from-global"})
     logger = S3Logger()
     assert logger.s3_bucket_name == "from-global"
 
 
 def test_s3_callback_params_override_empty_dict_is_opt_in(monkeypatch):
     """An empty override dict skips the global entirely (env/IAM-only config)."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    monkeypatch.setattr(litellm, "s3_callback_params", {"s3_bucket_name": "from-global"})
+    monkeypatch.setattr(gateway, "s3_callback_params", {"s3_bucket_name": "from-global"})
     logger = S3Logger(s3_callback_params_override={})
     assert logger.s3_bucket_name is None
 
@@ -1652,10 +1652,10 @@ async def test_async_upload_sets_server_side_encryption_header_when_configured()
 
 def test_s3_server_side_encryption_read_from_callback_params(monkeypatch):
     """s3_server_side_encryption can be configured via s3_callback_params."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     monkeypatch.setattr(
-        litellm,
+        gateway,
         "s3_callback_params",
         {
                 "s3_bucket_name": "from-global",
@@ -1783,10 +1783,10 @@ async def test_async_upload_omits_kms_key_id_header_when_not_configured():
 
 def test_s3_sse_kms_key_id_read_from_callback_params(monkeypatch):
     """s3_sse_kms_key_id can be configured via s3_callback_params."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     monkeypatch.setattr(
-        litellm,
+        gateway,
         "s3_callback_params",
         {
                 "s3_bucket_name": "from-global",
@@ -1839,9 +1839,9 @@ async def test_async_upload_infers_aws_kms_when_only_key_id_set():
 
 def test_s3_sse_kms_key_id_read_from_audit_override_params(monkeypatch):
     """The audit-log override path must honor s3_sse_kms_key_id too."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    monkeypatch.setattr(litellm, "s3_callback_params", {"s3_bucket_name": "normal-logs-bucket"})
+    monkeypatch.setattr(gateway, "s3_callback_params", {"s3_bucket_name": "normal-logs-bucket"})
     logger = S3Logger(
         s3_callback_params_override={
             "s3_bucket_name": "audit-logs-bucket",
@@ -1857,10 +1857,10 @@ def test_kms_key_id_dropped_when_algorithm_is_not_kms(monkeypatch):
     AES256 plus a KMS key id is an invalid S3 combination; the key id must be
     dropped at init so uploads keep working instead of silently 400ing.
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     monkeypatch.setattr(
-        litellm,
+        gateway,
         "s3_callback_params",
         {
                 "s3_bucket_name": "from-global",
@@ -1878,10 +1878,10 @@ def test_non_string_algorithm_is_dropped_and_valid_key_id_is_rescued(monkeypatch
     A YAML boolean in s3_server_side_encryption must not crash logger init and
     must not discard the valid key id; aws:kms is inferred from the key id.
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     monkeypatch.setattr(
-        litellm,
+        gateway,
         "s3_callback_params",
         {
                 "s3_bucket_name": "from-global",
@@ -1896,10 +1896,10 @@ def test_non_string_algorithm_is_dropped_and_valid_key_id_is_rescued(monkeypatch
 
 def test_non_string_key_id_is_dropped_and_valid_algorithm_is_kept(monkeypatch):
     """A mistyped key id (unquoted YAML number) must not disable the valid algorithm."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     monkeypatch.setattr(
-        litellm,
+        gateway,
         "s3_callback_params",
         {
                 "s3_bucket_name": "from-global",

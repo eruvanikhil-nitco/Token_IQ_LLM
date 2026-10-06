@@ -7,7 +7,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import TYPE_CHECKING, Any, Final, TypedDict, cast
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.integrations._types.open_inference import (
     OpenInferenceSpanKindValues,
@@ -461,10 +461,10 @@ class OpenTelemetry(OTELGenAISemconvMixin, CustomLogger):
             return
 
         # Add self as a service callback
-        if "otel" not in litellm.service_callback and all(
-            not isinstance(cb, OpenTelemetry) for cb in litellm.service_callback
+        if "otel" not in gateway.service_callback and all(
+            not isinstance(cb, OpenTelemetry) for cb in gateway.service_callback
         ):
-            litellm.service_callback.append(self)
+            gateway.service_callback.append(self)
         # avoid proxy logger ownership being overwritten by later
         # handlers. Multiple integrations (default OTEL, Langfuse OTEL,
         # Arize OTEL, etc.) may initialize in sequence; without this guard,
@@ -590,7 +590,7 @@ class OpenTelemetry(OTELGenAISemconvMixin, CustomLogger):
              ``OTEL_INSTRUMENTATION_GENAI_CAPTURE_MESSAGE_CONTENT``.
           3. Legacy ``self.message_logging`` (checked dynamically).
         """
-        if litellm.turn_off_message_logging:
+        if gateway.turn_off_message_logging:
             return CAPTURE_MODE_NO_CONTENT
         if self._capture_mode_cached is not None:
             return self._capture_mode_cached
@@ -1591,7 +1591,7 @@ class OpenTelemetry(OTELGenAISemconvMixin, CustomLogger):
             return
         attributes = self.config.attributes
         if attributes is None and self.callback_name in (None, "otel"):
-            otel_settings: Final = (litellm.callback_settings or {}).get("otel") or {}
+            otel_settings: Final = (gateway.callback_settings or {}).get("otel") or {}
             raw: Final = otel_settings.get("attributes") if isinstance(otel_settings, dict) else None
             if raw is not None:
                 attributes = _build_metric_attribute_filter(raw)

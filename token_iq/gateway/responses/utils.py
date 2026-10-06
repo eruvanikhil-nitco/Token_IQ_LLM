@@ -6,7 +6,7 @@ from typing import Any, Final, Optional, Union, cast, get_type_hints, overload
 from pydantic import BaseModel
 from typing_extensions import TypeIs  # noqa: TID251  # narrows untyped wire payloads without a runtime conversion
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.llms.base_llm.responses.transformation import BaseResponsesAPIConfig
 from token_iq.gateway.types.llms.openai import (
@@ -171,10 +171,10 @@ class ResponsesAPIRequestUtils:
             if k not in supported_params:
                 unsupported_params[k] = non_default_params[k]
         if unsupported_params:
-            if litellm.drop_params is True or (drop_params is not None and drop_params is True):
+            if gateway.drop_params is True or (drop_params is not None and drop_params is True):
                 pass
             else:
-                raise litellm.UnsupportedParamsError(
+                raise gateway.UnsupportedParamsError(
                     status_code=500,
                     message=f"{custom_llm_provider} does not support parameters: {unsupported_params}, for model={model}. To drop these, set `litellm.drop_params=True` or for proxy:\n\n`litellm_settings:\n drop_params: true`\n",
                 )
@@ -204,7 +204,7 @@ class ResponsesAPIRequestUtils:
         # Get supported parameters for the model
         supported_params: Final = responses_api_provider_config.get_supported_openai_params(model)
 
-        should_drop_params: Final = litellm.drop_params or drop_params is True
+        should_drop_params: Final = gateway.drop_params or drop_params is True
 
         non_default_params: Final = cast(dict, response_api_optional_params)
         # Check for unsupported parameters

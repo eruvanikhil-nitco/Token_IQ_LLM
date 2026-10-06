@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Any, Final
 import httpx
 from typing_extensions import TypedDict
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._uuid import uuid
 from token_iq.gateway.llms.base_llm.chat.transformation import BaseLLMException
 from token_iq.gateway.llms.base_llm.rerank.transformation import BaseRerankConfig
@@ -273,11 +273,11 @@ class HuggingFaceRerankConfig(BaseRerankConfig):
             api_base: API base provided directly to this function, takes precedence over all other sources
         """
         # Get API key from multiple sources
-        final_api_key: Final = api_key or litellm.huggingface_key or get_secret_str("HUGGINGFACE_API_KEY")
+        final_api_key: Final = api_key or gateway.huggingface_key or get_secret_str("HUGGINGFACE_API_KEY")
 
         # Get API base from multiple sources
         final_api_base: Final = (
-            api_base or litellm.api_base or get_secret_str("HF_API_BASE") or get_secret_str("HUGGINGFACE_API_BASE")
+            api_base or gateway.api_base or get_secret_str("HF_API_BASE") or get_secret_str("HUGGINGFACE_API_BASE")
         )
 
         return final_api_key, final_api_base

@@ -2,13 +2,13 @@ import os, sys, traceback
 import importlib.resources
 import json
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 import pytest
 
 
 def test_get_model_cost_map():
     try:
-        print(litellm.get_model_cost_map())
+        print(gateway.get_model_cost_map())
     except Exception as e:
         pytest.fail(f"An exception occurred: {e}")
 

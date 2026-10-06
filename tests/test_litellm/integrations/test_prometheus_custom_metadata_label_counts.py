@@ -4,7 +4,7 @@ import sys
 import pytest
 from prometheus_client import REGISTRY
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.integrations.prometheus import PrometheusLogger
 
 
@@ -16,7 +16,7 @@ def _clear_prometheus_registry() -> None:
 
 def _create_prometheus_logger_with_custom_labels(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setattr(
-        litellm,
+        gateway,
         "custom_prometheus_metadata_labels",
         ["metadata.department", "metadata.environment"],
     )

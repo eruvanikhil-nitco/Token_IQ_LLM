@@ -1,6 +1,6 @@
 from typing import Any, Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.transformation import (
     DEFAULT_ANTHROPIC_API_VERSION,
     AnthropicMessagesConfig,
@@ -24,7 +24,7 @@ class BedrockClaudePlatformMessagesConfig(BedrockClaudePlatformMixin, AnthropicM
     ) -> tuple[dict, str | None]:
         workspace_id: Final = self._get_workspace_id(optional_params, litellm_params)
         if workspace_id is None:
-            raise litellm.AuthenticationError(
+            raise gateway.AuthenticationError(
                 message=(
                     "Missing workspace ID for Claude Platform on AWS. Pass "
                     "`workspace_id` or configure the provider workspace setting."

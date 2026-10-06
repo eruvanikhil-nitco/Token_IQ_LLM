@@ -11,7 +11,7 @@ load_dotenv()
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from unittest.mock import MagicMock, patch
 
 
@@ -42,7 +42,7 @@ def test_process_gemini_media_gcs_without_extension_errors_and_metadata_mock():
         "token_iq.gateway.llms.vertex_ai.gemini.transformation._get_gcs_object_content_type",
         return_value=None,
     ):
-        with pytest.raises(litellm.BadRequestError) as exc:
+        with pytest.raises(gateway.BadRequestError) as exc:
             _process_gemini_media("gs://bucket/image-without-extension")
     assert "Unable to determine mime type for gs URI" in str(exc.value)
 
@@ -73,7 +73,7 @@ def test_process_gemini_media_rejects_gcs_metadata_mime_not_supported_by_gemini(
         return_value="application/x-litellm-unit-test-unknown-mime",
     ):
         with pytest.raises(
-            litellm.BadRequestError,
+            gateway.BadRequestError,
             match="File type not supported by gemini",
         ):
             _process_gemini_media("gs://bucket/object-without-extension")
@@ -167,7 +167,7 @@ def test_get_gcs_object_content_type_explicit_vertex_success_and_token_failure()
     mock_v2.get_access_token.side_effect = Exception("token failure")
     with patch.object(gt, "_GCS_METADATA_VERTEX_BASE", mock_v2):
         with pytest.raises(
-            litellm.BadRequestError,
+            gateway.BadRequestError,
             match="Unable to fetch GCS metadata with provided Vertex credentials/project",
         ):
             gt._get_gcs_object_content_type(
@@ -196,7 +196,7 @@ def test_get_gcs_object_content_type_http_error_explicit_vs_anonymous():
             return_value=http,
         ),
     ):
-        with pytest.raises(litellm.BadRequestError, match="HTTP 403") as ei:
+        with pytest.raises(gateway.BadRequestError, match="HTTP 403") as ei:
             gt._get_gcs_object_content_type(
                 image_url="gs://my-bucket/path/to/obj",
                 vertex_project="project-123",

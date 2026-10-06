@@ -257,7 +257,7 @@ class TestKeyRotationSecretNamingStability:
         Tests that _set_key_rotation_fields enforces key_alias requirement
         when secret storage is enabled.
         """
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.proxy.management_endpoints.key_management_endpoints import (
             _set_key_rotation_fields,
         )

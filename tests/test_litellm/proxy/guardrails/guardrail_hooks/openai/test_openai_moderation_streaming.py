@@ -126,15 +126,15 @@ async def test_openai_moderation_guardrail_streaming_harmful_content():
                 yield chunk
 
         # Mock for stream_chunk_builder - use real litellm types so isinstance checks pass
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         mock_model_response = ModelResponse(
             id="mock-response",
             model="gpt-4",
             choices=[
-                litellm.Choices(
+                gateway.Choices(
                     index=0,
-                    message=litellm.Message(
+                    message=gateway.Message(
                         role="assistant",
                         content="This is harmful content",
                     ),
@@ -214,7 +214,7 @@ async def test_openai_moderation_streaming_end_of_stream_request_data_passthroug
         )
 
         async def mock_stream():
-            from token_iq import gateway as litellm
+            from token_iq import gateway
 
             chunks_data = ["Hello", " world"]
             for i, content in enumerate(chunks_data):
@@ -227,15 +227,15 @@ async def test_openai_moderation_streaming_end_of_stream_request_data_passthroug
                 chunk.choices = [choice]
                 yield chunk
 
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         mock_model_response = ModelResponse(
             id="mock-stream-response",
             model="gpt-4",
             choices=[
-                litellm.Choices(
+                gateway.Choices(
                     index=0,
-                    message=litellm.Message(role="assistant", content="Hello world"),
+                    message=gateway.Message(role="assistant", content="Hello world"),
                     finish_reason="stop",
                 )
             ],
@@ -292,13 +292,13 @@ async def test_openai_moderation_streaming_end_of_stream_request_data_passthroug
 
 def _make_stream_chunk(content: str, finish_reason=None):
     """Build a real ModelResponseStream so the handler's isinstance checks pass."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.types.utils import Delta
 
     return ModelResponseStream(
         model="gpt-4",
         choices=[
-            litellm.StreamingChoices(
+            gateway.StreamingChoices(
                 index=0,
                 delta=Delta(role="assistant", content=content),
                 finish_reason=finish_reason,
@@ -313,7 +313,7 @@ async def test_openai_moderation_streaming_default_uses_sampled_cadence():
     pass after the stream ends. 10 chunks are sampled at 5 and 10; the end-of-stream
     round is skipped because chunk 10 already scanned the full text, for 2 total calls
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     with patch.dict(os.environ, {"OPENAI_API_KEY": "test-key"}):
         openai_guardrail = OpenAIModerationGuardrail(
@@ -337,9 +337,9 @@ async def test_openai_moderation_streaming_default_uses_sampled_cadence():
             id="mock-response",
             model="gpt-4",
             choices=[
-                litellm.Choices(
+                gateway.Choices(
                     index=0,
-                    message=litellm.Message(role="assistant", content="ABCDEFGHIJ"),
+                    message=gateway.Message(role="assistant", content="ABCDEFGHIJ"),
                     finish_reason="stop",
                 )
             ],
@@ -382,7 +382,7 @@ async def test_openai_moderation_streaming_end_of_stream_only_opt_in_calls_moder
     """Opt-in streaming_end_of_stream_only=True skips in-stream sampling and runs
     moderation once on the assembled response at end of stream.
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     with patch.dict(os.environ, {"OPENAI_API_KEY": "test-key"}):
         openai_guardrail = OpenAIModerationGuardrail(
@@ -407,9 +407,9 @@ async def test_openai_moderation_streaming_end_of_stream_only_opt_in_calls_moder
             id="mock-response",
             model="gpt-4",
             choices=[
-                litellm.Choices(
+                gateway.Choices(
                     index=0,
-                    message=litellm.Message(role="assistant", content="ABCDEFGHIJ"),
+                    message=gateway.Message(role="assistant", content="ABCDEFGHIJ"),
                     finish_reason="stop",
                 )
             ],
@@ -452,7 +452,7 @@ async def test_openai_moderation_streaming_sampled_when_end_of_stream_only_disab
     moderation runs every 2nd chunk during the stream. The terminal chunk scan covers
     the final aggregate, for 3 total calls
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     with patch.dict(os.environ, {"OPENAI_API_KEY": "test-key"}):
         openai_guardrail = OpenAIModerationGuardrail(
@@ -478,9 +478,9 @@ async def test_openai_moderation_streaming_sampled_when_end_of_stream_only_disab
             id="mock-response",
             model="gpt-4",
             choices=[
-                litellm.Choices(
+                gateway.Choices(
                     index=0,
-                    message=litellm.Message(role="assistant", content="ABCDEF"),
+                    message=gateway.Message(role="assistant", content="ABCDEF"),
                     finish_reason="stop",
                 )
             ],

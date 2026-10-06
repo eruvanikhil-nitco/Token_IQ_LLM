@@ -45,10 +45,10 @@ class ZAIChatConfig(OpenAIGPTConfig):
             "tool_choice",
         ]
 
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         try:
-            if litellm.supports_reasoning(model=model, custom_llm_provider=self.custom_llm_provider):
+            if gateway.supports_reasoning(model=model, custom_llm_provider=self.custom_llm_provider):
                 base_params.append("thinking")
         except Exception:
             pass

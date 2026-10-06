@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Any, Final, Literal
 import httpx
 from fastapi import HTTPException, status
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy._types import ProxyException, UserAPIKeyAuth
 from token_iq.gateway.router_utils.common_utils import _is_proxy_admin_request
 
@@ -41,10 +41,10 @@ def _route_user_config_request(data: dict, route_type: str):
 
     # Filter router_config to only include valid Router.__init__ arguments
     # This prevents TypeError when invalid parameters are stored in the database
-    valid_args: Final = litellm.Router.get_valid_args()
+    valid_args: Final = gateway.Router.get_valid_args()
     filtered_config: Final = {k: v for k, v in router_config.items() if k in valid_args}
 
-    user_router: Final = litellm.Router(**filtered_config)
+    user_router: Final = gateway.Router(**filtered_config)
     ret_val: Final = getattr(user_router, f"{route_type}")(**data)
     user_router.discard()
     return ret_val
@@ -58,11 +58,11 @@ def _is_a2a_agent_model(model_name: object) -> bool:
 def _raise_if_model_fully_blocked(llm_router: LitellmRouter, model_name: object, team_id: str | None) -> None:
     if not isinstance(model_name, str) or not model_name:
         return
-    if not isinstance(llm_router, litellm.Router):
+    if not isinstance(llm_router, gateway.Router):
         return
     deployments: Final = llm_router.get_model_list(model_name=model_name, team_id=team_id) or []
     if llm_router._are_all_deployments_blocked(deployments):
-        raise litellm.PermissionDeniedError(
+        raise gateway.PermissionDeniedError(
             message="Model is blocked",
             model=model_name,
             llm_provider="",
@@ -486,7 +486,7 @@ async def _route_request_single_attempt(  # noqa: ANN202  # returns unawaited pr
         if llm_router is not None:
             return getattr(llm_router, f"{route_type}")(**data)
         else:
-            return getattr(litellm, f"{route_type}")(**data)
+            return getattr(gateway, f"{route_type}")(**data)
 
     elif (
         route_type == "acompletion"
@@ -533,7 +533,7 @@ async def _route_request_single_attempt(  # noqa: ANN202  # returns unawaited pr
         if llm_router is not None:
             return getattr(llm_router, f"{route_type}")(**data)
         else:
-            return getattr(litellm, f"{route_type}")(**data)
+            return getattr(gateway, f"{route_type}")(**data)
     elif llm_router is not None:
         _raise_if_model_fully_blocked(llm_router=llm_router, model_name=data.get("model"), team_id=team_id)
         # Evals API: always route to litellm directly (not through router)
@@ -574,7 +574,7 @@ async def _route_request_single_attempt(  # noqa: ANN202  # returns unawaited pr
                     # If we can't get deployment creds, continue without them
                     pass
 
-            return getattr(litellm, f"{route_type}")(**data)
+            return getattr(gateway, f"{route_type}")(**data)
         # Skip model-based routing for container operations
         if route_type in [
             "acreate_container",
@@ -625,7 +625,7 @@ async def _route_request_single_attempt(  # noqa: ANN202  # returns unawaited pr
             "aingest",
         ] and (data.get("model") is None or data.get("model") == ""):
             # These endpoints don't need a model, use custom_llm_provider directly
-            return getattr(litellm, f"{route_type}")(**data)
+            return getattr(gateway, f"{route_type}")(**data)
 
         team_model_name: Final = llm_router.map_team_model(data["model"], team_id) if team_id is not None else None
         if team_model_name is not None:
@@ -643,7 +643,7 @@ async def _route_request_single_attempt(  # noqa: ANN202  # returns unawaited pr
             # Check wildcards before checking deployment_names
             # Priority: 1. Exact model_name match, 2. Wildcard match, 3. deployment_names match
             if llm_router.router_general_settings.pass_through_all_models:
-                return getattr(litellm, f"{route_type}")(**data)
+                return getattr(gateway, f"{route_type}")(**data)
             elif llm_router.default_deployment is not None or len(llm_router.pattern_router.patterns) > 0:
                 return getattr(llm_router, f"{route_type}")(**data)
             elif data["model"] in llm_router.deployment_names:
@@ -695,7 +695,7 @@ async def _route_request_single_attempt(  # noqa: ANN202  # returns unawaited pr
                     return getattr(llm_router, f"{route_type}")(**data)
                 except Exception:
                     # If router fails (e.g., model not found in router), fall back to direct call
-                    return getattr(litellm, f"{route_type}")(**data)
+                    return getattr(gateway, f"{route_type}")(**data)
             elif _is_a2a_agent_model(data.get("model", "")):
                 from token_iq.gateway.proxy.agent_endpoints.a2a_routing import (
                     route_a2a_agent_request,
@@ -707,7 +707,7 @@ async def _route_request_single_attempt(  # noqa: ANN202  # returns unawaited pr
                 # Fall through to raise exception below if result is None
 
     elif user_model is not None or route_type == "allm_passthrough_route":
-        return getattr(litellm, f"{route_type}")(**data)
+        return getattr(gateway, f"{route_type}")(**data)
 
     # if no route found then it's a bad request
     route_name: Final = ROUTE_ENDPOINT_MAPPING.get(route_type, route_type)

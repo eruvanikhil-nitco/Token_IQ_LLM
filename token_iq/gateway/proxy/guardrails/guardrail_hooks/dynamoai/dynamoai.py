@@ -12,7 +12,7 @@ from typing import Any, Final
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.caching.caching import DualCache
 from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
@@ -402,12 +402,12 @@ class DynamoAIGuardrails(CustomGuardrail):
 
         # Check if the ModelResponse has text content in its choices
         # to avoid sending empty content to DynamoAI (e.g., during tool calls)
-        if isinstance(response, litellm.ModelResponse):
+        if isinstance(response, gateway.ModelResponse):
             has_text_content = False
             dynamoai_messages: Final[list[dict[str, Any]]] = []
 
             for choice in response.choices:
-                if isinstance(choice, litellm.Choices):
+                if isinstance(choice, gateway.Choices):
                     if choice.message.content and isinstance(choice.message.content, str):
                         has_text_content = True
                         dynamoai_messages.append(

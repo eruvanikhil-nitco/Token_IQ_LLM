@@ -15,7 +15,7 @@ from unittest.mock import patch
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._internal_context import is_internal_call
 from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.core_utils.logging_worker import GLOBAL_LOGGING_WORKER
@@ -56,12 +56,12 @@ async def test_aquery_single_billing_event_carries_completion_usage_and_cost(use
     """
     await _drain_logging_worker()
     recording_logger = RecordingLogger()
-    original_callbacks = litellm.callbacks
-    litellm.callbacks = [recording_logger]
+    original_callbacks = gateway.callbacks
+    gateway.callbacks = [recording_logger]
 
     router_kwargs = {}
     if use_router:
-        router_kwargs["router"] = litellm.Router(
+        router_kwargs["router"] = gateway.Router(
             model_list=[
                 {
                     "model_name": "gpt-4o-mini",
@@ -71,7 +71,7 @@ async def test_aquery_single_billing_event_carries_completion_usage_and_cost(use
         )
 
     try:
-        response = await litellm.aquery(
+        response = await gateway.aquery(
             model="gpt-4o-mini",
             messages=[{"role": "user", "content": "What is the secret project codename?"}],
             retrieval_config={"vector_store_id": "vs_test_123", "custom_llm_provider": "openai"},
@@ -84,7 +84,7 @@ async def test_aquery_single_billing_event_carries_completion_usage_and_cost(use
 
         await _drain_logging_worker()
     finally:
-        litellm.callbacks = original_callbacks
+        gateway.callbacks = original_callbacks
 
     assert len(recording_logger.success_events) == 1
     event = recording_logger.success_events[0]
@@ -107,7 +107,7 @@ async def test_aquery_response_hidden_params_carry_completion_cost():
     The aquery response must expose the completion's response_cost via hidden
     params, so the proxy can return the x-litellm-response-cost header.
     """
-    response = await litellm.aquery(
+    response = await gateway.aquery(
         model="gpt-4o-mini",
         messages=[{"role": "user", "content": "hello"}],
         retrieval_config={"vector_store_id": "vs_test_123", "custom_llm_provider": "openai"},
@@ -131,12 +131,12 @@ async def test_aquery_billed_cost_includes_priced_vector_store_search():
     """
     await _drain_logging_worker()
     recording_logger = RecordingLogger()
-    original_callbacks = litellm.callbacks
-    litellm.callbacks = [recording_logger]
+    original_callbacks = gateway.callbacks
+    gateway.callbacks = [recording_logger]
 
     try:
         with patch("token_iq.gateway.rag.main.vector_store_search_cost", return_value=(0.002, 0.0)):
-            response = await litellm.aquery(
+            response = await gateway.aquery(
                 model="gpt-4o-mini",
                 messages=[{"role": "user", "content": "hello"}],
                 retrieval_config={"vector_store_id": "vs_test_123", "custom_llm_provider": "openai"},
@@ -145,7 +145,7 @@ async def test_aquery_billed_cost_includes_priced_vector_store_search():
 
         await _drain_logging_worker()
     finally:
-        litellm.callbacks = original_callbacks
+        gateway.callbacks = original_callbacks
 
     assert isinstance(response, ModelResponse)
     total_cost = response._hidden_params.get("response_cost")
@@ -168,8 +168,8 @@ async def test_aquery_with_rerank_bills_once_and_folds_rerank_cost():
 
     await _drain_logging_worker()
     recording_logger = RecordingLogger()
-    original_callbacks = litellm.callbacks
-    litellm.callbacks = [recording_logger]
+    original_callbacks = gateway.callbacks
+    gateway.callbacks = [recording_logger]
     rerank_seen = {}
 
     async def fake_arerank(**kwargs):
@@ -180,7 +180,7 @@ async def test_aquery_with_rerank_bills_once_and_folds_rerank_cost():
 
     try:
         with patch("token_iq.gateway.arerank", side_effect=fake_arerank):
-            response = await litellm.aquery(
+            response = await gateway.aquery(
                 model="gpt-4o-mini",
                 messages=[{"role": "user", "content": "hello"}],
                 retrieval_config={"vector_store_id": "vs_test_123", "custom_llm_provider": "openai"},
@@ -190,7 +190,7 @@ async def test_aquery_with_rerank_bills_once_and_folds_rerank_cost():
 
         await _drain_logging_worker()
     finally:
-        litellm.callbacks = original_callbacks
+        gateway.callbacks = original_callbacks
 
     assert rerank_seen["internal"] is True
     assert is_internal_call.get() is False
@@ -220,8 +220,8 @@ async def test_aquery_streaming_bills_sub_call_costs_into_final_event():
 
     await _drain_logging_worker()
     recording_logger = RecordingLogger()
-    original_callbacks = litellm.callbacks
-    litellm.callbacks = [recording_logger]
+    original_callbacks = gateway.callbacks
+    gateway.callbacks = [recording_logger]
     rerank_seen = {}
 
     async def fake_arerank(**kwargs):
@@ -235,7 +235,7 @@ async def test_aquery_streaming_bills_sub_call_costs_into_final_event():
             patch("token_iq.gateway.rag.main.vector_store_search_cost", return_value=(0.002, 0.0)),
             patch("token_iq.gateway.arerank", side_effect=fake_arerank),
         ):
-            response = await litellm.aquery(
+            response = await gateway.aquery(
                 model="gpt-4o-mini",
                 messages=[{"role": "user", "content": "hello"}],
                 retrieval_config={"vector_store_id": "vs_test_123", "custom_llm_provider": "openai"},
@@ -248,7 +248,7 @@ async def test_aquery_streaming_bills_sub_call_costs_into_final_event():
 
         await _drain_logging_worker()
     finally:
-        litellm.callbacks = original_callbacks
+        gateway.callbacks = original_callbacks
 
     assert rerank_seen["internal"] is True
     assert is_internal_call.get() is False
@@ -272,7 +272,7 @@ async def test_aquery_forwards_provider_retrieval_config_and_router_to_search():
 
     from token_iq.gateway.types.vector_stores import VectorStoreSearchResponse
 
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "gpt-4o-mini",
@@ -287,7 +287,7 @@ async def test_aquery_forwards_provider_retrieval_config_and_router_to_search():
         )
     )
     with patch("token_iq.gateway.vector_stores.asearch", new=fake_search):  # test-quality-ok: asearch is the boundary the forwarding contract under test targets
-        response = await litellm.aquery(
+        response = await gateway.aquery(
             model="gpt-4o-mini",
             messages=[{"role": "user", "content": "hello"}],
             retrieval_config={
@@ -333,7 +333,7 @@ async def test_aquery_minimal_retrieval_config_forwards_no_extras():
         )
     )
     with patch("token_iq.gateway.vector_stores.asearch", new=fake_search):  # test-quality-ok: asearch is the boundary the forwarding contract under test targets
-        await litellm.aquery(
+        await gateway.aquery(
             model="gpt-4o-mini",
             messages=[{"role": "user", "content": "hello"}],
             retrieval_config={"vector_store_id": "vs_test_123", "custom_llm_provider": "openai"},
@@ -367,7 +367,7 @@ async def test_aquery_does_not_forward_connection_override_keys_to_search():
         )
     )
     with patch("token_iq.gateway.vector_stores.asearch", new=fake_search):  # test-quality-ok: asearch is the boundary the forwarding contract under test targets
-        await litellm.aquery(
+        await gateway.aquery(
             model="gpt-4o-mini",
             messages=[{"role": "user", "content": "hello"}],
             retrieval_config={

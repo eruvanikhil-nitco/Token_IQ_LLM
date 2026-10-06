@@ -1,6 +1,6 @@
 from typing import Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.types.guardrails import Guardrail, LitellmParams
 
 
@@ -14,5 +14,5 @@ def initialize_guardrail(litellm_params: LitellmParams, guardrail: Guardrail):
         event_hook=litellm_params.mode,
         default_on=litellm_params.default_on,
     )
-    litellm.logging_callback_manager.add_litellm_callback(_callback)
+    gateway.logging_callback_manager.add_litellm_callback(_callback)
     return _callback

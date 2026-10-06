@@ -131,14 +131,14 @@ class TestVoyageMultimodalEmbeddings:
         assert transformed.usage.total_tokens == 2
 
     def test_provider_config_manager_routes_multimodal_models(self):
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.llms.voyage.embedding.transformation_multimodal import (
             VoyageMultimodalEmbeddingConfig,
         )
         from token_iq.gateway.utils import ProviderConfigManager
 
         config = ProviderConfigManager.get_provider_embedding_config(
-            model="voyage-multimodal-3.5", provider=litellm.LlmProviders.VOYAGE
+            model="voyage-multimodal-3.5", provider=gateway.LlmProviders.VOYAGE
         )
 
         assert isinstance(config, VoyageMultimodalEmbeddingConfig)
@@ -227,7 +227,7 @@ class TestVoyageMultimodalEmbeddings:
         )
 
     def test_utils_routing_via_provider_config_and_dimensions(self):
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.llms.voyage.embedding.transformation_multimodal import (
             VoyageMultimodalEmbeddingConfig,
         )
@@ -237,7 +237,7 @@ class TestVoyageMultimodalEmbeddings:
         )
 
         config = ProviderConfigManager.get_provider_embedding_config(
-            model="voyage-multimodal-3.5", provider=litellm.LlmProviders.VOYAGE
+            model="voyage-multimodal-3.5", provider=gateway.LlmProviders.VOYAGE
         )
         assert isinstance(config, VoyageMultimodalEmbeddingConfig)
 

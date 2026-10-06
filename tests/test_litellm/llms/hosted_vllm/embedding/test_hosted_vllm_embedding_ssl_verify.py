@@ -13,7 +13,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 
 class TestHostedVLLMEmbeddingSSLVerify:
@@ -47,7 +47,7 @@ class TestHostedVLLMEmbeddingSSLVerify:
         mock_get_httpx_client.return_value = mock_client
 
         try:
-            litellm.embedding(
+            gateway.embedding(
                 model="hosted_vllm/text-embedding-model",
                 input=["hello world"],
                 api_base="https://test-vllm.example.com/v1",
@@ -109,7 +109,7 @@ class TestHostedVLLMEmbeddingSSLVerify:
         mock_get_async_httpx_client.return_value = mock_client
 
         try:
-            await litellm.aembedding(
+            await gateway.aembedding(
                 model="hosted_vllm/text-embedding-model",
                 input=["hello world"],
                 api_base="https://test-vllm.example.com/v1",

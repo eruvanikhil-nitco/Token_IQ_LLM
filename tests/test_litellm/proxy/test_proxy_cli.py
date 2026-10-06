@@ -305,16 +305,16 @@ class TestProxyInitializationHelpers:
         assert config_file.resolve() in yielded_paths
 
     def test_dev_env_hot_reload_enabled_reads_flag(self, monkeypatch):
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         monkeypatch.setenv("LITELLM_DEV_ENV_HOT_RELOAD", "True")
-        assert litellm._dev_env_hot_reload_enabled() is True
+        assert gateway._dev_env_hot_reload_enabled() is True
 
         monkeypatch.setenv("LITELLM_DEV_ENV_HOT_RELOAD", "false")
-        assert litellm._dev_env_hot_reload_enabled() is False
+        assert gateway._dev_env_hot_reload_enabled() is False
 
         monkeypatch.delenv("LITELLM_DEV_ENV_HOT_RELOAD", raising=False)
-        assert litellm._dev_env_hot_reload_enabled() is False
+        assert gateway._dev_env_hot_reload_enabled() is False
 
     @patch("asyncio.run")
     @patch("builtins.print")
@@ -1013,7 +1013,7 @@ class TestProxyInitializationHelpers:
         """Proxy default api_version should match litellm.AZURE_DEFAULT_API_VERSION for consistency."""
         from click.testing import CliRunner
 
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.proxy.proxy_cli import run_server
 
         runner = CliRunner()
@@ -1052,7 +1052,7 @@ class TestProxyInitializationHelpers:
             ), f"exit_code={result.exit_code}, output={result.output}"
             mock_proxy_module.save_worker_config.assert_called_once()
             call_kwargs = mock_proxy_module.save_worker_config.call_args[1]
-            assert call_kwargs["api_version"] == litellm.AZURE_DEFAULT_API_VERSION
+            assert call_kwargs["api_version"] == gateway.AZURE_DEFAULT_API_VERSION
 
     @patch("uvicorn.run")
     @patch("builtins.print")

@@ -4,7 +4,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.constants import OPENAI_CHAT_COMPLETION_PARAMS
 from token_iq.gateway.endpoints.speech.speech_to_completion_bridge.transformation import (
     SpeechToCompletionBridgeTransformationHandler,
@@ -47,7 +47,7 @@ def test_gemini_tts_request_keeps_speech_response_format_out_of_chat_params(resp
     assert request["temperature"] == 0.4
     assert request["modalities"] == ["audio"]
 
-    gemini_params: Final = litellm.get_optional_params(
+    gemini_params: Final = gateway.get_optional_params(
         model=GEMINI_TTS_MODEL,
         custom_llm_provider="gemini",
         **{param: value for param, value in request.items() if param in OPENAI_CHAT_COMPLETION_PARAMS},
@@ -74,7 +74,7 @@ def test_non_gemini_request_forwards_speech_response_format_as_audio_format() ->
 
 @pytest.mark.parametrize("response_format", ["mp3", "flac", "opus", "aac"])
 def test_gemini_tts_request_rejects_formats_gemini_cannot_produce(response_format: str) -> None:
-    with pytest.raises(litellm.BadRequestError) as excinfo:
+    with pytest.raises(gateway.BadRequestError) as excinfo:
         _bridge_request(response_format)
 
     assert excinfo.value.status_code == 400

@@ -1,6 +1,6 @@
 import os
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.vertex_ai.gemini.cost_calculator import cost_per_web_search_request
 from token_iq.gateway.llms.vertex_ai.image_generation.cost_calculator import (
     cost_calculator as vertex_image_generation_cost_calculator,
@@ -32,9 +32,9 @@ def _image_response_with_web_search(web_search_requests):
 
 def test_vertex_image_generation_cost_adds_web_search_grounding(monkeypatch):
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    litellm.model_cost = litellm.get_model_cost_map()
+    gateway.model_cost = gateway.get_model_cost_map()
     model = "gemini-3-pro-image-preview"
-    model_info = litellm.get_model_info(model=model, custom_llm_provider="vertex_ai")
+    model_info = gateway.get_model_info(model=model, custom_llm_provider="vertex_ai")
 
     grounded = vertex_image_generation_cost_calculator(
         model=model,
@@ -57,7 +57,7 @@ def test_vertex_image_generation_cost_adds_web_search_grounding(monkeypatch):
 
 def test_vertex_image_generation_cost_no_web_search_when_absent(monkeypatch):
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    litellm.model_cost = litellm.get_model_cost_map()
+    gateway.model_cost = gateway.get_model_cost_map()
     model = "gemini-3-pro-image-preview"
 
     cost_zero = vertex_image_generation_cost_calculator(

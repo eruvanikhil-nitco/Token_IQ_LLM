@@ -8,7 +8,7 @@ import asyncio
 import traceback
 from typing import Optional
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import verbose_logger
 from token_iq.gateway._logging import session_id_var, trace_id_var
 from token_iq.gateway.core_utils.litellm_logging import Logging
@@ -515,8 +515,8 @@ async def test_streaming_with_usage_and_logging(sync_mode: bool):
         pass
 
     mock_callback = MockCallback()
-    litellm.success_callback = [mock_callback]
-    litellm._async_success_callback = [mock_callback]
+    gateway.success_callback = [mock_callback]
+    gateway._async_success_callback = [mock_callback]
 
     final_usage_block = Usage(
         completion_tokens=392,
@@ -739,7 +739,7 @@ async def test_streaming_completion_start_time(logging_obj: Logging):
         pass
 
     mock_callback = MockCallback()
-    litellm.success_callback = [mock_callback, "langfuse"]
+    gateway.success_callback = [mock_callback, "langfuse"]
 
     completion_stream = ModelResponseListIterator(
         model_responses=bedrock_chunks, delay=0.1
@@ -781,7 +781,7 @@ async def test_vertex_streaming_bad_request_not_midstream(logging_obj: Logging):
         make_call=_raise_bad_request,
     )
 
-    with pytest.raises(litellm.BadRequestError) as excinfo:
+    with pytest.raises(gateway.BadRequestError) as excinfo:
         await response.__anext__()
 
     assert getattr(excinfo.value, "status_code", None) == 400
@@ -869,7 +869,7 @@ def test_sync_streaming_bad_request_not_midstream(logging_obj: Logging):
         make_call=_raise_bad_request,
     )
 
-    with pytest.raises(litellm.BadRequestError) as excinfo:
+    with pytest.raises(gateway.BadRequestError) as excinfo:
         next(response)
 
     assert getattr(excinfo.value, "status_code", None) == 400
@@ -1028,7 +1028,7 @@ async def test_in_body_stream_error_400_raises_bad_request(logging_obj: Logging)
         },
     )
 
-    with pytest.raises(litellm.BadRequestError) as excinfo:
+    with pytest.raises(gateway.BadRequestError) as excinfo:
         await response.__anext__()
 
     assert not isinstance(excinfo.value, MidStreamFallbackError)
@@ -1648,10 +1648,10 @@ async def test_openrouter_streaming_usage_only_chunk_without_stream_options():
         pass
 
     mock_callback = MockCallback()
-    previous_success_callback = litellm.success_callback
-    previous_async_success_callback = litellm._async_success_callback
-    litellm.success_callback = [mock_callback]
-    litellm._async_success_callback = [mock_callback]
+    previous_success_callback = gateway.success_callback
+    previous_async_success_callback = gateway._async_success_callback
+    gateway.success_callback = [mock_callback]
+    gateway._async_success_callback = [mock_callback]
 
     stream_logging_obj = Logging(
         model="openrouter/claude",
@@ -1689,8 +1689,8 @@ async def test_openrouter_streaming_usage_only_chunk_without_stream_options():
             collected_chunks = [chunk async for chunk in response]
             await asyncio.wait_for(success_logged.wait(), timeout=30)
     finally:
-        litellm.success_callback = previous_success_callback
-        litellm._async_success_callback = previous_async_success_callback
+        gateway.success_callback = previous_success_callback
+        gateway._async_success_callback = previous_async_success_callback
 
     assert all(getattr(chunk, "usage", None) is None for chunk in collected_chunks)
 
@@ -1706,7 +1706,7 @@ def test_openrouter_streaming_cost_propagates_to_hidden_params():
     _hidden_params["additional_headers"]["llm_provider-x-litellm-response-cost"]
     on the complete streaming response, so litellm's cost calculator uses it.
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     chunk1 = ModelResponseStream(
         id="chatcmpl-or",
@@ -1741,7 +1741,7 @@ def test_openrouter_streaming_cost_propagates_to_hidden_params():
     )
 
     # Build the complete response as stream_chunk_builder does
-    complete_response = litellm.stream_chunk_builder(
+    complete_response = gateway.stream_chunk_builder(
         chunks=[chunk1, chunk2, chunk3],
         messages=[{"role": "user", "content": "test"}],
     )
@@ -1771,7 +1771,7 @@ def test_openrouter_streaming_cost_propagates_to_hidden_params():
 
 
 def test_perplexity_streaming_dict_cost_bills_through_its_own_calculator():
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.cost_calculator import (
         get_response_cost_from_hidden_params,
         response_cost_calculator,
@@ -1821,7 +1821,7 @@ def test_perplexity_streaming_dict_cost_bills_through_its_own_calculator():
         ),
     ]
 
-    complete_response = litellm.stream_chunk_builder(
+    complete_response = gateway.stream_chunk_builder(
         chunks=chunks, messages=[{"role": "user", "content": "test"}]
     )
 
@@ -1840,14 +1840,14 @@ def test_perplexity_streaming_dict_cost_bills_through_its_own_calculator():
 
 
 def test_openai_compatible_streaming_cost_is_priced_from_the_cost_map():
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.cost_calculator import (
         get_response_cost_from_hidden_params,
         response_cost_calculator,
     )
 
     model = "openai/streams-cost-in-nanodollars"
-    litellm.register_model(
+    gateway.register_model(
         {
             model: {
                 "input_cost_per_token": 1e-6,
@@ -1877,7 +1877,7 @@ def test_openai_compatible_streaming_cost_is_priced_from_the_cost_map():
 
 
 def test_xai_streaming_reported_cost_still_takes_the_margin(monkeypatch):
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.cost_calculator import (
         get_response_cost_from_hidden_params,
         response_cost_calculator,
@@ -1893,7 +1893,7 @@ def test_xai_streaming_reported_cost_still_takes_the_margin(monkeypatch):
     CustomStreamWrapper._propagate_usage_cost_to_hidden_params(complete_response, "xai")
 
     assert get_response_cost_from_hidden_params(complete_response._hidden_params) is None
-    monkeypatch.setattr(litellm, "cost_margin_config", {"xai": 0.5})
+    monkeypatch.setattr(gateway, "cost_margin_config", {"xai": 0.5})
     assert response_cost_calculator(
         response_object=complete_response,
         model="xai/grok-4-latest",
@@ -2116,78 +2116,78 @@ def _build_chunks(pattern: list[str], N: int) -> list[ModelResponseStream]:
 _REPETITION_TEST_CASES = [
     # Basic cases
     pytest.param(
-        ["same"] * litellm.REPEATED_STREAMING_CHUNK_LIMIT,
+        ["same"] * gateway.REPEATED_STREAMING_CHUNK_LIMIT,
         True,
         id="all_identical_raises",
     ),
     pytest.param(
-        ["same"] * (litellm.REPEATED_STREAMING_CHUNK_LIMIT - 1),
+        ["same"] * (gateway.REPEATED_STREAMING_CHUNK_LIMIT - 1),
         False,
         id="below_threshold_no_raise",
     ),
     pytest.param(
-        [None] * litellm.REPEATED_STREAMING_CHUNK_LIMIT,
+        [None] * gateway.REPEATED_STREAMING_CHUNK_LIMIT,
         False,
         id="none_content_no_raise",
     ),
     pytest.param(
-        [""] * litellm.REPEATED_STREAMING_CHUNK_LIMIT,
+        [""] * gateway.REPEATED_STREAMING_CHUNK_LIMIT,
         False,
         id="empty_content_no_raise",
     ),
     # Short content (len <= 2) should not raise
     pytest.param(
-        ["##"] * litellm.REPEATED_STREAMING_CHUNK_LIMIT,
+        ["##"] * gateway.REPEATED_STREAMING_CHUNK_LIMIT,
         False,
         id="short_content_2chars_no_raise",
     ),
     pytest.param(
-        ["{"] * litellm.REPEATED_STREAMING_CHUNK_LIMIT,
+        ["{"] * gateway.REPEATED_STREAMING_CHUNK_LIMIT,
         False,
         id="short_content_1char_no_raise",
     ),
     pytest.param(
-        ["ab"] * litellm.REPEATED_STREAMING_CHUNK_LIMIT,
+        ["ab"] * gateway.REPEATED_STREAMING_CHUNK_LIMIT,
         False,
         id="short_content_2chars_ab_no_raise",
     ),
     # All different chunks
     pytest.param(
-        ["diff"] * litellm.REPEATED_STREAMING_CHUNK_LIMIT,
+        ["diff"] * gateway.REPEATED_STREAMING_CHUNK_LIMIT,
         False,
         id="all_different_no_raise",
     ),
     # One chunk different at various positions
     pytest.param(
-        ["different_first"] + ["same"] * (litellm.REPEATED_STREAMING_CHUNK_LIMIT - 1),
+        ["different_first"] + ["same"] * (gateway.REPEATED_STREAMING_CHUNK_LIMIT - 1),
         False,
         id="first_chunk_different_no_raise",
     ),
     pytest.param(
-        ["same"] * (litellm.REPEATED_STREAMING_CHUNK_LIMIT - 1) + ["different_last"],
+        ["same"] * (gateway.REPEATED_STREAMING_CHUNK_LIMIT - 1) + ["different_last"],
         False,
         id="last_chunk_different_no_raise",
     ),
     pytest.param(
-        ["same"] * (litellm.REPEATED_STREAMING_CHUNK_LIMIT // 2 + 1)
+        ["same"] * (gateway.REPEATED_STREAMING_CHUNK_LIMIT // 2 + 1)
         + ["different_mid"]
         + ["same"]
         * (
-            litellm.REPEATED_STREAMING_CHUNK_LIMIT
-            - litellm.REPEATED_STREAMING_CHUNK_LIMIT // 2
+            gateway.REPEATED_STREAMING_CHUNK_LIMIT
+            - gateway.REPEATED_STREAMING_CHUNK_LIMIT // 2
             + 1
         ),
         False,
         id="middle_chunk_different_no_raise",
     ),
     pytest.param(
-        ["same"] * (litellm.REPEATED_STREAMING_CHUNK_LIMIT - 2) + ["diff", "diff"],
+        ["same"] * (gateway.REPEATED_STREAMING_CHUNK_LIMIT - 2) + ["diff", "diff"],
         False,
         id="last_two_different_no_raise",
     ),
     pytest.param(
-        ["diff"] * litellm.REPEATED_STREAMING_CHUNK_LIMIT
-        + ["same"] * litellm.REPEATED_STREAMING_CHUNK_LIMIT
+        ["diff"] * gateway.REPEATED_STREAMING_CHUNK_LIMIT
+        + ["same"] * gateway.REPEATED_STREAMING_CHUNK_LIMIT
         + ["diff"],
         True,
         id="in_between_same_and_diff_raise",
@@ -2210,7 +2210,7 @@ def test_raise_on_model_repetition(
                 wrapper.chunks.append(chunk)
                 wrapper.raise_on_model_repetition()
 
-        with pytest.raises(litellm.InternalServerError) as exc_info:
+        with pytest.raises(gateway.InternalServerError) as exc_info:
             _feed()
         assert "repeating the same chunk" in str(exc_info.value)
     else:
@@ -2725,7 +2725,7 @@ def test_dispatch_custom_provider_returns_chunk_early(
 ):
     """A registered custom provider passes its already-OpenAI-shaped chunk
     straight through as an early return rather than re-parsing it."""
-    monkeypatch.setattr(litellm, "_custom_providers", ["my-custom-llm"])
+    monkeypatch.setattr(gateway, "_custom_providers", ["my-custom-llm"])
     initialized_custom_stream_wrapper.custom_llm_provider = "my-custom-llm"
     chunk = ModelResponseStream(
         choices=[
@@ -2745,7 +2745,7 @@ def test_dispatch_custom_provider_finish_only_returns_none_early(
 ):
     """A custom-provider chunk that carries only a finish_reason (no content)
     records the reason and returns None so no empty delta is emitted."""
-    monkeypatch.setattr(litellm, "_custom_providers", ["my-custom-llm"])
+    monkeypatch.setattr(gateway, "_custom_providers", ["my-custom-llm"])
     initialized_custom_stream_wrapper.custom_llm_provider = "my-custom-llm"
     chunk = ModelResponseStream(
         choices=[
@@ -3219,7 +3219,7 @@ def test_chunk_creator_passes_through_model_response_stream(
     Regression test for issue #27389.
     """
     initialized_custom_stream_wrapper.custom_llm_provider = "my-custom-provider"
-    litellm._custom_providers.append("my-custom-provider")
+    gateway._custom_providers.append("my-custom-provider")
 
     chunk = ModelResponseStream(
         id="test-id",
@@ -3234,7 +3234,7 @@ def test_chunk_creator_passes_through_model_response_stream(
 
     result = initialized_custom_stream_wrapper.chunk_creator(chunk=chunk)
 
-    litellm._custom_providers.remove("my-custom-provider")
+    gateway._custom_providers.remove("my-custom-provider")
 
     assert result is not None
     assert initialized_custom_stream_wrapper.received_finish_reason == finish_reason
@@ -3249,7 +3249,7 @@ def test_chunk_creator_drops_empty_finish_chunk(
     behaviour via is_chunk_non_empty.
     """
     initialized_custom_stream_wrapper.custom_llm_provider = "my-custom-provider"
-    litellm._custom_providers.append("my-custom-provider")
+    gateway._custom_providers.append("my-custom-provider")
 
     chunk = ModelResponseStream(
         id="test-id",
@@ -3264,7 +3264,7 @@ def test_chunk_creator_drops_empty_finish_chunk(
 
     result = initialized_custom_stream_wrapper.chunk_creator(chunk=chunk)
 
-    litellm._custom_providers.remove("my-custom-provider")
+    gateway._custom_providers.remove("my-custom-provider")
 
     assert result is None
     assert initialized_custom_stream_wrapper.received_finish_reason == "stop"
@@ -3279,7 +3279,7 @@ def test_chunk_creator_stops_iteration_on_trailing_chunk(
     """
     initialized_custom_stream_wrapper.custom_llm_provider = "my-custom-provider"
     initialized_custom_stream_wrapper.received_finish_reason = "stop"
-    litellm._custom_providers.append("my-custom-provider")
+    gateway._custom_providers.append("my-custom-provider")
 
     trailing_chunk = ModelResponseStream(
         id="test-id",
@@ -3295,7 +3295,7 @@ def test_chunk_creator_stops_iteration_on_trailing_chunk(
     with pytest.raises(StopIteration):
         initialized_custom_stream_wrapper.chunk_creator(chunk=trailing_chunk)
 
-    litellm._custom_providers.remove("my-custom-provider")
+    gateway._custom_providers.remove("my-custom-provider")
 
 
 def test_chunk_creator_strips_finish_reason_from_content_chunk(
@@ -3307,7 +3307,7 @@ def test_chunk_creator_strips_finish_reason_from_content_chunk(
     preventing two terminal chunks (double finish_reason bug).
     """
     initialized_custom_stream_wrapper.custom_llm_provider = "my-custom-provider"
-    litellm._custom_providers.append("my-custom-provider")
+    gateway._custom_providers.append("my-custom-provider")
 
     chunk = ModelResponseStream(
         id="test-id",
@@ -3322,7 +3322,7 @@ def test_chunk_creator_strips_finish_reason_from_content_chunk(
 
     result = initialized_custom_stream_wrapper.chunk_creator(chunk=chunk)
 
-    litellm._custom_providers.remove("my-custom-provider")
+    gateway._custom_providers.remove("my-custom-provider")
 
     assert result is not None
     assert (
@@ -3342,7 +3342,7 @@ def test_chunk_creator_tool_calls_not_dropped_on_finish(
     from token_iq.gateway.types.utils import ChatCompletionDeltaToolCall, Function
 
     initialized_custom_stream_wrapper.custom_llm_provider = "my-custom-provider"
-    litellm._custom_providers.append("my-custom-provider")
+    gateway._custom_providers.append("my-custom-provider")
 
     chunk = ModelResponseStream(
         id="test-id",
@@ -3369,7 +3369,7 @@ def test_chunk_creator_tool_calls_not_dropped_on_finish(
 
     result = initialized_custom_stream_wrapper.chunk_creator(chunk=chunk)
 
-    litellm._custom_providers.remove("my-custom-provider")
+    gateway._custom_providers.remove("my-custom-provider")
 
     assert result is not None, "tool_calls chunk must not be dropped"
     assert result.choices[0].delta.tool_calls is not None
@@ -3504,13 +3504,13 @@ def test_record_partial_usage_for_failure_prices_alias_restamped_chunks_at_real_
         model="us.anthropic.claude-opus-5",
         custom_llm_provider="bedrock",
     )
-    assert "bedrock/bedrock-claude-opus-5" not in litellm.model_cost
+    assert "bedrock/bedrock-claude-opus-5" not in gateway.model_cost
 
     wrapper._record_partial_usage_for_failure()
 
     stashed = logging_obj.model_call_details["combined_usage_object"]
     assert stashed.completion_tokens == 5
-    rates = litellm.model_cost["us.anthropic.claude-opus-5"]
+    rates = gateway.model_cost["us.anthropic.claude-opus-5"]
     expected = 40 * rates["input_cost_per_token"] + 5 * rates["output_cost_per_token"]
     assert logging_obj.model_call_details["response_cost"] == pytest.approx(expected)
 
@@ -3546,7 +3546,7 @@ def test_record_partial_usage_for_failure_prices_corrected_model_not_chunk_model
 
     wrapper._record_partial_usage_for_failure()
 
-    rates = litellm.model_cost["gpt-4o-mini"]
+    rates = gateway.model_cost["gpt-4o-mini"]
     expected = 40 * rates["input_cost_per_token"] + 5 * rates["output_cost_per_token"]
     assert logging_obj.model_call_details["response_cost"] == pytest.approx(expected)
 
@@ -3639,7 +3639,7 @@ async def test_stream_chunk_builder_raise_at_end_of_stream_still_recovers_usage(
 
     seen_usage = []
     with patch.object(
-        litellm,
+        gateway,
         "stream_chunk_builder",
         side_effect=Exception("simulated assembly failure"),
     ):
@@ -3703,7 +3703,7 @@ async def test_stream_chunk_builder_raise_and_usage_recovery_failure_does_not_cr
 
     with (
         patch.object(
-            litellm, "stream_chunk_builder", side_effect=Exception("assembly failed")
+            gateway, "stream_chunk_builder", side_effect=Exception("assembly failed")
         ),
         patch.object(
             sh_module, "calculate_total_usage", side_effect=Exception("recovery failed")
@@ -3946,14 +3946,14 @@ def test_sync_completion_never_stamps_correlation_context(monkeypatch):
     with its own tests - tracked as a separate, follow-up piece of work.
     Async (acompletion/wrapper_async, the only path the proxy uses) is
     unaffected - see test_async_streaming_completion_does_not_reset_context_before_iteration."""
-    monkeypatch.setattr(litellm, "request_correlation_in_logs", True)
+    monkeypatch.setattr(gateway, "request_correlation_in_logs", True)
     # Reset explicitly rather than asserting a clean slate - this must hold
     # regardless of what any other test left behind in these module-level
     # contextvars.
     trace_id_var.set("")
     session_id_var.set("")
     try:
-        litellm.completion(
+        gateway.completion(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": "hi"}],
             mock_response="Hello there!",
@@ -3964,7 +3964,7 @@ def test_sync_completion_never_stamps_correlation_context(monkeypatch):
         assert trace_id_var.get() == ""
         assert session_id_var.get() == ""
 
-        response = litellm.completion(
+        response = gateway.completion(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": "hi"}],
             mock_response="Hello there!",
@@ -3990,7 +3990,7 @@ def test_abandoned_sync_stream_cannot_contaminate_a_later_call_on_the_same_threa
     sync calls never stamp trace_id_var/session_id_var at all
     (supports_correlation_logging=False), there is nothing for request A to
     leave behind for request B to inherit."""
-    monkeypatch.setattr(litellm, "request_correlation_in_logs", True)
+    monkeypatch.setattr(gateway, "request_correlation_in_logs", True)
 
     from concurrent.futures import ThreadPoolExecutor
 
@@ -3998,7 +3998,7 @@ def test_abandoned_sync_stream_cannot_contaminate_a_later_call_on_the_same_threa
     try:
 
         def call_a_abandon_stream():
-            response = litellm.completion(
+            response = gateway.completion(
                 model="gpt-3.5-turbo",
                 messages=[{"role": "user", "content": "call A"}],
                 mock_response="call A response",
@@ -4010,7 +4010,7 @@ def test_abandoned_sync_stream_cannot_contaminate_a_later_call_on_the_same_threa
             next(response)  # consume exactly one chunk, then abandon it
 
         def call_b_non_streaming():
-            litellm.completion(
+            gateway.completion(
                 model="gpt-3.5-turbo",
                 messages=[{"role": "user", "content": "call B"}],
                 mock_response="call B response",
@@ -4031,11 +4031,11 @@ def test_abandoned_sync_stream_cannot_contaminate_a_later_call_on_the_same_threa
 @pytest.mark.asyncio
 async def test_async_streaming_completion_does_not_reset_context_before_iteration(monkeypatch):
     """Same as above for wrapper_async()/acompletion()."""
-    monkeypatch.setattr(litellm, "request_correlation_in_logs", True)
+    monkeypatch.setattr(gateway, "request_correlation_in_logs", True)
     trace_id_var.set("outer-trace-async-stream")
     session_id_var.set("outer-session-async-stream")
     try:
-        response = await litellm.acompletion(
+        response = await gateway.acompletion(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": "hi"}],
             mock_response="Hello there!",
@@ -4352,7 +4352,7 @@ async def test_stream_wrapper_anext_max_duration_timeout_restores_consumer_corre
     path as every other failure so the consumer's outer correlation context gets
     restored - calling the check before entering __anext__()'s try block would
     let the Timeout bypass that restoration entirely."""
-    monkeypatch.setattr(litellm.constants, "LITELLM_MAX_STREAMING_DURATION_SECONDS", 1)
+    monkeypatch.setattr(gateway.constants, "LITELLM_MAX_STREAMING_DURATION_SECONDS", 1)
     trace_id_var.set("outer-trace-max-duration")
     session_id_var.set("outer-session-max-duration")
     try:
@@ -4381,7 +4381,7 @@ async def test_stream_wrapper_anext_max_duration_timeout_restores_consumer_corre
 
         wrapper._stream_created_time = time.time() - 10
 
-        with pytest.raises(litellm.Timeout):
+        with pytest.raises(gateway.Timeout):
             await wrapper.__anext__()
 
         assert trace_id_var.get() == "outer-trace-max-duration"
@@ -4560,7 +4560,7 @@ def test_chunk_creator_preserves_hidden_provider_specific_fields_from_parsed_chu
 
     assert result is not None
     assert result._hidden_params["provider_specific_fields"] == {"traffic_type": "ON_DEMAND_FLEX"}
-    assembled = litellm.stream_chunk_builder(chunks=[result])
+    assembled = gateway.stream_chunk_builder(chunks=[result])
     assert assembled is not None
     assert assembled._hidden_params["provider_specific_fields"] == {"traffic_type": "ON_DEMAND_FLEX"}
 
@@ -4615,7 +4615,7 @@ def test_chunk_creator_keeps_provider_model_private_across_stream():
         == "selected-model"
     )
 
-    assembled = litellm.stream_chunk_builder(chunks=[first_result, terminal_result])
+    assembled = gateway.stream_chunk_builder(chunks=[first_result, terminal_result])
     assert assembled is not None
     assert assembled.model == "requested-route"
     assert (
@@ -4637,12 +4637,12 @@ def test_assembled_stream_uses_later_provider_model_for_cost(
         "litellm_provider": "azure",
     }
     monkeypatch.setitem(
-        litellm.model_cost,
+        gateway.model_cost,
         "azure/gpt-4.1-nano-2025-04-14",
         selected_model_info,
     )
     monkeypatch.setitem(
-        litellm.model_cost,
+        gateway.model_cost,
         "azure/azure-model-router",
         {
             "input_cost_per_token": 0.00002,
@@ -4712,7 +4712,7 @@ def test_assembled_stream_uses_later_provider_model_for_cost(
         == "azure-model-router"
     )
 
-    assembled = litellm.stream_chunk_builder(
+    assembled = gateway.stream_chunk_builder(
         chunks=[router_result, selected_result, terminal_result]
     )
     assert assembled is not None
@@ -4722,7 +4722,7 @@ def test_assembled_stream_uses_later_provider_model_for_cost(
         == "gpt-4.1-nano-2025-04-14"
     )
     assembled.usage = Usage(prompt_tokens=10, completion_tokens=5, total_tokens=15)
-    assert litellm.completion_cost(
+    assert gateway.completion_cost(
         completion_response=assembled,
         custom_llm_provider="azure",
     ) == pytest.approx(
@@ -4756,7 +4756,7 @@ async def test_async_stream_assembled_response_keeps_vertex_traffic_type(logging
 
     received = [chunk async for chunk in wrapper]
 
-    assembled = litellm.stream_chunk_builder(chunks=received, messages=[{"role": "user", "content": "hi"}])
+    assembled = gateway.stream_chunk_builder(chunks=received, messages=[{"role": "user", "content": "hi"}])
     assert assembled is not None
     assert assembled._hidden_params["provider_specific_fields"]["traffic_type"] == "ON_DEMAND_FLEX"
 

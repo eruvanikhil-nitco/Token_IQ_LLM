@@ -13,7 +13,7 @@ import pytest
 from unittest.mock import MagicMock, patch
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.handler import (
     anthropic_messages_handler,
 )
@@ -70,7 +70,7 @@ class TestReasoningAutoSummaryMessages:
 
     def test_adaptive_thinking_gets_display_summarized(self):
         """reasoning_auto_summary=True + thinking.type='adaptive' -> display='summarized'."""
-        with patch.object(litellm, "reasoning_auto_summary", True):
+        with patch.object(gateway, "reasoning_auto_summary", True):
             params = _call_handler_and_capture_optional_params(
                 thinking={"type": "adaptive", "budget_tokens": 5000}
             )
@@ -81,7 +81,7 @@ class TestReasoningAutoSummaryMessages:
 
     def test_enabled_thinking_gets_display_summarized(self):
         """reasoning_auto_summary=True + thinking.type='enabled' -> display='summarized'."""
-        with patch.object(litellm, "reasoning_auto_summary", True):
+        with patch.object(gateway, "reasoning_auto_summary", True):
             params = _call_handler_and_capture_optional_params(
                 thinking={"type": "enabled", "budget_tokens": 10000}
             )
@@ -91,7 +91,7 @@ class TestReasoningAutoSummaryMessages:
 
     def test_disabled_thinking_no_display(self):
         """reasoning_auto_summary=True + thinking.type='disabled' -> display NOT set."""
-        with patch.object(litellm, "reasoning_auto_summary", True):
+        with patch.object(gateway, "reasoning_auto_summary", True):
             params = _call_handler_and_capture_optional_params(
                 thinking={"type": "disabled"}
             )
@@ -100,7 +100,7 @@ class TestReasoningAutoSummaryMessages:
 
     def test_no_injection_when_flag_false(self):
         """reasoning_auto_summary=False + active thinking -> display NOT set."""
-        with patch.object(litellm, "reasoning_auto_summary", False):
+        with patch.object(gateway, "reasoning_auto_summary", False):
             params = _call_handler_and_capture_optional_params(
                 thinking={"type": "enabled", "budget_tokens": 10000}
             )
@@ -109,7 +109,7 @@ class TestReasoningAutoSummaryMessages:
 
     def test_no_thinking_param_no_crash(self):
         """reasoning_auto_summary=True but no thinking param -> nothing changes."""
-        with patch.object(litellm, "reasoning_auto_summary", True):
+        with patch.object(gateway, "reasoning_auto_summary", True):
             params = _call_handler_and_capture_optional_params()
         thinking = params.get("thinking")
         if thinking is not None:
@@ -117,7 +117,7 @@ class TestReasoningAutoSummaryMessages:
 
     def test_env_var_enables_auto_summary(self):
         """LITELLM_REASONING_AUTO_SUMMARY=true env var enables the feature."""
-        with patch.object(litellm, "reasoning_auto_summary", False), patch.dict(
+        with patch.object(gateway, "reasoning_auto_summary", False), patch.dict(
             os.environ, {"LITELLM_REASONING_AUTO_SUMMARY": "true"}
         ):
             params = _call_handler_and_capture_optional_params(
@@ -128,7 +128,7 @@ class TestReasoningAutoSummaryMessages:
 
     def test_existing_display_summarized_preserved(self):
         """User already passes display='summarized' -> preserved as-is."""
-        with patch.object(litellm, "reasoning_auto_summary", True):
+        with patch.object(gateway, "reasoning_auto_summary", True):
             params = _call_handler_and_capture_optional_params(
                 thinking={
                     "type": "enabled",
@@ -141,7 +141,7 @@ class TestReasoningAutoSummaryMessages:
 
     def test_existing_display_summarized_without_flag(self):
         """User passes display='summarized' + flag=False -> preserved as-is."""
-        with patch.object(litellm, "reasoning_auto_summary", False):
+        with patch.object(gateway, "reasoning_auto_summary", False):
             params = _call_handler_and_capture_optional_params(
                 thinking={
                     "type": "enabled",
@@ -159,7 +159,7 @@ class TestReasoningAutoSummaryMessages:
         display='summarized' when auto_summary is enabled and thinking is active,
         regardless of any pre-existing display value.
         """
-        with patch.object(litellm, "reasoning_auto_summary", True):
+        with patch.object(gateway, "reasoning_auto_summary", True):
             params = _call_handler_and_capture_optional_params(
                 thinking={
                     "type": "enabled",

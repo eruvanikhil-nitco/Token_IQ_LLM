@@ -3,7 +3,7 @@ import httpx
 import pytest
 import json
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 # Adds the parent directory to the system path
 
@@ -634,13 +634,13 @@ class TestOCIChatConfig:
 
         assert isinstance(result, ModelResponse)
         assert len(result.choices) == 1
-        assert isinstance(result.choices[0], litellm.Choices)
+        assert isinstance(result.choices[0], gateway.Choices)
         assert result.choices[0].message
         assert result.choices[0].message.content == "I am doing well, thank you!"
         assert result.choices[0].finish_reason == "stop"
         assert result.model == TEST_MODEL_NAME
         assert hasattr(result, "usage")
-        assert isinstance(result.usage, litellm.Usage)  # type: ignore
+        assert isinstance(result.usage, gateway.Usage)  # type: ignore
         assert result.usage.prompt_tokens == 10  # type: ignore
         assert result.usage.completion_tokens == 20  # type: ignore
         assert result.usage.total_tokens == 30  # type: ignore
@@ -700,7 +700,7 @@ class TestOCIChatConfig:
         }
         response = httpx.Response(status_code=200, json=mock_oci_response)
         model_response = ModelResponse(
-            choices=[litellm.Choices(index=0, message=litellm.Message())]
+            choices=[gateway.Choices(index=0, message=gateway.Message())]
         )
 
         result = config.transform_response(
@@ -720,19 +720,19 @@ class TestOCIChatConfig:
         assert len(result.choices) == 1
 
         choice = result.choices[0]
-        assert isinstance(choice, litellm.Choices)
+        assert isinstance(choice, gateway.Choices)
         assert choice.finish_reason == "stop"
 
         # Message and tool_calls assertions
         message = choice.message
-        assert isinstance(message, litellm.Message)
+        assert isinstance(message, gateway.Message)
         assert hasattr(message, "tool_calls")
         assert isinstance(message.tool_calls, list)
         assert len(message.tool_calls) == 1
 
         # Specific tool_call assertions
         tool_call = message.tool_calls[0]
-        assert isinstance(tool_call, litellm.utils.ChatCompletionMessageToolCall)
+        assert isinstance(tool_call, gateway.utils.ChatCompletionMessageToolCall)
         assert tool_call.id == "call_abc123"
         assert tool_call.type == "function"
         assert tool_call.function["name"] == "get_weather"
@@ -741,7 +741,7 @@ class TestOCIChatConfig:
         # Usage assertions
         assert hasattr(result, "usage")
         usage = result.usage  # type: ignore
-        assert isinstance(usage, litellm.Usage)  # type: ignore
+        assert isinstance(usage, gateway.Usage)  # type: ignore
         assert usage.prompt_tokens == 10  # type: ignore
         assert usage.completion_tokens == 20  # type: ignore
         assert usage.total_tokens == 30  # type: ignore

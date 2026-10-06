@@ -10,7 +10,7 @@ from typing import Literal
 import pytest
 from pydantic import BaseModel, ConfigDict
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import Router, completion_cost, stream_chunk_builder
 
 models = [
@@ -57,7 +57,7 @@ def test_run(model: str):
     """
     Relevant issue - https://github.com/BerriAI/litellm/issues/4965
     """
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     prompt = "Hi"
     kwargs = dict(
         model=model,

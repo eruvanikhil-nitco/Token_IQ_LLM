@@ -6,7 +6,7 @@ from typing import Final
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway._uuid import uuid
 from token_iq.gateway.core_utils.litellm_logging import Logging
@@ -279,10 +279,10 @@ class AnthropicFilesHandler:
             model_response: Final = ModelResponse()
             # Initialize with required fields - will be populated by transform_parsed_response
             model_response.choices = [
-                litellm.Choices(
+                gateway.Choices(
                     finish_reason="stop",
                     index=0,
-                    message=litellm.Message(content="", role="assistant"),
+                    message=gateway.Message(content="", role="assistant"),
                 )
             ]
 

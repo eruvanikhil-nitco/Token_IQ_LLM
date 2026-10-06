@@ -275,7 +275,7 @@ class TestAzureModelRouterCostBreakdown:
 
     def test_flat_cost_integration_with_completion_cost(self):
         """Test that flat cost is properly integrated into completion_cost calculation."""
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.cost_calculator import completion_cost
         from token_iq.gateway.types.utils import Choices, Message, ModelResponse, Usage
 
@@ -458,8 +458,8 @@ class TestAzureAIServiceTierCostCalculation:
 
     @pytest.fixture(autouse=True)
     def register_test_model(self):
-        from token_iq import gateway as litellm
-        litellm.register_model(model_cost={
+        from token_iq import gateway
+        gateway.register_model(model_cost={
             "test-azure-ai-model": {
                 "input_cost_per_token": 0.001,
                 "output_cost_per_token": 0.002,

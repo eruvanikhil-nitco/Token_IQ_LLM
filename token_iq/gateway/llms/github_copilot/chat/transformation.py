@@ -59,10 +59,10 @@ class GithubCopilotConfig(OpenAIConfig):
         messages,
         model: str,
     ):
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         # Check if system-to-assistant conversion is disabled
-        if litellm.disable_copilot_system_to_assistant:
+        if gateway.disable_copilot_system_to_assistant:
             # GitHub Copilot API now supports system prompts for all models (Claude, GPT, etc.)
             # No conversion needed - just return messages as-is
             return messages

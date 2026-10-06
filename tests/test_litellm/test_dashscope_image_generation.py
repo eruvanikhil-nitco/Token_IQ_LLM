@@ -11,7 +11,7 @@ from unittest.mock import MagicMock, patch
 import httpx
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.dashscope.image_generation.transformation import (
     DashScopeImageGenerationConfig,
     DEFAULT_API_BASE,
@@ -61,12 +61,12 @@ def test_get_model_info_mode_is_image_generation(
     import os
 
     prev_env = os.environ.get("LITELLM_LOCAL_MODEL_COST_MAP")
-    prev_model_cost = litellm.model_cost
+    prev_model_cost = gateway.model_cost
     try:
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-        litellm.model_cost = litellm.get_model_cost_map()
+        gateway.model_cost = gateway.get_model_cost_map()
 
-        info = litellm.get_model_info(
+        info = gateway.get_model_info(
             model=model_string, custom_llm_provider=custom_provider
         )
         assert (
@@ -77,7 +77,7 @@ def test_get_model_info_mode_is_image_generation(
             os.environ.pop("LITELLM_LOCAL_MODEL_COST_MAP", None)
         else:
             os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = prev_env
-        litellm.model_cost = prev_model_cost
+        gateway.model_cost = prev_model_cost
 
 
 # ---------------------------------------------------------------------------
@@ -462,7 +462,7 @@ def test_litellm_image_generation_dashscope_end_to_end(model: str):
         mock_http_response.headers = {}
         mock_post.return_value = mock_http_response
 
-        response = litellm.image_generation(
+        response = gateway.image_generation(
             model=model,
             prompt="a puppy playing on green grass",
             api_key="sk-test-key",

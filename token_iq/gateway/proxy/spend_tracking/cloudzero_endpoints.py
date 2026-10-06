@@ -309,9 +309,9 @@ def is_cloudzero_setup_in_config() -> bool:
     Returns:
         bool: True if CloudZero is configured, False otherwise
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    return "cloudzero" in litellm.callbacks
+    return "cloudzero" in gateway.callbacks
 
 
 async def is_cloudzero_setup() -> bool:

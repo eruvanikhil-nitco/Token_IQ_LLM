@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Any, Final
 
 from httpx._models import Headers, Response
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.prompt_templates.common_utils import (
     drop_tool_reference_parts_from_tool_messages,
     hoist_images_from_tool_messages,
@@ -219,7 +219,7 @@ class AzureOpenAIConfig(BaseConfig):
                         or (api_version_year == "2023" and api_version_month < "12")
                         or (api_version_year == "2023" and api_version_month == "12" and api_version_day < "01")
                     ):
-                        if litellm.drop_params is True or (drop_params is not None and drop_params is True):
+                        if gateway.drop_params is True or (drop_params is not None and drop_params is True):
                             pass
                         else:
                             raise UnsupportedParamsError(
@@ -229,7 +229,7 @@ class AzureOpenAIConfig(BaseConfig):
                     elif value == "required" and (
                         api_version_year == "2024" and api_version_month <= "05"
                     ):  ## check if tool_choice value is supported ##
-                        if litellm.drop_params is True or (drop_params is not None and drop_params is True):
+                        if gateway.drop_params is True or (drop_params is not None and drop_params is True):
                             pass
                         else:
                             raise UnsupportedParamsError(

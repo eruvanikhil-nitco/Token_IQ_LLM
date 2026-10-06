@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.caching.caching import DualCache
 from token_iq.gateway.caching.redis_cache import RedisCache
 from datetime import datetime, timezone
@@ -136,7 +136,7 @@ async def test_is_key_within_model_budget(budget_limiter):
 
     # Test when model exceeds budget
     with patch.object(budget_limiter, "_get_spend_for_model_budget", return_value=150.0):
-        with pytest.raises(litellm.BudgetExceededError):
+        with pytest.raises(gateway.BudgetExceededError):
             await budget_limiter.is_key_within_model_budget(user_api_key, "gpt-4")
 
     # Test model not in budget config
@@ -229,7 +229,7 @@ async def test_is_end_user_within_model_budget(budget_limiter):
 
     # Test when model exceeds budget
     with patch.object(budget_limiter, "_get_spend_for_model_budget", return_value=150.0):
-        with pytest.raises(litellm.BudgetExceededError):
+        with pytest.raises(gateway.BudgetExceededError):
             await budget_limiter.is_end_user_within_model_budget(
                 "test-user",
                 {"gpt-4": {"budget_limit": 100.0, "time_period": "1d"}},
@@ -676,7 +676,7 @@ async def test_logged_spend_is_visible_to_key_info_usage_and_enforcement(request
         start_time=None,
         end_time=None,
     )
-    with pytest.raises(litellm.BudgetExceededError):
+    with pytest.raises(gateway.BudgetExceededError):
         await limiter.is_key_within_model_budget(user_api_key, request_model)
 
     usage_after = await build_model_max_budget_usage(
@@ -727,7 +727,7 @@ async def test_user_model_budget_is_tracked_and_enforced():
         cache=dual_cache,
     ) == {"gpt-4": {"current_spend": 1.5, "budget_limit": 1.0, "time_period": "1mo"}}
 
-    with pytest.raises(litellm.BudgetExceededError) as exc:
+    with pytest.raises(gateway.BudgetExceededError) as exc:
         await limiter.is_user_within_model_budget(
             user_id=user_id,
             user_model_max_budget=user_model_max_budget,
@@ -877,7 +877,7 @@ async def test_bedrock_traffic_charges_the_bare_family_name_budget():
         }
     }
 
-    with pytest.raises(litellm.BudgetExceededError):
+    with pytest.raises(gateway.BudgetExceededError):
         await limiter.is_key_within_model_budget(user_api_key, "bedrock/anthropic.claude-opus-4-8")
 
 
@@ -918,7 +918,7 @@ async def test_user_model_budget_window_resets_when_the_period_elapses():
     )
     await limiter.async_log_success_event(kwargs, response_obj=None, start_time=None, end_time=None)
     assert await dual_cache.async_get_cache(key=spend_key) == 1.5
-    with pytest.raises(litellm.BudgetExceededError):
+    with pytest.raises(gateway.BudgetExceededError):
         await limiter.is_user_within_model_budget(
             user_id=user_id,
             user_model_max_budget=user_model_max_budget,
@@ -960,7 +960,7 @@ async def test_a_zero_dollar_cap_blocks_the_model():
         model_max_budget={"gpt-4": {"budget_limit": 0, "time_period": "1d"}},
     )
 
-    with pytest.raises(litellm.BudgetExceededError) as exc:
+    with pytest.raises(gateway.BudgetExceededError) as exc:
         await limiter.is_key_within_model_budget(user_api_key_dict=key, model="gpt-4")
     assert exc.value.max_budget == 0
 
@@ -995,7 +995,7 @@ async def test_spend_exactly_at_the_cap_is_refused():
         end_time=None,
     )
 
-    with pytest.raises(litellm.BudgetExceededError):
+    with pytest.raises(gateway.BudgetExceededError):
         await limiter.is_key_within_model_budget(user_api_key_dict=key, model="gpt-4")
 
 
@@ -1148,7 +1148,7 @@ async def test_a_malformed_specific_entry_still_enforces_the_family_budget():
         end_time=None,
     )
 
-    with pytest.raises(litellm.BudgetExceededError):
+    with pytest.raises(gateway.BudgetExceededError):
         await limiter.is_key_within_model_budget(user_api_key_dict=key, model="openai/gpt-4")
 
 
@@ -1221,7 +1221,7 @@ async def test_a_pre_upgrade_counter_keyed_on_the_request_model_still_enforces(e
             end_user_model_max_budget=model_max_budget,
             model="openai/gpt-4",
         )
-    with pytest.raises(litellm.BudgetExceededError) as exc_info:
+    with pytest.raises(gateway.BudgetExceededError) as exc_info:
         await budget_check
     assert exc_info.value.current_cost == 25.0
 
@@ -1256,7 +1256,7 @@ async def test_the_pre_upgrade_and_post_upgrade_counters_add_up_over_one_window(
         )
 
     if expect_blocked:
-        with pytest.raises(litellm.BudgetExceededError) as exc_info:
+        with pytest.raises(gateway.BudgetExceededError) as exc_info:
             await enforce()
         assert exc_info.value.current_cost == legacy_spend + current_spend
     else:
@@ -1303,7 +1303,7 @@ async def test_the_pre_upgrade_counter_is_no_longer_read_a_window_after_start_up
 
     # Control: within the first window since start-up the same counter blocks,
     # so the assertion below cannot pass against a lookup that never worked.
-    with pytest.raises(litellm.BudgetExceededError):
+    with pytest.raises(gateway.BudgetExceededError):
         await limiter.is_key_within_model_budget(user_api_key_dict=user_api_key, model="openai/gpt-4")
 
     monkeypatch.setattr(limiter_module, "_PROCESS_STARTED_AT", limiter_module.time.monotonic() - 86401)
@@ -1331,7 +1331,7 @@ async def test_the_user_scope_has_no_pre_upgrade_counter_to_carry():
     # Control: the same overspend under the key this scope does own must block,
     # or the assertion above would pass against a scope that enforces nothing.
     await limiter.dual_cache.async_set_cache(key="user_model_spend:u1:gpt-4:1d", value=25.0, ttl=86400)
-    with pytest.raises(litellm.BudgetExceededError):
+    with pytest.raises(gateway.BudgetExceededError):
         await limiter.is_user_within_model_budget(
             user_id="u1", user_model_max_budget=model_max_budget, model="openai/gpt-4"
         )
@@ -1402,7 +1402,7 @@ async def test_spend_logged_on_one_replica_is_enforced_and_reported_on_another()
     await _log_spend(replica_a, key_hash=key_hash, model_max_budget=model_max_budget, response_cost=0.5)
     await _log_spend(replica_a, key_hash=key_hash, model_max_budget=model_max_budget, response_cost=0.5)
 
-    with pytest.raises(litellm.BudgetExceededError):
+    with pytest.raises(gateway.BudgetExceededError):
         await replica_b.is_key_within_model_budget(user_api_key, "gpt-4")
 
     usage_on_b = await build_model_max_budget_usage(
@@ -1415,5 +1415,5 @@ async def test_spend_logged_on_one_replica_is_enforced_and_reported_on_another()
 
     # Control: a replica that never served this key reads the same total.
     replica_c = _PROXY_VirtualKeyModelMaxBudgetLimiter(dual_cache=DualCache(redis_cache=shared_redis))
-    with pytest.raises(litellm.BudgetExceededError):
+    with pytest.raises(gateway.BudgetExceededError):
         await replica_c.is_key_within_model_budget(user_api_key, "gpt-4")

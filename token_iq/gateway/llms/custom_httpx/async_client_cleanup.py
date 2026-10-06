@@ -15,10 +15,10 @@ async def close_litellm_async_clients():
     global base_llm_aiohttp_handler instance (issue #12443).
     """
     # Import here to avoid circular import
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.llms.custom_httpx.aiohttp_handler import BaseLLMAIOHTTPHandler
 
-    cache_dict: Final = getattr(litellm.in_memory_llm_clients_cache, "cache_dict", {})
+    cache_dict: Final = getattr(gateway.in_memory_llm_clients_cache, "cache_dict", {})
 
     for key, handler in cache_dict.items():
         # Handle BaseLLMAIOHTTPHandler instances (aiohttp_openai provider)
@@ -57,8 +57,8 @@ async def close_litellm_async_clients():
 
     # Close the global base_llm_aiohttp_handler instance (issue #12443)
     # This is used by Gemini and other providers that use aiohttp
-    if hasattr(litellm, "base_llm_aiohttp_handler"):
-        base_handler: Final = getattr(litellm, "base_llm_aiohttp_handler", None)
+    if hasattr(gateway, "base_llm_aiohttp_handler"):
+        base_handler: Final = getattr(gateway, "base_llm_aiohttp_handler", None)
         if isinstance(base_handler, BaseLLMAIOHTTPHandler) and hasattr(base_handler, "close"):
             try:
                 await base_handler.close()

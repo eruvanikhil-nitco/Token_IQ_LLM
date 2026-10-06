@@ -14,9 +14,9 @@ import pytest
 from pydantic import BaseModel
 
 import token_iq.gateway.core_utils
-from token_iq import gateway as litellm
+from token_iq import gateway
 import token_iq.gateway.core_utils.litellm_logging
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.utils import ModelResponseListIterator
 from token_iq.gateway.types.utils import ModelResponseStream
 
@@ -25,7 +25,7 @@ from dotenv import load_dotenv
 load_dotenv()
 import random
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import (
     AuthenticationError,
     BadRequestError,
@@ -35,10 +35,10 @@ from token_iq.gateway import (
     completion,
 )
 
-litellm.logging = False
-litellm.set_verbose = True
-litellm.num_retries = 3
-litellm.cache = None
+gateway.logging = False
+gateway.set_verbose = True
+gateway.num_retries = 3
+gateway.cache = None
 
 score = 0
 
@@ -239,7 +239,7 @@ tools_schema = [
 
 
 def test_completion_azure_stream_special_char():
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     messages = [{"role": "user", "content": "hi. respond with the <xml> tag only"}]
     response = completion(model="azure/gpt-4.1-mini", messages=messages, stream=True)
     response_str = ""
@@ -391,27 +391,27 @@ def test_completion_azure_stream_content_filter_no_delta():
 
         chunk_list = []
         for chunk in chunks:
-            new_chunk = litellm.ModelResponseStream(id=chunk["id"])
+            new_chunk = gateway.ModelResponseStream(id=chunk["id"])
             if "choices" in chunk and isinstance(chunk["choices"], list):
                 new_choices = []
                 for choice in chunk["choices"]:
-                    if isinstance(choice, litellm.utils.StreamingChoices):
+                    if isinstance(choice, gateway.utils.StreamingChoices):
                         _new_choice = choice
                     elif isinstance(choice, dict):
-                        _new_choice = litellm.utils.StreamingChoices(**choice)
+                        _new_choice = gateway.utils.StreamingChoices(**choice)
                     new_choices.append(_new_choice)
                 new_chunk.choices = new_choices
             chunk_list.append(new_chunk)
 
         completion_stream = ModelResponseListIterator(model_responses=chunk_list)
 
-        litellm.set_verbose = True
+        gateway.set_verbose = True
 
-        response = litellm.CustomStreamWrapper(
+        response = gateway.CustomStreamWrapper(
             completion_stream=completion_stream,
             model="gpt-4-0613",
             custom_llm_provider="cached_response",
-            logging_obj=litellm.Logging(
+            logging_obj=gateway.Logging(
                 model="gpt-4-0613",
                 messages=[{"role": "user", "content": "Hey"}],
                 stream=True,
@@ -440,7 +440,7 @@ def test_completion_azure_stream_content_filter_no_delta():
 @pytest.mark.flaky(retries=5, delay=1)
 def test_completion_azure_stream():
     try:
-        litellm.set_verbose = False
+        gateway.set_verbose = False
         messages = [
             {"role": "system", "content": "You are a helpful assistant."},
             {
@@ -460,7 +460,7 @@ def test_completion_azure_stream():
             print(f"custom_llm_provider: {custom_llm_provider}")
             assert custom_llm_provider == "azure"
             if finished:
-                assert isinstance(init_chunk.choices[0], litellm.utils.StreamingChoices)
+                assert isinstance(init_chunk.choices[0], gateway.utils.StreamingChoices)
                 break
         if complete_response.strip() == "":
             raise Exception("Empty response received")
@@ -473,7 +473,7 @@ def test_completion_azure_stream():
 
 def test_completion_azure_function_calling_stream():
     try:
-        litellm.set_verbose = False
+        gateway.set_verbose = False
         user_message = "What is the current weather in Boston?"
         messages = [{"content": user_message, "role": "user"}]
         response = completion(
@@ -516,7 +516,7 @@ def test_completion_ollama_hosted_stream():
             chunk, finished = streaming_format_tests(idx, init_chunk)
             complete_response += chunk
             if finished:
-                assert isinstance(init_chunk.choices[0], litellm.utils.StreamingChoices)
+                assert isinstance(init_chunk.choices[0], gateway.utils.StreamingChoices)
                 break
         if complete_response.strip() == "":
             raise Exception("Empty response received")
@@ -572,7 +572,7 @@ def test_completion_model_stream(model):
 @pytest.mark.flaky(retries=3, delay=1)
 async def test_completion_gemini_stream(sync_mode):
     try:
-        litellm._turn_on_debug()
+        gateway._turn_on_debug()
         print("Streaming gemini response")
         function1 = [
             {
@@ -620,7 +620,7 @@ async def test_completion_gemini_stream(sync_mode):
                 non_empty_chunks += 1
                 complete_response += chunk
         else:
-            response = await litellm.acompletion(
+            response = await gateway.acompletion(
                 model="gemini/gemini-2.5-flash-lite",
                 messages=messages,
                 stream=True,
@@ -643,16 +643,16 @@ async def test_completion_gemini_stream(sync_mode):
         #     raise Exception("Empty response received")
         print(f"completion_response: {complete_response}")
 
-        complete_response = litellm.stream_chunk_builder(
+        complete_response = gateway.stream_chunk_builder(
             chunks=chunks, messages=messages
         )
 
         assert complete_response.choices[0].message.function_call is not None
 
         # assert non_empty_chunks > 1
-    except litellm.InternalServerError as e:
+    except gateway.InternalServerError as e:
         pass
-    except litellm.RateLimitError as e:
+    except gateway.RateLimitError as e:
         pass
     except Exception as e:
         # if "429 Resource has been exhausted":
@@ -693,7 +693,7 @@ async def test_completion_gemini_stream_accumulated_json(sync_mode):
     try:
         from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
 
-        litellm.set_verbose = True
+        gateway.set_verbose = True
         print("Streaming gemini response")
         function1 = [
             {
@@ -753,7 +753,7 @@ async def test_completion_gemini_stream_accumulated_json(sync_mode):
             with patch.object(
                 client, "post", side_effect=gemini_mock_post_streaming
             ) as mock_client:
-                response = await litellm.acompletion(
+                response = await gateway.acompletion(
                     model="gemini/gemini-2.5-flash-lite",
                     messages=messages,
                     stream=True,
@@ -781,9 +781,9 @@ async def test_completion_gemini_stream_accumulated_json(sync_mode):
             == "Twelve-year-old Finn was never one for adventure. He preferred the comfort of his room, his nose buried in a book, to the chaotic world outside."
         )
         # assert non_empty_chunks > 1
-    except litellm.InternalServerError as e:
+    except gateway.InternalServerError as e:
         pass
-    except litellm.RateLimitError as e:
+    except gateway.RateLimitError as e:
         pass
     except Exception as e:
         # if "429 Resource has been exhausted":
@@ -793,7 +793,7 @@ async def test_completion_gemini_stream_accumulated_json(sync_mode):
 
 @pytest.mark.flaky(retries=3, delay=1)
 def test_completion_mistral_api_mistral_large_function_call_with_streaming():
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     tools = [
         {
             "type": "function",
@@ -852,7 +852,7 @@ def test_completion_mistral_api_mistral_large_function_call_with_streaming():
             else:
                 validate_second_streaming_function_calling_chunk(chunk=chunk)
         assert saw_function_call_chunk
-    except litellm.RateLimitError:
+    except gateway.RateLimitError:
         pass
     except Exception as e:
         pytest.fail(f"Error occurred: {e}")
@@ -899,8 +899,8 @@ def test_completion_nlp_cloud_stream():
 
 def test_completion_claude_stream_bad_key():
     try:
-        litellm.cache = None
-        litellm.set_verbose = True
+        gateway.cache = None
+        gateway.set_verbose = True
         api_key = "bad-key"
         messages = [
             {"role": "system", "content": "You are a helpful assistant."},
@@ -948,7 +948,7 @@ def test_vertex_ai_stream(provider):
     )
 
     load_vertex_ai_credentials()
-    litellm.set_verbose = True
+    gateway.set_verbose = True
 
     test_models = ["gemini-2.5-flash-lite"]
     for model in test_models:
@@ -988,12 +988,12 @@ def test_vertex_ai_stream(provider):
             print(f"completion_response: {complete_response}")
             assert is_finished == True
 
-        except litellm.RateLimitError as e:
+        except gateway.RateLimitError as e:
             pass
-        except litellm.exceptions.MidStreamFallbackError as e:
+        except gateway.exceptions.MidStreamFallbackError as e:
             # Streaming 429s are wrapped in MidStreamFallbackError so the
             # Router can fall back; treat as a transient rate-limit pass.
-            if not isinstance(e.original_exception, litellm.RateLimitError):
+            if not isinstance(e.original_exception, gateway.RateLimitError):
                 pytest.fail(f"Error occurred: {e}")
         except Exception as e:
             pytest.fail(f"Error occurred: {e}")
@@ -1075,12 +1075,12 @@ def test_vertex_ai_stream(provider):
 @pytest.mark.parametrize("sync_mode", [False, True])
 @pytest.mark.asyncio
 async def test_completion_replicate_llama3_streaming(sync_mode):
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     model_name = "replicate/meta/meta-llama-3-8b-instruct"
     try:
         if sync_mode:
-            final_chunk: Optional[litellm.ModelResponse] = None
-            response: litellm.CustomStreamWrapper = completion(  # type: ignore
+            final_chunk: Optional[gateway.ModelResponse] = None
+            response: gateway.CustomStreamWrapper = completion(  # type: ignore
                 model=model_name,
                 messages=messages,
                 max_tokens=10,  # type: ignore
@@ -1102,7 +1102,7 @@ async def test_completion_replicate_llama3_streaming(sync_mode):
             if complete_response.strip() == "":
                 raise Exception("Empty response received")
         else:
-            response: litellm.CustomStreamWrapper = await litellm.acompletion(  # type: ignore
+            response: gateway.CustomStreamWrapper = await gateway.acompletion(  # type: ignore
                 model=model_name,
                 messages=messages,
                 max_tokens=100,  # type: ignore
@@ -1113,7 +1113,7 @@ async def test_completion_replicate_llama3_streaming(sync_mode):
             # Add any assertions here to check the response
             has_finish_reason = False
             idx = 0
-            final_chunk: Optional[litellm.ModelResponse] = None
+            final_chunk: Optional[gateway.ModelResponse] = None
             async for chunk in response:
                 final_chunk = chunk
                 chunk, finished = streaming_format_tests(idx, chunk)
@@ -1126,7 +1126,7 @@ async def test_completion_replicate_llama3_streaming(sync_mode):
                 raise Exception("finish reason not set")
             if complete_response.strip() == "":
                 raise Exception("Empty response received")
-    except litellm.UnprocessableEntityError as e:
+    except gateway.UnprocessableEntityError as e:
         pass
     except Exception as e:
         pytest.fail(f"Error occurred: {e}")
@@ -1180,10 +1180,10 @@ async def test_completion_replicate_llama3_streaming(sync_mode):
 @pytest.mark.flaky(retries=3, delay=1)
 async def test_bedrock_httpx_streaming(sync_mode, model, region):
     try:
-        litellm.set_verbose = True
+        gateway.set_verbose = True
         if sync_mode:
-            final_chunk: Optional[litellm.ModelResponse] = None
-            response: litellm.CustomStreamWrapper = completion(  # type: ignore
+            final_chunk: Optional[gateway.ModelResponse] = None
+            response: gateway.CustomStreamWrapper = completion(  # type: ignore
                 model=model,
                 messages=messages,
                 max_tokens=10,  # type: ignore
@@ -1205,7 +1205,7 @@ async def test_bedrock_httpx_streaming(sync_mode, model, region):
             if complete_response.strip() == "":
                 raise Exception("Empty response received")
         else:
-            response: litellm.CustomStreamWrapper = await litellm.acompletion(  # type: ignore
+            response: gateway.CustomStreamWrapper = await gateway.acompletion(  # type: ignore
                 model=model,
                 messages=messages,
                 max_tokens=100,  # type: ignore
@@ -1216,7 +1216,7 @@ async def test_bedrock_httpx_streaming(sync_mode, model, region):
             # Add any assertions here to check the response
             has_finish_reason = False
             idx = 0
-            final_chunk: Optional[litellm.ModelResponse] = None
+            final_chunk: Optional[gateway.ModelResponse] = None
             async for chunk in response:
                 final_chunk = chunk
                 chunk, finished = streaming_format_tests(idx, chunk)
@@ -1233,7 +1233,7 @@ async def test_bedrock_httpx_streaming(sync_mode, model, region):
     except RateLimitError as e:
         print("got rate limit error=", e)
         pass
-    except litellm.Timeout:
+    except gateway.Timeout:
         pass
     except Exception as e:
         pytest.fail(f"Error occurred: {e}")
@@ -1241,7 +1241,7 @@ async def test_bedrock_httpx_streaming(sync_mode, model, region):
 
 def test_bedrock_claude_3_streaming():
     try:
-        litellm.set_verbose = True
+        gateway.set_verbose = True
         response: ModelResponse = completion(  # type: ignore
             model="bedrock/us.anthropic.claude-sonnet-4-5-20250929-v1:0",
             messages=messages,
@@ -1285,14 +1285,14 @@ async def test_parallel_streaming_requests(sync_mode, model):
     try:
         import threading
 
-        litellm.set_verbose = True
+        gateway.set_verbose = True
         messages = [
             {"role": "system", "content": "Be helpful"},
             {"role": "user", "content": "What do you know?"},
         ]
 
         def sync_test_streaming():
-            response: litellm.CustomStreamWrapper = litellm.completion(  # type: ignore
+            response: gateway.CustomStreamWrapper = gateway.completion(  # type: ignore
                 model=model,
                 messages=messages,
                 stream=True,
@@ -1310,7 +1310,7 @@ async def test_parallel_streaming_requests(sync_mode, model):
             assert num_finish_reason == 1
 
         async def test_streaming():
-            response: litellm.CustomStreamWrapper = await litellm.acompletion(  # type: ignore
+            response: gateway.CustomStreamWrapper = await gateway.acompletion(  # type: ignore
                 model=model,
                 messages=messages,
                 stream=True,
@@ -1346,14 +1346,14 @@ async def test_parallel_streaming_requests(sync_mode, model):
 
     except RateLimitError:
         pass
-    except litellm.Timeout:
+    except gateway.Timeout:
         pass
-    except litellm.ServiceUnavailableError as e:
+    except gateway.ServiceUnavailableError as e:
         if model == "predibase/llama-3-8b-instruct":
             pass
         else:
             pytest.fail(f"Service Unavailable Error got{str(e)}")
-    except litellm.InternalServerError as e:
+    except gateway.InternalServerError as e:
         if "predibase" in str(e).lower():
             # only skip internal server error from predibase - their endpoint seems quite unstable
             pass
@@ -1404,7 +1404,7 @@ def test_completion_replicate_stream_bad_key():
 @pytest.mark.skip(reason="model end of life")
 def test_completion_bedrock_ai21_stream():
     try:
-        litellm.set_verbose = False
+        gateway.set_verbose = False
         response = completion(
             model="bedrock/ai21.j2-mid-v1",
             messages=[
@@ -1444,7 +1444,7 @@ def test_completion_bedrock_ai21_stream():
 
 def test_completion_bedrock_mistral_stream():
     try:
-        litellm.set_verbose = False
+        gateway.set_verbose = False
         response = completion(
             model="bedrock/mistral.mixtral-8x7b-instruct-v0:1",
             messages=[
@@ -1507,9 +1507,9 @@ def test_sagemaker_weird_response():
 
         # for token in token_iter:
         #     print(token)
-        litellm.set_verbose = True
+        gateway.set_verbose = True
 
-        logging_obj = litellm.Logging(
+        logging_obj = gateway.Logging(
             model="berri-benchmarking-Llama-2-70b-chat-hf-4",
             messages=messages,
             stream=True,
@@ -1518,7 +1518,7 @@ def test_sagemaker_weird_response():
             call_type="acompletion",
             start_time=time.time(),
         )
-        response = litellm.CustomStreamWrapper(
+        response = gateway.CustomStreamWrapper(
             completion_stream=token_iter,
             model="berri-benchmarking-Llama-2-70b-chat-hf-4",
             custom_llm_provider="sagemaker",
@@ -1546,7 +1546,7 @@ def test_sagemaker_weird_response():
 @pytest.mark.skip(reason="Account deleted by IBM.")
 @pytest.mark.asyncio
 async def test_completion_watsonx_stream():
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler
 
     try:
@@ -1573,7 +1573,7 @@ async def test_completion_watsonx_stream():
             raise Exception("finish reason not set for last chunk")
         if complete_response.strip() == "":
             raise Exception("Empty response received")
-    except litellm.RateLimitError as e:
+    except gateway.RateLimitError as e:
         pass
     except Exception as e:
         pytest.fail(f"Error occurred: {e}")
@@ -1626,7 +1626,7 @@ async def test_hf_completion_tgi_stream():
                 break
             idx += 1
         print(f"completion_response: {complete_response}")
-    except litellm.ServiceUnavailableError as e:
+    except gateway.ServiceUnavailableError as e:
         pass
     except Exception as e:
         pytest.fail(f"Error occurred: {e}")
@@ -1688,8 +1688,8 @@ async def test_hf_completion_tgi_stream():
 
 # test on openai completion call
 def test_openai_chat_completion_call():
-    litellm.set_verbose = False
-    litellm.return_response_headers = True
+    gateway.set_verbose = False
+    gateway.return_response_headers = True
     response = completion(model="gpt-3.5-turbo", messages=messages, stream=True)
     assert isinstance(
         response._hidden_params["additional_headers"][
@@ -1746,12 +1746,12 @@ def test_openai_chat_completion_complete_response_call():
 @pytest.mark.asyncio
 @pytest.mark.flaky(retries=6, delay=10)
 async def test_openai_stream_options_call(model, sync):
-    litellm.enable_preview_features = True
-    litellm.set_verbose = True
+    gateway.enable_preview_features = True
+    gateway.set_verbose = True
     usage = None
     chunks = []
     if sync:
-        response = litellm.completion(
+        response = gateway.completion(
             model=model,
             messages=[
                 {"role": "user", "content": "say GM - we're going to make it "},
@@ -1763,7 +1763,7 @@ async def test_openai_stream_options_call(model, sync):
             print("chunk: ", chunk)
             chunks.append(chunk)
     else:
-        response = await litellm.acompletion(
+        response = await gateway.acompletion(
             model=model,
             messages=[{"role": "user", "content": "say GM - we're going to make it "}],
             stream=True,
@@ -1784,7 +1784,7 @@ async def test_openai_stream_options_call(model, sync):
     """
 
     assert last_chunk.usage is not None
-    assert isinstance(last_chunk.usage, litellm.Usage)
+    assert isinstance(last_chunk.usage, gateway.Usage)
     assert last_chunk.usage.total_tokens > 0
     assert last_chunk.usage.prompt_tokens > 0
     assert last_chunk.usage.completion_tokens > 0
@@ -1805,10 +1805,10 @@ async def test_openai_stream_options_call(model, sync):
 
 
 def test_openai_stream_options_call_text_completion():
-    litellm.set_verbose = False
+    gateway.set_verbose = False
     for idx in range(3):
         try:
-            response = litellm.text_completion(
+            response = gateway.text_completion(
                 model="gpt-3.5-turbo-instruct",
                 prompt="say GM - we're going to make it ",
                 stream=True,
@@ -1847,7 +1847,7 @@ def test_openai_stream_options_call_text_completion():
 
 def test_openai_text_completion_call():
     try:
-        litellm.set_verbose = True
+        gateway.set_verbose = True
         response = completion(
             model="gpt-3.5-turbo-instruct", messages=messages, stream=True
         )
@@ -1874,7 +1874,7 @@ def test_openai_text_completion_call():
 # # test on together ai completion call - starcoder
 def test_together_ai_completion_call_mistral():
     try:
-        litellm.set_verbose = False
+        gateway.set_verbose = False
         start_time = time.time()
         response = completion(
             model="together_ai/mistralai/Mistral-7B-Instruct-v0.2",
@@ -1957,7 +1957,7 @@ def test_completion_openai_with_functions():
         }
     ]
     try:
-        litellm.set_verbose = False
+        gateway.set_verbose = False
         response = completion(
             model="gpt-3.5-turbo-1106",
             messages=[{"role": "user", "content": "what's the weather in SF"}],
@@ -2096,7 +2096,7 @@ first_openai_function_call_example = {
 
 
 def validate_first_function_call_chunk_structure(item):
-    if not (isinstance(item, dict) or isinstance(item, litellm.ModelResponse)):
+    if not (isinstance(item, dict) or isinstance(item, gateway.ModelResponse)):
         raise Exception(f"Incorrect format, type of item: {type(item)}")
 
     required_keys = {"id", "object", "created", "model", "choices"}
@@ -2111,7 +2111,7 @@ def validate_first_function_call_chunk_structure(item):
     for choice in item["choices"]:
         if not (
             isinstance(choice, dict)
-            or isinstance(choice, litellm.utils.StreamingChoices)
+            or isinstance(choice, gateway.utils.StreamingChoices)
         ):
             raise Exception(f"Incorrect format, type of choice: {type(choice)}")
         for key in required_keys_in_choices_array:
@@ -2120,7 +2120,7 @@ def validate_first_function_call_chunk_structure(item):
 
         if not (
             isinstance(choice["delta"], dict)
-            or isinstance(choice["delta"], litellm.utils.Delta)
+            or isinstance(choice["delta"], gateway.utils.Delta)
         ):
             raise Exception(
                 f"Incorrect format, type of choice: {type(choice['delta'])}"
@@ -2203,7 +2203,7 @@ final_function_call_chunk_example = {
 
 
 def validate_final_function_call_chunk_structure(data):
-    if not (isinstance(data, dict) or isinstance(data, litellm.ModelResponse)):
+    if not (isinstance(data, dict) or isinstance(data, gateway.ModelResponse)):
         raise Exception("Incorrect format")
 
     required_keys = {"id", "object", "created", "model", "choices"}
@@ -2217,7 +2217,7 @@ def validate_final_function_call_chunk_structure(data):
     required_keys_in_choices_array = {"index", "delta", "finish_reason"}
     for choice in data["choices"]:
         if not (
-            isinstance(choice, dict) or isinstance(choice["delta"], litellm.utils.Delta)
+            isinstance(choice, dict) or isinstance(choice["delta"], gateway.utils.Delta)
         ):
             raise Exception("Incorrect format")
         for key in required_keys_in_choices_array:
@@ -2285,7 +2285,7 @@ def test_streaming_and_function_calling(model):
     messages = [{"role": "user", "content": "What is the weather like in Boston?"}]
     try:
         # litellm.set_verbose = True
-        response: litellm.CustomStreamWrapper = completion(
+        response: gateway.CustomStreamWrapper = completion(
             model=model,
             tools=tools,
             messages=messages,
@@ -2328,11 +2328,11 @@ def test_success_callback_streaming():
             }
         )
 
-    litellm.success_callback = [success_callback]
+    gateway.success_callback = [success_callback]
 
     messages = [{"role": "user", "content": "hello"}]
     print("TESTING LITELLM COMPLETION CALL")
-    response = litellm.completion(
+    response = gateway.completion(
         model="gpt-3.5-turbo",
         messages=messages,
         stream=True,
@@ -2594,15 +2594,15 @@ async def test_azure_astreaming_and_function_calling():
     ]
     from token_iq.gateway.caching.caching import Cache
 
-    litellm.cache = Cache(
+    gateway.cache = Cache(
         type="redis",
         host=os.environ["REDIS_HOST"],
         port=os.environ["REDIS_PORT"],
         password=os.environ["REDIS_PASSWORD"],
     )
     try:
-        litellm.set_verbose = True
-        response = await litellm.acompletion(
+        gateway.set_verbose = True
+        response = await gateway.acompletion(
             model="azure/gpt-4.1-mini",
             tools=tools,
             tool_choice="auto",
@@ -2633,7 +2633,7 @@ async def test_azure_astreaming_and_function_calling():
 
         ## CACHING TEST
         print("\n\nCACHING TESTS\n\n")
-        response = await litellm.acompletion(
+        response = await gateway.acompletion(
             model="azure/gpt-4.1-mini",
             tools=tools,
             tool_choice="auto",
@@ -2732,7 +2732,7 @@ def test_completion_claude_3_function_call_with_streaming():
 )  #
 @pytest.mark.asyncio
 async def test_acompletion_function_call_with_streaming(model):
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     tools = [
         {
             "type": "function",
@@ -2790,9 +2790,9 @@ async def test_acompletion_function_call_with_streaming(model):
                 validate_final_streaming_function_calling_chunk(chunk=chunk)
             idx += 1
         # raise Exception("it worked! ")
-    except litellm.InternalServerError as e:
+    except gateway.InternalServerError as e:
         pytest.skip(f"InternalServerError - {str(e)}")
-    except litellm.ServiceUnavailableError:
+    except gateway.ServiceUnavailableError:
         pass
     except Exception as e:
         pytest.fail(f"Error occurred: {e}")
@@ -2828,7 +2828,7 @@ def test_unit_test_custom_stream_wrapper():
     """
     Test if last streaming chunk ends with '?', if the message repeats itself.
     """
-    litellm.set_verbose = False
+    gateway.set_verbose = False
     chunk = {
         "id": "chatcmpl-123",
         "object": "chat.completion.chunk",
@@ -2839,15 +2839,15 @@ def test_unit_test_custom_stream_wrapper():
             {"index": 0, "delta": {"content": "How are you?"}, "finish_reason": "stop"}
         ],
     }
-    chunk = litellm.ModelResponseStream(**chunk)
+    chunk = gateway.ModelResponseStream(**chunk)
 
     completion_stream = ModelResponseIterator(model_response=chunk)
 
-    response = litellm.CustomStreamWrapper(
+    response = gateway.CustomStreamWrapper(
         completion_stream=completion_stream,
         model="gpt-3.5-turbo",
         custom_llm_provider="cached_response",
-        logging_obj=litellm.Logging(
+        logging_obj=gateway.Logging(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": "Hey"}],
             stream=True,
@@ -2869,8 +2869,8 @@ def test_unit_test_custom_stream_wrapper():
 @pytest.mark.parametrize(
     "loop_amount",
     [
-        litellm.REPEATED_STREAMING_CHUNK_LIMIT + 1,
-        litellm.REPEATED_STREAMING_CHUNK_LIMIT - 1,
+        gateway.REPEATED_STREAMING_CHUNK_LIMIT + 1,
+        gateway.REPEATED_STREAMING_CHUNK_LIMIT - 1,
     ],
 )
 @pytest.mark.parametrize(
@@ -2885,9 +2885,9 @@ def test_unit_test_custom_stream_wrapper_repeating_chunk(
 
     Test if request passes if model loop is below accepted limit
     """
-    litellm.set_verbose = False
+    gateway.set_verbose = False
     chunks = [
-        litellm.ModelResponseStream(
+        gateway.ModelResponseStream(
             id="chatcmpl-123",
             created=1694268190,
             model="gpt-3.5-turbo-0125",
@@ -2903,11 +2903,11 @@ def test_unit_test_custom_stream_wrapper_repeating_chunk(
     ] * loop_amount
     completion_stream = ModelResponseListIterator(model_responses=chunks)
 
-    response = litellm.CustomStreamWrapper(
+    response = gateway.CustomStreamWrapper(
         completion_stream=completion_stream,
         model="gpt-3.5-turbo",
         custom_llm_provider="cached_response",
-        logging_obj=litellm.Logging(
+        logging_obj=gateway.Logging(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": "Hey"}],
             stream=True,
@@ -2920,13 +2920,13 @@ def test_unit_test_custom_stream_wrapper_repeating_chunk(
 
     print(f"expected_chunk_fail: {expected_chunk_fail}")
 
-    if (loop_amount > litellm.REPEATED_STREAMING_CHUNK_LIMIT) and expected_chunk_fail:
+    if (loop_amount > gateway.REPEATED_STREAMING_CHUNK_LIMIT) and expected_chunk_fail:
         def _drain():
             for chunk in response:
                 continue
 
         with pytest.raises(
-            (litellm.InternalServerError, litellm.exceptions.MidStreamFallbackError)
+            (gateway.InternalServerError, gateway.exceptions.MidStreamFallbackError)
         ):
             _drain()
     else:
@@ -2988,11 +2988,11 @@ def test_unit_test_gemini_streaming_content_filter():
 
     completion_stream = ModelResponseListIterator(model_responses=chunks)
 
-    response = litellm.CustomStreamWrapper(
+    response = gateway.CustomStreamWrapper(
         completion_stream=completion_stream,
         model="gemini/gemini-1.5-pro",
         custom_llm_provider="gemini",
-        logging_obj=litellm.Logging(
+        logging_obj=gateway.Logging(
             model="gemini/gemini-1.5-pro",
             messages=[{"role": "user", "content": "Hey"}],
             stream=True,
@@ -3018,12 +3018,12 @@ def test_unit_test_custom_stream_wrapper_openai():
     """
     Test if last streaming chunk ends with '?', if the message repeats itself.
     """
-    litellm.set_verbose = False
+    gateway.set_verbose = False
     chunk = {
         "id": "chatcmpl-9mWtyDnikZZoB75DyfUzWUxiiE2Pi",
         "choices": [
-            litellm.utils.StreamingChoices(
-                delta=litellm.utils.Delta(
+            gateway.utils.StreamingChoices(
+                delta=gateway.utils.Delta(
                     content=None, function_call=None, role=None, tool_calls=None
                 ),
                 finish_reason="content_filter",
@@ -3037,15 +3037,15 @@ def test_unit_test_custom_stream_wrapper_openai():
         "system_fingerprint": None,
         "usage": None,
     }
-    chunk = litellm.ModelResponseStream(**chunk)
+    chunk = gateway.ModelResponseStream(**chunk)
 
     completion_stream = ModelResponseIterator(model_response=chunk)
 
-    response = litellm.CustomStreamWrapper(
+    response = gateway.CustomStreamWrapper(
         completion_stream=completion_stream,
         model="gpt-3.5-turbo",
         custom_llm_provider="azure",
-        logging_obj=litellm.Logging(
+        logging_obj=gateway.Logging(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": "Hey"}],
             stream=True,
@@ -3267,30 +3267,30 @@ def test_aamazing_unit_test_custom_stream_wrapper_n():
         },
     ]
 
-    litellm.set_verbose = True
+    gateway.set_verbose = True
 
     chunk_list = []
     for chunk in chunks:
-        new_chunk = litellm.ModelResponseStream(id=chunk["id"])
+        new_chunk = gateway.ModelResponseStream(id=chunk["id"])
         if "choices" in chunk and isinstance(chunk["choices"], list):
             print("INSIDE CHUNK CHOICES!")
             new_choices = []
             for choice in chunk["choices"]:
-                if isinstance(choice, litellm.utils.StreamingChoices):
+                if isinstance(choice, gateway.utils.StreamingChoices):
                     _new_choice = choice
                 elif isinstance(choice, dict):
-                    _new_choice = litellm.utils.StreamingChoices(**choice)
+                    _new_choice = gateway.utils.StreamingChoices(**choice)
                 new_choices.append(_new_choice)
             new_chunk.choices = new_choices
         chunk_list.append(new_chunk)
 
     completion_stream = ModelResponseListIterator(model_responses=chunk_list)
 
-    response = litellm.CustomStreamWrapper(
+    response = gateway.CustomStreamWrapper(
         completion_stream=completion_stream,
         model="gpt-4-0613",
         custom_llm_provider="cached_response",
-        logging_obj=litellm.Logging(
+        logging_obj=gateway.Logging(
             model="gpt-4-0613",
             messages=[{"role": "user", "content": "Hey"}],
             stream=True,
@@ -3335,7 +3335,7 @@ def test_unit_test_custom_stream_wrapper_function_call():
     """
     from token_iq.gateway.types.llms.openai import ChatCompletionDeltaChunk
 
-    litellm.set_verbose = False
+    gateway.set_verbose = False
     delta: ChatCompletionDeltaChunk = {
         "content": None,
         "role": "assistant",
@@ -3355,15 +3355,15 @@ def test_unit_test_custom_stream_wrapper_function_call():
         "system_fingerprint": "fp_44709d6fcb",
         "choices": [{"index": 0, "delta": delta, "finish_reason": "stop"}],
     }
-    chunk = litellm.ModelResponseStream(**chunk)
+    chunk = gateway.ModelResponseStream(**chunk)
 
     completion_stream = ModelResponseIterator(model_response=chunk)
 
-    response = litellm.CustomStreamWrapper(
+    response = gateway.CustomStreamWrapper(
         completion_stream=completion_stream,
         model="gpt-3.5-turbo",
         custom_llm_provider="cached_response",
-        logging_obj=litellm.core_utils.litellm_logging.Logging(
+        logging_obj=gateway.core_utils.litellm_logging.Logging(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": "Hey"}],
             stream=True,
@@ -3389,7 +3389,7 @@ def test_unit_test_custom_stream_wrapper_function_call():
         Usage,
     )
 
-    initial_model_response = litellm.ModelResponse(
+    initial_model_response = gateway.ModelResponse(
         id="chatcmpl-842826b6-75a1-4ed4-8a68-7655e60654b3",
         choices=[
             StreamingChoices(
@@ -3440,7 +3440,7 @@ def test_unit_test_perplexity_citations_chunk():
     """
     from token_iq.gateway.types.llms.openai import ChatCompletionDeltaChunk
 
-    litellm.set_verbose = False
+    gateway.set_verbose = False
     delta: ChatCompletionDeltaChunk = {
         "content": "B",
         "role": "assistant",
@@ -3465,15 +3465,15 @@ def test_unit_test_perplexity_citations_chunk():
             }
         ],
     }
-    chunk = litellm.ModelResponseStream(**chunk)
+    chunk = gateway.ModelResponseStream(**chunk)
 
     completion_stream = ModelResponseIterator(model_response=chunk)
 
-    response = litellm.CustomStreamWrapper(
+    response = gateway.CustomStreamWrapper(
         completion_stream=completion_stream,
         model="gpt-3.5-turbo",
         custom_llm_provider="cached_response",
-        logging_obj=litellm.core_utils.litellm_logging.Logging(
+        logging_obj=gateway.core_utils.litellm_logging.Logging(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": "Hey"}],
             stream=True,
@@ -3513,7 +3513,7 @@ def test_aastreaming_tool_calls_valid_json_str(model):
         vertex_location = "us-east5"
     else:
         vertex_location = None
-    litellm.set_verbose = False
+    gateway.set_verbose = False
     messages = [
         {"role": "user", "content": "Hit the snooze button."},
     ]
@@ -3532,7 +3532,7 @@ def test_aastreaming_tool_calls_valid_json_str(model):
         }
     ]
 
-    stream = litellm.completion(
+    stream = gateway.completion(
         model, messages, tools=tools, stream=True, vertex_location=vertex_location
     )
     chunks = [*stream]
@@ -3563,8 +3563,8 @@ def test_aastreaming_tool_calls_valid_json_str(model):
 
 
 def test_streaming_api_base():
-    litellm.set_verbose = False
-    stream = litellm.completion(
+    gateway.set_verbose = False
+    stream = gateway.completion(
         model="gpt-3.5-turbo",
         messages=[{"role": "user", "content": "Hey"}],
         stream=True,
@@ -3587,7 +3587,7 @@ def test_mock_response_iterator_tool_use():
         Choices,
     )
 
-    litellm.set_verbose = False
+    gateway.set_verbose = False
     response = ModelResponse(
         id="chatcmpl-Ai8KRI5vJPZXQ9SQvEJfTVuVqkyEZ",
         created=1735081811,
@@ -3650,7 +3650,7 @@ def test_reasoning_content_completion(model):
     # litellm.set_verbose = True
     try:
         # litellm._turn_on_debug()
-        resp = litellm.completion(
+        resp = gateway.completion(
             model=model,
             messages=[{"role": "user", "content": "Tell me a joke."}],
             stream=True,
@@ -3669,7 +3669,7 @@ def test_reasoning_content_completion(model):
                 reasoning_content_exists = True
                 break
         assert reasoning_content_exists
-    except litellm.Timeout:
+    except gateway.Timeout:
         pytest.skip("Model is timing out")
 
 
@@ -3700,7 +3700,7 @@ def test_streaming_with_cost_calculation():
     from token_iq.gateway.types.utils import Usage
     from typing import Optional
 
-    litellm.include_cost_in_streaming_usage = True
+    gateway.include_cost_in_streaming_usage = True
 
     ## Test 1: check if usage object can handle 'cost' field
     usage_object = Usage(
@@ -3715,7 +3715,7 @@ def test_streaming_with_cost_calculation():
 
     ## Test 2: check if usage object has 'cost' field when streaming
 
-    response = litellm.completion(
+    response = gateway.completion(
         model="gpt-4o-mini",
         messages=[{"role": "user", "content": "What is the capital of France?"}],
         stream=True,
@@ -3739,7 +3739,7 @@ def test_streaming_with_cost_calculation():
 
 
 def test_streaming_finish_reason():
-    litellm.set_verbose = False
+    gateway.set_verbose = False
 
     openai_finish_reason_idx: Optional[int] = None
     openai_last_chunk_idx: Optional[int] = None
@@ -3747,7 +3747,7 @@ def test_streaming_finish_reason():
     anthropic_last_chunk_idx: Optional[int] = None
 
     ## OpenAI
-    response = litellm.completion(
+    response = gateway.completion(
         model="gpt-4o-mini",
         messages=[{"role": "user", "content": "What is the capital of France?"}],
         stream=True,
@@ -3763,7 +3763,7 @@ def test_streaming_finish_reason():
     assert openai_finish_reason_idx > 0
 
     ## Anthropic
-    response = litellm.completion(
+    response = gateway.completion(
         model="anthropic/claude-sonnet-4-5-20250929",
         messages=[{"role": "user", "content": "What is the capital of France?"}],
         stream=True,

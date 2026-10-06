@@ -9,7 +9,7 @@ if TYPE_CHECKING:
 
 
 def initialize_guardrail(litellm_params: "LitellmParams", guardrail: "Guardrail"):
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.proxy.guardrails.guardrail_hooks.model_armor import (
         ModelArmorGuardrail,
     )
@@ -29,7 +29,7 @@ def initialize_guardrail(litellm_params: "LitellmParams", guardrail: "Guardrail"
         skip_unscannable_attachments=litellm_params.skip_unscannable_attachments,
         sanitize_error_detail=litellm_params.sanitize_error_detail,
     )
-    litellm.logging_callback_manager.add_litellm_callback(_model_armor_callback)
+    gateway.logging_callback_manager.add_litellm_callback(_model_armor_callback)
 
     return _model_armor_callback
 

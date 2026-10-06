@@ -10,7 +10,7 @@ import os
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 
 @pytest.mark.asyncio
@@ -26,7 +26,7 @@ async def test_a2a_completion_async_non_streaming():
     api_base = os.environ.get("A2A_API_BASE", "http://0.0.0.0:9999")
 
     try:
-        response = await litellm.acompletion(
+        response = await gateway.acompletion(
             model="a2a/test-agent",
             messages=[{"role": "user", "content": "Hello"}],
             api_base=api_base,
@@ -37,7 +37,7 @@ async def test_a2a_completion_async_non_streaming():
         assert response is not None, "Expected non-None response"
         print(f"✅ Async non-streaming test passed")
 
-    except litellm.exceptions.APIConnectionError as e:
+    except gateway.exceptions.APIConnectionError as e:
         pytest.skip(f"A2A agent not reachable at {api_base}: {e}")
     except Exception as e:
         pytest.fail(f"Error occurred: {e}")
@@ -53,7 +53,7 @@ async def test_a2a_completion_async_streaming():
     api_base = os.environ.get("A2A_API_BASE", "http://0.0.0.0:9999")
 
     try:
-        response = await litellm.acompletion(
+        response = await gateway.acompletion(
             model="a2a/test-agent",
             messages=[{"role": "user", "content": "Hello"}],
             api_base=api_base,
@@ -68,7 +68,7 @@ async def test_a2a_completion_async_streaming():
         assert len(chunks) > 0, "Expected at least one chunk in streaming response"
         print(f"✅ Async streaming test passed: received {len(chunks)} chunks")
 
-    except litellm.exceptions.APIConnectionError as e:
+    except gateway.exceptions.APIConnectionError as e:
         pytest.skip(f"A2A agent not reachable at {api_base}: {e}")
     except Exception as e:
         pytest.fail(f"Error occurred: {e}")
@@ -83,7 +83,7 @@ def test_a2a_completion_sync():
     api_base = os.environ.get("A2A_API_BASE", "http://0.0.0.0:9999")
 
     try:
-        response = litellm.completion(
+        response = gateway.completion(
             model="a2a/test-agent",
             messages=[{"role": "user", "content": "Hello"}],
             api_base=api_base,
@@ -94,7 +94,7 @@ def test_a2a_completion_sync():
         assert response is not None, "Expected non-None response"
         print(f"✅ Sync non-streaming test passed")
 
-    except litellm.exceptions.APIConnectionError as e:
+    except gateway.exceptions.APIConnectionError as e:
         pytest.skip(f"A2A agent not reachable at {api_base}: {e}")
     except Exception as e:
         pytest.fail(f"Error occurred: {e}")
@@ -109,7 +109,7 @@ def test_a2a_completion_sync_streaming():
     api_base = os.environ.get("A2A_API_BASE", "http://0.0.0.0:9999")
 
     try:
-        response = litellm.completion(
+        response = gateway.completion(
             model="a2a/test-agent",
             messages=[{"role": "user", "content": "Hello"}],
             api_base=api_base,
@@ -124,7 +124,7 @@ def test_a2a_completion_sync_streaming():
         assert len(chunks) > 0, "Expected at least one chunk in streaming response"
         print(f"✅ Sync streaming test passed: received {len(chunks)} chunks")
 
-    except litellm.exceptions.APIConnectionError as e:
+    except gateway.exceptions.APIConnectionError as e:
         pytest.skip(f"A2A agent not reachable at {api_base}: {e}")
     except Exception as e:
         pytest.fail(f"Error occurred: {e}")

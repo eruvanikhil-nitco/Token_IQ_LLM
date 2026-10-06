@@ -7,7 +7,7 @@ from typing import cast
 import httpx
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.bedrock.image_edit.amazon_nova_canvas_image_edit_transformation import (
     BedrockAmazonNovaCanvasImageEditConfig,
     get_bedrock_image_edit_config_for_model,
@@ -32,11 +32,11 @@ def ensure_nova_canvas_image_edit_model_cost_flags(monkeypatch):
         "amazon.nova-canvas-v1:0",
         "us.amazon.nova-canvas-v1:0",
     ):
-        entry = litellm.model_cost.get(key) or {}
+        entry = gateway.model_cost.get(key) or {}
         if entry.get("supports_nova_canvas_image_edit") is True:
             continue
         monkeypatch.setitem(
-            litellm.model_cost,
+            gateway.model_cost,
             key,
             {
                 **entry,
@@ -113,7 +113,7 @@ def test_provider_config_manager_bedrock_nova_canvas():
 
     cfg = ProviderConfigManager.get_provider_image_edit_config(
         "amazon.nova-canvas-v1:0",
-        litellm.LlmProviders.BEDROCK,
+        gateway.LlmProviders.BEDROCK,
     )
     assert isinstance(cfg, BedrockAmazonNovaCanvasImageEditConfig)
 
@@ -124,7 +124,7 @@ def test_provider_config_manager_bedrock_stability_inpaint():
 
     cfg = ProviderConfigManager.get_provider_image_edit_config(
         "stability.stable-image-inpaint-v1:0",
-        litellm.LlmProviders.BEDROCK,
+        gateway.LlmProviders.BEDROCK,
     )
     assert isinstance(cfg, BedrockStabilityImageEditConfig)
 
@@ -135,7 +135,7 @@ def test_provider_config_manager_bedrock_unknown_raises():
     with pytest.raises(ValueError, match="Unsupported Bedrock image-edit model"):
         ProviderConfigManager.get_provider_image_edit_config(
             "amazon.titan-image-generator-v1",
-            litellm.LlmProviders.BEDROCK,
+            gateway.LlmProviders.BEDROCK,
         )
 
 
@@ -148,7 +148,7 @@ def test_provider_config_manager_bedrock_dispatches_to_nova_transform_outpaintin
 
     cfg = ProviderConfigManager.get_provider_image_edit_config(
         "amazon.nova-canvas-v1:0",
-        litellm.LlmProviders.BEDROCK,
+        gateway.LlmProviders.BEDROCK,
     )
     assert cfg is not None
     img = io.BytesIO(b"scene")
@@ -486,7 +486,7 @@ def test_is_nova_canvas_image_edit_model_uses_model_cost_flag(monkeypatch):
     """Routing uses supports_nova_canvas_image_edit in model_cost, not a hardcoded name substring."""
     fake_id = "amazon.custom-bedrock-image-edit-v99:0"
     monkeypatch.setitem(
-        litellm.model_cost,
+        gateway.model_cost,
         fake_id,
         {
             "litellm_provider": "bedrock",
@@ -500,7 +500,7 @@ def test_is_nova_canvas_image_edit_model_uses_model_cost_flag(monkeypatch):
     )
 
     monkeypatch.setitem(
-        litellm.model_cost,
+        gateway.model_cost,
         "amazon.not-nova-canvas-v1:0",
         {
             "litellm_provider": "bedrock",
@@ -516,7 +516,7 @@ def test_is_nova_canvas_image_edit_model_uses_model_cost_flag(monkeypatch):
 
     # Name-shaped ids do not route without supports_nova_canvas_image_edit (no substring heuristic).
     monkeypatch.setitem(
-        litellm.model_cost,
+        gateway.model_cost,
         "amazon.nova-canvas-v2:0",
         {
             "litellm_provider": "bedrock",

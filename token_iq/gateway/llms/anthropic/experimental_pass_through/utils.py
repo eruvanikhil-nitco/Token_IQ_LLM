@@ -3,7 +3,7 @@ from collections.abc import Mapping
 from types import MappingProxyType
 from typing import Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.types.utils import ModelInfo
 
 OPENAI_MAX_PROMPT_CACHE_KEY_LENGTH: Final = 64
@@ -31,7 +31,7 @@ def local_model_name(model: str, custom_llm_provider: object) -> str:
 
 def is_reasoning_auto_summary_enabled() -> bool:
     """Check whether the default 'summary: detailed' injection is enabled (opt-in)."""
-    return litellm.reasoning_auto_summary or os.getenv("LITELLM_REASONING_AUTO_SUMMARY", "false").lower() == "true"
+    return gateway.reasoning_auto_summary or os.getenv("LITELLM_REASONING_AUTO_SUMMARY", "false").lower() == "true"
 
 
 def normalize_reasoning_effort_value(

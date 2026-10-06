@@ -11,14 +11,14 @@ import pytest
 from pydantic import BaseModel
 
 import token_iq.gateway.core_utils
-from token_iq import gateway as litellm
+from token_iq import gateway
 import token_iq.gateway.core_utils.litellm_logging
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 from typing import Any, List, Literal, Optional, Tuple, Union
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import Cache, completion, embedding
 from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.types.utils import LiteLLMCommonStrings
@@ -54,7 +54,7 @@ def test_guardrail_masking_logging_only():
     callback = CustomLoggingIntegration()
 
     with patch.object(callback, "log_success_event", new=MagicMock()) as mock_call:
-        litellm.callbacks = [callback]
+        gateway.callbacks = [callback]
         messages = [{"role": "user", "content": "Hey, my name is Peter."}]
         response = completion(
             model="gpt-5-mini", messages=messages, mock_response="Hi Peter!"

@@ -15,7 +15,7 @@ load_dotenv()
 import asyncio
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 import json
 import tempfile
 from base_image_generation_test import BaseImageGenTest

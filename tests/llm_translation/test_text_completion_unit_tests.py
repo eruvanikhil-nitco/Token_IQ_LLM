@@ -7,7 +7,7 @@ from respx import MockRouter
 from unittest.mock import patch, MagicMock
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.types.utils import TextCompletionResponse
 
 
@@ -71,8 +71,8 @@ def test_convert_dict_to_text_completion_response():
 @pytest.mark.respx
 async def test_huggingface_text_completion_logprobs():
     """Test text completion with Hugging Face, focusing on logprobs structure"""
-    litellm.set_verbose = True
-    litellm.disable_aiohttp_transport = (
+    gateway.set_verbose = True
+    gateway.disable_aiohttp_transport = (
         True  # since this uses respx, we need to set use_aiohttp_transport to False
     )
     from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler, AsyncHTTPHandler
@@ -99,7 +99,7 @@ async def test_huggingface_text_completion_logprobs():
 
     client = AsyncHTTPHandler()
     with patch.object(client, "post", return_value=return_val) as mock_post:
-        response = await litellm.atext_completion(
+        response = await gateway.atext_completion(
             model="huggingface/mistralai/Mistral-7B-Instruct-v0.3",
             prompt="good morning",
             client=client,

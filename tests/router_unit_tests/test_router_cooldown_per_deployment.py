@@ -8,7 +8,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import Router
 from token_iq.gateway.caching.dual_cache import DualCache
 from token_iq.gateway.caching.in_memory_cache import InMemoryCache
@@ -54,7 +54,7 @@ class TestDeploymentLevelAllowedFails:
             allowed_fails=10,
         )
 
-        _exception = litellm.RateLimitError("Rate limit", "openai", "gpt-4")
+        _exception = gateway.RateLimitError("Rate limit", "openai", "gpt-4")
         should_cooldown = _should_cooldown_deployment(
             litellm_router_instance=router,
             deployment="primary",
@@ -88,7 +88,7 @@ class TestDeploymentLevelAllowedFails:
             allowed_fails=10,
         )
 
-        _exception = litellm.RateLimitError("Rate limit", "openai", "gpt-4")
+        _exception = gateway.RateLimitError("Rate limit", "openai", "gpt-4")
         should_cooldown = _should_cooldown_deployment(
             litellm_router_instance=router,
             deployment="secondary",
@@ -124,7 +124,7 @@ class TestDeploymentLevelAllowedFailsPolicyByExceptionType:
             allowed_fails=10,
         )
 
-        rate_limit_exc = litellm.RateLimitError("Rate limit", "openai", "gpt-4")
+        rate_limit_exc = gateway.RateLimitError("Rate limit", "openai", "gpt-4")
         should_cooldown = _should_cooldown_deployment(
             litellm_router_instance=router,
             deployment="primary",
@@ -155,7 +155,7 @@ class TestDeploymentLevelAllowedFailsPolicyByExceptionType:
             allowed_fails=10,
         )
 
-        ise = litellm.InternalServerError("Internal error", "openai", "gpt-4")
+        ise = gateway.InternalServerError("Internal error", "openai", "gpt-4")
 
         for _ in range(5):
             should_cooldown = _should_cooldown_deployment(
@@ -192,8 +192,8 @@ class TestExceptionTypeCountersTrackedIndependently:
             allowed_fails=10,
         )
 
-        rate_limit_exc = litellm.RateLimitError("Rate limit", "openai", "gpt-4")
-        ise = litellm.InternalServerError("Internal error", "openai", "gpt-4")
+        rate_limit_exc = gateway.RateLimitError("Rate limit", "openai", "gpt-4")
+        ise = gateway.InternalServerError("Internal error", "openai", "gpt-4")
 
         for _ in range(3):
             should_cooldown_based_on_allowed_fails_policy(
@@ -336,7 +336,7 @@ class TestFallbackDeploymentCooldown:
         mock_router.cooldown_time = 60.0
         mock_router.get_model_info.return_value = None
 
-        exc = litellm.RateLimitError("Rate limit", "openai", "gpt-4")
+        exc = gateway.RateLimitError("Rate limit", "openai", "gpt-4")
         exc.failed_deployment_id = "fallback-deployment"
 
         with patch("token_iq.gateway.router_utils.fallback_event_handlers._set_cooldown_deployments") as mock_set_cooldown:
@@ -378,7 +378,7 @@ class TestFallbackDeploymentCooldown:
         mock_router.cooldown_time = 60.0
         mock_router.get_model_info.return_value = None
 
-        exc = litellm.RateLimitError("Rate limit", "openai", "gpt-4")
+        exc = gateway.RateLimitError("Rate limit", "openai", "gpt-4")
         kwargs = {
             "metadata": {
                 "model_info": {"id": "attacker-chosen-deployment"},
@@ -405,7 +405,7 @@ class TestFallbackDeploymentCooldown:
         mock_router.cooldown_time = 60.0
         mock_router.get_model_info.return_value = None
 
-        exc = litellm.RateLimitError("Rate limit", "openai", "gpt-4")
+        exc = gateway.RateLimitError("Rate limit", "openai", "gpt-4")
         exc.failed_deployment_id = "fallback-deployment"
 
         with (
@@ -430,7 +430,7 @@ class TestFallbackDeploymentCooldown:
         mock_router.cooldown_time = 300.0
         mock_router.get_model_info.return_value = {"model_info": {"cooldown_time": 30.0}}
 
-        exc = litellm.RateLimitError("Rate limit", "openai", "gpt-4")
+        exc = gateway.RateLimitError("Rate limit", "openai", "gpt-4")
         exc.failed_deployment_id = "fallback-deployment"
 
         with patch("token_iq.gateway.router_utils.fallback_event_handlers._set_cooldown_deployments") as mock_set_cooldown:
@@ -455,7 +455,7 @@ class TestFallbackDeploymentCooldown:
         mock_router.cooldown_time = 60.0
         mock_router.get_model_info.return_value = None
 
-        exc = litellm.RateLimitError("Rate limit", "openai", "gpt-4")
+        exc = gateway.RateLimitError("Rate limit", "openai", "gpt-4")
         exc.failed_deployment_id = "fallback-deployment"
         mark_advisor_orchestration_failure(exc)
 
@@ -479,7 +479,7 @@ class TestFallbackDeploymentCooldown:
         mock_router.cooldown_time = 300.0
         mock_router.get_model_info.return_value = {"litellm_params": {"cooldown_time": 30.0}}
 
-        exc = litellm.RateLimitError("Rate limit", "openai", "gpt-4")
+        exc = gateway.RateLimitError("Rate limit", "openai", "gpt-4")
         exc.failed_deployment_id = "fallback-deployment"
 
         with patch("token_iq.gateway.router_utils.fallback_event_handlers._set_cooldown_deployments") as mock_set_cooldown:
@@ -502,7 +502,7 @@ class TestFallbackDeploymentCooldown:
             "litellm_params": {"cooldown_time": 30.0},
         }
 
-        exc = litellm.RateLimitError("Rate limit", "openai", "gpt-4")
+        exc = gateway.RateLimitError("Rate limit", "openai", "gpt-4")
         exc.failed_deployment_id = "fallback-deployment"
 
         with patch("token_iq.gateway.router_utils.fallback_event_handlers._set_cooldown_deployments") as mock_set_cooldown:
@@ -565,7 +565,7 @@ class TestSingleDeploymentModelGroupProtection:
             ],
         )
 
-        exc = litellm.RateLimitError("Rate limit", "openai", "gpt-4")
+        exc = gateway.RateLimitError("Rate limit", "openai", "gpt-4")
         should_cooldown = _should_cooldown_deployment(
             litellm_router_instance=router,
             deployment="solo",
@@ -594,7 +594,7 @@ class TestShouldCooldownBasedOnAllowedFailsPolicyFalsyZero:
             allowed_fails_policy=AllowedFailsPolicy(RateLimitErrorAllowedFails=0),
         )
 
-        exc = litellm.RateLimitError("Rate limit", "openai", "gpt-4")
+        exc = gateway.RateLimitError("Rate limit", "openai", "gpt-4")
         should_cooldown = should_cooldown_based_on_allowed_fails_policy(
             litellm_router_instance=router,
             deployment="primary",
@@ -615,7 +615,7 @@ class TestResolveAllowedFailsFromPolicyFallsThrough:
             "ContentPolicyViolationErrorAllowedFails": None,
             "BadRequestErrorAllowedFails": 3,
         }
-        exc = litellm.ContentPolicyViolationError("flagged", "openai", "gpt-4")
+        exc = gateway.ContentPolicyViolationError("flagged", "openai", "gpt-4")
         result = _resolve_allowed_fails_from_policy(policy=policy, exception=exc)
         assert result == 3, "must fall through to BadRequestErrorAllowedFails when the more specific field is unset"
 
@@ -637,7 +637,7 @@ class TestDeploymentCallbackOnFailureCooldownTimePrecedence:
             ],
         )
 
-        exc = litellm.RateLimitError("Rate limit", "openai", "gpt-4")
+        exc = gateway.RateLimitError("Rate limit", "openai", "gpt-4")
         kwargs = {
             "exception": exc,
             "litellm_params": {
@@ -672,7 +672,7 @@ class TestDeploymentCallbackOnFailureCooldownTimePrecedence:
             ],
         )
 
-        exc = litellm.RateLimitError("Rate limit", "openai", "gpt-4")
+        exc = gateway.RateLimitError("Rate limit", "openai", "gpt-4")
         kwargs = {
             "exception": exc,
             "litellm_params": {
@@ -699,7 +699,7 @@ class TestNewAllowedFailsPolicyFields:
         ServiceUnavailableError must be matched against ServiceUnavailableErrorAllowedFails.
         """
         policy = {"ServiceUnavailableErrorAllowedFails": 0}
-        exc = litellm.ServiceUnavailableError("Service unavailable", "openai", "gpt-4")
+        exc = gateway.ServiceUnavailableError("Service unavailable", "openai", "gpt-4")
         result = _resolve_allowed_fails_from_policy(policy=policy, exception=exc)
         assert result == 0
 
@@ -708,7 +708,7 @@ class TestNewAllowedFailsPolicyFields:
         BadGatewayError must be matched against BadGatewayErrorAllowedFails.
         """
         policy = {"BadGatewayErrorAllowedFails": 2}
-        exc = litellm.BadGatewayError("Bad gateway", "openai", "gpt-4")
+        exc = gateway.BadGatewayError("Bad gateway", "openai", "gpt-4")
         result = _resolve_allowed_fails_from_policy(policy=policy, exception=exc)
         assert result == 2
 
@@ -717,7 +717,7 @@ class TestNewAllowedFailsPolicyFields:
         NotFoundError must be matched against NotFoundErrorAllowedFails.
         """
         policy = {"NotFoundErrorAllowedFails": 1}
-        exc = litellm.NotFoundError("Not found", "openai", "gpt-4")
+        exc = gateway.NotFoundError("Not found", "openai", "gpt-4")
         result = _resolve_allowed_fails_from_policy(policy=policy, exception=exc)
         assert result == 1
 
@@ -755,25 +755,25 @@ class TestRouterLevelGetAllowedFailsFromPolicy:
 
     def test_internal_server_error_returned(self):
         router = self._make_router(InternalServerErrorAllowedFails=7)
-        exc = litellm.InternalServerError("500 error", "openai", "gpt-4")
+        exc = gateway.InternalServerError("500 error", "openai", "gpt-4")
         assert router.get_allowed_fails_from_policy(exc) == 7
 
     def test_service_unavailable_error_returned(self):
         router = self._make_router(ServiceUnavailableErrorAllowedFails=4)
-        exc = litellm.ServiceUnavailableError("503 error", "openai", "gpt-4")
+        exc = gateway.ServiceUnavailableError("503 error", "openai", "gpt-4")
         assert router.get_allowed_fails_from_policy(exc) == 4
 
     def test_bad_gateway_error_returned(self):
         router = self._make_router(BadGatewayErrorAllowedFails=2)
-        exc = litellm.BadGatewayError("502 error", "openai", "gpt-4")
+        exc = gateway.BadGatewayError("502 error", "openai", "gpt-4")
         assert router.get_allowed_fails_from_policy(exc) == 2
 
     def test_not_found_error_returned(self):
         router = self._make_router(NotFoundErrorAllowedFails=1)
-        exc = litellm.NotFoundError("404 error", "openai", "gpt-4")
+        exc = gateway.NotFoundError("404 error", "openai", "gpt-4")
         assert router.get_allowed_fails_from_policy(exc) == 1
 
     def test_unmatched_exception_returns_none(self):
         router = self._make_router(InternalServerErrorAllowedFails=5)
-        exc = litellm.RateLimitError("429", "openai", "gpt-4")
+        exc = gateway.RateLimitError("429", "openai", "gpt-4")
         assert router.get_allowed_fails_from_policy(exc) is None

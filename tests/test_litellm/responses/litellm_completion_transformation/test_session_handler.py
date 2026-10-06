@@ -5,7 +5,7 @@ import pytest
 from fastapi import HTTPException
 from fastapi.testclient import TestClient
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.responses.litellm_completion_transformation import session_handler
 from token_iq.gateway.responses.litellm_completion_transformation.session_handler import (
     ResponsesSessionHandler,
@@ -377,7 +377,7 @@ async def test_should_check_cold_storage_for_full_payload():
         assert result4 == True, "Should return True for None proxy request"
 
     # Test case 5: Should return False when cold storage is not configured
-    with patch.object(litellm, "cold_storage_custom_logger", None):
+    with patch.object(gateway, "cold_storage_custom_logger", None):
         result5 = ResponsesSessionHandler._should_check_cold_storage_for_full_payload(
             proxy_request_with_truncated_pdf
         )
@@ -483,7 +483,7 @@ def _spend_log(request_id: str, session_id: str, prompt: str, answer: str) -> di
 
 @pytest.fixture
 def instant_session_lookup_retries(monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(litellm.constants, "RESPONSES_SESSION_LOOKUP_RETRY_INTERVAL", 0.0)
+    monkeypatch.setattr(gateway.constants, "RESPONSES_SESSION_LOOKUP_RETRY_INTERVAL", 0.0)
 
 
 @pytest.mark.asyncio
@@ -594,7 +594,7 @@ async def test_session_lookup_stops_retrying_once_the_budget_is_spent(
         )
 
     assert spend_logs == []
-    assert len(fake_prisma_client.db.calls) == litellm.constants.RESPONSES_SESSION_LOOKUP_MAX_ATTEMPTS
+    assert len(fake_prisma_client.db.calls) == gateway.constants.RESPONSES_SESSION_LOOKUP_MAX_ATTEMPTS
 
 
 @pytest.mark.asyncio

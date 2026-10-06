@@ -12,7 +12,7 @@ from unittest.mock import Mock, patch
 import httpx
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.get_llm_provider_logic import get_llm_provider
 from token_iq.gateway.llms.openai.cost_calculation import video_generation_cost
 from token_iq.gateway.llms.vertex_ai.videos.transformation import (
@@ -116,7 +116,7 @@ class TestVertexAIVideoConfig:
     def test_get_complete_url_missing_project(self, monkeypatch):
         """Test that missing vertex_project raises error."""
         monkeypatch.delenv("VERTEXAI_PROJECT", raising=False)
-        monkeypatch.setattr(litellm, "vertex_project", None)
+        monkeypatch.setattr(gateway, "vertex_project", None)
 
         with pytest.raises(ValueError, match="vertex_project is required"):
             self.config.get_complete_url(
@@ -158,7 +158,7 @@ class TestVertexAIVideoConfig:
             for model_name, info in model_cost.items()
             if info.get("litellm_provider") == "vertex_ai-video-models"
         }
-        monkeypatch.setattr(litellm, "vertex_ai_video_models", vertex_video_models)
+        monkeypatch.setattr(gateway, "vertex_ai_video_models", vertex_video_models)
 
         model, custom_llm_provider, _, _ = get_llm_provider(
             model="veo-3.1-lite-generate-001"
@@ -301,7 +301,7 @@ class TestVertexAIVideoConfig:
     ):
         model_cost = _load_model_cost_map(BACKUP_MODEL_COST_PATH)
         monkeypatch.setitem(
-            litellm.model_cost,
+            gateway.model_cost,
             VEO_31_LITE_VERTEX_MODEL,
             dict(model_cost[VEO_31_LITE_VERTEX_MODEL]),
         )
@@ -331,7 +331,7 @@ class TestVertexAIVideoConfig:
         model = "veo-3.1-generate-001"
         model_key = f"vertex_ai/{model}"
         model_cost = _load_model_cost_map(BACKUP_MODEL_COST_PATH)
-        monkeypatch.setitem(litellm.model_cost, model_key, dict(model_cost[model_key]))
+        monkeypatch.setitem(gateway.model_cost, model_key, dict(model_cost[model_key]))
 
         mapped = self.config.map_openai_params(
             video_create_optional_params={"size": "1920x1080"},

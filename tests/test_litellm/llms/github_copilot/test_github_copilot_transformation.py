@@ -10,11 +10,11 @@ import pytest
 import httpx
 from respx import MockRouter
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 # Import at the top to make the patch work correctly
 import token_iq.gateway.llms.github_copilot.chat.transformation
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import Choices, Message, ModelResponse, Usage, acompletion, completion
 from token_iq.gateway.exceptions import AuthenticationError
 from token_iq.gateway.llms.github_copilot.authenticator import Authenticator
@@ -146,14 +146,14 @@ def test_completion_github_copilot_mock_response(
 
 def test_transform_messages_disable_copilot_system_to_assistant(monkeypatch):
     """Test that system messages are converted to assistant unless disable_copilot_system_to_assistant is True."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.llms.github_copilot.chat.transformation import GithubCopilotConfig
 
     # Save original value
-    original_flag = litellm.disable_copilot_system_to_assistant
+    original_flag = gateway.disable_copilot_system_to_assistant
     try:
         # Case 1: Flag is False (default, conversion happens)
-        litellm.disable_copilot_system_to_assistant = False
+        gateway.disable_copilot_system_to_assistant = False
         config = GithubCopilotConfig()
         messages = [
             {"role": "system", "content": "System message."},
@@ -166,7 +166,7 @@ def test_transform_messages_disable_copilot_system_to_assistant(monkeypatch):
         assert out[1]["role"] == "user"
 
         # Case 2: Flag is True (conversion does not happen)
-        litellm.disable_copilot_system_to_assistant = True
+        gateway.disable_copilot_system_to_assistant = True
         out = config._transform_messages(
             [m.copy() for m in messages], model="github_copilot/gpt-4"
         )
@@ -174,7 +174,7 @@ def test_transform_messages_disable_copilot_system_to_assistant(monkeypatch):
         assert out[1]["role"] == "user"
 
         # Case 3: Flag is False again (conversion happens)
-        litellm.disable_copilot_system_to_assistant = False
+        gateway.disable_copilot_system_to_assistant = False
         out = config._transform_messages(
             [m.copy() for m in messages], model="github_copilot/gpt-4"
         )
@@ -182,7 +182,7 @@ def test_transform_messages_disable_copilot_system_to_assistant(monkeypatch):
         assert out[1]["role"] == "user"
     finally:
         # Restore original value
-        litellm.disable_copilot_system_to_assistant = original_flag
+        gateway.disable_copilot_system_to_assistant = original_flag
 
 
 def test_x_initiator_header_user_request():

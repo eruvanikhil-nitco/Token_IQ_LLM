@@ -4,18 +4,18 @@ import json
 from dotenv import load_dotenv
 
 import token_iq.gateway.core_utils
-from token_iq import gateway as litellm
+from token_iq import gateway
 import token_iq.gateway.core_utils.prompt_templates
-from token_iq import gateway as litellm
+from token_iq import gateway
 import token_iq.gateway.core_utils.prompt_templates.factory
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 load_dotenv()
 from unittest.mock import MagicMock
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import get_optional_params
 from token_iq.gateway.llms.vertex_ai.gemini.transformation import _process_gemini_media
 from token_iq.gateway.types.llms.vertex_ai import BlobType
@@ -86,7 +86,7 @@ def test_completion_pydantic_obj_2():
     with patch.object(client, "post", new=MagicMock()) as mock_post:
         mock_post.return_value = expected_request_body
         try:
-            response = litellm.completion(
+            response = gateway.completion(
                 model="gemini/gemini-2.5-flash",
                 messages=messages,
                 response_format=EventsList,
@@ -259,7 +259,7 @@ def test_function_calling_with_gemini():
     client = HTTPHandler()
     with patch.object(client, "post", new=MagicMock()) as mock_post:
         try:
-            litellm.completion(
+            gateway.completion(
                 model="gemini/gemini-1.5-pro-002",
                 messages=[
                     {
@@ -371,7 +371,7 @@ def test_multiple_function_call():
     mock_response.json.return_value = response_body
 
     with patch.object(client, "post", return_value=mock_response) as mock_post:
-        r = litellm.completion(
+        r = gateway.completion(
             messages=messages,
             model="gemini/gemini-1.5-flash-002",
             api_key="test-api-key",
@@ -479,7 +479,7 @@ def test_multiple_function_call_changed_text_pos():
     mock_response.json.return_value = response_body
 
     with patch.object(client, "post", return_value=mock_response) as mock_post:
-        resp = litellm.completion(
+        resp = gateway.completion(
             messages=messages,
             model="gemini/gemini-1.5-flash-002",
             api_key="test-api-key",
@@ -598,7 +598,7 @@ def test_function_calling_with_gemini_multiple_results():
     mock_response.json.return_value = response_body
 
     with patch.object(client, "post", return_value=mock_response):
-        response = litellm.completion(
+        response = gateway.completion(
             model="gemini/gemini-1.5-flash-002",
             messages=messages,
             tools=tools,
@@ -1180,7 +1180,7 @@ def test_logprobs():
     mock_response.json.return_value = response_body
 
     with patch.object(client, "post", return_value=mock_response):
-        resp = litellm.completion(
+        resp = gateway.completion(
             model="gemini/gemini-1.5-flash-002",
             messages=[
                 {"role": "user", "content": "What's the weather like in San Francisco?"}
@@ -1448,7 +1448,7 @@ def test_aaavertex_embeddings_distances(
     with (
         patch.object(vertex_client, "post", return_value=mock_response),
         patch.object(
-            litellm.main.vertex_multimodal_embedding,
+            gateway.main.vertex_multimodal_embedding,
             "_ensure_access_token",
             side_effect=mock_auth_token,
         ),
@@ -1458,7 +1458,7 @@ def test_aaavertex_embeddings_distances(
                 "predictions": [{"imageEmbedding": mock_image_embeddings[idx]}]
             }
             mock_response.status_code = 200
-            response = litellm.embedding(
+            response = gateway.embedding(
                 model="vertex_ai/multimodalembedding@001",
                 input=[f"data:image/png;base64,{encoded_image}"],
                 client=vertex_client,
@@ -1478,12 +1478,12 @@ def test_aaavertex_embeddings_distances(
     with (
         patch.object(vertex_client, "post", return_value=text_mock_response),
         patch.object(
-            litellm.main.vertex_multimodal_embedding,
+            gateway.main.vertex_multimodal_embedding,
             "_ensure_access_token",
             side_effect=mock_auth_token,
         ),
     ):
-        text_response = litellm.embedding(
+        text_response = gateway.embedding(
             model="vertex_ai/multimodalembedding@001",
             input=[input_string],
             client=vertex_client,

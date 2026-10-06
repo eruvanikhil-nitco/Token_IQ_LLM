@@ -3,7 +3,7 @@
 import logging
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import completion_cost
 
 

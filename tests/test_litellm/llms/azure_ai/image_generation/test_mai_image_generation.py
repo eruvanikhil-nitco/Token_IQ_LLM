@@ -5,7 +5,7 @@ import httpx
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.azure.azure import AzureChatCompletion
 from token_iq.gateway.llms.azure.image_generation import get_azure_image_generation_config
 from token_iq.gateway.llms.azure.image_generation.http_utils import (
@@ -40,9 +40,9 @@ class TestAzureMAIImageGeneration:
 
     def test_mai_flash_and_2e_model_pricing_in_cost_map(self, monkeypatch):
         monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-        litellm.model_cost = litellm.get_model_cost_map()
+        gateway.model_cost = gateway.get_model_cost_map()
 
-        flash_info = litellm.get_model_info(
+        flash_info = gateway.get_model_info(
             model="azure_ai/MAI-Image-2.5-Flash",
             custom_llm_provider="azure_ai",
         )
@@ -50,7 +50,7 @@ class TestAzureMAIImageGeneration:
         assert flash_info["input_cost_per_image_token"] == 1.75e-06
         assert flash_info["output_cost_per_image_token"] == 3.3e-05
 
-        image_2e_info = litellm.get_model_info(
+        image_2e_info = gateway.get_model_info(
             model="azure_ai/MAI-Image-2e",
             custom_llm_provider="azure_ai",
         )
@@ -328,9 +328,9 @@ class TestAzureMAIImageGeneration:
 
     def test_mai_image_cost_calculator_token_based(self, monkeypatch):
         monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-        litellm.model_cost = litellm.get_model_cost_map()
+        gateway.model_cost = gateway.get_model_cost_map()
         model = "azure_ai/MAI-Image-2.5"
-        model_info = litellm.get_model_info(model=model, custom_llm_provider="azure_ai")
+        model_info = gateway.get_model_info(model=model, custom_llm_provider="azure_ai")
         input_text_tokens = 100
         output_image_tokens = 1024
 
@@ -360,9 +360,9 @@ class TestAzureMAIImageGeneration:
 
     def test_mai_image_cost_calculator_falls_back_to_flat_image_pricing(self, monkeypatch):
         monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-        litellm.model_cost = litellm.get_model_cost_map()
+        gateway.model_cost = gateway.get_model_cost_map()
         model = "azure_ai/MAI-Image-2.5"
-        model_info = litellm.get_model_info(model=model, custom_llm_provider="azure_ai")
+        model_info = gateway.get_model_info(model=model, custom_llm_provider="azure_ai")
         image_response = ImageResponse(
             data=[ImageObject(b64_json="img1"), ImageObject(b64_json="img2")]
         )

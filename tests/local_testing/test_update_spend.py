@@ -18,7 +18,7 @@ import logging
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import Router, mock_completion
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.caching.caching import DualCache
@@ -78,10 +78,10 @@ def prisma_client():
     )
 
     # Reset litellm.proxy.proxy_server.prisma_client to None
-    litellm.proxy.proxy_server.litellm_proxy_budget_name = (
+    gateway.proxy.proxy_server.litellm_proxy_budget_name = (
         f"litellm-proxy-budget-{time.time()}"
     )
-    litellm.proxy.proxy_server.user_custom_key_generate = None
+    gateway.proxy.proxy_server.user_custom_key_generate = None
 
     return prisma_client
 
@@ -96,11 +96,11 @@ async def test_batch_update_spend(prisma_client):
             response_cost=23,
         )
     )
-    setattr(litellm.proxy.proxy_server, "prisma_client", prisma_client)
-    setattr(litellm.proxy.proxy_server, "master_key", "sk-1234")
-    await litellm.proxy.proxy_server.prisma_client.connect()
+    setattr(gateway.proxy.proxy_server, "prisma_client", prisma_client)
+    setattr(gateway.proxy.proxy_server, "master_key", "sk-1234")
+    await gateway.proxy.proxy_server.prisma_client.connect()
     await update_spend(
-        prisma_client=litellm.proxy.proxy_server.prisma_client,
+        prisma_client=gateway.proxy.proxy_server.prisma_client,
         db_writer_client=None,
         proxy_logging_obj=proxy_logging_obj,
     )

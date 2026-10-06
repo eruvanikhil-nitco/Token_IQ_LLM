@@ -12,7 +12,7 @@ from fastapi import HTTPException
 from httpx import Response as HttpxResponse
 from pydantic import TypeAdapter
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.compression.compress import get_protected_indices
 from token_iq.gateway.integrations.custom_guardrail import (
@@ -556,7 +556,7 @@ class HeadroomGuardrail(CustomGuardrail):
                 False,
                 {},
             )
-        except (httpx.ConnectError, httpx.TimeoutException, httpx.TransportError, litellm.Timeout) as e:
+        except (httpx.ConnectError, httpx.TimeoutException, httpx.TransportError, gateway.Timeout) as e:
             return (
                 self._handle_compress_failure(
                     messages,
@@ -683,7 +683,7 @@ class HeadroomGuardrail(CustomGuardrail):
                 params=params,
                 headers=self._request_headers(),
             )
-        except (httpx.ConnectError, httpx.TimeoutException, httpx.TransportError, litellm.Timeout) as e:
+        except (httpx.ConnectError, httpx.TimeoutException, httpx.TransportError, gateway.Timeout) as e:
             verbose_proxy_logger.warning("Headroom: retrieve failed for hash=%s: %s", hash_value, e)
             return f"[Headroom: retrieval failed for hash={hash_value}]"
 

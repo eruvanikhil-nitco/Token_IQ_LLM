@@ -1,7 +1,7 @@
 import json
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.get_supported_openai_params import (
     get_supported_openai_params,
 )
@@ -155,7 +155,7 @@ def test_transform_inline_no_longer_added(content, expected_url):
     image_block = {"type": "image_url", **content}
     messages = [{"role": "user", "content": [image_block]}]
 
-    result = litellm.FireworksAIConfig()._transform_messages_helper(
+    result = gateway.FireworksAIConfig()._transform_messages_helper(
         messages=messages,
         model="accounts/fireworks/models/minimax-m3",
         litellm_params={},
@@ -173,20 +173,20 @@ def test_transform_inline_no_longer_added(content, expected_url):
 )
 def test_global_disable_flag_no_longer_adds_transform_inline(is_disabled):
     url = "http://example.com/image.png"
-    litellm.disable_add_transform_inline_image_block = is_disabled
+    gateway.disable_add_transform_inline_image_block = is_disabled
     messages = [
         {
             "role": "user",
             "content": [{"type": "image_url", "image_url": url}],
         }
     ]
-    result = litellm.FireworksAIConfig()._transform_messages_helper(
+    result = gateway.FireworksAIConfig()._transform_messages_helper(
         messages=messages,
         model="accounts/fireworks/models/minimax-m3",
         litellm_params={},
     )
     assert result[0]["content"][0]["image_url"] == url
-    litellm.disable_add_transform_inline_image_block = False  # Reset for other tests
+    gateway.disable_add_transform_inline_image_block = False  # Reset for other tests
 
 
 def test_global_disable_flag_with_transform_messages_helper(monkeypatch):
@@ -196,7 +196,7 @@ def test_global_disable_flag_with_transform_messages_helper(monkeypatch):
 
     client = HTTPHandler()
 
-    monkeypatch.setattr(litellm, "disable_add_transform_inline_image_block", True)
+    monkeypatch.setattr(gateway, "disable_add_transform_inline_image_block", True)
 
     with patch.object(
         client,

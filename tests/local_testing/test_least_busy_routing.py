@@ -12,7 +12,7 @@ load_dotenv()
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import Router
 from token_iq.gateway.caching.caching import DualCache
 from token_iq.gateway.router_strategy.least_busy import LeastBusyLoggingHandler
@@ -204,7 +204,7 @@ async def test_router_atext_completion_streaming():
 
 @pytest.mark.asyncio
 async def test_router_completion_streaming():
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     messages = [
         {"role": "user", "content": "Hello, can you generate a 500 words poem?"}
     ]

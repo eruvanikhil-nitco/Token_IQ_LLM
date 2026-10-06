@@ -9,9 +9,9 @@ from unittest.mock import ANY, AsyncMock, MagicMock, patch
 import pytest
 from fastapi import status
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 import token_iq.gateway.proxy.proxy_server
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.caching.dual_cache import DualCache
 from token_iq.gateway.proxy._types import (
     LiteLLMRoutes,
@@ -70,12 +70,12 @@ def test_get_api_key():
 
 
 def test_route_requires_auth_despite_public_for_metrics(monkeypatch):
-    monkeypatch.setattr(litellm, "require_auth_for_metrics_endpoint", True)
+    monkeypatch.setattr(gateway, "require_auth_for_metrics_endpoint", True)
 
     assert _route_requires_auth_despite_public("/metrics", {}) is True
     assert _route_requires_auth_despite_public("/metrics/", {}) is True
 
-    monkeypatch.setattr(litellm, "require_auth_for_metrics_endpoint", False)
+    monkeypatch.setattr(gateway, "require_auth_for_metrics_endpoint", False)
 
     assert _route_requires_auth_despite_public("/metrics", {}) is False
 
@@ -491,7 +491,7 @@ async def test_user_custom_auth_skips_post_custom_auth_checks_by_default():
     from fastapi import Request
     from starlette.datastructures import URL
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     import token_iq.gateway.proxy.proxy_server as _proxy_server_mod
     from token_iq.gateway.proxy._types import LitellmUserRoles
     from token_iq.gateway.proxy.auth.user_api_key_auth import _user_api_key_auth_builder
@@ -505,12 +505,12 @@ async def test_user_custom_auth_skips_post_custom_auth_checks_by_default():
 
     attrs = _proxy_server_attrs_for_custom_auth(user_custom_auth=mock_user_custom_auth)
     originals = {attr: getattr(_proxy_server_mod, attr, None) for attr in attrs}
-    original_flag = getattr(litellm, "enable_post_custom_auth_checks", False)
+    original_flag = getattr(gateway, "enable_post_custom_auth_checks", False)
 
     try:
         for attr, val in attrs.items():
             setattr(_proxy_server_mod, attr, val)
-        litellm.enable_post_custom_auth_checks = False  # explicit: documents default
+        gateway.enable_post_custom_auth_checks = False  # explicit: documents default
 
         with patch(
             "token_iq.gateway.proxy.auth.user_api_key_auth._run_post_custom_auth_checks",
@@ -535,7 +535,7 @@ async def test_user_custom_auth_skips_post_custom_auth_checks_by_default():
     finally:
         for attr, val in originals.items():
             setattr(_proxy_server_mod, attr, val)
-        litellm.enable_post_custom_auth_checks = original_flag
+        gateway.enable_post_custom_auth_checks = original_flag
 
 
 @pytest.mark.asyncio
@@ -549,7 +549,7 @@ async def test_user_custom_auth_runs_post_custom_auth_checks_when_opt_in():
     from fastapi import Request
     from starlette.datastructures import URL
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     import token_iq.gateway.proxy.proxy_server as _proxy_server_mod
     from token_iq.gateway.proxy._types import LitellmUserRoles
     from token_iq.gateway.proxy.auth.user_api_key_auth import _user_api_key_auth_builder
@@ -563,12 +563,12 @@ async def test_user_custom_auth_runs_post_custom_auth_checks_when_opt_in():
 
     attrs = _proxy_server_attrs_for_custom_auth(user_custom_auth=mock_user_custom_auth)
     originals = {attr: getattr(_proxy_server_mod, attr, None) for attr in attrs}
-    original_flag = getattr(litellm, "enable_post_custom_auth_checks", False)
+    original_flag = getattr(gateway, "enable_post_custom_auth_checks", False)
 
     try:
         for attr, val in attrs.items():
             setattr(_proxy_server_mod, attr, val)
-        litellm.enable_post_custom_auth_checks = True
+        gateway.enable_post_custom_auth_checks = True
 
         with patch(
             "token_iq.gateway.proxy.auth.user_api_key_auth._run_post_custom_auth_checks",
@@ -593,7 +593,7 @@ async def test_user_custom_auth_runs_post_custom_auth_checks_when_opt_in():
     finally:
         for attr, val in originals.items():
             setattr(_proxy_server_mod, attr, val)
-        litellm.enable_post_custom_auth_checks = original_flag
+        gateway.enable_post_custom_auth_checks = original_flag
 
 
 @pytest.mark.asyncio
@@ -606,7 +606,7 @@ async def test_enterprise_custom_auth_skips_post_custom_auth_checks_by_default()
     from fastapi import Request
     from starlette.datastructures import URL
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     import token_iq.gateway.proxy.proxy_server as _proxy_server_mod
     from token_iq.gateway.proxy._types import LitellmUserRoles
     from token_iq.gateway.proxy.auth.user_api_key_auth import _user_api_key_auth_builder
@@ -620,12 +620,12 @@ async def test_enterprise_custom_auth_skips_post_custom_auth_checks_by_default()
 
     attrs = _proxy_server_attrs_for_custom_auth(user_custom_auth=None)
     originals = {attr: getattr(_proxy_server_mod, attr, None) for attr in attrs}
-    original_flag = getattr(litellm, "enable_post_custom_auth_checks", False)
+    original_flag = getattr(gateway, "enable_post_custom_auth_checks", False)
 
     try:
         for attr, val in attrs.items():
             setattr(_proxy_server_mod, attr, val)
-        litellm.enable_post_custom_auth_checks = False
+        gateway.enable_post_custom_auth_checks = False
 
         with (
             patch(
@@ -656,7 +656,7 @@ async def test_enterprise_custom_auth_skips_post_custom_auth_checks_by_default()
     finally:
         for attr, val in originals.items():
             setattr(_proxy_server_mod, attr, val)
-        litellm.enable_post_custom_auth_checks = original_flag
+        gateway.enable_post_custom_auth_checks = original_flag
 
 
 @pytest.mark.asyncio
@@ -669,7 +669,7 @@ async def test_enterprise_custom_auth_runs_post_custom_auth_checks_when_opt_in()
     from fastapi import Request
     from starlette.datastructures import URL
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     import token_iq.gateway.proxy.proxy_server as _proxy_server_mod
     from token_iq.gateway.proxy._types import LitellmUserRoles
     from token_iq.gateway.proxy.auth.user_api_key_auth import _user_api_key_auth_builder
@@ -683,12 +683,12 @@ async def test_enterprise_custom_auth_runs_post_custom_auth_checks_when_opt_in()
 
     attrs = _proxy_server_attrs_for_custom_auth(user_custom_auth=None)
     originals = {attr: getattr(_proxy_server_mod, attr, None) for attr in attrs}
-    original_flag = getattr(litellm, "enable_post_custom_auth_checks", False)
+    original_flag = getattr(gateway, "enable_post_custom_auth_checks", False)
 
     try:
         for attr, val in attrs.items():
             setattr(_proxy_server_mod, attr, val)
-        litellm.enable_post_custom_auth_checks = True
+        gateway.enable_post_custom_auth_checks = True
 
         with (
             patch(
@@ -719,7 +719,7 @@ async def test_enterprise_custom_auth_runs_post_custom_auth_checks_when_opt_in()
     finally:
         for attr, val in originals.items():
             setattr(_proxy_server_mod, attr, val)
-        litellm.enable_post_custom_auth_checks = original_flag
+        gateway.enable_post_custom_auth_checks = original_flag
 
 
 def _assert_get_api_key_with_custom_litellm_key_header(
@@ -2049,7 +2049,7 @@ class TestJWTOAuth2Coexistence:
                 new_callable=AsyncMock,
             ) as mock_jwt_auth,
         ):
-            litellm.proxy.proxy_server.jwt_handler.update_environment(
+            gateway.proxy.proxy_server.jwt_handler.update_environment(
                 prisma_client=None,
                 user_api_key_cache=DualCache(),
                 litellm_jwtauth=LiteLLM_JWTAuth(),
@@ -2092,7 +2092,7 @@ class TestJWTOAuth2Coexistence:
                 new_callable=AsyncMock,
             ) as mock_oauth2,
         ):
-            litellm.proxy.proxy_server.jwt_handler.update_environment(
+            gateway.proxy.proxy_server.jwt_handler.update_environment(
                 prisma_client=None,
                 user_api_key_cache=DualCache(),
                 litellm_jwtauth=LiteLLM_JWTAuth(),
@@ -2198,7 +2198,7 @@ class TestJWTOAuth2Coexistence:
                 return_value=mock_jwt_result,
             ) as mock_jwt_auth,
         ):
-            litellm.proxy.proxy_server.jwt_handler.update_environment(
+            gateway.proxy.proxy_server.jwt_handler.update_environment(
                 prisma_client=None,
                 user_api_key_cache=DualCache(),
                 litellm_jwtauth=LiteLLM_JWTAuth(),
@@ -2571,7 +2571,7 @@ class TestJWTOAuth2Coexistence:
                 new_callable=AsyncMock,
             ) as mock_jwt_auth,
         ):
-            litellm.proxy.proxy_server.jwt_handler.update_environment(
+            gateway.proxy.proxy_server.jwt_handler.update_environment(
                 prisma_client=None,
                 user_api_key_cache=DualCache(),
                 litellm_jwtauth=LiteLLM_JWTAuth(
@@ -2644,7 +2644,7 @@ class TestJWTOAuth2Coexistence:
                 return_value=mock_jwt_result,
             ) as mock_jwt_auth,
         ):
-            litellm.proxy.proxy_server.jwt_handler.update_environment(
+            gateway.proxy.proxy_server.jwt_handler.update_environment(
                 prisma_client=None,
                 user_api_key_cache=DualCache(),
                 litellm_jwtauth=LiteLLM_JWTAuth(
@@ -2706,7 +2706,7 @@ class TestJWTOAuth2Coexistence:
                 new_callable=AsyncMock,
             ) as mock_jwt_auth,
         ):
-            litellm.proxy.proxy_server.jwt_handler.update_environment(
+            gateway.proxy.proxy_server.jwt_handler.update_environment(
                 prisma_client=None,
                 user_api_key_cache=DualCache(),
                 litellm_jwtauth=LiteLLM_JWTAuth(
@@ -2772,7 +2772,7 @@ class TestJWTOAuth2Coexistence:
                 new_callable=AsyncMock,
             ) as mock_jwt_auth,
         ):
-            litellm.proxy.proxy_server.jwt_handler.update_environment(
+            gateway.proxy.proxy_server.jwt_handler.update_environment(
                 prisma_client=None,
                 user_api_key_cache=DualCache(),
                 litellm_jwtauth=LiteLLM_JWTAuth(
@@ -2845,7 +2845,7 @@ class TestJWTOAuth2Coexistence:
                 return_value=mock_jwt_result,
             ) as mock_jwt_auth,
         ):
-            litellm.proxy.proxy_server.jwt_handler.update_environment(
+            gateway.proxy.proxy_server.jwt_handler.update_environment(
                 prisma_client=None,
                 user_api_key_cache=DualCache(),
                 litellm_jwtauth=LiteLLM_JWTAuth(
@@ -2910,7 +2910,7 @@ class TestJWTOAuth2Coexistence:
                 new_callable=AsyncMock,
             ) as mock_jwt_auth,
         ):
-            litellm.proxy.proxy_server.jwt_handler.update_environment(
+            gateway.proxy.proxy_server.jwt_handler.update_environment(
                 prisma_client=None,
                 user_api_key_cache=DualCache(),
                 litellm_jwtauth=LiteLLM_JWTAuth(
@@ -2976,7 +2976,7 @@ class TestJWTOAuth2Coexistence:
                 new_callable=AsyncMock,
             ) as mock_jwt_auth,
         ):
-            litellm.proxy.proxy_server.jwt_handler.update_environment(
+            gateway.proxy.proxy_server.jwt_handler.update_environment(
                 prisma_client=None,
                 user_api_key_cache=DualCache(),
                 litellm_jwtauth=LiteLLM_JWTAuth(
@@ -3081,7 +3081,7 @@ class TestJWTOAuth2Coexistence:
                 new_callable=AsyncMock,
             ) as mock_jwt_auth,
         ):
-            litellm.proxy.proxy_server.jwt_handler.update_environment(
+            gateway.proxy.proxy_server.jwt_handler.update_environment(
                 prisma_client=None,
                 user_api_key_cache=DualCache(),
                 litellm_jwtauth=LiteLLM_JWTAuth(
@@ -3157,7 +3157,7 @@ class TestJWTOAuth2Coexistence:
                 return_value=mock_jwt_result,
             ) as mock_jwt_auth,
         ):
-            litellm.proxy.proxy_server.jwt_handler.update_environment(
+            gateway.proxy.proxy_server.jwt_handler.update_environment(
                 prisma_client=None,
                 user_api_key_cache=DualCache(),
                 litellm_jwtauth=LiteLLM_JWTAuth(
@@ -4016,7 +4016,7 @@ async def test_centralized_checks_enforce_token_end_user_budget_against_row_spen
                 "token_iq.gateway.proxy.spend_tracking.budget_reservation.estimate_request_max_cost",
                 return_value=0.6,
             ),
-            pytest.raises(litellm.BudgetExceededError) as exc_info,
+            pytest.raises(gateway.BudgetExceededError) as exc_info,
         ):
             await _run_centralized_common_checks(
                 user_api_key_auth_obj=token,
@@ -4201,7 +4201,7 @@ async def test_centralized_common_checks_propagates_end_user_budget_error():
     re-raise it so the wrapper surfaces the budget violation, rather
     than swallowing it and letting ``common_checks`` see
     ``end_user_object=None`` and skip enforcement."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     import token_iq.gateway.proxy.proxy_server as _proxy_server_mod
     from fastapi import Request
     from starlette.datastructures import URL
@@ -4220,7 +4220,7 @@ async def test_centralized_common_checks_propagates_end_user_budget_error():
             patch(
                 "token_iq.gateway.proxy.auth.user_api_key_auth.get_end_user_object",
                 new_callable=AsyncMock,
-                side_effect=litellm.BudgetExceededError(
+                side_effect=gateway.BudgetExceededError(
                     message="End-user budget exceeded",
                     current_cost=20.0,
                     max_budget=10.0,
@@ -4231,7 +4231,7 @@ async def test_centralized_common_checks_propagates_end_user_budget_error():
                 new_callable=AsyncMock,
             ) as mock_checks,
         ):
-            with pytest.raises(litellm.BudgetExceededError):
+            with pytest.raises(gateway.BudgetExceededError):
                 await _run_centralized_common_checks(
                     user_api_key_auth_obj=token,
                     request=request,
@@ -6278,7 +6278,7 @@ class TestJWTAuthUserEmail:
                 return_value=mock_jwt_result,
             ),
         ):
-            litellm.proxy.proxy_server.jwt_handler.update_environment(
+            gateway.proxy.proxy_server.jwt_handler.update_environment(
                 prisma_client=None,
                 user_api_key_cache=DualCache(),
                 litellm_jwtauth=LiteLLM_JWTAuth(),
@@ -6381,7 +6381,7 @@ class TestCheckKeyModelBudgetWithFallback:
             budget_fallbacks={"gpt-4o": ["gpt-4o-mini", "claude-haiku"]},
         )
         limiter = AsyncMock()
-        limiter.is_key_within_model_budget.side_effect = litellm.BudgetExceededError(
+        limiter.is_key_within_model_budget.side_effect = gateway.BudgetExceededError(
             current_cost=10, max_budget=5
         )
         limiter.get_fallback_model_within_budget.return_value = "gpt-4o-mini"
@@ -6412,13 +6412,13 @@ class TestCheckKeyModelBudgetWithFallback:
             token="test-key", budget_fallbacks={"gpt-4o": ["gpt-4o-mini"]}
         )
         limiter = AsyncMock()
-        original_error = litellm.BudgetExceededError(current_cost=10, max_budget=5)
+        original_error = gateway.BudgetExceededError(current_cost=10, max_budget=5)
         limiter.is_key_within_model_budget.side_effect = original_error
         limiter.get_fallback_model_within_budget.return_value = None
         request_data = {"model": "gpt-4o"}
         request = self._make_request()
 
-        with pytest.raises(litellm.BudgetExceededError) as exc_info:
+        with pytest.raises(gateway.BudgetExceededError) as exc_info:
             await _check_key_model_budget_with_fallback(
                 valid_token=valid_token,
                 model_max_budget_limiter=limiter,
@@ -6441,7 +6441,7 @@ class TestCheckKeyModelBudgetWithFallback:
             budget_fallbacks={"gpt-4o": ["restricted-model"]},
         )
         limiter = AsyncMock()
-        original_error = litellm.BudgetExceededError(current_cost=10, max_budget=5)
+        original_error = gateway.BudgetExceededError(current_cost=10, max_budget=5)
         limiter.is_key_within_model_budget.side_effect = original_error
         limiter.get_fallback_model_within_budget.return_value = "restricted-model"
         request_data = {"model": "gpt-4o"}
@@ -6456,7 +6456,7 @@ class TestCheckKeyModelBudgetWithFallback:
                 code=status.HTTP_403_FORBIDDEN,
             ),
         ):
-            with pytest.raises(litellm.BudgetExceededError) as exc_info:
+            with pytest.raises(gateway.BudgetExceededError) as exc_info:
                 await _check_key_model_budget_with_fallback(
                     valid_token=valid_token,
                     model_max_budget_limiter=limiter,
@@ -6480,7 +6480,7 @@ class TestCheckKeyModelBudgetWithFallback:
             budget_fallbacks={"gpt-4o": ["gpt-4o-mini"]},
         )
         limiter = AsyncMock()
-        limiter.is_key_within_model_budget.side_effect = litellm.BudgetExceededError(
+        limiter.is_key_within_model_budget.side_effect = gateway.BudgetExceededError(
             current_cost=10, max_budget=5
         )
         limiter.get_fallback_model_within_budget.return_value = "gpt-4o-mini"
@@ -6515,7 +6515,7 @@ class TestCheckKeyModelBudgetWithFallback:
             budget_fallbacks={"gpt-4o": ["restricted-model"]},
         )
         limiter = AsyncMock()
-        original_error = litellm.BudgetExceededError(current_cost=10, max_budget=5)
+        original_error = gateway.BudgetExceededError(current_cost=10, max_budget=5)
         limiter.is_key_within_model_budget.side_effect = original_error
         limiter.get_fallback_model_within_budget.return_value = "restricted-model"
         request_data = {"model": "gpt-4o"}
@@ -6525,7 +6525,7 @@ class TestCheckKeyModelBudgetWithFallback:
             "token_iq.gateway.proxy.auth.user_api_key_auth.can_key_call_model",
             return_value=True,
         ):
-            with pytest.raises(litellm.BudgetExceededError) as exc_info:
+            with pytest.raises(gateway.BudgetExceededError) as exc_info:
                 await _check_key_model_budget_with_fallback(
                     valid_token=valid_token,
                     model_max_budget_limiter=limiter,
@@ -6550,7 +6550,7 @@ class TestCheckKeyModelBudgetWithFallback:
             budget_fallbacks={"gpt-4o": ["gpt-4o-mini"]},
         )
         limiter = AsyncMock()
-        limiter.is_key_within_model_budget.side_effect = litellm.BudgetExceededError(
+        limiter.is_key_within_model_budget.side_effect = gateway.BudgetExceededError(
             current_cost=10, max_budget=5
         )
         limiter.get_fallback_model_within_budget.return_value = "gpt-4o-mini"
@@ -6586,12 +6586,12 @@ class TestCheckKeyModelBudgetWithFallback:
             budget_fallbacks={"gpt-4o": ["gpt-4o-mini"]},
         )
         limiter = AsyncMock()
-        original_error = litellm.BudgetExceededError(current_cost=10, max_budget=5)
+        original_error = gateway.BudgetExceededError(current_cost=10, max_budget=5)
         limiter.is_key_within_model_budget.side_effect = original_error
         request_data = {"session": {"model": "gpt-4o"}}
         request = self._make_request()
 
-        with pytest.raises(litellm.BudgetExceededError) as exc_info:
+        with pytest.raises(gateway.BudgetExceededError) as exc_info:
             await _check_key_model_budget_with_fallback(
                 valid_token=valid_token,
                 model_max_budget_limiter=limiter,

@@ -12,7 +12,7 @@ from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any, Final, Literal, Protocol
 from urllib.parse import urlparse
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.core_utils.asyncify import asyncify
 from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler
@@ -95,12 +95,12 @@ class VertexBase:
 
     @staticmethod
     def get_vertex_region(vertex_region: str | None, model: str) -> str:
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         # Try to get supported_regions directly from model_cost
         # Check both with and without vertex_ai/ prefix
         model_key: Final = f"vertex_ai/{model}" if not model.startswith("vertex_ai/") else model
-        model_info: Final = litellm.model_cost.get(model_key, {})
+        model_info: Final = gateway.model_cost.get(model_key, {})
         supported_regions: Final = model_info.get("supported_regions")
 
         if supported_regions and len(supported_regions) > 0:
@@ -1160,7 +1160,7 @@ class VertexBase:
         return (
             litellm_params.pop("vertex_project", None)
             or litellm_params.pop("vertex_ai_project", None)
-            or litellm.vertex_project
+            or gateway.vertex_project
             or get_secret_str("VERTEXAI_PROJECT")
         )
 
@@ -1177,7 +1177,7 @@ class VertexBase:
         return (
             litellm_params.pop("vertex_location", None)
             or litellm_params.pop("vertex_ai_location", None)
-            or litellm.vertex_location
+            or gateway.vertex_location
             or get_secret_str("VERTEXAI_LOCATION")
             or get_secret_str("VERTEX_LOCATION")
         )
@@ -1199,7 +1199,7 @@ class VertexBase:
         return (
             litellm_params.get("vertex_project")
             or litellm_params.get("vertex_ai_project")
-            or litellm.vertex_project
+            or gateway.vertex_project
             or get_secret_str("VERTEXAI_PROJECT")
         )
 
@@ -1250,7 +1250,7 @@ class VertexBase:
         """
         return (
             VertexBase.explicit_vertex_ai_location(litellm_params)
-            or litellm.vertex_location
+            or gateway.vertex_location
             or get_secret_str("VERTEXAI_LOCATION")
             or get_secret_str("VERTEX_LOCATION")
         )

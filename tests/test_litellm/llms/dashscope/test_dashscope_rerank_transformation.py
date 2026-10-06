@@ -313,12 +313,12 @@ class TestDashScopeRerankResponse:
 
 class TestProviderConfigManagerDispatch:
     def test_dashscope_returns_rerank_config(self):
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.utils import ProviderConfigManager
 
         cfg = ProviderConfigManager.get_provider_rerank_config(
             model="qwen3-rerank",
-            provider=litellm.LlmProviders.DASHSCOPE,
+            provider=gateway.LlmProviders.DASHSCOPE,
             api_base=None,
             present_version_params=[],
         )

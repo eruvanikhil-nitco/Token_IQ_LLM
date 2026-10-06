@@ -94,7 +94,7 @@ class TestGetLlmProviderRejectsAttackerSmuggledApiBase:
         # raise BadRequestError because the model can't be identified.
         # The invariant under test is that ``GROQ_API_KEY`` is never
         # looked up against an attacker-controlled hostname.
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         with patch(
             "token_iq.gateway.core_utils.get_llm_provider_logic.get_secret_str",
@@ -107,7 +107,7 @@ class TestGetLlmProviderRejectsAttackerSmuggledApiBase:
                 )
                 # If it returned, the dynamic key must not be the secret.
                 assert dynamic_api_key != "server-real-groq-key"
-            except litellm.exceptions.BadRequestError:
+            except gateway.exceptions.BadRequestError:
                 # Acceptable outcome: provider unidentifiable, no secret
                 # was returned.
                 pass

@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Any, Final, Literal, NoReturn
 from pydantic import BaseModel
 from typing_extensions import TypedDict
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import DualCache, EmbeddingResponse, ModelResponse, TextCompletionResponse
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.exceptions import RateLimitType
@@ -58,7 +58,7 @@ class _PROXY_MaxParallelRequestsHandler(CustomLogger):
     def print_verbose(self, print_statement):
         try:
             verbose_proxy_logger.debug(print_statement)
-            if litellm.set_verbose:
+            if gateway.set_verbose:
                 print(print_statement)  # noqa: T201
         except Exception:
             pass

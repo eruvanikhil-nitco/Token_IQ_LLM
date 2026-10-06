@@ -15,7 +15,7 @@ from uuid import uuid4
 
 from pydantic import BaseModel, ConfigDict, TypeAdapter, field_validator
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.exceptions import BudgetExceededError
 from token_iq.gateway.core_utils.llm_judge import judge_target
@@ -730,8 +730,8 @@ def _is_configured_pre_routing_strategy(llm_router: "Router", router_name: str) 
 
 
 def _sdk_model_is_missing_anthropic_credentials(model: str) -> bool:
-    _, provider, _, _ = litellm.get_llm_provider(model=model)
-    if provider != "anthropic" or litellm.anthropic_key or litellm.api_key:
+    _, provider, _, _ = gateway.get_llm_provider(model=model)
+    if provider != "anthropic" or gateway.anthropic_key or gateway.api_key:
         return False
     from token_iq.gateway.llms.anthropic.common_utils import AnthropicModelInfo
     from token_iq.gateway.secret_managers.main import secret_manager_would_be_consulted

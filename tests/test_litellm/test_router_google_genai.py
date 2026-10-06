@@ -8,7 +8,7 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.types.utils import ModelResponse
 
 
@@ -16,7 +16,7 @@ from token_iq.gateway.types.utils import ModelResponse
 async def test_router_agenerate_content_method():
     """Test that the new agenerate_content method in Router works correctly"""
     # Create a router instance
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "test-model",
@@ -58,7 +58,7 @@ async def test_router_agenerate_content_method():
 async def test_router_aadapter_generate_content_method():
     """Test that the new aadapter_generate_content method in Router works correctly"""
     # Create a router instance
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "test-model",

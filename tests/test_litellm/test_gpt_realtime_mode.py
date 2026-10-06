@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.types.utils import ModelInfoBase
 
 REALTIME_ONLY_GPT_MODELS = (
@@ -73,12 +73,12 @@ def test_get_model_info_reports_realtime_mode(monkeypatch):
     """get_model_info must resolve the retag against the bundled cost map, not the
     hosted map fetched from main, which lags this repo until the next promotion."""
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map())
-    litellm.get_model_info.cache_clear()
+    monkeypatch.setattr(gateway, "model_cost", gateway.get_model_cost_map())
+    gateway.get_model_info.cache_clear()
     try:
-        assert litellm.get_model_info("gpt-realtime-mini")["mode"] == "realtime"
+        assert gateway.get_model_info("gpt-realtime-mini")["mode"] == "realtime"
     finally:
-        litellm.get_model_info.cache_clear()
+        gateway.get_model_info.cache_clear()
 
 
 def test_backup_matches_main_for_realtime_models():

@@ -44,18 +44,18 @@ class VectorStoreEmbeddingExecutor(Protocol):
 @dataclass(frozen=True, slots=True)
 class LiteLLMVectorStoreEmbeddingExecutor:
     def embed(self, model: str, query: str, configuration: Mapping[str, object]) -> EmbeddingResponse:
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
-        return litellm.embedding(  # pyright: ignore[reportCallIssue, reportUnknownMemberType, reportUnknownVariableType]  # provider kwargs are intentionally dynamic
+        return gateway.embedding(  # pyright: ignore[reportCallIssue, reportUnknownMemberType, reportUnknownVariableType]  # provider kwargs are intentionally dynamic
             model=model,
             input=[query],  # mutable-ok: LiteLLM embedding requires a mutable input list
             **dict(configuration),  # pyright: ignore[reportArgumentType]  # provider-specific embedding config is validated downstream  # mutable-ok: kwargs require a concrete dict
         )
 
     async def aembed(self, model: str, query: str, configuration: Mapping[str, object]) -> EmbeddingResponse:
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
-        return await litellm.aembedding(  # pyright: ignore[reportUnknownMemberType]  # provider kwargs are intentionally dynamic
+        return await gateway.aembedding(  # pyright: ignore[reportUnknownMemberType]  # provider kwargs are intentionally dynamic
             model=model,
             input=[query],  # mutable-ok: LiteLLM embedding requires a mutable input list
             **dict(configuration),  # pyright: ignore[reportArgumentType]  # provider-specific embedding config is validated downstream  # mutable-ok: kwargs require a concrete dict

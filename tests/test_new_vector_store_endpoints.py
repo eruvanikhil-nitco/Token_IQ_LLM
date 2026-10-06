@@ -9,7 +9,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
 
@@ -36,7 +36,7 @@ async def test_vector_store_retrieve_basic():
         "token_iq.gateway.vector_stores.main.aretrieve",
         new=AsyncMock(return_value=mock_response),
     ) as mock_retrieve:
-        router = litellm.Router(model_list=[])
+        router = gateway.Router(model_list=[])
         result = await router.avector_store_retrieve(
             vector_store_id="vs_test123",
             custom_llm_provider="openai",
@@ -76,7 +76,7 @@ async def test_vector_store_list_basic():
         "token_iq.gateway.vector_stores.main.alist",
         new=AsyncMock(return_value=mock_response),
     ) as mock_list:
-        router = litellm.Router(model_list=[])
+        router = gateway.Router(model_list=[])
         result = await router.avector_store_list(
             limit=20,
             order="desc",
@@ -105,7 +105,7 @@ async def test_vector_store_update_basic():
         "token_iq.gateway.vector_stores.main.aupdate",
         new=AsyncMock(return_value=mock_response),
     ) as mock_update:
-        router = litellm.Router(model_list=[])
+        router = gateway.Router(model_list=[])
         result = await router.avector_store_update(
             vector_store_id="vs_test123",
             name="Updated Name",
@@ -132,7 +132,7 @@ async def test_vector_store_delete_basic():
         "token_iq.gateway.vector_stores.main.adelete",
         new=AsyncMock(return_value=mock_response),
     ) as mock_delete:
-        router = litellm.Router(model_list=[])
+        router = gateway.Router(model_list=[])
         result = await router.avector_store_delete(
             vector_store_id="vs_test123",
             custom_llm_provider="openai",
@@ -157,7 +157,7 @@ async def test_async_vector_store_retrieve():
         "token_iq.gateway.vector_stores.main.aretrieve",
         new=AsyncMock(return_value=mock_response),
     ) as mock_aretrieve:
-        router = litellm.Router(model_list=[])
+        router = gateway.Router(model_list=[])
         result = await router.avector_store_retrieve(
             vector_store_id="vs_async123",
             custom_llm_provider="openai",
@@ -179,7 +179,7 @@ async def test_async_vector_store_list():
         "token_iq.gateway.vector_stores.main.alist",
         new=AsyncMock(return_value=mock_response),
     ) as mock_alist:
-        router = litellm.Router(model_list=[])
+        router = gateway.Router(model_list=[])
         result = await router.avector_store_list(
             limit=10,
             custom_llm_provider="openai",
@@ -201,7 +201,7 @@ async def test_async_vector_store_update():
         "token_iq.gateway.vector_stores.main.aupdate",
         new=AsyncMock(return_value=mock_response),
     ) as mock_aupdate:
-        router = litellm.Router(model_list=[])
+        router = gateway.Router(model_list=[])
         result = await router.avector_store_update(
             vector_store_id="vs_async123",
             name="Updated Async Name",
@@ -224,7 +224,7 @@ async def test_async_vector_store_delete():
         "token_iq.gateway.vector_stores.main.adelete",
         new=AsyncMock(return_value=mock_response),
     ) as mock_adelete:
-        router = litellm.Router(model_list=[])
+        router = gateway.Router(model_list=[])
         result = await router.avector_store_delete(
             vector_store_id="vs_async123",
             custom_llm_provider="openai",
@@ -249,7 +249,7 @@ async def test_vector_store_list_with_pagination():
         "token_iq.gateway.vector_stores.main.list",
         return_value=mock_response,
     ) as mock_list:
-        router = litellm.Router(model_list=[])
+        router = gateway.Router(model_list=[])
         result = router.vector_store_list(
             limit=5,
             after="vs_previous",
@@ -285,7 +285,7 @@ async def test_vector_store_update_with_expires_after():
         "token_iq.gateway.vector_stores.main.update",
         return_value=mock_response,
     ) as mock_update:
-        router = litellm.Router(model_list=[])
+        router = gateway.Router(model_list=[])
         result = router.vector_store_update(
             vector_store_id="vs_test123",
             expires_after=expires_after,
@@ -301,7 +301,7 @@ async def test_vector_store_update_with_expires_after():
 
 def test_router_initializes_new_endpoints():
     """Test that router properly initializes the new vector store endpoints."""
-    router = litellm.Router(model_list=[])
+    router = gateway.Router(model_list=[])
 
     # Verify all new endpoints are initialized
     assert hasattr(router, "vector_store_retrieve")

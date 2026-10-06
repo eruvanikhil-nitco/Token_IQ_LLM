@@ -15,7 +15,7 @@ import httpx
 from openai._streaming import SSEDecoder
 from typing_extensions import TypeIs
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.constants import (
     EMPTY_MAPPING,
     LITELLM_MAX_STREAMING_DURATION_SECONDS,
@@ -284,7 +284,7 @@ class BaseResponsesAPIStreamingIterator:
             return
         elapsed: Final = time.time() - self._stream_created_time
         if elapsed > LITELLM_MAX_STREAMING_DURATION_SECONDS:
-            raise litellm.Timeout(
+            raise gateway.Timeout(
                 message=f"Stream exceeded max streaming duration of {LITELLM_MAX_STREAMING_DURATION_SECONDS}s (elapsed {elapsed:.1f}s)",
                 model=self.model or "",
                 llm_provider=self.custom_llm_provider or "",
@@ -538,7 +538,7 @@ class BaseResponsesAPIStreamingIterator:
         error_info: Final = getattr(response_obj, "error", None) if response_obj else None
         error_message, error_type, error_code = _error_event_fields(error_info)
         self._record_failed_response_usage(response_obj)
-        exception: Final = litellm.APIError(
+        exception: Final = gateway.APIError(
             status_code=_status_code_for_error_fields(error_type, error_code),
             message=error_message,
             llm_provider=self.custom_llm_provider or "",
@@ -579,7 +579,7 @@ class BaseResponsesAPIStreamingIterator:
 
         error_message, error_type, error_code = _error_event_fields(error_obj)
         status_code: Final = _status_code_for_error_fields(error_type, error_code)
-        mapped_exception: Final = litellm.APIError(
+        mapped_exception: Final = gateway.APIError(
             status_code=status_code,
             message=error_message,
             llm_provider=self.custom_llm_provider or "",
@@ -648,7 +648,7 @@ class BaseResponsesAPIStreamingIterator:
         ):
             return
 
-        cache: Final = litellm.cache
+        cache: Final = gateway.cache
         if cache is None:
             return
 
@@ -699,7 +699,7 @@ class BaseResponsesAPIStreamingIterator:
                     typed_call_type = None
 
             request_data: Final = self.request_data or getattr(self.logging_obj, "model_call_details", {})
-            callbacks: Final[Sequence[object]] = getattr(litellm, "callbacks", None) or []
+            callbacks: Final[Sequence[object]] = getattr(gateway, "callbacks", None) or []
             hooks_ran = False
             for callback in callbacks:
                 if isinstance(callback, _HasPostStreamingDeploymentHook):
@@ -2456,7 +2456,7 @@ class ManagedResponsesWebSocketHandler:
         completed_event: _MutableJsonObject | None = (
             None  # rebind-ok: captures the completed event once the stream yields it
         )
-        stream_response: Final = await litellm.aresponses(model=model, **call_kwargs)
+        stream_response: Final = await gateway.aresponses(model=model, **call_kwargs)
         async for chunk in stream_response:
             if chunk is None:
                 continue

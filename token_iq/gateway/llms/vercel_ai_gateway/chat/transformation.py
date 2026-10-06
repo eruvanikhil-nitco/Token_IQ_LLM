@@ -10,7 +10,7 @@ from typing import Final
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.base_llm.chat.transformation import BaseLLMException
 from token_iq.gateway.secret_managers.main import get_secret_str
 from token_iq.gateway.types.llms.openai import AllMessageValues
@@ -86,7 +86,7 @@ class VercelAIGatewayConfig(OpenAIGPTConfig):
             api_base = "https://ai-gateway.vercel.sh/v1"
 
         models_url: Final = f"{api_base}/models"
-        response: Final = litellm.module_level_client.get(url=models_url)
+        response: Final = gateway.module_level_client.get(url=models_url)
 
         if response.status_code != 200:
             raise Exception(f"Failed to get models: {response.text}")

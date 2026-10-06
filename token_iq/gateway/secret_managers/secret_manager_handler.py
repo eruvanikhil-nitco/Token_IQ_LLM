@@ -11,7 +11,7 @@ from typing import Any, Final, Generic, Protocol, TypeVar
 
 from typing_extensions import ReadOnly, TypedDict
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import print_verbose
 from token_iq.gateway.types.secret_managers.main import KeyManagementSettings, KeyManagementSystem
 
@@ -126,7 +126,7 @@ def get_secret_from_manager(
         google_kms_client: Final = google_kms_view["client"]
         google_kms_response: Final = google_kms_client.decrypt(
             request={
-                "name": litellm._google_kms_resource_name,
+                "name": gateway._google_kms_resource_name,
                 "ciphertext": ciphertext,
             }
         )

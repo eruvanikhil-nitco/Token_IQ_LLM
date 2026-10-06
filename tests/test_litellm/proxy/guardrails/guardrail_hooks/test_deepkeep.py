@@ -4,7 +4,7 @@ from unittest.mock import patch, MagicMock, AsyncMock
 from httpx import Response, Request
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy.guardrails.guardrail_hooks.deepkeep.deepkeep import (
     DeepKeepGuardrail,
     DeepKeepGuardrailMissingSecrets,
@@ -17,7 +17,7 @@ from token_iq.gateway.exceptions import GuardrailRaisedException
 
 def test_deepkeep_guard_config(monkeypatch: pytest.MonkeyPatch):
     """Test DeepKeep guard configuration with init_guardrails_v2."""
-    monkeypatch.setattr(litellm, "guardrail_name_config_map", {})
+    monkeypatch.setattr(gateway, "guardrail_name_config_map", {})
 
     monkeypatch.setenv("DEEPKEEP_API_KEY", "test-key")
     monkeypatch.setenv("DEEPKEEP_API_BASE", "https://test.deepkeep.ai")

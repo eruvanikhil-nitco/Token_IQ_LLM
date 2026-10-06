@@ -7,7 +7,7 @@ from typing import Final, Literal, overload
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.constants import request_timeout as DEFAULT_REQUEST_TIMEOUT
 from token_iq.gateway.containers.utils import (
     ContainerRequestUtils,
@@ -114,7 +114,7 @@ async def acreate_container(
 
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model="",
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -185,7 +185,7 @@ def create_container(
 
     Example:
     ```python
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     response = litellm.create_container(
         name="My Container",
@@ -219,7 +219,7 @@ def create_container(
         )
         # get provider config
         container_provider_config: BaseContainerConfig | None = ProviderConfigManager.get_provider_container_config(
-            provider=litellm.LlmProviders(custom_llm_provider),
+            provider=gateway.LlmProviders(custom_llm_provider),
         )
 
         if container_provider_config is None:
@@ -275,7 +275,7 @@ def create_container(
         return _encode_created_container_id(pending=container_obj, encode=encode)
 
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model="",
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -344,7 +344,7 @@ async def alist_containers(
 
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model="",
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -437,7 +437,7 @@ def list_containers(
         )
         # get provider config
         container_provider_config: BaseContainerConfig | None = ProviderConfigManager.get_provider_container_config(
-            provider=litellm.LlmProviders(custom_llm_provider),
+            provider=gateway.LlmProviders(custom_llm_provider),
         )
 
         if container_provider_config is None:
@@ -477,7 +477,7 @@ def list_containers(
         )
 
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model="",
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -540,7 +540,7 @@ async def aretrieve_container(
 
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model="",
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -638,7 +638,7 @@ def retrieve_container(
 
         # get provider config
         container_provider_config: BaseContainerConfig | None = ProviderConfigManager.get_provider_container_config(
-            provider=litellm.LlmProviders(resolved_custom_llm_provider),
+            provider=gateway.LlmProviders(resolved_custom_llm_provider),
         )
 
         if container_provider_config is None:
@@ -692,7 +692,7 @@ def retrieve_container(
         return container_obj
 
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model="",
             custom_llm_provider=resolved_custom_llm_provider,
             original_exception=e,
@@ -755,7 +755,7 @@ async def adelete_container(
 
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model="",
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -853,7 +853,7 @@ def delete_container(
 
         # get provider config
         container_provider_config: BaseContainerConfig | None = ProviderConfigManager.get_provider_container_config(
-            provider=litellm.LlmProviders(resolved_custom_llm_provider),
+            provider=gateway.LlmProviders(resolved_custom_llm_provider),
         )
 
         if container_provider_config is None:
@@ -907,7 +907,7 @@ def delete_container(
         return delete_result
 
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model="",
             custom_llm_provider=resolved_custom_llm_provider,
             original_exception=e,
@@ -977,7 +977,7 @@ async def alist_container_files(
 
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model="",
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -1080,7 +1080,7 @@ def list_container_files(
 
         # get provider config
         container_provider_config: BaseContainerConfig | None = ProviderConfigManager.get_provider_container_config(
-            provider=litellm.LlmProviders(resolved_custom_llm_provider),
+            provider=gateway.LlmProviders(resolved_custom_llm_provider),
         )
 
         if container_provider_config is None:
@@ -1120,7 +1120,7 @@ def list_container_files(
         )
 
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model="",
             custom_llm_provider=resolved_custom_llm_provider,
             original_exception=e,
@@ -1166,7 +1166,7 @@ async def aupload_container_file(
 
     Example:
     ```python
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     # Upload a CSV file
     response = await litellm.aupload_container_file(
@@ -1205,7 +1205,7 @@ async def aupload_container_file(
 
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model="",
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -1276,7 +1276,7 @@ def upload_container_file(
 
     Example:
     ```python
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     # Upload a CSV file
     response = litellm.upload_container_file(
@@ -1331,7 +1331,7 @@ def upload_container_file(
 
         # get provider config
         container_provider_config: BaseContainerConfig | None = ProviderConfigManager.get_provider_container_config(
-            provider=litellm.LlmProviders(resolved_custom_llm_provider),
+            provider=gateway.LlmProviders(resolved_custom_llm_provider),
         )
 
         if container_provider_config is None:
@@ -1365,7 +1365,7 @@ def upload_container_file(
         )
 
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model="",
             custom_llm_provider=resolved_custom_llm_provider,
             original_exception=e,

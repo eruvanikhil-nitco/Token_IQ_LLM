@@ -1,7 +1,7 @@
 import os
 from typing import Dict
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 import pytest
 
 from token_iq.gateway.llms.base_llm.audio_transcription.transformation import (
@@ -23,8 +23,8 @@ class TestOVHCloudAudioTranscription(BaseLLMAudioTranscriptionTest):
             "model": "ovhcloud/whisper-large-v3-turbo",
         }
 
-    def get_custom_llm_provider(self) -> litellm.LlmProviders:
-        return litellm.LlmProviders.OVHCLOUD
+    def get_custom_llm_provider(self) -> gateway.LlmProviders:
+        return gateway.LlmProviders.OVHCLOUD
 
     # Override the async base test with a sync no-op to avoid
     # 'async def functions are not natively supported' failures when
@@ -45,7 +45,7 @@ def test_ovhcloud_audio_transcription_config_installed():
     Ensure OVHCloud audio transcription config is registered with ProviderConfigManager.
     """
     model = "ovhcloud/whisper-large-v3-turbo"
-    provider = litellm.LlmProviders.OVHCLOUD
+    provider = gateway.LlmProviders.OVHCLOUD
 
     config = ProviderConfigManager.get_provider_audio_transcription_config(
         model=model,

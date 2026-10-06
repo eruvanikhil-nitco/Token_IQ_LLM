@@ -5,7 +5,7 @@ import httpx
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.azure.containers.transformation import AzureContainerConfig
 from token_iq.gateway.llms.base_llm.containers.transformation import BaseContainerConfig
 from token_iq.gateway.responses.utils import ResponsesAPIRequestUtils
@@ -133,7 +133,7 @@ class TestAzureContainerConfig:
 
     def test_get_complete_url_raises_without_api_base(self, monkeypatch):
         monkeypatch.delenv("AZURE_API_BASE", raising=False)
-        monkeypatch.setattr(litellm, "api_base", None)
+        monkeypatch.setattr(gateway, "api_base", None)
         with pytest.raises(ValueError, match="api_base is required"):
             self.config.get_complete_url(api_base=None, litellm_params={})
 

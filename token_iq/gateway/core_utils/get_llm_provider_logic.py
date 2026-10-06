@@ -1,7 +1,7 @@
 from typing import Final, cast
 from urllib.parse import urlparse
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.constants import PROVIDERS_THAT_AUTHENTICATE_ON_PROVIDER_INFO, REPLICATE_MODEL_NAME_WITH_ID_LENGTH
 from token_iq.gateway.core_utils.fallback_generalizations import (
     match_routing_generalization,
@@ -52,7 +52,7 @@ def _endpoint_matches_api_base(endpoint: str, api_base: str) -> bool:
 def _is_non_openai_azure_model(model: str) -> bool:
     try:
         model_name: Final = model.split("/", 1)[1]
-        if model_name in litellm.cohere_chat_models or f"mistral/{model_name}" in litellm.mistral_chat_models:
+        if model_name in gateway.cohere_chat_models or f"mistral/{model_name}" in gateway.mistral_chat_models:
             return True
     except Exception:
         return False
@@ -86,12 +86,12 @@ def handle_cohere_chat_model_custom_llm_provider(
     """
 
     if custom_llm_provider:
-        if custom_llm_provider == "cohere" and model in litellm.cohere_chat_models:
+        if custom_llm_provider == "cohere" and model in gateway.cohere_chat_models:
             return model, "cohere_chat"
 
     if model and "/" in model:
         _custom_llm_provider, _model = model.split("/", 1)
-        if _custom_llm_provider and _custom_llm_provider == "cohere" and _model in litellm.cohere_chat_models:
+        if _custom_llm_provider and _custom_llm_provider == "cohere" and _model in gateway.cohere_chat_models:
             return _model, "cohere_chat"
 
     return model, custom_llm_provider
@@ -112,7 +112,7 @@ def handle_anthropic_text_model_custom_llm_provider(
     """
 
     if custom_llm_provider:
-        if custom_llm_provider == "anthropic" and litellm.AnthropicTextConfig._is_anthropic_text_model(model):
+        if custom_llm_provider == "anthropic" and gateway.AnthropicTextConfig._is_anthropic_text_model(model):
             return model, "anthropic_text"
 
     if model and "/" in model:
@@ -120,7 +120,7 @@ def handle_anthropic_text_model_custom_llm_provider(
         if (
             _custom_llm_provider
             and _custom_llm_provider == "anthropic"
-            and litellm.AnthropicTextConfig._is_anthropic_text_model(_model)
+            and gateway.AnthropicTextConfig._is_anthropic_text_model(_model)
         ):
             return _model, "anthropic_text"
 
@@ -160,10 +160,10 @@ def get_llm_provider(
         if model is None:
             raise ValueError("model parameter is required but was None. Please provide a valid model name.")
 
-        if litellm.LiteLLMProxyChatConfig._should_use_litellm_proxy_by_default(
+        if gateway.LiteLLMProxyChatConfig._should_use_litellm_proxy_by_default(
             litellm_params=cast(LiteLLM_Params | None, litellm_params)
         ):
-            return litellm.LiteLLMProxyChatConfig.litellm_proxy_get_custom_llm_provider_info(
+            return gateway.LiteLLMProxyChatConfig.litellm_proxy_get_custom_llm_provider_info(
                 model=model, api_base=api_base, api_key=api_key
             )
 
@@ -218,8 +218,8 @@ def get_llm_provider(
         # check if llm provider part of model name
 
         if (
-            model.split("/", 1)[0] in litellm.provider_list
-            and model.split("/", 1)[0] not in litellm.model_list_set
+            model.split("/", 1)[0] in gateway.provider_list
+            and model.split("/", 1)[0] not in gateway.model_list_set
             and len(model.split("/"))
             > 1 # handle edge case where user passes in `litellm --model mistral`
         ):
@@ -230,7 +230,7 @@ def get_llm_provider(
                 dynamic_api_key=dynamic_api_key,
                 litellm_params=litellm_params,
             )
-        elif model.split("/", 1)[0] in litellm.provider_list:
+        elif model.split("/", 1)[0] in gateway.provider_list:
             custom_llm_provider = model.split("/", 1)[0]
             model = model.split("/", 1)[1]
             if api_base is not None and not isinstance(api_base, str):
@@ -240,7 +240,7 @@ def get_llm_provider(
             return model, custom_llm_provider, dynamic_api_key, api_base
         # check if api base is a known openai compatible endpoint
         if api_base:
-            for endpoint in litellm.openai_compatible_endpoints:
+            for endpoint in gateway.openai_compatible_endpoints:
                 if _endpoint_matches_api_base(endpoint, api_base):
                     if endpoint == "api.perplexity.ai":
                         custom_llm_provider = "perplexity"
@@ -307,9 +307,9 @@ def get_llm_provider(
                     elif endpoint == "https://api.featherless.ai/v1":
                         custom_llm_provider = "featherless_ai"
                         dynamic_api_key = get_secret_str("FEATHERLESS_AI_API_KEY")
-                    elif endpoint == litellm.NscaleConfig.API_BASE_URL:
+                    elif endpoint == gateway.NscaleConfig.API_BASE_URL:
                         custom_llm_provider = "nscale"
-                        dynamic_api_key = litellm.NscaleConfig.get_api_key()
+                        dynamic_api_key = gateway.NscaleConfig.get_api_key()
                     elif endpoint == "dashscope-intl.aliyuncs.com/compatible-mode/v1":
                         custom_llm_provider = "dashscope"
                         dynamic_api_key = get_secret_str("DASHSCOPE_API_KEY")
@@ -385,88 +385,88 @@ def get_llm_provider(
         # check if model in known model provider list  -> for huggingface models, raise exception as they don't have a fixed provider (can be togetherai, anyscale, baseten, runpod, et.)
         ## openai - chatcompletion + text completion
         if (
-            model in litellm.open_ai_chat_completion_models
+            model in gateway.open_ai_chat_completion_models
             or "ft:gpt-3.5-turbo" in model
             or "ft:gpt-4" in model  # catches ft:gpt-4-0613, ft:gpt-4o
-            or model in litellm.openai_image_generation_models
+            or model in gateway.openai_image_generation_models
             or model.startswith("gpt-image")
-            or model in litellm.openai_video_generation_models
+            or model in gateway.openai_video_generation_models
         ):
             custom_llm_provider = "openai"
-        elif model in litellm.open_ai_text_completion_models:
+        elif model in gateway.open_ai_text_completion_models:
             custom_llm_provider = "text-completion-openai"
         ## anthropic
-        elif model in litellm.anthropic_models:
-            if litellm.AnthropicTextConfig._is_anthropic_text_model(model):
+        elif model in gateway.anthropic_models:
+            if gateway.AnthropicTextConfig._is_anthropic_text_model(model):
                 custom_llm_provider = "anthropic_text"
             else:
                 custom_llm_provider = "anthropic"
         ## cohere
-        elif model in litellm.cohere_models or model in litellm.cohere_embedding_models:
+        elif model in gateway.cohere_models or model in gateway.cohere_embedding_models:
             custom_llm_provider = "cohere"
         ## cohere chat models
-        elif model in litellm.cohere_chat_models:
+        elif model in gateway.cohere_chat_models:
             custom_llm_provider = "cohere_chat"
         ## replicate
-        elif model in litellm.replicate_models or (":" in model and len(model) > REPLICATE_MODEL_NAME_WITH_ID_LENGTH):
+        elif model in gateway.replicate_models or (":" in model and len(model) > REPLICATE_MODEL_NAME_WITH_ID_LENGTH):
             model_parts: Final = model.split(":")
             if (
                 len(model_parts) > 1 and len(model_parts[1]) == REPLICATE_MODEL_NAME_WITH_ID_LENGTH
             ):  ## checks if model name has a 64 digit code - e.g. "meta/llama-2-70b-chat:02e509c789964a7ea8736978a43525956ef40397be9033abf9fd2badfe68c9e3"
                 custom_llm_provider = "replicate"
-            elif model in litellm.replicate_models:
+            elif model in gateway.replicate_models:
                 custom_llm_provider = "replicate"
         ## openrouter
-        elif model in litellm.openrouter_models:
+        elif model in gateway.openrouter_models:
             custom_llm_provider = "openrouter"
         ## maritalk
-        elif model in litellm.maritalk_models:
+        elif model in gateway.maritalk_models:
             custom_llm_provider = "maritalk"
         ## vertex - text + chat + language (gemini) models
         elif (
-            model in litellm.vertex_chat_models
-            or model in litellm.vertex_code_chat_models
-            or model in litellm.vertex_text_models
-            or model in litellm.vertex_code_text_models
-            or model in litellm.vertex_language_models
-            or model in litellm.vertex_embedding_models
-            or model in litellm.vertex_vision_models
-            or model in litellm.vertex_ai_image_models
-            or model in litellm.vertex_ai_video_models
+            model in gateway.vertex_chat_models
+            or model in gateway.vertex_code_chat_models
+            or model in gateway.vertex_text_models
+            or model in gateway.vertex_code_text_models
+            or model in gateway.vertex_language_models
+            or model in gateway.vertex_embedding_models
+            or model in gateway.vertex_vision_models
+            or model in gateway.vertex_ai_image_models
+            or model in gateway.vertex_ai_video_models
         ):
             custom_llm_provider = "vertex_ai"
         ## ai21
-        elif model in litellm.ai21_chat_models or model in litellm.ai21_models:
+        elif model in gateway.ai21_chat_models or model in gateway.ai21_models:
             custom_llm_provider = "ai21_chat"
             api_base = api_base or get_secret("AI21_API_BASE") or "https://api.ai21.com/studio/v1"
             dynamic_api_key = api_key or get_secret("AI21_API_KEY")
         ## aleph_alpha
-        elif model in litellm.aleph_alpha_models:
+        elif model in gateway.aleph_alpha_models:
             custom_llm_provider = "aleph_alpha"
         ## baseten
-        elif model in litellm.baseten_models:
+        elif model in gateway.baseten_models:
             custom_llm_provider = "baseten"
         ## nlp_cloud
-        elif model in litellm.nlp_cloud_models:
+        elif model in gateway.nlp_cloud_models:
             custom_llm_provider = "nlp_cloud"
         ## petals
-        elif model in litellm.petals_models:
+        elif model in gateway.petals_models:
             custom_llm_provider = "petals"
         ## bedrock
         elif (
-            model in litellm.bedrock_models
-            or model in litellm.bedrock_embedding_models
-            or model in litellm.bedrock_converse_models
+            model in gateway.bedrock_models
+            or model in gateway.bedrock_embedding_models
+            or model in gateway.bedrock_converse_models
         ):
             custom_llm_provider = "bedrock"
-        elif model in litellm.watsonx_models:
+        elif model in gateway.watsonx_models:
             custom_llm_provider = "watsonx"
         # openai embeddings
-        elif model in litellm.open_ai_embedding_models:
+        elif model in gateway.open_ai_embedding_models:
             custom_llm_provider = "openai"
-        elif model in litellm.empower_models:
+        elif model in gateway.empower_models:
             custom_llm_provider = "empower"
-        elif model in litellm.gradient_ai_models:
+        elif model in gateway.gradient_ai_models:
             custom_llm_provider = "gradient_ai"
         elif model == "*":
             custom_llm_provider = "openai"
@@ -504,7 +504,7 @@ def get_llm_provider(
             custom_llm_provider = match_routing_generalization(model)
 
         if not custom_llm_provider:
-            if litellm.suppress_debug_info is False:
+            if gateway.suppress_debug_info is False:
                 print()  # noqa: T201
                 print(  # noqa: T201
                     "\033[1;31mProvider List"
@@ -512,7 +512,7 @@ def get_llm_provider(
                 print()  # noqa: T201
             error_str = f"LLM Provider NOT provided. Pass in the LLM provider you are trying to call. You passed model={model}\n Pass model as E.g. For'Huggingface' inference endpoints pass in `completion(model='huggingface/starcoder',..)` Learn more"
             # maps to openai.NotFoundError, this is raised when openai does not recognize the llm
-            raise litellm.exceptions.BadRequestError(
+            raise gateway.exceptions.BadRequestError(
                 message=error_str,
                 model=model,
                 response=None,
@@ -524,11 +524,11 @@ def get_llm_provider(
             raise Exception(f"dynamic_api_key needs to be a string. dynamic_api_key={dynamic_api_key}")
         return model, custom_llm_provider, dynamic_api_key, api_base
     except Exception as e:
-        if isinstance(e, litellm.exceptions.BadRequestError):
+        if isinstance(e, gateway.exceptions.BadRequestError):
             raise e
         else:
             error_str = f"GetLLMProvider Exception - {e}\n\noriginal model: {model}"
-            raise litellm.exceptions.BadRequestError(
+            raise gateway.exceptions.BadRequestError(
                 message=f"GetLLMProvider Exception - {e}\n\noriginal model: {model}",
                 model=model,
                 response=None,
@@ -536,12 +536,12 @@ def get_llm_provider(
             )
 
 
-def _dashscope_family_chat_config(custom_llm_provider: str) -> "litellm.DashScopeChatConfig":
+def _dashscope_family_chat_config(custom_llm_provider: str) -> "gateway.DashScopeChatConfig":
     if custom_llm_provider == "qwencloud":
-        return litellm.QwenCloudChatConfig()
+        return gateway.QwenCloudChatConfig()
     if custom_llm_provider == "qwen_ai_platform":
-        return litellm.QwenAIPlatformChatConfig()
-    return litellm.DashScopeChatConfig()
+        return gateway.QwenAIPlatformChatConfig()
+    return gateway.DashScopeChatConfig()
 
 
 def _get_openai_compatible_provider_info(
@@ -580,7 +580,7 @@ def _get_openai_compatible_provider_info(
         (
             api_base,
             dynamic_api_key,
-        ) = litellm.PerplexityChatConfig()._get_openai_compatible_provider_info(api_base, api_key)
+        ) = gateway.PerplexityChatConfig()._get_openai_compatible_provider_info(api_base, api_key)
     elif custom_llm_provider == "aiohttp_openai":
         return model, "aiohttp_openai", api_key, api_base
     elif custom_llm_provider == "anyscale":
@@ -591,7 +591,7 @@ def _get_openai_compatible_provider_info(
         (
             api_base,
             dynamic_api_key,
-        ) = litellm.DeepInfraConfig()._get_openai_compatible_provider_info(api_base, api_key)
+        ) = gateway.DeepInfraConfig()._get_openai_compatible_provider_info(api_base, api_key)
     elif custom_llm_provider == "empower":
         api_base = api_base or get_secret("EMPOWER_API_BASE") or "https://app.empower.dev/api/v1"
         dynamic_api_key = api_key or get_secret_str("EMPOWER_API_KEY")
@@ -599,12 +599,12 @@ def _get_openai_compatible_provider_info(
         (
             api_base,
             dynamic_api_key,
-        ) = litellm.GroqChatConfig()._get_openai_compatible_provider_info(api_base, api_key)
+        ) = gateway.GroqChatConfig()._get_openai_compatible_provider_info(api_base, api_key)
     elif custom_llm_provider == "bedrock_mantle":
         (
             api_base,
             dynamic_api_key,
-        ) = litellm.BedrockMantleChatConfig()._get_openai_compatible_provider_info(
+        ) = gateway.BedrockMantleChatConfig()._get_openai_compatible_provider_info(
             api_base, api_key, litellm_params=litellm_params, model=model
         )
     elif custom_llm_provider == "nvidia_nim":
@@ -628,7 +628,7 @@ def _get_openai_compatible_provider_info(
     elif custom_llm_provider == "baseten":
         # Use BasetenConfig to determine the appropriate API base URL
         if api_base is None:
-            api_base = litellm.BasetenConfig.get_api_base_for_model(model)
+            api_base = gateway.BasetenConfig.get_api_base_for_model(model)
         else:
             api_base = api_base or get_secret_str("BASETEN_API_BASE") or "https://inference.baseten.co/v1"
         dynamic_api_key = api_key or get_secret_str("BASETEN_API_KEY")
@@ -644,7 +644,7 @@ def _get_openai_compatible_provider_info(
     elif custom_llm_provider == "ollama":
         api_base = api_base or get_secret("OLLAMA_API_BASE") or "http://localhost:11434"
         dynamic_api_key = api_key or get_secret_str("OLLAMA_API_KEY")
-    elif (custom_llm_provider == "ai21_chat") or (custom_llm_provider == "ai21" and model in litellm.ai21_chat_models):
+    elif (custom_llm_provider == "ai21_chat") or (custom_llm_provider == "ai21" and model in gateway.ai21_chat_models):
         api_base = api_base or get_secret("AI21_API_BASE") or "https://api.ai21.com/studio/v1"
         dynamic_api_key = api_key or get_secret_str("AI21_API_KEY")
         custom_llm_provider = "ai21_chat"
@@ -661,25 +661,25 @@ def _get_openai_compatible_provider_info(
         (
             api_base,
             dynamic_api_key,
-        ) = litellm.HostedVLLMChatConfig()._get_openai_compatible_provider_info(api_base, api_key)
+        ) = gateway.HostedVLLMChatConfig()._get_openai_compatible_provider_info(api_base, api_key)
     elif custom_llm_provider == "llamafile":
         # llamafile is OpenAI compatible.
         (
             api_base,
             dynamic_api_key,
-        ) = litellm.LlamafileChatConfig()._get_openai_compatible_provider_info(api_base, api_key)
+        ) = gateway.LlamafileChatConfig()._get_openai_compatible_provider_info(api_base, api_key)
     elif custom_llm_provider == "datarobot":
         # DataRobot is OpenAI compatible.
         (
             api_base,
             dynamic_api_key,
-        ) = litellm.DataRobotConfig()._get_openai_compatible_provider_info(api_base, api_key)
+        ) = gateway.DataRobotConfig()._get_openai_compatible_provider_info(api_base, api_key)
     elif custom_llm_provider == "lm_studio":
         # lm_studio is openai compatible, we just need to set this to custom_openai
         (
             api_base,
             dynamic_api_key,
-        ) = litellm.LMStudioChatConfig()._get_openai_compatible_provider_info(api_base, api_key)
+        ) = gateway.LMStudioChatConfig()._get_openai_compatible_provider_info(api_base, api_key)
     elif custom_llm_provider == "deepseek":
         # deepseek is openai compatible, we just need to set this to custom_openai and have the api_base be https://api.deepseek.com/v1
         api_base = api_base or get_secret("DEEPSEEK_API_BASE") or "https://api.deepseek.com/beta"
@@ -694,13 +694,13 @@ def _get_openai_compatible_provider_info(
         (
             api_base,
             dynamic_api_key,
-        ) = litellm.FireworksAIConfig()._get_openai_compatible_provider_info(api_base=api_base, api_key=api_key)
+        ) = gateway.FireworksAIConfig()._get_openai_compatible_provider_info(api_base=api_base, api_key=api_key)
     elif custom_llm_provider == "azure_ai":
         (
             api_base,
             dynamic_api_key,
             custom_llm_provider,
-        ) = litellm.AzureAIStudioConfig()._get_openai_compatible_provider_info(
+        ) = gateway.AzureAIStudioConfig()._get_openai_compatible_provider_info(
             model, api_base, api_key, custom_llm_provider
         )
     elif custom_llm_provider == "github":
@@ -714,29 +714,29 @@ def _get_openai_compatible_provider_info(
         (
             api_base,
             dynamic_api_key,
-        ) = litellm.LiteLLMProxyChatConfig()._get_openai_compatible_provider_info(api_base=api_base, api_key=api_key)
+        ) = gateway.LiteLLMProxyChatConfig()._get_openai_compatible_provider_info(api_base=api_base, api_key=api_key)
 
     elif custom_llm_provider == "mistral":
         (
             api_base,
             dynamic_api_key,
-        ) = litellm.MistralConfig()._get_openai_compatible_provider_info(api_base, api_key)
+        ) = gateway.MistralConfig()._get_openai_compatible_provider_info(api_base, api_key)
     elif custom_llm_provider == "jina_ai":
         (
             custom_llm_provider,
             api_base,
             dynamic_api_key,
-        ) = litellm.JinaAIEmbeddingConfig()._get_openai_compatible_provider_info(api_base, api_key)
+        ) = gateway.JinaAIEmbeddingConfig()._get_openai_compatible_provider_info(api_base, api_key)
     elif custom_llm_provider == "xai":
         (
             api_base,
             dynamic_api_key,
-        ) = litellm.XAIChatConfig()._get_openai_compatible_provider_info(api_base, api_key)
+        ) = gateway.XAIChatConfig()._get_openai_compatible_provider_info(api_base, api_key)
     elif custom_llm_provider == "zai":
         (
             api_base,
             dynamic_api_key,
-        ) = litellm.ZAIChatConfig()._get_openai_compatible_provider_info(api_base, api_key)
+        ) = gateway.ZAIChatConfig()._get_openai_compatible_provider_info(api_base, api_key)
     elif custom_llm_provider == "together_ai":
         api_base = api_base or get_secret_str("TOGETHER_AI_API_BASE") or "https://api.together.ai/v1"
         dynamic_api_key = api_key or (
@@ -756,7 +756,7 @@ def _get_openai_compatible_provider_info(
             api_base,
             dynamic_api_key,
             custom_llm_provider,
-        ) = litellm.GithubCopilotConfig()._get_openai_compatible_provider_info(
+        ) = gateway.GithubCopilotConfig()._get_openai_compatible_provider_info(
             model, api_base, api_key, custom_llm_provider
         )
     elif custom_llm_provider == "chatgpt":
@@ -764,7 +764,7 @@ def _get_openai_compatible_provider_info(
             api_base,
             dynamic_api_key,
             custom_llm_provider,
-        ) = litellm.ChatGPTConfig()._get_openai_compatible_provider_info(model, api_base, api_key, custom_llm_provider)
+        ) = gateway.ChatGPTConfig()._get_openai_compatible_provider_info(model, api_base, api_key, custom_llm_provider)
     elif custom_llm_provider == "novita":
         api_base = api_base or get_secret("NOVITA_API_BASE") or "https://api.novita.ai/v3/openai"
         dynamic_api_key = api_key or get_secret_str("NOVITA_API_KEY")
@@ -772,27 +772,27 @@ def _get_openai_compatible_provider_info(
         (
             api_base,
             dynamic_api_key,
-        ) = litellm.SnowflakeConfig()._get_openai_compatible_provider_info(api_base, api_key)
+        ) = gateway.SnowflakeConfig()._get_openai_compatible_provider_info(api_base, api_key)
     elif custom_llm_provider == "gradient_ai":
         (
             api_base,
             dynamic_api_key,
-        ) = litellm.GradientAIConfig()._get_openai_compatible_provider_info(api_base, api_key)
+        ) = gateway.GradientAIConfig()._get_openai_compatible_provider_info(api_base, api_key)
     elif custom_llm_provider == "featherless_ai":
         (
             api_base,
             dynamic_api_key,
-        ) = litellm.FeatherlessAIConfig()._get_openai_compatible_provider_info(api_base, api_key)
+        ) = gateway.FeatherlessAIConfig()._get_openai_compatible_provider_info(api_base, api_key)
     elif custom_llm_provider == "nscale":
         (
             api_base,
             dynamic_api_key,
-        ) = litellm.NscaleConfig()._get_openai_compatible_provider_info(api_base=api_base, api_key=api_key)
+        ) = gateway.NscaleConfig()._get_openai_compatible_provider_info(api_base=api_base, api_key=api_key)
     elif custom_llm_provider == "heroku":
         (
             api_base,
             dynamic_api_key,
-        ) = litellm.HerokuChatConfig()._get_openai_compatible_provider_info(api_base, api_key)
+        ) = gateway.HerokuChatConfig()._get_openai_compatible_provider_info(api_base, api_key)
     elif custom_llm_provider in ("dashscope", "qwencloud", "qwen_ai_platform"):
         (
             api_base,
@@ -802,53 +802,53 @@ def _get_openai_compatible_provider_info(
         (
             api_base,
             dynamic_api_key,
-        ) = litellm.ModelScopeChatConfig()._get_openai_compatible_provider_info(api_base, api_key)
+        ) = gateway.ModelScopeChatConfig()._get_openai_compatible_provider_info(api_base, api_key)
     elif custom_llm_provider == "moonshot":
         (
             api_base,
             dynamic_api_key,
-        ) = litellm.MoonshotChatConfig()._get_openai_compatible_provider_info(api_base, api_key)
+        ) = gateway.MoonshotChatConfig()._get_openai_compatible_provider_info(api_base, api_key)
     # publicai is now handled by JSON config (see token_iq/gateway/llms/openai_like/providers.json)
     elif custom_llm_provider == "docker_model_runner":
         (
             api_base,
             dynamic_api_key,
-        ) = litellm.DockerModelRunnerChatConfig()._get_openai_compatible_provider_info(api_base, api_key)
+        ) = gateway.DockerModelRunnerChatConfig()._get_openai_compatible_provider_info(api_base, api_key)
     elif custom_llm_provider == "v0":
         (
             api_base,
             dynamic_api_key,
-        ) = litellm.V0ChatConfig()._get_openai_compatible_provider_info(api_base, api_key)
+        ) = gateway.V0ChatConfig()._get_openai_compatible_provider_info(api_base, api_key)
     elif custom_llm_provider == "morph":
         (
             api_base,
             dynamic_api_key,
-        ) = litellm.MorphChatConfig()._get_openai_compatible_provider_info(api_base, api_key)
+        ) = gateway.MorphChatConfig()._get_openai_compatible_provider_info(api_base, api_key)
     elif custom_llm_provider == "lambda_ai":
         (
             api_base,
             dynamic_api_key,
-        ) = litellm.LambdaAIChatConfig()._get_openai_compatible_provider_info(api_base, api_key)
+        ) = gateway.LambdaAIChatConfig()._get_openai_compatible_provider_info(api_base, api_key)
     elif custom_llm_provider == "inception":
         (
             api_base,
             dynamic_api_key,
-        ) = litellm.InceptionChatConfig()._get_openai_compatible_provider_info(api_base, api_key)
+        ) = gateway.InceptionChatConfig()._get_openai_compatible_provider_info(api_base, api_key)
     elif custom_llm_provider == "hyperbolic":
         (
             api_base,
             dynamic_api_key,
-        ) = litellm.HyperbolicChatConfig()._get_openai_compatible_provider_info(api_base, api_key)
+        ) = gateway.HyperbolicChatConfig()._get_openai_compatible_provider_info(api_base, api_key)
     elif custom_llm_provider == "vercel_ai_gateway":
         (
             api_base,
             dynamic_api_key,
-        ) = litellm.VercelAIGatewayConfig()._get_openai_compatible_provider_info(api_base, api_key)
+        ) = gateway.VercelAIGatewayConfig()._get_openai_compatible_provider_info(api_base, api_key)
     elif custom_llm_provider == "aiml":
         (
             api_base,
             dynamic_api_key,
-        ) = litellm.AIMLChatConfig()._get_openai_compatible_provider_info(api_base, api_key)
+        ) = gateway.AIMLChatConfig()._get_openai_compatible_provider_info(api_base, api_key)
     elif custom_llm_provider == "wandb":
         api_base = api_base or get_secret("WANDB_API_BASE") or "https://api.inference.wandb.ai/v1"
         dynamic_api_key = api_key or get_secret_str("WANDB_API_KEY")
@@ -856,19 +856,19 @@ def _get_openai_compatible_provider_info(
         (
             api_base,
             dynamic_api_key,
-        ) = litellm.LemonadeChatConfig()._get_openai_compatible_provider_info(api_base, api_key)
+        ) = gateway.LemonadeChatConfig()._get_openai_compatible_provider_info(api_base, api_key)
     elif custom_llm_provider == "clarifai":
         (
             api_base,
             dynamic_api_key,
-        ) = litellm.ClarifaiConfig()._get_openai_compatible_provider_info(api_base, api_key)
+        ) = gateway.ClarifaiConfig()._get_openai_compatible_provider_info(api_base, api_key)
     elif custom_llm_provider == "ragflow":
         full_model: Final = f"ragflow/{model}"
         (
             api_base,
             dynamic_api_key,
             _,
-        ) = litellm.RAGFlowConfig()._get_openai_compatible_provider_info(full_model, api_base, api_key, "ragflow")
+        ) = gateway.RAGFlowConfig()._get_openai_compatible_provider_info(full_model, api_base, api_key, "ragflow")
         model = full_model
     elif custom_llm_provider == "langgraph":
         # LangGraph is a custom provider, just need to set api_base

@@ -1,6 +1,6 @@
 from typing import Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.bedrock.base_aws_llm import BaseAWSLLM
 from token_iq.gateway.secret_managers.main import get_secret_str
 
@@ -39,7 +39,7 @@ class BedrockClaudePlatformMixin(BaseAWSLLM):
             or get_secret_str("AWS_DEFAULT_REGION")
         )
         if aws_region_name is None:
-            raise litellm.AuthenticationError(
+            raise gateway.AuthenticationError(
                 message=(
                     "Missing AWS region for Claude Platform on AWS. Pass "
                     "`aws_region_name` or set a standard AWS region environment value."
@@ -61,7 +61,7 @@ class BedrockClaudePlatformMixin(BaseAWSLLM):
     ) -> str:
         api_base = (
             api_base
-            or litellm.api_base
+            or gateway.api_base
             or get_secret_str("ANTHROPIC_AWS_BASE_URL")
             or get_secret_str("ANTHROPIC_AWS_API_BASE")
         )

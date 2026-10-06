@@ -17,7 +17,7 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from fastapi import HTTPException
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
 from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.streaming_iterator import (
@@ -220,7 +220,7 @@ async def test_async_post_call_streaming_hook_fast_path_returns_response(proxy_l
         "out_is_input": out is resp,
         "out_value": out,
         "type": type(out).__name__,
-        "callbacks_empty": len(litellm.callbacks) == 0,
+        "callbacks_empty": len(gateway.callbacks) == 0,
     }
     assert snapshot == {
         "out_is_input": True,
@@ -237,7 +237,7 @@ async def test_async_post_call_streaming_hook_invokes_per_chunk_callback(proxy_l
             return "modified-" + str(kwargs.get("response", ""))
 
     cb = _Per()
-    monkeypatch.setattr(litellm, "callbacks", [cb])
+    monkeypatch.setattr(gateway, "callbacks", [cb])
 
     from token_iq.gateway import ModelResponse
 
@@ -263,7 +263,7 @@ async def test_async_post_call_streaming_hook_callback_error_raises(proxy_loggin
         async def async_post_call_streaming_hook(self, **kwargs):  # type: ignore[override]
             raise RuntimeError("hook-fail")
 
-    monkeypatch.setattr(litellm, "callbacks", [_Per()])
+    monkeypatch.setattr(gateway, "callbacks", [_Per()])
 
     from token_iq.gateway import ModelResponse
 
@@ -319,7 +319,7 @@ async def test_async_post_call_streaming_iterator_hook_with_override_chains_call
             async for ch in kwargs["response"]:
                 yield ch + "*"
 
-    monkeypatch.setattr(litellm, "callbacks", [_IterOverride()])
+    monkeypatch.setattr(gateway, "callbacks", [_IterOverride()])
 
     async def gen():
         for ch in ("a", "b"):
@@ -428,7 +428,7 @@ async def test_native_messages_stream_logging_fires_after_guardrail_end_of_strea
             ]
             events.append("scan_appended")
 
-    monkeypatch.setattr(litellm, "callbacks", [_EndOfStreamScanGuardrail()])
+    monkeypatch.setattr(gateway, "callbacks", [_EndOfStreamScanGuardrail()])
 
     async for _ in proxy_logging.async_post_call_streaming_iterator_hook(
         response=native_stream,
@@ -463,7 +463,7 @@ async def test_native_messages_stream_logging_fires_when_guardrail_blocks_after_
                 yield chunk
             raise HTTPException(status_code=400, detail={"error": "Violated guardrail policy"})
 
-    monkeypatch.setattr(litellm, "callbacks", [_BlockingGuardrail()])
+    monkeypatch.setattr(gateway, "callbacks", [_BlockingGuardrail()])
 
     with pytest.raises(HTTPException):
         async for _ in proxy_logging.async_post_call_streaming_iterator_hook(
@@ -539,7 +539,7 @@ async def test_post_call_response_headers_hook_merges_callback_headers(proxy_log
         async def async_post_call_response_headers_hook(self, **kwargs):  # type: ignore[override]
             return {"X-Common": "second", "X-Three": "3"}
 
-    monkeypatch.setattr(litellm, "callbacks", [_Cb(), _Cb2()])
+    monkeypatch.setattr(gateway, "callbacks", [_Cb(), _Cb2()])
     response = MagicMock()
     response._hidden_params = {}
     out = await proxy_logging.post_call_response_headers_hook(
@@ -556,7 +556,7 @@ async def test_post_call_response_headers_hook_swallows_callback_error(proxy_log
         async def async_post_call_response_headers_hook(self, **kwargs):  # type: ignore[override]
             raise RuntimeError("bad header")
 
-    monkeypatch.setattr(litellm, "callbacks", [_Cb()])
+    monkeypatch.setattr(gateway, "callbacks", [_Cb()])
     response = MagicMock()
     response._hidden_params = {}
     out = await proxy_logging.post_call_response_headers_hook(

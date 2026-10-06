@@ -8,9 +8,9 @@ It searches the vector store for relevant context and appends it to the messages
 from collections.abc import Awaitable, Callable
 from typing import TYPE_CHECKING, Any, Final, cast
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 import token_iq.gateway.vector_stores
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.types.llms.openai import AllMessageValues, ChatCompletionUserMessage
@@ -77,7 +77,7 @@ class VectorStorePreCallHook(CustomLogger):
         """
         try:
             # Check if vector store is configured
-            if litellm.vector_store_registry is None:
+            if gateway.vector_store_registry is None:
                 return model, messages, non_default_params
 
             # Get prisma_client for database fallback
@@ -99,7 +99,7 @@ class VectorStorePreCallHook(CustomLogger):
             # Use database fallback to ensure synchronization across instances
             vector_stores_to_run: list[
                 LiteLLM_ManagedVectorStore
-            ] = await litellm.vector_store_registry.pop_vector_stores_to_run_with_db_fallback(
+            ] = await gateway.vector_store_registry.pop_vector_stores_to_run_with_db_fallback(
                 non_default_params=non_default_params,
                 tools=tools,
                 prisma_client=prisma_client,
@@ -135,7 +135,7 @@ class VectorStorePreCallHook(CustomLogger):
                 else:
                     search_function = cast(  # cast-ok: normalize SDK search callable
                         Callable[..., Awaitable[VectorStoreSearchResponse]],
-                        litellm.vector_stores.asearch,
+                        gateway.vector_stores.asearch,
                     )
                 search_response = await search_function(
                     **{

@@ -1,6 +1,6 @@
 from typing import Any, Final, cast
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import Router
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.proxy.common_utils.callback_utils import initialize_callbacks_on_proxy
@@ -116,7 +116,7 @@ def initialize_guardrails(
             for k, v in item.items():
                 guardrail_item = GuardrailItem(**v, guardrail_name=k)
                 all_guardrails.append(guardrail_item)
-                litellm.guardrail_name_config_map[k] = guardrail_item
+                gateway.guardrail_name_config_map[k] = guardrail_item
 
         # set appropriate callbacks if they are default on
         default_on_callbacks: Final = set()
@@ -130,7 +130,7 @@ def initialize_guardrails(
             if guardrail.default_on is True:
                 # add these to litellm callbacks if they don't exist
                 for callback in guardrail.callbacks:
-                    if callback not in litellm.callbacks:
+                    if callback not in gateway.callbacks:
                         default_on_callbacks.add(callback)
 
                     if guardrail.logging_only is True:
@@ -147,7 +147,7 @@ def initialize_guardrails(
                 callback_specific_params=callback_specific_params,
             )
 
-        return litellm.guardrail_name_config_map
+        return gateway.guardrail_name_config_map
     except Exception as e:
         verbose_proxy_logger.exception("error initializing guardrails %s", e)
         raise e

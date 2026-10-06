@@ -3,7 +3,7 @@ from typing import Final
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import stream_chunk_builder
 from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
 from token_iq.gateway.core_utils.litellm_logging import (
@@ -86,7 +86,7 @@ class CoherePassthroughLoggingHandler(BasePassthroughLoggingHandler):
             model: Final = request_body.get("model", response_body.get("model", ""))
             try:
                 cohere_embed_config: Final = CohereEmbeddingConfig()
-                litellm_model_response = litellm.EmbeddingResponse()
+                litellm_model_response = gateway.EmbeddingResponse()
                 handler_instance: Final = CoherePassthroughLoggingHandler()
 
                 input_texts = request_body.get("texts", [])
@@ -101,12 +101,12 @@ class CoherePassthroughLoggingHandler(BasePassthroughLoggingHandler):
                     data=request_body,
                     model_response=litellm_model_response,
                     model=model,
-                    encoding=litellm.encoding,
+                    encoding=gateway.encoding,
                     input=input_texts,
                 )
 
                 # Calculate cost using LiteLLM's cost calculator
-                response_cost: Final = litellm.completion_cost(
+                response_cost: Final = gateway.completion_cost(
                     completion_response=litellm_model_response,
                     model=model,
                     custom_llm_provider="cohere",

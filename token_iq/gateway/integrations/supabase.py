@@ -7,7 +7,7 @@ import sys
 import traceback
 from typing import Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 
 class Supabase:
@@ -59,7 +59,7 @@ class Supabase:
         try:
             print_verbose(f"Supabase Logging - Enters logging function for model {model}, response_obj: {response_obj}")
 
-            total_cost = litellm.completion_cost(completion_response=response_obj)
+            total_cost = gateway.completion_cost(completion_response=response_obj)
 
             response_time: Final = (end_time - start_time).total_seconds()
             if "choices" in response_obj:

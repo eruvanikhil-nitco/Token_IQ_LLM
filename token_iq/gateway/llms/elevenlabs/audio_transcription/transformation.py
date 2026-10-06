@@ -6,7 +6,7 @@ from typing import Final
 
 from httpx import Headers, Response
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.audio_utils.utils import process_audio_file
 from token_iq.gateway.llms.base_llm.chat.transformation import BaseLLMException
 from token_iq.gateway.secret_managers.main import get_secret_str
@@ -26,7 +26,7 @@ from ..common_utils import ElevenLabsException
 class ElevenLabsAudioTranscriptionConfig(BaseAudioTranscriptionConfig):
     @property
     def custom_llm_provider(self) -> str:
-        return litellm.LlmProviders.ELEVENLABS.value
+        return gateway.LlmProviders.ELEVENLABS.value
 
     def get_supported_openai_params(self, model: str) -> list[OpenAIAudioTranscriptionOptionalParams]:
         return ["language", "temperature"]

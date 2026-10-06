@@ -15,7 +15,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 from typing import TYPE_CHECKING, Any, Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.constants import SEMANTIC_CACHE_EMBEDDING_TIMEOUT_SECONDS
 
 if TYPE_CHECKING:
@@ -72,8 +72,8 @@ def truncate_embedding_input(prompt: str, embedding_model: str, max_input_tokens
     """Keep only the first ``max_input_tokens`` tokens of ``prompt`` for the embedding call."""
     if max_input_tokens is None:
         return prompt
-    tokens: Final[Sequence[int]] = litellm.encode(model=embedding_model, text=prompt)
+    tokens: Final[Sequence[int]] = gateway.encode(model=embedding_model, text=prompt)
     if len(tokens) <= max_input_tokens:
         return prompt
-    truncated: Final[str] = litellm.decode(model=embedding_model, tokens=tokens[:max_input_tokens])
+    truncated: Final[str] = gateway.decode(model=embedding_model, tokens=tokens[:max_input_tokens])
     return truncated

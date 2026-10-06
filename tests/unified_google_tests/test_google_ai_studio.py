@@ -2,7 +2,7 @@ from base_google_genai_proxy_sdk_test import BaseGoogleGenAIProxySDKTest
 from base_google_test import BaseGoogleGenAITest
 
 import pytest
-from token_iq import gateway as litellm
+from token_iq import gateway
 import unittest.mock
 import json
 
@@ -26,7 +26,7 @@ async def test_mock_stream_generate_content_with_tools():
     """Test streaming function call response parsing and validation"""
     from token_iq.gateway.types.google_genai.main import ToolConfigDict
 
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
     contents = [
         {
             "role": "user",
@@ -93,7 +93,7 @@ async def test_mock_stream_generate_content_with_tools():
         print(
             "\n--- Testing async agenerate_content_stream with function call parsing ---"
         )
-        response = await litellm.google_genai.agenerate_content_stream(
+        response = await gateway.google_genai.agenerate_content_stream(
             model="gemini/gemini-2.5-flash-lite",
             contents=contents,
             tools=[
@@ -342,7 +342,7 @@ async def test_validate_post_request_parameters():
         print("\n--- Testing POST request parameters validation ---")
 
         # Make the API call
-        response = await litellm.google_genai.agenerate_content_stream(
+        response = await gateway.google_genai.agenerate_content_stream(
             model="gemini/gemini-2.5-flash-lite", contents=contents, tools=tools
         )
 

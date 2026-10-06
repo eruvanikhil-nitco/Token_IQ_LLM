@@ -21,7 +21,7 @@ def check_non_streaming_response(response):
 import dotenv
 from openai import OpenAI
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 import stream_chunk_testdata
 from token_iq.gateway import completion, stream_chunk_builder
 
@@ -88,8 +88,8 @@ tools_schema = [
 
 def test_stream_chunk_builder_litellm_function_call():
     try:
-        litellm.set_verbose = False
-        response = litellm.completion(
+        gateway.set_verbose = False
+        response = gateway.completion(
             model="gpt-3.5-turbo",
             messages=messages,
             functions=[function_schema],
@@ -107,8 +107,8 @@ def test_stream_chunk_builder_litellm_function_call():
 
 def test_stream_chunk_builder_litellm_tool_call():
     try:
-        litellm.set_verbose = True
-        response = litellm.completion(
+        gateway.set_verbose = True
+        response = gateway.completion(
             model="gpt-3.5-turbo",
             messages=messages,
             tools=tools_schema,
@@ -135,7 +135,7 @@ def test_stream_chunk_builder_litellm_tool_call_regular_message():
     try:
         messages = [{"role": "user", "content": "Hey, how's it going?"}]
         # litellm.set_verbose = True
-        response = litellm.completion(
+        response = gateway.completion(
             model="gpt-3.5-turbo",
             messages=messages,
             tools=tools_schema,
@@ -184,7 +184,7 @@ def test_stream_chunk_builder_litellm_mixed_calls():
 
 
 def test_stream_chunk_builder_litellm_empty_chunks():
-    with pytest.raises(litellm.APIError):
+    with pytest.raises(gateway.APIError):
         response = stream_chunk_builder(chunks=None)
 
     response = stream_chunk_builder(chunks=[])
@@ -537,7 +537,7 @@ def test_stream_chunk_builder_multiple_tool_calls():
 
     chunks = []
     for chunk in init_chunks:
-        chunks.append(litellm.ModelResponseStream(**chunk))
+        chunks.append(gateway.ModelResponseStream(**chunk))
     response = stream_chunk_builder(chunks=chunks)
 
     print(f"Returned response: {response}")
@@ -580,7 +580,7 @@ def test_stream_chunk_builder_multiple_tool_calls():
         "service_tier": None,
     }
 
-    expected_response = litellm.ModelResponse(**completed_response)
+    expected_response = gateway.ModelResponse(**completed_response)
 
     print(f"\n\nexpected_response:\n{expected_response}\n\n")
     assert (
@@ -607,14 +607,14 @@ def test_stream_chunk_builder_openai_prompt_caching():
         stream=True,
         stream_options={"include_usage": True},
     )
-    chunks: List[litellm.ModelResponse] = []
+    chunks: List[gateway.ModelResponse] = []
     usage_obj = None
     for chunk in chat_completion:
-        chunks.append(litellm.ModelResponseStream(**chunk.model_dump()))
+        chunks.append(gateway.ModelResponseStream(**chunk.model_dump()))
 
     print(f"chunks: {chunks}")
 
-    usage_obj: litellm.Usage = chunks[-1].usage  # type: ignore
+    usage_obj: gateway.Usage = chunks[-1].usage  # type: ignore
 
     response = stream_chunk_builder(chunks=chunks)
     print(f"response: {response}")
@@ -661,9 +661,9 @@ def test_stream_chunk_builder_openai_audio_output_usage():
 
     chunks = []
     for chunk in completion:
-        chunks.append(litellm.ModelResponseStream(**chunk.model_dump()))
+        chunks.append(gateway.ModelResponseStream(**chunk.model_dump()))
 
-    usage_obj: Optional[litellm.Usage] = None
+    usage_obj: Optional[gateway.Usage] = None
 
     for index, chunk in enumerate(chunks):
         if hasattr(chunk, "usage") and chunk.usage is not None:
@@ -851,7 +851,7 @@ def load_env():
     tools = [
         {
             "type": "function",
-            "function": litellm.utils.function_to_dict(get_current_weather),
+            "function": gateway.utils.function_to_dict(get_current_weather),
         }
     ]
     OPENAI_GPT4oMINI = {
@@ -874,13 +874,13 @@ def load_env():
 
 def execute_completion(opts: dict):
     partial_streaming_chunks = []
-    response_gen = litellm.completion(**opts)
+    response_gen = gateway.completion(**opts)
     for i, part in enumerate(response_gen):
         partial_streaming_chunks.append(part)
     print("\n\n")
     print(f"partial_streaming_chunks: {partial_streaming_chunks}")
     print("\n\n")
-    assembly = litellm.stream_chunk_builder(partial_streaming_chunks)
+    assembly = gateway.stream_chunk_builder(partial_streaming_chunks)
     print(
         f"assembly.choices[0].message.tool_calls: {assembly.choices[0].message.tool_calls}"
     )
@@ -892,6 +892,6 @@ def execute_completion(opts: dict):
 
 
 def test_grok_bug(load_env):
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     _, LLAMA3_3 = load_env
     execute_completion(LLAMA3_3)

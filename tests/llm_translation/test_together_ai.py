@@ -9,13 +9,13 @@ from datetime import datetime
 from unittest.mock import AsyncMock
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 import pytest
 
 
 class TestTogetherAI(BaseLLMChatTest):
     def get_base_completion_call_args(self) -> dict:
-        litellm.set_verbose = True
+        gateway.set_verbose = True
         return {"model": "together_ai/openai/gpt-oss-20b"}
 
     def test_tool_call_no_arguments(self, tool_call_no_arguments):
@@ -31,8 +31,8 @@ class TestTogetherAI(BaseLLMChatTest):
     )
     def test_get_supported_response_format_together_ai(self, model: str) -> None:
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-        litellm.model_cost = litellm.get_model_cost_map()
-        optional_params = litellm.get_supported_openai_params(
+        gateway.model_cost = gateway.get_model_cost_map()
+        optional_params = gateway.get_supported_openai_params(
             model, custom_llm_provider="together_ai"
         )
         assert isinstance(optional_params, list)

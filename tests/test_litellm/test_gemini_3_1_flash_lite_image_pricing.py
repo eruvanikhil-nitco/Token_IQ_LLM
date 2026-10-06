@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import completion_cost
 from token_iq.gateway.cost_calculator import cost_per_token
 from token_iq.gateway.core_utils.get_llm_provider_logic import get_llm_provider
@@ -103,15 +103,15 @@ def _load(path: Path) -> dict:
 
 @pytest.fixture
 def local_model_cost_map(monkeypatch):
-    original_model_cost = litellm.model_cost
+    original_model_cost = gateway.model_cost
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    litellm.model_cost = litellm.get_model_cost_map()
-    litellm.get_model_info.cache_clear()
+    gateway.model_cost = gateway.get_model_cost_map()
+    gateway.get_model_info.cache_clear()
     try:
         yield
     finally:
-        litellm.model_cost = original_model_cost
-        litellm.get_model_info.cache_clear()
+        gateway.model_cost = original_model_cost
+        gateway.get_model_info.cache_clear()
 
 
 @pytest.mark.parametrize("model", ALL_KEYS)
@@ -167,7 +167,7 @@ def test_vertex_prefix_routes_to_vertex():
 
 
 def test_get_model_info_reports_published_costs(local_model_cost_map):
-    info = litellm.get_model_info(UNPREFIXED)
+    info = gateway.get_model_info(UNPREFIXED)
     assert info["input_cost_per_token"] == INPUT_COST
     assert info["output_cost_per_token"] == OUTPUT_TEXT_COST
     assert info["cache_read_input_token_cost"] == CACHE_READ_COST
@@ -175,7 +175,7 @@ def test_get_model_info_reports_published_costs(local_model_cost_map):
 
 @pytest.mark.parametrize("model", ALL_KEYS)
 def test_reasoning_params_are_not_offered_on_an_image_endpoint(model: str, local_model_cost_map):
-    assert litellm.supports_reasoning(model) is False
+    assert gateway.supports_reasoning(model) is False
 
 
 def test_text_token_cost(local_model_cost_map):

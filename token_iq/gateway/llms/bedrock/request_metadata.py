@@ -20,7 +20,7 @@ import re
 from collections.abc import Mapping
 from typing import Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 BEDROCK_REQUEST_METADATA_HEADER: Final = "X-Amzn-Bedrock-Request-Metadata"
 BEDROCK_REQUEST_METADATA_MAX_PAIRS: Final = 16
@@ -49,7 +49,7 @@ def _allowed_fields() -> tuple[str, ...]:
     reserved slot and shrink the client budget for nothing. First occurrence wins, which keeps
     the operator's declared precedence intact.
     """
-    configured: Final[object] = litellm.bedrock_request_metadata_fields
+    configured: Final[object] = gateway.bedrock_request_metadata_fields
     if not isinstance(configured, (list, tuple)):
         return ()
     fields: Final = tuple(str(field) for field in configured)

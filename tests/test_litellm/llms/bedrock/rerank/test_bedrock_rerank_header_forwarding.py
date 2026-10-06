@@ -10,7 +10,7 @@ from unittest.mock import AsyncMock, MagicMock, Mock, patch
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.bedrock.base_aws_llm import Boto3CredentialsInfo
 from token_iq.gateway.llms.bedrock.rerank.handler import BedrockRerankHandler
 from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
@@ -99,7 +99,7 @@ def test_bedrock_rerank_header_forwarding_sync(model):
         try:
             # Call rerank with custom headers via kwargs
             # This simulates what the proxy does when forward_client_headers_to_llm_api is set
-            response = litellm.rerank(
+            response = gateway.rerank(
                 model=model,
                 query=test_query,
                 documents=test_documents,
@@ -111,7 +111,7 @@ def test_bedrock_rerank_header_forwarding_sync(model):
                 api_key=test_api_key,
             )
 
-            assert isinstance(response, litellm.RerankResponse)
+            assert isinstance(response, gateway.RerankResponse)
 
             # Verify that the request was made
             assert mock_post.called, "HTTP client post should be called"
@@ -191,7 +191,7 @@ async def test_bedrock_rerank_header_forwarding_async(model):
 
         try:
             # Call rerank with custom headers via kwargs
-            response = await litellm.arerank(
+            response = await gateway.arerank(
                 model=model,
                 query=test_query,
                 documents=test_documents,
@@ -203,7 +203,7 @@ async def test_bedrock_rerank_header_forwarding_async(model):
                 api_key=test_api_key,
             )
 
-            assert isinstance(response, litellm.RerankResponse)
+            assert isinstance(response, gateway.RerankResponse)
 
             # Verify that the request was made
             assert mock_post.called, "HTTP client post should be called"
@@ -257,7 +257,7 @@ def test_bedrock_rerank_timeout_sync():
         mock_response.raise_for_status = lambda: None
         mock_post.return_value = mock_response
 
-        litellm.rerank(
+        gateway.rerank(
             model=model,
             query=test_query,
             documents=test_documents,
@@ -301,7 +301,7 @@ async def test_bedrock_rerank_timeout_async():
         mock_response.raise_for_status = lambda: None
         mock_post.return_value = mock_response
 
-        await litellm.arerank(
+        await gateway.arerank(
             model=model,
             query=test_query,
             documents=test_documents,
@@ -360,7 +360,7 @@ def test_bedrock_rerank_extra_headers_and_headers_merge():
         mock_post.return_value = mock_response
 
         try:
-            response = litellm.rerank(
+            response = gateway.rerank(
                 model=model,
                 query=test_query,
                 documents=test_documents,
@@ -373,7 +373,7 @@ def test_bedrock_rerank_extra_headers_and_headers_merge():
                 api_key=test_api_key,
             )
 
-            assert isinstance(response, litellm.RerankResponse)
+            assert isinstance(response, gateway.RerankResponse)
 
             call_kwargs = mock_post.call_args.kwargs
             headers = call_kwargs.get("headers", {})
@@ -479,7 +479,7 @@ async def test_bedrock_rerank_records_llm_api_duration():
         "token_iq.gateway.llms.bedrock.rerank.handler.BedrockRerankHandler._get_boto_credentials_from_optional_params",
         return_value=create_mock_credentials(),
     ):
-        response = await litellm.arerank(
+        response = await gateway.arerank(
             model="bedrock/arn:aws:bedrock:us-east-1::foundation-model/cohere.rerank-v3-5:0",
             query=test_query,
             documents=test_documents,

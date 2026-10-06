@@ -10,7 +10,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.core_utils.redact_messages import (
     _redact_responses_api_output,
@@ -24,10 +24,10 @@ from token_iq.gateway.responses.main import mock_responses_api_response
 @pytest.fixture(autouse=True)
 def _reset_global_redaction():
     """Ensure the global setting is off for every test."""
-    original = litellm.turn_off_message_logging
-    litellm.turn_off_message_logging = False
+    original = gateway.turn_off_message_logging
+    gateway.turn_off_message_logging = False
     yield
-    litellm.turn_off_message_logging = original
+    gateway.turn_off_message_logging = original
 
 
 def _make_model_call_details(
@@ -79,7 +79,7 @@ class TestShouldRedactMessageLogging:
 
     def test_disable_redaction_via_header_proxy_flow(self):
         """Core helper still honors the explicit disable-redaction header."""
-        litellm.turn_off_message_logging = True
+        gateway.turn_off_message_logging = True
         details = _make_model_call_details(
             metadata_headers={"litellm-disable-message-redaction": "true"},
             litellm_metadata=None,
@@ -117,7 +117,7 @@ class TestShouldRedactMessageLogging:
 
     def test_no_headers_global_on(self):
         """Without headers, respects global turn_off_message_logging=True."""
-        litellm.turn_off_message_logging = True
+        gateway.turn_off_message_logging = True
         details = _make_model_call_details(
             metadata_headers=None,
             litellm_metadata=None,
@@ -146,7 +146,7 @@ class TestShouldRedactMessageLogging:
 
     def test_dynamic_param_false_overrides_global_redaction(self):
         """Dynamic turn_off_message_logging=False should take precedence."""
-        litellm.turn_off_message_logging = True
+        gateway.turn_off_message_logging = True
         details = _make_model_call_details(
             metadata_headers={},
             litellm_metadata=None,
@@ -166,7 +166,7 @@ class TestShouldRedactMessageLogging:
 
     def test_both_metadata_fields_none_global_on(self):
         """When both metadata fields are None but global is on, should still return True."""
-        litellm.turn_off_message_logging = True
+        gateway.turn_off_message_logging = True
         details = _make_model_call_details(
             metadata=None,
             litellm_metadata=None,
@@ -305,8 +305,8 @@ class TestPerformRedaction:
     def test_redacts_object_choices_inside_model_response_dict(self):
         result = {
             "choices": [
-                litellm.Choices(
-                    message=litellm.Message(
+                gateway.Choices(
+                    message=gateway.Message(
                         content="message content",
                         role="assistant",
                         reasoning_content="message reasoning",
@@ -382,11 +382,11 @@ class TestPerformRedaction:
         assert delta["tool_calls"][0]["function"]["arguments"] == "redacted-by-litellm"
 
     def test_redacts_tool_call_arguments_on_model_response_object(self):
-        result = litellm.ModelResponse(
+        result = gateway.ModelResponse(
             id="resp-1",
             choices=[
-                litellm.Choices(
-                    message=litellm.Message(
+                gateway.Choices(
+                    message=gateway.Message(
                         content=None,
                         role="assistant",
                         tool_calls=[
@@ -416,8 +416,8 @@ class TestPerformRedaction:
 
     def test_redacts_tool_call_arguments_on_streaming_response_object(self):
         """Reproduces the Stream=True path where tool calls arrive as deltas."""
-        streaming_choice = litellm.utils.StreamingChoices(
-            delta=litellm.utils.Delta(
+        streaming_choice = gateway.utils.StreamingChoices(
+            delta=gateway.utils.Delta(
                 content=None,
                 role="assistant",
                 tool_calls=[
@@ -492,11 +492,11 @@ class TestPerformRedaction:
         assert redacted["output"][0]["name"] == "get_weather"
 
     def test_redacts_every_tool_call_in_multi_element_list(self):
-        result = litellm.ModelResponse(
+        result = gateway.ModelResponse(
             id="resp-multi",
             choices=[
-                litellm.Choices(
-                    message=litellm.Message(
+                gateway.Choices(
+                    message=gateway.Message(
                         content=None,
                         role="assistant",
                         tool_calls=[
@@ -524,11 +524,11 @@ class TestPerformRedaction:
         assert tool_calls[1].function.arguments == "redacted-by-litellm"
 
     def test_preserves_none_content_on_tool_call_only_message(self):
-        result = litellm.ModelResponse(
+        result = gateway.ModelResponse(
             id="resp-none",
             choices=[
-                litellm.Choices(
-                    message=litellm.Message(
+                gateway.Choices(
+                    message=gateway.Message(
                         content=None,
                         role="assistant",
                         tool_calls=[
@@ -647,11 +647,11 @@ class TestPerformRedaction:
         assert response["vertex_ai_url_context_metadata"] == []
 
     def test_redacts_vertex_provider_metadata_on_streaming_model_response(self):
-        response = litellm.ModelResponse(
+        response = gateway.ModelResponse(
             id="resp-1",
             choices=[
-                litellm.Choices(
-                    message=litellm.Message(
+                gateway.Choices(
+                    message=gateway.Message(
                         content="sensitive answer",
                         role="assistant",
                     )
@@ -711,10 +711,10 @@ class TestPerformRedaction:
 
     def test_redact_async_complete_streaming_response(self):
         """Test that async_complete_streaming_response is properly redacted."""
-        response_obj = litellm.ModelResponse(
+        response_obj = gateway.ModelResponse(
             choices=[
-                litellm.Choices(
-                    message=litellm.Message(content="secret content", role="assistant")
+                gateway.Choices(
+                    message=gateway.Message(content="secret content", role="assistant")
                 )
             ]
         )
@@ -734,10 +734,10 @@ class TestPerformRedaction:
 
     def test_redact_complete_streaming_response(self):
         """Test that complete_streaming_response is properly redacted."""
-        response_obj = litellm.ModelResponse(
+        response_obj = gateway.ModelResponse(
             choices=[
-                litellm.Choices(
-                    message=litellm.Message(content="secret content", role="assistant")
+                gateway.Choices(
+                    message=gateway.Message(content="secret content", role="assistant")
                 )
             ]
         )
@@ -756,10 +756,10 @@ class TestPerformRedaction:
         assert redacted_response.choices[0].message.content == "redacted-by-litellm"
 
     def test_streaming_responses_untouched_when_disabled(self):
-        response_obj = litellm.ModelResponse(
+        response_obj = gateway.ModelResponse(
             choices=[
-                litellm.Choices(
-                    message=litellm.Message(content="secret content", role="assistant")
+                gateway.Choices(
+                    message=gateway.Message(content="secret content", role="assistant")
                 )
             ]
         )
@@ -802,8 +802,8 @@ class TestPerformRedaction:
 
     def test_recognized_shapes_still_redact_a_copy(self):
         """The type gate must not change behaviour for shapes that were already handled."""
-        original = litellm.ModelResponse(
-            choices=[litellm.Choices(message=litellm.Message(content="secret content", role="assistant"))]
+        original = gateway.ModelResponse(
+            choices=[gateway.Choices(message=gateway.Message(content="secret content", role="assistant"))]
         )
 
         redacted = perform_redaction({"litellm_params": {}}, original)
@@ -811,7 +811,7 @@ class TestPerformRedaction:
         assert redacted.choices[0].message.content == "redacted-by-litellm"
         assert original.choices[0].message.content == "secret content"
 
-        embedding = litellm.EmbeddingResponse(data=[{"embedding": [1.0, 2.0]}])
+        embedding = gateway.EmbeddingResponse(data=[{"embedding": [1.0, 2.0]}])
         assert perform_redaction({"litellm_params": {}}, embedding).data == []
 
         as_dict = {"choices": [{"message": {"role": "assistant", "content": "secret content"}}]}
@@ -823,10 +823,10 @@ class TestPerformRedaction:
 
 class TestRedactStreamingResponsesForCustomLogger:
     def _model_call_details(self):
-        response_obj = litellm.ModelResponse(
+        response_obj = gateway.ModelResponse(
             choices=[
-                litellm.Choices(
-                    message=litellm.Message(content="secret content", role="assistant")
+                gateway.Choices(
+                    message=gateway.Message(content="secret content", role="assistant")
                 )
             ]
         )

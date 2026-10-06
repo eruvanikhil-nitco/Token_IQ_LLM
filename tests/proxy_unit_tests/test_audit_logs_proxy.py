@@ -19,7 +19,7 @@ import logging
 load_dotenv()
 
 import pytest
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 
 from token_iq.gateway.proxy.proxy_server import (
@@ -229,12 +229,12 @@ def prisma_client():
 async def test_create_audit_log_in_db(prisma_client):
     print("prisma client=", prisma_client)
 
-    setattr(litellm.proxy.proxy_server, "prisma_client", prisma_client)
-    setattr(litellm.proxy.proxy_server, "master_key", "sk-1234")
-    setattr(litellm.proxy.proxy_server, "premium_user", True)
-    setattr(litellm, "store_audit_logs", True)
+    setattr(gateway.proxy.proxy_server, "prisma_client", prisma_client)
+    setattr(gateway.proxy.proxy_server, "master_key", "sk-1234")
+    setattr(gateway.proxy.proxy_server, "premium_user", True)
+    setattr(gateway, "store_audit_logs", True)
 
-    await litellm.proxy.proxy_server.prisma_client.connect()
+    await gateway.proxy.proxy_server.prisma_client.connect()
     audit_log_id = f"audit_log_id_{uuid.uuid4()}"
 
     # create a audit log for /key/generate
@@ -260,4 +260,4 @@ async def test_create_audit_log_in_db(prisma_client):
 
     assert last_log.id == audit_log_id
 
-    setattr(litellm, "store_audit_logs", False)
+    setattr(gateway, "store_audit_logs", False)

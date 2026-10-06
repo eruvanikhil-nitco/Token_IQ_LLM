@@ -159,7 +159,7 @@ def _supports_nova_canvas_image_edit_from_model_cost(model: str) -> bool:
     get_model_info / ModelInfoBase omit arbitrary JSON keys, so we read model_cost
     directly (same idea as supports_* bare_entry fallback).
     """
-    from token_iq import gateway as _litellm
+    from token_iq import gateway as _gateway
 
     if not model:
         return False
@@ -208,7 +208,7 @@ def _supports_nova_canvas_image_edit_from_model_cost(model: str) -> bool:
         key = _get_model_cost_key(name)
         if key is None:
             continue
-        entry = _litellm.model_cost.get(key) or {}
+        entry = _gateway.model_cost.get(key) or {}
         if entry.get("supports_nova_canvas_image_edit") is True:
             return True
     return False

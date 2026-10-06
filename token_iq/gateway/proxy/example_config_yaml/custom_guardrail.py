@@ -1,6 +1,6 @@
 from typing import Dict, Final, Optional, Union
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.caching.caching import DualCache
 from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
@@ -115,9 +115,9 @@ class myCustomGuardrail(CustomGuardrail):
         If a response contains the word "coffee" -> we will raise an exception
         """
         verbose_proxy_logger.debug("async_pre_call_hook response: %s", response)
-        if isinstance(response, litellm.ModelResponse):
+        if isinstance(response, gateway.ModelResponse):
             for choice in response.choices:
-                if isinstance(choice, litellm.Choices):
+                if isinstance(choice, gateway.Choices):
                     verbose_proxy_logger.debug("async_pre_call_hook choice: %s", choice)
                     if (
                         choice.message.content

@@ -74,7 +74,7 @@ async def anthropic_messages_with_mcp(
     caller's own credentials and access control, rather than being handed to the
     upstream provider as a url it cannot reach.
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.experimental_mcp_client.tools import (
         transform_mcp_tool_to_anthropic_tool,
     )
@@ -85,7 +85,7 @@ async def anthropic_messages_with_mcp(
     mcp_references, other_tools = LiteLLM_Proxy_MCP_Handler._parse_mcp_tools(tools)
 
     if not mcp_references:
-        return await _AnthropicMessagesCall(fn=litellm.anthropic_messages).fn(
+        return await _AnthropicMessagesCall(fn=gateway.anthropic_messages).fn(
             max_tokens=max_tokens,
             messages=list(messages),
             model=model,
@@ -127,12 +127,12 @@ async def anthropic_messages_with_mcp(
     }
 
     if not should_auto_execute:
-        return await _AnthropicMessagesCall(fn=litellm.anthropic_messages).fn(
+        return await _AnthropicMessagesCall(fn=gateway.anthropic_messages).fn(
             messages=list(messages), stream=stream, **base_call_args
         )
 
     working_messages: Sequence[Mapping[str, object]] = tuple(messages)
-    response: AnthropicMessagesResponse = await _AnthropicMessagesCall(fn=litellm.anthropic_messages).fn(
+    response: AnthropicMessagesResponse = await _AnthropicMessagesCall(fn=gateway.anthropic_messages).fn(
         messages=list(working_messages), stream=False, **base_call_args
     )
 
@@ -167,7 +167,7 @@ async def anthropic_messages_with_mcp(
             {"role": "assistant", "content": list(_get_response_content(response))},
             _build_tool_result_message(tool_results),
         )
-        response = await _AnthropicMessagesCall(fn=litellm.anthropic_messages).fn(
+        response = await _AnthropicMessagesCall(fn=gateway.anthropic_messages).fn(
             messages=list(working_messages), stream=False, **base_call_args
         )
     else:

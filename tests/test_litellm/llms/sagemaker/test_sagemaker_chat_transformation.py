@@ -19,7 +19,7 @@ from unittest.mock import MagicMock
 import httpx
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 from token_iq.gateway.llms.sagemaker.chat.transformation import SagemakerChatConfig
 
@@ -271,7 +271,7 @@ def _invoke_sagemaker_chat(monkeypatch, **extra_params) -> _RequestCapturingHTTP
     """
     monkeypatch.delenv("AWS_BEARER_TOKEN_BEDROCK", raising=False)
     client = _RequestCapturingHTTPHandler()
-    litellm.completion(
+    gateway.completion(
         model="sagemaker_chat/my-endpoint",
         messages=[{"role": "user", "content": "hi"}],
         aws_access_key_id="AKIATESTTESTTESTTEST",

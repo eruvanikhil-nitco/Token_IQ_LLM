@@ -343,7 +343,7 @@ async def test_scim_create_user_respects_default_role_set_via_ui(mocker, monkeyp
         True,
     )
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
     settings = DefaultInternalUserParams(
@@ -357,11 +357,11 @@ async def test_scim_create_user_respects_default_role_set_via_ui(mocker, monkeyp
     )
 
     # Verify the in-memory variable was actually updated
-    assert litellm.default_internal_user_params is not None, (
+    assert gateway.default_internal_user_params is not None, (
         "BUG: _update_litellm_setting did not update litellm.default_internal_user_params in memory. "
         "The local variable reassignment (in_memory_var = ...) doesn't propagate back."
     )
-    assert litellm.default_internal_user_params.get("user_role") == LitellmUserRoles.INTERNAL_USER
+    assert gateway.default_internal_user_params.get("user_role") == LitellmUserRoles.INTERNAL_USER
 
     # Step 3: Create a user via SCIM
     scim_user = SCIMUser(
@@ -4450,7 +4450,7 @@ async def test_create_group_applies_default_team_params(
 ):
     """SCIM-created teams must honor litellm_settings.default_team_params, including
     models, the same way SSO auto-created teams do."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.types.proxy.management_endpoints.ui_sso import DefaultTeamSSOParams
 
     default_params = {
@@ -4461,7 +4461,7 @@ async def test_create_group_applies_default_team_params(
         "rpm_limit": 10,
     }
     monkeypatch.setattr(
-        litellm,
+        gateway,
         "default_team_params",
         DefaultTeamSSOParams(**default_params) if as_pydantic else default_params,
     )

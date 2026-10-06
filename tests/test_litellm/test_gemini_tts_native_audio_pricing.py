@@ -5,7 +5,7 @@ from typing import Final
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.llm_cost_calc.utils import generic_cost_per_token
 from token_iq.gateway.types.utils import CompletionTokensDetailsWrapper, PromptTokensDetailsWrapper, Usage
 
@@ -75,10 +75,10 @@ def _load(path: Path) -> dict[str, dict[str, object]]:
 @pytest.fixture
 def local_model_cost_map(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map())
-    litellm.get_model_info.cache_clear()
+    monkeypatch.setattr(gateway, "model_cost", gateway.get_model_cost_map())
+    gateway.get_model_info.cache_clear()
     yield
-    litellm.get_model_info.cache_clear()
+    gateway.get_model_info.cache_clear()
 
 
 @pytest.mark.parametrize("model", ALL_KEYS)

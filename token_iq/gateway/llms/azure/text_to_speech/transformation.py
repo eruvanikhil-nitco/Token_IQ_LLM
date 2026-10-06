@@ -10,7 +10,7 @@ from urllib.parse import urlparse
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.base_llm.text_to_speech.transformation import (
     BaseTextToSpeechConfig,
     TextToSpeechRequestData,
@@ -87,15 +87,15 @@ class AzureAVATextToSpeechConfig(BaseTextToSpeechConfig):
         """
         # Resolve api_base from multiple sources
         api_base = (
-            api_base or litellm_params_dict.get("api_base") or litellm.api_base or get_secret_str("AZURE_API_BASE")
+            api_base or litellm_params_dict.get("api_base") or gateway.api_base or get_secret_str("AZURE_API_BASE")
         )
 
         # Resolve api_key from multiple sources (Azure-specific)
         api_key = (
             api_key
             or litellm_params_dict.get("api_key")
-            or litellm.api_key
-            or litellm.azure_key
+            or gateway.api_key
+            or gateway.azure_key
             or get_secret_str("AZURE_OPENAI_API_KEY")
             or get_secret_str("AZURE_API_KEY")
         )

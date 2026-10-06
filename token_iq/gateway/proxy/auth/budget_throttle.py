@@ -12,7 +12,7 @@ so it never compounds across requests.
 import math
 from typing import Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
 
@@ -22,7 +22,7 @@ def budget_throttle_percentage() -> float | None:
     misconfigured (in which case an over-budget key is hard-blocked, the safe
     default).
     """
-    pct: Final = litellm.budget_exceeded_throttle_percentage
+    pct: Final = gateway.budget_exceeded_throttle_percentage
     if not isinstance(pct, (int, float)) or isinstance(pct, bool):
         return None
     if not 0 < pct <= 1:

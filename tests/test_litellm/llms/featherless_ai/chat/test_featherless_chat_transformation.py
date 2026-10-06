@@ -225,9 +225,9 @@ class TestFeatherlessAIConfig:
         Mock test for Featherless AI completion using the model format from docs.
         This test mocks the actual HTTP request to test the integration properly.
         """
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
-        litellm.disable_aiohttp_transport = (
+        gateway.disable_aiohttp_transport = (
             True  # since this uses respx, we need to set use_aiohttp_transport to False
         )
         from token_iq.gateway import completion

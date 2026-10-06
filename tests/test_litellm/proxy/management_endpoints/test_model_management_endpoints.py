@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from fastapi.testclient import TestClient
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._uuid import uuid
 from token_iq.gateway.models.credentials import CredentialItem
 
@@ -526,7 +526,7 @@ class TestModelManagementAuthChecks:
         """Regression: credentials declared in config.yaml live only in litellm.credential_list,
         never in the table, so a database-only lookup refused every one of them."""
         monkeypatch.setattr(
-            litellm,
+            gateway,
             "credential_list",
             [
                 CredentialItem(
@@ -550,7 +550,7 @@ class TestModelManagementAuthChecks:
 
     @pytest.mark.asyncio
     async def test_credential_info_for_attach_finds_a_database_credential(self, monkeypatch):
-        monkeypatch.setattr(litellm, "credential_list", [])
+        monkeypatch.setattr(gateway, "credential_list", [])
         mock_prisma = MagicMock()
         mock_prisma.db.litellm_credentialstable.find_unique = AsyncMock(
             return_value={
@@ -572,7 +572,7 @@ class TestModelManagementAuthChecks:
 
     @pytest.mark.asyncio
     async def test_credential_info_for_attach_refuses_a_name_in_neither_source(self, monkeypatch):
-        monkeypatch.setattr(litellm, "credential_list", [])
+        monkeypatch.setattr(gateway, "credential_list", [])
         mock_prisma = MagicMock()
         mock_prisma.db.litellm_credentialstable.find_unique = AsyncMock(return_value=None)
 
@@ -592,7 +592,7 @@ class TestModelManagementAuthChecks:
         """Regression: leaving the name alone must not skip re-checking billing status - the
         credential could have been repurposed for billing after it was first attached."""
         monkeypatch.setattr(
-            litellm,
+            gateway,
             "credential_list",
             [
                 CredentialItem(
@@ -1078,7 +1078,7 @@ class TestDeleteModelClearsRouterRegistry:
         sharing the model_name registered. A blanket pop(model_name) here would take
         both down, and nothing reloads on the delete path to restore the survivor.
         """
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import ModelInfoDelete
         from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             delete_model as delete_model_endpoint,
@@ -1102,7 +1102,7 @@ class TestDeleteModelClearsRouterRegistry:
         mock_prisma.db.litellm_proxymodeltable.find_unique = AsyncMock(return_value=db_row)
         mock_prisma.db.litellm_proxymodeltable.delete = AsyncMock(return_value=db_row)
 
-        real_router = litellm.Router(
+        real_router = gateway.Router(
             model_list=[
                 {"model_name": "gpt-4o", "litellm_params": {"model": "gpt-4o"}},
                 {"model_name": "gpt-4o-mini", "litellm_params": {"model": "gpt-4o-mini"}},
@@ -1290,7 +1290,7 @@ class TestUpdatePublicModelGroups:
         sets litellm.public_model_groups to the old DB value. The endpoint must set
         the in-memory value AFTER get_config() so the new value is not overwritten.
         """
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             UpdatePublicModelGroupsRequest,
             update_public_model_groups,
@@ -1302,7 +1302,7 @@ class TestUpdatePublicModelGroups:
         # Simulate get_config() overwriting litellm.public_model_groups with old DB value
         async def mock_get_config(*args, **kwargs):
             # This simulates _update_config_from_db calling setattr(litellm, "public_model_groups", old_value)
-            litellm.public_model_groups = old_db_models
+            gateway.public_model_groups = old_db_models
             return {"litellm_settings": {"public_model_groups": old_db_models}}
 
         mock_proxy_config = MagicMock()
@@ -1315,7 +1315,7 @@ class TestUpdatePublicModelGroups:
 
         request = UpdatePublicModelGroupsRequest(model_groups=new_models)
 
-        original_value = getattr(litellm, "public_model_groups", None)
+        original_value = getattr(gateway, "public_model_groups", None)
         try:
             with (
                 patch(
@@ -1334,10 +1334,10 @@ class TestUpdatePublicModelGroups:
 
             # After the endpoint completes, the in-memory value must reflect
             # the NEW models, not the stale DB value
-            assert litellm.public_model_groups == new_models
+            assert gateway.public_model_groups == new_models
             assert result["public_model_groups"] == new_models
         finally:
-            litellm.public_model_groups = original_value
+            gateway.public_model_groups = original_value
 
     @pytest.mark.asyncio
     async def test_useful_links_set_after_get_config(self):
@@ -1345,7 +1345,7 @@ class TestUpdatePublicModelGroups:
         Regression test: same stale-overwrite bug as public_model_groups applies
         to update_useful_links / public_model_groups_links.
         """
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             update_useful_links,
         )
@@ -1360,7 +1360,7 @@ class TestUpdatePublicModelGroups:
         }
 
         async def mock_get_config(*args, **kwargs):
-            litellm.public_model_groups_links = old_links
+            gateway.public_model_groups_links = old_links
             return {"litellm_settings": {"public_model_groups_links": old_links}}
 
         mock_proxy_config = MagicMock()
@@ -1373,7 +1373,7 @@ class TestUpdatePublicModelGroups:
 
         request = UpdateUsefulLinksRequest(useful_links=new_links)
 
-        original_value = getattr(litellm, "public_model_groups_links", None)
+        original_value = getattr(gateway, "public_model_groups_links", None)
         try:
             with patch(
                 "token_iq.gateway.proxy.proxy_server.proxy_config",
@@ -1384,10 +1384,10 @@ class TestUpdatePublicModelGroups:
                     user_api_key_dict=admin_user,
                 )
 
-            assert litellm.public_model_groups_links == new_links
+            assert gateway.public_model_groups_links == new_links
             assert result["useful_links"] == new_links
         finally:
-            litellm.public_model_groups_links = original_value
+            gateway.public_model_groups_links = original_value
 
 
 class TestTeamModelSiblingRouting:
@@ -1455,12 +1455,12 @@ class TestTeamModelSiblingRouting:
         the router's _common_checks_available_deployment must return BOTH as
         healthy_deployments (not collapse to one).
         """
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         team_id = "teamA"
         public_name = "gpt-4.1-mini"
 
-        router = litellm.Router(
+        router = gateway.Router(
             model_list=[
                 {
                     "model_name": f"model_name_{team_id}_uuid1",
@@ -1517,9 +1517,9 @@ class TestTeamModelSiblingRouting:
 
     def test_global_deployments_accessible_to_teams(self):
         """Test that global deployments (no team_id) are accessible to all teams"""
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
-        router = litellm.Router(
+        router = gateway.Router(
             model_list=[
                 {
                     "model_name": "global-gpt-4o",
@@ -3781,12 +3781,12 @@ class TestWriteSurfacesReloadDrop:
     reload it triggered, live in this pod's router or deliberately environment-inactive."""
 
     def test_reload_serving_verdict_matrix(self, monkeypatch):
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             reload_serving_verdict,
         )
 
-        live_router = litellm.Router(
+        live_router = gateway.Router(
             model_list=[
                 {
                     "model_name": "gpt-4o",
@@ -3821,13 +3821,13 @@ class TestWriteSurfacesReloadDrop:
         assert collateral == ()
 
     def test_raise_if_reload_degraded_serving_contract(self, monkeypatch):
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.proxy._types import ProxyException
         from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             raise_if_reload_degraded_serving,
         )
 
-        live_router = litellm.Router(
+        live_router = gateway.Router(
             model_list=[
                 {
                     "model_name": "gpt-4o",
@@ -3869,14 +3869,14 @@ class TestWriteSurfacesReloadDrop:
         and still raises, so a genuinely broken reload is caught; and with no reconcile at
         all the desired set is unknown, so every drop is reported.
         """
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.proxy._types import ProxyException
         from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             raise_if_reload_degraded_serving,
             reload_serving_verdict,
         )
 
-        live_router = litellm.Router(
+        live_router = gateway.Router(
             model_list=[
                 {
                     "model_name": "gpt-4o",
@@ -3982,12 +3982,12 @@ class TestConcurrentModelWritesDoNotEvictEachOther:
         """
         import asyncio
 
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.proxy._types import ReconcileOutcome
         from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import clear_cache
         from token_iq.gateway.proxy.proxy_server import ProxyConfig
 
-        live_router = litellm.Router(
+        live_router = gateway.Router(
             model_list=[
                 {
                     "model_name": "gpt-4o",
@@ -4018,7 +4018,7 @@ class TestConcurrentModelWritesDoNotEvictEachOther:
         yet re-added. That hole is another request's in-flight state; blaming this
         request's reload for it is the 500 that made concurrent model creates fail.
         """
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.proxy._types import ProxyException
         from token_iq.gateway.proxy.management_endpoints.model_management_endpoints import (
             raise_if_reload_degraded_serving,
@@ -4026,7 +4026,7 @@ class TestConcurrentModelWritesDoNotEvictEachOther:
         )
 
         # The router as another writer's clear_cache leaves it mid-wipe: db models gone.
-        mid_wipe_router = litellm.Router(model_list=[])
+        mid_wipe_router = gateway.Router(model_list=[])
         monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", mid_wipe_router)
 
         healthy_after_reload = frozenset({"m-live", "m-neighbour"})

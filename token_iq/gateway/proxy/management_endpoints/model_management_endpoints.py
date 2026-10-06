@@ -21,7 +21,7 @@ from typing import TYPE_CHECKING, Annotated, Final, Literal, Protocol, cast
 from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway._uuid import uuid
 from token_iq.gateway.constants import LITELLM_PROXY_ADMIN_NAME
@@ -253,7 +253,7 @@ def _is_unchanged_credential_name(
 def _credential_info_from_memory(credential_name: str) -> Mapping[str, object] | None:
     """The named credential's `credential_info` from the in-memory list the router already
     holds -- no database round trip, so re-checking an unchanged name never costs a query."""
-    for credential in litellm.credential_list:
+    for credential in gateway.credential_list:
         if credential.credential_name == credential_name:
             return credential.credential_info
     return None
@@ -2325,7 +2325,7 @@ async def update_public_model_groups(
     """
     try:
         # Update the public model groups
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.proxy.proxy_server import proxy_config, store_model_in_db
 
         # Check if user has admin permissions
@@ -2359,7 +2359,7 @@ async def update_public_model_groups(
 
         # Set in-memory value AFTER get_config() and save_config() to avoid
         # get_config() overwriting with stale DB value
-        litellm.public_model_groups = request.model_groups
+        gateway.public_model_groups = request.model_groups
 
         verbose_proxy_logger.debug(
             "Updated public model groups to: %s by user: %s", request.model_groups, user_api_key_dict.user_id
@@ -2400,7 +2400,7 @@ async def update_useful_links(
     """
     try:
         # Update the public model groups
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.proxy.proxy_server import proxy_config
 
         # Check if user has admin permissions
@@ -2427,7 +2427,7 @@ async def update_useful_links(
 
         # Set in-memory value AFTER get_config() and save_config() to avoid
         # get_config() overwriting with stale DB value
-        litellm.public_model_groups_links = request.useful_links
+        gateway.public_model_groups_links = request.useful_links
 
         verbose_proxy_logger.debug(
             "Updated useful links to: %s by user: %s", request.useful_links, user_api_key_dict.user_id

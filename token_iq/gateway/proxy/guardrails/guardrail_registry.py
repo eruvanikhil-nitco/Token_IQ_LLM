@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, Final, Literal, Optional, Protocol, TypeAlias,
 
 from pydantic import ValidationError
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import Router
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway._uuid import uuid
@@ -273,7 +273,7 @@ class GuardrailRegistry:
         """
         Returns the initialized guardrail callback for a given guardrail name
         """
-        active_guardrails = litellm.logging_callback_manager.get_custom_loggers_for_type(callback_type=CustomGuardrail)
+        active_guardrails = gateway.logging_callback_manager.get_custom_loggers_for_type(callback_type=CustomGuardrail)
         for active_guardrail in active_guardrails:
             if isinstance(active_guardrail, CustomGuardrail):
                 if active_guardrail.guardrail_name == guardrail_name:
@@ -643,7 +643,7 @@ class InMemoryGuardrailHandler:
             default_on=default_on,
             **extra_params,
         )
-        litellm.logging_callback_manager.add_litellm_callback(_guardrail_callback)
+        gateway.logging_callback_manager.add_litellm_callback(_guardrail_callback)
 
         return _guardrail_callback
 
@@ -689,7 +689,7 @@ class InMemoryGuardrailHandler:
         self.guardrail_id_to_custom_guardrail.pop(guardrail_id, None)
         self.guardrail_id_to_sibling_callbacks.pop(guardrail_id, None)
         for custom_guardrail_callback in tracked_callbacks:
-            litellm.logging_callback_manager.remove_callback_from_all_lists(custom_guardrail_callback)
+            gateway.logging_callback_manager.remove_callback_from_all_lists(custom_guardrail_callback)
 
     def list_in_memory_guardrails(self) -> list[Guardrail]:
         """

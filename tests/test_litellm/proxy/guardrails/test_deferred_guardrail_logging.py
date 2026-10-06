@@ -21,7 +21,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.caching.caching import DualCache
 from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
 from token_iq.gateway.integrations.custom_logger import CustomLogger
@@ -221,7 +221,7 @@ async def test_deferred_flag_stores_and_executes_closure():
     mock_logging_obj._defer_async_logging = True
     mock_logging_obj._enqueue_deferred_logging = None
 
-    await litellm.acompletion(
+    await gateway.acompletion(
         model="gpt-3.5-turbo",
         messages=[{"role": "user", "content": "hi"}],
         mock_response="Hello!",
@@ -275,7 +275,7 @@ async def test_no_flag_fires_create_task_normally():
         return task
 
     with patch("asyncio.create_task", side_effect=tracking_create_task):
-        await litellm.acompletion(
+        await gateway.acompletion(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": "hi"}],
             mock_response="Hello!",
@@ -443,7 +443,7 @@ class TestDeferredStreamingClosure:
         mock_logging_obj = MagicMock()
         mock_logging_obj._on_deferred_stream_complete = MagicMock()
 
-        resp = await litellm.acompletion(
+        resp = await gateway.acompletion(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": "hi"}],
             mock_response="Hello!",
@@ -471,7 +471,7 @@ class TestDeferredStreamingClosure:
             created_tasks.append(task)
             return task
 
-        resp = await litellm.acompletion(
+        resp = await gateway.acompletion(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": "hi"}],
             mock_response="Hello!",
@@ -548,7 +548,7 @@ class TestDeferredStreamingClosure:
         mock_logging_obj._on_deferred_stream_complete = _on_deferred_stream_complete
 
         with patch("token_iq.gateway.callbacks", [tracking_guardrail, tracking_logger]):
-            resp = await litellm.acompletion(
+            resp = await gateway.acompletion(
                 model="gpt-3.5-turbo",
                 messages=[{"role": "user", "content": "hi"}],
                 mock_response="Hello!",
@@ -760,7 +760,7 @@ class TestDeferredStreamingClosure:
         mock_logging_obj._on_deferred_stream_complete = _on_deferred_stream_complete
 
         with patch("token_iq.gateway.callbacks", [guardrail]):
-            resp = await litellm.acompletion(
+            resp = await gateway.acompletion(
                 model="gpt-3.5-turbo",
                 messages=[{"role": "user", "content": "hi"}],
                 mock_response="Hello!",
@@ -1424,7 +1424,7 @@ class TestArmDeferredStreamDispatch:
         processor = self._processor()
 
         monkeypatch.setattr(  # test-quality-ok: empty the process-global callback registry so no ambient guardrail runs
-            litellm, "callbacks", []
+            gateway, "callbacks", []
         )
         processor._arm_deferred_stream_dispatch(
             response=csw,

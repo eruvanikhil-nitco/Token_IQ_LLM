@@ -18,7 +18,7 @@ from fastapi.testclient import TestClient
 import urllib.parse
 from unittest.mock import MagicMock, patch
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import main as litellm_main
 from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.core_utils.core_helpers import get_litellm_metadata_from_kwargs
@@ -36,7 +36,7 @@ def clear_client_cache():
     Clear the HTTP client cache before each test to ensure mocks are used.
     This prevents cached real clients from being reused across tests.
     """
-    cache = getattr(litellm, "in_memory_llm_clients_cache", None)
+    cache = getattr(gateway, "in_memory_llm_clients_cache", None)
     if cache is not None:
         cache.flush_cache()
     yield
@@ -121,7 +121,7 @@ def test_completion_missing_role(openai_api_response):
     with patch.object(
         client.chat.completions.with_raw_response, "create", mock_raw_response
     ) as mock_create:
-        litellm.completion(
+        gateway.completion(
             model="gpt-4o-mini",
             messages=[
                 {"role": "user", "content": "Hey"},
@@ -333,7 +333,7 @@ def test_bedrock_latency_optimized_inference():
     client = HTTPHandler()
     with patch.object(client, "post") as mock_post:
         try:
-            response = litellm.completion(
+            response = gateway.completion(
                 model="bedrock/us.anthropic.claude-haiku-4-5-20251001-v1:0",
                 messages=[{"role": "user", "content": "Hello, how are you?"}],
                 performanceConfig={"latency": "optimized"},
@@ -375,9 +375,9 @@ def test_custom_provider_with_extra_headers():
     from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     with patch.object(
-        litellm.llms.custom_httpx.http_handler.HTTPHandler, "post"
+        gateway.llms.custom_httpx.http_handler.HTTPHandler, "post"
     ) as mock_post:
-        response = litellm.completion(
+        response = gateway.completion(
             model="custom/custom",
             messages=[{"role": "user", "content": "Hello, how are you?"}],
             headers={"X-Custom-Header": "custom-value"},
@@ -392,9 +392,9 @@ def test_custom_provider_with_extra_body():
     from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     with patch.object(
-        litellm.llms.custom_httpx.http_handler.HTTPHandler, "post"
+        gateway.llms.custom_httpx.http_handler.HTTPHandler, "post"
     ) as mock_post:
-        response = litellm.completion(
+        response = gateway.completion(
             model="custom/custom",
             messages=[{"role": "user", "content": "Hello, how are you?"}],
             extra_body={
@@ -421,9 +421,9 @@ def test_custom_provider_with_extra_body():
 
     # test that extra_body is not passed if not provided
     with patch.object(
-        litellm.llms.custom_httpx.http_handler.HTTPHandler, "post"
+        gateway.llms.custom_httpx.http_handler.HTTPHandler, "post"
     ) as mock_post:
-        response = litellm.completion(
+        response = gateway.completion(
             model="custom/custom",
             messages=[{"role": "user", "content": "Hello, how are you?"}],
             api_base="https://example.com/api/v1",
@@ -463,15 +463,15 @@ async def test_extra_body_with_fallback(
     """
 
     # Save original state to restore after test
-    original_disable_aiohttp = litellm.disable_aiohttp_transport
+    original_disable_aiohttp = gateway.disable_aiohttp_transport
 
     try:
         # since this uses respx, we need to set use_aiohttp_transport to False
         # Set both the global variable and environment variable to ensure it takes effect
-        litellm.disable_aiohttp_transport = True
+        gateway.disable_aiohttp_transport = True
         monkeypatch.setenv("DISABLE_AIOHTTP_TRANSPORT", "True")
         # Flush cache to ensure no stale aiohttp clients are used
-        litellm.in_memory_llm_clients_cache.flush_cache()
+        gateway.in_memory_llm_clients_cache.flush_cache()
 
         # Set up test parameters
         model = "openrouter/deepseek/deepseek-chat"
@@ -513,7 +513,7 @@ async def test_extra_body_with_fallback(
             },
         )
 
-        response = await litellm.acompletion(
+        response = await gateway.acompletion(
             model=model,
             messages=messages,
             extra_body=extra_body,
@@ -542,8 +542,8 @@ async def test_extra_body_with_fallback(
         assert request_body["provider"]["require_parameters"] is True
     finally:
         # Restore original state to prevent test pollution
-        litellm.disable_aiohttp_transport = original_disable_aiohttp
-        litellm.in_memory_llm_clients_cache.flush_cache()
+        gateway.disable_aiohttp_transport = original_disable_aiohttp
+        gateway.in_memory_llm_clients_cache.flush_cache()
 
 
 @pytest.mark.parametrize("env_base", ["OPENAI_BASE_URL", "OPENAI_API_BASE"])
@@ -554,7 +554,7 @@ async def test_openai_env_base(
 ):
     "This tests OpenAI env variables are honored, including legacy OPENAI_API_BASE"
     # Ensure aiohttp transport is disabled to use httpx which respx can mock
-    litellm.disable_aiohttp_transport = True
+    gateway.disable_aiohttp_transport = True
 
     expected_base_url = "http://localhost:12345/v1"
 
@@ -596,7 +596,7 @@ async def test_openai_env_base(
     )
 
     try:
-        response = await litellm.acompletion(model=model, messages=messages)
+        response = await gateway.acompletion(model=model, messages=messages)
 
         # verify we had a response
         assert response.choices[0].message.content == "Hello from mocked response!"
@@ -607,7 +607,7 @@ async def test_openai_env_base(
         ), "Mock route was not called - request may have bypassed respx"
     finally:
         # Clean up to avoid affecting other tests
-        litellm.disable_aiohttp_transport = False
+        gateway.disable_aiohttp_transport = False
 
 
 def build_database_url(username, password, host, dbname):
@@ -623,7 +623,7 @@ def test_build_database_url():
 
 
 def test_bedrock_llama():
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
     from token_iq.gateway.types.utils import CallTypes
     from token_iq.gateway.utils import return_raw_request
 
@@ -703,11 +703,11 @@ async def test_acompletion_forwards_verbosity_to_provider_request(
     respx_mock: respx.MockRouter, monkeypatch
 ):
     """Regression test: acompletion() must forward the verbosity param to the provider request body."""
-    original_disable_aiohttp = litellm.disable_aiohttp_transport
+    original_disable_aiohttp = gateway.disable_aiohttp_transport
     try:
-        litellm.disable_aiohttp_transport = True
+        gateway.disable_aiohttp_transport = True
         monkeypatch.setenv("DISABLE_AIOHTTP_TRANSPORT", "True")
-        litellm.in_memory_llm_clients_cache.flush_cache()
+        gateway.in_memory_llm_clients_cache.flush_cache()
 
         model = "gpt-5.2"
         messages = [{"role": "user", "content": "hi"}]
@@ -715,7 +715,7 @@ async def test_acompletion_forwards_verbosity_to_provider_request(
             return_value=_mocked_openai_chat_response(model)
         )
 
-        response = await litellm.acompletion(
+        response = await gateway.acompletion(
             model=model,
             messages=messages,
             verbosity="low",
@@ -729,8 +729,8 @@ async def test_acompletion_forwards_verbosity_to_provider_request(
         assert request_body["model"] == model
         assert request_body["messages"] == messages
     finally:
-        litellm.disable_aiohttp_transport = original_disable_aiohttp
-        litellm.in_memory_llm_clients_cache.flush_cache()
+        gateway.disable_aiohttp_transport = original_disable_aiohttp
+        gateway.in_memory_llm_clients_cache.flush_cache()
 
 
 def test_responses_api_bridge_check_strips_responses_prefix():
@@ -870,12 +870,12 @@ def test_responses_api_bridge_check_gpt_5_6_tools_with_default_reasoning_routes_
     was rejected with "Function tools with reasoning_effort are not supported for
     gpt-5.6-sol in /v1/chat/completions".
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.main import responses_api_bridge_check
 
     monkeypatch.delenv("OPENAI_BASE_URL", raising=False)
     monkeypatch.delenv("OPENAI_API_BASE", raising=False)
-    monkeypatch.setattr(litellm, "api_base", None)
+    monkeypatch.setattr(gateway, "api_base", None)
 
     with patch("token_iq.gateway.main._get_model_info_helper") as mock_get_model_info:
         mock_get_model_info.return_value = {"max_tokens": 128000}
@@ -1088,10 +1088,10 @@ def test_responses_api_bridge_check_custom_api_base_via_global_with_unset_effort
     backend to a /responses route it lacks. Regression guard: the gate previously inspected only
     the call-level api_base and bridged these requests.
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.main import responses_api_bridge_check
 
-    monkeypatch.setattr(litellm, "api_base", "http://vllm.internal:8000/v1")
+    monkeypatch.setattr(gateway, "api_base", "http://vllm.internal:8000/v1")
     with patch("token_iq.gateway.main._get_model_info_helper") as mock_get_model_info:
         mock_get_model_info.return_value = {"max_tokens": 128000}
         model_info, model = responses_api_bridge_check(
@@ -1112,10 +1112,10 @@ def test_responses_api_bridge_check_custom_api_base_via_env_with_unset_effort_st
     A custom base set via OPENAI_BASE_URL/OPENAI_API_BASE env is resolved identically to the chat
     handler, so the unset-effort arm leaves the request on chat instead of bridging it.
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.main import responses_api_bridge_check
 
-    monkeypatch.setattr(litellm, "api_base", None)
+    monkeypatch.setattr(gateway, "api_base", None)
     monkeypatch.delenv("OPENAI_BASE_URL", raising=False)
     monkeypatch.delenv("OPENAI_API_BASE", raising=False)
     monkeypatch.setenv(env_var, "http://vllm.internal:8000/v1")
@@ -1247,9 +1247,9 @@ def test_gpt_5_4_responses_bridge_preserves_reasoning_summary_dict(
     """When routed to Responses, preserve reasoning_effort summary dict."""
     mock_responses_completion.return_value = MagicMock()
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    litellm.completion(
+    gateway.completion(
         model="gpt-5.4",
         messages=[{"role": "user", "content": "What is the capital of France?"}],
         tools=[
@@ -1303,7 +1303,7 @@ def test_completion_optional_params_base_model(
     with patch("token_iq.gateway.main.get_optional_params") as mock_get_optional_params:
         mock_get_optional_params.return_value = MagicMock()
 
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         kwargs = {
             "model": model,
@@ -1314,7 +1314,7 @@ def test_completion_optional_params_base_model(
         if model_info is not None:
             kwargs["model_info"] = model_info
 
-        litellm.completion(**kwargs)
+        gateway.completion(**kwargs)
 
         assert mock_get_optional_params.called is True
         call_kwargs = mock_get_optional_params.call_args.kwargs
@@ -1329,9 +1329,9 @@ def test_gpt_5_4_responses_bridge_merges_reasoning_summary_kwarg_without_tools(
     """reasoningSummary without tools should route and merge into reasoning_effort dict."""
     mock_responses_completion.return_value = MagicMock()
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    litellm.completion(
+    gateway.completion(
         model="gpt-5.4",
         messages=[{"role": "user", "content": "ok"}],
         reasoning_effort="medium",
@@ -1356,10 +1356,10 @@ def test_responses_bridge_preserves_reasoning_summary_without_effort(
     """Reasoning summary should survive responses routing even without effort."""
     mock_responses_completion.return_value = MagicMock()
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    with patch.object(litellm, "route_all_chat_openai_to_responses", True):
-        litellm.completion(
+    with patch.object(gateway, "route_all_chat_openai_to_responses", True):
+        gateway.completion(
             model="gpt-4o",
             messages=[{"role": "user", "content": "ok"}],
             reasoningSummary="auto",
@@ -1380,9 +1380,9 @@ def test_gpt_5_responses_bridge_tools_and_reasoning_summary(
     """Bare gpt-5 with tools + reasoningSummary should bridge (OpenCode-style)."""
     mock_responses_completion.return_value = MagicMock()
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    litellm.completion(
+    gateway.completion(
         model="gpt-5",
         messages=[{"role": "user", "content": "ok"}],
         tools=[
@@ -1428,7 +1428,7 @@ def test_responses_api_bridge_check_global_flag_routes_openai():
     """When route_all_chat_openai_to_responses is True, any OpenAI model routes to responses."""
     from token_iq.gateway.main import responses_api_bridge_check
 
-    with patch.object(litellm, "route_all_chat_openai_to_responses", True):
+    with patch.object(gateway, "route_all_chat_openai_to_responses", True):
         model_info, model = responses_api_bridge_check(
             model="gpt-4o",
             custom_llm_provider="openai",
@@ -1442,7 +1442,7 @@ def test_responses_api_bridge_check_global_flag_does_not_affect_azure():
     """route_all_chat_openai_to_responses should not affect Azure models."""
     from token_iq.gateway.main import responses_api_bridge_check
 
-    with patch.object(litellm, "route_all_chat_openai_to_responses", True):
+    with patch.object(gateway, "route_all_chat_openai_to_responses", True):
         with patch("token_iq.gateway.main._get_model_info_helper") as mock_get_model_info:
             mock_get_model_info.return_value = {"max_tokens": 4096}
             model_info, model = responses_api_bridge_check(
@@ -1457,7 +1457,7 @@ def test_responses_api_bridge_check_global_flag_default_false():
     """By default, route_all_chat_openai_to_responses is False and doesn't affect routing."""
     from token_iq.gateway.main import responses_api_bridge_check
 
-    with patch.object(litellm, "route_all_chat_openai_to_responses", False):
+    with patch.object(gateway, "route_all_chat_openai_to_responses", False):
         with patch("token_iq.gateway.main._get_model_info_helper") as mock_get_model_info:
             mock_get_model_info.return_value = {"max_tokens": 4096}
             model_info, model = responses_api_bridge_check(
@@ -2046,16 +2046,16 @@ def throw_retryable_error(*_, **__):
 
 @pytest.mark.asyncio
 async def test_retrying() -> None:
-    litellm.num_retries = 10
+    gateway.num_retries = 10
     with (
         patch.object(
             OpenAIChatCompletion,
             "make_openai_chat_completion_request",
             side_effect=throw_retryable_error,
         ) as mock_request,
-        pytest.raises(litellm.InternalServerError, match="LiteLLM Retried: 10 times"),
+        pytest.raises(gateway.InternalServerError, match="LiteLLM Retried: 10 times"),
     ):
-        await litellm.acompletion(
+        await gateway.acompletion(
             model="gpt-4o-mini",
             messages=[{"role": "user", "content": "Hello"}],
         )
@@ -2214,7 +2214,7 @@ def test_image_edit_merges_headers_and_extra_headers():
             return_value="ok",
         ) as mock_handler,
     ):
-        response = litellm.image_edit(
+        response = gateway.image_edit(
             image=MagicMock(name="image"),
             prompt="test",
             model="azure/gpt-image-1",
@@ -2440,7 +2440,7 @@ def test_completion_forwards_store_and_prompt_cache_key_to_openai():
 
     with patch.object(client.chat.completions.with_raw_response, "create") as mock_client:
         try:
-            litellm.completion(
+            gateway.completion(
                 model="openai/gpt-4o",
                 messages=[{"role": "user", "content": "Hello"}],
                 store=False,
@@ -2468,7 +2468,7 @@ async def test_acompletion_forwards_store_and_prompt_cache_key_to_openai():
 
     with patch.object(client.chat.completions.with_raw_response, "create") as mock_client:
         try:
-            await litellm.acompletion(
+            await gateway.acompletion(
                 model="openai/gpt-4o",
                 messages=[{"role": "user", "content": "Hello"}],
                 store=False,
@@ -2495,7 +2495,7 @@ def test_completion_omits_store_and_prompt_cache_key_when_not_passed():
 
     with patch.object(client.chat.completions.with_raw_response, "create") as mock_client:
         try:
-            litellm.completion(
+            gateway.completion(
                 model="openai/gpt-4o",
                 messages=[{"role": "user", "content": "Hello"}],
                 client=client,
@@ -2518,7 +2518,7 @@ def test_completion_forwards_store_and_prompt_cache_key_to_mcp_gateway():
     with patch(
         "token_iq.gateway.responses.mcp.chat_completions_handler.acompletion_with_mcp"
     ) as mock_mcp:
-        result = litellm.completion(
+        result = gateway.completion(
             model="openai/gpt-4o",
             messages=[{"role": "user", "content": "Hello"}],
             tools=[{"type": "mcp", "server_url": "litellm_proxy"}],
@@ -2557,11 +2557,11 @@ async def test_acompletion_forwards_aws_credentials_through_responses_bridge(
 
     from token_iq.gateway.llms.bedrock.base_aws_llm import BaseAWSLLM
 
-    original_disable_aiohttp = litellm.disable_aiohttp_transport
+    original_disable_aiohttp = gateway.disable_aiohttp_transport
     try:
-        litellm.disable_aiohttp_transport = True
+        gateway.disable_aiohttp_transport = True
         monkeypatch.setenv("DISABLE_AIOHTTP_TRANSPORT", "True")
-        litellm.in_memory_llm_clients_cache.flush_cache()
+        gateway.in_memory_llm_clients_cache.flush_cache()
         monkeypatch.delenv("AWS_BEARER_TOKEN_BEDROCK", raising=False)
         monkeypatch.delenv("BEDROCK_MANTLE_API_KEY", raising=False)
 
@@ -2587,7 +2587,7 @@ async def test_acompletion_forwards_aws_credentials_through_responses_bridge(
             }
         )
 
-        response = await litellm.acompletion(
+        response = await gateway.acompletion(
             model="bedrock_mantle/openai.gpt-5.4",
             messages=[{"role": "user", "content": "hi"}],
             api_base="https://bedrock-mantle.us-east-2.api.aws/v1",
@@ -2605,8 +2605,8 @@ async def test_acompletion_forwards_aws_credentials_through_responses_bridge(
         assert authorization.startswith("AWS4-HMAC-SHA256")
         assert "fake-key" in authorization
     finally:
-        litellm.disable_aiohttp_transport = original_disable_aiohttp
-        litellm.in_memory_llm_clients_cache.flush_cache()
+        gateway.disable_aiohttp_transport = original_disable_aiohttp
+        gateway.in_memory_llm_clients_cache.flush_cache()
 
 
 _GEMINI_RESPONSE_BODY = {
@@ -2631,13 +2631,13 @@ def restore_model_registry():
 
     register_model merges into the existing entry in place, hence the deep copy.
     """
-    model_cost = copy.deepcopy(litellm.model_cost)
-    openai_models = set(litellm.open_ai_chat_completion_models)
+    model_cost = copy.deepcopy(gateway.model_cost)
+    openai_models = set(gateway.open_ai_chat_completion_models)
     yield
-    litellm.model_cost.clear()
-    litellm.model_cost.update(model_cost)
-    litellm.open_ai_chat_completion_models.clear()
-    litellm.open_ai_chat_completion_models.update(openai_models)
+    gateway.model_cost.clear()
+    gateway.model_cost.update(model_cost)
+    gateway.open_ai_chat_completion_models.clear()
+    gateway.open_ai_chat_completion_models.update(openai_models)
 
 
 def test_openai_model_name_does_not_outrank_explicit_provider():
@@ -2647,11 +2647,11 @@ def test_openai_model_name_does_not_outrank_explicit_provider():
     the gemini branch, so the call used to reach the OpenAI handler carrying
     VertexGeminiConfig, whose transform_request raises NotImplementedError.
     """
-    assert "gpt-4o" in litellm.open_ai_chat_completion_models
+    assert "gpt-4o" in gateway.open_ai_chat_completion_models
     client, post = _gemini_client_returning_a_reply()
 
     with patch.object(client, "post", new=post):
-        response = litellm.completion(
+        response = gateway.completion(
             model="gemini/gpt-4o",
             messages=[{"role": "user", "content": "hello"}],
             api_key="test-api-key",
@@ -2670,7 +2670,7 @@ def test_mislabelled_pricing_entry_does_not_reroute_provider(restore_model_regis
     open_ai_chat_completion_models, so one mislabelled price reroutes every later
     call to that model in the process.
     """
-    litellm.register_model(
+    gateway.register_model(
         {
             "gemini-2.5-pro": {
                 "litellm_provider": "openai",
@@ -2680,11 +2680,11 @@ def test_mislabelled_pricing_entry_does_not_reroute_provider(restore_model_regis
             }
         }
     )
-    assert "gemini-2.5-pro" in litellm.open_ai_chat_completion_models
+    assert "gemini-2.5-pro" in gateway.open_ai_chat_completion_models
     client, post = _gemini_client_returning_a_reply()
 
     with patch.object(client, "post", new=post):
-        response = litellm.completion(
+        response = gateway.completion(
             model="gemini/gemini-2.5-pro",
             messages=[{"role": "user", "content": "hello"}],
             api_key="test-api-key",
@@ -2701,7 +2701,7 @@ def test_openai_model_without_a_provider_still_routes_to_openai():
     client = OpenAI(api_key="fake-key")
     raw_response = client.chat.completions.with_raw_response
     with patch.object(raw_response, "create") as mock_create, contextlib.suppress(Exception):
-        litellm.completion(
+        gateway.completion(
             model="gpt-4o",
             messages=[{"role": "user", "content": "hello"}],
             client=client,
@@ -2713,7 +2713,7 @@ def test_openai_model_without_a_provider_still_routes_to_openai():
 def _openai_chat_create_kwargs(client, **completion_kwargs):
     with patch.object(client.chat.completions.with_raw_response, "create") as mock_client:
         with contextlib.suppress(Exception):
-            litellm.completion(
+            gateway.completion(
                 messages=[{"role": "system", "content": "sys"}, {"role": "user", "content": "hi"}],
                 cache_control_injection_points=[{"location": "message", "role": "system"}],
                 client=client,
@@ -2728,7 +2728,7 @@ def _openai_chat_create_kwargs(client, **completion_kwargs):
 def _no_openai_api_base_override(monkeypatch):
     monkeypatch.delenv("OPENAI_BASE_URL", raising=False)
     monkeypatch.delenv("OPENAI_API_BASE", raising=False)
-    monkeypatch.setattr(litellm, "api_base", None)
+    monkeypatch.setattr(gateway, "api_base", None)
 
 
 @pytest.mark.usefixtures("_no_openai_api_base_override")
@@ -2763,7 +2763,7 @@ async def test_acompletion_custom_base_url_sends_no_prompt_cache_breakpoint_for_
     client = AsyncOpenAI(api_key="fake-api-key", base_url="http://127.0.0.1:9/v1")
     with patch.object(client.chat.completions.with_raw_response, "create") as mock_create:
         with contextlib.suppress(Exception):
-            await litellm.acompletion(
+            await gateway.acompletion(
                 model="gpt-5.6",
                 messages=[{"role": "system", "content": "sys"}, {"role": "user", "content": "hi"}],
                 cache_control_injection_points=[{"location": "message", "role": "system"}],
@@ -2811,7 +2811,7 @@ def _scoped_headers_for_oauth_request():
 
 
 def _run_anthropic_hop_with_shared_headers(shared_headers):
-    litellm.completion(
+    gateway.completion(
         model="anthropic/claude-3-5-sonnet-20240620",
         messages=[{"role": "user", "content": "Say OK"}],
         extra_headers=shared_headers,
@@ -2863,7 +2863,7 @@ def _text_chunk(content, finish_reason=None, usage=None):
 
 
 def _priced_at(prompt_tokens, completion_tokens):
-    prices = litellm.model_cost[STREAM_COST_MODEL]
+    prices = gateway.model_cost[STREAM_COST_MODEL]
     return (
         prompt_tokens * prices["input_cost_per_token"]
         + completion_tokens * prices["output_cost_per_token"]
@@ -2880,14 +2880,14 @@ def local_cost_map(monkeypatch):
     and ``completion_cost`` bills at those while the assertions read the pinned map.
     Clear on the way in and out so entries never leak across tests in either direction."""
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map())
-    litellm.get_model_info.cache_clear()
+    monkeypatch.setattr(gateway, "model_cost", gateway.get_model_cost_map())
+    gateway.get_model_info.cache_clear()
     yield
-    litellm.get_model_info.cache_clear()
+    gateway.get_model_info.cache_clear()
 
 
 def test_a_streamed_response_bills_the_usage_the_provider_reported(local_cost_map):
-    rebuilt = litellm.stream_chunk_builder(
+    rebuilt = gateway.stream_chunk_builder(
         chunks=[
             _text_chunk("Hello"),
             _text_chunk(" there"),
@@ -2900,14 +2900,14 @@ def test_a_streamed_response_bills_the_usage_the_provider_reported(local_cost_ma
     assert rebuilt.usage.prompt_tokens == STREAMED_USAGE["prompt_tokens"]
     assert rebuilt.usage.completion_tokens == STREAMED_USAGE["completion_tokens"]
 
-    cost = litellm.completion_cost(completion_response=rebuilt, model=STREAM_COST_MODEL)
+    cost = gateway.completion_cost(completion_response=rebuilt, model=STREAM_COST_MODEL)
 
     assert cost == pytest.approx(_priced_at(137, 42))
     assert cost == pytest.approx(0.0007625)
 
 
 def test_streaming_and_not_streaming_bill_the_same_usage_the_same(local_cost_map):
-    rebuilt = litellm.stream_chunk_builder(
+    rebuilt = gateway.stream_chunk_builder(
         chunks=[
             _text_chunk("Hello"),
             _text_chunk(" there"),
@@ -2915,7 +2915,7 @@ def test_streaming_and_not_streaming_bill_the_same_usage_the_same(local_cost_map
         ],
         messages=[{"role": "user", "content": "hi"}],
     )
-    whole = litellm.ModelResponse(
+    whole = gateway.ModelResponse(
         id="chatcmpl-stream-cost",
         model=STREAM_COST_MODEL,
         object="chat.completion",
@@ -2930,13 +2930,13 @@ def test_streaming_and_not_streaming_bill_the_same_usage_the_same(local_cost_map
         usage=STREAMED_USAGE,
     )
 
-    assert litellm.completion_cost(
+    assert gateway.completion_cost(
         completion_response=rebuilt, model=STREAM_COST_MODEL
-    ) == pytest.approx(litellm.completion_cost(completion_response=whole, model=STREAM_COST_MODEL))
+    ) == pytest.approx(gateway.completion_cost(completion_response=whole, model=STREAM_COST_MODEL))
 
 
 def test_a_stream_that_reported_no_usage_is_still_billed(local_cost_map):
-    rebuilt = litellm.stream_chunk_builder(
+    rebuilt = gateway.stream_chunk_builder(
         chunks=[
             _text_chunk("Hello"),
             _text_chunk(" there"),
@@ -2948,7 +2948,7 @@ def test_a_stream_that_reported_no_usage_is_still_billed(local_cost_map):
     assert rebuilt.usage.prompt_tokens > 0
     assert rebuilt.usage.completion_tokens > 0
 
-    cost = litellm.completion_cost(completion_response=rebuilt, model=STREAM_COST_MODEL)
+    cost = gateway.completion_cost(completion_response=rebuilt, model=STREAM_COST_MODEL)
 
     assert cost > 0
     assert cost == pytest.approx(
@@ -2958,7 +2958,7 @@ def test_a_stream_that_reported_no_usage_is_still_billed(local_cost_map):
 
 @pytest.mark.asyncio
 async def test_acompletion_resolves_provider_from_api_base():
-    response = await litellm.acompletion(
+    response = await gateway.acompletion(
         model="deepseek-chat",
         api_base="https://api.deepseek.com/v1",
         api_key="fake-key",
@@ -3043,16 +3043,16 @@ def _gemini_tts_generate_content_response() -> dict[str, object]:
 async def test_aspeech_gemini_bridge_keeps_proxy_metadata_for_spend_tracking(
     respx_mock: respx.MockRouter, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    monkeypatch.setattr(litellm, "disable_aiohttp_transport", True)
+    monkeypatch.setattr(gateway, "disable_aiohttp_transport", True)
     monkeypatch.delenv("GEMINI_API_KEY", raising=False)
     monkeypatch.delenv("GOOGLE_API_KEY", raising=False)
     recorder: Final = _SuccessEventRecorder()
-    monkeypatch.setattr(litellm, "callbacks", [recorder])
+    monkeypatch.setattr(gateway, "callbacks", [recorder])
     mock_route: Final = respx_mock.post(
         url__regex=r"https://generativelanguage\.googleapis\.com/v1beta/models/gemini-2\.5-flash-preview-tts:generateContent.*"
     ).mock(return_value=httpx.Response(200, json=_gemini_tts_generate_content_response()))
 
-    await litellm.aspeech(
+    await gateway.aspeech(
         model="gemini/gemini-2.5-flash-preview-tts",
         input="spend tracking check",
         voice="Kore",
@@ -3065,7 +3065,7 @@ async def test_aspeech_gemini_bridge_keeps_proxy_metadata_for_spend_tracking(
     speech_event: Final = await _wait_for_success_event(recorder, call_type="aspeech")
     assert speech_event.spend_metadata["user_api_key"] == "hashed-virtual-key"
     assert speech_event.spend_metadata["user_api_key_user_id"] == "user-1"
-    expected_prompt_cost, expected_completion_cost = litellm.cost_per_token(
+    expected_prompt_cost, expected_completion_cost = gateway.cost_per_token(
         model="gemini/gemini-2.5-flash-preview-tts",
         usage_object=Usage(prompt_tokens=5, completion_tokens=60, total_tokens=65),
     )
@@ -3091,10 +3091,10 @@ def test_stream_chunk_builder_sets_hidden_response_cost_for_known_model():
         _stream_builder_text_chunk("gpt-4o", "world.", finish_reason="stop"),
     ]
 
-    response: Final = litellm.stream_chunk_builder(chunks=chunks, messages=[{"role": "user", "content": "hi"}])
+    response: Final = gateway.stream_chunk_builder(chunks=chunks, messages=[{"role": "user", "content": "hi"}])
 
     assert response is not None
-    prompt_cost, completion_cost = litellm.cost_per_token(model="gpt-4o", usage_object=response.usage)
+    prompt_cost, completion_cost = gateway.cost_per_token(model="gpt-4o", usage_object=response.usage)
     expected_cost: Final = prompt_cost + completion_cost
     assert expected_cost > 0
     assert response._hidden_params["response_cost"] == pytest.approx(expected_cost)
@@ -3106,7 +3106,7 @@ def test_stream_chunk_builder_unknown_model_leaves_response_cost_unset():
         _stream_builder_text_chunk("totally-unknown-model-xyz", "world.", finish_reason="stop"),
     ]
 
-    response: Final = litellm.stream_chunk_builder(chunks=chunks, messages=[{"role": "user", "content": "hi"}])
+    response: Final = gateway.stream_chunk_builder(chunks=chunks, messages=[{"role": "user", "content": "hi"}])
 
     assert response is not None
     assert response._hidden_params.get("response_cost") is None
@@ -3121,11 +3121,11 @@ def test_stream_chunk_builder_prices_proxy_alias_via_model_map():
     for chunk in chunks:
         chunk._hidden_params = {"custom_llm_provider": "openai"}
 
-    response: Final = litellm.stream_chunk_builder(chunks=chunks, messages=[{"role": "user", "content": "hi"}])
+    response: Final = gateway.stream_chunk_builder(chunks=chunks, messages=[{"role": "user", "content": "hi"}])
 
     assert response is not None
     assert response._hidden_params["custom_llm_provider"] == "openai"
-    prompt_cost, completion_cost = litellm.cost_per_token(model="claude-opus-5", usage_object=response.usage)
+    prompt_cost, completion_cost = gateway.cost_per_token(model="claude-opus-5", usage_object=response.usage)
     expected_cost: Final = prompt_cost + completion_cost
     assert expected_cost > 0
     assert response._hidden_params["response_cost"] == pytest.approx(expected_cost)
@@ -3152,13 +3152,13 @@ def _stream_builder_logging_obj(model: str = "gpt-4o", custom_llm_provider: str 
 
 
 def test_stream_chunk_builder_stamps_streaming_usage_cost_by_default(monkeypatch: pytest.MonkeyPatch):
-    monkeypatch.setattr(litellm, "include_cost_in_streaming_usage", False)
+    monkeypatch.setattr(gateway, "include_cost_in_streaming_usage", False)
     chunks: Final = [
         _stream_builder_text_chunk("gpt-4o", "Hello "),
         _stream_builder_text_chunk("gpt-4o", "world.", finish_reason="stop"),
     ]
 
-    response: Final = litellm.stream_chunk_builder(
+    response: Final = gateway.stream_chunk_builder(
         chunks=chunks, messages=[{"role": "user", "content": "hi"}], logging_obj=_stream_builder_logging_obj()
     )
 
@@ -3192,7 +3192,7 @@ def test_stream_chunk_builder_skips_stamp_when_cost_is_unpriceable():
         usage_chunk,
     ]
 
-    response: Final = litellm.stream_chunk_builder(
+    response: Final = gateway.stream_chunk_builder(
         chunks=chunks, messages=[{"role": "user", "content": "hi"}], logging_obj=logging_obj
     )
 
@@ -3210,7 +3210,7 @@ def test_stream_chunk_builder_keeps_provider_reported_usage_cost():
         usage_chunk,
     ]
 
-    response: Final = litellm.stream_chunk_builder(
+    response: Final = gateway.stream_chunk_builder(
         chunks=chunks, messages=[{"role": "user", "content": "hi"}], logging_obj=_stream_builder_logging_obj()
     )
 
@@ -3231,7 +3231,7 @@ def test_stream_chunk_builder_prices_alias_from_openai_sdk_usage_chunk():
         usage_chunk,
     ]
 
-    response: Final = litellm.stream_chunk_builder(chunks=chunks, messages=[{"role": "user", "content": "hi"}])
+    response: Final = gateway.stream_chunk_builder(chunks=chunks, messages=[{"role": "user", "content": "hi"}])
 
     assert response is not None
     assert response.usage.prompt_tokens == 20
@@ -3241,7 +3241,7 @@ def test_stream_chunk_builder_prices_alias_from_openai_sdk_usage_chunk():
 
 
 def test_stream_chunk_builder_leaves_xai_reported_cost_to_the_calculator(monkeypatch: pytest.MonkeyPatch):
-    monkeypatch.setattr(litellm, "cost_margin_config", {"xai": 0.5})
+    monkeypatch.setattr(gateway, "cost_margin_config", {"xai": 0.5})
     usage_chunk: Final = _stream_builder_text_chunk("grok-4", "")
     usage_chunk.usage = Usage(prompt_tokens=5, completion_tokens=2, total_tokens=7, cost=0.42)
     chunks: Final = [
@@ -3251,7 +3251,7 @@ def test_stream_chunk_builder_leaves_xai_reported_cost_to_the_calculator(monkeyp
     ]
     logging_obj: Final = _stream_builder_logging_obj(model="grok-4", custom_llm_provider="xai")
 
-    response: Final = litellm.stream_chunk_builder(
+    response: Final = gateway.stream_chunk_builder(
         chunks=chunks, messages=[{"role": "user", "content": "hi"}], logging_obj=logging_obj
     )
 

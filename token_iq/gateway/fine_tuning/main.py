@@ -17,7 +17,7 @@ from typing import Any, Final, Literal
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.llms.azure.fine_tuning.handler import AzureOpenAIFineTuningAPI
 from token_iq.gateway.llms.openai.fine_tuning.handler import OpenAIFineTuningAPI
@@ -198,22 +198,22 @@ def create_fine_tuning_job(
             # for deepinfra/perplexity/anyscale/groq we check in get_llm_provider and pass in the api base from there
             api_base = (
                 optional_params.api_base
-                or litellm.api_base
+                or gateway.api_base
                 or os.getenv("OPENAI_BASE_URL")
                 or os.getenv("OPENAI_API_BASE")
                 or "https://api.openai.com/v1"
             )
             organization: Final = (
                 optional_params.organization
-                or litellm.organization
+                or gateway.organization
                 or os.getenv("OPENAI_ORGANIZATION", None)
                 or None  # default - https://github.com/openai/openai-python/blob/284c1799070c723c6a553337134148a7ab088dd8/openai/util.py#L105
             )
             # set API KEY
             api_key = (
                 optional_params.api_key
-                or litellm.api_key  # for deepinfra/perplexity/anyscale we check in get_llm_provider and pass in the api key from there
-                or litellm.openai_key
+                or gateway.api_key  # for deepinfra/perplexity/anyscale we check in get_llm_provider and pass in the api key from there
+                or gateway.openai_key
                 or os.getenv("OPENAI_API_KEY")
             )
 
@@ -242,14 +242,14 @@ def create_fine_tuning_job(
             )
         # Azure OpenAI
         elif custom_llm_provider == "azure":
-            api_base = optional_params.api_base or litellm.api_base or get_secret_str("AZURE_API_BASE")
+            api_base = optional_params.api_base or gateway.api_base or get_secret_str("AZURE_API_BASE")
 
-            api_version = optional_params.api_version or litellm.api_version or get_secret_str("AZURE_API_VERSION")
+            api_version = optional_params.api_version or gateway.api_version or get_secret_str("AZURE_API_VERSION")
 
             api_key = (
                 optional_params.api_key
-                or litellm.api_key
-                or litellm.azure_key
+                or gateway.api_key
+                or gateway.azure_key
                 or get_secret_str("AZURE_OPENAI_API_KEY")
                 or get_secret_str("AZURE_API_KEY")
             )
@@ -288,10 +288,10 @@ def create_fine_tuning_job(
         elif custom_llm_provider == "vertex_ai":
             api_base = optional_params.api_base or ""
             vertex_ai_project: Final = (
-                optional_params.vertex_project or litellm.vertex_project or get_secret_str("VERTEXAI_PROJECT")
+                optional_params.vertex_project or gateway.vertex_project or get_secret_str("VERTEXAI_PROJECT")
             )
             vertex_ai_location: Final = (
-                optional_params.vertex_location or litellm.vertex_location or get_secret_str("VERTEXAI_LOCATION")
+                optional_params.vertex_location or gateway.vertex_location or get_secret_str("VERTEXAI_LOCATION")
             )
             vertex_credentials: Final = optional_params.vertex_credentials or get_secret_str("VERTEXAI_CREDENTIALS")
             response = vertex_fine_tuning_apis_instance.create_fine_tuning_job(
@@ -314,7 +314,7 @@ def create_fine_tuning_job(
                 original_hyperparameters=hyperparameters,
             )
         else:
-            raise litellm.exceptions.BadRequestError(
+            raise gateway.exceptions.BadRequestError(
                 message=f"LiteLLM doesn't support {custom_llm_provider} for 'create_batch'. Only 'openai' is supported.",
                 model="n/a",
                 llm_provider=custom_llm_provider,
@@ -407,22 +407,22 @@ def cancel_fine_tuning_job(
             # for deepinfra/perplexity/anyscale/groq we check in get_llm_provider and pass in the api base from there
             api_base = (
                 optional_params.api_base
-                or litellm.api_base
+                or gateway.api_base
                 or os.getenv("OPENAI_BASE_URL")
                 or os.getenv("OPENAI_API_BASE")
                 or "https://api.openai.com/v1"
             )
             organization: Final = (
                 optional_params.organization
-                or litellm.organization
+                or gateway.organization
                 or os.getenv("OPENAI_ORGANIZATION", None)
                 or None  # default - https://github.com/openai/openai-python/blob/284c1799070c723c6a553337134148a7ab088dd8/openai/util.py#L105
             )
             # set API KEY
             api_key = (
                 optional_params.api_key
-                or litellm.api_key  # for deepinfra/perplexity/anyscale we check in get_llm_provider and pass in the api key from there
-                or litellm.openai_key
+                or gateway.api_key  # for deepinfra/perplexity/anyscale we check in get_llm_provider and pass in the api key from there
+                or gateway.openai_key
                 or os.getenv("OPENAI_API_KEY")
             )
 
@@ -439,14 +439,14 @@ def cancel_fine_tuning_job(
             )
         # Azure OpenAI
         elif custom_llm_provider == "azure":
-            api_base = optional_params.api_base or litellm.api_base or get_secret_str("AZURE_API_BASE")
+            api_base = optional_params.api_base or gateway.api_base or get_secret_str("AZURE_API_BASE")
 
-            api_version = optional_params.api_version or litellm.api_version or get_secret_str("AZURE_API_VERSION")
+            api_version = optional_params.api_version or gateway.api_version or get_secret_str("AZURE_API_VERSION")
 
             api_key = (
                 optional_params.api_key
-                or litellm.api_key
-                or litellm.azure_key
+                or gateway.api_key
+                or gateway.azure_key
                 or get_secret_str("AZURE_OPENAI_API_KEY")
                 or get_secret_str("AZURE_API_KEY")
             )
@@ -466,7 +466,7 @@ def cancel_fine_tuning_job(
                 organization=optional_params.organization,
             )
         else:
-            raise litellm.exceptions.BadRequestError(
+            raise gateway.exceptions.BadRequestError(
                 message=f"LiteLLM doesn't support {custom_llm_provider} for 'create_batch'. Only 'openai' is supported.",
                 model="n/a",
                 llm_provider=custom_llm_provider,
@@ -561,22 +561,22 @@ def list_fine_tuning_jobs(
             # for deepinfra/perplexity/anyscale/groq we check in get_llm_provider and pass in the api base from there
             api_base = (
                 optional_params.api_base
-                or litellm.api_base
+                or gateway.api_base
                 or os.getenv("OPENAI_BASE_URL")
                 or os.getenv("OPENAI_API_BASE")
                 or "https://api.openai.com/v1"
             )
             organization: Final = (
                 optional_params.organization
-                or litellm.organization
+                or gateway.organization
                 or os.getenv("OPENAI_ORGANIZATION", None)
                 or None  # default - https://github.com/openai/openai-python/blob/284c1799070c723c6a553337134148a7ab088dd8/openai/util.py#L105
             )
             # set API KEY
             api_key = (
                 optional_params.api_key
-                or litellm.api_key  # for deepinfra/perplexity/anyscale we check in get_llm_provider and pass in the api key from there
-                or litellm.openai_key
+                or gateway.api_key  # for deepinfra/perplexity/anyscale we check in get_llm_provider and pass in the api key from there
+                or gateway.openai_key
                 or os.getenv("OPENAI_API_KEY")
             )
 
@@ -594,14 +594,14 @@ def list_fine_tuning_jobs(
             )
         # Azure OpenAI
         elif custom_llm_provider == "azure":
-            api_base = optional_params.api_base or litellm.api_base or get_secret_str("AZURE_API_BASE")
+            api_base = optional_params.api_base or gateway.api_base or get_secret_str("AZURE_API_BASE")
 
-            api_version = optional_params.api_version or litellm.api_version or get_secret_str("AZURE_API_VERSION")
+            api_version = optional_params.api_version or gateway.api_version or get_secret_str("AZURE_API_VERSION")
 
             api_key = (
                 optional_params.api_key
-                or litellm.api_key
-                or litellm.azure_key
+                or gateway.api_key
+                or gateway.azure_key
                 or get_secret_str("AZURE_OPENAI_API_KEY")
                 or get_secret_str("AZURE_API_KEY")
             )
@@ -622,7 +622,7 @@ def list_fine_tuning_jobs(
                 organization=optional_params.organization,
             )
         else:
-            raise litellm.exceptions.BadRequestError(
+            raise gateway.exceptions.BadRequestError(
                 message=f"LiteLLM doesn't support {custom_llm_provider} for 'create_batch'. Only 'openai' is supported.",
                 model="n/a",
                 llm_provider=custom_llm_provider,
@@ -710,15 +710,15 @@ def retrieve_fine_tuning_job(
         if custom_llm_provider == "openai":
             api_base = (
                 optional_params.api_base
-                or litellm.api_base
+                or gateway.api_base
                 or os.getenv("OPENAI_BASE_URL")
                 or os.getenv("OPENAI_API_BASE")
                 or "https://api.openai.com/v1"
             )
             organization: Final = (
-                optional_params.organization or litellm.organization or os.getenv("OPENAI_ORGANIZATION", None) or None
+                optional_params.organization or gateway.organization or os.getenv("OPENAI_ORGANIZATION", None) or None
             )
-            api_key = optional_params.api_key or litellm.api_key or litellm.openai_key or os.getenv("OPENAI_API_KEY")
+            api_key = optional_params.api_key or gateway.api_key or gateway.openai_key or os.getenv("OPENAI_API_KEY")
 
             response = openai_fine_tuning_apis_instance.retrieve_fine_tuning_job(
                 api_base=api_base,
@@ -733,14 +733,14 @@ def retrieve_fine_tuning_job(
             )
         # Azure OpenAI
         elif custom_llm_provider == "azure":
-            api_base = optional_params.api_base or litellm.api_base or get_secret_str("AZURE_API_BASE")
+            api_base = optional_params.api_base or gateway.api_base or get_secret_str("AZURE_API_BASE")
 
-            api_version = optional_params.api_version or litellm.api_version or get_secret_str("AZURE_API_VERSION")
+            api_version = optional_params.api_version or gateway.api_version or get_secret_str("AZURE_API_VERSION")
 
             api_key = (
                 optional_params.api_key
-                or litellm.api_key
-                or litellm.azure_key
+                or gateway.api_key
+                or gateway.azure_key
                 or get_secret_str("AZURE_OPENAI_API_KEY")
                 or get_secret_str("AZURE_API_KEY")
             )
@@ -760,7 +760,7 @@ def retrieve_fine_tuning_job(
                 organization=optional_params.organization,
             )
         else:
-            raise litellm.exceptions.BadRequestError(
+            raise gateway.exceptions.BadRequestError(
                 message=f"LiteLLM doesn't support {custom_llm_provider} for 'retrieve_fine_tuning_job'. Only 'openai' and 'azure' are supported.",
                 model="n/a",
                 llm_provider=custom_llm_provider,

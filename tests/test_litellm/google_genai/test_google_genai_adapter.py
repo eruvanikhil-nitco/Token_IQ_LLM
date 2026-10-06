@@ -12,7 +12,7 @@ from token_iq.gateway.google_genai.main import agenerate_content
 
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 
 def test_adapter_import():
@@ -853,7 +853,7 @@ def test_api_base_and_api_key_passthrough(function_name, is_async, is_stream):
     import asyncio
     import unittest.mock
 
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
 
     # Import the specific function being tested
     if function_name == "generate_content":
@@ -1054,7 +1054,7 @@ async def test_google_generate_content_with_openai():
 
     # Use AsyncMock for proper async function mocking - patch at the module level where it's imported
     with unittest.mock.patch(
-        "token_iq.gateway.google_genai.main.litellm.acompletion",
+        "token_iq.gateway.google_genai.main.gateway.acompletion",
         new_callable=unittest.mock.AsyncMock,
     ) as mock_completion:
         # Set the return value directly on the MagicMock

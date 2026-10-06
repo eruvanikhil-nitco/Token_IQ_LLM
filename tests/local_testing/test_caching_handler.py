@@ -11,7 +11,7 @@ import random
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import aembedding, completion, embedding, aresponses, responses
 from token_iq.gateway.caching.caching import Cache
 from token_iq.gateway.responses.streaming_iterator import CachedResponsesAPIStreamingIterator
@@ -44,24 +44,24 @@ import logging
 def setup_cache():
     # Set up the cache
     cache = Cache(type=LiteLLMCacheType.LOCAL)
-    litellm.cache = cache
+    gateway.cache = cache
     return cache
 
 
-chat_completion_response = litellm.ModelResponse(
+chat_completion_response = gateway.ModelResponse(
     id=str(uuid.uuid4()),
     choices=[
-        litellm.Choices(
-            message=litellm.Message(
+        gateway.Choices(
+            message=gateway.Message(
                 role="assistant", content="Hello, how can I help you today?"
             )
         )
     ],
 )
 
-text_completion_response = litellm.TextCompletionResponse(
+text_completion_response = gateway.TextCompletionResponse(
     id=str(uuid.uuid4()),
-    choices=[litellm.utils.TextChoices(text="Hello, how can I help you today?")],
+    choices=[gateway.utils.TextChoices(text="Hello, how can I help you today?")],
 )
 
 
@@ -70,7 +70,7 @@ text_completion_response = litellm.TextCompletionResponse(
     "response", [chat_completion_response, text_completion_response]
 )
 async def test_async_set_get_cache(response):
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     setup_cache()
     verbose_logger.setLevel(logging.DEBUG)
     caching_handler = LLMCachingHandler(
@@ -93,11 +93,11 @@ async def test_async_set_get_cache(response):
     print("result", result)
 
     original_function = (
-        litellm.acompletion
-        if isinstance(response, litellm.ModelResponse)
-        else litellm.atext_completion
+        gateway.acompletion
+        if isinstance(response, gateway.ModelResponse)
+        else gateway.atext_completion
     )
-    if isinstance(response, litellm.ModelResponse):
+    if isinstance(response, gateway.ModelResponse):
         kwargs = {"messages": messages}
         call_type = CallTypes.acompletion.value
     else:
@@ -673,7 +673,7 @@ async def test_async_get_cache_updates_request_kwargs_for_streaming_responses():
     assert caching_handler.request_kwargs["model"] == "gpt-4o"
     assert caching_handler.request_kwargs["input"] == "hello"
     assert caching_handler.request_kwargs["stream"] is True
-    assert caching_handler.request_kwargs["cache_key"] == litellm.cache.get_cache_key(
+    assert caching_handler.request_kwargs["cache_key"] == gateway.cache.get_cache_key(
         **caching_handler.request_kwargs
     )
 
@@ -819,7 +819,7 @@ def test_convert_cached_responses_api_result_to_model_response():
 
 
 def test_sync_get_cache_does_not_eagerly_log_streaming_responses_hits():
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     setup_cache()
     caching_handler = LLMCachingHandler(
         original_function=responses, request_kwargs={}, start_time=datetime.now()
@@ -886,7 +886,7 @@ def test_sync_get_cache_does_not_eagerly_log_streaming_responses_hits():
 
 
 def test_sync_get_cache_defers_streaming_completion_hit_callbacks():
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     setup_cache()
     caching_handler = LLMCachingHandler(
         original_function=completion, request_kwargs={}, start_time=datetime.now()
@@ -949,7 +949,7 @@ def test_should_defer_streaming_cache_hit_callbacks_for_any_streaming_request():
 
 @pytest.mark.asyncio
 async def test_async_get_cache_defers_streaming_completion_hit_callbacks():
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     setup_cache()
     caching_handler = LLMCachingHandler(
         original_function=completion, request_kwargs={}, start_time=datetime.now()
@@ -965,7 +965,7 @@ async def test_async_get_cache_defers_streaming_completion_hit_callbacks():
 
     await caching_handler.async_set_cache(
         result=chat_completion_response,
-        original_function=litellm.acompletion,
+        original_function=gateway.acompletion,
         kwargs=kwargs,
     )
     await asyncio.sleep(0.2)
@@ -983,7 +983,7 @@ async def test_async_get_cache_defers_streaming_completion_hit_callbacks():
 
     cached_response = await caching_handler._async_get_cache(
         model=original_model,
-        original_function=litellm.acompletion,
+        original_function=gateway.acompletion,
         logging_obj=logging_obj,
         start_time=datetime.now(),
         call_type=CallTypes.acompletion.value,

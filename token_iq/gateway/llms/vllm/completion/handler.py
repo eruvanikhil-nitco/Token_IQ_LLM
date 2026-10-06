@@ -110,7 +110,7 @@ def completion(
 def batch_completions(model: str, messages: list, optional_params=None, custom_prompt_dict={}):
     """
     Example usage:
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     import os
     from token_iq.gateway import batch_completion
 

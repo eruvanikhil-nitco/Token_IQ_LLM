@@ -27,7 +27,7 @@ from token_iq.gateway.proxy.pass_through_endpoints.llm_passthrough_endpoints imp
 
 # Replace the actual hash_token function with our mock
 import token_iq.gateway.proxy.auth.route_checks
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 
 # Mock objects and functions
@@ -40,7 +40,7 @@ def mock_hash_token(token):
     return token
 
 
-litellm.proxy.auth.route_checks.hash_token = mock_hash_token
+gateway.proxy.auth.route_checks.hash_token = mock_hash_token
 
 
 # Test is_llm_api_route

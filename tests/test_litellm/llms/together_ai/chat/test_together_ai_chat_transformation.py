@@ -6,7 +6,7 @@ from unittest.mock import MagicMock
 import httpx
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.exceptions import UnsupportedParamsError
 from token_iq.gateway.llms.base_llm.chat.transformation import LiteLLMLoggingObj
 from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
@@ -59,7 +59,7 @@ def force_local_model_cost(monkeypatch):
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
     from token_iq.gateway.core_utils.get_model_cost_map import get_model_cost_map
 
-    monkeypatch.setattr(litellm, "model_cost", get_model_cost_map())
+    monkeypatch.setattr(gateway, "model_cost", get_model_cost_map())
 
 
 @pytest.fixture(autouse=True)
@@ -70,7 +70,7 @@ def isolate_together_api_base_env(monkeypatch):
 @pytest.fixture
 def registry_disables_function_calling(monkeypatch):
     monkeypatch.setitem(
-        litellm.model_cost,
+        gateway.model_cost,
         f"together_ai/{NO_TOOLS_MODEL}",
         {"litellm_provider": "together_ai", "mode": "chat", "supports_function_calling": False},
     )
@@ -79,7 +79,7 @@ def registry_disables_function_calling(monkeypatch):
 @pytest.fixture
 def registry_disables_response_schema(monkeypatch):
     monkeypatch.setitem(
-        litellm.model_cost,
+        gateway.model_cost,
         f"together_ai/{NO_SCHEMA_MODEL}",
         {"litellm_provider": "together_ai", "mode": "chat", "supports_response_schema": False},
     )
@@ -297,7 +297,7 @@ def test_reasoning_effort_default_is_dropped(model):
 
 
 def test_get_optional_params_translates_reasoning_effort_for_together():
-    optional_params = litellm.get_optional_params(
+    optional_params = gateway.get_optional_params(
         model=ADJUSTABLE_REASONING_MODEL,
         custom_llm_provider="together_ai",
         reasoning_effort="max",
@@ -307,8 +307,8 @@ def test_get_optional_params_translates_reasoning_effort_for_together():
 
 
 def test_get_optional_params_rejects_reasoning_effort_for_non_reasoning_together_model():
-    with pytest.raises(litellm.UnsupportedParamsError):
-        litellm.get_optional_params(
+    with pytest.raises(gateway.UnsupportedParamsError):
+        gateway.get_optional_params(
             model=NON_REASONING_MODEL,
             custom_llm_provider="together_ai",
             reasoning_effort="low",
@@ -526,7 +526,7 @@ def test_completion_sends_chat_template_kwargs_and_preserved_reasoning():
 
     client = HTTPHandler(client=httpx.Client(transport=httpx.MockTransport(respond)))
 
-    litellm.completion(
+    gateway.completion(
         model=f"together_ai/{REASONING_MODEL}",
         messages=[dict(message) for message in PRESERVED_THINKING_MESSAGES],
         chat_template_kwargs={"clear_thinking": False},
@@ -541,8 +541,8 @@ def test_completion_sends_chat_template_kwargs_and_preserved_reasoning():
 
 
 def test_together_ai_config_alias_points_at_chat_config():
-    assert litellm.TogetherAIConfig is litellm.TogetherAIChatConfig
-    config = litellm.TogetherAIConfig(max_tokens=10)
+    assert gateway.TogetherAIConfig is gateway.TogetherAIChatConfig
+    config = gateway.TogetherAIConfig(max_tokens=10)
     assert isinstance(config, TogetherAIChatConfig)
 
 
@@ -585,7 +585,7 @@ def test_completion_routes_through_together_chat_config():
 
     client = HTTPHandler(client=httpx.Client(transport=httpx.MockTransport(respond)))
 
-    response = litellm.completion(
+    response = gateway.completion(
         model=f"together_ai/{REASONING_MODEL}",
         messages=[{"role": "user", "content": "What is 2+2?"}],
         api_key="fake-key",
@@ -640,7 +640,7 @@ def test_completion_unmapped_model_sends_tools_to_together():
 
     client = HTTPHandler(client=httpx.Client(transport=httpx.MockTransport(respond)))
 
-    response = litellm.completion(
+    response = gateway.completion(
         model=f"together_ai/{UNMAPPED_MODEL}",
         messages=[{"role": "user", "content": "What is the weather in San Francisco?"}],
         tools=WEATHER_TOOLS,
@@ -683,7 +683,7 @@ def _capture_completion_request(model: str, **completion_kwargs) -> dict:
         )
 
     client = HTTPHandler(client=httpx.Client(transport=httpx.MockTransport(respond)))
-    litellm.completion(
+    gateway.completion(
         model=f"together_ai/{model}",
         messages=[{"role": "user", "content": "Summarize with a title and summary."}],
         api_key="fake-key",
@@ -818,7 +818,7 @@ def test_streaming_completion_rebuilds_reasoning_and_parallel_tool_calls():
     client = _sync_client(captured_requests, _sse_response(*PARALLEL_TOOL_CALL_STREAM))
 
     chunks = list(
-        litellm.completion(
+        gateway.completion(
             model=f"together_ai/{UNMAPPED_MODEL}",
             messages=[{"role": "user", "content": "Weather and time in San Francisco?"}],
             tools=WEATHER_AND_TIME_TOOLS,
@@ -836,7 +836,7 @@ def test_streaming_completion_rebuilds_reasoning_and_parallel_tool_calls():
     streamed_reasoning = "".join(getattr(chunk.choices[0].delta, "reasoning_content", None) or "" for chunk in chunks)
     assert streamed_reasoning == "Need weather and time."
 
-    rebuilt = litellm.stream_chunk_builder(chunks)
+    rebuilt = gateway.stream_chunk_builder(chunks)
     message = rebuilt.choices[0].message
     assert message.reasoning_content == "Need weather and time."
     assert rebuilt.choices[0].finish_reason == "tool_calls"
@@ -858,7 +858,7 @@ async def test_async_streaming_completion_strips_internal_fields_and_streams_rea
     )
 
     try:
-        stream = await litellm.acompletion(
+        stream = await gateway.acompletion(
             model=f"together_ai/{REASONING_MODEL}",
             messages=[dict(message) for message in PRESERVED_THINKING_MESSAGES],
             chat_template_kwargs={"clear_thinking": False},
@@ -875,7 +875,7 @@ async def test_async_streaming_completion_strips_internal_fields_and_streams_rea
     assert request_body["chat_template_kwargs"] == {"clear_thinking": False}
     _assert_internal_fields_stripped_reasoning_kept(request_body["messages"])
 
-    rebuilt = litellm.stream_chunk_builder(chunks)
+    rebuilt = gateway.stream_chunk_builder(chunks)
     assert rebuilt.choices[0].message.reasoning_content == "Recalling 47."
     assert rebuilt.choices[0].message.content == "47"
 
@@ -888,7 +888,7 @@ def test_completion_bare_model_with_together_api_base_uses_together_config(api_b
         httpx.Response(200, json=_chat_completion({"role": "assistant", "content": "4", "reasoning": "2+2"})),
     )
 
-    response = litellm.completion(
+    response = gateway.completion(
         model=UNMAPPED_MODEL,
         messages=[{"role": "user", "content": "What is 2+2?"}],
         api_base=api_base,
@@ -910,7 +910,7 @@ def test_completion_honors_together_ai_api_base_env(monkeypatch):
         httpx.Response(200, json=_chat_completion({"role": "assistant", "content": "4"})),
     )
 
-    litellm.completion(
+    gateway.completion(
         model=f"together_ai/{REASONING_MODEL}",
         messages=[{"role": "user", "content": "What is 2+2?"}],
         api_key="fake-key",
@@ -944,7 +944,7 @@ def test_responses_api_sends_tools_and_maps_reasoning_and_function_call():
         ),
     )
 
-    response = litellm.responses(
+    response = gateway.responses(
         model=f"together_ai/{UNMAPPED_MODEL}",
         input="What is the weather in San Francisco?",
         tools=[{"type": "function", "name": "get_weather", "parameters": {}}],
@@ -987,7 +987,7 @@ def test_anthropic_messages_replays_tool_loop_and_maps_reasoning_to_thinking_blo
         ),
     )
 
-    response = litellm.anthropic.messages.create(
+    response = gateway.anthropic.messages.create(
         model=f"together_ai/{UNMAPPED_MODEL}",
         max_tokens=100,
         messages=[dict(message) for message in ANTHROPIC_TOOL_LOOP_MESSAGES],
@@ -1032,7 +1032,7 @@ def test_anthropic_messages_streams_together_tool_call_as_input_json_delta():
     client = _sync_client(captured_requests, _sse_response(*PARALLEL_TOOL_CALL_STREAM))
 
     events = _anthropic_sse_events(
-        litellm.anthropic.messages.create(
+        gateway.anthropic.messages.create(
             model=f"together_ai/{UNMAPPED_MODEL}",
             max_tokens=100,
             messages=[{"role": "user", "content": "Weather and time in San Francisco?"}],
@@ -1101,7 +1101,7 @@ def test_declared_levels_model_still_disables_reasoning_on_none():
 
 
 def test_get_optional_params_preserves_max_for_declared_levels_model():
-    optional_params = litellm.get_optional_params(
+    optional_params = gateway.get_optional_params(
         model=DECLARED_LEVELS_MODEL,
         custom_llm_provider="together_ai",
         reasoning_effort="max",

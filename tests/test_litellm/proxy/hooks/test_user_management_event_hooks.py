@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy._types import NewUserRequest, NewUserResponse, UserAPIKeyAuth
 from token_iq.gateway.proxy.hooks.user_management_event_hooks import UserManagementEventHooks
 
@@ -35,7 +35,7 @@ async def _run_created_hook(prisma_client: FakePrismaClient, audit_log: AsyncMoc
     )
     with (
         patch.dict(sys.modules, {"token_iq.gateway.proxy.proxy_server": proxy_server}),
-        patch.object(litellm, "store_audit_logs", True),
+        patch.object(gateway, "store_audit_logs", True),
         patch(
             "token_iq.gateway.proxy.hooks.user_management_event_hooks.create_audit_log_for_update",
             audit_log,

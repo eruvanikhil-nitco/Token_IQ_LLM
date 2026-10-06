@@ -2,7 +2,7 @@ from typing import Any, Dict, List, Optional
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.integrations.custom_logger import CustomLogger
 
 
@@ -30,9 +30,9 @@ class _WireBodyCapture(CustomLogger):
 @pytest.fixture()
 def wire_capture():
     capture = _WireBodyCapture()
-    previous = list(litellm.callbacks)
-    litellm.callbacks = previous + [capture]
+    previous = list(gateway.callbacks)
+    gateway.callbacks = previous + [capture]
     try:
         yield capture
     finally:
-        litellm.callbacks = previous
+        gateway.callbacks = previous

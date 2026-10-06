@@ -8,12 +8,12 @@ from unittest.mock import AsyncMock, patch
 
 import asyncio
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 
 @pytest.mark.asyncio
 async def test_azure_health_check():
-    response = await litellm.ahealth_check(
+    response = await gateway.ahealth_check(
         model_params={
             "model": "azure/gpt-4.1-mini",
             "messages": [{"role": "user", "content": "Hey, how's it going?"}],
@@ -33,7 +33,7 @@ async def test_azure_health_check():
 
 @pytest.mark.asyncio
 async def test_text_completion_health_check():
-    response = await litellm.ahealth_check(
+    response = await gateway.ahealth_check(
         model_params={"model": "gpt-3.5-turbo-instruct"},
         mode="completion",
         prompt="What's the weather in SF?",
@@ -44,7 +44,7 @@ async def test_text_completion_health_check():
 
 @pytest.mark.asyncio
 async def test_azure_embedding_health_check():
-    response = await litellm.ahealth_check(
+    response = await gateway.ahealth_check(
         model_params={
             "model": "azure/text-embedding-ada-002",
             "api_key": os.getenv("AZURE_AI_API_KEY"),
@@ -62,7 +62,7 @@ async def test_azure_embedding_health_check():
 
 @pytest.mark.asyncio
 async def test_openai_img_gen_health_check():
-    response = await litellm.ahealth_check(
+    response = await gateway.ahealth_check(
         model_params={
             "model": "gpt-image-1",
             "api_key": os.getenv("OPENAI_API_KEY"),
@@ -88,12 +88,12 @@ async def test_azure_img_gen_health_check():
     Test Azure image generation health check with retry logic for transient errors.
     Azure sometimes returns internal server errors which are transient and not something we can control.
     """
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
     max_retries = 3
     retry_delay = 1  # Start with 1 second delay
 
     for attempt in range(max_retries):
-        response = await litellm.ahealth_check(
+        response = await gateway.ahealth_check(
             model_params={
                 "model": "azure/gpt-image-1",
                 "api_base": os.getenv("AZURE_AI_API_BASE"),
@@ -134,7 +134,7 @@ async def test_azure_img_gen_health_check():
 @pytest.mark.skip(reason="AWS Suspended Account")
 @pytest.mark.asyncio
 async def test_sagemaker_embedding_health_check():
-    response = await litellm.ahealth_check(
+    response = await gateway.ahealth_check(
         model_params={
             "model": "sagemaker/berri-benchmarking-gpt-j-6b-fp16",
             "messages": [{"role": "user", "content": "Hey, how's it going?"}],
@@ -158,8 +158,8 @@ async def test_groq_health_check():
 
     ensure that provider wildcard model passes health check
     """
-    litellm.set_verbose = True
-    response = await litellm.ahealth_check(
+    gateway.set_verbose = True
+    response = await gateway.ahealth_check(
         model_params={
             "api_key": os.environ.get("GROQ_API_KEY"),
             "model": "groq/*",
@@ -177,7 +177,7 @@ async def test_groq_health_check():
 
 @pytest.mark.asyncio
 async def test_cohere_rerank_health_check():
-    response = await litellm.ahealth_check(
+    response = await gateway.ahealth_check(
         model_params={
             "model": "cohere/rerank-english-v3.0",
             "api_key": os.getenv("COHERE_API_KEY"),
@@ -193,7 +193,7 @@ async def test_cohere_rerank_health_check():
 
 @pytest.mark.asyncio
 async def test_audio_speech_health_check():
-    response = await litellm.ahealth_check(
+    response = await gateway.ahealth_check(
         model_params={
             "model": "openai/tts-1",
             "api_key": os.getenv("OPENAI_API_KEY"),
@@ -209,7 +209,7 @@ async def test_audio_speech_health_check():
 
 @pytest.mark.asyncio
 async def test_audio_speech_health_check_with_another_voice():
-    response = await litellm.ahealth_check(
+    response = await gateway.ahealth_check(
         model_params={
             "model": "openai/tts-1",
             "api_key": os.getenv("OPENAI_API_KEY"),
@@ -226,8 +226,8 @@ async def test_audio_speech_health_check_with_another_voice():
 
 @pytest.mark.asyncio
 async def test_audio_transcription_health_check():
-    litellm.set_verbose = True
-    response = await litellm.ahealth_check(
+    gateway.set_verbose = True
+    response = await gateway.ahealth_check(
         model_params={
             "model": "openai/whisper-1",
             "api_key": os.getenv("OPENAI_API_KEY"),
@@ -724,8 +724,8 @@ async def test_timeout_does_not_cancel_other_health_checks():
 
 @pytest.mark.asyncio
 async def test_ahealth_check_ocr():
-    litellm._turn_on_debug()
-    response = await litellm.ahealth_check(
+    gateway._turn_on_debug()
+    response = await gateway.ahealth_check(
         model_params={
             "model": "mistral/mistral-ocr-latest",
             "api_key": os.getenv("MISTRAL_API_KEY"),
@@ -772,7 +772,7 @@ async def test_image_generation_health_check_prompt(monkeypatch):
         ]
 
         with patch(
-            "token_iq.gateway.proxy.health_check.litellm.ahealth_check",
+            "token_iq.gateway.proxy.health_check.gateway.ahealth_check",
             side_effect=mock_health_check,
         ):
             await health_check_module._perform_health_check(model_list)
@@ -819,7 +819,7 @@ async def test_health_check_with_custom_llm_provider():
 
     with patch("token_iq.gateway.acompletion", return_value=mock_response):
         # Test with a custom model name that wouldn't be recognized without custom_llm_provider
-        response = await litellm.ahealth_check(
+        response = await gateway.ahealth_check(
             model_params={
                 "model": "deepseek-r1-distill-qwen-1.5B-q4",
                 "custom_llm_provider": "openai",

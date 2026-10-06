@@ -26,9 +26,9 @@ def set_global_generic_prompt_config(config: dict) -> None:
                 - api_key: Optional API key for authentication
                 - timeout: Request timeout in seconds (default: 30)
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    litellm.global_generic_prompt_config = config
+    gateway.global_generic_prompt_config = config
 
 
 def prompt_initializer(litellm_params: "PromptLiteLLMParams", prompt_spec: "PromptSpec") -> "CustomPromptManagement":

@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.prompt_templates.factory import (
     BAD_MESSAGE_ERROR_STR,
     BEDROCK_DOCUMENT_PLACEHOLDER_TEXT,
@@ -2390,7 +2390,7 @@ def test_bedrock_tool_call_invoke_unconvertible_raises_non_retryable_bad_request
     """
     tool_calls = [{"id": "call_bad", "type": "function", "function": None}]
 
-    with pytest.raises(litellm.BadRequestError) as exc_info:
+    with pytest.raises(gateway.BadRequestError) as exc_info:
         _convert_to_bedrock_tool_call_invoke(tool_calls)
 
     assert exc_info.value.status_code == 400
@@ -2524,8 +2524,8 @@ def test_sanitize_messages_deduplicates_tool_results():
         each tool_use must have a single result. Found multiple tool_result
         blocks with id: <id>
     """
-    original = litellm.modify_params
-    litellm.modify_params = True
+    original = gateway.modify_params
+    gateway.modify_params = True
     try:
         messages = [
             {"role": "user", "content": "What's the weather?"},
@@ -2569,7 +2569,7 @@ def test_sanitize_messages_deduplicates_tool_results():
         # Should keep the LAST occurrence (most complete)
         assert tool_results[0]["content"] == '{"temperature": 72, "condition": "sunny"}'
     finally:
-        litellm.modify_params = original
+        gateway.modify_params = original
 
 
 def test_sanitize_messages_preserves_unique_tool_results():
@@ -2577,8 +2577,8 @@ def test_sanitize_messages_preserves_unique_tool_results():
     When each tool_call_id has exactly one tool_result, no deduplication should
     occur. Messages should pass through unchanged.
     """
-    original = litellm.modify_params
-    litellm.modify_params = True
+    original = gateway.modify_params
+    gateway.modify_params = True
     try:
         messages = [
             {"role": "user", "content": "Get weather for two cities"},
@@ -2617,7 +2617,7 @@ def test_sanitize_messages_preserves_unique_tool_results():
         assert tool_results[1]["tool_call_id"] == "call_2"
         assert tool_results[1]["content"] == "85F"
     finally:
-        litellm.modify_params = original
+        gateway.modify_params = original
 
 
 def test_sanitize_messages_dedup_disabled_when_modify_params_false():
@@ -2625,8 +2625,8 @@ def test_sanitize_messages_dedup_disabled_when_modify_params_false():
     When litellm.modify_params is False, messages should be returned as-is
     even if they contain duplicate tool results.
     """
-    original = litellm.modify_params
-    litellm.modify_params = False
+    original = gateway.modify_params
+    gateway.modify_params = False
     try:
         messages = [
             {"role": "user", "content": "Test"},
@@ -2650,7 +2650,7 @@ def test_sanitize_messages_dedup_disabled_when_modify_params_false():
         # Should be unchanged — no sanitization when modify_params=False
         assert result == messages
     finally:
-        litellm.modify_params = original
+        gateway.modify_params = original
 
 
 def test_sanitize_messages_dedup_scoped_per_turn_preserves_cross_turn():
@@ -2664,8 +2664,8 @@ def test_sanitize_messages_dedup_scoped_per_turn_preserves_cross_turn():
     leaving the first assistant message without its required result (which
     Anthropic would reject).
     """
-    original = litellm.modify_params
-    litellm.modify_params = True
+    original = gateway.modify_params
+    gateway.modify_params = True
     try:
         messages = [
             {"role": "user", "content": "First question"},
@@ -2711,7 +2711,7 @@ def test_sanitize_messages_dedup_scoped_per_turn_preserves_cross_turn():
         assert tool_results[0]["content"] == "result_turn_1"
         assert tool_results[1]["content"] == "result_turn_2"
     finally:
-        litellm.modify_params = original
+        gateway.modify_params = original
 
 
 def test_sanitize_messages_combined_case_a_and_case_d():
@@ -2723,8 +2723,8 @@ def test_sanitize_messages_combined_case_a_and_case_d():
     This validates that both sanitization passes compose correctly without
     interfering with each other.
     """
-    original = litellm.modify_params
-    litellm.modify_params = True
+    original = gateway.modify_params
+    gateway.modify_params = True
     try:
         messages = [
             {"role": "user", "content": "Do two things"},
@@ -2790,7 +2790,7 @@ def test_sanitize_messages_combined_case_a_and_case_d():
             "call_duped",
         }, f"Expected tool_call_ids {{call_missing, call_duped}}, got {tool_ids}"
     finally:
-        litellm.modify_params = original
+        gateway.modify_params = original
 
 
 def test_anthropic_messages_pt_file_block_preserves_cache_control():
@@ -2868,9 +2868,9 @@ def test_add_cache_point_tool_block_passes_ttl_for_claude_4_5(monkeypatch):
     )
 
     old_env = os.environ.get("LITELLM_LOCAL_MODEL_COST_MAP")
-    old_cost = litellm.model_cost
+    old_cost = gateway.model_cost
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    litellm.model_cost = litellm.get_model_cost_map()
+    gateway.model_cost = gateway.get_model_cost_map()
     try:
         tool_with_1h = {
             "type": "function",
@@ -2925,7 +2925,7 @@ def test_add_cache_point_tool_block_passes_ttl_for_claude_4_5(monkeypatch):
         assert result_no_ttl["cachePoint"]["type"] == "default"
         assert "ttl" not in result_no_ttl["cachePoint"]
     finally:
-        litellm.model_cost = old_cost
+        gateway.model_cost = old_cost
         if old_env is None:
             os.environ.pop("LITELLM_LOCAL_MODEL_COST_MAP", None)
         else:
@@ -2941,7 +2941,7 @@ def test_add_cache_point_tool_block_stands_down_for_model_without_prompt_caching
     )
 
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map())
+    monkeypatch.setattr(gateway, "model_cost", gateway.get_model_cost_map())
     tool = {"cache_control": {"type": "ephemeral"}}
 
     assert add_cache_point_tool_block(tool, model="nvidia.nemotron-super-3-120b") is None
@@ -2967,9 +2967,9 @@ def test_bedrock_tools_pt_passes_ttl_for_claude_4_5(monkeypatch):
     from token_iq.gateway.core_utils.prompt_templates.factory import _bedrock_tools_pt
 
     old_env = os.environ.get("LITELLM_LOCAL_MODEL_COST_MAP")
-    old_cost = litellm.model_cost
+    old_cost = gateway.model_cost
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    litellm.model_cost = litellm.get_model_cost_map()
+    gateway.model_cost = gateway.get_model_cost_map()
     try:
         tools = [
             {
@@ -3000,7 +3000,7 @@ def test_bedrock_tools_pt_passes_ttl_for_claude_4_5(monkeypatch):
         assert len(cache_blocks_old) == 1
         assert "ttl" not in cache_blocks_old[0]["cachePoint"]
     finally:
-        litellm.model_cost = old_cost
+        gateway.model_cost = old_cost
         if old_env is None:
             os.environ.pop("LITELLM_LOCAL_MODEL_COST_MAP", None)
         else:

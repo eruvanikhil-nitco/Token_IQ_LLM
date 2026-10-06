@@ -8,7 +8,7 @@ from typing import Any, Final
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.llms.anthropic.common_utils import AnthropicError
 from token_iq.gateway.llms.anthropic.count_tokens.transformation import (
@@ -75,10 +75,10 @@ class AnthropicCountTokensHandler(AnthropicCountTokensConfig):
             headers: Final = self.get_required_headers(api_key)
 
             # Use LiteLLM's async httpx client
-            async_client: Final = get_async_httpx_client(llm_provider=litellm.LlmProviders.ANTHROPIC)
+            async_client: Final = get_async_httpx_client(llm_provider=gateway.LlmProviders.ANTHROPIC)
 
             # Use provided timeout or fall back to litellm.request_timeout
-            request_timeout: Final = timeout if timeout is not None else litellm.request_timeout
+            request_timeout: Final = timeout if timeout is not None else gateway.request_timeout
 
             response: Final = await async_client.post(
                 endpoint_url,

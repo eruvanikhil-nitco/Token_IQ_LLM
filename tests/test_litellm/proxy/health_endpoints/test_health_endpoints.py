@@ -12,7 +12,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from prisma.errors import ClientNotConnectedError, HTTPClientClosedError, PrismaError
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 import token_iq.gateway.proxy.health_endpoints._health_endpoints as _health_endpoints_module
 from token_iq.gateway.core_utils.health_check_helpers import TEST_IMAGE_BASE64
 from token_iq.gateway.proxy._types import LitellmUserRoles, ProxyException, UserAPIKeyAuth
@@ -365,7 +365,7 @@ async def test_test_model_connection_loads_config_from_router():
             mock_can_user_make_model_call,
         ),
         patch(
-            "token_iq.gateway.proxy.health_endpoints._health_endpoints.litellm.ahealth_check",
+            "token_iq.gateway.proxy.health_endpoints._health_endpoints.gateway.ahealth_check",
             mock_ahealth_check,
         ),
         patch(
@@ -514,7 +514,7 @@ async def test_test_model_connection_uses_model_info_id_to_disambiguate_duplicat
             mock_can_user_make_model_call,
         ),
         patch(
-            "token_iq.gateway.proxy.health_endpoints._health_endpoints.litellm.ahealth_check",
+            "token_iq.gateway.proxy.health_endpoints._health_endpoints.gateway.ahealth_check",
             mock_ahealth_check,
         ),
         patch(
@@ -616,7 +616,7 @@ async def test_test_model_connection_falls_back_to_deployments_zero_without_id()
             mock_can_user_make_model_call,
         ),
         patch(
-            "token_iq.gateway.proxy.health_endpoints._health_endpoints.litellm.ahealth_check",
+            "token_iq.gateway.proxy.health_endpoints._health_endpoints.gateway.ahealth_check",
             mock_ahealth_check,
         ),
         patch(
@@ -964,7 +964,7 @@ async def test_test_model_connection_authorized_team_admin_passes_real_auth():
         ) as spy_auth_check,
         patch("token_iq.gateway.proxy.management_endpoints.model_management_endpoints.TeamRepository") as MockTeamRepo,
         patch(
-            "token_iq.gateway.proxy.health_endpoints._health_endpoints.litellm.ahealth_check",
+            "token_iq.gateway.proxy.health_endpoints._health_endpoints.gateway.ahealth_check",
             AsyncMock(return_value=health_result),
         ),
         patch(
@@ -2859,8 +2859,8 @@ def test_test_model_connection_accepts_image_edit_mode(monkeypatch):
     before image_edit was added to its mode Literal, breaking the UI Test
     Connection button for image edit deployments.
     """
-    monkeypatch.setattr(litellm, "disable_aiohttp_transport", True)
-    litellm.in_memory_llm_clients_cache.flush_cache()
+    monkeypatch.setattr(gateway, "disable_aiohttp_transport", True)
+    gateway.in_memory_llm_clients_cache.flush_cache()
 
     app = FastAPI()
     app.include_router(_health_endpoints_module.router)

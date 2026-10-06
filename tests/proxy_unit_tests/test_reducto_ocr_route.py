@@ -2,7 +2,7 @@ import asyncio
 import os
 from unittest.mock import AsyncMock, patch
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 import pytest
 from fastapi.testclient import TestClient
 
@@ -26,9 +26,9 @@ def fake_env_vars(monkeypatch):
 def client_no_auth(fake_env_vars):
     from token_iq.gateway.proxy.proxy_server import cleanup_router_config_variables
 
-    original_disable_aiohttp = litellm.disable_aiohttp_transport
-    litellm.disable_aiohttp_transport = True
-    litellm.in_memory_llm_clients_cache.flush_cache()
+    original_disable_aiohttp = gateway.disable_aiohttp_transport
+    gateway.disable_aiohttp_transport = True
+    gateway.in_memory_llm_clients_cache.flush_cache()
     cleanup_router_config_variables()
 
     filepath = os.path.dirname(os.path.abspath(__file__))
@@ -47,8 +47,8 @@ def client_no_auth(fake_env_vars):
     try:
         yield TestClient(app)
     finally:
-        litellm.disable_aiohttp_transport = original_disable_aiohttp
-        litellm.in_memory_llm_clients_cache.flush_cache()
+        gateway.disable_aiohttp_transport = original_disable_aiohttp
+        gateway.in_memory_llm_clients_cache.flush_cache()
 
 
 def test_proxy_reducto_ocr_json_rejects_reducto_id(client_no_auth):

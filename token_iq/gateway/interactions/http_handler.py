@@ -9,7 +9,7 @@ from typing import Any, Final
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.constants import request_timeout
 from token_iq.gateway.interactions.streaming_iterator import (
     InteractionsAPIStreamingIterator,
@@ -67,7 +67,7 @@ class _BaseHTTPHandler:
         # GenericLiteLLMParams.get uses getattr; an unset field is None, not the default.
         custom_llm_provider: Final = litellm_params.get("custom_llm_provider") or "gemini"
         return client or get_async_httpx_client(
-            llm_provider=litellm.LlmProviders(custom_llm_provider),
+            llm_provider=gateway.LlmProviders(custom_llm_provider),
             params={"ssl_verify": litellm_params.get("ssl_verify", None)},
         )
 
@@ -222,7 +222,7 @@ class InteractionsHTTPHandler(_BaseHTTPHandler):
         """
         if client is None:
             async_httpx_client = get_async_httpx_client(
-                llm_provider=litellm.LlmProviders(custom_llm_provider),
+                llm_provider=gateway.LlmProviders(custom_llm_provider),
                 params={"ssl_verify": litellm_params.get("ssl_verify", None)},
             )
         else:
@@ -414,7 +414,7 @@ class InteractionsHTTPHandler(_BaseHTTPHandler):
         """Get an interaction by ID (async version)."""
         if client is None:
             async_httpx_client = get_async_httpx_client(
-                llm_provider=litellm.LlmProviders(custom_llm_provider),
+                llm_provider=gateway.LlmProviders(custom_llm_provider),
                 params={"ssl_verify": litellm_params.get("ssl_verify", None)},
             )
         else:
@@ -534,7 +534,7 @@ class InteractionsHTTPHandler(_BaseHTTPHandler):
         """Delete an interaction by ID (async version)."""
         if client is None:
             async_httpx_client = get_async_httpx_client(
-                llm_provider=litellm.LlmProviders(custom_llm_provider),
+                llm_provider=gateway.LlmProviders(custom_llm_provider),
                 params={"ssl_verify": litellm_params.get("ssl_verify", None)},
             )
         else:
@@ -655,7 +655,7 @@ class InteractionsHTTPHandler(_BaseHTTPHandler):
         """Cancel an interaction by ID (async version)."""
         if client is None:
             async_httpx_client = get_async_httpx_client(
-                llm_provider=litellm.LlmProviders(custom_llm_provider),
+                llm_provider=gateway.LlmProviders(custom_llm_provider),
                 params={"ssl_verify": litellm_params.get("ssl_verify", None)},
             )
         else:

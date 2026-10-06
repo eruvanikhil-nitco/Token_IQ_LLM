@@ -18,7 +18,7 @@ from typing import TYPE_CHECKING, Final, Literal, Optional, Protocol, TypeVar, U
 
 from typing_extensions import NotRequired, ReadOnly, TypedDict, Unpack
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.types.llms.anthropic import (
     AppliedEdit,
@@ -414,7 +414,7 @@ async def _check_summary_model_budget(
                 user_api_key_dict=user_api_key_auth,
                 model=summary_model,
             )
-        except litellm.BudgetExceededError:
+        except gateway.BudgetExceededError:
             return False
         except Exception as e:
             verbose_logger.warning(
@@ -433,7 +433,7 @@ async def _check_summary_model_budget(
                 user_model_max_budget=user_model_max_budget,
                 model=summary_model,
             )
-        except litellm.BudgetExceededError:
+        except gateway.BudgetExceededError:
             return False
         except Exception as e:  # noqa: BLE001  # a budget gate denies on any failure, as the key and end-user scopes do
             verbose_logger.warning(
@@ -454,7 +454,7 @@ async def _check_summary_model_budget(
                 end_user_model_max_budget=end_user_model_max_budget,
                 model=summary_model,
             )
-        except litellm.BudgetExceededError:
+        except gateway.BudgetExceededError:
             return False
         except Exception as e:
             verbose_logger.warning(
@@ -773,7 +773,7 @@ def _count_effective_tokens(
             )
             openai_tools = tools
 
-    total = litellm.token_counter(
+    total = gateway.token_counter(
         model=model,
         messages=cast(list[dict[str, object]], openai_shape),
         tools=cast("list[ChatCompletionToolParam] | None", openai_tools),
@@ -781,10 +781,10 @@ def _count_effective_tokens(
     if compaction_block is not None:
         content: Final = compaction_block.get("content") or ""
         if content:
-            total += litellm.token_counter(model=model, text=content)
+            total += gateway.token_counter(model=model, text=content)
     system_text: Final = _system_to_text(system)
     if system_text:
-        total += litellm.token_counter(model=model, text=system_text)
+        total += gateway.token_counter(model=model, text=system_text)
     return total
 
 
@@ -1010,7 +1010,7 @@ async def _call_summary_model(
     router_acompletion: Final[_SummaryAcompletion | None] = getattr(llm_router, "acompletion", None)
     if llm_router is not None and router_acompletion is not None:
         return await router_acompletion(messages=summary_messages, **call_kwargs)
-    return await litellm.acompletion(messages=[*summary_messages], **call_kwargs)
+    return await gateway.acompletion(messages=[*summary_messages], **call_kwargs)
 
 
 def _extract_response_text(response: object) -> str | None:

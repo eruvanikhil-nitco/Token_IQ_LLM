@@ -8,7 +8,7 @@ from typing import Final, TypedDict
 
 from typing_extensions import ReadOnly
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.secret_managers.main import get_secret_str
 from token_iq.gateway.utils import supports_reasoning
 
@@ -108,7 +108,7 @@ class TencentChatConfig(OpenAIGPTConfig):
     def _is_adaptive_thinking_model(model: str) -> bool:
         """Read `supports_adaptive_thinking` from the model map under tencent."""
         try:
-            model_info: Final[Mapping[str, object]] = litellm.get_model_info(model=model, custom_llm_provider="tencent")
+            model_info: Final[Mapping[str, object]] = gateway.get_model_info(model=model, custom_llm_provider="tencent")
         except Exception:  # noqa: BLE001  # get_model_info raises a bare Exception for unmapped models
             return False
         return model_info.get("supports_adaptive_thinking") is True

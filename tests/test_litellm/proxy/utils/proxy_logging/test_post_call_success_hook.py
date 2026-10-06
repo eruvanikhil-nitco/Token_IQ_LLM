@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
 from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.proxy.utils import ProxyLogging
@@ -51,7 +51,7 @@ async def test_post_call_success_hook_runs_other_callback_and_replaces_response(
         async def async_post_call_success_hook(self, **kwargs):  # type: ignore[override]
             return new_response
 
-    monkeypatch.setattr(litellm, "callbacks", [_CL()])
+    monkeypatch.setattr(gateway, "callbacks", [_CL()])
     out = await proxy_logging.post_call_success_hook(
         data={}, response={"original": True}, user_api_key_dict=make_user_api_key_auth()
     )
@@ -63,7 +63,7 @@ async def test_post_call_success_hook_guardrail_should_not_run_skipped(
     proxy_logging, make_user_api_key_auth, monkeypatch
 ):
     g = _make_guardrail(should_run=False)
-    monkeypatch.setattr(litellm, "callbacks", [g])
+    monkeypatch.setattr(gateway, "callbacks", [g])
     response = MagicMock()
     out = await proxy_logging.post_call_success_hook(
         data={}, response=response, user_api_key_dict=make_user_api_key_auth()
@@ -78,7 +78,7 @@ async def test_post_call_success_hook_guardrail_error_raises(
 ):
     g = _make_guardrail()
     g.async_post_call_success_hook = AsyncMock(side_effect=RuntimeError("blocked"))
-    monkeypatch.setattr(litellm, "callbacks", [g])
+    monkeypatch.setattr(gateway, "callbacks", [g])
     with pytest.raises(RuntimeError):
         await proxy_logging.post_call_success_hook(
             data={}, response=MagicMock(), user_api_key_dict=make_user_api_key_auth()
@@ -91,7 +91,7 @@ async def test_post_call_success_hook_guardrail_returns_modified_response(
 ):
     modified = {"a": 1, "b": 2, "c": 3}
     g = _make_guardrail(override=modified)
-    monkeypatch.setattr(litellm, "callbacks", [g])
+    monkeypatch.setattr(gateway, "callbacks", [g])
     out = await proxy_logging.post_call_success_hook(
         data={}, response={"orig": True}, user_api_key_dict=make_user_api_key_auth()
     )

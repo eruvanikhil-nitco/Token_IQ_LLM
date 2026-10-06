@@ -2,7 +2,7 @@
 Tests for Pinstripes provider configuration and integration.
 """
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 
 class TestPinstripeProviderConfig:
@@ -14,7 +14,7 @@ class TestPinstripeProviderConfig:
 
         assert hasattr(LlmProviders, "PINSTRIPES")
         assert LlmProviders.PINSTRIPES.value == "pinstripes"
-        assert "pinstripes" in litellm.provider_list
+        assert "pinstripes" in gateway.provider_list
 
     def test_pinstripes_json_config_exists(self):
         """Test that pinstripes is configured in providers.json"""

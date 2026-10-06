@@ -9,7 +9,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy._types import LitellmTableNames, LitellmUserRoles
 from token_iq.gateway.proxy.auth.user_api_key_auth import UserAPIKeyAuth
 from token_iq.gateway.proxy.management_endpoints.cache_settings_endpoints import (
@@ -732,7 +732,7 @@ async def test_test_cache_connection_survives_saved_lookup_failure(monkeypatch):
     back to the submitted settings rather than abort — otherwise a shared client
     left in an odd state by another test would break every connection test.
     """
-    monkeypatch.setattr(litellm, "store_audit_logs", False)
+    monkeypatch.setattr(gateway, "store_audit_logs", False)
 
     # a client whose find_unique is not awaitable, so the saved read raises
     bad_prisma = MagicMock()

@@ -13,7 +13,7 @@ import pytest
 from fastapi import Request
 from starlette.datastructures import URL, Headers, QueryParams
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy._types import LiteLLMRoutes
 from token_iq.gateway.proxy.auth.auth_utils import get_request_route
 from token_iq.gateway.proxy.auth.route_checks import RouteChecks

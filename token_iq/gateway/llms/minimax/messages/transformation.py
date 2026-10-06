@@ -4,7 +4,7 @@ MiniMax Anthropic transformation config - extends AnthropicConfig for MiniMax's 
 
 from typing import Any, Final  # noqa: TID251  # override below must mirror the legacy base signature
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.transformation import (
     AnthropicMessagesConfig,
 )
@@ -36,7 +36,7 @@ class MinimaxMessagesConfig(AnthropicMessagesConfig):
         """
         Get MiniMax API key from environment or parameters.
         """
-        return api_key or get_secret_str("MINIMAX_API_KEY") or litellm.api_key
+        return api_key or get_secret_str("MINIMAX_API_KEY") or gateway.api_key
 
     @staticmethod
     def get_api_base(

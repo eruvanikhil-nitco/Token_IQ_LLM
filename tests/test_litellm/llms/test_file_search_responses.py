@@ -224,7 +224,7 @@ class TestFileSearchGuardInResponsesMain:
 
         with (
             patch(
-                "token_iq.gateway.responses.main.litellm.get_llm_provider",
+                "token_iq.gateway.responses.main.gateway.get_llm_provider",
                 return_value=("claude-sonnet-4-5", "anthropic", None, None),
             ),
             patch(
@@ -275,7 +275,7 @@ class TestFileSearchGuardInResponsesMain:
 
         with (
             patch(
-                "token_iq.gateway.responses.main.litellm.get_llm_provider",
+                "token_iq.gateway.responses.main.gateway.get_llm_provider",
                 return_value=("claude-sonnet-4-5", "anthropic", None, None),
             ),
             patch(

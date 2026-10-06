@@ -7,7 +7,7 @@ from token_iq.gateway._uuid import uuid
 import time
 import base64
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from abc import ABC, abstractmethod
 from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.types.utils import StandardLoggingPayload
@@ -31,20 +31,20 @@ class BaseVectorStoreTest(ABC):
     @pytest.mark.parametrize("sync_mode", [True, False])
     @pytest.mark.asyncio
     async def test_basic_search_vector_store(self, sync_mode):
-        litellm._turn_on_debug()
-        litellm.set_verbose = True
+        gateway._turn_on_debug()
+        gateway.set_verbose = True
         base_request_args = self.get_base_request_args()
         default_query = base_request_args.pop("query", "Basic ping")
         try:
             if sync_mode:
-                response = litellm.vector_stores.search(
+                response = gateway.vector_stores.search(
                     query=default_query, **base_request_args
                 )
             else:
-                response = await litellm.vector_stores.asearch(
+                response = await gateway.vector_stores.asearch(
                     query=default_query, **base_request_args
                 )
-        except litellm.InternalServerError:
+        except gateway.InternalServerError:
             pytest.skip("Skipping test due to litellm.InternalServerError")
 
         print("litellm response=", json.dumps(response, indent=4, default=str))
@@ -55,22 +55,22 @@ class BaseVectorStoreTest(ABC):
     @pytest.mark.parametrize("sync_mode", [True, False])
     @pytest.mark.asyncio
     async def test_basic_create_vector_store(self, sync_mode):
-        litellm._turn_on_debug()
-        litellm.set_verbose = True
+        gateway._turn_on_debug()
+        gateway.set_verbose = True
         base_request_args = self.get_base_create_vector_store_args()
 
         # Extract custom_llm_provider from base args if present
         create_args = base_request_args
         try:
             if sync_mode:
-                response = litellm.vector_stores.create(
+                response = gateway.vector_stores.create(
                     name="Test Vector Store", **create_args
                 )
             else:
-                response = await litellm.vector_stores.acreate(
+                response = await gateway.vector_stores.acreate(
                     name="Test Vector Store", **create_args
                 )
-        except litellm.InternalServerError:
+        except gateway.InternalServerError:
             pytest.skip("Skipping test due to litellm.InternalServerError")
         except Exception as e:
             # If this is an authentication or permission error, skip the test

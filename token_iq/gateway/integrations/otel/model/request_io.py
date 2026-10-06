@@ -4,7 +4,7 @@ from typing import Final, Literal
 from pydantic import BaseModel, ConfigDict, Field, TypeAdapter, ValidationError
 from typing_extensions import ReadOnly, TypedDict
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.integrations.otel.mappers.utils import json_or_none
 from token_iq.gateway.proxy.guardrails.anthropic_sse import assemble_anthropic_sse_stream, is_raw_sse_stream
 from token_iq.gateway.types.llms.openai import ResponseCompletedEvent, ResponsesAPIResponse
@@ -78,11 +78,11 @@ def stream_output(chunks: Sequence[object], data: Mapping[str, object]) -> str |
 
 def _assembled_chat_stream(chunks: Sequence[object], data: Mapping[str, object]) -> object:
     try:
-        return litellm.stream_chunk_builder(  # pyright: ignore[reportUnknownMemberType]  # upstream types chunks as a bare list
+        return gateway.stream_chunk_builder(  # pyright: ignore[reportUnknownMemberType]  # upstream types chunks as a bare list
             chunks=list(chunks),  # mutable-ok: stream_chunk_builder takes a list
             messages=_MESSAGES.validate_python(data.get("messages")),
         )
-    except (litellm.APIError, ValidationError):
+    except (gateway.APIError, ValidationError):
         return None
 
 

@@ -1611,12 +1611,12 @@ def _make_context_window_raising_router(state):
     Mock litellm Router whose embedding call raises ContextWindowExceededError
     once state["raise_context_error"] is flipped to True.
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.types.utils import Embedding, EmbeddingResponse
 
     def mock_embedding_sync(*args, **kwargs):
         if state["raise_context_error"]:
-            raise litellm.ContextWindowExceededError(
+            raise gateway.ContextWindowExceededError(
                 message="Invalid 'input[0]': maximum input length is 8192 tokens.",
                 model="text-embedding-3-small",
                 llm_provider="openai",
@@ -1882,12 +1882,12 @@ def test_is_context_window_error_detection_variants():
     and a bare error whose message carries a known overflow phrase; a
     generic error must not match.
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.proxy._experimental.mcp_server.semantic_tool_filter import (
         _is_context_window_error,
     )
 
-    cwe = litellm.ContextWindowExceededError(
+    cwe = gateway.ContextWindowExceededError(
         message="Invalid 'input[0]': maximum input length is 8192 tokens.",
         model="text-embedding-3-small",
         llm_provider="openai",
@@ -1900,10 +1900,10 @@ def test_is_context_window_error_detection_variants():
 
     def wrap_without_explicit_chaining():
         try:
-            raise litellm.ContextWindowExceededError(
+            raise gateway.ContextWindowExceededError(
                 message="overflow", model="m", llm_provider="openai"
             )
-        except litellm.ContextWindowExceededError:
+        except gateway.ContextWindowExceededError:
             raise ValueError("wrapper without explicit chaining")
 
     with pytest.raises(ValueError, match="wrapper without explicit chaining") as implicitly_chained:
@@ -1919,13 +1919,13 @@ def test_is_context_window_error_sees_through_trees_the_chain_walk_missed():
     """Overflow shapes the old single-path depth-5 chain walk could not reach: hidden in
     ``__context__`` behind a non-matching ``__cause__``, buried inside an anyio-style
     ``ExceptionGroup``, and chained deeper than five links."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.proxy._experimental.mcp_server.semantic_tool_filter import (
         _is_context_window_error,
     )
 
-    def _cwe() -> litellm.ContextWindowExceededError:
-        return litellm.ContextWindowExceededError(message="overflow", model="m", llm_provider="openai")
+    def _cwe() -> gateway.ContextWindowExceededError:
+        return gateway.ContextWindowExceededError(message="overflow", model="m", llm_provider="openai")
 
     shadowed = ValueError("wrapper")
     shadowed.__cause__ = TypeError("unrelated failure")

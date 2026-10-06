@@ -6,7 +6,7 @@ from copy import deepcopy
 from unittest.mock import AsyncMock, MagicMock, patch
 from urllib.parse import unquote
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 import pytest
 
 from token_iq.gateway.integrations.sqs import SQSLogger
@@ -31,9 +31,9 @@ async def test_async_sqs_logger_flush():
     mock_response.raise_for_status = MagicMock()
     sqs_logger.async_httpx_client.post = AsyncMock(return_value=mock_response)
 
-    litellm.callbacks = [sqs_logger]
+    gateway.callbacks = [sqs_logger]
 
-    await litellm.acompletion(
+    await gateway.acompletion(
         model="gpt-5.5",
         messages=[{"role": "user", "content": "hello"}],
         mock_response="hi",
@@ -96,9 +96,9 @@ async def test_async_sqs_logger_error_flush():
     mock_response.raise_for_status = Exception("Something went wrong")
     sqs_logger.async_httpx_client.post = AsyncMock(return_value=mock_response)
 
-    litellm.callbacks = [sqs_logger]
+    gateway.callbacks = [sqs_logger]
 
-    await litellm.acompletion(
+    await gateway.acompletion(
         model="gpt-5.5",
         messages=[{"role": "user", "content": "hello"}],
         mock_response="Error occurred",

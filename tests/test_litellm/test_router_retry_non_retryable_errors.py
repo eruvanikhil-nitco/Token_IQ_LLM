@@ -14,13 +14,13 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import Router
 
 
 def _make_rate_limit_error(message="Rate limited"):
     """Create a RateLimitError for testing."""
-    return litellm.RateLimitError(
+    return gateway.RateLimitError(
         message=message,
         llm_provider="bedrock",
         model="anthropic.claude-v2",
@@ -29,7 +29,7 @@ def _make_rate_limit_error(message="Rate limited"):
 
 def _make_context_window_error(message="prompt is too long: 1205821 tokens > 200000"):
     """Create a ContextWindowExceededError for testing."""
-    return litellm.ContextWindowExceededError(
+    return gateway.ContextWindowExceededError(
         message=message,
         llm_provider="vertex_ai",
         model="claude-3-opus",
@@ -38,7 +38,7 @@ def _make_context_window_error(message="prompt is too long: 1205821 tokens > 200
 
 def _make_bad_request_error(message="Invalid request"):
     """Create a BadRequestError for testing."""
-    return litellm.BadRequestError(
+    return gateway.BadRequestError(
         message=message,
         llm_provider="openai",
         model="gpt-4",
@@ -47,7 +47,7 @@ def _make_bad_request_error(message="Invalid request"):
 
 def _make_not_found_error(message="Model not found"):
     """Create a NotFoundError for testing."""
-    return litellm.NotFoundError(
+    return gateway.NotFoundError(
         message=message,
         llm_provider="openai",
         model="gpt-99",
@@ -122,7 +122,7 @@ async def test_non_retryable_error_in_retry_loop_raises_immediately():
         patch.object(router, "_time_to_sleep_before_retry", return_value=0),
         patch.object(router, "log_retry", side_effect=lambda kwargs, e: kwargs),
     ):
-        with pytest.raises(litellm.ContextWindowExceededError):
+        with pytest.raises(gateway.ContextWindowExceededError):
             await router.async_function_with_retries(
                 num_retries=2,
                 **_base_kwargs(),
@@ -160,7 +160,7 @@ async def test_bad_request_error_in_retry_loop_raises_immediately():
         patch.object(router, "_time_to_sleep_before_retry", return_value=0),
         patch.object(router, "log_retry", side_effect=lambda kwargs, e: kwargs),
     ):
-        with pytest.raises(litellm.BadRequestError):
+        with pytest.raises(gateway.BadRequestError):
             await router.async_function_with_retries(
                 num_retries=2,
                 **_base_kwargs(),
@@ -192,7 +192,7 @@ async def test_original_exception_updated_to_latest_error():
         patch.object(router, "_time_to_sleep_before_retry", return_value=0),
         patch.object(router, "log_retry", side_effect=lambda kwargs, e: kwargs),
     ):
-        with pytest.raises(litellm.RateLimitError) as exc_info:
+        with pytest.raises(gateway.RateLimitError) as exc_info:
             await router.async_function_with_retries(
                 num_retries=2,
                 **_base_kwargs(),
@@ -226,7 +226,7 @@ async def test_retryable_errors_still_retry_normally():
         patch.object(router, "_time_to_sleep_before_retry", return_value=0),
         patch.object(router, "log_retry", side_effect=lambda kwargs, e: kwargs),
     ):
-        with pytest.raises(litellm.RateLimitError):
+        with pytest.raises(gateway.RateLimitError):
             await router.async_function_with_retries(
                 num_retries=3,
                 **_base_kwargs(),
@@ -266,7 +266,7 @@ async def test_not_found_error_in_retry_loop_raises_immediately():
         patch.object(router, "_time_to_sleep_before_retry", return_value=0),
         patch.object(router, "log_retry", side_effect=lambda kwargs, e: kwargs),
     ):
-        with pytest.raises(litellm.NotFoundError):
+        with pytest.raises(gateway.NotFoundError):
             await router.async_function_with_retries(
                 num_retries=2,
                 **_base_kwargs(),

@@ -5,7 +5,7 @@ Test OCR functionality with Mistral API.
 import os
 import sys
 import pytest
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import Router
 from base_ocr_unit_tests import BaseOCRTest, TEST_PDF_URL
 
@@ -28,7 +28,7 @@ async def test_router_aocr_with_mistral():
     """
     Test OCR with Router using Mistral OCR deployment.
     """
-    litellm.set_verbose = True
+    gateway.set_verbose = True
 
     # Create router with Mistral OCR deployment
     router = Router(

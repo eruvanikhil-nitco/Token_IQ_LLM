@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Any, Final, cast, get_args
 import httpx
 from pydantic import TypeAdapter, ValidationError
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.core_utils.core_helpers import map_finish_reason
 from token_iq.gateway.core_utils.logging_utils import track_llm_api_timing
@@ -199,7 +199,7 @@ class AmazonInvokeConfig(BaseConfig, BaseAWSLLM):
         if provider == "cohere":
             if model.startswith("cohere.command-r"):
                 ## LOAD CONFIG
-                config = litellm.AmazonCohereChatConfig().get_config()
+                config = gateway.AmazonCohereChatConfig().get_config()
                 self._apply_config_to_params(config, inference_params)
                 _data: Final = {"message": prompt, **inference_params}
                 if chat_history is not None:
@@ -207,13 +207,13 @@ class AmazonInvokeConfig(BaseConfig, BaseAWSLLM):
                 request_data = _data
             else:
                 ## LOAD CONFIG
-                config = litellm.AmazonCohereConfig.get_config()
+                config = gateway.AmazonCohereConfig.get_config()
                 self._apply_config_to_params(config, inference_params)
                 if stream is True:
                     inference_params["stream"] = True  # cohere requires stream = True in inference params
                 request_data = {"prompt": prompt, **inference_params}
         elif provider == "anthropic":
-            transformed_request: Final = litellm.AmazonAnthropicClaudeConfig().transform_request(
+            transformed_request: Final = gateway.AmazonAnthropicClaudeConfig().transform_request(
                 model=model,
                 messages=messages,
                 optional_params=optional_params,
@@ -223,7 +223,7 @@ class AmazonInvokeConfig(BaseConfig, BaseAWSLLM):
 
             return transformed_request
         elif provider == "nova":
-            return litellm.AmazonInvokeNovaConfig().transform_request(
+            return gateway.AmazonInvokeNovaConfig().transform_request(
                 model=model,
                 messages=messages,
                 optional_params=optional_params,
@@ -232,17 +232,17 @@ class AmazonInvokeConfig(BaseConfig, BaseAWSLLM):
             )
         elif provider == "ai21":
             ## LOAD CONFIG
-            config = litellm.AmazonAI21Config.get_config()
+            config = gateway.AmazonAI21Config.get_config()
             self._apply_config_to_params(config, inference_params)
             request_data = {"prompt": prompt, **inference_params}
         elif provider == "mistral":
             ## LOAD CONFIG
-            config = litellm.AmazonMistralConfig.get_config()
+            config = gateway.AmazonMistralConfig.get_config()
             self._apply_config_to_params(config, inference_params)
             request_data = {"prompt": prompt, **inference_params}
         elif provider == "amazon":  # amazon titan
             ## LOAD CONFIG
-            config = litellm.AmazonTitanConfig.get_config()
+            config = gateway.AmazonTitanConfig.get_config()
             self._apply_config_to_params(config, inference_params)
             request_data = {
                 "inputText": prompt,
@@ -250,11 +250,11 @@ class AmazonInvokeConfig(BaseConfig, BaseAWSLLM):
             }
         elif provider == "meta" or provider == "llama" or provider == "deepseek_r1":
             ## LOAD CONFIG
-            config = litellm.AmazonLlamaConfig.get_config()
+            config = gateway.AmazonLlamaConfig.get_config()
             self._apply_config_to_params(config, inference_params)
             request_data = {"prompt": prompt, **inference_params}
         elif provider == "twelvelabs":
-            return litellm.AmazonTwelveLabsPegasusConfig().transform_request(
+            return gateway.AmazonTwelveLabsPegasusConfig().transform_request(
                 model=model,
                 messages=messages,
                 optional_params=optional_params,
@@ -263,7 +263,7 @@ class AmazonInvokeConfig(BaseConfig, BaseAWSLLM):
             )
         elif provider == "openai":
             # OpenAI imported models use OpenAI Chat Completions format
-            return litellm.AmazonBedrockOpenAIConfig().transform_request(
+            return gateway.AmazonBedrockOpenAIConfig().transform_request(
                 model=model,
                 messages=messages,
                 optional_params=optional_params,
@@ -312,7 +312,7 @@ class AmazonInvokeConfig(BaseConfig, BaseAWSLLM):
                         completion_response["generations"][0]["finish_reason"]
                     )
             elif provider == "anthropic":
-                return litellm.AmazonAnthropicClaudeConfig().transform_response(
+                return gateway.AmazonAnthropicClaudeConfig().transform_response(
                     model=model,
                     raw_response=raw_response,
                     model_response=model_response,
@@ -326,7 +326,7 @@ class AmazonInvokeConfig(BaseConfig, BaseAWSLLM):
                     json_mode=json_mode,
                 )
             elif provider == "nova":
-                return litellm.AmazonInvokeNovaConfig().transform_response(
+                return gateway.AmazonInvokeNovaConfig().transform_response(
                     model=model,
                     raw_response=raw_response,
                     model_response=model_response,
@@ -338,7 +338,7 @@ class AmazonInvokeConfig(BaseConfig, BaseAWSLLM):
                     encoding=encoding,
                 )
             elif provider == "twelvelabs":
-                return litellm.AmazonTwelveLabsPegasusConfig().transform_response(
+                return gateway.AmazonTwelveLabsPegasusConfig().transform_response(
                     model=model,
                     raw_response=raw_response,
                     model_response=model_response,
@@ -356,7 +356,7 @@ class AmazonInvokeConfig(BaseConfig, BaseAWSLLM):
             elif provider == "meta" or provider == "llama" or provider == "deepseek_r1":
                 outputText = completion_response["generation"]
             elif provider == "mistral":
-                outputText = litellm.AmazonMistralConfig.get_outputText(completion_response, model_response)
+                outputText = gateway.AmazonMistralConfig.get_outputText(completion_response, model_response)
             else:  # amazon titan
                 outputText = completion_response.get("results")[0].get("outputText")
         except Exception as e:
@@ -390,11 +390,11 @@ class AmazonInvokeConfig(BaseConfig, BaseAWSLLM):
         bedrock_input_tokens: Final = raw_response.headers.get("x-amzn-bedrock-input-token-count", None)
         bedrock_output_tokens: Final = raw_response.headers.get("x-amzn-bedrock-output-token-count", None)
 
-        prompt_tokens: Final = int(bedrock_input_tokens or litellm.token_counter(messages=messages))
+        prompt_tokens: Final = int(bedrock_input_tokens or gateway.token_counter(messages=messages))
 
         completion_tokens: Final = int(
             bedrock_output_tokens
-            or litellm.token_counter(
+            or gateway.token_counter(
                 text=model_response.choices[0].message.content,
                 count_response_tokens=True,
             )
@@ -521,7 +521,7 @@ class AmazonInvokeConfig(BaseConfig, BaseAWSLLM):
     @staticmethod
     def get_bedrock_invoke_provider(
         model: str,
-    ) -> litellm.BEDROCK_INVOKE_PROVIDERS_LITERAL | None:
+    ) -> gateway.BEDROCK_INVOKE_PROVIDERS_LITERAL | None:
         """
         Helper function to get the bedrock provider from the model
 
@@ -537,19 +537,19 @@ class AmazonInvokeConfig(BaseConfig, BaseAWSLLM):
         # Special case: Check for "nova" in model name first (before "amazon")
         # This handles amazon.nova-* models which would otherwise match "amazon" (Titan)
         if "nova" in model.lower():
-            if "nova" in get_args(litellm.BEDROCK_INVOKE_PROVIDERS_LITERAL):
-                return cast(litellm.BEDROCK_INVOKE_PROVIDERS_LITERAL, "nova")
+            if "nova" in get_args(gateway.BEDROCK_INVOKE_PROVIDERS_LITERAL):
+                return cast(gateway.BEDROCK_INVOKE_PROVIDERS_LITERAL, "nova")
 
         _split_model: Final = model.split(".")[0]
-        if _split_model in get_args(litellm.BEDROCK_INVOKE_PROVIDERS_LITERAL):
-            return cast(litellm.BEDROCK_INVOKE_PROVIDERS_LITERAL, _split_model)
+        if _split_model in get_args(gateway.BEDROCK_INVOKE_PROVIDERS_LITERAL):
+            return cast(gateway.BEDROCK_INVOKE_PROVIDERS_LITERAL, _split_model)
 
         # If not a known provider, check for pattern with two slashes
         provider = AmazonInvokeConfig._get_provider_from_model_path(model)
         if provider is not None:
             return provider
 
-        for provider in get_args(litellm.BEDROCK_INVOKE_PROVIDERS_LITERAL):
+        for provider in get_args(gateway.BEDROCK_INVOKE_PROVIDERS_LITERAL):
             if provider in model:
                 return provider
         return None
@@ -557,7 +557,7 @@ class AmazonInvokeConfig(BaseConfig, BaseAWSLLM):
     @staticmethod
     def _get_provider_from_model_path(
         model_path: str,
-    ) -> litellm.BEDROCK_INVOKE_PROVIDERS_LITERAL | None:
+    ) -> gateway.BEDROCK_INVOKE_PROVIDERS_LITERAL | None:
         """
         Helper function to get the provider from a model path with format: provider/model-name
 
@@ -570,8 +570,8 @@ class AmazonInvokeConfig(BaseConfig, BaseAWSLLM):
         parts: Final = model_path.split("/")
         if len(parts) >= 1:
             provider: Final = parts[0]
-            if provider in get_args(litellm.BEDROCK_INVOKE_PROVIDERS_LITERAL):
-                return cast(litellm.BEDROCK_INVOKE_PROVIDERS_LITERAL, provider)
+            if provider in get_args(gateway.BEDROCK_INVOKE_PROVIDERS_LITERAL):
+                return cast(gateway.BEDROCK_INVOKE_PROVIDERS_LITERAL, provider)
         return None
 
     def convert_messages_to_prompt(self, model, messages, provider, custom_prompt_dict) -> tuple[str, list | None]:

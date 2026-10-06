@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING, Any, Final, Literal, Protocol, TypeAlias, Type
 
 from pydantic import ValidationError
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.llms.base_llm.sandbox.transformation import (
@@ -392,7 +392,7 @@ class CodeInterpreterInterceptionLogger(CustomLogger):
         if not isinstance(model, str):
             return None
         try:
-            return litellm.get_llm_provider(model=model)[1]
+            return gateway.get_llm_provider(model=model)[1]
         except Exception:
             return None
 
@@ -742,7 +742,7 @@ class CodeInterpreterInterceptionLogger(CustomLogger):
                 "sandbox_config or configure a sandbox tool resolvable via "
                 "sandbox_tool_name."
             )
-        container: Final = await litellm.acreate_sandbox(
+        container: Final = await gateway.acreate_sandbox(
             provider=params["sandbox_provider"],
             api_key=params.get("api_key"),
             api_base=params.get("api_base"),
@@ -756,7 +756,7 @@ class CodeInterpreterInterceptionLogger(CustomLogger):
             return await self.sandbox_config.arun_code(container=container, code=code)
         if params is None:
             raise ValueError("CodeInterpreterInterception: no sandbox available to run code.")
-        return await litellm.arun_code(
+        return await gateway.arun_code(
             provider=params["sandbox_provider"],
             container=container,
             code=code,
@@ -770,7 +770,7 @@ class CodeInterpreterInterceptionLogger(CustomLogger):
                 return
             if params is None:
                 return
-            await litellm.adelete_sandbox(
+            await gateway.adelete_sandbox(
                 provider=params["sandbox_provider"],
                 container=container,
                 api_key=params.get("api_key"),

@@ -6,7 +6,7 @@ import httpx
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.containers.main import (
     acreate_container,
     adelete_container,
@@ -35,7 +35,7 @@ def clear_client_cache():
     Clear the HTTP client cache before each test to ensure mocks are used.
     This prevents cached real clients from being reused across tests.
     """
-    cache = getattr(litellm, "in_memory_llm_clients_cache", None)
+    cache = getattr(gateway, "in_memory_llm_clients_cache", None)
     if cache is not None:
         cache.flush_cache()
     yield
@@ -415,7 +415,7 @@ class TestContainerAPI:
             "container_create_handler",
             side_effect=Exception("API Error"),
         ):
-            with pytest.raises(litellm.APIConnectionError):
+            with pytest.raises(gateway.APIConnectionError):
                 create_container(
                     name="Error Test Container", custom_llm_provider="openai"
                 )

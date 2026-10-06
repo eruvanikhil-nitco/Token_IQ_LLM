@@ -519,10 +519,10 @@ def test_set_user_budget_metrics_default_no_email_alias_labels(
     prometheus_logger,
 ):
     """By default (flag off), only user label is emitted."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.proxy._types import LiteLLM_UserTable
 
-    litellm.prometheus_user_budget_label_include_email_alias = False
+    gateway.prometheus_user_budget_label_include_email_alias = False
 
     user = LiteLLM_UserTable(
         user_id="user-abc-123",
@@ -551,10 +551,10 @@ def test_set_user_budget_metrics_includes_user_email_and_alias_labels_when_opted
     so it must be enabled before the PrometheusLogger is built (mirroring how the
     proxy applies config at startup before instantiating callbacks).
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.proxy._types import LiteLLM_UserTable
 
-    litellm.prometheus_user_budget_label_include_email_alias = True
+    gateway.prometheus_user_budget_label_include_email_alias = True
 
     try:
         prometheus_logger = PrometheusLogger()
@@ -593,7 +593,7 @@ def test_set_user_budget_metrics_includes_user_email_and_alias_labels_when_opted
             user_alias="Alice",
         )
     finally:
-        litellm.prometheus_user_budget_label_include_email_alias = False
+        gateway.prometheus_user_budget_label_include_email_alias = False
 
 
 async def test_set_user_budget_metrics_after_api_request_no_inf_when_metadata_budget_none(
@@ -672,7 +672,7 @@ async def test_set_user_budget_metrics_after_api_request_inf_when_genuinely_no_b
 
 def test_per_request_metrics_emit_all_identity_labels(prometheus_logger):
     """Verify org labels appear when flag is on and are absent when flag is off."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.types.integrations.prometheus import UserAPIKeyLabelValues
 
     prometheus_logger.litellm_requests_metric = MagicMock()
@@ -724,11 +724,11 @@ def test_per_request_metrics_emit_all_identity_labels(prometheus_logger):
             assert "org_alias" not in labels, f"{metric} should not have org_alias"
 
         # org_id in custom_prometheus_metadata_labels must not produce duplicate labels
-        litellm.custom_prometheus_metadata_labels = ["org_id"]
+        gateway.custom_prometheus_metadata_labels = ["org_id"]
         labels = PrometheusMetricLabels.get_labels("litellm_requests_metric")
         assert labels.count("org_id") == 1
     finally:
-        litellm.custom_prometheus_metadata_labels = []
+        gateway.custom_prometheus_metadata_labels = []
 
 
 # ---------------------------------------------------------------------------
@@ -938,11 +938,11 @@ def test_default_latency_buckets(prometheus_logger):
 
 def test_custom_latency_buckets():
     """prometheus_latency_buckets in litellm settings overrides the defaults."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from prometheus_client import REGISTRY
 
     custom_buckets = [0.1, 0.5, 1.0, 5.0, 10.0]
-    original = litellm.prometheus_latency_buckets
+    original = gateway.prometheus_latency_buckets
     # Clear registry before creating a new PrometheusLogger
     for collector in list(REGISTRY._collector_to_names.keys()):
         try:
@@ -950,11 +950,11 @@ def test_custom_latency_buckets():
         except Exception:
             pass
     try:
-        litellm.prometheus_latency_buckets = custom_buckets
+        gateway.prometheus_latency_buckets = custom_buckets
         logger = PrometheusLogger()
         assert logger.latency_buckets == tuple(custom_buckets)
     finally:
-        litellm.prometheus_latency_buckets = original
+        gateway.prometheus_latency_buckets = original
         for collector in list(REGISTRY._collector_to_names.keys()):
             try:
                 REGISTRY.unregister(collector)

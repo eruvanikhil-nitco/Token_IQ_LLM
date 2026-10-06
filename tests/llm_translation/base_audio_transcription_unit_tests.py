@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, Mock, patch
 import os
 from token_iq.gateway._uuid import uuid
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import transcription
 from token_iq.gateway.core_utils.get_supported_openai_params import (
     get_supported_openai_params,
@@ -32,7 +32,7 @@ class BaseLLMAudioTranscriptionTest(ABC):
         pass
 
     @abstractmethod
-    def get_custom_llm_provider(self) -> litellm.LlmProviders:
+    def get_custom_llm_provider(self) -> gateway.LlmProviders:
         """Must return the custom llm provider"""
         pass
 
@@ -40,7 +40,7 @@ class BaseLLMAudioTranscriptionTest(ABC):
         """
         Test that the audio transcription is translated correctly.
         """
-        litellm.set_verbose = True
+        gateway.set_verbose = True
         transcription_call_args = self.get_base_audio_transcription_call_args()
         transcript = transcription(**transcription_call_args, file=audio_file)
         print(f"transcript: {transcript.model_dump()}")
@@ -54,11 +54,11 @@ class BaseLLMAudioTranscriptionTest(ABC):
         Test that the audio transcription is translated correctly.
         """
 
-        litellm.set_verbose = True
-        litellm._turn_on_debug()
+        gateway.set_verbose = True
+        gateway._turn_on_debug()
         AUDIO_FILE = open(file_path, "rb")
         transcription_call_args = self.get_base_audio_transcription_call_args()
-        transcript = await litellm.atranscription(
+        transcript = await gateway.atranscription(
             **transcription_call_args, file=AUDIO_FILE
         )
         print(f"transcript: {transcript.model_dump()}")

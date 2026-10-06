@@ -27,7 +27,7 @@ from urllib.parse import quote, urlparse, urlunparse
 import httpx
 from typing_extensions import ReadOnly, TypedDict
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 _SockAddr = tuple[str, int] | tuple[str, int, int, int] | tuple[int, bytes]
 
@@ -269,7 +269,7 @@ def _is_host_allowlisted(hostname: str, effective_port: int) -> bool:
     literals are written bracketed (``[::1]`` / ``[::1]:8080``). Matching
     is case-insensitive on the hostname.
     """
-    configured: Final[list[str]] = getattr(litellm, "user_url_allowed_hosts", []) or []
+    configured: Final[list[str]] = getattr(gateway, "user_url_allowed_hosts", []) or []
     if not configured:
         return False
     normalized_host: Final = _normalize_host(hostname)
@@ -343,7 +343,7 @@ def validate_url(url: str) -> tuple[str, str]:
     # to a different server because the cert wouldn't match.
     # When SSL verification is disabled, this defense doesn't apply, so
     # we rewrite to the validated IP like HTTP.
-    ssl_verify: Final = getattr(litellm, "ssl_verify", True)
+    ssl_verify: Final = getattr(gateway, "ssl_verify", True)
     if parsed.scheme == "https" and ssl_verify is not False:
         return url, host_header
 
@@ -436,7 +436,7 @@ def safe_get(client: Any, url: str, **kwargs: Any) -> httpx.Response:
     Returns:
         The final httpx.Response.
     """
-    if not getattr(litellm, "user_url_validation", True):
+    if not getattr(gateway, "user_url_validation", True):
         kwargs.setdefault("follow_redirects", True)
         unvalidated: Final[_ResponseView] = {"response": client.get(url, **kwargs)}
         return unvalidated["response"]
@@ -462,7 +462,7 @@ def safe_get(client: Any, url: str, **kwargs: Any) -> httpx.Response:
 
 async def async_safe_get(client: Any, url: str, **kwargs: Any) -> httpx.Response:
     """Async version of safe_get."""
-    if not getattr(litellm, "user_url_validation", True):
+    if not getattr(gateway, "user_url_validation", True):
         kwargs.setdefault("follow_redirects", True)
         unvalidated: Final[_ResponseView] = {"response": await client.get(url, **kwargs)}
         return unvalidated["response"]

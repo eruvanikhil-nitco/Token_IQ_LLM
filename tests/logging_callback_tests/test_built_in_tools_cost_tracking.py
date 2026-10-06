@@ -12,7 +12,7 @@ import json
 
 # this file is to test token_iq/gateway/proxy
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 import asyncio
 from typing import Optional
 from token_iq.gateway.types.utils import StandardLoggingPayload, Usage, ModelInfoBase
@@ -45,9 +45,9 @@ class TestCustomLogger(CustomLogger):
 
 async def _setup_web_search_test():
     """Helper function to setup common test requirements"""
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
     test_custom_logger = TestCustomLogger()
-    litellm.callbacks = [test_custom_logger]
+    gateway.callbacks = [test_custom_logger]
     return test_custom_logger
 
 
@@ -109,7 +109,7 @@ async def test_openai_web_search_logging_cost_tracking(
     if web_search_options is not None:
         request_kwargs["web_search_options"] = web_search_options
 
-    response = await litellm.acompletion(**request_kwargs)
+    response = await gateway.acompletion(**request_kwargs)
 
     await _verify_web_search_cost(test_custom_logger, expected_context_size)
 
@@ -138,7 +138,7 @@ async def test_openai_responses_api_web_search_cost_tracking(
     """Test web search cost tracking with different search context sizes and streaming options"""
     test_custom_logger = await _setup_web_search_test()
 
-    response = await litellm.aresponses(
+    response = await gateway.aresponses(
         model="openai/gpt-4o",
         input=[
             {"role": "user", "content": "What was a positive news story from today?"}

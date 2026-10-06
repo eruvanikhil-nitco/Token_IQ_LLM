@@ -9,7 +9,7 @@ if TYPE_CHECKING:
 
 
 def initialize_guardrail(litellm_params: "LitellmParams", guardrail: "Guardrail"):
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     guardrail_name: Final = guardrail.get("guardrail_name")
     if not guardrail_name:
@@ -26,7 +26,7 @@ def initialize_guardrail(litellm_params: "LitellmParams", guardrail: "Guardrail"
         streaming_end_of_stream_only=streaming_params.streaming_end_of_stream_only,
         streaming_sampling_rate=streaming_params.streaming_sampling_rate,
     )
-    litellm.logging_callback_manager.add_litellm_callback(_crowdstrike_aidr_callback)
+    gateway.logging_callback_manager.add_litellm_callback(_crowdstrike_aidr_callback)
 
     return _crowdstrike_aidr_callback
 

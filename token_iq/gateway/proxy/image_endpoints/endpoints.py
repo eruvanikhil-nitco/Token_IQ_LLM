@@ -8,7 +8,7 @@ import orjson
 from fastapi import APIRouter, Depends, File, HTTPException, Request, Response, UploadFile, status
 from fastapi.responses import ORJSONResponse
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.core_utils.prompt_templates.common_utils import (
     get_str_from_messages,
@@ -110,8 +110,8 @@ async def image_generation(
         ### MODEL ALIAS MAPPING ###
         # check if model name in model alias map
         # get the actual model name
-        if data["model"] in litellm.model_alias_map:
-            data["model"] = litellm.model_alias_map[data["model"]]
+        if data["model"] in gateway.model_alias_map:
+            data["model"] = gateway.model_alias_map[data["model"]]
 
         ### CALL HOOKS ### - modify incoming data / reject request before calling the model
         prompt_value: Final = data.get("prompt")

@@ -12,13 +12,13 @@ from typing import TYPE_CHECKING, Any, Final, Literal
 from openai import APIError
 from pydantic import TypeAdapter
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 import token_iq.gateway.core_utils
-from token_iq import gateway as litellm
+from token_iq import gateway
 import token_iq.gateway.core_utils.litellm_logging
-from token_iq import gateway as litellm
+from token_iq import gateway
 import token_iq.gateway.types
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger, verbose_proxy_logger
 from token_iq.gateway.caching.caching import DualCache
 from token_iq.gateway.constants import (
@@ -210,7 +210,7 @@ class SlackAlerting(CustomBatchLogger):
             time_difference_float: Final = time_difference.total_seconds()
             litellm_params: Final = kwargs.get("litellm_params", {})
             model: Final = kwargs.get("model", "")
-            api_base: Final = litellm.get_api_base(model=model, optional_params=litellm_params)
+            api_base: Final = gateway.get_api_base(model=model, optional_params=litellm_params)
             messages = kwargs.get("messages", None)
             # if messages does not exist fallback to "input"
             if messages is None:
@@ -275,7 +275,7 @@ class SlackAlerting(CustomBatchLogger):
             start_time=start_time,
             end_time=end_time,
         )
-        if litellm.turn_off_message_logging or litellm.redact_messages_in_exceptions:
+        if gateway.turn_off_message_logging or gateway.redact_messages_in_exceptions:
             messages = "Message not logged. litellm.redact_messages_in_exceptions=True"
         request_info = f"\nRequest Model: `{model}`\nAPI Base: `{api_base}`\nMessages: `{messages}`"
         slow_message = f"`Responses are slow - {round(time_difference_float, 2)}s response time > Alerting threshold: {self.alerting_threshold}s`"
@@ -423,7 +423,7 @@ class SlackAlerting(CustomBatchLogger):
             else:
                 return False
 
-            api_base = litellm.get_api_base(
+            api_base = gateway.get_api_base(
                 model=deployment_name,
                 optional_params=(_deployment["litellm_params"] if _deployment is not None else {}),
             )
@@ -444,7 +444,7 @@ class SlackAlerting(CustomBatchLogger):
                 deployment_name = _deployment["litellm_params"].get("model", "")
             else:
                 deployment_name = ""
-            api_base = litellm.get_api_base(
+            api_base = gateway.get_api_base(
                 model=deployment_name,
                 optional_params=(_deployment["litellm_params"] if _deployment is not None else {}),
             )
@@ -794,12 +794,12 @@ class SlackAlerting(CustomBatchLogger):
         ### GET PROVIDER ###
         provider = deployment.litellm_params.custom_llm_provider
         if provider is None:
-            model, provider, _, _ = litellm.get_llm_provider(model=model)
+            model, provider, _, _ = gateway.get_llm_provider(model=model)
 
         ### GET REGION ###
         region_name = deployment.litellm_params.region_name
         if region_name is None:
-            region_name = litellm.utils._get_model_region(
+            region_name = gateway.utils._get_model_region(
                 custom_llm_provider=provider, litellm_params=deployment.litellm_params
             )
 
@@ -944,10 +944,10 @@ class SlackAlerting(CustomBatchLogger):
             provider = deployment.litellm_params.custom_llm_provider
             if provider is None:
                 try:
-                    model, provider, _, _ = litellm.get_llm_provider(model=model)
+                    model, provider, _, _ = gateway.get_llm_provider(model=model)
                 except Exception:
                     provider = ""
-            api_base: Final = litellm.get_api_base(model=model, optional_params=deployment.litellm_params)
+            api_base: Final = gateway.get_api_base(model=model, optional_params=deployment.litellm_params)
 
             if outage_value is None:
                 outage_value = OutageModel(
@@ -1029,10 +1029,10 @@ class SlackAlerting(CustomBatchLogger):
         model_info = {}
         base_model = ""
         if base_model_from_user is not None:
-            model_info = litellm.model_cost.get(base_model_from_user, {})
+            model_info = gateway.model_cost.get(base_model_from_user, {})
             base_model = f"Base Model: `{base_model_from_user}`\n"
         else:
-            model_info = litellm.model_cost.get(litellm_model_name, {})
+            model_info = gateway.model_cost.get(litellm_model_name, {})
         model_info_str = ""
         for k, v in model_info.items():
             if k == "input_cost_per_token" or k == "output_cost_per_token":
@@ -1681,7 +1681,7 @@ Model Info:
 
                 final_value = response_s
 
-                if isinstance(response_obj, litellm.ModelResponse) and (
+                if isinstance(response_obj, gateway.ModelResponse) and (
                     hasattr(response_obj, "usage")
                     and response_obj.usage is not None
                     and hasattr(response_obj.usage, "completion_tokens")
@@ -1697,7 +1697,7 @@ Model Info:
                         id=model_id,
                         failed_request=False,
                         latency_per_output_token=final_value,
-                        updated_at=litellm.utils.get_utc_datetime(),
+                        updated_at=gateway.utils.get_utc_datetime(),
                     )
                 )
         except Exception as e:
@@ -1718,7 +1718,7 @@ Model Info:
                             id=model_id,
                             failed_request=True,
                             latency_per_output_token=None,
-                            updated_at=litellm.utils.get_utc_datetime(),
+                            updated_at=gateway.utils.get_utc_datetime(),
                         )
                     )
                 except Exception as e:

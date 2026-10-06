@@ -9,7 +9,7 @@ from typing import (
 
 from fastapi import APIRouter, Depends, HTTPException
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.core_utils.sensitive_data_masker import SensitiveDataMasker
 from token_iq.gateway.proxy._types import CommonProxyErrors, LitellmUserRoles, UserAPIKeyAuth
@@ -57,7 +57,7 @@ def _get_registered_vantage_logger():
     """Return the VantageLogger already registered in litellm.callbacks, if any."""
     from token_iq.gateway.integrations.vantage.vantage_logger import VantageLogger
 
-    vantage_loggers: Final = litellm.logging_callback_manager.get_custom_loggers_for_type(callback_type=VantageLogger)
+    vantage_loggers: Final = gateway.logging_callback_manager.get_custom_loggers_for_type(callback_type=VantageLogger)
     if vantage_loggers:
         return vantage_loggers[0]
     return None
@@ -288,7 +288,7 @@ def is_vantage_setup_in_config() -> bool:
     """Check if Vantage is setup in config.yaml, environment variables, or programmatically."""
     from token_iq.gateway.integrations.vantage.vantage_logger import VantageLogger
 
-    for cb in litellm.callbacks:
+    for cb in gateway.callbacks:
         if cb == "vantage" or isinstance(cb, VantageLogger):
             return True
     return False
@@ -562,7 +562,7 @@ async def delete_vantage_settings(
         # Deregister in-memory VantageLogger so the scheduler stops firing
         from token_iq.gateway.integrations.vantage.vantage_logger import VantageLogger
 
-        litellm.logging_callback_manager.remove_callbacks_by_type(litellm.callbacks, VantageLogger)
+        gateway.logging_callback_manager.remove_callbacks_by_type(gateway.callbacks, VantageLogger)
 
         verbose_proxy_logger.info("Vantage settings deleted successfully")
 

@@ -15,27 +15,27 @@ import os
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 ROOT_MAP = os.path.join(
-    os.path.dirname(os.path.dirname(litellm.__file__)),
+    os.path.dirname(os.path.dirname(gateway.__file__)),
     "model_prices_and_context_window.json",
 )
 BACKUP_MAP = os.path.join(
-    os.path.dirname(litellm.__file__),
+    os.path.dirname(gateway.__file__),
     "model_prices_and_context_window_backup.json",
 )
 
 
 @pytest.fixture(autouse=True)
 def _use_local_model_cost_map(monkeypatch):
-    original_model_cost = litellm.model_cost
+    original_model_cost = gateway.model_cost
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    litellm.model_cost = litellm.get_model_cost_map()
+    gateway.model_cost = gateway.get_model_cost_map()
     try:
         yield
     finally:
-        litellm.model_cost = original_model_cost
+        gateway.model_cost = original_model_cost
 
 
 def _load(path: str) -> dict:
@@ -48,7 +48,7 @@ def _cloudflare_keys(data: dict) -> set:
 
 
 def test_glm_5_2_entry_is_present_and_well_formed():
-    entry = litellm.model_cost["cloudflare/@cf/zai-org/glm-5.2"]
+    entry = gateway.model_cost["cloudflare/@cf/zai-org/glm-5.2"]
     assert entry["litellm_provider"] == "cloudflare"
     assert entry["mode"] == "chat"
     assert entry["supports_function_calling"] is True
@@ -57,7 +57,7 @@ def test_glm_5_2_entry_is_present_and_well_formed():
 
 
 def test_vision_model_is_flagged_supports_vision():
-    entry = litellm.model_cost["cloudflare/@cf/meta/llama-3.2-11b-vision-instruct"]
+    entry = gateway.model_cost["cloudflare/@cf/meta/llama-3.2-11b-vision-instruct"]
     assert entry["litellm_provider"] == "cloudflare"
     assert entry.get("supports_vision") is True
 
@@ -67,7 +67,7 @@ def test_additional_current_models_are_present():
         "cloudflare/@cf/openai/gpt-oss-120b",
         "cloudflare/@cf/meta/llama-3.3-70b-instruct-fp8-fast",
     ):
-        entry = litellm.model_cost[key]
+        entry = gateway.model_cost[key]
         assert entry["litellm_provider"] == "cloudflare"
         assert entry["mode"] == "chat"
         assert entry["supports_function_calling"] is True
@@ -83,7 +83,7 @@ def test_additional_current_models_are_present():
     ],
 )
 def test_whisper_transcription_pricing_is_stored_per_second(key, published_price_per_audio_minute):
-    entry = litellm.model_cost[key]
+    entry = gateway.model_cost[key]
     assert entry["litellm_provider"] == "cloudflare"
     assert entry["mode"] == "audio_transcription"
     assert entry["supported_endpoints"] == ["/v1/audio/transcriptions"]

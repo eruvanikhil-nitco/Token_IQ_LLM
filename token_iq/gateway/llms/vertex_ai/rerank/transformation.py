@@ -9,7 +9,7 @@ from typing import Any, Final
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
 from token_iq.gateway.llms.base_llm.rerank.transformation import BaseRerankConfig
 from token_iq.gateway.llms.vertex_ai.common_utils import (
@@ -60,7 +60,7 @@ class VertexAIRerankConfig(BaseRerankConfig, VertexBase):
         )
 
         # Fallback to environment or litellm config
-        project_id: Final = vertex_project or get_secret_str("VERTEXAI_PROJECT") or litellm.vertex_project
+        project_id: Final = vertex_project or get_secret_str("VERTEXAI_PROJECT") or gateway.vertex_project
 
         if not project_id:
             raise ValueError(

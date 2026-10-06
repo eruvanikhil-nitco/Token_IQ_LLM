@@ -18,7 +18,7 @@ if TYPE_CHECKING:
     from prisma.models import LiteLLM_ManagedVectorStoresTable as _VectorStoreRow
 
     from token_iq.gateway.proxy.utils import PrismaClient
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.constants import REDACTED_BY_LITELM_STRING
 from token_iq.gateway.core_utils.safe_json_dumps import safe_dumps
@@ -231,8 +231,8 @@ async def create_vector_store_in_db(
     new_vector_store: Final[LiteLLM_ManagedVectorStore] = _row_to_vector_store(_new_vector_store)
 
     # Add vector store to registry
-    if litellm.vector_store_registry is not None:
-        litellm.vector_store_registry.add_vector_store_to_registry(vector_store=new_vector_store)
+    if gateway.vector_store_registry is not None:
+        gateway.vector_store_registry.add_vector_store_to_registry(vector_store=new_vector_store)
 
     verbose_proxy_logger.info("Vector store %s created in database successfully", vector_store_id)
 
@@ -360,8 +360,8 @@ async def list_vector_stores(
                 db_vector_store_ids.add(vector_store_id)
 
         # Process in-memory vector stores
-        if litellm.vector_store_registry is not None:
-            in_memory_vector_stores: Final = copy.deepcopy(litellm.vector_store_registry.vector_stores)
+        if gateway.vector_store_registry is not None:
+            in_memory_vector_stores: Final = copy.deepcopy(gateway.vector_store_registry.vector_stores)
 
             vector_stores_to_delete_from_memory: Final[list[str]] = []
 
@@ -384,14 +384,14 @@ async def list_vector_stores(
             # Synchronize in-memory registry with database
             # 1. Remove deleted vector stores from memory
             for vs_id in vector_stores_to_delete_from_memory:
-                litellm.vector_store_registry.delete_vector_store_from_registry(vector_store_id=vs_id)
+                gateway.vector_store_registry.delete_vector_store_from_registry(vector_store_id=vs_id)
                 verbose_proxy_logger.debug("Removed deleted vector store %s from in-memory registry", vs_id)
 
             # 2. Update in-memory registry with database versions (for updates)
             for vector_store in vector_stores_from_db:
                 vector_store_id = vector_store.get("vector_store_id", None)
                 if vector_store_id:
-                    litellm.vector_store_registry.update_vector_store_in_registry(
+                    gateway.vector_store_registry.update_vector_store_in_registry(
                         vector_store_id=vector_store_id, updated_data=vector_store
                     )
 
@@ -457,8 +457,8 @@ async def delete_vector_store(
             vector_store_to_check = _row_to_vector_store(existing_vector_store)
 
         # Check in-memory registry
-        if litellm.vector_store_registry is not None:
-            memory_vector_store: Final = litellm.vector_store_registry.get_litellm_managed_vector_store_from_registry(
+        if gateway.vector_store_registry is not None:
+            memory_vector_store: Final = gateway.vector_store_registry.get_litellm_managed_vector_store_from_registry(
                 vector_store_id=data.vector_store_id
             )
             if memory_vector_store is not None:
@@ -485,8 +485,8 @@ async def delete_vector_store(
             await _vector_store_table(prisma_client).delete(where={"vector_store_id": data.vector_store_id})
 
         # Delete from in-memory registry if exists
-        if memory_vector_store_exists and litellm.vector_store_registry is not None:
-            litellm.vector_store_registry.delete_vector_store_from_registry(vector_store_id=data.vector_store_id)
+        if memory_vector_store_exists and gateway.vector_store_registry is not None:
+            gateway.vector_store_registry.delete_vector_store_from_registry(vector_store_id=data.vector_store_id)
 
         return {
             "status": "success",
@@ -518,8 +518,8 @@ async def get_vector_store_info(
         raise HTTPException(status_code=500, detail="Database not connected")
 
     try:
-        if litellm.vector_store_registry is not None:
-            vector_store: Final = litellm.vector_store_registry.get_litellm_managed_vector_store_from_registry(
+        if gateway.vector_store_registry is not None:
+            vector_store: Final = gateway.vector_store_registry.get_litellm_managed_vector_store_from_registry(
                 vector_store_id=data.vector_store_id
             )
             if vector_store is not None:
@@ -640,8 +640,8 @@ async def update_vector_store(
         updated_vs: Final = _row_to_vector_store(updated)
 
         # Immediately update in-memory registry to keep it in sync
-        if litellm.vector_store_registry is not None:
-            litellm.vector_store_registry.update_vector_store_in_registry(
+        if gateway.vector_store_registry is not None:
+            gateway.vector_store_registry.update_vector_store_in_registry(
                 vector_store_id=vector_store_id,
                 updated_data=updated_vs,
             )

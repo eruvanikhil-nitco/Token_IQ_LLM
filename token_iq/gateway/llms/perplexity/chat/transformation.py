@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Final
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
 from token_iq.gateway.llms.openai.chat.gpt_transformation import OpenAIGPTConfig
@@ -52,13 +52,13 @@ class PerplexityChatConfig(OpenAIGPTConfig):
         ]
 
         try:
-            if litellm.supports_reasoning(model=model, custom_llm_provider=self.custom_llm_provider):
+            if gateway.supports_reasoning(model=model, custom_llm_provider=self.custom_llm_provider):
                 base_openai_params.append("reasoning_effort")
         except Exception as e:
             verbose_logger.debug("Error checking if model supports reasoning: %s", e)
 
         try:
-            if litellm.supports_web_search(model=model, custom_llm_provider=self.custom_llm_provider):
+            if gateway.supports_web_search(model=model, custom_llm_provider=self.custom_llm_provider):
                 base_openai_params.append("web_search_options")
         except Exception as e:
             verbose_logger.debug("Error checking if model supports web search: %s", e)

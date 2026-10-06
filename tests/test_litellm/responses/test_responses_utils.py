@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.openai.responses.transformation import OpenAIResponsesAPIConfig
 from token_iq.gateway.responses.utils import ResponseAPILoggingUtils, ResponsesAPIRequestUtils
 from token_iq.gateway.types.llms.openai import ResponseAPIUsage, ResponsesAPIOptionalRequestParams
@@ -49,7 +49,7 @@ class TestResponsesAPIRequestUtils:
         optional_params = ResponsesAPIOptionalRequestParams({"temperature": 0.7, "unsupported_param": "value"})
 
         # Execute and Assert
-        with pytest.raises(litellm.UnsupportedParamsError) as excinfo:
+        with pytest.raises(gateway.UnsupportedParamsError) as excinfo:
             ResponsesAPIRequestUtils.get_optional_params_responses_api(
                 model=model,
                 responses_api_provider_config=config,
@@ -61,7 +61,7 @@ class TestResponsesAPIRequestUtils:
 
     def test_get_optional_params_responses_api_request_level_drop_params(self, monkeypatch):
         """Request-level drop_params must reach both _check_valid_arg and map_openai_params"""
-        monkeypatch.setattr(litellm, "drop_params", False)
+        monkeypatch.setattr(gateway, "drop_params", False)
         config = MagicMock(spec=OpenAIResponsesAPIConfig)
         config.get_supported_openai_params.return_value = ["temperature"]
         config.custom_llm_provider = "openai"
@@ -82,10 +82,10 @@ class TestResponsesAPIRequestUtils:
     @pytest.mark.parametrize("request_drop_params", [None, False])
     def test_get_optional_params_responses_api_still_raises_without_drop(self, monkeypatch, request_drop_params):
         """Absent or False request-level drop_params must not suppress the unsupported-param error"""
-        monkeypatch.setattr(litellm, "drop_params", False)
+        monkeypatch.setattr(gateway, "drop_params", False)
         config = OpenAIResponsesAPIConfig()
 
-        with pytest.raises(litellm.UnsupportedParamsError):
+        with pytest.raises(gateway.UnsupportedParamsError):
             ResponsesAPIRequestUtils.get_optional_params_responses_api(
                 model="gpt-4o",
                 responses_api_provider_config=config,
@@ -590,7 +590,7 @@ def test_responses_extra_body_forwarded_to_completion_transformation_handler():
     ):
         mock_handler.return_value = MagicMock()
 
-        litellm.responses(
+        gateway.responses(
             model="openai/gpt-4o",
             input="Hello",
             extra_body={"custom_key": "custom_value"},
@@ -621,7 +621,7 @@ def test_responses_maps_reasoning_effort_from_litellm_params_to_reasoning():
     ):
         mock_handler.return_value = MagicMock()
 
-        litellm.responses(
+        gateway.responses(
             model="openai/gpt-4o",
             input="Hello",
             reasoning_effort={"effort": "high", "summary": "detailed"},

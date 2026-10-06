@@ -247,7 +247,7 @@ def test_stream_cache_write_completes_when_asyncio_run_closes_the_loop(monkeypat
     import asyncio
     from types import SimpleNamespace
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.types.utils import CallTypes
 
     writes = []
@@ -270,7 +270,7 @@ def test_stream_cache_write_completes_when_asyncio_run_closes_the_loop(monkeypat
             "custom_llm_provider": "openai",
         },
         preset_cache_key="responses-stream-cache-key",
-        original_function=litellm.aresponses,
+        original_function=gateway.aresponses,
         dual_cache=None,
         _should_store_result_in_cache=lambda original_function, kwargs: True,
     )
@@ -297,7 +297,7 @@ def test_stream_cache_write_completes_when_asyncio_run_closes_the_loop(monkeypat
             output=[],
         ),
     )
-    monkeypatch.setattr(litellm, "cache", _SlowWriteCache())
+    monkeypatch.setattr(gateway, "cache", _SlowWriteCache())
 
     async def _short_lived_script():
         iterator._persist_completed_response_to_cache(is_async=True)

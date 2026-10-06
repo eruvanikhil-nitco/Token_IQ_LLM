@@ -5,7 +5,7 @@ import hashlib
 from datetime import datetime
 from typing import Final, cast
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import print_verbose, verbose_logger
 from token_iq.gateway.constants import (
     MAX_S3_OBJECT_DOWNLOAD_FILENAME_BYTES,
@@ -38,31 +38,31 @@ class S3Logger:
         import boto3
 
         try:
-            verbose_logger.debug("in init s3 logger - s3_callback_params %s", litellm.s3_callback_params)
+            verbose_logger.debug("in init s3 logger - s3_callback_params %s", gateway.s3_callback_params)
 
             s3_use_team_prefix = False
 
-            if litellm.s3_callback_params is not None:
+            if gateway.s3_callback_params is not None:
                 # read in .env variables - example os.environ/AWS_BUCKET_NAME
-                for key, value in litellm.s3_callback_params.items():
+                for key, value in gateway.s3_callback_params.items():
                     if isinstance(value, str) and value.startswith("os.environ/"):
-                        litellm.s3_callback_params[key] = litellm.get_secret(value)
+                        gateway.s3_callback_params[key] = gateway.get_secret(value)
                 # now set s3 params from litellm.s3_logger_params
-                s3_bucket_name = litellm.s3_callback_params.get("s3_bucket_name")
-                s3_region_name = litellm.s3_callback_params.get("s3_region_name")
-                s3_api_version = litellm.s3_callback_params.get("s3_api_version")
-                s3_use_ssl = litellm.s3_callback_params.get("s3_use_ssl", True)
-                s3_verify = litellm.s3_callback_params.get("s3_verify")
-                s3_endpoint_url = litellm.s3_callback_params.get("s3_endpoint_url")
-                s3_aws_access_key_id = litellm.s3_callback_params.get("s3_aws_access_key_id")
-                s3_aws_secret_access_key = litellm.s3_callback_params.get("s3_aws_secret_access_key")
-                s3_aws_session_token = litellm.s3_callback_params.get("s3_aws_session_token")
-                s3_config = litellm.s3_callback_params.get("s3_config")
-                s3_path = litellm.s3_callback_params.get("s3_path")
-                s3_server_side_encryption = litellm.s3_callback_params.get("s3_server_side_encryption")
-                s3_sse_kms_key_id = litellm.s3_callback_params.get("s3_sse_kms_key_id")
+                s3_bucket_name = gateway.s3_callback_params.get("s3_bucket_name")
+                s3_region_name = gateway.s3_callback_params.get("s3_region_name")
+                s3_api_version = gateway.s3_callback_params.get("s3_api_version")
+                s3_use_ssl = gateway.s3_callback_params.get("s3_use_ssl", True)
+                s3_verify = gateway.s3_callback_params.get("s3_verify")
+                s3_endpoint_url = gateway.s3_callback_params.get("s3_endpoint_url")
+                s3_aws_access_key_id = gateway.s3_callback_params.get("s3_aws_access_key_id")
+                s3_aws_secret_access_key = gateway.s3_callback_params.get("s3_aws_secret_access_key")
+                s3_aws_session_token = gateway.s3_callback_params.get("s3_aws_session_token")
+                s3_config = gateway.s3_callback_params.get("s3_config")
+                s3_path = gateway.s3_callback_params.get("s3_path")
+                s3_server_side_encryption = gateway.s3_callback_params.get("s3_server_side_encryption")
+                s3_sse_kms_key_id = gateway.s3_callback_params.get("s3_sse_kms_key_id")
                 # done reading litellm.s3_callback_params
-                s3_use_team_prefix = bool(litellm.s3_callback_params.get("s3_use_team_prefix", False))
+                s3_use_team_prefix = bool(gateway.s3_callback_params.get("s3_use_team_prefix", False))
             self.s3_use_team_prefix = s3_use_team_prefix
             self.bucket_name = s3_bucket_name
             self.s3_path = s3_path
@@ -129,10 +129,10 @@ class S3Logger:
             team_alias: Final = payload["metadata"].get("user_api_key_team_alias")
 
             team_alias_prefix = ""
-            if litellm.enable_preview_features and self.s3_use_team_prefix and team_alias is not None:
+            if gateway.enable_preview_features and self.s3_use_team_prefix and team_alias is not None:
                 team_alias_prefix = f"{team_alias}/"
 
-            s3_file_name: Final = litellm.utils.get_logging_id(start_time, payload) or ""
+            s3_file_name: Final = gateway.utils.get_logging_id(start_time, payload) or ""
             s3_object_key: Final = get_s3_object_key(
                 cast(str | None, self.s3_path) or "",
                 team_alias_prefix,

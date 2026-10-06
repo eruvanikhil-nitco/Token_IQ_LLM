@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.types.utils import TranscriptionResponse
 
 
@@ -165,7 +165,7 @@ class TestDeepgramMockTranscription:
             return_value=mock_response,
         ) as mock_post:
 
-            response: TranscriptionResponse = litellm.transcription(
+            response: TranscriptionResponse = gateway.transcription(
                 model="deepgram/nova-2",
                 file=test_audio_bytes,
                 api_key="test-api-key",
@@ -217,7 +217,7 @@ class TestDeepgramMockTranscription:
             return_value=mock_response,
         ) as mock_post:
 
-            response: TranscriptionResponse = litellm.transcription(
+            response: TranscriptionResponse = gateway.transcription(
                 model="deepgram/nova-2",
                 file=test_audio_bytes,
                 api_key="test-api-key",
@@ -253,7 +253,7 @@ class TestDeepgramMockTranscription:
             return_value=mock_response,
         ) as mock_post:
 
-            response: TranscriptionResponse = litellm.transcription(
+            response: TranscriptionResponse = gateway.transcription(
                 model="deepgram/nova-2",
                 file=test_audio_file,
                 api_key="test-api-key",
@@ -330,7 +330,7 @@ class TestDeepgramMockTranscription:
             "token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post",
             return_value=mock_response,
         ):
-            response: TranscriptionResponse = litellm.transcription(
+            response: TranscriptionResponse = gateway.transcription(
                 model="deepgram/nova-2",
                 file=test_audio_bytes,
                 api_key="test-api-key",
@@ -380,7 +380,7 @@ class TestDeepgramMockTranscription:
             "token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post",
             return_value=mock_response,
         ):
-            response: TranscriptionResponse = litellm.transcription(
+            response: TranscriptionResponse = gateway.transcription(
                 model="deepgram/nova-2",
                 file=test_audio_bytes,
                 api_key="test-api-key",
@@ -431,7 +431,7 @@ class TestDeepgramMockTranscription:
             "token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post",
             return_value=mock_response,
         ):
-            response: TranscriptionResponse = litellm.transcription(
+            response: TranscriptionResponse = gateway.transcription(
                 model="deepgram/nova-2",
                 file=test_audio_bytes,
                 api_key="test-api-key",

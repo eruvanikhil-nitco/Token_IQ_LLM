@@ -13,7 +13,7 @@ from pydantic import BaseModel
 from typing import List, Literal, Optional, Union
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import Cache, completion, embedding
 from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.types.utils import LiteLLMCommonStrings
@@ -79,7 +79,7 @@ class CompletionCustomHandler(
             metadata_value = kwargs["litellm_params"].get("metadata")
             assert metadata_value is None or isinstance(metadata_value, dict)
             if metadata_value is not None:
-                if litellm.turn_off_message_logging is True:
+                if gateway.turn_off_message_logging is True:
                     assert (
                         metadata_value["raw_request"]
                         is LiteLLMCommonStrings.redacted_by_litellm.value
@@ -114,7 +114,7 @@ class CompletionCustomHandler(
             assert (
                 isinstance(
                     kwargs["original_response"],
-                    (str, litellm.CustomStreamWrapper, BaseModel),
+                    (str, gateway.CustomStreamWrapper, BaseModel),
                 )
                 or inspect.iscoroutine(kwargs["original_response"])
                 or inspect.isasyncgen(kwargs["original_response"])
@@ -133,7 +133,7 @@ class CompletionCustomHandler(
             ## END TIME
             assert isinstance(end_time, datetime)
             ## RESPONSE OBJECT
-            assert isinstance(response_obj, litellm.ModelResponseStream)
+            assert isinstance(response_obj, gateway.ModelResponseStream)
             ## KWARGS
             assert isinstance(kwargs["model"], str)
             assert isinstance(kwargs["messages"], list) and isinstance(
@@ -151,7 +151,7 @@ class CompletionCustomHandler(
             assert isinstance(kwargs["api_key"], (str, type(None)))
             assert (
                 isinstance(
-                    kwargs["original_response"], (str, litellm.CustomStreamWrapper)
+                    kwargs["original_response"], (str, gateway.CustomStreamWrapper)
                 )
                 or inspect.isasyncgen(kwargs["original_response"])
                 or inspect.iscoroutine(kwargs["original_response"])
@@ -178,9 +178,9 @@ class CompletionCustomHandler(
             assert isinstance(
                 response_obj,
                 (
-                    litellm.ModelResponse,
-                    litellm.EmbeddingResponse,
-                    litellm.ImageResponse,
+                    gateway.ModelResponse,
+                    gateway.EmbeddingResponse,
+                    gateway.ImageResponse,
                 ),
             )
             ## KWARGS
@@ -205,7 +205,7 @@ class CompletionCustomHandler(
             assert isinstance(kwargs["api_key"], (str, type(None)))
             assert isinstance(
                 kwargs["original_response"],
-                (str, litellm.CustomStreamWrapper, BaseModel),
+                (str, gateway.CustomStreamWrapper, BaseModel),
             ), "Original Response={}. Allowed types=[str, litellm.CustomStreamWrapper, BaseModel]".format(
                 kwargs["original_response"]
             )
@@ -245,7 +245,7 @@ class CompletionCustomHandler(
             assert isinstance(kwargs["api_key"], (str, type(None)))
             assert (
                 isinstance(
-                    kwargs["original_response"], (str, litellm.CustomStreamWrapper)
+                    kwargs["original_response"], (str, gateway.CustomStreamWrapper)
                 )
                 or kwargs["original_response"] == None
             )
@@ -290,9 +290,9 @@ class CompletionCustomHandler(
             assert isinstance(
                 response_obj,
                 (
-                    litellm.ModelResponse,
-                    litellm.EmbeddingResponse,
-                    litellm.TextCompletionResponse,
+                    gateway.ModelResponse,
+                    gateway.EmbeddingResponse,
+                    gateway.TextCompletionResponse,
                 ),
             )
             ## KWARGS
@@ -310,7 +310,7 @@ class CompletionCustomHandler(
             assert isinstance(kwargs["api_key"], (str, type(None)))
             assert (
                 isinstance(
-                    kwargs["original_response"], (str, litellm.CustomStreamWrapper)
+                    kwargs["original_response"], (str, gateway.CustomStreamWrapper)
                 )
                 or inspect.isasyncgen(kwargs["original_response"])
                 or inspect.iscoroutine(kwargs["original_response"])
@@ -344,7 +344,7 @@ class CompletionCustomHandler(
             assert isinstance(kwargs["api_key"], (str, type(None)))
             assert (
                 isinstance(
-                    kwargs["original_response"], (str, litellm.CustomStreamWrapper)
+                    kwargs["original_response"], (str, gateway.CustomStreamWrapper)
                 )
                 or inspect.isasyncgen(kwargs["original_response"])
                 or inspect.iscoroutine(kwargs["original_response"])
@@ -362,13 +362,13 @@ class CompletionCustomHandler(
 def test_chat_openai_stream():
     try:
         customHandler = CompletionCustomHandler()
-        litellm.callbacks = [customHandler]
-        response = litellm.completion(
+        gateway.callbacks = [customHandler]
+        response = gateway.completion(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": "Hi 👋 - i'm sync openai"}],
         )
         ## test streaming
-        response = litellm.completion(
+        response = gateway.completion(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": "Hi 👋 - i'm openai"}],
             stream=True,
@@ -377,7 +377,7 @@ def test_chat_openai_stream():
             continue
         ## test failure callback
         try:
-            response = litellm.completion(
+            response = gateway.completion(
                 model="gpt-3.5-turbo",
                 messages=[{"role": "user", "content": "Hi 👋 - i'm openai"}],
                 api_key="my-bad-key",
@@ -393,7 +393,7 @@ def test_chat_openai_stream():
         )
         print(f"customHandler.errors: {customHandler.errors}")
         assert len(customHandler.errors) == 0
-        litellm.callbacks = []
+        gateway.callbacks = []
     except Exception as e:
         pytest.fail(f"An exception occurred: {str(e)}")
 
@@ -406,13 +406,13 @@ def test_chat_openai_stream():
 async def test_async_chat_openai_stream():
     try:
         customHandler = CompletionCustomHandler()
-        litellm.callbacks = [customHandler]
-        response = await litellm.acompletion(
+        gateway.callbacks = [customHandler]
+        response = await gateway.acompletion(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": "Hi 👋 - i'm openai"}],
         )
         ## test streaming
-        response = await litellm.acompletion(
+        response = await gateway.acompletion(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": "Hi 👋 - i'm openai"}],
             stream=True,
@@ -423,7 +423,7 @@ async def test_async_chat_openai_stream():
         await asyncio.sleep(1)
         ## test failure callback
         try:
-            response = await litellm.acompletion(
+            response = await gateway.acompletion(
                 model="gpt-3.5-turbo",
                 messages=[{"role": "user", "content": "Hi 👋 - i'm openai"}],
                 api_key="my-bad-key",
@@ -439,7 +439,7 @@ async def test_async_chat_openai_stream():
         )
         print(f"customHandler.errors: {customHandler.errors}")
         assert len(customHandler.errors) == 0
-        litellm.callbacks = []
+        gateway.callbacks = []
     except Exception as e:
         pytest.fail(f"An exception occurred: {str(e)}")
 
@@ -451,13 +451,13 @@ async def test_async_chat_openai_stream():
 def test_chat_azure_stream():
     try:
         customHandler = CompletionCustomHandler()
-        litellm.callbacks = [customHandler]
-        response = litellm.completion(
+        gateway.callbacks = [customHandler]
+        response = gateway.completion(
             model="azure/gpt-4.1-mini",
             messages=[{"role": "user", "content": "Hi 👋 - i'm sync azure"}],
         )
         # test streaming
-        response = litellm.completion(
+        response = gateway.completion(
             model="azure/gpt-4.1-mini",
             messages=[{"role": "user", "content": "Hi 👋 - i'm sync azure"}],
             stream=True,
@@ -466,7 +466,7 @@ def test_chat_azure_stream():
             continue
         # test failure callback
         try:
-            response = litellm.completion(
+            response = gateway.completion(
                 model="azure/gpt-4.1-mini",
                 messages=[{"role": "user", "content": "Hi 👋 - i'm sync azure"}],
                 api_key="my-bad-key",
@@ -482,7 +482,7 @@ def test_chat_azure_stream():
         )
         print(f"customHandler.errors: {customHandler.errors}")
         assert len(customHandler.errors) == 0
-        litellm.callbacks = []
+        gateway.callbacks = []
     except Exception as e:
         pytest.fail(f"An exception occurred: {str(e)}")
 
@@ -495,13 +495,13 @@ def test_chat_azure_stream():
 async def test_async_chat_azure_stream():
     try:
         customHandler = CompletionCustomHandler()
-        litellm.callbacks = [customHandler]
-        response = await litellm.acompletion(
+        gateway.callbacks = [customHandler]
+        response = await gateway.acompletion(
             model="azure/gpt-4.1-mini",
             messages=[{"role": "user", "content": "Hi 👋 - i'm async azure"}],
         )
         ## test streaming
-        response = await litellm.acompletion(
+        response = await gateway.acompletion(
             model="azure/gpt-4.1-mini",
             messages=[{"role": "user", "content": "Hi 👋 - i'm async azure"}],
             stream=True,
@@ -512,7 +512,7 @@ async def test_async_chat_azure_stream():
         await asyncio.sleep(1)
         # test failure callback
         try:
-            response = await litellm.acompletion(
+            response = await gateway.acompletion(
                 model="azure/gpt-4.1-mini",
                 messages=[{"role": "user", "content": "Hi 👋 - i'm async azure"}],
                 api_key="my-bad-key",
@@ -526,7 +526,7 @@ async def test_async_chat_azure_stream():
         await asyncio.sleep(1)
         print(f"customHandler.errors: {customHandler.errors}")
         assert len(customHandler.errors) == 0
-        litellm.callbacks = []
+        gateway.callbacks = []
     except Exception as e:
         pytest.fail(f"An exception occurred: {str(e)}")
 
@@ -537,13 +537,13 @@ async def test_async_chat_azure_stream():
 @pytest.mark.asyncio
 async def test_async_chat_openai_stream_options():
     try:
-        litellm.set_verbose = True
+        gateway.set_verbose = True
         customHandler = CompletionCustomHandler()
-        litellm.callbacks = [customHandler]
+        gateway.callbacks = [customHandler]
         with patch.object(
             customHandler, "async_log_success_event", new=AsyncMock()
         ) as mock_client:
-            response = await litellm.acompletion(
+            response = await gateway.acompletion(
                 model="gpt-3.5-turbo",
                 messages=[{"role": "user", "content": "Hi 👋 - i'm async openai"}],
                 stream=True,
@@ -569,13 +569,13 @@ async def test_async_chat_openai_stream_options():
 async def test_async_chat_sagemaker_stream():
     try:
         customHandler = CompletionCustomHandler()
-        litellm.callbacks = [customHandler]
-        response = await litellm.acompletion(
+        gateway.callbacks = [customHandler]
+        response = await gateway.acompletion(
             model="sagemaker/berri-benchmarking-Llama-2-70b-chat-hf-4",
             messages=[{"role": "user", "content": "Hi 👋 - i'm async sagemaker"}],
         )
         # test streaming
-        response = await litellm.acompletion(
+        response = await gateway.acompletion(
             model="sagemaker/berri-benchmarking-Llama-2-70b-chat-hf-4",
             messages=[{"role": "user", "content": "Hi 👋 - i'm async sagemaker"}],
             stream=True,
@@ -586,7 +586,7 @@ async def test_async_chat_sagemaker_stream():
             continue
         ## test failure callback
         try:
-            response = await litellm.acompletion(
+            response = await gateway.acompletion(
                 model="sagemaker/berri-benchmarking-Llama-2-70b-chat-hf-4",
                 messages=[{"role": "user", "content": "Hi 👋 - i'm async sagemaker"}],
                 aws_region_name="my-bad-key",
@@ -602,7 +602,7 @@ async def test_async_chat_sagemaker_stream():
         )
         print(f"customHandler.errors: {customHandler.errors}")
         assert len(customHandler.errors) == 0
-        litellm.callbacks = []
+        gateway.callbacks = []
     except Exception as e:
         pytest.fail(f"An exception occurred: {str(e)}")
 
@@ -658,10 +658,10 @@ async def test_async_chat_vertex_ai_stream():
     try:
         load_vertex_ai_credentials()
         customHandler = CompletionCustomHandler()
-        litellm.set_verbose = True
-        litellm.callbacks = [customHandler]
+        gateway.set_verbose = True
+        gateway.callbacks = [customHandler]
         # test streaming
-        response = await litellm.acompletion(
+        response = await gateway.acompletion(
             model="gemini-pro",
             messages=[
                 {
@@ -693,13 +693,13 @@ async def test_async_chat_vertex_ai_stream():
 async def test_async_text_completion_bedrock():
     try:
         customHandler = CompletionCustomHandler()
-        litellm.callbacks = [customHandler]
-        response = await litellm.atext_completion(
+        gateway.callbacks = [customHandler]
+        response = await gateway.atext_completion(
             model="bedrock/anthropic.claude-3-haiku-20240307-v1:0",
             prompt=["Hi 👋 - i'm async text completion bedrock"],
         )
         # test streaming
-        response = await litellm.atext_completion(
+        response = await gateway.atext_completion(
             model="bedrock/anthropic.claude-3-haiku-20240307-v1:0",
             prompt=["Hi 👋 - i'm async text completion bedrock"],
             stream=True,
@@ -711,7 +711,7 @@ async def test_async_text_completion_bedrock():
         await asyncio.sleep(1)
         ## test failure callback
         try:
-            response = await litellm.atext_completion(
+            response = await gateway.atext_completion(
                 model="bedrock/",
                 prompt=["Hi 👋 - i'm async text completion bedrock"],
                 stream=True,
@@ -728,7 +728,7 @@ async def test_async_text_completion_bedrock():
         )
         print(f"customHandler.errors: {customHandler.errors}")
         assert len(customHandler.errors) == 0
-        litellm.callbacks = []
+        gateway.callbacks = []
     except Exception as e:
         pytest.fail(f"An exception occurred: {str(e)}")
 
@@ -738,13 +738,13 @@ async def test_async_text_completion_bedrock():
 async def test_async_text_completion_openai_stream():
     try:
         customHandler = CompletionCustomHandler()
-        litellm.callbacks = [customHandler]
-        response = await litellm.atext_completion(
+        gateway.callbacks = [customHandler]
+        response = await gateway.atext_completion(
             model="gpt-3.5-turbo",
             prompt="Hi 👋 - i'm async text completion openai",
         )
         # test streaming
-        response = await litellm.atext_completion(
+        response = await gateway.atext_completion(
             model="gpt-3.5-turbo",
             prompt="Hi 👋 - i'm async text completion openai",
             stream=True,
@@ -756,7 +756,7 @@ async def test_async_text_completion_openai_stream():
         await asyncio.sleep(1)
         ## test failure callback
         try:
-            response = await litellm.atext_completion(
+            response = await gateway.atext_completion(
                 model="gpt-3.5-turbo",
                 prompt="Hi 👋 - i'm async text completion openai",
                 stream=True,
@@ -773,7 +773,7 @@ async def test_async_text_completion_openai_stream():
         )
         print(f"customHandler.errors: {customHandler.errors}")
         assert len(customHandler.errors) == 0
-        litellm.callbacks = []
+        gateway.callbacks = []
     except Exception as e:
         pytest.fail(f"An exception occurred: {str(e)}")
 
@@ -785,8 +785,8 @@ async def test_async_embedding_openai():
     try:
         customHandler_success = CompletionCustomHandler()
         customHandler_failure = CompletionCustomHandler()
-        litellm.callbacks = [customHandler_success]
-        response = await litellm.aembedding(
+        gateway.callbacks = [customHandler_success]
+        response = await gateway.aembedding(
             model="text-embedding-ada-002",
             input=["good morning from litellm"],
         )
@@ -796,10 +796,10 @@ async def test_async_embedding_openai():
         assert len(customHandler_success.errors) == 0
         assert len(customHandler_success.states) == 3  # pre, post, success
         # test failure callback
-        litellm.logging_callback_manager._reset_all_callbacks()
-        litellm.callbacks = [customHandler_failure]
+        gateway.logging_callback_manager._reset_all_callbacks()
+        gateway.callbacks = [customHandler_failure]
         try:
-            response = await litellm.aembedding(
+            response = await gateway.aembedding(
                 model="text-embedding-ada-002",
                 input=["good morning from litellm"],
                 api_key="my-bad-key",
@@ -823,8 +823,8 @@ def test_amazing_sync_embedding():
     try:
         customHandler_success = CompletionCustomHandler()
         customHandler_failure = CompletionCustomHandler()
-        litellm.callbacks = [customHandler_success]
-        response = litellm.embedding(
+        gateway.callbacks = [customHandler_success]
+        response = gateway.embedding(
             model="azure/text-embedding-ada-002", input=["good morning from litellm"]
         )
         print(f"customHandler_success.errors: {customHandler_success.errors}")
@@ -836,10 +836,10 @@ def test_amazing_sync_embedding():
         assert len(customHandler_success.errors) == 0
         assert len(customHandler_success.states) == 3  # pre, post, success
         # test failure callback
-        litellm.logging_callback_manager._reset_all_callbacks()
-        litellm.callbacks = [customHandler_failure]
+        gateway.logging_callback_manager._reset_all_callbacks()
+        gateway.callbacks = [customHandler_failure]
         try:
-            response = litellm.embedding(
+            response = gateway.embedding(
                 model="azure/text-embedding-ada-002",
                 input=["good morning from litellm"],
                 api_key="my-bad-key",
@@ -864,8 +864,8 @@ async def test_async_embedding_azure():
     try:
         customHandler_success = CompletionCustomHandler()
         customHandler_failure = CompletionCustomHandler()
-        litellm.callbacks = [customHandler_success]
-        response = await litellm.aembedding(
+        gateway.callbacks = [customHandler_success]
+        response = await gateway.aembedding(
             model="azure/text-embedding-ada-002", input=["good morning from litellm"]
         )
         await asyncio.sleep(1)
@@ -874,10 +874,10 @@ async def test_async_embedding_azure():
         assert len(customHandler_success.errors) == 0
         assert len(customHandler_success.states) == 3  # pre, post, success
         # test failure callback
-        litellm.logging_callback_manager._reset_all_callbacks()
-        litellm.callbacks = [customHandler_failure]
+        gateway.logging_callback_manager._reset_all_callbacks()
+        gateway.callbacks = [customHandler_failure]
         try:
-            response = await litellm.aembedding(
+            response = await gateway.aembedding(
                 model="azure/text-embedding-ada-002",
                 input=["good morning from litellm"],
                 api_key="my-bad-key",
@@ -902,9 +902,9 @@ async def test_async_embedding_bedrock():
     try:
         customHandler_success = CompletionCustomHandler()
         customHandler_failure = CompletionCustomHandler()
-        litellm.callbacks = [customHandler_success]
-        litellm.set_verbose = True
-        response = await litellm.aembedding(
+        gateway.callbacks = [customHandler_success]
+        gateway.set_verbose = True
+        response = await gateway.aembedding(
             model="bedrock/cohere.embed-multilingual-v3",
             input=["good morning from litellm"],
             aws_region_name="us-east-1",
@@ -915,10 +915,10 @@ async def test_async_embedding_bedrock():
         assert len(customHandler_success.errors) == 0
         assert len(customHandler_success.states) == 3  # pre, post, success
         # test failure callback
-        litellm.logging_callback_manager._reset_all_callbacks()
-        litellm.callbacks = [customHandler_failure]
+        gateway.logging_callback_manager._reset_all_callbacks()
+        gateway.callbacks = [customHandler_failure]
         try:
-            response = await litellm.aembedding(
+            response = await gateway.aembedding(
                 model="bedrock/cohere.embed-multilingual-v3",
                 input=["good morning from litellm"],
                 aws_region_name="my-bad-region",
@@ -943,11 +943,11 @@ def test_image_generation_openai():
     try:
         customHandler_success = CompletionCustomHandler()
         customHandler_failure = CompletionCustomHandler()
-        litellm.callbacks = [customHandler_success]
+        gateway.callbacks = [customHandler_success]
 
-        litellm.set_verbose = True
+        gateway.set_verbose = True
 
-        response = litellm.image_generation(
+        response = gateway.image_generation(
             prompt="A cute baby sea otter",
             model="openai/gpt-image-1",
             api_key=os.getenv("OPENAI_API_KEY"),
@@ -965,10 +965,10 @@ def test_image_generation_openai():
         assert len(customHandler_success.errors) == 0
         assert len(customHandler_success.states) == 3  # pre, post, success
         # test failure callback
-        litellm.logging_callback_manager._reset_all_callbacks()
-        litellm.callbacks = [customHandler_failure]
+        gateway.logging_callback_manager._reset_all_callbacks()
+        gateway.callbacks = [customHandler_failure]
         try:
-            response = litellm.image_generation(
+            response = gateway.image_generation(
                 prompt="A cute baby sea otter",
                 model="gpt-image-1",
                 api_key="my-bad-api-key",
@@ -979,9 +979,9 @@ def test_image_generation_openai():
         print(f"customHandler_failure.states: {customHandler_failure.states}")
         assert len(customHandler_failure.errors) == 0
         assert len(customHandler_failure.states) == 3  # pre, post, failure
-    except litellm.RateLimitError as e:
+    except gateway.RateLimitError as e:
         pass
-    except litellm.ContentPolicyViolationError:
+    except gateway.ContentPolicyViolationError:
         pass  # OpenAI randomly raises these errors - skip when they occur
     except Exception as e:
         pytest.fail(f"An exception occurred - {str(e)}")
@@ -1001,13 +1001,13 @@ def test_turn_off_message_logging():
     """
     If 'turn_off_message_logging' is true, assert no user request information is logged.
     """
-    litellm.turn_off_message_logging = True
+    gateway.turn_off_message_logging = True
 
     # sync completion
     customHandler = CompletionCustomHandler()
-    litellm.callbacks = [customHandler]
+    gateway.callbacks = [customHandler]
 
-    _ = litellm.completion(
+    _ = gateway.completion(
         model="gpt-3.5-turbo",
         messages=[{"role": "user", "content": "Hey, how's it going?"}],
         mock_response="Going well!",
@@ -1045,14 +1045,14 @@ def test_standard_logging_payload(model, turn_off_message_logging):
 
     # sync completion
     customHandler = CompletionCustomHandler()
-    litellm.callbacks = [customHandler]
+    gateway.callbacks = [customHandler]
 
-    litellm.turn_off_message_logging = turn_off_message_logging
+    gateway.turn_off_message_logging = turn_off_message_logging
 
     with patch.object(
         customHandler, "log_success_event", new=MagicMock()
     ) as mock_client:
-        _ = litellm.completion(
+        _ = gateway.completion(
             model=model,
             messages=[{"role": "user", "content": "Hey, how's it going?"}],
             mock_response="Going well!",
@@ -1141,15 +1141,15 @@ def test_standard_logging_payload_audio(turn_off_message_logging, stream):
 
     # sync completion
     customHandler = CompletionCustomHandler()
-    litellm.callbacks = [customHandler]
+    gateway.callbacks = [customHandler]
 
-    litellm.turn_off_message_logging = turn_off_message_logging
+    gateway.turn_off_message_logging = turn_off_message_logging
 
     with patch.object(
         customHandler, "log_success_event", new=MagicMock()
     ) as mock_client:
         try:
-            response = litellm.completion(
+            response = gateway.completion(
                 model="gpt-audio-1.5",
                 modalities=["text", "audio"],
                 audio={"voice": "alloy", "format": "pcm16"},
@@ -1252,22 +1252,22 @@ def test_aaastandard_logging_payload_cache_hit():
 
     # sync completion
 
-    litellm.cache = Cache()
+    gateway.cache = Cache()
 
-    _ = litellm.completion(
+    _ = gateway.completion(
         model="gpt-3.5-turbo",
         messages=[{"role": "user", "content": "Hey, how's it going?"}],
         caching=True,
     )
 
     customHandler = CompletionCustomHandler()
-    litellm.callbacks = [customHandler]
-    litellm.success_callback = []
+    gateway.callbacks = [customHandler]
+    gateway.success_callback = []
 
     with patch.object(
         customHandler, "log_success_event", new=MagicMock()
     ) as mock_client:
-        _ = litellm.completion(
+        _ = gateway.completion(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": "Hey, how's it going?"}],
             caching=True,
@@ -1298,14 +1298,14 @@ def test_aaastandard_logging_payload_cache_hit():
 def test_logging_async_cache_hit_sync_call(turn_off_message_logging):
     from token_iq.gateway.types.utils import StandardLoggingPayload
 
-    litellm.turn_off_message_logging = turn_off_message_logging
+    gateway.turn_off_message_logging = turn_off_message_logging
 
-    litellm.cache = Cache()
+    gateway.cache = Cache()
 
     primingHandler = CompletionCustomHandler()
-    litellm.callbacks = [primingHandler]
+    gateway.callbacks = [primingHandler]
 
-    response = litellm.completion(
+    response = gateway.completion(
         model="gpt-3.5-turbo",
         messages=[{"role": "user", "content": "Hey, how's it going?"}],
         caching=True,
@@ -1319,13 +1319,13 @@ def test_logging_async_cache_hit_sync_call(turn_off_message_logging):
         message=f"priming call never finished logging, states={primingHandler.states}",
     )
     customHandler = CompletionCustomHandler()
-    litellm.callbacks = [customHandler]
-    litellm.success_callback = []
+    gateway.callbacks = [customHandler]
+    gateway.success_callback = []
 
     with patch.object(
         customHandler, "log_success_event", new=MagicMock()
     ) as mock_client:
-        resp = litellm.completion(
+        resp = gateway.completion(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": "Hey, how's it going?"}],
             caching=True,
@@ -1369,18 +1369,18 @@ def test_logging_standard_payload_failure_call():
     from token_iq.gateway.types.utils import StandardLoggingPayload
 
     customHandler = CompletionCustomHandler()
-    litellm.callbacks = [customHandler]
+    gateway.callbacks = [customHandler]
 
     with patch.object(
         customHandler, "log_failure_event", new=MagicMock()
     ) as mock_client:
         try:
-            resp = litellm.completion(
+            resp = gateway.completion(
                 model="gpt-3.5-turbo",
                 messages=[{"role": "user", "content": "Hey, how's it going?"}],
                 api_key="my-bad-api-key",
             )
-        except litellm.AuthenticationError:
+        except gateway.AuthenticationError:
             pass
 
         mock_client.assert_called_once()
@@ -1403,13 +1403,13 @@ def test_logging_standard_payload_llm_headers(stream):
 
     # sync completion
     customHandler = CompletionCustomHandler()
-    litellm.callbacks = [customHandler]
+    gateway.callbacks = [customHandler]
 
     with patch.object(
         customHandler, "log_success_event", new=MagicMock()
     ) as mock_client:
 
-        resp = litellm.completion(
+        resp = gateway.completion(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": "Hey, how's it going?"}],
             stream=stream,
@@ -1431,19 +1431,19 @@ def test_logging_standard_payload_llm_headers(stream):
 
 def test_logging_key_masking_gemini():
     customHandler = CompletionCustomHandler()
-    litellm.callbacks = [customHandler]
-    litellm.success_callback = []
+    gateway.callbacks = [customHandler]
+    gateway.success_callback = []
 
     with patch.object(
         customHandler, "log_pre_api_call", new=MagicMock()
     ) as mock_client:
         try:
-            resp = litellm.completion(
+            resp = gateway.completion(
                 model="gemini/gemini-1.5-pro",
                 messages=[{"role": "user", "content": "Hey, how's it going?"}],
                 api_key="LEAVE_ONLY_LAST_4_CHAR_UNMASKED_THIS_PART",
             )
-        except litellm.AuthenticationError:
+        except gateway.AuthenticationError:
             pass
 
         mock_client.assert_called()
@@ -1470,7 +1470,7 @@ async def test_standard_logging_payload_stream_usage(sync_mode):
     try:
         # sync completion
         customHandler = CompletionCustomHandler()
-        litellm.callbacks = [customHandler]
+        gateway.callbacks = [customHandler]
 
         if sync_mode:
             patch_event = "log_success_event"
@@ -1481,7 +1481,7 @@ async def test_standard_logging_payload_stream_usage(sync_mode):
 
         with patch.object(customHandler, patch_event, new=return_val) as mock_client:
             if sync_mode:
-                resp = litellm.completion(
+                resp = gateway.completion(
                     model="anthropic/claude-sonnet-4-5-20250929",
                     messages=[{"role": "user", "content": "Hey, how's it going?"}],
                     stream=stream,
@@ -1492,7 +1492,7 @@ async def test_standard_logging_payload_stream_usage(sync_mode):
                     chunks.append(chunk)
                 wait_until(lambda: mock_client.called, message="log_success_event never fired")
             else:
-                resp = await litellm.acompletion(
+                resp = await gateway.acompletion(
                     model="anthropic/claude-sonnet-4-5-20250929",
                     messages=[{"role": "user", "content": "Hey, how's it going?"}],
                     stream=stream,
@@ -1518,7 +1518,7 @@ async def test_standard_logging_payload_stream_usage(sync_mode):
                 == standard_logging_object["total_tokens"]
             )
             print(f"standard_logging_object usage: {built_response.usage}")
-    except litellm.InternalServerError:
+    except gateway.InternalServerError:
         pass
 
 
@@ -1530,7 +1530,7 @@ def test_standard_logging_retries():
     from token_iq.gateway.router import Router
 
     customHandler = CompletionCustomHandler()
-    litellm.callbacks = [customHandler]
+    gateway.callbacks = [customHandler]
 
     router = Router(
         model_list=[
@@ -1554,7 +1554,7 @@ def test_standard_logging_retries():
                 num_retries=1,
                 mock_response="litellm.RateLimitError",
             )
-        except litellm.RateLimitError:
+        except gateway.RateLimitError:
             pass
 
         assert mock_client.call_count == 2
@@ -1576,10 +1576,10 @@ def test_standard_logging_retries():
 
 @pytest.mark.parametrize("disable_no_log_param", [True, False])
 def test_litellm_logging_no_log_param(monkeypatch, disable_no_log_param):
-    monkeypatch.setattr(litellm, "global_disable_no_log_param", disable_no_log_param)
+    monkeypatch.setattr(gateway, "global_disable_no_log_param", disable_no_log_param)
     from token_iq.gateway.core_utils.litellm_logging import Logging
 
-    litellm.success_callback = ["langfuse"]
+    gateway.success_callback = ["langfuse"]
     litellm_call_id = "my-unique-call-id"
     litellm_logging_obj = Logging(
         model="gpt-3.5-turbo",

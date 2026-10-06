@@ -8,7 +8,7 @@ from typing import Optional
 import httpx
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import Choices, Message, ModelResponse
 from base_llm_unit_tests import BaseLLMChatTest
 import asyncio
@@ -20,7 +20,7 @@ from base_audio_transcription_unit_tests import BaseLLMAudioTranscriptionTest
 
 
 def test_openai_prediction_param():
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     code = """
     /// <summary>
     /// Represents a user with a first name, last name, and username.
@@ -44,7 +44,7 @@ def test_openai_prediction_param():
     }
     """
 
-    completion = litellm.completion(
+    completion = gateway.completion(
         model="gpt-4o-mini",
         messages=[
             {
@@ -69,7 +69,7 @@ async def test_openai_prediction_param_mock():
     """
     Tests that prediction parameter is correctly passed to the API
     """
-    litellm.set_verbose = True
+    gateway.set_verbose = True
 
     code = """
     /// <summary>
@@ -101,7 +101,7 @@ async def test_openai_prediction_param_mock():
         client.chat.completions.with_raw_response, "create"
     ) as mock_client:
         try:
-            await litellm.acompletion(
+            await gateway.acompletion(
                 model="gpt-4o-mini",
                 messages=[
                     {
@@ -137,8 +137,8 @@ async def test_openai_prediction_param_with_caching():
     verbose_logger.setLevel(logging.DEBUG)
     import time
 
-    litellm.set_verbose = True
-    litellm.cache = litellm.Cache(type=LiteLLMCacheType.LOCAL)
+    gateway.set_verbose = True
+    gateway.cache = gateway.Cache(type=LiteLLMCacheType.LOCAL)
     code = """
     /// <summary>
     /// Represents a user with a first name, last name, and username.
@@ -162,7 +162,7 @@ async def test_openai_prediction_param_with_caching():
     }
     """
 
-    completion_response_1 = litellm.completion(
+    completion_response_1 = gateway.completion(
         model="gpt-4o-mini",
         messages=[
             {
@@ -177,7 +177,7 @@ async def test_openai_prediction_param_with_caching():
     time.sleep(0.5)
 
     # cache hit
-    completion_response_2 = litellm.completion(
+    completion_response_2 = gateway.completion(
         model="gpt-4o-mini",
         messages=[
             {
@@ -191,7 +191,7 @@ async def test_openai_prediction_param_with_caching():
 
     assert completion_response_1.id == completion_response_2.id
 
-    completion_response_3 = litellm.completion(
+    completion_response_3 = gateway.completion(
         model="gpt-4o-mini",
         messages=[
             {"role": "user", "content": "What is the first name of the user?"},
@@ -214,7 +214,7 @@ async def test_vision_with_custom_model():
 
     client = AsyncOpenAI(api_key="fake-api-key")
 
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     api_base = "https://my-custom.api.openai.com"
 
     # Fetch and encode a test image
@@ -228,7 +228,7 @@ async def test_vision_with_custom_model():
         client.chat.completions.with_raw_response, "create"
     ) as mock_client:
         try:
-            response = await litellm.acompletion(
+            response = await gateway.acompletion(
                 model="openai/my-custom-model",
                 max_tokens=10,
                 api_base=api_base,  # use the mock api
@@ -290,10 +290,10 @@ class TestOpenAIChatCompletion(BaseLLMChatTest):
 
 @patch("token_iq.gateway.main.openai_chat_completions._get_openai_client")
 def test_openai_max_retries_0(mock_get_openai_client):
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    litellm.set_verbose = True
-    response = litellm.completion(
+    gateway.set_verbose = True
+    response = gateway.completion(
         model="gpt-4o-mini",
         messages=[{"role": "user", "content": "hi"}],
         max_retries=0,
@@ -336,7 +336,7 @@ def test_openai_image_generation_forwards_organization(mock_get_openai_client):
     mock_get_openai_client.return_value = _DummyClient()
 
     org = "org_test_123"
-    resp = litellm.image_generation(
+    resp = gateway.image_generation(
         model="gpt-image-1",
         prompt="A cute baby sea otter",
         organization=org,
@@ -351,7 +351,7 @@ def test_openai_image_generation_forwards_organization(mock_get_openai_client):
 
 @pytest.mark.parametrize("model", ["o1", "o3-mini"])
 def test_o1_parallel_tool_calls(model):
-    litellm.completion(
+    gateway.completion(
         model=model,
         messages=[
             {
@@ -415,8 +415,8 @@ def validate_web_search_annotations(annotations: ChatCompletionAnnotation):
 @pytest.mark.flaky(reruns=3)
 def test_openai_web_search():
     """Makes a simple web search request and validates the response contains web search annotations and all expected fields are present"""
-    litellm._turn_on_debug()
-    response = litellm.completion(
+    gateway._turn_on_debug()
+    response = gateway.completion(
         model="openai/gpt-5-search-api",
         messages=[
             {
@@ -436,7 +436,7 @@ def test_openai_web_search_streaming():
     """Makes a simple web search request and validates the response contains web search annotations and all expected fields are present"""
     # litellm._turn_on_debug()
     test_openai_web_search: Optional[ChatCompletionAnnotation] = None
-    response = litellm.completion(
+    response = gateway.completion(
         model="openai/gpt-5-search-api",
         messages=[
             {
@@ -467,8 +467,8 @@ class TestOpenAIGPT4OAudioTranscription(BaseLLMAudioTranscriptionTest):
             "timestamp_granularities": ["word"],
         }
 
-    def get_custom_llm_provider(self) -> litellm.LlmProviders:
-        return litellm.LlmProviders.OPENAI
+    def get_custom_llm_provider(self) -> gateway.LlmProviders:
+        return gateway.LlmProviders.OPENAI
 
 
 @pytest.mark.asyncio
@@ -514,11 +514,11 @@ async def test_openai_codex_stream(sync_mode):
 
     chunks = []
     if sync_mode:
-        response = litellm.completion(**kwargs)
+        response = gateway.completion(**kwargs)
         for chunk in response:
             chunks.append(chunk)
     else:
-        response = await litellm.acompletion(**kwargs)
+        response = await gateway.acompletion(**kwargs)
         async for chunk in response:
             chunks.append(chunk)
 
@@ -606,8 +606,8 @@ def test_openai_responses_only_model_bridge():
     """
     Test that the responses-only model bridge works correctly
     """
-    litellm._turn_on_debug()
-    response = litellm.completion(
+    gateway._turn_on_debug()
+    response = gateway.completion(
         model="gpt-5.5-pro",
         messages=[{"role": "user", "content": "Hey, how's it going?"}],
         tools=[
@@ -667,12 +667,12 @@ def test_openai_tool_calling():
         ],
     }
 
-    response = litellm.completion(**completion_params)
+    response = gateway.completion(**completion_params)
 
 
 @pytest.mark.asyncio
 async def test_openai_gpt5_reasoning():
-    response = await litellm.acompletion(
+    response = await gateway.acompletion(
         model="openai/gpt-5-mini",
         messages=[{"role": "user", "content": "What is the capital of France?"}],
         reasoning_effort="minimal",
@@ -686,14 +686,14 @@ async def test_openai_safety_identifier_parameter():
     """Test that safety_identifier parameter is correctly passed to the OpenAI API."""
     from openai import AsyncOpenAI
 
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     client = AsyncOpenAI(api_key="fake-api-key")
 
     with patch.object(
         client.chat.completions.with_raw_response, "create"
     ) as mock_client:
         try:
-            await litellm.acompletion(
+            await gateway.acompletion(
                 model="openai/gpt-4o",
                 messages=[{"role": "user", "content": "Hello, how are you?"}],
                 safety_identifier="user_code_123456",
@@ -715,14 +715,14 @@ def test_openai_safety_identifier_parameter_sync():
     """Test that safety_identifier parameter is correctly passed to the OpenAI API."""
     from openai import OpenAI
 
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     client = OpenAI(api_key="fake-api-key")
 
     with patch.object(
         client.chat.completions.with_raw_response, "create"
     ) as mock_client:
         try:
-            litellm.completion(
+            gateway.completion(
                 model="openai/gpt-4o",
                 messages=[{"role": "user", "content": "Hello, how are you?"}],
                 safety_identifier="user_code_123456",
@@ -745,14 +745,14 @@ async def test_openai_service_tier_parameter():
     """Test that service_tier parameter is correctly passed to the OpenAI API."""
     from openai import AsyncOpenAI
 
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     client = AsyncOpenAI(api_key="fake-api-key")
 
     with patch.object(
         client.chat.completions.with_raw_response, "create"
     ) as mock_client:
         try:
-            await litellm.acompletion(
+            await gateway.acompletion(
                 model="openai/gpt-4o",
                 messages=[{"role": "user", "content": "Hello, how are you?"}],
                 service_tier="priority",
@@ -776,14 +776,14 @@ def test_openai_service_tier_parameter_sync():
     """Test that service_tier parameter is correctly passed to the OpenAI API."""
     from openai import OpenAI
 
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     client = OpenAI(api_key="fake-api-key")
 
     with patch.object(
         client.chat.completions.with_raw_response, "create"
     ) as mock_client:
         try:
-            litellm.completion(
+            gateway.completion(
                 model="openai/gpt-4o",
                 messages=[{"role": "user", "content": "Hello, how are you?"}],
                 service_tier="priority",
@@ -804,8 +804,8 @@ def test_openai_service_tier_parameter_sync():
 
 
 def test_gpt_5_reasoning_streaming():
-    litellm._turn_on_debug()
-    response = litellm.completion(
+    gateway._turn_on_debug()
+    response = gateway.completion(
         model="openai/responses/gpt-5-mini",
         messages=[{"role": "user", "content": "Think of a poem, and then write it."}],
         reasoning_effort="low",
@@ -825,7 +825,7 @@ def test_gpt_5_reasoning_streaming():
 
 
 def test_openai_gpt_5_codex_reasoning():
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
     completion_kwargs = {
         "model": "gpt-5.3-codex",
         "messages": [
@@ -1301,7 +1301,7 @@ def test_openai_gpt_5_codex_reasoning():
         "stream_options": {"include_usage": True},
     }
 
-    response = litellm.completion(**completion_kwargs)
+    response = gateway.completion(**completion_kwargs)
     print("response: ", response)
     for chunk in response:
         print("chunk: ", chunk)
@@ -1344,7 +1344,7 @@ async def test_streaming_tool_calls_with_n_greater_than_1(model):
         }
     ]
 
-    response = litellm.completion(
+    response = gateway.completion(
         model=model,
         messages=[
             {
@@ -1391,7 +1391,7 @@ async def test_streaming_content_with_n_greater_than_1(model):
     Test that the index field is correctly populated for regular content streaming
     (not tool calls) with n>1.
     """
-    response = litellm.completion(
+    response = gateway.completion(
         model=model,
         messages=[
             {
@@ -1431,7 +1431,7 @@ async def test_streaming_content_with_n_greater_than_1(model):
 
 
 def test_gpt_5_web_search():
-    response = litellm.completion(
+    response = gateway.completion(
         model="openai/responses/gpt-5",
         messages=[{"role": "user", "content": "get price of nvda"}],
         stream=True,
@@ -1453,8 +1453,8 @@ def test_responses_gpt54_with_xhigh_reasoning():
         # Stop execution right after request generation to avoid external API calls.
         mock_responses.side_effect = RuntimeError("stop_after_request_build")
 
-        with pytest.raises(litellm.APIConnectionError):
-            litellm.completion(
+        with pytest.raises(gateway.APIConnectionError):
+            gateway.completion(
                 model="openai/responses/gpt-5.4",
                 messages=[{"role": "user", "content": "What is 2+2?"}],
                 reasoning_effort="xhigh",

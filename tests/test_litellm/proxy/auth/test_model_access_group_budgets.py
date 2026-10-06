@@ -12,7 +12,7 @@ from unittest.mock import patch
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import Router
 from token_iq.gateway.proxy._types import (
     LiteLLM_BudgetTable,
@@ -370,7 +370,7 @@ async def test_group_exactly_at_its_max_budget_blocks_the_request():
     This is where the check departs from the tag one it otherwise mirrors, and it matches where
     keys and organizations already draw the line.
     """
-    with pytest.raises(litellm.BudgetExceededError) as exc_info:
+    with pytest.raises(gateway.BudgetExceededError) as exc_info:
         await _enforce(
             ("tier-a",),
             _MagBudgetRow("tier-a", max_budget=10.0),
@@ -411,7 +411,7 @@ async def test_a_non_positive_budget_means_no_budget():
 
 @pytest.mark.asyncio
 async def test_group_over_its_max_budget_blocks_the_request_and_names_the_group():
-    with pytest.raises(litellm.BudgetExceededError) as exc_info:
+    with pytest.raises(gateway.BudgetExceededError) as exc_info:
         await _enforce(
             ("tier-a",),
             _MagBudgetRow("tier-a", max_budget=10.0),
@@ -441,7 +441,7 @@ async def test_group_with_a_row_but_no_budget_never_blocks():
 @pytest.mark.asyncio
 async def test_a_cold_counter_falls_back_to_the_spend_recorded_on_the_row():
     """After a counter expires the DB row is the only record of the spend, so it has to be read."""
-    with pytest.raises(litellm.BudgetExceededError) as exc_info:
+    with pytest.raises(gateway.BudgetExceededError) as exc_info:
         await _enforce(("tier-a",), _MagBudgetRow("tier-a", spend=12.0, max_budget=10.0))
 
     assert exc_info.value.current_cost == 12.0
@@ -449,7 +449,7 @@ async def test_a_cold_counter_falls_back_to_the_spend_recorded_on_the_row():
 
 @pytest.mark.asyncio
 async def test_an_over_budget_group_blocks_even_when_another_matched_group_is_fine():
-    with pytest.raises(litellm.BudgetExceededError) as exc_info:
+    with pytest.raises(gateway.BudgetExceededError) as exc_info:
         await _enforce(
             ("tier-a", "tier-b"),
             _MagBudgetRow("tier-a", max_budget=10.0),
@@ -531,7 +531,7 @@ async def _common_checks_with_over_budget_group(*, skip_budget_checks: bool) -> 
 
 @pytest.mark.asyncio
 async def test_common_checks_blocks_a_request_whose_group_is_over_budget():
-    with pytest.raises(litellm.BudgetExceededError) as exc_info:
+    with pytest.raises(gateway.BudgetExceededError) as exc_info:
         await _common_checks_with_over_budget_group(skip_budget_checks=False)
 
     assert exc_info.value.entity_id == "tier-a"

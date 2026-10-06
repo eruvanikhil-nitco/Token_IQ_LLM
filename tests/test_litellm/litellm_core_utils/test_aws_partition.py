@@ -5,7 +5,7 @@ from urllib.parse import urlparse
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.integrations.s3_v2 import S3Logger
 from token_iq.gateway.core_utils.aws_partition import (
     AwsPartition,
@@ -183,7 +183,7 @@ def test_every_endpoint_builder_keeps_amazonaws_com_outside_cn(builder_name: str
 
 
 def _fstring_literal_offenders(needle: str) -> list[str]:
-    litellm_root = Path(litellm.__file__).parent
+    litellm_root = Path(gateway.__file__).parent
     return [
         f"{path.relative_to(litellm_root)}: {part.value!r}"
         for path in sorted(litellm_root.rglob("*.py"))

@@ -18,7 +18,7 @@ from token_iq.gateway.integrations.langsmith import (
     BatchGroup,
 )
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 
 # Test get_credentials_from_env
@@ -324,11 +324,11 @@ async def test_langsmith_key_based_logging():
         )
         mock_get_client.start()
 
-        litellm.set_verbose = True
-        litellm.DEFAULT_FLUSH_INTERVAL_SECONDS = 1
+        gateway.set_verbose = True
+        gateway.DEFAULT_FLUSH_INTERVAL_SECONDS = 1
 
-        litellm.callbacks = [LangsmithLogger()]
-        response = await litellm.acompletion(
+        gateway.callbacks = [LangsmithLogger()]
+        response = await gateway.acompletion(
             model="gpt-4.1-mini",
             messages=[{"role": "user", "content": "Test message"}],
             max_tokens=10,
@@ -458,13 +458,13 @@ async def test_langsmith_queue_logging():
         # Initialize LangsmithLogger
         test_langsmith_logger = LangsmithLogger()
 
-        litellm.callbacks = [test_langsmith_logger]
+        gateway.callbacks = [test_langsmith_logger]
         test_langsmith_logger.batch_size = 6
-        litellm.set_verbose = True
+        gateway.set_verbose = True
 
         # Make multiple calls to ensure we don't hit the batch size
         for _ in range(5):
-            response = await litellm.acompletion(
+            response = await gateway.acompletion(
                 model="gpt-4.1-mini",
                 messages=[{"role": "user", "content": "Test message"}],
                 max_tokens=10,
@@ -483,7 +483,7 @@ async def test_langsmith_queue_logging():
 
         # Now make calls to exceed the batch size
         for _ in range(3):
-            response = await litellm.acompletion(
+            response = await gateway.acompletion(
                 model="gpt-4.1-mini",
                 messages=[{"role": "user", "content": "Test message"}],
                 max_tokens=10,
@@ -506,7 +506,7 @@ async def test_langsmith_queue_logging():
         assert len(test_langsmith_logger.log_queue) < 5
 
         # Clean up
-        for cb in litellm.callbacks:
+        for cb in gateway.callbacks:
             if isinstance(cb, LangsmithLogger):
                 await cb.async_httpx_client.client.aclose()
 

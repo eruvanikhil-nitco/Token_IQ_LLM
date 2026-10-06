@@ -12,7 +12,7 @@ from openai import AsyncOpenAI, OpenAI
 from openai.types.beta.assistant import Assistant
 from openai.types.beta.assistant_deleted import AssistantDeleted
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.types.router import GenericLiteLLMParams
 from token_iq.gateway.utils import (
     exception_type,
@@ -104,22 +104,22 @@ def get_assistants(
     if custom_llm_provider == "openai":
         api_base = (
             optional_params.api_base  # for deepinfra/perplexity/anyscale/groq we check in get_llm_provider and pass in the api base from there
-            or litellm.api_base
+            or gateway.api_base
             or os.getenv("OPENAI_BASE_URL")
             or os.getenv("OPENAI_API_BASE")
             or "https://api.openai.com/v1"
         )
         organization: Final = (
             optional_params.organization
-            or litellm.organization
+            or gateway.organization
             or os.getenv("OPENAI_ORGANIZATION", None)
             or None  # default - https://github.com/openai/openai-python/blob/284c1799070c723c6a553337134148a7ab088dd8/openai/util.py#L105
         )
         # set API KEY
         api_key = (
             optional_params.api_key
-            or litellm.api_key  # for deepinfra/perplexity/anyscale we check in get_llm_provider and pass in the api key from there
-            or litellm.openai_key
+            or gateway.api_key  # for deepinfra/perplexity/anyscale we check in get_llm_provider and pass in the api key from there
+            or gateway.openai_key
             or os.getenv("OPENAI_API_KEY")
         )
 
@@ -133,14 +133,14 @@ def get_assistants(
             aget_assistants=aget_assistants,
         )
     elif custom_llm_provider == "azure":
-        api_base = optional_params.api_base or litellm.api_base or get_secret("AZURE_API_BASE")
+        api_base = optional_params.api_base or gateway.api_base or get_secret("AZURE_API_BASE")
 
-        api_version = optional_params.api_version or litellm.api_version or get_secret("AZURE_API_VERSION")
+        api_version = optional_params.api_version or gateway.api_version or get_secret("AZURE_API_VERSION")
 
         api_key = (
             optional_params.api_key
-            or litellm.api_key
-            or litellm.azure_key
+            or gateway.api_key
+            or gateway.azure_key
             or get_secret("AZURE_OPENAI_API_KEY")
             or get_secret("AZURE_API_KEY")
         )
@@ -164,7 +164,7 @@ def get_assistants(
             litellm_params=litellm_params_dict,
         )
     else:
-        raise litellm.exceptions.BadRequestError(
+        raise gateway.exceptions.BadRequestError(
             message=f"LiteLLM doesn't support {custom_llm_provider} for 'get_assistants'. Only 'openai' is supported.",
             model="n/a",
             llm_provider=custom_llm_provider,
@@ -176,7 +176,7 @@ def get_assistants(
         )
 
     if response is None:
-        raise litellm.exceptions.BadRequestError(
+        raise gateway.exceptions.BadRequestError(
             message=f"LiteLLM doesn't support {custom_llm_provider} for 'get_assistants'. Only 'openai' is supported.",
             model="n/a",
             llm_provider=custom_llm_provider,
@@ -287,22 +287,22 @@ def create_assistants(
     if custom_llm_provider == "openai":
         api_base = (
             optional_params.api_base  # for deepinfra/perplexity/anyscale/groq we check in get_llm_provider and pass in the api base from there
-            or litellm.api_base
+            or gateway.api_base
             or os.getenv("OPENAI_BASE_URL")
             or os.getenv("OPENAI_API_BASE")
             or "https://api.openai.com/v1"
         )
         organization: Final = (
             optional_params.organization
-            or litellm.organization
+            or gateway.organization
             or os.getenv("OPENAI_ORGANIZATION", None)
             or None  # default - https://github.com/openai/openai-python/blob/284c1799070c723c6a553337134148a7ab088dd8/openai/util.py#L105
         )
         # set API KEY
         api_key = (
             optional_params.api_key
-            or litellm.api_key  # for deepinfra/perplexity/anyscale we check in get_llm_provider and pass in the api key from there
-            or litellm.openai_key
+            or gateway.api_key  # for deepinfra/perplexity/anyscale we check in get_llm_provider and pass in the api key from there
+            or gateway.openai_key
             or os.getenv("OPENAI_API_KEY")
         )
 
@@ -317,14 +317,14 @@ def create_assistants(
             async_create_assistants=async_create_assistants,
         )
     elif custom_llm_provider == "azure":
-        api_base = optional_params.api_base or litellm.api_base or get_secret("AZURE_API_BASE")
+        api_base = optional_params.api_base or gateway.api_base or get_secret("AZURE_API_BASE")
 
-        api_version = optional_params.api_version or litellm.api_version or get_secret("AZURE_API_VERSION")
+        api_version = optional_params.api_version or gateway.api_version or get_secret("AZURE_API_VERSION")
 
         api_key = (
             optional_params.api_key
-            or litellm.api_key
-            or litellm.azure_key
+            or gateway.api_key
+            or gateway.azure_key
             or get_secret("AZURE_OPENAI_API_KEY")
             or get_secret("AZURE_API_KEY")
         )
@@ -352,7 +352,7 @@ def create_assistants(
             litellm_params=litellm_params_dict,
         )
     else:
-        raise litellm.exceptions.BadRequestError(
+        raise gateway.exceptions.BadRequestError(
             message=f"LiteLLM doesn't support {custom_llm_provider} for 'create_assistants'. Only 'openai' is supported.",
             model="n/a",
             llm_provider=custom_llm_provider,
@@ -363,7 +363,7 @@ def create_assistants(
             ),
         )
     if response is None:
-        raise litellm.exceptions.InternalServerError(
+        raise gateway.exceptions.InternalServerError(
             message="No response returned from 'create_assistants'",
             model=model,
             llm_provider=custom_llm_provider,
@@ -444,16 +444,16 @@ def delete_assistant(
     if custom_llm_provider == "openai":
         api_base = (
             optional_params.api_base
-            or litellm.api_base
+            or gateway.api_base
             or os.getenv("OPENAI_BASE_URL")
             or os.getenv("OPENAI_API_BASE")
             or "https://api.openai.com/v1"
         )
         organization: Final = (
-            optional_params.organization or litellm.organization or os.getenv("OPENAI_ORGANIZATION", None) or None
+            optional_params.organization or gateway.organization or os.getenv("OPENAI_ORGANIZATION", None) or None
         )
         # set API KEY
-        api_key = optional_params.api_key or litellm.api_key or litellm.openai_key or os.getenv("OPENAI_API_KEY")
+        api_key = optional_params.api_key or gateway.api_key or gateway.openai_key or os.getenv("OPENAI_API_KEY")
 
         response = openai_assistants_api.delete_assistant(
             api_base=api_base,
@@ -466,14 +466,14 @@ def delete_assistant(
             async_delete_assistants=async_delete_assistants,
         )
     elif custom_llm_provider == "azure":
-        api_base = optional_params.api_base or litellm.api_base or get_secret("AZURE_API_BASE")
+        api_base = optional_params.api_base or gateway.api_base or get_secret("AZURE_API_BASE")
 
-        api_version = optional_params.api_version or litellm.api_version or get_secret("AZURE_API_VERSION")
+        api_version = optional_params.api_version or gateway.api_version or get_secret("AZURE_API_VERSION")
 
         api_key = (
             optional_params.api_key
-            or litellm.api_key
-            or litellm.azure_key
+            or gateway.api_key
+            or gateway.azure_key
             or get_secret("AZURE_OPENAI_API_KEY")
             or get_secret("AZURE_API_KEY")
         )
@@ -501,7 +501,7 @@ def delete_assistant(
             litellm_params=litellm_params_dict,
         )
     else:
-        raise litellm.exceptions.BadRequestError(
+        raise gateway.exceptions.BadRequestError(
             message=f"LiteLLM doesn't support {custom_llm_provider} for 'delete_assistant'. Only 'openai' is supported.",
             model="n/a",
             llm_provider=custom_llm_provider,
@@ -512,7 +512,7 @@ def delete_assistant(
             ),
         )
     if response is None:
-        raise litellm.exceptions.InternalServerError(
+        raise gateway.exceptions.InternalServerError(
             message="No response returned from 'delete_assistant'",
             model="n/a",
             llm_provider=custom_llm_provider,
@@ -611,22 +611,22 @@ def create_thread(
     if custom_llm_provider == "openai":
         api_base = (
             optional_params.api_base  # for deepinfra/perplexity/anyscale/groq we check in get_llm_provider and pass in the api base from there
-            or litellm.api_base
+            or gateway.api_base
             or os.getenv("OPENAI_BASE_URL")
             or os.getenv("OPENAI_API_BASE")
             or "https://api.openai.com/v1"
         )
         organization: Final = (
             optional_params.organization
-            or litellm.organization
+            or gateway.organization
             or os.getenv("OPENAI_ORGANIZATION", None)
             or None  # default - https://github.com/openai/openai-python/blob/284c1799070c723c6a553337134148a7ab088dd8/openai/util.py#L105
         )
         # set API KEY
         api_key = (
             optional_params.api_key
-            or litellm.api_key  # for deepinfra/perplexity/anyscale we check in get_llm_provider and pass in the api key from there
-            or litellm.openai_key
+            or gateway.api_key  # for deepinfra/perplexity/anyscale we check in get_llm_provider and pass in the api key from there
+            or gateway.openai_key
             or os.getenv("OPENAI_API_KEY")
         )
         response = openai_assistants_api.create_thread(
@@ -641,17 +641,17 @@ def create_thread(
             acreate_thread=acreate_thread,
         )
     elif custom_llm_provider == "azure":
-        api_base = optional_params.api_base or litellm.api_base or get_secret("AZURE_API_BASE")
+        api_base = optional_params.api_base or gateway.api_base or get_secret("AZURE_API_BASE")
 
         api_key = (
             optional_params.api_key
-            or litellm.api_key
-            or litellm.azure_key
+            or gateway.api_key
+            or gateway.azure_key
             or get_secret("AZURE_OPENAI_API_KEY")
             or get_secret("AZURE_API_KEY")
         )
 
-        api_version: str | None = optional_params.api_version or litellm.api_version or get_secret("AZURE_API_VERSION")
+        api_version: str | None = optional_params.api_version or gateway.api_version or get_secret("AZURE_API_VERSION")
 
         extra_body: Final = optional_params.get("extra_body", {})
         azure_ad_token: str | None = None
@@ -677,7 +677,7 @@ def create_thread(
             litellm_params=litellm_params_dict,
         )
     else:
-        raise litellm.exceptions.BadRequestError(
+        raise gateway.exceptions.BadRequestError(
             message=f"LiteLLM doesn't support {custom_llm_provider} for 'create_thread'. Only 'openai' is supported.",
             model="n/a",
             llm_provider=custom_llm_provider,
@@ -757,22 +757,22 @@ def get_thread(
     if custom_llm_provider == "openai":
         api_base = (
             optional_params.api_base  # for deepinfra/perplexity/anyscale/groq we check in get_llm_provider and pass in the api base from there
-            or litellm.api_base
+            or gateway.api_base
             or os.getenv("OPENAI_BASE_URL")
             or os.getenv("OPENAI_API_BASE")
             or "https://api.openai.com/v1"
         )
         organization: Final = (
             optional_params.organization
-            or litellm.organization
+            or gateway.organization
             or os.getenv("OPENAI_ORGANIZATION", None)
             or None  # default - https://github.com/openai/openai-python/blob/284c1799070c723c6a553337134148a7ab088dd8/openai/util.py#L105
         )
         # set API KEY
         api_key = (
             optional_params.api_key
-            or litellm.api_key  # for deepinfra/perplexity/anyscale we check in get_llm_provider and pass in the api key from there
-            or litellm.openai_key
+            or gateway.api_key  # for deepinfra/perplexity/anyscale we check in get_llm_provider and pass in the api key from there
+            or gateway.openai_key
             or os.getenv("OPENAI_API_KEY")
         )
 
@@ -787,14 +787,14 @@ def get_thread(
             aget_thread=aget_thread,
         )
     elif custom_llm_provider == "azure":
-        api_base = optional_params.api_base or litellm.api_base or get_secret("AZURE_API_BASE")
+        api_base = optional_params.api_base or gateway.api_base or get_secret("AZURE_API_BASE")
 
-        api_version: str | None = optional_params.api_version or litellm.api_version or get_secret("AZURE_API_VERSION")
+        api_version: str | None = optional_params.api_version or gateway.api_version or get_secret("AZURE_API_VERSION")
 
         api_key = (
             optional_params.api_key
-            or litellm.api_key
-            or litellm.azure_key
+            or gateway.api_key
+            or gateway.azure_key
             or get_secret("AZURE_OPENAI_API_KEY")
             or get_secret("AZURE_API_KEY")
         )
@@ -822,7 +822,7 @@ def get_thread(
             litellm_params=litellm_params_dict,
         )
     else:
-        raise litellm.exceptions.BadRequestError(
+        raise gateway.exceptions.BadRequestError(
             message=f"LiteLLM doesn't support {custom_llm_provider} for 'get_thread'. Only 'openai' is supported.",
             model="n/a",
             llm_provider=custom_llm_provider,
@@ -934,22 +934,22 @@ def add_message(
     if custom_llm_provider == "openai":
         api_base = (
             optional_params.api_base  # for deepinfra/perplexity/anyscale/groq we check in get_llm_provider and pass in the api base from there
-            or litellm.api_base
+            or gateway.api_base
             or os.getenv("OPENAI_BASE_URL")
             or os.getenv("OPENAI_API_BASE")
             or "https://api.openai.com/v1"
         )
         organization: Final = (
             optional_params.organization
-            or litellm.organization
+            or gateway.organization
             or os.getenv("OPENAI_ORGANIZATION", None)
             or None  # default - https://github.com/openai/openai-python/blob/284c1799070c723c6a553337134148a7ab088dd8/openai/util.py#L105
         )
         # set API KEY
         api_key = (
             optional_params.api_key
-            or litellm.api_key  # for deepinfra/perplexity/anyscale we check in get_llm_provider and pass in the api key from there
-            or litellm.openai_key
+            or gateway.api_key  # for deepinfra/perplexity/anyscale we check in get_llm_provider and pass in the api key from there
+            or gateway.openai_key
             or os.getenv("OPENAI_API_KEY")
         )
         response = openai_assistants_api.add_message(
@@ -964,14 +964,14 @@ def add_message(
             a_add_message=a_add_message,
         )
     elif custom_llm_provider == "azure":
-        api_base = optional_params.api_base or litellm.api_base or get_secret("AZURE_API_BASE")
+        api_base = optional_params.api_base or gateway.api_base or get_secret("AZURE_API_BASE")
 
-        api_version: str | None = optional_params.api_version or litellm.api_version or get_secret("AZURE_API_VERSION")
+        api_version: str | None = optional_params.api_version or gateway.api_version or get_secret("AZURE_API_VERSION")
 
         api_key = (
             optional_params.api_key
-            or litellm.api_key
-            or litellm.azure_key
+            or gateway.api_key
+            or gateway.azure_key
             or get_secret("AZURE_OPENAI_API_KEY")
             or get_secret("AZURE_API_KEY")
         )
@@ -997,7 +997,7 @@ def add_message(
             litellm_params=litellm_params_dict,
         )
     else:
-        raise litellm.exceptions.BadRequestError(
+        raise gateway.exceptions.BadRequestError(
             message=f"LiteLLM doesn't support {custom_llm_provider} for 'create_thread'. Only 'openai' is supported.",
             model="n/a",
             llm_provider=custom_llm_provider,
@@ -1086,22 +1086,22 @@ def get_messages(
     if custom_llm_provider == "openai":
         api_base = (
             optional_params.api_base  # for deepinfra/perplexity/anyscale/groq we check in get_llm_provider and pass in the api base from there
-            or litellm.api_base
+            or gateway.api_base
             or os.getenv("OPENAI_BASE_URL")
             or os.getenv("OPENAI_API_BASE")
             or "https://api.openai.com/v1"
         )
         organization: Final = (
             optional_params.organization
-            or litellm.organization
+            or gateway.organization
             or os.getenv("OPENAI_ORGANIZATION", None)
             or None  # default - https://github.com/openai/openai-python/blob/284c1799070c723c6a553337134148a7ab088dd8/openai/util.py#L105
         )
         # set API KEY
         api_key = (
             optional_params.api_key
-            or litellm.api_key  # for deepinfra/perplexity/anyscale we check in get_llm_provider and pass in the api key from there
-            or litellm.openai_key
+            or gateway.api_key  # for deepinfra/perplexity/anyscale we check in get_llm_provider and pass in the api key from there
+            or gateway.openai_key
             or os.getenv("OPENAI_API_KEY")
         )
         response = openai_assistants_api.get_messages(
@@ -1115,14 +1115,14 @@ def get_messages(
             aget_messages=aget_messages,
         )
     elif custom_llm_provider == "azure":
-        api_base = optional_params.api_base or litellm.api_base or get_secret("AZURE_API_BASE")
+        api_base = optional_params.api_base or gateway.api_base or get_secret("AZURE_API_BASE")
 
-        api_version: str | None = optional_params.api_version or litellm.api_version or get_secret("AZURE_API_VERSION")
+        api_version: str | None = optional_params.api_version or gateway.api_version or get_secret("AZURE_API_VERSION")
 
         api_key = (
             optional_params.api_key
-            or litellm.api_key
-            or litellm.azure_key
+            or gateway.api_key
+            or gateway.azure_key
             or get_secret("AZURE_OPENAI_API_KEY")
             or get_secret("AZURE_API_KEY")
         )
@@ -1147,7 +1147,7 @@ def get_messages(
             litellm_params=litellm_params_dict,
         )
     else:
-        raise litellm.exceptions.BadRequestError(
+        raise gateway.exceptions.BadRequestError(
             message=f"LiteLLM doesn't support {custom_llm_provider} for 'get_messages'. Only 'openai' is supported.",
             model="n/a",
             llm_provider=custom_llm_provider,
@@ -1275,22 +1275,22 @@ def run_thread(
     if custom_llm_provider == "openai":
         api_base = (
             optional_params.api_base  # for deepinfra/perplexity/anyscale/groq we check in get_llm_provider and pass in the api base from there
-            or litellm.api_base
+            or gateway.api_base
             or os.getenv("OPENAI_BASE_URL")
             or os.getenv("OPENAI_API_BASE")
             or "https://api.openai.com/v1"
         )
         organization: Final = (
             optional_params.organization
-            or litellm.organization
+            or gateway.organization
             or os.getenv("OPENAI_ORGANIZATION", None)
             or None  # default - https://github.com/openai/openai-python/blob/284c1799070c723c6a553337134148a7ab088dd8/openai/util.py#L105
         )
         # set API KEY
         api_key = (
             optional_params.api_key
-            or litellm.api_key  # for deepinfra/perplexity/anyscale we check in get_llm_provider and pass in the api key from there
-            or litellm.openai_key
+            or gateway.api_key  # for deepinfra/perplexity/anyscale we check in get_llm_provider and pass in the api key from there
+            or gateway.openai_key
             or os.getenv("OPENAI_API_KEY")
         )
 
@@ -1313,14 +1313,14 @@ def run_thread(
             event_handler=event_handler,
         )
     elif custom_llm_provider == "azure":
-        api_base = optional_params.api_base or litellm.api_base or get_secret("AZURE_API_BASE")
+        api_base = optional_params.api_base or gateway.api_base or get_secret("AZURE_API_BASE")
 
-        api_version = optional_params.api_version or litellm.api_version or get_secret("AZURE_API_VERSION")
+        api_version = optional_params.api_version or gateway.api_version or get_secret("AZURE_API_VERSION")
 
         api_key = (
             optional_params.api_key
-            or litellm.api_key
-            or litellm.azure_key
+            or gateway.api_key
+            or gateway.azure_key
             or get_secret("AZURE_OPENAI_API_KEY")
             or get_secret("AZURE_API_KEY")
         )
@@ -1352,7 +1352,7 @@ def run_thread(
             litellm_params=litellm_params_dict,
         )
     else:
-        raise litellm.exceptions.BadRequestError(
+        raise gateway.exceptions.BadRequestError(
             message=f"LiteLLM doesn't support {custom_llm_provider} for 'run_thread'. Only 'openai' is supported.",
             model="n/a",
             llm_provider=custom_llm_provider,

@@ -493,7 +493,7 @@ class SkillsInjectionHook(CustomLogger):
 
         Returns the final response with generated files inline.
         """
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.llms.litellm_proxy.skills.code_execution import (
             LiteLLMInternalTools,
         )
@@ -587,7 +587,7 @@ class SkillsInjectionHook(CustomLogger):
             # Make next LLM call
             verbose_proxy_logger.debug("SkillsInjectionHook: Making LLM call iteration %s", iteration + 2)
             try:
-                current_response = await litellm.anthropic.acreate(
+                current_response = await gateway.anthropic.acreate(
                     model=model,
                     messages=messages,
                     tools=tools,
@@ -723,7 +723,7 @@ print('No executable skill module found')
 
         Returns the final response with generated files inline.
         """
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.llms.litellm_proxy.skills.code_execution import (
             LiteLLMInternalTools,
         )
@@ -814,7 +814,7 @@ print('No executable skill module found')
 
             # Make next LLM call using the messages API
             verbose_proxy_logger.debug("SkillsInjectionHook: Making LLM call iteration %s", iteration + 2)
-            current_response = await litellm.anthropic.acreate(
+            current_response = await gateway.anthropic.acreate(
                 model=model,
                 messages=messages,
                 tools=tools,
@@ -918,6 +918,6 @@ print('No executable skill module found')
 # Global instance for registration
 skills_injection_hook: Final = SkillsInjectionHook()
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
-litellm.logging_callback_manager.add_litellm_callback(skills_injection_hook)
+gateway.logging_callback_manager.add_litellm_callback(skills_injection_hook)

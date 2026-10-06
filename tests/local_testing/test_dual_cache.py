@@ -13,7 +13,7 @@ import random
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import aembedding, completion, embedding
 from token_iq.gateway.caching.caching import Cache
 

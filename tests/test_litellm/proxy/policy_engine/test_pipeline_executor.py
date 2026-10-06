@@ -8,7 +8,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
 from token_iq.gateway.proxy.guardrails.guardrail_hooks.custom_code.custom_code_guardrail import (
     CustomCodeGuardrail,
@@ -182,7 +182,7 @@ async def test_escalation_step1_fails_step2_blocks(monkeypatch):
         ],
     )
 
-    monkeypatch.setattr(litellm, "callbacks", [simple_guard, advanced_guard])
+    monkeypatch.setattr(gateway, "callbacks", [simple_guard, advanced_guard])
 
     result = await PipelineExecutor.execute_steps(
         steps=pipeline.steps,
@@ -218,7 +218,7 @@ async def test_block_carries_original_guardrail_exception(monkeypatch):
         steps=[PipelineStep(guardrail="moderation-filter", on_fail="block", on_pass="allow")],
     )
 
-    monkeypatch.setattr(litellm, "callbacks", [guard])
+    monkeypatch.setattr(gateway, "callbacks", [guard])
 
     result = await PipelineExecutor.execute_steps(
         steps=pipeline.steps,
@@ -241,7 +241,7 @@ async def test_unsupported_mode_yields_error_outcome_without_exception(monkeypat
     original exception), not crash or run the guardrail."""
     guard = AlwaysPassGuardrail(guardrail_name="filter")
 
-    monkeypatch.setattr(litellm, "callbacks", [guard])
+    monkeypatch.setattr(gateway, "callbacks", [guard])
 
     result = await PipelineExecutor.execute_steps(
         steps=[PipelineStep(guardrail="filter", on_error="block", on_fail="block")],
@@ -279,7 +279,7 @@ async def test_passthrough_guardrail_failure_can_pipeline_block(monkeypatch):
         ],
     )
 
-    monkeypatch.setattr(litellm, "callbacks", [passthrough_guard])
+    monkeypatch.setattr(gateway, "callbacks", [passthrough_guard])
 
     result = await PipelineExecutor.execute_steps(
         steps=pipeline.steps,
@@ -325,7 +325,7 @@ async def test_custom_code_guardrail_failure_can_pipeline_block(monkeypatch):
         ],
     )
 
-    monkeypatch.setattr(litellm, "callbacks", [custom_guard])
+    monkeypatch.setattr(gateway, "callbacks", [custom_guard])
 
     result = await PipelineExecutor.execute_steps(
         steps=pipeline.steps,
@@ -366,7 +366,7 @@ async def test_early_allow_step1_passes_step2_skipped(monkeypatch):
         ],
     )
 
-    monkeypatch.setattr(litellm, "callbacks", [simple_guard, advanced_guard])
+    monkeypatch.setattr(gateway, "callbacks", [simple_guard, advanced_guard])
 
     result = await PipelineExecutor.execute_steps(
         steps=pipeline.steps,
@@ -404,7 +404,7 @@ async def test_escalation_step1_fails_step2_passes(monkeypatch):
         ],
     )
 
-    monkeypatch.setattr(litellm, "callbacks", [simple_guard, advanced_guard])
+    monkeypatch.setattr(gateway, "callbacks", [simple_guard, advanced_guard])
 
     result = await PipelineExecutor.execute_steps(
         steps=pipeline.steps,
@@ -449,7 +449,7 @@ async def test_data_forwarding_pii_masking(monkeypatch):
         ],
     )
 
-    monkeypatch.setattr(litellm, "callbacks", [pii_guard, content_guard])
+    monkeypatch.setattr(gateway, "callbacks", [pii_guard, content_guard])
 
     result = await PipelineExecutor.execute_steps(
         steps=pipeline.steps,
@@ -498,7 +498,7 @@ async def test_scan_raw_request_step_sees_pre_pipeline_content(monkeypatch):
         ],
     )
 
-    monkeypatch.setattr(litellm, "callbacks", [pii_guard, content_guard])
+    monkeypatch.setattr(gateway, "callbacks", [pii_guard, content_guard])
     original_data = {"messages": [{"role": "user", "content": "Hello John Smith"}]}
 
     result = await PipelineExecutor.execute_steps(
@@ -533,7 +533,7 @@ async def test_guardrail_not_found_uses_on_fail(monkeypatch):
         ],
     )
 
-    monkeypatch.setattr(litellm, "callbacks", [])
+    monkeypatch.setattr(gateway, "callbacks", [])
 
     result = await PipelineExecutor.execute_steps(
         steps=pipeline.steps,
@@ -577,7 +577,7 @@ async def test_on_error_next_fallback_on_api_outage_on_fail_blocks_content(monke
         ],
     )
 
-    monkeypatch.setattr(litellm, "callbacks", [primary, fallback])
+    monkeypatch.setattr(gateway, "callbacks", [primary, fallback])
 
     result = await PipelineExecutor.execute_steps(
         steps=pipeline.steps,
@@ -624,7 +624,7 @@ async def test_on_fail_next_on_content_on_error_block_stops_api_fallback(monkeyp
         ],
     )
 
-    monkeypatch.setattr(litellm, "callbacks", [primary_content, fallback])
+    monkeypatch.setattr(gateway, "callbacks", [primary_content, fallback])
 
     result = await PipelineExecutor.execute_steps(
         steps=pipeline_content.steps,
@@ -640,7 +640,7 @@ async def test_on_fail_next_on_content_on_error_block_stops_api_fallback(monkeyp
 
     # API outage: on_error block -> do not run fallback
     fallback.calls = 0
-    monkeypatch.setattr(litellm, "callbacks", [primary_api, fallback])
+    monkeypatch.setattr(gateway, "callbacks", [primary_api, fallback])
     result = await PipelineExecutor.execute_steps(
         steps=pipeline_content.steps,
         mode=pipeline_content.mode,
@@ -679,7 +679,7 @@ async def test_guardrail_not_found_with_next_continues(monkeypatch):
         ],
     )
 
-    monkeypatch.setattr(litellm, "callbacks", [pass_guard])
+    monkeypatch.setattr(gateway, "callbacks", [pass_guard])
 
     result = await PipelineExecutor.execute_steps(
         steps=pipeline.steps,
@@ -709,7 +709,7 @@ async def test_single_step_pipeline_block(monkeypatch):
         steps=[PipelineStep(guardrail="blocker", on_fail="block")],
     )
 
-    monkeypatch.setattr(litellm, "callbacks", [guard])
+    monkeypatch.setattr(gateway, "callbacks", [guard])
 
     result = await PipelineExecutor.execute_steps(
         steps=pipeline.steps,
@@ -734,7 +734,7 @@ async def test_single_step_pipeline_allow(monkeypatch):
         steps=[PipelineStep(guardrail="passer", on_pass="allow")],
     )
 
-    monkeypatch.setattr(litellm, "callbacks", [guard])
+    monkeypatch.setattr(gateway, "callbacks", [guard])
 
     result = await PipelineExecutor.execute_steps(
         steps=pipeline.steps,
@@ -764,7 +764,7 @@ async def test_allow_restores_independent_guardrails_list(monkeypatch):
         steps=[PipelineStep(guardrail="input-scan", on_fail="block", on_pass="allow")],
     )
 
-    monkeypatch.setattr(litellm, "callbacks", [pipeline_guard])
+    monkeypatch.setattr(gateway, "callbacks", [pipeline_guard])
 
     data = {
         "messages": [{"role": "user", "content": "clean content"}],
@@ -796,7 +796,7 @@ async def test_allow_does_not_leak_guardrails_into_bare_request(monkeypatch):
         steps=[PipelineStep(guardrail="input-scan", on_fail="block", on_pass="allow")],
     )
 
-    monkeypatch.setattr(litellm, "callbacks", [pipeline_guard])
+    monkeypatch.setattr(gateway, "callbacks", [pipeline_guard])
 
     data = {"messages": [{"role": "user", "content": "clean content"}]}
     result = await PipelineExecutor.execute_steps(
@@ -828,7 +828,7 @@ async def test_data_forwarding_keeps_changes_and_restores_guardrails_list(monkey
         ],
     )
 
-    monkeypatch.setattr(litellm, "callbacks", [pii_guard, content_guard])
+    monkeypatch.setattr(gateway, "callbacks", [pii_guard, content_guard])
 
     data = {
         "messages": [{"role": "user", "content": "Hello John Smith"}],
@@ -859,7 +859,7 @@ async def test_step_results_include_duration(monkeypatch):
         steps=[PipelineStep(guardrail="timed")],
     )
 
-    monkeypatch.setattr(litellm, "callbacks", [guard])
+    monkeypatch.setattr(gateway, "callbacks", [guard])
 
     result = await PipelineExecutor.execute_steps(
         steps=pipeline.steps,
@@ -897,7 +897,7 @@ class _PolicyOptOutGuardrail(CustomGuardrail):
 @pytest.mark.asyncio
 async def test_pipeline_step_keeps_native_hook_when_opted_out(monkeypatch):
     guardrail = _PolicyOptOutGuardrail()
-    monkeypatch.setattr(litellm, "callbacks", [guardrail])
+    monkeypatch.setattr(gateway, "callbacks", [guardrail])
 
     data = {"messages": [{"role": "user", "content": "hi"}]}
     outcome, _, _, _ = await PipelineExecutor._run_step(

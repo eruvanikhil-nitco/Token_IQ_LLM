@@ -14,7 +14,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy.common_utils.user_api_key_cache import UserApiKeyCache
 from token_iq.gateway.proxy.utils import (
     ProxyLogging,
@@ -237,7 +237,7 @@ def test_add_proxy_hooks_registers_callbacks(proxy_logging, monkeypatch):
     monkeypatch.setattr(utils_mod, "PROXY_HOOKS", hook_keys)
     monkeypatch.setattr(utils_mod, "get_proxy_hook", fake_get_proxy_hook)
     monkeypatch.setattr(
-        litellm.logging_callback_manager,
+        gateway.logging_callback_manager,
         "add_litellm_callback",
         lambda cb: registered.append(cb),
     )
@@ -288,7 +288,7 @@ def test_add_proxy_hooks_skips_prisma_requiring_hook_when_no_db(proxy_logging, m
     monkeypatch.setattr(utils_mod, "PROXY_HOOKS", list(hook_classes.keys()))
     monkeypatch.setattr(utils_mod, "get_proxy_hook", hook_classes.__getitem__)
     monkeypatch.setattr(
-        litellm.logging_callback_manager,
+        gateway.logging_callback_manager,
         "add_litellm_callback",
         lambda cb: registered.append(cb),
     )
@@ -320,7 +320,7 @@ def test_add_proxy_hooks_registers_prisma_requiring_hook_with_db(proxy_logging, 
     monkeypatch.setattr(utils_mod, "PROXY_HOOKS", list(hook_classes.keys()))
     monkeypatch.setattr(utils_mod, "get_proxy_hook", hook_classes.__getitem__)
     monkeypatch.setattr(
-        litellm.logging_callback_manager,
+        gateway.logging_callback_manager,
         "add_litellm_callback",
         lambda cb: registered.append(cb),
     )
@@ -404,12 +404,12 @@ def test_get_proxy_hook_non_string_key_raises(proxy_logging):
 def test_init_litellm_callbacks_replaces_string_with_instance(proxy_logging, monkeypatch):
     from token_iq.gateway.proxy import utils as utils_mod
 
-    sentinel_instance = MagicMock(spec=litellm.integrations.custom_logger.CustomLogger)
-    sentinel_instance.__class__ = litellm.integrations.custom_logger.CustomLogger
+    sentinel_instance = MagicMock(spec=gateway.integrations.custom_logger.CustomLogger)
+    sentinel_instance.__class__ = gateway.integrations.custom_logger.CustomLogger
 
-    monkeypatch.setattr(litellm, "callbacks", ["some-string-logger"])
+    monkeypatch.setattr(gateway, "callbacks", ["some-string-logger"])
     monkeypatch.setattr(
-        litellm.core_utils.litellm_logging,
+        gateway.core_utils.litellm_logging,
         "_init_custom_logger_compatible_class",
         lambda *a, **kw: sentinel_instance,
     )
@@ -417,9 +417,9 @@ def test_init_litellm_callbacks_replaces_string_with_instance(proxy_logging, mon
     monkeypatch.setattr(utils_mod, "PROXY_HOOKS", [])
     proxy_logging._init_litellm_callbacks(llm_router=None)
     snapshot = {
-        "replaced_first_item": litellm.callbacks[0] is sentinel_instance,
-        "callbacks_grew_with_service": len(litellm.callbacks) >= 2,
-        "service_logging_appended": any("ServiceLogging" in type(c).__name__ for c in litellm.callbacks),
+        "replaced_first_item": gateway.callbacks[0] is sentinel_instance,
+        "callbacks_grew_with_service": len(gateway.callbacks) >= 2,
+        "service_logging_appended": any("ServiceLogging" in type(c).__name__ for c in gateway.callbacks),
     }
     assert snapshot == {
         "replaced_first_item": True,
@@ -431,24 +431,24 @@ def test_init_litellm_callbacks_replaces_string_with_instance(proxy_logging, mon
 def test_init_litellm_callbacks_string_resolution_failure_keeps_string(proxy_logging, monkeypatch):
     from token_iq.gateway.proxy import utils as utils_mod
 
-    monkeypatch.setattr(litellm, "callbacks", ["unknown-logger"])
+    monkeypatch.setattr(gateway, "callbacks", ["unknown-logger"])
     monkeypatch.setattr(
-        litellm.core_utils.litellm_logging,
+        gateway.core_utils.litellm_logging,
         "_init_custom_logger_compatible_class",
         lambda *a, **kw: None,
     )
     monkeypatch.setattr(utils_mod, "PROXY_HOOKS", [])
     proxy_logging._init_litellm_callbacks(llm_router=None)
     # Resolver returned None — original string remains in place at idx 0.
-    assert litellm.callbacks[0] == "unknown-logger"
+    assert gateway.callbacks[0] == "unknown-logger"
 
 
 def test_init_litellm_callbacks_propagates_resolver_error_raises(proxy_logging, monkeypatch):
     from token_iq.gateway.proxy import utils as utils_mod
 
-    monkeypatch.setattr(litellm, "callbacks", ["raises-on-init"])
+    monkeypatch.setattr(gateway, "callbacks", ["raises-on-init"])
     monkeypatch.setattr(
-        litellm.core_utils.litellm_logging,
+        gateway.core_utils.litellm_logging,
         "_init_custom_logger_compatible_class",
         MagicMock(side_effect=RuntimeError("bad init")),
     )

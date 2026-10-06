@@ -30,7 +30,7 @@ import os
 import pytest
 from unittest.mock import MagicMock
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 
 @pytest.mark.asyncio
@@ -48,7 +48,7 @@ async def test_azure_ai_agents_acompletion_non_streaming():
             "AZURE_AGENTS_API_BASE and AZURE_AGENTS_API_KEY environment variables required"
         )
 
-    response = await litellm.acompletion(
+    response = await gateway.acompletion(
         model=f"azure_ai/agents/{agent_id}",
         messages=[{"role": "user", "content": "Hi Agent, what is 25 * 4?"}],
         api_base=api_base,
@@ -85,7 +85,7 @@ async def test_azure_ai_agents_acompletion_streaming():
             "AZURE_AGENTS_API_BASE and AZURE_AGENTS_API_KEY environment variables required"
         )
 
-    response = await litellm.acompletion(
+    response = await gateway.acompletion(
         model=f"azure_ai/agents/{agent_id}",
         messages=[{"role": "user", "content": "Hi Agent, what is 10 + 5?"}],
         api_base=api_base,
@@ -654,7 +654,7 @@ async def test_azure_ai_agents_conversation_continuity():
 
     try:
         # First message
-        response1 = await litellm.acompletion(
+        response1 = await gateway.acompletion(
             model=f"azure_ai/agents/{agent_id}",
             messages=[{"role": "user", "content": "My name is Alice. Remember this."}],
             api_base=api_base,
@@ -671,7 +671,7 @@ async def test_azure_ai_agents_conversation_continuity():
 
         if thread_id:
             # Second message using the same thread
-            response2 = await litellm.acompletion(
+            response2 = await gateway.acompletion(
                 model=f"azure_ai/agents/{agent_id}",
                 messages=[{"role": "user", "content": "What is my name?"}],
                 api_base=api_base,

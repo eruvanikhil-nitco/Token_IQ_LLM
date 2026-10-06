@@ -7,7 +7,7 @@ import importlib
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.compression.scoring.bm25 import bm25_score_messages
 from token_iq.gateway.compression.scoring.embedding_scorer import embedding_score_messages
 from token_iq.gateway.compression.content_detection import detect_content_type
@@ -154,7 +154,7 @@ def test_retrieval_tool_description_lists_keys():
 
 def test_compress_below_trigger_passthrough():
     messages = [{"role": "user", "content": "hello"}]
-    result = litellm.compress(messages, model="gpt-4o", call_type=CALL_TYPE)
+    result = gateway.compress(messages, model="gpt-4o", call_type=CALL_TYPE)
     assert result["messages"] == messages
     assert result["cache"] == {}
     assert result["tools"] == []
@@ -180,7 +180,7 @@ def test_compress_above_trigger():
         {"role": "user", "content": "Fix the bug in auth.py"},
     ]
 
-    result = litellm.compress(
+    result = gateway.compress(
         big_messages,
         model="gpt-4o",
         call_type=CALL_TYPE,
@@ -224,7 +224,7 @@ def test_compress_anthropic_list_content_is_boundary_stable():
         },
     ]
 
-    result = litellm.compress(
+    result = gateway.compress(
         messages=messages,
         model="claude-sonnet-4-20250514",
         call_type=ANTHROPIC_CALL_TYPE,
@@ -248,7 +248,7 @@ def test_compress_preserves_system_message():
         {"role": "user", "content": "Large file content. " * 5000},
         {"role": "user", "content": "Fix the bug"},
     ]
-    result = litellm.compress(
+    result = gateway.compress(
         messages, model="gpt-4o", call_type=CALL_TYPE, compression_trigger=1000
     )
     assert result["messages"][0]["role"] == "system"
@@ -260,7 +260,7 @@ def test_compress_preserves_last_user_message():
         {"role": "user", "content": "Big context " * 5000},
         {"role": "user", "content": "Fix the bug in auth.py"},
     ]
-    result = litellm.compress(
+    result = gateway.compress(
         messages, model="gpt-4o", call_type=CALL_TYPE, compression_trigger=1000
     )
     last_user = [m for m in result["messages"] if m["role"] == "user"][-1]
@@ -273,7 +273,7 @@ def test_compress_preserves_last_assistant_message():
         {"role": "assistant", "content": "I'll help with that. " * 2000},
         {"role": "user", "content": "Now fix the bug"},
     ]
-    result = litellm.compress(
+    result = gateway.compress(
         messages, model="gpt-4o", call_type=CALL_TYPE, compression_trigger=1000
     )
     assistant_msgs = [m for m in result["messages"] if m["role"] == "assistant"]
@@ -288,7 +288,7 @@ def test_cache_keys_match_stubs():
         {"role": "user", "content": "# auth.py\n" + "code " * 5000},
         {"role": "user", "content": "Fix it"},
     ]
-    result = litellm.compress(
+    result = gateway.compress(
         messages, model="gpt-4o", call_type=CALL_TYPE, compression_trigger=1000
     )
     if result["tools"]:
@@ -303,7 +303,7 @@ def test_compress_default_target():
         {"role": "user", "content": "content " * 5000},
         {"role": "user", "content": "query"},
     ]
-    result = litellm.compress(
+    result = gateway.compress(
         messages, model="gpt-4o", call_type=CALL_TYPE, compression_trigger=2000
     )
     # Should have compressed — target = 1000
@@ -343,7 +343,7 @@ def test_compress_nested_tool_result_extracts_text_only():
         },
     ]
 
-    result = litellm.compress(
+    result = gateway.compress(
         messages=messages,
         model="claude-sonnet-4-20250514",
         call_type=ANTHROPIC_CALL_TYPE,
@@ -358,7 +358,7 @@ def test_compress_nested_tool_result_extracts_text_only():
 
 
 def test_compress_default_call_type_is_completion():
-    result = litellm.compress(
+    result = gateway.compress(
         messages=[
             {"role": "user", "content": "Large context " * 4000},
             {"role": "user", "content": "query"},
@@ -388,7 +388,7 @@ def test_compress_forwards_embedding_model_params(monkeypatch):
         fake_embedding_score_messages,
     )
 
-    result = litellm.compress(
+    result = gateway.compress(
         messages=[
             {"role": "user", "content": "Authentication code " * 2000},
             {"role": "user", "content": "Fix auth"},
@@ -421,7 +421,7 @@ def test_embedding_scorer_forwards_embedding_model_params(monkeypatch):
         captured.update(kwargs)
         return _MockResponse()
 
-    monkeypatch.setattr(litellm, "embedding", fake_embedding)
+    monkeypatch.setattr(gateway, "embedding", fake_embedding)
 
     scores = embedding_score_messages(
         query="auth",
@@ -445,7 +445,7 @@ def test_embedding_scorer_forwards_embedding_model_params(monkeypatch):
 
 @pytest.mark.skipif(not os.environ.get("OPENAI_API_KEY"), reason="Needs OPENAI_API_KEY")
 def test_embedding_scorer():
-    result = litellm.compress(
+    result = gateway.compress(
         messages=[
             {"role": "user", "content": "Authentication code " * 2000},
             {"role": "user", "content": "Unrelated cooking recipes " * 2000},
@@ -473,7 +473,7 @@ def test_simple_compression(final_user_message, expected_content):
         {"role": "user", "content": "Unrelated cooking recipes " * 2000},
         {"role": "user", "content": final_user_message},
     ]
-    result = litellm.compress(
+    result = gateway.compress(
         messages, model="gpt-4o", call_type=CALL_TYPE, compression_trigger=1000
     )
     if expected_content == "Unrelated cooking recipes ":
@@ -544,7 +544,7 @@ def test_compress_anthropic_drops_irrelevant_tool_exchange_span(monkeypatch):
         {"role": "user", "content": "final query"},
     ]
 
-    result = litellm.compress(
+    result = gateway.compress(
         messages=messages,
         model="claude-sonnet-4-20250514",
         call_type=ANTHROPIC_CALL_TYPE,
@@ -619,7 +619,7 @@ def test_compress_anthropic_keeps_relevant_tool_exchange_span(monkeypatch):
         {"role": "user", "content": "final query"},
     ]
 
-    result = litellm.compress(
+    result = gateway.compress(
         messages=messages,
         model="claude-sonnet-4-20250514",
         call_type=ANTHROPIC_CALL_TYPE,
@@ -653,7 +653,7 @@ def test_compress_anthropic_malformed_tool_sequence_passes_through():
         {"role": "user", "content": "final query"},
     ]
 
-    result = litellm.compress(
+    result = gateway.compress(
         messages=messages,
         model="claude-sonnet-4-20250514",
         call_type=ANTHROPIC_CALL_TYPE,

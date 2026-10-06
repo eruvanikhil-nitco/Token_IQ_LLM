@@ -348,7 +348,7 @@ def _register_oci_gpt5_in_catalog():
     ``model_prices_and_context_window.json`` (which ships them) or from a
     remote map that may lag behind.
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     needed = {
         "oci/openai.gpt-5",
@@ -357,8 +357,8 @@ def _register_oci_gpt5_in_catalog():
     }
     added = []
     for key in needed:
-        if key not in litellm.model_cost:
-            litellm.model_cost[key] = {
+        if key not in gateway.model_cost:
+            gateway.model_cost[key] = {
                 "litellm_provider": "oci",
                 "mode": "chat",
                 "supports_reasoning": True,
@@ -366,7 +366,7 @@ def _register_oci_gpt5_in_catalog():
             added.append(key)
     yield
     for key in added:
-        litellm.model_cost.pop(key, None)
+        gateway.model_cost.pop(key, None)
 
 
 class TestGpt5MaxCompletionTokens:
@@ -387,7 +387,7 @@ class TestGpt5MaxCompletionTokens:
         must route them to maxCompletionTokens even with no catalog entry,
         since OpenAI accepts max_completion_tokens on every chat model while
         the reasoning families hard-reject max_tokens."""
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         for name in (
             "openai.gpt-5.2",
@@ -395,7 +395,7 @@ class TestGpt5MaxCompletionTokens:
             "openai.o3",
             "oci/openai.gpt-5.1-codex",
         ):
-            assert f"oci/{name.removeprefix('oci/')}" not in litellm.model_cost
+            assert f"oci/{name.removeprefix('oci/')}" not in gateway.model_cost
             assert _model_uses_max_completion_tokens(name) is True
 
         assert _model_uses_max_completion_tokens("openai.gpt-oss-20b") is False

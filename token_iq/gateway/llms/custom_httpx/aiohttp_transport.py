@@ -17,7 +17,7 @@ from aiohttp.client import ClientResponse, ClientSession
 from pydantic import BaseModel, TypeAdapter
 from typing_extensions import ReadOnly, TypedDict
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.secret_managers.main import str_to_bool
 
@@ -462,7 +462,7 @@ class LiteLLMAiohttpTransport(AiohttpTransport):
 
     async def _get_proxy_settings(self, request: httpx.Request):
         proxy = None
-        if not (litellm.disable_aiohttp_trust_env or str_to_bool(os.getenv("DISABLE_AIOHTTP_TRUST_ENV", "False"))):
+        if not (gateway.disable_aiohttp_trust_env or str_to_bool(os.getenv("DISABLE_AIOHTTP_TRUST_ENV", "False"))):
             try:
                 proxy = self._proxy_from_env(request.url)
             except Exception as e:  # pragma: no cover - best effort

@@ -25,9 +25,9 @@ def set_global_bitbucket_config(config: dict) -> None:
                 - access_token: BitBucket access token
                 - branch: Branch to fetch prompts from (default: main)
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    litellm.global_bitbucket_config = config
+    gateway.global_bitbucket_config = config
 
 
 def prompt_initializer(litellm_params: "PromptLiteLLMParams", prompt_spec: "PromptSpec") -> "CustomPromptManagement":

@@ -1171,9 +1171,9 @@ def _proxy_with_router(monkeypatch: pytest.MonkeyPatch, router: MagicMock, model
 
 
 def _token_count(model: str, text: str) -> int:
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    return len(litellm.encode(model=model, text=text))
+    return len(gateway.encode(model=model, text=text))
 
 
 def test_redis_get_embedding_truncates_to_deployment_max_input_tokens(monkeypatch):

@@ -3,9 +3,9 @@
 
 
 import token_iq.gateway.proxy
-from token_iq import gateway as litellm
+from token_iq import gateway
 import token_iq.gateway.proxy.proxy_server
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 from typing import Dict, List, Optional
 from unittest.mock import MagicMock, patch, AsyncMock
@@ -14,7 +14,7 @@ import pytest
 from starlette.datastructures import URL
 from token_iq.gateway._logging import verbose_proxy_logger
 import logging
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy.auth.user_api_key_auth import (
     user_api_key_auth,
     UserAPIKeyAuth,
@@ -122,9 +122,9 @@ async def test_check_blocked_team():
     user_api_key_cache.set_cache(key=hashed_token, value=valid_token)
     user_api_key_cache.set_cache(key="team_id:{}".format(_team_id), value=team_obj)
 
-    setattr(litellm.proxy.proxy_server, "user_api_key_cache", user_api_key_cache)
-    setattr(litellm.proxy.proxy_server, "master_key", "sk-1234")
-    setattr(litellm.proxy.proxy_server, "prisma_client", "hello-world")
+    setattr(gateway.proxy.proxy_server, "user_api_key_cache", user_api_key_cache)
+    setattr(gateway.proxy.proxy_server, "master_key", "sk-1234")
+    setattr(gateway.proxy.proxy_server, "prisma_client", "hello-world")
 
     request = Request(scope={"type": "http"})
     request._url = URL(url="/chat/completions")
@@ -160,9 +160,9 @@ async def test_team_object_has_object_permission_id():
     )
     user_api_key_cache.set_cache(key=hashed_key, value=valid_token)
 
-    setattr(litellm.proxy.proxy_server, "user_api_key_cache", user_api_key_cache)
-    setattr(litellm.proxy.proxy_server, "master_key", "sk-1234")
-    setattr(litellm.proxy.proxy_server, "prisma_client", "test-client")
+    setattr(gateway.proxy.proxy_server, "user_api_key_cache", user_api_key_cache)
+    setattr(gateway.proxy.proxy_server, "master_key", "sk-1234")
+    setattr(gateway.proxy.proxy_server, "prisma_client", "test-client")
 
     request = Request(scope={"type": "http"})
     request._url = URL(url="/chat/completions")
@@ -217,7 +217,7 @@ async def test_aaauser_personal_budgets(key_ownership):
 
     from fastapi import Request
     from starlette.datastructures import URL
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     from token_iq.gateway.proxy._types import (
         LiteLLM_UserTable,
@@ -253,14 +253,14 @@ async def test_aaauser_personal_budgets(key_ownership):
     user_api_key_cache.set_cache(key=hash_token(user_key), value=valid_token)
     user_api_key_cache.set_cache(key="{}".format(_user_id), value=user_obj)
 
-    setattr(litellm.proxy.proxy_server, "user_api_key_cache", user_api_key_cache)
-    setattr(litellm.proxy.proxy_server, "master_key", "sk-1234")
-    setattr(litellm.proxy.proxy_server, "prisma_client", "hello-world")
+    setattr(gateway.proxy.proxy_server, "user_api_key_cache", user_api_key_cache)
+    setattr(gateway.proxy.proxy_server, "master_key", "sk-1234")
+    setattr(gateway.proxy.proxy_server, "prisma_client", "hello-world")
 
     request = Request(scope={"type": "http"})
     request._url = URL(url="/chat/completions")
 
-    test_user_cache = getattr(litellm.proxy.proxy_server, "user_api_key_cache")
+    test_user_cache = getattr(gateway.proxy.proxy_server, "user_api_key_cache")
 
     assert test_user_cache.get_cache(key=hash_token(user_key), model_type=UserAPIKeyAuth) == valid_token
 
@@ -285,7 +285,7 @@ async def test_user_api_key_auth_fails_with_prohibited_params(prohibited_param):
     # Setup
     user_key = "sk-1234"
 
-    setattr(litellm.proxy.proxy_server, "master_key", "sk-1234")
+    setattr(gateway.proxy.proxy_server, "master_key", "sk-1234")
 
     # Create request with prohibited parameter in body
     request = Request(scope={"type": "http"})
@@ -479,11 +479,11 @@ async def test_auth_not_connected_to_db():
 
     user_key = "sk-12345678"
 
-    setattr(litellm.proxy.proxy_server, "user_api_key_cache", user_api_key_cache)
-    setattr(litellm.proxy.proxy_server, "master_key", "sk-1234")
-    setattr(litellm.proxy.proxy_server, "prisma_client", None)
+    setattr(gateway.proxy.proxy_server, "user_api_key_cache", user_api_key_cache)
+    setattr(gateway.proxy.proxy_server, "master_key", "sk-1234")
+    setattr(gateway.proxy.proxy_server, "prisma_client", None)
     setattr(
-        litellm.proxy.proxy_server,
+        gateway.proxy.proxy_server,
         "general_settings",
         {"allow_requests_on_db_unavailable": True},
     )
@@ -606,9 +606,9 @@ async def test_auth_with_form_data_and_model():
     # Store the virtual key in cache
     user_api_key_cache.set_cache(key=hash_token(user_key), value=valid_token)
 
-    setattr(litellm.proxy.proxy_server, "user_api_key_cache", user_api_key_cache)
-    setattr(litellm.proxy.proxy_server, "master_key", "sk-1234")
-    setattr(litellm.proxy.proxy_server, "prisma_client", "hello-world")
+    setattr(gateway.proxy.proxy_server, "user_api_key_cache", user_api_key_cache)
+    setattr(gateway.proxy.proxy_server, "master_key", "sk-1234")
+    setattr(gateway.proxy.proxy_server, "prisma_client", "hello-world")
 
     # Create request with form data
     request = Request(
@@ -665,9 +665,9 @@ async def test_soft_budget_alert():
     user_api_key_cache.set_cache(key=hash_token(user_key), value=valid_token)
 
     # Mock proxy server settings
-    setattr(litellm.proxy.proxy_server, "user_api_key_cache", user_api_key_cache)
-    setattr(litellm.proxy.proxy_server, "master_key", "sk-1234")
-    setattr(litellm.proxy.proxy_server, "prisma_client", AsyncMock())
+    setattr(gateway.proxy.proxy_server, "user_api_key_cache", user_api_key_cache)
+    setattr(gateway.proxy.proxy_server, "master_key", "sk-1234")
+    setattr(gateway.proxy.proxy_server, "prisma_client", AsyncMock())
 
     # Create request
     request = Request(scope={"type": "http"})
@@ -675,7 +675,7 @@ async def test_soft_budget_alert():
 
     # Track if budget_alerts was called
     alert_called = False
-    original_budget_alerts = litellm.proxy.proxy_server.proxy_logging_obj.budget_alerts
+    original_budget_alerts = gateway.proxy.proxy_server.proxy_logging_obj.budget_alerts
 
     async def mock_budget_alerts(*args, **kwargs):
         nonlocal alert_called
@@ -685,7 +685,7 @@ async def test_soft_budget_alert():
 
     # Patch the budget_alerts method
     setattr(
-        litellm.proxy.proxy_server.proxy_logging_obj,
+        gateway.proxy.proxy_server.proxy_logging_obj,
         "budget_alerts",
         mock_budget_alerts,
     )
@@ -703,7 +703,7 @@ async def test_soft_budget_alert():
     finally:
         # Restore original budget_alerts
         setattr(
-            litellm.proxy.proxy_server.proxy_logging_obj,
+            gateway.proxy.proxy_server.proxy_logging_obj,
             "budget_alerts",
             original_budget_alerts,
         )
@@ -1092,7 +1092,7 @@ async def test_jwt_non_admin_team_route_access(monkeypatch):
     )
     request._url = URL(url="/team/new")
 
-    monkeypatch.setattr(litellm.proxy.proxy_server, "general_settings", {"enable_jwt_auth": True})
+    monkeypatch.setattr(gateway.proxy.proxy_server, "general_settings", {"enable_jwt_auth": True})
 
     # Initialize jwt_handler with a default LiteLLM_JWTAuth so that the
     # virtual_key_claim_field check in user_api_key_auth doesn't fail with
@@ -1100,7 +1100,7 @@ async def test_jwt_non_admin_team_route_access(monkeypatch):
     from token_iq.gateway.proxy._types import LiteLLM_JWTAuth
     from token_iq.gateway.caching.dual_cache import DualCache
 
-    litellm.proxy.proxy_server.jwt_handler.update_environment(
+    gateway.proxy.proxy_server.jwt_handler.update_environment(
         prisma_client=None,
         user_api_key_cache=DualCache(),
         litellm_jwtauth=LiteLLM_JWTAuth(),
@@ -1148,9 +1148,9 @@ async def test_x_litellm_api_key():
 
     master_key = "sk-1234"
 
-    setattr(litellm.proxy.proxy_server, "user_api_key_cache", user_api_key_cache)
-    setattr(litellm.proxy.proxy_server, "master_key", master_key)
-    setattr(litellm.proxy.proxy_server, "prisma_client", "hello-world")
+    setattr(gateway.proxy.proxy_server, "user_api_key_cache", user_api_key_cache)
+    setattr(gateway.proxy.proxy_server, "master_key", master_key)
+    setattr(gateway.proxy.proxy_server, "prisma_client", "hello-world")
 
     ignored_key = "aj12445"
 
@@ -1180,9 +1180,9 @@ async def test_user_api_key_from_query_param():
     user_key = "sk-query-1234"
     user_api_key_cache.set_cache(key=hash_token(user_key), value=UserAPIKeyAuth(token=hash_token(user_key)))
 
-    setattr(litellm.proxy.proxy_server, "user_api_key_cache", user_api_key_cache)
-    setattr(litellm.proxy.proxy_server, "master_key", "sk-1234")
-    setattr(litellm.proxy.proxy_server, "prisma_client", "hello-world")
+    setattr(gateway.proxy.proxy_server, "user_api_key_cache", user_api_key_cache)
+    setattr(gateway.proxy.proxy_server, "master_key", "sk-1234")
+    setattr(gateway.proxy.proxy_server, "prisma_client", "hello-world")
 
     request = Request(
         scope={
@@ -1309,9 +1309,9 @@ async def test_user_model_budget_is_enforced_through_user_api_key_auth(over_budg
     hashed = hash_token(key)
     user_model_max_budget = {model: {"budget_limit": 1.0, "time_period": "1mo"}}
 
-    setattr(litellm.proxy.proxy_server, "user_api_key_cache", user_api_key_cache)
-    setattr(litellm.proxy.proxy_server, "master_key", "sk-1234")
-    setattr(litellm.proxy.proxy_server, "prisma_client", "present")
+    setattr(gateway.proxy.proxy_server, "user_api_key_cache", user_api_key_cache)
+    setattr(gateway.proxy.proxy_server, "master_key", "sk-1234")
+    setattr(gateway.proxy.proxy_server, "prisma_client", "present")
 
     await user_api_key_cache.async_set_cache(
         key=hashed,
@@ -1406,7 +1406,7 @@ async def test_jwt_user_model_budget_is_enforced_before_the_jwt_path_returns(ove
     )
 
     if expect_refusal:
-        with pytest.raises(litellm.BudgetExceededError) as exc:
+        with pytest.raises(gateway.BudgetExceededError) as exc:
             await _check_user_model_budget(
                 valid_token=valid_token,
                 model_max_budget_limiter=model_max_budget_limiter,

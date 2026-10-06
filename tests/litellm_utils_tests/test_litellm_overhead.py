@@ -5,7 +5,7 @@ import time
 import httpx
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 OPENAI_API_BASE = "https://example.openai.test/v1"
 
@@ -98,14 +98,14 @@ def _assert_overhead_is_smaller_than_total(response, total_time_ms):
 
 @pytest.fixture(autouse=True)
 def reset_litellm_state():
-    litellm.cache = None
-    litellm.success_callback = []
-    litellm._async_success_callback = []
-    litellm.failure_callback = []
-    litellm.callbacks = []
+    gateway.cache = None
+    gateway.success_callback = []
+    gateway._async_success_callback = []
+    gateway.failure_callback = []
+    gateway.callbacks = []
     yield
-    litellm.cache = None
-    litellm.callbacks = []
+    gateway.cache = None
+    gateway.callbacks = []
 
 
 @pytest.mark.asyncio
@@ -115,7 +115,7 @@ async def test_litellm_overhead_non_streaming(monkeypatch):
     )
 
     start_time = time.perf_counter()
-    response = await litellm.acompletion(
+    response = await gateway.acompletion(
         model="gpt-4o",
         api_key="test-key",
         api_base=OPENAI_API_BASE,
@@ -134,7 +134,7 @@ async def test_litellm_overhead_stream(monkeypatch):
     )
 
     start_time = time.perf_counter()
-    response = await litellm.acompletion(
+    response = await gateway.acompletion(
         model="gpt-4o",
         api_key="test-key",
         api_base=OPENAI_API_BASE,
@@ -156,10 +156,10 @@ async def test_litellm_overhead_cache_hit(monkeypatch):
     from token_iq.gateway.caching.caching import Cache
 
     calls = _mock_openai_completion_transport(monkeypatch, response_id="chatcmpl-cache")
-    litellm.cache = Cache()
+    gateway.cache = Cache()
 
     messages = [{"role": "user", "content": "Hello, world! Cache test"}]
-    response1 = await litellm.acompletion(
+    response1 = await gateway.acompletion(
         model="gpt-4o",
         api_key="test-key",
         api_base=OPENAI_API_BASE,
@@ -167,7 +167,7 @@ async def test_litellm_overhead_cache_hit(monkeypatch):
         caching=True,
     )
     await asyncio.sleep(0.5)
-    response2 = await litellm.acompletion(
+    response2 = await gateway.acompletion(
         model="gpt-4o",
         api_key="test-key",
         api_base=OPENAI_API_BASE,

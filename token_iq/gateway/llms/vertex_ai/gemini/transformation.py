@@ -13,7 +13,7 @@ from urllib.parse import quote
 import httpx
 from pydantic import BaseModel
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.core_utils.asyncify import asyncify
 from token_iq.gateway.core_utils.prompt_templates.common_utils import (
@@ -355,7 +355,7 @@ def _get_gcs_object_content_type(
             )
             headers["Authorization"] = f"Bearer {access_token}"
         except Exception as e:
-            raise litellm.BadRequestError(
+            raise gateway.BadRequestError(
                 message=(f"Unable to fetch GCS metadata with provided Vertex credentials/project. Original error: {e}"),
                 model=None,
                 llm_provider="vertex_ai",
@@ -379,7 +379,7 @@ def _get_gcs_object_content_type(
         )
     except httpx.RequestError as e:
         if explicit_vertex_auth_provided:
-            raise litellm.BadRequestError(
+            raise gateway.BadRequestError(
                 message=(
                     "Unable to reach GCS JSON API for object metadata with provided "
                     f"Vertex credentials. {type(e).__name__}: {e}"
@@ -392,7 +392,7 @@ def _get_gcs_object_content_type(
     if response.is_error:
         if explicit_vertex_auth_provided:
             preview = (response.text or "")[:1024]
-            raise litellm.BadRequestError(
+            raise gateway.BadRequestError(
                 message=(
                     "Unable to read GCS object metadata with provided Vertex credentials. "
                     f"HTTP {response.status_code}. Response body (truncated): {preview!r}"
@@ -406,7 +406,7 @@ def _get_gcs_object_content_type(
         payload: Final = response.json()
     except ValueError as e:
         if explicit_vertex_auth_provided:
-            raise litellm.BadRequestError(
+            raise gateway.BadRequestError(
                 message=(
                     "GCS metadata response was not valid JSON when using provided "
                     f"Vertex credentials (HTTP {response.status_code}). Error: {e}"
@@ -418,7 +418,7 @@ def _get_gcs_object_content_type(
 
     if not isinstance(payload, dict):
         if explicit_vertex_auth_provided:
-            raise litellm.BadRequestError(
+            raise gateway.BadRequestError(
                 message=(
                     "GCS metadata response was not a JSON object when using provided "
                     f"Vertex credentials (HTTP {response.status_code})."
@@ -434,7 +434,7 @@ def _get_gcs_object_content_type(
 
     if explicit_vertex_auth_provided:
         preview = (response.text or "")[:1024]
-        raise litellm.BadRequestError(
+        raise gateway.BadRequestError(
             message=(
                 "GCS metadata JSON did not include a non-empty contentType field when "
                 f"using provided Vertex credentials (HTTP {response.status_code}). "
@@ -456,14 +456,14 @@ def _normalize_and_validate_gemini_mime_type(mime_type: str, model: str | None) 
         file_extension: Final = get_file_extension_from_mime_type(normalized_mime_type)
         file_type: Final = get_file_type_from_extension(file_extension)
     except ValueError:
-        raise litellm.BadRequestError(
+        raise gateway.BadRequestError(
             message=f"File type not supported by gemini - {normalized_mime_type}",
             model=model,
             llm_provider="vertex_ai",
         )
 
     if not is_gemini_1_5_accepted_file_type(file_type):
-        raise litellm.BadRequestError(
+        raise gateway.BadRequestError(
             message=f"File type not supported by gemini - {file_type}",
             model=model,
             llm_provider="vertex_ai",
@@ -509,7 +509,7 @@ def _process_gemini_media(
 
                     # Validate the file type is supported by Gemini
                     if not is_gemini_1_5_accepted_file_type(file_type):
-                        raise litellm.BadRequestError(
+                        raise gateway.BadRequestError(
                             message=f"File type not supported by gemini - {file_type}",
                             model=model,
                             llm_provider="vertex_ai",
@@ -523,7 +523,7 @@ def _process_gemini_media(
                         vertex_credentials=vertex_credentials,
                     )
                     if mime_type is None:
-                        raise litellm.BadRequestError(
+                        raise gateway.BadRequestError(
                             message=(
                                 f"Unable to determine mime type for gs URI: {image_url}. "
                                 "This gs:// URI has no file extension and GCS metadata "
@@ -538,7 +538,7 @@ def _process_gemini_media(
                 mime_type = format
                 explicit_gcs_format = True
             if mime_type is None:
-                raise litellm.BadRequestError(
+                raise gateway.BadRequestError(
                     message=f"File type not supported by gemini - {image_url}",
                     model=model,
                     llm_provider="vertex_ai",
@@ -736,7 +736,7 @@ def _gemini_convert_messages_with_history(
                             media_resolution_enum: dict[str, str] | None = None
                             raw_image_url = img_element.get("image_url")
                             if raw_image_url is None:
-                                raise litellm.BadRequestError(
+                                raise gateway.BadRequestError(
                                     message="Invalid message content: element type is 'image_url' but 'image_url' field is missing ",
                                     model=model,
                                     llm_provider="vertex_ai",
@@ -744,7 +744,7 @@ def _gemini_convert_messages_with_history(
                             if isinstance(raw_image_url, dict):
                                 image_url = raw_image_url.get("url")
                                 if image_url is None:
-                                    raise litellm.BadRequestError(
+                                    raise gateway.BadRequestError(
                                         message="Invalid message content: element type is 'image_url' but 'url' field is missing inside 'image_url' ",
                                         model=model,
                                         llm_provider="vertex_ai",
@@ -799,7 +799,7 @@ def _gemini_convert_messages_with_history(
                             file_element = cast(ChatCompletionFileObject, element)
                             _file_field = file_element.get("file")
                             if _file_field is None:
-                                raise litellm.BadRequestError(
+                                raise gateway.BadRequestError(
                                     message="Content block has type='file' but is missing the required 'file' field",
                                     model=model,
                                     llm_provider="vertex_ai",
@@ -832,10 +832,10 @@ def _gemini_convert_messages_with_history(
                                     vertex_credentials=vertex_credentials,
                                 )
                                 _parts.append(_part)
-                            except litellm.BadRequestError:
+                            except gateway.BadRequestError:
                                 raise
                             except Exception as e:
-                                raise litellm.BadRequestError(
+                                raise gateway.BadRequestError(
                                     message=(
                                         f"Unable to determine mime type for file: "
                                         f"{file_id or 'provided data'}, set this explicitly "
@@ -1182,11 +1182,11 @@ def _transform_request_body(
 
     try:
         if custom_llm_provider == "gemini":
-            content = litellm.GoogleAIStudioGeminiConfig()._transform_messages(
+            content = gateway.GoogleAIStudioGeminiConfig()._transform_messages(
                 messages=messages, model=model, litellm_params=litellm_params
             )
         else:
-            content = litellm.VertexGeminiConfig()._transform_messages(
+            content = gateway.VertexGeminiConfig()._transform_messages(
                 messages=messages, model=model, litellm_params=litellm_params
             )
         tools: Final[Tools | None] = optional_params.pop("tools", None)
@@ -1217,7 +1217,7 @@ def _transform_request_body(
         data: Final = RequestBody(contents=content)
         # Vertex rejects system_instruction/tools/toolConfig alongside cachedContent.
         # Treat dropping these fields as a request mutation guarded by modify_params.
-        can_send_cache_incompatible_fields: Final = cached_content is None or litellm.modify_params is False
+        can_send_cache_incompatible_fields: Final = cached_content is None or gateway.modify_params is False
         if can_send_cache_incompatible_fields:
             if system_instructions is not None:
                 data["system_instruction"] = system_instructions

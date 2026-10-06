@@ -18,13 +18,13 @@ def test_snowflake_tool_calling_responses_api():
     Test Snowflake tool calling with Responses API.
     Requires SNOWFLAKE_JWT and SNOWFLAKE_ACCOUNT_ID environment variables.
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     # Skip if credentials not available
     if not os.getenv("SNOWFLAKE_JWT") or not os.getenv("SNOWFLAKE_ACCOUNT_ID"):
         pytest.skip("Snowflake credentials not available")
 
-    litellm.drop_params = False  # We now support tools!
+    gateway.drop_params = False  # We now support tools!
 
     tools = [
         {

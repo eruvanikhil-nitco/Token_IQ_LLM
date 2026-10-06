@@ -12,7 +12,7 @@ Model name format:
 
 from typing import Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.url_utils import encode_url_path_segment
 from token_iq.gateway.llms.openai.openai import OpenAIConfig
 from token_iq.gateway.secret_managers.main import get_secret, get_secret_str
@@ -91,7 +91,7 @@ class RAGFlowConfig(OpenAIConfig):
         if litellm_params and hasattr(litellm_params, "api_base") and litellm_params.api_base:
             api_base = api_base or litellm_params.api_base
 
-        api_base = api_base or litellm.api_base or get_secret("RAGFLOW_API_BASE") or get_secret_str("RAGFLOW_API_BASE")
+        api_base = api_base or gateway.api_base or get_secret("RAGFLOW_API_BASE") or get_secret_str("RAGFLOW_API_BASE")
 
         if api_base is None:
             raise ValueError(
@@ -149,11 +149,11 @@ class RAGFlowConfig(OpenAIConfig):
 
         # Get api_base from multiple sources: input param, environment, or global litellm setting
         dynamic_api_base: Final = (
-            api_base or litellm.api_base or get_secret("RAGFLOW_API_BASE") or get_secret_str("RAGFLOW_API_BASE")
+            api_base or gateway.api_base or get_secret("RAGFLOW_API_BASE") or get_secret_str("RAGFLOW_API_BASE")
         )
 
         # Get api_key from multiple sources: input param, environment, or global litellm setting
-        dynamic_api_key: Final = api_key or litellm.api_key or get_secret_str("RAGFLOW_API_KEY")
+        dynamic_api_key: Final = api_key or gateway.api_key or get_secret_str("RAGFLOW_API_KEY")
 
         return dynamic_api_base, dynamic_api_key, custom_llm_provider
 
@@ -187,7 +187,7 @@ class RAGFlowConfig(OpenAIConfig):
             api_key = api_key or litellm_params.api_key
 
         # Get api_key from multiple sources: input param, litellm_params, environment, or global litellm setting
-        api_key = api_key or litellm.api_key or get_secret_str("RAGFLOW_API_KEY")
+        api_key = api_key or gateway.api_key or get_secret_str("RAGFLOW_API_KEY")
 
         if api_key is not None:
             headers["Authorization"] = f"Bearer {api_key}"

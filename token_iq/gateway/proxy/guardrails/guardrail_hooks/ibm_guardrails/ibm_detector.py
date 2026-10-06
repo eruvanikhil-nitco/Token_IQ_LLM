@@ -12,7 +12,7 @@ from typing import Any, Final
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.caching.caching import DualCache
 from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
@@ -573,10 +573,10 @@ class IBMGuardrailDetector(CustomGuardrail):
 
         # Check if the ModelResponse has text content in its choices
         # to avoid sending empty content to IBM Detector (e.g., during tool calls)
-        if isinstance(response, litellm.ModelResponse):
+        if isinstance(response, gateway.ModelResponse):
             has_text_content = False
             for choice in response.choices:
-                if isinstance(choice, litellm.Choices):
+                if isinstance(choice, gateway.Choices):
                     if choice.message.content and isinstance(choice.message.content, str):
                         has_text_content = True
                         break
@@ -589,7 +589,7 @@ class IBMGuardrailDetector(CustomGuardrail):
 
             contents_to_check: Final[list[str]] = []
             for choice in response.choices:
-                if isinstance(choice, litellm.Choices):
+                if isinstance(choice, gateway.Choices):
                     verbose_proxy_logger.debug("async_post_call_success_hook choice: %s", choice)
                     if choice.message.content and isinstance(choice.message.content, str):
                         contents_to_check.append(choice.message.content)

@@ -4,7 +4,7 @@ from collections.abc import Sequence
 from datetime import datetime
 from typing import TYPE_CHECKING, Any, Final, cast
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.constants import BACKGROUND_INTERACTION_COST_POLLING_ENABLED
 from token_iq.gateway.integrations.custom_logger import CustomLogger
@@ -197,7 +197,7 @@ class _ProxyDBLogger(CustomLogger):
         # real partial spend to this failure row instead of zero.
         recovered_stream_cost: Final = (
             max(float(request_data.get("response_cost") or 0.0), 0.0)
-            if isinstance(request_data.get("combined_usage_object"), litellm.Usage)
+            if isinstance(request_data.get("combined_usage_object"), gateway.Usage)
             else 0.0
         )
         recovered_response_cost: Final = recovered_stream_cost + guardrail_information_cost(
@@ -222,7 +222,7 @@ class _ProxyDBLogger(CustomLogger):
     async def _PROXY_track_cost_callback(
         self,
         kwargs,  # kwargs to completion
-        completion_response: litellm.ModelResponse | Any | None,  # response from completion
+        completion_response: gateway.ModelResponse | Any | None,  # response from completion
         start_time=None,
         end_time=None,  # start/end time for completion
     ):
@@ -582,7 +582,7 @@ async def _update_database_and_spend_counters(
     org_id: str | None,
     project_id: str | None,
     kwargs: dict,
-    completion_response: litellm.ModelResponse | Any | None,
+    completion_response: gateway.ModelResponse | Any | None,
     start_time: Any,
     end_time: Any,
     response_cost: float,

@@ -9,7 +9,7 @@ if TYPE_CHECKING:
 
 
 def initialize_guardrail(litellm_params: "LitellmParams", guardrail: "Guardrail"):
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     if litellm_params.guard_name is None:
         raise Exception(
@@ -28,7 +28,7 @@ def initialize_guardrail(litellm_params: "LitellmParams", guardrail: "Guardrail"
         metadata=litellm_params.metadata,
         application=litellm_params.application,
     )
-    litellm.logging_callback_manager.add_litellm_callback(_javelin_callback)
+    gateway.logging_callback_manager.add_litellm_callback(_javelin_callback)
 
     return _javelin_callback
 

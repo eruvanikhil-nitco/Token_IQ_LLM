@@ -7,7 +7,7 @@ from token_iq.gateway._uuid import uuid
 import time
 import base64
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from abc import ABC, abstractmethod
 
 from token_iq.gateway.integrations.custom_logger import CustomLogger
@@ -116,23 +116,23 @@ class BaseResponsesAPITest(ABC):
     @pytest.mark.parametrize("sync_mode", [True, False])
     @pytest.mark.asyncio
     async def test_basic_openai_responses_api(self, sync_mode):
-        litellm._turn_on_debug()
-        litellm.set_verbose = True
+        gateway._turn_on_debug()
+        gateway.set_verbose = True
         base_completion_call_args = self.get_base_completion_call_args()
         try:
             if sync_mode:
-                response = litellm.responses(
+                response = gateway.responses(
                     input="Basic ping",
                     max_output_tokens=20,
                     **base_completion_call_args,
                 )
             else:
-                response = await litellm.aresponses(
+                response = await gateway.aresponses(
                     input="Basic ping",
                     max_output_tokens=20,
                     **base_completion_call_args,
                 )
-        except litellm.InternalServerError:
+        except gateway.InternalServerError:
             pytest.skip("Skipping test due to litellm.InternalServerError")
         print("litellm response=", json.dumps(response, indent=4, default=str))
 
@@ -143,14 +143,14 @@ class BaseResponsesAPITest(ABC):
     @pytest.mark.asyncio
     @pytest.mark.flaky(retries=3, delay=2)
     async def test_basic_openai_responses_api_streaming(self, sync_mode):
-        litellm._turn_on_debug()
+        gateway._turn_on_debug()
         # Enable cost calculation for streaming usage
-        litellm.include_cost_in_streaming_usage = True
+        gateway.include_cost_in_streaming_usage = True
         base_completion_call_args = self.get_base_completion_call_args()
         collected_content_string = ""
         response_completed_event = None
         if sync_mode:
-            response = litellm.responses(
+            response = gateway.responses(
                 input="Basic ping", stream=True, **base_completion_call_args
             )
             for event in response:
@@ -160,7 +160,7 @@ class BaseResponsesAPITest(ABC):
                 elif event.type == "response.completed":
                     response_completed_event = event
         else:
-            response = await litellm.aresponses(
+            response = await gateway.aresponses(
                 input="Basic ping", stream=True, **base_completion_call_args
             )
             async for event in response:
@@ -231,34 +231,34 @@ class BaseResponsesAPITest(ABC):
             )
 
         # Reset the setting
-        litellm.include_cost_in_streaming_usage = False
+        gateway.include_cost_in_streaming_usage = False
 
     @pytest.mark.parametrize("sync_mode", [False, True])
     @pytest.mark.asyncio
     async def test_basic_openai_responses_delete_endpoint(self, sync_mode):
-        litellm._turn_on_debug()
-        litellm.set_verbose = True
+        gateway._turn_on_debug()
+        gateway.set_verbose = True
         base_completion_call_args = self.get_base_completion_call_args()
         if sync_mode:
-            response = litellm.responses(
+            response = gateway.responses(
                 input="Basic ping", max_output_tokens=20, **base_completion_call_args
             )
 
             # delete the response
             if isinstance(response, ResponsesAPIResponse):
-                litellm.delete_responses(
+                gateway.delete_responses(
                     response_id=response.id, **base_completion_call_args
                 )
             else:
                 raise ValueError("response is not a ResponsesAPIResponse")
         else:
-            response = await litellm.aresponses(
+            response = await gateway.aresponses(
                 input="Basic ping", max_output_tokens=20, **base_completion_call_args
             )
 
             # async delete the response
             if isinstance(response, ResponsesAPIResponse):
-                await litellm.adelete_responses(
+                await gateway.adelete_responses(
                     response_id=response.id, **base_completion_call_args
                 )
             else:
@@ -274,7 +274,7 @@ class BaseResponsesAPITest(ABC):
         response_id = None
         if sync_mode:
             response_id = None
-            response = litellm.responses(
+            response = gateway.responses(
                 input="Basic ping",
                 max_output_tokens=20,
                 stream=True,
@@ -290,11 +290,11 @@ class BaseResponsesAPITest(ABC):
 
             # delete the response
             assert response_id is not None
-            litellm.delete_responses(
+            gateway.delete_responses(
                 response_id=response_id, **base_completion_call_args
             )
         else:
-            response = await litellm.aresponses(
+            response = await gateway.aresponses(
                 input="Basic ping",
                 max_output_tokens=20,
                 stream=True,
@@ -310,7 +310,7 @@ class BaseResponsesAPITest(ABC):
 
             # delete the response
             assert response_id is not None
-            await litellm.adelete_responses(
+            await gateway.adelete_responses(
                 response_id=response_id, **base_completion_call_args
             )
 
@@ -318,17 +318,17 @@ class BaseResponsesAPITest(ABC):
     @pytest.mark.flaky(retries=3, delay=2)
     @pytest.mark.asyncio
     async def test_basic_openai_responses_get_endpoint(self, sync_mode):
-        litellm._turn_on_debug()
-        litellm.set_verbose = True
+        gateway._turn_on_debug()
+        gateway.set_verbose = True
         base_completion_call_args = self.get_base_completion_call_args()
         if sync_mode:
-            response = litellm.responses(
+            response = gateway.responses(
                 input="Basic ping", max_output_tokens=20, **base_completion_call_args
             )
 
             # get the response
             if isinstance(response, ResponsesAPIResponse):
-                result = litellm.get_responses(
+                result = gateway.get_responses(
                     response_id=response.id, **base_completion_call_args
                 )
                 assert result is not None
@@ -337,12 +337,12 @@ class BaseResponsesAPITest(ABC):
             else:
                 raise ValueError("response is not a ResponsesAPIResponse")
         else:
-            response = await litellm.aresponses(
+            response = await gateway.aresponses(
                 input="Basic ping", max_output_tokens=20, **base_completion_call_args
             )
             # async get the response
             if isinstance(response, ResponsesAPIResponse):
-                result = await litellm.aget_responses(
+                result = await gateway.aget_responses(
                     response_id=response.id, **base_completion_call_args
                 )
                 assert result is not None
@@ -355,9 +355,9 @@ class BaseResponsesAPITest(ABC):
     @pytest.mark.flaky(retries=3, delay=2)
     async def test_basic_openai_list_input_items_endpoint(self):
         """Test that calls the OpenAI List Input Items endpoint"""
-        litellm._turn_on_debug()
+        gateway._turn_on_debug()
 
-        response = await litellm.aresponses(
+        response = await gateway.aresponses(
             model="gpt-5.5",
             input="Tell me a three sentence bedtime story about a unicorn.",
         )
@@ -367,7 +367,7 @@ class BaseResponsesAPITest(ABC):
         assert response_id is not None, "Response should have an ID"
         print(f"Got response_id: {response_id}")
 
-        list_items_response = await litellm.alist_input_items(
+        list_items_response = await gateway.alist_input_items(
             response_id=response_id,
             limit=20,
             order="desc",
@@ -379,17 +379,17 @@ class BaseResponsesAPITest(ABC):
 
     @pytest.mark.asyncio
     async def test_multiturn_responses_api(self):
-        litellm._turn_on_debug()
-        litellm.set_verbose = True
+        gateway._turn_on_debug()
+        gateway.set_verbose = True
         try:
             base_completion_call_args = self.get_base_completion_call_args()
-            response_1 = await litellm.aresponses(
+            response_1 = await gateway.aresponses(
                 input="Basic ping", max_output_tokens=20, **base_completion_call_args
             )
 
             # follow up with a second request
             response_1_id = response_1.id
-            response_2 = await litellm.aresponses(
+            response_2 = await gateway.aresponses(
                 input="Basic ping",
                 max_output_tokens=20,
                 previous_response_id=response_1_id,
@@ -399,14 +399,14 @@ class BaseResponsesAPITest(ABC):
             # assert the response is not None
             assert response_1 is not None
             assert response_2 is not None
-        except litellm.InternalServerError:
+        except gateway.InternalServerError:
             pytest.skip("Skipping test due to litellm.InternalServerError")
 
     @pytest.mark.asyncio
     async def test_responses_api_with_tool_calls(self):
         """Test that calls the Responses API with tool calls including function call and output"""
-        litellm._turn_on_debug()
-        litellm.set_verbose = True
+        gateway._turn_on_debug()
+        gateway.set_verbose = True
         base_completion_call_args = self.get_base_completion_call_args()
 
         # Define the input with message, function call, and function call output
@@ -453,10 +453,10 @@ class BaseResponsesAPITest(ABC):
 
         try:
             # Make the responses API call
-            response = await litellm.aresponses(
+            response = await gateway.aresponses(
                 input=input_data, store=False, tools=tools, **base_completion_call_args
             )
-        except litellm.InternalServerError:
+        except gateway.InternalServerError:
             pytest.skip("Skipping test due to litellm.InternalServerError")
 
         print("litellm response=", json.dumps(response, indent=4, default=str))
@@ -490,8 +490,8 @@ class BaseResponsesAPITest(ABC):
         """
         from pydantic import BaseModel
 
-        litellm._turn_on_debug()
-        litellm.set_verbose = True
+        gateway._turn_on_debug()
+        gateway.set_verbose = True
         base_completion_call_args = self.get_base_completion_reasoning_call_args()
         if base_completion_call_args is None:
             pytest.skip("Skipping test due to no base completion reasoning call args")
@@ -513,7 +513,7 @@ class BaseResponsesAPITest(ABC):
         ]
 
         # First call - should trigger reasoning and tool call
-        response = await litellm.aresponses(
+        response = await gateway.aresponses(
             input=input_messages,
             tools=tools,
             reasoning={"effort": "low", "summary": "detailed"},
@@ -555,7 +555,7 @@ class BaseResponsesAPITest(ABC):
         print(json.dumps(input_messages, indent=4, default=str))
 
         # Second call - should produce structured output
-        final_response = await litellm.aresponses(
+        final_response = await gateway.aresponses(
             input=input_messages,
             tools=tools,
             reasoning={"effort": "low", "summary": "detailed"},
@@ -641,11 +641,11 @@ class BaseResponsesAPITest(ABC):
     @pytest.mark.asyncio
     async def test_basic_openai_responses_cancel_endpoint(self, sync_mode):
         try:
-            litellm._turn_on_debug()
-            litellm.set_verbose = True
+            gateway._turn_on_debug()
+            gateway.set_verbose = True
             base_completion_call_args = self.get_base_completion_call_args()
             if sync_mode:
-                response = litellm.responses(
+                response = gateway.responses(
                     input="Basic ping",
                     max_output_tokens=20,
                     background=True,
@@ -654,7 +654,7 @@ class BaseResponsesAPITest(ABC):
 
                 # cancel the response
                 if isinstance(response, ResponsesAPIResponse):
-                    cancel_result = litellm.cancel_responses(
+                    cancel_result = gateway.cancel_responses(
                         response_id=response.id, **base_completion_call_args
                     )
                     assert cancel_result is not None
@@ -664,7 +664,7 @@ class BaseResponsesAPITest(ABC):
                 else:
                     raise ValueError("response is not a ResponsesAPIResponse")
             else:
-                response = await litellm.aresponses(
+                response = await gateway.aresponses(
                     input="Basic ping",
                     max_output_tokens=20,
                     background=True,
@@ -673,7 +673,7 @@ class BaseResponsesAPITest(ABC):
 
                 # async cancel the response
                 if isinstance(response, ResponsesAPIResponse):
-                    cancel_result = await litellm.acancel_responses(
+                    cancel_result = await gateway.acancel_responses(
                         response_id=response.id, **base_completion_call_args
                     )
                     assert cancel_result is not None
@@ -696,12 +696,12 @@ class BaseResponsesAPITest(ABC):
 
         if sync_mode:
             with pytest.raises(openai.APIError):
-                litellm.cancel_responses(
+                gateway.cancel_responses(
                     response_id="invalid_response_id_12345", **base_completion_call_args
                 )
         else:
             with pytest.raises(openai.APIError):
-                await litellm.acancel_responses(
+                await gateway.acancel_responses(
                     response_id="invalid_response_id_12345", **base_completion_call_args
                 )
 
@@ -723,13 +723,13 @@ class BaseResponsesAPITest(ABC):
             )
         context_management = [{"type": "compaction", "compact_threshold": 200000}]
         try:
-            response = await litellm.aresponses(
+            response = await gateway.aresponses(
                 input="Short ping to verify context_management is accepted.",
                 max_output_tokens=20,
                 context_management=context_management,
                 **base_completion_call_args,
             )
-        except litellm.InternalServerError:
+        except gateway.InternalServerError:
             pytest.skip("Skipping test due to litellm.InternalServerError")
         validate_responses_api_response(response, final_chunk=True)
         assert response.get("id") is not None
@@ -757,7 +757,7 @@ class BaseResponsesAPITest(ABC):
         tools = [{"type": "shell", "environment": {"type": "container_auto"}}]
         input_msg = "List files in /mnt/data and show python --version."
         try:
-            response = await litellm.aresponses(
+            response = await gateway.aresponses(
                 **{**base_completion_call_args, "model": model},
                 input=input_msg,
                 max_output_tokens=256,
@@ -765,11 +765,11 @@ class BaseResponsesAPITest(ABC):
                 tool_choice="auto",
                 timeout=90,
             )
-        except litellm.Timeout:
+        except gateway.Timeout:
             pytest.skip("Provider did not answer the shell tool request within 90s")
-        except litellm.InternalServerError:
+        except gateway.InternalServerError:
             pytest.skip("Skipping test due to litellm.InternalServerError")
-        except litellm.BadRequestError as e:
+        except gateway.BadRequestError as e:
             if "shell" in str(e).lower() and "not supported" in str(e).lower():
                 pytest.skip(
                     "Shell tool is not supported for this model (e.g. gpt-5.5); use a model that supports shell"
@@ -801,7 +801,7 @@ class BaseResponsesAPITest(ABC):
         tools = [{"type": "shell", "environment": {"type": "container_auto"}}]
         input_msg = "List files in /mnt/data and run python --version."
 
-        stream = await litellm.aresponses(
+        stream = await gateway.aresponses(
             **{**base_completion_call_args, "model": model},
             input=input_msg,
             max_output_tokens=512,

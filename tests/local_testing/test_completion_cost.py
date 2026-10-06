@@ -2,7 +2,7 @@ import os
 import traceback
 
 import token_iq.gateway.cost_calculator
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 import asyncio
 import time
@@ -11,7 +11,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import base64
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import (
     TranscriptionResponse,
     completion_cost,
@@ -56,9 +56,9 @@ class CustomLoggingHandler(CustomLogger):
 @pytest.mark.asyncio
 async def test_custom_pricing(sync_mode):
     new_handler = CustomLoggingHandler()
-    litellm.callbacks = [new_handler]
+    gateway.callbacks = [new_handler]
     if sync_mode:
-        response = litellm.completion(
+        response = gateway.completion(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": "Hey!"}],
             mock_response="What do you want?",
@@ -67,7 +67,7 @@ async def test_custom_pricing(sync_mode):
         )
         time.sleep(5)
     else:
-        response = await litellm.acompletion(
+        response = await gateway.acompletion(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": "Hey!"}],
             mock_response="What do you want?",
@@ -90,10 +90,10 @@ async def test_custom_pricing(sync_mode):
 @pytest.mark.asyncio
 async def test_failure_completion_cost(sync_mode):
     new_handler = CustomLoggingHandler()
-    litellm.callbacks = [new_handler]
+    gateway.callbacks = [new_handler]
     if sync_mode:
         try:
-            response = litellm.completion(
+            response = gateway.completion(
                 model="gpt-3.5-turbo",
                 messages=[{"role": "user", "content": "Hey!"}],
                 mock_response=Exception("this should trigger an error"),
@@ -103,7 +103,7 @@ async def test_failure_completion_cost(sync_mode):
         time.sleep(5)
     else:
         try:
-            response = await litellm.acompletion(
+            response = await gateway.acompletion(
                 model="gpt-3.5-turbo",
                 messages=[{"role": "user", "content": "Hey!"}],
                 mock_response=Exception("this should trigger an error"),
@@ -141,7 +141,7 @@ def test_custom_pricing_as_completion_cost_param():
         usage=Usage(prompt_tokens=21, completion_tokens=17, total_tokens=38),
     )
 
-    cost = litellm.completion_cost(
+    cost = gateway.completion_cost(
         completion_response=resp,
         custom_cost_per_token={
             "input_cost_per_token": 1000,
@@ -190,7 +190,7 @@ def test_cost_ft_gpt_35():
         from token_iq.gateway import Choices, Message, ModelResponse
         from token_iq.gateway.utils import Usage
 
-        litellm.set_verbose = True
+        gateway.set_verbose = True
 
         resp = ModelResponse(
             id="chatcmpl-e41836bb-bb8b-4df2-8e70-8f3e160155ac",
@@ -211,7 +211,7 @@ def test_cost_ft_gpt_35():
             usage=Usage(prompt_tokens=21, completion_tokens=17, total_tokens=38),
         )
 
-        cost = litellm.completion_cost(
+        cost = gateway.completion_cost(
             completion_response=resp, custom_llm_provider="openai"
         )
         print("\n Calculated Cost for ft:gpt-3.5", cost)
@@ -256,7 +256,7 @@ def test_cost_azure_gpt_35():
             usage=Usage(prompt_tokens=21, completion_tokens=17, total_tokens=38),
         )
 
-        cost = litellm.completion_cost(
+        cost = gateway.completion_cost(
             completion_response=resp, model="azure/chatgpt-deployment-2"
         )
         print("\n Calculated Cost for azure/gpt-3.5-turbo", cost)
@@ -278,10 +278,10 @@ def test_cost_azure_embedding():
     try:
         import asyncio
 
-        litellm.set_verbose = True
+        gateway.set_verbose = True
 
         async def _test():
-            response = await litellm.aembedding(
+            response = await gateway.aembedding(
                 model="azure/text-embedding-ada-002",
                 input=["good morning from litellm", "gm"],
             )
@@ -292,7 +292,7 @@ def test_cost_azure_embedding():
 
         response = asyncio.run(_test())
 
-        cost = litellm.completion_cost(completion_response=response)
+        cost = gateway.completion_cost(completion_response=response)
 
         print("Cost", cost)
         expected_cost = float("7e-07")
@@ -308,15 +308,15 @@ def test_cost_azure_embedding():
 
 
 def test_cost_bedrock_pricing_actual_calls():
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     model = "anthropic.claude-3-5-sonnet-20240620-v1:0"
     messages = [{"role": "user", "content": "Hey, how's it going?"}]
-    response = litellm.completion(
+    response = gateway.completion(
         model=model, messages=messages, mock_response="hello cool one"
     )
 
     print("response", response)
-    cost = litellm.completion_cost(
+    cost = gateway.completion_cost(
         model="bedrock/anthropic.claude-3-5-sonnet-20240620-v1:0",
         completion_response=response,
         messages=[{"role": "user", "content": "Hey, how's it going?"}],
@@ -325,7 +325,7 @@ def test_cost_bedrock_pricing_actual_calls():
 
 
 def test_whisper_openai():
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     transcription = TranscriptionResponse(
         text="Four score and seven years ago, our fathers brought forth on this continent a new nation, conceived in liberty and dedicated to the proposition that all men are created equal. Now we are engaged in a great civil war, testing whether that nation, or any nation so conceived and so dedicated, can long endure."
     )
@@ -339,12 +339,12 @@ def test_whisper_openai():
     }
     _total_time_in_seconds = 3
 
-    cost = litellm.completion_cost(model="whisper-1", completion_response=transcription)
+    cost = gateway.completion_cost(model="whisper-1", completion_response=transcription)
 
     print(f"cost: {cost}")
-    print(f"whisper dict: {litellm.model_cost['whisper-1']}")
+    print(f"whisper dict: {gateway.model_cost['whisper-1']}")
     expected_cost = round(
-        litellm.model_cost["whisper-1"]["output_cost_per_second"]
+        gateway.model_cost["whisper-1"]["output_cost_per_second"]
         * _total_time_in_seconds,
         5,
     )
@@ -352,7 +352,7 @@ def test_whisper_openai():
 
 
 def test_whisper_azure():
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     transcription = TranscriptionResponse(
         text="Four score and seven years ago, our fathers brought forth on this continent a new nation, conceived in liberty and dedicated to the proposition that all men are created equal. Now we are engaged in a great civil war, testing whether that nation, or any nation so conceived and so dedicated, can long endure."
     )
@@ -365,14 +365,14 @@ def test_whisper_azure():
     _total_time_in_seconds = 3
     setattr(transcription, "duration", _total_time_in_seconds)
 
-    cost = litellm.completion_cost(
+    cost = gateway.completion_cost(
         model="azure/azure-whisper", completion_response=transcription
     )
 
     print(f"cost: {cost}")
-    print(f"whisper dict: {litellm.model_cost['whisper-1']}")
+    print(f"whisper dict: {gateway.model_cost['whisper-1']}")
     expected_cost = round(
-        litellm.model_cost["whisper-1"]["output_cost_per_second"]
+        gateway.model_cost["whisper-1"]["output_cost_per_second"]
         * _total_time_in_seconds,
         5,
     )
@@ -380,7 +380,7 @@ def test_whisper_azure():
 
 
 def test_dalle_3_azure_cost_tracking():
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     # model = "azure/dall-e-3-test"
     # response = litellm.image_generation(
     #     model=model,
@@ -391,7 +391,7 @@ def test_dalle_3_azure_cost_tracking():
     #     base_model="dall-e-3",
     # )
     # print(f"response: {response}")
-    response = litellm.ImageResponse(
+    response = gateway.ImageResponse(
         created=1710265780,
         data=[
             {
@@ -404,16 +404,16 @@ def test_dalle_3_azure_cost_tracking():
     response.usage = {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0}
     response._hidden_params = {"model": "dall-e-3", "model_id": None}
     print(f"response hidden params: {response._hidden_params}")
-    cost = litellm.completion_cost(
+    cost = gateway.completion_cost(
         completion_response=response, call_type="image_generation"
     )
     assert cost > 0
 
 
 def test_replicate_llama3_cost_tracking():
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     model = "replicate/meta/meta-llama-3-8b-instruct"
-    litellm.register_model(
+    gateway.register_model(
         {
             "replicate/meta/meta-llama-3-8b-instruct": {
                 "input_cost_per_token": 0.00000005,
@@ -422,13 +422,13 @@ def test_replicate_llama3_cost_tracking():
             }
         }
     )
-    response = litellm.ModelResponse(
+    response = gateway.ModelResponse(
         id="chatcmpl-cad7282f-7f68-41e7-a5ab-9eb33ae301dc",
         choices=[
-            litellm.utils.Choices(
+            gateway.utils.Choices(
                 finish_reason="stop",
                 index=0,
-                message=litellm.utils.Message(
+                message=gateway.utils.Message(
                     content="I'm doing well, thanks for asking! I'm here to help you with any questions or tasks you may have. How can I assist you today?",
                     role="assistant",
                 ),
@@ -438,11 +438,11 @@ def test_replicate_llama3_cost_tracking():
         model="replicate/meta/meta-llama-3-8b-instruct",
         object="chat.completion",
         system_fingerprint=None,
-        usage=litellm.utils.Usage(
+        usage=gateway.utils.Usage(
             prompt_tokens=48, completion_tokens=31, total_tokens=79
         ),
     )
-    cost = litellm.completion_cost(
+    cost = gateway.completion_cost(
         completion_response=response,
         messages=[{"role": "user", "content": "Hey, how's it going?"}],
     )
@@ -450,11 +450,11 @@ def test_replicate_llama3_cost_tracking():
     print(f"cost: {cost}")
     cost = round(cost, 5)
     expected_cost = round(
-        litellm.model_cost["replicate/meta/meta-llama-3-8b-instruct"][
+        gateway.model_cost["replicate/meta/meta-llama-3-8b-instruct"][
             "input_cost_per_token"
         ]
         * 48
-        + litellm.model_cost["replicate/meta/meta-llama-3-8b-instruct"][
+        + gateway.model_cost["replicate/meta/meta-llama-3-8b-instruct"][
             "output_cost_per_token"
         ]
         * 31,
@@ -496,7 +496,7 @@ def test_groq_response_cost_tracking(is_streaming):
     response._hidden_params["custom_llm_provider"] = "groq"
     print(response)
 
-    response_cost = litellm.response_cost_calculator(
+    response_cost = gateway.response_cost_calculator(
         response_object=response,
         model="groq/llama-3.3-70b-versatile",
         custom_llm_provider="groq",
@@ -515,7 +515,7 @@ from token_iq.gateway.types.utils import CallTypes
 
 def test_together_ai_qwen_completion_cost():
     input_kwargs = {
-        "completion_response": litellm.ModelResponse(
+        "completion_response": gateway.ModelResponse(
             **{
                 "id": "890db0c33c4ef94b-SJC",
                 "choices": [
@@ -554,7 +554,7 @@ def test_together_ai_qwen_completion_cost():
         "custom_cost_per_second": None,
     }
 
-    response = litellm.cost_calculator.get_model_params_and_category(
+    response = gateway.cost_calculator.get_model_params_and_category(
         model_name="qwen/Qwen2-72B-Instruct", call_type=CallTypes.completion
     )
 
@@ -567,12 +567,12 @@ def test_gemini_completion_cost(provider):
     Check if cost correctly calculated for gemini models based on context window
     """
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-    litellm.model_cost = litellm.get_model_cost_map()
+    gateway.model_cost = gateway.get_model_cost_map()
     model_name = "gemini-2.0-flash"
     prompt_tokens = 128.0
     output_tokens = 228.0
     ## GET MODEL FROM LITELLM.MODEL_INFO
-    model_info = litellm.get_model_info(model=model_name, custom_llm_provider=provider)
+    model_info = gateway.get_model_info(model=model_name, custom_llm_provider=provider)
 
     ## EXPECTED COST
     input_cost = prompt_tokens * model_info["input_cost_per_token"]
@@ -598,11 +598,11 @@ def _count_characters(text):
 
 def test_vertex_ai_completion_cost():
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-    litellm.model_cost = litellm.get_model_cost_map()
+    gateway.model_cost = gateway.get_model_cost_map()
 
     prompt_tokens = 100
 
-    model_info = litellm.get_model_info(model="gemini-2.0-flash")
+    model_info = gateway.get_model_info(model="gemini-2.0-flash")
 
     print("\nExpected model info:\n{}\n\n".format(model_info))
 
@@ -625,7 +625,7 @@ def test_vertex_ai_medlm_completion_cost():
     """Test for medlm completion cost ."""
 
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-    litellm.model_cost = litellm.get_model_cost_map()
+    gateway.model_cost = gateway.get_model_cost_map()
 
     model = "vertex_ai/medlm-medium"
     messages = [{"role": "user", "content": "Test MedLM completion cost."}]
@@ -645,15 +645,15 @@ def test_vertex_ai_claude_completion_cost():
     from token_iq.gateway.utils import Usage
 
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-    litellm.model_cost = litellm.get_model_cost_map()
+    gateway.model_cost = gateway.get_model_cost_map()
 
-    litellm.set_verbose = True
-    input_tokens = litellm.token_counter(
+    gateway.set_verbose = True
+    input_tokens = gateway.token_counter(
         model="vertex_ai/claude-3-sonnet@20240229",
         messages=[{"role": "user", "content": "Hey, how's it going?"}],
     )
     print(f"input_tokens: {input_tokens}")
-    output_tokens = litellm.token_counter(
+    output_tokens = gateway.token_counter(
         model="vertex_ai/claude-3-sonnet@20240229",
         text="It's all going well",
         count_response_tokens=True,
@@ -681,7 +681,7 @@ def test_vertex_ai_claude_completion_cost():
             total_tokens=input_tokens + output_tokens,
         ),
     )
-    cost = litellm.completion_cost(
+    cost = gateway.completion_cost(
         model="vertex_ai/claude-3-sonnet",
         completion_response=response,
         messages=[{"role": "user", "content": "Hey, how's it going?"}],
@@ -695,14 +695,14 @@ def test_vertex_ai_embedding_completion_cost(caplog):
     Relevant issue - https://github.com/BerriAI/litellm/issues/4630
     """
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-    litellm.model_cost = litellm.get_model_cost_map()
+    gateway.model_cost = gateway.get_model_cost_map()
 
     text = "The quick brown fox jumps over the lazy dog."
-    input_tokens = litellm.token_counter(
+    input_tokens = gateway.token_counter(
         model="vertex_ai/text-embedding-004", text=text
     )
 
-    model_info = litellm.get_model_info(model="vertex_ai/text-embedding-004")
+    model_info = gateway.get_model_info(model="vertex_ai/text-embedding-004")
 
     print("\nExpected model info:\n{}\n\n".format(model_info))
 
@@ -766,15 +766,15 @@ def test_vertex_ai_embedding_completion_cost(caplog):
 @pytest.mark.parametrize("sync_mode", [True, False])
 @pytest.mark.asyncio
 async def test_completion_cost_hidden_params(sync_mode):
-    litellm.return_response_headers = True
+    gateway.return_response_headers = True
     if sync_mode:
-        response = litellm.completion(
+        response = gateway.completion(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": "Hey, how's it going?"}],
             mock_response="Hello world",
         )
     else:
-        response = await litellm.acompletion(
+        response = await gateway.acompletion(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": "Hey, how's it going?"}],
             mock_response="Hello world",
@@ -853,7 +853,7 @@ def test_vertex_ai_mistral_predict_cost(usage):
 )
 def test_completion_cost_tts(model):
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-    litellm.model_cost = litellm.get_model_cost_map()
+    gateway.model_cost = gateway.get_model_cost_map()
 
     cost = completion_cost(
         model=model,
@@ -871,7 +871,7 @@ def test_completion_cost_anthropic():
       model: anthropic/claude-3-haiku-20240307
       max_tokens: 4096
     """
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "claude-3-haiku-20240307",
@@ -916,7 +916,7 @@ def test_completion_cost_azure_common_deployment_name():
         Usage,
     )
 
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "gpt-4",
@@ -953,9 +953,9 @@ def test_completion_cost_azure_common_deployment_name():
     print(response)
 
     with patch.object(
-        litellm.cost_calculator, "completion_cost", new=MagicMock()
+        gateway.cost_calculator, "completion_cost", new=MagicMock()
     ) as mock_client:
-        _ = litellm.response_cost_calculator(
+        _ = gateway.response_cost_calculator(
             response_object=response,
             model="gpt-4-0314",
             custom_llm_provider="azure",
@@ -979,7 +979,7 @@ def test_completion_cost_azure_common_deployment_name():
 )
 def test_completion_cost_prompt_caching(model, custom_llm_provider):
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-    litellm.model_cost = litellm.get_model_cost_map()
+    gateway.model_cost = gateway.get_model_cost_map()
 
     from token_iq.gateway.utils import Choices, Message, ModelResponse, Usage
 
@@ -1014,7 +1014,7 @@ def test_completion_cost_prompt_caching(model, custom_llm_provider):
 
     cost_1 = completion_cost(model=model, completion_response=response_1)
 
-    _model_info = litellm.get_model_info(
+    _model_info = gateway.get_model_info(
         model=model, custom_llm_provider=custom_llm_provider
     )
     expected_cost = (
@@ -1082,12 +1082,12 @@ def test_completion_cost_prompt_caching(model, custom_llm_provider):
 )
 @pytest.mark.skip(reason="databricks is having an active outage")
 def test_completion_cost_databricks(model):
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-    litellm.model_cost = litellm.get_model_cost_map()
+    gateway.model_cost = gateway.get_model_cost_map()
     messages = [{"role": "user", "content": "What is 2+2?"}]
 
-    resp = litellm.completion(model=model, messages=messages)  # works fine
+    resp = gateway.completion(model=model, messages=messages)  # works fine
 
     print(resp)
     print(f"hidden_params: {resp._hidden_params}")
@@ -1111,7 +1111,7 @@ def test_completion_cost_databricks_embedding(model, monkeypatch):
     monkeypatch.setenv("DATABRICKS_API_KEY", api_key)
 
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-    litellm.model_cost = litellm.get_model_cost_map()
+    gateway.model_cost = gateway.get_model_cost_map()
 
     mock_response_data = {
         "object": "list",
@@ -1145,7 +1145,7 @@ def test_completion_cost_databricks_embedding(model, monkeypatch):
     sync_handler = HTTPHandler()
 
     with patch.object(HTTPHandler, "post", return_value=mock_response):
-        resp = litellm.embedding(
+        resp = gateway.embedding(
             model=model, input=["hey, how's it going?"], client=sync_handler
         )
 
@@ -1180,7 +1180,7 @@ def test_completion_cost_fireworks_ai(model):
     non-zero cost against the local cost map.
     """
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-    litellm.model_cost = litellm.get_model_cost_map()
+    gateway.model_cost = gateway.get_model_cost_map()
 
     mock_response_data = {
         "id": "chatcmpl-test",
@@ -1207,7 +1207,7 @@ def test_completion_cost_fireworks_ai(model):
     messages = [{"role": "user", "content": "Hey, how's it going?"}]
 
     with patch.object(HTTPHandler, "post", return_value=mock_response):
-        resp = litellm.completion(model=model, messages=messages, client=sync_handler)
+        resp = gateway.completion(model=model, messages=messages, client=sync_handler)
 
     cost = completion_cost(completion_response=resp)
     assert cost > 0
@@ -1222,7 +1222,7 @@ def test_cost_azure_openai_prompt_caching():
     from token_iq.gateway import get_model_info
 
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-    litellm.model_cost = litellm.get_model_cost_map()
+    gateway.model_cost = gateway.get_model_cost_map()
 
     model = "azure/o1-mini"
 
@@ -1314,7 +1314,7 @@ def test_cost_azure_openai_prompt_caching():
 
 def test_completion_cost_vertex_llama3():
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-    litellm.model_cost = litellm.get_model_cost_map()
+    gateway.model_cost = gateway.get_model_cost_map()
 
     from token_iq.gateway.utils import Choices, Message, ModelResponse, Usage
 
@@ -1355,7 +1355,7 @@ def test_cost_openai_prompt_caching():
     from token_iq.gateway import get_model_info
 
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-    litellm.model_cost = litellm.get_model_cost_map()
+    gateway.model_cost = gateway.get_model_cost_map()
 
     model = "gpt-4o-mini-2024-07-18"
 
@@ -1446,7 +1446,7 @@ def test_completion_cost_azure_ai_rerank(model):
     from token_iq.gateway import RerankResponse, rerank
 
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-    litellm.model_cost = litellm.get_model_cost_map()
+    gateway.model_cost = gateway.get_model_cost_map()
 
     response = RerankResponse(
         id="b01dbf2e-63c8-4981-9e69-32241da559ed",
@@ -1477,7 +1477,7 @@ def test_together_ai_embedding_completion_cost():
     from token_iq.gateway.utils import Choices, EmbeddingResponse, Message, ModelResponse, Usage
 
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-    litellm.model_cost = litellm.get_model_cost_map()
+    gateway.model_cost = gateway.get_model_cost_map()
     response = EmbeddingResponse(
         model="togethercomputer/m2-bert-80M-8k-retrieval",
         data=[
@@ -2276,7 +2276,7 @@ def test_completion_cost_params():
     """
     Relevant Issue: https://github.com/BerriAI/litellm/issues/6133
     """
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     resp1_prompt_cost, resp1_completion_cost = cost_per_token(
         model="gemini-2.0-flash",
         prompt_tokens=1000,
@@ -2307,7 +2307,7 @@ def test_completion_cost_params_2():
     """
     Relevant Issue: https://github.com/BerriAI/litellm/issues/6133
     """
-    litellm.set_verbose = True
+    gateway.set_verbose = True
 
     prompt_tokens = 1000
     completion_tokens = 1000
@@ -2319,7 +2319,7 @@ def test_completion_cost_params_2():
 
     print(resp1_prompt_cost, resp1_completion_cost)
 
-    model_info = litellm.get_model_info("gemini-2.0-flash")
+    model_info = gateway.get_model_info("gemini-2.0-flash")
     input_cost_per_token = model_info["input_cost_per_token"]
     output_cost_per_token = model_info["output_cost_per_token"]
 
@@ -2333,7 +2333,7 @@ def test_completion_cost_params_gemini_3():
     from token_iq.gateway.llms.vertex_ai.cost_calculator import cost_per_character
 
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-    litellm.model_cost = litellm.get_model_cost_map()
+    gateway.model_cost = gateway.get_model_cost_map()
 
     usage = Usage(
         completion_tokens=2,
@@ -2390,7 +2390,7 @@ def test_completion_cost_params_gemini_3():
         }
     )
 
-    model_info = litellm.get_model_info("gemini-2.0-flash")
+    model_info = gateway.get_model_info("gemini-2.0-flash")
 
     # gemini-2.0-flash has no per-character pricing, so cost_per_character
     # falls back to per-token pricing using usage.prompt_tokens / usage.completion_tokens
@@ -2406,7 +2406,7 @@ def test_completion_cost_params_gemini_3():
 @pytest.mark.parametrize("stream", [False])  # True,
 async def test_test_completion_cost_gpt4o_audio_output_from_model(stream):
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-    litellm.model_cost = litellm.get_model_cost_map()
+    gateway.model_cost = gateway.get_model_cost_map()
     from token_iq.gateway.types.utils import (
         Choices,
         Message,
@@ -2459,7 +2459,7 @@ async def test_test_completion_cost_gpt4o_audio_output_from_model(stream):
 
     cost = completion_cost(completion, model="gpt-4o-audio-preview")
 
-    model_info = litellm.get_model_info("gpt-4o-audio-preview")
+    model_info = gateway.get_model_info("gpt-4o-audio-preview")
     print(f"model_info: {model_info}")
     ## input cost
 
@@ -2504,9 +2504,9 @@ def test_completion_cost_model_response_cost(response_model, custom_llm_provider
     from token_iq.gateway import ModelResponse
 
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-    litellm.model_cost = litellm.get_model_cost_map()
+    gateway.model_cost = gateway.get_model_cost_map()
 
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     response = {
         "id": "cmpl-55db75e0b05344058b0bd8ee4e00bf84",
         "choices": [
@@ -2557,7 +2557,7 @@ def test_completion_cost_azure_tts():
         "optional_params": {},
         "custom_pricing": False,
     }
-    litellm.response_cost_calculator(**args)
+    gateway.response_cost_calculator(**args)
 
 
 def test_select_model_name_for_cost_calc():
@@ -2605,14 +2605,14 @@ def test_moderations():
     from token_iq.gateway import moderation
 
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-    litellm.model_cost = litellm.get_model_cost_map()
-    litellm.add_known_models()
+    gateway.model_cost = gateway.get_model_cost_map()
+    gateway.add_known_models()
 
-    assert "omni-moderation-latest" in litellm.model_cost
+    assert "omni-moderation-latest" in gateway.model_cost
     print(
-        f"litellm.model_cost['omni-moderation-latest']: {litellm.model_cost['omni-moderation-latest']}"
+        f"litellm.model_cost['omni-moderation-latest']: {gateway.model_cost['omni-moderation-latest']}"
     )
-    assert "omni-moderation-latest" in litellm.open_ai_chat_completion_models
+    assert "omni-moderation-latest" in gateway.open_ai_chat_completion_models
 
     response = moderation("I am a bad person", model="omni-moderation-latest")
     cost = completion_cost(response, model="omni-moderation-latest")
@@ -2647,9 +2647,9 @@ def test_cost_calculator_azure_embedding():
 
 
 def test_add_known_models():
-    litellm.add_known_models()
+    gateway.add_known_models()
     assert (
-        "bedrock/us-west-1/meta.llama3-70b-instruct-v1:0" not in litellm.bedrock_models
+        "bedrock/us-west-1/meta.llama3-70b-instruct-v1:0" not in gateway.bedrock_models
     )
 
 
@@ -2660,9 +2660,9 @@ def test_bedrock_cost_calc_with_region():
     from token_iq.gateway import ModelResponse
 
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-    litellm.model_cost = litellm.get_model_cost_map()
+    gateway.model_cost = gateway.get_model_cost_map()
 
-    litellm.add_known_models()
+    gateway.add_known_models()
 
     hidden_params = {
         "custom_llm_provider": "bedrock",
@@ -2675,12 +2675,12 @@ def test_bedrock_cost_calc_with_region():
         "additional_headers": {},
     }
 
-    litellm.set_verbose = True
+    gateway.set_verbose = True
 
-    bedrock_models = litellm.bedrock_models + litellm.bedrock_converse_models
+    bedrock_models = gateway.bedrock_models + gateway.bedrock_converse_models
 
     for model in bedrock_models:
-        if litellm.model_cost[model]["mode"] == "chat":
+        if gateway.model_cost[model]["mode"] == "chat":
             response = {
                 "id": "cmpl-55db75e0b05344058b0bd8ee4e00bf84",
                 "choices": [
@@ -2726,7 +2726,7 @@ def test_bedrock_cost_calc_with_region():
 #     ]
 # )
 def test_cost_calculator_with_base_model():
-    resp = litellm.completion(
+    resp = gateway.completion(
         model="bedrock/random-model",
         messages=[{"role": "user", "content": "Hello, how are you?"}],
         base_model="bedrock/anthropic.claude-3-sonnet-20240229-v1:0",
@@ -2783,7 +2783,7 @@ def test_cost_calculator_with_base_model_with_router(base_model_arg):
 def test_cost_calculator_with_base_model_with_router_embedding(base_model_arg):
     from token_iq.gateway import Router
 
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
 
     model_item = {
         "model_name": "random-model",
@@ -2810,7 +2810,7 @@ def test_cost_calculator_with_base_model_with_router_embedding(base_model_arg):
 
 
 def test_cost_calculator_with_custom_pricing():
-    resp = litellm.completion(
+    resp = gateway.completion(
         model="bedrock/random-model",
         messages=[{"role": "user", "content": "Hello, how are you?"}],
         mock_response="Hello, how are you?",
@@ -2854,7 +2854,7 @@ def test_json_valid_model_cost_map():
 
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
 
-    model_cost = litellm.get_model_cost_map()
+    model_cost = gateway.get_model_cost_map()
 
     try:
         # Attempt to serialize and deserialize the JSON

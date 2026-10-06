@@ -11,7 +11,7 @@ from typing import Any, Final, cast
 
 from fastapi import APIRouter, Depends, HTTPException, Path, Request, Response
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.batches.main import CancelBatchRequest, RetrieveBatchRequest
 from token_iq.gateway.proxy._types import *
@@ -58,7 +58,7 @@ def _raise_not_found_when_openai_fallback_unservable(
 ) -> None:
     if requested_provider is not None:
         return
-    if data.get("api_key") or litellm.api_key or litellm.openai_key or os.getenv("OPENAI_API_KEY"):
+    if data.get("api_key") or gateway.api_key or gateway.openai_key or os.getenv("OPENAI_API_KEY"):
         return
     raise ProxyException(
         message=not_found_message,
@@ -166,7 +166,7 @@ async def create_batch(
         ## check if model is a loadbalanced model
         router_model: str | None = None
         is_router_model = False
-        if litellm.enable_loadbalancing_on_batch_endpoints is True:
+        if gateway.enable_loadbalancing_on_batch_endpoints is True:
             router_model = data.get("model", None)
             is_router_model = is_known_model(model=router_model, llm_router=llm_router)
 
@@ -231,7 +231,7 @@ async def create_batch(
             )
 
             # Create batch using model credentials
-            response = await litellm.acreate_batch(
+            response = await gateway.acreate_batch(
                 custom_llm_provider=credentials["custom_llm_provider"],
                 **_create_batch_data,
             )
@@ -265,7 +265,7 @@ async def create_batch(
 
             response.input_file_id = input_file_id
 
-        elif litellm.enable_loadbalancing_on_batch_endpoints is True and is_router_model and router_model is not None:
+        elif gateway.enable_loadbalancing_on_batch_endpoints is True and is_router_model and router_model is not None:
             if llm_router is None:
                 raise HTTPException(
                     status_code=500,
@@ -321,7 +321,7 @@ async def create_batch(
                 )
 
                 # Create batch using model credentials
-                response = await litellm.acreate_batch(
+                response = await gateway.acreate_batch(
                     custom_llm_provider=credentials["custom_llm_provider"],
                     **_create_batch_data,
                 )
@@ -342,7 +342,7 @@ async def create_batch(
                     data=cast(dict, _create_batch_data),  # cast-ok: TypedDict is a dict at runtime
                     not_found_message=f"No such File object: {input_file_id}",
                 )
-                response = await litellm.acreate_batch(
+                response = await gateway.acreate_batch(
                     custom_llm_provider=custom_llm_provider,
                     **_create_batch_data,
                 )
@@ -557,7 +557,7 @@ async def retrieve_batch(
             data["model"] = model_from_id
 
             # Retrieve batch using model credentials
-            response = await litellm.aretrieve_batch(
+            response = await gateway.aretrieve_batch(
                 custom_llm_provider=credentials["custom_llm_provider"],
                 **data,
             )
@@ -568,7 +568,7 @@ async def retrieve_batch(
                 "Retrieved batch using model: %s, original_id: %s", model_from_id, original_batch_id
             )
 
-        elif litellm.enable_loadbalancing_on_batch_endpoints is True or unified_batch_id:
+        elif gateway.enable_loadbalancing_on_batch_endpoints is True or unified_batch_id:
             if llm_router is None:
                 raise HTTPException(
                     status_code=500,
@@ -608,7 +608,7 @@ async def retrieve_batch(
                 data=data,
                 not_found_message=f"No batch found with id '{batch_id}'.",
             )
-            response = await litellm.aretrieve_batch(
+            response = await gateway.aretrieve_batch(
                 custom_llm_provider=custom_llm_provider,
                 **data,
             )
@@ -769,7 +769,7 @@ async def list_batches(
 
             prepare_data_with_credentials(data=data, credentials=credentials)
 
-            response = await litellm.alist_batches(
+            response = await gateway.alist_batches(
                 custom_llm_provider=credentials["custom_llm_provider"],
                 after=after,
                 limit=limit,
@@ -813,7 +813,7 @@ async def list_batches(
                 user_api_key_dict=user_api_key_dict,
                 custom_llm_provider=custom_llm_provider,
             )
-            response = await litellm.alist_batches(
+            response = await gateway.alist_batches(
                 custom_llm_provider=custom_llm_provider,
                 after=after,
                 limit=limit,
@@ -965,7 +965,7 @@ async def cancel_batch(
             data["batch_id"] = data.pop("file_id", original_batch_id)
 
             # Cancel batch using model credentials
-            response = await litellm.acancel_batch(
+            response = await gateway.acancel_batch(
                 custom_llm_provider=credentials["custom_llm_provider"],
                 **data,
             )
@@ -1023,7 +1023,7 @@ async def cancel_batch(
                 not_found_message=f"No batch found with id '{batch_id}'.",
             )
             _cancel_batch_data: Final = CancelBatchRequest(batch_id=batch_id, **data)
-            response = await litellm.acancel_batch(
+            response = await gateway.acancel_batch(
                 custom_llm_provider=custom_llm_provider,
                 **_cancel_batch_data,
             )

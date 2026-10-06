@@ -15,7 +15,7 @@ import httpx
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
 MODEL = "bedrock/mantle/anthropic.claude-mythos-preview"
@@ -53,7 +53,7 @@ def test_mantle_request_url_and_body():
         client, "post", return_value=_make_fake_response(FAKE_ANTHROPIC_RESPONSE)
     ) as mock_post:
         try:
-            litellm.completion(
+            gateway.completion(
                 model=MODEL,
                 messages=[{"role": "user", "content": "Hello"}],
                 max_tokens=50,
@@ -98,7 +98,7 @@ def test_mantle_request_does_not_include_mantle_prefix_in_body():
         client, "post", return_value=_make_fake_response(FAKE_ANTHROPIC_RESPONSE)
     ) as mock_post:
         try:
-            litellm.completion(
+            gateway.completion(
                 model=MODEL,
                 messages=[{"role": "user", "content": "Hi"}],
                 max_tokens=10,
@@ -127,7 +127,7 @@ def test_mantle_region_reflected_in_url():
             client, "post", return_value=_make_fake_response(FAKE_ANTHROPIC_RESPONSE)
         ) as mock_post:
             try:
-                litellm.completion(
+                gateway.completion(
                     model=MODEL,
                     messages=[{"role": "user", "content": "Hi"}],
                     max_tokens=10,

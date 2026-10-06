@@ -1,6 +1,6 @@
 from typing import Any, Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.anthropic.common_utils import normalize_cache_control_in_anthropic_payload
 from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.transformation import (
     AnthropicMessagesConfig,
@@ -130,7 +130,7 @@ class JSONProviderAnthropicMessagesConfig(OpenAILikeAnthropicMessagesConfig):
         return True
 
     def _resolve_api_key(self, api_key: str | None) -> str | None:
-        return api_key or get_secret_str(self._provider.api_key_env) or litellm.api_key
+        return api_key or get_secret_str(self._provider.api_key_env) or gateway.api_key
 
     def _resolve_api_base(self, api_base: str | None) -> str:
         env_api_base: Final = get_secret_str(self._provider.api_base_env) if self._provider.api_base_env else None

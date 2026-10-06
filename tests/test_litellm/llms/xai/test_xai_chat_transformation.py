@@ -3,7 +3,7 @@ from unittest.mock import Mock
 import httpx
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.xai.chat.transformation import (
     XAIChatCompletionStreamingHandler,
     XAIChatConfig,
@@ -190,10 +190,10 @@ class TestXAIChatWebSearchBilling:
             {"usage": {"server_side_tool_usage_details": self._TOOL_DETAILS}},
         )
 
-        with_search = litellm.completion_cost(
+        with_search = gateway.completion_cost(
             completion_response=billed, model="xai/grok-4", custom_llm_provider="xai"
         )
-        without_search = litellm.completion_cost(
+        without_search = gateway.completion_cost(
             completion_response=self._response_with_usage(),
             model="xai/grok-4",
             custom_llm_provider="xai",
@@ -304,7 +304,7 @@ class TestXAIReportedCost:
 
         assert parsed.usage.cost == 0.0037756
 
-        assembled = litellm.stream_chunk_builder(chunks=[parsed])
+        assembled = gateway.stream_chunk_builder(chunks=[parsed])
         assert assembled.usage.cost == 0.0037756
         assert cost_per_token(model="grok-4-latest", usage=assembled.usage) == (
             0.0,

@@ -9,7 +9,7 @@ if TYPE_CHECKING:
 
 
 def initialize_guardrail(litellm_params: "LitellmParams", guardrail: "Guardrail"):
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.proxy.guardrails.guardrail_hooks.aim import AimGuardrail
 
     _aim_callback: Final = AimGuardrail(
@@ -19,7 +19,7 @@ def initialize_guardrail(litellm_params: "LitellmParams", guardrail: "Guardrail"
         event_hook=litellm_params.mode,
         default_on=litellm_params.default_on,
     )
-    litellm.logging_callback_manager.add_litellm_callback(_aim_callback)
+    gateway.logging_callback_manager.add_litellm_callback(_aim_callback)
 
     return _aim_callback
 

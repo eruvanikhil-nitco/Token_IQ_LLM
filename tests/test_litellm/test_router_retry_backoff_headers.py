@@ -7,7 +7,7 @@ from unittest.mock import patch
 import httpx
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import Router
 
 
@@ -29,21 +29,21 @@ async def test_retry_backoff_uses_current_exception_headers():
         num_retries=2,
     )
 
-    first_error = litellm.RateLimitError(
+    first_error = gateway.RateLimitError(
         message="Rate limited on first attempt",
         model="gpt-3.5-turbo",
         llm_provider="openai",
     )
     first_error.litellm_response_headers = httpx.Headers({"retry-after": "1"})
 
-    second_error = litellm.RateLimitError(
+    second_error = gateway.RateLimitError(
         message="Rate limited on second attempt",
         model="gpt-3.5-turbo",
         llm_provider="openai",
     )
     second_error.litellm_response_headers = httpx.Headers({"retry-after": "15"})
 
-    third_error = litellm.RateLimitError(
+    third_error = gateway.RateLimitError(
         message="Rate limited on third attempt",
         model="gpt-3.5-turbo",
         llm_provider="openai",
@@ -74,7 +74,7 @@ async def test_retry_backoff_uses_current_exception_headers():
                 "_time_to_sleep_before_retry",
                 side_effect=mock_time_to_sleep_before_retry,
             ):
-                with pytest.raises(litellm.RateLimitError):
+                with pytest.raises(gateway.RateLimitError):
                     await router.acompletion(
                         model="gpt-3.5-turbo",
                         messages=[{"role": "user", "content": "Hello"}],

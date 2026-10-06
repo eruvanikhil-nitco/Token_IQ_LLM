@@ -15,7 +15,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import completion
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.integrations.datadog.datadog_llm_obs import DataDogLLMObsLogger
@@ -85,11 +85,11 @@ def create_standard_logging_payload() -> StandardLoggingPayload:
 @pytest.mark.asyncio
 async def test_datadog_llm_obs_logging():
     datadog_llm_obs_logger = DataDogLLMObsLogger()
-    litellm.callbacks = [datadog_llm_obs_logger]
-    litellm.set_verbose = True
+    gateway.callbacks = [datadog_llm_obs_logger]
+    gateway.set_verbose = True
 
     for _ in range(2):
-        response = await litellm.acompletion(
+        response = await gateway.acompletion(
             model="gpt-5.5",
             messages=[{"role": "user", "content": "Hello testing dd llm obs!"}],
             mock_response="hi",

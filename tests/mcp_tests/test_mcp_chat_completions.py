@@ -1,6 +1,6 @@
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.types.utils import ModelResponse
 
 
@@ -54,7 +54,7 @@ async def test_acompletion_mcp_auto_exec(monkeypatch):
         staticmethod(lambda secret_fields, tools: (None, None, None, None)),
     )
 
-    response = await litellm.acompletion(
+    response = await gateway.acompletion(
         model="gpt-4o-mini",
         messages=[{"role": "user", "content": "hello"}],
         tools=[
@@ -117,7 +117,7 @@ async def test_acompletion_mcp_respects_manual_approval(monkeypatch):
         staticmethod(lambda secret_fields, tools: (None, None, None, None)),
     )
 
-    response = await litellm.acompletion(
+    response = await gateway.acompletion(
         model="gpt-4o-mini",
         messages=[{"role": "user", "content": "hello"}],
         tools=[
@@ -407,7 +407,7 @@ async def test_completion_mcp_with_streaming_no_timeout_error(monkeypatch):
     with patch("token_iq.gateway.acompletion", side_effect=mock_acompletion):
         # This should not raise RuntimeError: Timeout context manager should be used inside a task
         # completion() returns a coroutine when MCP tools are present, which acompletion() awaits
-        response = litellm.completion(
+        response = gateway.completion(
             model="gpt-4o-mini",
             messages=[{"role": "user", "content": "hello"}],
             tools=[
@@ -695,7 +695,7 @@ async def test_mcp_metadata_in_streaming_final_chunk(monkeypatch):
         )
 
     with patch("token_iq.gateway.acompletion", side_effect=mock_acompletion):
-        response = litellm.completion(
+        response = gateway.completion(
             model="gpt-4o-mini",
             messages=[{"role": "user", "content": "hello"}],
             tools=[
@@ -1030,7 +1030,7 @@ async def test_mcp_streaming_metadata_ordering(monkeypatch):
         pytest.fail("Non-streaming call should not happen with new implementation")
 
     with patch("token_iq.gateway.acompletion", side_effect=mock_acompletion):
-        response = litellm.completion(
+        response = gateway.completion(
             model="gpt-4o-mini",
             messages=[{"role": "user", "content": "hello"}],
             tools=[

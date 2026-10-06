@@ -13,11 +13,11 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 import token_iq.gateway.proxy.proxy_server
-from token_iq import gateway as litellm
+from token_iq import gateway
 import token_iq.gateway.utils
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import Router
 from token_iq.gateway.proxy._types import TokenCountRequest
 from token_iq.gateway.proxy.proxy_server import token_counter
@@ -58,9 +58,9 @@ async def test_custom_tokenizer_from_model_info_is_used(monkeypatch):
             }
         ]
     )
-    monkeypatch.setattr(litellm.proxy.proxy_server, "llm_router", llm_router)
+    monkeypatch.setattr(gateway.proxy.proxy_server, "llm_router", llm_router)
 
-    with patch.object(litellm.utils, "Tokenizer") as mock_tokenizer_cls:
+    with patch.object(gateway.utils, "Tokenizer") as mock_tokenizer_cls:
         mock_tokenizer_cls.from_pretrained.return_value = _fake_hf_tokenizer(7)
 
         response = await token_counter(
@@ -94,9 +94,9 @@ async def test_model_without_custom_tokenizer_uses_default(monkeypatch):
             }
         ]
     )
-    monkeypatch.setattr(litellm.proxy.proxy_server, "llm_router", llm_router)
+    monkeypatch.setattr(gateway.proxy.proxy_server, "llm_router", llm_router)
 
-    with patch.object(litellm.utils, "Tokenizer") as mock_tokenizer_cls:
+    with patch.object(gateway.utils, "Tokenizer") as mock_tokenizer_cls:
         response = await token_counter(
             request=TokenCountRequest(
                 model="gpt-4",

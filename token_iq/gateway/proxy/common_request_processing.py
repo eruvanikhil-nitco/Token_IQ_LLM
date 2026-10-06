@@ -16,7 +16,7 @@ from fastapi import HTTPException, Request, status
 from fastapi.responses import JSONResponse, Response, StreamingResponse
 from starlette.types import Receive, Scope, Send
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import redact_internal_details_from_client_message, verbose_proxy_logger
 from token_iq.gateway._uuid import uuid
 from token_iq.gateway.constants import (
@@ -347,7 +347,7 @@ async def _bill_partial_streamed_spend_on_disconnect(request_data: dict, respons
     success event fired (logging disabled, nothing streamed, or assembly
     failed) and the caller must release the slot itself.
     """
-    if litellm.disable_streaming_logging is True:
+    if gateway.disable_streaming_logging is True:
         return False
     logging_obj: Final = request_data.get("litellm_logging_obj")
     if not isinstance(logging_obj, LiteLLMLoggingObj):
@@ -366,7 +366,7 @@ async def _bill_partial_streamed_spend_on_disconnect(request_data: dict, respons
     )
     messages: Final[object] = getattr(response, "messages", None)
     try:
-        partial_response: Final = litellm.stream_chunk_builder(
+        partial_response: Final = gateway.stream_chunk_builder(
             chunks=chunks,
             messages=messages if isinstance(messages, list) else None,
             logging_obj=logging_obj,
@@ -1004,7 +1004,7 @@ def ttft_keepalive_interval(request_data: Mapping[str, object], llm_router: Rout
         if llm_router is not None and isinstance(requested_model, str)
         else ()
     )
-    return resolve_ttft_keepalive_interval(deployments, litellm.sse_keepalive_ping_interval_seconds)
+    return resolve_ttft_keepalive_interval(deployments, gateway.sse_keepalive_ping_interval_seconds)
 
 
 async def _aclose_late_response(produced: Response) -> None:
@@ -1433,7 +1433,7 @@ def _log_llm_api_exception(e: Exception) -> None:
         return
     log_fn: Final = (
         verbose_proxy_logger.error
-        if is_expected_client_error(e) and not litellm.log_client_error_tracebacks
+        if is_expected_client_error(e) and not gateway.log_client_error_tracebacks
         else verbose_proxy_logger.exception
     )
     log_fn("litellm.proxy.proxy_server._handle_llm_api_exception(): Exception occured - %s", e)
@@ -1881,8 +1881,8 @@ class ProxyBaseLLMRequestProcessing:
         ### MODEL ALIAS MAPPING ###
         # check if model name in model alias map
         # get the actual model name
-        if isinstance(self.data["model"], str) and self.data["model"] in litellm.model_alias_map:
-            self.data["model"] = litellm.model_alias_map[self.data["model"]]
+        if isinstance(self.data["model"], str) and self.data["model"] in gateway.model_alias_map:
+            self.data["model"] = gateway.model_alias_map[self.data["model"]]
 
         # Check key-specific aliases
         if (
@@ -1946,9 +1946,9 @@ class ProxyBaseLLMRequestProcessing:
 
         ## LOGGING OBJECT ## - initialize logging object for logging success/failure events for call
         ## IMPORTANT Note: - initialize this before running pre-call checks. Ensures we log rejected requests to langfuse.
-        logging_obj, self.data = litellm.utils.function_setup(
+        logging_obj, self.data = gateway.utils.function_setup(
             original_function=route_type,
-            rules_obj=litellm.utils.Rules(),
+            rules_obj=gateway.utils.Rules(),
             start_time=start_time,
             **self.data,
         )
@@ -2499,7 +2499,7 @@ class ProxyBaseLLMRequestProcessing:
                         return await create_response(
                             generator=wrap_sse_stream_with_keepalive_pings(
                                 stream=selected_data_generator,
-                                ping_interval_seconds=litellm.anthropic_sse_ping_interval_seconds,
+                                ping_interval_seconds=gateway.anthropic_sse_ping_interval_seconds,
                             ),
                             media_type="text/event-stream",
                             headers=custom_headers,
@@ -2881,7 +2881,7 @@ class ProxyBaseLLMRequestProcessing:
         matches all hooks in should_run_guardrail but must not defer async logging
         on non-streaming /chat/completions (no post_call_success_hook flush path).
         """
-        for cb in litellm.callbacks:
+        for cb in gateway.callbacks:
             if not isinstance(cb, CustomGuardrail):
                 continue
             if cb.event_hook is None:
@@ -2905,7 +2905,7 @@ class ProxyBaseLLMRequestProcessing:
         from token_iq.gateway.proxy.utils import _check_and_merge_model_level_guardrails
 
         guardrail_data: Final = _check_and_merge_model_level_guardrails(data=self.data, llm_router=llm_router)
-        for cb in litellm.callbacks:
+        for cb in gateway.callbacks:
             if not isinstance(cb, CustomGuardrail):
                 continue
             if cb.should_run_guardrail(
@@ -3221,7 +3221,7 @@ class ProxyBaseLLMRequestProcessing:
             from token_iq.gateway.proxy.utils import _check_and_merge_model_level_guardrails
 
             guardrail_data = _check_and_merge_model_level_guardrails(data=captured_data, llm_router=_global_llm_router)
-            for cb in litellm.callbacks:
+            for cb in gateway.callbacks:
                 if not isinstance(cb, CustomGuardrail):
                     continue
                 if not cb.should_run_guardrail(
@@ -3537,7 +3537,7 @@ class ProxyBaseLLMRequestProcessing:
         # await, response-string materialization, and cost-injection call are
         # pure overhead on the streaming hot path (the default config).
         caps: Final = ProxyLogging._callback_capabilities()
-        cost_injection_enabled: Final = bool(getattr(litellm, "include_cost_in_streaming_usage", False))
+        cost_injection_enabled: Final = bool(getattr(gateway, "include_cost_in_streaming_usage", False))
         fast_path = not caps.has_streaming_chunk_override and not caps.has_guardrail and not cost_injection_enabled
         debug_enabled: Final = verbose_proxy_logger.isEnabledFor(logging.DEBUG)
         stream_completed = False
@@ -3564,7 +3564,7 @@ class ProxyBaseLLMRequestProcessing:
                     )
 
                     if isinstance(chunk, (ModelResponse, ModelResponseStream)):
-                        response_str = litellm.get_response_string(response_obj=chunk)
+                        response_str = gateway.get_response_string(response_obj=chunk)
                         str_so_far += response_str
                     elif hasattr(chunk, "model_dump"):
                         try:
@@ -3709,7 +3709,7 @@ class ProxyBaseLLMRequestProcessing:
         Returns:
             The processed chunk with cost information injected if applicable
         """
-        if not getattr(litellm, "include_cost_in_streaming_usage", False):
+        if not getattr(gateway, "include_cost_in_streaming_usage", False):
             return chunk
 
         try:
@@ -3814,7 +3814,7 @@ class ProxyBaseLLMRequestProcessing:
         model_response: ModelResponse, model_name: str, service_tier: str | None
     ) -> float | None:
         try:
-            return litellm.completion_cost(
+            return gateway.completion_cost(
                 completion_response=model_response, model=model_name, service_tier=service_tier
             )
         except Exception:

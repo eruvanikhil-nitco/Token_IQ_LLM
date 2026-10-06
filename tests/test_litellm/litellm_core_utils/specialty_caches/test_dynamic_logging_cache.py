@@ -5,7 +5,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.specialty_caches.dynamic_logging_cache import (
     LangfuseInMemoryCache,
 )
@@ -41,13 +41,13 @@ class TestLangfuseInMemoryCache:
             self.cache.ttl_dict["test_key"] = expired_time
             self.cache.expiration_heap = [(expired_time, "test_key")]
 
-            initial_count = litellm.initialized_langfuse_clients
+            initial_count = gateway.initialized_langfuse_clients
 
             # Trigger eviction
             self.cache.evict_cache()
 
             # Verify client count was decremented
-            assert litellm.initialized_langfuse_clients == initial_count - 1
+            assert gateway.initialized_langfuse_clients == initial_count - 1
 
     @patch("token_iq.gateway.initialized_langfuse_clients", 3)
     def test_langfuse_client_shutdown_called_on_eviction(self):

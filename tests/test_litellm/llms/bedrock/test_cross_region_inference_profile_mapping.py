@@ -8,7 +8,7 @@ from typing import NamedTuple
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.bedrock.chat.converse_transformation import AmazonConverseConfig
 from token_iq.gateway.llms.bedrock.common_utils import BedrockModelInfo
 from token_iq.gateway.utils import _get_model_info_helper
@@ -26,22 +26,22 @@ from token_iq.gateway.types.utils import (
 def local_model_cost_map(monkeypatch):
     """Resolve models against this checkout's cost map instead of the network-fetched
     ``main`` copy, which lags this branch until merge."""
-    original_converse_models = set(litellm.bedrock_converse_models)
+    original_converse_models = set(gateway.bedrock_converse_models)
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map())
-    litellm.get_model_info.cache_clear()
+    monkeypatch.setattr(gateway, "model_cost", gateway.get_model_cost_map())
+    gateway.get_model_info.cache_clear()
     try:
-        litellm.bedrock_converse_models.update(
+        gateway.bedrock_converse_models.update(
             key
-            for key, value in litellm.model_cost.items()
+            for key, value in gateway.model_cost.items()
             if isinstance(value, dict)
             and value.get("litellm_provider") == "bedrock_converse"
         )
         yield
     finally:
-        litellm.bedrock_converse_models.clear()
-        litellm.bedrock_converse_models.update(original_converse_models)
-        litellm.get_model_info.cache_clear()
+        gateway.bedrock_converse_models.clear()
+        gateway.bedrock_converse_models.update(original_converse_models)
+        gateway.get_model_info.cache_clear()
 
 
 class GptProfile(NamedTuple):
@@ -105,7 +105,7 @@ GPT_5_6_PROFILES = [
 @lru_cache(maxsize=1)
 def _packaged_cost_map():
     """The map litellm actually resolves against, for fields ModelInfoBase drops."""
-    path = Path(litellm.__file__).parent / "model_prices_and_context_window_backup.json"
+    path = Path(gateway.__file__).parent / "model_prices_and_context_window_backup.json"
     return json.loads(path.read_text())
 
 

@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING, Final, NoReturn
 import httpx
 from pydantic import BaseModel, ConfigDict
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.base_llm.vector_store.transformation import (
     BaseDirectVectorStoreConfig,
     VectorStoreEmbeddingExecutor,
@@ -134,8 +134,8 @@ class ValkeyVectorStoreConfig(BaseDirectVectorStoreConfig):
         super().__init__()
         self.sync_client = sync_client
         self.async_client = async_client
-        self.embedding_fn = embedding_fn if embedding_fn is not None else litellm.embedding
-        self.aembedding_fn = aembedding_fn if aembedding_fn is not None else litellm.aembedding
+        self.embedding_fn = embedding_fn if embedding_fn is not None else gateway.embedding
+        self.aembedding_fn = aembedding_fn if aembedding_fn is not None else gateway.aembedding
 
     @staticmethod
     def _query_text(query: str | Sequence[str]) -> str:

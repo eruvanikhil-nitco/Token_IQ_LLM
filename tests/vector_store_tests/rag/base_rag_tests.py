@@ -11,7 +11,7 @@ from typing import Any, Dict, Optional
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.types.rag import (
     RAGIngestOptions,
     OpenAIVectorStoreOptions,
@@ -77,7 +77,7 @@ class BaseRAGTest(ABC):
         """
         Test basic text file ingestion to vector store.
         """
-        litellm._turn_on_debug()
+        gateway._turn_on_debug()
 
         filename, unique_id = self.get_unique_filename("basic_ingest")
         text_content = f"Test document {unique_id} for RAG ingestion.".encode("utf-8")
@@ -87,7 +87,7 @@ class BaseRAGTest(ABC):
         ingest_options["name"] = f"test-basic-ingest-{unique_id}"
 
         try:
-            response = await litellm.rag.aingest(
+            response = await gateway.rag.aingest(
                 ingest_options=ingest_options,
                 file_data=file_data,
             )
@@ -104,7 +104,7 @@ class BaseRAGTest(ABC):
                 assert response["vector_store_id"]
                 print(f"Vector store ID: {response['vector_store_id']}")
 
-        except litellm.InternalServerError:
+        except gateway.InternalServerError:
             pytest.skip("Skipping test due to litellm.InternalServerError")
 
     @pytest.mark.asyncio
@@ -114,7 +114,7 @@ class BaseRAGTest(ABC):
         """
         import asyncio
 
-        litellm._turn_on_debug()
+        gateway._turn_on_debug()
 
         filename, unique_id = self.get_unique_filename("ingest_query")
         text_content = f"""
@@ -131,7 +131,7 @@ class BaseRAGTest(ABC):
 
         try:
             # Step 1: Ingest
-            ingest_response = await litellm.rag.aingest(
+            ingest_response = await gateway.rag.aingest(
                 ingest_options=ingest_options,
                 file_data=file_data,
             )
@@ -167,5 +167,5 @@ class BaseRAGTest(ABC):
 
             print("Query successful!")
 
-        except litellm.InternalServerError:
+        except gateway.InternalServerError:
             pytest.skip("Skipping test due to litellm.InternalServerError")

@@ -302,14 +302,14 @@ def test_get_complete_model_list_expands_team_scoped_wildcard_with_stored_creden
     Team-scoped BYOK wildcard deployments are stored under an internal model_name,
     with the public wildcard name in model_info.team_public_model_name.
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway import Router
     from token_iq.gateway.proxy.auth import model_checks
     from token_iq.gateway.proxy.auth.model_checks import get_complete_model_list
     from token_iq.gateway.types.utils import CredentialItem
 
     monkeypatch.setattr(
-        litellm,
+        gateway,
         "credential_list",
         [
             CredentialItem(
@@ -373,14 +373,14 @@ def test_get_complete_model_list_expands_team_scoped_wildcard_with_stored_creden
 def test_wildcard_credential_hydration_preserves_deployment_params(
     monkeypatch,
 ):
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.proxy.auth import model_checks
     from token_iq.gateway.proxy.auth.model_checks import get_known_models_from_wildcard
     from token_iq.gateway.types.router import LiteLLM_Params
     from token_iq.gateway.types.utils import CredentialItem
 
     monkeypatch.setattr(
-        litellm,
+        gateway,
         "credential_list",
         [
             CredentialItem(
@@ -491,12 +491,12 @@ def test_wildcard_custom_prefix_keeps_org_segment_for_non_provider_first_segment
 def test_wildcard_credential_hydration_preserves_missing_credential_name(
     monkeypatch,
 ):
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.proxy.auth import model_checks
     from token_iq.gateway.proxy.auth.model_checks import get_known_models_from_wildcard
     from token_iq.gateway.types.router import LiteLLM_Params
 
-    monkeypatch.setattr(litellm, "credential_list", [])
+    monkeypatch.setattr(gateway, "credential_list", [])
 
     captured_params = {}
 
@@ -530,7 +530,7 @@ def test_wildcard_credential_hydration_preserves_missing_credential_name(
 async def test_get_available_models_for_user_expands_query_team_wildcard(
     monkeypatch,
 ):
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway import Router
     from token_iq.gateway.proxy.auth import model_checks
     from token_iq.gateway.proxy._types import UserAPIKeyAuth
@@ -538,7 +538,7 @@ async def test_get_available_models_for_user_expands_query_team_wildcard(
     from token_iq.gateway.types.utils import CredentialItem
 
     monkeypatch.setattr(
-        litellm,
+        gateway,
         "credential_list",
         [
             CredentialItem(
@@ -758,26 +758,26 @@ def test_add_known_models_refreshes_models_by_provider_for_wildcard_expansion():
     """models_by_provider was a frozen import-time snapshot of set unions, so cost map
     reloads (which call add_known_models) never reached wildcard expansion until a
     process restart (LIT-4947)."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.proxy.auth.model_checks import get_known_models_from_wildcard
 
     fake_model = "vertex_ai/gemini-lit4947-regression"
-    captured_reference = litellm.models_by_provider
-    assert fake_model not in litellm.models_by_provider["vertex_ai"]
+    captured_reference = gateway.models_by_provider
+    assert fake_model not in gateway.models_by_provider["vertex_ai"]
     try:
-        litellm.add_known_models(
+        gateway.add_known_models(
             model_cost_map={
                 fake_model: {"litellm_provider": "vertex_ai-language-models", "mode": "chat"}
             }
         )
-        assert fake_model in litellm.models_by_provider["vertex_ai"]
-        assert litellm.models_by_provider is captured_reference
+        assert fake_model in gateway.models_by_provider["vertex_ai"]
+        assert gateway.models_by_provider is captured_reference
         assert fake_model in captured_reference["vertex_ai"]
         assert fake_model in get_known_models_from_wildcard("vertex_ai/*")
     finally:
-        litellm.vertex_language_models.discard(fake_model)
-        litellm.add_known_models(model_cost_map={})
-    assert fake_model not in litellm.models_by_provider["vertex_ai"]
+        gateway.vertex_language_models.discard(fake_model)
+        gateway.add_known_models(model_cost_map={})
+    assert fake_model not in gateway.models_by_provider["vertex_ai"]
 
 def test_get_complete_model_list_drops_no_default_models_sentinel():
     from token_iq.gateway.proxy.auth.model_checks import get_complete_model_list

@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Any, Final, cast
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.anthropic_beta_headers_manager import filter_and_transform_beta_headers
 from token_iq.gateway.constants import (
     BEDROCK_MIN_THINKING_BUDGET_TOKENS,
@@ -614,7 +614,7 @@ class AmazonAnthropicClaudeMessagesConfig(
         )
         if web_search_tool is None:
             return
-        raise litellm.BadRequestError(
+        raise gateway.BadRequestError(
             message=(
                 f"Bedrock does not support Anthropic's server-side web search tool "
                 f"(tool type '{web_search_tool.get('type')}', model '{model}'). "
@@ -748,7 +748,7 @@ class AmazonAnthropicClaudeMessagesConfig(
 
         remaining_output_config: Final = anthropic_messages_request.get("output_config")
         if (
-            litellm.drop_params is True
+            gateway.drop_params is True
             and isinstance(remaining_output_config, dict)
             and any(key != "format" for key in remaining_output_config)
             and not AnthropicConfig._model_supports_effort_param(model, "bedrock")

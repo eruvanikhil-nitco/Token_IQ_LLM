@@ -3,7 +3,7 @@ from typing import Final
 import httpx
 from typing_extensions import TypedDict
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.custom_httpx.http_handler import (
     _get_httpx_client,
     get_async_httpx_client,
@@ -176,7 +176,7 @@ class VertexTextToSpeechAPI(VertexLLM):
     ) -> HttpxBinaryResponseContent:
         import base64
 
-        async_handler: Final = get_async_httpx_client(llm_provider=litellm.LlmProviders.VERTEX_AI)
+        async_handler: Final = get_async_httpx_client(llm_provider=gateway.LlmProviders.VERTEX_AI)
 
         response = await async_handler.post(
             url=url,

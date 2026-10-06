@@ -10,7 +10,7 @@ from collections.abc import Callable
 from typing import Any, Final, Protocol
 from urllib.parse import urlsplit
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.openai_like.chat.transformation import OpenAILikeChatConfig
 from token_iq.gateway.types.llms.openai import AllMessageValues
 
@@ -47,7 +47,7 @@ class GDCGeminiConfig(OpenAILikeChatConfig):
         return (
             litellm_params.get("vertex_project")
             or litellm_params.get("vertex_ai_project")
-            or getattr(litellm, "vertex_project", None)
+            or getattr(gateway, "vertex_project", None)
             or optional_params.get("vertex_project")
             or optional_params.get("vertex_ai_project")
         )
@@ -56,7 +56,7 @@ class GDCGeminiConfig(OpenAILikeChatConfig):
         return (
             litellm_params.get("vertex_location")
             or litellm_params.get("vertex_ai_location")
-            or getattr(litellm, "vertex_location", None)
+            or getattr(gateway, "vertex_location", None)
             or optional_params.get("vertex_location")
             or optional_params.get("vertex_ai_location")
         )
@@ -69,7 +69,7 @@ class GDCGeminiConfig(OpenAILikeChatConfig):
 
     def _validate_path_id(self, value: str, field: str, model: str) -> str:
         if not self._PATH_ID_PATTERN.match(value):
-            raise litellm.utils.AuthenticationError(
+            raise gateway.utils.AuthenticationError(
                 message=f"{field} must be a plain identifier of letters, digits, hyphens or underscores.",
                 llm_provider="gdc",
                 model=model,
@@ -85,9 +85,9 @@ class GDCGeminiConfig(OpenAILikeChatConfig):
         litellm_params: dict,
         stream: bool | None = None,
     ) -> str:
-        api_base = api_base or litellm.gdc_api_base or litellm.api_base
+        api_base = api_base or gateway.gdc_api_base or gateway.api_base
         if not api_base:
-            raise litellm.utils.AuthenticationError(
+            raise gateway.utils.AuthenticationError(
                 message="api_base/host is required for GDC Gemini. Please set it or pass it.",
                 llm_provider="gdc",
                 model=model,
@@ -104,7 +104,7 @@ class GDCGeminiConfig(OpenAILikeChatConfig):
         project = self._resolve_project(optional_params, litellm_params)
 
         if not project:
-            raise litellm.utils.AuthenticationError(
+            raise gateway.utils.AuthenticationError(
                 message="project is required for GDC Gemini. Please pass vertex_project.",
                 llm_provider="gdc",
                 model=model,
@@ -113,7 +113,7 @@ class GDCGeminiConfig(OpenAILikeChatConfig):
         location = self._resolve_location(optional_params, litellm_params)
 
         if not location:
-            raise litellm.utils.AuthenticationError(
+            raise gateway.utils.AuthenticationError(
                 message="location is required for GDC Gemini. Please pass vertex_location.",
                 llm_provider="gdc",
                 model=model,
@@ -208,16 +208,16 @@ class GDCGeminiConfig(OpenAILikeChatConfig):
     ) -> dict:
         import google.auth.exceptions
 
-        api_base = api_base or litellm.gdc_api_base or litellm.api_base
+        api_base = api_base or gateway.gdc_api_base or gateway.api_base
         if not api_base:
-            raise litellm.utils.AuthenticationError(
+            raise gateway.utils.AuthenticationError(
                 message="api_base/host is required for GDC Gemini. Please set it or pass it.",
                 llm_provider="gdc",
                 model=model,
             )
 
         if not api_key:
-            raise litellm.utils.AuthenticationError(
+            raise gateway.utils.AuthenticationError(
                 message="api_key is required for GDC Gemini. Please pass your service account string or token as the api_key.",
                 llm_provider="gdc",
                 model=model,
@@ -225,7 +225,7 @@ class GDCGeminiConfig(OpenAILikeChatConfig):
 
         project = self._effective_project(api_base, optional_params, litellm_params)
         if not project:
-            raise litellm.utils.AuthenticationError(
+            raise gateway.utils.AuthenticationError(
                 message="project is required for GDC Gemini. Please pass vertex_project.",
                 llm_provider="gdc",
                 model=model,
@@ -244,7 +244,7 @@ class GDCGeminiConfig(OpenAILikeChatConfig):
             KeyError,
             AttributeError,
         ) as e:
-            raise litellm.utils.AuthenticationError(
+            raise gateway.utils.AuthenticationError(
                 message=f"Failed to load service account credentials from api_key: {e}",
                 llm_provider="gdc",
                 model=model,

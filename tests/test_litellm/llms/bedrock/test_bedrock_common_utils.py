@@ -448,7 +448,7 @@ def test_capability_lookups_fall_back_to_base_model_when_regional_entry_lacks_fi
     must not shadow a base entry that has it (`get(model) or get(base)` used to
     short-circuit on the truthy regional dict and drop the capability).
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.llms.bedrock.common_utils import (
         bedrock_converse_supports_parallel_tool_use_config,
         is_claude_4_5_on_bedrock,
@@ -456,9 +456,9 @@ def test_capability_lookups_fall_back_to_base_model_when_regional_entry_lacks_fi
 
     base = "anthropic.claude-fallback-test"
     regional = f"eu.{base}"
-    monkeypatch.setitem(litellm.model_cost, regional, {"input_cost_per_token": 1e-06})
+    monkeypatch.setitem(gateway.model_cost, regional, {"input_cost_per_token": 1e-06})
     monkeypatch.setitem(
-        litellm.model_cost,
+        gateway.model_cost,
         base,
         {
             "cache_creation_input_token_cost_above_1hr": 1e-05,

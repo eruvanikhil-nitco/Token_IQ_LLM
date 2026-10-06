@@ -16,7 +16,7 @@ from token_iq.gateway.types.utils import GenericBudgetConfigType, BudgetConfig
 from token_iq.gateway.caching.caching import DualCache, RedisCache
 import logging
 from token_iq.gateway._logging import verbose_router_logger
-from token_iq import gateway as litellm
+from token_iq import gateway
 from datetime import timezone, timedelta
 
 verbose_router_logger.setLevel(logging.DEBUG)
@@ -508,7 +508,7 @@ async def test_deployment_budget_limits_e2e_test():
     - Next 3 requests all go to openai/gpt-4o-mini
 
     """
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     cleanup_redis()
     # Modify for test
 
@@ -614,7 +614,7 @@ async def test_tag_budgets_e2e_test_expect_to_fail():
     cleanup_redis()
     TAG_NAME = "product:chat-bot"
     TAG_NAME_2 = "product:chat-bot-2"
-    litellm.tag_budget_config = {
+    gateway.tag_budget_config = {
         TAG_NAME: BudgetConfig(max_budget=0.000000000001, budget_duration="1d"),
         TAG_NAME_2: BudgetConfig(max_budget=100, budget_duration="1d"),
     }

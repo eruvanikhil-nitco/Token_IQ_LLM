@@ -108,7 +108,7 @@ def test_get_available_deployment_for_pass_through_no_deployments():
     """
     Test that correct error is thrown when there are no pass-through deployments
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.router import Router
 
     model_list = [
@@ -126,7 +126,7 @@ def test_get_available_deployment_for_pass_through_no_deployments():
     router = Router(model_list=model_list)
 
     # Should throw BadRequestError
-    with pytest.raises(litellm.BadRequestError) as exc_info:
+    with pytest.raises(gateway.BadRequestError) as exc_info:
         router.get_available_deployment_for_pass_through(model="gemini-pro")
 
     assert "use_in_pass_through=True" in str(exc_info.value)

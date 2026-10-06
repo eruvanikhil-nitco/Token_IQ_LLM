@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 
 
 def initialize_guardrail(litellm_params: "LitellmParams", guardrail: "Guardrail"):
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     if not litellm_params.auth_token:
         raise ValueError("IBM Guardrails: auth_token is required")
@@ -51,7 +51,7 @@ def initialize_guardrail(litellm_params: "LitellmParams", guardrail: "Guardrail"
         event_hook=litellm_params.mode,
     )
 
-    litellm.logging_callback_manager.add_litellm_callback(ibm_guardrail)
+    gateway.logging_callback_manager.add_litellm_callback(ibm_guardrail)
     return ibm_guardrail
 
 

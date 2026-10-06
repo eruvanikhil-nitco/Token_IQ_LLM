@@ -31,7 +31,7 @@ import pytest
 import respx
 from fastapi import HTTPException
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 from token_iq.gateway.proxy.guardrails.guardrail_hooks.headroom.headroom import (
     HeadroomGuardrail,
@@ -1588,7 +1588,7 @@ async def test_apply_guardrail_litellm_timeout_raises_when_fail_closed():
         guardrail.async_handler,
         "post",
         new_callable=AsyncMock,
-        side_effect=litellm.Timeout(
+        side_effect=gateway.Timeout(
             message="Connection timed out after 10 seconds.",
             model="default-model-name",
             llm_provider="litellm-httpx-handler",
@@ -1618,7 +1618,7 @@ async def test_apply_guardrail_litellm_timeout_fail_open_forwards_uncompressed()
         guardrail.async_handler,
         "post",
         new_callable=AsyncMock,
-        side_effect=litellm.Timeout(
+        side_effect=gateway.Timeout(
             message="Connection timed out after 10 seconds.",
             model="default-model-name",
             llm_provider="litellm-httpx-handler",
@@ -2057,8 +2057,8 @@ async def test_streaming_chat_completion_resolves_ccr_retrieval_end_to_end(
     )
 
     monkeypatch.setenv("OPENAI_API_KEY", "sk-test")
-    monkeypatch.setattr(litellm, "callbacks", [guardrail])
-    monkeypatch.setattr(litellm, "disable_aiohttp_transport", True)
+    monkeypatch.setattr(gateway, "callbacks", [guardrail])
+    monkeypatch.setattr(gateway, "disable_aiohttp_transport", True)
     upstream = respx_mock.post("https://api.openai.com/v1/chat/completions").mock(
         side_effect=[
             httpx.Response(200, json=_openai_tool_call_payload()),
@@ -2072,7 +2072,7 @@ async def test_streaming_chat_completion_resolves_ccr_retrieval_end_to_end(
         new_callable=AsyncMock,
         return_value=_make_retrieve_response(original_content),
     ) as mock_get:
-        response = await litellm.acompletion(
+        response = await gateway.acompletion(
             model="openai/gpt-4o",
             messages=[{"role": "user", "content": f"summarize hash={CCR_HASH}"}],
             tools=[_retrieve_tool_definition()],

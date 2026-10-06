@@ -251,12 +251,12 @@ async def test_retrieve_model_general_setting_hides_unhealthy_model(patched_mode
 @pytest.mark.asyncio
 async def test_retrieve_model_default_serves_unhealthy_model(patched_model_list, monkeypatch):
     """Without the opt-in, retrieve keeps serving unhealthy models."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     deployment = MagicMock()
     deployment.litellm_params.model = "anthropic/claude-sonnet"
     patched_model_list.get_deployment_by_model_group_name.return_value = deployment
-    monkeypatch.setattr(litellm, "get_llm_provider", lambda model: (model, "anthropic", None, None))
+    monkeypatch.setattr(gateway, "get_llm_provider", lambda model: (model, "anthropic", None, None))
 
     response = await proxy_server.model_info(
         model_id="claude-sonnet",

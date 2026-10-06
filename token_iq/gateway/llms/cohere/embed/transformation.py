@@ -14,7 +14,7 @@ from typing import Any, Final, cast
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import COHERE_DEFAULT_EMBEDDING_INPUT_TYPE
 from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
 from token_iq.gateway.llms.base_llm import BaseEmbeddingConfig
@@ -229,7 +229,7 @@ class CohereEmbeddingConfig(BaseEmbeddingConfig):
             data=request_data,
             model_response=model_response,
             model=model,
-            encoding=litellm.encoding,
+            encoding=gateway.encoding,
             input=logging_obj.model_call_details["input"],
         )
 

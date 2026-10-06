@@ -17,7 +17,7 @@ from token_iq.gateway.proxy.common_utils.callback_utils import (
     sanitize_openai_provider_metadata,
     strip_callback_config,
 )
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.caching.caching import DualCache
 from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.proxy._types import UserAPIKeyAuth
@@ -220,9 +220,9 @@ def test_initialize_callbacks_on_proxy_instantiates_compression_interception(
     )
 
     original_callbacks = (
-        list(litellm.callbacks) if isinstance(litellm.callbacks, list) else []
+        list(gateway.callbacks) if isinstance(gateway.callbacks, list) else []
     )
-    litellm.callbacks = []
+    gateway.callbacks = []
     try:
         initialize_callbacks_on_proxy(
             value=["compression_interception"],
@@ -231,10 +231,10 @@ def test_initialize_callbacks_on_proxy_instantiates_compression_interception(
             litellm_settings={"compression_interception_params": {"enabled": True}},
             callback_specific_params={},
         )
-        assert dummy_callback in litellm.callbacks
-        assert "compression_interception" not in litellm.callbacks
+        assert dummy_callback in gateway.callbacks
+        assert "compression_interception" not in gateway.callbacks
     finally:
-        litellm.callbacks = original_callbacks
+        gateway.callbacks = original_callbacks
 
 
 # ---------------------------------------------------------------------------
@@ -415,9 +415,9 @@ def test_initialize_callbacks_on_proxy_lakera_ignores_non_dict_callback_settings
     )
 
     original_callbacks = (
-        list(litellm.callbacks) if isinstance(litellm.callbacks, list) else []
+        list(gateway.callbacks) if isinstance(gateway.callbacks, list) else []
     )
-    litellm.callbacks = []
+    gateway.callbacks = []
     try:
         # A non-dict value must be ignored (init_params stays {}), not **-unpacked.
         initialize_callbacks_on_proxy(
@@ -428,9 +428,9 @@ def test_initialize_callbacks_on_proxy_lakera_ignores_non_dict_callback_settings
             callback_specific_params={"lakera_prompt_injection": "any-string"},
         )
         assert captured["kwargs"] == {}
-        assert any(isinstance(c, _DummyLakera) for c in litellm.callbacks)
+        assert any(isinstance(c, _DummyLakera) for c in gateway.callbacks)
     finally:
-        litellm.callbacks = original_callbacks
+        gateway.callbacks = original_callbacks
 
 
 @pytest.mark.parametrize("bad_root", [None, True])
@@ -454,9 +454,9 @@ def test_initialize_callbacks_on_proxy_non_dict_callback_specific_params_root(
     )
 
     original_callbacks = (
-        list(litellm.callbacks) if isinstance(litellm.callbacks, list) else []
+        list(gateway.callbacks) if isinstance(gateway.callbacks, list) else []
     )
-    litellm.callbacks = []
+    gateway.callbacks = []
     try:
         initialize_callbacks_on_proxy(
             value=["compression_interception"],
@@ -466,10 +466,10 @@ def test_initialize_callbacks_on_proxy_non_dict_callback_specific_params_root(
             callback_specific_params=bad_root,
         )
         assert any(
-            isinstance(c, CompressionInterceptionLogger) for c in litellm.callbacks
+            isinstance(c, CompressionInterceptionLogger) for c in gateway.callbacks
         )
     finally:
-        litellm.callbacks = original_callbacks
+        gateway.callbacks = original_callbacks
 
 
 def test_strip_callback_config_drops_credential_bearing_slots():
@@ -555,14 +555,14 @@ def probe_config_path(tmp_path):
     (tmp_path / f"{_PROBE_MODULE_NAME}.py").write_text(_PROBE_MODULE_SOURCE)
 
     original_callbacks = (
-        list(litellm.callbacks) if isinstance(litellm.callbacks, list) else litellm.callbacks
+        list(gateway.callbacks) if isinstance(gateway.callbacks, list) else gateway.callbacks
     )
-    litellm.callbacks = []
+    gateway.callbacks = []
     ProxyLogging._callback_capabilities_cache.clear()
     try:
         yield str(tmp_path / "config.yaml")
     finally:
-        litellm.callbacks = original_callbacks
+        gateway.callbacks = original_callbacks
         ProxyLogging._callback_capabilities_cache.clear()
 
 
@@ -590,7 +590,7 @@ def test_initialize_callbacks_on_proxy_rejects_class_valued_entry(probe_config_p
     assert "the class" in message
     assert "FloorMaxTokens" in message
     assert f"{_PROBE_MODULE_NAME}.proxy_handler_instance" in message
-    assert litellm.callbacks == []
+    assert gateway.callbacks == []
 
 
 @pytest.mark.parametrize(
@@ -611,7 +611,7 @@ def test_initialize_callbacks_on_proxy_rejects_non_dispatchable_values(
     message = str(exc_info.value)
     assert entry in message
     assert expected_fragment in message
-    assert litellm.callbacks == []
+    assert gateway.callbacks == []
 
 
 def test_initialize_callbacks_on_proxy_rejects_class_valued_non_list_value(probe_config_path):
@@ -629,8 +629,8 @@ async def test_initialize_callbacks_on_proxy_instance_entry_runs_pre_call_hook(p
     real ProxyLogging.pre_call_hook, which is where a class-valued entry goes silent."""
     _load_callbacks([f"{_PROBE_MODULE_NAME}.proxy_handler_instance"], probe_config_path)
 
-    assert len(litellm.callbacks) == 1
-    assert isinstance(litellm.callbacks[0], CustomLogger)
+    assert len(gateway.callbacks) == 1
+    assert isinstance(gateway.callbacks[0], CustomLogger)
 
     ProxyLogging._callback_capabilities_cache.clear()
     proxy_logging = ProxyLogging(user_api_key_cache=DualCache())
@@ -653,7 +653,7 @@ def test_initialize_callbacks_on_proxy_keeps_known_string_callback(probe_config_
     stays a plain string in litellm.callbacks."""
     _load_callbacks(["langfuse"], probe_config_path)
 
-    assert litellm.callbacks == ["langfuse"]
+    assert gateway.callbacks == ["langfuse"]
 
 
 def test_initialize_callbacks_on_proxy_accepts_plain_function_callback(probe_config_path):
@@ -662,11 +662,11 @@ def test_initialize_callbacks_on_proxy_accepts_plain_function_callback(probe_con
     function is a supported shape and must keep loading."""
     _load_callbacks([f"{_PROBE_MODULE_NAME}.log_event_fn"], probe_config_path)
 
-    assert [getattr(cb, "__name__", None) for cb in litellm.callbacks] == ["log_event_fn"]
+    assert [getattr(cb, "__name__", None) for cb in gateway.callbacks] == ["log_event_fn"]
 
 
 def test_initialize_callbacks_on_proxy_accepts_instance_non_list_value(probe_config_path):
     _load_callbacks(f"{_PROBE_MODULE_NAME}.proxy_handler_instance", probe_config_path)
 
-    assert len(litellm.callbacks) == 1
-    assert isinstance(litellm.callbacks[0], CustomLogger)
+    assert len(gateway.callbacks) == 1
+    assert isinstance(gateway.callbacks[0], CustomLogger)

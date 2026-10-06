@@ -4,7 +4,7 @@ Tests for Crusoe provider integration
 import os
 from unittest import mock
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 CRUSOE_API_BASE = "https://managed-inference-api-proxy.crusoecloud.com/v1"
 
@@ -77,11 +77,11 @@ def test_crusoe_models_configuration():
     """Test that Crusoe models are configured correctly"""
     from token_iq.gateway import get_model_info
 
-    original_model_cost = litellm.model_cost
+    original_model_cost = gateway.model_cost
     original_env = os.environ.get("LITELLM_LOCAL_MODEL_COST_MAP")
     try:
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-        litellm.model_cost = litellm.get_model_cost_map()
+        gateway.model_cost = gateway.get_model_cost_map()
 
         crusoe_models = [
             "crusoe/meta-llama/Llama-3.3-70B-Instruct",
@@ -101,7 +101,7 @@ def test_crusoe_models_configuration():
             )
             assert model_info.get("mode") == "chat", f"{model} should be in chat mode"
     finally:
-        litellm.model_cost = original_model_cost
+        gateway.model_cost = original_model_cost
         if original_env is None:
             os.environ.pop("LITELLM_LOCAL_MODEL_COST_MAP", None)
         else:

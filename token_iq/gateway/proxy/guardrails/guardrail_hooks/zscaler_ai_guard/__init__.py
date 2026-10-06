@@ -9,7 +9,7 @@ if TYPE_CHECKING:
 
 
 def initialize_guardrail(litellm_params: "LitellmParams", guardrail: "Guardrail"):
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     _zscaler_ai_guard_callback: Final = ZscalerAIGuard(
         api_base=litellm_params.api_base,
@@ -23,7 +23,7 @@ def initialize_guardrail(litellm_params: "LitellmParams", guardrail: "Guardrail"
         event_hook=litellm_params.mode,
         default_on=litellm_params.default_on,
     )
-    litellm.logging_callback_manager.add_litellm_callback(_zscaler_ai_guard_callback)
+    gateway.logging_callback_manager.add_litellm_callback(_zscaler_ai_guard_callback)
 
     return _zscaler_ai_guard_callback
 

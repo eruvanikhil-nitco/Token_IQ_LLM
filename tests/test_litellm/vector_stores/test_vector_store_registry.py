@@ -10,7 +10,7 @@ from fastapi.testclient import TestClient
 from datetime import datetime, timezone
 from unittest.mock import MagicMock
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.types.vector_stores import LiteLLM_ManagedVectorStore
 from token_iq.gateway.vector_stores.main import search
 from token_iq.gateway.vector_stores.vector_store_registry import VectorStoreRegistry
@@ -22,7 +22,7 @@ def clear_client_cache():
     Clear the HTTP client cache before each test to ensure mocks are used.
     This prevents cached real clients from being reused across tests.
     """
-    cache = getattr(litellm, "in_memory_llm_clients_cache", None)
+    cache = getattr(gateway, "in_memory_llm_clients_cache", None)
     if cache is not None:
         cache.flush_cache()
     yield
@@ -139,8 +139,8 @@ def test_search_uses_registry_credentials():
         updated_at=datetime.now(timezone.utc),
     )
     registry = VectorStoreRegistry([vector_store])
-    original_registry = getattr(litellm, "vector_store_registry", None)
-    litellm.vector_store_registry = registry
+    original_registry = getattr(gateway, "vector_store_registry", None)
+    gateway.vector_store_registry = registry
     try:
         logger = MagicMock()
         logger._response_cost_calculator.return_value = 0
@@ -181,4 +181,4 @@ def test_search_uses_registry_credentials():
             assert getattr(called_params, "aws_secret_access_key") == "DEF"
             assert getattr(called_params, "aws_region_name") == "us-east-1"
     finally:
-        litellm.vector_store_registry = original_registry
+        gateway.vector_store_registry = original_registry

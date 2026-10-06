@@ -3,7 +3,7 @@ from unittest.mock import Mock, patch
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.openai.vector_stores.transformation import OpenAIVectorStoreConfig
 from token_iq.gateway.llms.ragflow.vector_stores.transformation import RAGFlowVectorStoreConfig
 from token_iq.gateway.llms.vertex_ai.vector_stores.rag_api.transformation import (
@@ -41,7 +41,7 @@ def test_vector_store_create_with_simple_provider_name():
     # Verify ProviderConfigManager returns correct config
     vector_store_provider_config = (
         ProviderConfigManager.get_provider_vector_stores_config(
-            provider=litellm.LlmProviders(custom_llm_provider),
+            provider=gateway.LlmProviders(custom_llm_provider),
             api_type=api_type,
         )
     )
@@ -93,7 +93,7 @@ def test_vector_store_create_with_provider_api_type():
     # Verify ProviderConfigManager returns correct config
     vector_store_provider_config = (
         ProviderConfigManager.get_provider_vector_stores_config(
-            provider=litellm.LlmProviders(custom_llm_provider),
+            provider=gateway.LlmProviders(custom_llm_provider),
             api_type=api_type,
         )
     )
@@ -138,7 +138,7 @@ def test_vector_store_create_with_ragflow_provider():
     # Verify ProviderConfigManager returns correct config
     vector_store_provider_config = (
         ProviderConfigManager.get_provider_vector_stores_config(
-            provider=litellm.LlmProviders(custom_llm_provider),
+            provider=gateway.LlmProviders(custom_llm_provider),
             api_type=api_type,
         )
     )

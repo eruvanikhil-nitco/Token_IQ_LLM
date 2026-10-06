@@ -1,7 +1,7 @@
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 
 from token_iq.gateway.llms.fireworks_ai.completion.transformation import (
@@ -15,7 +15,7 @@ def force_local_model_cost(monkeypatch):
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
     from token_iq.gateway.core_utils.get_model_cost_map import get_model_cost_map
 
-    litellm.model_cost = get_model_cost_map()
+    gateway.model_cost = get_model_cost_map()
 
 
 _REASONING_MODEL = "fireworks_ai/accounts/fireworks/models/glm-5p1"

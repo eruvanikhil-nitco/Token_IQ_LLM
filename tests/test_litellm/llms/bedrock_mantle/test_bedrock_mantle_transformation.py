@@ -12,26 +12,26 @@ from unittest.mock import patch
 import httpx
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.bedrock_mantle.chat.transformation import BedrockMantleChatConfig
 from token_iq.gateway.types.utils import LlmProviders
 
 
 @pytest.fixture
 def local_cost_map(monkeypatch):
-    original_model_cost = litellm.model_cost
-    original_bedrock_mantle_models = set(litellm.bedrock_mantle_models)
+    original_model_cost = gateway.model_cost
+    original_bedrock_mantle_models = set(gateway.bedrock_mantle_models)
     try:
         monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "true")
-        litellm.model_cost = litellm.get_model_cost_map()
-        litellm.get_model_info.cache_clear()
-        litellm.add_known_models()
+        gateway.model_cost = gateway.get_model_cost_map()
+        gateway.get_model_info.cache_clear()
+        gateway.add_known_models()
         yield
     finally:
-        litellm.model_cost = original_model_cost
-        litellm.bedrock_mantle_models.clear()
-        litellm.bedrock_mantle_models.update(original_bedrock_mantle_models)
-        litellm.get_model_info.cache_clear()
+        gateway.model_cost = original_model_cost
+        gateway.bedrock_mantle_models.clear()
+        gateway.bedrock_mantle_models.update(original_bedrock_mantle_models)
+        gateway.get_model_info.cache_clear()
 
 
 class TestBedrockMantleProviderRegistration:
@@ -39,21 +39,21 @@ class TestBedrockMantleProviderRegistration:
         assert LlmProviders.BEDROCK_MANTLE == "bedrock_mantle"
 
     def test_provider_in_provider_list(self):
-        assert "bedrock_mantle" in litellm.provider_list
+        assert "bedrock_mantle" in gateway.provider_list
 
     def test_models_loaded(self, monkeypatch):
         monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "true")
-        litellm.add_known_models()
-        assert len(litellm.bedrock_mantle_models) > 0
-        assert "bedrock_mantle/openai.gpt-oss-120b" in litellm.bedrock_mantle_models
-        assert "bedrock_mantle/openai.gpt-oss-20b" in litellm.bedrock_mantle_models
+        gateway.add_known_models()
+        assert len(gateway.bedrock_mantle_models) > 0
+        assert "bedrock_mantle/openai.gpt-oss-120b" in gateway.bedrock_mantle_models
+        assert "bedrock_mantle/openai.gpt-oss-20b" in gateway.bedrock_mantle_models
         assert (
             "bedrock_mantle/openai.gpt-oss-safeguard-120b"
-            in litellm.bedrock_mantle_models
+            in gateway.bedrock_mantle_models
         )
         assert (
             "bedrock_mantle/openai.gpt-oss-safeguard-20b"
-            in litellm.bedrock_mantle_models
+            in gateway.bedrock_mantle_models
         )
 
 
@@ -119,8 +119,8 @@ class TestBedrockMantleConfig:
         monkeypatch.delenv("BEDROCK_MANTLE_REGION", raising=False)
         monkeypatch.delenv("BEDROCK_MANTLE_API_BASE", raising=False)
         monkeypatch.delenv("AWS_REGION", raising=False)
-        with pytest.raises(litellm.exceptions.BadRequestError):
-            litellm.get_llm_provider(
+        with pytest.raises(gateway.exceptions.BadRequestError):
+            gateway.get_llm_provider(
                 model="openai.gpt-5.5",
                 custom_llm_provider="bedrock_mantle",
                 litellm_params=GenericLiteLLMParams(
@@ -136,7 +136,7 @@ class TestBedrockMantleConfig:
         monkeypatch.delenv("BEDROCK_MANTLE_REGION", raising=False)
         monkeypatch.delenv("BEDROCK_MANTLE_API_BASE", raising=False)
         monkeypatch.delenv("AWS_REGION", raising=False)
-        _, provider, _, api_base = litellm.get_llm_provider(
+        _, provider, _, api_base = gateway.get_llm_provider(
             model="openai.gpt-5.5",
             custom_llm_provider="bedrock_mantle",
             litellm_params=GenericLiteLLMParams(aws_region_name="us-east-2"),
@@ -474,7 +474,7 @@ class TestBedrockMantleChatAuth:
         with patch(
             "token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post", mock_post
         ):
-            response = litellm.completion(
+            response = gateway.completion(
                 model="bedrock_mantle/openai.gpt-oss-120b",
                 messages=[{"role": "user", "content": "hello"}],
             )
@@ -612,7 +612,7 @@ class TestBedrockMantleProjectHeader:
         with patch(
             "token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post", mock_post
         ):
-            response = litellm.completion(
+            response = gateway.completion(
                 model="bedrock_mantle/openai.gpt-oss-120b",
                 messages=[{"role": "user", "content": "hello"}],
                 api_key="fake-key",
@@ -627,14 +627,14 @@ class TestBedrockMantleProjectHeader:
 
 class TestBedrockMantleProviderResolution:
     def test_get_llm_provider_resolves_correctly(self):
-        model, provider, _, _ = litellm.get_llm_provider(
+        model, provider, _, _ = gateway.get_llm_provider(
             "bedrock_mantle/openai.gpt-oss-120b"
         )
         assert provider == "bedrock_mantle"
         assert model == "openai.gpt-oss-120b"
 
     def test_get_llm_provider_20b(self):
-        model, provider, _, _ = litellm.get_llm_provider(
+        model, provider, _, _ = gateway.get_llm_provider(
             "bedrock_mantle/openai.gpt-oss-20b"
         )
         assert provider == "bedrock_mantle"
@@ -646,16 +646,16 @@ class TestBedrockMantlePricing:
 
     def test_gpt_oss_120b_pricing(self, monkeypatch):
         monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "true")
-        litellm.add_known_models()
-        info = litellm.get_model_info("bedrock_mantle/openai.gpt-oss-120b")
+        gateway.add_known_models()
+        info = gateway.get_model_info("bedrock_mantle/openai.gpt-oss-120b")
         # Bedrock pricing: $0.15/M input, $0.60/M output
         assert info["input_cost_per_token"] == pytest.approx(1.5e-7)
         assert info["output_cost_per_token"] == pytest.approx(6e-7)
 
     def test_gpt_oss_20b_pricing(self, monkeypatch):
         monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "true")
-        litellm.add_known_models()
-        info = litellm.get_model_info("bedrock_mantle/openai.gpt-oss-20b")
+        gateway.add_known_models()
+        info = gateway.get_model_info("bedrock_mantle/openai.gpt-oss-20b")
         # Bedrock pricing: $0.075/M input, $0.30/M output
         assert info["input_cost_per_token"] == pytest.approx(7.5e-8)
         assert info["output_cost_per_token"] == pytest.approx(3e-7)
@@ -667,8 +667,8 @@ class TestBedrockMantlePricing:
         billed at OpenAI rates instead of the cheaper Bedrock rates.
         """
         monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "true")
-        litellm.add_known_models()
-        bedrock_info = litellm.get_model_info("bedrock_mantle/openai.gpt-oss-120b")
+        gateway.add_known_models()
+        bedrock_info = gateway.get_model_info("bedrock_mantle/openai.gpt-oss-120b")
         # OpenAI direct pricing for gpt-oss-120b is ~$0.039/M input, $0.190/M output
         # Bedrock should be cheaper at $0.15/M input and $0.60/M output... wait
         # Actually, Bedrock ADDS value not reduces cost vs OpenAI direct for these models.
@@ -680,23 +680,23 @@ class TestBedrockMantlePricing:
 
     def test_safeguard_models_have_larger_output_tokens(self, monkeypatch):
         monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "true")
-        litellm.add_known_models()
-        info_120b = litellm.get_model_info("bedrock_mantle/openai.gpt-oss-120b")
-        info_safeguard = litellm.get_model_info(
+        gateway.add_known_models()
+        info_120b = gateway.get_model_info("bedrock_mantle/openai.gpt-oss-120b")
+        info_safeguard = gateway.get_model_info(
             "bedrock_mantle/openai.gpt-oss-safeguard-120b"
         )
         assert info_safeguard["max_output_tokens"] > info_120b["max_output_tokens"]
 
     def test_reasoning_support(self, monkeypatch):
         monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "true")
-        litellm.add_known_models()
-        info = litellm.get_model_info("bedrock_mantle/openai.gpt-oss-120b")
+        gateway.add_known_models()
+        info = gateway.get_model_info("bedrock_mantle/openai.gpt-oss-120b")
         assert info.get("supports_reasoning") is True
 
     def test_context_window(self, monkeypatch):
         monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "true")
-        litellm.add_known_models()
-        info = litellm.get_model_info("bedrock_mantle/openai.gpt-oss-120b")
+        gateway.add_known_models()
+        info = gateway.get_model_info("bedrock_mantle/openai.gpt-oss-120b")
         assert info["max_input_tokens"] == 131072
 
 
@@ -712,7 +712,7 @@ def test_gemma_4_bedrock_mantle_model_metadata(
     local_cost_map, model_id, input_cost, output_cost, max_tokens
 ):
     full_model_name = f"bedrock_mantle/{model_id}"
-    info = litellm.get_model_info(full_model_name)
+    info = gateway.get_model_info(full_model_name)
 
     assert info["mode"] == "chat"
     assert info["input_cost_per_token"] == pytest.approx(input_cost)
@@ -724,7 +724,7 @@ def test_gemma_4_bedrock_mantle_model_metadata(
     assert info["supports_tool_choice"] is True
     assert info["supports_vision"] is True
     assert (
-        litellm.supports_parallel_function_calling(
+        gateway.supports_parallel_function_calling(
             model=full_model_name, custom_llm_provider="bedrock_mantle"
         )
         is False
@@ -742,8 +742,8 @@ def test_gemma_4_bedrock_mantle_model_metadata(
 def test_gemma_4_models_register_under_bedrock_mantle(local_cost_map, model_id):
     full_model_name = f"bedrock_mantle/{model_id}"
 
-    assert full_model_name in litellm.bedrock_mantle_models
+    assert full_model_name in gateway.bedrock_mantle_models
 
-    resolved_model, provider, _, _ = litellm.get_llm_provider(full_model_name)
+    resolved_model, provider, _, _ = gateway.get_llm_provider(full_model_name)
     assert provider == "bedrock_mantle"
     assert resolved_model == model_id

@@ -3,7 +3,7 @@ import json
 from datetime import datetime, timezone
 from typing import Any, Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway._uuid import uuid
 from token_iq.gateway.proxy._types import (
@@ -262,22 +262,22 @@ class KeyManagementEventHooks:
             secret_name: Name of the virtual key
             secret_token: Value of the virtual key (example: sk-1234)
         """
-        if litellm._key_management_settings is not None:
-            if litellm._key_management_settings.store_virtual_keys is True:
+        if gateway._key_management_settings is not None:
+            if gateway._key_management_settings.store_virtual_keys is True:
                 from token_iq.gateway.secret_managers.base_secret_manager import (
                     BaseSecretManager,
                 )
 
                 # store the key in the secret manager
-                if isinstance(litellm.secret_manager_client, BaseSecretManager):
-                    tags: Final = getattr(litellm._key_management_settings, "tags", None)
-                    description: Final = getattr(litellm._key_management_settings, "description", None)
+                if isinstance(gateway.secret_manager_client, BaseSecretManager):
+                    tags: Final = getattr(gateway._key_management_settings, "tags", None)
+                    description: Final = getattr(gateway._key_management_settings, "description", None)
                     optional_params: Final = await KeyManagementEventHooks._get_secret_manager_optional_params(team_id)
                     verbose_proxy_logger.debug(
                         "Creating secret with %s and tags=%s and description=%s", secret_name, tags, description
                     )
 
-                    await litellm.secret_manager_client.async_write_secret(
+                    await gateway.secret_manager_client.async_write_secret(
                         secret_name=KeyManagementEventHooks._get_secret_name(secret_name),
                         description=description,
                         secret_value=secret_token,
@@ -301,16 +301,16 @@ class KeyManagementEventHooks:
             new_secret_value: New value of the virtual key (example: sk-1234)
             team_id: Optional team ID to get team-specific secret manager settings
         """
-        if litellm._key_management_settings is not None:
-            if litellm._key_management_settings.store_virtual_keys is True:
+        if gateway._key_management_settings is not None:
+            if gateway._key_management_settings.store_virtual_keys is True:
                 from token_iq.gateway.secret_managers.base_secret_manager import (
                     BaseSecretManager,
                 )
 
                 # store the key in the secret manager
-                if isinstance(litellm.secret_manager_client, BaseSecretManager):
+                if isinstance(gateway.secret_manager_client, BaseSecretManager):
                     optional_params: Final = await KeyManagementEventHooks._get_secret_manager_optional_params(team_id)
-                    await litellm.secret_manager_client.async_rotate_secret(
+                    await gateway.secret_manager_client.async_rotate_secret(
                         current_secret_name=KeyManagementEventHooks._get_secret_name(current_secret_name),
                         new_secret_name=KeyManagementEventHooks._get_secret_name(new_secret_name),
                         new_secret_value=new_secret_value,
@@ -319,10 +319,10 @@ class KeyManagementEventHooks:
 
     @staticmethod
     def _get_secret_name(secret_name: str) -> str:
-        if litellm._key_management_settings.prefix_for_stored_virtual_keys.endswith("/"):
-            return f"{litellm._key_management_settings.prefix_for_stored_virtual_keys}{secret_name}"
+        if gateway._key_management_settings.prefix_for_stored_virtual_keys.endswith("/"):
+            return f"{gateway._key_management_settings.prefix_for_stored_virtual_keys}{secret_name}"
         else:
-            return f"{litellm._key_management_settings.prefix_for_stored_virtual_keys}/{secret_name}"
+            return f"{gateway._key_management_settings.prefix_for_stored_virtual_keys}/{secret_name}"
 
     @staticmethod
     async def _delete_virtual_keys_from_secret_manager(
@@ -334,13 +334,13 @@ class KeyManagementEventHooks:
         Args:
             keys_being_deleted: List of keys being deleted, this is passed down from the /key/delete operation
         """
-        if litellm._key_management_settings is not None:
-            if litellm._key_management_settings.store_virtual_keys is True:
+        if gateway._key_management_settings is not None:
+            if gateway._key_management_settings.store_virtual_keys is True:
                 from token_iq.gateway.secret_managers.base_secret_manager import (
                     BaseSecretManager,
                 )
 
-                if isinstance(litellm.secret_manager_client, BaseSecretManager):
+                if isinstance(gateway.secret_manager_client, BaseSecretManager):
                     team_settings_cache: Final[dict[str | None, dict | None]] = {}
                     for key in keys_being_deleted:
                         if key.key_alias is not None:
@@ -350,7 +350,7 @@ class KeyManagementEventHooks:
                                     team_id
                                 ] = await KeyManagementEventHooks._get_secret_manager_optional_params(team_id)
                             optional_params = team_settings_cache[team_id]
-                            await litellm.secret_manager_client.async_delete_secret(
+                            await gateway.secret_manager_client.async_delete_secret(
                                 secret_name=KeyManagementEventHooks._get_secret_name(key.key_alias),
                                 optional_params=optional_params,
                             )
@@ -420,7 +420,7 @@ class KeyManagementEventHooks:
                 BaseEmailLogger,
             )
 
-            initialized_email_loggers: Final = litellm.logging_callback_manager.get_custom_loggers_for_type(
+            initialized_email_loggers: Final = gateway.logging_callback_manager.get_custom_loggers_for_type(
                 callback_type=BaseEmailLogger
             )
             if len(initialized_email_loggers) > 0:
@@ -462,7 +462,7 @@ class KeyManagementEventHooks:
                 SendKeyCreatedEmailEvent,
             )
 
-            initialized_email_loggers: Final = litellm.logging_callback_manager.get_custom_loggers_for_type(
+            initialized_email_loggers: Final = gateway.logging_callback_manager.get_custom_loggers_for_type(
                 callback_type=BaseEmailLogger
             )
             if len(initialized_email_loggers) > 0:
@@ -557,7 +557,7 @@ class KeyManagementEventHooks:
         ##########################
         # v2 integration for emails
         ##########################
-        initialized_email_loggers: Final = litellm.logging_callback_manager.get_custom_loggers_for_type(
+        initialized_email_loggers: Final = gateway.logging_callback_manager.get_custom_loggers_for_type(
             callback_type=BaseEmailLogger
         )
         if len(initialized_email_loggers) > 0:

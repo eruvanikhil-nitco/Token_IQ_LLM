@@ -474,7 +474,7 @@ class TestMistralThinkingContentHandling:
         import json
         from unittest.mock import Mock
 
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         # Raw response from Mistral with thinking content
         raw_response_data = {
@@ -532,7 +532,7 @@ class TestMistralThinkingContentHandling:
 
         # Test the transformation
         mistral_config = MistralConfig()
-        model_response = litellm.ModelResponse()
+        model_response = gateway.ModelResponse()
 
         # Test transform_response method
         final_response = mistral_config.transform_response(

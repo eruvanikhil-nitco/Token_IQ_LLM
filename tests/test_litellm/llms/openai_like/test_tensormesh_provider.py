@@ -4,7 +4,7 @@ Tests for Tensormesh provider configuration and integration.
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 TENSORMESH_MODELS = [
     "tensormesh/Qwen/Qwen3.5-397B-A17B-FP8",
@@ -29,7 +29,7 @@ class TestTensormeshProviderConfig:
 
         assert hasattr(LlmProviders, "TENSORMESH")
         assert LlmProviders.TENSORMESH.value == "tensormesh"
-        assert "tensormesh" in litellm.provider_list
+        assert "tensormesh" in gateway.provider_list
 
     def test_tensormesh_json_config_exists(self):
         """Test that tensormesh is configured in providers.json"""
@@ -77,7 +77,7 @@ class TestTensormeshProviderConfig:
     def test_tensormesh_text_completion_enabled(self):
         """Tensormesh is wired for the /completions (text completion) route,
         matching the text_completion flag in provider_endpoints_support.json."""
-        assert "tensormesh" in litellm.openai_text_completion_compatible_providers
+        assert "tensormesh" in gateway.openai_text_completion_compatible_providers
 
     def test_tensormesh_responses_api_enabled(self):
         """Tensormesh declares /v1/responses in supported_endpoints, so litellm
@@ -119,25 +119,25 @@ class TestTensormeshCostMap:
 
     @pytest.fixture(autouse=True)
     def _use_local_model_cost_map(self, monkeypatch):
-        original_model_cost = litellm.model_cost
+        original_model_cost = gateway.model_cost
         monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-        litellm.model_cost = litellm.get_model_cost_map()
-        litellm.get_model_info.cache_clear()
+        gateway.model_cost = gateway.get_model_cost_map()
+        gateway.get_model_info.cache_clear()
         try:
             yield
         finally:
-            litellm.model_cost = original_model_cost
-            litellm.get_model_info.cache_clear()
+            gateway.model_cost = original_model_cost
+            gateway.get_model_info.cache_clear()
 
     def test_models_registered_with_capabilities(self):
         for model in TENSORMESH_MODELS:
-            info = litellm.get_model_info(model)
+            info = gateway.get_model_info(model)
             assert info["litellm_provider"] == "tensormesh"
             assert info["mode"] == "chat"
-            assert litellm.supports_function_calling(model) is True, model
-            assert litellm.supports_response_schema(model) is True, model
-            assert litellm.model_cost[model]["supports_tool_choice"] is True, model
-            assert litellm.model_cost[model]["supports_prompt_caching"] is True, model
+            assert gateway.supports_function_calling(model) is True, model
+            assert gateway.supports_response_schema(model) is True, model
+            assert gateway.model_cost[model]["supports_tool_choice"] is True, model
+            assert gateway.model_cost[model]["supports_prompt_caching"] is True, model
 
     def test_reasoning_flag_matches_expected_set(self):
         reasoning_models = {
@@ -152,10 +152,10 @@ class TestTensormeshCostMap:
             "tensormesh/google/gemma-4-31B-it",
         }
         for model in TENSORMESH_MODELS:
-            assert litellm.supports_reasoning(model) is (model in reasoning_models), model
+            assert gateway.supports_reasoning(model) is (model in reasoning_models), model
 
     def test_cost_is_wired_and_cache_reads_are_free(self):
-        prompt_cost, completion_cost = litellm.cost_per_token(
+        prompt_cost, completion_cost = gateway.cost_per_token(
             model="tensormesh/openai/gpt-oss-120b",
             prompt_tokens=1_000_000,
             completion_tokens=1_000_000,
@@ -163,7 +163,7 @@ class TestTensormeshCostMap:
         assert prompt_cost == pytest.approx(0.15)
         assert completion_cost == pytest.approx(0.60)
         assert (
-            litellm.model_cost["tensormesh/openai/gpt-oss-120b"][
+            gateway.model_cost["tensormesh/openai/gpt-oss-120b"][
                 "cache_read_input_token_cost"
             ]
             == 0

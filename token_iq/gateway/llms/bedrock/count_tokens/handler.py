@@ -8,7 +8,7 @@ from typing import Any, Final
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.llms.bedrock.common_utils import BedrockError
 from token_iq.gateway.llms.bedrock.count_tokens.transformation import BedrockCountTokensConfig
@@ -85,7 +85,7 @@ class BedrockCountTokensHandler(BedrockCountTokensConfig):
                 api_key=api_key,
             )
 
-            async_client: Final = get_async_httpx_client(llm_provider=litellm.LlmProviders.BEDROCK)
+            async_client: Final = get_async_httpx_client(llm_provider=gateway.LlmProviders.BEDROCK)
 
             response: Final = await async_client.post(
                 endpoint_url,

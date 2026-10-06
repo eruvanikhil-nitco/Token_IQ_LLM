@@ -2,7 +2,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy._types import (
     BlockModelRequest,
     LitellmUserRoles,
@@ -153,7 +153,7 @@ async def test_model_block_endpoint_requires_proxy_admin(monkeypatch):
 
 
 def test_router_returns_no_healthy_deployment_when_model_is_fully_blocked():
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "gpt-4o",
@@ -179,7 +179,7 @@ def test_router_returns_no_healthy_deployment_when_model_is_fully_blocked():
 async def test_route_request_returns_403_when_model_is_fully_blocked(monkeypatch):
     from token_iq.gateway.proxy.route_llm_request import route_request
 
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "gpt-4o",
@@ -193,7 +193,7 @@ async def test_route_request_returns_403_when_model_is_fully_blocked(monkeypatch
         AsyncMock(return_value=None),
     )
 
-    with pytest.raises(litellm.PermissionDeniedError) as exc_info:
+    with pytest.raises(gateway.PermissionDeniedError) as exc_info:
         await route_request(
             data={"model": "gpt-4o"},
             llm_router=router,

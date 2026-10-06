@@ -15,7 +15,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy import proxy_server
 from token_iq.gateway.proxy._types import LitellmUserRoles
 
@@ -143,9 +143,9 @@ def test_model_metrics_exceptions_no_prisma(client, auth_as, no_prisma):
 
 def test_model_settings_happy(client, auth_as, monkeypatch):
     """Pins ``GET /model/settings`` (happy)."""
-    monkeypatch.setattr(litellm, "provider_list", ["openai"])
+    monkeypatch.setattr(gateway, "provider_list", ["openai"])
     monkeypatch.setattr(
-        litellm,
+        gateway,
         "get_provider_fields",
         lambda custom_llm_provider: [],
     )

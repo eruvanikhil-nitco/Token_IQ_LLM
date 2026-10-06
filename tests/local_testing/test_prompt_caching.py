@@ -3,11 +3,11 @@
 import io
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 import pytest
 
 
-def _usage_format_tests(usage: litellm.Usage):
+def _usage_format_tests(usage: gateway.Usage):
     """
     OpenAI prompt caching
     - prompt_tokens = sum of non-cache hit tokens + cache-hit tokens

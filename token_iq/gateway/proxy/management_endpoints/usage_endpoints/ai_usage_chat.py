@@ -10,7 +10,7 @@ from typing import Any, Final, Literal, Protocol, cast, overload
 
 from typing_extensions import ReadOnly, TypedDict
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.constants import DEFAULT_COMPETITOR_DISCOVERY_MODEL
 from token_iq.gateway.types.proxy.management_endpoints.common_daily_activity import (
@@ -526,7 +526,7 @@ async def _stream_final_response(model: str, chat_messages: list[Mapping[str, ob
     """Stream the final LLM response after tool results are appended."""
     yield _sse({"type": "status", "message": "Analyzing results..."})
 
-    response: Final = await litellm.acompletion(
+    response: Final = await gateway.acompletion(
         model=model,
         messages=chat_messages,
         stream=True,
@@ -555,7 +555,7 @@ async def stream_usage_ai_chat(
     try:
         yield _sse({"type": "status", "message": "Thinking..."})
         tools: Final = get_tools_for_role(is_admin)
-        response: Final = await litellm.acompletion(
+        response: Final = await gateway.acompletion(
             model=resolved_model,
             messages=chat_messages,
             tools=tools,

@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, patch
 import httpx
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 from token_iq.gateway.llms.hosted_vllm.rerank.transformation import HostedVLLMRerankConfig
 from token_iq.gateway.rerank_api.rerank_utils import get_optional_rerank_params
@@ -207,7 +207,7 @@ class TestHostedVLLMRerankTruncationParams:
         [{"truncation_side": "middle"}, {"truncate_prompt_tokens": "lots"}, {"max_tokens_per_query": -1.5}],
     )
     def test_map_cohere_rerank_params_rejects_invalid_truncation_params_as_400(self, bad_params: dict[str, object]):
-        with pytest.raises(litellm.UnsupportedParamsError) as raised:
+        with pytest.raises(gateway.UnsupportedParamsError) as raised:
             self.config.map_cohere_rerank_params(
                 non_default_params=dict(bad_params),
                 model=self.model,
@@ -280,7 +280,7 @@ class TestHostedVLLMRerankTruncationParams:
             "usage": {"total_tokens": 512},
         }
         with patch.object(client, "post", return_value=mock_response) as mock_post:
-            litellm.rerank(
+            gateway.rerank(
                 model="hosted_vllm/BAAI/bge-reranker-base",
                 api_base="http://vllm.local:8000",
                 query="List all the unique case ids",

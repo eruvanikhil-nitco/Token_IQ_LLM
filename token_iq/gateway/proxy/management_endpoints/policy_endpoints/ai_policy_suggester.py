@@ -6,7 +6,7 @@ based on user-provided attack examples and descriptions.
 import json
 from typing import Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.constants import DEFAULT_COMPETITOR_DISCOVERY_MODEL
 from token_iq.gateway.proxy._types import ProxyErrorTypes, ProxyException
@@ -62,7 +62,7 @@ class AiPolicySuggester:
         user_prompt: Final = self._build_user_prompt(attack_examples, description)
         model = model or DEFAULT_COMPETITOR_DISCOVERY_MODEL
         custom_llm_provider: Final = model.split("/", 1)[0] if "/" in model else None
-        supported_params: Final = litellm.get_supported_openai_params(
+        supported_params: Final = gateway.get_supported_openai_params(
             model=model,
             custom_llm_provider=custom_llm_provider,
         )
@@ -75,7 +75,7 @@ class AiPolicySuggester:
             )
 
         try:
-            response: Final = await litellm.acompletion(
+            response: Final = await gateway.acompletion(
                 model=model,
                 messages=[
                     {"role": "system", "content": system_prompt},

@@ -8,7 +8,7 @@ from logging import Formatter
 from typing import Any, Final, TextIO
 from urllib.parse import unquote
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.constants import (
     LITELLM_TRUNCATED_PAYLOAD_FIELD,
     LITELLM_TRUNCATION_STDOUT_SAFEGUARD_NOTE,
@@ -299,7 +299,7 @@ class CorrelationContextFilter(logging.Filter):
     """
 
     def filter(self, record: logging.LogRecord) -> bool:
-        if not litellm.request_correlation_in_logs:
+        if not gateway.request_correlation_in_logs:
             return True
         trace_id: Final = trace_id_var.get()
         if trace_id:
@@ -685,13 +685,13 @@ def _get_loggers_to_initialize():
     Includes third-party integration loggers (like langfuse) if they are
     configured as callbacks.
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     loggers: Final = list(ALL_LOGGERS)
 
     # Add langfuse logger if langfuse is being used as a callback
     langfuse_callbacks: Final = {"langfuse", "langfuse_otel"}
-    all_callbacks: Final = set(litellm.success_callback + litellm.failure_callback)
+    all_callbacks: Final = set(gateway.success_callback + gateway.failure_callback)
     if langfuse_callbacks & all_callbacks:
         loggers.append(logging.getLogger("langfuse"))
 

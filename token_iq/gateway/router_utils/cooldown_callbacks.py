@@ -5,7 +5,7 @@ Callbacks triggered on cooling down deployments
 import copy
 from typing import TYPE_CHECKING, Any, Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 
 if TYPE_CHECKING:
@@ -42,14 +42,14 @@ async def router_cooldown_event_callback(
     temp_litellm_params = copy.deepcopy(_litellm_params)
     temp_litellm_params = dict(temp_litellm_params)
     _model_name: Final = _deployment.get("model_name", None) or ""
-    _api_base: Final = litellm.get_api_base(model=_model_name, optional_params=temp_litellm_params) or ""
+    _api_base: Final = gateway.get_api_base(model=_model_name, optional_params=temp_litellm_params) or ""
     model_info: Final = _deployment["model_info"]
     model_id: Final = model_info.id
 
     litellm_model_name: Final = temp_litellm_params.get("model") or ""
     llm_provider = ""
     try:
-        _, llm_provider, _, _ = litellm.get_llm_provider(
+        _, llm_provider, _, _ = gateway.get_llm_provider(
             model=litellm_model_name,
             custom_llm_provider=temp_litellm_params.get("custom_llm_provider"),
         )
@@ -87,10 +87,10 @@ def _get_prometheus_logger_from_callbacks() -> PrometheusLogger | None:
     if PrometheusLogger is None:
         return None
 
-    for _callback in litellm._async_success_callback:
+    for _callback in gateway._async_success_callback:
         if isinstance(_callback, PrometheusLogger):
             return _callback
-    for global_callback in litellm.callbacks:
+    for global_callback in gateway.callbacks:
         if isinstance(global_callback, PrometheusLogger):
             return global_callback
 

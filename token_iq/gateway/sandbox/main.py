@@ -13,7 +13,7 @@ way `litellm.asearch` is.
 
 from typing import Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.base_llm.sandbox.transformation import (
     BaseSandboxConfig,
     CodeExecutionResult,
@@ -143,4 +143,4 @@ async def acode_interpreter_tool(
         try:
             await config.adelete_sandbox(container=container, api_key=api_key, api_base=api_base, **forwarded)
         except Exception as e:
-            litellm._logging.verbose_logger.debug("sandbox: failed to delete ephemeral container: %s", e)
+            gateway._logging.verbose_logger.debug("sandbox: failed to delete ephemeral container: %s", e)

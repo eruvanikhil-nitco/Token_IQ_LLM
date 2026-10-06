@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Any, ClassVar, Final
 import httpx
 from pydantic import BaseModel, ConfigDict
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.constants import request_timeout
 
 # Import the adapter for fallback to completion format
@@ -129,7 +129,7 @@ class GenerateContentHelper:
             custom_llm_provider,
             dynamic_api_key,
             dynamic_api_base,
-        ) = litellm.get_llm_provider(
+        ) = gateway.get_llm_provider(
             model=model,
             custom_llm_provider=custom_llm_provider,
             api_base=litellm_params.api_base,
@@ -143,7 +143,7 @@ class GenerateContentHelper:
         generate_content_provider_config: Final[BaseGoogleGenAIGenerateContentConfig | None] = (
             ProviderConfigManager.get_provider_google_genai_generate_content_config(
                 model=model,
-                provider=litellm.LlmProviders(custom_llm_provider),
+                provider=gateway.LlmProviders(custom_llm_provider),
             )
         )
 
@@ -260,7 +260,7 @@ async def agenerate_content(
             config = kwargs.pop("generationConfig")
         # get custom llm provider so we can use this for mapping exceptions
         if custom_llm_provider is None:
-            _, custom_llm_provider, _, _ = litellm.get_llm_provider(
+            _, custom_llm_provider, _, _ = gateway.get_llm_provider(
                 model=model,
                 custom_llm_provider=custom_llm_provider,
             )
@@ -290,7 +290,7 @@ async def agenerate_content(
 
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=model,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -380,7 +380,7 @@ def generate_content(
 
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=model,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -419,7 +419,7 @@ async def agenerate_content_stream(
             config = kwargs.pop("generationConfig")
         # get custom llm provider so we can use this for mapping exceptions
         if custom_llm_provider is None:
-            _, custom_llm_provider, _, _ = litellm.get_llm_provider(
+            _, custom_llm_provider, _, _ = gateway.get_llm_provider(
                 model=model, api_base=local_vars.get("base_url", None)
             )
 
@@ -475,7 +475,7 @@ async def agenerate_content_stream(
         )
 
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=model,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -564,7 +564,7 @@ def generate_content_stream(
         )
 
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=model,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,

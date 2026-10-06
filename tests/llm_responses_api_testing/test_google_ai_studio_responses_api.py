@@ -2,17 +2,17 @@ import os
 import pytest
 from unittest.mock import patch, AsyncMock
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 import json
 from base_responses_api import BaseResponsesAPITest
 
 
 @pytest.mark.asyncio
 async def test_basic_google_ai_studio_responses_api_with_tools():
-    litellm._turn_on_debug()
-    litellm.set_verbose = True
+    gateway._turn_on_debug()
+    gateway.set_verbose = True
     request_model = "gemini/gemini-2.5-flash"
-    response = await litellm.aresponses(
+    response = await gateway.aresponses(
         model=request_model,
         input="what is the latest version of supabase python package and when was it released?",
         tools=[{"type": "web_search_preview", "search_context_size": "low"}],
@@ -28,16 +28,16 @@ async def test_mock_basic_google_ai_studio_responses_api_with_tools():
     litellm.acompletion(messages=[{'role': 'user', 'content': 'what is the latest version of supabase python package and when was it released?'}], model='gemini-2.5-flash', tools=[], web_search_options={'search_context_size': 'low', 'user_location': None})
     """
     # Mock the acompletion function
-    litellm._turn_on_debug()
-    mock_response = litellm.ModelResponse(
+    gateway._turn_on_debug()
+    mock_response = gateway.ModelResponse(
         id="test-id",
         created=1234567890,
         model="gemini/gemini-2.5-flash",
         object="chat.completion",
         choices=[
-            litellm.utils.Choices(
+            gateway.utils.Choices(
                 index=0,
-                message=litellm.utils.Message(
+                message=gateway.utils.Message(
                     role="assistant", content="Test response"
                 ),
                 finish_reason="stop",
@@ -49,7 +49,7 @@ async def test_mock_basic_google_ai_studio_responses_api_with_tools():
         mock_acompletion.return_value = mock_response
 
         request_model = "gemini/gemini-2.5-flash"
-        await litellm.aresponses(
+        await gateway.aresponses(
             model=request_model,
             input="what is the latest version of supabase python package and when was it released?",
             tools=[{"type": "web_search_preview", "search_context_size": "low"}],
@@ -93,7 +93,7 @@ async def test_gemini_3_responses_api_with_thought_signatures():
     if not os.getenv("GEMINI_API_KEY"):
         pytest.skip("GEMINI_API_KEY not set")
 
-    litellm.set_verbose = False
+    gateway.set_verbose = False
     request_model = "gemini/gemini-3.1-pro-preview"
 
     tools = [
@@ -122,7 +122,7 @@ async def test_gemini_3_responses_api_with_thought_signatures():
     ]
 
     # Step 1: Initial request with tools
-    response = await litellm.aresponses(
+    response = await gateway.aresponses(
         model=request_model,
         input="What is the weather in Mumbai?",
         tools=tools,
@@ -193,7 +193,7 @@ async def test_gemini_3_responses_api_streaming_with_thought_signatures():
     if not os.getenv("GEMINI_API_KEY"):
         pytest.skip("GEMINI_API_KEY not set")
 
-    litellm.set_verbose = False
+    gateway.set_verbose = False
     request_model = "gemini/gemini-3.1-pro-preview"
 
     tools = [
@@ -222,7 +222,7 @@ async def test_gemini_3_responses_api_streaming_with_thought_signatures():
     ]
 
     # Step 1: Streaming request with tools
-    response_stream = await litellm.aresponses(
+    response_stream = await gateway.aresponses(
         model=request_model,
         input="What is the weather in Mumbai?",
         tools=tools,

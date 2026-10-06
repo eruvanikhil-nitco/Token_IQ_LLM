@@ -7,7 +7,7 @@ from typing import Any, Final
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.constants import DEFAULT_MAX_RECURSE_DEPTH
 from token_iq.gateway.llms.base_llm.base_utils import BaseLLMModelInfo, BaseTokenCounter
 from token_iq.gateway.llms.base_llm.chat.transformation import BaseLLMException
@@ -114,7 +114,7 @@ def map_openai_size_to_gemini_image_config(size: str, model: str) -> dict[str, s
 
 def supports_gemini_image_size(model: str) -> bool:
     try:
-        model_info: Final = litellm.get_model_info(model=model)
+        model_info: Final = gateway.get_model_info(model=model)
         value: Final = model_info.get("supports_image_size")
         if value is not None:
             return bool(value)
@@ -132,7 +132,7 @@ def _parse_image_config_string(raw_image_config: str, model: str) -> object:
     try:
         return json.loads(raw_image_config)
     except json.JSONDecodeError as exc:
-        raise litellm.UnsupportedParamsError(
+        raise gateway.UnsupportedParamsError(
             model=model,
             message="`imageConfig` must be valid JSON when provided as a string.",
         ) from exc
@@ -400,7 +400,7 @@ class GeminiModelInfo(BaseLLMModelInfo):
                 "GEMINI_API_BASE or GEMINI_API_KEY/GOOGLE_API_KEY is not set. Please set the environment variable, to query Gemini's `/models` endpoint."
             )
 
-        response: Final = litellm.module_level_client.get(
+        response: Final = gateway.module_level_client.get(
             url=f"{api_base}{endpoint}",
             headers={"x-goog-api-key": api_key},
         )

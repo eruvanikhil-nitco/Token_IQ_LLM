@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock
 from typing import Literal
 
 import pytest
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.litellm_logging import Logging
 from token_iq.gateway.proxy.hooks.max_budget_limiter import _PROXY_MaxBudgetLimiter
 from token_iq.gateway.proxy.hooks.cache_control_check import _PROXY_CacheControlCheck
@@ -84,18 +84,18 @@ def test_should_run_sync_callbacks_for_async_calls():
 
     # Test with no callbacks
     logging.dynamic_success_callbacks = None
-    litellm.success_callback = []
+    gateway.success_callback = []
     assert logging._should_run_sync_callbacks_for_async_calls() == False
 
     # Test with regular callback
     def regular_callback():
         pass
 
-    litellm.success_callback = [regular_callback]
+    gateway.success_callback = [regular_callback]
     assert logging._should_run_sync_callbacks_for_async_calls() == True
 
     # Test with internal callback only
-    litellm.success_callback = [_PROXY_MaxBudgetLimiter]
+    gateway.success_callback = [_PROXY_MaxBudgetLimiter]
     assert logging._should_run_sync_callbacks_for_async_calls() == False
 
 

@@ -68,10 +68,10 @@ class TestFallbackChain:
     @patch("token_iq.gateway.proxy.proxy_server.llm_router", None)
     @patch("token_iq.gateway.model_list", [])
     def test_should_use_configured_default_sampling_model(self, monkeypatch):
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         monkeypatch.setattr(
-            litellm, "default_mcp_sampling_model", "fallback-model", raising=False
+            gateway, "default_mcp_sampling_model", "fallback-model", raising=False
         )
         prefs = _prefs()
         assert _resolve_model_from_preferences(prefs) == "fallback-model"
@@ -79,9 +79,9 @@ class TestFallbackChain:
     @patch("token_iq.gateway.proxy.proxy_server.llm_router", None)
     @patch("token_iq.gateway.model_list", [])
     def test_should_raise_when_nothing_resolvable(self, monkeypatch):
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
-        monkeypatch.setattr(litellm, "default_mcp_sampling_model", None, raising=False)
+        monkeypatch.setattr(gateway, "default_mcp_sampling_model", None, raising=False)
         prefs = _prefs()
         with pytest.raises(ValueError, match="No model could be resolved"):
             _resolve_model_from_preferences(prefs)

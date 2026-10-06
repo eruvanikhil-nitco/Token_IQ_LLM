@@ -38,7 +38,7 @@ from typing import Optional
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from token_iq import gateway as litellm  # noqa: E402
+from token_iq import gateway  # noqa: E402
 from token_iq.gateway.compression import compress as litellm_compress  # noqa: E402
 from token_iq.gateway.types.utils import CallTypes  # noqa: E402
 
@@ -384,7 +384,7 @@ def _run_with_retrieval_loop(
 
     for _ in range(max_retrievals + 1):
         t0 = time.time()
-        resp = litellm.completion(**kwargs)
+        resp = gateway.completion(**kwargs)
         total_latency += (time.time() - t0) * 1000
         total_cost += resp._hidden_params.get("response_cost", 0) or 0
         total_usage = resp.usage

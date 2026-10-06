@@ -12,7 +12,7 @@ from collections.abc import Mapping
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Any, Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_router_logger
 from token_iq.gateway.constants import (
     DEFAULT_COOLDOWN_TIME_SECONDS,
@@ -62,15 +62,15 @@ def is_advisor_orchestration_failure(exception: BaseException | None) -> bool:
 
 _EXCEPTION_POLICY_FIELDS: Final[tuple[tuple[type, str], ...]] = (
     # ContentPolicyViolationError subclasses BadRequestError, so it must be checked first.
-    (litellm.ContentPolicyViolationError, "ContentPolicyViolationErrorAllowedFails"),
-    (litellm.BadRequestError, "BadRequestErrorAllowedFails"),
-    (litellm.AuthenticationError, "AuthenticationErrorAllowedFails"),
-    (litellm.Timeout, "TimeoutErrorAllowedFails"),
-    (litellm.RateLimitError, "RateLimitErrorAllowedFails"),
-    (litellm.InternalServerError, "InternalServerErrorAllowedFails"),
-    (litellm.ServiceUnavailableError, "ServiceUnavailableErrorAllowedFails"),
-    (litellm.BadGatewayError, "BadGatewayErrorAllowedFails"),
-    (litellm.NotFoundError, "NotFoundErrorAllowedFails"),
+    (gateway.ContentPolicyViolationError, "ContentPolicyViolationErrorAllowedFails"),
+    (gateway.BadRequestError, "BadRequestErrorAllowedFails"),
+    (gateway.AuthenticationError, "AuthenticationErrorAllowedFails"),
+    (gateway.Timeout, "TimeoutErrorAllowedFails"),
+    (gateway.RateLimitError, "RateLimitErrorAllowedFails"),
+    (gateway.InternalServerError, "InternalServerErrorAllowedFails"),
+    (gateway.ServiceUnavailableError, "ServiceUnavailableErrorAllowedFails"),
+    (gateway.BadGatewayError, "BadGatewayErrorAllowedFails"),
+    (gateway.NotFoundError, "NotFoundErrorAllowedFails"),
 )
 
 
@@ -396,7 +396,7 @@ def _should_cooldown_deployment(
             # Only apply error rate cooldown when we have enough requests to make the percentage meaningful
             return True
 
-        elif litellm._should_retry(status_code=cast_exception_status_to_int(exception_status)) is False:
+        elif gateway._should_retry(status_code=cast_exception_status_to_int(exception_status)) is False:
             return True
 
         return False
@@ -608,7 +608,7 @@ def _is_allowed_fails_set_on_router(
     """
     if litellm_router_instance.allowed_fails is None:
         return False
-    if litellm_router_instance.allowed_fails != litellm.allowed_fails:
+    if litellm_router_instance.allowed_fails != gateway.allowed_fails:
         return True
     return False
 

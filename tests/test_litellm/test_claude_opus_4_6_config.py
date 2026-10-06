@@ -5,7 +5,7 @@ Validate Claude Opus 4.6 model configuration entries.
 import json
 import os
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 
 def test_claude_4_6_australia_region_uses_au_prefix_not_apac():
@@ -52,22 +52,22 @@ def test_claude_4_6_australia_region_uses_au_prefix_not_apac():
 
     # Verify the au. model is registered in bedrock_converse_models
     assert (
-        "au.anthropic.claude-opus-4-6-v1" in litellm.bedrock_converse_models
+        "au.anthropic.claude-opus-4-6-v1" in gateway.bedrock_converse_models
     ), "au.anthropic.claude-opus-4-6-v1 not registered in bedrock_converse_models"
 
     # Verify apac. is NOT registered for this model
     assert (
-        "apac.anthropic.claude-opus-4-6-v1" not in litellm.bedrock_converse_models
+        "apac.anthropic.claude-opus-4-6-v1" not in gateway.bedrock_converse_models
     ), "apac.anthropic.claude-opus-4-6-v1 should not be in bedrock_converse_models"
 
     # Verify the au. model is registered in bedrock_converse_models
     assert (
-        "au.anthropic.claude-sonnet-4-6" in litellm.bedrock_converse_models
+        "au.anthropic.claude-sonnet-4-6" in gateway.bedrock_converse_models
     ), "au.anthropic.claude-sonnet-4-6 not registered in bedrock_converse_models"
 
     # Verify apac. is NOT registered for this model
     assert (
-        "apac.anthropic.claude-sonnet-4-6" not in litellm.bedrock_converse_models
+        "apac.anthropic.claude-sonnet-4-6" not in gateway.bedrock_converse_models
     ), "apac.anthropic.claude-sonnet-4-6 should not be in bedrock_converse_models"
 
 
@@ -216,8 +216,8 @@ def test_opus_4_6_alias_and_dated_metadata_match():
 
 
 def test_opus_4_6_bedrock_converse_registration():
-    assert "anthropic.claude-opus-4-6-v1" in litellm.BEDROCK_CONVERSE_MODELS
-    assert "global.anthropic.claude-opus-4-6-v1" in litellm.bedrock_converse_models
-    assert "us.anthropic.claude-opus-4-6-v1" in litellm.bedrock_converse_models
-    assert "eu.anthropic.claude-opus-4-6-v1" in litellm.bedrock_converse_models
-    assert "au.anthropic.claude-opus-4-6-v1" in litellm.bedrock_converse_models
+    assert "anthropic.claude-opus-4-6-v1" in gateway.BEDROCK_CONVERSE_MODELS
+    assert "global.anthropic.claude-opus-4-6-v1" in gateway.bedrock_converse_models
+    assert "us.anthropic.claude-opus-4-6-v1" in gateway.bedrock_converse_models
+    assert "eu.anthropic.claude-opus-4-6-v1" in gateway.bedrock_converse_models
+    assert "au.anthropic.claude-opus-4-6-v1" in gateway.bedrock_converse_models

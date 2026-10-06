@@ -3,7 +3,7 @@ import json
 import pytest
 from unittest.mock import patch, Mock, MagicMock
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.bedrock.chat.converse_transformation import AmazonConverseConfig
 from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
@@ -63,7 +63,7 @@ class TestBedrockGPTOSS(BaseLLMChatTest):
 
         with patch.object(client, "post", new=Mock()) as mock_post:
             try:
-                litellm.completion(
+                gateway.completion(
                     model="bedrock/converse/openai.gpt-oss-20b-1:0",
                     messages=[
                         {"role": "user", "content": "How is the weather in Mumbai?"}

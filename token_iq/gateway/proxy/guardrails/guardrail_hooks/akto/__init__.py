@@ -9,7 +9,7 @@ if TYPE_CHECKING:
 
 
 def initialize_guardrail(litellm_params: "LitellmParams", guardrail: "Guardrail"):
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     _akto_callback: Final = AktoGuardrail(
         akto_base_url=getattr(litellm_params, "akto_base_url", None),
@@ -23,7 +23,7 @@ def initialize_guardrail(litellm_params: "LitellmParams", guardrail: "Guardrail"
         default_on=litellm_params.default_on,
     )
 
-    litellm.logging_callback_manager.add_litellm_callback(_akto_callback)
+    gateway.logging_callback_manager.add_litellm_callback(_akto_callback)
     return _akto_callback
 
 

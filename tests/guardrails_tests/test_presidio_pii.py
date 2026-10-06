@@ -3,7 +3,7 @@ import pytest
 from token_iq.gateway import mock_completion
 from unittest.mock import patch
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy.guardrails.guardrail_hooks.presidio import (
     _OPTIONAL_PresidioPIIMasking,
     PresidioPerRequestConfig,
@@ -18,7 +18,7 @@ from token_iq.gateway.exceptions import BlockedPiiEntityError
 async def test_presidio_with_entities_config():
     """Test for Presidio guardrail with entities config - requires actual Presidio API"""
     # Setup the guardrail with specific entities config
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
     pii_entities_config = {
         PiiEntityType.CREDIT_CARD: PiiAction.MASK,
         PiiEntityType.EMAIL_ADDRESS: PiiAction.MASK,
@@ -61,7 +61,7 @@ async def test_presidio_with_entities_config():
 @pytest.mark.asyncio
 async def test_presidio_apply_guardrail():
     """Test for Presidio guardrail apply guardrail - requires actual Presidio API"""
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
     presidio_guardrail = _OPTIONAL_PresidioPIIMasking(
         pii_entities_config={},
         presidio_analyzer_api_base=os.environ.get("PRESIDIO_ANALYZER_API_BASE"),
@@ -90,7 +90,7 @@ async def test_presidio_apply_guardrail():
 async def test_presidio_with_blocked_entities():
     """Test for Presidio guardrail with blocked entities - requires actual Presidio API"""
     # Setup the guardrail with specific entities config - BLOCK for credit card
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
     pii_entities_config = {
         PiiEntityType.CREDIT_CARD: PiiAction.BLOCK,  # This entity should cause a block
         PiiEntityType.EMAIL_ADDRESS: PiiAction.MASK,  # This entity should be masked
@@ -265,8 +265,8 @@ async def test_output_parsing():
     - have presidio pii masking - output parse message
     - assert that no masked tokens are in the input message
     """
-    litellm.set_verbose = True
-    litellm.output_parse_pii = True
+    gateway.set_verbose = True
+    gateway.output_parse_pii = True
     pii_masking = _OPTIONAL_PresidioPIIMasking(mock_testing=True)
 
     initial_message = [
@@ -451,14 +451,14 @@ async def test_presidio_pii_masking_logging_output_only_no_pre_api_hook():
 async def test_presidio_pii_masking_logging_output_only_logged_response_guardrails_config():
     from typing import Dict, List, Optional
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.proxy.guardrails.init_guardrails import initialize_guardrails
     from token_iq.gateway.types.guardrails import (
         GuardrailItemSpec,
         GuardrailEventHooks,
     )
 
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     # Environment variables are now patched via the decorator instead of setting them directly
 
     guardrails_config: List[Dict[str, GuardrailItemSpec]] = [
@@ -472,7 +472,7 @@ async def test_presidio_pii_masking_logging_output_only_logged_response_guardrai
     ]
     litellm_settings = {"guardrails": guardrails_config}
 
-    assert len(litellm.guardrail_name_config_map) == 0
+    assert len(gateway.guardrail_name_config_map) == 0
     initialize_guardrails(
         guardrails_config=guardrails_config,
         premium_user=True,
@@ -480,10 +480,10 @@ async def test_presidio_pii_masking_logging_output_only_logged_response_guardrai
         litellm_settings=litellm_settings,
     )
 
-    assert len(litellm.guardrail_name_config_map) == 1
+    assert len(gateway.guardrail_name_config_map) == 1
 
     pii_masking_obj: Optional[_OPTIONAL_PresidioPIIMasking] = None
-    for callback in litellm.callbacks:
+    for callback in gateway.callbacks:
         print(f"CALLBACK: {callback}")
         if isinstance(callback, _OPTIONAL_PresidioPIIMasking):
             pii_masking_obj = callback
@@ -501,7 +501,7 @@ async def test_presidio_pii_masking_logging_output_only_logged_response_guardrai
 @pytest.mark.asyncio
 async def test_presidio_language_configuration():
     """Test that presidio_language parameter is properly set and used in analyze requests"""
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
 
     # Test with German language using mock testing to avoid API calls
     presidio_guardrail_de = _OPTIONAL_PresidioPIIMasking(
@@ -557,7 +557,7 @@ async def test_presidio_language_configuration():
 @pytest.mark.asyncio
 async def test_presidio_language_configuration_with_per_request_override():
     """Test that per-request language configuration overrides the default configured language"""
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
 
     # Set up guardrail with German as default language
     presidio_guardrail = _OPTIONAL_PresidioPIIMasking(

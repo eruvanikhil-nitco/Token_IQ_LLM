@@ -67,13 +67,13 @@ class LiteLLMProxyChatConfig(OpenAIGPTConfig):
         - Allow the model name to be passed in original format and still use litellm proxy:
         "gemini/gemini-1.5-pro", "openai/gpt-4", "mistral/llama-2-70b-chat" etc.
         """
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         if get_secret_bool("USE_LITELLM_PROXY") is True:
             return True
         if litellm_params and litellm_params.use_litellm_proxy is True:
             return True
-        if litellm.use_litellm_proxy is True:
+        if gateway.use_litellm_proxy is True:
             return True
         return False
 
@@ -98,7 +98,7 @@ class LiteLLMProxyChatConfig(OpenAIGPTConfig):
 
         Return model, custom_llm_provider, dynamic_api_key, api_base
         """
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         custom_llm_provider: Final = "litellm_proxy"
         if model.startswith("litellm_proxy/"):
@@ -107,7 +107,7 @@ class LiteLLMProxyChatConfig(OpenAIGPTConfig):
         (
             api_base,
             api_key,
-        ) = litellm.LiteLLMProxyChatConfig()._get_openai_compatible_provider_info(api_base=api_base, api_key=api_key)
+        ) = gateway.LiteLLMProxyChatConfig()._get_openai_compatible_provider_info(api_base=api_base, api_key=api_key)
 
         return model, custom_llm_provider, api_key, api_base
 

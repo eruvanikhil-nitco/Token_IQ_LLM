@@ -2,7 +2,7 @@ from typing import Final
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.base_llm.base_utils import BaseLLMModelInfo
 from token_iq.gateway.secret_managers.main import get_secret_str
 from token_iq.gateway.types.llms.openai import AllMessageValues
@@ -70,9 +70,9 @@ class XAIModelInfo(BaseLLMModelInfo):
         the provider-specific litellm.xai_key takes precedence over fallbacks.
         """
         if legacy_generic_before_env:
-            return api_key or litellm.xai_key or litellm.api_key or get_secret_str("XAI_API_KEY")
+            return api_key or gateway.xai_key or gateway.api_key or get_secret_str("XAI_API_KEY")
 
-        return api_key or litellm.xai_key or get_secret_str("XAI_API_KEY")
+        return api_key or gateway.xai_key or get_secret_str("XAI_API_KEY")
 
     @staticmethod
     def get_base_model(model: str) -> str | None:
@@ -85,7 +85,7 @@ class XAIModelInfo(BaseLLMModelInfo):
             raise ValueError(
                 "XAI API base or key is not set. Set XAI_API_BASE and provide an xAI API key via api_key, litellm.xai_key, or XAI_API_KEY."
             )
-        response: Final = litellm.module_level_client.get(
+        response: Final = gateway.module_level_client.get(
             url=f"{api_base}/v1/models",
             headers={"Authorization": f"Bearer {api_key}"},
         )

@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Any, Final
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.base_llm.chat.transformation import BaseLLMException
 from token_iq.gateway.llms.openai.chat.gpt_transformation import OpenAIGPTConfig
 from token_iq.gateway.types.llms.cohere import CohereV2ChatResponse
@@ -232,7 +232,7 @@ class CohereV2ChatConfig(OpenAIGPTConfig):
                     "index": index,
                 }
                 tool_calls.append(tool_call)
-            _message: Final = litellm.Message(
+            _message: Final = gateway.Message(
                 tool_calls=tool_calls,
                 content=None,
                 annotations=annotations,

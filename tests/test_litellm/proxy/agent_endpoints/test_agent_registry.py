@@ -360,7 +360,7 @@ def test_legacy_full_entry_hash_still_resolves_the_config_agent():
 def test_public_agent_groups_holding_the_legacy_id_still_mark_the_config_agent_public(monkeypatch):
     """LIT-5144: config.yaml written before the fix stores the full-entry hash in
     public_agent_groups; the agent must stay public after its id became name-based."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     entry: Final = {
         "agent_name": "public-agent",
@@ -373,13 +373,13 @@ def test_public_agent_groups_holding_the_legacy_id_still_mark_the_config_agent_p
     legacy_id: Final = hashlib.sha256(json.dumps(entry, sort_keys=True).encode()).hexdigest()
     assert legacy_id != agent.agent_id
 
-    monkeypatch.setattr(litellm, "public_agent_groups", [legacy_id])
+    monkeypatch.setattr(gateway, "public_agent_groups", [legacy_id])
     assert [a.agent_id for a in registry.get_public_agent_list()] == [agent.agent_id]
 
-    monkeypatch.setattr(litellm, "public_agent_groups", ["unrelated-id"])
+    monkeypatch.setattr(gateway, "public_agent_groups", ["unrelated-id"])
     assert registry.get_public_agent_list() == ()
 
-    monkeypatch.setattr(litellm, "public_agent_groups", None)
+    monkeypatch.setattr(gateway, "public_agent_groups", None)
     assert registry.get_public_agent_list() == ()
 
 

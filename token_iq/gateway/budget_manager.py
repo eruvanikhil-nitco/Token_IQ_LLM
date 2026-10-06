@@ -13,7 +13,7 @@ import threading
 import time
 from typing import Final, Literal
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.constants import (
     DAYS_IN_A_MONTH,
     DAYS_IN_A_WEEK,
@@ -40,7 +40,7 @@ class BudgetManager:
 
     def print_verbose(self, print_statement):
         try:
-            if litellm.set_verbose:
+            if gateway.set_verbose:
                 import logging
 
                 logging.info(print_statement)
@@ -62,7 +62,7 @@ class BudgetManager:
             # Load the user_dict from hosted db
             url: Final = self.api_base + "/get_budget"
             data: Final = {"project_name": self.project_name}
-            response = litellm.module_level_client.post(url, headers=self.headers, json=data)
+            response = gateway.module_level_client.post(url, headers=self.headers, json=data)
             response = response.json()
             if response["status"] == "error":
                 self.user_dict = {}  # assume this means the user dict hasn't been stored yet
@@ -101,8 +101,8 @@ class BudgetManager:
 
     def projected_cost(self, model: str, messages: list, user: str):
         text: Final = "".join(message["content"] for message in messages)
-        prompt_tokens: Final = litellm.token_counter(model=model, text=text)
-        prompt_cost, _ = litellm.cost_per_token(model=model, prompt_tokens=prompt_tokens, completion_tokens=0)
+        prompt_tokens: Final = gateway.token_counter(model=model, text=text)
+        prompt_cost, _ = gateway.cost_per_token(model=model, prompt_tokens=prompt_tokens, completion_tokens=0)
         current_cost: Final = self.user_dict[user].get("current_cost", 0)
         projected_cost: Final = prompt_cost + current_cost
         return projected_cost
@@ -119,19 +119,19 @@ class BudgetManager:
         output_text: str | None = None,
     ):
         if model and input_text and output_text:
-            prompt_tokens = litellm.token_counter(model=model, messages=[{"role": "user", "content": input_text}])
-            completion_tokens = litellm.token_counter(model=model, messages=[{"role": "user", "content": output_text}])
+            prompt_tokens = gateway.token_counter(model=model, messages=[{"role": "user", "content": input_text}])
+            completion_tokens = gateway.token_counter(model=model, messages=[{"role": "user", "content": output_text}])
             (
                 prompt_tokens_cost_usd_dollar,
                 completion_tokens_cost_usd_dollar,
-            ) = litellm.cost_per_token(
+            ) = gateway.cost_per_token(
                 model=model,
                 prompt_tokens=prompt_tokens,
                 completion_tokens=completion_tokens,
             )
             cost = prompt_tokens_cost_usd_dollar + completion_tokens_cost_usd_dollar
         elif completion_obj:
-            cost = litellm.completion_cost(completion_response=completion_obj)
+            cost = gateway.completion_cost(completion_response=completion_obj)
             model = completion_obj["model"]  # if this throws an error try, model = completion_obj['model']
         else:
             raise ValueError(
@@ -211,6 +211,6 @@ class BudgetManager:
         elif self.client_type == "hosted":
             url: Final = self.api_base + "/set_budget"
             data: Final = {"project_name": self.project_name, "user_dict": self.user_dict}
-            response = litellm.module_level_client.post(url, headers=self.headers, json=data)
+            response = gateway.module_level_client.post(url, headers=self.headers, json=data)
             response = response.json()
             return response

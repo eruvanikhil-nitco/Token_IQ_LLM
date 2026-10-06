@@ -7,7 +7,7 @@ import pytest
 from unittest.mock import AsyncMock, patch, MagicMock
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 
 class TestSerperSearch:
@@ -52,7 +52,7 @@ class TestSerperSearch:
             mock_post.return_value = mock_response
 
             # Make the search call
-            response = await litellm.asearch(
+            response = await gateway.asearch(
                 query="latest developments in AI",
                 search_provider="serper",
                 max_results=5,
@@ -120,7 +120,7 @@ class TestSerperSearch:
         ) as mock_post:
             mock_post.return_value = mock_response
 
-            await litellm.asearch(
+            await gateway.asearch(
                 query="test query",
                 search_provider="serper",
                 country="US",
@@ -154,7 +154,7 @@ class TestSerperSearch:
         ) as mock_post:
             mock_post.return_value = mock_response
 
-            await litellm.asearch(
+            await gateway.asearch(
                 query="machine learning",
                 search_provider="serper",
                 search_domain_filter=["arxiv.org", "nature.com"],
@@ -184,7 +184,7 @@ class TestSerperSearch:
         ) as mock_post:
             mock_post.return_value = mock_response
 
-            response = await litellm.asearch(
+            response = await gateway.asearch(
                 query="xyznonexistent",
                 search_provider="serper",
             )

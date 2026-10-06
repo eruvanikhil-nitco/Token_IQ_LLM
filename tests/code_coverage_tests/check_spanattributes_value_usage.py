@@ -29,7 +29,7 @@ import re
 from typing import List, Tuple
 
 # Add parent directory to path so we can import litellm
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 
 class SpanAttributesUsageChecker(ast.NodeVisitor):

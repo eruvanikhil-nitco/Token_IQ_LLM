@@ -900,16 +900,16 @@ class TestPreCallHookDeferredRouting:
 
     @pytest.fixture(autouse=True)
     def restore_callbacks(self):
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
-        original = litellm.callbacks
-        litellm.callbacks = []
+        original = gateway.callbacks
+        gateway.callbacks = []
         yield
-        litellm.callbacks = original
+        gateway.callbacks = original
 
     @pytest.mark.asyncio
     async def test_later_guardrail_runs_and_routing_applied(self, proxy_logging):
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         router = _RoutingGuardrail(
             guardrail_name="router",
@@ -924,7 +924,7 @@ class TestPreCallHookDeferredRouting:
             default_on=True,
             event_hook="pre_call",
         )
-        litellm.callbacks = [router, recorder]
+        gateway.callbacks = [router, recorder]
 
         data = {"model": "gpt-4", "metadata": {"session_id": "sess-defer"}}
         result = await proxy_logging.pre_call_hook(
@@ -939,7 +939,7 @@ class TestPreCallHookDeferredRouting:
 
     @pytest.mark.asyncio
     async def test_later_blocking_guardrail_overrides_routing(self, proxy_logging):
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.exceptions import GuardrailRaisedException
 
         router = _RoutingGuardrail(
@@ -955,7 +955,7 @@ class TestPreCallHookDeferredRouting:
             default_on=True,
             event_hook="pre_call",
         )
-        litellm.callbacks = [router, blocker]
+        gateway.callbacks = [router, blocker]
 
         data = {"model": "gpt-4", "metadata": {"session_id": "sess-block"}}
         with pytest.raises(GuardrailRaisedException):
@@ -969,7 +969,7 @@ class TestPreCallHookDeferredRouting:
 
     @pytest.mark.asyncio
     async def test_routing_guardrail_records_service_span(self, proxy_logging):
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.types.services import ServiceTypes
 
         class _SlowRoutingGuardrail(CustomGuardrail):
@@ -987,7 +987,7 @@ class TestPreCallHookDeferredRouting:
             sensitive_data_route_to_model="on-prem-model",
             sticky_session_routing=False,
         )
-        litellm.callbacks = [router]
+        gateway.callbacks = [router]
 
         recorded = AsyncMock()
         proxy_logging.service_logging_obj.async_service_success_hook = recorded
@@ -1008,7 +1008,7 @@ class TestPreCallHookDeferredRouting:
     async def test_routing_recorded_as_intervention_not_prometheus_error(
         self, proxy_logging
     ):
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.integrations.prometheus import PrometheusLogger
 
         router = _RoutingGuardrail(
@@ -1020,7 +1020,7 @@ class TestPreCallHookDeferredRouting:
             sticky_session_routing=False,
         )
         prom = MagicMock(spec=PrometheusLogger)
-        litellm.callbacks = [router, prom]
+        gateway.callbacks = [router, prom]
 
         data = {"model": "gpt-4", "metadata": {"session_id": "sess-prom"}}
         result = await proxy_logging.pre_call_hook(

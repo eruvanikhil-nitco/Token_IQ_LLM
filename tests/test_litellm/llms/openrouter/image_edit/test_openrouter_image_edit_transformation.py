@@ -189,7 +189,7 @@ class TestOpenRouterImageEditTransformation:
 
         assert result["Authorization"] == "Bearer secret_api_key"
 
-    @patch("token_iq.gateway.llms.openrouter.image_edit.transformation.litellm")
+    @patch("token_iq.gateway.llms.openrouter.image_edit.transformation.gateway")
     @patch("token_iq.gateway.llms.openrouter.image_edit.transformation.get_secret_str")
     def test_validate_environment_missing_api_key_raises(
         self, mock_get_secret, mock_litellm

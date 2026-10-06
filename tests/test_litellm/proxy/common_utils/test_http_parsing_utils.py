@@ -9,7 +9,7 @@ from starlette.datastructures import FormData
 
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy._types import ProxyException
 from token_iq.gateway.proxy.common_utils.http_parsing_utils import (
     _is_form_content_type,

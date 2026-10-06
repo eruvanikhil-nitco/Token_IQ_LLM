@@ -6,7 +6,7 @@ from datetime import datetime
 
 from token_iq.gateway import Router
 import pytest
-from token_iq import gateway as litellm
+from token_iq import gateway
 from unittest.mock import patch, MagicMock, AsyncMock
 from create_mock_standard_logging_payload import create_standard_logging_payload
 from token_iq.gateway.types.utils import StandardLoggingPayload
@@ -145,7 +145,7 @@ def test_print_deployment(model_list):
 
 def test_print_deployment_with_redact_enabled(model_list):
     """Test if sensitive credentials are masked when redact_user_api_key_info is enabled"""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     router = Router(model_list=model_list)
     deployment = {
@@ -158,16 +158,16 @@ def test_print_deployment_with_redact_enabled(model_list):
         },
     }
 
-    original_setting = litellm.redact_user_api_key_info
+    original_setting = gateway.redact_user_api_key_info
     try:
-        litellm.redact_user_api_key_info = True
+        gateway.redact_user_api_key_info = True
         printed_deployment = router.print_deployment(deployment)
 
         assert "*" in printed_deployment["litellm_params"]["aws_access_key_id"]
         assert "*" in printed_deployment["litellm_params"]["aws_secret_access_key"]
         assert "us-west-2" == printed_deployment["litellm_params"]["aws_region_name"]
     finally:
-        litellm.redact_user_api_key_info = original_setting
+        gateway.redact_user_api_key_info = original_setting
 
 
 def test_completion(model_list):
@@ -411,9 +411,9 @@ def test_get_timeout(model_list):
 @pytest.mark.parametrize(
     "fallback_kwarg, expected_error",
     [
-        ("mock_testing_fallbacks", litellm.InternalServerError),
-        ("mock_testing_context_fallbacks", litellm.ContextWindowExceededError),
-        ("mock_testing_content_policy_fallbacks", litellm.ContentPolicyViolationError),
+        ("mock_testing_fallbacks", gateway.InternalServerError),
+        ("mock_testing_context_fallbacks", gateway.ContextWindowExceededError),
+        ("mock_testing_content_policy_fallbacks", gateway.ContentPolicyViolationError),
     ],
 )
 def test_handle_mock_testing_fallbacks(model_list, fallback_kwarg, expected_error):
@@ -436,7 +436,7 @@ def test_handle_mock_testing_rate_limit_error(model_list):
         "mock_testing_rate_limit_error": True,
     }
 
-    with pytest.raises(litellm.RateLimitError):
+    with pytest.raises(gateway.RateLimitError):
         router._handle_mock_testing_rate_limit_error(
             kwargs=data,
         )
@@ -488,7 +488,7 @@ async def test_deployment_callback_on_success(sync_mode):
         },
         "standard_logging_object": standard_logging_payload,
     }
-    response = litellm.ModelResponse(
+    response = gateway.ModelResponse(
         model="gpt-5-mini",
         usage={"total_tokens": 100},
     )
@@ -544,7 +544,7 @@ async def test_deployment_callback_on_success_tracks_tpm_for_io_deployment():
         },
         "standard_logging_object": standard_logging_payload,
     }
-    response = litellm.ModelResponse(model="openai/gpt-4o-mini", usage={"total_tokens": 100})
+    response = gateway.ModelResponse(model="openai/gpt-4o-mini", usage={"total_tokens": 100})
 
     tpm_key = await router.deployment_callback_on_success(
         kwargs=kwargs,
@@ -676,7 +676,7 @@ def test_should_raise_content_policy_error(
     assert (
         router._should_raise_content_policy_error(
             model="gpt-5-mini",
-            response=litellm.ModelResponse(
+            response=gateway.ModelResponse(
                 model="gpt-5-mini",
                 choices=[
                     {
@@ -715,7 +715,7 @@ async def test_routing_strategy_pre_call_checks(model_list, sync_mode):
     from token_iq.gateway.core_utils.litellm_logging import Logging
 
     callback = CustomLogger()
-    litellm.callbacks = [callback]
+    gateway.callbacks = [callback]
 
     router = Router(model_list=model_list)
 
@@ -745,14 +745,14 @@ async def test_routing_strategy_pre_call_checks(model_list, sync_mode):
             callback,
             "async_pre_call_check",
             AsyncMock(
-                side_effect=litellm.RateLimitError(
+                side_effect=gateway.RateLimitError(
                     message="Rate limit error",
                     llm_provider="openai",
                     model="gpt-5-mini",
                 )
             ),
         ):
-            with pytest.raises(litellm.RateLimitError):
+            with pytest.raises(gateway.RateLimitError):
                 await router.async_routing_strategy_pre_call_checks(
                     deployment, litellm_logging_obj
                 )
@@ -1336,11 +1336,11 @@ def test_track_deployment_metrics(model_list):
 @pytest.mark.parametrize(
     "exception_type, exception_name, num_retries",
     [
-        (litellm.exceptions.BadRequestError, "BadRequestError", 3),
-        (litellm.exceptions.AuthenticationError, "AuthenticationError", 4),
-        (litellm.exceptions.RateLimitError, "RateLimitError", 6),
+        (gateway.exceptions.BadRequestError, "BadRequestError", 3),
+        (gateway.exceptions.AuthenticationError, "AuthenticationError", 4),
+        (gateway.exceptions.RateLimitError, "RateLimitError", 6),
         (
-            litellm.exceptions.ContentPolicyViolationError,
+            gateway.exceptions.ContentPolicyViolationError,
             "ContentPolicyViolationError",
             7,
         ),
@@ -1370,11 +1370,11 @@ def test_get_num_retries_from_retry_policy(
 @pytest.mark.parametrize(
     "exception_type, exception_name, allowed_fails",
     [
-        (litellm.exceptions.BadRequestError, "BadRequestError", 3),
-        (litellm.exceptions.AuthenticationError, "AuthenticationError", 4),
-        (litellm.exceptions.RateLimitError, "RateLimitError", 6),
+        (gateway.exceptions.BadRequestError, "BadRequestError", 3),
+        (gateway.exceptions.AuthenticationError, "AuthenticationError", 4),
+        (gateway.exceptions.RateLimitError, "RateLimitError", 6),
         (
-            litellm.exceptions.ContentPolicyViolationError,
+            gateway.exceptions.ContentPolicyViolationError,
             "ContentPolicyViolationError",
             7,
         ),
@@ -1409,7 +1409,7 @@ def test_initialize_alerting(model_list):
     router._initialize_alerting()
 
     callback_added = False
-    for callback in litellm.callbacks:
+    for callback in gateway.callbacks:
         if isinstance(callback, SlackAlerting):
             callback_added = True
     assert callback_added is True
@@ -1428,25 +1428,25 @@ def test_discard(model_list):
     """
     Test that discard properly removes a Router from the callback lists
     """
-    litellm.callbacks = []
-    litellm.success_callback = []
-    litellm._async_success_callback = []
-    litellm.failure_callback = []
-    litellm._async_failure_callback = []
-    litellm.input_callback = []
-    litellm.service_callback = []
+    gateway.callbacks = []
+    gateway.success_callback = []
+    gateway._async_success_callback = []
+    gateway.failure_callback = []
+    gateway._async_failure_callback = []
+    gateway.input_callback = []
+    gateway.service_callback = []
 
     router = Router(model_list=model_list)
     router.discard()
 
     # Verify all callback lists are empty
-    assert len(litellm.callbacks) == 0
-    assert len(litellm.success_callback) == 0
-    assert len(litellm.failure_callback) == 0
-    assert len(litellm._async_success_callback) == 0
-    assert len(litellm._async_failure_callback) == 0
-    assert len(litellm.input_callback) == 0
-    assert len(litellm.service_callback) == 0
+    assert len(gateway.callbacks) == 0
+    assert len(gateway.success_callback) == 0
+    assert len(gateway.failure_callback) == 0
+    assert len(gateway._async_success_callback) == 0
+    assert len(gateway._async_failure_callback) == 0
+    assert len(gateway.input_callback) == 0
+    assert len(gateway.service_callback) == 0
 
 
 def test_initialize_assistants_endpoint(model_list):
@@ -1467,7 +1467,7 @@ def test_pass_through_assistants_endpoint_factory(model_list):
     """Test if the 'pass_through_assistants_endpoint_factory' function is working correctly"""
     router = Router(model_list=model_list)
     router._pass_through_assistants_endpoint_factory(
-        original_function=litellm.acreate_assistants,
+        original_function=gateway.acreate_assistants,
         custom_llm_provider="openai",
         client=None,
         **{},
@@ -1477,7 +1477,7 @@ def test_pass_through_assistants_endpoint_factory(model_list):
 def test_factory_function(model_list):
     """Test if the 'factory_function' function is working correctly"""
     router = Router(model_list=model_list)
-    router.factory_function(litellm.acreate_assistants)
+    router.factory_function(gateway.acreate_assistants)
 
 
 def test_get_model_from_alias(model_list):
@@ -1607,7 +1607,7 @@ def test_pattern_match_deployment_set_model_name(
 async def test_pass_through_moderation_endpoint_factory(model_list):
     router = Router(model_list=model_list)
     response = await router._pass_through_moderation_endpoint_factory(
-        original_function=litellm.amoderation,
+        original_function=gateway.amoderation,
         input="this is valid good text",
         model=None,
     )
@@ -1632,7 +1632,7 @@ def test_add_optional_pre_call_checks(model_list):
     router = Router(model_list=model_list)
 
     router.add_optional_pre_call_checks(["prompt_caching"])
-    assert len(litellm.callbacks) > 0
+    assert len(gateway.callbacks) > 0
 
 
 @pytest.mark.asyncio

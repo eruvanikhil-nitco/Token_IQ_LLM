@@ -52,12 +52,12 @@ def _invoke(case: Invocation, api_base: str, *, asynchronous: bool) -> object:
 
 
 def collect(case: Invocation, api_base: str, *, engine: Engine, asynchronous: bool) -> tuple[FunctionTraceEvent, ...]:
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     if engine == "rust":
         payload: Final = TraceResponsePayload.model_validate(_invoke(case, api_base, asynchronous=asynchronous))
         return tuple(FunctionTraceEvent(event.function, event.depth) for event in payload.trace)
-    with profile_python(source_root=Path(litellm.__file__).parent, threads=True) as profiler:
+    with profile_python(source_root=Path(gateway.__file__).parent, threads=True) as profiler:
         _invoke(case, api_base, asynchronous=asynchronous)
     return tuple(profiler.events)
 

@@ -2,7 +2,7 @@ import asyncio
 
 import pytest
 
-from token_iq import gateway as litellm  # noqa: E402,F401
+from token_iq import gateway  # noqa: E402,F401
 
 from tests._vcr_conftest_common import (  # noqa: E402,F401
     VerboseReporterState,
@@ -94,26 +94,26 @@ def event_loop():
 def _copy_litellm_state():
     state = {}
     for attr in _CALLBACK_ATTRS:
-        if hasattr(litellm, attr):
-            value = getattr(litellm, attr)
+        if hasattr(gateway, attr):
+            value = getattr(gateway, attr)
             state[attr] = value.copy() if isinstance(value, list) else value
     for attr in _SCALAR_ATTRS:
-        if hasattr(litellm, attr):
-            state[attr] = getattr(litellm, attr)
+        if hasattr(gateway, attr):
+            state[attr] = getattr(gateway, attr)
     return state
 
 
 def _restore_litellm_state(state) -> None:
     for attr, value in state.items():
-        if hasattr(litellm, attr):
-            setattr(litellm, attr, value)
+        if hasattr(gateway, attr):
+            setattr(gateway, attr, value)
 
 
 def _reset_litellm_callbacks() -> None:
     for attr in _CALLBACK_ATTRS:
-        if hasattr(litellm, attr):
-            setattr(litellm, attr, [])
-    manager = getattr(litellm, "logging_callback_manager", None)
+        if hasattr(gateway, attr):
+            setattr(gateway, attr, [])
+    manager = getattr(gateway, "logging_callback_manager", None)
     reset = getattr(manager, "_reset_all_callbacks", None)
     if callable(reset):
         reset()

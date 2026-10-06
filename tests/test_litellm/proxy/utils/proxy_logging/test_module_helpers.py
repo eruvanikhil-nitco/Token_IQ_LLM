@@ -13,7 +13,7 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from fastapi import HTTPException
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy import utils as utils_mod
 from token_iq.gateway.proxy.utils import (
     _accepts_litellm_call_info,
@@ -32,7 +32,7 @@ from token_iq.gateway.proxy.utils import (
 
 
 def test_print_verbose_when_set_verbose_true_prints_redacted(monkeypatch, capsys):
-    monkeypatch.setattr(litellm, "set_verbose", True)
+    monkeypatch.setattr(gateway, "set_verbose", True)
     print_verbose("hello world")
     captured = capsys.readouterr()
     snapshot = {
@@ -44,14 +44,14 @@ def test_print_verbose_when_set_verbose_true_prints_redacted(monkeypatch, capsys
 
 
 def test_print_verbose_when_set_verbose_false_no_stdout(monkeypatch, capsys):
-    monkeypatch.setattr(litellm, "set_verbose", False)
+    monkeypatch.setattr(gateway, "set_verbose", False)
     print_verbose("quiet")
     captured = capsys.readouterr()
     assert captured.out == ""
 
 
 def test_print_verbose_handles_unprintable_object_raises(monkeypatch):
-    monkeypatch.setattr(litellm, "set_verbose", True)
+    monkeypatch.setattr(gateway, "set_verbose", True)
 
     class Bomb:
         def __str__(self):

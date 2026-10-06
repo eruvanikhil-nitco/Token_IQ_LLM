@@ -9,7 +9,7 @@ from __future__ import annotations
 import os
 from typing import TYPE_CHECKING, Any, Final, cast
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.integrations.focus.focus_logger import FocusLogger
@@ -114,7 +114,7 @@ class VantageLogger(FocusLogger):
         scheduler: AsyncIOScheduler,
     ) -> None:
         """Register the Vantage export job with the provided scheduler."""
-        vantage_loggers: Final[list[CustomLogger]] = litellm.logging_callback_manager.get_custom_loggers_for_type(
+        vantage_loggers: Final[list[CustomLogger]] = gateway.logging_callback_manager.get_custom_loggers_for_type(
             callback_type=VantageLogger
         )
         if not vantage_loggers:

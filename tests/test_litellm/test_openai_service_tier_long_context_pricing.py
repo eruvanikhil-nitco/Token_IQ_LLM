@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 REPO_ROOT = Path(__file__).parents[2]
 MAIN_PATH = REPO_ROOT / "model_prices_and_context_window.json"
@@ -62,7 +62,7 @@ NO_PUBLISHED_PRIORITY_LONG_CONTEXT = ("gpt-5.4", "gpt-5.5")
 @pytest.fixture(autouse=True)
 def _local_model_cost_map(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map())
+    monkeypatch.setattr(gateway, "model_cost", gateway.get_model_cost_map())
 
 
 @lru_cache(maxsize=2)
@@ -122,7 +122,7 @@ def test_cost_per_token_bills_long_context_at_the_tier_rate(
     model: str, tier: str, input_rate: float, output_rate: float
 ) -> None:
     """A prompt over 272K on flex or priority must bill at that tier's long-context rate."""
-    input_cost, output_cost = litellm.cost_per_token(
+    input_cost, output_cost = gateway.cost_per_token(
         model=model,
         prompt_tokens=LONG_CONTEXT_PROMPT_TOKENS,
         completion_tokens=COMPLETION_TOKENS,
@@ -139,14 +139,14 @@ def test_cost_per_token_tier_differs_from_the_standard_long_context_cost(
     """Flex halves the standard long-context bill and priority doubles it."""
     ratio = 0.5 if tier == "flex" else 2.0
     standard = sum(
-        litellm.cost_per_token(
+        gateway.cost_per_token(
             model=model,
             prompt_tokens=LONG_CONTEXT_PROMPT_TOKENS,
             completion_tokens=COMPLETION_TOKENS,
         )
     )
     tiered = sum(
-        litellm.cost_per_token(
+        gateway.cost_per_token(
             model=model,
             prompt_tokens=LONG_CONTEXT_PROMPT_TOKENS,
             completion_tokens=COMPLETION_TOKENS,

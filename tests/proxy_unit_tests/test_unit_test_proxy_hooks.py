@@ -5,7 +5,7 @@ from fastapi import Request
 from token_iq.gateway.proxy.utils import _get_redoc_url, _get_docs_url
 from datetime import datetime
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 
 @pytest.mark.asyncio

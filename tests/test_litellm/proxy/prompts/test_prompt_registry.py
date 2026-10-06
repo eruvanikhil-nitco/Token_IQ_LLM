@@ -1,6 +1,6 @@
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy.prompts.prompt_registry import InMemoryPromptRegistry
 from token_iq.gateway.types.prompts.init_prompts import PromptInfo, PromptLiteLLMParams, PromptSpec
 
@@ -25,8 +25,8 @@ def _served_content(registry: InMemoryPromptRegistry) -> str:
 
 @pytest.fixture
 def isolated_callbacks(monkeypatch: pytest.MonkeyPatch) -> list:
-    monkeypatch.setattr(litellm, "callbacks", [])
-    return litellm.callbacks
+    monkeypatch.setattr(gateway, "callbacks", [])
+    return gateway.callbacks
 
 
 def test_sync_prompt_from_db_reloads_row_edited_elsewhere(isolated_callbacks: list) -> None:

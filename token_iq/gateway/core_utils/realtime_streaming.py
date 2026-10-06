@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Any, Final, Protocol, TypedDict, cast
 
 from typing_extensions import ReadOnly
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.core_utils.logging_worker import GLOBAL_LOGGING_WORKER
 from token_iq.gateway.llms.base_llm.realtime.transformation import BaseRealtimeConfig
@@ -124,7 +124,7 @@ class RealTimeStreaming:
             self._client_wants_beta if backend_uses_beta_protocol is None else backend_uses_beta_protocol
         )
 
-        _logged_real_time_event_types = litellm.logged_real_time_event_types
+        _logged_real_time_event_types = gateway.logged_real_time_event_types
 
         if _logged_real_time_event_types is None:
             _logged_real_time_event_types = DefaultLoggedRealTimeEventTypes
@@ -742,7 +742,7 @@ class RealTimeStreaming:
                 )
                 for et in event_hooks
             )
-            for cb in litellm.callbacks
+            for cb in gateway.callbacks
         )
 
     def _has_realtime_guardrails(self) -> bool:
@@ -801,7 +801,7 @@ class RealTimeStreaming:
         _check_data: Final = {**self.request_data, "transcript": transcript}
         _already_run: Final[set] = set()
 
-        for callback in litellm.callbacks:
+        for callback in gateway.callbacks:
             if not isinstance(callback, CustomGuardrail):
                 continue
             if callback.use_native_lifecycle_hooks:

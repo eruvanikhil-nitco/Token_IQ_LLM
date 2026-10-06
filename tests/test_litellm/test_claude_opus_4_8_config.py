@@ -16,7 +16,7 @@ import os
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.constants import BEDROCK_CONVERSE_MODELS
 from token_iq.gateway.core_utils.get_model_cost_map import GetModelCostMap
 
@@ -166,7 +166,7 @@ def test_opus_4_8_provider_resolves_via_model_info(local_model_cost_map):
     could not be tied to the ``anthropic`` provider and an ``anthropic/*``
     wildcard deployment would not match it.
     """
-    info = litellm.get_model_info(model="claude-opus-4-8")
+    info = gateway.get_model_info(model="claude-opus-4-8")
     assert info["litellm_provider"] == "anthropic"
     assert info["max_input_tokens"] == 1000000
     assert info["max_output_tokens"] == 128000

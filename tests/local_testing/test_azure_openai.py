@@ -18,7 +18,7 @@ from openai.types.chat import ChatCompletionMessage
 from openai.types.chat.chat_completion import ChatCompletion, Choice
 from respx import MockRouter
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import RateLimitError, Timeout, completion, completion_cost, embedding
 from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
 from token_iq.gateway.core_utils.prompt_templates.factory import anthropic_messages_pt
@@ -34,14 +34,14 @@ async def test_aaaaazure_tenant_id_auth(respx_mock: MockRouter):
 
     PROD Test
     """
-    litellm.disable_aiohttp_transport = (
+    gateway.disable_aiohttp_transport = (
         True  # since this uses respx, we need to set use_aiohttp_transport to False
     )
 
     # Clear the HTTP client cache to ensure respx mocking works
     # This is critical because respx only intercepts clients created AFTER mocking is active
-    if hasattr(litellm, "in_memory_llm_clients_cache"):
-        litellm.in_memory_llm_clients_cache.flush_cache()
+    if hasattr(gateway, "in_memory_llm_clients_cache"):
+        gateway.in_memory_llm_clients_cache.flush_cache()
 
     router = Router(
         model_list=[
@@ -75,7 +75,7 @@ async def test_aaaaazure_tenant_id_auth(respx_mock: MockRouter):
         ],
         created=int(datetime.now().timestamp()),
     )
-    litellm.set_verbose = True
+    gateway.set_verbose = True
 
     mock_request = respx_mock.post(url__regex=r".*/chat/completions.*").mock(
         return_value=httpx.Response(200, json=obj.model_dump(mode="json"))

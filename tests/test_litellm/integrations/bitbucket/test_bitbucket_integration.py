@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.integrations.bitbucket import BitBucketPromptManager
 from token_iq.gateway.integrations.bitbucket.bitbucket_client import _sanitize_file_path
 
@@ -32,10 +32,10 @@ User: {{user_message}}"""
     }
 
     # Set global BitBucket configuration
-    litellm.set_global_bitbucket_config(bitbucket_config)
+    gateway.set_global_bitbucket_config(bitbucket_config)
 
     # Test that the configuration was set
-    assert litellm.global_bitbucket_config == bitbucket_config
+    assert gateway.global_bitbucket_config == bitbucket_config
 
 
 @patch("token_iq.gateway.integrations.bitbucket.bitbucket_prompt_manager.BitBucketClient")

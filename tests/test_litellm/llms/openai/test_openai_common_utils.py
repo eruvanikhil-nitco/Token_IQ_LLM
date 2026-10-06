@@ -5,7 +5,7 @@ import openai
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.token_counter import token_counter
 from token_iq.gateway.llms.openai.common_utils import BaseOpenAILLM
 
@@ -107,10 +107,10 @@ async def test_openai_client_reuse(function_name, is_async, args):
                 # Call the appropriate function based on parameters
                 if is_async:
                     # Add 'a' prefix for async functions
-                    func = getattr(litellm, f"a{function_name}")
+                    func = getattr(gateway, f"a{function_name}")
                     await func(**args)
                 else:
-                    func = getattr(litellm, function_name)
+                    func = getattr(gateway, function_name)
                     func(**args)
             except Exception:
                 # We expect exceptions since we're mocking the client
@@ -190,9 +190,9 @@ def test_evicting_a_client_built_on_the_callers_session_leaves_that_session_open
 
     shared_session = httpx.AsyncClient()
     closer = EvictedClientCloser(grace_seconds=0.0)
-    monkeypatch.setattr(litellm, "aclient_session", shared_session)
+    monkeypatch.setattr(gateway, "aclient_session", shared_session)
     monkeypatch.setattr(
-        litellm,
+        gateway,
         "in_memory_llm_clients_cache",
         LLMClientCache(evicted_client_closer=closer),
     )
@@ -221,10 +221,10 @@ def test_a_client_litellm_built_its_own_http_client_for_is_still_closed(monkeypa
     from token_iq.gateway.llms.openai.openai import OpenAIChatCompletion
 
     closer = EvictedClientCloser(grace_seconds=0.0)
-    monkeypatch.setattr(litellm, "aclient_session", None)
-    monkeypatch.setattr(litellm, "client_session", None)
+    monkeypatch.setattr(gateway, "aclient_session", None)
+    monkeypatch.setattr(gateway, "client_session", None)
     monkeypatch.setattr(
-        litellm,
+        gateway,
         "in_memory_llm_clients_cache",
         LLMClientCache(evicted_client_closer=closer),
     )
@@ -307,7 +307,7 @@ def _completion_kwargs(provider: str, client, **overrides) -> dict:
 
 @pytest.mark.parametrize("provider", ["openai", "azure"])
 def test_sync_output_limit_400_maps_to_length_truncated_response(provider):
-    response = litellm.completion(
+    response = gateway.completion(
         **_completion_kwargs(provider, _sync_client_raising(provider, OUTPUT_LIMIT_400_MESSAGE))
     )
 
@@ -322,19 +322,19 @@ def test_mapped_response_still_bills_the_prompt_the_provider_processed(provider)
     expected_prompt_tokens = token_counter(model="gpt-5.6-sol", messages=messages)
     assert expected_prompt_tokens > 100, "the fixture prompt must be big enough for a zeroed count to stand out"
 
-    response = litellm.completion(
+    response = gateway.completion(
         **_completion_kwargs(provider, _sync_client_raising(provider, OUTPUT_LIMIT_400_MESSAGE), messages=messages)
     )
 
     assert response.usage.prompt_tokens == expected_prompt_tokens
     assert response.usage.completion_tokens == 0
-    assert litellm.completion_cost(completion_response=response) > 0
+    assert gateway.completion_cost(completion_response=response) > 0
 
 
 @pytest.mark.parametrize("provider", ["openai", "azure"])
 @pytest.mark.asyncio
 async def test_async_output_limit_400_maps_to_length_truncated_response(provider):
-    response = await litellm.acompletion(
+    response = await gateway.acompletion(
         **_completion_kwargs(provider, _async_client_raising(provider, OUTPUT_LIMIT_400_MESSAGE))
     )
 
@@ -345,7 +345,7 @@ async def test_async_output_limit_400_maps_to_length_truncated_response(provider
 
 @pytest.mark.parametrize("provider", ["openai", "azure"])
 def test_sync_streaming_output_limit_400_maps_to_length_truncated_stream(provider):
-    stream = litellm.completion(
+    stream = gateway.completion(
         **_completion_kwargs(provider, _sync_client_raising(provider, OUTPUT_LIMIT_400_MESSAGE), stream=True)
     )
     chunks = list(stream)
@@ -357,7 +357,7 @@ def test_sync_streaming_output_limit_400_maps_to_length_truncated_stream(provide
 @pytest.mark.parametrize("provider", ["openai", "azure"])
 @pytest.mark.asyncio
 async def test_async_streaming_output_limit_400_maps_to_length_truncated_stream(provider):
-    stream = await litellm.acompletion(
+    stream = await gateway.acompletion(
         **_completion_kwargs(provider, _async_client_raising(provider, OUTPUT_LIMIT_400_MESSAGE), stream=True)
     )
     chunks = [chunk async for chunk in stream]
@@ -370,12 +370,12 @@ async def test_async_streaming_output_limit_400_maps_to_length_truncated_stream(
 @pytest.mark.parametrize("stream", [False, True])
 def test_sync_genuine_bad_request_still_raises(provider, stream):
     def _call_and_drain():
-        result = litellm.completion(
+        result = gateway.completion(
             **_completion_kwargs(provider, _sync_client_raising(provider, GENUINE_400_MESSAGE), stream=stream)
         )
         list(result)
 
-    with pytest.raises(litellm.BadRequestError):
+    with pytest.raises(gateway.BadRequestError):
         _call_and_drain()
 
 
@@ -384,11 +384,11 @@ def test_sync_genuine_bad_request_still_raises(provider, stream):
 @pytest.mark.asyncio
 async def test_async_genuine_bad_request_still_raises(provider, stream):
     async def _call_and_drain():
-        result = await litellm.acompletion(
+        result = await gateway.acompletion(
             **_completion_kwargs(provider, _async_client_raising(provider, GENUINE_400_MESSAGE), stream=stream)
         )
         async for _ in result:
             pass
 
-    with pytest.raises(litellm.BadRequestError):
+    with pytest.raises(gateway.BadRequestError):
         await _call_and_drain()

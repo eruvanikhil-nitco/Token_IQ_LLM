@@ -13,7 +13,7 @@ import json
 
 # this file is to test token_iq/gateway/proxy
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 import asyncio
 from typing import Optional
 from token_iq.gateway.types.utils import StandardLoggingPayload, Usage, ModelInfoBase
@@ -47,9 +47,9 @@ async def test_stream_token_counting_gpt_4o():
     When stream_options={"include_usage": True} logging callback tracks Usage == Usage from llm API
     """
     custom_logger = TestCustomLogger()
-    litellm.logging_callback_manager.add_litellm_callback(custom_logger)
+    gateway.logging_callback_manager.add_litellm_callback(custom_logger)
 
-    response = await litellm.acompletion(
+    response = await gateway.acompletion(
         model="gpt-5.5",
         messages=[{"role": "user", "content": "Hello, how are you?" * 100}],
         stream=True,
@@ -87,9 +87,9 @@ async def test_stream_token_counting_without_include_usage():
     by default, litellm passes `include_usage=True` for OpenAI API
     """
     custom_logger = TestCustomLogger()
-    litellm.logging_callback_manager.add_litellm_callback(custom_logger)
+    gateway.logging_callback_manager.add_litellm_callback(custom_logger)
 
-    response = await litellm.acompletion(
+    response = await gateway.acompletion(
         model="gpt-5.5",
         messages=[{"role": "user", "content": "Hello, how are you?" * 100}],
         stream=True,
@@ -123,11 +123,11 @@ async def test_stream_token_counting_with_redaction():
     """
     When litellm.turn_off_message_logging=True is used, the usage tracked == usage from llm api chunk
     """
-    litellm.turn_off_message_logging = True
+    gateway.turn_off_message_logging = True
     custom_logger = TestCustomLogger()
-    litellm.logging_callback_manager.add_litellm_callback(custom_logger)
+    gateway.logging_callback_manager.add_litellm_callback(custom_logger)
 
-    response = await litellm.acompletion(
+    response = await gateway.acompletion(
         model="gpt-5.5",
         messages=[{"role": "user", "content": "Hello, how are you?" * 100}],
         stream=True,
@@ -162,14 +162,14 @@ async def test_stream_token_counting_anthropic_with_include_usage():
     from anthropic import Anthropic
 
     anthropic_client = Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
 
     custom_logger = TestCustomLogger()
-    litellm.logging_callback_manager.add_litellm_callback(custom_logger)
+    gateway.logging_callback_manager.add_litellm_callback(custom_logger)
 
     input_text = "Respond in just 1 word. Say ping"
 
-    response = await litellm.acompletion(
+    response = await gateway.acompletion(
         model="claude-sonnet-4-5-20250929",
         messages=[{"role": "user", "content": input_text}],
         max_tokens=4096,

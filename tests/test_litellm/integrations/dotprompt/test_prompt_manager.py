@@ -11,7 +11,7 @@ from unittest.mock import MagicMock, Mock, patch
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.integrations.dotprompt.dotprompt_manager import DotpromptManager
 from token_iq.gateway.integrations.dotprompt.prompt_manager import PromptManager, PromptTemplate
 from token_iq.gateway.types.prompts.init_prompts import PromptLiteLLMParams, PromptSpec

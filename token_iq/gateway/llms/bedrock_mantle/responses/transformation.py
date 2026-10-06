@@ -21,7 +21,7 @@ from typing import Any, Final
 
 from typing_extensions import ReadOnly, TypedDict
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.llms.bedrock.base_aws_llm import BaseAWSLLM
 from token_iq.gateway.llms.bedrock_mantle.common_utils import (
@@ -161,7 +161,7 @@ class BedrockMantleResponsesAPIConfig(BedrockMantleAuthMixin, OpenAIResponsesAPI
         if service_tier is None or service_tier in _BEDROCK_MANTLE_SUPPORTED_SERVICE_TIERS:
             return params
         if not drop_params:
-            raise litellm.utils.UnsupportedParamsError(
+            raise gateway.utils.UnsupportedParamsError(
                 status_code=400,
                 message=(
                     f"bedrock_mantle does not support service_tier={service_tier!r}; the Bedrock Mantle "

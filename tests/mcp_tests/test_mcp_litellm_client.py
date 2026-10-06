@@ -7,7 +7,7 @@ import asyncio
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 from token_iq.gateway import experimental_mcp_client
-from token_iq import gateway as litellm
+from token_iq import gateway
 import json
 
 
@@ -51,7 +51,7 @@ async def test_mcp_agent():
 
                     # Create and run the agent
                     messages = [{"role": "user", "content": "what's (3 + 5)"}]
-                    llm_response = await litellm.acompletion(
+                    llm_response = await gateway.acompletion(
                         model="gpt-4o",
                         api_key=os.getenv("OPENAI_API_KEY"),
                         messages=messages,
@@ -92,7 +92,7 @@ async def test_mcp_agent():
                         }
                     )
                     print("final messages: ", messages)
-                    llm_response = await litellm.acompletion(
+                    llm_response = await gateway.acompletion(
                         model="gpt-4o",
                         api_key=os.getenv("OPENAI_API_KEY"),
                         messages=messages,

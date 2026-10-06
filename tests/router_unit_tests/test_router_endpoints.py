@@ -18,7 +18,7 @@ file_path = os.path.join(pwd, "gettysburg.wav")
 
 audio_file = open(file_path, "rb")
 from pathlib import Path
-from token_iq import gateway as litellm
+from token_iq import gateway
 import pytest
 import asyncio
 
@@ -89,8 +89,8 @@ class MyCustomHandler(CustomLogger):
 @pytest.mark.flaky(retries=6, delay=10)
 async def test_transcription_on_router():
     proxy_handler_instance = MyCustomHandler()
-    litellm.set_verbose = True
-    litellm.callbacks = [proxy_handler_instance]
+    gateway.set_verbose = True
+    gateway.callbacks = [proxy_handler_instance]
     print("\n Testing async transcription on router\n")
     try:
         model_list = [
@@ -150,9 +150,9 @@ async def test_transcription_on_router():
 @pytest.mark.parametrize("mode", ["iterator"])  # "file",
 @pytest.mark.asyncio
 async def test_audio_speech_router(mode):
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     test_logger = MyCustomHandler()
-    litellm.callbacks = [test_logger]
+    gateway.callbacks = [test_logger]
     from token_iq.gateway import Router
 
     client = Router(
@@ -216,7 +216,7 @@ async def test_aspeech_fallbacks_on_deployment_failure():
     async def mock_aspeech(*args, **kwargs):
         called_models.append(kwargs["model"])
         if kwargs["model"] == "openai/tts-1":
-            raise litellm.InternalServerError(
+            raise gateway.InternalServerError(
                 message="deployment down",
                 llm_provider="openai",
                 model="tts-1",
@@ -319,7 +319,7 @@ async def test_rerank_endpoint(model_list):
     "model", ["omni-moderation-latest", "openai/omni-moderation-latest", None]
 )
 async def test_moderation_endpoint(model):
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     router = Router(
         model_list=[
             {
@@ -438,9 +438,9 @@ async def test_router_with_empty_choices(model_list):
     https://github.com/BerriAI/litellm/issues/8306
     """
     router = Router(model_list=model_list)
-    mock_response = litellm.ModelResponse(
+    mock_response = gateway.ModelResponse(
         choices=[],
-        usage=litellm.Usage(
+        usage=gateway.Usage(
             prompt_tokens=10,
             completion_tokens=10,
             total_tokens=20,

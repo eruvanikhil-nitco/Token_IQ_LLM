@@ -11,7 +11,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.caching.caching import DualCache
 from token_iq.gateway.proxy._types import (
     LiteLLM_BudgetTable,
@@ -208,7 +208,7 @@ class TestUserBudgetBypass:
                 "input_cost_per_token": 0.0000015,
                 "output_cost_per_token": 0.000002,
             }
-            with pytest.raises(litellm.BudgetExceededError) as exc_info:
+            with pytest.raises(gateway.BudgetExceededError) as exc_info:
                 await common_checks(
                     request_body=request_body,
                     team_object=None,
@@ -288,7 +288,7 @@ class TestEndUserBudgetBypass:
                 "input_cost_per_token": 0.0000015,
                 "output_cost_per_token": 0.000002,
             }
-            with pytest.raises(litellm.BudgetExceededError) as exc_info:
+            with pytest.raises(gateway.BudgetExceededError) as exc_info:
                 await common_checks(
                     request_body=request_body,
                     team_object=None,
@@ -371,7 +371,7 @@ class TestTeamBudgetBypass:
                 "input_cost_per_token": 0.0000015,
                 "output_cost_per_token": 0.000002,
             }
-            with pytest.raises(litellm.BudgetExceededError) as exc_info:
+            with pytest.raises(gateway.BudgetExceededError) as exc_info:
                 await common_checks(
                     request_body=request_body,
                     team_object=team_object,
@@ -485,7 +485,7 @@ class TestTeamMemberBudgetBypass:
                     "input_cost_per_token": 0.0000015,
                     "output_cost_per_token": 0.000002,
                 }
-                with pytest.raises(litellm.BudgetExceededError) as exc_info:
+                with pytest.raises(gateway.BudgetExceededError) as exc_info:
                     await common_checks(
                         request_body=request_body,
                         team_object=team_object,

@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
 from token_iq.gateway.proxy.utils import ProxyLogging
 from token_iq.gateway.types.guardrails import GuardrailEventHooks
@@ -46,7 +46,7 @@ async def test_during_call_hook_no_guardrail_fast_path_returns_data(proxy_loggin
 async def test_during_call_hook_runs_guardrails_in_parallel(proxy_logging, make_user_api_key_auth, monkeypatch):
     g1 = _make_guardrail("a")
     g2 = _make_guardrail("b")
-    monkeypatch.setattr(litellm, "callbacks", [g1, g2])
+    monkeypatch.setattr(gateway, "callbacks", [g1, g2])
     data = {"messages": [{"role": "user"}], "model": "m", "temperature": 0.1}
     out = await proxy_logging.during_call_hook(
         data=data,
@@ -64,7 +64,7 @@ async def test_during_call_hook_runs_guardrails_in_parallel(proxy_logging, make_
 @pytest.mark.asyncio
 async def test_during_call_hook_guardrail_skipped_when_should_not_run(proxy_logging, make_user_api_key_auth, monkeypatch):
     g = _make_guardrail("g", should_run=False)
-    monkeypatch.setattr(litellm, "callbacks", [g])
+    monkeypatch.setattr(gateway, "callbacks", [g])
     await proxy_logging.during_call_hook(
         data={"model": "m"},
         user_api_key_dict=make_user_api_key_auth(),
@@ -77,7 +77,7 @@ async def test_during_call_hook_guardrail_skipped_when_should_not_run(proxy_logg
 async def test_during_call_hook_guardrail_error_raises(proxy_logging, make_user_api_key_auth, monkeypatch):
     g = _make_guardrail("bad")
     g.async_moderation_hook = AsyncMock(side_effect=RuntimeError("blocked"))
-    monkeypatch.setattr(litellm, "callbacks", [g])
+    monkeypatch.setattr(gateway, "callbacks", [g])
     with pytest.raises(RuntimeError):
         await proxy_logging.during_call_hook(
             data={"model": "m"},

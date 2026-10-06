@@ -4,9 +4,9 @@ import pytest
 
 from openai import APITimeoutError as Timeout
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
-litellm.num_retries = 0
+gateway.num_retries = 0
 import asyncio
 from typing import Optional
 from test_openai_batches_and_files import load_vertex_ai_credentials
@@ -67,13 +67,13 @@ async def test_create_vertex_fine_tune_jobs_mocked():
     )
 
     # Save original callbacks to restore later
-    original_callbacks = litellm.callbacks
-    original_success_callback = litellm.success_callback
-    original_async_success_callback = litellm._async_success_callback
+    original_callbacks = gateway.callbacks
+    original_success_callback = gateway.success_callback
+    original_async_success_callback = gateway._async_success_callback
     # Disable all callbacks to avoid Datadog/other loggers interfering with the mock
-    litellm.callbacks = []
-    litellm.success_callback = []
-    litellm._async_success_callback = []
+    gateway.callbacks = []
+    gateway.success_callback = []
+    gateway._async_success_callback = []
 
     try:
         with (
@@ -86,7 +86,7 @@ async def test_create_vertex_fine_tune_jobs_mocked():
                 return_value=("fake-token", project_id),
             ),
         ):
-            create_fine_tuning_response = await litellm.acreate_fine_tuning_job(
+            create_fine_tuning_response = await gateway.acreate_fine_tuning_job(
                 model=base_model,
                 custom_llm_provider="vertex_ai",
                 training_file=training_file,
@@ -132,9 +132,9 @@ async def test_create_vertex_fine_tune_jobs_mocked():
             assert response_json["integrations"] == []
     finally:
         # Restore original callbacks
-        litellm.callbacks = original_callbacks
-        litellm.success_callback = original_success_callback
-        litellm._async_success_callback = original_async_success_callback
+        gateway.callbacks = original_callbacks
+        gateway.success_callback = original_success_callback
+        gateway._async_success_callback = original_async_success_callback
 
 
 @pytest.mark.asyncio()
@@ -165,13 +165,13 @@ async def test_create_vertex_fine_tune_jobs_mocked_with_hyperparameters():
     )
 
     # Save original callbacks to restore later
-    original_callbacks = litellm.callbacks
-    original_success_callback = litellm.success_callback
-    original_async_success_callback = litellm._async_success_callback
+    original_callbacks = gateway.callbacks
+    original_success_callback = gateway.success_callback
+    original_async_success_callback = gateway._async_success_callback
     # Disable all callbacks to avoid Datadog/other loggers interfering with the mock
-    litellm.callbacks = []
-    litellm.success_callback = []
-    litellm._async_success_callback = []
+    gateway.callbacks = []
+    gateway.success_callback = []
+    gateway._async_success_callback = []
 
     try:
         with (
@@ -184,7 +184,7 @@ async def test_create_vertex_fine_tune_jobs_mocked_with_hyperparameters():
                 return_value=("fake-token", project_id),
             ),
         ):
-            create_fine_tuning_response = await litellm.acreate_fine_tuning_job(
+            create_fine_tuning_response = await gateway.acreate_fine_tuning_job(
                 model=base_model,
                 custom_llm_provider="vertex_ai",
                 training_file=training_file,
@@ -242,9 +242,9 @@ async def test_create_vertex_fine_tune_jobs_mocked_with_hyperparameters():
             assert response_json["integrations"] == []
     finally:
         # Restore original callbacks
-        litellm.callbacks = original_callbacks
-        litellm.success_callback = original_success_callback
-        litellm._async_success_callback = original_async_success_callback
+        gateway.callbacks = original_callbacks
+        gateway.success_callback = original_success_callback
+        gateway._async_success_callback = original_async_success_callback
 
 
 # Testing OpenAI -> Vertex AI param mapping
@@ -339,8 +339,8 @@ async def test_mock_openai_create_fine_tune_job():
     from openai.types.fine_tuning.fine_tuning_job import FineTuningJob, Hyperparameters
 
     custom_logger = TestCustomLogger()
-    previous_callbacks = litellm.callbacks
-    litellm.callbacks = [custom_logger]
+    previous_callbacks = gateway.callbacks
+    gateway.callbacks = [custom_logger]
     client = AsyncOpenAI(api_key="fake-api-key")
 
     with patch.object(client.fine_tuning.jobs, "create") as mock_create:
@@ -360,7 +360,7 @@ async def test_mock_openai_create_fine_tune_job():
             result_files=[],
         )
 
-        response = await litellm.acreate_fine_tuning_job(
+        response = await gateway.acreate_fine_tuning_job(
             model="gpt-4o-mini-2024-07-18",
             training_file="file-123",
             hyperparameters={"n_epochs": 3},
@@ -397,7 +397,7 @@ async def test_mock_openai_create_fine_tune_job():
         assert logged["id"] == response.id
         assert logged["call_type"] == "acreate_fine_tuning_job"
     finally:
-        litellm.callbacks = previous_callbacks
+        gateway.callbacks = previous_callbacks
 
 
 @pytest.mark.asyncio
@@ -414,7 +414,7 @@ async def test_mock_openai_list_fine_tune_jobs():
         # Simple mock return value - actual structure doesn't matter for this test
         mock_list.return_value = []
 
-        await litellm.alist_fine_tuning_jobs(limit=2, after="ft-000", client=client)
+        await gateway.alist_fine_tuning_jobs(limit=2, after="ft-000", client=client)
 
         # Only verify that the client was called with correct parameters
         mock_list.assert_called_once()
@@ -433,7 +433,7 @@ async def test_mock_openai_cancel_fine_tune_job():
 
     with patch.object(client.fine_tuning.jobs, "cancel") as mock_cancel:
         try:
-            await litellm.acancel_fine_tuning_job(
+            await gateway.acancel_fine_tuning_job(
                 fine_tuning_job_id="ft-123", client=client
             )
         except Exception as e:
@@ -452,7 +452,7 @@ async def test_mock_openai_retrieve_fine_tune_job():
 
     with patch.object(client.fine_tuning.jobs, "retrieve") as mock_retrieve:
         try:
-            response = await litellm.aretrieve_fine_tuning_job(
+            response = await gateway.aretrieve_fine_tuning_job(
                 fine_tuning_job_id="ft-123", client=client
             )
         except Exception as e:
@@ -492,7 +492,7 @@ async def test_mock_azure_create_fine_tune_job_with_azure_specific_params():
     ) as mock_create:
         mock_create.return_value = mock_async_create()
 
-        response = await litellm.acreate_fine_tuning_job(
+        response = await gateway.acreate_fine_tuning_job(
             model="gpt-4.1-mini-2025-04-14",
             training_file="file-123",
             custom_llm_provider="azure",

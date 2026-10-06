@@ -190,7 +190,7 @@ class ProxyAuthHandler:
     into all requests to your LiteLLM Proxy.
 
     Example:
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.proxy_auth import AzureADCredential, ProxyAuthHandler
 
         litellm.proxy_auth = ProxyAuthHandler(

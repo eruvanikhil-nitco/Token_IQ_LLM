@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 import pytest
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy.auth.auth_utils import (
     _allow_model_level_clientside_configurable_parameters,
 )

@@ -1,7 +1,7 @@
 from datetime import datetime
 from unittest.mock import MagicMock, patch
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.constants import MAX_S3_OBJECT_DOWNLOAD_FILENAME_BYTES, MAX_S3_OBJECT_KEY_BYTES
 from token_iq.gateway.integrations.s3 import S3Logger
 
@@ -23,8 +23,8 @@ def _log_event_kwargs(response_id: str = "chatcmpl-test-id") -> dict:
 
 
 def _run_log_event(callback_params: dict, response_id: str = "chatcmpl-test-id") -> MagicMock:
-    original = litellm.s3_callback_params
-    litellm.s3_callback_params = callback_params
+    original = gateway.s3_callback_params
+    gateway.s3_callback_params = callback_params
     try:
         with patch("boto3.client") as mock_boto3_client:
             mock_s3_client = MagicMock()
@@ -39,7 +39,7 @@ def _run_log_event(callback_params: dict, response_id: str = "chatcmpl-test-id")
             )
         return mock_s3_client
     finally:
-        litellm.s3_callback_params = original
+        gateway.s3_callback_params = original
 
 
 def test_put_object_includes_sse_kms_params_when_configured():

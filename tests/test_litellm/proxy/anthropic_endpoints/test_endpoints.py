@@ -347,6 +347,6 @@ class TestStripTotalTokensFeatureFlag(unittest.TestCase):
     """
 
     def test_flag_defaults_off(self):
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
-        assert litellm.strip_anthropic_total_tokens is False
+        assert gateway.strip_anthropic_total_tokens is False

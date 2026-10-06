@@ -1,6 +1,6 @@
 from base_llm_unit_tests import BaseLLMChatTest
 import pytest
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 
 # Test implementations
@@ -21,10 +21,10 @@ def test_deepseek_mock_completion(stream):
     """
     Deepseek API is hanging. Mock the call, to a fake endpoint, so we can confirm our integration is working.
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway import completion
 
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
 
     response = completion(
         model="deepseek/deepseek-reasoner",
@@ -47,12 +47,12 @@ async def test_deepseek_provider_async_completion(stream):
     """
     Test that Deepseek provider requests are formatted correctly with the proper parameters
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     import json
     from unittest.mock import patch, AsyncMock, MagicMock
     from token_iq.gateway import acompletion
 
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
 
     # Set up the test parameters
     api_key = "fake_api_key"
@@ -63,10 +63,10 @@ async def test_deepseek_provider_async_completion(stream):
     with patch(
         "token_iq.gateway.llms.custom_httpx.llm_http_handler.AsyncHTTPHandler.post"
     ) as mock_post:
-        mock_response_data = litellm.ModelResponse(
+        mock_response_data = gateway.ModelResponse(
             choices=[
-                litellm.Choices(
-                    message=litellm.Message(content="Hello!"),
+                gateway.Choices(
+                    message=gateway.Message(content="Hello!"),
                     index=0,
                     finish_reason="stop",
                 )
@@ -108,7 +108,7 @@ async def test_deepseek_provider_async_completion(stream):
 
 
 def test_completion_cost_deepseek():
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     model_name = "deepseek/deepseek-chat"
     messages_1 = [
         {
@@ -157,8 +157,8 @@ def test_completion_cost_deepseek():
         {"role": "user", "content": "When did the Shang Dynasty fall?"},
     ]
     try:
-        response_1 = litellm.completion(model=model_name, messages=messages_1)
-        response_2 = litellm.completion(model=model_name, messages=message_2)
+        response_1 = gateway.completion(model=model_name, messages=messages_1)
+        response_2 = gateway.completion(model=model_name, messages=message_2)
         # Add any assertions here to check the response
         print(response_2)
         assert response_2.usage.prompt_cache_hit_tokens is not None
@@ -172,7 +172,7 @@ def test_completion_cost_deepseek():
             response_2.usage._cache_read_input_tokens
             == response_2.usage.prompt_cache_hit_tokens
         )
-    except litellm.APIError as e:
+    except gateway.APIError as e:
         pass
     except Exception as e:
         pytest.fail(f"Error occurred: {e}")

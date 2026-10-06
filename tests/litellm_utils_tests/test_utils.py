@@ -13,7 +13,7 @@ import os
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler, headers
 from token_iq.gateway.core_utils.duration_parser import duration_in_seconds
 from token_iq.gateway.core_utils.duration_parser import (
@@ -47,7 +47,7 @@ def reset_mock_cache():
 
 # Test 1: Check trimming of normal message
 def test_basic_trimming():
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
     messages = [
         {
             "role": "user",
@@ -77,7 +77,7 @@ def test_basic_trimming_no_max_tokens_specified():
     # print(get_token_count(messages=trimmed_messages, model="claude-2"))
     assert (
         get_token_count(messages=trimmed_messages, model="gpt-4")
-    ) <= litellm.model_cost["gpt-4"]["max_tokens"]
+    ) <= gateway.model_cost["gpt-4"]["max_tokens"]
 
 
 # test_basic_trimming_no_max_tokens_specified()
@@ -279,7 +279,7 @@ def test_trimming_with_model_cost_max_input_tokens(model):
     trimmed_messages = trim_messages(messages, model=model)
     assert (
         get_token_count(trimmed_messages, model=model)
-        < litellm.model_cost[model]["max_input_tokens"]
+        < gateway.model_cost[model]["max_input_tokens"]
     )
 
 
@@ -334,7 +334,7 @@ def test_aget_valid_models():
 
         # list of openai supported llms on litellm
         expected_models = (
-            litellm.open_ai_chat_completion_models | litellm.open_ai_text_completion_models
+            gateway.open_ai_chat_completion_models | gateway.open_ai_text_completion_models
         )
 
         assert set(valid_models) == set(expected_models)
@@ -344,7 +344,7 @@ def test_aget_valid_models():
         valid_models = get_valid_models()
 
         print(valid_models)
-        assert set(valid_models) == set(litellm.gemini_models)
+        assert set(valid_models) == set(gateway.gemini_models)
 
 
 @pytest.mark.parametrize("custom_llm_provider", ["anthropic", "xai"])
@@ -453,7 +453,7 @@ def test_function_to_dict():
         if location == "Boston, MA":
             return "The weather is 12F"
 
-    function_json = litellm.utils.function_to_dict(get_current_weather)
+    function_json = gateway.utils.function_to_dict(get_current_weather)
     print(function_json)
 
     expected_output = {
@@ -511,7 +511,7 @@ def test_function_to_dict():
 )
 def test_supports_function_calling(model, expected_bool):
     try:
-        assert litellm.supports_function_calling(model=model) == expected_bool
+        assert gateway.supports_function_calling(model=model) == expected_bool
     except Exception as e:
         pytest.fail(f"Error occurred: {e}")
 
@@ -530,7 +530,7 @@ def test_supports_function_calling(model, expected_bool):
 )
 def test_supports_web_search(model, expected_bool):
     try:
-        assert litellm.supports_web_search(model=model) == expected_bool
+        assert gateway.supports_web_search(model=model) == expected_bool
     except Exception as e:
         pytest.fail(f"Error occurred: {e}")
 
@@ -548,9 +548,9 @@ def test_supports_web_search(model, expected_bool):
 )
 def test_supports_reasoning(model, expected_bool):
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-    litellm.model_cost = litellm.get_model_cost_map()
+    gateway.model_cost = gateway.get_model_cost_map()
     try:
-        assert litellm.supports_reasoning(model=model) == expected_bool
+        assert gateway.supports_reasoning(model=model) == expected_bool
     except Exception as e:
         pytest.fail(f"Error occurred: {e}")
 
@@ -618,9 +618,9 @@ def test_redact_msgs_from_logs():
         redact_message_input_output_from_logging,
     )
 
-    litellm.turn_off_message_logging = True
+    gateway.turn_off_message_logging = True
 
-    response_obj = litellm.ModelResponse(
+    response_obj = gateway.ModelResponse(
         choices=[
             {
                 "finish_reason": "stop",
@@ -654,7 +654,7 @@ def test_redact_msgs_from_logs():
         == "I'm LLaMA, an AI assistant developed by Meta AI that can understand and respond to human input in a conversational manner."
     )
 
-    litellm.turn_off_message_logging = False
+    gateway.turn_off_message_logging = False
     print("Test passed")
 
 
@@ -673,10 +673,10 @@ def test_redact_embedding_response():
         redact_message_input_output_from_logging,
     )
 
-    litellm.turn_off_message_logging = True
+    gateway.turn_off_message_logging = True
 
     # Create a test EmbeddingResponse with usage data
-    original_usage = litellm.Usage(
+    original_usage = gateway.Usage(
         prompt_tokens=10, completion_tokens=0, total_tokens=10
     )
     original_data = [
@@ -684,7 +684,7 @@ def test_redact_embedding_response():
         {"object": "embedding", "index": 1, "embedding": [0.6, 0.7, 0.8, 0.9, 1.0]},
     ]
 
-    response_obj = litellm.EmbeddingResponse(
+    response_obj = gateway.EmbeddingResponse(
         model="text-embedding-3-small",
         data=original_data,
         usage=original_usage,
@@ -723,9 +723,9 @@ def test_redact_embedding_response():
     assert _redacted_response_obj.data == []  # data should be cleared
 
     # Assert it's still an EmbeddingResponse instance
-    assert isinstance(_redacted_response_obj, litellm.EmbeddingResponse)
+    assert isinstance(_redacted_response_obj, gateway.EmbeddingResponse)
 
-    litellm.turn_off_message_logging = False
+    gateway.turn_off_message_logging = False
     print("Test passed")
 
 
@@ -744,9 +744,9 @@ def test_redact_msgs_from_logs_with_dynamic_params():
         redact_message_input_output_from_logging,
     )
 
-    litellm.turn_off_message_logging = True
+    gateway.turn_off_message_logging = True
     test_content = "I'm LLaMA, an AI assistant developed by Meta AI that can understand and respond to human input in a conversational manner."
-    response_obj = litellm.ModelResponse(
+    response_obj = gateway.ModelResponse(
         choices=[
             {
                 "finish_reason": "stop",
@@ -811,7 +811,7 @@ def test_redact_msgs_from_logs_with_dynamic_params():
     assert _redacted_response_obj.choices[0].message.content == "redacted-by-litellm"
 
     # Reset settings
-    litellm.turn_off_message_logging = False
+    gateway.turn_off_message_logging = False
     print("Test passed")
 
 
@@ -916,7 +916,7 @@ def test_logging_trace_id(langfuse_trace_id, langfuse_existing_trace_id):
     """
     from token_iq.gateway.core_utils.litellm_logging import Logging
 
-    litellm.success_callback = ["langfuse"]
+    gateway.success_callback = ["langfuse"]
     litellm_call_id = "my-unique-call-id"
     litellm_logging_obj = Logging(
         model="gpt-5-mini",
@@ -935,7 +935,7 @@ def test_logging_trace_id(langfuse_trace_id, langfuse_existing_trace_id):
     if langfuse_existing_trace_id is not None:
         metadata["existing_trace_id"] = langfuse_existing_trace_id
 
-    litellm.completion(
+    gateway.completion(
         model="gpt-5-mini",
         messages=[{"role": "user", "content": "Hey how's it going?"}],
         mock_response="Hey!",
@@ -985,20 +985,20 @@ def test_convert_model_response_object():
                 "code": 400,
             },
         },
-        "model_response_object": litellm.ModelResponse(
+        "model_response_object": gateway.ModelResponse(
             id="chatcmpl-b88ce43a-7bfc-437c-b8cc-e90d59372cfb",
             choices=[
-                litellm.Choices(
+                gateway.Choices(
                     finish_reason="stop",
                     index=0,
-                    message=litellm.Message(content="default", role="assistant"),
+                    message=gateway.Message(content="default", role="assistant"),
                 )
             ],
             created=1719376241,
             model="openrouter/anthropic/claude-3.5-sonnet",
             object="chat.completion",
             system_fingerprint=None,
-            usage=litellm.Usage(),
+            usage=gateway.Usage(),
         ),
         "response_type": "completion",
         "stream": False,
@@ -1008,7 +1008,7 @@ def test_convert_model_response_object():
     }
 
     with pytest.raises(Exception) as exc_info:  # noqa: PT011  # bare Exception() with attributes, so str(e) is empty
-        litellm.convert_to_model_response_object(**args)
+        gateway.convert_to_model_response_object(**args)
     e = exc_info.value
     assert e.status_code == 400
     assert (
@@ -1035,7 +1035,7 @@ def test_convert_model_response_object():
     ],
 )
 def test_parse_content_for_reasoning(content, expected_reasoning, expected_content):
-    assert litellm.utils._parse_content_for_reasoning(content) == (
+    assert gateway.utils._parse_content_for_reasoning(content) == (
         expected_reasoning,
         expected_content,
     )
@@ -1060,7 +1060,7 @@ def test_supports_response_schema(model, expected_bool):
     Should be false otherwise
     """
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-    litellm.model_cost = litellm.get_model_cost_map()
+    gateway.model_cost = gateway.get_model_cost_map()
 
     from token_iq.gateway.utils import supports_response_schema
 
@@ -1116,7 +1116,7 @@ def test_usage_object_null_tokens():
 
     Fixes https://github.com/BerriAI/litellm/issues/5096
     """
-    usage_obj = litellm.Usage(prompt_tokens=2, completion_tokens=None, total_tokens=2)
+    usage_obj = gateway.Usage(prompt_tokens=2, completion_tokens=None, total_tokens=2)
 
     assert usage_obj.completion_tokens == 0
 
@@ -1126,7 +1126,7 @@ def test_is_base64_encoded():
 
     import requests
 
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     url = "https://dummyimage.com/100/100/fff&text=Test+image"
     response = requests.get(url)
     file_data = response.content
@@ -1188,8 +1188,8 @@ def test_async_http_handler_force_ipv4(mock_async_client):
     from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler
 
     # Set force_ipv4 to True
-    litellm.force_ipv4 = True
-    litellm.disable_aiohttp_transport = True
+    gateway.force_ipv4 = True
+    gateway.disable_aiohttp_transport = True
 
     try:
         timeout = 120
@@ -1218,7 +1218,7 @@ def test_async_http_handler_force_ipv4(mock_async_client):
 
     finally:
         # Reset force_ipv4 to default
-        litellm.force_ipv4 = False
+        gateway.force_ipv4 = False
 
 
 @pytest.mark.parametrize(
@@ -1226,7 +1226,7 @@ def test_async_http_handler_force_ipv4(mock_async_client):
 )
 def test_supports_audio_input(model, expected_bool):
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-    litellm.model_cost = litellm.get_model_cost_map()
+    gateway.model_cost = gateway.get_model_cost_map()
 
     from token_iq.gateway.utils import supports_audio_input, supports_audio_output
 
@@ -1345,12 +1345,12 @@ def test_models_by_provider():
     Make sure all providers from model map are in the valid providers list
     """
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-    litellm.model_cost = litellm.get_model_cost_map()
+    gateway.model_cost = gateway.get_model_cost_map()
 
     from token_iq.gateway import models_by_provider
 
     providers = set()
-    for k, v in litellm.model_cost.items():
+    for k, v in gateway.model_cost.items():
         if "_" in v["litellm_provider"] and "-" in v["litellm_provider"]:
             continue
         elif k == "sample_spec":
@@ -1385,7 +1385,7 @@ def test_get_end_user_id_for_cost_tracking(
 ):
     from token_iq.gateway.utils import get_end_user_id_for_cost_tracking
 
-    litellm.disable_end_user_cost_tracking = disable_end_user_cost_tracking
+    gateway.disable_end_user_cost_tracking = disable_end_user_cost_tracking
     assert (
         get_end_user_id_for_cost_tracking(litellm_params=litellm_params)
         == expected_end_user_id
@@ -1405,7 +1405,7 @@ def test_get_end_user_id_for_cost_tracking_prometheus_only(
 ):
     from token_iq.gateway.utils import get_end_user_id_for_cost_tracking
 
-    litellm.enable_end_user_cost_tracking_prometheus_only = (
+    gateway.enable_end_user_cost_tracking_prometheus_only = (
         enable_end_user_cost_tracking_prometheus_only
     )
     assert (
@@ -1475,7 +1475,7 @@ def test_get_end_user_id_for_cost_tracking_metadata_handling(
     from token_iq.gateway.utils import get_end_user_id_for_cost_tracking
 
     # Ensure cost tracking is enabled for this test
-    litellm.disable_end_user_cost_tracking = False
+    gateway.disable_end_user_cost_tracking = False
 
     result = get_end_user_id_for_cost_tracking(litellm_params=litellm_params)
     assert result == expected_end_user_id
@@ -1491,7 +1491,7 @@ def test_is_prompt_caching_enabled_error_handling():
             "Mocked error, This should not raise an error. Instead is_prompt_caching_valid_prompt should return False."
         ),
     ):
-        result = litellm.utils.is_prompt_caching_valid_prompt(
+        result = gateway.utils.is_prompt_caching_valid_prompt(
             messages=[{"role": "user", "content": "test"}],
             tools=None,
             custom_llm_provider="anthropic",
@@ -1509,7 +1509,7 @@ def test_is_prompt_caching_enabled_return_default_image_dimensions():
     IMPORTANT: Ensures Get token counter does not make a GET request to the image url
     """
     with patch("token_iq.gateway.utils.token_counter") as mock_token_counter:
-        litellm.utils.is_prompt_caching_valid_prompt(
+        gateway.utils.is_prompt_caching_valid_prompt(
             messages=[
                 {
                     "role": "user",
@@ -1548,7 +1548,7 @@ def test_token_counter_with_image_url_with_detail_high():
 
     verbose_logger.setLevel(logging.DEBUG)
 
-    _tokens = litellm.utils.token_counter(
+    _tokens = gateway.utils.token_counter(
         messages=[
             {
                 "role": "user",
@@ -1578,7 +1578,7 @@ def test_fireworks_ai_vision_capability_from_cost_map(monkeypatch):
     support, while mapped VLMs still do.
     """
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map())
+    monkeypatch.setattr(gateway, "model_cost", gateway.get_model_cost_map())
     from token_iq.gateway.utils import supports_pdf_input, supports_vision
 
     assert supports_vision("fireworks_ai/llama-3.1-8b-instruct") is False
@@ -1605,9 +1605,9 @@ def test_logprobs_type():
 
 def test_get_valid_models_openai_proxy(monkeypatch):
     from token_iq.gateway.utils import get_valid_models
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
 
     monkeypatch.setenv("LITELLM_PROXY_API_KEY", "sk-1234")
     monkeypatch.setenv("LITELLM_PROXY_API_BASE", "https://litellm-api.up.railway.app/")
@@ -1632,7 +1632,7 @@ def test_get_valid_models_openai_proxy(monkeypatch):
     mock_response.json.return_value = mock_response_data
 
     with patch.object(
-        litellm.module_level_client, "get", return_value=mock_response
+        gateway.module_level_client, "get", return_value=mock_response
     ) as mock_post:
         valid_models = get_valid_models(check_provider_endpoint=True)
         assert "litellm_proxy/gpt-5.5" in valid_models
@@ -1640,13 +1640,13 @@ def test_get_valid_models_openai_proxy(monkeypatch):
 
 def test_get_valid_models_fireworks_ai(monkeypatch):
     from token_iq.gateway.utils import get_valid_models
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
 
     monkeypatch.setenv("FIREWORKS_API_KEY", "sk-1234")
     monkeypatch.setenv("FIREWORKS_ACCOUNT_ID", "1234")
-    monkeypatch.setattr(litellm, "provider_list", ["fireworks_ai"])
+    monkeypatch.setattr(gateway, "provider_list", ["fireworks_ai"])
 
     mock_response_data = {
         "models": [
@@ -1711,7 +1711,7 @@ def test_get_valid_models_fireworks_ai(monkeypatch):
     mock_response.json.return_value = mock_response_data
 
     with patch.object(
-        litellm.module_level_client, "get", return_value=mock_response
+        gateway.module_level_client, "get", return_value=mock_response
     ) as mock_post:
         valid_models = get_valid_models(check_provider_endpoint=True)
         print("valid_models", valid_models)
@@ -1729,7 +1729,7 @@ def test_get_valid_models_default(monkeypatch):
     Prevent regression for existing usage.
     """
     from token_iq.gateway.utils import get_valid_models
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     monkeypatch.setenv("FIREWORKS_API_KEY", "sk-1234")
     valid_models = get_valid_models()
@@ -1738,7 +1738,7 @@ def test_get_valid_models_default(monkeypatch):
 
 def test_supports_vision_gemini():
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-    litellm.model_cost = litellm.get_model_cost_map()
+    gateway.model_cost = gateway.get_model_cost_map()
     from token_iq.gateway.utils import supports_vision
 
     assert supports_vision("gemini-2.5-pro") is True
@@ -1771,34 +1771,34 @@ def test_get_num_retries(num_retries):
 def test_add_custom_logger_callback_to_specific_event(monkeypatch):
     from token_iq.gateway.utils import _add_custom_logger_callback_to_specific_event
 
-    monkeypatch.setattr(litellm, "success_callback", [])
-    monkeypatch.setattr(litellm, "failure_callback", [])
+    monkeypatch.setattr(gateway, "success_callback", [])
+    monkeypatch.setattr(gateway, "failure_callback", [])
 
     _add_custom_logger_callback_to_specific_event("langfuse", "success")
 
-    assert len(litellm.success_callback) == 1
-    assert len(litellm.failure_callback) == 0
+    assert len(gateway.success_callback) == 1
+    assert len(gateway.failure_callback) == 0
 
 
 def test_add_custom_logger_callback_to_specific_event_e2e(monkeypatch):
 
-    monkeypatch.setattr(litellm, "success_callback", [])
-    monkeypatch.setattr(litellm, "failure_callback", [])
-    monkeypatch.setattr(litellm, "callbacks", [])
+    monkeypatch.setattr(gateway, "success_callback", [])
+    monkeypatch.setattr(gateway, "failure_callback", [])
+    monkeypatch.setattr(gateway, "callbacks", [])
 
-    litellm.success_callback = ["humanloop"]
+    gateway.success_callback = ["humanloop"]
 
-    curr_len_success_callback = len(litellm.success_callback)
-    curr_len_failure_callback = len(litellm.failure_callback)
+    curr_len_success_callback = len(gateway.success_callback)
+    curr_len_failure_callback = len(gateway.failure_callback)
 
-    litellm.completion(
+    gateway.completion(
         model="gpt-5-mini",
         messages=[{"role": "user", "content": "Hello, world!"}],
         mock_response="Testing langfuse",
     )
 
-    assert len(litellm.success_callback) == curr_len_success_callback
-    assert len(litellm.failure_callback) == curr_len_failure_callback
+    assert len(gateway.success_callback) == curr_len_success_callback
+    assert len(gateway.failure_callback) == curr_len_failure_callback
 
 
 def test_custom_logger_exists_in_callbacks_individual_functions(monkeypatch):
@@ -1828,7 +1828,7 @@ def test_custom_logger_exists_in_callbacks_individual_functions(monkeypatch):
         "success_callback",
         "failure_callback",
     ]:
-        monkeypatch.setattr(litellm, list_name, [])
+        monkeypatch.setattr(gateway, list_name, [])
 
     mock_logger = MockCustomLogger()
 
@@ -1837,37 +1837,37 @@ def test_custom_logger_exists_in_callbacks_individual_functions(monkeypatch):
     assert _custom_logger_class_exists_in_failure_callbacks(mock_logger) == False
 
     # Test 2: Logger exists in success_callback
-    litellm.success_callback.append(mock_logger)
+    gateway.success_callback.append(mock_logger)
     assert _custom_logger_class_exists_in_success_callbacks(mock_logger) == True
     assert _custom_logger_class_exists_in_failure_callbacks(mock_logger) == False
 
     # Reset callbacks
-    litellm.success_callback = []
+    gateway.success_callback = []
 
     # Test 3: Logger exists in _async_success_callback
-    litellm._async_success_callback.append(mock_logger)
+    gateway._async_success_callback.append(mock_logger)
     assert _custom_logger_class_exists_in_success_callbacks(mock_logger) == True
     assert _custom_logger_class_exists_in_failure_callbacks(mock_logger) == False
 
     # Reset callbacks
-    litellm._async_success_callback = []
+    gateway._async_success_callback = []
 
     # Test 4: Logger exists in failure_callback
-    litellm.failure_callback.append(mock_logger)
+    gateway.failure_callback.append(mock_logger)
     assert _custom_logger_class_exists_in_success_callbacks(mock_logger) == False
     assert _custom_logger_class_exists_in_failure_callbacks(mock_logger) == True
 
     # Reset callbacks
-    litellm.failure_callback = []
+    gateway.failure_callback = []
 
     # Test 5: Logger exists in _async_failure_callback
-    litellm._async_failure_callback.append(mock_logger)
+    gateway._async_failure_callback.append(mock_logger)
     assert _custom_logger_class_exists_in_success_callbacks(mock_logger) == False
     assert _custom_logger_class_exists_in_failure_callbacks(mock_logger) == True
 
     # Test 6: Logger exists in both success and failure callbacks
-    litellm.success_callback.append(mock_logger)
-    litellm.failure_callback.append(mock_logger)
+    gateway.success_callback.append(mock_logger)
+    gateway.failure_callback.append(mock_logger)
     assert _custom_logger_class_exists_in_success_callbacks(mock_logger) == True
     assert _custom_logger_class_exists_in_failure_callbacks(mock_logger) == True
 
@@ -1890,31 +1890,31 @@ async def test_add_custom_logger_callback_to_specific_event_with_duplicates(
     )
 
     # Reset all callback lists
-    monkeypatch.setattr(litellm, "callbacks", [])
-    monkeypatch.setattr(litellm, "_async_success_callback", [])
-    monkeypatch.setattr(litellm, "_async_failure_callback", [])
-    monkeypatch.setattr(litellm, "success_callback", [])
-    monkeypatch.setattr(litellm, "failure_callback", [])
+    monkeypatch.setattr(gateway, "callbacks", [])
+    monkeypatch.setattr(gateway, "_async_success_callback", [])
+    monkeypatch.setattr(gateway, "_async_failure_callback", [])
+    monkeypatch.setattr(gateway, "success_callback", [])
+    monkeypatch.setattr(gateway, "failure_callback", [])
 
     # Add logger to both success_callback and _async_success_callback
     langfuse_logger = LangfusePromptManagement()
-    litellm.success_callback.append(langfuse_logger)
-    litellm._async_success_callback.append(langfuse_logger)
+    gateway.success_callback.append(langfuse_logger)
+    gateway._async_success_callback.append(langfuse_logger)
 
     # Get initial lengths
-    initial_success_callback_len = len(litellm.success_callback)
-    initial_async_success_callback_len = len(litellm._async_success_callback)
+    initial_success_callback_len = len(gateway.success_callback)
+    initial_async_success_callback_len = len(gateway._async_success_callback)
 
     # Make a completion call
-    await litellm.acompletion(
+    await gateway.acompletion(
         model="gpt-5-mini",
         messages=[{"role": "user", "content": "Hello, world!"}],
         mock_response="Testing duplicate callbacks",
     )
 
     # Assert no new callbacks were added
-    assert len(litellm.success_callback) == initial_success_callback_len
-    assert len(litellm._async_success_callback) == initial_async_success_callback_len
+    assert len(gateway.success_callback) == initial_success_callback_len
+    assert len(gateway._async_success_callback) == initial_async_success_callback_len
 
 
 @pytest.mark.asyncio
@@ -1930,30 +1930,30 @@ async def test_add_custom_logger_callback_to_specific_event_with_duplicates_succ
     )
 
     # Reset all callback lists
-    monkeypatch.setattr(litellm, "callbacks", [])
-    monkeypatch.setattr(litellm, "_async_success_callback", [])
-    monkeypatch.setattr(litellm, "_async_failure_callback", [])
-    monkeypatch.setattr(litellm, "success_callback", [])
-    monkeypatch.setattr(litellm, "failure_callback", [])
+    monkeypatch.setattr(gateway, "callbacks", [])
+    monkeypatch.setattr(gateway, "_async_success_callback", [])
+    monkeypatch.setattr(gateway, "_async_failure_callback", [])
+    monkeypatch.setattr(gateway, "success_callback", [])
+    monkeypatch.setattr(gateway, "failure_callback", [])
 
     # Add logger to both success_callback and _async_success_callback
     langfuse_logger = LangfusePromptManagement()
-    litellm.success_callback.append(langfuse_logger)
+    gateway.success_callback.append(langfuse_logger)
 
     # Get initial lengths
-    initial_success_callback_len = len(litellm.success_callback)
-    initial_async_success_callback_len = len(litellm._async_success_callback)
+    initial_success_callback_len = len(gateway.success_callback)
+    initial_async_success_callback_len = len(gateway._async_success_callback)
 
     # Make a completion call
-    await litellm.acompletion(
+    await gateway.acompletion(
         model="gpt-5-mini",
         messages=[{"role": "user", "content": "Hello, world!"}],
         mock_response="Testing duplicate callbacks",
     )
 
     # Assert no new callbacks were added
-    assert len(litellm.success_callback) == initial_success_callback_len
-    assert len(litellm._async_success_callback) == initial_async_success_callback_len
+    assert len(gateway.success_callback) == initial_success_callback_len
+    assert len(gateway._async_success_callback) == initial_async_success_callback_len
 
 
 @pytest.mark.asyncio
@@ -1969,72 +1969,72 @@ async def test_add_custom_logger_callback_to_specific_event_with_duplicates_call
     )
 
     # Reset all callback lists
-    monkeypatch.setattr(litellm, "callbacks", [])
-    monkeypatch.setattr(litellm, "_async_success_callback", [])
-    monkeypatch.setattr(litellm, "_async_failure_callback", [])
-    monkeypatch.setattr(litellm, "success_callback", [])
-    monkeypatch.setattr(litellm, "failure_callback", [])
+    monkeypatch.setattr(gateway, "callbacks", [])
+    monkeypatch.setattr(gateway, "_async_success_callback", [])
+    monkeypatch.setattr(gateway, "_async_failure_callback", [])
+    monkeypatch.setattr(gateway, "success_callback", [])
+    monkeypatch.setattr(gateway, "failure_callback", [])
 
     # Add logger to both success_callback and _async_success_callback
     langfuse_logger = LangfusePromptManagement()
-    litellm.callbacks.append(langfuse_logger)
+    gateway.callbacks.append(langfuse_logger)
 
     # Make a completion call
-    await litellm.acompletion(
+    await gateway.acompletion(
         model="gpt-5-mini",
         messages=[{"role": "user", "content": "Hello, world!"}],
         mock_response="Testing duplicate callbacks",
     )
 
     # Assert no new callbacks were added
-    initial_callbacks_len = len(litellm.callbacks)
-    initial_async_success_callback_len = len(litellm._async_success_callback)
-    initial_success_callback_len = len(litellm.success_callback)
+    initial_callbacks_len = len(gateway.callbacks)
+    initial_async_success_callback_len = len(gateway._async_success_callback)
+    initial_success_callback_len = len(gateway.success_callback)
     print(
-        f"Num callbacks before: litellm.callbacks: {len(litellm.callbacks)}, litellm._async_success_callback: {len(litellm._async_success_callback)}, litellm.success_callback: {len(litellm.success_callback)}"
+        f"Num callbacks before: litellm.callbacks: {len(gateway.callbacks)}, litellm._async_success_callback: {len(gateway._async_success_callback)}, litellm.success_callback: {len(gateway.success_callback)}"
     )
 
     for _ in range(10):
-        await litellm.acompletion(
+        await gateway.acompletion(
             model="gpt-5-mini",
             messages=[{"role": "user", "content": "Hello, world!"}],
             mock_response="Testing duplicate callbacks",
         )
 
-    assert len(litellm.callbacks) == initial_callbacks_len
-    assert len(litellm._async_success_callback) == initial_async_success_callback_len
-    assert len(litellm.success_callback) == initial_success_callback_len
+    assert len(gateway.callbacks) == initial_callbacks_len
+    assert len(gateway._async_success_callback) == initial_async_success_callback_len
+    assert len(gateway.success_callback) == initial_success_callback_len
 
     print(
-        f"Num callbacks after 10 mock calls: litellm.callbacks: {len(litellm.callbacks)}, litellm._async_success_callback: {len(litellm._async_success_callback)}, litellm.success_callback: {len(litellm.success_callback)}"
+        f"Num callbacks after 10 mock calls: litellm.callbacks: {len(gateway.callbacks)}, litellm._async_success_callback: {len(gateway._async_success_callback)}, litellm.success_callback: {len(gateway.success_callback)}"
     )
 
 
 def test_add_custom_logger_callback_to_specific_event_e2e_failure(monkeypatch):
     from token_iq.gateway.integrations.openmeter import OpenMeterLogger
 
-    monkeypatch.setattr(litellm, "success_callback", [])
-    monkeypatch.setattr(litellm, "failure_callback", [])
-    monkeypatch.setattr(litellm, "callbacks", [])
+    monkeypatch.setattr(gateway, "success_callback", [])
+    monkeypatch.setattr(gateway, "failure_callback", [])
+    monkeypatch.setattr(gateway, "callbacks", [])
     monkeypatch.setenv("OPENMETER_API_KEY", "wedlwe")
     monkeypatch.setenv("OPENMETER_API_URL", "https://openmeter.dev")
 
-    litellm.failure_callback = ["openmeter"]
+    gateway.failure_callback = ["openmeter"]
 
-    curr_len_success_callback = len(litellm.success_callback)
-    curr_len_failure_callback = len(litellm.failure_callback)
+    curr_len_success_callback = len(gateway.success_callback)
+    curr_len_failure_callback = len(gateway.failure_callback)
 
-    litellm.completion(
+    gateway.completion(
         model="gpt-5-mini",
         messages=[{"role": "user", "content": "Hello, world!"}],
         mock_response="Testing langfuse",
     )
 
-    assert len(litellm.success_callback) == curr_len_success_callback
-    assert len(litellm.failure_callback) == curr_len_failure_callback
+    assert len(gateway.success_callback) == curr_len_success_callback
+    assert len(gateway.failure_callback) == curr_len_failure_callback
 
     assert any(
-        isinstance(callback, OpenMeterLogger) for callback in litellm.failure_callback
+        isinstance(callback, OpenMeterLogger) for callback in gateway.failure_callback
     )
 
 
@@ -2206,7 +2206,7 @@ from unittest.mock import Mock
 def test_get_applied_guardrails(test_case):
 
     # Setup
-    litellm.callbacks = test_case["callbacks"]
+    gateway.callbacks = test_case["callbacks"]
 
     # Execute
     result = get_applied_guardrails(test_case["kwargs"])
@@ -2238,7 +2238,7 @@ def test_get_applied_guardrails(test_case):
     ],
 )
 def test_should_use_cohere_v1_client(endpoint, params, expected_bool):
-    assert litellm.utils.should_use_cohere_v1_client(endpoint, params) == expected_bool
+    assert gateway.utils.should_use_cohere_v1_client(endpoint, params) == expected_bool
 
 
 def test_add_openai_metadata():
@@ -2374,7 +2374,7 @@ def test_get_whitelisted_models():
     Create whitelist to prevent naming regressions for older litellm versions.
     """
     whitelisted_models = []
-    for model, info in litellm.model_cost.items():
+    for model, info in gateway.model_cost.items():
         if info.get("litellm_provider") == "bedrock" and info.get("mode") == "chat":
             whitelisted_models.append(model)
 
@@ -2440,7 +2440,7 @@ def test_completion_with_no_model():
     """
     # test on empty
     with pytest.raises(TypeError):
-        response = litellm.completion(
+        response = gateway.completion(
             messages=[{"role": "user", "content": "Hello, how are you?"}]
         )
 

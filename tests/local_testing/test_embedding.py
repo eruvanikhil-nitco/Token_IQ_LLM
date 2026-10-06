@@ -13,15 +13,15 @@ load_dotenv()
 
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import completion, completion_cost, embedding
 
-litellm.set_verbose = False
+gateway.set_verbose = False
 
 
 def test_openai_embedding():
     try:
-        litellm.set_verbose = True
+        gateway.set_verbose = True
         response = embedding(
             model="text-embedding-ada-002",
             input=["good morning from litellm", "this is another item"],
@@ -63,7 +63,7 @@ def test_openai_embedding():
 
 def test_openai_embedding_3():
     try:
-        litellm.set_verbose = True
+        gateway.set_verbose = True
         response = embedding(
             model="text-embedding-3-small",
             input=["good morning from litellm", "this is another item"],
@@ -119,7 +119,7 @@ def test_openai_embedding_3():
 async def test_together_ai_embedding(model, api_base, api_key, sync_mode):
     try:
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-        litellm.model_cost = litellm.get_model_cost_map()
+        gateway.model_cost = gateway.get_model_cost_map()
         # litellm.set_verbose = True
         if sync_mode:
             response = embedding(
@@ -129,7 +129,7 @@ async def test_together_ai_embedding(model, api_base, api_key, sync_mode):
                 api_key=api_key,
             )
         else:
-            response = await litellm.aembedding(
+            response = await gateway.aembedding(
                 model=model,
                 input=["good morning from litellm"],
                 api_base=api_base,
@@ -144,14 +144,14 @@ async def test_together_ai_embedding(model, api_base, api_key, sync_mode):
             response_keys
         )  # assert litellm response has expected keys from OpenAI embedding response
 
-        request_cost = litellm.completion_cost(
+        request_cost = gateway.completion_cost(
             completion_response=response, call_type="embedding"
         )
 
         print("Calculated request cost=", request_cost)
 
-        assert isinstance(response.usage, litellm.Usage)
-    except litellm.BadRequestError:
+        assert isinstance(response.usage, gateway.Usage)
+    except gateway.BadRequestError:
         print(
             "Bad request error occurred - Together AI raises 404s for their embedding models"
         )
@@ -166,7 +166,7 @@ import base64
 
 import requests
 
-litellm.set_verbose = True
+gateway.set_verbose = True
 url = "https://dummyimage.com/100/100/fff&text=Test+image"
 response = requests.get(url)
 file_data = response.content
@@ -200,7 +200,7 @@ async def test_azure_ai_embedding_image(sync_mode):
     api_key = os.getenv("AZURE_AI_API_KEY")
     try:
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-        litellm.model_cost = litellm.get_model_cost_map()
+        gateway.model_cost = gateway.get_model_cost_map()
         input = base64_image
         if sync_mode:
             client = HTTPHandler()
@@ -218,7 +218,7 @@ async def test_azure_ai_embedding_image(sync_mode):
                     client=client,
                 )
             else:
-                response = await litellm.aembedding(
+                response = await gateway.aembedding(
                     model=model,
                     input=[input],
                     api_base=api_base,
@@ -236,11 +236,11 @@ async def test_azure_ai_embedding_image(sync_mode):
             response_keys
         )  # assert litellm response has expected keys from OpenAI embedding response
 
-        request_cost = litellm.completion_cost(completion_response=response)
+        request_cost = gateway.completion_cost(completion_response=response)
 
         print("Calculated request cost=", request_cost)
 
-        assert isinstance(response.usage, litellm.Usage)
+        assert isinstance(response.usage, gateway.Usage)
 
     except Exception as e:
         pytest.fail(f"Error occurred: {e}")
@@ -339,7 +339,7 @@ def test_openai_azure_embedding_optional_arg():
         "create",
         side_effect=_openai_mock_response,
     ) as mock_client:
-        _ = litellm.embedding(
+        _ = gateway.embedding(
             model="azure/test",
             input=["test"],
             api_version="test",
@@ -371,8 +371,8 @@ def test_openai_azure_embedding_optional_arg():
 @pytest.mark.asyncio()
 async def test_cohere_embedding3(custom_llm_provider):
     try:
-        litellm.set_verbose = True
-        response = await litellm.aembedding(
+        gateway.set_verbose = True
+        response = await gateway.aembedding(
             model=f"{custom_llm_provider}/embed-english-v3.0",
             input=["good morning from litellm", "this is another item"],
             timeout=None,
@@ -400,8 +400,8 @@ async def test_cohere_embedding3(custom_llm_provider):
 async def test_bedrock_embedding_titan(model, sync_mode):
     try:
         # this tests if we support str input for bedrock embedding
-        litellm.set_verbose = True
-        litellm.enable_cache()
+        gateway.set_verbose = True
+        gateway.enable_cache()
         import time
 
         current_time = str(time.time())
@@ -413,7 +413,7 @@ async def test_bedrock_embedding_titan(model, sync_mode):
                 aws_region_name="us-west-2",
             )
         else:
-            response = await litellm.aembedding(
+            response = await gateway.aembedding(
                 model=model,
                 input=f"good morning from litellm, attempting to embed data {current_time}",  # input should always be a string in this test
                 aws_region_name="us-west-2",
@@ -443,8 +443,8 @@ async def test_bedrock_embedding_titan(model, sync_mode):
 async def test_bedrock_embedding_titan_caching(model, sync_mode):
     try:
         # this tests if we support str input for bedrock embedding
-        litellm.set_verbose = True
-        litellm.enable_cache()
+        gateway.set_verbose = True
+        gateway.enable_cache()
         import time
 
         current_time = str(time.time())
@@ -456,7 +456,7 @@ async def test_bedrock_embedding_titan_caching(model, sync_mode):
                 aws_region_name="us-west-2",
             )
         else:
-            response = await litellm.aembedding(
+            response = await gateway.aembedding(
                 model=model,
                 input=f"good morning from litellm, attempting to embed data {current_time}",  # input should always be a string in this test
                 aws_region_name="us-west-2",
@@ -481,7 +481,7 @@ async def test_bedrock_embedding_titan_caching(model, sync_mode):
                 input=f"good morning from litellm, attempting to embed data {current_time}",  # input should always be a string in this test
             )
         else:
-            response = await litellm.aembedding(
+            response = await gateway.aembedding(
                 model=model,
                 input=f"good morning from litellm, attempting to embed data {current_time}",  # input should always be a string in this test
             )
@@ -492,9 +492,9 @@ async def test_bedrock_embedding_titan_caching(model, sync_mode):
         print(f"Embedding 2 response time: {end_time - start_time} seconds")
 
         assert end_time - start_time < 0.1
-        litellm.disable_cache()
+        gateway.disable_cache()
 
-        assert isinstance(response.usage, litellm.Usage)
+        assert isinstance(response.usage, gateway.Usage)
     except Exception as e:
         pytest.fail(f"Error occurred: {e}")
 
@@ -504,7 +504,7 @@ async def test_bedrock_embedding_titan_caching(model, sync_mode):
 
 def test_bedrock_embedding_cohere():
     try:
-        litellm.set_verbose = False
+        gateway.set_verbose = False
         response = embedding(
             model="cohere.embed-multilingual-v3",
             input=[
@@ -522,7 +522,7 @@ def test_bedrock_embedding_cohere():
         ), "Expected response to be a list of floats"
         # print(f"response:", response)
 
-        assert isinstance(response.usage, litellm.Usage)
+        assert isinstance(response.usage, gateway.Usage)
     except Exception as e:
         pytest.fail(f"Error occurred: {e}")
 
@@ -531,25 +531,25 @@ def test_bedrock_embedding_cohere():
 
 
 def test_demo_tokens_as_input_to_embeddings_fails_for_titan():
-    litellm.set_verbose = True
+    gateway.set_verbose = True
 
     with pytest.raises(
-        litellm.BadRequestError,
+        gateway.BadRequestError,
         match=re.escape(
             'litellm.BadRequestError: BedrockException - {"message":"Malformed input request: '
             'expected type: String, found: JSONArray, please reformat your input and try again."}'
         ),
     ):
-        litellm.embedding(model="amazon.titan-embed-text-v1", input=[[1]])
+        gateway.embedding(model="amazon.titan-embed-text-v1", input=[[1]])
 
     with pytest.raises(
-        litellm.BadRequestError,
+        gateway.BadRequestError,
         match=re.escape(
             'litellm.BadRequestError: BedrockException - {"message":"Malformed input request: '
             'expected type: String, found: Integer, please reformat your input and try again."}'
         ),
     ):
-        litellm.embedding(
+        gateway.embedding(
             model="amazon.titan-embed-text-v1",
             input=[1],
         )
@@ -566,7 +566,7 @@ def test_hf_embedding():
         )
         print(f"response:", response)
 
-        assert isinstance(response.usage, litellm.Usage)
+        assert isinstance(response.usage, gateway.Usage)
     except Exception as e:
         # Note: Huggingface inference API is unstable and fails with "model loading errors all the time"
         pass
@@ -627,13 +627,13 @@ async def test_hf_embedding_sentence_sim(
             if sync_mode is True:
                 response = embedding(**data)
             else:
-                response = await litellm.aembedding(**data)
+                response = await gateway.aembedding(**data)
 
             print(f"response:", response)
 
             mock_client.assert_called_once()
 
-        assert isinstance(response.usage, litellm.Usage)
+        assert isinstance(response.usage, gateway.Usage)
 
     except Exception as e:
         # Note: Huggingface inference API is unstable and fails with "model loading errors all the time"
@@ -647,7 +647,7 @@ def test_aembedding():
 
         async def embedding_call():
             try:
-                response = await litellm.aembedding(
+                response = await gateway.aembedding(
                     model="text-embedding-ada-002",
                     input=["good morning from litellm", "this is another item"],
                 )
@@ -659,7 +659,7 @@ def test_aembedding():
         response = asyncio.run(embedding_call())
         print("Before caclulating cost, response", response)
 
-        cost = litellm.completion_cost(completion_response=response)
+        cost = gateway.completion_cost(completion_response=response)
 
         print("COST=", cost)
         assert cost == float("1e-06")
@@ -676,7 +676,7 @@ def test_aembedding_azure():
 
         async def embedding_call():
             try:
-                response = await litellm.aembedding(
+                response = await gateway.aembedding(
                     model="azure/text-embedding-ada-002",
                     input=["good morning from litellm", "this is another item"],
                 )
@@ -688,7 +688,7 @@ def test_aembedding_azure():
                 )
                 assert response._hidden_params["custom_llm_provider"] == "azure"
 
-                assert isinstance(response.usage, litellm.Usage)
+                assert isinstance(response.usage, gateway.Usage)
             except Exception as e:
                 pytest.fail(f"Error occurred: {e}")
 
@@ -703,7 +703,7 @@ def test_aembedding_azure():
 @pytest.mark.skip(reason="AWS Suspended Account")
 def test_sagemaker_embeddings():
     try:
-        response = litellm.embedding(
+        response = gateway.embedding(
             model="sagemaker/berri-benchmarking-gpt-j-6b-fp16",
             input=["good morning from litellm", "this is another item"],
             input_cost_per_second=0.000420,
@@ -721,7 +721,7 @@ def test_sagemaker_embeddings():
 @pytest.mark.asyncio
 async def test_sagemaker_aembeddings():
     try:
-        response = await litellm.aembedding(
+        response = await gateway.aembedding(
             model="sagemaker/berri-benchmarking-gpt-j-6b-fp16",
             input=["good morning from litellm", "this is another item"],
             input_cost_per_second=0.000420,
@@ -737,14 +737,14 @@ async def test_sagemaker_aembeddings():
 
 def test_mistral_embeddings():
     try:
-        litellm.set_verbose = True
-        response = litellm.embedding(
+        gateway.set_verbose = True
+        response = gateway.embedding(
             model="mistral/mistral-embed",
             input=["good morning from litellm"],
         )
         print(f"response: {response}")
-        assert isinstance(response.usage, litellm.Usage)
-    except litellm.RateLimitError as e:
+        assert isinstance(response.usage, gateway.Usage)
+    except gateway.RateLimitError as e:
         pass
     except Exception as e:
         pytest.fail(f"Error occurred: {e}")
@@ -752,23 +752,23 @@ def test_mistral_embeddings():
 
 def test_fireworks_embeddings():
     try:
-        litellm.set_verbose = True
-        response = litellm.embedding(
+        gateway.set_verbose = True
+        response = gateway.embedding(
             model="fireworks_ai/nomic-ai/nomic-embed-text-v1.5",
             input=["good morning from litellm"],
         )
         print(f"response: {response}")
-        assert isinstance(response.usage, litellm.Usage)
+        assert isinstance(response.usage, gateway.Usage)
         cost = completion_cost(completion_response=response)
         print("cost", cost)
         assert cost > 0.0
         print(response._hidden_params)
         assert response._hidden_params["response_cost"] > 0.0
-    except litellm.RateLimitError as e:
+    except gateway.RateLimitError as e:
         pass
-    except litellm.InternalServerError as e:
+    except gateway.InternalServerError as e:
         pass
-    except litellm.APIError as e:
+    except gateway.APIError as e:
         if "suspended" in str(e):
             pytest.skip(f"Fireworks account suspended: {e}")
         pytest.fail(f"Error occurred: {e}")
@@ -808,16 +808,16 @@ def test_watsonx_embeddings(monkeypatch):
         return mock_response
 
     try:
-        litellm.set_verbose = True
+        gateway.set_verbose = True
         with patch.object(client, "post", side_effect=mock_wx_embed_request):
-            response = litellm.embedding(
+            response = gateway.embedding(
                 model="watsonx/ibm/slate-30m-english-rtrvr",
                 input=["good morning from litellm"],
                 client=client,
             )
 
         print(f"response: {response}")
-        assert isinstance(response.usage, litellm.Usage)
+        assert isinstance(response.usage, gateway.Usage)
 
         # Verify the request was made correctly
         assert "Authorization" in captured_request["headers"]
@@ -825,7 +825,7 @@ def test_watsonx_embeddings(monkeypatch):
             captured_request["headers"]["Authorization"] == "Bearer mock-watsonx-token"
         )
         assert "us-south.ml.cloud.ibm.com" in captured_request["url"]
-    except litellm.RateLimitError as e:
+    except gateway.RateLimitError as e:
         pass
     except Exception as e:
         pytest.fail(f"Error occurred: {e}")
@@ -865,17 +865,17 @@ async def test_watsonx_aembeddings(monkeypatch):
         return mocked_client
 
     try:
-        litellm.set_verbose = True
+        gateway.set_verbose = True
         with patch.object(client, "post", side_effect=mock_async_client) as mock_client:
-            response = await litellm.aembedding(
+            response = await gateway.aembedding(
                 model="watsonx/ibm/slate-30m-english-rtrvr",
                 input=["good morning from litellm"],
                 client=client,
             )
             mock_client.assert_called_once()
         print(f"response: {response}")
-        assert isinstance(response.usage, litellm.Usage)
-    except litellm.RateLimitError as e:
+        assert isinstance(response.usage, gateway.Usage)
+    except gateway.RateLimitError as e:
         pass
     except Exception as e:
         pytest.fail(f"Error occurred: {e}")
@@ -889,8 +889,8 @@ async def test_watsonx_aembeddings(monkeypatch):
 )
 def test_voyage_embeddings():
     try:
-        litellm.set_verbose = True
-        response = litellm.embedding(
+        gateway.set_verbose = True
+        response = gateway.embedding(
             model="voyage/voyage-01",
             input=["good morning from litellm"],
         )
@@ -906,14 +906,14 @@ def test_voyage_embeddings():
 @pytest.mark.asyncio
 async def test_gemini_embeddings(sync_mode, input):
     try:
-        litellm.set_verbose = True
+        gateway.set_verbose = True
         if sync_mode:
-            response = litellm.embedding(
+            response = gateway.embedding(
                 model="gemini/gemini-embedding-001",
                 input=input,
             )
         else:
-            response = await litellm.aembedding(
+            response = await gateway.aembedding(
                 model="gemini/gemini-embedding-001",
                 input=input,
             )
@@ -957,7 +957,7 @@ async def test_gemini_embeddings(sync_mode, input):
 @pytest.mark.flaky(retries=6, delay=1)
 @pytest.mark.skip(reason="Skipping test due to flakyness")
 async def test_hf_embedddings_with_optional_params(sync_mode):
-    litellm.set_verbose = True
+    gateway.set_verbose = True
 
     if sync_mode:
         client = HTTPHandler(concurrent_limit=1)
@@ -978,7 +978,7 @@ async def test_hf_embedddings_with_optional_params(sync_mode):
                     client=client,
                 )
             else:
-                response = await litellm.aembedding(
+                response = await gateway.aembedding(
                     model="huggingface/jinaai/jina-embeddings-v2-small-en",
                     input=["good morning from litellm"],
                     top_p=10,
@@ -1060,7 +1060,7 @@ async def test_lm_studio_embedding(monkeypatch, sync_mode):
                     client=client,
                 )
             else:
-                await litellm.aembedding(
+                await gateway.aembedding(
                     model="lm_studio/jina-embeddings-v3",
                     input=["Hello world"],
                     client=client,
@@ -1118,7 +1118,7 @@ def test_embedding_response_ratelimit_headers(model):
     ],
 )
 def test_cohere_img_embeddings(input, input_type):
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     try:
         response = embedding(
             model="cohere/embed-english-v3.0",
@@ -1129,7 +1129,7 @@ def test_cohere_img_embeddings(input, input_type):
             assert response.usage.prompt_tokens_details.image_tokens > 0
         else:
             assert response.usage.prompt_tokens_details.text_tokens > 0
-    except litellm.InternalServerError as e:
+    except gateway.InternalServerError as e:
         # Cohere API is experiencing internal server errors - this is expected
         # and our exception mapping is working correctly
         if "internal server error" in str(e).lower():
@@ -1161,7 +1161,7 @@ async def test_embedding_with_extra_headers(sync_mode):
             if sync_mode:
                 embedding(**data)
             else:
-                await litellm.aembedding(**data)
+                await gateway.aembedding(**data)
         except Exception as e:
             print(e)
 
@@ -1233,7 +1233,7 @@ def test_jina_ai_img_embeddings(input_data, expected_payload_input):
 
         # Call the function we want to test
         try:
-            litellm.embedding(model="jina_ai/jina-embeddings-v4", input=input_data)
+            gateway.embedding(model="jina_ai/jina-embeddings-v4", input=input_data)
         except Exception as e:
             pytest.fail(
                 f"litellm.embedding call failed with an unexpected exception: {e}"

@@ -4,7 +4,7 @@ from unittest.mock import patch
 import httpx
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.llm_cost_calc.tool_call_cost_tracking import (
     StandardBuiltInToolCostTracking,
 )
@@ -76,7 +76,7 @@ class TestGroqWebSearchOptions:
         assert "tools" not in optional_params
 
     def test_unsupported_model_raises_without_drop_params(self):
-        with pytest.raises(litellm.UnsupportedParamsError):
+        with pytest.raises(gateway.UnsupportedParamsError):
             get_optional_params(
                 model="llama-3.3-70b-versatile",
                 custom_llm_provider="groq",
@@ -158,7 +158,7 @@ EXECUTED_TOOLS_OPENS_ONLY = [
 ]
 
 
-def _groq_completion_with_mocked_response(response_json: dict) -> litellm.ModelResponse:
+def _groq_completion_with_mocked_response(response_json: dict) -> gateway.ModelResponse:
     client = HTTPHandler()
     fake_response = httpx.Response(
         status_code=200,
@@ -166,7 +166,7 @@ def _groq_completion_with_mocked_response(response_json: dict) -> litellm.ModelR
         request=httpx.Request("POST", "https://api.groq.com/openai/v1/chat/completions"),
     )
     with patch.object(client, "post", return_value=fake_response):
-        return litellm.completion(
+        return gateway.completion(
             model="groq/openai/gpt-oss-20b",
             messages=[{"role": "user", "content": "hi"}],
             web_search_options={"search_context_size": "high"},
@@ -200,7 +200,7 @@ class TestGroqWebSearchUsageSignal:
         assert getattr(response.usage, "server_tool_use", None) is None
 
     def test_response_without_usage_is_left_untouched(self):
-        model_response = litellm.ModelResponse()
+        model_response = gateway.ModelResponse()
         GroqChatConfig()._add_web_search_usage(model_response=model_response)
         assert getattr(model_response, "usage", None) is None
 
@@ -234,6 +234,6 @@ class TestGroqWebSearchCost:
     def test_browser_search_priced_per_search(self, model: str, search_context_size: str):
         cost = StandardBuiltInToolCostTracking.get_cost_for_web_search(
             web_search_options={"search_context_size": search_context_size},
-            model_info=litellm.get_model_info(model=model, custom_llm_provider="groq"),
+            model_info=gateway.get_model_info(model=model, custom_llm_provider="groq"),
         )
         assert cost == 0.005

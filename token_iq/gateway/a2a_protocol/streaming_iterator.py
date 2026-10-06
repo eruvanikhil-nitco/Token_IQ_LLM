@@ -7,7 +7,7 @@ from collections.abc import AsyncIterator
 from datetime import datetime
 from typing import TYPE_CHECKING, Any, Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.a2a_protocol.cost_calculator import A2ACostCalculator
 from token_iq.gateway.a2a_protocol.utils import A2ARequestUtils
@@ -108,7 +108,7 @@ class A2AStreamingIterator:
             total_tokens: Final = prompt_tokens + completion_tokens
 
             # Create usage object
-            usage: Final = litellm.Usage(
+            usage: Final = gateway.Usage(
                 prompt_tokens=prompt_tokens,
                 completion_tokens=completion_tokens,
                 total_tokens=total_tokens,
@@ -148,7 +148,7 @@ class A2AStreamingIterator:
         except Exception as e:
             verbose_logger.debug("Error in A2A streaming completion handler: %s", e)
 
-    def _build_logging_result(self, usage: litellm.Usage) -> dict[str, Any]:
+    def _build_logging_result(self, usage: gateway.Usage) -> dict[str, Any]:
         """Build a result dict for logging."""
         result: Final[dict[str, Any]] = {
             "id": getattr(self.request, "id", "unknown"),

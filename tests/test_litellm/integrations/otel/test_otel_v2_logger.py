@@ -1418,13 +1418,13 @@ def test_real_logging_pre_call_opens_span_end_to_end():
     ``log_pre_api_call`` on the V2 logger (via ``litellm.input_callback``), so the
     boundary span is opened and then closed by the success callback. If the logger
     is not wired into ``input_callback``, no span is produced at all."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.core_utils.litellm_logging import Logging
 
     logger, exporter = _logger()
     # Register exactly this logger as the (only) input callback pre_call iterates.
     monkeypatch = pytest.MonkeyPatch()
-    monkeypatch.setattr(litellm, "input_callback", [logger], raising=False)
+    monkeypatch.setattr(gateway, "input_callback", [logger], raising=False)
     try:
         logging_obj = Logging(
             model="gpt-4o",
@@ -2017,21 +2017,21 @@ def test_registers_into_litellm_service_callback(monkeypatch):
     list is falsy, so a ``getattr(..) or []`` would append to a throwaway local
     and service spans (Redis, …) would silently never fire on this logger.
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     pytest.importorskip("token_iq.gateway.proxy.proxy_server")
-    monkeypatch.setattr(litellm, "service_callback", [], raising=False)
+    monkeypatch.setattr(gateway, "service_callback", [], raising=False)
     cfg = OpenTelemetryV2Config(exporter="in_memory")
     tp = providers.build_tracer_provider(cfg)
 
     first = OpenTelemetryV2(config=cfg, tracer_provider=tp)
-    assert first in litellm.service_callback
+    assert first in gateway.service_callback
 
     # A second OTel logger sees one is already registered and does not duplicate.
     OpenTelemetryV2(config=cfg, tracer_provider=tp)
     otel_registrations = [
         cb
-        for cb in litellm.service_callback
+        for cb in gateway.service_callback
         if cb.__class__.__module__.startswith("litellm.integrations.otel")
     ]
     assert len(otel_registrations) == 1
@@ -2043,20 +2043,20 @@ def test_registers_into_litellm_input_callback(monkeypatch):
     boundary hook never runs and the gen-AI span is never opened (the span goes
     completely missing). Deduped like ``service_callback``.
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     pytest.importorskip("token_iq.gateway.proxy.proxy_server")
-    monkeypatch.setattr(litellm, "input_callback", [], raising=False)
+    monkeypatch.setattr(gateway, "input_callback", [], raising=False)
     cfg = OpenTelemetryV2Config(exporter="in_memory")
     tp = providers.build_tracer_provider(cfg)
 
     first = OpenTelemetryV2(config=cfg, tracer_provider=tp)
-    assert first in litellm.input_callback
+    assert first in gateway.input_callback
 
     OpenTelemetryV2(config=cfg, tracer_provider=tp)
     otel_registrations = [
         cb
-        for cb in litellm.input_callback
+        for cb in gateway.input_callback
         if cb.__class__.__module__.startswith("litellm.integrations.otel")
     ]
     assert len(otel_registrations) == 1
@@ -2076,23 +2076,23 @@ def test_registers_into_async_success_and_failure_callbacks(monkeypatch):
     never ended — the gen-AI span leaks and never exports, while DB/service spans
     still show up. Self-registration here guarantees every open has a close.
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     pytest.importorskip("token_iq.gateway.proxy.proxy_server")
-    monkeypatch.setattr(litellm, "_async_success_callback", [], raising=False)
-    monkeypatch.setattr(litellm, "_async_failure_callback", [], raising=False)
+    monkeypatch.setattr(gateway, "_async_success_callback", [], raising=False)
+    monkeypatch.setattr(gateway, "_async_failure_callback", [], raising=False)
     cfg = OpenTelemetryV2Config(exporter="in_memory")
     tp = providers.build_tracer_provider(cfg)
 
     first = OpenTelemetryV2(config=cfg, tracer_provider=tp)
-    assert first in litellm._async_success_callback
-    assert first in litellm._async_failure_callback
+    assert first in gateway._async_success_callback
+    assert first in gateway._async_failure_callback
 
     # Deduped — a second otel logger doesn't double up the close hook.
     OpenTelemetryV2(config=cfg, tracer_provider=tp)
     for callback_list in (
-        litellm._async_success_callback,
-        litellm._async_failure_callback,
+        gateway._async_success_callback,
+        gateway._async_failure_callback,
     ):
         otel_registrations = [
             cb
@@ -2112,16 +2112,16 @@ def test_boundary_span_closes_without_proxy_fanout(monkeypatch):
     close hook (``_async_success_callback``). If only the open end were wired the span
     would leak — opened but never closed, never exported.
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.core_utils.litellm_logging import Logging
 
     pytest.importorskip("token_iq.gateway.proxy.proxy_server")
-    monkeypatch.setattr(litellm, "input_callback", [], raising=False)
-    monkeypatch.setattr(litellm, "_async_success_callback", [], raising=False)
-    monkeypatch.setattr(litellm, "_async_failure_callback", [], raising=False)
+    monkeypatch.setattr(gateway, "input_callback", [], raising=False)
+    monkeypatch.setattr(gateway, "_async_success_callback", [], raising=False)
+    monkeypatch.setattr(gateway, "_async_failure_callback", [], raising=False)
     # Crucially: the logger is NOT in litellm.callbacks, so the proxy fan-out would
     # never reach it. Only __init__ self-registration wires the open + close hooks.
-    monkeypatch.setattr(litellm, "callbacks", [], raising=False)
+    monkeypatch.setattr(gateway, "callbacks", [], raising=False)
 
     logger, exporter = _logger()
     logging_obj = Logging(
@@ -2310,10 +2310,10 @@ def test_invalid_metric_filter_logged_once_records_nothing(caplog, monkeypatch):
     from opentelemetry.sdk.metrics import MeterProvider
     from opentelemetry.sdk.metrics.export import InMemoryMetricReader
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     monkeypatch.setattr(
-        litellm,
+        gateway,
         "callback_settings",
         {
             "otel": {
@@ -2367,9 +2367,9 @@ def test_valid_metric_filter_records_six_metrics(monkeypatch):
     from opentelemetry.sdk.metrics import MeterProvider
     from opentelemetry.sdk.metrics.export import InMemoryMetricReader
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    monkeypatch.setattr(litellm, "callback_settings", {}, raising=False)
+    monkeypatch.setattr(gateway, "callback_settings", {}, raising=False)
 
     cfg = OpenTelemetryV2Config(exporter="in_memory", enable_metrics=True)
     reader = InMemoryMetricReader()
@@ -2418,9 +2418,9 @@ def test_metrics_disabled_by_default_records_nothing(monkeypatch):
     from opentelemetry.sdk.metrics import MeterProvider
     from opentelemetry.sdk.metrics.export import InMemoryMetricReader
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    monkeypatch.setattr(litellm, "callback_settings", {}, raising=False)
+    monkeypatch.setattr(gateway, "callback_settings", {}, raising=False)
 
     cfg = OpenTelemetryV2Config(exporter="in_memory")  # enable_metrics defaults False
     reader = InMemoryMetricReader()

@@ -10,7 +10,7 @@ from typing import Final
 import httpx
 from typing_extensions import NotRequired, ReadOnly, TypedDict
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._uuid import uuid
 from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
 from token_iq.gateway.llms.cohere.rerank.transformation import CohereRerankConfig
@@ -76,7 +76,7 @@ class InfinityRerankConfig(CohereRerankConfig):
         litellm_params: Mapping[str, object] | None = None,
     ) -> dict:
         if api_key is None:
-            api_key = get_secret_str("INFINITY_API_KEY") or get_secret_str("INFINITY_API_KEY") or litellm.infinity_key
+            api_key = get_secret_str("INFINITY_API_KEY") or get_secret_str("INFINITY_API_KEY") or gateway.infinity_key
 
         default_headers: Final = {
             "Authorization": f"Bearer {api_key}",

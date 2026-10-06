@@ -5,7 +5,7 @@ import httpx
 import pytest
 import respx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 
 def _mock_openai_embedding_route(respx_mock: respx.MockRouter) -> respx.Route:
@@ -30,7 +30,7 @@ def clear_default_encoding_format_env(monkeypatch: pytest.MonkeyPatch):
 def test_embedding_openai_omits_encoding_format_when_client_omits_it(respx_mock: respx.MockRouter) -> None:
     mock_route: Final = _mock_openai_embedding_route(respx_mock)
 
-    response: Final = litellm.embedding(model="openai/text-embedding-3-small", input=["hello"], api_key="sk-test")
+    response: Final = gateway.embedding(model="openai/text-embedding-3-small", input=["hello"], api_key="sk-test")
 
     request_body: Final = json.loads(mock_route.calls.last.request.read())
     assert "encoding_format" not in request_body
@@ -40,7 +40,7 @@ def test_embedding_openai_omits_encoding_format_when_client_omits_it(respx_mock:
 def test_embedding_openai_forwards_explicit_encoding_format(respx_mock: respx.MockRouter) -> None:
     mock_route: Final = _mock_openai_embedding_route(respx_mock)
 
-    litellm.embedding(
+    gateway.embedding(
         model="openai/text-embedding-3-small", input=["hello"], api_key="sk-test", encoding_format="base64"
     )
 
@@ -54,7 +54,7 @@ def test_embedding_openai_explicit_encoding_format_wins_over_env_var(
     monkeypatch.setenv("LITELLM_DEFAULT_EMBEDDING_ENCODING_FORMAT", "float")
     mock_route: Final = _mock_openai_embedding_route(respx_mock)
 
-    litellm.embedding(
+    gateway.embedding(
         model="openai/text-embedding-3-small", input=["hello"], api_key="sk-test", encoding_format="base64"
     )
 
@@ -69,7 +69,7 @@ def test_embedding_openai_env_var_sets_default_encoding_format(
     monkeypatch.setenv("LITELLM_DEFAULT_EMBEDDING_ENCODING_FORMAT", env_value)
     mock_route: Final = _mock_openai_embedding_route(respx_mock)
 
-    litellm.embedding(model="openai/text-embedding-3-small", input=["hello"], api_key="sk-test")
+    gateway.embedding(model="openai/text-embedding-3-small", input=["hello"], api_key="sk-test")
 
     request_body: Final = json.loads(mock_route.calls.last.request.read())
     assert request_body["encoding_format"] == env_value
@@ -82,7 +82,7 @@ def test_embedding_openai_env_none_omits_encoding_format(
     monkeypatch.setenv("LITELLM_DEFAULT_EMBEDDING_ENCODING_FORMAT", env_none)
     mock_route: Final = _mock_openai_embedding_route(respx_mock)
 
-    litellm.embedding(model="openai/text-embedding-3-small", input=["hello"], api_key="sk-test")
+    gateway.embedding(model="openai/text-embedding-3-small", input=["hello"], api_key="sk-test")
 
     request_body: Final = json.loads(mock_route.calls.last.request.read())
     assert "encoding_format" not in request_body
@@ -92,10 +92,10 @@ def test_embedding_openai_env_none_omits_encoding_format(
 async def test_aembedding_openai_omits_encoding_format_when_client_omits_it(
     respx_mock: respx.MockRouter, monkeypatch: pytest.MonkeyPatch
 ) -> None:
-    monkeypatch.setattr(litellm, "disable_aiohttp_transport", True)
+    monkeypatch.setattr(gateway, "disable_aiohttp_transport", True)
     mock_route: Final = _mock_openai_embedding_route(respx_mock)
 
-    response: Final = await litellm.aembedding(model="openai/text-embedding-3-small", input=["hello"], api_key="sk-test")
+    response: Final = await gateway.aembedding(model="openai/text-embedding-3-small", input=["hello"], api_key="sk-test")
 
     request_body: Final = json.loads(mock_route.calls.last.request.read())
     assert "encoding_format" not in request_body
@@ -113,8 +113,8 @@ def test_embedding_openai_omitted_encoding_format_maps_provider_errors(
         )
     )
 
-    with pytest.raises(litellm.RateLimitError) as exc_info:
-        litellm.embedding(
+    with pytest.raises(gateway.RateLimitError) as exc_info:
+        gateway.embedding(
             model="openai/text-embedding-3-small", input=["hello"], api_key="sk-test", max_retries=0
         )
 

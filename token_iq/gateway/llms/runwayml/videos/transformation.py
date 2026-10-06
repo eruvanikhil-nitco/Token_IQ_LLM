@@ -7,7 +7,7 @@ import httpx
 from httpx._types import RequestFiles
 from typing_extensions import ReadOnly, TypedDict
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.constants import RUNWAYML_DEFAULT_API_VERSION
 from token_iq.gateway.core_utils.url_utils import encode_url_path_segment
 from token_iq.gateway.llms.base_llm.chat.transformation import BaseLLMException
@@ -208,7 +208,7 @@ class RunwayMLVideoConfig(BaseVideoConfig):
             api_key = api_key or litellm_params.api_key
 
         api_key = (
-            api_key or litellm.api_key or get_secret_str("RUNWAYML_API_SECRET") or get_secret_str("RUNWAYML_API_KEY")
+            api_key or gateway.api_key or get_secret_str("RUNWAYML_API_SECRET") or get_secret_str("RUNWAYML_API_KEY")
         )
 
         if api_key is None:
@@ -494,7 +494,7 @@ class RunwayMLVideoConfig(BaseVideoConfig):
 
         # Download the video from the CloudFront URL asynchronously
         async_httpx_client: Final[AsyncHTTPHandler] = get_async_httpx_client(
-            llm_provider=litellm.LlmProviders.RUNWAYML,
+            llm_provider=gateway.LlmProviders.RUNWAYML,
         )
         video_response: Final = await async_httpx_client.get(video_url)
         video_response.raise_for_status()

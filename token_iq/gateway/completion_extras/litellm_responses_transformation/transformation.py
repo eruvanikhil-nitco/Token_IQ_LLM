@@ -18,7 +18,7 @@ from openai.types.responses.tool_choice_function_param import ToolChoiceFunction
 from openai.types.responses.tool_param import FunctionToolParam
 from pydantic import BaseModel
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import ModelResponse
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.core_utils.prompt_templates.common_utils import (
@@ -1127,7 +1127,7 @@ class LiteLLMResponsesTransformationHandler(CompletionTransformationBridge):
         # Check if auto-summary is enabled via flag or environment variable
         # Priority: litellm.reasoning_auto_summary flag > LITELLM_REASONING_AUTO_SUMMARY env var
         auto_summary_enabled: Final = (
-            litellm.reasoning_auto_summary or os.getenv("LITELLM_REASONING_AUTO_SUMMARY", "false").lower() == "true"
+            gateway.reasoning_auto_summary or os.getenv("LITELLM_REASONING_AUTO_SUMMARY", "false").lower() == "true"
         )
 
         if reasoning_effort in get_args(REASONING_EFFORT):

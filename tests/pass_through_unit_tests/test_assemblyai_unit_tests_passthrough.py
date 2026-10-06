@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import httpx
 import pytest
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
 
 

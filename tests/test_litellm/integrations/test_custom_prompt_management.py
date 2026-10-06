@@ -7,7 +7,7 @@ from unittest.mock import ANY, MagicMock, Mock, patch
 import httpx
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.integrations.custom_prompt_management import CustomPromptManagement
 from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler
 from token_iq.gateway.types.llms.openai import AllMessageValues
@@ -58,12 +58,12 @@ class TestCustomPromptManagement(CustomPromptManagement):
 @pytest.mark.asyncio
 async def test_custom_prompt_management_with_prompt_id(monkeypatch):
     custom_prompt_management = TestCustomPromptManagement()
-    litellm.callbacks = [custom_prompt_management]
+    gateway.callbacks = [custom_prompt_management]
 
     # Mock AsyncHTTPHandler.post method
     client = AsyncHTTPHandler()
     with patch.object(client, "post", return_value=MagicMock()) as mock_post:
-        await litellm.acompletion(
+        await gateway.acompletion(
             model="anthropic/claude-3-5-sonnet",
             messages=[{"role": "user", "content": "Hello, how are you?"}],
             client=client,
@@ -86,12 +86,12 @@ async def test_custom_prompt_management_with_prompt_id(monkeypatch):
 @pytest.mark.asyncio
 async def test_custom_prompt_management_with_prompt_id_and_prompt_variables():
     custom_prompt_management = TestCustomPromptManagement()
-    litellm.callbacks = [custom_prompt_management]
+    gateway.callbacks = [custom_prompt_management]
 
     # Mock AsyncHTTPHandler.post method
     client = AsyncHTTPHandler()
     with patch.object(client, "post", return_value=MagicMock()) as mock_post:
-        await litellm.acompletion(
+        await gateway.acompletion(
             model="anthropic/claude-3-5-sonnet",
             messages=[],
             client=client,
@@ -115,12 +115,12 @@ async def test_custom_prompt_management_with_prompt_id_and_prompt_variables():
 @pytest.mark.asyncio
 async def test_custom_prompt_management_without_prompt_id():
     custom_prompt_management = TestCustomPromptManagement()
-    litellm.callbacks = [custom_prompt_management]
+    gateway.callbacks = [custom_prompt_management]
 
     # Mock AsyncHTTPHandler.post method
     client = AsyncHTTPHandler()
     with patch.object(client, "post", return_value=MagicMock()) as mock_post:
-        await litellm.acompletion(
+        await gateway.acompletion(
             model="anthropic/claude-3-5-sonnet",
             messages=[{"role": "user", "content": "Hello, how are you?"}],
             client=client,

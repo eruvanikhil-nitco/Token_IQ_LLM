@@ -12,7 +12,7 @@ import httpx
 from pydantic import BaseModel, Field
 from typing_extensions import ReadOnly, TypedDict
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.core_utils.prompt_templates.common_utils import (
@@ -489,7 +489,7 @@ class GalileoObserve(CustomLogger):
         return json.dumps(prompt, default=str)
 
     @staticmethod
-    def _get_chat_content_for_galileo(response_obj: litellm.ModelResponse) -> object:
+    def _get_chat_content_for_galileo(response_obj: gateway.ModelResponse) -> object:
         if response_obj.choices and len(response_obj.choices) > 0:
             message: Final = response_obj["choices"][0]["message"]
             if hasattr(message, "json"):
@@ -502,7 +502,7 @@ class GalileoObserve(CustomLogger):
 
     @staticmethod
     def _get_text_completion_content_for_galileo(
-        response_obj: litellm.TextCompletionResponse,
+        response_obj: gateway.TextCompletionResponse,
     ) -> str | None:
         if response_obj.choices and len(response_obj.choices) > 0:
             return response_obj.choices[0].text
@@ -540,12 +540,12 @@ class GalileoObserve(CustomLogger):
             return self._prompt_to_input_text(prompt), status_message, prompt
 
         if response_obj is not None and (
-            call_type in ("embedding", "aembedding") or isinstance(response_obj, litellm.EmbeddingResponse)
+            call_type in ("embedding", "aembedding") or isinstance(response_obj, gateway.EmbeddingResponse)
         ):
             # Match Langfuse OTEL: log embeddings without serializing vectors.
             return self._prompt_to_input_text(prompt), "embedding-output", prompt
 
-        if response_obj is not None and isinstance(response_obj, litellm.ModelResponse):
+        if response_obj is not None and isinstance(response_obj, gateway.ModelResponse):
             output = self._get_chat_content_for_galileo(response_obj)
             return (
                 self._prompt_to_input_text(prompt),
@@ -556,7 +556,7 @@ class GalileoObserve(CustomLogger):
         if response_obj is not None and isinstance(response_obj, HttpxBinaryResponseContent):
             return self._prompt_to_input_text(prompt), "speech-output", prompt
 
-        if response_obj is not None and isinstance(response_obj, litellm.TextCompletionResponse):
+        if response_obj is not None and isinstance(response_obj, gateway.TextCompletionResponse):
             output = self._get_text_completion_content_for_galileo(response_obj)
             return (
                 self._prompt_to_input_text(prompt),
@@ -564,7 +564,7 @@ class GalileoObserve(CustomLogger):
                 kwargs.get("messages") or [],
             )
 
-        if response_obj is not None and isinstance(response_obj, litellm.ImageResponse):
+        if response_obj is not None and isinstance(response_obj, gateway.ImageResponse):
             output = response_obj.get("data", None)
             return (
                 self._prompt_to_input_text(prompt),
@@ -572,7 +572,7 @@ class GalileoObserve(CustomLogger):
                 prompt,
             )
 
-        if response_obj is not None and isinstance(response_obj, litellm.TranscriptionResponse):
+        if response_obj is not None and isinstance(response_obj, gateway.TranscriptionResponse):
             output = response_obj.get("text", None)
             return (
                 self._prompt_to_input_text(prompt),
@@ -580,7 +580,7 @@ class GalileoObserve(CustomLogger):
                 prompt,
             )
 
-        if response_obj is not None and isinstance(response_obj, litellm.RerankResponse):
+        if response_obj is not None and isinstance(response_obj, gateway.RerankResponse):
             output = response_obj.results
             rerank_prompt: Final = self._langfuse_style_rerank_prompt(kwargs)
             return (

@@ -7,7 +7,7 @@ from unittest import mock
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import completion
 from token_iq.gateway.llms.v0.chat.transformation import V0ChatConfig
 
@@ -67,9 +67,9 @@ def test_get_llm_provider_v0():
 
 def test_v0_in_provider_lists():
     """Test that v0 is registered in all necessary provider lists"""
-    assert "v0" in litellm.openai_compatible_providers
-    assert "v0" in litellm.provider_list
-    assert "https://api.v0.dev/v1" in litellm.openai_compatible_endpoints
+    assert "v0" in gateway.openai_compatible_providers
+    assert "v0" in gateway.provider_list
+    assert "https://api.v0.dev/v1" in gateway.openai_compatible_endpoints
 
 
 @pytest.mark.asyncio
@@ -80,7 +80,7 @@ async def test_v0_completion_call():
         pytest.skip("V0_API_KEY not set")
 
     try:
-        response = await litellm.acompletion(
+        response = await gateway.acompletion(
             model="v0/gpt-4-turbo",
             messages=[{"role": "user", "content": "Hello, this is a test"}],
             max_tokens=10,
@@ -119,7 +119,7 @@ def test_v0_models_configuration():
 
     # Reload model cost map to pick up local changes
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-    litellm.model_cost = litellm.get_model_cost_map()
+    gateway.model_cost = gateway.get_model_cost_map()
 
     # All v0 models
     v0_models = ["v0/v0-1.0-md", "v0/v0-1.5-md", "v0/v0-1.5-lg"]

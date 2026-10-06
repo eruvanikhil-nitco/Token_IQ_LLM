@@ -16,7 +16,7 @@ import os
 from collections.abc import Callable, Mapping
 from typing import TYPE_CHECKING, Any, Final, cast
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import print_verbose, verbose_logger
 from token_iq.gateway.constants import SEMANTIC_CACHE_EMBEDDING_TIMEOUT_SECONDS
 from token_iq.gateway.core_utils.prompt_templates.common_utils import (
@@ -363,7 +363,7 @@ class RedisSemanticCache(BaseCache):
         else:
             embedding_response = cast(
                 EmbeddingResponse,
-                litellm.embedding(
+                gateway.embedding(
                     model=self.embedding_model,
                     input=embedding_input,
                     cache={"no-store": True, "no-cache": True},
@@ -533,7 +533,7 @@ class RedisSemanticCache(BaseCache):
                 num_retries=0,
             )
             if router is not None
-            else litellm.aembedding(
+            else gateway.aembedding(
                 model=self.embedding_model,
                 input=embedding_input,
                 cache={"no-store": True, "no-cache": True},

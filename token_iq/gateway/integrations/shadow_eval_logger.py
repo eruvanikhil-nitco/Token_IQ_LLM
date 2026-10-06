@@ -358,10 +358,10 @@ def _call_cost(response: object) -> float:
 
 def _price_map_cost(response: object) -> float:
     """Public price map fallback, treating an unmapped model as free rather than fatal."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     try:
-        return litellm.completion_cost(completion_response=response) or 0.0
+        return gateway.completion_cost(completion_response=response) or 0.0
     except Exception:  # noqa: BLE001  # unmapped model: the attempt still counts, cost stays 0
         return 0.0
 

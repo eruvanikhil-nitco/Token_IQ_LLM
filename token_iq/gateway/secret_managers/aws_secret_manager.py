@@ -14,7 +14,7 @@ import os
 import re
 from typing import Any, Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy._types import CommonProxyErrors, KeyManagementSystem
 
 
@@ -34,8 +34,8 @@ def load_aws_kms(use_aws_kms: bool | None):
         # Create a Secrets Manager client
         kms_client: Final = boto3.client("kms", region_name=os.getenv("AWS_REGION_NAME"))
 
-        litellm.secret_manager_client = kms_client
-        litellm._key_management_system = KeyManagementSystem.AWS_KMS
+        gateway.secret_manager_client = kms_client
+        gateway._key_management_system = KeyManagementSystem.AWS_KMS
 
     except Exception as e:
         raise e

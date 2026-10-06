@@ -12,7 +12,7 @@ import tempfile
 from uuid import uuid4
 
 import pytest
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.azure.azure import get_azure_ad_token_from_oidc
 from token_iq.gateway.llms.bedrock.base_aws_llm import BaseAWSLLM
 from token_iq.gateway.llms.bedrock.chat import BedrockConverseLLM
@@ -303,28 +303,28 @@ def test_should_read_secret_from_secret_manager():
     from token_iq.gateway.types.secret_managers.main import KeyManagementSettings
 
     # Test when secret manager client is None
-    litellm.secret_manager_client = None
-    litellm._key_management_settings = KeyManagementSettings()
+    gateway.secret_manager_client = None
+    gateway._key_management_settings = KeyManagementSettings()
     assert _should_read_secret_from_secret_manager() is False
 
     # Test with secret manager client and read_only access
-    litellm.secret_manager_client = "dummy_client"
-    litellm._key_management_settings = KeyManagementSettings(access_mode="read_only")
+    gateway.secret_manager_client = "dummy_client"
+    gateway._key_management_settings = KeyManagementSettings(access_mode="read_only")
     assert _should_read_secret_from_secret_manager() is True
 
     # Test with secret manager client and read_and_write access
-    litellm._key_management_settings = KeyManagementSettings(
+    gateway._key_management_settings = KeyManagementSettings(
         access_mode="read_and_write"
     )
     assert _should_read_secret_from_secret_manager() is True
 
     # Test with secret manager client and write_only access
-    litellm._key_management_settings = KeyManagementSettings(access_mode="write_only")
+    gateway._key_management_settings = KeyManagementSettings(access_mode="write_only")
     assert _should_read_secret_from_secret_manager() is False
 
     # Reset global variables
-    litellm.secret_manager_client = None
-    litellm._key_management_settings = KeyManagementSettings()
+    gateway.secret_manager_client = None
+    gateway._key_management_settings = KeyManagementSettings()
 
 
 def test_get_secret_with_access_mode():
@@ -339,28 +339,28 @@ def test_get_secret_with_access_mode():
     os.environ[test_secret_name] = test_secret_value
 
     # Test with write_only access (should read from os.environ)
-    litellm.secret_manager_client = "dummy_client"
-    litellm._key_management_settings = KeyManagementSettings(access_mode="write_only")
+    gateway.secret_manager_client = "dummy_client"
+    gateway._key_management_settings = KeyManagementSettings(access_mode="write_only")
     assert get_secret(test_secret_name) == test_secret_value
 
     # Test with no KeyManagementSettings but secret_manager_client set
-    litellm.secret_manager_client = "dummy_client"
-    litellm._key_management_settings = KeyManagementSettings()
+    gateway.secret_manager_client = "dummy_client"
+    gateway._key_management_settings = KeyManagementSettings()
     assert _should_read_secret_from_secret_manager() is True
 
     # Test with read_only access
-    litellm._key_management_settings = KeyManagementSettings(access_mode="read_only")
+    gateway._key_management_settings = KeyManagementSettings(access_mode="read_only")
     assert _should_read_secret_from_secret_manager() is True
 
     # Test with read_and_write access
-    litellm._key_management_settings = KeyManagementSettings(
+    gateway._key_management_settings = KeyManagementSettings(
         access_mode="read_and_write"
     )
     assert _should_read_secret_from_secret_manager() is True
 
     # Reset global variables
-    litellm.secret_manager_client = None
-    litellm._key_management_settings = KeyManagementSettings()
+    gateway.secret_manager_client = None
+    gateway._key_management_settings = KeyManagementSettings()
     del os.environ[test_secret_name]
 
 
@@ -411,7 +411,7 @@ async def test_async_write_secret_receives_description_and_tags(monkeypatch):
     """
     Test that AWSSecretsManagerV2.async_write_secret receives description and tags when KeyManagementSettings is set.
     """
-    from token_iq.gateway import litellm
+    from token_iq.gateway import gateway
     from token_iq.gateway.secret_managers.aws_secret_manager_v2 import AWSSecretsManagerV2
     from token_iq.gateway.types.secret_managers.main import KeyManagementSettings
 
@@ -420,14 +420,14 @@ async def test_async_write_secret_receives_description_and_tags(monkeypatch):
     monkeypatch.setattr(AWSSecretsManagerV2, "async_write_secret", mock_async_write)
 
     # Setup settings
-    litellm._key_management_settings = KeyManagementSettings(
+    gateway._key_management_settings = KeyManagementSettings(
         store_virtual_keys=True,
         description="LiteLLM Unit Test Secret",
         tags={"Owner": "UnitTest", "Purpose": "Validation"},
     )
 
     # Instantiate fake client
-    litellm.secret_manager_client = AWSSecretsManagerV2()
+    gateway.secret_manager_client = AWSSecretsManagerV2()
 
     # Call the helper method that stores a virtual key
     from token_iq.gateway.proxy.hooks.key_management_event_hooks import (

@@ -9,7 +9,7 @@ Tests that:
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.types.integrations.prometheus import (
     PrometheusMetricLabels,
     UserAPIKeyLabelNames,
@@ -18,26 +18,26 @@ from token_iq.gateway.types.integrations.prometheus import (
 
 def test_stream_label_not_present_by_default():
     """stream label should NOT appear in litellm_proxy_total_requests_metric unless opted in"""
-    litellm.prometheus_emit_stream_label = False
+    gateway.prometheus_emit_stream_label = False
     labels = PrometheusMetricLabels.get_labels("litellm_proxy_total_requests_metric")
     assert UserAPIKeyLabelNames.STREAM.value not in labels
 
 
 def test_stream_label_present_when_opted_in():
     """stream label SHOULD appear in litellm_proxy_total_requests_metric when opted in"""
-    litellm.prometheus_emit_stream_label = True
+    gateway.prometheus_emit_stream_label = True
     try:
         labels = PrometheusMetricLabels.get_labels(
             "litellm_proxy_total_requests_metric"
         )
         assert UserAPIKeyLabelNames.STREAM.value in labels
     finally:
-        litellm.prometheus_emit_stream_label = False
+        gateway.prometheus_emit_stream_label = False
 
 
 def test_stream_label_not_in_other_metrics_when_opted_in():
     """stream label should NOT be added to other metrics even when opted in"""
-    litellm.prometheus_emit_stream_label = True
+    gateway.prometheus_emit_stream_label = True
     try:
         other_metrics = [
             "litellm_proxy_failed_requests_metric",
@@ -52,7 +52,7 @@ def test_stream_label_not_in_other_metrics_when_opted_in():
                 UserAPIKeyLabelNames.STREAM.value not in labels
             ), f"stream label should not be in {metric}"
     finally:
-        litellm.prometheus_emit_stream_label = False
+        gateway.prometheus_emit_stream_label = False
 
 
 def test_stream_label_name():

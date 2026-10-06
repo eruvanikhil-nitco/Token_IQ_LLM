@@ -694,13 +694,13 @@ def test_get_vertex_region_global_only_model(
     model_cost_entry, vertex_region, expected_region
 ):
     """Test get_vertex_region resolves region from model_cost supported_regions"""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.llms.vertex_ai.vertex_llm_base import VertexBase
 
     vertex_base = VertexBase()
 
     with patch.dict(
-        litellm.model_cost,
+        gateway.model_cost,
         {"vertex_ai/test-model": model_cost_entry},
         clear=False,
     ):
@@ -1685,9 +1685,9 @@ def test_pop_vertex_request_labels_uses_litellm_metadata_when_metadata_absent():
 
 
 def test_vertex_text_embedding_request_includes_labels_from_metadata():
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    req = litellm.vertexAITextEmbeddingConfig.transform_openai_request_to_vertex_embedding_request(
+    req = gateway.vertexAITextEmbeddingConfig.transform_openai_request_to_vertex_embedding_request(
         input="hi",
         optional_params={},
         model="text-embedding-004",

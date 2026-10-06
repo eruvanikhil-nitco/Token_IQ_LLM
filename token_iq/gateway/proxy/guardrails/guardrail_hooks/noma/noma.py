@@ -21,7 +21,7 @@ from urllib.parse import urljoin
 
 from fastapi import HTTPException
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import DualCache, ModelResponse
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
@@ -250,12 +250,12 @@ class NomaGuardrail(CustomGuardrail):
         start_time: Final = datetime.now()
         extra_data: Final = self.get_guardrail_dynamic_request_body_params(request_data)
 
-        if not isinstance(response, litellm.ModelResponse):
+        if not isinstance(response, gateway.ModelResponse):
             return None
 
         content = None
         for choice in response.choices:
-            if isinstance(choice, litellm.Choices) and choice.message.content:
+            if isinstance(choice, gateway.Choices) and choice.message.content:
                 content = choice.message.content
                 break
 
@@ -495,12 +495,12 @@ class NomaGuardrail(CustomGuardrail):
             response: The original LLM response
             anonymized_content: The anonymized content to replace with
         """
-        if not isinstance(response, litellm.ModelResponse):
+        if not isinstance(response, gateway.ModelResponse):
             return
 
         # Replace content in all choices
         for choice in response.choices:
-            if isinstance(choice, litellm.Choices) and choice.message.content:
+            if isinstance(choice, gateway.Choices) and choice.message.content:
                 choice.message.content = anonymized_content
 
     async def _check_user_message_background(

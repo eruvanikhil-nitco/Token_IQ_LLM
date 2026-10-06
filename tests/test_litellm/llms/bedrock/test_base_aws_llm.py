@@ -17,7 +17,7 @@ from botocore.auth import SigV4Auth
 from botocore.credentials import Credentials
 from botocore.exceptions import NoCredentialsError
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.bedrock.base_aws_llm import (
     AwsAuthError,
     BaseAWSLLM,

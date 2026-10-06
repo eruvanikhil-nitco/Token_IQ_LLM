@@ -2,7 +2,7 @@
 
 from typing import Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.exceptions import UnsupportedParamsError
 from token_iq.gateway.llms.openai.chat.gpt_5_transformation import (
     OpenAIGPT5Config,
@@ -101,7 +101,7 @@ class AzureOpenAIGPT5Config(AzureOpenAIConfig, OpenAIGPT5Config):
         supports_none: Final = self._supports_reasoning_effort_level(model, "none")
 
         if effective_effort == "none" and not supports_none:
-            if litellm.drop_params is True or (drop_params is not None and drop_params is True):
+            if gateway.drop_params is True or (drop_params is not None and drop_params is True):
                 non_default_params = non_default_params.copy()
                 optional_params = optional_params.copy()
                 if _get_effort_level(non_default_params.get("reasoning_effort")) == "none":

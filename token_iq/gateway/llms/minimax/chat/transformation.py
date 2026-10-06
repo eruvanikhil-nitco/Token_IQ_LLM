@@ -4,7 +4,7 @@ MiniMax OpenAI transformation config - extends OpenAI chat config for MiniMax's 
 
 from typing import Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.openai.chat.gpt_transformation import OpenAIGPTConfig
 from token_iq.gateway.secret_managers.main import get_secret_str
 from token_iq.gateway.types.llms.openai import AllMessageValues, ChatCompletionToolParam
@@ -28,7 +28,7 @@ class MinimaxChatConfig(OpenAIGPTConfig):
         """
         Get MiniMax API key from environment or parameters.
         """
-        return api_key or get_secret_str("MINIMAX_API_KEY") or litellm.api_key
+        return api_key or get_secret_str("MINIMAX_API_KEY") or gateway.api_key
 
     @staticmethod
     def get_api_base(
@@ -90,7 +90,7 @@ class MinimaxChatConfig(OpenAIGPTConfig):
 
         # Add thinking parameter if model supports reasoning
         try:
-            if litellm.supports_reasoning(model=model, custom_llm_provider="minimax"):
+            if gateway.supports_reasoning(model=model, custom_llm_provider="minimax"):
                 additional_params.append("thinking")
         except Exception:
             pass

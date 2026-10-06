@@ -5,7 +5,7 @@ from enum import Enum
 from types import MappingProxyType
 from typing import Any, ClassVar, Final, Literal, cast
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 
 def _sanitize_prometheus_label_name(label: str) -> str:
@@ -97,7 +97,7 @@ class LabelValidationError:
             label in ("api_key_alias", "user_email") for label in self.invalid_labels
         ):
             mode: Final[object] = getattr(
-                litellm,
+                gateway,
                 "prometheus_deployment_and_latency_caller_identity",
                 "api_key_alias",
             )
@@ -317,7 +317,7 @@ PROMETHEUS_DEPLOYMENT_AND_LATENCY_CALLER_IDENTITY_VALUES: Final[tuple[str, ...]]
 def validate_prometheus_deployment_and_latency_caller_identity() -> str:
     """Return the configured caller-identity mode, raising on an invalid value."""
     caller_identity: Final[object] = getattr(
-        litellm,
+        gateway,
         "prometheus_deployment_and_latency_caller_identity",
         "api_key_alias",
     )
@@ -336,7 +336,7 @@ def validate_caller_identity_settings(litellm_settings: Mapping[str, object]) ->
     that request a label the selected mode removes."""
     if "prometheus_deployment_and_latency_caller_identity" not in litellm_settings:
         return
-    litellm.prometheus_deployment_and_latency_caller_identity = (
+    gateway.prometheus_deployment_and_latency_caller_identity = (
         cast(  # cast-ok: validated on the next line, which raises on an invalid value
             'Literal["api_key_alias", "user_email", "both"]',
             litellm_settings["prometheus_deployment_and_latency_caller_identity"],
@@ -914,16 +914,16 @@ class PrometheusMetricLabels:
 
         # Add custom metadata labels
         custom_labels.extend(
-            [_sanitize_prometheus_label_name(metric) for metric in litellm.custom_prometheus_metadata_labels]
+            [_sanitize_prometheus_label_name(metric) for metric in gateway.custom_prometheus_metadata_labels]
         )
 
         # Add custom tags labels
-        custom_labels.extend([_sanitize_prometheus_label_name(f"tag_{tag}") for tag in litellm.custom_prometheus_tags])
+        custom_labels.extend([_sanitize_prometheus_label_name(f"tag_{tag}") for tag in gateway.custom_prometheus_tags])
 
         # Conditionally add stream label to litellm_proxy_total_requests_metric
         if (
             label_name == "litellm_proxy_total_requests_metric"
-            and litellm.prometheus_emit_stream_label is True
+            and gateway.prometheus_emit_stream_label is True
             and UserAPIKeyLabelNames.STREAM.value not in default_labels
         ):
             custom_labels.append(UserAPIKeyLabelNames.STREAM.value)
@@ -933,7 +933,7 @@ class PrometheusMetricLabels:
         # historical label set is preserved across upgrade; enable via
         # ``litellm.prometheus_emit_rate_limit_labels`` once downstream
         # dashboards include the new labels in their matchers / aggregations.
-        if label_name == "litellm_proxy_failed_requests_metric" and litellm.prometheus_emit_rate_limit_labels is True:
+        if label_name == "litellm_proxy_failed_requests_metric" and gateway.prometheus_emit_rate_limit_labels is True:
             for _rate_limit_label in (
                 UserAPIKeyLabelNames.RATE_LIMIT_CATEGORY.value,
                 UserAPIKeyLabelNames.RATE_LIMIT_TYPE.value,
@@ -946,7 +946,7 @@ class PrometheusMetricLabels:
             "litellm_user_max_budget_metric",
             "litellm_user_budget_remaining_hours_metric",
         }
-        if label_name in _user_budget_metrics and litellm.prometheus_user_budget_label_include_email_alias is True:
+        if label_name in _user_budget_metrics and gateway.prometheus_user_budget_label_include_email_alias is True:
             for label in [
                 UserAPIKeyLabelNames.USER_EMAIL.value,
                 UserAPIKeyLabelNames.USER_ALIAS.value,

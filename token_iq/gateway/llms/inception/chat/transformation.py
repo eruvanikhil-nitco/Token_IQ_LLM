@@ -8,7 +8,7 @@ OpenAI-like handler at the Inception API base and pick up the Inception API key.
 
 from typing import Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.secret_managers.main import get_secret_str
 
 from ...openai_like.chat.transformation import OpenAILikeChatConfig
@@ -48,5 +48,5 @@ class InceptionChatConfig(OpenAILikeChatConfig):
         api_base = api_base or get_secret_str("INCEPTION_API_BASE") or "https://api.inceptionlabs.ai/v1"
         dynamic_api_key = api_key
         if passed_api_base is None or api_key:
-            dynamic_api_key = api_key or litellm.inception_key or get_secret_str("INCEPTION_API_KEY")
+            dynamic_api_key = api_key or gateway.inception_key or get_secret_str("INCEPTION_API_KEY")
         return api_base, dynamic_api_key

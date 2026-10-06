@@ -20,7 +20,7 @@ from typing import Any, Dict, List
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
 
 import pytest
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 from tests._live_test_helpers import _skip_live_prompt_caching_test
 
@@ -129,11 +129,11 @@ class BaseAnthropicMessagesPromptCachingTest(ABC):
         correctly and the provider is creating a cache.
         """
         _skip_live_prompt_caching_test()
-        litellm._turn_on_debug()
+        gateway._turn_on_debug()
 
         messages = self.get_messages_with_cache_control()
 
-        response = await litellm.anthropic.messages.acreate(
+        response = await gateway.anthropic.messages.acreate(
             model=self.get_model(),
             messages=messages,
             max_tokens=100,
@@ -167,12 +167,12 @@ class BaseAnthropicMessagesPromptCachingTest(ABC):
         This validates that caching is working end-to-end.
         """
         _skip_live_prompt_caching_test()
-        litellm._turn_on_debug()
+        gateway._turn_on_debug()
 
         messages = self.get_messages_with_cache_control()
 
         # First call - creates cache
-        response1 = await litellm.anthropic.messages.acreate(
+        response1 = await gateway.anthropic.messages.acreate(
             model=self.get_model(),
             messages=messages,
             max_tokens=100,
@@ -183,7 +183,7 @@ class BaseAnthropicMessagesPromptCachingTest(ABC):
         )
 
         # Second call - should read from cache
-        response2 = await litellm.anthropic.messages.acreate(
+        response2 = await gateway.anthropic.messages.acreate(
             model=self.get_model(),
             messages=messages,
             max_tokens=100,
@@ -208,7 +208,7 @@ class BaseAnthropicMessagesPromptCachingTest(ABC):
         E2E test: Prompt caching with system message should work.
         """
         _skip_live_prompt_caching_test()
-        litellm._turn_on_debug()
+        gateway._turn_on_debug()
 
         messages = [
             {
@@ -225,7 +225,7 @@ class BaseAnthropicMessagesPromptCachingTest(ABC):
             },
         ]
 
-        response = await litellm.anthropic.messages.acreate(
+        response = await gateway.anthropic.messages.acreate(
             model=self.get_model(),
             messages=messages,
             system=system,
@@ -270,11 +270,11 @@ class BaseAnthropicMessagesPromptCachingTest(ABC):
         are correctly returned in the streaming response's message_delta event.
         """
         _skip_live_prompt_caching_test()
-        litellm._turn_on_debug()
+        gateway._turn_on_debug()
 
         messages = self.get_messages_with_cache_control()
 
-        response = await litellm.anthropic.messages.acreate(
+        response = await gateway.anthropic.messages.acreate(
             model=self.get_model(),
             messages=messages,
             max_tokens=100,
@@ -368,12 +368,12 @@ class BaseAnthropicMessagesPromptCachingTest(ABC):
         E2E test: Second streaming call should return cache_read_input_tokens > 0.
         """
         _skip_live_prompt_caching_test()
-        litellm._turn_on_debug()
+        gateway._turn_on_debug()
 
         messages = self.get_messages_with_cache_control()
 
         # First call - creates cache
-        response1 = await litellm.anthropic.messages.acreate(
+        response1 = await gateway.anthropic.messages.acreate(
             model=self.get_model(),
             messages=messages,
             max_tokens=100,
@@ -385,7 +385,7 @@ class BaseAnthropicMessagesPromptCachingTest(ABC):
             pass
 
         # Second call - should read from cache
-        response2 = await litellm.anthropic.messages.acreate(
+        response2 = await gateway.anthropic.messages.acreate(
             model=self.get_model(),
             messages=messages,
             max_tokens=100,
@@ -447,11 +447,11 @@ class BaseAnthropicMessagesPromptCachingTest(ABC):
         wasn't supported.
         """
         _skip_live_prompt_caching_test()
-        litellm._turn_on_debug()
+        gateway._turn_on_debug()
 
         messages = self.get_messages_with_cache_control()
 
-        response = await litellm.anthropic.messages.acreate(
+        response = await gateway.anthropic.messages.acreate(
             model=self.get_model(),
             messages=messages,
             max_tokens=100,

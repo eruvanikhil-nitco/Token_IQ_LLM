@@ -6,7 +6,7 @@ from urllib.parse import urlparse
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.constants import VERTEX_BATCH_PREDICTION_JOBS_ROUTE
 from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
@@ -81,7 +81,7 @@ class VertexPassthroughLoggingHandler:
             logging_obj.model_call_details["custom_llm_provider"] = "vertex_ai"
             logging_obj.custom_llm_provider = "vertex_ai"
 
-            response_cost = litellm.completion_cost(
+            response_cost = gateway.completion_cost(
                 completion_response=litellm_video_response,
                 model=model,
                 custom_llm_provider="vertex_ai",
@@ -107,18 +107,18 @@ class VertexPassthroughLoggingHandler:
         elif "generateContent" in url_route:
             model = VertexPassthroughLoggingHandler.extract_model_from_url(url_route)
 
-            instance_of_vertex_llm: Final = litellm.VertexGeminiConfig()
+            instance_of_vertex_llm: Final = gateway.VertexGeminiConfig()
             litellm_model_response: Final[ModelResponse] = instance_of_vertex_llm.transform_response(
                 model=model,
                 messages=[{"role": "user", "content": "no-message-pass-through-endpoint"}],
                 raw_response=httpx_response,
-                model_response=litellm.ModelResponse(),
+                model_response=gateway.ModelResponse(),
                 logging_obj=logging_obj,
                 optional_params={},
                 litellm_params={},
                 api_key="",
                 request_data={},
-                encoding=getattr(litellm, "encoding", None),
+                encoding=getattr(gateway, "encoding", None),
             )
             kwargs = VertexPassthroughLoggingHandler._create_vertex_response_logging_payload_for_generate_content(
                 litellm_model_response=litellm_model_response,
@@ -176,7 +176,7 @@ class VertexPassthroughLoggingHandler:
                     model_response=litellm_prediction_response,
                     logging_obj=logging_obj,
                     request_data={},
-                    encoding=litellm.encoding,
+                    encoding=gateway.encoding,
                     optional_params={},
                     litellm_params={},
                     api_key="",
@@ -208,7 +208,7 @@ class VertexPassthroughLoggingHandler:
                 response=httpx_response,
                 litellm_logging_obj=logging_obj,
             )
-            response_cost = litellm.completion_cost(
+            response_cost = gateway.completion_cost(
                 completion_response=litellm_vs_response,
                 model="vertex_ai/search_api",
                 custom_llm_provider="vertex_ai",
@@ -273,7 +273,7 @@ class VertexPassthroughLoggingHandler:
         if vertex_image_generation_class.is_image_generation_response(_json_response):
             litellm_prediction_response = vertex_image_generation_class.process_image_generation_response(
                 _json_response,
-                model_response=litellm.ImageResponse(),
+                model_response=gateway.ImageResponse(),
                 model=model,
             )
 
@@ -286,7 +286,7 @@ class VertexPassthroughLoggingHandler:
             litellm_prediction_response = vertex_multimodal_config.transform_embedding_response(
                 model=model,
                 raw_response=httpx_response,
-                model_response=litellm.EmbeddingResponse(),
+                model_response=gateway.EmbeddingResponse(),
                 logging_obj=logging_obj,
                 api_key="",
                 request_data={},
@@ -294,19 +294,19 @@ class VertexPassthroughLoggingHandler:
                 litellm_params={},
             )
         else:
-            litellm_prediction_response = litellm.vertexAITextEmbeddingConfig.transform_vertex_response_to_openai(
+            litellm_prediction_response = gateway.vertexAITextEmbeddingConfig.transform_vertex_response_to_openai(
                 response=_json_response,
                 model=model,
-                model_response=litellm.EmbeddingResponse(),
+                model_response=gateway.EmbeddingResponse(),
             )
-        if isinstance(litellm_prediction_response, litellm.EmbeddingResponse):
+        if isinstance(litellm_prediction_response, gateway.EmbeddingResponse):
             litellm_prediction_response.model = model
 
         logging_obj.model = model
         logging_obj.model_call_details["model"] = logging_obj.model
         logging_obj.model_call_details["custom_llm_provider"] = "vertex_ai"
         logging_obj.custom_llm_provider = "vertex_ai"
-        response_cost: Final = litellm.completion_cost(
+        response_cost: Final = gateway.completion_cost(
             completion_response=litellm_prediction_response,
             model=model,
             custom_llm_provider="vertex_ai",
@@ -362,7 +362,7 @@ class VertexPassthroughLoggingHandler:
             request_body=request_body, batch=is_batch
         )
 
-        model_response: Final = litellm.EmbeddingResponse()
+        model_response: Final = gateway.EmbeddingResponse()
         if is_batch:
             litellm_embedding_response = process_batch_embed_response(
                 input=input_text,
@@ -386,7 +386,7 @@ class VertexPassthroughLoggingHandler:
         logging_obj.model_call_details["custom_llm_provider"] = custom_llm_provider
         logging_obj.custom_llm_provider = custom_llm_provider
 
-        response_cost: Final = litellm.completion_cost(
+        response_cost: Final = gateway.completion_cost(
             completion_response=litellm_embedding_response,
             model=model,
             custom_llm_provider=custom_llm_provider,
@@ -501,7 +501,7 @@ class VertexPassthroughLoggingHandler:
                 continue
             all_openai_chunks.append(parsed_chunk)
 
-        complete_streaming_response: Final = litellm.stream_chunk_builder(chunks=all_openai_chunks)
+        complete_streaming_response: Final = gateway.stream_chunk_builder(chunks=all_openai_chunks)
 
         return complete_streaming_response
 
@@ -560,8 +560,8 @@ class VertexPassthroughLoggingHandler:
     def _get_custom_llm_provider_from_url(url: str) -> str:
         parsed_url: Final = urlparse(url)
         if parsed_url.hostname and parsed_url.hostname.endswith("generativelanguage.googleapis.com"):
-            return litellm.LlmProviders.GEMINI.value
-        return litellm.LlmProviders.VERTEX_AI.value
+            return gateway.LlmProviders.GEMINI.value
+        return gateway.LlmProviders.VERTEX_AI.value
 
     @staticmethod
     def _is_multimodal_embedding_response(json_response: dict) -> bool:
@@ -612,7 +612,7 @@ class VertexPassthroughLoggingHandler:
 
         """
 
-        response_cost: Final = litellm.completion_cost(
+        response_cost: Final = gateway.completion_cost(
             completion_response=litellm_model_response,
             model=model,
             custom_llm_provider=custom_llm_provider,

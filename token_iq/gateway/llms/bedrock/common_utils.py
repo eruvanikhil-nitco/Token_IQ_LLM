@@ -19,7 +19,7 @@ if TYPE_CHECKING:
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import verbose_logger
 from token_iq.gateway.core_utils.aws_partition import get_aws_dns_suffix
 from token_iq.gateway.llms.base_llm.anthropic_messages.transformation import (
@@ -685,8 +685,8 @@ def get_bedrock_tool_name(response_tool_name: str) -> str:
         str: The original name of the tool.
     """
 
-    if response_tool_name in litellm.bedrock_tool_name_mappings.cache_dict:
-        response_tool_name = litellm.bedrock_tool_name_mappings.cache_dict[response_tool_name]
+    if response_tool_name in gateway.bedrock_tool_name_mappings.cache_dict:
+        response_tool_name = gateway.bedrock_tool_name_mappings.cache_dict[response_tool_name]
     return response_tool_name
 
 
@@ -823,7 +823,7 @@ def get_bedrock_base_model(model: str) -> str:
 
 def bedrock_converse_supports_parallel_tool_use_config(model: str) -> bool:
     return any(
-        (litellm.model_cost.get(candidate) or {}).get("supports_parallel_tool_use_config") is True
+        (gateway.model_cost.get(candidate) or {}).get("supports_parallel_tool_use_config") is True
         for candidate in (model, get_bedrock_base_model(model))
     )
 
@@ -845,7 +845,7 @@ def bedrock_model_accepts_cache_points(model: str | None) -> bool:
     entries: Final = tuple(
         entry
         for candidate in (model, get_bedrock_base_model(model))
-        if (entry := litellm.model_cost.get(candidate)) is not None
+        if (entry := gateway.model_cost.get(candidate)) is not None
     )
     if not entries:
         return True
@@ -863,7 +863,7 @@ def is_claude_4_5_on_bedrock(model: str) -> bool:
     their pricing entry ships, with no code change required here.
     """
     return any(
-        (litellm.model_cost.get(candidate) or {}).get("cache_creation_input_token_cost_above_1hr") is not None
+        (gateway.model_cost.get(candidate) or {}).get("cache_creation_input_token_cost_above_1hr") is not None
         for candidate in (model, get_bedrock_base_model(model))
     )
 
@@ -1108,7 +1108,7 @@ class BedrockModelInfo(BaseLLMModelInfo):
 
         base_model: Final = BedrockModelInfo.get_base_model(model)
         alt_model: Final = BedrockModelInfo.get_non_litellm_routing_model_name(model=model)
-        if base_model in litellm.bedrock_converse_models or alt_model in litellm.bedrock_converse_models:
+        if base_model in gateway.bedrock_converse_models or alt_model in gateway.bedrock_converse_models:
             return "converse"
         return "invoke"
 
@@ -1229,7 +1229,7 @@ class BedrockModelInfo(BaseLLMModelInfo):
         # Claude Platform route uses Anthropic Messages API via the AWS gateway.
         #########################################################
         if BedrockModelInfo._explicit_claude_platform_route(model):
-            return litellm.BedrockClaudePlatformMessagesConfig()
+            return gateway.BedrockClaudePlatformMessagesConfig()
 
         #########################################################
         # Converse routes should go through litellm.completion()
@@ -1251,7 +1251,7 @@ class BedrockModelInfo(BaseLLMModelInfo):
         # Since bedrock Invoke supports Native Anthropic Messages API
         #########################################################
         if "claude" in model:
-            return litellm.AmazonAnthropicClaudeMessagesConfig()
+            return gateway.AmazonAnthropicClaudeMessagesConfig()
 
         #########################################################
         # These routes will go through litellm.completion()
@@ -1277,11 +1277,11 @@ def get_bedrock_chat_config(model: str):
 
     # Handle explicit routes first
     if bedrock_route == "claude_platform":
-        return litellm.BedrockClaudePlatformConfig()
+        return gateway.BedrockClaudePlatformConfig()
     elif bedrock_route == "converse" or bedrock_route == "converse_like":
-        return litellm.AmazonConverseConfig()
+        return gateway.AmazonConverseConfig()
     elif bedrock_route == "openai":
-        return litellm.AmazonBedrockOpenAIConfig()
+        return gateway.AmazonBedrockOpenAIConfig()
     elif bedrock_route == "agent":
         from token_iq.gateway.llms.bedrock.chat.invoke_agent.transformation import (
             AmazonInvokeAgentConfig,
@@ -1303,34 +1303,34 @@ def get_bedrock_chat_config(model: str):
 
     # Handle provider-specific configs
     if bedrock_invoke_provider == "amazon":
-        return litellm.AmazonTitanConfig()
+        return gateway.AmazonTitanConfig()
     elif bedrock_invoke_provider == "anthropic":
-        if base_model in litellm.AmazonAnthropicConfig.get_legacy_anthropic_model_names():
-            return litellm.AmazonAnthropicConfig()
+        if base_model in gateway.AmazonAnthropicConfig.get_legacy_anthropic_model_names():
+            return gateway.AmazonAnthropicConfig()
         else:
-            return litellm.AmazonAnthropicClaudeConfig()
+            return gateway.AmazonAnthropicClaudeConfig()
     elif bedrock_invoke_provider == "meta" or bedrock_invoke_provider == "llama":
-        return litellm.AmazonLlamaConfig()
+        return gateway.AmazonLlamaConfig()
     elif bedrock_invoke_provider == "ai21":
-        return litellm.AmazonAI21Config()
+        return gateway.AmazonAI21Config()
     elif bedrock_invoke_provider == "cohere":
-        return litellm.AmazonCohereConfig()
+        return gateway.AmazonCohereConfig()
     elif bedrock_invoke_provider == "mistral":
-        return litellm.AmazonMistralConfig()
+        return gateway.AmazonMistralConfig()
     elif bedrock_invoke_provider == "moonshot":
-        return litellm.AmazonMoonshotConfig()
+        return gateway.AmazonMoonshotConfig()
     elif bedrock_invoke_provider == "deepseek_r1":
-        return litellm.AmazonDeepSeekR1Config()
+        return gateway.AmazonDeepSeekR1Config()
     elif bedrock_invoke_provider == "nova":
-        return litellm.AmazonInvokeNovaConfig()
+        return gateway.AmazonInvokeNovaConfig()
     elif bedrock_invoke_provider == "qwen3":
-        return litellm.AmazonQwen3Config()
+        return gateway.AmazonQwen3Config()
     elif bedrock_invoke_provider == "qwen2":
-        return litellm.AmazonQwen2Config()
+        return gateway.AmazonQwen2Config()
     elif bedrock_invoke_provider == "twelvelabs":
-        return litellm.AmazonTwelveLabsPegasusConfig()
+        return gateway.AmazonTwelveLabsPegasusConfig()
     else:
-        return litellm.AmazonInvokeConfig()
+        return gateway.AmazonInvokeConfig()
 
 
 def _load_bedrock_response_stream_shape():

@@ -12,7 +12,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from prometheus_client import REGISTRY
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.integrations.prometheus import PrometheusLogger
 from token_iq.gateway.types.integrations.prometheus import NoOpMetric
 
@@ -29,14 +29,14 @@ _BUDGET_EXCLUDED_CONFIG = [
 
 @pytest.fixture(autouse=True)
 def cleanup_prometheus_registry():
-    old_config = litellm.prometheus_metrics_config
+    old_config = gateway.prometheus_metrics_config
     for collector in list(REGISTRY._collector_to_names.keys()):
         try:
             REGISTRY.unregister(collector)
         except Exception:
             pass
     yield
-    litellm.prometheus_metrics_config = old_config
+    gateway.prometheus_metrics_config = old_config
     for collector in list(REGISTRY._collector_to_names.keys()):
         try:
             REGISTRY.unregister(collector)
@@ -45,12 +45,12 @@ def cleanup_prometheus_registry():
 
 
 def make_logger_with_budget_metrics_disabled() -> PrometheusLogger:
-    litellm.prometheus_metrics_config = _BUDGET_EXCLUDED_CONFIG
+    gateway.prometheus_metrics_config = _BUDGET_EXCLUDED_CONFIG
     return PrometheusLogger()
 
 
 def make_logger_with_all_metrics_enabled() -> PrometheusLogger:
-    litellm.prometheus_metrics_config = None
+    gateway.prometheus_metrics_config = None
     return PrometheusLogger()
 
 

@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING, Any, Final, Literal, Protocol, TypeVar, cast
 
 from pydantic import BaseModel
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import print_verbose, verbose_logger
 from token_iq.gateway.exceptions import (
     validate_rate_limit_category,
@@ -206,9 +206,9 @@ class PrometheusLogger(CustomLogger):
     @staticmethod
     def get_instance() -> PrometheusLogger | None:
         """Find the PrometheusLogger instance from litellm.callbacks, if registered."""
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
-        for cb in litellm.callbacks:
+        for cb in gateway.callbacks:
             if isinstance(cb, PrometheusLogger):
                 return cb
         return None
@@ -244,7 +244,7 @@ class PrometheusLogger(CustomLogger):
             # restart, keeping init-time and runtime label sets in sync.
             self._cached_metric_labels: dict[str, list[str]] = {}
 
-            _custom_buckets: Final = litellm.prometheus_latency_buckets
+            _custom_buckets: Final = gateway.prometheus_latency_buckets
             self.latency_buckets = tuple(_custom_buckets) if _custom_buckets is not None else LATENCY_BUCKETS
             self._bounded_prometheus_series_tracker = BoundedPrometheusSeriesTracker()
 
@@ -792,10 +792,10 @@ class PrometheusLogger(CustomLogger):
 
     def _parse_prometheus_config(self) -> dict[str, list[str]]:
         """Parse prometheus metrics configuration for label filtering and enabled metrics"""
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.types.integrations.prometheus import PrometheusMetricsConfig
 
-        config: Final = litellm.prometheus_metrics_config
+        config: Final = gateway.prometheus_metrics_config
 
         # If no config is provided, return empty dict (no filtering)
         if not config:
@@ -835,10 +835,10 @@ class PrometheusLogger(CustomLogger):
         """Parse and validate the global ``exclude_metrics`` / ``exclude_labels`` settings."""
         from typing import get_args
 
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
-        exclude_metrics: Final = frozenset(litellm.prometheus_exclude_metrics or ())
-        exclude_labels: Final = frozenset(litellm.prometheus_exclude_labels or ())
+        exclude_metrics: Final = frozenset(gateway.prometheus_exclude_metrics or ())
+        exclude_labels: Final = frozenset(gateway.prometheus_exclude_labels or ())
 
         valid_metrics: Final = frozenset(get_args(DEFINED_PROMETHEUS_METRICS))
         invalid_metrics: Final = sorted(exclude_metrics - valid_metrics)
@@ -858,14 +858,14 @@ class PrometheusLogger(CustomLogger):
     @staticmethod
     def _all_defined_labels() -> frozenset[str]:
         """Every label a metric can emit: enum labels, hard-coded labels, and configured custom labels / tags."""
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         builtin_labels: Final = frozenset(label.value for label in UserAPIKeyLabelNames)
         custom_metadata_labels: Final = frozenset(
-            _sanitize_prometheus_label_name(label) for label in litellm.custom_prometheus_metadata_labels
+            _sanitize_prometheus_label_name(label) for label in gateway.custom_prometheus_metadata_labels
         )
         custom_tag_labels: Final = frozenset(
-            _sanitize_prometheus_label_name(f"tag_{tag}") for tag in litellm.custom_prometheus_tags
+            _sanitize_prometheus_label_name(f"tag_{tag}") for tag in gateway.custom_prometheus_tags
         )
         return builtin_labels | _NON_ENUM_METRIC_LABELS | custom_metadata_labels | custom_tag_labels
 
@@ -1339,8 +1339,8 @@ class PrometheusLogger(CustomLogger):
         if labels.get(UserAPIKeyLabelNames.END_USER.value) is None:
             return
 
-        max_series: Final = litellm.prometheus_end_user_metrics_max_series_per_metric
-        ttl_seconds: Final = litellm.prometheus_end_user_metrics_ttl_seconds
+        max_series: Final = gateway.prometheus_end_user_metrics_max_series_per_metric
+        ttl_seconds: Final = gateway.prometheus_end_user_metrics_ttl_seconds
         if max_series is None and ttl_seconds is None:
             return
 
@@ -1350,7 +1350,7 @@ class PrometheusLogger(CustomLogger):
             label_values=tuple(labels.get(label) for label in labelnames),
             max_series=max_series,
             ttl_seconds=ttl_seconds,
-            cleanup_interval_seconds=litellm.prometheus_end_user_metrics_cleanup_interval_seconds,
+            cleanup_interval_seconds=gateway.prometheus_end_user_metrics_cleanup_interval_seconds,
         )
 
     def _inc_labeled_counter(
@@ -1438,7 +1438,7 @@ class PrometheusLogger(CustomLogger):
             route=standard_logging_payload["metadata"].get("user_api_key_request_route"),
             client_ip=standard_logging_payload["metadata"].get("requester_ip_address"),
             user_agent=standard_logging_payload["metadata"].get("user_agent"),
-            stream=(str(standard_logging_payload.get("stream")) if litellm.prometheus_emit_stream_label else None),
+            stream=(str(standard_logging_payload.get("stream")) if gateway.prometheus_emit_stream_label else None),
             service_tier=get_service_tier_from_standard_logging_payload(standard_logging_payload),
         )
 
@@ -2508,8 +2508,8 @@ class PrometheusLogger(CustomLogger):
         if not model:
             return None
         try:
-            return litellm.get_llm_provider(model=model)[1] or None
-        except litellm.exceptions.BadRequestError:
+            return gateway.get_llm_provider(model=model)[1] or None
+        except gateway.exceptions.BadRequestError:
             return None
         except Exception as e:  # noqa: BLE001 - metrics labeling must never break request/failure handling
             verbose_logger.debug(
@@ -2577,7 +2577,7 @@ class PrometheusLogger(CustomLogger):
                 user_agent=_metadata.get("user_agent"),
                 model_id=model_id,
                 api_provider=api_provider,
-                stream=(str(request_data.get("stream")) if litellm.prometheus_emit_stream_label else None),
+                stream=(str(request_data.get("stream")) if gateway.prometheus_emit_stream_label else None),
             )
             _label_ctx: Final = PrometheusLabelFactoryContext(enum_values)
             PrometheusLogger._inc_labeled_counter(
@@ -4237,7 +4237,7 @@ class PrometheusLogger(CustomLogger):
         """
         from token_iq.gateway.constants import PROMETHEUS_BUDGET_METRICS_REFRESH_INTERVAL_MINUTES
 
-        prometheus_loggers: Final[list[CustomLogger]] = litellm.logging_callback_manager.get_custom_loggers_for_type(
+        prometheus_loggers: Final[list[CustomLogger]] = gateway.logging_callback_manager.get_custom_loggers_for_type(
             callback_type=PrometheusLogger
         )
         # we need to get the initialized prometheus logger instance(s) and call logger.initialize_remaining_budget_metrics() on them
@@ -4382,7 +4382,7 @@ def get_custom_labels_from_metadata(metadata: dict) -> dict[str, str]:
     """
     Get custom labels from metadata
     """
-    keys: Final = litellm.custom_prometheus_metadata_labels
+    keys: Final = gateway.custom_prometheus_metadata_labels
     if keys is None or len(keys) == 0:
         return {}
 
@@ -4494,7 +4494,7 @@ def get_custom_labels_from_tags(tags: Sequence[str]) -> dict[str, str]:
 
     from token_iq.gateway.types.integrations.prometheus import _sanitize_prometheus_label_name
 
-    configured_tags: Final = litellm.custom_prometheus_tags
+    configured_tags: Final = gateway.custom_prometheus_tags
     if configured_tags is None or len(configured_tags) == 0:
         return {}
 

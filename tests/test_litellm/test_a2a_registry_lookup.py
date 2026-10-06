@@ -8,7 +8,7 @@ Maps to: token_iq/gateway/llms/a2a/chat/transformation.py
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.a2a.chat.transformation import A2AConfig
 
 
@@ -57,7 +57,7 @@ def test_a2a_registry_integration():
         global_agent_registry.register_agent(test_agent)
 
         try:
-            litellm.completion(
+            gateway.completion(
                 model="a2a/test-agent", messages=[{"role": "user", "content": "Hello"}]
             )
         except Exception as e:

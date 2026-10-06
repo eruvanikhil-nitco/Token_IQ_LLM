@@ -5,7 +5,7 @@ import time
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.caching.caching import DualCache
 from token_iq.gateway.router_strategy.lowest_latency import LowestLatencyLoggingHandler
 
@@ -33,21 +33,21 @@ def test_zero_completion_tokens_no_division_error():
     }
 
     # Create a ModelResponse with zero completion tokens (as reported in issue)
-    response_obj = litellm.ModelResponse(
+    response_obj = gateway.ModelResponse(
         id="9p13aIGDDNmPmLAP5-23mQQ",
         created=1752669685,
         model="gemini-2.5-flash",
         object="chat.completion",
         choices=[
-            litellm.Choices(
+            gateway.Choices(
                 finish_reason="stop",
                 index=0,
-                message=litellm.Message(
+                message=gateway.Message(
                     content=None, role="assistant", tool_calls=None
                 ),
             )
         ],
-        usage=litellm.Usage(
+        usage=gateway.Usage(
             completion_tokens=0,  # This causes the ZeroDivisionError
             prompt_tokens=245537,
             total_tokens=245537,
@@ -101,8 +101,8 @@ def test_zero_completion_tokens_with_time_to_first_token():
     }
 
     # Create a ModelResponse with zero completion tokens
-    response_obj = litellm.ModelResponse(
-        usage=litellm.Usage(
+    response_obj = gateway.ModelResponse(
+        usage=gateway.Usage(
             completion_tokens=0, prompt_tokens=100000, total_tokens=100000
         )
     )

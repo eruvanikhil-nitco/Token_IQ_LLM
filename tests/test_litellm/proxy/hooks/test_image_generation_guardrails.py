@@ -15,7 +15,7 @@ from unittest.mock import patch
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.caching.caching import DualCache
 from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
 from token_iq.gateway.integrations.custom_logger import CustomLogger

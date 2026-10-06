@@ -939,14 +939,14 @@ async def test_a_real_non_guardrail_enforcement_hook_drops_its_record(monkeypatc
     these hooks to `raise ... from e` would turn every drop into an aborted upload. Nothing else
     pins that, because the other tests raise their own exceptions.
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.proxy.hooks.prompt_injection_detection import _OPTIONAL_PromptInjectionDetection
     from token_iq.gateway.proxy._types import LiteLLMPromptInjectionParams
 
     hook = _OPTIONAL_PromptInjectionDetection(
         prompt_injection_params=LiteLLMPromptInjectionParams(heuristics_check=True)
     )
-    monkeypatch.setattr(litellm, "callbacks", [hook])
+    monkeypatch.setattr(gateway, "callbacks", [hook])
     ProxyLogging._callback_capabilities_cache.clear()
     proxy_logging = ProxyLogging(user_api_key_cache=DualCache())
 

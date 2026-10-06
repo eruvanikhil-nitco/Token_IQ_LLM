@@ -24,7 +24,7 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.base_llm.managed_resources.utils import (
     resolve_passthrough_managed_id_provider,
 )
@@ -166,21 +166,21 @@ class TestManagedIdProviderScope:
     def test_openai_scope(self):
         assert resolve_passthrough_managed_id_provider("openai") == "openai"
         assert (
-            resolve_passthrough_managed_id_provider(litellm.LlmProviders.OPENAI)
+            resolve_passthrough_managed_id_provider(gateway.LlmProviders.OPENAI)
             == "openai"
         )
 
     def test_azure_scope(self):
         assert resolve_passthrough_managed_id_provider("azure") == "azure"
         assert (
-            resolve_passthrough_managed_id_provider(litellm.LlmProviders.AZURE)
+            resolve_passthrough_managed_id_provider(gateway.LlmProviders.AZURE)
             == "azure"
         )
 
     def test_azure_ai_collapses_to_azure(self):
         assert resolve_passthrough_managed_id_provider("azure_ai") == "azure"
         assert (
-            resolve_passthrough_managed_id_provider(litellm.LlmProviders.AZURE_AI)
+            resolve_passthrough_managed_id_provider(gateway.LlmProviders.AZURE_AI)
             == "azure"
         )
 

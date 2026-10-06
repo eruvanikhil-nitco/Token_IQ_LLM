@@ -220,25 +220,25 @@ def test_o_series_model_detection():
 @pytest.mark.serial
 def test_provider_config_manager_o_series_selection():
     """Test that ProviderConfigManager returns the correct config for O-series vs regular models."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.utils import ProviderConfigManager
 
     # Test O-series model selection
     o_series_config = ProviderConfigManager.get_provider_responses_api_config(
-        provider=litellm.LlmProviders.AZURE, model="o_series/gpt-o1"
+        provider=gateway.LlmProviders.AZURE, model="o_series/gpt-o1"
     )
     assert isinstance(o_series_config, AzureOpenAIOSeriesResponsesAPIConfig)
 
     # Test regular model selection
     regular_config = ProviderConfigManager.get_provider_responses_api_config(
-        provider=litellm.LlmProviders.AZURE, model="gpt-4o"
+        provider=gateway.LlmProviders.AZURE, model="gpt-4o"
     )
     assert isinstance(regular_config, AzureOpenAIResponsesAPIConfig)
     assert not isinstance(regular_config, AzureOpenAIOSeriesResponsesAPIConfig)
 
     # Test with no model specified (should default to regular)
     default_config = ProviderConfigManager.get_provider_responses_api_config(
-        provider=litellm.LlmProviders.AZURE, model=None
+        provider=gateway.LlmProviders.AZURE, model=None
     )
     assert isinstance(default_config, AzureOpenAIResponsesAPIConfig)
     assert not isinstance(default_config, AzureOpenAIOSeriesResponsesAPIConfig)

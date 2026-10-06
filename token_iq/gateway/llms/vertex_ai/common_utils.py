@@ -5,7 +5,7 @@ from typing import Any, Final, Literal, cast, get_type_hints
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.constants import DEFAULT_MAX_RECURSE_DEPTH
 from token_iq.gateway.core_utils.prompt_templates.common_utils import unpack_defs
@@ -217,7 +217,7 @@ def get_supports_system_message(
         supports_system_message = supports_system_messages(model=model, custom_llm_provider=_custom_llm_provider)
 
         # Vertex Models called in the `/gemini` request/response format also support system messages
-        if litellm.VertexGeminiConfig._is_model_gemini_spec_model(model):
+        if gateway.VertexGeminiConfig._is_model_gemini_spec_model(model):
             supports_system_message = True
     except Exception as e:
         verbose_logger.warning(
@@ -369,7 +369,7 @@ def _get_embedding_url(
     model = get_vertex_base_model_name(model=model)
 
     try:
-        model_info: Final = litellm.get_model_info(
+        model_info: Final = gateway.get_model_info(
             model=original_model,
             custom_llm_provider="vertex_ai",
         )
@@ -400,7 +400,7 @@ def _get_vertex_url(
     url: str | None = None
     endpoint: str | None = None
 
-    model = litellm.VertexGeminiConfig.get_model_for_vertex_ai_url(model=model)
+    model = gateway.VertexGeminiConfig.get_model_for_vertex_ai_url(model=model)
 
     if mode == "chat":
         ### SET RUNTIME ENDPOINT ###

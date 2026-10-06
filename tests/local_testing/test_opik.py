@@ -7,13 +7,13 @@ import logging
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from unittest.mock import AsyncMock, Mock
 
 verbose_logger.setLevel(logging.DEBUG)
 
-litellm.set_verbose = True
+gateway.set_verbose = True
 import time
 
 INTERVAL_TOO_LONG_TO_FIRE_DURING_THIS_TEST = 3600
@@ -35,7 +35,7 @@ async def test_opik_logging_http_request():
     test_opik_logger.flush_interval = INTERVAL_TOO_LONG_TO_FIRE_DURING_THIS_TEST
     test_opik_logger.batch_size = 12
 
-    litellm.callbacks = [test_opik_logger]
+    gateway.callbacks = [test_opik_logger]
 
     mock_post = AsyncMock(return_value=Mock(status_code=202, text="Accepted"))
     test_opik_logger.async_httpx_client.post = mock_post
@@ -48,7 +48,7 @@ async def test_opik_logging_http_request():
         ]
 
     for _ in range(5):
-        await litellm.acompletion(
+        await gateway.acompletion(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": "Test message"}],
             max_tokens=10,
@@ -61,7 +61,7 @@ async def test_opik_logging_http_request():
     assert len(test_opik_logger.log_queue) == 10
 
     for _ in range(3):
-        await litellm.acompletion(
+        await gateway.acompletion(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": "Test message"}],
             max_tokens=10,
@@ -96,8 +96,8 @@ def test_sync_opik_logging_http_request():
         # Initialize OpikLogger
         test_opik_logger = OpikLogger()
 
-        litellm.callbacks = [test_opik_logger]
-        litellm.set_verbose = True
+        gateway.callbacks = [test_opik_logger]
+        gateway.set_verbose = True
 
         # Create a mock for the clients's post method
         mock_post = Mock()
@@ -107,7 +107,7 @@ def test_sync_opik_logging_http_request():
 
         # Make multiple calls to ensure we don't hit the batch size
         for _ in range(5):
-            response = litellm.completion(
+            response = gateway.completion(
                 model="gpt-3.5-turbo",
                 messages=[{"role": "user", "content": "Test message"}],
                 max_tokens=10,
@@ -135,11 +135,11 @@ async def test_opik_logging():
 
         # Initialize OpikLogger
         test_opik_logger = OpikLogger()
-        litellm.callbacks = [test_opik_logger]
-        litellm.set_verbose = True
+        gateway.callbacks = [test_opik_logger]
+        gateway.set_verbose = True
 
         # Log a chat completion call
-        response = await litellm.acompletion(
+        response = await gateway.acompletion(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": "What LLM are you ?"}],
             max_tokens=10,
@@ -149,7 +149,7 @@ async def test_opik_logging():
         print("Non-streaming response:", response)
 
         # Log a streaming completion call
-        stream_response = await litellm.acompletion(
+        stream_response = await gateway.acompletion(
             model="gpt-3.5-turbo",
             messages=[
                 {"role": "user", "content": "Stream = True - What llm are you ?"}
@@ -191,8 +191,8 @@ def test_opik_attach_to_existing_trace():
 
         # Initialize OpikLogger
         test_opik_logger = OpikLogger()
-        litellm.callbacks = [test_opik_logger]
-        litellm.set_verbose = True
+        gateway.callbacks = [test_opik_logger]
+        gateway.set_verbose = True
 
         # Create a mock for the sync client's post method
         mock_post = Mock()
@@ -205,7 +205,7 @@ def test_opik_attach_to_existing_trace():
         existing_parent_span_id = "existing-span-67890"
 
         # Make a completion call with existing trace_id
-        response = litellm.completion(
+        response = gateway.completion(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": "Test message"}],
             max_tokens=10,
@@ -271,8 +271,8 @@ def test_opik_create_new_trace():
 
         # Initialize OpikLogger
         test_opik_logger = OpikLogger()
-        litellm.callbacks = [test_opik_logger]
-        litellm.set_verbose = True
+        gateway.callbacks = [test_opik_logger]
+        gateway.set_verbose = True
 
         # Create a mock for the sync client's post method
         mock_post = Mock()
@@ -281,7 +281,7 @@ def test_opik_create_new_trace():
         test_opik_logger.sync_httpx_client.post = mock_post
 
         # Make a completion call WITHOUT providing trace_id
-        response = litellm.completion(
+        response = gateway.completion(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": "Test message"}],
             max_tokens=10,

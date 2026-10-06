@@ -90,13 +90,13 @@ class OpenAIModerationGuardrail(OpenAIGuardrailBase, CustomGuardrail):
         """Get API key from environment variables or litellm configuration"""
         import os
 
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.secret_managers.main import get_secret_str
 
         return (
             os.environ.get("OPENAI_API_KEY")
-            or litellm.api_key
-            or litellm.openai_key
+            or gateway.api_key
+            or gateway.openai_key
             or get_secret_str("OPENAI_API_KEY")
         )
 

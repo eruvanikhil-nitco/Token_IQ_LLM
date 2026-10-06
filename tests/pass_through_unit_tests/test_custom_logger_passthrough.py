@@ -7,7 +7,7 @@ import pytest
 import asyncio
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy._types import UserAPIKeyAuth
 from token_iq.gateway.types.passthrough_endpoints.pass_through_endpoints import (
     PassthroughStandardLoggingPayload,
@@ -80,7 +80,7 @@ async def test_passthrough_logging_payload_for_a_route_no_provider_handler_claim
     base_url, upstream_received = upstream
 
     test_custom_logger = TestCustomLogger()
-    litellm._async_success_callback = [test_custom_logger]
+    gateway._async_success_callback = [test_custom_logger]
 
     TARGET_URL = f"{base_url}/v1/moderations"
     REQUEST_BODY = {

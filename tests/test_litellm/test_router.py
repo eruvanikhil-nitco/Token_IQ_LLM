@@ -15,7 +15,7 @@ import pytest
 
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import Router
 from token_iq.gateway.exceptions import MidStreamFallbackError
 from token_iq.gateway.integrations.custom_logger import CustomLogger
@@ -39,7 +39,7 @@ from token_iq.gateway.router import (
 
 def test_update_kwargs_does_not_mutate_defaults_and_merges_metadata():
     # initialize a real Router (env‑vars can be empty)
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "gpt-3.5-turbo",
@@ -81,7 +81,7 @@ def test_router_with_model_info_and_model_group():
     """
     Test edge case where user specifies model_group in model_info
     """
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "gpt-3.5-turbo",
@@ -115,12 +115,12 @@ def test_router_model_group_encrypted_content_affinity_callback_registration():
     model_group_affinity_config = {
         model_group: ["encrypted_content_affinity"],
     }
-    original_callbacks = list(litellm.callbacks)
-    litellm.callbacks = []
+    original_callbacks = list(gateway.callbacks)
+    gateway.callbacks = []
     router = None
 
     try:
-        router = litellm.Router(
+        router = gateway.Router(
             model_list=[
                 {
                     "model_name": model_group,
@@ -149,8 +149,8 @@ def test_router_model_group_encrypted_content_affinity_callback_registration():
         assert callbacks.index(encrypted_content_callbacks[0]) < callbacks.index(
             deployment_callback
         )
-        assert litellm.callbacks.index(encrypted_content_callbacks[0]) < (
-            litellm.callbacks.index(deployment_callback)
+        assert gateway.callbacks.index(encrypted_content_callbacks[0]) < (
+            gateway.callbacks.index(deployment_callback)
         )
 
         router._add_encrypted_content_affinity_check(enable_global_affinity=True)
@@ -165,7 +165,7 @@ def test_router_model_group_encrypted_content_affinity_callback_registration():
     finally:
         if router is not None:
             router.discard()
-        litellm.callbacks = original_callbacks
+        gateway.callbacks = original_callbacks
 
 
 @pytest.mark.asyncio
@@ -284,7 +284,7 @@ async def test_async_router_acreate_file_uses_deployment_custom_llm_provider():
     """
     from unittest.mock import MagicMock, patch
 
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "team-azure-batch",
@@ -321,7 +321,7 @@ async def test_async_router_acreate_file_forwards_target_model_names_to_litellm_
     )
     jsonl_file.name = "test.jsonl"
 
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "chained-batch",
@@ -353,7 +353,7 @@ async def test_async_router_acreate_file_forwards_target_model_names_to_litellm_
 async def test_async_router_acreate_file_does_not_inject_target_model_names_for_other_providers():
     from unittest.mock import MagicMock, patch
 
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "gpt-4.1-batch",
@@ -388,7 +388,7 @@ async def test_async_router_acreate_file_litellm_proxy_sends_target_model_names_
     )
     jsonl_file.name = "test.jsonl"
 
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "chained-batch",
@@ -439,7 +439,7 @@ async def test_async_router_afile_content_uses_deployment_custom_llm_provider():
     from unittest.mock import AsyncMock, MagicMock, patch
     from token_iq.gateway.types.llms.openai import HttpxBinaryResponseContent
 
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "team-azure-batch",
@@ -476,7 +476,7 @@ async def test_arouter_async_get_healthy_deployments():
     """
     Test that afile_content returns the correct file content
     """
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "gpt-3.5-turbo",
@@ -507,7 +507,7 @@ async def test_arouter_amoderation_with_credential_name(mock_amoderation):
     """
     mock_amoderation.return_value = AsyncMock()
 
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "text-moderation-stable",
@@ -535,7 +535,7 @@ def test_arouter_test_team_model():
     """
     Test that router.test_team_model returns the correct model
     """
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "gpt-3.5-turbo",
@@ -558,7 +558,7 @@ def test_arouter_ignore_invalid_deployments():
     """
     from token_iq.gateway.types.router import Deployment
 
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "gpt-3.5-turbo",
@@ -588,7 +588,7 @@ async def test_arouter_aretrieve_batch():
     """
     Test that router.aretrieve_batch returns the correct response
     """
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "gpt-3.5-turbo",
@@ -603,7 +603,7 @@ async def test_arouter_aretrieve_batch():
     )
 
     with patch.object(
-        litellm, "aretrieve_batch", return_value=AsyncMock()
+        gateway, "aretrieve_batch", return_value=AsyncMock()
     ) as mock_aretrieve_batch:
         try:
             response = await router.aretrieve_batch(
@@ -626,9 +626,9 @@ async def test_arouter_aretrieve_file_content():
     """
 
     with patch.object(
-        litellm, "afile_content", return_value=AsyncMock()
+        gateway, "afile_content", return_value=AsyncMock()
     ) as mock_afile_content:
-        router = litellm.Router(
+        router = gateway.Router(
             model_list=[
                 {
                     "model_name": "gpt-3.5-turbo",
@@ -665,7 +665,7 @@ async def test_arouter_filter_team_based_models():
     """
     from token_iq.gateway.types.router import Deployment
 
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "gpt-3.5-turbo",
@@ -725,7 +725,7 @@ def test_arouter_should_include_deployment():
     2. Returns True if: model_name matches AND deployment has no team_id
     3. Otherwise returns False
     """
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "gpt-3.5-turbo",
@@ -845,7 +845,7 @@ def test_arouter_responses_api_bridge():
 
     from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "[IP-approved] o3-pro",
@@ -865,7 +865,7 @@ def test_arouter_responses_api_bridge():
     )
 
     ## CONFIRM BRIDGE IS CALLED
-    with patch.object(litellm, "responses", return_value=AsyncMock()) as mock_responses:
+    with patch.object(gateway, "responses", return_value=AsyncMock()) as mock_responses:
         result = router.completion(
             model="[IP-approved] o3-pro",
             messages=[{"role": "user", "content": "Hello, world!"}],
@@ -915,7 +915,7 @@ def test_add_invalid_provider_to_router():
     """
     from token_iq.gateway.types.router import Deployment
 
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "gpt-3.5-turbo",
@@ -945,7 +945,7 @@ async def test_router_ageneric_api_call_with_fallbacks_helper():
     """
     from unittest.mock import patch
 
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "gpt-3.5-turbo",
@@ -1120,7 +1120,7 @@ async def test_ageneric_api_call_deployment_model_overrides_alias():
         captured["model"] = kwargs.get("model")
         return {"result": "ok"}
 
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "not-gemini-2.5-flash",
@@ -1175,7 +1175,7 @@ async def test_ageneric_api_call_resolves_realtime_session_model():
     """
     routed: Final = AsyncMock(return_value={"result": "ok"})
 
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "my-realtime-group",
@@ -1212,7 +1212,7 @@ async def test_ageneric_api_call_does_not_add_session_model():
     """
     routed: Final = AsyncMock(return_value={"result": "ok"})
 
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "my-realtime-group",
@@ -1255,7 +1255,7 @@ def test_router_get_model_access_groups_team_only_models():
     """
     Test that Router.get_model_access_groups returns the correct response for team-only models
     """
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "my-custom-model-name",
@@ -1287,7 +1287,7 @@ def test_cached_get_model_group_info():
     """
     from token_iq.gateway.types.router import Deployment, LiteLLM_Params
 
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "gpt-4",
@@ -1354,7 +1354,7 @@ def test_model_group_info_cost_from_db_model_info():
     """
     from unittest.mock import patch
 
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "my-custom-model",
@@ -1387,7 +1387,7 @@ def test_model_group_info_cost_none_when_db_model_info_has_no_cost():
     """
     from unittest.mock import patch
 
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "my-custom-model-no-cost",
@@ -1438,7 +1438,7 @@ def test_get_model_access_groups_caching():
     """
     from token_iq.gateway.types.router import Deployment, LiteLLM_Params
 
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "gpt-4",
@@ -1491,7 +1491,7 @@ def test_get_model_access_groups_cache_invalidation_set_model_list():
     """
     Test that set_model_list invalidates the access groups cache.
     """
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "gpt-4",
@@ -1527,7 +1527,7 @@ def test_get_model_access_groups_cache_invalidation_upsert_deployment():
     """
     from token_iq.gateway.types.router import Deployment, LiteLLM_Params
 
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "gpt-4",
@@ -1570,7 +1570,7 @@ async def test_acompletion_streaming_iterator_reraises_original_exception_when_a
 
     from token_iq.gateway.exceptions import MidStreamFallbackError, RateLimitError
 
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "gpt-4",
@@ -1645,7 +1645,7 @@ async def test_acompletion_streaming_iterator_edge_cases():
 
     from token_iq.gateway.exceptions import MidStreamFallbackError
 
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "gpt-4",
@@ -1728,7 +1728,7 @@ async def test_acompletion_streaming_iterator_preserves_hidden_params():
     """
     from unittest.mock import MagicMock
 
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "gpt-4",
@@ -1785,7 +1785,7 @@ def test_completion_streaming_iterator_fallback_on_429():
 
     from token_iq.gateway.exceptions import MidStreamFallbackError
 
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "gpt-4",
@@ -1849,7 +1849,7 @@ def test_completion_streaming_iterator_preserves_hidden_params():
     """SyncFallbackStreamWrapper must copy _hidden_params from original response."""
     from unittest.mock import MagicMock
 
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "gpt-4",
@@ -1887,7 +1887,7 @@ def test_completion_streaming_iterator_reraises_mid_chunk_error():
 
     from token_iq.gateway.exceptions import MidStreamFallbackError
 
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "gpt-4",
@@ -1942,7 +1942,7 @@ def test_completion_streaming_iterator_reraises_original_exception_when_availabl
 
     from token_iq.gateway.exceptions import MidStreamFallbackError, RateLimitError
 
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "gpt-4",
@@ -2006,7 +2006,7 @@ def test_completion_streaming_iterator_reraises_mid_chunk_error_with_no_text_con
     from token_iq.gateway.exceptions import MidStreamFallbackError
     from token_iq.gateway.types.utils import Delta, StreamingChoices
 
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "gpt-4",
@@ -2026,7 +2026,7 @@ def test_completion_streaming_iterator_reraises_mid_chunk_error_with_no_text_con
         is_pre_first_chunk=False,
     )
 
-    reasoning_chunk = litellm.ModelResponseStream(
+    reasoning_chunk = gateway.ModelResponseStream(
         id="chatcmpl-partial-1",
         model="gpt-4",
         object="chat.completion.chunk",
@@ -2076,7 +2076,7 @@ async def test_acompletion_streaming_iterator_pre_first_chunk_skips_continuation
 
     from token_iq.gateway.exceptions import MidStreamFallbackError
 
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "gpt-4",
@@ -2148,7 +2148,7 @@ async def test_acompletion_streaming_iterator_reraises_mid_chunk_error_with_no_t
     from token_iq.gateway.exceptions import MidStreamFallbackError
     from token_iq.gateway.types.utils import Delta, StreamingChoices
 
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "gpt-4",
@@ -2168,7 +2168,7 @@ async def test_acompletion_streaming_iterator_reraises_mid_chunk_error_with_no_t
         is_pre_first_chunk=False,
     )
 
-    reasoning_chunk = litellm.ModelResponseStream(
+    reasoning_chunk = gateway.ModelResponseStream(
         id="chatcmpl-partial-1",
         model="gpt-4",
         object="chat.completion.chunk",
@@ -2297,7 +2297,7 @@ class _AsyncList:
 
 
 def _make_router_with_fallback(primary="gpt-4", secondary="gpt-3.5-turbo"):
-    return litellm.Router(
+    return gateway.Router(
         model_list=[
             {
                 "model_name": primary,
@@ -2323,7 +2323,7 @@ def _make_router_with_fallback(primary="gpt-4", secondary="gpt-3.5-turbo"):
 
 
 def _midstream_rate_limit_error():
-    rate_limit_error = litellm.RateLimitError(
+    rate_limit_error = gateway.RateLimitError(
         message="vertex_ai_betaException - Resource exhausted.",
         model="gemini",
         llm_provider="vertex_ai_beta",
@@ -2345,7 +2345,7 @@ async def test_acompletion_streaming_iterator_surfaces_rate_limit_without_fallba
     wrapper to the client, and must terminate instead of hanging."""
     rate_limit_error, midstream_error = _midstream_rate_limit_error()
 
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "gemini",
@@ -2388,7 +2388,7 @@ async def test_acompletion_streaming_iterator_surfaces_rate_limit_without_fallba
             async for _ in result:
                 pass
 
-        with pytest.raises(litellm.RateLimitError) as exc_info:
+        with pytest.raises(gateway.RateLimitError) as exc_info:
             await asyncio.wait_for(_consume(), timeout=10)
 
     assert not isinstance(exc_info.value, MidStreamFallbackError)
@@ -2401,7 +2401,7 @@ def test_completion_streaming_iterator_surfaces_rate_limit_without_fallbacks():
     test_acompletion_streaming_iterator_surfaces_rate_limit_without_fallbacks."""
     rate_limit_error, midstream_error = _midstream_rate_limit_error()
 
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "gemini",
@@ -2438,7 +2438,7 @@ def test_completion_streaming_iterator_surfaces_rate_limit_without_fallbacks():
             initial_kwargs={"model": "gemini", "stream": True},
         )
 
-        with pytest.raises(litellm.RateLimitError) as exc_info:
+        with pytest.raises(gateway.RateLimitError) as exc_info:
             list(result)
 
     assert not isinstance(exc_info.value, MidStreamFallbackError)
@@ -2452,7 +2452,7 @@ async def test_aresponses_streaming_iterator_surfaces_rate_limit_without_fallbac
     test_acompletion_streaming_iterator_surfaces_rate_limit_without_fallbacks."""
     rate_limit_error, midstream_error = _midstream_rate_limit_error()
 
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "gemini",
@@ -2477,7 +2477,7 @@ async def test_aresponses_streaming_iterator_surfaces_rate_limit_without_fallbac
                 "model": "gemini",
                 "stream": True,
                 "input": "Hello",
-                "original_generic_function": litellm.aresponses,
+                "original_generic_function": gateway.aresponses,
             },
         )
 
@@ -2485,7 +2485,7 @@ async def test_aresponses_streaming_iterator_surfaces_rate_limit_without_fallbac
             async for _ in wrapped:
                 pass
 
-        with pytest.raises(litellm.RateLimitError) as exc_info:
+        with pytest.raises(gateway.RateLimitError) as exc_info:
             await asyncio.wait_for(_consume(), timeout=10)
 
     assert not isinstance(exc_info.value, MidStreamFallbackError)
@@ -2497,7 +2497,7 @@ async def test_aresponses_streaming_iterator_surfaces_rate_limit_without_fallbac
 async def test_async_function_with_fallbacks_common_utils():
     """Test the async_function_with_fallbacks_common_utils method"""
     # Create a basic router for testing
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "gpt-3.5-turbo",
@@ -2539,7 +2539,7 @@ async def test_async_function_with_fallbacks_common_utils():
 
 def test_should_include_deployment():
     """Test that Router.should_include_deployment returns the correct response"""
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "model_name_a28a12f9-3e44-4861-bd4f-325f2d309ce8_cd5dc6fb-b046-4e05-ae1d-32ba4d936266",
@@ -2587,7 +2587,7 @@ def test_pre_call_checks_skips_token_count_without_max_input_tokens(monkeypatch)
     deployment in the group declares max_input_tokens, the count is never consumed, so
     _pre_call_checks must not run it at all.
     """
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {"model_name": "m", "litellm_params": {"model": "gpt-3.5-turbo"}},
         ],
@@ -2597,7 +2597,7 @@ def test_pre_call_checks_skips_token_count_without_max_input_tokens(monkeypatch)
 
     calls = []
     monkeypatch.setattr(
-        litellm, "token_counter", lambda *a, **k: calls.append(1) or 1000
+        gateway, "token_counter", lambda *a, **k: calls.append(1) or 1000
     )
 
     deployments = [
@@ -2620,7 +2620,7 @@ def test_pre_call_checks_counts_once_and_filters_on_max_input_tokens(monkeypatch
     at most once across the group (memoized), and filter deployments whose limit is
     exceeded.
     """
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {"model_name": "m", "litellm_params": {"model": "gpt-3.5-turbo"}},
         ],
@@ -2632,14 +2632,14 @@ def test_pre_call_checks_counts_once_and_filters_on_max_input_tokens(monkeypatch
 
     calls = []
     monkeypatch.setattr(
-        litellm, "token_counter", lambda *a, **k: calls.append(1) or 1000
+        gateway, "token_counter", lambda *a, **k: calls.append(1) or 1000
     )
 
     deployments = [
         {"litellm_params": {"model": "gpt-3.5-turbo"}, "model_info": {"id": "d1"}},
         {"litellm_params": {"model": "gpt-3.5-turbo"}, "model_info": {"id": "d2"}},
     ]
-    with pytest.raises(litellm.ContextWindowExceededError):
+    with pytest.raises(gateway.ContextWindowExceededError):
         router._pre_call_checks(
             model="m",
             healthy_deployments=deployments,
@@ -2654,7 +2654,7 @@ def test_pre_call_checks_uses_precounted_tokens(monkeypatch):
     An async caller counts off the event loop and passes the result in. _pre_call_checks
     must filter on that count instead of re-counting on the loop.
     """
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {"model_name": "m", "litellm_params": {"model": "gpt-3.5-turbo"}},
         ],
@@ -2666,13 +2666,13 @@ def test_pre_call_checks_uses_precounted_tokens(monkeypatch):
 
     calls = []
     monkeypatch.setattr(
-        litellm, "token_counter", lambda *a, **k: calls.append(1) or 1
+        gateway, "token_counter", lambda *a, **k: calls.append(1) or 1
     )
 
     deployments = [
         {"litellm_params": {"model": "gpt-3.5-turbo"}, "model_info": {"id": "d1"}},
     ]
-    with pytest.raises(litellm.ContextWindowExceededError):
+    with pytest.raises(gateway.ContextWindowExceededError):
         router._pre_call_checks(
             model="m",
             healthy_deployments=deployments,
@@ -2688,7 +2688,7 @@ async def test_async_get_healthy_deployments_counts_tokens_off_the_event_loop(mo
     The async deployment path must hand _pre_call_checks a count taken in a worker thread,
     so a multi-MB prompt never blocks the proxy during deployment selection.
     """
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {"model_name": "m", "litellm_params": {"model": "gpt-3.5-turbo"}},
         ],
@@ -2700,7 +2700,7 @@ async def test_async_get_healthy_deployments_counts_tokens_off_the_event_loop(mo
 
     counting_threads = []
     monkeypatch.setattr(
-        litellm,
+        gateway,
         "token_counter",
         lambda *a, **k: counting_threads.append(threading.current_thread()) or 42,
     )
@@ -2739,7 +2739,7 @@ async def test_async_get_healthy_deployments_counts_tokens_off_the_event_loop(mo
 )
 def test_pre_call_checks_need_token_count(monkeypatch, model_info, expected):
     """Only a deployment that declares an integer context window makes a token count worth taking."""
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {"model_name": "m", "litellm_params": {"model": "gpt-3.5-turbo"}},
         ],
@@ -2759,7 +2759,7 @@ def test_deployment_max_input_tokens_survives_an_unmappable_deployment(monkeypat
     pre-count must do the same, or an unmapped first deployment hides the limit declared by
     a later one and the count lands back on the event loop.
     """
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {"model_name": "m", "litellm_params": {"model": "gpt-3.5-turbo"}},
         ],
@@ -2786,7 +2786,7 @@ def test_pre_call_checks_does_not_recount_inline_after_an_off_loop_failure(monke
     When the off-loop count failed there is nothing left to filter on, so _pre_call_checks must
     return the deployments unfiltered rather than repeating the count on the event loop.
     """
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {"model_name": "m", "litellm_params": {"model": "gpt-3.5-turbo"}},
         ],
@@ -2798,7 +2798,7 @@ def test_pre_call_checks_does_not_recount_inline_after_an_off_loop_failure(monke
 
     calls = []
     monkeypatch.setattr(
-        litellm, "token_counter", lambda *a, **k: calls.append(1) or 1000
+        gateway, "token_counter", lambda *a, **k: calls.append(1) or 1000
     )
 
     deployments = [
@@ -2821,7 +2821,7 @@ async def test_async_get_healthy_deployments_never_recounts_on_the_loop(monkeypa
     An off-loop count that raises must not send the same work back onto the event loop through
     _pre_call_checks' inline fallback.
     """
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {"model_name": "m", "litellm_params": {"model": "gpt-3.5-turbo"}},
         ],
@@ -2837,7 +2837,7 @@ async def test_async_get_healthy_deployments_never_recounts_on_the_loop(monkeypa
         counting_threads.append(threading.current_thread())
         raise ValueError("Invalid content item type: image")
 
-    monkeypatch.setattr(litellm, "token_counter", exploding_counter)
+    monkeypatch.setattr(gateway, "token_counter", exploding_counter)
 
     result = await router.async_get_healthy_deployments(
         model="m",
@@ -2858,7 +2858,7 @@ async def test_acount_pre_call_check_tokens_leaves_the_event_loop_free(monkeypat
     A multi-MB prompt must not stall the proxy: a competing coroutine has to get
     scheduled while the router's context-window count is in flight.
     """
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {"model_name": "m", "litellm_params": {"model": "gpt-3.5-turbo"}},
         ],
@@ -2893,7 +2893,7 @@ async def test_acount_pre_call_check_tokens_leaves_the_event_loop_free(monkeypat
 
 async def test_acount_pre_call_check_tokens_skips_without_max_input_tokens(monkeypatch):
     """No deployment limits its context window, so there is nothing to count."""
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {"model_name": "m", "litellm_params": {"model": "gpt-3.5-turbo"}},
         ],
@@ -2903,7 +2903,7 @@ async def test_acount_pre_call_check_tokens_skips_without_max_input_tokens(monke
 
     calls = []
     monkeypatch.setattr(
-        litellm, "token_counter", lambda *a, **k: calls.append(1) or 1000
+        gateway, "token_counter", lambda *a, **k: calls.append(1) or 1000
     )
 
     count = await router._acount_pre_call_check_tokens(
@@ -2926,7 +2926,7 @@ def test_pre_call_checks_counts_tokens_from_responses_input_string(monkeypatch):
     checks must count tokens from `input` and filter deployments over the limit. Uses
     the real token_counter so the transform + counting path is a true regression guard.
     """
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {"model_name": "m", "litellm_params": {"model": "gpt-3.5-turbo"}},
         ],
@@ -2939,7 +2939,7 @@ def test_pre_call_checks_counts_tokens_from_responses_input_string(monkeypatch):
     deployments = [
         {"litellm_params": {"model": "gpt-3.5-turbo"}, "model_info": {"id": "d1"}},
     ]
-    with pytest.raises(litellm.ContextWindowExceededError):
+    with pytest.raises(gateway.ContextWindowExceededError):
         router._pre_call_checks(
             model="m",
             healthy_deployments=deployments,
@@ -2953,7 +2953,7 @@ def test_pre_call_checks_counts_tokens_from_responses_input_list(monkeypatch):
     chat messages and counted so oversized requests are filtered out. Uses the real
     token_counter (no mock) so the transform + counting path is a true regression guard.
     """
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {"model_name": "m", "litellm_params": {"model": "gpt-3.5-turbo"}},
         ],
@@ -2966,7 +2966,7 @@ def test_pre_call_checks_counts_tokens_from_responses_input_list(monkeypatch):
     deployments = [
         {"litellm_params": {"model": "gpt-3.5-turbo"}, "model_info": {"id": "d1"}},
     ]
-    with pytest.raises(litellm.ContextWindowExceededError):
+    with pytest.raises(gateway.ContextWindowExceededError):
         router._pre_call_checks(
             model="m",
             healthy_deployments=deployments,
@@ -2983,7 +2983,7 @@ def test_pre_call_checks_counts_responses_instructions_tokens(monkeypatch):
     whose `input` + `instructions` exceeds it must be filtered (regression for the
     context-window check under-filtering when instructions were ignored).
     """
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {"model_name": "m", "litellm_params": {"model": "gpt-3.5-turbo"}},
         ],
@@ -3006,7 +3006,7 @@ def test_pre_call_checks_counts_responses_instructions_tokens(monkeypatch):
     monkeypatch.setattr(
         router, "get_router_model_info", lambda **kwargs: {"max_input_tokens": input_only_tokens}
     )
-    with pytest.raises(litellm.ContextWindowExceededError):
+    with pytest.raises(gateway.ContextWindowExceededError):
         router._pre_call_checks(
             model="m",
             healthy_deployments=deployments,
@@ -3020,7 +3020,7 @@ def test_count_pre_call_check_tokens_across_api_surfaces():
     _count_pre_call_check_tokens must count tokens from chat `messages`, a Responses
     API string `input`, and a Responses API list `input`, and raise when given neither.
     """
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {"model_name": "m", "litellm_params": {"model": "gpt-3.5-turbo"}},
         ],
@@ -3047,7 +3047,7 @@ def test_pre_call_checks_no_messages_or_input_does_not_crash(monkeypatch):
     When neither messages nor input is provided (e.g. endpoints without prompt text),
     token counting is skipped gracefully and all deployments are returned.
     """
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {"model_name": "m", "litellm_params": {"model": "gpt-3.5-turbo"}},
         ],
@@ -3082,7 +3082,7 @@ async def test_aresponses_enforces_context_window_pre_call_check():
     wiring that forwards `input` from the generic-call path into deployment selection
     (the deployment uses mock_response, so the check must trip before any real call).
     """
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "small-ctx",
@@ -3092,7 +3092,7 @@ async def test_aresponses_enforces_context_window_pre_call_check():
         ],
         enable_pre_call_checks=True,
     )
-    with pytest.raises(litellm.ContextWindowExceededError):
+    with pytest.raises(gateway.ContextWindowExceededError):
         await router.aresponses(
             model="small-ctx",
             input="this responses input is definitely much longer than five tokens for sure",
@@ -3103,7 +3103,7 @@ def test_get_deployment_model_info_base_model_flow():
     """Test that get_deployment_model_info correctly handles the base model flow"""
     from unittest.mock import patch
 
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "test-model",
@@ -3146,9 +3146,9 @@ def test_get_deployment_model_info_base_model_flow():
 
     # Test Case 1: Base model flow with custom model info that has base_model
     with patch.object(
-        litellm, "model_cost", {"test-custom-model": mock_custom_model_info}
+        gateway, "model_cost", {"test-custom-model": mock_custom_model_info}
     ):
-        with patch.object(litellm, "get_model_info") as mock_get_model_info:
+        with patch.object(gateway, "get_model_info") as mock_get_model_info:
             # Configure mock returns
             mock_get_model_info.side_effect = lambda model: {
                 "gpt-3.5-turbo": mock_base_model_info,
@@ -3203,11 +3203,11 @@ def test_get_deployment_model_info_base_model_flow():
     }
 
     with patch.object(
-        litellm,
+        gateway,
         "model_cost",
         {"test-custom-model-no-base": mock_custom_model_info_no_base},
     ):
-        with patch.object(litellm, "get_model_info") as mock_get_model_info:
+        with patch.object(gateway, "get_model_info") as mock_get_model_info:
             mock_get_model_info.side_effect = lambda model: {
                 "test-model": mock_litellm_model_name_info,
             }.get(model)
@@ -3228,8 +3228,8 @@ def test_get_deployment_model_info_base_model_flow():
             assert result["mode"] == "completion"  # From litellm model name info
 
     # Test Case 3: No custom model info, only litellm model name info
-    with patch.object(litellm, "model_cost", {}):  # Empty model cost
-        with patch.object(litellm, "get_model_info") as mock_get_model_info:
+    with patch.object(gateway, "model_cost", {}):  # Empty model cost
+        with patch.object(gateway, "get_model_info") as mock_get_model_info:
             mock_get_model_info.side_effect = lambda model: {
                 "test-model": mock_litellm_model_name_info,
             }.get(model)
@@ -3254,11 +3254,11 @@ def test_get_deployment_model_info_base_model_flow():
     }
 
     with patch.object(
-        litellm,
+        gateway,
         "model_cost",
         {"test-custom-model-invalid": mock_custom_model_info_invalid_base},
     ):
-        with patch.object(litellm, "get_model_info") as mock_get_model_info:
+        with patch.object(gateway, "get_model_info") as mock_get_model_info:
             # Mock get_model_info to raise exception for invalid base model
             def mock_get_model_info_side_effect(model):
                 if model == "invalid-base-model":
@@ -3279,9 +3279,9 @@ def test_get_deployment_model_info_base_model_flow():
             assert result["mode"] == "completion"  # From litellm model name info
 
     # Test Case 5: Both model_cost.get() and get_model_info() return None
-    with patch.object(litellm, "model_cost", {}):
+    with patch.object(gateway, "model_cost", {}):
         with patch.object(
-            litellm, "get_model_info", side_effect=Exception("Not found")
+            gateway, "get_model_info", side_effect=Exception("Not found")
         ):
             result = router.get_deployment_model_info(
                 model_id="non-existent", model_name="non-existent"
@@ -3300,11 +3300,11 @@ def test_get_deployment_model_info_base_model_flow():
     }
 
     with patch.object(
-        litellm,
+        gateway,
         "model_cost",
         {"custom-model-id": mock_custom_pricing_only},
     ):
-        with patch.object(litellm, "get_model_info") as mock_get_model_info:
+        with patch.object(gateway, "get_model_info") as mock_get_model_info:
             # Model NOT in built-in cost map — raise exception
             mock_get_model_info.side_effect = Exception("Model not in cost map")
 
@@ -3333,11 +3333,11 @@ def test_get_deployment_model_info_base_model_flow():
     }
 
     with patch.object(
-        litellm,
+        gateway,
         "model_cost",
         {"custom-with-base": mock_custom_with_base},
     ):
-        with patch.object(litellm, "get_model_info") as mock_get_model_info:
+        with patch.object(gateway, "get_model_info") as mock_get_model_info:
 
             def get_info_side_effect(model):
                 if model == "some-base-model":
@@ -3366,7 +3366,7 @@ def test_get_deployment_model_info_base_model_merge_priority():
     """Test that base model info merging respects the correct priority order"""
     from unittest.mock import patch
 
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "test-model",
@@ -3402,9 +3402,9 @@ def test_get_deployment_model_info_base_model_merge_priority():
     }
 
     with patch.object(
-        litellm, "model_cost", {"custom-model-id": mock_custom_model_info}
+        gateway, "model_cost", {"custom-model-id": mock_custom_model_info}
     ):
-        with patch.object(litellm, "get_model_info") as mock_get_model_info:
+        with patch.object(gateway, "get_model_info") as mock_get_model_info:
             mock_get_model_info.side_effect = lambda model: {
                 "gpt-4": mock_base_model_info,
                 "test-model": mock_litellm_model_name_info,
@@ -3460,7 +3460,7 @@ def test_add_deployment_model_to_endpoint_for_llm_passthrough_route():
     """
     Test that _add_deployment_model_to_endpoint_for_llm_passthrough_route correctly strips bedrock provider prefix
     """
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "special-bedrock-model",
@@ -3530,7 +3530,7 @@ def test_add_deployment_model_to_endpoint_for_llm_passthrough_route():
 
 
 def test_update_kwargs_with_deployment_uses_pass_through_request_timeout():
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "my-bedrock-model",
@@ -3577,12 +3577,12 @@ async def test_router_acompletion_with_unknown_model_and_no_fallback():
     ]
 
     # Initialize the router WITHOUT any default fallbacks
-    router = litellm.Router(model_list=model_list)
+    router = gateway.Router(model_list=model_list)
 
     messages = [{"role": "user", "content": "This call should fail."}]
 
     # Use pytest.raises to assert that a BadRequestError is thrown.
-    with pytest.raises(litellm.BadRequestError) as excinfo:
+    with pytest.raises(gateway.BadRequestError) as excinfo:
         await router.acompletion(model="completely-unknown-model", messages=messages)
 
     # Check that the error message is correct.
@@ -3598,7 +3598,7 @@ async def test_router_unknown_model_error_message_renders_model_name_literally()
     literal text, not re-interpreted as a format template, which would distort
     the message and balloon its length.
     """
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "gpt-4o",
@@ -3610,7 +3610,7 @@ async def test_router_unknown_model_error_message_renders_model_name_literally()
     weird_model = "ghost{:>200}model"
     messages = [{"role": "user", "content": "hi"}]
 
-    with pytest.raises(litellm.BadRequestError) as excinfo:
+    with pytest.raises(gateway.BadRequestError) as excinfo:
         await router.acompletion(model=weird_model, messages=messages)
 
     message = str(excinfo.value)
@@ -3623,7 +3623,7 @@ def test_get_deployment_credentials_with_provider_aws_bedrock_runtime_endpoint()
     Test that get_deployment_credentials_with_provider correctly copies
     aws_bedrock_runtime_endpoint from deployment litellm_params to credentials.
     """
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "bedrock-claude-model",
@@ -3659,7 +3659,7 @@ def test_get_deployment_credentials_with_provider_includes_bucket_name():
     managed-files batch retrieval can resolve the GCS/S3 bucket. Previously it was
     dropped, causing "GCS bucket_name is required" when fetching batch output files.
     """
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "vertex-gemini",
@@ -3691,7 +3691,7 @@ def test_get_deployment_credentials_with_provider_resolves_credential_name():
     from token_iq.gateway.types.utils import CredentialItem
 
     # Setup credential list with a test credential
-    litellm.credential_list = [
+    gateway.credential_list = [
         CredentialItem(
             credential_name="test-azure-cred",
             credential_info={"custom_llm_provider": "azure"},
@@ -3703,7 +3703,7 @@ def test_get_deployment_credentials_with_provider_resolves_credential_name():
         )
     ]
 
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "azure-gpt-4",
@@ -3728,7 +3728,7 @@ def test_get_deployment_credentials_with_provider_resolves_credential_name():
     assert "litellm_credential_name" not in credentials
 
     # Cleanup
-    litellm.credential_list = []
+    gateway.credential_list = []
 
 
 def test_get_deployment_credentials_with_provider_bedrock_batch_fields():
@@ -3737,7 +3737,7 @@ def test_get_deployment_credentials_with_provider_bedrock_batch_fields():
     model and the Bedrock batch/S3 fields (s3_region_name, s3_encryption_key_id,
     aws_batch_role_arn) instead of silently dropping them (#25104).
     """
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "bedrock-batch-model",
@@ -3786,7 +3786,7 @@ def test_get_deployment_credentials_with_provider_preserves_aws_auth_params():
         "aws_sts_endpoint": "https://sts.us-west-2.amazonaws.com",
         "aws_external_id": "deployment-external-id",
     }
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "bedrock-batch-model",
@@ -3825,7 +3825,7 @@ def test_get_deployment_credentials_with_provider_team_wildcard_priority():
     team's own wildcard entry. When team_id is provided, the team wildcard
     deployment's credentials win; without team_id the global one is used.
     """
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "openai/*",
@@ -3855,7 +3855,7 @@ def test_get_deployment_credentials_with_provider_no_fallback_to_other_team_only
     When the only deployments under a model name belong to another team, other
     callers must get None (env fallback) instead of that team's credentials.
     """
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "gemini-2.5-pro",
@@ -3893,7 +3893,7 @@ def test_team_wildcard_credentials_not_usable_after_delete_deployment():
     Regression: team_pattern_routers retained deleted deployments, so a team
     user could keep resolving credentials of a deleted wildcard deployment.
     """
-    router = litellm.Router(model_list=[_team_wildcard_model(api_key="old-key")])
+    router = gateway.Router(model_list=[_team_wildcard_model(api_key="old-key")])
 
     assert (
         router.get_deployment_credentials_with_provider(
@@ -3946,7 +3946,7 @@ def test_team_wildcard_credentials_refreshed_on_upsert_and_set_model_list():
     """
     from token_iq.gateway.types.router import Deployment
 
-    router = litellm.Router(model_list=[_team_wildcard_model(api_key="old-key")])
+    router = gateway.Router(model_list=[_team_wildcard_model(api_key="old-key")])
 
     router.upsert_deployment(
         deployment=Deployment(**_team_wildcard_model(api_key="new-key"))
@@ -3976,7 +3976,7 @@ def test_get_available_guardrail_single_deployment():
         "id": "guardrail-1",
     }
 
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "gpt-3.5-turbo",
@@ -4005,7 +4005,7 @@ def test_get_available_guardrail_multiple_deployments():
         "id": "guardrail-2",
     }
 
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "gpt-3.5-turbo",
@@ -4029,7 +4029,7 @@ def test_get_available_guardrail_not_found():
     """
     Test get_available_guardrail raises ValueError when guardrail not found.
     """
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "gpt-3.5-turbo",
@@ -4054,7 +4054,7 @@ async def test_aguardrail_helper():
         "id": "guardrail-1",
     }
 
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "gpt-3.5-turbo",
@@ -4091,7 +4091,7 @@ async def test_aguardrail():
         "id": "guardrail-1",
     }
 
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "gpt-3.5-turbo",
@@ -4249,7 +4249,7 @@ def test_update_kwargs_with_deployment_propagates_model_tags():
     This ensures model-level tags defined in config.yaml appear in SpendLogs.
     See: https://github.com/BerriAI/litellm/issues/XXXX
     """
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "gpt-4o-mini",
@@ -4279,7 +4279,7 @@ def test_update_kwargs_with_deployment_merges_tags_without_duplicates():
     Test that when both request-level and deployment-level tags exist,
     they are merged without duplicates.
     """
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "gpt-4o-mini",
@@ -4310,7 +4310,7 @@ def test_update_kwargs_with_deployment_no_tags():
     """
     Test that when deployment has no tags, kwargs metadata is not affected.
     """
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "gpt-4o-mini",
@@ -4340,7 +4340,7 @@ def test_update_kwargs_with_deployment_merges_tools():
     Supports proxy-configured tools (e.g. for o3 deep research) merged with
     client-provided tools.
     """
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "o3-deep-research",
@@ -4381,7 +4381,7 @@ def test_update_kwargs_with_deployment_merge_tools_deployment_only():
     """
     Test that when only deployment has tools, they are applied to kwargs.
     """
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "o3-deep-research",
@@ -4409,7 +4409,7 @@ def test_update_kwargs_with_deployment_merge_tools_request_overrides_tool_choice
     """
     Test that when request has tool_choice, it overrides deployment's.
     """
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "o3-deep-research",
@@ -4441,7 +4441,7 @@ def test_credential_name_injected_as_tag():
     Test that litellm_credential_name from deployment litellm_params
     is injected as a tag into metadata during _update_kwargs_with_deployment.
     """
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "xai-model",
@@ -4466,7 +4466,7 @@ def test_credential_name_not_duplicated_in_tags():
     Test that if the credential tag already exists in the tags list,
     it is not duplicated.
     """
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "xai-model",
@@ -4489,7 +4489,7 @@ def test_credential_name_not_injected_when_absent():
     """
     Test that when no litellm_credential_name is set, tags are unchanged.
     """
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "gpt-model",
@@ -4513,7 +4513,7 @@ def test_update_kwargs_with_deployment_model_info_in_litellm_metadata():
     Routes like /messages and /responses use generic_api_call which stores
     model_info under litellm_metadata. Regression test for #23185.
     """
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "claude-sonnet-4",
@@ -4550,7 +4550,7 @@ def test_update_kwargs_with_deployment_model_info_in_metadata():
 
     /chat/completions uses acompletion which stores model_info under metadata.
     """
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "claude-sonnet-4",
@@ -4588,7 +4588,7 @@ def test_combine_fallback_usage():
     from token_iq.gateway.types.utils import Usage
 
     # Create a stream chunk with usage
-    chunk = litellm.ModelResponseStream(
+    chunk = gateway.ModelResponseStream(
         id="test",
         model="gpt-4o",
         choices=[],
@@ -4613,7 +4613,7 @@ async def test_acompletion_streaming_iterator_does_not_log_success_on_terminal_f
     from token_iq.gateway.exceptions import MidStreamFallbackError
     from token_iq.gateway.types.utils import Delta, StreamingChoices, Usage
 
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "gpt-4",
@@ -4631,7 +4631,7 @@ async def test_acompletion_streaming_iterator_does_not_log_success_on_terminal_f
     )
 
     def _make_interrupted_model_response():
-        partial_chunk = litellm.ModelResponseStream(
+        partial_chunk = gateway.ModelResponseStream(
             id="chatcmpl-partial-1",
             created=1742056047,
             model="gpt-4",
@@ -4735,7 +4735,7 @@ def test_get_all_deployments_with_team_id():
     Test that _get_all_deployments with team_id can find deployments
     by team_public_model_name when the model_name is not in the index.
     """
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "internal-team-deployment",
@@ -4770,7 +4770,7 @@ def test_multiregion_team_deployments_unique_model_names():
     Verifies that _get_all_deployments returns ALL regional deployments
     for a team when queried by team_public_model_name.
     """
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "metis-claude-us-east-1",
@@ -4837,7 +4837,7 @@ async def test_multiregion_team_failover_between_regions():
 
     This is the exact scenario Sean Glover from athenahealth will demonstrate.
     """
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "metis-claude-us-east-1",
@@ -4904,7 +4904,7 @@ def test_try_early_resolve_deployments_for_model_not_in_names():
     - Returns the default deployment with the request model substituted in when one
       is configured, without mutating the stored default.
     """
-    router_in_names = litellm.Router(
+    router_in_names = gateway.Router(
         model_list=[
             {
                 "model_name": "gpt-5",
@@ -4929,7 +4929,7 @@ def test_try_early_resolve_deployments_for_model_not_in_names():
         is None
     )
 
-    pattern_router = litellm.Router(
+    pattern_router = gateway.Router(
         model_list=[
             {
                 "model_name": "openai/*",
@@ -4951,7 +4951,7 @@ def test_try_early_resolve_deployments_for_model_not_in_names():
     assert resolved_model == "openai/gpt-4o-mini"
     assert isinstance(pattern_deployments, list) and len(pattern_deployments) == 1
 
-    default_router = litellm.Router(
+    default_router = gateway.Router(
         model_list=[
             {
                 "model_name": "named-model",
@@ -4988,7 +4988,7 @@ def test_try_early_resolve_deployments_for_model_not_in_names():
 
 
 def _router_with_two_deployments(blocked_flags):
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     model_list = []
     for idx, blocked in enumerate(blocked_flags):
@@ -4999,7 +4999,7 @@ def _router_with_two_deployments(blocked_flags):
                 "model_info": {"id": f"dep-{idx}", "blocked": blocked},
             }
         )
-    return litellm.Router(model_list=model_list)
+    return gateway.Router(model_list=model_list)
 
 
 
@@ -5007,9 +5007,9 @@ def _router_with_two_deployments(blocked_flags):
 
 
 def test_get_fully_blocked_model_names_treats_missing_key_as_unblocked():
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "gpt-4o",
@@ -5055,9 +5055,9 @@ async def test_async_get_fully_unhealthy_model_names_ignores_stale_state():
 
 @pytest.mark.asyncio
 async def test_async_get_fully_unhealthy_model_names_includes_team_alias():
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "gpt-4o",
@@ -5095,15 +5095,15 @@ def test_filter_blocked_deployments_drops_blocked_keeps_unblocked():
 
 
 def test_get_available_deployment_raises_when_addressed_dict_is_blocked():
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     router = _router_with_two_deployments([True, True])
-    with pytest.raises(litellm.ServiceUnavailableError):
+    with pytest.raises(gateway.ServiceUnavailableError):
         router.get_available_deployment(model="dep-0", request_kwargs={})
 
 
 def _router_with_two_pass_through_deployments(blocked_flags):
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     model_list = []
     for idx, blocked in enumerate(blocked_flags):
@@ -5118,7 +5118,7 @@ def _router_with_two_pass_through_deployments(blocked_flags):
                 "model_info": {"id": f"pt-{idx}", "blocked": blocked},
             }
         )
-    return litellm.Router(model_list=model_list)
+    return gateway.Router(model_list=model_list)
 
 
 
@@ -5130,9 +5130,9 @@ def test_initialize_deployment_for_pass_through_keeps_bedrock_iam_deployment():
     Bedrock deployments using IAM/OIDC auth have no api_key; pass-through
     init must not raise and drop them from routing (#27728).
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "bedrock-claude",
@@ -5172,26 +5172,26 @@ def test_is_deployment_blocked_static_helper_reflects_blocked_flag():
     """
     import types
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     router = _router_with_two_deployments([True, False])
     blocked_dep = router.get_deployment("dep-0")
     unblocked_dep = router.get_deployment("dep-1")
     assert blocked_dep is not None and unblocked_dep is not None
-    assert litellm.Router._is_deployment_blocked(blocked_dep) is True
-    assert litellm.Router._is_deployment_blocked(unblocked_dep) is False
+    assert gateway.Router._is_deployment_blocked(blocked_dep) is True
+    assert gateway.Router._is_deployment_blocked(unblocked_dep) is False
 
     # No model_info on deployment object → treated as not blocked
-    assert litellm.Router._is_deployment_blocked(object()) is False
+    assert gateway.Router._is_deployment_blocked(object()) is False
     missing_blocked = types.SimpleNamespace()
     assert (
-        litellm.Router._is_deployment_blocked(
+        gateway.Router._is_deployment_blocked(
             types.SimpleNamespace(model_info=missing_blocked)
         )
         is False
     )
     assert (
-        litellm.Router._is_deployment_blocked(
+        gateway.Router._is_deployment_blocked(
             types.SimpleNamespace(model_info=types.SimpleNamespace(blocked=True))
         )
         is True
@@ -5207,7 +5207,7 @@ class TestRouterRequestTimeoutPropagation:
     """
 
     def _make_router(self, timeout=None, stream_timeout=None):
-        return litellm.Router(
+        return gateway.Router(
             model_list=[
                 {
                     "model_name": "test-model",
@@ -5223,15 +5223,15 @@ class TestRouterRequestTimeoutPropagation:
 
     @pytest.fixture
     def explicit_request_timeout(self):
-        original_value = litellm.request_timeout
-        original_flag = litellm.request_timeout_explicitly_set
-        litellm.request_timeout = 300
-        litellm.request_timeout_explicitly_set = True
+        original_value = gateway.request_timeout
+        original_flag = gateway.request_timeout_explicitly_set
+        gateway.request_timeout = 300
+        gateway.request_timeout_explicitly_set = True
         try:
             yield 300
         finally:
-            litellm.request_timeout = original_value
-            litellm.request_timeout_explicitly_set = original_flag
+            gateway.request_timeout = original_value
+            gateway.request_timeout_explicitly_set = original_flag
 
     def test_request_timeout_stored_independently_when_both_set(
         self, explicit_request_timeout
@@ -5241,17 +5241,17 @@ class TestRouterRequestTimeoutPropagation:
         assert router.request_timeout == 300
 
     def test_request_timeout_none_when_not_explicitly_configured(self):
-        original_value = litellm.request_timeout
-        original_flag = litellm.request_timeout_explicitly_set
-        litellm.request_timeout = litellm.constants.DEFAULT_REQUEST_TIMEOUT_SECONDS
-        litellm.request_timeout_explicitly_set = False
+        original_value = gateway.request_timeout
+        original_flag = gateway.request_timeout_explicitly_set
+        gateway.request_timeout = gateway.constants.DEFAULT_REQUEST_TIMEOUT_SECONDS
+        gateway.request_timeout_explicitly_set = False
         try:
             router = self._make_router(timeout=330)
             assert router.timeout == 330
             assert router.request_timeout is None
         finally:
-            litellm.request_timeout = original_value
-            litellm.request_timeout_explicitly_set = original_flag
+            gateway.request_timeout = original_value
+            gateway.request_timeout_explicitly_set = original_flag
 
     def test_non_stream_prefers_request_timeout_over_router_timeout(
         self, explicit_request_timeout
@@ -5273,16 +5273,16 @@ class TestRouterRequestTimeoutPropagation:
         assert router._get_stream_timeout(kwargs={}, data={}) == 45
 
     def test_non_stream_falls_through_to_router_timeout_without_request_timeout(self):
-        original_value = litellm.request_timeout
-        original_flag = litellm.request_timeout_explicitly_set
-        litellm.request_timeout = litellm.constants.DEFAULT_REQUEST_TIMEOUT_SECONDS
-        litellm.request_timeout_explicitly_set = False
+        original_value = gateway.request_timeout
+        original_flag = gateway.request_timeout_explicitly_set
+        gateway.request_timeout = gateway.constants.DEFAULT_REQUEST_TIMEOUT_SECONDS
+        gateway.request_timeout_explicitly_set = False
         try:
             router = self._make_router(timeout=330)
             assert router._get_non_stream_timeout(kwargs={}, data={}) == 330
         finally:
-            litellm.request_timeout = original_value
-            litellm.request_timeout_explicitly_set = original_flag
+            gateway.request_timeout = original_value
+            gateway.request_timeout_explicitly_set = original_flag
 
     def test_per_deployment_timeout_overrides_request_timeout(
         self, explicit_request_timeout
@@ -5323,7 +5323,7 @@ def _make_deferred_stream_wrapper(make_call_fn):
 
 
 def _make_router_with_vertex_and_fallback():
-    return litellm.Router(
+    return gateway.Router(
         model_list=[
             {
                 "model_name": "my-gemini",
@@ -5377,7 +5377,7 @@ async def test_acompletion_deferred_stream_skipped_when_stream_already_set():
         make_call=would_fail,
     )
 
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "my-model",
@@ -5429,7 +5429,7 @@ def test_completion_deferred_stream_skipped_when_stream_already_set():
         make_call=would_fail,
     )
 
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "my-model",
@@ -5460,7 +5460,7 @@ def test_stream_chunks_have_generated_content_detects_text_and_non_text():
     )
 
     def _chunk(delta):
-        return litellm.ModelResponseStream(
+        return gateway.ModelResponseStream(
             id="chatcmpl-1",
             model="gpt-4",
             object="chat.completion.chunk",
@@ -5515,7 +5515,7 @@ def test_stream_chunks_have_generated_content_detects_text_and_non_text():
 
 
 def test_get_configured_token_limits_reads_deployment_model_info():
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "my-custom-model",
@@ -5529,7 +5529,7 @@ def test_get_configured_token_limits_reads_deployment_model_info():
 
 
 def test_get_configured_token_limits_returns_none_for_unset_or_unknown():
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "no-limits-model",
@@ -5543,7 +5543,7 @@ def test_get_configured_token_limits_returns_none_for_unset_or_unknown():
 
 
 def test_get_configured_token_limits_skips_wildcard_pattern_matching():
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "bedrock/*",
@@ -5563,7 +5563,7 @@ def test_get_configured_token_limits_skips_wildcard_pattern_matching():
 
 def test_get_configured_token_limits_treats_malformed_values_as_absent():
     malformed = ["", "unlimited", "128,000", [128000], {"max": 128000}, True]
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": f"bad-limit-{i}",
@@ -5579,7 +5579,7 @@ def test_get_configured_token_limits_treats_malformed_values_as_absent():
 
 
 def test_get_configured_token_limits_coerces_numeric_strings():
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "quoted-limits-model",
@@ -5593,7 +5593,7 @@ def test_get_configured_token_limits_coerces_numeric_strings():
 
 
 def test_get_configured_display_name_reads_deployment_model_info():
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "Kimi K3-claude-compatible",
@@ -5607,7 +5607,7 @@ def test_get_configured_display_name_reads_deployment_model_info():
 
 
 def test_get_configured_display_name_returns_none_for_unset_or_unknown():
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "no-display-model",
@@ -5621,7 +5621,7 @@ def test_get_configured_display_name_returns_none_for_unset_or_unknown():
 
 
 def test_get_configured_display_name_skips_wildcard_pattern_matching():
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "bedrock/*",
@@ -5642,7 +5642,7 @@ def test_get_configured_display_name_skips_wildcard_pattern_matching():
 
 def test_get_configured_display_name_treats_malformed_values_as_absent():
     malformed = ["", "   ", 12345, ["Kimi K3"], {"name": "Kimi K3"}, True]
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": f"bad-display-{i}",
@@ -5671,7 +5671,7 @@ async def test_acreate_batch_request_bedrock_tags_override_deployment_tags():
 
     deployment_tags = [{"key": "application", "value": "config-level"}]
     request_tags = [{"key": "application", "value": "request-level"}]
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "bedrock-batch-model",
@@ -5739,7 +5739,7 @@ async def test_avector_store_search_injects_router():
     # Router.__init__ binds asearch via a local import, so patch the module
     # attribute before constructing the Router.
     with patch("token_iq.gateway.vector_stores.main.asearch", new=mock_asearch):  # test-quality-ok: the SDK call is the only place the injected router kwarg is observable
-        router = litellm.Router(
+        router = gateway.Router(
             model_list=[
                 {
                     "model_name": "gpt-3.5-turbo",
@@ -5764,7 +5764,7 @@ async def test_avector_store_create_does_not_inject_router():
     mock_acreate = AsyncMock(return_value=expected_response)
     # avector_store_create(model=None) resolves acreate via a local import at
     # call time, so patching after Router construction works here.
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "gpt-3.5-turbo",
@@ -5795,7 +5795,7 @@ def test_vector_store_search_injects_router():
     # Router.__init__ binds search via a local import, so patch the module
     # attribute before constructing the Router.
     with patch("token_iq.gateway.vector_stores.main.search", new=mock_search):  # test-quality-ok: the SDK call is the only place the injected router kwarg is observable
-        router = litellm.Router(
+        router = gateway.Router(
             model_list=[
                 {
                     "model_name": "gpt-3.5-turbo",
@@ -5820,7 +5820,7 @@ def test_vector_store_create_does_not_inject_router():
     # Router.__init__ binds create via a local import, so patch the module
     # attribute before constructing the Router.
     with patch("token_iq.gateway.vector_stores.main.create", new=mock_create):  # test-quality-ok: the SDK call is the only place a leaked router kwarg would surface
-        router = litellm.Router(
+        router = gateway.Router(
             model_list=[
                 {
                     "model_name": "gpt-3.5-turbo",
@@ -5862,9 +5862,9 @@ def test_pre_call_checks_uses_deployment_model_when_model_info_lookup_raises(mon
     unregistered custom model), so the check falls back to the bare model group
     name and the request dies with 'LLM Provider NOT provided'.
     """
-    monkeypatch.setattr(litellm, "drop_params", False)
+    monkeypatch.setattr(gateway, "drop_params", False)
 
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "custom-alias",
@@ -5880,13 +5880,13 @@ def test_pre_call_checks_uses_deployment_model_when_model_info_lookup_raises(mon
     monkeypatch.setattr(router, "get_router_model_info", _raise_unmapped)
 
     seen: list[tuple] = []
-    original_get_supported_openai_params = litellm.get_supported_openai_params
+    original_get_supported_openai_params = gateway.get_supported_openai_params
 
     def _record(model, custom_llm_provider=None, **kwargs):
         seen.append((model, custom_llm_provider))
         return original_get_supported_openai_params(model=model, custom_llm_provider=custom_llm_provider, **kwargs)
 
-    monkeypatch.setattr(litellm, "get_supported_openai_params", _record)
+    monkeypatch.setattr(gateway, "get_supported_openai_params", _record)
 
     deployments = [
         {
@@ -5911,9 +5911,9 @@ def test_pre_call_checks_keeps_deployment_when_provider_is_unresolvable(monkeypa
     a request. A deployment whose provider cannot be resolved simply skips the
     supported-params check instead of raising out of deployment selection.
     """
-    monkeypatch.setattr(litellm, "drop_params", False)
+    monkeypatch.setattr(gateway, "drop_params", False)
 
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "custom-alias",
@@ -5924,13 +5924,13 @@ def test_pre_call_checks_keeps_deployment_when_provider_is_unresolvable(monkeypa
     )
 
     def _raise_no_provider(**kwargs):
-        raise litellm.BadRequestError(
+        raise gateway.BadRequestError(
             message="LLM Provider NOT provided.",
             model="custom-alias",
             llm_provider="",
         )
 
-    monkeypatch.setattr(litellm, "get_llm_provider", _raise_no_provider)
+    monkeypatch.setattr(gateway, "get_llm_provider", _raise_no_provider)
 
     deployments = [
         {
@@ -5961,7 +5961,7 @@ class TestUpsertDeploymentRollback:
     def test_failed_upsert_keeps_previous_deployment_serving(self):
         from token_iq.gateway.types.router import Deployment, LiteLLM_Params, ModelInfo
 
-        router = litellm.Router(
+        router = gateway.Router(
             model_list=[
                 {
                     "model_name": "prod-model",
@@ -5989,7 +5989,7 @@ class TestUpsertDeploymentRollback:
     def test_failed_fresh_add_returns_none_without_restore(self):
         from token_iq.gateway.types.router import Deployment, LiteLLM_Params, ModelInfo
 
-        router = litellm.Router(model_list=[], ignore_invalid_deployments=True)
+        router = gateway.Router(model_list=[], ignore_invalid_deployments=True)
 
         result = router.upsert_deployment(
             deployment=Deployment(
@@ -6004,7 +6004,7 @@ class TestUpsertDeploymentRollback:
         assert router.model_list == []
 
     def test_restore_re_adds_popped_deployment(self):
-        router = litellm.Router(
+        router = gateway.Router(
             model_list=[
                 {
                     "model_name": "prod-model",
@@ -6046,8 +6046,8 @@ class TestUpsertDeploymentRename:
     """
 
     @staticmethod
-    def _router() -> "litellm.Router":
-        return litellm.Router(
+    def _router() -> "gateway.Router":
+        return gateway.Router(
             model_list=[
                 {
                     "model_name": "old-name",
@@ -6120,10 +6120,10 @@ class TestConsumedRequestTagsStamp:
             return PreRoutingHookResponse(model=self.rewrite_to, messages=messages)
 
     @classmethod
-    def _router(cls, marker_tags=("route",)) -> "litellm.Router":
+    def _router(cls, marker_tags=("route",)) -> "gateway.Router":
         from token_iq.gateway.types.router import TaggedPreRoutingStrategy
 
-        router = litellm.Router(
+        router = gateway.Router(
             model_list=[
                 {"model_name": "gpt4o", "litellm_params": {"model": "openai/gpt-4o"}},
                 {"model_name": "gemini-flash", "litellm_params": {"model": "gemini/gemini-3.6-flash"}},
@@ -6207,9 +6207,9 @@ class TestAutoRouterMaxInputCharsWiring:
     """
 
     @staticmethod
-    def _router(**extra_params) -> "litellm.Router":
+    def _router(**extra_params) -> "gateway.Router":
         pytest.importorskip("semantic_router", reason="auto-router needs the semantic-router extra")
-        return litellm.Router(
+        return gateway.Router(
             model_list=[
                 {"model_name": "gpt-4o", "litellm_params": {"model": "gpt-4o"}},
                 {
@@ -6228,7 +6228,7 @@ class TestAutoRouterMaxInputCharsWiring:
         )
 
     @staticmethod
-    def _registered_auto_router(router: "litellm.Router"):
+    def _registered_auto_router(router: "gateway.Router"):
         return router.auto_routers["my-auto-router"][0].strategy
 
     def test_should_pass_the_configured_cap_to_the_auto_router(self):
@@ -6255,7 +6255,7 @@ class TestTaggedAutoRouterOnSharedModelName:
             return RouteChoice(name="gemini-flash")
 
     @classmethod
-    def _router(cls, marker_tags, include_plain_sibling: bool, enable_tag_filtering: bool) -> "litellm.Router":
+    def _router(cls, marker_tags, include_plain_sibling: bool, enable_tag_filtering: bool) -> "gateway.Router":
         pytest.importorskip("semantic_router", reason="auto-router needs the semantic-router extra")
         marker = {
             "model_name": "gpt4o",
@@ -6271,7 +6271,7 @@ class TestTaggedAutoRouterOnSharedModelName:
         }
         plain = {"model_name": "gpt4o", "litellm_params": {"model": "openai/gpt-4o"}}
         tier = {"model_name": "gemini-flash", "litellm_params": {"model": "gemini/gemini-3.6-flash"}}
-        router = litellm.Router(
+        router = gateway.Router(
             model_list=[plain, marker, tier] if include_plain_sibling else [marker, tier],
             enable_tag_filtering=enable_tag_filtering,
         )
@@ -6279,7 +6279,7 @@ class TestTaggedAutoRouterOnSharedModelName:
         return router
 
     @staticmethod
-    async def _hook_response(router: "litellm.Router", request_kwargs: dict):
+    async def _hook_response(router: "gateway.Router", request_kwargs: dict):
         return await router.async_pre_routing_hook(
             model="gpt4o",
             request_kwargs=request_kwargs,
@@ -6347,7 +6347,7 @@ class TestTaggedAutoRouterOnSharedModelName:
             assert deployment["litellm_params"]["model"] == "openai/gpt-4o"
 
     def test_deployment_without_litellm_params_mapping_is_not_a_marker(self):
-        assert litellm.Router._is_strategy_marker_deployment({"model_name": "gpt4o"}) is False
+        assert gateway.Router._is_strategy_marker_deployment({"model_name": "gpt4o"}) is False
 
     def test_model_name_has_plain_deployments_reflects_the_pool(self):
         mixed = self._router(marker_tags=["route"], include_plain_sibling=True, enable_tag_filtering=True)
@@ -6371,7 +6371,7 @@ class TestAutoRouterSharedModelNameConnectionParams:
             return RouteChoice(name="gemini-flash")
 
     @classmethod
-    def _router(cls, plain_entry_first: bool) -> "litellm.Router":
+    def _router(cls, plain_entry_first: bool) -> "gateway.Router":
         pytest.importorskip("semantic_router", reason="auto-router needs the semantic-router extra")
         plain = {
             "model_name": "gpt4o",
@@ -6398,7 +6398,7 @@ class TestAutoRouterSharedModelNameConnectionParams:
             "litellm_params": {"model": "gemini/gemini-3.6-flash", "api_key": "sk-tier-key"},
         }
         shared_name_entries = [plain, marker] if plain_entry_first else [marker, plain]
-        router = litellm.Router(model_list=[*shared_name_entries, tier])
+        router = gateway.Router(model_list=[*shared_name_entries, tier])
         router.auto_routers["gpt4o"][0].strategy.routelayer = cls._FixedRouteLayer()
         return router
 
@@ -6467,7 +6467,7 @@ class _FallbackAttemptRecorder(CustomLogger):
 
 def _cyclic_fallback_router(num_retries=0):
     groups = ["group-a", "group-b", "group-c", "group-d"]
-    return litellm.Router(
+    return gateway.Router(
         model_list=[
             {
                 "model_name": group,
@@ -6495,9 +6495,9 @@ async def _drive_cyclic_fallback(router, capture, recorder=None, **request_kwarg
     router_logger.setLevel(capture.level)
     router_logger.addHandler(capture)
     if recorder is not None:
-        litellm.callbacks.append(recorder)
+        gateway.callbacks.append(recorder)
     try:
-        with pytest.raises(litellm.InternalServerError):
+        with pytest.raises(gateway.InternalServerError):
             await router.acompletion(
                 model="group-a", messages=[{"role": "user", "content": "hi"}], **request_kwargs
             )
@@ -6505,7 +6505,7 @@ async def _drive_cyclic_fallback(router, capture, recorder=None, **request_kwarg
         router_logger.removeHandler(capture)
         router_logger.setLevel(previous_level)
         if recorder is not None:
-            litellm.callbacks.remove(recorder)
+            gateway.callbacks.remove(recorder)
 
 
 
@@ -6523,11 +6523,11 @@ _BREADCRUMB_CREDENTIAL_CANARY = "Bearer sk-ant-oat01-RETRY-BREADCRUMB-CANARY-doN
 
 def test_stamp_or_clear_metadata_key_writes_and_clears_both_buckets():
     request_kwargs = {"metadata": {}}
-    litellm.Router._stamp_or_clear_metadata_key(request_kwargs=request_kwargs, key="probe", value=7)
+    gateway.Router._stamp_or_clear_metadata_key(request_kwargs=request_kwargs, key="probe", value=7)
     assert request_kwargs["metadata"]["probe"] == 7
 
     stale_kwargs = {"metadata": {"probe": 7}, "litellm_metadata": {"probe": 7}}
-    litellm.Router._stamp_or_clear_metadata_key(request_kwargs=stale_kwargs, key="probe", value=None)
+    gateway.Router._stamp_or_clear_metadata_key(request_kwargs=stale_kwargs, key="probe", value=None)
     assert "probe" not in stale_kwargs["metadata"]
     assert "probe" not in stale_kwargs["litellm_metadata"]
 
@@ -6537,7 +6537,7 @@ def test_ensure_deployment_affinity_callback_is_idempotent():
         DeploymentAffinityCheck,
     )
 
-    router = litellm.Router(model_list=[])
+    router = gateway.Router(model_list=[])
     try:
         router._ensure_deployment_affinity_callback()
         router._ensure_deployment_affinity_callback()
@@ -6547,7 +6547,7 @@ def test_ensure_deployment_affinity_callback_is_idempotent():
         assert len(affinity_callbacks) == 1
     finally:
         for cb in router.optional_callbacks or []:
-            litellm.logging_callback_manager.remove_callback_from_all_lists(cb)
+            gateway.logging_callback_manager.remove_callback_from_all_lists(cb)
 
 
 def test_get_router_model_info_does_not_wipe_cached_pricing():
@@ -6556,10 +6556,10 @@ def test_get_router_model_info_does_not_wipe_cached_pricing():
     or /model/info loses built-in prices for every model a worker serves."""
     from token_iq.gateway.types.router import Deployment, LiteLLM_Params, ModelInfo
 
-    litellm.get_model_info.cache_clear()
-    expected = copy.deepcopy(litellm.get_model_info(model="anthropic/claude-sonnet-4-5"))
+    gateway.get_model_info.cache_clear()
+    expected = copy.deepcopy(gateway.get_model_info(model="anthropic/claude-sonnet-4-5"))
 
-    router = litellm.Router(model_list=[])
+    router = gateway.Router(model_list=[])
     merged = router.get_router_model_info(
         deployment=Deployment(
             model_name="sonnet",
@@ -6569,7 +6569,7 @@ def test_get_router_model_info_does_not_wipe_cached_pricing():
         received_model_name="sonnet",
     )
 
-    assert litellm.get_model_info(model="anthropic/claude-sonnet-4-5") == expected
+    assert gateway.get_model_info(model="anthropic/claude-sonnet-4-5") == expected
     for field in ("input_cost_per_token", "output_cost_per_token", "cache_read_input_token_cost"):
         assert merged[field] == expected[field]
 
@@ -6577,8 +6577,8 @@ def test_get_router_model_info_does_not_wipe_cached_pricing():
 def test_get_router_model_info_keeps_explicit_pricing_overrides():
     from token_iq.gateway.types.router import Deployment, LiteLLM_Params, ModelInfo
 
-    litellm.get_model_info.cache_clear()
-    router = litellm.Router(model_list=[])
+    gateway.get_model_info.cache_clear()
+    router = gateway.Router(model_list=[])
     merged = router.get_router_model_info(
         deployment=Deployment(
             model_name="sonnet",
@@ -6589,7 +6589,7 @@ def test_get_router_model_info_keeps_explicit_pricing_overrides():
     )
 
     assert merged["input_cost_per_token"] == 1e-08
-    assert litellm.get_model_info(model="anthropic/claude-sonnet-4-5")["input_cost_per_token"] != 1e-08
+    assert gateway.get_model_info(model="anthropic/claude-sonnet-4-5")["input_cost_per_token"] != 1e-08
 
 
 @pytest.mark.usefixtures("local_model_cost_map")
@@ -6601,7 +6601,7 @@ class TestAzureBaseModelFallbackLogging:
     names. Issue #33172."""
 
     def _router_with_azure_deployment(self, deployment_model: str):
-        return litellm.Router(
+        return gateway.Router(
             model_list=[
                 {
                     "model_name": "my-group",
@@ -6630,8 +6630,8 @@ class TestAzureBaseModelFallbackLogging:
             for call in mock_error.call_args_list
         ), f"unexpected error log: {mock_error.call_args_list}"
         # the fallback resolution must actually surface the map values
-        assert model_info["max_input_tokens"] == litellm.model_cost["azure/gpt-4o"]["max_input_tokens"]
-        assert model_info["input_cost_per_token"] == litellm.model_cost["azure/gpt-4o"]["input_cost_per_token"]
+        assert model_info["max_input_tokens"] == gateway.model_cost["azure/gpt-4o"]["max_input_tokens"]
+        assert model_info["input_cost_per_token"] == gateway.model_cost["azure/gpt-4o"]["input_cost_per_token"]
 
     def test_unmappable_deployment_name_still_logs_error(self):
         router = self._router_with_azure_deployment("azure/my-custom-deployment-name")
@@ -6651,7 +6651,7 @@ class TestAzureBaseModelFallbackLogging:
         assert model_info.get("max_input_tokens") is None
 
     def test_explicit_base_model_still_wins(self):
-        router = litellm.Router(
+        router = gateway.Router(
             model_list=[
                 {
                     "model_name": "my-group",
@@ -6671,7 +6671,7 @@ class TestAzureBaseModelFallbackLogging:
         model_info = router.get_router_model_info(
             deployment=None, received_model_name="my-group", id="azure-base-model-test-id"
         )
-        assert model_info["max_input_tokens"] == litellm.model_cost["azure/gpt-4o-mini"]["max_input_tokens"]
+        assert model_info["max_input_tokens"] == gateway.model_cost["azure/gpt-4o-mini"]["max_input_tokens"]
 
 
 
@@ -6681,7 +6681,7 @@ class TestAzureBaseModelFallbackLogging:
 def test_model_group_info_surfaces_supports_parallel_function_calling(local_model_cost_map):
     """``/model_group/info`` folds each deployment's registry flags into the group; a deployment whose
     registry entry declares parallel function calling must flip the group to True instead of False."""
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "glm-group",
@@ -6704,7 +6704,7 @@ def test_model_group_info_survives_a_junk_typed_operator_effort_value():
     """A deployment's registered model_info reads back with whatever the operator wrote under any
     key, so a wrong-typed supported_reasoning_efforts must not fail the group's info. Only the
     constructor's trailing override keeps the junk away from ModelGroupInfo validation."""
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "junk-declared-group",
@@ -6738,7 +6738,7 @@ def test_model_group_info_survives_a_junk_typed_operator_effort_value():
 
 class TestAddDeploymentApiBaseProviderResolution:
     def test_bare_model_with_known_api_base_initializes(self):
-        router = litellm.Router(
+        router = gateway.Router(
             model_list=[
                 {
                     "model_name": "groq-pinned",
@@ -6764,8 +6764,8 @@ class TestAddDeploymentApiBaseProviderResolution:
         assert {m["model_name"] for m in model_list} == {"groq-pinned", "deepseek-pinned"}
 
     def test_bare_model_with_unknown_api_base_still_raises(self):
-        with pytest.raises(litellm.BadRequestError, match="LLM Provider NOT provided"):
-            litellm.Router(
+        with pytest.raises(gateway.BadRequestError, match="LLM Provider NOT provided"):
+            gateway.Router(
                 model_list=[
                     {
                         "model_name": "mystery",
@@ -6779,7 +6779,7 @@ class TestAddDeploymentApiBaseProviderResolution:
             )
 
     def test_explicit_custom_llm_provider_beats_api_base_endpoint_match(self):
-        router = litellm.Router(
+        router = gateway.Router(
             model_list=[
                 {
                     "model_name": "openai-via-gateway",
@@ -7235,7 +7235,7 @@ async def test_aanthropic_messages_fallback_attempt_raises_original_exception_on
     exception must surface rather than the internal wrapper exception."""
     router = _anthropic_messages_make_router()
     error = MidStreamFallbackError(message="overloaded", model="primary", llm_provider="anthropic")
-    original_exception = litellm.APIError(
+    original_exception = gateway.APIError(
         status_code=503, message="fallback also overloaded", llm_provider="bedrock", model="fallback"
     )
     fallback_failure = MidStreamFallbackError(
@@ -7247,7 +7247,7 @@ async def test_aanthropic_messages_fallback_attempt_raises_original_exception_on
         "async_function_with_fallbacks_common_utils",
         new=AsyncMock(side_effect=fallback_failure),
     ):
-        with pytest.raises(litellm.APIError) as exc_info:
+        with pytest.raises(gateway.APIError) as exc_info:
             async for _ in router._aanthropic_messages_fallback_attempt(
                 error, {"model": "primary"}, _anthropic_messages_make_wrapper()
             ):
@@ -7690,7 +7690,7 @@ async def test_anthropic_messages_raised_error_after_real_content_does_not_resta
     propagate to the caller instead."""
     router = _anthropic_messages_make_router()
     content = _anthropic_messages_content_chunk("partial answer")
-    original_exception = litellm.APIError(
+    original_exception = gateway.APIError(
         status_code=503,
         message="stream reset",
         llm_provider="vertex_ai",
@@ -7720,7 +7720,7 @@ async def test_anthropic_messages_raised_error_after_real_content_does_not_resta
             async for chunk in wrapped:
                 collected.append(chunk)
 
-        with pytest.raises(litellm.APIError) as exc_info:
+        with pytest.raises(gateway.APIError) as exc_info:
             await _consume()
 
     assert collected == [content]
@@ -8117,7 +8117,7 @@ async def test_anthropic_messages_fallback_also_failing_raises_original_exceptio
     exception, not the internal MidStreamFallbackError."""
     router = _anthropic_messages_make_router()
     source = _AnthropicMessagesFakeByteStream([_anthropic_messages_overloaded_error_chunk()])
-    original_exception = litellm.APIError(
+    original_exception = gateway.APIError(
         status_code=503,
         message="fallback also overloaded",
         llm_provider="bedrock",
@@ -8139,7 +8139,7 @@ async def test_anthropic_messages_fallback_also_failing_raises_original_exceptio
             response=source,
             initial_kwargs={"model": "primary"},
         )
-        with pytest.raises(litellm.APIError) as exc_info:
+        with pytest.raises(gateway.APIError) as exc_info:
             async for _ in wrapped:
                 pass
 
@@ -8197,7 +8197,7 @@ async def test_factory_function_anthropic_messages_uses_streaming_fallback_dispa
     path rather than the bare generic dispatch every other call type without
     special handling uses."""
     router = _anthropic_messages_make_router()
-    wrapped = router.factory_function(litellm.anthropic_messages, call_type="anthropic_messages")
+    wrapped = router.factory_function(gateway.anthropic_messages, call_type="anthropic_messages")
     assert callable(wrapped)
 
     with patch.object(
@@ -8214,7 +8214,7 @@ async def test_factory_function_anthropic_messages_uses_streaming_fallback_dispa
 async def test_async_function_with_fallbacks_stamps_zero_attempted_fallbacks():
     """A request served by the primary model group records attempted_fallbacks=0 and
     the requested model group in metadata, mirroring the x-litellm-attempted-fallbacks header."""
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "gpt-3.5-turbo",
@@ -8238,7 +8238,7 @@ async def test_async_function_with_fallbacks_stamps_zero_attempted_fallbacks():
 async def test_async_function_with_fallbacks_stamps_route_bucket_not_litellm_metadata():
     """A chat completion carrying both metadata buckets gets stamped in the route's bucket
     (metadata), matching where run_async_fallback rewrites, so the two never diverge."""
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "gpt-3.5-turbo",
@@ -8267,7 +8267,7 @@ async def test_async_function_with_fallbacks_stamps_route_bucket_not_litellm_met
 async def test_async_function_with_fallbacks_overrides_client_supplied_stamp_values():
     """Client-supplied attempted_fallbacks and original_model_group are replaced on entry,
     so a reused metadata dict or a spoofed value cannot leak stale attribution into logs."""
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "gpt-3.5-turbo",
@@ -8292,7 +8292,7 @@ async def test_async_function_with_fallbacks_stamps_despite_forged_reentry_param
     """A client injecting fallback_depth or a JSON-shaped attempted_targets via request
     litellm params cannot skip the entry stamp; only the router's own in-process
     AttemptedFallbackTargets instance marks a genuine re-entrant hop."""
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "gpt-3.5-turbo",
@@ -8320,7 +8320,7 @@ async def test_async_function_with_fallbacks_skips_stamp_on_genuine_reentrant_ho
     the per-hop metadata that run_async_fallback wrote instead of resetting it to zero."""
     from token_iq.gateway.router_utils.fallback_event_handlers import AttemptedFallbackTargets
 
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "gpt-3.5-turbo",
@@ -8341,7 +8341,7 @@ async def test_async_function_with_fallbacks_skips_stamp_on_genuine_reentrant_ho
     assert metadata["original_model_group"] == "prod-chat"
 
 
-def _record_router_acompletion_kwargs(router: litellm.Router) -> list:
+def _record_router_acompletion_kwargs(router: gateway.Router) -> list:
     """Spy on router._acompletion, recording each call's kwargs while delegating through."""
     records = []
     original_acompletion = router._acompletion
@@ -8360,7 +8360,7 @@ async def test_async_function_with_fallbacks_scrubs_spoofed_values_from_sibling_
     """Spend logs read a truthy litellm_metadata dict in preference to metadata, so spoofed
     stamp keys planted in the bucket the route does not own are removed on entry, in place,
     before they can flow into the spend log row."""
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "gpt-3.5-turbo",
@@ -8401,7 +8401,7 @@ async def test_async_function_with_fallbacks_scrubs_sibling_bucket_in_place():
     the caller's dict object like every other router bucket write. Rebinding kwargs to a
     scrubbed copy detaches the proxy's request_data write-backs (guardrail telemetry, retry
     accounting) from the object the spend row is built from."""
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "gpt-3.5-turbo",
@@ -8437,7 +8437,7 @@ async def test_async_function_with_fallbacks_stamps_aliased_buckets_on_every_cal
     stamp puts the reserved keys into the shared object, so the second call enters the
     scrub with them present. Scrubbing in place keeps the stamp and the bucket on the same
     object; a scrubbed copy would leave the spend reader's preferred bucket unstamped."""
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "chat-group",
@@ -8469,7 +8469,7 @@ async def test_async_function_with_fallbacks_passes_clean_sibling_bucket_through
     """A sibling bucket carrying no reserved stamp keys is forwarded downstream as the
     caller's own object with no copy made, matching pre-scrub behavior. Retry accounting
     stamped into that bucket downstream predates the scrub and is out of its scope."""
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "gpt-3.5-turbo",
@@ -8498,8 +8498,8 @@ async def test_async_function_with_fallbacks_passes_clean_sibling_bucket_through
 
 
 
-def _permission_denied_error() -> litellm.PermissionDeniedError:
-    return litellm.PermissionDeniedError(
+def _permission_denied_error() -> gateway.PermissionDeniedError:
+    return gateway.PermissionDeniedError(
         message="OpenrouterException - this key has no access to the model",
         llm_provider="openrouter",
         model="openrouter/openai/gpt-4o",
@@ -8508,13 +8508,13 @@ def _permission_denied_error() -> litellm.PermissionDeniedError:
 
 
 def test_permission_denied_error_is_not_retried_against_a_single_deployment():
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {"model_name": "gpt-4o", "litellm_params": {"model": "openrouter/openai/gpt-4o", "api_key": "sk-test"}},
         ]
     )
 
-    with pytest.raises(litellm.PermissionDeniedError):
+    with pytest.raises(gateway.PermissionDeniedError):
         router.should_retry_this_error(
             error=_permission_denied_error(),
             healthy_deployments=router.model_list,
@@ -8588,7 +8588,7 @@ async def test_prompt_management_factory_marks_injection_for_every_deployment(mo
 
     from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLogging
 
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "cached-claude",
@@ -8604,9 +8604,9 @@ async def test_prompt_management_factory_marks_injection_for_every_deployment(mo
 
     async def _capture_acompletion(**kwargs):
         captured.update(kwargs)
-        return litellm.ModelResponse()
+        return gateway.ModelResponse()
 
-    monkeypatch.setattr(litellm, "acompletion", _capture_acompletion)
+    monkeypatch.setattr(gateway, "acompletion", _capture_acompletion)
     logging_obj = LiteLLMLogging(
         model="cached-claude",
         messages=[{"role": "user", "content": "hi"}],

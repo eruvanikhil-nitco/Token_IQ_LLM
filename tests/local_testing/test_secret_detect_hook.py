@@ -18,7 +18,7 @@ import pytest
 from fastapi import Request, Response
 from starlette.datastructures import URL
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import Router, mock_completion
 from token_iq.gateway.caching.caching import DualCache
 from token_iq.gateway.integrations.custom_logger import CustomLogger
@@ -261,8 +261,8 @@ async def test_chat_completion_request_with_redaction():
 
     setattr(proxy_server, "llm_router", router)
     _test_logger = testLogger()
-    litellm.callbacks = [_ENTERPRISE_SecretDetection(), _test_logger]
-    litellm._turn_on_debug()
+    gateway.callbacks = [_ENTERPRISE_SecretDetection(), _test_logger]
+    gateway._turn_on_debug()
 
     # Prepare the query string
     query_params = "param1=value1&param2=value2"

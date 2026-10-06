@@ -16,7 +16,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.integrations.websearch_interception.handler import (
     WebSearchInterceptionLogger,
@@ -43,7 +43,7 @@ def only_the_callbacks_these_tests_register(monkeypatch):
     object, so a logger another test left on litellm.callbacks would join the
     run and change what the hooks do.
     """
-    monkeypatch.setattr(litellm, "callbacks", [])
+    monkeypatch.setattr(gateway, "callbacks", [])
 
 
 def _internal_tool_use_block(block_id: str = "toolu_internal_1") -> dict:

@@ -1,7 +1,7 @@
 from base_llm_unit_tests import BaseLLMChatTest
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 
 class TestBedrockTestSuite(BaseLLMChatTest):
@@ -9,7 +9,7 @@ class TestBedrockTestSuite(BaseLLMChatTest):
         pass
 
     def get_base_completion_call_args(self) -> dict:
-        litellm._turn_on_debug()
+        gateway._turn_on_debug()
         return {
             "model": "bedrock/converse/us.meta.llama3-3-70b-instruct-v1:0",
         }

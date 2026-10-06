@@ -13,7 +13,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy import proxy_server
 from token_iq.gateway.proxy import utils as proxy_utils
 from token_iq.gateway.proxy.utils import create_model_info_response
@@ -69,7 +69,7 @@ def patched_models(monkeypatch):
     monkeypatch.setattr(proxy_utils, "validate_model_access", lambda **kwargs: None)
 
     monkeypatch.setattr(
-        litellm,
+        gateway,
         "get_llm_provider",
         lambda model: (model, "openai", None, None),
     )

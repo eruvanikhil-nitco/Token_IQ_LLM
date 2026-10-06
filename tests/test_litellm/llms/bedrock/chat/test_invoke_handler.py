@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock, MagicMock
 import httpx
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
 from token_iq.gateway.core_utils.streaming_handler import CustomStreamWrapper
 from token_iq.gateway.llms.bedrock.chat.invoke_handler import (
@@ -458,7 +458,7 @@ def test_invoke_streaming_forwards_bedrock_response_headers():
     client = HTTPHandler()
     client.post = MagicMock(return_value=response)
 
-    stream = litellm.completion(
+    stream = gateway.completion(
         model="bedrock/invoke/anthropic.claude-haiku-4-5-20251001-v1:0",
         messages=[{"role": "user", "content": "hi"}],
         stream=True,
@@ -484,7 +484,7 @@ async def test_async_invoke_streaming_forwards_bedrock_response_headers():
     client = AsyncHTTPHandler()
     client.post = AsyncMock(return_value=response)
 
-    stream = await litellm.acompletion(
+    stream = await gateway.acompletion(
         model="bedrock/invoke/anthropic.claude-haiku-4-5-20251001-v1:0",
         messages=[{"role": "user", "content": "hi"}],
         stream=True,

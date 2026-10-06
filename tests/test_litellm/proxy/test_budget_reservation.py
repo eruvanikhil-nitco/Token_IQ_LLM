@@ -8,7 +8,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from fastapi import HTTPException
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.caching.dual_cache import DualCache
 from token_iq.gateway.constants import STREAM_SSE_KEEPALIVE_PING_BYTES
 from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.agentic_streaming_iterator import (
@@ -105,7 +105,7 @@ async def test_reservation_still_protects_under_budget_throttled_key(
 ):
     """An opted-in key that is still under budget keeps its reservation counter,
     so concurrent requests can't collectively overshoot max_budget."""
-    monkeypatch.setattr(litellm, "budget_exceeded_throttle_percentage", 0.1)
+    monkeypatch.setattr(gateway, "budget_exceeded_throttle_percentage", 0.1)
     counter_cache, key_cache = spend_counter_state
     proxy_logging_obj = ProxyLogging(user_api_key_cache=key_cache)
     valid_token = UserAPIKeyAuth(
@@ -130,7 +130,7 @@ async def test_reservation_does_not_block_over_budget_throttled_key(
 ):
     """Once an opted-in key is over budget the reservation path must not raise;
     the rate limiter throttles it instead."""
-    monkeypatch.setattr(litellm, "budget_exceeded_throttle_percentage", 0.1)
+    monkeypatch.setattr(gateway, "budget_exceeded_throttle_percentage", 0.1)
     counter_cache, key_cache = spend_counter_state
     proxy_logging_obj = ProxyLogging(user_api_key_cache=key_cache)
     valid_token = UserAPIKeyAuth(
@@ -160,7 +160,7 @@ async def test_reservation_does_not_block_over_budget_throttled_key(
 async def test_reservation_blocks_over_budget_non_throttled_key(
     spend_counter_state, monkeypatch
 ):
-    monkeypatch.setattr(litellm, "budget_exceeded_throttle_percentage", 0.1)
+    monkeypatch.setattr(gateway, "budget_exceeded_throttle_percentage", 0.1)
     counter_cache, key_cache = spend_counter_state
     proxy_logging_obj = ProxyLogging(user_api_key_cache=key_cache)
     valid_token = UserAPIKeyAuth(
@@ -172,7 +172,7 @@ async def test_reservation_blocks_over_budget_non_throttled_key(
     await _reserve(valid_token, 0.6, key_cache, proxy_logging_obj)
     await _reserve(valid_token, 0.6, key_cache, proxy_logging_obj)  # counter -> 1.0
 
-    with pytest.raises(litellm.BudgetExceededError) as exc_info:
+    with pytest.raises(gateway.BudgetExceededError) as exc_info:
         await _reserve(valid_token, 0.6, key_cache, proxy_logging_obj)
     assert exc_info.value.entity_type == "key"
     assert exc_info.value.entity_id == "key-no-optin-over"
@@ -194,7 +194,7 @@ async def test_over_budget_window_counter_tags_clean_entity_id():
         spend_log_entity_id="test-token",
     )
 
-    with pytest.raises(litellm.BudgetExceededError) as exc_info:
+    with pytest.raises(gateway.BudgetExceededError) as exc_info:
         await _apply_over_budget_reservation_policy(
             counter=counter,
             valid_token=None,
@@ -273,7 +273,7 @@ async def test_should_shrink_second_key_reservation_to_remaining_budget(
             key="spend:key:key-budget-race"
         ) == pytest.approx(1.0)
 
-        with pytest.raises(litellm.BudgetExceededError):
+        with pytest.raises(gateway.BudgetExceededError):
             await reserve_budget_for_request(
                 request_body=_request_body(),
                 route="/chat/completions",
@@ -353,7 +353,7 @@ async def test_should_shrink_second_end_user_reservation_to_remaining_budget(
             key="spend:end_user:end-user-budget-race"
         ) == pytest.approx(1.0)
 
-        with pytest.raises(litellm.BudgetExceededError):
+        with pytest.raises(gateway.BudgetExceededError):
             await reserve_budget_for_request(
                 request_body=_request_body(),
                 route="/chat/completions",
@@ -472,7 +472,7 @@ async def test_should_shrink_second_tag_reservation_to_remaining_budget(
             key="spend:tag:tag-budget-race"
         ) == pytest.approx(1.0)
 
-        with pytest.raises(litellm.BudgetExceededError):
+        with pytest.raises(gateway.BudgetExceededError):
             await reserve_budget_for_request(
                 request_body=request_body,
                 route="/chat/completions",
@@ -843,7 +843,7 @@ async def test_fail_closed_rejects_known_estimate_exceeding_remaining_budget(
         "token_iq.gateway.proxy.spend_tracking.budget_reservation.estimate_request_max_cost",
         return_value=0.6,
     ):
-        with pytest.raises(litellm.BudgetExceededError) as exc_info:
+        with pytest.raises(gateway.BudgetExceededError) as exc_info:
             await reserve_budget_for_request(
                 request_body=_request_body(),
                 route="/chat/completions",
@@ -1033,7 +1033,7 @@ async def test_should_reserve_tiered_pricing_cost(spend_counter_state):
 
     assert reservation is not None
     assert reservation["reserved_cost"] == pytest.approx(estimated_cost)
-    with pytest.raises(litellm.BudgetExceededError):
+    with pytest.raises(gateway.BudgetExceededError):
         await reserve_budget_for_request(
             request_body=request_body,
             route="/chat/completions",
@@ -1357,7 +1357,7 @@ async def test_should_reject_concurrent_image_request_against_depleted_budget(
         )
         assert first is not None
 
-        with pytest.raises(litellm.BudgetExceededError):
+        with pytest.raises(gateway.BudgetExceededError):
             await reserve_budget_for_request(
                 request_body=request_body,
                 route="/v1/images/generations",
@@ -2073,7 +2073,7 @@ async def test_should_preserve_budget_error_and_continue_partial_cleanup(
             "token_iq.gateway.proxy.spend_tracking.budget_reservation.verbose_proxy_logger.exception"
         ) as mock_log_exception,
     ):
-        with pytest.raises(litellm.BudgetExceededError):
+        with pytest.raises(gateway.BudgetExceededError):
             await reserve_budget_for_request(
                 request_body=_request_body(),
                 route="/chat/completions",
@@ -2725,7 +2725,7 @@ async def test_streaming_cancel_in_slow_path_before_yield_refunds(spend_counter_
 
     received = []
     # include_cost_in_streaming_usage forces fast_path off, so the hook above runs
-    with patch.object(litellm, "include_cost_in_streaming_usage", True, create=True):
+    with patch.object(gateway, "include_cost_in_streaming_usage", True, create=True):
         async def _drain():
             async for chunk in generator:
                 received.append(chunk)
@@ -2802,7 +2802,7 @@ async def test_streaming_slow_path_processes_and_yields_chunk(spend_counter_stat
     received = []
     # include_cost_in_streaming_usage forces the slow path so the per-chunk hook,
     # content accumulation, and cost-injection branch all run to a successful yield
-    with patch.object(litellm, "include_cost_in_streaming_usage", True, create=True):
+    with patch.object(gateway, "include_cost_in_streaming_usage", True, create=True):
         async for chunk in generator:
             received.append(chunk)
 
@@ -2857,14 +2857,14 @@ async def test_reservation_tokenizes_the_prompt_once(spend_counter_state):
         token="key-tokenize-once", spend=0.0, max_budget=100.0
     )
     request_body = _body_with_content_size("dashscope/qwen3-max", 600)
-    real_token_counter = litellm.token_counter
+    real_token_counter = gateway.token_counter
     calls = []
 
     def counting_token_counter(**kwargs):
         calls.append(kwargs)
         return real_token_counter(**kwargs)
 
-    with patch.object(litellm, "token_counter", counting_token_counter):
+    with patch.object(gateway, "token_counter", counting_token_counter):
         reservation = await reserve_budget_for_request(
             request_body=request_body,
             route="/chat/completions",
@@ -2899,7 +2899,7 @@ async def test_large_prompt_is_tokenized_off_the_event_loop(spend_counter_state)
         threads.append(threading.current_thread())
         return 1000
 
-    with patch.object(litellm, "token_counter", recording_token_counter):
+    with patch.object(gateway, "token_counter", recording_token_counter):
         reservation = await reserve_budget_for_request(
             request_body=request_body,
             route="/chat/completions",
@@ -2973,7 +2973,7 @@ async def test_large_tool_schema_is_tokenized_off_the_event_loop(spend_counter_s
         threads.append(threading.current_thread())
         return 1000
 
-    with patch.object(litellm, "token_counter", recording_token_counter):
+    with patch.object(gateway, "token_counter", recording_token_counter):
         reservation = await reserve_budget_for_request(
             request_body=body,
             route="/chat/completions",
@@ -3015,7 +3015,7 @@ async def test_large_tool_choice_is_tokenized_off_the_event_loop(spend_counter_s
         threads.append(threading.current_thread())
         return 1000
 
-    with patch.object(litellm, "token_counter", recording_token_counter):
+    with patch.object(gateway, "token_counter", recording_token_counter):
         reservation = await reserve_budget_for_request(
             request_body=body,
             route="/chat/completions",
@@ -3045,7 +3045,7 @@ async def test_small_prompt_is_tokenized_inline(spend_counter_state):
         threads.append(threading.current_thread())
         return 10
 
-    with patch.object(litellm, "token_counter", recording_token_counter):
+    with patch.object(gateway, "token_counter", recording_token_counter):
         reservation = await reserve_budget_for_request(
             request_body=_request_body(),
             route="/chat/completions",
@@ -3142,7 +3142,7 @@ async def test_model_access_group_counter_blocks_a_request_over_the_group_budget
         "token_iq.gateway.proxy.spend_tracking.budget_reservation.estimate_request_max_cost",
         return_value=0.5,
     ):
-        with pytest.raises(litellm.BudgetExceededError) as exc_info:
+        with pytest.raises(gateway.BudgetExceededError) as exc_info:
             await reserve_budget_for_request(
                 request_body=_request_body(),
                 route="/chat/completions",

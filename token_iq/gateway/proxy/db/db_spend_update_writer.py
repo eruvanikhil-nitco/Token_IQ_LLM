@@ -16,7 +16,7 @@ from collections.abc import Mapping, Sequence
 from datetime import datetime, timedelta, timezone
 from typing import TYPE_CHECKING, Any, Final, Literal, Protocol, cast, overload
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.caching import RedisCache
 from token_iq.gateway.constants import (
@@ -716,7 +716,7 @@ class DBSpendUpdateWriter:
         try:
             if prisma_client is not None:  # update
                 user_ids: Final = [user_id]
-                if litellm.max_budget > 0:  # track global proxy budget, if user set max budget
+                if gateway.max_budget > 0:  # track global proxy budget, if user set max budget
                     user_ids.append(litellm_proxy_budget_name)
 
                 for _id in user_ids:

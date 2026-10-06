@@ -1,11 +1,11 @@
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 
 def test_completion_openrouter_reasoning_content():
-    litellm._turn_on_debug()
-    resp = litellm.completion(
+    gateway._turn_on_debug()
+    resp = gateway.completion(
         model="openrouter/anthropic/claude-sonnet-4",
         messages=[{"role": "user", "content": "Hello world"}],
         reasoning={"effort": "high"},
@@ -15,8 +15,8 @@ def test_completion_openrouter_reasoning_content():
 
 
 def test_completion_openrouter_image_generation():
-    litellm._turn_on_debug()
-    resp = litellm.completion(
+    gateway._turn_on_debug()
+    resp = gateway.completion(
         model="openrouter/google/gemini-2.5-flash-image",
         messages=[{"role": "user", "content": "Generate an image of a cat"}],
         modalities=["image", "text"],
@@ -29,8 +29,8 @@ def test_completion_openrouter_image_generation():
 
 def test_openrouter_embedding():
     """Test OpenRouter embeddings support."""
-    litellm._turn_on_debug()
-    resp = litellm.embedding(
+    gateway._turn_on_debug()
+    resp = gateway.embedding(
         model="openrouter/openai/text-embedding-3-small",
         input=["Hello world", "How are you?"],
     )

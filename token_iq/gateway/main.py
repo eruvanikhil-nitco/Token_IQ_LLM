@@ -33,7 +33,7 @@ import tiktoken
 from pydantic import BaseModel
 from typing_extensions import overload
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 # client must be imported from litellm as it's a decorator used at function definition time
 from token_iq.gateway import client
@@ -327,7 +327,7 @@ class LiteLLM:
         organization: str | None = None,
         base_url: str | None = None,
         timeout: float | None = 600,
-        max_retries: int | None = litellm.num_retries,
+        max_retries: int | None = gateway.num_retries,
         default_headers: Mapping[str, str] | None = None,
     ):
         self.params = locals()
@@ -599,7 +599,7 @@ async def acompletion(
             api_base=kwargs.get("api_base") or base_url,
         )
 
-    fallbacks = fallbacks or litellm.model_fallbacks
+    fallbacks = fallbacks or gateway.model_fallbacks
     if fallbacks is not None:
         response = await async_completion_with_fallbacks(**completion_kwargs, kwargs={"fallbacks": fallbacks, **kwargs})
         if response is None:
@@ -645,9 +645,9 @@ async def acompletion(
             or custom_llm_provider == "text-completion-codestral"
             or custom_llm_provider == "text-completion-inception"
         ) and isinstance(response, TextCompletionResponse):
-            response = litellm.OpenAITextCompletionConfig().convert_to_chat_model_response_object(
+            response = gateway.OpenAITextCompletionConfig().convert_to_chat_model_response_object(
                 response_object=response,
-                model_response_object=litellm.ModelResponse(),
+                model_response_object=gateway.ModelResponse(),
             )
         # Provider-agnostic dispatch point for the chat-completions agentic loop
         # (code-interpreter interception, etc). Chat routing forks per provider
@@ -657,7 +657,7 @@ async def acompletion(
         # reconverges, so the loop runs once for all providers. Responses needs
         # no equivalent: every provider already funnels through one shared
         # handler where the loop is dispatched.
-        if isinstance(response, litellm.ModelResponse):
+        if isinstance(response, gateway.ModelResponse):
             looped: Final = await maybe_run_chat_completion_agentic_loop(
                 response=response,
                 model=model,
@@ -737,7 +737,7 @@ def _handle_mock_potential_exceptions(
     if isinstance(mock_response, Exception):
         if isinstance(mock_response, openai.APIError):
             raise mock_response
-        raise litellm.MockException(
+        raise gateway.MockException(
             status_code=getattr(mock_response, "status_code", 500),
             message=getattr(mock_response, "text", str(mock_response)),
             llm_provider=getattr(mock_response, "llm_provider", custom_llm_provider or "openai"),
@@ -745,25 +745,25 @@ def _handle_mock_potential_exceptions(
             request=httpx.Request(method="POST", url="https://api.openai.com/v1/"),
         )
     elif isinstance(mock_response, str) and mock_response == "litellm.RateLimitError":
-        raise litellm.RateLimitError(
+        raise gateway.RateLimitError(
             message="this is a mock rate limit error",
             llm_provider=getattr(mock_response, "llm_provider", custom_llm_provider or "openai"),
             model=model,
         )
     elif isinstance(mock_response, str) and mock_response == "litellm.ContextWindowExceededError":
-        raise litellm.ContextWindowExceededError(
+        raise gateway.ContextWindowExceededError(
             message="this is a mock context window exceeded error",
             llm_provider=getattr(mock_response, "llm_provider", custom_llm_provider or "openai"),
             model=model,
         )
     elif isinstance(mock_response, str) and mock_response == "litellm.InternalServerError":
-        raise litellm.InternalServerError(
+        raise gateway.InternalServerError(
             message="this is a mock internal server error",
             llm_provider=getattr(mock_response, "llm_provider", custom_llm_provider or "openai"),
             model=model,
         )
     elif isinstance(mock_response, str) and mock_response.startswith("Exception: content_filter_policy"):
-        raise litellm.MockException(
+        raise gateway.MockException(
             status_code=400,
             message=mock_response,
             llm_provider="azure",
@@ -779,7 +779,7 @@ def _handle_mock_timeout(
 ):
     if mock_timeout is True and timeout is not None:
         _sleep_for_timeout(timeout)
-        raise litellm.Timeout(
+        raise gateway.Timeout(
             message="This is a mock timeout error",
             llm_provider="openai",
             model=model,
@@ -793,7 +793,7 @@ async def _handle_mock_timeout_async(
 ):
     if mock_timeout is True and timeout is not None:
         await _sleep_for_timeout_async(timeout)
-        raise litellm.Timeout(
+        raise gateway.Timeout(
             message="This is a mock timeout error",
             llm_provider="openai",
             model=model,
@@ -879,7 +879,7 @@ def mock_completion(
             str | dict | ModelResponse | ModelResponseStream, mock_response
         )  # after this point, mock_response is a string, dict, ModelResponse, or ModelResponseStream
         if isinstance(mock_response, str) and mock_response.startswith("Exception: mock_streaming_error"):
-            mock_response = litellm.MockException(
+            mock_response = gateway.MockException(
                 message="This is a mock error raised mid-stream",
                 llm_provider="anthropic",
                 model=model,
@@ -920,7 +920,7 @@ def mock_completion(
                 custom_llm_provider="openai",
                 logging_obj=logging,
             )
-        if isinstance(mock_response, litellm.MockException):
+        if isinstance(mock_response, gateway.MockException):
             raise mock_response
         # At this point, mock_response must be a string (all other types have been handled or returned early)
         mock_response = cast(str, mock_response)
@@ -930,9 +930,9 @@ def mock_completion(
         else:
             _all_choices: Final = []
             for i in range(n):
-                _choice = litellm.utils.Choices(
+                _choice = gateway.utils.Choices(
                     index=i,
-                    message=litellm.utils.Message(content=mock_response, role="assistant"),
+                    message=gateway.utils.Message(content=mock_response, role="assistant"),
                 )
                 _all_choices.append(_choice)
             model_response.choices = _all_choices
@@ -955,7 +955,7 @@ def mock_completion(
         )
 
         try:
-            _, custom_llm_provider, _, _ = litellm.utils.get_llm_provider(model=model)
+            _, custom_llm_provider, _, _ = gateway.utils.get_llm_provider(model=model)
             model_response._hidden_params["custom_llm_provider"] = custom_llm_provider
         except Exception:
             # dont let setting a hidden param block a mock_respose
@@ -986,7 +986,7 @@ def _resolve_openai_api_base(api_base: str | None) -> str:
     which then misreads it as the default OpenAI endpoint and bridges a request the backend can't serve."""
     return (
         api_base
-        or litellm.api_base
+        or gateway.api_base
         or get_secret_str("OPENAI_BASE_URL")
         or get_secret_str("OPENAI_API_BASE")
         or _OPENAI_DEFAULT_API_BASE
@@ -1006,7 +1006,7 @@ def responses_api_bridge_check(
 
     # Global flag: route ALL OpenAI chat completions through Responses API.
     # Returns early with minimal model_info; callers only inspect the "mode" key.
-    if litellm.route_all_chat_openai_to_responses and custom_llm_provider == "openai":
+    if gateway.route_all_chat_openai_to_responses and custom_llm_provider == "openai":
         model = model.replace("responses/", "")
         model_info["mode"] = "responses"
         return model_info, model
@@ -1204,9 +1204,9 @@ def _register_custom_pricing_for_request(
     shared_key: Final = f"{custom_llm_provider}/{model}"
     deployment_id: Final = _get_router_deployment_id(kwargs)
     if deployment_id is None:
-        litellm.register_model({shared_key: entry}, persist_across_reloads=False)
+        gateway.register_model({shared_key: entry}, persist_across_reloads=False)
         return
-    litellm.register_model(
+    gateway.register_model(
         {
             deployment_id: entry,
             shared_key: CustomPricingLiteLLMParams.strip_custom_pricing_fields(entry),
@@ -1263,16 +1263,16 @@ def _complete_azure(ctx: _CompletionDispatchContext) -> _CompletionDispatchResul
 
     api_type: Final = get_secret("AZURE_API_TYPE") or "azure"
 
-    api_base = api_base or litellm.api_base or get_secret("AZURE_API_BASE")
+    api_base = api_base or gateway.api_base or get_secret("AZURE_API_BASE")
 
     api_version = (
-        api_version or litellm.api_version or get_secret_str("AZURE_API_VERSION") or litellm.AZURE_DEFAULT_API_VERSION
+        api_version or gateway.api_version or get_secret_str("AZURE_API_VERSION") or gateway.AZURE_DEFAULT_API_VERSION
     )
 
     api_key = (
         api_key
-        or litellm.api_key
-        or litellm.azure_key
+        or gateway.api_key
+        or gateway.azure_key
         or get_secret_str("AZURE_OPENAI_API_KEY")
         or get_secret_str("AZURE_API_KEY")
     )
@@ -1284,16 +1284,16 @@ def _complete_azure(ctx: _CompletionDispatchContext) -> _CompletionDispatchResul
     azure_ad_token_provider_value: Final = litellm_params.get("azure_ad_token_provider", None)
     azure_ad_token_provider: Final = azure_ad_token_provider_value if callable(azure_ad_token_provider_value) else None
 
-    headers = headers or litellm.headers
+    headers = headers or gateway.headers
 
     if extra_headers is not None:
         optional_params["extra_headers"] = extra_headers
     if max_retries is not None:
         optional_params["max_retries"] = max_retries
 
-    if litellm.AzureOpenAIO1Config().is_o_series_model(model=_azure_detection_model):
+    if gateway.AzureOpenAIO1Config().is_o_series_model(model=_azure_detection_model):
         ## LOAD CONFIG - if set
-        config = litellm.AzureOpenAIO1Config.get_config()
+        config = gateway.AzureOpenAIO1Config.get_config()
         for k, v in _provider_config_items(config):
             if (
                 k not in optional_params
@@ -1322,7 +1322,7 @@ def _complete_azure(ctx: _CompletionDispatchContext) -> _CompletionDispatchResul
         )
     else:
         ## LOAD CONFIG - if set
-        config = litellm.AzureOpenAIConfig.get_config()
+        config = gateway.AzureOpenAIConfig.get_config()
         for k, v in _provider_config_items(config):
             if (
                 k not in optional_params
@@ -1387,19 +1387,19 @@ def _complete_azure_text(ctx: _CompletionDispatchContext) -> _CompletionDispatch
 
     api_type: Final = get_secret_str("AZURE_API_TYPE") or "azure"
 
-    api_base = api_base or litellm.api_base or get_secret_str("AZURE_API_BASE")
+    api_base = api_base or gateway.api_base or get_secret_str("AZURE_API_BASE")
 
     if api_base is None:
         raise ValueError(
             "api_base is required for Azure OpenAI LLM provider. Either set it dynamically or set the AZURE_API_BASE environment variable."
         )
 
-    api_version = api_version or litellm.api_version or get_secret_str("AZURE_API_VERSION")
+    api_version = api_version or gateway.api_version or get_secret_str("AZURE_API_VERSION")
 
     api_key = (
         api_key
-        or litellm.api_key
-        or litellm.azure_key
+        or gateway.api_key
+        or gateway.azure_key
         or get_secret_str("AZURE_OPENAI_API_KEY")
         or get_secret_str("AZURE_API_KEY")
     )
@@ -1411,13 +1411,13 @@ def _complete_azure_text(ctx: _CompletionDispatchContext) -> _CompletionDispatch
     azure_ad_token_provider_value: Final = litellm_params.get("azure_ad_token_provider", None)
     azure_ad_token_provider: Final = azure_ad_token_provider_value if callable(azure_ad_token_provider_value) else None
 
-    headers = headers or litellm.headers
+    headers = headers or gateway.headers
 
     if extra_headers is not None:
         optional_params["extra_headers"] = extra_headers
 
     ## LOAD CONFIG - if set
-    config: Final = litellm.AzureOpenAIConfig.get_config()
+    config: Final = gateway.AzureOpenAIConfig.get_config()
     for k, v in _provider_config_items(config):
         if (
             k not in optional_params
@@ -1559,7 +1559,7 @@ def _complete_azure_ai(ctx: _CompletionDispatchContext) -> _CompletionDispatchRe
             timeout=timeout,
             acompletion=acompletion,
             stream=stream,
-            headers=headers or litellm.headers,
+            headers=headers or gateway.headers,
         )
 
     # Check if this is a Claude model - route to Azure Anthropic handler
@@ -1588,7 +1588,7 @@ def _complete_azure_ai(ctx: _CompletionDispatchContext) -> _CompletionDispatchRe
             messages=messages,
             api_base=api_base,
             acompletion=acompletion,
-            custom_prompt_dict=litellm.custom_prompt_dict,
+            custom_prompt_dict=gateway.custom_prompt_dict,
             model_response=model_response,
             print_verbose=print_verbose,
             optional_params=optional_params,
@@ -1616,7 +1616,7 @@ def _complete_azure_ai(ctx: _CompletionDispatchContext) -> _CompletionDispatchRe
         # set API KEY
         api_key = AzureFoundryModelInfo.get_api_key(api_key)
 
-        headers = headers or litellm.headers
+        headers = headers or gateway.headers
 
         if extra_headers is not None:
             optional_params["extra_headers"] = extra_headers
@@ -1690,7 +1690,7 @@ def _complete_text_completion_openai(
 
     api_base = (
         api_base
-        or litellm.api_base
+        or gateway.api_base
         or get_secret("OPENAI_BASE_URL")
         or get_secret("OPENAI_API_BASE")
         or "https://api.openai.com/v1"
@@ -1699,19 +1699,19 @@ def _complete_text_completion_openai(
     openai.api_version = None
     # set API KEY
 
-    api_key = api_key or litellm.api_key or litellm.openai_key or get_secret("OPENAI_API_KEY")
+    api_key = api_key or gateway.api_key or gateway.openai_key or get_secret("OPENAI_API_KEY")
 
-    headers = headers or litellm.headers
+    headers = headers or gateway.headers
 
     ## LOAD CONFIG - if set
-    config: Final = litellm.OpenAITextCompletionConfig.get_config()
+    config: Final = gateway.OpenAITextCompletionConfig.get_config()
     for k, v in _provider_config_items(config):
         if (
             k not in optional_params
         ):  # completion(top_k=3) > openai_text_config(top_k=3) <- allows for dynamic variables to be passed in
             optional_params[k] = v
-    if litellm.organization:
-        openai.organization = litellm.organization
+    if gateway.organization:
+        openai.organization = gateway.organization
 
     ## COMPLETION CALL
     _response = openai_text_completions.completion(
@@ -1734,7 +1734,7 @@ def _complete_text_completion_openai(
 
     if optional_params.get("stream", False) is False and acompletion is False and text_completion is False:
         # convert to chat completion response
-        _response = litellm.OpenAITextCompletionConfig().convert_to_chat_model_response_object(
+        _response = gateway.OpenAITextCompletionConfig().convert_to_chat_model_response_object(
             response_object=_response, model_response_object=model_response
         )
 
@@ -1769,7 +1769,7 @@ def _complete_fireworks_ai(
     timeout: Final = ctx.timeout
     optional_params: Final = (
         provider_config.map_extra_body_params(optional_params=ctx.optional_params, model=model)
-        if isinstance(provider_config, litellm.FireworksAIConfig)
+        if isinstance(provider_config, gateway.FireworksAIConfig)
         else ctx.optional_params
     )
 
@@ -2026,7 +2026,7 @@ def _complete_groq(ctx: _CompletionDispatchContext) -> _CompletionDispatchResult
 
     api_base = (
         api_base  # for deepinfra/perplexity/anyscale/groq/friendliai we check in get_llm_provider and pass in the api base from there
-        or litellm.api_base
+        or gateway.api_base
         or get_secret("GROQ_API_BASE")
         or "https://api.groq.com/openai/v1"
     )
@@ -2034,15 +2034,15 @@ def _complete_groq(ctx: _CompletionDispatchContext) -> _CompletionDispatchResult
     # set API KEY
     api_key = (
         api_key
-        or litellm.api_key  # for deepinfra/perplexity/anyscale/friendliai we check in get_llm_provider and pass in the api key from there
-        or litellm.groq_key
+        or gateway.api_key  # for deepinfra/perplexity/anyscale/friendliai we check in get_llm_provider and pass in the api key from there
+        or gateway.groq_key
         or get_secret("GROQ_API_KEY")
     )
 
-    headers = headers or litellm.headers
+    headers = headers or gateway.headers
 
     ## LOAD CONFIG - if set
-    config: Final = litellm.GroqChatConfig.get_config()
+    config: Final = gateway.GroqChatConfig.get_config()
     for k, v in _provider_config_items(config):
         if (
             k not in optional_params
@@ -2088,10 +2088,10 @@ def _complete_bedrock_mantle(
     stream: Final = ctx.stream
     timeout: Final = ctx.timeout
 
-    api_base = api_base or litellm.api_base or get_secret("BEDROCK_MANTLE_API_BASE")
-    api_key = api_key or litellm.api_key or get_secret("BEDROCK_MANTLE_API_KEY")
-    headers = headers or litellm.headers
-    config: Final = litellm.BedrockMantleChatConfig.get_config()
+    api_base = api_base or gateway.api_base or get_secret("BEDROCK_MANTLE_API_BASE")
+    api_key = api_key or gateway.api_key or get_secret("BEDROCK_MANTLE_API_KEY")
+    headers = headers or gateway.headers
+    config: Final = gateway.BedrockMantleChatConfig.get_config()
     for k, v in _provider_config_items(config):
         if k not in optional_params:
             optional_params[k] = v
@@ -2137,7 +2137,7 @@ def _complete_a2a(ctx: _CompletionDispatchContext) -> _CompletionDispatchResult:
         api_base,
         api_key,
         headers,
-    ) = litellm.A2AConfig.resolve_agent_config_from_registry(
+    ) = gateway.A2AConfig.resolve_agent_config_from_registry(
         model=model,
         api_base=api_base,
         api_key=api_key,
@@ -2146,7 +2146,7 @@ def _complete_a2a(ctx: _CompletionDispatchContext) -> _CompletionDispatchResult:
     )
 
     # Fall back to environment variables and defaults
-    api_base = api_base or litellm.api_base or get_secret_str("A2A_API_BASE")
+    api_base = api_base or gateway.api_base or get_secret_str("A2A_API_BASE")
 
     if api_base is None:
         raise Exception(
@@ -2155,7 +2155,7 @@ def _complete_a2a(ctx: _CompletionDispatchContext) -> _CompletionDispatchResult:
             "or register the agent in the proxy with model='a2a/<agent-name>'."
         )
 
-    headers = headers or litellm.headers
+    headers = headers or gateway.headers
 
     return base_llm_http_handler.completion(
         model=model,
@@ -2198,13 +2198,13 @@ def _complete_gigachat(ctx: _CompletionDispatchContext) -> _CompletionDispatchRe
 
     api_key = (
         api_key
-        or litellm.api_key
-        or litellm.gigachat_key
+        or gateway.api_key
+        or gateway.gigachat_key
         or get_secret("GIGACHAT_API_KEY")
         or get_secret("GIGACHAT_CREDENTIALS")
     )
 
-    headers = headers or litellm.headers or {}
+    headers = headers or gateway.headers or {}
 
     ## COMPLETION CALL
     try:
@@ -2257,9 +2257,9 @@ def _complete_sap(ctx: _CompletionDispatchContext) -> _CompletionDispatchResult:
     stream: Final = ctx.stream
     timeout: Final = ctx.timeout
 
-    headers = headers or litellm.headers
+    headers = headers or gateway.headers
     ## LOAD CONFIG - if set
-    config: Final = litellm.GenAIHubOrchestrationConfig.get_config()
+    config: Final = gateway.GenAIHubOrchestrationConfig.get_config()
     for k, v in _provider_config_items(config):
         if (
             k not in optional_params
@@ -2307,7 +2307,7 @@ def _complete_aiohttp_openai(
 
     api_base = (
         api_base  # for deepinfra/perplexity/anyscale/groq/friendliai we check in get_llm_provider and pass in the api base from there
-        or litellm.api_base
+        or gateway.api_base
         or get_secret("OPENAI_BASE_URL")
         or get_secret("OPENAI_API_BASE")
         or "https://api.openai.com/v1"
@@ -2315,12 +2315,12 @@ def _complete_aiohttp_openai(
     # set API KEY
     api_key = (
         api_key
-        or litellm.api_key  # for deepinfra/perplexity/anyscale/friendliai we check in get_llm_provider and pass in the api key from there
-        or litellm.openai_key
+        or gateway.api_key  # for deepinfra/perplexity/anyscale/friendliai we check in get_llm_provider and pass in the api key from there
+        or gateway.openai_key
         or get_secret("OPENAI_API_KEY")
     )
 
-    headers = headers or litellm.headers
+    headers = headers or gateway.headers
 
     if extra_headers is not None:
         optional_params["extra_headers"] = extra_headers
@@ -2361,9 +2361,9 @@ def _complete_cometapi(ctx: _CompletionDispatchContext) -> _CompletionDispatchRe
     stream: Final = ctx.stream
     timeout: Final = ctx.timeout
 
-    api_key = api_key or litellm.cometapi_key or get_secret_str("COMETAPI_KEY") or litellm.api_key
+    api_key = api_key or gateway.cometapi_key or get_secret_str("COMETAPI_KEY") or gateway.api_key
 
-    api_base = api_base or litellm.api_base or get_secret_str("COMETAPI_API_BASE") or "https://api.cometapi.com/v1"
+    api_base = api_base or gateway.api_base or get_secret_str("COMETAPI_API_BASE") or "https://api.cometapi.com/v1"
 
     ## COMPLETION CALL
     response: Final = base_llm_http_handler.completion(
@@ -2410,9 +2410,9 @@ def _complete_minimax(ctx: _CompletionDispatchContext) -> _CompletionDispatchRes
     stream: Final = ctx.stream
     timeout: Final = ctx.timeout
 
-    api_key = api_key or get_secret_str("MINIMAX_API_KEY") or litellm.api_key
+    api_key = api_key or get_secret_str("MINIMAX_API_KEY") or gateway.api_key
 
-    api_base = api_base or litellm.api_base or get_secret_str("MINIMAX_API_BASE") or "https://api.minimax.io/v1"
+    api_base = api_base or gateway.api_base or get_secret_str("MINIMAX_API_BASE") or "https://api.minimax.io/v1"
 
     response: Final = base_llm_http_handler.completion(
         model=model,
@@ -2456,7 +2456,7 @@ def _complete_hosted_vllm(ctx: _CompletionDispatchContext) -> _CompletionDispatc
     stream: Final = ctx.stream
     timeout: Final = ctx.timeout
 
-    api_base = api_base or litellm.api_base or get_secret_str("HOSTED_VLLM_API_BASE")
+    api_base = api_base or gateway.api_base or get_secret_str("HOSTED_VLLM_API_BASE")
 
     response: Final = base_llm_http_handler.completion(
         model=model,
@@ -2511,7 +2511,7 @@ def _complete_custom_openai(
     api_base = _resolve_openai_api_base(api_base)
     organization = (
         organization
-        or litellm.organization
+        or gateway.organization
         or get_secret("OPENAI_ORGANIZATION")
         or None  # default - https://github.com/openai/openai-python/blob/284c1799070c723c6a553337134148a7ab088dd8/openai/util.py#L105
     )
@@ -2519,12 +2519,12 @@ def _complete_custom_openai(
     # set API KEY
     api_key = (
         api_key
-        or litellm.api_key  # for deepinfra/perplexity/anyscale/friendliai we check in get_llm_provider and pass in the api key from there
-        or litellm.openai_key
+        or gateway.api_key  # for deepinfra/perplexity/anyscale/friendliai we check in get_llm_provider and pass in the api key from there
+        or gateway.openai_key
         or get_secret("OPENAI_API_KEY")
     )
 
-    headers = headers or litellm.headers
+    headers = headers or gateway.headers
 
     # Add GitHub Copilot headers (same as /responses endpoint does)
     if custom_llm_provider == "github_copilot":
@@ -2543,13 +2543,13 @@ def _complete_custom_openai(
     if extra_headers is not None:
         optional_params["extra_headers"] = extra_headers
 
-    if litellm.enable_preview_features and metadata is not None:  # [PREVIEW] allow metadata to be passed to OPENAI
+    if gateway.enable_preview_features and metadata is not None:  # [PREVIEW] allow metadata to be passed to OPENAI
         openai_metadata: Final = get_requester_metadata(metadata)
         if openai_metadata is not None:
             optional_params["metadata"] = openai_metadata
 
     ## LOAD CONFIG - if set
-    config: Final = litellm.OpenAIConfig.get_config()
+    config: Final = gateway.OpenAIConfig.get_config()
     for k, v in _provider_config_items(config):
         if (
             k not in optional_params
@@ -2641,8 +2641,8 @@ def _complete_mistral(ctx: _CompletionDispatchContext) -> _CompletionDispatchRes
     stream: Final = ctx.stream
     timeout: Final = ctx.timeout
 
-    api_key = api_key or litellm.api_key or get_secret("MISTRAL_API_KEY")
-    api_base = api_base or litellm.api_base or get_secret("MISTRAL_API_BASE") or "https://api.mistral.ai/v1"
+    api_key = api_key or gateway.api_key or get_secret("MISTRAL_API_KEY")
+    api_base = api_base or gateway.api_base or get_secret("MISTRAL_API_BASE") or "https://api.mistral.ai/v1"
 
     return base_llm_http_handler.completion(
         model=model,
@@ -2681,15 +2681,15 @@ def _complete_replicate(ctx: _CompletionDispatchContext) -> _CompletionDispatchR
 
     replicate_key: Final = (
         api_key
-        or litellm.replicate_key
-        or litellm.api_key
+        or gateway.replicate_key
+        or gateway.api_key
         or get_secret("REPLICATE_API_KEY")
         or get_secret("REPLICATE_API_TOKEN")
     )
 
-    api_base = api_base or litellm.api_base or get_secret("REPLICATE_API_BASE") or "https://api.replicate.com/v1"
+    api_base = api_base or gateway.api_base or get_secret("REPLICATE_API_BASE") or "https://api.replicate.com/v1"
 
-    custom_prompt_dict = custom_prompt_dict or litellm.custom_prompt_dict
+    custom_prompt_dict = custom_prompt_dict or gateway.custom_prompt_dict
 
     model_response = replicate_chat_completion(
         model=model,
@@ -2737,12 +2737,12 @@ def _complete_anthropic_text(
     stream: Final = ctx.stream
     timeout: Final = ctx.timeout
 
-    api_key = api_key or litellm.anthropic_key or litellm.api_key or os.environ.get("ANTHROPIC_API_KEY")
-    custom_prompt_dict = custom_prompt_dict or litellm.custom_prompt_dict
+    api_key = api_key or gateway.anthropic_key or gateway.api_key or os.environ.get("ANTHROPIC_API_KEY")
+    custom_prompt_dict = custom_prompt_dict or gateway.custom_prompt_dict
     api_base = cast(
         str | None,
         api_base
-        or litellm.api_base
+        or gateway.api_base
         or get_secret("ANTHROPIC_API_BASE")
         or get_secret("ANTHROPIC_BASE_URL")
         or "https://api.anthropic.com/v1/complete",
@@ -2791,14 +2791,14 @@ def _complete_anthropic(ctx: _CompletionDispatchContext) -> _CompletionDispatchR
     optional_params: Final = ctx.optional_params
     timeout: Final = ctx.timeout
 
-    api_key = api_key or litellm.anthropic_key or litellm.api_key or os.environ.get("ANTHROPIC_API_KEY")
-    custom_prompt_dict = custom_prompt_dict or litellm.custom_prompt_dict
+    api_key = api_key or gateway.anthropic_key or gateway.api_key or os.environ.get("ANTHROPIC_API_KEY")
+    custom_prompt_dict = custom_prompt_dict or gateway.custom_prompt_dict
     # call /messages
     # default route for all anthropic models
     api_base = cast(
         str | None,
         api_base
-        or litellm.api_base
+        or gateway.api_base
         or get_secret("ANTHROPIC_API_BASE")
         or get_secret("ANTHROPIC_BASE_URL")
         or "https://api.anthropic.com/v1/messages",
@@ -2816,7 +2816,7 @@ def _complete_anthropic(ctx: _CompletionDispatchContext) -> _CompletionDispatchR
         messages=messages,
         api_base=api_base,
         acompletion=acompletion,
-        custom_prompt_dict=litellm.custom_prompt_dict,
+        custom_prompt_dict=gateway.custom_prompt_dict,
         model_response=model_response,
         print_verbose=print_verbose,
         optional_params=optional_params,
@@ -2852,9 +2852,9 @@ def _complete_nlp_cloud(ctx: _CompletionDispatchContext) -> _CompletionDispatchR
     model_response: Final = ctx.model_response
     optional_params: Final = ctx.optional_params
 
-    nlp_cloud_key: Final = api_key or litellm.nlp_cloud_key or get_secret("NLP_CLOUD_API_KEY") or litellm.api_key
+    nlp_cloud_key: Final = api_key or gateway.nlp_cloud_key or get_secret("NLP_CLOUD_API_KEY") or gateway.api_key
 
-    api_base = api_base or litellm.api_base or get_secret("NLP_CLOUD_API_BASE") or "https://api.nlpcloud.io/v1/gpu/"
+    api_base = api_base or gateway.api_base or get_secret("NLP_CLOUD_API_BASE") or "https://api.nlpcloud.io/v1/gpu/"
 
     response = nlp_cloud_chat_completion(
         model=model,
@@ -2903,14 +2903,14 @@ def _complete_aleph_alpha(ctx: _CompletionDispatchContext) -> _CompletionDispatc
 
     aleph_alpha_key: Final = (
         api_key
-        or litellm.aleph_alpha_key
+        or gateway.aleph_alpha_key
         or get_secret("ALEPH_ALPHA_API_KEY")
         or get_secret("ALEPHALPHA_API_KEY")
-        or litellm.api_key
+        or gateway.api_key
     )
 
     api_base = (
-        api_base or litellm.api_base or get_secret("ALEPH_ALPHA_API_BASE") or "https://api.aleph-alpha.com/complete"
+        api_base or gateway.api_base or get_secret("ALEPH_ALPHA_API_BASE") or "https://api.aleph-alpha.com/complete"
     )
 
     model_response = aleph_alpha.completion(
@@ -2923,7 +2923,7 @@ def _complete_aleph_alpha(ctx: _CompletionDispatchContext) -> _CompletionDispatc
         litellm_params=litellm_params,
         logger_fn=logger_fn,
         encoding=_get_encoding(),
-        default_max_tokens_to_sample=litellm.max_tokens,
+        default_max_tokens_to_sample=gateway.max_tokens,
         api_key=aleph_alpha_key,
         logging_obj=logging,  # model call logging done inside the class as we make need to modify I/O to fit aleph alpha's requirements
     )
@@ -2958,24 +2958,24 @@ def _complete_cohere_chat(ctx: _CompletionDispatchContext) -> _CompletionDispatc
 
     cohere_key: Final = (
         api_key
-        or litellm.cohere_key
+        or gateway.cohere_key
         or get_secret_str("COHERE_API_KEY")
         or get_secret_str("CO_API_KEY")
-        or litellm.api_key
+        or gateway.api_key
     )
 
     cohere_route: Final = CohereModelInfo.get_cohere_route(model)
     verbose_logger.debug("Cohere route: %s", cohere_route)
     # Set API base based on route
     if cohere_route == "v2":
-        api_base = api_base or litellm.api_base or get_secret_str("COHERE_API_BASE") or "https://api.cohere.com/v2/chat"
+        api_base = api_base or gateway.api_base or get_secret_str("COHERE_API_BASE") or "https://api.cohere.com/v2/chat"
         # Remove v2/ prefix from model name for the actual API call
         if "v2/" in model:
             model = model.replace("v2/", "")
     else:
-        api_base = api_base or litellm.api_base or get_secret_str("COHERE_API_BASE") or "https://api.cohere.ai/v1/chat"
+        api_base = api_base or gateway.api_base or get_secret_str("COHERE_API_BASE") or "https://api.cohere.ai/v1/chat"
 
-    headers = headers or litellm.headers or {}
+    headers = headers or gateway.headers or {}
     if headers is None:
         headers = {}
 
@@ -3016,9 +3016,9 @@ def _complete_maritalk(ctx: _CompletionDispatchContext) -> _CompletionDispatchRe
     model_response: Final = ctx.model_response
     optional_params: Final = ctx.optional_params
 
-    maritalk_key: Final = api_key or litellm.maritalk_key or get_secret("MARITALK_API_KEY") or litellm.api_key
+    maritalk_key: Final = api_key or gateway.maritalk_key or get_secret("MARITALK_API_KEY") or gateway.api_key
 
-    api_base = api_base or litellm.api_base or get_secret("MARITALK_API_BASE") or "https://chat.maritaca.ai/api"
+    api_base = api_base or gateway.api_base or get_secret("MARITALK_API_BASE") or "https://chat.maritaca.ai/api"
 
     return openai_like_chat_completion.completion(
         model=model,
@@ -3051,9 +3051,9 @@ def _complete_amazon_nova(ctx: _CompletionDispatchContext) -> _CompletionDispatc
     optional_params: Final = ctx.optional_params
     timeout: Final = ctx.timeout
 
-    api_key = api_key or litellm.amazon_nova_api_key or get_secret_str("AMAZON_NOVA_API_KEY") or litellm.api_key
+    api_key = api_key or gateway.amazon_nova_api_key or get_secret_str("AMAZON_NOVA_API_KEY") or gateway.api_key
     api_base = (
-        api_base or litellm.api_base or get_secret_str("AMAZON_NOVA_API_BASE") or "https://api.nova.amazon.com/v1"
+        api_base or gateway.api_base or get_secret_str("AMAZON_NOVA_API_BASE") or "https://api.nova.amazon.com/v1"
     )
     return openai_like_chat_completion.completion(
         model=model,
@@ -3091,12 +3091,12 @@ def _complete_huggingface(ctx: _CompletionDispatchContext) -> _CompletionDispatc
 
     huggingface_key: Final = (
         api_key
-        or litellm.huggingface_key
+        or gateway.huggingface_key
         or os.environ.get("HF_TOKEN")
         or os.environ.get("HUGGINGFACE_API_KEY")
-        or litellm.api_key
+        or gateway.api_key
     )
-    hf_headers: Final = headers or litellm.headers
+    hf_headers: Final = headers or gateway.headers
     return base_llm_http_handler.completion(
         model=model,
         messages=messages,
@@ -3168,7 +3168,7 @@ def _complete_compactifai(ctx: _CompletionDispatchContext) -> _CompletionDispatc
     stream: Final = ctx.stream
     timeout: Final = ctx.timeout
 
-    api_key = api_key or get_secret_str("COMPACTIFAI_API_KEY") or litellm.api_key
+    api_key = api_key or get_secret_str("COMPACTIFAI_API_KEY") or gateway.api_key
 
     api_base = api_base or "https://api.compactif.ai/v1"
 
@@ -3244,19 +3244,19 @@ def _complete_databricks(ctx: _CompletionDispatchContext) -> _CompletionDispatch
 
     api_base = (
         api_base  # for databricks we check in get_llm_provider and pass in the api base from there
-        or litellm.api_base
+        or gateway.api_base
         or os.getenv("DATABRICKS_API_BASE")
     )
 
     # set API KEY
     api_key = (
         api_key
-        or litellm.api_key  # for databricks we check in get_llm_provider and pass in the api key from there
-        or litellm.databricks_key
+        or gateway.api_key  # for databricks we check in get_llm_provider and pass in the api key from there
+        or gateway.databricks_key
         or get_secret("DATABRICKS_API_KEY")
     )
 
-    headers = headers or litellm.headers
+    headers = headers or gateway.headers
 
     ## COMPLETION CALL
     try:
@@ -3352,12 +3352,12 @@ def _complete_openrouter(ctx: _CompletionDispatchContext) -> _CompletionDispatch
     stream: Final = ctx.stream
     timeout: Final = ctx.timeout
 
-    api_base = api_base or litellm.api_base or get_secret_str("OPENROUTER_API_BASE") or "https://openrouter.ai/api/v1"
+    api_base = api_base or gateway.api_base or get_secret_str("OPENROUTER_API_BASE") or "https://openrouter.ai/api/v1"
 
     api_key = (
         api_key
-        or litellm.api_key
-        or litellm.openrouter_key
+        or gateway.api_key
+        or gateway.openrouter_key
         or get_secret_str("OPENROUTER_API_KEY")
         or get_secret_str("OR_API_KEY")
     )
@@ -3370,14 +3370,14 @@ def _complete_openrouter(ctx: _CompletionDispatchContext) -> _CompletionDispatch
         "X-Title": openrouter_app_name,
     }
 
-    _headers: Final = headers or litellm.headers
+    _headers: Final = headers or gateway.headers
     if _headers:
         openrouter_headers.update(_headers)
 
     headers = openrouter_headers
 
     ## Load Config
-    config: Final = litellm.OpenrouterConfig.get_config()
+    config: Final = gateway.OpenrouterConfig.get_config()
     for k, v in _provider_config_items(config):
         if k == "extra_body":
             # we use openai 'extra_body' to pass openrouter specific params - transforms, route, models
@@ -3433,12 +3433,12 @@ def _complete_vercel_ai_gateway(
 
     api_base = (
         api_base
-        or litellm.api_base
+        or gateway.api_base
         or get_secret_str("VERCEL_AI_GATEWAY_API_BASE")
         or "https://ai-gateway.vercel.sh/v1"
     )
 
-    api_key = api_key or litellm.api_key or get_secret("VERCEL_AI_GATEWAY_API_KEY")
+    api_key = api_key or gateway.api_key or get_secret("VERCEL_AI_GATEWAY_API_KEY")
 
     vercel_site_url: Final = get_secret("VERCEL_SITE_URL") or "https://litellm.ai"
     vercel_app_name: Final = get_secret("VERCEL_APP_NAME") or "liteLLM"
@@ -3448,14 +3448,14 @@ def _complete_vercel_ai_gateway(
         "x-title": vercel_app_name,
     }
 
-    _headers: Final = headers or litellm.headers
+    _headers: Final = headers or gateway.headers
     if _headers:
         vercel_headers.update(_headers)
 
     headers = vercel_headers
 
     ## Load Config
-    config: Final = litellm.VercelAIGatewayConfig.get_config()
+    config: Final = gateway.VercelAIGatewayConfig.get_config()
     for k, v in _provider_config_items(config):
         if k == "extra_body":
             # we use openai 'extra_body' to pass vercel specific params - providerOptions
@@ -3512,13 +3512,13 @@ def _complete_vertex_ai_beta(
     vertex_ai_project: Final = (
         optional_params.pop("vertex_project", None)
         or optional_params.pop("vertex_ai_project", None)
-        or litellm.vertex_project
+        or gateway.vertex_project
         or get_secret("VERTEXAI_PROJECT")
     )
     vertex_ai_location: Final = (
         optional_params.pop("vertex_location", None)
         or optional_params.pop("vertex_ai_location", None)
-        or litellm.vertex_location
+        or gateway.vertex_location
         or get_secret("VERTEXAI_LOCATION")
     )
     vertex_credentials: Final = (
@@ -3531,10 +3531,10 @@ def _complete_vertex_ai_beta(
         api_key
         or get_api_key_from_env()
         or get_secret("PALM_API_KEY")  # older palm api key should also work
-        or litellm.api_key
+        or gateway.api_key
     )
 
-    api_base = api_base or litellm.api_base or get_secret("GEMINI_API_BASE")
+    api_base = api_base or gateway.api_base or get_secret("GEMINI_API_BASE")
     new_params: Final = safe_deep_copy(optional_params or {})
     return vertex_chat_completion.completion(
         model=model,
@@ -3579,13 +3579,13 @@ def _complete_vertex_ai(ctx: _CompletionDispatchContext) -> _CompletionDispatchR
     vertex_ai_project: Final = (
         optional_params.pop("vertex_project", None)
         or optional_params.pop("vertex_ai_project", None)
-        or litellm.vertex_project
+        or gateway.vertex_project
         or get_secret("VERTEXAI_PROJECT")
     )
     vertex_ai_location: Final = (
         optional_params.pop("vertex_location", None)
         or optional_params.pop("vertex_ai_location", None)
-        or litellm.vertex_location
+        or gateway.vertex_location
         or get_secret("VERTEXAI_LOCATION")
     )
     vertex_credentials: Final = (
@@ -3594,7 +3594,7 @@ def _complete_vertex_ai(ctx: _CompletionDispatchContext) -> _CompletionDispatchR
         or get_secret("VERTEXAI_CREDENTIALS")
     )
 
-    api_base = api_base or litellm.api_base or get_secret("VERTEXAI_API_BASE")
+    api_base = api_base or gateway.api_base or get_secret("VERTEXAI_API_BASE")
 
     new_params: Final = safe_deep_copy(optional_params or {})
     model_route: Final = get_vertex_ai_model_route(model=model, litellm_params=litellm_params)
@@ -3761,7 +3761,7 @@ def _complete_predibase(ctx: _CompletionDispatchContext) -> _CompletionDispatchR
     tenant_id: Final = (
         optional_params.pop("tenant_id", None)
         or optional_params.pop("predibase_tenant_id", None)
-        or litellm.predibase_tenant_id
+        or gateway.predibase_tenant_id
         or get_secret("PREDIBASE_TENANT_ID")
     )
 
@@ -3774,11 +3774,11 @@ def _complete_predibase(ctx: _CompletionDispatchContext) -> _CompletionDispatchR
         api_base
         or optional_params.pop("api_base", None)
         or optional_params.pop("base_url", None)
-        or litellm.api_base
+        or gateway.api_base
         or get_secret("PREDIBASE_API_BASE")
     )
 
-    api_key = api_key or litellm.api_key or litellm.predibase_key or get_secret("PREDIBASE_API_KEY")
+    api_key = api_key or gateway.api_key or gateway.predibase_key or get_secret("PREDIBASE_API_KEY")
 
     _model_response: Final = predibase_chat_completions.completion(
         model=model,
@@ -3823,13 +3823,13 @@ def _complete_text_completion_codestral(
         api_base
         or optional_params.pop("api_base", None)
         or optional_params.pop("base_url", None)
-        or litellm.api_base
+        or gateway.api_base
         or "https://codestral.mistral.ai/v1/fim/completions"
     )
 
-    api_key = api_key or litellm.api_key or get_secret("CODESTRAL_API_KEY")
+    api_key = api_key or gateway.api_key or get_secret("CODESTRAL_API_KEY")
 
-    text_completion_model_response: Final = litellm.TextCompletionResponse(stream=stream)
+    text_completion_model_response: Final = gateway.TextCompletionResponse(stream=stream)
 
     _model_response: Final = codestral_text_completions.completion(
         model=model,
@@ -3883,7 +3883,7 @@ def _complete_text_completion_inception(
     # api_base; only resolve it for the default/server base, or when the
     # caller passes their own key.
     if passed_api_base is None or api_key:
-        api_key = api_key or litellm.inception_key or get_secret_str("INCEPTION_API_KEY")
+        api_key = api_key or gateway.inception_key or get_secret_str("INCEPTION_API_KEY")
 
     _response = openai_text_completions.completion(
         model=model,
@@ -3903,7 +3903,7 @@ def _complete_text_completion_inception(
     )
 
     if optional_params.get("stream", False) is False and acompletion is False and text_completion is False:
-        _response = litellm.OpenAITextCompletionConfig().convert_to_chat_model_response_object(
+        _response = gateway.OpenAITextCompletionConfig().convert_to_chat_model_response_object(
             response_object=_response, model_response_object=model_response
         )
 
@@ -4001,7 +4001,7 @@ def _complete_bedrock(ctx: _CompletionDispatchContext) -> _CompletionDispatchRes
     stream: Final = ctx.stream
     timeout: Final = ctx.timeout
 
-    custom_prompt_dict = custom_prompt_dict or litellm.custom_prompt_dict
+    custom_prompt_dict = custom_prompt_dict or gateway.custom_prompt_dict
 
     if "aws_bedrock_client" in optional_params:
         verbose_logger.warning(
@@ -4230,7 +4230,7 @@ def _complete_vllm(ctx: _CompletionDispatchContext) -> _CompletionDispatchResult
     model_response = ctx.model_response
     optional_params: Final = ctx.optional_params
 
-    custom_prompt_dict = custom_prompt_dict or litellm.custom_prompt_dict
+    custom_prompt_dict = custom_prompt_dict or gateway.custom_prompt_dict
     model_response = vllm_handler.completion(
         model=model,
         messages=messages,
@@ -4273,7 +4273,7 @@ def _complete_ollama(ctx: _CompletionDispatchContext) -> _CompletionDispatchResu
     stream: Final = ctx.stream
     timeout: Final = ctx.timeout
 
-    api_base = litellm.api_base or api_base or get_secret("OLLAMA_API_BASE") or "http://localhost:11434"
+    api_base = gateway.api_base or api_base or get_secret("OLLAMA_API_BASE") or "http://localhost:11434"
     if api_key is not None and "Authorization" not in headers:
         headers["Authorization"] = f"Bearer {api_key}"
 
@@ -4313,9 +4313,9 @@ def _complete_ollama_chat(ctx: _CompletionDispatchContext) -> _CompletionDispatc
     stream: Final = ctx.stream
     timeout: Final = ctx.timeout
 
-    api_base = litellm.api_base or api_base or get_secret("OLLAMA_API_BASE") or "http://localhost:11434"
+    api_base = gateway.api_base or api_base or get_secret("OLLAMA_API_BASE") or "http://localhost:11434"
 
-    api_key = api_key or litellm.ollama_key or os.environ.get("OLLAMA_API_KEY") or litellm.api_key
+    api_key = api_key or gateway.ollama_key or os.environ.get("OLLAMA_API_KEY") or gateway.api_key
     if api_key is not None and "Authorization" not in headers:
         headers["Authorization"] = f"Bearer {api_key}"
 
@@ -4355,7 +4355,7 @@ def _complete_triton(ctx: _CompletionDispatchContext) -> _CompletionDispatchResu
     stream: Final = ctx.stream
     timeout: Final = ctx.timeout
 
-    api_base = litellm.api_base or api_base
+    api_base = gateway.api_base or api_base
     return base_llm_http_handler.completion(
         model=model,
         stream=stream,
@@ -4391,10 +4391,10 @@ def _complete_cloudflare(ctx: _CompletionDispatchContext) -> _CompletionDispatch
     stream: Final = ctx.stream
     timeout: Final = ctx.timeout
 
-    api_key = api_key or litellm.cloudflare_api_key or litellm.api_key or get_secret("CLOUDFLARE_API_KEY")
-    api_base = api_base or litellm.api_base or get_secret("CLOUDFLARE_API_BASE")
+    api_key = api_key or gateway.cloudflare_api_key or gateway.api_key or get_secret("CLOUDFLARE_API_KEY")
+    api_base = api_base or gateway.api_base or get_secret("CLOUDFLARE_API_BASE")
 
-    custom_prompt_dict = custom_prompt_dict or litellm.custom_prompt_dict
+    custom_prompt_dict = custom_prompt_dict or gateway.custom_prompt_dict
     return base_llm_http_handler.completion(
         model=model,
         stream=stream,
@@ -4426,7 +4426,7 @@ def _complete_petals(ctx: _CompletionDispatchContext) -> _CompletionDispatchResu
     optional_params: Final = ctx.optional_params
     stream = ctx.stream
 
-    api_base = api_base or litellm.api_base
+    api_base = api_base or gateway.api_base
 
     stream = optional_params.pop("stream", False)
     model_response = petals_handler.completion(
@@ -4522,7 +4522,7 @@ def _complete_gradient_ai(ctx: _CompletionDispatchContext) -> _CompletionDispatc
     stream: Final = ctx.stream
     timeout: Final = ctx.timeout
 
-    api_base = litellm.api_base or api_base
+    api_base = gateway.api_base or api_base
     return base_llm_http_handler.completion(
         model=model,
         stream=stream,
@@ -4558,8 +4558,8 @@ def _complete_gdc(ctx: _CompletionDispatchContext) -> _CompletionDispatchResult:
     stream: Final = ctx.stream
     timeout: Final = ctx.timeout
 
-    api_key = api_key or litellm.gdc_key or get_secret_str("GDC_API_KEY") or litellm.api_key
-    api_base = api_base or litellm.gdc_api_base or get_secret_str("GDC_API_BASE") or litellm.api_base
+    api_key = api_key or gateway.gdc_key or get_secret_str("GDC_API_KEY") or gateway.api_key
+    api_base = api_base or gateway.gdc_api_base or get_secret_str("GDC_API_BASE") or gateway.api_base
 
     return base_llm_http_handler.completion(
         model=model,
@@ -4597,7 +4597,7 @@ def _complete_bytez(ctx: _CompletionDispatchContext) -> _CompletionDispatchResul
     stream: Final = ctx.stream
     timeout: Final = ctx.timeout
 
-    api_key = api_key or litellm.bytez_key or get_secret_str("BYTEZ_API_KEY") or litellm.api_key
+    api_key = api_key or gateway.bytez_key or get_secret_str("BYTEZ_API_KEY") or gateway.api_key
 
     response: Final = base_llm_http_handler.completion(
         model=model,
@@ -4637,7 +4637,7 @@ def _complete_lemonade(ctx: _CompletionDispatchContext) -> _CompletionDispatchRe
     stream: Final = ctx.stream
     timeout: Final = ctx.timeout
 
-    api_key = api_key or litellm.lemonade_key or get_secret_str("LEMONADE_API_KEY") or litellm.api_key
+    api_key = api_key or gateway.lemonade_key or get_secret_str("LEMONADE_API_KEY") or gateway.api_key
 
     response: Final = base_llm_http_handler.completion(
         model=model,
@@ -4677,11 +4677,11 @@ def _complete_ovhcloud(ctx: _CompletionDispatchContext) -> _CompletionDispatchRe
     stream: Final = ctx.stream
     timeout: Final = ctx.timeout
 
-    api_key = api_key or litellm.ovhcloud_key or get_secret_str("OVHCLOUD_API_KEY") or litellm.api_key
+    api_key = api_key or gateway.ovhcloud_key or get_secret_str("OVHCLOUD_API_KEY") or gateway.api_key
 
     api_base = (
         api_base
-        or litellm.api_base
+        or gateway.api_base
         or get_secret_str("OVHCLOUD_API_BASE")
         or "https://oai.endpoints.kepler.ai.cloud.ovh.net/v1"
     )
@@ -4723,7 +4723,7 @@ def _complete_custom(ctx: _CompletionDispatchContext) -> _CompletionDispatchResu
     temperature: Final = ctx.temperature
     top_p: Final = ctx.top_p
 
-    url: Final = litellm.api_base or api_base or ""
+    url: Final = gateway.api_base or api_base or ""
     if url is None or url == "":
         raise ValueError("api_base not set. Set api_base or litellm.api_base for custom endpoints")
 
@@ -4745,7 +4745,7 @@ def _complete_custom(ctx: _CompletionDispatchContext) -> _CompletionDispatchResu
 
     """
     prompt: Final = " ".join([message["content"] for message in messages])
-    resp: Final = litellm.module_level_client.post(
+    resp: Final = gateway.module_level_client.post(
         url,
         headers=headers,
         json={
@@ -4802,7 +4802,7 @@ def _complete_custom_providers(
     timeout: Final = ctx.timeout
 
     custom_handler: CustomLLM | None = None
-    for item in litellm.custom_provider_map:
+    for item in gateway.custom_provider_map:
         if item["provider"] == custom_llm_provider:
             custom_handler = item["custom_handler"]
 
@@ -4812,7 +4812,7 @@ def _complete_custom_providers(
     ## ROUTE LLM CALL ##
     handler_fn: Final = custom_chat_llm_router(async_fn=acompletion, stream=stream, custom_llm=custom_handler)
 
-    headers = headers or litellm.headers or {}
+    headers = headers or gateway.headers or {}
 
     ## CALL FUNCTION
     response: Final = handler_fn(
@@ -4867,11 +4867,11 @@ def _complete_langgraph(ctx: _CompletionDispatchContext) -> _CompletionDispatchR
         api_base,
         api_key,
     ) = LangGraphConfig()._get_openai_compatible_provider_info(
-        api_base=api_base or litellm.api_base,
-        api_key=api_key or litellm.api_key,
+        api_base=api_base or gateway.api_base,
+        api_key=api_key or gateway.api_key,
     )
 
-    headers = headers or litellm.headers
+    headers = headers or gateway.headers
 
     return base_llm_http_handler.completion(
         model=model,
@@ -4916,11 +4916,11 @@ def _complete_langflow(ctx: _CompletionDispatchContext) -> _CompletionDispatchRe
         api_base,
         api_key,
     ) = LangFlowConfig()._get_openai_compatible_provider_info(
-        api_base=api_base or litellm.api_base,
-        api_key=api_key or litellm.api_key,
+        api_base=api_base or gateway.api_base,
+        api_key=api_key or gateway.api_key,
     )
 
-    headers = headers or litellm.headers
+    headers = headers or gateway.headers
 
     return base_llm_http_handler.completion(
         model=model,
@@ -5149,9 +5149,9 @@ def completion(
     if extra_headers is not None:
         headers.update(extra_headers)
     # Inject proxy auth headers if configured
-    if litellm.proxy_auth is not None:
+    if gateway.proxy_auth is not None:
         try:
-            proxy_headers: Final = _proxy_auth_headers(litellm.proxy_auth)
+            proxy_headers: Final = _proxy_auth_headers(gateway.proxy_auth)
             headers.update(proxy_headers)
         except Exception as e:
             verbose_logger.warning("Failed to get proxy auth headers: %s", e)
@@ -5259,22 +5259,22 @@ def completion(
         elif num_retries is not None:
             max_retries = num_retries
         logging: Final[LiteLLMLoggingObj] = cast(LiteLLMLoggingObj, litellm_logging_obj)
-        fallbacks = fallbacks or litellm.model_fallbacks
+        fallbacks = fallbacks or gateway.model_fallbacks
         if fallbacks is not None:
             return completion_with_fallbacks(  # pyright: ignore[reportReturnType]  # fallback runner is untyped; resolves to ModelResponse|CustomStreamWrapper at runtime
                 **args
             )
         if model_list is not None:
             deployments: Final = [m["litellm_params"] for m in model_list if m["model_name"] == model]
-            return litellm.batch_completion_models(  # pyright: ignore[reportReturnType]  # batch path returns a list of responses, outside completion()'s single-response return type
+            return gateway.batch_completion_models(  # pyright: ignore[reportReturnType]  # batch path returns a list of responses, outside completion()'s single-response return type
                 deployments=deployments, **args
             )
-        if litellm.model_alias_map and model in litellm.model_alias_map:
-            model = litellm.model_alias_map[
+        if gateway.model_alias_map and model in gateway.model_alias_map:
+            model = gateway.model_alias_map[
                 model
             ]  # update the model to the actual value if an alias has been passed in
         model_response: Final = ModelResponse()
-        setattr(model_response, "usage", litellm.Usage())
+        setattr(model_response, "usage", gateway.Usage())
         if (
             kwargs.get("azure", False) is True
         ):  # don't remove flag check, to remain backwards compatible for repos like Codium
@@ -5441,7 +5441,7 @@ def completion(
             provider_config=provider_config,
         )
 
-        if litellm.add_function_to_prompt and optional_params.get(
+        if gateway.add_function_to_prompt and optional_params.get(
             "functions_unsupported_model", None
         ):  # if user opts to add it to prompt, when API doesn't support function calling
             functions_unsupported_model: Final = optional_params.pop("functions_unsupported_model")
@@ -5457,7 +5457,7 @@ def completion(
             custom_llm_provider=custom_llm_provider,
             api_base=api_base,
             litellm_call_id=kwargs.get("litellm_call_id", None),
-            model_alias_map=litellm.model_alias_map,
+            model_alias_map=gateway.model_alias_map,
             completion_call_id=id,
             metadata=metadata,
             model_info=model_info,
@@ -5588,7 +5588,7 @@ def completion(
             )
         elif (custom_llm_provider == "openai" and OpenAIGPT5Config.is_model_gpt_5_model(model)) or (
             custom_llm_provider == "azure"
-            and litellm.AzureOpenAIGPT5Config.is_model_gpt_5_model(_azure_detection_model)
+            and gateway.AzureOpenAIGPT5Config.is_model_gpt_5_model(_azure_detection_model)
         ):
             optional_params, _ = strip_reasoning_summary_aliases_from_optional_params(optional_params)
 
@@ -5642,7 +5642,7 @@ def completion(
             custom_llm_provider == "text-completion-openai"
             or "ft:babbage-002" in model
             or "ft:davinci-002" in model  # support for finetuned completion models
-            or custom_llm_provider in litellm.openai_text_completion_compatible_providers
+            or custom_llm_provider in gateway.openai_text_completion_compatible_providers
             and kwargs.get("text_completion") is True
         ):
             response = _complete_text_completion_openai(_dispatch_ctx)
@@ -5689,7 +5689,7 @@ def completion(
             # "openai", so a different value here was asked for explicitly (or came
             # from a register_model entry), and the provider config built for it
             # would be handed to the OpenAI handler.
-            (model in litellm.open_ai_chat_completion_models and custom_llm_provider in (None, "openai"))
+            (model in gateway.open_ai_chat_completion_models and custom_llm_provider in (None, "openai"))
             or custom_llm_provider == "custom_openai"
             or custom_llm_provider == "deepinfra"
             or custom_llm_provider == "perplexity"
@@ -5703,7 +5703,7 @@ def completion(
             or custom_llm_provider == "nebius"
             or custom_llm_provider == "wandb"
             or custom_llm_provider == "clarifai"
-            or custom_llm_provider in litellm.openai_compatible_providers
+            or custom_llm_provider in gateway.openai_compatible_providers
             or JSONProviderRegistry.exists(custom_llm_provider)  # JSON-configured providers
             or "ft:gpt-3.5-turbo" in model  # finetune gpt-3.5-turbo
         ):  # allow user to make an openai call with a custom base
@@ -5713,10 +5713,10 @@ def completion(
 
         elif custom_llm_provider == "mistral":
             response = _complete_mistral(_dispatch_ctx)
-        elif "replicate" in model or custom_llm_provider == "replicate" or model in litellm.replicate_models:
+        elif "replicate" in model or custom_llm_provider == "replicate" or model in gateway.replicate_models:
             # Setting the relevant API KEY for replicate, replicate defaults to using os.environ.get("REPLICATE_API_TOKEN")
             response = _complete_replicate(_dispatch_ctx)
-        elif "clarifai" in model or custom_llm_provider == "clarifai" or model in litellm.clarifai_models:
+        elif "clarifai" in model or custom_llm_provider == "clarifai" or model in gateway.clarifai_models:
             pass  # Deprecated - handled in the openai compatible provider section above
         elif custom_llm_provider == "anthropic_text":
             response = _complete_anthropic_text(_dispatch_ctx)
@@ -5792,9 +5792,9 @@ def completion(
         elif custom_llm_provider == "cloudflare":
             response = _complete_cloudflare(_dispatch_ctx)
 
-        elif custom_llm_provider == "petals" or model in litellm.petals_models:
+        elif custom_llm_provider == "petals" or model in gateway.petals_models:
             response = _complete_petals(_dispatch_ctx)
-        elif custom_llm_provider == "snowflake" or model in litellm.snowflake_models:
+        elif custom_llm_provider == "snowflake" or model in gateway.snowflake_models:
             response = _complete_snowflake(_dispatch_ctx)
         elif custom_llm_provider == "gradient_ai":
             response = _complete_gradient_ai(_dispatch_ctx)
@@ -5806,13 +5806,13 @@ def completion(
         elif custom_llm_provider == "lemonade":
             response = _complete_lemonade(_dispatch_ctx)
 
-        elif custom_llm_provider == "ovhcloud" or model in litellm.ovhcloud_models:
+        elif custom_llm_provider == "ovhcloud" or model in gateway.ovhcloud_models:
             response = _complete_ovhcloud(_dispatch_ctx)
 
         elif custom_llm_provider == "custom":
             response = _complete_custom(_dispatch_ctx)
 
-        elif custom_llm_provider in litellm._custom_providers:  # Assume custom LLM provider
+        elif custom_llm_provider in gateway._custom_providers:  # Assume custom LLM provider
             # Get the Custom Handler
             response = _complete_custom_providers(_dispatch_ctx)
 
@@ -6124,9 +6124,9 @@ def embedding(
     if extra_headers is not None:
         headers.update(extra_headers)
     # Inject proxy auth headers if configured
-    if litellm.proxy_auth is not None:
+    if gateway.proxy_auth is not None:
         try:
-            proxy_headers: Final = _proxy_auth_headers(litellm.proxy_auth)
+            proxy_headers: Final = _proxy_auth_headers(gateway.proxy_auth)
             headers.update(proxy_headers)
         except Exception as e:
             verbose_logger.warning("Failed to get proxy auth headers: %s", e)
@@ -6208,18 +6208,18 @@ def embedding(
         if azure is True or custom_llm_provider == "azure":
             # azure configs
 
-            api_base = api_base or litellm.api_base or get_secret_str("AZURE_API_BASE")
+            api_base = api_base or gateway.api_base or get_secret_str("AZURE_API_BASE")
 
             api_version = (
                 api_version
-                or litellm.api_version
+                or gateway.api_version
                 or get_secret_str("AZURE_API_VERSION")
-                or litellm.AZURE_DEFAULT_API_VERSION
+                or gateway.AZURE_DEFAULT_API_VERSION
             )
 
             azure_ad_token: Final = optional_params.pop("azure_ad_token", None) or get_secret_str("AZURE_AD_TOKEN")
 
-            api_key = api_key or litellm.api_key or litellm.azure_key or get_secret_str("AZURE_API_KEY")
+            api_key = api_key or gateway.api_key or gateway.azure_key or get_secret_str("AZURE_API_KEY")
 
             if api_base is None:
                 raise ValueError("No API Base provided for Azure OpenAI LLM provider. Set 'AZURE_API_BASE' in .env")
@@ -6244,7 +6244,7 @@ def embedding(
                 litellm_params=litellm_params_dict,
             )
         elif custom_llm_provider == "github_copilot":
-            api_key = api_key or litellm.api_key
+            api_key = api_key or gateway.api_key
             response = base_llm_http_handler.embedding(
                 model=model,
                 input=input,
@@ -6264,22 +6264,22 @@ def embedding(
             or custom_llm_provider == "together_ai"
             or custom_llm_provider == "nvidia_nim"
             or custom_llm_provider == "litellm_proxy"
-            or (model in litellm.open_ai_embedding_models and custom_llm_provider is None)
+            or (model in gateway.open_ai_embedding_models and custom_llm_provider is None)
         ):
             api_base = (
                 api_base
-                or litellm.api_base
+                or gateway.api_base
                 or get_secret_str("OPENAI_BASE_URL")
                 or get_secret_str("OPENAI_API_BASE")
                 or "https://api.openai.com/v1"
             )
             openai.organization = (
-                litellm.organization
+                gateway.organization
                 or get_secret_str("OPENAI_ORGANIZATION")
                 or None  # default - https://github.com/openai/openai-python/blob/284c1799070c723c6a553337134148a7ab088dd8/openai/util.py#L105
             )
             # set API KEY
-            api_key = api_key or litellm.api_key or litellm.openai_key or get_secret_str("OPENAI_API_KEY")
+            api_key = api_key or gateway.api_key or gateway.openai_key or get_secret_str("OPENAI_API_KEY")
 
             if headers is not None and headers != {}:
                 optional_params["extra_headers"] = headers
@@ -6312,10 +6312,10 @@ def embedding(
                 shared_session=shared_session,
             )
         elif custom_llm_provider == "databricks":
-            api_base = api_base or litellm.api_base or get_secret("DATABRICKS_API_BASE")
+            api_base = api_base or gateway.api_base or get_secret("DATABRICKS_API_BASE")
 
             # set API KEY
-            api_key = api_key or litellm.api_key or litellm.databricks_key or get_secret("DATABRICKS_API_KEY")
+            api_key = api_key or gateway.api_key or gateway.databricks_key or get_secret("DATABRICKS_API_KEY")
 
             ## EMBEDDING CALL
             response = databricks_embedding.embedding(
@@ -6331,11 +6331,11 @@ def embedding(
                 aembedding=aembedding,
             )
         elif custom_llm_provider == "hosted_vllm":
-            api_base = api_base or litellm.api_base or get_secret_str("HOSTED_VLLM_API_BASE")
+            api_base = api_base or gateway.api_base or get_secret_str("HOSTED_VLLM_API_BASE")
 
             # set API KEY
             if api_key is None:
-                api_key = litellm.api_key or get_secret_str("HOSTED_VLLM_API_KEY")
+                api_key = gateway.api_key or get_secret_str("HOSTED_VLLM_API_KEY")
 
             response = base_llm_http_handler.embedding(
                 model=model,
@@ -6357,11 +6357,11 @@ def embedding(
             or custom_llm_provider == "llamafile"
             or custom_llm_provider == "lm_studio"
         ):
-            api_base = api_base or litellm.api_base or get_secret_str("OPENAI_LIKE_API_BASE")
+            api_base = api_base or gateway.api_base or get_secret_str("OPENAI_LIKE_API_BASE")
 
             # set API KEY
             if api_key is None:
-                api_key = api_key or litellm.api_key or litellm.openai_like_key or get_secret_str("OPENAI_LIKE_API_KEY")
+                api_key = api_key or gateway.api_key or gateway.openai_like_key or get_secret_str("OPENAI_LIKE_API_KEY")
 
             if headers is not None and headers != {}:
                 optional_params["extra_headers"] = headers
@@ -6400,10 +6400,10 @@ def embedding(
         elif custom_llm_provider == "cohere" or custom_llm_provider == "cohere_chat":
             cohere_key: Final = (
                 api_key
-                or litellm.cohere_key
+                or gateway.cohere_key
                 or get_secret_str("COHERE_API_KEY")
                 or get_secret_str("CO_API_KEY")
-                or litellm.api_key
+                or gateway.api_key
             )
 
             # Use the merged headers variable (already merged at the top of the function)
@@ -6428,13 +6428,13 @@ def embedding(
             )
         elif custom_llm_provider == "openrouter":
             api_base = (
-                api_base or litellm.api_base or get_secret_str("OPENROUTER_API_BASE") or "https://openrouter.ai/api/v1"
+                api_base or gateway.api_base or get_secret_str("OPENROUTER_API_BASE") or "https://openrouter.ai/api/v1"
             )
 
             api_key = (
                 api_key
-                or litellm.api_key
-                or litellm.openrouter_key
+                or gateway.api_key
+                or gateway.openrouter_key
                 or get_secret_str("OPENROUTER_API_KEY")
                 or get_secret_str("OR_API_KEY")
             )
@@ -6447,7 +6447,7 @@ def embedding(
                 "X-Title": openrouter_app_name,
             }
 
-            _headers: Final = headers or litellm.headers
+            _headers: Final = headers or gateway.headers
             if _headers:
                 openrouter_headers.update(_headers)
 
@@ -6471,14 +6471,14 @@ def embedding(
         elif custom_llm_provider == "vercel_ai_gateway":
             api_base = (
                 api_base
-                or litellm.api_base
+                or gateway.api_base
                 or get_secret_str("VERCEL_AI_GATEWAY_API_BASE")
                 or "https://ai-gateway.vercel.sh/v1"
             )
 
             api_key = (
                 api_key
-                or litellm.api_key
+                or gateway.api_key
                 or get_secret_str("VERCEL_AI_GATEWAY_API_KEY")
                 or get_secret_str("VERCEL_OIDC_TOKEN")
             )
@@ -6499,7 +6499,7 @@ def embedding(
                 headers=headers,
             )
         elif custom_llm_provider == "huggingface":
-            api_key = api_key or litellm.huggingface_key or get_secret("HUGGINGFACE_API_KEY") or litellm.api_key
+            api_key = api_key or gateway.huggingface_key or get_secret("HUGGINGFACE_API_KEY") or gateway.api_key
             response = huggingface_embed.embedding(
                 model=model,
                 input=input,
@@ -6553,9 +6553,9 @@ def embedding(
                 litellm_params={},
             )
         elif custom_llm_provider == "gemini":
-            gemini_api_key: Final = api_key or get_api_key_from_env() or litellm.api_key
+            gemini_api_key: Final = api_key or get_api_key_from_env() or gateway.api_key
 
-            api_base = api_base or litellm.api_base or get_secret_str("GEMINI_API_BASE")
+            api_base = api_base or gateway.api_base or get_secret_str("GEMINI_API_BASE")
 
             response = google_batch_embeddings.batch_embeddings(
                 model=model,
@@ -6580,14 +6580,14 @@ def embedding(
             vertex_ai_project: Final = (
                 optional_params.pop("vertex_project", None)
                 or optional_params.pop("vertex_ai_project", None)
-                or litellm.vertex_project
+                or gateway.vertex_project
                 or get_secret_str("VERTEXAI_PROJECT")
                 or get_secret_str("VERTEX_PROJECT")
             )
             vertex_ai_location: Final = (
                 optional_params.pop("vertex_location", None)
                 or optional_params.pop("vertex_ai_location", None)
-                or litellm.vertex_location
+                or gateway.vertex_location
                 or get_secret_str("VERTEXAI_LOCATION")
                 or get_secret_str("VERTEX_LOCATION")
             )
@@ -6599,7 +6599,7 @@ def embedding(
             )
 
             api_base = (
-                api_base or litellm.api_base or get_secret_str("VERTEXAI_API_BASE") or get_secret_str("VERTEX_API_BASE")
+                api_base or gateway.api_base or get_secret_str("VERTEXAI_API_BASE") or get_secret_str("VERTEX_API_BASE")
             )
 
             try:
@@ -6681,12 +6681,12 @@ def embedding(
                 api_key=api_key,
             )
         elif custom_llm_provider == "ollama":
-            api_base = litellm.api_base or api_base or get_secret_str("OLLAMA_API_BASE") or "http://localhost:11434"
+            api_base = gateway.api_base or api_base or get_secret_str("OLLAMA_API_BASE") or "http://localhost:11434"
 
             if isinstance(input, str):
                 input = [input]
             if not all(isinstance(item, str) for item in input):
-                raise litellm.BadRequestError(
+                raise gateway.BadRequestError(
                     message=f"Invalid input for ollama embeddings. input={input}",
                     model=model,
                     llm_provider="ollama",
@@ -6712,7 +6712,7 @@ def embedding(
                 print_verbose=print_verbose,
             )
         elif custom_llm_provider == "mistral":
-            api_key = api_key or litellm.api_key or get_secret_str("MISTRAL_API_KEY")
+            api_key = api_key or gateway.api_key or get_secret_str("MISTRAL_API_KEY")
             response = openai_chat_completions.embedding(
                 model=model,
                 input=input,
@@ -6726,7 +6726,7 @@ def embedding(
                 aembedding=aembedding,
             )
         elif custom_llm_provider == "fireworks_ai":
-            api_key = api_key or litellm.api_key or get_secret_str("FIREWORKS_AI_API_KEY")
+            api_key = api_key or gateway.api_key or get_secret_str("FIREWORKS_AI_API_KEY")
             response = openai_chat_completions.embedding(
                 model=model,
                 input=input,
@@ -6740,8 +6740,8 @@ def embedding(
                 aembedding=aembedding,
             )
         elif custom_llm_provider == "nebius":
-            api_key = api_key or litellm.api_key or get_secret_str("NEBIUS_API_KEY")
-            api_base = api_base or litellm.api_base or get_secret_str("NEBIUS_API_BASE") or "api.studio.nebius.ai/v1"
+            api_key = api_key or gateway.api_key or get_secret_str("NEBIUS_API_KEY")
+            api_base = api_base or gateway.api_base or get_secret_str("NEBIUS_API_BASE") or "api.studio.nebius.ai/v1"
 
             response = openai_chat_completions.embedding(
                 model=model,
@@ -6756,9 +6756,9 @@ def embedding(
                 aembedding=aembedding,
             )
         elif custom_llm_provider == "wandb":
-            api_key = api_key or litellm.api_key or get_secret_str("WANDB_API_KEY")
+            api_key = api_key or gateway.api_key or get_secret_str("WANDB_API_KEY")
             api_base = (
-                api_base or litellm.api_base or get_secret_str("WANDB_API_BASE") or "https://api.inference.wandb.ai/v1"
+                api_base or gateway.api_base or get_secret_str("WANDB_API_BASE") or "https://api.inference.wandb.ai/v1"
             )
 
             response = openai_chat_completions.embedding(
@@ -6774,9 +6774,9 @@ def embedding(
                 aembedding=aembedding,
             )
         elif custom_llm_provider == "sambanova":
-            api_key = api_key or litellm.api_key or get_secret_str("SAMBANOVA_API_KEY")
+            api_key = api_key or gateway.api_key or get_secret_str("SAMBANOVA_API_KEY")
             api_base = (
-                api_base or litellm.api_base or get_secret_str("SAMBANOVA_API_BASE") or "https://api.sambanova.ai/v1"
+                api_base or gateway.api_base or get_secret_str("SAMBANOVA_API_BASE") or "https://api.sambanova.ai/v1"
             )
             response = base_llm_http_handler.embedding(
                 model=model,
@@ -6834,10 +6834,10 @@ def embedding(
             )
         elif custom_llm_provider == "xinference":
             api_key = (
-                api_key or litellm.api_key or get_secret_str("XINFERENCE_API_KEY") or "stub-xinference-key"
+                api_key or gateway.api_key or get_secret_str("XINFERENCE_API_KEY") or "stub-xinference-key"
             )  # xinference does not need an api key, pass a stub key if user did not set one
             api_base = (
-                api_base or litellm.api_base or get_secret_str("XINFERENCE_API_BASE") or "http://127.0.0.1:9997/v1"
+                api_base or gateway.api_base or get_secret_str("XINFERENCE_API_BASE") or "http://127.0.0.1:9997/v1"
             )
             response = openai_chat_completions.embedding(
                 model=model,
@@ -6871,13 +6871,13 @@ def embedding(
 
             api_base = (
                 api_base  # for deepinfra/perplexity/anyscale/groq/friendliai we check in get_llm_provider and pass in the api base from there
-                or litellm.api_base
+                or gateway.api_base
                 or get_secret_str("AZURE_AI_API_BASE")
             )
             # set API KEY
             api_key = (
                 api_key
-                or litellm.api_key  # for deepinfra/perplexity/anyscale/friendliai we check in get_llm_provider and pass in the api key from there
+                or gateway.api_key  # for deepinfra/perplexity/anyscale/friendliai we check in get_llm_provider and pass in the api key from there
                 or get_secret_str("AZURE_AI_API_KEY")
                 or get_azure_ai_entra_token(litellm_params=litellm_params_dict)
             )
@@ -6916,7 +6916,7 @@ def embedding(
             )
         elif custom_llm_provider == "volcengine":
             volcengine_key: Final = (
-                api_key or litellm.api_key or get_secret_str("ARK_API_KEY") or get_secret_str("VOLCENGINE_API_KEY")
+                api_key or gateway.api_key or get_secret_str("ARK_API_KEY") or get_secret_str("VOLCENGINE_API_KEY")
             )
             if volcengine_key is None:
                 raise ValueError(
@@ -6949,7 +6949,7 @@ def embedding(
 
             dashscope_key: Final = resolve_dashscope_family_api_key(
                 custom_llm_provider=custom_llm_provider,
-                api_key=api_key or litellm.api_key,
+                api_key=api_key or gateway.api_key,
             )
             if dashscope_key is None:
                 raise ValueError(missing_dashscope_family_key_message(custom_llm_provider))
@@ -6973,10 +6973,10 @@ def embedding(
                 headers=headers,
             )
         elif custom_llm_provider == "ovhcloud":
-            api_key = api_key or litellm.api_key or get_secret_str("OVHCLOUD_API_KEY")
+            api_key = api_key or gateway.api_key or get_secret_str("OVHCLOUD_API_KEY")
             api_base = (
                 api_base
-                or litellm.api_base
+                or gateway.api_base
                 or get_secret_str("OVHCLOUD_API_BASE")
                 or "https://oai.endpoints.kepler.ai.cloud.ovh.net/v1"
             )
@@ -6995,9 +6995,9 @@ def embedding(
                 litellm_params={},
             )
         elif custom_llm_provider == "cometapi":
-            api_key = api_key or litellm.cometapi_key or get_secret_str("COMETAPI_KEY") or litellm.api_key
+            api_key = api_key or gateway.cometapi_key or get_secret_str("COMETAPI_KEY") or gateway.api_key
             api_base = (
-                api_base or litellm.api_base or get_secret_str("COMETAPI_API_BASE") or "https://api.cometapi.com/v1"
+                api_base or gateway.api_base or get_secret_str("COMETAPI_API_BASE") or "https://api.cometapi.com/v1"
             )
             response = base_llm_http_handler.embedding(
                 model=model,
@@ -7013,9 +7013,9 @@ def embedding(
                 aembedding=aembedding,
                 litellm_params={},
             )
-        elif custom_llm_provider in litellm._custom_providers:
+        elif custom_llm_provider in gateway._custom_providers:
             custom_handler: CustomLLM | None = None
-            for item in litellm.custom_provider_map:
+            for item in gateway.custom_provider_map:
                 if item["provider"] == custom_llm_provider:
                     custom_handler = item["custom_handler"]
 
@@ -7055,8 +7055,8 @@ def embedding(
         elif custom_llm_provider == "gigachat":
             api_key = (
                 api_key
-                or litellm.api_key
-                or litellm.gigachat_key
+                or gateway.api_key
+                or gateway.gigachat_key
                 or get_secret_str("GIGACHAT_CREDENTIALS")
                 or get_secret_str("GIGACHAT_API_KEY")
             )
@@ -7181,7 +7181,7 @@ async def atext_completion(*args, **kwargs) -> TextCompletionResponse | TextComp
                 response = await _resolve_pending_chat_response(response)
 
             text_completion_response = TextCompletionResponse()
-            text_completion_response = litellm.utils.LiteLLMResponseObjectHandler.convert_chat_to_text_completion(
+            text_completion_response = gateway.utils.LiteLLMResponseObjectHandler.convert_chat_to_text_completion(
                 text_completion_response=text_completion_response,
                 response=response,
                 custom_llm_provider=custom_llm_provider,
@@ -7393,7 +7393,7 @@ def text_completion(
     if (
         _model is not None and (custom_llm_provider == "openai")
     ):  # for openai compatible endpoints - e.g. vllm, call the native /v1/completions endpoint for text completion calls
-        if _model not in litellm.open_ai_chat_completion_models:
+        if _model not in gateway.open_ai_chat_completion_models:
             model = "text-completion-openai/" + _model
             optional_params.pop("custom_llm_provider", None)
 
@@ -7424,7 +7424,7 @@ def text_completion(
     if isinstance(response, TextCompletionResponse):
         return response
 
-    text_completion_response = litellm.utils.LiteLLMResponseObjectHandler.convert_chat_to_text_completion(
+    text_completion_response = gateway.utils.LiteLLMResponseObjectHandler.convert_chat_to_text_completion(
         response=response,
         text_completion_response=text_completion_response,
     )
@@ -7441,13 +7441,13 @@ async def aadapter_completion(*, adapter_id: str, **kwargs) -> BaseModel | Adapt
     """
     try:
         translation_obj: CustomLogger | None = None
-        for item in litellm.adapters:
+        for item in gateway.adapters:
             if item["id"] == adapter_id:
                 translation_obj = item["adapter"]
 
         if translation_obj is None:
             raise ValueError(
-                f"No matching adapter given. Received 'adapter_id'={adapter_id}, litellm.adapters={litellm.adapters}"
+                f"No matching adapter given. Received 'adapter_id'={adapter_id}, litellm.adapters={gateway.adapters}"
             )
 
         new_kwargs: Final = translation_obj.translate_completion_input_params(kwargs=kwargs)
@@ -7480,13 +7480,13 @@ async def aadapter_generate_content(
 
 def adapter_completion(*, adapter_id: str, **kwargs) -> BaseModel | AdapterCompletionStreamWrapper | None:
     translation_obj: CustomLogger | None = None
-    for item in litellm.adapters:
+    for item in gateway.adapters:
         if item["id"] == adapter_id:
             translation_obj = item["adapter"]
 
     if translation_obj is None:
         raise ValueError(
-            f"No matching adapter given. Received 'adapter_id'={adapter_id}, litellm.adapters={litellm.adapters}"
+            f"No matching adapter given. Received 'adapter_id'={adapter_id}, litellm.adapters={gateway.adapters}"
         )
 
     new_kwargs: Final = translation_obj.translate_completion_input_params(kwargs=kwargs)
@@ -7506,7 +7506,7 @@ def adapter_completion(*, adapter_id: str, **kwargs) -> BaseModel | AdapterCompl
 
 def moderation(input: str, model: str | None = None, api_key: str | None = None, **kwargs) -> OpenAIModerationResponse:
     # only supports open ai for now
-    api_key = api_key or litellm.api_key or litellm.openai_key or get_secret_str("OPENAI_API_KEY")
+    api_key = api_key or gateway.api_key or gateway.openai_key or get_secret_str("OPENAI_API_KEY")
 
     # Extract api_base from kwargs
     api_base: Final = kwargs.get("api_base", None)
@@ -7524,7 +7524,7 @@ def moderation(input: str, model: str | None = None, api_key: str | None = None,
         response = openai_client.moderations.create(input=input)
 
     response_dict: Final[dict] = response.model_dump()
-    return litellm.utils.LiteLLMResponseObjectHandler.convert_to_moderation_response(
+    return gateway.utils.LiteLLMResponseObjectHandler.convert_to_moderation_response(
         response_object=response_dict,
     )
 
@@ -7540,7 +7540,7 @@ async def amoderation(
     from openai import AsyncOpenAI
 
     # only supports open ai for now
-    api_key = api_key or litellm.api_key or litellm.openai_key or get_secret_str("OPENAI_API_KEY")
+    api_key = api_key or gateway.api_key or gateway.openai_key or get_secret_str("OPENAI_API_KEY")
     optional_params: Final = GenericLiteLLMParams(**kwargs)
     litellm_logging_obj: Final[LiteLLMLoggingObj | None] = kwargs.get("litellm_logging_obj", None)
     _dynamic_api_base = None
@@ -7550,13 +7550,13 @@ async def amoderation(
             custom_llm_provider,
             _dynamic_api_key,
             _dynamic_api_base,
-        ) = litellm.get_llm_provider(
+        ) = gateway.get_llm_provider(
             model=model or "",
             custom_llm_provider=custom_llm_provider,
             api_base=optional_params.api_base,
             api_key=optional_params.api_key,
         )
-    except litellm.BadRequestError:
+    except gateway.BadRequestError:
         # `model` is optional field for moderation - get_llm_provider will throw BadRequestError if model is not set / not recognized
         pass
 
@@ -7573,7 +7573,7 @@ async def amoderation(
         _openai_client = openai_client
 
     # update litellm_logging_obj with environment variables
-    custom_llm_provider = custom_llm_provider or litellm.LlmProviders.OPENAI.value
+    custom_llm_provider = custom_llm_provider or gateway.LlmProviders.OPENAI.value
     if litellm_logging_obj is not None:
         litellm_logging_obj.update_environment_variables(
             model=model,
@@ -7599,7 +7599,7 @@ async def amoderation(
     else:
         response = await _openai_client.moderations.create(input=input)
     response_dict: Final[dict] = response.model_dump()
-    return litellm.utils.LiteLLMResponseObjectHandler.convert_to_moderation_response(
+    return gateway.utils.LiteLLMResponseObjectHandler.convert_to_moderation_response(
         response_object=response_dict,
     )
 
@@ -7715,7 +7715,7 @@ def transcription(
     if max_retries is None:
         max_retries = openai.DEFAULT_MAX_RETRIES
 
-    model_response: Final = litellm.utils.TranscriptionResponse()
+    model_response: Final = gateway.utils.TranscriptionResponse()
 
     model, custom_llm_provider, dynamic_api_key, api_base = get_llm_provider(
         model=model,
@@ -7764,13 +7764,13 @@ def transcription(
 
     if custom_llm_provider == "azure" and provider_config is None:
         # azure configs
-        api_base = api_base or litellm.api_base or get_secret_str("AZURE_API_BASE")
+        api_base = api_base or gateway.api_base or get_secret_str("AZURE_API_BASE")
 
-        api_version = api_version or litellm.api_version or get_secret_str("AZURE_API_VERSION")
+        api_version = api_version or gateway.api_version or get_secret_str("AZURE_API_VERSION")
 
         azure_ad_token: Final = kwargs.pop("azure_ad_token", None) or get_secret_str("AZURE_AD_TOKEN")
 
-        api_key = api_key or litellm.api_key or litellm.azure_key or get_secret_str("AZURE_API_KEY")
+        api_key = api_key or gateway.api_key or gateway.azure_key or get_secret_str("AZURE_API_KEY")
 
         optional_params["extra_headers"] = extra_headers
 
@@ -7790,22 +7790,22 @@ def transcription(
             max_retries=max_retries,
             litellm_params=litellm_params_dict,
         )
-    elif custom_llm_provider == "openai" or (custom_llm_provider in litellm.openai_compatible_providers):
+    elif custom_llm_provider == "openai" or (custom_llm_provider in gateway.openai_compatible_providers):
         api_base = (
             api_base
-            or litellm.api_base
+            or gateway.api_base
             or get_secret("OPENAI_BASE_URL")
             or get_secret("OPENAI_API_BASE")
             or "https://api.openai.com/v1"
         )
         openai.organization = (
-            litellm.organization
+            gateway.organization
             or get_secret("OPENAI_ORGANIZATION")
             or None  # default - https://github.com/openai/openai-python/blob/284c1799070c723c6a553337134148a7ab088dd8/openai/util.py#L105
         )
         # set API KEY
 
-        api_key = api_key or litellm.api_key or litellm.openai_key or get_secret("OPENAI_API_KEY")
+        api_key = api_key or gateway.api_key or gateway.openai_key or get_secret("OPENAI_API_KEY")
         response = openai_audio_transcriptions.audio_transcriptions(
             model=model,
             audio_file=file,
@@ -8010,16 +8010,16 @@ def speech(
         optional_params["instructions"] = instructions
 
     if timeout is None:
-        timeout = litellm.request_timeout
+        timeout = gateway.request_timeout
 
     if max_retries is None:
-        max_retries = litellm.num_retries or openai.DEFAULT_MAX_RETRIES
+        max_retries = gateway.num_retries or openai.DEFAULT_MAX_RETRIES
     litellm_params_dict: Final = get_litellm_params(metadata=metadata, api_key=api_key or dynamic_api_key, **kwargs)
 
     # Get provider-specific text-to-speech config and map parameters
     text_to_speech_provider_config = ProviderConfigManager.get_provider_text_to_speech_config(
         model=model,
-        provider=litellm.LlmProviders(custom_llm_provider),
+        provider=gateway.LlmProviders(custom_llm_provider),
     )
 
     # Map OpenAI params to provider-specific params if config exists
@@ -8049,16 +8049,16 @@ def speech(
         custom_llm_provider=custom_llm_provider,
     )
     response: HttpxBinaryResponseContent | Coroutine[object, object, HttpxBinaryResponseContent] | None = None
-    if custom_llm_provider == "openai" or custom_llm_provider in litellm.openai_compatible_providers:
+    if custom_llm_provider == "openai" or custom_llm_provider in gateway.openai_compatible_providers:
         if voice is None or not (isinstance(voice, str)):
-            raise litellm.BadRequestError(
+            raise gateway.BadRequestError(
                 message="'voice' is required to be passed as a string for OpenAI TTS",
                 model=model,
                 llm_provider=custom_llm_provider,
             )
         api_base = (
             api_base  # for deepinfra/perplexity/anyscale/groq/friendliai we check in get_llm_provider and pass in the api base from there
-            or litellm.api_base
+            or gateway.api_base
             or get_secret("OPENAI_BASE_URL")
             or get_secret("OPENAI_API_BASE")
             or "https://api.openai.com/v1"
@@ -8066,26 +8066,26 @@ def speech(
         # set API KEY
         api_key = (
             api_key
-            or litellm.api_key  # for deepinfra/perplexity/anyscale we check in get_llm_provider and pass in the api key from there
-            or litellm.openai_key
+            or gateway.api_key  # for deepinfra/perplexity/anyscale we check in get_llm_provider and pass in the api key from there
+            or gateway.openai_key
             or get_secret("OPENAI_API_KEY")
         )
 
         organization = (
             organization
-            or litellm.organization
+            or gateway.organization
             or get_secret("OPENAI_ORGANIZATION")
             or None  # default - https://github.com/openai/openai-python/blob/284c1799070c723c6a553337134148a7ab088dd8/openai/util.py#L105
         )
 
         project = (
             project
-            or litellm.project
+            or gateway.project
             or get_secret("OPENAI_PROJECT")
             or None  # default - https://github.com/openai/openai-python/blob/284c1799070c723c6a553337134148a7ab088dd8/openai/util.py#L105
         )
 
-        headers = headers or litellm.headers
+        headers = headers or gateway.headers
 
         response = openai_chat_completions.audio_speech(
             model=model,
@@ -8112,7 +8112,7 @@ def speech(
 
             # Azure AVA (Cognitive Services) Text-to-Speech
             if text_to_speech_provider_config is None:
-                raise litellm.BadRequestError(
+                raise gateway.BadRequestError(
                     message="Azure Speech Service configuration not found",
                     model=model,
                     llm_provider=custom_llm_provider,
@@ -8139,19 +8139,19 @@ def speech(
         else:
             # Azure OpenAI TTS
             if voice is None or not (isinstance(voice, str)):
-                raise litellm.BadRequestError(
+                raise gateway.BadRequestError(
                     message="'voice' is required to be passed as a string for Azure TTS",
                     model=model,
                     llm_provider=custom_llm_provider,
                 )
-            api_base = api_base or litellm.api_base or get_secret("AZURE_API_BASE")
+            api_base = api_base or gateway.api_base or get_secret("AZURE_API_BASE")
 
-            api_version = api_version or litellm.api_version or get_secret("AZURE_API_VERSION")
+            api_version = api_version or gateway.api_version or get_secret("AZURE_API_VERSION")
 
             api_key = (
                 api_key
-                or litellm.api_key
-                or litellm.azure_key
+                or gateway.api_key
+                or gateway.azure_key
                 or get_secret("AZURE_OPENAI_API_KEY")
                 or get_secret("AZURE_API_KEY")
             )
@@ -8194,7 +8194,7 @@ def speech(
 
         voice_id = voice if isinstance(voice, str) else None
         if voice_id is None or not voice_id.strip():
-            raise litellm.BadRequestError(
+            raise gateway.BadRequestError(
                 message="'voice' must resolve to an ElevenLabs voice id for ElevenLabs TTS",
                 model=model,
                 llm_provider=custom_llm_provider,
@@ -8303,7 +8303,7 @@ def speech(
 
         # RunwayML Text-to-Speech
         if text_to_speech_provider_config is None:
-            raise litellm.BadRequestError(
+            raise gateway.BadRequestError(
                 message="RunwayML Text-to-Speech configuration not found",
                 model=model,
                 llm_provider=custom_llm_provider,
@@ -8395,7 +8395,7 @@ def speech(
 
     if response is None:
         raise Exception(
-            f"Unable to map the custom llm provider={custom_llm_provider} to a known provider={litellm.provider_list}."
+            f"Unable to map the custom llm provider={custom_llm_provider} to a known provider={gateway.provider_list}."
         )
     return response
 
@@ -8449,8 +8449,8 @@ async def ahealth_check(
         if model is None:
             raise Exception("model not set")
 
-        if model in litellm.model_cost and mode is None:
-            mode = litellm.model_cost[model].get("mode")
+        if model in gateway.model_cost and mode is None:
+            mode = gateway.model_cost[model].get("mode")
 
         custom_llm_provider_from_params: Final = model_params.get("custom_llm_provider", None)
         api_base_from_params: Final = model_params.get("api_base", None)
@@ -8462,8 +8462,8 @@ async def ahealth_check(
             api_base=api_base_from_params,
             api_key=api_key_from_params,
         )
-        if model in litellm.model_cost and mode is None:
-            mode = litellm.model_cost[model].get("mode")
+        if model in gateway.model_cost and mode is None:
+            mode = gateway.model_cost[model].get("mode")
 
         model_params["cache"] = {"no-cache": True}  # don't used cached responses for making health check calls
         mode = mode or "chat"
@@ -8517,15 +8517,15 @@ async def ahealth_check(
 def print_verbose(print_statement):
     try:
         verbose_logger.debug(print_statement)
-        if litellm.set_verbose:
+        if gateway.set_verbose:
             print(print_statement)  # noqa: T201
     except Exception:
         pass
 
 
 def config_completion(**kwargs):
-    if litellm.config_path is not None:
-        config_args: Final = read_config_args(litellm.config_path)
+    if gateway.config_path is not None:
+        config_args: Final = read_config_args(gateway.config_path)
         # overwrite any args passed in with config args
         return completion(**kwargs, **config_args)
     else:
@@ -8608,7 +8608,7 @@ def _stream_builder_response_cost(response: ModelResponse, logging_obj: Optional
         "custom_llm_provider"
     )
     try:
-        return litellm.completion_cost(completion_response=response, custom_llm_provider=provider_hint)
+        return gateway.completion_cost(completion_response=response, custom_llm_provider=provider_hint)
     except Exception:
         return _stream_builder_model_map_cost(response)
 
@@ -8625,7 +8625,7 @@ def _stream_builder_model_map_cost(response: ModelResponse) -> float | None:
     if not model_name or not isinstance(usage, Usage):
         return None
     try:
-        prompt_cost, completion_tokens_cost = litellm.cost_per_token(model=model_name, usage_object=usage)
+        prompt_cost, completion_tokens_cost = gateway.cost_per_token(model=model_name, usage_object=usage)
         return prompt_cost + completion_tokens_cost
     except Exception:  # noqa: BLE001  # cost_per_token raises bare Exception for unpriceable models
         return None
@@ -8658,7 +8658,7 @@ def stream_chunk_builder(
 ) -> ModelResponse | TextCompletionResponse | None:
     try:
         if chunks is None:
-            raise litellm.APIError(
+            raise gateway.APIError(
                 status_code=500,
                 message="Error building chunks for logging/streaming usage calculation",
                 llm_provider="",
@@ -8676,7 +8676,7 @@ def stream_chunk_builder(
         ## Route to the text completion logic
         first_chunk_with_choices: Final = next((c for c in chunks if c.get("choices")), None)
         if first_chunk_with_choices is not None and isinstance(
-            first_chunk_with_choices["choices"][0], litellm.utils.TextChoices
+            first_chunk_with_choices["choices"][0], gateway.utils.TextChoices
         ):  # route to the text completion logic
             return stream_chunk_builder_text_completion(chunks=chunks, messages=messages)
 
@@ -8929,7 +8929,7 @@ def stream_chunk_builder(
         return response
     except Exception as e:
         verbose_logger.exception("litellm.main.py::stream_chunk_builder() - Exception occurred - %s", e)
-        raise litellm.APIError(
+        raise gateway.APIError(
             status_code=500,
             message="Error building chunks for logging/streaming usage calculation",
             llm_provider="",
@@ -9024,7 +9024,7 @@ async def acount_tokens(
     fallback_messages = messages or []
     if system and fallback_messages:
         fallback_messages = [{"role": "system", "content": system}] + fallback_messages
-    local_count: Final = litellm.token_counter(
+    local_count: Final = gateway.token_counter(
         model=model,
         messages=fallback_messages,
         tools=tools,

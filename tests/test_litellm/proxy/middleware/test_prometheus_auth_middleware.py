@@ -2,7 +2,7 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy._types import SpecialHeaders
 from token_iq.gateway.proxy.middleware.prometheus_auth_middleware import PrometheusAuthMiddleware
 
@@ -58,7 +58,7 @@ def test_valid_auth_metrics_after_body_consumed(app_with_middleware, monkeypatch
     """
     Auth that reads the request body must not cause /metrics to hang on success.
     """
-    litellm.require_auth_for_metrics_endpoint = True
+    gateway.require_auth_for_metrics_endpoint = True
     monkeypatch.setattr(
         "token_iq.gateway.proxy.middleware.prometheus_auth_middleware.user_api_key_auth",
         fake_valid_auth_reads_body,
@@ -81,7 +81,7 @@ def test_valid_auth_metrics(app_with_middleware, monkeypatch):
     Test that a request to /metrics (and /metrics/) with valid auth headers passes.
     """
     # Enable auth on metrics endpoints.
-    monkeypatch.setattr(litellm, "require_auth_for_metrics_endpoint", True)
+    monkeypatch.setattr(gateway, "require_auth_for_metrics_endpoint", True)
     # Patch the auth function to simulate a valid authentication.
     monkeypatch.setattr(
         "token_iq.gateway.proxy.middleware.prometheus_auth_middleware.user_api_key_auth",
@@ -106,7 +106,7 @@ def test_invalid_auth_metrics(app_with_middleware, monkeypatch):
     """
     Test that a request to /metrics with invalid auth headers fails with a 401.
     """
-    monkeypatch.setattr(litellm, "require_auth_for_metrics_endpoint", True)
+    monkeypatch.setattr(gateway, "require_auth_for_metrics_endpoint", True)
     # Patch the auth function to simulate a failed authentication.
     monkeypatch.setattr(
         "token_iq.gateway.proxy.middleware.prometheus_auth_middleware.user_api_key_auth",
@@ -127,7 +127,7 @@ def test_invalid_auth_metrics_includes_optout_hint(app_with_middleware, monkeypa
     behavior, otherwise a Prometheus scraper that worked pre-upgrade just sees
     "Malformed API Key" with no actionable migration path.
     """
-    monkeypatch.setattr(litellm, "require_auth_for_metrics_endpoint", True)
+    monkeypatch.setattr(gateway, "require_auth_for_metrics_endpoint", True)
     monkeypatch.setattr(
         "token_iq.gateway.proxy.middleware.prometheus_auth_middleware.user_api_key_auth",
         fake_invalid_auth,
@@ -148,7 +148,7 @@ def test_metrics_auth_uses_real_auth_when_route_is_public(
     Regression: /metrics is statically public, but require_auth_for_metrics_endpoint
     must still force the real auth path.
     """
-    monkeypatch.setattr(litellm, "require_auth_for_metrics_endpoint", True)
+    monkeypatch.setattr(gateway, "require_auth_for_metrics_endpoint", True)
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.master_key", "sk-master")
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.general_settings", {})
 
@@ -182,7 +182,7 @@ def test_no_auth_metrics_when_disabled(app_with_middleware, monkeypatch):
     Test that when require_auth_for_metrics_endpoint is False, requests to /metrics
     bypass the auth check.
     """
-    monkeypatch.setattr(litellm, "require_auth_for_metrics_endpoint", False)
+    monkeypatch.setattr(gateway, "require_auth_for_metrics_endpoint", False)
 
     # To ensure auth is not run, patch the auth function with one that will raise if called.
     def should_not_be_called(*args, **kwargs):
@@ -203,7 +203,7 @@ def test_non_metrics_requests_pass_through(app_with_middleware, monkeypatch):
     """
     Test that non-metrics endpoints pass through the middleware unaffected.
     """
-    monkeypatch.setattr(litellm, "require_auth_for_metrics_endpoint", True)
+    monkeypatch.setattr(gateway, "require_auth_for_metrics_endpoint", True)
 
     client = TestClient(app_with_middleware)
 
@@ -221,7 +221,7 @@ def test_non_metrics_requests_dont_trigger_auth(app_with_middleware, monkeypatch
     Test that non-metrics requests never trigger auth, even when auth is enabled
     and the auth function would reject the request.
     """
-    monkeypatch.setattr(litellm, "require_auth_for_metrics_endpoint", True)
+    monkeypatch.setattr(gateway, "require_auth_for_metrics_endpoint", True)
 
     def should_not_be_called(*args, **kwargs):
         raise Exception("Auth should not be called for non-metrics requests")

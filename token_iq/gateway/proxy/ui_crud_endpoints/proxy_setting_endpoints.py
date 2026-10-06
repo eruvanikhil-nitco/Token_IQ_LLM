@@ -18,7 +18,7 @@ from pydantic import ConfigDict, JsonValue, ValidationError, create_model
 from pydantic.fields import FieldInfo
 from typing_extensions import NotRequired, ReadOnly, TypedDict
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.core_utils.sensitive_data_masker import mask_sensitive_keys
 from token_iq.gateway.proxy._experimental.mcp_server.tool_search import MCP_TOOL_SEARCH_SETTINGS_KEY
@@ -876,7 +876,7 @@ async def _update_litellm_setting(
     before_value: Final = config.get("litellm_settings", {}).get(settings_key)
 
     # Update the in-memory settings (after get_config to avoid stale override)
-    setattr(litellm, settings_key, in_memory_var)
+    setattr(gateway, settings_key, in_memory_var)
 
     # Update config with new settings
     if "litellm_settings" not in config:

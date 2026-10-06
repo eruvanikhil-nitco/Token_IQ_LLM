@@ -8,7 +8,7 @@ from openai import AsyncOpenAI
 import sys, os
 from typing import Optional
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy._types import LitellmUserRoles
 
 
@@ -271,7 +271,7 @@ async def chat_completion_streaming(session, key, model="gpt-4"):
         {"role": "system", "content": "You are a helpful assistant"},
         {"role": "user", "content": "Hello!"},
     ]
-    prompt_tokens = litellm.token_counter(model="gpt-35-turbo", messages=messages)
+    prompt_tokens = gateway.token_counter(model="gpt-35-turbo", messages=messages)
     data = {
         "model": model,
         "messages": messages,
@@ -285,7 +285,7 @@ async def chat_completion_streaming(session, key, model="gpt-4"):
 
     print(f"content: {content}")
 
-    completion_tokens = litellm.token_counter(
+    completion_tokens = gateway.token_counter(
         model="gpt-35-turbo", text=content, count_response_tokens=True
     )
 
@@ -520,8 +520,8 @@ async def test_key_info_spend_values():
         prompt_tokens = spend_logs[0]["prompt_tokens"]
         print(f"prompt_tokens: {prompt_tokens}; completion_tokens: {completion_tokens}")
 
-        litellm.set_verbose = True
-        prompt_cost, completion_cost = litellm.cost_per_token(
+        gateway.set_verbose = True
+        prompt_cost, completion_cost = gateway.cost_per_token(
             model="gpt-35-turbo",
             prompt_tokens=prompt_tokens,
             completion_tokens=completion_tokens,
@@ -562,7 +562,7 @@ async def test_aaaaakey_info_spend_values_streaming():
             session=session, key=new_key
         )
         print(f"prompt_tokens: {prompt_tokens}, completion_tokens: {completion_tokens}")
-        prompt_cost, completion_cost = litellm.cost_per_token(
+        prompt_cost, completion_cost = gateway.cost_per_token(
             model="azure/gpt-4o",
             prompt_tokens=prompt_tokens,
             completion_tokens=completion_tokens,

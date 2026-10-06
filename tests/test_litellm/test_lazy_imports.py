@@ -5,7 +5,7 @@ import sys
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._lazy_imports import (
     COST_CALCULATOR_NAMES,
     LITELLM_LOGGING_NAMES,

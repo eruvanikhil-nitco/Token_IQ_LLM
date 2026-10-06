@@ -39,7 +39,7 @@ from __future__ import annotations
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import Router
 
 _RECEIVED_MODEL_GROUP_PHRASE = "Received Model Group="
@@ -117,11 +117,11 @@ def _router_with_credentialed_fallback() -> Router:
 @pytest.fixture(autouse=True)
 def _reset_expose_flag(monkeypatch: pytest.MonkeyPatch) -> None:
     """Each test starts with the flag in its default (on) state."""
-    monkeypatch.setattr(litellm, "expose_router_debug_in_errors", True)
+    monkeypatch.setattr(gateway, "expose_router_debug_in_errors", True)
 
 
 def test_flag_defaults_on():
-    assert litellm.expose_router_debug_in_errors is True
+    assert gateway.expose_router_debug_in_errors is True
 
 
 # --- Site 5: "Received Model Group=..." on terminal raise --------------------
@@ -129,9 +129,9 @@ def test_flag_defaults_on():
 
 @pytest.mark.asyncio
 async def test_flag_off_does_not_leak_received_model_group(monkeypatch: pytest.MonkeyPatch):
-    monkeypatch.setattr(litellm, "expose_router_debug_in_errors", False)
+    monkeypatch.setattr(gateway, "expose_router_debug_in_errors", False)
     router = _router_with_rate_limit_failure()
-    with pytest.raises(litellm.RateLimitError) as excinfo:
+    with pytest.raises(gateway.RateLimitError) as excinfo:
         await router.acompletion(
             model=_INTERNAL_MODEL_GROUP_NAME,
             messages=[{"role": "user", "content": "hi"}],
@@ -144,9 +144,9 @@ async def test_flag_off_does_not_leak_received_model_group(monkeypatch: pytest.M
 
 @pytest.mark.asyncio
 async def test_flag_on_shows_received_model_group(monkeypatch: pytest.MonkeyPatch):
-    monkeypatch.setattr(litellm, "expose_router_debug_in_errors", True)
+    monkeypatch.setattr(gateway, "expose_router_debug_in_errors", True)
     router = _router_with_rate_limit_failure()
-    with pytest.raises(litellm.RateLimitError) as excinfo:
+    with pytest.raises(gateway.RateLimitError) as excinfo:
         await router.acompletion(
             model=_INTERNAL_MODEL_GROUP_NAME,
             messages=[{"role": "user", "content": "hi"}],
@@ -162,9 +162,9 @@ async def test_flag_on_shows_received_model_group(monkeypatch: pytest.MonkeyPatc
 
 @pytest.mark.asyncio
 async def test_flag_off_does_not_leak_context_window_fallback_hint(monkeypatch: pytest.MonkeyPatch):
-    monkeypatch.setattr(litellm, "expose_router_debug_in_errors", False)
+    monkeypatch.setattr(gateway, "expose_router_debug_in_errors", False)
     router = _router_with_context_window_failure()
-    with pytest.raises(litellm.ContextWindowExceededError) as excinfo:
+    with pytest.raises(gateway.ContextWindowExceededError) as excinfo:
         await router.acompletion(
             model=_INTERNAL_MODEL_GROUP_NAME,
             messages=[{"role": "user", "content": "hi"}],
@@ -177,9 +177,9 @@ async def test_flag_off_does_not_leak_context_window_fallback_hint(monkeypatch: 
 
 @pytest.mark.asyncio
 async def test_flag_on_shows_context_window_fallback_hint(monkeypatch: pytest.MonkeyPatch):
-    monkeypatch.setattr(litellm, "expose_router_debug_in_errors", True)
+    monkeypatch.setattr(gateway, "expose_router_debug_in_errors", True)
     router = _router_with_context_window_failure()
-    with pytest.raises(litellm.ContextWindowExceededError) as excinfo:
+    with pytest.raises(gateway.ContextWindowExceededError) as excinfo:
         await router.acompletion(
             model=_INTERNAL_MODEL_GROUP_NAME,
             messages=[{"role": "user", "content": "hi"}],
@@ -225,9 +225,9 @@ def _router_with_plain_deployment() -> Router:
 
 @pytest.mark.asyncio
 async def test_flag_off_does_not_leak_deployment_timeout_debug(monkeypatch: pytest.MonkeyPatch):
-    monkeypatch.setattr(litellm, "expose_router_debug_in_errors", False)
+    monkeypatch.setattr(gateway, "expose_router_debug_in_errors", False)
     router = _router_with_plain_deployment()
-    with pytest.raises(litellm.Timeout) as excinfo:
+    with pytest.raises(gateway.Timeout) as excinfo:
         await router.acompletion(
             model=_INTERNAL_MODEL_GROUP_NAME,
             messages=[{"role": "user", "content": "hi"}],
@@ -240,9 +240,9 @@ async def test_flag_off_does_not_leak_deployment_timeout_debug(monkeypatch: pyte
 
 @pytest.mark.asyncio
 async def test_flag_on_shows_deployment_timeout_debug(monkeypatch: pytest.MonkeyPatch):
-    monkeypatch.setattr(litellm, "expose_router_debug_in_errors", True)
+    monkeypatch.setattr(gateway, "expose_router_debug_in_errors", True)
     router = _router_with_plain_deployment()
-    with pytest.raises(litellm.Timeout) as excinfo:
+    with pytest.raises(gateway.Timeout) as excinfo:
         await router.acompletion(
             model=_INTERNAL_MODEL_GROUP_NAME,
             messages=[{"role": "user", "content": "hi"}],
@@ -256,8 +256,8 @@ async def test_flag_on_shows_deployment_timeout_debug(monkeypatch: pytest.Monkey
 # --- Site 3: ContentPolicyViolationError fallback hint (no fallback set) ----
 
 
-def _content_policy_error() -> litellm.ContentPolicyViolationError:
-    return litellm.ContentPolicyViolationError(
+def _content_policy_error() -> gateway.ContentPolicyViolationError:
+    return gateway.ContentPolicyViolationError(
         message="mocked policy violation",
         model="gpt-4o",
         llm_provider="openai",
@@ -266,9 +266,9 @@ def _content_policy_error() -> litellm.ContentPolicyViolationError:
 
 @pytest.mark.asyncio
 async def test_flag_off_does_not_leak_content_policy_fallback_hint(monkeypatch: pytest.MonkeyPatch):
-    monkeypatch.setattr(litellm, "expose_router_debug_in_errors", False)
+    monkeypatch.setattr(gateway, "expose_router_debug_in_errors", False)
     router = _router_with_plain_deployment()
-    with pytest.raises(litellm.ContentPolicyViolationError) as excinfo:
+    with pytest.raises(gateway.ContentPolicyViolationError) as excinfo:
         await router.acompletion(
             model=_INTERNAL_MODEL_GROUP_NAME,
             messages=[{"role": "user", "content": "hi"}],
@@ -281,9 +281,9 @@ async def test_flag_off_does_not_leak_content_policy_fallback_hint(monkeypatch: 
 
 @pytest.mark.asyncio
 async def test_flag_on_shows_content_policy_fallback_hint(monkeypatch: pytest.MonkeyPatch):
-    monkeypatch.setattr(litellm, "expose_router_debug_in_errors", True)
+    monkeypatch.setattr(gateway, "expose_router_debug_in_errors", True)
     router = _router_with_plain_deployment()
-    with pytest.raises(litellm.ContentPolicyViolationError) as excinfo:
+    with pytest.raises(gateway.ContentPolicyViolationError) as excinfo:
         await router.acompletion(
             model=_INTERNAL_MODEL_GROUP_NAME,
             messages=[{"role": "user", "content": "hi"}],

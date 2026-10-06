@@ -11,7 +11,7 @@ def test_restructure_ui_html_files_skipped_in_non_root(monkeypatch):
     """
     # 1. Setup environment variables and variables
     import token_iq.gateway.proxy.proxy_server
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     monkeypatch.setenv("LITELLM_NON_ROOT", "true")
 

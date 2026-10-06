@@ -6,7 +6,7 @@ import os
 from datetime import datetime, timedelta, timezone
 from typing import TYPE_CHECKING, Any, Final, cast
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.integrations.custom_logger import CustomLogger
 
@@ -139,7 +139,7 @@ class FocusLogger(CustomLogger):
         # which have their own dedicated scheduling method.
         focus_loggers: Final[list[CustomLogger]] = [
             cb
-            for cb in litellm.logging_callback_manager.get_custom_loggers_for_type(callback_type=FocusLogger)
+            for cb in gateway.logging_callback_manager.get_custom_loggers_for_type(callback_type=FocusLogger)
             if type(cb) is FocusLogger
         ]
         if not focus_loggers:

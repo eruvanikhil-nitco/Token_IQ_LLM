@@ -2,7 +2,7 @@ import json
 from collections.abc import Callable
 from typing import Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.custom_httpx.http_handler import (
     AsyncHTTPHandler,
     HTTPHandler,
@@ -41,7 +41,7 @@ def completion(
     )
 
     ## Load Config
-    config: Final = litellm.NLPCloudConfig.get_config()
+    config: Final = gateway.NLPCloudConfig.get_config()
     for k, v in config.items():
         if (
             k not in optional_params

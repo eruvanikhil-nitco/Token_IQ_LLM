@@ -7,7 +7,7 @@ import httpx
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
 from token_iq.gateway.proxy.pass_through_endpoints.llm_provider_handlers.openai_passthrough_logging_handler import (
     OpenAIPassthroughLoggingHandler,
@@ -1830,7 +1830,7 @@ class TestOpenAIPassthroughResponsesStreamingSpendLog:
     def setup_method(self):
         self.start_time = datetime.now()
         self.end_time = datetime.now()
-        rates = litellm.model_cost[self.MODEL_MAP_KEY]
+        rates = gateway.model_cost[self.MODEL_MAP_KEY]
         self.expected_spend = (
             self.INPUT_TOKENS * rates["input_cost_per_token"]
             + self.OUTPUT_TOKENS * rates["output_cost_per_token"]
@@ -1965,7 +1965,7 @@ class TestOpenAIPassthroughEmbeddingsSpendLog:
     def setup_method(self):
         self.start_time = datetime.now()
         self.end_time = datetime.now()
-        self.expected_spend = self.PROMPT_TOKENS * litellm.model_cost[self.MODEL]["input_cost_per_token"]
+        self.expected_spend = self.PROMPT_TOKENS * gateway.model_cost[self.MODEL]["input_cost_per_token"]
         self.response_body = {
             "object": "list",
             "data": [{"object": "embedding", "index": 0, "embedding": [0.0, 1.0]}],

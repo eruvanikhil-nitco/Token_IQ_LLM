@@ -9,7 +9,7 @@ import pytest
 import json
 from unittest.mock import patch, AsyncMock
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.responses.litellm_completion_transformation.transformation import (
     LiteLLMCompletionResponsesConfig,
     TOOL_CALLS_CACHE,

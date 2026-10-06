@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.completion_extras.litellm_responses_transformation.handler import (
     ResponsesToCompletionBridgeHandler,
 )
@@ -274,7 +274,7 @@ _PROVIDER_NATIVE_MODEL_CASES = [
 
 
 def _upstream_model_for(handed_model: str, custom_llm_provider: str) -> str:
-    upstream_model, _, _, _ = litellm.get_llm_provider(
+    upstream_model, _, _, _ = gateway.get_llm_provider(
         model=handed_model,
         litellm_params=GenericLiteLLMParams(custom_llm_provider=custom_llm_provider),
     )

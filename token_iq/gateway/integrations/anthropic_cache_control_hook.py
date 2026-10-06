@@ -78,18 +78,18 @@ def supports_openai_prompt_cache_breakpoint(model: str) -> bool:
 
 
 def _model_map_prompt_cache_breakpoint_flag(model: str) -> bool | None:
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    entries: Final = (litellm.model_cost.get(key) for key in (model, model.rsplit("/", 1)[-1]))
+    entries: Final = (gateway.model_cost.get(key) for key in (model, model.rsplit("/", 1)[-1]))
     flags: Final = (entry.get("supports_prompt_cache_breakpoint") for entry in entries if isinstance(entry, dict))
     return next((bool(flag) for flag in flags if flag is not None), None)
 
 
 def targets_openai_api(api_base: object) -> bool:
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     resolved: Final = next(
-        (value for value in (api_base, litellm.api_base, *map(os.getenv, OPENAI_API_BASE_ENV_VARS)) if value),
+        (value for value in (api_base, gateway.api_base, *map(os.getenv, OPENAI_API_BASE_ENV_VARS)) if value),
         None,
     )
     if not isinstance(resolved, str):
@@ -499,9 +499,9 @@ class AnthropicCacheControlHook(CustomPromptManagement):
         Defaults to Anthropic's 5-minute ephemeral cache; honors the optional
         ``litellm.anthropic_prompt_caching_ttl`` override ("5m" or "1h").
         """
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
-        ttl: Final = litellm.anthropic_prompt_caching_ttl
+        ttl: Final = gateway.anthropic_prompt_caching_ttl
         if ttl == "5m" or ttl == "1h":
             return ChatCompletionCachedContent(type="ephemeral", ttl=ttl)
         return ChatCompletionCachedContent(type="ephemeral")
@@ -625,9 +625,9 @@ class AnthropicCacheControlHook(CustomPromptManagement):
         lacks prompt-caching support, or the request already carries
         client-supplied cache_control.
         """
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
-        if litellm.enable_anthropic_prompt_caching is not True and enable_prompt_caching is not True:
+        if gateway.enable_anthropic_prompt_caching is not True and enable_prompt_caching is not True:
             return []
 
         provider = custom_llm_provider

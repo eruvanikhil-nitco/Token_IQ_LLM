@@ -1,12 +1,12 @@
 import os, sys, traceback
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from dotenv import load_dotenv
 
 
 def generate_text():
     try:
-        litellm.set_verbose = True
+        gateway.set_verbose = True
         messages = [
             {
                 "role": "user",
@@ -21,7 +21,7 @@ def generate_text():
                 ],
             }
         ]
-        response = litellm.completion(
+        response = gateway.completion(
             model="gemini/gemini-pro-vision",
             messages=messages,
             stop="Hello world",

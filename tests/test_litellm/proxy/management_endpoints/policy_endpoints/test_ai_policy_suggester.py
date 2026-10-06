@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 from token_iq.gateway.proxy._types import ProxyException
 from token_iq.gateway.proxy.management_endpoints.policy_endpoints.ai_policy_suggester import (
@@ -264,7 +264,7 @@ class TestSuggesterRejectsModelsWithoutToolCalling:
         assert "tool calling" in exc.value.message
 
     def test_a_model_without_forced_tool_choice_support_remains_eligible(self, local_model_cost_map):
-        supported_params = litellm.get_supported_openai_params(
+        supported_params = gateway.get_supported_openai_params(
             model="amazon.nova-pro-v1:0",
             custom_llm_provider="bedrock",
         )
@@ -291,7 +291,7 @@ class TestSuggesterToleratesAModelThatRefusesItsSamplingParams:
         """
         monkeypatch.delenv("OPENAI_API_KEY", raising=False)
 
-        with pytest.raises(litellm.AuthenticationError):
+        with pytest.raises(gateway.AuthenticationError):
             await AiPolicySuggester().suggest(
                 templates=SAMPLE_TEMPLATES,
                 attack_examples=["My SSN is 123-45-6789"],

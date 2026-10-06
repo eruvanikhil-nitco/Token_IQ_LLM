@@ -6,7 +6,7 @@ It allows fetching a dict of the proxy server request from s3 or GCS bucket.
 
 from typing import Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import _custom_logger_compatible_callbacks_literal
 from token_iq.gateway.integrations.custom_logger import CustomLogger
 
@@ -49,13 +49,13 @@ class ColdStorageHandler:
         custom_logger_name: Final = self._select_custom_logger_for_cold_storage()
         if custom_logger_name is None:
             return None
-        return litellm.logging_callback_manager.get_active_custom_logger_for_callback_name(custom_logger_name)
+        return gateway.logging_callback_manager.get_active_custom_logger_for_callback_name(custom_logger_name)
 
     def _select_custom_logger_for_cold_storage(
         self,
     ) -> _custom_logger_compatible_callbacks_literal | None:
         cold_storage_custom_logger: Final[_custom_logger_compatible_callbacks_literal | None] = (
-            litellm.cold_storage_custom_logger
+            gateway.cold_storage_custom_logger
         )
 
         return cold_storage_custom_logger

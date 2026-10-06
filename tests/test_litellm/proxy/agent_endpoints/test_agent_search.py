@@ -9,7 +9,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from openai import APIConnectionError
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
 from token_iq.gateway.proxy.agent_endpoints.agent_search import (
     AgentSearchEmbeddingFailed,
@@ -231,7 +231,7 @@ class TestSearchAgents:
     async def test_router_embeddings_are_read_from_the_response(self) -> None:
         router = MagicMock()
         router.aembedding = AsyncMock(
-            side_effect=lambda model, input, metadata: litellm.EmbeddingResponse(
+            side_effect=lambda model, input, metadata: gateway.EmbeddingResponse(
                 model=model,
                 data=[{"object": "embedding", "index": i, "embedding": list(VECTORS[t])} for i, t in enumerate(input)],
             )
@@ -253,7 +253,7 @@ class TestSearchAgents:
     async def test_embedding_spend_is_attributed_to_the_calling_key(self) -> None:
         router = MagicMock()
         router.aembedding = AsyncMock(
-            side_effect=lambda model, input, metadata: litellm.EmbeddingResponse(
+            side_effect=lambda model, input, metadata: gateway.EmbeddingResponse(
                 model=model,
                 data=[{"object": "embedding", "index": i, "embedding": list(VECTORS[t])} for i, t in enumerate(input)],
             )
@@ -296,13 +296,13 @@ def registry(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
 def embedding_router(monkeypatch: pytest.MonkeyPatch) -> MagicMock:
     router = MagicMock()
     router.aembedding = AsyncMock(
-        side_effect=lambda model, input, metadata: litellm.EmbeddingResponse(
+        side_effect=lambda model, input, metadata: gateway.EmbeddingResponse(
             model=model,
             data=[{"object": "embedding", "index": i, "embedding": list(VECTORS[t])} for i, t in enumerate(input)],
         )
     )
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", router)
-    monkeypatch.setattr(litellm, "agent_search_embedding_model", "text-embedding-3-small")
+    monkeypatch.setattr(gateway, "agent_search_embedding_model", "text-embedding-3-small")
     return router
 
 
@@ -349,7 +349,7 @@ class TestGetAgentsQuery:
     def test_missing_embedding_model_is_a_400(
         self, registry: MagicMock, embedding_router: MagicMock, no_db: None, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        monkeypatch.setattr(litellm, "agent_search_embedding_model", None)
+        monkeypatch.setattr(gateway, "agent_search_embedding_model", None)
         response = _client(LitellmUserRoles.PROXY_ADMIN).get(
             "/v1/agents", params={"query": "anything"}, headers={"Authorization": "Bearer k"}
         )

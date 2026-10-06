@@ -18,7 +18,7 @@ import logging
 from typing import Optional
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy.spend_tracking.spend_tracking_utils import (
     get_logging_payload,
     _sanitize_request_body_for_spend_logs_payload,
@@ -180,13 +180,13 @@ def test_spend_logs_payload(model_id: Optional[str]):
                 },
             },
         },
-        "response_obj": litellm.ModelResponse(
+        "response_obj": gateway.ModelResponse(
             id=model_id,
             choices=[
-                litellm.Choices(
+                gateway.Choices(
                     finish_reason="length",
                     index=0,
-                    message=litellm.Message(
+                    message=gateway.Message(
                         content="Bom dia! Como posso ajudar você", role="assistant"
                     ),
                 )
@@ -195,7 +195,7 @@ def test_spend_logs_payload(model_id: Optional[str]):
             model="gpt-35-turbo",
             object="chat.completion",
             system_fingerprint=None,
-            usage=litellm.Usage(
+            usage=gateway.Usage(
                 completion_tokens=10, prompt_tokens=20, total_tokens=30
             ),
         ),
@@ -297,7 +297,7 @@ def test_spend_logs_payload_whisper():
         "response_cost": 0.00023398580000000003,
     }
 
-    response = litellm.utils.TranscriptionResponse(
+    response = gateway.utils.TranscriptionResponse(
         text="Four score and seven years ago, our fathers brought forth on this continent a new nation, conceived in liberty and dedicated to the proposition that all men are created equal. Now we are engaged in a great civil war, testing whether that nation, or any nation so conceived and so dedicated, can long endure."
     )
 
@@ -333,17 +333,17 @@ def test_spend_logs_payload_with_prompts_enabled(monkeypatch):
                 }
             },
         },
-        "response_obj": litellm.ModelResponse(
+        "response_obj": gateway.ModelResponse(
             id="chatcmpl-123",
             choices=[
-                litellm.Choices(
+                gateway.Choices(
                     finish_reason="stop",
                     index=0,
-                    message=litellm.Message(content="Hi there!", role="assistant"),
+                    message=gateway.Message(content="Hi there!", role="assistant"),
                 )
             ],
             model="gpt-5-mini",
-            usage=litellm.Usage(completion_tokens=2, prompt_tokens=1, total_tokens=3),
+            usage=gateway.Usage(completion_tokens=2, prompt_tokens=1, total_tokens=3),
         ),
         "start_time": datetime.datetime.now(),
         "end_time": datetime.datetime.now(),
@@ -469,12 +469,12 @@ def test_configurable_string_length_env_var(monkeypatch):
     # Import after setting env var to ensure it picks up the new value
     import importlib
     import token_iq.gateway.constants
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     import token_iq.gateway.proxy.spend_tracking.spend_tracking_utils
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    importlib.reload(litellm.constants)
-    importlib.reload(litellm.proxy.spend_tracking.spend_tracking_utils)
+    importlib.reload(gateway.constants)
+    importlib.reload(gateway.proxy.spend_tracking.spend_tracking_utils)
 
     from token_iq.gateway.constants import (
         MAX_STRING_LENGTH_PROMPT_IN_DB,

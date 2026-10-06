@@ -6,7 +6,7 @@ from typing import Final
 
 from pydantic import BaseModel
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 
 class PromptLayerLogger:
@@ -44,7 +44,7 @@ class PromptLayerLogger:
             if isinstance(response_obj, BaseModel):
                 response_obj = response_obj.model_dump()
 
-            request_response: Final = litellm.module_level_client.post(
+            request_response: Final = gateway.module_level_client.post(
                 "https://api.promptlayer.com/rest/track-request",
                 json={
                     "function_name": "openai.ChatCompletion.create",
@@ -69,7 +69,7 @@ class PromptLayerLogger:
 
             if "request_id" in response_json:
                 if metadata:
-                    response: Final = litellm.module_level_client.post(
+                    response: Final = gateway.module_level_client.post(
                         "https://api.promptlayer.com/rest/track-metadata",
                         json={
                             "request_id": response_json["request_id"],

@@ -21,7 +21,7 @@ from fastapi.exceptions import HTTPException
 from httpx import Request, Response
 
 # LiteLLM imports
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import DualCache
 from token_iq.gateway.proxy._types import UserAPIKeyAuth
 from token_iq.gateway.proxy.common_utils.callback_utils import get_logging_caching_headers
@@ -55,14 +55,14 @@ def setup_and_teardown():
     # 1. litellm not in sys.modules (parallel worker removed it)
     # 2. litellm already imported (normal case)
     _module = importlib.import_module("token_iq.gateway")
-    litellm = importlib.reload(_module)
+    gateway = importlib.reload(_module)
 
     # Set up async loop
     loop = asyncio.get_event_loop_policy().new_event_loop()
     asyncio.set_event_loop(loop)
 
     # Set up litellm state
-    litellm.guardrail_name_config_map = {}
+    gateway.guardrail_name_config_map = {}
 
     yield
 

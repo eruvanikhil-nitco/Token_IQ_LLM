@@ -9,7 +9,7 @@ import pytest
 from datetime import datetime
 from unittest.mock import AsyncMock, patch
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._service_logger import ServiceLogging
 from token_iq.gateway.types.services import ServiceTypes
 
@@ -188,7 +188,7 @@ async def test_service_span_emitted_for_v2_logger_in_service_callback(monkeypatc
         SpanRole.PROXY_REQUEST, "POST /chat/completions"
     )
 
-    monkeypatch.setattr(litellm, "service_callback", [v2_logger])
+    monkeypatch.setattr(gateway, "service_callback", [v2_logger])
     service_logger = ServiceLogging()
 
     await service_logger.async_service_success_hook(
@@ -226,7 +226,7 @@ async def test_service_span_not_duplicated_for_string_and_instance(monkeypatch):
     # The "otel" string resolves to the proxy's registered logger (the same
     # instance), so the list holds two references to one logger.
     monkeypatch.setattr(proxy_server, "open_telemetry_logger", v2_logger, raising=False)
-    monkeypatch.setattr(litellm, "service_callback", ["otel", v2_logger])
+    monkeypatch.setattr(gateway, "service_callback", ["otel", v2_logger])
     service_logger = ServiceLogging()
 
     await service_logger.async_service_success_hook(
@@ -261,7 +261,7 @@ async def test_service_failure_span_not_duplicated_for_string_and_instance(
     )
 
     monkeypatch.setattr(proxy_server, "open_telemetry_logger", v2_logger, raising=False)
-    monkeypatch.setattr(litellm, "service_callback", ["otel", v2_logger])
+    monkeypatch.setattr(gateway, "service_callback", ["otel", v2_logger])
     service_logger = ServiceLogging()
 
     await service_logger.async_service_failure_hook(

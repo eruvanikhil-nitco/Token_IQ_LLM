@@ -16,7 +16,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from token_iq.gateway.types.utils import StandardLoggingPayload
 import pytest
 from token_iq.gateway.types.router import DeploymentTypedDict
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import Router
 from token_iq.gateway.caching.caching import DualCache
 from token_iq.gateway.router_strategy.lowest_tpm_rpm_v2 import (
@@ -407,7 +407,7 @@ def test_single_deployment_tpm_zero():
         }
     ]
 
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=model_list,
         routing_strategy="usage-based-routing-v2",
         cache_responses=True,

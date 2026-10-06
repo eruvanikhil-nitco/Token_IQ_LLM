@@ -1,6 +1,6 @@
 import json
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 import pytest
 
 
@@ -57,14 +57,14 @@ def _reducto_parse_response() -> dict:
 
 @pytest.fixture()
 def disable_aiohttp_transport():
-    original_disable_aiohttp = litellm.disable_aiohttp_transport
-    litellm.disable_aiohttp_transport = True
-    litellm.in_memory_llm_clients_cache.flush_cache()
+    original_disable_aiohttp = gateway.disable_aiohttp_transport
+    gateway.disable_aiohttp_transport = True
+    gateway.in_memory_llm_clients_cache.flush_cache()
     try:
         yield
     finally:
-        litellm.disable_aiohttp_transport = original_disable_aiohttp
-        litellm.in_memory_llm_clients_cache.flush_cache()
+        gateway.disable_aiohttp_transport = original_disable_aiohttp
+        gateway.in_memory_llm_clients_cache.flush_cache()
 
 
 @pytest.mark.asyncio
@@ -78,7 +78,7 @@ async def test_parse_v3_file_upload_and_response_mapping(
         json=_reducto_parse_response()
     )
 
-    response = await litellm.aocr(
+    response = await gateway.aocr(
         model="reducto/parse-v3",
         document={
             "type": "file",
@@ -133,7 +133,7 @@ async def test_parse_v3_reducto_id_passthrough_skips_upload(
         json=_reducto_parse_response()
     )
 
-    response = await litellm.aocr(
+    response = await gateway.aocr(
         model="reducto/parse-v3",
         document={
             "type": "document_url",

@@ -2,7 +2,7 @@
 Tests for LibertAI provider configuration and integration.
 """
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 
 class TestLibertAIProviderConfig:
@@ -14,7 +14,7 @@ class TestLibertAIProviderConfig:
 
         assert hasattr(LlmProviders, "LIBERTAI")
         assert LlmProviders.LIBERTAI.value == "libertai"
-        assert "libertai" in litellm.provider_list
+        assert "libertai" in gateway.provider_list
 
     def test_libertai_json_config_exists(self):
         """Test that libertai is configured in providers.json"""
@@ -61,7 +61,7 @@ class TestLibertAIProviderConfig:
 
     def test_libertai_model_cost_map(self):
         """Test that libertai models are present in the model cost map"""
-        model_cost = litellm.model_cost
+        model_cost = gateway.model_cost
 
         assert "libertai/qwen3.6-27b" in model_cost
         info = model_cost["libertai/qwen3.6-27b"]
@@ -97,7 +97,7 @@ class TestLibertAIProviderConfig:
 
     def test_libertai_model_modes(self):
         """Chat models carry mode 'chat'; the embedding model carries mode 'embedding'."""
-        model_cost = litellm.model_cost
+        model_cost = gateway.model_cost
 
         # chat model
         assert model_cost["libertai/qwen3.6-27b"]["mode"] == "chat"
@@ -114,10 +114,10 @@ class TestLibertAIProviderConfig:
         import json
         from pathlib import Path
 
-        from token_iq import gateway as _litellm
+        from token_iq import gateway as _gateway
 
         backup_path = (
-            Path(_litellm.__file__).parent / "provider_endpoints_support_backup.json"
+            Path(_gateway.__file__).parent / "provider_endpoints_support_backup.json"
         )
         matrix = json.loads(backup_path.read_text())
 

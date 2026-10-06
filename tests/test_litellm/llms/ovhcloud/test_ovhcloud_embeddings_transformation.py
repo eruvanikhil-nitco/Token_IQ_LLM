@@ -1,6 +1,6 @@
 from unittest.mock import patch
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 model = "ovhcloud/BGE-M3"
 
@@ -9,7 +9,7 @@ def mock_embedding_response(*args, **kwargs):
     class MockResponse:
         def __init__(self):
             self.data = [{"embedding": [0.1, 0.2, 0.3]}]
-            self.usage = litellm.Usage()
+            self.usage = gateway.Usage()
             self.model = kwargs.get("model", model)
             self.object = "embedding"
 
@@ -21,7 +21,7 @@ def mock_embedding_response(*args, **kwargs):
 
 def test_ovhcloud_embeddings():
     with patch("token_iq.gateway.embedding", side_effect=mock_embedding_response) as mock_embed:
-        response = litellm.embedding(
+        response = gateway.embedding(
             model,
             input=["good morning from litellm"],
         )

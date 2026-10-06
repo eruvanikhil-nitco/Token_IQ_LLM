@@ -12,12 +12,12 @@ from unittest.mock import Mock, patch
 # Import modules that need to be reloaded
 import importlib
 import token_iq.gateway.core_utils.get_model_cost_map
-from token_iq import gateway as litellm
-from token_iq import gateway as litellm
+from token_iq import gateway
+from token_iq import gateway
 
 # Reload modules to pick up environment variable
-importlib.reload(litellm.core_utils.get_model_cost_map)
-importlib.reload(litellm)
+importlib.reload(gateway.core_utils.get_model_cost_map)
+importlib.reload(gateway)
 
 from token_iq.gateway import completion
 from token_iq.gateway.llms.bedrock.common_utils import (
@@ -146,8 +146,8 @@ class TestBedrockGovCloudSupport:
         """Test that GovCloud models are NOT included in bedrock_models list (they are pricing-only)"""
         # Regional models including GovCloud should be excluded from bedrock_models list
         # They are only in model_cost for pricing purposes
-        assert not any("us-gov-east-1" in model for model in litellm.bedrock_models)
-        assert not any("us-gov-west-1" in model for model in litellm.bedrock_models)
+        assert not any("us-gov-east-1" in model for model in gateway.bedrock_models)
+        assert not any("us-gov-west-1" in model for model in gateway.bedrock_models)
 
     def test_govcloud_model_cost_properties(self):
         """Test that GovCloud models have proper cost configuration"""

@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Any, Final
 
 from httpx._models import Headers, Response
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway._uuid import uuid
 from token_iq.gateway.core_utils.prompt_templates.common_utils import (
@@ -212,13 +212,13 @@ class OllamaConfig(BaseConfig):
         """Get API key from environment variables or litellm configuration"""
         import os
 
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.secret_managers.main import get_secret_str
 
         return (
             os.environ.get("OLLAMA_API_KEY")
-            or litellm.api_key
-            or litellm.openai_key
+            or gateway.api_key
+            or gateway.openai_key
             or get_secret_str("OLLAMA_API_KEY")
         )
 
@@ -265,7 +265,7 @@ class OllamaConfig(BaseConfig):
 
             if not response_text or not response_text.strip():
                 # Handle empty response gracefully - set empty content
-                message = litellm.Message(content="")
+                message = gateway.Message(content="")
                 model_response.choices[0].message = message
                 model_response.choices[0].finish_reason = "stop"
             else:
@@ -280,7 +280,7 @@ class OllamaConfig(BaseConfig):
                     ):
                         # Handle as function call (original behavior)
                         function_call: Final = response_content
-                        message = litellm.Message(
+                        message = gateway.Message(
                             content=None,
                             tool_calls=[
                                 {
@@ -297,7 +297,7 @@ class OllamaConfig(BaseConfig):
                         model_response.choices[0].finish_reason = "tool_calls"
                     else:
                         # Handle as regular JSON (new behavior)
-                        message = litellm.Message(
+                        message = gateway.Message(
                             content=json.dumps(response_content),
                         )
                         model_response.choices[0].message = message
@@ -309,7 +309,7 @@ class OllamaConfig(BaseConfig):
                     content: str | None = None
                     if response_text is not None:
                         reasoning_content, content = _parse_content_for_reasoning(response_text)
-                    message = litellm.Message(content=content, reasoning_content=reasoning_content)
+                    message = gateway.Message(content=content, reasoning_content=reasoning_content)
                     model_response.choices[0].message = message
                     model_response.choices[0].finish_reason = "stop"
         else:
@@ -325,7 +325,7 @@ class OllamaConfig(BaseConfig):
         model_response.created = int(time.time())
         model_response.model = "ollama/" + model
         _prompt: Final = request_data.get("prompt", "")
-        tokenizer: Final = encoding if encoding is not None else litellm.encoding
+        tokenizer: Final = encoding if encoding is not None else gateway.encoding
         prompt_tokens: Final = response_json.get(
             "prompt_eval_count",
             len(tokenizer.encode(_prompt, disallowed_special=())),
@@ -336,7 +336,7 @@ class OllamaConfig(BaseConfig):
         setattr(
             model_response,
             "usage",
-            litellm.Usage(
+            gateway.Usage(
                 prompt_tokens=prompt_tokens,
                 completion_tokens=completion_tokens,
                 total_tokens=prompt_tokens + completion_tokens,
@@ -352,7 +352,7 @@ class OllamaConfig(BaseConfig):
         litellm_params: dict,
         headers: dict,
     ) -> dict:
-        custom_prompt_dict: Final = litellm_params.get("custom_prompt_dict") or litellm.custom_prompt_dict
+        custom_prompt_dict: Final = litellm_params.get("custom_prompt_dict") or gateway.custom_prompt_dict
 
         text_completion_request: Final = litellm_params.get("text_completion")
         if model in custom_prompt_dict:

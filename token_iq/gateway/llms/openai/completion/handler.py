@@ -4,7 +4,7 @@ from typing import Final
 
 from openai import AsyncOpenAI, OpenAI
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
 from token_iq.gateway.core_utils.streaming_handler import CustomStreamWrapper
 from token_iq.gateway.llms.base import BaseLLM
@@ -129,7 +129,7 @@ class OpenAITextCompletion(BaseLLM):
                     openai_client = OpenAI(
                         api_key=api_key,
                         base_url=api_base,
-                        http_client=litellm.client_session,
+                        http_client=gateway.client_session,
                         timeout=timeout,
                         max_retries=max_retries,
                         organization=organization,
@@ -233,7 +233,7 @@ class OpenAITextCompletion(BaseLLM):
             openai_client = OpenAI(
                 api_key=api_key,
                 base_url=api_base,
-                http_client=litellm.client_session,
+                http_client=gateway.client_session,
                 timeout=timeout,
                 max_retries=max_retries,
                 organization=organization,
@@ -290,7 +290,7 @@ class OpenAITextCompletion(BaseLLM):
             openai_client = AsyncOpenAI(
                 api_key=api_key,
                 base_url=api_base,
-                http_client=litellm.aclient_session,
+                http_client=gateway.aclient_session,
                 timeout=timeout,
                 max_retries=max_retries,
                 organization=organization,

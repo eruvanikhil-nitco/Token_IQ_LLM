@@ -7,7 +7,7 @@ from openai.types.responses import ResponseReasoningItem
 from pydantic import BaseModel, ValidationError
 from typing_extensions import ReadOnly, TypedDict
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.core_utils.core_helpers import process_response_headers
 from token_iq.gateway.core_utils.llm_response_utils.convert_dict_to_response import (
@@ -172,10 +172,10 @@ class OpenAIResponsesAPIConfig(BaseResponsesAPIConfig):
                 supports_none: Final = self._supports_reasoning_effort_none(model=model)
                 if supports_none and self._effort_resolves_to_none(model, effort):
                     pass  # flexible temperature allowed
-                elif drop_params or litellm.drop_params:
+                elif drop_params or gateway.drop_params:
                     params.pop("temperature", None)
                 else:
-                    raise litellm.UnsupportedParamsError(
+                    raise gateway.UnsupportedParamsError(
                         message=(
                             f"{model} doesn't support temperature={temperature} while reasoning is "
                             "active. Only temperature=1 is supported unless reasoning.effort resolves "
@@ -442,7 +442,7 @@ class OpenAIResponsesAPIConfig(BaseResponsesAPIConfig):
 
     def validate_environment(self, headers: dict, model: str, litellm_params: GenericLiteLLMParams | None) -> dict:
         litellm_params = litellm_params or GenericLiteLLMParams()
-        api_key = litellm_params.api_key or litellm.api_key or litellm.openai_key or get_secret_str("OPENAI_API_KEY")
+        api_key = litellm_params.api_key or gateway.api_key or gateway.openai_key or get_secret_str("OPENAI_API_KEY")
         headers.setdefault("Content-Type", "application/json")
         workload_identity_config: Final = (
             resolve_openai_workload_identity_config(api_key=api_key, api_base=litellm_params.api_base)
@@ -465,7 +465,7 @@ class OpenAIResponsesAPIConfig(BaseResponsesAPIConfig):
         """
         api_base = (
             api_base
-            or litellm.api_base
+            or gateway.api_base
             or get_secret_str("OPENAI_BASE_URL")
             or get_secret_str("OPENAI_API_BASE")
             or "https://api.openai.com/v1"
@@ -589,7 +589,7 @@ class OpenAIResponsesAPIConfig(BaseResponsesAPIConfig):
         if model is not None:
             try:
                 if (
-                    litellm.utils.supports_native_streaming(
+                    gateway.utils.supports_native_streaming(
                         model=model,
                         custom_llm_provider=custom_llm_provider,
                     )

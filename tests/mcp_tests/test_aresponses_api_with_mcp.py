@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, patch
 
 
 # Import required modules
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.responses.mcp.litellm_proxy_mcp_handler import LiteLLM_Proxy_MCP_Handler
 from token_iq.gateway.types.llms.openai import (
     ResponsesAPIResponse,
@@ -815,7 +815,7 @@ async def test_streaming_mcp_events_validation():
         }
 
         # Make streaming request with MCP tools
-        response = await litellm.aresponses(
+        response = await gateway.aresponses(
             model="gpt-4o-mini",
             tools=[mcp_tool_config],
             tool_choice="required",
@@ -990,7 +990,7 @@ async def test_streaming_responses_api_with_mcp_tools(
                     "require_approval": "never",
                 },
             )
-            response = await litellm.aresponses(
+            response = await gateway.aresponses(
                 model=model,
                 tools=[mcp_tool_config],
                 tool_choice="required",
@@ -1336,7 +1336,7 @@ async def test_no_duplicate_mcp_tools_in_streaming_e2e():
 
         # Make streaming request with MCP tools
         try:
-            response = await litellm.aresponses(
+            response = await gateway.aresponses(
                 model="gpt-4o-mini",
                 tools=[mcp_tool_config],
                 input=[
@@ -1561,7 +1561,7 @@ async def test_streaming_mcp_event_order_and_response_id_consistency(
                 },
             )
 
-            response = await litellm.aresponses(
+            response = await gateway.aresponses(
                 model=model,
                 tools=[mcp_tool_config],
                 input=[

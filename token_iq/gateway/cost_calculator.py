@@ -10,9 +10,9 @@ from typing import TYPE_CHECKING, Any, Final, Literal, cast
 from httpx import Response
 from pydantic import BaseModel
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 import token_iq.gateway._logging
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import verbose_logger
 from token_iq.gateway.constants import (
     DEFAULT_MAX_LRU_CACHE_SIZE,
@@ -434,7 +434,7 @@ def cost_per_token(
     # given
     prompt_tokens_cost_usd_dollar: float = 0
     completion_tokens_cost_usd_dollar: float = 0
-    model_cost_ref: Final = litellm.model_cost
+    model_cost_ref: Final = gateway.model_cost
     # Only callers that explicitly pass `custom_llm_provider` get the
     # dedup/prefix-join treatment. When provider is omitted, preserve legacy
     # behavior: `model_with_provider` stays equal to the raw `model` string
@@ -470,7 +470,7 @@ def cost_per_token(
             if model_with_provider_and_region in model_cost_ref:  # use region based pricing, if it's available
                 model_with_provider = model_with_provider_and_region
     else:
-        _, custom_llm_provider, _, _ = litellm.get_llm_provider(model=model)
+        _, custom_llm_provider, _, _ = gateway.get_llm_provider(model=model)
 
     assert custom_llm_provider is not None  # caller-supplied or get_llm_provider
 
@@ -497,7 +497,7 @@ def cost_per_token(
 
     # see this https://learn.microsoft.com/en-us/azure/ai-services/openai/concepts/models
     if call_type == "speech" or call_type == "aspeech":
-        speech_model_info = litellm.get_model_info(model=model_without_prefix, custom_llm_provider=custom_llm_provider)
+        speech_model_info = gateway.get_model_info(model=model_without_prefix, custom_llm_provider=custom_llm_provider)
         cost_metric: Final = select_cost_metric_for_model(speech_model_info)
         prompt_cost: float = 0.0
         completion_cost: float = 0.0
@@ -731,7 +731,7 @@ def _get_provider_for_cost_calc(
     if model is None:
         return None
     try:
-        _, custom_llm_provider, _, _ = litellm.get_llm_provider(model=model)
+        _, custom_llm_provider, _, _ = gateway.get_llm_provider(model=model)
     except Exception as e:
         verbose_logger.debug(
             "litellm.cost_calculator.py::_get_provider_for_cost_calc() - Error inferring custom_llm_provider - %s", e
@@ -783,8 +783,8 @@ def _select_model_name_for_cost_calc(
     )
 
     if custom_pricing is True:
-        if router_model_id is not None and router_model_id in litellm.model_cost:
-            entry: Final = litellm.model_cost[router_model_id]
+        if router_model_id is not None and router_model_id in gateway.model_cost:
+            entry: Final = gateway.model_cost[router_model_id]
             if (
                 entry.get("input_cost_per_token") is not None
                 or entry.get("input_cost_per_second") is not None
@@ -825,14 +825,14 @@ def _strip_unregistered_leading_segments(model: str, region_name: str | None) ->
     registered cost key ("vertex_ai/claude-opus-5"), keeping the model unchanged when it already
     resolves downstream (custom-priced router ids) or no stripped candidate is registered (#38069)."""
     segments: Final = model.split("/")
-    if "/".join(segments[1:]) in litellm.model_cost:
+    if "/".join(segments[1:]) in gateway.model_cost:
         return model
     head_len: Final = 2 if region_name is not None and len(segments) > 2 and segments[1] == region_name else 1
     head: Final = "/".join(segments[:head_len])
     tail: Final = segments[head_len:]
     strippable: Final = next((index for index, segment in enumerate(tail) if segment in LlmProvidersSet), len(tail))
     candidates: Final = (f"{head}/{'/'.join(tail[start:])}" for start in range(min(strippable, len(tail) - 1) + 1))
-    return next((candidate for candidate in candidates if candidate in litellm.model_cost), model)
+    return next((candidate for candidate in candidates if candidate in gateway.model_cost), model)
 
 
 @lru_cache(maxsize=DEFAULT_MAX_LRU_CACHE_SIZE)
@@ -934,8 +934,8 @@ def _get_usage_object(
         return None
     if isinstance(usage_obj, Usage):
         return usage_obj
-    elif isinstance(usage_obj, dict) and litellm.AnthropicConfig.is_anthropic_usage_object(usage_obj):
-        return litellm.AnthropicConfig().calculate_usage(usage_object=usage_obj, reasoning_content=None)
+    elif isinstance(usage_obj, dict) and gateway.AnthropicConfig.is_anthropic_usage_object(usage_obj):
+        return gateway.AnthropicConfig().calculate_usage(usage_object=usage_obj, reasoning_content=None)
     elif (
         usage_obj is not None
         and (isinstance(usage_obj, dict) or isinstance(usage_obj, ResponseAPIUsage))
@@ -963,7 +963,7 @@ def _get_usage_object(
 def _is_known_usage_objects(usage_obj):
     """Returns True if the usage obj is a known Usage type"""
     return (
-        isinstance(usage_obj, litellm.Usage)
+        isinstance(usage_obj, gateway.Usage)
         or isinstance(usage_obj, ResponseAPIUsage)
         or TranscriptionUsageObjectTransformation.is_transcription_usage_object(usage_obj)
     )
@@ -1014,8 +1014,8 @@ def _apply_cost_discount(
     discount_percent = 0.0
     discount_amount = 0.0
 
-    if custom_llm_provider and custom_llm_provider in litellm.cost_discount_config:
-        discount_percent = litellm.cost_discount_config[custom_llm_provider]
+    if custom_llm_provider and custom_llm_provider in gateway.cost_discount_config:
+        discount_percent = gateway.cost_discount_config[custom_llm_provider]
         discount_amount = original_cost * discount_percent
         final_cost: Final = original_cost - discount_amount
 
@@ -1051,12 +1051,12 @@ def _apply_cost_margin(
 
     # Get margin config - check provider-specific first, then global
     margin_config = None
-    if custom_llm_provider and custom_llm_provider in litellm.cost_margin_config:
-        margin_config = litellm.cost_margin_config[custom_llm_provider]
+    if custom_llm_provider and custom_llm_provider in gateway.cost_margin_config:
+        margin_config = gateway.cost_margin_config[custom_llm_provider]
         if verbose_logger.isEnabledFor(logging.DEBUG):
             verbose_logger.debug("Found provider-specific margin config for %s: %s", custom_llm_provider, margin_config)
-    elif "global" in litellm.cost_margin_config:
-        margin_config = litellm.cost_margin_config["global"]
+    elif "global" in gateway.cost_margin_config:
+        margin_config = gateway.cost_margin_config["global"]
         if verbose_logger.isEnabledFor(logging.DEBUG):
             verbose_logger.debug("Using global margin config: %s", margin_config)
     else:
@@ -1064,7 +1064,7 @@ def _apply_cost_margin(
             verbose_logger.debug(
                 "No margin config found. Provider: %s, Available configs: %s",
                 custom_llm_provider,
-                list(litellm.cost_margin_config.keys()),
+                list(gateway.cost_margin_config.keys()),
             )
 
     if margin_config is not None:
@@ -1308,7 +1308,7 @@ def completion_cost(
                         setattr(
                             completion_response,
                             "usage",
-                            litellm.Usage(**_usage_for_dump.model_dump()),
+                            gateway.Usage(**_usage_for_dump.model_dump()),
                         )
                     if usage_obj is None:
                         _usage = {}
@@ -1317,9 +1317,9 @@ def completion_cost(
                     else:
                         _usage = usage_obj
 
-                    if litellm.AnthropicConfig.is_anthropic_usage_object(_usage):
+                    if gateway.AnthropicConfig.is_anthropic_usage_object(_usage):
                         _usage = (
-                            litellm.AnthropicConfig()
+                            gateway.AnthropicConfig()
                             .calculate_usage(usage_object=_usage, reasoning_content=None)
                             .model_dump()
                         )
@@ -1395,7 +1395,7 @@ def completion_cost(
                     )
                 if custom_llm_provider is None:
                     try:
-                        model, custom_llm_provider, _, _ = litellm.get_llm_provider(
+                        model, custom_llm_provider, _, _ = gateway.get_llm_provider(
                             model=model
                         )  # strip the llm provider from the model name -> for image gen cost calculation
                     except Exception as e:
@@ -1476,7 +1476,7 @@ def completion_cost(
                         video_resolution=video_resolution,
                     )
                 elif call_type in _SPEECH_CALL_TYPES:
-                    prompt_characters = litellm.utils._count_characters(text=prompt)
+                    prompt_characters = gateway.utils._count_characters(text=prompt)
                 elif call_type in _TRANSCRIPTION_CALL_TYPES:
                     # Check _hidden_params first (duration stored there to
                     # avoid polluting the response body), then fall back to
@@ -1597,12 +1597,12 @@ def completion_cost(
                 # Calculate cost based on prompt_tokens, completion_tokens
                 if (
                     "togethercomputer" in model or "together_ai" in model or custom_llm_provider == "together_ai"
-                ) and not has_together_registry_pricing(model, litellm.model_cost):
+                ) and not has_together_registry_pricing(model, gateway.model_cost):
                     model = get_model_params_and_category(model, call_type=CallTypes(call_type))
 
                 # replicate llms are calculate based on time for request running
                 # see https://replicate.com/pricing
-                elif (model in litellm.replicate_models or "replicate" in model) and model not in litellm.model_cost:
+                elif (model in gateway.replicate_models or "replicate" in model) and model not in gateway.model_cost:
                     # for unmapped replicate model, default to replicate's time tracking logic
                     return get_replicate_completion_pricing(completion_response, total_time)
 
@@ -1614,14 +1614,14 @@ def completion_cost(
                 if custom_llm_provider is not None and custom_llm_provider == "vertex_ai":
                     # Calculate the prompt characters + response characters
                     if len(messages) > 0:
-                        prompt_string = litellm.utils.get_formatted_prompt(
+                        prompt_string = gateway.utils.get_formatted_prompt(
                             data={"messages": messages}, call_type="completion"
                         )
 
-                        prompt_characters = litellm.utils._count_characters(text=prompt_string)
+                        prompt_characters = gateway.utils._count_characters(text=prompt_string)
                     if completion_response is not None and isinstance(completion_response, ModelResponse):
-                        completion_string = litellm.utils.get_response_string(response_obj=completion_response)
-                        completion_characters = litellm.utils._count_characters(text=completion_string)
+                        completion_string = gateway.utils.get_response_string(response_obj=completion_response)
+                        completion_characters = gateway.utils._count_characters(text=completion_string)
 
                 # Get the original request model for router detection
                 request_model_for_cost = None
@@ -1694,7 +1694,7 @@ def completion_cost(
                     _final_cost += sum(additional_costs.values())
 
                 original_cost = _final_cost
-                if litellm.cost_discount_config:
+                if gateway.cost_discount_config:
                     (
                         _final_cost,
                         discount_percent,
@@ -1708,7 +1708,7 @@ def completion_cost(
                     discount_amount = 0.0
 
                 # Apply margin from module-level config if configured
-                if litellm.cost_margin_config:
+                if gateway.cost_margin_config:
                     (
                         _final_cost,
                         margin_percent,
@@ -1910,7 +1910,7 @@ def ocr_cost(
         raise ValueError("OCR response usage_info is None")
 
     try:
-        model_info: ModelInfo | None = litellm.get_model_info(model=model, custom_llm_provider=custom_llm_provider)
+        model_info: ModelInfo | None = gateway.get_model_info(model=model, custom_llm_provider=custom_llm_provider)
     except Exception:
         model_info = None
 
@@ -1980,7 +1980,7 @@ def vector_store_search_cost(
         custom_llm_provider = "openai"
 
     if model is not None and "/" in model:
-        api_type, custom_llm_provider, _, _ = litellm.get_llm_provider(
+        api_type, custom_llm_provider, _, _ = gateway.get_llm_provider(
             model=model,
         )
 
@@ -2007,7 +2007,7 @@ def rerank_cost(
     Returns
     - float or None: cost of response OR none if error.
     """
-    _, custom_llm_provider, _, _ = litellm.get_llm_provider(model=model, custom_llm_provider=custom_llm_provider)
+    _, custom_llm_provider, _, _ = gateway.get_llm_provider(model=model, custom_llm_provider=custom_llm_provider)
 
     try:
         config: Final = ProviderConfigManager.get_provider_rerank_config(
@@ -2018,7 +2018,7 @@ def rerank_cost(
         )
 
         try:
-            model_info: ModelInfo | None = litellm.get_model_info(model=model, custom_llm_provider=custom_llm_provider)
+            model_info: ModelInfo | None = gateway.get_model_info(model=model, custom_llm_provider=custom_llm_provider)
         except Exception:
             model_info = None
 
@@ -2095,8 +2095,8 @@ def default_image_cost_calculator(
         model_name_without_custom_llm_provider,
     ]
     for _model in models_to_check:
-        if _model is not None and _model in litellm.model_cost:
-            cost_info = litellm.model_cost[_model]
+        if _model is not None and _model in gateway.model_cost:
+            cost_info = gateway.model_cost[_model]
             break
     if cost_info is None:
         raise Exception(f"Model not found in cost map. Tried checking {models_to_check}")
@@ -2160,15 +2160,15 @@ def default_video_cost_calculator(
             model_name_without_custom_llm_provider,
         ]
         for _model in models_to_check:
-            if _model is not None and _model in litellm.model_cost:
-                cost_info = litellm.model_cost[_model]
+            if _model is not None and _model in gateway.model_cost:
+                cost_info = gateway.model_cost[_model]
                 break
 
         # If still not found, try with custom_llm_provider prefix
         if cost_info is None and custom_llm_provider:
             prefixed_model: Final = f"{custom_llm_provider}/{model}"
-            if prefixed_model in litellm.model_cost:
-                cost_info = litellm.model_cost[prefixed_model]
+            if prefixed_model in gateway.model_cost:
+                cost_info = gateway.model_cost[prefixed_model]
 
     if cost_info is None:
         raise Exception(f"Model not found in cost map for model={model}")
@@ -2207,7 +2207,7 @@ def batch_cost_calculator(
             deployment-specific pricing is used.
     """
 
-    _, custom_llm_provider, _, _ = litellm.get_llm_provider(model=model, custom_llm_provider=custom_llm_provider)
+    _, custom_llm_provider, _, _ = gateway.get_llm_provider(model=model, custom_llm_provider=custom_llm_provider)
 
     verbose_logger.debug(
         "Calculating batch cost per token. model=%s, custom_llm_provider=%s",
@@ -2217,7 +2217,7 @@ def batch_cost_calculator(
 
     if model_info is None:
         try:
-            model_info = litellm.get_model_info(model=model, custom_llm_provider=custom_llm_provider)
+            model_info = gateway.get_model_info(model=model, custom_llm_provider=custom_llm_provider)
         except Exception:
             model_info = None
     elif not any(
@@ -2233,7 +2233,7 @@ def batch_cost_calculator(
         # but carries no pricing fields. Fall back to the global pricing table so
         # that standard model pricing is used instead of silently returning $0.
         try:
-            global_info: Final = litellm.get_model_info(model=model, custom_llm_provider=custom_llm_provider)
+            global_info: Final = gateway.get_model_info(model=model, custom_llm_provider=custom_llm_provider)
             if global_info:
                 model_info = global_info
         except Exception:
@@ -2429,8 +2429,8 @@ def _candidate_realtime_token_costs(
 
 def _cost_map_entry_declares_pricing(model_name: str, custom_llm_provider: str) -> bool:
     entries: Final = (
-        litellm.model_cost.get(model_name),
-        litellm.model_cost.get(f"{custom_llm_provider}/{model_name}"),
+        gateway.model_cost.get(model_name),
+        gateway.model_cost.get(f"{custom_llm_provider}/{model_name}"),
     )
     return any(
         entry is not None and any("cost_per" in field and value is not None for field, value in entry.items())
@@ -2544,7 +2544,7 @@ def handle_realtime_transcription_cost_calculation(
 
     model_name: Final = _get_transcription_model_name_from_results(results) or litellm_model_name
     try:
-        model_info = litellm.get_model_info(model=model_name, custom_llm_provider=custom_llm_provider)
+        model_info = gateway.get_model_info(model=model_name, custom_llm_provider=custom_llm_provider)
     except Exception:
         model_info = None
 

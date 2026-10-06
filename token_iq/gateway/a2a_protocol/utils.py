@@ -6,7 +6,7 @@ import hashlib
 from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any, Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 
 if TYPE_CHECKING:
@@ -103,7 +103,7 @@ class A2ARequestUtils:
         if not text:
             return 0
         try:
-            return litellm.token_counter(text=text)
+            return gateway.token_counter(text=text)
         except Exception:
             verbose_logger.debug("Failed to count tokens")
             return 0

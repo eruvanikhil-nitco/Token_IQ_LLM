@@ -22,7 +22,7 @@ from typing import TYPE_CHECKING, Any, Final, Union, cast
 
 from typing_extensions import NotRequired, ReadOnly, TypedDict
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.llms.base_llm.guardrail_translation.base_translation import (
     BaseTranslation,
@@ -622,9 +622,9 @@ class OpenAIChatCompletionsHandler(BaseTranslation):
         accumulated: Final[dict[int, str]] = {}
         for response in responses_so_far:
             for choice in response.choices:
-                if isinstance(choice, litellm.StreamingChoices):
+                if isinstance(choice, gateway.StreamingChoices):
                     content = choice.delta.content
-                elif isinstance(choice, litellm.Choices):
+                elif isinstance(choice, gateway.Choices):
                     content = choice.message.content
                 else:
                     continue
@@ -747,9 +747,9 @@ class OpenAIChatCompletionsHandler(BaseTranslation):
 
         for response_idx, response in enumerate(responses_so_far):
             for choice_idx, choice in enumerate(response.choices):
-                if isinstance(choice, litellm.StreamingChoices):
+                if isinstance(choice, gateway.StreamingChoices):
                     content = choice.delta.content
-                elif isinstance(choice, litellm.Choices):
+                elif isinstance(choice, gateway.Choices):
                     content = choice.message.content
                 else:
                     continue
@@ -789,7 +789,7 @@ class OpenAIChatCompletionsHandler(BaseTranslation):
 
         if isinstance(response, ModelResponse):
             for choice in response.choices:
-                if isinstance(choice, litellm.Choices):
+                if isinstance(choice, gateway.Choices):
                     # Check for text content
                     if choice.message.content and isinstance(choice.message.content, str):
                         return True
@@ -799,7 +799,7 @@ class OpenAIChatCompletionsHandler(BaseTranslation):
                             return True
         elif isinstance(response, ModelResponseStream):
             for streaming_choice in response.choices:
-                if isinstance(streaming_choice, litellm.StreamingChoices):
+                if isinstance(streaming_choice, gateway.StreamingChoices):
                     # Check for text content
                     if streaming_choice.delta.content and isinstance(streaming_choice.delta.content, str):
                         return True
@@ -829,10 +829,10 @@ class OpenAIChatCompletionsHandler(BaseTranslation):
         # Determine content source and tool calls based on choice type
         content = None
         tool_calls: Sequence[object] | None = None
-        if isinstance(choice, litellm.Choices):
+        if isinstance(choice, gateway.Choices):
             content = choice.message.content
             tool_calls = choice.message.tool_calls
-        elif isinstance(choice, litellm.StreamingChoices):
+        elif isinstance(choice, gateway.StreamingChoices):
             content = choice.delta.content
             tool_calls = choice.delta.tool_calls
         else:
@@ -994,9 +994,9 @@ class OpenAIChatCompletionsHandler(BaseTranslation):
         # Iterate through all responses and update content
         for response_idx, response in enumerate(responses):
             for choice_idx_in_response, choice in enumerate(response.choices):
-                if isinstance(choice, litellm.StreamingChoices):
+                if isinstance(choice, gateway.StreamingChoices):
                     content = choice.delta.content
-                elif isinstance(choice, litellm.Choices):
+                elif isinstance(choice, gateway.Choices):
                     content = choice.message.content
                 else:
                     continue
@@ -1010,16 +1010,16 @@ class OpenAIChatCompletionsHandler(BaseTranslation):
                     if str_key in guardrail_map:
                         if str_key not in already_set:
                             # First chunk - set the complete guardrailed text
-                            if isinstance(choice, litellm.StreamingChoices):
+                            if isinstance(choice, gateway.StreamingChoices):
                                 choice.delta.content = guardrail_map[str_key]
-                            elif isinstance(choice, litellm.Choices):
+                            elif isinstance(choice, gateway.Choices):
                                 choice.message.content = guardrail_map[str_key]
                             already_set[str_key] = True
                         else:
                             # Subsequent chunks - clear the content
-                            if isinstance(choice, litellm.StreamingChoices):
+                            if isinstance(choice, gateway.StreamingChoices):
                                 choice.delta.content = ""
-                            elif isinstance(choice, litellm.Choices):
+                            elif isinstance(choice, gateway.Choices):
                                 choice.message.content = ""
 
                 elif isinstance(content, list):

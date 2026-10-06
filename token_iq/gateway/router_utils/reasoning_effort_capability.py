@@ -31,7 +31,7 @@ from collections.abc import Mapping, Sequence
 from types import MappingProxyType
 from typing import Final, get_args
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.types.llms.openai import REASONING_EFFORT
 
 REASONING_EFFORT_ADVERTISEMENT_ORDER: Final = get_args(REASONING_EFFORT)
@@ -59,7 +59,7 @@ def _bare_model_entry(model_info: Mapping[str, object]) -> Mapping[str, object]:
     provider: Final = model_info.get("litellm_provider")
     if not isinstance(key, str) or not isinstance(provider, str) or not key.startswith(f"{provider}/"):
         return _EMPTY_ENTRY
-    entry: Final[Mapping[str, object] | None] = litellm.model_cost.get(key.removeprefix(f"{provider}/"))
+    entry: Final[Mapping[str, object] | None] = gateway.model_cost.get(key.removeprefix(f"{provider}/"))
     return entry if entry is not None else _EMPTY_ENTRY
 
 
@@ -97,7 +97,7 @@ def declared_reasoning_efforts_for_model(model: str, custom_llm_provider: str) -
     it does not know: a provider config runs on the request path for every model it serves, most of
     which the map never named, and a lookup miss there must not fail the call.
     """
-    entry: Final = litellm.model_cost.get(f"{custom_llm_provider}/{model}") or litellm.model_cost.get(model)
+    entry: Final = gateway.model_cost.get(f"{custom_llm_provider}/{model}") or gateway.model_cost.get(model)
     if not isinstance(entry, dict):
         return None
     return declared_reasoning_efforts(entry)

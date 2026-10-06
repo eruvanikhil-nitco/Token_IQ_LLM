@@ -2,7 +2,7 @@
 
 from typing import Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.utils import (
     _is_explicitly_disabled_factory,
     _supports_factory,
@@ -25,7 +25,7 @@ def _catalogue_declares_default_effort() -> bool:
     the one litellm gave before it existed. Scanning costs ~80us on the largest published map and
     only on the fallback path, which is noise beside the request it precedes.
     """
-    return any(isinstance(entry, dict) and "default_reasoning_effort" in entry for entry in litellm.model_cost.values())
+    return any(isinstance(entry, dict) and "default_reasoning_effort" in entry for entry in gateway.model_cost.values())
 
 
 def _normalize_reasoning_effort_for_chat_completion(
@@ -282,11 +282,11 @@ class OpenAIGPT5Config(OpenAIGPTConfig):
         if effective_effort == "xhigh":
             # xhigh is an opt-in capability: only allow if model explicitly supports it.
             if not self._supports_reasoning_effort_level(model, effective_effort):
-                if litellm.drop_params or drop_params:
+                if gateway.drop_params or drop_params:
                     non_default_params.pop("reasoning_effort", None)
                     optional_params.pop("reasoning_effort", None)
                 else:
-                    raise litellm.utils.UnsupportedParamsError(
+                    raise gateway.utils.UnsupportedParamsError(
                         message=(f"reasoning_effort={effective_effort} is not supported for this model."),
                         status_code=400,
                     )
@@ -296,11 +296,11 @@ class OpenAIGPT5Config(OpenAIGPTConfig):
             # Example: gpt-5.5-pro only accepts {medium, high, xhigh}, so it sets
             # supports_low_reasoning_effort=false (and supports_minimal=false).
             if self._is_reasoning_effort_level_explicitly_disabled(model, effective_effort):
-                if litellm.drop_params or drop_params:
+                if gateway.drop_params or drop_params:
                     non_default_params.pop("reasoning_effort", None)
                     optional_params.pop("reasoning_effort", None)
                 else:
-                    raise litellm.utils.UnsupportedParamsError(
+                    raise gateway.utils.UnsupportedParamsError(
                         message=(f"reasoning_effort={effective_effort} is not supported for this model."),
                         status_code=400,
                     )
@@ -318,11 +318,11 @@ class OpenAIGPT5Config(OpenAIGPTConfig):
             sampling_params: Final = ["logprobs", "top_logprobs", "top_p"]
             has_sampling: Final = any(p in non_default_params for p in sampling_params)
             if has_sampling and not self.effort_resolves_to_none(model, effective_effort):
-                if litellm.drop_params or drop_params:
+                if gateway.drop_params or drop_params:
                     for p in sampling_params:
                         non_default_params.pop(p, None)
                 else:
-                    raise litellm.utils.UnsupportedParamsError(
+                    raise gateway.utils.UnsupportedParamsError(
                         message=(
                             f"{model} only supports logprobs, top_p, top_logprobs when reasoning_effort "
                             "resolves to 'none', either set explicitly on the request or declared as the "
@@ -339,10 +339,10 @@ class OpenAIGPT5Config(OpenAIGPTConfig):
                 # the model merely supporting it
                 if (supports_none and self.effort_resolves_to_none(model, effective_effort)) or temperature_value == 1:
                     optional_params["temperature"] = temperature_value
-                elif litellm.drop_params or drop_params:
+                elif gateway.drop_params or drop_params:
                     pass
                 else:
-                    raise litellm.utils.UnsupportedParamsError(
+                    raise gateway.utils.UnsupportedParamsError(
                         message=(
                             f"{model} doesn't support temperature={temperature_value} while reasoning is "
                             "active. Only temperature=1 is supported unless reasoning_effort resolves to "

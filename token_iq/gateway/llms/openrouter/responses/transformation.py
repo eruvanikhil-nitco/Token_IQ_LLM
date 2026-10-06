@@ -10,7 +10,7 @@ Docs: https://openrouter.ai/docs/api/reference/responses/overview
 
 from typing import Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.openai.responses.transformation import OpenAIResponsesAPIConfig
 from token_iq.gateway.secret_managers.main import get_secret_str
 from token_iq.gateway.types.router import GenericLiteLLMParams
@@ -42,7 +42,7 @@ class OpenRouterResponsesAPIConfig(OpenAIResponsesAPIConfig):
         litellm_params = litellm_params or GenericLiteLLMParams()
         api_key: Final = (
             litellm_params.api_key
-            or litellm.api_key
+            or gateway.api_key
             or get_secret_str("OPENROUTER_API_KEY")
             or get_secret_str("OR_API_KEY")
         )
@@ -65,7 +65,7 @@ class OpenRouterResponsesAPIConfig(OpenAIResponsesAPIConfig):
         litellm_params: dict,
     ) -> str:
         api_base = (
-            api_base or litellm.api_base or get_secret_str("OPENROUTER_API_BASE") or "https://openrouter.ai/api/v1"
+            api_base or gateway.api_base or get_secret_str("OPENROUTER_API_BASE") or "https://openrouter.ai/api/v1"
         )
 
         api_base = api_base.rstrip("/")

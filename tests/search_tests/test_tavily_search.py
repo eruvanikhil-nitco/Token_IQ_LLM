@@ -7,7 +7,7 @@ import pytest
 from unittest.mock import AsyncMock, patch, MagicMock
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 
 class TestTavilySearch:
@@ -49,7 +49,7 @@ class TestTavilySearch:
             mock_post.return_value = mock_response
 
             # Make the search call
-            response = await litellm.asearch(
+            response = await gateway.asearch(
                 query="latest developments in AI",
                 search_provider="tavily",
                 max_results=5,

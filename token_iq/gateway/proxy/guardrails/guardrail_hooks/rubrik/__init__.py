@@ -22,7 +22,7 @@ def initialize_guardrail(litellm_params: "LitellmParams", guardrail: "Guardrail"
     Both hooks are active when ``mode`` covers both ``pre_call`` and
     ``post_call``.
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     rubrik_callback: Final = RubrikLogger(
         api_key=litellm_params.api_key,
@@ -32,7 +32,7 @@ def initialize_guardrail(litellm_params: "LitellmParams", guardrail: "Guardrail"
         default_on=litellm_params.default_on,
     )
 
-    litellm.logging_callback_manager.add_litellm_callback(rubrik_callback)
+    gateway.logging_callback_manager.add_litellm_callback(rubrik_callback)
     return rubrik_callback
 
 

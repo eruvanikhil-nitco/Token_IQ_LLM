@@ -13,7 +13,7 @@ from unittest.mock import MagicMock
 
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.videos.utils import VideoGenerationRequestUtils
 
 get_requested = (
@@ -148,7 +148,7 @@ def test_optional__delegates_to_map_openai_params_with_drop_params():
     config.map_openai_params.assert_called_once_with(
         video_create_optional_params=optional_params,
         model="sora-2",
-        drop_params=litellm.drop_params,
+        drop_params=gateway.drop_params,
     )
 
 

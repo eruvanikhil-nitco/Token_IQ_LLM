@@ -8,7 +8,7 @@ from typing import Final
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.integrations.otel import (
     BAGGAGE_PROMOTED_KEYS,
     DB,
@@ -381,7 +381,7 @@ def test_every_call_type_the_a2a_package_stamps_is_an_agent_operation():
     """Pins the map to the call types the A2A code actually stamps on its logging
     objects. A new spelling added there without a map entry fails here instead of
     quietly landing in the chat series, which is how the streaming one was missed."""
-    a2a_package = Path(litellm.__file__).parent / "a2a_protocol"
+    a2a_package = Path(gateway.__file__).parent / "a2a_protocol"
     stamped = {
         call_type
         for source in a2a_package.rglob("*.py")

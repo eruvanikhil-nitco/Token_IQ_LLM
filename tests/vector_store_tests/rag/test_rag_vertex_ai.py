@@ -22,7 +22,7 @@ from typing import Any, Dict, Optional
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.types.rag import RAGIngestOptions
 from tests.vector_store_tests.rag.base_rag_tests import BaseRAGTest
 
@@ -89,7 +89,7 @@ class TestRAGVertexAI(BaseRAGTest):
 
         try:
             # Use LiteLLM's vector store search
-            search_response = await litellm.vector_stores.asearch(
+            search_response = await gateway.vector_stores.asearch(
                 vector_store_id=vector_store_id,
                 query=query,
                 max_num_results=5,
@@ -142,7 +142,7 @@ class TestRAGVertexAI(BaseRAGTest):
         - Long-running operation polling for corpus creation
         - File upload to the newly created corpus
         """
-        litellm._turn_on_debug()
+        gateway._turn_on_debug()
 
         filename, unique_id = self.get_unique_filename("create_corpus")
         text_content = f"""
@@ -163,7 +163,7 @@ class TestRAGVertexAI(BaseRAGTest):
         ingest_options["name"] = f"test-create-corpus-{unique_id}"
 
         try:
-            response = await litellm.rag.aingest(
+            response = await gateway.rag.aingest(
                 ingest_options=ingest_options,
                 file_data=file_data,
             )
@@ -188,7 +188,7 @@ class TestRAGVertexAI(BaseRAGTest):
             print(f"✓ Successfully created corpus: {corpus_id}")
             print(f"✓ Successfully uploaded file: {response.get('file_id')}")
 
-        except litellm.InternalServerError as e:
+        except gateway.InternalServerError as e:
             pytest.skip(f"Skipping test due to litellm.InternalServerError: {e}")
         except Exception as e:
             print(f"Test failed with error: {e}")
@@ -207,7 +207,7 @@ class TestRAGVertexAI(BaseRAGTest):
         if not corpus_id:
             pytest.skip("Skipping test: VERTEX_CORPUS_ID not set")
 
-        litellm._turn_on_debug()
+        gateway._turn_on_debug()
 
         filename, unique_id = self.get_unique_filename("existing_corpus")
         text_content = f"""
@@ -222,7 +222,7 @@ class TestRAGVertexAI(BaseRAGTest):
         ingest_options["name"] = f"test-existing-corpus-{unique_id}"
 
         try:
-            response = await litellm.rag.aingest(
+            response = await gateway.rag.aingest(
                 ingest_options=ingest_options,
                 file_data=file_data,
             )
@@ -239,5 +239,5 @@ class TestRAGVertexAI(BaseRAGTest):
             print(f"✓ Successfully uploaded to existing corpus: {corpus_id}")
             print(f"✓ File ID: {response.get('file_id')}")
 
-        except litellm.InternalServerError as e:
+        except gateway.InternalServerError as e:
             pytest.skip(f"Skipping test due to litellm.InternalServerError: {e}")

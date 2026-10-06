@@ -32,7 +32,7 @@ import time
 from dataclasses import asdict, dataclass, field
 from typing import Optional
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.types.utils import CallTypes
 
 # ---------------------------------------------------------------------------
@@ -757,7 +757,7 @@ SYSTEM_MSG = (
 def call_llm(model: str, messages: list[dict]) -> dict:
     """Call model via litellm. Returns dict with response text and usage."""
     t0 = time.time()
-    resp = litellm.completion(
+    resp = gateway.completion(
         model=model, messages=messages, temperature=0.0, max_tokens=2048
     )
     latency_ms = (time.time() - t0) * 1000
@@ -878,7 +878,7 @@ def eval_problem(
     compression_ratio = 0.0
 
     if use_compression:
-        result = litellm.compress(
+        result = gateway.compress(
             messages=messages,
             model=model,
             call_type=CallTypes.completion,

@@ -9,14 +9,14 @@ import pytest
 import respx
 from respx import MockRouter
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import Choices, Message, ModelResponse
 
 
 @pytest.mark.respx()
 def test_compactifai_completion_basic(respx_mock):
     """Test basic CompactifAI completion functionality"""
-    litellm.disable_aiohttp_transport = True
+    gateway.disable_aiohttp_transport = True
 
     mock_response = {
         "id": "chatcmpl-123",
@@ -40,7 +40,7 @@ def test_compactifai_completion_basic(respx_mock):
         json=mock_response, status_code=200
     )
 
-    response = litellm.completion(
+    response = gateway.completion(
         model="compactifai/cai-llama-3-1-8b-slim",
         messages=[{"role": "user", "content": "Hello"}],
         api_key="test-key",
@@ -54,7 +54,7 @@ def test_compactifai_completion_basic(respx_mock):
 @pytest.mark.respx()
 def test_compactifai_completion_streaming(respx_mock):
     """Test CompactifAI streaming completion"""
-    litellm.disable_aiohttp_transport = True
+    gateway.disable_aiohttp_transport = True
 
     mock_chunks = [
         "data: "
@@ -92,7 +92,7 @@ def test_compactifai_completion_streaming(respx_mock):
         content="".join(mock_chunks),
     )
 
-    response = litellm.completion(
+    response = gateway.completion(
         model="compactifai/cai-llama-3-1-8b-slim",
         messages=[{"role": "user", "content": "Hello"}],
         api_key="test-key",
@@ -107,7 +107,7 @@ def test_compactifai_completion_streaming(respx_mock):
 @pytest.mark.respx()
 def test_compactifai_models_endpoint(respx_mock):
     """Test CompactifAI models listing"""
-    litellm.disable_aiohttp_transport = True
+    gateway.disable_aiohttp_transport = True
 
     mock_response = {
         "object": "list",
@@ -147,7 +147,7 @@ def test_compactifai_models_endpoint(respx_mock):
 
     # This would be tested if litellm had a models() function
     # For now, we'll test that the provider is properly configured
-    response = litellm.completion(
+    response = gateway.completion(
         model="compactifai/cai-llama-3-1-8b-slim",
         messages=[{"role": "user", "content": "test"}],
         api_key="test-key",
@@ -157,7 +157,7 @@ def test_compactifai_models_endpoint(respx_mock):
 @pytest.mark.respx()
 def test_compactifai_authentication_error(respx_mock):
     """Test CompactifAI authentication error handling"""
-    litellm.disable_aiohttp_transport = True
+    gateway.disable_aiohttp_transport = True
 
     mock_error = {
         "error": {
@@ -172,8 +172,8 @@ def test_compactifai_authentication_error(respx_mock):
         json=mock_error, status_code=401
     )
 
-    with pytest.raises(litellm.AuthenticationError) as exc_info:
-        litellm.completion(
+    with pytest.raises(gateway.AuthenticationError) as exc_info:
+        gateway.completion(
             model="compactifai/cai-llama-3-1-8b-slim",
             messages=[{"role": "user", "content": "test"}],
             api_key="invalid-key",
@@ -199,7 +199,7 @@ def test_compactifai_provider_detection(respx_mock):
 @pytest.mark.respx()
 def test_compactifai_with_optional_params(respx_mock):
     """Test CompactifAI with optional parameters like temperature, max_tokens"""
-    litellm.disable_aiohttp_transport = True
+    gateway.disable_aiohttp_transport = True
 
     mock_response = {
         "id": "chatcmpl-123",
@@ -223,7 +223,7 @@ def test_compactifai_with_optional_params(respx_mock):
         "https://api.compactif.ai/v1/chat/completions"
     ).respond(json=mock_response, status_code=200)
 
-    response = litellm.completion(
+    response = gateway.completion(
         model="compactifai/cai-llama-3-1-8b-slim",
         messages=[{"role": "user", "content": "Hello with params"}],
         api_key="test-key",
@@ -249,7 +249,7 @@ def test_compactifai_with_optional_params(respx_mock):
 @pytest.mark.respx()
 def test_compactifai_headers_authentication(respx_mock):
     """Test that CompactifAI request includes proper authorization headers"""
-    litellm.disable_aiohttp_transport = True
+    gateway.disable_aiohttp_transport = True
 
     mock_response = {
         "id": "chatcmpl-123",
@@ -270,7 +270,7 @@ def test_compactifai_headers_authentication(respx_mock):
         "https://api.compactif.ai/v1/chat/completions"
     ).respond(json=mock_response, status_code=200)
 
-    response = litellm.completion(
+    response = gateway.completion(
         model="compactifai/cai-llama-3-1-8b-slim",
         messages=[{"role": "user", "content": "Test auth"}],
         api_key="test-api-key-123",
@@ -289,7 +289,7 @@ def test_compactifai_headers_authentication(respx_mock):
 @pytest.mark.respx()
 async def test_compactifai_async_completion(respx_mock):
     """Test CompactifAI async completion"""
-    litellm.disable_aiohttp_transport = True
+    gateway.disable_aiohttp_transport = True
 
     mock_response = {
         "id": "chatcmpl-123",
@@ -313,7 +313,7 @@ async def test_compactifai_async_completion(respx_mock):
         json=mock_response, status_code=200
     )
 
-    response = await litellm.acompletion(
+    response = await gateway.acompletion(
         model="compactifai/cai-llama-3-1-8b-slim",
         messages=[{"role": "user", "content": "Async test"}],
         api_key="test-key",

@@ -8,7 +8,7 @@ from typing import Final
 import httpx
 from pydantic import BaseModel, ValidationError
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.caching.caching import DualCache
 from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
@@ -190,8 +190,8 @@ def get_secret(
     secret_name: str,
     default_value: str | bool | None = None,
 ):
-    key_management_system: Final = litellm._key_management_system
-    key_management_settings: Final = litellm._key_management_settings
+    key_management_system: Final = gateway._key_management_system
+    key_management_settings: Final = gateway._key_management_settings
     secret = None
 
     if secret_name.startswith("os.environ/"):
@@ -313,9 +313,9 @@ def get_secret(
             raise ValueError("Unsupported OIDC provider")
 
     try:
-        if _should_read_secret_from_secret_manager() and litellm.secret_manager_client is not None:
+        if _should_read_secret_from_secret_manager() and gateway.secret_manager_client is not None:
             try:
-                client: Final = litellm.secret_manager_client
+                client: Final = gateway.secret_manager_client
                 key_manager = "local"
                 if key_management_system is not None:
                     key_manager = key_management_system.value
@@ -375,7 +375,7 @@ def secret_manager_would_be_consulted(secret_name: str) -> bool:
     """
     if not _should_read_secret_from_secret_manager():
         return False
-    key_management_settings: Final = litellm._key_management_settings
+    key_management_settings: Final = gateway._key_management_settings
     if key_management_settings is None or key_management_settings.hosted_keys is None:
         return True
     return secret_name.removeprefix("os.environ/") in key_management_settings.hosted_keys
@@ -389,7 +389,7 @@ def _should_read_secret_from_secret_manager() -> bool:
     - If the `_key_management_settings` access mode is "read_only" or "read_and_write", return True
     - Otherwise, return False
     """
-    key_management_settings: Final = litellm._key_management_settings
-    if litellm.secret_manager_client is None or key_management_settings is None:
+    key_management_settings: Final = gateway._key_management_settings
+    if gateway.secret_manager_client is None or key_management_settings is None:
         return False
     return key_management_settings.access_mode in ("read_only", "read_and_write")

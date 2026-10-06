@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING, Any, Final
 import httpx
 from pydantic import BaseModel
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.core_utils.litellm_logging import Logging as LitellmLogging
 from token_iq.gateway.llms.bedrock.image_edit.amazon_nova_canvas_image_edit_transformation import (
@@ -143,7 +143,7 @@ class BedrockImageEdit(BaseAWSLLM):
         Asynchronous handler for bedrock image edit
         """
         async_client: Final = client or get_async_httpx_client(
-            llm_provider=litellm.LlmProviders.BEDROCK,
+            llm_provider=gateway.LlmProviders.BEDROCK,
             params={"timeout": timeout},
         )
 

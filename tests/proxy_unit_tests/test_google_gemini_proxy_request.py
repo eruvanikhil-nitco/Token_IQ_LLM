@@ -17,7 +17,7 @@ import pytest
 
 # Add the parent directory to the system path
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy._types import UserAPIKeyAuth
 from token_iq.gateway.proxy.google_endpoints.endpoints import google_generate_content
 from token_iq.gateway.proxy.proxy_server import ProxyConfig

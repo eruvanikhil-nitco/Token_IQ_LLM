@@ -23,7 +23,7 @@ import pytest
 import respx
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 import token_iq.gateway.batches.batch_utils as bu
 from token_iq.gateway.types.utils import Usage
 
@@ -210,7 +210,7 @@ def test_estimate_tokens_never_zero_for_short_rows():
 
 
 def test_output_models_uses_model_name_override(monkeypatch):
-    monkeypatch.setattr(litellm, "completion_cost", lambda **kw: 0.0)
+    monkeypatch.setattr(gateway, "completion_cost", lambda **kw: 0.0)
     result = bu._aggregate_batch_cost_usage_models(
         entries=[_success_row(model="ignored")], custom_llm_provider="openai", model_name="forced-model"
     )
@@ -218,7 +218,7 @@ def test_output_models_uses_model_name_override(monkeypatch):
 
 
 def test_output_models_collects_from_successful_only(monkeypatch):
-    monkeypatch.setattr(litellm, "completion_cost", lambda **kw: 0.0)
+    monkeypatch.setattr(gateway, "completion_cost", lambda **kw: 0.0)
     rows = [
         _success_row(model="gpt-4o"),
         _failed_row(model="should-be-skipped"),
@@ -229,7 +229,7 @@ def test_output_models_collects_from_successful_only(monkeypatch):
 
 
 def test_output_models_skips_successful_without_model(monkeypatch):
-    monkeypatch.setattr(litellm, "completion_cost", lambda **kw: 0.0)
+    monkeypatch.setattr(gateway, "completion_cost", lambda **kw: 0.0)
     rows = [{"response": {"status_code": 200, "body": {}}}]
     result = bu._aggregate_batch_cost_usage_models(entries=rows, custom_llm_provider="openai")
     assert result.models == []
@@ -393,7 +393,7 @@ def test_count_entry_uses_model_name_fallback(monkeypatch):
 
 
 def test_total_usage_sums_successful_only(monkeypatch):
-    monkeypatch.setattr(litellm, "completion_cost", lambda **kw: 0.0)
+    monkeypatch.setattr(gateway, "completion_cost", lambda **kw: 0.0)
     rows = [
         _success_row(usage=_usage(10, 5)),  # 15
         _failed_row(),  # excluded
@@ -448,7 +448,7 @@ def test_total_usage_empty_is_zero():
 
 
 def test_total_usage_includes_reasoning_tokens(monkeypatch):
-    monkeypatch.setattr(litellm, "completion_cost", lambda **kw: 0.0)
+    monkeypatch.setattr(gateway, "completion_cost", lambda **kw: 0.0)
     rows = [
         _success_row(
             usage={
@@ -474,7 +474,7 @@ def test_total_usage_includes_reasoning_tokens(monkeypatch):
 
 
 def test_aggregate_counts_successful_and_failed_requests(monkeypatch):
-    monkeypatch.setattr(litellm, "completion_cost", lambda **kw: 0.0)
+    monkeypatch.setattr(gateway, "completion_cost", lambda **kw: 0.0)
     rows = [
         _success_row(usage=_usage(10, 5)),
         _failed_row(),
@@ -489,7 +489,7 @@ def test_aggregate_counts_successful_and_failed_requests(monkeypatch):
 
 
 def test_aggregate_returns_batch_cost_usage_result_dataclass(monkeypatch):
-    monkeypatch.setattr(litellm, "completion_cost", lambda **kw: 1.0)
+    monkeypatch.setattr(gateway, "completion_cost", lambda **kw: 1.0)
     result = bu._aggregate_batch_cost_usage_models(
         entries=[_success_row(usage=_usage(10, 5))], custom_llm_provider="openai"
     )
@@ -515,7 +515,7 @@ def test_cost_from_content_completion_cost_path(monkeypatch):
         calls.append(kw)
         return 0.5
 
-    monkeypatch.setattr(litellm, "completion_cost", _completion_cost)
+    monkeypatch.setattr(gateway, "completion_cost", _completion_cost)
     rows = [
         _success_row(usage=_usage(10, 5)),
         _failed_row(),  # excluded -> not costed
@@ -578,7 +578,7 @@ def test_aggregate_consumes_entries_in_a_single_pass(monkeypatch):
     """A one-shot generator: any implementation that iterates the entries twice
     (e.g. separate cost and usage passes) sees nothing on the second pass and
     returns wrong totals for at least one of cost/usage/models."""
-    monkeypatch.setattr(litellm, "completion_cost", lambda **kw: 0.5)
+    monkeypatch.setattr(gateway, "completion_cost", lambda **kw: 0.5)
     one_shot = (row for row in [_success_row(usage=_usage(10, 5)), _failed_row(), _success_row(usage=_usage(20, 10))])
 
     result = bu._aggregate_batch_cost_usage_models(entries=one_shot, custom_llm_provider="openai")
@@ -597,7 +597,7 @@ def test_aggregate_consumes_entries_in_a_single_pass(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_calculate_vertex_disable_transform_path(monkeypatch):
-    monkeypatch.setattr(litellm, "disable_vertex_batch_output_transformation", True, raising=False)
+    monkeypatch.setattr(gateway, "disable_vertex_batch_output_transformation", True, raising=False)
     monkeypatch.setattr(
         bu,
         "calculate_vertex_ai_batch_cost_and_usage",
@@ -628,7 +628,7 @@ async def test_calculate_vertex_disable_transform_path(monkeypatch):
 async def test_calculate_vertex_disable_transform_needs_model_name(monkeypatch):
     """Without a model_name the raw-vertex path cannot price lines; the generic
     aggregation path must run even with the disable flag set."""
-    monkeypatch.setattr(litellm, "disable_vertex_batch_output_transformation", True, raising=False)
+    monkeypatch.setattr(gateway, "disable_vertex_batch_output_transformation", True, raising=False)
     monkeypatch.setattr(
         bu,
         "calculate_vertex_ai_batch_cost_and_usage",
@@ -754,7 +754,7 @@ def test_vertex_cost_error_in_line_is_swallowed(monkeypatch):
 @pytest.mark.asyncio
 async def test_calculate_batch_cost_and_usage_orchestration(monkeypatch):
     rows = [_success_row(model="gpt-4o", usage=_usage(10, 5))]
-    monkeypatch.setattr(litellm, "completion_cost", lambda **kw: 2.5)
+    monkeypatch.setattr(gateway, "completion_cost", lambda **kw: 2.5)
 
     result = await bu.calculate_batch_cost_and_usage(file_content_dictionary=rows, custom_llm_provider="openai")
 
@@ -936,10 +936,10 @@ def _vertex_predictions_row(custom_id, prompt_tokens, completion_tokens):
 
 @pytest.fixture
 def respx_interceptable_httpx_client(monkeypatch):
-    monkeypatch.setattr(litellm, "disable_aiohttp_transport", True)
-    litellm.in_memory_llm_clients_cache.flush_cache()
+    monkeypatch.setattr(gateway, "disable_aiohttp_transport", True)
+    gateway.in_memory_llm_clients_cache.flush_cache()
     yield
-    litellm.in_memory_llm_clients_cache.flush_cache()
+    gateway.in_memory_llm_clients_cache.flush_cache()
 
 
 @pytest.mark.asyncio
@@ -1021,7 +1021,7 @@ async def test_handle_completed_vertex_batch_computes_cost_usage_and_models(monk
         litellm_params={"vertex_project": "proj-1", "vertex_location": "us-central1"},
     )
 
-    pricing = litellm.model_cost["vertex_ai/gemini-3.6-flash"]
+    pricing = gateway.model_cost["vertex_ai/gemini-3.6-flash"]
     batch_input = pricing["input_cost_per_token_batches"]
     batch_output = pricing["output_cost_per_token_batches"]
 
@@ -1108,7 +1108,7 @@ async def test_handle_completed_batch_orchestration(monkeypatch):
         return _vertex_jsonl(rows)
 
     monkeypatch.setattr(bu, "_fetch_batch_output_file_content", fake_fetch)
-    monkeypatch.setattr(litellm, "completion_cost", lambda **kw: 3.3)
+    monkeypatch.setattr(gateway, "completion_cost", lambda **kw: 3.3)
 
     result = await bu._handle_completed_batch(_batch("of"), custom_llm_provider="openai")
 
@@ -1144,7 +1144,7 @@ async def test_handle_completed_batch_counts_error_file_failures(monkeypatch):
 
     monkeypatch.setattr(bu, "_fetch_batch_output_file_content", fake_fetch)
     monkeypatch.setattr(files_main, "afile_content", fake_afile_content)
-    monkeypatch.setattr(litellm, "completion_cost", lambda **kw: 0.0)
+    monkeypatch.setattr(gateway, "completion_cost", lambda **kw: 0.0)
 
     batch = Batch(
         id="b",
@@ -1191,7 +1191,7 @@ async def test_handle_completed_batch_decodes_model_encoded_error_file_id(monkey
 
     monkeypatch.setattr(bu, "_fetch_batch_output_file_content", fake_fetch)
     monkeypatch.setattr(files_main, "afile_content", fake_afile_content)
-    monkeypatch.setattr(litellm, "completion_cost", lambda **kw: 0.0)
+    monkeypatch.setattr(gateway, "completion_cost", lambda **kw: 0.0)
 
     batch = Batch(
         id="b",
@@ -1219,7 +1219,7 @@ async def test_handle_completed_batch_no_error_file_id_reports_zero_error_failur
         return _vertex_jsonl(rows)
 
     monkeypatch.setattr(bu, "_fetch_batch_output_file_content", fake_fetch)
-    monkeypatch.setattr(litellm, "completion_cost", lambda **kw: 0.0)
+    monkeypatch.setattr(gateway, "completion_cost", lambda **kw: 0.0)
 
     result = await bu._handle_completed_batch(_batch("of"), custom_llm_provider="openai")
 
@@ -1258,7 +1258,7 @@ async def test_handle_completed_batch_vertex_disable_transform_path(monkeypatch)
         return _vertex_jsonl(raw_rows)
 
     monkeypatch.setattr(bu, "_fetch_batch_output_file_content", fake_fetch)
-    monkeypatch.setattr(litellm, "disable_vertex_batch_output_transformation", True, raising=False)
+    monkeypatch.setattr(gateway, "disable_vertex_batch_output_transformation", True, raising=False)
     seen: dict = {}
 
     def fake_vertex_calc(content, model):
@@ -1426,7 +1426,7 @@ def test_anthropic_total_usage_aggregates_cache_token_details(monkeypatch):
 
 
 def test_total_usage_without_cache_tokens_has_no_prompt_details(monkeypatch):
-    monkeypatch.setattr(litellm, "completion_cost", lambda **kw: 0.0)
+    monkeypatch.setattr(gateway, "completion_cost", lambda **kw: 0.0)
     rows = [
         {
             "custom_id": "req-1",
@@ -1467,7 +1467,7 @@ def test_anthropic_cost_without_model_info_uses_batch_cost_calculator(monkeypatc
 
     monkeypatch.setattr(cc, "batch_cost_calculator", _fake_batch_cost_calculator)
     monkeypatch.setattr(
-        litellm,
+        gateway,
         "completion_cost",
         lambda **kw: pytest.fail("anthropic rows must not go through completion_cost"),
     )

@@ -8,7 +8,7 @@ import io
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 from token_iq.gateway.llms.triton.embedding.transformation import TritonEmbeddingConfig
 
@@ -58,7 +58,7 @@ def test_triton_embedding_response_sets_usage_with_token_counter():
             }
         ],
     }
-    model_response = litellm.EmbeddingResponse()
+    model_response = gateway.EmbeddingResponse()
     request_data = {
         "inputs": [
             {
@@ -102,7 +102,7 @@ def test_triton_embedding_response_sets_usage_with_word_count_fallback():
             }
         ],
     }
-    model_response = litellm.EmbeddingResponse()
+    model_response = gateway.EmbeddingResponse()
     request_data = {
         "inputs": [
             {
@@ -147,7 +147,7 @@ def test_triton_embedding_batch_usage_sums_per_input_token_counts():
             }
         ],
     }
-    model_response = litellm.EmbeddingResponse()
+    model_response = gateway.EmbeddingResponse()
     request_data = {
         "inputs": [
             {
@@ -209,7 +209,7 @@ def test_completion_triton_generate_api(stream):
             "token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post",
             return_value=mock_response,
         ) as mock_post:
-            response = litellm.completion(
+            response = gateway.completion(
                 model="triton/llama-3-8b-instruct",
                 messages=[{"role": "user", "content": "who are u?"}],
                 max_tokens=10,
@@ -258,7 +258,7 @@ def test_completion_triton_generate_api(stream):
 
 
 def test_completion_triton_infer_api():
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     try:
         mock_response = MagicMock()
 
@@ -297,7 +297,7 @@ def test_completion_triton_infer_api():
             "token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post",
             return_value=mock_response,
         ) as mock_post:
-            response = litellm.completion(
+            response = gateway.completion(
                 model="triton/llama-3-8b-instruct",
                 messages=[
                     {
@@ -352,8 +352,8 @@ def test_completion_triton_infer_api():
 @pytest.mark.asyncio
 async def test_triton_embeddings():
     try:
-        litellm.set_verbose = True
-        response = await litellm.aembedding(
+        gateway.set_verbose = True
+        response = await gateway.aembedding(
             model="triton/my-triton-model",
             api_base=f"{FAKE_OPENAI_API_BASE}/triton/embeddings",
             input=["good morning from litellm"],

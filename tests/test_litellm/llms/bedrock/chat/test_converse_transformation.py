@@ -7,7 +7,7 @@ from fastapi.testclient import TestClient
 
 from unittest.mock import MagicMock, patch
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import ModelResponse, RateLimitError, completion
 from token_iq.gateway.llms.bedrock.chat.converse_transformation import AmazonConverseConfig
 from token_iq.gateway.types.llms.bedrock import ConverseTokenUsageBlock
@@ -115,7 +115,7 @@ def test_bedrock_converse_1h_cache_write_billed_at_1h_rate(monkeypatch):
     """Regression for issue #36760: without the cacheDetails split, the whole
     write is billed at the (cheaper) 5m rate."""
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map())
+    monkeypatch.setattr(gateway, "model_cost", gateway.get_model_cost_map())
     usage = ConverseTokenUsageBlock(
         **{
             "inputTokens": 16,
@@ -128,8 +128,8 @@ def test_bedrock_converse_1h_cache_write_billed_at_1h_rate(monkeypatch):
     )
     openai_usage = AmazonConverseConfig().transform_usage(usage)
     model = "bedrock/converse/global.anthropic.claude-opus-4-8"
-    prompt_cost, completion_cost = litellm.cost_calculator.cost_per_token(model=model, usage_object=openai_usage)
-    model_info = litellm.get_model_info(model=model)
+    prompt_cost, completion_cost = gateway.cost_calculator.cost_per_token(model=model, usage_object=openai_usage)
+    model_info = gateway.get_model_info(model=model)
     expected_prompt_cost = (
         16 * model_info["input_cost_per_token"] + 11632 * model_info["cache_creation_input_token_cost_above_1hr"]
     )
@@ -813,7 +813,7 @@ def test_reasoning_effort_garbage_raises_bad_request_converse(effort):
     """Unmapped reasoning_effort on Bedrock Converse Anthropic raises BadRequestError."""
     config = AmazonConverseConfig()
 
-    with pytest.raises(litellm.exceptions.BadRequestError):
+    with pytest.raises(gateway.exceptions.BadRequestError):
         config.map_openai_params(
             non_default_params={"reasoning_effort": effort},
             optional_params={},
@@ -870,7 +870,7 @@ def test_get_supported_openai_params_bedrock_converse():
     Note: This test is critical for routing, if we ever remove `litellm.BEDROCK_CONVERSE_MODELS`,
     please update this test to read `bedrock_converse` models from the model cost map.
     """
-    for model in litellm.BEDROCK_CONVERSE_MODELS:
+    for model in gateway.BEDROCK_CONVERSE_MODELS:
         print(f"Testing model: {model}")
         config = AmazonConverseConfig()
         supported_params_without_prefix = config.get_supported_openai_params(
@@ -1009,9 +1009,9 @@ def test_client_metadata_stripped_from_converse_request(model):
 
 def test_parallel_tool_calls_config_kept_for_sonnet_5(monkeypatch):
     old_env = os.environ.get("LITELLM_LOCAL_MODEL_COST_MAP")
-    old_cost = litellm.model_cost
+    old_cost = gateway.model_cost
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    litellm.model_cost = litellm.get_model_cost_map()
+    gateway.model_cost = gateway.get_model_cost_map()
     try:
         config = AmazonConverseConfig()
         optional_params = config.map_openai_params(
@@ -1033,7 +1033,7 @@ def test_parallel_tool_calls_config_kept_for_sonnet_5(monkeypatch):
             "disable_parallel_tool_use": True,
         }
     finally:
-        litellm.model_cost = old_cost
+        gateway.model_cost = old_cost
         if old_env is None:
             os.environ.pop("LITELLM_LOCAL_MODEL_COST_MAP", None)
         else:
@@ -1045,7 +1045,7 @@ def test_parallel_tool_calls_config_dropped_for_ttl_only_model(
 ):
     model = "anthropic.claude-fable-5"
     monkeypatch.setitem(
-        litellm.model_cost,
+        gateway.model_cost,
         model,
         {"cache_creation_input_token_cost_above_1hr": 2e-05},
     )
@@ -1507,7 +1507,7 @@ async def _acompletion_captured_request_body(tools: list, messages: list) -> dic
 
     client = AsyncHTTPHandler()
     with patch.object(client, "post", return_value=_mock_converse_response()) as mock_post:
-        response = await litellm.acompletion(
+        response = await gateway.acompletion(
             model="bedrock/us.anthropic.claude-haiku-4-5-20251001-v1:0",
             messages=messages,
             tools=tools,
@@ -3781,12 +3781,12 @@ def test_drop_thinking_param_when_thinking_blocks_missing():
     from token_iq.gateway.utils import last_assistant_with_tool_calls_has_no_thinking_blocks
 
     # Save original modify_params setting
-    original_modify_params = litellm.modify_params
+    original_modify_params = gateway.modify_params
 
     try:
         # Test case 1: thinking should be dropped when modify_params=True
         # and assistant message has tool_calls but no thinking_blocks
-        litellm.modify_params = True
+        gateway.modify_params = True
 
         messages_without_thinking_blocks = [
             {"role": "user", "content": "Search for weather"},
@@ -3820,7 +3820,7 @@ def test_drop_thinking_param_when_thinking_blocks_missing():
                 messages_without_thinking_blocks
             )
         ):
-            if litellm.modify_params:
+            if gateway.modify_params:
                 optional_params.pop("thinking", None)
 
         assert (
@@ -3864,7 +3864,7 @@ def test_drop_thinking_param_when_thinking_blocks_missing():
                 messages_with_thinking_blocks
             )
         ):
-            if litellm.modify_params:
+            if gateway.modify_params:
                 optional_params_with_thinking.pop("thinking", None)
 
         assert (
@@ -3872,7 +3872,7 @@ def test_drop_thinking_param_when_thinking_blocks_missing():
         ), "thinking param should NOT be dropped when thinking_blocks are present"
 
         # Test case 3: thinking should NOT be dropped when modify_params=False
-        litellm.modify_params = False
+        gateway.modify_params = False
 
         optional_params_no_modify = {
             "thinking": {"type": "enabled", "budget_tokens": 1000}
@@ -3886,7 +3886,7 @@ def test_drop_thinking_param_when_thinking_blocks_missing():
                 messages_without_thinking_blocks
             )
         ):
-            if litellm.modify_params:
+            if gateway.modify_params:
                 optional_params_no_modify.pop("thinking", None)
 
         assert (
@@ -3895,7 +3895,7 @@ def test_drop_thinking_param_when_thinking_blocks_missing():
 
     finally:
         # Restore original modify_params setting
-        litellm.modify_params = original_modify_params
+        gateway.modify_params = original_modify_params
 
 
 def test_supports_native_structured_outputs(monkeypatch):
@@ -3905,9 +3905,9 @@ def test_supports_native_structured_outputs(monkeypatch):
     cost JSON (litellm.model_cost), not a hardcoded model set.
     """
     old_env = os.environ.get("LITELLM_LOCAL_MODEL_COST_MAP")
-    old_cost = litellm.model_cost
+    old_cost = gateway.model_cost
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    litellm.model_cost = litellm.get_model_cost_map()
+    gateway.model_cost = gateway.get_model_cost_map()
     try:
         config = AmazonConverseConfig()
 
@@ -3964,7 +3964,7 @@ def test_supports_native_structured_outputs(monkeypatch):
             "nvidia.nemotron-nano-12b-v2"
         )
     finally:
-        litellm.model_cost = old_cost
+        gateway.model_cost = old_cost
         if old_env is None:
             os.environ.pop("LITELLM_LOCAL_MODEL_COST_MAP", None)
         else:
@@ -4009,9 +4009,9 @@ def test_create_output_config_for_response_format():
 def test_translate_response_format_native_output_config(monkeypatch):
     """For supported models, _translate_response_format_param should produce outputConfig."""
     old_env = os.environ.get("LITELLM_LOCAL_MODEL_COST_MAP")
-    old_cost = litellm.model_cost
+    old_cost = gateway.model_cost
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    litellm.model_cost = litellm.get_model_cost_map()
+    gateway.model_cost = gateway.get_model_cost_map()
     try:
         config = AmazonConverseConfig()
 
@@ -4062,7 +4062,7 @@ def test_translate_response_format_native_output_config(monkeypatch):
             == "WeatherResult"
         )
     finally:
-        litellm.model_cost = old_cost
+        gateway.model_cost = old_cost
         if old_env is None:
             os.environ.pop("LITELLM_LOCAL_MODEL_COST_MAP", None)
         else:
@@ -4104,9 +4104,9 @@ def test_translate_response_format_fallback_tool_call():
 def test_native_structured_output_no_fake_stream(monkeypatch):
     """When using native structured outputs with streaming, fake_stream should NOT be set."""
     old_env = os.environ.get("LITELLM_LOCAL_MODEL_COST_MAP")
-    old_cost = litellm.model_cost
+    old_cost = gateway.model_cost
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    litellm.model_cost = litellm.get_model_cost_map()
+    gateway.model_cost = gateway.get_model_cost_map()
     try:
         config = AmazonConverseConfig()
 
@@ -4147,7 +4147,7 @@ def test_native_structured_output_no_fake_stream(monkeypatch):
             "additionalProperties": False,
         }
     finally:
-        litellm.model_cost = old_cost
+        gateway.model_cost = old_cost
         if old_env is None:
             os.environ.pop("LITELLM_LOCAL_MODEL_COST_MAP", None)
         else:
@@ -4227,8 +4227,8 @@ def test_converse_drop_params_strips_output_config_for_pre_4_5_anthropic():
     config = AmazonConverseConfig()
     messages = [{"role": "user", "content": "hi"}]
 
-    original = litellm.drop_params
-    litellm.drop_params = True
+    original = gateway.drop_params
+    gateway.drop_params = True
     try:
         result = config._transform_request(
             model="bedrock/converse/anthropic.claude-3-haiku-20240307-v1:0",
@@ -4241,7 +4241,7 @@ def test_converse_drop_params_strips_output_config_for_pre_4_5_anthropic():
             headers={},
         )
     finally:
-        litellm.drop_params = original
+        gateway.drop_params = original
 
     additional = result.get("additionalModelRequestFields", {})
     assert "output_config" not in additional
@@ -4252,8 +4252,8 @@ def test_converse_drop_params_keeps_output_config_for_supporting_anthropic():
     config = AmazonConverseConfig()
     messages = [{"role": "user", "content": "hi"}]
 
-    original = litellm.drop_params
-    litellm.drop_params = True
+    original = gateway.drop_params
+    gateway.drop_params = True
     try:
         result = config._transform_request(
             model="bedrock/converse/us.anthropic.claude-opus-4-7",
@@ -4267,7 +4267,7 @@ def test_converse_drop_params_keeps_output_config_for_supporting_anthropic():
             headers={},
         )
     finally:
-        litellm.drop_params = original
+        gateway.drop_params = original
 
     additional = result.get("additionalModelRequestFields", {})
     assert additional.get("output_config") == {"effort": "high"}
@@ -4448,9 +4448,9 @@ def test_json_object_no_schema_skips_tool_injection(monkeypatch):
     and returns {} instead of the requested JSON. Skipping tool injection lets
     the model respond naturally with the JSON the caller asked for."""
     old_env = os.environ.get("LITELLM_LOCAL_MODEL_COST_MAP")
-    old_cost = litellm.model_cost
+    old_cost = gateway.model_cost
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    litellm.model_cost = litellm.get_model_cost_map()
+    gateway.model_cost = gateway.get_model_cost_map()
     try:
         config = AmazonConverseConfig()
         optional_params: dict = {}
@@ -4471,7 +4471,7 @@ def test_json_object_no_schema_skips_tool_injection(monkeypatch):
         assert "tool_choice" not in result
         assert result["json_mode"] is True
     finally:
-        litellm.model_cost = old_cost
+        gateway.model_cost = old_cost
         if old_env is None:
             os.environ.pop("LITELLM_LOCAL_MODEL_COST_MAP", None)
         else:
@@ -4562,7 +4562,7 @@ def test_parallel_tool_calls_flag_decoupled_from_ttl_pricing(monkeypatch):
 
     config = AmazonConverseConfig()
     model = "anthropic.claude-parallel-tool-use-only"
-    monkeypatch.setitem(litellm.model_cost, model, {"supports_parallel_tool_use_config": True})
+    monkeypatch.setitem(gateway.model_cost, model, {"supports_parallel_tool_use_config": True})
     assert is_claude_4_5_on_bedrock(model) is False
     messages = [{"role": "user", "content": "What's the weather in SF and NYC?"}]
 
@@ -5141,9 +5141,9 @@ def test_cache_control_injection_tool_config_honors_ttl_for_supported_model(monk
     copy, which lacks it until merge.
     """
     old_env = os.environ.get("LITELLM_LOCAL_MODEL_COST_MAP")
-    old_cost = litellm.model_cost
+    old_cost = gateway.model_cost
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    litellm.model_cost = litellm.get_model_cost_map()
+    gateway.model_cost = gateway.get_model_cost_map()
     try:
         config = AmazonConverseConfig()
         messages = [
@@ -5177,7 +5177,7 @@ def test_cache_control_injection_tool_config_honors_ttl_for_supported_model(monk
         tools = result["toolConfig"]["tools"]
         assert tools[-1] == {"cachePoint": {"type": "default", "ttl": "1h"}}
     finally:
-        litellm.model_cost = old_cost
+        gateway.model_cost = old_cost
         if old_env is None:
             os.environ.pop("LITELLM_LOCAL_MODEL_COST_MAP", None)
         else:
@@ -5192,12 +5192,12 @@ def test_cache_control_injection_tool_config_honors_ttl_for_regional_model_lacki
     survives through the base-model fallback.
     """
     old_env = os.environ.get("LITELLM_LOCAL_MODEL_COST_MAP")
-    old_cost = litellm.model_cost
+    old_cost = gateway.model_cost
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    litellm.model_cost = litellm.get_model_cost_map()
+    gateway.model_cost = gateway.get_model_cost_map()
     try:
-        assert "cache_creation_input_token_cost_above_1hr" not in litellm.model_cost["jp.anthropic.claude-opus-4-7"]
-        assert "cache_creation_input_token_cost_above_1hr" in litellm.model_cost["anthropic.claude-opus-4-7"]
+        assert "cache_creation_input_token_cost_above_1hr" not in gateway.model_cost["jp.anthropic.claude-opus-4-7"]
+        assert "cache_creation_input_token_cost_above_1hr" in gateway.model_cost["anthropic.claude-opus-4-7"]
         config = AmazonConverseConfig()
         messages = [
             {"role": "user", "content": "What is the weather?"},
@@ -5230,7 +5230,7 @@ def test_cache_control_injection_tool_config_honors_ttl_for_regional_model_lacki
         tools = result["toolConfig"]["tools"]
         assert tools[-1] == {"cachePoint": {"type": "default", "ttl": "1h"}}
     finally:
-        litellm.model_cost = old_cost
+        gateway.model_cost = old_cost
         if old_env is None:
             os.environ.pop("LITELLM_LOCAL_MODEL_COST_MAP", None)
         else:
@@ -5300,7 +5300,7 @@ def test_cache_points_emitted_only_for_models_that_support_prompt_caching(model,
     inference profile ARNs, models newer than the map) keep emitting so existing
     caching setups never silently degrade."""
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map())
+    monkeypatch.setattr(gateway, "model_cost", gateway.get_model_cost_map())
 
     body = AmazonConverseConfig().transform_request(
         model=model,
@@ -5323,7 +5323,7 @@ def test_tool_config_cachepoint_not_placed_or_credited_for_model_without_prompt_
     emission when the model cannot cache, and spend attribution must not credit the
     gateway for a breakpoint that was never placed."""
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map())
+    monkeypatch.setattr(gateway, "model_cost", gateway.get_model_cost_map())
 
     bucket: dict = {"user_api_key": "sk-test"}
     data = AmazonConverseConfig()._transform_request_helper(
@@ -5968,7 +5968,7 @@ def test_bedrock_tool_message_file_without_data_or_id_raises():
     tool-result path must match — silently dropping the block makes the model
     see an empty tool result and obscures the caller bug.
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.core_utils.prompt_templates.factory import (
         _bedrock_converse_messages_pt,
     )
@@ -5988,7 +5988,7 @@ def test_bedrock_tool_message_file_without_data_or_id_raises():
         },
     ]
 
-    with pytest.raises(litellm.BadRequestError):
+    with pytest.raises(gateway.BadRequestError):
         _bedrock_converse_messages_pt(messages=messages, model="", llm_provider="")
 
 
@@ -6086,10 +6086,10 @@ def test_converse_drops_sampling_params_for_models_that_removed_them():
 
 
 def test_converse_sampling_params_raise_without_drop_params(monkeypatch):
-    monkeypatch.setattr(litellm, "drop_params", False)
+    monkeypatch.setattr(gateway, "drop_params", False)
     config = AmazonConverseConfig()
 
-    with pytest.raises(litellm.utils.UnsupportedParamsError, match="drop_params"):
+    with pytest.raises(gateway.utils.UnsupportedParamsError, match="drop_params"):
         config.map_openai_params(
             non_default_params={"temperature": 0.5},
             optional_params={},
@@ -6130,10 +6130,10 @@ def test_converse_top_k_dropped_for_models_that_removed_it():
 
 
 def test_converse_top_k_raises_without_drop_params(monkeypatch):
-    monkeypatch.setattr(litellm, "drop_params", False)
+    monkeypatch.setattr(gateway, "drop_params", False)
     config = AmazonConverseConfig()
 
-    with pytest.raises(litellm.utils.UnsupportedParamsError, match="drop_params"):
+    with pytest.raises(gateway.utils.UnsupportedParamsError, match="drop_params"):
         config.transform_request(
             model="us.anthropic.claude-fable-5",
             messages=[{"role": "user", "content": "hello"}],
@@ -6161,10 +6161,10 @@ def test_converse_top_k_zero_raises_without_drop_params(monkeypatch):
     """``top_k=0`` must hit the same gating as any other value; previously the
     truthiness check let it silently disappear on models that removed sampling
     params, diverging from the Anthropic boundary that treats ``0`` as present."""
-    monkeypatch.setattr(litellm, "drop_params", False)
+    monkeypatch.setattr(gateway, "drop_params", False)
     config = AmazonConverseConfig()
 
-    with pytest.raises(litellm.utils.UnsupportedParamsError, match="drop_params"):
+    with pytest.raises(gateway.utils.UnsupportedParamsError, match="drop_params"):
         config.transform_request(
             model="us.anthropic.claude-fable-5",
             messages=[{"role": "user", "content": "hello"}],
@@ -6659,10 +6659,10 @@ def test_forced_tool_choice_downgraded_to_auto_on_fable_5_1_converse(
 def test_forced_tool_choice_raises_clean_error_on_fable_5_1_converse(
     local_model_cost_map, tool_choice, monkeypatch
 ):
-    monkeypatch.setattr(litellm, "drop_params", False)
+    monkeypatch.setattr(gateway, "drop_params", False)
     config = AmazonConverseConfig()
 
-    with pytest.raises(litellm.utils.UnsupportedParamsError, match="forced tool use"):
+    with pytest.raises(gateway.utils.UnsupportedParamsError, match="forced tool use"):
         config.map_tool_choice_values(
             model="anthropic.claude-fable-5-1", tool_choice=tool_choice, drop_params=False
         )
@@ -6715,7 +6715,7 @@ def test_response_format_avoids_native_and_forced_tool_choice_on_fable_5_1_conve
 def test_forced_tool_choice_forwarded_on_converse_models_that_support_it(
     local_model_cost_map, monkeypatch
 ):
-    monkeypatch.setattr(litellm, "drop_params", False)
+    monkeypatch.setattr(gateway, "drop_params", False)
     config = AmazonConverseConfig()
 
     result = config.map_tool_choice_values(

@@ -43,7 +43,7 @@ from fastapi import APIRouter, Depends, Header, HTTPException, Request, Response
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel, BeforeValidator, ConfigDict, TypeAdapter, ValidationError
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway._uuid import uuid
 from token_iq.gateway.caching.dual_cache import DualCache
@@ -1715,7 +1715,7 @@ async def add_missing_team_member(user_info: NewUserResponse | LiteLLM_UserTable
 
 
 def get_disabled_non_admin_personal_key_creation():
-    key_generation_settings: Final = litellm.key_generation_settings
+    key_generation_settings: Final = gateway.key_generation_settings
     if key_generation_settings is None:
         return False
     personal_key_generation: Final = key_generation_settings.get("personal_key_generation") or {}
@@ -1788,7 +1788,7 @@ async def get_user_info_from_db(
                 break
 
         verbose_proxy_logger.debug(
-            "user_info: %s; litellm.default_internal_user_params: %s", user_info, litellm.default_internal_user_params
+            "user_info: %s; litellm.default_internal_user_params: %s", user_info, gateway.default_internal_user_params
         )
 
         # Upsert SSO User to LiteLLM DB
@@ -2181,9 +2181,9 @@ async def _build_cli_sso_user_defined_values(
         models=[],
         user_id=user_id,
         user_email=parsed_openid_result.get("user_email"),
-        max_budget=litellm.max_internal_user_budget,
+        max_budget=gateway.max_internal_user_budget,
         user_role=parsed_openid_result.get("user_role"),
-        budget_duration=litellm.internal_user_budget_duration,
+        budget_duration=gateway.internal_user_budget_duration,
     )
 
 
@@ -2555,7 +2555,7 @@ async def insert_sso_user(
         raise ValueError("user_defined_values is None")
 
     # Apply default_internal_user_params
-    if litellm.default_internal_user_params:
+    if gateway.default_internal_user_params:
         # Preserve the SSO-extracted role if it's a valid LiteLLM role,
         # regardless of how it was determined (role_mappings, Microsoft app_roles,
         # GENERIC_USER_ROLE_ATTRIBUTE, custom SSO handler, etc.)
@@ -2563,19 +2563,19 @@ async def insert_sso_user(
         if _should_use_role_from_sso_response(sso_role):
             # Preserve the SSO-extracted role, but apply other defaults
             preserved_role: Final = sso_role
-            user_defined_values.update(litellm.default_internal_user_params)
+            user_defined_values.update(gateway.default_internal_user_params)
             user_defined_values["user_role"] = preserved_role  # Restore preserved role
             verbose_proxy_logger.debug("Preserved SSO-extracted role '%s'", preserved_role)
         else:
             # SSO didn't provide a valid role, apply all defaults including role
-            user_defined_values.update(litellm.default_internal_user_params)
+            user_defined_values.update(gateway.default_internal_user_params)
 
     # Set budget for internal users
     if user_defined_values.get("user_role") == LitellmUserRoles.INTERNAL_USER.value:
         if user_defined_values.get("max_budget") is None:
-            user_defined_values["max_budget"] = litellm.max_internal_user_budget
+            user_defined_values["max_budget"] = gateway.max_internal_user_budget
         if user_defined_values.get("budget_duration") is None:
-            user_defined_values["budget_duration"] = litellm.internal_user_budget_duration
+            user_defined_values["budget_duration"] = gateway.internal_user_budget_duration
 
     if user_defined_values["user_role"] is None:
         user_defined_values["user_role"] = LitellmUserRoles.INTERNAL_USER_VIEW_ONLY
@@ -3326,9 +3326,9 @@ class SSOAuthenticationHandler:
                 team_id=litellm_team_id,
                 team_alias=litellm_team_name,
             )
-            if litellm.default_team_params:
+            if gateway.default_team_params:
                 team_request = SSOAuthenticationHandler._cast_and_deepcopy_litellm_default_team_params(
-                    default_team_params=litellm.default_team_params,
+                    default_team_params=gateway.default_team_params,
                     litellm_team_id=litellm_team_id,
                     litellm_team_name=litellm_team_name,
                     team_request=team_request,
@@ -3365,8 +3365,8 @@ class SSOAuthenticationHandler:
             _team_request["team_id"] = litellm_team_id
             _team_request["team_alias"] = litellm_team_name
             team_request = NewTeamRequest(**_team_request)
-        elif isinstance(litellm.default_team_params, DefaultTeamSSOParams):
-            _default_team_params: Final = deepcopy(litellm.default_team_params)
+        elif isinstance(gateway.default_team_params, DefaultTeamSSOParams):
+            _default_team_params: Final = deepcopy(gateway.default_team_params)
             _new_team_request: Final = team_request.model_dump()
             _new_team_request.update(_default_team_params)
             team_request = NewTeamRequest.model_validate(_new_team_request)
@@ -3496,8 +3496,8 @@ class SSOAuthenticationHandler:
 
         user_info = None
         user_id_models: Final[list] = []
-        max_internal_user_budget: Final = litellm.max_internal_user_budget
-        internal_user_budget_duration: Final = litellm.internal_user_budget_duration
+        max_internal_user_budget: Final = gateway.max_internal_user_budget
+        internal_user_budget_duration: Final = gateway.internal_user_budget_duration
 
         # User might not be already created on first generation of key
         # But if it is, we want their models preferences
@@ -3564,7 +3564,7 @@ class SSOAuthenticationHandler:
         response: Final = await generate_key_helper_fn(
             request_type="key",
             duration=LITELLM_UI_SESSION_DURATION,
-            key_max_budget=litellm.max_ui_session_budget,
+            key_max_budget=gateway.max_ui_session_budget,
             aliases={},
             config={},
             spend=0,
@@ -3613,7 +3613,7 @@ class SSOAuthenticationHandler:
                     user_id=user_defined_values["user_id"],
                     user_role=user_defined_values["user_role"] or user_role,
                     models=[],
-                    max_budget=litellm.max_ui_session_budget,
+                    max_budget=gateway.max_ui_session_budget,
                 )
             if _user_info is None:
                 raise HTTPException(

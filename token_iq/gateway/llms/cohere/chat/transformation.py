@@ -5,7 +5,7 @@ from typing import TYPE_CHECKING, Any, Final
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.prompt_templates.factory import cohere_messages_pt_v2
 from token_iq.gateway.llms.base_llm.chat.transformation import BaseConfig, BaseLLMException
 from token_iq.gateway.types.llms.openai import AllMessageValues
@@ -191,7 +191,7 @@ class CohereChatConfig(BaseConfig):
         headers: dict,
     ) -> dict:
         ## Load Config
-        for k, v in litellm.CohereChatConfig.get_config().items():
+        for k, v in gateway.CohereChatConfig.get_config().items():
             if (
                 k not in optional_params
             ):  # completion(top_k=3) > cohere_config(top_k=3) <- allows for dynamic variables to be passed in
@@ -259,7 +259,7 @@ class CohereChatConfig(BaseConfig):
                     },
                 }
                 tool_calls.append(tool_call)
-            _message: Final = litellm.Message(
+            _message: Final = gateway.Message(
                 tool_calls=tool_calls,
                 content=None,
             )

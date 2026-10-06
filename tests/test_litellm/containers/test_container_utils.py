@@ -2,7 +2,7 @@
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.containers.utils import (
     ContainerRequestUtils,
     decode_managed_container_id_for_request,

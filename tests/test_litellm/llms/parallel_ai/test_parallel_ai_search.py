@@ -8,7 +8,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 MOCK_V1_RESPONSE = {
     "search_id": "search_abc123",
@@ -41,13 +41,13 @@ def _mock_response(payload=None):
 @pytest.fixture
 def httpx_transport(monkeypatch):
     monkeypatch.setattr(  # test-quality-ok: respx needs HTTPX enabled to fake the provider HTTP boundary.
-        litellm,
+        gateway,
         "disable_aiohttp_transport",
         True,
     )
-    litellm.in_memory_llm_clients_cache.flush_cache()
+    gateway.in_memory_llm_clients_cache.flush_cache()
     yield
-    litellm.in_memory_llm_clients_cache.flush_cache()
+    gateway.in_memory_llm_clients_cache.flush_cache()
 
 
 @pytest.fixture
@@ -59,7 +59,7 @@ def bundled_cost_map(monkeypatch):
     """
     from token_iq.gateway.utils import _invalidate_model_cost_lowercase_map
 
-    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map())
+    monkeypatch.setattr(gateway, "model_cost", gateway.get_model_cost_map())
     _invalidate_model_cost_lowercase_map()
     yield
     monkeypatch.undo()
@@ -80,7 +80,7 @@ class TestParallelAISearch:
         ) as mock_post:
             mock_post.return_value = _mock_response()
 
-            await litellm.asearch(
+            await gateway.asearch(
                 query="latest developments in AI",
                 search_provider="parallel_ai",
             )
@@ -101,7 +101,7 @@ class TestParallelAISearch:
         ) as mock_post:
             mock_post.return_value = _mock_response()
 
-            await litellm.asearch(
+            await gateway.asearch(
                 query="latest developments in AI",
                 search_provider="parallel_ai",
             )
@@ -118,7 +118,7 @@ class TestParallelAISearch:
         ) as mock_post:
             mock_post.return_value = _mock_response()
 
-            await litellm.asearch(
+            await gateway.asearch(
                 query=["AI developments", "machine learning trends"],
                 search_provider="parallel_ai",
             )
@@ -138,7 +138,7 @@ class TestParallelAISearch:
         ) as mock_post:
             mock_post.return_value = _mock_response()
 
-            await litellm.asearch(
+            await gateway.asearch(
                 query="AI developments",
                 search_provider="parallel_ai",
                 mode="turbo",
@@ -156,7 +156,7 @@ class TestParallelAISearch:
         ) as mock_post:
             mock_post.return_value = _mock_response()
 
-            await litellm.asearch(
+            await gateway.asearch(
                 query="AI developments",
                 search_provider="parallel_ai",
             )
@@ -173,7 +173,7 @@ class TestParallelAISearch:
         ) as mock_post:
             mock_post.return_value = _mock_response()
 
-            await litellm.asearch(
+            await gateway.asearch(
                 query="AI developments",
                 search_provider="parallel_ai",
                 processor=processor,
@@ -191,7 +191,7 @@ class TestParallelAISearch:
         ) as mock_post:
             mock_post.return_value = _mock_response()
 
-            await litellm.asearch(
+            await gateway.asearch(
                 query="AI developments",
                 search_provider="parallel_ai",
                 mode="turbo",
@@ -210,7 +210,7 @@ class TestParallelAISearch:
         ) as mock_post:
             mock_post.return_value = _mock_response()
 
-            await litellm.asearch(
+            await gateway.asearch(
                 query="AI developments",
                 search_provider="parallel_ai",
                 session_id="session_123",
@@ -231,7 +231,7 @@ class TestParallelAISearch:
         ) as mock_post:
             mock_post.return_value = _mock_response()
 
-            await litellm.asearch(
+            await gateway.asearch(
                 query="AI developments",
                 search_provider="parallel_ai",
                 max_results=5,
@@ -267,7 +267,7 @@ class TestParallelAISearch:
         ) as mock_post:
             mock_post.return_value = _mock_response()
 
-            await litellm.asearch(
+            await gateway.asearch(
                 query="AI developments",
                 search_provider="parallel_ai",
                 max_results=5,
@@ -285,7 +285,7 @@ class TestParallelAISearch:
         ) as mock_post:
             mock_post.return_value = _mock_response()
 
-            response = await litellm.asearch(
+            response = await gateway.asearch(
                 query="AI developments",
                 search_provider="parallel_ai",
             )
@@ -325,7 +325,7 @@ class TestParallelAISearch:
         ) as mock_post:
             mock_post.return_value = _mock_response()
 
-            await litellm.asearch(
+            await gateway.asearch(
                 query="AI developments",
                 search_provider="parallel_ai",
             )
@@ -343,7 +343,7 @@ class TestParallelAISearch:
             new_callable=AsyncMock,
         ) as mock_post:
             with pytest.raises(Exception, match="Refusing to send"):
-                await litellm.asearch(
+                await gateway.asearch(
                     query="AI developments",
                     search_provider="parallel_ai",
                     api_base="https://attacker.example.com",
@@ -356,7 +356,7 @@ class TestParallelAISearch:
         monkeypatch.delenv("PARALLEL_AI_API_KEY", raising=False)
 
         with pytest.raises(Exception, match="PARALLEL_API_KEY"):
-            await litellm.asearch(
+            await gateway.asearch(
                 query="AI developments",
                 search_provider="parallel_ai",
             )
@@ -365,7 +365,7 @@ class TestParallelAISearch:
     async def test_flat_source_and_fetch_params_nest_under_advanced_settings(self, respx_mock, httpx_transport):
         route = respx_mock.post("https://api.parallel.ai/v1/search").respond(json=MOCK_V1_RESPONSE)
 
-        await litellm.asearch(
+        await gateway.asearch(
             query="AI developments",
             search_provider="parallel_ai",
             objective="find peer-reviewed AI research",
@@ -398,7 +398,7 @@ class TestParallelAISearch:
     async def test_response_preserves_raw_parallel_fields(self, respx_mock, httpx_transport):
         respx_mock.post("https://api.parallel.ai/v1/search").respond(json=MOCK_V1_RESPONSE)
 
-        response = await litellm.asearch(
+        response = await gateway.asearch(
             query="AI developments",
             search_provider="parallel_ai",
         )
@@ -419,7 +419,7 @@ class TestParallelAISearch:
         }
         respx_mock.post("https://api.parallel.ai/v1/search").respond(json=response_payload)
 
-        response = await litellm.asearch(
+        response = await gateway.asearch(
             query="AI developments",
             search_provider="parallel_ai",
         )
@@ -458,7 +458,7 @@ class TestParallelAISearch:
         response_payload = {**MOCK_V1_RESPONSE, "usage": usage}
         respx_mock.post("https://api.parallel.ai/v1/search").respond(json=response_payload)
 
-        response = await litellm.asearch(
+        response = await gateway.asearch(
             query="AI developments",
             search_provider="parallel_ai",
             mode=mode,
@@ -477,7 +477,7 @@ class TestParallelAISearch:
         }
         respx_mock.post("https://api.parallel.ai/v1/search").respond(json=response_payload)
 
-        response = await litellm.asearch(
+        response = await gateway.asearch(
             query=["AI developments", "machine learning trends"],
             search_provider="parallel_ai",
             mode="basic",
@@ -495,7 +495,7 @@ class TestParallelAISearch:
         response_payload = {k: v for k, v in MOCK_V1_RESPONSE.items() if k != "usage"}
         route = respx_mock.post("https://api.parallel.ai/v1/search").respond(json=response_payload)
 
-        response = await litellm.asearch(
+        response = await gateway.asearch(
             query="AI developments",
             search_provider="parallel_ai",
             mode="basic",

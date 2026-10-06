@@ -13,7 +13,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 
 class TestHostedVLLMSSLVerify:
@@ -53,7 +53,7 @@ class TestHostedVLLMSSLVerify:
         mock_get_httpx_client.return_value = mock_client
 
         try:
-            litellm.completion(
+            gateway.completion(
                 model="hosted_vllm/test-model",
                 messages=[{"role": "user", "content": "Hello"}],
                 api_base="https://test-vllm.example.com/v1",
@@ -121,7 +121,7 @@ class TestHostedVLLMSSLVerify:
         mock_get_async_httpx_client.return_value = mock_client
 
         try:
-            await litellm.acompletion(
+            await gateway.acompletion(
                 model="hosted_vllm/test-model",
                 messages=[{"role": "user", "content": "Hello"}],
                 api_base="https://test-vllm.example.com/v1",

@@ -5,7 +5,7 @@ from token_iq.gateway.proxy.utils import _get_redoc_url, _get_docs_url
 import pytest
 from fastapi import Request
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from unittest.mock import MagicMock, patch, AsyncMock
 
 

@@ -18,7 +18,7 @@ import logging
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import Router, mock_completion
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.caching.caching import DualCache
@@ -79,10 +79,10 @@ def prisma_client():
     )
 
     # Reset litellm.proxy.proxy_server.prisma_client to None
-    litellm.proxy.proxy_server.litellm_proxy_budget_name = (
+    gateway.proxy.proxy_server.litellm_proxy_budget_name = (
         f"litellm-proxy-budget-{time.time()}"
     )
-    litellm.proxy.proxy_server.user_custom_key_generate = None
+    gateway.proxy.proxy_server.user_custom_key_generate = None
 
     return prisma_client
 
@@ -95,13 +95,13 @@ async def test_block_user_check(prisma_client):
     - Test to see if a call with that user id is made, an error is raised
     - Test to see if a call without that user is passes
     """
-    setattr(litellm.proxy.proxy_server, "prisma_client", prisma_client)
-    setattr(litellm.proxy.proxy_server, "master_key", "sk-1234")
+    setattr(gateway.proxy.proxy_server, "prisma_client", prisma_client)
+    setattr(gateway.proxy.proxy_server, "master_key", "sk-1234")
 
-    litellm.blocked_user_list = ["user_id_1"]
+    gateway.blocked_user_list = ["user_id_1"]
 
     blocked_user_obj = _ENTERPRISE_BlockedUserList(
-        prisma_client=litellm.proxy.proxy_server.prisma_client
+        prisma_client=gateway.proxy.proxy_server.prisma_client
     )
 
     _api_key = "sk-12345"
@@ -140,9 +140,9 @@ async def test_block_user_db_check(prisma_client):
     - Block end user via "/user/block"
     - Check returned value
     """
-    setattr(litellm.proxy.proxy_server, "prisma_client", prisma_client)
-    setattr(litellm.proxy.proxy_server, "master_key", "sk-1234")
-    await litellm.proxy.proxy_server.prisma_client.connect()
+    setattr(gateway.proxy.proxy_server, "prisma_client", prisma_client)
+    setattr(gateway.proxy.proxy_server, "master_key", "sk-1234")
+    await gateway.proxy.proxy_server.prisma_client.connect()
     _block_users = BlockUsers(user_ids=["user_id_1"])
     result = await block_user(data=_block_users)
     result = result["blocked_users"]

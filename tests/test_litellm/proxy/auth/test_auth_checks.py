@@ -14,7 +14,7 @@ import httpx
 import pytest
 from fastapi import Request, status
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy._types import (
     CallInfo,
     Litellm_EntityType,
@@ -141,7 +141,7 @@ def test_get_experimental_ui_login_jwt_auth_token_valid(valid_sso_user_defined_v
     assert token_data["user_id"] == "test_user"
     assert token_data["user_role"] == LitellmUserRoles.PROXY_ADMIN.value
     assert token_data["models"] == ["gpt-3.5-turbo"]
-    assert token_data["max_budget"] == litellm.max_ui_session_budget
+    assert token_data["max_budget"] == gateway.max_ui_session_budget
 
     # Verify expiration time is set and valid (Experimental UI uses fixed 10-min expiry)
     assert "expires" in token_data
@@ -289,7 +289,7 @@ def test_get_key_object_from_ui_hash_key_valid(
     assert key_object.user_id == "test_user"
     assert key_object.user_role == LitellmUserRoles.PROXY_ADMIN
     assert key_object.models == ["gpt-3.5-turbo"]
-    assert key_object.max_budget == litellm.max_ui_session_budget
+    assert key_object.max_budget == gateway.max_ui_session_budget
 
 
 def test_get_key_object_from_ui_hash_key_invalid():
@@ -730,11 +730,11 @@ def test_get_cli_jwt_auth_token_unique_per_session(valid_sso_user_defined_values
 
 def test_get_cli_jwt_auth_token_applies_fallback_budget(valid_sso_user_defined_values):
     token = ExperimentalUIJWTToken.get_cli_jwt_auth_token(
-        valid_sso_user_defined_values, max_budget=litellm.max_ui_session_budget
+        valid_sso_user_defined_values, max_budget=gateway.max_ui_session_budget
     )
     decrypted = decrypt_value_helper(token, key="ui_hash_key", exception_type="debug")
     assert decrypted is not None
-    assert json.loads(decrypted).get("max_budget") == litellm.max_ui_session_budget
+    assert json.loads(decrypted).get("max_budget") == gateway.max_ui_session_budget
 
 
 def test_get_cli_jwt_auth_token_no_fallback_when_budget_provided(
@@ -757,7 +757,7 @@ async def test_default_internal_user_params_with_get_user_object(monkeypatch):
         "max_budget": 200.0,
         "user_role": "internal_user",
     }
-    monkeypatch.setattr(litellm, "default_internal_user_params", default_params)
+    monkeypatch.setattr(gateway, "default_internal_user_params", default_params)
 
     # Mock the necessary dependencies
     mock_prisma_client = MagicMock()
@@ -824,7 +824,7 @@ async def test_get_user_object_upsert_sets_budget_reset_at(monkeypatch, has_budg
     default_params = {"max_budget": 300.0}
     if has_budget_duration:
         default_params["budget_duration"] = "24h"
-    monkeypatch.setattr(litellm, "default_internal_user_params", default_params)
+    monkeypatch.setattr(gateway, "default_internal_user_params", default_params)
 
     mock_prisma_client = MagicMock()
     mock_prisma_client.db = AsyncMock()
@@ -1185,7 +1185,7 @@ async def test_get_user_object_upsert_routes_default_team_to_membership(monkeypa
         "user_role": "internal_user",
         "teams": [{"team_id": "default-team", "user_role": "user"}],
     }
-    monkeypatch.setattr(litellm, "default_internal_user_params", default_params)
+    monkeypatch.setattr(gateway, "default_internal_user_params", default_params)
 
     mock_prisma_client = MagicMock()
     mock_prisma_client.db = AsyncMock()
@@ -2411,7 +2411,7 @@ async def test_tag_max_budget_check_still_enforces_registered_tag_over_budget():
         return fallback_spend
 
     with patch("token_iq.gateway.proxy.proxy_server.get_current_spend", mock_get_current_spend):
-        with pytest.raises(litellm.BudgetExceededError) as exc_info:
+        with pytest.raises(gateway.BudgetExceededError) as exc_info:
             await _tag_max_budget_check(
                 request_body={"metadata": {"tags": ["paid-tag", "unregistered-tag"]}},
                 prisma_client=mock_prisma,
@@ -3304,11 +3304,11 @@ async def test_virtual_key_max_budget_alert_check_global_fallback():
         metadata={},  # no per-key config
     )
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    original = litellm.default_key_max_budget_alert_emails
+    original = gateway.default_key_max_budget_alert_emails
     try:
-        litellm.default_key_max_budget_alert_emails = global_config
+        gateway.default_key_max_budget_alert_emails = global_config
         await _virtual_key_max_budget_alert_check(
             valid_token=valid_token,
             proxy_logging_obj=MockProxyLogging(),
@@ -3319,7 +3319,7 @@ async def test_virtual_key_max_budget_alert_check_global_fallback():
         assert alert_triggered is True
         assert captured_call_info.max_budget_alert_emails == global_config
     finally:
-        litellm.default_key_max_budget_alert_emails = original
+        gateway.default_key_max_budget_alert_emails = original
 
 
 @pytest.mark.asyncio
@@ -3344,11 +3344,11 @@ async def test_virtual_key_max_budget_alert_check_per_key_merges_with_global():
         metadata={"max_budget_alert_emails": per_key_config},
     )
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    original = litellm.default_key_max_budget_alert_emails
+    original = gateway.default_key_max_budget_alert_emails
     try:
-        litellm.default_key_max_budget_alert_emails = global_config
+        gateway.default_key_max_budget_alert_emails = global_config
         await _virtual_key_max_budget_alert_check(
             valid_token=valid_token,
             proxy_logging_obj=MockProxyLogging(),
@@ -3362,7 +3362,7 @@ async def test_virtual_key_max_budget_alert_check_per_key_merges_with_global():
             "75": ["global@co.com"],
         }
     finally:
-        litellm.default_key_max_budget_alert_emails = original
+        gateway.default_key_max_budget_alert_emails = original
 
 
 @pytest.mark.asyncio
@@ -3509,7 +3509,7 @@ async def test_virtual_key_budget_check_reads_from_spend_counter():
         return fallback_spend
 
     with patch("token_iq.gateway.proxy.proxy_server.get_current_spend", mock_get_current_spend):
-        with pytest.raises(litellm.BudgetExceededError) as exc_info:
+        with pytest.raises(gateway.BudgetExceededError) as exc_info:
             await _virtual_key_max_budget_check(
                 valid_token=valid_token,
                 proxy_logging_obj=proxy_logging_obj,
@@ -3543,7 +3543,7 @@ async def test_virtual_key_budget_check_fallback_no_counter():
         return fallback_spend
 
     with patch("token_iq.gateway.proxy.proxy_server.get_current_spend", mock_get_current_spend):
-        with pytest.raises(litellm.BudgetExceededError) as exc_info:
+        with pytest.raises(gateway.BudgetExceededError) as exc_info:
             await _virtual_key_max_budget_check(
                 valid_token=valid_token,
                 proxy_logging_obj=proxy_logging_obj,
@@ -3604,7 +3604,7 @@ def test_throttled_limit(limit, pct, expected):
 
 @pytest.mark.asyncio
 async def test_budget_exceeded_throttles_instead_of_blocking(monkeypatch):
-    monkeypatch.setattr(litellm, "budget_exceeded_throttle_percentage", 0.1)
+    monkeypatch.setattr(gateway, "budget_exceeded_throttle_percentage", 0.1)
     valid_token = _over_budget_token(
         tpm_limit=1000,
         rpm_limit=100,
@@ -3646,13 +3646,13 @@ async def test_budget_throttle_decision_cleared_before_caching():
 
 @pytest.mark.asyncio
 async def test_budget_exceeded_throttle_no_configured_limits(monkeypatch):
-    monkeypatch.setattr(litellm, "budget_exceeded_throttle_percentage", 0.1)
+    monkeypatch.setattr(gateway, "budget_exceeded_throttle_percentage", 0.1)
     valid_token = _over_budget_token(metadata={"throttle_on_budget_exceeded": True})
     assert valid_token.tpm_limit is None
     assert valid_token.rpm_limit is None
 
     with _patched_spend(20.0):
-        with pytest.raises(litellm.BudgetExceededError):
+        with pytest.raises(gateway.BudgetExceededError):
             await _virtual_key_max_budget_check(
                 valid_token=valid_token,
                 proxy_logging_obj=_budget_logging_obj(),
@@ -3663,11 +3663,11 @@ async def test_budget_exceeded_throttle_no_configured_limits(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_budget_exceeded_not_opted_in_still_blocks(monkeypatch):
-    monkeypatch.setattr(litellm, "budget_exceeded_throttle_percentage", 0.1)
+    monkeypatch.setattr(gateway, "budget_exceeded_throttle_percentage", 0.1)
     valid_token = _over_budget_token(tpm_limit=1000, rpm_limit=100)
 
     with _patched_spend(20.0):
-        with pytest.raises(litellm.BudgetExceededError):
+        with pytest.raises(gateway.BudgetExceededError):
             await _virtual_key_max_budget_check(
                 valid_token=valid_token,
                 proxy_logging_obj=_budget_logging_obj(),
@@ -3679,7 +3679,7 @@ async def test_budget_exceeded_not_opted_in_still_blocks(monkeypatch):
 @pytest.mark.parametrize("pct", [None, 0, 1.5, -0.1, True])
 @pytest.mark.asyncio
 async def test_budget_exceeded_invalid_percentage_blocks(monkeypatch, pct):
-    monkeypatch.setattr(litellm, "budget_exceeded_throttle_percentage", pct)
+    monkeypatch.setattr(gateway, "budget_exceeded_throttle_percentage", pct)
     valid_token = _over_budget_token(
         tpm_limit=1000,
         rpm_limit=100,
@@ -3687,7 +3687,7 @@ async def test_budget_exceeded_invalid_percentage_blocks(monkeypatch, pct):
     )
 
     with _patched_spend(20.0):
-        with pytest.raises(litellm.BudgetExceededError):
+        with pytest.raises(gateway.BudgetExceededError):
             await _virtual_key_max_budget_check(
                 valid_token=valid_token,
                 proxy_logging_obj=_budget_logging_obj(),
@@ -3698,7 +3698,7 @@ async def test_budget_exceeded_invalid_percentage_blocks(monkeypatch, pct):
 
 @pytest.mark.asyncio
 async def test_under_budget_does_not_throttle(monkeypatch):
-    monkeypatch.setattr(litellm, "budget_exceeded_throttle_percentage", 0.1)
+    monkeypatch.setattr(gateway, "budget_exceeded_throttle_percentage", 0.1)
     valid_token = _over_budget_token(
         max_budget=100.0,
         tpm_limit=1000,
@@ -3738,7 +3738,7 @@ async def test_team_budget_check_reads_from_spend_counter():
         return fallback_spend
 
     with patch("token_iq.gateway.proxy.proxy_server.get_current_spend", mock_get_current_spend):
-        with pytest.raises(litellm.BudgetExceededError) as exc_info:
+        with pytest.raises(gateway.BudgetExceededError) as exc_info:
             await _team_max_budget_check(
                 team_object=team_object,
                 valid_token=valid_token,
@@ -3767,7 +3767,7 @@ async def test_end_user_budget_check_reads_from_spend_counter():
         return fallback_spend
 
     with patch("token_iq.gateway.proxy.proxy_server.get_current_spend", mock_get_current_spend):
-        with pytest.raises(litellm.BudgetExceededError) as exc_info:
+        with pytest.raises(gateway.BudgetExceededError) as exc_info:
             await _check_end_user_budget(
                 end_user_obj=end_user_object,
                 route="/chat/completions",
@@ -3804,7 +3804,7 @@ async def test_tag_budget_check_reads_from_spend_counter():
             return_value={"paid-tag": tag_object},
         ),
     ):
-        with pytest.raises(litellm.BudgetExceededError) as exc_info:
+        with pytest.raises(gateway.BudgetExceededError) as exc_info:
             await _tag_max_budget_check(
                 request_body={"metadata": {"tags": ["paid-tag"]}},
                 prisma_client=MagicMock(),
@@ -3856,7 +3856,7 @@ async def test_team_member_budget_check_reads_from_spend_counter():
             return_value=team_membership,
         ),
     ):
-        with pytest.raises(litellm.BudgetExceededError) as exc_info:
+        with pytest.raises(gateway.BudgetExceededError) as exc_info:
             await _check_team_member_budget(
                 team_object=team_object,
                 user_object=user_object,
@@ -4095,7 +4095,7 @@ async def test_team_member_budget_check_falls_back_to_team_default_budget_id():
             return_value=team_membership,
         ),
     ):
-        with pytest.raises(litellm.BudgetExceededError) as exc_info:
+        with pytest.raises(gateway.BudgetExceededError) as exc_info:
             await _check_team_member_budget(
                 team_object=team_object,
                 user_object=user_object,
@@ -4120,7 +4120,7 @@ async def test_team_member_budget_check_falls_back_to_team_default_budget_id():
             return_value=team_membership,
         ),
     ):
-        with pytest.raises(litellm.BudgetExceededError) as second_exc_info:
+        with pytest.raises(gateway.BudgetExceededError) as second_exc_info:
             await _check_team_member_budget(
                 team_object=team_object,
                 user_object=user_object,
@@ -4216,7 +4216,7 @@ async def test_team_member_budget_check_per_member_override_wins_over_team_defau
             return_value=team_membership,
         ),
     ):
-        with pytest.raises(litellm.BudgetExceededError) as exc_info:
+        with pytest.raises(gateway.BudgetExceededError) as exc_info:
             await _check_team_member_budget(
                 team_object=team_object,
                 user_object=user_object,
@@ -4284,7 +4284,7 @@ async def test_team_member_budget_check_null_clone_falls_back_to_team_default():
             return_value=team_membership,
         ),
     ):
-        with pytest.raises(litellm.BudgetExceededError) as exc_info:
+        with pytest.raises(gateway.BudgetExceededError) as exc_info:
             await _check_team_member_budget(
                 team_object=team_object,
                 user_object=user_object,
@@ -4482,7 +4482,7 @@ async def test_team_member_budget_check_zero_per_member_row_still_blocks():
             return_value=team_membership,
         ),
     ):
-        with pytest.raises(litellm.BudgetExceededError) as exc_info:
+        with pytest.raises(gateway.BudgetExceededError) as exc_info:
             await _check_team_member_budget(
                 team_object=team_object,
                 user_object=user_object,
@@ -4500,10 +4500,10 @@ async def test_team_member_budget_check_zero_per_member_row_still_blocks():
 @pytest.fixture
 def _validate_flag_on(monkeypatch):
     """Enable opt-in DB validation for the duration of a test."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    monkeypatch.setattr(litellm, "validate_end_user_id_in_db", True)
-    monkeypatch.setattr(litellm, "max_end_user_budget_id", None)
+    monkeypatch.setattr(gateway, "validate_end_user_id_in_db", True)
+    monkeypatch.setattr(gateway, "max_end_user_budget_id", None)
 
 
 def _validation_cache():
@@ -4547,10 +4547,10 @@ async def test_resolve_end_user_returns_none_for_none_input(
 @pytest.mark.asyncio
 async def test_resolve_end_user_passes_through_when_flag_disabled(monkeypatch):
     """Default behaviour: flag is off, arbitrary ids pass through untouched."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.proxy.auth.auth_checks import resolve_and_validate_end_user_id
 
-    monkeypatch.setattr(litellm, "validate_end_user_id_in_db", False)
+    monkeypatch.setattr(gateway, "validate_end_user_id_in_db", False)
     _patch_validation_helpers(monkeypatch)
     cache = _validation_cache()
 
@@ -4703,10 +4703,10 @@ async def test_resolve_end_user_preserves_id_when_default_budget_configured(
     The default end-user budget is applied downstream when the id is present
     but not found in the db — dropping the id here would bypass those limits.
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.proxy.auth.auth_checks import resolve_and_validate_end_user_id
 
-    monkeypatch.setattr(litellm, "max_end_user_budget_id", "default-budget")
+    monkeypatch.setattr(gateway, "max_end_user_budget_id", "default-budget")
     _patch_validation_helpers(monkeypatch)
     cache = _validation_cache()
 
@@ -5232,7 +5232,7 @@ async def test_side_effectful_info_route_still_enforces_budget():
 
     team_object = LiteLLM_TeamTable(team_id="test-team", spend=150.0, max_budget=100.0)
 
-    with pytest.raises(litellm.BudgetExceededError):
+    with pytest.raises(gateway.BudgetExceededError):
         await common_checks(
             request_body={},
             team_object=team_object,
@@ -5255,7 +5255,7 @@ async def test_inference_route_still_enforces_team_budget():
 
     team_object = LiteLLM_TeamTable(team_id="test-team", spend=150.0, max_budget=100.0)
 
-    with pytest.raises(litellm.BudgetExceededError):
+    with pytest.raises(gateway.BudgetExceededError):
         await common_checks(
             request_body={},
             team_object=team_object,
@@ -5289,7 +5289,7 @@ async def test_virtual_key_max_budget_error_names_the_key():
         "token_iq.gateway.proxy.proxy_server.get_current_spend",
         new=AsyncMock(return_value=25.0),
     ):
-        with pytest.raises(litellm.BudgetExceededError) as exc_info:
+        with pytest.raises(gateway.BudgetExceededError) as exc_info:
             await _virtual_key_max_budget_check(
                 valid_token=valid_token,
                 proxy_logging_obj=proxy_logging_obj,
@@ -5510,14 +5510,14 @@ async def test_common_checks_budget_gather_raises_highest_priority_scope():
         # Both team and end-user over budget: team wins on priority.
         _spend_by_counter.team = 999.0
         _spend_by_counter.end_user = 999.0
-        with pytest.raises(litellm.BudgetExceededError) as both_over:
+        with pytest.raises(gateway.BudgetExceededError) as both_over:
             await _run()
         assert "Team=t1" in str(both_over.value)
 
         # Only the lower-priority end-user scope over budget: its error still raises.
         _spend_by_counter.team = 0.0
         _spend_by_counter.end_user = 999.0
-        with pytest.raises(litellm.BudgetExceededError) as end_user_over:
+        with pytest.raises(gateway.BudgetExceededError) as end_user_over:
             await _run()
         assert "End User=eu1" in str(end_user_over.value)
 
@@ -5543,7 +5543,7 @@ async def test_common_checks_personal_user_budget_blocks_in_gather():
     with patch("token_iq.gateway.proxy.proxy_server.prisma_client", None), patch(
         "token_iq.gateway.proxy.proxy_server.get_current_spend", _spend_by_counter
     ):
-        with pytest.raises(litellm.BudgetExceededError) as over:
+        with pytest.raises(gateway.BudgetExceededError) as over:
             await common_checks(
                 request_body={"messages": [{"role": "user", "content": "hi"}]},
                 team_object=None,
@@ -5627,7 +5627,7 @@ async def test_common_checks_personal_user_budget_enforced_on_team_key_when_flag
     with patch("token_iq.gateway.proxy.proxy_server.prisma_client", None), patch(
         "token_iq.gateway.proxy.proxy_server.get_current_spend", _spend_by_counter
     ), patch("token_iq.gateway.proxy.auth.auth_checks.get_team_membership", _no_membership):
-        with pytest.raises(litellm.BudgetExceededError) as exc_info:
+        with pytest.raises(gateway.BudgetExceededError) as exc_info:
             await common_checks(
                 request_body={"messages": [{"role": "user", "content": "hi"}]},
                 team_object=team,
@@ -5660,7 +5660,7 @@ async def test_common_checks_personal_user_budget_still_enforced_on_personal_key
     with patch("token_iq.gateway.proxy.proxy_server.prisma_client", None), patch(
         "token_iq.gateway.proxy.proxy_server.get_current_spend", _spend_by_counter
     ):
-        with pytest.raises(litellm.BudgetExceededError):
+        with pytest.raises(gateway.BudgetExceededError):
             await common_checks(
                 request_body={"messages": [{"role": "user", "content": "hi"}]},
                 team_object=None,
@@ -5747,7 +5747,7 @@ async def test_budget_checks_only_run_on_llm_api_routes(scope, route, expect_blo
         "token_iq.gateway.proxy.auth.auth_checks.get_org_object", _get_org
     ):
         if expect_blocked:
-            with pytest.raises(litellm.BudgetExceededError):
+            with pytest.raises(gateway.BudgetExceededError):
                 await _run()
         else:
             assert await _run() is True
@@ -5768,7 +5768,7 @@ async def test_spend_capable_non_llm_routes_still_enforce_budget(route):
 
     team = LiteLLM_TeamTable(team_id="t1", spend=150.0, max_budget=100.0)
 
-    with pytest.raises(litellm.BudgetExceededError):
+    with pytest.raises(gateway.BudgetExceededError):
         await common_checks(
             request_body={},
             team_object=team,
@@ -5788,7 +5788,7 @@ async def test_spend_capable_non_llm_routes_still_enforce_budget(route):
 async def test_get_default_end_user_budget_db_fetch_returns_validated_budget(monkeypatch):
     from token_iq.gateway.proxy.auth.auth_checks import get_default_end_user_budget
 
-    monkeypatch.setattr(litellm, "max_end_user_budget_id", "budget-default-1")
+    monkeypatch.setattr(gateway, "max_end_user_budget_id", "budget-default-1")
 
     budget_row = MagicMock()
     budget_row.dict = lambda: {"budget_id": "budget-default-1", "max_budget": 12.5, "tpm_limit": 100}
@@ -5922,8 +5922,8 @@ _RESTRICTED_END_USER_WHERE = {
 @pytest.fixture
 def end_user_registry_skip_enabled(monkeypatch):
     """Both bypass gates off: the default deployment, and the only state the registry skip runs in."""
-    monkeypatch.setattr(litellm, "max_end_user_budget_id", None)
-    monkeypatch.setattr(litellm, "validate_end_user_id_in_db", False)
+    monkeypatch.setattr(gateway, "max_end_user_budget_id", None)
+    monkeypatch.setattr(gateway, "validate_end_user_id_in_db", False)
 
 
 @pytest.mark.asyncio
@@ -6205,8 +6205,8 @@ async def test_get_end_user_object_default_budget_gate_keeps_fetching_unrestrict
     """
     from token_iq.gateway.proxy.auth.auth_checks import get_end_user_object
 
-    monkeypatch.setattr(litellm, "max_end_user_budget_id", "default-eu-budget")
-    monkeypatch.setattr(litellm, "validate_end_user_id_in_db", False)
+    monkeypatch.setattr(gateway, "max_end_user_budget_id", "default-eu-budget")
+    monkeypatch.setattr(gateway, "validate_end_user_id_in_db", False)
 
     budget_row = MagicMock()
     budget_row.dict = lambda: {"budget_id": "default-eu-budget", "max_budget": 25.0}
@@ -6271,8 +6271,8 @@ async def test_end_user_id_validation_gate_still_resolves_unrestricted_end_users
     """
     from token_iq.gateway.proxy.auth.auth_checks import resolve_and_validate_end_user_id
 
-    monkeypatch.setattr(litellm, "max_end_user_budget_id", None)
-    monkeypatch.setattr(litellm, "validate_end_user_id_in_db", True)
+    monkeypatch.setattr(gateway, "max_end_user_budget_id", None)
+    monkeypatch.setattr(gateway, "validate_end_user_id_in_db", True)
 
     mock_prisma = MagicMock()
     mock_prisma.db.litellm_endusertable.find_many = AsyncMock(return_value=[])
@@ -6889,7 +6889,7 @@ async def _run_common_checks(
 
 @pytest.mark.asyncio
 async def test_common_checks_blocks_unpriced_model_when_enabled(monkeypatch):
-    monkeypatch.setattr(litellm, "block_requests_for_models_without_pricing", True)
+    monkeypatch.setattr(gateway, "block_requests_for_models_without_pricing", True)
     router = _router_with_priced_and_unpriced_models()
 
     with pytest.raises(ProxyException) as exc_info:
@@ -6904,7 +6904,7 @@ async def test_common_checks_blocks_unpriced_model_when_enabled(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_common_checks_allows_unpriced_model_when_disabled(monkeypatch):
-    monkeypatch.setattr(litellm, "block_requests_for_models_without_pricing", False)
+    monkeypatch.setattr(gateway, "block_requests_for_models_without_pricing", False)
     router = _router_with_priced_and_unpriced_models()
 
     result = await _run_common_checks(model="unpriced-group", llm_router=router)
@@ -6914,7 +6914,7 @@ async def test_common_checks_allows_unpriced_model_when_disabled(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_common_checks_allows_priced_model_when_enabled(monkeypatch):
-    monkeypatch.setattr(litellm, "block_requests_for_models_without_pricing", True)
+    monkeypatch.setattr(gateway, "block_requests_for_models_without_pricing", True)
     router = _router_with_priced_and_unpriced_models()
 
     result = await _run_common_checks(model="priced-group", llm_router=router)
@@ -6924,7 +6924,7 @@ async def test_common_checks_allows_priced_model_when_enabled(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_common_checks_ignores_non_llm_route_when_enabled(monkeypatch):
-    monkeypatch.setattr(litellm, "block_requests_for_models_without_pricing", True)
+    monkeypatch.setattr(gateway, "block_requests_for_models_without_pricing", True)
     router = _router_with_priced_and_unpriced_models()
 
     result = await _run_common_checks(
@@ -6938,7 +6938,7 @@ async def test_common_checks_ignores_non_llm_route_when_enabled(monkeypatch):
 async def test_common_checks_blocks_alias_resolving_to_unpriced_model(monkeypatch):
     from token_iq.gateway.router import Router
 
-    monkeypatch.setattr(litellm, "block_requests_for_models_without_pricing", True)
+    monkeypatch.setattr(gateway, "block_requests_for_models_without_pricing", True)
     router = Router(
         model_list=[
             {
@@ -6959,7 +6959,7 @@ async def test_common_checks_blocks_alias_resolving_to_unpriced_model(monkeypatc
 
 @pytest.mark.asyncio
 async def test_common_checks_blocks_comma_separated_request_carrying_an_unpriced_model(monkeypatch):
-    monkeypatch.setattr(litellm, "block_requests_for_models_without_pricing", True)
+    monkeypatch.setattr(gateway, "block_requests_for_models_without_pricing", True)
     router = _router_with_priced_and_unpriced_models()
 
     with pytest.raises(ProxyException) as exc_info:
@@ -6973,7 +6973,7 @@ async def test_common_checks_blocks_comma_separated_request_carrying_an_unpriced
 
 @pytest.mark.asyncio
 async def test_common_checks_allows_comma_separated_request_when_every_model_is_priced(monkeypatch):
-    monkeypatch.setattr(litellm, "block_requests_for_models_without_pricing", True)
+    monkeypatch.setattr(gateway, "block_requests_for_models_without_pricing", True)
     router = _router_with_priced_and_unpriced_models()
 
     result = await _run_common_checks(model="priced-group,priced-group", llm_router=router)
@@ -7469,7 +7469,7 @@ async def _run_key_budget_check(key_name: str) -> str:
         spend=10.0,
         max_budget=1.0,
     )
-    with pytest.raises(litellm.BudgetExceededError, match="Budget has been exceeded") as exc_info:
+    with pytest.raises(gateway.BudgetExceededError, match="Budget has been exceeded") as exc_info:
         await _virtual_key_max_budget_check(
             valid_token=valid_token,
             proxy_logging_obj=_BudgetAlertRecorder(),

@@ -6,7 +6,7 @@ import httpx
 import pytest
 import respx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.azure_ai.vector_stores.transformation import AzureAIVectorStoreConfig
 from token_iq.gateway.types.utils import EmbeddingResponse
 from token_iq.gateway.vector_stores import (
@@ -20,8 +20,8 @@ from token_iq.gateway.vector_stores import (
 @pytest.mark.parametrize("sync_mode", [True, False])
 @pytest.mark.asyncio
 async def test_basic_search_vector_store(sync_mode):
-    litellm._turn_on_debug()
-    litellm.set_verbose = True
+    gateway._turn_on_debug()
+    gateway.set_verbose = True
     base_request_args = {
         "vector_store_id": "my-vector-index",
         "custom_llm_provider": "azure_ai",
@@ -40,7 +40,7 @@ async def test_basic_search_vector_store(sync_mode):
             response = vector_store_search(query=default_query, **base_request_args)
         else:
             response = await vector_store_asearch(query=default_query, **base_request_args)
-    except litellm.InternalServerError:
+    except gateway.InternalServerError:
         pytest.skip("Skipping test due to litellm.InternalServerError")
 
     print("litellm response=", json.dumps(response, indent=4, default=str))

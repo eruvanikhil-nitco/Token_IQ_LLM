@@ -3,7 +3,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy.proxy_server import _should_include_fallback_errors
 from token_iq.gateway.router import Router
 from token_iq.gateway.router_utils.add_retry_fallback_headers import get_hidden_params_dict
@@ -18,7 +18,7 @@ def test_apply_fallback_hidden_params_copies_from_fallback_response():
             "code": "429",
         }
     ]
-    chunk = litellm.ModelResponseStream(
+    chunk = gateway.ModelResponseStream(
         id="test",
         model="openai/internal-fallback",
         choices=[],
@@ -55,7 +55,7 @@ def test_apply_fallback_hidden_params_copies_from_fallback_response():
 
 
 def _two_group_fallback_router() -> Router:
-    return litellm.Router(
+    return gateway.Router(
         model_list=[
             {
                 "model_name": "primary-model",
@@ -119,7 +119,7 @@ async def test_set_response_headers_adds_model_group_to_streaming_wrapper():
         def __init__(self):
             self._hidden_params = {"additional_headers": {"x-existing": "keep"}}
 
-    router = litellm.Router(model_list=[])
+    router = gateway.Router(model_list=[])
     response = StreamingWrapper()
 
     result = await router.set_response_headers(

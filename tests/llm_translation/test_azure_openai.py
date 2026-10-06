@@ -97,7 +97,7 @@ def test_process_azure_headers_with_dict_input():
 from httpx import Client
 from unittest.mock import MagicMock, patch
 from openai import AzureOpenAI
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import completion
 
 
@@ -120,13 +120,13 @@ def test_azure_extra_headers(input, call_type, header_value):
     from token_iq.gateway import embedding, image_generation
 
     # Clear the LLM clients cache to ensure the new http_client is used
-    litellm.in_memory_llm_clients_cache.flush_cache()
+    gateway.in_memory_llm_clients_cache.flush_cache()
 
     http_client = Client()
 
     messages = [{"role": "user", "content": "Hello world"}]
     with patch.object(http_client, "send", new=MagicMock()) as mock_client:
-        litellm.client_session = http_client
+        gateway.client_session = http_client
         try:
             if call_type == "completion":
                 func = completion
@@ -208,8 +208,8 @@ class TestAzureEmbedding(BaseLLMEmbeddingTest):
             "api_base": os.getenv("AZURE_AI_API_BASE"),
         }
 
-    def get_custom_llm_provider(self) -> litellm.LlmProviders:
-        return litellm.LlmProviders.AZURE
+    def get_custom_llm_provider(self) -> gateway.LlmProviders:
+        return gateway.LlmProviders.AZURE
 
 
 @patch("azure.identity.UsernamePasswordCredential")
@@ -294,7 +294,7 @@ def test_azure_gpt_4o_with_tool_call_and_response_format(api_version):
     from token_iq.gateway import completion
     from typing import Optional
     from pydantic import BaseModel
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
 
     client = AzureOpenAI(
@@ -335,7 +335,7 @@ def test_azure_gpt_4o_with_tool_call_and_response_format(api_version):
     ]
 
     with patch.object(client.chat.completions.with_raw_response, "create") as mock_post:
-        response = litellm.completion(
+        response = gateway.completion(
             model="azure/gpt-4.1-mini",
             messages=[
                 {
@@ -467,11 +467,11 @@ def test_map_openai_params():
 def test_azure_max_retries_0(
     mock_make_sync_azure_openai_chat_completion_request, max_retries, stream
 ):
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway import completion
 
     # Clear the LLM clients cache to ensure max_retries is set correctly
-    litellm.in_memory_llm_clients_cache.flush_cache()
+    gateway.in_memory_llm_clients_cache.flush_cache()
 
     try:
         completion(
@@ -499,11 +499,11 @@ def test_azure_max_retries_0(
 async def test_async_azure_max_retries_0(
     make_azure_openai_chat_completion_request, max_retries, stream
 ):
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway import acompletion
 
     # Clear the LLM clients cache to ensure max_retries is set correctly
-    litellm.in_memory_llm_clients_cache.flush_cache()
+    gateway.in_memory_llm_clients_cache.flush_cache()
 
     try:
         await acompletion(
@@ -532,11 +532,11 @@ async def test_async_azure_max_retries_0(
 async def test_azure_instruct(
     mock_select_azure_base_url_or_endpoint, max_retries, stream, sync_mode
 ):
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway import completion, acompletion
 
     # Clear the LLM clients cache to ensure select_azure_base_url_or_endpoint is called
-    litellm.in_memory_llm_clients_cache.flush_cache()
+    gateway.in_memory_llm_clients_cache.flush_cache()
 
     args = {
         "model": "azure_text/instruct-model",
@@ -571,11 +571,11 @@ async def test_azure_instruct(
 async def test_azure_embedding_max_retries_0(
     mock_select_azure_base_url_or_endpoint, max_retries, sync_mode
 ):
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway import aembedding, embedding
 
     # Clear the LLM clients cache to ensure select_azure_base_url_or_endpoint is called
-    litellm.in_memory_llm_clients_cache.flush_cache()
+    gateway.in_memory_llm_clients_cache.flush_cache()
 
     args = {
         "model": "azure/text-embedding-ada-002",
@@ -608,7 +608,7 @@ def test_azure_safety_result():
     """Bubble up safety result from Azure OpenAI"""
     from token_iq.gateway import completion
 
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
 
     response = completion(
         model="azure/gpt-4.1-mini",
@@ -624,11 +624,11 @@ def test_azure_safety_result():
 
 def test_azure_openai_responses_bridge():
     from token_iq.gateway import completion
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
 
-    with patch.object(litellm, "responses") as mock_responses:
+    with patch.object(gateway, "responses") as mock_responses:
         try:
             response = completion(
                 model="azure/responses/test-azure-computer-use-preview",
@@ -652,7 +652,7 @@ def test_completion_azure_deployment_id():
     """
     Ensure deployment_id takes precedence over model.
     """
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     response = completion(
         deployment_id="gpt-4.1-mini",
         model="gpt-3.5-turbo",
@@ -730,8 +730,8 @@ def test_azure_openai_with_prompt_cache_key():
     """
     E2E test for Azure OpenAI with prompt cache key param on /chat/completions API.
     """
-    litellm._turn_on_debug()
-    response = litellm.completion(
+    gateway._turn_on_debug()
+    response = gateway.completion(
         model="azure/gpt-4.1-mini",
         api_key=os.getenv("AZURE_AI_API_KEY"),
         api_base=os.getenv("AZURE_AI_API_BASE"),

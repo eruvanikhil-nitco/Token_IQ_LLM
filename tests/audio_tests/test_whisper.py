@@ -14,7 +14,7 @@ import pytest
 from dotenv import load_dotenv
 from openai import AsyncOpenAI
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.integrations.custom_logger import CustomLogger
 
 # Get the current directory of the file being run
@@ -46,7 +46,7 @@ from token_iq.gateway import Router
 async def _run_transcription(
     model, api_key, api_base, response_format, timestamp_granularities
 ):
-    transcript = await litellm.atranscription(
+    transcript = await gateway.atranscription(
         model=model,
         file=_audio_file(),
         api_key=api_key,
@@ -95,15 +95,15 @@ async def test_transcription_azure_whisper(response_format, timestamp_granularit
 
 @pytest.mark.asyncio()
 async def test_transcription_caching():
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.caching.caching import Cache
 
-    litellm.set_verbose = True
-    litellm.cache = Cache()
+    gateway.set_verbose = True
+    gateway.cache = Cache()
 
     # make raw llm api call
 
-    response_1 = await litellm.atranscription(
+    response_1 = await gateway.atranscription(
         model="whisper-1",
         file=_audio_file(),
     )
@@ -112,7 +112,7 @@ async def test_transcription_caching():
 
     # cache hit
 
-    response_2 = await litellm.atranscription(
+    response_2 = await gateway.atranscription(
         model="whisper-1",
         file=_audio_file(),
     )
@@ -124,7 +124,7 @@ async def test_transcription_caching():
 
     # cache miss
 
-    response_3 = await litellm.atranscription(
+    response_3 = await gateway.atranscription(
         model="whisper-1",
         file=_audio_file2(),
     )
@@ -133,7 +133,7 @@ async def test_transcription_caching():
     assert response_3._hidden_params.get("cache_hit") is not True
     assert response_3.text != response_2.text
 
-    litellm.cache = None
+    gateway.cache = None
 
 
 @pytest.mark.asyncio
@@ -144,10 +144,10 @@ async def test_whisper_log_pre_call():
 
     custom_logger = CustomLogger()
 
-    litellm.callbacks = [custom_logger]
+    gateway.callbacks = [custom_logger]
 
     with patch.object(custom_logger, "log_pre_api_call") as mock_log_pre_call:
-        await litellm.atranscription(
+        await gateway.atranscription(
             model="whisper-1",
             file=_audio_file(),
         )
@@ -160,7 +160,7 @@ async def test_gpt_4o_transcribe():
     from datetime import datetime
     from unittest.mock import patch, MagicMock
 
-    await litellm.atranscription(
+    await gateway.atranscription(
         model="openai/gpt-4o-transcribe", file=_audio_file(), response_format="json"
     )
 
@@ -170,7 +170,7 @@ async def test_gpt_4o_transcribe_model_mapping():
     """Test that GPT-4o transcription models are correctly mapped and not hardcoded to whisper-1"""
 
     # Test GPT-4o mini transcribe
-    response = await litellm.atranscription(
+    response = await gateway.atranscription(
         model="openai/gpt-4o-mini-transcribe",
         file=_audio_file(),
         response_format="json",
@@ -183,7 +183,7 @@ async def test_gpt_4o_transcribe_model_mapping():
     assert response.text is not None
 
     # Test GPT-4o transcribe
-    response2 = await litellm.atranscription(
+    response2 = await gateway.atranscription(
         model="openai/gpt-4o-transcribe", file=_audio_file(), response_format="json"
     )
 
@@ -194,7 +194,7 @@ async def test_gpt_4o_transcribe_model_mapping():
     assert response2.text is not None
 
     # Test traditional whisper-1 still works
-    response3 = await litellm.atranscription(
+    response3 = await gateway.atranscription(
         model="openai/whisper-1", file=_audio_file(), response_format="json"
     )
 
@@ -246,7 +246,7 @@ async def test_azure_transcribe_model_mapping():
         return_value=mock_azure_client,
     ):
         # Make the transcription call
-        response = await litellm.atranscription(
+        response = await gateway.atranscription(
             model="azure/whisper-1",
             file=_audio_file(),
             response_format="json",

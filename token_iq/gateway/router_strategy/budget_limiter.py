@@ -24,7 +24,7 @@ from collections.abc import Mapping
 from datetime import datetime, timedelta, timezone
 from typing import Any, Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_router_logger
 from token_iq.gateway.caching.caching import DualCache
 from token_iq.gateway.caching.redis_cache import RedisPipelineIncrementOperation
@@ -110,8 +110,8 @@ class RouterBudgetLimiting(CustomLogger):
         self._init_tag_budgets()
 
         # Add self to litellm callbacks if it's a list
-        if isinstance(litellm.callbacks, list):
-            litellm.logging_callback_manager.add_litellm_callback(self)
+        if isinstance(gateway.callbacks, list):
+            gateway.logging_callback_manager.add_litellm_callback(self)
 
     async def async_filter_deployments(
         self,
@@ -635,7 +635,7 @@ class RouterBudgetLimiting(CustomLogger):
                 model = ""
                 provider_resolution_params = _LiteLLMParamsDictView({})
 
-            _, custom_llm_provider, _, _ = litellm.get_llm_provider(
+            _, custom_llm_provider, _, _ = gateway.get_llm_provider(
                 model=str(model),
                 litellm_params=provider_resolution_params,
             )
@@ -740,7 +740,7 @@ class RouterBudgetLimiting(CustomLogger):
         if provider_budget_config is not None:
             return True
 
-        if litellm.tag_budget_config is not None:
+        if gateway.tag_budget_config is not None:
             return True
 
         if model_list is None:
@@ -822,7 +822,7 @@ class RouterBudgetLimiting(CustomLogger):
             self.deployment_budget_config = None
 
     def _init_tag_budgets(self):
-        if litellm.tag_budget_config is None:
+        if gateway.tag_budget_config is None:
             return
         from token_iq.gateway.proxy.proxy_server import CommonProxyErrors, premium_user
 
@@ -832,7 +832,7 @@ class RouterBudgetLimiting(CustomLogger):
         if self.tag_budget_config is None:
             self.tag_budget_config = {}
 
-        for _tag, _tag_budget_config in litellm.tag_budget_config.items():
+        for _tag, _tag_budget_config in gateway.tag_budget_config.items():
             if isinstance(_tag_budget_config, dict):
                 _tag_budget_config = BudgetConfig(**_tag_budget_config)
             _generic_budget_config = GenericBudgetInfo(

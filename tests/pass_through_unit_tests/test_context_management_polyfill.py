@@ -5,7 +5,7 @@ from unittest.mock import patch
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.constants import (
     CLEARED_TOOL_RESULT_PLACEHOLDER,
 )
@@ -109,7 +109,7 @@ async def test_polyfill_round_trip_non_streaming():
         return _mock_completion_response()
 
     with patch("token_iq.gateway.acompletion", side_effect=fake_acompletion):
-        response = await litellm.anthropic.messages.acreate(
+        response = await gateway.anthropic.messages.acreate(
             model=MODEL,
             messages=_make_history(n_pairs=5),
             max_tokens=128,
@@ -177,7 +177,7 @@ async def test_polyfill_trigger_not_met_passes_through_unchanged():
         return _mock_completion_response()
 
     with patch("token_iq.gateway.acompletion", side_effect=fake_acompletion):
-        response = await litellm.anthropic.messages.acreate(
+        response = await gateway.anthropic.messages.acreate(
             model=MODEL,
             messages=_make_history(n_pairs=2),
             max_tokens=128,
@@ -212,7 +212,7 @@ async def test_polyfill_streaming_attaches_to_message_delta():
         return _mock_streaming_chunks()
 
     with patch("token_iq.gateway.acompletion", side_effect=fake_acompletion):
-        response = await litellm.anthropic.messages.acreate(
+        response = await gateway.anthropic.messages.acreate(
             model=MODEL,
             messages=_make_history(n_pairs=5),
             max_tokens=128,

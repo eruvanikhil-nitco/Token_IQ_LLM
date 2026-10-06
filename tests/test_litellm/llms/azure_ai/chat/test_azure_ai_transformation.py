@@ -69,7 +69,7 @@ def test_azure_ai_validate_environment_with_azure_ad_token():
 
     Regression test for https://github.com/BerriAI/litellm/issues/20759
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     config = AzureAIStudioConfig()
     with (
@@ -81,8 +81,8 @@ def test_azure_ai_validate_environment_with_azure_ad_token():
             "token_iq.gateway.llms.azure.common_utils.get_secret_str",
             return_value=None,
         ),
-        patch.object(litellm, "api_key", None),
-        patch.object(litellm, "azure_key", None),
+        patch.object(gateway, "api_key", None),
+        patch.object(gateway, "azure_key", None),
     ):
         headers = config.validate_environment(
             headers={},

@@ -18,7 +18,7 @@ if TYPE_CHECKING:
 
 from httpx._models import Headers, Response
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.base_llm.chat.transformation import BaseLLMException
 from token_iq.gateway.llms.base_llm.embedding.transformation import BaseEmbeddingConfig
 from token_iq.gateway.llms.bedrock.embed.cohere_transformation import (
@@ -115,7 +115,7 @@ class SagemakerCohereEmbeddingConfig(BaseEmbeddingConfig):
             response_json=raw_response.json(),
             model_response=model_response,
             model=model,
-            encoding=litellm.encoding,
+            encoding=gateway.encoding,
             input=input_value,
         )
 

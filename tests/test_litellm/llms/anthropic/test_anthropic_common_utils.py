@@ -1224,14 +1224,14 @@ class TestPassthroughAuthToken:
         """Passthrough endpoint should raise locally instead of forwarding an unauthenticated request."""
         from unittest.mock import patch as mock_patch
 
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.transformation import (
             AnthropicMessagesConfig,
         )
 
         config = AnthropicMessagesConfig()
         with mock_patch.dict("os.environ", {}, clear=True):
-            with pytest.raises(litellm.AuthenticationError, match="Missing Anthropic API Key"):
+            with pytest.raises(gateway.AuthenticationError, match="Missing Anthropic API Key"):
                 config.validate_anthropic_messages_environment(
                     headers={},
                     model="claude-sonnet-4-5-20250929",
@@ -1958,10 +1958,10 @@ class TestClaudeOpus48AdaptiveThinking:
         without a major version matches neither the core-family 4.6+ gate nor the
         family-agnostic 5+ gate, so neither the cost map nor the declarative rule marks
         it adaptive."""
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.llms.anthropic.common_utils import AnthropicModelInfo
 
-        assert model not in litellm.model_cost
+        assert model not in gateway.model_cost
         assert AnthropicModelInfo._is_adaptive_thinking_model(model, "anthropic") is False
 
     @pytest.mark.parametrize(
@@ -1984,10 +1984,10 @@ class TestClaudeOpus48AdaptiveThinking:
         or higher, bare 5+ majors included. The version gate is the declarative
         ``claude-adaptive-thinking`` rule, so 5.x, 6.x and any later family are covered
         with no code change."""
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.llms.anthropic.common_utils import AnthropicModelInfo
 
-        assert model not in litellm.model_cost
+        assert model not in gateway.model_cost
         assert AnthropicModelInfo._is_adaptive_thinking_model(model, "anthropic") is True
 
     @pytest.mark.parametrize(
@@ -2005,10 +2005,10 @@ class TestClaudeOpus48AdaptiveThinking:
         version rule caps the minor at two digits, so the date is not misread as a >= 4.6
         minor. The anchored pricing rule still resolves these for cost, just without the
         adaptive flag."""
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.llms.anthropic.common_utils import AnthropicModelInfo
 
-        assert model not in litellm.model_cost
+        assert model not in gateway.model_cost
         assert AnthropicModelInfo._is_adaptive_thinking_model(model, "anthropic") is False
 
     @pytest.mark.parametrize(
@@ -2070,22 +2070,22 @@ class TestCapabilityProbeUsesCallerProvider:
     BEDROCK_MODEL = "global.anthropic.claude-opus-4-8"
 
     def test_exact_bedrock_entry_flag_is_authoritative_for_bedrock_caller(self, local_model_cost_map, monkeypatch):
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.llms.anthropic.common_utils import AnthropicModelInfo
 
         assert AnthropicModelInfo._is_adaptive_thinking_model(self.BEDROCK_MODEL, "bedrock") is True
 
-        monkeypatch.setitem(litellm.model_cost[self.BEDROCK_MODEL], "supports_adaptive_thinking", False)
-        litellm.get_model_info.cache_clear()
+        monkeypatch.setitem(gateway.model_cost[self.BEDROCK_MODEL], "supports_adaptive_thinking", False)
+        gateway.get_model_info.cache_clear()
 
         assert AnthropicModelInfo._is_adaptive_thinking_model(self.BEDROCK_MODEL, "bedrock") is False
 
     def test_native_anthropic_probe_still_reads_anthropic_entry(self, local_model_cost_map, monkeypatch):
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.llms.anthropic.common_utils import AnthropicModelInfo
 
-        monkeypatch.setitem(litellm.model_cost[self.BEDROCK_MODEL], "supports_adaptive_thinking", False)
-        litellm.get_model_info.cache_clear()
+        monkeypatch.setitem(gateway.model_cost[self.BEDROCK_MODEL], "supports_adaptive_thinking", False)
+        gateway.get_model_info.cache_clear()
 
         assert AnthropicModelInfo._is_adaptive_thinking_model("claude-opus-4-8", "anthropic") is True
 

@@ -1,7 +1,7 @@
 import json
 from typing import Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import verbose_logger
 from token_iq.gateway.types.llms.openai import (
     ChatCompletionToolCallChunk,
@@ -17,7 +17,7 @@ class ModelResponseIterator:
 
     def chunk_parser(self, chunk: dict) -> GenericStreamingChunk:
         try:
-            processed_chunk: Final = litellm.ModelResponseStream(**chunk)
+            processed_chunk: Final = gateway.ModelResponseStream(**chunk)
 
             text = ""
             tool_use: ChatCompletionToolCallChunk | None = None
@@ -105,7 +105,7 @@ class ModelResponseIterator:
             raise RuntimeError(f"Error receiving chunk from stream: {e}")
 
         try:
-            chunk = litellm.CustomStreamWrapper._strip_sse_data_from_chunk(chunk) or ""
+            chunk = gateway.CustomStreamWrapper._strip_sse_data_from_chunk(chunk) or ""
             chunk = chunk.strip()
             if len(chunk) > 0:
                 json_chunk: Final = json.loads(chunk)
@@ -150,7 +150,7 @@ class ModelResponseIterator:
             raise RuntimeError(f"Error receiving chunk from stream: {e}")
 
         try:
-            chunk = litellm.CustomStreamWrapper._strip_sse_data_from_chunk(chunk) or ""
+            chunk = gateway.CustomStreamWrapper._strip_sse_data_from_chunk(chunk) or ""
             chunk = chunk.strip()
             if chunk == "[DONE]":
                 raise StopAsyncIteration

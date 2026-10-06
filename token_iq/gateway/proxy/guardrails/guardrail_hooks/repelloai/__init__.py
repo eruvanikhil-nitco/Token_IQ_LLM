@@ -23,7 +23,7 @@ def _event_hook_from_mode(
 
 
 def initialize_guardrail(litellm_params: "LitellmParams", guardrail: "Guardrail") -> RepelloAIGuardrail:
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     _repelloai_callback: Final = RepelloAIGuardrail(
         guardrail_name=guardrail["guardrail_name"],
@@ -34,7 +34,7 @@ def initialize_guardrail(litellm_params: "LitellmParams", guardrail: "Guardrail"
         event_hook=_event_hook_from_mode(litellm_params.mode),
         default_on=litellm_params.default_on or False,
     )
-    litellm.logging_callback_manager.add_litellm_callback(_repelloai_callback)
+    gateway.logging_callback_manager.add_litellm_callback(_repelloai_callback)
 
     return _repelloai_callback
 

@@ -10,9 +10,9 @@ import asyncio
 from token_iq.gateway import Router, Timeout
 import time
 from token_iq.gateway.caching.caching import Cache
-from token_iq import gateway as litellm
+from token_iq import gateway
 
-litellm.cache = Cache(
+gateway.cache = Cache(
     type="s3", s3_bucket_name="cache-bucket-litellm", s3_region_name="us-west-2"
 )
 

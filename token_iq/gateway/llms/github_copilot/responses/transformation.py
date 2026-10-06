@@ -11,7 +11,7 @@ https://github.com/caozhiyuan/copilot-api
 import os
 from typing import TYPE_CHECKING, Any, Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.constants import DEFAULT_MAX_RECURSE_DEPTH
 from token_iq.gateway.exceptions import AuthenticationError
@@ -70,7 +70,7 @@ def github_copilot_supports_responses_api(model: str) -> bool:
     # supported_endpoints is dropped by ModelInfoBase; read it from the raw
     # model_cost entry via the resolved key.
     key: Final = info.get("key")
-    raw_info: Final = litellm.model_cost.get(key) if isinstance(key, str) else None
+    raw_info: Final = gateway.model_cost.get(key) if isinstance(key, str) else None
     endpoints: Final = raw_info.get("supported_endpoints") if isinstance(raw_info, dict) else None
     return isinstance(endpoints, list) and "/v1/responses" in endpoints
 

@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 
 import json
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.caching import DualCache
 from token_iq.gateway.constants import DEFAULT_MAX_RECURSE_DEPTH
@@ -195,7 +195,7 @@ class ModelArmorGuardrail(CustomGuardrail, VertexBase):
         )
 
         # Handle ModelResponse objects
-        if isinstance(response, litellm.ModelResponse):
+        if isinstance(response, gateway.ModelResponse):
             return get_content_from_model_response(response)
 
         # For non-ModelResponse types (e.g., TTS, images), return empty string
@@ -886,7 +886,7 @@ class ModelArmorGuardrail(CustomGuardrail, VertexBase):
                 sanitized_content: Final = self._get_sanitized_content(armor_response)
                 if sanitized_content and sanitized_content != content:
                     # Update response content
-                    if isinstance(response, litellm.ModelResponse):
+                    if isinstance(response, gateway.ModelResponse):
                         for choice in response.choices:
                             if isinstance(choice, Choices):
                                 if choice.message.content:

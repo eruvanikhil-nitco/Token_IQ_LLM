@@ -13,7 +13,7 @@ from fastapi import HTTPException, Request
 from pydantic import ValidationError as PydanticValidationError
 from starlette.datastructures import Headers
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger, verbose_proxy_logger
 from token_iq.gateway._service_logger import ServiceLogging
 from token_iq.gateway._uuid import uuid
@@ -357,7 +357,7 @@ def reject_url_valued_destination(field: str, value: str) -> None:
     Operates on one field/value pair. ``_reject_url_valued_destinations`` applies
     it across ``_URL_DESTINATION_REQUEST_FIELDS`` for a request body.
     """
-    allowed_hosts: Final = getattr(litellm, "provider_url_destination_allowed_hosts", []) or []
+    allowed_hosts: Final = getattr(gateway, "provider_url_destination_allowed_hosts", []) or []
     for candidate in provider_url_destination_candidates(value):
         if not candidate.lower().startswith(("http://", "https://")):
             continue
@@ -1194,7 +1194,7 @@ class LiteLLMProxyRequestSetup:
 
         returned_headers: Final = LiteLLMProxyRequestSetup._get_forwardable_headers(headers)
 
-        if litellm.add_user_information_to_llm_headers is True:
+        if gateway.add_user_information_to_llm_headers is True:
             litellm_logging_metadata_headers: Final = LiteLLMProxyRequestSetup.get_sanitized_user_information_from_key(
                 user_api_key_dict=user_api_key_dict
             )
@@ -1225,12 +1225,12 @@ class LiteLLMProxyRequestSetup:
 
         if (
             data_model is not None
-            and litellm.model_group_settings is not None
-            and litellm.model_group_settings.forward_client_headers_to_llm_api is not None
+            and gateway.model_group_settings is not None
+            and gateway.model_group_settings.forward_client_headers_to_llm_api is not None
             and _check_model_access_helper(
                 model=data_model,
                 llm_router=llm_router,
-                models=litellm.model_group_settings.forward_client_headers_to_llm_api,
+                models=gateway.model_group_settings.forward_client_headers_to_llm_api,
                 team_model_aliases=user_api_key_dict.team_model_aliases,
                 team_id=user_api_key_dict.team_id,
             )  # handles aliases, wildcards, etc.
@@ -1579,7 +1579,7 @@ class LiteLLMProxyRequestSetup:
         callback_vars_dict.pop("success_callback", None)
         callback_vars_dict.pop("failure_callback", None)
         callback_vars_dict = {
-            key: (litellm.utils.get_secret(value, default_value=value) or value if isinstance(value, str) else value)
+            key: (gateway.utils.get_secret(value, default_value=value) or value if isinstance(value, str) else value)
             for key, value in callback_vars_dict.items()
         }
 
@@ -1789,7 +1789,7 @@ async def add_litellm_data_to_request(
     if general_settings:
         forward_llm_auth = general_settings.get("forward_llm_provider_auth_headers", False)
     if not forward_llm_auth:
-        forward_llm_auth = getattr(litellm, "forward_llm_provider_auth_headers", False)
+        forward_llm_auth = getattr(gateway, "forward_llm_provider_auth_headers", False)
     # Determine which header was used for authentication
     # This enables forwarding provider keys (e.g., x-api-key) when they weren't used for LiteLLM auth
     authenticated_with_header = None
@@ -1895,7 +1895,7 @@ async def add_litellm_data_to_request(
         if "user" not in data:
             data["user"] = user
 
-    if litellm.overwrite_user_with_key_hash is True:
+    if gateway.overwrite_user_with_key_hash is True:
         stampable_hash: Final = _stampable_key_hash(user_api_key_dict)
         if stampable_hash is not None:
             data["user"] = stampable_hash
@@ -1969,7 +1969,7 @@ async def add_litellm_data_to_request(
     # so JSON-string metadata cannot smuggle callback credentials past the dict guard.
     _strip_client_callback_credentials(data)
 
-    if not _allow_client_message_redaction_opt_out and litellm.turn_off_message_logging is True:
+    if not _allow_client_message_redaction_opt_out and gateway.turn_off_message_logging is True:
         _strip_client_message_redaction_opt_out(data)
 
     # Fill in the proxy_server_request body snapshot now that metadata has
@@ -2436,7 +2436,7 @@ def _apply_credential_overrides_from_model_config(
     6. Deployment default (no action needed)
     """
     # Feature flag gate — disabled by default, opt in with litellm.enable_model_config_credential_overrides = True
-    if not litellm.enable_model_config_credential_overrides:
+    if not gateway.enable_model_config_credential_overrides:
         return
 
     # Respect clientside credentials — highest precedence
@@ -3226,7 +3226,7 @@ def _add_otel_traceparent_to_data(data: dict, request: Request):
         # relevant issue
         return
 
-    if litellm.forward_traceparent_to_llm_provider is True:
+    if gateway.forward_traceparent_to_llm_provider is True:
         if request.headers:
             if "traceparent" in request.headers:
                 # we want to forward this to the LLM Provider

@@ -8,7 +8,7 @@ import io, asyncio
 # this file is to test token_iq/gateway/proxy
 
 import pytest, time
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import embedding, completion, completion_cost, Timeout
 from token_iq.gateway import RateLimitError
 import importlib, inspect
@@ -51,18 +51,18 @@ print("Testing proxy custom logger")
 )
 def test_embedding(client):
     try:
-        litellm.set_verbose = False
+        gateway.set_verbose = False
         from token_iq.gateway.proxy.types_utils.utils import get_instance_fn
 
         my_custom_logger = get_instance_fn(
             value="custom_callbacks.my_custom_logger", config_file_path=python_file_path
         )
         print("id of initialized custom logger", id(my_custom_logger))
-        litellm.callbacks = [my_custom_logger]
+        gateway.callbacks = [my_custom_logger]
         # Your test data
         print("initialized proxy")
         # import the initialized custom logger
-        print(litellm.callbacks)
+        print(gateway.callbacks)
 
         # assert len(litellm.callbacks) == 1 # assert litellm is initialized with 1 callback
         print("my_custom_logger", my_custom_logger)
@@ -132,7 +132,7 @@ def test_embedding(client):
 def test_chat_completion(client):
     try:
         # Your test data
-        litellm.set_verbose = False
+        gateway.set_verbose = False
         from token_iq.gateway.proxy.types_utils.utils import get_instance_fn
 
         my_custom_logger = get_instance_fn(
@@ -141,13 +141,13 @@ def test_chat_completion(client):
 
         print("id of initialized custom logger", id(my_custom_logger))
 
-        litellm.callbacks = [my_custom_logger]
+        gateway.callbacks = [my_custom_logger]
         # import the initialized custom logger
-        print(litellm.callbacks)
+        print(gateway.callbacks)
 
         # assert len(litellm.callbacks) == 1 # assert litellm is initialized with 1 callback
 
-        print("LiteLLM Callbacks", litellm.callbacks)
+        print("LiteLLM Callbacks", gateway.callbacks)
         print("my_custom_logger", my_custom_logger)
         assert my_custom_logger.async_success == False
 
@@ -161,7 +161,7 @@ def test_chat_completion(client):
 
         response = client.post("/chat/completions", json=test_data, headers=headers)
         print("made request", response.status_code, response.text)
-        print("LiteLLM Callbacks", litellm.callbacks)
+        print("LiteLLM Callbacks", gateway.callbacks)
         time.sleep(1)  # sleep while waiting for callback to run
 
         print(
@@ -243,7 +243,7 @@ def test_chat_completion(client):
 def test_chat_completion_stream(client):
     try:
         # Your test data
-        litellm.set_verbose = False
+        gateway.set_verbose = False
         from token_iq.gateway.proxy.types_utils.utils import get_instance_fn
 
         my_custom_logger = get_instance_fn(
@@ -252,14 +252,14 @@ def test_chat_completion_stream(client):
 
         print("id of initialized custom logger", id(my_custom_logger))
 
-        litellm.callbacks = [my_custom_logger]
+        gateway.callbacks = [my_custom_logger]
         import json
 
         print("initialized proxy")
         # import the initialized custom logger
-        print(litellm.callbacks)
+        print(gateway.callbacks)
 
-        print("LiteLLM Callbacks", litellm.callbacks)
+        print("LiteLLM Callbacks", gateway.callbacks)
         print("my_custom_logger", my_custom_logger)
 
         assert (

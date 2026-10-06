@@ -74,10 +74,10 @@ def test_claude_platform_ignores_standard_anthropic_base_url(monkeypatch):
 
 
 def test_claude_platform_uses_bedrock_subroute():
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.llms.bedrock.common_utils import BedrockModelInfo
 
-    model, provider, _, _ = litellm.get_llm_provider(
+    model, provider, _, _ = gateway.get_llm_provider(
         model="bedrock/claude_platform/claude-sonnet-4-6"
     )
 
@@ -216,10 +216,10 @@ def test_claude_platform_standard_anthropic_api_key_does_not_skip_sigv4(monkeypa
 
 
 def test_bedrock_claude_platform_messages_config_round_trips_native_body():
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.types.utils import LlmProviders
 
-    config = litellm.ProviderConfigManager.get_provider_anthropic_messages_config(
+    config = gateway.ProviderConfigManager.get_provider_anthropic_messages_config(
         model="claude_platform/claude-sonnet-4-6",
         provider=LlmProviders.BEDROCK,
     )
@@ -251,7 +251,7 @@ def test_bedrock_claude_platform_messages_config_round_trips_native_body():
 
 
 def test_chat_completion_routes_bedrock_claude_platform_to_messages_api():
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     requests = []
 
@@ -260,7 +260,7 @@ def test_chat_completion_routes_bedrock_claude_platform_to_messages_api():
         return _anthropic_response(url)
 
     with patch("token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post", mock_post):
-        response = litellm.completion(
+        response = gateway.completion(
             model="bedrock/claude_platform/claude-sonnet-4-6",
             messages=[{"role": "user", "content": "hello"}],
             max_tokens=10,
@@ -279,7 +279,7 @@ def test_chat_completion_routes_bedrock_claude_platform_to_messages_api():
 
 @pytest.mark.asyncio
 async def test_anthropic_messages_routes_bedrock_claude_platform_to_messages_api():
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     requests = []
 
@@ -292,7 +292,7 @@ async def test_anthropic_messages_routes_bedrock_claude_platform_to_messages_api
             "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
             new=mock_post,
         ):
-            response = await litellm.anthropic_messages(
+            response = await gateway.anthropic_messages(
                 model="bedrock/claude_platform/claude-sonnet-4-6",
                 messages=[{"role": "user", "content": "hello"}],
                 max_tokens=10,
@@ -301,7 +301,7 @@ async def test_anthropic_messages_routes_bedrock_claude_platform_to_messages_api
                 workspace_id="wrkspc_test",
             )
     finally:
-        await litellm.close_litellm_async_clients()
+        await gateway.close_litellm_async_clients()
 
     assert response["content"][0]["text"] == "ok"
     assert len(requests) == 1

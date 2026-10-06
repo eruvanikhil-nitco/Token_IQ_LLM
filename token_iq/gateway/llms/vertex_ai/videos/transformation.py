@@ -15,7 +15,7 @@ import httpx
 from httpx._types import FileContent, RequestFiles
 from typing_extensions import ReadOnly
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.constants import DEFAULT_GOOGLE_VIDEO_DURATION_SECONDS
 from token_iq.gateway.images.utils import ImageEditRequestUtils
 from token_iq.gateway.llms.base_llm.videos.transformation import BaseVideoConfig
@@ -247,7 +247,7 @@ class VertexAIVideoConfig(BaseVideoConfig, VertexBase):
     @staticmethod
     def _supports_resolution_inference(model: str) -> bool:
         model_key: Final = model if model.startswith("vertex_ai/") else f"vertex_ai/{model}"
-        model_info: Final = litellm.model_cost.get(model_key)
+        model_info: Final = gateway.model_cost.get(model_key)
         return model_info is not None and model_info.get("output_cost_per_second_1080p") is not None
 
     def validate_environment(

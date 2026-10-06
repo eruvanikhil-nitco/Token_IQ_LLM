@@ -9,7 +9,7 @@ import pytest
 # ) # noqa
 # )  # Adds the parent directory to the system path
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from base_llm_unit_tests import BaseLLMChatTest
 from token_iq.gateway.llms.groq.chat.transformation import (
     GroqChatConfig,
@@ -85,7 +85,7 @@ class TestGroqStructuredOutputs:
             ],
         }
 
-        with pytest.raises(litellm.BadRequestError) as exc_info:
+        with pytest.raises(gateway.BadRequestError) as exc_info:
             config.map_openai_params(
                 non_default_params=non_default_params,
                 optional_params={},

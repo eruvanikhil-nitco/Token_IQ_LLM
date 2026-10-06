@@ -2,7 +2,7 @@
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.llm_cost_calc.utils import generic_cost_per_token
 from token_iq.gateway.proxy.spend_tracking.savings import (
     _baseline_usage,
@@ -18,7 +18,7 @@ pytestmark = pytest.mark.usefixtures("local_model_cost_map")
 
 
 def _anthropic_costs(model: str) -> tuple[float, float]:
-    info = litellm.get_model_info(model=model, custom_llm_provider="anthropic")
+    info = gateway.get_model_info(model=model, custom_llm_provider="anthropic")
     input_cost = info["input_cost_per_token"] or 0.0
     cache_read_cost = info.get("cache_read_input_token_cost") or input_cost
     return input_cost, cache_read_cost
@@ -48,7 +48,7 @@ def _cost_on(model: str, usage_object: dict) -> float:
 
 
 def _flat_rates(model: str) -> tuple[float, float, float]:
-    info = litellm.get_model_info(model=model, custom_llm_provider="anthropic")
+    info = gateway.get_model_info(model=model, custom_llm_provider="anthropic")
     input_cost = info["input_cost_per_token"] or 0.0
     return (
         input_cost,
@@ -222,7 +222,7 @@ def test_model_without_a_cache_write_price_takes_no_premium():
     of the pricing map publishes a cache-read price and no cache-write price.
     """
     model = "amazon.nova-2-lite-v1:0"
-    info = litellm.get_model_info(model=model)
+    info = gateway.get_model_info(model=model)
     input_cost = info["input_cost_per_token"]
     cache_read_cost = info["cache_read_input_token_cost"]
     assert info.get("cache_creation_input_token_cost") is None, (
@@ -248,7 +248,7 @@ def test_zero_cache_write_price_is_read_as_unpublished():
     on traffic that cached nothing. No provider gives cache writes away, so a falsy
     price falls open to the input cost like an absent one does.
     """
-    info = litellm.get_model_info(model="deepseek-chat", custom_llm_provider="deepseek")
+    info = gateway.get_model_info(model="deepseek-chat", custom_llm_provider="deepseek")
     assert info.get("cache_creation_input_token_cost") == 0.0, (
         "fixture drifted: this test exists because deepseek-chat publishes a literal 0.0 write price"
     )
@@ -272,7 +272,7 @@ def test_zero_cache_read_price_stays_literal():
     open to the input cost would zero out their savings entirely.
     """
     model = "gemini-robotics-er-1.5-preview"
-    info = litellm.get_model_info(model=model)
+    info = gateway.get_model_info(model=model)
     input_cost = info["input_cost_per_token"]
     assert info.get("cache_read_input_token_cost") == 0.0 and input_cost > 0, (
         "fixture drifted: this test needs a model with paid input and free cache reads"
@@ -296,7 +296,7 @@ def test_sub_input_cache_write_price_is_an_extra_saving():
     stays signed. ``azure/eu/gpt-4o-2024-11-20`` ships a write price at ~0.5x input.
     """
     model = "azure/eu/gpt-4o-2024-11-20"
-    info = litellm.get_model_info(model=model)
+    info = gateway.get_model_info(model=model)
     input_cost = info["input_cost_per_token"]
     cheap_write = info["cache_creation_input_token_cost"]
     assert 0 < cheap_write < input_cost, "fixture drifted: this test needs a model pricing cache writes below input"
@@ -403,8 +403,8 @@ def test_switching_models_mid_conversation_charges_the_cold_cache_write():
     usage = _usage(fresh=3, cached=500, written=12304, out=500)
     result = _savings("claude-sonnet-5", "claude-haiku-4-5", usage)
 
-    sonnet = litellm.get_model_info("claude-sonnet-5", "anthropic")
-    haiku = litellm.get_model_info("claude-haiku-4-5", "anthropic")
+    sonnet = gateway.get_model_info("claude-sonnet-5", "anthropic")
+    haiku = gateway.get_model_info("claude-haiku-4-5", "anthropic")
     warm_baseline = (
         3 * sonnet["input_cost_per_token"]
         + 12804 * sonnet["cache_read_input_token_cost"]
@@ -439,8 +439,8 @@ def test_a_cold_switch_never_beats_turning_caching_off():
 
     assert cold_switch < caching_off
 
-    opus = litellm.get_model_info("claude-opus-5", "anthropic")
-    haiku = litellm.get_model_info("claude-haiku-4-5", "anthropic")
+    opus = gateway.get_model_info("claude-opus-5", "anthropic")
+    haiku = gateway.get_model_info("claude-haiku-4-5", "anthropic")
     warm_baseline = 20_000 * opus["cache_read_input_token_cost"] + 1_000 * opus["output_cost_per_token"]
     actually_paid = 20_000 * haiku["cache_creation_input_token_cost"] + 1_000 * haiku["output_cost_per_token"]
     assert cold_switch == pytest.approx(warm_baseline - actually_paid)
@@ -474,7 +474,7 @@ def test_multimodal_prompts_are_priced_on_the_baseline_too():
 
     assert baseline.prompt_tokens_details.image_tokens == 4_000, "image tokens must survive into the baseline"
 
-    opus = litellm.get_model_info("claude-opus-5", "anthropic")
+    opus = gateway.get_model_info("claude-opus-5", "anthropic")
     priced, _ = generic_cost_per_token(model="claude-opus-5", usage=baseline, custom_llm_provider="anthropic")
     text_only = 20_000 * opus["cache_read_input_token_cost"]
     assert priced > text_only, "dropping the image tokens undercharges the baseline and hides the saving"
@@ -499,7 +499,7 @@ def test_the_baseline_is_never_charged_a_cache_write():
     )
     baseline = _baseline_usage(long_cache, conversation_continuing=True)
 
-    opus = litellm.get_model_info("claude-opus-5", "anthropic")
+    opus = gateway.get_model_info("claude-opus-5", "anthropic")
     priced, _ = generic_cost_per_token(model="claude-opus-5", usage=baseline, custom_llm_provider="anthropic")
     assert priced == pytest.approx(20_000 * opus["cache_read_input_token_cost"]), (
         "the baseline reads a warm cache; it never pays to create one"
@@ -508,8 +508,8 @@ def test_the_baseline_is_never_charged_a_cache_write():
 
 def test_uncached_request_is_the_plain_rate_difference():
     usage = _usage(fresh=2000, cached=0, written=0, out=500)
-    sonnet = litellm.get_model_info("claude-sonnet-5", "anthropic")
-    haiku = litellm.get_model_info("claude-haiku-4-5", "anthropic")
+    sonnet = gateway.get_model_info("claude-sonnet-5", "anthropic")
+    haiku = gateway.get_model_info("claude-haiku-4-5", "anthropic")
     assert _savings("claude-sonnet-5", "claude-haiku-4-5", usage) == pytest.approx(
         2000 * (sonnet["input_cost_per_token"] - haiku["input_cost_per_token"])
         + 500 * (sonnet["output_cost_per_token"] - haiku["output_cost_per_token"])
@@ -591,7 +591,7 @@ def test_model_without_cache_read_pricing_yields_no_caching_savings():
     """A model with no discounted cache-read rate cannot have saved anything by
     reading from cache, so the driver must report zero rather than the full input rate."""
     model = "azure/gpt-3.5-turbo"
-    assert litellm.get_model_info(model=model).get("cache_read_input_token_cost") is None
+    assert gateway.get_model_info(model=model).get("cache_read_input_token_cost") is None
     result = compute_savings_spend(
         model=model,
         custom_llm_provider="azure",
@@ -650,8 +650,8 @@ def test_a_first_turn_is_the_rate_difference_not_a_switch_penalty():
     usage = _usage(fresh=0, cached=0, written=20_000, out=1_000)
     first_turn = _savings("anthropic/claude-opus-5", "claude-haiku-4-5", usage, continuing=False)
 
-    opus = litellm.get_model_info("claude-opus-5", "anthropic")
-    haiku = litellm.get_model_info("claude-haiku-4-5", "anthropic")
+    opus = gateway.get_model_info("claude-opus-5", "anthropic")
+    haiku = gateway.get_model_info("claude-haiku-4-5", "anthropic")
     both_write = (20_000 * opus["cache_creation_input_token_cost"] + 1_000 * opus["output_cost_per_token"]) - (
         20_000 * haiku["cache_creation_input_token_cost"] + 1_000 * haiku["output_cost_per_token"]
     )
@@ -695,8 +695,8 @@ def test_a_continuing_turn_on_the_same_model_writes_its_growth_on_both_arms():
     shrinks the reported saving on ordinary steady-state traffic.
     """
     usage = _usage(fresh=0, cached=19_900, written=100, out=1_000)
-    opus = litellm.get_model_info("claude-opus-5", "anthropic")
-    haiku = litellm.get_model_info("claude-haiku-4-5", "anthropic")
+    opus = gateway.get_model_info("claude-opus-5", "anthropic")
+    haiku = gateway.get_model_info("claude-haiku-4-5", "anthropic")
 
     def cost(info: dict) -> float:
         return (
@@ -718,8 +718,8 @@ def test_a_switch_onto_a_partly_cached_model_still_pays_for_the_write():
     mostly_written = _usage(fresh=0, cached=500, written=19_500, out=1_000)
     reported = _savings("anthropic/claude-opus-5", "claude-haiku-4-5", mostly_written)
 
-    opus = litellm.get_model_info("claude-opus-5", "anthropic")
-    haiku = litellm.get_model_info("claude-haiku-4-5", "anthropic")
+    opus = gateway.get_model_info("claude-opus-5", "anthropic")
+    haiku = gateway.get_model_info("claude-haiku-4-5", "anthropic")
     if_treated_as_same_model = (
         500 * opus["cache_read_input_token_cost"]
         + 19_500 * opus["cache_creation_input_token_cost"]
@@ -748,9 +748,9 @@ def test_a_baseline_that_prices_caching_implicitly_still_pays_for_its_prompt():
         conversation_continuing=False,
     )
 
-    gpt5 = litellm.get_model_info("gpt-5", "openai")
+    gpt5 = gateway.get_model_info("gpt-5", "openai")
     assert gpt5.get("cache_creation_input_token_cost") is None, "pick a baseline with no cache-write rate"
-    haiku = litellm.get_model_info("claude-haiku-4-5", "anthropic")
+    haiku = gateway.get_model_info("claude-haiku-4-5", "anthropic")
     baseline_pays_input = 20_000 * gpt5["input_cost_per_token"] + 1_000 * gpt5["output_cost_per_token"]
     actually_paid = 20_000 * haiku["cache_creation_input_token_cost"] + 1_000 * haiku["output_cost_per_token"]
     assert reported == pytest.approx(baseline_pays_input - actually_paid)
@@ -763,8 +763,8 @@ def _priced_chat_model_without_cache_read_rate() -> tuple[str, str, str]:
     prices that model's cache reads, which is exactly how this test's premise last broke.
     Candidates go through the savings module's own resolver, so the pick is one the code
     under test can actually price."""
-    for key in sorted(litellm.model_cost):
-        entry = litellm.model_cost[key]
+    for key in sorted(gateway.model_cost):
+        entry = gateway.model_cost[key]
         provider = entry.get("litellm_provider")
         if not isinstance(provider, str) or not key.startswith(f"{provider}/"):
             continue
@@ -802,9 +802,9 @@ def test_a_baseline_with_no_cache_read_rate_is_charged_its_input_rate():
         conversation_continuing=True,
     )
 
-    baseline = litellm.get_model_info(baseline_name, baseline_provider)
+    baseline = gateway.get_model_info(baseline_name, baseline_provider)
     assert baseline.get("cache_read_input_token_cost") is None, "pick a baseline with no cache-read rate"
-    haiku = litellm.get_model_info("claude-haiku-4-5", "anthropic")
+    haiku = gateway.get_model_info("claude-haiku-4-5", "anthropic")
     baseline_pays_input = 20_000 * baseline["input_cost_per_token"] + 1_000 * baseline["output_cost_per_token"]
     actually_paid = 20_000 * haiku["cache_creation_input_token_cost"] + 1_000 * haiku["output_cost_per_token"]
     assert reported == pytest.approx(baseline_pays_input - actually_paid)
@@ -844,7 +844,7 @@ def test_the_served_arm_is_read_from_the_record_not_repriced():
         ),
     )
 
-    opus = litellm.get_model_info("claude-opus-5", "anthropic")
+    opus = gateway.get_model_info("claude-opus-5", "anthropic")
     public = 20_000 * opus["input_cost_per_token"] + 1_000 * opus["output_cost_per_token"]
     assert reported == pytest.approx(public - (negotiated_input + negotiated_output))
 
@@ -870,8 +870,8 @@ def test_the_baseline_is_priced_on_the_basis_the_request_was_billed_at(basis, ex
     unchanged. The non-string case guards the JSON round trip, where `.lower()` inside
     the pricer would raise and be swallowed into a silent $0.00 for the whole row.
     """
-    gpt = litellm.get_model_info("gpt-5.5", "openai")
-    haiku = litellm.get_model_info("claude-haiku-4-5", "anthropic")
+    gpt = gateway.get_model_info("gpt-5.5", "openai")
+    haiku = gateway.get_model_info("claude-haiku-4-5", "anthropic")
     assert gpt.get("input_cost_per_token_priority") == 2 * gpt["input_cost_per_token"]
     assert gpt.get("regional_processing_uplift_multiplier_eu") == 1.1
     assert haiku.get("input_cost_per_token_priority") is None, "served model must not move with the basis"
@@ -899,10 +899,10 @@ def test_the_baseline_is_priced_on_the_vertex_location_the_request_was_billed_at
     have paid it too. The served model carries no uplift field, so only the
     baseline moves with the recorded location."""
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map())
+    monkeypatch.setattr(gateway, "model_cost", gateway.get_model_cost_map())
 
-    gemini = litellm.get_model_info("gemini-3.5-flash", "vertex_ai")
-    haiku = litellm.get_model_info("claude-haiku-4-5", "anthropic")
+    gemini = gateway.get_model_info("gemini-3.5-flash", "vertex_ai")
+    haiku = gateway.get_model_info("claude-haiku-4-5", "anthropic")
     assert gemini.get("regional_endpoint_uplift_multiplier") == 1.1
     assert haiku.get("regional_endpoint_uplift_multiplier") is None, "served model must not move with the basis"
 
@@ -947,7 +947,7 @@ def test_a_baseline_recorded_on_the_decision_turns_the_driver_on():
 def test_a_leftover_configured_baseline_does_not_override_the_recorded_one(monkeypatch):
     """The proxy config loader setattrs unknown litellm_settings keys, so a stale
     autorouter_savings_baseline_model key must stay inert."""
-    monkeypatch.setattr(litellm, "autorouter_savings_baseline_model", "claude-sonnet-5", raising=False)
+    monkeypatch.setattr(gateway, "autorouter_savings_baseline_model", "claude-sonnet-5", raising=False)
     result = compute_savings_spend(
         model="claude-haiku-4-5",
         custom_llm_provider="anthropic",

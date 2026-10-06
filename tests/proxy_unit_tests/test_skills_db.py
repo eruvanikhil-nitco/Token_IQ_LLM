@@ -18,7 +18,7 @@ from pathlib import Path
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.caching.caching import DualCache
 from token_iq.gateway.proxy import proxy_server
 from token_iq.gateway.proxy._types import UserAPIKeyAuth

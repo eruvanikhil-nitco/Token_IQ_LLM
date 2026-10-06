@@ -12,7 +12,7 @@ import pytest
 import httpx
 import openai
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import Router
 from token_iq.gateway.integrations.custom_logger import CustomLogger
 
@@ -101,7 +101,7 @@ async def test_router_retries_errors(sync_mode, error_type):
     router = Router(model_list=model_list, set_verbose=True, debug_level="DEBUG")
 
     customHandler = MyCustomHandler()
-    litellm.callbacks = [customHandler]
+    gateway.callbacks = [customHandler]
     user_message = "Hello, how are you?"
     messages = [{"content": user_message, "role": "user"}]
 
@@ -183,7 +183,7 @@ async def test_router_retry_policy(error_type):
     )
 
     customHandler = MyCustomHandler()
-    litellm.callbacks = [customHandler]
+    gateway.callbacks = [customHandler]
     data = {}
     if error_type == "AuthenticationErrorRetries":
         model = "bad-model"
@@ -196,7 +196,7 @@ async def test_router_retry_policy(error_type):
         data = {"model": model, "messages": messages, "mock_response": mock_response}
 
     try:
-        litellm.set_verbose = True
+        gateway.set_verbose = True
         await router.acompletion(**data)
     except Exception as e:
         print("got an exception", e)
@@ -237,7 +237,7 @@ async def test_router_retry_policy_on_429_errprs():
     )
 
     customHandler = MyCustomHandler()
-    litellm.callbacks = [customHandler]
+    gateway.callbacks = [customHandler]
     try:
         # litellm.set_verbose = True
         _one_message = [{"role": "user", "content": "Hello good morning"}]
@@ -266,7 +266,7 @@ async def test_dynamic_router_retry_policy(model_group):
         "bad-model": RetryPolicy(AuthenticationErrorRetries=0),
     }
 
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "gpt-3.5-turbo",  # openai model name
@@ -318,7 +318,7 @@ async def test_dynamic_router_retry_policy(model_group):
     )
 
     customHandler = MyCustomHandler()
-    litellm.callbacks = [customHandler]
+    gateway.callbacks = [customHandler]
     data = {}
     if model_group == "bad-model":
         model = "bad-model"
@@ -335,7 +335,7 @@ async def test_dynamic_router_retry_policy(model_group):
         }
 
     try:
-        litellm.set_verbose = True
+        gateway.set_verbose = True
         response = await router.acompletion(**data)
     except Exception as e:
         print("got an exception", e)
@@ -384,7 +384,7 @@ def test_retry_rate_limit_error_with_healthy_deployments():
         "deployment2",
     ]  # multiple healthy deployments mocked up
 
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "gpt-3.5-turbo",
@@ -446,7 +446,7 @@ def test_raise_context_window_exceeded_error():
     """
     Trigger Context Window fallback, when context_window_fallbacks is not None
     """
-    context_window_error = litellm.ContextWindowExceededError(
+    context_window_error = gateway.ContextWindowExceededError(
         message="Context window exceeded",
         response=httpx.Response(
             status_code=400,
@@ -488,7 +488,7 @@ def test_raise_context_window_exceeded_error_no_retry():
     """
     Do not Retry Context Window Exceeded Error, when context_window_fallbacks is None
     """
-    context_window_error = litellm.ContextWindowExceededError(
+    context_window_error = gateway.ContextWindowExceededError(
         message="Context window exceeded",
         response=httpx.Response(
             status_code=400,
@@ -522,7 +522,7 @@ def test_raise_context_window_exceeded_error_no_retry():
         assert (
             response == True
         ), "Should not have raised exception since we do not have context window fallbacks"
-    except litellm.ContextWindowExceededError:
+    except gateway.ContextWindowExceededError:
         pass
 
 
@@ -543,7 +543,7 @@ def test_timeout_for_rate_limit_error_with_healthy_deployments(
     Test 1. Timeout is 0.0 when RateLimit Error and healthy deployments are > 0
     """
     cooldown_time = 60
-    rate_limit_error = litellm.RateLimitError(
+    rate_limit_error = gateway.RateLimitError(
         message="{RouterErrors.no_deployments_available.value}. 12345 Passed model={model_group}. Deployments={deployment_dict}",
         llm_provider="",
         model="gpt-3.5-turbo",
@@ -573,7 +573,7 @@ def test_timeout_for_rate_limit_error_with_healthy_deployments(
             }
         )
 
-    router = litellm.Router(model_list=model_list)
+    router = gateway.Router(model_list=model_list)
 
     _timeout = router._time_to_sleep_before_retry(
         e=rate_limit_error,
@@ -619,7 +619,7 @@ def test_timeout_for_rate_limit_error_with_no_healthy_deployments():
         }
     ]
 
-    router = litellm.Router(model_list=model_list)
+    router = gateway.Router(model_list=model_list)
 
     _timeout = router._time_to_sleep_before_retry(
         e=rate_limit_error,
@@ -656,7 +656,7 @@ def test_no_retry_for_not_found_error_404():
     )
 
     # Act & Assert
-    error = litellm.NotFoundError(
+    error = gateway.NotFoundError(
         message="404 model not found",
         model="gpt-12",
         llm_provider="azure",
@@ -694,7 +694,7 @@ def test_no_retry_for_bad_request_error_400():
     )
 
     # Act & Assert
-    error = litellm.BadRequestError(
+    error = gateway.BadRequestError(
         message="400 Invalid request parameters",
         model="gpt-3.5-turbo",
         llm_provider="azure",
@@ -706,7 +706,7 @@ def test_no_retry_for_bad_request_error_400():
         pytest.fail(
             "Should have raised BadRequestError - 400 errors should never be retried"
         )
-    except litellm.BadRequestError as e:
+    except gateway.BadRequestError as e:
         print("Correctly raised BadRequestError without retry:", e)
 
 
@@ -731,7 +731,7 @@ def test_no_retry_for_unprocessable_entity_error_422():
     )
 
     # Act & Assert
-    error = litellm.UnprocessableEntityError(
+    error = gateway.UnprocessableEntityError(
         message="422 Unprocessable Entity",
         model="gpt-3.5-turbo",
         llm_provider="azure",
@@ -747,29 +747,29 @@ def test_no_retry_for_unprocessable_entity_error_422():
         pytest.fail(
             "Should have raised UnprocessableEntityError - 422 errors should never be retried"
         )
-    except litellm.UnprocessableEntityError as e:
+    except gateway.UnprocessableEntityError as e:
         print("Correctly raised UnprocessableEntityError without retry:", e)
 
 
-internal_server_error = litellm.InternalServerError(
+internal_server_error = gateway.InternalServerError(
     message="internal server error",
     model="gpt-12",
     llm_provider="azure",
 )
 
-rate_limit_error = litellm.RateLimitError(
+rate_limit_error = gateway.RateLimitError(
     message="rate limit error",
     model="gpt-12",
     llm_provider="azure",
 )
 
-service_unavailable_error = litellm.ServiceUnavailableError(
+service_unavailable_error = gateway.ServiceUnavailableError(
     message="service unavailable error",
     model="gpt-12",
     llm_provider="azure",
 )
 
-timeout_error = litellm.Timeout(
+timeout_error = gateway.Timeout(
     message="timeout error",
     model="gpt-12",
     llm_provider="azure",
@@ -814,7 +814,7 @@ def test_no_retry_when_no_healthy_deployments():
 async def test_router_retries_model_specific_and_global():
     from unittest.mock import patch, MagicMock
 
-    litellm.num_retries = 0
+    gateway.num_retries = 0
     router = Router(
         model_list=[
             {
@@ -905,7 +905,7 @@ async def test_router_retry_num_retries_tracking():
 
     # Mock make_call to always raise a RateLimitError
     async def mock_make_call(*args, **kwargs):
-        raise litellm.RateLimitError(
+        raise gateway.RateLimitError(
             message="Rate limit exceeded",
             model="gpt-3.5-turbo",
             llm_provider="openai",
@@ -923,7 +923,7 @@ async def test_router_retry_num_retries_tracking():
             with patch.object(
                 router, "_time_to_sleep_before_retry", return_value=0.01
             ):  # Fast retries for testing
-                with pytest.raises(litellm.RateLimitError) as exc_info:
+                with pytest.raises(gateway.RateLimitError) as exc_info:
                     await router.acompletion(
                         model="gpt-3.5-turbo",
                         messages=[{"role": "user", "content": "Hello"}],
@@ -974,7 +974,7 @@ async def test_router_retry_num_retries_single_retry():
 
     # Mock make_call to always raise a Timeout error
     async def mock_make_call(*args, **kwargs):
-        raise litellm.Timeout(
+        raise gateway.Timeout(
             message="Request timed out",
             model="gpt-3.5-turbo",
             llm_provider="openai",
@@ -990,7 +990,7 @@ async def test_router_retry_num_retries_single_retry():
             ),
         ):
             with patch.object(router, "_time_to_sleep_before_retry", return_value=0.01):
-                with pytest.raises(litellm.Timeout) as exc_info:
+                with pytest.raises(gateway.Timeout) as exc_info:
                     await router.acompletion(
                         model="gpt-3.5-turbo",
                         messages=[{"role": "user", "content": "Hello"}],

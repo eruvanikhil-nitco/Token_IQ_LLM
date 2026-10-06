@@ -32,7 +32,7 @@ def initialize_guardrail(litellm_params: "LitellmParams", guardrail: "Guardrail"
     Returns:
         CustomCodeGuardrail instance
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     guardrail_name: Final = guardrail.get("guardrail_name")
     if not guardrail_name:
@@ -50,7 +50,7 @@ def initialize_guardrail(litellm_params: "LitellmParams", guardrail: "Guardrail"
         default_on=litellm_params.default_on,
     )
 
-    litellm.logging_callback_manager.add_litellm_callback(custom_code_guardrail)
+    gateway.logging_callback_manager.add_litellm_callback(custom_code_guardrail)
     return custom_code_guardrail
 
 

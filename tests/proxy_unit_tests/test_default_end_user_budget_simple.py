@@ -11,7 +11,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy._types import LiteLLM_BudgetTable, LiteLLM_EndUserTable
 from token_iq.gateway.proxy.auth.auth_checks import get_end_user_object
 from token_iq.gateway.caching import DualCache
@@ -25,7 +25,7 @@ async def test_default_budget_applied_to_end_user_without_budget():
     """
     end_user_id = f"test_user_{uuid.uuid4().hex}"
     default_budget_id = str(uuid.uuid4())
-    litellm.max_end_user_budget_id = default_budget_id
+    gateway.max_end_user_budget_id = default_budget_id
 
     default_budget = LiteLLM_BudgetTable(
         budget_id=default_budget_id,
@@ -72,7 +72,7 @@ async def test_default_budget_applied_to_end_user_without_budget():
     assert result.litellm_budget_table.rpm_limit == 2
     assert result.litellm_budget_table.tpm_limit == 10
 
-    litellm.max_end_user_budget_id = None
+    gateway.max_end_user_budget_id = None
 
 
 @pytest.mark.asyncio
@@ -84,7 +84,7 @@ async def test_explicit_budget_not_overridden_by_default():
     end_user_id = f"test_user_{uuid.uuid4().hex}"
     explicit_budget_id = str(uuid.uuid4())
     default_budget_id = str(uuid.uuid4())
-    litellm.max_end_user_budget_id = default_budget_id
+    gateway.max_end_user_budget_id = default_budget_id
 
     explicit_budget = LiteLLM_BudgetTable(
         budget_id=explicit_budget_id,
@@ -125,7 +125,7 @@ async def test_explicit_budget_not_overridden_by_default():
     assert result.litellm_budget_table.max_budget == 100.0
     assert result.litellm_budget_table.rpm_limit == 50
 
-    litellm.max_end_user_budget_id = None
+    gateway.max_end_user_budget_id = None
 
 
 @pytest.mark.asyncio
@@ -141,7 +141,7 @@ async def test_budget_enforcement_blocks_over_budget_users():
     
     end_user_id = f"test_user_{uuid.uuid4().hex}"
     default_budget_id = str(uuid.uuid4())
-    litellm.max_end_user_budget_id = default_budget_id
+    gateway.max_end_user_budget_id = default_budget_id
 
     default_budget = LiteLLM_BudgetTable(
         budget_id=default_budget_id,
@@ -186,7 +186,7 @@ async def test_budget_enforcement_blocks_over_budget_users():
     assert result.litellm_budget_table.max_budget == 10.0
 
     # Now test budget enforcement separately via _check_end_user_budget
-    with pytest.raises(litellm.BudgetExceededError) as exc_info:
+    with pytest.raises(gateway.BudgetExceededError) as exc_info:
         await _check_end_user_budget(
             end_user_obj=result,
             route="/chat/completions",
@@ -195,7 +195,7 @@ async def test_budget_enforcement_blocks_over_budget_users():
     assert "ExceededBudget" in str(exc_info.value)
     assert end_user_id in str(exc_info.value)
 
-    litellm.max_end_user_budget_id = None
+    gateway.max_end_user_budget_id = None
 
 
 @pytest.mark.asyncio
@@ -205,7 +205,7 @@ async def test_system_works_without_default_budget_configured():
     This ensures backward compatibility.
     """
     end_user_id = f"test_user_{uuid.uuid4().hex}"
-    litellm.max_end_user_budget_id = None  # Not configured
+    gateway.max_end_user_budget_id = None  # Not configured
 
     # Mock end user without budget
     mock_end_user_data = {

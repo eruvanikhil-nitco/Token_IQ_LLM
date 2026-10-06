@@ -11,7 +11,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy.proxy_server import ProxyConfig
 from token_iq.gateway.proxy.utils import PrismaClient, ProxyLogging
 

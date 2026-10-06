@@ -1,6 +1,6 @@
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.router_utils.reasoning_effort_capability import (
     deployment_is_catalog_mapped,
     intersect_supported_reasoning_efforts,
@@ -295,7 +295,7 @@ class TestDeclaredEffortList:
 
     def test_a_declaration_is_read_through_the_bare_twin(self, monkeypatch):
         monkeypatch.setitem(
-            litellm.model_cost,
+            gateway.model_cost,
             "some-declared-reasoner",
             {"supports_reasoning": True, "reasoning_effort_levels": ["low", "max"]},
         )
@@ -330,14 +330,14 @@ class TestKimiK3AdvertisesItsDocumentedLevels:
         """platform.kimi.ai documents exactly low, high and max, and these providers forward the
         level unchanged. Undeclared, each entry resolves to unknown and the dashboard falls back to
         a capability-blind list that omits max."""
-        entry = dict(litellm.model_cost[model_key], key=model_key)
+        entry = dict(gateway.model_cost[model_key], key=model_key)
 
         assert resolve_supported_reasoning_efforts(entry, deployment_is_mapped=True) == ("low", "high", "max")
 
     def test_the_perplexity_entry_advertises_the_wider_set_it_maps_down(self, local_model_cost_map):
         """Perplexity's Agent API takes a six-value enum and maps it down internally, so this
         deployment is legitimately wider than a passthrough. One blanket list could not say both."""
-        entry = dict(litellm.model_cost[KIMI_K3_PERPLEXITY_KEY], key=KIMI_K3_PERPLEXITY_KEY)
+        entry = dict(gateway.model_cost[KIMI_K3_PERPLEXITY_KEY], key=KIMI_K3_PERPLEXITY_KEY)
 
         assert resolve_supported_reasoning_efforts(entry, deployment_is_mapped=True) == (
             "minimal",
@@ -363,7 +363,7 @@ class TestKimiK3AdvertisesItsDocumentedLevels:
         """kimi used to contribute unknown, which never narrows, so the group advertised whatever
         its other deployments agreed on."""
         kimi = resolve_supported_reasoning_efforts(
-            dict(litellm.model_cost["fireworks_ai/kimi-k3"], key="fireworks_ai/kimi-k3"),
+            dict(gateway.model_cost["fireworks_ai/kimi-k3"], key="fireworks_ai/kimi-k3"),
             deployment_is_mapped=True,
         )
 

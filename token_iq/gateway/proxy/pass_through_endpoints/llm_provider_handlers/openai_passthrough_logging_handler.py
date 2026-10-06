@@ -10,7 +10,7 @@ from urllib.parse import urlparse
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
 from token_iq.gateway.core_utils.litellm_logging import (
@@ -239,7 +239,7 @@ class OpenAIPassthroughLoggingHandler(BasePassthroughLoggingHandler):
         custom_llm_provider: str,
     ) -> float:
         try:
-            return litellm.completion_cost(
+            return gateway.completion_cost(
                 completion_response=litellm_model_response,
                 model=model,
                 custom_llm_provider=custom_llm_provider,
@@ -279,7 +279,7 @@ class OpenAIPassthroughLoggingHandler(BasePassthroughLoggingHandler):
             raw_response=httpx_response,
             logging_obj=logging_obj,
         )
-        response_cost: Final = litellm.completion_cost(
+        response_cost: Final = gateway.completion_cost(
             completion_response=litellm_model_response,
             model=model,
             custom_llm_provider=custom_llm_provider,
@@ -349,20 +349,20 @@ class OpenAIPassthroughLoggingHandler(BasePassthroughLoggingHandler):
                 existing_litellm_params: Final = kwargs.get("litellm_params", {}) or {}
                 litellm_model_response = provider_config.transform_response(
                     raw_response=httpx_response,
-                    model_response=litellm.ModelResponse(),
+                    model_response=gateway.ModelResponse(),
                     model=model,
                     messages=request_body.get("messages", []),
                     logging_obj=logging_obj,
                     optional_params=request_body.get("optional_params", {}),
                     api_key="",
                     request_data=request_body,
-                    encoding=getattr(litellm, "encoding", None),
+                    encoding=getattr(gateway, "encoding", None),
                     json_mode=request_body.get("response_format", {}).get("type") == "json_object",
                     litellm_params=existing_litellm_params,
                 )
 
                 # Calculate cost using LiteLLM's cost calculator
-                response_cost = litellm.completion_cost(
+                response_cost = gateway.completion_cost(
                     completion_response=litellm_model_response,
                     model=model,
                     custom_llm_provider=custom_llm_provider,
@@ -561,7 +561,7 @@ class OpenAIPassthroughLoggingHandler(BasePassthroughLoggingHandler):
                 return None
 
             # Build complete response from chunks
-            complete_streaming_response: Final = litellm.stream_chunk_builder(chunks=all_openai_chunks)
+            complete_streaming_response: Final = gateway.stream_chunk_builder(chunks=all_openai_chunks)
 
             return complete_streaming_response
 
@@ -612,14 +612,14 @@ class OpenAIPassthroughLoggingHandler(BasePassthroughLoggingHandler):
             custom_llm_provider: Final = litellm_logging_obj.model_call_details.get("custom_llm_provider", "openai")
             # Calculate cost using LiteLLM's cost calculator
             response_cost: Final = (
-                litellm.completion_cost(
+                gateway.completion_cost(
                     completion_response=complete_response,
                     model=model,
                     custom_llm_provider=custom_llm_provider,
                     call_type="responses",
                 )
                 if is_responses
-                else litellm.completion_cost(
+                else gateway.completion_cost(
                     completion_response=complete_response,
                     model=model,
                     custom_llm_provider=custom_llm_provider,

@@ -13,7 +13,7 @@ from functools import partial
 from pathlib import Path
 from typing import Any, Final, Literal
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.constants import request_timeout as DEFAULT_REQUEST_TIMEOUT
 from token_iq.gateway.containers.utils import decode_managed_container_id_for_request
 from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
@@ -92,7 +92,7 @@ def create_sync_endpoint_function(endpoint_config: dict) -> Callable:
                     litellm_params=litellm_params,
                 )
             container_provider_config: BaseContainerConfig | None = ProviderConfigManager.get_provider_container_config(
-                provider=litellm.LlmProviders(resolved_custom_llm_provider),
+                provider=gateway.LlmProviders(resolved_custom_llm_provider),
             )
 
             if container_provider_config is None:
@@ -124,7 +124,7 @@ def create_sync_endpoint_function(endpoint_config: dict) -> Callable:
             )
 
         except Exception as e:
-            raise litellm.exception_type(
+            raise gateway.exception_type(
                 model="",
                 custom_llm_provider=resolved_custom_llm_provider,
                 original_exception=e,
@@ -176,7 +176,7 @@ def create_async_endpoint_function(
 
             return response
         except Exception as e:
-            raise litellm.exception_type(
+            raise gateway.exception_type(
                 model="",
                 custom_llm_provider=custom_llm_provider,
                 original_exception=e,

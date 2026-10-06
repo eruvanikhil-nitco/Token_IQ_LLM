@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Any, Final
 import httpx
 from openai.types.image import Image
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.custom_httpx.http_handler import (
     AsyncHTTPHandler,
     HTTPHandler,
@@ -26,7 +26,7 @@ class VertexImageGeneration(VertexLLM):
         model: str | None = None,
     ) -> ImageResponse:
         if "predictions" not in json_response:
-            raise litellm.InternalServerError(
+            raise gateway.InternalServerError(
                 message=f"image generation response does not contain 'predictions', got {json_response}",
                 llm_provider="vertex_ai",
                 model=model,
@@ -194,7 +194,7 @@ class VertexImageGeneration(VertexLLM):
                 _params["timeout"] = httpx.Timeout(timeout=600.0, connect=5.0)
 
             self.async_handler = get_async_httpx_client(
-                llm_provider=litellm.LlmProviders.VERTEX_AI,
+                llm_provider=gateway.LlmProviders.VERTEX_AI,
                 params={"timeout": timeout},
             )
         else:

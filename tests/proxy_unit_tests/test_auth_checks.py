@@ -7,7 +7,8 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-import pytest, litellm
+import pytest
+from token_iq import gateway
 import httpx
 from token_iq.gateway.proxy._types import UserAPIKeyAuth
 from token_iq.gateway.proxy.auth.auth_checks import get_end_user_object
@@ -100,7 +101,7 @@ async def test_check_end_user_budget(customer_spend, customer_budget):
         )
         return
 
-    with pytest.raises(litellm.BudgetExceededError) as exc_info:
+    with pytest.raises(gateway.BudgetExceededError) as exc_info:
         await _check_end_user_budget(
             end_user_obj=end_user_obj,
             route="/v1/chat/completions",
@@ -151,7 +152,7 @@ async def test_can_key_call_model(model, expect_to_work):
             },
         },
     ]
-    router = litellm.Router(model_list=llm_model_list)
+    router = gateway.Router(model_list=llm_model_list)
     args = {
         "model": model,
         "llm_model_list": llm_model_list,
@@ -204,7 +205,7 @@ async def test_can_team_call_model(model, expect_to_work):
             },
         },
     ]
-    router = litellm.Router(model_list=llm_model_list)
+    router = gateway.Router(model_list=llm_model_list)
 
     args = {
         "model": model,
@@ -270,7 +271,7 @@ async def test_can_key_call_model_wildcard_access(key_models, model, expect_to_w
             },
         },
     ]
-    router = litellm.Router(model_list=llm_model_list)
+    router = gateway.Router(model_list=llm_model_list)
 
     user_api_key_object = UserAPIKeyAuth(
         models=key_models,
@@ -323,7 +324,7 @@ async def test_wildcard_access_after_cost_map_reload(key_models, model, expect_t
 
     # Build a new cost map that includes the brand-new model — exactly what
     # proxy_server.py receives from get_model_cost_map() during a reload.
-    new_cost_map = dict(litellm.model_cost)
+    new_cost_map = dict(gateway.model_cost)
     new_cost_map[model] = {
         "litellm_provider": "anthropic",
         "max_tokens": 8192,
@@ -331,17 +332,17 @@ async def test_wildcard_access_after_cost_map_reload(key_models, model, expect_t
         "output_cost_per_token": 0.000015,
     }
 
-    original_model_cost = litellm.model_cost
-    litellm.model_cost = new_cost_map
+    original_model_cost = gateway.model_cost
+    gateway.model_cost = new_cost_map
 
     # Confirm the model is NOT yet in the provider set before reload propagation.
-    assert model not in litellm.anthropic_models
+    assert model not in gateway.anthropic_models
 
     # Simulate what proxy_server.py now does after every reload.
-    litellm.add_known_models(model_cost_map=new_cost_map)
+    gateway.add_known_models(model_cost_map=new_cost_map)
 
     # After add_known_models(), the model must be in the set.
-    assert model in litellm.anthropic_models
+    assert model in gateway.anthropic_models
 
     llm_model_list = [
         {
@@ -355,7 +356,7 @@ async def test_wildcard_access_after_cost_map_reload(key_models, model, expect_t
             "model_info": {"id": "test-id-openai-wildcard", "db_model": False},
         },
     ]
-    router = litellm.Router(model_list=llm_model_list)
+    router = gateway.Router(model_list=llm_model_list)
     user_api_key_object = UserAPIKeyAuth(models=key_models)
 
     try:
@@ -375,8 +376,8 @@ async def test_wildcard_access_after_cost_map_reload(key_models, model, expect_t
                     llm_router=router,
                 )
     finally:
-        litellm.model_cost = original_model_cost
-        litellm.anthropic_models.discard(model)
+        gateway.model_cost = original_model_cost
+        gateway.anthropic_models.discard(model)
 
 
 @pytest.mark.asyncio
@@ -394,9 +395,9 @@ async def test_add_known_models_explicit_map_updates_provider_sets():
     fake_new_model = "claude-brand-new-explicit-map-test"
 
     # Baseline: the model must not be in the sets before we do anything.
-    assert fake_new_model not in litellm.anthropic_models
+    assert fake_new_model not in gateway.anthropic_models
 
-    new_cost_map = dict(litellm.model_cost)
+    new_cost_map = dict(gateway.model_cost)
     new_cost_map[fake_new_model] = {
         "litellm_provider": "anthropic",
         "max_tokens": 8192,
@@ -405,19 +406,19 @@ async def test_add_known_models_explicit_map_updates_provider_sets():
     }
 
     # Simulate what proxy_server.py does on reload.
-    original_model_cost = litellm.model_cost
-    litellm.model_cost = new_cost_map
-    litellm.add_known_models(model_cost_map=new_cost_map)
+    original_model_cost = gateway.model_cost
+    gateway.model_cost = new_cost_map
+    gateway.add_known_models(model_cost_map=new_cost_map)
 
     try:
-        assert fake_new_model in litellm.anthropic_models, (
+        assert fake_new_model in gateway.anthropic_models, (
             "add_known_models(model_cost_map=...) did not add the new model to "
             "litellm.anthropic_models — wildcard access checks would fail."
         )
     finally:
         # Clean up: restore original state.
-        litellm.model_cost = original_model_cost
-        litellm.anthropic_models.discard(fake_new_model)
+        gateway.model_cost = original_model_cost
+        gateway.anthropic_models.discard(fake_new_model)
 
 
 @pytest.mark.asyncio
@@ -497,7 +498,7 @@ async def test_virtual_key_max_budget_check(
     proxy_logging_obj.budget_alerts = mock_budget_alert
 
     if expect_budget_error:
-        with pytest.raises(litellm.BudgetExceededError) as exc_info:
+        with pytest.raises(gateway.BudgetExceededError) as exc_info:
             await _virtual_key_max_budget_check(
                 valid_token=valid_token,
                 proxy_logging_obj=proxy_logging_obj,
@@ -926,7 +927,7 @@ async def test_can_key_call_model_with_aliases(model, alias_map, expect_to_work)
             },
         }
     ]
-    router = litellm.Router(model_list=llm_model_list)
+    router = gateway.Router(model_list=llm_model_list)
 
     user_api_key_object = UserAPIKeyAuth(
         models=[
@@ -1154,7 +1155,7 @@ async def test_can_key_call_model_via_access_group_ids():
         models=[],
         access_group_ids=["ag-with-gpt4"],
     )
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "gpt-4",

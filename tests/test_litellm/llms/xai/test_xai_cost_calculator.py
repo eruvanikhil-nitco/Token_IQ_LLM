@@ -5,7 +5,7 @@ Test suite for XAI cost calculation functionality.
 import math
 import os
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.types.utils import (
     Choices,
     CompletionTokensDetailsWrapper,
@@ -39,11 +39,11 @@ class TestXAICostCalculator:
         try:
             with open("model_prices_and_context_window.json", "r") as f:
                 model_cost_map = json.load(f)
-            litellm.model_cost = model_cost_map
+            gateway.model_cost = model_cost_map
         except FileNotFoundError:
             # Fallback to default behavior
             os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-            litellm.model_cost = litellm.get_model_cost_map()
+            gateway.model_cost = gateway.get_model_cost_map()
 
     def test_basic_cost_calculation(self):
         """Test basic cost calculation without reasoning tokens."""
@@ -281,7 +281,7 @@ class TestXAICostCalculator:
         assert math.isclose(completion_cost, expected_completion_cost, rel_tol=1e-10)
 
     def test_tiered_pricing_model_without_tiered_pricing(self):
-        litellm.model_cost["xai/flat-rate-fixture"] = {
+        gateway.model_cost["xai/flat-rate-fixture"] = {
             "input_cost_per_token": 3e-7,
             "output_cost_per_token": 5e-7,
             "litellm_provider": "xai",
@@ -587,7 +587,7 @@ class TestXAICostCalculator:
             usage=Usage(prompt_tokens=198, completion_tokens=353, total_tokens=551, cost=0.0009956),
         )
 
-        billed = litellm.completion_cost(
+        billed = gateway.completion_cost(
             completion_response=response,
             model="xai/grok-4-latest",
             custom_llm_provider="xai",
@@ -600,7 +600,7 @@ class TestXAICostCalculator:
     def test_deployment_custom_pricing_beats_the_reported_cost(self, monkeypatch):
         deployment_id = "xai-deployment-priced-by-the-operator"
         monkeypatch.setitem(
-            litellm.model_cost,
+            gateway.model_cost,
             deployment_id,
             {"input_cost_per_token": 0.001, "output_cost_per_token": 0.001, "litellm_provider": "xai", "mode": "chat"},
         )
@@ -611,7 +611,7 @@ class TestXAICostCalculator:
             usage=Usage(prompt_tokens=198, completion_tokens=353, total_tokens=551, cost=0.0009956),
         )
 
-        billed = litellm.completion_cost(
+        billed = gateway.completion_cost(
             completion_response=response,
             model="xai/grok-4-latest",
             custom_llm_provider="xai",

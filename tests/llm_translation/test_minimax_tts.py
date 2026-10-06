@@ -9,7 +9,7 @@ from unittest.mock import MagicMock, Mock, patch
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import speech
 from token_iq.gateway.llms.minimax.text_to_speech.transformation import (
     MinimaxTextToSpeechConfig,
@@ -134,11 +134,11 @@ class TestMinimaxTextToSpeechConfig:
         headers = {}
 
         # Mock both litellm.api_key and get_secret_str to return None
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
-        original_api_key = litellm.api_key
+        original_api_key = gateway.api_key
         try:
-            litellm.api_key = None
+            gateway.api_key = None
             with patch(
                 "token_iq.gateway.llms.minimax.text_to_speech.transformation.get_secret_str",
                 return_value=None,
@@ -150,7 +150,7 @@ class TestMinimaxTextToSpeechConfig:
                         api_key=None,
                     )
         finally:
-            litellm.api_key = original_api_key
+            gateway.api_key = original_api_key
 
     def test_transform_text_to_speech_request(self):
         """Test request transformation to MiniMax format"""
@@ -320,7 +320,7 @@ class TestMinimaxProviderRegistration:
 
     def test_minimax_in_provider_list(self):
         """Test that minimax is in the provider list"""
-        assert litellm.LlmProviders.MINIMAX in litellm.provider_list
+        assert gateway.LlmProviders.MINIMAX in gateway.provider_list
 
     def test_get_provider_text_to_speech_config(self):
         """Test that MiniMax TTS config can be retrieved"""
@@ -328,7 +328,7 @@ class TestMinimaxProviderRegistration:
 
         config = ProviderConfigManager.get_provider_text_to_speech_config(
             model="speech-2.6-hd",
-            provider=litellm.LlmProviders.MINIMAX,
+            provider=gateway.LlmProviders.MINIMAX,
         )
 
         assert config is not None

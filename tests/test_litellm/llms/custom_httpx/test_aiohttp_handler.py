@@ -3,7 +3,7 @@ from unittest.mock import AsyncMock, Mock, patch
 import aiohttp
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.custom_httpx.aiohttp_handler import BaseLLMAIOHTTPHandler
 from token_iq.gateway.llms.custom_httpx.aiohttp_transport import LiteLLMAiohttpTransport
 
@@ -325,7 +325,7 @@ class TestBaseLLMAIOHTTPHandler:
         """Regression test for LIT-3369: `litellm.ssl_verify = False` (set via
         `litellm_settings.ssl_verify: false`) must reach the default session's
         connector instead of being ignored by a bare `aiohttp.ClientSession()`."""
-        monkeypatch.setattr(litellm, "ssl_verify", False)
+        monkeypatch.setattr(gateway, "ssl_verify", False)
 
         handler = BaseLLMAIOHTTPHandler()
         session = handler._create_client_session_with_transport()
@@ -352,7 +352,7 @@ class TestBaseLLMAIOHTTPHandler:
         self, monkeypatch: pytest.MonkeyPatch
     ):
         """The lazily created transport must carry the resolved global ssl config."""
-        monkeypatch.setattr(litellm, "ssl_verify", False)
+        monkeypatch.setattr(gateway, "ssl_verify", False)
 
         handler = BaseLLMAIOHTTPHandler()
         transport = handler._get_or_create_transport()

@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from tests.search_tests.base_search_unit_tests import BaseSearchTest
 
 PROJECT_ENDPOINT = "https://acct.services.ai.azure.com/api/projects/proj"
@@ -100,7 +100,7 @@ class TestBingGroundingSearchTransformation:
             "token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post",
             return_value=_mock_response(),
         ) as mock_post:
-            response = litellm.search(
+            response = gateway.search(
                 query="what is litellm",
                 search_provider="bing_grounding",
                 max_results=5,
@@ -137,7 +137,7 @@ class TestBingGroundingSearchTransformation:
             "token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post",
             return_value=_mock_response(),
         ) as mock_post:
-            litellm.search(
+            gateway.search(
                 query="what is litellm",
                 search_provider="bing_grounding",
                 max_results=3,
@@ -167,7 +167,7 @@ class TestBingGroundingSearchTransformation:
             "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
             new=AsyncMock(return_value=_mock_response()),
         ) as mock_post:
-            response = await litellm.asearch(
+            response = await gateway.asearch(
                 query="what is litellm",
                 search_provider="bing_grounding",
             )
@@ -177,23 +177,23 @@ class TestBingGroundingSearchTransformation:
 
     def test_web_search_mode_is_not_billed_the_g1_price(self, monkeypatch: pytest.MonkeyPatch):
         monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-        monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map())
+        monkeypatch.setattr(gateway, "model_cost", gateway.get_model_cost_map())
         with patch(  # test-quality-ok: litellm.search has no client injection seam
             "token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post",
             return_value=_mock_response(),
         ):
-            response = litellm.search(query="pricing check", search_provider="bing_grounding")
+            response = gateway.search(query="pricing check", search_provider="bing_grounding")
 
         assert response._hidden_params["response_cost"] == 0.0
 
     def test_connection_mode_tracks_the_g1_cost(self, monkeypatch: pytest.MonkeyPatch):
         monkeypatch.setenv("BING_GROUNDING_CONNECTION_ID", "conn-id")
         monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-        monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map())
+        monkeypatch.setattr(gateway, "model_cost", gateway.get_model_cost_map())
         with patch(  # test-quality-ok: litellm.search has no client injection seam
             "token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post",
             return_value=_mock_response(),
         ):
-            response = litellm.search(query="pricing check", search_provider="bing_grounding")
+            response = gateway.search(query="pricing check", search_provider="bing_grounding")
 
         assert response._hidden_params["response_cost"] == pytest.approx(0.035)

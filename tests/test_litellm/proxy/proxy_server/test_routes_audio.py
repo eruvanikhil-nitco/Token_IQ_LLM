@@ -83,10 +83,10 @@ def patched_speech_error(monkeypatch):
 
 @pytest.fixture
 def patched_speech_provider_rejection(monkeypatch, patched_speech_error):
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     async def _raise(*args, **kwargs):
-        raise litellm.BadRequestError(
+        raise gateway.BadRequestError(
             message=(
                 "Gemini TTS only produces raw PCM16 audio, so response_format='mp3' is not supported."
                 " Supported response formats: pcm, wav."

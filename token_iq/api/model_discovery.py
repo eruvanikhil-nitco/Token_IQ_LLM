@@ -25,7 +25,7 @@ from typing import Final
 
 from pydantic import BaseModel, Field
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 # The catalogue keys these off the same names it prices by, so a row that carries neither
 # is present for its metadata (context window, capabilities) rather than for billing.
@@ -58,7 +58,7 @@ class ModelDiscoveryResponse(BaseModel):
 
 def _local_pricing(model_name: str) -> tuple[float | None, float | None]:
     """Input and output per-token cost from the shipped catalogue, or (None, None)."""
-    entry: Final = litellm.model_cost.get(model_name)
+    entry: Final = gateway.model_cost.get(model_name)
     if not isinstance(entry, dict):
         return None, None
     costs: Final = tuple(entry.get(field) for field in _COST_FIELDS)

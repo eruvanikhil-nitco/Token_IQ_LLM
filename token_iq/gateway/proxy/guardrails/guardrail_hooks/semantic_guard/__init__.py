@@ -6,7 +6,7 @@ Uses semantic-router to match user prompts against known attack patterns.
 
 from typing import TYPE_CHECKING, Final, Optional
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.constants import (
     DEFAULT_SEMANTIC_GUARD_EMBEDDING_MODEL,
     DEFAULT_SEMANTIC_GUARD_SIMILARITY_THRESHOLD,
@@ -60,7 +60,7 @@ def initialize_guardrail(
         default_on=litellm_params.default_on or False,
     )
 
-    litellm.logging_callback_manager.add_litellm_callback(semantic_guardrail)
+    gateway.logging_callback_manager.add_litellm_callback(semantic_guardrail)
 
     return semantic_guardrail
 

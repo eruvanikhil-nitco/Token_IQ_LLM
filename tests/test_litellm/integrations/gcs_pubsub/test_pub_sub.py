@@ -8,7 +8,7 @@ from unittest.mock import ANY, MagicMock, Mock, patch
 import httpx
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 
 @pytest.mark.asyncio

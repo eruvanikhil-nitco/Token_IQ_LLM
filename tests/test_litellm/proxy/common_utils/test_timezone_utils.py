@@ -4,7 +4,7 @@ from zoneinfo import ZoneInfo
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy.common_utils.timezone_utils import (
     BudgetResetSettings,
     compute_budget_reset_at,
@@ -47,46 +47,46 @@ def test_get_budget_reset_timezone_reads_litellm_attr():
     """
     Test that get_budget_reset_timezone reads from litellm.timezone attribute.
     """
-    original = getattr(litellm, "timezone", None)
+    original = getattr(gateway, "timezone", None)
     try:
-        litellm.timezone = "Asia/Tokyo"
+        gateway.timezone = "Asia/Tokyo"
         assert get_budget_reset_timezone() == "Asia/Tokyo"
     finally:
         if original is None:
-            if hasattr(litellm, "timezone"):
-                delattr(litellm, "timezone")
+            if hasattr(gateway, "timezone"):
+                delattr(gateway, "timezone")
         else:
-            litellm.timezone = original
+            gateway.timezone = original
 
 
 def test_get_budget_reset_timezone_fallback_utc():
     """
     Test that get_budget_reset_timezone falls back to UTC when litellm.timezone is not set.
     """
-    original = getattr(litellm, "timezone", None)
+    original = getattr(gateway, "timezone", None)
     try:
-        if hasattr(litellm, "timezone"):
-            delattr(litellm, "timezone")
+        if hasattr(gateway, "timezone"):
+            delattr(gateway, "timezone")
         assert get_budget_reset_timezone() == "UTC"
     finally:
         if original is not None:
-            litellm.timezone = original
+            gateway.timezone = original
 
 
 def test_get_budget_reset_timezone_fallback_on_none():
     """
     Test that get_budget_reset_timezone falls back to UTC when litellm.timezone is None.
     """
-    original = getattr(litellm, "timezone", None)
+    original = getattr(gateway, "timezone", None)
     try:
-        litellm.timezone = None
+        gateway.timezone = None
         assert get_budget_reset_timezone() == "UTC"
     finally:
         if original is None:
-            if hasattr(litellm, "timezone"):
-                delattr(litellm, "timezone")
+            if hasattr(gateway, "timezone"):
+                delattr(gateway, "timezone")
         else:
-            litellm.timezone = original
+            gateway.timezone = original
 
 
 def test_get_budget_reset_time_respects_timezone():
@@ -94,9 +94,9 @@ def test_get_budget_reset_time_respects_timezone():
     Test that get_budget_reset_time uses the configured timezone for reset calculation.
     A daily reset should align to midnight in the configured timezone.
     """
-    original = getattr(litellm, "timezone", None)
+    original = getattr(gateway, "timezone", None)
     try:
-        litellm.timezone = "Asia/Tokyo"
+        gateway.timezone = "Asia/Tokyo"
         reset_at = get_budget_reset_time(budget_duration="1d")
         # The reset time should be midnight in Asia/Tokyo
         tokyo_reset = reset_at.astimezone(ZoneInfo("Asia/Tokyo"))
@@ -105,10 +105,10 @@ def test_get_budget_reset_time_respects_timezone():
         assert tokyo_reset.second == 0
     finally:
         if original is None:
-            if hasattr(litellm, "timezone"):
-                delattr(litellm, "timezone")
+            if hasattr(gateway, "timezone"):
+                delattr(gateway, "timezone")
         else:
-            litellm.timezone = original
+            gateway.timezone = original
 
 
 def test_parse_budget_reset_time_hh_mm():
@@ -139,17 +139,17 @@ def test_parse_budget_reset_time_non_string_raises():
 
 
 def test_get_budget_reset_settings_reads_globals():
-    orig_tz = getattr(litellm, "timezone", None)
-    orig_rt = getattr(litellm, "budget_reset_time", None)
+    orig_tz = getattr(gateway, "timezone", None)
+    orig_rt = getattr(gateway, "budget_reset_time", None)
     try:
-        litellm.timezone = "Asia/Jerusalem"
-        litellm.budget_reset_time = "12:00"
+        gateway.timezone = "Asia/Jerusalem"
+        gateway.budget_reset_time = "12:00"
         settings = get_budget_reset_settings()
         assert settings.timezone == "Asia/Jerusalem"
         assert settings.reset_time_of_day == time(12, 0)
     finally:
-        _restore_attr(litellm, "timezone", orig_tz)
-        _restore_attr(litellm, "budget_reset_time", orig_rt)
+        _restore_attr(gateway, "timezone", orig_tz)
+        _restore_attr(gateway, "budget_reset_time", orig_rt)
 
 
 def test_compute_budget_reset_at_applies_offset():
@@ -164,14 +164,14 @@ def test_compute_budget_reset_at_applies_offset():
 
 
 def test_get_budget_reset_time_honors_global_budget_reset_time():
-    orig_tz = getattr(litellm, "timezone", None)
-    orig_rt = getattr(litellm, "budget_reset_time", None)
+    orig_tz = getattr(gateway, "timezone", None)
+    orig_rt = getattr(gateway, "budget_reset_time", None)
     try:
-        litellm.timezone = "UTC"
-        litellm.budget_reset_time = "12:00"
+        gateway.timezone = "UTC"
+        gateway.budget_reset_time = "12:00"
         reset_at = get_budget_reset_time(budget_duration="1d")
         assert reset_at.astimezone(timezone.utc).hour == 12
         assert reset_at.astimezone(timezone.utc).minute == 0
     finally:
-        _restore_attr(litellm, "timezone", orig_tz)
-        _restore_attr(litellm, "budget_reset_time", orig_rt)
+        _restore_attr(gateway, "timezone", orig_tz)
+        _restore_attr(gateway, "budget_reset_time", orig_rt)

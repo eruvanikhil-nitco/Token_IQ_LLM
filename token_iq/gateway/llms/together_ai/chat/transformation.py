@@ -15,7 +15,7 @@ from typing import (
 
 from typing_extensions import ReadOnly, TypedDict
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.exceptions import UnsupportedParamsError
 from token_iq.gateway.router_utils.reasoning_effort_capability import declared_reasoning_efforts_for_model
@@ -36,7 +36,7 @@ def _registry_verdict(model: str, flag: str, check: Callable[[str], bool]) -> bo
             return True
     except Exception as e:
         verbose_logger.debug("Error checking together_ai %s for %s: %s", flag, model, e)
-    registry_entry: Final = litellm.model_cost.get(f"together_ai/{model}")
+    registry_entry: Final = gateway.model_cost.get(f"together_ai/{model}")
     if isinstance(registry_entry, dict) and registry_entry.get(flag) is False:
         return False
     return None
@@ -101,7 +101,7 @@ def _tool_params_to_drop(passed_params: Container[str], model: str, drop_params:
             FUNCTION_CALLING_DOCS_URL,
         )
         return ()
-    if drop_params or litellm.drop_params:
+    if drop_params or gateway.drop_params:
         verbose_logger.warning(
             "together_ai model %s does not support function calling per the model registry; dropping %s. Docs - %s",
             model,
@@ -160,7 +160,7 @@ def _drop_response_format(passed_params: Container[str], model: str, drop_params
             STRUCTURED_OUTPUTS_DOCS_URL,
         )
         return False
-    if drop_params or litellm.drop_params:
+    if drop_params or gateway.drop_params:
         verbose_logger.warning(
             "together_ai model %s does not support structured outputs per the model registry; dropping response_format. Docs - %s",
             model,

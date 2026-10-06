@@ -13,7 +13,7 @@ from typing import Any
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.proxy.utils import ProxyLogging, _CallbackCapabilities
 
@@ -76,7 +76,7 @@ def test_callback_capabilities_detects_overrides(monkeypatch):
     cb2 = _OverridesIterator()
     cb3 = _OverridesPerChunk()
     cb4 = _OverridesPreCall()
-    monkeypatch.setattr(litellm, "callbacks", [cb1, cb2, cb3, cb4])
+    monkeypatch.setattr(gateway, "callbacks", [cb1, cb2, cb3, cb4])
 
     caps = ProxyLogging._callback_capabilities()
     snapshot = {
@@ -95,16 +95,16 @@ def test_callback_capabilities_detects_overrides(monkeypatch):
 
 def test_callback_capabilities_caches_result(monkeypatch):
     cb = _OverridesResponseHeaders()
-    monkeypatch.setattr(litellm, "callbacks", [cb])
+    monkeypatch.setattr(gateway, "callbacks", [cb])
     first = ProxyLogging._callback_capabilities()
     second = ProxyLogging._callback_capabilities()
     assert first is second
 
 
 def test_callback_capabilities_invalidates_on_change(monkeypatch):
-    monkeypatch.setattr(litellm, "callbacks", [_OverridesResponseHeaders()])
+    monkeypatch.setattr(gateway, "callbacks", [_OverridesResponseHeaders()])
     first = ProxyLogging._callback_capabilities()
-    monkeypatch.setattr(litellm, "callbacks", [_OverridesIterator()])
+    monkeypatch.setattr(gateway, "callbacks", [_OverridesIterator()])
     second = ProxyLogging._callback_capabilities()
     assert first is not second
     assert first.has_post_call_response_headers is True
@@ -113,9 +113,9 @@ def test_callback_capabilities_invalidates_on_change(monkeypatch):
 
 
 def test_callback_capabilities_callback_resolution_error_raises(monkeypatch):
-    monkeypatch.setattr(litellm, "callbacks", ["unknown-string"])
+    monkeypatch.setattr(gateway, "callbacks", ["unknown-string"])
     monkeypatch.setattr(
-        litellm.core_utils.litellm_logging,
+        gateway.core_utils.litellm_logging,
         "get_custom_logger_compatible_class",
         lambda *a, **kw: (_ for _ in ()).throw(RuntimeError("bad")),
     )
@@ -133,10 +133,10 @@ def test_has_post_call_response_headers_callbacks_truth_table(monkeypatch, mock_
     snapshot = {
         "empty_returns_false": ProxyLogging.has_post_call_response_headers_callbacks(),
     }
-    monkeypatch.setattr(litellm, "callbacks", [_OverridesResponseHeaders()])
+    monkeypatch.setattr(gateway, "callbacks", [_OverridesResponseHeaders()])
     ProxyLogging._callback_capabilities_cache.clear()
     snapshot["override_returns_true"] = ProxyLogging.has_post_call_response_headers_callbacks()
-    monkeypatch.setattr(litellm, "callbacks", [_PlainLogger()])
+    monkeypatch.setattr(gateway, "callbacks", [_PlainLogger()])
     ProxyLogging._callback_capabilities_cache.clear()
     snapshot["plain_logger_false"] = ProxyLogging.has_post_call_response_headers_callbacks()
     assert snapshot == {
@@ -147,9 +147,9 @@ def test_has_post_call_response_headers_callbacks_truth_table(monkeypatch, mock_
 
 
 def test_has_post_call_response_headers_callbacks_error_when_bad_callback(monkeypatch):
-    monkeypatch.setattr(litellm, "callbacks", ["x"])
+    monkeypatch.setattr(gateway, "callbacks", ["x"])
     monkeypatch.setattr(
-        litellm.core_utils.litellm_logging,
+        gateway.core_utils.litellm_logging,
         "get_custom_logger_compatible_class",
         lambda *a, **kw: (_ for _ in ()).throw(RuntimeError("kaboom")),
     )
@@ -161,10 +161,10 @@ def test_has_streaming_callbacks_truth_table(monkeypatch, mock_callbacks_disable
     snapshot = {
         "empty_false": ProxyLogging.has_streaming_callbacks(),
     }
-    monkeypatch.setattr(litellm, "callbacks", [_OverridesIterator()])
+    monkeypatch.setattr(gateway, "callbacks", [_OverridesIterator()])
     ProxyLogging._callback_capabilities_cache.clear()
     snapshot["iterator_override_true"] = ProxyLogging.has_streaming_callbacks()
-    monkeypatch.setattr(litellm, "callbacks", [_OverridesPerChunk()])
+    monkeypatch.setattr(gateway, "callbacks", [_OverridesPerChunk()])
     ProxyLogging._callback_capabilities_cache.clear()
     snapshot["per_chunk_override_true"] = ProxyLogging.has_streaming_callbacks()
     assert snapshot == {
@@ -175,9 +175,9 @@ def test_has_streaming_callbacks_truth_table(monkeypatch, mock_callbacks_disable
 
 
 def test_has_streaming_callbacks_error_when_resolution_fails(monkeypatch):
-    monkeypatch.setattr(litellm, "callbacks", ["x"])
+    monkeypatch.setattr(gateway, "callbacks", ["x"])
     monkeypatch.setattr(
-        litellm.core_utils.litellm_logging,
+        gateway.core_utils.litellm_logging,
         "get_custom_logger_compatible_class",
         lambda *a, **kw: (_ for _ in ()).throw(ValueError("nope")),
     )
@@ -189,10 +189,10 @@ def test_has_streaming_chunk_hook_overrides_truth_table(monkeypatch, mock_callba
     snapshot = {
         "empty_false": ProxyLogging.has_streaming_chunk_hook_overrides(),
     }
-    monkeypatch.setattr(litellm, "callbacks", [_OverridesPerChunk()])
+    monkeypatch.setattr(gateway, "callbacks", [_OverridesPerChunk()])
     ProxyLogging._callback_capabilities_cache.clear()
     snapshot["per_chunk_override_true"] = ProxyLogging.has_streaming_chunk_hook_overrides()
-    monkeypatch.setattr(litellm, "callbacks", [_OverridesIterator()])
+    monkeypatch.setattr(gateway, "callbacks", [_OverridesIterator()])
     ProxyLogging._callback_capabilities_cache.clear()
     snapshot["only_iterator_false"] = ProxyLogging.has_streaming_chunk_hook_overrides()
     assert snapshot == {
@@ -203,9 +203,9 @@ def test_has_streaming_chunk_hook_overrides_truth_table(monkeypatch, mock_callba
 
 
 def test_has_streaming_chunk_hook_overrides_error_raises(monkeypatch):
-    monkeypatch.setattr(litellm, "callbacks", ["x"])
+    monkeypatch.setattr(gateway, "callbacks", ["x"])
     monkeypatch.setattr(
-        litellm.core_utils.litellm_logging,
+        gateway.core_utils.litellm_logging,
         "get_custom_logger_compatible_class",
         lambda *a, **kw: (_ for _ in ()).throw(TypeError("nope")),
     )
@@ -217,10 +217,10 @@ def test_needs_iterator_wrap_truth_table(proxy_logging, monkeypatch, mock_callba
     snapshot = {
         "empty_false": proxy_logging.needs_iterator_wrap(),
     }
-    monkeypatch.setattr(litellm, "callbacks", [_OverridesIterator()])
+    monkeypatch.setattr(gateway, "callbacks", [_OverridesIterator()])
     ProxyLogging._callback_capabilities_cache.clear()
     snapshot["with_iter_override_true"] = proxy_logging.needs_iterator_wrap()
-    monkeypatch.setattr(litellm, "callbacks", [_OverridesPerChunk()])
+    monkeypatch.setattr(gateway, "callbacks", [_OverridesPerChunk()])
     ProxyLogging._callback_capabilities_cache.clear()
     snapshot["only_per_chunk_false"] = proxy_logging.needs_iterator_wrap()
     assert snapshot == {
@@ -231,9 +231,9 @@ def test_needs_iterator_wrap_truth_table(proxy_logging, monkeypatch, mock_callba
 
 
 def test_needs_iterator_wrap_error_raises(proxy_logging, monkeypatch):
-    monkeypatch.setattr(litellm, "callbacks", ["x"])
+    monkeypatch.setattr(gateway, "callbacks", ["x"])
     monkeypatch.setattr(
-        litellm.core_utils.litellm_logging,
+        gateway.core_utils.litellm_logging,
         "get_custom_logger_compatible_class",
         lambda *a, **kw: (_ for _ in ()).throw(RuntimeError("oops")),
     )
@@ -245,10 +245,10 @@ def test_needs_per_chunk_streaming_hook_truth_table(proxy_logging, monkeypatch, 
     snapshot = {
         "empty_false": proxy_logging.needs_per_chunk_streaming_hook(),
     }
-    monkeypatch.setattr(litellm, "callbacks", [_OverridesPerChunk()])
+    monkeypatch.setattr(gateway, "callbacks", [_OverridesPerChunk()])
     ProxyLogging._callback_capabilities_cache.clear()
     snapshot["per_chunk_override_true"] = proxy_logging.needs_per_chunk_streaming_hook()
-    monkeypatch.setattr(litellm, "callbacks", [_OverridesIterator()])
+    monkeypatch.setattr(gateway, "callbacks", [_OverridesIterator()])
     ProxyLogging._callback_capabilities_cache.clear()
     snapshot["only_iter_override_false"] = proxy_logging.needs_per_chunk_streaming_hook()
     assert snapshot == {
@@ -259,9 +259,9 @@ def test_needs_per_chunk_streaming_hook_truth_table(proxy_logging, monkeypatch, 
 
 
 def test_needs_per_chunk_streaming_hook_error_raises(proxy_logging, monkeypatch):
-    monkeypatch.setattr(litellm, "callbacks", ["x"])
+    monkeypatch.setattr(gateway, "callbacks", ["x"])
     monkeypatch.setattr(
-        litellm.core_utils.litellm_logging,
+        gateway.core_utils.litellm_logging,
         "get_custom_logger_compatible_class",
         lambda *a, **kw: (_ for _ in ()).throw(KeyError("oops")),
     )
@@ -279,10 +279,10 @@ def test_has_during_call_guardrails_truth_table(monkeypatch, mock_callbacks_disa
     snapshot = {
         "empty_false": ProxyLogging.has_during_call_guardrails(),
     }
-    monkeypatch.setattr(litellm, "callbacks", [_G()])
+    monkeypatch.setattr(gateway, "callbacks", [_G()])
     ProxyLogging._callback_capabilities_cache.clear()
     snapshot["with_guardrail_true"] = ProxyLogging.has_during_call_guardrails()
-    monkeypatch.setattr(litellm, "callbacks", [_PlainLogger()])
+    monkeypatch.setattr(gateway, "callbacks", [_PlainLogger()])
     ProxyLogging._callback_capabilities_cache.clear()
     snapshot["only_plain_logger_false"] = ProxyLogging.has_during_call_guardrails()
     assert snapshot == {
@@ -293,9 +293,9 @@ def test_has_during_call_guardrails_truth_table(monkeypatch, mock_callbacks_disa
 
 
 def test_has_during_call_guardrails_resolution_error_raises(monkeypatch):
-    monkeypatch.setattr(litellm, "callbacks", ["x"])
+    monkeypatch.setattr(gateway, "callbacks", ["x"])
     monkeypatch.setattr(
-        litellm.core_utils.litellm_logging,
+        gateway.core_utils.litellm_logging,
         "get_custom_logger_compatible_class",
         lambda *a, **kw: (_ for _ in ()).throw(RuntimeError("oops")),
     )

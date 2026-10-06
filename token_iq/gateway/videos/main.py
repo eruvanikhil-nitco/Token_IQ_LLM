@@ -7,7 +7,7 @@ from typing import Final, Literal, overload
 
 from httpx._types import FileContent
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.constants import DEFAULT_VIDEO_ENDPOINT_MODEL
 from token_iq.gateway.constants import request_timeout as DEFAULT_REQUEST_TIMEOUT
 from token_iq.gateway.core_utils.get_llm_provider_logic import get_llm_provider
@@ -75,7 +75,7 @@ async def avideo_generation(
 
         # get custom llm provider so we can use this for mapping exceptions
         if custom_llm_provider is None:
-            _, custom_llm_provider, _, _ = litellm.get_llm_provider(
+            _, custom_llm_provider, _, _ = gateway.get_llm_provider(
                 model=model or DEFAULT_VIDEO_ENDPOINT_MODEL,
                 api_base=local_vars.get("api_base", None),
             )
@@ -107,7 +107,7 @@ async def avideo_generation(
 
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=model,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -208,7 +208,7 @@ def video_generation(
         # get provider config
         video_generation_provider_config: BaseVideoConfig | None = ProviderConfigManager.get_provider_video_config(
             model=model,
-            provider=litellm.LlmProviders(custom_llm_provider),
+            provider=gateway.LlmProviders(custom_llm_provider),
         )
 
         if video_generation_provider_config is None:
@@ -260,7 +260,7 @@ def video_generation(
         )
 
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=model or DEFAULT_VIDEO_ENDPOINT_MODEL,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -301,7 +301,7 @@ def video_content(
 
     Example:
         ```python
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         video_bytes = litellm.video_content(
             video_id="video_123"
@@ -328,7 +328,7 @@ def video_content(
         # get provider config
         video_provider_config: Final[BaseVideoConfig | None] = ProviderConfigManager.get_provider_video_config(
             model=None,
-            provider=litellm.LlmProviders(custom_llm_provider),
+            provider=gateway.LlmProviders(custom_llm_provider),
         )
 
         if video_provider_config is None:
@@ -369,7 +369,7 @@ def video_content(
         )
 
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model="",
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -440,7 +440,7 @@ async def avideo_content(
 
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model="",
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -507,7 +507,7 @@ async def avideo_remix(
 
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model="",
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -597,7 +597,7 @@ def video_remix(
         # get provider config
         video_remix_provider_config: Final[BaseVideoConfig | None] = ProviderConfigManager.get_provider_video_config(
             model=None,
-            provider=litellm.LlmProviders(custom_llm_provider),
+            provider=gateway.LlmProviders(custom_llm_provider),
         )
 
         if video_remix_provider_config is None:
@@ -642,7 +642,7 @@ def video_remix(
         )
 
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model="",
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -692,7 +692,7 @@ async def avideo_list(
 
         # get custom llm provider so we can use this for mapping exceptions
         if custom_llm_provider is None:
-            _, custom_llm_provider, _, _ = litellm.get_llm_provider(model="", api_base=local_vars.get("api_base", None))
+            _, custom_llm_provider, _, _ = gateway.get_llm_provider(model="", api_base=local_vars.get("api_base", None))
 
         func: Final = partial(
             video_list,
@@ -719,7 +719,7 @@ async def avideo_list(
 
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model="",
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -809,7 +809,7 @@ def video_list(
         # get provider config
         video_list_provider_config: Final[BaseVideoConfig | None] = ProviderConfigManager.get_provider_video_config(
             model=None,
-            provider=litellm.LlmProviders(custom_llm_provider),
+            provider=gateway.LlmProviders(custom_llm_provider),
         )
 
         if video_list_provider_config is None:
@@ -856,7 +856,7 @@ def video_list(
         )
 
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model="",
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -921,7 +921,7 @@ async def avideo_status(
 
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model="",
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -993,7 +993,7 @@ def video_status(
 
     Example:
         ```python
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         # Get video status
         video_status = litellm.video_status(
@@ -1030,7 +1030,7 @@ def video_status(
         # get provider config
         video_status_provider_config: Final[BaseVideoConfig | None] = ProviderConfigManager.get_provider_video_config(
             model=None,
-            provider=litellm.LlmProviders(custom_llm_provider),
+            provider=gateway.LlmProviders(custom_llm_provider),
         )
 
         if video_status_provider_config is None:
@@ -1073,7 +1073,7 @@ def video_status(
         )
 
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model="",
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -1128,7 +1128,7 @@ async def avideo_create_character(
 
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model="",
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -1171,7 +1171,7 @@ def video_create_character(
 
         provider_config: Final[BaseVideoConfig | None] = ProviderConfigManager.get_provider_video_config(
             model=None,
-            provider=litellm.LlmProviders(custom_llm_provider),
+            provider=gateway.LlmProviders(custom_llm_provider),
         )
 
         if provider_config is None:
@@ -1204,7 +1204,7 @@ def video_create_character(
         )
 
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model="",
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -1254,7 +1254,7 @@ async def avideo_get_character(
 
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model="",
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -1296,7 +1296,7 @@ def video_get_character(
 
         provider_config: Final[BaseVideoConfig | None] = ProviderConfigManager.get_provider_video_config(
             model=None,
-            provider=litellm.LlmProviders(custom_llm_provider),
+            provider=gateway.LlmProviders(custom_llm_provider),
         )
 
         if provider_config is None:
@@ -1328,7 +1328,7 @@ def video_get_character(
         )
 
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model="",
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -1383,7 +1383,7 @@ async def avideo_edit(
 
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model="",
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -1429,7 +1429,7 @@ def video_edit(
 
         provider_config: Final[BaseVideoConfig | None] = ProviderConfigManager.get_provider_video_config(
             model=None,
-            provider=litellm.LlmProviders(custom_llm_provider),
+            provider=gateway.LlmProviders(custom_llm_provider),
         )
 
         if provider_config is None:
@@ -1464,7 +1464,7 @@ def video_edit(
         )
 
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model="",
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -1518,7 +1518,7 @@ async def avideo_extension(
 
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model="",
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -1563,7 +1563,7 @@ def video_extension(
 
         provider_config: Final[BaseVideoConfig | None] = ProviderConfigManager.get_provider_video_config(
             model=None,
-            provider=litellm.LlmProviders(custom_llm_provider),
+            provider=gateway.LlmProviders(custom_llm_provider),
         )
 
         if provider_config is None:
@@ -1602,7 +1602,7 @@ def video_extension(
         )
 
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model="",
             custom_llm_provider=custom_llm_provider,
             original_exception=e,

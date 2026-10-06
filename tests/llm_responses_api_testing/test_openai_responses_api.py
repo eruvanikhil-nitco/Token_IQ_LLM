@@ -9,7 +9,7 @@ from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggin
 import time
 import json
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.types.utils import StandardLoggingPayload
 from token_iq.gateway.types.llms.openai import (
@@ -97,12 +97,12 @@ def validate_standard_logging_payload(
 
 @pytest.mark.asyncio
 def test_basic_openai_responses_api_streaming_with_logging():
-    litellm._turn_on_debug()
-    litellm.set_verbose = True
+    gateway._turn_on_debug()
+    gateway.set_verbose = True
     test_custom_logger = TestCustomLogger()
-    litellm.callbacks = [test_custom_logger]
+    gateway.callbacks = [test_custom_logger]
     request_model = "gpt-5.5"
-    response = litellm.responses(
+    response = gateway.responses(
         model=request_model,
         input="hi",
         stream=True,
@@ -169,12 +169,12 @@ def validate_responses_match(slp_response, litellm_response):
 
 @pytest.mark.asyncio
 async def test_basic_openai_responses_api_non_streaming_with_logging():
-    litellm._turn_on_debug()
-    litellm.set_verbose = True
+    gateway._turn_on_debug()
+    gateway.set_verbose = True
     test_custom_logger = TestCustomLogger()
-    litellm.callbacks = [test_custom_logger]
+    gateway.callbacks = [test_custom_logger]
     request_model = "gpt-5.5"
-    response = await litellm.aresponses(
+    response = await gateway.aresponses(
         model=request_model,
         input="hi",
     )
@@ -207,17 +207,17 @@ async def test_openai_responses_api_returns_headers(sync_mode):
 
     Related issue: LiteLLM responses API should return OpenAI headers like chat completions does
     """
-    litellm._turn_on_debug()
-    litellm.set_verbose = True
+    gateway._turn_on_debug()
+    gateway.set_verbose = True
 
     if sync_mode:
-        response = litellm.responses(
+        response = gateway.responses(
             model="gpt-5.5",
             input="Say hello",
             max_output_tokens=20,
         )
     else:
-        response = await litellm.aresponses(
+        response = await gateway.aresponses(
             model="gpt-5.5",
             input="Say hello",
             max_output_tokens=20,
@@ -462,12 +462,12 @@ def validate_stream_event(event):
 @pytest.mark.asyncio
 async def test_openai_responses_api_streaming_validation(sync_mode):
     """Test that validates each streaming event from the responses API"""
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
 
     event_types_seen = set()
 
     if sync_mode:
-        response = litellm.responses(
+        response = gateway.responses(
             model="gpt-5.5",
             input="Tell me about artificial intelligence in 3 sentences.",
             stream=True,
@@ -477,7 +477,7 @@ async def test_openai_responses_api_streaming_validation(sync_mode):
             validate_stream_event(event)
             event_types_seen.add(event.type)
     else:
-        response = await litellm.aresponses(
+        response = await gateway.aresponses(
             model="gpt-5.5",
             input="Tell me about artificial intelligence in 3 sentences.",
             stream=True,
@@ -502,8 +502,8 @@ async def test_openai_responses_litellm_router(sync_mode):
     """
     Test the OpenAI responses API with LiteLLM Router in both sync and async modes
     """
-    litellm._turn_on_debug()
-    router = litellm.Router(
+    gateway._turn_on_debug()
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "gpt4o-special-alias",
@@ -547,8 +547,8 @@ async def test_openai_responses_litellm_router_streaming(sync_mode):
     """
     Test the OpenAI responses API with streaming through LiteLLM Router
     """
-    litellm._turn_on_debug()
-    router = litellm.Router(
+    gateway._turn_on_debug()
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "gpt4o-special-alias",
@@ -655,8 +655,8 @@ async def test_openai_responses_litellm_router_no_metadata():
         # Configure the mock to return our response
         mock_post.return_value = MockResponse(mock_response, 200)
 
-        litellm._turn_on_debug()
-        router = litellm.Router(
+        gateway._turn_on_debug()
+        router = gateway.Router(
             model_list=[
                 {
                     "model_name": "gpt4o-special-alias",
@@ -753,8 +753,8 @@ async def test_openai_responses_litellm_router_with_metadata():
         # Configure the mock to return our response
         mock_post.return_value = MockResponse(mock_response, 200)
 
-        litellm._turn_on_debug()
-        router = litellm.Router(
+        gateway._turn_on_debug()
+        router = gateway.Router(
             model_list=[
                 {
                     "model_name": "gpt4o-special-alias",
@@ -835,8 +835,8 @@ async def test_openai_responses_litellm_router_with_prompt():
     ) as mock_post:
         mock_post.return_value = MockResponse(mock_response, 200)
 
-        litellm._turn_on_debug()
-        router = litellm.Router(
+        gateway._turn_on_debug()
+        router = gateway.Router(
             model_list=[
                 {
                     "model_name": "gpt4o-special-alias",
@@ -862,9 +862,9 @@ async def test_openai_responses_litellm_router_with_prompt():
 def test_bad_request_bad_param_error():
     """Raise a BadRequestError when an invalid parameter value is provided"""
     try:
-        litellm.responses(model="gpt-5.5", input="This should fail", temperature=2000)
+        gateway.responses(model="gpt-5.5", input="This should fail", temperature=2000)
         pytest.fail("Expected BadRequestError but no exception was raised")
-    except litellm.BadRequestError as e:
+    except gateway.BadRequestError as e:
         print(f"Exception raised: {e}")
         print(f"Exception type: {type(e)}")
         print(f"Exception args: {e.args}")
@@ -877,11 +877,11 @@ def test_bad_request_bad_param_error():
 async def test_async_bad_request_bad_param_error():
     """Raise a BadRequestError when an invalid parameter value is provided"""
     try:
-        await litellm.aresponses(
+        await gateway.aresponses(
             model="gpt-5.5", input="This should fail", temperature=2000
         )
         pytest.fail("Expected BadRequestError but no exception was raised")
-    except litellm.BadRequestError as e:
+    except gateway.BadRequestError as e:
         print(f"Exception raised: {e}")
         print(f"Exception type: {type(e)}")
         print(f"Exception args: {e.args}")
@@ -953,11 +953,11 @@ async def test_openai_o1_pro_response_api(sync_mode):
         # Configure the mock to return our response
         mock_post.return_value = MockResponse(mock_response, 200)
 
-        litellm._turn_on_debug()
-        litellm.set_verbose = True
+        gateway._turn_on_debug()
+        gateway.set_verbose = True
 
         # Call o1-pro with max_output_tokens=20
-        response = await litellm.aresponses(
+        response = await gateway.aresponses(
             model="openai/o1-pro",
             input="Write a detailed essay about artificial intelligence and its impact on society",
             max_output_tokens=20,
@@ -1050,8 +1050,8 @@ async def test_openai_o1_pro_response_api_streaming(sync_mode):
         # Configure the mock to return our response
         mock_post.return_value = MockResponse(mock_response, 200)
 
-        litellm._turn_on_debug()
-        litellm.set_verbose = True
+        gateway._turn_on_debug()
+        gateway.set_verbose = True
 
         # Verify the request was made correctly
         if sync_mode:
@@ -1060,7 +1060,7 @@ async def test_openai_o1_pro_response_api_streaming(sync_mode):
                 "token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post",
                 return_value=MockResponse(mock_response, 200),
             ) as mock_sync_post:
-                response = litellm.responses(
+                response = gateway.responses(
                     model="openai/o1-pro",
                     input="Write a detailed essay about artificial intelligence and its impact on society",
                     max_output_tokens=20,
@@ -1084,7 +1084,7 @@ async def test_openai_o1_pro_response_api_streaming(sync_mode):
                 assert "stream" not in request_body
         else:
             # For async mode
-            response = await litellm.aresponses(
+            response = await gateway.aresponses(
                 model="openai/o1-pro",
                 input="Write a detailed essay about artificial intelligence and its impact on society",
                 max_output_tokens=20,
@@ -1168,11 +1168,11 @@ def test_basic_computer_use_preview_tool_call():
         "token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post",
         return_value=MockResponse(mock_response, 200),
     ) as mock_post:
-        litellm._turn_on_debug()
-        litellm.set_verbose = True
+        gateway._turn_on_debug()
+        gateway.set_verbose = True
 
         # Call the responses API with computer_use_preview tool
-        response = litellm.responses(
+        response = gateway.responses(
             model="openai/computer-use-preview",
             tools=[
                 {
@@ -1209,7 +1209,7 @@ def test_basic_computer_use_preview_tool_call():
 
 
 def test_mcp_tools_with_responses_api():
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
     MCP_TOOLS = [
         {
             "type": "mcp",
@@ -1225,7 +1225,7 @@ def test_mcp_tools_with_responses_api():
     #########################################################
     # Step 1: OpenAI will use MCP LIST, and return a list of MCP calls for our approval
     try:
-        response = litellm.responses(model=MODEL, tools=MCP_TOOLS, input=USER_QUERY)
+        response = gateway.responses(model=MODEL, tools=MCP_TOOLS, input=USER_QUERY)
         print(response)
 
         response = cast(ResponsesAPIResponse, response)
@@ -1238,7 +1238,7 @@ def test_mcp_tools_with_responses_api():
 
         # Step 2: Send followup with approval for the MCP call
         if mcp_approval_id:
-            response_with_mcp_call = litellm.responses(
+            response_with_mcp_call = gateway.responses(
                 model=MODEL,
                 tools=MCP_TOOLS,
                 input=[
@@ -1251,7 +1251,7 @@ def test_mcp_tools_with_responses_api():
                 previous_response_id=response.id,
             )
             print(response_with_mcp_call)
-    except litellm.APIError as e:
+    except gateway.APIError as e:
         if (
             "424" in str(e)
             or "Failed Dependency" in str(e)
@@ -1260,7 +1260,7 @@ def test_mcp_tools_with_responses_api():
             pytest.skip(f"Skipping test due to external MCP server error: {e}")
         else:
             raise e
-    except litellm.InternalServerError as e:
+    except gateway.InternalServerError as e:
         if "500" in str(e) or "server_error" in str(e):
             pytest.skip(
                 f"Skipping test due to OpenAI server error (likely MCP server unavailable): {e}"
@@ -1272,11 +1272,11 @@ def test_mcp_tools_with_responses_api():
 @pytest.mark.asyncio
 async def test_openai_responses_api_field_types():
     """Test that specific fields in the response have the correct types"""
-    litellm._turn_on_debug()
-    litellm.set_verbose = True
+    gateway._turn_on_debug()
+    gateway.set_verbose = True
 
     # Test with store=True
-    response = await litellm.aresponses(
+    response = await gateway.aresponses(
         model="gpt-5.5",
         input="hi",
     )
@@ -1289,7 +1289,7 @@ async def test_openai_responses_api_field_types():
     assert response.store is True, "store field should match input value"
 
     # Test without store parameter
-    response_without_store = await litellm.aresponses(model="gpt-5.5", input="hi")
+    response_without_store = await gateway.aresponses(model="gpt-5.5", input="hi")
 
     # Verify created_at is still an integer
     assert isinstance(
@@ -1476,11 +1476,11 @@ async def test_aresponses_service_tier_and_safety_identifier():
         # Configure the mock to return our response
         mock_post.return_value = MockResponse(mock_response, 200)
 
-        litellm._turn_on_debug()
-        litellm.set_verbose = True
+        gateway._turn_on_debug()
+        gateway.set_verbose = True
 
         # Call aresponses with service_tier and safety_identifier
-        response = await litellm.aresponses(
+        response = await gateway.aresponses(
             model="openai/gpt-5.5",
             input="Test with service tier and safety identifier",
             service_tier="flex",
@@ -1573,11 +1573,11 @@ async def test_openai_gpt5_reasoning_effort_parameter():
         # Configure the mock to return our response
         mock_post.return_value = MockResponse(mock_response, 200)
 
-        litellm._turn_on_debug()
-        litellm.set_verbose = True
+        gateway._turn_on_debug()
+        gateway.set_verbose = True
 
         # Call aresponses with reasoning_effort parameter
-        response = await litellm.aresponses(
+        response = await gateway.aresponses(
             model="openai/gpt-5-mini",
             input="What is the capital of France?",
             reasoning={"effort": "minimal"},
@@ -1605,9 +1605,9 @@ async def test_openai_gpt5_reasoning_effort_parameter():
 @pytest.mark.asyncio
 @pytest.mark.parametrize("stream", [True, False])
 async def test_basic_openai_responses_with_websearch(stream):
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
     request_model = "gpt-5.5"
-    response = await litellm.aresponses(
+    response = await gateway.aresponses(
         model=request_model,
         stream=stream,
         input="hi",
@@ -1631,12 +1631,12 @@ async def test_openai_responses_api_token_limit_error():
     (invalid_request_error is a non-retriable client error, so no
     MidStreamFallbackError wrapping) carrying the provider's message.
     """
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
 
     # Generate text with >400k tokens to trigger token limit error
     oversized_text = "This is a test sentence. " * 50000  # ~400k tokens
 
-    response = await litellm.aresponses(
+    response = await gateway.aresponses(
         model="gpt-5-mini", input=oversized_text, stream=True
     )
 
@@ -1644,7 +1644,7 @@ async def test_openai_responses_api_token_limit_error():
         async for event in response:
             print(event)
 
-    with pytest.raises(litellm.APIError) as exc_info:
+    with pytest.raises(gateway.APIError) as exc_info:
         await _drain()
 
     assert exc_info.value.status_code == 400
@@ -1653,7 +1653,7 @@ async def test_openai_responses_api_token_limit_error():
 
 async def test_openai_streaming_logging():
     """Test that OpenAI Responses API streaming logging is working correctly."""
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
     from token_iq.gateway.integrations.custom_logger import CustomLogger
     from token_iq.gateway.types.utils import Usage
 
@@ -1682,9 +1682,9 @@ async def test_openai_streaming_logging():
             self.validate_usage = True
 
     tcl = TestCustomLogger()
-    litellm.callbacks = [tcl]
+    gateway.callbacks = [tcl]
     request_model = "gpt-5-mini"
-    response = await litellm.aresponses(
+    response = await gateway.aresponses(
         model=request_model,
         input="What is the capital of France?",
         stream=True,
@@ -1750,7 +1750,7 @@ async def test_aresponses_extra_body_params_passed(extra_body_mock_response_data
     ) as mock_post:
         mock_post.return_value = MockResponse(extra_body_mock_response_data, 200)
 
-        response = await litellm.aresponses(
+        response = await gateway.aresponses(
             model="gpt-5.5",
             input="Test input",
             max_output_tokens=20,
@@ -1782,7 +1782,7 @@ def test_responses_extra_body_params_passed_sync(extra_body_mock_response_data):
         "token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post",
         return_value=MockResponse(extra_body_mock_response_data, 200),
     ) as mock_post:
-        response = litellm.responses(
+        response = gateway.responses(
             model="gpt-5.5",
             input="Sync test",
             max_output_tokens=20,
@@ -1813,7 +1813,7 @@ async def test_extra_body_merges_with_request_data(extra_body_mock_response_data
     ) as mock_post:
         mock_post.return_value = MockResponse(extra_body_mock_response_data, 200)
 
-        await litellm.aresponses(
+        await gateway.aresponses(
             model="gpt-5.5",
             input="Test",
             temperature=1,
@@ -1839,8 +1839,8 @@ async def test_openai_compact_responses_api(sync_mode):
     This test verifies that the compact_responses endpoint works correctly
     for compressing conversation history.
     """
-    litellm._turn_on_debug()
-    litellm.set_verbose = True
+    gateway._turn_on_debug()
+    gateway.set_verbose = True
 
     input_messages = [
         {"role": "user", "content": "Hello, how are you?"},
@@ -1850,20 +1850,20 @@ async def test_openai_compact_responses_api(sync_mode):
 
     try:
         if sync_mode:
-            response = litellm.compact_responses(
+            response = gateway.compact_responses(
                 model="openai/gpt-5.5",
                 input=input_messages,
                 instructions="Be helpful and concise",
             )
         else:
-            response = await litellm.acompact_responses(
+            response = await gateway.acompact_responses(
                 model="openai/gpt-5.5",
                 input=input_messages,
                 instructions="Be helpful and concise",
             )
-    except litellm.InternalServerError:
+    except gateway.InternalServerError:
         pytest.skip("Skipping test due to InternalServerError")
-    except litellm.BadRequestError as e:
+    except gateway.BadRequestError as e:
         # compact_responses may not be available for all models/accounts
         pytest.skip(f"Skipping test due to BadRequestError: {e}")
 

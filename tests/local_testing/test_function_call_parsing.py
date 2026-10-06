@@ -13,7 +13,7 @@ from typing import List
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import completion
 
 
@@ -131,7 +131,7 @@ def trade(model_name: str) -> List[Trade]:  # type: ignore
         calls = response.choices[0].message.tool_calls
         trades = [trade for call in calls for trade in parse_call(call)]
         return trades
-    except litellm.InternalServerError:
+    except gateway.InternalServerError:
         pass
 
 

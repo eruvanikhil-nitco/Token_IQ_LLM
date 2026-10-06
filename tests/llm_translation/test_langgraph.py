@@ -23,7 +23,7 @@ import os
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 
 @pytest.mark.asyncio
@@ -35,7 +35,7 @@ async def test_langgraph_acompletion_non_streaming():
     api_base = os.environ.get("LANGGRAPH_API_BASE", "http://localhost:2024")
 
     try:
-        response = await litellm.acompletion(
+        response = await gateway.acompletion(
             model="langgraph/agent",
             messages=[{"role": "user", "content": "What is 25 * 4?"}],
             api_base=api_base,
@@ -62,7 +62,7 @@ async def test_langgraph_acompletion_streaming():
     api_base = os.environ.get("LANGGRAPH_API_BASE", "http://localhost:2024")
 
     try:
-        response = await litellm.acompletion(
+        response = await gateway.acompletion(
             model="langgraph/agent",
             messages=[{"role": "user", "content": "What is the weather in Tokyo?"}],
             api_base=api_base,

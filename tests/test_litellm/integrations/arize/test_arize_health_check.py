@@ -11,7 +11,7 @@ from unittest.mock import patch, MagicMock
 import asyncio
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.integrations.arize.arize import ArizeLogger
 from token_iq.gateway.types.utils import StandardCallbackDynamicParams
 
@@ -91,15 +91,15 @@ class TestArizeIntegrationWithProxy:
 
             # Store original callbacks
             original_callbacks = (
-                litellm.success_callback.copy() if litellm.success_callback else []
+                gateway.success_callback.copy() if gateway.success_callback else []
             )
 
             try:
                 # Add ArizeLogger to callbacks
-                litellm.success_callback = [arize_logger]
+                gateway.success_callback = [arize_logger]
 
                 # Make completion request
-                response = await litellm.acompletion(
+                response = await gateway.acompletion(
                     model="openai/litellm-mock-response-model",
                     messages=[
                         {
@@ -123,7 +123,7 @@ class TestArizeIntegrationWithProxy:
 
             finally:
                 # Restore original callbacks
-                litellm.success_callback = original_callbacks
+                gateway.success_callback = original_callbacks
 
     def test_arize_get_config(self):
         """Test ArizeLogger.get_arize_config() method."""

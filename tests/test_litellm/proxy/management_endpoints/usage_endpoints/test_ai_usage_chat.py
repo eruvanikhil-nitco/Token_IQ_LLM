@@ -215,7 +215,7 @@ class TestStreamUsageAiChat:
 
         with (
             patch(
-                "token_iq.gateway.proxy.management_endpoints.usage_endpoints.ai_usage_chat.litellm"
+                "token_iq.gateway.proxy.management_endpoints.usage_endpoints.ai_usage_chat.gateway"
             ) as mock_litellm,
             patch(
                 "token_iq.gateway.proxy.management_endpoints.usage_endpoints.ai_usage_chat._fetch_usage_data",
@@ -290,7 +290,7 @@ class TestStreamUsageAiChat:
 
         with (
             patch(
-                "token_iq.gateway.proxy.management_endpoints.usage_endpoints.ai_usage_chat.litellm"
+                "token_iq.gateway.proxy.management_endpoints.usage_endpoints.ai_usage_chat.gateway"
             ) as mock_litellm,
             patch(
                 "token_iq.gateway.proxy.management_endpoints.usage_endpoints.ai_usage_chat._fetch_team_usage_data",
@@ -320,7 +320,7 @@ class TestStreamUsageAiChat:
     @pytest.mark.asyncio
     async def test_stream_handles_error(self):
         with patch(
-            "token_iq.gateway.proxy.management_endpoints.usage_endpoints.ai_usage_chat.litellm"
+            "token_iq.gateway.proxy.management_endpoints.usage_endpoints.ai_usage_chat.gateway"
         ) as mock_litellm:
             mock_litellm.acompletion = AsyncMock(side_effect=Exception("LLM error"))
 
@@ -375,7 +375,7 @@ class TestStreamUsageAiChat:
 
         with (
             patch(
-                "token_iq.gateway.proxy.management_endpoints.usage_endpoints.ai_usage_chat.litellm"
+                "token_iq.gateway.proxy.management_endpoints.usage_endpoints.ai_usage_chat.gateway"
             ) as mock_litellm,
             patch.dict(
                 "token_iq.gateway.proxy.management_endpoints.usage_endpoints.ai_usage_chat.TOOL_HANDLERS",

@@ -8,7 +8,7 @@ from unittest.mock import MagicMock
 import pytest
 from token_iq.gateway.router import Router
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from base_anthropic_unified_messages_test import BaseAnthropicMessagesTest
 
 INSTANCE_BASE_ANTHROPIC_MESSAGES_TEST = BaseAnthropicMessagesTest()
@@ -20,7 +20,7 @@ async def test_anthropic_messages_litellm_router_bedrock():
     Test the anthropic_messages with non-streaming request
     """
 
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
     router = Router(
         model_list=[
             {

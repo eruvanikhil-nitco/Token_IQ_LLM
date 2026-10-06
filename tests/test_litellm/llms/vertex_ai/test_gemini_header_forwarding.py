@@ -7,7 +7,7 @@ forward_client_headers_to_llm_api were not being passed to Gemini/Vertex AI prov
 
 import pytest
 from unittest.mock import Mock, patch, MagicMock
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import completion
 
 

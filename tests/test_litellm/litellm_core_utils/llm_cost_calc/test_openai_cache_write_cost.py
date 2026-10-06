@@ -12,7 +12,7 @@ discarded by ``get_model_info``.
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.llm_cost_calc.utils import generic_cost_per_token
 from token_iq.gateway.responses.utils import ResponseAPILoggingUtils
 from token_iq.gateway.types.utils import Usage
@@ -35,7 +35,7 @@ def _openai_chat_usage(prompt_tokens: int, cache_write_tokens: int, completion_t
 def test_openai_cache_write_tokens_billed_at_the_cache_creation_rate(local_model_cost_map):
     """A cache-write request costs the cache-creation rate on the written tokens,
     not the plain input rate."""
-    rates = litellm.model_cost[MODEL]
+    rates = gateway.model_cost[MODEL]
     input_rate = rates["input_cost_per_token"]
     cache_write_rate = rates["cache_creation_input_token_cost"]
     output_rate = rates["output_cost_per_token"]
@@ -88,7 +88,7 @@ def test_responses_api_cache_write_costs_the_same_as_chat(local_model_cost_map):
         custom_llm_provider="openai",
     )
 
-    rates = litellm.model_cost[MODEL]
+    rates = gateway.model_cost[MODEL]
     fresh_tokens = prompt_tokens - cache_write_tokens
     assert responses_prompt_cost == pytest.approx(
         fresh_tokens * rates["input_cost_per_token"]
@@ -112,8 +112,8 @@ def test_tiered_cache_creation_rates_are_registered_and_billed(
 ):
     """The tiered cache-creation keys survive ``get_model_info`` and are the rate the
     cost path actually charges for priority, flex, and >272k requests."""
-    model_info = litellm.get_model_info(model=MODEL, custom_llm_provider="openai")
-    tiered_rate = litellm.model_cost[MODEL][rate_key]
+    model_info = gateway.get_model_info(model=MODEL, custom_llm_provider="openai")
+    tiered_rate = gateway.model_cost[MODEL][rate_key]
     assert model_info.get(rate_key) == tiered_rate
 
     cache_write_tokens = prompt_tokens - 1000
@@ -124,7 +124,7 @@ def test_tiered_cache_creation_rates_are_registered_and_billed(
         "cache_creation_input_token_cost_flex": "input_cost_per_token_flex",
         "cache_creation_input_token_cost_above_272k_tokens": "input_cost_per_token_above_272k_tokens",
     }[rate_key]
-    input_rate = litellm.model_cost[MODEL][input_rate_key]
+    input_rate = gateway.model_cost[MODEL][input_rate_key]
 
     prompt_cost, _ = generic_cost_per_token(
         model=MODEL,

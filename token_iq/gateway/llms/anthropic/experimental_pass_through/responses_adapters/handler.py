@@ -7,7 +7,7 @@ Used when the target model is an OpenAI or Azure model.
 from collections.abc import AsyncIterator, Coroutine, Mapping
 from typing import Any, Final, TypeAlias
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.types.llms.anthropic import (
     AllAnthropicMessageValues,
     AllAnthropicToolsValues,
@@ -182,7 +182,7 @@ class LiteLLMMessagesToResponsesAPIHandler:
             extra_kwargs=kwargs,
         )
 
-        result: Final = await litellm.aresponses(**responses_kwargs)
+        result: Final = await gateway.aresponses(**responses_kwargs)
 
         if stream:
             wrapper: Final = AnthropicResponsesStreamWrapper(
@@ -262,7 +262,7 @@ class LiteLLMMessagesToResponsesAPIHandler:
             extra_kwargs=kwargs,
         )
 
-        result: Final = litellm.responses(**responses_kwargs)
+        result: Final = gateway.responses(**responses_kwargs)
 
         if stream:
             wrapper: Final = AnthropicResponsesStreamWrapper(

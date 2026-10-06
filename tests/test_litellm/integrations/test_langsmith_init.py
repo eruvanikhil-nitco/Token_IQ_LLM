@@ -4,16 +4,16 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.integrations.langsmith import LangsmithLogger
 
 
 @pytest.fixture
 def reset_redact_flag():
     """Reset redact_user_api_key_info between tests so global state doesn't leak."""
-    original = litellm.redact_user_api_key_info
+    original = gateway.redact_user_api_key_info
     yield
-    litellm.redact_user_api_key_info = original
+    gateway.redact_user_api_key_info = original
 
 
 class TestLangsmithLoggerInit:
@@ -300,7 +300,7 @@ class TestLangsmithRedactUserApiKeyInfo:
 
     def test_redact_disabled_keeps_user_api_key_fields(self, reset_redact_flag):
         """Flag off: user_api_key_* fields are preserved (no behavior change)."""
-        litellm.redact_user_api_key_info = False
+        gateway.redact_user_api_key_info = False
         logger = self._logger()
         metadata = self._metadata_with_user_api_key_fields()
 
@@ -314,7 +314,7 @@ class TestLangsmithRedactUserApiKeyInfo:
         self, reset_redact_flag
     ):
         """Flag on: top-level user_api_key_* keys removed; other keys preserved."""
-        litellm.redact_user_api_key_info = True
+        gateway.redact_user_api_key_info = True
         logger = self._logger()
         metadata = self._metadata_with_user_api_key_fields()
 
@@ -334,7 +334,7 @@ class TestLangsmithRedactUserApiKeyInfo:
 
     def test_redact_enabled_strips_nested_requester_metadata(self, reset_redact_flag):
         """Flag on: nested requester_metadata.user_api_key_* removed; session_id still lifted."""
-        litellm.redact_user_api_key_info = True
+        gateway.redact_user_api_key_info = True
         logger = self._logger()
         metadata = self._metadata_with_user_api_key_fields()
 
@@ -354,7 +354,7 @@ class TestLangsmithRedactUserApiKeyInfo:
         the fix `extra` was redacted and `inputs` shipped every user_api_key_*
         field verbatim.
         """
-        litellm.redact_user_api_key_info = True
+        gateway.redact_user_api_key_info = True
         logger = self._logger()
         metadata = self._metadata_with_user_api_key_fields()
         metadata["user_api_key_auth_metadata"] = {"priority": "high"}
@@ -401,7 +401,7 @@ class TestLangsmithRedactUserApiKeyInfo:
 
     def test_redact_disabled_keeps_user_api_key_info_in_inputs(self, reset_redact_flag):
         """Flag off: the identity fields stay. The flag governs them, not this fix."""
-        litellm.redact_user_api_key_info = False
+        gateway.redact_user_api_key_info = False
         logger = self._logger()
         metadata = self._metadata_with_user_api_key_fields()
         payload = {

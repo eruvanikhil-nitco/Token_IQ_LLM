@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock
 from typing import Literal
 
 import pytest
-from token_iq import gateway as litellm
+from token_iq import gateway
 import asyncio
 import logging
 from token_iq.gateway._logging import verbose_logger
@@ -57,12 +57,12 @@ expected_env_vars = {
 
 
 def reset_all_callbacks():
-    litellm.callbacks = []
-    litellm.input_callback = []
-    litellm.success_callback = []
-    litellm.failure_callback = []
-    litellm._async_success_callback = []
-    litellm._async_failure_callback = []
+    gateway.callbacks = []
+    gateway.input_callback = []
+    gateway.success_callback = []
+    gateway.failure_callback = []
+    gateway._async_success_callback = []
+    gateway._async_failure_callback = []
 
 
 initial_env_vars = {}
@@ -94,19 +94,19 @@ async def use_callback_in_llm_call(
         # internal CustomLogger class that expects internal_usage_cache passed to it, it always fails when tested in this way
         return
     elif callback == "argilla":
-        litellm.argilla_transformation_object = {}
+        gateway.argilla_transformation_object = {}
     elif callback == "openmeter":
         # it's currently handled in jank way, TODO: fix openmete and then actually run it's test
         return
     elif callback == "bitbucket" or callback == "gitlab":
         # Set up mock bitbucket configuration required for initialization
-        litellm.global_bitbucket_config = {
+        gateway.global_bitbucket_config = {
             "workspace": "test-workspace",
             "repository": "test-repo",
             "access_token": "test-token",
             "branch": "main",
         }
-        litellm.global_gitlab_config = {
+        gateway.global_gitlab_config = {
             "project": "a/b/<repo_name>",
             "access_token": "your-access-token",
             "base_url": "gitlab url",
@@ -123,7 +123,7 @@ async def use_callback_in_llm_call(
         mock_response.text = ""
 
         patch.object(
-            litellm.module_level_client, "get", return_value=mock_response
+            gateway.module_level_client, "get", return_value=mock_response
         ).start()
     elif callback == "prometheus":
         # pytest teardown - clear existing prometheus collectors
@@ -139,7 +139,7 @@ async def use_callback_in_llm_call(
             status_code=200, json={"items": [{"id": "mocked_dataset_id"}]}
         )
         patch.object(
-            litellm.module_level_client, "get", return_value=mock_response
+            gateway.module_level_client, "get", return_value=mock_response
         ).start()
 
     # Mock the httpx call for Argilla dataset retrieval
@@ -150,16 +150,16 @@ async def use_callback_in_llm_call(
             status_code=200, json={"items": [{"id": "mocked_dataset_id"}]}
         )
         patch.object(
-            litellm.module_level_client, "get", return_value=mock_response
+            gateway.module_level_client, "get", return_value=mock_response
         ).start()
 
     if used_in == "callbacks":
-        litellm.callbacks = [callback]
+        gateway.callbacks = [callback]
     elif used_in == "success_callback":
-        litellm.success_callback = [callback]
+        gateway.success_callback = [callback]
 
     for _ in range(5):
-        await litellm.acompletion(
+        await gateway.acompletion(
             model="gpt-5-mini",
             messages=[{"role": "user", "content": "hi"}],
             temperature=0.1,
@@ -171,25 +171,25 @@ async def use_callback_in_llm_call(
         expected_class = CustomLoggerRegistry.CALLBACK_CLASS_STR_TO_CLASS_TYPE[callback]
 
         if used_in == "callbacks":
-            assert isinstance(litellm._async_success_callback[0], expected_class)
-            assert isinstance(litellm._async_failure_callback[0], expected_class)
-            assert isinstance(litellm.success_callback[0], expected_class)
-            assert isinstance(litellm.failure_callback[0], expected_class)
+            assert isinstance(gateway._async_success_callback[0], expected_class)
+            assert isinstance(gateway._async_failure_callback[0], expected_class)
+            assert isinstance(gateway.success_callback[0], expected_class)
+            assert isinstance(gateway.failure_callback[0], expected_class)
 
             assert (
-                len(litellm._async_success_callback) == 1
-            ), f"Got={litellm._async_success_callback}"
-            assert len(litellm._async_failure_callback) == 1
-            assert len(litellm.success_callback) == 1
-            assert len(litellm.failure_callback) == 1
-            assert len(litellm.callbacks) == 1
+                len(gateway._async_success_callback) == 1
+            ), f"Got={gateway._async_success_callback}"
+            assert len(gateway._async_failure_callback) == 1
+            assert len(gateway.success_callback) == 1
+            assert len(gateway.failure_callback) == 1
+            assert len(gateway.callbacks) == 1
         elif used_in == "success_callback":
-            print(f"litellm.success_callback: {litellm.success_callback}")
-            print(f"litellm._async_success_callback: {litellm._async_success_callback}")
-            assert isinstance(litellm.success_callback[0], expected_class)
-            assert len(litellm.success_callback) == 1  # ["lago", LagoLogger]
-            assert isinstance(litellm._async_success_callback[0], expected_class)
-            assert len(litellm._async_success_callback) == 1
+            print(f"litellm.success_callback: {gateway.success_callback}")
+            print(f"litellm._async_success_callback: {gateway._async_success_callback}")
+            assert isinstance(gateway.success_callback[0], expected_class)
+            assert len(gateway.success_callback) == 1  # ["lago", LagoLogger]
+            assert isinstance(gateway._async_success_callback[0], expected_class)
+            assert len(gateway._async_success_callback) == 1
 
             # TODO also assert that it's not set for failure_callback
             # As of Oct 21 2024, it's currently set
@@ -200,8 +200,8 @@ async def use_callback_in_llm_call(
 
         if callback == "bitbucket":
             # Clean up bitbucket configuration and patches
-            if hasattr(litellm, "global_bitbucket_config"):
-                delattr(litellm, "global_bitbucket_config")
+            if hasattr(gateway, "global_bitbucket_config"):
+                delattr(gateway, "global_bitbucket_config")
             patch.stopall()
 
 
@@ -229,7 +229,7 @@ def test_dynamic_logging_global_callback():
 
     with patch.object(cl, "log_success_event") as mock_log_success_event:
         cl.log_success_event = mock_log_success_event
-        litellm.success_callback = [cl]
+        gateway.success_callback = [cl]
 
         try:
             litellm_logging.success_handler(

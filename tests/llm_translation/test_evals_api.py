@@ -10,7 +10,7 @@ from typing import Optional
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.types.llms.openai_evals import (
     CancelEvalResponse,
     DeleteEvalResponse,
@@ -52,10 +52,10 @@ _TESTING_CRITERIA = [
 
 
 _PROVIDER_FLAKINESS = (
-    litellm.InternalServerError,
-    litellm.APIConnectionError,
-    litellm.Timeout,
-    litellm.ServiceUnavailableError,
+    gateway.InternalServerError,
+    gateway.APIConnectionError,
+    gateway.Timeout,
+    gateway.ServiceUnavailableError,
 )
 
 
@@ -102,7 +102,7 @@ class BaseEvalsAPITest(ABC):
             pytest.skip(f"No API key provided for {custom_llm_provider}")
 
         try:
-            created = litellm.create_eval(
+            created = gateway.create_eval(
                 name=_stable_eval_name(request.node.name),
                 data_source_config={
                     "type": "stored_completions",
@@ -115,7 +115,7 @@ class BaseEvalsAPITest(ABC):
             )
         except _PROVIDER_FLAKINESS:
             pytest.skip("Provider service unavailable")
-        except litellm.RateLimitError:
+        except gateway.RateLimitError:
             pytest.skip("Rate limit exceeded")
 
         yield created
@@ -124,7 +124,7 @@ class BaseEvalsAPITest(ABC):
         # (only IDs are), so a failed delete doesn't block the next
         # run's create.
         try:
-            litellm.delete_eval(
+            gateway.delete_eval(
                 eval_id=created.id,
                 custom_llm_provider=custom_llm_provider,
                 api_key=api_key,
@@ -145,13 +145,13 @@ class BaseEvalsAPITest(ABC):
         if not api_key:
             pytest.skip(f"No API key provided for {custom_llm_provider}")
 
-        litellm.set_verbose = True
+        gateway.set_verbose = True
         unique_name = _stable_eval_name(request.node.name)
 
         created_id = None
         try:
             try:
-                response = litellm.create_eval(
+                response = gateway.create_eval(
                     name=unique_name,
                     data_source_config={
                         "type": "stored_completions",
@@ -164,7 +164,7 @@ class BaseEvalsAPITest(ABC):
                 )
             except _PROVIDER_FLAKINESS:
                 pytest.skip("Provider service unavailable")
-            except litellm.RateLimitError:
+            except gateway.RateLimitError:
                 pytest.skip("Rate limit exceeded")
 
             assert response is not None
@@ -177,7 +177,7 @@ class BaseEvalsAPITest(ABC):
         finally:
             if created_id is not None:
                 try:
-                    litellm.delete_eval(
+                    gateway.delete_eval(
                         eval_id=created_id,
                         custom_llm_provider=custom_llm_provider,
                         api_key=api_key,
@@ -197,9 +197,9 @@ class BaseEvalsAPITest(ABC):
         if not api_key:
             pytest.skip(f"No API key provided for {custom_llm_provider}")
 
-        litellm.set_verbose = True
+        gateway.set_verbose = True
 
-        response = litellm.list_evals(
+        response = gateway.list_evals(
             limit=10,
             custom_llm_provider=custom_llm_provider,
             api_key=api_key,
@@ -220,9 +220,9 @@ class BaseEvalsAPITest(ABC):
         api_key = self.get_api_key()
         api_base = self.get_api_base()
 
-        litellm.set_verbose = True
+        gateway.set_verbose = True
 
-        response = litellm.get_eval(
+        response = gateway.get_eval(
             eval_id=managed_eval.id,
             custom_llm_provider=custom_llm_provider,
             api_key=api_key,
@@ -243,10 +243,10 @@ class BaseEvalsAPITest(ABC):
         api_key = self.get_api_key()
         api_base = self.get_api_base()
 
-        litellm.set_verbose = True
+        gateway.set_verbose = True
         updated_name = _stable_eval_name(request.node.name, suffix="-updated")
 
-        response = litellm.update_eval(
+        response = gateway.update_eval(
             eval_id=managed_eval.id,
             name=updated_name,
             custom_llm_provider=custom_llm_provider,

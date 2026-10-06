@@ -12,7 +12,7 @@ from typing import Any, Final, Literal
 import httpx
 from pydantic import BaseModel, ConfigDict, TypeAdapter, ValidationError
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.constants import (
     DEFAULT_MODEL_CREATED_AT_TIME,
     DEFAULT_REASONING_EFFORT_HIGH_THINKING_BUDGET,
@@ -320,9 +320,9 @@ class AnthropicModelInfo(BaseLLMModelInfo):
         clean client-side 400."""
         if AnthropicModelInfo._supports_sampling_params(model) or (param == "temperature" and value == 1):
             optional_params[output_key] = value
-        elif not (litellm.drop_params or drop_params):
+        elif not (gateway.drop_params or drop_params):
             supported_hint: Final = "Only temperature=1 is supported. " if param == "temperature" else ""
-            raise litellm.utils.UnsupportedParamsError(
+            raise gateway.utils.UnsupportedParamsError(
                 message=(
                     f"{model} does not support {param}={value}. {supported_hint}"
                     "To drop unsupported params, set `litellm.drop_params = True`."
@@ -342,8 +342,8 @@ class AnthropicModelInfo(BaseLLMModelInfo):
         raises a clean client-side 400 for such models without ``drop_params``."""
         if not AnthropicModelInfo.forced_tool_use_unsupported(model):
             return False
-        if not (litellm.drop_params or drop_params):
-            raise litellm.utils.UnsupportedParamsError(
+        if not (gateway.drop_params or drop_params):
+            raise gateway.utils.UnsupportedParamsError(
                 message=(
                     f"{model} does not support forced tool use (tool_choice='required' or a named tool). "
                     "Use tool_choice='auto' and tell the model in the prompt when to call the tool, or set "
@@ -351,7 +351,7 @@ class AnthropicModelInfo(BaseLLMModelInfo):
                 ),
                 status_code=400,
             )
-        litellm.verbose_logger.warning(DROP_FORCED_TOOL_CHOICE_WARNING, model)
+        gateway.verbose_logger.warning(DROP_FORCED_TOOL_CHOICE_WARNING, model)
         return True
 
     @staticmethod
@@ -424,7 +424,7 @@ class AnthropicModelInfo(BaseLLMModelInfo):
 
         try:
             candidates: Final = AnthropicModelInfo._model_map_lookup_candidates(model)
-            for model_cost in (litellm.model_cost, _get_bundled_model_cost_map()):
+            for model_cost in (gateway.model_cost, _get_bundled_model_cost_map()):
                 for cand in candidates:
                     value = model_cost.get(cand, {}).get(key)
                     if isinstance(value, bool):
@@ -440,7 +440,7 @@ class AnthropicModelInfo(BaseLLMModelInfo):
         Unlike ``_get_model_capability``, does not walk stripped provider aliases.
         Use when a feature is tied to a specific host (e.g. Anthropic API fast mode).
         """
-        value: Final = litellm.model_cost.get(model, {}).get(key)
+        value: Final = gateway.model_cost.get(model, {}).get(key)
         return value if isinstance(value, bool) else None
 
     @staticmethod
@@ -455,7 +455,7 @@ class AnthropicModelInfo(BaseLLMModelInfo):
         from token_iq.gateway.utils import _get_model_info_helper
 
         try:
-            resolved_model, resolved_provider, _, _ = litellm.get_llm_provider(
+            resolved_model, resolved_provider, _, _ = gateway.get_llm_provider(
                 model=model, custom_llm_provider=custom_llm_provider
             )
             value: Final = _get_model_info_helper(model=resolved_model, custom_llm_provider=resolved_provider).get(key)
@@ -533,7 +533,7 @@ class AnthropicModelInfo(BaseLLMModelInfo):
             return
         if not AnthropicModelInfo._is_always_on_thinking_model(model, custom_llm_provider):
             return
-        litellm.verbose_logger.warning(
+        gateway.verbose_logger.warning(
             DROP_DISABLED_THINKING_WARNING,
             model,
         )
@@ -837,7 +837,7 @@ class AnthropicModelInfo(BaseLLMModelInfo):
         if api_key is None:
             auth_token = AnthropicModelInfo.get_auth_token()
         if api_key is None and auth_token is None:
-            raise litellm.AuthenticationError(
+            raise gateway.AuthenticationError(
                 message="Missing Anthropic API Key - A call is being made to anthropic but no key is set either in the environment variables or via params. Please set `ANTHROPIC_API_KEY` or `ANTHROPIC_AUTH_TOKEN` in your environment vars",
                 llm_provider="anthropic",
                 model=model,
@@ -947,7 +947,7 @@ class AnthropicModelInfo(BaseLLMModelInfo):
             )
         headers: Final = {"anthropic-version": "2023-06-01"}
         headers.update(auth_header)
-        response: Final = litellm.module_level_client.get(
+        response: Final = gateway.module_level_client.get(
             url=f"{api_base}/v1/models",
             headers=headers,
         )

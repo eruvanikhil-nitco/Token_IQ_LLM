@@ -11,7 +11,7 @@ from pathlib import Path
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 
 class TestCognitionProviderIdentity:
@@ -19,7 +19,7 @@ class TestCognitionProviderIdentity:
         from token_iq.gateway import LlmProviders
 
         assert LlmProviders.COGNITION.value == "cognition"
-        assert "cognition" in litellm.provider_list
+        assert "cognition" in gateway.provider_list
 
     def test_cognition_json_config(self):
         from token_iq.gateway.llms.openai_like.json_loader import JSONProviderRegistry
@@ -119,7 +119,7 @@ class TestCognitionCostTracking:
         ],
     )
     def test_cost_map_entries(self, model: str, input_cost: float, output_cost: float, cache_read_cost: float):
-        info = litellm.get_model_info(model=model)
+        info = gateway.get_model_info(model=model)
 
         assert info["litellm_provider"] == "cognition"
         assert info["mode"] == "chat"
@@ -151,14 +151,14 @@ class TestCognitionCostTracking:
         assert completion_cost == pytest.approx(expected_completion_cost)
 
     def test_lightning_is_five_times_the_standard_tier(self):
-        standard = litellm.get_model_info(model="cognition/swe-1.7")
-        lightning = litellm.get_model_info(model="cognition/swe-1.7-lightning")
+        standard = gateway.get_model_info(model="cognition/swe-1.7")
+        lightning = gateway.get_model_info(model="cognition/swe-1.7-lightning")
 
         assert lightning["input_cost_per_token"] == pytest.approx(standard["input_cost_per_token"] * 5)
         assert lightning["output_cost_per_token"] == pytest.approx(standard["output_cost_per_token"] * 5)
 
     def test_supported_endpoints_matrix(self):
-        matrix = json.loads((Path(litellm.__file__).parent / "provider_endpoints_support_backup.json").read_text())
+        matrix = json.loads((Path(gateway.__file__).parent / "provider_endpoints_support_backup.json").read_text())
 
         endpoints = matrix["providers"]["cognition"]["endpoints"]
         assert endpoints["chat_completions"] is True

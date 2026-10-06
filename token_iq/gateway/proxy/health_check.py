@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING, Final, TypeVar
 
 from pydantic import TypeAdapter, ValidationError
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 if TYPE_CHECKING:
     from token_iq.gateway.router import Router
@@ -85,7 +85,7 @@ def _resolve_health_check_mode(model_info: Mapping[str, object], litellm_params:
     if not isinstance(model, str):
         return None
     try:
-        return litellm.get_model_info(model=model).get("mode")
+        return gateway.get_model_info(model=model).get("mode")
     except Exception:
         return None
 
@@ -228,7 +228,7 @@ async def run_with_timeout(task, timeout):
     except asyncio.TimeoutError:
         # `asyncio.wait_for()` already cancels only the awaited task on timeout.
         # Do not cancel unrelated sibling health check tasks.
-        timeout_exception: Final = litellm.Timeout(
+        timeout_exception: Final = gateway.Timeout(
             message="Health check timeout exceeded",
             model="",
             llm_provider="",
@@ -485,7 +485,7 @@ async def _run_model_health_check(model: dict):
     timeout: Final = model_info.get("health_check_timeout") or HEALTH_CHECK_TIMEOUT_SECONDS
 
     return await run_with_timeout(
-        litellm.ahealth_check(
+        gateway.ahealth_check(
             litellm_params,
             mode=mode,
             prompt=DEFAULT_HEALTH_CHECK_PROMPT,
@@ -688,7 +688,7 @@ def _resolve_health_check_max_tokens(model_info: dict, litellm_params: dict) -> 
 
     if not is_wildcard:
         try:
-            is_reasoning = litellm.supports_reasoning(deployment_model)
+            is_reasoning = gateway.supports_reasoning(deployment_model)
         except Exception:
             is_reasoning = False
         tokens_reasoning: Final = model_info.get("health_check_max_tokens_reasoning", None)

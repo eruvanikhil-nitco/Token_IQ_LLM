@@ -1,7 +1,7 @@
 import json
 from typing import Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.openai.completion.transformation import OpenAITextCompletionConfig
 from token_iq.gateway.types.llms.databricks import GenericStreamingChunk
 
@@ -83,7 +83,7 @@ class CodestralTextCompletionConfig(OpenAITextCompletionConfig):
         finish_reason = None
         logprobs = None
 
-        chunk_data = litellm.CustomStreamWrapper._strip_sse_data_from_chunk(chunk_data) or ""
+        chunk_data = gateway.CustomStreamWrapper._strip_sse_data_from_chunk(chunk_data) or ""
         chunk_data = chunk_data.strip()
         if len(chunk_data) == 0 or chunk_data == "[DONE]":
             return {
@@ -100,7 +100,7 @@ class CodestralTextCompletionConfig(OpenAITextCompletionConfig):
                 "finish_reason": finish_reason,
             }
 
-        original_chunk: Final = litellm.ModelResponseStream(**chunk_data_dict)
+        original_chunk: Final = gateway.ModelResponseStream(**chunk_data_dict)
         _choices: Final = chunk_data_dict.get("choices", []) or []
         if len(_choices) == 0:
             return {

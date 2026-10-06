@@ -14,7 +14,7 @@ from pydantic import BaseModel
 from typing import List, Literal, Optional, Union
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import Cache, completion, embedding
 from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.types.utils import LiteLLMCommonStrings
@@ -79,7 +79,7 @@ class CompletionCustomHandler(
             metadata_value = kwargs["litellm_params"].get("metadata")
             assert metadata_value is None or isinstance(metadata_value, dict)
             if metadata_value is not None:
-                if litellm.turn_off_message_logging is True:
+                if gateway.turn_off_message_logging is True:
                     assert (
                         metadata_value["raw_request"]
                         is LiteLLMCommonStrings.redacted_by_litellm.value
@@ -114,7 +114,7 @@ class CompletionCustomHandler(
             assert (
                 isinstance(
                     kwargs["original_response"],
-                    (str, litellm.CustomStreamWrapper, BaseModel),
+                    (str, gateway.CustomStreamWrapper, BaseModel),
                 )
                 or inspect.iscoroutine(kwargs["original_response"])
                 or inspect.isasyncgen(kwargs["original_response"])
@@ -133,7 +133,7 @@ class CompletionCustomHandler(
             ## END TIME
             assert isinstance(end_time, datetime)
             ## RESPONSE OBJECT
-            assert isinstance(response_obj, litellm.ModelResponse)
+            assert isinstance(response_obj, gateway.ModelResponse)
             ## KWARGS
             assert isinstance(kwargs["model"], str)
             assert isinstance(kwargs["messages"], list) and isinstance(
@@ -151,7 +151,7 @@ class CompletionCustomHandler(
             assert isinstance(kwargs["api_key"], (str, type(None)))
             assert (
                 isinstance(
-                    kwargs["original_response"], (str, litellm.CustomStreamWrapper)
+                    kwargs["original_response"], (str, gateway.CustomStreamWrapper)
                 )
                 or inspect.isasyncgen(kwargs["original_response"])
                 or inspect.iscoroutine(kwargs["original_response"])
@@ -178,9 +178,9 @@ class CompletionCustomHandler(
             assert isinstance(
                 response_obj,
                 (
-                    litellm.ModelResponse,
-                    litellm.EmbeddingResponse,
-                    litellm.ImageResponse,
+                    gateway.ModelResponse,
+                    gateway.EmbeddingResponse,
+                    gateway.ImageResponse,
                 ),
             )
             ## KWARGS
@@ -205,7 +205,7 @@ class CompletionCustomHandler(
             assert isinstance(kwargs["api_key"], (str, type(None)))
             assert isinstance(
                 kwargs["original_response"],
-                (str, litellm.CustomStreamWrapper, BaseModel),
+                (str, gateway.CustomStreamWrapper, BaseModel),
             ), "Original Response={}. Allowed types=[str, litellm.CustomStreamWrapper, BaseModel]".format(
                 kwargs["original_response"]
             )
@@ -245,7 +245,7 @@ class CompletionCustomHandler(
             assert isinstance(kwargs["api_key"], (str, type(None)))
             assert (
                 isinstance(
-                    kwargs["original_response"], (str, litellm.CustomStreamWrapper)
+                    kwargs["original_response"], (str, gateway.CustomStreamWrapper)
                 )
                 or kwargs["original_response"] == None
             )
@@ -290,9 +290,9 @@ class CompletionCustomHandler(
             assert isinstance(
                 response_obj,
                 (
-                    litellm.ModelResponse,
-                    litellm.EmbeddingResponse,
-                    litellm.TextCompletionResponse,
+                    gateway.ModelResponse,
+                    gateway.EmbeddingResponse,
+                    gateway.TextCompletionResponse,
                 ),
             )
             ## KWARGS
@@ -310,7 +310,7 @@ class CompletionCustomHandler(
             assert isinstance(kwargs["api_key"], (str, type(None)))
             assert (
                 isinstance(
-                    kwargs["original_response"], (str, litellm.CustomStreamWrapper)
+                    kwargs["original_response"], (str, gateway.CustomStreamWrapper)
                 )
                 or inspect.isasyncgen(kwargs["original_response"])
                 or inspect.iscoroutine(kwargs["original_response"])
@@ -344,7 +344,7 @@ class CompletionCustomHandler(
             assert isinstance(kwargs["api_key"], (str, type(None)))
             assert (
                 isinstance(
-                    kwargs["original_response"], (str, litellm.CustomStreamWrapper)
+                    kwargs["original_response"], (str, gateway.CustomStreamWrapper)
                 )
                 or inspect.isasyncgen(kwargs["original_response"])
                 or inspect.iscoroutine(kwargs["original_response"])

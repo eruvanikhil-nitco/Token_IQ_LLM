@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from unittest.mock import MagicMock, Mock, patch
 import pytest
 import httpx
@@ -24,8 +24,8 @@ def test_bedrock_agentcore_basic(model):
     """
     Test AgentCore invocation parameterized by model
     """
-    litellm._turn_on_debug()
-    response = litellm.completion(
+    gateway._turn_on_debug()
+    response = gateway.completion(
         model=model,
         messages=[
             {"role": "user", "content": "Explain machine learning in simple terms"}
@@ -50,7 +50,7 @@ async def test_bedrock_agentcore_with_streaming(model):
     """
     print("running streming test for model=", model)
     # litellm._turn_on_debug()
-    response = await litellm.acompletion(
+    response = await gateway.acompletion(
         model="bedrock/agentcore/arn:aws:bedrock-agentcore:us-west-2:888602223428:runtime/hosted_agent_r9jvp-3ySZuRHjLC",
         messages=[
             {
@@ -71,14 +71,14 @@ def test_bedrock_agentcore_with_custom_params():
     """
     import json
 
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
     from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     client = HTTPHandler()
 
     with patch.object(client, "post", return_value=MagicMock()) as mock_post:
         try:
-            response = litellm.completion(
+            response = gateway.completion(
                 model="bedrock/agentcore/arn:aws:bedrock-agentcore:us-west-2:888602223428:runtime/hosted_agent_r9jvp-3ySZuRHjLC",
                 messages=[
                     {
@@ -139,14 +139,14 @@ def test_bedrock_agentcore_with_runtime_user_id():
     """
     import json
 
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
     from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     client = HTTPHandler()
 
     with patch.object(client, "post", return_value=MagicMock()) as mock_post:
         try:
-            response = litellm.completion(
+            response = gateway.completion(
                 model="bedrock/agentcore/arn:aws:bedrock-agentcore:us-west-2:888602223428:runtime/hosted_agent_r9jvp-3ySZuRHjLC",
                 messages=[
                     {
@@ -178,14 +178,14 @@ def test_bedrock_agentcore_with_session_and_user():
     """
     import json
 
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
     from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     client = HTTPHandler()
 
     with patch.object(client, "post", return_value=MagicMock()) as mock_post:
         try:
-            response = litellm.completion(
+            response = gateway.completion(
                 model="bedrock/agentcore/arn:aws:bedrock-agentcore:us-west-2:888602223428:runtime/hosted_agent_r9jvp-3ySZuRHjLC",
                 messages=[
                     {
@@ -222,7 +222,7 @@ def test_bedrock_agentcore_with_api_key_bearer_token():
     """
     import json
 
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
     from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     client = HTTPHandler()
@@ -230,7 +230,7 @@ def test_bedrock_agentcore_with_api_key_bearer_token():
 
     with patch.object(client, "post", return_value=MagicMock()) as mock_post:
         try:
-            response = litellm.completion(
+            response = gateway.completion(
                 model="bedrock/agentcore/arn:aws:bedrock-agentcore:us-west-2:888602223428:runtime/hosted_agent_r9jvp-3ySZuRHjLC",
                 messages=[
                     {
@@ -270,7 +270,7 @@ def test_bedrock_agentcore_with_all_parameters():
     """
     import json
 
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
     from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     client = HTTPHandler()
@@ -278,7 +278,7 @@ def test_bedrock_agentcore_with_all_parameters():
 
     with patch.object(client, "post", return_value=MagicMock()) as mock_post:
         try:
-            response = litellm.completion(
+            response = gateway.completion(
                 model="bedrock/agentcore/arn:aws:bedrock-agentcore:us-west-2:888602223428:runtime/hosted_agent_r9jvp-3ySZuRHjLC",
                 messages=[
                     {
@@ -339,14 +339,14 @@ def test_bedrock_agentcore_without_api_key_uses_sigv4():
     """
     import json
 
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
     from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     client = HTTPHandler()
 
     with patch.object(client, "post", return_value=MagicMock()) as mock_post:
         try:
-            response = litellm.completion(
+            response = gateway.completion(
                 model="bedrock/agentcore/arn:aws:bedrock-agentcore:us-west-2:888602223428:runtime/hosted_agent_r9jvp-3ySZuRHjLC",
                 messages=[
                     {
@@ -602,7 +602,7 @@ def test_agentcore_synchronous_non_streaming_response():
     """
     from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
     client = HTTPHandler()
 
     # Mock a JSON response (typical for synchronous AgentCore calls)
@@ -621,7 +621,7 @@ def test_agentcore_synchronous_non_streaming_response():
 
     with patch.object(client, "post", return_value=mock_response) as mock_post:
         # Make a synchronous (non-streaming) completion call
-        response = litellm.completion(
+        response = gateway.completion(
             model="bedrock/agentcore/arn:aws:bedrock-agentcore:us-west-2:888602223428:runtime/hosted_agent_r9jvp-3ySZuRHjLC",
             messages=[
                 {

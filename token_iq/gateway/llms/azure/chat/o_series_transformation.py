@@ -14,7 +14,7 @@ Translations handled by LiteLLM:
 
 from typing import Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import verbose_logger
 from token_iq.gateway.types.llms.openai import AllMessageValues
 from token_iq.gateway.utils import get_model_info, supports_reasoning
@@ -28,7 +28,7 @@ class AzureOpenAIO1Config(OpenAIOSeriesConfig):
         """
         Get the supported OpenAI params for the Azure O-Series models
         """
-        all_openai_params: Final = litellm.OpenAIGPTConfig().get_supported_openai_params(model=model)
+        all_openai_params: Final = gateway.OpenAIGPTConfig().get_supported_openai_params(model=model)
         non_supported_params: Final = [
             "logprobs",
             "top_p",
@@ -54,7 +54,7 @@ class AzureOpenAIO1Config(OpenAIOSeriesConfig):
         # Case 1: If the model is recognized and in litellm model cost map
         # then check if it supports reasoning
         #########################################################
-        if model in litellm.model_list_set:
+        if model in gateway.model_list_set:
             if supports_reasoning(model):
                 o_series_only_param.append("reasoning_effort")
         #########################################################

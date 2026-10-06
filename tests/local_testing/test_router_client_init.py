@@ -14,7 +14,7 @@ from unittest.mock import MagicMock, PropertyMock, patch
 import pytest
 from openai.lib.azure import OpenAIError
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import APIConnectionError, Router
 from unittest.mock import ANY
 
@@ -30,7 +30,7 @@ def test_router_init_with_neither_api_key_nor_azure_service_principal_with_secre
     Test router initialization with neither API key nor using Azure Service Principal with Secret authentication
     workflow (having not provided environment variables).
     """
-    litellm.enable_azure_ad_token_refresh = True
+    gateway.enable_azure_ad_token_refresh = True
     # mock EMPTY environment variables
     environment_variables_expected_to_use: Dict = {}
     mocked_environ = PropertyMock(return_value=environment_variables_expected_to_use)
@@ -82,7 +82,7 @@ def test_router_init_azure_service_principal_with_secret_with_environment_variab
     monkeypatch.delenv("AZURE_AI_API_KEY", raising=False)
     monkeypatch.delenv("AZURE_OPENAI_API_KEY", raising=False)
     monkeypatch.delenv("AZURE_API_KEY", raising=False)
-    litellm.enable_azure_ad_token_refresh = True
+    gateway.enable_azure_ad_token_refresh = True
     # mock the token provider function
     mocked_func_generating_token = MagicMock(return_value="test_token")
     mocked_get_bearer_token_provider.return_value = mocked_func_generating_token
@@ -159,7 +159,7 @@ async def test_audio_speech_router():
 
     from token_iq.gateway import Router
 
-    litellm.set_verbose = True
+    gateway.set_verbose = True
 
     model_list = [
         {

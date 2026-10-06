@@ -68,11 +68,11 @@ except ImportError:
 
 from fastapi import HTTPException, status
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 import token_iq.gateway.core_utils
-from token_iq import gateway as litellm
+from token_iq import gateway
 import token_iq.gateway.core_utils.litellm_logging
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import (
     EmbeddingResponse,
     ImageResponse,
@@ -238,7 +238,7 @@ def print_verbose(print_statement: object):
     import traceback
 
     verbose_proxy_logger.debug("%s\n%s", print_statement, traceback.format_exc())
-    if litellm.set_verbose:
+    if gateway.set_verbose:
         print(f"LiteLLM Proxy: {_redact_string(str(print_statement))}")  # noqa: T201
 
 
@@ -477,15 +477,15 @@ def _system_prompt_text(system_input: object) -> str:
 
 def _count_request_input_tokens(model: str, request_input: object, system_input: object) -> int:
     system_text: Final = _system_prompt_text(system_input)
-    system_tokens: Final = litellm.token_counter(model=model, text=system_text) if system_text else 0
+    system_tokens: Final = gateway.token_counter(model=model, text=system_text) if system_text else 0
     if isinstance(request_input, str):
-        return system_tokens + litellm.token_counter(model=model, text=request_input)
+        return system_tokens + gateway.token_counter(model=model, text=request_input)
     if not isinstance(request_input, list) or not request_input:
         return system_tokens
     text_entries: Final = tuple(entry for entry in request_input if isinstance(entry, str))
     if len(text_entries) == len(request_input):
-        return system_tokens + litellm.token_counter(model=model, text="".join(text_entries))
-    return system_tokens + litellm.token_counter(
+        return system_tokens + gateway.token_counter(model=model, text="".join(text_entries))
+    return system_tokens + gateway.token_counter(
         model=model, messages=request_input, use_default_image_token_count=True
     )
 
@@ -783,8 +783,8 @@ class ProxyLogging:
                     or "outage_alerts" in self.alert_types
                     or "region_outage_alerts" in self.alert_types
                 ):
-                    litellm.logging_callback_manager.add_litellm_callback(self.slack_alerting_instance)
-                litellm.logging_callback_manager.add_litellm_success_callback(
+                    gateway.logging_callback_manager.add_litellm_callback(self.slack_alerting_instance)
+                gateway.logging_callback_manager.add_litellm_success_callback(
                     self.slack_alerting_instance.response_taking_too_long_callback
                 )
 
@@ -813,7 +813,7 @@ class ProxyLogging:
             if "prisma_client" in expected_args:
                 passed_in_args["prisma_client"] = prisma_client
             proxy_hook_obj = cast(CustomLogger, proxy_hook(**passed_in_args))
-            litellm.logging_callback_manager.add_litellm_callback(proxy_hook_obj)
+            gateway.logging_callback_manager.add_litellm_callback(proxy_hook_obj)
 
             self.proxy_hook_mapping[hook] = proxy_hook_obj
 
@@ -825,16 +825,16 @@ class ProxyLogging:
 
     def _init_litellm_callbacks(self, llm_router: Router | None = None):
         self._add_proxy_hooks(llm_router)
-        litellm.logging_callback_manager.add_litellm_callback(self.service_logging_obj)
+        gateway.logging_callback_manager.add_litellm_callback(self.service_logging_obj)
 
         # Track string callbacks and their initialized instances so we can
         # replace them in-place, preventing duplicates (string + instance) in
         # litellm.callbacks which caused double-counting of metrics.
         string_callbacks_to_replace: Final[dict[int, CustomLogger]] = {}
 
-        for idx, callback in enumerate(litellm.callbacks):
+        for idx, callback in enumerate(gateway.callbacks):
             if isinstance(callback, str):
-                initialized_callback = litellm.core_utils.litellm_logging._init_custom_logger_compatible_class(
+                initialized_callback = gateway.core_utils.litellm_logging._init_custom_logger_compatible_class(
                     cast(_custom_logger_compatible_callbacks_literal, callback),
                     internal_usage_cache=self.internal_usage_cache.dual_cache,
                     llm_router=llm_router,
@@ -845,7 +845,7 @@ class ProxyLogging:
 
         # Replace string entries in litellm.callbacks with initialized instances
         for idx, initialized_callback in string_callbacks_to_replace.items():
-            litellm.callbacks[idx] = initialized_callback
+            gateway.callbacks[idx] = initialized_callback
 
         # Fan ``litellm.callbacks`` (the "all events" registry) out into the
         # success/failure event lists eagerly, at startup. ``completion()`` does
@@ -856,12 +856,12 @@ class ProxyLogging:
         # invisible to pass-through traffic until some other request warms the
         # global lists. The manager dedupes, so this is idempotent with
         # ``function_setup``.
-        for callback in litellm.callbacks:
+        for callback in gateway.callbacks:
             if isinstance(callback, CustomLogger):
-                litellm.logging_callback_manager.add_litellm_success_callback(callback)
-                litellm.logging_callback_manager.add_litellm_failure_callback(callback)
-                litellm.logging_callback_manager.add_litellm_async_success_callback(callback)
-                litellm.logging_callback_manager.add_litellm_async_failure_callback(callback)
+                gateway.logging_callback_manager.add_litellm_success_callback(callback)
+                gateway.logging_callback_manager.add_litellm_failure_callback(callback)
+                gateway.logging_callback_manager.add_litellm_async_success_callback(callback)
+                gateway.logging_callback_manager.add_litellm_async_failure_callback(callback)
 
     async def update_request_status(self, litellm_call_id: str, status: Literal["success", "fail"]):
         # only use this if slack alerting is being used
@@ -2037,7 +2037,7 @@ class ProxyLogging:
         error_type: str | None,
         hook_type: str,
     ) -> None:
-        for prom_callback in litellm.callbacks:
+        for prom_callback in gateway.callbacks:
             if isinstance(prom_callback, PrometheusLogger):
                 prom_callback._record_guardrail_metrics(
                     guardrail_name=guardrail_name,
@@ -2114,7 +2114,7 @@ class ProxyLogging:
 
         Cache invalidates whenever the list length or member identities change.
         """
-        callbacks: Final = litellm.callbacks
+        callbacks: Final = gateway.callbacks
         sig: Final = (len(callbacks), tuple(id(c) for c in callbacks))
         cache: Final = ProxyLogging._callback_capabilities_cache
         cached: Final = cache.get(sig)
@@ -2132,7 +2132,7 @@ class ProxyLogging:
 
         for callback in callbacks:
             if isinstance(callback, str):
-                resolved = litellm.core_utils.litellm_logging.get_custom_logger_compatible_class(
+                resolved = gateway.core_utils.litellm_logging.get_custom_logger_compatible_class(
                     cast(_custom_logger_compatible_callbacks_literal, callback)
                 )
             else:
@@ -2266,7 +2266,7 @@ class ProxyLogging:
         # Step 1: Collect all guardrail tasks to run in parallel
         guardrail_tasks: Final = []
 
-        for callback in litellm.callbacks:
+        for callback in gateway.callbacks:
             if isinstance(callback, CustomGuardrail):
                 ################################################################
                 # Check if guardrail should be run for GuardrailEventHooks.during_call hook
@@ -2449,8 +2449,8 @@ class ProxyLogging:
             )
         for client in self.alerting:
             if client == "sentry":
-                if litellm.utils.sentry_sdk_instance is not None:
-                    litellm.utils.sentry_sdk_instance.capture_message(formatted_message)
+                if gateway.utils.sentry_sdk_instance is not None:
+                    gateway.utils.sentry_sdk_instance.capture_message(formatted_message)
                 else:
                     raise Exception("Missing SENTRY_DSN from environment")
 
@@ -2492,8 +2492,8 @@ class ProxyLogging:
                 call_type=call_type,
             )
 
-        if litellm.utils.capture_exception:
-            litellm.utils.capture_exception(error=original_exception)
+        if gateway.utils.capture_exception:
+            gateway.utils.capture_exception(error=original_exception)
 
     async def post_call_failure_hook(
         self,
@@ -2576,11 +2576,11 @@ class ProxyLogging:
         # Track the first HTTPException returned or raised by any callback
         transformed_exception: HTTPException | None = None
 
-        for callback in litellm.callbacks:
+        for callback in gateway.callbacks:
             try:
                 _callback: CustomLogger | None = None
                 if isinstance(callback, str):
-                    _callback = litellm.core_utils.litellm_logging.get_custom_logger_compatible_class(
+                    _callback = gateway.core_utils.litellm_logging.get_custom_logger_compatible_class(
                         cast(_custom_logger_compatible_callbacks_literal, callback)
                     )
                 else:
@@ -2664,9 +2664,9 @@ class ProxyLogging:
                 user_api_key_dict=user_api_key_dict
             )
 
-            litellm_logging_obj, data = litellm.utils.function_setup(
+            litellm_logging_obj, data = gateway.utils.function_setup(
                 original_function=route or "IGNORE_THIS",
-                rules_obj=litellm.utils.Rules(),
+                rules_obj=gateway.utils.Rules(),
                 start_time=datetime.now(),
                 **request_data,
             )
@@ -2742,7 +2742,7 @@ class ProxyLogging:
         """Runs the async failure handler plus the threaded sync handler. Expected
         client (4xx) errors skip traceback formatting unless
         litellm.log_client_error_tracebacks is set."""
-        include_traceback: Final = litellm.log_client_error_tracebacks or not is_expected_client_error(
+        include_traceback: Final = gateway.log_client_error_tracebacks or not is_expected_client_error(
             original_exception
         )
         traceback_str: Final = traceback.format_exc() if include_traceback else ""
@@ -2782,10 +2782,10 @@ class ProxyLogging:
         guardrail_callbacks: Final[list[CustomGuardrail]] = []
         other_callbacks: Final[list[CustomLogger]] = []
         try:
-            for callback in litellm.callbacks:
+            for callback in gateway.callbacks:
                 _callback: CustomLogger | None = None
                 if isinstance(callback, str):
-                    _callback = litellm.core_utils.litellm_logging.get_custom_logger_compatible_class(
+                    _callback = gateway.core_utils.litellm_logging.get_custom_logger_compatible_class(
                         cast(_custom_logger_compatible_callbacks_literal, callback)
                     )
                 else:
@@ -3009,10 +3009,10 @@ class ProxyLogging:
             # Build litellm_call_info — normalized routing metadata for callbacks
             litellm_call_info: Final = self._build_litellm_call_info(data=data, response=response)
 
-            for callback in litellm.callbacks:
+            for callback in gateway.callbacks:
                 _callback: CustomLogger | None = None
                 if isinstance(callback, str):
-                    _callback = litellm.core_utils.litellm_logging.get_custom_logger_compatible_class(
+                    _callback = gateway.core_utils.litellm_logging.get_custom_logger_compatible_class(
                         cast(_custom_logger_compatible_callbacks_literal, callback)
                     )
                 else:
@@ -3095,7 +3095,7 @@ class ProxyLogging:
 
         response_str: str | None = None
         if isinstance(response, (ModelResponse, ModelResponseStream)):
-            response_str = litellm.get_response_string(response_obj=response)
+            response_str = gateway.get_response_string(response_obj=response)
         elif isinstance(response, dict) and self.is_a2a_streaming_response(response):
             from token_iq.gateway.llms.a2a.common_utils import extract_text_from_a2a_response
 
@@ -3106,7 +3106,7 @@ class ProxyLogging:
             _cached_guardrail_data: dict | None = None
             _guardrail_data_computed = False
 
-            for callback in litellm.callbacks:
+            for callback in gateway.callbacks:
                 try:
                     _callback: CustomLogger | None = None
                     if isinstance(callback, CustomGuardrail):
@@ -3129,7 +3129,7 @@ class ProxyLogging:
                         ):
                             continue
                     if isinstance(callback, str):
-                        _callback = litellm.core_utils.litellm_logging.get_custom_logger_compatible_class(
+                        _callback = gateway.core_utils.litellm_logging.get_custom_logger_compatible_class(
                             cast(_custom_logger_compatible_callbacks_literal, callback)
                         )
                     else:
@@ -6302,7 +6302,7 @@ class ProxyUpdateSpend:
                     async with transaction.batch_() as batcher:
                         # Sort by end_user_id for consistent lock ordering across pods to prevent deadlocks.
                         for end_user_id, response_cost in sorted(end_user_list_transactions.items()):
-                            if litellm.max_end_user_budget is not None:
+                            if gateway.max_end_user_budget is not None:
                                 pass
                             batcher.litellm_endusertable.upsert(
                                 where={"user_id": end_user_id},
@@ -7157,9 +7157,9 @@ def is_known_vector_store_index(index_name: str) -> bool:
     Returns True if the vector store index is in the llm_router vector store indexes
     """
 
-    if litellm.vector_store_index_registry is None:
+    if gateway.vector_store_index_registry is None:
         return False
-    return index_name in litellm.vector_store_index_registry.get_vector_store_indexes()
+    return index_name in gateway.vector_store_index_registry.get_vector_store_indexes()
 
 
 def join_paths(base_path: str, route: str) -> str:
@@ -7491,7 +7491,7 @@ def create_model_info_response(
     include_metadata: bool = False,
     fallback_type: str | None = None,
     llm_router: Optional["Router"] = None,
-    get_model_info: Callable[[str], ModelInfo] = litellm.get_model_info,
+    get_model_info: Callable[[str], ModelInfo] = gateway.get_model_info,
 ) -> ModelInfoResponse:
     """
     Create a standardized OpenAI-compatible model object.

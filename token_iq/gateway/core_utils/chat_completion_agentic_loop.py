@@ -149,7 +149,7 @@ async def _execute_chat_completion_agentic_plan(
     fingerprints: list[str],
     fingerprint: str,
 ) -> object:
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     patch: Final = plan.request_patch or AgenticLoopRequestPatch()
     if patch.messages is None:
@@ -175,7 +175,7 @@ async def _execute_chat_completion_agentic_plan(
     _add_agentic_loop_metadata(kwargs_for_followup)
 
     try:
-        response_followup = await litellm.acompletion(
+        response_followup = await gateway.acompletion(
             model=full_model_name,
             messages=patch.messages,
             **optional_params_for_followup,
@@ -227,9 +227,9 @@ async def maybe_run_chat_completion_agentic_loop(
     custom_llm_provider: str,
     stream: bool,
 ) -> ModelResponse | CustomStreamWrapper | None:
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    callbacks: Final = litellm.callbacks + (getattr(logging_obj, "dynamic_success_callbacks", None) or [])
+    callbacks: Final = gateway.callbacks + (getattr(logging_obj, "dynamic_success_callbacks", None) or [])
     depth, max_loops, fingerprints = _agentic_loop_settings(kwargs)
     tools: Final = optional_params.get("tools", [])
 

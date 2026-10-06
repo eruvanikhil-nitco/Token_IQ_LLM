@@ -10,7 +10,7 @@ import yaml
 from prometheus_client import REGISTRY, generate_latest
 from prometheus_client.parser import text_string_to_metric_families
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.integrations.prometheus import PrometheusLogger
 from token_iq.gateway.proxy._types import UserAPIKeyAuth
 from token_iq.gateway.types.integrations.prometheus import (
@@ -40,12 +40,12 @@ def _clear_prometheus_registry() -> None:
 @pytest.fixture(autouse=True)
 def reset_prometheus_settings(monkeypatch: pytest.MonkeyPatch):
     _clear_prometheus_registry()
-    monkeypatch.setattr(litellm, "prometheus_deployment_and_latency_caller_identity", "api_key_alias")
-    monkeypatch.setattr(litellm, "prometheus_metrics_config", None)
-    monkeypatch.setattr(litellm, "prometheus_exclude_metrics", None)
-    monkeypatch.setattr(litellm, "prometheus_exclude_labels", None)
-    monkeypatch.setattr(litellm, "custom_prometheus_metadata_labels", [])
-    monkeypatch.setattr(litellm, "custom_prometheus_tags", [])
+    monkeypatch.setattr(gateway, "prometheus_deployment_and_latency_caller_identity", "api_key_alias")
+    monkeypatch.setattr(gateway, "prometheus_metrics_config", None)
+    monkeypatch.setattr(gateway, "prometheus_exclude_metrics", None)
+    monkeypatch.setattr(gateway, "prometheus_exclude_labels", None)
+    monkeypatch.setattr(gateway, "custom_prometheus_metadata_labels", [])
+    monkeypatch.setattr(gateway, "custom_prometheus_tags", [])
     yield
     _clear_prometheus_registry()
 
@@ -61,7 +61,7 @@ def _expected_identity_labels(baseline: list[str], mode: str) -> list[str]:
 
 
 def _set_caller_identity(monkeypatch: pytest.MonkeyPatch, mode: str) -> None:
-    monkeypatch.setattr(litellm, "prometheus_deployment_and_latency_caller_identity", mode)
+    monkeypatch.setattr(gateway, "prometheus_deployment_and_latency_caller_identity", mode)
 
 
 @pytest.mark.parametrize("metric_name", TARGET_METRICS)
@@ -148,7 +148,7 @@ def test_include_labels_validation_matches_caller_identity_mode(
 ):
     _set_caller_identity(monkeypatch, mode)
     monkeypatch.setattr(
-        litellm,
+        gateway,
         "prometheus_metrics_config",
         [
             {
@@ -187,7 +187,7 @@ def test_exclude_labels_can_remove_supported_identity_labels(
     remaining_identity_labels: set[str],
 ):
     _set_caller_identity(monkeypatch, mode)
-    monkeypatch.setattr(litellm, "prometheus_exclude_labels", exclude_labels)
+    monkeypatch.setattr(gateway, "prometheus_exclude_labels", exclude_labels)
 
     logger = PrometheusLogger()
     labels = logger.get_labels_for_metric("litellm_deployment_total_requests")
@@ -392,7 +392,7 @@ async def test_proxy_config_loads_caller_identity_before_initializing_callbacks(
     observed_modes: list[str] = []
 
     def capture_mode(*args: object, **kwargs: object) -> None:
-        observed_modes.append(litellm.prometheus_deployment_and_latency_caller_identity)
+        observed_modes.append(gateway.prometheus_deployment_and_latency_caller_identity)
 
     with patch(  # test-quality-ok: callback interception verifies schema selection before construction
         "token_iq.gateway.proxy.proxy_server.initialize_callbacks_on_proxy", side_effect=capture_mode
@@ -400,7 +400,7 @@ async def test_proxy_config_loads_caller_identity_before_initializing_callbacks(
         await ProxyConfig().load_config(router=None, config_file_path=str(config_path))
 
     assert observed_modes == ["both"]
-    assert litellm.prometheus_deployment_and_latency_caller_identity == "both"
+    assert gateway.prometheus_deployment_and_latency_caller_identity == "both"
 
 
 def _identity_settings(mode: object, metrics_config: object = None) -> dict[str, object]:
@@ -417,7 +417,7 @@ def test_validate_mode_returns_each_accepted_value_and_defaults_to_api_key_alias
         _set_caller_identity(monkeypatch, mode)
         assert validate_prometheus_deployment_and_latency_caller_identity() == mode
 
-    monkeypatch.delattr(litellm, "prometheus_deployment_and_latency_caller_identity")
+    monkeypatch.delattr(gateway, "prometheus_deployment_and_latency_caller_identity")
     assert validate_prometheus_deployment_and_latency_caller_identity() == "api_key_alias"
 
 
@@ -438,7 +438,7 @@ def test_validate_mode_rejects_invalid_values_and_names_accepted_ones(
     monkeypatch: pytest.MonkeyPatch,
     invalid_mode: object,
 ):
-    monkeypatch.setattr(litellm, "prometheus_deployment_and_latency_caller_identity", invalid_mode)
+    monkeypatch.setattr(gateway, "prometheus_deployment_and_latency_caller_identity", invalid_mode)
 
     with pytest.raises(ValueError, match="prometheus_deployment_and_latency_caller_identity") as exc_info:
         validate_prometheus_deployment_and_latency_caller_identity()
@@ -456,14 +456,14 @@ def test_validate_caller_identity_settings_without_key_leaves_mode_untouched(
 
     validate_caller_identity_settings({"prometheus_metrics_config": []})
 
-    assert litellm.prometheus_deployment_and_latency_caller_identity == "both"
+    assert gateway.prometheus_deployment_and_latency_caller_identity == "both"
 
 
 @pytest.mark.parametrize("mode", IDENTITY_MODES)
 def test_validate_caller_identity_settings_stores_each_valid_mode(mode: str):
     validate_caller_identity_settings(_identity_settings(mode))
 
-    assert litellm.prometheus_deployment_and_latency_caller_identity == mode
+    assert gateway.prometheus_deployment_and_latency_caller_identity == mode
 
 
 @pytest.mark.parametrize("invalid_mode", ("user-email", None))
@@ -567,7 +567,7 @@ def test_validate_caller_identity_settings_accepts_non_conflicting_configs(
 
     validate_caller_identity_settings(settings)
 
-    assert litellm.prometheus_deployment_and_latency_caller_identity == mode
+    assert gateway.prometheus_deployment_and_latency_caller_identity == mode
 
 
 def _write_proxy_config(tmp_path: Path, litellm_settings: dict[str, object]) -> Path:

@@ -2,7 +2,7 @@ from typing import Any, Final, cast
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.url_utils import encode_url_path_segment
 from token_iq.gateway.llms.base_llm.vector_store_files.transformation import (
     BaseVectorStoreFilesConfig,
@@ -66,7 +66,7 @@ class OpenAIVectorStoreFilesConfig(BaseVectorStoreFilesConfig):
         litellm_params: GenericLiteLLMParams | None,
     ) -> dict[str, str]:
         litellm_params = litellm_params or GenericLiteLLMParams()
-        api_key = litellm_params.api_key or litellm.api_key or litellm.openai_key or get_secret_str("OPENAI_API_KEY")
+        api_key = litellm_params.api_key or gateway.api_key or gateway.openai_key or get_secret_str("OPENAI_API_KEY")
         headers.update(
             {
                 "Authorization": f"Bearer {api_key}",
@@ -86,7 +86,7 @@ class OpenAIVectorStoreFilesConfig(BaseVectorStoreFilesConfig):
     ) -> str:
         base_url = (
             api_base
-            or litellm.api_base
+            or gateway.api_base
             or get_secret_str("OPENAI_BASE_URL")
             or get_secret_str("OPENAI_API_BASE")
             or "https://api.openai.com/v1"

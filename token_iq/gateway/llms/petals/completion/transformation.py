@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING, Final
 
 from httpx import Headers, Response
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.base_llm.chat.transformation import (
     BaseConfig,
     BaseLLMException,
@@ -40,7 +40,7 @@ class PetalsConfig(BaseConfig):
     """
 
     max_length: int | None = None
-    max_new_tokens: int | None = litellm.max_tokens  # petals requires max tokens to be set
+    max_new_tokens: int | None = gateway.max_tokens  # petals requires max tokens to be set
     do_sample: bool | None = None
     temperature: float | None = None
     top_k: int | None = None
@@ -50,7 +50,7 @@ class PetalsConfig(BaseConfig):
     def __init__(
         self,
         max_length: int | None = None,
-        max_new_tokens: int | None = litellm.max_tokens,  # petals requires max tokens to be set
+        max_new_tokens: int | None = gateway.max_tokens,  # petals requires max tokens to be set
         do_sample: bool | None = None,
         temperature: float | None = None,
         top_k: int | None = None,

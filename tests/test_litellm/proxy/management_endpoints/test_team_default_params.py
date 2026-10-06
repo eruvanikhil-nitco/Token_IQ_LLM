@@ -9,7 +9,7 @@ import pytest
 from fastapi import HTTPException
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy._types import (
     LiteLLM_BudgetTable,
     LiteLLM_OrganizationTable,
@@ -37,7 +37,7 @@ class TestConfigFieldsDefaultTeamParams:
 
     def test_default_team_params_applied_from_db(self, monkeypatch):
         """default_team_params in DB is set on litellm module during config load."""
-        monkeypatch.setattr(litellm, "default_team_params", None)
+        monkeypatch.setattr(gateway, "default_team_params", None)
 
         pc = self._make_proxy_config()
         db_settings = {
@@ -56,7 +56,7 @@ class TestConfigFieldsDefaultTeamParams:
             db_param_value=db_settings,
         )
 
-        assert litellm.default_team_params == db_settings["default_team_params"]
+        assert gateway.default_team_params == db_settings["default_team_params"]
 
     def test_default_team_params_merged_into_config_dict(self):
         """DB default_team_params ends up in the returned config dict."""
@@ -80,7 +80,7 @@ class TestConfigFieldsDefaultTeamParams:
 
     def test_default_team_params_not_applied_when_absent(self, monkeypatch):
         """When DB litellm_settings has no default_team_params, it stays None."""
-        monkeypatch.setattr(litellm, "default_team_params", None)
+        monkeypatch.setattr(gateway, "default_team_params", None)
 
         pc = self._make_proxy_config()
         pc._update_config_fields(
@@ -89,11 +89,11 @@ class TestConfigFieldsDefaultTeamParams:
             db_param_value={"cache": True},
         )
 
-        assert litellm.default_team_params is None
+        assert gateway.default_team_params is None
 
     def test_default_team_params_overrides_yaml_value(self, monkeypatch):
         """DB value for default_team_params overrides YAML value via deep merge."""
-        monkeypatch.setattr(litellm, "default_team_params", None)
+        monkeypatch.setattr(gateway, "default_team_params", None)
 
         pc = self._make_proxy_config()
         config = {
@@ -126,7 +126,7 @@ class TestConfigFieldsDefaultTeamParams:
         assert merged["tpm_limit"] == 100
 
         # setattr should have applied the DB value
-        assert litellm.default_team_params == db_settings["default_team_params"]
+        assert gateway.default_team_params == db_settings["default_team_params"]
 
 
 # ---------------------------------------------------------------------------
@@ -160,7 +160,7 @@ class TestNewTeamDefaultParamsApplied:
         monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
 
         # Reset default_team_settings to avoid legacy fallback interference
-        monkeypatch.setattr(litellm, "default_team_settings", None)
+        monkeypatch.setattr(gateway, "default_team_settings", None)
 
     def _make_admin_auth(self) -> UserAPIKeyAuth:
         return UserAPIKeyAuth(
@@ -190,7 +190,7 @@ class TestNewTeamDefaultParamsApplied:
         from token_iq.gateway.proxy.management_endpoints.team_endpoints import new_team
 
         monkeypatch.setattr(
-            litellm,
+            gateway,
             "default_team_params",
             {
                 "max_budget": 100.0,
@@ -226,7 +226,7 @@ class TestNewTeamDefaultParamsApplied:
         from token_iq.gateway.proxy.management_endpoints.team_endpoints import new_team
 
         monkeypatch.setattr(
-            litellm,
+            gateway,
             "default_team_params",
             {
                 "max_budget": 100.0,
@@ -269,7 +269,7 @@ class TestNewTeamDefaultParamsApplied:
         from token_iq.gateway.proxy.management_endpoints.team_endpoints import new_team
 
         monkeypatch.setattr(
-            litellm,
+            gateway,
             "default_team_params",
             {
                 "max_budget": 100.0,
@@ -305,7 +305,7 @@ class TestNewTeamDefaultParamsApplied:
         """When default_team_params is None, no defaults applied."""
         from token_iq.gateway.proxy.management_endpoints.team_endpoints import new_team
 
-        monkeypatch.setattr(litellm, "default_team_params", None)
+        monkeypatch.setattr(gateway, "default_team_params", None)
 
         data = NewTeamRequest(team_alias="my-team")
         auth = self._make_admin_auth()
@@ -331,9 +331,9 @@ class TestNewTeamDefaultParamsApplied:
         """Legacy default_team_settings YAML config applies max_budget as fallback."""
         from token_iq.gateway.proxy.management_endpoints.team_endpoints import new_team
 
-        monkeypatch.setattr(litellm, "default_team_params", None)
+        monkeypatch.setattr(gateway, "default_team_params", None)
         monkeypatch.setattr(
-            litellm,
+            gateway,
             "default_team_settings",
             [{"team_id": "default", "max_budget": 999.0}],
         )
@@ -358,12 +358,12 @@ class TestNewTeamDefaultParamsApplied:
         from token_iq.gateway.proxy.management_endpoints.team_endpoints import new_team
 
         monkeypatch.setattr(
-            litellm,
+            gateway,
             "default_team_params",
             {"max_budget": 100.0},
         )
         monkeypatch.setattr(
-            litellm,
+            gateway,
             "default_team_settings",
             [{"team_id": "default", "max_budget": 999.0}],
         )
@@ -389,7 +389,7 @@ class TestNewTeamDefaultParamsApplied:
         org goes through the same existence + org-limit checks as an explicit one."""
         from token_iq.gateway.proxy.management_endpoints.team_endpoints import new_team
 
-        monkeypatch.setattr(litellm, "default_team_params", {"organization_id": "default-org"})
+        monkeypatch.setattr(gateway, "default_team_params", {"organization_id": "default-org"})
         org_lookup = self._patch_org_lookup(monkeypatch, return_value=self._make_org("default-org"))
 
         data = NewTeamRequest(team_alias="my-team")
@@ -412,7 +412,7 @@ class TestNewTeamDefaultParamsApplied:
         """An organization_id in the request must not be replaced by the default."""
         from token_iq.gateway.proxy.management_endpoints.team_endpoints import new_team
 
-        monkeypatch.setattr(litellm, "default_team_params", {"organization_id": "default-org"})
+        monkeypatch.setattr(gateway, "default_team_params", {"organization_id": "default-org"})
         org_lookup = self._patch_org_lookup(monkeypatch, return_value=self._make_org("explicit-org"))
 
         data = NewTeamRequest(team_alias="my-team", organization_id="explicit-org")
@@ -436,7 +436,7 @@ class TestNewTeamDefaultParamsApplied:
         from token_iq.gateway.proxy.auth.auth_checks import OrganizationNotFoundError
         from token_iq.gateway.proxy.management_endpoints.team_endpoints import new_team
 
-        monkeypatch.setattr(litellm, "default_team_params", {"organization_id": "deleted-org"})
+        monkeypatch.setattr(gateway, "default_team_params", {"organization_id": "deleted-org"})
         self._patch_org_lookup(
             monkeypatch,
             side_effect=OrganizationNotFoundError("Organization doesn't exist in db. Organization=deleted-org"),
@@ -459,7 +459,7 @@ class TestNewTeamDefaultParamsApplied:
         from token_iq.gateway.proxy.management_endpoints.team_endpoints import new_team
 
         monkeypatch.setattr(
-            litellm,
+            gateway,
             "default_team_params",
             {"organization_id": "capped-org", "max_budget": 500.0},
         )
@@ -481,7 +481,7 @@ class TestNewTeamDefaultParamsApplied:
         without it litellm_budget_table is None and every budget comparison is skipped."""
         from token_iq.gateway.proxy.management_endpoints.team_endpoints import new_team
 
-        monkeypatch.setattr(litellm, "default_team_params", {"organization_id": "capped-org"})
+        monkeypatch.setattr(gateway, "default_team_params", {"organization_id": "capped-org"})
         org_lookup = self._patch_org_lookup(monkeypatch, return_value=self._make_org("capped-org", max_budget=100.0))
 
         with pytest.raises(ProxyException) as exc_info:
@@ -501,7 +501,7 @@ class TestNewTeamDefaultParamsApplied:
         from token_iq.gateway.proxy.management_endpoints.team_endpoints import new_team
 
         monkeypatch.setattr(
-            litellm,
+            gateway,
             "default_team_params",
             {"organization_id": "capped-org", "max_budget": 50.0},
         )
@@ -543,12 +543,12 @@ class TestUpdateLitellmSettingOrdering:
 
         # Simulate stale DB state: get_config returns old default_team_params
         stale_value = {"max_budget": 50.0}
-        monkeypatch.setattr(litellm, "default_team_params", stale_value)
+        monkeypatch.setattr(gateway, "default_team_params", stale_value)
 
         # get_config will overwrite litellm.default_team_params with stale DB value
         async def mock_get_config():
             # Simulate what _update_config_from_db does for safe overrides
-            litellm.default_team_params = stale_value
+            gateway.default_team_params = stale_value
             return {
                 "litellm_settings": {
                     "default_team_params": stale_value,
@@ -582,7 +582,7 @@ class TestUpdateLitellmSettingOrdering:
 
         # In-memory value should be the NEW value, not the stale one
         expected = new_settings.model_dump(exclude_none=True)
-        assert litellm.default_team_params == expected
+        assert gateway.default_team_params == expected
 
         # Saved config should contain the new value
         assert len(saved_configs) == 1

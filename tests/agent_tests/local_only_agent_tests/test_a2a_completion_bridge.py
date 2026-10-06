@@ -15,7 +15,7 @@ from uuid import uuid4
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from a2a.types import MessageSendParams, SendMessageRequest, SendStreamingMessageRequest
 
 
@@ -26,7 +26,7 @@ async def test_a2a_completion_bridge_non_streaming():
     """
     from token_iq.gateway.a2a_protocol import asend_message
 
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
 
     send_message_payload = {
         "message": {
@@ -77,7 +77,7 @@ async def test_a2a_completion_bridge_streaming():
     """
     from token_iq.gateway.a2a_protocol import asend_message_streaming
 
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
 
     send_message_payload = {
         "message": {
@@ -162,7 +162,7 @@ async def test_a2a_completion_bridge_bedrock_agentcore():
     """
     from token_iq.gateway.a2a_protocol import asend_message_streaming
 
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
 
     # Bedrock AgentCore ARN (streaming-capable runtime)
     agentcore_arn = "arn:aws:bedrock-agentcore:us-west-2:888602223428:runtime/hosted_agent_r9jvp-3ySZuRHjLC"
@@ -227,10 +227,10 @@ async def test_vertex_agent_engine_non_streaming():
     Uses the Reasoning Engine resource ID to call a hosted agent.
     """
 
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
 
     # Call via litellm.acompletion with vertex_ai/agent_engine/ prefix
-    response = await litellm.acompletion(
+    response = await gateway.acompletion(
         model=f"vertex_ai/agent_engine/{VERTEX_AGENT_RESOURCE_NAME}",
         messages=[{"role": "user", "content": "Hello! What can you do?"}],
         stream=False,
@@ -260,7 +260,7 @@ async def test_vertex_agent_engine_streaming():
     # litellm._turn_on_debug()
 
     # Call via litellm.acompletion with streaming
-    response = await litellm.acompletion(
+    response = await gateway.acompletion(
         model=f"vertex_ai/agent_engine/{VERTEX_AGENT_RESOURCE_NAME}",
         messages=[{"role": "user", "content": "Hello! What can you do?"}],
         stream=True,

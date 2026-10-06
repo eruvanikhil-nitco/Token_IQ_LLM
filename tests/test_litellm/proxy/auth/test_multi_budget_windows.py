@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy._types import UserAPIKeyAuth
 from token_iq.gateway.proxy.auth.auth_checks import _virtual_key_multi_budget_check
 
@@ -71,7 +71,7 @@ async def test_over_first_window_raises():
     with patch(
         "token_iq.gateway.proxy.proxy_server.get_current_spend", side_effect=fake_get_spend
     ):
-        with pytest.raises(litellm.BudgetExceededError) as exc_info:
+        with pytest.raises(gateway.BudgetExceededError) as exc_info:
             await _virtual_key_multi_budget_check(valid_token=token)
 
     err = exc_info.value
@@ -103,7 +103,7 @@ async def test_over_second_window_raises():
     with patch(
         "token_iq.gateway.proxy.proxy_server.get_current_spend", side_effect=fake_get_spend
     ):
-        with pytest.raises(litellm.BudgetExceededError) as exc_info:
+        with pytest.raises(gateway.BudgetExceededError) as exc_info:
             await _virtual_key_multi_budget_check(valid_token=token)
 
     err = exc_info.value

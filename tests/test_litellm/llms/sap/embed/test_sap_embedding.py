@@ -1581,9 +1581,9 @@ async def test_sap_chat(
     fake_deployment_url,
     sync_mode,
 ):
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    litellm.disable_aiohttp_transport = True
+    gateway.disable_aiohttp_transport = True
     with (
         patch(
             "token_iq.gateway.llms.sap.embed.transformation.GenAIHubEmbeddingConfig.deployment_url",
@@ -1602,9 +1602,9 @@ async def test_sap_chat(
         )
 
         if sync_mode:
-            response = litellm.embedding(model=model, input=input)
+            response = gateway.embedding(model=model, input=input)
         else:
-            response = await litellm.aembedding(model=model, input=input)
+            response = await gateway.aembedding(model=model, input=input)
 
         assert response
         assert response.data[0]["embedding"]
@@ -1618,7 +1618,7 @@ async def test_sap_embedding_required_headers(
     fake_deployment_url,
 ):
     """Test that required headers are correctly set in SAP embedding requests."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     # Define required headers for SAP requests
     required_headers = {
@@ -1628,7 +1628,7 @@ async def test_sap_embedding_required_headers(
         "AI-Client-Type": "LiteLLM",
     }
 
-    litellm.disable_aiohttp_transport = True
+    gateway.disable_aiohttp_transport = True
     with (
         patch(
             "token_iq.gateway.llms.sap.embed.transformation.GenAIHubEmbeddingConfig.deployment_url",
@@ -1647,7 +1647,7 @@ async def test_sap_embedding_required_headers(
         route = respx_mock.post(f"{fake_deployment_url}/v2/embeddings")
         route.respond(json=sap_api_response)
 
-        response = await litellm.aembedding(model=model, input=input)
+        response = await gateway.aembedding(model=model, input=input)
 
         # Verify the response is valid
         assert response

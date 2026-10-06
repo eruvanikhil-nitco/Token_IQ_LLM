@@ -491,10 +491,10 @@ class TestCheckBatchCost:
         """
         from unittest.mock import patch
 
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         deployment_id = "deploy-poller-registered-rates-1"
-        litellm.model_cost[deployment_id] = {
+        gateway.model_cost[deployment_id] = {
             "id": deployment_id,
             "input_cost_per_token_batches": 2e-06,
             "output_cost_per_token_batches": 4e-06,
@@ -575,7 +575,7 @@ class TestCheckBatchCost:
 
                 await check_batch_cost_instance.check_batch_cost()
         finally:
-            litellm.model_cost.pop(deployment_id, None)
+            gateway.model_cost.pop(deployment_id, None)
 
         mock_calculate.assert_awaited_once()
         passed_model_info = mock_calculate.await_args.kwargs["model_info"]
@@ -708,7 +708,7 @@ class TestCheckBatchCost:
         logging pipeline through to _ProxyDBLogger, which is the exact gap that
         let the original bug ship undetected.
         """
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.proxy.hooks.proxy_track_cost_callback import _ProxyDBLogger
 
         mock_prisma_client.db.litellm_managedobjecttable.update_many = AsyncMock(return_value=1)
@@ -800,7 +800,7 @@ class TestCheckBatchCost:
                 "token_iq.gateway.core_utils.get_llm_provider_logic.get_llm_provider",
                 return_value=("gpt-4", "openai", None, None),
             ),
-            patch.object(litellm, "_async_success_callback", [db_logger]),
+            patch.object(gateway, "_async_success_callback", [db_logger]),
             patch(
                 "token_iq.gateway.proxy.proxy_server.proxy_logging_obj",
                 MagicMock(
@@ -2613,7 +2613,7 @@ class TestPollPageStarvation:
     async def test_provider_404_retires_job(self):
         """The provider dropping its record of the batch is permanent: no later retrieve
         can succeed, so the row must stop occupying a slot."""
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         prisma = self._prisma(
             [
@@ -2625,7 +2625,7 @@ class TestPollPageStarvation:
         )
         llm_router = MagicMock()
         llm_router.aretrieve_batch = AsyncMock(
-            side_effect=litellm.NotFoundError(
+            side_effect=gateway.NotFoundError(
                 message="No batch found with id 'batch_deadbeef'.",
                 model="model-123",
                 llm_provider="openai",
@@ -2644,7 +2644,7 @@ class TestPollPageStarvation:
         """With the batch's own deployment removed from the router, default fallbacks can
         send the retrieve to a provider that never saw the batch. That 404 proves nothing,
         so the row must stay unprocessed instead of losing its spend forever."""
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         prisma = self._prisma(
             [
@@ -2657,7 +2657,7 @@ class TestPollPageStarvation:
         llm_router = MagicMock()
         llm_router.get_deployment = MagicMock(return_value=None)
         llm_router.aretrieve_batch = AsyncMock(
-            side_effect=litellm.NotFoundError(
+            side_effect=gateway.NotFoundError(
                 message="No batch found with id 'batch_alive'.",
                 model="model-gone",
                 llm_provider="openai",
@@ -2736,14 +2736,14 @@ class TestPollPageStarvation:
         )
         prisma = self._prisma(dead_rows + [live_row])
 
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         in_progress = MagicMock()
         in_progress.status = "in_progress"
 
         async def _retrieve(model, batch_id, litellm_metadata):
             if batch_id == "batch_deadbeef":
-                raise litellm.NotFoundError(
+                raise gateway.NotFoundError(
                     message=f"No batch found with id '{batch_id}'.",
                     model=model,
                     llm_provider="openai",
@@ -2768,7 +2768,7 @@ class TestPollPageStarvation:
     async def test_404_that_does_not_name_the_batch_keeps_job_for_retry(self):
         """A 404 about something other than the batch, e.g. a renamed Azure deployment, is
         fixable in config, so the row must survive to be costed after the fix."""
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         prisma = self._prisma(
             [
@@ -2780,7 +2780,7 @@ class TestPollPageStarvation:
         )
         llm_router = MagicMock()
         llm_router.aretrieve_batch = AsyncMock(
-            side_effect=litellm.NotFoundError(
+            side_effect=gateway.NotFoundError(
                 message="Error code: 404 - DeploymentNotFound",
                 model="model-123",
                 llm_provider="azure",

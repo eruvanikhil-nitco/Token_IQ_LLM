@@ -11,7 +11,7 @@ from typing import Any, Final
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.constants import request_timeout
 from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
 from token_iq.gateway.llms.base_llm.skills.transformation import BaseSkillsAPIConfig
@@ -122,7 +122,7 @@ async def acreate_skill(
             response = init_response
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=None,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -197,7 +197,7 @@ def create_skill(
 
         # Get provider config for external providers (Anthropic, etc.)
         skills_api_provider_config: BaseSkillsAPIConfig | None = ProviderConfigManager.get_provider_skills_api_config(
-            provider=litellm.LlmProviders(custom_llm_provider),
+            provider=gateway.LlmProviders(custom_llm_provider),
         )
 
         if skills_api_provider_config is None:
@@ -248,7 +248,7 @@ def create_skill(
 
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=None,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -311,7 +311,7 @@ async def alist_skills(
             response = init_response
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=None,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -373,7 +373,7 @@ def list_skills(
 
         # Get provider config for external providers (Anthropic, etc.)
         skills_api_provider_config: BaseSkillsAPIConfig | None = ProviderConfigManager.get_provider_skills_api_config(
-            provider=litellm.LlmProviders(custom_llm_provider),
+            provider=gateway.LlmProviders(custom_llm_provider),
         )
 
         if skills_api_provider_config is None:
@@ -431,7 +431,7 @@ def list_skills(
 
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=None,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -488,7 +488,7 @@ async def aget_skill(
             response = init_response
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=None,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -545,7 +545,7 @@ def get_skill(
 
         # Get provider config for external providers (Anthropic, etc.)
         skills_api_provider_config: BaseSkillsAPIConfig | None = ProviderConfigManager.get_provider_skills_api_config(
-            provider=litellm.LlmProviders(custom_llm_provider),
+            provider=gateway.LlmProviders(custom_llm_provider),
         )
 
         if skills_api_provider_config is None:
@@ -595,7 +595,7 @@ def get_skill(
 
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=None,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -652,7 +652,7 @@ async def adelete_skill(
             response = init_response
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=None,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -709,7 +709,7 @@ def delete_skill(
 
         # Get provider config for external providers (Anthropic, etc.)
         skills_api_provider_config: BaseSkillsAPIConfig | None = ProviderConfigManager.get_provider_skills_api_config(
-            provider=litellm.LlmProviders(custom_llm_provider),
+            provider=gateway.LlmProviders(custom_llm_provider),
         )
 
         if skills_api_provider_config is None:
@@ -759,7 +759,7 @@ def delete_skill(
 
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=None,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,

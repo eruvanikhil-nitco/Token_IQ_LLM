@@ -6,7 +6,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.bedrock.common_utils import BedrockError
 from token_iq.gateway.llms.bedrock.realtime.handler import BedrockRealtime
 from token_iq.gateway.llms.bedrock.realtime.transformation import BedrockRealtimeConfig
@@ -317,7 +317,7 @@ class TestBedrockRealtimeHandler:
 
     @pytest.mark.asyncio
     async def test_logged_event_types_star_collects_every_forwarded_event(self, monkeypatch):
-        monkeypatch.setattr(litellm, "logged_real_time_event_types", "*")
+        monkeypatch.setattr(gateway, "logged_real_time_event_types", "*")
         handler = BedrockRealtime()
         stream = ScriptedBedrockStream(
             [

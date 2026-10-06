@@ -316,7 +316,7 @@ class TestAzureAnthropicConfig:
 
     def test_invalid_output_config_effort_raises_via_extra_body(self):
         """Invalid ``effort`` via ``extra_body`` raises BadRequestError."""
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         config = AzureAnthropicConfig()
 
@@ -328,7 +328,7 @@ class TestAzureAnthropicConfig:
         litellm_params = {"api_key": "test-key"}
         headers = {"api-key": "test-key", "anthropic-version": "2023-06-01"}
 
-        with pytest.raises(litellm.exceptions.BadRequestError) as exc_info:
+        with pytest.raises(gateway.exceptions.BadRequestError) as exc_info:
             config.transform_request(
                 model="claude-opus-4-6",
                 messages=messages,
@@ -340,7 +340,7 @@ class TestAzureAnthropicConfig:
 
     def test_unsupported_effort_xhigh_raises_via_extra_body(self):
         """Unsupported ``effort='xhigh'`` via ``extra_body`` raises BadRequestError."""
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         config = AzureAnthropicConfig()
 
@@ -352,7 +352,7 @@ class TestAzureAnthropicConfig:
         litellm_params = {"api_key": "test-key"}
         headers = {"api-key": "test-key", "anthropic-version": "2023-06-01"}
 
-        with pytest.raises(litellm.exceptions.BadRequestError) as exc_info:
+        with pytest.raises(gateway.exceptions.BadRequestError) as exc_info:
             config.transform_request(
                 model="claude-sonnet-4-6",
                 messages=messages,

@@ -2,7 +2,7 @@ import os
 from datetime import datetime
 from typing import TYPE_CHECKING, Any, Final, cast
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.constants import CLOUDZERO_EXPORT_INTERVAL_MINUTES
 from token_iq.gateway.integrations.custom_logger import CustomLogger
@@ -346,7 +346,7 @@ class CloudZeroLogger(CustomLogger):
         from token_iq.gateway.constants import CLOUDZERO_EXPORT_INTERVAL_MINUTES
         from token_iq.gateway.integrations.custom_logger import CustomLogger
 
-        prometheus_loggers: Final[list[CustomLogger]] = litellm.logging_callback_manager.get_custom_loggers_for_type(
+        prometheus_loggers: Final[list[CustomLogger]] = gateway.logging_callback_manager.get_custom_loggers_for_type(
             callback_type=CloudZeroLogger
         )
         # we need to get the initialized prometheus logger instance(s) and call logger.initialize_remaining_budget_metrics() on them

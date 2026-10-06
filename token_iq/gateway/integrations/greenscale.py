@@ -3,7 +3,7 @@ import traceback
 from datetime import datetime, timezone
 from typing import Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 
 class GreenscaleLogger:
@@ -47,7 +47,7 @@ class GreenscaleLogger:
             if self.greenscale_logging_url is None:
                 raise Exception("Greenscale Logger Error - No logging URL found")
 
-            response: Final = litellm.module_level_client.post(
+            response: Final = gateway.module_level_client.post(
                 self.greenscale_logging_url,
                 headers=self.headers,
                 data=json.dumps(data, default=str),

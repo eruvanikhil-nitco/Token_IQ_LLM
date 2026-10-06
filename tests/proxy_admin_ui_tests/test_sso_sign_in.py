@@ -5,7 +5,7 @@ from unittest.mock import patch, MagicMock, AsyncMock
 
 import os
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy.proxy_server import app
 from token_iq.gateway.proxy.utils import PrismaClient, ProxyLogging
 from token_iq.gateway.proxy.management_endpoints.ui_sso import auth_callback
@@ -41,10 +41,10 @@ def prisma_client():
     )
 
     # Reset litellm.proxy.proxy_server.prisma_client to None
-    litellm.proxy.proxy_server.litellm_proxy_budget_name = (
+    gateway.proxy.proxy_server.litellm_proxy_budget_name = (
         f"litellm-proxy-budget-{time.time()}"
     )
-    litellm.proxy.proxy_server.user_custom_key_generate = None
+    gateway.proxy.proxy_server.user_custom_key_generate = None
 
     return prisma_client
 
@@ -56,9 +56,9 @@ async def test_auth_callback_new_user(mock_google_sso, mock_env_vars, prisma_cli
     Tests that a new SSO Sign In user is by default given an 'INTERNAL_USER_VIEW_ONLY' role
     """
     from token_iq.gateway._uuid import uuid
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
 
     # Generate a unique user ID
     unique_user_id = str(uuid.uuid4())
@@ -66,11 +66,11 @@ async def test_auth_callback_new_user(mock_google_sso, mock_env_vars, prisma_cli
 
     try:
         # Set up the prisma client
-        setattr(litellm.proxy.proxy_server, "prisma_client", prisma_client)
-        await litellm.proxy.proxy_server.prisma_client.connect()
+        setattr(gateway.proxy.proxy_server, "prisma_client", prisma_client)
+        await gateway.proxy.proxy_server.prisma_client.connect()
 
         # Set up the master key
-        litellm.proxy.proxy_server.master_key = "mock_master_key"
+        gateway.proxy.proxy_server.master_key = "mock_master_key"
 
         # Mock the GoogleSSO verify_and_process method
         mock_sso_result = MagicMock()
@@ -141,14 +141,14 @@ async def test_auth_callback_new_user_with_sso_default(
 
     try:
         # Set up the prisma client
-        setattr(litellm.proxy.proxy_server, "prisma_client", prisma_client)
-        litellm.default_internal_user_params = {
+        setattr(gateway.proxy.proxy_server, "prisma_client", prisma_client)
+        gateway.default_internal_user_params = {
             "user_role": LitellmUserRoles.INTERNAL_USER.value
         }
-        await litellm.proxy.proxy_server.prisma_client.connect()
+        await gateway.proxy.proxy_server.prisma_client.connect()
 
         # Set up the master key
-        litellm.proxy.proxy_server.master_key = "mock_master_key"
+        gateway.proxy.proxy_server.master_key = "mock_master_key"
 
         # Mock the GoogleSSO verify_and_process method
         mock_sso_result = MagicMock()
@@ -195,4 +195,4 @@ async def test_auth_callback_new_user_with_sso_default(
         await prisma_client.db.litellm_usertable.delete(
             where={"user_id": unique_user_id}
         )
-        litellm.default_internal_user_params = None
+        gateway.default_internal_user_params = None

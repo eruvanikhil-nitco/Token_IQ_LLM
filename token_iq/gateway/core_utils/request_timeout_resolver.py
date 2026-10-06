@@ -19,10 +19,10 @@ from token_iq.gateway.constants import DEFAULT_REQUEST_TIMEOUT_SECONDS
 
 def get_configured_request_timeout() -> float | None:
     """Return the explicitly-configured ``litellm.request_timeout``, else ``None``."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    timeout: Final = float(litellm.request_timeout)
-    if litellm.request_timeout_explicitly_set:
+    timeout: Final = float(gateway.request_timeout)
+    if gateway.request_timeout_explicitly_set:
         return timeout
     if timeout != float(DEFAULT_REQUEST_TIMEOUT_SECONDS):
         return timeout

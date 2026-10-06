@@ -11,9 +11,9 @@ import re
 # Backup the original sys.path
 original_sys_path = sys.path.copy()
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
-public_exceptions = litellm.LITELLM_EXCEPTION_TYPES
+public_exceptions = gateway.LITELLM_EXCEPTION_TYPES
 # Regular expression to extract the error name
 error_name_pattern = re.compile(r"\.exceptions\.([A-Za-z]+Error)")
 

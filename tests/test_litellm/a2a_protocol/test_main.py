@@ -12,7 +12,7 @@ from a2a.compat.v0_3.types import (
     SendStreamingMessageRequest,
 )
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.a2a_protocol.main import _send_message, _stream_messages, create_a2a_client
 from token_iq.gateway.caching.llm_caching_handler import LLMClientCache
 from token_iq.gateway.constants import DEFAULT_A2A_AGENT_TIMEOUT
@@ -262,7 +262,7 @@ async def _seed_shared_a2a_client(card=_AGENT_CARD, rpc_reply=_RPC_REPLY) -> _Re
     handler.client = httpx.AsyncClient(transport=httpx.MockTransport(recorder))
     await owned_client.aclose()
 
-    litellm.in_memory_llm_clients_cache.set_cache(key=_a2a_client_cache_key(DEFAULT_A2A_AGENT_TIMEOUT), value=handler)
+    gateway.in_memory_llm_clients_cache.set_cache(key=_a2a_client_cache_key(DEFAULT_A2A_AGENT_TIMEOUT), value=handler)
     seeded = get_async_httpx_client(
         llm_provider=httpxSpecialProvider.A2AProvider,
         params={"timeout": DEFAULT_A2A_AGENT_TIMEOUT},
@@ -275,10 +275,10 @@ async def _seed_shared_a2a_client(card=_AGENT_CARD, rpc_reply=_RPC_REPLY) -> _Re
 
 @pytest.fixture
 def isolated_client_cache():
-    previous = getattr(litellm, "in_memory_llm_clients_cache", None)
-    litellm.in_memory_llm_clients_cache = LLMClientCache()
-    yield litellm.in_memory_llm_clients_cache
-    litellm.in_memory_llm_clients_cache = previous
+    previous = getattr(gateway, "in_memory_llm_clients_cache", None)
+    gateway.in_memory_llm_clients_cache = LLMClientCache()
+    yield gateway.in_memory_llm_clients_cache
+    gateway.in_memory_llm_clients_cache = previous
 
 
 def _send_request(request_id):

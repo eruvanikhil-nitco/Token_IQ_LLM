@@ -47,7 +47,7 @@ from typing import TYPE_CHECKING, Any, Final, cast
 import httpx
 from httpx._types import RequestFiles
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.images.utils import ImageEditRequestUtils
 from token_iq.gateway.llms.base_llm.chat.transformation import BaseLLMException
 from token_iq.gateway.llms.base_llm.image_edit.transformation import BaseImageEditConfig
@@ -117,7 +117,7 @@ class OpenRouterImageEditConfig(BaseImageEditConfig):
         litellm_params: dict | None = None,
         api_base: str | None = None,
     ) -> dict:
-        api_key = api_key or litellm.api_key or get_secret_str("OPENROUTER_API_KEY")
+        api_key = api_key or gateway.api_key or get_secret_str("OPENROUTER_API_KEY")
         if not api_key:
             raise ValueError("OPENROUTER_API_KEY is not set")
         headers.update(

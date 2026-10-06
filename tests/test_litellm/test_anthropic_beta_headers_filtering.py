@@ -15,7 +15,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.anthropic_beta_headers_manager import (
     filter_and_transform_beta_headers,
     update_request_with_filtered_beta,
@@ -37,7 +37,7 @@ class TestAnthropicBetaHeadersFiltering:
         anthropic_beta_headers_manager._BETA_HEADERS_CONFIG = None
 
         config_path = os.path.join(
-            os.path.dirname(litellm.__file__),
+            os.path.dirname(gateway.__file__),
             "anthropic_beta_headers_config.json",
         )
         with open(config_path, "r") as f:
@@ -170,7 +170,7 @@ class TestAnthropicBetaHeadersFiltering:
             mock_client_factory.return_value = mock_client
 
             try:
-                await litellm.acompletion(
+                await gateway.acompletion(
                     model="anthropic/claude-3-5-sonnet-20241022",
                     messages=[{"role": "user", "content": "Hi"}],
                     extra_headers={"anthropic-beta": ",".join(all_headers)},
@@ -218,7 +218,7 @@ class TestAnthropicBetaHeadersFiltering:
             mock_client_factory.return_value = mock_client
 
             try:
-                await litellm.acompletion(
+                await gateway.acompletion(
                     model="azure_ai/claude-3-5-sonnet-20241022",
                     messages=[{"role": "user", "content": "Hi"}],
                     api_key="test-key",
@@ -266,7 +266,7 @@ class TestAnthropicBetaHeadersFiltering:
             mock_client_class.return_value.__aenter__.return_value = mock_client
 
             try:
-                await litellm.acompletion(
+                await gateway.acompletion(
                     model="bedrock/converse/us.anthropic.claude-haiku-4-5-20251001-v1:0",
                     messages=[{"role": "user", "content": "Hi"}],
                     aws_access_key_id="test",
@@ -340,7 +340,7 @@ class TestAnthropicBetaHeadersFiltering:
                 mock_token.return_value = ("test-token", "test-project")
 
                 try:
-                    await litellm.acompletion(
+                    await gateway.acompletion(
                         model="vertex_ai/claude-3-5-sonnet-20241022",
                         messages=[{"role": "user", "content": "Hi"}],
                         vertex_project="test-project",

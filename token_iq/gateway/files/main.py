@@ -32,7 +32,7 @@ FileRetrieveProvider = Literal[
 ]
 FileDeleteProvider = Literal["openai", "azure", "gemini", "litellm_proxy", "manus", "anthropic"]
 FileListProvider = Literal["openai", "azure", "litellm_proxy", "manus", "anthropic"]
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import get_secret_str
 from token_iq.gateway.files.streaming import FileContentStreamingResponse
 from token_iq.gateway.files.types import FileContentProvider, FileContentStreamingResult
@@ -240,7 +240,7 @@ def create_file(
                 litellm_params=litellm_params_dict,
             )
         else:
-            raise litellm.exceptions.BadRequestError(
+            raise gateway.exceptions.BadRequestError(
                 message=f"LiteLLM doesn't support {custom_llm_provider} for 'create_file'. Only ['openai', 'azure', 'vertex_ai', 'manus', 'anthropic'] are supported.",
                 model="n/a",
                 llm_provider=custom_llm_provider,
@@ -404,7 +404,7 @@ def file_retrieve(
                     timeout=timeout,
                 )
             else:
-                raise litellm.exceptions.BadRequestError(
+                raise gateway.exceptions.BadRequestError(
                     message=f"LiteLLM doesn't support {custom_llm_provider} for 'file_retrieve'. Only 'openai', 'azure', 'manus', and 'anthropic' are supported.",
                     model="n/a",
                     llm_provider=custom_llm_provider,
@@ -581,7 +581,7 @@ def file_delete(
                     timeout=timeout,
                 )
             else:
-                raise litellm.exceptions.BadRequestError(
+                raise gateway.exceptions.BadRequestError(
                     message=f"LiteLLM doesn't support {custom_llm_provider} for 'file_delete'. Only 'openai', 'azure', 'gemini', 'manus', and 'anthropic' are supported.",
                     model="n/a",
                     llm_provider=custom_llm_provider,
@@ -743,7 +743,7 @@ def file_list(
                 purpose=purpose,
             )
         else:
-            raise litellm.exceptions.BadRequestError(
+            raise gateway.exceptions.BadRequestError(
                 message=f"LiteLLM doesn't support {custom_llm_provider} for 'file_list'. Only 'openai', 'azure', 'manus', and 'anthropic' are supported.",
                 model="n/a",
                 llm_provider=custom_llm_provider,
@@ -947,10 +947,10 @@ def file_content(
         elif custom_llm_provider == "vertex_ai":
             api_base: Final = optional_params.api_base or ""
             vertex_ai_project: Final = (
-                optional_params.vertex_project or litellm.vertex_project or get_secret_str("VERTEXAI_PROJECT")
+                optional_params.vertex_project or gateway.vertex_project or get_secret_str("VERTEXAI_PROJECT")
             )
             vertex_ai_location: Final = (
-                optional_params.vertex_location or litellm.vertex_location or get_secret_str("VERTEXAI_LOCATION")
+                optional_params.vertex_location or gateway.vertex_location or get_secret_str("VERTEXAI_LOCATION")
             )
             vertex_credentials: Final = optional_params.vertex_credentials or get_secret_str("VERTEXAI_CREDENTIALS")
 
@@ -975,7 +975,7 @@ def file_content(
                 max_retries=optional_params.max_retries,
             )
         else:
-            raise litellm.exceptions.BadRequestError(
+            raise gateway.exceptions.BadRequestError(
                 message=f"LiteLLM doesn't support {custom_llm_provider} for 'file_content'. Supported providers are 'openai', 'azure', 'vertex_ai', 'bedrock', 'manus', 'anthropic'.",
                 model="n/a",
                 llm_provider=custom_llm_provider,
@@ -1053,7 +1053,7 @@ def file_content_streaming(
             client=client,
         )
     else:
-        raise litellm.exceptions.BadRequestError(
+        raise gateway.exceptions.BadRequestError(
             message=f"LiteLLM doesn't support {custom_llm_provider} for streaming 'file_content'. Supported providers are {sorted(OPENAI_COMPATIBLE_BATCH_AND_FILES_PROVIDERS)}.",
             model="n/a",
             llm_provider=custom_llm_provider,

@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 
 
 def initialize_guardrail(litellm_params: "LitellmParams", guardrail: "Guardrail"):
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     guardrail_name: Final = guardrail.get("guardrail_name")
     if not guardrail_name:
@@ -40,10 +40,10 @@ def initialize_guardrail(litellm_params: "LitellmParams", guardrail: "Guardrail"
         event_hook=litellm_params.mode,
         default_on=litellm_params.default_on or False,
     )
-    litellm.logging_callback_manager.add_litellm_callback(_callback)
+    gateway.logging_callback_manager.add_litellm_callback(_callback)
 
     # MCP post-tool-call hooks are dispatched through success callbacks.
-    litellm.logging_callback_manager.add_litellm_success_callback(_callback)
+    gateway.logging_callback_manager.add_litellm_success_callback(_callback)
 
     return _callback
 

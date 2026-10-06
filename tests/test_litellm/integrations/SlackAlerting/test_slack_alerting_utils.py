@@ -6,7 +6,7 @@ import pytest
 
 # Adds the grandparent directory to sys.path to allow importing project modules
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.integrations.langfuse.langfuse_prompt_management import (
     LangfusePromptManagement,
 )
@@ -21,7 +21,7 @@ async def test_langfuse_not_initialized_returns_none_early():
     the function returns None immediately without executing further logic
     """
     # Ensure no Langfuse logger is in the callback manager
-    litellm.logging_callback_manager = LoggingCallbackManager()
+    gateway.logging_callback_manager = LoggingCallbackManager()
 
     # Create request data that would normally trigger processing
     request_data = {"litellm_logging_obj": MagicMock(), "trace_id": "test-trace-id"}

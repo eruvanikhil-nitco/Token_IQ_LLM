@@ -23,7 +23,7 @@ import os
 from datetime import datetime, timedelta, timezone
 from typing import TYPE_CHECKING, Any, Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.constants import MAVVRIK_FOCUS_EXPORT_JOB_NAME
 from token_iq.gateway.integrations.focus.destinations.base import FocusTimeWindow
@@ -251,10 +251,10 @@ class MavvrikFocusLogger(FocusLogger):
         """Register the Mavvrik FOCUS export job on the provided scheduler."""
         loggers: list[MavvrikFocusLogger] = [
             cb
-            for cb in litellm.logging_callback_manager.get_custom_loggers_for_type(callback_type=MavvrikFocusLogger)
+            for cb in gateway.logging_callback_manager.get_custom_loggers_for_type(callback_type=MavvrikFocusLogger)
             if type(cb) is MavvrikFocusLogger
         ]
-        if not loggers and "mavvrik" in litellm.callbacks:
+        if not loggers and "mavvrik" in gateway.callbacks:
             # The logger is registered as the string "mavvrik" but hasn't been
             # instantiated yet (lazy init happens on first LLM call). Force it now
             # so the scheduler can register the daily export job at startup.

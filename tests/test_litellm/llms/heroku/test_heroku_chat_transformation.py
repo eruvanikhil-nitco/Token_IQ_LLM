@@ -1,6 +1,6 @@
 import os
 import pytest
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import completion
 from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 from unittest.mock import patch
@@ -36,7 +36,7 @@ class TestHerokuChatConfig:
     def test_heroku_chat_mock(self, respx_mock):
         """Test that the Heroku chat API is called correctly"""
 
-        litellm.disable_aiohttp_transport = True
+        gateway.disable_aiohttp_transport = True
 
         model = "heroku/claude-3-5-haiku"
         model_name = "claude-3-5-haiku"
@@ -92,7 +92,7 @@ class TestHerokuChatConfig:
         headers = {}
         api_key = "fake-heroku-key"
 
-        litellm.disable_aiohttp_transport = True
+        gateway.disable_aiohttp_transport = True
 
         model = "heroku/claude-4-sonnet"
 

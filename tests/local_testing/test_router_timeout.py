@@ -13,7 +13,7 @@ from unittest.mock import patch, MagicMock, AsyncMock
 
 from dotenv import load_dotenv
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import Router
 
 load_dotenv()
@@ -76,7 +76,7 @@ def test_router_timeouts():
     for question in questions_list:
         messages = [{"content": question["content"], "role": "user"}]
 
-        prompt_tokens = litellm.token_counter(text=question["content"], model="gpt-4")
+        prompt_tokens = gateway.token_counter(text=question["content"], model="gpt-4")
         print("prompt_tokens = ", prompt_tokens)
 
         response = router.completion(
@@ -116,7 +116,7 @@ async def test_router_timeouts_bedrock():
         num_retries=0,
     )
 
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     try:
         response = await router.acompletion(
             model="bedrock",
@@ -146,8 +146,8 @@ def test_router_timeout_with_retries_anthropic_model(num_retries, expected_call_
     """
     from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
-    litellm.num_retries = num_retries
-    litellm.request_timeout = 0.000001
+    gateway.num_retries = num_retries
+    gateway.request_timeout = 0.000001
 
     router = Router(
         model_list=[
@@ -176,7 +176,7 @@ def test_router_timeout_with_retries_anthropic_model(num_retries, expected_call_
                 messages=[{"role": "user", "content": "hello, who are u"}],
                 client=custom_client,
             )
-        except litellm.Timeout:
+        except gateway.Timeout:
             pass
 
         assert mock_client.call_count == expected_call_count
@@ -192,10 +192,10 @@ def test_router_timeout_with_retries_anthropic_model(num_retries, expected_call_
 def test_router_stream_timeout(model):
     import os
     from dotenv import load_dotenv
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.router import Router, RetryPolicy, AllowedFailsPolicy
 
-    litellm.set_verbose = True
+    gateway.set_verbose = True
 
     model_list = [
         {
@@ -280,10 +280,10 @@ def test_router_stream_timeout(model):
 def test_unit_test_streaming_timeout(stream):
     import os
     from dotenv import load_dotenv
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.router import Router, RetryPolicy, AllowedFailsPolicy
 
-    litellm.set_verbose = True
+    gateway.set_verbose = True
 
     model_list = [
         {

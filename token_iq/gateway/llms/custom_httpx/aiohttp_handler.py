@@ -6,13 +6,13 @@ import aiohttp
 import httpx
 from aiohttp import ClientSession, FormData
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 import token_iq.gateway.core_utils
-from token_iq import gateway as litellm
+from token_iq import gateway
 import token_iq.gateway.types
-from token_iq import gateway as litellm
+from token_iq import gateway
 import token_iq.gateway.types.utils
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.base_llm.chat.transformation import BaseConfig
 from token_iq.gateway.llms.base_llm.image_variations.transformation import (
     BaseImageVariationConfig,
@@ -319,7 +319,7 @@ class BaseLLMAIOHTTPHandler:
         client: HTTPHandler | AsyncHTTPHandler | ClientSession | None = None,
     ):
         provider_config: Final = ProviderConfigManager.get_provider_chat_config(
-            model=model, provider=litellm.LlmProviders(custom_llm_provider)
+            model=model, provider=gateway.LlmProviders(custom_llm_provider)
         )
         if provider_config is None:
             raise ValueError(f"Provider config not found for model: {model} and provider: {custom_llm_provider}")

@@ -5,7 +5,7 @@ import inspect
 from collections.abc import Mapping
 from typing import TYPE_CHECKING, Any, Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.constants import REDACTED_BY_LITELLM
 from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.core_utils.core_helpers import (
@@ -89,7 +89,7 @@ def _redact_function_call(function_call) -> None:
 
 def _redact_choice_content(choice):
     """Helper to redact content in a choice (message or delta)."""
-    if isinstance(choice, litellm.Choices):
+    if isinstance(choice, gateway.Choices):
         if choice.message.content is not None:
             choice.message.content = REDACTED_BY_LITELLM
         if getattr(choice.message, "reasoning_content", None) is not None:
@@ -98,7 +98,7 @@ def _redact_choice_content(choice):
             choice.message.thinking_blocks = None
         _redact_tool_calls(getattr(choice.message, "tool_calls", None))
         _redact_function_call(getattr(choice.message, "function_call", None))
-    elif isinstance(choice, litellm.utils.StreamingChoices):
+    elif isinstance(choice, gateway.utils.StreamingChoices):
         if choice.delta.content is not None:
             choice.delta.content = REDACTED_BY_LITELLM
         if getattr(choice.delta, "reasoning_content", None) is not None:
@@ -257,13 +257,13 @@ def perform_redaction(model_call_details: dict, result, redact_streaming_respons
             return {"text": REDACTED_BY_LITELLM}
 
         if not (
-            isinstance(result, (litellm.ModelResponse, litellm.ResponsesAPIResponse, litellm.EmbeddingResponse))
+            isinstance(result, (gateway.ModelResponse, gateway.ResponsesAPIResponse, gateway.EmbeddingResponse))
             or (isinstance(result, dict) and ("choices" in result or "output" in result))
         ):
             return {"text": REDACTED_BY_LITELLM}
 
         _result: Final = copy.deepcopy(result)
-        if isinstance(_result, litellm.ModelResponse):
+        if isinstance(_result, gateway.ModelResponse):
             if hasattr(_result, "choices") and _result.choices is not None:
                 for choice in _result.choices:
                     _redact_choice_content(choice)
@@ -276,13 +276,13 @@ def perform_redaction(model_call_details: dict, result, redact_streaming_respons
         elif isinstance(_result, dict) and "output" in _result:
             if isinstance(_result.get("output"), list):
                 _redact_responses_api_output_dict(_result["output"], REDACTED_BY_LITELLM)
-        elif isinstance(_result, litellm.ResponsesAPIResponse):
+        elif isinstance(_result, gateway.ResponsesAPIResponse):
             if hasattr(_result, "output"):
                 _redact_responses_api_output(_result.output)
             # Redact reasoning field in ResponsesAPIResponse
             if hasattr(_result, "reasoning") and _result.reasoning is not None:
                 _result.reasoning = None
-        elif isinstance(_result, litellm.EmbeddingResponse):
+        elif isinstance(_result, gateway.EmbeddingResponse):
             if hasattr(_result, "data") and _result.data is not None:
                 _result.data = []
         else:
@@ -339,7 +339,7 @@ def should_redact_message_logging(model_call_details: dict) -> bool:
         return True
 
     # Priority 3: Fall back to global setting
-    return litellm.turn_off_message_logging is True
+    return gateway.turn_off_message_logging is True
 
 
 def redact_message_input_output_from_logging(model_call_details: dict, result, input: Any | None = None) -> Any:
@@ -389,7 +389,7 @@ def redact_user_api_key_info(metadata: dict) -> dict:
         redact_user_api_key_info: true
     ```
     """
-    if litellm.redact_user_api_key_info is not True:
+    if gateway.redact_user_api_key_info is not True:
         return metadata
 
     new_metadata: Final = {}

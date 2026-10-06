@@ -12,7 +12,7 @@ from unittest.mock import AsyncMock, patch
 import httpx
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler
 
 
@@ -100,7 +100,7 @@ async def test_aresponses_context_management_and_shell_request_body_matches_expe
     ) as mock_post:
         mock_post.return_value = MockResponse(_minimal_responses_api_payload("resp_ctx_shell_test", "gpt-4o"), 200)
 
-        await litellm.aresponses(
+        await gateway.aresponses(
             model="openai/gpt-4o",
             input=expected_body["input"],
             context_management=expected_body["context_management"],
@@ -129,7 +129,7 @@ async def test_aresponses_azure_shell_tool_request_body_matches_expected():
             _minimal_responses_api_payload("resp_azure_shell_test", "gpt-5-mini"), 200
         )
 
-        await litellm.aresponses(
+        await gateway.aresponses(
             model="azure/gpt-5-mini",
             api_base="https://fake-resource.openai.azure.com",
             api_key="fake-api-key",
@@ -179,8 +179,8 @@ async def test_aresponses_azure_shell_tool_400_maps_to_bad_request_error():
     ) as mock_post:
         mock_post.side_effect = _raise_azure_400
 
-        with pytest.raises(litellm.BadRequestError) as excinfo:
-            await litellm.aresponses(
+        with pytest.raises(gateway.BadRequestError) as excinfo:
+            await gateway.aresponses(
                 model="azure/gpt-5-mini",
                 api_base="https://fake-resource.openai.azure.com",
                 api_key="fake-api-key",
@@ -207,7 +207,7 @@ async def test_aresponses_drops_stream_options():
             _minimal_responses_api_payload("resp_stream_options_test", "gpt-5.5"), 200
         )
 
-        await litellm.aresponses(
+        await gateway.aresponses(
             model="openai/gpt-5.5",
             api_key="fake-api-key",
             input="hi",
@@ -231,7 +231,7 @@ async def test_aresponses_keeps_include_obfuscation_in_stream_options():
             _minimal_responses_api_payload("resp_stream_options_obfuscation", "gpt-5.5"), 200
         )
 
-        await litellm.aresponses(
+        await gateway.aresponses(
             model="openai/gpt-5.5",
             api_key="fake-api-key",
             input="hi",
@@ -253,7 +253,7 @@ async def test_aresponses_request_level_drop_params_drops_bedrock_mantle_service
     reach the provider config so bedrock_mantle strips the unsupported
     service_tier before the request hits the wire.
     """
-    monkeypatch.setattr(litellm, "drop_params", False)
+    monkeypatch.setattr(gateway, "drop_params", False)
 
     with patch(
         "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
@@ -264,7 +264,7 @@ async def test_aresponses_request_level_drop_params_drops_bedrock_mantle_service
             200,
         )
 
-        await litellm.aresponses(
+        await gateway.aresponses(
             model="bedrock_mantle/openai.gpt-5.5",
             api_key="fake-bearer-token",
             aws_region_name="us-east-1",
@@ -287,14 +287,14 @@ async def test_aresponses_bedrock_mantle_service_tier_raises_without_drop_params
     Without drop_params, an unsupported service_tier must fail fast with an
     error that names drop_params instead of sending a request Mantle rejects.
     """
-    monkeypatch.setattr(litellm, "drop_params", False)
+    monkeypatch.setattr(gateway, "drop_params", False)
 
     with patch(
         "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         new_callable=AsyncMock,
     ) as mock_post:
-        with pytest.raises(litellm.BadRequestError) as excinfo:
-            await litellm.aresponses(
+        with pytest.raises(gateway.BadRequestError) as excinfo:
+            await gateway.aresponses(
                 model="bedrock_mantle/openai.gpt-5.5",
                 api_key="fake-bearer-token",
                 aws_region_name="us-east-1",
@@ -314,7 +314,7 @@ async def _aresponses_and_get_request_headers(**request_kwargs) -> dict:
     ) as mock_post:
         mock_post.return_value = MockResponse(_minimal_responses_api_payload("resp_headers_test", "gpt-4o"), 200)
 
-        await litellm.aresponses(
+        await gateway.aresponses(
             model="openai/gpt-4o",
             api_key="fake-api-key",
             input="hi",
@@ -386,7 +386,7 @@ async def test_aresponses_strips_responses_routing_prefix_from_openai_model(mode
     mock_post = AsyncMock(return_value=MockResponse(_minimal_responses_api_payload("resp_prefix_test", "gpt-5.6"), 200))
     injected_client.post = mock_post
 
-    await litellm.aresponses(
+    await gateway.aresponses(
         model=model,
         custom_llm_provider=custom_llm_provider,
         input="ping",
@@ -449,7 +449,7 @@ async def test_aresponses_injection_point_marks_input_text_on_gpt_5_6():
     ) as mock_post:
         mock_post.return_value = MockResponse(_minimal_responses_api_payload("resp_pcb_async", "gpt-5.6"), 200)
 
-        await litellm.aresponses(
+        await gateway.aresponses(
             model="openai/gpt-5.6",
             api_key="fake-api-key",
             input=copy.deepcopy(_INJECTION_POINT_INPUT),
@@ -470,7 +470,7 @@ def test_responses_injection_point_marks_input_text_on_gpt_5_6():
     with patch("token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post") as mock_post:
         mock_post.return_value = MockResponse(_minimal_responses_api_payload("resp_pcb_sync", "gpt-5.6"), 200)
 
-        litellm.responses(
+        gateway.responses(
             model="openai/gpt-5.6",
             api_key="fake-api-key",
             input=copy.deepcopy(_INJECTION_POINT_INPUT),
@@ -495,7 +495,7 @@ async def test_aresponses_injection_point_sends_nothing_extra_below_gpt_5_6():
     ) as mock_post:
         mock_post.return_value = MockResponse(_minimal_responses_api_payload("resp_pcb_old", "gpt-4.1"), 200)
 
-        await litellm.aresponses(
+        await gateway.aresponses(
             model="openai/gpt-4.1",
             api_key="fake-api-key",
             input=copy.deepcopy(_INJECTION_POINT_INPUT),
@@ -512,7 +512,7 @@ async def test_aresponses_injection_point_sends_nothing_extra_below_gpt_5_6():
 def _no_openai_api_base_override(monkeypatch):
     monkeypatch.delenv("OPENAI_BASE_URL", raising=False)
     monkeypatch.delenv("OPENAI_API_BASE", raising=False)
-    monkeypatch.setattr(litellm, "api_base", None)
+    monkeypatch.setattr(gateway, "api_base", None)
 
 
 _CUSTOM_API_BASE = "http://127.0.0.1:9/v1"
@@ -524,7 +524,7 @@ async def _aresponses_body_with_system_point(**request_kwargs) -> dict:
         new_callable=AsyncMock,
     ) as mock_post:
         mock_post.return_value = MockResponse(_minimal_responses_api_payload("resp_pcb_gate", "gpt-5.6"), 200)
-        await litellm.aresponses(
+        await gateway.aresponses(
             api_key="fake-api-key",
             input=copy.deepcopy(_INJECTION_POINT_INPUT),
             cache_control_injection_points=copy.deepcopy(_SYSTEM_INJECTION_POINT),
@@ -576,7 +576,7 @@ def test_responses_custom_base_url_sends_no_openai_markers():
     with patch("token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post") as mock_post:
         mock_post.return_value = MockResponse(_minimal_responses_api_payload("resp_pcb_gate_base_url", "gpt-5.6"), 200)
 
-        litellm.responses(
+        gateway.responses(
             model="gpt-5.6",
             api_key="fake-api-key",
             base_url=_CUSTOM_API_BASE,
@@ -594,7 +594,7 @@ def test_responses_custom_api_base_sends_no_openai_markers():
     with patch("token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post") as mock_post:
         mock_post.return_value = MockResponse(_minimal_responses_api_payload("resp_pcb_gate_sync", "gpt-5.6"), 200)
 
-        litellm.responses(
+        gateway.responses(
             model="gpt-5.6",
             api_key="fake-api-key",
             api_base=_CUSTOM_API_BASE,
@@ -615,7 +615,7 @@ async def test_injection_points_still_reach_a_native_responses_provider():
     mock_post = AsyncMock(return_value=MockResponse(_minimal_responses_api_payload("resp_native", "gpt-5.6"), 200))
     injected_client.post = mock_post
 
-    await litellm.aresponses(
+    await gateway.aresponses(
         model="openai/gpt-5.6",
         api_key="fake-api-key",
         input=copy.deepcopy(_INJECTION_POINT_INPUT),
@@ -632,7 +632,7 @@ async def _bridged_body(mock_post, *, points, input, instructions="You are a doc
     injected_client = AsyncHTTPHandler()
     injected_client.post = mock_post
 
-    await litellm.aresponses(
+    await gateway.aresponses(
         model="anthropic/claude-sonnet-4-5",
         api_key="fake-api-key",
         instructions=instructions,
@@ -763,7 +763,7 @@ async def test_a_native_responses_provider_places_every_point_itself():
         injected_client = AsyncHTTPHandler()
         mock_post = AsyncMock(return_value=MockResponse(_minimal_responses_api_payload("resp_native", "gpt-5.6"), 200))
         injected_client.post = mock_post
-        await litellm.aresponses(
+        await gateway.aresponses(
             model="openai/gpt-5.6",
             api_key="fake-api-key",
             input=copy.deepcopy(input_items),

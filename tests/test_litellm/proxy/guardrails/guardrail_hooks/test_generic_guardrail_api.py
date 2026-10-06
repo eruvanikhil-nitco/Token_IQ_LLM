@@ -11,7 +11,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import httpx
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import ModelResponse
 from token_iq.gateway._version import version as litellm_version
 from token_iq.gateway.exceptions import GuardrailRaisedException, Timeout
@@ -1029,7 +1029,7 @@ def _make_stream_chunk(content: str, finish_reason=None):
     return ModelResponseStream(
         model="gpt-4",
         choices=[
-            litellm.StreamingChoices(
+            gateway.StreamingChoices(
                 index=0,
                 delta=Delta(role="assistant", content=content),
                 finish_reason=finish_reason,
@@ -1043,9 +1043,9 @@ def _make_assembled_model_response(content: str) -> ModelResponse:
         id="mock-response",
         model="gpt-4",
         choices=[
-            litellm.Choices(
+            gateway.Choices(
                 index=0,
-                message=litellm.Message(role="assistant", content=content),
+                message=gateway.Message(role="assistant", content=content),
                 finish_reason="stop",
             )
         ],

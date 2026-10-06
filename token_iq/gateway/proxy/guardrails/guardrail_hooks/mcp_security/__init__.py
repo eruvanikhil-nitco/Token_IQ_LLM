@@ -1,6 +1,6 @@
 from typing import TYPE_CHECKING, Final, Literal, Optional, cast
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy.guardrails.guardrail_hooks.mcp_security.mcp_security_guardrail import (
     MCPSecurityGuardrail,
 )
@@ -32,7 +32,7 @@ def initialize_guardrail(
         on_violation=on_violation,
     )
 
-    litellm.logging_callback_manager.add_litellm_callback(mcp_security_guardrail)
+    gateway.logging_callback_manager.add_litellm_callback(mcp_security_guardrail)
     return mcp_security_guardrail
 
 

@@ -1,13 +1,13 @@
 import os
 from typing import Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 try:
     # New and recommended way to access resources
     from importlib import resources
 
-    filename = str(resources.files(litellm).joinpath("core_utils/tokenizers"))
+    filename = str(resources.files(gateway).joinpath("core_utils/tokenizers"))
 except (ImportError, AttributeError):
     # Old way to access resources, which setuptools deprecated some time ago
     import pkg_resources

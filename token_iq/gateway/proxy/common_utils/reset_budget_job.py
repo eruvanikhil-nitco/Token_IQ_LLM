@@ -11,7 +11,7 @@ from typing import Final, Literal, Protocol, TypeVar
 
 from typing_extensions import assert_never
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.caching.dual_cache import DualCache
 from token_iq.gateway.constants import (
@@ -113,7 +113,7 @@ class _EndUserRow(_BudgetLinkedRow, Protocol):
 
 
 def _rollover_enabled() -> bool:
-    return litellm.budget_rollover is True
+    return gateway.budget_rollover is True
 
 
 def _rollover_cap(max_budget: float | None) -> float | None:
@@ -218,7 +218,7 @@ def _queue_enduser_resets(writes: LinkedSpendResetWrites, cascade: "_BudgetCasca
                 where={"user_id": {"in": [row.user_id for row in cascade.endusers]}}
             )  # mutable-ok: prisma where filter must be a dict
         return
-    tiered: Final = tuple((row.budget_id or litellm.max_end_user_budget_id, row.user_id) for row in cascade.endusers)
+    tiered: Final = tuple((row.budget_id or gateway.max_end_user_budget_id, row.user_id) for row in cascade.endusers)
     for budget_id, cap in cascade.rollover_caps.items():
         if not (
             user_ids := [uid for bid, uid in tiered if bid == budget_id]
@@ -601,7 +601,7 @@ class ResetBudgetJob:
             ),
             reason="reset_budget_read_endusers_failure",
         )
-        if litellm.max_end_user_budget_id is None or litellm.max_end_user_budget_id not in budget_ids:
+        if gateway.max_end_user_budget_id is None or gateway.max_end_user_budget_id not in budget_ids:
             return tuple(linked or ())
         return (*(linked or ()), *await self._get_endusers_with_no_budget_id())
 

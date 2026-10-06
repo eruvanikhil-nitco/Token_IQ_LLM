@@ -13,7 +13,7 @@ from typing import Any, Final, Protocol
 import httpx
 from typing_extensions import NotRequired, ReadOnly, TypedDict
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler, _get_httpx_client
 
@@ -249,7 +249,7 @@ def fetch_credentials(
     """
     config: Final = init_conf(profile)
 
-    service_key = _parse_service_key_once(service_key or litellm.sap_service_key or os.environ.get(SERVICE_KEY_ENV_VAR))
+    service_key = _parse_service_key_once(service_key or gateway.sap_service_key or os.environ.get(SERVICE_KEY_ENV_VAR))
     vcap_service: Final = _get_vcap_service(VCAP_AICORE_SERVICE_NAME)
 
     sources: Final = [

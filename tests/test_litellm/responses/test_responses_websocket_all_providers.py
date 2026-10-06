@@ -226,7 +226,7 @@ class TestManagedWebSocketHandlerIntegration:
         import json
         from unittest.mock import AsyncMock, MagicMock
 
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.core_utils.litellm_logging import Logging
         from token_iq.gateway.responses.streaming_iterator import (
             ManagedResponsesWebSocketHandler,
@@ -243,7 +243,7 @@ class TestManagedWebSocketHandlerIntegration:
 
             return _empty()
 
-        monkeypatch.setattr(litellm, "aresponses", fake_aresponses)
+        monkeypatch.setattr(gateway, "aresponses", fake_aresponses)
 
         mock_websocket = MagicMock()
         mock_websocket.send_text = AsyncMock()
@@ -286,7 +286,7 @@ class TestManagedWebSocketHandlerIntegration:
         import json
         from unittest.mock import AsyncMock, MagicMock
 
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.core_utils.litellm_logging import Logging
         from token_iq.gateway.responses.streaming_iterator import (
             ManagedResponsesWebSocketHandler,
@@ -299,7 +299,7 @@ class TestManagedWebSocketHandlerIntegration:
             called = True
             raise AssertionError("provider must not be called for a warmup frame")
 
-        monkeypatch.setattr(litellm, "aresponses", fail_aresponses)
+        monkeypatch.setattr(gateway, "aresponses", fail_aresponses)
 
         mock_websocket = MagicMock()
         mock_websocket.send_text = AsyncMock()
@@ -348,7 +348,7 @@ class TestManagedWebSocketHandlerIntegration:
         import json
         from unittest.mock import AsyncMock, MagicMock
 
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.core_utils.litellm_logging import Logging
         from token_iq.gateway.responses.streaming_iterator import (
             ManagedResponsesWebSocketHandler,
@@ -365,7 +365,7 @@ class TestManagedWebSocketHandlerIntegration:
 
             return _empty()
 
-        monkeypatch.setattr(litellm, "aresponses", fake_aresponses)
+        monkeypatch.setattr(gateway, "aresponses", fake_aresponses)
 
         mock_websocket = MagicMock()
         mock_websocket.send_text = AsyncMock()
@@ -1040,7 +1040,7 @@ class TestWebSocketProjectQuotaEnforcement:
     async def test_managed_handler_blocks_frame_rejected_by_quota_callback(self, monkeypatch):
         from unittest.mock import AsyncMock, MagicMock
 
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.exceptions import RateLimitError
         from token_iq.gateway.core_utils.litellm_logging import Logging
         from token_iq.gateway.responses.streaming_iterator import (
@@ -1053,7 +1053,7 @@ class TestWebSocketProjectQuotaEnforcement:
             nonlocal aresponses_called
             aresponses_called = True
 
-        monkeypatch.setattr(litellm, "aresponses", fake_aresponses)
+        monkeypatch.setattr(gateway, "aresponses", fake_aresponses)
 
         quota_callback = MagicMock()
         quota_callback.enforce_project_io_token_quota_for_frame = AsyncMock(
@@ -1090,7 +1090,7 @@ class TestWebSocketProjectQuotaEnforcement:
     async def test_managed_handler_forwards_frame_allowed_by_quota_callback(self, monkeypatch):
         from unittest.mock import AsyncMock, MagicMock
 
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.core_utils.litellm_logging import Logging
         from token_iq.gateway.responses.streaming_iterator import (
             ManagedResponsesWebSocketHandler,
@@ -1108,7 +1108,7 @@ class TestWebSocketProjectQuotaEnforcement:
 
             return _empty()
 
-        monkeypatch.setattr(litellm, "aresponses", fake_aresponses)
+        monkeypatch.setattr(gateway, "aresponses", fake_aresponses)
 
         quota_callback = MagicMock()
         quota_callback.enforce_project_io_token_quota_for_frame = AsyncMock(return_value=None)

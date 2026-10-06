@@ -387,7 +387,7 @@ def test_mantle_messages_validate_environment_without_project_id():
 
 
 def test_mantle_completion_sends_workspace_header_and_clean_body():
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     requests = []
 
@@ -396,7 +396,7 @@ def test_mantle_completion_sends_workspace_header_and_clean_body():
         return _anthropic_response(url)
 
     with patch("token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post", mock_post):
-        response = litellm.completion(
+        response = gateway.completion(
             model="bedrock/mantle/anthropic.claude-mythos-preview",
             messages=[{"role": "user", "content": "hello"}],
             max_tokens=10,
@@ -415,7 +415,7 @@ def test_mantle_completion_sends_workspace_header_and_clean_body():
 
 @pytest.mark.asyncio
 async def test_mantle_anthropic_messages_sends_workspace_header_and_clean_body():
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     requests = []
 
@@ -428,7 +428,7 @@ async def test_mantle_anthropic_messages_sends_workspace_header_and_clean_body()
             "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
             new=mock_post,
         ):
-            response = await litellm.anthropic_messages(
+            response = await gateway.anthropic_messages(
                 model="bedrock/mantle/anthropic.claude-mythos-preview",
                 messages=[{"role": "user", "content": "hello"}],
                 max_tokens=10,
@@ -438,7 +438,7 @@ async def test_mantle_anthropic_messages_sends_workspace_header_and_clean_body()
                 aws_region_name="us-east-1",
             )
     finally:
-        await litellm.close_litellm_async_clients()
+        await gateway.close_litellm_async_clients()
 
     assert response["content"][0]["text"] == "ok"
     assert len(requests) == 1
@@ -470,7 +470,7 @@ async def test_mantle_anthropic_messages_backfills_missing_usage():
     object must not reach the client usage-less, or Claude Code's auto-mode
     classifier crashes on `usage.input_tokens`.
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     async def mock_post(self, url, data=None, headers=None, **kwargs):
         return _usageless_anthropic_response(str(url))
@@ -480,7 +480,7 @@ async def test_mantle_anthropic_messages_backfills_missing_usage():
             "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
             new=mock_post,
         ):
-            response = await litellm.anthropic_messages(
+            response = await gateway.anthropic_messages(
                 model="bedrock/mantle/anthropic.claude-opus-4-8",
                 messages=[{"role": "user", "content": "is `Bash(ls)` safe?"}],
                 max_tokens=10,
@@ -489,7 +489,7 @@ async def test_mantle_anthropic_messages_backfills_missing_usage():
                 aws_region_name="us-east-1",
             )
     finally:
-        await litellm.close_litellm_async_clients()
+        await gateway.close_litellm_async_clients()
 
     assert response["usage"]["input_tokens"] == 0
     assert response["usage"]["output_tokens"] == 0
@@ -498,7 +498,7 @@ async def test_mantle_anthropic_messages_backfills_missing_usage():
 @pytest.mark.asyncio
 async def test_mantle_anthropic_messages_preserves_upstream_usage():
     """Backfill must not clobber a usage object the upstream did return."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     def _response_with_usage(url: str) -> httpx.Response:
         return httpx.Response(
@@ -528,7 +528,7 @@ async def test_mantle_anthropic_messages_preserves_upstream_usage():
             "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
             new=mock_post,
         ):
-            response = await litellm.anthropic_messages(
+            response = await gateway.anthropic_messages(
                 model="bedrock/mantle/anthropic.claude-opus-4-8",
                 messages=[{"role": "user", "content": "hello"}],
                 max_tokens=10,
@@ -537,7 +537,7 @@ async def test_mantle_anthropic_messages_preserves_upstream_usage():
                 aws_region_name="us-east-1",
             )
     finally:
-        await litellm.close_litellm_async_clients()
+        await gateway.close_litellm_async_clients()
 
     assert response["usage"]["input_tokens"] == 42
     assert response["usage"]["output_tokens"] == 7
@@ -546,7 +546,7 @@ async def test_mantle_anthropic_messages_preserves_upstream_usage():
 
 @pytest.mark.asyncio
 async def test_mantle_anthropic_messages_routes_to_vpc_api_base():
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     urls = []
 
@@ -559,7 +559,7 @@ async def test_mantle_anthropic_messages_routes_to_vpc_api_base():
             "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
             new=mock_post,
         ):
-            await litellm.anthropic_messages(
+            await gateway.anthropic_messages(
                 model="bedrock/mantle/anthropic.claude-mythos-preview",
                 messages=[{"role": "user", "content": "hello"}],
                 max_tokens=10,
@@ -569,7 +569,7 @@ async def test_mantle_anthropic_messages_routes_to_vpc_api_base():
                 aws_region_name="us-gov-west-1",
             )
     finally:
-        await litellm.close_litellm_async_clients()
+        await gateway.close_litellm_async_clients()
 
     assert len(urls) == 1
     assert urls[0] == f"{_VPC_ENDPOINT}/anthropic/v1/messages"
@@ -639,7 +639,7 @@ def _anthropic_sse_response(url: str) -> httpx.Response:
 
 
 def test_mantle_completion_streaming_sends_stream_and_decodes_sse():
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     requests = []
 
@@ -648,7 +648,7 @@ def test_mantle_completion_streaming_sends_stream_and_decodes_sse():
         return _anthropic_sse_response(url)
 
     with patch("token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post", mock_post):
-        response = litellm.completion(
+        response = gateway.completion(
             model="bedrock/mantle/anthropic.claude-mythos-preview",
             messages=[{"role": "user", "content": "ping"}],
             max_tokens=10,
@@ -668,7 +668,7 @@ def test_mantle_completion_streaming_sends_stream_and_decodes_sse():
 
 @pytest.mark.asyncio
 async def test_mantle_acompletion_streaming_sends_stream_and_decodes_sse():
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     requests = []
 
@@ -681,7 +681,7 @@ async def test_mantle_acompletion_streaming_sends_stream_and_decodes_sse():
             "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
             new=mock_post,
         ):
-            response = await litellm.acompletion(
+            response = await gateway.acompletion(
                 model="bedrock/mantle/anthropic.claude-mythos-preview",
                 messages=[{"role": "user", "content": "ping"}],
                 max_tokens=10,
@@ -692,7 +692,7 @@ async def test_mantle_acompletion_streaming_sends_stream_and_decodes_sse():
             )
             chunks = [chunk async for chunk in response]
     finally:
-        await litellm.close_litellm_async_clients()
+        await gateway.close_litellm_async_clients()
 
     assert len(requests) == 1
     assert requests[0]["body"]["stream"] is True
@@ -703,7 +703,7 @@ async def test_mantle_acompletion_streaming_sends_stream_and_decodes_sse():
 
 @pytest.mark.asyncio
 async def test_mantle_anthropic_messages_streaming_sends_stream_and_passes_through_sse():
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     requests = []
 
@@ -716,7 +716,7 @@ async def test_mantle_anthropic_messages_streaming_sends_stream_and_passes_throu
             "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
             new=mock_post,
         ):
-            response = await litellm.anthropic_messages(
+            response = await gateway.anthropic_messages(
                 model="bedrock/mantle/anthropic.claude-mythos-preview",
                 messages=[{"role": "user", "content": "ping"}],
                 max_tokens=10,
@@ -727,7 +727,7 @@ async def test_mantle_anthropic_messages_streaming_sends_stream_and_passes_throu
             )
             raw = b"".join([chunk async for chunk in response])
     finally:
-        await litellm.close_litellm_async_clients()
+        await gateway.close_litellm_async_clients()
 
     assert len(requests) == 1
     assert requests[0]["body"]["stream"] is True

@@ -20,7 +20,7 @@ from contextvars import ContextVar
 from datetime import timedelta
 from typing import TYPE_CHECKING, Any, Final, Protocol, TypeVar, cast
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import print_verbose, verbose_logger
 from token_iq.gateway.constants import (
     DEFAULT_REDIS_MAJOR_VERSION,
@@ -355,8 +355,8 @@ class RedisCache(BaseCache):
 
         self._setup_health_pings()
 
-        if litellm.default_redis_ttl is not None:
-            super().__init__(default_ttl=int(litellm.default_redis_ttl))
+        if gateway.default_redis_ttl is not None:
+            super().__init__(default_ttl=int(gateway.default_redis_ttl))
         else:
             super().__init__()  # defaults to 60s
 
@@ -657,12 +657,12 @@ class RedisCache(BaseCache):
             client: object = None,
         ) -> object:
             async def execute() -> object:
-                executor: Callable[..., Awaitable[Any]] | None = litellm.in_memory_llm_clients_cache.get_cache(
+                executor: Callable[..., Awaitable[Any]] | None = gateway.in_memory_llm_clients_cache.get_cache(
                     key=script_cache_key
                 )
                 if executor is None:
                     executor = self._register_script_for_current_loop(script)
-                    litellm.in_memory_llm_clients_cache.set_cache(key=script_cache_key, value=executor)
+                    gateway.in_memory_llm_clients_cache.set_cache(key=script_cache_key, value=executor)
                 return await executor(keys=keys, args=args, client=client)
 
             return await _run_under_circuit_breaker(self._circuit_breaker, "run_script", execute)

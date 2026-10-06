@@ -16,7 +16,7 @@ from unittest.mock import patch
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import Router
 from token_iq.gateway.core_utils.ptu_pricing import ptu_config_error
 from token_iq.gateway.types.router import Deployment, LiteLLM_Params, ModelInfo
@@ -36,7 +36,7 @@ def _simulate_price_data_reload(fetched_catalog):
     repopulates are left alone, since nothing here reads them and rebuilding
     them from a two-entry catalog would outlive the test.
     """
-    litellm.model_cost = fetched_catalog
+    gateway.model_cost = fetched_catalog
     _invalidate_model_cost_lowercase_map()
     reapply_runtime_model_cost_registrations()
 
@@ -54,9 +54,9 @@ def _nested_container_ids(value: object) -> frozenset[int]:
 def _restore_model_cost_entries(original_entries):
     for key, value in original_entries.items():
         if value is None:
-            litellm.model_cost.pop(key, None)
+            gateway.model_cost.pop(key, None)
         else:
-            litellm.model_cost[key] = value
+            gateway.model_cost[key] = value
     _invalidate_model_cost_lowercase_map()
 
 
@@ -69,7 +69,7 @@ def test_should_not_pollute_shared_key_with_zero_cost_pricing():
     backend_model = "vertex_ai/gemini-2.5-flash"
 
     # Grab built-in pricing before creating any router
-    builtin_info = litellm.get_model_info(model=backend_model)
+    builtin_info = gateway.get_model_info(model=backend_model)
     builtin_input_cost = builtin_info["input_cost_per_token"]
     builtin_output_cost = builtin_info["output_cost_per_token"]
 
@@ -136,7 +136,7 @@ def test_should_not_pollute_shared_key_with_custom_nonzero_pricing():
     """
     backend_model = "vertex_ai/gemini-2.5-flash"
 
-    builtin_info = litellm.get_model_info(model=backend_model)
+    builtin_info = gateway.get_model_info(model=backend_model)
     builtin_input_cost = builtin_info["input_cost_per_token"]
 
     router = Router(
@@ -214,7 +214,7 @@ def test_should_store_full_pricing_under_deployment_model_id():
     )
 
     # The model_id entry should exist and have the zero pricing
-    entry = litellm.model_cost.get("deployment-zero-check")
+    entry = gateway.model_cost.get("deployment-zero-check")
     assert entry is not None, "Deployment should be registered by model_id"
     assert entry["input_cost_per_token"] == 0.0
     assert entry["output_cost_per_token"] == 0.0
@@ -227,7 +227,7 @@ def test_should_preserve_builtin_pricing_regardless_of_deployment_order():
     """
     backend_model = "vertex_ai/gemini-2.5-flash"
 
-    builtin_info = litellm.get_model_info(model=backend_model)
+    builtin_info = gateway.get_model_info(model=backend_model)
     builtin_input_cost = builtin_info["input_cost_per_token"]
     builtin_output_cost = builtin_info["output_cost_per_token"]
 
@@ -318,9 +318,9 @@ def test_responses_prefix_stripped_alias_registered_for_model_list():
             }
         ],
     )
-    assert "azure/responses/gpt-strip-test-a1b2c3d4" in litellm.model_cost
-    assert "azure/gpt-strip-test-a1b2c3d4" in litellm.model_cost
-    assert litellm.model_cost["azure/gpt-strip-test-a1b2c3d4"].get("supports_native_streaming") is True
+    assert "azure/responses/gpt-strip-test-a1b2c3d4" in gateway.model_cost
+    assert "azure/gpt-strip-test-a1b2c3d4" in gateway.model_cost
+    assert gateway.model_cost["azure/gpt-strip-test-a1b2c3d4"].get("supports_native_streaming") is True
 
 
 def test_responses_prefix_stripped_alias_registered_for_add_deployment():
@@ -337,9 +337,9 @@ def test_responses_prefix_stripped_alias_registered_for_add_deployment():
         model_info=ModelInfo(id=uid, supports_native_streaming=True),
     )
     router.add_deployment(deployment=deployment)
-    assert "azure/responses/gpt-add-strip-e5f6a7b8" in litellm.model_cost
-    assert "azure/gpt-add-strip-e5f6a7b8" in litellm.model_cost
-    assert litellm.model_cost["azure/gpt-add-strip-e5f6a7b8"].get("supports_native_streaming") is True
+    assert "azure/responses/gpt-add-strip-e5f6a7b8" in gateway.model_cost
+    assert "azure/gpt-add-strip-e5f6a7b8" in gateway.model_cost
+    assert gateway.model_cost["azure/gpt-add-strip-e5f6a7b8"].get("supports_native_streaming") is True
 
 
 def test_should_not_downgrade_chatgpt_shared_key_mode_with_alias_override():
@@ -351,16 +351,16 @@ def test_should_not_downgrade_chatgpt_shared_key_mode_with_alias_override():
 
     backend_model = "chatgpt/gpt-5.4"
     model_keys = {
-        backend_model: copy.deepcopy(litellm.model_cost.get(backend_model)),
-        "chatgpt-shared-mode-base": copy.deepcopy(litellm.model_cost.get("chatgpt-shared-mode-base")),
-        "chatgpt-shared-mode-alias": copy.deepcopy(litellm.model_cost.get("chatgpt-shared-mode-alias")),
+        backend_model: copy.deepcopy(gateway.model_cost.get(backend_model)),
+        "chatgpt-shared-mode-base": copy.deepcopy(gateway.model_cost.get("chatgpt-shared-mode-base")),
+        "chatgpt-shared-mode-alias": copy.deepcopy(gateway.model_cost.get("chatgpt-shared-mode-alias")),
     }
 
     try:
         backend_entry = copy.deepcopy(model_keys[backend_model]) or {}
         backend_entry["litellm_provider"] = "chatgpt"
         backend_entry["mode"] = "responses"
-        litellm.model_cost[backend_model] = backend_entry
+        gateway.model_cost[backend_model] = backend_entry
         _invalidate_model_cost_lowercase_map()
 
         router = Router(model_list=[])
@@ -390,8 +390,8 @@ def test_should_not_downgrade_chatgpt_shared_key_mode_with_alias_override():
                 },
             )
 
-        assert litellm.model_cost[backend_model]["mode"] == "responses"
-        assert "mode" in litellm.model_cost[backend_model]
+        assert gateway.model_cost[backend_model]["mode"] == "responses"
+        assert "mode" in gateway.model_cost[backend_model]
 
         bridge_model_info, bridge_model = responses_api_bridge_check(
             model="gpt-5.4",
@@ -413,15 +413,15 @@ def test_partial_custom_pricing_inherits_builtin_cache_pricing():
     backend_model = "anthropic/claude-sonnet-4-5-20250929"
     deploy_id = "claude-deploy-partial-pricing"
 
-    builtin_info = litellm.get_model_info(model=backend_model)
+    builtin_info = gateway.get_model_info(model=backend_model)
     builtin_cache_create = builtin_info["cache_creation_input_token_cost"]
     builtin_cache_read = builtin_info["cache_read_input_token_cost"]
     assert builtin_cache_create is not None and builtin_cache_create > 0
     assert builtin_cache_read is not None and builtin_cache_read > 0
 
     model_keys = {
-        deploy_id: litellm.model_cost.get(deploy_id),
-        backend_model: copy.deepcopy(litellm.model_cost.get(backend_model)),
+        deploy_id: gateway.model_cost.get(deploy_id),
+        backend_model: copy.deepcopy(gateway.model_cost.get(backend_model)),
     }
     try:
         Router(
@@ -441,7 +441,7 @@ def test_partial_custom_pricing_inherits_builtin_cache_pricing():
             ],
         )
 
-        entry = litellm.model_cost[deploy_id]
+        entry = gateway.model_cost[deploy_id]
         assert entry["input_cost_per_token"] == 0.000003
         assert entry["output_cost_per_token"] == 0.000015
         assert entry.get("cache_creation_input_token_cost") == builtin_cache_create
@@ -459,13 +459,13 @@ def test_partial_pricing_does_not_overwrite_explicit_cache_fields():
 
     explicit_cache_create = 0.00001
     explicit_cache_read = 0.0000005
-    builtin_info = litellm.get_model_info(model=backend_model)
+    builtin_info = gateway.get_model_info(model=backend_model)
     assert builtin_info["cache_creation_input_token_cost"] != explicit_cache_create
     assert builtin_info["cache_read_input_token_cost"] != explicit_cache_read
 
     model_keys = {
-        deploy_id: litellm.model_cost.get(deploy_id),
-        backend_model: copy.deepcopy(litellm.model_cost.get(backend_model)),
+        deploy_id: gateway.model_cost.get(deploy_id),
+        backend_model: copy.deepcopy(gateway.model_cost.get(backend_model)),
     }
     try:
         Router(
@@ -487,7 +487,7 @@ def test_partial_pricing_does_not_overwrite_explicit_cache_fields():
             ],
         )
 
-        entry = litellm.model_cost[deploy_id]
+        entry = gateway.model_cost[deploy_id]
         assert entry.get("cache_creation_input_token_cost") == explicit_cache_create
         assert entry.get("cache_read_input_token_cost") == explicit_cache_read
     finally:
@@ -500,7 +500,7 @@ def test_inherit_builtin_cache_pricing_fills_only_missing_fields():
     user's input/output pricing are left untouched.
     """
     backend_model = "anthropic/claude-sonnet-4-5-20250929"
-    builtin_info = litellm.get_model_info(model=backend_model)
+    builtin_info = gateway.get_model_info(model=backend_model)
     builtin_cache_create = builtin_info["cache_creation_input_token_cost"]
     builtin_cache_read = builtin_info["cache_read_input_token_cost"]
     assert builtin_cache_create is not None and builtin_cache_create > 0
@@ -545,7 +545,7 @@ def test_inherit_builtin_base_rates_for_off_peak_fills_missing_rates():
     outside the windows.
     """
     backend_model = "gpt-4o-mini"
-    builtin_info = litellm.get_model_info(model=backend_model, custom_llm_provider="openai")
+    builtin_info = gateway.get_model_info(model=backend_model, custom_llm_provider="openai")
     off_peak_block = {
         "hours_utc": "00:00-00:00",
         "input_cost_per_token": 5e-07,
@@ -571,7 +571,7 @@ def test_inherit_builtin_base_rates_for_off_peak_carries_threshold_rates():
     rate.
     """
     backend_model = "gemini/gemini-2.5-pro"
-    builtin_info = litellm.get_model_info(model=backend_model)
+    builtin_info = gateway.get_model_info(model=backend_model)
     assert builtin_info["input_cost_per_token_above_200k_tokens"] is not None
 
     model_info = {
@@ -602,7 +602,7 @@ def test_inherit_builtin_base_rates_for_off_peak_carries_companion_billing_field
     backend entry.
     """
     backend_model = "gemini-3-pro-image"
-    raw_entry = litellm.model_cost[backend_model]
+    raw_entry = gateway.model_cost[backend_model]
     assert raw_entry.get("web_search_billing_unit") is not None
 
     model_info = {
@@ -626,7 +626,7 @@ def test_inherit_builtin_base_rates_for_off_peak_tiered_only_backend_stores_no_z
     mutating the deployment entry never touches the shared cost map.
     """
     backend_model = "dashscope/qwen-flash"
-    raw_tiers = litellm.model_cost[backend_model]["tiered_pricing"]
+    raw_tiers = gateway.model_cost[backend_model]["tiered_pricing"]
 
     model_info = {
         "off_peak_pricing": {"hours_utc": "00:00-00:00", "input_cost_per_token": 5e-07},
@@ -724,13 +724,13 @@ def test_tiered_pricing_override_isolated_from_sibling_via_model_info_lookup():
     backend_model = "gemini/gemini-2.5-flash"
     override = 0.000999
 
-    builtin_info = litellm.get_model_info(model=backend_model)
+    builtin_info = gateway.get_model_info(model=backend_model)
     assert builtin_info.get("input_cost_per_token_above_272k_tokens") != override
 
     model_keys = {
-        "lit3897-tiered-custom": litellm.model_cost.get("lit3897-tiered-custom"),
-        "lit3897-tiered-sibling": litellm.model_cost.get("lit3897-tiered-sibling"),
-        backend_model: copy.deepcopy(litellm.model_cost.get(backend_model)),
+        "lit3897-tiered-custom": gateway.model_cost.get("lit3897-tiered-custom"),
+        "lit3897-tiered-sibling": gateway.model_cost.get("lit3897-tiered-sibling"),
+        backend_model: copy.deepcopy(gateway.model_cost.get(backend_model)),
     }
     try:
         Router(
@@ -758,13 +758,13 @@ def test_tiered_pricing_override_isolated_from_sibling_via_model_info_lookup():
             ],
         )
 
-        shared = litellm.get_model_info(model=backend_model)
+        shared = gateway.get_model_info(model=backend_model)
         assert shared.get("input_cost_per_token_above_272k_tokens") != override, (
             "Tiered override leaked into the shared backend key; siblings read the wrong rate via /model/info"
         )
         assert shared.get("cache_read_input_token_cost_above_272k_tokens") != override
 
-        custom_entry = litellm.model_cost["lit3897-tiered-custom"]
+        custom_entry = gateway.model_cost["lit3897-tiered-custom"]
         assert custom_entry["input_cost_per_token_above_272k_tokens"] == override
         assert custom_entry["cache_read_input_token_cost_above_272k_tokens"] == override
     finally:
@@ -783,14 +783,14 @@ def test_custom_pricing_isolated_from_sibling_via_proxy_model_info_path():
     override_input = 5e-05
     override_output = 1e-04
 
-    builtin_info = litellm.get_model_info(model=backend_model)
+    builtin_info = gateway.get_model_info(model=backend_model)
     builtin_input = builtin_info["input_cost_per_token"]
     assert builtin_input != override_input
 
     model_keys = {
-        "lit3897-proxy-custom": litellm.model_cost.get("lit3897-proxy-custom"),
-        "lit3897-proxy-sibling": litellm.model_cost.get("lit3897-proxy-sibling"),
-        backend_model: copy.deepcopy(litellm.model_cost.get(backend_model)),
+        "lit3897-proxy-custom": gateway.model_cost.get("lit3897-proxy-custom"),
+        "lit3897-proxy-sibling": gateway.model_cost.get("lit3897-proxy-sibling"),
+        backend_model: copy.deepcopy(gateway.model_cost.get(backend_model)),
     }
     try:
         router = Router(
@@ -840,7 +840,7 @@ def test_custom_model_info_metadata_not_leaked_to_shared_backend_key():
     leak_fields = ("id", "additionalProp1", "access_via_team_ids", "db_model")
 
     model_keys = {
-        key: copy.deepcopy(litellm.model_cost.get(key))
+        key: copy.deepcopy(gateway.model_cost.get(key))
         for key in (*shared_keys, "lit4544-deploy-a", "lit4544-deploy-b")
     }
     try:
@@ -873,13 +873,13 @@ def test_custom_model_info_metadata_not_leaked_to_shared_backend_key():
         )
 
         for shared_key in shared_keys:
-            shared_entry = litellm.model_cost.get(shared_key) or {}
+            shared_entry = gateway.model_cost.get(shared_key) or {}
             leaked = [field for field in leak_fields if field in shared_entry]
             assert not leaked, f"per-deployment metadata {leaked} leaked onto shared key {shared_key}: {shared_entry}"
 
-        entry_a = litellm.model_cost["lit4544-deploy-a"]
+        entry_a = gateway.model_cost["lit4544-deploy-a"]
         assert entry_a["additionalProp1"] == {"restricted": False, "model_location": "EU"}
-        entry_b = litellm.model_cost["lit4544-deploy-b"]
+        entry_b = gateway.model_cost["lit4544-deploy-b"]
         assert entry_b["additionalProp1"] == {"restricted": True, "model_location": "US"}
         assert entry_b["access_via_team_ids"] == ["team-b-only"]
     finally:
@@ -895,7 +895,7 @@ def test_add_deployment_does_not_leak_custom_metadata_to_shared_backend_key():
     shared_keys = ("gpt-4o-mini", backend_model)
     deploy_id = "lit4544-add-deployment"
 
-    model_keys = {key: copy.deepcopy(litellm.model_cost.get(key)) for key in (*shared_keys, deploy_id)}
+    model_keys = {key: copy.deepcopy(gateway.model_cost.get(key)) for key in (*shared_keys, deploy_id)}
     try:
         router = Router(model_list=[])
         router.add_deployment(
@@ -914,13 +914,13 @@ def test_add_deployment_does_not_leak_custom_metadata_to_shared_backend_key():
         )
 
         for shared_key in shared_keys:
-            shared_entry = litellm.model_cost.get(shared_key) or {}
+            shared_entry = gateway.model_cost.get(shared_key) or {}
             leaked = [
                 field for field in ("id", "additionalProp1", "access_via_team_ids", "db_model") if field in shared_entry
             ]
             assert not leaked, f"per-deployment metadata {leaked} leaked onto shared key {shared_key}: {shared_entry}"
 
-        assert litellm.model_cost[deploy_id]["access_via_team_ids"] == ["team-dynamic"]
+        assert gateway.model_cost[deploy_id]["access_via_team_ids"] == ["team-dynamic"]
     finally:
         _restore_model_cost_entries(model_keys)
 
@@ -975,7 +975,7 @@ def test_capability_flags_propagate_from_deployment_model_info_to_shared_key():
     backend_model = f"bedrock_mantle/{bare_model}"
     deploy_id = "lit4544-mantle-deploy"
 
-    model_keys = {key: copy.deepcopy(litellm.model_cost.get(key)) for key in (bare_model, backend_model, deploy_id)}
+    model_keys = {key: copy.deepcopy(gateway.model_cost.get(key)) for key in (bare_model, backend_model, deploy_id)}
     try:
         Router(
             model_list=[
@@ -994,12 +994,12 @@ def test_capability_flags_propagate_from_deployment_model_info_to_shared_key():
             ],
         )
 
-        shared_entry = litellm.model_cost.get(backend_model) or {}
+        shared_entry = gateway.model_cost.get(backend_model) or {}
         assert shared_entry.get("supported_endpoints") == ["/v1/responses"]
         assert shared_entry.get("use_openai_responses_path") is True
         assert "id" not in shared_entry
-        assert mantle_supports_responses(bare_model, litellm.model_cost) is True
-        assert mantle_base_segment(bare_model, litellm.model_cost) == "openai/v1"
+        assert mantle_supports_responses(bare_model, gateway.model_cost) is True
+        assert mantle_base_segment(bare_model, gateway.model_cost) == "openai/v1"
     finally:
         _restore_model_cost_entries(model_keys)
 
@@ -1013,13 +1013,13 @@ def test_wildcard_zero_cost_request_does_not_poison_named_deployment_pricing():
     """
     shared_key = "openai/text-embedding-3-small"
     model_keys = {
-        shared_key: copy.deepcopy(litellm.model_cost.get(shared_key)),
-        "text-embedding-3-small": copy.deepcopy(litellm.model_cost.get("text-embedding-3-small")),
-        "openai/*": copy.deepcopy(litellm.model_cost.get("openai/*")),
-        "lit3991-named": litellm.model_cost.get("lit3991-named"),
-        "lit3991-wildcard": litellm.model_cost.get("lit3991-wildcard"),
+        shared_key: copy.deepcopy(gateway.model_cost.get(shared_key)),
+        "text-embedding-3-small": copy.deepcopy(gateway.model_cost.get("text-embedding-3-small")),
+        "openai/*": copy.deepcopy(gateway.model_cost.get("openai/*")),
+        "lit3991-named": gateway.model_cost.get("lit3991-named"),
+        "lit3991-wildcard": gateway.model_cost.get("lit3991-wildcard"),
     }
-    builtin_input_cost = litellm.get_model_info(model=shared_key)["input_cost_per_token"]
+    builtin_input_cost = gateway.get_model_info(model=shared_key)["input_cost_per_token"]
     assert builtin_input_cost > 0
 
     try:
@@ -1052,7 +1052,7 @@ def test_wildcard_zero_cost_request_does_not_poison_named_deployment_pricing():
             mock_response=[0.1, 0.2],
         )
 
-        assert litellm.get_model_info(model=shared_key)["input_cost_per_token"] == builtin_input_cost, (
+        assert gateway.get_model_info(model=shared_key)["input_cost_per_token"] == builtin_input_cost, (
             f"one call through the zero-cost wildcard poisoned the shared {shared_key} pricing for the named deployment"
         )
 
@@ -1061,7 +1061,7 @@ def test_wildcard_zero_cost_request_does_not_poison_named_deployment_pricing():
             input=["hello"],
             mock_response=[0.1, 0.2],
         )
-        named_cost = litellm.completion_cost(completion_response=named_response, call_type="embedding")
+        named_cost = gateway.completion_cost(completion_response=named_response, call_type="embedding")
         assert named_cost == pytest.approx(10 * builtin_input_cost)
     finally:
         _restore_model_cost_entries(model_keys)
@@ -1102,7 +1102,7 @@ def test_price_data_reload_preserves_router_registered_model_info(monkeypatch):
     assert before.max_input_tokens == 128000
     assert before.max_output_tokens == 16384
 
-    saved_model_cost = litellm.model_cost
+    saved_model_cost = gateway.model_cost
     try:
         _simulate_price_data_reload(
             {"gpt-4o": {"litellm_provider": "openai", "mode": "chat"}},
@@ -1113,7 +1113,7 @@ def test_price_data_reload_preserves_router_registered_model_info(monkeypatch):
         assert after.max_input_tokens == 128000
         assert after.max_output_tokens == 16384
     finally:
-        litellm.model_cost = saved_model_cost
+        gateway.model_cost = saved_model_cost
         _invalidate_model_cost_lowercase_map()
 
 
@@ -1145,7 +1145,7 @@ def test_price_data_reload_preserves_custom_override_of_a_catalog_model(monkeypa
         ],
     )
 
-    saved_model_cost = litellm.model_cost
+    saved_model_cost = gateway.model_cost
     try:
         _simulate_price_data_reload(
             {
@@ -1163,7 +1163,7 @@ def test_price_data_reload_preserves_custom_override_of_a_catalog_model(monkeypa
         assert after.max_input_tokens == 12345
         assert after.max_output_tokens == 678
     finally:
-        litellm.model_cost = saved_model_cost
+        gateway.model_cost = saved_model_cost
         _invalidate_model_cost_lowercase_map()
 
 
@@ -1203,7 +1203,7 @@ def test_deleted_deployments_are_not_replayed_onto_later_reloads(monkeypatch):
         ],
     )
 
-    saved_model_cost = litellm.model_cost
+    saved_model_cost = gateway.model_cost
     try:
         assert router.delete_deployment(id="doomed-id") is not None
         assert router.delete_deployment(id="solo-id") is not None
@@ -1212,15 +1212,15 @@ def test_deleted_deployments_are_not_replayed_onto_later_reloads(monkeypatch):
             {"gpt-4o": {"litellm_provider": "openai", "mode": "chat"}},
         )
 
-        assert "doomed-id" not in litellm.model_cost
-        assert "solo-id" not in litellm.model_cost
-        assert "hosted_vllm/solo-backend" not in litellm.model_cost
+        assert "doomed-id" not in gateway.model_cost
+        assert "solo-id" not in gateway.model_cost
+        assert "hosted_vllm/solo-backend" not in gateway.model_cost
 
-        surviving = litellm.model_cost["kept-id"]
+        surviving = gateway.model_cost["kept-id"]
         assert surviving["max_input_tokens"] == 222
-        assert "hosted_vllm/shared-backend" in litellm.model_cost
+        assert "hosted_vllm/shared-backend" in gateway.model_cost
     finally:
-        litellm.model_cost = saved_model_cost
+        gateway.model_cost = saved_model_cost
         _invalidate_model_cost_lowercase_map()
 
 
@@ -1238,12 +1238,12 @@ def test_deleting_a_deployment_leaves_catalog_pricing_for_its_backend_model(monk
     )
 
     backend_model = "gemini/gemini-2.5-pro"
-    catalog_entry = litellm.get_model_info(model=backend_model)
+    catalog_entry = gateway.get_model_info(model=backend_model)
     catalog_input_cost = catalog_entry["input_cost_per_token"]
     assert catalog_input_cost > 0, "Test requires a catalog model with non-zero pricing"
 
-    saved_catalog = litellm.model_cost
-    fetched_catalog = copy.deepcopy(litellm.model_cost)
+    saved_catalog = gateway.model_cost
+    fetched_catalog = copy.deepcopy(gateway.model_cost)
     try:
         router = Router(
             model_list=[
@@ -1261,10 +1261,10 @@ def test_deleting_a_deployment_leaves_catalog_pricing_for_its_backend_model(monk
             copy.deepcopy(fetched_catalog),
         )
 
-        assert "doomed-gemini-id" not in litellm.model_cost
-        assert litellm.model_cost[backend_model]["input_cost_per_token"] == catalog_input_cost
+        assert "doomed-gemini-id" not in gateway.model_cost
+        assert gateway.model_cost[backend_model]["input_cost_per_token"] == catalog_input_cost
     finally:
-        litellm.model_cost = saved_catalog
+        gateway.model_cost = saved_catalog
         _invalidate_model_cost_lowercase_map()
 
 
@@ -1292,7 +1292,7 @@ def test_repointing_a_deployment_drops_its_previous_backend_key(monkeypatch):
         ],
     )
 
-    saved_model_cost = litellm.model_cost
+    saved_model_cost = gateway.model_cost
     try:
         router.upsert_deployment(
             deployment=Deployment(
@@ -1306,11 +1306,11 @@ def test_repointing_a_deployment_drops_its_previous_backend_key(monkeypatch):
             {"gpt-4o": {"litellm_provider": "openai", "mode": "chat"}},
         )
 
-        assert "hosted_vllm/old-backend" not in litellm.model_cost
-        assert "hosted_vllm/new-backend" in litellm.model_cost
-        assert "moving-target-id" in litellm.model_cost
+        assert "hosted_vllm/old-backend" not in gateway.model_cost
+        assert "hosted_vllm/new-backend" in gateway.model_cost
+        assert "moving-target-id" in gateway.model_cost
     finally:
-        litellm.model_cost = saved_model_cost
+        gateway.model_cost = saved_model_cost
         _invalidate_model_cost_lowercase_map()
 
 
@@ -1343,7 +1343,7 @@ def test_a_discarded_router_stops_contributing_to_later_reloads(monkeypatch):
     so a rebuild driven off live routers is what keeps a caller from growing the
     cost map one request at a time.
     """
-    saved_model_cost = litellm.model_cost
+    saved_model_cost = gateway.model_cost
     try:
         kept = Router(
             model_list=[
@@ -1369,13 +1369,13 @@ def test_a_discarded_router_stops_contributing_to_later_reloads(monkeypatch):
             {"gpt-4o": {"litellm_provider": "openai", "mode": "chat"}},
         )
 
-        assert "throwaway-router-id" not in litellm.model_cost
-        assert "hosted_vllm/throwaway-backend" not in litellm.model_cost
-        assert litellm.model_cost["kept-router-id"]["max_input_tokens"] == 4242
-        assert "hosted_vllm/kept-backend" in litellm.model_cost
+        assert "throwaway-router-id" not in gateway.model_cost
+        assert "hosted_vllm/throwaway-backend" not in gateway.model_cost
+        assert gateway.model_cost["kept-router-id"]["max_input_tokens"] == 4242
+        assert "hosted_vllm/kept-backend" in gateway.model_cost
         assert kept.model_list  # keep the live router referenced for the duration
     finally:
-        litellm.model_cost = saved_model_cost
+        gateway.model_cost = saved_model_cost
         _invalidate_model_cost_lowercase_map()
 
 
@@ -1386,8 +1386,8 @@ def test_a_reload_rebuilds_exactly_what_a_fresh_boot_registered():
     custom pricing carried on litellm_params, and the cache pricing inherited from
     the built-in cost map.
     """
-    saved_catalog = litellm.model_cost
-    fetched_catalog = copy.deepcopy(litellm.model_cost)
+    saved_catalog = gateway.model_cost
+    fetched_catalog = copy.deepcopy(gateway.model_cost)
     try:
         router = Router(
             model_list=[
@@ -1403,7 +1403,7 @@ def test_a_reload_rebuilds_exactly_what_a_fresh_boot_registered():
                 }
             ],
         )
-        at_boot = copy.deepcopy(litellm.model_cost["priced-id"])
+        at_boot = copy.deepcopy(gateway.model_cost["priced-id"])
         assert at_boot["input_cost_per_token"] == 0.000123
         assert at_boot["cache_read_input_token_cost"] is not None
 
@@ -1411,7 +1411,7 @@ def test_a_reload_rebuilds_exactly_what_a_fresh_boot_registered():
             copy.deepcopy(fetched_catalog),
         )
 
-        rebuilt = litellm.model_cost["priced-id"]
+        rebuilt = gateway.model_cost["priced-id"]
         assert at_boot.items() <= rebuilt.items(), (
             f"the rebuild changed or dropped a field the boot registration wrote: "
             f"{ {k: (v, rebuilt.get(k)) for k, v in at_boot.items() if rebuilt.get(k) != v} }"
@@ -1421,7 +1421,7 @@ def test_a_reload_rebuilds_exactly_what_a_fresh_boot_registered():
         assert set(rebuilt) - set(at_boot) <= {"db_model"}
         assert router.model_list
     finally:
-        litellm.model_cost = saved_catalog
+        gateway.model_cost = saved_catalog
         _invalidate_model_cost_lowercase_map()
 
 
@@ -1430,7 +1430,7 @@ def test_replay_model_cost_registrations_survives_a_malformed_deployment():
     The rebuild reads whatever dicts are sitting in model_list, so one entry that
     cannot be rebuilt into a Deployment must not stop the rest being restored.
     """
-    saved_model_cost = litellm.model_cost
+    saved_model_cost = gateway.model_cost
     try:
         router = Router(
             model_list=[
@@ -1443,13 +1443,13 @@ def test_replay_model_cost_registrations_survives_a_malformed_deployment():
         )
         router.model_list.insert(0, {"litellm_params": {}})
 
-        litellm.model_cost = {"gpt-4o": {"litellm_provider": "openai", "mode": "chat"}}
+        gateway.model_cost = {"gpt-4o": {"litellm_provider": "openai", "mode": "chat"}}
         _invalidate_model_cost_lowercase_map()
         router._replay_model_cost_registrations()
 
-        assert litellm.model_cost["healthy-id"]["max_input_tokens"] == 777
+        assert gateway.model_cost["healthy-id"]["max_input_tokens"] == 777
     finally:
-        litellm.model_cost = saved_model_cost
+        gateway.model_cost = saved_model_cost
         _invalidate_model_cost_lowercase_map()
 
 
@@ -1483,8 +1483,8 @@ def test_register_deployment_in_model_cost_writes_both_key_families():
     pick up the deployment's private metadata.
     """
     model_keys = {
-        "both-families-id": copy.deepcopy(litellm.model_cost.get("both-families-id")),
-        "hosted_vllm/both-families-backend": copy.deepcopy(litellm.model_cost.get("hosted_vllm/both-families-backend")),
+        "both-families-id": copy.deepcopy(gateway.model_cost.get("both-families-id")),
+        "hosted_vllm/both-families-backend": copy.deepcopy(gateway.model_cost.get("hosted_vllm/both-families-backend")),
     }
     try:
         Router._register_deployment_in_model_cost(
@@ -1494,8 +1494,8 @@ def test_register_deployment_in_model_cost_writes_both_key_families():
             custom_llm_provider=None,
         )
 
-        assert litellm.model_cost["both-families-id"]["max_input_tokens"] == 999
-        shared = litellm.model_cost["hosted_vllm/both-families-backend"]
+        assert gateway.model_cost["both-families-id"]["max_input_tokens"] == 999
+        shared = gateway.model_cost["hosted_vllm/both-families-backend"]
         assert shared["max_input_tokens"] == 999
         assert "id" not in shared
     finally:
@@ -1508,8 +1508,8 @@ def test_reload_keeps_custom_pricing_configured_on_litellm_params_for_a_db_model
     custom pricing on litellm_params rather than on model_info. A price data
     reload must not revert that to the catalog's pricing.
     """
-    saved_catalog = litellm.model_cost
-    fetched_catalog = copy.deepcopy(litellm.model_cost)
+    saved_catalog = gateway.model_cost
+    fetched_catalog = copy.deepcopy(gateway.model_cost)
     try:
         router = Router(model_list=[])
         router.add_deployment(
@@ -1525,16 +1525,16 @@ def test_reload_keeps_custom_pricing_configured_on_litellm_params_for_a_db_model
             )
         )
 
-        assert litellm.model_cost["db-priced-id"]["input_cost_per_token"] == 0.000123
+        assert gateway.model_cost["db-priced-id"]["input_cost_per_token"] == 0.000123
 
         _simulate_price_data_reload(
             copy.deepcopy(fetched_catalog),
         )
 
-        assert litellm.model_cost["db-priced-id"]["input_cost_per_token"] == 0.000123
-        assert litellm.model_cost["db-priced-id"]["output_cost_per_token"] == 0.000456
+        assert gateway.model_cost["db-priced-id"]["input_cost_per_token"] == 0.000123
+        assert gateway.model_cost["db-priced-id"]["output_cost_per_token"] == 0.000456
     finally:
-        litellm.model_cost = saved_catalog
+        gateway.model_cost = saved_catalog
         _invalidate_model_cost_lowercase_map()
 
 
@@ -1545,7 +1545,7 @@ def test_replay_live_router_model_cost_rebuilds_every_live_router():
     """
     from token_iq.gateway.router import _replay_live_router_model_cost
 
-    saved_model_cost = litellm.model_cost
+    saved_model_cost = gateway.model_cost
     try:
         first = Router(
             model_list=[
@@ -1566,15 +1566,15 @@ def test_replay_live_router_model_cost_rebuilds_every_live_router():
             ],
         )
 
-        litellm.model_cost = {"gpt-4o": {"litellm_provider": "openai", "mode": "chat"}}
+        gateway.model_cost = {"gpt-4o": {"litellm_provider": "openai", "mode": "chat"}}
         _invalidate_model_cost_lowercase_map()
         _replay_live_router_model_cost()
 
-        assert litellm.model_cost["first-id"]["max_input_tokens"] == 111
-        assert litellm.model_cost["second-id"]["max_input_tokens"] == 222
+        assert gateway.model_cost["first-id"]["max_input_tokens"] == 111
+        assert gateway.model_cost["second-id"]["max_input_tokens"] == 222
         assert first.model_list and second.model_list
     finally:
-        litellm.model_cost = saved_model_cost
+        gateway.model_cost = saved_model_cost
         _invalidate_model_cost_lowercase_map()
 
 
@@ -1617,7 +1617,7 @@ def test_strategy_router_alias_pricing_never_enters_model_cost(monkeypatch):
     )
 
     def _assert_alias_unpriced():
-        entry = litellm.model_cost.get("strategy-alias-id")
+        entry = gateway.model_cost.get("strategy-alias-id")
         assert entry is not None, "Alias metadata should still be registered"
         assert entry["max_input_tokens"] == 128000
         assert "input_cost_per_token" not in entry
@@ -1625,7 +1625,7 @@ def test_strategy_router_alias_pricing_never_enters_model_cost(monkeypatch):
 
     _assert_alias_unpriced()
 
-    saved_model_cost = litellm.model_cost
+    saved_model_cost = gateway.model_cost
     try:
         _simulate_price_data_reload(
             {"gpt-4o": {"litellm_provider": "openai", "mode": "chat"}},
@@ -1633,7 +1633,7 @@ def test_strategy_router_alias_pricing_never_enters_model_cost(monkeypatch):
         _assert_alias_unpriced()
         assert router.model_list
     finally:
-        litellm.model_cost = saved_model_cost
+        gateway.model_cost = saved_model_cost
         _invalidate_model_cost_lowercase_map()
 
 
@@ -1651,7 +1651,7 @@ def test_inherit_builtin_tiered_output_rate_fills_the_backend_flat_rate():
         custom_llm_provider="anthropic",
     )
 
-    backend_rate = litellm.get_model_info(model="claude-haiku-4-5", custom_llm_provider="anthropic")[
+    backend_rate = gateway.get_model_info(model="claude-haiku-4-5", custom_llm_provider="anthropic")[
         "output_cost_per_token"
     ]
     assert backend_rate > 0
@@ -1664,7 +1664,7 @@ def test_inherit_builtin_tiered_output_rate_never_stores_a_synthesized_zero():
     only publishes tiered rates (e.g. dashscope/qwen-flash), and storing that zero
     would mark the deployment as explicitly priced free.
     """
-    backend_info = litellm.get_model_info(model="qwen-flash", custom_llm_provider="dashscope")
+    backend_info = gateway.get_model_info(model="qwen-flash", custom_llm_provider="dashscope")
     assert backend_info["output_cost_per_token"] == 0
 
     model_info = {"tiered_pricing": [{"range": [0, 3000], "input_cost_per_token": 3.25e-07}]}
@@ -1731,7 +1731,7 @@ def test_a_config_ptu_deployment_bills_nothing_per_token():
     assert entry["litellm_params"]["input_cost_per_token"] == 0.0
     assert entry["litellm_params"]["output_cost_per_token"] == 0.0
     assert entry["model_info"]["input_cost_per_token"] == 0.0
-    assert litellm.model_cost[entry["model_info"]["id"]]["input_cost_per_token"] == 0.0
+    assert gateway.model_cost[entry["model_info"]["id"]]["input_cost_per_token"] == 0.0
 
 
 @pytest.mark.parametrize(
@@ -1750,11 +1750,11 @@ def test_a_config_ptu_deployment_imports_no_cache_rate_from_its_backend(backend)
         "cache_read_input_token_cost",
         "cache_read_input_token_cost_above_200k_tokens",
     )
-    builtin = litellm.get_model_info(model=backend)
+    builtin = gateway.get_model_info(model=backend)
     assert any(builtin.get(field) for field in cache_fields), "backend publishes no cache pricing to leak"
 
     router = _ptu_router(litellm_params={"model": backend})
-    priced = litellm.model_cost[router.model_list[0]["model_info"]["id"]]
+    priced = gateway.model_cost[router.model_list[0]["model_info"]["id"]]
 
     assert [field for field in cache_fields if priced.get(field)] == []
 
@@ -1762,12 +1762,12 @@ def test_a_config_ptu_deployment_imports_no_cache_rate_from_its_backend(backend)
 def test_zeroing_a_ptu_deployment_leaves_its_backend_model_priced():
     """A sibling deployment on the same backend must keep billing normally."""
     backend = "anthropic/claude-sonnet-4-5-20250929"
-    builtin = litellm.get_model_info(model=backend)["input_cost_per_token"]
+    builtin = gateway.get_model_info(model=backend)["input_cost_per_token"]
     assert builtin > 0
 
     _ptu_router(litellm_params={"model": backend})
 
-    assert litellm.get_model_info(model=backend)["input_cost_per_token"] == builtin
+    assert gateway.get_model_info(model=backend)["input_cost_per_token"] == builtin
 
 
 def test_the_registered_id_is_the_one_the_operator_declared():
@@ -1880,12 +1880,12 @@ def test_nested_custom_model_info_does_not_pollute_shared_backend():
     backend_model = "gpt-4o-search-preview"
     custom_id = "lit5471-search-custom"
     sibling_id = "lit5471-search-sibling"
-    builtin_info = copy.deepcopy(litellm.get_model_info(model=backend_model))
+    builtin_info = copy.deepcopy(gateway.get_model_info(model=backend_model))
     expected_nested = copy.deepcopy(builtin_info["search_context_cost_per_query"])
     model_keys = {
-        backend_model: copy.deepcopy(litellm.model_cost.get(backend_model)),
-        custom_id: copy.deepcopy(litellm.model_cost.get(custom_id)),
-        sibling_id: copy.deepcopy(litellm.model_cost.get(sibling_id)),
+        backend_model: copy.deepcopy(gateway.model_cost.get(backend_model)),
+        custom_id: copy.deepcopy(gateway.model_cost.get(custom_id)),
+        sibling_id: copy.deepcopy(gateway.model_cost.get(sibling_id)),
     }
     try:
         router = Router(
@@ -1913,21 +1913,21 @@ def test_nested_custom_model_info_does_not_pollute_shared_backend():
 
         assert custom_info is not None
         assert custom_info["search_context_cost_per_query"]["search_context_size_low"] == 0.123
-        assert litellm.model_cost[backend_model]["search_context_cost_per_query"] == expected_nested
+        assert gateway.model_cost[backend_model]["search_context_cost_per_query"] == expected_nested
         assert sibling_info is not None
         assert sibling_info["search_context_cost_per_query"] == expected_nested
     finally:
         _restore_model_cost_entries(model_keys)
-        litellm.get_model_info.cache_clear()
+        gateway.get_model_info.cache_clear()
 
 
 def test_base_model_custom_info_does_not_pollute_cached_base_model():
     base_model = "azure/gpt-4o"
     deployment_id = "lit5471-base-model"
-    base_model_info = copy.deepcopy(litellm.get_model_info(model=base_model))
+    base_model_info = copy.deepcopy(gateway.get_model_info(model=base_model))
     model_keys = {
-        "azure/gpt-4o": copy.deepcopy(litellm.model_cost.get("azure/gpt-4o")),
-        deployment_id: copy.deepcopy(litellm.model_cost.get(deployment_id)),
+        "azure/gpt-4o": copy.deepcopy(gateway.model_cost.get("azure/gpt-4o")),
+        deployment_id: copy.deepcopy(gateway.model_cost.get(deployment_id)),
     }
     try:
         router = Router(
@@ -1952,19 +1952,19 @@ def test_base_model_custom_info_does_not_pollute_cached_base_model():
 
         assert info is not None
         assert info["input_cost_per_token"] == 0.777
-        assert litellm.get_model_info(model=base_model) == base_model_info
+        assert gateway.get_model_info(model=base_model) == base_model_info
     finally:
         _restore_model_cost_entries(model_keys)
-        litellm.get_model_info.cache_clear()
+        gateway.get_model_info.cache_clear()
 
 
 def test_builtin_only_deployment_info_is_not_the_cached_object():
     backend_model = "gpt-4o-search-preview"
     deployment_id = "lit5471-builtin-only"
-    litellm.get_model_info.cache_clear()
-    model_keys = {deployment_id: copy.deepcopy(litellm.model_cost.get(deployment_id))}
+    gateway.get_model_info.cache_clear()
+    model_keys = {deployment_id: copy.deepcopy(gateway.model_cost.get(deployment_id))}
     try:
-        cached_info = litellm.get_model_info(model=backend_model)
+        cached_info = gateway.get_model_info(model=backend_model)
         assert cached_info["search_context_cost_per_query"]
 
         info = Router(model_list=[]).get_deployment_model_info(model_id=deployment_id, model_name=backend_model)
@@ -1974,7 +1974,7 @@ def test_builtin_only_deployment_info_is_not_the_cached_object():
         assert _nested_container_ids(info).isdisjoint(_nested_container_ids(cached_info))
     finally:
         _restore_model_cost_entries(model_keys)
-        litellm.get_model_info.cache_clear()
+        gateway.get_model_info.cache_clear()
 
 
 def test_custom_only_deployment_info_is_not_the_registry_entry():
@@ -1982,8 +1982,8 @@ def test_custom_only_deployment_info_is_not_the_registry_entry():
     deployment_id = "lit5471-custom-only"
     nested_pricing = {"search_context_size_low": 0.123}
     model_keys = {
-        unknown_backend: copy.deepcopy(litellm.model_cost.get(unknown_backend)),
-        deployment_id: copy.deepcopy(litellm.model_cost.get(deployment_id)),
+        unknown_backend: copy.deepcopy(gateway.model_cost.get(unknown_backend)),
+        deployment_id: copy.deepcopy(gateway.model_cost.get(deployment_id)),
     }
     try:
         router = Router(
@@ -1995,7 +1995,7 @@ def test_custom_only_deployment_info_is_not_the_registry_entry():
                 }
             ],
         )
-        registry_entry = litellm.model_cost[deployment_id]
+        registry_entry = gateway.model_cost[deployment_id]
 
         info = router.get_deployment_model_info(model_id=deployment_id, model_name=unknown_backend)
 
@@ -2004,14 +2004,14 @@ def test_custom_only_deployment_info_is_not_the_registry_entry():
         assert _nested_container_ids(info).isdisjoint(_nested_container_ids(registry_entry))
     finally:
         _restore_model_cost_entries(model_keys)
-        litellm.get_model_info.cache_clear()
+        gateway.get_model_info.cache_clear()
 
 
 def test_router_model_info_deep_copies_nested_cached_metadata():
     model = "openai/gpt-4o-search-preview"
-    litellm.get_model_info.cache_clear()
+    gateway.get_model_info.cache_clear()
     try:
-        cached_info = litellm.get_model_info(model=model)
+        cached_info = gateway.get_model_info(model=model)
         assert cached_info is not None
         expected_nested = copy.deepcopy(cached_info["search_context_cost_per_query"])
         assert expected_nested
@@ -2028,9 +2028,9 @@ def test_router_model_info_deep_copies_nested_cached_metadata():
 
         assert merged_info["search_context_cost_per_query"] == expected_nested
         assert _nested_container_ids(merged_info).isdisjoint(_nested_container_ids(cached_info))
-        assert litellm.get_model_info(model=model)["search_context_cost_per_query"] == expected_nested
+        assert gateway.get_model_info(model=model)["search_context_cost_per_query"] == expected_nested
     finally:
-        litellm.get_model_info.cache_clear()
+        gateway.get_model_info.cache_clear()
 
 
 # --- a config.yaml reservation must carry an id its operator owns --------------------
@@ -2286,9 +2286,9 @@ def test_every_declaring_deployment_is_named(caplog):
 def _simulate_price_data_reload_with_provider_sets(monkeypatch, fetched_catalog):
     """Like `_simulate_price_data_reload`, plus the provider model-set refresh the proxy's
     `_swap_in_model_cost_map` does before replaying, so bare names in the new catalog resolve."""
-    monkeypatch.setattr(litellm, "model_cost", fetched_catalog)
+    monkeypatch.setattr(gateway, "model_cost", fetched_catalog)
     _invalidate_model_cost_lowercase_map()
-    litellm.add_known_models(model_cost_map=fetched_catalog)
+    gateway.add_known_models(model_cost_map=fetched_catalog)
     reapply_runtime_model_cost_registrations()
 
 
@@ -2319,17 +2319,17 @@ def test_a_config_deployment_dropped_by_a_stale_cost_map_comes_back_on_reload(mo
         assert router.get_model_names() == ["control-model"]
         assert router.get_model_access_groups(model_name="new-model") == {}
 
-        fresh_catalog = {**litellm.model_cost, backend: {"litellm_provider": "openai", "mode": "chat"}}
+        fresh_catalog = {**gateway.model_cost, backend: {"litellm_provider": "openai", "mode": "chat"}}
         _simulate_price_data_reload_with_provider_sets(monkeypatch, fresh_catalog)
         _simulate_price_data_reload_with_provider_sets(monkeypatch, fresh_catalog)
 
         assert sorted(router.get_model_names()) == ["control-model", "new-model"]
         assert router.get_model_access_groups(model_name="new-model") == {"team-models": ["new-model"]}
         assert [d["model_info"]["id"] for d in router.model_list] == ["control-id", "new-id"]
-        assert "new-id" in litellm.model_cost
+        assert "new-id" in gateway.model_cost
     finally:
-        litellm.open_ai_chat_completion_models.discard(backend)
-        litellm.models_by_provider["openai"].discard(backend)
+        gateway.open_ai_chat_completion_models.discard(backend)
+        gateway.models_by_provider["openai"].discard(backend)
 
 
 def test_a_config_deployment_dropped_for_a_permanent_reason_is_not_retried_on_reload(monkeypatch):
@@ -2357,7 +2357,7 @@ def test_a_config_deployment_dropped_for_a_permanent_reason_is_not_retried_on_re
     assert router.get_model_names() == ["control-model"]
     names_after_boot = list(router.deployment_names)
 
-    _simulate_price_data_reload_with_provider_sets(monkeypatch, dict(litellm.model_cost))
+    _simulate_price_data_reload_with_provider_sets(monkeypatch, dict(gateway.model_cost))
 
     assert router.get_model_names() == ["control-model"]
     assert router.deployment_names == names_after_boot

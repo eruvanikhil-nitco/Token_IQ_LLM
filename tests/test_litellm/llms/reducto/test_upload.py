@@ -3,7 +3,7 @@ import os
 from unittest.mock import AsyncMock, Mock
 
 import httpx
-from token_iq import gateway as litellm
+from token_iq import gateway
 import pytest
 
 from token_iq.gateway.llms.reducto.common import (
@@ -15,22 +15,22 @@ from token_iq.gateway.llms.reducto.common import (
 
 @pytest.fixture()
 def disable_aiohttp_transport(monkeypatch):
-    original_disable_aiohttp = litellm.disable_aiohttp_transport
-    litellm.disable_aiohttp_transport = True
-    litellm.in_memory_llm_clients_cache.flush_cache()
+    original_disable_aiohttp = gateway.disable_aiohttp_transport
+    gateway.disable_aiohttp_transport = True
+    gateway.in_memory_llm_clients_cache.flush_cache()
     monkeypatch.setenv("REDUCTO_API_KEY", "env-reducto-key")
     try:
         yield
     finally:
-        litellm.disable_aiohttp_transport = original_disable_aiohttp
-        litellm.in_memory_llm_clients_cache.flush_cache()
+        gateway.disable_aiohttp_transport = original_disable_aiohttp
+        gateway.in_memory_llm_clients_cache.flush_cache()
         os.environ.pop("REDUCTO_API_KEY", None)
 
 
 @pytest.mark.asyncio
 async def test_parse_v3_rejects_plain_http_urls(disable_aiohttp_transport):
-    with pytest.raises(litellm.BadRequestError, match="upload the file first"):
-        await litellm.aocr(
+    with pytest.raises(gateway.BadRequestError, match="upload the file first"):
+        await gateway.aocr(
             model="reducto/parse-v3",
             document={
                 "type": "document_url",
@@ -62,7 +62,7 @@ async def test_parse_v3_image_data_uri_upload_uses_image_mime(
         }
     )
 
-    response = await litellm.aocr(
+    response = await gateway.aocr(
         model="reducto/parse-v3",
         document={
             "type": "file",
@@ -107,7 +107,7 @@ async def test_parse_v3_uses_programmatic_api_key_over_env(
         }
     )
 
-    await litellm.aocr(
+    await gateway.aocr(
         model="reducto/parse-v3",
         document={
             "type": "file",
@@ -137,7 +137,7 @@ def test_upload_bytes_sync_uses_shared_client(monkeypatch):
         )
 
     sync_post = Mock(side_effect=fake_post)
-    monkeypatch.setattr(litellm.module_level_client, "post", sync_post)
+    monkeypatch.setattr(gateway.module_level_client, "post", sync_post)
 
     class ForbiddenSyncClient:
         def __init__(self, *args, **kwargs):
@@ -179,7 +179,7 @@ async def test_upload_bytes_async_uses_shared_aclient(monkeypatch):
         )
 
     async_post = AsyncMock(side_effect=fake_post)
-    monkeypatch.setattr(litellm.module_level_aclient, "post", async_post)
+    monkeypatch.setattr(gateway.module_level_aclient, "post", async_post)
 
     class ForbiddenAsyncClient:
         def __init__(self, *args, **kwargs):
@@ -206,8 +206,8 @@ async def test_upload_bytes_async_uses_shared_aclient(monkeypatch):
 
 
 def test_extract_file_id_or_bytes_raises_on_malformed_data_uri():
-    with pytest.raises(litellm.BadRequestError, match="Invalid Reducto data URI"):
+    with pytest.raises(gateway.BadRequestError, match="Invalid Reducto data URI"):
         extract_file_id_or_bytes("data:application/pdf", model="reducto/parse-v3")
 
-    with pytest.raises(litellm.BadRequestError, match="Invalid Reducto base64 payload"):
+    with pytest.raises(gateway.BadRequestError, match="Invalid Reducto base64 payload"):
         extract_file_id_or_bytes("data:;base64,!!!not-base64", model="reducto/parse-v3")

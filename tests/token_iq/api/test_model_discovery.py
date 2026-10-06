@@ -1,4 +1,4 @@
-from token_iq import gateway as litellm
+from token_iq import gateway
 import pytest
 
 from token_iq.api.model_discovery import (
@@ -74,7 +74,7 @@ def test_an_empty_provider_answer_is_not_an_error_here() -> None:
 def test_a_catalogue_row_without_costs_does_not_count_as_priced(monkeypatch: pytest.MonkeyPatch) -> None:
     """Some rows exist for metadata only. Counting those as priced would report a
     metering hole as covered, which is the exact failure this flag guards against."""
-    monkeypatch.setitem(litellm.model_cost, "openrouter/metadata-only", {"max_tokens": 4096})
+    monkeypatch.setitem(gateway.model_cost, "openrouter/metadata-only", {"max_tokens": 4096})
 
     result = merge_with_local_pricing(
         custom_llm_provider="openrouter",
@@ -87,7 +87,7 @@ def test_a_catalogue_row_without_costs_does_not_count_as_priced(monkeypatch: pyt
 
 def test_one_sided_pricing_still_counts_as_priced(monkeypatch: pytest.MonkeyPatch) -> None:
     """An embedding model prices input only. Treating that as unpriced would be a false alarm."""
-    monkeypatch.setitem(litellm.model_cost, "openrouter/input-only", {"input_cost_per_token": 1e-06})
+    monkeypatch.setitem(gateway.model_cost, "openrouter/input-only", {"input_cost_per_token": 1e-06})
 
     result = merge_with_local_pricing(
         custom_llm_provider="openrouter",

@@ -1,4 +1,4 @@
-from token_iq import gateway as litellm
+from token_iq import gateway
 import pytest
 
 from token_iq.gateway.types.proxy.management_endpoints.ui_sso import (
@@ -146,7 +146,7 @@ async def test_key_regenerate_enforces_upperbound_key_params(
         key_alias=f"{scratch.prefix}-within",
     )
     monkeypatch.setattr(
-        litellm,
+        gateway,
         "upperbound_key_generate_params",
         LiteLLM_UpperboundKeyGenerateParams(max_budget=100.0),
     )

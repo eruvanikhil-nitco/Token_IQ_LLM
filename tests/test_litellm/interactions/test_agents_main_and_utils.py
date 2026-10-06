@@ -14,7 +14,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.interactions.agents import (
     acreate,
     adelete,
@@ -71,7 +71,7 @@ class TestGetAgentsApiConfig:
         assert isinstance(cfg, GeminiAgentsConfig)
 
     def test_raises_bad_request_for_unsupported_provider(self):
-        with pytest.raises(litellm.BadRequestError) as excinfo:
+        with pytest.raises(gateway.BadRequestError) as excinfo:
             _get_agents_api_config("openai")
         assert "does not have a native" in str(excinfo.value)
 
@@ -152,7 +152,7 @@ class TestSyncEntryPoints:
         assert isinstance(cfg, GeminiAgentsConfig)
 
     def test_create_raises_for_unsupported_provider(self):
-        with pytest.raises(litellm.exceptions.BadRequestError):
+        with pytest.raises(gateway.exceptions.BadRequestError):
             create(name="agent-x", custom_llm_provider="openai", api_key="sk-x")
 
     def test_list_passes_args_to_handler(self):
@@ -311,7 +311,7 @@ class TestAsyncErrorWrapping:
         handler.create_agent.side_effect = RuntimeError("kaboom")
 
         with patch(_HANDLER_PATH, handler):
-            with pytest.raises(litellm.APIConnectionError):
+            with pytest.raises(gateway.APIConnectionError):
                 await acreate(name="waverunner", api_key="AIza")
 
     @pytest.mark.asyncio
@@ -320,7 +320,7 @@ class TestAsyncErrorWrapping:
         handler.get_agent.side_effect = RuntimeError("kaboom")
 
         with patch(_HANDLER_PATH, handler):
-            with pytest.raises(litellm.APIConnectionError):
+            with pytest.raises(gateway.APIConnectionError):
                 await aget(name="waverunner", api_key="AIza")
 
     @pytest.mark.asyncio
@@ -329,7 +329,7 @@ class TestAsyncErrorWrapping:
         handler.list_agents.side_effect = RuntimeError("kaboom")
 
         with patch(_HANDLER_PATH, handler):
-            with pytest.raises(litellm.APIConnectionError):
+            with pytest.raises(gateway.APIConnectionError):
                 await alist(api_key="AIza")
 
     @pytest.mark.asyncio
@@ -338,7 +338,7 @@ class TestAsyncErrorWrapping:
         handler.delete_agent.side_effect = RuntimeError("kaboom")
 
         with patch(_HANDLER_PATH, handler):
-            with pytest.raises(litellm.APIConnectionError):
+            with pytest.raises(gateway.APIConnectionError):
                 await adelete(name="waverunner", api_key="AIza")
 
     @pytest.mark.asyncio
@@ -347,5 +347,5 @@ class TestAsyncErrorWrapping:
         handler.list_agent_versions.side_effect = RuntimeError("kaboom")
 
         with patch(_HANDLER_PATH, handler):
-            with pytest.raises(litellm.APIConnectionError):
+            with pytest.raises(gateway.APIConnectionError):
                 await alist_versions(name="waverunner", api_key="AIza")

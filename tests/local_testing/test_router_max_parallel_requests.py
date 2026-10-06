@@ -10,7 +10,7 @@ import pytest
 
 from typing import Optional
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.utils import calculate_max_parallel_requests
 
 """
@@ -88,7 +88,7 @@ def test_setting_mpr_limits_per_model(
         "model_info": {"id": "my-unique-id"},
     }
 
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[deployment],
         default_max_parallel_requests=default_max_parallel_requests,
     )
@@ -209,5 +209,5 @@ async def test_max_parallel_requests_tpm_rate_limiting_base_case():
                 messages=_messages,
             )
 
-    with pytest.raises(litellm.RateLimitError):
+    with pytest.raises(gateway.RateLimitError):
         await _exceed_limit()

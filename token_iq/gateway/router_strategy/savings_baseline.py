@@ -56,14 +56,14 @@ def canonical_model(model: str, custom_llm_provider: str | None = None) -> str |
     provider runs its OAuth device flow, and for a declared pair the resolver's answer is
     the declaration itself, so asking it buys nothing but the block.
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.core_utils.get_llm_provider_logic import declared_authenticating_provider
 
     declared: Final = declared_authenticating_provider(model, custom_llm_provider)
     if declared is not None:
         return f"{declared}/{model.removeprefix(f'{declared}/')}"
     try:
-        resolved, provider, _, _ = litellm.get_llm_provider(model=model, custom_llm_provider=custom_llm_provider)
+        resolved, provider, _, _ = gateway.get_llm_provider(model=model, custom_llm_provider=custom_llm_provider)
     except Exception as e:  # noqa: BLE001  # an unroutable candidate cannot be the baseline
         verbose_router_logger.debug("savings baseline: cannot resolve candidate %s (%s)", model, e)
         return None

@@ -5,7 +5,7 @@ import httpx
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.vertex_ai.text_to_speech.transformation import (
     VertexAITextToSpeechConfig,
 )
@@ -190,7 +190,7 @@ def test_litellm_speech_vertex_ai_chirp(mock_get_token, mock_ensure_token, mock_
     mock_response.json.return_value = {"audioContent": "SGVsbG8gV29ybGQ="}
     mock_post.return_value = mock_response
 
-    litellm.speech(
+    gateway.speech(
         model="vertex_ai/chirp",
         input="Hello, this is a test",
         voice="en-US-Chirp3-HD-Charon",

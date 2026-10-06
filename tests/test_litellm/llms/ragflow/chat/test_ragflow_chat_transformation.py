@@ -12,7 +12,7 @@ import pytest
 
 # Add the project root to Python path
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.ragflow.chat.transformation import RAGFlowConfig
 from token_iq.gateway.types.llms.openai import AllMessageValues
 

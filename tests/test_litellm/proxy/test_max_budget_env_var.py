@@ -8,7 +8,7 @@ from unittest.mock import patch
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 
 @pytest.mark.asyncio
@@ -24,13 +24,13 @@ async def test_max_budget_string_converted_to_float():
     ):
         from token_iq.gateway.proxy.proxy_server import initialize
 
-        original = litellm.max_budget
+        original = gateway.max_budget
         try:
             await initialize(max_budget="100.5")
-            assert isinstance(litellm.max_budget, float)
-            assert litellm.max_budget == 100.5
+            assert isinstance(gateway.max_budget, float)
+            assert gateway.max_budget == 100.5
         finally:
-            litellm.max_budget = original
+            gateway.max_budget = original
 
 
 @pytest.mark.asyncio
@@ -42,10 +42,10 @@ async def test_max_budget_float_stays_float():
     ):
         from token_iq.gateway.proxy.proxy_server import initialize
 
-        original = litellm.max_budget
+        original = gateway.max_budget
         try:
             await initialize(max_budget=200.0)
-            assert isinstance(litellm.max_budget, float)
-            assert litellm.max_budget == 200.0
+            assert isinstance(gateway.max_budget, float)
+            assert gateway.max_budget == 200.0
         finally:
-            litellm.max_budget = original
+            gateway.max_budget = original

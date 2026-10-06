@@ -9,7 +9,7 @@ import pytest
 from pydantic import BaseModel, Field
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.volcengine.responses.transformation import (
     VolcEngineResponsesAPIConfig,
 )
@@ -117,7 +117,7 @@ class TestVolcengineResponsesAPITransformation:
         """validate_environment should pull api key from params/env and attach headers."""
         config = VolcEngineResponsesAPIConfig()
 
-        monkeypatch.setattr(litellm, "api_key", None)
+        monkeypatch.setattr(gateway, "api_key", None)
         monkeypatch.delenv("ARK_API_KEY", raising=False)
         monkeypatch.delenv("VOLCENGINE_API_KEY", raising=False)
 
@@ -130,7 +130,7 @@ class TestVolcengineResponsesAPITransformation:
         """validate_environment should error when no key is available."""
         config = VolcEngineResponsesAPIConfig()
 
-        monkeypatch.setattr(litellm, "api_key", None)
+        monkeypatch.setattr(gateway, "api_key", None)
         monkeypatch.delenv("ARK_API_KEY", raising=False)
         monkeypatch.delenv("VOLCENGINE_API_KEY", raising=False)
 

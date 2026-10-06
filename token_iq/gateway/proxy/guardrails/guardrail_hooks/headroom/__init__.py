@@ -25,7 +25,7 @@ def _coerce_event_hook(
 
 
 def initialize_guardrail(litellm_params: LitellmParams, guardrail: Guardrail) -> HeadroomGuardrail:
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     _callback: Final = HeadroomGuardrail(
         api_base=litellm_params.api_base,
@@ -36,7 +36,7 @@ def initialize_guardrail(litellm_params: LitellmParams, guardrail: Guardrail) ->
         default_on=litellm_params.default_on or False,
         unreachable_fallback=litellm_params.unreachable_fallback,
     )
-    litellm.logging_callback_manager.add_litellm_callback(  # pyright: ignore[reportUnknownMemberType]
+    gateway.logging_callback_manager.add_litellm_callback(  # pyright: ignore[reportUnknownMemberType]
         _callback
     )
     return _callback

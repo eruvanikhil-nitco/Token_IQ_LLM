@@ -81,7 +81,7 @@ def _resolve_model_from_preferences(
     Returns:
         A model string suitable for litellm.acompletion().
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     # Build list of available model names from proxy Router or litellm.model_list
     available_model_names: list[str] = []
@@ -92,8 +92,8 @@ def _resolve_model_from_preferences(
             available_model_names = llm_router.get_model_names()
     except Exception:
         pass
-    if not available_model_names and litellm.model_list:
-        for entry in litellm.model_list:
+    if not available_model_names and gateway.model_list:
+        for entry in gateway.model_list:
             if isinstance(entry, dict):
                 name = entry.get("model_name")
                 if name:
@@ -152,7 +152,7 @@ def _resolve_model_from_preferences(
         )
         return available_model_names[0]
     # Last resort - use LiteLLM default or raise error
-    default_sampling_model: Final[str | None] = getattr(litellm, "default_mcp_sampling_model", None)
+    default_sampling_model: Final[str | None] = getattr(gateway, "default_mcp_sampling_model", None)
     if default_sampling_model:
         verbose_logger.debug(
             "MCP sampling model resolution: using litellm.default_mcp_sampling_model='%s'",
@@ -207,7 +207,7 @@ def _select_model_by_priority(
     Returns the highest-scoring model name, or None if scoring fails for
     all candidates (e.g. no model_info available).
     """
-    from token_iq import gateway as _litellm
+    from token_iq import gateway as _gateway
 
     cost_weight: Final[float] = getattr(model_preferences, "costPriority", None) or 0.0
     speed_weight: Final[float] = getattr(model_preferences, "speedPriority", None) or 0.0
@@ -217,7 +217,7 @@ def _select_model_by_priority(
     scored: Final[list[_ScoredModel]] = []
     for name in model_names:
         try:
-            info = _litellm.get_model_info(name)
+            info = _gateway.get_model_info(name)
         except Exception:
             continue
         input_cost = info.get("input_cost_per_token") or 0.0
@@ -770,7 +770,7 @@ async def _check_model_access(model: str, user_api_key_auth: "UserAPIKeyAuth | N
         )
 
     try:
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.proxy.auth.auth_checks import (
             _check_team_member_model_access,
             can_key_call_model,
@@ -789,7 +789,7 @@ async def _check_model_access(model: str, user_api_key_auth: "UserAPIKeyAuth | N
 
         await can_key_call_model(
             model=model,
-            llm_model_list=getattr(litellm, "model_list", None),
+            llm_model_list=getattr(gateway, "model_list", None),
             valid_token=user_api_key_auth,
             llm_router=_llm_router,
         )
@@ -909,7 +909,7 @@ async def _run_budget_checks(
     Returns None if all checks pass, or an ErrorData describing the denial.
     """
     try:
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.proxy.auth.auth_checks import (
             common_checks,
             get_team_object,
@@ -989,7 +989,7 @@ async def _run_budget_checks(
             message=f"Sampling denied: virtual key is not allowed to call /chat/completions. {route_err.detail}",
         )
 
-    global_proxy_spend: Final = getattr(litellm, "_global_proxy_spend", None)
+    global_proxy_spend: Final = getattr(gateway, "_global_proxy_spend", None)
 
     # Build request body and merge x-litellm-tags from MCP headers BEFORE
     # common_checks runs. _tag_max_budget_check inside common_checks only
@@ -1120,16 +1120,16 @@ async def _run_guardrails_and_call_llm(
         )
         raise
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     try:
         from token_iq.gateway.proxy.proxy_server import llm_router
 
         if llm_router is not None:
             return await _AcompletionCall(fn=llm_router.acompletion).fn(**completion_kwargs)
-        return await _AcompletionCall(fn=litellm.acompletion).fn(**completion_kwargs)
+        return await _AcompletionCall(fn=gateway.acompletion).fn(**completion_kwargs)
     except ImportError:
-        return await _AcompletionCall(fn=litellm.acompletion).fn(**completion_kwargs)
+        return await _AcompletionCall(fn=gateway.acompletion).fn(**completion_kwargs)
 
 
 async def handle_sampling_create_message(

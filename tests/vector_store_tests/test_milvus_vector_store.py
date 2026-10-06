@@ -9,7 +9,7 @@ import httpx
 import pytest
 import respx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import Router
 from token_iq.gateway.llms.milvus.vector_stores.transformation import MilvusVectorStoreConfig
 from token_iq.gateway.types.utils import EmbeddingResponse
@@ -565,7 +565,7 @@ def test_router_search_resolves_bare_embedding_alias_sync(
 async def test_router_search_resolves_bare_embedding_alias_async(
     respx_mock: respx.MockRouter, monkeypatch: pytest.MonkeyPatch
 ):
-    monkeypatch.setattr(litellm, "disable_aiohttp_transport", True)
+    monkeypatch.setattr(gateway, "disable_aiohttp_transport", True)
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
     embedding_route = _mock_embedding_route(respx_mock)
     search_route = _mock_search_route(respx_mock)
@@ -582,7 +582,7 @@ def test_sdk_search_with_router_kwarg_resolves_bare_embedding_alias_sync(
     embedding_route = _mock_embedding_route(respx_mock)
     search_route = _mock_search_route(respx_mock)
 
-    response = litellm.vector_stores.search(router=_alias_router(), **ALIAS_SEARCH_KWARGS)
+    response = gateway.vector_stores.search(router=_alias_router(), **ALIAS_SEARCH_KWARGS)
 
     _assert_alias_resolved(embedding_route, search_route, response)
 
@@ -591,12 +591,12 @@ def test_sdk_search_with_router_kwarg_resolves_bare_embedding_alias_sync(
 async def test_sdk_search_with_router_kwarg_resolves_bare_embedding_alias_async(
     respx_mock: respx.MockRouter, monkeypatch: pytest.MonkeyPatch
 ):
-    monkeypatch.setattr(litellm, "disable_aiohttp_transport", True)
+    monkeypatch.setattr(gateway, "disable_aiohttp_transport", True)
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
     embedding_route = _mock_embedding_route(respx_mock)
     search_route = _mock_search_route(respx_mock)
 
-    response = await litellm.vector_stores.asearch(router=_alias_router(), **ALIAS_SEARCH_KWARGS)
+    response = await gateway.vector_stores.asearch(router=_alias_router(), **ALIAS_SEARCH_KWARGS)
 
     _assert_alias_resolved(embedding_route, search_route, response)
 
@@ -620,12 +620,12 @@ def _team_alias_router():
 async def test_sdk_search_with_router_kwarg_resolves_team_alias_from_request_metadata(
     respx_mock: respx.MockRouter, monkeypatch: pytest.MonkeyPatch
 ):
-    monkeypatch.setattr(litellm, "disable_aiohttp_transport", True)
+    monkeypatch.setattr(gateway, "disable_aiohttp_transport", True)
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
     embedding_route = _mock_embedding_route(respx_mock)
     search_route = _mock_search_route(respx_mock)
 
-    response = await litellm.vector_stores.asearch(
+    response = await gateway.vector_stores.asearch(
         router=_team_alias_router(), metadata={"user_api_key_team_id": "team-a"}, **ALIAS_SEARCH_KWARGS
     )
 
@@ -636,13 +636,13 @@ async def test_sdk_search_with_router_kwarg_resolves_team_alias_from_request_met
 async def test_sdk_search_with_router_kwarg_rejects_team_alias_without_team_metadata(
     respx_mock: respx.MockRouter, monkeypatch: pytest.MonkeyPatch
 ):
-    monkeypatch.setattr(litellm, "disable_aiohttp_transport", True)
+    monkeypatch.setattr(gateway, "disable_aiohttp_transport", True)
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
     embedding_route = _mock_embedding_route(respx_mock)
     _mock_search_route(respx_mock)
 
-    with pytest.raises(litellm.APIConnectionError):
-        await litellm.vector_stores.asearch(router=_team_alias_router(), **ALIAS_SEARCH_KWARGS)
+    with pytest.raises(gateway.APIConnectionError):
+        await gateway.vector_stores.asearch(router=_team_alias_router(), **ALIAS_SEARCH_KWARGS)
 
     assert embedding_route.call_count == 0
 

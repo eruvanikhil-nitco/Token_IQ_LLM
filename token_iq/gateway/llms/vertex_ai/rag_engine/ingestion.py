@@ -120,7 +120,7 @@ class VertexAIRAGIngestion(BaseRAGIngestion):
         Returns:
             GCS URI of the uploaded file (gs://bucket/path/file)
         """
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         # Set GCS_BUCKET_NAME env var for litellm.files.create_file
         # The handler uses this to determine where to upload
@@ -137,7 +137,7 @@ class VertexAIRAGIngestion(BaseRAGIngestion):
             )
 
             # Upload to GCS using LiteLLM's file upload
-            response: Final = await litellm.acreate_file(
+            response: Final = await gateway.acreate_file(
                 file=file_tuple,
                 purpose="assistants",  # Purpose for file storage
                 custom_llm_provider="vertex_ai",

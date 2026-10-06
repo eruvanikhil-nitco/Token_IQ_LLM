@@ -11,7 +11,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.images.main import image_generation
 
 
@@ -26,7 +26,7 @@ class TestImageGenerationExtraHeaders:
         extra_headers passed to image_generation() should appear in
         optional_params["extra_headers"] when the provider is openai.
         """
-        mock_image_response = litellm.utils.ImageResponse(
+        mock_image_response = gateway.utils.ImageResponse(
             created=1234567890,
             data=[{"url": "https://example.com/image.png"}],
         )
@@ -55,7 +55,7 @@ class TestImageGenerationExtraHeaders:
         When extra_headers is not passed, optional_params should not
         contain extra_headers.
         """
-        mock_image_response = litellm.utils.ImageResponse(
+        mock_image_response = gateway.utils.ImageResponse(
             created=1234567890,
             data=[{"url": "https://example.com/image.png"}],
         )

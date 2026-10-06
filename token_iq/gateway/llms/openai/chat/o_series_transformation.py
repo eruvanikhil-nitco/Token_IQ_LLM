@@ -14,7 +14,7 @@ Translations handled by LiteLLM:
 from collections.abc import Coroutine
 from typing import Any, Final, Literal, cast, overload
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import verbose_logger
 from token_iq.gateway.core_utils.get_llm_provider_logic import get_llm_provider
 from token_iq.gateway.types.llms.openai import AllMessageValues, ChatCompletionUserMessage
@@ -104,10 +104,10 @@ class OpenAIOSeriesConfig(OpenAIGPTConfig):
                     optional_params["temperature"] = temperature_value
                 else:
                     ## UNSUPPORTED TOOL CHOICE VALUE
-                    if litellm.drop_params is True or drop_params is True:
+                    if gateway.drop_params is True or drop_params is True:
                         pass
                     else:
-                        raise litellm.utils.UnsupportedParamsError(
+                        raise gateway.utils.UnsupportedParamsError(
                             message=f"O-series models don't support temperature={temperature_value}. Only temperature=1 is supported. To drop unsupported openai params from the call, set `litellm.drop_params = True`",
                             status_code=400,
                         )
@@ -120,7 +120,7 @@ class OpenAIOSeriesConfig(OpenAIGPTConfig):
             len(model) > 1
             and model[0] == "o"
             and model[1].isdigit()
-            and model in litellm.open_ai_chat_completion_models
+            and model in gateway.open_ai_chat_completion_models
         )
 
     @overload

@@ -12,7 +12,7 @@ pytest.importorskip("opentelemetry")
 
 from opentelemetry.sdk.trace.export.in_memory_span_exporter import InMemorySpanExporter  # noqa: E402
 
-from token_iq import gateway as litellm  # noqa: E402
+from token_iq import gateway  # noqa: E402
 from token_iq.gateway.caching.dual_cache import DualCache  # noqa: E402
 from token_iq.gateway.integrations.otel.logger import build_otel_v2_logger  # noqa: E402
 from token_iq.gateway.integrations.otel.model.config import OpenTelemetryV2Config, is_otel_v2_enabled  # noqa: E402
@@ -330,7 +330,7 @@ def test_only_langfuse_content_capture_takes_proxy_streams_off_the_fast_path(
     monkeypatch, capture, mappers, relays_streams
 ):
     logger, _ = _logger(capture=capture, mappers=mappers)
-    monkeypatch.setattr(litellm, "callbacks", [logger])
+    monkeypatch.setattr(gateway, "callbacks", [logger])
 
     assert ProxyLogging._callback_capabilities().has_iterator_override is relays_streams
 

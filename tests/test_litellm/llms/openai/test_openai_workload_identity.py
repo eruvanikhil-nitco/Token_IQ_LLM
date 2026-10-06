@@ -8,7 +8,7 @@ import pytest
 import respx
 from openai import AsyncOpenAI, OpenAI
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.litellm_proxy.responses.transformation import LiteLLMProxyResponsesAPIConfig
 from token_iq.gateway.llms.openai.common_utils import BaseOpenAILLM, OpenAIError
 from token_iq.gateway.llms.openai.openai import OpenAIChatCompletion
@@ -31,12 +31,12 @@ def wif_env(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> OpenAIWorkloadId
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
     monkeypatch.delenv("OPENAI_BASE_URL", raising=False)
     monkeypatch.delenv("OPENAI_API_BASE", raising=False)
-    monkeypatch.setattr(litellm, "api_base", None)
+    monkeypatch.setattr(gateway, "api_base", None)
     monkeypatch.setenv("OPENAI_IDENTITY_PROVIDER_ID", "idp_test123")
     monkeypatch.setenv("OPENAI_SERVICE_ACCOUNT_ID", "user-test456")
     monkeypatch.setenv("OPENAI_IDENTITY_TOKEN_FILE", str(token_file))
     _workload_identity_auth.cache_clear()
-    litellm.in_memory_llm_clients_cache.flush_cache()
+    gateway.in_memory_llm_clients_cache.flush_cache()
     return OpenAIWorkloadIdentityConfig(
         identity_provider_id="idp_test123",
         service_account_id="user-test456",
@@ -100,7 +100,7 @@ class TestResolveConfig:
     def test_foreign_litellm_api_base_disables(
         self, wif_env: OpenAIWorkloadIdentityConfig, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        monkeypatch.setattr(litellm, "api_base", "https://my-vllm.internal/v1")
+        monkeypatch.setattr(gateway, "api_base", "https://my-vllm.internal/v1")
         assert resolve_openai_workload_identity_config(api_key=None, api_base=None) is None
 
     @pytest.mark.parametrize(

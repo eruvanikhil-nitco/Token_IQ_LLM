@@ -7,7 +7,7 @@ import httpx
 import pytest
 import respx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.caching.llm_caching_handler import LLMClientCache
 from token_iq.gateway.llms.azure.azure import AzureChatCompletion
 from token_iq.gateway.llms.azure.image_generation.http_utils import (
@@ -509,8 +509,8 @@ def test_azure_v1_image_generation_json_body_sends_deployment_name():
 async def test_azure_aimage_generation_v1_route_sends_deployment_name_in_body(
     respx_mock: respx.MockRouter, monkeypatch: pytest.MonkeyPatch
 ):
-    monkeypatch.setattr(litellm, "disable_aiohttp_transport", True)
-    monkeypatch.setattr(litellm, "in_memory_llm_clients_cache", LLMClientCache())
+    monkeypatch.setattr(gateway, "disable_aiohttp_transport", True)
+    monkeypatch.setattr(gateway, "in_memory_llm_clients_cache", LLMClientCache())
     azure_chat_completion = AzureChatCompletion()
     model = "img-dep"
     base_model = "gpt-image-2"

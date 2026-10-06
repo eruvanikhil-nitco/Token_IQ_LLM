@@ -12,7 +12,7 @@ from pydantic import ValidationError
 
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.anthropic_interface import messages
 from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.core_utils.logging_worker import GLOBAL_LOGGING_WORKER
@@ -96,7 +96,7 @@ async def test_openai_model_does_not_forward_stream_options_to_responses_api():
     with patch.object(AsyncHTTPHandler, "post", new_callable=AsyncMock) as mock_post:
         mock_post.return_value = mock_response
 
-        await litellm.anthropic.messages.acreate(
+        await gateway.anthropic.messages.acreate(
             max_tokens=100,
             messages=[{"role": "user", "content": "Hello, how are you?"}],
             model="openai/gpt-5.5",
@@ -387,14 +387,14 @@ class TestThinkingParameterTransformation:
 
     def test_translate_thinking_for_model_summary_when_enabled(self):
         """When reasoning_auto_summary is True, summary='detailed' is injected."""
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.llms.anthropic.experimental_pass_through.adapters.transformation import (
             LiteLLMAnthropicMessagesAdapter,
         )
 
-        original = litellm.reasoning_auto_summary
+        original = gateway.reasoning_auto_summary
         try:
-            litellm.reasoning_auto_summary = True
+            gateway.reasoning_auto_summary = True
             thinking = {"type": "enabled", "budget_tokens": 5000}
             result = LiteLLMAnthropicMessagesAdapter.translate_thinking_for_model(
                 thinking=thinking,
@@ -402,7 +402,7 @@ class TestThinkingParameterTransformation:
             )
             assert result == {"reasoning_effort": {"effort": "high", "summary": "detailed"}}
         finally:
-            litellm.reasoning_auto_summary = original
+            gateway.reasoning_auto_summary = original
 
     def test_translate_thinking_for_model_preserves_user_summary(self):
         """User-provided summary is always preserved regardless of flag."""
@@ -455,14 +455,14 @@ class TestThinkingSummaryPreservation:
 
     def test_summary_added_when_auto_summary_enabled(self):
         """When reasoning_auto_summary is True, summary='detailed' is added."""
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.llms.anthropic.experimental_pass_through.adapters.handler import (
             LiteLLMMessagesToCompletionTransformationHandler,
         )
 
-        original = litellm.reasoning_auto_summary
+        original = gateway.reasoning_auto_summary
         try:
-            litellm.reasoning_auto_summary = True
+            gateway.reasoning_auto_summary = True
             completion_kwargs = {
                 "model": "responses/gpt-5.2",
                 "custom_llm_provider": "openai",
@@ -476,18 +476,18 @@ class TestThinkingSummaryPreservation:
                 "summary": "detailed",
             }
         finally:
-            litellm.reasoning_auto_summary = original
+            gateway.reasoning_auto_summary = original
 
     def test_no_summary_by_default_string_reasoning(self):
         """By default (reasoning_auto_summary=False), summary is not added for string reasoning_effort."""
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.llms.anthropic.experimental_pass_through.adapters.handler import (
             LiteLLMMessagesToCompletionTransformationHandler,
         )
 
-        original = litellm.reasoning_auto_summary
+        original = gateway.reasoning_auto_summary
         try:
-            litellm.reasoning_auto_summary = False
+            gateway.reasoning_auto_summary = False
             completion_kwargs = {
                 "model": "responses/gpt-5.2",
                 "custom_llm_provider": "openai",
@@ -499,18 +499,18 @@ class TestThinkingSummaryPreservation:
             assert completion_kwargs["reasoning_effort"] == {"effort": "high"}
             assert "summary" not in completion_kwargs["reasoning_effort"]
         finally:
-            litellm.reasoning_auto_summary = original
+            gateway.reasoning_auto_summary = original
 
     def test_no_summary_by_default_dict_reasoning(self):
         """By default (reasoning_auto_summary=False), summary is not injected into dict reasoning_effort."""
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.llms.anthropic.experimental_pass_through.adapters.handler import (
             LiteLLMMessagesToCompletionTransformationHandler,
         )
 
-        original = litellm.reasoning_auto_summary
+        original = gateway.reasoning_auto_summary
         try:
-            litellm.reasoning_auto_summary = False
+            gateway.reasoning_auto_summary = False
             completion_kwargs = {
                 "model": "responses/gpt-5.2",
                 "custom_llm_provider": "openai",
@@ -522,18 +522,18 @@ class TestThinkingSummaryPreservation:
             assert completion_kwargs["reasoning_effort"] == {"effort": "medium"}
             assert "summary" not in completion_kwargs["reasoning_effort"]
         finally:
-            litellm.reasoning_auto_summary = original
+            gateway.reasoning_auto_summary = original
 
     def test_summary_added_when_env_var_set(self, monkeypatch):
         """When LITELLM_REASONING_AUTO_SUMMARY env var is true, summary is added."""
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.llms.anthropic.experimental_pass_through.adapters.handler import (
             LiteLLMMessagesToCompletionTransformationHandler,
         )
 
-        original = litellm.reasoning_auto_summary
+        original = gateway.reasoning_auto_summary
         try:
-            litellm.reasoning_auto_summary = False
+            gateway.reasoning_auto_summary = False
             monkeypatch.setenv("LITELLM_REASONING_AUTO_SUMMARY", "true")
             completion_kwargs = {
                 "model": "responses/gpt-5.2",
@@ -548,19 +548,19 @@ class TestThinkingSummaryPreservation:
                 "summary": "detailed",
             }
         finally:
-            litellm.reasoning_auto_summary = original
+            gateway.reasoning_auto_summary = original
             os.environ.pop("LITELLM_REASONING_AUTO_SUMMARY", None)
 
     def test_user_provided_summary_preserved_even_when_flag_off(self):
         """When user already set summary in dict reasoning_effort, it's preserved regardless of flag."""
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.llms.anthropic.experimental_pass_through.adapters.handler import (
             LiteLLMMessagesToCompletionTransformationHandler,
         )
 
-        original = litellm.reasoning_auto_summary
+        original = gateway.reasoning_auto_summary
         try:
-            litellm.reasoning_auto_summary = False
+            gateway.reasoning_auto_summary = False
             completion_kwargs = {
                 "model": "responses/gpt-5.2",
                 "custom_llm_provider": "openai",
@@ -571,7 +571,7 @@ class TestThinkingSummaryPreservation:
             )
             assert completion_kwargs["reasoning_effort"]["summary"] == "concise"
         finally:
-            litellm.reasoning_auto_summary = original
+            gateway.reasoning_auto_summary = original
 
     def test_openai_model_with_thinking_summary_end_to_end(self):
         """End-to-end: anthropic_messages_handler should preserve thinking.summary for OpenAI models."""
@@ -614,20 +614,20 @@ class TestThinkingSummaryPreservation:
 
     def test_responses_adapter_no_summary_by_default(self):
         """translate_thinking_to_reasoning should not include summary by default (opt-in)."""
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.llms.anthropic.experimental_pass_through.responses_adapters.transformation import (
             LiteLLMAnthropicToResponsesAPIAdapter,
         )
 
-        original = litellm.reasoning_auto_summary
+        original = gateway.reasoning_auto_summary
         try:
-            litellm.reasoning_auto_summary = False
+            gateway.reasoning_auto_summary = False
             thinking = {"type": "enabled", "budget_tokens": 5000}
             result = LiteLLMAnthropicToResponsesAPIAdapter.translate_thinking_to_reasoning(thinking)
             assert result == {"effort": "high"}
             assert result is not None and "summary" not in result
         finally:
-            litellm.reasoning_auto_summary = original
+            gateway.reasoning_auto_summary = original
 
     def test_translate_thinking_for_model_preserves_summary(self):
         """translate_thinking_for_model should include summary in reasoning_effort dict when user provides it."""
@@ -644,21 +644,21 @@ class TestThinkingSummaryPreservation:
 
     def test_translate_thinking_for_model_disabled_stays_plain_string_when_auto_summary_enabled(self):
         """Disabled thinking must stay a plain string even when reasoning_auto_summary is on."""
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.llms.anthropic.experimental_pass_through.adapters.transformation import (
             LiteLLMAnthropicMessagesAdapter,
         )
 
-        original = litellm.reasoning_auto_summary
+        original = gateway.reasoning_auto_summary
         try:
-            litellm.reasoning_auto_summary = True
+            gateway.reasoning_auto_summary = True
             thinking = {"type": "disabled"}
             result = LiteLLMAnthropicMessagesAdapter.translate_thinking_for_model(
                 thinking=thinking,
                 model="openai/gpt-5.2",
             )
         finally:
-            litellm.reasoning_auto_summary = original
+            gateway.reasoning_auto_summary = original
 
         assert result == {"reasoning_effort": "none"}
 
@@ -994,9 +994,9 @@ def test_first_party_claude_4_8_plus_cost_map_entries_carry_mid_conversation_sys
     import os
     import re
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    cost_map_path = os.path.join(os.path.dirname(litellm.__file__), "model_prices_and_context_window_backup.json")
+    cost_map_path = os.path.join(os.path.dirname(gateway.__file__), "model_prices_and_context_window_backup.json")
     with open(cost_map_path) as f:
         cost_map = json.load(f)
     rules = cost_map["fallback_generalizations"]["rules"]
@@ -1059,9 +1059,9 @@ async def test_messages_strips_provider_prefix_exactly_once(requested_model, exp
 
     with (
         patch.object(httpx.AsyncClient, "send", fake_send),
-        pytest.raises(litellm.exceptions.InternalServerError),
+        pytest.raises(gateway.exceptions.InternalServerError),
     ):
-        await litellm.anthropic.messages.acreate(
+        await gateway.anthropic.messages.acreate(
             max_tokens=100,
             messages=[{"role": "user", "content": "ping"}],
             model=requested_model,
@@ -1094,7 +1094,7 @@ async def test_messages_streaming_reports_provider_local_model(requested_model, 
             raise StopAsyncIteration
 
     with patch("token_iq.gateway.acompletion", new=AsyncMock(return_value=_EmptyStream())):
-        stream = await litellm.anthropic.messages.acreate(
+        stream = await gateway.anthropic.messages.acreate(
             max_tokens=100,
             messages=[{"role": "user", "content": "ping"}],
             model=requested_model,
@@ -1109,7 +1109,7 @@ async def test_messages_streaming_reports_provider_local_model(requested_model, 
 def test_messages_sync_streaming_reports_provider_local_model():
     """Same guarantee as the async bridge, at the sync call site."""
     with patch("token_iq.gateway.completion", new=MagicMock(return_value=iter(()))):
-        stream = litellm.anthropic.messages.create(
+        stream = gateway.anthropic.messages.create(
             max_tokens=100,
             messages=[{"role": "user", "content": "ping"}],
             model="perplexity/perplexity/kimi-k3",
@@ -1179,7 +1179,7 @@ class _SuccessPayloadCapture(CustomLogger):
 def capture_success_payloads(monkeypatch):
     monkeypatch.setenv("OPENAI_API_KEY", "sk-test")
     capture = _SuccessPayloadCapture(tracking_id=f"messages-stream-{uuid.uuid4()}")
-    monkeypatch.setattr(litellm, "callbacks", [capture])
+    monkeypatch.setattr(gateway, "callbacks", [capture])
     return capture
 
 
@@ -1313,8 +1313,8 @@ class _FailureCapture(CustomLogger):
 @pytest.mark.parametrize(
     "upstream_status, upstream_error_type, expected_exception",
     [
-        (401, "authentication_error", litellm.AuthenticationError),
-        (403, "permission_error", litellm.PermissionDeniedError),
+        (401, "authentication_error", gateway.AuthenticationError),
+        (403, "permission_error", gateway.PermissionDeniedError),
     ],
 )
 async def test_anthropic_messages_maps_provider_exception_before_failure_logging(
@@ -1331,7 +1331,7 @@ async def test_anthropic_messages_maps_provider_exception_before_failure_logging
     from token_iq.gateway.llms.anthropic.experimental_pass_through.messages import handler
 
     capture = _FailureCapture()
-    monkeypatch.setattr(litellm, "callbacks", [capture])
+    monkeypatch.setattr(gateway, "callbacks", [capture])
 
     def upstream_rejects_the_request(request: httpx.Request) -> httpx.Response:
         return httpx.Response(

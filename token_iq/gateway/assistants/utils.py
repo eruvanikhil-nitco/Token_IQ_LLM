@@ -1,6 +1,6 @@
 from typing import Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 from ..exceptions import UnsupportedParamsError
 from ..types.llms.openai import *
@@ -40,10 +40,10 @@ def get_optional_params_add_message(
         if len(non_default_params.keys()) > 0:
             keys: Final = list(non_default_params.keys())
             for k in keys:
-                if litellm.drop_params is True and k not in supported_params:  # drop the unsupported non-default values
+                if gateway.drop_params is True and k not in supported_params:  # drop the unsupported non-default values
                     non_default_params.pop(k, None)
                 elif k not in supported_params:
-                    raise litellm.utils.UnsupportedParamsError(
+                    raise gateway.utils.UnsupportedParamsError(
                         status_code=500,
                         message=f"k={k}, not supported by {custom_llm_provider}. Supported params={supported_params}. To drop it from the call, set `litellm.drop_params = True`.",
                     )
@@ -52,9 +52,9 @@ def get_optional_params_add_message(
     if custom_llm_provider == "openai":
         optional_params = non_default_params
     elif custom_llm_provider == "azure":
-        supported_params: Final = litellm.AzureOpenAIAssistantsAPIConfig().get_supported_openai_create_message_params()
+        supported_params: Final = gateway.AzureOpenAIAssistantsAPIConfig().get_supported_openai_create_message_params()
         _check_valid_arg(supported_params=supported_params)
-        optional_params = litellm.AzureOpenAIAssistantsAPIConfig().map_openai_params_create_message_params(
+        optional_params = gateway.AzureOpenAIAssistantsAPIConfig().map_openai_params_create_message_params(
             non_default_params=non_default_params, optional_params=optional_params
         )
     for k in passed_params:
@@ -97,7 +97,7 @@ def get_optional_params_image_gen(
         if len(non_default_params.keys()) > 0:
             keys: Final = list(non_default_params.keys())
             for k in keys:
-                if litellm.drop_params is True and k not in supported_params:  # drop the unsupported non-default values
+                if gateway.drop_params is True and k not in supported_params:  # drop the unsupported non-default values
                     non_default_params.pop(k, None)
                 elif k not in supported_params:
                     raise UnsupportedParamsError(
@@ -109,7 +109,7 @@ def get_optional_params_image_gen(
     if (
         custom_llm_provider == "openai"
         or custom_llm_provider == "azure"
-        or custom_llm_provider in litellm.openai_compatible_providers
+        or custom_llm_provider in gateway.openai_compatible_providers
     ):
         optional_params = non_default_params
     elif custom_llm_provider == "bedrock":

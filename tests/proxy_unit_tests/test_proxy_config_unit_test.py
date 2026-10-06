@@ -6,9 +6,9 @@ import pytest
 from dotenv import load_dotenv
 
 import token_iq.gateway.proxy
-from token_iq import gateway as litellm
+from token_iq import gateway
 import token_iq.gateway.proxy.proxy_server
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 load_dotenv()
 import io
@@ -170,8 +170,8 @@ def test_add_callbacks_from_db_config():
     proxy_config = ProxyConfig()
 
     # Reset litellm callbacks before test
-    litellm.success_callback = []
-    litellm.failure_callback = []
+    gateway.success_callback = []
+    gateway.failure_callback = []
 
     # Test Case 1: Add new callbacks
     config_data = {
@@ -185,23 +185,23 @@ def test_add_callbacks_from_db_config():
 
     # 1 instance of LangfusePromptManagement should exist in litellm.success_callback
     num_langfuse_instances = sum(
-        isinstance(callback, LangfusePromptManagement) for callback in litellm.success_callback
+        isinstance(callback, LangfusePromptManagement) for callback in gateway.success_callback
     )
     assert num_langfuse_instances == 1
-    assert len(litellm.success_callback) == 2
-    assert len(litellm.failure_callback) == 1
+    assert len(gateway.success_callback) == 2
+    assert len(gateway.failure_callback) == 1
 
     # Test Case 2: Try adding duplicate callbacks
     proxy_config._add_callbacks_from_db_config(config_data)
 
     # Verify no duplicates were added
-    assert len(litellm.success_callback) == 2
-    assert len(litellm.failure_callback) == 1
+    assert len(gateway.success_callback) == 2
+    assert len(gateway.failure_callback) == 1
 
     # Cleanup
-    litellm.success_callback = []
-    litellm.failure_callback = []
-    litellm._known_custom_logger_compatible_callbacks = []
+    gateway.success_callback = []
+    gateway.failure_callback = []
+    gateway._known_custom_logger_compatible_callbacks = []
 
 
 def test_add_callbacks_invalid_input():
@@ -209,8 +209,8 @@ def test_add_callbacks_invalid_input():
     proxy_config = ProxyConfig()
 
     # Reset callbacks
-    litellm.success_callback = []
-    litellm.failure_callback = []
+    gateway.success_callback = []
+    gateway.failure_callback = []
 
     # Test Case 1: Invalid callback format
     config_data = {
@@ -223,20 +223,20 @@ def test_add_callbacks_invalid_input():
     proxy_config._add_callbacks_from_db_config(config_data)
 
     # Verify no callbacks were added with invalid input
-    assert len(litellm.success_callback) == 0
-    assert len(litellm.failure_callback) == 0
+    assert len(gateway.success_callback) == 0
+    assert len(gateway.failure_callback) == 0
 
     # Test Case 2: Missing litellm_settings
     config_data = {}
     proxy_config._add_callbacks_from_db_config(config_data)
 
     # Verify no callbacks were added
-    assert len(litellm.success_callback) == 0
-    assert len(litellm.failure_callback) == 0
+    assert len(gateway.success_callback) == 0
+    assert len(gateway.failure_callback) == 0
 
     # Cleanup
-    litellm.success_callback = []
-    litellm.failure_callback = []
+    gateway.success_callback = []
+    gateway.failure_callback = []
 
 
 @pytest.mark.asyncio
@@ -281,12 +281,12 @@ async def test_json_logs_calls_turn_on_json():
             mock_turn_on_json.assert_called_once()
 
         # Also verify the attribute was set
-        assert litellm.json_logs is True
+        assert gateway.json_logs is True
 
     finally:
         # Cleanup
         os.unlink(temp_file_path)
-        litellm.json_logs = False
+        gateway.json_logs = False
 
 
 class TestYamlStorePromptsDbOverride:

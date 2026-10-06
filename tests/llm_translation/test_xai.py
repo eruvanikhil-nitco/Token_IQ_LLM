@@ -8,7 +8,7 @@ from unittest.mock import AsyncMock
 import httpx
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import Choices, Message, ModelResponse, EmbeddingResponse, Usage
 from token_iq.gateway import completion
 from unittest.mock import patch
@@ -184,9 +184,9 @@ class TestXAIChat(BaseLLMChatTest):
         from token_iq.gateway.utils import supports_web_search
 
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-        litellm.model_cost = litellm.get_model_cost_map()
+        gateway.model_cost = gateway.get_model_cost_map()
 
-        litellm._turn_on_debug()
+        gateway._turn_on_debug()
 
         # Use grok-4-1-fast which supports web search
         model = "xai/grok-4-1-fast"

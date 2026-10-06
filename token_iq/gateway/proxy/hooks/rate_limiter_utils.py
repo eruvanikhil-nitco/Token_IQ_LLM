@@ -4,7 +4,7 @@ Shared utility functions for rate limiter hooks.
 
 from typing import Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.types.router import ModelGroupInfo
 from token_iq.gateway.types.utils import PriorityReservationDict
@@ -45,7 +45,7 @@ def resolve_llm_provider_for_rate_limit(
     if not model:
         return "", PROXY_LLM_PROVIDER_FALLBACK
     try:
-        resolved_model, custom_llm_provider, _, _ = litellm.get_llm_provider(
+        resolved_model, custom_llm_provider, _, _ = gateway.get_llm_provider(
             model=model,
         )
         return (
@@ -101,7 +101,7 @@ def _resolve_provider_from_router_alias(
             if not isinstance(underlying_model, str) or not underlying_model:
                 continue
             try:
-                resolved_model, custom_llm_provider, _, _ = litellm.get_llm_provider(
+                resolved_model, custom_llm_provider, _, _ = gateway.get_llm_provider(
                     model=underlying_model,
                 )
             except Exception:

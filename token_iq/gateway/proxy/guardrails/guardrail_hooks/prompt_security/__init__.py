@@ -9,7 +9,7 @@ if TYPE_CHECKING:
 
 
 def initialize_guardrail(litellm_params: "LitellmParams", guardrail: "Guardrail"):
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.proxy.guardrails.guardrail_hooks.prompt_security import (
         PromptSecurityGuardrail,
     )
@@ -22,7 +22,7 @@ def initialize_guardrail(litellm_params: "LitellmParams", guardrail: "Guardrail"
         default_on=litellm_params.default_on,
         file_sanitization_fail_open=getattr(litellm_params, "file_sanitization_fail_open", None),
     )
-    litellm.logging_callback_manager.add_litellm_callback(_prompt_security_callback)
+    gateway.logging_callback_manager.add_litellm_callback(_prompt_security_callback)
 
     return _prompt_security_callback
 

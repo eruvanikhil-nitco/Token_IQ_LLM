@@ -25,7 +25,7 @@ import httpx
 from fastapi import HTTPException
 from pydantic import TypeAdapter, ValidationError
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.caching import DualCache
 from token_iq.gateway.constants import BEDROCK_APPLY_GUARDRAIL_CHUNK_BUDGET_CHARS
@@ -415,11 +415,11 @@ class BedrockGuardrail(CustomGuardrail, BaseAWSLLM):
         grounding, the response is qualified ``guard_content`` so Bedrock can score it.
         """
         items: Final[list[BedrockContentItem]] = []
-        if not isinstance(response, litellm.ModelResponse):
+        if not isinstance(response, gateway.ModelResponse):
             return items
         for choice in response.choices:
             if (
-                isinstance(choice, litellm.Choices)
+                isinstance(choice, gateway.Choices)
                 and isinstance(choice.message.content, str)
                 and choice.message.content
             ):
@@ -824,7 +824,7 @@ class BedrockGuardrail(CustomGuardrail, BaseAWSLLM):
         self,
         source: Literal["INPUT", "OUTPUT"],
         messages: list[AllMessageValues] | None = None,
-        response: litellm.ModelResponse | None = None,
+        response: gateway.ModelResponse | None = None,
         request_data: dict | None = None,
         logging_event_type: GuardrailEventHooks | None = None,
     ) -> BedrockGuardrailResponse:
@@ -855,7 +855,7 @@ class BedrockGuardrail(CustomGuardrail, BaseAWSLLM):
         self,
         source: Literal["INPUT", "OUTPUT"],
         messages: list[AllMessageValues] | None = None,
-        response: litellm.ModelResponse | None = None,
+        response: gateway.ModelResponse | None = None,
         request_data: dict | None = None,
         logging_event_type: GuardrailEventHooks | None = None,
     ) -> BedrockGuardrailResponse:
@@ -1815,7 +1815,7 @@ class BedrockGuardrail(CustomGuardrail, BaseAWSLLM):
         self,
         source: Literal["INPUT", "OUTPUT"],
         messages: list[AllMessageValues] | None = None,
-        response: litellm.ModelResponse | None = None,
+        response: gateway.ModelResponse | None = None,
     ) -> list[BedrockChecksMessage]:
         """Build the role-tagged `messages` array for InvokeGuardrailChecks.
 
@@ -1854,7 +1854,7 @@ class BedrockGuardrail(CustomGuardrail, BaseAWSLLM):
         self,
         source: Literal["INPUT", "OUTPUT"],
         messages: list[AllMessageValues] | None = None,
-        response: litellm.ModelResponse | None = None,
+        response: gateway.ModelResponse | None = None,
         request_data: dict | None = None,
         logging_event_type: GuardrailEventHooks | None = None,
     ) -> BedrockGuardrailResponse:
@@ -2605,10 +2605,10 @@ class BedrockGuardrail(CustomGuardrail, BaseAWSLLM):
 
         # Check if the ModelResponse has text content in its choices
         # to avoid sending empty content to Bedrock (e.g., during tool calls)
-        if isinstance(response, litellm.ModelResponse):
+        if isinstance(response, gateway.ModelResponse):
             has_text_content = False
             for choice in response.choices:
-                if isinstance(choice, litellm.Choices):
+                if isinstance(choice, gateway.Choices):
                     if choice.message.content and isinstance(choice.message.content, str):
                         has_text_content = True
                         break
@@ -2790,7 +2790,7 @@ class BedrockGuardrail(CustomGuardrail, BaseAWSLLM):
                 # first keepalive ping the raise reaches nobody, so it has to travel as a frame too
                 is_block: Final = raw_sse and block_exc.status_code == 400 and isinstance(block_detail, Mapping)
                 headers_flushed: Final = keepalive_ping_has_fired(
-                    time.monotonic() - started_at, litellm.anthropic_sse_ping_interval_seconds
+                    time.monotonic() - started_at, gateway.anthropic_sse_ping_interval_seconds
                 )
                 if not raw_sse or (not is_block and not headers_flushed):
                     raise
@@ -2985,12 +2985,12 @@ class BedrockGuardrail(CustomGuardrail, BaseAWSLLM):
         verbose_proxy_logger.debug("Applying masking to response with %d masked texts", len(masked_texts))
 
         # Apply masking to ModelResponse
-        if isinstance(response, litellm.ModelResponse):
+        if isinstance(response, gateway.ModelResponse):
             self._apply_masking_to_model_response(response, masked_texts)
         else:
             verbose_proxy_logger.warning("Unsupported response type for masking: %s", type(response))
 
-    def _apply_masking_to_model_response(self, response: litellm.ModelResponse, masked_texts: list[str]) -> None:
+    def _apply_masking_to_model_response(self, response: gateway.ModelResponse, masked_texts: list[str]) -> None:
         """
         Apply masked texts to a ModelResponse object.
 

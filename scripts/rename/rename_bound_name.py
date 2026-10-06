@@ -43,8 +43,26 @@ from pydantic import BaseModel
 REPO: Final = pathlib.Path(__file__).resolve().parents[2]
 OLD_NAME: Final = "litellm"
 NEW_NAME: Final = "gateway"
-RENAMED: Final[Mapping[str, str]] = MappingProxyType({OLD_NAME: NEW_NAME, f"_{OLD_NAME}": f"_{NEW_NAME}"})
-"""Every spelling of the bound name, and what it becomes. Six modules bind it as `_litellm`."""
+
+
+def bound_names(tree: ast.Module) -> Mapping[str, str]:
+    """What this module calls the engine, and what each of those becomes.
+
+    Read from the module rather than listed, because modules spell the alias more ways than a list
+    keeps up with: `litellm`, `_litellm`, `litellm_module` and `litellm_mod` are all in the tree today,
+    and the first list of spellings missed two of them. Any alias holding the old name is renamed by
+    substituting the new one, so `litellm_module` becomes `gateway_module` and the private spelling
+    stays private.
+    """
+    return MappingProxyType(
+        {
+            alias.asname: alias.asname.replace(OLD_NAME, NEW_NAME)
+            for node in ast.walk(tree)
+            if isinstance(node, ast.ImportFrom) and node.module == "token_iq"
+            for alias in node.names
+            if alias.name == "gateway" and alias.asname is not None and OLD_NAME in alias.asname
+        }
+    )
 
 
 class Options(BaseModel):
@@ -67,9 +85,9 @@ IMPORT_RULES: Final[tuple[Rule, ...]] = (
         r"\g<1>from token_iq import gateway\g<2>",
     ),
     Rule(
-        "the private alias is renamed",
-        re.compile(rf"^([ \t]*)from token_iq import gateway as _{OLD_NAME}\b", re.MULTILINE),
-        rf"\g<1>from token_iq import gateway as _{NEW_NAME}",
+        "an alias holding the old name is renamed",
+        re.compile(rf"^([ \t]*from token_iq import gateway as [\w]*){OLD_NAME}", re.MULTILINE),
+        rf"\g<1>{NEW_NAME}",
     ),
 )
 
@@ -79,6 +97,10 @@ ITS_OWN_FILES: Final[frozenset[str]] = frozenset(
         # replaces them with, after which it matches nothing and reports a clean run.
         "scripts/rename/rename_bound_name.py",
         "tests/test_litellm/test_rename_bound_name.py",
+        # The other half's tests, whose expectations are what that pass produces: the alias this
+        # one removes is the right answer there.
+        "scripts/rename/move_engine_package.py",
+        "tests/test_litellm/test_move_engine_package.py",
     }
 )
 
@@ -96,6 +118,18 @@ NAMED_CHANGES: Final[Mapping[str, str]] = MappingProxyType(
     }
 )
 """Changes no syntax tree can make, written out in full so a reviewer reads the line that changes."""
+
+INSIDE_A_MODULE_PATH: Final = re.compile(rf"(?<=\.){OLD_NAME}(?=\.|$)")
+"""The bound name as one segment of a path that already names the engine's new home.
+
+`patch("token_iq.gateway.llms.azure.common_utils.litellm.module_level_client")` reaches through one
+module's own binding of the engine, so renaming the binding renames the target with it. 55 patch targets
+are written that way.
+
+Only applied to a literal that already starts with `token_iq.gateway.`, which is what makes the segment
+unambiguous: inside such a path a bare `litellm` segment is this binding and nothing else. The lookarounds
+require it to be a whole segment, so `core_utils.litellm_logging`, a real module, is untouched."""
+
 
 LEFTOVER: Final = re.compile(rf"(?<![\w.]){OLD_NAME}\.[A-Za-z_]", re.MULTILINE)
 """A use of the old bound name that survived. Text, not a syntax tree, so it also reports comments and
@@ -153,7 +187,7 @@ class Span:
     new: str
 
 
-def spans(tree: ast.Module) -> tuple[Span, ...]:
+def spans(tree: ast.Module, renamed: Mapping[str, str]) -> tuple[Span, ...]:
     """Every place in one module where the bound name is written, and what it becomes.
 
     Four kinds, and each is a different syntactic thing rather than a different-looking string:
@@ -166,7 +200,7 @@ def spans(tree: ast.Module) -> tuple[Span, ...]:
         for node in ast.walk(tree)
         if isinstance(node, ast.ImportFrom)
         for alias in node.names
-        if alias.name in RENAMED and alias.asname is None
+        if alias.name in renamed and alias.asname is None
     )
     in_all: Final = frozenset(
         id(entry)
@@ -174,29 +208,36 @@ def spans(tree: ast.Module) -> tuple[Span, ...]:
         if isinstance(node, ast.Assign)
         and any(isinstance(target, ast.Name) and target.id == "__all__" for target in node.targets)
         for entry in ast.walk(node.value)
-        if isinstance(entry, ast.Constant) and entry.value in RENAMED
+        if isinstance(entry, ast.Constant) and entry.value in renamed
     )
 
     return tuple(
         found
         for node in ast.walk(tree)
-        for found in (_span_for(node, annotations=annotations, reexports=reexports, in_all=in_all),)
+        for found in (_span_for(node, annotations=annotations, reexports=reexports, in_all=in_all, renamed=renamed),)
         if found is not None
     )
 
 
 def _span_for(
-    node: ast.AST, *, annotations: frozenset[int], reexports: frozenset[int], in_all: frozenset[int]
+    node: ast.AST,
+    *,
+    annotations: frozenset[int],
+    reexports: frozenset[int],
+    in_all: frozenset[int],
+    renamed: Mapping[str, str],
 ) -> Span | None:
-    if isinstance(node, ast.Name) and node.id in RENAMED:
-        return _one_line(node, node.id, RENAMED[node.id])
+    if isinstance(node, ast.Name) and node.id in renamed:
+        return _one_line(node, node.id, renamed[node.id])
     if isinstance(node, ast.alias) and id(node) in reexports:
-        return _one_line(node, node.name, RENAMED[node.name])
+        return _one_line(node, node.name, renamed[node.name])
     if isinstance(node, ast.Constant) and isinstance(node.value, str):
         if id(node) in in_all:
-            return _one_line(node, node.value, RENAMED[node.value])
+            return _one_line(node, node.value, renamed[node.value])
         if id(node) in annotations and node.value.startswith(f"{OLD_NAME}."):
             return _one_line(node, OLD_NAME, NEW_NAME)
+        if node.value.startswith("token_iq.gateway.") and INSIDE_A_MODULE_PATH.search(node.value):
+            return _one_line(node, f".{OLD_NAME}", f".{NEW_NAME}")
     return None
 
 
@@ -214,6 +255,12 @@ def _one_line(node: ast.AST, old: str, new: str) -> Span | None:
 def rewrite(text: str) -> tuple[str, Mapping[str, int]]:
     """Every rule applied to one file's text, with how many times each one fired."""
     counts: dict[str, int] = {}  # rebind-ok: a tally built while folding the rules over the text
+    # Read before anything changes. The import rules below rewrite the alias on its import line, after
+    # which the module no longer says what it used to call the engine, while every use of it still does.
+    try:
+        aliases: Mapping[str, str] = bound_names(ast.parse(text))
+    except SyntaxError:
+        aliases = {}
     current = text  # rebind-ok: the fold's accumulator
     for rule in IMPORT_RULES:
         current, fired = rule.pattern.subn(rule.replacement, current)
@@ -232,7 +279,10 @@ def rewrite(text: str) -> tuple[str, Mapping[str, int]]:
     # Edited back to front, so every span's offsets still describe the text when its turn comes.
     lines = current.split("\n")  # rebind-ok: the accumulator of the edit
     edited = 0  # rebind-ok: a tally of spans actually rewritten
-    for span in sorted(spans(tree), key=lambda found: (found.line, found.start), reverse=True):
+    # The aliases this module used, read before the import rules touched them, plus the plain name,
+    # whose import line those rules have already turned into a bare `from token_iq import gateway`.
+    renamed: Final = MappingProxyType({OLD_NAME: NEW_NAME, **aliases})
+    for span in sorted(spans(tree, renamed), key=lambda found: (found.line, found.start), reverse=True):
         raw = lines[span.line - 1].encode("utf-8")
         written = raw[span.start : span.end].decode("utf-8")
         if span.old not in written:

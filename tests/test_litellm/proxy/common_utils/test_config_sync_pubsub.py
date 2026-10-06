@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from redis.asyncio import Redis
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy.common_utils.config_sync_pubsub import (
     CONFIG_SYNC_CHANNEL,
     CONFIG_SYNC_JITTER_MAX_SECONDS,
@@ -777,7 +777,7 @@ async def test_model_cost_map_reload_does_not_publish_config_change() -> None:
     prisma_client = _reload_config_prisma_client()
     client = _RecordingRedisClient()
     previous_cache = proxy_server.redis_usage_cache
-    original_model_cost = litellm.model_cost.copy()
+    original_model_cost = gateway.model_cost.copy()
     _set_redis_usage_cache(_FakeRedisCache(client))
     try:
         from token_iq.gateway.core_utils.get_model_cost_map import ModelCostMapReloaded
@@ -790,7 +790,7 @@ async def test_model_cost_map_reload_does_not_publish_config_change() -> None:
         ):
             await ProxyConfig()._check_and_reload_model_cost_map(prisma_client=prisma_client)
     finally:
-        litellm.model_cost = original_model_cost
+        gateway.model_cost = original_model_cost
         _invalidate_model_cost_lowercase_map()
         _set_redis_usage_cache(previous_cache)
 

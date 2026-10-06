@@ -5423,7 +5423,7 @@ async def test_new_team_standalone_validates_against_user_models(monkeypatch):
     - Team is created WITHOUT organization_id and models=['gpt-4']
     - Expected: Should fail with "Model not in allowed user models"
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from fastapi import Request
 
     from token_iq.gateway.proxy._types import NewTeamRequest, ProxyException, UserAPIKeyAuth
@@ -5431,8 +5431,8 @@ async def test_new_team_standalone_validates_against_user_models(monkeypatch):
 
     # Avoid injecting max_budget via global defaults; that path calls get_user_object and
     # needs cache/DB mocks — this test only covers model validation.
-    monkeypatch.setattr(litellm, "default_team_settings", None)
-    monkeypatch.setattr(litellm, "default_team_params", None)
+    monkeypatch.setattr(gateway, "default_team_settings", None)
+    monkeypatch.setattr(gateway, "default_team_params", None)
 
     # Create non-admin user with restrictive personal models
     non_admin_user = UserAPIKeyAuth(
@@ -9534,15 +9534,15 @@ async def test_list_available_teams_returns_empty_list_when_none_configured():
     Test that /team/available returns an empty list when no available teams
     are configured, instead of raising an exception.
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     mock_request = MagicMock()
     mock_user_key = UserAPIKeyAuth(user_id="test-user", token="fake-token")
 
     with patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client):
         # Case 1: default_internal_user_params is None
-        original = litellm.default_internal_user_params
-        litellm.default_internal_user_params = None
+        original = gateway.default_internal_user_params
+        gateway.default_internal_user_params = None
         result = await list_available_teams(
             http_request=mock_request,
             user_api_key_dict=mock_user_key,
@@ -9550,14 +9550,14 @@ async def test_list_available_teams_returns_empty_list_when_none_configured():
         assert result == []
 
         # Case 2: default_internal_user_params exists but has no "available_teams" key
-        litellm.default_internal_user_params = {"some_other_param": "value"}
+        gateway.default_internal_user_params = {"some_other_param": "value"}
         result = await list_available_teams(
             http_request=mock_request,
             user_api_key_dict=mock_user_key,
         )
         assert result == []
 
-        litellm.default_internal_user_params = original
+        gateway.default_internal_user_params = original
 
 
 @pytest.mark.asyncio
@@ -10963,11 +10963,11 @@ class TestEmitTeamMembersMetric:
 
     @pytest.fixture
     def restore_callbacks(self):
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
-        original = litellm.callbacks
+        original = gateway.callbacks
         yield
-        litellm.callbacks = original
+        gateway.callbacks = original
 
     def _team(self, member_count):
         return LiteLLM_TeamTable(
@@ -10979,14 +10979,14 @@ class TestEmitTeamMembersMetric:
         )
 
     def test_emits_with_team_when_logger_registered(self, restore_callbacks):
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.integrations.prometheus import PrometheusLogger
         from token_iq.gateway.proxy.management_endpoints.team_endpoints import (
             _emit_team_members_metric,
         )
 
         fake_logger = MagicMock(spec=PrometheusLogger)
-        litellm.callbacks = [fake_logger]
+        gateway.callbacks = [fake_logger]
 
         team = self._team(3)
         _emit_team_members_metric(team)
@@ -10994,17 +10994,17 @@ class TestEmitTeamMembersMetric:
         fake_logger.set_team_members_metric.assert_called_once_with(team)
 
     def test_noop_when_no_logger_registered(self, restore_callbacks):
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.proxy.management_endpoints.team_endpoints import (
             _emit_team_members_metric,
         )
 
-        litellm.callbacks = []
+        gateway.callbacks = []
         # Must not raise when Prometheus is not enabled.
         _emit_team_members_metric(self._team(2))
 
     def test_metric_failure_does_not_break_request(self, restore_callbacks):
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.integrations.prometheus import PrometheusLogger
         from token_iq.gateway.proxy.management_endpoints.team_endpoints import (
             _emit_team_members_metric,
@@ -11012,7 +11012,7 @@ class TestEmitTeamMembersMetric:
 
         fake_logger = MagicMock(spec=PrometheusLogger)
         fake_logger.set_team_members_metric.side_effect = Exception("boom")
-        litellm.callbacks = [fake_logger]
+        gateway.callbacks = [fake_logger]
 
         # A metric failure must be swallowed, not propagated to the handler.
         _emit_team_members_metric(self._team(1))
@@ -11772,11 +11772,11 @@ async def test_get_all_team_memberships_validates_rows():
 async def test_list_available_teams_filters_joined_and_validates_rows(monkeypatch):
     from fastapi import Request
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.proxy.management_endpoints.team_endpoints import list_available_teams
 
     monkeypatch.setattr(
-        litellm,
+        gateway,
         "default_internal_user_params",
         {"available_teams": ["team-open", "team-joined"]},
     )
@@ -12703,12 +12703,12 @@ async def test_new_team_explicit_null_budget_duration_beats_configured_default(
     """
     from fastapi import Request
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.proxy._types import NewTeamRequest
     from token_iq.gateway.proxy.management_endpoints.team_endpoints import new_team
 
-    monkeypatch.setattr(litellm, "default_team_settings", None)
-    monkeypatch.setattr(litellm, "default_team_params", {"budget_duration": "30d"})
+    monkeypatch.setattr(gateway, "default_team_settings", None)
+    monkeypatch.setattr(gateway, "default_team_params", {"budget_duration": "30d"})
     mock_team_create = _wire_new_team_prisma(mock_db_client)
 
     await new_team(
@@ -12729,12 +12729,12 @@ async def test_new_team_omitted_budget_duration_still_takes_configured_default(
     """Omitting the field keeps applying the default, the behavior the explicit-null fix must not break."""
     from fastapi import Request
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.proxy._types import NewTeamRequest
     from token_iq.gateway.proxy.management_endpoints.team_endpoints import new_team
 
-    monkeypatch.setattr(litellm, "default_team_settings", None)
-    monkeypatch.setattr(litellm, "default_team_params", {"budget_duration": "30d"})
+    monkeypatch.setattr(gateway, "default_team_settings", None)
+    monkeypatch.setattr(gateway, "default_team_params", {"budget_duration": "30d"})
     mock_team_create = _wire_new_team_prisma(mock_db_client)
 
     await new_team(
@@ -12757,12 +12757,12 @@ async def test_new_team_explicit_null_max_budget_still_takes_configured_default(
     could mint uncapped teams (veria finding on PR #36699)."""
     from fastapi import Request
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.proxy._types import NewTeamRequest
     from token_iq.gateway.proxy.management_endpoints.team_endpoints import new_team
 
-    monkeypatch.setattr(litellm, "default_team_settings", None)
-    monkeypatch.setattr(litellm, "default_team_params", {"max_budget": 100.0})
+    monkeypatch.setattr(gateway, "default_team_settings", None)
+    monkeypatch.setattr(gateway, "default_team_params", {"max_budget": 100.0})
     mock_team_create = _wire_new_team_prisma(mock_db_client)
 
     await new_team(

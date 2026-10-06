@@ -3,7 +3,7 @@
 import pytest
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.core_helpers import process_response_headers
 from token_iq.gateway.core_utils.fallback_utils import (
     async_completion_with_fallbacks,
@@ -23,7 +23,7 @@ async def test_fallback_dict_not_mutated(monkeypatch):
             raise Exception("primary failed")
         return {"model": model, "temperature": kwargs.get("temperature")}
 
-    monkeypatch.setattr(litellm, "acompletion", _fake_acompletion)
+    monkeypatch.setattr(gateway, "acompletion", _fake_acompletion)
 
     # Call 1: primary fails, fallback dict succeeds
     response_1 = await async_completion_with_fallbacks(

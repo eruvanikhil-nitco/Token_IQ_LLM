@@ -1,4 +1,4 @@
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.deepseek.chat.transformation import DeepSeekChatConfig
 
 
@@ -117,9 +117,9 @@ class TestDeepSeekVisionMultimodalContent:
 
     def setup_method(self):
         self.config = DeepSeekChatConfig()
-        prior_entry = litellm.model_cost.get(self.VISION_MODEL)
+        prior_entry = gateway.model_cost.get(self.VISION_MODEL)
         self._prior_registry_entry = dict(prior_entry) if prior_entry is not None else None
-        litellm.register_model(
+        gateway.register_model(
             {
                 "deepseek/deepseek-v4-flash-vision-exp": {
                     "litellm_provider": "deepseek",
@@ -133,9 +133,9 @@ class TestDeepSeekVisionMultimodalContent:
 
     def teardown_method(self):
         if self._prior_registry_entry is None:
-            litellm.model_cost.pop(self.VISION_MODEL, None)
+            gateway.model_cost.pop(self.VISION_MODEL, None)
         else:
-            litellm.model_cost[self.VISION_MODEL] = self._prior_registry_entry
+            gateway.model_cost[self.VISION_MODEL] = self._prior_registry_entry
 
     @staticmethod
     def _image_message(role="user"):

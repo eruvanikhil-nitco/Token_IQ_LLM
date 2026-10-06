@@ -1,6 +1,6 @@
 from typing import Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway._uuid import uuid
 from token_iq.gateway.core_utils.core_helpers import (
@@ -59,7 +59,7 @@ async def async_completion_with_fallbacks(**kwargs):
             # Filter out internal parameters that shouldn't be sent to provider APIs
             completion_kwargs = filter_internal_params(completion_kwargs)
 
-            response = await litellm.acompletion(
+            response = await gateway.acompletion(
                 **completion_kwargs,
                 model=model,
                 litellm_logging_obj=litellm_logging_obj,

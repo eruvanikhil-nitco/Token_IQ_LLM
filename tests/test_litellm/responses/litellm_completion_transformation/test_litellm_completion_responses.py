@@ -2912,14 +2912,14 @@ class TestStreamingIDConsistency:
         """
         from unittest.mock import Mock
 
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.responses.litellm_completion_transformation.streaming_iterator import (
             LiteLLMCompletionStreamingIterator,
         )
         from token_iq.gateway.types.utils import Delta, ModelResponseStream, StreamingChoices
 
         # Create a mock stream wrapper
-        mock_stream_wrapper = Mock(spec=litellm.CustomStreamWrapper)
+        mock_stream_wrapper = Mock(spec=gateway.CustomStreamWrapper)
         mock_logging_obj = Mock()
         mock_stream_wrapper.logging_obj = mock_logging_obj
 
@@ -3011,13 +3011,13 @@ class TestStreamingIDConsistency:
         """
         from unittest.mock import Mock
 
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.responses.litellm_completion_transformation.streaming_iterator import (
             LiteLLMCompletionStreamingIterator,
         )
 
         # Create a mock stream wrapper
-        mock_stream_wrapper = Mock(spec=litellm.CustomStreamWrapper)
+        mock_stream_wrapper = Mock(spec=gateway.CustomStreamWrapper)
         mock_logging_obj = Mock()
         mock_stream_wrapper.logging_obj = mock_logging_obj
 
@@ -3055,14 +3055,14 @@ class TestStreamingIDConsistency:
         """
         from unittest.mock import Mock
 
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.responses.litellm_completion_transformation.streaming_iterator import (
             LiteLLMCompletionStreamingIterator,
         )
         from token_iq.gateway.types.utils import Choices, Message, ModelResponse
 
         # Create a mock stream wrapper
-        mock_stream_wrapper = Mock(spec=litellm.CustomStreamWrapper)
+        mock_stream_wrapper = Mock(spec=gateway.CustomStreamWrapper)
         mock_logging_obj = Mock()
         mock_stream_wrapper.logging_obj = mock_logging_obj
         mock_logging_obj._response_cost_calculator = Mock(return_value=0.001)
@@ -3267,12 +3267,12 @@ class TestCompletedResponseLatchedOnStreamEnd:
         a stream that already delivered all content chunks)."""
         from unittest.mock import Mock
 
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.responses.litellm_completion_transformation.streaming_iterator import (
             LiteLLMCompletionStreamingIterator,
         )
 
-        mock_wrapper = Mock(spec=litellm.CustomStreamWrapper)
+        mock_wrapper = Mock(spec=gateway.CustomStreamWrapper)
         mock_wrapper.logging_obj = Mock()
         mock_wrapper.logging_obj._response_cost_calculator = Mock(return_value=0.0)
         mock_wrapper.__aiter__ = Mock(return_value=mock_wrapper)
@@ -3761,12 +3761,12 @@ class TestEnsureOutputItemContentPartAdded:
         """
         from unittest.mock import Mock
 
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.responses.litellm_completion_transformation.streaming_iterator import (
             LiteLLMCompletionStreamingIterator,
         )
 
-        mock_stream_wrapper = Mock(spec=litellm.CustomStreamWrapper)
+        mock_stream_wrapper = Mock(spec=gateway.CustomStreamWrapper)
         mock_stream_wrapper.logging_obj = Mock()
 
         iterator = LiteLLMCompletionStreamingIterator(
@@ -4032,12 +4032,12 @@ class TestStreamingSnapshotItemIds:
     def _make_iterator(self):
         from unittest.mock import Mock
 
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.responses.litellm_completion_transformation.streaming_iterator import (
             LiteLLMCompletionStreamingIterator,
         )
 
-        mock_stream_wrapper = Mock(spec=litellm.CustomStreamWrapper)
+        mock_stream_wrapper = Mock(spec=gateway.CustomStreamWrapper)
         mock_stream_wrapper.logging_obj = Mock()
         return LiteLLMCompletionStreamingIterator(
             model="anthropic/claude-sonnet-4-5",

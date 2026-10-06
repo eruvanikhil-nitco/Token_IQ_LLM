@@ -2,14 +2,14 @@ from base_llm_unit_tests import BaseLLMChatTest
 import pytest
 import os
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.types.llms.bedrock import BedrockInvokeNovaRequest
 
 
 @pytest.mark.flaky(retries=3, delay=5)
 class TestBedrockInvokeClaudeJson(BaseLLMChatTest):
     def get_base_completion_call_args(self) -> dict:
-        litellm._turn_on_debug()
+        gateway._turn_on_debug()
         return {
             "model": "bedrock/invoke/us.anthropic.claude-haiku-4-5-20251001-v1:0",
         }
@@ -54,7 +54,7 @@ def test_nova_invoke_remove_empty_system_messages():
         inferenceConfig={"temperature": 0.7},
     )
 
-    litellm.AmazonInvokeNovaConfig()._remove_empty_system_messages(input_request)
+    gateway.AmazonInvokeNovaConfig()._remove_empty_system_messages(input_request)
 
     assert "system" not in input_request
     assert "messages" in input_request
@@ -78,7 +78,7 @@ def test_nova_invoke_filter_allowed_fields():
 
     input_request = BedrockInvokeNovaRequest(**_input_request)
 
-    result = litellm.AmazonInvokeNovaConfig()._filter_allowed_fields(input_request)
+    result = gateway.AmazonInvokeNovaConfig()._filter_allowed_fields(input_request)
 
     assert "additionalModelRequestFields" not in result
     assert "additionalModelResponseFieldPaths" not in result

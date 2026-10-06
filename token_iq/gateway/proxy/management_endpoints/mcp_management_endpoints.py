@@ -44,7 +44,7 @@ except ImportError:
     RecordNotFoundError = Exception
     UniqueViolationError = Exception
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger, verbose_proxy_logger
 from token_iq.gateway._uuid import uuid
 from token_iq.gateway.constants import LITELLM_PROXY_ADMIN_NAME
@@ -444,9 +444,9 @@ if MCP_AVAILABLE:
         Best-effort write-through to Redis so temporary MCP OAuth sessions are
         shared across proxy instances. Keep local in-memory cache as fallback.
         """
-        if litellm.cache is None or not hasattr(litellm.cache, "cache"):
+        if gateway.cache is None or not hasattr(gateway.cache, "cache"):
             return
-        cache_backend: Final = getattr(litellm.cache, "cache", None)
+        cache_backend: Final = getattr(gateway.cache, "cache", None)
         if cache_backend is None or not hasattr(cache_backend, "async_set_cache"):
             return
 
@@ -480,9 +480,9 @@ if MCP_AVAILABLE:
         Values must be encrypted strings (same contract as _cache_temporary_mcp_server_in_redis);
         legacy plaintext dict payloads are rejected.
         """
-        if litellm.cache is None or not hasattr(litellm.cache, "cache"):
+        if gateway.cache is None or not hasattr(gateway.cache, "cache"):
             return None
-        cache_backend: Final = getattr(litellm.cache, "cache", None)
+        cache_backend: Final = getattr(gateway.cache, "cache", None)
         if cache_backend is None or not hasattr(cache_backend, "async_get_cache"):
             return None
 
@@ -1165,9 +1165,9 @@ if MCP_AVAILABLE:
                 server.connected_app_reachable = server.server_id in reachable_ids
 
         # augment the mcp servers with public status
-        if litellm.public_mcp_servers is not None:
+        if gateway.public_mcp_servers is not None:
             for server in redacted_mcp_servers:
-                if server.server_id in litellm.public_mcp_servers:
+                if server.server_id in gateway.public_mcp_servers:
                     if server.mcp_info is None:
                         server.mcp_info = {}
                     server.mcp_info["is_public"] = True
@@ -2776,7 +2776,7 @@ if MCP_AVAILABLE:
         """
         try:
             # Update the public model groups
-            from token_iq import gateway as litellm
+            from token_iq import gateway
             from token_iq.gateway.proxy._experimental.mcp_server.mcp_server_manager import (
                 global_mcp_server_manager,
             )
@@ -2793,8 +2793,8 @@ if MCP_AVAILABLE:
                     },
                 )
 
-            if litellm.public_mcp_servers is None:
-                litellm.public_mcp_servers = []
+            if gateway.public_mcp_servers is None:
+                gateway.public_mcp_servers = []
 
             for server_id in request.mcp_server_ids:
                 server = global_mcp_server_manager.get_mcp_server_by_id(server_id=server_id)
@@ -2804,24 +2804,24 @@ if MCP_AVAILABLE:
                         detail=f"MCP Server with ID {server_id} not found",
                     )
 
-            litellm.public_mcp_servers = request.mcp_server_ids
+            gateway.public_mcp_servers = request.mcp_server_ids
 
             # Update config with new settings
             if "litellm_settings" not in config or config["litellm_settings"] is None:
                 config["litellm_settings"] = {}
 
-            config["litellm_settings"]["public_mcp_servers"] = litellm.public_mcp_servers
+            config["litellm_settings"]["public_mcp_servers"] = gateway.public_mcp_servers
 
             # Save the updated config
             await proxy_config.save_config(new_config=config)
 
             verbose_proxy_logger.debug(
-                "Updated public mcp servers to: %s by user: %s", litellm.public_mcp_servers, user_api_key_dict.user_id
+                "Updated public mcp servers to: %s by user: %s", gateway.public_mcp_servers, user_api_key_dict.user_id
             )
 
             return {
                 "message": "Successfully updated public mcp servers",
-                "public_mcp_servers": litellm.public_mcp_servers,
+                "public_mcp_servers": gateway.public_mcp_servers,
                 "updated_by": user_api_key_dict.user_id,
             }
         except HTTPException:

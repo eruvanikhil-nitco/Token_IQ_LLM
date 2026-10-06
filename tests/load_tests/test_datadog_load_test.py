@@ -2,7 +2,7 @@ import os
 
 
 import asyncio
-from token_iq import gateway as litellm
+from token_iq import gateway
 import pytest
 import logging
 from token_iq.gateway._logging import verbose_logger
@@ -19,7 +19,7 @@ def test_datadog_logging_async():
         os.environ["DD_SITE"] = "us5.datadoghq.com"
         os.environ["DD_API_KEY"] = "xxxxxx"
 
-        litellm.success_callback = ["datadog"]
+        gateway.success_callback = ["datadog"]
 
         percentage_diffs = []
 
@@ -27,14 +27,14 @@ def test_datadog_logging_async():
             print(f"\nRun {run + 1}:")
 
             # Test with empty success_callback
-            litellm.success_callback = []
-            litellm.callbacks = []
+            gateway.success_callback = []
+            gateway.callbacks = []
             start_time_empty_callback = asyncio.run(make_async_calls())
             print("Done with no callback test")
 
             # Test with datadog callback
             print("Starting datadog test")
-            litellm.success_callback = ["datadog"]
+            gateway.success_callback = ["datadog"]
             start_time_datadog = asyncio.run(make_async_calls())
             print("Done with datadog test")
 
@@ -58,7 +58,7 @@ def test_datadog_logging_async():
             avg_percentage_diff < 10
         ), f"Average performance difference of {avg_percentage_diff:.2f}% exceeds 10% threshold"
 
-    except litellm.Timeout:
+    except gateway.Timeout:
         pass
     except Exception as e:
         pytest.fail(f"An exception occurred - {e}")
@@ -87,7 +87,7 @@ async def make_async_calls(metadata=None, **completion_kwargs):
 
 
 def create_async_task(**completion_kwargs):
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     completion_args = {
         "model": "openai/chatgpt-v-3",
         "api_version": "2024-02-01",
@@ -99,4 +99,4 @@ def create_async_task(**completion_kwargs):
         "mock_response": "hello from my load test",
     }
     completion_args.update(completion_kwargs)
-    return asyncio.create_task(litellm.acompletion(**completion_args))
+    return asyncio.create_task(gateway.acompletion(**completion_args))

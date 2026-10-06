@@ -22,9 +22,9 @@ def set_global_prompt_directory(directory: str) -> None:
     Args:
         directory: Path to directory containing .prompt files
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    litellm.global_prompt_directory = directory
+    gateway.global_prompt_directory = directory
 
 
 def _get_prompt_data_from_dotprompt_content(dotprompt_content: str) -> dict:

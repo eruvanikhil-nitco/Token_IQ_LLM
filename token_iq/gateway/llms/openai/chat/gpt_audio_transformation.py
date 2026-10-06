@@ -6,7 +6,7 @@ OpenAI Doc: https://platform.openai.com/docs/guides/audio/quickstart?audio-gener
 
 from typing import Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 from .gpt_transformation import OpenAIGPTConfig
 
@@ -31,7 +31,7 @@ class OpenAIGPTAudioConfig(OpenAIGPTConfig):
         return all_openai_params + audio_specific_params
 
     def is_model_gpt_audio_model(self, model: str) -> bool:
-        if model in litellm.open_ai_chat_completion_models and "audio" in model:
+        if model in gateway.open_ai_chat_completion_models and "audio" in model:
             return True
         return False
 

@@ -20,7 +20,7 @@ from typing import Any, Final, Literal, cast
 import httpx
 from openai.types.batch import BatchRequestCounts
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.core_utils.get_litellm_params import add_trusted_model_credentials_to_litellm_params
 from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
@@ -244,22 +244,22 @@ def create_batch(
             # for deepinfra/perplexity/anyscale/groq we check in get_llm_provider and pass in the api base from there
             api_base = (
                 optional_params.api_base
-                or litellm.api_base
+                or gateway.api_base
                 or os.getenv("OPENAI_BASE_URL")
                 or os.getenv("OPENAI_API_BASE")
                 or "https://api.openai.com/v1"
             )
             organization: Final = (
                 optional_params.organization
-                or litellm.organization
+                or gateway.organization
                 or os.getenv("OPENAI_ORGANIZATION", None)
                 or None  # default - https://github.com/openai/openai-python/blob/284c1799070c723c6a553337134148a7ab088dd8/openai/util.py#L105
             )
             # set API KEY
             api_key = (
                 optional_params.api_key
-                or litellm.api_key  # for deepinfra/perplexity/anyscale we check in get_llm_provider and pass in the api key from there
-                or litellm.openai_key
+                or gateway.api_key  # for deepinfra/perplexity/anyscale we check in get_llm_provider and pass in the api key from there
+                or gateway.openai_key
                 or os.getenv("OPENAI_API_KEY")
             )
 
@@ -273,13 +273,13 @@ def create_batch(
                 _is_async=_is_async,
             )
         elif custom_llm_provider == "azure":
-            api_base = optional_params.api_base or litellm.api_base or get_secret_str("AZURE_API_BASE")
-            api_version = optional_params.api_version or litellm.api_version or get_secret_str("AZURE_API_VERSION")
+            api_base = optional_params.api_base or gateway.api_base or get_secret_str("AZURE_API_BASE")
+            api_version = optional_params.api_version or gateway.api_version or get_secret_str("AZURE_API_VERSION")
 
             api_key = (
                 optional_params.api_key
-                or litellm.api_key
-                or litellm.azure_key
+                or gateway.api_key
+                or gateway.azure_key
                 or get_secret_str("AZURE_OPENAI_API_KEY")
                 or get_secret_str("AZURE_API_KEY")
             )
@@ -303,10 +303,10 @@ def create_batch(
         elif custom_llm_provider == "vertex_ai":
             api_base = optional_params.api_base or ""
             vertex_ai_project: Final = (
-                optional_params.vertex_project or litellm.vertex_project or get_secret_str("VERTEXAI_PROJECT")
+                optional_params.vertex_project or gateway.vertex_project or get_secret_str("VERTEXAI_PROJECT")
             )
             vertex_ai_location: Final = (
-                optional_params.vertex_location or litellm.vertex_location or get_secret_str("VERTEXAI_LOCATION")
+                optional_params.vertex_location or gateway.vertex_location or get_secret_str("VERTEXAI_LOCATION")
             )
             vertex_credentials: Final = optional_params.vertex_credentials or get_secret_str("VERTEXAI_CREDENTIALS")
 
@@ -321,7 +321,7 @@ def create_batch(
                 create_batch_data=_create_batch_request,
             )
         else:
-            raise litellm.exceptions.BadRequestError(
+            raise gateway.exceptions.BadRequestError(
                 message=f"LiteLLM doesn't support custom_llm_provider={custom_llm_provider} for 'create_batch'",
                 model="n/a",
                 llm_provider=custom_llm_provider,
@@ -397,22 +397,22 @@ def _handle_retrieve_batch_providers_without_provider_config(
         # for deepinfra/perplexity/anyscale/groq we check in get_llm_provider and pass in the api base from there
         api_base = (
             optional_params.api_base
-            or litellm.api_base
+            or gateway.api_base
             or os.getenv("OPENAI_BASE_URL")
             or os.getenv("OPENAI_API_BASE")
             or "https://api.openai.com/v1"
         )
         organization: Final = (
             optional_params.organization
-            or litellm.organization
+            or gateway.organization
             or os.getenv("OPENAI_ORGANIZATION", None)
             or None  # default - https://github.com/openai/openai-python/blob/284c1799070c723c6a553337134148a7ab088dd8/openai/util.py#L105
         )
         # set API KEY
         api_key = (
             optional_params.api_key
-            or litellm.api_key  # for deepinfra/perplexity/anyscale we check in get_llm_provider and pass in the api key from there
-            or litellm.openai_key
+            or gateway.api_key  # for deepinfra/perplexity/anyscale we check in get_llm_provider and pass in the api key from there
+            or gateway.openai_key
             or os.getenv("OPENAI_API_KEY")
         )
 
@@ -426,13 +426,13 @@ def _handle_retrieve_batch_providers_without_provider_config(
             max_retries=optional_params.max_retries,
         )
     elif custom_llm_provider == "azure":
-        api_base = optional_params.api_base or litellm.api_base or get_secret_str("AZURE_API_BASE")
-        api_version: Final = optional_params.api_version or litellm.api_version or get_secret_str("AZURE_API_VERSION")
+        api_base = optional_params.api_base or gateway.api_base or get_secret_str("AZURE_API_BASE")
+        api_version: Final = optional_params.api_version or gateway.api_version or get_secret_str("AZURE_API_VERSION")
 
         api_key = (
             optional_params.api_key
-            or litellm.api_key
-            or litellm.azure_key
+            or gateway.api_key
+            or gateway.azure_key
             or get_secret_str("AZURE_OPENAI_API_KEY")
             or get_secret_str("AZURE_API_KEY")
         )
@@ -456,10 +456,10 @@ def _handle_retrieve_batch_providers_without_provider_config(
     elif custom_llm_provider == "vertex_ai":
         api_base = optional_params.api_base or ""
         vertex_ai_project: Final = (
-            optional_params.vertex_project or litellm.vertex_project or get_secret_str("VERTEXAI_PROJECT")
+            optional_params.vertex_project or gateway.vertex_project or get_secret_str("VERTEXAI_PROJECT")
         )
         vertex_ai_location: Final = (
-            optional_params.vertex_location or litellm.vertex_location or get_secret_str("VERTEXAI_LOCATION")
+            optional_params.vertex_location or gateway.vertex_location or get_secret_str("VERTEXAI_LOCATION")
         )
         vertex_credentials: Final = optional_params.vertex_credentials or get_secret_str("VERTEXAI_CREDENTIALS")
 
@@ -477,11 +477,11 @@ def _handle_retrieve_batch_providers_without_provider_config(
     elif custom_llm_provider == "anthropic":
         api_base = (
             optional_params.api_base
-            or litellm.api_base
+            or gateway.api_base
             or get_secret_str("ANTHROPIC_API_BASE")
             or get_secret_str("ANTHROPIC_BASE_URL")
         )
-        api_key = optional_params.api_key or litellm.api_key or litellm.azure_key or get_secret_str("ANTHROPIC_API_KEY")
+        api_key = optional_params.api_key or gateway.api_key or gateway.azure_key or get_secret_str("ANTHROPIC_API_KEY")
 
         response = anthropic_batches_instance.retrieve_batch(
             _is_async=_is_async,
@@ -492,7 +492,7 @@ def _handle_retrieve_batch_providers_without_provider_config(
             max_retries=optional_params.max_retries,
         )
     else:
-        raise litellm.exceptions.BadRequestError(
+        raise gateway.exceptions.BadRequestError(
             message=(
                 f"LiteLLM doesn't support custom_llm_provider={custom_llm_provider} for 'retrieve_batch' without a `model` kwarg. "
                 "Supported via this path: 'openai', 'azure', 'vertex_ai', 'anthropic'. "
@@ -715,8 +715,8 @@ def list_batches(
         )
         api_key = (
             optional_params.api_key
-            or litellm.api_key  # for deepinfra/perplexity/anyscale we check in get_llm_provider and pass in the api key from there
-            or litellm.openai_key
+            or gateway.api_key  # for deepinfra/perplexity/anyscale we check in get_llm_provider and pass in the api key from there
+            or gateway.openai_key
             or os.getenv("OPENAI_API_KEY")
         )
         ### TIMEOUT LOGIC ###
@@ -740,14 +740,14 @@ def list_batches(
             # for deepinfra/perplexity/anyscale/groq we check in get_llm_provider and pass in the api base from there
             api_base = (
                 optional_params.api_base
-                or litellm.api_base
+                or gateway.api_base
                 or os.getenv("OPENAI_BASE_URL")
                 or os.getenv("OPENAI_API_BASE")
                 or "https://api.openai.com/v1"
             )
             organization: Final = (
                 optional_params.organization
-                or litellm.organization
+                or gateway.organization
                 or os.getenv("OPENAI_ORGANIZATION", None)
                 or None  # default - https://github.com/openai/openai-python/blob/284c1799070c723c6a553337134148a7ab088dd8/openai/util.py#L105
             )
@@ -763,13 +763,13 @@ def list_batches(
                 max_retries=optional_params.max_retries,
             )
         elif custom_llm_provider == "azure":
-            api_base = optional_params.api_base or litellm.api_base or get_secret_str("AZURE_API_BASE")
-            api_version = optional_params.api_version or litellm.api_version or get_secret_str("AZURE_API_VERSION")
+            api_base = optional_params.api_base or gateway.api_base or get_secret_str("AZURE_API_BASE")
+            api_version = optional_params.api_version or gateway.api_version or get_secret_str("AZURE_API_VERSION")
 
             api_key = (
                 optional_params.api_key
-                or litellm.api_key
-                or litellm.azure_key
+                or gateway.api_key
+                or gateway.azure_key
                 or get_secret_str("AZURE_OPENAI_API_KEY")
                 or get_secret_str("AZURE_API_KEY")
             )
@@ -792,10 +792,10 @@ def list_batches(
         elif custom_llm_provider == "vertex_ai":
             api_base = optional_params.api_base or ""
             vertex_ai_project: Final = (
-                optional_params.vertex_project or litellm.vertex_project or get_secret_str("VERTEXAI_PROJECT")
+                optional_params.vertex_project or gateway.vertex_project or get_secret_str("VERTEXAI_PROJECT")
             )
             vertex_ai_location: Final = (
-                optional_params.vertex_location or litellm.vertex_location or get_secret_str("VERTEXAI_LOCATION")
+                optional_params.vertex_location or gateway.vertex_location or get_secret_str("VERTEXAI_LOCATION")
             )
             vertex_credentials: Final = optional_params.vertex_credentials or get_secret_str("VERTEXAI_CREDENTIALS")
 
@@ -811,7 +811,7 @@ def list_batches(
                 max_retries=optional_params.max_retries,
             )
         else:
-            raise litellm.exceptions.BadRequestError(
+            raise gateway.exceptions.BadRequestError(
                 message="LiteLLM doesn't support {} for 'list_batch'. Supported providers: {}.".format(
                     custom_llm_provider,
                     ", ".join(sorted(LIST_BATCHES_SUPPORTED_PROVIDERS)),
@@ -932,15 +932,15 @@ def cancel_batch(
         if custom_llm_provider in OPENAI_COMPATIBLE_BATCH_AND_FILES_PROVIDERS:
             api_base = (
                 optional_params.api_base
-                or litellm.api_base
+                or gateway.api_base
                 or os.getenv("OPENAI_BASE_URL")
                 or os.getenv("OPENAI_API_BASE")
                 or "https://api.openai.com/v1"
             )
             organization: Final = (
-                optional_params.organization or litellm.organization or os.getenv("OPENAI_ORGANIZATION", None) or None
+                optional_params.organization or gateway.organization or os.getenv("OPENAI_ORGANIZATION", None) or None
             )
-            api_key = optional_params.api_key or litellm.api_key or litellm.openai_key or os.getenv("OPENAI_API_KEY")
+            api_key = optional_params.api_key or gateway.api_key or gateway.openai_key or os.getenv("OPENAI_API_KEY")
 
             response = openai_batches_instance.cancel_batch(
                 _is_async=_is_async,
@@ -952,13 +952,13 @@ def cancel_batch(
                 max_retries=optional_params.max_retries,
             )
         elif custom_llm_provider == "azure":
-            api_base = optional_params.api_base or litellm.api_base or get_secret_str("AZURE_API_BASE")
-            api_version = optional_params.api_version or litellm.api_version or get_secret_str("AZURE_API_VERSION")
+            api_base = optional_params.api_base or gateway.api_base or get_secret_str("AZURE_API_BASE")
+            api_version = optional_params.api_version or gateway.api_version or get_secret_str("AZURE_API_VERSION")
 
             api_key = (
                 optional_params.api_key
-                or litellm.api_key
-                or litellm.azure_key
+                or gateway.api_key
+                or gateway.azure_key
                 or get_secret_str("AZURE_OPENAI_API_KEY")
                 or get_secret_str("AZURE_API_KEY")
             )
@@ -982,10 +982,10 @@ def cancel_batch(
         elif custom_llm_provider == "vertex_ai":
             api_base = optional_params.api_base or None
             vertex_ai_project: Final = (
-                optional_params.vertex_project or litellm.vertex_project or get_secret_str("VERTEXAI_PROJECT")
+                optional_params.vertex_project or gateway.vertex_project or get_secret_str("VERTEXAI_PROJECT")
             )
             vertex_ai_location: Final = (
-                optional_params.vertex_location or litellm.vertex_location or get_secret_str("VERTEXAI_LOCATION")
+                optional_params.vertex_location or gateway.vertex_location or get_secret_str("VERTEXAI_LOCATION")
             )
             vertex_credentials: Final = optional_params.vertex_credentials or get_secret_str("VERTEXAI_CREDENTIALS")
 
@@ -1005,7 +1005,7 @@ def cancel_batch(
                 **kwargs,
             )
         else:
-            raise litellm.exceptions.BadRequestError(
+            raise gateway.exceptions.BadRequestError(
                 message=f"LiteLLM doesn't support {custom_llm_provider} for 'cancel_batch'. Only 'openai', 'azure', 'vertex_ai', and 'bedrock' are supported.",
                 model="n/a",
                 llm_provider=custom_llm_provider,

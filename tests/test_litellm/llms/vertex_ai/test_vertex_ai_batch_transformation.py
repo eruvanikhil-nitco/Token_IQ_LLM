@@ -2,7 +2,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.vertex_ai.batches.handler import VertexAIBatchPrediction
 from token_iq.gateway.llms.vertex_ai.batches.transformation import VertexAIBatchTransformation
 
@@ -202,7 +202,7 @@ async def test_litellm_cancel_batch_vertex_ai():
     with patch("token_iq.gateway.batches.main.vertex_ai_batches_instance") as mock_instance:
         mock_instance.cancel_batch.return_value = mock_response
 
-        response = litellm.cancel_batch(
+        response = gateway.cancel_batch(
             batch_id="batch_123",
             custom_llm_provider="vertex_ai",
             vertex_project="test-project",

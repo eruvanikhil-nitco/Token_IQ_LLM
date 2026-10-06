@@ -28,12 +28,12 @@ def test_openai_embedding_passes_shared_session():
     Full chain: litellm.embedding() -> OpenAI.embedding() -> _get_openai_client()
                 -> AsyncHTTPHandler -> _create_async_transport() -> _create_aiohttp_transport()
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.llms.openai.openai import OpenAIChatCompletion
     from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler
 
     # Step 1: litellm.embedding() extracts and passes shared_session
-    main_source = inspect.getsource(litellm.embedding)
+    main_source = inspect.getsource(gateway.embedding)
     assert "shared_session" in main_source
 
     # Step 2: OpenAI handlers pass it forward

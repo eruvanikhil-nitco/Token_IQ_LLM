@@ -36,9 +36,9 @@ class TestPassthroughEndpointRouter(unittest.TestCase):
             - Flag deployments for OpenAI, AssemblyAI, Anthropic, Cohere with use_in_pass_through
             - GET credentials from passthrough_endpoint_router (resolved live from the llm router)
         """
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
-        llm_router = litellm.Router(
+        llm_router = gateway.Router(
             model_list=[
                 {
                     "model_name": "gpt-4o",

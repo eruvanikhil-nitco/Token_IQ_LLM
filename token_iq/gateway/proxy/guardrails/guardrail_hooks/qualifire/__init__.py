@@ -9,7 +9,7 @@ if TYPE_CHECKING:
 
 
 def initialize_guardrail(litellm_params: "LitellmParams", guardrail: "Guardrail"):
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     _qualifire_callback: Final = QualifireGuardrail(
         api_key=litellm_params.api_key,
@@ -28,7 +28,7 @@ def initialize_guardrail(litellm_params: "LitellmParams", guardrail: "Guardrail"
         default_on=litellm_params.default_on,
     )
 
-    litellm.logging_callback_manager.add_litellm_callback(_qualifire_callback)
+    gateway.logging_callback_manager.add_litellm_callback(_qualifire_callback)
 
     return _qualifire_callback
 

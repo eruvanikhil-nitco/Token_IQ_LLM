@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 import pytest
-from token_iq import gateway as litellm
+from token_iq import gateway
 from unittest.mock import patch, MagicMock, AsyncMock
 from base_test import BaseLoggingCallbackTest
 from token_iq.gateway.types.utils import ModelResponse
@@ -42,12 +42,12 @@ class TestOpentelemetryUnitTests(BaseLoggingCallbackTest):
         user code, or other external observability tools.
         """
         # Reset all callbacks to ensure clean state
-        litellm.logging_callback_manager._reset_all_callbacks()
+        gateway.logging_callback_manager._reset_all_callbacks()
 
         parent_otel_span = MagicMock()
-        litellm.callbacks = ["otel"]
+        gateway.callbacks = ["otel"]
 
-        await litellm.acompletion(
+        await gateway.acompletion(
             model="gpt-5-mini",
             messages=[{"role": "user", "content": "Hello, world!"}],
             mock_response="Hey!",

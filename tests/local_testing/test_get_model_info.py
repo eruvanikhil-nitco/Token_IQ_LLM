@@ -9,7 +9,7 @@ from typing import List, Dict, Any
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import get_model_info
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -19,7 +19,7 @@ def test_get_model_info_simple_model_name():
     tests if model name given, and model exists in model info - the object is returned
     """
     model = "claude-3-opus-20240229"
-    litellm.get_model_info(model)
+    gateway.get_model_info(model)
 
 
 def test_get_model_info_custom_llm_with_model_name():
@@ -27,7 +27,7 @@ def test_get_model_info_custom_llm_with_model_name():
     Tests if {custom_llm_provider}/{model_name} name given, and model exists in model info, the object is returned
     """
     model = "anthropic/claude-3-opus-20240229"
-    litellm.get_model_info(model)
+    gateway.get_model_info(model)
 
 
 def test_get_model_info_custom_llm_with_same_name_vllm(monkeypatch):
@@ -36,7 +36,7 @@ def test_get_model_info_custom_llm_with_same_name_vllm(monkeypatch):
     """
     model = "command-r-plus"
     provider = "openai"  # vllm is openai-compatible
-    litellm.register_model(
+    gateway.register_model(
         {
             "openai/command-r-plus": {
                 "input_cost_per_token": 0.0,
@@ -44,41 +44,41 @@ def test_get_model_info_custom_llm_with_same_name_vllm(monkeypatch):
             },
         }
     )
-    model_info = litellm.get_model_info(model, custom_llm_provider=provider)
+    model_info = gateway.get_model_info(model, custom_llm_provider=provider)
     print("model_info", model_info)
     assert model_info["input_cost_per_token"] == 0.0
 
 
 def test_get_model_info_shows_correct_supports_vision():
-    info = litellm.get_model_info("gemini/gemini-2.0-flash")
+    info = gateway.get_model_info("gemini/gemini-2.0-flash")
     print("info", info)
     assert info["supports_vision"] is True
 
 
 def test_get_model_info_shows_assistant_prefill():
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-    litellm.model_cost = litellm.get_model_cost_map()
-    info = litellm.get_model_info("deepseek/deepseek-chat")
+    gateway.model_cost = gateway.get_model_cost_map()
+    info = gateway.get_model_info("deepseek/deepseek-chat")
     print("info", info)
     assert info.get("supports_assistant_prefill") is True
 
 
 def test_get_model_info_shows_supports_prompt_caching():
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-    litellm.model_cost = litellm.get_model_cost_map()
-    info = litellm.get_model_info("deepseek/deepseek-chat")
+    gateway.model_cost = gateway.get_model_cost_map()
+    info = gateway.get_model_info("deepseek/deepseek-chat")
     print("info", info)
     assert info.get("supports_prompt_caching") is True
 
 
 def test_get_model_info_finetuned_models():
-    info = litellm.get_model_info("ft:gpt-3.5-turbo:my-org:custom_suffix:id")
+    info = gateway.get_model_info("ft:gpt-3.5-turbo:my-org:custom_suffix:id")
     print("info", info)
     assert info["input_cost_per_token"] == 0.000003
 
 
 def test_get_model_info_gemini_pro():
-    info = litellm.get_model_info("gemini-2.0-flash")
+    info = gateway.get_model_info("gemini-2.0-flash")
     print("info", info)
     assert info["key"] == "gemini-2.0-flash"
 
@@ -87,7 +87,7 @@ def test_get_model_info_ollama_chat():
     from token_iq.gateway.llms.ollama.completion.transformation import OllamaConfig
 
     with patch.object(
-        litellm.module_level_client,
+        gateway.module_level_client,
         "post",
         return_value=MagicMock(
             json=lambda: {
@@ -112,13 +112,13 @@ def test_get_model_info_ollama_chat():
 
 def test_get_model_info_bedrock_region():
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-    litellm.model_cost = litellm.get_model_cost_map()
+    gateway.model_cost = gateway.get_model_cost_map()
     args = {
         "model": "us.anthropic.claude-haiku-4-5-20251001-v1:0",
         "custom_llm_provider": "bedrock",
     }
-    litellm.model_cost.pop("us.anthropic.claude-haiku-4-5-20251001-v1:0", None)
-    info = litellm.get_model_info(**args)
+    gateway.model_cost.pop("us.anthropic.claude-haiku-4-5-20251001-v1:0", None)
+    info = gateway.get_model_info(**args)
     print("info", info)
     assert info["key"] == "anthropic.claude-haiku-4-5-20251001-v1:0"
     assert info["litellm_provider"] == "bedrock_converse"
@@ -136,7 +136,7 @@ def test_get_model_info_bedrock_region():
     ],
 )
 def test_get_model_info_completion_cost_unit_tests(model):
-    info = litellm.get_model_info(model)
+    info = gateway.get_model_info(model)
     print("info", info)
 
 
@@ -145,7 +145,7 @@ def test_get_model_info_ft_model_with_provider_prefix():
         "model": "openai/ft:gpt-3.5-turbo:my-org:custom_suffix:id",
         "custom_llm_provider": "openai",
     }
-    info = litellm.get_model_info(**args)
+    info = gateway.get_model_info(**args)
     print("info", info)
     assert info["key"] == "ft:gpt-3.5-turbo"
 
@@ -157,7 +157,7 @@ def _enforce_bedrock_converse_models(
     Assert all new bedrock chat models are added as `bedrock_converse` unless explicitly whitelisted.
     """
     # Check for unwhitelisted models
-    for model, info in litellm.model_cost.items():
+    for model, info in gateway.model_cost.items():
         if (
             info["litellm_provider"] == "bedrock"
             and info["mode"] == "chat"
@@ -175,7 +175,7 @@ def test_model_info_bedrock_converse(monkeypatch):
     This ensures they are automatically routed to the converse endpoint.
     """
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    litellm.model_cost = litellm.get_model_cost_map()
+    gateway.model_cost = gateway.get_model_cost_map()
     try:
         # Load whitelist models from file
         with open("whitelisted_bedrock_models.txt", "r") as file:
@@ -184,7 +184,7 @@ def test_model_info_bedrock_converse(monkeypatch):
         pytest.skip("whitelisted_bedrock_models.txt not found")
 
     _enforce_bedrock_converse_models(
-        model_cost=litellm.model_cost, whitelist_models=whitelist_models
+        model_cost=gateway.model_cost, whitelist_models=whitelist_models
     )
 
 
@@ -194,10 +194,10 @@ def test_model_info_bedrock_converse_enforcement(monkeypatch):
     Test the enforcement of the whitelist by adding a fake model and ensuring the test fails.
     """
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    litellm.model_cost = litellm.get_model_cost_map()
+    gateway.model_cost = gateway.get_model_cost_map()
 
     # Add a fake unwhitelisted model
-    litellm.model_cost["fake.bedrock-chat-model"] = {
+    gateway.model_cost["fake.bedrock-chat-model"] = {
         "litellm_provider": "bedrock",
         "mode": "chat",
     }
@@ -210,7 +210,7 @@ def test_model_info_bedrock_converse_enforcement(monkeypatch):
         # Check for unwhitelisted models
         with pytest.raises(AssertionError):
             _enforce_bedrock_converse_models(
-                model_cost=litellm.model_cost, whitelist_models=whitelist_models
+                model_cost=gateway.model_cost, whitelist_models=whitelist_models
             )
     except FileNotFoundError as e:
         pytest.skip("whitelisted_bedrock_models.txt not found")
@@ -218,12 +218,12 @@ def test_model_info_bedrock_converse_enforcement(monkeypatch):
 
 def test_get_model_info_custom_provider():
     # Custom provider example copied from https://docs.litellm.ai/docs/providers/custom_llm_server:
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway import CustomLLM, completion, get_llm_provider
 
     class MyCustomLLM(CustomLLM):
-        def completion(self, *args, **kwargs) -> litellm.ModelResponse:
-            return litellm.completion(
+        def completion(self, *args, **kwargs) -> gateway.ModelResponse:
+            return gateway.completion(
                 model="gpt-3.5-turbo",
                 messages=[{"role": "user", "content": "Hello world"}],
                 mock_response="Hi!",
@@ -231,7 +231,7 @@ def test_get_model_info_custom_provider():
 
     my_custom_llm = MyCustomLLM()
 
-    litellm.custom_provider_map = [  # 👈 KEY STEP - REGISTER HANDLER
+    gateway.custom_provider_map = [  # 👈 KEY STEP - REGISTER HANDLER
         {"provider": "my-custom-llm", "custom_handler": my_custom_llm}
     ]
 
@@ -244,7 +244,7 @@ def test_get_model_info_custom_provider():
 
     # Register model info
     model_info = {"my-custom-llm/my-fake-model": {"max_tokens": 2048}}
-    litellm.register_model(model_info)
+    gateway.register_model(model_info)
 
     # Get registered model info
     from token_iq.gateway import get_model_info
@@ -258,7 +258,7 @@ def test_get_model_info_custom_model_router():
     from token_iq.gateway import Router
     from token_iq.gateway import get_model_info
 
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
 
     router = Router(
         model_list=[
@@ -288,9 +288,9 @@ def test_get_model_info_bedrock_models():
     from token_iq.gateway.llms.bedrock.common_utils import BedrockModelInfo
 
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-    litellm.model_cost = litellm.get_model_cost_map()
+    gateway.model_cost = gateway.get_model_cost_map()
 
-    for k, v in litellm.model_cost.items():
+    for k, v in gateway.model_cost.items():
         if v["litellm_provider"] == "bedrock":
             k = k.replace("*/", "")
             potential_commitments = [
@@ -305,12 +305,12 @@ def test_get_model_info_bedrock_models():
             # get_base_model() returns model id without "bedrock/" prefix; cost map keys use "bedrock/<model>"
             base_model_key = (
                 base_model
-                if base_model in litellm.model_cost
+                if base_model in gateway.model_cost
                 else f"bedrock/{base_model}"
             )
-            if base_model_key not in litellm.model_cost:
+            if base_model_key not in gateway.model_cost:
                 continue
-            base_model_info = litellm.model_cost[base_model_key]
+            base_model_info = gateway.model_cost[base_model_key]
             for base_model_key, base_model_value in base_model_info.items():
                 if "invoke/" in k:
                     continue
@@ -329,22 +329,22 @@ def test_get_model_info_bedrock_cross_region_capability_parity():
     regional drift check above (which filters on "bedrock") never reaches them.
     """
     os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-    litellm.model_cost = litellm.get_model_cost_map()
+    gateway.model_cost = gateway.get_model_cost_map()
 
     prefixes = ("us.", "eu.", "apac.", "us-gov.")
     checked = 0
 
-    for k, v in litellm.model_cost.items():
+    for k, v in gateway.model_cost.items():
         if not str(v.get("litellm_provider", "")).startswith("bedrock"):
             continue
         base_model_key = next(
             (k[len(p) :] for p in prefixes if k.startswith(p)),
             None,
         )
-        if base_model_key is None or base_model_key not in litellm.model_cost:
+        if base_model_key is None or base_model_key not in gateway.model_cost:
             continue
         checked += 1
-        for cap, base_value in litellm.model_cost[base_model_key].items():
+        for cap, base_value in gateway.model_cost[base_model_key].items():
             if not cap.startswith("supports_"):
                 continue
             assert cap in v, f"{cap} is on {base_model_key} but missing from {k}"
@@ -373,7 +373,7 @@ def test_get_model_info_huggingface_models(monkeypatch):
             }
         ]
     )
-    info = litellm.get_model_info("huggingface/meta-llama/Meta-Llama-3-8B-Instruct")
+    info = gateway.get_model_info("huggingface/meta-llama/Meta-Llama-3-8B-Instruct")
     print("info", info)
     assert info is not None
 
@@ -417,10 +417,10 @@ def test_get_model_info_case_insensitive_lookup(monkeypatch):
     because the lookup was case-sensitive.
     """
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    litellm.model_cost = litellm.get_model_cost_map()
+    gateway.model_cost = gateway.get_model_cost_map()
 
     # Register a test model with mixed-case name
-    litellm.register_model(
+    gateway.register_model(
         {
             "together_ai/Qwen/Qwen3-Next-80B-A3B-Thinking": {
                 "input_cost_per_token": 0.0001,
@@ -432,21 +432,21 @@ def test_get_model_info_case_insensitive_lookup(monkeypatch):
     )
 
     # Test 1: Exact case should work
-    info = litellm.get_model_info(
+    info = gateway.get_model_info(
         model="Qwen/Qwen3-Next-80B-A3B-Thinking", custom_llm_provider="together_ai"
     )
     assert info is not None
     assert info["supports_function_calling"] is True
 
     # Test 2: Lowercase should also work (case-insensitive lookup)
-    info_lower = litellm.get_model_info(
+    info_lower = gateway.get_model_info(
         model="qwen/qwen3-next-80b-a3b-thinking", custom_llm_provider="together_ai"
     )
     assert info_lower is not None
     assert info_lower["supports_function_calling"] is True
 
     # Test 3: Mixed case should also work
-    info_mixed = litellm.get_model_info(
+    info_mixed = gateway.get_model_info(
         model="QWEN/qwen3-NEXT-80b-a3b-thinking", custom_llm_provider="together_ai"
     )
     assert info_mixed is not None
@@ -458,10 +458,10 @@ def test_get_model_info_case_insensitive_supports_function_calling(monkeypatch):
     Test that supports_function_calling check works with case-insensitive model lookup.
     """
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    litellm.model_cost = litellm.get_model_cost_map()
+    gateway.model_cost = gateway.get_model_cost_map()
 
     # Register a model with mixed-case name that supports function calling
-    litellm.register_model(
+    gateway.register_model(
         {
             "test_provider/TestModel-ABC": {
                 "input_cost_per_token": 0.0001,

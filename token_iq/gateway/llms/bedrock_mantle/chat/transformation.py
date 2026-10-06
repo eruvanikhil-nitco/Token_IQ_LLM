@@ -13,7 +13,7 @@ Auth: Bearer token (litellm_params.api_key, BEDROCK_MANTLE_API_KEY, or the
 from collections.abc import AsyncIterator, Iterator
 from typing import Any, Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.llms.bedrock.base_aws_llm import BaseAWSLLM
 from token_iq.gateway.llms.bedrock_mantle.common_utils import (
@@ -66,7 +66,7 @@ class BedrockMantleChatConfig(BedrockMantleAuthMixin, OpenAILikeChatConfig):
         api_base = (
             api_base
             or get_secret_str("BEDROCK_MANTLE_API_BASE")
-            or f"https://bedrock-mantle.{region}.api.aws/{mantle_base_segment(model, litellm.model_cost)}"
+            or f"https://bedrock-mantle.{region}.api.aws/{mantle_base_segment(model, gateway.model_cost)}"
         )
         dynamic_api_key: Final = self._resolve_bearer_token(api_key)
         return api_base, dynamic_api_key
@@ -98,7 +98,7 @@ class BedrockMantleChatConfig(BedrockMantleAuthMixin, OpenAILikeChatConfig):
     def get_supported_openai_params(self, model: str) -> list:
         base_params: Final = super().get_supported_openai_params(model)
         try:
-            if litellm.supports_reasoning(model=model, custom_llm_provider=self.custom_llm_provider):
+            if gateway.supports_reasoning(model=model, custom_llm_provider=self.custom_llm_provider):
                 if "reasoning_effort" not in base_params:
                     base_params.append("reasoning_effort")
         except Exception as e:

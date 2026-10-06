@@ -8,7 +8,7 @@ import importlib.util
 import os
 from typing import Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.integrations.custom_secret_manager import CustomSecretManager
 from token_iq.gateway.types.secret_managers.main import KeyManagementSystem
@@ -33,12 +33,12 @@ def load_custom_secret_manager(config_file_path: str | None = None) -> None:
         raise ValueError("CustomSecretManagerException - config_file_path is required to load custom secret manager")
 
     # Get the custom_secret_manager class path from settings
-    if litellm._key_management_settings is None:
+    if gateway._key_management_settings is None:
         raise ValueError(
             "CustomSecretManagerException - key_management_settings is required with custom_secret_manager field"
         )
 
-    custom_secret_manager_path: Final = getattr(litellm._key_management_settings, "custom_secret_manager", None)
+    custom_secret_manager_path: Final = getattr(gateway._key_management_settings, "custom_secret_manager", None)
 
     if not custom_secret_manager_path:
         raise ValueError(
@@ -74,10 +74,10 @@ def load_custom_secret_manager(config_file_path: str | None = None) -> None:
     _secret_manager_instance: Final = _secret_manager_class()
 
     # Set it as the secret manager client
-    litellm.secret_manager_client = _secret_manager_instance
+    gateway.secret_manager_client = _secret_manager_instance
 
     # Set the key management system to CUSTOM so get_secret knows to use it
-    litellm._key_management_system = KeyManagementSystem.CUSTOM
+    gateway._key_management_system = KeyManagementSystem.CUSTOM
 
     verbose_proxy_logger.info(
         "Successfully initialized custom secret manager: %s",

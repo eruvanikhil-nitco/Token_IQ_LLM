@@ -215,7 +215,7 @@ def test_langflow_config_validate_environment_sets_api_key_header():
 def test_langflow_extra_body_cannot_inject_tweaks_into_run_payload():
     import json
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
     posted_bodies = []
@@ -233,8 +233,8 @@ def test_langflow_extra_body_cannot_inject_tweaks_into_run_payload():
         return resp
 
     with patch.object(HTTPHandler, "post", side_effect=fake_post):
-        with pytest.raises(litellm.BadRequestError):
-            litellm.completion(
+        with pytest.raises(gateway.BadRequestError):
+            gateway.completion(
                 model="langflow/my-flow",
                 messages=[{"role": "user", "content": "hello"}],
                 api_base="http://example.com",

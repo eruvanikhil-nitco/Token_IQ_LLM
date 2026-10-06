@@ -5,7 +5,7 @@ from unittest.mock import patch
 from botocore.credentials import Credentials
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 from unittest.mock import Mock
 from token_iq.gateway.llms.bedrock.base_aws_llm import BaseAWSLLM
@@ -14,7 +14,7 @@ from token_iq.gateway.llms.bedrock.base_aws_llm import BaseAWSLLM
 
 
 def test_bedrock_completion_with_region_name():
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
     client = HTTPHandler()
 
     with patch.object(client, "post") as mock_post:
@@ -41,7 +41,7 @@ def test_bedrock_completion_with_region_name():
         mock_post.return_value = mock_response
 
         # Pass the client so that the HTTP call will be intercepted.
-        response = litellm.completion(
+        response = gateway.completion(
             model="cohere.command-r-v1:0",
             messages=[{"role": "user", "content": "Hello, world!"}],
             aws_region_name="us-west-12",
@@ -70,7 +70,7 @@ def test_bedrock_completion_with_region_name():
 
 
 def test_bedrock_completion_with_dynamic_authentication_params():
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
     client = HTTPHandler()
 
     with patch.object(client, "post") as mock_post:
@@ -97,7 +97,7 @@ def test_bedrock_completion_with_dynamic_authentication_params():
         mock_post.return_value = mock_response
 
         # Pass the client so that the HTTP call will be intercepted.
-        response = litellm.completion(
+        response = gateway.completion(
             model="cohere.command-r-v1:0",
             messages=[{"role": "user", "content": "Hello, world!"}],
             aws_access_key_id="dynamically_generated_access_key_id",
@@ -118,7 +118,7 @@ def test_bedrock_completion_with_dynamic_authentication_params():
 
 
 def test_bedrock_completion_with_dynamic_bedrock_runtime_endpoint():
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
     client = HTTPHandler()
 
     with patch.object(client, "post") as mock_post:
@@ -145,7 +145,7 @@ def test_bedrock_completion_with_dynamic_bedrock_runtime_endpoint():
         mock_post.return_value = mock_response
 
         # Pass the client so that the HTTP call will be intercepted.
-        response = litellm.completion(
+        response = gateway.completion(
             model="cohere.command-r-v1:0",
             messages=[{"role": "user", "content": "Hello, world!"}],
             aws_bedrock_runtime_endpoint="https://my-fake-endpoint.com",
@@ -273,7 +273,7 @@ def test_dynamic_aws_params_propagation(model, param_name, param_value):
                 mock_post.return_value = mock_response
 
                 # Call litellm.completion with our base & dynamic parameters.
-                litellm.completion(**base_params)
+                gateway.completion(**base_params)
 
                 print(
                     "get_credentials.called_kwargs",

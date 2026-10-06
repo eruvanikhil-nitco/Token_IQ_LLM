@@ -35,7 +35,7 @@ from tests.test_litellm.proxy.guardrails.guardrail_hooks._cisco_ai_defense_test_
     _violation_response,
     datetime,
     init_guardrails_v2,
-    litellm,
+    gateway,
     os,
     patch,
     pytest,
@@ -44,7 +44,7 @@ from tests.test_litellm.proxy.guardrails.guardrail_hooks._cisco_ai_defense_test_
 
 def test_cisco_ai_defense_config_via_init_v2_chat(monkeypatch):
     monkeypatch.setenv("CISCO_AI_DEFENSE_API_KEY", "test-key")
-    litellm.guardrail_name_config_map = {}
+    gateway.guardrail_name_config_map = {}
 
     init_guardrails_v2(
         all_guardrails=[
@@ -63,10 +63,10 @@ def test_cisco_ai_defense_config_via_init_v2_chat(monkeypatch):
 
 def test_init_registers_on_both_callbacks_and_success_callback(monkeypatch):
     monkeypatch.setenv("CISCO_AI_DEFENSE_API_KEY", "test-key")
-    litellm.guardrail_name_config_map = {}
-    litellm.callbacks = []
-    litellm.success_callback = []
-    litellm._async_success_callback = []
+    gateway.guardrail_name_config_map = {}
+    gateway.callbacks = []
+    gateway.success_callback = []
+    gateway._async_success_callback = []
 
     init_guardrails_v2(
         all_guardrails=[
@@ -94,11 +94,11 @@ def test_init_registers_on_both_callbacks_and_success_callback(monkeypatch):
             for cb in callback_list
         )
 
-    assert _has_our_guardrail(litellm.callbacks), (
+    assert _has_our_guardrail(gateway.callbacks), (
         "Cisco guardrail missing from litellm.callbacks — proxy's "
         "pre_call/during_call/post_call dispatch will skip it."
     )
-    assert _has_our_guardrail(litellm.success_callback), (
+    assert _has_our_guardrail(gateway.success_callback), (
         "Cisco guardrail missing from litellm.success_callback — "
         "litellm_logging.async_post_mcp_tool_call_hook will skip it, "
         "so MCP responses will never be scanned."
@@ -116,10 +116,10 @@ class TestCiscoAIDefenseFlattenedConfig:
             "CISCO_AI_DEFENSE_TIMEOUT",
         ):
             os.environ.pop(key, None)
-        litellm.guardrail_name_config_map = {}
-        litellm.callbacks = []
-        litellm.success_callback = []
-        litellm._async_success_callback = []
+        gateway.guardrail_name_config_map = {}
+        gateway.callbacks = []
+        gateway.success_callback = []
+        gateway._async_success_callback = []
 
     def teardown_method(self):
         self.setup_method()

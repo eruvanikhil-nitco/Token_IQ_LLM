@@ -3,7 +3,7 @@ import json
 import httpx
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.base_llm.sandbox.transformation import ContainerHandle
 from token_iq.gateway.llms.opensandbox.sandbox.transformation import (
     MAX_OUTPUT_BYTES,
@@ -605,17 +605,17 @@ async def test_public_lifecycle_create_run_delete():
         ]
     )
 
-    container = await litellm.acreate_sandbox(
+    container = await gateway.acreate_sandbox(
         provider="opensandbox", api_key="", api_base=TEST_API_BASE, client=client
     )
-    result = await litellm.arun_code(
+    result = await gateway.arun_code(
         provider="opensandbox",
         container=container,
         code="print(6*7)",
         api_key="",
         client=client,
     )
-    ok = await litellm.adelete_sandbox(
+    ok = await gateway.adelete_sandbox(
         provider="opensandbox",
         container=container,
         api_key="",
@@ -632,7 +632,7 @@ async def test_code_interpreter_tool_deletes_even_when_run_raises():
     client = FakeHTTPClient(execute_raises=RuntimeError("boom"))
 
     with pytest.raises(RuntimeError, match="boom"):
-        await litellm.acode_interpreter_tool(
+        await gateway.acode_interpreter_tool(
             provider="opensandbox",
             code="1/0",
             api_key="",

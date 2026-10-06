@@ -9,7 +9,7 @@ if TYPE_CHECKING:
 
 
 def initialize_guardrail(litellm_params: "LitellmParams", guardrail: "Guardrail"):
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     api_id: Final = litellm_params.api_id if hasattr(litellm_params, "api_id") else None
     auth_url: Final = litellm_params.auth_url if hasattr(litellm_params, "auth_url") else None
@@ -37,7 +37,7 @@ def initialize_guardrail(litellm_params: "LitellmParams", guardrail: "Guardrail"
             default_on=litellm_params.default_on,
         )
 
-    litellm.logging_callback_manager.add_litellm_callback(_hiddenlayer_callback)
+    gateway.logging_callback_manager.add_litellm_callback(_hiddenlayer_callback)
     return _hiddenlayer_callback
 
 

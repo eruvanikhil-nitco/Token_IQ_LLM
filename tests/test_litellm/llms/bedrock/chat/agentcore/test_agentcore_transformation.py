@@ -16,7 +16,7 @@ import pytest
 
 from unittest.mock import MagicMock, Mock, patch
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.bedrock.chat.agentcore.transformation import AmazonAgentCoreConfig
 
 
@@ -83,7 +83,7 @@ class TestAgentCoreAcceptHeader:
         }
 
         with patch.object(client, "post", return_value=mock_response) as mock_post:
-            response = litellm.completion(
+            response = gateway.completion(
                 model="bedrock/agentcore/arn:aws:bedrock-agentcore:us-west-2:888602223428:runtime/test_runtime",
                 messages=[{"role": "user", "content": "test"}],
                 api_key="test-jwt-token",
@@ -286,7 +286,7 @@ class TestAgentCoreStreamingJsonFallback:
         mock_response.read.return_value = json.dumps(json_body).encode()
 
         with patch.object(client, "post", return_value=mock_response):
-            response = litellm.completion(
+            response = gateway.completion(
                 model="bedrock/agentcore/arn:aws:bedrock-agentcore:us-west-2:888602223428:runtime/test_agent",
                 messages=[{"role": "user", "content": "test"}],
                 stream=True,
@@ -323,7 +323,7 @@ class TestAgentCoreStreamingJsonFallback:
         with patch.object(
             client, "post", new_callable=AsyncMock, return_value=mock_response
         ):
-            response = await litellm.acompletion(
+            response = await gateway.acompletion(
                 model="bedrock/agentcore/arn:aws:bedrock-agentcore:us-west-2:888602223428:runtime/test_agent",
                 messages=[{"role": "user", "content": "test"}],
                 stream=True,
@@ -358,7 +358,7 @@ class TestAgentCoreStreamingJsonFallback:
             with pytest.raises(
                 Exception, match="Failed to read/parse JSON response body"
             ):
-                litellm.completion(
+                gateway.completion(
                     model="bedrock/agentcore/arn:aws:bedrock-agentcore:us-west-2:888602223428:runtime/test_agent",
                     messages=[{"role": "user", "content": "test"}],
                     stream=True,
@@ -388,7 +388,7 @@ class TestAgentCoreStreamingJsonFallback:
             with pytest.raises(
                 Exception, match="Failed to read/parse JSON response body"
             ):
-                await litellm.acompletion(
+                await gateway.acompletion(
                     model="bedrock/agentcore/arn:aws:bedrock-agentcore:us-west-2:888602223428:runtime/test_agent",
                     messages=[{"role": "user", "content": "test"}],
                     stream=True,

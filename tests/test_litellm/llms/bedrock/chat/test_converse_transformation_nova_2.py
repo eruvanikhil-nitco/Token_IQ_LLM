@@ -11,7 +11,7 @@ import pytest
 
 
 import httpx
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.bedrock.chat.converse_transformation import AmazonConverseConfig
 
 
@@ -45,7 +45,7 @@ class TestNova15ReasoningTransformation:
         config = AmazonConverseConfig()
 
         # Test with invalid value "invalid"
-        with pytest.raises(litellm.exceptions.BadRequestError) as exc_info:
+        with pytest.raises(gateway.exceptions.BadRequestError) as exc_info:
             config._transform_reasoning_effort_to_reasoning_config("invalid")
 
         # Verify error message contains the invalid value and valid values
@@ -59,7 +59,7 @@ class TestNova15ReasoningTransformation:
         """Test that empty string raises BadRequestError."""
         config = AmazonConverseConfig()
 
-        with pytest.raises(litellm.exceptions.BadRequestError) as exc_info:
+        with pytest.raises(gateway.exceptions.BadRequestError) as exc_info:
             config._transform_reasoning_effort_to_reasoning_config("")
 
         # Verify error message
@@ -71,10 +71,10 @@ class TestNova15ReasoningTransformation:
         """Test that case-sensitive values are rejected (e.g., 'Low' instead of 'low')."""
         config = AmazonConverseConfig()
 
-        with pytest.raises(litellm.exceptions.BadRequestError):
+        with pytest.raises(gateway.exceptions.BadRequestError):
             config._transform_reasoning_effort_to_reasoning_config("Low")
 
-        with pytest.raises(litellm.exceptions.BadRequestError):
+        with pytest.raises(gateway.exceptions.BadRequestError):
             config._transform_reasoning_effort_to_reasoning_config("HIGH")
 
 
@@ -559,7 +559,7 @@ class TestNova2EndToEndResponse:
         return config.transform_response(
             model=model,
             raw_response=resp,
-            model_response=litellm.ModelResponse(),
+            model_response=gateway.ModelResponse(),
             logging_obj=None,
             request_data={},
             messages=[],

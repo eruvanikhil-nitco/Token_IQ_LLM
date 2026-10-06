@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Any, Final
 
 from fastapi import HTTPException, Request, status
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger, verbose_proxy_stdout_logger
 from token_iq.gateway.constants import EMPTY_MAPPING
 from token_iq.gateway.integrations.otel.runtime import seed_request_identity
@@ -43,7 +43,7 @@ else:
 
 def _as_proxy_exception(e: Exception) -> ProxyException:
     """Convert an authentication failure into the ProxyException the client receives."""
-    if isinstance(e, litellm.BudgetExceededError):
+    if isinstance(e, gateway.BudgetExceededError):
         return ProxyException(
             message=e.message,
             type=ProxyErrorTypes.budget_exceeded,
@@ -154,14 +154,14 @@ class UserAPIKeyAuthExceptionHandler:
             # rejections to WARNING on stdout (suppressible via LITELLM_LOG=ERROR).
             log_extra: Final = {"requester_ip": requester_ip}
             is_invalid_virtual_key: Final = is_invalid_virtual_key_error(e)
-            is_quiet_log: Final = is_invalid_virtual_key and not litellm.log_client_error_tracebacks
+            is_quiet_log: Final = is_invalid_virtual_key and not gateway.log_client_error_tracebacks
             logger: Final = verbose_proxy_stdout_logger if is_quiet_log else verbose_proxy_logger
             logger.log(
                 logging.WARNING if is_quiet_log else logging.ERROR,
                 "litellm.proxy.proxy_server.user_api_key_auth(): Exception occured - %s\nRequester IP Address:%s",
                 e,
                 requester_ip,
-                exc_info=True if litellm.log_client_error_tracebacks or not is_expected_client_error(e) else None,
+                exc_info=True if gateway.log_client_error_tracebacks or not is_expected_client_error(e) else None,
                 extra=log_extra,
             )
 
@@ -188,7 +188,7 @@ class UserAPIKeyAuthExceptionHandler:
             # raise carries `llm_provider=""`. Resolve it here off `request_data`
             # so custom-callback consumers reading StandardLoggingPayload get
             # the same `llm_provider` attribution as for RPM/TPM 429s.
-            if isinstance(e, litellm.BudgetExceededError) and not e.llm_provider:
+            if isinstance(e, gateway.BudgetExceededError) and not e.llm_provider:
                 from token_iq.gateway.proxy.hooks.rate_limiter_utils import (
                     resolve_llm_provider_for_rate_limit,
                 )

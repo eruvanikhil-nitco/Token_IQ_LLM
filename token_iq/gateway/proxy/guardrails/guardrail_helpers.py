@@ -2,7 +2,7 @@ import os
 import sys
 from typing import Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.proxy.proxy_server import LiteLLM_TeamTable, UserAPIKeyAuth
 from token_iq.gateway.types.guardrails import *
@@ -52,7 +52,7 @@ async def should_proceed_based_on_metadata(data: dict, guardrail_name: str) -> b
                         continue
 
                     # lookup the guardrail in guardrail_name_config_map
-                    guardrail_item: GuardrailItem = litellm.guardrail_name_config_map[_guardrail_name]
+                    guardrail_item: GuardrailItem = gateway.guardrail_name_config_map[_guardrail_name]
 
                     guardrail_callbacks = guardrail_item.callbacks
                     requested_callback_names.extend(guardrail_callbacks)
@@ -95,7 +95,7 @@ async def should_proceed_based_on_api_key(user_api_key_dict: UserAPIKeyAuth, gua
                 continue
 
             # lookup the guardrail in guardrail_name_config_map
-            guardrail_item: GuardrailItem = litellm.guardrail_name_config_map[_guardrail_name]
+            guardrail_item: GuardrailItem = gateway.guardrail_name_config_map[_guardrail_name]
 
             guardrail_callbacks = guardrail_item.callbacks
             if guardrail_name in guardrail_callbacks:

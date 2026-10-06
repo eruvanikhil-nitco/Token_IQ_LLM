@@ -23,7 +23,7 @@ import logging
 
 import pytest
 from token_iq.gateway.proxy.db.db_transaction_queue.pod_lock_manager import PodLockManager
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import (
     new_user,
@@ -116,18 +116,18 @@ def prisma_client():
     )
 
     # Reset litellm.proxy.proxy_server.prisma_client to None
-    litellm.proxy.proxy_server.litellm_proxy_budget_name = (
+    gateway.proxy.proxy_server.litellm_proxy_budget_name = (
         f"litellm-proxy-budget-{time.time()}"
     )
-    litellm.proxy.proxy_server.user_custom_key_generate = None
+    gateway.proxy.proxy_server.user_custom_key_generate = None
 
     return prisma_client
 
 
 async def setup_db_connection(prisma_client):
-    setattr(litellm.proxy.proxy_server, "prisma_client", prisma_client)
-    setattr(litellm.proxy.proxy_server, "master_key", "sk-1234")
-    await litellm.proxy.proxy_server.prisma_client.connect()
+    setattr(gateway.proxy.proxy_server, "prisma_client", prisma_client)
+    setattr(gateway.proxy.proxy_server, "master_key", "sk-1234")
+    await gateway.proxy.proxy_server.prisma_client.connect()
 
 
 @pytest.mark.skip(reason="Requires Redis connection.")
@@ -393,7 +393,7 @@ async def test_e2e_size_of_redis_buffer():
     fake_redis_client = fakeredis.FakeAsyncRedis()
     redis_cache.redis_async_client = fake_redis_client
 
-    setattr(litellm.proxy.proxy_server, "use_redis_transaction_buffer", True)
+    setattr(gateway.proxy.proxy_server, "use_redis_transaction_buffer", True)
     db_writer = DBSpendUpdateWriter(redis_cache=redis_cache)
 
     # get all the queues

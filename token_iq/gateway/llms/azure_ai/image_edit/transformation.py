@@ -2,7 +2,7 @@ from typing import Final
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.azure_ai.common_utils import (
     AzureFoundryModelInfo,
     get_azure_ai_auth_headers,
@@ -71,7 +71,7 @@ class AzureFoundryFluxImageEditConfig(OpenAIImageEditConfig):
                 "Azure AI API base is required. Set AZURE_AI_API_BASE environment variable or pass api_base parameter."
             )
 
-        api_version = litellm_params.get("api_version") or litellm.api_version or get_secret_str("AZURE_AI_API_VERSION")
+        api_version = litellm_params.get("api_version") or gateway.api_version or get_secret_str("AZURE_AI_API_VERSION")
         if api_version is None:
             # API version is mandatory for Azure AI Foundry
             raise ValueError(

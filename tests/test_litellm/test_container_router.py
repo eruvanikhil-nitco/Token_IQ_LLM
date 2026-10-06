@@ -5,7 +5,7 @@ Tests that the router method gets called correctly for container operations.
 
 import pytest
 from unittest.mock import Mock, patch, MagicMock
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 
 class TestContainerRouter:
@@ -34,7 +34,7 @@ class TestContainerRouter:
         mock_handler.container_create_handler.return_value = mock_response
 
         # Call the create_container function with mock response
-        result = litellm.create_container(
+        result = gateway.create_container(
             name=self.container_name,
             custom_llm_provider="openai",
             mock_response=mock_response,
@@ -76,7 +76,7 @@ class TestContainerRouter:
         mock_handler.container_list_handler.return_value = mock_response
 
         # Call the list_containers function with mock response
-        result = litellm.list_containers(
+        result = gateway.list_containers(
             custom_llm_provider="openai", mock_response=mock_response
         )
 
@@ -105,7 +105,7 @@ class TestContainerRouter:
         mock_handler.container_retrieve_handler.return_value = mock_response
 
         # Call the retrieve_container function with mock response
-        result = litellm.retrieve_container(
+        result = gateway.retrieve_container(
             container_id=self.container_id,
             custom_llm_provider="openai",
             mock_response=mock_response,
@@ -131,7 +131,7 @@ class TestContainerRouter:
         mock_handler.container_delete_handler.return_value = mock_response
 
         # Call the delete_container function with mock response
-        result = litellm.delete_container(
+        result = gateway.delete_container(
             container_id=self.container_id,
             custom_llm_provider="openai",
             mock_response=mock_response,
@@ -159,7 +159,7 @@ class TestContainerRouter:
         mock_handler.container_create_handler.return_value = mock_response
 
         # Call the async create_container function with mock response
-        result = await litellm.acreate_container(
+        result = await gateway.acreate_container(
             name=self.container_name,
             custom_llm_provider="openai",
             mock_response=mock_response,
@@ -194,7 +194,7 @@ class TestContainerRouter:
         mock_handler.container_list_handler.return_value = mock_response
 
         # Call the async list_containers function with mock response
-        result = await litellm.alist_containers(
+        result = await gateway.alist_containers(
             custom_llm_provider="openai", mock_response=mock_response
         )
 

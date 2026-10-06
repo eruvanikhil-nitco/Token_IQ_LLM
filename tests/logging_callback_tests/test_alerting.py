@@ -23,7 +23,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from openai import APIError
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.caching.caching import DualCache, RedisCache
 from token_iq.gateway.integrations.SlackAlerting.slack_alerting import (
     DeploymentMetrics,
@@ -244,7 +244,7 @@ async def test_send_alert(slack_alerting):
 @pytest.mark.asyncio
 async def test_daily_reports_unit_test(slack_alerting):
     with patch.object(slack_alerting, "send_alert", new=AsyncMock()) as mock_send_alert:
-        router = litellm.Router(
+        router = gateway.Router(
             model_list=[
                 {
                     "model_name": "test-gpt",
@@ -257,7 +257,7 @@ async def test_daily_reports_unit_test(slack_alerting):
             id="1234",
             failed_request=False,
             latency_per_output_token=20.3,
-            updated_at=litellm.utils.get_utc_datetime(),
+            updated_at=gateway.utils.get_utc_datetime(),
         )
 
         updated_val = await slack_alerting.async_update_daily_reports(
@@ -274,10 +274,10 @@ async def test_daily_reports_unit_test(slack_alerting):
 @pytest.mark.asyncio
 async def test_daily_reports_completion(slack_alerting):
     with patch.object(slack_alerting, "send_alert", new=AsyncMock()) as mock_send_alert:
-        litellm.callbacks = [slack_alerting]
+        gateway.callbacks = [slack_alerting]
 
         # on async success
-        router = litellm.Router(
+        router = gateway.Router(
             model_list=[
                 {
                     "model_name": "gpt-5.5",
@@ -301,7 +301,7 @@ async def test_daily_reports_completion(slack_alerting):
         mock_send_alert.assert_awaited_once()
 
         # on async failure
-        router = litellm.Router(
+        router = gateway.Router(
             model_list=[
                 {
                     "model_name": "gpt-5.5",
@@ -337,7 +337,7 @@ async def test_daily_reports_redis_cache_scheduler():
     slack_alerting.alerting_args.daily_report_frequency = 0
 
 
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "gpt-5.5",
@@ -377,7 +377,7 @@ async def test_daily_reports_redis_cache_scheduler():
 async def test_send_llm_exception_to_slack():
 
     # on async success
-    router = litellm.Router(
+    router = gateway.Router(
         model_list=[
             {
                 "model_name": "gpt-5-mini",
@@ -597,25 +597,25 @@ async def test_outage_alerting_called(
     """
     slack_alerting = SlackAlerting(alerting=["webhook"])
 
-    litellm.callbacks = [slack_alerting]
+    gateway.callbacks = [slack_alerting]
 
     error_to_raise: Optional[APIError] = None
 
     if error_code == 400:
         print("RAISING 400 ERROR CODE")
-        error_to_raise = litellm.BadRequestError(
+        error_to_raise = gateway.BadRequestError(
             message="this is a bad request",
             model=model,
             llm_provider=llm_provider,
         )
     elif error_code == 408:
         print("RAISING 408 ERROR CODE")
-        error_to_raise = litellm.Timeout(
+        error_to_raise = gateway.Timeout(
             message="A timeout occurred", model=model, llm_provider=llm_provider
         )
     elif error_code == 500:
         print("RAISING 500 ERROR CODE")
-        error_to_raise = litellm.ServiceUnavailableError(
+        error_to_raise = gateway.ServiceUnavailableError(
             message="API is unavailable",
             model=model,
             llm_provider=llm_provider,
@@ -705,25 +705,25 @@ async def test_region_outage_alerting_called(
         alerting=["webhook"], alert_types=[AlertType.region_outage_alerts]
     )
 
-    litellm.callbacks = [slack_alerting]
+    gateway.callbacks = [slack_alerting]
 
     error_to_raise: Optional[APIError] = None
 
     if error_code == 400:
         print("RAISING 400 ERROR CODE")
-        error_to_raise = litellm.BadRequestError(
+        error_to_raise = gateway.BadRequestError(
             message="this is a bad request",
             model=model,
             llm_provider=llm_provider,
         )
     elif error_code == 408:
         print("RAISING 408 ERROR CODE")
-        error_to_raise = litellm.Timeout(
+        error_to_raise = gateway.Timeout(
             message="A timeout occurred", model=model, llm_provider=llm_provider
         )
     elif error_code == 500:
         print("RAISING 500 ERROR CODE")
-        error_to_raise = litellm.ServiceUnavailableError(
+        error_to_raise = gateway.ServiceUnavailableError(
             message="API is unavailable",
             model=model,
             llm_provider=llm_provider,
@@ -789,7 +789,7 @@ async def test_langfuse_trace_id():
     from token_iq.gateway.core_utils.litellm_logging import Logging
     from token_iq.gateway.integrations.SlackAlerting.utils import _add_langfuse_trace_id_to_alert
 
-    litellm.success_callback = ["langfuse"]
+    gateway.success_callback = ["langfuse"]
 
     litellm_logging_obj = Logging(
         model="gpt-5-mini",
@@ -801,7 +801,7 @@ async def test_langfuse_trace_id():
         function_id="1234",
     )
 
-    litellm.completion(
+    gateway.completion(
         model="gpt-5-mini",
         messages=[{"role": "user", "content": "Hey how's it going?"}],
         mock_response="Hey!",
@@ -837,7 +837,7 @@ async def test_print_alerting_payload_warning():
     """
     Test if alerts are printed to verbose logger when log_to_console=True
     """
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     from token_iq.gateway._logging import verbose_proxy_logger
     from token_iq.gateway.integrations.SlackAlerting.batching_handler import send_to_webhook
     import logging

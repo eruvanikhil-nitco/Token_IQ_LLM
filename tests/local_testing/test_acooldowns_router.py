@@ -12,7 +12,7 @@ import concurrent
 
 from dotenv import load_dotenv
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 from token_iq.gateway import Router
 
@@ -56,7 +56,7 @@ def test_multiple_deployments_sync():
     import concurrent
     import time
 
-    litellm.set_verbose = False
+    gateway.set_verbose = False
     results = []
     kwargs = _make_kwargs()
     router = Router(
@@ -83,7 +83,7 @@ def test_multiple_deployments_sync():
 
 
 def test_multiple_deployments_parallel():
-    litellm.set_verbose = False  # Corrected the syntax for setting verbose to False
+    gateway.set_verbose = False  # Corrected the syntax for setting verbose to False
     results = []
     futures = {}
     kwargs = _make_kwargs()
@@ -138,7 +138,7 @@ async def test_cooldown_same_model_name(sync_mode):
     # azure/chatgpt, api_base: 1234
     # azure/chatgpt, api_base: 1235
     # if 1234 fails, it should only cooldown 1234 and then try with 1235
-    litellm.set_verbose = False
+    gateway.set_verbose = False
     try:
         print("testing cooldown same model name")
         model_list = [

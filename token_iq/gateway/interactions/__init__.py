@@ -4,7 +4,7 @@ LiteLLM Interactions API
 This module provides SDK methods for Google's Interactions API.
 
 Usage:
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     # Create an interaction with a model
     response = litellm.interactions.create(

@@ -738,7 +738,7 @@ class TestPostCallFailureHookEstimatesDispatchedInputTokens:
 
     @pytest.mark.asyncio
     async def test_image_message_estimated_without_fetching_image(self):
-        from token_iq import gateway as litellm_module
+        from token_iq import gateway as gateway_module
         from token_iq.gateway.types.utils import Usage
 
         messages = [
@@ -758,7 +758,7 @@ class TestPostCallFailureHookEstimatesDispatchedInputTokens:
 
         estimated = request_data["combined_usage_object"]
         assert isinstance(estimated, Usage)
-        expected = litellm_module.token_counter(
+        expected = gateway_module.token_counter(
             model="gpt-3.5-turbo", messages=messages, use_default_image_token_count=True
         )
         assert estimated.prompt_tokens == expected
@@ -766,7 +766,7 @@ class TestPostCallFailureHookEstimatesDispatchedInputTokens:
 
     @pytest.mark.asyncio
     async def test_embedding_string_list_input_counted_in_estimate(self):
-        from token_iq import gateway as litellm_module
+        from token_iq import gateway as gateway_module
         from token_iq.gateway.types.utils import Usage
 
         embedding_input = ["first embedding text", "second embedding text"]
@@ -775,7 +775,7 @@ class TestPostCallFailureHookEstimatesDispatchedInputTokens:
 
         estimated = request_data["combined_usage_object"]
         assert isinstance(estimated, Usage)
-        expected = litellm_module.token_counter(model="gpt-3.5-turbo", text="".join(embedding_input))
+        expected = gateway_module.token_counter(model="gpt-3.5-turbo", text="".join(embedding_input))
         assert estimated.prompt_tokens == expected
 
     @pytest.mark.asyncio
@@ -788,7 +788,7 @@ class TestPostCallFailureHookEstimatesDispatchedInputTokens:
 
     @pytest.mark.asyncio
     async def test_anthropic_system_prompt_counted_in_estimate(self):
-        from token_iq import gateway as litellm_module
+        from token_iq import gateway as gateway_module
         from token_iq.gateway.types.utils import Usage
 
         system_prompt = "You are a verbose historian who narrates every fact in exhaustive detail."
@@ -798,14 +798,14 @@ class TestPostCallFailureHookEstimatesDispatchedInputTokens:
 
         estimated = request_data["combined_usage_object"]
         assert isinstance(estimated, Usage)
-        expected = litellm_module.token_counter(
+        expected = gateway_module.token_counter(
             model="gpt-3.5-turbo", messages=messages
-        ) + litellm_module.token_counter(model="gpt-3.5-turbo", text=system_prompt)
+        ) + gateway_module.token_counter(model="gpt-3.5-turbo", text=system_prompt)
         assert estimated.prompt_tokens == expected
 
     @pytest.mark.asyncio
     async def test_anthropic_system_text_blocks_counted_in_estimate(self):
-        from token_iq import gateway as litellm_module
+        from token_iq import gateway as gateway_module
         from token_iq.gateway.types.utils import Usage
 
         system_blocks = [
@@ -818,16 +818,16 @@ class TestPostCallFailureHookEstimatesDispatchedInputTokens:
 
         estimated = request_data["combined_usage_object"]
         assert isinstance(estimated, Usage)
-        expected = litellm_module.token_counter(
+        expected = gateway_module.token_counter(
             model="gpt-3.5-turbo", messages=messages
-        ) + litellm_module.token_counter(
+        ) + gateway_module.token_counter(
             model="gpt-3.5-turbo", text="part one of the system prompt. part two of the system prompt."
         )
         assert estimated.prompt_tokens == expected
 
     @pytest.mark.asyncio
     async def test_responses_instructions_counted_in_estimate(self):
-        from token_iq import gateway as litellm_module
+        from token_iq import gateway as gateway_module
         from token_iq.gateway.types.utils import Usage
 
         instructions = "Answer every question as a meticulous archivist."
@@ -836,14 +836,14 @@ class TestPostCallFailureHookEstimatesDispatchedInputTokens:
 
         estimated = request_data["combined_usage_object"]
         assert isinstance(estimated, Usage)
-        expected = litellm_module.token_counter(
+        expected = gateway_module.token_counter(
             model="gpt-3.5-turbo", text="summarize the archive"
-        ) + litellm_module.token_counter(model="gpt-3.5-turbo", text=instructions)
+        ) + gateway_module.token_counter(model="gpt-3.5-turbo", text=instructions)
         assert estimated.prompt_tokens == expected
 
     @pytest.mark.asyncio
     async def test_request_body_system_counted_when_optional_params_empty(self):
-        from token_iq import gateway as litellm_module
+        from token_iq import gateway as gateway_module
         from token_iq.gateway.types.utils import Usage
 
         system_prompt = "You are a meticulous cartographer who labels every landmark."
@@ -856,14 +856,14 @@ class TestPostCallFailureHookEstimatesDispatchedInputTokens:
 
         estimated = request_data["combined_usage_object"]
         assert isinstance(estimated, Usage)
-        expected = litellm_module.token_counter(
+        expected = gateway_module.token_counter(
             model="gpt-3.5-turbo", messages=messages
-        ) + litellm_module.token_counter(model="gpt-3.5-turbo", text=system_prompt)
+        ) + gateway_module.token_counter(model="gpt-3.5-turbo", text=system_prompt)
         assert estimated.prompt_tokens == expected
 
     @pytest.mark.asyncio
     async def test_optional_params_system_wins_over_request_body_system(self):
-        from token_iq import gateway as litellm_module
+        from token_iq import gateway as gateway_module
         from token_iq.gateway.types.utils import Usage
 
         dispatched_system = "short dispatched system prompt"
@@ -876,15 +876,15 @@ class TestPostCallFailureHookEstimatesDispatchedInputTokens:
 
         estimated = request_data["combined_usage_object"]
         assert isinstance(estimated, Usage)
-        expected = litellm_module.token_counter(
+        expected = gateway_module.token_counter(
             model="gpt-3.5-turbo", messages=messages
-        ) + litellm_module.token_counter(model="gpt-3.5-turbo", text=dispatched_system)
+        ) + gateway_module.token_counter(model="gpt-3.5-turbo", text=dispatched_system)
         assert estimated.prompt_tokens == expected
 
 
 from typing import cast
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy.utils import create_model_info_response
 from token_iq.gateway.types.utils import ModelInfo
 
@@ -1014,7 +1014,7 @@ def test_create_model_info_response_survives_malformed_limits_registered_by_rout
     not just the router index. Guarding only the index path still 500s the whole listing."""
     from token_iq.gateway import Router
 
-    saved_model_cost = dict(litellm.model_cost)
+    saved_model_cost = dict(gateway.model_cost)
     try:
         router = Router(
             model_list=[
@@ -1032,8 +1032,8 @@ def test_create_model_info_response_survives_malformed_limits_registered_by_rout
             llm_router=router,
         )
     finally:
-        litellm.model_cost.clear()
-        litellm.model_cost.update(saved_model_cost)
+        gateway.model_cost.clear()
+        gateway.model_cost.update(saved_model_cost)
 
     assert response["id"] == "openai/some-unmapped-model"
     assert "max_input_tokens" not in response
@@ -1368,9 +1368,9 @@ def restore_callbacks():
     so a restored-but-different list can collide with a stale entry after GC and
     leak a has_guardrail verdict into unrelated tests in the same worker.
     """
-    original = list(litellm.callbacks)
+    original = list(gateway.callbacks)
     yield
-    litellm.callbacks = original
+    gateway.callbacks = original
     ProxyLogging._callback_capabilities_cache.clear()
 
 
@@ -1380,7 +1380,7 @@ async def test_post_mcp_call_hook_masks_tool_result(restore_callbacks):
     from mcp.types import CallToolResult, TextContent
 
     guardrail = _RecordingMCPGuardrail(event_hook=GuardrailEventHooks.post_mcp_call)
-    litellm.callbacks = [guardrail]
+    gateway.callbacks = [guardrail]
     proxy_logging_obj = ProxyLogging(user_api_key_cache=DualCache())
     result = CallToolResult(content=[TextContent(type="text", text="jane@example.com")], isError=False)
 
@@ -1401,7 +1401,7 @@ async def test_post_mcp_call_hook_skips_guardrail_configured_for_other_hooks(res
     from mcp.types import CallToolResult, TextContent
 
     guardrail = _RecordingMCPGuardrail(event_hook=GuardrailEventHooks.post_call)
-    litellm.callbacks = [guardrail]
+    gateway.callbacks = [guardrail]
     proxy_logging_obj = ProxyLogging(user_api_key_cache=DualCache())
     result = CallToolResult(content=[TextContent(type="text", text="jane@example.com")], isError=False)
 
@@ -1422,7 +1422,7 @@ async def test_post_mcp_call_hook_skips_guardrail_without_apply_guardrail(restor
     from mcp.types import CallToolResult, TextContent
 
     guardrail = _NativeMCPGuardrail()
-    litellm.callbacks = [guardrail]
+    gateway.callbacks = [guardrail]
     proxy_logging_obj = ProxyLogging(user_api_key_cache=DualCache())
     result = CallToolResult(content=[TextContent(type="text", text="jane@example.com")], isError=False)
 
@@ -1447,7 +1447,7 @@ async def test_post_mcp_call_hook_propagates_guardrail_block(restore_callbacks):
         event_hook=GuardrailEventHooks.post_mcp_call,
         raises=BlockedPiiEntityError(entity_type="EMAIL_ADDRESS", guardrail_name="mcp-output-guardrail"),
     )
-    litellm.callbacks = [guardrail]
+    gateway.callbacks = [guardrail]
     proxy_logging_obj = ProxyLogging(user_api_key_cache=DualCache())
     result = CallToolResult(content=[TextContent(type="text", text="jane@example.com")], isError=False)
 
@@ -1581,7 +1581,7 @@ async def test_post_mcp_call_hook_skips_opted_out_guardrail(restore_callbacks):
             return await super().apply_guardrail(inputs, request_data, input_type, **kwargs)
 
     guardrail = _OptedOutMCPGuardrail(event_hook=GuardrailEventHooks.post_mcp_call)
-    litellm.callbacks = [guardrail]
+    gateway.callbacks = [guardrail]
     proxy_logging_obj = ProxyLogging(user_api_key_cache=DualCache())
     result = CallToolResult(content=[TextContent(type="text", text="jane@example.com")], isError=False)
 
@@ -1787,11 +1787,11 @@ async def test_proxy_only_error_expected_4xx_skips_traceback_for_both_handlers(m
     either the async or the threaded sync failure handler."""
     import asyncio
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.core_utils.litellm_logging import Logging
     from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
-    monkeypatch.setattr(litellm, "failure_callback", [])
+    monkeypatch.setattr(gateway, "failure_callback", [])
     proxy_logging_obj = ProxyLogging(user_api_key_cache=DualCache())
     captured = {}
     sync_ran = asyncio.Event()
@@ -1836,14 +1836,14 @@ async def test_proxy_only_error_5xx_keeps_traceback_and_runs_sync_callbacks(monk
     sync-only failure callback still gets its threaded handler."""
     import asyncio
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.core_utils.litellm_logging import Logging
     from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
     def _custom_sync_callback(kwargs, completion_response, start_time, end_time):
         pass
 
-    monkeypatch.setattr(litellm, "failure_callback", [_custom_sync_callback])
+    monkeypatch.setattr(gateway, "failure_callback", [_custom_sync_callback])
     proxy_logging_obj = ProxyLogging(user_api_key_cache=DualCache())
     captured = {}
     sync_ran = asyncio.Event()

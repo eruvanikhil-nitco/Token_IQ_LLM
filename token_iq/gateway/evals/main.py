@@ -11,7 +11,7 @@ from typing import Final
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.constants import request_timeout
 from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
 from token_iq.gateway.llms.base_llm.evals.transformation import BaseEvalsAPIConfig
@@ -101,7 +101,7 @@ async def acreate_eval(
             response = init_response
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=None,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -156,7 +156,7 @@ def create_eval(
 
         # Get provider config
         evals_api_provider_config: BaseEvalsAPIConfig | None = ProviderConfigManager.get_provider_evals_api_config(
-            provider=litellm.LlmProviders(custom_llm_provider),
+            provider=gateway.LlmProviders(custom_llm_provider),
         )
 
         if evals_api_provider_config is None:
@@ -217,7 +217,7 @@ def create_eval(
 
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=None,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -286,7 +286,7 @@ async def alist_evals(
             response = init_response
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=None,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -341,7 +341,7 @@ def list_evals(
 
         # Get provider config
         evals_api_provider_config: BaseEvalsAPIConfig | None = ProviderConfigManager.get_provider_evals_api_config(
-            provider=litellm.LlmProviders(custom_llm_provider),
+            provider=gateway.LlmProviders(custom_llm_provider),
         )
 
         if evals_api_provider_config is None:
@@ -403,7 +403,7 @@ def list_evals(
 
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=None,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -460,7 +460,7 @@ async def aget_eval(
             response = init_response
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=None,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -507,7 +507,7 @@ def get_eval(
 
         # Get provider config
         evals_api_provider_config: BaseEvalsAPIConfig | None = ProviderConfigManager.get_provider_evals_api_config(
-            provider=litellm.LlmProviders(custom_llm_provider),
+            provider=gateway.LlmProviders(custom_llm_provider),
         )
 
         if evals_api_provider_config is None:
@@ -553,7 +553,7 @@ def get_eval(
 
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=None,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -619,7 +619,7 @@ async def aupdate_eval(
             response = init_response
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=None,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -672,7 +672,7 @@ def update_eval(
 
         # Get provider config
         evals_api_provider_config: BaseEvalsAPIConfig | None = ProviderConfigManager.get_provider_evals_api_config(
-            provider=litellm.LlmProviders(custom_llm_provider),
+            provider=gateway.LlmProviders(custom_llm_provider),
         )
 
         if evals_api_provider_config is None:
@@ -773,7 +773,7 @@ def update_eval(
 
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=None,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -830,7 +830,7 @@ async def adelete_eval(
             response = init_response
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=None,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -877,7 +877,7 @@ def delete_eval(
 
         # Get provider config
         evals_api_provider_config: BaseEvalsAPIConfig | None = ProviderConfigManager.get_provider_evals_api_config(
-            provider=litellm.LlmProviders(custom_llm_provider),
+            provider=gateway.LlmProviders(custom_llm_provider),
         )
 
         if evals_api_provider_config is None:
@@ -923,7 +923,7 @@ def delete_eval(
 
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=None,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -980,7 +980,7 @@ async def acancel_eval(
             response = init_response
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=None,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -1027,7 +1027,7 @@ def cancel_eval(
 
         # Get provider config
         evals_api_provider_config: BaseEvalsAPIConfig | None = ProviderConfigManager.get_provider_evals_api_config(
-            provider=litellm.LlmProviders(custom_llm_provider),
+            provider=gateway.LlmProviders(custom_llm_provider),
         )
 
         if evals_api_provider_config is None:
@@ -1077,7 +1077,7 @@ def cancel_eval(
 
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=None,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -1151,7 +1151,7 @@ async def acreate_run(
             response = init_response
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=None,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -1206,7 +1206,7 @@ def create_run(
 
         # Get provider config
         evals_api_provider_config: BaseEvalsAPIConfig | None = ProviderConfigManager.get_provider_evals_api_config(
-            provider=litellm.LlmProviders(custom_llm_provider),
+            provider=gateway.LlmProviders(custom_llm_provider),
         )
 
         if evals_api_provider_config is None:
@@ -1266,7 +1266,7 @@ def create_run(
 
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=None,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -1335,7 +1335,7 @@ async def alist_runs(
             response = init_response
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=None,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -1390,7 +1390,7 @@ def list_runs(
 
         # Get provider config
         evals_api_provider_config: BaseEvalsAPIConfig | None = ProviderConfigManager.get_provider_evals_api_config(
-            provider=litellm.LlmProviders(custom_llm_provider),
+            provider=gateway.LlmProviders(custom_llm_provider),
         )
 
         if evals_api_provider_config is None:
@@ -1451,7 +1451,7 @@ def list_runs(
 
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=None,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -1511,7 +1511,7 @@ async def aget_run(
             response = init_response
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=None,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -1560,7 +1560,7 @@ def get_run(
 
         # Get provider config
         evals_api_provider_config: BaseEvalsAPIConfig | None = ProviderConfigManager.get_provider_evals_api_config(
-            provider=litellm.LlmProviders(custom_llm_provider),
+            provider=gateway.LlmProviders(custom_llm_provider),
         )
 
         if evals_api_provider_config is None:
@@ -1607,7 +1607,7 @@ def get_run(
 
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=None,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -1667,7 +1667,7 @@ async def acancel_run(
             response = init_response
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=None,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -1716,7 +1716,7 @@ def cancel_run(
 
         # Get provider config
         evals_api_provider_config: BaseEvalsAPIConfig | None = ProviderConfigManager.get_provider_evals_api_config(
-            provider=litellm.LlmProviders(custom_llm_provider),
+            provider=gateway.LlmProviders(custom_llm_provider),
         )
 
         if evals_api_provider_config is None:
@@ -1767,7 +1767,7 @@ def cancel_run(
 
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=None,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -1832,7 +1832,7 @@ async def adelete_run(
             response = init_response
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=None,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -1881,7 +1881,7 @@ def delete_run(
 
         # Get provider config
         evals_api_provider_config: BaseEvalsAPIConfig | None = ProviderConfigManager.get_provider_evals_api_config(
-            provider=litellm.LlmProviders(custom_llm_provider),
+            provider=gateway.LlmProviders(custom_llm_provider),
         )
 
         if evals_api_provider_config is None:
@@ -1932,7 +1932,7 @@ def delete_run(
 
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=None,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,

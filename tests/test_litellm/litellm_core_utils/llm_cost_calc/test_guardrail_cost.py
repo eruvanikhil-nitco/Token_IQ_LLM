@@ -2,7 +2,7 @@ import os
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.llm_cost_calc.guardrail_cost import (
     bedrock_guardrail_cost,
     cost_breakdown_with_guardrail,
@@ -13,7 +13,7 @@ from token_iq.gateway.core_utils.llm_cost_calc.guardrail_cost import (
 @pytest.fixture
 def synthetic_cost_map(monkeypatch):
     monkeypatch.setattr(
-        litellm,
+        gateway,
         "model_cost",
         {
             "bedrock/guardrails": {
@@ -52,14 +52,14 @@ def test_bedrock_guardrail_cost_malformed_regional_entry_falls_back(synthetic_co
 
 
 def test_bedrock_guardrail_cost_no_pricing_entry(monkeypatch):
-    monkeypatch.setattr(litellm, "model_cost", {})
+    monkeypatch.setattr(gateway, "model_cost", {})
     assert bedrock_guardrail_cost(usage_units={"contentPolicyUnits": 1}, aws_region_name="us-east-1") == 0.0
 
 
 def test_shipped_bedrock_guardrail_prices_match_aws_pricing_page(monkeypatch):
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    litellm.model_cost = litellm.get_model_cost_map()
-    assert litellm.model_cost["bedrock/guardrails"]["guardrail_cost_per_unit"] == {
+    gateway.model_cost = gateway.get_model_cost_map()
+    assert gateway.model_cost["bedrock/guardrails"]["guardrail_cost_per_unit"] == {
         "automatedReasoningPolicyUnits": 0.00017,
         "contentPolicyImageUnits": 0.00075,
         "contentPolicyUnits": 0.00015,
@@ -69,7 +69,7 @@ def test_shipped_bedrock_guardrail_prices_match_aws_pricing_page(monkeypatch):
         "topicPolicyUnits": 0.00015,
         "wordPolicyUnits": 0.0,
     }
-    assert "bedrock/guardrails" not in litellm.bedrock_models
+    assert "bedrock/guardrails" not in gateway.bedrock_models
 
 
 def test_guardrail_information_cost_sums_entries():

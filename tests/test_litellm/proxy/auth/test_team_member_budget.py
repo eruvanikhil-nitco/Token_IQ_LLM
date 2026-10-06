@@ -7,7 +7,7 @@ import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 from fastapi import Request
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy._types import (
     LiteLLM_BudgetTable,
     LiteLLM_TeamMembership,
@@ -75,7 +75,7 @@ async def test_team_member_budget_check_exceeds_budget():
         patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", mock_user_api_key_cache),
     ):
         # Should raise BudgetExceededError
-        with pytest.raises(litellm.BudgetExceededError) as exc_info:
+        with pytest.raises(gateway.BudgetExceededError) as exc_info:
             await common_checks(
                 request_body=request_body,
                 team_object=team_object,
@@ -352,7 +352,7 @@ async def test_team_member_budget_check_blocks_regenerated_key_after_old_key_exh
         patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client),
         patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache", mock_user_api_key_cache),
     ):
-        with pytest.raises(litellm.BudgetExceededError) as exc_info:
+        with pytest.raises(gateway.BudgetExceededError) as exc_info:
             await common_checks(
                 request_body=request_body,
                 team_object=team_object,

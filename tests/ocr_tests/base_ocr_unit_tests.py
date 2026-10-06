@@ -5,7 +5,7 @@ This follows the same pattern as BaseLLMChatTest in tests/llm_translation/base_l
 """
 
 import pytest
-from token_iq import gateway as litellm
+from token_iq import gateway
 import os
 from abc import ABC, abstractmethod
 
@@ -42,20 +42,20 @@ class BaseOCRTest(ABC):
         """
         Test basic OCR with a public URL.
         """
-        litellm._turn_on_debug()
+        gateway._turn_on_debug()
         base_ocr_call_args = self.get_base_ocr_call_args()
         print("BASE OCR Call args=", base_ocr_call_args)
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-        litellm.model_cost = litellm.get_model_cost_map()
+        gateway.model_cost = gateway.get_model_cost_map()
 
         try:
             if sync_mode:
-                response = litellm.ocr(
+                response = gateway.ocr(
                     document={"type": "document_url", "document_url": TEST_PDF_URL},
                     **base_ocr_call_args,
                 )
             else:
-                response = await litellm.aocr(
+                response = await gateway.aocr(
                     document={"type": "document_url", "document_url": TEST_PDF_URL},
                     **base_ocr_call_args,
                 )
@@ -119,15 +119,15 @@ class BaseOCRTest(ABC):
             assert response_cost > 0, "Response cost should be greater than 0"
             print("response_cost=", response_cost)
 
-        except litellm.RateLimitError as e:
+        except gateway.RateLimitError as e:
             error_msg = str(e)
             if "Quota exceeded" in error_msg or "RESOURCE_EXHAUSTED" in error_msg:
                 pytest.skip(f"Quota exceeded - {error_msg}")
             else:
                 pytest.skip(f"Rate limit exceeded - {error_msg}")
-        except litellm.InternalServerError:
+        except gateway.InternalServerError:
             pytest.skip("Model is overloaded")
-        except litellm.BadRequestError as e:
+        except gateway.BadRequestError as e:
             error_msg = str(e)
             if (
                 "URL_REJECTED" in error_msg
@@ -143,11 +143,11 @@ class BaseOCRTest(ABC):
         """
         Test that the OCR response has the correct structure.
         """
-        litellm.set_verbose = True
+        gateway.set_verbose = True
         base_ocr_call_args = self.get_base_ocr_call_args()
 
         try:
-            response = litellm.ocr(
+            response = gateway.ocr(
                 document={"type": "document_url", "document_url": TEST_PDF_URL},
                 **base_ocr_call_args,
             )
@@ -182,15 +182,15 @@ class BaseOCRTest(ABC):
                 print(f"  - pages_processed: {response.usage_info.pages_processed}")
                 print(f"  - doc_size_bytes: {response.usage_info.doc_size_bytes}")
 
-        except litellm.RateLimitError as e:
+        except gateway.RateLimitError as e:
             error_msg = str(e)
             if "Quota exceeded" in error_msg or "RESOURCE_EXHAUSTED" in error_msg:
                 pytest.skip(f"Quota exceeded - {error_msg}")
             else:
                 pytest.skip(f"Rate limit exceeded - {error_msg}")
-        except litellm.InternalServerError:
+        except gateway.InternalServerError:
             pytest.skip("Model is overloaded")
-        except litellm.BadRequestError as e:
+        except gateway.BadRequestError as e:
             error_msg = str(e)
             if (
                 "URL_REJECTED" in error_msg

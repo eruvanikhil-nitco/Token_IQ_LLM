@@ -31,7 +31,7 @@ import pytest
 import httpx
 from unittest.mock import patch
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.exception_mapping_utils import exception_type
 from token_iq.gateway.exceptions import APIError, APIConnectionError
 
@@ -167,7 +167,7 @@ def test_huggingface_specific_case():
             pytest.fail(
                 f"HuggingFace exception handling failed: Should not raise AttributeError about missing 'request' attribute: {e}"
             )
-    except litellm.ContextWindowExceededError:
+    except gateway.ContextWindowExceededError:
         # Expected for "length limit exceeded" message
         pass
     except Exception:

@@ -8,7 +8,7 @@ import pytest
 from unittest.mock import Mock, patch, MagicMock
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 from tests.vector_store_tests.base_vector_store_test import BaseVectorStoreTest
 from token_iq.gateway.llms.ragflow.vector_stores.transformation import RAGFlowVectorStoreConfig
@@ -316,8 +316,8 @@ class TestRAGFlowVectorStore(BaseVectorStoreTest):
     @pytest.mark.asyncio
     async def test_basic_create_vector_store(self, sync_mode):
         """Override to handle RAGFlow-specific connection errors."""
-        litellm._turn_on_debug()
-        litellm.set_verbose = True
+        gateway._turn_on_debug()
+        gateway.set_verbose = True
         base_request_args = self.get_base_create_vector_store_args()
 
         # Skip if no API key is set
@@ -328,14 +328,14 @@ class TestRAGFlowVectorStore(BaseVectorStoreTest):
         create_args = base_request_args
         try:
             if sync_mode:
-                response = litellm.vector_stores.create(
+                response = gateway.vector_stores.create(
                     name=f"test-ragflow-{int(__import__('time').time())}", **create_args
                 )
             else:
-                response = await litellm.vector_stores.acreate(
+                response = await gateway.vector_stores.acreate(
                     name=f"test-ragflow-{int(__import__('time').time())}", **create_args
                 )
-        except litellm.InternalServerError:
+        except gateway.InternalServerError:
             pytest.skip("Skipping test due to litellm.InternalServerError")
         except Exception as e:
             error_str = str(e).lower()

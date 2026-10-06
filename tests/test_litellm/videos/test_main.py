@@ -38,7 +38,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.custom_httpx.llm_http_handler import BaseLLMHTTPHandler
 from token_iq.gateway.types.videos.main import CharacterObject, VideoObject
 from token_iq.gateway.types.videos.utils import encode_video_id_with_provider
@@ -156,7 +156,7 @@ def test_video_status__dispatch_and_provider_from_id(seams):
     assert kw["video_status_provider_config"] is seams.config
     assert kw["_is_async"] is False
     # provider config requested for the decoded provider, not a hardcode.
-    assert seams.get_config.call_args.kwargs["provider"] == litellm.LlmProviders.AZURE
+    assert seams.get_config.call_args.kwargs["provider"] == gateway.LlmProviders.AZURE
 
 
 def test_video_content__dispatch_and_provider_from_id(seams):
@@ -318,7 +318,7 @@ def test_get_character__mock_response_short_circuits(seams):
 def test_unsupported_provider_raises_without_dispatch(seams):
     seams.get_config.return_value = None
 
-    with pytest.raises(litellm.APIConnectionError):
+    with pytest.raises(gateway.APIConnectionError):
         videos_main.video_status(video_id=AZURE_VIDEO_ID)
 
     seams.handler.video_status_handler.assert_not_called()
@@ -337,7 +337,7 @@ async def test_avideo_generation__delegates_with_async_flag():
             videos_main, "video_generation", MagicMock(return_value=sentinel)
         ) as sync,
         patch.object(
-            litellm,
+            gateway,
             "get_llm_provider",
             MagicMock(return_value=("sora-2", "openai", None, None)),
         ),

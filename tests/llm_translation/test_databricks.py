@@ -7,7 +7,7 @@ from typing import Any, Dict, List
 from unittest.mock import MagicMock, Mock, patch, ANY
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.exceptions import BadRequestError
 from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
 from token_iq.gateway.utils import CustomStreamWrapper
@@ -404,14 +404,14 @@ def test_throws_if_api_base_or_api_key_not_set_without_databricks_sdk(
         )
 
     with pytest.raises(BadRequestError) as exc:
-        litellm.completion(
+        gateway.completion(
             model="databricks/dbrx-instruct-071224",
             messages=[{"role": "user", "content": "How are you?"}],
         )
     assert any(msg in str(exc) for msg in err_msg)
 
     with pytest.raises(BadRequestError) as exc:
-        litellm.embedding(
+        gateway.embedding(
             model="databricks/bge-12312",
             input=["Hello", "World"],
         )
@@ -439,7 +439,7 @@ def test_completions_with_sync_http_handler(monkeypatch):
     messages = [{"role": "user", "content": "How are you?"}]
 
     with patch.object(HTTPHandler, "post", return_value=mock_response) as mock_post:
-        response = litellm.completion(
+        response = gateway.completion(
             model="databricks/dbrx-instruct-071224",
             messages=messages,
             client=sync_handler,
@@ -493,7 +493,7 @@ def test_completions_with_async_http_handler(monkeypatch):
         AsyncHTTPHandler, "post", return_value=mock_response
     ) as mock_post:
         response = asyncio.run(
-            litellm.acompletion(
+            gateway.acompletion(
                 model="databricks/dbrx-instruct-071224",
                 messages=messages,
                 client=async_handler,
@@ -536,7 +536,7 @@ def test_completions_streaming_with_sync_http_handler(monkeypatch):
     mock_response = mock_http_handler_chat_streaming_response()
 
     with patch.object(HTTPHandler, "post", return_value=mock_response) as mock_post:
-        response_stream: CustomStreamWrapper = litellm.completion(
+        response_stream: CustomStreamWrapper = gateway.completion(
             model="databricks/dbrx-instruct-071224",
             messages=messages,
             client=sync_handler,
@@ -587,7 +587,7 @@ def test_completions_streaming_with_async_http_handler(monkeypatch):
         AsyncHTTPHandler, "post", return_value=mock_response
     ) as mock_post:
         response_stream: CustomStreamWrapper = asyncio.run(
-            litellm.acompletion(
+            gateway.acompletion(
                 model="databricks/dbrx-instruct-071224",
                 messages=messages,
                 client=async_handler,
@@ -666,7 +666,7 @@ def test_completions_uses_databricks_sdk_if_api_key_and_base_not_specified(monke
         patch("databricks.sdk.WorkspaceClient", return_value=mock_workspace_client),
         patch.object(HTTPHandler, "post", return_value=mock_response) as mock_post,
     ):
-        response = litellm.completion(
+        response = gateway.completion(
             model="databricks/dbrx-instruct-071224",
             messages=messages,
             client=sync_handler,
@@ -708,7 +708,7 @@ def test_embeddings_with_sync_http_handler(monkeypatch):
     inputs = ["Hello", "World"]
 
     with patch.object(HTTPHandler, "post", return_value=mock_response) as mock_post:
-        response = litellm.embedding(
+        response = gateway.embedding(
             model="databricks/bge-large-en-v1.5",
             input=inputs,
             client=sync_handler,
@@ -750,7 +750,7 @@ def test_embeddings_with_async_http_handler(monkeypatch):
         AsyncHTTPHandler, "post", return_value=mock_response
     ) as mock_post:
         response = asyncio.run(
-            litellm.aembedding(
+            gateway.aembedding(
                 model="databricks/bge-large-en-v1.5",
                 input=inputs,
                 client=async_handler,
@@ -809,7 +809,7 @@ def test_embeddings_uses_databricks_sdk_if_api_key_and_base_not_specified(monkey
         patch("databricks.sdk.WorkspaceClient", return_value=mock_workspace_client),
         patch.object(HTTPHandler, "post", return_value=mock_response) as mock_post,
     ):
-        response = litellm.embedding(
+        response = gateway.embedding(
             model="databricks/bge-large-en-v1.5",
             input=inputs,
             client=sync_handler,
@@ -873,13 +873,13 @@ async def test_databricks_embeddings(sync_mode, monkeypatch):
     inputs = ["good morning from litellm"]
     instruction = "Represent this sentence for searching relevant passages:"
 
-    litellm.set_verbose = True
-    litellm.drop_params = True
+    gateway.set_verbose = True
+    gateway.drop_params = True
 
     if sync_mode:
         sync_handler = HTTPHandler()
         with patch.object(HTTPHandler, "post", return_value=mock_response) as mock_post:
-            response = litellm.embedding(
+            response = gateway.embedding(
                 model="databricks/databricks-bge-large-en",
                 input=inputs,
                 instruction=instruction,
@@ -910,7 +910,7 @@ async def test_databricks_embeddings(sync_mode, monkeypatch):
         with patch.object(
             AsyncHTTPHandler, "post", return_value=mock_response
         ) as mock_post:
-            response = await litellm.aembedding(
+            response = await gateway.aembedding(
                 model="databricks/databricks-bge-large-en",
                 input=inputs,
                 instruction=instruction,
@@ -973,7 +973,7 @@ def test_completion_with_prompt_caching_anthropic_model(monkeypatch):
     ]
 
     with patch.object(HTTPHandler, "post", return_value=mock_response) as mock_post:
-        response = litellm.completion(
+        response = gateway.completion(
             model="databricks/databricks-claude-3-7-sonnet",
             messages=messages,
             client=sync_handler,
@@ -1036,7 +1036,7 @@ def test_completion_with_prompt_caching_anthropic_model_repeat(monkeypatch):
     ]
 
     with patch.object(HTTPHandler, "post", return_value=mock_response) as mock_post:
-        response = litellm.completion(
+        response = gateway.completion(
             model="databricks/databricks-claude-3-7-sonnet",
             messages=messages,
             client=sync_handler,
@@ -1098,7 +1098,7 @@ def test_completion_with_prompt_caching_nonanthropic_model(monkeypatch):
     ]
 
     with patch.object(HTTPHandler, "post", return_value=mock_response) as mock_post:
-        response = litellm.completion(
+        response = gateway.completion(
             model="databricks/databricks-gpt-oss-20b",
             messages=messages,
             client=sync_handler,
@@ -1196,7 +1196,7 @@ def test_databricks_anthropic_function_call_with_no_schema(model, monkeypatch):
     ]
 
     with patch.object(HTTPHandler, "post", return_value=mock_response):
-        response = litellm.completion(
+        response = gateway.completion(
             model=model,
             messages=messages,
             tools=tools,
@@ -1231,7 +1231,7 @@ def test_databricks_anthropic_user_string_content_cache_injection(monkeypatch):
     cache_control_injection_points = [{"location": "message", "role": "user"}]
 
     with patch.object(HTTPHandler, "post", return_value=mock_response) as mock_post:
-        response = litellm.completion(
+        response = gateway.completion(
             model="databricks/databricks-claude-3-7-sonnet",
             messages=messages,
             client=sync_handler,
@@ -1278,7 +1278,7 @@ def test_databricks_anthropic_system_string_content_cache_injection(monkeypatch)
     cache_control_injection_points = [{"location": "message", "role": "system"}]
 
     with patch.object(HTTPHandler, "post", return_value=mock_response) as mock_post:
-        response = litellm.completion(
+        response = gateway.completion(
             model="databricks/databricks-claude-3-7-sonnet",
             messages=messages,
             client=sync_handler,
@@ -1332,7 +1332,7 @@ def test_databricks_anthropic_system_string_content_cache_injection_not_enough_t
     cache_control_injection_points = [{"location": "message", "role": "system"}]
 
     with patch.object(HTTPHandler, "post", return_value=mock_response) as mock_post:
-        response = litellm.completion(
+        response = gateway.completion(
             model="databricks/databricks-claude-3-7-sonnet",
             messages=messages,
             client=sync_handler,

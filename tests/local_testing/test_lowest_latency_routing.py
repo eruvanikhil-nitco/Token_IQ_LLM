@@ -15,7 +15,7 @@ import copy
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import Router
 from token_iq.gateway.caching.caching import DualCache
 from token_iq.gateway.router_strategy.lowest_latency import LowestLatencyLoggingHandler
@@ -578,9 +578,9 @@ async def test_lowest_latency_routing_with_timeouts():
     - Run 10 more requests
     - All requests should have been routed to endpoint 2
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    litellm.set_verbose = True
+    gateway.set_verbose = True
 
     router = Router(
         model_list=[
@@ -653,9 +653,9 @@ async def test_lowest_latency_routing_first_pick():
     - IT SHOULD NEVER PICK THE Very First deployment everytime all deployment latencies are 0
     - This ensures that after the ttl window resets it randomly picks a deployment
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    litellm.set_verbose = True
+    gateway.set_verbose = True
 
     router = Router(
         model_list=[
@@ -871,8 +871,8 @@ async def test_lowest_latency_routing_time_to_first_token(sync_mode):
         "completion_start_time": one_second_later,
     }
 
-    response_obj = litellm.ModelResponse(
-        usage=litellm.Usage(completion_tokens=50, total_tokens=50)
+    response_obj = gateway.ModelResponse(
+        usage=gateway.Usage(completion_tokens=50, total_tokens=50)
     )
     end_time = four_seconds_later
 
@@ -902,8 +902,8 @@ async def test_lowest_latency_routing_time_to_first_token(sync_mode):
         "stream": True,
         "completion_start_time": three_seconds_later,
     }
-    response_obj = litellm.ModelResponse(
-        usage=litellm.Usage(completion_tokens=50, total_tokens=50)
+    response_obj = gateway.ModelResponse(
+        usage=gateway.Usage(completion_tokens=50, total_tokens=50)
     )
     end_time = three_seconds_later
     if sync_mode:
@@ -1111,8 +1111,8 @@ def test_ttft_list_trimming_discards_oldest_entry():
             "completion_start_time": completion_start_time,
         }
         # TTFT is only recorded when response_obj is a ModelResponse.
-        response_obj = litellm.ModelResponse(
-            usage=litellm.Usage(completion_tokens=1, total_tokens=1)
+        response_obj = gateway.ModelResponse(
+            usage=gateway.Usage(completion_tokens=1, total_tokens=1)
         )
 
         lowest_latency_logger.log_success_event(
@@ -1185,7 +1185,7 @@ async def test_timeout_penalty_discards_oldest_entry():
     # oldest normal entry (1.0).
     timeout_kwargs = {
         **kwargs,
-        "exception": litellm.Timeout(
+        "exception": gateway.Timeout(
             message="Request timed out", model="test-model", llm_provider="test"
         ),
     }
@@ -1307,8 +1307,8 @@ async def test_ttft_list_trimming_discards_oldest_entry_async():
             "stream": True,
             "completion_start_time": completion_start_time,
         }
-        response_obj = litellm.ModelResponse(
-            usage=litellm.Usage(completion_tokens=1, total_tokens=1)
+        response_obj = gateway.ModelResponse(
+            usage=gateway.Usage(completion_tokens=1, total_tokens=1)
         )
 
         await lowest_latency_logger.async_log_success_event(

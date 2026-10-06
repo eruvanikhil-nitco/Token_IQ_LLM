@@ -899,11 +899,11 @@ class CustomLogger:
         """
         from copy import copy
 
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway import Choices, Message, ModelResponse
 
         turn_off_message_logging: Final[bool] = getattr(self, "turn_off_message_logging", False)
-        excluded_fields: Final[list[str] | None] = getattr(litellm, "standard_logging_payload_excluded_fields", None)
+        excluded_fields: Final[list[str] | None] = getattr(gateway, "standard_logging_payload_excluded_fields", None)
 
         # Early return if no processing needed
         if turn_off_message_logging is False and not excluded_fields:
@@ -974,10 +974,10 @@ class CustomLogger:
         Call this method in exception handlers within your callback when logging fails.
         """
         try:
-            from token_iq import gateway as litellm
+            from token_iq import gateway
             from token_iq.gateway._logging import verbose_logger
 
-            all_callbacks: Final = litellm.logging_callback_manager._get_all_callbacks()
+            all_callbacks: Final = gateway.logging_callback_manager._get_all_callbacks()
 
             for callback_obj in all_callbacks:
                 if hasattr(callback_obj, "increment_callback_logging_failure"):

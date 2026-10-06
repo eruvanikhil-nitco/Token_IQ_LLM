@@ -16,7 +16,7 @@ from typing import Any, Dict, Optional
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.types.rag import RAGIngestOptions, BedrockVectorStoreOptions
 from tests.vector_store_tests.rag.base_rag_tests import BaseRAGTest
 

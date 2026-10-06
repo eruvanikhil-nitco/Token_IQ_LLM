@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from pydantic import BaseModel
 from token_iq.gateway import utils, Router
 
@@ -121,7 +121,7 @@ def test_async_rate_limit(
         ExpectNoException: Signfies that no other error has happened. A NOP
     """
     # Can send more messages then we're going to; so don't expect a rate limit error
-    litellm.logging_callback_manager._reset_all_callbacks()
+    gateway.logging_callback_manager._reset_all_callbacks()
     args = locals()
     print(f"args: {args}")
     expected_exception = (

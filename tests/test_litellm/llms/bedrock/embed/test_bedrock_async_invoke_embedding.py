@@ -3,7 +3,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
 from token_iq.gateway.types.llms.base import HiddenParams
 
@@ -48,7 +48,7 @@ class TestBedrockAsyncInvokeEmbedding:
         )
 
         # Verify response structure
-        assert isinstance(response, litellm.EmbeddingResponse)
+        assert isinstance(response, gateway.EmbeddingResponse)
         assert hasattr(response, "_hidden_params")
         assert response._hidden_params is not None
 
@@ -81,7 +81,7 @@ class TestBedrockAsyncInvokeEmbedding:
         )
 
         # Verify response structure
-        assert isinstance(response, litellm.EmbeddingResponse)
+        assert isinstance(response, gateway.EmbeddingResponse)
         assert hasattr(response, "_hidden_params")
         assert response._hidden_params is not None
 
@@ -159,7 +159,7 @@ class TestBedrockAsyncInvokeEmbedding:
             mock_response.json = lambda: json.loads(mock_response.text)
             mock_post.return_value = mock_response
 
-            response = litellm.embedding(
+            response = gateway.embedding(
                 model=model,
                 input=test_input,
                 client=client,
@@ -171,7 +171,7 @@ class TestBedrockAsyncInvokeEmbedding:
             )
 
             # Verify response structure
-            assert isinstance(response, litellm.EmbeddingResponse)
+            assert isinstance(response, gateway.EmbeddingResponse)
             assert hasattr(response, "_hidden_params")
             assert response._hidden_params is not None
             assert hasattr(response._hidden_params, "_invocation_arn")
@@ -198,7 +198,7 @@ class TestBedrockAsyncInvokeEmbedding:
             mock_response.json = Mock(return_value=async_invoke_response)
             mock_post.return_value = mock_response
 
-            response = await litellm.aembedding(
+            response = await gateway.aembedding(
                 model=model,
                 input=test_input,
                 client=client,
@@ -210,7 +210,7 @@ class TestBedrockAsyncInvokeEmbedding:
             )
 
             # Verify response structure
-            assert isinstance(response, litellm.EmbeddingResponse)
+            assert isinstance(response, gateway.EmbeddingResponse)
             assert hasattr(response, "_hidden_params")
             assert response._hidden_params is not None
             assert hasattr(response._hidden_params, "_invocation_arn")

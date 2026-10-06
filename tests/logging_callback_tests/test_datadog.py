@@ -20,7 +20,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import completion
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.integrations.datadog.datadog import *
@@ -180,9 +180,9 @@ async def test_datadog_logging_http_request():
         os.environ["DD_API_KEY"] = "anything"
         dd_logger = DataDogLogger()
 
-        litellm.callbacks = [dd_logger]
+        gateway.callbacks = [dd_logger]
 
-        litellm.set_verbose = True
+        gateway.set_verbose = True
 
         # Create a mock for the async_client's post method
         mock_post = AsyncMock()
@@ -192,7 +192,7 @@ async def test_datadog_logging_http_request():
 
         # Make the completion call
         for _ in range(5):
-            response = await litellm.acompletion(
+            response = await gateway.acompletion(
                 model="gpt-4.1-mini",
                 messages=[{"role": "user", "content": "what llm are u"}],
                 max_tokens=10,
@@ -387,7 +387,7 @@ async def test_datadog_log_redis_failures():
         from token_iq.gateway.caching.caching import Cache
         from token_iq.gateway.integrations.datadog.datadog import DataDogLogger
 
-        litellm.cache = Cache(
+        gateway.cache = Cache(
             type="redis", host="badhost", port="6379", password="badpassword"
         )
 
@@ -395,10 +395,10 @@ async def test_datadog_log_redis_failures():
         os.environ["DD_API_KEY"] = "anything"
         dd_logger = DataDogLogger()
 
-        litellm.callbacks = [dd_logger]
-        litellm.service_callback = ["datadog"]
+        gateway.callbacks = [dd_logger]
+        gateway.service_callback = ["datadog"]
 
-        litellm.set_verbose = True
+        gateway.set_verbose = True
 
         # Create a mock for the async_client's post method
         mock_post = AsyncMock()
@@ -408,7 +408,7 @@ async def test_datadog_log_redis_failures():
 
         # Make the completion call
         for _ in range(3):
-            response = await litellm.acompletion(
+            response = await gateway.acompletion(
                 model="gpt-4.1-mini",
                 messages=[{"role": "user", "content": "what llm are u"}],
                 max_tokens=10,
@@ -464,9 +464,9 @@ async def test_datadog_log_redis_failures():
 @pytest.mark.skip(reason="local-only test, to test if everything works fine.")
 async def test_datadog_logging():
     try:
-        litellm.success_callback = ["datadog"]
-        litellm.set_verbose = True
-        response = await litellm.acompletion(
+        gateway.success_callback = ["datadog"]
+        gateway.set_verbose = True
+        response = await gateway.acompletion(
             model="gpt-4.1-mini",
             messages=[{"role": "user", "content": "what llm are u"}],
             max_tokens=10,
@@ -714,7 +714,7 @@ async def test_datadog_message_redaction():
     """
     try:
         # Test using litellm.datadog_params pattern
-        litellm.datadog_params = DatadogInitParams(turn_off_message_logging=True)
+        gateway.datadog_params = DatadogInitParams(turn_off_message_logging=True)
 
         os.environ["DD_SITE"] = "https://fake.datadoghq.com"
         os.environ["DD_API_KEY"] = "anything"
@@ -778,8 +778,8 @@ async def test_datadog_message_redaction():
         pytest.fail(f"Test failed with exception: {str(e)}")
     finally:
         # Clean up
-        litellm.datadog_params = None
-        litellm.callbacks = []
+        gateway.datadog_params = None
+        gateway.callbacks = []
 
 
 def test_datadog_agent_configuration():

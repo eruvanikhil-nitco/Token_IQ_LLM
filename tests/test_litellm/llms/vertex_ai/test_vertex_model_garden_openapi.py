@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.vertex_ai.vertex_model_garden.main import (
     _vertex_model_garden_model_id_in_json_body,
     create_vertex_url,
@@ -140,7 +140,7 @@ async def _invoke_model_garden_completion(
         if api_base is not None:
             kwargs["api_base"] = api_base
 
-        await litellm.acompletion(**kwargs)
+        await gateway.acompletion(**kwargs)
 
         return mock_http_handler
 

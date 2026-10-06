@@ -18,7 +18,7 @@ import httpx
 import pytest
 from respx import MockRouter
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import (
     Choices,
     Message,
@@ -48,8 +48,8 @@ def test_assemble_complete_response_from_streaming_chunks_1(is_async):
     chunk = {
         "id": "chatcmpl-9mWtyDnikZZoB75DyfUzWUxiiE2Pi",
         "choices": [
-            litellm.utils.StreamingChoices(
-                delta=litellm.utils.Delta(
+            gateway.utils.StreamingChoices(
+                delta=gateway.utils.Delta(
                     content="hello in response",
                     function_call=None,
                     role=None,
@@ -87,9 +87,9 @@ def test_assemble_complete_response_from_streaming_chunks_1(is_async):
     chunk = {
         "id": "chatcmpl-9mWtyDnikZZoB75DyfUzWUxiiE2Pi",
         "choices": [
-            litellm.utils.StreamingChoices(
+            gateway.utils.StreamingChoices(
                 finish_reason="stop",
-                delta=litellm.utils.Delta(
+                delta=gateway.utils.Delta(
                     content="end of response",
                     function_call=None,
                     role=None,
@@ -149,8 +149,8 @@ def test_assemble_complete_response_from_streaming_chunks_2(is_async):
     chunk = {
         "id": "chatcmpl-9mWtyDnikZZoB75DyfUzWUxiiE2Pi",
         "choices": [
-            litellm.utils.StreamingChoices(
-                delta=litellm.utils.Delta(
+            gateway.utils.StreamingChoices(
+                delta=gateway.utils.Delta(
                     content="hello in response",
                     function_call=None,
                     role=None,
@@ -190,9 +190,9 @@ def test_assemble_complete_response_from_streaming_chunks_2(is_async):
     chunk = {
         "id": "chatcmpl-9mWtyDnikZZoB75DyfUzWUxiiE2Pi",
         "choices": [
-            litellm.utils.StreamingChoices(
+            gateway.utils.StreamingChoices(
                 finish_reason="stop",
-                delta=litellm.utils.Delta(
+                delta=gateway.utils.Delta(
                     content="end of response",
                     function_call=None,
                     role=None,
@@ -246,8 +246,8 @@ def test_assemble_complete_response_from_streaming_chunks_3(is_async):
     chunk = {
         "id": "chatcmpl-9mWtyDnikZZoB75DyfUzWUxiiE2Pi",
         "choices": [
-            litellm.utils.StreamingChoices(
-                delta=litellm.utils.Delta(
+            gateway.utils.StreamingChoices(
+                delta=gateway.utils.Delta(
                     content="hello in response",
                     function_call=None,
                     role=None,
@@ -322,9 +322,9 @@ def test_assemble_complete_response_from_streaming_chunks_4(is_async):
     chunk = {
         "id": "chatcmpl-9mWtyDnikZZoB75DyfUzWUxiiE2Pi",
         "choices": [
-            litellm.utils.StreamingChoices(
+            gateway.utils.StreamingChoices(
                 finish_reason="stop",
-                delta=litellm.utils.Delta(
+                delta=gateway.utils.Delta(
                     content="end of response",
                     function_call=None,
                     role=None,

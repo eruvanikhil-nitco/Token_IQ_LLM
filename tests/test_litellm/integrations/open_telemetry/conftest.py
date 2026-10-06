@@ -23,7 +23,7 @@ from opentelemetry.sdk.trace.export.in_memory_span_exporter import (
 )
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.integrations.opentelemetry import OpenTelemetry
 
 
@@ -80,10 +80,10 @@ def user_api_key_dict_factory():
 def register_otel_callback(otel_with_exporter, monkeypatch):
     """Make ProxyLogging.post_call_failure_hook iterate our OTEL instance."""
     otel, _ = otel_with_exporter
-    saved = list(litellm.callbacks)
-    monkeypatch.setattr(litellm, "callbacks", [otel])
+    saved = list(gateway.callbacks)
+    monkeypatch.setattr(gateway, "callbacks", [otel])
     yield otel
-    litellm.callbacks = saved
+    gateway.callbacks = saved
 
 
 # Helpers (assertions, exception factories) live in ``_helpers.py`` — pytest

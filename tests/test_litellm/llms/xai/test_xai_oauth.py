@@ -8,7 +8,7 @@ from urllib.parse import parse_qs, urlparse
 from unittest.mock import MagicMock
 
 import httpx
-from token_iq import gateway as litellm
+from token_iq import gateway
 import pytest
 from click.testing import CliRunner
 
@@ -556,7 +556,7 @@ def test_get_llm_provider_uses_single_xai_provider(monkeypatch):
 
 
 def test_xai_oauth_alias_is_not_a_provider():
-    with pytest.raises(litellm.BadRequestError):
+    with pytest.raises(gateway.BadRequestError):
         get_llm_provider("xai_oauth/grok-4")
 
 
@@ -565,7 +565,7 @@ def test_chat_config_wraps_flagged_oauth_errors_as_authentication_error(
 ):
     monkeypatch.setenv("XAI_OAUTH_TOKEN_DIR", str(tmp_path / "missing"))
 
-    with pytest.raises(litellm.AuthenticationError) as exc_info:
+    with pytest.raises(gateway.AuthenticationError) as exc_info:
         XAIChatConfig().validate_environment(
             headers={},
             model="grok-4",
@@ -764,7 +764,7 @@ def test_responses_config_wraps_flagged_oauth_errors_as_authentication_error(
 ):
     monkeypatch.setenv("XAI_OAUTH_TOKEN_DIR", str(tmp_path / "missing"))
 
-    with pytest.raises(litellm.AuthenticationError) as exc_info:
+    with pytest.raises(gateway.AuthenticationError) as exc_info:
         XAIResponsesAPIConfig().validate_environment(
             headers={},
             model="grok-4",

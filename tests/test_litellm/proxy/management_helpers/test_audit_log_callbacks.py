@@ -11,7 +11,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.proxy._types import LiteLLM_AuditLogs, LitellmTableNames
 from token_iq.gateway.proxy.management_helpers.audit_logs import (
@@ -27,7 +27,7 @@ from token_iq.gateway.types.utils import StandardAuditLogPayload
 @pytest.fixture(autouse=True)
 def reset_audit_log_callbacks(monkeypatch: pytest.MonkeyPatch) -> None:
     """Every test starts with no audit log callbacks registered."""
-    monkeypatch.setattr(litellm, "audit_log_callbacks", [])
+    monkeypatch.setattr(gateway, "audit_log_callbacks", [])
 
 
 def _make_audit_log(
@@ -65,7 +65,7 @@ def test_is_audit_logging_enabled_precedence(
     environment_value: str | None,
     expected: bool,
 ):
-    monkeypatch.setattr(litellm, "store_audit_logs", configured_value)
+    monkeypatch.setattr(gateway, "store_audit_logs", configured_value)
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.premium_user", premium_user)
     if environment_value is None:
         monkeypatch.delenv("LITELLM_STORE_AUDIT_LOGS", raising=False)
@@ -115,7 +115,7 @@ class TestDispatchAuditLogToCallbacks:
     async def test_dispatches_to_custom_logger_instance(self, monkeypatch: pytest.MonkeyPatch):
         mock_logger = MagicMock(spec=CustomLogger)
         mock_logger.async_log_audit_log_event = AsyncMock()
-        monkeypatch.setattr(litellm, "audit_log_callbacks", [mock_logger])
+        monkeypatch.setattr(gateway, "audit_log_callbacks", [mock_logger])
 
         audit_log = _make_audit_log()
         await _dispatch_audit_log_to_callbacks(audit_log)
@@ -130,7 +130,7 @@ class TestDispatchAuditLogToCallbacks:
 
     @pytest.mark.asyncio
     async def test_no_dispatch_when_callbacks_empty(self, monkeypatch: pytest.MonkeyPatch):
-        monkeypatch.setattr(litellm, "audit_log_callbacks", [])
+        monkeypatch.setattr(gateway, "audit_log_callbacks", [])
         audit_log = _make_audit_log()
         # Should return immediately without error
         await _dispatch_audit_log_to_callbacks(audit_log)
@@ -140,7 +140,7 @@ class TestDispatchAuditLogToCallbacks:
         mock_logger = MagicMock(spec=CustomLogger)
         mock_logger.async_log_audit_log_event = AsyncMock()
 
-        monkeypatch.setattr(litellm, "audit_log_callbacks", ["s3_v2"])
+        monkeypatch.setattr(gateway, "audit_log_callbacks", ["s3_v2"])
 
         with patch(
             "token_iq.gateway.proxy.management_helpers.audit_logs._resolve_audit_log_callback",
@@ -159,7 +159,7 @@ class TestDispatchAuditLogToCallbacks:
         mock_logger.async_log_audit_log_event = AsyncMock(
             side_effect=RuntimeError("boom")
         )
-        monkeypatch.setattr(litellm, "audit_log_callbacks", [mock_logger])
+        monkeypatch.setattr(gateway, "audit_log_callbacks", [mock_logger])
 
         audit_log = _make_audit_log()
         # Should not raise
@@ -168,7 +168,7 @@ class TestDispatchAuditLogToCallbacks:
 
     @pytest.mark.asyncio
     async def test_skips_unresolvable_string_callback(self, monkeypatch: pytest.MonkeyPatch):
-        monkeypatch.setattr(litellm, "audit_log_callbacks", ["nonexistent_callback"])
+        monkeypatch.setattr(gateway, "audit_log_callbacks", ["nonexistent_callback"])
 
         with patch(
             "token_iq.gateway.proxy.management_helpers.audit_logs._resolve_audit_log_callback",
@@ -184,7 +184,7 @@ class TestCreateAuditLogForUpdateWithCallbacks:
     async def test_dispatches_to_callbacks_after_db_write(self, monkeypatch: pytest.MonkeyPatch):
         mock_logger = MagicMock(spec=CustomLogger)
         mock_logger.async_log_audit_log_event = AsyncMock()
-        monkeypatch.setattr(litellm, "audit_log_callbacks", [mock_logger])
+        monkeypatch.setattr(gateway, "audit_log_callbacks", [mock_logger])
 
         with (
             patch("token_iq.gateway.proxy.proxy_server.premium_user", True),
@@ -206,7 +206,7 @@ class TestCreateAuditLogForUpdateWithCallbacks:
     async def test_no_dispatch_when_not_premium(self, monkeypatch: pytest.MonkeyPatch):
         mock_logger = MagicMock(spec=CustomLogger)
         mock_logger.async_log_audit_log_event = AsyncMock()
-        monkeypatch.setattr(litellm, "audit_log_callbacks", [mock_logger])
+        monkeypatch.setattr(gateway, "audit_log_callbacks", [mock_logger])
 
         with (
             patch("token_iq.gateway.proxy.proxy_server.premium_user", False),
@@ -224,7 +224,7 @@ class TestCreateAuditLogForUpdateWithCallbacks:
     async def test_no_dispatch_when_store_audit_logs_false(self, monkeypatch: pytest.MonkeyPatch):
         mock_logger = MagicMock(spec=CustomLogger)
         mock_logger.async_log_audit_log_event = AsyncMock()
-        monkeypatch.setattr(litellm, "audit_log_callbacks", [mock_logger])
+        monkeypatch.setattr(gateway, "audit_log_callbacks", [mock_logger])
 
         with patch("token_iq.gateway.store_audit_logs", False):
             audit_log = _make_audit_log()
@@ -238,7 +238,7 @@ class TestCreateAuditLogForUpdateWithCallbacks:
         """Callbacks should fire even if DB is unavailable."""
         mock_logger = MagicMock(spec=CustomLogger)
         mock_logger.async_log_audit_log_event = AsyncMock()
-        monkeypatch.setattr(litellm, "audit_log_callbacks", [mock_logger])
+        monkeypatch.setattr(gateway, "audit_log_callbacks", [mock_logger])
 
         with (
             patch("token_iq.gateway.proxy.proxy_server.premium_user", True),
@@ -257,7 +257,7 @@ class TestCreateAuditLogForUpdateWithCallbacks:
         """Callbacks should fire even if the DB write raises."""
         mock_logger = MagicMock(spec=CustomLogger)
         mock_logger.async_log_audit_log_event = AsyncMock()
-        monkeypatch.setattr(litellm, "audit_log_callbacks", [mock_logger])
+        monkeypatch.setattr(gateway, "audit_log_callbacks", [mock_logger])
 
         with (
             patch("token_iq.gateway.proxy.proxy_server.premium_user", True),
@@ -385,9 +385,9 @@ class TestS3AuditCallbackParamsDecoupling:
         from token_iq.gateway.core_utils import litellm_logging as ll_logging
         from token_iq.gateway.proxy.management_helpers import audit_logs as ll_audit_logs
 
-        monkeypatch.setattr(litellm, "s3_callback_params", litellm.s3_callback_params)
+        monkeypatch.setattr(gateway, "s3_callback_params", gateway.s3_callback_params)
         monkeypatch.setattr(
-            litellm, "s3_audit_callback_params", getattr(litellm, "s3_audit_callback_params", None)
+            gateway, "s3_audit_callback_params", getattr(gateway, "s3_audit_callback_params", None)
         )
         ll_audit_logs._audit_log_callback_cache.clear()
         ll_logging._in_memory_loggers.clear()
@@ -406,8 +406,8 @@ class TestS3AuditCallbackParamsDecoupling:
             _resolve_audit_log_callback,
         )
 
-        monkeypatch.setattr(litellm, "s3_callback_params", {"s3_bucket_name": "normal-bucket"})
-        monkeypatch.setattr(litellm, "s3_audit_callback_params", {"s3_bucket_name": "audit-bucket"})
+        monkeypatch.setattr(gateway, "s3_callback_params", {"s3_bucket_name": "normal-bucket"})
+        monkeypatch.setattr(gateway, "s3_audit_callback_params", {"s3_bucket_name": "audit-bucket"})
 
         with patch("asyncio.create_task"):
             audit_instance = _resolve_audit_log_callback("s3_v2")
@@ -434,8 +434,8 @@ class TestS3AuditCallbackParamsDecoupling:
             _resolve_audit_log_callback,
         )
 
-        monkeypatch.setattr(litellm, "s3_callback_params", {"s3_bucket_name": "shared-bucket"})
-        monkeypatch.setattr(litellm, "s3_audit_callback_params", None)
+        monkeypatch.setattr(gateway, "s3_callback_params", {"s3_bucket_name": "shared-bucket"})
+        monkeypatch.setattr(gateway, "s3_audit_callback_params", None)
 
         with patch("asyncio.create_task"):
             normal_instance = _init_custom_logger_compatible_class(
@@ -460,8 +460,8 @@ class TestS3AuditCallbackParamsDecoupling:
             _resolve_audit_log_callback,
         )
 
-        monkeypatch.setattr(litellm, "s3_callback_params", {"s3_bucket_name": "normal-bucket"})
-        monkeypatch.setattr(litellm, "s3_audit_callback_params", {})
+        monkeypatch.setattr(gateway, "s3_callback_params", {"s3_bucket_name": "normal-bucket"})
+        monkeypatch.setattr(gateway, "s3_audit_callback_params", {})
 
         with patch("asyncio.create_task"):
             audit_instance = _resolve_audit_log_callback("s3_v2")
@@ -484,7 +484,7 @@ class TestS3AuditCallbackParamsDecoupling:
             reset_audit_log_callback_cache,
         )
 
-        monkeypatch.setattr(litellm, "s3_audit_callback_params", {"s3_bucket_name": "first"})
+        monkeypatch.setattr(gateway, "s3_audit_callback_params", {"s3_bucket_name": "first"})
         with patch("asyncio.create_task"):
             first = _resolve_audit_log_callback("s3_v2")
             assert first is not None and "s3_v2" in _audit_log_callback_cache
@@ -492,7 +492,7 @@ class TestS3AuditCallbackParamsDecoupling:
             reset_audit_log_callback_cache()
             assert "s3_v2" not in _audit_log_callback_cache
 
-            monkeypatch.setattr(litellm, "s3_audit_callback_params", {"s3_bucket_name": "second"})
+            monkeypatch.setattr(gateway, "s3_audit_callback_params", {"s3_bucket_name": "second"})
             second = _resolve_audit_log_callback("s3_v2")
             assert second is not None
             assert id(second) != id(first)

@@ -10,7 +10,7 @@ from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler, HT
 
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.passthrough.main import allm_passthrough_route, llm_passthrough_route
 
 

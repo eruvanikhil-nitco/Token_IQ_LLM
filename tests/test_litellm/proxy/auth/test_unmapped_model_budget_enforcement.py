@@ -9,7 +9,7 @@ See: https://github.com/BerriAI/litellm/issues/24770
 
 import copy
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy.auth.auth_checks import _is_model_cost_zero
 from token_iq.gateway.router import Router
 
@@ -19,11 +19,11 @@ class TestUnmappedModelBudgetEnforcement:
 
     def setup_method(self):
         """Snapshot litellm.model_cost before each test."""
-        self._saved_model_cost = copy.deepcopy(litellm.model_cost)
+        self._saved_model_cost = copy.deepcopy(gateway.model_cost)
 
     def teardown_method(self):
         """Restore litellm.model_cost after each test."""
-        litellm.model_cost = self._saved_model_cost
+        gateway.model_cost = self._saved_model_cost
 
     def test_unmapped_model_enforces_budget(self):
         """A model not in litellm.model_cost should have budget enforced."""

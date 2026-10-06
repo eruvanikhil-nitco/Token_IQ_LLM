@@ -8,7 +8,7 @@ are ignored by the batch cost pipeline because they are never threaded
 through to `batch_cost_calculator`.
 """
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 import pytest
 
 from token_iq.gateway.batches.batch_utils import (
@@ -75,7 +75,7 @@ def test_batch_cost_calculator_explicit_zero_pricing_not_overridden_by_global(
             "output_cost_per_token_batches": 2e-3,
         }
 
-    monkeypatch.setattr(litellm, "get_model_info", fake_get_model_info)
+    monkeypatch.setattr(gateway, "get_model_info", fake_get_model_info)
 
     prompt_cost, completion_cost = batch_cost_calculator(
         usage=usage,
@@ -135,8 +135,8 @@ def test_batch_cost_calculator_applies_data_residency_uplift(
     """batch_cost_calculator should apply the regional uplift multiplier when
     data_residency is set and the model carries a configured multiplier."""
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    prev_model_cost = litellm.model_cost
-    litellm.model_cost = litellm.get_model_cost_map()
+    prev_model_cost = gateway.model_cost
+    gateway.model_cost = gateway.get_model_cost_map()
     try:
         usage = Usage(prompt_tokens=1000, completion_tokens=500, total_tokens=1500)
 
@@ -156,7 +156,7 @@ def test_batch_cost_calculator_applies_data_residency_uplift(
         assert regional_prompt == pytest.approx(base_prompt * 1.10, rel=1e-9)
         assert regional_completion == pytest.approx(base_completion * 1.10, rel=1e-9)
     finally:
-        litellm.model_cost = prev_model_cost
+        gateway.model_cost = prev_model_cost
 
 
 @pytest.mark.asyncio

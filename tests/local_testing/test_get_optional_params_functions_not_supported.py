@@ -1,7 +1,7 @@
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import get_optional_params
 
-litellm.add_function_to_prompt = True
+gateway.add_function_to_prompt = True
 optional_params = get_optional_params(
     model="",
     tools=[

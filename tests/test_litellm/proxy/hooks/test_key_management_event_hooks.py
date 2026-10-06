@@ -202,7 +202,7 @@ class TestRotateVirtualKeyInSecretManager:
             KeyManagementSettings,
         )
         from token_iq.gateway.secret_managers.base_secret_manager import BaseSecretManager
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         # Setup - Create a mock that inherits from BaseSecretManager
         mock_secret_manager = MagicMock(spec=BaseSecretManager)
@@ -210,9 +210,9 @@ class TestRotateVirtualKeyInSecretManager:
             return_value={"status": "success"}
         )
 
-        litellm.secret_manager_client = mock_secret_manager
-        litellm._key_management_system = KeyManagementSystem.HASHICORP_VAULT
-        litellm._key_management_settings = KeyManagementSettings(
+        gateway.secret_manager_client = mock_secret_manager
+        gateway._key_management_system = KeyManagementSystem.HASHICORP_VAULT
+        gateway._key_management_settings = KeyManagementSettings(
             store_virtual_keys=True,
             prefix_for_stored_virtual_keys="litellm/",
         )
@@ -278,7 +278,7 @@ class TestRotateVirtualKeyInSecretManager:
             KeyManagementSettings,
         )
         from token_iq.gateway.secret_managers.base_secret_manager import BaseSecretManager
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         # Setup - Create a mock that inherits from BaseSecretManager
         mock_secret_manager = MagicMock(spec=BaseSecretManager)
@@ -286,9 +286,9 @@ class TestRotateVirtualKeyInSecretManager:
             return_value={"status": "success"}
         )
 
-        litellm.secret_manager_client = mock_secret_manager
-        litellm._key_management_system = KeyManagementSystem.HASHICORP_VAULT
-        litellm._key_management_settings = KeyManagementSettings(
+        gateway.secret_manager_client = mock_secret_manager
+        gateway._key_management_system = KeyManagementSystem.HASHICORP_VAULT
+        gateway._key_management_settings = KeyManagementSettings(
             store_virtual_keys=True,
             prefix_for_stored_virtual_keys="litellm/",
         )
@@ -346,7 +346,7 @@ class TestRotateVirtualKeyInSecretManager:
             KeyManagementSystem,
             KeyManagementSettings,
         )
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         # Setup
         mock_secret_manager = MagicMock()
@@ -354,9 +354,9 @@ class TestRotateVirtualKeyInSecretManager:
             return_value={"status": "success"}
         )
 
-        litellm.secret_manager_client = mock_secret_manager
-        litellm._key_management_system = KeyManagementSystem.HASHICORP_VAULT
-        litellm._key_management_settings = KeyManagementSettings(
+        gateway.secret_manager_client = mock_secret_manager
+        gateway._key_management_system = KeyManagementSystem.HASHICORP_VAULT
+        gateway._key_management_settings = KeyManagementSettings(
             store_virtual_keys=True,
             prefix_for_stored_virtual_keys="litellm/",
         )
@@ -421,15 +421,15 @@ class TestRotateVirtualKeyInSecretManager:
             KeyManagementSystem,
             KeyManagementSettings,
         )
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         # Setup
         mock_secret_manager = MagicMock()
         mock_secret_manager.async_rotate_secret = AsyncMock()
 
-        litellm.secret_manager_client = mock_secret_manager
-        litellm._key_management_system = KeyManagementSystem.HASHICORP_VAULT
-        litellm._key_management_settings = KeyManagementSettings(
+        gateway.secret_manager_client = mock_secret_manager
+        gateway._key_management_system = KeyManagementSystem.HASHICORP_VAULT
+        gateway._key_management_settings = KeyManagementSettings(
             store_virtual_keys=False,  # Disabled
             prefix_for_stored_virtual_keys="litellm/",
         )
@@ -448,11 +448,11 @@ class TestRotateVirtualKeyInSecretManager:
     async def test_rotate_virtual_key_when_secret_manager_not_set(self):
         """Test that rotation is skipped when secret_manager_client is None."""
         from token_iq.gateway.types.secret_managers.main import KeyManagementSettings
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         # Setup
-        litellm.secret_manager_client = None
-        litellm._key_management_settings = KeyManagementSettings(
+        gateway.secret_manager_client = None
+        gateway._key_management_settings = KeyManagementSettings(
             store_virtual_keys=True,
             prefix_for_stored_virtual_keys="litellm/",
         )

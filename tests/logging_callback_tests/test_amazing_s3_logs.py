@@ -5,9 +5,9 @@ from collections import defaultdict
 # logging.basicConfig(level=logging.DEBUG)
 
 from token_iq.gateway import completion
-from token_iq import gateway as litellm
+from token_iq import gateway
 
-litellm.num_retries = 3
+gateway.num_retries = 3
 
 import time, random
 import pytest
@@ -63,11 +63,11 @@ def fake_s3_client(monkeypatch):
         return _FAKE_S3_CLIENT
 
     monkeypatch.setattr(boto3, "client", fake_boto3_client)
-    litellm.success_callback = []
-    litellm.callbacks = []
+    gateway.success_callback = []
+    gateway.callbacks = []
     yield _FAKE_S3_CLIENT
-    litellm.success_callback = []
-    litellm.callbacks = []
+    gateway.success_callback = []
+    gateway.callbacks = []
 
 
 @pytest.mark.asyncio
@@ -77,17 +77,17 @@ def fake_s3_client(monkeypatch):
 @pytest.mark.flaky(retries=3, delay=1)
 async def test_basic_s3_logging(sync_mode, streaming):
     verbose_logger.setLevel(level=logging.DEBUG)
-    litellm.success_callback = ["s3"]
-    litellm.s3_callback_params = {
+    gateway.success_callback = ["s3"]
+    gateway.s3_callback_params = {
         "s3_bucket_name": "load-testing-oct",
         "s3_aws_secret_access_key": "os.environ/AWS_SECRET_ACCESS_KEY",
         "s3_aws_access_key_id": "os.environ/AWS_ACCESS_KEY_ID",
         "s3_region_name": "us-west-2",
     }
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     response_id = None
     if sync_mode is True:
-        response = litellm.completion(
+        response = gateway.completion(
             model="gpt-5-mini",
             messages=[{"role": "user", "content": "This is a test"}],
             mock_response="It's simple to use and easy to get started",
@@ -101,7 +101,7 @@ async def test_basic_s3_logging(sync_mode, streaming):
             response_id = response.id
         time.sleep(2)
     else:
-        response = await litellm.acompletion(
+        response = await gateway.acompletion(
             model="gpt-5-mini",
             messages=[{"role": "user", "content": "This is a test"}],
             mock_response="It's simple to use and easy to get started",
@@ -133,7 +133,7 @@ async def test_basic_s3_v2_logging(streaming):
     from unittest.mock import AsyncMock, MagicMock, patch
     from token_iq.gateway.integrations.s3_v2 import S3Logger
 
-    litellm.s3_callback_params = {
+    gateway.s3_callback_params = {
         "s3_bucket_name": "load-testing-oct",
         "s3_aws_secret_access_key": "test-secret",
         "s3_aws_access_key_id": "test-key",
@@ -141,7 +141,7 @@ async def test_basic_s3_v2_logging(streaming):
     }
 
     s3_v2_logger = S3Logger(s3_flush_interval=1)
-    litellm.callbacks = [s3_v2_logger]
+    gateway.callbacks = [s3_v2_logger]
 
     uploaded_keys: list = []
     original_upload = s3_v2_logger.async_upload_data_to_s3
@@ -151,9 +151,9 @@ async def test_basic_s3_v2_logging(streaming):
 
     s3_v2_logger.async_upload_data_to_s3 = mock_upload
 
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     response_id = None
-    response = await litellm.acompletion(
+    response = await gateway.acompletion(
         model="gpt-5-mini",
         messages=[{"role": "user", "content": "This is a test"}],
         mock_response="It's simple to use and easy to get started",
@@ -209,18 +209,18 @@ async def test_basic_s3_v2_logging_failure():
     s3_v2_logger.async_upload_data_to_s3 = mock_upload
 
     # Configure S3 callback params
-    litellm.callbacks = [s3_v2_logger]
-    litellm.s3_callback_params = {
+    gateway.callbacks = [s3_v2_logger]
+    gateway.s3_callback_params = {
         "s3_bucket_name": "test-bucket",
         "s3_aws_secret_access_key": "test-secret",
         "s3_aws_access_key_id": "test-key",
         "s3_region_name": "us-west-2",
     }
-    litellm.set_verbose = True
+    gateway.set_verbose = True
 
     # Trigger a failure by using invalid API key
     try:
-        response = await litellm.acompletion(
+        response = await gateway.acompletion(
             model="gpt-5-mini",
             api_key="invalid-api-key",
             messages=[{"role": "user", "content": "This is a test"}],
@@ -285,19 +285,19 @@ def test_s3_logging():
     # on circle ci - we only test litellm.acompletion()
     try:
         # redirect stdout to log_file
-        litellm.cache = litellm.Cache(
+        gateway.cache = gateway.Cache(
             type="s3",
             s3_bucket_name="litellm-my-test-bucket-2",
             s3_region_name="us-east-1",
         )
 
-        litellm.success_callback = ["s3"]
-        litellm.s3_callback_params = {
+        gateway.success_callback = ["s3"]
+        gateway.s3_callback_params = {
             "s3_bucket_name": "litellm-logs-2",
             "s3_aws_secret_access_key": "os.environ/AWS_SECRET_ACCESS_KEY",
             "s3_aws_access_key_id": "os.environ/AWS_ACCESS_KEY_ID",
         }
-        litellm.set_verbose = True
+        gateway.set_verbose = True
 
         print("Testing async s3 logging")
 
@@ -308,7 +308,7 @@ def test_s3_logging():
         curr_time = str(time.time())
 
         async def _test():
-            return await litellm.acompletion(
+            return await gateway.acompletion(
                 model="gpt-5-mini",
                 messages=[{"role": "user", "content": f"This is a test {curr_time}"}],
                 max_tokens=10,
@@ -321,7 +321,7 @@ def test_s3_logging():
         expected_keys.append(response.id)
 
         async def _test():
-            return await litellm.acompletion(
+            return await gateway.acompletion(
                 model="gpt-5-mini",
                 messages=[{"role": "user", "content": f"This is a test {curr_time}"}],
                 max_tokens=10,
@@ -392,16 +392,16 @@ def test_s3_logging():
 def test_s3_logging_async():
     # this tests time added to make s3 logging calls, vs just acompletion calls
     try:
-        litellm.set_verbose = True
+        gateway.set_verbose = True
         # Make 5 calls with an empty success_callback
-        litellm.success_callback = []
+        gateway.success_callback = []
         start_time_empty_callback = asyncio.run(make_async_calls())
         print("done with no callback test")
 
         print("starting s3 logging load test")
         # Make 5 calls with success_callback set to "langfuse"
-        litellm.success_callback = ["s3"]
-        litellm.s3_callback_params = {
+        gateway.success_callback = ["s3"]
+        gateway.s3_callback_params = {
             "s3_bucket_name": "litellm-logs-2",
             "s3_aws_secret_access_key": "os.environ/AWS_SECRET_ACCESS_KEY",
             "s3_aws_access_key_id": "os.environ/AWS_ACCESS_KEY_ID",
@@ -416,7 +416,7 @@ def test_s3_logging_async():
         # assert the diff is not more than 1 second
         assert abs(start_time_s3 - start_time_empty_callback) < 1
 
-    except litellm.Timeout as e:
+    except gateway.Timeout as e:
         pass
     except Exception as e:
         pytest.fail(f"An exception occurred - {e}")
@@ -426,7 +426,7 @@ async def make_async_calls():
     tasks = []
     for _ in range(5):
         task = asyncio.create_task(
-            litellm.acompletion(
+            gateway.acompletion(
                 model="azure/gpt-4.1-mini",
                 messages=[{"role": "user", "content": "This is a test"}],
                 max_tokens=5,

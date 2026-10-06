@@ -7,7 +7,7 @@ import pytest
 from fastapi.testclient import TestClient
 from prisma.errors import RecordNotFoundError
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 import token_iq.gateway.proxy.proxy_server as ps
 from token_iq.gateway.proxy._types import KeyManagementSystem, LitellmUserRoles, UserAPIKeyAuth
 from token_iq.gateway.proxy.management_endpoints.config_override_endpoints import (
@@ -90,7 +90,7 @@ async def test_hashicorp_vault_crud_lifecycle(client, monkeypatch):
     mock_cfg = _make_mock_proxy_config()
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
     monkeypatch.setattr(ps, "proxy_config", mock_cfg)
-    old_client, old_kms = litellm.secret_manager_client, litellm._key_management_system
+    old_client, old_kms = gateway.secret_manager_client, gateway._key_management_system
     _set_admin()
 
     try:
@@ -159,12 +159,12 @@ async def test_hashicorp_vault_crud_lifecycle(client, monkeypatch):
         }
 
         # 6. DELETE: clears everything
-        litellm.secret_manager_client = MagicMock()
-        litellm._key_management_system = KeyManagementSystem.HASHICORP_VAULT
+        gateway.secret_manager_client = MagicMock()
+        gateway._key_management_system = KeyManagementSystem.HASHICORP_VAULT
         r = client.delete(VAULT_URL)
         assert r.status_code == 200
         assert os.environ.get("HCP_VAULT_ADDR") is None
-        assert litellm.secret_manager_client is None
+        assert gateway.secret_manager_client is None
 
         # 7. DELETE idempotent
         mock_db.delete = AsyncMock(
@@ -215,8 +215,8 @@ async def test_hashicorp_vault_crud_lifecycle(client, monkeypatch):
         assert all(decrypted[k] == orig[k] for k in orig)
 
     finally:
-        litellm.secret_manager_client = old_client
-        litellm._key_management_system = old_kms
+        gateway.secret_manager_client = old_client
+        gateway._key_management_system = old_kms
         _cleanup()
 
 
@@ -231,7 +231,7 @@ async def test_hashicorp_vault_validation_errors_and_access_control(
     mock_cfg._last_hashicorp_vault_config = {"vault_addr": "old"}
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
     monkeypatch.setattr(ps, "proxy_config", mock_cfg)
-    old_client, old_kms = litellm.secret_manager_client, litellm._key_management_system
+    old_client, old_kms = gateway.secret_manager_client, gateway._key_management_system
     _set_admin()
 
     try:
@@ -258,11 +258,11 @@ async def test_hashicorp_vault_validation_errors_and_access_control(
 
         # 4. DELETE preserves non-Vault secret manager
         aws = MagicMock()
-        litellm.secret_manager_client = aws
-        litellm._key_management_system = KeyManagementSystem.AWS_SECRET_MANAGER
+        gateway.secret_manager_client = aws
+        gateway._key_management_system = KeyManagementSystem.AWS_SECRET_MANAGER
         assert client.delete(VAULT_URL).status_code == 200
-        assert litellm.secret_manager_client is aws
-        assert litellm._key_management_system == KeyManagementSystem.AWS_SECRET_MANAGER
+        assert gateway.secret_manager_client is aws
+        assert gateway._key_management_system == KeyManagementSystem.AWS_SECRET_MANAGER
 
         # 5. Non-admin → 403
         app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
@@ -276,8 +276,8 @@ async def test_hashicorp_vault_validation_errors_and_access_control(
         assert client.delete(VAULT_URL).status_code == 403
 
     finally:
-        litellm.secret_manager_client = old_client
-        litellm._key_management_system = old_kms
+        gateway.secret_manager_client = old_client
+        gateway._key_management_system = old_kms
         _cleanup()
 
 
@@ -290,7 +290,7 @@ async def test_cyberark_crud_lifecycle(client, monkeypatch):
     mock_cfg._last_cyberark_config = None
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
     monkeypatch.setattr(ps, "proxy_config", mock_cfg)
-    old_client, old_kms = litellm.secret_manager_client, litellm._key_management_system
+    old_client, old_kms = gateway.secret_manager_client, gateway._key_management_system
     _set_admin()
 
     try:
@@ -346,12 +346,12 @@ async def test_cyberark_crud_lifecycle(client, monkeypatch):
         assert data["client_cert"] == "enc_/certs/client.pem"
 
         # 5. DELETE: clears everything
-        litellm.secret_manager_client = MagicMock()  # test-quality-ok: endpoint hot-reloads litellm globals; test must set and restore them
-        litellm._key_management_system = KeyManagementSystem.CYBERARK  # test-quality-ok: endpoint hot-reloads litellm globals; test must set and restore them
+        gateway.secret_manager_client = MagicMock()  # test-quality-ok: endpoint hot-reloads litellm globals; test must set and restore them
+        gateway._key_management_system = KeyManagementSystem.CYBERARK  # test-quality-ok: endpoint hot-reloads litellm globals; test must set and restore them
         r = client.delete(CYBERARK_URL)
         assert r.status_code == 200
         assert os.environ.get("CYBERARK_API_BASE") is None
-        assert litellm.secret_manager_client is None
+        assert gateway.secret_manager_client is None
         assert mock_cfg._last_cyberark_config is None
 
         # 6. DELETE idempotent
@@ -385,8 +385,8 @@ async def test_cyberark_crud_lifecycle(client, monkeypatch):
         assert len(schema["properties"]["cyberark_api_base"]["description"]) > 0
 
     finally:
-        litellm.secret_manager_client = old_client  # test-quality-ok: endpoint hot-reloads litellm globals; test must set and restore them
-        litellm._key_management_system = old_kms  # test-quality-ok: endpoint hot-reloads litellm globals; test must set and restore them
+        gateway.secret_manager_client = old_client  # test-quality-ok: endpoint hot-reloads litellm globals; test must set and restore them
+        gateway._key_management_system = old_kms  # test-quality-ok: endpoint hot-reloads litellm globals; test must set and restore them
         _cleanup()
 
 
@@ -400,7 +400,7 @@ async def test_cyberark_validation_errors_and_access_control(client, monkeypatch
     mock_cfg._cyberark_boot_env = None
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
     monkeypatch.setattr(ps, "proxy_config", mock_cfg)
-    old_client, old_kms = litellm.secret_manager_client, litellm._key_management_system
+    old_client, old_kms = gateway.secret_manager_client, gateway._key_management_system
     _set_admin()
 
     try:
@@ -431,10 +431,10 @@ async def test_cyberark_validation_errors_and_access_control(client, monkeypatch
 
         # 4. DELETE preserves non-CyberArk secret manager
         aws = MagicMock()
-        litellm.secret_manager_client = aws  # test-quality-ok: endpoint hot-reloads litellm globals; test must set and restore them
-        litellm._key_management_system = KeyManagementSystem.AWS_SECRET_MANAGER  # test-quality-ok: endpoint hot-reloads litellm globals; test must set and restore them
+        gateway.secret_manager_client = aws  # test-quality-ok: endpoint hot-reloads litellm globals; test must set and restore them
+        gateway._key_management_system = KeyManagementSystem.AWS_SECRET_MANAGER  # test-quality-ok: endpoint hot-reloads litellm globals; test must set and restore them
         assert client.delete(CYBERARK_URL).status_code == 200
-        assert litellm.secret_manager_client is aws
+        assert gateway.secret_manager_client is aws
 
         # 5. Non-admin → 403
         app.dependency_overrides[ps.user_api_key_auth] = lambda: UserAPIKeyAuth(
@@ -451,8 +451,8 @@ async def test_cyberark_validation_errors_and_access_control(client, monkeypatch
         assert client.post(CYBERARK_URL + "/test_connection").status_code == 403
 
     finally:
-        litellm.secret_manager_client = old_client  # test-quality-ok: endpoint hot-reloads litellm globals; test must set and restore them
-        litellm._key_management_system = old_kms  # test-quality-ok: endpoint hot-reloads litellm globals; test must set and restore them
+        gateway.secret_manager_client = old_client  # test-quality-ok: endpoint hot-reloads litellm globals; test must set and restore them
+        gateway._key_management_system = old_kms  # test-quality-ok: endpoint hot-reloads litellm globals; test must set and restore them
         _cleanup()
 
 
@@ -465,7 +465,7 @@ async def test_cyberark_delete_restores_deployment_env_config(client, monkeypatc
     mock_cfg._last_cyberark_config = None
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
     monkeypatch.setattr(ps, "proxy_config", mock_cfg)
-    old_client, old_kms = litellm.secret_manager_client, litellm._key_management_system
+    old_client, old_kms = gateway.secret_manager_client, gateway._key_management_system
     _set_admin()
 
     try:
@@ -487,8 +487,8 @@ async def test_cyberark_delete_restores_deployment_env_config(client, monkeypatc
         mock_cfg.initialize_secret_manager.assert_called_with(key_management_system="cyberark")
         assert mock_cfg._last_cyberark_config is None
     finally:
-        litellm.secret_manager_client = old_client  # test-quality-ok: endpoint hot-reloads litellm globals; test must set and restore them
-        litellm._key_management_system = old_kms  # test-quality-ok: endpoint hot-reloads litellm globals; test must set and restore them
+        gateway.secret_manager_client = old_client  # test-quality-ok: endpoint hot-reloads litellm globals; test must set and restore them
+        gateway._key_management_system = old_kms  # test-quality-ok: endpoint hot-reloads litellm globals; test must set and restore them
         _cleanup()
 
 
@@ -503,7 +503,7 @@ async def test_cyberark_persist_failure_rolls_back_runtime_state(client, monkeyp
     mock_db.upsert = AsyncMock(side_effect=Exception("db write failed"))
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
     monkeypatch.setattr(ps, "proxy_config", mock_cfg)
-    old_client, old_kms = litellm.secret_manager_client, litellm._key_management_system
+    old_client, old_kms = gateway.secret_manager_client, gateway._key_management_system
     _set_admin()
 
     try:
@@ -524,8 +524,8 @@ async def test_cyberark_persist_failure_rolls_back_runtime_state(client, monkeyp
         )
         assert os.environ.get("CYBERARK_API_BASE") != "https://conjur.new.com"
     finally:
-        litellm.secret_manager_client = old_client  # test-quality-ok: endpoint hot-reloads litellm globals; test must set and restore them
-        litellm._key_management_system = old_kms  # test-quality-ok: endpoint hot-reloads litellm globals; test must set and restore them
+        gateway.secret_manager_client = old_client  # test-quality-ok: endpoint hot-reloads litellm globals; test must set and restore them
+        gateway._key_management_system = old_kms  # test-quality-ok: endpoint hot-reloads litellm globals; test must set and restore them
         _cleanup()
 
 
@@ -539,7 +539,7 @@ async def test_cyberark_persist_failure_restores_hashicorp_manager(client, monke
     mock_db.upsert = AsyncMock(side_effect=Exception("db write failed"))
 
     def _fake_init(key_management_system):
-        litellm._key_management_system = (  # test-quality-ok: endpoint hot-reloads litellm globals; test must set and restore them
+        gateway._key_management_system = (  # test-quality-ok: endpoint hot-reloads litellm globals; test must set and restore them
             KeyManagementSystem.CYBERARK
             if key_management_system == "cyberark"
             else KeyManagementSystem.HASHICORP_VAULT
@@ -548,32 +548,32 @@ async def test_cyberark_persist_failure_restores_hashicorp_manager(client, monke
     mock_cfg.initialize_secret_manager = MagicMock(side_effect=_fake_init)
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
     monkeypatch.setattr(ps, "proxy_config", mock_cfg)
-    old_client, old_kms = litellm.secret_manager_client, litellm._key_management_system
+    old_client, old_kms = gateway.secret_manager_client, gateway._key_management_system
     _set_admin()
 
     try:
         monkeypatch.setenv("HCP_VAULT_ADDR", "https://vault.example.com")
-        litellm._key_management_system = KeyManagementSystem.HASHICORP_VAULT  # test-quality-ok: endpoint hot-reloads litellm globals; test must set and restore them
+        gateway._key_management_system = KeyManagementSystem.HASHICORP_VAULT  # test-quality-ok: endpoint hot-reloads litellm globals; test must set and restore them
 
         r = client.post(
             CYBERARK_URL,
             json={"cyberark_api_base": "https://conjur.new.com", "cyberark_api_key": "new-key"},
         )
         assert r.status_code == 500
-        assert litellm._key_management_system == KeyManagementSystem.HASHICORP_VAULT
+        assert gateway._key_management_system == KeyManagementSystem.HASHICORP_VAULT
         assert (
             mock_cfg.initialize_secret_manager.call_args_list[-1].kwargs["key_management_system"] == "hashicorp_vault"
         )
     finally:
-        litellm.secret_manager_client = old_client  # test-quality-ok: endpoint hot-reloads litellm globals; test must set and restore them
-        litellm._key_management_system = old_kms  # test-quality-ok: endpoint hot-reloads litellm globals; test must set and restore them
+        gateway.secret_manager_client = old_client  # test-quality-ok: endpoint hot-reloads litellm globals; test must set and restore them
+        gateway._key_management_system = old_kms  # test-quality-ok: endpoint hot-reloads litellm globals; test must set and restore them
         os.environ.pop("HCP_VAULT_ADDR", None)
         _cleanup()
 
 
 @pytest.mark.asyncio
 async def test_cyberark_audit_log_redacts_values(client, monkeypatch):
-    monkeypatch.setattr(litellm, "store_audit_logs", True)
+    monkeypatch.setattr(gateway, "store_audit_logs", True)
     mock_prisma, mock_db = _make_mock_db()
     mock_cfg = _make_mock_proxy_config()
     mock_cfg._last_cyberark_config = None
@@ -620,12 +620,12 @@ async def test_cyberark_test_connection(client, monkeypatch):
     """400 when not configured; success path authenticates and hits /whoami."""
     from token_iq.gateway.secret_managers.cyberark_secret_manager import CyberArkSecretManager
 
-    old_client, old_kms = litellm.secret_manager_client, litellm._key_management_system
+    old_client, old_kms = gateway.secret_manager_client, gateway._key_management_system
     _set_admin()
 
     try:
         # Not configured → 400
-        litellm.secret_manager_client = None  # test-quality-ok: endpoint hot-reloads litellm globals; test must set and restore them
+        gateway.secret_manager_client = None  # test-quality-ok: endpoint hot-reloads litellm globals; test must set and restore them
         r = client.post(CYBERARK_URL + "/test_connection")
         assert r.status_code == 400
         assert "not configured" in r.json()["detail"].lower()
@@ -637,7 +637,7 @@ async def test_cyberark_test_connection(client, monkeypatch):
         mock_manager._get_request_headers = MagicMock(
             return_value={"Authorization": "Token abc"}
         )
-        litellm.secret_manager_client = mock_manager  # test-quality-ok: endpoint hot-reloads litellm globals; test must set and restore them
+        gateway.secret_manager_client = mock_manager  # test-quality-ok: endpoint hot-reloads litellm globals; test must set and restore them
 
         mock_response = MagicMock()
         mock_response.raise_for_status = MagicMock()
@@ -661,8 +661,8 @@ async def test_cyberark_test_connection(client, monkeypatch):
         assert r.status_code == 502
         assert "authentication failed" in r.json()["detail"].lower()
     finally:
-        litellm.secret_manager_client = old_client  # test-quality-ok: endpoint hot-reloads litellm globals; test must set and restore them
-        litellm._key_management_system = old_kms  # test-quality-ok: endpoint hot-reloads litellm globals; test must set and restore them
+        gateway.secret_manager_client = old_client  # test-quality-ok: endpoint hot-reloads litellm globals; test must set and restore them
+        gateway._key_management_system = old_kms  # test-quality-ok: endpoint hot-reloads litellm globals; test must set and restore them
         _cleanup()
 
 
@@ -677,7 +677,7 @@ class TestHashicorpVaultAuditLog:
 
     @pytest.mark.asyncio
     async def test_post_emits_audit_log_with_redacted_values(self, client, monkeypatch):
-        monkeypatch.setattr(litellm, "store_audit_logs", True)
+        monkeypatch.setattr(gateway, "store_audit_logs", True)
         mock_prisma, mock_db = _make_mock_db()
         mock_cfg = _make_mock_proxy_config()
         monkeypatch.setattr(ps, "prisma_client", mock_prisma)
@@ -727,7 +727,7 @@ class TestHashicorpVaultAuditLog:
         ``config_value`` (e.g. an earlier failed write left a stub).
         Re-POSTing must label the audit row as ``updated`` — the row
         already exists — not ``created``."""
-        monkeypatch.setattr(litellm, "store_audit_logs", True)
+        monkeypatch.setattr(gateway, "store_audit_logs", True)
         mock_prisma, mock_db = _make_mock_db()
         mock_cfg = _make_mock_proxy_config()
         monkeypatch.setattr(ps, "prisma_client", mock_prisma)
@@ -769,7 +769,7 @@ class TestHashicorpVaultAuditLog:
     async def test_delete_emits_audit_log_only_when_row_existed(
         self, client, monkeypatch
     ):
-        monkeypatch.setattr(litellm, "store_audit_logs", True)
+        monkeypatch.setattr(gateway, "store_audit_logs", True)
         mock_prisma, mock_db = _make_mock_db()
         mock_cfg = _make_mock_proxy_config()
         monkeypatch.setattr(ps, "prisma_client", mock_prisma)
@@ -821,7 +821,7 @@ class TestHashicorpVaultAuditLog:
 
     @pytest.mark.asyncio
     async def test_no_audit_when_store_audit_logs_is_off(self, client, monkeypatch):
-        monkeypatch.setattr(litellm, "store_audit_logs", False)
+        monkeypatch.setattr(gateway, "store_audit_logs", False)
         mock_prisma, mock_db = _make_mock_db()
         mock_cfg = _make_mock_proxy_config()
         monkeypatch.setattr(ps, "prisma_client", mock_prisma)

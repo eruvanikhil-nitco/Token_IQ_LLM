@@ -467,9 +467,9 @@ async def acompletion_with_mcp(
 
                 # Import litellm here to ensure we get the patched version
                 # This ensures the patch works correctly in tests
-                from token_iq import gateway as litellm
+                from token_iq import gateway
 
-                follow_up_response: Final = await litellm.acompletion(**follow_up_call_args)
+                follow_up_response: Final = await gateway.acompletion(**follow_up_call_args)
 
                 # Ensure follow-up response is a CustomStreamWrapper
                 if isinstance(follow_up_response, CustomStreamWrapper):

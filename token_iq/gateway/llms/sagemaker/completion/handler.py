@@ -5,7 +5,7 @@ from typing import Final, cast
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.core_utils.asyncify import asyncify
 from token_iq.gateway.core_utils.aws_partition import get_aws_dns_suffix
@@ -160,7 +160,7 @@ class SagemakerLLM(BaseAWSLLM):
         model_id: Final = optional_params.get("model_id", None)
 
         ## Load Config
-        config: Final = litellm.SagemakerConfig.get_config()
+        config: Final = gateway.SagemakerConfig.get_config()
         for k, v in config.items():
             if (
                 k not in inference_params
@@ -363,7 +363,7 @@ class SagemakerLLM(BaseAWSLLM):
         try:
             if client is None:
                 client = get_async_httpx_client(
-                    llm_provider=litellm.LlmProviders.SAGEMAKER
+                    llm_provider=gateway.LlmProviders.SAGEMAKER
                 )  # Create a new client if none provided
             response: Final = await client.post(
                 api_base,
@@ -477,7 +477,7 @@ class SagemakerLLM(BaseAWSLLM):
         litellm_params: dict,
     ):
         timeout: Final = 300.0
-        async_handler: Final = get_async_httpx_client(llm_provider=litellm.LlmProviders.SAGEMAKER)
+        async_handler: Final = get_async_httpx_client(llm_provider=gateway.LlmProviders.SAGEMAKER)
 
         data: Final = await sagemaker_config.async_transform_request(
             model=model,
@@ -587,7 +587,7 @@ class SagemakerLLM(BaseAWSLLM):
         inference_params.pop("stream", None)
 
         ## Load Config
-        config: Final = litellm.SagemakerConfig.get_config()
+        config: Final = gateway.SagemakerConfig.get_config()
         for k, v in config.items():
             if (
                 k not in inference_params

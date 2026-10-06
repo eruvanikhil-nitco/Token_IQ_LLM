@@ -17,7 +17,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from fastapi.responses import ORJSONResponse, StreamingResponse
 from starlette.datastructures import UploadFile
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.constants import DEFAULT_MAX_RECURSE_DEPTH
 from token_iq.gateway.integrations.vector_store_integrations.vector_store_pre_call_hook import (
@@ -565,7 +565,7 @@ async def rag_ingest(
         verbose_proxy_logger.debug("RAG Ingest - options: %s", ingest_options)
 
         # Call ingest
-        response: Final = await litellm.aingest(
+        response: Final = await gateway.aingest(
             ingest_options=ingest_options,
             file_data=file_data,
             file_url=file_url,
@@ -757,7 +757,7 @@ async def rag_query(
         )
 
         # Call query
-        response: Final = await litellm.aquery(
+        response: Final = await gateway.aquery(
             model=model,
             messages=messages,
             retrieval_config=merged_retrieval_config,

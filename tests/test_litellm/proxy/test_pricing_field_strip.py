@@ -15,7 +15,7 @@ from unittest.mock import MagicMock
 import pytest
 from fastapi import Request
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy._types import UserAPIKeyAuth
 from token_iq.gateway.proxy.litellm_pre_call_utils import (
     _CLIENT_PRICING_CONTROL_FIELDS,
@@ -337,7 +337,7 @@ async def test_global_model_cost_unmutated_after_stripped_request(monkeypatch):
     """After a stripped request, ``litellm.model_cost`` must not carry the
     caller's submitted pricing for the model. The mutation only happens when
     the pricing fields reach ``litellm.completion``; the strip prevents that."""
-    snapshot = dict(litellm.model_cost)
+    snapshot = dict(gateway.model_cost)
     data = {
         "model": "test-pricing-canary-model",
         "messages": [{"role": "user", "content": "hi"}],
@@ -356,6 +356,6 @@ async def test_global_model_cost_unmutated_after_stripped_request(monkeypatch):
 
     # The strip prevents the pricing fields from ever reaching the path that
     # would mutate the global model_cost map.
-    assert "test-pricing-canary-model" not in litellm.model_cost
+    assert "test-pricing-canary-model" not in gateway.model_cost
     # And no other entries were mutated as a side effect.
-    assert litellm.model_cost == snapshot
+    assert gateway.model_cost == snapshot

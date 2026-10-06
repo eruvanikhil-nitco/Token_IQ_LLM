@@ -14,7 +14,7 @@ from unittest.mock import AsyncMock, patch, Mock, MagicMock
 import httpx
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import completion, acompletion
 from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
 from token_iq.gateway.llms.snowflake.chat.transformation import SnowflakeConfig
@@ -160,7 +160,7 @@ class TestSnowflakeToolTransformation:
         )
 
         model_response = ModelResponse(
-            choices=[litellm.Choices(index=0, message=litellm.Message())]
+            choices=[gateway.Choices(index=0, message=gateway.Message())]
         )
 
         logging_obj = MagicMock()
@@ -233,7 +233,7 @@ class TestSnowflakeToolTransformation:
         )
 
         model_response = ModelResponse(
-            choices=[litellm.Choices(index=0, message=litellm.Message())]
+            choices=[gateway.Choices(index=0, message=gateway.Message())]
         )
 
         logging_obj = MagicMock()
@@ -281,7 +281,7 @@ class TestSnowflakeToolTransformation:
         )
 
         model_response = ModelResponse(
-            choices=[litellm.Choices(index=0, message=litellm.Message())]
+            choices=[gateway.Choices(index=0, message=gateway.Message())]
         )
 
         logging_obj = MagicMock()
@@ -342,7 +342,7 @@ class TestSnowFlakeCompletion:
     def test_snowflake_jwt_account_id(self, mock_post):
         mock_post().json.return_value = copy.deepcopy(self.response)
 
-        response = litellm.completion(
+        response = gateway.completion(
             f"snowflake/{self.model_name}",
             messages=self.messages,
             api_key="00000",
@@ -368,7 +368,7 @@ class TestSnowFlakeCompletion:
     def test_snowflake_pat_key_account_id(self, mock_post):
         mock_post().json.return_value = copy.deepcopy(self.response)
 
-        response = litellm.completion(
+        response = gateway.completion(
             f"snowflake/{self.model_name}",
             messages=self.messages,
             api_key="pat/xxxxx",
@@ -395,7 +395,7 @@ class TestSnowFlakeCompletion:
         os.environ["SNOWFLAKE_ACCOUNT_ID"] = "AAAA-BBBB"
         os.environ["SNOWFLAKE_JWT"] = "00000"
 
-        response = litellm.completion(
+        response = gateway.completion(
             f"snowflake/{self.model_name}",
             messages=self.messages,
         )

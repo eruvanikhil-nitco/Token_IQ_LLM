@@ -3,7 +3,7 @@ from typing import Final
 
 from fastapi import HTTPException
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.caching.caching import DualCache
 from token_iq.gateway.integrations.custom_logger import CustomLogger
@@ -137,11 +137,11 @@ class _PROXY_AzureContentSafety(
         response,
     ):
         verbose_proxy_logger.debug("Inside Azure Content-Safety Post-Call Hook")
-        if not isinstance(response, litellm.ModelResponse):
+        if not isinstance(response, gateway.ModelResponse):
             return
 
         for choice in response.choices:
-            if not isinstance(choice, litellm.utils.Choices):
+            if not isinstance(choice, gateway.utils.Choices):
                 continue
             message = getattr(choice, "message", None)
             content = getattr(message, "content", None)

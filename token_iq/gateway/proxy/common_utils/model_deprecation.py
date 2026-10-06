@@ -7,7 +7,7 @@ from itertools import groupby
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.types.proxy.model_deprecation import (
     DEFAULT_DEPRECATION_WARN_DAYS,
@@ -45,7 +45,7 @@ def _parse_deprecation_date(raw_value: object) -> date | None:
 def _cost_map_lookup(model_key: object) -> _ResolvedDeprecation | None:
     if not isinstance(model_key, str) or not model_key:
         return None
-    entry: Final = litellm.model_cost.get(model_key)
+    entry: Final = gateway.model_cost.get(model_key)
     if not isinstance(entry, Mapping):
         return None
     parsed: Final = _parse_deprecation_date(entry.get("deprecation_date"))

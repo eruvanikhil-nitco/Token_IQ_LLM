@@ -1,6 +1,6 @@
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.credential_accessor import CredentialAccessor
 from token_iq.gateway.proxy.pass_through_endpoints.passthrough_endpoint_router import (
     PassthroughEndpointRouter,
@@ -10,7 +10,7 @@ from token_iq.gateway.types.utils import CredentialItem
 
 @pytest.fixture(autouse=True)
 def isolated_credential_list(monkeypatch):
-    monkeypatch.setattr(litellm, "credential_list", [])
+    monkeypatch.setattr(gateway, "credential_list", [])
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
     monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
     monkeypatch.delenv("ASSEMBLYAI_API_KEY", raising=False)
@@ -31,12 +31,12 @@ def _flagged_deployment(model: str, **litellm_params) -> dict:
     }
 
 
-def _passthrough_router(llm_router: litellm.Router | None) -> PassthroughEndpointRouter:
+def _passthrough_router(llm_router: gateway.Router | None) -> PassthroughEndpointRouter:
     return PassthroughEndpointRouter(llm_router_getter=lambda: llm_router)
 
 
 def test_credential_loaded_after_deployment_registration_still_resolves():
-    llm_router = litellm.Router(
+    llm_router = gateway.Router(
         model_list=[_flagged_deployment("openai/gpt-4o", litellm_credential_name="cred_openai")]
     )
     passthrough_router = _passthrough_router(llm_router)
@@ -53,7 +53,7 @@ def test_credential_loaded_after_deployment_registration_still_resolves():
 
 def test_credential_rotation_is_reflected_without_deployment_update():
     CredentialAccessor.upsert_credentials([_credential("cred_openai", "sk-before-rotation")])
-    llm_router = litellm.Router(
+    llm_router = gateway.Router(
         model_list=[_flagged_deployment("openai/gpt-4o", litellm_credential_name="cred_openai")]
     )
     passthrough_router = _passthrough_router(llm_router)
@@ -72,7 +72,7 @@ def test_credential_rotation_is_reflected_without_deployment_update():
 
 
 def test_deleted_deployment_stops_serving_its_key(monkeypatch):
-    llm_router = litellm.Router(model_list=[_flagged_deployment("openai/gpt-4o", api_key="sk-inline")])
+    llm_router = gateway.Router(model_list=[_flagged_deployment("openai/gpt-4o", api_key="sk-inline")])
     passthrough_router = _passthrough_router(llm_router)
 
     assert passthrough_router.get_credentials(custom_llm_provider="openai", region_name=None) == "sk-inline"
@@ -86,7 +86,7 @@ def test_deleted_deployment_stops_serving_its_key(monkeypatch):
 
 
 def test_inline_api_key_resolves_without_credential_name():
-    llm_router = litellm.Router(
+    llm_router = gateway.Router(
         model_list=[_flagged_deployment("anthropic/claude-sonnet-4-5", api_key="sk-ant-inline")]
     )
     passthrough_router = _passthrough_router(llm_router)
@@ -98,7 +98,7 @@ def test_inline_api_key_resolves_without_credential_name():
 
 
 def test_missing_credential_and_no_inline_key_falls_back_to_env(monkeypatch):
-    llm_router = litellm.Router(
+    llm_router = gateway.Router(
         model_list=[_flagged_deployment("openai/gpt-4o", litellm_credential_name="cred_deleted")]
     )
     passthrough_router = _passthrough_router(llm_router)
@@ -110,7 +110,7 @@ def test_missing_credential_and_no_inline_key_falls_back_to_env(monkeypatch):
 
 
 def test_deployment_for_other_provider_does_not_match():
-    llm_router = litellm.Router(
+    llm_router = gateway.Router(
         model_list=[_flagged_deployment("anthropic/claude-sonnet-4-5", api_key="sk-ant-inline")]
     )
     passthrough_router = _passthrough_router(llm_router)
@@ -127,7 +127,7 @@ def test_a_deployment_without_the_old_opt_in_flag_is_used():
     credential while the dashboard showed it present, with nothing in the error naming the
     setting. On the deployment this was found on, 39 of 40 models lacked it.
     """
-    llm_router = litellm.Router(
+    llm_router = gateway.Router(
         model_list=[
             {
                 "model_name": "gpt-4o",
@@ -141,7 +141,7 @@ def test_a_deployment_without_the_old_opt_in_flag_is_used():
 
 
 def test_first_matching_deployment_wins():
-    llm_router = litellm.Router(
+    llm_router = gateway.Router(
         model_list=[
             _flagged_deployment("openai/gpt-4o", api_key="sk-first"),
             _flagged_deployment("openai/gpt-4o-mini", api_key="sk-second"),
@@ -193,7 +193,7 @@ def test_vertex_deployment_resolves_via_named_credential():
             )
         ]
     )
-    llm_router = litellm.Router(
+    llm_router = gateway.Router(
         model_list=[
             _vertex_deployment(
                 "gemini-live", "vertex_ai/gemini-live-2.5-flash", litellm_credential_name="cred_gcp"
@@ -211,7 +211,7 @@ def test_vertex_deployment_resolves_via_named_credential():
 
 
 def test_vertex_deployment_resolves_from_inline_litellm_params():
-    llm_router = litellm.Router(
+    llm_router = gateway.Router(
         model_list=[
             _vertex_deployment(
                 "gemini-live",
@@ -232,8 +232,8 @@ def test_vertex_deployment_resolves_from_inline_litellm_params():
     assert resolved.vertex_credentials == '{"type": "service_account", "project_id": "proj-inline"}'
 
 
-def _two_vertex_deployments_router() -> litellm.Router:
-    return litellm.Router(
+def _two_vertex_deployments_router() -> gateway.Router:
+    return gateway.Router(
         model_list=[
             _vertex_deployment(
                 "gemini-flash",
@@ -271,7 +271,7 @@ def test_vertex_without_usable_hint_refuses_to_guess_between_projects():
 
 
 def test_vertex_without_hint_falls_back_when_deployments_share_a_target():
-    llm_router = litellm.Router(
+    llm_router = gateway.Router(
         model_list=[
             _vertex_deployment(
                 "gemini-flash", "vertex_ai/gemini-2.5-flash", vertex_project="proj-one", vertex_location="global"
@@ -289,7 +289,7 @@ def test_vertex_without_hint_falls_back_when_deployments_share_a_target():
 
 
 def test_vertex_without_hint_refuses_to_guess_between_service_accounts():
-    llm_router = litellm.Router(
+    llm_router = gateway.Router(
         model_list=[
             _vertex_deployment(
                 "gemini-flash",
@@ -326,7 +326,7 @@ def test_vertex_named_credential_keeps_dict_service_account():
             )
         ]
     )
-    llm_router = litellm.Router(
+    llm_router = gateway.Router(
         model_list=[
             _vertex_deployment(
                 "gemini-live", "vertex_ai/gemini-live-2.5-flash", litellm_credential_name="cred_gcp_dict"
@@ -342,7 +342,7 @@ def test_vertex_named_credential_keeps_dict_service_account():
 
 
 def test_no_flagged_vertex_deployment_returns_none():
-    llm_router = litellm.Router(
+    llm_router = gateway.Router(
         model_list=[
             {
                 "model_name": "gemini-live",
@@ -365,7 +365,7 @@ def test_vertex_deployment_with_deleted_credential_is_skipped(monkeypatch):
     CredentialAccessor.upsert_credentials(
         [_vertex_credential("cred_gone", {"vertex_project": "proj-db", "vertex_location": "global"})]
     )
-    llm_router = litellm.Router(
+    llm_router = gateway.Router(
         model_list=[
             _vertex_deployment(
                 "gemini-live", "vertex_ai/gemini-live-2.5-flash", litellm_credential_name="cred_gone"
@@ -373,6 +373,6 @@ def test_vertex_deployment_with_deleted_credential_is_skipped(monkeypatch):
         ]
     )
     passthrough_router = _passthrough_router(llm_router)
-    monkeypatch.setattr(litellm, "credential_list", [])
+    monkeypatch.setattr(gateway, "credential_list", [])
 
     assert passthrough_router.get_vertex_credentials_from_router_deployments(model=None) is None

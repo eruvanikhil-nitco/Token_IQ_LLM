@@ -17,7 +17,7 @@ import os
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.logging_worker import GLOBAL_LOGGING_WORKER
 
 # ``litellm.model_cost`` is loaded at import time from the URL pinned to ``main``
@@ -35,7 +35,7 @@ from token_iq.gateway.core_utils.get_model_cost_map import (
 for _k, _v in GetModelCostMap.load_local_model_cost_map().items():
     if _k in RESERVED_TOP_LEVEL_KEYS:
         continue
-    litellm.model_cost.setdefault(_k, _v)
+    gateway.model_cost.setdefault(_k, _v)
 
 from tests._vcr_conftest_common import (  # noqa: E402,F401
     VerboseReporterState,
@@ -141,25 +141,25 @@ def pytest_terminal_summary(terminalreporter, exitstatus, config):
 # the values here are guaranteed to be the real package defaults.
 # ---------------------------------------------------------------------------
 _SCALAR_DEFAULTS = {
-    "num_retries": getattr(litellm, "num_retries", None),
-    "num_retries_per_request": getattr(litellm, "num_retries_per_request", None),
-    "request_timeout": getattr(litellm, "request_timeout", None),
-    "set_verbose": getattr(litellm, "set_verbose", False),
-    "cache": getattr(litellm, "cache", None),
-    "allowed_fails": getattr(litellm, "allowed_fails", 3),
-    "default_fallbacks": getattr(litellm, "default_fallbacks", None),
+    "num_retries": getattr(gateway, "num_retries", None),
+    "num_retries_per_request": getattr(gateway, "num_retries_per_request", None),
+    "request_timeout": getattr(gateway, "request_timeout", None),
+    "set_verbose": getattr(gateway, "set_verbose", False),
+    "cache": getattr(gateway, "cache", None),
+    "allowed_fails": getattr(gateway, "allowed_fails", 3),
+    "default_fallbacks": getattr(gateway, "default_fallbacks", None),
     "enable_azure_ad_token_refresh": getattr(
-        litellm, "enable_azure_ad_token_refresh", None
+        gateway, "enable_azure_ad_token_refresh", None
     ),
-    "tag_budget_config": getattr(litellm, "tag_budget_config", None),
-    "model_cost": getattr(litellm, "model_cost", None),
-    "token_counter": getattr(litellm, "token_counter", None),
-    "disable_aiohttp_transport": getattr(litellm, "disable_aiohttp_transport", False),
-    "force_ipv4": getattr(litellm, "force_ipv4", False),
-    "drop_params": getattr(litellm, "drop_params", None),
-    "modify_params": getattr(litellm, "modify_params", False),
-    "api_base": getattr(litellm, "api_base", None),
-    "api_key": getattr(litellm, "api_key", None),
+    "tag_budget_config": getattr(gateway, "tag_budget_config", None),
+    "model_cost": getattr(gateway, "model_cost", None),
+    "token_counter": getattr(gateway, "token_counter", None),
+    "disable_aiohttp_transport": getattr(gateway, "disable_aiohttp_transport", False),
+    "force_ipv4": getattr(gateway, "force_ipv4", False),
+    "drop_params": getattr(gateway, "drop_params", None),
+    "modify_params": getattr(gateway, "modify_params", False),
+    "api_base": getattr(gateway, "api_base", None),
+    "api_key": getattr(gateway, "api_key", None),
 }
 
 
@@ -181,25 +181,25 @@ def isolate_litellm_state():
         "_async_success_callback",
         "_async_failure_callback",
     ):
-        if hasattr(litellm, attr):
-            val = getattr(litellm, attr)
+        if hasattr(gateway, attr):
+            val = getattr(gateway, attr)
             original_state[attr] = val.copy() if val else []
 
     # Save list-type globals
     for attr in ("pre_call_rules", "post_call_rules"):
-        if hasattr(litellm, attr):
-            val = getattr(litellm, attr)
+        if hasattr(gateway, attr):
+            val = getattr(gateway, attr)
             original_state[attr] = val.copy() if val else []
 
     # Save scalar globals
     for attr in _SCALAR_DEFAULTS:
-        if hasattr(litellm, attr):
-            original_state[attr] = getattr(litellm, attr)
+        if hasattr(gateway, attr):
+            original_state[attr] = getattr(gateway, attr)
 
     # ---- Reset to true defaults before the test ----
     # Flush HTTP client cache
-    if hasattr(litellm, "in_memory_llm_clients_cache"):
-        litellm.in_memory_llm_clients_cache.flush_cache()
+    if hasattr(gateway, "in_memory_llm_clients_cache"):
+        gateway.in_memory_llm_clients_cache.flush_cache()
 
     # Clear callbacks and rules
     for attr in (
@@ -211,25 +211,25 @@ def isolate_litellm_state():
         "pre_call_rules",
         "post_call_rules",
     ):
-        if hasattr(litellm, attr):
-            setattr(litellm, attr, [])
+        if hasattr(gateway, attr):
+            setattr(gateway, attr, [])
 
     # Reset scalar globals to true defaults (prevents contamination from
     # module-level code like `litellm.num_retries = 3` in test files)
     for attr, default_val in _SCALAR_DEFAULTS.items():
-        if hasattr(litellm, attr):
-            setattr(litellm, attr, default_val)
+        if hasattr(gateway, attr):
+            setattr(gateway, attr, default_val)
 
     yield
 
     # ---- Teardown: restore saved state ----
     asyncio.run(GLOBAL_LOGGING_WORKER.clear_queue())
-    if hasattr(litellm, "in_memory_llm_clients_cache"):
-        litellm.in_memory_llm_clients_cache.flush_cache()
+    if hasattr(gateway, "in_memory_llm_clients_cache"):
+        gateway.in_memory_llm_clients_cache.flush_cache()
 
     for attr, original_value in original_state.items():
-        if hasattr(litellm, attr):
-            setattr(litellm, attr, original_value)
+        if hasattr(gateway, attr):
+            setattr(gateway, attr, original_value)
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -239,23 +239,23 @@ def setup_and_teardown():
     (skipped under xdist to avoid cross-worker interference).
     """
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     worker_id = os.environ.get("PYTEST_XDIST_WORKER", None)
     if worker_id is None:
-        importlib.reload(litellm)
+        importlib.reload(gateway)
 
         try:
-            if hasattr(litellm, "proxy") and hasattr(litellm.proxy, "proxy_server"):
+            if hasattr(gateway, "proxy") and hasattr(gateway.proxy, "proxy_server"):
                 import token_iq.gateway.proxy.proxy_server
-                from token_iq import gateway as litellm
+                from token_iq import gateway
 
-                importlib.reload(litellm.proxy.proxy_server)
+                importlib.reload(gateway.proxy.proxy_server)
         except Exception as e:
             print(f"Error reloading litellm.proxy.proxy_server: {e}")
 
-        if hasattr(litellm, "in_memory_llm_clients_cache"):
-            litellm.in_memory_llm_clients_cache.flush_cache()
+        if hasattr(gateway, "in_memory_llm_clients_cache"):
+            gateway.in_memory_llm_clients_cache.flush_cache()
 
     yield
 

@@ -7,7 +7,7 @@ from urllib.parse import urlparse
 import httpx
 from httpx import Response
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.core_utils.prompt_templates.common_utils import (
     _audio_or_image_in_message_content,
@@ -212,9 +212,9 @@ class AzureAIStudioConfig(OpenAIConfig):
             if "/" in model:
                 model = model.split("/", 1)[1]
             if (
-                model in litellm.open_ai_chat_completion_models
-                or model in litellm.open_ai_text_completion_models
-                or model in litellm.open_ai_embedding_models
+                model in gateway.open_ai_chat_completion_models
+                or model in gateway.open_ai_text_completion_models
+                or model in gateway.open_ai_embedding_models
             ):
                 return True
 
@@ -283,7 +283,7 @@ class AzureAIStudioConfig(OpenAIConfig):
     def should_retry_llm_api_inside_llm_translation_on_http_error(
         self, e: httpx.HTTPStatusError, litellm_params: dict
     ) -> bool:
-        should_drop_params: Final = litellm_params.get("drop_params") or litellm.drop_params
+        should_drop_params: Final = litellm_params.get("drop_params") or gateway.drop_params
         error_text: Final = e.response.text
 
         if "Extra inputs are not permitted" in error_text:
@@ -306,7 +306,7 @@ class AzureAIStudioConfig(OpenAIConfig):
         error_text: Final = e.response.text
         _messages: Final = cast(list[AllMessageValues] | None, request_data.get("messages"))
         if "unknown field: parameter index is not a valid field" in error_text and _messages is not None:
-            litellm.remove_index_from_tool_calls(
+            gateway.remove_index_from_tool_calls(
                 messages=_messages,
             )
         elif AzureFoundryErrorStrings.SET_EXTRA_PARAMETERS_TO_PASS_THROUGH.value in error_text:

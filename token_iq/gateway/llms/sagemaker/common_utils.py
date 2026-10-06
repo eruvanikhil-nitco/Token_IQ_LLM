@@ -5,7 +5,7 @@ from typing import Final
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import verbose_logger
 from token_iq.gateway.llms.base_llm.chat.transformation import BaseLLMException
 from token_iq.gateway.types.utils import GenericStreamingChunk as GChunk
@@ -102,7 +102,7 @@ class AWSEventStreamDecoder:
                 message = self._parse_message_from_event(event)
                 if message:
                     # remove data: prefix and "\n\n" at the end
-                    message = litellm.CustomStreamWrapper._strip_sse_data_from_chunk(message) or ""
+                    message = gateway.CustomStreamWrapper._strip_sse_data_from_chunk(message) or ""
                     message = message.replace("\n\n", "")
 
                     # Accumulate JSON data
@@ -151,7 +151,7 @@ class AWSEventStreamDecoder:
                     if message:
                         verbose_logger.debug("sagemaker  parsed chunk bytes %s", message)
                         # remove data: prefix and "\n\n" at the end
-                        message = litellm.CustomStreamWrapper._strip_sse_data_from_chunk(message) or ""
+                        message = gateway.CustomStreamWrapper._strip_sse_data_from_chunk(message) or ""
                         message = message.replace("\n\n", "")
 
                         # Accumulate JSON data

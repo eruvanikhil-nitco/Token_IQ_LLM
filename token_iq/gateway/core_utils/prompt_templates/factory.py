@@ -11,11 +11,11 @@ from typing import Any, Final, TypedDict, cast, overload
 
 from jinja2.sandbox import ImmutableSandboxedEnvironment
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 import token_iq.gateway.types
-from token_iq import gateway as litellm
+from token_iq import gateway
 import token_iq.gateway.types.llms
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import verbose_logger
 from token_iq.gateway._uuid import uuid
 from token_iq.gateway.constants import REDACTED_BY_LITELLM
@@ -271,7 +271,7 @@ def ollama_pt(
             prompt += f"### Assistant:\n{assistant_content_str}\n\n"
 
         if msg_i == init_msg_i:  # prevent infinite loops
-            raise litellm.BadRequestError(
+            raise gateway.BadRequestError(
                 message=BAD_MESSAGE_ERROR_STR + f"passed in {messages[msg_i]}",
                 model=model,
                 llm_provider="ollama",
@@ -461,11 +461,11 @@ async def _afetch_and_extract_template(
 
     if chat_template is None:
         # Fetch or retrieve cached tokenizer config
-        if model in litellm.known_tokenizer_config:
-            tokenizer_config = litellm.known_tokenizer_config[model]
+        if model in gateway.known_tokenizer_config:
+            tokenizer_config = gateway.known_tokenizer_config[model]
         else:
             tokenizer_config = await get_config_fn(hf_model_name=model)
-            litellm.known_tokenizer_config.update({model: tokenizer_config})
+            gateway.known_tokenizer_config.update({model: tokenizer_config})
 
         # Try to get chat template from tokenizer_config.json first
         if (
@@ -515,11 +515,11 @@ def _fetch_and_extract_template(
 
     if chat_template is None:
         # Fetch or retrieve cached tokenizer config
-        if model in litellm.known_tokenizer_config:
-            tokenizer_config = litellm.known_tokenizer_config[model]
+        if model in gateway.known_tokenizer_config:
+            tokenizer_config = gateway.known_tokenizer_config[model]
         else:
             tokenizer_config = get_config_fn(hf_model_name=model)
-            litellm.known_tokenizer_config.update({model: tokenizer_config})
+            gateway.known_tokenizer_config.update({model: tokenizer_config})
 
         # Try to get chat template from tokenizer_config.json first
         if (
@@ -812,7 +812,7 @@ def convert_to_anthropic_image_obj(openai_image_url: str, format: str | None) ->
             media_type=media_type,
             data=base64_data,
         )
-    except litellm.ImageFetchError:
+    except gateway.ImageFetchError:
         raise
     except Exception as e:
         raise Exception(
@@ -1036,7 +1036,7 @@ def anthropic_messages_pt_xml(messages: list):
             new_messages.append({"role": "assistant", "content": assistant_content})
 
     if not new_messages or new_messages[0]["role"] != "user":
-        if litellm.modify_params:
+        if gateway.modify_params:
             new_messages.insert(0, {"role": "user", "content": [{"type": "text", "text": "."}]})
         else:
             raise Exception(
@@ -1886,7 +1886,7 @@ def anthropic_process_openai_file_message(
     file_message: Final = cast(ChatCompletionFileObject, message)
     file_sub: Final = file_message.get("file")
     if file_sub is None:
-        raise litellm.BadRequestError(
+        raise gateway.BadRequestError(
             message="Content block has type='file' but is missing the required 'file' field",
             model=None,
             llm_provider="anthropic",
@@ -2226,7 +2226,7 @@ def sanitize_messages_for_tool_calling(
     This function operates on OpenAI format messages before they are converted to
     provider-specific formats.
     """
-    if not litellm.modify_params:
+    if not gateway.modify_params:
         return messages
 
     sanitized_messages: list[AllMessageValues] = []
@@ -2355,8 +2355,8 @@ def anthropic_messages_pt(
     new_messages: Final[list[AnthropicMessagesUserMessageParam | AnthopicMessagesAssistantMessageParam]] = []
 
     if len(messages) == 0:
-        if not litellm.modify_params:
-            raise litellm.BadRequestError(
+        if not gateway.modify_params:
+            raise gateway.BadRequestError(
                 message=f"Anthropic requires at least one non-system message. Either provide one, or set `litellm.modify_params = True` // `litellm_settings::modify_params: True` to add the dummy user message - {DEFAULT_USER_CONTINUE_MESSAGE_TYPED}.",
                 model=model,
                 llm_provider=llm_provider,
@@ -2746,7 +2746,7 @@ def anthropic_messages_pt(
             new_messages.append({"role": "assistant", "content": assistant_content})
 
         if msg_i == init_msg_i:  # prevent infinite loops
-            raise litellm.BadRequestError(
+            raise gateway.BadRequestError(
                 message=BAD_MESSAGE_ERROR_STR + f"passed in {messages[msg_i]}",
                 model=model,
                 llm_provider=llm_provider,
@@ -3100,7 +3100,7 @@ def cohere_messages_pt_v2(
             new_messages.append(ChatHistoryToolResult(role="TOOL", tool_results=tool_results))
 
         if msg_i == init_msg_i:  # prevent infinite loops
-            raise litellm.BadRequestError(
+            raise gateway.BadRequestError(
                 message=BAD_MESSAGE_ERROR_STR + f"passed in {messages[msg_i]}",
                 model=model,
                 llm_provider=llm_provider,
@@ -3430,9 +3430,9 @@ class BedrockImageProcessor:
     def _validate_format(mime_type: str, image_format: str) -> str:
         """Validate image format and mime type for both images and documents."""
 
-        supported_image_formats: Final = litellm.AmazonConverseConfig().get_supported_image_types()
-        supported_doc_formats: Final = litellm.AmazonConverseConfig().get_supported_document_types()
-        supported_video_formats: Final = litellm.AmazonConverseConfig().get_supported_video_types()
+        supported_image_formats: Final = gateway.AmazonConverseConfig().get_supported_image_types()
+        supported_doc_formats: Final = gateway.AmazonConverseConfig().get_supported_document_types()
+        supported_video_formats: Final = gateway.AmazonConverseConfig().get_supported_video_types()
 
         document_types: Final = ["application", "text"]
         is_document: Final = any(mime_type.startswith(doc_type) for doc_type in document_types)
@@ -3507,7 +3507,7 @@ class BedrockImageProcessor:
         document_types: Final = ["application", "text"]
         is_document: Final = any(mime_type.startswith(doc_type) for doc_type in document_types)
 
-        supported_video_formats: Final = litellm.AmazonConverseConfig().get_supported_video_types()
+        supported_video_formats: Final = gateway.AmazonConverseConfig().get_supported_video_types()
         is_video: Final = any(image_format.startswith(video_type) for video_type in supported_video_formats)
 
         HASH_SAMPLE_BYTES: Final = 64 * 1024  # hash up to 64 KB of data
@@ -3665,7 +3665,7 @@ def _convert_to_bedrock_tool_call_invoke(
                             # cache_control applies to the whole original
                             # tool call; attach after the last split block.
                             if tool.get("cache_control", None) is not None:
-                                _cache_point_block = litellm.AmazonConverseConfig().get_cache_point_block(
+                                _cache_point_block = gateway.AmazonConverseConfig().get_cache_point_block(
                                     {"cache_control": tool["cache_control"]},
                                     block_type="content_block",
                                     model=model,
@@ -3682,7 +3682,7 @@ def _convert_to_bedrock_tool_call_invoke(
 
                 # Check for cache_control and add a separate cachePoint block
                 if tool.get("cache_control", None) is not None:
-                    cache_point_block = litellm.AmazonConverseConfig().get_cache_point_block(
+                    cache_point_block = gateway.AmazonConverseConfig().get_cache_point_block(
                         {"cache_control": tool["cache_control"]},
                         block_type="content_block",
                         model=model,
@@ -3692,7 +3692,7 @@ def _convert_to_bedrock_tool_call_invoke(
         return _parts_list
     except Exception as e:
         tool_call_ids: Final = tuple(tool.get("id") for tool in tool_calls if isinstance(tool, dict))
-        raise litellm.BadRequestError(
+        raise gateway.BadRequestError(
             message=f"Unable to convert openai tool calls with ids={tool_call_ids} to bedrock tool calls. "
             f"Received error={e}",
             model=model or "",
@@ -3746,7 +3746,7 @@ def _append_bedrock_tool_result_file_block(
     file_data: Final = file_obj.get("file_data")
     file_id: Final = file_obj.get("file_id")
     if file_data is None and file_id is None:
-        raise litellm.BadRequestError(
+        raise gateway.BadRequestError(
             message=f"file_data and file_id cannot both be None. Got={content}",
             model="",
             llm_provider="bedrock",
@@ -4043,7 +4043,7 @@ def _insert_assistant_continue_message(
                     content=[BedrockContentBlock(text=text)],
                 )
             )
-    elif litellm.modify_params:
+    elif gateway.modify_params:
         text = convert_content_list_to_str(cast(ChatCompletionAssistantMessage, DEFAULT_ASSISTANT_CONTINUE_MESSAGE))
         messages.append(
             BedrockMessageBlock(
@@ -4069,7 +4069,7 @@ def get_user_message_block_or_continue_message(
     content_block: Final = message.get("content", None)
 
     # Handle None case
-    if content_block is None or (user_continue_message is None and litellm.modify_params is False):
+    if content_block is None or (user_continue_message is None and gateway.modify_params is False):
         return skip_empty_text_blocks(message=message)
 
     # Handle string case
@@ -4247,7 +4247,7 @@ def get_assistant_message_block_or_continue_message(
     content_block: Final = message.get("content", None)
 
     # Handle Base case
-    if content_block is None or (assistant_continue_message is None and litellm.modify_params is False):
+    if content_block is None or (assistant_continue_message is None and gateway.modify_params is False):
         return skip_empty_text_blocks(message=message)
 
     # Handle string case
@@ -4291,10 +4291,10 @@ class BedrockConverseMessagesProcessor:
         if len(messages) == 0:
             if user_continue_message is not None:
                 messages.append(user_continue_message)
-            elif litellm.modify_params:
+            elif gateway.modify_params:
                 messages.append(DEFAULT_USER_CONTINUE_MESSAGE)
             else:
-                raise litellm.BadRequestError(
+                raise gateway.BadRequestError(
                     message=BAD_MESSAGE_ERROR_STR + "bedrock requires at least one non-system message",
                     model=model,
                     llm_provider=llm_provider,
@@ -4305,7 +4305,7 @@ class BedrockConverseMessagesProcessor:
             if not messages[0].get("prefix"):
                 if user_continue_message is not None:
                     messages.insert(0, user_continue_message)
-                elif litellm.modify_params:
+                elif gateway.modify_params:
                     messages.insert(0, DEFAULT_USER_CONTINUE_MESSAGE)
 
         # if final message is assistant message
@@ -4313,7 +4313,7 @@ class BedrockConverseMessagesProcessor:
             if not messages[-1].get("prefix"):
                 if user_continue_message is not None:
                     messages.append(user_continue_message)
-                elif litellm.modify_params:
+                elif gateway.modify_params:
                     messages.append(DEFAULT_USER_CONTINUE_MESSAGE)
         return messages
 
@@ -4377,7 +4377,7 @@ class BedrockConverseMessagesProcessor:
                             elif element["type"] == "document":
                                 _part = BedrockConverseMessagesProcessor._process_document_message(element)
                                 _parts.append(_part)
-                            _cache_point_block = litellm.AmazonConverseConfig().get_cache_point_block(
+                            _cache_point_block = gateway.AmazonConverseConfig().get_cache_point_block(
                                 message_block=cast(OpenAIMessageContentListBlock, element),
                                 block_type="content_block",
                                 model=model,
@@ -4387,7 +4387,7 @@ class BedrockConverseMessagesProcessor:
                     user_content.extend(_parts)
                 elif message_block["content"] and isinstance(message_block["content"], str):
                     _part = BedrockContentBlock(text=messages[msg_i]["content"])
-                    _cache_point_block = litellm.AmazonConverseConfig().get_cache_point_block(
+                    _cache_point_block = gateway.AmazonConverseConfig().get_cache_point_block(
                         message_block, block_type="content_block", model=model
                     )
                     user_content.append(_part)
@@ -4397,7 +4397,7 @@ class BedrockConverseMessagesProcessor:
                 msg_i += 1
             if user_content:
                 if len(contents) > 0 and contents[-1]["role"] == "user":
-                    if assistant_continue_message is not None or litellm.modify_params is True:
+                    if assistant_continue_message is not None or gateway.modify_params is True:
                         # if last message was a 'user' message, then add a dummy assistant message (bedrock requires alternating roles)
                         contents = _insert_assistant_continue_message(
                             messages=contents,
@@ -4434,7 +4434,7 @@ class BedrockConverseMessagesProcessor:
 
                 # Add a separate cachePoint block if cache_control is present
                 if tool_msg_cache_control is not None:
-                    cache_point_block = litellm.AmazonConverseConfig().get_cache_point_block(
+                    cache_point_block = gateway.AmazonConverseConfig().get_cache_point_block(
                         {"cache_control": tool_msg_cache_control},
                         block_type="content_block",
                         model=model,
@@ -4448,7 +4448,7 @@ class BedrockConverseMessagesProcessor:
             if tool_content:
                 # if last message was a 'user' message, then add a blank assistant message (bedrock requires alternating roles)
                 if len(contents) > 0 and contents[-1]["role"] == "user":
-                    if assistant_continue_message is not None or litellm.modify_params is True:
+                    if assistant_continue_message is not None or gateway.modify_params is True:
                         # if last message was a 'user' message, then add a dummy assistant message (bedrock requires alternating roles)
                         contents = _insert_assistant_continue_message(
                             messages=contents,
@@ -4513,7 +4513,7 @@ class BedrockConverseMessagesProcessor:
                                 assistants_part = await BedrockImageProcessor.process_image_async(image_url=image_url)
                                 assistants_parts.append(assistants_part)
                                 # Add cache point block for assistant content elements
-                        _cache_point_block = litellm.AmazonConverseConfig().get_cache_point_block(
+                        _cache_point_block = gateway.AmazonConverseConfig().get_cache_point_block(
                             message_block=cast(OpenAIMessageContentListBlock, element),
                             block_type="content_block",
                             model=model,
@@ -4527,7 +4527,7 @@ class BedrockConverseMessagesProcessor:
                         assistant_content.append(BedrockContentBlock(text=_assistant_content))
                     # If content is empty/whitespace, skip it (don't add a placeholder)
                     # Add cache point block for assistant string content
-                    _cache_point_block = litellm.AmazonConverseConfig().get_cache_point_block(
+                    _cache_point_block = gateway.AmazonConverseConfig().get_cache_point_block(
                         assistant_message_block, block_type="content_block", model=model
                     )
                     if _cache_point_block is not None:
@@ -4546,7 +4546,7 @@ class BedrockConverseMessagesProcessor:
                 contents.append(BedrockMessageBlock(role="assistant", content=assistant_content))
 
             if msg_i == init_msg_i:  # prevent infinite loops
-                raise litellm.BadRequestError(
+                raise gateway.BadRequestError(
                     message=BAD_MESSAGE_ERROR_STR + f"passed in {messages[msg_i]}",
                     model=model,
                     llm_provider=llm_provider,
@@ -4578,7 +4578,7 @@ class BedrockConverseMessagesProcessor:
     def _process_file_message(message: ChatCompletionFileObject) -> BedrockContentBlock:
         file_message: Final = message.get("file")
         if file_message is None:
-            raise litellm.BadRequestError(
+            raise gateway.BadRequestError(
                 message="Content block has type='file' but is missing the required 'file' field",
                 model=None,
                 llm_provider="bedrock",
@@ -4587,7 +4587,7 @@ class BedrockConverseMessagesProcessor:
         file_id: Final = file_message.get("file_id")
 
         if file_data is None and file_id is None:
-            raise litellm.BadRequestError(
+            raise gateway.BadRequestError(
                 message=f"file_data and file_id cannot both be None. Got={message}",
                 model="",
                 llm_provider="bedrock",
@@ -4601,7 +4601,7 @@ class BedrockConverseMessagesProcessor:
     ) -> BedrockContentBlock:
         file_message: Final = message.get("file")
         if file_message is None:
-            raise litellm.BadRequestError(
+            raise gateway.BadRequestError(
                 message="Content block has type='file' but is missing the required 'file' field",
                 model=None,
                 llm_provider="bedrock",
@@ -4610,7 +4610,7 @@ class BedrockConverseMessagesProcessor:
         file_id: Final = file_message.get("file_id")
         format: Final = file_message.get("format")
         if file_data is None and file_id is None:
-            raise litellm.BadRequestError(
+            raise gateway.BadRequestError(
                 message=f"file_data and file_id cannot both be None. Got={message}",
                 model="",
                 llm_provider="bedrock",
@@ -4750,7 +4750,7 @@ def _bedrock_converse_messages_pt(
                         elif element["type"] == "document":
                             _part = BedrockConverseMessagesProcessor._process_document_message(element)
                             _parts.append(_part)
-                        _cache_point_block = litellm.AmazonConverseConfig().get_cache_point_block(
+                        _cache_point_block = gateway.AmazonConverseConfig().get_cache_point_block(
                             message_block=cast(OpenAIMessageContentListBlock, element),
                             block_type="content_block",
                             model=model,
@@ -4760,7 +4760,7 @@ def _bedrock_converse_messages_pt(
                 user_content.extend(_parts)
             elif message_block["content"] and isinstance(message_block["content"], str):
                 _part = BedrockContentBlock(text=messages[msg_i]["content"])
-                _cache_point_block = litellm.AmazonConverseConfig().get_cache_point_block(
+                _cache_point_block = gateway.AmazonConverseConfig().get_cache_point_block(
                     message_block, block_type="content_block", model=model
                 )
                 user_content.append(_part)
@@ -4770,7 +4770,7 @@ def _bedrock_converse_messages_pt(
             msg_i += 1
         if user_content:
             if len(contents) > 0 and contents[-1]["role"] == "user":
-                if assistant_continue_message is not None or litellm.modify_params is True:
+                if assistant_continue_message is not None or gateway.modify_params is True:
                     # if last message was a 'user' message, then add a dummy assistant message (bedrock requires alternating roles)
                     contents = _insert_assistant_continue_message(
                         messages=contents,
@@ -4809,7 +4809,7 @@ def _bedrock_converse_messages_pt(
 
             # Add a separate cachePoint block if cache_control is present
             if tool_msg_cache_control is not None:
-                cache_point_block = litellm.AmazonConverseConfig().get_cache_point_block(
+                cache_point_block = gateway.AmazonConverseConfig().get_cache_point_block(
                     {"cache_control": tool_msg_cache_control},
                     block_type="content_block",
                     model=model,
@@ -4823,7 +4823,7 @@ def _bedrock_converse_messages_pt(
         if tool_content:
             # if last message was a 'user' message, then add a blank assistant message (bedrock requires alternating roles)
             if len(contents) > 0 and contents[-1]["role"] == "user":
-                if assistant_continue_message is not None or litellm.modify_params is True:
+                if assistant_continue_message is not None or gateway.modify_params is True:
                     # if last message was a 'user' message, then add a dummy assistant message (bedrock requires alternating roles)
                     contents = _insert_assistant_continue_message(
                         messages=contents,
@@ -4891,7 +4891,7 @@ def _bedrock_converse_messages_pt(
                             assistants_part = BedrockImageProcessor.process_image_sync(image_url=image_url)
                             assistants_parts.append(assistants_part)
                         # Add cache point block for assistant content elements
-                        _cache_point_block = litellm.AmazonConverseConfig().get_cache_point_block(
+                        _cache_point_block = gateway.AmazonConverseConfig().get_cache_point_block(
                             message_block=cast(OpenAIMessageContentListBlock, element),
                             block_type="content_block",
                             model=model,
@@ -4904,7 +4904,7 @@ def _bedrock_converse_messages_pt(
                 if _assistant_content.strip():
                     assistant_content.append(BedrockContentBlock(text=_assistant_content))
                 # Add cache point block for assistant string content
-                _cache_point_block = litellm.AmazonConverseConfig().get_cache_point_block(
+                _cache_point_block = gateway.AmazonConverseConfig().get_cache_point_block(
                     assistant_message_block, block_type="content_block", model=model
                 )
                 if _cache_point_block is not None:
@@ -4922,7 +4922,7 @@ def _bedrock_converse_messages_pt(
             contents.append(BedrockMessageBlock(role="assistant", content=assistant_content))
 
         if msg_i == init_msg_i:  # prevent infinite loops
-            raise litellm.BadRequestError(
+            raise gateway.BadRequestError(
                 message=BAD_MESSAGE_ERROR_STR + f"passed in {messages[msg_i]}",
                 model=model,
                 llm_provider=llm_provider,
@@ -4953,7 +4953,7 @@ def make_valid_bedrock_tool_name(input_tool_name: str) -> str:
     if input_tool_name != valid_string:
         # passed tool name was formatted to become valid
         # store it internally so we can use for the response
-        litellm.bedrock_tool_name_mappings.set_cache(key=valid_string, value=input_tool_name)
+        gateway.bedrock_tool_name_mappings.set_cache(key=valid_string, value=input_tool_name)
 
     return valid_string
 
@@ -5157,12 +5157,12 @@ def response_schema_prompt(model: str, response_schema: dict) -> str:
     """
     custom_prompt_details: dict | None = None
     response_schema_as_message: Final = [{"role": "user", "content": f"{response_schema}"}]
-    if f"{model}/response_schema_prompt" in litellm.custom_prompt_dict:
-        custom_prompt_details = litellm.custom_prompt_dict[
+    if f"{model}/response_schema_prompt" in gateway.custom_prompt_dict:
+        custom_prompt_details = gateway.custom_prompt_dict[
             f"{model}/response_schema_prompt"
         ]  # allow user to define custom response schema prompt by model
-    elif "response_schema_prompt" in litellm.custom_prompt_dict:
-        custom_prompt_details = litellm.custom_prompt_dict["response_schema_prompt"]
+    elif "response_schema_prompt" in gateway.custom_prompt_dict:
+        custom_prompt_details = gateway.custom_prompt_dict["response_schema_prompt"]
 
     if custom_prompt_details is not None:
         return custom_prompt(
@@ -5242,7 +5242,7 @@ def prompt_factory(
     if custom_llm_provider == "ollama":
         return ollama_pt(model=model, messages=messages)
     elif custom_llm_provider == "anthropic":
-        if litellm.AnthropicTextConfig._is_anthropic_text_model(model):
+        if gateway.AnthropicTextConfig._is_anthropic_text_model(model):
             return anthropic_pt(messages=messages)
         return anthropic_messages_pt(messages=messages, model=model, llm_provider=custom_llm_provider)
     elif custom_llm_provider == "anthropic_xml":
@@ -5250,14 +5250,14 @@ def prompt_factory(
     elif custom_llm_provider == "gemini":
         if (
             model == "gemini-pro-vision"
-            or litellm.supports_vision(model=model)
-            or litellm.supports_vision(model=custom_llm_provider + "/" + model)
+            or gateway.supports_vision(model=model)
+            or gateway.supports_vision(model=custom_llm_provider + "/" + model)
         ):
             return _gemini_vision_convert_messages(messages=messages)
         else:
             return gemini_text_image_pt(messages=messages)
     elif custom_llm_provider == "mistral":
-        return litellm.MistralConfig()._transform_messages(messages=messages, model=model)
+        return gateway.MistralConfig()._transform_messages(messages=messages, model=model)
     elif custom_llm_provider == "bedrock":
         if "amazon.titan-text" in model:
             return amazon_titan_pt(messages=messages)

@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Any, Final, Literal, Protocol, cast
 
 from packaging.version import Version
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.constants import MAX_LANGFUSE_INITIALIZED_CLIENTS
 from token_iq.gateway.integrations.langfuse.langfuse_mock_client import (
@@ -100,7 +100,7 @@ def _extract_cache_read_input_tokens(usage_obj) -> int:
 
 def _logging_id(start_time: datetime | None, response_obj: object) -> str | None:
     """Typed view of the timestamped response id Langfuse uses as the generation id."""
-    return litellm.utils.get_logging_id(start_time, response_obj)
+    return gateway.utils.get_logging_id(start_time, response_obj)
 
 
 def _as_steering_flag(value: object) -> bool:
@@ -252,13 +252,13 @@ class LangFuseLogger:
         """
         from langfuse import Langfuse
 
-        if litellm.initialized_langfuse_clients >= MAX_LANGFUSE_INITIALIZED_CLIENTS:
+        if gateway.initialized_langfuse_clients >= MAX_LANGFUSE_INITIALIZED_CLIENTS:
             raise Exception(
-                f"Max langfuse clients reached: {litellm.initialized_langfuse_clients} is greater than {MAX_LANGFUSE_INITIALIZED_CLIENTS}"
+                f"Max langfuse clients reached: {gateway.initialized_langfuse_clients} is greater than {MAX_LANGFUSE_INITIALIZED_CLIENTS}"
             )
         langfuse_client: Final = Langfuse(**parameters)
-        litellm.initialized_langfuse_clients += 1
-        verbose_logger.debug("Created langfuse client number %s", litellm.initialized_langfuse_clients)
+        gateway.initialized_langfuse_clients += 1
+        verbose_logger.debug("Created langfuse client number %s", gateway.initialized_langfuse_clients)
         return langfuse_client
 
     @staticmethod
@@ -429,29 +429,29 @@ class LangFuseLogger:
             input = prompt
             output = status_message
         elif response_obj is not None and (
-            kwargs.get("call_type", None) == "embedding" or isinstance(response_obj, litellm.EmbeddingResponse)
+            kwargs.get("call_type", None) == "embedding" or isinstance(response_obj, gateway.EmbeddingResponse)
         ):
             input = prompt
             output = None
-        elif response_obj is not None and isinstance(response_obj, litellm.ModelResponse):
+        elif response_obj is not None and isinstance(response_obj, gateway.ModelResponse):
             input = prompt
             output = self._get_chat_content_for_langfuse(response_obj)
-        elif response_obj is not None and isinstance(response_obj, litellm.HttpxBinaryResponseContent):
+        elif response_obj is not None and isinstance(response_obj, gateway.HttpxBinaryResponseContent):
             input = prompt
             output = "speech-output"
-        elif response_obj is not None and isinstance(response_obj, litellm.TextCompletionResponse):
+        elif response_obj is not None and isinstance(response_obj, gateway.TextCompletionResponse):
             input = prompt
             output = self._get_text_completion_content_for_langfuse(response_obj)
-        elif response_obj is not None and isinstance(response_obj, litellm.ImageResponse):
+        elif response_obj is not None and isinstance(response_obj, gateway.ImageResponse):
             input = prompt
             output = response_obj.get("data", None)
-        elif response_obj is not None and isinstance(response_obj, litellm.TranscriptionResponse):
+        elif response_obj is not None and isinstance(response_obj, gateway.TranscriptionResponse):
             input = prompt
             output = response_obj.get("text", None)
-        elif response_obj is not None and isinstance(response_obj, litellm.RerankResponse):
+        elif response_obj is not None and isinstance(response_obj, gateway.RerankResponse):
             input = prompt
             output = response_obj.results
-        elif response_obj is not None and isinstance(response_obj, litellm.ResponsesAPIResponse):
+        elif response_obj is not None and isinstance(response_obj, gateway.ResponsesAPIResponse):
             input = prompt
             output = self._get_responses_api_content_for_langfuse(response_obj)
         elif (
@@ -579,9 +579,9 @@ class LangFuseLogger:
                 for key, value in metadata_entries.items():
                     # generate langfuse tags - Default Tags sent to Langfuse from LiteLLM Proxy
                     if (
-                        litellm.langfuse_default_tags is not None
-                        and isinstance(litellm.langfuse_default_tags, list)
-                        and key in litellm.langfuse_default_tags
+                        gateway.langfuse_default_tags is not None
+                        and isinstance(gateway.langfuse_default_tags, list)
+                        and key in gateway.langfuse_default_tags
                     ):
                         tags.append(f"{key}:{value}")
 
@@ -611,7 +611,7 @@ class LangFuseLogger:
                 trace_id = existing_trace_id
             requested_trace_keys: Final = _as_steering_key_sequence(clean_metadata.pop("update_trace_keys", ()))
             update_trace_keys: Final = (
-                requested_trace_keys if _as_steering_flag(litellm.langfuse_enable_update_trace_keys) else ()
+                requested_trace_keys if _as_steering_flag(gateway.langfuse_enable_update_trace_keys) else ()
             )
             debug: Final = clean_metadata.pop("debug_langfuse", None)
             mask_input: Final = _as_steering_flag(clean_metadata.pop("mask_input", False))
@@ -695,9 +695,9 @@ class LangFuseLogger:
             hidden_params: Final = standard_logging_object.get("hidden_params") if standard_logging_object else None
 
             if (
-                litellm.langfuse_default_tags is not None
-                and isinstance(litellm.langfuse_default_tags, list)
-                and "proxy_base_url" in litellm.langfuse_default_tags
+                gateway.langfuse_default_tags is not None
+                and isinstance(gateway.langfuse_default_tags, list)
+                and "proxy_base_url" in gateway.langfuse_default_tags
             ):
                 proxy_base_url: Final = os.environ.get("PROXY_BASE_URL", None)
                 if proxy_base_url is not None:
@@ -911,16 +911,16 @@ class LangFuseLogger:
             - cache_key
 
         """
-        if litellm.langfuse_default_tags is not None and isinstance(litellm.langfuse_default_tags, list):
-            if "cache_hit" in litellm.langfuse_default_tags:
+        if gateway.langfuse_default_tags is not None and isinstance(gateway.langfuse_default_tags, list):
+            if "cache_hit" in gateway.langfuse_default_tags:
                 _cache_hit_value: Final = kwargs.get("cache_hit", False)
                 tags.append(f"cache_hit:{_cache_hit_value}")
-            if "cache_key" in litellm.langfuse_default_tags:
+            if "cache_key" in gateway.langfuse_default_tags:
                 _hidden_params: Final = metadata.get("hidden_params", {}) or {}
                 _cache_key = _hidden_params.get("cache_key", None)
-                if _cache_key is None and litellm.cache is not None:
+                if _cache_key is None and gateway.cache is not None:
                     # fallback to using "preset_cache_key"
-                    _preset_cache_key: Final = litellm.cache._get_preset_cache_key_from_kwargs(**kwargs)
+                    _preset_cache_key: Final = gateway.cache._get_preset_cache_key_from_kwargs(**kwargs)
                     _cache_key = _preset_cache_key
                 tags.append(f"cache_key:{_cache_key}")
         return tags

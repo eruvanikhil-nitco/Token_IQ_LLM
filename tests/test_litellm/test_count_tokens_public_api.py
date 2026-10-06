@@ -7,7 +7,7 @@ import os
 from unittest.mock import AsyncMock, patch
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.types.utils import TokenCountResponse
 
 
@@ -19,7 +19,7 @@ def test_acount_tokens_routes_to_openai():
         return_value={"input_tokens": 15},
     ):
         result = asyncio.run(
-            litellm.acount_tokens(
+            gateway.acount_tokens(
                 model="openai/gpt-4o",
                 messages=[{"role": "user", "content": "Hello, how are you?"}],
                 api_key="sk-test-key",
@@ -39,7 +39,7 @@ def test_acount_tokens_routes_to_anthropic():
         return_value={"input_tokens": 20},
     ):
         result = asyncio.run(
-            litellm.acount_tokens(
+            gateway.acount_tokens(
                 model="anthropic/claude-3-5-sonnet-20241022",
                 messages=[{"role": "user", "content": "Hello Claude!"}],
                 api_key="sk-ant-test-key",
@@ -54,7 +54,7 @@ def test_acount_tokens_routes_to_anthropic():
 def test_acount_tokens_fallback_to_local():
     """Test that unsupported providers fall back to local tiktoken counting."""
     result = asyncio.run(
-        litellm.acount_tokens(
+        gateway.acount_tokens(
             model="together_ai/meta-llama/Llama-3-8b-chat-hf",
             messages=[{"role": "user", "content": "Hello"}],
         )
@@ -86,7 +86,7 @@ def test_acount_tokens_with_tools():
         return_value={"input_tokens": 30},
     ) as mock_handler:
         result = asyncio.run(
-            litellm.acount_tokens(
+            gateway.acount_tokens(
                 model="openai/gpt-4o",
                 messages=[{"role": "user", "content": "What's the weather?"}],
                 tools=tools,
@@ -108,7 +108,7 @@ def test_acount_tokens_with_system():
         return_value={"input_tokens": 25},
     ):
         result = asyncio.run(
-            litellm.acount_tokens(
+            gateway.acount_tokens(
                 model="openai/gpt-4o",
                 messages=[{"role": "user", "content": "Hello"}],
                 system="You are a helpful assistant.",
@@ -129,7 +129,7 @@ def test_acount_tokens_api_error_falls_back():
         side_effect=OpenAIError(status_code=401, message="Invalid API key"),
     ):
         result = asyncio.run(
-            litellm.acount_tokens(
+            gateway.acount_tokens(
                 model="openai/gpt-4o",
                 messages=[{"role": "user", "content": "Hello"}],
                 api_key="sk-bad-key",
@@ -146,7 +146,7 @@ def test_acount_tokens_no_api_key_falls_back(monkeypatch):
     """Test that missing API key falls back to local counting."""
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
     result = asyncio.run(
-        litellm.acount_tokens(
+        gateway.acount_tokens(
             model="openai/gpt-4o",
             messages=[{"role": "user", "content": "Hello"}],
         )

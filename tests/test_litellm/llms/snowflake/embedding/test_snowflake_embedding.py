@@ -4,7 +4,7 @@ import copy
 
 from unittest.mock import patch
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 model_name = "snowflake-arctic-embed"
 
@@ -26,7 +26,7 @@ embed_response = {
 def test_snowflake_jwt_account_id(mock_post):
     mock_post().json.return_value = copy.deepcopy(embed_response)
 
-    response = litellm.embedding(
+    response = gateway.embedding(
         f"snowflake/{model_name}",
         input=["document"],
         api_key="00000",
@@ -53,7 +53,7 @@ def test_snowflake_jwt_account_id(mock_post):
 def test_snowflake_pat_key_account_id(mock_post):
     mock_post().json.return_value = copy.deepcopy(embed_response)
 
-    response = litellm.embedding(
+    response = gateway.embedding(
         f"snowflake/{model_name}",
         input=["document"],
         api_key="pat/xxxxx",
@@ -81,7 +81,7 @@ def test_snowflake_env(mock_post):
     os.environ["SNOWFLAKE_ACCOUNT_ID"] = "AAAA-BBBB"
     os.environ["SNOWFLAKE_JWT"] = "00000"
 
-    response = litellm.embedding(f"snowflake/{model_name}", input=["document"])
+    response = gateway.embedding(f"snowflake/{model_name}", input=["document"])
 
     assert len(response.data) == 1
     assert response.data[0]["embedding"] == [0.1, 0.2, 0.3]

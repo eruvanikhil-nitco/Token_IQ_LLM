@@ -8,7 +8,7 @@ from typing import Final
 import httpx
 from openai import AsyncOpenAI, OpenAI
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.types.utils import FileTypes, ImageResponse, LlmProviders
 from token_iq.gateway.utils import ProviderConfigManager
 
@@ -62,7 +62,7 @@ class OpenAIImageVariationsHandler:
             init_client_params: Final = {
                 "api_key": api_key,
                 "base_url": api_base,
-                "http_client": litellm.client_session,
+                "http_client": gateway.client_session,
                 "timeout": timeout,
                 "max_retries": max_retries,
                 "organization": organization,
@@ -179,7 +179,7 @@ class OpenAIImageVariationsHandler:
             init_client_params: Final = {
                 "api_key": api_key,
                 "base_url": api_base,
-                "http_client": litellm.client_session,
+                "http_client": gateway.client_session,
                 "timeout": timeout,
                 "max_retries": max_retries,
                 "organization": organization,

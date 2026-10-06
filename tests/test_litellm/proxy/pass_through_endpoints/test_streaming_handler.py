@@ -5,7 +5,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
 from token_iq.gateway.proxy.pass_through_endpoints.llm_provider_handlers.vertex_passthrough_logging_handler import (
     VertexPassthroughLoggingHandler,
@@ -32,7 +32,7 @@ VERTEX_COST = PROMPT_TOKENS * VERTEX_INPUT_RATE + COMPLETION_TOKENS * VERTEX_OUT
 @pytest.fixture(autouse=True)
 def divergent_rate_cards(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
     monkeypatch.setitem(
-        litellm.model_cost,
+        gateway.model_cost,
         f"gemini/{MODEL}",
         {
             "input_cost_per_token": GEMINI_INPUT_RATE,
@@ -42,7 +42,7 @@ def divergent_rate_cards(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
         },
     )
     monkeypatch.setitem(
-        litellm.model_cost,
+        gateway.model_cost,
         f"vertex_ai/{MODEL}",
         {
             "input_cost_per_token": VERTEX_INPUT_RATE,
@@ -51,9 +51,9 @@ def divergent_rate_cards(monkeypatch: pytest.MonkeyPatch) -> Iterator[None]:
             "mode": "chat",
         },
     )
-    litellm.get_model_info.cache_clear()
+    gateway.get_model_info.cache_clear()
     yield
-    litellm.get_model_info.cache_clear()
+    gateway.get_model_info.cache_clear()
 
 
 def _chunks() -> list[str]:

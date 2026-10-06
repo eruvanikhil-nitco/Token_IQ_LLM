@@ -32,7 +32,7 @@ pytest.importorskip("opentelemetry")
 from opentelemetry.sdk.metrics import MeterProvider  # noqa: E402
 from opentelemetry.sdk.metrics.export import InMemoryMetricReader  # noqa: E402
 
-from token_iq import gateway as litellm  # noqa: E402
+from token_iq import gateway  # noqa: E402
 from token_iq.gateway.constants import (  # noqa: E402
     LITELLM_LOGGING_NO_UPSTREAM_LLM_CALL,
 )
@@ -156,16 +156,16 @@ def _drive_success(reader, callback_settings_attributes=None, **call_overrides):
     """Construct a metrics-on logger, optionally populate callback_settings AFTER
     construction (mirroring the proxy ordering), run the real success hook."""
     logger = _logger(reader, enable_metrics=True)
-    previous = litellm.callback_settings
+    previous = gateway.callback_settings
     if callback_settings_attributes is not None:
-        litellm.callback_settings = {
+        gateway.callback_settings = {
             "otel": {"attributes": callback_settings_attributes}
         }
     try:
         kwargs, response_obj, start, end = _build_call(**call_overrides)
         asyncio.run(logger.async_log_success_event(kwargs, response_obj, start, end))
     finally:
-        litellm.callback_settings = previous
+        gateway.callback_settings = previous
     return _metrics_by_name(reader)
 
 
@@ -561,7 +561,7 @@ def _recorder(monkeypatch, attributes):
     `attributes`. record() resolves the filter lazily from there, so a misconfig
     raises out of record() at this layer (the logger turns it into log-once)."""
     monkeypatch.setattr(
-        litellm,
+        gateway,
         "callback_settings",
         {"otel": {"attributes": attributes}},
         raising=False,
@@ -691,14 +691,14 @@ def _build_failure(
 
 def _drive_failure(reader, callback_settings_attributes=None, **failure_kwargs):
     logger = _logger(reader, enable_metrics=True)
-    previous = litellm.callback_settings
+    previous = gateway.callback_settings
     if callback_settings_attributes is not None:
-        litellm.callback_settings = {"otel": {"attributes": callback_settings_attributes}}
+        gateway.callback_settings = {"otel": {"attributes": callback_settings_attributes}}
     try:
         kwargs, start, end = _build_failure(**failure_kwargs)
         asyncio.run(logger.async_log_failure_event(kwargs, None, start, end))
     finally:
-        litellm.callback_settings = previous
+        gateway.callback_settings = previous
     return _metrics_by_name(reader)
 
 

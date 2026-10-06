@@ -22,7 +22,7 @@ Configuration:
     Either method can disable recording - both must enable for recording to occur
 
 Usage - Python SDK:
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     litellm.callbacks = ["newrelic"]
 
     # Or with explicit configuration:
@@ -49,7 +49,7 @@ import time
 import uuid
 from typing import Any, Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.core_utils.redact_messages import should_redact_message_logging
@@ -131,12 +131,12 @@ class NewRelicLogger(CustomLogger):
         These are params specific to initializing the NewRelicLogger e.g. turn_off_message_logging
         """
         dict_newrelic_params: dict = {}
-        if litellm.newrelic_params is not None:
-            if isinstance(litellm.newrelic_params, NewRelicInitParams):
-                dict_newrelic_params = litellm.newrelic_params.model_dump()
-            elif isinstance(litellm.newrelic_params, dict):
+        if gateway.newrelic_params is not None:
+            if isinstance(gateway.newrelic_params, NewRelicInitParams):
+                dict_newrelic_params = gateway.newrelic_params.model_dump()
+            elif isinstance(gateway.newrelic_params, dict):
                 # only allow params that are of NewRelicInitParams
-                dict_newrelic_params = NewRelicInitParams(**litellm.newrelic_params).model_dump()
+                dict_newrelic_params = NewRelicInitParams(**gateway.newrelic_params).model_dump()
         return dict_newrelic_params
 
     @property

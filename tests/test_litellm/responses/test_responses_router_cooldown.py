@@ -12,7 +12,7 @@ import httpx
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.router_utils.cooldown_handlers import _async_get_cooldown_deployments
 
 

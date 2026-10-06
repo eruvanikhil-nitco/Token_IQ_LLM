@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Final, NamedTuple, Protocol, TypedDict
 
 from pydantic import TypeAdapter, ValidationError
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.constants import REDACTED_BY_LITELM_STRING
 from token_iq.gateway.core_utils.safe_json_dumps import safe_dumps
 from token_iq.gateway.core_utils.sensitive_data_masker import SensitiveDataMasker
@@ -336,7 +336,7 @@ class AgentRegistry:
         return tuple(self.agent_list)
 
     def get_public_agent_list(self) -> tuple[AgentResponse, ...]:
-        public_agent_groups: Final = litellm.public_agent_groups
+        public_agent_groups: Final = gateway.public_agent_groups
         if public_agent_groups is None:
             return ()
         return tuple(

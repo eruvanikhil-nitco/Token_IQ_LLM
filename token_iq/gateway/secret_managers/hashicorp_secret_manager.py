@@ -5,7 +5,7 @@ from typing import Final, Protocol
 import httpx
 from typing_extensions import ReadOnly, TypedDict
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.caching import InMemoryCache
 from token_iq.gateway.constants import SECRET_MANAGER_REFRESH_INTERVAL
@@ -117,8 +117,8 @@ class HashicorpSecretManager(BaseSecretManager):
                 f"Hashicorp secret manager is only available for premium users. {CommonProxyErrors.not_premium_user.value}"
             )
 
-        litellm.secret_manager_client = self
-        litellm._key_management_system = KeyManagementSystem.HASHICORP_VAULT
+        gateway.secret_manager_client = self
+        gateway._key_management_system = KeyManagementSystem.HASHICORP_VAULT
         _refresh_interval = os.environ.get("HCP_VAULT_REFRESH_INTERVAL", SECRET_MANAGER_REFRESH_INTERVAL)
         _refresh_interval = int(_refresh_interval) if _refresh_interval else SECRET_MANAGER_REFRESH_INTERVAL
         self.cache = InMemoryCache(default_ttl=_refresh_interval)  # store in memory for 1 day

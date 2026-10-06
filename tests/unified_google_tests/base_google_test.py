@@ -6,7 +6,7 @@ from typing import Any, AsyncIterator, Dict, List, Optional, Union
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.google_genai import (
     generate_content,
     agenerate_content,
@@ -174,7 +174,7 @@ class BaseGoogleGenAITest:
         if temp_file_path:
             self._temp_files_to_cleanup.append(temp_file_path)
 
-        litellm._turn_on_debug()
+        gateway._turn_on_debug()
 
         print(
             f"Testing {'async' if is_async else 'sync'} non-streaming with model config: {request_params}"
@@ -237,11 +237,11 @@ class BaseGoogleGenAITest:
     @pytest.mark.asyncio
     async def test_async_non_streaming_with_logging(self):
         """Test async non-streaming Google GenAI generate content with logging"""
-        litellm._turn_on_debug()
-        litellm.logging_callback_manager._reset_all_callbacks()
-        litellm.set_verbose = True
+        gateway._turn_on_debug()
+        gateway.logging_callback_manager._reset_all_callbacks()
+        gateway.set_verbose = True
         test_custom_logger = TestCustomLogger()
-        litellm.callbacks = [test_custom_logger]
+        gateway.callbacks = [test_custom_logger]
 
         request_params = self.model_config
         temp_file_path = load_vertex_ai_credentials(model=request_params["model"])
@@ -276,11 +276,11 @@ class BaseGoogleGenAITest:
     @pytest.mark.asyncio
     async def test_async_streaming_with_logging(self):
         """Test async streaming Google GenAI generate content with logging"""
-        litellm._turn_on_debug()
-        litellm.set_verbose = True
-        litellm.logging_callback_manager._reset_all_callbacks()
+        gateway._turn_on_debug()
+        gateway.set_verbose = True
+        gateway.logging_callback_manager._reset_all_callbacks()
         test_custom_logger = TestCustomLogger()
-        litellm.callbacks = [test_custom_logger]
+        gateway.callbacks = [test_custom_logger]
 
         request_params = self.model_config
         temp_file_path = load_vertex_ai_credentials(model=request_params["model"])

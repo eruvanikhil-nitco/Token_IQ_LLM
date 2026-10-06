@@ -2,7 +2,7 @@ from typing import Final
 
 from openai import OpenAI
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.custom_httpx.http_handler import (
     AsyncHTTPHandler,
     HTTPHandler,
@@ -63,7 +63,7 @@ class AzureAIEmbedding(OpenAIChatCompletion):
     ) -> EmbeddingResponse:
         if client is None or not isinstance(client, AsyncHTTPHandler):
             client = get_async_httpx_client(
-                llm_provider=litellm.LlmProviders.AZURE_AI,
+                llm_provider=gateway.LlmProviders.AZURE_AI,
                 params={"timeout": timeout},
             )
 

@@ -16,7 +16,7 @@ except ImportError:
 workspace_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../.."))
 sys.path.insert(0, workspace_path)
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 
 class TestXiaomiMiMoProviderConfig:
@@ -31,7 +31,7 @@ class TestXiaomiMiMoProviderConfig:
         assert LlmProviders.XIAOMI_MIMO.value == "xiaomi_mimo"
 
         # Verify it's in the provider list
-        assert "xiaomi_mimo" in litellm.provider_list
+        assert "xiaomi_mimo" in gateway.provider_list
 
     def test_xiaomi_mimo_json_config_exists(self):
         """Test that xiaomi_mimo is configured in providers.json"""
@@ -96,7 +96,7 @@ class TestXiaomiMiMoIntegration:
             return
 
         try:
-            response = litellm.completion(
+            response = gateway.completion(
                 model="xiaomi_mimo/mimo-v2-flash",
                 messages=[
                     {

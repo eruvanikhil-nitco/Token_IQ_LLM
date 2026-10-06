@@ -11,7 +11,7 @@ from httpx import Request, Response
 import requests
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import ModelResponse
 from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
 from token_iq.gateway.proxy.guardrails.guardrail_hooks.hiddenlayer.hiddenlayer import (
@@ -30,7 +30,7 @@ from token_iq.gateway.types.utils import (
 
 def test_hiddenlayer_config_saas(monkeypatch: pytest.MonkeyPatch):
     """Test Hiddenlayer SaaS configuration with init_guardrails_v2."""
-    monkeypatch.setattr(litellm, "guardrail_name_config_map", {})
+    monkeypatch.setattr(gateway, "guardrail_name_config_map", {})
 
     # Set environment variables for testing
     monkeypatch.setenv("HIDDENLAYER_API_BASE", "https://my.hiddenlayer")
@@ -571,7 +571,7 @@ class TestHiddenlayerGuardrail:
 
 def test_hiddenlayer_config_v2(monkeypatch: pytest.MonkeyPatch):
     """Test HiddenLayer V2 configuration with init_guardrails_v2."""
-    monkeypatch.setattr(litellm, "guardrail_name_config_map", {})
+    monkeypatch.setattr(gateway, "guardrail_name_config_map", {})
 
     monkeypatch.setenv("HIDDENLAYER_API_BASE", "https://my.hiddenlayer")
 

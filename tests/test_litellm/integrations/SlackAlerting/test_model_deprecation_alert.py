@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.constants import SLACK_MODEL_DEPRECATION_LOCK_ID
 from token_iq.gateway.integrations.SlackAlerting.slack_alerting import SlackAlerting
 from token_iq.gateway.proxy._types import AlertType
@@ -55,7 +55,7 @@ async def test_should_skip_when_no_alerting_configured():
 
 @pytest.mark.asyncio
 async def test_should_skip_when_no_deprecations_found(monkeypatch):
-    monkeypatch.setattr(litellm, "model_cost", {})
+    monkeypatch.setattr(gateway, "model_cost", {})
     alerting = SlackAlerting(
         alerting=["slack"],
         alert_types=[AlertType.model_deprecation_warnings],
@@ -76,7 +76,7 @@ async def test_should_skip_when_no_deprecations_found(monkeypatch):
 @pytest.mark.asyncio
 async def test_should_dispatch_high_severity_when_deprecated(monkeypatch):
     monkeypatch.setattr(
-        litellm,
+        gateway,
         "model_cost",
         {
             "dead-model": {
@@ -126,7 +126,7 @@ async def test_should_alert_once_the_alert_type_and_router_arrive_after_startup(
 ):
     """The loop starts before config reload, so a disabled pass must not cost a day of alerts"""
     monkeypatch.setattr(
-        litellm,
+        gateway,
         "model_cost",
         {"dead-model": {"deprecation_date": "2020-01-01", "litellm_provider": "openai"}},
     )
@@ -171,7 +171,7 @@ async def test_should_alert_once_the_alert_type_and_router_arrive_after_startup(
 async def test_should_wait_for_the_router_instead_of_sleeping_a_full_day(monkeypatch):
     """Config load can start the loop before the router exists, which must not cost a day of alerts"""
     monkeypatch.setattr(
-        litellm,
+        gateway,
         "model_cost",
         {"dead-model": {"deprecation_date": "2020-01-01", "litellm_provider": "openai"}},
     )
@@ -224,7 +224,7 @@ async def test_should_alert_only_from_the_pod_holding_the_daily_lock(
 ):
     """Every pod runs the loop, so a fleet must not send one identical alert per replica"""
     monkeypatch.setattr(
-        litellm,
+        gateway,
         "model_cost",
         {"dead-model": {"deprecation_date": "2020-01-01", "litellm_provider": "openai"}},
     )
@@ -266,7 +266,7 @@ async def test_should_alert_only_from_the_pod_holding_the_daily_lock(
 @pytest.mark.asyncio
 async def test_should_retry_on_the_next_poll_when_the_lock_claim_fails(monkeypatch):
     """A redis blip at claim time returns False like a held lock, and must not cost every pod a day of alerts"""
-    monkeypatch.setattr(litellm, "model_cost", DEAD_MODEL_COST)
+    monkeypatch.setattr(gateway, "model_cost", DEAD_MODEL_COST)
     alerting = SlackAlerting(
         alerting=["slack"], alert_types=[AlertType.model_deprecation_warnings]
     )
@@ -300,7 +300,7 @@ async def test_should_retry_on_the_next_poll_when_the_lock_claim_fails(monkeypat
 @pytest.mark.asyncio
 async def test_should_not_claim_the_lock_when_there_is_nothing_to_report(monkeypatch):
     """An empty pass must not hold the daily lock, or a sunset added later waits out the whole window"""
-    monkeypatch.setattr(litellm, "model_cost", {})
+    monkeypatch.setattr(gateway, "model_cost", {})
     alerting = SlackAlerting(
         alerting=["slack"], alert_types=[AlertType.model_deprecation_warnings]
     )
@@ -329,7 +329,7 @@ async def test_should_not_claim_the_lock_when_there_is_nothing_to_report(monkeyp
 @pytest.mark.asyncio
 async def test_should_not_alert_or_claim_the_lock_within_a_day_of_a_sent_alert(monkeypatch):
     """The shared sent stamp keeps sibling pods and restarts from re-alerting or re-asking redis for a day"""
-    monkeypatch.setattr(litellm, "model_cost", DEAD_MODEL_COST)
+    monkeypatch.setattr(gateway, "model_cost", DEAD_MODEL_COST)
     alerting = SlackAlerting(
         alerting=["slack"], alert_types=[AlertType.model_deprecation_warnings]
     )
@@ -361,7 +361,7 @@ async def test_should_not_alert_or_claim_the_lock_within_a_day_of_a_sent_alert(m
 @pytest.mark.asyncio
 async def test_should_back_off_a_full_day_after_a_pass_raises(monkeypatch):
     """A misconfigured webhook raises on every send, which must log once a day rather than every poll"""
-    monkeypatch.setattr(litellm, "model_cost", DEAD_MODEL_COST)
+    monkeypatch.setattr(gateway, "model_cost", DEAD_MODEL_COST)
     alerting = SlackAlerting(
         alerting=["slack"], alert_types=[AlertType.model_deprecation_warnings]
     )

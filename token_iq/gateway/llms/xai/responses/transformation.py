@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, Any, Final
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.constants import XAI_API_BASE
 from token_iq.gateway.exceptions import AuthenticationError
@@ -270,7 +270,7 @@ class XAIResponsesAPIConfig(OpenAIResponsesAPIConfig):
         if should_use_xai_oauth(litellm_params) and not api_key:
             api_base = XAIOAuthAuthenticator().get_api_base()
         else:
-            api_base = api_base or litellm.api_base or get_secret_str("XAI_API_BASE") or XAI_API_BASE
+            api_base = api_base or gateway.api_base or get_secret_str("XAI_API_BASE") or XAI_API_BASE
 
         # Remove trailing slashes
         api_base = api_base.rstrip("/")

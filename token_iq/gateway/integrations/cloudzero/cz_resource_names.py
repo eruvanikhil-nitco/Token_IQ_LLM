@@ -20,7 +20,7 @@ import re
 from enum import Enum
 from typing import Any, Final, cast
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 
 class CZEntityType(str, Enum):
@@ -116,16 +116,16 @@ class CZRNGenerator:
         """Normalize provider names to standard CZRN format."""
         # Map common provider names to CZRN standards
         provider_map: Final = {
-            litellm.LlmProviders.AZURE.value: "azure",
-            litellm.LlmProviders.AZURE_AI.value: "azure",
-            litellm.LlmProviders.ANTHROPIC.value: "anthropic",
-            litellm.LlmProviders.BEDROCK.value: "aws",
-            litellm.LlmProviders.VERTEX_AI.value: "gcp",
-            litellm.LlmProviders.GEMINI.value: "google",
-            litellm.LlmProviders.COHERE.value: "cohere",
-            litellm.LlmProviders.HUGGINGFACE.value: "huggingface",
-            litellm.LlmProviders.REPLICATE.value: "replicate",
-            litellm.LlmProviders.TOGETHER_AI.value: "together-ai",
+            gateway.LlmProviders.AZURE.value: "azure",
+            gateway.LlmProviders.AZURE_AI.value: "azure",
+            gateway.LlmProviders.ANTHROPIC.value: "anthropic",
+            gateway.LlmProviders.BEDROCK.value: "aws",
+            gateway.LlmProviders.VERTEX_AI.value: "gcp",
+            gateway.LlmProviders.GEMINI.value: "google",
+            gateway.LlmProviders.COHERE.value: "cohere",
+            gateway.LlmProviders.HUGGINGFACE.value: "huggingface",
+            gateway.LlmProviders.REPLICATE.value: "replicate",
+            gateway.LlmProviders.TOGETHER_AI.value: "together-ai",
         }
 
         normalized: Final = provider.lower().replace("_", "-")

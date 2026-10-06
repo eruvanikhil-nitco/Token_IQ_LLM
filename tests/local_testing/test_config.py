@@ -15,7 +15,7 @@ from typing import Literal
 import pytest
 from pydantic import BaseModel, ConfigDict
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy.common_utils.encrypt_decrypt_utils import encrypt_value
 from token_iq.gateway.proxy.proxy_server import ProxyConfig
 from token_iq.gateway.proxy.utils import DualCache, ProxyLogging
@@ -50,7 +50,7 @@ async def test_delete_deployment():
 
     master_key = "sk-1234"
 
-    setattr(litellm.proxy.proxy_server, "master_key", master_key)
+    setattr(gateway.proxy.proxy_server, "master_key", master_key)
 
     for k, v in encrypted_litellm_params.items():
         if isinstance(v, str):
@@ -64,13 +64,13 @@ async def test_delete_deployment():
         model_name="gpt-3.5-turbo-2", litellm_params=litellm_params
     )
 
-    llm_router = litellm.Router(
+    llm_router = gateway.Router(
         model_list=[
             deployment.to_json(exclude_none=True),
             deployment_2.to_json(exclude_none=True),
         ]
     )
-    setattr(litellm.proxy.proxy_server, "llm_router", llm_router)
+    setattr(gateway.proxy.proxy_server, "llm_router", llm_router)
     print(f"llm_router: {llm_router}")
 
     pc = ProxyConfig()
@@ -93,14 +93,14 @@ async def test_delete_deployment():
     Scenario 2 - if model id != model_info["id"]
     """
 
-    llm_router = litellm.Router(
+    llm_router = gateway.Router(
         model_list=[
             deployment.to_json(exclude_none=True),
             deployment_2.to_json(exclude_none=True),
         ]
     )
     print(f"llm_router: {llm_router}")
-    setattr(litellm.proxy.proxy_server, "llm_router", llm_router)
+    setattr(gateway.proxy.proxy_server, "llm_router", llm_router)
     pc = ProxyConfig()
 
     db_model = DBModel(
@@ -137,7 +137,7 @@ async def test_add_existing_deployment():
         model_name="gpt-3.5-turbo-2", litellm_params=litellm_params
     )
 
-    llm_router = litellm.Router(
+    llm_router = gateway.Router(
         model_list=[
             deployment.to_json(exclude_none=True),
             deployment_2.to_json(exclude_none=True),
@@ -147,8 +147,8 @@ async def test_add_existing_deployment():
     init_len_list = len(llm_router.model_list)
     print(f"llm_router: {llm_router}")
     master_key = "sk-1234"
-    setattr(litellm.proxy.proxy_server, "llm_router", llm_router)
-    setattr(litellm.proxy.proxy_server, "master_key", master_key)
+    setattr(gateway.proxy.proxy_server, "llm_router", llm_router)
+    setattr(gateway.proxy.proxy_server, "master_key", master_key)
     pc = ProxyConfig()
 
     encrypted_litellm_params = litellm_params.dict(exclude_none=True)
@@ -192,7 +192,7 @@ async def test_db_error_new_model_check():
         model_name="gpt-3.5-turbo-2", litellm_params=litellm_params
     )
 
-    llm_router = litellm.Router(
+    llm_router = gateway.Router(
         model_list=[
             deployment.to_json(exclude_none=True),
             deployment_2.to_json(exclude_none=True),
@@ -202,8 +202,8 @@ async def test_db_error_new_model_check():
     init_len_list = len(llm_router.model_list)
     print(f"llm_router: {llm_router}")
     master_key = "sk-1234"
-    setattr(litellm.proxy.proxy_server, "llm_router", llm_router)
-    setattr(litellm.proxy.proxy_server, "master_key", master_key)
+    setattr(gateway.proxy.proxy_server, "llm_router", llm_router)
+    setattr(gateway.proxy.proxy_server, "master_key", master_key)
     pc = ProxyConfig()
 
     encrypted_litellm_params = litellm_params.dict(exclude_none=True)
@@ -300,8 +300,8 @@ def _create_model_list(flag_value: Literal[0, 1], master_key: str):
     "llm_router",
     [
         None,
-        litellm.Router(),
-        litellm.Router(
+        gateway.Router(),
+        gateway.Router(
             model_list=[
                 deployment.to_json(exclude_none=True),
                 deployment_2.to_json(exclude_none=True),
@@ -323,8 +323,8 @@ async def test_add_and_delete_deployments(llm_router, model_list_flag_value):
     """
 
     master_key = "sk-1234"
-    setattr(litellm.proxy.proxy_server, "llm_router", llm_router)
-    setattr(litellm.proxy.proxy_server, "master_key", master_key)
+    setattr(gateway.proxy.proxy_server, "llm_router", llm_router)
+    setattr(gateway.proxy.proxy_server, "master_key", master_key)
     pc = ProxyConfig()
     pl = ProxyLogging(DualCache())
 
@@ -349,7 +349,7 @@ async def test_add_and_delete_deployments(llm_router, model_list_flag_value):
 
     await pc._update_llm_router(new_models=model_list, proxy_logging_obj=pl)
 
-    llm_router = getattr(litellm.proxy.proxy_server, "llm_router")
+    llm_router = getattr(gateway.proxy.proxy_server, "llm_router")
 
     if model_list_flag_value == 0:
         if prev_llm_router_val is None:
@@ -375,9 +375,9 @@ def _check_provider_config(config: BaseConfig, provider: LlmProviders):
     ), f"Provider {provider} is not a subclass of BaseConfig. Got={config}"
 
     if (
-        provider != litellm.LlmProviders.OPENAI
-        and provider != litellm.LlmProviders.OPENAI_LIKE
-        and provider != litellm.LlmProviders.CUSTOM_OPENAI
+        provider != gateway.LlmProviders.OPENAI
+        and provider != gateway.LlmProviders.OPENAI_LIKE
+        and provider != gateway.LlmProviders.CUSTOM_OPENAI
     ):
         assert (
             config.__class__.__name__ != "OpenAIGPTConfig"

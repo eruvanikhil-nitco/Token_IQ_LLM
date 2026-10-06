@@ -1,6 +1,6 @@
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.azure_ai.image_edit.flux2_transformation import (
     AzureFoundryFlux2ImageEditConfig,
 )
@@ -35,7 +35,7 @@ def test_azure_ai_url_generation():
 
 def test_azure_ai_validate_environment_with_entra_token(monkeypatch):
     monkeypatch.delenv("AZURE_AI_API_KEY", raising=False)
-    monkeypatch.setattr(litellm, "api_key", None)
+    monkeypatch.setattr(gateway, "api_key", None)
     config = AzureFoundryFluxImageEditConfig()
 
     headers = config.validate_environment(
@@ -49,7 +49,7 @@ def test_azure_ai_validate_environment_with_entra_token(monkeypatch):
 
 def test_flux2_validate_environment_with_entra_token(monkeypatch):
     monkeypatch.delenv("AZURE_AI_API_KEY", raising=False)
-    monkeypatch.setattr(litellm, "api_key", None)
+    monkeypatch.setattr(gateway, "api_key", None)
     config = AzureFoundryFlux2ImageEditConfig()
 
     headers = config.validate_environment(

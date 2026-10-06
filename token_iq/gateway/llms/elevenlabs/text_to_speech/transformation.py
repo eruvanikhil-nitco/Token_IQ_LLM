@@ -10,7 +10,7 @@ from urllib.parse import urlencode
 import httpx
 from httpx import Headers
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.url_utils import encode_url_path_segment
 from token_iq.gateway.llms.base_llm.chat.transformation import BaseLLMException
 from token_iq.gateway.llms.base_llm.text_to_speech.transformation import (
@@ -173,7 +173,7 @@ class ElevenLabsTextToSpeechConfig(BaseTextToSpeechConfig):
         """
         Validate Azure environment and set up authentication headers
         """
-        api_key = api_key or litellm.api_key or litellm.openai_key or get_secret_str("ELEVENLABS_API_KEY")
+        api_key = api_key or gateway.api_key or gateway.openai_key or get_secret_str("ELEVENLABS_API_KEY")
 
         if api_key is None:
             raise ValueError("ElevenLabs API key is required. Set ELEVENLABS_API_KEY environment variable.")

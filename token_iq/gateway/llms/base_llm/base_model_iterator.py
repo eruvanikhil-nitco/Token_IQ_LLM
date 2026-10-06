@@ -2,7 +2,7 @@ import json
 from abc import abstractmethod
 from typing import TYPE_CHECKING, Final, cast
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 if TYPE_CHECKING:
     import httpx
@@ -98,7 +98,7 @@ class BaseModelResponseIterator:
     @staticmethod
     def _string_to_dict_parser(str_line: str) -> dict | None:
         stripped_json_chunk: dict | None = None
-        stripped_chunk: Final = litellm.CustomStreamWrapper._strip_sse_data_from_chunk(str_line)
+        stripped_chunk: Final = gateway.CustomStreamWrapper._strip_sse_data_from_chunk(str_line)
         try:
             if stripped_chunk is not None:
                 stripped_json_chunk = json.loads(stripped_chunk)

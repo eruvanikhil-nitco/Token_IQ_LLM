@@ -76,8 +76,22 @@ def test_assigning_to_the_name_is_renamed_too() -> None:
     assert rewrite("litellm = importlib.reload(module)") == "gateway = importlib.reload(module)"
 
 
-def test_the_private_name_is_renamed_where_it_is_used() -> None:
-    assert rewrite("_litellm.completion(**kwargs)") == "_gateway.completion(**kwargs)"
+def test_an_alias_is_renamed_where_the_module_binds_it() -> None:
+    """Which names mean the engine is read from the module's own imports rather than from a list, because
+    modules spell the alias more ways than a list keeps up with. The first list had `litellm` and
+    `_litellm` and missed `litellm_module` and `litellm_mod`, which are 27 uses across six files."""
+    before = "from token_iq import gateway as _litellm\nx = _litellm.completion(**kwargs)\n"
+    assert rewrite(before) == "from token_iq import gateway as _gateway\nx = _gateway.completion(**kwargs)\n"
+
+
+def test_an_alias_spelling_nobody_listed_is_renamed_too() -> None:
+    before = "from token_iq import gateway as litellm_module\ny = litellm_module.api_base\n"
+    assert rewrite(before) == "from token_iq import gateway as gateway_module\ny = gateway_module.api_base\n"
+
+
+def test_a_name_the_module_does_not_bind_to_the_engine_is_left_alone() -> None:
+    """Without the import, `_litellm` is some other module's business and renaming it would be a guess."""
+    assert rewrite("_litellm.completion(**kwargs)") == "_litellm.completion(**kwargs)"
 
 
 # --- what must not move -------------------------------------------------------------------------
@@ -228,7 +242,10 @@ def test_the_pass_leaves_its_own_source_alone() -> None:
     listed = {path.name for path in rename_bound_name.tracked()}
 
     assert "rename_bound_name.py" not in listed
-    assert "move_engine_package.py" in listed, "the filter is too wide and is skipping other files"
+    # The other half and its tests are out too: the alias this pass removes is the right answer there,
+    # so rewriting those fixtures would make that pass's tests assert what it no longer does.
+    assert "move_engine_package.py" not in listed
+    assert "dump_route_table.py" in listed, "the filter is too wide and is skipping other files"
 
 
 def test_a_name_imported_under_an_alias_is_not_renamed() -> None:
@@ -237,3 +254,36 @@ def test_a_name_imported_under_an_alias_is_not_renamed() -> None:
     imported name would ask for something that is not there. There are none today, and the guard is
     what keeps the rule from inventing one."""
     assert rewrite("from somewhere import litellm as ll") == "from somewhere import litellm as ll"
+
+
+@pytest.mark.parametrize(
+    ("before", "after"),
+    [
+        (
+            'patch("token_iq.gateway.llms.azure.common_utils.litellm.module_level_client")',
+            'patch("token_iq.gateway.llms.azure.common_utils.gateway.module_level_client")',
+        ),
+        (
+            'patch("token_iq.gateway.llms.azure.common_utils.litellm")',
+            'patch("token_iq.gateway.llms.azure.common_utils.gateway")',
+        ),
+    ],
+)
+def test_a_patch_target_reaching_through_a_modules_own_binding_is_renamed(before: str, after: str) -> None:
+    """55 of these. The target reaches through one module's binding of the engine, so renaming the
+    binding renames the target with it, and leaving it behind makes the patch resolve to nothing."""
+    assert rewrite(before) == after
+
+
+@pytest.mark.parametrize(
+    "left_alone",
+    [
+        # A real module, not the binding. The lookarounds require a whole segment.
+        'patch("token_iq.gateway.core_utils.litellm_logging.Logging")',
+        'patch("token_iq.gateway.proxy.guardrails.guardrail_hooks.litellm_content_filter.x")',
+        # Not inside a path naming the engine's new home, so the segment could be anything.
+        'patch("somewhere.else.litellm.thing")',
+    ],
+)
+def test_a_segment_that_is_not_the_binding_is_left_alone(left_alone: str) -> None:
+    assert rewrite(left_alone) == left_alone

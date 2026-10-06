@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.llamafile.chat.transformation import LlamafileChatConfig
 
 
@@ -159,7 +159,7 @@ def test_completion_with_custom_llamafile_model():
         model = f"{provider}/{model_name}"
         messages = [{"role": "user", "content": "Hey, how's it going?"}]
 
-        _ = litellm.completion(
+        _ = gateway.completion(
             model=model,
             messages=messages,
             max_retries=2,

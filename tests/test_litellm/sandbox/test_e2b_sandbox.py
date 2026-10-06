@@ -11,7 +11,7 @@ import json
 import httpx
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.base_llm.sandbox.transformation import ContainerHandle
 from token_iq.gateway.llms.e2b.sandbox.transformation import (
     MAX_OUTPUT_BYTES,
@@ -193,7 +193,7 @@ async def test_code_interpreter_tool_deletes_even_when_run_raises():
     client = FakeHTTPClient(execute_raises=RuntimeError("boom"))
 
     with pytest.raises(RuntimeError, match="boom"):
-        await litellm.acode_interpreter_tool(
+        await gateway.acode_interpreter_tool(
             provider="e2b", code="1/0", api_key="e2b_key", client=client
         )
 
@@ -269,12 +269,12 @@ async def test_public_lifecycle_create_run_delete():
     client = FakeHTTPClient(
         execute_lines=[json.dumps({"type": "stdout", "text": "42\n"})]
     )
-    container = await litellm.acreate_sandbox(
+    container = await gateway.acreate_sandbox(
         provider="e2b", api_key="e2b_key", client=client
     )
     assert container.id == "sbx_123"
 
-    result = await litellm.arun_code(
+    result = await gateway.arun_code(
         provider="e2b",
         container=container,
         api_key="e2b_key",
@@ -284,7 +284,7 @@ async def test_public_lifecycle_create_run_delete():
     assert result.stdout.strip() == "42"
 
     assert (
-        await litellm.adelete_sandbox(
+        await gateway.adelete_sandbox(
             provider="e2b", container=container, api_key="e2b_key", client=client
         )
         is True
@@ -294,7 +294,7 @@ async def test_public_lifecycle_create_run_delete():
 @pytest.mark.asyncio
 async def test_unsupported_provider_raises():
     with pytest.raises(ValueError, match="not-a-provider' is not a valid SandboxProviders"):
-        await litellm.acreate_sandbox(provider="not-a-provider")
+        await gateway.acreate_sandbox(provider="not-a-provider")
 
 
 # ---------- api_base override ----------

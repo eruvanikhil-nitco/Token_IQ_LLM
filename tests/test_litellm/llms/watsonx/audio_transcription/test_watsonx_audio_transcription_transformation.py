@@ -10,7 +10,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.watsonx.audio_transcription.transformation import (
     IBMWatsonXAudioTranscriptionConfig,
 )
@@ -46,7 +46,7 @@ class TestWatsonXAudioTranscription:
             new=mock_post,
         ):
             try:
-                await litellm.atranscription(
+                await gateway.atranscription(
                     model="watsonx/whisper-large-v3-turbo",
                     file=b"fake_audio_data",
                     api_base="https://us-south.ml.cloud.ibm.com",
@@ -109,7 +109,7 @@ class TestWatsonXAudioTranscription:
             new=mock_post,
         ):
             try:
-                await litellm.atranscription(
+                await gateway.atranscription(
                     model="watsonx/whisper-large-v3-turbo",
                     file=b"fake_audio_data",
                     api_base="https://us-south.ml.cloud.ibm.com",
@@ -174,7 +174,7 @@ class TestWatsonXAudioTranscription:
         ):
             try:
                 # Minimal request - only required params
-                await litellm.atranscription(
+                await gateway.atranscription(
                     model="watsonx/whisper-large-v3-turbo",
                     file=b"fake_audio_data",
                     api_base="https://us-south.ml.cloud.ibm.com",
@@ -233,7 +233,7 @@ class TestWatsonXAudioTranscription:
         ):
             try:
                 # Minimal request - only required params
-                await litellm.atranscription(
+                await gateway.atranscription(
                     model="watsonx/whisper-large-v3-turbo",
                     file=b"fake_audio_data",
                     api_base="https://us-south.ml.cloud.ibm.com",

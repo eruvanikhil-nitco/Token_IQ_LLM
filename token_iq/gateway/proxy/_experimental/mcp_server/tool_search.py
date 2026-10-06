@@ -10,7 +10,7 @@ from typing import TYPE_CHECKING, Any, Final, TypedDict
 from pydantic import ValidationError
 from typing_extensions import ReadOnly, Required, assert_never
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy.agent_endpoints.agent_search import DEFAULT_AGENT_SEARCH_TOP_K
 from token_iq.gateway.proxy.common_utils.semantic_text_index import (
     Embedder,
@@ -59,7 +59,7 @@ global_mcp_tool_search_index: Final = SemanticTextIndex()
 
 def mcp_tool_search_settings() -> MCPToolSearchSettings | ValidationError:
     try:
-        return MCPToolSearchSettings.model_validate(litellm.mcp_tool_search or {})
+        return MCPToolSearchSettings.model_validate(gateway.mcp_tool_search or {})
     except ValidationError as exc:
         return exc
 
@@ -231,7 +231,7 @@ async def handle_agent_search(query: str, top_k: int, user_api_key_dict: UserAPI
         agents=await accessible_agents(user_api_key_dict),
         top_k=max(top_k, 1),
         router=llm_router,
-        embedding_model=litellm.agent_search_embedding_model,
+        embedding_model=gateway.agent_search_embedding_model,
         index=global_agent_search_index,
         user_api_key_dict=user_api_key_dict,
     )

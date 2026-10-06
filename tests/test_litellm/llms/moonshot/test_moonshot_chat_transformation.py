@@ -10,9 +10,9 @@ from unittest.mock import patch
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 import token_iq.gateway.utils
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.get_model_cost_map import GetModelCostMap
 from token_iq.gateway.llms.moonshot.chat.transformation import MoonshotChatConfig
 
@@ -768,8 +768,8 @@ class TestMoonshotResponseSchemaSupport:
         assert model_cost_map[model].get("supports_response_schema") is True
 
     def test_supports_response_schema_utility_reports_true(self, model_cost_map, monkeypatch):
-        monkeypatch.setattr(litellm, "model_cost", model_cost_map)
-        assert litellm.utils.supports_response_schema(model="moonshot/kimi-k2.5") is True
+        monkeypatch.setattr(gateway, "model_cost", model_cost_map)
+        assert gateway.utils.supports_response_schema(model="moonshot/kimi-k2.5") is True
 
 
 class TestMoonshotReasoningEffort:
@@ -779,7 +779,7 @@ class TestMoonshotReasoningEffort:
 
     @pytest.fixture(autouse=True)
     def force_local_model_cost(self, monkeypatch):
-        monkeypatch.setattr(litellm, "model_cost", GetModelCostMap.load_local_model_cost_map())
+        monkeypatch.setattr(gateway, "model_cost", GetModelCostMap.load_local_model_cost_map())
 
     @pytest.mark.parametrize("model", ["kimi-k3", "kimi-k2.5", "kimi-k2.6", "kimi-k2-thinking"])
     def test_reasoning_model_supports_reasoning_effort(self, model):
@@ -791,7 +791,7 @@ class TestMoonshotReasoningEffort:
 
     @pytest.mark.parametrize("effort", ["low", "high", "max"])
     def test_declared_effort_reaches_optional_params(self, effort):
-        optional_params = litellm.get_optional_params(
+        optional_params = gateway.get_optional_params(
             model="kimi-k3",
             custom_llm_provider="moonshot",
             reasoning_effort=effort,
@@ -801,8 +801,8 @@ class TestMoonshotReasoningEffort:
         assert optional_params["reasoning_effort"] == effort
 
     def test_non_reasoning_model_still_rejects_reasoning_effort(self):
-        with pytest.raises(litellm.UnsupportedParamsError):
-            litellm.get_optional_params(
+        with pytest.raises(gateway.UnsupportedParamsError):
+            gateway.get_optional_params(
                 model="moonshot-v1-8k",
                 custom_llm_provider="moonshot",
                 reasoning_effort="high",

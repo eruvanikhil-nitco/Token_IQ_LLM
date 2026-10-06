@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Any, Final, Literal, Optional, cast
 import httpx
 from pydantic import BaseModel
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.completion_extras.litellm_responses_transformation.transformation import (
     LiteLLMResponsesTransformationHandler,
@@ -496,7 +496,7 @@ async def aresponses(
 
         # get custom llm provider so we can use this for mapping exceptions
         if custom_llm_provider is None:
-            _, custom_llm_provider, _, _ = litellm.get_llm_provider(
+            _, custom_llm_provider, _, _ = gateway.get_llm_provider(
                 model=model, api_base=local_vars.get("base_url", None)
             )
             # Update local_vars with detected provider (fixes #19782)
@@ -615,7 +615,7 @@ async def aresponses(
 
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=model,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -631,16 +631,16 @@ def _resolve_prompt_swapped_provider(
     kwargs: Mapping[str, object],
     prompt_id: str | None,
 ) -> str:
-    swapped_provider: Final = litellm.get_llm_provider(model=swapped_model)[1]
+    swapped_provider: Final = gateway.get_llm_provider(model=swapped_model)[1]
     if kwargs.get("api_key") is None and kwargs.get("api_base") is None:
         return swapped_provider
     try:
-        original_provider: Final = custom_llm_provider or litellm.get_llm_provider(model=original_model)[1]
-    except litellm.BadRequestError:
+        original_provider: Final = custom_llm_provider or gateway.get_llm_provider(model=original_model)[1]
+    except gateway.BadRequestError:
         return swapped_provider
     if swapped_provider == original_provider:
         return swapped_provider
-    raise litellm.BadRequestError(
+    raise gateway.BadRequestError(
         message=(
             f"prompt_id '{prompt_id}' swaps model '{original_model}' -> '{swapped_model}', which changes the "
             f"provider from '{original_provider}' to '{swapped_provider}' after credentials for "
@@ -765,7 +765,7 @@ def _resolve_model_provider_for_responses(
         resolved_provider,
         dynamic_api_key,
         dynamic_api_base,
-    ) = litellm.get_llm_provider(
+    ) = gateway.get_llm_provider(
         model=model,
         litellm_params=litellm_params,
     )
@@ -1042,7 +1042,7 @@ def responses(
         use_chat_completions_api = use_chat_completions_api or _from_chat_completions_prefix
 
         if custom_llm_provider is None:
-            _, custom_llm_provider, _, _ = litellm.get_llm_provider(
+            _, custom_llm_provider, _, _ = gateway.get_llm_provider(
                 model=model, api_base=local_vars.get("base_url", None)
             )
             local_vars["custom_llm_provider"] = custom_llm_provider
@@ -1254,7 +1254,7 @@ def responses(
 
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=model,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -1315,7 +1315,7 @@ async def adelete_responses(
             response = init_response
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=None,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -1405,7 +1405,7 @@ def delete_responses(
 
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=None,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -1480,7 +1480,7 @@ async def aget_responses(
             )
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=None,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -1584,7 +1584,7 @@ def get_responses(
 
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=None,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -1640,7 +1640,7 @@ async def alist_input_items(
             response = init_response
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=None,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -1718,7 +1718,7 @@ def list_input_items(
 
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=None,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -1779,7 +1779,7 @@ async def acancel_responses(
             response = init_response
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=None,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -1869,7 +1869,7 @@ def cancel_responses(
 
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=None,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -1908,7 +1908,7 @@ async def acompact_responses(
 
         # get custom llm provider so we can use this for mapping exceptions
         if custom_llm_provider is None:
-            _, custom_llm_provider, _, _ = litellm.get_llm_provider(
+            _, custom_llm_provider, _, _ = gateway.get_llm_provider(
                 model=model, api_base=local_vars.get("base_url", None)
             )
             # Update local_vars with detected provider (fixes #19782)
@@ -1947,7 +1947,7 @@ async def acompact_responses(
 
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=model,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -2070,7 +2070,7 @@ def compact_responses(
 
         return response
     except Exception as e:
-        raise litellm.exception_type(
+        raise gateway.exception_type(
             model=model,
             custom_llm_provider=custom_llm_provider,
             original_exception=e,
@@ -2120,7 +2120,7 @@ async def _aresponses_websocket(
         _custom_llm_provider,
         dynamic_api_key,
         dynamic_api_base,
-    ) = litellm.get_llm_provider(
+    ) = gateway.get_llm_provider(
         model=model,
         api_base=api_base,
         api_key=api_key,
@@ -2129,7 +2129,7 @@ async def _aresponses_websocket(
 
     litellm_params_dict["data_residency"] = infer_openai_data_residency(
         _custom_llm_provider,
-        dynamic_api_base or litellm_params.api_base or litellm.api_base,
+        dynamic_api_base or litellm_params.api_base or gateway.api_base,
     )
 
     litellm_logging_obj.update_from_kwargs(
@@ -2145,15 +2145,15 @@ async def _aresponses_websocket(
     if _custom_llm_provider is not None:
         responses_api_provider_config = ProviderConfigManager.get_provider_responses_api_config(
             model=resolved_model,
-            provider=litellm.LlmProviders(_custom_llm_provider),
+            provider=gateway.LlmProviders(_custom_llm_provider),
         )
 
-    resolved_api_base: Final = dynamic_api_base or litellm_params.api_base or litellm.api_base or None
+    resolved_api_base: Final = dynamic_api_base or litellm_params.api_base or gateway.api_base or None
     resolved_api_key: Final = (
         dynamic_api_key
         or litellm_params.api_key
-        or litellm.api_key
-        or litellm.openai_key
+        or gateway.api_key
+        or gateway.openai_key
         or get_secret_str("OPENAI_API_KEY")
     )
 

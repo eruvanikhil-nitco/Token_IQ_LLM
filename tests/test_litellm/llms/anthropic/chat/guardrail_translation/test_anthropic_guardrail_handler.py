@@ -1024,7 +1024,7 @@ class TestAnthropicMessagesHandlerInputProcessing:
 
     @pytest.mark.asyncio
     async def test_compaction_rewrite_to_only_system_messages_is_rejected(self):
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         handler = AnthropicMessagesHandler()
         guardrail = MockCompactingGuardrail(
@@ -1039,15 +1039,15 @@ class TestAnthropicMessagesHandlerInputProcessing:
             ],
         }
 
-        with patch.object(litellm, "modify_params", False):
-            with pytest.raises(litellm.BadRequestError, match="at least one non-system message"):
+        with patch.object(gateway, "modify_params", False):
+            with pytest.raises(gateway.BadRequestError, match="at least one non-system message"):
                 await handler.process_input_messages(data=data, guardrail_to_apply=guardrail)
 
     @pytest.mark.asyncio
     async def test_compaction_rewrite_to_only_system_messages_repaired_with_modify_params(
         self,
     ):
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         handler = AnthropicMessagesHandler()
         guardrail = MockCompactingGuardrail(
@@ -1062,7 +1062,7 @@ class TestAnthropicMessagesHandlerInputProcessing:
             ],
         }
 
-        with patch.object(litellm, "modify_params", True):
+        with patch.object(gateway, "modify_params", True):
             await handler.process_input_messages(data=data, guardrail_to_apply=guardrail)
 
         assert data["messages"] == [{"role": "user", "content": [{"type": "text", "text": "Please continue."}]}]

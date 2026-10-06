@@ -9,7 +9,7 @@ from types import MappingProxyType
 from typing import Any, Final, Literal, TypedDict, cast
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.core_utils.llm_cost_calc.tiered_pricing import (
     select_tier_for_input,
@@ -177,7 +177,7 @@ def _generic_cost_per_character(
         Exception if 'input_cost_per_character' or 'output_cost_per_character' is missing from model_info
     """
     ## GET MODEL INFO
-    model_info: Final = litellm.get_model_info(model=model, custom_llm_provider=custom_llm_provider)
+    model_info: Final = gateway.get_model_info(model=model, custom_llm_provider=custom_llm_provider)
 
     ## CALCULATE INPUT COST
     try:
@@ -1520,13 +1520,13 @@ class CostCalculatorUtils:
         )
         resolved_n: Final = n if n is not None else (len(completion_response.data) if completion_response.data else 0)
 
-        if custom_llm_provider == litellm.LlmProviders.VERTEX_AI.value:
+        if custom_llm_provider == gateway.LlmProviders.VERTEX_AI.value:
             if isinstance(completion_response, ImageResponse):
                 return vertex_ai_image_cost_calculator(
                     model=model,
                     image_response=completion_response,
                 )
-        elif custom_llm_provider == litellm.LlmProviders.BEDROCK.value:
+        elif custom_llm_provider == gateway.LlmProviders.BEDROCK.value:
             if isinstance(completion_response, ImageResponse):
                 return bedrock_image_cost_calculator(
                     model=model,
@@ -1535,7 +1535,7 @@ class CostCalculatorUtils:
                     optional_params=optional_params,
                 )
             raise TypeError("completion_response must be of type ImageResponse for bedrock image cost calculation")
-        elif custom_llm_provider == litellm.LlmProviders.RECRAFT.value:
+        elif custom_llm_provider == gateway.LlmProviders.RECRAFT.value:
             from token_iq.gateway.llms.recraft.cost_calculator import (
                 cost_calculator as recraft_image_cost_calculator,
             )
@@ -1544,7 +1544,7 @@ class CostCalculatorUtils:
                 model=model,
                 image_response=completion_response,
             )
-        elif custom_llm_provider == litellm.LlmProviders.AIML.value:
+        elif custom_llm_provider == gateway.LlmProviders.AIML.value:
             from token_iq.gateway.llms.aiml.image_generation.cost_calculator import (
                 cost_calculator as aiml_image_cost_calculator,
             )
@@ -1553,7 +1553,7 @@ class CostCalculatorUtils:
                 model=model,
                 image_response=completion_response,
             )
-        elif custom_llm_provider == litellm.LlmProviders.COMETAPI.value:
+        elif custom_llm_provider == gateway.LlmProviders.COMETAPI.value:
             from token_iq.gateway.llms.cometapi.image_generation.cost_calculator import (
                 cost_calculator as cometapi_image_cost_calculator,
             )
@@ -1562,7 +1562,7 @@ class CostCalculatorUtils:
                 model=model,
                 image_response=completion_response,
             )
-        elif custom_llm_provider == litellm.LlmProviders.GEMINI.value:
+        elif custom_llm_provider == gateway.LlmProviders.GEMINI.value:
             if call_type in (
                 CallTypes.image_edit.value,
                 CallTypes.aimage_edit.value,
@@ -1583,12 +1583,12 @@ class CostCalculatorUtils:
                 model=model,
                 image_response=completion_response,
             )
-        elif custom_llm_provider == litellm.LlmProviders.AZURE_AI.value:
+        elif custom_llm_provider == gateway.LlmProviders.AZURE_AI.value:
             return azure_ai_image_cost_calculator(
                 model=model,
                 image_response=completion_response,
             )
-        elif custom_llm_provider == litellm.LlmProviders.FAL_AI.value:
+        elif custom_llm_provider == gateway.LlmProviders.FAL_AI.value:
             from token_iq.gateway.llms.fal_ai.cost_calculator import (
                 cost_calculator as fal_ai_image_cost_calculator,
             )
@@ -1598,7 +1598,7 @@ class CostCalculatorUtils:
                 image_response=completion_response,
                 optional_params=optional_params,
             )
-        elif custom_llm_provider == litellm.LlmProviders.RUNWAYML.value:
+        elif custom_llm_provider == gateway.LlmProviders.RUNWAYML.value:
             from token_iq.gateway.llms.runwayml.cost_calculator import (
                 cost_calculator as runwayml_image_cost_calculator,
             )
@@ -1608,8 +1608,8 @@ class CostCalculatorUtils:
                 image_response=completion_response,
             )
         elif (
-            custom_llm_provider == litellm.LlmProviders.OPENAI.value
-            or custom_llm_provider == litellm.LlmProviders.AZURE.value
+            custom_llm_provider == gateway.LlmProviders.OPENAI.value
+            or custom_llm_provider == gateway.LlmProviders.AZURE.value
         ):
             # gpt-image models use token-based pricing.
             model_lower: Final = model.lower()

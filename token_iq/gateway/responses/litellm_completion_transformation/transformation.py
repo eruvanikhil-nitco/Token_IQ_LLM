@@ -473,9 +473,9 @@ class LiteLLMCompletionResponsesConfig:
             else:
                 # Both are empty - this likely means function_call_output had empty/invalid call_id
                 # Provide a helpful error message
-                from token_iq import gateway as litellm
+                from token_iq import gateway
 
-                raise litellm.BadRequestError(
+                raise gateway.BadRequestError(
                     message=(
                         f"Unable to create messages for completion request. "
                         f"This can happen when: "

@@ -1644,7 +1644,7 @@ class TestInterruptedStreamOutputTokenRecovery:
         )
 
     def test_interrupted_stream_retokenizes_buffered_output(self):
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         placeholder = 2
         result = self._run(
@@ -1652,7 +1652,7 @@ class TestInterruptedStreamOutputTokenRecovery:
         )
         usage = result["result"].usage
 
-        expected = litellm.token_counter(
+        expected = gateway.token_counter(
             model=self._MODEL,
             text=self._OUTPUT_TEXT,
             count_response_tokens=True,
@@ -2191,9 +2191,9 @@ class TestAnthropicUsageOnlyFallback:
         AnthropicPassthroughLoggingHandler, "_build_complete_streaming_response"
     )
     def test_handler_falls_back_when_assembly_raises(self, mock_assemble, mock_cost):
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
-        mock_assemble.side_effect = litellm.APIError(
+        mock_assemble.side_effect = gateway.APIError(
             status_code=500,
             message="boom",
             llm_provider="anthropic",
@@ -2353,9 +2353,9 @@ class TestAnthropicPassthroughFastMode:
         )
 
     def _cost(self, response) -> float:
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
-        return litellm.completion_cost(completion_response=response, model=f"anthropic/{self.MODEL}")
+        return gateway.completion_cost(completion_response=response, model=f"anthropic/{self.MODEL}")
 
     def _expected_fast_cost(self, standard_cost: float) -> float:
         return standard_cost * 2.0

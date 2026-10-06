@@ -269,10 +269,10 @@ class RunwayMLImageGenerationConfig(BaseImageGenerationConfig):
         Returns:
             Final response with completed task
         """
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.llms.custom_httpx.http_handler import get_async_httpx_client
 
-        client: Final = get_async_httpx_client(llm_provider=litellm.LlmProviders.RUNWAYML)
+        client: Final = get_async_httpx_client(llm_provider=gateway.LlmProviders.RUNWAYML)
         start_time: Final = time.time()
 
         # Build task status URL

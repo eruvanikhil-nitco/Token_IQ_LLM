@@ -176,15 +176,15 @@ class TestPhoenixAutoInitWithOtelOnly(unittest.TestCase):
 
     def setUp(self):
         """Save original callbacks to restore after each test."""
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
-        self._original_callbacks = litellm.callbacks[:]
+        self._original_callbacks = gateway.callbacks[:]
 
     def tearDown(self):
         """Restore original callbacks to prevent global state leakage."""
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
-        litellm.callbacks = self._original_callbacks
+        gateway.callbacks = self._original_callbacks
 
     @patch.dict(
         os.environ,

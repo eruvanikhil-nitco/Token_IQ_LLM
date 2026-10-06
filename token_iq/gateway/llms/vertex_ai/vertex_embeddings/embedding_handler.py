@@ -2,7 +2,7 @@ from typing import Final, Literal
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObject
 from token_iq.gateway.llms.custom_httpx.http_handler import (
     AsyncHTTPHandler,
@@ -91,7 +91,7 @@ class VertexEmbedding(VertexBase):
         )
         headers: Final = self.set_headers(auth_header=auth_header, extra_headers=extra_headers)
         vertex_request: Final[VertexEmbeddingRequest] = (
-            litellm.vertexAITextEmbeddingConfig.transform_openai_request_to_vertex_embedding_request(
+            gateway.vertexAITextEmbeddingConfig.transform_openai_request_to_vertex_embedding_request(
                 input=input,
                 optional_params=optional_params,
                 model=model,
@@ -130,7 +130,7 @@ class VertexEmbedding(VertexBase):
         ## LOGGING POST-CALL
         logging_obj.post_call(input=input, api_key=None, original_response=_json_response)
 
-        model_response = litellm.vertexAITextEmbeddingConfig.transform_vertex_response_to_openai(
+        model_response = gateway.vertexAITextEmbeddingConfig.transform_vertex_response_to_openai(
             response=_json_response, model=model, model_response=model_response
         )
 
@@ -185,7 +185,7 @@ class VertexEmbedding(VertexBase):
         )
         headers: Final = self.set_headers(auth_header=auth_header, extra_headers=extra_headers)
         vertex_request: Final[VertexEmbeddingRequest] = (
-            litellm.vertexAITextEmbeddingConfig.transform_openai_request_to_vertex_embedding_request(
+            gateway.vertexAITextEmbeddingConfig.transform_openai_request_to_vertex_embedding_request(
                 input=input,
                 optional_params=optional_params,
                 model=model,
@@ -197,7 +197,7 @@ class VertexEmbedding(VertexBase):
         if timeout:
             _async_client_params["timeout"] = timeout
         if client is None or not isinstance(client, AsyncHTTPHandler):
-            client = get_async_httpx_client(params=_async_client_params, llm_provider=litellm.LlmProviders.VERTEX_AI)
+            client = get_async_httpx_client(params=_async_client_params, llm_provider=gateway.LlmProviders.VERTEX_AI)
         else:
             client = client
         ## LOGGING
@@ -224,7 +224,7 @@ class VertexEmbedding(VertexBase):
         ## LOGGING POST-CALL
         logging_obj.post_call(input=input, api_key=None, original_response=_json_response)
 
-        model_response = litellm.vertexAITextEmbeddingConfig.transform_vertex_response_to_openai(
+        model_response = gateway.vertexAITextEmbeddingConfig.transform_vertex_response_to_openai(
             response=_json_response, model=model, model_response=model_response
         )
 

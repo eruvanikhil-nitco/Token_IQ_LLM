@@ -5,7 +5,7 @@ import pytest
 from websockets.exceptions import ConnectionClosedError, ConnectionClosedOK
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.types.realtime import RealtimeQueryParams
 
 
@@ -96,7 +96,7 @@ async def test_openai_realtime_direct_call_no_intent():
     caught_exception = None
 
     try:
-        await litellm._arealtime(
+        await gateway._arealtime(
             # OpenAI shut down the gpt-4o-realtime-preview family (incl. the
             # undated alias) on 2026-05-07; gpt-realtime is the GA successor.
             model="openai/gpt-realtime",
@@ -255,7 +255,7 @@ async def test_openai_realtime_direct_call_with_intent():
     }
 
     try:
-        await litellm._arealtime(
+        await gateway._arealtime(
             model="openai/gpt-realtime",
             websocket=websocket_client,
             api_key=os.environ.get("OPENAI_API_KEY"),

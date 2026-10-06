@@ -11,7 +11,7 @@ import time
 import httpx
 from openai._legacy_response import HttpxBinaryResponseContent
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import session_id_var, trace_id_var
 from token_iq.gateway.constants import SENTRY_DENYLIST, SENTRY_PII_DENYLIST
 from token_iq.gateway.integrations.custom_logger import CustomLogger
@@ -209,7 +209,7 @@ def test_response_cost_calculator_uses_router_model_id_from_litellm_metadata():
     litellm_params.litellm_metadata.model_info.id when the result object
     does not carry _hidden_params (e.g. ResponsesAPIResponse from /v1/responses
     streaming). Regression test for custom pricing on streaming responses."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
     from token_iq.gateway.types.llms.openai import ResponsesAPIResponse
 
@@ -217,7 +217,7 @@ def test_response_cost_calculator_uses_router_model_id_from_litellm_metadata():
     custom_input_cost = 125.0
     custom_output_cost = 10.0
 
-    litellm.register_model(
+    gateway.register_model(
         model_cost={
             custom_model_id: {
                 "input_cost_per_token": custom_input_cost,
@@ -275,7 +275,7 @@ def test_response_cost_calculator_uses_router_model_id_from_litellm_metadata():
         expected_cost = (10 * custom_input_cost) + (5 * custom_output_cost)
         assert cost == pytest.approx(expected_cost), f"Expected {expected_cost}, got {cost}"
     finally:
-        litellm.model_cost.pop(custom_model_id, None)
+        gateway.model_cost.pop(custom_model_id, None)
 
 
 class TestGetRouterModelId:
@@ -340,7 +340,7 @@ class TestGetRouterDeploymentModelInfo:
 
     def test_returns_registered_deployment_pricing(self, logging_obj) -> None:
         deployment_id = "deploy-zero-cost-1"
-        litellm.model_cost[deployment_id] = {
+        gateway.model_cost[deployment_id] = {
             "input_cost_per_token": 0.0,
             "output_cost_per_token": 0.0,
             "input_cost_per_token_batches": 0.0,
@@ -355,7 +355,7 @@ class TestGetRouterDeploymentModelInfo:
             assert info["input_cost_per_token"] == 0.0
             assert info["output_cost_per_token_batches"] == 0.0
         finally:
-            litellm.model_cost.pop(deployment_id, None)
+            gateway.model_cost.pop(deployment_id, None)
 
     def test_returns_none_for_unregistered_deployment(self, logging_obj) -> None:
         logging_obj.litellm_params = {"litellm_metadata": {"model_info": {"id": "deploy-never-registered"}}}
@@ -368,16 +368,16 @@ class TestGetRouterDeploymentModelInfo:
         hand back free pricing for an ordinary deployment and bill its batches $0.
         """
         deployment_id = "deploy-no-pricing-1"
-        litellm.register_model(
+        gateway.register_model(
             model_cost={deployment_id: {"id": deployment_id, "access_groups": ["x"]}},
             persist_across_reloads=False,
         )
         logging_obj.litellm_params = {"litellm_metadata": {"model_info": {"id": deployment_id}}}
         try:
-            assert litellm.get_model_info(model=deployment_id)["input_cost_per_token"] == 0
+            assert gateway.get_model_info(model=deployment_id)["input_cost_per_token"] == 0
             assert logging_obj.get_router_deployment_model_info() is None
         finally:
-            litellm.model_cost.pop(deployment_id, None)
+            gateway.model_cost.pop(deployment_id, None)
 
     def test_returns_none_without_a_deployment_id(self, logging_obj) -> None:
         logging_obj.litellm_params = {"api_base": ""}
@@ -407,11 +407,11 @@ class TestGetRouterDeploymentModelInfo:
         from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
 
         model = "bedrock/global.anthropic.claude-sonnet-4-6"
-        published = litellm.get_model_info(model=model)
+        published = gateway.get_model_info(model=model)
         assert (published["input_cost_per_token"], published["output_cost_per_token"]) == (3e-06, 1.5e-05)
 
         deployment_id = f"deploy-one-sided-{'-'.join(sorted(declared))}"
-        litellm.model_cost[deployment_id] = {"id": deployment_id, **declared}
+        gateway.model_cost[deployment_id] = {"id": deployment_id, **declared}
         obj = LiteLLMLoggingObj(
             model=model,
             messages=[],
@@ -429,7 +429,7 @@ class TestGetRouterDeploymentModelInfo:
             assert info["input_cost_per_token"] == expected_input
             assert info["output_cost_per_token"] == expected_output
         finally:
-            litellm.model_cost.pop(deployment_id, None)
+            gateway.model_cost.pop(deployment_id, None)
 
     def test_a_published_batch_rate_never_displaces_a_declared_standard_rate(self) -> None:
         """Ownership is per token direction, not per field.
@@ -441,11 +441,11 @@ class TestGetRouterDeploymentModelInfo:
         from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
 
         model = "ft:gpt-3.5-turbo"
-        published = litellm.get_model_info(model=model)
+        published = gateway.get_model_info(model=model)
         assert published["input_cost_per_token_batches"] is not None
 
         deployment_id = "deploy-standard-input-only-1"
-        litellm.model_cost[deployment_id] = {
+        gateway.model_cost[deployment_id] = {
             "id": deployment_id,
             "input_cost_per_token": 1e-06,
             "litellm_provider": "openai",
@@ -470,7 +470,7 @@ class TestGetRouterDeploymentModelInfo:
             assert info["output_cost_per_token"] == published["output_cost_per_token"]
             assert info["output_cost_per_token_batches"] == published["output_cost_per_token_batches"]
         finally:
-            litellm.model_cost.pop(deployment_id, None)
+            gateway.model_cost.pop(deployment_id, None)
 
     def test_merging_does_not_mutate_the_cached_model_info(self) -> None:
         """The published-rate merge must not write into get_model_info's lru-cached dict.
@@ -483,7 +483,7 @@ class TestGetRouterDeploymentModelInfo:
 
         model = "bedrock/global.anthropic.claude-sonnet-4-6"
         deployment_id = "deploy-cache-not-poisoned-1"
-        litellm.model_cost[deployment_id] = {"id": deployment_id, "input_cost_per_token": 1e-06}
+        gateway.model_cost[deployment_id] = {"id": deployment_id, "input_cost_per_token": 1e-06}
         obj = LiteLLMLoggingObj(
             model=model,
             messages=[],
@@ -496,18 +496,18 @@ class TestGetRouterDeploymentModelInfo:
         obj.litellm_params = {"litellm_metadata": {"model_info": {"id": deployment_id}}, "model": model}
         obj.model_call_details["model"] = model
         try:
-            cached_before = dict(litellm.get_model_info(model=deployment_id))
+            cached_before = dict(gateway.get_model_info(model=deployment_id))
             info = obj.get_router_deployment_model_info()
             assert info is not None
             assert info["output_cost_per_token"] == 1.5e-05
-            assert dict(litellm.get_model_info(model=deployment_id)) == cached_before
+            assert dict(gateway.get_model_info(model=deployment_id)) == cached_before
         finally:
-            litellm.model_cost.pop(deployment_id, None)
+            gateway.model_cost.pop(deployment_id, None)
 
     def test_keeps_declared_rates_when_no_model_is_resolvable(self, logging_obj) -> None:
         """With no model to look a published entry up by, the declared rates stand alone."""
         deployment_id = "deploy-no-model-at-all-1"
-        litellm.model_cost[deployment_id] = {
+        gateway.model_cost[deployment_id] = {
             "id": deployment_id,
             "input_cost_per_token": 9e-06,
             "output_cost_per_token": 2e-05,
@@ -524,25 +524,25 @@ class TestGetRouterDeploymentModelInfo:
             assert info["input_cost_per_token"] == 9e-06
             assert info["output_cost_per_token"] == 2e-05
         finally:
-            litellm.model_cost.pop(deployment_id, None)
+            gateway.model_cost.pop(deployment_id, None)
 
     def test_returns_none_when_the_deployment_id_resolves_no_provider(self, logging_obj) -> None:
         """A registration whose id get_model_info cannot resolve yields no pricing."""
         deployment_id = "deploy-unresolvable-provider-1"
-        litellm.model_cost[deployment_id] = {"id": deployment_id, "input_cost_per_token": 4e-06}
+        gateway.model_cost[deployment_id] = {"id": deployment_id, "input_cost_per_token": 4e-06}
         logging_obj.litellm_params = {"litellm_metadata": {"model_info": {"id": deployment_id}}}
         logging_obj.model_call_details["model"] = None
         logging_obj.model = None
         try:
-            with patch.object(litellm, "get_model_info", side_effect=Exception("unresolvable")):
+            with patch.object(gateway, "get_model_info", side_effect=Exception("unresolvable")):
                 assert logging_obj.get_router_deployment_model_info() is None
         finally:
-            litellm.model_cost.pop(deployment_id, None)
+            gateway.model_cost.pop(deployment_id, None)
 
     def test_falls_back_to_declared_rates_when_the_model_has_no_published_entry(self, logging_obj) -> None:
         """With no published entry to layer under, the declared rates still apply."""
         deployment_id = "deploy-unpublished-model-1"
-        litellm.model_cost[deployment_id] = {"id": deployment_id, "input_cost_per_token": 7e-06}
+        gateway.model_cost[deployment_id] = {"id": deployment_id, "input_cost_per_token": 7e-06}
         logging_obj.litellm_params = {
             "litellm_metadata": {"model_info": {"id": deployment_id}},
             "model": "not-a-real-provider/not-a-real-model-xyz",
@@ -553,7 +553,7 @@ class TestGetRouterDeploymentModelInfo:
             assert info is not None
             assert info["input_cost_per_token"] == 7e-06
         finally:
-            litellm.model_cost.pop(deployment_id, None)
+            gateway.model_cost.pop(deployment_id, None)
 
 
 class TestRetrieveBatchCostPassesModelIdentity:
@@ -571,7 +571,7 @@ class TestRetrieveBatchCostPassesModelIdentity:
         from token_iq.gateway.types.utils import LiteLLMBatch, Usage
 
         deployment_id = "deploy-batch-pricing-1"
-        litellm.model_cost[deployment_id] = {
+        gateway.model_cost[deployment_id] = {
             "input_cost_per_token": 0.0,
             "output_cost_per_token": 0.0,
             "litellm_provider": "bedrock",
@@ -621,7 +621,7 @@ class TestRetrieveBatchCostPassesModelIdentity:
             with contextlib.suppress(Exception):
                 await obj._async_success_handler_body(result=batch, start_time=None, end_time=None)
         finally:
-            litellm.model_cost.pop(deployment_id, None)
+            gateway.model_cost.pop(deployment_id, None)
 
         assert captured, "_handle_completed_batch was never called"
         assert captured["model_name"] == "bedrock/global.anthropic.claude-sonnet-4-6"
@@ -939,13 +939,13 @@ async def test_logging_result_for_bridge_calls(logging_obj):
     """
     import asyncio
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     with patch.object(
-        litellm.core_utils.litellm_logging,
+        gateway.core_utils.litellm_logging,
         "get_standard_logging_object_payload",
     ) as mock_should_run_logging:
-        await litellm.anthropic_messages(
+        await gateway.anthropic_messages(
             max_tokens=100,
             messages=[{"role": "user", "content": "Hey"}],
             model="openai/codex-mini-latest",
@@ -964,7 +964,7 @@ async def test_anthropic_messages_marks_litellm_params_async():
     their own async markers."""
     import asyncio
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.integrations.custom_logger import CustomLogger
 
     captured = {}
@@ -977,10 +977,10 @@ async def test_anthropic_messages_marks_litellm_params_async():
 
     logger = CaptureLogger()
     logger.log_success_event = MagicMock()
-    original_callbacks = getattr(litellm, "callbacks", [])
+    original_callbacks = getattr(gateway, "callbacks", [])
     try:
-        litellm.callbacks = [logger]
-        await litellm.anthropic_messages(
+        gateway.callbacks = [logger]
+        await gateway.anthropic_messages(
             max_tokens=100,
             messages=[{"role": "user", "content": "Hey"}],
             model="anthropic/claude-sonnet-4-5",
@@ -992,7 +992,7 @@ async def test_anthropic_messages_marks_litellm_params_async():
         assert LitellmLogging._is_sync_litellm_request(captured["litellm_params"]) is False
         logger.log_success_event.assert_not_called()
     finally:
-        litellm.callbacks = original_callbacks
+        gateway.callbacks = original_callbacks
 
 
 @pytest.mark.asyncio
@@ -1003,7 +1003,7 @@ async def test_agenerate_content_marks_litellm_params_async():
     hook from firing alongside the async one."""
     import time
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     logging_obj = LitellmLogging(
         model="gemini/gemini-2.0-flash",
@@ -1015,7 +1015,7 @@ async def test_agenerate_content_marks_litellm_params_async():
         function_id="fn",
     )
     try:
-        await litellm.agenerate_content(
+        await gateway.agenerate_content(
             model="gemini/gemini-2.0-flash",
             contents=[{"role": "user", "parts": [{"text": "hi"}]}],
             mock_response="hello",
@@ -1038,21 +1038,21 @@ async def test_logging_non_streaming_request():
     class MockPrometheusLogger(CustomLogger):
         pass
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     # Save original callbacks to restore after test
-    original_callbacks = getattr(litellm, "callbacks", [])
+    original_callbacks = getattr(gateway, "callbacks", [])
 
     try:
         mock_logging_obj = MockPrometheusLogger()
 
-        litellm.callbacks = [mock_logging_obj]
+        gateway.callbacks = [mock_logging_obj]
 
         with patch.object(
             mock_logging_obj,
             "async_log_success_event",
         ) as mock_async_log_success_event:
-            await litellm.acompletion(
+            await gateway.acompletion(
                 max_tokens=100,
                 messages=[{"role": "user", "content": "Hey"}],
                 model="openai/codex-mini-latest",
@@ -1082,7 +1082,7 @@ async def test_logging_non_streaming_request():
             assert standard_logging_object["stream"] is not True
     finally:
         # Restore original callbacks to ensure test isolation
-        litellm.callbacks = original_callbacks
+        gateway.callbacks = original_callbacks
 
 
 @pytest.mark.parametrize(
@@ -1202,15 +1202,15 @@ async def test_dispatch_success_handlers_invokes_callbacks_once_for_final_stream
     logging_obj,
 ):
     """Second final-stream dispatch must not re-export (CSW + deferred guardrail paths)."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.integrations.custom_logger import CustomLogger
 
     class MockCallback(CustomLogger):
         pass
 
     mock_callback = MockCallback()
-    original_async_callbacks = list(litellm._async_success_callback or [])
-    litellm._async_success_callback = [mock_callback]
+    original_async_callbacks = list(gateway._async_success_callback or [])
+    gateway._async_success_callback = [mock_callback]
 
     result = ModelResponse(
         id="resp-dedupe",
@@ -1254,7 +1254,7 @@ async def test_dispatch_success_handlers_invokes_callbacks_once_for_final_stream
         mock_async_log.assert_awaited_once()
         mock_sync_log.assert_not_called()
     finally:
-        litellm._async_success_callback = original_async_callbacks
+        gateway._async_success_callback = original_async_callbacks
 
 
 @pytest.mark.asyncio
@@ -1262,15 +1262,15 @@ async def test_dispatch_success_handlers_sync_path_invokes_callback_once_for_fin
     logging_obj,
 ):
     """Sync dispatch path must also dedupe when dispatch is called twice."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.integrations.custom_logger import CustomLogger
 
     class MockCallback(CustomLogger):
         pass
 
     mock_callback = MockCallback()
-    original_success_callbacks = list(litellm.success_callback or [])
-    litellm.success_callback = [mock_callback]
+    original_success_callbacks = list(gateway.success_callback or [])
+    gateway.success_callback = [mock_callback]
 
     result = ModelResponse(
         id="resp-sync-dedupe",
@@ -1309,7 +1309,7 @@ async def test_dispatch_success_handlers_sync_path_invokes_callback_once_for_fin
         mock_sync_log.assert_called_once()
         mock_async_log.assert_not_awaited()
     finally:
-        litellm.success_callback = original_success_callbacks
+        gateway.success_callback = original_success_callbacks
 
 
 @pytest.mark.asyncio
@@ -1357,7 +1357,7 @@ async def test_dispatch_success_handlers_invokes_async_callback_for_pass_through
     logging_obj,
 ):
     """Pass-through must use async_success_handler (CustomLogger skips sync success_handler)."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.integrations.custom_logger import CustomLogger
     from token_iq.gateway.types.utils import CallTypes
 
@@ -1365,8 +1365,8 @@ async def test_dispatch_success_handlers_invokes_async_callback_for_pass_through
         pass
 
     mock_callback = MockCallback()
-    original_async_callbacks = list(litellm._async_success_callback or [])
-    litellm._async_success_callback = [mock_callback]
+    original_async_callbacks = list(gateway._async_success_callback or [])
+    gateway._async_success_callback = [mock_callback]
 
     logging_obj.call_type = CallTypes.pass_through.value
     logging_obj.stream = False
@@ -1382,7 +1382,7 @@ async def test_dispatch_success_handlers_invokes_async_callback_for_pass_through
         mock_async_log.assert_awaited_once()
         mock_sync_log.assert_not_called()
     finally:
-        litellm._async_success_callback = original_async_callbacks
+        gateway._async_success_callback = original_async_callbacks
 
 
 @pytest.mark.asyncio
@@ -1488,8 +1488,8 @@ async def test_dispatch_failure_handlers_submits_sync_handler_for_failure_only_c
     logging_obj.dynamic_failure_callbacks = None
 
     with (
-        patch.object(litellm, "success_callback", []),
-        patch.object(litellm, "failure_callback", [_sync_failure_callback]),
+        patch.object(gateway, "success_callback", []),
+        patch.object(gateway, "failure_callback", [_sync_failure_callback]),
         patch.object(logging_obj, "async_failure_handler", new_callable=AsyncMock),
         patch.object(logging_obj, "failure_handler", new_callable=MagicMock) as mock_sync,
         patch("token_iq.gateway.core_utils.litellm_logging.executor.submit") as mock_submit,
@@ -1822,34 +1822,34 @@ def test_get_request_tags_does_not_mutate_original_tags():
 
 def test_get_extra_header_tags():
     """Test the _get_extra_header_tags method with various scenarios."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.core_utils.litellm_logging import StandardLoggingPayloadSetup
 
     # Store original value to restore later
-    original_extra_headers = getattr(litellm, "extra_spend_tag_headers", None)
+    original_extra_headers = getattr(gateway, "extra_spend_tag_headers", None)
 
     try:
         # Test case 1: No extra headers configured
-        litellm.extra_spend_tag_headers = None
+        gateway.extra_spend_tag_headers = None
         result = StandardLoggingPayloadSetup._get_extra_header_tags(
             proxy_server_request={"headers": {"x-custom": "value"}}
         )
         assert result is None
 
         # Test case 2: Empty extra headers list
-        litellm.extra_spend_tag_headers = []
+        gateway.extra_spend_tag_headers = []
         result = StandardLoggingPayloadSetup._get_extra_header_tags(
             proxy_server_request={"headers": {"x-custom": "value"}}
         )
         assert result is None
 
         # Test case 3: Extra headers configured but request has no headers dict
-        litellm.extra_spend_tag_headers = ["x-custom", "x-tenant"]
+        gateway.extra_spend_tag_headers = ["x-custom", "x-tenant"]
         result = StandardLoggingPayloadSetup._get_extra_header_tags(proxy_server_request={"headers": "not-a-dict"})
         assert result is None
 
         # Test case 4: Extra headers configured but none match request headers
-        litellm.extra_spend_tag_headers = ["x-custom", "x-tenant"]
+        gateway.extra_spend_tag_headers = ["x-custom", "x-tenant"]
         result = StandardLoggingPayloadSetup._get_extra_header_tags(
             proxy_server_request={
                 "headers": {
@@ -1861,7 +1861,7 @@ def test_get_extra_header_tags():
         assert result is None
 
         # Test case 5: Some extra headers match request headers
-        litellm.extra_spend_tag_headers = ["x-custom", "x-tenant", "x-missing"]
+        gateway.extra_spend_tag_headers = ["x-custom", "x-tenant", "x-missing"]
         result = StandardLoggingPayloadSetup._get_extra_header_tags(
             proxy_server_request={
                 "headers": {
@@ -1878,7 +1878,7 @@ def test_get_extra_header_tags():
         assert "x-missing: " not in str(result)
 
         # Test case 6: All extra headers match request headers
-        litellm.extra_spend_tag_headers = ["x-custom", "x-tenant"]
+        gateway.extra_spend_tag_headers = ["x-custom", "x-tenant"]
         result = StandardLoggingPayloadSetup._get_extra_header_tags(
             proxy_server_request={
                 "headers": {
@@ -1894,7 +1894,7 @@ def test_get_extra_header_tags():
         assert "x-tenant: tenant-123" in result
 
         # Test case 7: Headers with empty values should not be included
-        litellm.extra_spend_tag_headers = ["x-custom", "x-empty"]
+        gateway.extra_spend_tag_headers = ["x-custom", "x-empty"]
         result = StandardLoggingPayloadSetup._get_extra_header_tags(
             proxy_server_request={"headers": {"x-custom": "my-value", "x-empty": ""}}
         )
@@ -1906,11 +1906,11 @@ def test_get_extra_header_tags():
     finally:
         # Restore original value
         if original_extra_headers is not None:
-            litellm.extra_spend_tag_headers = original_extra_headers
+            gateway.extra_spend_tag_headers = original_extra_headers
         else:
             # Remove the attribute if it didn't exist before
-            if hasattr(litellm, "extra_spend_tag_headers"):
-                delattr(litellm, "extra_spend_tag_headers")
+            if hasattr(gateway, "extra_spend_tag_headers"):
+                delattr(gateway, "extra_spend_tag_headers")
 
 
 def test_response_cost_calculator_with_response_cost_in_hidden_params(logging_obj):
@@ -1979,7 +1979,7 @@ def test_response_cost_calculator_native_generate_content_body_uses_usage_metada
         },
     )
 
-    expected_cost = litellm.completion_cost(
+    expected_cost = gateway.completion_cost(
         completion_response=ModelResponse(
             model="gemini-2.5-flash",
             usage=Usage(prompt_tokens=1000, completion_tokens=500, total_tokens=1500),
@@ -2291,7 +2291,7 @@ async def test_e2e_generate_cold_storage_object_key_not_configured():
     from datetime import datetime, timezone
     from unittest.mock import patch
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.core_utils.litellm_logging import StandardLoggingPayloadSetup
 
     # Create test data
@@ -2300,7 +2300,7 @@ async def test_e2e_generate_cold_storage_object_key_not_configured():
     team_alias = "another-team"
 
     # Use patch to ensure test isolation
-    with patch.object(litellm, "cold_storage_custom_logger", None):
+    with patch.object(gateway, "cold_storage_custom_logger", None):
         # Call the function
         result = StandardLoggingPayloadSetup._generate_cold_storage_object_key(
             start_time=start_time, response_id=response_id, team_alias=team_alias
@@ -2949,13 +2949,13 @@ async def test_non_streaming_computes_standard_logging_object_once():
     """
     import asyncio
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     with patch.object(
-        litellm.core_utils.litellm_logging,
+        gateway.core_utils.litellm_logging,
         "get_standard_logging_object_payload",
     ) as mock_payload:
-        await litellm.acompletion(
+        await gateway.acompletion(
             max_tokens=100,
             messages=[{"role": "user", "content": "Hey"}],
             model="openai/codex-mini-latest",
@@ -2973,13 +2973,13 @@ async def test_emit_standard_logging_payload_called_for_non_streaming():
     """
     import asyncio
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     with patch.object(
-        litellm.core_utils.litellm_logging,
+        gateway.core_utils.litellm_logging,
         "emit_standard_logging_payload",
     ) as mock_emit:
-        await litellm.acompletion(
+        await gateway.acompletion(
             max_tokens=100,
             messages=[{"role": "user", "content": "Hey"}],
             model="openai/codex-mini-latest",
@@ -3051,7 +3051,7 @@ def test_process_hidden_params_recalculates_cost_after_failure_handler_zero():
     """
     from datetime import datetime
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
     from token_iq.gateway.types.utils import ModelResponse, Usage
 
@@ -3067,7 +3067,7 @@ def test_process_hidden_params_recalculates_cost_after_failure_handler_zero():
     logging_obj.model_call_details["litellm_params"] = {"model": "openai/gpt-4o-mini"}
     logging_obj.optional_params = {}
 
-    err = litellm.RateLimitError(
+    err = gateway.RateLimitError(
         message="rate limit",
         llm_provider="openai",
         model="openai/gpt-4o-mini",
@@ -3131,7 +3131,7 @@ def test_process_hidden_params_uses_hidden_params_cost_after_failure_handler_zer
     """After retry failures pin model_call_details to 0, success cost on _hidden_params wins."""
     from datetime import datetime
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
     from token_iq.gateway.types.utils import ModelResponse, Usage
 
@@ -3147,7 +3147,7 @@ def test_process_hidden_params_uses_hidden_params_cost_after_failure_handler_zer
     logging_obj.model_call_details["litellm_params"] = {"model": "openai/gpt-4o-mini"}
     logging_obj.optional_params = {}
 
-    err = litellm.RateLimitError(
+    err = gateway.RateLimitError(
         message="rate limit",
         llm_provider="openai",
         model="openai/gpt-4o-mini",
@@ -3184,7 +3184,7 @@ def test_function_setup_litellm_metadata_populates_metadata():
 
     This is the root cause of: Claude Code requests missing user_api_key_hash in Langfuse.
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     test_api_key_hash = "sk-hashed-1234567890abcdef"
     test_team_id = "team-test-123"
@@ -3204,9 +3204,9 @@ def test_function_setup_litellm_metadata_populates_metadata():
         },
     }
 
-    logging_obj, returned_kwargs = litellm.utils.function_setup(
+    logging_obj, returned_kwargs = gateway.utils.function_setup(
         original_function="anthropic_messages",
-        rules_obj=litellm.utils.Rules(),
+        rules_obj=gateway.utils.Rules(),
         start_time=time.time(),
         **kwargs,
     )
@@ -3238,7 +3238,7 @@ def test_function_setup_litellm_metadata_guardrail_writes_visible_after_setup():
     /v1/messages spend logs carry guardrail_information and
     applied_guardrails just like /v1/chat/completions.
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.core_utils.core_helpers import get_or_create_metadata_bucket
     from token_iq.gateway.core_utils.litellm_logging import StandardLoggingPayloadSetup
 
@@ -3252,9 +3252,9 @@ def test_function_setup_litellm_metadata_guardrail_writes_visible_after_setup():
         },
     }
 
-    logging_obj, returned_kwargs = litellm.utils.function_setup(
+    logging_obj, returned_kwargs = gateway.utils.function_setup(
         original_function="anthropic_messages",
-        rules_obj=litellm.utils.Rules(),
+        rules_obj=gateway.utils.Rules(),
         start_time=time.time(),
         **kwargs,
     )
@@ -3287,7 +3287,7 @@ def test_function_setup_metadata_takes_precedence_over_litellm_metadata():
     Anthropic API metadata AND proxy adds litellm_metadata), metadata is used as
     litellm_params["metadata"] and litellm_metadata is stored separately.
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     kwargs = {
         "model": "claude-3-5-sonnet",
@@ -3302,9 +3302,9 @@ def test_function_setup_metadata_takes_precedence_over_litellm_metadata():
         },
     }
 
-    logging_obj, _ = litellm.utils.function_setup(
+    logging_obj, _ = gateway.utils.function_setup(
         original_function="anthropic_messages",
-        rules_obj=litellm.utils.Rules(),
+        rules_obj=gateway.utils.Rules(),
         start_time=time.time(),
         **kwargs,
     )
@@ -3380,7 +3380,7 @@ def test_function_setup_empty_metadata_falls_back_to_litellm_metadata():
     Test that when metadata is explicitly set to {} (empty dict), litellm_metadata
     is still used to populate litellm_params["metadata"] so API key fields are visible.
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     kwargs = {
         "model": "claude-3-5-sonnet",
@@ -3393,9 +3393,9 @@ def test_function_setup_empty_metadata_falls_back_to_litellm_metadata():
         },
     }
 
-    logging_obj, _ = litellm.utils.function_setup(
+    logging_obj, _ = gateway.utils.function_setup(
         original_function="anthropic_messages",
-        rules_obj=litellm.utils.Rules(),
+        rules_obj=gateway.utils.Rules(),
         start_time=time.time(),
         **kwargs,
     )
@@ -4381,14 +4381,14 @@ async def test_streaming_anthropic_messages_openai_bridge_fires_success_logging(
     no-op async_log_stream_event was called, so success_payload stayed None and the
     SpendLogs row never landed."""
     logger = _SuccessCapturingLogger()
-    monkeypatch.setattr(litellm, "callbacks", [logger])
+    monkeypatch.setattr(gateway, "callbacks", [logger])
 
     chunks = []
     with patch(
         "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         new=AsyncMock(return_value=_fake_streaming_responses_http_response()),
     ):
-        stream = await litellm.anthropic_messages(
+        stream = await gateway.anthropic_messages(
             model="openai/gpt-4o",
             api_key="sk-test-28595",
             messages=[{"role": "user", "content": "ping"}],
@@ -4528,10 +4528,10 @@ def test_image_response_sets_output_image_count_on_usage_object(logging_obj):
 
 def test_output_image_count_survives_message_redaction(logging_obj, monkeypatch):
     """Redaction replaces the ImageResponse body, so the count must be captured pre-redaction."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.types.utils import ImageResponse
 
-    monkeypatch.setattr(litellm, "turn_off_message_logging", True)
+    monkeypatch.setattr(gateway, "turn_off_message_logging", True)
     response = ImageResponse(created=1, data=[{"url": "https://img/1"}])
 
     payload = _build_payload_for_media_response(logging_obj, response)
@@ -4884,13 +4884,13 @@ def test_pre_call_does_not_pin_request_in_module_state(logging_obj):
     recent request's entire payload in memory for the life of the worker,
     which with multi-hundred-KB requests is a permanent per-worker leak.
     """
-    litellm.error_logs.clear()
+    gateway.error_logs.clear()
     big_input = [{"role": "user", "content": "x" * 10_000}]
 
     logging_obj.pre_call(input=big_input, api_key="sk-test")
     logging_obj.post_call(original_response='{"ok": true}', input=big_input, api_key="sk-test")
 
-    assert litellm.error_logs == {}
+    assert gateway.error_logs == {}
 
 
 def test_handle_anthropic_messages_response_logging_preserves_fast_mode_speed():
@@ -5327,9 +5327,9 @@ class TestNonInferenceCallTypesAreNotBilled:
         assert cost == 0.0
 
     def _read_call_messages(self):
-        logging_obj, _ = litellm.utils.function_setup(
+        logging_obj, _ = gateway.utils.function_setup(
             original_function="aget_responses",
-            rules_obj=litellm.utils.Rules(),
+            rules_obj=gateway.utils.Rules(),
             start_time=time.time(),
             **{"litellm_call_id": "lit5602-setup", "response_id": "resp_lit5602"},
         )
@@ -5602,7 +5602,7 @@ def test_resolve_vertex_location_for_cost_reads_optional_params(monkeypatch):
     location must beat the environment fallback, or every proxy call gets the regional uplift.
     """
     monkeypatch.setenv("VERTEXAI_LOCATION", "us-east5")
-    monkeypatch.setattr(litellm, "vertex_location", None)
+    monkeypatch.setattr(gateway, "vertex_location", None)
 
     assert _resolve("vertex_ai", {}, {"vertex_location": "global"}, "gemini-3.5-flash") == "global"
     assert _resolve("vertex_ai", None, {"vertex_location": "europe-west1"}, "gemini-3.5-flash") == "europe-west1"
@@ -5623,7 +5623,7 @@ def test_resolve_vertex_location_for_cost_default_region(monkeypatch):
     """With no location configured anywhere, resolution lands on the dispatch default us-central1."""
     monkeypatch.delenv("VERTEXAI_LOCATION", raising=False)
     monkeypatch.delenv("VERTEX_LOCATION", raising=False)
-    monkeypatch.setattr(litellm, "vertex_location", None)
+    monkeypatch.setattr(gateway, "vertex_location", None)
 
     assert _resolve("vertex_ai", {}, None, "gemini-3.5-flash") == "us-central1"
     assert _resolve("vertex_ai", None, None, "gemini-3.5-flash") == "us-central1"
@@ -5641,9 +5641,9 @@ def test_response_cost_calculator_prices_proxy_vertex_calls_on_the_configured_lo
     from token_iq.gateway.core_utils.get_model_cost_map import get_model_cost_map
 
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    monkeypatch.setattr(litellm, "model_cost", get_model_cost_map())
+    monkeypatch.setattr(gateway, "model_cost", get_model_cost_map())
     monkeypatch.setenv("VERTEXAI_LOCATION", "us-east5")
-    monkeypatch.setattr(litellm, "vertex_location", None)
+    monkeypatch.setattr(gateway, "vertex_location", None)
 
     def cost_at(location):
         logging_obj = LitellmLogging(
@@ -5670,7 +5670,7 @@ def test_response_cost_calculator_prices_proxy_vertex_calls_on_the_configured_lo
         )
         return logging_obj._response_cost_calculator(result=response)
 
-    info = litellm.model_cost["vertex_ai/gemini-3.5-flash"]
+    info = gateway.model_cost["vertex_ai/gemini-3.5-flash"]
     expected_global = 10 * info["input_cost_per_token"] + 5 * info["output_cost_per_token"]
 
     assert cost_at("global") == pytest.approx(expected_global)
@@ -5735,10 +5735,10 @@ def test_prompt_hooks_skip_prompt_managers_when_no_prompt_id(logging_obj, tmp_pa
     (tmp_path / "stem.prompt").write_text("---\nmodel: gemini-2.5-flash\n---\nyou are a stem tutor\n")
     dotprompt_manager = DotpromptManager(prompt_directory=str(tmp_path))
     arize_manager = ArizePhoenixPromptManager(api_key="fake-key", api_base="http://127.0.0.1:9")
-    litellm.logging_callback_manager.add_litellm_callback(dotprompt_manager)
-    litellm.logging_callback_manager.add_litellm_callback(arize_manager)
+    gateway.logging_callback_manager.add_litellm_callback(dotprompt_manager)
+    gateway.logging_callback_manager.add_litellm_callback(arize_manager)
     monkeypatch.setattr(
-        litellm,
+        gateway,
         "vector_store_registry",
         VectorStoreRegistry(
             vector_stores=[LiteLLM_ManagedVectorStore(vector_store_id="vs_123", custom_llm_provider="openai")]
@@ -5807,12 +5807,12 @@ def test_prompt_hooks_skip_prompt_managers_when_no_prompt_id(logging_obj, tmp_pa
         )
     finally:
         for manager in (dotprompt_manager, arize_manager):
-            litellm.logging_callback_manager.remove_callback_from_list_by_object(litellm.callbacks, manager)
-            litellm.logging_callback_manager.remove_callback_from_list_by_object(
-                litellm._async_success_callback, manager
+            gateway.logging_callback_manager.remove_callback_from_list_by_object(gateway.callbacks, manager)
+            gateway.logging_callback_manager.remove_callback_from_list_by_object(
+                gateway._async_success_callback, manager
             )
-        for hook in [cb for cb in litellm.callbacks if isinstance(cb, VectorStorePreCallHook)]:
-            litellm.logging_callback_manager.remove_callback_from_list_by_object(litellm.callbacks, hook)
+        for hook in [cb for cb in gateway.callbacks if isinstance(cb, VectorStorePreCallHook)]:
+            gateway.logging_callback_manager.remove_callback_from_list_by_object(gateway.callbacks, hook)
 def test_newrelic_dispatch_prefers_otel_v2_when_flag_on(monkeypatch):
     """With LITELLM_OTEL_V2 on, the "newrelic" callback builds the OTel v2
     logger (per-team credential routing); with the flag off (default) it keeps
@@ -5922,7 +5922,7 @@ def test_get_error_information_skips_traceback_for_expected_4xx(monkeypatch):
     result = StandardLoggingPayloadSetup.get_error_information(server_exc)
     assert "test_litellm_logging" in result["traceback"]
 
-    monkeypatch.setattr(litellm, "log_client_error_tracebacks", True)
+    monkeypatch.setattr(gateway, "log_client_error_tracebacks", True)
     result = StandardLoggingPayloadSetup.get_error_information(client_exc)
     assert "test_litellm_logging" in result["traceback"]
 
@@ -5933,9 +5933,9 @@ def test_get_error_information_keeps_traceback_for_provider_4xx():
     survive the expected-client-error gate and reach every payload consumer."""
     from token_iq.gateway.core_utils.litellm_logging import StandardLoggingPayloadSetup
 
-    assert litellm.log_client_error_tracebacks is False
+    assert gateway.log_client_error_tracebacks is False
     provider_exc = _raise_and_catch(
-        litellm.AuthenticationError(
+        gateway.AuthenticationError(
             message="AnthropicException - API key is invalid.", llm_provider="anthropic", model="claude-haiku-4-5"
         )
     )
@@ -5951,7 +5951,7 @@ def test_get_error_information_keeps_traceback_for_unmapped_provider_4xx():
     from token_iq.gateway.core_utils.litellm_logging import StandardLoggingPayloadSetup
     from token_iq.gateway.llms.anthropic.common_utils import AnthropicError
 
-    assert litellm.log_client_error_tracebacks is False
+    assert gateway.log_client_error_tracebacks is False
     raw_provider_exc = _raise_and_catch(AnthropicError(status_code=401, message='{"type":"authentication_error"}'))
     result = StandardLoggingPayloadSetup.get_error_information(raw_provider_exc)
     assert result["error_code"] == "401"
@@ -5964,8 +5964,8 @@ def test_get_error_information_skips_traceback_for_budget_rejection_with_provide
     handler stamps the requested model's provider onto it, so it stays cheap."""
     from token_iq.gateway.core_utils.litellm_logging import StandardLoggingPayloadSetup
 
-    assert litellm.log_client_error_tracebacks is False
-    over_budget = _raise_and_catch(litellm.BudgetExceededError(current_cost=0.01, max_budget=0.0, llm_provider="anthropic"))
+    assert gateway.log_client_error_tracebacks is False
+    over_budget = _raise_and_catch(gateway.BudgetExceededError(current_cost=0.01, max_budget=0.0, llm_provider="anthropic"))
     result = StandardLoggingPayloadSetup.get_error_information(over_budget)
     assert result["error_code"] == "429"
     assert result["llm_provider"] == "anthropic"

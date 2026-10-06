@@ -1,6 +1,6 @@
 from typing import Final, Literal, Optional
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.proxy.proxy_server import DualCache, UserAPIKeyAuth
 from token_iq.gateway.types.utils import CallTypesLiteral

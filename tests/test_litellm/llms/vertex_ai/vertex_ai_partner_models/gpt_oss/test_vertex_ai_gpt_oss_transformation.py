@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.vertex_ai.vertex_ai_partner_models.gpt_oss.transformation import (
     VertexAIGPTOSSTransformation,
 )
@@ -125,7 +125,7 @@ async def test_vertex_ai_gpt_oss_simple_request():
     ):
         mock_http_handler.return_value.post = AsyncMock(return_value=mock_response)
 
-        response = await litellm.acompletion(
+        response = await gateway.acompletion(
             model="vertex_ai/openai/gpt-oss-20b-maas",
             messages=[
                 {
@@ -224,7 +224,7 @@ async def test_vertex_ai_gpt_oss_reasoning_effort():
     ):
         mock_http_handler.return_value.post = AsyncMock(return_value=mock_response)
 
-        response = await litellm.acompletion(
+        response = await gateway.acompletion(
             model="vertex_ai/openai/gpt-oss-20b-maas",
             messages=[
                 {

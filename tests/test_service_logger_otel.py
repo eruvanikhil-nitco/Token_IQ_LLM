@@ -7,7 +7,7 @@ from unittest.mock import patch, AsyncMock, MagicMock
 # Add the project root to sys.path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.integrations.langfuse.langfuse_otel import LangfuseOtelLogger
 from token_iq.gateway.integrations.opentelemetry import OpenTelemetry
 from token_iq.gateway.types.services import ServiceTypes
@@ -18,7 +18,7 @@ from token_iq.gateway.types.utils import StandardCallbackDynamicParams
 class TestServiceLoggerOTEL(unittest.IsolatedAsyncioTestCase):
     def setUp(self):
         # Reset callbacks before each test
-        litellm.service_callback = []
+        gateway.service_callback = []
         os.environ["LANGFUSE_PUBLIC_KEY"] = "pk-lf-123"
         os.environ["LANGFUSE_SECRET_KEY"] = "sk-lf-123"
 
@@ -84,7 +84,7 @@ class TestServiceLoggerOTEL(unittest.IsolatedAsyncioTestCase):
         otel_logger = OpenTelemetry()
 
         # 2. Setup service_callback list
-        litellm.service_callback = [langfuse_logger, otel_logger]
+        gateway.service_callback = [langfuse_logger, otel_logger]
 
         service_logging = ServiceLogging()
 

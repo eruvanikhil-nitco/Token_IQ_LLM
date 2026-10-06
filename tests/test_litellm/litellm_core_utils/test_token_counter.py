@@ -10,11 +10,11 @@ import tiktoken
 
 from unittest.mock import AsyncMock, patch
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import create_pretrained_tokenizer, decode, encode, get_modified_max_tokens
 from token_iq.gateway import token_counter as token_counter_old
 import token_iq.gateway.constants
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.token_counter import _get_tiktoken_count_function
 from token_iq.gateway.core_utils.token_counter import token_counter as token_counter_new
 from tests.large_text import text
@@ -97,7 +97,7 @@ def test_invalid_chunk_size_config_stays_usable(monkeypatch, configured):
     """A misconfigured chunk size must not raise, count zero, or restore the quadratic encode cost."""
     monkeypatch.setenv("TIKTOKEN_ENCODE_CHUNK_SIZE_CHARS", configured)
     try:
-        reloaded = importlib.reload(litellm.constants)
+        reloaded = importlib.reload(gateway.constants)
         chunk_size = reloaded.TIKTOKEN_ENCODE_CHUNK_SIZE_CHARS
         assert 1 <= chunk_size <= reloaded.TIKTOKEN_ENCODE_MAX_CHUNK_SIZE_CHARS
 
@@ -109,16 +109,16 @@ def test_invalid_chunk_size_config_stays_usable(monkeypatch, configured):
         assert count_tokens("The quick brown fox jumps over the lazy dog. " * 40) > 0
     finally:
         monkeypatch.delenv("TIKTOKEN_ENCODE_CHUNK_SIZE_CHARS")
-        importlib.reload(litellm.constants)
+        importlib.reload(gateway.constants)
 
 
 def test_valid_chunk_size_config_is_honoured(monkeypatch):
     monkeypatch.setenv("TIKTOKEN_ENCODE_CHUNK_SIZE_CHARS", "2048")
     try:
-        assert importlib.reload(litellm.constants).TIKTOKEN_ENCODE_CHUNK_SIZE_CHARS == 2048
+        assert importlib.reload(gateway.constants).TIKTOKEN_ENCODE_CHUNK_SIZE_CHARS == 2048
     finally:
         monkeypatch.delenv("TIKTOKEN_ENCODE_CHUNK_SIZE_CHARS")
-        importlib.reload(litellm.constants)
+        importlib.reload(gateway.constants)
 
 
 def test_token_counter_with_prefix():
@@ -496,14 +496,14 @@ def test_get_modified_max_tokens(
     - Test when max_tokens > max_output => expect max_output
     """
     args = locals()
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
-    litellm.token_counter = MagicMock()
+    gateway.token_counter = MagicMock()
 
     def _mock_token_counter(*args, **kwargs):
         return input_tokens
 
-    litellm.token_counter.side_effect = _mock_token_counter
+    gateway.token_counter.side_effect = _mock_token_counter
     print(f"_mock_token_counter: {_mock_token_counter()}")
     messages = [{"role": "user", "content": "Hello world!"}]
 
@@ -541,7 +541,7 @@ def test_empty_tools():
 )
 def test_gpt_4o_token_counter():
     with patch.object(
-        litellm.utils, "openai_token_counter", new=MagicMock()
+        gateway.utils, "openai_token_counter", new=MagicMock()
     ) as mock_client:
         token_counter(
             model="gpt-4o-2024-05-13", messages=[{"role": "user", "content": "Hey!"}]
@@ -668,7 +668,7 @@ class TestTokenizerSelection(unittest.TestCase):
         mock_from_pretrained.side_effect = Exception("Failed to load tokenizer")
 
         # Add Cohere model to the list for testing
-        litellm.cohere_models = ["command-r-v1"]
+        gateway.cohere_models = ["command-r-v1"]
 
         # Test with Cohere model
         result = _select_tokenizer_helper("command-r-v1")
@@ -688,7 +688,7 @@ class TestTokenizerSelection(unittest.TestCase):
         mock_from_str.side_effect = Exception("Failed to load tokenizer")
 
         # Add Claude model to the list for testing
-        litellm.anthropic_models = ["claude-2"]
+        gateway.anthropic_models = ["claude-2"]
 
         # Test with Claude model
         result = _select_tokenizer_helper("claude-2")
@@ -720,7 +720,7 @@ class TestTokenizerSelection(unittest.TestCase):
     @patch("token_iq.gateway.utils._return_huggingface_tokenizer")
     def test_disable_hf_tokenizer_download(self, mock_return_huggingface_tokenizer):
         monkeypatch = pytest.MonkeyPatch()
-        monkeypatch.setattr(litellm, "disable_hf_tokenizer_download", True)
+        monkeypatch.setattr(gateway, "disable_hf_tokenizer_download", True)
         try:
             result = _select_tokenizer_helper("grok-32r22r")
             mock_return_huggingface_tokenizer.assert_not_called()

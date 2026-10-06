@@ -10,7 +10,7 @@ from typing import Any, Final
 
 from pydantic import BaseModel
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.constants import CACHED_STREAMING_CHUNK_DELAY
 from token_iq.gateway.core_utils.model_param_helper import ModelParamHelper
@@ -33,7 +33,7 @@ from .s3_cache import S3Cache
 def print_verbose(print_statement):
     try:
         verbose_logger.debug(print_statement)
-        if litellm.set_verbose:
+        if gateway.set_verbose:
             print(print_statement)  # noqa: T201
     except Exception:
         pass
@@ -153,7 +153,7 @@ class Cache:
         if type == LiteLLMCacheType.REDIS:
             # Check REDIS_CLUSTER_NODES env var if no explicit startup nodes
             if not redis_startup_nodes:
-                _env_cluster_nodes: Final = litellm.get_secret("REDIS_CLUSTER_NODES")
+                _env_cluster_nodes: Final = gateway.get_secret("REDIS_CLUSTER_NODES")
                 if _env_cluster_nodes is not None and isinstance(_env_cluster_nodes, str):
                     redis_startup_nodes = json.loads(_env_cluster_nodes)
 
@@ -252,12 +252,12 @@ class Cache:
             )
         elif type == LiteLLMCacheType.DISK:
             self.cache = DiskCache(disk_cache_dir=disk_cache_dir)
-        if "cache" not in litellm.input_callback:
-            litellm.input_callback.append("cache")
-        if "cache" not in litellm.success_callback:
-            litellm.logging_callback_manager.add_litellm_success_callback("cache")
-        if "cache" not in litellm._async_success_callback:
-            litellm.logging_callback_manager.add_litellm_async_success_callback("cache")
+        if "cache" not in gateway.input_callback:
+            gateway.input_callback.append("cache")
+        if "cache" not in gateway.success_callback:
+            gateway.logging_callback_manager.add_litellm_success_callback("cache")
+        if "cache" not in gateway._async_success_callback:
+            gateway.logging_callback_manager.add_litellm_async_success_callback("cache")
         self.supported_call_types = (
             supported_call_types  # default to ["completion", "acompletion", "embedding", "aembedding"]
         )
@@ -345,7 +345,7 @@ class Cache:
                 if param_value is not None:
                     cache_key += f"{param}: {param_value}"
             elif param not in litellm_param_kwargs:  # check if user passed in optional param - e.g. top_k
-                if litellm.enable_caching_on_provider_specific_optional_params is True:  # feature flagged for now
+                if gateway.enable_caching_on_provider_specific_optional_params is True:  # feature flagged for now
                     if kwargs[param] is None:
                         continue  # ignore None params
                     param_value = kwargs[param]
@@ -939,15 +939,15 @@ def enable_cache(
         None
     """
     print_verbose("LiteLLM: Enabling Cache")
-    if "cache" not in litellm.input_callback:
-        litellm.input_callback.append("cache")
-    if "cache" not in litellm.success_callback:
-        litellm.logging_callback_manager.add_litellm_success_callback("cache")
-    if "cache" not in litellm._async_success_callback:
-        litellm.logging_callback_manager.add_litellm_async_success_callback("cache")
+    if "cache" not in gateway.input_callback:
+        gateway.input_callback.append("cache")
+    if "cache" not in gateway.success_callback:
+        gateway.logging_callback_manager.add_litellm_success_callback("cache")
+    if "cache" not in gateway._async_success_callback:
+        gateway.logging_callback_manager.add_litellm_async_success_callback("cache")
 
-    if litellm.cache is None:
-        litellm.cache = Cache(
+    if gateway.cache is None:
+        gateway.cache = Cache(
             type=type,
             host=host,
             port=port,
@@ -955,8 +955,8 @@ def enable_cache(
             supported_call_types=supported_call_types,
             **kwargs,
         )
-    print_verbose(f"LiteLLM: Cache enabled, litellm.cache={litellm.cache}")
-    print_verbose(f"LiteLLM Cache: {vars(litellm.cache)}")
+    print_verbose(f"LiteLLM: Cache enabled, litellm.cache={gateway.cache}")
+    print_verbose(f"LiteLLM Cache: {vars(gateway.cache)}")
 
 
 def update_cache(
@@ -984,7 +984,7 @@ def update_cache(
 
     """
     print_verbose("LiteLLM: Updating Cache")
-    litellm.cache = Cache(
+    gateway.cache = Cache(
         type=type,
         host=host,
         port=port,
@@ -992,8 +992,8 @@ def update_cache(
         supported_call_types=supported_call_types,
         **kwargs,
     )
-    print_verbose(f"LiteLLM: Cache Updated, litellm.cache={litellm.cache}")
-    print_verbose(f"LiteLLM Cache: {vars(litellm.cache)}")
+    print_verbose(f"LiteLLM: Cache Updated, litellm.cache={gateway.cache}")
+    print_verbose(f"LiteLLM Cache: {vars(gateway.cache)}")
 
 
 def disable_cache():
@@ -1012,9 +1012,9 @@ def disable_cache():
 
     print_verbose("LiteLLM: Disabling Cache")
     with suppress(ValueError):
-        litellm.input_callback.remove("cache")
-        litellm.success_callback.remove("cache")
-        litellm._async_success_callback.remove("cache")
+        gateway.input_callback.remove("cache")
+        gateway.success_callback.remove("cache")
+        gateway._async_success_callback.remove("cache")
 
-    litellm.cache = None
-    print_verbose(f"LiteLLM: Cache disabled, litellm.cache={litellm.cache}")
+    gateway.cache = None
+    print_verbose(f"LiteLLM: Cache disabled, litellm.cache={gateway.cache}")

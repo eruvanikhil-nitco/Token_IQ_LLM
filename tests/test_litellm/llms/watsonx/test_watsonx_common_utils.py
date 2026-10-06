@@ -10,7 +10,7 @@ class TestGenerateIAMToken:
     """Tests for the generate_iam_token function, specifically testing API key fallback logic."""
 
     @patch("token_iq.gateway.llms.watsonx.common_utils.iam_token_cache")
-    @patch("token_iq.gateway.llms.watsonx.common_utils.litellm.module_level_client")
+    @patch("token_iq.gateway.llms.watsonx.common_utils.gateway.module_level_client")
     @patch("token_iq.gateway.llms.watsonx.common_utils.get_secret_str")
     def test_generate_iam_token_with_watsonx_zenapikey(
         self, mock_get_secret_str, mock_client, mock_cache
@@ -52,7 +52,7 @@ class TestGenerateIAMToken:
         assert call_kwargs.kwargs["data"]["apikey"] == "zen-api-key-12345"
 
     @patch("token_iq.gateway.llms.watsonx.common_utils.iam_token_cache")
-    @patch("token_iq.gateway.llms.watsonx.common_utils.litellm.module_level_client")
+    @patch("token_iq.gateway.llms.watsonx.common_utils.gateway.module_level_client")
     @patch("token_iq.gateway.llms.watsonx.common_utils.get_secret_str")
     def test_generate_iam_token_api_key_priority_order(
         self, mock_get_secret_str, mock_client, mock_cache
@@ -155,7 +155,7 @@ class TestGenerateIAMToken:
             ), f"Expected calls {expected_calls} but got {actual_calls} for env_keys: {env_keys}"
 
     @patch("token_iq.gateway.llms.watsonx.common_utils.iam_token_cache")
-    @patch("token_iq.gateway.llms.watsonx.common_utils.litellm.module_level_client")
+    @patch("token_iq.gateway.llms.watsonx.common_utils.gateway.module_level_client")
     @patch("token_iq.gateway.llms.watsonx.common_utils.get_secret_str")
     def test_generate_iam_token_with_direct_api_key(
         self, mock_get_secret_str, mock_client, mock_cache
@@ -220,7 +220,7 @@ class TestGenerateIAMToken:
         assert "WATSONX_ZENAPIKEY" in calls
 
     @patch("token_iq.gateway.llms.watsonx.common_utils.iam_token_cache")
-    @patch("token_iq.gateway.llms.watsonx.common_utils.litellm.module_level_client")
+    @patch("token_iq.gateway.llms.watsonx.common_utils.gateway.module_level_client")
     @patch("token_iq.gateway.llms.watsonx.common_utils.get_secret_str")
     def test_generate_iam_token_uses_cache(
         self, mock_get_secret_str, mock_client, mock_cache

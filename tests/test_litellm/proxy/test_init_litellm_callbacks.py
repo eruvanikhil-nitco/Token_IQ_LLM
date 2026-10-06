@@ -11,7 +11,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.integrations.custom_logger import CustomLogger
 
 
@@ -45,7 +45,7 @@ class TestInitLitellmCallbacks:
         fake_logger = FakeCustomLogger()
 
         # Start with a string callback in litellm.callbacks
-        litellm.callbacks = ["lago"]  # type: ignore
+        gateway.callbacks = ["lago"]  # type: ignore
 
         proxy_logging = self._make_proxy_logging()
 
@@ -56,9 +56,9 @@ class TestInitLitellmCallbacks:
             proxy_logging._init_litellm_callbacks(llm_router=None)
 
         # The string "lago" should be replaced by the instance, not appended
-        string_entries = [c for c in litellm.callbacks if isinstance(c, str)]
+        string_entries = [c for c in gateway.callbacks if isinstance(c, str)]
         instance_entries = [
-            c for c in litellm.callbacks if isinstance(c, FakeCustomLogger)
+            c for c in gateway.callbacks if isinstance(c, FakeCustomLogger)
         ]
 
         assert (
@@ -70,7 +70,7 @@ class TestInitLitellmCallbacks:
         assert instance_entries[0] is fake_logger
 
         # Clean up
-        litellm.callbacks = []  # type: ignore
+        gateway.callbacks = []  # type: ignore
 
     @patch(
         "token_iq.gateway.proxy.utils.ProxyLogging._add_proxy_hooks",
@@ -83,7 +83,7 @@ class TestInitLitellmCallbacks:
         """
         existing_logger = FakeCustomLogger()
 
-        litellm.callbacks = [existing_logger]  # type: ignore
+        gateway.callbacks = [existing_logger]  # type: ignore
 
         proxy_logging = self._make_proxy_logging()
 
@@ -91,15 +91,15 @@ class TestInitLitellmCallbacks:
 
         # Count how many FakeCustomLogger instances are in litellm.callbacks
         instance_count = sum(
-            1 for c in litellm.callbacks if isinstance(c, FakeCustomLogger)
+            1 for c in gateway.callbacks if isinstance(c, FakeCustomLogger)
         )
         assert instance_count == 1, (
             f"Expected exactly 1 FakeCustomLogger instance, found {instance_count}. "
-            f"litellm.callbacks = {litellm.callbacks}"
+            f"litellm.callbacks = {gateway.callbacks}"
         )
 
         # Clean up
-        litellm.callbacks = []  # type: ignore
+        gateway.callbacks = []  # type: ignore
 
     @patch(
         "token_iq.gateway.proxy.utils.ProxyLogging._add_proxy_hooks",
@@ -110,7 +110,7 @@ class TestInitLitellmCallbacks:
         When _init_custom_logger_compatible_class returns None for a string callback,
         the string should remain in litellm.callbacks (not crash).
         """
-        litellm.callbacks = ["unknown_callback"]  # type: ignore
+        gateway.callbacks = ["unknown_callback"]  # type: ignore
 
         proxy_logging = self._make_proxy_logging()
 
@@ -121,10 +121,10 @@ class TestInitLitellmCallbacks:
             proxy_logging._init_litellm_callbacks(llm_router=None)
 
         # The unknown string callback should still be there (not replaced, not crashed)
-        assert "unknown_callback" in litellm.callbacks
+        assert "unknown_callback" in gateway.callbacks
 
         # Clean up
-        litellm.callbacks = []  # type: ignore
+        gateway.callbacks = []  # type: ignore
 
     @patch(
         "token_iq.gateway.proxy.utils.ProxyLogging._add_proxy_hooks",
@@ -138,7 +138,7 @@ class TestInitLitellmCallbacks:
         fake_logger_a = FakeCustomLogger()
         fake_logger_b = FakeCustomLogger()
 
-        litellm.callbacks = ["callback_a", "callback_b"]  # type: ignore
+        gateway.callbacks = ["callback_a", "callback_b"]  # type: ignore
 
         proxy_logging = self._make_proxy_logging()
 
@@ -157,9 +157,9 @@ class TestInitLitellmCallbacks:
         ):
             proxy_logging._init_litellm_callbacks(llm_router=None)
 
-        string_entries = [c for c in litellm.callbacks if isinstance(c, str)]
+        string_entries = [c for c in gateway.callbacks if isinstance(c, str)]
         instance_entries = [
-            c for c in litellm.callbacks if isinstance(c, FakeCustomLogger)
+            c for c in gateway.callbacks if isinstance(c, FakeCustomLogger)
         ]
 
         assert (
@@ -172,4 +172,4 @@ class TestInitLitellmCallbacks:
         assert instance_entries[1] is fake_logger_b
 
         # Clean up
-        litellm.callbacks = []  # type: ignore
+        gateway.callbacks = []  # type: ignore

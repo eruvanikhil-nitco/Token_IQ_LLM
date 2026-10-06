@@ -7,7 +7,7 @@ from unittest.mock import MagicMock
 import httpx
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.litellm_logging import StandardLoggingPayloadSetup
 from token_iq.gateway.llms.gemini.image_edit.transformation import GeminiImageEditConfig
 
@@ -85,7 +85,7 @@ class TestGeminiImageEditTransformation:
             "imageConfig": "{bad",
         }
 
-        with pytest.raises(litellm.UnsupportedParamsError) as exc_info:
+        with pytest.raises(gateway.UnsupportedParamsError) as exc_info:
             self.config.map_openai_params(
                 image_edit_optional_params=optional_params,  # type: ignore[arg-type]
                 model="gemini-3-pro-image-preview",

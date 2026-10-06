@@ -8,7 +8,7 @@ Regression tests for https://github.com/BerriAI/litellm/issues/36493
 import httpx
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
 
 PNG_BYTES = b"\x89PNG\r\n\x1a\nfakepng"
@@ -36,7 +36,7 @@ def test_image_edit_forwards_provider_params_and_extra_body():
     captured = {}
     client = HTTPHandler(client=httpx.Client(transport=httpx.MockTransport(_capture_image_edit_request(captured))))
 
-    response = litellm.image_edit(
+    response = gateway.image_edit(
         model="openai/gpt-image-1",
         image=PNG_BYTES,
         prompt="add a hat",
@@ -62,7 +62,7 @@ def test_image_edit_extra_body_takes_precedence_over_kwargs():
     captured = {}
     client = HTTPHandler(client=httpx.Client(transport=httpx.MockTransport(_capture_image_edit_request(captured))))
 
-    litellm.image_edit(
+    gateway.image_edit(
         model="openai/gpt-image-1",
         image=PNG_BYTES,
         prompt="add a hat",
@@ -84,7 +84,7 @@ def test_image_edit_flattens_nested_provider_params():
     captured = {}
     client = HTTPHandler(client=httpx.Client(transport=httpx.MockTransport(_capture_image_edit_request(captured))))
 
-    litellm.image_edit(
+    gateway.image_edit(
         model="openai/gpt-image-1",
         image=PNG_BYTES,
         prompt="add a hat",
@@ -106,7 +106,7 @@ def test_image_edit_forwards_scalar_array_as_repeated_fields():
     captured = {}
     client = HTTPHandler(client=httpx.Client(transport=httpx.MockTransport(_capture_image_edit_request(captured))))
 
-    litellm.image_edit(
+    gateway.image_edit(
         model="openai/gpt-image-1",
         image=PNG_BYTES,
         prompt="add a hat",
@@ -129,7 +129,7 @@ async def test_aimage_edit_forwards_extra_body():
     client = AsyncHTTPHandler()
     client.client = httpx.AsyncClient(transport=httpx.MockTransport(_capture_image_edit_request(captured)))
 
-    response = await litellm.aimage_edit(
+    response = await gateway.aimage_edit(
         model="openai/gpt-image-1",
         image=PNG_BYTES,
         prompt="add a hat",

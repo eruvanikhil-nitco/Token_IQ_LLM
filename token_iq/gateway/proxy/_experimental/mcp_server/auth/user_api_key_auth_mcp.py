@@ -11,7 +11,7 @@ from starlette.requests import Request
 from starlette.types import Scope
 from typing_extensions import assert_never
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.proxy._experimental.mcp_server.oauth_utils import (
     get_passthrough_resource_metadata_url,
@@ -1223,7 +1223,7 @@ class MCPRequestHandler:
             )
         except (HTTPException, ProxyException):
             raise
-        except litellm.BudgetExceededError as e:
+        except gateway.BudgetExceededError as e:
             raise HTTPException(status_code=getattr(e, "status_code", 429), detail=str(e)) from None
         except Exception as e:  # noqa: BLE001  # untyped gate failure: retryable 503 for a DB outage, else fail closed 401
             MCPRequestHandler._raise_503_if_db_unavailable(e)

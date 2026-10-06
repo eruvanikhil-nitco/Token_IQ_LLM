@@ -21,7 +21,7 @@ from token_iq.gateway.utils import get_optional_params
 import json
 from unittest.mock import MagicMock
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.types.utils import Choices, Message, ModelResponse
 
 
@@ -87,7 +87,7 @@ class TestOllamaChatConfigResponseFormat:
         """Test that transform_request loads config parameters without overriding existing optional_params"""
         # Set config parameters on the class
 
-        litellm.OllamaChatConfig(num_ctx=8000, temperature=0.0)
+        gateway.OllamaChatConfig(num_ctx=8000, temperature=0.0)
 
         try:
             config = OllamaChatConfig()
@@ -110,8 +110,8 @@ class TestOllamaChatConfigResponseFormat:
 
         finally:
             # Clean up class attributes
-            delattr(litellm.OllamaChatConfig, "num_ctx")
-            delattr(litellm.OllamaChatConfig, "temperature")
+            delattr(gateway.OllamaChatConfig, "num_ctx")
+            delattr(gateway.OllamaChatConfig, "temperature")
 
     def test_transform_request_content_list_to_string(self):
         """Test that content list is properly converted to string in transform_request"""

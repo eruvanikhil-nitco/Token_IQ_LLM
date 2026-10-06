@@ -1,7 +1,7 @@
 import sys
 from types import ModuleType, SimpleNamespace
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.integrations.langfuse.langfuse import resolve_langfuse_credentials
 from token_iq.gateway.integrations.langfuse.langfuse_handler import LangFuseHandler
 
@@ -66,7 +66,7 @@ def test_upstream_langfuse_debug_env_is_passed(monkeypatch):
     fake_langfuse_module.version = SimpleNamespace(__version__="2.6.0")
 
     monkeypatch.setitem(sys.modules, "langfuse", fake_langfuse_module)
-    monkeypatch.setattr(litellm, "initialized_langfuse_clients", 0)
+    monkeypatch.setattr(gateway, "initialized_langfuse_clients", 0)
     monkeypatch.setenv("LANGFUSE_MOCK", "true")
     monkeypatch.setenv("UPSTREAM_LANGFUSE_SECRET_KEY", "upstream-secret")
     monkeypatch.setenv("UPSTREAM_LANGFUSE_PUBLIC_KEY", "upstream-public")

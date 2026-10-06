@@ -10,7 +10,7 @@ from base_llm_unit_tests import BaseLLMChatTest
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.types.utils import ModelResponse, ModelResponseStream
 
 MOCK_COMPLETION_RESPONSE = {
@@ -230,7 +230,7 @@ class TestHuggingFace(BaseLLMChatTest):
         self.mock_http = mock_http_handler
         self.mock_http_async = mock_http_async_handler
         self.model = "huggingface/together/meta-llama/Meta-Llama-3-8B-Instruct"
-        litellm.set_verbose = False
+        gateway.set_verbose = False
 
     def get_base_completion_call_args(self) -> dict:
         """Implementation of abstract method from BaseLLMChatTest"""
@@ -239,7 +239,7 @@ class TestHuggingFace(BaseLLMChatTest):
     def test_completion_non_streaming(self):
         messages = [{"role": "user", "content": "This is a dummy message"}]
 
-        response = litellm.completion(model=self.model, messages=messages, stream=False)
+        response = gateway.completion(model=self.model, messages=messages, stream=False)
         assert isinstance(response, ModelResponse)
         assert (
             response.choices[0].message.content
@@ -251,7 +251,7 @@ class TestHuggingFace(BaseLLMChatTest):
     def test_completion_streaming(self):
         messages = [{"role": "user", "content": "This is a dummy message"}]
 
-        response = litellm.completion(model=self.model, messages=messages, stream=True)
+        response = gateway.completion(model=self.model, messages=messages, stream=True)
 
         chunks = list(response)
         assert len(chunks) > 0
@@ -274,7 +274,7 @@ class TestHuggingFace(BaseLLMChatTest):
     async def test_async_completion_streaming(self):
         """Test async streaming completion"""
         messages = [{"role": "user", "content": "This is a dummy message"}]
-        response = await litellm.acompletion(
+        response = await gateway.acompletion(
             model=self.model, messages=messages, stream=True
         )
 
@@ -292,7 +292,7 @@ class TestHuggingFace(BaseLLMChatTest):
     async def test_async_completion_non_streaming(self):
         """Test async non-streaming completion"""
         messages = [{"role": "user", "content": "This is a dummy message"}]
-        response = await litellm.acompletion(
+        response = await gateway.acompletion(
             model=self.model, messages=messages, stream=False
         )
 
@@ -342,7 +342,7 @@ class TestHuggingFace(BaseLLMChatTest):
                 }
             ]
 
-            response = litellm.completion(
+            response = gateway.completion(
                 model=self.model, messages=messages, tools=tools, tool_choice="auto"
             )
 
@@ -446,7 +446,7 @@ class TestHuggingFace(BaseLLMChatTest):
         messages = [{"role": "user", "content": "This is a test message"}]
         api_base = "https://abcd123.us-east-1.aws.endpoints.huggingface.cloud"
 
-        response = litellm.completion(
+        response = gateway.completion(
             model="huggingface/tgi", messages=messages, api_base=api_base, stream=False
         )
 
@@ -468,7 +468,7 @@ class TestHuggingFace(BaseLLMChatTest):
         messages = [{"role": "user", "content": "This is a test message"}]
         api_base = "https://abcd123.us-east-1.aws.endpoints.huggingface.cloud"
 
-        response = await litellm.acompletion(
+        response = await gateway.acompletion(
             model="huggingface/tgi", messages=messages, api_base=api_base, stream=False
         )
 
@@ -490,7 +490,7 @@ class TestHuggingFace(BaseLLMChatTest):
         messages = [{"role": "user", "content": "This is a test message"}]
         api_base = "https://abcd123.us-east-1.aws.endpoints.huggingface.cloud"
 
-        response = litellm.completion(
+        response = gateway.completion(
             model="huggingface/tgi", messages=messages, api_base=api_base, stream=True
         )
 

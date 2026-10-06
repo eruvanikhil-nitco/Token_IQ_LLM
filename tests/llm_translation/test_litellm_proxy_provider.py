@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock
 
 
 import httpx
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import completion, embedding
 import pytest
 from unittest.mock import MagicMock, patch
@@ -17,7 +17,7 @@ from openai import AsyncOpenAI
 
 @pytest.mark.asyncio
 async def test_litellm_gateway_from_sdk():
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     messages = [
         {
             "role": "user",
@@ -57,7 +57,7 @@ async def test_litellm_gateway_from_sdk_structured_output():
     class Result(BaseModel):
         answer: str
 
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     from openai import OpenAI
 
     openai_client = OpenAI(api_key="fake-key")
@@ -66,7 +66,7 @@ async def test_litellm_gateway_from_sdk_structured_output():
         openai_client.chat.completions, "create", new=MagicMock()
     ) as mock_call:
         try:
-            litellm.completion(
+            gateway.completion(
                 model="litellm_proxy/openai/gpt-4o",
                 messages=[
                     {"role": "user", "content": "What is the capital of France?"}
@@ -90,8 +90,8 @@ async def test_litellm_gateway_from_sdk_structured_output():
 @pytest.mark.parametrize("is_async", [False, True])
 @pytest.mark.asyncio
 async def test_litellm_gateway_from_sdk_embedding(is_async):
-    litellm.set_verbose = True
-    litellm._turn_on_debug()
+    gateway.set_verbose = True
+    gateway._turn_on_debug()
 
     captured_bodies = []
 
@@ -114,7 +114,7 @@ async def test_litellm_gateway_from_sdk_embedding(is_async):
             api_key="fake-key",
             http_client=httpx.AsyncClient(transport=httpx.MockTransport(handler)),
         )
-        response = await litellm.aembedding(
+        response = await gateway.aembedding(
             model="litellm_proxy/my-vllm-model",
             input="Hello world",
             client=openai_client,
@@ -127,7 +127,7 @@ async def test_litellm_gateway_from_sdk_embedding(is_async):
             api_key="fake-key",
             http_client=httpx.Client(transport=httpx.MockTransport(handler)),
         )
-        response = litellm.embedding(
+        response = gateway.embedding(
             model="litellm_proxy/my-vllm-model",
             input="Hello world",
             client=openai_client,
@@ -146,7 +146,7 @@ async def test_litellm_gateway_from_sdk_embedding(is_async):
 @pytest.mark.parametrize("is_async", [False, True])
 @pytest.mark.asyncio
 async def test_litellm_gateway_from_sdk_image_generation(is_async):
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
 
     if is_async:
         from openai import AsyncOpenAI
@@ -164,14 +164,14 @@ async def test_litellm_gateway_from_sdk_image_generation(is_async):
     with patch.object(patch_target.__self__, patch_target.__name__, new=mock_method):
         try:
             if is_async:
-                response = await litellm.aimage_generation(
+                response = await gateway.aimage_generation(
                     model="litellm_proxy/dall-e-3",
                     prompt="A beautiful sunset over mountains",
                     client=openai_client,
                     api_base="my-custom-api-base",
                 )
             else:
-                response = litellm.image_generation(
+                response = gateway.image_generation(
                     model="litellm_proxy/dall-e-3",
                     prompt="A beautiful sunset over mountains",
                     client=openai_client,
@@ -196,7 +196,7 @@ async def test_litellm_gateway_from_sdk_image_generation(is_async):
 @pytest.mark.asyncio
 async def test_litellm_gateway_image_generation_direct(is_async):
     """Test image generation using the litellm_proxy provider directly."""
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
 
     # Create mock response that matches OpenAI's response structure
     mock_openai_response = MagicMock()
@@ -213,7 +213,7 @@ async def test_litellm_gateway_image_generation_direct(is_async):
         with patch(
             "token_iq.gateway.llms.openai.openai.AsyncOpenAI", return_value=mock_async_client
         ) as mock_async_constructor:
-            response = await litellm.aimage_generation(
+            response = await gateway.aimage_generation(
                 model="litellm_proxy/dall-e-3",
                 prompt="A beautiful sunset over mountains",
                 api_base="http://my-proxy",
@@ -240,7 +240,7 @@ async def test_litellm_gateway_image_generation_direct(is_async):
         with patch(
             "token_iq.gateway.llms.openai.openai.OpenAI", return_value=mock_sync_client
         ) as mock_sync_constructor:
-            response = litellm.image_generation(
+            response = gateway.image_generation(
                 model="litellm_proxy/dall-e-3",
                 prompt="A beautiful sunset over mountains",
                 api_base="http://my-proxy",
@@ -267,7 +267,7 @@ async def test_litellm_gateway_image_generation_direct(is_async):
 @pytest.mark.parametrize("is_async", [False, True])
 @pytest.mark.asyncio
 async def test_litellm_gateway_from_sdk_image_edit(is_async):
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
 
     mock_response = {
         "created": 1,
@@ -294,7 +294,7 @@ async def test_litellm_gateway_from_sdk_image_edit(is_async):
 
     with patch(patch_target, new=mock_post):
         if is_async:
-            await litellm.aimage_edit(
+            await gateway.aimage_edit(
                 model="litellm_proxy/gpt-image-1",
                 prompt="A test prompt",
                 image=[image_file],
@@ -303,7 +303,7 @@ async def test_litellm_gateway_from_sdk_image_edit(is_async):
             )
             mock_post.assert_awaited_once()
         else:
-            litellm.image_edit(
+            gateway.image_edit(
                 model="litellm_proxy/gpt-image-1",
                 prompt="A test prompt",
                 image=[image_file],
@@ -320,8 +320,8 @@ async def test_litellm_gateway_from_sdk_image_edit(is_async):
 @pytest.mark.parametrize("is_async", [False, True])
 @pytest.mark.asyncio
 async def test_litellm_gateway_from_sdk_transcription(is_async):
-    litellm.set_verbose = True
-    litellm._turn_on_debug()
+    gateway.set_verbose = True
+    gateway._turn_on_debug()
 
     if is_async:
         from openai import AsyncOpenAI
@@ -339,14 +339,14 @@ async def test_litellm_gateway_from_sdk_transcription(is_async):
     with patch.object(patch_target.__self__, patch_target.__name__, new=mock_method):
         try:
             if is_async:
-                await litellm.atranscription(
+                await gateway.atranscription(
                     model="litellm_proxy/whisper-1",
                     file=b"sample_audio",
                     client=openai_client,
                     api_base="my-custom-api-base",
                 )
             else:
-                litellm.transcription(
+                gateway.transcription(
                     model="litellm_proxy/whisper-1",
                     file=b"sample_audio",
                     client=openai_client,
@@ -365,7 +365,7 @@ async def test_litellm_gateway_from_sdk_transcription(is_async):
 @pytest.mark.parametrize("is_async", [False, True])
 @pytest.mark.asyncio
 async def test_litellm_gateway_from_sdk_speech(is_async):
-    litellm.set_verbose = True
+    gateway.set_verbose = True
 
     if is_async:
         from openai import AsyncOpenAI
@@ -383,7 +383,7 @@ async def test_litellm_gateway_from_sdk_speech(is_async):
     with patch.object(patch_target.__self__, patch_target.__name__, new=mock_method):
         try:
             if is_async:
-                await litellm.aspeech(
+                await gateway.aspeech(
                     model="litellm_proxy/tts-1",
                     input="Hello, this is a test of text to speech",
                     voice="alloy",
@@ -391,7 +391,7 @@ async def test_litellm_gateway_from_sdk_speech(is_async):
                     api_base="my-custom-api-base",
                 )
             else:
-                litellm.speech(
+                gateway.speech(
                     model="litellm_proxy/tts-1",
                     input="Hello, this is a test of text to speech",
                     voice="alloy",
@@ -416,8 +416,8 @@ async def test_litellm_gateway_from_sdk_speech(is_async):
 @pytest.mark.parametrize("is_async", [False, True])
 @pytest.mark.asyncio
 async def test_litellm_gateway_from_sdk_rerank(is_async):
-    litellm.set_verbose = True
-    litellm._turn_on_debug()
+    gateway.set_verbose = True
+    gateway._turn_on_debug()
 
     if is_async:
         client = AsyncHTTPHandler()
@@ -470,7 +470,7 @@ async def test_litellm_gateway_from_sdk_rerank(is_async):
 
         try:
             if is_async:
-                response = await litellm.arerank(
+                response = await gateway.arerank(
                     model="litellm_proxy/rerank-english-v2.0",
                     query="What is machine learning?",
                     documents=[
@@ -481,7 +481,7 @@ async def test_litellm_gateway_from_sdk_rerank(is_async):
                     api_base="my-custom-api-base",
                 )
             else:
-                response = litellm.rerank(
+                response = gateway.rerank(
                     model="litellm_proxy/rerank-english-v2.0",
                     query="What is machine learning?",
                     documents=[
@@ -510,8 +510,8 @@ async def test_litellm_gateway_from_sdk_rerank(is_async):
 
 
 def test_litellm_gateway_from_sdk_with_response_cost_in_additional_headers():
-    litellm.set_verbose = True
-    litellm._turn_on_debug()
+    gateway.set_verbose = True
+    gateway._turn_on_debug()
 
     from openai import OpenAI
 
@@ -520,7 +520,7 @@ def test_litellm_gateway_from_sdk_with_response_cost_in_additional_headers():
     # Create mock response object
     mock_response = MagicMock()
     mock_response.headers = {"x-litellm-response-cost": "120"}
-    mock_response.parse.return_value = litellm.ModelResponse(
+    mock_response.parse.return_value = gateway.ModelResponse(
         **{
             "id": "chatcmpl-BEkxQvRGp9VAushfAsOZCbhMFLsoy",
             "choices": [
@@ -564,7 +564,7 @@ def test_litellm_gateway_from_sdk_with_response_cost_in_additional_headers():
         "create",
         return_value=mock_response,
     ) as mock_call:
-        response = litellm.completion(
+        response = gateway.completion(
             model="litellm_proxy/gpt-4o",
             messages=[{"role": "user", "content": "Hello world"}],
             api_base="http://0.0.0.0:4000",
@@ -586,7 +586,7 @@ def test_litellm_gateway_from_sdk_with_response_cost_in_additional_headers():
 
 def test_litellm_gateway_from_sdk_with_thinking_param():
     with pytest.raises(Exception, match=re.escape("Connection error.")) as exc_info:
-        response = litellm.completion(
+        response = gateway.completion(
             model="litellm_proxy/anthropic.claude-sonnet-4-5-20250929-v1:0",
             messages=[{"role": "user", "content": "Hello world"}],
             api_base="http://0.0.0.0:4000",

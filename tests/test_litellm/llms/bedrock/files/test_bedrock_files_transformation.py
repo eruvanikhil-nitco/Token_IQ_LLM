@@ -677,11 +677,11 @@ class TestBedrockFilesTransformation:
         assert model_input["max_tokens"] == 10
 
     def test_resolves_model_alias_before_provider_mapping(self, monkeypatch):
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.llms.bedrock.files.transformation import BedrockFilesConfig
 
         monkeypatch.setitem(
-            litellm.model_alias_map,
+            gateway.model_alias_map,
             "bedrock-batch",
             "bedrock/anthropic.claude-haiku-4-5-20251001-v1:0",
         )
@@ -711,11 +711,11 @@ class TestBedrockFilesTransformation:
         ]
 
     def test_resolves_model_alias_before_embedding_mapping(self, monkeypatch):
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.llms.bedrock.files.transformation import BedrockFilesConfig
 
         monkeypatch.setitem(
-            litellm.model_alias_map,
+            gateway.model_alias_map,
             "bedrock-embedding-batch",
             "bedrock/amazon.titan-embed-text-v2:0",
         )
@@ -2226,7 +2226,7 @@ class TestBedrockFileContentTransformation:
         import httpx
         import respx
 
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         monkeypatch.setenv("AWS_S3_BUCKET_NAME", "my-bucket")
 
@@ -2235,7 +2235,7 @@ class TestBedrockFileContentTransformation:
                 return_value=httpx.Response(200, content=b'{"recordId": "x"}')
             )
 
-            response = litellm.file_content(
+            response = gateway.file_content(
                 file_id=self.S3_URI,
                 custom_llm_provider="bedrock",
                 **self._litellm_params(),
@@ -2253,19 +2253,19 @@ class TestBedrockFileContentTransformation:
         import httpx
         import respx
 
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         monkeypatch.setenv("AWS_S3_BUCKET_NAME", "my-bucket")
         # respx can only intercept httpx transports
-        monkeypatch.setattr(litellm, "disable_aiohttp_transport", True)
-        litellm.in_memory_llm_clients_cache.flush_cache()
+        monkeypatch.setattr(gateway, "disable_aiohttp_transport", True)
+        gateway.in_memory_llm_clients_cache.flush_cache()
 
         with respx.mock:
             route = respx.get(self.EXPECTED_URL).mock(
                 return_value=httpx.Response(200, content=b'{"recordId": "x"}')
             )
 
-            response = await litellm.afile_content(
+            response = await gateway.afile_content(
                 file_id=self.S3_URI,
                 custom_llm_provider="bedrock",
                 **self._litellm_params(),

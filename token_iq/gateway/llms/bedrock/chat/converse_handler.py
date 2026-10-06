@@ -5,7 +5,7 @@ from typing import Any, Final
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.anthropic_beta_headers_manager import (
     update_headers_with_filtered_beta,
 )
@@ -69,17 +69,17 @@ def make_sync_call(
         raise BedrockError(status_code=response.status_code, message=str(response.read()))
 
     if fake_stream:
-        model_response: Final[ModelResponse] = litellm.AmazonConverseConfig()._transform_response(
+        model_response: Final[ModelResponse] = gateway.AmazonConverseConfig()._transform_response(
             model=model,
             response=response,
-            model_response=litellm.ModelResponse(),
+            model_response=gateway.ModelResponse(),
             stream=True,
             logging_obj=logging_obj,
             optional_params={},
             api_key="",
             data=data,
             messages=messages,
-            encoding=litellm.encoding,
+            encoding=gateway.encoding,
         )
         completion_stream: Any = MockResponseIterator(model_response=model_response, json_mode=json_mode)
     else:
@@ -122,7 +122,7 @@ class BedrockConverseLLM(BaseAWSLLM):
         api_key: str | None = None,
         stream_chunk_size: int | None = None,
     ) -> CustomStreamWrapper:
-        request_data: Final = await litellm.AmazonConverseConfig()._async_transform_request(
+        request_data: Final = await gateway.AmazonConverseConfig()._async_transform_request(
             model=model,
             messages=messages,
             optional_params=optional_params,
@@ -192,7 +192,7 @@ class BedrockConverseLLM(BaseAWSLLM):
         api_key: str | None = None,
         skip_pre_call_logging: bool = False,
     ) -> ModelResponse | CustomStreamWrapper:
-        request_data: Final = await litellm.AmazonConverseConfig()._async_transform_request(
+        request_data: Final = await gateway.AmazonConverseConfig()._async_transform_request(
             model=model,
             messages=messages,
             optional_params=optional_params,
@@ -233,7 +233,7 @@ class BedrockConverseLLM(BaseAWSLLM):
                 if isinstance(timeout, float) or isinstance(timeout, int):
                     timeout = httpx.Timeout(timeout)
                 _params["timeout"] = timeout
-            client = get_async_httpx_client(params=_params, llm_provider=litellm.LlmProviders.BEDROCK)
+            client = get_async_httpx_client(params=_params, llm_provider=gateway.LlmProviders.BEDROCK)
         else:
             client = client
 
@@ -251,7 +251,7 @@ class BedrockConverseLLM(BaseAWSLLM):
         except httpx.TimeoutException:
             raise BedrockError(status_code=408, message="Timeout error occurred.")
 
-        transformed_response: Final = litellm.AmazonConverseConfig()._transform_response(
+        transformed_response: Final = gateway.AmazonConverseConfig()._transform_response(
             model=model,
             response=response,
             model_response=model_response,
@@ -317,7 +317,7 @@ class BedrockConverseLLM(BaseAWSLLM):
             if _region_from_model is not None and "aws_region_name" not in optional_params:
                 optional_params["aws_region_name"] = _region_from_model
 
-        fake_stream = litellm.AmazonConverseConfig().should_fake_stream(
+        fake_stream = gateway.AmazonConverseConfig().should_fake_stream(
             fake_stream=fake_stream,
             model=model,
             stream=stream,
@@ -510,7 +510,7 @@ class BedrockConverseLLM(BaseAWSLLM):
 
         ## TRANSFORMATION ##
 
-        _data: Final = litellm.AmazonConverseConfig()._transform_request(
+        _data: Final = gateway.AmazonConverseConfig()._transform_request(
             model=model,
             messages=messages,
             optional_params=optional_params,
@@ -594,7 +594,7 @@ class BedrockConverseLLM(BaseAWSLLM):
         except httpx.TimeoutException:
             raise BedrockError(status_code=408, message="Timeout error occurred.")
 
-        sync_transformed_response: Final = litellm.AmazonConverseConfig()._transform_response(
+        sync_transformed_response: Final = gateway.AmazonConverseConfig()._transform_response(
             model=model,
             response=response,
             model_response=model_response,

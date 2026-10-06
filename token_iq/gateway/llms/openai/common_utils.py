@@ -24,7 +24,7 @@ from openai.types.completion_usage import CompletionUsage
 if TYPE_CHECKING:
     from aiohttp import ClientSession
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.token_counter import token_counter
 from token_iq.gateway.llms.base_llm.chat.transformation import BaseLLMException
 from token_iq.gateway.llms.custom_httpx.http_handler import (
@@ -207,7 +207,7 @@ class BaseOpenAILLM:
             client_initialization_params=client_initialization_params,
             client_type=client_type,
         )
-        _cached_client: Final = litellm.in_memory_llm_clients_cache.get_cache(_cache_key)
+        _cached_client: Final = gateway.in_memory_llm_clients_cache.get_cache(_cache_key)
         return _cached_client
 
     @staticmethod
@@ -223,7 +223,7 @@ class BaseOpenAILLM:
         """
         if http_client is None:
             return True
-        return http_client is not litellm.aclient_session and http_client is not litellm.client_session
+        return http_client is not gateway.aclient_session and http_client is not gateway.client_session
 
     @staticmethod
     def set_cached_openai_client(
@@ -241,7 +241,7 @@ class BaseOpenAILLM:
             client_initialization_params=client_initialization_params,
             client_type=client_type,
         )
-        litellm.in_memory_llm_clients_cache.set_cache(
+        gateway.in_memory_llm_clients_cache.set_cache(
             key=_cache_key,
             value=openai_client,
             ttl=_DEFAULT_TTL_FOR_HTTPX_CLIENTS,
@@ -295,10 +295,10 @@ class BaseOpenAILLM:
     def _get_async_http_client(
         shared_session: Optional["ClientSession"] = None,
     ) -> httpx.AsyncClient | None:
-        if litellm.aclient_session is not None:
-            return litellm.aclient_session
+        if gateway.aclient_session is not None:
+            return gateway.aclient_session
 
-        if getattr(litellm, "network_mock", False):
+        if getattr(gateway, "network_mock", False):
             from token_iq.gateway.llms.custom_httpx.mock_transport import MockOpenAITransport
 
             return httpx.AsyncClient(transport=MockOpenAITransport())
@@ -320,10 +320,10 @@ class BaseOpenAILLM:
 
     @staticmethod
     def _get_sync_http_client() -> httpx.Client | None:
-        if litellm.client_session is not None:
-            return litellm.client_session
+        if gateway.client_session is not None:
+            return gateway.client_session
 
-        if getattr(litellm, "network_mock", False):
+        if getattr(gateway, "network_mock", False):
             from token_iq.gateway.llms.custom_httpx.mock_transport import MockOpenAITransport
 
             return httpx.Client(transport=MockOpenAITransport())
@@ -351,13 +351,13 @@ def get_openai_credentials(
     """Resolve OpenAI credentials from params, litellm globals, and env vars."""
     resolved_api_base: Final = (
         api_base
-        or litellm.api_base
+        or gateway.api_base
         or os.getenv("OPENAI_BASE_URL")
         or os.getenv("OPENAI_API_BASE")
         or "https://api.openai.com/v1"
     )
-    resolved_organization = organization or litellm.organization or os.getenv("OPENAI_ORGANIZATION", None) or None
-    resolved_api_key: Final = api_key or litellm.api_key or litellm.openai_key or os.getenv("OPENAI_API_KEY")
+    resolved_organization = organization or gateway.organization or os.getenv("OPENAI_ORGANIZATION", None) or None
+    resolved_api_key: Final = api_key or gateway.api_key or gateway.openai_key or os.getenv("OPENAI_API_KEY")
     return OpenAICredentials(
         api_base=resolved_api_base,
         api_key=resolved_api_key,

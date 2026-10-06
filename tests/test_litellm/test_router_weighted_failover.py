@@ -13,7 +13,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import Router
 from token_iq.gateway.utils import _get_excluded_filtered_deployments
 
@@ -239,9 +239,9 @@ async def test_acompletion_stamps_dynamic_id_for_clientside_credentials_on_timeo
         ],
     )
 
-    timeout_exc = litellm.Timeout(message="boom", model="test-model", llm_provider="openai")
+    timeout_exc = gateway.Timeout(message="boom", model="test-model", llm_provider="openai")
     with patch("token_iq.gateway.acompletion", new_callable=AsyncMock, side_effect=timeout_exc):
-        with pytest.raises(litellm.Timeout) as exc_info:
+        with pytest.raises(gateway.Timeout) as exc_info:
             await router._acompletion(
                 model="test-model",
                 messages=[{"role": "user", "content": "Hello"}],

@@ -3,7 +3,7 @@ from typing import Any, cast
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 
 
@@ -733,7 +733,7 @@ def test_translate_anthropic_to_openai_skips_prompt_cache_key_when_provider_lack
 
 
 def test_translate_anthropic_to_openai_skips_prompt_cache_key_for_chained_litellm_proxy():
-    assert "prompt_cache_key" in litellm.get_supported_openai_params(
+    assert "prompt_cache_key" in gateway.get_supported_openai_params(
         model="xai", custom_llm_provider="litellm_proxy"
     )
     openai_request = _translate_with_metadata("litellm_proxy/xai", {"user_id": "session-abc"}, "litellm_proxy")
@@ -1986,18 +1986,18 @@ def test_thinking_disabled_translated_to_reasoning_effort_none_for_non_claude_mo
 
 
 def test_thinking_disabled_stays_plain_string_when_auto_summary_enabled():
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     adapter = LiteLLMAnthropicMessagesAdapter()
     thinking = {"type": "disabled"}
 
-    original = litellm.reasoning_auto_summary
+    original = gateway.reasoning_auto_summary
     try:
-        litellm.reasoning_auto_summary = True
+        gateway.reasoning_auto_summary = True
         new_kwargs = {"model": CACHE_CONTROL_NON_ANTHROPIC_MODEL}
         adapter._translate_thinking_to_openai(cast(Any, {"thinking": thinking}), cast(Any, new_kwargs))
     finally:
-        litellm.reasoning_auto_summary = original
+        gateway.reasoning_auto_summary = original
 
     assert new_kwargs["reasoning_effort"] == "none"
 
@@ -4310,18 +4310,18 @@ def test_completion_cost_on_translated_anthropic_response_includes_web_search():
         response=_openai_response_with_usage(Usage(prompt_tokens=385, completion_tokens=566, total_tokens=951))
     )
 
-    cost_with_search = litellm.completion_cost(
+    cost_with_search = gateway.completion_cost(
         completion_response=with_search,
         model="gemini/gemini-3-flash-preview",
         call_type="anthropic_messages",
     )
-    cost_without_search = litellm.completion_cost(
+    cost_without_search = gateway.completion_cost(
         completion_response=without_search,
         model="gemini/gemini-3-flash-preview",
         call_type="anthropic_messages",
     )
 
-    per_query_cost = litellm.model_cost["gemini/gemini-3-flash-preview"]["search_context_cost_per_query"][
+    per_query_cost = gateway.model_cost["gemini/gemini-3-flash-preview"]["search_context_cost_per_query"][
         "search_context_size_medium"
     ]
     assert per_query_cost > 0

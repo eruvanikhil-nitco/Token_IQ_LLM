@@ -8,7 +8,7 @@ import httpx
 import pytest
 from unittest.mock import patch, MagicMock
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import Choices, Message, ModelResponse, EmbeddingResponse, Usage
 from token_iq.gateway import completion
 from base_rerank_unit_tests import BaseLLMRerankTest
@@ -17,7 +17,7 @@ from base_rerank_unit_tests import BaseLLMRerankTest
 def test_completion_nvidia_nim():
     from openai import OpenAI
 
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     model_name = "nvidia_nim/databricks/dbrx-instruct"
     client = OpenAI(
         api_key="fake-api-key",
@@ -60,7 +60,7 @@ def test_completion_nvidia_nim():
 
 
 def test_embedding_nvidia_nim():
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     from openai import OpenAI
 
     captured_bodies = []
@@ -81,7 +81,7 @@ def test_embedding_nvidia_nim():
         api_key="fake-api-key",
         http_client=httpx.Client(transport=httpx.MockTransport(handler)),
     )
-    response = litellm.embedding(
+    response = gateway.embedding(
         model="nvidia_nim/nvidia/nv-embedqa-e5-v5",
         input="What is the meaning of life?",
         input_type="passage",
@@ -101,7 +101,7 @@ def test_embedding_nvidia_nim():
 def test_chat_completion_nvidia_nim_with_tools():
     from openai import OpenAI
 
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     model_name = "nvidia_nim/meta/llama3-70b-instruct"
     client = OpenAI(
         api_key="fake-api-key",
@@ -219,7 +219,7 @@ async def test_nvidia_nim_rerank_ranking_endpoint():
         return_value=mock_response,
     ) as mock_post:
         # Use "ranking/" prefix to force /v1/ranking endpoint
-        response = await litellm.arerank(
+        response = await gateway.arerank(
             model="nvidia_nim/ranking/nvidia/llama-3.2-nv-rerankqa-1b-v2",
             query="What is the GPU memory bandwidth?",
             documents=[
@@ -257,8 +257,8 @@ async def test_nvidia_nim_rerank_ranking_endpoint():
 
 
 class TestNvidiaNim(BaseLLMRerankTest):
-    def get_custom_llm_provider(self) -> litellm.LlmProviders:
-        return litellm.LlmProviders.NVIDIA_NIM
+    def get_custom_llm_provider(self) -> gateway.LlmProviders:
+        return gateway.LlmProviders.NVIDIA_NIM
 
     def get_base_rerank_call_args(self) -> dict:
         return {

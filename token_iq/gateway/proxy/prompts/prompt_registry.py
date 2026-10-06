@@ -111,7 +111,7 @@ class InMemoryPromptRegistry:
 
         Returns a Guardrail object if the guardrail is initialized successfully
         """
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         prompt_id: Final = prompt.prompt_id
         if prompt_id in self.IN_MEMORY_PROMPTS:
@@ -119,7 +119,7 @@ class InMemoryPromptRegistry:
             return self.IN_MEMORY_PROMPTS[prompt_id]
 
         parsed_prompt, custom_prompt_callback = self._build_prompt_callback(prompt=prompt)
-        litellm.logging_callback_manager.add_litellm_callback(custom_prompt_callback)
+        gateway.logging_callback_manager.add_litellm_callback(custom_prompt_callback)
 
         # store references to the prompt in memory
         self.IN_MEMORY_PROMPTS[prompt_id] = parsed_prompt
@@ -163,14 +163,14 @@ class InMemoryPromptRegistry:
         return parsed_prompt, custom_prompt_callback
 
     def reload_prompt(self, prompt: PromptSpec) -> PromptSpec | None:
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         parsed_prompt, new_callback = self._build_prompt_callback(prompt=prompt)
         stale_callback: Final = self.prompt_id_to_custom_prompt.pop(prompt.prompt_id, None)
         self.IN_MEMORY_PROMPTS.pop(prompt.prompt_id, None)
         if stale_callback is not None:
-            litellm.logging_callback_manager.remove_callback_from_all_lists(stale_callback)
-        litellm.logging_callback_manager.add_litellm_callback(new_callback)
+            gateway.logging_callback_manager.remove_callback_from_all_lists(stale_callback)
+        gateway.logging_callback_manager.add_litellm_callback(new_callback)
         self.IN_MEMORY_PROMPTS[prompt.prompt_id] = parsed_prompt
         self.prompt_id_to_custom_prompt[prompt.prompt_id] = new_callback
         return parsed_prompt
@@ -196,12 +196,12 @@ class InMemoryPromptRegistry:
         return self.prompt_id_to_custom_prompt.get(prompt_id)
 
     def remove_prompt(self, prompt_id: str) -> None:
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         self.IN_MEMORY_PROMPTS.pop(prompt_id, None)
         stale_callback: Final = self.prompt_id_to_custom_prompt.pop(prompt_id, None)
         if stale_callback is not None:
-            litellm.logging_callback_manager.remove_callback_from_all_lists(stale_callback)
+            gateway.logging_callback_manager.remove_callback_from_all_lists(stale_callback)
 
     def delete_prompts_by_base_id(self, base_prompt_id: str, environment: str | None = None) -> list[str]:
         """

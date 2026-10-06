@@ -17,7 +17,7 @@ import inspect
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 
 # ============================================================================
@@ -55,7 +55,7 @@ def is_parameter_active_in_source(source_code: str, search_pattern: str) -> bool
 
 def test_acompletion_accepts_shared_session():
     """Verify acompletion() has a shared_session parameter"""
-    sig = inspect.signature(litellm.acompletion)
+    sig = inspect.signature(gateway.acompletion)
 
     assert (
         "shared_session" in sig.parameters
@@ -67,7 +67,7 @@ def test_acompletion_accepts_shared_session():
 
 def test_completion_accepts_shared_session():
     """Verify completion() has a shared_session parameter"""
-    sig = inspect.signature(litellm.completion)
+    sig = inspect.signature(gateway.completion)
 
     assert (
         "shared_session" in sig.parameters
@@ -86,7 +86,7 @@ def test_acompletion_passes_session_to_completion():
     Verify that acompletion() includes shared_session in the kwargs
     it passes to completion()
     """
-    source = inspect.getsource(litellm.acompletion)
+    source = inspect.getsource(gateway.acompletion)
 
     # Check for both possible quote styles
     found = is_parameter_active_in_source(

@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Any, Final
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.core_utils.core_helpers import map_finish_reason
 from token_iq.gateway.llms.base_llm.base_utils import type_to_response_format_param
@@ -247,11 +247,11 @@ class AmazonTwelveLabsPegasusConfig(AmazonInvokeConfig, BaseConfig):
         bedrock_input_tokens: Final = raw_response.headers.get("x-amzn-bedrock-input-token-count", None)
         bedrock_output_tokens: Final = raw_response.headers.get("x-amzn-bedrock-output-token-count", None)
 
-        prompt_tokens: Final = int(bedrock_input_tokens or litellm.token_counter(messages=messages))
+        prompt_tokens: Final = int(bedrock_input_tokens or gateway.token_counter(messages=messages))
 
         completion_tokens: Final = int(
             bedrock_output_tokens
-            or litellm.token_counter(
+            or gateway.token_counter(
                 text=model_response.choices[0].message.content,
                 count_response_tokens=True,
             )

@@ -33,7 +33,7 @@ import logging
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.proxy.management_endpoints.internal_user_endpoints import (
     new_user,
@@ -120,10 +120,10 @@ def prisma_client():
     )
 
     # Reset litellm.proxy.proxy_server.prisma_client to None
-    litellm.proxy.proxy_server.litellm_proxy_budget_name = (
+    gateway.proxy.proxy_server.litellm_proxy_budget_name = (
         f"litellm-proxy-budget-{time.time()}"
     )
-    litellm.proxy.proxy_server.user_custom_key_generate = None
+    gateway.proxy.proxy_server.user_custom_key_generate = None
 
     return prisma_client
 
@@ -132,10 +132,10 @@ def prisma_client():
 @pytest.mark.skip(reason="Requires reliable external DB connection (prisma).")
 async def test_view_daily_spend_ui(prisma_client):
     print("prisma client=", prisma_client)
-    setattr(litellm.proxy.proxy_server, "prisma_client", prisma_client)
-    setattr(litellm.proxy.proxy_server, "master_key", "sk-1234")
+    setattr(gateway.proxy.proxy_server, "prisma_client", prisma_client)
+    setattr(gateway.proxy.proxy_server, "master_key", "sk-1234")
 
-    await litellm.proxy.proxy_server.prisma_client.connect()
+    await gateway.proxy.proxy_server.prisma_client.connect()
     from token_iq.gateway.proxy.proxy_server import user_api_key_cache
 
     spend_logs_for_admin = await global_spend_logs(
@@ -177,10 +177,10 @@ async def test_view_daily_spend_ui(prisma_client):
 @pytest.mark.skip(reason="Requires reliable external DB connection (prisma).")
 async def test_global_spend_models(prisma_client):
     print("prisma client=", prisma_client)
-    setattr(litellm.proxy.proxy_server, "prisma_client", prisma_client)
-    setattr(litellm.proxy.proxy_server, "master_key", "sk-1234")
+    setattr(gateway.proxy.proxy_server, "prisma_client", prisma_client)
+    setattr(gateway.proxy.proxy_server, "master_key", "sk-1234")
 
-    await litellm.proxy.proxy_server.prisma_client.connect()
+    await gateway.proxy.proxy_server.prisma_client.connect()
 
     # Test for admin user
     models_spend_for_admin = await global_spend_models(
@@ -270,10 +270,10 @@ async def test_global_spend_models(prisma_client):
 @pytest.mark.skip(reason="Requires reliable external DB connection (prisma).")
 async def test_global_spend_keys(prisma_client):
     print("prisma client=", prisma_client)
-    setattr(litellm.proxy.proxy_server, "prisma_client", prisma_client)
-    setattr(litellm.proxy.proxy_server, "master_key", "sk-1234")
+    setattr(gateway.proxy.proxy_server, "prisma_client", prisma_client)
+    setattr(gateway.proxy.proxy_server, "master_key", "sk-1234")
 
-    await litellm.proxy.proxy_server.prisma_client.connect()
+    await gateway.proxy.proxy_server.prisma_client.connect()
 
     # Test for admin user
     keys_spend_for_admin = await global_spend_keys(

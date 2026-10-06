@@ -8,12 +8,12 @@ from unittest.mock import MagicMock, patch
 
 logging.basicConfig(level=logging.DEBUG)
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import completion
 from token_iq.gateway.caching import InMemoryCache
 
-litellm.num_retries = 3
-litellm.success_callback = ["langfuse"]
+gateway.num_retries = 3
+gateway.success_callback = ["langfuse"]
 os.environ["LANGFUSE_DEBUG"] = "True"
 import time
 
@@ -29,7 +29,7 @@ def langfuse_client():
     )
     # use a in memory langfuse client for testing, RAM util on ci/cd gets too high when we init many langfuse clients
 
-    _cached_client = litellm.in_memory_llm_clients_cache.get_cache(_langfuse_cache_key)
+    _cached_client = gateway.in_memory_llm_clients_cache.get_cache(_langfuse_cache_key)
     if _cached_client:
         langfuse_client = _cached_client
     else:
@@ -38,7 +38,7 @@ def langfuse_client():
             secret_key=os.environ["LANGFUSE_SECRET_KEY"],
             host="https://us.cloud.langfuse.com",
         )
-        litellm.in_memory_llm_clients_cache.set_cache(
+        gateway.in_memory_llm_clients_cache.set_cache(
             key=_langfuse_cache_key,
             value=langfuse_client,
         )
@@ -136,16 +136,16 @@ def test_langfuse_logging_async():
     # this tests time added to make langfuse logging calls, vs just acompletion calls
     try:
         pre_langfuse_setup()
-        litellm.set_verbose = True
+        gateway.set_verbose = True
 
         # Make 5 calls with an empty success_callback
-        litellm.success_callback = []
+        gateway.success_callback = []
         start_time_empty_callback = asyncio.run(make_async_calls())
         print("done with no callback test")
 
         print("starting langfuse test")
         # Make 5 calls with success_callback set to "langfuse"
-        litellm.success_callback = ["langfuse"]
+        gateway.success_callback = ["langfuse"]
         start_time_langfuse = asyncio.run(make_async_calls())
         print("done with langfuse test")
 
@@ -156,7 +156,7 @@ def test_langfuse_logging_async():
         # assert the diff is not more than 1 second - this was 5 seconds before the fix
         assert abs(start_time_langfuse - start_time_empty_callback) < 1
 
-    except litellm.Timeout as e:
+    except gateway.Timeout as e:
         pass
     except Exception as e:
         pytest.fail(f"An exception occurred - {e}")
@@ -202,7 +202,7 @@ def create_async_task(**completion_kwargs):
         "mock_response": "It's simple to use and easy to get started",
     }
     completion_args.update(completion_kwargs)
-    return asyncio.create_task(litellm.acompletion(**completion_args))
+    return asyncio.create_task(gateway.acompletion(**completion_args))
 
 
 @pytest.mark.asyncio
@@ -213,9 +213,9 @@ async def test_langfuse_logging_without_request_response(stream, langfuse_client
         from token_iq.gateway._uuid import uuid
 
         _unique_trace_name = f"litellm-test-{str(uuid.uuid4())}"
-        litellm.set_verbose = True
-        litellm.turn_off_message_logging = True
-        litellm.success_callback = ["langfuse"]
+        gateway.set_verbose = True
+        gateway.turn_off_message_logging = True
+        gateway.success_callback = ["langfuse"]
         response = await create_async_task(
             model="gpt-3.5-turbo",
             stream=stream,
@@ -277,9 +277,9 @@ async def test_langfuse_logging_audio_transcriptions(langfuse_client):
     from token_iq.gateway._uuid import uuid
 
     _unique_trace_name = f"litellm-test-{str(uuid.uuid4())}"
-    litellm.set_verbose = True
-    litellm.success_callback = ["langfuse"]
-    await litellm.atranscription(
+    gateway.set_verbose = True
+    gateway.success_callback = ["langfuse"]
+    await gateway.atranscription(
         model="whisper-1",
         file=audio_file,
         metadata={
@@ -316,8 +316,8 @@ async def test_langfuse_masked_input_output(langfuse_client):
 
     for mask_value in [True, False]:
         _unique_trace_name = f"litellm-test-{str(uuid.uuid4())}"
-        litellm.set_verbose = True
-        litellm.success_callback = ["langfuse"]
+        gateway.set_verbose = True
+        gateway.success_callback = ["langfuse"]
         response = await create_async_task(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": "This is a test"}],
@@ -364,8 +364,8 @@ async def test_aaalangfuse_logging_metadata(langfuse_client):
     """
     from token_iq.gateway._uuid import uuid
 
-    litellm.set_verbose = True
-    litellm.success_callback = ["langfuse"]
+    gateway.set_verbose = True
+    gateway.success_callback = ["langfuse"]
 
     trace_identifiers = {}
     expected_filtered_metadata_keys = {
@@ -488,7 +488,7 @@ async def test_aaalangfuse_logging_metadata(langfuse_client):
 @pytest.mark.skip(reason="beta test - checking langfuse output")
 def test_langfuse_logging_stream():
     try:
-        litellm.set_verbose = True
+        gateway.set_verbose = True
         response = completion(
             model="gpt-3.5-turbo",
             messages=[
@@ -505,7 +505,7 @@ def test_langfuse_logging_stream():
         for chunk in response:
             pass
             # print(chunk)
-    except litellm.Timeout as e:
+    except gateway.Timeout as e:
         pass
     except Exception as e:
         print(e)
@@ -517,7 +517,7 @@ def test_langfuse_logging_stream():
 @pytest.mark.skip(reason="beta test - checking langfuse output")
 def test_langfuse_logging_custom_generation_name():
     try:
-        litellm.set_verbose = True
+        gateway.set_verbose = True
         response = completion(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": "Hi 👋 - i'm claude"}],
@@ -533,7 +533,7 @@ def test_langfuse_logging_custom_generation_name():
             },
         )
         print(response)
-    except litellm.Timeout as e:
+    except gateway.Timeout as e:
         pass
     except Exception as e:
         pytest.fail(f"An exception occurred - {e}")
@@ -546,14 +546,14 @@ def test_langfuse_logging_custom_generation_name():
 @pytest.mark.skip(reason="beta test - checking langfuse output")
 def test_langfuse_logging_embedding():
     try:
-        litellm.set_verbose = True
-        litellm.success_callback = ["langfuse"]
-        response = litellm.embedding(
+        gateway.set_verbose = True
+        gateway.success_callback = ["langfuse"]
+        response = gateway.embedding(
             model="text-embedding-ada-002",
             input=["gm", "ishaan"],
         )
         print(response)
-    except litellm.Timeout as e:
+    except gateway.Timeout as e:
         pass
     except Exception as e:
         pytest.fail(f"An exception occurred - {e}")
@@ -562,7 +562,7 @@ def test_langfuse_logging_embedding():
 
 @pytest.mark.skip(reason="beta test - checking langfuse output")
 def test_langfuse_logging_function_calling():
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     function1 = [
         {
             "name": "get_current_weather",
@@ -588,7 +588,7 @@ def test_langfuse_logging_function_calling():
             functions=function1,
         )
         print(response)
-    except litellm.Timeout as e:
+    except gateway.Timeout as e:
         pass
     except Exception as e:
         print(e)
@@ -602,7 +602,7 @@ def test_langfuse_logging_function_calling():
     reason="Authentication missing for openai",
 )
 def test_langfuse_logging_tool_calling():
-    litellm.set_verbose = True
+    gateway.set_verbose = True
 
     def get_current_weather(location, unit="fahrenheit"):
         """Get the current weather in a given location"""
@@ -648,7 +648,7 @@ def test_langfuse_logging_tool_calling():
         }
     ]
 
-    response = litellm.completion(
+    response = gateway.completion(
         model="gpt-3.5-turbo-1106",
         messages=messages,
         tools=tools,
@@ -685,7 +685,7 @@ def get_langfuse_prompt(name: str):
     reason="local only test, use this to verify if we can send request to litellm proxy server"
 )
 async def test_make_request():
-    response = await litellm.acompletion(
+    response = await gateway.acompletion(
         model="openai/llama3",
         api_key="sk-1234",
         base_url="http://localhost:4000",

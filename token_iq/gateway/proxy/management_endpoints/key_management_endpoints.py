@@ -28,7 +28,7 @@ import yaml
 from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request, status
 from typing_extensions import ReadOnly, TypedDict
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway._uuid import uuid
 from token_iq.gateway.caching.dual_cache import DualCache
@@ -345,8 +345,8 @@ def _set_key_rotation_fields(
     """
     if auto_rotate and rotation_interval:
         if (
-            litellm._key_management_settings is not None
-            and litellm._key_management_settings.store_virtual_keys is True
+            gateway._key_management_settings is not None
+            and gateway._key_management_settings.store_virtual_keys is True
             and data.get("key_alias") is None
             and existing_key_alias is None
         ):
@@ -459,8 +459,8 @@ def _team_key_generation_check(
 ):
     if user_api_key_dict.user_role == LitellmUserRoles.PROXY_ADMIN.value:
         return True
-    if litellm.key_generation_settings is not None and "team_key_generation" in litellm.key_generation_settings:
-        _team_key_generation = litellm.key_generation_settings["team_key_generation"]
+    if gateway.key_generation_settings is not None and "team_key_generation" in gateway.key_generation_settings:
+        _team_key_generation = gateway.key_generation_settings["team_key_generation"]
     else:
         _team_key_generation = TeamUIKeyGenerationConfig(
             allowed_team_member_roles=["admin", "user"],
@@ -521,12 +521,12 @@ def _personal_key_generation_check(user_api_key_dict: UserAPIKeyAuth, data: Gene
     )
 
     if (
-        litellm.key_generation_settings is None
-        or litellm.key_generation_settings.get("personal_key_generation") is None
+        gateway.key_generation_settings is None
+        or gateway.key_generation_settings.get("personal_key_generation") is None
     ):
         return True
 
-    _personal_key_generation: Final = litellm.key_generation_settings["personal_key_generation"]
+    _personal_key_generation: Final = gateway.key_generation_settings["personal_key_generation"]
 
     _personal_key_membership_check(
         user_api_key_dict,
@@ -557,7 +557,7 @@ def key_generation_check(
         user_api_key_dict.user_role is not None and user_api_key_dict.user_role == LitellmUserRoles.PROXY_ADMIN.value
     )
     if is_team_key:
-        if team_table is None and litellm.key_generation_settings is not None:
+        if team_table is None and gateway.key_generation_settings is not None:
             raise HTTPException(
                 status_code=400,
                 detail=f"Unable to find team object in database. Team ID: {data.team_id}",
@@ -908,12 +908,12 @@ def _enforce_upperbound_key_params(
                     detail={"error": f"{key} must be a finite number. Received: {value}"},
                 )
 
-    if litellm.upperbound_key_generate_params is None:
+    if gateway.upperbound_key_generate_params is None:
         return
 
     for elem in data:
         key, value = elem
-        upperbound_value = getattr(litellm.upperbound_key_generate_params, key, None)
+        upperbound_value = getattr(gateway.upperbound_key_generate_params, key, None)
         if upperbound_value is not None:
             if value is None:
                 if fill_defaults:
@@ -1003,7 +1003,7 @@ async def _common_key_generation_helper(
     _requested_team_id: Final = data.team_id
 
     # check if user set default key/generate params on config.yaml
-    if litellm.default_key_generate_params is not None:
+    if gateway.default_key_generate_params is not None:
         for elem in _model_items(data):
             key, value = elem
             if (
@@ -1021,13 +1021,13 @@ async def _common_key_generation_helper(
                     "duration",
                 ]
             ):
-                default_value = litellm.default_key_generate_params.get(key)
+                default_value = gateway.default_key_generate_params.get(key)
                 if default_value is not None:
                     setattr(data, key, default_value)
             elif key == "models" and value == []:
-                setattr(data, key, litellm.default_key_generate_params.get(key, []))
+                setattr(data, key, gateway.default_key_generate_params.get(key, []))
             elif key == "metadata" and value == {}:
-                setattr(data, key, litellm.default_key_generate_params.get(key, {}))
+                setattr(data, key, gateway.default_key_generate_params.get(key, {}))
 
     # check if user set upperbound key/generate params on config.yaml
     _enforce_upperbound_key_params(data, fill_defaults=True)
@@ -1213,8 +1213,8 @@ async def _common_key_generation_helper(
     # is never mistaken for a caller-requested permission and rejected by those
     # non-admin/no-team checks. Only fields the caller left unset are filled in.
     _default_object_permission: Final = (
-        litellm.default_key_generate_params.get("object_permission")
-        if litellm.default_key_generate_params is not None
+        gateway.default_key_generate_params.get("object_permission")
+        if gateway.default_key_generate_params is not None
         else None
     )
     if isinstance(_default_object_permission, dict):
@@ -4278,8 +4278,8 @@ async def _team_key_deletion_check(
             user_api_key_cache=user_api_key_cache,
             check_db_only=True,
         )
-        if litellm.key_generation_settings is not None and "team_key_generation" in litellm.key_generation_settings:
-            _team_key_generation = litellm.key_generation_settings["team_key_generation"]
+        if gateway.key_generation_settings is not None and "team_key_generation" in gateway.key_generation_settings:
+            _team_key_generation = gateway.key_generation_settings["team_key_generation"]
         else:
             _team_key_generation = TeamUIKeyGenerationConfig(
                 allowed_team_member_roles=["admin", "user"],
@@ -6943,7 +6943,7 @@ async def test_key_logging(
             request=request,
         )
         data["mock_response"] = "test response"
-        await litellm.acompletion(**data)  # make mock completion call to trigger key based callbacks
+        await gateway.acompletion(**data)  # make mock completion call to trigger key based callbacks
     except Exception as e:
         return LoggingCallbackStatus(
             callbacks=logging_callbacks,
@@ -7004,7 +7004,7 @@ def _validate_key_alias_format(key_alias: str | None) -> None:
             code=400,
         )
 
-    if not litellm.enable_key_alias_format_validation:
+    if not gateway.enable_key_alias_format_validation:
         return
 
     if not _KEY_ALIAS_PATTERN.match(key_alias):

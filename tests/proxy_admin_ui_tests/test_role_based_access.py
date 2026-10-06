@@ -23,7 +23,7 @@ import logging
 from unittest.mock import MagicMock
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.proxy.auth.auth_checks import get_user_object
 from token_iq.gateway.proxy.management_endpoints.key_management_endpoints import (
@@ -96,10 +96,10 @@ def prisma_client():
     )
 
     # Reset litellm.proxy.proxy_server.prisma_client to None
-    litellm.proxy.proxy_server.litellm_proxy_budget_name = (
+    gateway.proxy.proxy_server.litellm_proxy_budget_name = (
         f"litellm-proxy-budget-{time.time()}"
     )
-    litellm.proxy.proxy_server.user_custom_key_generate = None
+    gateway.proxy.proxy_server.user_custom_key_generate = None
 
     return prisma_client
 
@@ -134,11 +134,11 @@ async def test_create_new_user_in_organization(prisma_client, user_role):
     Add a member to an organization and assert the user object is created with the correct organization memberships / roles
     """
     master_key = "sk-1234"
-    setattr(litellm.proxy.proxy_server, "prisma_client", prisma_client)
-    setattr(litellm.proxy.proxy_server, "master_key", master_key)
-    setattr(litellm.proxy.proxy_server, "llm_router", MagicMock())
+    setattr(gateway.proxy.proxy_server, "prisma_client", prisma_client)
+    setattr(gateway.proxy.proxy_server, "master_key", master_key)
+    setattr(gateway.proxy.proxy_server, "llm_router", MagicMock())
 
-    await litellm.proxy.proxy_server.prisma_client.connect()
+    await gateway.proxy.proxy_server.prisma_client.connect()
 
     created_user_id = f"new-user-{uuid.uuid4()}"
 
@@ -199,11 +199,11 @@ async def test_org_admin_create_team_permissions(prisma_client):
     import json
 
     master_key = "sk-1234"
-    setattr(litellm.proxy.proxy_server, "prisma_client", prisma_client)
-    setattr(litellm.proxy.proxy_server, "master_key", master_key)
-    setattr(litellm.proxy.proxy_server, "llm_router", MagicMock())
+    setattr(gateway.proxy.proxy_server, "prisma_client", prisma_client)
+    setattr(gateway.proxy.proxy_server, "master_key", master_key)
+    setattr(gateway.proxy.proxy_server, "llm_router", MagicMock())
 
-    await litellm.proxy.proxy_server.prisma_client.connect()
+    await gateway.proxy.proxy_server.prisma_client.connect()
 
     response = await new_organization(
         data=NewOrganizationRequest(
@@ -272,11 +272,11 @@ async def test_org_admin_create_user_permissions(prisma_client):
     import json
 
     master_key = "sk-1234"
-    setattr(litellm.proxy.proxy_server, "prisma_client", prisma_client)
-    setattr(litellm.proxy.proxy_server, "master_key", master_key)
-    setattr(litellm.proxy.proxy_server, "llm_router", MagicMock())
+    setattr(gateway.proxy.proxy_server, "prisma_client", prisma_client)
+    setattr(gateway.proxy.proxy_server, "master_key", master_key)
+    setattr(gateway.proxy.proxy_server, "llm_router", MagicMock())
 
-    await litellm.proxy.proxy_server.prisma_client.connect()
+    await gateway.proxy.proxy_server.prisma_client.connect()
 
     # create new org
     response = await new_organization(
@@ -345,11 +345,11 @@ async def test_org_admin_create_user_team_wrong_org_permissions(prisma_client):
     import json
 
     master_key = "sk-1234"
-    setattr(litellm.proxy.proxy_server, "prisma_client", prisma_client)
-    setattr(litellm.proxy.proxy_server, "master_key", master_key)
-    setattr(litellm.proxy.proxy_server, "llm_router", MagicMock())
+    setattr(gateway.proxy.proxy_server, "prisma_client", prisma_client)
+    setattr(gateway.proxy.proxy_server, "master_key", master_key)
+    setattr(gateway.proxy.proxy_server, "llm_router", MagicMock())
 
-    await litellm.proxy.proxy_server.prisma_client.connect()
+    await gateway.proxy.proxy_server.prisma_client.connect()
     created_user_id = f"new-user-{uuid.uuid4()}"
     response = await new_organization(
         data=NewOrganizationRequest(
@@ -481,9 +481,9 @@ async def test_user_role_permissions(prisma_client, route, user_role, expected_r
     """Test user role based permissions for different routes"""
     try:
         # Setup
-        setattr(litellm.proxy.proxy_server, "prisma_client", prisma_client)
-        setattr(litellm.proxy.proxy_server, "master_key", "sk-1234")
-        await litellm.proxy.proxy_server.prisma_client.connect()
+        setattr(gateway.proxy.proxy_server, "prisma_client", prisma_client)
+        setattr(gateway.proxy.proxy_server, "master_key", "sk-1234")
+        await gateway.proxy.proxy_server.prisma_client.connect()
 
         # Admin - admin creates a new user
         user_api_key_dict = UserAPIKeyAuth(

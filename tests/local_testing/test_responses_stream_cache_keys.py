@@ -3,7 +3,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import aresponses
 from token_iq.gateway._uuid import uuid
 from token_iq.gateway.caching.caching_handler import LLMCachingHandler
@@ -29,13 +29,13 @@ async def test_async_get_cache_reuses_preset_cache_key_for_responses():
         start_time=datetime.now(),
     )
 
-    original_cache = litellm.cache
+    original_cache = gateway.cache
     mock_cache = MagicMock()
     mock_cache.supported_call_types = [CallTypes.aresponses.value]
     mock_cache._supports_async.return_value = True
     mock_cache.get_cache_key.return_value = "responses-stream-cache-key"
     mock_cache.async_get_cache = AsyncMock(return_value=None)
-    litellm.cache = mock_cache
+    gateway.cache = mock_cache
 
     kwargs = {
         "model": "gpt-4.1-mini",
@@ -59,7 +59,7 @@ async def test_async_get_cache_reuses_preset_cache_key_for_responses():
         == "responses-stream-cache-key"
     )
 
-    litellm.cache = original_cache
+    gateway.cache = original_cache
 
 
 @pytest.mark.asyncio
@@ -79,13 +79,13 @@ async def test_async_get_cache_falls_back_to_sync_cache_for_responses():
         start_time=datetime.now(),
     )
 
-    original_cache = litellm.cache
+    original_cache = gateway.cache
     mock_cache = MagicMock()
     mock_cache.supported_call_types = [CallTypes.aresponses.value]
     mock_cache._supports_async.return_value = False
     mock_cache.get_cache_key.return_value = "responses-stream-cache-key"
     mock_cache.get_cache.return_value = None
-    litellm.cache = mock_cache
+    gateway.cache = mock_cache
 
     kwargs = {
         "model": "gpt-4.1-mini",
@@ -108,7 +108,7 @@ async def test_async_get_cache_falls_back_to_sync_cache_for_responses():
         "responses-stream-cache-key"
     )
 
-    litellm.cache = original_cache
+    gateway.cache = original_cache
 
 
 def test_reasoning_summary_events_default_summary_index():

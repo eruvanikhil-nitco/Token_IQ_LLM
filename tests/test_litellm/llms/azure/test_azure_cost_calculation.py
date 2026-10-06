@@ -4,7 +4,7 @@ Test Azure OpenAI cost calculator — service_tier pricing.
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.azure.cost_calculation import cost_per_token
 from token_iq.gateway.types.utils import Usage
 
@@ -30,7 +30,7 @@ class TestAzureServiceTierCostCalculation:
 
     @pytest.fixture(autouse=True)
     def register_test_model(self):
-        litellm.register_model(model_cost=TEST_MODEL_COST)
+        gateway.register_model(model_cost=TEST_MODEL_COST)
 
     def test_service_tier_priority_higher_cost(self):
         """Priority tier should cost more than standard."""

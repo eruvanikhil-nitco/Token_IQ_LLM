@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 import pytest
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy.enterprise.enterprise_hooks.openai_moderation import (
     _ENTERPRISE_OpenAI_Moderation,
 )
@@ -31,14 +31,14 @@ async def test_openai_moderation_error_raising(monkeypatch):
     from unittest.mock import AsyncMock, MagicMock
     from token_iq.gateway.types.llms.openai import OpenAIModerationResponse
 
-    litellm.openai_moderations_model_name = "text-moderation-latest"
+    gateway.openai_moderations_model_name = "text-moderation-latest"
     openai_mod = _ENTERPRISE_OpenAI_Moderation()
     _api_key = "sk-12345"
     _api_key = hash_token("sk-12345")
     user_api_key_dict = UserAPIKeyAuth(api_key=_api_key)
     local_cache = DualCache()
 
-    llm_router = litellm.Router(
+    llm_router = gateway.Router(
         model_list=[
             {
                 "model_name": "text-moderation-latest",

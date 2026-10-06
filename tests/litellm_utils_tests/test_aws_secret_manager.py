@@ -8,9 +8,9 @@ import traceback
 from dotenv import load_dotenv
 
 import token_iq.gateway.types
-from token_iq import gateway as litellm
+from token_iq import gateway
 import token_iq.gateway.types.utils
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 load_dotenv()
 import io
@@ -404,7 +404,7 @@ def test_load_aws_secret_manager_with_settings():
     """
     Test loading AWS Secret Manager with key_management_settings
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     settings = KeyManagementSettings(
         store_virtual_keys=True,
@@ -423,18 +423,18 @@ def test_load_aws_secret_manager_with_settings():
         )
 
         # Verify the client was created
-        assert litellm.secret_manager_client is not None
-        assert isinstance(litellm.secret_manager_client, AWSSecretsManagerV2)
+        assert gateway.secret_manager_client is not None
+        assert isinstance(gateway.secret_manager_client, AWSSecretsManagerV2)
 
         # Verify settings were passed through
-        assert litellm.secret_manager_client.aws_role_name == settings.aws_role_name
-        assert litellm.secret_manager_client.aws_region_name == settings.aws_region_name
+        assert gateway.secret_manager_client.aws_role_name == settings.aws_role_name
+        assert gateway.secret_manager_client.aws_region_name == settings.aws_region_name
         assert (
-            litellm.secret_manager_client.aws_session_name == settings.aws_session_name
+            gateway.secret_manager_client.aws_session_name == settings.aws_session_name
         )
     finally:
         # Cleanup
-        litellm.secret_manager_client = None
+        gateway.secret_manager_client = None
 
 
 @pytest.mark.asyncio

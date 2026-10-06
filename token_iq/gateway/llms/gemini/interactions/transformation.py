@@ -17,7 +17,7 @@ from typing import TYPE_CHECKING, Any, Final, Protocol, TypeAlias
 import httpx
 from typing_extensions import ReadOnly, TypedDict
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.core_utils.core_helpers import process_response_headers
 from token_iq.gateway.core_utils.url_utils import encode_url_path_segment
@@ -140,7 +140,7 @@ class GoogleAIStudioInteractionsConfig(BaseInteractionsAPIConfig):
         # Inject the Api-Revision header to select the response schema.
         # Default to the new `steps` schema unless the operator has opted out.
         # Remove this conditional after June 8, 2026 and always use 2026-05-20.
-        if litellm.use_legacy_interactions_schema:
+        if gateway.use_legacy_interactions_schema:
             headers["Api-Revision"] = "2026-05-07"
         else:
             headers["Api-Revision"] = "2026-05-20"
@@ -189,7 +189,7 @@ class GoogleAIStudioInteractionsConfig(BaseInteractionsAPIConfig):
         When on the legacy schema (use_legacy_interactions_schema=True):
         - All fields are forwarded as-is.
         """
-        use_legacy: Final[bool] = litellm.use_legacy_interactions_schema
+        use_legacy: Final[bool] = gateway.use_legacy_interactions_schema
 
         request_body: Final[dict[str, object]] = {}
 

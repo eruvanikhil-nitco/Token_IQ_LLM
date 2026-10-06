@@ -2,7 +2,7 @@ import ast
 import os
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 SEARCH_PROVIDERS = [
     "tavily",
@@ -62,7 +62,7 @@ def get_unique_names_from_llms_dir(base_dir: str):
 
 
 def run_lint_check(unique_names):
-    _all_litellm_providers = [str(provider.value) for provider in litellm.LlmProviders]
+    _all_litellm_providers = [str(provider.value) for provider in gateway.LlmProviders]
     violations = []
     for name in unique_names:
         if (

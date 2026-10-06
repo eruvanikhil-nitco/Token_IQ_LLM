@@ -2,12 +2,12 @@
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.openai.cost_calculation import cost_per_second
 
 
 def _register_stt(name: str, **pricing: float) -> None:
-    litellm.register_model(
+    gateway.register_model(
         {
             name: {
                 "mode": "audio_transcription",

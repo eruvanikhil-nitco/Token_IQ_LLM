@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 # Add litellm to path
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 
 def test_deepseek_supported_openai_params(monkeypatch):
@@ -17,7 +17,7 @@ def test_deepseek_supported_openai_params(monkeypatch):
 
     # Ensure we're using the local model cost map
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    litellm.model_cost = litellm.get_model_cost_map()
+    gateway.model_cost = gateway.get_model_cost_map()
 
     supported_openai_params = DeepInfraConfig().get_supported_openai_params(
         model="deepinfra/deepseek-ai/DeepSeek-V3.1"

@@ -4,7 +4,7 @@
 import sys, os, pytest
 import traceback
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 
 ## case 1: set_function_to_prompt not set
@@ -29,7 +29,7 @@ def test_function_call_non_openai_model():
                 },
             }
         ]
-        response = litellm.completion(
+        response = gateway.completion(
             model=model, messages=messages, functions=functions
         )
         pytest.fail(f"An error occurred")

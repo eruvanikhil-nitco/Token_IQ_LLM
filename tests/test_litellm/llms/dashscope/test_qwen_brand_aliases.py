@@ -2,7 +2,7 @@ import math
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import completion, get_llm_provider
 from token_iq.gateway.llms.dashscope.chat.transformation import DashScopeChatConfig
 from token_iq.gateway.llms.dashscope.cost_calculator import (
@@ -249,12 +249,12 @@ class TestQwenBrandCostParity:
     @pytest.fixture(autouse=True)
     def setup_model_cost_map(self, monkeypatch):
         monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-        monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map())
+        monkeypatch.setattr(gateway, "model_cost", gateway.get_model_cost_map())
 
     @pytest.mark.parametrize("brand", BRAND_CASES)
     def test_get_model_info(self, brand):
-        model_info = litellm.get_model_info(f"{brand['provider']}/qwen-max")
-        dashscope_info = litellm.get_model_info("dashscope/qwen-max")
+        model_info = gateway.get_model_info(f"{brand['provider']}/qwen-max")
+        dashscope_info = gateway.get_model_info("dashscope/qwen-max")
         assert model_info["litellm_provider"] == brand["provider"]
         assert model_info["input_cost_per_token"] == dashscope_info["input_cost_per_token"]
         assert model_info["output_cost_per_token"] == dashscope_info["output_cost_per_token"]
@@ -272,18 +272,18 @@ class TestQwenBrandCostParity:
         brand_costs = dashscope_cost_per_token(model="qwen-flash", usage=usage, custom_llm_provider=brand["provider"])
         dashscope_costs = dashscope_cost_per_token(model="qwen-flash", usage=usage)
         assert brand_costs == dashscope_costs
-        tier_2 = litellm.get_model_info(f"{brand['provider']}/qwen-flash")["tiered_pricing"][1]
+        tier_2 = gateway.get_model_info(f"{brand['provider']}/qwen-flash")["tiered_pricing"][1]
         assert math.isclose(brand_costs[0], 300000 * tier_2["input_cost_per_token"], rel_tol=1e-10)
 
     @pytest.mark.parametrize("brand", BRAND_CASES)
     def test_public_cost_per_token_routes_to_dashscope_calculator(self, brand):
-        brand_costs = litellm.cost_per_token(
+        brand_costs = gateway.cost_per_token(
             model=f"{brand['provider']}/qwen-max",
             prompt_tokens=1000,
             completion_tokens=500,
             custom_llm_provider=brand["provider"],
         )
-        dashscope_costs = litellm.cost_per_token(
+        dashscope_costs = gateway.cost_per_token(
             model="dashscope/qwen-max",
             prompt_tokens=1000,
             completion_tokens=500,
@@ -296,7 +296,7 @@ class TestQwenBrandCompletionMock:
     @pytest.mark.respx()
     @pytest.mark.parametrize("brand", BRAND_CASES)
     def test_completion_hits_brand_default_host(self, respx_mock, brand, monkeypatch):
-        monkeypatch.setattr(litellm, "disable_aiohttp_transport", True)
+        monkeypatch.setattr(gateway, "disable_aiohttp_transport", True)
         respx_mock.post(f"{brand['default_base']}/chat/completions").respond(
             json={
                 "id": "chatcmpl-123",

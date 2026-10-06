@@ -9,7 +9,7 @@ sys.path.insert(
     0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../../.."))
 )
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.prompt_templates.common_utils import TOOL_RESULT_IMAGE_BOUNDARY
 from token_iq.gateway.llms.azure.chat.gpt_5_transformation import AzureOpenAIGPT5Config
 from token_iq.gateway.llms.azure.chat.gpt_transformation import AzureOpenAIConfig
@@ -168,7 +168,7 @@ def test_azure_gpt_5_chat_stays_off_the_reasoning_path(model: str) -> None:
         )
     )
     supported: Final = _SUPPORTED_PARAMS.validate_python(
-        litellm.get_supported_openai_params(model=model, custom_llm_provider="azure")
+        gateway.get_supported_openai_params(model=model, custom_llm_provider="azure")
     )
     assert mapped["temperature"] == 0.3
     assert mapped["presence_penalty"] == 0.1
@@ -191,7 +191,7 @@ def test_azure_gpt_5_takes_the_reasoning_path() -> None:
         )
     )
     supported: Final = _SUPPORTED_PARAMS.validate_python(
-        litellm.get_supported_openai_params(model="gpt-5", custom_llm_provider="azure")
+        gateway.get_supported_openai_params(model="gpt-5", custom_llm_provider="azure")
     )
     assert "presence_penalty" not in mapped
     assert "logit_bias" not in mapped

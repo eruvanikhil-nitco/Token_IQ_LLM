@@ -8,7 +8,7 @@ import asyncio
 import time
 from typing import Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.integrations.custom_logger import CustomLogger
 
@@ -37,8 +37,8 @@ class CustomBatchLogger(CustomLogger):
             max_queue_size (Optional[int], optional): Maximum number of events to retain in ``log_queue``. When the limit is exceeded (e.g. because the send destination is unreachable and events are preserved for retry), the oldest events are dropped. Defaults to ``DEFAULT_MAX_QUEUE_SIZE``.
         """
         self.log_queue: list = []
-        self.flush_interval = flush_interval or litellm.DEFAULT_FLUSH_INTERVAL_SECONDS
-        self.batch_size: int = batch_size or litellm.DEFAULT_BATCH_SIZE
+        self.flush_interval = flush_interval or gateway.DEFAULT_FLUSH_INTERVAL_SECONDS
+        self.batch_size: int = batch_size or gateway.DEFAULT_BATCH_SIZE
         self.last_flush_time = time.time()
         self.flush_lock = flush_lock
         self.max_queue_size: int = max_queue_size if max_queue_size is not None else self.DEFAULT_MAX_QUEUE_SIZE

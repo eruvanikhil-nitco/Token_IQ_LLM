@@ -16,7 +16,7 @@ import httpx
 from dotenv import load_dotenv
 from pydantic import BaseModel, ConfigDict
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.constants import DEFAULT_NUM_WORKERS_LITELLM_PROXY
 from token_iq.gateway.proxy.db.query_engine_reaper import start_query_engine_reaper
 
@@ -254,7 +254,7 @@ class ProxyInitializationHelpers:
 
         import uvicorn
 
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway._logging import _get_uvicorn_json_log_config
 
         uvicorn_args: Final = {
@@ -266,7 +266,7 @@ class ProxyInitializationHelpers:
         if log_config is not None:
             print(f"Using log_config: {log_config}")
             uvicorn_args["log_config"] = log_config
-        elif litellm.json_logs:
+        elif gateway.json_logs:
             # Use JSON log config for uvicorn to ensure all logs (including exceptions) are JSON
             uvicorn_args["log_config"] = _get_uvicorn_json_log_config()
         if keepalive_timeout is not None:
@@ -681,7 +681,7 @@ class ProxyInitializationHelpers:
 @click.option("--api_base", default=None, help="API base URL.")
 @click.option(
     "--api_version",
-    default=litellm.AZURE_DEFAULT_API_VERSION,
+    default=gateway.AZURE_DEFAULT_API_VERSION,
     help="For azure - pass in the api version.",
 )
 @click.option("--model", "-m", default=None, help="The model name to pass to litellm expects")
@@ -1143,11 +1143,11 @@ def run_server(
                 and "json_logs" in litellm_settings
                 and litellm_settings["json_logs"] is True
             ):
-                from token_iq import gateway as litellm
+                from token_iq import gateway
 
-                litellm.json_logs = True
+                gateway.json_logs = True
 
-                litellm._turn_on_json()
+                gateway._turn_on_json()
             ### GENERAL SETTINGS ###
             general_settings = _config.get("general_settings", {})
             if general_settings is None:
@@ -1155,9 +1155,9 @@ def run_server(
             ### LOAD KEY MANAGEMENT SETTINGS FIRST (needed for custom secret manager) ###
             key_management_settings: Final = general_settings.get("key_management_settings", None)
             if key_management_settings is not None:
-                from token_iq import gateway as litellm
+                from token_iq import gateway
 
-                litellm._key_management_settings = KeyManagementSettings(**key_management_settings)
+                gateway._key_management_settings = KeyManagementSettings(**key_management_settings)
 
             if general_settings:
                 ### LOAD SECRET MANAGER ###
@@ -1201,7 +1201,7 @@ def run_server(
                 sys.path.insert(
                     0, os.path.abspath("../..")
                 )  # Adds the parent directory to the system path - for litellm local dev
-                from token_iq import gateway as litellm
+                from token_iq import gateway
                 from token_iq.gateway import get_secret_str
 
                 database_url = get_secret_str(database_url, default_value=None)
@@ -1358,10 +1358,10 @@ def run_server(
         if port == 4000 and ProxyInitializationHelpers._is_port_in_use(port):
             port = random.randint(1024, 49152)
 
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         if detailed_debug is True:
-            litellm._turn_on_debug()
+            gateway._turn_on_debug()
 
         # DO NOT DELETE - enables global variables to work across files
         from token_iq.gateway.proxy.proxy_server import app

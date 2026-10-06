@@ -13,7 +13,7 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from fastapi import HTTPException
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy._types import AlertType, CallInfo
 
 
@@ -208,7 +208,7 @@ async def test_alerting_handler_sends_to_slack(proxy_logging):
 @pytest.mark.asyncio
 async def test_alerting_handler_sentry_without_sdk_error_raises(proxy_logging, monkeypatch):
     proxy_logging.alerting = ["sentry"]
-    monkeypatch.setattr(litellm.utils, "sentry_sdk_instance", None)
+    monkeypatch.setattr(gateway.utils, "sentry_sdk_instance", None)
     with pytest.raises(Exception, match="SENTRY_DSN"):
         await proxy_logging.alerting_handler(message="x", level="Low", alert_type=AlertType.db_exceptions)
 
@@ -233,7 +233,7 @@ async def test_failure_handler_logs_db_error_and_calls_service_logging(proxy_log
     proxy_logging.alert_types = [AlertType.db_exceptions]
     proxy_logging.alerting_handler = AsyncMock()
     proxy_logging.service_logging_obj = MagicMock(async_service_failure_hook=AsyncMock())
-    monkeypatch.setattr(litellm.utils, "capture_exception", None)
+    monkeypatch.setattr(gateway.utils, "capture_exception", None)
     await proxy_logging.failure_handler(
         original_exception=HTTPException(status_code=500, detail="boom"),
         duration=1.5,
@@ -262,7 +262,7 @@ async def test_failure_handler_with_capture_exception_invoked(proxy_logging, mon
     def fake_capture(error):
         captured["error"] = error
 
-    monkeypatch.setattr(litellm.utils, "capture_exception", fake_capture)
+    monkeypatch.setattr(gateway.utils, "capture_exception", fake_capture)
     err = RuntimeError("real")
     await proxy_logging.failure_handler(original_exception=err, duration=1.0, call_type="db_read")
     snapshot = {
@@ -284,7 +284,7 @@ async def test_failure_handler_propagates_service_logging_error_raises(proxy_log
     proxy_logging.service_logging_obj = MagicMock(
         async_service_failure_hook=AsyncMock(side_effect=RuntimeError("svc"))
     )
-    monkeypatch.setattr(litellm.utils, "capture_exception", None)
+    monkeypatch.setattr(gateway.utils, "capture_exception", None)
     with pytest.raises(RuntimeError):
         await proxy_logging.failure_handler(
             original_exception=Exception("x"), duration=0.0, call_type="db_read"

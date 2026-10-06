@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.realtime_api import main as realtime_main
 from token_iq.gateway.realtime_api.main import _with_resolved_session_model
 
@@ -240,8 +240,8 @@ async def test_azure_health_check_stays_on_ga_when_deployment_registration_overw
     azure/gpt-realtime-whisper, so mode alone misreads the model as speech-capable
     and the probe regresses to the beta path. supported_endpoints survives that
     registration and must keep the probe on the GA transcription path."""
-    polluted = {**litellm.model_cost["azure/gpt-realtime-whisper"], "mode": "realtime"}
-    monkeypatch.setitem(litellm.model_cost, "azure/gpt-realtime-whisper", polluted)
+    polluted = {**gateway.model_cost["azure/gpt-realtime-whisper"], "mode": "realtime"}
+    monkeypatch.setitem(gateway.model_cost, "azure/gpt-realtime-whisper", polluted)
     connect = _CapturingConnect()
     with patch("websockets.connect", connect):
         assert await realtime_main._realtime_health_check(

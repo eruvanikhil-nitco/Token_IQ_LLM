@@ -1,6 +1,6 @@
 from typing import Final, cast
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.prompt_templates.factory import (
     convert_generic_image_chunk_to_openai_image_obj,
     convert_to_anthropic_image_obj,
@@ -141,7 +141,7 @@ class GoogleAIStudioGeminiConfig(VertexGeminiConfig):
                         file_element = cast(ChatCompletionFileObject, element)
                         _file_field = file_element.get("file")
                         if _file_field is None:
-                            raise litellm.BadRequestError(
+                            raise gateway.BadRequestError(
                                 message="Content block has type='file' but is missing the required 'file' field",
                                 model=model,
                                 llm_provider="gemini",

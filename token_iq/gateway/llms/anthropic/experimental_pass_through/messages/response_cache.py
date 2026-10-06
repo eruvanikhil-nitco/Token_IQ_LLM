@@ -3,7 +3,7 @@ from collections.abc import AsyncIterator, Mapping, Sequence
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.streaming_iterator import (
     AnthropicMessagesStreamingResponse,
@@ -66,7 +66,7 @@ class AnthropicMessagesStreamCacheWriter:
         await aclose_if_supported(self.stream)
 
     async def _persist(self) -> None:
-        if self.persisted or litellm.cache is None:
+        if self.persisted or gateway.cache is None:
             return
         collected_stream: Final = b"".join(self.collected_chunks)
         if not _is_message_stop_chunk(collected_stream) or _is_provider_error_chunk(collected_stream):
@@ -91,7 +91,7 @@ class AnthropicMessagesStreamCacheWriter:
             cached_payload: Final = {
                 CACHED_STREAM_EVENTS_KEY: events
             }  # mutable-ok: cache backends serialize plain dicts
-            await litellm.cache.async_add_cache(
+            await gateway.cache.async_add_cache(
                 cached_payload,
                 dynamic_cache_object=self.caching_handler.dual_cache,
                 **request_kwargs,

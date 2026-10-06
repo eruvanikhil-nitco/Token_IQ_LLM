@@ -12,7 +12,7 @@ from typing import Final, Literal
 
 from fastapi import HTTPException
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.caching.caching import DualCache
 from token_iq.gateway.constants import DEFAULT_PROMPT_INJECTION_SIMILARITY_THRESHOLD
@@ -73,7 +73,7 @@ class _OPTIONAL_PromptInjectionDetection(CustomLogger):
         elif level == "DEBUG":
             verbose_proxy_logger.debug(print_statement)
 
-        if litellm.set_verbose is True:
+        if gateway.set_verbose is True:
             print(print_statement)  # noqa: T201
 
     def update_environment(self, router: Router | None = None):
@@ -249,7 +249,7 @@ class _OPTIONAL_PromptInjectionDetection(CustomLogger):
 
             self.print_verbose(f"Received LLM Moderation response: {response}")
             self.print_verbose(f"llm_api_fail_call_string: {self.prompt_injection_params.llm_api_fail_call_string}")
-            if isinstance(response, litellm.ModelResponse) and isinstance(response.choices[0], litellm.Choices):
+            if isinstance(response, gateway.ModelResponse) and isinstance(response.choices[0], gateway.Choices):
                 fail_call_string: Final = self.prompt_injection_params.llm_api_fail_call_string
                 content: Final = response.choices[0].message.content
                 if fail_call_string is not None and content is not None and fail_call_string in content:

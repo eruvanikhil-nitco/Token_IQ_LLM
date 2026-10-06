@@ -10,7 +10,7 @@ import time
 
 import pytest
 from typing import Optional
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import create_batch, create_file
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.batches.batch_utils import (
@@ -224,7 +224,7 @@ async def test_batch_retrieve_cost_tracking_with_completed_batch_no_explicit_cos
     from token_iq.gateway.batches.batch_utils import BatchCostUsageResult
 
     expected_cost = 0.05
-    expected_usage = litellm.Usage(
+    expected_usage = gateway.Usage(
         prompt_tokens=100,
         completion_tokens=50,
         total_tokens=150,
@@ -295,7 +295,7 @@ async def test_handle_completed_batch_computes_real_cost_from_output_file(
             batch=batch, custom_llm_provider="openai"
         )
 
-    pricing = litellm.model_cost["gpt-4o-mini-2024-07-18"]
+    pricing = gateway.model_cost["gpt-4o-mini-2024-07-18"]
     expected_cost = (
         42 * pricing["input_cost_per_token_batches"]
         + 20 * pricing["output_cost_per_token_batches"]
@@ -372,7 +372,7 @@ async def test_batch_retrieve_cost_tracking_with_explicit_cost_data():
 
     # Explicit cost data to pass in kwargs
     explicit_cost = 0.10
-    explicit_usage = litellm.Usage(
+    explicit_usage = gateway.Usage(
         prompt_tokens=200,
         completion_tokens=100,
         total_tokens=300,
@@ -544,7 +544,7 @@ async def test_batch_retrieve_cost_tracking_with_partial_explicit_data():
     partial_cost = 0.08
 
     expected_cost = 0.06
-    expected_usage = litellm.Usage(
+    expected_usage = gateway.Usage(
         prompt_tokens=150,
         completion_tokens=75,
         total_tokens=225,

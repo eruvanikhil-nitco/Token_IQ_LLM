@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING, Final, Literal, cast, overload
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.constants import (
     BEDROCK_MIN_THINKING_BUDGET_TOKENS,
@@ -234,14 +234,14 @@ class AmazonConverseConfig(BaseConfig):
         import re
 
         if not isinstance(metadata, dict):
-            raise litellm.exceptions.BadRequestError(
+            raise gateway.exceptions.BadRequestError(
                 message="requestMetadata must be a dictionary",
                 model="bedrock",
                 llm_provider="bedrock",
             )
 
         if len(metadata) > 16:
-            raise litellm.exceptions.BadRequestError(
+            raise gateway.exceptions.BadRequestError(
                 message="requestMetadata can contain a maximum of 16 items",
                 model="bedrock",
                 llm_provider="bedrock",
@@ -252,42 +252,42 @@ class AmazonConverseConfig(BaseConfig):
 
         for key, value in metadata.items():
             if not isinstance(key, str):
-                raise litellm.exceptions.BadRequestError(
+                raise gateway.exceptions.BadRequestError(
                     message="requestMetadata keys must be strings",
                     model="bedrock",
                     llm_provider="bedrock",
                 )
 
             if not isinstance(value, str):
-                raise litellm.exceptions.BadRequestError(
+                raise gateway.exceptions.BadRequestError(
                     message="requestMetadata values must be strings",
                     model="bedrock",
                     llm_provider="bedrock",
                 )
 
             if len(key) == 0 or len(key) > 256:
-                raise litellm.exceptions.BadRequestError(
+                raise gateway.exceptions.BadRequestError(
                     message="requestMetadata key length must be 1-256 characters",
                     model="bedrock",
                     llm_provider="bedrock",
                 )
 
             if len(value) > 256:
-                raise litellm.exceptions.BadRequestError(
+                raise gateway.exceptions.BadRequestError(
                     message="requestMetadata value length must be 0-256 characters",
                     model="bedrock",
                     llm_provider="bedrock",
                 )
 
             if not key_pattern.match(key):
-                raise litellm.exceptions.BadRequestError(
+                raise gateway.exceptions.BadRequestError(
                     message=f"requestMetadata key '{key}' contains invalid characters. Allowed: [a-zA-Z0-9\\s:_@$#=/+,.-]",
                     model="bedrock",
                     llm_provider="bedrock",
                 )
 
             if not value_pattern.match(value):
-                raise litellm.exceptions.BadRequestError(
+                raise gateway.exceptions.BadRequestError(
                     message=f"requestMetadata value '{value}' contains invalid characters. Allowed: [a-zA-Z0-9\\s:_@$#=/+,.-]",
                     model="bedrock",
                     llm_provider="bedrock",
@@ -404,7 +404,7 @@ class AmazonConverseConfig(BaseConfig):
         """
         valid_values: Final = ["low", "medium", "high"]
         if reasoning_effort not in valid_values:
-            raise litellm.exceptions.BadRequestError(
+            raise gateway.exceptions.BadRequestError(
                 message=f"Invalid reasoning_effort value '{reasoning_effort}' for Nova 2 models. "
                 f"Supported values: {valid_values}",
                 model="amazon.nova-2-lite-v1:0",
@@ -474,7 +474,7 @@ class AmazonConverseConfig(BaseConfig):
         """Validate ``output_config.effort`` for adaptive-thinking Claude 4.6/4.7."""
         valid_efforts: Final = {"high", "medium", "low", "xhigh", "max"}
         if effort not in valid_efforts:
-            raise litellm.exceptions.BadRequestError(
+            raise gateway.exceptions.BadRequestError(
                 message=(
                     f"Invalid reasoning_effort/output_config.effort value: "
                     f"{effort!r}. Must be one of: 'low', 'medium', 'high', "
@@ -485,7 +485,7 @@ class AmazonConverseConfig(BaseConfig):
             )
         error = AnthropicConfig._validate_effort_for_model(model=model, effort=effort, custom_llm_provider="bedrock")
         if error is not None:
-            raise litellm.exceptions.BadRequestError(
+            raise gateway.exceptions.BadRequestError(
                 message=error,
                 model=model,
                 llm_provider="bedrock_converse",
@@ -558,9 +558,9 @@ class AmazonConverseConfig(BaseConfig):
         if base_model.startswith("amazon.nova"):
             supported_params.append("web_search_options")
 
-        if litellm.utils.supports_tool_choice(
+        if gateway.utils.supports_tool_choice(
             model=model, custom_llm_provider=self.custom_llm_provider
-        ) or litellm.utils.supports_tool_choice(model=base_model, custom_llm_provider=self.custom_llm_provider):
+        ) or gateway.utils.supports_tool_choice(model=base_model, custom_llm_provider=self.custom_llm_provider):
             # only anthropic and mistral support tool choice config. otherwise (E.g. cohere) will fail the call - https://docs.aws.amazon.com/bedrock/latest/APIReference/API_runtime_ToolChoice.html
             supported_params.append("tool_choice")
 
@@ -597,10 +597,10 @@ class AmazonConverseConfig(BaseConfig):
         self, model: str, tool_choice: str | dict, drop_params: bool
     ) -> ToolChoiceValuesBlock | None:
         if tool_choice == "none":
-            if litellm.drop_params is True or drop_params is True:
+            if gateway.drop_params is True or drop_params is True:
                 return None
             else:
-                raise litellm.utils.UnsupportedParamsError(
+                raise gateway.utils.UnsupportedParamsError(
                     message=f"Bedrock doesn't support tool_choice={tool_choice}. To drop it from the call, set `litellm.drop_params = True.",
                     status_code=400,
                 )
@@ -619,7 +619,7 @@ class AmazonConverseConfig(BaseConfig):
             )
             return ToolChoiceValuesBlock(tool=specific_tool)
         else:
-            raise litellm.utils.UnsupportedParamsError(
+            raise gateway.utils.UnsupportedParamsError(
                 message=f"Bedrock doesn't support tool_choice={tool_choice}. Supported tool_choice values=['auto', 'required', json object]. To drop it from the call, set `litellm.drop_params = True.",
                 status_code=400,
             )
@@ -940,7 +940,7 @@ class AmazonConverseConfig(BaseConfig):
                     if capped is not None:
                         optional_params["thinking"] = capped
                     else:
-                        litellm.verbose_logger.warning(DROP_UNSUPPORTED_ADAPTIVE_THINKING_WARNING, model)
+                        gateway.verbose_logger.warning(DROP_UNSUPPORTED_ADAPTIVE_THINKING_WARNING, model)
                 else:
                     optional_params["thinking"] = value
                     AnthropicModelInfo.translate_legacy_thinking_for_adaptive_model(
@@ -1075,7 +1075,7 @@ class AmazonConverseConfig(BaseConfig):
             optional_params = self._add_tools_to_optional_params(optional_params=optional_params, tools=[_tool])
 
             if (
-                litellm.utils.supports_tool_choice(model=model, custom_llm_provider=self.custom_llm_provider)
+                gateway.utils.supports_tool_choice(model=model, custom_llm_provider=self.custom_llm_provider)
                 and not is_thinking_enabled
                 and not AnthropicModelInfo.forced_tool_use_unsupported(model)
             ):
@@ -1316,7 +1316,7 @@ class AmazonConverseConfig(BaseConfig):
                 description=output_config_format.get("description"),
             )
         elif output_config is None and output_config_format is not None:
-            litellm.verbose_logger.warning(
+            gateway.verbose_logger.warning(
                 "Bedrock Converse: dropping `output_config.format` for model=%s — "
                 "model does not advertise `supports_native_structured_output` in "
                 "model_prices_and_context_window.json. The schema will not be "
@@ -1358,8 +1358,8 @@ class AmazonConverseConfig(BaseConfig):
             if is_bedrock_application_inference_profile_arn(model):
                 additional_request_params["output_config"] = anthropic_output_config
             elif base_model.startswith("anthropic"):
-                if litellm.drop_params is True and not AnthropicConfig._model_supports_effort_param(model, "bedrock"):
-                    litellm.verbose_logger.warning(
+                if gateway.drop_params is True and not AnthropicConfig._model_supports_effort_param(model, "bedrock"):
+                    gateway.verbose_logger.warning(
                         DROP_UNSUPPORTED_OUTPUT_CONFIG_WARNING,
                         model,
                     )
@@ -1567,10 +1567,10 @@ class AmazonConverseConfig(BaseConfig):
         Bedrock doesn't support tool calling without `tools=` param specified.
         """
         if "tools" not in optional_params and messages is not None and has_tool_call_blocks(messages):
-            if litellm.modify_params:
+            if gateway.modify_params:
                 optional_params["tools"] = add_dummy_tool(custom_llm_provider="bedrock_converse")
             else:
-                raise litellm.UnsupportedParamsError(
+                raise gateway.UnsupportedParamsError(
                     message="Bedrock doesn't support tool calling without `tools=` param specified. Pass `tools=` param OR set `litellm.modify_params = True` // `litellm_settings::modify_params: True` to add dummy tool to the request.",
                     model="",
                     llm_provider="bedrock",
@@ -1588,9 +1588,9 @@ class AmazonConverseConfig(BaseConfig):
             and last_assistant_with_tool_calls_has_no_thinking_blocks(messages)
             and not any_assistant_message_has_thinking_blocks(messages)
         ):
-            if litellm.modify_params:
+            if gateway.modify_params:
                 optional_params.pop("thinking", None)
-                litellm.verbose_logger.warning(
+                gateway.verbose_logger.warning(
                     "Dropping 'thinking' param because the last assistant message with tool_calls "
                     "has no thinking_blocks. The model won't use extended thinking for this turn."
                 )
@@ -2374,7 +2374,7 @@ class AmazonConverseConfig(BaseConfig):
             initial_finish_reason=initial_finish_reason,
         )
         model_response.choices = [
-            litellm.Choices(
+            gateway.Choices(
                 finish_reason=returned_finish_reason,
                 index=0,
                 message=returned_message,

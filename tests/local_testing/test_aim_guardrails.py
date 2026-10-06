@@ -15,7 +15,7 @@ from token_iq.gateway.proxy.guardrails.guardrail_hooks.aim.aim import (
 from token_iq.gateway.proxy.proxy_server import StreamingCallbackError, UserAPIKeyAuth
 from token_iq.gateway.types.utils import ModelResponseStream, ModelResponse
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy.guardrails.init_guardrails import init_guardrails_v2
 
 
@@ -30,8 +30,8 @@ class ReceiveMock:
 
 
 def test_aim_guard_config():
-    litellm.set_verbose = True
-    litellm.guardrail_name_config_map = {}
+    gateway.set_verbose = True
+    gateway.guardrail_name_config_map = {}
 
     init_guardrails_v2(
         all_guardrails=[
@@ -50,8 +50,8 @@ def test_aim_guard_config():
 
 
 def test_aim_guard_config_no_api_key():
-    litellm.set_verbose = True
-    litellm.guardrail_name_config_map = {}
+    gateway.set_verbose = True
+    gateway.guardrail_name_config_map = {}
     with pytest.raises(AimGuardrailMissingSecrets, match="Couldn't get Aim api key"):
         init_guardrails_v2(
             all_guardrails=[
@@ -85,7 +85,7 @@ async def test_block_callback(mode: str):
         config_file_path="",
     )
     aim_guardrails = [
-        callback for callback in litellm.callbacks if isinstance(callback, AimGuardrail)
+        callback for callback in gateway.callbacks if isinstance(callback, AimGuardrail)
     ]
     assert len(aim_guardrails) == 1
     aim_guardrail = aim_guardrails[0]
@@ -159,7 +159,7 @@ async def test_output_block_raises_proxy_exception():
         config_file_path="",
     )
     aim_guardrails = [
-        callback for callback in litellm.callbacks if isinstance(callback, AimGuardrail)
+        callback for callback in gateway.callbacks if isinstance(callback, AimGuardrail)
     ]
     assert len(aim_guardrails) == 1
     aim_guardrail = aim_guardrails[0]
@@ -224,7 +224,7 @@ async def test_anonymize_multimodal_rejection_raises_proxy_exception():
         config_file_path="",
     )
     aim_guardrails = [
-        callback for callback in litellm.callbacks if isinstance(callback, AimGuardrail)
+        callback for callback in gateway.callbacks if isinstance(callback, AimGuardrail)
     ]
     assert len(aim_guardrails) == 1
     aim_guardrail = aim_guardrails[0]
@@ -282,7 +282,7 @@ async def test_anonymize_callback__it_returns_redacted_content(mode: str):
         config_file_path="",
     )
     aim_guardrails = [
-        callback for callback in litellm.callbacks if isinstance(callback, AimGuardrail)
+        callback for callback in gateway.callbacks if isinstance(callback, AimGuardrail)
     ]
     assert len(aim_guardrails) == 1
     aim_guardrail = aim_guardrails[0]
@@ -329,7 +329,7 @@ async def test_post_call__with_anonymized_entities__it_doesnt_deanonymize_output
         config_file_path="",
     )
     aim_guardrails = [
-        callback for callback in litellm.callbacks if isinstance(callback, AimGuardrail)
+        callback for callback in gateway.callbacks if isinstance(callback, AimGuardrail)
     ]
     assert len(aim_guardrails) == 1
     aim_guardrail = aim_guardrails[0]
@@ -412,7 +412,7 @@ async def test_post_call_stream__all_chunks_are_valid(monkeypatch, length: int):
         config_file_path="",
     )
     aim_guardrails = [
-        callback for callback in litellm.callbacks if isinstance(callback, AimGuardrail)
+        callback for callback in gateway.callbacks if isinstance(callback, AimGuardrail)
     ]
     assert len(aim_guardrails) == 1
     aim_guardrail = aim_guardrails[0]
@@ -473,7 +473,7 @@ async def test_post_call_stream__blocked_chunks(monkeypatch):
         config_file_path="",
     )
     aim_guardrails = [
-        callback for callback in litellm.callbacks if isinstance(callback, AimGuardrail)
+        callback for callback in gateway.callbacks if isinstance(callback, AimGuardrail)
     ]
     assert len(aim_guardrails) == 1
     aim_guardrail = aim_guardrails[0]

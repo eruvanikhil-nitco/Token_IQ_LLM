@@ -18,7 +18,7 @@ try:
 except ImportError:
     RecordNotFoundError = Exception
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.core_utils.sensitive_data_masker import SensitiveDataMasker
 from token_iq.gateway.llms.custom_httpx.http_handler import get_async_httpx_client
@@ -252,9 +252,9 @@ def _set_env_vars(
 def _clear_hashicorp_vault_state(proxy_config: "ProxyConfig") -> None:
     """Clear all Hashicorp Vault state: env vars, secret manager, and change-detection cache."""
     _set_env_vars({})
-    if litellm._key_management_system == KeyManagementSystem.HASHICORP_VAULT:
-        litellm.secret_manager_client = None
-        litellm._key_management_system = None
+    if gateway._key_management_system == KeyManagementSystem.HASHICORP_VAULT:
+        gateway.secret_manager_client = None
+        gateway._key_management_system = None
     proxy_config._last_hashicorp_vault_config = None  # pyright: ignore[reportPrivateUsage]  # proxy-internal change-detection cache
 
 
@@ -274,10 +274,10 @@ def _restore_cyberark_runtime(proxy_config: "ProxyConfig", env_values: Mapping[s
             verbose_proxy_logger.exception("Failed to restore previous CyberArk configuration")
         else:
             return
-    if litellm._key_management_system != KeyManagementSystem.CYBERARK:  # pyright: ignore[reportPrivateUsage]  # proxy-internal helper, mirrors hashicorp endpoint usage
+    if gateway._key_management_system != KeyManagementSystem.CYBERARK:  # pyright: ignore[reportPrivateUsage]  # proxy-internal helper, mirrors hashicorp endpoint usage
         return
-    litellm.secret_manager_client = None
-    litellm._key_management_system = None  # pyright: ignore[reportPrivateUsage]  # proxy-internal helper, mirrors hashicorp endpoint usage
+    gateway.secret_manager_client = None
+    gateway._key_management_system = None  # pyright: ignore[reportPrivateUsage]  # proxy-internal helper, mirrors hashicorp endpoint usage
     # Force the vault reload to re-init from its own row so no manager is stranded inactive
     proxy_config._last_hashicorp_vault_config = None  # pyright: ignore[reportPrivateUsage]  # proxy-internal change-detection cache
     if os.environ.get("HCP_VAULT_ADDR"):
@@ -607,7 +607,7 @@ async def test_hashicorp_vault_connection(
             detail="Only admin users can test Vault connection",
         )
 
-    client: Final = litellm.secret_manager_client
+    client: Final = gateway.secret_manager_client
     if not isinstance(client, HashicorpSecretManager):
         raise HTTPException(
             status_code=400,
@@ -903,7 +903,7 @@ async def test_cyberark_connection(
             detail="Only admin users can test CyberArk connection",
         )
 
-    client: Final = litellm.secret_manager_client
+    client: Final = gateway.secret_manager_client
     if not isinstance(client, CyberArkSecretManager):
         raise HTTPException(
             status_code=400,

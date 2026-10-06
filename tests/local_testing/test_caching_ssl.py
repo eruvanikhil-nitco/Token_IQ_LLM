@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 import pytest
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import embedding, completion, Router
 from token_iq.gateway.caching.caching import Cache
 
@@ -18,7 +18,7 @@ messages = [{"role": "user", "content": f"who is ishaan {time.time()}"}]
 
 def test_caching_v2():  # test in memory cache
     try:
-        litellm.cache = Cache(
+        gateway.cache = Cache(
             type="redis",
             host="os.environ/REDIS_HOST_2",
             port="os.environ/REDIS_PORT_2",
@@ -29,7 +29,7 @@ def test_caching_v2():  # test in memory cache
         response2 = completion(model="gpt-3.5-turbo", messages=messages, caching=True)
         print(f"response1: {response1}")
         print(f"response2: {response2}")
-        litellm.cache = None  # disable cache
+        gateway.cache = None  # disable cache
         if (
             response2["choices"][0]["message"]["content"]
             != response1["choices"][0]["message"]["content"]
@@ -63,7 +63,7 @@ def test_caching_router():
                 "rpm": 1800,
             }
         ]
-        litellm.cache = Cache(
+        gateway.cache = Cache(
             type="redis",
             host="os.environ/REDIS_HOST",
             port="os.environ/REDIS_PORT",
@@ -84,7 +84,7 @@ def test_caching_router():
         ):
             print(f"response1: {response1}")
             print(f"response2: {response2}")
-        litellm.cache = None  # disable cache
+        gateway.cache = None  # disable cache
         assert (
             response2["choices"][0]["message"]["content"]
             == response1["choices"][0]["message"]["content"]

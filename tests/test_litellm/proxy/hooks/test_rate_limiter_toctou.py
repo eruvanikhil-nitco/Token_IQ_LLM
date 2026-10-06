@@ -23,7 +23,7 @@ from typing import List
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import DualCache, Router
 from token_iq.gateway.proxy._types import UserAPIKeyAuth
 from token_iq.gateway.proxy.hooks.batch_rate_limiter import BatchFileUsage
@@ -207,7 +207,7 @@ async def test_dynamic_rate_limiter_v3_concurrent_bypasses_model_capacity(monkey
     # RPM + 1 successes before the next sees counter > RPM.
     MAX_SEQUENTIAL_SUCCESSES = MODEL_RPM + 1
 
-    litellm.priority_reservation = {"high": 0.9, "low": 0.1}
+    gateway.priority_reservation = {"high": 0.9, "low": 0.1}
 
     dual_cache = DualCache()
     handler = DynamicRateLimitHandler(internal_usage_cache=dual_cache)
@@ -280,7 +280,7 @@ async def test_dynamic_rate_limiter_v3_uses_atomic_check_and_increment(monkeypat
     bundled into the atomic call alongside model_saturation_check. When not
     enforced, priority counter is incremented for tracking only.
     """
-    litellm.priority_reservation = {"high": 0.9, "low": 0.1}
+    gateway.priority_reservation = {"high": 0.9, "low": 0.1}
 
     dual_cache = DualCache()
     handler = DynamicRateLimitHandler(internal_usage_cache=dual_cache)
@@ -421,7 +421,7 @@ async def test_dynamic_rate_limiter_v3_fails_closed_on_unknown_descriptor(monkey
     """
     from fastapi import HTTPException
 
-    litellm.priority_reservation = {"high": 0.9, "low": 0.1}
+    gateway.priority_reservation = {"high": 0.9, "low": 0.1}
 
     dual_cache = DualCache()
     handler = DynamicRateLimitHandler(internal_usage_cache=dual_cache)

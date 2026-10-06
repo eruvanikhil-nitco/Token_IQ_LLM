@@ -5,7 +5,7 @@ from typing import Any, Final, Protocol, cast
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import _ENABLE_SECRET_REDACTION, _redact_string, verbose_logger
 from token_iq.gateway.core_utils.secret_redaction import redact_string
 from token_iq.gateway.types.utils import LlmProviders
@@ -224,7 +224,7 @@ def extract_and_raise_litellm_exception(
     if match:
         exception_name = match.group(0)
         exception_name = exception_name.strip().replace("litellm.", "")
-        raised_exception_obj: Final = getattr(litellm, exception_name, None)
+        raised_exception_obj: Final = getattr(gateway, exception_name, None)
         if raised_exception_obj:
             # Try with response parameter first, fall back to without it
             # Some exceptions (e.g., APIConnectionError) don't accept response param
@@ -362,7 +362,7 @@ def _map_openai_exception(
         "Web server is returning an unknown error" in error_str
         or "The server had an error processing your request." in error_str
     ):
-        raise litellm.InternalServerError(
+        raise gateway.InternalServerError(
             message=f"{exception_provider} - {message}",
             model=model,
             llm_provider=custom_llm_provider,
@@ -582,7 +582,7 @@ def _map_anthropic_exception(
                 model=model,
             )
         elif original_exception.status_code == 500 or original_exception.status_code == 529:
-            raise litellm.InternalServerError(
+            raise gateway.InternalServerError(
                 message=f"AnthropicException - {error_str}. Handle with `litellm.InternalServerError`.",
                 llm_provider="anthropic",
                 model=model,
@@ -596,7 +596,7 @@ def _map_anthropic_exception(
                 response=getattr(original_exception, "response", None),
             )
         elif original_exception.status_code == 503:
-            raise litellm.ServiceUnavailableError(
+            raise gateway.ServiceUnavailableError(
                 message=f"AnthropicException - {error_str}. Handle with `litellm.ServiceUnavailableError`.",
                 llm_provider="anthropic",
                 model=model,
@@ -744,7 +744,7 @@ def _map_openai_like_exception(
             response=getattr(original_exception, "response", None),
         )
     elif "The server received an invalid response from an upstream server." in error_str:
-        raise litellm.InternalServerError(
+        raise gateway.InternalServerError(
             message=f"{custom_llm_provider.capitalize()}Exception - {original_exception.message}",
             llm_provider=custom_llm_provider,
             model=model,
@@ -757,7 +757,7 @@ def _map_openai_like_exception(
         )
     elif hasattr(original_exception, "status_code"):
         if original_exception.status_code == 500:
-            raise litellm.InternalServerError(
+            raise gateway.InternalServerError(
                 message=f"{custom_llm_provider.capitalize()}Exception - {original_exception.message}",
                 llm_provider=custom_llm_provider,
                 model=model,
@@ -926,7 +926,7 @@ def _map_bedrock_exception(
             llm_provider="bedrock",
         )
     elif "Could not process image" in error_str:
-        raise litellm.InternalServerError(
+        raise gateway.InternalServerError(
             message=f"BedrockException - {error_str}",
             model=model,
             llm_provider="bedrock",
@@ -1149,7 +1149,7 @@ def _map_vertex_exception(
             litellm_debug_info=extra_information,
         )
     elif "None Unknown Error." in error_str or "Content has no parts." in error_str:
-        raise litellm.InternalServerError(
+        raise gateway.InternalServerError(
             message=f"litellm.InternalServerError: {custom_llm_provider}Exception - {error_str}",
             model=model,
             llm_provider=custom_llm_provider,
@@ -1241,7 +1241,7 @@ def _map_vertex_exception(
             ),
         )
     elif "500 Internal Server Error" in error_str or "The model is overloaded." in error_str:
-        raise litellm.InternalServerError(
+        raise gateway.InternalServerError(
             message=f"litellm.InternalServerError: {custom_llm_provider}Exception - {error_str}",
             model=model,
             llm_provider=custom_llm_provider,
@@ -1309,7 +1309,7 @@ def _map_vertex_exception(
                 ),
             )
         if original_exception.status_code == 500:
-            raise litellm.InternalServerError(
+            raise gateway.InternalServerError(
                 message=f"{custom_llm_provider.capitalize()}Exception InternalServerError - {error_str}",
                 model=model,
                 llm_provider=custom_llm_provider,
@@ -1934,7 +1934,7 @@ def _map_azure_exception(
         azure_error_code = None
 
     if "Internal server error" in error_str:
-        raise litellm.InternalServerError(
+        raise gateway.InternalServerError(
             message=f"AzureException Internal server error - {message}",
             llm_provider="azure",
             model=model,
@@ -2325,12 +2325,12 @@ def exception_type(
     extra_kwargs={},
 ):
     """Maps an LLM Provider Exception to OpenAI Exception Format"""
-    if any(isinstance(original_exception, exc_type) for exc_type in litellm.LITELLM_EXCEPTION_TYPES):
+    if any(isinstance(original_exception, exc_type) for exc_type in gateway.LITELLM_EXCEPTION_TYPES):
         return original_exception
     exception_mapping_worked = False
     exception_provider = custom_llm_provider
     mappable_exception: Final[_ProviderHTTPException] = cast("_ProviderHTTPException", original_exception)
-    if litellm.suppress_debug_info is False:
+    if gateway.suppress_debug_info is False:
         print()  # noqa: T201
         print(  # noqa: T201
             "\033[1;31mGive Feedback / Get Help"
@@ -2361,8 +2361,8 @@ def exception_type(
             # We pass num retries, api_base, vertex_deployment etc to the exception here
             ################################################################################
             try:
-                _api_base: Final = litellm.get_api_base(model=model, optional_params=extra_kwargs)
-                messages: Final = litellm.get_first_chars_messages(kwargs=completion_kwargs)
+                _api_base: Final = gateway.get_api_base(model=model, optional_params=extra_kwargs)
+                messages: Final = gateway.get_first_chars_messages(kwargs=completion_kwargs)
                 _vertex_project: Final = extra_kwargs.get("vertex_project")
                 _vertex_location: Final = extra_kwargs.get("vertex_location")
                 _metadata: Final = extra_kwargs.get("metadata", {}) or {}
@@ -2375,7 +2375,7 @@ def exception_type(
 
                 if _api_base:
                     extra_information += f"\nAPI Base: `{_api_base}`"
-                if messages and len(messages) > 0 and litellm.redact_messages_in_exceptions is False:
+                if messages and len(messages) > 0 and gateway.redact_messages_in_exceptions is False:
                     extra_information += f"\nMessages: `{messages}`"
 
                 if _model_group is not None:
@@ -2429,7 +2429,7 @@ def exception_type(
                 custom_llm_provider == "openai"
                 or custom_llm_provider == "text-completion-openai"
                 or custom_llm_provider == "custom_openai"
-                or custom_llm_provider in litellm.openai_compatible_providers
+                or custom_llm_provider in gateway.openai_compatible_providers
                 or custom_llm_provider == "mistral"
                 or custom_llm_provider == "runwayml"
             ):
@@ -2462,7 +2462,7 @@ def exception_type(
                     exception_provider=exception_provider,
                     extra_information=extra_information,
                 )
-            elif custom_llm_provider in litellm._openai_like_providers:
+            elif custom_llm_provider in gateway._openai_like_providers:
                 _map_openai_like_exception(
                     model=model,
                     original_exception=mappable_exception,
@@ -2669,7 +2669,7 @@ def exception_type(
             setattr(e, "litellm_response_headers", litellm_response_headers)
             raise e
         else:
-            for error_type in litellm.LITELLM_EXCEPTION_TYPES:
+            for error_type in gateway.LITELLM_EXCEPTION_TYPES:
                 if isinstance(e, error_type):
                     setattr(e, "litellm_response_headers", litellm_response_headers)
                     raise e  # it's already mapped

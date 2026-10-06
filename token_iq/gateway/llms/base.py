@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, Any, Union
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 if TYPE_CHECKING:
     from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
@@ -53,16 +53,16 @@ class BaseLLM:
         return model_response
 
     def create_client_session(self):
-        if litellm.client_session:
-            _client_session = litellm.client_session
+        if gateway.client_session:
+            _client_session = gateway.client_session
         else:
             _client_session = httpx.Client()
 
         return _client_session
 
     def create_aclient_session(self):
-        if litellm.aclient_session:
-            _aclient_session = litellm.aclient_session
+        if gateway.aclient_session:
+            _aclient_session = gateway.aclient_session
         else:
             _aclient_session = httpx.AsyncClient()
 

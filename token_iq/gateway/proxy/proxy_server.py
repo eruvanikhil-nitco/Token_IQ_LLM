@@ -195,9 +195,9 @@ from collections import defaultdict
 from contextlib import asynccontextmanager
 from functools import lru_cache
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 import token_iq.gateway._redis
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import Router
 from token_iq.gateway._logging import _redact_string, verbose_proxy_logger, verbose_router_logger
 from token_iq.gateway.caching.caching import DualCache, RedisCache
@@ -708,7 +708,7 @@ try:
     from token_iq.gateway._version import version
 except Exception:
     version = "0.0.0"
-litellm.suppress_debug_info = True
+gateway.suppress_debug_info = True
 import json
 
 from fastapi import (
@@ -908,8 +908,8 @@ async def proxy_shutdown_event(worker_heartbeat: ProxyWorkerHeartbeat | None = N
         verbose_proxy_logger.debug("Disconnecting from Prisma")
         await prisma_client.disconnect()
 
-    if litellm.cache is not None:
-        await litellm.cache.disconnect()
+    if gateway.cache is not None:
+        await gateway.cache.disconnect()
 
     await jwt_handler.close()
 
@@ -917,7 +917,7 @@ async def proxy_shutdown_event(worker_heartbeat: ProxyWorkerHeartbeat | None = N
         await db_writer_client.close()
 
     # flush remaining langfuse logs
-    if "langfuse" in litellm.success_callback:
+    if "langfuse" in gateway.success_callback:
         try:
             # flush langfuse logs on shutdow
             from token_iq.gateway.utils import langFuseLogger
@@ -1212,7 +1212,7 @@ async def proxy_startup_event(app: FastAPI) -> AsyncGenerator[None, None]:
         prompt_injection_detection_obj.update_environment(router=llm_router)
 
     verbose_proxy_logger.debug("prisma_client: %s", prisma_client)
-    if prisma_client is not None and litellm.max_budget > 0:
+    if prisma_client is not None and gateway.max_budget > 0:
         ProxyStartupEvent._add_proxy_budget_to_db()
         asyncio.create_task(
             ProxyStartupEvent._warm_global_spend_cache(
@@ -1221,7 +1221,7 @@ async def proxy_startup_event(app: FastAPI) -> AsyncGenerator[None, None]:
             )
         )
     ProxyStartupEvent._warn_budget_without_db(
-        max_budget=litellm.max_budget,
+        max_budget=gateway.max_budget,
         prisma_client=prisma_client,
     )
 
@@ -2230,7 +2230,7 @@ user_api_key_cache: UserApiKeyCache = UserApiKeyCache(
 spend_counter_cache: Final = DualCache(default_in_memory_ttl=UserAPIKeyCacheTTLEnum.in_memory_cache_ttl.value)
 cli_sso_session_cache: Final = DualCache(default_in_memory_ttl=CLI_SSO_SESSION_TTL_SECONDS)
 model_max_budget_limiter: Final = _PROXY_VirtualKeyModelMaxBudgetLimiter(dual_cache=spend_counter_cache)
-litellm.logging_callback_manager.add_litellm_callback(model_max_budget_limiter)
+gateway.logging_callback_manager.add_litellm_callback(model_max_budget_limiter)
 redis_usage_cache: RedisCache | None = None  # redis cache used for tracking spend, tpm/rpm limits
 polling_via_cache_enabled: Literal["all"] | list[str] | bool = False
 native_background_mode: list[str] = []  # Models that should use native provider background mode instead of polling
@@ -2338,8 +2338,8 @@ def load_from_azure_key_vault(use_azure_key_vault: bool = False):
         # Create the SecretClient using the credential
         client: Final = SecretClient(vault_url=KVUri, credential=credential)
 
-        litellm.secret_manager_client = client
-        litellm._key_management_system = KeyManagementSystem.AZURE_KEY_VAULT
+        gateway.secret_manager_client = client
+        gateway._key_management_system = KeyManagementSystem.AZURE_KEY_VAULT
     except Exception as e:
         _error_str: Final = str(e)
         verbose_proxy_logger.exception(
@@ -2353,9 +2353,9 @@ def cost_tracking():
     if prisma_client is not None:
         from token_iq.gateway.integrations.shadow_eval_logger import ShadowEvalLogger
 
-        litellm.logging_callback_manager.add_litellm_callback(_ProxyDBLogger())
-        litellm.logging_callback_manager.add_litellm_async_success_callback(_ProxyDBLogger())
-        litellm.logging_callback_manager.add_litellm_callback(ShadowEvalLogger())
+        gateway.logging_callback_manager.add_litellm_callback(_ProxyDBLogger())
+        gateway.logging_callback_manager.add_litellm_async_success_callback(_ProxyDBLogger())
+        gateway.logging_callback_manager.add_litellm_callback(ShadowEvalLogger())
 
 
 # Bounds authoritative DB re-reads when enforcing a budget against a
@@ -4037,14 +4037,14 @@ def _normalize_user_url_validation(value: object) -> bool | None:
 
 def _apply_ssrf_general_settings(settings: Mapping[str, object]) -> None:
     if "user_url_allowed_hosts" in settings:
-        litellm.user_url_allowed_hosts = cast(list[str], settings["user_url_allowed_hosts"])
+        gateway.user_url_allowed_hosts = cast(list[str], settings["user_url_allowed_hosts"])
 
     user_url_validation: Final = _normalize_user_url_validation(settings.get("user_url_validation"))
     if user_url_validation is not None:
-        litellm.user_url_validation = user_url_validation
+        gateway.user_url_validation = user_url_validation
 
     if "provider_url_destination_allowed_hosts" in settings:
-        litellm.provider_url_destination_allowed_hosts = cast(
+        gateway.provider_url_destination_allowed_hosts = cast(
             list[str], settings["provider_url_destination_allowed_hosts"]
         )
 
@@ -4089,7 +4089,7 @@ def _environment_has_redis_connection_target() -> bool:
     know whether the env fallback would apply use this instead of building a
     client.
     """
-    redis_env_kwargs: Final = litellm._redis._redis_kwargs_from_environment()
+    redis_env_kwargs: Final = gateway._redis._redis_kwargs_from_environment()
     return (
         "host" in redis_env_kwargs
         or "url" in redis_env_kwargs
@@ -4111,7 +4111,7 @@ def _build_redis_usage_cache_from_environment() -> RedisCache | None:
     """
     if not _environment_has_redis_connection_target():
         return None
-    return _build_redis_usage_cache(litellm._redis._redis_kwargs_from_environment())
+    return _build_redis_usage_cache(gateway._redis._redis_kwargs_from_environment())
 
 
 def _attach_redis_usage_cache(redis_cache: RedisCache, enable_redis_auth_cache: bool) -> None:
@@ -4127,7 +4127,7 @@ def _attach_redis_usage_cache(redis_cache: RedisCache, enable_redis_auth_cache: 
     """
     spend_counter_cache.attach_redis_cache(
         redis_cache,
-        default_redis_ttl=litellm.default_redis_ttl,
+        default_redis_ttl=gateway.default_redis_ttl,
     )
     cli_sso_session_cache.attach_redis_cache(
         redis_cache,
@@ -4136,7 +4136,7 @@ def _attach_redis_usage_cache(redis_cache: RedisCache, enable_redis_auth_cache: 
     if enable_redis_auth_cache is True:
         user_api_key_cache.attach_redis_cache(
             redis_cache,
-            default_redis_ttl=litellm.default_redis_ttl,
+            default_redis_ttl=gateway.default_redis_ttl,
         )
         verbose_proxy_logger.info(
             "enable_redis_auth_cache=True: attached Redis to "
@@ -4280,7 +4280,7 @@ def pin_complexity_router_model_id(model: dict) -> None:  # mutable-ok: out-para
         model_info = {}  # mutable-ok: fresh model_info stamped onto the raw yaml model dict
         model["model_info"] = model_info  # rebind-ok: out-param, stamped in place
     if model_info.get("id") is None:
-        model_info["id"] = litellm.Router.generate_model_id(
+        model_info["id"] = gateway.Router.generate_model_id(
             model_group=model.get("model_name", ""),
             litellm_params=litellm_params,
         )
@@ -4311,12 +4311,12 @@ def resolve_classifier_plugin(
 
 def _swap_in_model_cost_map(new_model_cost_map: dict) -> int:
     """Adopt a freshly fetched cost map into this process's litellm state, return the model count"""
-    litellm.model_cost = new_model_cost_map
+    gateway.model_cost = new_model_cost_map
     # Invalidate case-insensitive lookup map since model_cost was replaced
     _invalidate_model_cost_lowercase_map()
     # Repopulate provider model sets (e.g. litellm.anthropic_models) so that
     # wildcard patterns like "anthropic/*" include any newly added models.
-    litellm.add_known_models(model_cost_map=new_model_cost_map)
+    gateway.add_known_models(model_cost_map=new_model_cost_map)
     # Counted before the re-apply below, which writes into this same dict, so the
     # number reported describes the fetched price data alone.
     fetched_model_count: Final = len(new_model_cost_map) if new_model_cost_map else 0
@@ -4601,7 +4601,7 @@ class ProxyConfig:
         The manager's own settings can only come from real environment variables, so they are
         resolved against a throwaway copy and the config is left untouched for the main pass.
         """
-        if litellm.secret_manager_client is not None:
+        if gateway.secret_manager_client is not None:
             return
 
         general_settings: Final = config.get("general_settings")
@@ -4619,7 +4619,7 @@ class ProxyConfig:
 
         raw_settings: Final = general_settings.get("key_management_settings")
         if isinstance(raw_settings, dict):
-            litellm._key_management_settings = KeyManagementSettings(
+            gateway._key_management_settings = KeyManagementSettings(
                 **self._check_for_os_environ_vars(config=copy.deepcopy(raw_settings))
             )
 
@@ -4764,15 +4764,15 @@ class ProxyConfig:
         from token_iq.gateway import Cache
 
         if "default_in_memory_ttl" in cache_params:
-            litellm.default_in_memory_ttl = cache_params["default_in_memory_ttl"]
+            gateway.default_in_memory_ttl = cache_params["default_in_memory_ttl"]
 
         if "default_redis_ttl" in cache_params:
-            litellm.default_redis_ttl = cache_params["default_redis_ttl"]
+            gateway.default_redis_ttl = cache_params["default_redis_ttl"]
 
-        litellm.cache = Cache(**cache_params)
+        gateway.cache = Cache(**cache_params)
 
         resolved_usage_cache = redis_usage_cache
-        cache_backend: Final = litellm.cache.cache if litellm.cache is not None else None
+        cache_backend: Final = gateway.cache.cache if gateway.cache is not None else None
         if resolved_usage_cache is None:
             if isinstance(cache_backend, (RedisCache, RedisClusterCache)):
                 ## INIT PROXY REDIS USAGE CLIENT ##
@@ -4802,9 +4802,9 @@ class ProxyConfig:
         Router passes caching=self.cache_responses to litellm.completion()
         """
         global llm_router
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
-        if llm_router is not None and litellm.cache is not None and llm_router.cache_responses is not True:
+        if llm_router is not None and gateway.cache is not None and llm_router.cache_responses is not True:
             llm_router.cache_responses = True
             verbose_proxy_logger.debug("Set router.cache_responses=True after initializing cache")
 
@@ -5013,7 +5013,7 @@ class ProxyConfig:
         )
         return misplaced_jwt_keys
 
-    async def load_config(self, router: litellm.Router | None, config_file_path: str):
+    async def load_config(self, router: gateway.Router | None, config_file_path: str):
         """
         Load config values into proxy global state
         """
@@ -5062,7 +5062,7 @@ class ProxyConfig:
         ## Callback settings
         callback_settings: Final = config.get("callback_settings", {})
         if callback_settings:
-            litellm.callback_settings = callback_settings
+            gateway.callback_settings = callback_settings
 
         ## LITELLM MODULE SETTINGS (e.g. litellm.drop_params=True,..)
         litellm_settings = config.get("litellm_settings", None)
@@ -5160,7 +5160,7 @@ class ProxyConfig:
                             enable_redis_auth_cache=litellm_settings.get("enable_redis_auth_cache", False) is True,
                         )
                     )
-                    if litellm.cache is not None:
+                    if gateway.cache is not None:
                         verbose_proxy_logger.debug("%sSet Cache on LiteLLM Proxy%s", blue_color_code, reset_color_code)
                 elif key == "cache" and value is False:
                     pass
@@ -5172,7 +5172,7 @@ class ProxyConfig:
                         litellm_settings=litellm_settings,
                     )
 
-                    litellm.guardrail_name_config_map = guardrail_name_config_map
+                    gateway.guardrail_name_config_map = guardrail_name_config_map
 
                 elif key == "global_prompt_directory":
                     from token_iq.gateway.integrations.dotprompt import (
@@ -5202,7 +5202,7 @@ class ProxyConfig:
                 elif key == "priority_reservation_settings":
                     from token_iq.gateway.types.utils import PriorityReservationSettings
 
-                    litellm.priority_reservation_settings = PriorityReservationSettings(**value)
+                    gateway.priority_reservation_settings = PriorityReservationSettings(**value)
                 elif key == "callbacks":
                     initialize_callbacks_on_proxy(
                         value=value,
@@ -5215,21 +5215,21 @@ class ProxyConfig:
                 elif key == "model_group_settings":
                     from token_iq.gateway.types.router import ModelGroupSettings
 
-                    litellm.model_group_settings = ModelGroupSettings(**value)
+                    gateway.model_group_settings = ModelGroupSettings(**value)
 
                 elif key == "post_call_rules":
-                    litellm.post_call_rules = [get_instance_fn(value=value, config_file_path=config_file_path)]
-                    verbose_proxy_logger.debug("litellm.post_call_rules: %s", litellm.post_call_rules)
+                    gateway.post_call_rules = [get_instance_fn(value=value, config_file_path=config_file_path)]
+                    verbose_proxy_logger.debug("litellm.post_call_rules: %s", gateway.post_call_rules)
                 elif key == "max_budget":
-                    litellm.max_budget = float(value)
+                    gateway.max_budget = float(value)
                 elif key == "max_internal_user_budget":
-                    litellm.max_internal_user_budget = float(value)
+                    gateway.max_internal_user_budget = float(value)
                 elif key == "default_max_internal_user_budget":
-                    litellm.default_max_internal_user_budget = float(value)
-                    if litellm.max_internal_user_budget is None:
-                        litellm.max_internal_user_budget = litellm.default_max_internal_user_budget
+                    gateway.default_max_internal_user_budget = float(value)
+                    if gateway.max_internal_user_budget is None:
+                        gateway.max_internal_user_budget = gateway.default_max_internal_user_budget
                 elif key == "default_internal_user_params" and isinstance(value, dict):
-                    litellm.default_internal_user_params = (
+                    gateway.default_internal_user_params = (
                         {**value, "max_budget": float(value["max_budget"])}
                         if value.get("max_budget") is not None
                         else value
@@ -5238,13 +5238,13 @@ class ProxyConfig:
                         "%s setting litellm.%s=%s%s",
                         blue_color_code,
                         key,
-                        _redact_general_setting_value(key, litellm.default_internal_user_params, is_full_admin=False),
+                        _redact_general_setting_value(key, gateway.default_internal_user_params, is_full_admin=False),
                         reset_color_code,
                     )
                 elif key == "custom_provider_map":
                     from token_iq.gateway.utils import custom_llm_setup
 
-                    litellm.custom_provider_map = [
+                    gateway.custom_provider_map = [
                         {
                             "provider": item["provider"],
                             "custom_handler": get_instance_fn(
@@ -5257,13 +5257,13 @@ class ProxyConfig:
 
                     custom_llm_setup()
                 elif key == "success_callback":
-                    litellm.success_callback = []
+                    gateway.success_callback = []
 
                     # initialize success callbacks
                     for callback in value:
                         # user passed custom_callbacks.async_on_succes_logger. They need us to import a function
                         if "." in callback:
-                            litellm.logging_callback_manager.add_litellm_success_callback(
+                            gateway.logging_callback_manager.add_litellm_success_callback(
                                 get_instance_fn(
                                     value=callback,
                                     config_file_path=config_file_path,
@@ -5271,7 +5271,7 @@ class ProxyConfig:
                             )
                         # these are litellm callbacks - "langfuse", "sentry", "wandb"
                         else:
-                            litellm.logging_callback_manager.add_litellm_success_callback(callback)
+                            gateway.logging_callback_manager.add_litellm_success_callback(callback)
                             if "prometheus" in callback:
                                 from token_iq.gateway.integrations.prometheus import (
                                     PrometheusLogger,
@@ -5281,16 +5281,16 @@ class ProxyConfig:
                                     verbose_proxy_logger.debug("mounting metrics endpoint")
                                     PrometheusLogger._mount_metrics_endpoint()
                     print(  # noqa: T201
-                        f"{blue_color_code} Initialized Success Callbacks - {litellm.success_callback} {reset_color_code}"
+                        f"{blue_color_code} Initialized Success Callbacks - {gateway.success_callback} {reset_color_code}"
                     )
                 elif key == "failure_callback":
-                    litellm.failure_callback = []
+                    gateway.failure_callback = []
 
                     # initialize success callbacks
                     for callback in value:
                         # user passed custom_callbacks.async_on_succes_logger. They need us to import a function
                         if "." in callback:
-                            litellm.logging_callback_manager.add_litellm_failure_callback(
+                            gateway.logging_callback_manager.add_litellm_failure_callback(
                                 get_instance_fn(
                                     value=callback,
                                     config_file_path=config_file_path,
@@ -5298,9 +5298,9 @@ class ProxyConfig:
                             )
                         # these are litellm callbacks - "langfuse", "sentry", "wandb"
                         else:
-                            litellm.logging_callback_manager.add_litellm_failure_callback(callback)
+                            gateway.logging_callback_manager.add_litellm_failure_callback(callback)
                     print(  # noqa: T201
-                        f"{blue_color_code} Initialized Failure Callbacks - {litellm.failure_callback} {reset_color_code}"
+                        f"{blue_color_code} Initialized Failure Callbacks - {gateway.failure_callback} {reset_color_code}"
                     )
                 elif key == "audit_log_callbacks":
                     from token_iq.gateway.proxy.management_helpers.audit_logs import (
@@ -5309,23 +5309,23 @@ class ProxyConfig:
                     )
 
                     reset_audit_log_callback_cache()
-                    litellm.audit_log_callbacks = []
+                    gateway.audit_log_callbacks = []
 
                     for callback in value:
                         if "." in callback:
-                            litellm.audit_log_callbacks.append(
+                            gateway.audit_log_callbacks.append(
                                 get_instance_fn(
                                     value=callback,
                                     config_file_path=config_file_path,
                                 )
                             )
                         else:
-                            litellm.audit_log_callbacks.append(callback)
+                            gateway.audit_log_callbacks.append(callback)
 
-                    _store_audit_logs = litellm_settings.get("store_audit_logs", litellm.store_audit_logs)
+                    _store_audit_logs = litellm_settings.get("store_audit_logs", gateway.store_audit_logs)
                     if is_audit_logging_enabled(store_audit_logs=_store_audit_logs):
                         print(  # noqa: T201
-                            f"{blue_color_code} Initialized Audit Log Callbacks - {litellm.audit_log_callbacks} {reset_color_code}"
+                            f"{blue_color_code} Initialized Audit Log Callbacks - {gateway.audit_log_callbacks} {reset_color_code}"
                         )
                     else:
                         verbose_proxy_logger.warning(
@@ -5352,11 +5352,11 @@ class ProxyConfig:
                         reset_color_code,
                     )
                 elif key == "max_ui_session_budget":
-                    litellm.max_ui_session_budget = float(value) if value is not None else None
+                    gateway.max_ui_session_budget = float(value) if value is not None else None
                     verbose_proxy_logger.debug(
                         "%s setting litellm.max_ui_session_budget=%s%s",
                         blue_color_code,
-                        litellm.max_ui_session_budget,
+                        gateway.max_ui_session_budget,
                         reset_color_code,
                     )
                 elif key == "default_team_settings":
@@ -5378,18 +5378,18 @@ class ProxyConfig:
                         _redact_general_setting_value(key, value, is_full_admin=False),
                         reset_color_code,
                     )
-                    setattr(litellm, key, value)
+                    setattr(gateway, key, value)
                 elif key == "upperbound_key_generate_params":
                     if value is not None and isinstance(value, dict):
                         for _k, _v in value.items():
                             if isinstance(_v, str) and _v.startswith("os.environ/"):
                                 value[_k] = get_secret(_v)
-                        litellm.upperbound_key_generate_params = LiteLLM_UpperboundKeyGenerateParams(**value)
+                        gateway.upperbound_key_generate_params = LiteLLM_UpperboundKeyGenerateParams(**value)
                     else:
                         raise Exception(f"Invalid value set for upperbound_key_generate_params - value={value}")
                 elif key == "json_logs" and value is True:
-                    litellm.json_logs = True
-                    litellm._turn_on_json()
+                    gateway.json_logs = True
+                    gateway._turn_on_json()
                     verbose_proxy_logger.debug(
                         "%s Enabled JSON logging via config%s", blue_color_code, reset_color_code
                     )
@@ -5399,7 +5399,7 @@ class ProxyConfig:
                     )
 
                     parse_budget_reset_time(value)
-                    setattr(litellm, key, value)
+                    setattr(gateway, key, value)
                 else:
                     verbose_proxy_logger.debug(
                         "%s setting litellm.%s=%s%s",
@@ -5408,9 +5408,9 @@ class ProxyConfig:
                         _redact_general_setting_value(key, value, is_full_admin=False),
                         reset_color_code,
                     )
-                    setattr(litellm, key, value)
+                    setattr(gateway, key, value)
                     if key == "request_timeout":
-                        litellm.request_timeout_explicitly_set = True
+                        gateway.request_timeout_explicitly_set = True
                     if key in {"s3_audit_callback_params", "s3_callback_params"}:
                         from token_iq.gateway.integrations.s3_v2 import S3Logger as S3V2Logger
                         from token_iq.gateway.core_utils.litellm_logging import (
@@ -5456,7 +5456,7 @@ class ProxyConfig:
             # picks up any of them that were themselves secret-manager backed.
             key_management_settings: Final = general_settings.get("key_management_settings", None)
             if key_management_settings is not None:
-                litellm._key_management_settings = KeyManagementSettings(**key_management_settings)
+                gateway._key_management_settings = KeyManagementSettings(**key_management_settings)
 
             ### [DEPRECATED] LOAD FROM GOOGLE KMS ### old way of loading from google kms
             use_google_kms: Final = general_settings.get("use_google_kms", False)
@@ -5620,9 +5620,9 @@ class ProxyConfig:
             _use_legacy_interactions_schema: Final = general_settings.get("use_legacy_interactions_schema")
             if _use_legacy_interactions_schema is not None:
                 if isinstance(_use_legacy_interactions_schema, str):
-                    litellm.use_legacy_interactions_schema = _use_legacy_interactions_schema.lower() == "true"
+                    gateway.use_legacy_interactions_schema = _use_legacy_interactions_schema.lower() == "true"
                 else:
-                    litellm.use_legacy_interactions_schema = bool(_use_legacy_interactions_schema)
+                    gateway.use_legacy_interactions_schema = bool(_use_legacy_interactions_schema)
             # Health-check-driven routing (opt-in, passes through to Router later)
             _enable_hc_routing = general_settings.get("enable_health_check_routing", False)
             _hc_staleness = general_settings.get("health_check_staleness_threshold", None)
@@ -5654,7 +5654,7 @@ class ProxyConfig:
 
 
         router_params: Final[dict] = {
-            "cache_responses": litellm.cache is not None,  # cache if user passed in cache values
+            "cache_responses": gateway.cache is not None,  # cache if user passed in cache values
         }
         # Health-check-driven routing params (from general_settings)
         if _enable_hc_routing:
@@ -5729,7 +5729,7 @@ class ProxyConfig:
 
         if router_settings and isinstance(router_settings, dict):
             available_args: Final = [
-                x for x in litellm.Router.get_valid_args() if x not in ROUTER_SETTINGS_MANAGED_OUTSIDE_CONFIG
+                x for x in gateway.Router.get_valid_args() if x not in ROUTER_SETTINGS_MANAGED_OUTSIDE_CONFIG
             ]
 
             for k, v in router_settings.items():
@@ -5749,7 +5749,7 @@ class ProxyConfig:
                     verbose_proxy_logger.warning(
                         "Key '%s' is not a valid argument for Router.__init__(). Ignoring this key.", k
                     )
-        router = litellm.Router(
+        router = gateway.Router(
             **router_params,
             assistants_config=assistants_config,
             search_tools=search_tools,
@@ -5793,7 +5793,7 @@ class ProxyConfig:
 
         ## CREDENTIALS
         credential_list_dict: Final = self.load_credential_list(config=config)
-        litellm.credential_list = credential_list_dict
+        gateway.credential_list = credential_list_dict
 
         ## NON-LLM CONFIGS eg. MCP tools, vector stores, etc.
         await self._init_non_llm_configs(config=config, config_file_path=config_file_path)
@@ -5839,11 +5839,11 @@ class ProxyConfig:
         if vector_store_registry_config:
             from token_iq.gateway.vector_stores.vector_store_registry import VectorStoreRegistry
 
-            if litellm.vector_store_registry is None:
-                litellm.vector_store_registry = VectorStoreRegistry()
+            if gateway.vector_store_registry is None:
+                gateway.vector_store_registry = VectorStoreRegistry()
 
             # Load vector stores from config
-            litellm.vector_store_registry.load_vector_stores_from_config(vector_store_registry_config)
+            gateway.vector_store_registry.load_vector_stores_from_config(vector_store_registry_config)
 
         ## WORKER REGISTRY (Global Control Plane)
         worker_registry_config: Final = config.get("worker_registry", None)
@@ -5923,7 +5923,7 @@ class ProxyConfig:
                 pass
             else:
                 # [NEW] v1 implementation - init as a custom logger
-                if _alert in litellm._known_custom_logger_compatible_callbacks:
+                if _alert in gateway._known_custom_logger_compatible_callbacks:
                     _logger = _init_custom_logger_compatible_class(
                         logging_integration=_alert,
                         internal_usage_cache=None,
@@ -5931,7 +5931,7 @@ class ProxyConfig:
                         custom_logger_init_args={"alerting_args": general_settings.get("alerting_args", None)},
                     )
                     if _logger is not None:
-                        litellm.logging_callback_manager.add_litellm_callback(_logger)
+                        gateway.logging_callback_manager.add_litellm_callback(_logger)
 
     def initialize_secret_manager(
         self,
@@ -5957,7 +5957,7 @@ class ProxyConfig:
 
                 AWSSecretsManagerV2.load_aws_secret_manager(
                     use_aws_secret_manager=True,
-                    key_management_settings=litellm._key_management_settings,
+                    key_management_settings=gateway._key_management_settings,
                 )
             elif key_management_system == KeyManagementSystem.AWS_KMS.value:
                 load_aws_kms(use_aws_kms=True)
@@ -6210,7 +6210,7 @@ class ProxyConfig:
                 # Router can function with model_list=[] if search_tools are configured
                 if len(_model_list) > 0 or search_tools:
                     verbose_proxy_logger.debug("_model_list: %s", _model_list)
-                    llm_router = litellm.Router(
+                    llm_router = gateway.Router(
                         model_list=_model_list,
                         router_general_settings=RouterGeneralSettings(
                             async_only_mode=True  # only init async clients
@@ -6267,16 +6267,16 @@ class ProxyConfig:
             event_types: List of event types (e.g., ["success"], ["failure"], or ["success", "failure"])
             existing_callbacks: The existing callback list to check against
         """
-        if callback in litellm._known_custom_logger_compatible_callbacks:
+        if callback in gateway._known_custom_logger_compatible_callbacks:
             for event_type in event_types:
                 _add_custom_logger_callback_to_specific_event(callback, event_type)
         elif callback not in existing_callbacks:
             if event_types == ["success"]:
-                litellm.logging_callback_manager.add_litellm_success_callback(callback)
+                gateway.logging_callback_manager.add_litellm_success_callback(callback)
             elif event_types == ["failure"]:
-                litellm.logging_callback_manager.add_litellm_failure_callback(callback)
+                gateway.logging_callback_manager.add_litellm_failure_callback(callback)
             else:  # Both success and failure
-                litellm.logging_callback_manager.add_litellm_callback(callback)
+                gateway.logging_callback_manager.add_litellm_callback(callback)
 
     def _add_callbacks_from_db_config(self, config_data: dict) -> None:
         """
@@ -6292,7 +6292,7 @@ class ProxyConfig:
                 self._add_callback_from_db_to_in_memory_litellm_callbacks(
                     callback=success_callback,
                     event_types=["success"],
-                    existing_callbacks=litellm.success_callback,
+                    existing_callbacks=gateway.success_callback,
                 )
 
         if failure_callbacks is not None and isinstance(failure_callbacks, list):
@@ -6300,7 +6300,7 @@ class ProxyConfig:
                 self._add_callback_from_db_to_in_memory_litellm_callbacks(
                     callback=failure_callback,
                     event_types=["failure"],
-                    existing_callbacks=litellm.failure_callback,
+                    existing_callbacks=gateway.failure_callback,
                 )
 
         if callbacks is not None and isinstance(callbacks, list):
@@ -6308,7 +6308,7 @@ class ProxyConfig:
                 self._add_callback_from_db_to_in_memory_litellm_callbacks(
                     callback=callback,
                     event_types=["success", "failure"],
-                    existing_callbacks=litellm.callbacks,
+                    existing_callbacks=gateway.callbacks,
                 )
 
     def _encrypt_env_variables(self, environment_variables: dict, new_encryption_key: str | None = None) -> dict:
@@ -6841,7 +6841,7 @@ class ProxyConfig:
         elif param_name == "litellm_settings" and isinstance(db_param_value, dict):
             for key, value in db_param_value.items():
                 if key in LITELLM_SETTINGS_SAFE_DB_OVERRIDES:  # params that are safe to override with db values
-                    setattr(litellm, key, value)
+                    setattr(gateway, key, value)
 
         # If param doesn't exist in config, add it
         if param_name not in current_config:
@@ -7138,7 +7138,7 @@ class ProxyConfig:
             return
         for key, value in litellm_settings.items():
             if key in LITELLM_SETTINGS_SAFE_DB_OVERRIDES:
-                setattr(litellm, key, value)
+                setattr(gateway, key, value)
 
     async def _init_semantic_filter_settings_in_db(self, prisma_client: PrismaClient):
         """
@@ -7147,7 +7147,7 @@ class ProxyConfig:
         """
         import json
 
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.proxy.hooks.mcp_semantic_filter import SemanticToolFilterHook
 
         try:
@@ -7169,7 +7169,7 @@ class ProxyConfig:
             if hasattr(self, "_last_semantic_filter_config"):
                 if self._last_semantic_filter_config == mcp_semantic_filter_config:
                     # If hook is missing or router isn't built yet, reinitialize anyway
-                    active_hooks = litellm.logging_callback_manager.get_custom_loggers_for_type(SemanticToolFilterHook)
+                    active_hooks = gateway.logging_callback_manager.get_custom_loggers_for_type(SemanticToolFilterHook)
                     if active_hooks:
                         for active_hook in active_hooks:
                             if isinstance(active_hook, SemanticToolFilterHook):
@@ -7183,7 +7183,7 @@ class ProxyConfig:
                     )
 
             # Remove old hooks using logging callback manager
-            litellm.logging_callback_manager.remove_callbacks_by_type(litellm.callbacks, SemanticToolFilterHook)
+            gateway.logging_callback_manager.remove_callbacks_by_type(gateway.callbacks, SemanticToolFilterHook)
 
             # Initialize new hook if enabled
             if mcp_semantic_filter_config.get("enabled", False):
@@ -7193,7 +7193,7 @@ class ProxyConfig:
                     llm_router=llm_router,
                 )
                 if hook:
-                    litellm.logging_callback_manager.add_litellm_callback(hook)
+                    gateway.logging_callback_manager.add_litellm_callback(hook)
                     verbose_proxy_logger.info("MCP Semantic Filter reinitialized from DB")
             else:
                 verbose_proxy_logger.info("MCP Semantic Filter disabled")
@@ -7658,11 +7658,11 @@ class ProxyConfig:
             if len(vector_stores) <= 0:
                 return
 
-            if litellm.vector_store_registry is None:
-                litellm.vector_store_registry = VectorStoreRegistry(vector_stores=vector_stores)
+            if gateway.vector_store_registry is None:
+                gateway.vector_store_registry = VectorStoreRegistry(vector_stores=vector_stores)
             else:
                 for vector_store in vector_stores:
-                    litellm.vector_store_registry.add_vector_store_to_registry(vector_store=vector_store)
+                    gateway.vector_store_registry.add_vector_store_to_registry(vector_store=vector_store)
         except Exception as e:
             verbose_proxy_logger.exception(
                 "litellm.proxy.proxy_server.py::ProxyConfig:_init_vector_stores_in_db - %s", e
@@ -7680,13 +7680,13 @@ class ProxyConfig:
             if len(vector_store_indexes) <= 0:
                 return
 
-            if litellm.vector_store_index_registry is None:
-                litellm.vector_store_index_registry = VectorStoreIndexRegistry(
+            if gateway.vector_store_index_registry is None:
+                gateway.vector_store_index_registry = VectorStoreIndexRegistry(
                     vector_store_indexes=vector_store_indexes
                 )
             else:
                 for vector_store_index in vector_store_indexes:
-                    litellm.vector_store_index_registry.upsert_vector_store_index(vector_store_index=vector_store_index)
+                    gateway.vector_store_index_registry.upsert_vector_store_index(vector_store_index=vector_store_index)
         except Exception as e:
             verbose_proxy_logger.exception(
                 "litellm.proxy.proxy_server.py::ProxyConfig:_init_vector_stores_in_db - %s", e
@@ -7886,11 +7886,11 @@ class ProxyConfig:
 
         ## DELETE ##
         idx_to_delete: Final = []
-        for idx, credential in enumerate(litellm.credential_list):
+        for idx, credential in enumerate(gateway.credential_list):
             if credential.credential_name not in [cred.credential_name for cred in combined_list]:
                 idx_to_delete.append(idx)
         for idx in sorted(idx_to_delete, reverse=True):
-            litellm.credential_list.pop(idx)
+            gateway.credential_list.pop(idx)
 
     async def get_credentials(self, prisma_client: PrismaClient):
         try:
@@ -8038,14 +8038,14 @@ async def initialize(
     if alias:  # model-specific param
         dynamic_config[user_model]["alias"] = alias
     if drop_params is True:  # litellm-specific param
-        litellm.drop_params = True
+        gateway.drop_params = True
         dynamic_config["general"]["drop_params"] = True
     if add_function_to_prompt is True:  # litellm-specific param
-        litellm.add_function_to_prompt = True
+        gateway.add_function_to_prompt = True
         dynamic_config["general"]["add_function_to_prompt"] = True
     if max_budget:  # litellm-specific param
-        litellm.max_budget = float(max_budget)
-        dynamic_config["general"]["max_budget"] = litellm.max_budget
+        gateway.max_budget = float(max_budget)
+        dynamic_config["general"]["max_budget"] = gateway.max_budget
     if experimental:
         pass
     user_telemetry = telemetry
@@ -8368,7 +8368,7 @@ async def _apply_streaming_chunk_hooks(
     )
 
     if isinstance(chunk, (ModelResponse, ModelResponseStream)):
-        response_str: Final = litellm.get_response_string(response_obj=chunk)
+        response_str: Final = gateway.get_response_string(response_obj=chunk)
         str_so_far += response_str
 
     return chunk, str_so_far
@@ -8537,7 +8537,7 @@ def _resolve_keepalive_seconds(request_data: Mapping[str, object], response: obj
         if client_supplied is not None
         else deployment_raw
         if deployment_raw is not None
-        else litellm.sse_keepalive_ping_interval_seconds
+        else gateway.sse_keepalive_ping_interval_seconds
     )
     try:
         value: Final = float(raw) if isinstance(raw, (int, float, str)) else 0.0
@@ -8854,7 +8854,7 @@ def get_litellm_model_info(model: dict = {}):
     try:
         if "azure" in model_to_lookup or model_info.get("base_model"):
             model_to_lookup = model_info.get("base_model", None)
-        litellm_model_info: Final = litellm.get_model_info(model_to_lookup)
+        litellm_model_info: Final = gateway.get_model_info(model_to_lookup)
         return litellm_model_info
     except Exception:
         # this should not block returning on /model/info
@@ -9062,7 +9062,7 @@ class ProxyStartupEvent:
 
         if hook:
             verbose_proxy_logger.debug("Semantic tool filter hook registered")
-            litellm.logging_callback_manager.add_litellm_callback(hook)
+            gateway.logging_callback_manager.add_litellm_callback(hook)
         else:
             # Only warn if the feature was configured but failed to initialize
             verbose_proxy_logger.warning("Semantic tool filter hook was configured but failed to initialize")
@@ -9099,7 +9099,7 @@ class ProxyStartupEvent:
     @classmethod
     def _add_proxy_budget_to_db(cls):
         """Adds a global proxy budget to db"""
-        if litellm.budget_duration is None:
+        if gateway.budget_duration is None:
             raise Exception("budget_duration not set on Proxy. budget_duration is required to use max_budget.")
 
         asyncio.create_task(cls._upsert_proxy_budget_with_reset_at_backfill())
@@ -9128,12 +9128,12 @@ class ProxyStartupEvent:
             aliases={},
             config={},
             spend=0,
-            max_budget=litellm.max_budget,
-            budget_duration=litellm.budget_duration,
+            max_budget=gateway.max_budget,
+            budget_duration=gateway.budget_duration,
             query_type="update_data",
             update_key_values={
-                "max_budget": litellm.max_budget,
-                "budget_duration": litellm.budget_duration,
+                "max_budget": gateway.max_budget,
+                "budget_duration": gateway.budget_duration,
             },
         )
 
@@ -9141,7 +9141,7 @@ class ProxyStartupEvent:
         # took the UPDATE path, and reset_budget_for_litellm_users never
         # matches them (NULL < now() is unknown in SQL) — so the proxy-wide
         # spend cap blocks forever once it's hit.
-        if prisma_client is not None and litellm.budget_duration is not None:
+        if prisma_client is not None and gateway.budget_duration is not None:
             try:
                 await UserRepository(prisma_client).table.update_many(
                     where={
@@ -9149,7 +9149,7 @@ class ProxyStartupEvent:
                         "budget_reset_at": None,
                     },
                     data={
-                        "budget_reset_at": get_budget_reset_time(budget_duration=litellm.budget_duration),
+                        "budget_reset_at": get_budget_reset_time(budget_duration=gateway.budget_duration),
                         "spend": 0,
                     },
                 )
@@ -9176,10 +9176,10 @@ class ProxyStartupEvent:
     @classmethod
     async def _update_default_team_member_budget(cls):
         """Update the default team member budget"""
-        if litellm.default_internal_user_params is None:
+        if gateway.default_internal_user_params is None:
             return
 
-        _teams: Final = litellm.default_internal_user_params.get("teams") or []
+        _teams: Final = gateway.default_internal_user_params.get("teams") or []
         if _teams and all(isinstance(team, dict) for team in _teams):
             from token_iq.gateway.proxy.ui_crud_endpoints.proxy_setting_endpoints import (
                 update_default_team_member_budget,
@@ -9745,7 +9745,7 @@ class ProxyStartupEvent:
                             integration_token=db_settings.get("integration_token"),
                             base_url=db_settings.get("base_url"),
                         )
-                        litellm.logging_callback_manager.add_litellm_callback(vantage_logger)
+                        gateway.logging_callback_manager.add_litellm_callback(vantage_logger)
                 except Exception as e:
                     verbose_proxy_logger.warning("Failed to register VantageLogger from DB settings: %s", e)
             await VantageLogger.init_vantage_background_job(scheduler=scheduler)
@@ -9762,7 +9762,7 @@ class ProxyStartupEvent:
         ########################################################
         # Prometheus Background Job
         ########################################################
-        if litellm.prometheus_initialize_budget_metrics is True:
+        if gateway.prometheus_initialize_budget_metrics is True:
             from token_iq.gateway.integrations.prometheus import PrometheusLogger
 
             PrometheusLogger.initialize_budget_metrics_cron_job(scheduler=scheduler)
@@ -10450,7 +10450,7 @@ async def model_info(
         )
 
     # Use the actual litellm model from the deployment to get provider info
-    _, provider, _, _ = litellm.get_llm_provider(model=deployment.litellm_params.model)
+    _, provider, _, _ = gateway.get_llm_provider(model=deployment.litellm_params.model)
 
     response_id: Final = internal_to_public.get(resolved_model_id, model_id)
     return create_model_info_response(
@@ -10462,7 +10462,7 @@ async def model_info(
     )
 
 
-def _blocked_response_usage(original_response: object | None) -> "litellm.Usage":
+def _blocked_response_usage(original_response: object | None) -> "gateway.Usage":
     """
     Token usage for a synthetic guardrail-blocked response.
 
@@ -10473,9 +10473,9 @@ def _blocked_response_usage(original_response: object | None) -> "litellm.Usage"
     so usage is zero.
     """
     usage: Final = getattr(original_response, "usage", None) if original_response is not None else None
-    if isinstance(usage, litellm.Usage):
+    if isinstance(usage, gateway.Usage):
         return usage
-    return litellm.Usage(prompt_tokens=0, completion_tokens=0, total_tokens=0)
+    return gateway.Usage(prompt_tokens=0, completion_tokens=0, total_tokens=0)
 
 
 @router.post(
@@ -10582,7 +10582,7 @@ async def chat_completion(
             original_exception=e,
             request_data=_data,
         )
-        _chat_response = litellm.ModelResponse()
+        _chat_response = gateway.ModelResponse()
         _chat_response.model = e.model
         _chat_response.choices[0].message.content = e.message
         _chat_response.choices[0].finish_reason = "content_filter"
@@ -10591,8 +10591,8 @@ async def chat_completion(
         _chat_response.usage = _blocked_response_usage(e.original_response)
 
         if data.get("stream", None) is not None and data["stream"] is True:
-            _iterator = litellm.utils.ModelResponseIterator(model_response=_chat_response, convert_to_delta=True)
-            _streaming_response = litellm.CustomStreamWrapper(
+            _iterator = gateway.utils.ModelResponseIterator(model_response=_chat_response, convert_to_delta=True)
+            _streaming_response = gateway.CustomStreamWrapper(
                 completion_stream=_iterator,
                 model=e.model,
                 custom_llm_provider="cached_response",
@@ -10618,12 +10618,12 @@ async def chat_completion(
             original_exception=e,
             request_data=_data,
         )
-        _chat_response = litellm.ModelResponse()
+        _chat_response = gateway.ModelResponse()
         _chat_response.choices[0].message.content = e.message
 
         if data.get("stream", None) is not None and data["stream"] is True:
-            _iterator = litellm.utils.ModelResponseIterator(model_response=_chat_response, convert_to_delta=True)
-            _streaming_response = litellm.CustomStreamWrapper(
+            _iterator = gateway.utils.ModelResponseIterator(model_response=_chat_response, convert_to_delta=True)
+            _streaming_response = gateway.CustomStreamWrapper(
                 completion_stream=_iterator,
                 model=data.get("model", ""),
                 custom_llm_provider="cached_response",
@@ -10641,7 +10641,7 @@ async def chat_completion(
                 media_type="text/event-stream",
                 status_code=(e.status_code if hasattr(e, "status_code") else status.HTTP_400_BAD_REQUEST),
             )
-        _usage: Final = litellm.Usage(prompt_tokens=0, completion_tokens=0, total_tokens=0)
+        _usage: Final = gateway.Usage(prompt_tokens=0, completion_tokens=0, total_tokens=0)
         _chat_response.usage = _usage
         return _chat_response
     except Exception as e:
@@ -10734,15 +10734,15 @@ async def completion(
         )
 
         if _data.get("stream", None) is not None and _data["stream"] is True:
-            _text_response: Final = litellm.ModelResponse()
+            _text_response: Final = gateway.ModelResponse()
             # Set text attribute dynamically for text completion format
             setattr(_text_response.choices[0], "text", e.message)
             _text_response.model = e.model
             _usage = _blocked_response_usage(e.original_response)
             # Set usage attribute dynamically (ModelResponse accepts usage in __init__ but it's not in type definition)
             setattr(_text_response, "usage", _usage)
-            _iterator = litellm.utils.ModelResponseIterator(model_response=_text_response, convert_to_delta=True)
-            _streaming_response = litellm.TextCompletionStreamWrapper(
+            _iterator = gateway.utils.ModelResponseIterator(model_response=_text_response, convert_to_delta=True)
+            _streaming_response = gateway.TextCompletionStreamWrapper(
                 completion_stream=_iterator,
                 model=e.model,
             )
@@ -10760,7 +10760,7 @@ async def completion(
                 status_code=200,  # Return 200 for passthrough mode
             )
         else:
-            _response = litellm.TextCompletionResponse()
+            _response = gateway.TextCompletionResponse()
             _response.choices[0].text = e.message
             _response.model = e.model
             _usage = _blocked_response_usage(e.original_response)
@@ -10774,16 +10774,16 @@ async def completion(
             request_data=_data,
         )
         if _data.get("stream", None) is not None and _data["stream"] is True:
-            _chat_response: Final = litellm.ModelResponse()
-            _usage = litellm.Usage(
+            _chat_response: Final = gateway.ModelResponse()
+            _usage = gateway.Usage(
                 prompt_tokens=0,
                 completion_tokens=0,
                 total_tokens=0,
             )
             _chat_response.usage = _usage
             _chat_response.choices[0].message.content = e.message
-            _iterator = litellm.utils.ModelResponseIterator(model_response=_chat_response, convert_to_delta=True)
-            _streaming_response = litellm.TextCompletionStreamWrapper(
+            _iterator = gateway.utils.ModelResponseIterator(model_response=_chat_response, convert_to_delta=True)
+            _streaming_response = gateway.TextCompletionStreamWrapper(
                 completion_stream=_iterator,
                 model=_data.get("model", ""),
             )
@@ -10802,7 +10802,7 @@ async def completion(
                 status_code=(e.status_code if hasattr(e, "status_code") else status.HTTP_400_BAD_REQUEST),
             )
         else:
-            _response = litellm.TextCompletionResponse()
+            _response = gateway.TextCompletionResponse()
             _response.choices[0].text = e.message
             return _response
     except Exception as e:
@@ -10889,7 +10889,7 @@ async def embeddings(
                     litellm_params: Final = deployment.get("litellm_params", {}) or {}
                     litellm_model: Final = litellm_params.get("model", "")
                     # Check if this provider supports token arrays
-                    supports_token_arrays: Final = litellm_model in litellm.open_ai_embedding_models or any(
+                    supports_token_arrays: Final = litellm_model in gateway.open_ai_embedding_models or any(
                         litellm_model.startswith(provider)
                         for provider in LITELLM_EMBEDDING_PROVIDERS_SUPPORTING_INPUT_ARRAY_OF_TOKENS
                     )
@@ -10897,7 +10897,7 @@ async def embeddings(
                         # non-openai/azure embedding model called with token input - decode tokens
                         input_list: Final = []
                         for i in data["input"]:
-                            input_list.append(litellm.decode(model="gpt-3.5-turbo", tokens=i))
+                            input_list.append(gateway.decode(model="gpt-3.5-turbo", tokens=i))
                         data["input"] = input_list
 
         if user_api_key_dict is not None:
@@ -12422,7 +12422,7 @@ async def _try_provider_token_count(
             code=status_code,
         )
     if result is not None and result.error is True:
-        if litellm.disable_token_counter is True:
+        if gateway.disable_token_counter is True:
             raise ProxyException(
                 message=result.error_message or "Token counting failed",
                 type="token_counting_error",
@@ -12525,7 +12525,7 @@ async def token_counter(request: TokenCountRequest, call_endpoint: bool = False)
             return result
 
     # Check if token counter is disabled before fallback
-    if litellm.disable_token_counter is True:
+    if gateway.disable_token_counter is True:
         raise ProxyException(
             message="Token counting is disabled and no provider API result available",
             type="token_counting_disabled",
@@ -12540,7 +12540,7 @@ async def token_counter(request: TokenCountRequest, call_endpoint: bool = False)
             CustomHuggingfaceTokenizer | None,
             model_info.get("custom_tokenizer", None),
         )
-    _tokenizer_used: Final = litellm.utils._select_tokenizer(model=model_to_use, custom_tokenizer=custom_tokenizer)
+    _tokenizer_used: Final = gateway.utils._select_tokenizer(model=model_to_use, custom_tokenizer=custom_tokenizer)
 
     tokenizer_used: Final = str(_tokenizer_used["type"])
     system_message: Final = _system_message(system)
@@ -12553,7 +12553,7 @@ async def token_counter(request: TokenCountRequest, call_endpoint: bool = False)
     counted_tools: Final = cast(  # cast-ok: raw OpenAI or Anthropic tool dicts, both of which token_counter formats
         list[ChatCompletionToolParam] | None, tools if counted_messages is not None else None
     )
-    total_tokens: Final = await asyncify(litellm.token_counter)(
+    total_tokens: Final = await asyncify(gateway.token_counter)(
         model=model_to_use,
         text=prompt,
         messages=counted_messages,
@@ -12595,10 +12595,10 @@ async def supported_openai_params(model: str):
         litellm_model, custom_llm_provider = (
             (target_model.removeprefix(f"{declared_provider}/"), declared_provider)
             if declared_provider is not None
-            else litellm.get_llm_provider(model=target_model)[:2]
+            else gateway.get_llm_provider(model=target_model)[:2]
         )
         return {
-            "supported_openai_params": litellm.get_supported_openai_params(
+            "supported_openai_params": gateway.get_supported_openai_params(
                 model=litellm_model, custom_llm_provider=custom_llm_provider
             )
         }
@@ -13043,7 +13043,7 @@ def _enrich_model_info_with_litellm_data(
         litellm_params = model.get("litellm_params", {})
         litellm_model = litellm_params.get("model", None)
         try:
-            litellm_model_info = litellm.get_model_info(model=litellm_model)
+            litellm_model_info = gateway.get_model_info(model=litellm_model)
         except Exception:
             litellm_model_info = {}
     # 3rd pass on the model, try seeing if we can find model but without the "/" in model cost map
@@ -13056,7 +13056,7 @@ def _enrich_model_info_with_litellm_data(
             if len(split_model) > 0:
                 litellm_model = split_model[-1]
             try:
-                litellm_model_info = litellm.get_model_info(model=litellm_model, custom_llm_provider=split_model[0])
+                litellm_model_info = gateway.get_model_info(model=litellm_model, custom_llm_provider=split_model[0])
             except Exception:
                 litellm_model_info = {}
     for k, v in litellm_model_info.items():
@@ -14494,7 +14494,7 @@ def _get_proxy_model_info(model: dict) -> dict:
         litellm_params = model.get("litellm_params", {})
         litellm_model = litellm_params.get("model", None)
         try:
-            litellm_model_info = litellm.get_model_info(model=litellm_model)
+            litellm_model_info = gateway.get_model_info(model=litellm_model)
         except Exception:
             litellm_model_info = {}
     # 3rd pass on the model, try seeing if we can find model but without the "/" in model cost map
@@ -14506,7 +14506,7 @@ def _get_proxy_model_info(model: dict) -> dict:
         if len(split_model) > 0:
             litellm_model = split_model[-1]
         try:
-            litellm_model_info = litellm.get_model_info(model=litellm_model, custom_llm_provider=split_model[0])
+            litellm_model_info = gateway.get_model_info(model=litellm_model, custom_llm_provider=split_model[0])
         except Exception:
             litellm_model_info = {}
     for k, v in litellm_model_info.items():
@@ -14599,7 +14599,7 @@ async def model_info_v1(
     if user_model is not None:
         # user is trying to get specific model from litellm router
         try:
-            model_info: dict = cast(dict, litellm.get_model_info(model=user_model))
+            model_info: dict = cast(dict, gateway.get_model_info(model=user_model))
         except Exception:
             model_info = {}
         _deployment_info: Final = Deployment(
@@ -14804,9 +14804,9 @@ def _get_model_group_info(
             model_groups.append(model_group_info)
 
     ## check for public model groups
-    if litellm.public_model_groups is not None:
+    if gateway.public_model_groups is not None:
         for mg in model_groups:
-            if mg.model_group in litellm.public_model_groups:
+            if mg.model_group in gateway.public_model_groups:
                 mg.is_public_model_group = True
 
     return model_groups
@@ -15027,11 +15027,11 @@ async def model_settings():
     """
 
     returned_list: Final = []
-    for provider in litellm.provider_list:
+    for provider in gateway.provider_list:
         returned_list.append(
             ProviderInfo(
                 name=provider,
-                fields=litellm.get_provider_fields(custom_llm_provider=provider),
+                fields=gateway.get_provider_fields(custom_llm_provider=provider),
             )
         )
 
@@ -15612,7 +15612,7 @@ async def onboarding(invite_link: str, request: Request):
         raise HTTPException(status_code=401, detail={"error": "Invitation link does not exist in db."})
     #### CHECK IF EXPIRED
     # Extract the date part from both datetime objects
-    utc_now_date: Final = litellm.utils.get_utc_datetime().date()
+    utc_now_date: Final = gateway.utils.get_utc_datetime().date()
     expires_at_date: Final = invite_obj.expires_at.date()
     if expires_at_date < utc_now_date:
         raise HTTPException(status_code=401, detail={"error": "Invitation link has expired."})
@@ -15643,7 +15643,7 @@ async def onboarding(invite_link: str, request: Request):
             "token_type": "litellm_onboarding",
             "invitation_link": invite_link,
             "user_id": user_obj.user_id,
-            "exp": litellm.utils.get_utc_datetime() + timedelta(minutes=15),
+            "exp": gateway.utils.get_utc_datetime() + timedelta(minutes=15),
         },
         master_key,
         algorithm="HS256",
@@ -15727,7 +15727,7 @@ async def _rollback_onboarding_invite_claim(
             data={
                 "accepted_at": None,
                 "is_accepted": False,
-                "updated_at": litellm.utils.get_utc_datetime(),
+                "updated_at": gateway.utils.get_utc_datetime(),
                 "updated_by": user_id,
             },
         )
@@ -15743,7 +15743,7 @@ async def _generate_onboarding_ui_session_token(user_obj: _UserTableRow) -> str:
         **{
             "user_role": user_obj.user_role,
             "duration": LITELLM_UI_SESSION_DURATION,
-            "key_max_budget": litellm.max_ui_session_budget,
+            "key_max_budget": gateway.max_ui_session_budget,
             "models": [],
             "aliases": {},
             "config": {},
@@ -15806,7 +15806,7 @@ async def claim_onboarding_link(data: InvitationClaim, request: Request):
         raise HTTPException(status_code=401, detail={"error": "Invitation link does not exist in db."})
     #### CHECK IF EXPIRED
     # Extract the date part from both datetime objects
-    utc_now_date: Final = litellm.utils.get_utc_datetime().date()
+    utc_now_date: Final = gateway.utils.get_utc_datetime().date()
     expires_at_date: Final = invite_obj.expires_at.date()
     if expires_at_date < utc_now_date:
         raise HTTPException(status_code=401, detail={"error": "Invitation link has expired."})
@@ -15840,7 +15840,7 @@ async def claim_onboarding_link(data: InvitationClaim, request: Request):
 
     validate_password_policy(data.password, general_settings)
     hashed_pw: Final = hash_password(data.password)
-    current_time = litellm.utils.get_utc_datetime()
+    current_time = gateway.utils.get_utc_datetime()
     async with prisma_client.db.tx() as tx:
         updated_count: Final = await tx.litellm_invitationlink.update_many(
             where={"id": data.invitation_link, "is_accepted": False},
@@ -15865,7 +15865,7 @@ async def claim_onboarding_link(data: InvitationClaim, request: Request):
             raise HTTPException(status_code=401, detail={"error": "User does not exist in db."})
 
         #### MARK LINK AS USED
-        current_time = litellm.utils.get_utc_datetime()
+        current_time = gateway.utils.get_utc_datetime()
         await tx.litellm_invitationlink.update(
             where={"id": data.invitation_link},
             data={
@@ -16204,7 +16204,7 @@ async def invitation_update(
             detail={"error": f"Unable to identify user id. Received={user_api_key_dict.user_id}"},
         )
 
-    current_time: Final = litellm.utils.get_utc_datetime()
+    current_time: Final = gateway.utils.get_utc_datetime()
     response: Final[object] = await InvitationLinkRepository(prisma_client).table.update(
         where={"id": data.invitation_id},
         data={
@@ -16328,7 +16328,7 @@ async def update_config(
         raw_router_settings: Final = request_body.get("router_settings")
         if isinstance(raw_router_settings, dict):
             supported_router_settings: Final = RUNTIME_UPDATABLE_ROUTER_SETTINGS | (
-                frozenset(litellm.Router.get_valid_args()) - ROUTER_SETTINGS_MANAGED_OUTSIDE_CONFIG
+                frozenset(gateway.Router.get_valid_args()) - ROUTER_SETTINGS_MANAGED_OUTSIDE_CONFIG
             )
             unsupported_router_settings: Final = sorted(set(raw_router_settings) - supported_router_settings)
             if unsupported_router_settings:
@@ -16982,7 +16982,7 @@ async def _persist_general_settings_ui_litellm_field(
     validated: Final = _validate_general_settings_ui_litellm_value(field_name, value)
     config: Final = await proxy_config.get_config()
     before_value: Final = config.get("litellm_settings", {}).get(field_name)
-    setattr(litellm, field_name, validated)
+    setattr(gateway, field_name, validated)
     if "litellm_settings" not in config:
         config["litellm_settings"] = {}
     config["litellm_settings"][field_name] = validated
@@ -16995,7 +16995,7 @@ async def _reset_general_settings_ui_litellm_field(field_name: str, user_api_key
     config: Final = await proxy_config.get_config()
     before_value: Final = config.get("litellm_settings", {}).get(field_name)
     default_value: Final = _general_settings_ui_litellm_default(_GENERAL_SETTINGS_UI_LITELLM_FIELDS[field_name])
-    setattr(litellm, field_name, default_value)
+    setattr(gateway, field_name, default_value)
     if "litellm_settings" in config:
         config["litellm_settings"].pop(field_name, None)
     await proxy_config.save_config(new_config=config)
@@ -17144,7 +17144,7 @@ async def get_config_list(
         else {}
     )
     for litellm_field_name, spec in _GENERAL_SETTINGS_UI_LITELLM_FIELDS.items():
-        current_value: GeneralSettingsUILiteLLMValue = getattr(litellm, litellm_field_name, None)
+        current_value: GeneralSettingsUILiteLLMValue = getattr(gateway, litellm_field_name, None)
         default_value = _general_settings_ui_litellm_default(spec)
         stored_in_db_litellm: bool | None
         if litellm_field_name in db_litellm_settings:
@@ -17736,7 +17736,7 @@ async def get_model_cost_map_source(
         )
 
         source_info: Final = get_model_cost_map_source_info()
-        model_count: Final = len(litellm.model_cost) if litellm.model_cost else 0
+        model_count: Final = len(gateway.model_cost) if gateway.model_cost else 0
 
         return {
             **source_info,

@@ -9,7 +9,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from typing_extensions import ReadOnly, TypedDict
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.constants import (
     LITELLM_TRUNCATED_PAYLOAD_FIELD,
     LITELLM_TRUNCATION_DB_SAFEGUARD_NOTE,
@@ -42,13 +42,13 @@ from token_iq.gateway.types.utils import (
 )
 
 
-def _get_additional_usage_values_for_usage(usage: litellm.Usage) -> dict:
+def _get_additional_usage_values_for_usage(usage: gateway.Usage) -> dict:
     payload = get_logging_payload(
         kwargs={
             "model": "gpt-4o-mini",
             "litellm_params": {"metadata": {"user_api_key": "test-key"}},
         },
-        response_obj=litellm.ModelResponse(
+        response_obj=gateway.ModelResponse(
             id="chatcmpl-test",
             choices=[],
             usage=usage,
@@ -62,7 +62,7 @@ def _get_additional_usage_values_for_usage(usage: litellm.Usage) -> dict:
 
 def test_get_logging_payload_maps_openai_cached_tokens_to_cache_read_input_tokens():
     additional_usage_values = _get_additional_usage_values_for_usage(
-        litellm.Usage(
+        gateway.Usage(
             prompt_tokens=10,
             completion_tokens=2,
             total_tokens=12,
@@ -76,7 +76,7 @@ def test_get_logging_payload_maps_openai_cached_tokens_to_cache_read_input_token
 
 def test_get_logging_payload_preserves_anthropic_cache_read_input_tokens():
     additional_usage_values = _get_additional_usage_values_for_usage(
-        litellm.Usage(
+        gateway.Usage(
             prompt_tokens=10,
             completion_tokens=2,
             total_tokens=12,
@@ -94,7 +94,7 @@ def test_get_logging_payload_preserves_anthropic_cache_read_input_tokens():
 )
 def test_get_logging_payload_does_not_map_missing_or_zero_cached_tokens(prompt_tokens_details):
     additional_usage_values = _get_additional_usage_values_for_usage(
-        litellm.Usage(
+        gateway.Usage(
             prompt_tokens=10,
             completion_tokens=2,
             total_tokens=12,
@@ -107,7 +107,7 @@ def test_get_logging_payload_does_not_map_missing_or_zero_cached_tokens(prompt_t
 
 def test_get_logging_payload_maps_openai_cache_write_tokens_to_cache_creation_input_tokens():
     additional_usage_values = _get_additional_usage_values_for_usage(
-        litellm.Usage(
+        gateway.Usage(
             prompt_tokens=1000,
             completion_tokens=2,
             total_tokens=1002,
@@ -125,7 +125,7 @@ def test_get_logging_payload_maps_nested_cache_creation_input_tokens():
     prompt_tokens_details; SpendLogs must record it as cache_creation_input_tokens.
     """
     additional_usage_values: Final = _get_additional_usage_values_for_usage(
-        litellm.Usage(
+        gateway.Usage(
             prompt_tokens=2059,
             completion_tokens=31,
             total_tokens=2090,
@@ -145,7 +145,7 @@ def test_get_logging_payload_maps_nested_cache_creation_input_tokens():
 
 def test_get_logging_payload_preserves_anthropic_cache_creation_input_tokens():
     additional_usage_values = _get_additional_usage_values_for_usage(
-        litellm.Usage(
+        gateway.Usage(
             prompt_tokens=1000,
             completion_tokens=2,
             total_tokens=1002,
@@ -162,7 +162,7 @@ def test_get_logging_payload_preserves_anthropic_cache_creation_input_tokens():
 )
 def test_get_logging_payload_does_not_map_missing_or_zero_cache_write_tokens(prompt_tokens_details):
     additional_usage_values = _get_additional_usage_values_for_usage(
-        litellm.Usage(
+        gateway.Usage(
             prompt_tokens=10,
             completion_tokens=2,
             total_tokens=12,
@@ -3224,7 +3224,7 @@ def test_no_routing_decision_key_defaults_to_none_in_spend_log_metadata():
             "model": "gpt-4o-mini",
             "litellm_params": {"metadata": {"user_api_key": "test-key"}},
         },
-        response_obj=litellm.ModelResponse(id="chatcmpl-no-routing-decision", choices=[], usage=litellm.Usage()),
+        response_obj=gateway.ModelResponse(id="chatcmpl-no-routing-decision", choices=[], usage=gateway.Usage()),
         start_time=datetime.datetime.now(timezone.utc),
         end_time=datetime.datetime.now(timezone.utc),
     )
@@ -3251,7 +3251,7 @@ def test_internal_call_origin_survives_into_spend_log_metadata(bucket):
                 }
             },
         },
-        response_obj=litellm.ModelResponse(id="chatcmpl-classifier", choices=[], usage=litellm.Usage()),
+        response_obj=gateway.ModelResponse(id="chatcmpl-classifier", choices=[], usage=gateway.Usage()),
         start_time=datetime.datetime.now(timezone.utc),
         end_time=datetime.datetime.now(timezone.utc),
     )
@@ -3267,7 +3267,7 @@ def test_user_traffic_carries_no_internal_call_origin():
             "model": "gpt-4o-mini",
             "litellm_params": {"metadata": {"user_api_key": "test-key"}},
         },
-        response_obj=litellm.ModelResponse(id="chatcmpl-user-traffic", choices=[], usage=litellm.Usage()),
+        response_obj=gateway.ModelResponse(id="chatcmpl-user-traffic", choices=[], usage=gateway.Usage()),
         start_time=datetime.datetime.now(timezone.utc),
         end_time=datetime.datetime.now(timezone.utc),
     )
@@ -3695,7 +3695,7 @@ def test_autorouter_savings_flow_from_logging_payload_into_spend_log_metadata():
             "litellm_params": {"metadata": {"user_api_key": "test-key"}},
             "standard_logging_object": {"autorouter_savings": 0.42, "metadata": {}, "model_map_information": None},
         },
-        response_obj=litellm.ModelResponse(id="chatcmpl-ar-savings", choices=[], usage=litellm.Usage()),
+        response_obj=gateway.ModelResponse(id="chatcmpl-ar-savings", choices=[], usage=gateway.Usage()),
         start_time=datetime.datetime.now(timezone.utc),
         end_time=datetime.datetime.now(timezone.utc),
     )
@@ -3713,7 +3713,7 @@ def test_caller_forged_autorouter_savings_is_discarded(bucket):
             "model": "gpt-4o-mini",
             "litellm_params": {bucket: {"user_api_key": "test-key", "autorouter_savings": 999.0}},
         },
-        response_obj=litellm.ModelResponse(id="chatcmpl-forged-savings", choices=[], usage=litellm.Usage()),
+        response_obj=gateway.ModelResponse(id="chatcmpl-forged-savings", choices=[], usage=gateway.Usage()),
         start_time=datetime.datetime.now(timezone.utc),
         end_time=datetime.datetime.now(timezone.utc),
     )
@@ -3935,7 +3935,7 @@ def test_injected_cache_breakpoints_survive_into_spend_log_metadata(bucket):
                 }
             },
         },
-        response_obj=litellm.ModelResponse(id="chatcmpl-injected", choices=[], usage=litellm.Usage()),
+        response_obj=gateway.ModelResponse(id="chatcmpl-injected", choices=[], usage=gateway.Usage()),
         start_time=datetime.datetime.now(timezone.utc),
         end_time=datetime.datetime.now(timezone.utc),
     )
@@ -3951,7 +3951,7 @@ def test_passthrough_caching_carries_no_injection_marker():
             "model": "claude-sonnet-5",
             "litellm_params": {"metadata": {"user_api_key": "test-key"}},
         },
-        response_obj=litellm.ModelResponse(id="chatcmpl-passthrough", choices=[], usage=litellm.Usage()),
+        response_obj=gateway.ModelResponse(id="chatcmpl-passthrough", choices=[], usage=gateway.Usage()),
         start_time=datetime.datetime.now(timezone.utc),
         end_time=datetime.datetime.now(timezone.utc),
     )
@@ -3980,7 +3980,7 @@ def test_router_metadata_stamped_for_internal_router_model_deployment():
     block correlating the requested model group with the selected deployment."""
     payload = get_logging_payload(
         kwargs=_routed_call_kwargs({"id": "mi-1", "internal_router_model": True}),
-        response_obj=litellm.ModelResponse(id="chatcmpl-router-meta", choices=[], usage=litellm.Usage()),
+        response_obj=gateway.ModelResponse(id="chatcmpl-router-meta", choices=[], usage=gateway.Usage()),
         start_time=datetime.datetime.now(timezone.utc),
         end_time=datetime.datetime.now(timezone.utc),
     )
@@ -3996,7 +3996,7 @@ def test_router_metadata_stamped_for_internal_router_model_deployment():
 def test_router_metadata_absent_without_internal_router_model_flag():
     payload = get_logging_payload(
         kwargs=_routed_call_kwargs({"id": "mi-1"}),
-        response_obj=litellm.ModelResponse(id="chatcmpl-unflagged", choices=[], usage=litellm.Usage()),
+        response_obj=gateway.ModelResponse(id="chatcmpl-unflagged", choices=[], usage=gateway.Usage()),
         start_time=datetime.datetime.now(timezone.utc),
         end_time=datetime.datetime.now(timezone.utc),
     )
@@ -4019,7 +4019,7 @@ def test_caller_forged_router_metadata_is_discarded(bucket):
                 }
             },
         },
-        response_obj=litellm.ModelResponse(id="chatcmpl-forged-router-meta", choices=[], usage=litellm.Usage()),
+        response_obj=gateway.ModelResponse(id="chatcmpl-forged-router-meta", choices=[], usage=gateway.Usage()),
         start_time=datetime.datetime.now(timezone.utc),
         end_time=datetime.datetime.now(timezone.utc),
     )

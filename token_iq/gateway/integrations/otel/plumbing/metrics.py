@@ -16,7 +16,7 @@ from typing import Any, Final, Literal, Protocol, TypeAlias
 from opentelemetry.metrics import Histogram, Meter
 from typing_extensions import ReadOnly, TypedDict
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.integrations.opentelemetry import (
     METRIC_METADATA_KEYS,
@@ -321,7 +321,7 @@ class GenAIMetricRecorder:
             return
         attributes = None
         if self._callback_name in (None, "otel"):
-            otel_settings: Final = (litellm.callback_settings or {}).get("otel") or {}
+            otel_settings: Final = (gateway.callback_settings or {}).get("otel") or {}
             raw: Final = otel_settings.get("attributes") if isinstance(otel_settings, dict) else None
             if raw is not None:
                 attributes = _build_metric_attribute_filter(raw)

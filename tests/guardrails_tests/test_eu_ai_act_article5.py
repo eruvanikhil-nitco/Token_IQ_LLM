@@ -11,7 +11,7 @@ Tests 40 different sentences to validate the conditional matching logic:
 import os
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy.guardrails.guardrail_hooks.litellm_content_filter.content_filter import (
     ContentFilterGuardrail,
 )
@@ -184,7 +184,7 @@ def content_filter_guardrail():
     guardrail = ContentFilterGuardrail(
         guardrail_name="eu-ai-act-test",
         categories=categories,
-        event_hook=litellm.types.guardrails.GuardrailEventHooks.pre_call,
+        event_hook=gateway.types.guardrails.GuardrailEventHooks.pre_call,
     )
 
     return guardrail

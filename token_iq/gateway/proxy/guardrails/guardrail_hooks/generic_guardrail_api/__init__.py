@@ -21,7 +21,7 @@ def _get_config_value(litellm_params: Any, optional_params: Any, attribute_name:
 
 
 def initialize_guardrail(litellm_params: "LitellmParams", guardrail: "Guardrail"):
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     optional_params: Final = getattr(litellm_params, "optional_params", None)
 
@@ -41,7 +41,7 @@ def initialize_guardrail(litellm_params: "LitellmParams", guardrail: "Guardrail"
         streaming_transform_mode=_get_config_value(litellm_params, optional_params, "streaming_transform_mode"),
     )
 
-    litellm.logging_callback_manager.add_litellm_callback(_generic_guardrail_api_callback)
+    gateway.logging_callback_manager.add_litellm_callback(_generic_guardrail_api_callback)
     return _generic_guardrail_api_callback
 
 

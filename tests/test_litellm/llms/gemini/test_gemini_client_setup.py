@@ -1,5 +1,5 @@
 import pytest
-from token_iq import gateway as litellm
+from token_iq import gateway
 import os
 from unittest.mock import patch, Mock
 from token_iq.gateway import completion

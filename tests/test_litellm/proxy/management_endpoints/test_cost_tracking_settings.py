@@ -10,7 +10,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy.management_endpoints.cost_tracking_settings import router
 from token_iq.gateway.proxy.proxy_server import app
 
@@ -136,7 +136,7 @@ class TestCostTrackingSettings:
                 "token_iq.gateway.proxy.proxy_server.store_model_in_db",
                 mock_store_model_in_db,
             ),
-            patch.object(litellm, "cost_discount_config", {}),
+            patch.object(gateway, "cost_discount_config", {}),
         ):
             # Make request
             response = client.patch(
@@ -160,7 +160,7 @@ class TestCostTrackingSettings:
             mock_proxy_config.save_config.assert_called_once()
 
             # Verify litellm.cost_discount_config was updated
-            assert litellm.cost_discount_config == test_discount_config
+            assert gateway.cost_discount_config == test_discount_config
 
     @pytest.mark.asyncio
     async def test_update_cost_discount_config_invalid_provider(self):
@@ -532,8 +532,8 @@ class TestEstimateCostOnPremProvider:
             }
         ]
 
-        saved_model_cost = dict(litellm.model_cost)
-        litellm.register_model(
+        saved_model_cost = dict(gateway.model_cost)
+        gateway.register_model(
             {
                 "openai/zai-org/GLM-5.2": {
                     "input_cost_per_token": 0.0,
@@ -547,7 +547,7 @@ class TestEstimateCostOnPremProvider:
             with patch("token_iq.gateway.proxy.proxy_server.llm_router", mock_router):
                 response = await estimate_cost(request=request, user_api_key_dict=MagicMock())
         finally:
-            litellm.model_cost = saved_model_cost
+            gateway.model_cost = saved_model_cost
 
         assert response.model == "nvidia/zai-org/glm-5.2"
         assert response.provider == "openai"
@@ -689,7 +689,7 @@ class TestBlockRequestsForModelsWithoutPricing:
 
     @pytest.mark.asyncio
     async def test_get_reflects_in_memory_flag(self):
-        with patch.object(litellm, "block_requests_for_models_without_pricing", True):
+        with patch.object(gateway, "block_requests_for_models_without_pricing", True):
             response = client.get(
                 "/config/block_requests_for_models_without_pricing",
                 headers={"Authorization": "Bearer sk-1234"},
@@ -708,7 +708,7 @@ class TestBlockRequestsForModelsWithoutPricing:
             patch("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock()),
             patch("token_iq.gateway.proxy.proxy_server.proxy_config", mock_proxy_config),
             patch("token_iq.gateway.proxy.proxy_server.store_model_in_db", True),
-            patch.object(litellm, "block_requests_for_models_without_pricing", False),
+            patch.object(gateway, "block_requests_for_models_without_pricing", False),
         ):
             response = client.patch(
                 "/config/block_requests_for_models_without_pricing",
@@ -718,7 +718,7 @@ class TestBlockRequestsForModelsWithoutPricing:
 
             assert response.status_code == 200
             assert response.json() == {"enabled": True}
-            assert litellm.block_requests_for_models_without_pricing is True
+            assert gateway.block_requests_for_models_without_pricing is True
 
         saved_config = mock_proxy_config.save_config.call_args.kwargs["new_config"]
         assert saved_config["litellm_settings"]["block_requests_for_models_without_pricing"] is True
@@ -728,14 +728,14 @@ class TestBlockRequestsForModelsWithoutPricing:
         persisted value up when they reload litellm_settings from the DB."""
         from token_iq.gateway.proxy.proxy_server import ProxyConfig
 
-        with patch.object(litellm, "block_requests_for_models_without_pricing", False):
+        with patch.object(gateway, "block_requests_for_models_without_pricing", False):
             ProxyConfig()._update_config_fields(
                 current_config={},
                 param_name="litellm_settings",
                 db_param_value={"block_requests_for_models_without_pricing": True},
             )
 
-            assert litellm.block_requests_for_models_without_pricing is True
+            assert gateway.block_requests_for_models_without_pricing is True
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize("loads_config_overrides", [True, False])
@@ -751,7 +751,7 @@ class TestBlockRequestsForModelsWithoutPricing:
             param_value={"block_requests_for_models_without_pricing": True, "unsafe_key": "x"}
         )
         with (
-            patch.object(litellm, "block_requests_for_models_without_pricing", False),
+            patch.object(gateway, "block_requests_for_models_without_pricing", False),
             patch.object(
                 ProxyConfig,
                 "_should_load_db_object",
@@ -762,8 +762,8 @@ class TestBlockRequestsForModelsWithoutPricing:
         ):
             await ProxyConfig()._init_non_llm_objects_in_db(prisma_client=MagicMock())
 
-            assert litellm.block_requests_for_models_without_pricing is True
-            assert not hasattr(litellm, "unsafe_key")
+            assert gateway.block_requests_for_models_without_pricing is True
+            assert not hasattr(gateway, "unsafe_key")
 
     @pytest.mark.asyncio
     async def test_patch_requires_store_model_in_db(self):
@@ -841,7 +841,7 @@ class TestEstimateCostPartiallyPricedDeployments:
     @pytest.mark.asyncio
     async def test_a_model_priced_only_by_the_cost_map_reports_that_price_and_provider(self, monkeypatch):
         monkeypatch.setitem(
-            litellm.model_cost,
+            gateway.model_cost,
             A_MAPPED_MODEL,
             {
                 "input_cost_per_token": 0.000005,
@@ -898,7 +898,7 @@ class TestEstimateCostPeriodTotals:
 
     @pytest.mark.asyncio
     async def test_a_configured_margin_is_totalled_per_period_like_the_other_components(self, monkeypatch):
-        monkeypatch.setattr(litellm, "cost_margin_config", {"openai": 0.10})
+        monkeypatch.setattr(gateway, "cost_margin_config", {"openai": 0.10})
 
         response = await _estimate(
             _router_pricing(input_cost_per_token=0.000001, output_cost_per_token=0.000002),

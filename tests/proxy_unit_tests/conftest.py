@@ -8,9 +8,9 @@ import warnings
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 import token_iq.gateway.proxy.proxy_server
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 
 # Top-level assignments of these types are the ones importlib.reload(litellm)
@@ -58,7 +58,7 @@ def _restore_mutable_state(module, snapshot):
 def _collect_flushable_caches():
     """Return (module, attr) pairs whose values expose flush_cache()."""
     targets = []
-    for module in (litellm, litellm.proxy.proxy_server):
+    for module in (gateway, gateway.proxy.proxy_server):
         for attr in list(vars(module)):
             if attr.startswith("_"):
                 continue
@@ -93,8 +93,8 @@ def _flush_caches(targets):
 
 
 # Snapshot once at conftest import — these are the "clean" module states.
-_LITELLM_STATE = _snapshot_mutable_state(litellm)
-_PROXY_SERVER_STATE = _snapshot_mutable_state(litellm.proxy.proxy_server)
+_LITELLM_STATE = _snapshot_mutable_state(gateway)
+_PROXY_SERVER_STATE = _snapshot_mutable_state(gateway.proxy.proxy_server)
 _FLUSHABLE_CACHES = _collect_flushable_caches()
 
 
@@ -123,8 +123,8 @@ def setup_and_teardown():
         Use pytest's monkeypatch.setattr() or a local fixture for those
         cases — don't rely on this autouse fixture to undo them.
     """
-    _restore_mutable_state(litellm, _LITELLM_STATE)
-    _restore_mutable_state(litellm.proxy.proxy_server, _PROXY_SERVER_STATE)
+    _restore_mutable_state(gateway, _LITELLM_STATE)
+    _restore_mutable_state(gateway.proxy.proxy_server, _PROXY_SERVER_STATE)
     _flush_caches(_FLUSHABLE_CACHES)
 
     loop = asyncio.get_event_loop_policy().new_event_loop()

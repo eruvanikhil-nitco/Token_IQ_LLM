@@ -26,7 +26,7 @@ from opentelemetry.sdk.trace.export.in_memory_span_exporter import (  # noqa: E4
     InMemorySpanExporter,
 )
 
-from token_iq import gateway as litellm  # noqa: E402
+from token_iq import gateway  # noqa: E402
 from token_iq.gateway.caching.dual_cache import DualCache  # noqa: E402
 from token_iq.gateway.integrations.custom_guardrail import (  # noqa: E402
     CustomGuardrail,
@@ -126,8 +126,8 @@ async def _drive(response_text: str):
     )
     proxy_logging = ProxyLogging(user_api_key_cache=UserApiKeyCache(DualCache()))
 
-    saved_callbacks = list(litellm.callbacks)
-    litellm.callbacks = [guardrail, otel]
+    saved_callbacks = list(gateway.callbacks)
+    gateway.callbacks = [guardrail, otel]
 
     mock_async_client_obj = MagicMock()
     mock_async_client_obj.client = AsyncMock()
@@ -171,7 +171,7 @@ async def _drive(response_text: str):
                 )
         return int(status_code), _guardrail_span_names(exporter)
     finally:
-        litellm.callbacks = saved_callbacks
+        gateway.callbacks = saved_callbacks
 
 
 @pytest.mark.asyncio

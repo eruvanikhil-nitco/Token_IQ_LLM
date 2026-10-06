@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 from fastapi import Request
 from fastapi.routing import APIRoute
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy._types import SpendCalculateRequest
 from token_iq.gateway.proxy.spend_tracking.spend_management_endpoints import calculate_spend
 from token_iq.gateway.router import Router
@@ -44,7 +44,7 @@ async def test_spend_calc_model_on_router_messages():
         ]
     )
 
-    setattr(litellm.proxy.proxy_server, "llm_router", temp_llm_router)
+    setattr(gateway.proxy.proxy_server, "llm_router", temp_llm_router)
 
     cost_obj = await calculate_spend(
         request=SpendCalculateRequest(
@@ -61,7 +61,7 @@ async def test_spend_calc_model_on_router_messages():
     assert _cost > 0.0
 
     # set router to init value
-    setattr(litellm.proxy.proxy_server, "llm_router", init_llm_router)
+    setattr(gateway.proxy.proxy_server, "llm_router", init_llm_router)
 
 
 @pytest.mark.asyncio
@@ -116,7 +116,7 @@ async def test_spend_calc_model_alias_on_router_messages():
         },
     )
 
-    setattr(litellm.proxy.proxy_server, "llm_router", temp_llm_router)
+    setattr(gateway.proxy.proxy_server, "llm_router", temp_llm_router)
 
     cost_obj = await calculate_spend(
         request=SpendCalculateRequest(
@@ -133,4 +133,4 @@ async def test_spend_calc_model_alias_on_router_messages():
     assert _cost > 0.0
 
     # set router to init value
-    setattr(litellm.proxy.proxy_server, "llm_router", init_llm_router)
+    setattr(gateway.proxy.proxy_server, "llm_router", init_llm_router)

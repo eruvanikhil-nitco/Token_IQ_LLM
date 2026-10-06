@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.cost_calculator import cost_per_token
 from token_iq.gateway.core_utils.get_llm_provider_logic import get_llm_provider
 from token_iq.gateway.core_utils.llm_cost_calc.tool_call_cost_tracking import StandardBuiltInToolCostTracking
@@ -84,7 +84,7 @@ def test_muse_spark_1_2_routes_to_meta_model_api(model: str):
 
 @pytest.mark.parametrize("model", (MUSE_SPARK_STANDARD, MUSE_SPARK_CONTRIBUTOR))
 def test_muse_spark_1_2_web_search_cost_per_query(local_model_cost_map, model: str):
-    info = litellm.get_model_info(model=model)
+    info = gateway.get_model_info(model=model)
 
     assert StandardBuiltInToolCostTracking.get_cost_for_web_search(model_info=info) == WEB_SEARCH_COST_PER_QUERY
 

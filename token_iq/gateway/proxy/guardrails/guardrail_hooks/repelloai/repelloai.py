@@ -9,7 +9,7 @@ from httpx import HTTPError
 from httpx import Response as HttpxResponse
 from pydantic import BaseModel, TypeAdapter, ValidationError
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
 from token_iq.gateway.llms.custom_httpx.http_handler import (
@@ -376,7 +376,7 @@ class RepelloAIGuardrail(CustomGuardrail):
     async def async_pre_call_hook(
         self,
         user_api_key_dict: UserAPIKeyAuth,
-        cache: litellm.DualCache,
+        cache: gateway.DualCache,
         data: dict[str, object],
         call_type: CallTypesLiteral,
     ) -> Exception | str | dict[str, object] | None:

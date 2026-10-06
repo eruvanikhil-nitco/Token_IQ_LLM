@@ -1,6 +1,6 @@
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import LlmProviders
 from token_iq.gateway.core_utils.get_litellm_params import get_litellm_params
 from token_iq.gateway.core_utils.get_llm_provider_logic import (
@@ -47,7 +47,7 @@ def test_xai_openai_compatible_provider_info():
 
 
 def test_xai_get_model_info_uses_xai_pricing_metadata():
-    model_info = litellm.get_model_info("xai/grok-3-mini")
+    model_info = gateway.get_model_info("xai/grok-3-mini")
 
     assert model_info["litellm_provider"] == "xai"
     assert model_info["key"] == "xai/grok-3-mini"

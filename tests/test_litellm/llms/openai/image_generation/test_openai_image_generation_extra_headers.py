@@ -233,7 +233,7 @@ class TestImageGenerationEntryPointHeaders:
     @pytest.mark.asyncio
     async def test_extra_headers_reach_openai_provider(self):
         """End-to-end: extra_headers from litellm.aimage_generation() reach OpenAI images.generate()."""
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         mock_image_data = MagicMock()
         mock_image_data.model_dump.return_value = {
@@ -248,7 +248,7 @@ class TestImageGenerationEntryPointHeaders:
 
         test_headers = {"cf-aig-authorization": "Bearer my-secret"}
 
-        await litellm.aimage_generation(
+        await gateway.aimage_generation(
             model="dall-e-3",
             prompt="A white cat",
             extra_headers=test_headers,

@@ -8,7 +8,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.integrations.langfuse import langfuse as langfuse_module
 from token_iq.gateway.integrations.langfuse.langfuse import LangFuseLogger
 
@@ -20,7 +20,7 @@ from token_iq.gateway.types.integrations.langfuse import *
 class TestLangfuseUsageDetails(unittest.TestCase):
     def setUp(self):
         # Save global Langfuse client counter to restore after test
-        self._original_langfuse_clients_count = litellm.initialized_langfuse_clients
+        self._original_langfuse_clients_count = gateway.initialized_langfuse_clients
 
         # Set up environment variables for testing
         self.env_patcher = patch.dict(
@@ -132,7 +132,7 @@ class TestLangfuseUsageDetails(unittest.TestCase):
             del self.logger
 
         # Restore global Langfuse client counter to prevent cross-test pollution
-        litellm.initialized_langfuse_clients = self._original_langfuse_clients_count
+        gateway.initialized_langfuse_clients = self._original_langfuse_clients_count
 
         self.env_patcher.stop()
         self.langfuse_module_patcher.stop()  # patch.dict automatically restores sys.modules
@@ -720,7 +720,7 @@ class TestLangfuseUsageDetails(unittest.TestCase):
         StandardLoggingPayload, which is where the user_api_key_* fields live, so the
         redaction has to run on the assembled payload or the flag silently stops working.
         """
-        with patch.object(litellm, "redact_user_api_key_info", True):
+        with patch.object(gateway, "redact_user_api_key_info", True):
             generation_metadata = self._drive_with_canary()
 
         assert not [key for key in generation_metadata if key.startswith("user_api_key")]
@@ -909,7 +909,7 @@ def test_failure_handler_langfuse_kwargs_excludes_original_response():
     'original_response' to the Langfuse logger. Exercises the real code path
     rather than simulating the filtering logic.
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.core_utils.litellm_logging import Logging
 
     # Create a Logging instance
@@ -943,8 +943,8 @@ def test_failure_handler_langfuse_kwargs_excludes_original_response():
     mock_langfuse_logger.log_event_on_langfuse.side_effect = capture_log_event
 
     # Set "langfuse" as a failure callback so the failure_handler processes it
-    original_failure_callback = litellm.failure_callback
-    litellm.failure_callback = ["langfuse"]
+    original_failure_callback = gateway.failure_callback
+    gateway.failure_callback = ["langfuse"]
 
     try:
         # Mock LangFuseHandler to return our capturing mock logger
@@ -986,7 +986,7 @@ def test_failure_handler_langfuse_kwargs_excludes_original_response():
         # Verify level is ERROR
         assert captured_kwargs.get("level") == "ERROR"
     finally:
-        litellm.failure_callback = original_failure_callback
+        gateway.failure_callback = original_failure_callback
 
 
 @pytest.mark.asyncio
@@ -1135,13 +1135,13 @@ def test_max_langfuse_clients_limit():
     mock_langfuse = MagicMock()
     mock_langfuse.version.__version__ = "3.0.0"
     # Set max clients to 2 for testing
-    original_initialized_langfuse_clients = litellm.initialized_langfuse_clients
+    original_initialized_langfuse_clients = gateway.initialized_langfuse_clients
     with (
         patch.dict("sys.modules", {"langfuse": mock_langfuse}),
         patch.object(langfuse_module, "MAX_LANGFUSE_INITIALIZED_CLIENTS", 2),
     ):
         # Reset the counter
-        litellm.initialized_langfuse_clients = 0
+        gateway.initialized_langfuse_clients = 0
 
         # First client should succeed
         logger1 = LangFuseLogger(
@@ -1149,7 +1149,7 @@ def test_max_langfuse_clients_limit():
             langfuse_secret="test_secret_1",
             langfuse_host="https://test1.langfuse.com",
         )
-        assert litellm.initialized_langfuse_clients == 1
+        assert gateway.initialized_langfuse_clients == 1
 
         # Second client should succeed
         logger2 = LangFuseLogger(
@@ -1157,7 +1157,7 @@ def test_max_langfuse_clients_limit():
             langfuse_secret="test_secret_2",
             langfuse_host="https://test2.langfuse.com",
         )
-        assert litellm.initialized_langfuse_clients == 2
+        assert gateway.initialized_langfuse_clients == 2
 
         # Third client should fail with exception
         with pytest.raises(Exception, match='Max langfuse clients reached') as exc_info:
@@ -1171,9 +1171,9 @@ def test_max_langfuse_clients_limit():
         assert "Max langfuse clients reached" in str(exc_info.value)
 
         # Counter should still be 2 (third client failed to initialize)
-        assert litellm.initialized_langfuse_clients == 2
+        assert gateway.initialized_langfuse_clients == 2
 
-    litellm.initialized_langfuse_clients = original_initialized_langfuse_clients
+    gateway.initialized_langfuse_clients = original_initialized_langfuse_clients
 
 
 class _RecordingLangfuse:
@@ -1194,7 +1194,7 @@ class _RecordingLangfuseWithoutEnvironment:
 
 def _build_langfuse_logger(monkeypatch) -> LangFuseLogger:
     monkeypatch.setenv("LANGFUSE_MOCK", "false")
-    monkeypatch.setattr(litellm, "initialized_langfuse_clients", 0)
+    monkeypatch.setattr(gateway, "initialized_langfuse_clients", 0)
     with patch("langfuse.Langfuse", _RecordingLangfuse):
         return LangFuseLogger(
             langfuse_public_key="pk-lit5228",
@@ -1206,7 +1206,7 @@ def _build_langfuse_logger(monkeypatch) -> LangFuseLogger:
 def test_langfuse_environment_is_passed_to_sdk_client(monkeypatch):
     monkeypatch.setenv("LANGFUSE_MOCK", "false")
     monkeypatch.delenv("LANGFUSE_TRACING_ENVIRONMENT", raising=False)
-    monkeypatch.setattr(litellm, "initialized_langfuse_clients", 0)
+    monkeypatch.setattr(gateway, "initialized_langfuse_clients", 0)
     with patch("langfuse.Langfuse", _RecordingLangfuse):
         logger = LangFuseLogger(
             langfuse_public_key="pk-env",
@@ -1221,7 +1221,7 @@ def test_langfuse_environment_is_passed_to_sdk_client(monkeypatch):
 def test_langfuse_environment_falls_back_to_deployment_env_var(monkeypatch):
     monkeypatch.setenv("LANGFUSE_MOCK", "false")
     monkeypatch.setenv("LANGFUSE_TRACING_ENVIRONMENT", "deployment-wide")
-    monkeypatch.setattr(litellm, "initialized_langfuse_clients", 0)
+    monkeypatch.setattr(gateway, "initialized_langfuse_clients", 0)
     with patch("langfuse.Langfuse", _RecordingLangfuse):
         logger = LangFuseLogger(
             langfuse_public_key="pk-env",
@@ -1234,7 +1234,7 @@ def test_langfuse_environment_falls_back_to_deployment_env_var(monkeypatch):
 
 def test_langfuse_environment_omitted_for_old_sdk_versions(monkeypatch):
     monkeypatch.setenv("LANGFUSE_MOCK", "false")
-    monkeypatch.setattr(litellm, "initialized_langfuse_clients", 0)
+    monkeypatch.setattr(gateway, "initialized_langfuse_clients", 0)
     with patch("langfuse.Langfuse", _RecordingLangfuseWithoutEnvironment):
         LangFuseLogger(
             langfuse_public_key="pk-env",
@@ -1267,7 +1267,7 @@ def test_langfuse_sdk_client_survives_httpx_cache_eviction(monkeypatch):
 
     from token_iq.gateway.llms.custom_httpx.http_handler import _get_httpx_client
 
-    monkeypatch.setattr(litellm, "in_memory_llm_clients_cache", LLMClientCache())
+    monkeypatch.setattr(gateway, "in_memory_llm_clients_cache", LLMClientCache())
     logger = _build_langfuse_logger(monkeypatch)
     sdk_client = _RecordingLangfuse.last_parameters["httpx_client"]
 
@@ -1277,11 +1277,11 @@ def test_langfuse_sdk_client_survives_httpx_cache_eviction(monkeypatch):
     assert sdk_client is logger.langfuse_client
     assert sdk_client is cached_handler.client
 
-    litellm.in_memory_llm_clients_cache = LLMClientCache()
+    gateway.in_memory_llm_clients_cache = LLMClientCache()
     del cached_handler
     gc.collect()
 
-    assert litellm.in_memory_llm_clients_cache.get_cache("httpx_client") is None
+    assert gateway.in_memory_llm_clients_cache.get_cache("httpx_client") is None
     assert handler_ref() is not None, "logger must keep the handler that owns the client it handed the SDK"
     assert not sdk_client.is_closed
 
@@ -1291,7 +1291,7 @@ def test_langfuse_logger_reuses_the_shared_cached_client(monkeypatch):
 
     from token_iq.gateway.caching.llm_caching_handler import LLMClientCache
 
-    monkeypatch.setattr(litellm, "in_memory_llm_clients_cache", LLMClientCache())
+    monkeypatch.setattr(gateway, "in_memory_llm_clients_cache", LLMClientCache())
 
     first = _build_langfuse_logger(monkeypatch)
     second = _build_langfuse_logger(monkeypatch)
@@ -1318,7 +1318,7 @@ def _steering_logger() -> LangFuseLogger:
 def _emit(logger: LangFuseLogger, *, metadata=None, headers=None):
     """``log_event_on_langfuse`` is the entry point that folds ``langfuse_*`` headers into metadata."""
     now = datetime.datetime.now()
-    response_obj = litellm.ModelResponse(
+    response_obj = gateway.ModelResponse(
         choices=[{"message": {"role": "assistant", "content": "the-output"}}]
     )
     logger.log_event_on_langfuse(
@@ -1398,7 +1398,7 @@ def test_mask_input_from_the_request_body_is_unchanged(mask_input, expect_redact
 def test_update_trace_keys_header_applies_every_key_when_enabled(flag):
     logger = _steering_logger()
 
-    with patch.object(litellm, "langfuse_enable_update_trace_keys", flag):
+    with patch.object(gateway, "langfuse_enable_update_trace_keys", flag):
         trace_params, _ = _emit(
             logger,
             headers={
@@ -1440,7 +1440,7 @@ def test_update_trace_keys_input_and_output_are_gated_too():
     logger = _steering_logger()
 
     off, _ = _emit(logger, metadata={"existing_trace_id": "trace-1", "update_trace_keys": ["input", "output"]})
-    with patch.object(litellm, "langfuse_enable_update_trace_keys", True):
+    with patch.object(gateway, "langfuse_enable_update_trace_keys", True):
         on, _ = _emit(logger, metadata={"existing_trace_id": "trace-1", "update_trace_keys": ["input", "output"]})
 
     assert "input" not in off and "output" not in off
@@ -1450,7 +1450,7 @@ def test_update_trace_keys_input_and_output_are_gated_too():
 def test_update_trace_keys_from_the_request_body_list_applies_when_enabled():
     logger = _steering_logger()
 
-    with patch.object(litellm, "langfuse_enable_update_trace_keys", True):
+    with patch.object(gateway, "langfuse_enable_update_trace_keys", True):
         trace_params, _ = _emit(
             logger,
             metadata={
@@ -1477,7 +1477,7 @@ def test_update_trace_keys_matches_whole_keys_not_substrings():
 def test_langfuse_environment_is_coerced_and_validated(monkeypatch):
     monkeypatch.setenv("LANGFUSE_MOCK", "false")
     monkeypatch.delenv("LANGFUSE_TRACING_ENVIRONMENT", raising=False)
-    monkeypatch.setattr(litellm, "initialized_langfuse_clients", 0)
+    monkeypatch.setattr(gateway, "initialized_langfuse_clients", 0)
     with patch("langfuse.Langfuse", _RecordingLangfuse):
         logger = LangFuseLogger(
             langfuse_public_key="pk-env",
@@ -1504,7 +1504,7 @@ def test_langfuse_empty_environment_falls_back_and_is_not_dynamic(monkeypatch):
 
     # '' falls back to the deployment env var at init
     monkeypatch.setenv("LANGFUSE_MOCK", "false")
-    monkeypatch.setattr(litellm, "initialized_langfuse_clients", 0)
+    monkeypatch.setattr(gateway, "initialized_langfuse_clients", 0)
     with patch("langfuse.Langfuse", _RecordingLangfuse):
         logger = LangFuseLogger(
             langfuse_public_key="pk-env",
@@ -1547,7 +1547,7 @@ def test_langfuse_empty_environment_falls_back_and_is_not_dynamic(monkeypatch):
 def test_langfuse_deployment_environment_fallback_never_raises(monkeypatch, env_value, expected):
     monkeypatch.setenv("LANGFUSE_MOCK", "true")
     monkeypatch.setenv("LANGFUSE_TRACING_ENVIRONMENT", env_value)
-    monkeypatch.setattr(litellm, "initialized_langfuse_clients", 0)
+    monkeypatch.setattr(gateway, "initialized_langfuse_clients", 0)
     logger: Final = LangFuseLogger(
         langfuse_public_key="pk-env",
         langfuse_secret="sk-env",

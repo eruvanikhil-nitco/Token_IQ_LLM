@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING, Any, Final
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.custom_httpx.http_handler import get_async_httpx_client
 from token_iq.gateway.types.utils import LlmProviders
 
@@ -148,7 +148,7 @@ class GoogleAIStudioTokenCounter:
 
         except httpx.HTTPStatusError as e:
             error_msg = f"Google Gen AI Studio API error: {e.response.status_code} - {e.response.text}"
-            raise litellm.APIError(
+            raise gateway.APIError(
                 message=error_msg,
                 llm_provider="gemini",
                 model=model,
@@ -156,7 +156,7 @@ class GoogleAIStudioTokenCounter:
             ) from e
         except httpx.RequestError as e:
             error_msg = f"Request to Google Gen AI Studio failed: {e}"
-            raise litellm.APIConnectionError(message=error_msg, llm_provider="gemini", model=model) from e
+            raise gateway.APIConnectionError(message=error_msg, llm_provider="gemini", model=model) from e
         except Exception as e:
             error_msg = f"Unexpected error during token counting: {e}"
             raise Exception(error_msg) from e

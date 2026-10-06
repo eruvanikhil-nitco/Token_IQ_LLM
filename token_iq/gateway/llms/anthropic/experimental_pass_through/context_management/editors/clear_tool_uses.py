@@ -4,7 +4,7 @@ from typing import Any, Final, cast
 
 from typing_extensions import ReadOnly, TypedDict
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.types.llms.anthropic import AppliedEdit
 
@@ -76,7 +76,7 @@ def _trigger_met(
 
     if not isinstance(threshold, int):
         threshold = DEFAULT_INPUT_TOKENS_TRIGGER
-    current_tokens: Final = litellm.token_counter(
+    current_tokens: Final = gateway.token_counter(
         model=model,
         messages=messages,
         tools=cast(Any, tools),
@@ -199,8 +199,8 @@ def apply_clear_tool_uses_20250919(
         return messages, None
 
     if tokens_before is None:
-        tokens_before = litellm.token_counter(model=model, messages=messages, tools=cast(Any, tools))
-    tokens_after: Final = litellm.token_counter(model=model, messages=edited, tools=cast(Any, tools))
+        tokens_before = gateway.token_counter(model=model, messages=messages, tools=cast(Any, tools))
+    tokens_after: Final = gateway.token_counter(model=model, messages=edited, tools=cast(Any, tools))
     cleared_input_tokens: Final = max(tokens_before - tokens_after, 0)
 
     applied: Final[AppliedEdit] = {

@@ -11,7 +11,7 @@ from typing import Any, Final
 import httpx
 from pydantic import BaseModel
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway._uuid import uuid
 from token_iq.gateway.integrations.custom_batch_logger import CustomBatchLogger
@@ -70,7 +70,7 @@ class LangsmithLogger(CustomBatchLogger):
         )
         self.langsmith_default_run_name = os.getenv("LANGSMITH_DEFAULT_RUN_NAME", "LLMRun")
         self.async_httpx_client = get_async_httpx_client(llm_provider=httpxSpecialProvider.LoggingCallback)
-        _batch_size: Final = os.getenv("LANGSMITH_BATCH_SIZE", None) or litellm.langsmith_batch_size
+        _batch_size: Final = os.getenv("LANGSMITH_BATCH_SIZE", None) or gateway.langsmith_batch_size
 
         if _batch_size:
             self.batch_size = int(_batch_size)
@@ -530,7 +530,7 @@ class LangsmithLogger(CustomBatchLogger):
         headers: Final = {"x-api-key": langsmith_api_key}
         if langsmith_tenant_id:
             headers["x-tenant-id"] = langsmith_tenant_id
-        response: Final = litellm.module_level_client.get(
+        response: Final = gateway.module_level_client.get(
             url=url,
             headers=headers,
         )

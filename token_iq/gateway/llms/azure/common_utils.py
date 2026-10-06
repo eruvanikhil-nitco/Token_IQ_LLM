@@ -11,7 +11,7 @@ import httpx
 from openai import AsyncAzureOpenAI, AsyncOpenAI, AzureOpenAI, OpenAI
 from typing_extensions import ReadOnly, TypedDict
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.caching.caching import DualCache
 from token_iq.gateway.llms.base_llm.chat.transformation import BaseLLMException
@@ -240,7 +240,7 @@ def get_azure_ad_token_from_oidc(
     if azure_ad_token_access_token is not None:
         return azure_ad_token_access_token
 
-    client: Final = litellm.module_level_client
+    client: Final = gateway.module_level_client
 
     req_token: Final = client.post(
         f"{azure_authority_host}/{azure_tenant_id}/oauth2/v2.0/token",
@@ -362,7 +362,7 @@ def get_azure_ad_token(
             scope=scope,
         )
     # Try to get token provider from service principal or DefaultAzureCredential
-    elif azure_ad_token_provider is None and litellm.enable_azure_ad_token_refresh is True:
+    elif azure_ad_token_provider is None and gateway.enable_azure_ad_token_refresh is True:
         verbose_logger.debug(
             "Using Azure AD token provider based on Service Principal with Secret workflow or DefaultAzureCredential for Azure Auth"
         )
@@ -609,7 +609,7 @@ class BaseAzureLLM(BaseOpenAILLM):
                 azure_tenant_id=tenant_id,
                 scope=scope,
             )
-        elif not api_key and azure_ad_token_provider is None and litellm.enable_azure_ad_token_refresh is True:
+        elif not api_key and azure_ad_token_provider is None and gateway.enable_azure_ad_token_refresh is True:
             verbose_logger.debug(
                 "Using Azure AD token provider based on Service Principal with Secret workflow for Azure Auth"
             )
@@ -620,7 +620,7 @@ class BaseAzureLLM(BaseOpenAILLM):
             except ValueError:
                 verbose_logger.debug("Azure AD Token Provider could not be used.")
         if api_version is None:
-            api_version = os.getenv("AZURE_API_VERSION", litellm.AZURE_DEFAULT_API_VERSION)
+            api_version = os.getenv("AZURE_API_VERSION", gateway.AZURE_DEFAULT_API_VERSION)
 
         _api_key = api_key
         if _api_key is not None and isinstance(_api_key, str):
@@ -685,7 +685,7 @@ class BaseAzureLLM(BaseOpenAILLM):
             azure_client_params: Final[_AzureGatewayClientParams] = {
                 "api_version": api_version,
                 "base_url": f"{api_base}",
-                "http_client": litellm.client_session,
+                "http_client": gateway.client_session,
                 "max_retries": max_retries,
                 "timeout": timeout,
             }
@@ -720,8 +720,8 @@ class BaseAzureLLM(BaseOpenAILLM):
 
         api_key: Final = (
             litellm_params.api_key
-            or litellm.api_key
-            or litellm.azure_key
+            or gateway.api_key
+            or gateway.azure_key
             or get_secret_str("AZURE_OPENAI_API_KEY")
             or get_secret_str("AZURE_API_KEY")
         )
@@ -755,7 +755,7 @@ class BaseAzureLLM(BaseOpenAILLM):
             default_api_version: The default API version to use if no api_version is provided. If 'latest', it will use `openai/v1/...` route.
         """
 
-        api_base = api_base or litellm.api_base or get_secret_str("AZURE_API_BASE")
+        api_base = api_base or gateway.api_base or get_secret_str("AZURE_API_BASE")
         if api_base is None:
             raise ValueError(
                 f"api_base is required for Azure AI Studio. Please set the api_base parameter. Passed `api_base={api_base}`"
@@ -849,12 +849,12 @@ def get_azure_credentials(
     api_version: str | None = None,
 ) -> AzureCredentials:
     """Resolve Azure credentials from params, litellm globals, and env vars."""
-    resolved_api_base: Final = api_base or litellm.api_base or get_secret_str("AZURE_API_BASE")
-    resolved_api_version: Final = api_version or litellm.api_version or get_secret_str("AZURE_API_VERSION")
+    resolved_api_base: Final = api_base or gateway.api_base or get_secret_str("AZURE_API_BASE")
+    resolved_api_version: Final = api_version or gateway.api_version or get_secret_str("AZURE_API_VERSION")
     resolved_api_key: Final = (
         api_key
-        or litellm.api_key
-        or litellm.azure_key
+        or gateway.api_key
+        or gateway.azure_key
         or get_secret_str("AZURE_OPENAI_API_KEY")
         or get_secret_str("AZURE_API_KEY")
     )

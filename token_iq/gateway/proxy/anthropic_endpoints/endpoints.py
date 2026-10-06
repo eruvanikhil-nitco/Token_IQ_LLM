@@ -7,7 +7,7 @@ from typing import Final
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from fastapi.responses import JSONResponse
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.anthropic_interface.exceptions import AnthropicExceptionMapping
 from token_iq.gateway.integrations.custom_guardrail import ModifyResponseException
@@ -123,7 +123,7 @@ async def anthropic_response(
         # streaming SSE path, which already omits total_tokens).
         # spend_logs / Prometheus still compute total internally — this
         # only affects the wire response.
-        if litellm.strip_anthropic_total_tokens:
+        if gateway.strip_anthropic_total_tokens:
             _strip_total_tokens_from_anthropic_response(result)
         return result
     except ModifyResponseException as e:

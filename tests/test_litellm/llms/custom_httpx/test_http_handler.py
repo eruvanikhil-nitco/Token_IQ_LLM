@@ -13,7 +13,7 @@ import httpx
 import pytest
 from aiohttp import ClientSession, TCPConnector
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.custom_httpx.aiohttp_transport import LiteLLMAiohttpTransport
 from token_iq.gateway.llms.custom_httpx.http_handler import (
     _CLIENT_REFCOUNT_WHEN_HANDLER_IS_SOLE_REFERRER,
@@ -125,7 +125,7 @@ def test_sync_post_streaming_status_error_should_not_wait_forever_for_body(
 @pytest.mark.asyncio
 async def test_ssl_security_level(monkeypatch):
     # Ensure aiohttp transport is enabled for this test
-    monkeypatch.setattr(litellm, "disable_aiohttp_transport", False)
+    monkeypatch.setattr(gateway, "disable_aiohttp_transport", False)
 
     with patch.dict(os.environ, clear=True):
         # Set environment variable for SSL security level
@@ -158,8 +158,8 @@ async def test_ssl_security_level(monkeypatch):
 @pytest.mark.asyncio
 async def test_force_ipv4_transport(monkeypatch: pytest.MonkeyPatch):
     """Test transport creation with force_ipv4 enabled"""
-    monkeypatch.setattr(litellm, "force_ipv4", True)
-    monkeypatch.setattr(litellm, "disable_aiohttp_transport", True)
+    monkeypatch.setattr(gateway, "force_ipv4", True)
+    monkeypatch.setattr(gateway, "disable_aiohttp_transport", True)
 
     transport = AsyncHTTPHandler._create_async_transport()
 
@@ -170,8 +170,8 @@ async def test_force_ipv4_transport(monkeypatch: pytest.MonkeyPatch):
 @pytest.mark.asyncio
 async def test_aiohttp_disabled_transport(monkeypatch: pytest.MonkeyPatch):
     """Test transport creation with aiohttp disabled"""
-    monkeypatch.setattr(litellm, "disable_aiohttp_transport", True)
-    monkeypatch.setattr(litellm, "force_ipv4", False)
+    monkeypatch.setattr(gateway, "disable_aiohttp_transport", True)
+    monkeypatch.setattr(gateway, "force_ipv4", False)
 
     transport = AsyncHTTPHandler._create_async_transport()
 
@@ -190,7 +190,7 @@ async def test_ssl_verification_with_aiohttp_transport(monkeypatch: pytest.Monke
     import aiohttp
 
     # Ensure aiohttp transport is enabled for this test
-    monkeypatch.setattr(litellm, "disable_aiohttp_transport", False)
+    monkeypatch.setattr(gateway, "disable_aiohttp_transport", False)
 
     litellm_async_client = AsyncHTTPHandler(ssl_verify=False)
 
@@ -227,7 +227,7 @@ async def test_ssl_verification_with_shared_session(monkeypatch: pytest.MonkeyPa
     import aiohttp
 
     # Ensure aiohttp transport is enabled for this test
-    monkeypatch.setattr(litellm, "disable_aiohttp_transport", False)
+    monkeypatch.setattr(gateway, "disable_aiohttp_transport", False)
 
     shared_session = aiohttp.ClientSession()
 
@@ -255,7 +255,7 @@ async def test_ssl_context_with_shared_session(monkeypatch: pytest.MonkeyPatch):
     import aiohttp
 
     # Ensure aiohttp transport is enabled for this test
-    monkeypatch.setattr(litellm, "disable_aiohttp_transport", False)
+    monkeypatch.setattr(gateway, "disable_aiohttp_transport", False)
 
     custom_ssl_context = ssl.create_default_context()
 
@@ -520,7 +520,7 @@ def test_ssl_ecdh_curve(env_curve, litellm_curve, expected_curve, should_call, m
         if env_curve:
             monkeypatch.setenv("SSL_ECDH_CURVE", env_curve)
 
-        monkeypatch.setattr(litellm, "ssl_ecdh_curve", litellm_curve)
+        monkeypatch.setattr(gateway, "ssl_ecdh_curve", litellm_curve)
 
         # Create a real SSL context and patch set_ecdh_curve on it
         # We need a real SSLContext instance (not a MagicMock) because _create_ssl_context
@@ -712,8 +712,8 @@ class TestDefaultCachedClientTimeoutHonorsRequestTimeout:
             _default_cached_client_timeout,
         )
 
-        monkeypatch.setattr(litellm, "request_timeout", litellm.constants.DEFAULT_REQUEST_TIMEOUT_SECONDS)
-        monkeypatch.setattr(litellm, "request_timeout_explicitly_set", False)
+        monkeypatch.setattr(gateway, "request_timeout", gateway.constants.DEFAULT_REQUEST_TIMEOUT_SECONDS)
+        monkeypatch.setattr(gateway, "request_timeout_explicitly_set", False)
         assert _default_cached_client_timeout() is _DEFAULT_TIMEOUT
 
     def test_uses_explicit_request_timeout(self, monkeypatch: pytest.MonkeyPatch):
@@ -721,8 +721,8 @@ class TestDefaultCachedClientTimeoutHonorsRequestTimeout:
             _default_cached_client_timeout,
         )
 
-        monkeypatch.setattr(litellm, "request_timeout", 300)
-        monkeypatch.setattr(litellm, "request_timeout_explicitly_set", True)
+        monkeypatch.setattr(gateway, "request_timeout", 300)
+        monkeypatch.setattr(gateway, "request_timeout_explicitly_set", True)
         resolved = _default_cached_client_timeout()
         assert resolved.read == 300.0
         assert resolved.connect == 5.0
@@ -732,9 +732,9 @@ class TestDefaultCachedClientTimeoutHonorsRequestTimeout:
         from token_iq.gateway.llms.custom_httpx.http_handler import get_async_httpx_client
         from token_iq.gateway.types.utils import LlmProviders
 
-        monkeypatch.setattr(litellm, "request_timeout", 300)
-        monkeypatch.setattr(litellm, "request_timeout_explicitly_set", True)
-        litellm.in_memory_llm_clients_cache = LLMClientCache()
+        monkeypatch.setattr(gateway, "request_timeout", 300)
+        monkeypatch.setattr(gateway, "request_timeout_explicitly_set", True)
+        gateway.in_memory_llm_clients_cache = LLMClientCache()
         client = get_async_httpx_client(llm_provider=LlmProviders.BEDROCK)
         assert client.timeout.read == 300.0
 
@@ -908,12 +908,12 @@ def test_concurrent_sync_heal_creates_exactly_one_replacement():
 def fresh_llm_client_cache():
     from token_iq.gateway.caching.llm_caching_handler import LLMClientCache
 
-    previous = getattr(litellm, "in_memory_llm_clients_cache", None)
-    litellm.in_memory_llm_clients_cache = LLMClientCache()
+    previous = getattr(gateway, "in_memory_llm_clients_cache", None)
+    gateway.in_memory_llm_clients_cache = LLMClientCache()
     try:
         yield
     finally:
-        litellm.in_memory_llm_clients_cache = previous
+        gateway.in_memory_llm_clients_cache = previous
 
 
 def test_sole_referrer_handler_may_close_but_a_sharing_one_may_not():
@@ -972,8 +972,8 @@ def test_exclusively_owned_sync_client_pool_is_closed_when_handler_is_collected(
 
 @pytest.mark.asyncio
 async def test_exclusively_owned_async_client_pool_is_closed_when_handler_is_collected(keepalive_server, monkeypatch):
-    monkeypatch.setattr(litellm, "disable_aiohttp_transport", True)
-    monkeypatch.setattr(litellm, "force_ipv4", False)
+    monkeypatch.setattr(gateway, "disable_aiohttp_transport", True)
+    monkeypatch.setattr(gateway, "force_ipv4", False)
 
     handler = AsyncHTTPHandler()
     pool = handler.client._transport._pool
@@ -990,8 +990,8 @@ async def test_exclusively_owned_async_client_pool_is_closed_when_handler_is_col
 
 @pytest.mark.asyncio
 async def test_handed_out_async_client_pool_survives_handler_collection(keepalive_server, monkeypatch):
-    monkeypatch.setattr(litellm, "disable_aiohttp_transport", True)
-    monkeypatch.setattr(litellm, "force_ipv4", False)
+    monkeypatch.setattr(gateway, "disable_aiohttp_transport", True)
+    monkeypatch.setattr(gateway, "force_ipv4", False)
 
     handler = AsyncHTTPHandler()
     consumer_client = handler.client
@@ -1078,13 +1078,13 @@ def test_client_handed_out_by_sync_cache_survives_eviction_and_collection(fresh_
     handler_ref = weakref.ref(handler)
 
     assert not consumer_client.is_closed
-    assert litellm.in_memory_llm_clients_cache.get_cache("httpx_client") is handler
+    assert gateway.in_memory_llm_clients_cache.get_cache("httpx_client") is handler
 
-    litellm.in_memory_llm_clients_cache = LLMClientCache()
+    gateway.in_memory_llm_clients_cache = LLMClientCache()
     del handler
     gc.collect()
 
-    assert litellm.in_memory_llm_clients_cache.get_cache("httpx_client") is None
+    assert gateway.in_memory_llm_clients_cache.get_cache("httpx_client") is None
     assert handler_ref() is None
     assert not consumer_client.is_closed
 
@@ -1103,7 +1103,7 @@ async def test_client_handed_out_by_async_cache_survives_eviction_and_collection
 
     assert not consumer_client.is_closed
 
-    litellm.in_memory_llm_clients_cache = LLMClientCache()
+    gateway.in_memory_llm_clients_cache = LLMClientCache()
     del handler
     gc.collect()
     await asyncio.sleep(0.1)
@@ -1365,8 +1365,8 @@ async def test_async_handler_honours_proxy_env_for_every_transport(
     monkeypatch.setenv("HTTP_PROXY", proxy_url)
     monkeypatch.delenv("NO_PROXY", raising=False)
     monkeypatch.delenv("no_proxy", raising=False)
-    monkeypatch.setattr(litellm, "disable_aiohttp_transport", disable_aiohttp_transport)
-    monkeypatch.setattr(litellm, "force_ipv4", force_ipv4)
+    monkeypatch.setattr(gateway, "disable_aiohttp_transport", disable_aiohttp_transport)
+    monkeypatch.setattr(gateway, "force_ipv4", force_ipv4)
 
     handler = AsyncHTTPHandler()
     try:
@@ -1384,7 +1384,7 @@ def test_sync_handler_honours_proxy_env(forward_proxy_server, monkeypatch: pytes
     monkeypatch.setenv("HTTP_PROXY", proxy_url)
     monkeypatch.delenv("NO_PROXY", raising=False)
     monkeypatch.delenv("no_proxy", raising=False)
-    monkeypatch.setattr(litellm, "force_ipv4", force_ipv4)
+    monkeypatch.setattr(gateway, "force_ipv4", force_ipv4)
 
     handler = HTTPHandler()
     try:
@@ -1401,8 +1401,8 @@ async def test_force_ipv4_httpx_transport_honours_no_proxy(keepalive_server, mon
     """NO_PROXY hosts must still go direct when the proxy mounts are supplied by litellm instead of httpx."""
     monkeypatch.setenv("HTTP_PROXY", "http://proxy.invalid:3128")
     monkeypatch.setenv("NO_PROXY", "127.0.0.1")
-    monkeypatch.setattr(litellm, "disable_aiohttp_transport", True)
-    monkeypatch.setattr(litellm, "force_ipv4", True)
+    monkeypatch.setattr(gateway, "disable_aiohttp_transport", True)
+    monkeypatch.setattr(gateway, "force_ipv4", True)
 
     handler = AsyncHTTPHandler()
     try:
@@ -1519,8 +1519,8 @@ async def test_force_ipv4_https_proxy_mount_uses_handler_ca_bundle(
     monkeypatch.setenv("HTTPS_PROXY", proxy_url)
     monkeypatch.delenv("NO_PROXY", raising=False)
     monkeypatch.delenv("no_proxy", raising=False)
-    monkeypatch.setattr(litellm, "disable_aiohttp_transport", True)
-    monkeypatch.setattr(litellm, "force_ipv4", True)
+    monkeypatch.setattr(gateway, "disable_aiohttp_transport", True)
+    monkeypatch.setattr(gateway, "force_ipv4", True)
 
     handler = AsyncHTTPHandler(ssl_verify=ca_pem)
     try:
@@ -1538,7 +1538,7 @@ def test_sync_force_ipv4_https_proxy_mount_uses_handler_ca_bundle(
     monkeypatch.setenv("HTTPS_PROXY", proxy_url)
     monkeypatch.delenv("NO_PROXY", raising=False)
     monkeypatch.delenv("no_proxy", raising=False)
-    monkeypatch.setattr(litellm, "force_ipv4", True)
+    monkeypatch.setattr(gateway, "force_ipv4", True)
 
     handler = HTTPHandler(ssl_verify=ca_pem)
     try:

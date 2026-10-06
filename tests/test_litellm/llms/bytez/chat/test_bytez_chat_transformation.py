@@ -51,7 +51,7 @@ class TestBytezChatConfig:
         )
 
     def test_bytez_completion_mock_sync(self, respx_mock):
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         input_messages = [
             {"role": "user", "content": "What is your favorite kind of cat?"}
@@ -74,7 +74,7 @@ class TestBytezChatConfig:
         )
 
         # Make the actual API call through LiteLLM
-        response = litellm.completion(
+        response = gateway.completion(
             model=TEST_MODEL,
             messages=input_messages,
             api_key=TEST_API_KEY,

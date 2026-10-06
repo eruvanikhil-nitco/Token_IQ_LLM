@@ -20,7 +20,7 @@ def test_is_prompt_management_model_optimization():
 
     Tests both negative (early exit) and positive (actual detection) cases.
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     # Test 1: Standard models without "/" -> early exit returns False
     router = Router(
@@ -43,9 +43,9 @@ def test_is_prompt_management_model_optimization():
     assert router._is_prompt_management_model("unknown/model") is False
 
     # Test 3: Actual prompt management models ARE detected (critical positive case)
-    original_callbacks = litellm._known_custom_logger_compatible_callbacks.copy()
-    if "langfuse_prompt" not in litellm._known_custom_logger_compatible_callbacks:
-        litellm._known_custom_logger_compatible_callbacks.append("langfuse_prompt")
+    original_callbacks = gateway._known_custom_logger_compatible_callbacks.copy()
+    if "langfuse_prompt" not in gateway._known_custom_logger_compatible_callbacks:
+        gateway._known_custom_logger_compatible_callbacks.append("langfuse_prompt")
 
     try:
         router_with_prompt = Router(
@@ -64,4 +64,4 @@ def test_is_prompt_management_model_optimization():
         )
 
     finally:
-        litellm._known_custom_logger_compatible_callbacks = original_callbacks
+        gateway._known_custom_logger_compatible_callbacks = original_callbacks

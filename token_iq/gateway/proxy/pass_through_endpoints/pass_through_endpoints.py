@@ -35,7 +35,7 @@ from websockets.exceptions import (
 )
 from websockets.frames import Close, CloseCode
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway._uuid import uuid
 from token_iq.gateway.constants import (
@@ -235,8 +235,8 @@ async def chat_completion_pass_through_endpoint(
         ### MODEL ALIAS MAPPING ###
         # check if model name in model alias map
         # get the actual model name
-        if data["model"] in litellm.model_alias_map:
-            data["model"] = litellm.model_alias_map[data["model"]]
+        if data["model"] in gateway.model_alias_map:
+            data["model"] = gateway.model_alias_map[data["model"]]
 
         # Check key-specific aliases
         if (
@@ -256,7 +256,7 @@ async def chat_completion_pass_through_endpoint(
         router_model_names: Final = llm_router.model_names if llm_router is not None else []
         # skip router if user passed their key
         if "api_key" in data:
-            llm_response = asyncio.create_task(litellm.aadapter_completion(**data))
+            llm_response = asyncio.create_task(gateway.aadapter_completion(**data))
         elif llm_router is not None and llm_router.is_recognized_model(data["model"]):
             llm_response = asyncio.create_task(llm_router.aadapter_completion(**data))
         elif (
@@ -270,7 +270,7 @@ async def chat_completion_pass_through_endpoint(
         ):  # model in router deployments, calling a specific deployment on the router (lowest priority)
             llm_response = asyncio.create_task(llm_router.aadapter_completion(**data, specific_deployment=True))
         elif user_model is not None:  # `litellm --model <your-model-name>`
-            llm_response = asyncio.create_task(litellm.aadapter_completion(**data))
+            llm_response = asyncio.create_task(gateway.aadapter_completion(**data))
         else:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -1326,7 +1326,7 @@ async def pass_through_request(
                         request=request,
                         user_api_key_dict=user_api_key_dict,
                     ),
-                    ping_interval_seconds=litellm.sse_keepalive_ping_interval_seconds,
+                    ping_interval_seconds=gateway.sse_keepalive_ping_interval_seconds,
                     upstream_headers=response.headers,
                 ),
                 headers=_response_headers,
@@ -1407,7 +1407,7 @@ async def pass_through_request(
                         request=request,
                         user_api_key_dict=user_api_key_dict,
                     ),
-                    ping_interval_seconds=litellm.sse_keepalive_ping_interval_seconds,
+                    ping_interval_seconds=gateway.sse_keepalive_ping_interval_seconds,
                     upstream_headers=response.headers,
                 ),
                 headers=_response_headers,
@@ -1834,7 +1834,7 @@ def create_pass_through_route(
         else:
             adapter = get_instance_fn(value=target, config_file_path=config_file_path)
         adapter_id: Final = str(uuid.uuid4())
-        litellm.adapters = [{"id": adapter_id, "adapter": adapter}]
+        gateway.adapters = [{"id": adapter_id, "adapter": adapter}]
 
         async def endpoint_func(
             request: Request,
@@ -1974,7 +1974,7 @@ def create_pass_through_route(
             # the wire. Off unless an operator sets an interval.
             return await open_sse_before_first_byte(
                 _relay(),
-                ping_interval_seconds=(litellm.sse_keepalive_ping_interval_seconds if is_stream else None),
+                ping_interval_seconds=(gateway.sse_keepalive_ping_interval_seconds if is_stream else None),
             )
 
     setattr(endpoint_func, LITELLM_PASS_THROUGH_ENDPOINT_MARKER, True)

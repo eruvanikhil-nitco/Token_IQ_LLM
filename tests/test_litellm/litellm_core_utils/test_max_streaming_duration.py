@@ -12,7 +12,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.streaming_handler import CustomStreamWrapper
 
 # ---------------------------------------------------------------------------
@@ -53,7 +53,7 @@ class TestCustomStreamWrapperMaxDuration:
         wrapper = _make_custom_stream_wrapper()
         wrapper._stream_created_time = time.time() - 20  # simulate 20s elapsed
         with patch("token_iq.gateway.constants.LITELLM_MAX_STREAMING_DURATION_SECONDS", 10.0):
-            with pytest.raises(litellm.Timeout, match="max streaming duration"):
+            with pytest.raises(gateway.Timeout, match="max streaming duration"):
                 wrapper._check_max_streaming_duration()
 
     def test_should_raise_on_sync_next_when_exceeded(self):
@@ -61,7 +61,7 @@ class TestCustomStreamWrapperMaxDuration:
         wrapper = _make_custom_stream_wrapper()
         wrapper._stream_created_time = time.time() - 20
         with patch("token_iq.gateway.constants.LITELLM_MAX_STREAMING_DURATION_SECONDS", 10.0):
-            with pytest.raises(litellm.Timeout):
+            with pytest.raises(gateway.Timeout):
                 wrapper.__next__()
 
     @pytest.mark.asyncio
@@ -74,7 +74,7 @@ class TestCustomStreamWrapperMaxDuration:
         wrapper.logging_obj.dispatch_failure_handlers = AsyncMock()
         wrapper._stream_created_time = time.time() - 20
         with patch("token_iq.gateway.constants.LITELLM_MAX_STREAMING_DURATION_SECONDS", 10.0):
-            with pytest.raises(litellm.Timeout):
+            with pytest.raises(gateway.Timeout):
                 await wrapper.__anext__()
 
 
@@ -128,5 +128,5 @@ class TestResponsesStreamingIteratorMaxDuration:
             "token_iq.gateway.responses.streaming_iterator.LITELLM_MAX_STREAMING_DURATION_SECONDS",
             10.0,
         ):
-            with pytest.raises(litellm.Timeout, match="max streaming duration"):
+            with pytest.raises(gateway.Timeout, match="max streaming duration"):
                 it._check_max_streaming_duration()

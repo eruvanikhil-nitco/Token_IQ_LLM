@@ -18,7 +18,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.anthropic.experimental_pass_through.context_management import (
     AnthropicContextManagementError,
     apply_context_management,
@@ -1508,7 +1508,7 @@ async def test_summary_model_denied_when_team_member_scope_excludes_it():
 async def test_summary_model_denied_when_key_over_model_budget():
     """A caller whose per-model budget for the summary model is exhausted cannot
     trigger the summary call via compaction."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     messages = _simple_messages()
     mock_call = AsyncMock(return_value=_make_mock_response("<summary>x</summary>"))
@@ -1521,7 +1521,7 @@ async def test_summary_model_denied_when_key_over_model_budget():
 
     limiter = MagicMock()
     limiter.is_key_within_model_budget = AsyncMock(
-        side_effect=litellm.BudgetExceededError(
+        side_effect=gateway.BudgetExceededError(
             message="over budget", current_cost=10, max_budget=5
         )
     )
@@ -1560,7 +1560,7 @@ async def test_summary_model_denied_when_user_over_model_budget():
     only the key and end-user scopes would let compaction increment a counter it
     can never be refused by, which is the asymmetry this PR exists to remove.
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     messages = _simple_messages()
     mock_call = AsyncMock(return_value=_make_mock_response("<summary>x</summary>"))
@@ -1574,7 +1574,7 @@ async def test_summary_model_denied_when_user_over_model_budget():
 
     limiter = MagicMock()
     limiter.is_user_within_model_budget = AsyncMock(
-        side_effect=litellm.BudgetExceededError(
+        side_effect=gateway.BudgetExceededError(
             message="over budget", current_cost=10, max_budget=5
         )
     )
@@ -1626,7 +1626,7 @@ async def test_summary_model_denied_when_user_over_model_budget():
 
 async def test_summary_model_denied_when_end_user_over_model_budget():
     """End-user per-model budget is enforced for the summary subrequest too."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     messages = _simple_messages()
     mock_call = AsyncMock(return_value=_make_mock_response("<summary>x</summary>"))
@@ -1641,7 +1641,7 @@ async def test_summary_model_denied_when_end_user_over_model_budget():
     limiter = MagicMock()
     limiter.is_key_within_model_budget = AsyncMock(return_value=True)
     limiter.is_end_user_within_model_budget = AsyncMock(
-        side_effect=litellm.BudgetExceededError(
+        side_effect=gateway.BudgetExceededError(
             message="over budget", current_cost=10, max_budget=5
         )
     )
@@ -2151,7 +2151,7 @@ async def test_run_polyfill_runs_when_litellm_drop_params_true(monkeypatch):
         _run_polyfill_if_enabled,
     )
 
-    monkeypatch.setattr(litellm, "drop_params", True)
+    monkeypatch.setattr(gateway, "drop_params", True)
     with patch(
         "token_iq.gateway.llms.anthropic.experimental_pass_through.context_management.editors.compact._read_summary_model_setting",
         return_value=None,
@@ -2284,7 +2284,7 @@ async def test_async_handler_runs_polyfill_when_request_drop_params_true():
 async def test_async_handler_runs_polyfill_when_litellm_drop_params_true(monkeypatch):
     """Regression (LIT-3768): proxy-wide litellm.drop_params=True silently
     skipped the polyfill too."""
-    monkeypatch.setattr(litellm, "drop_params", True)
+    monkeypatch.setattr(gateway, "drop_params", True)
     response, captured = await _call_async_adapter_handler()
     _assert_polyfill_applied(response, captured)
 
@@ -2331,7 +2331,7 @@ def test_sync_handler_runs_polyfill_when_request_drop_params_true():
 def test_sync_handler_runs_polyfill_when_litellm_drop_params_true(monkeypatch):
     """Proxy-wide litellm.drop_params=True must not skip the polyfill on the
     sync entry point either."""
-    monkeypatch.setattr(litellm, "drop_params", True)
+    monkeypatch.setattr(gateway, "drop_params", True)
     response, captured = _call_sync_adapter_handler()
     _assert_polyfill_applied(response, captured)
 

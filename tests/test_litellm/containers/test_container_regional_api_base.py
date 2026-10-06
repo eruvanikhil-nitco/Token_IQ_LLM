@@ -13,7 +13,7 @@ import httpx
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 
 class TestContainerRegionalApiBase:
@@ -31,7 +31,7 @@ class TestContainerRegionalApiBase:
             del os.environ["OPENAI_BASE_URL"]
         if "OPENAI_API_BASE" in os.environ:
             del os.environ["OPENAI_API_BASE"]
-        litellm.api_base = None
+        gateway.api_base = None
 
     @patch("token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post")
     def test_create_container_uses_regional_api_base(self, mock_post):
@@ -54,7 +54,7 @@ class TestContainerRegionalApiBase:
         }
         mock_post.return_value = mock_response
 
-        litellm.create_container(
+        gateway.create_container(
             name="Test Container",
             custom_llm_provider="openai",
             api_base="https://us.api.openai.com/v1",
@@ -89,7 +89,7 @@ class TestContainerRegionalApiBase:
         }
         mock_post.return_value = mock_response
 
-        litellm.create_container(
+        gateway.create_container(
             name="Test Container",
             custom_llm_provider="openai",
         )
@@ -121,7 +121,7 @@ class TestContainerRegionalApiBase:
         }
         mock_post.return_value = mock_response
 
-        litellm.create_container(
+        gateway.create_container(
             name="Test Container",
             custom_llm_provider="openai",
         )
@@ -149,7 +149,7 @@ class TestContainerRegionalApiBase:
         }
         mock_post.return_value = mock_response
 
-        litellm.upload_container_file(
+        gateway.upload_container_file(
             container_id="cntr_123456",
             file=("data.csv", b"col1,col2\n1,2", "text/csv"),
             custom_llm_provider="openai",

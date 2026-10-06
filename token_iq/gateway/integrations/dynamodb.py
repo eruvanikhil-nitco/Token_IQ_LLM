@@ -5,7 +5,7 @@ import os
 import traceback
 from typing import Any, Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._uuid import uuid
 
 
@@ -17,11 +17,11 @@ class DyanmoDBLogger:
         import boto3
 
         self.dynamodb: Any = boto3.resource("dynamodb", region_name=os.environ["AWS_REGION_NAME"])
-        if litellm.dynamodb_table_name is None:
+        if gateway.dynamodb_table_name is None:
             raise ValueError(
                 "LiteLLM Error, trying to use DynamoDB but not table name passed. Create a table and set `litellm.dynamodb_table_name=<your-table>`"
             )
-        self.table_name = litellm.dynamodb_table_name
+        self.table_name = gateway.dynamodb_table_name
 
     async def _async_log_event(self, kwargs, response_obj, start_time, end_time, print_verbose):
         self.log_event(kwargs, response_obj, start_time, end_time, print_verbose)

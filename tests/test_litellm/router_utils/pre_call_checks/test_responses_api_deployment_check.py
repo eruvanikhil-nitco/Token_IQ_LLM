@@ -6,7 +6,7 @@ import pytest
 
 import json
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler
 from token_iq.gateway.types.llms.openai import (

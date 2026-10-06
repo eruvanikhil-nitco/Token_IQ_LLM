@@ -21,7 +21,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response, WebSoc
 from fastapi.responses import StreamingResponse
 from starlette.websockets import WebSocketState
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import get_llm_provider
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.constants import (
@@ -99,7 +99,7 @@ def create_request_copy(request: Request):
     }
 
 
-def is_passthrough_request_using_router_model(request_body: dict, llm_router: litellm.Router | None) -> bool:
+def is_passthrough_request_using_router_model(request_body: dict, llm_router: gateway.Router | None) -> bool:
     """
     Returns True if the model is in the llm_router model names
     """
@@ -526,14 +526,14 @@ async def milvus_proxy_route(
             detail=f"Collection name is required. Got {request_body}",
         )
 
-    if not litellm.vector_store_index_registry or not litellm.vector_store_registry:
+    if not gateway.vector_store_index_registry or not gateway.vector_store_registry:
         raise HTTPException(
             status_code=500,
             detail="Unable to find Milvus vector store index registry or vector store registry.",
         )
 
     # check if vector store index
-    is_vector_store_index: Final = litellm.vector_store_index_registry.is_vector_store_index(
+    is_vector_store_index: Final = gateway.vector_store_index_registry.is_vector_store_index(
         vector_store_index_name=collection_name
     )
 
@@ -552,8 +552,8 @@ async def milvus_proxy_route(
     # get the vector store name from index registry
 
     index_object: Final = (
-        (litellm.vector_store_index_registry.get_vector_store_index_by_name(vector_store_index_name=collection_name))
-        if litellm.vector_store_index_registry is not None
+        (gateway.vector_store_index_registry.get_vector_store_index_by_name(vector_store_index_name=collection_name))
+        if gateway.vector_store_index_registry is not None
         else None
     )
     if index_object is None:
@@ -567,7 +567,7 @@ async def milvus_proxy_route(
     # Update the request object with the modified collection name
     _safe_set_request_parsed_body(request, request_body)
 
-    vector_store: Final = litellm.vector_store_registry.get_litellm_managed_vector_store_from_registry_by_name(
+    vector_store: Final = gateway.vector_store_registry.get_litellm_managed_vector_store_from_registry_by_name(
         vector_store_name=vector_store_name
     )
     if vector_store is None:
@@ -779,7 +779,7 @@ async def handle_bedrock_passthrough_router_model(
     endpoint: str,
     request: Request,
     request_body: dict,
-    llm_router: litellm.Router,
+    llm_router: gateway.Router,
     user_api_key_dict: UserAPIKeyAuth,
     proxy_logging_obj,
     general_settings: dict,
@@ -1274,7 +1274,7 @@ async def comprehend_medical_sdk_proxy_route(
 
 def _resolve_vertex_model_from_router(
     model_id: str,
-    llm_router: litellm.Router | None,
+    llm_router: gateway.Router | None,
     encoded_endpoint: str,
     endpoint: str,
     vertex_project: str | None,
@@ -1549,8 +1549,8 @@ async def azure_proxy_route(
             # check if vector store index
             is_vector_store_index = (
                 part == search_index_name
-                and litellm.vector_store_index_registry is not None
-                and litellm.vector_store_index_registry.is_vector_store_index(vector_store_index_name=part)
+                and gateway.vector_store_index_registry is not None
+                and gateway.vector_store_index_registry.is_vector_store_index(vector_store_index_name=part)
             )
 
             if is_router_model:
@@ -1610,24 +1610,24 @@ async def azure_proxy_route(
             elif is_vector_store_index:
                 # get the api key from the provider config
                 provider_config = ProviderConfigManager.get_provider_vector_stores_config(
-                    provider=litellm.LlmProviders.AZURE_AI
+                    provider=gateway.LlmProviders.AZURE_AI
                 )
                 if provider_config is None:
                     raise Exception("Provider config not found for Azure AI")
                 # get the index from registry
-                if litellm.vector_store_registry is None:
+                if gateway.vector_store_registry is None:
                     raise Exception("Vector store registry not found")
 
                 is_allowed_to_call_vector_store_endpoint(
                     index_name=part,
-                    provider=litellm.LlmProviders.AZURE_AI,
+                    provider=gateway.LlmProviders.AZURE_AI,
                     request=request,
                     user_api_key_dict=user_api_key_dict,
                 )
                 # get the vector store name from index registry
                 index_object = (
-                    (litellm.vector_store_index_registry.get_vector_store_index_by_name(vector_store_index_name=part))
-                    if litellm.vector_store_index_registry is not None
+                    (gateway.vector_store_index_registry.get_vector_store_index_by_name(vector_store_index_name=part))
+                    if gateway.vector_store_index_registry is not None
                     else None
                 )
                 if index_object is None:
@@ -1635,7 +1635,7 @@ async def azure_proxy_route(
 
                 vector_store_name = index_object.litellm_params.vector_store_name
 
-                vector_store = litellm.vector_store_registry.get_litellm_managed_vector_store_from_registry_by_name(
+                vector_store = gateway.vector_store_registry.get_litellm_managed_vector_store_from_registry_by_name(
                     vector_store_name=vector_store_name
                 )
                 if vector_store is None:
@@ -1659,7 +1659,7 @@ async def azure_proxy_route(
                     user_api_key_dict=user_api_key_dict,
                     base_target_url=base_target_url,
                     api_key=None,
-                    custom_llm_provider=litellm.LlmProviders.AZURE_AI,
+                    custom_llm_provider=gateway.LlmProviders.AZURE_AI,
                     extra_headers=cast(dict, extra_headers),
                 )
 
@@ -1668,7 +1668,7 @@ async def azure_proxy_route(
         raise Exception("Required 'AZURE_API_BASE' in environment to make pass-through calls to Azure.")
     # Add or update query parameters
     azure_api_key: Final = passthrough_endpoint_router.get_credentials(
-        custom_llm_provider=litellm.LlmProviders.AZURE.value,
+        custom_llm_provider=gateway.LlmProviders.AZURE.value,
         region_name=None,
     )
     if azure_api_key is None:
@@ -1681,7 +1681,7 @@ async def azure_proxy_route(
         user_api_key_dict=user_api_key_dict,
         base_target_url=base_target_url,
         api_key=azure_api_key,
-        custom_llm_provider=litellm.LlmProviders.AZURE,
+        custom_llm_provider=gateway.LlmProviders.AZURE,
     )
 
 
@@ -2297,7 +2297,7 @@ async def openai_proxy_route(
     base_target_url: Final = os.getenv("OPENAI_API_BASE") or "https://api.openai.com/"
     # Add or update query parameters
     openai_api_key: Final = passthrough_endpoint_router.get_credentials(
-        custom_llm_provider=litellm.LlmProviders.OPENAI.value,
+        custom_llm_provider=gateway.LlmProviders.OPENAI.value,
         region_name=None,
     )
     if openai_api_key is None:
@@ -2310,11 +2310,11 @@ async def openai_proxy_route(
         user_api_key_dict=user_api_key_dict,
         base_target_url=base_target_url,
         api_key=openai_api_key,
-        custom_llm_provider=litellm.LlmProviders.OPENAI,
+        custom_llm_provider=gateway.LlmProviders.OPENAI,
     )
 
 
-def _join_url_paths(base_url: httpx.URL, path: str, custom_llm_provider: litellm.LlmProviders) -> str:
+def _join_url_paths(base_url: httpx.URL, path: str, custom_llm_provider: gateway.LlmProviders) -> str:
     """
     Properly joins a base URL with a path, preserving any existing path in the base URL.
     """
@@ -2325,7 +2325,7 @@ def _join_url_paths(base_url: httpx.URL, path: str, custom_llm_provider: litellm
     )
 
     # Apply OpenAI-specific path handling for both branches
-    if custom_llm_provider == litellm.LlmProviders.OPENAI and "/v1/" not in joined_path_str:
+    if custom_llm_provider == gateway.LlmProviders.OPENAI and "/v1/" not in joined_path_str:
         # Insert v1 after api.openai.com for OpenAI requests
         joined_path_str = joined_path_str.replace("api.openai.com/", "api.openai.com/v1/")
 
@@ -2363,7 +2363,7 @@ async def openai_websocket_proxy_route(
 
     base_target_url: Final = os.getenv("OPENAI_API_BASE") or "https://api.openai.com/"
     openai_api_key: Final = passthrough_endpoint_router.get_credentials(
-        custom_llm_provider=litellm.LlmProviders.OPENAI.value,
+        custom_llm_provider=gateway.LlmProviders.OPENAI.value,
         region_name=None,
     )
     if openai_api_key is None:
@@ -2379,7 +2379,7 @@ async def openai_websocket_proxy_route(
     updated_url: Final = _join_url_paths(
         base_url=base_url,
         path=encoded_endpoint,
-        custom_llm_provider=litellm.LlmProviders.OPENAI,
+        custom_llm_provider=gateway.LlmProviders.OPENAI,
     )
     wss_base: Final = (
         "wss://" + updated_url[len("https://") :]
@@ -2421,7 +2421,7 @@ class BaseOpenAIPassThroughHandler:
         user_api_key_dict: UserAPIKeyAuth,
         base_target_url: str,
         api_key: str | None,
-        custom_llm_provider: litellm.LlmProviders,
+        custom_llm_provider: gateway.LlmProviders,
         extra_headers: dict | None = None,
     ):
         encoded_endpoint = httpx.URL(endpoint).path
@@ -2534,7 +2534,7 @@ async def cursor_proxy_route(
     )
 
     if cursor_api_key is None:
-        for credential in litellm.credential_list:
+        for credential in gateway.credential_list:
             if credential.credential_info and credential.credential_info.get("custom_llm_provider") == "cursor":
                 cursor_api_key = credential.credential_values.get("api_key")
                 credential_api_base = credential.credential_values.get("api_base")
@@ -2675,8 +2675,8 @@ def _resolve_alias_to_upstream_model(setup_model: str, llm_router: Router | None
     if upstream is None:
         return setup_model
     try:
-        _, provider, _, _ = litellm.get_llm_provider(model=upstream)
-    except litellm.exceptions.BadRequestError:
+        _, provider, _, _ = gateway.get_llm_provider(model=upstream)
+    except gateway.exceptions.BadRequestError:
         return upstream
     return upstream.removeprefix(f"{provider}/")
 
@@ -2948,7 +2948,7 @@ async def handle_gigachat_passthrough_router_model(
     request: Request,
     request_body: dict,
     fastapi_response: Response,
-    llm_router: litellm.Router,
+    llm_router: gateway.Router,
     user_api_key_dict: UserAPIKeyAuth,
     proxy_logging_obj: ProxyLoggingType,
     general_settings: dict,
@@ -3140,7 +3140,7 @@ async def watsonx_proxy_route(
 
     request_query_params: Final = dict(request.query_params)
     if request_query_params.get("version") is None:
-        request_query_params["version"] = litellm.WATSONX_DEFAULT_API_VERSION
+        request_query_params["version"] = gateway.WATSONX_DEFAULT_API_VERSION
 
     # Create pass-through endpoint
     endpoint_func: Final = create_pass_through_route(

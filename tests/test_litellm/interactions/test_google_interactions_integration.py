@@ -14,7 +14,7 @@ import os
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 import token_iq.gateway.interactions as interactions
 import openai
 
@@ -266,7 +266,7 @@ class TestGoogleInteractionsErrorHandling:
 
     def test_missing_model_and_agent(self, api_key):
         """Test error when neither model nor agent is provided."""
-        with pytest.raises((ValueError, litellm.APIConnectionError)):
+        with pytest.raises((ValueError, gateway.APIConnectionError)):
             interactions.create(
                 input="Hello",
                 api_key=api_key,

@@ -45,7 +45,7 @@ def test_initialize_bedrock_forwards_chunk_budget_chars():
     initialize_guardrail rather than the constructor is the point: constructing
     BedrockGuardrail directly bypasses the only path a user can actually reach.
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.proxy.guardrails.guardrail_hooks.bedrock_guardrails import BedrockGuardrail
 
     test_guardrail = {
@@ -64,7 +64,7 @@ def test_initialize_bedrock_forwards_chunk_budget_chars():
 
     initialized = [
         callback
-        for callback in litellm.callbacks
+        for callback in gateway.callbacks
         if isinstance(callback, BedrockGuardrail) and callback.guardrail_name == "test_bedrock_chunk_budget"
     ]
     assert initialized, "bedrock guardrail was not registered as a callback"
@@ -127,7 +127,7 @@ def test_initialize_presidio_forwards_analyze_chunk_size_bytes():
     PresidioConfigModel, so LitellmParams parses it, but initialize_presidio
     enumerates its constructor kwargs explicitly and would silently drop it.
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.proxy.guardrails.guardrail_hooks.presidio import (
         _OPTIONAL_PresidioPIIMasking,
     )
@@ -148,7 +148,7 @@ def test_initialize_presidio_forwards_analyze_chunk_size_bytes():
 
     initialized = [
         callback
-        for callback in litellm.callbacks
+        for callback in gateway.callbacks
         if isinstance(callback, _OPTIONAL_PresidioPIIMasking)
         and callback.guardrail_name == "test_presidio_chunk_size"
     ]

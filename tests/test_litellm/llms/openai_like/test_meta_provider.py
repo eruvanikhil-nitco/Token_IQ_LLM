@@ -2,7 +2,7 @@
 Tests for the Meta Model API (Muse Spark) provider configuration and integration.
 """
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 
 class TestMetaProviderConfig:
@@ -11,7 +11,7 @@ class TestMetaProviderConfig:
 
         assert hasattr(LlmProviders, "META")
         assert LlmProviders.META.value == "meta"
-        assert "meta" in litellm.provider_list
+        assert "meta" in gateway.provider_list
 
     def test_meta_json_config_exists(self):
         from token_iq.gateway.llms.openai_like.json_loader import JSONProviderRegistry
@@ -95,15 +95,15 @@ class TestMetaProviderConfig:
 
 class TestMetaReasoningParams:
     def test_muse_spark_supports_reasoning_effort(self):
-        params = litellm.get_supported_openai_params(
+        params = gateway.get_supported_openai_params(
             model="muse-spark-1.1", custom_llm_provider="meta"
         )
         assert params is not None
         assert "reasoning_effort" in params
 
     def test_reasoning_effort_mapped_through(self):
-        cfg = litellm.ProviderConfigManager.get_provider_chat_config(
-            model="muse-spark-1.1", provider=litellm.LlmProviders.META
+        cfg = gateway.ProviderConfigManager.get_provider_chat_config(
+            model="muse-spark-1.1", provider=gateway.LlmProviders.META
         )
         assert cfg is not None
         mapped = cfg.map_openai_params(
@@ -116,7 +116,7 @@ class TestMetaReasoningParams:
 
     def test_reasoning_effort_gated_on_capability(self):
         """A meta model without reasoning metadata must not advertise reasoning_effort."""
-        params = litellm.get_supported_openai_params(
+        params = gateway.get_supported_openai_params(
             model="some-non-reasoning-model", custom_llm_provider="meta"
         )
         assert params is not None
@@ -129,14 +129,14 @@ class TestMetaAnthropicMessages:
             JSONProviderAnthropicMessagesConfig,
         )
 
-        cfg = litellm.ProviderConfigManager.get_provider_anthropic_messages_config(
-            model="muse-spark-1.1", provider=litellm.LlmProviders.META
+        cfg = gateway.ProviderConfigManager.get_provider_anthropic_messages_config(
+            model="muse-spark-1.1", provider=gateway.LlmProviders.META
         )
         assert isinstance(cfg, JSONProviderAnthropicMessagesConfig)
 
     def test_json_provider_without_messages_endpoint_resolves_none(self):
-        cfg = litellm.ProviderConfigManager.get_provider_anthropic_messages_config(
-            model="some-model", provider=litellm.LlmProviders.PINSTRIPES
+        cfg = gateway.ProviderConfigManager.get_provider_anthropic_messages_config(
+            model="some-model", provider=gateway.LlmProviders.PINSTRIPES
         )
         assert cfg is None
 
@@ -194,7 +194,7 @@ class TestMetaAnthropicMessages:
 
 class TestMuseSparkModelInfo:
     def test_muse_spark_pricing_and_capabilities(self):
-        info = litellm.get_model_info("meta/muse-spark-1.1")
+        info = gateway.get_model_info("meta/muse-spark-1.1")
 
         assert info["litellm_provider"] == "meta"
         assert info["input_cost_per_token"] == 1.25e-06

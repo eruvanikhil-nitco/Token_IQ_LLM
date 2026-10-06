@@ -33,7 +33,7 @@ def _get_optional_value(litellm_params: LitellmParams, optional_params: object |
 
 
 def initialize_guardrail(litellm_params: LitellmParams, guardrail: Guardrail) -> CompresrGuardrail:
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     optional_params: Final = getattr(litellm_params, "optional_params", None)
 
@@ -60,7 +60,7 @@ def initialize_guardrail(litellm_params: LitellmParams, guardrail: Guardrail) ->
         default_on=litellm_params.default_on or False,
         unreachable_fallback=litellm_params.unreachable_fallback,
     )
-    litellm.logging_callback_manager.add_litellm_callback(  # pyright: ignore[reportUnknownMemberType]  # callback manager is untyped
+    gateway.logging_callback_manager.add_litellm_callback(  # pyright: ignore[reportUnknownMemberType]  # callback manager is untyped
         _callback
     )
     return _callback

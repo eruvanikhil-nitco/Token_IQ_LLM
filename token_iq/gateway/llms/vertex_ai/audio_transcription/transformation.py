@@ -3,7 +3,7 @@ from typing import Final
 
 from httpx import Headers, Response
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.exceptions import UnsupportedParamsError
 from token_iq.gateway.core_utils.audio_utils.utils import (
     normalize_transcription_language_to_bcp47,
@@ -71,7 +71,7 @@ class VertexAIAudioTranscriptionConfig(BaseAudioTranscriptionConfig, VertexBase)
         response_format: Final = mapped.get("response_format")
         if response_format is None or response_format in SUPPORTED_RESPONSE_FORMATS:
             return mapped
-        if drop_params or litellm.drop_params:
+        if drop_params or gateway.drop_params:
             return {k: v for k, v in mapped.items() if k != "response_format"}
         raise UnsupportedParamsError(
             status_code=400,

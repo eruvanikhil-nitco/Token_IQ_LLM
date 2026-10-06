@@ -1,7 +1,7 @@
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from base_audio_transcription_unit_tests import BaseLLMAudioTranscriptionTest
 
 
@@ -11,5 +11,5 @@ class TestDeepgramAudioTranscription(BaseLLMAudioTranscriptionTest):
             "model": "deepgram/nova-2",
         }
 
-    def get_custom_llm_provider(self) -> litellm.LlmProviders:
-        return litellm.LlmProviders.DEEPGRAM
+    def get_custom_llm_provider(self) -> gateway.LlmProviders:
+        return gateway.LlmProviders.DEEPGRAM

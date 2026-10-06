@@ -199,7 +199,7 @@ class TestDeclaredAuthenticatingProvider:
 
     @pytest.mark.parametrize("model", ["github_copilot/gpt-4o", "chatgpt/gpt-5"])
     def test_supported_params_never_resolve_an_authenticating_prefix(self, model, monkeypatch):
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         lookups: list = []
 
@@ -207,7 +207,7 @@ class TestDeclaredAuthenticatingProvider:
             lookups.append((args, kwargs))
             raise RuntimeError("provider resolution must not run for an authenticating provider")
 
-        monkeypatch.setattr(litellm, "get_llm_provider", _record)
+        monkeypatch.setattr(gateway, "get_llm_provider", _record)
 
         params = get_supported_openai_params(model=model)
 

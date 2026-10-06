@@ -19,7 +19,7 @@ from typing import TYPE_CHECKING, Any, Final, Literal, Optional, Protocol, Typed
 import aiohttp
 from typing_extensions import NotRequired, ReadOnly
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import get_secret
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.constants import (
@@ -192,7 +192,7 @@ class _OPTIONAL_PresidioPIIMasking(CustomGuardrail):
         self.presidio_analyzer_api_base: str | None = presidio_analyzer_api_base or get_secret(
             "PRESIDIO_ANALYZER_API_BASE", None
         )
-        self.presidio_anonymizer_api_base: str | None = presidio_anonymizer_api_base or litellm.get_secret(
+        self.presidio_anonymizer_api_base: str | None = presidio_anonymizer_api_base or gateway.get_secret(
             "PRESIDIO_ANONYMIZER_API_BASE", None
         )
 
@@ -1129,7 +1129,7 @@ class _OPTIONAL_PresidioPIIMasking(CustomGuardrail):
                 )
             return await self._mask_output_response(response=response, request_data=data)
 
-        if self.output_parse_pii is False and litellm.output_parse_pii is False:
+        if self.output_parse_pii is False and gateway.output_parse_pii is False:
             return response
 
         if isinstance(response, ModelResponse) and not isinstance(
@@ -1587,7 +1587,7 @@ class _OPTIONAL_PresidioPIIMasking(CustomGuardrail):
     def print_verbose(self, print_statement):
         try:
             verbose_proxy_logger.debug(print_statement)
-            if litellm.set_verbose:
+            if gateway.set_verbose:
                 print(print_statement)  # noqa: T201
         except Exception:
             pass

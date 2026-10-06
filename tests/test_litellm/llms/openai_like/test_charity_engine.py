@@ -14,7 +14,7 @@ except ImportError:
 workspace_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../.."))
 sys.path.insert(0, workspace_path)
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 
 class TestCharityEngineProviderConfig:
@@ -26,7 +26,7 @@ class TestCharityEngineProviderConfig:
 
         assert hasattr(LlmProviders, "CHARITY_ENGINE")
         assert LlmProviders.CHARITY_ENGINE.value == "charity_engine"
-        assert "charity_engine" in litellm.provider_list
+        assert "charity_engine" in gateway.provider_list
 
     def test_charity_engine_json_config_exists(self):
         """Test that charity_engine is configured in providers.json"""

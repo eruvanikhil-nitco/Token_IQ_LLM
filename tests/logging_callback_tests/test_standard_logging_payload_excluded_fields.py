@@ -20,7 +20,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.types.utils import StandardLoggingPayload
 
@@ -88,11 +88,11 @@ class TestStandardLoggingPayloadExcludedFields:
 
     def setup_method(self):
         """Reset litellm settings before each test."""
-        litellm.standard_logging_payload_excluded_fields = None
+        gateway.standard_logging_payload_excluded_fields = None
 
     def teardown_method(self):
         """Clean up after each test."""
-        litellm.standard_logging_payload_excluded_fields = None
+        gateway.standard_logging_payload_excluded_fields = None
 
     def test_no_excluded_fields_no_change(self):
         """Test that payload is unchanged when no fields are excluded."""
@@ -109,7 +109,7 @@ class TestStandardLoggingPayloadExcludedFields:
 
     def test_exclude_single_field(self):
         """Test excluding a single field (response)."""
-        litellm.standard_logging_payload_excluded_fields = ["response"]
+        gateway.standard_logging_payload_excluded_fields = ["response"]
 
         logger = CustomLogger()
         model_call_details = create_model_call_details()
@@ -124,7 +124,7 @@ class TestStandardLoggingPayloadExcludedFields:
 
     def test_exclude_multiple_fields(self):
         """Test excluding multiple fields (response, messages)."""
-        litellm.standard_logging_payload_excluded_fields = ["response", "messages"]
+        gateway.standard_logging_payload_excluded_fields = ["response", "messages"]
 
         logger = CustomLogger()
         model_call_details = create_model_call_details()
@@ -140,7 +140,7 @@ class TestStandardLoggingPayloadExcludedFields:
 
     def test_exclude_metadata_field(self):
         """Test excluding the metadata field."""
-        litellm.standard_logging_payload_excluded_fields = ["metadata"]
+        gateway.standard_logging_payload_excluded_fields = ["metadata"]
 
         logger = CustomLogger()
         payload = create_sample_standard_logging_payload()
@@ -155,7 +155,7 @@ class TestStandardLoggingPayloadExcludedFields:
 
     def test_exclude_hidden_params(self):
         """Test excluding hidden_params field."""
-        litellm.standard_logging_payload_excluded_fields = ["hidden_params"]
+        gateway.standard_logging_payload_excluded_fields = ["hidden_params"]
 
         logger = CustomLogger()
         payload = create_sample_standard_logging_payload()
@@ -170,7 +170,7 @@ class TestStandardLoggingPayloadExcludedFields:
 
     def test_exclude_nonexistent_field_no_error(self):
         """Test that excluding a non-existent field doesn't cause an error."""
-        litellm.standard_logging_payload_excluded_fields = [
+        gateway.standard_logging_payload_excluded_fields = [
             "nonexistent_field",
             "response",
         ]
@@ -188,7 +188,7 @@ class TestStandardLoggingPayloadExcludedFields:
 
     def test_original_payload_not_modified(self):
         """Test that the original model_call_details is not modified."""
-        litellm.standard_logging_payload_excluded_fields = ["response", "messages"]
+        gateway.standard_logging_payload_excluded_fields = ["response", "messages"]
 
         logger = CustomLogger()
         model_call_details = create_model_call_details()
@@ -205,7 +205,7 @@ class TestStandardLoggingPayloadExcludedFields:
 
     def test_combined_with_turn_off_message_logging(self):
         """Test that excluded_fields works together with turn_off_message_logging."""
-        litellm.standard_logging_payload_excluded_fields = ["metadata", "hidden_params"]
+        gateway.standard_logging_payload_excluded_fields = ["metadata", "hidden_params"]
 
         logger = CustomLogger(turn_off_message_logging=True)
         model_call_details = create_model_call_details()
@@ -232,7 +232,7 @@ class TestStandardLoggingPayloadExcludedFields:
 
     def test_excluded_fields_takes_precedence_over_redaction(self):
         """Test that if a field is both excluded and would be redacted, it's excluded."""
-        litellm.standard_logging_payload_excluded_fields = ["response"]
+        gateway.standard_logging_payload_excluded_fields = ["response"]
 
         logger = CustomLogger(turn_off_message_logging=True)
         model_call_details = create_model_call_details()
@@ -252,7 +252,7 @@ class TestStandardLoggingPayloadExcludedFields:
 
     def test_exclude_all_sensitive_fields(self):
         """Test excluding all potentially sensitive fields."""
-        litellm.standard_logging_payload_excluded_fields = [
+        gateway.standard_logging_payload_excluded_fields = [
             "messages",
             "response",
             "metadata",
@@ -288,7 +288,7 @@ class TestStandardLoggingPayloadExcludedFields:
 
     def test_empty_excluded_fields_list(self):
         """Test that an empty list doesn't affect the payload."""
-        litellm.standard_logging_payload_excluded_fields = []
+        gateway.standard_logging_payload_excluded_fields = []
 
         logger = CustomLogger()
         model_call_details = create_model_call_details()
@@ -303,7 +303,7 @@ class TestStandardLoggingPayloadExcludedFields:
 
     def test_none_standard_logging_object(self):
         """Test handling when standard_logging_object is None."""
-        litellm.standard_logging_payload_excluded_fields = ["response"]
+        gateway.standard_logging_payload_excluded_fields = ["response"]
 
         logger = CustomLogger()
         model_call_details = {"other_key": "other_value"}
@@ -321,13 +321,13 @@ class TestExcludedFieldsIntegration:
 
     def setup_method(self):
         """Reset litellm settings before each test."""
-        litellm.standard_logging_payload_excluded_fields = None
-        litellm.callbacks = []
+        gateway.standard_logging_payload_excluded_fields = None
+        gateway.callbacks = []
 
     def teardown_method(self):
         """Clean up after each test."""
-        litellm.standard_logging_payload_excluded_fields = None
-        litellm.callbacks = []
+        gateway.standard_logging_payload_excluded_fields = None
+        gateway.callbacks = []
 
     def test_custom_callback_receives_filtered_payload(self):
         """Test that a custom callback receives the filtered payload."""
@@ -337,7 +337,7 @@ class TestExcludedFieldsIntegration:
             def log_success_event(self, kwargs, response_obj, start_time, end_time):
                 captured_payloads.append(kwargs.get("standard_logging_object", {}))
 
-        litellm.standard_logging_payload_excluded_fields = ["response", "messages"]
+        gateway.standard_logging_payload_excluded_fields = ["response", "messages"]
 
         callback = TestCallback()
         model_call_details = create_model_call_details()
@@ -367,26 +367,26 @@ class TestExcludedFieldsConfigLoading:
 
     def setup_method(self):
         """Reset litellm settings before each test."""
-        litellm.standard_logging_payload_excluded_fields = None
+        gateway.standard_logging_payload_excluded_fields = None
 
     def teardown_method(self):
         """Clean up after each test."""
-        litellm.standard_logging_payload_excluded_fields = None
+        gateway.standard_logging_payload_excluded_fields = None
 
     def test_config_attribute_exists(self):
         """Test that the config attribute exists on litellm module."""
-        assert hasattr(litellm, "standard_logging_payload_excluded_fields")
+        assert hasattr(gateway, "standard_logging_payload_excluded_fields")
 
     def test_config_default_is_none(self):
         """Test that the default value is None."""
         # Reset to ensure we're testing the default
-        litellm.standard_logging_payload_excluded_fields = None
-        assert litellm.standard_logging_payload_excluded_fields is None
+        gateway.standard_logging_payload_excluded_fields = None
+        assert gateway.standard_logging_payload_excluded_fields is None
 
     def test_config_can_be_set_to_list(self):
         """Test that the config can be set to a list."""
-        litellm.standard_logging_payload_excluded_fields = ["response", "messages"]
-        assert litellm.standard_logging_payload_excluded_fields == [
+        gateway.standard_logging_payload_excluded_fields = ["response", "messages"]
+        assert gateway.standard_logging_payload_excluded_fields == [
             "response",
             "messages",
         ]
@@ -395,9 +395,9 @@ class TestExcludedFieldsConfigLoading:
         """Test that setattr works as the proxy would use it."""
         # Simulating how proxy_server.py sets litellm_settings
         config_value = ["response", "messages", "metadata"]
-        setattr(litellm, "standard_logging_payload_excluded_fields", config_value)
+        setattr(gateway, "standard_logging_payload_excluded_fields", config_value)
 
-        assert litellm.standard_logging_payload_excluded_fields == config_value
+        assert gateway.standard_logging_payload_excluded_fields == config_value
 
         # Test it actually works in the logger
         logger = CustomLogger()

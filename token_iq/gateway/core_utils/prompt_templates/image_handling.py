@@ -7,7 +7,7 @@ from typing import Final
 
 from httpx import Response
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import verbose_logger
 from token_iq.gateway.caching.caching import InMemoryCache
 from token_iq.gateway.constants import MAX_IMAGE_URL_DOWNLOAD_SIZE_MB
@@ -20,7 +20,7 @@ in_memory_cache: Final = InMemoryCache(max_size_in_memory=MAX_IMGS_IN_MEMORY)
 
 def _process_image_response(response: Response, url: str) -> str:
     if response.status_code != 200:
-        raise litellm.ImageFetchError(
+        raise gateway.ImageFetchError(
             f"Error: Unable to fetch image from URL. Status code: {response.status_code}, url={url}"
         )
 
@@ -29,7 +29,7 @@ def _process_image_response(response: Response, url: str) -> str:
     if content_length is not None:
         size_mb = int(content_length) / (1024 * 1024)
         if size_mb > MAX_IMAGE_URL_DOWNLOAD_SIZE_MB:
-            raise litellm.ImageFetchError(
+            raise gateway.ImageFetchError(
                 f"Error: Image size ({size_mb:.2f}MB) exceeds maximum allowed size ({MAX_IMAGE_URL_DOWNLOAD_SIZE_MB}MB). url={url}"
             )
 
@@ -42,7 +42,7 @@ def _process_image_response(response: Response, url: str) -> str:
         bytes_downloaded += len(chunk)
         if bytes_downloaded > max_bytes:
             size_mb = bytes_downloaded / (1024 * 1024)
-            raise litellm.ImageFetchError(
+            raise gateway.ImageFetchError(
                 f"Error: Image size ({size_mb:.2f}MB) exceeds maximum allowed size ({MAX_IMAGE_URL_DOWNLOAD_SIZE_MB}MB). url={url}"
             )
         image_bytes.extend(chunk)
@@ -78,7 +78,7 @@ async def async_convert_url_to_base64(url: str) -> str:
 
     # If MAX_IMAGE_URL_DOWNLOAD_SIZE_MB is 0, block all image downloads
     if MAX_IMAGE_URL_DOWNLOAD_SIZE_MB == 0:
-        raise litellm.ImageFetchError(
+        raise gateway.ImageFetchError(
             f"Error: Image URL download is disabled (MAX_IMAGE_URL_DOWNLOAD_SIZE_MB=0). url={url}"
         )
 
@@ -86,16 +86,16 @@ async def async_convert_url_to_base64(url: str) -> str:
     if cached_result:
         return cached_result
 
-    client: Final = litellm.module_level_aclient
+    client: Final = gateway.module_level_aclient
     for _ in range(3):
         try:
             response = await async_safe_get(client, url)
             return _process_image_response(response, url)
-        except litellm.ImageFetchError:
+        except gateway.ImageFetchError:
             raise
         except Exception:
             pass
-    raise litellm.ImageFetchError(f"Error: Unable to fetch image from URL after 3 attempts. url={url}")
+    raise gateway.ImageFetchError(f"Error: Unable to fetch image from URL after 3 attempts. url={url}")
 
 
 def convert_url_to_base64(url: str) -> str:
@@ -104,7 +104,7 @@ def convert_url_to_base64(url: str) -> str:
 
     # If MAX_IMAGE_URL_DOWNLOAD_SIZE_MB is 0, block all image downloads
     if MAX_IMAGE_URL_DOWNLOAD_SIZE_MB == 0:
-        raise litellm.ImageFetchError(
+        raise gateway.ImageFetchError(
             f"Error: Image URL download is disabled (MAX_IMAGE_URL_DOWNLOAD_SIZE_MB=0). url={url}"
         )
 
@@ -112,15 +112,15 @@ def convert_url_to_base64(url: str) -> str:
     if cached_result:
         return cached_result
 
-    client: Final = litellm.module_level_client
+    client: Final = gateway.module_level_client
     for _ in range(3):
         try:
             response = safe_get(client, url)
             return _process_image_response(response, url)
-        except litellm.ImageFetchError:
+        except gateway.ImageFetchError:
             raise
         except Exception as e:
             verbose_logger.exception(e)
-    raise litellm.ImageFetchError(
+    raise gateway.ImageFetchError(
         f"Error: Unable to fetch image from URL after 3 attempts. url={url}",
     )

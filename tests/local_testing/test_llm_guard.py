@@ -13,7 +13,7 @@ load_dotenv()
 import pytest
 from fastapi import HTTPException
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from litellm_enterprise.enterprise_callbacks.llm_guard import _ENTERPRISE_LLMGuard
 from token_iq.gateway import Router, mock_completion
 from token_iq.gateway.proxy.utils import ProxyLogging, hash_token
@@ -30,7 +30,7 @@ async def test_llm_guard_valid_response():
     sanitized_prompt back onto the request data so the provider receives the
     redacted content.
     """
-    litellm.llm_guard_mode = "all"
+    gateway.llm_guard_mode = "all"
     input_a_anonymizer_results = {
         "sanitized_prompt": "hello world",
         "is_valid": True,
@@ -70,7 +70,7 @@ async def test_llm_guard_sanitizes_multimodal_and_input():
     Sanitization must reach text parts of multimodal message content and the
     ``input`` field (embeddings/moderation) while leaving non-text parts intact.
     """
-    litellm.llm_guard_mode = "all"
+    gateway.llm_guard_mode = "all"
     llm_guard = _ENTERPRISE_LLMGuard(
         mock_testing=True,
         mock_redacted_text={
@@ -148,7 +148,7 @@ def test_llm_guard_key_specific_mode():
     """
     Tests to see if llm guard 'key-specific' permissions work
     """
-    litellm.llm_guard_mode = "key-specific"
+    gateway.llm_guard_mode = "key-specific"
 
     llm_guard = _ENTERPRISE_LLMGuard(mock_testing=True)
 
@@ -183,7 +183,7 @@ def test_llm_guard_request_specific_mode():
     """
     Tests to see if llm guard 'request-specific' permissions work
     """
-    litellm.llm_guard_mode = "request-specific"
+    gateway.llm_guard_mode = "request-specific"
 
     llm_guard = _ENTERPRISE_LLMGuard(mock_testing=True)
 

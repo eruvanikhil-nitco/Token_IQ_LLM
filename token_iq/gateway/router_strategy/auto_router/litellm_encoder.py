@@ -4,7 +4,7 @@ from pydantic import ConfigDict
 from semantic_router.encoders import DenseEncoder
 from semantic_router.encoders.base import AsymmetricDenseMixin
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_router_logger
 
 if TYPE_CHECKING:
@@ -13,13 +13,13 @@ else:
     Router = Any
 
 
-def litellm_to_list(embeds: litellm.EmbeddingResponse) -> list[list[float]]:
+def litellm_to_list(embeds: gateway.EmbeddingResponse) -> list[list[float]]:
     """Convert a LiteLLM embedding response to a list of embeddings.
 
     :param embeds: The LiteLLM embedding response.
     :return: A list of embeddings.
     """
-    if not embeds or not isinstance(embeds, litellm.EmbeddingResponse) or not embeds.data:
+    if not embeds or not isinstance(embeds, gateway.EmbeddingResponse) or not embeds.data:
         raise ValueError("No embeddings found in LiteLLM embedding response.")
     return [x["embedding"] for x in embeds.data]
 

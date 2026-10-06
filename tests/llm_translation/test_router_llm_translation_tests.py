@@ -8,7 +8,7 @@ import os
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from base_llm_unit_tests import BaseLLMChatTest
 from token_iq.gateway.router import Router
 from token_iq.gateway._logging import verbose_logger, verbose_router_logger
@@ -56,7 +56,7 @@ def test_router_azure_acompletion():
     # [PROD TEST CASE]
     # This is 90% of the router use case, makes an acompletion call, acompletion + stream call and verifies it got a response
     # DO NOT REMOVE THIS TEST. It's an IMP ONE. Speak to Ishaan, if you are tring to remove this
-    litellm.set_verbose = False
+    gateway.set_verbose = False
 
     try:
         print("Router Test Azure - Acompletion, Acompletion with stream")

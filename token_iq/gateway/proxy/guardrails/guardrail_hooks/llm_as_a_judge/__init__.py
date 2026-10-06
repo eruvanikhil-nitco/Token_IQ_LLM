@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Any, Final, Generic, Literal, Optional, TypeVa
 from fastapi import HTTPException
 from typing_extensions import NotRequired, ReadOnly, TypedDict
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
 from token_iq.gateway.core_utils.llm_judge import (
@@ -296,7 +296,7 @@ def initialize_guardrail(
         event_hook=event_hook,
         default_on=bool(_get_litellm_param(litellm_params, guardrail, "default_on", False)),
     )
-    litellm.logging_callback_manager.add_litellm_callback(instance)
+    gateway.logging_callback_manager.add_litellm_callback(instance)
     return instance
 
 

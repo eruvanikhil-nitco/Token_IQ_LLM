@@ -22,7 +22,7 @@ from typing import Any, Final, Literal, Protocol, cast, overload
 import fastapi
 from fastapi import APIRouter, Depends, Header, HTTPException, Request, status
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway._uuid import uuid
 from token_iq.gateway.proxy._types import *
@@ -181,10 +181,10 @@ def _update_internal_new_user_params(data_json: dict, data: NewUserRequest) -> d
     if auto_create_key is False:
         data_json["table_name"] = "user"  # only create a user, don't create key if 'auto_create_key' set to False
 
-    if litellm.default_internal_user_params and (
+    if gateway.default_internal_user_params and (
         data.user_role != LitellmUserRoles.PROXY_ADMIN.value and data.user_role != LitellmUserRoles.PROXY_ADMIN
     ):
-        for key, value in litellm.default_internal_user_params.items():
+        for key, value in gateway.default_internal_user_params.items():
             if key == "available_teams":
                 continue
             elif (
@@ -198,11 +198,11 @@ def _update_internal_new_user_params(data_json: dict, data: NewUserRequest) -> d
 
     ## INTERNAL USER ROLE ONLY DEFAULT PARAMS ##
     if data.user_role is not None and data.user_role == LitellmUserRoles.INTERNAL_USER.value:
-        if litellm.max_internal_user_budget is not None and data_json.get("max_budget") is None:
-            data_json["max_budget"] = litellm.max_internal_user_budget
+        if gateway.max_internal_user_budget is not None and data_json.get("max_budget") is None:
+            data_json["max_budget"] = gateway.max_internal_user_budget
 
-        if litellm.internal_user_budget_duration is not None and data_json.get("budget_duration") is None:
-            data_json["budget_duration"] = litellm.internal_user_budget_duration
+        if gateway.internal_user_budget_duration is not None and data_json.get("budget_duration") is None:
+            data_json["budget_duration"] = gateway.internal_user_budget_duration
 
     data_json.pop("teams", None)  # handled separately
     return data_json
@@ -370,9 +370,9 @@ async def _add_user_to_team(
 
 
 def check_if_default_team_set() -> list[str] | list[NewUserRequestTeam] | None:
-    if litellm.default_internal_user_params is None:
+    if gateway.default_internal_user_params is None:
         return None
-    teams: Final = litellm.default_internal_user_params.get("teams")
+    teams: Final = gateway.default_internal_user_params.get("teams")
     if teams is not None:
         if all(isinstance(team, str) for team in teams):
             return teams
@@ -1265,13 +1265,13 @@ def _update_internal_user_params(data_json: dict, data: UpdateUserRequest | Upda
 
     if "max_budget" not in non_default_values:
         if (
-            is_internal_user and litellm.max_internal_user_budget is not None
+            is_internal_user and gateway.max_internal_user_budget is not None
         ):  # applies internal user limits, if user role updated
-            non_default_values["max_budget"] = litellm.max_internal_user_budget
+            non_default_values["max_budget"] = gateway.max_internal_user_budget
 
     if "budget_duration" not in non_default_values:  # applies internal user limits, if user role updated
-        if is_internal_user and litellm.internal_user_budget_duration is not None:
-            non_default_values["budget_duration"] = litellm.internal_user_budget_duration
+        if is_internal_user and gateway.internal_user_budget_duration is not None:
+            non_default_values["budget_duration"] = gateway.internal_user_budget_duration
             from token_iq.gateway.proxy.common_utils.timezone_utils import get_budget_reset_time
 
             non_default_values["budget_reset_at"] = get_budget_reset_time(

@@ -9,7 +9,7 @@ if TYPE_CHECKING:
 
 
 def initialize_guardrail(litellm_params: "LitellmParams", guardrail: "Guardrail"):
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     # Default to always-on. Only disable if the user explicitly sets default_on: false.
     # We check the raw guardrail dict because LitellmParams normalizes None → False,
@@ -22,7 +22,7 @@ def initialize_guardrail(litellm_params: "LitellmParams", guardrail: "Guardrail"
         event_hook=litellm_params.mode,
         default_on=_default_on,
     )
-    litellm.logging_callback_manager.add_litellm_callback(_callback)
+    gateway.logging_callback_manager.add_litellm_callback(_callback)
     return _callback
 
 

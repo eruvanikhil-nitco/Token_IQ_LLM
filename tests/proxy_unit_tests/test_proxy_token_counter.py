@@ -19,7 +19,7 @@ load_dotenv()
 
 from fastapi import HTTPException, Request
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import Router
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.llms.bedrock.common_utils import BedrockError
@@ -129,7 +129,7 @@ async def test_vLLM_token_counting():
         ]
     )
 
-    setattr(litellm.proxy.proxy_server, "llm_router", llm_router)
+    setattr(gateway.proxy.proxy_server, "llm_router", llm_router)
 
     response = await token_counter(
         request=TokenCountRequest(
@@ -164,7 +164,7 @@ async def test_token_counting_model_not_in_model_list():
         ]
     )
 
-    setattr(litellm.proxy.proxy_server, "llm_router", llm_router)
+    setattr(gateway.proxy.proxy_server, "llm_router", llm_router)
 
     response = await token_counter(
         request=TokenCountRequest(
@@ -199,7 +199,7 @@ async def test_gpt_token_counting():
         ]
     )
 
-    setattr(litellm.proxy.proxy_server, "llm_router", llm_router)
+    setattr(gateway.proxy.proxy_server, "llm_router", llm_router)
 
     response = await token_counter(
         request=TokenCountRequest(
@@ -380,7 +380,7 @@ async def test_internal_token_counter_anthropic_provider_detection():
         ]
     )
 
-    setattr(litellm.proxy.proxy_server, "llm_router", llm_router)
+    setattr(gateway.proxy.proxy_server, "llm_router", llm_router)
 
     # Test with is_direct_request=False (simulating call from Anthropic endpoint)
     response = await token_counter(
@@ -410,7 +410,7 @@ async def test_internal_token_counter_anthropic_provider_detection():
         ]
     )
 
-    setattr(litellm.proxy.proxy_server, "llm_router", llm_router)
+    setattr(gateway.proxy.proxy_server, "llm_router", llm_router)
 
     # Test with is_direct_request=False but non-Anthropic provider
     response = await token_counter(
@@ -705,7 +705,7 @@ async def test_vertex_ai_gemini_token_counting_with_contents(model_name):
         ]
     )
 
-    setattr(litellm.proxy.proxy_server, "llm_router", llm_router)
+    setattr(gateway.proxy.proxy_server, "llm_router", llm_router)
 
     # Test with contents format and call_endpoint=True
     response = await token_counter(
@@ -757,7 +757,7 @@ async def test_bedrock_count_tokens_endpoint():
         ]
     )
 
-    setattr(litellm.proxy.proxy_server, "llm_router", llm_router)
+    setattr(gateway.proxy.proxy_server, "llm_router", llm_router)
 
     # Test the mock handler directly to verify correct parameter extraction
     request_data = {
@@ -800,7 +800,7 @@ async def test_vertex_ai_anthropic_token_counting():
         ]
     )
 
-    setattr(litellm.proxy.proxy_server, "llm_router", llm_router)
+    setattr(gateway.proxy.proxy_server, "llm_router", llm_router)
 
     # Mock the lower level handler method
     with patch(
@@ -1022,16 +1022,16 @@ async def test_token_counter_httpx_status_error_raises_proxy_exception():
 
     # Save originals
     original_get_provider_token_counter = (
-        litellm.proxy.proxy_server._get_provider_token_counter
+        gateway.proxy.proxy_server._get_provider_token_counter
     )
-    original_router = litellm.proxy.proxy_server.llm_router
+    original_router = gateway.proxy.proxy_server.llm_router
 
     try:
 
         def mock_get_provider_token_counter(deployment, model_to_use):
             return (mock_counter, "claude-4-6-sonnet", "vertex_ai")
 
-        litellm.proxy.proxy_server._get_provider_token_counter = (
+        gateway.proxy.proxy_server._get_provider_token_counter = (
             mock_get_provider_token_counter
         )
 
@@ -1045,7 +1045,7 @@ async def test_token_counter_httpx_status_error_raises_proxy_exception():
                 "model_info": {},
             }
         )
-        litellm.proxy.proxy_server.llm_router = mock_router
+        gateway.proxy.proxy_server.llm_router = mock_router
 
         with pytest.raises(ProxyException) as exc_info:
             await token_counter(
@@ -1061,10 +1061,10 @@ async def test_token_counter_httpx_status_error_raises_proxy_exception():
         assert exc_info.value.type == "token_counting_error"
         assert exc_info.value.param == "model"
     finally:
-        litellm.proxy.proxy_server._get_provider_token_counter = (
+        gateway.proxy.proxy_server._get_provider_token_counter = (
             original_get_provider_token_counter
         )
-        litellm.proxy.proxy_server.llm_router = original_router
+        gateway.proxy.proxy_server.llm_router = original_router
 
 
 @pytest.mark.asyncio
@@ -1095,16 +1095,16 @@ async def test_proxy_token_counter_error_raises_exception_when_disabled():
     mock_router = MagicMock()
     mock_router.async_get_available_deployment = AsyncMock(return_value=mock_deployment)
 
-    setattr(litellm.proxy.proxy_server, "llm_router", mock_router)
+    setattr(gateway.proxy.proxy_server, "llm_router", mock_router)
 
     # Save original value and function
-    original_disable = litellm.disable_token_counter
+    original_disable = gateway.disable_token_counter
     original_get_provider_token_counter = (
-        litellm.proxy.proxy_server._get_provider_token_counter
+        gateway.proxy.proxy_server._get_provider_token_counter
     )
 
     try:
-        litellm.disable_token_counter = True
+        gateway.disable_token_counter = True
 
         # Create a mock counter that returns an error response
         mock_counter = MagicMock(spec=BedrockTokenCounter)
@@ -1115,7 +1115,7 @@ async def test_proxy_token_counter_error_raises_exception_when_disabled():
         def mock_get_provider_token_counter(deployment, model_to_use):
             return (mock_counter, "anthropic.claude-3-sonnet", "bedrock")
 
-        litellm.proxy.proxy_server._get_provider_token_counter = (
+        gateway.proxy.proxy_server._get_provider_token_counter = (
             mock_get_provider_token_counter
         )
 
@@ -1131,8 +1131,8 @@ async def test_proxy_token_counter_error_raises_exception_when_disabled():
         assert exc_info.value.code == "429"
         assert "Rate limit exceeded" in exc_info.value.message
     finally:
-        litellm.disable_token_counter = original_disable
-        litellm.proxy.proxy_server._get_provider_token_counter = (
+        gateway.disable_token_counter = original_disable
+        gateway.proxy.proxy_server._get_provider_token_counter = (
             original_get_provider_token_counter
         )
 
@@ -1165,16 +1165,16 @@ async def test_proxy_token_counter_error_falls_back_when_enabled():
     mock_router = MagicMock()
     mock_router.async_get_available_deployment = AsyncMock(return_value=mock_deployment)
 
-    setattr(litellm.proxy.proxy_server, "llm_router", mock_router)
+    setattr(gateway.proxy.proxy_server, "llm_router", mock_router)
 
     # Save original value and function
-    original_disable = litellm.disable_token_counter
+    original_disable = gateway.disable_token_counter
     original_get_provider_token_counter = (
-        litellm.proxy.proxy_server._get_provider_token_counter
+        gateway.proxy.proxy_server._get_provider_token_counter
     )
 
     try:
-        litellm.disable_token_counter = False
+        gateway.disable_token_counter = False
 
         # Create a mock counter that returns an error response
         mock_counter = MagicMock(spec=BedrockTokenCounter)
@@ -1185,7 +1185,7 @@ async def test_proxy_token_counter_error_falls_back_when_enabled():
         def mock_get_provider_token_counter(deployment, model_to_use):
             return (mock_counter, "anthropic.claude-3-sonnet", "bedrock")
 
-        litellm.proxy.proxy_server._get_provider_token_counter = (
+        gateway.proxy.proxy_server._get_provider_token_counter = (
             mock_get_provider_token_counter
         )
 
@@ -1203,8 +1203,8 @@ async def test_proxy_token_counter_error_falls_back_when_enabled():
         assert result.total_tokens > 0
         assert result.tokenizer_type != "bedrock_api"
     finally:
-        litellm.disable_token_counter = original_disable
-        litellm.proxy.proxy_server._get_provider_token_counter = (
+        gateway.disable_token_counter = original_disable
+        gateway.proxy.proxy_server._get_provider_token_counter = (
             original_get_provider_token_counter
         )
 

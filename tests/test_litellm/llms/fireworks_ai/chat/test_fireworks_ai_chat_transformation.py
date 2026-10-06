@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 
 from token_iq.gateway import get_model_info, supports_reasoning, supports_vision
@@ -23,10 +23,10 @@ def force_local_model_cost(monkeypatch):
     """Force local model cost map usage for all tests in this file."""
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
     # Refresh model_cost from local map
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.core_utils.get_model_cost_map import get_model_cost_map
 
-    litellm.model_cost = get_model_cost_map()
+    gateway.model_cost = get_model_cost_map()
 
 
 def test_validate_environment_sets_session_affinity_from_litellm_session_id():
@@ -370,7 +370,7 @@ def test_get_supported_openai_params_parallel_tool_calls_without_tool_choice(
     config = FireworksAIConfig()
     model = "fireworks_ai/test-tools-without-tool-choice"
     monkeypatch.setitem(
-        litellm.model_cost,
+        gateway.model_cost,
         model,
         {
             "supports_function_calling": True,
@@ -398,7 +398,7 @@ def test_get_provider_info_omits_false_supports_reasoning(monkeypatch):
     """Test that Fireworks only overrides supports_reasoning for supported models."""
     config = FireworksAIConfig()
     model = "fireworks_ai/test-reasoning-false"
-    monkeypatch.setitem(litellm.model_cost, model, {"supports_reasoning": False})
+    monkeypatch.setitem(gateway.model_cost, model, {"supports_reasoning": False})
 
     info = config.get_provider_info(model)
 
@@ -875,7 +875,7 @@ def test_native_openai_params_flow_end_to_end_with_drop_params_false():
         "service_tier": "auto",
         "prediction": {"type": "content", "content": "x"},
     }
-    optional_params = litellm.get_optional_params(
+    optional_params = gateway.get_optional_params(
         model="accounts/fireworks/models/llama-v3-70b-instruct",
         custom_llm_provider="fireworks_ai",
         drop_params=False,
@@ -960,7 +960,7 @@ def test_thinking_param_passthrough():
 def test_thinking_and_reasoning_effort_conflict_rejected():
     config = FireworksAIConfig()
     with pytest.raises(
-        litellm.BadRequestError,
+        gateway.BadRequestError,
         match="does not support specifying both `thinking` and `reasoning_effort`",
     ):
         config.map_openai_params(
@@ -1004,7 +1004,7 @@ def test_transform_messages_helper_rejects_file_blocks():
     ]
 
     with pytest.raises(
-        litellm.BadRequestError,
+        gateway.BadRequestError,
         match="Fireworks AI chat completions does not support file content blocks",
     ):
         config._transform_messages_helper(
@@ -1029,7 +1029,7 @@ def test_transform_messages_helper_rejects_non_vision_image_inputs():
         }
     ]
 
-    with pytest.raises(litellm.BadRequestError, match="does not support image inputs"):
+    with pytest.raises(gateway.BadRequestError, match="does not support image inputs"):
         config._transform_messages_helper(
             messages, model="accounts/fireworks/models/glm-5p2", litellm_params={}
         )
@@ -1130,7 +1130,7 @@ def test_get_provider_info_vision_from_model_cost(monkeypatch):
 
     vision_model = "fireworks_ai/test-vision-from-cost"
     monkeypatch.setitem(
-        litellm.model_cost,
+        gateway.model_cost,
         vision_model,
         {"supports_vision": True, "supports_pdf_input": True},
     )
@@ -1139,7 +1139,7 @@ def test_get_provider_info_vision_from_model_cost(monkeypatch):
     assert info["supports_pdf_input"] is True
 
     no_vision_model = "fireworks_ai/test-no-vision-from-cost"
-    monkeypatch.setitem(litellm.model_cost, no_vision_model, {})
+    monkeypatch.setitem(gateway.model_cost, no_vision_model, {})
     info_no_vision = config.get_provider_info(no_vision_model)
     assert info_no_vision.get("supports_vision") is not True
     assert "supports_pdf_input" not in info_no_vision
@@ -1312,7 +1312,7 @@ def test_streaming_surfaces_fireworks_response_fields():
 
     client = HTTPHandler()
     with patch.object(client, "post", return_value=raw_response):
-        stream = litellm.completion(
+        stream = gateway.completion(
             model=f"fireworks_ai/{model}",
             messages=[{"role": "user", "content": "hi"}],
             stream=True,
@@ -1698,7 +1698,7 @@ def test_nim_vllm_extras_translated_end_to_end_in_request_body():
 
     client = MagicMock(spec=HTTPHandler)
     client.post.return_value = raw_response
-    litellm.completion(
+    gateway.completion(
         model=f"fireworks_ai/{model}",
         messages=[{"role": "user", "content": "hi"}],
         api_key="fw-test-key",
@@ -1721,14 +1721,14 @@ def test_nim_vllm_extras_translated_end_to_end_in_request_body():
 
 
 def test_in_schema_unsupported_params_still_raise():
-    with pytest.raises(litellm.UnsupportedParamsError):
-        litellm.get_optional_params(
+    with pytest.raises(gateway.UnsupportedParamsError):
+        gateway.get_optional_params(
             model="accounts/fireworks/models/llama-v3-70b-instruct",
             custom_llm_provider="fireworks_ai",
             drop_params=False,
             store=True,
         )
-    optional_params = litellm.get_optional_params(
+    optional_params = gateway.get_optional_params(
         model="accounts/fireworks/models/llama-v3-70b-instruct",
         custom_llm_provider="fireworks_ai",
         drop_params=True,
@@ -1786,7 +1786,7 @@ def test_streaming_preserves_selected_model_for_private_accounting():
 
     client = HTTPHandler()
     with patch.object(client, "post", return_value=raw_response):
-        stream = litellm.completion(
+        stream = gateway.completion(
             model=f"fireworks_ai/{requested_route}",
             messages=[{"role": "user", "content": "hi"}],
             stream=True,
@@ -1801,16 +1801,16 @@ def test_streaming_preserves_selected_model_for_private_accounting():
         chunk._hidden_params.get("provider_response_model") for chunk in chunks
     } == {selected_model}
 
-    assembled = litellm.stream_chunk_builder(chunks=chunks)
+    assembled = gateway.stream_chunk_builder(chunks=chunks)
     assert assembled is not None
     assert assembled.model == requested_route
     assert assembled._hidden_params["provider_response_model"] == selected_model
-    selected_model_info = litellm.model_cost[f"fireworks_ai/{selected_model}"]
+    selected_model_info = gateway.model_cost[f"fireworks_ai/{selected_model}"]
     expected_cost = (
         5 * selected_model_info["input_cost_per_token"]
         + selected_model_info["output_cost_per_token"]
     )
-    assert litellm.completion_cost(
+    assert gateway.completion_cost(
         completion_response=assembled,
         custom_llm_provider="fireworks_ai",
     ) == pytest.approx(expected_cost)

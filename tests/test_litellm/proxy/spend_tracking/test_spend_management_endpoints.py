@@ -13,7 +13,7 @@ from fastapi.testclient import TestClient
 
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 import token_iq.gateway.proxy.proxy_server as ps
 
 
@@ -533,9 +533,9 @@ def disable_budget_sync(monkeypatch):
 @pytest.fixture(autouse=True)
 def reset_router_callbacks():
     """Ensure router budget callbacks from previous tests do not leak state."""
-    litellm.logging_callback_manager._reset_all_callbacks()
+    gateway.logging_callback_manager._reset_all_callbacks()
     yield
-    litellm.logging_callback_manager._reset_all_callbacks()
+    gateway.logging_callback_manager._reset_all_callbacks()
 
 
 @pytest.fixture(autouse=True)
@@ -2813,27 +2813,27 @@ async def _wait_for_mock_call(mock, timeout=10, interval=0.1):
 
 class TestSpendLogsPayload:
     def setup_method(self):
-        self._original_callbacks = litellm.callbacks[:]
-        self._original_cache = litellm.cache
-        litellm.cache = None
+        self._original_callbacks = gateway.callbacks[:]
+        self._original_cache = gateway.cache
+        gateway.cache = None
 
     def teardown_method(self):
-        litellm.callbacks = self._original_callbacks
-        litellm.cache = self._original_cache
+        gateway.callbacks = self._original_callbacks
+        gateway.cache = self._original_cache
 
     @pytest.mark.asyncio
     async def test_spend_logs_payload_e2e(self):
-        litellm.callbacks = [_ProxyDBLogger(message_logging=False)]
+        gateway.callbacks = [_ProxyDBLogger(message_logging=False)]
         # litellm._turn_on_debug()
 
         with (
             patch.object(
-                litellm.proxy.db.db_spend_update_writer.DBSpendUpdateWriter,
+                gateway.proxy.db.db_spend_update_writer.DBSpendUpdateWriter,
                 "_insert_spend_log_to_db",
             ) as mock_client,
-            patch.object(litellm.proxy.proxy_server, "prisma_client"),
+            patch.object(gateway.proxy.proxy_server, "prisma_client"),
         ):
-            response = await litellm.acompletion(
+            response = await gateway.acompletion(
                 model="gpt-4o",
                 messages=[{"role": "user", "content": "Hello, world!"}],
                 mock_response="Hello, world!",
@@ -2918,20 +2918,20 @@ class TestSpendLogsPayload:
         monkeypatch.delenv("ANTHROPIC_BASE_URL", raising=False)
         monkeypatch.delenv("ANTHROPIC_API_BASE", raising=False)
 
-        litellm.callbacks = [_ProxyDBLogger(message_logging=False)]
+        gateway.callbacks = [_ProxyDBLogger(message_logging=False)]
         # litellm._turn_on_debug()
 
         client = AsyncHTTPHandler()
 
         with (
             patch.object(
-                litellm.proxy.db.db_spend_update_writer.DBSpendUpdateWriter,
+                gateway.proxy.db.db_spend_update_writer.DBSpendUpdateWriter,
                 "_insert_spend_log_to_db",
             ) as mock_client,
-            patch.object(litellm.proxy.proxy_server, "prisma_client"),
+            patch.object(gateway.proxy.proxy_server, "prisma_client"),
             patch.object(client, "post", side_effect=self.mock_anthropic_response),
         ):
-            response = await litellm.acompletion(
+            response = await gateway.acompletion(
                 model="claude-4-sonnet-20250514",
                 messages=[{"role": "user", "content": "Hello, world!"}],
                 metadata={"user_api_key_end_user_id": "test_user_1"},
@@ -2999,7 +2999,7 @@ class TestSpendLogsPayload:
         monkeypatch.delenv("ANTHROPIC_BASE_URL", raising=False)
         monkeypatch.delenv("ANTHROPIC_API_BASE", raising=False)
 
-        litellm.callbacks = [_ProxyDBLogger(message_logging=False)]
+        gateway.callbacks = [_ProxyDBLogger(message_logging=False)]
         # litellm._turn_on_debug()
 
         client = AsyncHTTPHandler()
@@ -3020,10 +3020,10 @@ class TestSpendLogsPayload:
 
         with (
             patch.object(
-                litellm.proxy.db.db_spend_update_writer.DBSpendUpdateWriter,
+                gateway.proxy.db.db_spend_update_writer.DBSpendUpdateWriter,
                 "_insert_spend_log_to_db",
             ) as mock_client,
-            patch.object(litellm.proxy.proxy_server, "prisma_client"),
+            patch.object(gateway.proxy.proxy_server, "prisma_client"),
             patch.object(client, "post", side_effect=self.mock_anthropic_response),
         ):
             response = await router.acompletion(
@@ -5376,7 +5376,7 @@ async def test_cold_storage_handler_uses_injected_logger():
 async def test_cold_storage_handler_returns_none_when_no_logger_configured(monkeypatch):
     from token_iq.gateway.proxy.spend_tracking.cold_storage_handler import ColdStorageHandler
 
-    monkeypatch.setattr(litellm, "cold_storage_custom_logger", None, raising=False)
+    monkeypatch.setattr(gateway, "cold_storage_custom_logger", None, raising=False)
     handler = ColdStorageHandler()
 
     result = await handler.get_proxy_server_request_from_cold_storage_with_object_key(
@@ -5393,9 +5393,9 @@ async def test_cold_storage_handler_resolves_configured_logger_from_registry(
     from token_iq.gateway.proxy.spend_tracking.cold_storage_handler import ColdStorageHandler
 
     logger = _FakeColdStorageLogger({"messages": "from-registry"})
-    monkeypatch.setattr(litellm, "cold_storage_custom_logger", "s3_v2", raising=False)
+    monkeypatch.setattr(gateway, "cold_storage_custom_logger", "s3_v2", raising=False)
     monkeypatch.setattr(
-        litellm.logging_callback_manager,
+        gateway.logging_callback_manager,
         "get_active_custom_logger_for_callback_name",
         lambda name: logger if name == "s3_v2" else None,
     )
@@ -5434,14 +5434,14 @@ def test_ui_view_request_response_reads_from_cold_storage(client, monkeypatch):
             "proxy_server_request": None,
         }
     )
-    monkeypatch.setattr(litellm, "cold_storage_custom_logger", "s3_v2", raising=False)
+    monkeypatch.setattr(gateway, "cold_storage_custom_logger", "s3_v2", raising=False)
     monkeypatch.setattr(
-        litellm.logging_callback_manager,
+        gateway.logging_callback_manager,
         "get_active_additional_logging_utils_from_custom_logger",
         lambda: [],
     )
     monkeypatch.setattr(
-        litellm.logging_callback_manager,
+        gateway.logging_callback_manager,
         "get_active_custom_logger_for_callback_name",
         lambda name: cold_logger if name == "s3_v2" else None,
     )

@@ -27,7 +27,7 @@ from typing import Optional, Tuple
 import pytest
 from starlette.requests import Request
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.integrations.opentelemetry import LITELLM_PROXY_REQUEST_SPAN_NAME
 from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
 from token_iq.gateway.proxy._types import UserAPIKeyAuth
@@ -56,8 +56,8 @@ def otel_success_callback(otel_with_exporter, monkeypatch):
     for success callbacks (litellm._async_success_callback), so the real
     logging path drives it."""
     otel, exporter = otel_with_exporter
-    monkeypatch.setattr(litellm, "callbacks", [otel])
-    monkeypatch.setattr(litellm, "_async_success_callback", [otel])
+    monkeypatch.setattr(gateway, "callbacks", [otel])
+    monkeypatch.setattr(gateway, "_async_success_callback", [otel])
     return otel, exporter
 
 

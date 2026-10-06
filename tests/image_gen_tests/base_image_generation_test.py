@@ -5,7 +5,7 @@ import pytest
 from typing import Any, Dict, List, Optional
 from unittest.mock import MagicMock, Mock, patch
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.exceptions import BadRequestError
 from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
 from token_iq.gateway.utils import CustomStreamWrapper
@@ -42,13 +42,13 @@ class BaseImageGenTest(ABC):
     async def test_basic_image_generation(self):
         """Test basic image generation"""
         try:
-            litellm._turn_on_debug()
+            gateway._turn_on_debug()
             custom_logger = TestCustomLogger()
-            litellm.logging_callback_manager._reset_all_callbacks()
-            litellm.callbacks = [custom_logger]
+            gateway.logging_callback_manager._reset_all_callbacks()
+            gateway.callbacks = [custom_logger]
             base_image_generation_call_args = self.get_base_image_generation_call_args()
-            litellm.set_verbose = True
-            response = await litellm.aimage_generation(
+            gateway.set_verbose = True
+            response = await gateway.aimage_generation(
                 **base_image_generation_call_args, prompt="A image of a otter"
             )
             print("FAL AI RESPONSE: ", response)
@@ -79,11 +79,11 @@ class BaseImageGenTest(ABC):
                 assert isinstance(d, Image)
                 print("data in response.data", d)
                 assert d.b64_json is not None or d.url is not None
-        except litellm.RateLimitError as e:
+        except gateway.RateLimitError as e:
             pass
-        except litellm.ContentPolicyViolationError:
+        except gateway.ContentPolicyViolationError:
             pass  # Azure randomly raises these errors - skip when they occur
-        except litellm.InternalServerError:
+        except gateway.InternalServerError:
             pass
         except Exception as e:
             if "Your task failed as a result of our safety system." in str(e):

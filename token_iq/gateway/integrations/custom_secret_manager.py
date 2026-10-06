@@ -29,7 +29,7 @@ Usage:
             return self._fetch_secret_from_service_sync(secret_name)
 
     # Set your custom secret manager
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.types.secret_managers.main import KeyManagementSystem
 
     litellm.secret_manager_client = MySecretManager()

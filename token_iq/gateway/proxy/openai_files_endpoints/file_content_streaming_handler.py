@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, Any, Final, cast
 
 from fastapi.responses import StreamingResponse
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.files.types import FileContentProvider, FileContentStreamingResult
 from token_iq.gateway.types.utils import OPENAI_COMPATIBLE_BATCH_AND_FILES_PROVIDERS
 
@@ -106,7 +106,7 @@ class FileContentStreamingHandler:
 
         stream_result: Final = cast(
             FileContentStreamingResult,
-            await litellm.afile_content(
+            await gateway.afile_content(
                 **{
                     "custom_llm_provider": cast(FileContentProvider, custom_llm_provider),
                     "file_id": file_id,

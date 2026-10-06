@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.exceptions import BadRequestError
 
 from .grid_spec import (
@@ -142,7 +142,7 @@ def _model_unavailable(model: ModelEntry, exc: Optional[Exception]) -> bool:
 async def _call_chat(model: ModelEntry, effort: str) -> Tuple[int, Optional[Exception]]:
     kwargs = _build_completion_kwargs(model, effort)
     try:
-        await litellm.acompletion(**kwargs)
+        await gateway.acompletion(**kwargs)
         return 200, None
     except Exception as exc:
         return _classify_status(exc), exc
@@ -153,7 +153,7 @@ async def _call_messages(
 ) -> Tuple[int, Optional[Exception]]:
     kwargs = _build_completion_kwargs(model, effort)
     try:
-        await litellm.anthropic_messages(**kwargs)
+        await gateway.anthropic_messages(**kwargs)
         return 200, None
     except Exception as exc:
         return _classify_status(exc), exc

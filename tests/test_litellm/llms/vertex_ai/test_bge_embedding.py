@@ -11,7 +11,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 
 
@@ -47,7 +47,7 @@ def test_vertex_ai_bge_embedding_with_custom_api_base():
         }
         mock_post.return_value = mock_response
 
-        response = litellm.embedding(
+        response = gateway.embedding(
             model="vertex_ai/bge-small-en-v1.5",
             input=["Hello", "World"],
             api_base="http://10.96.32.8",
@@ -125,7 +125,7 @@ def test_vertex_ai_bge_with_endpoint_id_pattern():
         }
         mock_post.return_value = mock_response
 
-        response = litellm.embedding(
+        response = gateway.embedding(
             model="vertex_ai/bge/204379420394258432",
             input=["Hello", "World"],
             vertex_project="1060139831167",
@@ -206,7 +206,7 @@ def test_vertex_ai_bge_psc_endpoint_url_construction():
         mock_response.json.return_value = {"predictions": [[0.1, 0.2, 0.3, 0.4, 0.5]]}
         mock_post.return_value = mock_response
 
-        response = litellm.embedding(
+        response = gateway.embedding(
             model="vertex_ai/bge/378943383978115072",
             input=["The food was delicious and the waiter.."],
             api_base="http://10.128.16.2",

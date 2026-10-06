@@ -12,7 +12,7 @@ import hashlib
 import json
 from typing import Any, Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.constants import _DEFAULT_TTL_FOR_HTTPX_CLIENTS
 
@@ -43,7 +43,7 @@ class LangfuseInMemoryCache(InMemoryCache):
             #########################################################
             # Clean up Langfuse initialized clients
             #########################################################
-            litellm.initialized_langfuse_clients -= 1
+            gateway.initialized_langfuse_clients -= 1
             _created_langfuse_logger.Langfuse.flush()
             _created_langfuse_logger.Langfuse.shutdown()
 

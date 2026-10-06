@@ -1,6 +1,6 @@
 from typing import Any, Final, cast
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.base_llm.videos.transformation import BaseVideoConfig
 from token_iq.gateway.types.videos.main import VideoCreateOptionalRequestParams
 from token_iq.gateway.utils import filter_out_litellm_params
@@ -30,7 +30,7 @@ class VideoGenerationRequestUtils:
         mapped_params: Final = video_generation_provider_config.map_openai_params(
             video_create_optional_params=video_generation_optional_params,
             model=model,
-            drop_params=litellm.drop_params,
+            drop_params=gateway.drop_params,
         )
 
         # Merge extra_body params if present (for provider-specific parameters)

@@ -6,7 +6,7 @@ import pytest
 from unittest.mock import patch, MagicMock
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from base_audio_transcription_unit_tests import BaseLLMAudioTranscriptionTest
 
 os.environ.setdefault("ELEVENLABS_API_KEY", "test-elevenlabs-key")
@@ -18,8 +18,8 @@ class TestElevenLabsAudioTranscription(BaseLLMAudioTranscriptionTest):
             "model": "elevenlabs/scribe_v1",
         }
 
-    def get_custom_llm_provider(self) -> litellm.LlmProviders:
-        return litellm.LlmProviders.ELEVENLABS
+    def get_custom_llm_provider(self) -> gateway.LlmProviders:
+        return gateway.LlmProviders.ELEVENLABS
 
     def test_elevenlabs_diarize_parameter_passthrough(self):
         """
@@ -64,7 +64,7 @@ class TestElevenLabsAudioTranscription(BaseLLMAudioTranscriptionTest):
 
         with patch.object(HTTPHandler, "post", side_effect=mock_post):
             try:
-                result = litellm.transcription(
+                result = gateway.transcription(
                     model="elevenlabs/scribe_v1",
                     file=audio_content,
                     diarize=True,  # This should be passed through to the form data

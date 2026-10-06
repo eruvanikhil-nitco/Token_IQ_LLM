@@ -21,7 +21,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from fastapi.responses import JSONResponse, StreamingResponse
 from pydantic import ValidationError
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.core_utils.url_utils import SSRFError, validate_url
 from token_iq.gateway.proxy._types import UserAPIKeyAuth
@@ -316,7 +316,7 @@ def _sse_streaming_response(generator: AsyncGenerator[str, None]) -> StreamingRe
     # time-to-first-token and an intermediary with an idle read timeout drops a
     # healthy connection. Off until an operator sets an interval, and the
     # buffering hint only goes out when there are keepalives to protect.
-    keepalive_interval: Final = coerce_keepalive_interval(litellm.sse_keepalive_ping_interval_seconds)
+    keepalive_interval: Final = coerce_keepalive_interval(gateway.sse_keepalive_ping_interval_seconds)
     if keepalive_interval is None:
         return StreamingResponse(generator, media_type="text/event-stream")
     return StreamingResponse(
@@ -1019,6 +1019,6 @@ async def invoke_agent_a2a(
             )
         except Exception:
             pass
-        if isinstance(e, litellm.BadRequestError):
+        if isinstance(e, gateway.BadRequestError):
             return _jsonrpc_error(body.get("id"), -32602, e.message, 400)
         return _jsonrpc_error(body.get("id"), -32603, f"Internal error: {e}", 500)

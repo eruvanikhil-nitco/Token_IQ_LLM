@@ -2,7 +2,7 @@ from collections.abc import Mapping
 from types import MappingProxyType
 from typing import Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.types.utils import ImageResponse
 
 FAL_KEYED_PRICING_DEFAULT_QUALITY: Final[str] = "high"
@@ -44,7 +44,7 @@ def _keyed_cost_per_image(model: str, optional_params: Mapping[str, object] | No
     quality: Final = (
         raw_quality if isinstance(raw_quality, str) and raw_quality != "auto" else FAL_KEYED_PRICING_DEFAULT_QUALITY
     )
-    keyed_entry: Final = litellm.model_cost.get(f"fal_ai/{quality}/{size}/{model}")
+    keyed_entry: Final = gateway.model_cost.get(f"fal_ai/{quality}/{size}/{model}")
     if keyed_entry is None:
         return None
     keyed_cost: Final = keyed_entry.get("output_cost_per_image")
@@ -62,14 +62,14 @@ def cost_calculator(
     if not isinstance(image_response, ImageResponse):
         raise ValueError(f"image_response must be of type ImageResponse got type={type(image_response)}")
     # the proxy cost path passes the provider-prefixed model name
-    model = model.removeprefix(f"{litellm.LlmProviders.FAL_AI.value}/")
+    model = model.removeprefix(f"{gateway.LlmProviders.FAL_AI.value}/")
     num_images: Final[int] = len(image_response.data) if image_response.data else 0
     keyed_cost_per_image: Final = _keyed_cost_per_image(model=model, optional_params=optional_params)
     if keyed_cost_per_image is not None:
         return keyed_cost_per_image * num_images
-    _model_info: Final = litellm.get_model_info(
+    _model_info: Final = gateway.get_model_info(
         model=model,
-        custom_llm_provider=litellm.LlmProviders.FAL_AI.value,
+        custom_llm_provider=gateway.LlmProviders.FAL_AI.value,
     )
     output_cost_per_image: Final[float] = _model_info.get("output_cost_per_image") or 0.0
     return output_cost_per_image * num_images

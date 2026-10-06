@@ -20,7 +20,7 @@ import uuid
 from collections.abc import Mapping, Sequence
 from typing import TYPE_CHECKING, Any, Final, TypedDict
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.constants import (
     S3_VECTORS_DEFAULT_DIMENSION,
@@ -135,7 +135,7 @@ class S3VectorsRAGIngestion(BaseRAGIngestion, BaseAWSLLM):
             if self.router:
                 response = await self.router.aembedding(model=model_name, input=[test_input])
             else:
-                response = await litellm.aembedding(model=model_name, input=[test_input])
+                response = await gateway.aembedding(model=model_name, input=[test_input])
 
             # Get dimension from the response
             if response.data and len(response.data) > 0:
@@ -419,7 +419,7 @@ class S3VectorsRAGIngestion(BaseRAGIngestion, BaseAWSLLM):
         if self.router:
             response = await self.router.aembedding(model=embedding_model, input=input_chunks)
         else:
-            response = await litellm.aembedding(model=embedding_model, input=input_chunks)
+            response = await gateway.aembedding(model=embedding_model, input=input_chunks)
 
         return [item["embedding"] for item in response.data]
 
@@ -510,7 +510,7 @@ class S3VectorsRAGIngestion(BaseRAGIngestion, BaseAWSLLM):
 
         embedding_model: Final = self.embedding_config.get("model", "text-embedding-3-small")
 
-        response = await litellm.aembedding(model=embedding_model, input=[query])
+        response = await gateway.aembedding(model=embedding_model, input=[query])
         query_embedding: Final[Sequence[float]] = response.data[0]["embedding"]
 
         # Call QueryVectors API

@@ -15,7 +15,7 @@ from typing import Final, Literal, cast
 import jwt
 from fastapi import HTTPException
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.constants import LITELLM_PROXY_ADMIN_NAME, LITELLM_UI_SESSION_DURATION
 from token_iq.gateway.core_utils.duration_parser import duration_in_seconds
 from token_iq.gateway.proxy._types import (
@@ -231,7 +231,7 @@ async def authenticate_user(
                 **{
                     "user_role": LitellmUserRoles.PROXY_ADMIN,
                     "duration": LITELLM_UI_SESSION_DURATION,
-                    "key_max_budget": litellm.max_ui_session_budget,
+                    "key_max_budget": gateway.max_ui_session_budget,
                     "models": [],
                     "aliases": {},
                     "config": {},
@@ -261,7 +261,7 @@ async def authenticate_user(
                     user_id=user_id,
                     user_role=user_role,
                     models=[],
-                    max_budget=litellm.max_ui_session_budget,
+                    max_budget=gateway.max_ui_session_budget,
                 )
             if user_info is None:
                 raise HTTPException(
@@ -306,7 +306,7 @@ async def authenticate_user(
                     **{
                         "user_role": user_role,
                         "duration": LITELLM_UI_SESSION_DURATION,
-                        "key_max_budget": litellm.max_ui_session_budget,
+                        "key_max_budget": gateway.max_ui_session_budget,
                         "models": [],
                         "aliases": {},
                         "config": {},

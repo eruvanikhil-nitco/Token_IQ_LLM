@@ -5,7 +5,7 @@ from typing import Any, Final, Literal, get_args
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
 from token_iq.gateway.llms.custom_httpx.http_handler import (
     AsyncHTTPHandler,
@@ -53,7 +53,7 @@ async def async_get_hf_task_embedding_for_model(model: str, task_type: str | Non
         else:
             raise Exception(f"Invalid task_type={task_type}. Expected one of={hf_tasks_embeddings}")
     http_client: Final = get_async_httpx_client(
-        llm_provider=litellm.LlmProviders.HUGGINGFACE,
+        llm_provider=gateway.LlmProviders.HUGGINGFACE,
     )
 
     model_info: Final = await http_client.get(url=f"{api_base}/api/models/{model}")
@@ -213,7 +213,7 @@ class HuggingFaceEmbedding(BaseLLM):
         setattr(
             model_response,
             "usage",
-            litellm.Usage(
+            gateway.Usage(
                 prompt_tokens=input_tokens,
                 completion_tokens=input_tokens,
                 total_tokens=input_tokens,
@@ -227,7 +227,7 @@ class HuggingFaceEmbedding(BaseLLM):
         self,
         model: str,
         input: list,
-        model_response: litellm.utils.EmbeddingResponse,
+        model_response: gateway.utils.EmbeddingResponse,
         timeout: float | httpx.Timeout,
         logging_obj: LiteLLMLoggingObj,
         optional_params: dict,
@@ -259,7 +259,7 @@ class HuggingFaceEmbedding(BaseLLM):
         ## COMPLETION CALL
         if client is None:
             client = get_async_httpx_client(
-                llm_provider=litellm.LlmProviders.HUGGINGFACE,
+                llm_provider=gateway.LlmProviders.HUGGINGFACE,
             )
 
         response: Final = await client.post(api_base, headers=headers, data=json.dumps(data))

@@ -14,7 +14,7 @@ import json
 import os
 from typing import TYPE_CHECKING, Any, Final, Protocol, cast
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import print_verbose
 from token_iq.gateway.constants import (
     QDRANT_SCALAR_QUANTILE,
@@ -239,7 +239,7 @@ class QdrantSemanticCache(BaseCache):
                 timeout=self.embedding_timeout,
                 num_retries=0,
             )
-        return litellm.embedding(
+        return gateway.embedding(
             model=self.embedding_model,
             input=embedding_input,
             cache={"no-store": True, "no-cache": True},
@@ -266,7 +266,7 @@ class QdrantSemanticCache(BaseCache):
                 num_retries=0,
             )
             if router is not None
-            else litellm.aembedding(
+            else gateway.aembedding(
                 model=self.embedding_model,
                 input=embedding_input,
                 cache={"no-store": True, "no-cache": True},

@@ -29,7 +29,7 @@ import httpx
 from fastapi import HTTPException
 from httpx import Response as HttpxResponse
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.constants import PRE_CALL_EXECUTED_GUARDRAILS_KEY
 from token_iq.gateway.integrations.custom_guardrail import (
@@ -769,7 +769,7 @@ class CompresrGuardrail(CustomGuardrail):
                 },
             )
             return None
-        except (httpx.RequestError, litellm.Timeout) as e:
+        except (httpx.RequestError, gateway.Timeout) as e:
             # Every request-side httpx failure is a RequestError; route the whole
             # class through the fail policy so none escapes as a 500 under fail_open.
             # (HTTPStatusError is handled above and is not a RequestError.)

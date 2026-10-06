@@ -29,7 +29,7 @@ except ImportError:
 
 from fastapi import HTTPException
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import DualCache
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.integrations.custom_guardrail import (
@@ -248,7 +248,7 @@ class LassoGuardrail(CustomGuardrail):
             return response
 
         # Extract messages from the response for validation
-        if isinstance(response, litellm.ModelResponse):
+        if isinstance(response, gateway.ModelResponse):
             response_messages: Final[list[dict[str, object]]] = []
             for choice in response.choices:
                 if not hasattr(choice, "message"):
@@ -917,7 +917,7 @@ class LassoGuardrail(CustomGuardrail):
 
     def _apply_masking_to_model_response(
         self,
-        model_response: litellm.ModelResponse,
+        model_response: gateway.ModelResponse,
         masked_messages: Sequence[Mapping[str, object]],
     ) -> None:
         """Apply masking to the actual model response when mask=True and masked content is available."""

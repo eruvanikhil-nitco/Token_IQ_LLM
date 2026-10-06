@@ -518,12 +518,12 @@ class _LlmJudgeChecker:
         self.model = model
 
     def check(self, text: str) -> str:
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         if not text or not text.strip():
             return text
 
-        response: Final = litellm.completion(
+        response: Final = gateway.completion(
             model=self.model,
             messages=[
                 {"role": "system", "content": LLM_JUDGE_SYSTEM_PROMPT},

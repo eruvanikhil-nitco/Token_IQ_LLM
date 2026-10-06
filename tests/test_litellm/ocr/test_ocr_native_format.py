@@ -8,7 +8,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.ocr.main import _PreparedOCRRequest, _rust_ocr_supported
 
 DOCUMENT = {"type": "document_url", "document_url": "https://example.com/doc.pdf"}
@@ -41,8 +41,8 @@ def test_rust_ocr_skipped_for_native_format():
 
 @pytest.mark.asyncio
 async def test_native_format_rejected_for_provider_without_support_as_bad_request():
-    with pytest.raises(litellm.BadRequestError, match="not supported for provider") as exc_info:
-        await litellm.aocr(
+    with pytest.raises(gateway.BadRequestError, match="not supported for provider") as exc_info:
+        await gateway.aocr(
             model="mistral/mistral-ocr-latest",
             document=DOCUMENT,
             api_key="fake-key",
@@ -54,8 +54,8 @@ async def test_native_format_rejected_for_provider_without_support_as_bad_reques
 
 @pytest.mark.asyncio
 async def test_unknown_format_rejected_for_provider_without_support_as_bad_request():
-    with pytest.raises(litellm.BadRequestError, match="Invalid `req_format`") as exc_info:
-        await litellm.aocr(
+    with pytest.raises(gateway.BadRequestError, match="Invalid `req_format`") as exc_info:
+        await gateway.aocr(
             model="mistral/mistral-ocr-latest",
             document=DOCUMENT,
             api_key="fake-key",

@@ -6,7 +6,7 @@ import pytest
 from unittest.mock import AsyncMock, patch, MagicMock
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 
 class TestYouComSearch:
@@ -62,7 +62,7 @@ class TestYouComSearch:
         ) as mock_post:
             mock_post.return_value = mock_response
 
-            response = await litellm.asearch(
+            response = await gateway.asearch(
                 query="latest developments in AI",
                 search_provider="you_com",
                 max_results=5,
@@ -115,7 +115,7 @@ class TestYouComSearch:
         ) as mock_post:
             mock_post.return_value = mock_response
 
-            await litellm.asearch(
+            await gateway.asearch(
                 query="machine learning",
                 search_provider="you_com",
                 search_domain_filter=["arxiv.org", "nature.com"],
@@ -163,7 +163,7 @@ class TestYouComSearch:
         ) as mock_post:
             mock_post.return_value = mock_response
 
-            response = await litellm.asearch(
+            response = await gateway.asearch(
                 query="anything",
                 search_provider="you_com",
             )
@@ -208,7 +208,7 @@ class TestYouComSearch:
         ) as mock_post:
             mock_post.return_value = mock_response
 
-            response = await litellm.asearch(
+            response = await gateway.asearch(
                 query="anything",
                 search_provider="you_com",
             )
@@ -276,7 +276,7 @@ class TestYouComSearch:
         ) as mock_post:
             mock_post.return_value = mock_response
 
-            response = await litellm.asearch(
+            response = await gateway.asearch(
                 query="hello world",
                 search_provider="you_com",
             )
@@ -314,7 +314,7 @@ class TestYouComSearch:
         ) as mock_post:
             mock_post.return_value = mock_response
 
-            await litellm.asearch(
+            await gateway.asearch(
                 query="anything",
                 search_provider="you_com",
                 api_key="my-programmatic-key",

@@ -7,11 +7,11 @@ import io
 
 import pytest
 from unittest.mock import patch, MagicMock, AsyncMock
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import RateLimitError, Timeout, completion, completion_cost, embedding
 
-litellm.num_retries = 0
-litellm.cache = None
+gateway.num_retries = 0
+gateway.cache = None
 # litellm.set_verbose=True
 import json
 
@@ -49,8 +49,8 @@ def get_current_weather(location, unit="fahrenheit"):
 @pytest.mark.flaky(retries=3, delay=1)
 def test_aaparallel_function_call(model):
     try:
-        litellm.set_verbose = True
-        litellm.modify_params = True
+        gateway.set_verbose = True
+        gateway.modify_params = True
         # Step 1: send the conversation and available functions to the model
         messages = [
             {
@@ -81,7 +81,7 @@ def test_aaparallel_function_call(model):
                 },
             }
         ]
-        response = litellm.completion(
+        response = gateway.completion(
             model=model,
             messages=messages,
             tools=tools,
@@ -129,7 +129,7 @@ def test_aaparallel_function_call(model):
                     }
                 )  # extend conversation with function response
             print(f"messages: {messages}")
-            second_response = litellm.completion(
+            second_response = gateway.completion(
                 model=model,
                 messages=messages,
                 temperature=0.2,
@@ -138,9 +138,9 @@ def test_aaparallel_function_call(model):
                 drop_params=True,
             )  # get a new response from the model where it can see the function response
             print("second response\n", second_response)
-    except litellm.InternalServerError as e:
+    except gateway.InternalServerError as e:
         print(e)
-    except litellm.RateLimitError as e:
+    except gateway.RateLimitError as e:
         print(e)
     except Exception as e:
         pytest.fail(f"Error occurred: {e}")
@@ -159,8 +159,8 @@ def test_aaparallel_function_call(model):
 @pytest.mark.flaky(retries=3, delay=1)
 def test_aaparallel_function_call_with_anthropic_thinking(model):
     try:
-        litellm._turn_on_debug()
-        litellm.modify_params = True
+        gateway._turn_on_debug()
+        gateway.modify_params = True
         # Step 1: send the conversation and available functions to the model
         messages = [
             {
@@ -191,7 +191,7 @@ def test_aaparallel_function_call_with_anthropic_thinking(model):
                 },
             }
         ]
-        response = litellm.completion(
+        response = gateway.completion(
             model=model,
             messages=messages,
             tools=tools,
@@ -240,7 +240,7 @@ def test_aaparallel_function_call_with_anthropic_thinking(model):
                     }
                 )  # extend conversation with function response
             print(f"messages: {messages}")
-            second_response = litellm.completion(
+            second_response = gateway.completion(
                 model=model,
                 messages=messages,
                 seed=22,
@@ -251,9 +251,9 @@ def test_aaparallel_function_call_with_anthropic_thinking(model):
             print("second response\n", second_response)
 
             ## THIRD RESPONSE
-    except litellm.InternalServerError as e:
+    except gateway.InternalServerError as e:
         print(e)
-    except litellm.RateLimitError as e:
+    except gateway.RateLimitError as e:
         print(e)
     except Exception as e:
         pytest.fail(f"Error occurred: {e}")
@@ -344,14 +344,14 @@ def test_parallel_function_call_anthropic_error_msg(
     """
     # Ensure modify_params is False so Bedrock Converse path still raises.
     # (other tests in this file set it to True and don't reset it)
-    original_modify_params = litellm.modify_params
-    litellm.modify_params = False
+    original_modify_params = gateway.modify_params
+    gateway.modify_params = False
     try:
-        litellm.set_verbose = True
+        gateway.set_verbose = True
 
         if expect_unsupported_params_error:
-            with pytest.raises(litellm.UnsupportedParamsError) as e:
-                litellm.completion(
+            with pytest.raises(gateway.UnsupportedParamsError) as e:
+                gateway.completion(
                     model=model,
                     messages=messages,
                     temperature=0.2,
@@ -359,7 +359,7 @@ def test_parallel_function_call_anthropic_error_msg(
                     drop_params=True,
                 )
         else:
-            second_response = litellm.completion(
+            second_response = gateway.completion(
                 model=model,
                 messages=messages,
                 temperature=0.2,
@@ -367,19 +367,19 @@ def test_parallel_function_call_anthropic_error_msg(
                 drop_params=True,
             )  # get a new response from the model where it can see the function response
             print("second response\n", second_response)
-    except litellm.InternalServerError as e:
+    except gateway.InternalServerError as e:
         print(e)
-    except litellm.RateLimitError as e:
+    except gateway.RateLimitError as e:
         print(e)
     except Exception as e:
         pytest.fail(f"Error occurred: {e}")
     finally:
-        litellm.modify_params = original_modify_params
+        gateway.modify_params = original_modify_params
 
 
 def test_parallel_function_call_stream():
     try:
-        litellm.set_verbose = True
+        gateway.set_verbose = True
         # Step 1: send the conversation and available functions to the model
         messages = [
             {
@@ -410,7 +410,7 @@ def test_parallel_function_call_stream():
                 },
             }
         ]
-        response = litellm.completion(
+        response = gateway.completion(
             model="gpt-3.5-turbo-1106",
             messages=messages,
             tools=tools,
@@ -459,7 +459,7 @@ def test_parallel_function_call_stream():
                     }
                 )  # extend conversation with function response
             print(f"messages: {messages}")
-            second_response = litellm.completion(
+            second_response = gateway.completion(
                 model="gpt-3.5-turbo-1106", messages=messages, temperature=0.2, seed=22
             )  # get a new response from the model where it can see the function response
             print("second response\n", second_response)
@@ -475,7 +475,7 @@ def test_parallel_function_call_stream():
     reason="Flaky test. Groq function calling is not reliable for ci/cd testing."
 )
 def test_groq_parallel_function_call():
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     try:
         # Step 1: send the conversation and available functions to the model
         messages = [
@@ -511,7 +511,7 @@ def test_groq_parallel_function_call():
                 },
             }
         ]
-        response = litellm.completion(
+        response = gateway.completion(
             model="groq/llama2-70b-4096",
             messages=messages,
             tools=tools,
@@ -561,7 +561,7 @@ def test_groq_parallel_function_call():
                         }
                     )  # extend conversation with function response
                 print(f"messages: {messages}")
-                second_response = litellm.completion(
+                second_response = gateway.completion(
                     model="groq/llama2-70b-4096", messages=messages
                 )  # get a new response from the model where it can see the function response
                 print("second response\n", second_response)
@@ -576,8 +576,8 @@ def test_groq_parallel_function_call():
     ],
 )
 def test_passing_tool_result_as_list(model):
-    litellm.set_verbose = True
-    litellm._turn_on_debug()
+    gateway.set_verbose = True
+    gateway._turn_on_debug()
     messages = [
         {
             "content": [
@@ -730,7 +730,7 @@ async def test_watsonx_tool_choice(sync_mode, monkeypatch):
     monkeypatch.setenv("WATSONX_API_BASE", "https://us-south.ml.cloud.ibm.com")
     monkeypatch.setenv("WATSONX_PROJECT_ID", "mock-project-id")
 
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     tools = [
         {
             "type": "function",

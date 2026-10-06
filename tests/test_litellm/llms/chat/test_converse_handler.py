@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock, MagicMock
 import httpx
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.bedrock.chat import BedrockConverseLLM
 from token_iq.gateway.llms.bedrock.chat.converse_handler import make_sync_call
 from token_iq.gateway.llms.bedrock.common_utils import _get_all_bedrock_regions
@@ -143,7 +143,7 @@ def _stream_completion_with_spied_iter_bytes(model: str, **kwargs) -> MagicMock:
     client = HTTPHandler()
     client.post = MagicMock(return_value=mock_response)
 
-    litellm.completion(
+    gateway.completion(
         model=model,
         messages=[{"role": "user", "content": "hi"}],
         stream=True,
@@ -216,7 +216,7 @@ def test_converse_completion_forwards_bedrock_response_headers():
     client = HTTPHandler()
     client.post = MagicMock(return_value=mock_response)
 
-    response = litellm.completion(
+    response = gateway.completion(
         model="bedrock/converse/anthropic.claude-haiku-4-5-20251001-v1:0",
         messages=[{"role": "user", "content": "hi"}],
         client=client,
@@ -236,7 +236,7 @@ def test_converse_streaming_forwards_bedrock_response_headers():
     client = HTTPHandler()
     client.post = MagicMock(return_value=mock_response)
 
-    response = litellm.completion(
+    response = gateway.completion(
         model="bedrock/converse/anthropic.claude-haiku-4-5-20251001-v1:0",
         messages=[{"role": "user", "content": "hi"}],
         stream=True,
@@ -259,7 +259,7 @@ async def test_async_converse_completion_forwards_bedrock_response_headers():
     client = AsyncHTTPHandler()
     client.post = AsyncMock(return_value=mock_response)
 
-    response = await litellm.acompletion(
+    response = await gateway.acompletion(
         model="bedrock/converse/anthropic.claude-haiku-4-5-20251001-v1:0",
         messages=[{"role": "user", "content": "hi"}],
         client=client,
@@ -284,7 +284,7 @@ async def test_async_converse_streaming_forwards_bedrock_response_headers():
     client = AsyncHTTPHandler()
     client.post = AsyncMock(return_value=mock_response)
 
-    response = await litellm.acompletion(
+    response = await gateway.acompletion(
         model="bedrock/converse/anthropic.claude-haiku-4-5-20251001-v1:0",
         messages=[{"role": "user", "content": "hi"}],
         stream=True,

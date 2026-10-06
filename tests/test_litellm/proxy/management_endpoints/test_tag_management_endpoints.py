@@ -12,7 +12,7 @@ from prisma.actions import LiteLLM_VerificationTokenActions
 from contextlib import contextmanager
 from unittest.mock import AsyncMock, Mock, patch
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy._types import LitellmUserRoles, UserAPIKeyAuth
 from token_iq.gateway.proxy.proxy_server import app
 from token_iq.gateway.types.tag_management import TagDeleteRequest, TagInfoRequest, TagNewRequest

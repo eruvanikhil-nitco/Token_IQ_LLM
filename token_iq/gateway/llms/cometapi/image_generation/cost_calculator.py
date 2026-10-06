@@ -1,6 +1,6 @@
 from typing import Any, Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.types.utils import ImageResponse
 
 
@@ -11,9 +11,9 @@ def cost_calculator(
     """
     CometAPI image generation cost calculator
     """
-    _model_info: Final = litellm.get_model_info(
+    _model_info: Final = gateway.get_model_info(
         model=model,
-        custom_llm_provider=litellm.LlmProviders.COMETAPI.value,
+        custom_llm_provider=gateway.LlmProviders.COMETAPI.value,
     )
     output_cost_per_image: Final[float] = _model_info.get("output_cost_per_image") or 0.0
     num_images: int = 0

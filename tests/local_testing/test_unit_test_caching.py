@@ -11,7 +11,7 @@ import random
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import aembedding, completion, embedding
 from token_iq.gateway.caching.caching import Cache
 
@@ -35,7 +35,7 @@ import logging
 
 
 def test_get_kwargs_for_cache_key():
-    _cache = litellm.Cache()
+    _cache = gateway.Cache()
     relevant_kwargs = ModelParamHelper._get_all_llm_api_params()
     print(relevant_kwargs)
 

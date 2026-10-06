@@ -4,7 +4,7 @@ Vertex AI Image Generation Cost Calculator
 
 from typing import Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.llm_cost_calc.utils import (
     calculate_image_response_cost_from_usage,
     calculate_image_response_web_search_cost,
@@ -19,7 +19,7 @@ def cost_calculator(
     """
     Vertex AI Image Generation Cost Calculator
     """
-    _model_info: Final = litellm.get_model_info(
+    _model_info: Final = gateway.get_model_info(
         model=model,
         custom_llm_provider="vertex_ai",
     )

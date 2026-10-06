@@ -5,7 +5,7 @@ import importlib
 
 import pytest
 
-from token_iq import gateway as litellm  # noqa: E402,F401
+from token_iq import gateway  # noqa: E402,F401
 
 from tests._vcr_conftest_common import (  # noqa: E402,F401
     VerboseReporterState,
@@ -46,17 +46,17 @@ def setup_and_teardown():
     # flush all logs
     asyncio.run(GLOBAL_LOGGING_WORKER.clear_queue())
 
-    importlib.reload(litellm)
+    importlib.reload(gateway)
 
     try:
-        if hasattr(litellm, "proxy") and hasattr(litellm.proxy, "proxy_server"):
-            importlib.reload(litellm.proxy.proxy_server)
+        if hasattr(gateway, "proxy") and hasattr(gateway.proxy, "proxy_server"):
+            importlib.reload(gateway.proxy.proxy_server)
     except Exception as e:
         print(f"Error reloading litellm.proxy.proxy_server: {e}")
 
     loop = asyncio.get_event_loop_policy().new_event_loop()
     asyncio.set_event_loop(loop)
-    print(litellm)
+    print(gateway)
     yield
 
     # Teardown code (executes after the yield point)

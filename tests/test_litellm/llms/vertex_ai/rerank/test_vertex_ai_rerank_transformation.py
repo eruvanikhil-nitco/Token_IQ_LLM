@@ -61,13 +61,13 @@ class TestVertexAIRerankTransform:
 
         # Test with litellm.vertex_project
         with patch.dict(os.environ, {}, clear=True):
-            from token_iq import gateway as litellm
+            from token_iq import gateway
 
             # Set vertex_project attribute if it doesn't exist
-            if not hasattr(litellm, "vertex_project"):
-                litellm.vertex_project = None
-            original_project = litellm.vertex_project
-            litellm.vertex_project = "litellm-project-456"
+            if not hasattr(gateway, "vertex_project"):
+                gateway.vertex_project = None
+            original_project = gateway.vertex_project
+            gateway.vertex_project = "litellm-project-456"
             # Reset mock call count
             mock_ensure_access_token.reset_mock()
             mock_ensure_access_token.return_value = (
@@ -79,17 +79,17 @@ class TestVertexAIRerankTransform:
                 expected_url = "https://discoveryengine.googleapis.com/v1/projects/litellm-project-456/locations/global/rankingConfigs/default_ranking_config:rank"
                 assert url == expected_url
             finally:
-                litellm.vertex_project = original_project
+                gateway.vertex_project = original_project
 
         # Test error when no project ID is available
         with patch.dict(os.environ, {}, clear=True):
-            from token_iq import gateway as litellm
+            from token_iq import gateway
 
             # Set vertex_project to None to ensure no project ID is available
-            if not hasattr(litellm, "vertex_project"):
-                litellm.vertex_project = None
-            original_project = litellm.vertex_project
-            litellm.vertex_project = None
+            if not hasattr(gateway, "vertex_project"):
+                gateway.vertex_project = None
+            original_project = gateway.vertex_project
+            gateway.vertex_project = None
             # Reset mock and set it to raise an error
             mock_ensure_access_token.reset_mock()
             mock_ensure_access_token.side_effect = ValueError(
@@ -101,7 +101,7 @@ class TestVertexAIRerankTransform:
                 ):
                     self.config.get_complete_url(api_base=None, model=self.model)
             finally:
-                litellm.vertex_project = original_project
+                gateway.vertex_project = original_project
 
     def test_validate_environment(self):
         """

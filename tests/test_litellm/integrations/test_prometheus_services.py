@@ -114,22 +114,22 @@ def test_services_logger_default_latency_buckets():
 
 def test_services_logger_custom_latency_buckets():
     """prometheus_latency_buckets setting is respected by PrometheusServicesLogger."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from prometheus_client import REGISTRY
 
     custom_buckets = [0.1, 0.5, 1.0, 5.0, 10.0]
-    original = litellm.prometheus_latency_buckets
+    original = gateway.prometheus_latency_buckets
     for collector in list(REGISTRY._collector_to_names.keys()):
         try:
             REGISTRY.unregister(collector)
         except Exception:
             pass
     try:
-        litellm.prometheus_latency_buckets = custom_buckets
+        gateway.prometheus_latency_buckets = custom_buckets
         pl = PrometheusServicesLogger()
         assert pl.latency_buckets == tuple(custom_buckets)
     finally:
-        litellm.prometheus_latency_buckets = original
+        gateway.prometheus_latency_buckets = original
         for collector in list(REGISTRY._collector_to_names.keys()):
             try:
                 REGISTRY.unregister(collector)

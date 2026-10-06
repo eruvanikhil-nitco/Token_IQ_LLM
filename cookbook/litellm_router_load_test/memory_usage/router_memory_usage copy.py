@@ -9,7 +9,7 @@ import asyncio
 sys.path.insert(
     0, os.path.abspath("../..")
 )  # Adds the parent directory to the system path
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import Router
 from dotenv import load_dotenv
 from token_iq.gateway._uuid import uuid
@@ -40,8 +40,8 @@ model_list = [
         "rpm": 10000,
     },
 ]
-litellm.set_verbose = True
-litellm.cache = litellm.Cache(
+gateway.set_verbose = True
+gateway.cache = gateway.Cache(
     type="s3", s3_bucket_name="litellm-my-test-bucket-2", s3_region_name="us-east-1"
 )
 router = Router(

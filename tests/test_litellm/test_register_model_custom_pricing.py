@@ -15,21 +15,21 @@ import os
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.main import _build_custom_pricing_entry
 from token_iq.gateway.utils import _invalidate_model_cost_lowercase_map
 
 
 def _snapshot_model_cost_entries(keys):
-    return {key: copy.deepcopy(litellm.model_cost.get(key)) for key in keys}
+    return {key: copy.deepcopy(gateway.model_cost.get(key)) for key in keys}
 
 
 def _restore_model_cost_entries(original_entries):
     for key, value in original_entries.items():
         if value is None:
-            litellm.model_cost.pop(key, None)
+            gateway.model_cost.pop(key, None)
         else:
-            litellm.model_cost[key] = value
+            gateway.model_cost[key] = value
     _invalidate_model_cost_lowercase_map()
 
 
@@ -163,7 +163,7 @@ def test_register_model_receives_cache_pricing_fields():
     the cache pricing fields should be present in litellm.model_cost."""
     model_key = "openai/test-custom-model-with-cache-pricing"
 
-    litellm.register_model(
+    gateway.register_model(
         {
             model_key: {
                 "input_cost_per_token": 0.001,
@@ -177,7 +177,7 @@ def test_register_model_receives_cache_pricing_fields():
         }
     )
 
-    registered = litellm.model_cost.get(model_key)
+    registered = gateway.model_cost.get(model_key)
     assert registered is not None, f"{model_key} should be in model_cost"
     assert registered["cache_read_input_token_cost"] == 0.00025
     assert registered["supports_prompt_caching"] is True
@@ -185,7 +185,7 @@ def test_register_model_receives_cache_pricing_fields():
     assert registered["max_tokens"] == 8192
 
     # Cleanup
-    litellm.model_cost.pop(model_key, None)
+    gateway.model_cost.pop(model_key, None)
 
 
 def test_build_custom_pricing_entry_time_based():
@@ -217,10 +217,10 @@ def test_register_model_strips_none_litellm_provider():
     from token_iq.gateway.utils import _check_provider_match
 
     model_key = "test-custom-pricing-no-provider-28336"
-    litellm.model_cost.pop(model_key, None)
+    gateway.model_cost.pop(model_key, None)
 
     try:
-        litellm.register_model(
+        gateway.register_model(
             {
                 model_key: {
                     "input_cost_per_token": 0.001,
@@ -229,7 +229,7 @@ def test_register_model_strips_none_litellm_provider():
             }
         )
 
-        registered = litellm.model_cost.get(model_key)
+        registered = gateway.model_cost.get(model_key)
         assert registered is not None, f"{model_key} should be in model_cost"
         # The key may be absent entirely, but if present it must not be None.
         assert (
@@ -241,7 +241,7 @@ def test_register_model_strips_none_litellm_provider():
         assert _check_provider_match(registered, "openai") is True
         assert _check_provider_match(registered, "anthropic") is True
     finally:
-        litellm.model_cost.pop(model_key, None)
+        gateway.model_cost.pop(model_key, None)
 
 
 def test_register_model_strips_none_litellm_provider_from_get_model_info(monkeypatch):
@@ -261,7 +261,7 @@ def test_register_model_strips_none_litellm_provider_from_get_model_info(monkeyp
     from token_iq.gateway.utils import _check_provider_match
 
     model_key = "test-strip-none-provider-from-get-model-info-28336"
-    litellm.model_cost.pop(model_key, None)
+    gateway.model_cost.pop(model_key, None)
 
     def _fake_get_model_info(model, *args, **kwargs):
         assert model == model_key
@@ -279,7 +279,7 @@ def test_register_model_strips_none_litellm_provider_from_get_model_info(monkeyp
     monkeypatch.setattr(litellm_utils, "get_model_info", _fake_get_model_info)
 
     try:
-        litellm.register_model(
+        gateway.register_model(
             {
                 model_key: {
                     "input_cost_per_token": 0.001,
@@ -288,7 +288,7 @@ def test_register_model_strips_none_litellm_provider_from_get_model_info(monkeyp
             }
         )
 
-        registered = litellm.model_cost.get(model_key)
+        registered = gateway.model_cost.get(model_key)
         assert registered is not None, f"{model_key} should be in model_cost"
         # The strip must have removed the None-valued provider that
         # ``get_model_info`` returned. The key may be absent entirely, but
@@ -311,7 +311,7 @@ def test_register_model_strips_none_litellm_provider_from_get_model_info(monkeyp
         assert _check_provider_match(registered, "openai") is True
         assert _check_provider_match(registered, "anthropic") is True
     finally:
-        litellm.model_cost.pop(model_key, None)
+        gateway.model_cost.pop(model_key, None)
 
 
 def test_register_model_inherits_builtin_cache_pricing_for_unmapped_key(monkeypatch):
@@ -333,19 +333,19 @@ def test_register_model_inherits_builtin_cache_pricing_for_unmapped_key(monkeypa
     from token_iq.gateway.core_utils.llm_cost_calc.utils import generic_cost_per_token
     from token_iq.gateway.types.utils import PromptTokensDetailsWrapper, Usage
 
-    original_model_cost = litellm.model_cost
+    original_model_cost = gateway.model_cost
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    litellm.model_cost = litellm.get_model_cost_map()
+    gateway.model_cost = gateway.get_model_cost_map()
 
     builtin_key = "us.anthropic.claude-sonnet-4-6"
     registered_key = f"bedrock/bedrock/bedrock/{builtin_key}"
-    builtin = litellm.model_cost[builtin_key]
+    builtin = gateway.model_cost[builtin_key]
 
     assert builtin["cache_creation_input_token_cost"] > 0
     assert builtin["cache_read_input_token_cost"] > 0
 
     try:
-        litellm.register_model(
+        gateway.register_model(
             {
                 registered_key: {
                     "input_cost_per_token": builtin["input_cost_per_token"],
@@ -355,7 +355,7 @@ def test_register_model_inherits_builtin_cache_pricing_for_unmapped_key(monkeypa
             }
         )
 
-        registered = litellm.model_cost[registered_key]
+        registered = gateway.model_cost[registered_key]
         assert (
             registered.get("cache_creation_input_token_cost")
             == builtin["cache_creation_input_token_cost"]
@@ -393,8 +393,8 @@ def test_register_model_inherits_builtin_cache_pricing_for_unmapped_key(monkeypa
         assert abs(output_cost - builtin["output_cost_per_token"] * 100) < 1e-12
         assert input_cost > text_only_cost + 1e-12
     finally:
-        litellm.model_cost.pop(registered_key, None)
-        litellm.model_cost = original_model_cost
+        gateway.model_cost.pop(registered_key, None)
+        gateway.model_cost = original_model_cost
         os.environ.pop("LITELLM_LOCAL_MODEL_COST_MAP", None)
         from token_iq.gateway.utils import _invalidate_model_cost_lowercase_map
 
@@ -412,11 +412,11 @@ def test_register_model_warns_when_no_builtin_match_for_cache_pricing(caplog):
     from token_iq.gateway._logging import verbose_logger
 
     registered_key = "bedrock/totally-made-up-model-alias-xyz"
-    litellm.model_cost.pop(registered_key, None)
+    gateway.model_cost.pop(registered_key, None)
 
     try:
         with caplog.at_level(logging.WARNING, logger=verbose_logger.name):
-            litellm.register_model(
+            gateway.register_model(
                 {
                     registered_key: {
                         "input_cost_per_token": 0.001,
@@ -432,7 +432,7 @@ def test_register_model_warns_when_no_builtin_match_for_cache_pricing(caplog):
             for record in caplog.records
         ), "expected a warning naming the unmapped key and the cache cost fields"
     finally:
-        litellm.model_cost.pop(registered_key, None)
+        gateway.model_cost.pop(registered_key, None)
 
 
 def test_register_model_no_warning_without_custom_pricing(caplog):
@@ -445,11 +445,11 @@ def test_register_model_no_warning_without_custom_pricing(caplog):
     from token_iq.gateway._logging import verbose_logger
 
     registered_key = "azure/lit6318-deployment-without-pricing"
-    litellm.model_cost.pop(registered_key, None)
+    gateway.model_cost.pop(registered_key, None)
 
     try:
         with caplog.at_level(logging.WARNING, logger=verbose_logger.name):
-            litellm.register_model(
+            gateway.register_model(
                 {
                     registered_key: {
                         "litellm_provider": "azure",
@@ -462,7 +462,7 @@ def test_register_model_no_warning_without_custom_pricing(caplog):
             "entry without custom pricing must register silently"
         )
     finally:
-        litellm.model_cost.pop(registered_key, None)
+        gateway.model_cost.pop(registered_key, None)
 
 
 def test_register_model_no_warning_for_tiered_pricing_without_cache_costs(caplog):
@@ -475,11 +475,11 @@ def test_register_model_no_warning_for_tiered_pricing_without_cache_costs(caplog
     from token_iq.gateway._logging import verbose_logger
 
     registered_key = "bedrock/lit6318-tiered-priced-model"
-    litellm.model_cost.pop(registered_key, None)
+    gateway.model_cost.pop(registered_key, None)
 
     try:
         with caplog.at_level(logging.WARNING, logger=verbose_logger.name):
-            litellm.register_model(
+            gateway.register_model(
                 {
                     registered_key: {
                         "litellm_provider": "bedrock",
@@ -498,7 +498,7 @@ def test_register_model_no_warning_for_tiered_pricing_without_cache_costs(caplog
             "tiered pricing entry must register silently"
         )
     finally:
-        litellm.model_cost.pop(registered_key, None)
+        gateway.model_cost.pop(registered_key, None)
 
 
 def test_router_deployment_without_custom_pricing_registers_silently(caplog):
@@ -591,8 +591,8 @@ def test_register_model_router_add_deployment_custom_pricing_applies():
 
     model_key = "router-add-deployment-custom-pricing-28336"
     deployment_model = f"openai/{model_key}"
-    litellm.model_cost.pop(model_key, None)
-    litellm.model_cost.pop(deployment_model, None)
+    gateway.model_cost.pop(model_key, None)
+    gateway.model_cost.pop(deployment_model, None)
 
     router = Router(
         model_list=[
@@ -616,7 +616,7 @@ def test_register_model_router_add_deployment_custom_pricing_applies():
         from token_iq.gateway.utils import _check_provider_match
 
         registered_keys = [
-            k for k in (deployment_model, model_key) if k in litellm.model_cost
+            k for k in (deployment_model, model_key) if k in gateway.model_cost
         ]
         assert registered_keys, (
             "Router.add_deployment did not register custom pricing for "
@@ -624,11 +624,11 @@ def test_register_model_router_add_deployment_custom_pricing_applies():
         )
         for k in registered_keys:
             assert (
-                _check_provider_match(litellm.model_cost[k], "openai") is True
+                _check_provider_match(gateway.model_cost[k], "openai") is True
             ), f"custom pricing for {k} was dropped by _check_provider_match"
     finally:
-        litellm.model_cost.pop(model_key, None)
-        litellm.model_cost.pop(deployment_model, None)
+        gateway.model_cost.pop(model_key, None)
+        gateway.model_cost.pop(deployment_model, None)
         del router
 
 
@@ -645,13 +645,13 @@ def test_embedding_router_zero_pricing_does_not_clobber_builtin_pricing():
     snapshot = _snapshot_model_cost_entries(
         [shared_key, "text-embedding-3-small", deployment_id]
     )
-    builtin_input_cost = litellm.get_model_info(model=shared_key)[
+    builtin_input_cost = gateway.get_model_info(model=shared_key)[
         "input_cost_per_token"
     ]
     assert builtin_input_cost > 0
 
     try:
-        litellm.embedding(
+        gateway.embedding(
             model=shared_key,
             input=["hello"],
             api_key="fake-key",
@@ -663,19 +663,19 @@ def test_embedding_router_zero_pricing_does_not_clobber_builtin_pricing():
         )
 
         assert (
-            litellm.get_model_info(model=shared_key)["input_cost_per_token"]
+            gateway.get_model_info(model=shared_key)["input_cost_per_token"]
             == builtin_input_cost
         ), "wildcard deployment's zero pricing leaked into the shared model_cost key"
-        assert litellm.model_cost[deployment_id]["input_cost_per_token"] == 0.0
-        assert litellm.model_cost[deployment_id]["output_cost_per_token"] == 0.0
+        assert gateway.model_cost[deployment_id]["input_cost_per_token"] == 0.0
+        assert gateway.model_cost[deployment_id]["output_cost_per_token"] == 0.0
 
-        sibling_response = litellm.embedding(
+        sibling_response = gateway.embedding(
             model=shared_key,
             input=["hello"],
             api_key="fake-key",
             mock_response=[0.1, 0.2],
         )
-        sibling_cost = litellm.completion_cost(
+        sibling_cost = gateway.completion_cost(
             completion_response=sibling_response, call_type="embedding"
         )
         assert sibling_cost == pytest.approx(10 * builtin_input_cost)
@@ -694,13 +694,13 @@ def test_embedding_router_custom_pricing_costs_request_via_deployment_id():
     snapshot = _snapshot_model_cost_entries(
         [shared_key, "text-embedding-3-small", deployment_id]
     )
-    builtin_input_cost = litellm.get_model_info(model=shared_key)[
+    builtin_input_cost = gateway.get_model_info(model=shared_key)[
         "input_cost_per_token"
     ]
     assert builtin_input_cost != override_input_cost
 
     try:
-        response = litellm.embedding(
+        response = gateway.embedding(
             model=shared_key,
             input=["hello"],
             api_key="fake-key",
@@ -711,7 +711,7 @@ def test_embedding_router_custom_pricing_costs_request_via_deployment_id():
             mock_response=[0.1, 0.2],
         )
 
-        request_cost = litellm.completion_cost(
+        request_cost = gateway.completion_cost(
             completion_response=response,
             model=shared_key,
             custom_llm_provider="openai",
@@ -721,7 +721,7 @@ def test_embedding_router_custom_pricing_costs_request_via_deployment_id():
         )
         assert request_cost == pytest.approx(10 * override_input_cost)
         assert (
-            litellm.get_model_info(model=shared_key)["input_cost_per_token"]
+            gateway.get_model_info(model=shared_key)["input_cost_per_token"]
             == builtin_input_cost
         )
     finally:
@@ -735,13 +735,13 @@ def test_completion_router_zero_pricing_does_not_clobber_builtin_pricing():
     snapshot = _snapshot_model_cost_entries(
         [shared_key, "gpt-4o-mini", deployment_id]
     )
-    builtin_input_cost = litellm.get_model_info(model=shared_key)[
+    builtin_input_cost = gateway.get_model_info(model=shared_key)[
         "input_cost_per_token"
     ]
     assert builtin_input_cost > 0
 
     try:
-        litellm.completion(
+        gateway.completion(
             model=shared_key,
             messages=[{"role": "user", "content": "hello"}],
             api_key="fake-key",
@@ -753,10 +753,10 @@ def test_completion_router_zero_pricing_does_not_clobber_builtin_pricing():
         )
 
         assert (
-            litellm.get_model_info(model=shared_key)["input_cost_per_token"]
+            gateway.get_model_info(model=shared_key)["input_cost_per_token"]
             == builtin_input_cost
         ), "wildcard deployment's zero pricing leaked into the shared model_cost key"
-        assert litellm.model_cost[deployment_id]["input_cost_per_token"] == 0.0
+        assert gateway.model_cost[deployment_id]["input_cost_per_token"] == 0.0
     finally:
         _restore_model_cost_entries(snapshot)
 
@@ -769,7 +769,7 @@ def test_embedding_direct_sdk_custom_pricing_still_registers_shared_key():
     model_key = "openai/lit3991-direct-sdk-embed-model"
     override_input_cost = 3e-05
     try:
-        response = litellm.embedding(
+        response = gateway.embedding(
             model=model_key,
             input=["hello"],
             api_key="fake-key",
@@ -779,10 +779,10 @@ def test_embedding_direct_sdk_custom_pricing_still_registers_shared_key():
         )
 
         assert (
-            litellm.model_cost[model_key]["input_cost_per_token"]
+            gateway.model_cost[model_key]["input_cost_per_token"]
             == override_input_cost
         )
-        cost = litellm.completion_cost(
+        cost = gateway.completion_cost(
             completion_response=response,
             model=model_key,
             custom_llm_provider="openai",
@@ -791,7 +791,7 @@ def test_embedding_direct_sdk_custom_pricing_still_registers_shared_key():
         )
         assert cost == pytest.approx(10 * override_input_cost)
     finally:
-        litellm.model_cost.pop(model_key, None)
+        gateway.model_cost.pop(model_key, None)
         _invalidate_model_cost_lowercase_map()
 
 
@@ -879,16 +879,16 @@ def test_router_deployments_sharing_backend_keep_their_own_off_peak_pricing():
     )
 
     try:
-        registered_first = litellm.model_cost[deployment_ids[0]]["off_peak_pricing"]
-        registered_second = litellm.model_cost[deployment_ids[1]]["off_peak_pricing"]
+        registered_first = gateway.model_cost[deployment_ids[0]]["off_peak_pricing"]
+        registered_second = gateway.model_cost[deployment_ids[1]]["off_peak_pricing"]
         assert registered_first == active_block
         assert registered_second == inactive_block
         for shared_key in shared_keys:
-            shared_entry = litellm.model_cost.get(shared_key) or {}
+            shared_entry = gateway.model_cost.get(shared_key) or {}
             assert not shared_entry.get("off_peak_pricing")
     finally:
         for deployment_id in deployment_ids:
-            litellm.model_cost.pop(deployment_id, None)
+            gateway.model_cost.pop(deployment_id, None)
         _restore_model_cost_entries(original_entries)
         del router
 
@@ -909,7 +909,7 @@ def test_router_off_peak_only_deployment_inherits_builtin_base_rates():
     shared_keys = ["gpt-4o-mini", "openai/gpt-4o-mini"]
     deployment_id = "offpeak-only-dep-1"
     original_entries = _snapshot_model_cost_entries(shared_keys + [deployment_id])
-    builtin_info = litellm.get_model_info(model="openai/gpt-4o-mini")
+    builtin_info = gateway.get_model_info(model="openai/gpt-4o-mini")
 
     router = Router(
         model_list=[
@@ -925,13 +925,13 @@ def test_router_off_peak_only_deployment_inherits_builtin_base_rates():
     )
 
     try:
-        entry = litellm.model_cost[deployment_id]
+        entry = gateway.model_cost[deployment_id]
         assert entry["off_peak_pricing"] == block
         assert entry["input_cost_per_token"] is not None
         assert entry["input_cost_per_token"] == builtin_info["input_cost_per_token"]
         assert entry["output_cost_per_token"] == builtin_info["output_cost_per_token"]
         for shared_key in shared_keys:
-            shared_entry = litellm.model_cost.get(shared_key) or {}
+            shared_entry = gateway.model_cost.get(shared_key) or {}
             assert not shared_entry.get("off_peak_pricing")
     finally:
         _restore_model_cost_entries(original_entries)
@@ -982,7 +982,7 @@ def test_completion_cost_applies_off_peak_only_deployment_pricing():
             model="gpt-4o-mini",
             usage=Usage(prompt_tokens=100, completion_tokens=50, total_tokens=150),
         )
-        cost = litellm.completion_cost(
+        cost = gateway.completion_cost(
             completion_response=response,
             model="openai/gpt-4o-mini",
             custom_llm_provider="openai",

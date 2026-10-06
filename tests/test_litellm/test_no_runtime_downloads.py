@@ -35,9 +35,9 @@ class TestNothingFetchesAtRuntime:
     def test_importing_litellm_opens_no_socket(self, no_sockets: None) -> None:
         import importlib
 
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
-        importlib.reload(litellm)
+        importlib.reload(gateway)
 
     def test_the_anthropic_beta_headers_load_without_a_network(self, no_sockets: None) -> None:
         from token_iq.gateway.anthropic_beta_headers_manager import get_beta_headers_config

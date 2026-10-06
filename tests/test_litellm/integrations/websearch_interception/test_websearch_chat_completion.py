@@ -10,7 +10,7 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.integrations.websearch_interception.handler import (
     WebSearchInterceptionLogger,
 )
@@ -52,12 +52,12 @@ async def test_websearch_chat_completion_with_openai():
     4. User gets final answer without tool_calls
     """
     # Configure WebSearch interception
-    original_callbacks = litellm.callbacks.copy() if litellm.callbacks else []
+    original_callbacks = gateway.callbacks.copy() if gateway.callbacks else []
     websearch_logger = WebSearchInterceptionLogger(enabled_providers=[LlmProviders.OPENAI])
-    litellm.callbacks = [websearch_logger]
+    gateway.callbacks = [websearch_logger]
 
     try:
-        response = await litellm.acompletion(
+        response = await gateway.acompletion(
             model="gpt-4o-mini",  # Use cheaper model for testing
             messages=[
                 {
@@ -103,7 +103,7 @@ async def test_websearch_chat_completion_with_openai():
 
     finally:
         # Restore original callbacks
-        litellm.callbacks = original_callbacks
+        gateway.callbacks = original_callbacks
 
 
 @pytest.mark.asyncio
@@ -337,10 +337,10 @@ async def test_websearch_streaming_conversion():
     websearch_logger = WebSearchInterceptionLogger(
         enabled_providers=[LlmProviders.OPENAI], search_tool_name="perplexity-search"
     )
-    litellm.callbacks = [websearch_logger]
+    gateway.callbacks = [websearch_logger]
 
     try:
-        response = await litellm.acompletion(
+        response = await gateway.acompletion(
             model="gpt-4o-mini",
             messages=[{"role": "user", "content": "What's the latest AI news?"}],
             tools=[
@@ -373,7 +373,7 @@ async def test_websearch_streaming_conversion():
             assert len(chunk.choices) > 0
 
     finally:
-        litellm.callbacks = []
+        gateway.callbacks = []
 
 
 @pytest.mark.asyncio
@@ -458,10 +458,10 @@ async def test_maybe_run_chat_completion_agentic_loop_calls_chat_completion_hook
     websearch_logger.async_should_run_chat_completion_agentic_loop = fake_should_run_chat_completion
     websearch_logger.async_build_chat_completion_agentic_loop_plan = fake_build_plan
 
-    from token_iq import gateway as _litellm
+    from token_iq import gateway as _gateway
 
-    original_callbacks = _litellm.callbacks[:]
-    _litellm.callbacks = [websearch_logger]
+    original_callbacks = _gateway.callbacks[:]
+    _gateway.callbacks = [websearch_logger]
 
     mock_logging_obj = MagicMock()
     mock_logging_obj.dynamic_success_callbacks = None
@@ -485,7 +485,7 @@ async def test_maybe_run_chat_completion_agentic_loop_calls_chat_completion_hook
             stream=False,
         )
     finally:
-        _litellm.callbacks = original_callbacks
+        _gateway.callbacks = original_callbacks
 
     assert chat_completion_hook_called, (
         "async_should_run_chat_completion_agentic_loop was never called; "

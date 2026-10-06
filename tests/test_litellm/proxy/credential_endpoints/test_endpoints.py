@@ -202,12 +202,12 @@ def test_updating_a_billing_credential_with_an_ordinary_key_is_refused():
 
 
 def _patch_stored_credential(stored: CredentialItem, body: dict):
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     with patch("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock()), patch(
         "token_iq.gateway.proxy.proxy_server.master_key", "sk-test-master"
     ), patch("token_iq.gateway.proxy.credential_endpoints.endpoints.CredentialsRepository") as repository, patch.object(
-        litellm, "credential_list", []
+        gateway, "credential_list", []
     ):
         repository.return_value.find_by_name = AsyncMock(return_value=stored)
         repository.return_value.update_by_name = AsyncMock(return_value=None)
@@ -304,7 +304,7 @@ def test_resending_the_same_purpose_and_provider_with_a_new_admin_key_is_accepte
 def test_listing_credentials_never_returns_any_part_of_a_billing_key():
     """Billing keys read a whole organisation's costs. Even a masked prefix narrows a
     leaked key down, so the list returns nothing for them."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     billing = CredentialItem(
         credential_name="anthropic-billing",
@@ -316,7 +316,7 @@ def test_listing_credentials_never_returns_any_part_of_a_billing_key():
         credential_values={"api_key": "sk-proj-test-not-real"},
         credential_info={"custom_llm_provider": "openai"},
     )
-    with patch.object(litellm, "credential_list", [billing, model_access]):
+    with patch.object(gateway, "credential_list", [billing, model_access]):
         listed = _as_admin_request("GET", "/credentials")
         by_name = _as_admin_request("GET", "/credentials/by_name/anthropic-billing")
 
@@ -354,10 +354,10 @@ def test_the_credential_list_leaves_out_billing_credentials_altogether():
     which is the thing the purpose marker exists to prevent. The billing pages read
     `/provider/connections`, which enumerates them, so nothing needs this list to carry them.
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     billing, model_access = _billing_and_model_credentials()
-    with patch.object(litellm, "credential_list", [billing, model_access]):
+    with patch.object(gateway, "credential_list", [billing, model_access]):
         listed = _as_admin_request("GET", "/credentials")
 
     assert listed.status_code == 200, listed.text
@@ -368,10 +368,10 @@ def test_the_credential_list_leaves_out_billing_credentials_altogether():
 def test_a_billing_credential_is_still_readable_by_name():
     """Excluding them from the list must not hide them from the connect flow, which reads one
     back by name to show its state. A filter that hides them from everything is not a tidy-up."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     billing, model_access = _billing_and_model_credentials()
-    with patch.object(litellm, "credential_list", [billing, model_access]):
+    with patch.object(gateway, "credential_list", [billing, model_access]):
         found = _as_admin_request("GET", "/credentials/by_name/openai-billing")
 
     assert found.status_code == 200, found.text
@@ -382,14 +382,14 @@ def test_a_billing_credential_is_still_readable_by_name():
 def test_the_credential_list_still_carries_an_ordinary_credential_with_no_purpose_at_all():
     """Most stored credentials have no `purpose` key. Reading a missing key as "billing" would
     empty the list the model pages depend on."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     plain = CredentialItem(
         credential_name="plain",
         credential_values={"api_key": "sk-plain-not-real"},
         credential_info={},
     )
-    with patch.object(litellm, "credential_list", [plain]):
+    with patch.object(gateway, "credential_list", [plain]):
         listed = _as_admin_request("GET", "/credentials")
 
     assert listed.status_code == 200, listed.text
@@ -513,7 +513,7 @@ def test_a_team_admin_cannot_put_a_credential_in_another_team():
 
 
 def test_the_list_shows_a_team_admin_only_their_own_and_the_shared_credentials():
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     mine = CredentialItem(
         credential_name="team-a-openai",
@@ -531,7 +531,7 @@ def test_the_list_shows_a_team_admin_only_their_own_and_the_shared_credentials()
         credential_info={"custom_llm_provider": "openai"},
     )
     with patch("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock()), patch.object(
-        litellm, "credential_list", [mine, theirs, shared]
+        gateway, "credential_list", [mine, theirs, shared]
     ), patch(
         "token_iq.gateway.proxy.credential_endpoints.endpoints.teams_user_administers",
         AsyncMock(return_value=frozenset({"team-a"})),
@@ -544,7 +544,7 @@ def test_the_list_shows_a_team_admin_only_their_own_and_the_shared_credentials()
 
 
 def test_a_team_admin_cannot_read_another_team_s_credential_by_name():
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     theirs = CredentialItem(
         credential_name="team-b-openai",
@@ -552,7 +552,7 @@ def test_a_team_admin_cannot_read_another_team_s_credential_by_name():
         credential_info={"custom_llm_provider": "openai", "team_id": "team-b"},
     )
     with patch("token_iq.gateway.proxy.proxy_server.prisma_client", MagicMock()), patch.object(
-        litellm, "credential_list", [theirs]
+        gateway, "credential_list", [theirs]
     ), patch(
         "token_iq.gateway.proxy.credential_endpoints.endpoints.teams_user_administers",
         AsyncMock(return_value=frozenset({"team-a"})),

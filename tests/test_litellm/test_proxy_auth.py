@@ -184,21 +184,21 @@ class TestLiteLLMIntegration:
 
     def test_proxy_auth_variable_exists(self):
         """Test that litellm.proxy_auth variable exists."""
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         # Should be None by default
-        assert hasattr(litellm, "proxy_auth")
+        assert hasattr(gateway, "proxy_auth")
 
     def test_proxy_auth_can_be_set(self):
         """Test that litellm.proxy_auth can be set to a ProxyAuthHandler."""
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
-        original_value = litellm.proxy_auth
+        original_value = gateway.proxy_auth
         try:
             cred = MockCredential()
             handler = ProxyAuthHandler(credential=cred, scope="test")
-            litellm.proxy_auth = handler
+            gateway.proxy_auth = handler
 
-            assert litellm.proxy_auth is handler
+            assert gateway.proxy_auth is handler
         finally:
-            litellm.proxy_auth = original_value
+            gateway.proxy_auth = original_value

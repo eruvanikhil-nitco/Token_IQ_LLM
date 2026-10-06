@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Any, Final, Literal
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.custom_httpx.http_handler import (
     AsyncHTTPHandler,
     HTTPHandler,
@@ -305,7 +305,7 @@ class GoogleBatchEmbeddings(VertexLLM):
                 _params["timeout"] = httpx.Timeout(timeout=600.0, connect=5.0)
 
             async_handler: AsyncHTTPHandler = get_async_httpx_client(
-                llm_provider=litellm.LlmProviders.VERTEX_AI,
+                llm_provider=gateway.LlmProviders.VERTEX_AI,
                 params={"timeout": timeout},
             )
         else:

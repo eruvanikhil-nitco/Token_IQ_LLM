@@ -5,7 +5,7 @@ Test for Vertex AI Search API Vector Store with mocked responses
 import json
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 
 # Mock response from actual Vertex AI Search API
@@ -79,7 +79,7 @@ class TestVertexAISearchAPIVectorStore:
                 mock_post.return_value = mock_response
 
                 # Make the search request
-                response = await litellm.vector_stores.asearch(
+                response = await gateway.vector_stores.asearch(
                     query="what is LiteLLM?",
                     vector_store_id="test-litellm-app_1761094730750",
                     custom_llm_provider="vertex_ai/search_api",
@@ -140,7 +140,7 @@ class TestVertexAISearchAPIVectorStore:
                 mock_post.return_value = mock_response
 
                 # Make the search request
-                response = litellm.vector_stores.search(
+                response = gateway.vector_stores.search(
                     query="what is LiteLLM?",
                     vector_store_id="test-litellm-app_1761094730750",
                     custom_llm_provider="vertex_ai/search_api",

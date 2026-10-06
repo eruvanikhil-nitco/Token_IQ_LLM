@@ -174,7 +174,7 @@ ROUTES: Final = tuple(ROUTE_SPECS)
 
 
 def sdk_invocation(route: str, *, engine: Engine, asynchronous: bool) -> Invocation:
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.anthropic_interface import messages as sdk_messages
     from token_iq.gateway.rust_bridge import get_native_bridge
 
@@ -186,7 +186,7 @@ def sdk_invocation(route: str, *, engine: Engine, asynchronous: bool) -> Invocat
     if spec is None:
         raise ValueError(f"Unknown route: {route}")
     fixture: Final = spec.fixture(engine)
-    owner: Final = bridge if rust else (sdk_messages if route == "messages" else litellm)
+    owner: Final = bridge if rust else (sdk_messages if route == "messages" else gateway)
     entrypoint: Final = (spec.rust_entrypoints if rust else spec.python_entrypoints)[int(asynchronous)]
     return Invocation(
         function=cast(SdkCall, getattr(owner, entrypoint)),

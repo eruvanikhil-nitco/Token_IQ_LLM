@@ -19,7 +19,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 
-from token_iq import gateway as litellm  # noqa: E402
+from token_iq import gateway  # noqa: E402
 import openai
 
 ASYNC_INVOKE_ARN = "arn:aws:bedrock:us-west-2:123456789012:async-invoke/abc123def456"
@@ -52,7 +52,7 @@ def test_async_invoke_arn_routes_to_async_invoke_handler(mock_handlers):
     """``:async-invoke/`` ARNs go to the data-plane handler."""
     async_invoke, mij, fake_batch = mock_handlers
 
-    result = litellm.retrieve_batch(
+    result = gateway.retrieve_batch(
         batch_id=ASYNC_INVOKE_ARN,
         custom_llm_provider="bedrock",
         aws_region_name="us-west-2",
@@ -78,7 +78,7 @@ def test_async_invoke_arn_falls_back_to_default_region_when_unset(mock_handlers)
     to ``us-east-1`` (preserving prior behavior on this branch)."""
     async_invoke, _mij, _ = mock_handlers
 
-    litellm.retrieve_batch(
+    gateway.retrieve_batch(
         batch_id=ASYNC_INVOKE_ARN,
         custom_llm_provider="bedrock",
     )
@@ -91,7 +91,7 @@ def test_model_invocation_job_arn_routes_to_mij_handler(mock_handlers):
     """``:model-invocation-job/`` ARNs go to the new control-plane handler."""
     _async_invoke, mij, fake_batch = mock_handlers
 
-    result = litellm.retrieve_batch(
+    result = gateway.retrieve_batch(
         batch_id=MIJ_ARN,
         custom_llm_provider="bedrock",
         aws_region_name="us-west-2",
@@ -112,7 +112,7 @@ def test_model_invocation_job_arn_with_no_region_passes_none(mock_handlers):
     other AWS regions would silently route to ``us-east-1``."""
     _async_invoke, mij, _ = mock_handlers
 
-    litellm.retrieve_batch(
+    gateway.retrieve_batch(
         batch_id=MIJ_ARN,
         custom_llm_provider="bedrock",
     )
@@ -132,11 +132,11 @@ def test_unrelated_bedrock_arn_falls_through_to_provider_config(mock_handlers):
     # Use a plausible-but-unsupported Bedrock ARN family.
     unrelated_arn = "arn:aws:bedrock:us-west-2:123456789012:provisioned-model/xyz"
 
-    with pytest.raises(litellm.BadRequestError):
+    with pytest.raises(gateway.BadRequestError):
         # Will raise because no provider_config exists for this path —
         # that's fine, we just need to assert neither bedrock handler ran
         # before the failure.
-        litellm.retrieve_batch(
+        gateway.retrieve_batch(
             batch_id=unrelated_arn,
             custom_llm_provider="bedrock",
         )
@@ -151,7 +151,7 @@ def test_non_bedrock_id_skips_bedrock_dispatch_entirely(mock_handlers):
     async_invoke, mij, _ = mock_handlers
 
     with pytest.raises(openai.OpenAIError):
-        litellm.retrieve_batch(
+        gateway.retrieve_batch(
             batch_id="batch_abc123",
             custom_llm_provider="openai",
         )

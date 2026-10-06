@@ -15,9 +15,9 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import httpx
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 import token_iq.gateway.llms.vertex_ai.rerank.transformation
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 
 def _extract_body(call_kwargs):
@@ -81,7 +81,7 @@ def clean_vertex_env():
 
 def _patch_vertex_auth():
     return patch.object(
-        litellm.llms.vertex_ai.rerank.transformation.VertexAIRerankConfig,
+        gateway.llms.vertex_ai.rerank.transformation.VertexAIRerankConfig,
         "_ensure_access_token",
         return_value=("test-access-token", "test-project-2049"),
     )
@@ -105,7 +105,7 @@ def test_rerank_userlabels_propagates_from_metadata_sync(clean_vertex_env):
             side_effect=fake_post,
         ),
     ):
-        litellm.rerank(
+        gateway.rerank(
             model="vertex_ai/semantic-ranker-default@latest",
             query="what is gemini?",
             documents=["hello", "world"],
@@ -140,7 +140,7 @@ def test_rerank_userlabels_propagates_from_metadata_async(clean_vertex_env):
         ),
     ):
         asyncio.run(
-            litellm.arerank(
+            gateway.arerank(
                 model="vertex_ai/semantic-ranker-default@latest",
                 query="what is gemini?",
                 documents=["hello", "world"],
@@ -170,7 +170,7 @@ def test_rerank_userlabels_absent_when_no_metadata(clean_vertex_env):
             side_effect=fake_post,
         ),
     ):
-        litellm.rerank(
+        gateway.rerank(
             model="vertex_ai/semantic-ranker-default@latest",
             query="what is gemini?",
             documents=["hello", "world"],

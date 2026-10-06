@@ -8,7 +8,7 @@ from typing import Any, Final
 
 from httpx import Response
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.audio_utils.utils import process_audio_file
 from token_iq.gateway.types.llms.openai import (
     AllMessageValues,
@@ -152,7 +152,7 @@ class IBMWatsonXAudioTranscriptionConfig(IBMWatsonXMixin, OpenAIWhisperAudioTran
         url = f"{url}/ml/v1/audio/transcriptions"
 
         # Add version parameter (only version in query string, not project_id)
-        api_version: Final = optional_params.get("api_version", None) or litellm.WATSONX_DEFAULT_API_VERSION
+        api_version: Final = optional_params.get("api_version", None) or gateway.WATSONX_DEFAULT_API_VERSION
         url = f"{url}?version={api_version}"
 
         return url

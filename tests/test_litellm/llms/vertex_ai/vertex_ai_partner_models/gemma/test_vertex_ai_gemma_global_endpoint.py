@@ -18,7 +18,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.vertex_ai.vertex_ai_partner_models.main import VertexAIPartnerModels
 from token_iq.gateway.llms.vertex_ai.vertex_llm_base import VertexBase
 from token_iq.gateway.types.llms.vertex_ai import VertexPartnerProvider
@@ -91,7 +91,7 @@ class TestVertexBaseGetVertexRegionGemma:
         vertex_base = VertexBase()
 
         with patch.dict(
-            litellm.model_cost,
+            gateway.model_cost,
             {
                 "vertex_ai/google/gemma-4-26b-a4b-it-maas": {
                     "supported_regions": ["global"]
@@ -109,7 +109,7 @@ class TestVertexBaseGetVertexRegionGemma:
         vertex_base = VertexBase()
 
         with patch.dict(
-            litellm.model_cost,
+            gateway.model_cost,
             {
                 "vertex_ai/google/gemma-4-26b-a4b-it-maas": {
                     "supported_regions": ["global"]
@@ -182,9 +182,9 @@ class TestCreateVertexURLGemma:
 
 def test_gemma_maas_supports_function_calling():
     """supports_function_calling=true in model_cost must be surfaced by the utility."""
-    with patch.dict(litellm.model_cost, _GEMMA_MODEL_COST_ENTRY, clear=False):
+    with patch.dict(gateway.model_cost, _GEMMA_MODEL_COST_ENTRY, clear=False):
         assert (
-            litellm.utils.supports_function_calling(
+            gateway.utils.supports_function_calling(
                 model="vertex_ai/google/gemma-4-26b-a4b-it-maas"
             )
             is True
@@ -193,9 +193,9 @@ def test_gemma_maas_supports_function_calling():
 
 def test_gemma_maas_supports_vision():
     """supports_vision=true in model_cost must be surfaced by the utility."""
-    with patch.dict(litellm.model_cost, _GEMMA_MODEL_COST_ENTRY, clear=False):
+    with patch.dict(gateway.model_cost, _GEMMA_MODEL_COST_ENTRY, clear=False):
         assert (
-            litellm.utils.supports_vision(
+            gateway.utils.supports_vision(
                 model="vertex_ai/google/gemma-4-26b-a4b-it-maas"
             )
             is True
@@ -262,7 +262,7 @@ async def test_vertex_ai_gemma_global_endpoint_url():
             {"vertexai": mock_vertexai, "vertexai.preview": mock_vertexai.preview},
         ),
         patch.dict(
-            litellm.model_cost,
+            gateway.model_cost,
             {
                 "vertex_ai/google/gemma-4-26b-a4b-it-maas": {
                     "supported_regions": ["global"]
@@ -273,7 +273,7 @@ async def test_vertex_ai_gemma_global_endpoint_url():
     ):
         mock_http_handler.return_value.post = AsyncMock(return_value=mock_response)
 
-        response = await litellm.acompletion(
+        response = await gateway.acompletion(
             model="vertex_ai/google/gemma-4-26b-a4b-it-maas",
             messages=[{"role": "user", "content": "Hello"}],
             vertex_ai_project="test-project",
@@ -337,11 +337,11 @@ async def test_vertex_ai_gemma_function_calling_passthrough():
             "sys.modules",
             {"vertexai": mock_vertexai, "vertexai.preview": mock_vertexai.preview},
         ),
-        patch.dict(litellm.model_cost, _GEMMA_MODEL_COST_ENTRY, clear=False),
+        patch.dict(gateway.model_cost, _GEMMA_MODEL_COST_ENTRY, clear=False),
     ):
         mock_http_handler.return_value.post = AsyncMock(return_value=mock_response)
 
-        await litellm.acompletion(
+        await gateway.acompletion(
             model="vertex_ai/google/gemma-4-26b-a4b-it-maas",
             messages=[{"role": "user", "content": "What's the weather in Paris?"}],
             tools=tools,
@@ -410,11 +410,11 @@ async def test_vertex_ai_gemma_vision_passthrough():
             "sys.modules",
             {"vertexai": mock_vertexai, "vertexai.preview": mock_vertexai.preview},
         ),
-        patch.dict(litellm.model_cost, _GEMMA_MODEL_COST_ENTRY, clear=False),
+        patch.dict(gateway.model_cost, _GEMMA_MODEL_COST_ENTRY, clear=False),
     ):
         mock_http_handler.return_value.post = AsyncMock(return_value=mock_response)
 
-        await litellm.acompletion(
+        await gateway.acompletion(
             model="vertex_ai/google/gemma-4-26b-a4b-it-maas",
             messages=messages,
             vertex_ai_project="test-project",

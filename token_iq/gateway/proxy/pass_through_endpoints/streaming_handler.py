@@ -4,7 +4,7 @@ from typing import Final, Protocol
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
 from token_iq.gateway.core_utils.logging_worker import GLOBAL_LOGGING_WORKER
@@ -91,7 +91,7 @@ class PassThroughStreamingHandler:
         # set at config load and stable for the process, matching how the
         # proxy-level streaming fast path resolves it.
         cost_injection_active: Final = (
-            bool(getattr(litellm, "include_cost_in_streaming_usage", False))
+            bool(getattr(gateway, "include_cost_in_streaming_usage", False))
             and bool(model_name)
             and (
                 endpoint_type in (EndpointType.ANTHROPIC, EndpointType.OPENAI)

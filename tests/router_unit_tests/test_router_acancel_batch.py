@@ -9,7 +9,7 @@ This ensures the router's batch cancellation method has test coverage.
 import pytest
 from unittest.mock import patch, AsyncMock, MagicMock
 from token_iq.gateway import Router
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.types.utils import CredentialItem
 
 
@@ -36,7 +36,7 @@ async def test_router_acancel_batch(router):
     mock_response.id = "batch_123"
     mock_response.status = "cancelled"
 
-    with patch.object(litellm, "acancel_batch", new_callable=AsyncMock) as mock_cancel:
+    with patch.object(gateway, "acancel_batch", new_callable=AsyncMock) as mock_cancel:
         mock_cancel.return_value = mock_response
 
         # This tests that the router method exists and can be called
@@ -54,7 +54,7 @@ async def test_router_acancel_batch(router):
 
 @pytest.mark.asyncio
 async def test_router_acancel_batch_resolves_credential_name():
-    litellm.credential_list = [
+    gateway.credential_list = [
         CredentialItem(
             credential_name="openai-test-credential",
             credential_info={"custom_llm_provider": "openai"},
@@ -78,7 +78,7 @@ async def test_router_acancel_batch_resolves_credential_name():
 
     try:
         with patch.object(
-            litellm, "acancel_batch", new_callable=AsyncMock
+            gateway, "acancel_batch", new_callable=AsyncMock
         ) as mock_cancel:
             mock_cancel.return_value = mock_response
 
@@ -91,7 +91,7 @@ async def test_router_acancel_batch_resolves_credential_name():
         assert call_kwargs["api_key"] == "resolved-openai-key"
         assert "litellm_credential_name" not in call_kwargs
     finally:
-        litellm.credential_list = []
+        gateway.credential_list = []
 
 
 @pytest.mark.asyncio
@@ -115,7 +115,7 @@ async def test_router_acancel_batch_removes_unresolved_credential_name():
         patch.object(
             router, "get_deployment_credentials_with_provider", return_value=None
         ),
-        patch.object(litellm, "acancel_batch", new_callable=AsyncMock) as mock_cancel,
+        patch.object(gateway, "acancel_batch", new_callable=AsyncMock) as mock_cancel,
     ):
         mock_cancel.return_value = mock_response
 

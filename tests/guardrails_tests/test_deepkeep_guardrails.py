@@ -12,13 +12,13 @@ from token_iq.gateway.proxy.guardrails.guardrail_hooks.deepkeep.deepkeep import 
 )
 from token_iq.gateway.exceptions import GuardrailRaisedException
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy.guardrails.init_guardrails import init_guardrails_v2
 
 
 def test_deepkeep_guard_config():
-    litellm.set_verbose = True
-    litellm.guardrail_name_config_map = {}
+    gateway.set_verbose = True
+    gateway.guardrail_name_config_map = {}
 
     # Set environment variables for testing
     os.environ["DEEPKEEP_API_KEY"] = "test-key"
@@ -47,8 +47,8 @@ def test_deepkeep_guard_config():
 
 
 def test_deepkeep_guard_config_no_api_key():
-    litellm.set_verbose = True
-    litellm.guardrail_name_config_map = {}
+    gateway.set_verbose = True
+    gateway.guardrail_name_config_map = {}
 
     # Ensure env vars are not set
     for key in ["DEEPKEEP_API_KEY", "DEEPKEEP_API_BASE", "DEEPKEEP_FIREWALL_ID"]:
@@ -81,8 +81,8 @@ def test_deepkeep_guard_config_no_api_key():
 
 
 def test_deepkeep_guard_config_no_firewall_id():
-    litellm.set_verbose = True
-    litellm.guardrail_name_config_map = {}
+    gateway.set_verbose = True
+    gateway.guardrail_name_config_map = {}
 
     for key in ["DEEPKEEP_API_KEY", "DEEPKEEP_API_BASE", "DEEPKEEP_FIREWALL_ID"]:
         if key in os.environ:
@@ -112,8 +112,8 @@ def test_deepkeep_guard_config_no_firewall_id():
 
 
 def test_deepkeep_guard_config_no_api_base():
-    litellm.set_verbose = True
-    litellm.guardrail_name_config_map = {}
+    gateway.set_verbose = True
+    gateway.guardrail_name_config_map = {}
 
     for key in ["DEEPKEEP_API_KEY", "DEEPKEEP_API_BASE", "DEEPKEEP_FIREWALL_ID"]:
         if key in os.environ:
@@ -163,7 +163,7 @@ async def test_callback_blocked():
             }
         ],
     )
-    deepkeep_guardrails = litellm.logging_callback_manager.get_custom_loggers_for_type(
+    deepkeep_guardrails = gateway.logging_callback_manager.get_custom_loggers_for_type(
         DeepKeepGuardrail
     )
     print("found deepkeep guardrails", deepkeep_guardrails)
@@ -227,7 +227,7 @@ async def test_callback_no_violation():
             }
         ],
     )
-    deepkeep_guardrails = litellm.logging_callback_manager.get_custom_loggers_for_type(
+    deepkeep_guardrails = gateway.logging_callback_manager.get_custom_loggers_for_type(
         DeepKeepGuardrail
     )
     deepkeep_guardrail = deepkeep_guardrails[0]
@@ -288,7 +288,7 @@ async def test_callback_guardrail_intervened():
             }
         ],
     )
-    deepkeep_guardrails = litellm.logging_callback_manager.get_custom_loggers_for_type(
+    deepkeep_guardrails = gateway.logging_callback_manager.get_custom_loggers_for_type(
         DeepKeepGuardrail
     )
     deepkeep_guardrail = deepkeep_guardrails[0]

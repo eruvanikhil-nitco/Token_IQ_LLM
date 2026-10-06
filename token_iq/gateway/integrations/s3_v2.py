@@ -13,7 +13,7 @@ from datetime import datetime
 from typing import Final, cast
 from urllib.parse import quote
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import print_verbose, verbose_logger
 from token_iq.gateway.constants import DEFAULT_S3_BATCH_SIZE, DEFAULT_S3_FLUSH_INTERVAL_SECONDS
 from token_iq.gateway.integrations.s3 import (
@@ -75,7 +75,7 @@ class S3Logger(CustomBatchLogger, BaseAWSLLM):
             else:
                 verbose_logger.debug(
                     "in init s3 logger - s3_callback_params %s",
-                    _masker.mask_dict(dict(litellm.s3_callback_params or {})),
+                    _masker.mask_dict(dict(gateway.s3_callback_params or {})),
                 )
 
             # Initialize S3 params first to get the correct s3_verify value
@@ -167,9 +167,9 @@ class S3Logger(CustomBatchLogger, BaseAWSLLM):
         Resolves `os.environ/X` markers into a local dict; never mutates the source.
         """
         if params_source is None:
-            params_source = litellm.s3_callback_params or {}
+            params_source = gateway.s3_callback_params or {}
         params: Final[dict] = {
-            key: (litellm.get_secret(value) if isinstance(value, str) and value.startswith("os.environ/") else value)
+            key: (gateway.get_secret(value) if isinstance(value, str) and value.startswith("os.environ/") else value)
             for key, value in params_source.items()
         }
 
@@ -452,7 +452,7 @@ class S3Logger(CustomBatchLogger, BaseAWSLLM):
         if prefix_path:
             prefix_path += "/"
 
-        s3_file_name: Final = litellm.utils.get_logging_id(start_time, standard_logging_payload) or ""
+        s3_file_name: Final = gateway.utils.get_logging_id(start_time, standard_logging_payload) or ""
         verbose_logger.debug(
             "Creating s3 file with prefix_components=%s,prefix_path=%s and %s",
             prefix_components,

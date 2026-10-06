@@ -11,7 +11,7 @@ from fastapi import HTTPException, Request
 from token_iq.gateway._uuid import uuid
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy._types import LiteLLM_UserTable, NewUserResponse
 from token_iq.gateway.proxy.auth.handle_jwt import JWTHandler
 from token_iq.gateway.proxy.management_endpoints.sso import CustomMicrosoftSSO
@@ -588,7 +588,7 @@ async def test_default_team_params(team_params):
     When litellm.default_team_params is set, it should be used to create a new team
     """
     # Arrange
-    litellm.default_team_params = team_params
+    gateway.default_team_params = team_params
 
     def mock_jsonify_team_object(db_data):
         return db_data
@@ -640,7 +640,7 @@ async def test_default_team_params_organization_id_reaches_sso_created_team(team
     so a default organization_id must land on the created team row and be validated."""
     from token_iq.gateway.proxy._types import LiteLLM_OrganizationTable
 
-    litellm.default_team_params = team_params
+    gateway.default_team_params = team_params
 
     mock_prisma = MagicMock()
     mock_prisma.db.litellm_teamtable.find_first = AsyncMock(return_value=None)
@@ -684,7 +684,7 @@ async def test_create_team_without_default_params():
     Should create team with just the basic required fields
     """
     # Arrange
-    litellm.default_team_params = None
+    gateway.default_team_params = None
 
     def mock_jsonify_team_object(db_data):
         return db_data
@@ -5999,11 +5999,11 @@ async def test_role_mappings_override_default_internal_user_params():
     from token_iq.gateway.proxy.management_endpoints.ui_sso import insert_sso_user
 
     # Save original default_internal_user_params
-    original_default_params = getattr(litellm, "default_internal_user_params", None)
+    original_default_params = getattr(gateway, "default_internal_user_params", None)
 
     try:
         # Set default_internal_user_params with a role that should be overridden
-        litellm.default_internal_user_params = {
+        gateway.default_internal_user_params = {
             "user_role": "internal_user",
             "max_budget": 100,
             "budget_duration": "30d",
@@ -6067,7 +6067,7 @@ async def test_role_mappings_override_default_internal_user_params():
     finally:
         # Restore original default_internal_user_params (always assign, never delattr —
         # the attribute is defined in token_iq/gateway/__init__.py and delattr-ing it breaks parallel tests)
-        litellm.default_internal_user_params = original_default_params
+        gateway.default_internal_user_params = original_default_params
 
 
 @pytest.mark.asyncio
@@ -6083,11 +6083,11 @@ async def test_sso_role_preserved_without_role_mappings():
     from token_iq.gateway.proxy._types import NewUserResponse, SSOUserDefinedValues
     from token_iq.gateway.proxy.management_endpoints.ui_sso import insert_sso_user
 
-    original_default_params = getattr(litellm, "default_internal_user_params", None)
+    original_default_params = getattr(gateway, "default_internal_user_params", None)
 
     try:
         # Set default_internal_user_params (as most deployments do)
-        litellm.default_internal_user_params = {
+        gateway.default_internal_user_params = {
             "user_role": "internal_user",
             "max_budget": 50,
         }
@@ -6151,7 +6151,7 @@ async def test_sso_role_preserved_without_role_mappings():
         # Restore original default_internal_user_params (always assign, never delattr —
         # deleting the attribute causes AttributeError in subsequent tests because
         # litellm.__getattr__ has no handler for this name)
-        litellm.default_internal_user_params = original_default_params
+        gateway.default_internal_user_params = original_default_params
 
 
 class TestSSOReadinessEndpoint:

@@ -21,7 +21,7 @@ import zlib
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 ENDPOINT = os.environ.get("SAGEMAKER_NOVA_ENDPOINT", "")
 MODEL = f"sagemaker_nova/{ENDPOINT}"
@@ -73,7 +73,7 @@ class TestSagemakerNovaIntegration:
 
     def test_should_complete_basic_single_turn(self):
         """Basic single-turn chat completion."""
-        response = litellm.completion(
+        response = gateway.completion(
             model=MODEL,
             messages=[{"role": "user", "content": "What is 2+2? Reply in one word."}],
             max_tokens=32,
@@ -93,7 +93,7 @@ class TestSagemakerNovaIntegration:
         messages = [
             {"role": "user", "content": "My name is Alice."},
         ]
-        response1 = litellm.completion(
+        response1 = gateway.completion(
             model=MODEL,
             messages=messages,
             max_tokens=64,
@@ -106,7 +106,7 @@ class TestSagemakerNovaIntegration:
         messages.append({"role": "assistant", "content": assistant_msg})
         messages.append({"role": "user", "content": "What is my name?"})
 
-        response2 = litellm.completion(
+        response2 = gateway.completion(
             model=MODEL,
             messages=messages,
             max_tokens=64,
@@ -117,7 +117,7 @@ class TestSagemakerNovaIntegration:
 
     def test_should_stream_response(self):
         """Streaming returns chunks with content and final usage."""
-        response = litellm.completion(
+        response = gateway.completion(
             model=MODEL,
             messages=[{"role": "user", "content": "Count from 1 to 5."}],
             max_tokens=64,
@@ -145,7 +145,7 @@ class TestSagemakerNovaIntegration:
 
     def test_should_return_logprobs(self):
         """Logprobs are returned when requested."""
-        response = litellm.completion(
+        response = gateway.completion(
             model=MODEL,
             messages=[{"role": "user", "content": "Say hello."}],
             max_tokens=16,
@@ -173,7 +173,7 @@ class TestSagemakerNovaIntegration:
     def test_should_handle_multimodal_image_input(self):
         """Multimodal with base64 image in content array."""
         b64_image = _make_test_png()
-        response = litellm.completion(
+        response = gateway.completion(
             model=MODEL,
             messages=[
                 {
@@ -202,7 +202,7 @@ class TestSagemakerNovaIntegration:
 
     def test_should_pass_nova_specific_params(self):
         """Nova-specific parameters (top_k) are accepted."""
-        response = litellm.completion(
+        response = gateway.completion(
             model=MODEL,
             messages=[{"role": "user", "content": "Say hello."}],
             max_tokens=32,
@@ -214,7 +214,7 @@ class TestSagemakerNovaIntegration:
 
     def test_should_respect_system_message(self):
         """System message should influence the response."""
-        response = litellm.completion(
+        response = gateway.completion(
             model=MODEL,
             messages=[
                 {
@@ -256,7 +256,7 @@ class TestSagemakerNova2LiteIntegration:
 
     def test_should_accept_reasoning_effort_low(self):
         """reasoning_effort='low' should be accepted by Nova 2 Lite."""
-        response = litellm.completion(
+        response = gateway.completion(
             model=NOVA2_MODEL,
             messages=[{"role": "user", "content": "What is 2+2?"}],
             max_tokens=32,
@@ -267,7 +267,7 @@ class TestSagemakerNova2LiteIntegration:
 
     def test_should_accept_reasoning_effort_high(self):
         """reasoning_effort='high' should be accepted by Nova 2 Lite."""
-        response = litellm.completion(
+        response = gateway.completion(
             model=NOVA2_MODEL,
             messages=[{"role": "user", "content": "Explain why the sky is blue."}],
             max_tokens=256,

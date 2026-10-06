@@ -11,7 +11,7 @@ import httpx
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.watsonx.passthrough.transformation import WatsonxPassthroughConfig
 
 

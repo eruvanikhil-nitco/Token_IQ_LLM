@@ -7,7 +7,7 @@ from typing import Final
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.utils import Choices, Message, ModelResponse, Usage
 
 
@@ -111,7 +111,7 @@ def completion(
     inference_params.pop(
         "stream", None
     )  # palm does not support streaming, so we handle this by fake streaming in main.py
-    config: Final = litellm.PalmConfig.get_config()
+    config: Final = gateway.PalmConfig.get_config()
     for k, v in config.items():
         if (
             k not in inference_params

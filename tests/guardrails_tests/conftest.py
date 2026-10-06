@@ -10,7 +10,7 @@ import os
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 from tests._vcr_conftest_common import (  # noqa: E402,F401
     VerboseReporterState,
@@ -78,18 +78,18 @@ def isolate_litellm_state():
         "_async_success_callback",
         "_async_failure_callback",
     ):
-        if hasattr(litellm, attr):
-            val = getattr(litellm, attr)
+        if hasattr(gateway, attr):
+            val = getattr(gateway, attr)
             original_state[attr] = val.copy() if val else []
 
     # Save other globals that tests commonly mutate
     for attr in ("set_verbose", "cache", "num_retries"):
-        if hasattr(litellm, attr):
-            original_state[attr] = getattr(litellm, attr)
+        if hasattr(gateway, attr):
+            original_state[attr] = getattr(gateway, attr)
 
     # Flush cache before test
-    if hasattr(litellm, "in_memory_llm_clients_cache"):
-        litellm.in_memory_llm_clients_cache.flush_cache()
+    if hasattr(gateway, "in_memory_llm_clients_cache"):
+        gateway.in_memory_llm_clients_cache.flush_cache()
 
     # Clear callbacks before test
     for attr in (
@@ -98,18 +98,18 @@ def isolate_litellm_state():
         "_async_success_callback",
         "_async_failure_callback",
     ):
-        if hasattr(litellm, attr):
-            setattr(litellm, attr, [])
+        if hasattr(gateway, attr):
+            setattr(gateway, attr, [])
 
     yield
 
     # Restore all saved state
-    if hasattr(litellm, "in_memory_llm_clients_cache"):
-        litellm.in_memory_llm_clients_cache.flush_cache()
+    if hasattr(gateway, "in_memory_llm_clients_cache"):
+        gateway.in_memory_llm_clients_cache.flush_cache()
 
     for attr, original_value in original_state.items():
-        if hasattr(litellm, attr):
-            setattr(litellm, attr, original_value)
+        if hasattr(gateway, attr):
+            setattr(gateway, attr, original_value)
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -119,23 +119,23 @@ def setup_and_teardown():
     (skipped under xdist to avoid cross-worker interference).
     """
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     worker_id = os.environ.get("PYTEST_XDIST_WORKER", None)
     if worker_id is None:
-        importlib.reload(litellm)
+        importlib.reload(gateway)
 
         try:
-            if hasattr(litellm, "proxy") and hasattr(litellm.proxy, "proxy_server"):
+            if hasattr(gateway, "proxy") and hasattr(gateway.proxy, "proxy_server"):
                 import token_iq.gateway.proxy.proxy_server
-                from token_iq import gateway as litellm
+                from token_iq import gateway
 
-                importlib.reload(litellm.proxy.proxy_server)
+                importlib.reload(gateway.proxy.proxy_server)
         except Exception as e:
             print(f"Error reloading litellm.proxy.proxy_server: {e}")
 
-        if hasattr(litellm, "in_memory_llm_clients_cache"):
-            litellm.in_memory_llm_clients_cache.flush_cache()
+        if hasattr(gateway, "in_memory_llm_clients_cache"):
+            gateway.in_memory_llm_clients_cache.flush_cache()
 
     yield
 

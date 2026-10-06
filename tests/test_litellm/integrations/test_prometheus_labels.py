@@ -244,16 +244,16 @@ def test_extract_api_provider_swallows_unknown_model_but_logs_unexpected_errors(
     """
     from unittest.mock import patch
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.integrations.prometheus import PrometheusLogger
 
     extract = PrometheusLogger._extract_api_provider_from_request_data
 
     # Expected miss: BadRequestError -> None, no log noise
     with patch.object(
-        litellm,
+        gateway,
         "get_llm_provider",
-        side_effect=litellm.exceptions.BadRequestError(
+        side_effect=gateway.exceptions.BadRequestError(
             message="no provider", model="x", llm_provider="y"
         ),
     ):
@@ -262,7 +262,7 @@ def test_extract_api_provider_swallows_unknown_model_but_logs_unexpected_errors(
             mock_logger.debug.assert_not_called()
 
     # Unexpected error: must be logged and still return None (never raised)
-    with patch.object(litellm, "get_llm_provider", side_effect=RuntimeError("boom")):
+    with patch.object(gateway, "get_llm_provider", side_effect=RuntimeError("boom")):
         with patch("token_iq.gateway.integrations.prometheus.verbose_logger") as mock_logger:
             assert extract({"model": "x"}) is None
             mock_logger.debug.assert_called_once()

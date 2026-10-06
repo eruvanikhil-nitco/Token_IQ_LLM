@@ -3,7 +3,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.fastcrw.search.transformation import FastCRWSearchConfig
 
 
@@ -33,7 +33,7 @@ def test_fastcrw_search_request_body():
             return_value=mock_response,
         ) as mock_post,
     ):
-        response = litellm.search(
+        response = gateway.search(
             query="test query",
             search_provider="fastcrw",
             max_results=10,

@@ -8,7 +8,7 @@ import redis
 import redis.asyncio as async_redis
 from redis.credentials import CredentialProvider
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._redis import (
     _async_auth_kwargs,
     _get_redis_client_logic,
@@ -85,9 +85,9 @@ def clean_redis_environment(monkeypatch):
 
 @pytest.fixture
 def clear_llm_client_cache():
-    litellm.in_memory_llm_clients_cache.flush_cache()
+    gateway.in_memory_llm_clients_cache.flush_cache()
     yield
-    litellm.in_memory_llm_clients_cache.flush_cache()
+    gateway.in_memory_llm_clients_cache.flush_cache()
 
 
 @pytest.fixture(autouse=True)

@@ -11,7 +11,7 @@ import json
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.types.utils import ModelResponse
 from token_iq.gateway.utils import Rules, post_call_processing
 
@@ -53,10 +53,10 @@ VALID_CONTENT = {"title": "Inception", "rating": 9}  # Matches the schema
 @pytest.fixture(autouse=True)
 def _reset_global_flag():
     """Reset the global flag before and after each test."""
-    original = litellm.enable_json_schema_validation
-    litellm.enable_json_schema_validation = False
+    original = gateway.enable_json_schema_validation
+    gateway.enable_json_schema_validation = False
     yield
-    litellm.enable_json_schema_validation = original
+    gateway.enable_json_schema_validation = original
 
 
 class TestPerRequestJsonSchemaValidation:
@@ -64,7 +64,7 @@ class TestPerRequestJsonSchemaValidation:
 
     def test_global_off_no_per_request_skips_validation(self):
         """Global OFF + no per-request flag -> no validation (default behavior)."""
-        litellm.enable_json_schema_validation = False
+        gateway.enable_json_schema_validation = False
         # Should NOT raise even though response doesn't match schema
         post_call_processing(
             _make_response(INVALID_CONTENT),
@@ -76,8 +76,8 @@ class TestPerRequestJsonSchemaValidation:
 
     def test_per_request_on_overrides_global_off(self):
         """Global OFF + per-request ON -> validation runs and catches invalid response."""
-        litellm.enable_json_schema_validation = False
-        with pytest.raises(litellm.JSONSchemaValidationError):
+        gateway.enable_json_schema_validation = False
+        with pytest.raises(gateway.JSONSchemaValidationError):
             post_call_processing(
                 _make_response(INVALID_CONTENT),
                 "test-model",
@@ -91,7 +91,7 @@ class TestPerRequestJsonSchemaValidation:
 
     def test_per_request_off_overrides_global_on(self):
         """Global ON + per-request OFF -> validation skipped (per-request wins)."""
-        litellm.enable_json_schema_validation = True
+        gateway.enable_json_schema_validation = True
         # Should NOT raise because per-request says False
         post_call_processing(
             _make_response(INVALID_CONTENT),
@@ -106,8 +106,8 @@ class TestPerRequestJsonSchemaValidation:
 
     def test_global_on_no_per_request_validates(self):
         """Global ON + no per-request flag -> validation runs (backward compatible)."""
-        litellm.enable_json_schema_validation = True
-        with pytest.raises(litellm.JSONSchemaValidationError):
+        gateway.enable_json_schema_validation = True
+        with pytest.raises(gateway.JSONSchemaValidationError):
             post_call_processing(
                 _make_response(INVALID_CONTENT),
                 "test-model",

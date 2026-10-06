@@ -35,7 +35,7 @@ class AgentOps(OpenTelemetry):
 
     Example usage:
         ```python
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         litellm.success_callback = ["agentops"]
 

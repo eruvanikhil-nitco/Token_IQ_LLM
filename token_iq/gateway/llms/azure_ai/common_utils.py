@@ -1,7 +1,7 @@
 from collections.abc import Mapping
 from typing import Final, Literal
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.base_llm.base_utils import BaseLLMModelInfo, BaseTokenCounter
 from token_iq.gateway.secret_managers.main import get_secret_str
 from token_iq.gateway.types.llms.openai import AllMessageValues
@@ -122,15 +122,15 @@ class AzureFoundryModelInfo(BaseLLMModelInfo):
 
     @staticmethod
     def get_api_base(api_base: str | None = None) -> str | None:
-        return api_base or litellm.api_base or get_secret_str("AZURE_AI_API_BASE")
+        return api_base or gateway.api_base or get_secret_str("AZURE_AI_API_BASE")
 
     @staticmethod
     def get_api_key(api_key: str | None = None) -> str | None:
-        return api_key or litellm.api_key or get_secret_str("AZURE_AI_API_KEY")
+        return api_key or gateway.api_key or get_secret_str("AZURE_AI_API_KEY")
 
     @property
     def api_version(self, api_version: str | None = None) -> str | None:
-        api_version = api_version or litellm.api_version or get_secret_str("AZURE_API_VERSION")
+        api_version = api_version or gateway.api_version or get_secret_str("AZURE_API_VERSION")
         return api_version
 
     def get_token_counter(self) -> BaseTokenCounter | None:

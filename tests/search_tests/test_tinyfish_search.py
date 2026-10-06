@@ -9,7 +9,7 @@ from urllib.parse import parse_qs, urlparse
 import httpx
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 MOCK_TINYFISH_RESPONSE = {
     "query": "web automation tools",
@@ -66,7 +66,7 @@ class TestTinyfishSearch:
         ) as mock_get:
             mock_get.return_value = mock_response
 
-            response = await litellm.asearch(
+            response = await gateway.asearch(
                 query="web automation tools",
                 search_provider="tinyfish",
             )
@@ -106,7 +106,7 @@ class TestTinyfishSearch:
         ) as mock_get:
             mock_get.return_value = mock_response
 
-            await litellm.asearch(
+            await gateway.asearch(
                 query="test",
                 search_provider="tinyfish",
                 country="US",
@@ -129,7 +129,7 @@ class TestTinyfishSearch:
         ) as mock_get:
             mock_get.return_value = mock_response
 
-            await litellm.asearch(
+            await gateway.asearch(
                 query="python tutorials",
                 search_provider="tinyfish",
                 search_domain_filter=["arxiv.org", "github.com"],
@@ -155,7 +155,7 @@ class TestTinyfishSearch:
         ) as mock_get:
             mock_get.return_value = mock_response
 
-            await litellm.asearch(
+            await gateway.asearch(
                 query="test",
                 search_provider="tinyfish",
                 language="en",
@@ -197,7 +197,7 @@ class TestTinyfishSearch:
         ) as mock_get:
             mock_get.return_value = mock_response
 
-            response = await litellm.asearch(
+            response = await gateway.asearch(
                 query="tinyfish",
                 search_provider="tinyfish",
                 fetch="{}",
@@ -255,7 +255,7 @@ class TestTinyfishSearch:
         ) as mock_get:
             mock_get.return_value = mock_response
 
-            response = await litellm.asearch(
+            response = await gateway.asearch(
                 query="web automation tools",
                 search_provider="tinyfish",
             )
@@ -281,7 +281,7 @@ class TestTinyfishSearch:
         ) as mock_get:
             mock_get.return_value = mock_response
 
-            response = await litellm.asearch(
+            response = await gateway.asearch(
                 query="test",
                 search_provider="tinyfish",
             )
@@ -310,7 +310,7 @@ class TestTinyfishSearch:
         ) as mock_get:
             mock_get.return_value = mock_response
 
-            response = await litellm.asearch(
+            response = await gateway.asearch(
                 query="xyznonexistent",
                 search_provider="tinyfish",
             )

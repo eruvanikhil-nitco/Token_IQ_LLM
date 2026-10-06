@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, Any, Final
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.core_utils.core_helpers import process_response_headers
 from token_iq.gateway.core_utils.llm_response_utils.convert_dict_to_response import (
@@ -82,7 +82,7 @@ class ManusResponsesAPIConfig(OpenAIResponsesAPIConfig):
         Manus uses `API_KEY` header instead of `Authorization: Bearer`.
         """
         litellm_params = litellm_params or GenericLiteLLMParams()
-        api_key: Final = litellm_params.api_key or litellm.api_key or get_secret_str("MANUS_API_KEY")
+        api_key: Final = litellm_params.api_key or gateway.api_key or get_secret_str("MANUS_API_KEY")
 
         if not api_key:
             raise ValueError(
@@ -110,7 +110,7 @@ class ManusResponsesAPIConfig(OpenAIResponsesAPIConfig):
         Returns:
             str: The full URL for the Manus /v1/responses endpoint
         """
-        api_base = api_base or litellm.api_base or get_secret_str("MANUS_API_BASE") or MANUS_API_BASE
+        api_base = api_base or gateway.api_base or get_secret_str("MANUS_API_BASE") or MANUS_API_BASE
 
         # Remove trailing slashes
         api_base = api_base.rstrip("/")

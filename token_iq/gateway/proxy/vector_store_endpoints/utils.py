@@ -4,7 +4,7 @@ from typing import Any, Final, Literal
 
 from fastapi import HTTPException, Request
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.proxy._types import (
     LiteLLM_ObjectPermissionTable,
@@ -215,9 +215,9 @@ async def get_litellm_managed_vector_store(
     if not vector_store_id:
         return None
 
-    if litellm.vector_store_registry is not None:
+    if gateway.vector_store_registry is not None:
         try:
-            vector_store: Final = litellm.vector_store_registry.get_litellm_managed_vector_store_from_registry(
+            vector_store: Final = gateway.vector_store_registry.get_litellm_managed_vector_store_from_registry(
                 vector_store_id=vector_store_id
             )
             if vector_store is not None:

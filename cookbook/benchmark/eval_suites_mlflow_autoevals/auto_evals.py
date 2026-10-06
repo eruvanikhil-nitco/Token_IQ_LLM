@@ -2,7 +2,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 from autoevals.llm import *
 
@@ -10,7 +10,7 @@ from autoevals.llm import *
 
 # litellm completion call
 question = "which country has the highest population"
-response = litellm.completion(
+response = gateway.completion(
     model="gpt-3.5-turbo",
     messages=[{"role": "user", "content": question}],
 )

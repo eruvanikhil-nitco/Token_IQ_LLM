@@ -6,7 +6,7 @@ import pytest
 from unittest.mock import patch, MagicMock
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.gemini.chat.transformation import GoogleAIStudioGeminiConfig
 from token_iq.gateway.utils import get_supported_openai_params
 
@@ -229,7 +229,7 @@ def test_gemini_tts_completion_mock():
         mock_completion.return_value = mock_response
 
         # Test completion call with audio parameter
-        response = litellm.completion(
+        response = gateway.completion(
             model="gemini-2.5-flash-preview-tts",
             messages=[{"role": "user", "content": "Say hello"}],
             audio={"voice": "Kore", "format": "pcm16"},

@@ -14,7 +14,7 @@ from openai import (
     OpenAI,
 )
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.constants import AZURE_OPERATION_POLLING_TIMEOUT, DEFAULT_MAX_RETRIES
 from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
 from token_iq.gateway.core_utils.logging_utils import speech_request_body, track_llm_api_timing
@@ -84,7 +84,7 @@ class AzureOpenAIAssistantsAPIConfig:
                 if isinstance(value, str):
                     optional_params["content"] = value
                 else:
-                    raise litellm.utils.UnsupportedParamsError(
+                    raise gateway.utils.UnsupportedParamsError(
                         message="Azure only accepts content as a string.",
                         status_code=400,
                     )
@@ -95,15 +95,15 @@ class AzureOpenAIAssistantsAPIConfig:
                         if "file_id" in item:
                             file_ids.append(item["file_id"])
                         else:
-                            if litellm.drop_params is True:
+                            if gateway.drop_params is True:
                                 pass
                             else:
-                                raise litellm.utils.UnsupportedParamsError(
+                                raise gateway.utils.UnsupportedParamsError(
                                     message=f"Azure doesn't support {value}. To drop it from the call, set `litellm.drop_params = True.",
                                     status_code=400,
                                 )
                 else:
-                    raise litellm.utils.UnsupportedParamsError(
+                    raise gateway.utils.UnsupportedParamsError(
                         message=f"Invalid param. attachments should always be a list. Got={type(value)}, Expected=List. Raw value={value}",
                         status_code=400,
                     )
@@ -242,8 +242,8 @@ class AzureChatCompletion(BaseAzureLLM, BaseLLM):
                 )
 
                 data: dict[str, object] = {"model": None, "messages": messages, **optional_params}
-            elif litellm.AzureOpenAIGPT5Config.is_model_gpt_5_model(model=litellm_params.get("base_model") or model):
-                data = litellm.AzureOpenAIGPT5Config().transform_request(
+            elif gateway.AzureOpenAIGPT5Config.is_model_gpt_5_model(model=litellm_params.get("base_model") or model):
+                data = gateway.AzureOpenAIGPT5Config().transform_request(
                     model=model,
                     messages=messages,
                     optional_params=optional_params,
@@ -251,7 +251,7 @@ class AzureChatCompletion(BaseAzureLLM, BaseLLM):
                     headers=headers or {},
                 )
             else:
-                data = litellm.AzureOpenAIConfig().transform_request(
+                data = gateway.AzureOpenAIConfig().transform_request(
                     model=model,
                     messages=messages,
                     optional_params=optional_params,
@@ -514,7 +514,7 @@ class AzureChatCompletion(BaseAzureLLM, BaseLLM):
             "api_version": api_version,
             "azure_endpoint": api_base,
             "azure_deployment": model,
-            "http_client": litellm.client_session,
+            "http_client": gateway.client_session,
             "max_retries": max_retries,
             "timeout": timeout,
         }
@@ -762,7 +762,7 @@ class AzureChatCompletion(BaseAzureLLM, BaseLLM):
         try:
             data: Final = {"model": model, "input": input, **optional_params}
             if max_retries is None:
-                max_retries = litellm.DEFAULT_MAX_RETRIES
+                max_retries = gateway.DEFAULT_MAX_RETRIES
             ## LOGGING
             logging_obj.pre_call(
                 input=input,
@@ -990,7 +990,7 @@ class AzureChatCompletion(BaseAzureLLM, BaseLLM):
             else:
                 _params["timeout"] = httpx.Timeout(timeout=600.0, connect=5.0)
 
-            sync_handler = HTTPHandler(**_params, client=litellm.client_session)
+            sync_handler = HTTPHandler(**_params, client=gateway.client_session)
         else:
             sync_handler = client
 
@@ -1191,7 +1191,7 @@ class AzureChatCompletion(BaseAzureLLM, BaseLLM):
                     request_data=data,
                     optional_params=data,
                     litellm_params=data,
-                    encoding=litellm.encoding,
+                    encoding=gateway.encoding,
                 )
 
             else:
@@ -1326,7 +1326,7 @@ class AzureChatCompletion(BaseAzureLLM, BaseLLM):
                     request_data=data,
                     optional_params=data,
                     litellm_params=data,
-                    encoding=litellm.encoding,
+                    encoding=gateway.encoding,
                 )
 
             response: Final = httpx_response.json()
@@ -1476,7 +1476,7 @@ class AzureChatCompletion(BaseAzureLLM, BaseLLM):
         input: list | None = None,
         prompt: str | None = None,
     ) -> dict:
-        client_session: Final = litellm.client_session or httpx.Client()
+        client_session: Final = gateway.client_session or httpx.Client()
         if api_base is not None and "gateway.ai.cloudflare.com" in api_base:
             ## build base url - assume api base includes resource name
             if not api_base.endswith("/"):

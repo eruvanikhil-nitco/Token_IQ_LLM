@@ -124,11 +124,11 @@ async def test_bedrock_search_with_credentials_managed_registry():
     from token_iq.gateway.types.utils import CredentialItem
     from token_iq.gateway.vector_stores.vector_store_registry import VectorStoreRegistry
     from datetime import datetime, timezone
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     # Store original registry and credential list
-    original_registry = getattr(litellm, "vector_store_registry", None)
-    original_credential_list = getattr(litellm, "credential_list", [])
+    original_registry = getattr(gateway, "vector_store_registry", None)
+    original_credential_list = getattr(gateway, "credential_list", [])
 
     try:
         # Set up test AWS credentials in the credential system
@@ -146,7 +146,7 @@ async def test_bedrock_search_with_credentials_managed_registry():
         )
 
         # Set up the credential list
-        litellm.credential_list = [test_credentials]
+        gateway.credential_list = [test_credentials]
 
         # Create vector store with credential reference
         vector_store = LiteLLM_ManagedVectorStore(
@@ -159,7 +159,7 @@ async def test_bedrock_search_with_credentials_managed_registry():
 
         # Set up registry
         registry = VectorStoreRegistry([vector_store])
-        litellm.vector_store_registry = registry
+        gateway.vector_store_registry = registry
 
         # Verify credentials can be retrieved from registry
         retrieved_credentials = registry.get_credentials_for_vector_store("T37J8R4WTM")
@@ -232,5 +232,5 @@ async def test_bedrock_search_with_credentials_managed_registry():
 
     finally:
         # Restore original state
-        litellm.vector_store_registry = original_registry
-        litellm.credential_list = original_credential_list
+        gateway.vector_store_registry = original_registry
+        gateway.credential_list = original_credential_list

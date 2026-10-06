@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Any, Final, cast
 from httpx._models import Headers, Response
 from pydantic import BaseModel
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._uuid import uuid
 from token_iq.gateway.core_utils.core_helpers import map_finish_reason
 from token_iq.gateway.core_utils.prompt_templates.common_utils import (
@@ -363,7 +363,7 @@ class OllamaChatConfig(BaseConfig):
             and response_json_message is not None
         ):
             function_call: Final = json.loads(response_json_message["content"])
-            message: Final = litellm.Message(
+            message: Final = gateway.Message(
                 content=None,
                 tool_calls=[
                     {
@@ -380,7 +380,7 @@ class OllamaChatConfig(BaseConfig):
             model_response.choices[0].message = message
             model_response.choices[0].finish_reason = "tool_calls"
         else:
-            _message: Final = litellm.Message(**response_json_message)
+            _message: Final = gateway.Message(**response_json_message)
             model_response.choices[0].message = _message
             # Set finish_reason to "tool_calls" when tool_calls are present
             # Fixes
@@ -388,15 +388,15 @@ class OllamaChatConfig(BaseConfig):
                 model_response.choices[0].finish_reason = "tool_calls"
         model_response.created = int(time.time())
         model_response.model = "ollama_chat/" + model
-        prompt_tokens = response_json.get("prompt_eval_count", litellm.token_counter(messages=messages))
+        prompt_tokens = response_json.get("prompt_eval_count", gateway.token_counter(messages=messages))
         completion_tokens: Final = response_json.get(
             "eval_count",
-            litellm.token_counter(text=response_json["message"]["content"]),
+            gateway.token_counter(text=response_json["message"]["content"]),
         )
         setattr(
             model_response,
             "usage",
-            litellm.Usage(
+            gateway.Usage(
                 prompt_tokens=prompt_tokens,
                 completion_tokens=completion_tokens,
                 total_tokens=prompt_tokens + completion_tokens,

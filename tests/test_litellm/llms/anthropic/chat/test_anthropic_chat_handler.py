@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import httpx
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.constants import RESPONSE_FORMAT_TOOL_NAME
 from token_iq.gateway.llms.anthropic.chat.handler import ModelResponseIterator, make_call
 from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
@@ -69,7 +69,7 @@ def test_anthropic_completion_does_not_send_deployment_default_limits():
 
     client = HTTPHandler(client=httpx.Client(transport=httpx.MockTransport(respond)))
     try:
-        litellm.completion(
+        gateway.completion(
             model="anthropic/claude-3-5-haiku-20241022",
             messages=[{"role": "user", "content": "Hello"}],
             api_key="test-key",
@@ -759,7 +759,7 @@ def test_anthropic_completion_streaming_usage_matches_non_streaming_with_thinkin
             "max_tokens": 128,
         }
 
-        non_stream_response = litellm.completion(**request_kwargs, stream=False)
+        non_stream_response = gateway.completion(**request_kwargs, stream=False)
         non_stream_details = non_stream_response.usage.completion_tokens_details
         assert non_stream_details is not None
         assert non_stream_details.reasoning_tokens > 0
@@ -767,7 +767,7 @@ def test_anthropic_completion_streaming_usage_matches_non_streaming_with_thinkin
         reasoning_chunks = []
         content_chunks = []
         stream_usage = None
-        for chunk in litellm.completion(
+        for chunk in gateway.completion(
             **request_kwargs,
             stream=True,
             stream_options={"include_usage": True},

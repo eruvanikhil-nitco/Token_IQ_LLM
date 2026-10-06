@@ -184,7 +184,7 @@ async def test_internal_flags_filtered_from_followup_kwargs():
 
 @pytest.mark.asyncio
 async def test_execute_search_passes_selected_search_tool_litellm_params(monkeypatch):
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.proxy import proxy_server
 
     logger = WebSearchInterceptionLogger(
@@ -214,7 +214,7 @@ async def test_execute_search_passes_selected_search_tool_litellm_params(monkeyp
     )
 
     monkeypatch.setattr(proxy_server, "llm_router", router)
-    monkeypatch.setattr(litellm, "asearch", mock_asearch)
+    monkeypatch.setattr(gateway, "asearch", mock_asearch)
 
     await logger._execute_search(
         "what is litellm",
@@ -237,7 +237,7 @@ async def test_execute_search_attributes_spend_to_the_calling_key(monkeypatch):
     Without the forwarded attribution metadata the proxy's spend hook skips the search
     entirely, so its provider cost never reaches SpendLogs or any budget.
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.proxy import proxy_server
     from token_iq.gateway.proxy.hooks.proxy_track_cost_callback import _should_track_cost_callback
 
@@ -261,7 +261,7 @@ async def test_execute_search_attributes_spend_to_the_calling_key(monkeypatch):
     )
 
     monkeypatch.setattr(proxy_server, "llm_router", router)
-    monkeypatch.setattr(litellm, "asearch", mock_asearch)
+    monkeypatch.setattr(gateway, "asearch", mock_asearch)
 
     await logger._execute_search(
         "what is litellm",
@@ -290,7 +290,7 @@ async def test_execute_search_attributes_spend_to_the_calling_key(monkeypatch):
 @pytest.mark.asyncio
 async def test_execute_search_without_proxy_auth_context_stays_sdk_only(monkeypatch):
     """SDK callers have no key to attribute the search to, so no proxy metadata is invented."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.proxy import proxy_server
 
     logger = WebSearchInterceptionLogger(
@@ -307,7 +307,7 @@ async def test_execute_search_without_proxy_auth_context_stays_sdk_only(monkeypa
     mock_asearch = AsyncMock(return_value=SearchResponse(object="search", results=[]))
 
     monkeypatch.setattr(proxy_server, "llm_router", router)
-    monkeypatch.setattr(litellm, "asearch", mock_asearch)
+    monkeypatch.setattr(gateway, "asearch", mock_asearch)
 
     await logger._execute_search("what is litellm", kwargs={"litellm_params": {}})
 
@@ -316,7 +316,7 @@ async def test_execute_search_without_proxy_auth_context_stays_sdk_only(monkeypa
 
 @pytest.mark.asyncio
 async def test_execute_search_enforces_key_search_tool_permission(monkeypatch):
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.proxy import proxy_server
 
     logger = WebSearchInterceptionLogger(
@@ -342,7 +342,7 @@ async def test_execute_search_enforces_key_search_tool_permission(monkeypatch):
     )
 
     monkeypatch.setattr(proxy_server, "llm_router", router)
-    monkeypatch.setattr(litellm, "asearch", mock_asearch)
+    monkeypatch.setattr(gateway, "asearch", mock_asearch)
 
     with pytest.raises(ProxyException):
         await logger._execute_search(
@@ -355,7 +355,7 @@ async def test_execute_search_enforces_key_search_tool_permission(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_execute_search_enforces_team_search_tool_permission(monkeypatch):
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.proxy import proxy_server
 
     logger = WebSearchInterceptionLogger(
@@ -384,7 +384,7 @@ async def test_execute_search_enforces_team_search_tool_permission(monkeypatch):
     mock_get_team_object = AsyncMock(return_value=team_object)
 
     monkeypatch.setattr(proxy_server, "llm_router", router)
-    monkeypatch.setattr(litellm, "asearch", mock_asearch)
+    monkeypatch.setattr(gateway, "asearch", mock_asearch)
     monkeypatch.setattr("token_iq.gateway.proxy.auth.auth_checks.get_team_object", mock_get_team_object)
 
     with pytest.raises(ProxyException):

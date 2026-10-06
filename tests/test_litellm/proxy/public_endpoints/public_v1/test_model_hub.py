@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 from fastapi.testclient import TestClient
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy._types import LiteLLMRoutes
 from token_iq.gateway.proxy.proxy_server import app
 from token_iq.gateway.types.router import ModelGroupInfo
@@ -39,7 +39,7 @@ def _info(
 
 
 def _publish(monkeypatch, infos: Sequence[ModelGroupInfo], prisma_client: object | None = None) -> None:
-    monkeypatch.setattr(litellm, "public_model_groups", [info.model_group for info in infos])
+    monkeypatch.setattr(gateway, "public_model_groups", [info.model_group for info in infos])
     monkeypatch.setattr(
         "token_iq.gateway.proxy.proxy_server.llm_router",
         _FakeRouter(infos=MappingProxyType({info.model_group: info for info in infos})),
@@ -295,7 +295,7 @@ def test_a_bad_api_key_does_not_turn_a_public_route_into_a_401(monkeypatch, guar
 
 def test_no_published_model_groups_yields_an_empty_but_coherent_envelope(monkeypatch):
     _publish(monkeypatch, ())
-    monkeypatch.setattr(litellm, "public_model_groups", None)
+    monkeypatch.setattr(gateway, "public_model_groups", None)
 
     response = _get()
 
@@ -324,7 +324,7 @@ def test_an_unexpected_router_failure_answers_as_a_problem_not_the_openai_error_
         def get_model_group_info(self, model_group: str) -> ModelGroupInfo:
             raise RuntimeError("router blew up")
 
-    monkeypatch.setattr(litellm, "public_model_groups", ["boom"])
+    monkeypatch.setattr(gateway, "public_model_groups", ["boom"])
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", _Exploding())
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", None)
 

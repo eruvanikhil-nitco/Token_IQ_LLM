@@ -5,7 +5,7 @@ import asyncio
 import unittest.mock
 from unittest.mock import AsyncMock, MagicMock
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 import pytest
 from dotenv import load_dotenv
 from token_iq.gateway.llms.anthropic.experimental_pass_through.messages.handler import (
@@ -67,7 +67,7 @@ class BaseAnthropicMessagesTest:
     @pytest.mark.asyncio
     async def test_non_streaming_base(self):
         """Base test for non-streaming requests"""
-        litellm._turn_on_debug()
+        gateway._turn_on_debug()
 
         request_params = self.model_config
 
@@ -84,7 +84,7 @@ class BaseAnthropicMessagesTest:
         call_args.update(request_params)
 
         # Call the handler
-        response = await litellm.anthropic.messages.acreate(**call_args)
+        response = await gateway.anthropic.messages.acreate(**call_args)
 
         print(f"Non-streaming {request_params['model']} response: ", response)
 
@@ -113,7 +113,7 @@ class BaseAnthropicMessagesTest:
         call_args.update(request_params)
 
         # Call the handler
-        response = await litellm.anthropic.messages.acreate(**call_args)
+        response = await gateway.anthropic.messages.acreate(**call_args)
 
         collected_chunks = []
         if isinstance(response, AsyncIterator):
@@ -134,7 +134,7 @@ class BaseAnthropicMessagesTest:
 
         Issue: https://github.com/BerriAI/litellm/issues/20342
         """
-        litellm._turn_on_debug()
+        gateway._turn_on_debug()
 
         request_params = self.model_config
 
@@ -151,7 +151,7 @@ class BaseAnthropicMessagesTest:
         call_args.update(request_params)
 
         # Call the handler
-        response = await litellm.anthropic.messages.acreate(**call_args)
+        response = await gateway.anthropic.messages.acreate(**call_args)
 
         print(
             f"Response for {request_params['model']}: {json.dumps(response, indent=2, default=str)}"
@@ -195,8 +195,8 @@ class BaseAnthropicMessagesTest:
         Test that logging and cost tracking works for anthropic_messages with streaming request
         """
         test_custom_logger = TestCustomLogger()
-        litellm.callbacks = [test_custom_logger]
-        litellm._turn_on_debug()
+        gateway.callbacks = [test_custom_logger]
+        gateway._turn_on_debug()
         router = Router(
             model_list=[
                 {

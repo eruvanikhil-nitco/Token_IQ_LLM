@@ -2206,15 +2206,15 @@ class ComplexityRouter(CustomLogger):
     ) -> int | None:
         """Real-tokenizer count of the resolved messages plus the out-of-band carriers, off the
         event loop; None when counting fails, and the gate then leaves the placement alone."""
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.core_utils.asyncify import asyncify
 
         out_of_band: Final = self._out_of_band_request_text(request_kwargs)
         try:
-            counted: Final = await asyncify(litellm.token_counter)(
+            counted: Final = await asyncify(gateway.token_counter)(
                 messages=cast(list, resolved_messages)  # cast-ok: token_counter only iterates the sequence
             )
-            return counted + (await asyncify(litellm.token_counter)(text=out_of_band) if out_of_band else 0)
+            return counted + (await asyncify(gateway.token_counter)(text=out_of_band) if out_of_band else 0)
         except Exception as e:  # noqa: BLE001  # best-effort: an uncountable prompt must not fail the request
             verbose_router_logger.debug("ComplexityRouter: context-window token count failed. Got - %s", e)
             return None
@@ -2443,9 +2443,9 @@ class ComplexityRouter(CustomLogger):
             new_tier = None
             new_model = self._placed_default_model()
         else:
-            from token_iq import gateway as litellm
+            from token_iq import gateway
 
-            raise litellm.BadRequestError(
+            raise gateway.BadRequestError(
                 message=(
                     f"Auto-router {self.model_name} received a request with image input, but no model "
                     f"at or above the decided tier accepts images and modality_routing is enabled. "

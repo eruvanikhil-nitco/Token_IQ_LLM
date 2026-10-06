@@ -16,7 +16,7 @@ def _run_uv(*args: str, **kwargs) -> subprocess.CompletedProcess:
 
 def test_using_litellm():
     try:
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         print("litellm imported successfully")
     except Exception as e:
@@ -43,7 +43,7 @@ def test_package_dependencies():
     """
     try:
         import pathlib
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from packaging.requirements import Requirement
 
         # Try to import tomllib (Python 3.11+) or tomli (older versions)
@@ -56,7 +56,7 @@ def test_package_dependencies():
                 pytest.skip("tomli/tomllib not available - skipping dependency check")
 
         # Get the litellm package root path
-        litellm_path = pathlib.Path(litellm.__file__).parent.parent
+        litellm_path = pathlib.Path(gateway.__file__).parent.parent
         pyproject_path = litellm_path / "pyproject.toml"
 
         # Read and parse pyproject.toml
@@ -96,7 +96,7 @@ def test_cli_extra_is_a_thin_client_install():
     """
     import pathlib
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from packaging.requirements import Requirement
 
     try:
@@ -107,7 +107,7 @@ def test_cli_extra_is_a_thin_client_install():
         except ImportError:
             pytest.skip("tomli/tomllib not available - skipping dependency check")
 
-    pyproject_path = pathlib.Path(litellm.__file__).parent.parent / "pyproject.toml"
+    pyproject_path = pathlib.Path(gateway.__file__).parent.parent / "pyproject.toml"
     with open(pyproject_path, "rb") as f:
         optional_deps = tomli.load(f)["project"]["optional-dependencies"]
 

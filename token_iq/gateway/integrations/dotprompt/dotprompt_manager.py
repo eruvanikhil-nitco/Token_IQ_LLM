@@ -47,9 +47,9 @@ class DotpromptManager(CustomPromptManagement):
         prompt_data: dict | str | None = None,
         prompt_id: str | None = None,
     ):
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
-        self.prompt_directory = prompt_directory or litellm.global_prompt_directory
+        self.prompt_directory = prompt_directory or gateway.global_prompt_directory
         # Support for JSON-based prompts stored in memory/database
         if isinstance(prompt_data, str):
             self.prompt_data = json.loads(prompt_data)

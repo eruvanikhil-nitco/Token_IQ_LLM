@@ -8,7 +8,7 @@ from typing import TYPE_CHECKING, Any, Final, Literal, cast, overload
 import httpx
 from pydantic import BaseModel, TypeAdapter, ValidationError
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
 from token_iq.gateway.llms.openai.chat.gpt_transformation import (
@@ -105,12 +105,12 @@ class GroqChatConfig(OpenAILikeChatConfig):
 
         if not (
             self._is_compound_model(model)
-            or litellm.supports_web_search(model=model, custom_llm_provider=self.custom_llm_provider)
+            or gateway.supports_web_search(model=model, custom_llm_provider=self.custom_llm_provider)
         ):
             base_params.remove("web_search_options")
 
         try:
-            if litellm.supports_reasoning(model=model, custom_llm_provider=self.custom_llm_provider):
+            if gateway.supports_reasoning(model=model, custom_llm_provider=self.custom_llm_provider):
                 base_params.append("reasoning_effort")
         except Exception as e:
             verbose_logger.debug("Error checking if model supports reasoning: %s", e)
@@ -226,12 +226,12 @@ class GroqChatConfig(OpenAILikeChatConfig):
             """
             if json_schema is not None:
                 # Check if model supports native response_schema
-                if not litellm.supports_response_schema(model=model, custom_llm_provider="groq"):
+                if not gateway.supports_response_schema(model=model, custom_llm_provider="groq"):
                     # Check if user is also passing tools - this combination won't work
                     # See: https://console.groq.com/docs/structured-outputs
                     # "Streaming and tool use are not currently supported with Structured Outputs"
                     if "tools" in non_default_params:
-                        raise litellm.BadRequestError(
+                        raise gateway.BadRequestError(
                             message=f"Groq model '{model}' does not support native structured outputs. "
                             "LiteLLM uses a tool-calling workaround for structured outputs on this model, "
                             "which is incompatible with user-provided tools. "

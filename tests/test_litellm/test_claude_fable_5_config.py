@@ -14,7 +14,7 @@ import os
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.constants import BEDROCK_CONVERSE_MODELS
 from token_iq.gateway.core_utils.get_model_cost_map import GetModelCostMap
 
@@ -145,7 +145,7 @@ def test_fable_5_registered_for_bedrock_converse():
 
 
 def test_fable_5_provider_resolves_via_model_info(local_model_cost_map):
-    info = litellm.get_model_info(model="claude-fable-5")
+    info = gateway.get_model_info(model="claude-fable-5")
     assert info["litellm_provider"] == "anthropic"
     assert info["max_input_tokens"] == 1000000
     assert info["max_output_tokens"] == 128000
@@ -335,7 +335,7 @@ def test_fable_5_1_registered_for_bedrock_converse():
 
 
 def test_fable_5_1_provider_resolves_via_model_info(local_model_cost_map):
-    info = litellm.get_model_info(model="claude-fable-5-1")
+    info = gateway.get_model_info(model="claude-fable-5-1")
     assert info["litellm_provider"] == "anthropic"
     assert info["max_input_tokens"] == 1000000
     assert info["max_output_tokens"] == 128000

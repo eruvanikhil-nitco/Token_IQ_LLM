@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock, Mock, patch
 import httpx
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.integrations.code_interpreter_interception.handler import (
     CodeInterpreterInterceptionLogger,
@@ -205,8 +205,8 @@ def test_response_api_handler_runs_responses_pre_call_hook_before_transform():
     logging_obj = Mock()
     logging_obj.dynamic_success_callbacks = []
 
-    old_callbacks = list(litellm.callbacks)
-    litellm.callbacks = [CodeInterpreterInterceptionLogger()]
+    old_callbacks = list(gateway.callbacks)
+    gateway.callbacks = [CodeInterpreterInterceptionLogger()]
     try:
         response = handler.response_api_handler(
             model="gpt-5",
@@ -221,7 +221,7 @@ def test_response_api_handler_runs_responses_pre_call_hook_before_transform():
             client=client,
         )
     finally:
-        litellm.callbacks = old_callbacks
+        gateway.callbacks = old_callbacks
 
     assert response is initial_response
     transform_kwargs = config.transform_responses_api_request.call_args.kwargs
@@ -339,7 +339,7 @@ async def test_async_responses_records_llm_api_duration():
     client = AsyncHTTPHandler()
     client.client = httpx.AsyncClient(transport=httpx.MockTransport(handle))
 
-    response = await litellm.aresponses(
+    response = await gateway.aresponses(
         model="openai/gpt-4o-mini",
         input="ping",
         api_key="fake-key",
@@ -380,7 +380,7 @@ def test_has_agentic_completion_hook_detection(monkeypatch):
     logging_obj.dynamic_success_callbacks = []
 
     # No callbacks at all -> no agentic hook.
-    monkeypatch.setattr(litellm, "callbacks", [])
+    monkeypatch.setattr(gateway, "callbacks", [])
     assert handler._has_agentic_completion_hook(logging_obj) is False
 
     # A plain CustomLogger that does NOT override the gate -> still no hook
@@ -388,7 +388,7 @@ def test_has_agentic_completion_hook_detection(monkeypatch):
     class _PlainLogger(CustomLogger):
         pass
 
-    monkeypatch.setattr(litellm, "callbacks", [_PlainLogger()])
+    monkeypatch.setattr(gateway, "callbacks", [_PlainLogger()])
     assert handler._has_agentic_completion_hook(logging_obj) is False
 
     # A logger that overrides the gate (directly) -> hook present.
@@ -398,7 +398,7 @@ def test_has_agentic_completion_hook_detection(monkeypatch):
         ):
             return True, {}
 
-    monkeypatch.setattr(litellm, "callbacks", [_AgenticLogger()])
+    monkeypatch.setattr(gateway, "callbacks", [_AgenticLogger()])
     assert handler._has_agentic_completion_hook(logging_obj) is True
 
     # Override inherited through an intermediate class is still detected
@@ -406,11 +406,11 @@ def test_has_agentic_completion_hook_detection(monkeypatch):
     class _DerivedAgenticLogger(_AgenticLogger):
         pass
 
-    monkeypatch.setattr(litellm, "callbacks", [_DerivedAgenticLogger()])
+    monkeypatch.setattr(gateway, "callbacks", [_DerivedAgenticLogger()])
     assert handler._has_agentic_completion_hook(logging_obj) is True
 
     # Hook supplied via logging_obj.dynamic_success_callbacks is detected too.
-    monkeypatch.setattr(litellm, "callbacks", [])
+    monkeypatch.setattr(gateway, "callbacks", [])
     logging_obj.dynamic_success_callbacks = [_AgenticLogger()]
     assert handler._has_agentic_completion_hook(logging_obj) is True
 
@@ -421,7 +421,7 @@ def test_has_agentic_completion_hook_detection(monkeypatch):
     # skipped and the buffering wrapper would never fire.
     logging_obj.dynamic_success_callbacks = []
     agentic_via_string = _AgenticLogger()
-    monkeypatch.setattr(litellm, "callbacks", ["fake_string_callback"])
+    monkeypatch.setattr(gateway, "callbacks", ["fake_string_callback"])
     monkeypatch.setattr(
         "token_iq.gateway.core_utils.litellm_logging.get_custom_logger_compatible_class",
         lambda name: agentic_via_string if name == "fake_string_callback" else None,
@@ -429,7 +429,7 @@ def test_has_agentic_completion_hook_detection(monkeypatch):
     assert handler._has_agentic_completion_hook(logging_obj) is True
 
     # Unresolvable string (returns None) is skipped, no false positive.
-    monkeypatch.setattr(litellm, "callbacks", ["unknown_callback"])
+    monkeypatch.setattr(gateway, "callbacks", ["unknown_callback"])
     monkeypatch.setattr(
         "token_iq.gateway.core_utils.litellm_logging.get_custom_logger_compatible_class",
         lambda name: None,
@@ -1089,7 +1089,7 @@ def test_async_delete_responses_omits_body_for_azure():
 
     async def run():
         with patch.object(AsyncHTTPHandler, "delete", new=fake_async_delete):
-            await litellm.adelete_responses(
+            await gateway.adelete_responses(
                 response_id="resp_xyz",
                 custom_llm_provider="azure",
                 api_base="https://test.openai.azure.com",
@@ -1109,7 +1109,7 @@ def test_sync_delete_responses_omits_body_for_azure():
     _, fake_sync_delete = _build_delete_response_mock(captured)
 
     with patch.object(HTTPHandler, "delete", new=fake_sync_delete):
-        litellm.delete_responses(
+        gateway.delete_responses(
             response_id="resp_xyz",
             custom_llm_provider="azure",
             api_base="https://test.openai.azure.com",
@@ -1137,7 +1137,7 @@ def test_async_delete_responses_sets_json_content_type():
 
     async def run():
         with patch.object(AsyncHTTPHandler, "delete", new=fake_async_delete):
-            await litellm.adelete_responses(
+            await gateway.adelete_responses(
                 response_id="resp_xyz",
                 custom_llm_provider="openai",
                 api_key="test-key",
@@ -1153,7 +1153,7 @@ def test_sync_delete_responses_sets_json_content_type():
     _, fake_sync_delete = _build_delete_response_mock(captured)
 
     with patch.object(HTTPHandler, "delete", new=fake_sync_delete):
-        litellm.delete_responses(
+        gateway.delete_responses(
             response_id="resp_xyz",
             custom_llm_provider="openai",
             api_key="test-key",
@@ -1216,9 +1216,9 @@ def test_resolve_anthropic_messages_timeout(
 async def test_async_anthropic_messages_handler_forwards_request_timeout(monkeypatch):
     from token_iq.gateway.constants import DEFAULT_REQUEST_TIMEOUT_SECONDS
 
-    monkeypatch.setattr(litellm, "callbacks", [])
-    monkeypatch.setattr(litellm, "request_timeout", float(DEFAULT_REQUEST_TIMEOUT_SECONDS))
-    monkeypatch.setattr(litellm, "request_timeout_explicitly_set", False)
+    monkeypatch.setattr(gateway, "callbacks", [])
+    monkeypatch.setattr(gateway, "request_timeout", float(DEFAULT_REQUEST_TIMEOUT_SECONDS))
+    monkeypatch.setattr(gateway, "request_timeout_explicitly_set", False)
     handler = BaseLLMHTTPHandler()
 
     mock_config = Mock()
@@ -1264,9 +1264,9 @@ async def test_async_anthropic_messages_handler_forwards_request_timeout(monkeyp
 async def test_async_anthropic_messages_handler_forwards_stream_timeout(monkeypatch):
     from token_iq.gateway.constants import DEFAULT_REQUEST_TIMEOUT_SECONDS
 
-    monkeypatch.setattr(litellm, "callbacks", [])
-    monkeypatch.setattr(litellm, "request_timeout", float(DEFAULT_REQUEST_TIMEOUT_SECONDS))
-    monkeypatch.setattr(litellm, "request_timeout_explicitly_set", False)
+    monkeypatch.setattr(gateway, "callbacks", [])
+    monkeypatch.setattr(gateway, "request_timeout", float(DEFAULT_REQUEST_TIMEOUT_SECONDS))
+    monkeypatch.setattr(gateway, "request_timeout_explicitly_set", False)
     handler = BaseLLMHTTPHandler()
 
     mock_config = Mock()
@@ -2138,8 +2138,8 @@ def _sync_handler_returning(status_code: int, body: dict) -> HTTPHandler:
 async def test_aget_responses_surfaces_upstream_error_status_instead_of_500():
     client = _async_handler_returning(404, _UPSTREAM_NOT_FOUND_BODY)
 
-    with pytest.raises(litellm.NotFoundError) as excinfo:
-        await litellm.aget_responses(
+    with pytest.raises(gateway.NotFoundError) as excinfo:
+        await gateway.aget_responses(
             response_id="resp_abc",
             custom_llm_provider="azure",
             api_base="https://test.openai.azure.com",
@@ -2155,8 +2155,8 @@ async def test_aget_responses_surfaces_upstream_error_status_instead_of_500():
 def test_get_responses_surfaces_upstream_error_status_instead_of_500():
     client = _sync_handler_returning(404, _UPSTREAM_NOT_FOUND_BODY)
 
-    with pytest.raises(litellm.NotFoundError) as excinfo:
-        litellm.get_responses(
+    with pytest.raises(gateway.NotFoundError) as excinfo:
+        gateway.get_responses(
             response_id="resp_abc",
             custom_llm_provider="azure",
             api_base="https://test.openai.azure.com",
@@ -2172,8 +2172,8 @@ def test_get_responses_surfaces_upstream_error_status_instead_of_500():
 def test_list_input_items_surfaces_upstream_error_status():
     client = _sync_handler_returning(404, _UPSTREAM_NOT_FOUND_BODY)
 
-    with pytest.raises(litellm.NotFoundError) as excinfo:
-        litellm.list_input_items(
+    with pytest.raises(gateway.NotFoundError) as excinfo:
+        gateway.list_input_items(
             response_id="resp_abc",
             custom_llm_provider="azure",
             api_base="https://test.openai.azure.com",
@@ -2189,8 +2189,8 @@ def test_list_input_items_surfaces_upstream_error_status():
 async def test_alist_input_items_surfaces_upstream_error_status():
     client = _async_handler_returning(404, _UPSTREAM_NOT_FOUND_BODY)
 
-    with pytest.raises(litellm.NotFoundError) as excinfo:
-        await litellm.alist_input_items(
+    with pytest.raises(gateway.NotFoundError) as excinfo:
+        await gateway.alist_input_items(
             response_id="resp_abc",
             custom_llm_provider="azure",
             api_base="https://test.openai.azure.com",
@@ -2554,7 +2554,7 @@ async def test_async_anthropic_messages_handler_carries_deployment_vertex_locati
     )
 
     monkeypatch.setenv("VERTEXAI_LOCATION", "us-east5")
-    monkeypatch.setattr(litellm, "vertex_location", None)
+    monkeypatch.setattr(gateway, "vertex_location", None)
 
     handler = BaseLLMHTTPHandler()
 
@@ -2646,7 +2646,7 @@ def test_generic_http_handler_sync_streaming_forwards_provider_response_headers(
     mock_client = Mock(spec=HTTPHandler)
     mock_client.post = Mock(return_value=_generic_stream_upstream_response())
 
-    response = litellm.completion(
+    response = gateway.completion(
         model="hosted_vllm/test-model",
         messages=[{"role": "user", "content": "Hello"}],
         api_base="https://fake-vllm.test/v1",
@@ -2671,7 +2671,7 @@ async def test_generic_http_handler_async_streaming_forwards_provider_response_h
     mock_client = AsyncMock(spec=AsyncHTTPHandler)
     mock_client.post = AsyncMock(return_value=_generic_stream_upstream_response())
 
-    response = await litellm.acompletion(
+    response = await gateway.acompletion(
         model="hosted_vllm/test-model",
         messages=[{"role": "user", "content": "Hello"}],
         api_base="https://fake-vllm.test/v1",
@@ -2714,10 +2714,10 @@ def test_a_plain_callback_does_not_advertise_a_pre_call_deployment_hook(monkeypa
     logging_obj = Mock()
     logging_obj.dynamic_success_callbacks = []
 
-    monkeypatch.setattr(litellm, "callbacks", [])
+    monkeypatch.setattr(gateway, "callbacks", [])
     assert _has_pre_call_deployment_hook(logging_obj) is False
 
-    monkeypatch.setattr(litellm, "callbacks", [_PlainLogger()])
+    monkeypatch.setattr(gateway, "callbacks", [_PlainLogger()])
     assert _has_pre_call_deployment_hook(logging_obj) is False
 
 
@@ -2734,13 +2734,13 @@ def test_a_callback_that_overrides_the_deployment_hook_is_detected(monkeypatch):
     logging_obj = Mock()
     logging_obj.dynamic_success_callbacks = []
 
-    monkeypatch.setattr(litellm, "callbacks", [_DeploymentHookLogger()])
+    monkeypatch.setattr(gateway, "callbacks", [_DeploymentHookLogger()])
     assert _has_pre_call_deployment_hook(logging_obj) is True
 
-    monkeypatch.setattr(litellm, "callbacks", [_InheritsTheHook()])
+    monkeypatch.setattr(gateway, "callbacks", [_InheritsTheHook()])
     assert _has_pre_call_deployment_hook(logging_obj) is True
 
-    monkeypatch.setattr(litellm, "callbacks", [])
+    monkeypatch.setattr(gateway, "callbacks", [])
     logging_obj.dynamic_success_callbacks = [_DeploymentHookLogger()]
     assert _has_pre_call_deployment_hook(logging_obj) is True
 
@@ -2760,10 +2760,10 @@ def test_only_callbacks_that_can_charge_a_frame_are_collected_for_ws_quota(monke
 
     plain, quota, decoy = _PlainLogger(), _QuotaLogger(), _NotCallableAttribute()
 
-    monkeypatch.setattr(litellm, "callbacks", [plain, decoy])
+    monkeypatch.setattr(gateway, "callbacks", [plain, decoy])
     assert _collect_ws_project_quota_callbacks() == ()
 
-    monkeypatch.setattr(litellm, "callbacks", [plain, quota, decoy])
+    monkeypatch.setattr(gateway, "callbacks", [plain, quota, decoy])
     assert _collect_ws_project_quota_callbacks() == (quota,)
 
 
@@ -2785,7 +2785,7 @@ async def test_async_rerank_records_llm_api_duration():
     client = AsyncHTTPHandler()
     client.client = httpx.AsyncClient(transport=httpx.MockTransport(handle))
 
-    response = await litellm.arerank(
+    response = await gateway.arerank(
         model="cohere/rerank-v3.5",
         query="what is the capital of france",
         documents=["paris", "berlin"],
@@ -2965,7 +2965,7 @@ class _RecordedAzureAI:
 
 @pytest.fixture
 def httpx_transport(monkeypatch):
-    monkeypatch.setattr(litellm, "disable_aiohttp_transport", True)
+    monkeypatch.setattr(gateway, "disable_aiohttp_transport", True)
 
 
 def _rejection(message: str) -> httpx.Response:
@@ -2977,7 +2977,7 @@ def _call_azure_ai(recorder: _RecordedAzureAI, **overrides):
 
     with respx.mock(assert_all_called=True) as router:
         router.post(AZURE_AI_CHAT_COMPLETIONS_URL).mock(side_effect=recorder)
-        return litellm.completion(
+        return gateway.completion(
             model="azure_ai/grok-3",
             messages=[{"role": "user", "content": "hi"}],
             tools=[_a_tool_with_an_unsupported_field()],
@@ -3016,7 +3016,7 @@ def test_the_retry_changes_only_the_field_the_provider_named():
 def test_a_provider_that_keeps_rejecting_is_not_retried_forever():
     recorder = _RecordedAzureAI([_rejection(TOOL_LEVEL_REJECTION)])
 
-    with pytest.raises(litellm.BadRequestError) as raised:
+    with pytest.raises(gateway.BadRequestError) as raised:
         _call_azure_ai(recorder)
 
     assert len(recorder.bodies) == 2
@@ -3026,7 +3026,7 @@ def test_a_provider_that_keeps_rejecting_is_not_retried_forever():
 def test_a_rejection_the_provider_cannot_fix_is_not_retried_at_all():
     recorder = _RecordedAzureAI([_rejection(A_REJECTION_THE_PROVIDER_CANNOT_FIX)])
 
-    with pytest.raises(litellm.BadRequestError):
+    with pytest.raises(gateway.BadRequestError):
         _call_azure_ai(recorder)
 
     assert len(recorder.bodies) == 1
@@ -3035,7 +3035,7 @@ def test_a_rejection_the_provider_cannot_fix_is_not_retried_at_all():
 def test_an_extra_input_outside_a_tool_is_not_retried_unless_dropping_params_was_asked_for():
     recorder = _RecordedAzureAI([_rejection(UNRELATED_REJECTION)])
 
-    with pytest.raises(litellm.BadRequestError):
+    with pytest.raises(gateway.BadRequestError):
         _call_azure_ai(recorder)
 
     assert len(recorder.bodies) == 1
@@ -3064,7 +3064,7 @@ async def test_a_tool_field_the_provider_rejects_is_dropped_and_retried_on_the_a
 
     with respx.mock(assert_all_called=True) as router:
         router.post(AZURE_AI_CHAT_COMPLETIONS_URL).mock(side_effect=recorder)
-        response = await litellm.acompletion(
+        response = await gateway.acompletion(
             model="azure_ai/grok-3",
             messages=[{"role": "user", "content": "hi"}],
             tools=[_a_tool_with_an_unsupported_field()],
@@ -3088,8 +3088,8 @@ async def test_a_provider_that_keeps_rejecting_is_not_retried_forever_on_the_asy
 
     with respx.mock(assert_all_called=True) as router:
         router.post(AZURE_AI_CHAT_COMPLETIONS_URL).mock(side_effect=recorder)
-        with pytest.raises(litellm.BadRequestError):
-            await litellm.acompletion(
+        with pytest.raises(gateway.BadRequestError):
+            await gateway.acompletion(
                 model="azure_ai/grok-3",
                 messages=[{"role": "user", "content": "hi"}],
                 tools=[_a_tool_with_an_unsupported_field()],

@@ -19,7 +19,7 @@ import json
 from typing import Optional
 from unittest.mock import AsyncMock, Mock, patch
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.bedrock.common_utils import get_bedrock_chat_config
 from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
 
@@ -31,7 +31,7 @@ class TestBedrockMoonshotInvoke(BaseLLMChatTest):
     """
 
     def get_base_completion_call_args(self) -> dict:
-        litellm._turn_on_debug()
+        gateway._turn_on_debug()
         return {
             "model": "bedrock/invoke/moonshot.kimi-k2-thinking",
         }
@@ -93,7 +93,7 @@ class TestBedrockMoonshotInvoke(BaseLLMChatTest):
         with patch.object(
             client, "post", new=Mock(return_value=mock_resp)
         ) as mock_post:
-            response = litellm.completion(
+            response = gateway.completion(
                 model="bedrock/invoke/moonshot.kimi-k2-thinking",
                 messages=messages,
                 aws_access_key_id="fake",
@@ -223,7 +223,7 @@ class TestBedrockMoonshotInvoke(BaseLLMChatTest):
             "base_invoke_transformation.make_sync_call",
             new=fake_make_sync_call,
         ):
-            response = litellm.completion(
+            response = gateway.completion(
                 model="bedrock/invoke/moonshot.kimi-k2-thinking",
                 messages=[
                     {
@@ -249,12 +249,12 @@ class TestBedrockMoonshotInvoke(BaseLLMChatTest):
         """Verify LiteLLM computes a positive cost from a mocked Bedrock
         Moonshot response, using the local model cost map."""
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-        litellm.model_cost = litellm.get_model_cost_map()
+        gateway.model_cost = gateway.get_model_cost_map()
 
         mock_response = self._make_moonshot_response()
         client = AsyncHTTPHandler()
         with patch.object(client, "post", new=AsyncMock(return_value=mock_response)):
-            response = await litellm.acompletion(
+            response = await gateway.acompletion(
                 model="bedrock/invoke/moonshot.kimi-k2-thinking",
                 messages=[{"role": "user", "content": "Hello, how are you?"}],
                 aws_access_key_id="fake",

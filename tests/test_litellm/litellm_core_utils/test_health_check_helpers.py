@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.constants import LITTELM_INTERNAL_HEALTH_SERVICE_ACCOUNT_NAME
 from token_iq.gateway.core_utils.health_check_helpers import (
     IMAGE_EDIT_HEALTH_CHECK_PROMPT,
@@ -70,7 +70,7 @@ async def test_image_edit_health_check_handler_uses_descriptive_prompt_and_multi
 
 @pytest.mark.asyncio
 async def test_ahealth_check_image_edit_treats_content_policy_violation_as_healthy():
-    moderation_error = litellm.ContentPolicyViolationError(
+    moderation_error = gateway.ContentPolicyViolationError(
         message="Your request was rejected as a result of our safety system.",
         model="gpt-image-1",
         llm_provider="openai",
@@ -88,7 +88,7 @@ async def test_ahealth_check_image_edit_treats_content_policy_violation_as_healt
 
 @pytest.mark.asyncio
 async def test_ahealth_check_image_edit_treats_moderation_blocked_code_as_healthy():
-    moderation_blocked = litellm.BadRequestError(
+    moderation_blocked = gateway.BadRequestError(
         message=(
             '{"error": {"code": "moderation_blocked", "message": "Your request was blocked", '
             '"moderation_stage": "output", "type": "invalid_request_error"}}'
@@ -109,7 +109,7 @@ async def test_ahealth_check_image_edit_treats_moderation_blocked_code_as_health
 
 @pytest.mark.asyncio
 async def test_ahealth_check_image_edit_still_fails_on_non_moderation_errors():
-    auth_error = litellm.AuthenticationError(
+    auth_error = gateway.AuthenticationError(
         message="Incorrect API key provided",
         llm_provider="openai",
         model="gpt-image-1",
@@ -407,7 +407,7 @@ async def test_realtime_health_check_uses_model_level_vertex_params():
     """Regression test: realtime health checks must resolve vertex_credentials,
     vertex_project, and vertex_location from the model row's params instead of
     falling back to process-global VERTEXAI_* settings."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.realtime_api import main as realtime_main
 
     fake_vertex_base = MagicMock()
@@ -427,7 +427,7 @@ async def test_realtime_health_check_uses_model_level_vertex_params():
             staticmethod(lambda model_params: model_params),
         ),
     ):
-        result = await litellm.ahealth_check(
+        result = await gateway.ahealth_check(
             model_params={
                 "model": "vertex_ai/gemini-live-2.5-flash-native-audio",
                 "vertex_credentials": '{"type":"service_account"}',

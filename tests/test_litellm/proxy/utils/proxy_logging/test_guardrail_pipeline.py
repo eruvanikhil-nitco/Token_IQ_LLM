@@ -16,7 +16,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from fastapi import HTTPException
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.exceptions import SensitiveDataRouteException
 from token_iq.gateway.integrations.custom_guardrail import (
     CustomGuardrail,
@@ -373,7 +373,7 @@ async def test_maybe_execute_pipelines_finds_policy_state_when_caller_sends_own_
         async def async_pre_call_hook(self, user_api_key_dict, cache, data, call_type):
             raise HTTPException(status_code=400, detail={"error": "blocked by pipeline"})
 
-    monkeypatch.setattr(litellm, "callbacks", [BlockingGuardrail(guardrail_name="gr-1")])
+    monkeypatch.setattr(gateway, "callbacks", [BlockingGuardrail(guardrail_name="gr-1")])
     pipeline = GuardrailPipeline(mode="pre_call", steps=[PipelineStep(guardrail="gr-1", on_fail="block")])
     data = {
         caller_metadata_key: {"user_id": "user_abc"},
@@ -526,15 +526,15 @@ def test_handle_pipeline_result_block_enriches_with_guardrail_name_and_mode():
     result.step_results = [MagicMock(guardrail_name="g")]
     result.original_exception = original
 
-    saved = litellm.callbacks
-    litellm.callbacks = [cb]
+    saved = gateway.callbacks
+    gateway.callbacks = [cb]
     try:
         with pytest.raises(HTTPException) as info:
             ProxyLogging._handle_pipeline_result(
                 result=result, data={"model": "m"}, policy_name="p"
             )
     finally:
-        litellm.callbacks = saved
+        gateway.callbacks = saved
 
     assert info.value is original
     assert info.value.detail["guardrail_name"] == "g"
@@ -615,7 +615,7 @@ async def test_run_guardrail_with_metrics_passes_result_and_records_success(monk
         return {"a": 1, "b": 2, "c": 3}
 
     prom = _prometheus_callback()
-    monkeypatch.setattr(litellm, "callbacks", [prom])
+    monkeypatch.setattr(gateway, "callbacks", [prom])
 
     out = await ProxyLogging._run_guardrail_with_metrics(
         callback=MagicMock(guardrail_name="g"), coro=task(), hook_type="during_call"
@@ -641,7 +641,7 @@ async def test_run_guardrail_with_metrics_records_error_and_enriches(monkeypatch
     cb.guardrail_name = "presidio"
     cb.event_hook = "pre_call"
     prom = _prometheus_callback()
-    monkeypatch.setattr(litellm, "callbacks", [prom])
+    monkeypatch.setattr(gateway, "callbacks", [prom])
 
     with pytest.raises(HTTPException):
         await ProxyLogging._run_guardrail_with_metrics(
@@ -679,7 +679,7 @@ async def test_during_call_hook_records_latency_metric(
 ):
     cb = _moderation_guardrail()
     prom = _prometheus_callback()
-    monkeypatch.setattr(litellm, "callbacks", [prom, cb])
+    monkeypatch.setattr(gateway, "callbacks", [prom, cb])
 
     await proxy_logging.during_call_hook(
         data={"model": "m"},
@@ -700,12 +700,12 @@ async def test_post_call_success_hook_records_latency_metric(
 ):
     cb = _moderation_guardrail()
     prom = _prometheus_callback()
-    monkeypatch.setattr(litellm, "callbacks", [prom, cb])
+    monkeypatch.setattr(gateway, "callbacks", [prom, cb])
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.llm_router", None, raising=False)
 
     await proxy_logging.post_call_success_hook(
         data={"model": "m"},
-        response=litellm.ModelResponse(),
+        response=gateway.ModelResponse(),
         user_api_key_dict=make_user_api_key_auth(),
     )
 

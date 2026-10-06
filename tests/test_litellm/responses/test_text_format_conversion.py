@@ -4,7 +4,7 @@ import pytest
 from pydantic import BaseModel
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.types.llms.openai import (
     IncompleteDetails,
     ResponseAPIUsage,
@@ -152,10 +152,10 @@ class TestTextFormatConversion:
             "token_iq.gateway.responses.main.base_llm_http_handler.response_api_handler",
             new=mock_handler,
         ):
-            litellm._turn_on_debug()
+            gateway._turn_on_debug()
 
             # Call aresponses with text_format parameter
-            response = await litellm.aresponses(
+            response = await gateway.aresponses(
                 input="What is the capital of France?",
                 text_format=TestResponse,
                 **base_completion_call_args,

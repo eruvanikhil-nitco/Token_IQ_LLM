@@ -14,7 +14,7 @@ The issue occurs when:
 import pytest
 from unittest.mock import patch, MagicMock
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.responses.litellm_completion_transformation.transformation import (
     LiteLLMCompletionResponsesConfig,
     TOOL_CALLS_CACHE,

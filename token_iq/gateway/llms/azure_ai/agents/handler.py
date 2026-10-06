@@ -438,12 +438,12 @@ class AzureAIAgentsHandler:
         headers: dict | None = None,
     ) -> ModelResponse:
         """Execute asynchronous completion using Azure Agent Service."""
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.llms.custom_httpx.http_handler import get_async_httpx_client
 
         if client is None:
             client = get_async_httpx_client(
-                llm_provider=litellm.LlmProviders.AZURE_AI,
+                llm_provider=gateway.LlmProviders.AZURE_AI,
                 params={"ssl_verify": litellm_params.get("ssl_verify", None)},
             )
 
@@ -564,7 +564,7 @@ class AzureAIAgentsHandler:
         headers: dict | None = None,
     ) -> AsyncIterator[ModelResponseStream]:
         """Execute async streaming completion using Azure Agent Service with native SSE."""
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.llms.custom_httpx.http_handler import get_async_httpx_client
 
         (
@@ -598,7 +598,7 @@ class AzureAIAgentsHandler:
 
         # Use LiteLLM's async HTTP client for streaming
         client: Final = get_async_httpx_client(
-            llm_provider=litellm.LlmProviders.AZURE_AI,
+            llm_provider=gateway.LlmProviders.AZURE_AI,
             params={"ssl_verify": litellm_params.get("ssl_verify", None)},
         )
 

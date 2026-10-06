@@ -7,7 +7,7 @@ import pytest
 from unittest.mock import Mock, patch
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from tests.search_tests.base_search_unit_tests import BaseSearchTest
 
 
@@ -53,7 +53,7 @@ class TestLinkupSearchTransformation:
                 "token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post",
                 return_value=mock_response,
             ) as mock_post:
-                litellm.search(
+                gateway.search(
                     query="test query",
                     search_provider="linkup",
                     max_results=10,
@@ -101,7 +101,7 @@ class TestLinkupSearchTransformation:
                 "token_iq.gateway.llms.custom_httpx.http_handler.HTTPHandler.post",
                 return_value=mock_response,
             ):
-                response = litellm.search(
+                response = gateway.search(
                     query="Microsoft revenue", search_provider="linkup"
                 )
 

@@ -3,7 +3,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.images.utils import ImageEditRequestUtils
 from token_iq.gateway.core_utils.litellm_logging import use_custom_pricing_for_model
 from token_iq.gateway.llms.base_llm.image_edit.transformation import BaseImageEditConfig
@@ -46,23 +46,23 @@ class TestImageEditRequestUtilsDropParams:
     def setup_method(self):
         self.config = MockImageEditConfig()
         self.model = "test-model"
-        self._original_drop_params = getattr(litellm, "drop_params", None)
+        self._original_drop_params = getattr(gateway, "drop_params", None)
 
     def teardown_method(self):
         if self._original_drop_params is None:
-            if hasattr(litellm, "drop_params"):
-                delattr(litellm, "drop_params")
+            if hasattr(gateway, "drop_params"):
+                delattr(gateway, "drop_params")
         else:
-            litellm.drop_params = self._original_drop_params
+            gateway.drop_params = self._original_drop_params
 
     def test_unsupported_params_raises_without_drop(self):
-        litellm.drop_params = False
+        gateway.drop_params = False
         optional_params: ImageEditOptionalRequestParams = {
             "size": "1024x1024",
             "unsupported_param": "value",
         }
 
-        with pytest.raises(litellm.UnsupportedParamsError) as exc_info:
+        with pytest.raises(gateway.UnsupportedParamsError) as exc_info:
             ImageEditRequestUtils.get_optional_params_image_edit(
                 model=self.model,
                 image_edit_provider_config=self.config,
@@ -72,7 +72,7 @@ class TestImageEditRequestUtilsDropParams:
         assert "unsupported_param" in str(exc_info.value)
 
     def test_drop_params_global_setting(self):
-        litellm.drop_params = True
+        gateway.drop_params = True
         optional_params: ImageEditOptionalRequestParams = {
             "size": "1024x1024",
             "unsupported_param": "value",
@@ -88,7 +88,7 @@ class TestImageEditRequestUtilsDropParams:
         assert "unsupported_param" not in result
 
     def test_drop_params_explicit_parameter(self):
-        litellm.drop_params = False
+        gateway.drop_params = False
         optional_params: ImageEditOptionalRequestParams = {
             "size": "1024x1024",
             "unsupported_param": "value",
@@ -105,7 +105,7 @@ class TestImageEditRequestUtilsDropParams:
         assert "unsupported_param" not in result
 
     def test_additional_drop_params(self):
-        litellm.drop_params = False
+        gateway.drop_params = False
         optional_params: ImageEditOptionalRequestParams = {
             "size": "1024x1024",
             "quality": "high",
@@ -122,7 +122,7 @@ class TestImageEditRequestUtilsDropParams:
         assert "quality" not in result
 
     def test_drop_params_false_with_global_true(self):
-        litellm.drop_params = True
+        gateway.drop_params = True
         optional_params: ImageEditOptionalRequestParams = {
             "size": "1024x1024",
             "unsupported_param": "value",
@@ -139,7 +139,7 @@ class TestImageEditRequestUtilsDropParams:
         assert "unsupported_param" not in result
 
     def test_supported_params_pass_through(self):
-        litellm.drop_params = False
+        gateway.drop_params = False
         optional_params: ImageEditOptionalRequestParams = {
             "size": "1024x1024",
             "quality": "high",
@@ -155,7 +155,7 @@ class TestImageEditRequestUtilsDropParams:
         assert result["quality"] == "high"
 
     def test_additional_drop_params_with_unsupported_and_drop_true(self):
-        litellm.drop_params = True
+        gateway.drop_params = True
         optional_params: ImageEditOptionalRequestParams = {
             "size": "1024x1024",
             "quality": "high",

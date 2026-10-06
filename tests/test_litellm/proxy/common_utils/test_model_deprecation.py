@@ -9,7 +9,7 @@ from unittest.mock import MagicMock
 
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy.common_utils.model_deprecation import (
     _classify,
     _parse_deprecation_date,
@@ -76,7 +76,7 @@ class TestCollectModelDeprecations:
         assert snapshot.upcoming == []
 
     def test_should_skip_models_without_deprecation_metadata(self, monkeypatch):
-        monkeypatch.setattr(litellm, "model_cost", {})
+        monkeypatch.setattr(gateway, "model_cost", {})
         router = _make_router(
             [
                 {
@@ -94,7 +94,7 @@ class TestCollectModelDeprecations:
     def test_should_classify_into_three_buckets(self, monkeypatch):
         today = date(2026, 6, 1)
         monkeypatch.setattr(
-            litellm,
+            gateway,
             "model_cost",
             {
                 "deprecated-model": {
@@ -146,7 +146,7 @@ class TestCollectModelDeprecations:
     def test_should_prefer_explicit_deployment_override(self, monkeypatch):
         today = date(2026, 6, 1)
         monkeypatch.setattr(
-            litellm,
+            gateway,
             "model_cost",
             {"some-model": {"deprecation_date": "2030-01-01"}},
         )
@@ -173,7 +173,7 @@ class TestCollectModelDeprecations:
     def test_should_dedupe_duplicate_deployments_in_same_group(self, monkeypatch):
         today = date(2026, 6, 1)
         monkeypatch.setattr(
-            litellm,
+            gateway,
             "model_cost",
             {"shared-model": {"deprecation_date": "2026-06-10"}},
         )
@@ -200,7 +200,7 @@ class TestCollectModelDeprecations:
 
     def test_should_resolve_via_unprefixed_model_name(self, monkeypatch):
         monkeypatch.setattr(
-            litellm,
+            gateway,
             "model_cost",
             {"gpt-4o": {"deprecation_date": "2026-06-10"}},
         )
@@ -222,7 +222,7 @@ class TestCollectModelDeprecations:
 
     def test_should_keep_both_dates_when_group_has_conflicting_dates(self, monkeypatch):
         monkeypatch.setattr(
-            litellm,
+            gateway,
             "model_cost",
             {"shared-model": {"deprecation_date": "2026-06-10"}},
         )
@@ -251,7 +251,7 @@ class TestCollectModelDeprecations:
     def test_should_resolve_via_base_model(self, monkeypatch):
         today = date(2026, 6, 1)
         monkeypatch.setattr(
-            litellm,
+            gateway,
             "model_cost",
             {"base-thing": {"deprecation_date": "2026-06-10"}},
         )
@@ -281,7 +281,7 @@ class TestFormatDeprecationAlertMessage:
     def test_should_render_imminent_and_deprecated_sections(self, monkeypatch):
         today = date(2026, 6, 1)
         monkeypatch.setattr(
-            litellm,
+            gateway,
             "model_cost",
             {
                 "dead-model": {

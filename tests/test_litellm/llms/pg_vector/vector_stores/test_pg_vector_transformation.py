@@ -205,11 +205,11 @@ class TestPGVectorStoreConfig:
         This test validates the complete request construction for PG Vector search
         operations, including URL, headers, and request body.
         """
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         # Clear any existing vector store registry to prevent interference with test data
-        original_registry = getattr(litellm, "vector_store_registry", None)
-        litellm.vector_store_registry = None
+        original_registry = getattr(gateway, "vector_store_registry", None)
+        gateway.vector_store_registry = None
 
         try:
             # Mock successful response
@@ -247,7 +247,7 @@ class TestPGVectorStoreConfig:
             exception_raised = None
             response = None
             try:
-                response = litellm.vector_stores.search(
+                response = gateway.vector_stores.search(
                     query=query,
                     vector_store_id=vector_store_id,
                     api_base=api_base,
@@ -312,4 +312,4 @@ class TestPGVectorStoreConfig:
             print(f"   Body: {json_data}")
         finally:
             # Restore original registry
-            litellm.vector_store_registry = original_registry
+            gateway.vector_store_registry = original_registry

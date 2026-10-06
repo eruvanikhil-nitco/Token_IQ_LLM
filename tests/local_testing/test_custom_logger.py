@@ -8,7 +8,7 @@ import traceback
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import completion, embedding
 from token_iq.gateway.integrations.custom_logger import CustomLogger
 
@@ -123,11 +123,11 @@ def test_get_callback_env_vars():
 async def test_async_chat_openai_stream():
     try:
         tmp_function = TmpFunction()
-        litellm.set_verbose = True
-        litellm.success_callback = [tmp_function.async_test_logging_fn]
+        gateway.set_verbose = True
+        gateway.success_callback = [tmp_function.async_test_logging_fn]
         complete_streaming_response = ""
 
-        response = await litellm.acompletion(
+        response = await gateway.acompletion(
             model="gpt-3.5-turbo",
             messages=[{"role": "user", "content": "Hi 👋 - i'm openai"}],
             stream=True,
@@ -166,7 +166,7 @@ async def test_async_chat_openai_stream():
 def test_completion_azure_stream_moderation_failure():
     try:
         customHandler = MyCustomHandler()
-        litellm.callbacks = [customHandler]
+        gateway.callbacks = [customHandler]
         messages = [
             {"role": "system", "content": "You are a helpful assistant."},
             {
@@ -197,8 +197,8 @@ def test_async_custom_handler_stream():
         # [PROD Test] - Do not DELETE
         # checks if the model response available in the async + stream callbacks is equal to the received response
         customHandler2 = MyCustomHandler()
-        litellm.callbacks = [customHandler2]
-        litellm.set_verbose = False
+        gateway.callbacks = [customHandler2]
+        gateway.set_verbose = False
         messages = [
             {"role": "system", "content": "You are a helpful assistant."},
             {
@@ -210,7 +210,7 @@ def test_async_custom_handler_stream():
 
         async def test_1():
             nonlocal complete_streaming_response
-            response = await litellm.acompletion(
+            response = await gateway.acompletion(
                 model="azure/gpt-4.1-mini", messages=messages, stream=True
             )
             async for chunk in response:
@@ -243,8 +243,8 @@ def test_azure_completion_stream():
     try:
         # checks if the model response available in the async + stream callbacks is equal to the received response
         customHandler2 = MyCustomHandler()
-        litellm.callbacks = [customHandler2]
-        litellm.set_verbose = True
+        gateway.callbacks = [customHandler2]
+        gateway.set_verbose = True
         messages = [
             {"role": "system", "content": "You are a helpful assistant."},
             {
@@ -254,7 +254,7 @@ def test_azure_completion_stream():
         ]
         complete_streaming_response = ""
 
-        response = litellm.completion(
+        response = gateway.completion(
             model="azure/gpt-4.1-mini", messages=messages, stream=True
         )
         for chunk in response:
@@ -281,8 +281,8 @@ async def test_async_custom_handler_completion():
         customHandler_failure = MyCustomHandler()
         # success
         assert customHandler_success.async_success == False
-        litellm.callbacks = [customHandler_success]
-        response = await litellm.acompletion(
+        gateway.callbacks = [customHandler_success]
+        response = await gateway.acompletion(
             model="gpt-3.5-turbo",
             messages=[
                 {
@@ -300,8 +300,8 @@ async def test_async_custom_handler_completion():
             == "gpt-3.5-turbo"
         )
         # failure
-        litellm.logging_callback_manager._reset_all_callbacks()
-        litellm.callbacks = [customHandler_failure]
+        gateway.logging_callback_manager._reset_all_callbacks()
+        gateway.callbacks = [customHandler_failure]
         messages = [
             {"role": "system", "content": "You are a helpful assistant."},
             {
@@ -312,7 +312,7 @@ async def test_async_custom_handler_completion():
 
         assert customHandler_failure.async_failure == False
         try:
-            response = await litellm.acompletion(
+            response = await gateway.acompletion(
                 model="gpt-3.5-turbo",
                 messages=messages,
                 api_key="my-bad-key",
@@ -332,7 +332,7 @@ async def test_async_custom_handler_completion():
             )
             > 10
         )  # expect APIError("OpenAIException - Error code: 401 - {'error': {'message': 'Incorrect API key provided: test. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'param': None, 'code': 'invalid_api_key'}}"), 'traceback_exception': 'Traceback (most recent call last):\n  File "/Users/ishaanjaffer/Github/litellm/litellm/llms/openai.py", line 269, in acompletion\n    response = await openai_aclient.chat.completions.create(**data)\n  File "/Library/Frameworks/Python.framework/Versions/3.10/lib/python3.10/site-packages/openai/resources/chat/completions.py", line 119
-        litellm.callbacks = []
+        gateway.callbacks = []
         print("Passed setting async failure")
     except Exception as e:
         pytest.fail(f"An exception occurred - {str(e)}")
@@ -345,10 +345,10 @@ async def test_async_custom_handler_completion():
 async def test_async_custom_handler_embedding():
     try:
         customHandler_embedding = MyCustomHandler()
-        litellm.callbacks = [customHandler_embedding]
+        gateway.callbacks = [customHandler_embedding]
         # success
         assert customHandler_embedding.async_success_embedding == False
-        response = await litellm.aembedding(
+        response = await gateway.aembedding(
             model="text-embedding-ada-002",
             input=["hello world"],
         )
@@ -368,7 +368,7 @@ async def test_async_custom_handler_embedding():
         # failure
         assert customHandler_embedding.async_failure_embedding == False
         try:
-            response = await litellm.aembedding(
+            response = await gateway.aembedding(
                 model="text-embedding-ada-002",
                 input=["hello world"],
                 api_key="my-bad-key",
@@ -403,10 +403,10 @@ async def test_async_custom_handler_embedding_optional_param():
     Tests if the openai optional params for embedding - user + encoding_format,
     are logged
     """
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     customHandler_optional_params = MyCustomHandler()
-    litellm.callbacks = [customHandler_optional_params]
-    response = await litellm.aembedding(
+    gateway.callbacks = [customHandler_optional_params]
+    response = await gateway.aembedding(
         model="text-embedding-ada-002", input=["hello world"], user="John"
     )
     await asyncio.sleep(1)  # success callback is async
@@ -429,11 +429,11 @@ async def test_async_custom_handler_embedding_optional_param_bedrock():
 
     but makes sure these are not sent to the non-openai/azure endpoint (raises errors).
     """
-    litellm.drop_params = True
-    litellm.set_verbose = True
+    gateway.drop_params = True
+    gateway.set_verbose = True
     customHandler_optional_params = MyCustomHandler()
-    litellm.callbacks = [customHandler_optional_params]
-    response = await litellm.aembedding(
+    gateway.callbacks = [customHandler_optional_params]
+    response = await gateway.aembedding(
         model="bedrock/amazon.titan-embed-text-v1", input=["hello world"], user="John"
     )
     await asyncio.sleep(1)  # success callback is async
@@ -449,22 +449,22 @@ async def test_cost_tracking_with_caching():
     """
     from token_iq.gateway import Cache
 
-    litellm.set_verbose = True
-    litellm.cache = Cache(
+    gateway.set_verbose = True
+    gateway.cache = Cache(
         type="redis",
         host=os.environ["REDIS_HOST"],
         port=os.environ["REDIS_PORT"],
         password=os.environ["REDIS_PASSWORD"],
     )
     customHandler_optional_params = MyCustomHandler()
-    litellm.callbacks = [customHandler_optional_params]
+    gateway.callbacks = [customHandler_optional_params]
     messages = [
         {
             "role": "user",
             "content": f"write a one sentence poem about: {time.time()}",
         }
     ]
-    response1 = await litellm.acompletion(
+    response1 = await gateway.acompletion(
         model="gpt-3.5-turbo",
         messages=messages,
         max_tokens=40,
@@ -475,7 +475,7 @@ async def test_cost_tracking_with_caching():
     await asyncio.sleep(3)  # success callback is async
     response_cost = customHandler_optional_params.response_cost
     assert response_cost > 0
-    response2 = await litellm.acompletion(
+    response2 = await gateway.acompletion(
         model="gpt-3.5-turbo",
         messages=messages,
         max_tokens=40,
@@ -496,7 +496,7 @@ def test_redis_cache_completion_stream():
 
     try:
         print("\nrunning test_redis_cache_completion_stream")
-        litellm.set_verbose = True
+        gateway.set_verbose = True
         random_number = random.randint(
             1, 100000
         )  # add a random number to ensure it's always adding / reading from cache
@@ -506,7 +506,7 @@ def test_redis_cache_completion_stream():
                 "content": f"write a one sentence poem about: {random_number}",
             }
         ]
-        litellm.cache = Cache(
+        gateway.cache = Cache(
             type="redis",
             host=os.environ["REDIS_HOST"],
             port=os.environ["REDIS_PORT"],
@@ -555,12 +555,12 @@ def test_redis_cache_completion_stream():
         assert (
             response_1_content == response_2_content
         ), f"Response 1 != Response 2. Same params, Response 1{response_1_content} != Response 2{response_2_content}"
-        litellm.success_callback = []
-        litellm._async_success_callback = []
-        litellm.cache = None
+        gateway.success_callback = []
+        gateway._async_success_callback = []
+        gateway.cache = None
     except Exception as e:
         print(e)
-        litellm.success_callback = []
+        gateway.success_callback = []
         raise e
 
 

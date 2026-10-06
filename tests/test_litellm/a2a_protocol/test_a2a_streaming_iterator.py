@@ -10,7 +10,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.a2a_protocol import streaming_iterator as a2a_streaming_iterator_module
 from token_iq.gateway.a2a_protocol.streaming_iterator import A2AStreamingIterator
 from token_iq.gateway.integrations.custom_logger import CustomLogger
@@ -46,19 +46,19 @@ class RecordingExecutor:
 @pytest.fixture(autouse=True)
 def _isolate_callbacks():
     saved = (
-        litellm.callbacks,
-        litellm.success_callback,
-        litellm._async_success_callback,
-        litellm.failure_callback,
-        litellm._async_failure_callback,
+        gateway.callbacks,
+        gateway.success_callback,
+        gateway._async_success_callback,
+        gateway.failure_callback,
+        gateway._async_failure_callback,
     )
     yield
     (
-        litellm.callbacks,
-        litellm.success_callback,
-        litellm._async_success_callback,
-        litellm.failure_callback,
-        litellm._async_failure_callback,
+        gateway.callbacks,
+        gateway.success_callback,
+        gateway._async_success_callback,
+        gateway.failure_callback,
+        gateway._async_failure_callback,
     ) = saved
 
 
@@ -69,8 +69,8 @@ async def test_custom_logger_only_never_submits_sync_success_handler(monkeypatch
     monkeypatch.setattr(a2a_streaming_iterator_module, "executor", recording_executor, raising=False)
 
     recorder = RecordingCustomLogger()
-    litellm.success_callback = [recorder]
-    litellm._async_success_callback = [recorder]
+    gateway.success_callback = [recorder]
+    gateway._async_success_callback = [recorder]
 
     logging_obj = LitellmLogging(
         model="a2a/test-agent",

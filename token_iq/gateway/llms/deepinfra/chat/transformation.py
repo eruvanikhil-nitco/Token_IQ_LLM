@@ -2,7 +2,7 @@ import json
 from collections.abc import Coroutine
 from typing import Any, Final, Literal, cast, overload
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.constants import MIN_NON_ZERO_TEMPERATURE
 from token_iq.gateway.llms.openai.chat.gpt_transformation import OpenAIGPTConfig
 from token_iq.gateway.secret_managers.main import get_secret_str
@@ -78,7 +78,7 @@ class DeepInfraConfig(OpenAIGPTConfig):
             "tool_choice",
         ]
 
-        if litellm.supports_reasoning(
+        if gateway.supports_reasoning(
             model=model,
             custom_llm_provider=self.custom_llm_provider,
         ):
@@ -101,10 +101,10 @@ class DeepInfraConfig(OpenAIGPTConfig):
             if param == "tool_choice":
                 if value != "auto" and value != "none":  # https://deepinfra.com/docs/advanced/function_calling
                     ## UNSUPPORTED TOOL CHOICE VALUE
-                    if litellm.drop_params is True or drop_params is True:
+                    if gateway.drop_params is True or drop_params is True:
                         value = None
                     else:
-                        raise litellm.utils.UnsupportedParamsError(
+                        raise gateway.utils.UnsupportedParamsError(
                             message=f"Deepinfra doesn't support tool_choice={value}. To drop unsupported openai params from the call, set `litellm.drop_params = True`",
                             status_code=400,
                         )

@@ -12,7 +12,7 @@ import pytest
 from typing import List, Literal, Optional
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import Cache, Router
 from token_iq.gateway.integrations.custom_logger import CustomLogger
 
@@ -36,7 +36,7 @@ from token_iq.gateway.integrations.custom_logger import CustomLogger
 ## 1. router.completion() + router.embeddings()
 ## 2. proxy.completions + proxy.embeddings
 
-litellm.num_retries = 0
+gateway.num_retries = 0
 
 
 class CompletionCustomHandler(
@@ -119,7 +119,7 @@ class CompletionCustomHandler(
             assert isinstance(kwargs["api_key"], (str, type(None)))
             assert (
                 isinstance(
-                    kwargs["original_response"], (str, litellm.CustomStreamWrapper)
+                    kwargs["original_response"], (str, gateway.CustomStreamWrapper)
                 )
                 or inspect.iscoroutine(kwargs["original_response"])
                 or inspect.isasyncgen(kwargs["original_response"])
@@ -151,7 +151,7 @@ class CompletionCustomHandler(
             ## END TIME
             assert isinstance(end_time, datetime)
             ## RESPONSE OBJECT
-            assert isinstance(response_obj, litellm.ModelResponseStream)
+            assert isinstance(response_obj, gateway.ModelResponseStream)
             ## KWARGS
             assert isinstance(kwargs["model"], str)
             assert isinstance(kwargs["messages"], list) and isinstance(
@@ -169,7 +169,7 @@ class CompletionCustomHandler(
             assert isinstance(kwargs["api_key"], (str, type(None)))
             assert (
                 isinstance(
-                    kwargs["original_response"], (str, litellm.CustomStreamWrapper)
+                    kwargs["original_response"], (str, gateway.CustomStreamWrapper)
                 )
                 or inspect.isasyncgen(kwargs["original_response"])
                 or inspect.iscoroutine(kwargs["original_response"])
@@ -188,7 +188,7 @@ class CompletionCustomHandler(
             ## END TIME
             assert isinstance(end_time, datetime)
             ## RESPONSE OBJECT
-            assert isinstance(response_obj, litellm.ModelResponse)
+            assert isinstance(response_obj, gateway.ModelResponse)
             ## KWARGS
             assert isinstance(kwargs["model"], str)
             assert isinstance(kwargs["messages"], list) and isinstance(
@@ -205,7 +205,7 @@ class CompletionCustomHandler(
             ) or isinstance(kwargs["input"], (dict, str))
             assert isinstance(kwargs["api_key"], (str, type(None)))
             assert isinstance(
-                kwargs["original_response"], (str, litellm.CustomStreamWrapper)
+                kwargs["original_response"], (str, gateway.CustomStreamWrapper)
             )
             assert isinstance(kwargs["additional_args"], (dict, type(None)))
             assert isinstance(kwargs["log_event_type"], str)
@@ -240,7 +240,7 @@ class CompletionCustomHandler(
             assert isinstance(kwargs["api_key"], (str, type(None)))
             assert (
                 isinstance(
-                    kwargs["original_response"], (str, litellm.CustomStreamWrapper)
+                    kwargs["original_response"], (str, gateway.CustomStreamWrapper)
                 )
                 or kwargs["original_response"] == None
             )
@@ -275,13 +275,13 @@ class CompletionCustomHandler(
             assert isinstance(end_time, datetime)
             ## RESPONSE OBJECT
             assert isinstance(
-                response_obj, (litellm.ModelResponse, litellm.EmbeddingResponse)
+                response_obj, (gateway.ModelResponse, gateway.EmbeddingResponse)
             )
             ## KWARGS
             assert isinstance(kwargs["model"], str)
 
             # checking we use base_model for azure cost calculation
-            base_model = litellm.utils._get_base_model_from_metadata(
+            base_model = gateway.utils._get_base_model_from_metadata(
                 model_call_details=kwargs
             )
 
@@ -300,7 +300,7 @@ class CompletionCustomHandler(
                 prompt_tokens = response_obj.usage.prompt_tokens
                 completion_tokens = response_obj.usage.completion_tokens
                 # ensure the pricing is based on the base_model here
-                prompt_price, completion_price = litellm.cost_per_token(
+                prompt_price, completion_price = gateway.cost_per_token(
                     model=base_model,
                     prompt_tokens=prompt_tokens,
                     completion_tokens=completion_tokens,
@@ -321,7 +321,7 @@ class CompletionCustomHandler(
             assert isinstance(kwargs["api_key"], (str, type(None)))
             assert (
                 isinstance(
-                    kwargs["original_response"], (str, litellm.CustomStreamWrapper)
+                    kwargs["original_response"], (str, gateway.CustomStreamWrapper)
                 )
                 or inspect.isasyncgen(kwargs["original_response"])
                 or inspect.iscoroutine(kwargs["original_response"])
@@ -368,7 +368,7 @@ class CompletionCustomHandler(
             assert isinstance(kwargs["api_key"], (str, type(None)))
             assert (
                 isinstance(
-                    kwargs["original_response"], (str, litellm.CustomStreamWrapper)
+                    kwargs["original_response"], (str, gateway.CustomStreamWrapper)
                 )
                 or inspect.isasyncgen(kwargs["original_response"])
                 or inspect.iscoroutine(kwargs["original_response"])
@@ -390,8 +390,8 @@ async def test_async_chat_azure():
         customHandler_completion_azure_router = CompletionCustomHandler()
         customHandler_streaming_azure_router = CompletionCustomHandler()
         customHandler_failure = CompletionCustomHandler()
-        litellm.callbacks = [customHandler_completion_azure_router]
-        litellm.set_verbose = True
+        gateway.callbacks = [customHandler_completion_azure_router]
+        gateway.set_verbose = True
         model_list = [
             {
                 "model_name": "gpt-4.1-nano",  # openai model name
@@ -419,8 +419,8 @@ async def test_async_chat_azure():
         )  # pre, post, success
         # streaming
 
-        litellm.logging_callback_manager._reset_all_callbacks()
-        litellm.callbacks = [customHandler_streaming_azure_router]
+        gateway.logging_callback_manager._reset_all_callbacks()
+        gateway.callbacks = [customHandler_streaming_azure_router]
         router2 = Router(model_list=model_list, num_retries=0)  # type: ignore
         response = await router2.acompletion(
             model="gpt-4.1-nano",
@@ -451,8 +451,8 @@ async def test_async_chat_azure():
             },
         ]
 
-        litellm.logging_callback_manager._reset_all_callbacks()
-        litellm.callbacks = [customHandler_failure]
+        gateway.logging_callback_manager._reset_all_callbacks()
+        gateway.callbacks = [customHandler_failure]
         router3 = Router(model_list=model_list, num_retries=0)  # type: ignore
         try:
             response = await router3.acompletion(
@@ -478,7 +478,7 @@ async def test_async_embedding_azure():
     try:
         customHandler = CompletionCustomHandler()
         customHandler_failure = CompletionCustomHandler()
-        litellm.callbacks = [customHandler]
+        gateway.callbacks = [customHandler]
         model_list = [
             {
                 "model_name": "azure-embedding-model",  # openai model name
@@ -513,8 +513,8 @@ async def test_async_embedding_azure():
                 "rpm": 1800,
             },
         ]
-        litellm.logging_callback_manager._reset_all_callbacks()
-        litellm.callbacks = [customHandler_failure]
+        gateway.logging_callback_manager._reset_all_callbacks()
+        gateway.callbacks = [customHandler_failure]
         router3 = Router(model_list=model_list, num_retries=0)  # type: ignore
         try:
             response = await router3.aembedding(
@@ -540,8 +540,8 @@ async def test_async_embedding_azure():
 async def test_async_chat_azure_with_fallbacks():
     try:
         customHandler_fallbacks = CompletionCustomHandler()
-        litellm.callbacks = [customHandler_fallbacks]
-        litellm.set_verbose = True
+        gateway.callbacks = [customHandler_fallbacks]
+        gateway.set_verbose = True
         # with fallbacks
         model_list = [
             {
@@ -567,7 +567,7 @@ async def test_async_chat_azure_with_fallbacks():
         router = Router(
             model_list=model_list,
             fallbacks=[{"gpt-5-mini": ["gpt-3.5-turbo-16k"]}],
-            retry_policy=litellm.router.RetryPolicy(
+            retry_policy=gateway.router.RetryPolicy(
                 AuthenticationErrorRetries=0,
             ),
         )  # type: ignore
@@ -581,7 +581,7 @@ async def test_async_chat_azure_with_fallbacks():
         assert (
             len(customHandler_fallbacks.states) == 6
         )  # pre, post, failure, pre, post, success
-        litellm.callbacks = []
+        gateway.callbacks = []
     except Exception as e:
         print(f"Assertion Error: {traceback.format_exc()}")
         pytest.fail(f"An exception occurred - {str(e)}")
@@ -596,13 +596,13 @@ async def test_async_chat_azure_with_fallbacks():
 @pytest.mark.flaky(retries=3, delay=1)
 async def test_async_completion_azure_caching():
     customHandler_caching = CompletionCustomHandler()
-    litellm.cache = Cache(
+    gateway.cache = Cache(
         type="redis",
         host=os.environ["REDIS_HOST"],
         port=os.environ["REDIS_PORT"],
         password=os.environ["REDIS_PASSWORD"],
     )
-    litellm.callbacks = [customHandler_caching]
+    gateway.callbacks = [customHandler_caching]
     unique_time = time.time()
     model_list = [
         {
@@ -655,15 +655,15 @@ async def test_async_completion_azure_caching_streaming():
     import copy
     import uuid
 
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     customHandler_caching = CompletionCustomHandler()
-    litellm.cache = Cache(
+    gateway.cache = Cache(
         type="redis",
         host=os.environ["REDIS_HOST"],
         port=os.environ["REDIS_PORT"],
         password=os.environ["REDIS_PASSWORD"],
     )
-    litellm.callbacks = [customHandler_caching]
+    gateway.callbacks = [customHandler_caching]
     unique_time = uuid.uuid4()
 
     # Use Router instead of direct litellm.acompletion to get router-specific metadata
@@ -720,7 +720,7 @@ async def test_async_completion_azure_caching_streaming():
 async def test_async_embedding_azure_caching():
     print("Testing custom callback input - Azure Caching")
     customHandler_caching = CompletionCustomHandler()
-    litellm.cache = Cache(
+    gateway.cache = Cache(
         type="redis",
         host=os.environ["REDIS_HOST"],
         port=os.environ["REDIS_PORT"],
@@ -736,7 +736,7 @@ async def test_async_embedding_azure_caching():
             }
         ]
     )
-    litellm.callbacks = [customHandler_caching]
+    gateway.callbacks = [customHandler_caching]
     unique_time = time.time()
     response1 = await router.aembedding(
         model="text-embedding-3-small",
@@ -766,8 +766,8 @@ async def test_rate_limit_error_callback():
     from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLogging
 
     customHandler = CompletionCustomHandler()
-    litellm.callbacks = [customHandler]
-    litellm.success_callback = []
+    gateway.callbacks = [customHandler]
+    gateway.success_callback = []
 
     router = Router(
         model_list=[
@@ -815,7 +815,7 @@ async def test_rate_limit_error_callback():
                 messages=[{"role": "user", "content": "Hey, how's it going?"}],
                 litellm_logging_obj=litellm_logging_obj,
             )
-        except (litellm.RateLimitError, ValueError):
+        except (gateway.RateLimitError, ValueError):
             pass
 
         await asyncio.sleep(3)

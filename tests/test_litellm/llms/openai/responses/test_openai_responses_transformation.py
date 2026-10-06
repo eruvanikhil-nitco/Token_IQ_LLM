@@ -6,7 +6,7 @@ import httpx
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.base_llm.responses.transformation import BaseResponsesAPIConfig
 from token_iq.gateway.llms.azure.responses.transformation import AzureOpenAIResponsesAPIConfig
 from token_iq.gateway.llms.openai.responses.transformation import OpenAIResponsesAPIConfig

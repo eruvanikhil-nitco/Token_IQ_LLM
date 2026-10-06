@@ -9,7 +9,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 # Add litellm to path
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 
 def assert_response_shape(response, custom_llm_provider):
@@ -66,7 +66,7 @@ def test_basic_rerank_deepinfra(mock_sync_post, mock_async_post, sync_mode):
         mock_response.text = json.dumps(mock_response_data)
         mock_sync_post.return_value = mock_response
 
-        response = litellm.rerank(
+        response = gateway.rerank(
             model="deepinfra/Qwen/Qwen3-Reranker-0.6B",
             query="hello",
             documents=["hello", "world"],
@@ -90,7 +90,7 @@ def test_basic_rerank_deepinfra(mock_sync_post, mock_async_post, sync_mode):
         mock_async_post.return_value = mock_response
 
         response = asyncio.run(
-            litellm.arerank(
+            gateway.arerank(
                 model="deepinfra/Qwen/Qwen3-Reranker-0.6B",
                 query="hello",
                 documents=["hello", "world"],
@@ -145,7 +145,7 @@ def test_deepinfra_rerank_with_queries_param(mock_post):
     mock_response.text = json.dumps(mock_response_data)
     mock_post.return_value = mock_response
 
-    response = litellm.rerank(
+    response = gateway.rerank(
         model="deepinfra/Qwen/Qwen3-Reranker-4B",
         query="hello",
         documents=["hello", "world", "test"],
@@ -184,7 +184,7 @@ def test_deepinfra_rerank_with_service_tier(mock_post):
     mock_response.text = json.dumps(mock_response_data)
     mock_post.return_value = mock_response
 
-    response = litellm.rerank(
+    response = gateway.rerank(
         model="deepinfra/Qwen/Qwen3-Reranker-8B",
         query="premium search",
         documents=["doc1", "doc2"],
@@ -222,7 +222,7 @@ def test_deepinfra_rerank_request_format(mock_post):
     mock_response.text = json.dumps(mock_response_data)
     mock_post.return_value = mock_response
 
-    response = litellm.rerank(
+    response = gateway.rerank(
         model="deepinfra/Qwen/Qwen3-Reranker-0.6B",
         query="test query",
         documents=["doc1", "doc2"],
@@ -275,7 +275,7 @@ def test_deepinfra_rerank_error_handling(mock_post):
 
     # The current implementation handles errors gracefully, so we expect a successful response
     # with the error information in the hidden params
-    response = litellm.rerank(
+    response = gateway.rerank(
         model="deepinfra/Qwen/Qwen3-Reranker-0.6B",
         query="hello",
         documents=["hello", "world"],
@@ -300,7 +300,7 @@ def test_deepinfra_rerank_models():
     ]
 
     for model in models:
-        resolved_model, provider, _, api_base = litellm.get_llm_provider(model=model)
+        resolved_model, provider, _, api_base = gateway.get_llm_provider(model=model)
         assert provider == "deepinfra"
         assert resolved_model == model.removeprefix("deepinfra/")
         assert api_base == "https://api.deepinfra.com/v1/openai"
@@ -322,7 +322,7 @@ def test_deepinfra_rerank_minimal_response(mock_post):
     mock_response.text = json.dumps(mock_response_data)
     mock_post.return_value = mock_response
 
-    response = litellm.rerank(
+    response = gateway.rerank(
         model="deepinfra/Qwen/Qwen3-Reranker-0.6B",
         query="hello",
         documents=["hello", "world"],

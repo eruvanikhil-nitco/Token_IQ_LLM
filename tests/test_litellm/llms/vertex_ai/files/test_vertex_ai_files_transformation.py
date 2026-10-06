@@ -302,7 +302,7 @@ class TestTransformFileContent:
         """When `litellm.disable_vertex_batch_output_transformation` is True the
         Vertex predictions.jsonl content must be returned untouched, so callers
         that parse raw `candidates`/`modelVersion` keep working."""
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         raw_jsonl = json.dumps(
             {
@@ -322,7 +322,7 @@ class TestTransformFileContent:
             request=httpx.Request("GET", "https://example.com"),
         )
 
-        monkeypatch.setattr(litellm, "disable_vertex_batch_output_transformation", True, raising=False)
+        monkeypatch.setattr(gateway, "disable_vertex_batch_output_transformation", True, raising=False)
 
         result = config.transform_file_content_response(
             raw_response=raw_response,

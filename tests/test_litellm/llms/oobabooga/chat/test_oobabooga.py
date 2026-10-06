@@ -1,7 +1,7 @@
 from unittest.mock import MagicMock, patch
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 MOCK_COMPLETION_RESPONSE = {
     "choices": [{"message": {"role": "assistant", "content": "hi there"}}],
@@ -25,7 +25,7 @@ def test_model_name_with_https_substring_uses_api_base():
     ) as mock_post:
         mock_post.return_value = _mock_post_response()
 
-        litellm.completion(
+        gateway.completion(
             model="oobabooga/my-https-model",
             messages=[{"role": "user", "content": "hello"}],
             api_base=api_base,
@@ -42,7 +42,7 @@ def test_url_valued_model_still_targets_that_url():
     ) as mock_post:
         mock_post.return_value = _mock_post_response()
 
-        litellm.completion(
+        gateway.completion(
             model="oobabooga/https://sdk-user.example",
             messages=[{"role": "user", "content": "hello"}],
         )

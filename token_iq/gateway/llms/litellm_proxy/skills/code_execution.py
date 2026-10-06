@@ -227,7 +227,7 @@ class CodeExecutionHandler:
             - files: List of generated files with content (base64)
             - execution_results: List of code execution results
         """
-        from token_iq import gateway as litellm
+        from token_iq import gateway
         from token_iq.gateway.llms.litellm_proxy.skills.sandbox_executor import (
             SkillsSandboxExecutor,
         )
@@ -243,7 +243,7 @@ class CodeExecutionHandler:
             verbose_logger.debug("CodeExecutionHandler: Iteration %s/%s", iteration + 1, self.max_iterations)
 
             # Make LLM call
-            response = await litellm.acompletion(
+            response = await gateway.acompletion(
                 model=model,
                 messages=current_messages,
                 tools=tools,

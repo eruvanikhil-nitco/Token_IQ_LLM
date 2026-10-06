@@ -1,7 +1,7 @@
 from collections.abc import AsyncIterator, Coroutine, Mapping
 from typing import Final, cast
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.types.google_genai.adapters import GenerateContentCompletionKwargs
 from token_iq.gateway.types.router import GenericLiteLLMParams
 from token_iq.gateway.types.utils import ModelResponse
@@ -72,7 +72,7 @@ class GenerateContentToCompletionHandler:
         )
 
         try:
-            completion_response: Final = await litellm.acompletion(**completion_kwargs)
+            completion_response: Final = await gateway.acompletion(**completion_kwargs)
 
             if stream:
                 # Check if completion_response is actually a stream or a ModelResponse
@@ -133,7 +133,7 @@ class GenerateContentToCompletionHandler:
         )
 
         try:
-            completion_response: Final = litellm.completion(**completion_kwargs)
+            completion_response: Final = gateway.completion(**completion_kwargs)
 
             if stream:
                 # Check if completion_response is actually a stream or a ModelResponse

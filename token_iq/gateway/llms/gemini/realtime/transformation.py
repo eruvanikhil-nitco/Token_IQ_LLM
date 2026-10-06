@@ -9,7 +9,7 @@ from typing import Any, Final, cast
 
 from typing_extensions import ReadOnly, Required, TypedDict
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import verbose_logger
 from token_iq.gateway._uuid import uuid
 from token_iq.gateway.core_utils.litellm_logging import Logging as LiteLLMLoggingObj
@@ -407,10 +407,10 @@ class GeminiRealtimeConfig(BaseRealtimeConfig):
 
     @staticmethod
     def _model_cost_entry(model: str) -> dict:
-        entry = litellm.model_cost.get(model)
+        entry = gateway.model_cost.get(model)
         if entry is None:
             stripped: Final = model.split("/", 1)[-1]
-            entry = litellm.model_cost.get(stripped) or litellm.model_cost.get(f"gemini/{stripped}")
+            entry = gateway.model_cost.get(stripped) or gateway.model_cost.get(f"gemini/{stripped}")
         return entry or {}
 
     @staticmethod
@@ -1627,7 +1627,7 @@ class GeminiRealtimeConfig(BaseRealtimeConfig):
 
     def requires_session_configuration(self) -> bool:
         # Deferred setup opt-in: litellm.gemini_live_defer_setup = True
-        return not litellm.gemini_live_defer_setup
+        return not gateway.gemini_live_defer_setup
 
     def session_configuration_request(self, model: str) -> str:
         """

@@ -9,7 +9,7 @@ calls so routed requests do not hit a custom api_base /v1/responses endpoint.
 from unittest.mock import MagicMock, patch
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.types.llms.openai import ResponseAPIUsage, ResponsesAPIResponse
 from token_iq.gateway.types.utils import Choices, Message, ModelResponse, Usage
 
@@ -27,10 +27,10 @@ class TestUseResponsesApiBridgeFlag:
         self, mock_get_config, mock_bridge_handler
     ):
         """When use_chat_completions_api=True, the bridge handler should be called."""
-        mock_get_config.return_value = litellm.OpenAIResponsesAPIConfig()
+        mock_get_config.return_value = gateway.OpenAIResponsesAPIConfig()
         mock_bridge_handler.return_value = MagicMock()
 
-        litellm.responses(
+        gateway.responses(
             model="openai/my-custom-model",
             input="Hello",
             use_chat_completions_api=True,
@@ -49,10 +49,10 @@ class TestUseResponsesApiBridgeFlag:
         self, mock_get_config, mock_bridge_handler
     ):
         """`openai/chat_completions/<name>` normalizes to `openai/<name>` and uses the bridge."""
-        mock_get_config.return_value = litellm.OpenAIResponsesAPIConfig()
+        mock_get_config.return_value = gateway.OpenAIResponsesAPIConfig()
         mock_bridge_handler.return_value = MagicMock()
 
-        litellm.responses(
+        gateway.responses(
             model="openai/chat_completions/my-custom-model",
             input="Hello",
             litellm_logging_obj=MagicMock(),
@@ -71,10 +71,10 @@ class TestUseResponsesApiBridgeFlag:
     ):
         """When use_chat_completions_api is not set, openai/ models should use
         native responses API forwarding (existing behavior)."""
-        mock_get_config.return_value = litellm.OpenAIResponsesAPIConfig()
+        mock_get_config.return_value = gateway.OpenAIResponsesAPIConfig()
         mock_native_handler.return_value = MagicMock()
 
-        litellm.responses(
+        gateway.responses(
             model="openai/gpt-4o",
             input="Hello",
             litellm_logging_obj=MagicMock(),
@@ -90,10 +90,10 @@ class TestUseResponsesApiBridgeFlag:
     )
     def test_flag_does_not_leak_into_kwargs(self, mock_get_config, mock_bridge_handler):
         """use_chat_completions_api should be popped and not passed to the bridge handler."""
-        mock_get_config.return_value = litellm.OpenAIResponsesAPIConfig()
+        mock_get_config.return_value = gateway.OpenAIResponsesAPIConfig()
         mock_bridge_handler.return_value = MagicMock()
 
-        litellm.responses(
+        gateway.responses(
             model="openai/my-custom-model",
             input="Hello",
             use_chat_completions_api=True,
@@ -118,7 +118,7 @@ class TestUseResponsesApiBridgeFlag:
         mock_get_config.return_value = None
         mock_bridge_handler.return_value = MagicMock()
 
-        litellm.responses(
+        gateway.responses(
             model="anthropic/claude-3-haiku",
             input="Hello",
             litellm_logging_obj=MagicMock(),
@@ -136,7 +136,7 @@ class TestUseResponsesApiBridgeFlag:
         """allowed_openai_params is a named param of responses(), so it must be
         explicitly forwarded to the bridge; otherwise litellm.acompletion raises
         UnsupportedParamsError for params the caller explicitly allowed."""
-        mock_get_config.return_value = litellm.OpenAIResponsesAPIConfig()
+        mock_get_config.return_value = gateway.OpenAIResponsesAPIConfig()
         mock_acompletion.return_value = ModelResponse(
             id="chatcmpl_123",
             model="openai/my-custom-model",
@@ -150,7 +150,7 @@ class TestUseResponsesApiBridgeFlag:
             usage=Usage(prompt_tokens=10, completion_tokens=5, total_tokens=15),
         )
 
-        await litellm.aresponses(
+        await gateway.aresponses(
             model="openai/my-custom-model",
             input="Hello",
             use_chat_completions_api=True,
@@ -175,7 +175,7 @@ class TestUseResponsesApiBridgeFlag:
         the flag should be forwarded to the inner aresponses call in the
         file_search emulation path."""
         # Setup: provider has native responses API support
-        mock_get_config.return_value = litellm.OpenAIResponsesAPIConfig()
+        mock_get_config.return_value = gateway.OpenAIResponsesAPIConfig()
 
         # Mock the inner aresponses call to return a valid response
         mock_response = ResponsesAPIResponse(
@@ -191,7 +191,7 @@ class TestUseResponsesApiBridgeFlag:
         )
         mock_call_aresponses.return_value = mock_response
 
-        await litellm.aresponses(
+        await gateway.aresponses(
             model="openai/my-custom-model",
             input="Search for information",
             tools=[{"type": "file_search"}],
@@ -221,7 +221,7 @@ class TestUseResponsesApiBridgeFlag:
         file_search → emulation must still route inner calls through the bridge
         (chat completions), not POST to api_base /v1/responses.
         """
-        mock_get_config.return_value = litellm.OpenAIResponsesAPIConfig()
+        mock_get_config.return_value = gateway.OpenAIResponsesAPIConfig()
         mock_asearch.return_value = []
 
         first_response = ResponsesAPIResponse(
@@ -256,7 +256,7 @@ class TestUseResponsesApiBridgeFlag:
         )
         mock_bridge_handler.side_effect = [first_response, second_response]
 
-        result = await litellm.aresponses(
+        result = await gateway.aresponses(
             model="openai/my-local-model",
             input="Search for information",
             tools=[
@@ -289,7 +289,7 @@ class TestUseResponsesApiBridgeFlag:
         self, mock_get_config, mock_asearch, mock_native_handler
     ):
         """Without the bridge flag, openai/ with native config uses the native handler."""
-        mock_get_config.return_value = litellm.OpenAIResponsesAPIConfig()
+        mock_get_config.return_value = gateway.OpenAIResponsesAPIConfig()
         mock_asearch.return_value = []
         mock_native_handler.return_value = ResponsesAPIResponse(
             id="resp_native",
@@ -306,7 +306,7 @@ class TestUseResponsesApiBridgeFlag:
             ),
         )
 
-        result = await litellm.aresponses(
+        result = await gateway.aresponses(
             model="openai/gpt-4o",
             input="Hello",
             litellm_logging_obj=MagicMock(),

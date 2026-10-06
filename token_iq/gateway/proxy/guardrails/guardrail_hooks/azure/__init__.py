@@ -10,7 +10,7 @@ if TYPE_CHECKING:
 
 
 def initialize_guardrail(litellm_params: "LitellmParams", guardrail: "Guardrail"):
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     if not litellm_params.api_key:
         raise ValueError("Azure Content Safety: api_key is required")
@@ -50,7 +50,7 @@ def initialize_guardrail(litellm_params: "LitellmParams", guardrail: "Guardrail"
     else:
         raise ValueError(f"Azure Content Safety: {azure_guardrail} is not a valid guardrail")
 
-    litellm.logging_callback_manager.add_litellm_callback(azure_content_safety_guardrail)
+    gateway.logging_callback_manager.add_litellm_callback(azure_content_safety_guardrail)
     return azure_content_safety_guardrail
 
 

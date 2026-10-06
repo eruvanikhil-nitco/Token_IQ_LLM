@@ -10,7 +10,7 @@ from pathlib import Path
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 pytestmark = pytest.mark.usefixtures("local_model_cost_map")
 
@@ -36,8 +36,8 @@ def _load_root_cost_map() -> dict:
 
 @pytest.mark.parametrize("undated, dated", ALIAS_PAIRS)
 def test_undated_azure_audio_alias_matches_dated_entry(undated, dated):
-    undated_info = litellm.get_model_info(undated)
-    dated_info = litellm.get_model_info(dated)
+    undated_info = gateway.get_model_info(undated)
+    dated_info = gateway.get_model_info(dated)
 
     for field in COST_FIELDS:
         assert undated_info.get(field) == dated_info.get(field), field
@@ -52,7 +52,7 @@ def test_undated_azure_audio_alias_is_exact_mirror(undated, dated):
     """The undated alias must be a byte-for-byte mirror of its dated entry, covering
     every field (incl. realtime-specific cache/audio cost keys) so any future drift
     between the pair is caught, not just the core COST_FIELDS."""
-    model_map = litellm.model_cost
+    model_map = gateway.model_cost
     assert undated in model_map, f"{undated} missing from model cost map"
     assert model_map[undated] == model_map[dated], (
         f"{undated} must exactly mirror {dated}; "
@@ -70,6 +70,6 @@ def test_undated_azure_audio_alias_is_in_the_root_cost_map(undated, dated):
     root_map = _load_root_cost_map()
     assert undated in root_map, f"{undated} missing from the root cost map"
     assert root_map[undated] == root_map[dated], f"{undated} must exactly mirror {dated} in the root cost map"
-    assert root_map[undated] == litellm.model_cost[undated], (
+    assert root_map[undated] == gateway.model_cost[undated], (
         f"{undated} differs between the root cost map and the packaged backup"
     )

@@ -9,7 +9,7 @@ from unittest.mock import AsyncMock
 from datetime import datetime as dt_object
 import time
 import pytest
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.types.utils import (
     StandardLoggingPayload,
     Usage,
@@ -317,7 +317,7 @@ def test_get_model_cost_information():
         custom_llm_provider="openai",
         init_response_obj={},
     )
-    litellm_info_gpt_3_5_turbo_model_map_value = litellm.get_model_info(
+    litellm_info_gpt_3_5_turbo_model_map_value = gateway.get_model_info(
         model="gpt-5-mini", custom_llm_provider="openai"
     )
     print("result", result)
@@ -443,11 +443,11 @@ def test_get_final_response_obj():
     assert result == response_obj
 
     # Test redaction when litellm.turn_off_message_logging is True
-    litellm.turn_off_message_logging = True
+    gateway.turn_off_message_logging = True
     try:
-        model_response = litellm.ModelResponse(
+        model_response = gateway.ModelResponse(
             choices=[
-                litellm.Choices(message=litellm.Message(content="sensitive content"))
+                gateway.Choices(message=gateway.Message(content="sensitive content"))
             ]
         )
         kwargs = {"messages": [{"role": "user", "content": "original message"}]}
@@ -463,7 +463,7 @@ def test_get_final_response_obj():
         assert kwargs["messages"][0]["content"] == "redacted-by-litellm"
     finally:
         # Reset litellm.turn_off_message_logging to its original value
-        litellm.turn_off_message_logging = False
+        gateway.turn_off_message_logging = False
 
 
 def testget_standard_logging_payload_trace_id():
@@ -508,7 +508,7 @@ def testget_standard_logging_payload_trace_id_prioritizes_trace_id_when_flag_on(
     """With request_correlation_in_logs on, an explicit litellm_trace_id wins over litellm_session_id."""
     from unittest.mock import MagicMock
 
-    monkeypatch.setattr(litellm, "request_correlation_in_logs", True)
+    monkeypatch.setattr(gateway, "request_correlation_in_logs", True)
     mock_logging_obj = MagicMock()
     mock_logging_obj.litellm_trace_id = "default-trace-id"
 
@@ -524,7 +524,7 @@ def testget_standard_logging_payload_trace_id_prioritizes_session_id_when_flag_o
     litellm_session_id still wins over litellm_trace_id."""
     from unittest.mock import MagicMock
 
-    monkeypatch.setattr(litellm, "request_correlation_in_logs", False)
+    monkeypatch.setattr(gateway, "request_correlation_in_logs", False)
     mock_logging_obj = MagicMock()
     mock_logging_obj.litellm_trace_id = "default-trace-id"
 
@@ -539,7 +539,7 @@ def testget_standard_logging_payload_session_id_when_flag_on(monkeypatch):
     """Test get_standard_logging_payload_session_id with different input scenarios, flag enabled"""
     from unittest.mock import MagicMock
 
-    monkeypatch.setattr(litellm, "request_correlation_in_logs", True)
+    monkeypatch.setattr(gateway, "request_correlation_in_logs", True)
     mock_logging_obj = MagicMock()
     mock_logging_obj.litellm_session_id = ""
 
@@ -594,7 +594,7 @@ def testget_standard_logging_payload_session_id_empty_when_flag_off(monkeypatch)
     StandardLoggingPayload shape for callers who haven't opted in."""
     from unittest.mock import MagicMock
 
-    monkeypatch.setattr(litellm, "request_correlation_in_logs", False)
+    monkeypatch.setattr(gateway, "request_correlation_in_logs", False)
     mock_logging_obj = MagicMock()
     mock_logging_obj.litellm_session_id = "obj-session-id"
 
@@ -676,7 +676,7 @@ def test_get_error_information():
     assert result["llm_provider"] == ""
 
     # Test with litellm exception from provider
-    litellm_exception = litellm.exceptions.RateLimitError(
+    litellm_exception = gateway.exceptions.RateLimitError(
         message="Test error",
         llm_provider="openai",
         model="gpt-5-mini",

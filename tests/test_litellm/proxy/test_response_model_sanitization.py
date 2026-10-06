@@ -8,7 +8,7 @@ import yaml
 from fastapi.testclient import TestClient
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 pytestmark = pytest.mark.flaky(condition=False)
 
@@ -35,15 +35,15 @@ def _initialize_proxy_with_config(config: dict, tmp_path) -> TestClient:
     return TestClient(app)
 
 
-def _make_minimal_chat_completion_response(model: str) -> litellm.ModelResponse:
-    response = litellm.ModelResponse()
+def _make_minimal_chat_completion_response(model: str) -> gateway.ModelResponse:
+    response = gateway.ModelResponse()
     response.model = model
     response.choices[0].message.content = "hello"  # type: ignore[union-attr]
     response.choices[0].finish_reason = "stop"  # type: ignore[union-attr]
     return response
 
 
-def _make_model_response_stream_chunk(model: str) -> litellm.ModelResponseStream:
+def _make_model_response_stream_chunk(model: str) -> gateway.ModelResponseStream:
     """
     Create a minimal OpenAI-compatible chat.completion.chunk object.
     """
@@ -60,7 +60,7 @@ def _make_model_response_stream_chunk(model: str) -> litellm.ModelResponseStream
             }
         ],
     }
-    return litellm.ModelResponseStream(**chunk_dict)
+    return gateway.ModelResponseStream(**chunk_dict)
 
 
 def _decode_sse_chunk(chunk) -> str:

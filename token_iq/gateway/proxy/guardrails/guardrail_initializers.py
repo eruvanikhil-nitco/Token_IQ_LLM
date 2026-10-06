@@ -1,7 +1,7 @@
 # token_iq/gateway/proxy/guardrails/guardrail_initializers.py
 from typing import Any, Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
 from token_iq.gateway.proxy._types import CommonProxyErrors
 from token_iq.gateway.types.guardrails import *
@@ -44,7 +44,7 @@ def initialize_bedrock(litellm_params: LitellmParams, guardrail: Guardrail):
         streaming_sampling_rate=streaming_params.streaming_sampling_rate,
         streaming_end_of_stream_only=streaming_params.streaming_end_of_stream_only,
     )
-    litellm.logging_callback_manager.add_litellm_callback(_bedrock_callback)
+    gateway.logging_callback_manager.add_litellm_callback(_bedrock_callback)
     return _bedrock_callback
 
 
@@ -59,7 +59,7 @@ def initialize_lakera(litellm_params: LitellmParams, guardrail: Guardrail):
         category_thresholds=litellm_params.category_thresholds,
         default_on=litellm_params.default_on,
     )
-    litellm.logging_callback_manager.add_litellm_callback(_lakera_callback)
+    gateway.logging_callback_manager.add_litellm_callback(_lakera_callback)
     return _lakera_callback
 
 
@@ -82,7 +82,7 @@ def initialize_lakera_v2(litellm_params: LitellmParams, guardrail: Guardrail):
         skip_tool_message_in_guardrail=litellm_params.skip_tool_message_in_guardrail,
         advisory_system_message=litellm_params.advisory_system_message,
     )
-    litellm.logging_callback_manager.add_litellm_callback(_lakera_v2_callback)
+    gateway.logging_callback_manager.add_litellm_callback(_lakera_v2_callback)
     return _lakera_v2_callback
 
 
@@ -118,7 +118,7 @@ def initialize_presidio(litellm_params: LitellmParams, guardrail: Guardrail) -> 
             presidio_analyze_chunk_size_bytes=litellm_params.presidio_analyze_chunk_size_bytes,
             **params,
         )
-        litellm.logging_callback_manager.add_litellm_callback(callback)
+        gateway.logging_callback_manager.add_litellm_callback(callback)
         return callback
 
     input_callback: Final = _make_presidio_callback() if run_input else None
@@ -158,7 +158,7 @@ def initialize_hide_secrets(litellm_params: LitellmParams, guardrail: Guardrail)
         guardrail_name=guardrail.get("guardrail_name", ""),
         default_on=litellm_params.default_on,
     )
-    litellm.logging_callback_manager.add_litellm_callback(_secret_detection_object)
+    gateway.logging_callback_manager.add_litellm_callback(_secret_detection_object)
     return _secret_detection_object
 
 
@@ -185,7 +185,7 @@ def initialize_tool_permission(litellm_params: LitellmParams, guardrail: Guardra
         default_on=litellm_params.default_on,
         violation_message_template=litellm_params.violation_message_template,
     )
-    litellm.logging_callback_manager.add_litellm_callback(_tool_permission_callback)
+    gateway.logging_callback_manager.add_litellm_callback(_tool_permission_callback)
     return _tool_permission_callback
 
 
@@ -205,7 +205,7 @@ def initialize_lasso(
         event_hook=litellm_params.mode,
         default_on=litellm_params.default_on,
     )
-    litellm.logging_callback_manager.add_litellm_callback(_lasso_callback)
+    gateway.logging_callback_manager.add_litellm_callback(_lasso_callback)
 
     return _lasso_callback
 
@@ -242,6 +242,6 @@ def initialize_panw_prisma_airs(litellm_params, guardrail):
         ),
         violation_message_template=litellm_params.violation_message_template,
     )
-    litellm.logging_callback_manager.add_litellm_callback(_panw_callback)
+    gateway.logging_callback_manager.add_litellm_callback(_panw_callback)
 
     return _panw_callback

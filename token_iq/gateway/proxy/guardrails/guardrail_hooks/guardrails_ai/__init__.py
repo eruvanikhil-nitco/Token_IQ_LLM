@@ -9,7 +9,7 @@ if TYPE_CHECKING:
 
 
 def initialize_guardrail(litellm_params: "LitellmParams", guardrail: "Guardrail"):
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     if litellm_params.guard_name is None:
         raise Exception(
@@ -25,7 +25,7 @@ def initialize_guardrail(litellm_params: "LitellmParams", guardrail: "Guardrail"
         guard_name=litellm_params.guard_name,
         guardrails_ai_api_input_format=getattr(litellm_params, "guardrails_ai_api_input_format", "llmOutput"),
     )
-    litellm.logging_callback_manager.add_litellm_callback(_guardrails_ai_callback)
+    gateway.logging_callback_manager.add_litellm_callback(_guardrails_ai_callback)
 
     return _guardrails_ai_callback
 

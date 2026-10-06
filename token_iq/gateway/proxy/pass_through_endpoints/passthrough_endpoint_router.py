@@ -2,7 +2,7 @@ import json
 from collections.abc import Callable, Sequence
 from typing import TYPE_CHECKING, Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_router_logger
 from token_iq.gateway.integrations.vector_store_integrations.vector_store_pre_call_hook import (
     LiteLLM_ManagedVectorStore,
@@ -169,11 +169,11 @@ class PassthroughEndpointRouter:
         if model is None:
             return None
         try:
-            _, provider, _, _ = litellm.get_llm_provider(
+            _, provider, _, _ = gateway.get_llm_provider(
                 model=model,
                 custom_llm_provider=litellm_params.get("custom_llm_provider"),
             )
-        except litellm.exceptions.BadRequestError:
+        except gateway.exceptions.BadRequestError:
             return None
         return provider
 
@@ -331,10 +331,10 @@ class PassthroughEndpointRouter:
         """
         Get the vector store credentials for the given vector store id
         """
-        if litellm.vector_store_registry is None:
+        if gateway.vector_store_registry is None:
             return None
         vector_store_to_run: Final[LiteLLM_ManagedVectorStore | None] = (
-            litellm.vector_store_registry.get_litellm_managed_vector_store_from_registry(
+            gateway.vector_store_registry.get_litellm_managed_vector_store_from_registry(
                 vector_store_id=vector_store_id
             )
         )

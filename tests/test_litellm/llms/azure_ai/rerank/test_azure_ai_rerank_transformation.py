@@ -2,7 +2,7 @@
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.azure_ai.rerank.transformation import AzureAIRerankConfig
 
 
@@ -107,7 +107,7 @@ class TestAzureAIRerankConfigValidateEnvironment:
 
     def test_falls_back_to_entra_token(self, monkeypatch):
         monkeypatch.delenv("AZURE_AI_API_KEY", raising=False)
-        monkeypatch.setattr(litellm, "azure_key", None)
+        monkeypatch.setattr(gateway, "azure_key", None)
 
         headers = AzureAIRerankConfig().validate_environment(
             headers={},

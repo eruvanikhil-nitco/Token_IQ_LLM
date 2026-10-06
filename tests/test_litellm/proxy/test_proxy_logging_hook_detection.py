@@ -1,6 +1,6 @@
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.caching import DualCache
 from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
 from token_iq.gateway.integrations.custom_logger import CustomLogger
@@ -12,7 +12,7 @@ from token_iq.gateway.types.guardrails import GuardrailEventHooks
 def test_has_post_call_response_headers_callbacks_ignores_empty_callbacks(
     monkeypatch,
 ):
-    monkeypatch.setattr(litellm, "callbacks", [])
+    monkeypatch.setattr(gateway, "callbacks", [])
 
     assert ProxyLogging.has_post_call_response_headers_callbacks() is False
 
@@ -23,34 +23,34 @@ def test_has_post_call_response_headers_callbacks_requires_override(
     """A vanilla ``CustomLogger`` inherits the no-op response-headers hook;
     the capability flag must stay False so the proxy can skip the headers
     loop entirely.  Only callbacks that *override* the hook should flip it."""
-    monkeypatch.setattr(litellm, "callbacks", [CustomLogger()])
+    monkeypatch.setattr(gateway, "callbacks", [CustomLogger()])
     assert ProxyLogging.has_post_call_response_headers_callbacks() is False
 
     class _AddsHeaders(CustomLogger):
         async def async_post_call_response_headers_hook(self, **kwargs):
             return {"x-custom": "1"}
 
-    monkeypatch.setattr(litellm, "callbacks", [_AddsHeaders()])
+    monkeypatch.setattr(gateway, "callbacks", [_AddsHeaders()])
     assert ProxyLogging.has_post_call_response_headers_callbacks() is True
 
 
 def test_has_streaming_callbacks_uses_custom_logger_detection(monkeypatch):
-    monkeypatch.setattr(litellm, "callbacks", [])
+    monkeypatch.setattr(gateway, "callbacks", [])
     assert ProxyLogging.has_streaming_callbacks() is False
 
-    monkeypatch.setattr(litellm, "callbacks", [CustomLogger()])
+    monkeypatch.setattr(gateway, "callbacks", [CustomLogger()])
     assert ProxyLogging.has_streaming_callbacks() is False
 
     class StreamingLogger(CustomLogger):
         async def async_post_call_streaming_hook(self, **kwargs):
             return kwargs.get("response")
 
-    monkeypatch.setattr(litellm, "callbacks", [StreamingLogger()])
+    monkeypatch.setattr(gateway, "callbacks", [StreamingLogger()])
     assert ProxyLogging.has_streaming_callbacks() is True
 
 
 def test_has_streaming_callbacks_detects_guardrails(monkeypatch):
-    monkeypatch.setattr(litellm, "callbacks", [CustomGuardrail()])
+    monkeypatch.setattr(gateway, "callbacks", [CustomGuardrail()])
     assert ProxyLogging.has_streaming_callbacks() is True
 
 
@@ -58,7 +58,7 @@ def test_has_streaming_callbacks_detects_guardrails(monkeypatch):
 async def test_post_call_response_headers_hook_returns_early_without_callbacks(
     monkeypatch,
 ):
-    monkeypatch.setattr(litellm, "callbacks", [])
+    monkeypatch.setattr(gateway, "callbacks", [])
     proxy_logging_obj = ProxyLogging(user_api_key_cache={})  # type: ignore[arg-type]
 
     result = await proxy_logging_obj.post_call_response_headers_hook(
@@ -83,7 +83,7 @@ def test_callback_capabilities_skips_default_custom_logger(monkeypatch):
     class _InternalNoopHook(CustomLogger):
         pass
 
-    monkeypatch.setattr(litellm, "callbacks", [_InternalNoopHook()])
+    monkeypatch.setattr(gateway, "callbacks", [_InternalNoopHook()])
 
     caps = ProxyLogging._callback_capabilities()
     # Subclass inherits the base no-op for every hook — every capability flag
@@ -104,7 +104,7 @@ def test_callback_capabilities_captures_iterator_override(monkeypatch):
                 yield item
 
     override = _OverridesIterator()
-    monkeypatch.setattr(litellm, "callbacks", [override])
+    monkeypatch.setattr(gateway, "callbacks", [override])
 
     caps = ProxyLogging._callback_capabilities()
     assert caps.has_iterator_override is True
@@ -131,7 +131,7 @@ def test_callback_capabilities_detects_inherited_streaming_chunk_override(monkey
     class _LeafWithoutOverride(_StreamingBase):
         pass
 
-    monkeypatch.setattr(litellm, "callbacks", [_LeafWithoutOverride()])
+    monkeypatch.setattr(gateway, "callbacks", [_LeafWithoutOverride()])
     caps = ProxyLogging._callback_capabilities()
     assert caps.has_streaming_chunk_override is True
 
@@ -139,7 +139,7 @@ def test_callback_capabilities_detects_inherited_streaming_chunk_override(monkey
 def test_callback_capabilities_cache_invalidates_on_list_change(monkeypatch):
     """The cache key includes (length, id-of-each-callback).  Mutating the
     callback list must produce a fresh capability snapshot."""
-    monkeypatch.setattr(litellm, "callbacks", [])
+    monkeypatch.setattr(gateway, "callbacks", [])
     assert ProxyLogging._callback_capabilities().resolved_callbacks == ()
 
     class _OverridesPreCall(CustomLogger):
@@ -147,7 +147,7 @@ def test_callback_capabilities_cache_invalidates_on_list_change(monkeypatch):
             return kwargs.get("data")
 
     pre = _OverridesPreCall()
-    monkeypatch.setattr(litellm, "callbacks", [pre])
+    monkeypatch.setattr(gateway, "callbacks", [pre])
     caps = ProxyLogging._callback_capabilities()
     assert caps.has_pre_call_override is True
     assert pre in caps.resolved_callbacks
@@ -277,7 +277,7 @@ async def test_post_call_stream_guardrail_blocks_anthropic_messages_stream(monke
 
     from token_iq.gateway.caching.caching import DualCache
     guardrail = _content_filter_guardrail("BLOCK")
-    monkeypatch.setattr(litellm, "callbacks", [guardrail])
+    monkeypatch.setattr(gateway, "callbacks", [guardrail])
 
     proxy_logging = ProxyLogging(user_api_key_cache=DualCache())
     request_data = {
@@ -320,7 +320,7 @@ async def test_post_call_stream_guardrail_keeps_own_iterator_on_chat_completions
     from token_iq.gateway.types.utils import Delta, ModelResponseStream, StreamingChoices
 
     guardrail = _content_filter_guardrail("MASK")
-    monkeypatch.setattr(litellm, "callbacks", [guardrail])
+    monkeypatch.setattr(gateway, "callbacks", [guardrail])
 
     proxy_logging = ProxyLogging(user_api_key_cache=DualCache())
 
@@ -405,7 +405,7 @@ async def test_post_call_stream_guardrail_reroutes_inherited_apply_guardrail(mon
 
     guardrail = _content_filter_guardrail("BLOCK", guardrail_cls=_InheritsApplyGuardrail)
     assert "apply_guardrail" not in type(guardrail).__dict__
-    monkeypatch.setattr(litellm, "callbacks", [guardrail])
+    monkeypatch.setattr(gateway, "callbacks", [guardrail])
 
     proxy_logging = ProxyLogging(user_api_key_cache=DualCache())
     request_data = {
@@ -462,7 +462,7 @@ async def test_post_call_stream_masking_guardrail_keeps_own_iterator_on_anthropi
     guardrail = _content_filter_guardrail(
         "BLOCK", guardrail_cls=_MasksViaOwnRawStreamHook, mask_response_content=True
     )
-    monkeypatch.setattr(litellm, "callbacks", [guardrail])
+    monkeypatch.setattr(gateway, "callbacks", [guardrail])
 
     proxy_logging = ProxyLogging(user_api_key_cache=DualCache())
     chunks = _anthropic_stream_chunks(["the", " zebra runs"])
@@ -591,7 +591,7 @@ def test_azure_content_safety_guardrails_keep_their_native_hooks():
 async def test_during_call_hook_keeps_native_moderation_hook_when_opted_out(monkeypatch):
     opted_out = _KeepsNativeHooks(event_hook=GuardrailEventHooks.during_call, default_on=True)
     routed = _AppliesGuardrail(event_hook=GuardrailEventHooks.during_call, default_on=True)
-    monkeypatch.setattr(litellm, "callbacks", [opted_out, routed])
+    monkeypatch.setattr(gateway, "callbacks", [opted_out, routed])
 
     await ProxyLogging(user_api_key_cache=DualCache()).during_call_hook(
         data={"messages": [{"role": "user", "content": "hi"}]},
@@ -609,7 +609,7 @@ async def test_post_call_success_hook_keeps_native_hook_when_opted_out(monkeypat
 
     opted_out = _KeepsNativeHooks(event_hook=GuardrailEventHooks.post_call, default_on=True)
     routed = _AppliesGuardrail(event_hook=GuardrailEventHooks.post_call, default_on=True)
-    monkeypatch.setattr(litellm, "callbacks", [opted_out, routed])
+    monkeypatch.setattr(gateway, "callbacks", [opted_out, routed])
     response = ModelResponse(choices=[Choices(message=Message(role="assistant", content="hello"))])
 
     await ProxyLogging(user_api_key_cache=DualCache()).post_call_success_hook(
@@ -629,7 +629,7 @@ def test_callback_capabilities_excludes_opted_out_guardrail_from_iterator_overri
     ProxyLogging._callback_capabilities_cache.clear()
     opted_out = _KeepsNativeHooks()
     routed = _AppliesGuardrail()
-    monkeypatch.setattr(litellm, "callbacks", [opted_out, routed])
+    monkeypatch.setattr(gateway, "callbacks", [opted_out, routed])
 
     caps = ProxyLogging._callback_capabilities()
 
@@ -657,7 +657,7 @@ async def test_deferred_stream_guardrails_run_native_hook_when_opted_out(monkeyp
 
     opted_out = _KeepsNativeHooks(event_hook=GuardrailEventHooks.post_call, default_on=True)
     routed = _AppliesGuardrail(event_hook=GuardrailEventHooks.post_call, default_on=True)
-    monkeypatch.setattr(litellm, "callbacks", [opted_out, routed])
+    monkeypatch.setattr(gateway, "callbacks", [opted_out, routed])
 
     await ProxyBaseLLMRequestProcessing._run_deferred_stream_guardrails(
         captured_data={"messages": [{"role": "user", "content": "hi"}]},
@@ -687,7 +687,7 @@ async def test_realtime_guardrails_skip_opted_out_guardrail(monkeypatch):
             return inputs
 
         guardrail.apply_guardrail = _record
-    monkeypatch.setattr(litellm, "callbacks", [opted_out, routed])
+    monkeypatch.setattr(gateway, "callbacks", [opted_out, routed])
 
     streaming = RealTimeStreaming.__new__(RealTimeStreaming)
     streaming.request_data = {"model": "gpt-realtime"}
@@ -724,7 +724,7 @@ async def test_post_call_stream_keeps_own_iterator_when_opted_out(monkeypatch):
 
     guardrail = _content_filter_guardrail("BLOCK", guardrail_cls=_OptedOutWithOwnIterator)
     assert "apply_guardrail" in type(guardrail).__dict__
-    monkeypatch.setattr(litellm, "callbacks", [guardrail])
+    monkeypatch.setattr(gateway, "callbacks", [guardrail])
 
     chunks = _anthropic_stream_chunks(["the", " zebra runs"])
 
@@ -752,7 +752,7 @@ async def test_parallel_post_call_guardrails_keep_native_hook_when_opted_out(mon
 
     opted_out = _KeepsNativeHooks(event_hook=GuardrailEventHooks.post_call, default_on=True, run_in_parallel=True)
     routed = _AppliesGuardrail(event_hook=GuardrailEventHooks.post_call, default_on=True, run_in_parallel=True)
-    monkeypatch.setattr(litellm, "callbacks", [opted_out, routed])
+    monkeypatch.setattr(gateway, "callbacks", [opted_out, routed])
     response = ModelResponse(choices=[Choices(message=Message(role="assistant", content="hello"))])
 
     await ProxyLogging(user_api_key_cache=DualCache()).post_call_success_hook(

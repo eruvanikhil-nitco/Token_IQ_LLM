@@ -11,7 +11,7 @@ import asyncio
 import time
 from typing import TYPE_CHECKING, Any, Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.caching.in_memory_cache import InMemoryCache
 from token_iq.gateway.core_utils.core_helpers import get_litellm_metadata_from_kwargs
@@ -62,7 +62,7 @@ class AlertingHangingRequestCheck:
         api_base: str | None = None
 
         if request_data.get("deployment", None) is not None and isinstance(request_data["deployment"], dict):
-            api_base = litellm.get_api_base(
+            api_base = gateway.get_api_base(
                 model=model,
                 optional_params=request_data["deployment"].get("litellm_params", {}),
             )

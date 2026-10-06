@@ -1,6 +1,6 @@
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.get_model_cost_map import get_model_cost_map
 from token_iq.gateway.llms.azure.chat.gpt_5_transformation import AzureOpenAIGPT5Config
 
@@ -15,8 +15,8 @@ def use_local_model_cost_map(monkeypatch: pytest.MonkeyPatch):
     """Pin the bundled cost map: these gates read model-map capability keys, and the default
     import path fetches the published map, which lags a key added in this repo."""
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    monkeypatch.setattr(litellm, "model_cost", get_model_cost_map())
-    litellm.add_known_models(model_cost_map=litellm.model_cost)
+    monkeypatch.setattr(gateway, "model_cost", get_model_cost_map())
+    gateway.add_known_models(model_cost_map=gateway.model_cost)
 
 
 def test_azure_gpt5_supports_reasoning_effort(config: AzureOpenAIGPT5Config):
@@ -27,7 +27,7 @@ def test_azure_gpt5_supports_reasoning_effort(config: AzureOpenAIGPT5Config):
 
 
 def test_azure_gpt5_allows_tool_choice_for_deployment_names():
-    supported_params = litellm.get_supported_openai_params(
+    supported_params = gateway.get_supported_openai_params(
         model="gpt-5-chat-2025-08-07", custom_llm_provider="azure"
     )
     assert supported_params is not None
@@ -50,7 +50,7 @@ def test_azure_gpt5_maps_max_tokens(config: AzureOpenAIGPT5Config):
 
 
 def test_azure_gpt5_temperature_error(config: AzureOpenAIGPT5Config):
-    with pytest.raises(litellm.utils.UnsupportedParamsError):
+    with pytest.raises(gateway.utils.UnsupportedParamsError):
         config.map_openai_params(
             non_default_params={"temperature": 0.2},
             optional_params={},
@@ -101,7 +101,7 @@ def test_azure_gpt5_codex_maps_max_tokens(config: AzureOpenAIGPT5Config):
 
 def test_azure_gpt5_codex_temperature_error(config: AzureOpenAIGPT5Config):
     """Test that Azure GPT-5-Codex raises error for unsupported temperature."""
-    with pytest.raises(litellm.utils.UnsupportedParamsError):
+    with pytest.raises(gateway.utils.UnsupportedParamsError):
         config.map_openai_params(
             non_default_params={"temperature": 0.8},
             optional_params={},
@@ -175,7 +175,7 @@ def test_azure_gpt5_1_temperature_with_reasoning_effort_other_values(
 ):
     """Test that Azure GPT-5.1 only allows temperature=1 when reasoning_effort is not 'none'."""
     # Test that temperature != 1 raises error when reasoning_effort is set to other values
-    with pytest.raises(litellm.utils.UnsupportedParamsError):
+    with pytest.raises(gateway.utils.UnsupportedParamsError):
         config.map_openai_params(
             non_default_params={"temperature": 0.7, "reasoning_effort": "low"},
             optional_params={},
@@ -230,7 +230,7 @@ def test_azure_gpt5_4_preserves_reasoning_effort_when_tools_present(
 
 def test_azure_gpt5_reasoning_effort_none_error(config: AzureOpenAIGPT5Config):
     """Test that Azure GPT-5 (non-5.1) raises error for reasoning_effort='none' when drop_params=False."""
-    with pytest.raises(litellm.utils.UnsupportedParamsError):
+    with pytest.raises(gateway.utils.UnsupportedParamsError):
         config.map_openai_params(
             non_default_params={"reasoning_effort": "none"},
             optional_params={},

@@ -5,7 +5,7 @@ Translate from OpenAI's `/v1/audio/transcriptions` to Groq's `/v1/audio/transcri
 import types
 from typing import Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 
 class GroqSTTConfig:
@@ -86,10 +86,10 @@ class GroqSTTConfig:
                 if value in response_formats:
                     optional_params[param] = value
                 else:
-                    if litellm.drop_params is True or drop_params is True:
+                    if gateway.drop_params is True or drop_params is True:
                         pass
                     else:
-                        raise litellm.utils.UnsupportedParamsError(
+                        raise gateway.utils.UnsupportedParamsError(
                             message=f"Groq doesn't support response_format={value}. To drop unsupported openai params from the call, set `litellm.drop_params = True`",
                             status_code=400,
                         )

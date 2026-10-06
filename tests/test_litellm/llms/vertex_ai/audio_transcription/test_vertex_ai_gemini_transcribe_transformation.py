@@ -5,7 +5,7 @@ import os
 import httpx
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.vertex_ai.audio_transcription.gemini_transcribe_transformation import (
     VertexGeminiAudioTranscriptionConfig,
 )
@@ -287,7 +287,7 @@ class TestOptionalParams:
 
     @pytest.mark.parametrize("response_format", ["verbose_json", "srt", "vtt"])
     def test_unsupported_response_format_raises(self, response_format):
-        with pytest.raises(litellm.utils.UnsupportedParamsError, match="response_format"):
+        with pytest.raises(gateway.utils.UnsupportedParamsError, match="response_format"):
             get_optional_params_transcription(
                 model="gemini-3.5-transcribe-preview",
                 custom_llm_provider="vertex_ai",

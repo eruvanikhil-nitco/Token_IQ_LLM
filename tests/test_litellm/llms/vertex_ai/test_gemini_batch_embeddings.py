@@ -12,7 +12,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 from token_iq.gateway.llms.vertex_ai.gemini_embeddings.batch_embed_content_transformation import (
     _filter_embed_params,
@@ -62,7 +62,7 @@ def test_gemini_batch_embeddings_with_custom_api_base_and_auth_header():
         }
         mock_post.return_value = mock_response
 
-        response = litellm.embedding(
+        response = gateway.embedding(
             model="gemini/text-embedding-004",
             input=["Hello, world!"],
             api_key="test-gemini-api-key",
@@ -120,7 +120,7 @@ def test_gemini_batch_embeddings_with_extra_headers():
         mock_response.json.return_value = {"embeddings": [{"values": [0.1, 0.2, 0.3]}]}
         mock_post.return_value = mock_response
 
-        response = litellm.embedding(
+        response = gateway.embedding(
             model="gemini/text-embedding-004",
             input=["Test"],
             api_key="test-gemini-api-key",
@@ -320,7 +320,7 @@ def test_gemini_multimodal_embedding_e2e():
         }
         mock_post.return_value = mock_response
 
-        response = litellm.embedding(
+        response = gateway.embedding(
             model="gemini/gemini-embedding-2-preview",
             input=[
                 "The food was delicious",
@@ -555,7 +555,7 @@ def test_vertex_ai_text_only_embedding_uses_embed_content():
         }
         mock_post.return_value = mock_response
 
-        response = litellm.embedding(
+        response = gateway.embedding(
             model="vertex_ai/gemini-embedding-2-preview",
             input=["Hello, world!"],
             vertex_project="test-project",

@@ -10,7 +10,7 @@ from fastapi import APIRouter, HTTPException, Request
 from pydantic import TypeAdapter
 from typing_extensions import ReadOnly, TypedDict
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy._types import (
     CommonProxyErrors,
 )
@@ -220,10 +220,10 @@ async def public_model_hub():
         raise HTTPException(status_code=400, detail=CommonProxyErrors.no_llm_router.value)
 
     model_groups: list[ModelGroupInfoProxy] = []
-    if litellm.public_model_groups is not None:
+    if gateway.public_model_groups is not None:
         model_groups = _get_model_group_info(
             llm_router=llm_router,
-            all_models_str=litellm.public_model_groups,
+            all_models_str=gateway.public_model_groups,
             model_group=None,
         )
 
@@ -262,7 +262,7 @@ async def get_agents(request: Request):
 
     agents: Final = global_agent_registry.get_public_agent_list()
 
-    if litellm.public_agent_groups is None:
+    if gateway.public_agent_groups is None:
         return []
 
     return [
@@ -271,7 +271,7 @@ async def get_agents(request: Request):
             "url": get_custom_url(str(request.base_url), route=f"a2a/{agent.agent_id}"),
         }
         for agent in agents
-        if not global_agent_registry.ids_for_agent(agent.agent_id).isdisjoint(litellm.public_agent_groups)
+        if not global_agent_registry.ids_for_agent(agent.agent_id).isdisjoint(gateway.public_agent_groups)
     ]
 
 
@@ -352,7 +352,7 @@ async def public_model_hub_info():
         docs_title=_title,
         custom_docs_description=custom_docs_description,
         litellm_version=version,
-        useful_links=litellm.public_model_groups_links,
+        useful_links=gateway.public_model_groups_links,
     )
 
 
@@ -426,7 +426,7 @@ async def get_litellm_model_cost_map():
     """
 
     try:
-        _model_cost_map: Final = litellm.model_cost
+        _model_cost_map: Final = gateway.model_cost
         return _model_cost_map
     except Exception as e:
         raise HTTPException(

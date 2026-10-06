@@ -15,7 +15,7 @@ import pytest
 
 # Add the project root to Python path
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.dashscope.cost_calculator import (
     cost_per_token as dashscope_cost_per_token,
 )
@@ -33,7 +33,7 @@ class TestDashscopeCostCalculator:
     def setup_model_cost_map(self):
         """Set up the model cost map for testing by loading it locally."""
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-        litellm.model_cost = litellm.get_model_cost_map()
+        gateway.model_cost = gateway.get_model_cost_map()
 
     def test_dashscope_flat_pricing_fallback(self):
         """
@@ -46,7 +46,7 @@ class TestDashscopeCostCalculator:
             model="qwen-max", usage=usage
         )
 
-        model_info = litellm.get_model_info("dashscope/qwen-max")
+        model_info = gateway.get_model_info("dashscope/qwen-max")
         expected_prompt_cost = 1000 * model_info["input_cost_per_token"]
         expected_completion_cost = 500 * model_info["output_cost_per_token"]
 
@@ -64,7 +64,7 @@ class TestDashscopeCostCalculator:
             model="qwen-flash", usage=usage
         )
 
-        model_info = litellm.get_model_info("dashscope/qwen-flash")
+        model_info = gateway.get_model_info("dashscope/qwen-flash")
         tier_1_pricing = model_info["tiered_pricing"][0]
 
         expected_prompt_cost = 100000 * tier_1_pricing["input_cost_per_token"]
@@ -84,7 +84,7 @@ class TestDashscopeCostCalculator:
             model="qwen-flash", usage=usage
         )
 
-        model_info = litellm.get_model_info("dashscope/qwen-flash")
+        model_info = gateway.get_model_info("dashscope/qwen-flash")
         tier_1 = model_info["tiered_pricing"][0]
         tier_2 = model_info["tiered_pricing"][1]
 
@@ -109,7 +109,7 @@ class TestDashscopeCostCalculator:
             model="qwen-flash", usage=usage
         )
 
-        tier_1 = litellm.get_model_info("dashscope/qwen-flash")["tiered_pricing"][0]
+        tier_1 = gateway.get_model_info("dashscope/qwen-flash")["tiered_pricing"][0]
 
         assert math.isclose(
             prompt_cost, 256000 * tier_1["input_cost_per_token"], rel_tol=1e-10
@@ -126,7 +126,7 @@ class TestDashscopeCostCalculator:
         usage = Usage(prompt_tokens=1000, completion_tokens=400000)
         _, completion_cost = dashscope_cost_per_token(model="qwen-flash", usage=usage)
 
-        tier_1 = litellm.get_model_info("dashscope/qwen-flash")["tiered_pricing"][0]
+        tier_1 = gateway.get_model_info("dashscope/qwen-flash")["tiered_pricing"][0]
 
         assert math.isclose(
             completion_cost, 400000 * tier_1["output_cost_per_token"], rel_tol=1e-10
@@ -147,7 +147,7 @@ class TestDashscopeCostCalculator:
         prompt_cost, _ = dashscope_cost_per_token(model="qwen3-coder-plus", usage=usage)
 
         # 50k total input falls in qwen3-coder-plus tier 2 ([32k, 128k])
-        tier_2 = litellm.get_model_info("dashscope/qwen3-coder-plus")["tiered_pricing"][1]
+        tier_2 = gateway.get_model_info("dashscope/qwen3-coder-plus")["tiered_pricing"][1]
 
         expected_prompt_cost = (40000 * tier_2["input_cost_per_token"]) + (
             10000 * tier_2["cache_read_input_token_cost"]
@@ -165,14 +165,14 @@ class TestDashscopeCostCalculator:
 
         prompt_cost, _ = dashscope_cost_per_token(model="qwen-flash", usage=usage)
 
-        tier_2 = litellm.get_model_info("dashscope/qwen-flash")["tiered_pricing"][1]
+        tier_2 = gateway.get_model_info("dashscope/qwen-flash")["tiered_pricing"][1]
 
         assert math.isclose(
             prompt_cost, 1200000 * tier_2["input_cost_per_token"], rel_tol=1e-10
         )
 
     def _register_tiered_model(self, model_key: str, tiered_pricing: list[dict]) -> None:
-        litellm.model_cost[model_key] = {
+        gateway.model_cost[model_key] = {
             "litellm_provider": "dashscope",
             "mode": "chat",
             "tiered_pricing": tiered_pricing,
@@ -340,7 +340,7 @@ class TestDashscopeCostCalculator:
 
     def test_dashscope_flat_cache_creation_tokens_use_flat_rate(self):
         """Flat-priced models bill cache-creation tokens at their cache-creation rate."""
-        litellm.model_cost["dashscope/qwen-flat-cache-write-test"] = {
+        gateway.model_cost["dashscope/qwen-flat-cache-write-test"] = {
             "litellm_provider": "dashscope",
             "mode": "chat",
             "input_cost_per_token": 3.25e-07,
@@ -372,7 +372,7 @@ class TestDashscopeCostCalculator:
         Regression: a tier declaring only an input rate served every completion for free,
         since a missing tier output rate had no tier-level fallback to stand in for it.
         """
-        litellm.model_cost["dashscope/qwen-input-only-tier-test"] = {
+        gateway.model_cost["dashscope/qwen-input-only-tier-test"] = {
             "litellm_provider": "dashscope",
             "mode": "chat",
             "output_cost_per_token": 1.6e-06,
@@ -392,7 +392,7 @@ class TestDashscopeCostCalculator:
         Regression: a tier declaring only an input rate billed reasoning tokens at the model's
         plain output rate, ignoring the model's dedicated reasoning rate.
         """
-        litellm.model_cost["dashscope/qwen-input-only-reasoning-test"] = {
+        gateway.model_cost["dashscope/qwen-input-only-reasoning-test"] = {
             "litellm_provider": "dashscope",
             "mode": "chat",
             "output_cost_per_token": 1.6e-06,
@@ -418,7 +418,7 @@ class TestDashscopeCostCalculator:
         A tier declaring its own output rate keeps reasoning tokens on that tier rather than
         mixing in a model-level reasoning rate.
         """
-        litellm.model_cost["dashscope/qwen-tier-output-reasoning-test"] = {
+        gateway.model_cost["dashscope/qwen-tier-output-reasoning-test"] = {
             "litellm_provider": "dashscope",
             "mode": "chat",
             "output_cost_per_reasoning_token": 4e-06,
@@ -447,7 +447,7 @@ class TestDashscopeCostCalculator:
         Regression: a model declaring an explicit zero reasoning rate had it treated as
         missing, billing reasoning tokens at the plain output rate instead of free.
         """
-        litellm.model_cost["dashscope/qwen-zero-reasoning-test"] = {
+        gateway.model_cost["dashscope/qwen-zero-reasoning-test"] = {
             "litellm_provider": "dashscope",
             "mode": "chat",
             "input_cost_per_token": 4e-07,
@@ -471,7 +471,7 @@ class TestDashscopeCostCalculator:
         Regression: a tier declaring an explicit zero reasoning rate had it treated as
         missing, billing reasoning tokens at the tier's output rate instead of free.
         """
-        litellm.model_cost["dashscope/qwen-tier-zero-reasoning-test"] = {
+        gateway.model_cost["dashscope/qwen-tier-zero-reasoning-test"] = {
             "litellm_provider": "dashscope",
             "mode": "chat",
             "tiered_pricing": [
@@ -500,7 +500,7 @@ class TestDashscopeCostCalculator:
         No tier can be selected without input tokens, so an empty-prompt request must
         not be charged at the most expensive tier.
         """
-        litellm.model_cost["dashscope/qwen-zero-input-test"] = {
+        gateway.model_cost["dashscope/qwen-zero-input-test"] = {
             "litellm_provider": "dashscope",
             "mode": "chat",
             "input_cost_per_token": 4e-07,

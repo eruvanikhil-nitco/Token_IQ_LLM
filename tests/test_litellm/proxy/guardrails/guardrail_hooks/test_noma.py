@@ -6,7 +6,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import httpx
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import ModelResponse
 from token_iq.gateway.proxy._types import UserAPIKeyAuth
 from token_iq.gateway.proxy.guardrails.guardrail_hooks.noma import (
@@ -1522,8 +1522,8 @@ class TestIntegration:
             )
 
             custom_loggers = (
-                litellm.logging_callback_manager.get_custom_loggers_for_type(
-                    callback_type=litellm.integrations.custom_guardrail.CustomGuardrail
+                gateway.logging_callback_manager.get_custom_loggers_for_type(
+                    callback_type=gateway.integrations.custom_guardrail.CustomGuardrail
                 )
             )
             assert len(custom_loggers) >= 2

@@ -11,14 +11,14 @@ zero; a pre-call block never invoked the LLM, so usage is zero.
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy.proxy_server import _blocked_response_usage
 from token_iq.gateway.types.llms.openai import ResponseAPIUsage, ResponsesAPIResponse
 
 
 def test_uses_original_response_usage():
-    resp = litellm.ModelResponse()
-    resp.usage = litellm.Usage(prompt_tokens=42, completion_tokens=7, total_tokens=49)
+    resp = gateway.ModelResponse()
+    resp.usage = gateway.Usage(prompt_tokens=42, completion_tokens=7, total_tokens=49)
 
     usage = _blocked_response_usage(resp)
 
@@ -46,8 +46,8 @@ async def test_success_hook_attaches_original_response_on_block():
     from token_iq.gateway.proxy._types import UserAPIKeyAuth
     from token_iq.gateway.types.utils import CallTypes
 
-    response = litellm.ModelResponse()
-    response.usage = litellm.Usage(prompt_tokens=15, completion_tokens=3, total_tokens=18)
+    response = gateway.ModelResponse()
+    response.usage = gateway.Usage(prompt_tokens=15, completion_tokens=3, total_tokens=18)
 
     guardrail = MagicMock()
     guardrail.should_run_guardrail.return_value = True
@@ -134,8 +134,8 @@ def test_responses_api_blocked_reply_maps_bridged_chat_usage():
         _blocked_responses_api_usage,
     )
 
-    resp = litellm.ModelResponse()
-    resp.usage = litellm.Usage(prompt_tokens=14, completion_tokens=18, total_tokens=32)
+    resp = gateway.ModelResponse()
+    resp.usage = gateway.Usage(prompt_tokens=14, completion_tokens=18, total_tokens=32)
 
     usage = _blocked_responses_api_usage(resp)
 
@@ -152,8 +152,8 @@ def test_raise_passthrough_exception_attaches_original_response():
         ModifyResponseException,
     )
 
-    resp = litellm.ModelResponse()
-    resp.usage = litellm.Usage(prompt_tokens=5, completion_tokens=2, total_tokens=7)
+    resp = gateway.ModelResponse()
+    resp.usage = gateway.Usage(prompt_tokens=5, completion_tokens=2, total_tokens=7)
     guardrail = CustomGuardrail(guardrail_name="passthrough-usage")
 
     with pytest.raises(ModifyResponseException) as excinfo:

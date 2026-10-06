@@ -8,7 +8,7 @@ from urllib.parse import parse_qs, urlparse
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.apiserpent.search.defaults import APISerpentSearchParams
 from token_iq.gateway.llms.apiserpent.search.transformation import APISerpentSearchConfig
 from token_iq.gateway.llms.base_llm.search.transformation import SearchResponse
@@ -247,7 +247,7 @@ class TestAPISerpentSearchIntegration:
         ) as mock_get:
             mock_get.return_value = self._mock_response()
 
-            response = await litellm.asearch(
+            response = await gateway.asearch(
                 query="latest developments in AI",
                 search_provider="apiserpent",
                 max_results=5,
@@ -277,7 +277,7 @@ class TestAPISerpentSearchIntegration:
         ) as mock_get:
             mock_get.return_value = self._mock_response()
 
-            await litellm.asearch(
+            await gateway.asearch(
                 query="climate research",
                 search_provider="apiserpent",
                 deep=True,

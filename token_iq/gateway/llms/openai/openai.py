@@ -22,7 +22,7 @@ from openai.types.file_deleted import FileDeleted
 from pydantic import BaseModel, TypeAdapter
 from typing_extensions import overload
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import LlmProviders
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.constants import DEFAULT_MAX_RETRIES
@@ -192,15 +192,15 @@ class OpenAIConfig(BaseConfig):
             return openaiOSeriesConfig.get_supported_openai_params(model=model)
         elif openAIGPT5Config.is_model_gpt_5_model(model=model):
             return openAIGPT5Config.get_supported_openai_params(model=model)
-        elif litellm.openAIGPTAudioConfig.is_model_gpt_audio_model(model=model):
-            return litellm.openAIGPTAudioConfig.get_supported_openai_params(model=model)
+        elif gateway.openAIGPTAudioConfig.is_model_gpt_audio_model(model=model):
+            return gateway.openAIGPTAudioConfig.get_supported_openai_params(model=model)
         else:
             return self._gpt_config_for_model(model).get_supported_openai_params(model=model)
 
     def _gpt_config_for_model(self, model: str) -> OpenAIGPTConfig:
         if type(self) is OpenAIConfig and not OpenAIGPTConfig.is_openai_catalog_model(model):
             return OpenAIUnknownModelConfig()
-        return litellm.openAIGPTConfig
+        return gateway.openAIGPTConfig
 
     def _map_openai_params(self, non_default_params: dict, optional_params: dict, model: str) -> dict:
         supported_openai_params: Final = self.get_supported_openai_params(model)
@@ -234,8 +234,8 @@ class OpenAIConfig(BaseConfig):
                 model=model,
                 drop_params=drop_params,
             )
-        elif litellm.openAIGPTAudioConfig.is_model_gpt_audio_model(model=model):
-            return litellm.openAIGPTAudioConfig.map_openai_params(
+        elif gateway.openAIGPTAudioConfig.is_model_gpt_audio_model(model=model):
+            return gateway.openAIGPTAudioConfig.map_openai_params(
                 non_default_params=non_default_params,
                 optional_params=optional_params,
                 model=model,
@@ -565,7 +565,7 @@ class OpenAIChatCompletion(BaseLLM, BaseOpenAILLM):
         from token_iq.gateway._logging import verbose_logger
         from token_iq.gateway.integrations.custom_logger import CustomLogger
 
-        callbacks: Final = litellm.callbacks + (logging_obj.dynamic_success_callbacks or [])
+        callbacks: Final = gateway.callbacks + (logging_obj.dynamic_success_callbacks or [])
         # Avoid logging full callback objects to prevent leaking sensitive data
         verbose_logger.debug("LiteLLM.AgenticHooks: callbacks_count=%s", len(callbacks))
         tools: Final = optional_params.get("tools", [])
@@ -835,7 +835,7 @@ class OpenAIChatCompletion(BaseLLM, BaseOpenAILLM):
                         return final_response_obj
                 except openai.UnprocessableEntityError as e:
                     ## check if body contains unprocessable params - related issue
-                    if litellm.drop_params is True or drop_params is True:
+                    if gateway.drop_params is True or drop_params is True:
                         inference_params = drop_params_from_unprocessable_entity_error(e, inference_params)
                     else:
                         raise e
@@ -865,7 +865,7 @@ class OpenAIChatCompletion(BaseLLM, BaseOpenAILLM):
                         new_messages.append({"role": "user", "content": ""})
                         messages = new_messages
                     elif "unknown field: parameter index is not a valid field" in str(e):
-                        litellm.remove_index_from_tool_calls(messages=messages)
+                        gateway.remove_index_from_tool_calls(messages=messages)
                     else:
                         raise e
         except OpenAIError as e:
@@ -987,7 +987,7 @@ class OpenAIChatCompletion(BaseLLM, BaseOpenAILLM):
                 return final_response_obj
             except openai.UnprocessableEntityError as e:
                 ## check if body contains unprocessable params - related issue
-                if litellm.drop_params is True or drop_params is True:
+                if gateway.drop_params is True or drop_params is True:
                     data = drop_params_from_unprocessable_entity_error(e, data)
                 else:
                     raise e
@@ -1138,7 +1138,7 @@ class OpenAIChatCompletion(BaseLLM, BaseOpenAILLM):
                 return streamwrapper
             except openai.UnprocessableEntityError as e:
                 ## check if body contains unprocessable params - related issue
-                if litellm.drop_params is True or drop_params is True:
+                if gateway.drop_params is True or drop_params is True:
                     data = drop_params_from_unprocessable_entity_error(e, data)
                 else:
                     raise e
@@ -1320,7 +1320,7 @@ class OpenAIChatCompletion(BaseLLM, BaseOpenAILLM):
         super().embedding()
         try:
             data: Final = {"model": model, "input": input, **optional_params}
-            max_retries = max_retries or litellm.DEFAULT_MAX_RETRIES
+            max_retries = max_retries or gateway.DEFAULT_MAX_RETRIES
             if not isinstance(max_retries, int):
                 raise OpenAIError(status_code=422, message="max retries must be an int")
             ## LOGGING

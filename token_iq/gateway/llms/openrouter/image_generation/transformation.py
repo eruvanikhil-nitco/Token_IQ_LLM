@@ -31,7 +31,7 @@ from typing import TYPE_CHECKING, Any, Final
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.base_llm.chat.transformation import BaseLLMException
 from token_iq.gateway.llms.base_llm.image_generation.transformation import (
     BaseImageGenerationConfig,
@@ -269,7 +269,7 @@ class OpenRouterImageGenerationConfig(BaseImageGenerationConfig):
         api_key: str | None = None,
         api_base: str | None = None,
     ) -> dict:
-        api_key = api_key or litellm.api_key or get_secret_str("OPENROUTER_API_KEY")
+        api_key = api_key or gateway.api_key or get_secret_str("OPENROUTER_API_KEY")
         headers.update(
             {
                 "Authorization": f"Bearer {api_key}",

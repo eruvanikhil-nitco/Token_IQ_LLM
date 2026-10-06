@@ -1,6 +1,6 @@
 import json
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import completion, embedding
 from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
 from unittest.mock import patch, Mock
@@ -46,7 +46,7 @@ def watsonx_chat_completion_call():
             with (
                 patch.object(client, "post") as mock_post,
                 patch.object(
-                    litellm.module_level_client, "post", return_value=mock_response
+                    gateway.module_level_client, "post", return_value=mock_response
                 ) as mock_get,
             ):
                 try:
@@ -107,7 +107,7 @@ def watsonx_embedding_call():
             with (
                 patch.object(client, "post") as mock_post,
                 patch.object(
-                    litellm.module_level_client, "post", return_value=mock_response
+                    gateway.module_level_client, "post", return_value=mock_response
                 ) as mock_get,
             ):
                 try:

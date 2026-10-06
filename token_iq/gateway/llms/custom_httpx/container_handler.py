@@ -13,7 +13,7 @@ from typing import TYPE_CHECKING, Any, Final
 import httpx
 from typing_extensions import NotRequired, ReadOnly, TypedDict
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.core_utils.url_utils import encode_url_path_segment
 from token_iq.gateway.llms.custom_httpx.http_handler import (
     AsyncHTTPHandler,
@@ -252,7 +252,7 @@ def _async_http_client(
     """The async HTTP client for a container request, reusing the caller's when usable."""
     if client is None or not isinstance(client, AsyncHTTPHandler):
         return get_async_httpx_client(
-            llm_provider=litellm.LlmProviders.OPENAI,
+            llm_provider=gateway.LlmProviders.OPENAI,
             params={"ssl_verify": litellm_params.get("ssl_verify", None)},
         )
     return client

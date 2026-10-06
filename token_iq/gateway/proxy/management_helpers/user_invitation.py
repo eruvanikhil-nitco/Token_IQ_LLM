@@ -3,7 +3,7 @@ from typing import Final
 
 from fastapi import HTTPException
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.proxy._types import CommonProxyErrors, InvitationNew, UserAPIKeyAuth
 from token_iq.gateway.repositories.table_repositories import InvitationLinkRepository
 
@@ -23,7 +23,7 @@ async def create_invitation_for_user(
             detail={"error": CommonProxyErrors.db_not_connected_error.value},
         )
 
-    current_time: Final = litellm.utils.get_utc_datetime()
+    current_time: Final = gateway.utils.get_utc_datetime()
     expires_at: Final = current_time + timedelta(days=7)
 
     try:

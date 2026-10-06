@@ -5,7 +5,7 @@ import httpx
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.gemini.realtime.transformation import GeminiRealtimeConfig
 from token_iq.gateway.types.llms.openai import OpenAIRealtimeStreamSessionEvents
 
@@ -313,8 +313,8 @@ def test_gemini_3_1_flash_live_preview_model_cost_map_entry():
         "gemini-3.1-flash-live-preview",
         "gemini/gemini-3.1-flash-live-preview",
     ):
-        assert key in litellm.model_cost
-        info = litellm.model_cost[key]
+        assert key in gateway.model_cost
+        info = gateway.model_cost[key]
         assert "/v1/realtime" in info.get("supported_endpoints", [])
         assert info.get("max_input_tokens") == 131072
         assert info.get("max_output_tokens") == 65536
@@ -650,11 +650,11 @@ def test_gemini_requires_session_configuration_feature_flag(monkeypatch):
     config = GeminiRealtimeConfig()
 
     # Default behavior remains backwards-compatible (auto setup on connect)
-    monkeypatch.setattr(litellm, "gemini_live_defer_setup", False, raising=False)
+    monkeypatch.setattr(gateway, "gemini_live_defer_setup", False, raising=False)
     assert config.requires_session_configuration() is True
 
     # Opt-in behavior: defer setup until client sends session.update
-    monkeypatch.setattr(litellm, "gemini_live_defer_setup", True, raising=False)
+    monkeypatch.setattr(gateway, "gemini_live_defer_setup", True, raising=False)
     assert config.requires_session_configuration() is False
 
 
@@ -1819,13 +1819,13 @@ def patch_gemini_audio_cost_map_entries(monkeypatch):
         "gemini/gemini-3.1-flash-live-preview",
     ]
     for m in native_audio_models:
-        entry = dict(litellm.model_cost.get(m, {}))
+        entry = dict(gateway.model_cost.get(m, {}))
         entry["gemini_native_audio"] = True
-        monkeypatch.setitem(litellm.model_cost, m, entry)
+        monkeypatch.setitem(gateway.model_cost, m, entry)
     for m in flash_live_models:
-        entry = dict(litellm.model_cost.get(m, {}))
+        entry = dict(gateway.model_cost.get(m, {}))
         entry["gemini_audio_only_live"] = True
-        monkeypatch.setitem(litellm.model_cost, m, entry)
+        monkeypatch.setitem(gateway.model_cost, m, entry)
 
 
 @pytest.mark.parametrize(
@@ -1892,7 +1892,7 @@ def test_gemini_response_done_bills_audio_output_tokens_at_audio_rate(monkeypatc
     )
 
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    monkeypatch.setattr(litellm, "model_cost", litellm.get_model_cost_map())
+    monkeypatch.setattr(gateway, "model_cost", gateway.get_model_cost_map())
 
     config = GeminiRealtimeConfig()
     done_event = config.transform_response_done_event(
@@ -1939,12 +1939,12 @@ def patch_gemini_transcribe_live_cost_map_entry(monkeypatch):
     chat model to prove mode, not output modalities, drives the discriminator.
     """
     for m in ["gemini-3.5-transcribe-live", "gemini/gemini-3.5-transcribe-live"]:
-        entry = dict(litellm.model_cost.get(m, {}))
+        entry = dict(gateway.model_cost.get(m, {}))
         entry["mode"] = "audio_transcription"
-        monkeypatch.setitem(litellm.model_cost, m, entry)
-    chat_entry = dict(litellm.model_cost.get("gemini-2.5-flash", {}))
+        monkeypatch.setitem(gateway.model_cost, m, entry)
+    chat_entry = dict(gateway.model_cost.get("gemini-2.5-flash", {}))
     chat_entry["supported_output_modalities"] = ["text"]
-    monkeypatch.setitem(litellm.model_cost, "gemini-2.5-flash", chat_entry)
+    monkeypatch.setitem(gateway.model_cost, "gemini-2.5-flash", chat_entry)
 
 
 @pytest.mark.parametrize("model", ["gemini-3.5-transcribe-live", "gemini/gemini-3.5-transcribe-live"])

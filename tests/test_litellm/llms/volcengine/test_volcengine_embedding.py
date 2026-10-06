@@ -9,15 +9,15 @@ import pytest
 # Add parent directory to path for imports
 
 from tests.llm_translation.base_embedding_unit_tests import BaseLLMEmbeddingTest
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.types.utils import EmbeddingResponse
 
 
 class TestVolcEngineEmbedding(BaseLLMEmbeddingTest):
     """Test Volcengine embedding integration following LiteLLM patterns"""
 
-    def get_custom_llm_provider(self) -> litellm.LlmProviders:
-        return litellm.LlmProviders.VOLCENGINE
+    def get_custom_llm_provider(self) -> gateway.LlmProviders:
+        return gateway.LlmProviders.VOLCENGINE
 
     def get_base_embedding_call_args(self) -> dict:
         return {
@@ -61,7 +61,7 @@ class TestVolcEngineEmbedding(BaseLLMEmbeddingTest):
 
             # Test sync mode
             if sync_mode is True:
-                response = litellm.embedding(
+                response = gateway.embedding(
                     **embedding_call_args,
                     input=["hello", "world"],
                 )
@@ -75,7 +75,7 @@ class TestVolcEngineEmbedding(BaseLLMEmbeddingTest):
 
             # Test async mode
             else:
-                response = await litellm.aembedding(
+                response = await gateway.aembedding(
                     **embedding_call_args,
                     input=["hello", "world"],
                 )
@@ -128,7 +128,7 @@ def test_volcengine_embedding_with_encoding_formats():
             mock_embedding.return_value = mock_response
 
             # Test the call
-            litellm.embedding(
+            gateway.embedding(
                 model="volcengine/doubao-embedding-text-240715",
                 input=["test text"],
                 **params,
@@ -159,7 +159,7 @@ def test_volcengine_embedding_with_user_parameter():
         mock_embedding.return_value = mock_response
 
         # Test with user parameter
-        litellm.embedding(
+        gateway.embedding(
             model="volcengine/doubao-embedding-text-240715",
             input=["user tracking test"],
             user="test-user-12345",
@@ -199,7 +199,7 @@ def test_volcengine_embedding_error_scenarios():
             }
 
             with pytest.raises(Exception, match=f"(?i){scenario['expected_error_pattern']}") as exc_info:
-                litellm.embedding(input=["test"], **test_params)
+                gateway.embedding(input=["test"], **test_params)
 
             # Verify error message contains expected pattern
             assert (
@@ -248,7 +248,7 @@ def test_volcengine_embedding_with_multiple_inputs():
             mock_embedding.return_value = mock_response
 
             # Test the call
-            response = litellm.embedding(
+            response = gateway.embedding(
                 model="volcengine/doubao-embedding-text-240715", input=test_input
             )
 

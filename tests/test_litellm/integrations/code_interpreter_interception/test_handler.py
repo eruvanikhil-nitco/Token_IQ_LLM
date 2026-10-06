@@ -865,7 +865,7 @@ async def test_cleanup_hook_is_idempotent_with_post_hook():
 async def test_responses_plan_cleans_up_sandbox_when_followup_raises():
     """If the agentic rerun fails, _execute_responses_agentic_plan must still
     invoke the cleanup hook so the sandbox is not left running."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.integrations.custom_logger import CustomLogger
     from token_iq.gateway.llms.custom_httpx.llm_http_handler import BaseLLMHTTPHandler
     from token_iq.gateway.types.integrations.custom_logger import (
@@ -888,12 +888,12 @@ async def test_responses_plan_cleans_up_sandbox_when_followup_raises():
         metadata={"sandbox_key": "sbxkey1"},
     )
 
-    original = litellm.aresponses
+    original = gateway.aresponses
 
     async def _boom(*args, **kwargs):
         raise RuntimeError("upstream blew up")
 
-    litellm.aresponses = _boom
+    gateway.aresponses = _boom
     try:
         with pytest.raises(RuntimeError, match="upstream blew up"):
             await BaseLLMHTTPHandler()._execute_responses_agentic_plan(
@@ -909,7 +909,7 @@ async def test_responses_plan_cleans_up_sandbox_when_followup_raises():
                 callback=CleanupCallback(),
             )
     finally:
-        litellm.aresponses = original
+        gateway.aresponses = original
 
     assert cleanup_calls == [plan], (
         "cleanup hook must run in finally even when the rerun raises, otherwise "
@@ -921,7 +921,7 @@ async def test_responses_plan_cleans_up_sandbox_when_followup_raises():
 async def test_run_code_does_not_re_resolve_registry(monkeypatch):
     """Params resolved once at create time must be reused for running code, so a
     registry clear between create and run cannot turn into a create-then-fail."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.sandbox import sandbox_tools
 
     sandbox_tools.register_sandbox_tools(
@@ -944,8 +944,8 @@ async def test_run_code_does_not_re_resolve_registry(monkeypatch):
         run_kwargs.update(kwargs)
         return CodeExecutionResult(stdout="ok")
 
-    monkeypatch.setattr(litellm, "acreate_sandbox", fake_acreate_sandbox)
-    monkeypatch.setattr(litellm, "arun_code", fake_arun_code)
+    monkeypatch.setattr(gateway, "acreate_sandbox", fake_acreate_sandbox)
+    monkeypatch.setattr(gateway, "arun_code", fake_arun_code)
 
     logger = CodeInterpreterInterceptionLogger(sandbox_tool_name="e2b_default")
     try:

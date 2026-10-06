@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING, Any, Final
 import httpx
 from httpx._types import RequestFiles
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.constants import DEFAULT_MAX_RECURSE_DEPTH
 from token_iq.gateway.core_utils.url_utils import safe_get
 from token_iq.gateway.llms.base_llm.image_edit.transformation import BaseImageEditConfig
@@ -205,7 +205,7 @@ class BlackForestLabsImageEditConfig(BaseImageEditConfig):
             return self._read_image_bytes(image[0], depth=depth + 1, max_depth=max_depth)
         elif isinstance(image, str):
             if image.startswith(("http://", "https://")):
-                response: Final = safe_get(litellm.module_level_client, image, timeout=60.0)
+                response: Final = safe_get(gateway.module_level_client, image, timeout=60.0)
                 response.raise_for_status()
                 return response.content
             else:

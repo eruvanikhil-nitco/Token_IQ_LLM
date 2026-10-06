@@ -9,13 +9,13 @@ from typing import TYPE_CHECKING, Any, Final, Literal, Union, cast
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 import token_iq.gateway.core_utils
-from token_iq import gateway as litellm
+from token_iq import gateway
 import token_iq.gateway.types
-from token_iq import gateway as litellm
+from token_iq import gateway
 import token_iq.gateway.types.utils
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.anthropic_beta_headers_manager import (
     update_request_with_filtered_beta,
 )
@@ -87,7 +87,7 @@ async def make_call(
     tool_name_reverse_map: dict[str, str] | None = None,
 ) -> tuple["ModelResponseIterator", httpx.Headers]:
     if client is None:
-        client = litellm.module_level_aclient
+        client = gateway.module_level_aclient
 
     try:
         response: Final = await client.post(
@@ -109,7 +109,7 @@ async def make_call(
             headers=error_headers,
         )
     except Exception as e:
-        for exception in litellm.LITELLM_EXCEPTION_TYPES:
+        for exception in gateway.LITELLM_EXCEPTION_TYPES:
             if isinstance(e, exception):
                 raise e
         raise AnthropicError(status_code=500, message=str(e))
@@ -147,7 +147,7 @@ def make_sync_call(
     tool_name_reverse_map: dict[str, str] | None = None,
 ) -> tuple["ModelResponseIterator", httpx.Headers]:
     if client is None:
-        client = litellm.module_level_client  # re-use a module level client
+        client = gateway.module_level_client  # re-use a module level client
 
     try:
         response: Final = client.post(
@@ -169,7 +169,7 @@ def make_sync_call(
             headers=error_headers,
         )
     except Exception as e:
-        for exception in litellm.LITELLM_EXCEPTION_TYPES:
+        for exception in gateway.LITELLM_EXCEPTION_TYPES:
             if isinstance(e, exception):
                 raise e
         raise AnthropicError(status_code=500, message=str(e))
@@ -278,7 +278,7 @@ class AnthropicChatCompletion(BaseLLM):
         headers={},
         client: AsyncHTTPHandler | None = None,
     ) -> Union[ModelResponse, "CustomStreamWrapper"]:
-        async_handler: Final = client or get_async_httpx_client(llm_provider=litellm.LlmProviders.ANTHROPIC)
+        async_handler: Final = client or get_async_httpx_client(llm_provider=gateway.LlmProviders.ANTHROPIC)
 
         try:
             response: Final = await async_handler.post(

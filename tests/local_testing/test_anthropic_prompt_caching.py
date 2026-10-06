@@ -14,15 +14,15 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import RateLimitError, Timeout, completion, completion_cost, embedding
 from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
 from token_iq.gateway.core_utils.prompt_templates.factory import anthropic_messages_pt
 from test_amazing_vertex_completion import load_vertex_ai_credentials
 
 # litellm.num_retries =3
-litellm.cache = None
-litellm.success_callback = []
+gateway.cache = None
+gateway.success_callback = []
 user_message = "Write a short poem about the sky"
 messages = [{"content": user_message, "role": "user"}]
 
@@ -34,10 +34,10 @@ def logger_fn(user_model_dict):
 @pytest.fixture(autouse=True)
 def reset_callbacks():
     print("\npytest fixture - resetting callbacks")
-    litellm.success_callback = []
-    litellm._async_success_callback = []
-    litellm.failure_callback = []
-    litellm.callbacks = []
+    gateway.success_callback = []
+    gateway._async_success_callback = []
+    gateway.failure_callback = []
+    gateway.callbacks = []
 
 
 @pytest.mark.asyncio
@@ -60,13 +60,13 @@ async def test_litellm_anthropic_prompt_caching_tools():
     mock_response.json = return_val
     mock_response.headers = {"key": "value"}
 
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     with patch(
         "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=mock_response,
     ) as mock_post:
         # Act: Call the litellm.acompletion function
-        response = await litellm.acompletion(
+        response = await gateway.acompletion(
             api_key="mock_api_key",
             model="anthropic/claude-sonnet-4-5-20250929",
             messages=[
@@ -203,7 +203,7 @@ def anthropic_messages():
 @pytest.mark.parametrize("sync_mode", [True, False])
 @pytest.mark.asyncio
 async def test_anthropic_vertex_ai_prompt_caching(anthropic_messages, sync_mode):
-    litellm._turn_on_debug()
+    gateway._turn_on_debug()
 
     load_vertex_ai_credentials()
 
@@ -217,7 +217,7 @@ async def test_anthropic_vertex_ai_prompt_caching(anthropic_messages, sync_mode)
                     client=client,
                 )
             else:
-                response = await litellm.acompletion(
+                response = await gateway.acompletion(
                     model="vertex_ai/claude-3-5-sonnet-v2@20241022 ",
                     messages=anthropic_messages,
                     client=client,
@@ -233,8 +233,8 @@ async def test_anthropic_vertex_ai_prompt_caching(anthropic_messages, sync_mode)
 @pytest.mark.flaky(retries=3, delay=2)
 @pytest.mark.asyncio()
 async def test_anthropic_api_prompt_caching_basic():
-    litellm.set_verbose = True
-    response = await litellm.acompletion(
+    gateway.set_verbose = True
+    response = await gateway.acompletion(
         model="anthropic/claude-sonnet-4-5-20250929",
         messages=[
             # System Message
@@ -301,8 +301,8 @@ async def test_anthropic_api_prompt_caching_basic_with_cache_creation():
 
     random_id = uuid4()
 
-    litellm.set_verbose = True
-    response = await litellm.acompletion(
+    gateway.set_verbose = True
+    response = await gateway.acompletion(
         model="anthropic/claude-sonnet-4-5-20250929",
         messages=[
             # System Message
@@ -373,7 +373,7 @@ async def test_anthropic_api_prompt_caching_with_content_str():
             "cache_control": {"type": "ephemeral"},
         },
     ]
-    translated_system_message = litellm.AnthropicConfig().translate_system_message(
+    translated_system_message = gateway.AnthropicConfig().translate_system_message(
         messages=system_message
     )
 
@@ -453,8 +453,8 @@ async def test_anthropic_api_prompt_caching_with_content_str():
 @pytest.mark.flaky(retries=3, delay=2)
 @pytest.mark.asyncio()
 async def test_anthropic_api_prompt_caching_no_headers():
-    litellm.set_verbose = True
-    response = await litellm.acompletion(
+    gateway.set_verbose = True
+    response = await gateway.acompletion(
         model="anthropic/claude-sonnet-4-5-20250929",
         messages=[
             # System Message
@@ -514,7 +514,7 @@ async def test_anthropic_api_prompt_caching_no_headers():
 @pytest.mark.flaky(retries=3, delay=2)
 @pytest.mark.asyncio()
 async def test_anthropic_api_prompt_caching_streaming():
-    response = await litellm.acompletion(
+    response = await gateway.acompletion(
         model="anthropic/claude-sonnet-4-5-20250929",
         messages=[
             # System Message
@@ -607,13 +607,13 @@ async def test_litellm_anthropic_prompt_caching_system():
     mock_response.json = return_val
     mock_response.headers = {"key": "value"}
 
-    litellm.set_verbose = True
+    gateway.set_verbose = True
     with patch(
         "token_iq.gateway.llms.custom_httpx.http_handler.AsyncHTTPHandler.post",
         return_value=mock_response,
     ) as mock_post:
         # Act: Call the litellm.acompletion function
-        response = await litellm.acompletion(
+        response = await gateway.acompletion(
             api_key="mock_api_key",
             model="anthropic/claude-sonnet-4-5-20250929",
             messages=[
@@ -685,7 +685,7 @@ async def test_litellm_anthropic_prompt_caching_system():
 
 
 def test_is_prompt_caching_enabled(anthropic_messages):
-    assert litellm.utils.is_prompt_caching_valid_prompt(
+    assert gateway.utils.is_prompt_caching_valid_prompt(
         messages=anthropic_messages,
         tools=None,
         custom_llm_provider="anthropic",

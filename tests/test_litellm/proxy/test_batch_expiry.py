@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.caching.caching import DualCache
 from token_iq.gateway.proxy._types import UserAPIKeyAuth
 from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
@@ -74,7 +74,7 @@ def test_output_expires_after_passthrough():
 
     with patch("token_iq.gateway.batches.main.openai_batches_instance") as mock_instance:
         mock_instance.create_batch.side_effect = capturing_create
-        litellm.create_batch(
+        gateway.create_batch(
             completion_window="24h",
             endpoint="/v1/chat/completions",
             input_file_id="file-abc123",
@@ -110,7 +110,7 @@ class TestBatchEndpointTeamOverride:
             captured_kwargs.update(kwargs)
             return _make_batch_response()
 
-        monkeypatch.setattr(litellm, "acreate_batch", mock_acreate_batch)
+        monkeypatch.setattr(gateway, "acreate_batch", mock_acreate_batch)
 
         try:
             response = client.post(
@@ -218,7 +218,7 @@ class TestBatchEndpointPolicyMetadata:
             captured_kwargs.update(kwargs)
             return _make_batch_response()
 
-        monkeypatch.setattr(litellm, "acreate_batch", mock_acreate_batch)
+        monkeypatch.setattr(gateway, "acreate_batch", mock_acreate_batch)
 
         try:
             response = client.post(
@@ -266,7 +266,7 @@ class TestBatchEndpointTeamValidation:
         async def mock_acreate_batch(**kwargs):
             return _make_batch_response()
 
-        monkeypatch.setattr(litellm, "acreate_batch", mock_acreate_batch)
+        monkeypatch.setattr(gateway, "acreate_batch", mock_acreate_batch)
 
         try:
             response = client.post(

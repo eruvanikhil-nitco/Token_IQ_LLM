@@ -14,7 +14,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import Router
 from token_iq.gateway.caching import DualCache
 from token_iq.gateway.proxy._types import UserAPIKeyAuth
@@ -65,9 +65,9 @@ async def test_search_api_logging_and_cost_tracking(prisma_client):
     5. model_group is set to search_tool_name
     6. spend is calculated and logged
     """
-    setattr(litellm.proxy.proxy_server, "prisma_client", prisma_client)
-    setattr(litellm.proxy.proxy_server, "master_key", "sk-1234")
-    await litellm.proxy.proxy_server.prisma_client.connect()
+    setattr(gateway.proxy.proxy_server, "prisma_client", prisma_client)
+    setattr(gateway.proxy.proxy_server, "master_key", "sk-1234")
+    await gateway.proxy.proxy_server.prisma_client.connect()
 
     # Setup router with search tool
     search_tool_name = "tavily-search"
@@ -83,7 +83,7 @@ async def test_search_api_logging_and_cost_tracking(prisma_client):
         }
     ]
 
-    setattr(litellm.proxy.proxy_server, "llm_router", router)
+    setattr(gateway.proxy.proxy_server, "llm_router", router)
 
     # Generate a test API key
     from token_iq.gateway.proxy.management_endpoints.key_management_endpoints import (
@@ -125,7 +125,7 @@ async def test_search_api_logging_and_cost_tracking(prisma_client):
         # Setup proxy logging
         user_api_key_cache = DualCache()
         proxy_logging_obj = ProxyLogging(user_api_key_cache=user_api_key_cache)
-        setattr(litellm.proxy.proxy_server, "proxy_logging_obj", proxy_logging_obj)
+        setattr(gateway.proxy.proxy_server, "proxy_logging_obj", proxy_logging_obj)
 
         # Call the track_cost_callback directly to simulate what happens after a search
         proxy_db_logger = _ProxyDBLogger()

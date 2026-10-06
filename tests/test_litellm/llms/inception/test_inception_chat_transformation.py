@@ -8,7 +8,7 @@ from unittest import mock
 
 import httpx
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.llms.inception.chat.transformation import InceptionChatConfig
 
 
@@ -67,7 +67,7 @@ def test_inception_chat_sends_diffusion_params_in_body():
         )
 
     with mock.patch("httpx.Client.send", new=fake_send):
-        litellm.completion(
+        gateway.completion(
             model="inception/mercury-2",
             messages=[{"role": "user", "content": "hi"}],
             api_key="sk-x",
@@ -126,7 +126,7 @@ def test_inception_chat_response_surfaces_reasoning_and_usage():
         )
 
     with mock.patch("httpx.Client.send", new=fake_send):
-        r = litellm.completion(
+        r = gateway.completion(
             model="inception/mercury-2",
             messages=[{"role": "user", "content": "hi"}],
             api_key="sk-x",
@@ -142,7 +142,7 @@ def test_inception_get_openai_compatible_provider_info():
     config = InceptionChatConfig()
 
     with mock.patch.dict(os.environ, {}, clear=True):
-        with mock.patch.object(litellm, "inception_key", None):
+        with mock.patch.object(gateway, "inception_key", None):
             api_base, api_key = config._get_openai_compatible_provider_info(None, None)
             assert api_base == "https://api.inceptionlabs.ai/v1"
             assert api_key is None
@@ -176,7 +176,7 @@ def test_inception_key_module_attr_fallback():
     """litellm.inception_key is used when no param/env key is provided"""
     config = InceptionChatConfig()
     with mock.patch.dict(os.environ, {}, clear=True):
-        with mock.patch.object(litellm, "inception_key", "module-attr-key"):
+        with mock.patch.object(gateway, "inception_key", "module-attr-key"):
             _, api_key = config._get_openai_compatible_provider_info(None, None)
             assert api_key == "module-attr-key"
 
@@ -191,7 +191,7 @@ def test_inception_does_not_leak_key_to_caller_api_base():
     with mock.patch.dict(
         os.environ, {"INCEPTION_API_KEY": "server-secret"}, clear=True
     ):
-        with mock.patch.object(litellm, "inception_key", "module-secret"):
+        with mock.patch.object(gateway, "inception_key", "module-secret"):
             # caller overrides api_base without a key -> server key withheld
             api_base, api_key = config._get_openai_compatible_provider_info(
                 "https://attacker.example/v1", None
@@ -226,18 +226,18 @@ def test_get_llm_provider_inception():
 
 
 def test_inception_in_provider_lists():
-    assert "inception" in litellm.openai_compatible_providers
-    assert "inception" in litellm.provider_list
-    assert "https://api.inceptionlabs.ai/v1" in litellm.openai_compatible_endpoints
+    assert "inception" in gateway.openai_compatible_providers
+    assert "inception" in gateway.provider_list
+    assert "https://api.inceptionlabs.ai/v1" in gateway.openai_compatible_endpoints
 
 
 def test_inception_model_configuration(monkeypatch):
     from token_iq.gateway import get_model_info
 
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    litellm.model_cost = litellm.get_model_cost_map()
-    litellm.inception_models = set()
-    litellm.add_known_models()
+    gateway.model_cost = gateway.get_model_cost_map()
+    gateway.inception_models = set()
+    gateway.add_known_models()
 
     info = get_model_info("inception/mercury-2")
     assert info.get("litellm_provider") == "inception"
@@ -253,12 +253,12 @@ def test_inception_model_configuration(monkeypatch):
 
 def test_inception_model_list_populated(monkeypatch):
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
-    litellm.model_cost = litellm.get_model_cost_map()
-    litellm.inception_models = set()
-    litellm.add_known_models()
+    gateway.model_cost = gateway.get_model_cost_map()
+    gateway.inception_models = set()
+    gateway.add_known_models()
 
-    assert "inception/mercury-2" in litellm.inception_models
-    for model in litellm.inception_models:
+    assert "inception/mercury-2" in gateway.inception_models
+    for model in gateway.inception_models:
         assert model.startswith("inception/")
 
 
@@ -311,7 +311,7 @@ def test_inception_completion_targets_inception_endpoint():
         }
     ]
     with mock.patch("httpx.Client.send", new=fake_send):
-        response = litellm.completion(
+        response = gateway.completion(
             model="inception/mercury-2",
             messages=[{"role": "user", "content": "hello"}],
             api_key="sk-test-fake-123",

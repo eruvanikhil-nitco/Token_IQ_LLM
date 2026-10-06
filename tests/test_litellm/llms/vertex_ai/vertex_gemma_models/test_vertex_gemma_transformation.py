@@ -9,7 +9,7 @@ from unittest.mock import AsyncMock, Mock, patch
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 
 @pytest.fixture(autouse=True)
@@ -176,7 +176,7 @@ class TestVertexGemmaCompletion:
             mock_get_client.return_value = mock_client
 
             # Call litellm.acompletion()
-            response = await litellm.acompletion(
+            response = await gateway.acompletion(
                 model="vertex_ai/gemma/gemma-3-12b-it-1222199011122",
                 messages=[{"role": "user", "content": "What is machine learning?"}],
                 max_tokens=100,
@@ -262,7 +262,7 @@ class TestVertexGemmaCompletion:
 
             # Should raise exception (wrapped as BadRequestError by LiteLLM)
             with pytest.raises(BadRequestError) as exc_info:
-                await litellm.acompletion(
+                await gateway.acompletion(
                     model="vertex_ai/gemma/gemma-3-12b-it",
                     messages=[{"role": "user", "content": "Test"}],
                     api_base="https://test.prediction.vertexai.goog/v1/projects/test/locations/us-central1/endpoints/123:predict",
@@ -334,7 +334,7 @@ class TestVertexGemmaCompletion:
             mock_get_client.return_value = mock_client
 
             # Call litellm.acompletion() with stream=True
-            response = await litellm.acompletion(
+            response = await gateway.acompletion(
                 model="vertex_ai/gemma/gemma-3-12b-it-1222199011122",
                 messages=[{"role": "user", "content": "Test streaming"}],
                 stream=True,
@@ -427,7 +427,7 @@ class TestVertexGemmaCompletion:
             mock_client.post = AsyncMock(return_value=mock_response)
             mock_get_client.return_value = mock_client
 
-            await litellm.acompletion(
+            await gateway.acompletion(
                 model="vertex_ai/gemma/gemma-3-12b-it-1222199011122",
                 messages=[{"role": "user", "content": "Test"}],
                 stream=True,
@@ -515,7 +515,7 @@ class TestVertexGemmaCompletion:
             # validator drops it before we can prove the transformation
             # strips it). This mirrors the real-world scenario where a
             # caller explicitly opts in to forwarding an arbitrary param.
-            await litellm.acompletion(
+            await gateway.acompletion(
                 model="vertex_ai/gemma/gemma-3-12b-it-1222199011122",
                 messages=[{"role": "user", "content": "Test"}],
                 context_management=[{"type": "compaction", "compact_threshold": 200000}],
@@ -593,7 +593,7 @@ class TestVertexGemmaCompletion:
             mock_client.post = Mock(return_value=mock_response)
             mock_get_client.return_value = mock_client
 
-            response = litellm.completion(
+            response = gateway.completion(
                 model="vertex_ai/gemma/gemma-3-12b-it-1222199011122",
                 messages=[{"role": "user", "content": "What is machine learning?"}],
                 max_tokens=100,
@@ -632,7 +632,7 @@ class TestVertexGemmaCompletion:
             "token_iq.gateway.llms.vertex_ai.vertex_gemma_models.main.VertexAIGemmaModels._ensure_access_token",
             return_value=("fake-access-token", "PROJECT_ID"),
         ):
-            response = litellm.completion(
+            response = gateway.completion(
                 model="vertex_ai/gemma/gemma-3-12b-it-1222199011122",
                 messages=[{"role": "user", "content": "Test"}],
                 api_base="https://test.prediction.vertexai.goog/v1/projects/PROJECT_ID/locations/us-central1/endpoints/ENDPOINT_ID:predict",
@@ -665,7 +665,7 @@ class TestVertexGemmaCompletion:
             "token_iq.gateway.llms.vertex_ai.vertex_gemma_models.main.VertexAIGemmaModels._ensure_access_token",
             return_value=("fake-access-token", "PROJECT_ID"),
         ):
-            response = await litellm.acompletion(
+            response = await gateway.acompletion(
                 model="vertex_ai/gemma/gemma-3-12b-it-1222199011122",
                 messages=[{"role": "user", "content": "Test"}],
                 api_base="https://test.prediction.vertexai.goog/v1/projects/PROJECT_ID/locations/us-central1/endpoints/ENDPOINT_ID:predict",

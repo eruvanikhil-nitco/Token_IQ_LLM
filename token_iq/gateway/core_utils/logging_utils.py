@@ -31,7 +31,7 @@ else:
     Span = Any
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 
 """
 Helper utils used for logging callbacks
@@ -190,10 +190,10 @@ def convert_litellm_response_object_to_str(
     Get the string of the response object from LiteLLM
 
     """
-    if isinstance(response_obj, litellm.ModelResponse):
+    if isinstance(response_obj, gateway.ModelResponse):
         response_str = ""
         for choice in response_obj.choices:
-            if isinstance(choice, litellm.Choices):
+            if isinstance(choice, gateway.Choices):
                 if choice.message.content and isinstance(choice.message.content, str):
                     response_str += choice.message.content
         return response_str
@@ -236,7 +236,7 @@ def _assemble_complete_response_from_streaming_chunks(
     if result.choices[0].finish_reason is not None:  # if it's the last chunk
         streaming_chunks.append(result)
         try:
-            complete_streaming_response = litellm.stream_chunk_builder(
+            complete_streaming_response = gateway.stream_chunk_builder(
                 chunks=streaming_chunks,
                 messages=request_kwargs.get("messages", None),
                 start_time=start_time,

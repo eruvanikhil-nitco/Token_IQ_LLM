@@ -5,7 +5,7 @@ Test guardrail load balancing through the Router and ProxyLogging.
 from unittest.mock import MagicMock, patch, AsyncMock
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 import pytest
 from token_iq.gateway import Router
 from token_iq.gateway.caching import DualCache
@@ -73,8 +73,8 @@ async def test_proxy_logging_pre_call_hook_load_balancing():
     proxy_logging = ProxyLogging(user_api_key_cache=DualCache())
 
     # Add guardrail to litellm.callbacks so it gets picked up
-    original_callbacks = litellm.callbacks.copy()
-    litellm.callbacks = [guardrail_1]
+    original_callbacks = gateway.callbacks.copy()
+    gateway.callbacks = [guardrail_1]
 
     try:
         with patch("token_iq.gateway.proxy.proxy_server.llm_router", router):
@@ -101,4 +101,4 @@ async def test_proxy_logging_pre_call_hook_load_balancing():
             ), f"Expected at least 10 calls to each guardrail, got min={min_calls}"
 
     finally:
-        litellm.callbacks = original_callbacks
+        gateway.callbacks = original_callbacks

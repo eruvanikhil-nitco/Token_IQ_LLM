@@ -14,7 +14,7 @@ from typing import Any, Dict, List, Optional
 import pytest
 from fastapi import HTTPException
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import Router
 from token_iq.gateway.caching.caching import DualCache
 from token_iq.gateway.constants import INTERNAL_CALL_ORIGIN_METADATA_KEY
@@ -402,7 +402,7 @@ async def test_normal_router_call_tpm_v3(
         return results
 
     parallel_request_handler.batch_rate_limiter_script = mock_batch_rate_limiter
-    monkeypatch.setattr(litellm, "callbacks", [parallel_request_handler])
+    monkeypatch.setattr(gateway, "callbacks", [parallel_request_handler])
 
     # Helper to get the correct value for key construction
     def get_value_for_key(rate_limit_object, user_api_key_dict, model_name):
@@ -3903,12 +3903,12 @@ async def _build_seeded_limiter():
 @contextmanager
 def _override_litellm_callbacks(new_callbacks):
     """Swap litellm.callbacks so _callback_capabilities recomputes deterministically."""
-    saved = litellm.callbacks
-    litellm.callbacks = new_callbacks
+    saved = gateway.callbacks
+    gateway.callbacks = new_callbacks
     try:
         yield
     finally:
-        litellm.callbacks = saved
+        gateway.callbacks = saved
 
 
 async def _drain_release_task():

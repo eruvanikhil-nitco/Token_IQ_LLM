@@ -34,7 +34,7 @@ async def test_openai_moderation_guardrail_init():
 @pytest.mark.asyncio
 async def test_openai_moderation_guardrail_adds_to_litellm_callbacks():
     """Test that OpenAI moderation guardrail adds itself to litellm callbacks during initialization"""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.proxy.guardrails.guardrail_hooks.openai import (
         initialize_guardrail as openai_initialize_guardrail,
     )
@@ -45,8 +45,8 @@ async def test_openai_moderation_guardrail_adds_to_litellm_callbacks():
     )
 
     # Clear existing callbacks for clean test
-    original_callbacks = litellm.callbacks.copy()
-    litellm.logging_callback_manager._reset_all_callbacks()
+    original_callbacks = gateway.callbacks.copy()
+    gateway.logging_callback_manager._reset_all_callbacks()
 
     try:
         with patch.dict(os.environ, {"OPENAI_API_KEY": "test-key"}):
@@ -65,18 +65,18 @@ async def test_openai_moderation_guardrail_adds_to_litellm_callbacks():
             )
 
             # Check that the guardrail was added to litellm callbacks
-            assert guardrail in litellm.callbacks
-            assert len(litellm.callbacks) == 1
+            assert guardrail in gateway.callbacks
+            assert len(gateway.callbacks) == 1
 
             # Verify it's the correct guardrail
-            callback = litellm.callbacks[0]
+            callback = gateway.callbacks[0]
             assert isinstance(callback, OpenAIModerationGuardrail)
             assert callback.guardrail_name == "test-openai-moderation"
     finally:
         # Restore original callbacks
-        litellm.logging_callback_manager._reset_all_callbacks()
+        gateway.logging_callback_manager._reset_all_callbacks()
         for callback in original_callbacks:
-            litellm.logging_callback_manager.add_litellm_callback(callback)
+            gateway.logging_callback_manager.add_litellm_callback(callback)
 
 
 @pytest.mark.asyncio
@@ -449,15 +449,15 @@ async def test_openai_moderation_guardrail_streaming_harmful_content():
 
         # Mock for stream_chunk_builder - use real litellm types so isinstance checks pass
         from token_iq.gateway.types.utils import ModelResponse
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         mock_model_response = ModelResponse(
             id="mock-response",
             model="gpt-4",
             choices=[
-                litellm.Choices(
+                gateway.Choices(
                     index=0,
-                    message=litellm.Message(
+                    message=gateway.Message(
                         role="assistant",
                         content="This is harmful content",
                     ),
@@ -660,7 +660,7 @@ async def test_openai_moderation_post_call_request_data_passthrough():
     )
     from token_iq.gateway.types.utils import ModelResponse
 
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     with patch.dict(os.environ, {"OPENAI_API_KEY": "test-key"}):
         guardrail = OpenAIModerationGuardrail(
@@ -704,9 +704,9 @@ async def test_openai_moderation_post_call_request_data_passthrough():
             id="chatcmpl-test",
             model="gpt-4",
             choices=[
-                litellm.Choices(
+                gateway.Choices(
                     index=0,
-                    message=litellm.Message(role="assistant", content="Hello world"),
+                    message=gateway.Message(role="assistant", content="Hello world"),
                     finish_reason="stop",
                 )
             ],
@@ -956,7 +956,7 @@ async def test_openai_moderation_guardrail_streaming_overrides():
 @pytest.mark.asyncio
 async def test_openai_moderation_initialize_guardrail_forwards_streaming_flags():
     """initialize_guardrail forwards streaming knobs from litellm_params (extra='allow')."""
-    from token_iq import gateway as litellm
+    from token_iq import gateway
     from token_iq.gateway.proxy.guardrails.guardrail_hooks.openai import (
         initialize_guardrail as openai_initialize_guardrail,
     )
@@ -966,7 +966,7 @@ async def test_openai_moderation_initialize_guardrail_forwards_streaming_flags()
         SupportedGuardrailIntegrations,
     )
 
-    litellm.logging_callback_manager._reset_all_callbacks()
+    gateway.logging_callback_manager._reset_all_callbacks()
     try:
         with patch.dict(os.environ, {"OPENAI_API_KEY": "test-key"}):
             litellm_params = LitellmParams(
@@ -988,4 +988,4 @@ async def test_openai_moderation_initialize_guardrail_forwards_streaming_flags()
             assert guardrail.streaming_end_of_stream_only is False
             assert guardrail.streaming_sampling_rate == 2
     finally:
-        litellm.logging_callback_manager._reset_all_callbacks()
+        gateway.logging_callback_manager._reset_all_callbacks()

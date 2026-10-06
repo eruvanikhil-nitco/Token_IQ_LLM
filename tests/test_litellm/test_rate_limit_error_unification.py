@@ -21,7 +21,7 @@ the new behavior:
 import pytest
 from fastapi import HTTPException
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.exceptions import RateLimitError, RateLimitErrorCategory, RateLimitType
 from token_iq.gateway.proxy.common_utils.proxy_rate_limit_error import (
     ProxyRateLimitError,
@@ -31,8 +31,8 @@ from token_iq.gateway.proxy.common_utils.proxy_rate_limit_error import (
 
 class TestRateLimitErrorCategory:
     def test_should_export_category_enum_on_litellm_module(self):
-        assert hasattr(litellm, "RateLimitErrorCategory")
-        assert litellm.RateLimitErrorCategory is RateLimitErrorCategory
+        assert hasattr(gateway, "RateLimitErrorCategory")
+        assert gateway.RateLimitErrorCategory is RateLimitErrorCategory
 
     def test_should_define_all_documented_categories(self):
         # The Linear ticket explicitly lists vendor_rate_limit, litellm_rate_limit
@@ -994,8 +994,8 @@ class TestRateLimitType:
     """
 
     def test_should_export_type_enum_on_litellm_module(self):
-        assert hasattr(litellm, "RateLimitType")
-        assert litellm.RateLimitType is RateLimitType
+        assert hasattr(gateway, "RateLimitType")
+        assert gateway.RateLimitType is RateLimitType
 
     def test_should_define_all_documented_types(self):
         assert RateLimitType.REQUESTS == "requests"
@@ -1438,7 +1438,7 @@ class TestBudgetExceededErrorSurfacesUnifiedFields:
     """
 
     def test_should_carry_litellm_rate_limit_category(self):
-        e = litellm.BudgetExceededError(current_cost=0.5, max_budget=0.1)
+        e = gateway.BudgetExceededError(current_cost=0.5, max_budget=0.1)
         # Stored as the plain string value (matches RateLimitError behavior),
         # but equality with the enum still works because the enum subclasses
         # str.
@@ -1446,7 +1446,7 @@ class TestBudgetExceededErrorSurfacesUnifiedFields:
         assert e.category == RateLimitErrorCategory.LITELLM_RATE_LIMIT
 
     def test_should_carry_budget_rate_limit_type(self):
-        e = litellm.BudgetExceededError(current_cost=0.5, max_budget=0.1)
+        e = gateway.BudgetExceededError(current_cost=0.5, max_budget=0.1)
         assert e.rate_limit_type == "budget"
         assert e.rate_limit_type == RateLimitType.BUDGET
 
@@ -1454,13 +1454,13 @@ class TestBudgetExceededErrorSurfacesUnifiedFields:
         # `llm_provider` is read off the exception in `get_error_information`
         # — it must always be a string so the StandardLoggingPayload field
         # stays serializable. Default to "" when no caller passes one.
-        e = litellm.BudgetExceededError(current_cost=0.5, max_budget=0.1)
+        e = gateway.BudgetExceededError(current_cost=0.5, max_budget=0.1)
         assert e.llm_provider == ""
 
     def test_should_accept_llm_provider_kwarg(self):
         # Callers that have the resolved provider in scope (e.g. the
         # auth-checks budget enforcement paths) can thread it through.
-        e = litellm.BudgetExceededError(
+        e = gateway.BudgetExceededError(
             current_cost=0.5, max_budget=0.1, llm_provider="anthropic"
         )
         assert e.llm_provider == "anthropic"
@@ -1468,7 +1468,7 @@ class TestBudgetExceededErrorSurfacesUnifiedFields:
     def test_should_keep_existing_status_code_and_message(self):
         # Backward-compat guard: existing callers depend on `status_code=429`
         # and the canonical message format.
-        e = litellm.BudgetExceededError(current_cost=0.000109, max_budget=0.0001)
+        e = gateway.BudgetExceededError(current_cost=0.000109, max_budget=0.0001)
         assert e.status_code == 429
         assert "Current cost: 0.000109" in e.message
         assert "Max budget: 0.0001" in e.message
@@ -1479,9 +1479,9 @@ class TestBudgetExceededErrorSurfacesUnifiedFields:
         # handlers must keep catching it, and `except RateLimitError:`
         # handlers must NOT start catching it (which would surprise callers
         # who rely on the two being distinct).
-        e = litellm.BudgetExceededError(current_cost=0.5, max_budget=0.1)
+        e = gateway.BudgetExceededError(current_cost=0.5, max_budget=0.1)
         assert isinstance(e, Exception)
-        assert isinstance(e, litellm.BudgetExceededError)
+        assert isinstance(e, gateway.BudgetExceededError)
         assert not isinstance(e, RateLimitError)
 
     def test_should_propagate_category_to_standard_logging_payload(self):
@@ -1489,7 +1489,7 @@ class TestBudgetExceededErrorSurfacesUnifiedFields:
             StandardLoggingPayloadSetup,
         )
 
-        e = litellm.BudgetExceededError(current_cost=0.5, max_budget=0.1)
+        e = gateway.BudgetExceededError(current_cost=0.5, max_budget=0.1)
         info = StandardLoggingPayloadSetup.get_error_information(e)
         assert info["error_rate_limit_category"] == "litellm_rate_limit"
         assert info["error_rate_limit_type"] == "budget"
@@ -1501,7 +1501,7 @@ class TestBudgetExceededErrorSurfacesUnifiedFields:
             StandardLoggingPayloadSetup,
         )
 
-        e = litellm.BudgetExceededError(
+        e = gateway.BudgetExceededError(
             current_cost=0.5, max_budget=0.1, llm_provider="bedrock"
         )
         info = StandardLoggingPayloadSetup.get_error_information(e)
@@ -1640,7 +1640,7 @@ class TestBudgetExceededErrorLlmProviderEnrichment:
         return captured.get("exception")
 
     async def test_should_resolve_llm_provider_from_request_data_when_unset(self):
-        err = litellm.BudgetExceededError(current_cost=100, max_budget=10)
+        err = gateway.BudgetExceededError(current_cost=100, max_budget=10)
         assert err.llm_provider == ""
         seen = await self._run_handler_and_capture_exception_seen_by_callback(
             err, {"model": "openai/gpt-4o-mini"}
@@ -1649,7 +1649,7 @@ class TestBudgetExceededErrorLlmProviderEnrichment:
         assert seen.llm_provider == "openai"
 
     async def test_should_not_overwrite_llm_provider_when_caller_set_it(self):
-        err = litellm.BudgetExceededError(
+        err = gateway.BudgetExceededError(
             current_cost=100, max_budget=10, llm_provider="anthropic"
         )
         seen = await self._run_handler_and_capture_exception_seen_by_callback(
@@ -1658,7 +1658,7 @@ class TestBudgetExceededErrorLlmProviderEnrichment:
         assert seen.llm_provider == "anthropic"
 
     async def test_should_fall_back_to_litellm_proxy_when_model_missing(self):
-        err = litellm.BudgetExceededError(current_cost=100, max_budget=10)
+        err = gateway.BudgetExceededError(current_cost=100, max_budget=10)
         seen = await self._run_handler_and_capture_exception_seen_by_callback(err, {})
         assert seen.llm_provider == "litellm_proxy"
 

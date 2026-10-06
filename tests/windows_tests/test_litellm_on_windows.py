@@ -12,13 +12,13 @@ def test_using_litellm_on_windows():
     """Test that LiteLLM can be imported on Windows systems."""
 
     try:
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         print(
             f"litellm imported successfully on Windows ({platform.system()} {platform.release()})"
         )
 
-        response = litellm.completion(
+        response = gateway.completion(
             model="gpt-4o",
             messages=[
                 {

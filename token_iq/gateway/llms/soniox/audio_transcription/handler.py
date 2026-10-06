@@ -601,7 +601,7 @@ class SonioxAudioTranscriptionHandler:
         headers: dict[str, str],
         provider_config: SonioxAudioTranscriptionConfig,
     ) -> TranscriptionResponse:
-        from token_iq import gateway as litellm
+        from token_iq import gateway
 
         auth_headers, base_url, opt_params, handler_opts = self._prepare(
             audio_file=audio_file,
@@ -618,7 +618,7 @@ class SonioxAudioTranscriptionHandler:
             if isinstance(client, AsyncHTTPHandler)
             else (
                 get_async_httpx_client(
-                    llm_provider=litellm.LlmProviders.SONIOX,
+                    llm_provider=gateway.LlmProviders.SONIOX,
                     params={"ssl_verify": litellm_params.get("ssl_verify", None)},
                 )
             )

@@ -1,4 +1,4 @@
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import Router
 from token_iq.gateway import router as litellm_router_module
 from token_iq.gateway import utils as litellm_utils_module
@@ -11,7 +11,7 @@ class _CanaryRouterHolder:
 
 
 def test_register_model_ledger_entry_is_scoped_to_this_test():
-    litellm.register_model({CANARY_MODEL: {"litellm_provider": "openai", "input_cost_per_token": 0.001}})
+    gateway.register_model({CANARY_MODEL: {"litellm_provider": "openai", "input_cost_per_token": 0.001}})
     assert CANARY_MODEL in litellm_utils_module._runtime_registered_model_cost
 
 

@@ -2,7 +2,7 @@ import re
 
 import pytest
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 import token_iq.gateway.main as litellm_main
 from token_iq.gateway.core_utils.get_model_cost_map import get_model_cost_map
 from token_iq.gateway.llms.openai.chat.gpt_5_transformation import OpenAIGPT5Config
@@ -28,9 +28,9 @@ def gpt5_config() -> OpenAIGPT5Config:
 def use_local_model_cost_map(monkeypatch: pytest.MonkeyPatch):
     monkeypatch.setenv("LITELLM_LOCAL_MODEL_COST_MAP", "True")
     monkeypatch.setattr(
-        litellm, "model_cost", get_model_cost_map()
+        gateway, "model_cost", get_model_cost_map()
     )
-    litellm.add_known_models(model_cost_map=litellm.model_cost)
+    gateway.add_known_models(model_cost_map=gateway.model_cost)
 
 
 def test_gpt5_supports_reasoning_effort(config: OpenAIConfig):
@@ -76,7 +76,7 @@ def test_gpt5_temperature_drop(config: OpenAIConfig):
 
 
 def test_gpt5_temperature_error(config: OpenAIConfig):
-    with pytest.raises(litellm.utils.UnsupportedParamsError):
+    with pytest.raises(gateway.utils.UnsupportedParamsError):
         config.map_openai_params(
             non_default_params={"temperature": 0.2},
             optional_params={},
@@ -138,7 +138,7 @@ def test_gpt5_codex_temperature_drop(config: OpenAIConfig):
 def test_gpt5_codex_temperature_error(config: OpenAIConfig):
     """Test that GPT-5-Codex raises error for unsupported temperature when drop_params=False."""
     with pytest.raises(
-        litellm.utils.UnsupportedParamsError,
+        gateway.utils.UnsupportedParamsError,
         match=re.escape("gpt-5-codex doesn't support temperature=0.7 while reasoning is active"),
     ):
         config.map_openai_params(
@@ -257,7 +257,7 @@ def test_gpt5_1_codex_max_allows_reasoning_effort_xhigh(config: OpenAIConfig):
 
 
 def test_gpt5_rejects_reasoning_effort_xhigh_for_other_models(config: OpenAIConfig):
-    with pytest.raises(litellm.utils.UnsupportedParamsError):
+    with pytest.raises(gateway.utils.UnsupportedParamsError):
         config.map_openai_params(
             non_default_params={"reasoning_effort": "xhigh"},
             optional_params={},
@@ -412,7 +412,7 @@ def test_gpt5_4_pro_allows_reasoning_effort_minimal(config: OpenAIConfig):
 
 def test_gpt5_4_mini_rejects_reasoning_effort_minimal(config: OpenAIConfig):
     """gpt-5.4-mini does not support reasoning_effort='minimal'."""
-    with pytest.raises(litellm.utils.UnsupportedParamsError):
+    with pytest.raises(gateway.utils.UnsupportedParamsError):
         config.map_openai_params(
             non_default_params={"reasoning_effort": "minimal"},
             optional_params={},
@@ -423,7 +423,7 @@ def test_gpt5_4_mini_rejects_reasoning_effort_minimal(config: OpenAIConfig):
 
 def test_gpt5_4_nano_rejects_reasoning_effort_minimal(config: OpenAIConfig):
     """gpt-5.4-nano does not support reasoning_effort='minimal'."""
-    with pytest.raises(litellm.utils.UnsupportedParamsError):
+    with pytest.raises(gateway.utils.UnsupportedParamsError):
         config.map_openai_params(
             non_default_params={"reasoning_effort": "minimal"},
             optional_params={},
@@ -434,7 +434,7 @@ def test_gpt5_4_nano_rejects_reasoning_effort_minimal(config: OpenAIConfig):
 
 def test_gpt5_4_mini_provider_prefixed_rejects_minimal(config: OpenAIConfig):
     """openai/gpt-5.4-mini correctly rejects minimal (model lookup normalizes prefix)."""
-    with pytest.raises(litellm.utils.UnsupportedParamsError):
+    with pytest.raises(gateway.utils.UnsupportedParamsError):
         config.map_openai_params(
             non_default_params={"reasoning_effort": "minimal"},
             optional_params={},
@@ -456,7 +456,7 @@ def test_gpt5_drops_reasoning_effort_minimal_when_requested(config: OpenAIConfig
 
 def test_gpt5_minimal_dict_triggers_validation(config: OpenAIConfig):
     """Dict with effort='minimal' triggers minimal model-support validation."""
-    with pytest.raises(litellm.utils.UnsupportedParamsError):
+    with pytest.raises(gateway.utils.UnsupportedParamsError):
         config.map_openai_params(
             non_default_params={
                 "reasoning_effort": {"effort": "minimal", "summary": "detailed"}
@@ -549,7 +549,7 @@ def test_gpt5_5_pro_rejects_reasoning_effort_low(config: OpenAIConfig):
     Verified against OpenAI's live API: /v1/chat/completions with
     reasoning_effort='low' on gpt-5.5-pro returns HTTP 400.
     """
-    with pytest.raises(litellm.utils.UnsupportedParamsError):
+    with pytest.raises(gateway.utils.UnsupportedParamsError):
         config.map_openai_params(
             non_default_params={"reasoning_effort": "low"},
             optional_params={},
@@ -560,7 +560,7 @@ def test_gpt5_5_pro_rejects_reasoning_effort_low(config: OpenAIConfig):
 
 def test_gpt5_5_pro_dated_rejects_reasoning_effort_low(config: OpenAIConfig):
     """Dated snapshot must inherit the base alias's low-rejection behavior."""
-    with pytest.raises(litellm.utils.UnsupportedParamsError):
+    with pytest.raises(gateway.utils.UnsupportedParamsError):
         config.map_openai_params(
             non_default_params={"reasoning_effort": "low"},
             optional_params={},
@@ -637,7 +637,7 @@ def test_gpt5_xhigh_dict_triggers_validation(config: OpenAIConfig):
     Regression: when reasoning_effort is a dict, effective_effort must be used for
     the xhigh guard so validation is not silently skipped.
     """
-    with pytest.raises(litellm.utils.UnsupportedParamsError):
+    with pytest.raises(gateway.utils.UnsupportedParamsError):
         config.map_openai_params(
             non_default_params={
                 "reasoning_effort": {"effort": "xhigh", "summary": "detailed"}
@@ -772,7 +772,7 @@ def test_gpt5_2_keeps_reasoning_effort_with_tools(config: OpenAIConfig):
 
 
 def test_gpt5_4_pro_rejects_non_default_temperature(config: OpenAIConfig):
-    with pytest.raises(litellm.utils.UnsupportedParamsError):
+    with pytest.raises(gateway.utils.UnsupportedParamsError):
         config.map_openai_params(
             non_default_params={"temperature": 0.5},
             optional_params={},
@@ -802,7 +802,7 @@ def test_gpt5_1_temperature_with_reasoning_effort_other_values(config: OpenAICon
     """Test that GPT-5.1 only allows temperature=1 when reasoning_effort is not 'none'."""
     # Test that temperature != 1 raises error when reasoning_effort is set to other values
     for effort in ["low", "medium", "high"]:
-        with pytest.raises(litellm.utils.UnsupportedParamsError):
+        with pytest.raises(gateway.utils.UnsupportedParamsError):
             config.map_openai_params(
                 non_default_params={"temperature": 0.7, "reasoning_effort": effort},
                 optional_params={},
@@ -836,7 +836,7 @@ def test_gpt5_1_temperature_with_reasoning_effort_in_optional_params(
     assert params["temperature"] == 0.5
 
     # Test with reasoning_effort="low" in optional_params (should only allow temp=1)
-    with pytest.raises(litellm.utils.UnsupportedParamsError):
+    with pytest.raises(gateway.utils.UnsupportedParamsError):
         config.map_openai_params(
             non_default_params={"temperature": 0.5},
             optional_params={"reasoning_effort": "low"},
@@ -860,7 +860,7 @@ def test_gpt5_1_temperature_drop_when_not_none(config: OpenAIConfig):
 def test_gpt5_temperature_still_restricted(config: OpenAIConfig):
     """Test that regular gpt-5 (not 5.1) still only allows temperature=1."""
     # Regular gpt-5 should still only allow temperature=1
-    with pytest.raises(litellm.utils.UnsupportedParamsError):
+    with pytest.raises(gateway.utils.UnsupportedParamsError):
         config.map_openai_params(
             non_default_params={"temperature": 0.7},
             optional_params={},
@@ -885,7 +885,7 @@ def test_gpt5_2_chat_temperature_restricted(config: OpenAIConfig):
     """
     # gpt-5.2-chat should reject non-1 temperature when drop_params=False
     for model in ["gpt-5.2-chat", "gpt-5.2-chat-latest"]:
-        with pytest.raises(litellm.utils.UnsupportedParamsError):
+        with pytest.raises(gateway.utils.UnsupportedParamsError):
             config.map_openai_params(
                 non_default_params={"temperature": 0.7},
                 optional_params={},
@@ -1030,7 +1030,7 @@ def test_gpt5_chat_strips_reasoning_summary_aliases_after_bridge_check(
         fake_openai_completion,
     )
 
-    litellm.completion(
+    gateway.completion(
         model="gpt-5",
         messages=[{"role": "user", "content": "ok"}],
         reasoningSummary="auto",
@@ -1152,7 +1152,7 @@ def test_gpt5_1_top_p_passthrough(config: OpenAIConfig):
 def test_gpt5_1_logprobs_rejected_with_reasoning_effort(config: OpenAIConfig):
     """logprobs/top_p/top_logprobs are rejected when reasoning_effort != 'none'."""
     for effort in ["low", "medium", "high"]:
-        with pytest.raises(litellm.utils.UnsupportedParamsError):
+        with pytest.raises(gateway.utils.UnsupportedParamsError):
             config.map_openai_params(
                 non_default_params={"logprobs": True, "reasoning_effort": effort},
                 optional_params={},
@@ -1163,7 +1163,7 @@ def test_gpt5_1_logprobs_rejected_with_reasoning_effort(config: OpenAIConfig):
 
 def test_gpt5_1_top_p_rejected_with_reasoning_effort(config: OpenAIConfig):
     """top_p is rejected when reasoning_effort != 'none'."""
-    with pytest.raises(litellm.utils.UnsupportedParamsError):
+    with pytest.raises(gateway.utils.UnsupportedParamsError):
         config.map_openai_params(
             non_default_params={"top_p": 0.9, "reasoning_effort": "high"},
             optional_params={},
@@ -1216,7 +1216,7 @@ def test_responses_gpt5_reject_temperature(
     responses_config: OpenAIResponsesAPIConfig,
 ):
     """Without drop_params, temperature!=1 should raise UnsupportedParamsError."""
-    with pytest.raises(litellm.UnsupportedParamsError):
+    with pytest.raises(gateway.UnsupportedParamsError):
         responses_config.map_openai_params(
             response_api_optional_params=ResponsesAPIOptionalRequestParams(
                 temperature=0.5,
@@ -1336,7 +1336,7 @@ def test_gpt5_6_never_advertises_reasoning_effort_max(model: str):
     gpt-5.6 entry asserts supports_max_reasoning_effort and the advertised set stops at xhigh."""
     from token_iq.gateway.router_utils.reasoning_effort_capability import resolve_supported_reasoning_efforts
 
-    resolved = resolve_supported_reasoning_efforts(litellm.get_model_info(model), deployment_is_mapped=True)
+    resolved = resolve_supported_reasoning_efforts(gateway.get_model_info(model), deployment_is_mapped=True)
     assert resolved is not None
     assert "max" not in resolved
     assert "xhigh" in resolved
@@ -1370,7 +1370,7 @@ def test_gpt5_forwards_levels_the_chat_gate_does_not_own(config: OpenAIConfig):
 
 
 def test_gpt5_rejects_xhigh_for_models_without_the_flag(config: OpenAIConfig):
-    with pytest.raises(litellm.utils.UnsupportedParamsError):
+    with pytest.raises(gateway.utils.UnsupportedParamsError):
         config.map_openai_params(
             non_default_params={"reasoning_effort": "xhigh"},
             optional_params={},
@@ -1441,7 +1441,7 @@ class TestDefaultReasoningEffortGatesSamplingParams:
     def test_an_undeclared_model_is_refused_rather_than_forwarded(self):
         """Without drop_params the caller gets an actionable 400 naming the remedy, instead of
         the provider's own rejection arriving from an upstream it did not address."""
-        with pytest.raises(litellm.utils.UnsupportedParamsError, match="default_reasoning_effort"):
+        with pytest.raises(gateway.utils.UnsupportedParamsError, match="default_reasoning_effort"):
             OpenAIGPT5Config().map_openai_params(
                 non_default_params={"temperature": 0},
                 optional_params={},
@@ -1465,9 +1465,9 @@ class TestACatalogueOlderThanTheCodeDoesNotStripTemperature:
             name: {k: v for k, v in entry.items() if k != "default_reasoning_effort"}
             if isinstance(entry, dict)
             else entry
-            for name, entry in litellm.model_cost.items()
+            for name, entry in gateway.model_cost.items()
         }
-        monkeypatch.setattr(litellm, "model_cost", stripped)
+        monkeypatch.setattr(gateway, "model_cost", stripped)
 
     @pytest.mark.parametrize("model", ["gpt-5.1", "gpt-5.2", "gpt-5.4", "gpt-5.4-nano"])
     def test_a_pre_feature_catalogue_keeps_the_answer_it_gave_before(self, monkeypatch, model):

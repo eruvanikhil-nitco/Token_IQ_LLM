@@ -5,7 +5,7 @@ Verifies the fix for issue #19532.
 
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import get_model_info
 from token_iq.gateway.core_utils.get_model_cost_map import get_model_cost_map
 import pytest
@@ -14,7 +14,7 @@ import pytest
 @pytest.fixture(autouse=True)
 def reload_model_costs():
     """Reload model costs from JSON before each test."""
-    litellm.model_cost = get_model_cost_map()
+    gateway.model_cost = get_model_cost_map()
     yield
 
 

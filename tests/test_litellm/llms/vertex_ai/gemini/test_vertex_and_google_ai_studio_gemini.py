@@ -8,7 +8,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from pydantic import BaseModel
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import ModelResponse, completion
 from token_iq.gateway.llms.gemini.chat.transformation import GoogleAIStudioGeminiConfig
 from token_iq.gateway.llms.vertex_ai.common_utils import VertexAIError
@@ -2269,7 +2269,7 @@ async def test_vertex_ai_streaming_bad_request_is_not_wrapped():
         custom_llm_provider="vertex_ai_beta",
     )
 
-    with pytest.raises(litellm.BadRequestError) as exc_info:
+    with pytest.raises(gateway.BadRequestError) as exc_info:
         await stream.__anext__()
 
     assert getattr(exc_info.value, "status_code", None) == 400

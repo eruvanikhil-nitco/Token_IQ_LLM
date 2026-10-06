@@ -6,7 +6,7 @@ from typing import Any, Dict, List
 from unittest.mock import MagicMock, Mock, patch
 import os
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway.exceptions import BadRequestError
 from token_iq.gateway.llms.custom_httpx.http_handler import AsyncHTTPHandler, HTTPHandler
 from token_iq.gateway.utils import (
@@ -75,7 +75,7 @@ class BaseLLMRerankTest(ABC):
         pass
 
     @abstractmethod
-    def get_custom_llm_provider(self) -> litellm.LlmProviders:
+    def get_custom_llm_provider(self) -> gateway.LlmProviders:
         """Must return the custom llm provider"""
         pass
 
@@ -90,13 +90,13 @@ class BaseLLMRerankTest(ABC):
     @pytest.mark.asyncio()
     @pytest.mark.parametrize("sync_mode", [True, False])
     async def test_basic_rerank(self, sync_mode):
-        litellm._turn_on_debug()
+        gateway._turn_on_debug()
         os.environ["LITELLM_LOCAL_MODEL_COST_MAP"] = "True"
-        litellm.model_cost = litellm.get_model_cost_map()
+        gateway.model_cost = gateway.get_model_cost_map()
         rerank_call_args = self.get_base_rerank_call_args()
         custom_llm_provider = self.get_custom_llm_provider()
         if sync_mode is True:
-            response = litellm.rerank(
+            response = gateway.rerank(
                 **rerank_call_args,
                 query="hello",
                 documents=["hello", "world"],
@@ -126,7 +126,7 @@ class BaseLLMRerankTest(ABC):
                 response=response, custom_llm_provider=custom_llm_provider.value
             )
         else:
-            response = await litellm.arerank(
+            response = await gateway.arerank(
                 **rerank_call_args,
                 query="hello",
                 documents=["hello", "world"],

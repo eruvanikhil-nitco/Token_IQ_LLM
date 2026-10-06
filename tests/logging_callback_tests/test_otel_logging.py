@@ -4,7 +4,7 @@ from unittest.mock import AsyncMock
 
 
 import pytest
-from token_iq import gateway as litellm
+from token_iq import gateway
 import asyncio
 import logging
 from opentelemetry import trace
@@ -35,14 +35,14 @@ exporter = InMemorySpanExporter()
 @pytest.mark.asyncio
 @pytest.mark.parametrize("streaming", [True, False])
 async def test_async_otel_callback(streaming):
-    litellm.set_verbose = True
+    gateway.set_verbose = True
 
     # Clear exporter at the start to ensure clean state
     exporter.clear()
 
-    litellm.callbacks = [OpenTelemetry(config=OpenTelemetryConfig(exporter=exporter))]
+    gateway.callbacks = [OpenTelemetry(config=OpenTelemetryConfig(exporter=exporter))]
 
-    response = await litellm.acompletion(
+    response = await gateway.acompletion(
         model="gpt-4.1-mini",
         messages=[{"role": "user", "content": "hi"}],
         temperature=0.1,
@@ -160,26 +160,26 @@ async def test_awesome_otel_with_message_logging_off(streaming, global_redact):
     tests when litellm.turn_off_message_logging is set to True
     tests when OpenTelemetry(message_logging=False) is set
     """
-    litellm.set_verbose = True
+    gateway.set_verbose = True
 
     # Clear exporter at the start to ensure clean state
     exporter.clear()
 
-    litellm.callbacks = [OpenTelemetry(config=OpenTelemetryConfig(exporter=exporter))]
+    gateway.callbacks = [OpenTelemetry(config=OpenTelemetryConfig(exporter=exporter))]
     if global_redact is False:
         otel_logger = OpenTelemetry(
             message_logging=False, config=OpenTelemetryConfig(exporter="console")
         )
     else:
         # use global redaction
-        litellm.turn_off_message_logging = True
+        gateway.turn_off_message_logging = True
         otel_logger = OpenTelemetry(config=OpenTelemetryConfig(exporter="console"))
 
-    litellm.callbacks = [otel_logger]
-    litellm.success_callback = []
-    litellm.failure_callback = []
+    gateway.callbacks = [otel_logger]
+    gateway.success_callback = []
+    gateway.failure_callback = []
 
-    response = await litellm.acompletion(
+    response = await gateway.acompletion(
         model="gpt-4.1-mini",
         messages=[{"role": "user", "content": "hi"}],
         mock_response="hi",
@@ -205,7 +205,7 @@ async def test_awesome_otel_with_message_logging_off(streaming, global_redact):
     exporter.clear()
 
     if global_redact is True:
-        litellm.turn_off_message_logging = False
+        gateway.turn_off_message_logging = False
 
 
 def validate_redacted_message_span_attributes(span):
@@ -272,7 +272,7 @@ async def test_arize_phoenix_creates_nested_spans_on_dedicated_provider():
 
     phoenix_exporter = InMemorySpanExporter()
 
-    litellm.logging_callback_manager._reset_all_callbacks()
+    gateway.logging_callback_manager._reset_all_callbacks()
 
     # ArizePhoenixLogger builds its own TracerProvider internally.
     # We pass our in-memory exporter so we can inspect spans.
@@ -281,13 +281,13 @@ async def test_arize_phoenix_creates_nested_spans_on_dedicated_provider():
         callback_name="arize_phoenix",
     )
 
-    litellm.callbacks = [phoenix_logger]
-    litellm.success_callback = []
-    litellm.failure_callback = []
+    gateway.callbacks = [phoenix_logger]
+    gateway.success_callback = []
+    gateway.failure_callback = []
 
     # Simulate a proxy request by injecting proxy_server_request as a top-level kwarg.
     # This triggers ArizePhoenixLogger._get_phoenix_context to create its own parent span.
-    await litellm.acompletion(
+    await gateway.acompletion(
         model="gpt-4.1-mini",
         messages=[{"role": "user", "content": "ping"}],
         mock_response="pong",

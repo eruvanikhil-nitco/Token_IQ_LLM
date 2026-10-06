@@ -16,7 +16,7 @@ from typing import Final, Literal
 import httpx
 from fastapi import HTTPException
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.integrations.custom_guardrail import (
     CustomGuardrail,
@@ -141,7 +141,7 @@ class lakeraAI_Moderation(CustomGuardrail):
         text = ""
         _json_data: str = ""
         if "messages" in data and isinstance(data["messages"], list):
-            prompt_injection_obj: GuardrailItem | None = litellm.guardrail_name_config_map.get("prompt_injection")
+            prompt_injection_obj: GuardrailItem | None = gateway.guardrail_name_config_map.get("prompt_injection")
             if prompt_injection_obj is not None:
                 enabled_roles = prompt_injection_obj.enabled_roles
             else:
@@ -183,7 +183,7 @@ class lakeraAI_Moderation(CustomGuardrail):
             # If the user has elected not to send system role messages to lakera, then skip.
 
             if system_message is not None:
-                if not litellm.add_function_to_prompt:
+                if not gateway.add_function_to_prompt:
                     content = system_message.get("content")
                     function_input: Final = []
                     for tool_call in tool_call_messages:
@@ -287,7 +287,7 @@ class lakeraAI_Moderation(CustomGuardrail):
     async def async_pre_call_hook(
         self,
         user_api_key_dict: UserAPIKeyAuth,
-        cache: litellm.DualCache,
+        cache: gateway.DualCache,
         data: dict,
         call_type: Literal[
             "completion",

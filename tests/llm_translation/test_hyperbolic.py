@@ -5,7 +5,7 @@ from unittest.mock import MagicMock
 import pytest
 
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway import get_llm_provider
 
 
@@ -19,8 +19,8 @@ def test_get_llm_provider_hyperbolic():
 def test_hyperbolic_completion_call():
     """Test basic completion call structure for Hyperbolic"""
     # This is primarily a structure test since we don't have actual API keys
-    litellm.set_verbose = True
-    response = litellm.completion(
+    gateway.set_verbose = True
+    response = gateway.completion(
         model="hyperbolic/qwen-2.5-72b",
         messages=[{"role": "user", "content": "Hello!"}],
         mock_response="Hi there!",

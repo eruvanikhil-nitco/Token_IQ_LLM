@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from types import MappingProxyType
 from typing import Final
 
-from token_iq import gateway as litellm
+from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.caching.caching import DualCache
 from token_iq.gateway.integrations.custom_logger import Span
@@ -160,7 +160,7 @@ def _bedrock_candidates(model: str) -> tuple[str, ...]:
     of those would produce a garbage candidate.
     """
     base_model: Final = get_bedrock_base_model(model)
-    cost_entry: Final = litellm.model_cost.get(base_model)
+    cost_entry: Final = gateway.model_cost.get(base_model)
     if not isinstance(cost_entry, dict) or not str(cost_entry.get("litellm_provider", "")).startswith("bedrock"):
         return ()
     _, _, without_vendor = base_model.partition(".")
@@ -302,7 +302,7 @@ class _PROXY_VirtualKeyModelMaxBudgetLimiter(RouterBudgetLimiting):
             try:
                 await self.is_key_within_model_budget(user_api_key_dict=user_api_key_dict, model=fallback_model)
                 return fallback_model
-            except litellm.BudgetExceededError:
+            except gateway.BudgetExceededError:
                 continue
         return None
 
@@ -372,7 +372,7 @@ class _PROXY_VirtualKeyModelMaxBudgetLimiter(RouterBudgetLimiting):
             resolved=resolved,
         )
         if current_spend >= max_budget:
-            raise litellm.BudgetExceededError(
+            raise gateway.BudgetExceededError(
                 message=exceeded_message,
                 current_cost=current_spend,
                 max_budget=max_budget,

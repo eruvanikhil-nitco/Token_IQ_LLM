@@ -65,7 +65,7 @@ def embedding_score_messages(
     Returns:
         List of float scores (cosine similarity), one per message.
     """
-    from token_iq import gateway as litellm
+    from token_iq import gateway
 
     texts: Final = [_truncate_text(query)]
     for msg in messages:
@@ -82,7 +82,7 @@ def embedding_score_messages(
     if embedding_model_params:
         kwargs = {**kwargs, **embedding_model_params}
 
-    response: Final = litellm.embedding(**kwargs)
+    response: Final = gateway.embedding(**kwargs)
 
     # Extract embedding vectors
     embeddings: Final = [item["embedding"] for item in response.data]
