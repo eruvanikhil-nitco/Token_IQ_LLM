@@ -162,3 +162,99 @@ def test_the_warning_goes_through_the_engines_logger_when_it_is_ready() -> None:
 
     assert len(said) == 1
     assert "LITELLM_SALT_KEY" in said[0]
+
+
+# --- config keys ---------------------------------------------------------------------------------
+
+
+def test_a_config_using_the_new_key_names_is_understood() -> None:
+    """The point of the phase. A customer who has migrated their file gets the same proxy."""
+    found = compat.config({"gateway_settings": {"drop_params": True}}, warn=lambda _m: None)
+
+    assert found == {"litellm_settings": {"drop_params": True}}
+
+
+def test_a_config_using_the_old_key_names_still_works() -> None:
+    """The other point. A customer who has not touched their file gets the same proxy too."""
+    found = compat.config({"litellm_settings": {"drop_params": True}}, warn=lambda _m: None)
+
+    assert found == {"litellm_settings": {"drop_params": True}}
+
+
+def test_the_model_block_is_found_inside_the_model_list() -> None:
+    """`litellm_params` sits one level down inside each entry, and a customer may have a hundred of
+    them. Normalising only the top level would leave every model unconfigured."""
+    loaded = {"model_list": [{"model_name": "gpt-4o", "model_params": {"model": "openai/gpt-4o"}}]}
+
+    found = compat.config(loaded, warn=lambda _m: None)
+
+    assert found == {"model_list": [{"model_name": "gpt-4o", "litellm_params": {"model": "openai/gpt-4o"}}]}
+
+
+def test_a_key_nested_arbitrarily_deep_is_still_found() -> None:
+    """A customer's file nests as far as they like, and a renamed key is renamed wherever it is."""
+    loaded = {"a": {"b": [{"c": {"model_params": {"model": "x"}}}]}}
+
+    found = compat.config(loaded, warn=lambda _m: None)
+
+    assert found == {"a": {"b": [{"c": {"litellm_params": {"model": "x"}}}]}}
+
+
+def test_using_an_old_key_says_what_to_change() -> None:
+    said: list[str] = []  # rebind-ok: a spy recording what was said
+
+    _ = compat.config({"litellm_settings": {}}, warn=said.append)
+
+    assert len(said) == 1
+    assert "litellm_settings" in said[0]
+    assert "gateway_settings" in said[0]
+
+
+def test_using_a_new_key_says_nothing() -> None:
+    said: list[str] = []  # rebind-ok: a spy recording what was said
+
+    _ = compat.config({"gateway_settings": {}}, warn=said.append)
+
+    assert said == []
+
+
+def test_the_warning_fires_once_however_many_models_use_the_old_name() -> None:
+    """A file with fifty models would otherwise print fifty identical lines."""
+    said: list[str] = []  # rebind-ok: a spy recording what was said
+    loaded = {"model_list": [{"litellm_params": {"model": f"m{n}"}} for n in range(50)]}
+
+    _ = compat.config(loaded, warn=said.append)
+
+    assert len(said) == 1
+
+
+def test_everything_else_in_the_config_is_passed_through_unchanged() -> None:
+    """A renamed key is two keys out of a file that holds a customer's whole deployment."""
+    loaded = {
+        "general_settings": {"master_key": "sk-x"},
+        "router_settings": {"routing_strategy": "simple-shuffle"},
+        "environment_variables": {"OPENAI_API_KEY": "sk-y"},
+    }
+
+    assert compat.config(loaded, warn=lambda _m: None) == loaded
+
+
+def test_a_value_that_merely_reads_like_a_key_is_untouched() -> None:
+    """Only a key is renamed. `litellm_params` as somebody's model name or tag is their data."""
+    loaded = {"general_settings": {"note": "litellm_params", "tags": ["litellm_settings"]}}
+
+    assert compat.config(loaded, warn=lambda _m: None) == loaded
+
+
+def test_an_empty_config_is_returned_as_one() -> None:
+    assert compat.config({}, warn=lambda _m: None) == {}
+
+
+def test_the_result_is_a_plain_dict_the_proxy_can_edit() -> None:
+    """`get_config` is annotated to return one, its caller rebinds it, and the printed copy has a key
+    popped out of it. A read-only view here would be a change to all of them."""
+    found = compat.config({"model_list": [{"model_params": {}}]}, warn=lambda _m: None)
+
+    found["general_settings"] = {}
+    assert isinstance(found["model_list"], list)
+    found["model_list"].append({})

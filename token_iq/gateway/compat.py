@@ -18,7 +18,8 @@ from __future__ import annotations
 import functools
 import os
 import warnings
-from collections.abc import Callable, Mapping
+from collections.abc import Callable, Mapping, Sequence
+from types import MappingProxyType
 from typing import Final
 
 OLD_PREFIX: Final = "LITELLM_"
@@ -99,3 +100,73 @@ def env(
 def forget_warnings() -> None:
     """Let a test see the first warning again. Nothing in the engine calls this."""
     _warn_once.cache_clear()
+
+
+CONFIG_KEYS: Final[Mapping[str, str]] = MappingProxyType(
+    {
+        # What a config.yaml may now say, and the spelling the engine reads it as. Normalising towards
+        # the old name rather than the new one is deliberate: 1,647 places in the engine read
+        # `litellm_params` as a Python keyword argument or attribute, and renaming those is a separate
+        # piece of work from accepting both spellings in a customer's file. A reader of this release sees
+        # the new names in their config and the old ones in the code, which is what a transition means.
+        "gateway_settings": "litellm_settings",
+        "model_params": "litellm_params",
+    }
+)
+
+RENAMED_CONFIG_KEYS: Final[Mapping[str, str]] = MappingProxyType({old: new for new, old in CONFIG_KEYS.items()})
+"""The other way round, for saying what to change."""
+
+
+def _config_value(value: object, say: Callable[[str], None]) -> object:
+    """One value from a config, with every renamed key inside it normalised."""
+    if isinstance(value, Mapping):
+        mapping: Final[Mapping[object, object]] = value  # pyright: ignore[reportUnknownVariableType]  # YAML data
+        # A dict, for the same reason the list below stays a list: this is a customer's own data on its
+        # way through, and the proxy edits the config it is handed.
+        return {  # mutable-ok: see above
+            _config_key(key, say) if isinstance(key, str) else key: _config_value(inner, say)
+            for key, inner in mapping.items()
+        }
+    if isinstance(value, (list, tuple)):
+        items: Final[Sequence[object]] = value  # pyright: ignore[reportUnknownVariableType]  # YAML data
+        # A list, not a tuple: a customer's `model_list` is a list in their file and the proxy treats it
+        # as one. Freezing it here would change the type of their own data on the way through.
+        # The suppressions below are on the element type, not the call: narrowing YAML data with
+        # `isinstance` leaves the elements unknown, and the parameter is already as wide as `object` gets.
+        return [  # mutable-ok: see above
+            _config_value(item, say)  # pyright: ignore[reportUnknownArgumentType]  # YAML elements
+            for item in items  # pyright: ignore[reportUnknownVariableType]  # same
+        ]
+    return value
+
+
+def _config_key(key: str, say: Callable[[str], None]) -> str:
+    """The spelling the engine reads, and a word about it the first time an old one is seen."""
+    if key in CONFIG_KEYS:
+        return CONFIG_KEYS[key]
+    if key in RENAMED_CONFIG_KEYS:
+        _warn_once(key, RENAMED_CONFIG_KEYS[key], say)
+    return key
+
+
+def config(
+    loaded: Mapping[str, object], *, warn: Callable[[str], None] | None = None
+) -> dict[str, object]:  # mutable-ok: the loaded config is a document the proxy edits in place
+    """A loaded config with both spellings of every renamed key accepted.
+
+    Applied where a config comes out of `ProxyConfig.get_config`, which is the one place every source
+    passes through: a file, the database, GCS and S3 all end up there. Doing it per reader instead would
+    mean finding all of them, and the ones under `model_list` are nested inside a customer's own data.
+
+    Walks the whole structure rather than only the top level, because `litellm_params` sits inside each
+    entry of `model_list` and a customer may have a hundred of those.
+
+    Returns a plain dict because that is what every caller already has: `get_config` is annotated to
+    return one, `_check_for_os_environ_vars` rebinds it, and the printed copy has a key popped out of it.
+    A read-only view here would be a change to all of them rather than a compatibility shim.
+    """
+    said: Final = warn or _say
+    return {  # mutable-ok: see the return type
+        _config_key(key, said): _config_value(value, said) for key, value in loaded.items()
+    }

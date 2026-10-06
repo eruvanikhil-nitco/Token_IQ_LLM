@@ -4865,6 +4865,10 @@ class ProxyConfig:
 
         config = self._check_for_os_environ_vars(config=config)
 
+        # Both spellings of the renamed keys, settled here because this is the one place every source
+        # passes through: a file, the database, GCS and S3 all end up on this line.
+        config = compat.config(config)
+
         self.update_config_state(config=config)
 
         return config
