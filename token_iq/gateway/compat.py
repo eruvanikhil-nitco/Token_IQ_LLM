@@ -47,13 +47,11 @@ def _say(message: str) -> None:
     try:
         from token_iq.gateway._logging import verbose_logger
     except ImportError:
+        # Part-way through importing `_logging`: the module object is in sys.modules but the name is not
+        # bound yet, which `from ... import` reports as an ImportError rather than an AttributeError.
         warnings.warn(message, DeprecationWarning, stacklevel=2)
         return
-    logger: Final = getattr(verbose_logger, "warning", None)
-    if logger is None:
-        warnings.warn(message, DeprecationWarning, stacklevel=2)
-        return
-    logger(message)
+    verbose_logger.warning(message)
 
 
 @functools.cache
