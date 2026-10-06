@@ -104,9 +104,11 @@ def written_as_strings(paths: Iterable[pathlib.Path], wanted: frozenset[str]) ->
 def python_names(paths: Iterable[pathlib.Path], wanted: frozenset[str]) -> frozenset[str]:
     """Names that are written as a Python identifier somewhere, in any of the positions one can take.
 
-    A row that never appears here belongs to the dashboard rather than to the engine, and the pass that
-    renames Python cannot touch it: `getGlobalLitellmHeaderName` is a TypeScript function with 108 uses.
-    Saying so is better than listing it as this phase's and renaming nothing.
+    A row that never appears here is not Python's to rename. 746 rows are that, and they are not all the
+    dashboard's: 292 are in the Go of the Terraform provider, 97 in documentation, 78 in JSON, 34 in CI
+    config, and 97 in TypeScript, while 383 do appear in a `.py` file and only ever inside a string, a
+    docstring or a comment. `getGlobalLitellmHeaderName` has 108 uses and not one of them is Python.
+    Saying so is better than listing them as this phase's and renaming nothing.
     """
     found: set[str] = set()  # rebind-ok: a tally built by scanning
 
@@ -220,7 +222,7 @@ def decide(
 
     def verdict(name: str) -> tuple[str, str]:
         if name not in in_python:
-            return "deferred", "not a Python name here, so the dashboard's own and the UI work renames it"
+            return "deferred", "not a Python identifier here, so a pass over Python cannot rename it"
         if name in modules:
             return "deferred", "a module or package name, so renaming it moves a file"
         if name in fields:

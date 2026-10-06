@@ -218,7 +218,7 @@ def test_a_name_that_is_not_a_python_name_is_deferred() -> None:
     call, because = verdict_for("getGlobalLitellmHeaderName", in_python=EMPTY)
 
     assert call == "deferred"
-    assert "the UI work renames it" in because
+    assert "a pass over Python cannot rename it" in because
 
 
 def test_a_class_written_as_a_string_is_still_this_phases() -> None:
