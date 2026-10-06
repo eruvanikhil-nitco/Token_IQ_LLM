@@ -1,7 +1,8 @@
-import os
 from typing import Final
 
 import httpx
+
+from token_iq.gateway import compat
 
 try:
     from token_iq.gateway._version import version
@@ -16,7 +17,7 @@ def get_default_headers() -> dict:
     - Default: `User-Agent: litellm/{version}`
     - Override: set `LITELLM_USER_AGENT` to fully override the header value.
     """
-    user_agent: Final = os.environ.get("LITELLM_USER_AGENT")
+    user_agent: Final = compat.env("TOKEN_IQ_USER_AGENT")
     if user_agent is not None:
         return {"User-Agent": user_agent}
 

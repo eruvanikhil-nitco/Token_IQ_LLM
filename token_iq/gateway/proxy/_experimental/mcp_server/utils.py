@@ -13,6 +13,7 @@ from collections.abc import Set as AbstractSet
 from typing import Any, Final, Protocol
 from urllib.parse import quote
 
+from token_iq.gateway import compat
 from token_iq.gateway.types.mcp_server.mcp_server_manager import MCPServer
 
 if typing.TYPE_CHECKING:
@@ -47,9 +48,9 @@ class McpServerPayloadLike(Protocol):
 # module is reloaded (e.g. ``importlib.reload``). Tests that override these
 # variables must reload this module — see
 # ``tests/gateway/proxy/_experimental/mcp_server/test_mcp_server_identity_env.py``.
-LITELLM_MCP_SERVER_NAME: Final = os.environ.get("LITELLM_MCP_SERVER_NAME", "litellm-mcp-server")
+LITELLM_MCP_SERVER_NAME: Final = compat.env("TOKEN_IQ_MCP_SERVER_NAME", "litellm-mcp-server")
 LITELLM_MCP_SERVER_VERSION: Final = "1.0.0"
-LITELLM_MCP_SERVER_DESCRIPTION: Final = os.environ.get("LITELLM_MCP_SERVER_DESCRIPTION", "MCP Server for LiteLLM")
+LITELLM_MCP_SERVER_DESCRIPTION: Final = compat.env("TOKEN_IQ_MCP_SERVER_DESCRIPTION", "MCP Server for LiteLLM")
 MCP_TOOL_PREFIX_SEPARATOR: Final = os.environ.get("MCP_TOOL_PREFIX_SEPARATOR", "-")
 MCP_TOOL_PREFIX_FORMAT: Final = "{server_name}{separator}{tool_name}"
 
@@ -100,7 +101,7 @@ def is_short_mcp_tool_prefix_enabled() -> bool:
     Read at call time (not import time) so tests and runtime config changes
     take effect without reimporting the module.
     """
-    raw: Final = os.environ.get("LITELLM_USE_SHORT_MCP_TOOL_PREFIX", "")
+    raw: Final = compat.env("TOKEN_IQ_USE_SHORT_MCP_TOOL_PREFIX", "")
     return raw.strip().lower() in ("1", "true", "yes", "on")
 
 

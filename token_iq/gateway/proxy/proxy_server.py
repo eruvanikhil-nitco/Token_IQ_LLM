@@ -42,6 +42,7 @@ import websockets.exceptions
 from pydantic import BaseModel, Json, JsonValue, TypeAdapter, ValidationError
 from typing_extensions import NotRequired, ReadOnly, assert_never
 
+from token_iq.gateway import compat
 from token_iq.gateway._uuid import uuid
 from token_iq.gateway.constants import (
     AIOHTTP_CONNECTOR_LIMIT,
@@ -674,7 +675,12 @@ from token_iq.gateway.types.secret_managers.main import (
     KeyManagementSettings,
     KeyManagementSystem,
 )
-from token_iq.gateway.types.utils import CredentialItem, CustomHuggingfaceTokenizer, RawRequestTypedDict, StandardLoggingPayload
+from token_iq.gateway.types.utils import (
+    CredentialItem,
+    CustomHuggingfaceTokenizer,
+    RawRequestTypedDict,
+    StandardLoggingPayload,
+)
 from token_iq.gateway.types.utils import ModelInfo as ModelMapInfo
 from token_iq.gateway.utils import _add_custom_logger_callback_to_specific_event
 from token_iq.api.attribution import router as attribution_router
@@ -772,7 +778,7 @@ except ImportError:
 server_root_path: Final = get_server_root_path()
 token_iq_plan: TokenIqPlan = require_plan(os.environ)
 premium_user: bool = token_iq_plan.unlocks_gated_features
-global_max_parallel_request_retries_env: Final[str | None] = os.getenv("LITELLM_GLOBAL_MAX_PARALLEL_REQUEST_RETRIES")
+global_max_parallel_request_retries_env: Final[str | None] = compat.env("TOKEN_IQ_GLOBAL_MAX_PARALLEL_REQUEST_RETRIES")
 proxy_state: Final = ProxyState()
 SENSITIVE_DATA_MASKER: Final = SensitiveDataMasker()
 
@@ -817,8 +823,8 @@ if global_max_parallel_request_retries_env is None:
 else:
     global_max_parallel_request_retries = int(global_max_parallel_request_retries_env)
 
-global_max_parallel_request_retry_timeout_env: Final[str | None] = os.getenv(
-    "LITELLM_GLOBAL_MAX_PARALLEL_REQUEST_RETRY_TIMEOUT"
+global_max_parallel_request_retry_timeout_env: Final[str | None] = compat.env(
+    "TOKEN_IQ_GLOBAL_MAX_PARALLEL_REQUEST_RETRY_TIMEOUT"
 )
 if global_max_parallel_request_retry_timeout_env is None:
     global_max_parallel_request_retry_timeout: float = 60.0
@@ -1007,7 +1013,7 @@ async def proxy_startup_event(app: FastAPI) -> AsyncGenerator[None, None]:
     init_verbose_loggers()
 
     ## RUN WORKER STARTUP HOOKS (e.g., gflags initialization) ##
-    _startup_hooks_env: Final = os.environ.get("LITELLM_WORKER_STARTUP_HOOKS", "")
+    _startup_hooks_env: Final = compat.env("TOKEN_IQ_WORKER_STARTUP_HOOKS", "")
     if _startup_hooks_env:
         for _hook_spec in _startup_hooks_env.split(","):
             _hook_spec = _hook_spec.strip()
@@ -1035,7 +1041,7 @@ async def proxy_startup_event(app: FastAPI) -> AsyncGenerator[None, None]:
     premium_user = token_iq_plan.unlocks_gated_features
 
     ## CHECK MASTER KEY IN ENVIRONMENT ##
-    master_key = get_secret_str("LITELLM_MASTER_KEY")
+    master_key = get_secret_str("TOKEN_IQ_MASTER_KEY")
     ### LOAD CONFIG ###
     worker_config: str | dict | None = get_secret("WORKER_CONFIG")
     env_config_yaml: Final[str | None] = get_secret_str("CONFIG_FILE_PATH")
@@ -1055,7 +1061,7 @@ async def proxy_startup_event(app: FastAPI) -> AsyncGenerator[None, None]:
                 and os.path.isfile(worker_config)
                 and proxy_config.is_yaml(config_file_path=worker_config)
             )
-            or os.environ.get("LITELLM_CONFIG_BUCKET_NAME") is not None
+            or compat.env("TOKEN_IQ_CONFIG_BUCKET_NAME") is not None
             and isinstance(worker_config, str)
         ):
             (
@@ -1744,7 +1750,7 @@ def _get_cors_config(
     Returns:
         Tuple[List[str], bool]: (origins, allow_credentials)
     """
-    _origins_raw: Final = cors_origins_env if cors_origins_env is not None else os.getenv("LITELLM_CORS_ORIGINS")
+    _origins_raw: Final = cors_origins_env if cors_origins_env is not None else compat.env("TOKEN_IQ_CORS_ORIGINS")
     if _origins_raw is None or _origins_raw.strip() == "":
         computed_origins = ["*"]
     else:
@@ -1757,7 +1763,7 @@ def _get_cors_config(
     # (e.g. for non-browser clients that relied on the Access-Control-Allow-Credentials
     # header being present regardless of origin).
     _credentials_raw: Final = (
-        cors_credentials_env if cors_credentials_env is not None else os.getenv("LITELLM_CORS_ALLOW_CREDENTIALS")
+        cors_credentials_env if cors_credentials_env is not None else compat.env("TOKEN_IQ_CORS_ALLOW_CREDENTIALS")
     )
     if _credentials_raw is not None:
         computed_credentials = _credentials_raw.strip().lower() == "true"
@@ -1877,7 +1883,7 @@ try:
     # Use a writable runtime UI directory whenever possible.
     # This prevents mutating the packaged UI directory (e.g. site-packages or the repo checkout)
     # and ensures extensionless routes like /ui/login work via <route>/index.html.
-    is_non_root: Final = os.getenv("LITELLM_NON_ROOT", "").lower() == "true"
+    is_non_root: Final = compat.env("TOKEN_IQ_NON_ROOT", "").lower() == "true"
 
     # Determine runtime UI path
     # Priority: LITELLM_UI_PATH env var > default path based on is_non_root
@@ -1886,7 +1892,7 @@ try:
     else:
         default_runtime_ui_path = packaged_ui_path
 
-    runtime_ui_path: Final = os.getenv("LITELLM_UI_PATH", default_runtime_ui_path)
+    runtime_ui_path: Final = compat.env("TOKEN_IQ_UI_PATH", default_runtime_ui_path)
 
     # Validate packaged UI before proceeding
     if not _validate_ui_directory(packaged_ui_path):
@@ -4826,10 +4832,10 @@ class ProxyConfig:
         global prisma_client, store_model_in_db
         # Load existing config
 
-        if os.environ.get("LITELLM_CONFIG_BUCKET_NAME") is not None:
-            bucket_name: Final = os.environ.get("LITELLM_CONFIG_BUCKET_NAME")
-            object_key: Final = os.environ.get("LITELLM_CONFIG_BUCKET_OBJECT_KEY")
-            bucket_type: Final = os.environ.get("LITELLM_CONFIG_BUCKET_TYPE")
+        if compat.env("TOKEN_IQ_CONFIG_BUCKET_NAME") is not None:
+            bucket_name: Final = compat.env("TOKEN_IQ_CONFIG_BUCKET_NAME")
+            object_key: Final = compat.env("TOKEN_IQ_CONFIG_BUCKET_OBJECT_KEY")
+            bucket_type: Final = compat.env("TOKEN_IQ_CONFIG_BUCKET_TYPE")
             verbose_proxy_logger.debug("bucket_name: %s, object_key: %s", bucket_name, object_key)
             if bucket_type == "gcs":
                 config = await get_config_file_contents_from_gcs(bucket_name=bucket_name, object_key=object_key)
@@ -5475,7 +5481,7 @@ class ProxyConfig:
                 database_url = get_secret(database_url)
                 verbose_proxy_logger.debug("Resolved database_url from secret manager")
             ### MASTER KEY ###
-            master_key = general_settings.get("master_key", get_secret("LITELLM_MASTER_KEY", None))
+            master_key = general_settings.get("master_key", get_secret("TOKEN_IQ_MASTER_KEY", None))
 
             if master_key and master_key.startswith("os.environ/"):
                 master_key = get_secret(master_key)
@@ -5651,7 +5657,6 @@ class ProxyConfig:
             ## check if user has set a premium feature in general_settings
             if general_settings.get("enforced_params") is not None and premium_user is not True:
                 raise ValueError("Trying to use `enforced_params`" + CommonProxyErrors.not_premium_user.value)
-
 
         router_params: Final[dict] = {
             "cache_responses": gateway.cache is not None,  # cache if user passed in cache values
@@ -7953,7 +7958,7 @@ async def initialize(
     from token_iq.gateway.proxy.common_utils.banner import show_banner
 
     show_banner()
-    if os.getenv("LITELLM_DONT_SHOW_FEEDBACK_BOX", "").lower() != "true":
+    if compat.env("TOKEN_IQ_DONT_SHOW_FEEDBACK_BOX", "").lower() != "true":
         generate_feedback_box()
     user_model = model
     user_debug = debug
@@ -7984,7 +7989,7 @@ async def initialize(
         verbose_proxy_logger.setLevel(level=logging.DEBUG)  # set proxy logs to debug
     elif debug is False and detailed_debug is False:
         # users can control proxy debugging using env variable = 'LITELLM_LOG'
-        gateway_log_setting: Final = os.environ.get("LITELLM_LOG", "")
+        gateway_log_setting: Final = compat.env("TOKEN_IQ_LOG", "")
         if gateway_log_setting is not None:
             if gateway_log_setting.upper() == "INFO":
                 import logging
@@ -10084,7 +10089,7 @@ class ProxyStartupEvent:
         Optional: PYROSCOPE_SAMPLE_RATE (parsed as integer) to set the sample rate.
         Optional: PYROSCOPE_GRAFANA_USER and PYROSCOPE_GRAFANA_API_TOKEN for Grafana Cloud basic auth.
         """
-        if not get_secret_bool("LITELLM_ENABLE_PYROSCOPE", False):
+        if not get_secret_bool("TOKEN_IQ_ENABLE_PYROSCOPE", False):
             verbose_proxy_logger.debug(
                 "LiteLLM: Pyroscope profiling is disabled (set LITELLM_ENABLE_PYROSCOPE=true to enable)."
             )
@@ -10105,8 +10110,8 @@ class ProxyStartupEvent:
                     "Set PYROSCOPE_SERVER_ADDRESS when enabling Pyroscope."
                 )
             tags: Final = {}
-            env_name: Final = os.getenv("OTEL_ENVIRONMENT_NAME") or os.getenv(
-                "LITELLM_DEPLOYMENT_ENVIRONMENT",
+            env_name: Final = os.getenv("OTEL_ENVIRONMENT_NAME") or compat.env(
+                "TOKEN_IQ_DEPLOYMENT_ENVIRONMENT",
             )
             if env_name:
                 tags["environment"] = env_name
@@ -15287,7 +15292,7 @@ async def fallback_login(request: Request):
     from fastapi.responses import HTMLResponse
 
     hide_default_credentials_hint: Final = (
-        os.getenv("LITELLM_HIDE_DEFAULT_CREDENTIALS_HINT", "false").lower() == "true"
+        compat.env("TOKEN_IQ_HIDE_DEFAULT_CREDENTIALS_HINT", "false").lower() == "true"
         or general_settings.get("hide_default_credentials_hint", False) is True
     )
     return HTMLResponse(
@@ -15957,12 +15962,12 @@ async def get_image(theme: Literal["light", "dark"] | None = None):
     )
     default_logo_filename: Final = os.path.basename(default_site_logo)
 
-    is_non_root: Final = os.getenv("LITELLM_NON_ROOT", "").lower() == "true"
+    is_non_root: Final = compat.env("TOKEN_IQ_NON_ROOT", "").lower() == "true"
 
     # Determine assets directory
     # Priority: LITELLM_ASSETS_PATH env var > default based on is_non_root
     default_assets_dir: Final = "/var/lib/litellm/assets" if is_non_root else current_dir
-    assets_dir = os.getenv("LITELLM_ASSETS_PATH", default_assets_dir)
+    assets_dir = compat.env("TOKEN_IQ_ASSETS_PATH", default_assets_dir)
 
     # Try to create assets_dir if it doesn't exist (simple try/except approach)
     if not os.path.exists(assets_dir):
@@ -16025,7 +16030,7 @@ async def get_favicon():
     current_dir: Final = os.path.dirname(os.path.abspath(__file__))
     default_favicon: Final = os.path.join(current_dir, "_experimental", "out", "favicon.ico")
 
-    favicon_url: Final = os.getenv("LITELLM_FAVICON_URL", "")
+    favicon_url: Final = compat.env("TOKEN_IQ_FAVICON_URL", "")
 
     if not favicon_url:
         if os.path.exists(default_favicon):

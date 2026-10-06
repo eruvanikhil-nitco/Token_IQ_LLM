@@ -38,8 +38,8 @@ class GatewayProxyChatConfig(OpenAIGPTConfig):
     def _get_openai_compatible_provider_info(
         self, api_base: str | None, api_key: str | None
     ) -> tuple[str | None, str | None]:
-        api_base = api_base or get_secret_str("LITELLM_PROXY_API_BASE")
-        dynamic_api_key: Final = api_key or get_secret_str("LITELLM_PROXY_API_KEY")
+        api_base = api_base or get_secret_str("TOKEN_IQ_PROXY_API_BASE")
+        dynamic_api_key: Final = api_key or get_secret_str("TOKEN_IQ_PROXY_API_KEY")
         return api_base, dynamic_api_key
 
     def get_models(self, api_key: str | None = None, api_base: str | None = None) -> list[str]:
@@ -51,7 +51,7 @@ class GatewayProxyChatConfig(OpenAIGPTConfig):
 
     @staticmethod
     def get_api_key(api_key: str | None = None) -> str | None:
-        return api_key or get_secret_str("LITELLM_PROXY_API_KEY")
+        return api_key or get_secret_str("TOKEN_IQ_PROXY_API_KEY")
 
     @staticmethod
     def _should_use_gateway_proxy_by_default(

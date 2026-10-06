@@ -1,12 +1,12 @@
 import contextvars
 import copy
 import hashlib
-import os
 import secrets
 from collections.abc import Mapping
 from datetime import datetime
 from typing import TYPE_CHECKING, Any, ClassVar, Final, Literal, Optional, get_args
 
+from token_iq.gateway import compat
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.caching import DualCache
 from token_iq.gateway.integrations.custom_logger import CustomLogger
@@ -116,7 +116,7 @@ def _strict_guardrail_modes_enabled() -> bool:
     for guardrails whose supported_event_hooks list newly includes their
     configured mode: log the mismatch and continue instead of raising at boot.
     """
-    raw: Final = os.environ.get("LITELLM_STRICT_GUARDRAIL_MODES")
+    raw: Final = compat.env("TOKEN_IQ_STRICT_GUARDRAIL_MODES")
     if raw is None:
         return True
     parsed: Final = str_to_bool(raw)

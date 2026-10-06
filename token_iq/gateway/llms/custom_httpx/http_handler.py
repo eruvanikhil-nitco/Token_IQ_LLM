@@ -20,6 +20,7 @@ from httpx._types import CertTypes, RequestFiles
 from httpx._utils import get_environment_proxies
 
 from token_iq import gateway
+from token_iq.gateway import compat
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.constants import (
     _DEFAULT_TTL_FOR_HTTPX_CLIENTS,
@@ -138,7 +139,7 @@ def get_default_headers() -> dict:
     - Default: `User-Agent: litellm/{version}`
     - Override: set `LITELLM_USER_AGENT` to fully override the header value.
     """
-    user_agent: Final = os.environ.get("LITELLM_USER_AGENT")
+    user_agent: Final = compat.env("TOKEN_IQ_USER_AGENT")
     if user_agent is not None:
         return {"User-Agent": user_agent}
 

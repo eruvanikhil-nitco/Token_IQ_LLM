@@ -10,9 +10,9 @@ this hook manages:
 Works across multiple proxy instances via DualCache (in-memory + Redis).
 """
 
-import os
 from typing import TYPE_CHECKING, Any, Final
 
+from token_iq.gateway import compat
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.caching.caching import DualCache
 from token_iq.gateway.integrations.custom_guardrail import get_session_id_from_request_data
@@ -43,8 +43,8 @@ class _PROXY_SensitiveDataRoutingHandler(CustomLogger):
     def __init__(self, internal_usage_cache: InternalUsageCache):
         self.internal_usage_cache = internal_usage_cache
         self.ttl = int(
-            os.getenv(
-                "LITELLM_SENSITIVE_ROUTING_TTL",
+            compat.env(
+                "TOKEN_IQ_SENSITIVE_ROUTING_TTL",
                 str(DEFAULT_SENSITIVE_ROUTING_TTL),
             )
         )

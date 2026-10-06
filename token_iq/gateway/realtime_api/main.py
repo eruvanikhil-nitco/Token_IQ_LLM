@@ -1,12 +1,12 @@
 """Abstraction function for OpenAI's realtime API"""
 
 import asyncio
-import os
 from collections.abc import Mapping
 from types import MappingProxyType
 from typing import Any, Final, Literal, cast
 
 from token_iq import gateway
+from token_iq.gateway import compat
 from token_iq.gateway.constants import (
     REALTIME_CREDENTIAL_RESOLUTION_TIMEOUT_SECONDS,
     REALTIME_WEBSOCKET_MAX_MESSAGE_SIZE_BYTES,
@@ -410,7 +410,7 @@ async def _arealtime(
         realtime_protocol = (
             kwargs.get("realtime_protocol")
             or litellm_params.get("realtime_protocol")
-            or os.environ.get("LITELLM_AZURE_REALTIME_PROTOCOL")
+            or compat.env("TOKEN_IQ_AZURE_REALTIME_PROTOCOL")
         )
         if realtime_protocol is None and (query_params or {}).get("intent") == "transcription":
             realtime_protocol = "GA"
@@ -575,7 +575,7 @@ def _azure_realtime_health_protocol(
 ) -> tuple[str, RealtimeQueryParams | None]:
     query_params: Final = _TRANSCRIPTION_QUERY_PARAMS if _is_transcription_only_realtime_model(model, "azure") else None
     configured_raw: Final = (
-        realtime_protocol or model_params.get("realtime_protocol") or os.environ.get("LITELLM_AZURE_REALTIME_PROTOCOL")
+        realtime_protocol or model_params.get("realtime_protocol") or compat.env("TOKEN_IQ_AZURE_REALTIME_PROTOCOL")
     )
     configured: Final = configured_raw if isinstance(configured_raw, str) else None
     if configured is not None:

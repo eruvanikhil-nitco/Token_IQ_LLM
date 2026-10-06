@@ -21,6 +21,7 @@ from typing import TYPE_CHECKING, Any, ClassVar, Final, Literal, Optional, Proto
 
 from typing_extensions import ReadOnly, TypedDict
 
+from token_iq.gateway import compat
 from token_iq.gateway import _custom_logger_compatible_callbacks_literal
 from token_iq.gateway.constants import (
     DEFAULT_MODEL_CREATED_AT_TIME,
@@ -694,7 +695,6 @@ class ProxyLogging:
         )  # INITIALIZE LITELLM CALLBACKS ON SERVER STARTUP <- do this to catch any logging errors on startup, not when calls are being made
 
         assert_passthrough_body_fidelity(self.get_proxy_hook("managed_files"))
-
 
         if (
             self.slack_alerting_instance is not None
@@ -3384,7 +3384,7 @@ async def _lookup_deprecated_key(
 
 # DualCache for LiteLLM_Config param_name reads.
 # Redis layer is attached in proxy_server._init_cache.
-LITELLM_CONFIG_CACHE_TTL_SECONDS: Final[int] = int(os.environ.get("LITELLM_CONFIG_PARAM_CACHE_TTL_SECONDS", "60"))
+LITELLM_CONFIG_CACHE_TTL_SECONDS: Final[int] = int(compat.env("TOKEN_IQ_CONFIG_PARAM_CACHE_TTL_SECONDS", "60"))
 _CONFIG_CACHE_MISS: Final[str] = "__litellm_config_param_miss__"
 
 litellm_config_cache: Final[DualCache] = DualCache(
@@ -7125,7 +7125,9 @@ def _premium_user_check(feature: str | None = None):
     from token_iq.gateway.proxy.proxy_server import premium_user
 
     detail_msg: Final = (
-        f"{feature}: {CommonProxyErrors.not_premium_user.value}" if feature else CommonProxyErrors.not_premium_user.value
+        f"{feature}: {CommonProxyErrors.not_premium_user.value}"
+        if feature
+        else CommonProxyErrors.not_premium_user.value
     )
 
     if not premium_user:

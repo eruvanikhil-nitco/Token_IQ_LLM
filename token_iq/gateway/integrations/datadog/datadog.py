@@ -26,6 +26,7 @@ import httpx
 from httpx import Response
 from typing_extensions import ReadOnly, TypedDict
 
+from token_iq.gateway import compat
 from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway._uuid import uuid
@@ -161,7 +162,7 @@ class DataDogLogger(
 
             # Configure DataDog endpoint (Agent or Direct API)
             # Prefer explicit kwargs, then fall back to env vars
-            resolved_agent_host: Final = dd_agent_host or os.getenv("LITELLM_DD_AGENT_HOST")
+            resolved_agent_host: Final = dd_agent_host or compat.env("TOKEN_IQ_DD_AGENT_HOST")
             if resolved_agent_host:
                 self._configure_dd_agent(
                     dd_agent_host=resolved_agent_host,
@@ -223,7 +224,7 @@ class DataDogLogger(
             dd_api_key: Datadog API key. Falls back to DD_API_KEY env var when allow_env_credentials is True. Optional when using agent.
             allow_env_credentials: When False, never read the API key from DD_API_KEY env var.
         """
-        resolved_port: Final = dd_agent_port or os.getenv("LITELLM_DD_AGENT_PORT", "10518")  # default port for logs
+        resolved_port: Final = dd_agent_port or compat.env("TOKEN_IQ_DD_AGENT_PORT", "10518")  # default port for logs
         self.intake_url = f"http://{dd_agent_host}:{resolved_port}/api/v2/logs"
         self.DD_API_KEY = dd_api_key or (
             os.getenv("DD_API_KEY") if allow_env_credentials else None

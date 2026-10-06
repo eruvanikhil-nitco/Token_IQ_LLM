@@ -9,6 +9,7 @@ from typing import Any, Final, TextIO
 from urllib.parse import unquote
 
 from token_iq import gateway
+from token_iq.gateway import compat
 from token_iq.gateway.constants import (
     LITELLM_TRUNCATED_PAYLOAD_FIELD,
     LITELLM_TRUNCATION_STDOUT_SAFEGUARD_NOTE,
@@ -61,7 +62,7 @@ if set_verbose is True:
         "`litellm.set_verbose` is deprecated. Please set `os.environ['LITELLM_LOG'] = 'DEBUG'` for debug logs."
     )
 
-_ENABLE_SECRET_REDACTION: Final = os.getenv("LITELLM_DISABLE_REDACT_SECRETS", "").lower() != "true"
+_ENABLE_SECRET_REDACTION: Final = compat.env("TOKEN_IQ_DISABLE_REDACT_SECRETS", "").lower() != "true"
 
 
 def _redact_string(value: str) -> str:
@@ -373,7 +374,7 @@ def _parse_json_logs_env(value: str | None) -> bool:
 
 json_logs: Final = _parse_json_logs_env(os.getenv("JSON_LOGS"))
 # Create a handler for the logger (you may need to adapt this based on your needs)
-log_level: Final = os.getenv("LITELLM_LOG", "DEBUG")
+log_level: Final = compat.env("TOKEN_IQ_LOG", "DEBUG")
 numeric_level: Final[str] = getattr(logging, log_level.upper())
 handler: Final = LevelRoutingStreamHandler()
 handler.setLevel(numeric_level)

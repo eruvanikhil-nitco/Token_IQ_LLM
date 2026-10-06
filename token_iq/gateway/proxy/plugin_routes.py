@@ -24,7 +24,6 @@ import base64
 import hashlib
 import hmac as _hmac
 import json
-import os
 import time
 from collections.abc import Mapping
 from typing import Final
@@ -32,6 +31,7 @@ from typing import Final
 from cryptography.fernet import Fernet, InvalidToken
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 
+from token_iq.gateway import compat
 from token_iq.gateway.llms.custom_httpx.http_handler import get_async_httpx_client
 from token_iq.gateway.proxy._types import PluginConfig, SpecialHeaders, UserAPIKeyAuth
 from token_iq.gateway.proxy.auth.user_api_key_auth import user_api_key_auth
@@ -131,7 +131,7 @@ def _plugin_fernet(plugin_name: str) -> Fernet:
     A plugin possessing its own key cannot derive the master salt or
     forge claims intended for a different plugin.
     """
-    salt: Final = os.getenv("LITELLM_SALT_KEY", "").encode()
+    salt: Final = compat.env("TOKEN_IQ_SALT_KEY", "").encode()
     derived: Final = _hmac.new(salt, plugin_name.encode(), hashlib.sha256).digest()
     return Fernet(base64.urlsafe_b64encode(derived))
 
@@ -230,7 +230,7 @@ async def plugin_auth_token(
 
     Requires LITELLM_SALT_KEY to be set; returns 503 otherwise.
     """
-    if not os.getenv("LITELLM_SALT_KEY"):
+    if not compat.env("TOKEN_IQ_SALT_KEY"):
         raise HTTPException(
             status_code=503,
             detail="LITELLM_SALT_KEY is not configured; plugin iframe auth unavailable.",

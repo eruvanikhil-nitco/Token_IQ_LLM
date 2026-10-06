@@ -16,6 +16,7 @@ from typing import Any, Final, Literal
 
 import httpx
 
+from token_iq.gateway import compat
 from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway._uuid import uuid
@@ -365,7 +366,7 @@ class DataDogLLMObsLogger(CustomBatchLogger):
             # Configure DataDog endpoint (Agent or Direct API)
             # Use LITELLM_DD_AGENT_HOST to avoid conflicts with ddtrace's DD_AGENT_HOST
             # Check for agent mode FIRST - agent mode doesn't require DD_API_KEY or DD_SITE
-            dd_agent_host: Final = os.getenv("LITELLM_DD_AGENT_HOST")
+            dd_agent_host: Final = compat.env("TOKEN_IQ_DD_AGENT_HOST")
 
             self.async_client = get_async_httpx_client(llm_provider=httpxSpecialProvider.LoggingCallback)
             self.DD_API_KEY = os.getenv("DD_API_KEY")
@@ -407,7 +408,7 @@ class DataDogLLMObsLogger(CustomBatchLogger):
         # Reference: https://docs.datadoghq.com/llm_observability/setup/sdk/#agent-setup
 
         # Use specific port for LLM Obs (Trace Agent) to avoid conflict with Logs Agent (10518)
-        agent_port: Final = os.getenv("LITELLM_DD_LLM_OBS_PORT", "8126")
+        agent_port: Final = compat.env("TOKEN_IQ_DD_LLM_OBS_PORT", "8126")
         self.DD_SITE = "localhost"  # Not used for URL construction in agent mode
         self.intake_url = f"http://{dd_agent_host}:{agent_port}/api/intake/llm-obs/v1/trace/spans"
         verbose_logger.debug("DataDogLLMObs: Using DD Agent at %s", self.intake_url)

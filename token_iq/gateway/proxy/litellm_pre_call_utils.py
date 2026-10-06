@@ -2353,7 +2353,7 @@ def _update_model_if_team_alias_exists(
     # Cached at module level to avoid hot-path secret lookups on every request.
     global _ENABLE_TEAM_STALE_ALIAS_BYPASS
     if _ENABLE_TEAM_STALE_ALIAS_BYPASS is None:
-        _ENABLE_TEAM_STALE_ALIAS_BYPASS = get_secret_bool("LITELLM_ENABLE_TEAM_STALE_ALIAS_BYPASS", False)
+        _ENABLE_TEAM_STALE_ALIAS_BYPASS = get_secret_bool("TOKEN_IQ_ENABLE_TEAM_STALE_ALIAS_BYPASS", False)
     enable_stale_alias_bypass: Final = _ENABLE_TEAM_STALE_ALIAS_BYPASS
     # Check if the alias points to a team-scoped UUID name
     # (format: "model_name_{team_id}_{uuid}")

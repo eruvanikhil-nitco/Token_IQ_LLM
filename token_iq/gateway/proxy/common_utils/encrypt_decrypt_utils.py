@@ -2,6 +2,7 @@ import base64
 import os
 from typing import Final, Literal, cast
 
+from token_iq.gateway import compat
 from token_iq.gateway._logging import verbose_proxy_logger
 
 # Versioned ciphertext marker for AES-256-GCM values.
@@ -23,7 +24,7 @@ _ALGO_XSALSA20: Final = "xsalsa20-poly1305"
 def _get_salt_key():
     from token_iq.gateway.proxy.proxy_server import master_key
 
-    salt_key = os.getenv("LITELLM_SALT_KEY", None)
+    salt_key = compat.env("TOKEN_IQ_SALT_KEY", None)
 
     if salt_key is None:
         salt_key = master_key

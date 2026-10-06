@@ -16,6 +16,7 @@ import os
 
 # Load .env before any other litellm imports so env vars (e.g. LITELLM_UI_SESSION_DURATION) are available
 import dotenv as _dotenv
+from token_iq.gateway import compat
 
 
 def _dev_env_hot_reload_enabled() -> bool:
@@ -23,10 +24,10 @@ def _dev_env_hot_reload_enabled() -> bool:
     worker is a fresh process that inherits the reloader's environment, so an
     edited ``.env`` value stays masked by the stale inherited one unless we
     let the file win; overriding makes the edit take effect on reload."""
-    return os.getenv("LITELLM_DEV_ENV_HOT_RELOAD") == "True"
+    return compat.env("TOKEN_IQ_DEV_ENV_HOT_RELOAD") == "True"
 
 
-if os.getenv("LITELLM_MODE", "DEV") == "DEV":
+if compat.env("TOKEN_IQ_MODE", "DEV") == "DEV":
     _dotenv.load_dotenv(override=_dev_env_hot_reload_enabled())
 
 from collections.abc import Mapping, Sequence
@@ -99,7 +100,7 @@ import httpx
 
 # register_async_client_cleanup is lazy-loaded and called on first access
 
-gateway_mode = os.getenv("LITELLM_MODE", "DEV")  # "PRODUCTION", "DEV"
+gateway_mode = compat.env("TOKEN_IQ_MODE", "DEV")  # "PRODUCTION", "DEV"
 
 
 ####################################################
@@ -230,18 +231,14 @@ skip_system_message_in_guardrail: bool = False
 skip_tool_message_in_guardrail: bool = False
 ### end of callbacks #############
 
-email: Optional[str] = (
-    None # Not used anymore, will be removed in next MAJOR release
-)
-token: Optional[str] = (
-    None # Not used anymore, will be removed in next MAJOR release
-)
+email: Optional[str] = None  # Not used anymore, will be removed in next MAJOR release
+token: Optional[str] = None  # Not used anymore, will be removed in next MAJOR release
 telemetry = True
 max_tokens: int = DEFAULT_MAX_TOKENS  # OpenAI Defaults
-drop_params = bool(os.getenv("LITELLM_DROP_PARAMS", False))
-modify_params = bool(os.getenv("LITELLM_MODIFY_PARAMS", False))
+drop_params = bool(compat.env("TOKEN_IQ_DROP_PARAMS", False))
+modify_params = bool(compat.env("TOKEN_IQ_MODIFY_PARAMS", False))
 use_chat_completions_url_for_anthropic_messages: bool = bool(
-    os.getenv("LITELLM_USE_CHAT_COMPLETIONS_URL_FOR_ANTHROPIC_MESSAGES", False)
+    compat.env("TOKEN_IQ_USE_CHAT_COMPLETIONS_URL_FOR_ANTHROPIC_MESSAGES", False)
 )  # When True, routes OpenAI /v1/messages requests to chat/completions instead of the Responses API
 # When True, strip the OpenAI-flavored `usage.total_tokens` field that
 # LiteLLM injects into non-streaming /v1/messages responses, bringing the
@@ -257,13 +254,13 @@ strip_anthropic_total_tokens: bool = False
 anthropic_sse_ping_interval_seconds: float = 15.0
 sse_keepalive_ping_interval_seconds: float | None = None
 route_all_chat_openai_to_responses: bool = (
-    os.getenv("LITELLM_ROUTE_ALL_CHAT_OPENAI_TO_RESPONSES", "false").lower() == "true"
+    compat.env("TOKEN_IQ_ROUTE_ALL_CHAT_OPENAI_TO_RESPONSES", "false").lower() == "true"
 )  # When True, routes all OpenAI /chat/completions requests through the Responses API bridge
 # When True, Gemini/Vertex Live setup is deferred until client `session.update`.
 # Default False preserves historical behavior (auto-send setup on connect).
-gemini_live_defer_setup: bool = os.getenv("LITELLM_GEMINI_LIVE_DEFER_SETUP", "false").lower() == "true"
+gemini_live_defer_setup: bool = compat.env("TOKEN_IQ_GEMINI_LIVE_DEFER_SETUP", "false").lower() == "true"
 use_legacy_interactions_schema: bool = (
-    os.getenv("LITELLM_USE_LEGACY_INTERACTIONS_SCHEMA", "false").lower() == "true"
+    compat.env("TOKEN_IQ_USE_LEGACY_INTERACTIONS_SCHEMA", "false").lower() == "true"
 )  # When True, sends Api-Revision: 2026-05-07 to Google so responses use the legacy `outputs`
 # schema instead of the new `steps` schema. Remove this flag after June 8, 2026.
 retry = True
@@ -331,8 +328,10 @@ disable_token_counter: bool = False
 disable_add_transform_inline_image_block: bool = False
 disable_add_user_agent_to_request_tags: bool = False
 disable_anthropic_gemini_context_caching_transform: bool = False
-enable_anthropic_prompt_caching: bool = os.getenv("LITELLM_ENABLE_ANTHROPIC_PROMPT_CACHING", "false").lower() == "true"
-_anthropic_prompt_caching_ttl_env: Optional[str] = os.getenv("LITELLM_ANTHROPIC_PROMPT_CACHING_TTL")
+enable_anthropic_prompt_caching: bool = (
+    compat.env("TOKEN_IQ_ENABLE_ANTHROPIC_PROMPT_CACHING", "false").lower() == "true"
+)
+_anthropic_prompt_caching_ttl_env: Optional[str] = compat.env("TOKEN_IQ_ANTHROPIC_PROMPT_CACHING_TTL")
 anthropic_prompt_caching_ttl: Optional[Literal["5m", "1h"]] = (
     "1h" if _anthropic_prompt_caching_ttl_env == "1h" else "5m" if _anthropic_prompt_caching_ttl_env == "5m" else None
 )
@@ -387,9 +386,9 @@ require_managed_files: bool = False  # proxy only - require target_model_names o
 enable_caching_on_provider_specific_optional_params: bool = (
     False  # feature-flag for caching on optional params - e.g. 'top_k'
 )
-caching: bool = False # Not used anymore, will be removed in next MAJOR release
-caching_with_models: bool = False # # Not used anymore, will be removed in next MAJOR release
-cache: Optional["Cache"] = None # cache object <- use this
+caching: bool = False  # Not used anymore, will be removed in next MAJOR release
+caching_with_models: bool = False  # # Not used anymore, will be removed in next MAJOR release
+cache: Optional["Cache"] = None  # cache object <- use this
 default_in_memory_ttl: Optional[float] = None
 default_redis_ttl: Optional[float] = None
 default_redis_batch_cache_expiry: Optional[float] = None
@@ -2176,7 +2175,7 @@ _async_client_cleanup_registered = False
 # For now, this only affects encoding (tiktoken) as it was the only reported issue
 # See
 # This ensures encoding is initialized before VCR starts recording HTTP requests
-if os.getenv("LITELLM_DISABLE_LAZY_LOADING", "").lower() in ("1", "true", "yes", "on"):
+if compat.env("TOKEN_IQ_DISABLE_LAZY_LOADING", "").lower() in ("1", "true", "yes", "on"):
     # Load encoding at import time (pre-#18070 behavior)
     # This ensures encoding is initialized before VCR starts recording
     from .main import encoding

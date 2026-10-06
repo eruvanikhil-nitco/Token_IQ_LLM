@@ -31,7 +31,7 @@ def is_audit_logging_enabled(store_audit_logs: bool | None = None) -> bool:
     if configured_value is not None:
         return configured_value
 
-    environment_value: Final[bool | None] = get_secret_bool("LITELLM_STORE_AUDIT_LOGS")
+    environment_value: Final[bool | None] = get_secret_bool("TOKEN_IQ_STORE_AUDIT_LOGS")
     if environment_value is not None:
         return environment_value
 

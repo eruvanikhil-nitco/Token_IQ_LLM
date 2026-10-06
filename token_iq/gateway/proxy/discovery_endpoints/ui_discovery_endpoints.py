@@ -4,6 +4,7 @@ from typing import Final
 
 from fastapi import APIRouter
 
+from token_iq.gateway import compat
 from token_iq.gateway.types.proxy.discovery_endpoints.ui_discovery_endpoints import (
     UiDiscoveryEndpoints,
 )
@@ -24,7 +25,7 @@ async def get_ui_config():
     )
     admin_ui_disabled: Final = os.getenv("DISABLE_ADMIN_UI", "false").lower() == "true"
     hide_default_credentials_hint: Final = bool(
-        os.getenv("LITELLM_HIDE_DEFAULT_CREDENTIALS_HINT", "false").lower() == "true"
+        compat.env("TOKEN_IQ_HIDE_DEFAULT_CREDENTIALS_HINT", "false").lower() == "true"
         or general_settings.get("hide_default_credentials_hint", False) is True
     )
 

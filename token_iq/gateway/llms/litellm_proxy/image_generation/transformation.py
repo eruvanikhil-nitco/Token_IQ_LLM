@@ -17,7 +17,7 @@ class GatewayProxyImageGenerationConfig(GPTImageGenerationConfig):
         api_key: str | None = None,
         api_base: str | None = None,
     ) -> dict:
-        api_key = api_key or get_secret_str("LITELLM_PROXY_API_KEY")
+        api_key = api_key or get_secret_str("TOKEN_IQ_PROXY_API_KEY")
         headers.update({"Authorization": f"Bearer {api_key}"})
         return headers
 
@@ -30,7 +30,7 @@ class GatewayProxyImageGenerationConfig(GPTImageGenerationConfig):
         litellm_params: dict,
         stream: bool | None = None,
     ) -> str:
-        api_base = api_base or get_secret_str("LITELLM_PROXY_API_BASE")
+        api_base = api_base or get_secret_str("TOKEN_IQ_PROXY_API_BASE")
         if api_base is None:
             raise ValueError("api_base not set for LiteLLM Proxy route. Set in env via `LITELLM_PROXY_API_BASE`")
         api_base = api_base.rstrip("/")

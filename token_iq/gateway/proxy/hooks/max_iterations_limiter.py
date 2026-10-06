@@ -10,10 +10,9 @@ Works across multiple proxy instances via DualCache (in-memory + Redis).
 Follows the same pattern as parallel_request_limiter_v3.py.
 """
 
-import os
 from typing import TYPE_CHECKING, Any, Final
 
-from token_iq.gateway import DualCache
+from token_iq.gateway import DualCache, compat
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.exceptions import RateLimitType
 from token_iq.gateway.integrations.custom_logger import CustomLogger
@@ -70,7 +69,7 @@ class _PROXY_MaxIterationsHandler(CustomLogger):
 
     def __init__(self, internal_usage_cache: InternalUsageCache):
         self.internal_usage_cache = internal_usage_cache
-        self.ttl = int(os.getenv("LITELLM_MAX_ITERATIONS_TTL", DEFAULT_MAX_ITERATIONS_TTL))
+        self.ttl = int(compat.env("TOKEN_IQ_MAX_ITERATIONS_TTL", DEFAULT_MAX_ITERATIONS_TTL))
 
         # Register Lua script with Redis if available (same pattern as v3 limiter)
         if self.internal_usage_cache.dual_cache.redis_cache is not None:

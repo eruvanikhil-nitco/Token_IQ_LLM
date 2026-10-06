@@ -12,11 +12,12 @@ Headers are set with setdefault so a route that intentionally sets its own
 value is never overridden.
 """
 
-import os
 from typing import Final
 
 from starlette.datastructures import MutableHeaders
 from starlette.types import ASGIApp, Message, Receive, Scope, Send
+
+from token_iq.gateway import compat
 
 STATIC_SECURITY_HEADERS: Final = (
     ("X-Frame-Options", "DENY"),
@@ -27,7 +28,7 @@ HSTS_HEADER: Final = ("Strict-Transport-Security", "max-age=31536000; includeSub
 
 
 def _hsts_enabled() -> bool:
-    return os.getenv("LITELLM_ENABLE_HSTS", "false").strip().lower() == "true"
+    return compat.env("TOKEN_IQ_ENABLE_HSTS", "false").strip().lower() == "true"
 
 
 class SecurityHeadersMiddleware:

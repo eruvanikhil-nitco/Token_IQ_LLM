@@ -9,6 +9,7 @@ import httpx
 from pydantic import BaseModel, ValidationError
 
 from token_iq import gateway
+from token_iq.gateway import compat
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.caching.caching import DualCache
 from token_iq.gateway.llms.custom_httpx.http_handler import HTTPHandler
@@ -58,7 +59,7 @@ def _get_oidc_allowed_credential_dirs() -> list[str]:
     override via the ``LITELLM_OIDC_ALLOWED_CREDENTIAL_DIRS`` environment
     variable (comma-separated list of absolute paths).
     """
-    override: Final = os.getenv("LITELLM_OIDC_ALLOWED_CREDENTIAL_DIRS")
+    override: Final = compat.env("TOKEN_IQ_OIDC_ALLOWED_CREDENTIAL_DIRS")
     raw_dirs: Final = (
         [d.strip() for d in override.split(",") if d.strip()]
         if override

@@ -6,7 +6,6 @@ This is currently in development and not yet ready for production.
 
 import asyncio
 import binascii
-import os
 import uuid
 from collections.abc import Awaitable, Callable, Mapping, Sequence, Set
 from contextvars import ContextVar
@@ -24,6 +23,7 @@ from typing import (
 
 from typing_extensions import NotRequired, ReadOnly
 
+from token_iq.gateway import compat
 from token_iq.gateway import DualCache
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.constants import DYNAMIC_RATE_LIMIT_ERROR_THRESHOLD_PER_MINUTE, INTERNAL_CALL_ORIGIN_METADATA_KEY
@@ -631,13 +631,13 @@ class _PROXY_MaxParallelRequestsHandler_v3(CustomLogger):
             self.parallel_release_script = None
             self.parallel_count_script = None
 
-        self.window_size = int(os.getenv("LITELLM_RATE_LIMIT_WINDOW_SIZE", 60))
+        self.window_size = int(compat.env("TOKEN_IQ_RATE_LIMIT_WINDOW_SIZE", 60))
 
         # When disabled, TPM is enforced post-call from actual usage (pre-v1.82
         # behavior) instead of reserving an estimated budget upfront, shedding
         # the extra per-request Redis Lua round-trip and the global-lock
         # in-memory fallback that the reservation path incurs.
-        self.tpm_reservation_enabled = os.getenv("LITELLM_TPM_TOKEN_RESERVATION_ENABLED", "true").lower() == "true"
+        self.tpm_reservation_enabled = compat.env("TOKEN_IQ_TPM_TOKEN_RESERVATION_ENABLED", "true").lower() == "true"
 
         # Batch rate limiter (lazy loaded)
         self._batch_rate_limiter: CallTypeRateLimiter | None = None

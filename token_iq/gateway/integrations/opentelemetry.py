@@ -7,6 +7,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import TYPE_CHECKING, Any, Final, TypedDict, cast
 
+from token_iq.gateway import compat
 from token_iq import gateway
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.integrations._types.open_inference import (
@@ -96,8 +97,8 @@ _MAX_DYNAMIC_TRACER_PROVIDERS: Final = 256
 _PROVIDER_SHUTDOWN_EXECUTOR: Final = ThreadPoolExecutor(max_workers=4, thread_name_prefix="OtelProviderShutdown")
 
 LITELLM_TRACER_NAME: Final = os.getenv("OTEL_TRACER_NAME", "litellm")
-LITELLM_METER_NAME: Final = os.getenv("LITELLM_METER_NAME", "litellm")
-LITELLM_LOGGER_NAME: Final = os.getenv("LITELLM_LOGGER_NAME", "litellm")
+LITELLM_METER_NAME: Final = compat.env("TOKEN_IQ_METER_NAME", "litellm")
+LITELLM_LOGGER_NAME: Final = compat.env("TOKEN_IQ_LOGGER_NAME", "litellm")
 LITELLM_PROXY_REQUEST_SPAN_NAME: Final = "Received Proxy Server Request"
 # OTel-standard names. status is also kept under error.code for back compat.
 HTTP_RESPONSE_STATUS_CODE_ATTRIBUTE: Final = "http.response.status_code"
@@ -313,7 +314,7 @@ class OpenTelemetryConfig:
         self.semconv_stability_opt_in |= parse_semconv_opt_in(os.getenv(OTEL_SEMCONV_STABILITY_OPT_IN_ENV))
         self.baggage_team_metadata_keys = _normalize_team_metadata_keys(
             self.baggage_team_metadata_keys
-        ) or _normalize_team_metadata_keys(os.getenv("LITELLM_OTEL_BAGGAGE_TEAM_METADATA_KEYS"))
+        ) or _normalize_team_metadata_keys(compat.env("TOKEN_IQ_OTEL_BAGGAGE_TEAM_METADATA_KEYS"))
 
     @classmethod
     def from_env(cls):
@@ -333,8 +334,8 @@ class OpenTelemetryConfig:
         headers: Final = os.getenv(
             "OTEL_EXPORTER_OTLP_HEADERS", os.getenv("OTEL_HEADERS")
         )  # example: OTEL_HEADERS=x-honeycomb-team=B85YgLm96***"
-        enable_metrics: Final[bool] = os.getenv("LITELLM_OTEL_INTEGRATION_ENABLE_METRICS", "false").lower() == "true"
-        enable_events: Final[bool] = os.getenv("LITELLM_OTEL_INTEGRATION_ENABLE_EVENTS", "false").lower() == "true"
+        enable_metrics: Final[bool] = compat.env("TOKEN_IQ_OTEL_INTEGRATION_ENABLE_METRICS", "false").lower() == "true"
+        enable_events: Final[bool] = compat.env("TOKEN_IQ_OTEL_INTEGRATION_ENABLE_EVENTS", "false").lower() == "true"
         service_name: Final = os.getenv("OTEL_SERVICE_NAME", "litellm")
         deployment_environment: Final = os.getenv("OTEL_ENVIRONMENT_NAME", "production")
         model_id: Final = os.getenv("OTEL_MODEL_ID", service_name)

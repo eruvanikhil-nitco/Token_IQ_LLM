@@ -10,6 +10,7 @@ from typing import TYPE_CHECKING, Any, Final, cast
 
 from fastapi import HTTPException
 
+from token_iq.gateway import compat
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.integrations.custom_logger import CustomLogger
 from token_iq.gateway.proxy._types import GatewayUserRoles
@@ -181,11 +182,10 @@ class ResponsesIDSecurity(CustomLogger):
 
     def _get_signing_key(self) -> str | None:
         """Get the signing key for encryption/decryption."""
-        import os
 
         from token_iq.gateway.proxy.proxy_server import master_key
 
-        salt_key = os.getenv("LITELLM_SALT_KEY", None)
+        salt_key = compat.env("TOKEN_IQ_SALT_KEY", None)
         if salt_key is None:
             salt_key = master_key
         return salt_key

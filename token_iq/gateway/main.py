@@ -20,6 +20,7 @@ from functools import partial
 from types import MappingProxyType
 from typing import TYPE_CHECKING, Any, Final, Literal, Optional, Protocol, Union, cast, get_args
 
+from token_iq.gateway import compat
 from token_iq.gateway._logging import _redact_string
 from token_iq.gateway._uuid import uuid
 
@@ -2749,7 +2750,7 @@ def _complete_anthropic_text(
     )
 
     # Check if we should disable automatic URL suffix appending
-    disable_url_suffix: Final = get_secret_bool("LITELLM_ANTHROPIC_DISABLE_URL_SUFFIX")
+    disable_url_suffix: Final = get_secret_bool("TOKEN_IQ_ANTHROPIC_DISABLE_URL_SUFFIX")
     if api_base is not None and not disable_url_suffix and not api_base.endswith("/v1/complete"):
         api_base += "/v1/complete"
     elif disable_url_suffix:
@@ -2805,7 +2806,7 @@ def _complete_anthropic(ctx: _CompletionDispatchContext) -> _CompletionDispatchR
     )
 
     # Check if we should disable automatic URL suffix appending
-    disable_url_suffix: Final = get_secret_bool("LITELLM_ANTHROPIC_DISABLE_URL_SUFFIX")
+    disable_url_suffix: Final = get_secret_bool("TOKEN_IQ_ANTHROPIC_DISABLE_URL_SUFFIX")
     if api_base is not None and not disable_url_suffix and not api_base.endswith("/v1/messages"):
         api_base += "/v1/messages"
     elif disable_url_suffix:
@@ -4004,9 +4005,7 @@ def _complete_bedrock(ctx: _CompletionDispatchContext) -> _CompletionDispatchRes
     custom_prompt_dict = custom_prompt_dict or gateway.custom_prompt_dict
 
     if "aws_bedrock_client" in optional_params:
-        verbose_logger.warning(
-            "'aws_bedrock_client' is a deprecated param. Please move to another auth method"
-        )
+        verbose_logger.warning("'aws_bedrock_client' is a deprecated param. Please move to another auth method")
         # Extract credentials for legacy boto3 client and pass thru to httpx
         aws_bedrock_client: Final = optional_params.pop("aws_bedrock_client")
         creds: Final = aws_bedrock_client._get_credentials().get_frozen_credentials()
@@ -6287,7 +6286,7 @@ def embedding(
             requested_encoding_format: Final = (
                 encoding_format
                 or optional_params.get("encoding_format")
-                or get_secret_str("LITELLM_DEFAULT_EMBEDDING_ENCODING_FORMAT")
+                or get_secret_str("TOKEN_IQ_DEFAULT_EMBEDDING_ENCODING_FORMAT")
             )
             if requested_encoding_format is None or requested_encoding_format.strip().lower() == "none":
                 optional_params.pop("encoding_format", None)

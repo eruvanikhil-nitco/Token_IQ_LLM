@@ -17,6 +17,7 @@ from dotenv import load_dotenv
 from pydantic import BaseModel, ConfigDict
 
 from token_iq import gateway
+from token_iq.gateway import compat
 from token_iq.gateway.constants import DEFAULT_NUM_WORKERS_GATEWAY_PROXY
 from token_iq.gateway.proxy.db.query_engine_reaper import start_query_engine_reaper
 
@@ -45,7 +46,7 @@ sys.path.append(os.getcwd())
 
 config_filename: Final = "litellm.secrets"
 
-gateway_mode: Final = os.getenv("LITELLM_MODE", "DEV")  # "PRODUCTION", "DEV"
+gateway_mode: Final = compat.env("TOKEN_IQ_MODE", "DEV")  # "PRODUCTION", "DEV"
 if gateway_mode == "DEV":
     load_dotenv()
 from enum import Enum

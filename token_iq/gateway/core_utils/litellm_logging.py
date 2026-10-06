@@ -19,6 +19,7 @@ from typing import TYPE_CHECKING, Any, Final, Literal, Optional, Union, cast
 from httpx import Response
 from pydantic import BaseModel
 
+from token_iq.gateway import compat
 from token_iq import gateway
 from token_iq.gateway import (
     _custom_logger_compatible_callbacks_literal,
@@ -5313,7 +5314,7 @@ class StandardLoggingPayloadSetup:
                 clean_metadata["user_api_key_hash"] = user_api_key
             _potential_requester_metadata: Final = metadata.get(
                 "metadata", None
-            ) # check if user passed metadata in the sdk request - e.g. metadata for langsmith logging
+            )  # check if user passed metadata in the sdk request - e.g. metadata for langsmith logging
             if (
                 clean_metadata["requester_metadata"] is None
                 and _potential_requester_metadata is not None
@@ -6183,7 +6184,7 @@ def get_standard_logging_object_payload(
 
 
 def emit_standard_logging_payload(payload: StandardLoggingPayload):
-    if os.getenv("LITELLM_PRINT_STANDARD_LOGGING_PAYLOAD"):
+    if compat.env("TOKEN_IQ_PRINT_STANDARD_LOGGING_PAYLOAD"):
         try:
             print(json.dumps(payload, indent=4, default=str), flush=True)  # noqa: T201
         except Exception as e:  # noqa: BLE001 # Safe catch-all for verbose logging

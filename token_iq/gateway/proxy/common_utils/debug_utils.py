@@ -12,7 +12,7 @@ from typing import Any, Final, NamedTuple, Protocol, TypedDict
 from fastapi import APIRouter, Depends, HTTPException, Query
 from typing_extensions import ReadOnly
 
-from token_iq.gateway import get_secret_str
+from token_iq.gateway import compat, get_secret_str
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.constants import PYTHON_GC_THRESHOLD
 from token_iq.gateway.proxy._types import UserAPIKeyAuth
@@ -87,7 +87,7 @@ async def get_active_tasks_stats():
     }
 
 
-if os.environ.get("LITELLM_PROFILE", "false").lower() == "true":
+if compat.env("TOKEN_IQ_PROFILE", "false").lower() == "true":
     try:
         import objgraph
 
@@ -810,7 +810,7 @@ def init_verbose_loggers():
             verbose_proxy_logger.setLevel(level=logging.DEBUG)  # set proxy logs to debug
         elif debug is False and detailed_debug is False:
             # users can control proxy debugging using env variable = 'LITELLM_LOG'
-            gateway_log_setting: Final = os.environ.get("LITELLM_LOG", "")
+            gateway_log_setting: Final = compat.env("TOKEN_IQ_LOG", "")
             if gateway_log_setting is not None:
                 if gateway_log_setting.upper() == "INFO":
                     import logging

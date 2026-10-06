@@ -2,14 +2,13 @@
 ## unused file. initially written for json logging on proxy.
 import json
 import logging
-import os
 from logging import Formatter
 from typing import Final
 
-from token_iq.gateway import json_logs
+from token_iq.gateway import compat, json_logs
 
 # Set default log level to INFO
-log_level: Final = os.getenv("LITELLM_LOG", "INFO")
+log_level: Final = compat.env("TOKEN_IQ_LOG", "INFO")
 numeric_level: Final[str] = getattr(logging, log_level.upper())
 
 

@@ -82,6 +82,7 @@ from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography.hazmat.primitives.asymmetric.rsa import RSAPrivateKey, RSAPublicKey
 from typing_extensions import NotRequired, ReadOnly, TypedDict
 
+from token_iq.gateway import compat
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.caching import DualCache
 from token_iq.gateway.integrations.custom_guardrail import (
@@ -301,7 +302,7 @@ class MCPJWTSigner(CustomGuardrail):
 
         # --- Core config ---
         self.issuer: str = (
-            issuer or os.environ.get("MCP_JWT_ISSUER") or os.environ.get("LITELLM_EXTERNAL_URL") or "litellm"
+            issuer or os.environ.get("MCP_JWT_ISSUER") or compat.env("TOKEN_IQ_EXTERNAL_URL") or "litellm"
         )
         self.audience: str = audience or os.environ.get("MCP_JWT_AUDIENCE") or self.DEFAULT_AUDIENCE
         resolved_ttl: Final = int(

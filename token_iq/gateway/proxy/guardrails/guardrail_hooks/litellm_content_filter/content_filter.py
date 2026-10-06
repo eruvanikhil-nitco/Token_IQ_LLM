@@ -17,7 +17,7 @@ from typing import TYPE_CHECKING, Any, Final, Literal, Optional, TypedDict, cast
 import yaml
 from fastapi import HTTPException
 
-from token_iq.gateway import Router
+from token_iq.gateway import Router, compat
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.constants import DEFAULT_MAX_RECURSE_DEPTH
 from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
@@ -391,7 +391,7 @@ class ContentFilterGuardrail(CustomGuardrail):
                 and ``LITELLM_CONTENT_FILTER_ALLOW_EXTERNAL_PATHS`` is not set.
         """
         module_dir: Final = os.path.dirname(__file__)
-        allow_external: Final = os.environ.get("LITELLM_CONTENT_FILTER_ALLOW_EXTERNAL_PATHS", "").lower() == "true"
+        allow_external: Final = compat.env("TOKEN_IQ_CONTENT_FILTER_ALLOW_EXTERNAL_PATHS", "").lower() == "true"
 
         if os.path.isabs(file_path) or os.path.exists(file_path):
             if not allow_external:

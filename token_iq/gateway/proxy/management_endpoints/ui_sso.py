@@ -43,6 +43,7 @@ from fastapi import APIRouter, Depends, Header, HTTPException, Request, Response
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel, BeforeValidator, ConfigDict, TypeAdapter, ValidationError
 
+from token_iq.gateway import compat
 from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway._uuid import uuid
@@ -1120,7 +1121,7 @@ async def google_login(
     from fastapi.responses import HTMLResponse
 
     hide_default_credentials_hint: Final = (
-        os.getenv("LITELLM_HIDE_DEFAULT_CREDENTIALS_HINT", "false").lower() == "true"
+        compat.env("TOKEN_IQ_HIDE_DEFAULT_CREDENTIALS_HINT", "false").lower() == "true"
         or general_settings.get("hide_default_credentials_hint", False) is True
     )
     form_response: Final = HTMLResponse(
@@ -2612,7 +2613,7 @@ async def get_ui_settings(request: Request):
 
     _proxy_base_url: Final = os.getenv("PROXY_BASE_URL", None)
     _logout_url: Final = os.getenv("PROXY_LOGOUT_URL", None)
-    _api_doc_base_url: Final = os.getenv("LITELLM_UI_API_DOC_BASE_URL", None)
+    _api_doc_base_url: Final = compat.env("TOKEN_IQ_UI_API_DOC_BASE_URL", None)
     _is_sso_enabled: Final = has_user_setup_sso()
     disable_expensive_db_queries: Final = (
         proxy_state.get_proxy_state_variable("spend_logs_row_count") > MAX_SPENDLOG_ROWS_TO_QUERY
@@ -2990,9 +2991,7 @@ class SSOAuthenticationHandler:
                 generic_authorization_endpoint=generic_authorization_endpoint,
                 request=request,
             )
-        raise ValueError(
-            "Unknown SSO provider. Please setup SSO with client IDs"
-        )
+        raise ValueError("Unknown SSO provider. Please setup SSO with client IDs")
 
     @staticmethod
     async def get_generic_sso_redirect_response(
@@ -3555,9 +3554,7 @@ class SSOAuthenticationHandler:
         )
 
         if user_defined_values is None:
-            raise Exception(
-                "Unable to map user identity to known values.'user_defined_values' is None. File an issue"
-            )
+            raise Exception("Unable to map user identity to known values.'user_defined_values' is None. File an issue")
 
         verbose_proxy_logger.info("user_defined_values for creating ui key: %s", user_defined_values)
 

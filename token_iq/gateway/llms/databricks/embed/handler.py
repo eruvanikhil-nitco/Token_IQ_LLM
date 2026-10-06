@@ -5,6 +5,7 @@ Calling logic for Databricks embeddings
 import os
 from typing import Final
 
+from token_iq.gateway import compat
 from token_iq.gateway.utils import EmbeddingResponse
 
 from ...openai_like.embedding.handler import OpenAILikeEmbeddingHandler
@@ -33,7 +34,7 @@ class DatabricksEmbeddingHandler(OpenAILikeEmbeddingHandler, DatabricksBase):
         custom_user_agent: Final = (
             optional_params.pop("user_agent", None)
             or optional_params.pop("databricks_user_agent", None)
-            or os.getenv("LITELLM_USER_AGENT")
+            or compat.env("TOKEN_IQ_USER_AGENT")
             or os.getenv("DATABRICKS_USER_AGENT")
         )
 

@@ -3,7 +3,6 @@ Handler for transforming /chat/completions api requests to litellm.responses req
 """
 
 import json
-import os
 from collections.abc import AsyncIterator, Callable, Iterable, Iterator, Mapping, Sequence
 from typing import TYPE_CHECKING, Any, Final, Literal, TypedDict, Union, cast, get_args
 
@@ -19,7 +18,7 @@ from openai.types.responses.tool_param import FunctionToolParam
 from pydantic import BaseModel
 
 from token_iq import gateway
-from token_iq.gateway import ModelResponse
+from token_iq.gateway import ModelResponse, compat
 from token_iq.gateway._logging import verbose_logger
 from token_iq.gateway.core_utils.prompt_templates.common_utils import (
     responses_reasoning_item_from_thinking_blocks,
@@ -1127,7 +1126,7 @@ class GatewayResponsesTransformationHandler(CompletionTransformationBridge):
         # Check if auto-summary is enabled via flag or environment variable
         # Priority: litellm.reasoning_auto_summary flag > LITELLM_REASONING_AUTO_SUMMARY env var
         auto_summary_enabled: Final = (
-            gateway.reasoning_auto_summary or os.getenv("LITELLM_REASONING_AUTO_SUMMARY", "false").lower() == "true"
+            gateway.reasoning_auto_summary or compat.env("TOKEN_IQ_REASONING_AUTO_SUMMARY", "false").lower() == "true"
         )
 
         if reasoning_effort in get_args(REASONING_EFFORT):

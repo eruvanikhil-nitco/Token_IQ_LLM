@@ -3,6 +3,7 @@ import sys
 from types import MappingProxyType
 from typing import Final, Literal
 
+from token_iq.gateway import compat
 from token_iq.gateway.core_utils.env_utils import get_env_int, get_env_int_in_range, get_env_int_or_none
 
 DEFAULT_HEALTH_CHECK_PROMPT: Final = str(os.getenv("DEFAULT_HEALTH_CHECK_PROMPT", "test from litellm"))
@@ -78,7 +79,7 @@ HF_CONFIG_FETCH_TIMEOUT_SECONDS: Final = 10.0
 # Maximum wall-clock seconds a streaming response is allowed to run.
 # Streams exceeding this duration are terminated with a Timeout error.
 # None (default) = no limit.  Set env var to a number of seconds to enable globally.
-_max_stream_duration_env: Final = os.getenv("LITELLM_MAX_STREAMING_DURATION_SECONDS", None)
+_max_stream_duration_env: Final = compat.env("TOKEN_IQ_MAX_STREAMING_DURATION_SECONDS", None)
 LITELLM_MAX_STREAMING_DURATION_SECONDS: Final = (
     float(_max_stream_duration_env) if _max_stream_duration_env is not None else None
 )
@@ -95,7 +96,7 @@ MAX_STRING_LENGTH_STDOUT_LOG: Final = get_env_int("MAX_STRING_LENGTH_STDOUT_LOG"
 
 # When true, adds detailed per-phase timing breakdown headers to responses.
 # Headers: x-litellm-timing-{pre-processing,llm-api,post-processing,message-copy}-ms
-LITELLM_DETAILED_TIMING: Final = os.getenv("LITELLM_DETAILED_TIMING", "false").lower() == "true"
+LITELLM_DETAILED_TIMING: Final = compat.env("TOKEN_IQ_DETAILED_TIMING", "false").lower() == "true"
 
 # Model cost map validation constants
 MODEL_COST_MAP_MIN_MODEL_COUNT: Final = int(
@@ -164,10 +165,10 @@ MCP_PER_USER_TOKEN_DEFAULT_TTL: Final = int(
 MCP_PER_USER_TOKEN_EXPIRY_BUFFER_SECONDS: Final = int(os.getenv("MCP_PER_USER_TOKEN_EXPIRY_BUFFER_SECONDS", "60"))
 
 # MCP timeout defaults (seconds). Override via env vars for slow/custom MCP servers.
-MCP_CLIENT_TIMEOUT: Final = float(os.getenv("LITELLM_MCP_CLIENT_TIMEOUT", "60.0"))
-MCP_TOOL_LISTING_TIMEOUT: Final = float(os.getenv("LITELLM_MCP_TOOL_LISTING_TIMEOUT", "30.0"))
-MCP_METADATA_TIMEOUT: Final = float(os.getenv("LITELLM_MCP_METADATA_TIMEOUT", "10.0"))
-MCP_HEALTH_CHECK_TIMEOUT: Final = float(os.getenv("LITELLM_MCP_HEALTH_CHECK_TIMEOUT", "10.0"))
+MCP_CLIENT_TIMEOUT: Final = float(compat.env("TOKEN_IQ_MCP_CLIENT_TIMEOUT", "60.0"))
+MCP_TOOL_LISTING_TIMEOUT: Final = float(compat.env("TOKEN_IQ_MCP_TOOL_LISTING_TIMEOUT", "30.0"))
+MCP_METADATA_TIMEOUT: Final = float(compat.env("TOKEN_IQ_MCP_METADATA_TIMEOUT", "10.0"))
+MCP_HEALTH_CHECK_TIMEOUT: Final = float(compat.env("TOKEN_IQ_MCP_HEALTH_CHECK_TIMEOUT", "10.0"))
 MCP_TOOL_LISTING_MAX_PAGES: Final = 1000
 
 # Allowlist of commands permitted for MCP stdio transport.
@@ -175,7 +176,7 @@ MCP_TOOL_LISTING_MAX_PAGES: Final = 1000
 # Note: allowlisted runtimes can still execute code via args (e.g. python -c "...").
 # This is an accepted residual risk since these endpoints require PROXY_ADMIN.
 # Extend via LITELLM_MCP_STDIO_EXTRA_COMMANDS env var (comma-separated).
-_MCP_STDIO_EXTRA_COMMANDS: Final = os.getenv("LITELLM_MCP_STDIO_EXTRA_COMMANDS", "")
+_MCP_STDIO_EXTRA_COMMANDS: Final = compat.env("TOKEN_IQ_MCP_STDIO_EXTRA_COMMANDS", "")
 MCP_STDIO_ALLOWED_COMMANDS: Final[frozenset] = frozenset(
     {"npx", "uvx", "python", "python3", "node", "docker", "deno"} | (set(_MCP_STDIO_EXTRA_COMMANDS.split(",")) - {""})
 )
@@ -299,8 +300,8 @@ WEBSOCKET_CLOSE_REASON_MAX_BYTES: Final = 123
 # SSL/TLS cipher configuration for faster handshakes
 # Strategy: Strongly prefer fast modern ciphers, but allow fallback to commonly supported ones
 # This balances performance with broad compatibility
-DEFAULT_SSL_CIPHERS: Final = os.getenv(
-    "LITELLM_SSL_CIPHERS",
+DEFAULT_SSL_CIPHERS: Final = compat.env(
+    "TOKEN_IQ_SSL_CIPHERS",
     # Priority 1: TLS 1.3 ciphers (fastest, ~50ms handshake)
     "TLS_AES_256_GCM_SHA384:"  # Fastest observed in testing
     "TLS_AES_128_GCM_SHA256:"  # Slightly faster than 256-bit
@@ -332,7 +333,7 @@ REDIS_DAILY_TAG_SPEND_UPDATE_BUFFER_KEY: Final = "litellm_daily_tag_spend_update
 REDIS_WINDOW_SPEND_UPDATE_BUFFER_KEY: Final = "litellm_window_spend_update_buffer"
 MAX_REDIS_BUFFER_DEQUEUE_COUNT: Final = int(os.getenv("MAX_REDIS_BUFFER_DEQUEUE_COUNT", 100))
 # Bounds asyncio.Queue() instances (log queues, spend update queues, etc.) to prevent unbounded memory growth
-LITELLM_ASYNCIO_QUEUE_MAXSIZE: Final = int(os.getenv("LITELLM_ASYNCIO_QUEUE_MAXSIZE", 1000))
+LITELLM_ASYNCIO_QUEUE_MAXSIZE: Final = int(compat.env("TOKEN_IQ_ASYNCIO_QUEUE_MAXSIZE", 1000))
 TOOL_POLICY_CACHE_TTL_SECONDS: Final = int(os.getenv("TOOL_POLICY_CACHE_TTL_SECONDS", 60))
 GUARDRAIL_SCANNED_MESSAGES_CACHE_TTL_SECONDS: Final = int(
     os.getenv("GUARDRAIL_SCANNED_MESSAGES_CACHE_TTL_SECONDS", 24 * 60 * 60)
@@ -1038,7 +1039,7 @@ huggingface_models: Final[set] = set(
         "meta-llama/Llama-2-70b",
         "meta-llama/Llama-2-70b-chat",
     ]
-) # these have been tested on extensively. But by default all text2text-generation and text-generation models are supported by liteLLM.
+)  # these have been tested on extensively. But by default all text2text-generation and text-generation models are supported by liteLLM.
 empower_models: Final = set(
     [
         "empower/empower-functions",
@@ -1570,23 +1571,23 @@ LITELLM_LOGGING_NO_UPSTREAM_LLM_CALL: Final = "litellm_no_upstream_llm_call"
 OTEL_SERVICE_NAME_METADATA_KEYS: Final = ("otel_service_name_override", "otel_service_name")
 
 # Key Rotation Constants
-LITELLM_KEY_ROTATION_ENABLED: Final = os.getenv("LITELLM_KEY_ROTATION_ENABLED", "false")
+LITELLM_KEY_ROTATION_ENABLED: Final = compat.env("TOKEN_IQ_KEY_ROTATION_ENABLED", "false")
 LITELLM_KEY_ROTATION_CHECK_INTERVAL_SECONDS: Final = int(
-    os.getenv("LITELLM_KEY_ROTATION_CHECK_INTERVAL_SECONDS", 86400)
+    compat.env("TOKEN_IQ_KEY_ROTATION_CHECK_INTERVAL_SECONDS", 86400)
 )  # 24 hours default
-LITELLM_KEY_ROTATION_GRACE_PERIOD: Final[str] = os.getenv(
-    "LITELLM_KEY_ROTATION_GRACE_PERIOD", ""
+LITELLM_KEY_ROTATION_GRACE_PERIOD: Final[str] = compat.env(
+    "TOKEN_IQ_KEY_ROTATION_GRACE_PERIOD", ""
 )  # Duration to keep old key valid after rotation (e.g. "24h", "2d"); empty = immediate revoke (default)
 LITELLM_KEY_ROTATION_LOCK_TTL_SECONDS: Final = int(
-    os.getenv("LITELLM_KEY_ROTATION_LOCK_TTL_SECONDS", 600)
+    compat.env("TOKEN_IQ_KEY_ROTATION_LOCK_TTL_SECONDS", 600)
 )  # 10 minutes default — caps the deadlock window if a pod crashes mid-rotation
 UI_SESSION_TOKEN_TEAM_ID: Final = "litellm-dashboard"
-LITELLM_EXPIRED_UI_SESSION_KEY_CLEANUP_ENABLED = os.getenv("LITELLM_EXPIRED_UI_SESSION_KEY_CLEANUP_ENABLED", "false")
+LITELLM_EXPIRED_UI_SESSION_KEY_CLEANUP_ENABLED = compat.env("TOKEN_IQ_EXPIRED_UI_SESSION_KEY_CLEANUP_ENABLED", "false")
 LITELLM_EXPIRED_UI_SESSION_KEY_CLEANUP_INTERVAL_SECONDS: Final = int(
-    os.getenv("LITELLM_EXPIRED_UI_SESSION_KEY_CLEANUP_INTERVAL_SECONDS", 86400)
+    compat.env("TOKEN_IQ_EXPIRED_UI_SESSION_KEY_CLEANUP_INTERVAL_SECONDS", 86400)
 )  # 24 hours default
 LITELLM_EXPIRED_UI_SESSION_KEY_CLEANUP_BATCH_SIZE: Final = int(
-    os.getenv("LITELLM_EXPIRED_UI_SESSION_KEY_CLEANUP_BATCH_SIZE", 1000)
+    compat.env("TOKEN_IQ_EXPIRED_UI_SESSION_KEY_CLEANUP_BATCH_SIZE", 1000)
 )
 LITELLM_PROXY_ADMIN_NAME: Final = "default_user_id"
 LITELLM_PROXY_BUDGET_NAME: Final = "litellm-proxy-budget"
@@ -1600,17 +1601,17 @@ CLI_SSO_SESSION_TTL_SECONDS: Final = 600
 CLI_SESSION_KEY_PREFIX: Final = "cli-session"
 # Support both CLI_JWT_EXPIRATION_HOURS and LITELLM_CLI_JWT_EXPIRATION_HOURS for backwards compatibility
 CLI_JWT_EXPIRATION_HOURS: Final = int(
-    os.getenv("CLI_JWT_EXPIRATION_HOURS") or os.getenv("LITELLM_CLI_JWT_EXPIRATION_HOURS") or 24
+    os.getenv("CLI_JWT_EXPIRATION_HOURS") or compat.env("TOKEN_IQ_CLI_JWT_EXPIRATION_HOURS") or 24
 )
 # Comma-separated allowlisted OIDC claim map for CLI SSO polling, e.g.
 # "employment_type->acme_employment_type,org_info.department->department"
-CLI_SSO_CLAIM_MAP: Final = os.getenv("CLI_SSO_CLAIM_MAP") or os.getenv("LITELLM_CLI_SSO_CLAIM_MAP") or ""
+CLI_SSO_CLAIM_MAP: Final = os.getenv("CLI_SSO_CLAIM_MAP") or compat.env("TOKEN_IQ_CLI_SSO_CLAIM_MAP") or ""
 CLI_SSO_CLAIM_MAX_SCALAR_LENGTH: Final = 1024
 
 ########################### UI SESSION DURATION ###########################
 # Duration for UI login session (username/password, SSO, invitation links). Format: "30s", "30m", "24h", "7d"
 # Does NOT apply to EXPERIMENTAL_UI_LOGIN flow, which intentionally uses a fixed 10-minute expiry for security.
-LITELLM_UI_SESSION_DURATION: Final = os.getenv("LITELLM_UI_SESSION_DURATION", "24h")
+LITELLM_UI_SESSION_DURATION: Final = compat.env("TOKEN_IQ_UI_SESSION_DURATION", "24h")
 
 ########################### DB CRON JOB NAMES ###########################
 DB_SPEND_UPDATE_JOB_NAME: Final = "db_spend_update_job"

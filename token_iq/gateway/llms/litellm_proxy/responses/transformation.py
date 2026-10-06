@@ -32,7 +32,7 @@ class GatewayProxyResponsesAPIConfig(OpenAIResponsesAPIConfig):
 
         Uses LITELLM_PROXY_API_BASE environment variable if api_base is not provided.
         """
-        api_base = api_base or get_secret_str("LITELLM_PROXY_API_BASE")
+        api_base = api_base or get_secret_str("TOKEN_IQ_PROXY_API_BASE")
 
         if api_base is None:
             raise ValueError(

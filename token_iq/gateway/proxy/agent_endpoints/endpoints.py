@@ -9,7 +9,6 @@ Follows the A2A Spec.
 """
 
 import asyncio
-import os
 import uuid
 from collections.abc import Mapping, Sequence
 from types import MappingProxyType
@@ -19,6 +18,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from typing_extensions import ReadOnly, Required, assert_never
 
 from token_iq import gateway
+from token_iq.gateway import compat
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway.llms.custom_httpx.http_handler import get_async_httpx_client
 from token_iq.gateway.proxy._types import (
@@ -192,8 +192,8 @@ def _check_agent_management_permission(user_api_key_dict: UserAPIKeyAuth) -> Non
         )
 
 
-AGENT_HEALTH_CHECK_TIMEOUT_SECONDS: Final = float(os.environ.get("LITELLM_AGENT_HEALTH_CHECK_TIMEOUT", "5.0"))
-AGENT_HEALTH_CHECK_GATHER_TIMEOUT_SECONDS = float(os.environ.get("LITELLM_AGENT_HEALTH_CHECK_GATHER_TIMEOUT", "30.0"))
+AGENT_HEALTH_CHECK_TIMEOUT_SECONDS: Final = float(compat.env("TOKEN_IQ_AGENT_HEALTH_CHECK_TIMEOUT", "5.0"))
+AGENT_HEALTH_CHECK_GATHER_TIMEOUT_SECONDS = float(compat.env("TOKEN_IQ_AGENT_HEALTH_CHECK_GATHER_TIMEOUT", "30.0"))
 
 
 class _AgentHealthResult(TypedDict, total=False):

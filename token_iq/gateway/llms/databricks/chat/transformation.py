@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING, Any, Final, Literal, cast, overload
 import httpx
 from pydantic import BaseModel
 
+from token_iq.gateway import compat
 from token_iq.gateway.constants import RESPONSE_FORMAT_TOOL_NAME
 from token_iq.gateway.core_utils.llm_response_utils.convert_dict_to_response import (
     _handle_invalid_parallel_tool_calls,
@@ -213,7 +214,7 @@ class DatabricksConfig(DatabricksBase, OpenAILikeChatConfig, AnthropicConfig):
             optional_params.pop("user_agent", None)
             or optional_params.pop("databricks_user_agent", None)
             or litellm_params.get("user_agent")
-            or os.getenv("LITELLM_USER_AGENT")
+            or compat.env("TOKEN_IQ_USER_AGENT")
             or os.getenv("DATABRICKS_USER_AGENT")
         )
 

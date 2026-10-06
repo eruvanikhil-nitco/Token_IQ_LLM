@@ -14,7 +14,6 @@ import copy
 import inspect
 import json
 import math
-import os
 import re
 import secrets
 import traceback
@@ -28,6 +27,7 @@ import yaml
 from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request, status
 from typing_extensions import ReadOnly, TypedDict
 
+from token_iq.gateway import compat
 from token_iq import gateway
 from token_iq.gateway._logging import verbose_proxy_logger
 from token_iq.gateway._uuid import uuid
@@ -386,7 +386,7 @@ def _is_allowed_to_make_key_request(
 
     if team_id is not None:
         if user_api_key_dict.team_id is not None and user_api_key_dict.team_id == UI_TEAM_ID:
-            return True # handle
+            return True  # handle
 
     return True
 
@@ -3731,9 +3731,7 @@ async def info_key_fn_v2(
 
     try:
         if prisma_client is None:
-            raise Exception(
-                "Database not connected. Connect a database to your proxy"
-            )
+            raise Exception("Database not connected. Connect a database to your proxy")
         if data is None:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -3862,9 +3860,7 @@ async def info_key_fn(
 
     try:
         if prisma_client is None:
-            raise Exception(
-                "Database not connected. Connect a database to your proxy"
-            )
+            raise Exception("Database not connected. Connect a database to your proxy")
 
         # default to using Auth token if no key is passed in
         key = key or user_api_key_dict.api_key
@@ -4874,7 +4870,7 @@ async def _insert_deprecated_key(
         new_token_hash: Hash of the new replacement key
         grace_period: Duration string (e.g. "24h", "2d") or None/empty for immediate revoke
     """
-    grace_period_value: Final = grace_period or os.getenv("LITELLM_KEY_ROTATION_GRACE_PERIOD", "")
+    grace_period_value: Final = grace_period or compat.env("TOKEN_IQ_KEY_ROTATION_GRACE_PERIOD", "")
     if not grace_period_value:
         return
 
@@ -7078,6 +7074,4 @@ def validate_model_max_budget(model_max_budget: dict | None) -> None:
                     _info["budget_limit"] = float(_info["budget_limit"])
                 BudgetConfig(**_info)
     except Exception as e:
-        raise ValueError(
-            f"Invalid model_max_budget: {e}. Example of valid model_max_budget"
-        )
+        raise ValueError(f"Invalid model_max_budget: {e}. Example of valid model_max_budget")

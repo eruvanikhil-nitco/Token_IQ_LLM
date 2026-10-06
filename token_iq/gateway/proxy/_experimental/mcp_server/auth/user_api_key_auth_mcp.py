@@ -1366,9 +1366,9 @@ class MCPRequestHandler:
         from token_iq.gateway.secret_managers.main import get_secret_str
 
         MCP_CLIENT_SIDE_AUTH_HEADER_NAME: str = MCPRequestHandler.LITELLM_MCP_AUTH_HEADER_NAME
-        if get_secret_str("LITELLM_MCP_CLIENT_SIDE_AUTH_HEADER_NAME") is not None:
+        if get_secret_str("TOKEN_IQ_MCP_CLIENT_SIDE_AUTH_HEADER_NAME") is not None:
             MCP_CLIENT_SIDE_AUTH_HEADER_NAME = (
-                get_secret_str("LITELLM_MCP_CLIENT_SIDE_AUTH_HEADER_NAME") or MCP_CLIENT_SIDE_AUTH_HEADER_NAME
+                get_secret_str("TOKEN_IQ_MCP_CLIENT_SIDE_AUTH_HEADER_NAME") or MCP_CLIENT_SIDE_AUTH_HEADER_NAME
             )
         elif general_settings.get("mcp_client_side_auth_header_name") is not None:
             MCP_CLIENT_SIDE_AUTH_HEADER_NAME = (
