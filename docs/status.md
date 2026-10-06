@@ -1138,3 +1138,80 @@ the proxy starts, and a builtin named as the last step.
   path `_experimental/out` becoming `ui_bundle/`. `version("litellm")` in the New Relic integration
   reads the distribution name and has to move with it
 - The check: `rg -n "\blitellm\b" --type py` matching only names phases 7 to 9 own
+
+---
+
+## Phase 6, second half: the engine is bound as `gateway`
+
+The alias is gone. `import litellm` became `from token_iq import gateway as litellm` in the first half
+and is now plainly `from token_iq import gateway`, with all 16,000 attribute reads saying
+`gateway.<attr>`. A walk of every syntax tree in the repository finds **no use of the bound name left**.
+
+Everything the first half had to prove had to come out identical again, because this half moves nothing
+across a module boundary:
+
+| what | result |
+|---|---|
+| routes | 589, same paths, same handlers |
+| the four string-path registries | byte-identical |
+| `mock.patch` targets resolving | 9,059 |
+| the engine slice | 3 failed, 5,080 passed, the pre-move baseline exactly |
+| the package's public surface | 1,505, with `litellm` swapped for `gateway` |
+
+That last swap is the self-reference `import litellm` always created inside the package; it is now
+called `gateway` instead.
+
+### Why the syntax tree and not a text match
+
+`litellm` is a substring of names that are not it, and each belongs to a later phase: `litellm_params`
+is a config key, `LITELLM_MASTER_KEY` an environment variable, `LiteLLM_TeamTable` a database model,
+`"litellm.trace_id"` an OpenTelemetry attribute. A `Name` node is unambiguously the bound name, and a
+comment, a telemetry string and a longer identifier are not `Name` nodes at all.
+
+Which names mean the engine is read from each module's own imports rather than from a list. The first
+list had `litellm` and `_litellm`; the tree also had `litellm_module` and `litellm_mod`, 27 uses across
+six files. Any alias holding the old name now has the new one substituted into it, so a private
+spelling stays private.
+
+Four kinds are not `Name` nodes and each had to be said separately: 55 patch targets that reach through
+another module's own binding, nine forward references in annotations, one shared test module that
+re-exports the engine under the bound name and lists it in `__all__`, and one multi-target import
+alongside a Python script held as data and run in a subprocess.
+
+### Three more things the first half could not see
+
+All three were found after it was committed, and all three were silent:
+
+- **The proxy would not have started.** `proxy_cli.py` hands uvicorn and granian the string
+  `"litellm.proxy.proxy_server:app"`, which a worker resolves by name. A dotted-path rule does not see
+  it because of the colon, and the route dump does not see it because the dump imports the app rather
+  than going through the CLI. The rule now matches a colon, and only with a dot before it, which keeps
+  the Redis prefixes `litellm:vcr:` and `litellm_proxy:` out: those are phase 9's
+- **Two ways of addressing a line were wrong.** `str.splitlines` breaks on U+2028, U+2029, a form feed
+  and four more that Python's tokenizer does not, and `col_offset` is a byte offset that was being
+  indexed as characters. Both lost edits while reporting they had happened. Nothing was corrupted,
+  because cutting a line at two offsets and reassembling it is the identity when the replacement
+  matches nothing, and the count is now of edits made rather than candidates chosen
+- **32 patch targets are written as two adjacent string literals.** Python folds them into one value
+  spanning two lines, and the pass skipped any literal that was not on a single line
+
+The blast radius of the first two was measured rather than assumed: the corrected pass was run again
+from the pre-move commit in a separate worktree and the trees compared file by file. Five files
+differed, and they were the five that got fixed.
+
+**The gate that should have caught the third one was filtering it out.** It only checked targets
+starting with `token_iq.`, so a target left naming `litellm.` was skipped rather than failed. After
+phase 6 such a target resolves to nothing and `mock.patch` only finds out when a test enters the patch,
+so the gate now fails at collection time and names every one. It is what found all 32.
+
+### What is left in phase 6
+
+The identifier renames, and they are the bulk: 20,717 identifiers still hold the old name. The rename
+map already says which phase owns each one, and most of the biggest are not phase 6's:
+`litellm_params` (4,716) is a config key for phase 7, `LiteLLM_TeamTable` (533) a database model for
+phase 8. The 2,217 rows the map marks `identifier` are this phase's, led by `LitellmUserRoles` (2,463
+uses), `LiteLLMLoggingObj` (1,264) and `GenericLiteLLMParams` (880).
+
+Then: the test tree becomes `tests/gateway/`, with the CI shards, `SHARDED_ROOTS` and the path-keyed
+budget files following it; and packaging, where `version("litellm")` in the New Relic integration reads
+the distribution name and has to move with `pyproject.toml`.
