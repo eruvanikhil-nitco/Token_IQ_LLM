@@ -4,7 +4,7 @@ pytest finds fixtures and hook implementations by name in the conftest files alo
 directory path. A test moved out from under a conftest loses every autouse fixture and every hook
 in it, with no error and nothing absent from the run. The moved test passes.
 
-What breaks is the next test in the same xdist worker. `tests/test_litellm/proxy/conftest.py`
+What breaks is the next test in the same xdist worker. `tests/gateway/proxy/conftest.py`
 states the mechanism: a leaked `master_key` flips the auth short-circuit in `user_api_key_auth`
 so unrelated tests return 401 instead of 200, and a leaked `llm_router` makes the PTU rollup
 count another test's deployments as the proxy's own. That arrives days later, in a file nobody
@@ -27,9 +27,9 @@ REPO: Final = pathlib.Path(__file__).resolve().parents[2]
 
 # Each Token IQ conftest, and the conftest whose isolation it has to carry over.
 INHERITS: Final[tuple[tuple[str, str], ...]] = (
-    ("tests/token_iq/conftest.py", "tests/test_litellm/conftest.py"),
-    ("tests/token_iq/api/conftest.py", "tests/test_litellm/proxy/conftest.py"),
-    ("tests/token_iq/policy/conftest.py", "tests/test_litellm/proxy/conftest.py"),
+    ("tests/token_iq/conftest.py", "tests/gateway/conftest.py"),
+    ("tests/token_iq/api/conftest.py", "tests/gateway/proxy/conftest.py"),
+    ("tests/token_iq/policy/conftest.py", "tests/gateway/proxy/conftest.py"),
 )
 
 
@@ -92,7 +92,7 @@ class TestTheHookPairStaysAHookPair:
     worker. Anyone tidying this into a fixture should fail here first.
     """
 
-    SOURCE: Final = "tests/test_litellm/proxy/conftest.py"
+    SOURCE: Final = "tests/gateway/proxy/conftest.py"
 
     def test_both_halves_of_the_pair_are_defined(self) -> None:
         defined: Final = _must_carry_over(self.SOURCE)

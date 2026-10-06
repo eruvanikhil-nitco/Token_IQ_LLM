@@ -49,15 +49,15 @@ ITS_OWN_FILES: Final[frozenset[str]] = frozenset(
         # A pass that rewrites its own source, or the files that say what it should do, turns the
         # question into the answer and then reports a clean run having matched nothing.
         "scripts/rename/rename_identifiers.py",
-        "tests/test_litellm/test_rename_identifiers.py",
+        "tests/gateway/test_rename_identifiers.py",
         "scripts/rename/scope_identifiers.py",
-        "tests/test_litellm/test_scope_identifiers.py",
+        "tests/gateway/test_scope_identifiers.py",
         "scripts/rename/build_rename_map.py",
-        "tests/test_litellm/test_build_rename_map.py",
+        "tests/gateway/test_build_rename_map.py",
         "scripts/rename/move_engine_package.py",
-        "tests/test_litellm/test_move_engine_package.py",
+        "tests/gateway/test_move_engine_package.py",
         "scripts/rename/rename_bound_name.py",
-        "tests/test_litellm/test_rename_bound_name.py",
+        "tests/gateway/test_rename_bound_name.py",
     }
 )
 

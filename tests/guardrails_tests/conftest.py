@@ -1,7 +1,7 @@
 # conftest.py
 #
 # xdist-compatible test isolation for guardrails tests.
-# Pattern matches tests/test_litellm/conftest.py:
+# Pattern matches tests/gateway/conftest.py:
 #   - Function-scoped fixture saves/restores litellm globals (no reload)
 #   - Module-scoped fixture reloads only in single-process mode
 

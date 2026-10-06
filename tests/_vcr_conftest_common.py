@@ -43,7 +43,7 @@ from tests._vcr_redis_persister import (
 # network call entirely, so skip tests record nothing (NOOP) and passing tests
 # stop carrying a volatile github episode. This matches the established idiom in
 # the unit-test suite, which sets the same flag (see e.g.
-# tests/test_litellm/test_cost_calculator.py). ``setdefault`` so an explicit
+# tests/gateway/test_cost_calculator.py). ``setdefault`` so an explicit
 # override still wins.
 os.environ.setdefault("LITELLM_LOCAL_MODEL_COST_MAP", "True")
 

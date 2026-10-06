@@ -148,6 +148,6 @@ never landed.
 Unified (managed) batch cost is owned by the hourly `CheckBatchCost` poller, and a
 terminal DB status short-circuits retrieve for those ids, so the terminal-state cell
 uses the encoded path; poller timing does not fit an e2e gate and belongs in a
-DI-stubbed proxy integration test under `tests/test_litellm/proxy/`. Bedrock
+DI-stubbed proxy integration test under `tests/gateway/proxy/`. Bedrock
 cancel/list stay gated pending LIT-4774. Gemini (non-Vertex) file content raises
 `NotImplementedError` upstream and is not a coverage cell.

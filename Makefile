@@ -40,7 +40,7 @@ help:
 	@echo "  make check-circular-imports - Check for circular imports"
 	@echo "  make check-import-safety - Check import safety"
 	@echo "  make test               - Run all tests"
-	@echo "  make test-unit          - Run unit tests (tests/test_litellm)"
+	@echo "  make test-unit          - Run unit tests (tests/gateway)"
 	@echo "  make test-unit-llms     - Run LLM provider tests (~225 files)"
 	@echo "  make test-unit-proxy-guardrails - Run proxy guardrails+mgmt tests (~51 files)"
 	@echo "  make test-unit-proxy-core - Run proxy auth+client+db+hooks tests (~52 files)"
@@ -280,32 +280,32 @@ test: install-test-deps
 	$(UV_RUN) pytest tests/
 
 test-unit: install-test-deps
-	$(UV_RUN) pytest tests/test_litellm -x -vv -n 4
+	$(UV_RUN) pytest tests/gateway -x -vv -n 4
 
 # Matrix test targets (matching CI workflow groups)
 test-unit-llms: install-test-deps
-	$(UV_RUN) pytest tests/test_litellm/llms --tb=short -vv -n 4 --durations=20
+	$(UV_RUN) pytest tests/gateway/llms --tb=short -vv -n 4 --durations=20
 
 test-unit-proxy-guardrails: install-test-deps
-	$(UV_RUN) pytest tests/test_litellm/proxy/guardrails tests/test_litellm/proxy/management_endpoints tests/test_litellm/proxy/management_helpers --tb=short -vv -n 4 --durations=20
+	$(UV_RUN) pytest tests/gateway/proxy/guardrails tests/gateway/proxy/management_endpoints tests/gateway/proxy/management_helpers --tb=short -vv -n 4 --durations=20
 
 test-unit-proxy-core: install-test-deps
-	$(UV_RUN) pytest tests/test_litellm/proxy/auth tests/test_litellm/proxy/client tests/test_litellm/proxy/db tests/test_litellm/proxy/hooks tests/test_litellm/proxy/policy_engine --tb=short -vv -n 4 --durations=20
+	$(UV_RUN) pytest tests/gateway/proxy/auth tests/gateway/proxy/client tests/gateway/proxy/db tests/gateway/proxy/hooks tests/gateway/proxy/policy_engine --tb=short -vv -n 4 --durations=20
 
 test-unit-proxy-misc: install-test-deps
-	$(UV_RUN) pytest tests/test_litellm/proxy/_experimental tests/test_litellm/proxy/agent_endpoints tests/test_litellm/proxy/anthropic_endpoints tests/test_litellm/proxy/common_utils tests/test_litellm/proxy/discovery_endpoints tests/test_litellm/proxy/experimental tests/test_litellm/proxy/google_endpoints tests/test_litellm/proxy/health_endpoints tests/test_litellm/proxy/image_endpoints tests/test_litellm/proxy/middleware tests/test_litellm/proxy/openai_files_endpoint tests/test_litellm/proxy/pass_through_endpoints tests/test_litellm/proxy/prompts tests/test_litellm/proxy/public_endpoints tests/test_litellm/proxy/response_api_endpoints tests/test_litellm/proxy/shutdown tests/test_litellm/proxy/spend_tracking tests/test_litellm/proxy/ui_crud_endpoints tests/test_litellm/proxy/vector_store_endpoints tests/test_litellm/proxy/test_*.py --tb=short -vv -n 4 --durations=20
+	$(UV_RUN) pytest tests/gateway/proxy/_experimental tests/gateway/proxy/agent_endpoints tests/gateway/proxy/anthropic_endpoints tests/gateway/proxy/common_utils tests/gateway/proxy/discovery_endpoints tests/gateway/proxy/experimental tests/gateway/proxy/google_endpoints tests/gateway/proxy/health_endpoints tests/gateway/proxy/image_endpoints tests/gateway/proxy/middleware tests/gateway/proxy/openai_files_endpoint tests/gateway/proxy/pass_through_endpoints tests/gateway/proxy/prompts tests/gateway/proxy/public_endpoints tests/gateway/proxy/response_api_endpoints tests/gateway/proxy/shutdown tests/gateway/proxy/spend_tracking tests/gateway/proxy/ui_crud_endpoints tests/gateway/proxy/vector_store_endpoints tests/gateway/proxy/test_*.py --tb=short -vv -n 4 --durations=20
 
 test-unit-integrations: install-test-deps
-	$(UV_RUN) pytest tests/test_litellm/integrations --tb=short -vv -n 4 --durations=20
+	$(UV_RUN) pytest tests/gateway/integrations --tb=short -vv -n 4 --durations=20
 
 test-unit-core-utils: install-test-deps
-	$(UV_RUN) pytest tests/test_litellm/litellm_core_utils --tb=short -vv -n 2 --durations=20
+	$(UV_RUN) pytest tests/gateway/core_utils --tb=short -vv -n 2 --durations=20
 
 test-unit-other: install-test-deps
-	$(UV_RUN) pytest tests/test_litellm/caching tests/test_litellm/responses tests/test_litellm/secret_managers tests/test_litellm/vector_stores tests/test_litellm/a2a_protocol tests/test_litellm/anthropic_interface tests/test_litellm/completion_extras tests/test_litellm/containers tests/test_litellm/enterprise tests/test_litellm/experimental_mcp_client tests/test_litellm/google_genai tests/test_litellm/images tests/test_litellm/interactions tests/test_litellm/passthrough tests/test_litellm/router_strategy tests/test_litellm/router_utils tests/test_litellm/types --tb=short -vv -n 4 --durations=20
+	$(UV_RUN) pytest tests/gateway/caching tests/gateway/responses tests/gateway/secret_managers tests/gateway/vector_stores tests/gateway/a2a_protocol tests/gateway/anthropic_interface tests/gateway/completion_extras tests/gateway/containers tests/gateway/enterprise tests/gateway/experimental_mcp_client tests/gateway/google_genai tests/gateway/images tests/gateway/interactions tests/gateway/passthrough tests/gateway/router_strategy tests/gateway/router_utils tests/gateway/types --tb=short -vv -n 4 --durations=20
 
 test-unit-root: install-test-deps
-	$(UV_RUN) pytest tests/test_litellm/test_*.py --tb=short -vv -n 4 --durations=20
+	$(UV_RUN) pytest tests/gateway/test_*.py --tb=short -vv -n 4 --durations=20
 
 # Proxy unit tests (tests/proxy_unit_tests split alphabetically)
 test-proxy-unit-a: install-test-deps

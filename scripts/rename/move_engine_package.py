@@ -263,7 +263,7 @@ ITS_OWN_FILES: Final[frozenset[str]] = frozenset(
         # This pass must not rewrite its own source. It did once: every literal it looks for became the
         # thing it replaces them with, after which it matched nothing and reported a clean run.
         "scripts/rename/move_engine_package.py",
-        "tests/test_litellm/test_move_engine_package.py",
+        "tests/gateway/test_move_engine_package.py",
     }
 )
 

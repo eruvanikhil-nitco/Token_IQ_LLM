@@ -3,7 +3,7 @@
 The price list used to exist twice: `model_prices_and_context_window.json` at the repository root
 and `litellm/model_prices_and_context_window_backup.json` beside the package. Both were replaced
 by one file, `data/pricing/model_prices.json`, and
-`tests/test_litellm/litellm_core_utils/test_get_model_cost_map.py::test_the_bundled_file_is_the_only_copy`
+`tests/gateway/core_utils/test_get_model_cost_map.py::test_the_bundled_file_is_the_only_copy`
 is the test that keeps it that way. The tests that read the old paths were not updated, so 88 test
 files refer to files that do not exist. Five of them fail at collection, which truncates whatever
 pytest was collecting after them.
@@ -88,35 +88,35 @@ UPSTREAM: Final = re.compile(r"https?://")
 # quietly swept up a test that still asserts something.
 VACUOUS: Final[tuple[tuple[str, str], ...]] = (
     ("tests/local_testing/test_get_model_file.py", "test_get_backup_model_cost_map"),
-    ("tests/test_litellm/llms/openai_like/test_scx_ai_provider.py", "test_scx_ai_models_synced_to_backup"),
-    ("tests/test_litellm/test_anthropic_sonnet_1hr_cache_pricing.py", "test_backup_matches_main_for_claude_3_1hr_cache_write"),
-    ("tests/test_litellm/test_azure_ai_grok_4_3_model_metadata.py", "test_azure_ai_grok_4_3_backup_matches_main"),
-    ("tests/test_litellm/test_gpt_5_5_model_metadata.py", "test_azure_ai_gpt_5_5_backup_matches_main"),
-    ("tests/test_litellm/test_gpt_realtime_mode.py", "test_backup_matches_main_for_realtime_models"),
-    ("tests/test_litellm/test_muse_spark_1_1_model_metadata.py", "test_muse_spark_1_1_backup_matches_main"),
-    ("tests/test_litellm/test_muse_spark_1_2_model_metadata.py", "test_muse_spark_1_2_backup_matches_main"),
-    ("tests/test_litellm/test_muse_spark_1_3_model_metadata.py", "test_muse_spark_1_3_backup_matches_main"),
-    ("tests/test_litellm/test_replicate_model_key_format.py", "test_replicate_backup_matches_main"),
-    ("tests/test_litellm/test_together_ai_model_metadata.py", "test_together_backup_cost_map_in_sync"),
-    ("tests/test_litellm/test_utils.py", "test_deepseek_v4_models_in_backup_cost_map"),
+    ("tests/gateway/llms/openai_like/test_scx_ai_provider.py", "test_scx_ai_models_synced_to_backup"),
+    ("tests/gateway/test_anthropic_sonnet_1hr_cache_pricing.py", "test_backup_matches_main_for_claude_3_1hr_cache_write"),
+    ("tests/gateway/test_azure_ai_grok_4_3_model_metadata.py", "test_azure_ai_grok_4_3_backup_matches_main"),
+    ("tests/gateway/test_gpt_5_5_model_metadata.py", "test_azure_ai_gpt_5_5_backup_matches_main"),
+    ("tests/gateway/test_gpt_realtime_mode.py", "test_backup_matches_main_for_realtime_models"),
+    ("tests/gateway/test_muse_spark_1_1_model_metadata.py", "test_muse_spark_1_1_backup_matches_main"),
+    ("tests/gateway/test_muse_spark_1_2_model_metadata.py", "test_muse_spark_1_2_backup_matches_main"),
+    ("tests/gateway/test_muse_spark_1_3_model_metadata.py", "test_muse_spark_1_3_backup_matches_main"),
+    ("tests/gateway/test_replicate_model_key_format.py", "test_replicate_backup_matches_main"),
+    ("tests/gateway/test_together_ai_model_metadata.py", "test_together_backup_cost_map_in_sync"),
+    ("tests/gateway/test_utils.py", "test_deepseek_v4_models_in_backup_cost_map"),
 )
 
 # Left alone on purpose: each loops over both copies to assert a flag in every entry, so turning
 # it into one file changes what it covers rather than where it reads from.
 BY_HAND: Final[tuple[str, ...]] = (
-    "tests/test_litellm/llms/anthropic/experimental_pass_through/messages/"
+    "tests/gateway/llms/anthropic/experimental_pass_through/messages/"
     "test_anthropic_experimental_pass_through_messages_handler.py",
-    "tests/test_litellm/llms/azure_ai/claude/test_azure_anthropic_messages_transformation.py",
-    "tests/test_litellm/llms/bedrock/messages/invoke_transformations/"
+    "tests/gateway/llms/azure_ai/claude/test_azure_anthropic_messages_transformation.py",
+    "tests/gateway/llms/bedrock/messages/invoke_transformations/"
     "test_anthropic_claude3_transformation.py",
-    "tests/test_litellm/llms/tencent/chat/test_tencent_chat_transformation.py",
-    "tests/test_litellm/llms/vertex_ai/vertex_ai_partner_models/anthropic/"
+    "tests/gateway/llms/tencent/chat/test_tencent_chat_transformation.py",
+    "tests/gateway/llms/vertex_ai/vertex_ai_partner_models/anthropic/"
     "test_vertex_ai_partner_models_anthropic_messages_config.py",
 )
 
 # The test that enforces there being one copy. It names the old paths in order to assert they are
 # absent, so repointing it would make it assert nothing.
-ENFORCES_ONE_COPY: Final = "tests/test_litellm/litellm_core_utils/test_get_model_cost_map.py"
+ENFORCES_ONE_COPY: Final = "tests/gateway/core_utils/test_get_model_cost_map.py"
 
 
 def repoint(line: str) -> str:

@@ -11,11 +11,11 @@ two tests different isolation while looking like it gives them the same.
 
 Hook functions are looked up by name in this module's namespace exactly as fixtures are, so
 importing one is enough to register it here. All three session hooks below are idempotent, which
-matters because a run covering both this tree and `tests/test_litellm` loads both conftests and
+matters because a run covering both this tree and `tests/gateway` loads both conftests and
 calls each hook twice.
 """
 
-from tests.test_litellm.conftest import (  # noqa: F401  # re-exported for pytest to find by name
+from tests.gateway.conftest import (  # noqa: F401  # re-exported for pytest to find by name
     isolate_host_aws_config,
     isolate_host_os_keychain,
     isolate_host_proxy_base_url,

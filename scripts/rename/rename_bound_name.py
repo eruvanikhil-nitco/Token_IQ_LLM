@@ -96,11 +96,11 @@ ITS_OWN_FILES: Final[frozenset[str]] = frozenset(
         # A pass that rewrites its own source turns every literal it looks for into the thing it
         # replaces them with, after which it matches nothing and reports a clean run.
         "scripts/rename/rename_bound_name.py",
-        "tests/test_litellm/test_rename_bound_name.py",
+        "tests/gateway/test_rename_bound_name.py",
         # The other half's tests, whose expectations are what that pass produces: the alias this
         # one removes is the right answer there.
         "scripts/rename/move_engine_package.py",
-        "tests/test_litellm/test_move_engine_package.py",
+        "tests/gateway/test_move_engine_package.py",
     }
 )
 

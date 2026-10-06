@@ -1,4 +1,4 @@
-"""The `proxy_server` module-global isolation these tests had under `tests/test_litellm/proxy/`.
+"""The `proxy_server` module-global isolation these tests had under `tests/gateway/proxy/`.
 
 The hook pair is the load-bearing part. It snapshots `litellm.proxy.proxy_server`'s module
 globals before any fixture runs and restores them after every finalizer has run. Without it a
@@ -12,7 +12,7 @@ after every other finalizer, and a test that patches a global while a fixture ho
 records the fixture's mock as the original.
 """
 
-from tests.test_litellm.proxy.conftest import (  # noqa: F401  # re-exported for pytest to find by name
+from tests.gateway.proxy.conftest import (  # noqa: F401  # re-exported for pytest to find by name
     _reset_graceful_shutdown_state,
     disconnected_prisma,
     pytest_runtest_setup,

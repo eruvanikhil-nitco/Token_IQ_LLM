@@ -255,7 +255,7 @@ class TestCountingCollectionErrors:
 
     COLLECTION_ERROR: Final = """<?xml version="1.0" encoding="utf-8"?>
     <testsuites><testsuite name="pytest" errors="1" failures="0" skipped="0" tests="11">
-      <testcase classname="" name="tests.test_litellm.test_broken" time="0.0">
+      <testcase classname="" name="tests.gateway.test_broken" time="0.0">
         <error message="collection failure">FileNotFoundError</error>
       </testcase>
       <testcase classname="tests.token_iq.ledger.test_reconciliation" name="test_one" time="0.0"/>
@@ -263,7 +263,7 @@ class TestCountingCollectionErrors:
 
     FIXTURE_ERROR: Final = """<?xml version="1.0" encoding="utf-8"?>
     <testsuites><testsuite name="pytest" errors="1" failures="0" skipped="0" tests="1">
-      <testcase classname="tests.test_litellm.test_a" name="test_one" time="0.0">
+      <testcase classname="tests.gateway.test_a" name="test_one" time="0.0">
         <error message="fixture blew up">RuntimeError</error>
       </testcase>
     </testsuite></testsuites>"""
@@ -281,7 +281,7 @@ class TestCountingCollectionErrors:
     def test_the_collectable_cases_are_still_parsed_alongside_the_error(self) -> None:
         """The point of tolerating the error is keeping everything collected after it."""
         assert parse_junit(self.COLLECTION_ERROR) == (
-            CaseOutcome("tests/test_litellm/test_broken.py", "error"),
+            CaseOutcome("tests/gateway/test_broken.py", "error"),
             CaseOutcome("tests/token_iq/ledger/test_reconciliation.py::test_one", "passed"),
         )
 

@@ -38,13 +38,13 @@ TOKEN_IQ: Final[tuple[str, ...]] = ("tests/token_iq",)
 """One path since phase 4: the Token IQ tests mirror the package instead of being seven
 directories scattered through the engine's tree."""
 TOKEN_IQ_PROXY: Final[tuple[str, ...]] = tuple(
-    f"tests/test_litellm/proxy/{name}"
+    f"tests/gateway/proxy/{name}"
     for name in ("management_endpoints", "auth", "pass_through_endpoints", "spend_tracking", "db")
 )
 
 # Token IQ paths that fall outside both groups above and so were in no captured suite at all,
 # found by checking the phase 4 move map against what the suites cover.
-TOKEN_IQ_EDGES: Final[tuple[str, ...]] = ("tests/test_litellm/proxy/credential_endpoints",)
+TOKEN_IQ_EDGES: Final[tuple[str, ...]] = ("tests/gateway/proxy/credential_endpoints",)
 """What is left of that gap. `pricing` and `types/proxy` moved into `tests/token_iq` in phase 4
 and are covered by the suite above; this directory keeps engine tests of its own."""
 
@@ -52,9 +52,9 @@ SUITES: Final[Mapping[str, tuple[str, ...]]] = {
     "token_iq": TOKEN_IQ,
     "token_iq_edges": TOKEN_IQ_EDGES,
     "token_iq_proxy": TOKEN_IQ_PROXY,
-    "repositories": ("tests/test_litellm/repositories",),
+    "repositories": ("tests/gateway/repositories",),
     "deploy": ("tests/deploy",),
-    "unit": ("tests/test_litellm",),
+    "unit": ("tests/gateway",),
 }
 
 UI: Final = REPO / "ui" / "litellm-dashboard"

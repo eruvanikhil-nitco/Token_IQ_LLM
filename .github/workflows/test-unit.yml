@@ -20,7 +20,7 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
-# One caller for every tests/test_litellm shard, replacing the nine thin workflow
+# One caller for every tests/gateway shard, replacing the nine thin workflow
 # files that each wrapped a single call to _test-unit-base.yml. Adding a shard is
 # now one matrix entry rather than a new file.
 #
@@ -51,7 +51,7 @@ jobs:
         include:
           - shard: core-utils
             artifact-name: core-utils
-            test-path: "tests/test_litellm/litellm_core_utils"
+            test-path: "tests/gateway/core_utils"
             workers: 2
             reruns: 1
             timeout-minutes: 20
@@ -60,10 +60,10 @@ jobs:
           - shard: enterprise-routing
             artifact-name: enterprise-routing
             test-path: >-
-              tests/test_litellm/enterprise
-              tests/test_litellm/google_genai
-              tests/test_litellm/router_utils
-              tests/test_litellm/router_strategy
+              tests/gateway/enterprise
+              tests/gateway/google_genai
+              tests/gateway/router_utils
+              tests/gateway/router_strategy
             workers: 2
             reruns: 2
             timeout-minutes: 20
@@ -71,7 +71,7 @@ jobs:
 
           - shard: integrations
             artifact-name: integrations
-            test-path: "tests/test_litellm/integrations"
+            test-path: "tests/gateway/integrations"
             workers: 2
             reruns: 3
             timeout-minutes: 20
@@ -79,7 +79,7 @@ jobs:
 
           - shard: Vertex AI
             artifact-name: llm-vertex-ai
-            test-path: "tests/test_litellm/llms/vertex_ai"
+            test-path: "tests/gateway/llms/vertex_ai"
             workers: 1
             reruns: 2
             timeout-minutes: 20
@@ -87,7 +87,7 @@ jobs:
 
           - shard: All Other Providers
             artifact-name: llm-other-providers
-            test-path: "tests/test_litellm/llms --ignore=tests/test_litellm/llms/vertex_ai"
+            test-path: "tests/gateway/llms --ignore=tests/gateway/llms/vertex_ai"
             workers: 2
             reruns: 2
             timeout-minutes: 20
@@ -97,30 +97,30 @@ jobs:
             artifact-name: misc
             test-path: >-
               tests/sdk_function_trace
-              tests/test_litellm/batches
-              tests/test_litellm/secret_managers
-              tests/test_litellm/a2a_protocol
-              tests/test_litellm/anthropic_interface
-              tests/test_litellm/completion_extras
-              tests/test_litellm/compression
-              tests/test_litellm/containers
-              tests/test_litellm/endpoints
-              tests/test_litellm/experimental_mcp_client
-              tests/test_litellm/models
-              tests/test_litellm/repositories
-              tests/test_litellm/images
-              tests/test_litellm/interactions
-              tests/test_litellm/ocr
-              tests/test_litellm/passthrough
-              tests/test_litellm/rag
-              tests/test_litellm/realtime_api
-              tests/test_litellm/rerank_api
-              tests/test_litellm/rust_bridge
-              tests/test_litellm/sandbox
-              tests/test_litellm/test_router
-              tests/test_litellm/vector_stores
-              tests/test_litellm/videos
-              tests/test_litellm/test_*.py
+              tests/gateway/batches
+              tests/gateway/secret_managers
+              tests/gateway/a2a_protocol
+              tests/gateway/anthropic_interface
+              tests/gateway/completion_extras
+              tests/gateway/compression
+              tests/gateway/containers
+              tests/gateway/endpoints
+              tests/gateway/experimental_mcp_client
+              tests/gateway/models
+              tests/gateway/repositories
+              tests/gateway/images
+              tests/gateway/interactions
+              tests/gateway/ocr
+              tests/gateway/passthrough
+              tests/gateway/rag
+              tests/gateway/realtime_api
+              tests/gateway/rerank_api
+              tests/gateway/rust_bridge
+              tests/gateway/sandbox
+              tests/gateway/test_router
+              tests/gateway/vector_stores
+              tests/gateway/videos
+              tests/gateway/test_*.py
             workers: 2
             reruns: 2
             timeout-minutes: 20
@@ -145,10 +145,10 @@ jobs:
           - shard: proxy-auth
             artifact-name: proxy-auth
             test-path: >-
-              tests/test_litellm/proxy/auth
-              tests/test_litellm/proxy/hooks
-              tests/test_litellm/proxy/policy_engine
-              tests/test_litellm/proxy/client
+              tests/gateway/proxy/auth
+              tests/gateway/proxy/hooks
+              tests/gateway/proxy/policy_engine
+              tests/gateway/proxy/client
             workers: 2
             reruns: 2
             timeout-minutes: 20
@@ -157,37 +157,37 @@ jobs:
           - shard: proxy-endpoints
             artifact-name: proxy-endpoints
             test-path: >-
-              tests/test_litellm/proxy/analytics_endpoints
-              tests/test_litellm/proxy/management_endpoints
-              tests/test_litellm/proxy/list_api
-              tests/test_litellm/proxy/memory
-              tests/test_litellm/proxy/guardrails
-              tests/test_litellm/proxy/management_helpers
-              tests/test_litellm/proxy/anthropic_endpoints
-              tests/test_litellm/proxy/google_endpoints
-              tests/test_litellm/proxy/openai_files_endpoint
-              tests/test_litellm/proxy/batches_endpoints
-              tests/test_litellm/proxy/fine_tuning_endpoints
-              tests/test_litellm/proxy/vector_store_files_endpoints
-              tests/test_litellm/proxy/video_endpoints
-              tests/test_litellm/proxy/response_api_endpoints
-              tests/test_litellm/proxy/image_endpoints
-              tests/test_litellm/proxy/ocr_endpoints
-              tests/test_litellm/proxy/vector_store_endpoints
-              tests/test_litellm/proxy/agent_endpoints
-              tests/test_litellm/proxy/a2a
-              tests/test_litellm/proxy/credential_endpoints
-              tests/test_litellm/proxy/discovery_endpoints
-              tests/test_litellm/proxy/health_endpoints
-              tests/test_litellm/proxy/shutdown
-              tests/test_litellm/proxy/public_endpoints
-              tests/test_litellm/proxy/prompts
-              tests/test_litellm/proxy/rag_endpoints
-              tests/test_litellm/proxy/rerank_endpoints
-              tests/test_litellm/proxy/realtime_endpoints
-              tests/test_litellm/proxy/ui_crud_endpoints
-              tests/test_litellm/proxy/config_resolvers
-              tests/test_litellm/proxy/utils
+              tests/gateway/proxy/analytics_endpoints
+              tests/gateway/proxy/management_endpoints
+              tests/gateway/proxy/list_api
+              tests/gateway/proxy/memory
+              tests/gateway/proxy/guardrails
+              tests/gateway/proxy/management_helpers
+              tests/gateway/proxy/anthropic_endpoints
+              tests/gateway/proxy/google_endpoints
+              tests/gateway/proxy/openai_files_endpoint
+              tests/gateway/proxy/batches_endpoints
+              tests/gateway/proxy/fine_tuning_endpoints
+              tests/gateway/proxy/vector_store_files_endpoints
+              tests/gateway/proxy/video_endpoints
+              tests/gateway/proxy/response_api_endpoints
+              tests/gateway/proxy/image_endpoints
+              tests/gateway/proxy/ocr_endpoints
+              tests/gateway/proxy/vector_store_endpoints
+              tests/gateway/proxy/agent_endpoints
+              tests/gateway/proxy/a2a
+              tests/gateway/proxy/credential_endpoints
+              tests/gateway/proxy/discovery_endpoints
+              tests/gateway/proxy/health_endpoints
+              tests/gateway/proxy/shutdown
+              tests/gateway/proxy/public_endpoints
+              tests/gateway/proxy/prompts
+              tests/gateway/proxy/rag_endpoints
+              tests/gateway/proxy/rerank_endpoints
+              tests/gateway/proxy/realtime_endpoints
+              tests/gateway/proxy/ui_crud_endpoints
+              tests/gateway/proxy/config_resolvers
+              tests/gateway/proxy/utils
             workers: 4
             reruns: 2
             timeout-minutes: 20
@@ -195,7 +195,7 @@ jobs:
 
           - shard: proxy-server
             artifact-name: proxy-server
-            test-path: "tests/test_litellm/proxy/proxy_server"
+            test-path: "tests/gateway/proxy/proxy_server"
             workers: 4
             reruns: 2
             timeout-minutes: 60
@@ -204,16 +204,16 @@ jobs:
           - shard: proxy-infra
             artifact-name: proxy-infra
             test-path: >-
-              tests/test_litellm/proxy/db
-              tests/test_litellm/proxy/middleware
-              tests/test_litellm/proxy/spend_tracking
-              tests/test_litellm/proxy/pass_through_endpoints
-              tests/test_litellm/proxy/_experimental
-              tests/test_litellm/proxy/experimental
-              tests/test_litellm/proxy/common_utils
-              tests/test_litellm/proxy/types_utils
-              tests/test_litellm/proxy/logging_endpoints
-              tests/test_litellm/proxy/test_*.py
+              tests/gateway/proxy/db
+              tests/gateway/proxy/middleware
+              tests/gateway/proxy/spend_tracking
+              tests/gateway/proxy/pass_through_endpoints
+              tests/gateway/proxy/_experimental
+              tests/gateway/proxy/experimental
+              tests/gateway/proxy/common_utils
+              tests/gateway/proxy/types_utils
+              tests/gateway/proxy/logging_endpoints
+              tests/gateway/proxy/test_*.py
             workers: 4
             reruns: 2
             timeout-minutes: 20
@@ -251,9 +251,9 @@ jobs:
           - shard: responses-caching-types
             artifact-name: responses-caching-types
             test-path: >-
-              tests/test_litellm/responses
-              tests/test_litellm/caching
-              tests/test_litellm/types
+              tests/gateway/responses
+              tests/gateway/caching
+              tests/gateway/types
             workers: 2
             reruns: 2
             timeout-minutes: 20

@@ -169,10 +169,10 @@ make bootstrap                  # install backend and dashboard dependencies
 make check                      # lint, types and the budget gates
 ```
 
-Backend tests mirror the source tree under `tests/test_litellm/`:
+Backend tests mirror the source tree under `tests/gateway/`:
 
 ```bash
-pytest tests/test_litellm/proxy/management_endpoints/
+pytest tests/gateway/proxy/management_endpoints/
 ```
 
 The dashboard lives in `ui/litellm-dashboard`. Run `npm run dev` there for a live server on

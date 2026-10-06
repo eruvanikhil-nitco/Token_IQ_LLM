@@ -106,7 +106,7 @@ PACKAGE_MOVES: Final[tuple[Move, ...]] = (
         "litellm-proxy-extras/litellm_proxy_extras",
         "phase 8 renames the migrations package",
     ),
-    Move("test tree", "tests/test_litellm", "tests/gateway", "tests/test_litellm", "mirrors token_iq/gateway/"),
+    Move("test tree", "tests/gateway", "tests/gateway", "tests/gateway", "mirrors token_iq/gateway/"),
 )
 
 IDENTIFIER_SPECIAL_CASES: Final[Mapping[str, str]] = MappingProxyType(

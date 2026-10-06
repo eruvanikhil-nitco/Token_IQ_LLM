@@ -34,8 +34,8 @@ GLOB_CHARS = frozenset("*?")
 # itself decomposed one level deeper and is checked through its own entry.
 SHARDED_ROOTS: tuple[str, ...] = (
     "tests/proxy_unit_tests",
-    "tests/test_litellm",
-    "tests/test_litellm/proxy",
+    "tests/gateway",
+    "tests/gateway/proxy",
 )
 
 

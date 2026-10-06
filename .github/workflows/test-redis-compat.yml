@@ -10,8 +10,8 @@ on:
     paths:
       - "litellm/_redis.py"
       - "litellm/_redis_credential_provider.py"
-      - "tests/test_litellm/test_redis.py"
-      - "tests/test_litellm/caching/test_redis_connection_pool.py"
+      - "tests/gateway/test_redis.py"
+      - "tests/gateway/caching/test_redis_connection_pool.py"
       - ".github/workflows/test-redis-compat.yml"
       - "pyproject.toml"
       - "uv.lock"
@@ -69,8 +69,8 @@ jobs:
       - name: Run redis unit tests
         run: |
           uv run --no-sync pytest \
-            tests/test_litellm/test_redis.py \
-            tests/test_litellm/caching/test_redis_connection_pool.py \
+            tests/gateway/test_redis.py \
+            tests/gateway/caching/test_redis_connection_pool.py \
             --tb=short -vv \
             --reruns 2 \
             --reruns-delay 1 \

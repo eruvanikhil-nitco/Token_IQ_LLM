@@ -29,7 +29,7 @@ from typing import Final
 
 REPO: Final = pathlib.Path(__file__).resolve().parents[1]
 
-OLD: Final = "tests/test_litellm"
+OLD: Final = "tests/gateway"
 NEW: Final = "tests/token_iq"
 
 # Whole directories, mirroring where phase 3 put the modules they test.
@@ -101,7 +101,7 @@ POLICY: Final[Mapping[str, str]] = MappingProxyType(
 # engine's sixteen.
 #
 # `overview_repository` has none, which this found by looking for one. Nothing exercises it
-# directly: `tests/test_litellm/proxy/management_endpoints/test_overview.py` injects a fake and
+# directly: `tests/gateway/proxy/management_endpoints/test_overview.py` injects a fake and
 # tests the router's composition instead. Its methods are `provider_billed`, `tool_new_money`,
 # `seats` and `gateway_recorded`, which are the four figures the counting rule governs, so a
 # wrong one there is the silent failure the rule exists to prevent. Recorded here rather than
