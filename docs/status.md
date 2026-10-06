@@ -1215,3 +1215,80 @@ uses), `LiteLLMLoggingObj` (1,264) and `GenericLiteLLMParams` (880).
 Then: the test tree becomes `tests/gateway/`, with the CI shards, `SHARDED_ROOTS` and the path-keyed
 budget files following it; and packaging, where `version("litellm")` in the New Relic integration reads
 the distribution name and has to move with `pyproject.toml`.
+
+---
+
+## Phase 6, third part: the identifiers
+
+1,316 names renamed across 14,221 places, and 901 deliberately not. The split is the whole of the work;
+the renaming itself is mechanical.
+
+### The rule as written would have broken a running installation
+
+Phase 6 says "identifiers containing the name become Gateway or gateway". Applied to all 2,217 rows the
+map marks `identifier`, it renames things outside this repository reads, and every one of those would be
+silent: the code still works and a payload field, a price key or a calling convention changes name.
+
+So `docs/plans/phase-6-identifier-scope.csv` decides each row and carries the reason on it. 901 wait:
+
+| why | rows |
+|---|---|
+| not a Python identifier here, so a pass over Python cannot rename it | 746 |
+| written as a string somewhere, so something passes it by name | 106 |
+| a field of something that serialises, so it is in a payload | 33 |
+| a key in a committed data file, so it is a data format | 8 |
+| a module or package name, so renaming it moves a file | 8 |
+
+The four worth naming: `litellm_provider` is a key in 3,559 entries of the 2.1MB price file, so renaming
+the Python name alone breaks every price lookup and renaming both is a data-format change.
+`litellm_logging_obj` is read as `kwargs.get("litellm_logging_obj")`, which makes the name the calling
+convention. `litellm_credential_name` is declared in five Pydantic models. `litellm_proxy_extras` is a
+package, and phase 8 renames it to `token_iq_migrations`.
+
+A CapWords name is exempt from the string test and from that one only, because a class written as a
+string is a forward reference rather than a key: `"LiteLLMLoggingObj"` appears 172 times that way and
+every one is an annotation. Python's own conventions are the only thing that can tell those apart.
+
+The 746 are not all the dashboard's, which is what the reason first said and had to be corrected: 292
+are in the Go of the Terraform provider, 97 in documentation, 78 in JSON, 34 in CI config, 97 in
+TypeScript, and 383 appear in a `.py` file only inside a string, a docstring or a comment.
+
+### Four positions a name can occupy that were missing
+
+Renaming through the syntax tree means knowing every one of them, and each of these failed differently:
+
+- **A definition ends where its body ends.** Asking whether the node sits on one line rejected every
+  class and function in the repository while renaming its references anyway. 756 of 1,316 names looked
+  unreachable, and the audit is the only reason that surfaced before it was applied
+- **`global` and `nonlocal` hold their names as plain strings.** A function declaring
+  `global _LiteLLMLogging` while assigning `_GatewayLogging` makes the assignment local, and the read
+  raises `UnboundLocalError` on the first call with nothing complaining earlier
+- **pytest reads its parameter names out of a comma-separated string.** Three files stopped collecting
+  with "function uses no argument", and the collection count is what showed it
+- **47 patch targets name a renamed function as the tail of a dotted path.** The scope's string test
+  looks for a whole literal, so those were not deferred; inside a path that already names the engine's
+  new home a segment is a module, a class or a function, never a field
+
+Also a caught exception's name and a `match` capture, plain strings for the same reason as `global`.
+
+### Verified
+
+| what | result |
+|---|---|
+| routes | 589, same paths; one handler's own name changed, which is this pass's job, and its URL did not |
+| the four string-path registries | byte-identical |
+| `mock.patch` targets resolving | 9,059 |
+| tests collecting | 45,814 with the same 31 errors as before the rename, compared list to list |
+| the engine slice | 3 failed, 5,083 passed, the pre-move baseline |
+
+### What is left in phase 6
+
+- **The 8 module renames**, which move files: `litellm_pre_call_utils`, `litellm_completion_transformation`
+  and six more
+- **The test tree**: `tests/test_litellm/` becomes `tests/gateway/`, with the CI shards, `SHARDED_ROOTS`
+  and the path-keyed budget files following it
+- **Packaging**: `pyproject.toml` name and scripts, the Dockerfile and entrypoints, the bundled UI path
+  `_experimental/out` becoming `ui_bundle/`, and `version("litellm")` in the New Relic integration, which
+  reads the distribution name and has to move with it
+- **Strings**: user-visible text says Token IQ, logger names say `token_iq`. The audit lists 2,562 uses
+  of the old name in comments and docstrings, which is what phase 10's gate will insist on
