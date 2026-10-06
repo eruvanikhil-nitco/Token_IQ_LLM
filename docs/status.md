@@ -1358,3 +1358,72 @@ One thing found and left: `tests/gateway/` still holds `attribution`, `ledger`, 
 `seats`, `recommendations`, `provider_billing` and `tool_usage`, which are Token IQ's own and belong under
 `tests/token_iq/`. Phase 4 moved most of Token IQ's tests there; these are what it left behind, and they
 are a tidy-up rather than part of the rename.
+
+---
+
+## Phase 7 opens: the environment keeps working
+
+`token_iq/gateway/compat.py` is the one module allowed to name what Token IQ used to be called, and the
+release after next deletes it. 118 reads across 45 files now ask for `TOKEN_IQ_` and fall back to
+`LITELLM_`, so a customer upgrading edits nothing.
+
+Every variable the engine reads starts with `LITELLM_`, all 80 of them, so the mapping is the prefix and
+nothing else. A name that does not start with the new prefix gets no fallback: guessing an old spelling
+for `AWS_REGION_NAME` would invent one nobody asked for.
+
+Three decisions worth keeping:
+
+- **The new name wins when both are set.** An operator who has already migrated should not be overridden
+  by a variable they forgot to delete
+- **The empty string is a value, not an absence.** Setting a variable to nothing meant nothing, and
+  falling through would quietly override that
+- **The warning fires once per name, not once per read.** `LITELLM_LOG` is read four times while the
+  proxy starts. Once-per-name is a `functools.cache` keyed on the name rather than a set of names
+  already seen, which is what the type-discipline gate asked for and reads better: `cache_clear` is the
+  seam a test uses to see the first warning again
+
+### What an end-to-end check caught that unit tests could not
+
+18 of the 118 reads go through the secret-manager layer, so they keep their own function and only the
+name changes: the fallback belongs inside that layer, where one edit covers every caller.
+
+Routing the handler module was not enough. `get_secret` falls through to `os.environ.get(secret_name)`
+when no secret manager is configured, and that is the path that reads **the master key**.
+`get_secret_str("TOKEN_IQ_MASTER_KEY")` still returned `None` with `LITELLM_MASTER_KEY` set, which means
+an operator upgrading would have had a proxy that starts with no master key at all. Only running it
+end to end showed that; every unit test was green.
+
+`_logging` reads two of these variables itself, so the very first warning can fire part-way through
+importing it, when the module object exists but `verbose_logger` does not. Letting that raise would turn
+a deprecation notice into a failure to start.
+
+### Three attempts to add nothing to the lint budget
+
+`I001` and `F401` are both gated, so neither may grow. Inserting the import and then sorting the block
+with `ruff --fix` **produced a circular import and the package stopped importing at all**: more than one
+of these modules relies on the import order it already has. This is the second time in this programme
+that a ruff autofix has done real damage, and the lesson is the same as the first: only ever insert,
+never reorder.
+
+The import now goes in where isort wants it rather than anywhere plus a sort afterwards, and the 17
+blocks that still disagreed were each sorted on their own with the package import checked after every
+one. Nothing is newly in violation.
+
+The migrations package was in scope for one run and should not have been: it installs as its own
+distribution, so importing the engine from it is a dependency that does not hold where it runs. Phase 8
+renames that package and its variables together. Reverting it is also why this does not reformat 156
+lines of a file it had no business touching.
+
+### What is left in phase 7
+
+- **Config keys**: `litellm_settings` becomes `gateway_settings` and `litellm_params` becomes
+  `model_params`, with the old names still read and written back as new on the next save. 4,716 uses of
+  `litellm_params` alone, and it is a key in the price file as well as in `config.yaml`
+- **Request headers**: `x-litellm-*` becomes `x-token-iq-*`, old names still accepted, only the new ones
+  sent in responses
+- **The provider name**: `litellm_proxy` is what a customer writes as `model: litellm_proxy/gpt-4o`,
+  which is why phase 6 left that directory alone
+- **Deployment files and a CHANGELOG** with an Upgrading section listing every renamed variable, key and
+  header, generated from the rename map
+- **The two checks the plan names**: a proxy started with an old-style `.env` and `config.yaml` that
+  works and warns, and the same with the new names
