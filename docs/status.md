@@ -1292,3 +1292,69 @@ Also a caught exception's name and a `match` capture, plain strings for the same
   reads the distribution name and has to move with it
 - **Strings**: user-visible text says Token IQ, logger names say `token_iq`. The audit lists 2,562 uses
   of the old name in comments and docstrings, which is what phase 10's gate will insist on
+
+---
+
+## Phase 6, the rest: the test tree, the build, and the packaging
+
+### The tests mirror the engine again
+
+`tests/test_litellm/` is `tests/gateway/`, and its `litellm_core_utils` is `core_utils`, because the
+mirror is the point: the engine's inner package was renamed when it moved, and a mirror that does not
+mirror is worse than no convention. 1,887 files moved, 467 references in 95 files follow them.
+
+The tree itself was in that 95. 43 files inside it name the path, and some of those are imports rather
+than comments, so excluding them would have moved the files and left them importing a tree that is no
+longer there.
+
+`assert_ci_coverage.py` is what checks the shard paths, and it reports all 2,612 test files still invoked
+by at least one job. The three ratchet files turned out not to be path-keyed at all, so the plan's note
+about updating them does not apply: they key on rule codes.
+
+### The build was broken and nothing Python could see it
+
+The pass that moved the engine read `git ls-files "*.py"`. Everything else kept the old path, and two of
+those were broken rather than stale:
+
+- the Dockerfile copies `litellm/proxy/prisma_migration.py`, which is not there
+- every CI job runs `prisma generate --schema litellm/proxy/schema.prisma`
+
+The package imports, the 589 routes are all present, the tests collect. The image build and every job
+that touches the database would have failed. 288 paths across 102 files are repointed, and a scan of
+every build and CI file now finds none naming a path that is not there.
+
+Three names start with the old one and are each a different thing, so each is left alone:
+`litellm-dashboard` is the UI for phase 9, `litellm-proxy-extras` the migrations package for phase 8,
+`litellm-rust` the crate.
+
+A leading slash is matched on purpose. `/app/litellm/proxy` in the Dockerfile and `$REPO_ROOT/litellm/proxy`
+in the entrypoint are the two that matter most, and excluding a leading slash to keep `tests/litellm/fixture`
+out would have excluded both. Whether the path is really there is what separates them.
+
+### The distribution is token-iq
+
+`name = "token-iq"`, scripts `token-iq` and `token-iq-cli` in place of the three old ones, both
+resolving. `_version.py` reads the new name, `prod_entrypoint.sh` invokes the new script, and maturin's
+`module-name` points at `token_iq.gateway.rust_bridge._native`, which it did not: a wheel would have put
+the native extension at a path that no longer exists. Two `include` entries were stale the same way.
+
+A wheel build and an image build cannot run on this machine, so neither was run. Everything checkable
+here was: both entry points import and carry their attribute, no build file names a missing path, and the
+proxy serves 589 routes.
+
+### What is left, and why the module renames are not phase 6's
+
+The 8 module renames are deferred with evidence. `llms/litellm_proxy/` is not a folder name, it is a
+**provider**: `litellm_proxy` appears in `Literal["openai", "azure", ..., "litellm_proxy", ...]` and in
+the provider list, and a customer writes `model: litellm_proxy/gpt-4o` in their config. Renaming the
+directory renames the provider, which is a configuration change and belongs with phase 7.
+`litellm_content_filter` is a guardrail name customers reference the same way.
+
+So what remains in phase 6 is the strings: user-visible text saying Token IQ and logger names saying
+`token_iq`. The audit counts 2,562 uses of the old name in comments and docstrings. Phase 10's gate is
+what will insist on them, and phase 7 is next.
+
+One thing found and left: `tests/gateway/` still holds `attribution`, `ledger`, `pricing`, `overview`,
+`seats`, `recommendations`, `provider_billing` and `tool_usage`, which are Token IQ's own and belong under
+`tests/token_iq/`. Phase 4 moved most of Token IQ's tests there; these are what it left behind, and they
+are a tidy-up rather than part of the rename.
