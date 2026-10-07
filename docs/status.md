@@ -1611,3 +1611,98 @@ dashboard to anyone on the wheel, which is the same reason the headers left the 
   those own
 - **The provider name.** `litellm_proxy` is what a customer writes as `model: litellm_proxy/gpt-4o`, a
   value rather than a setting, and the plan's phase 7 table does not list it
+
+## Phase 8 step 1: database names in code, no table moved
+
+### The models
+
+85 models lose the prefix and each keeps `@@map` naming the table it already had, so no migration runs and
+nothing in a customer's database moves. `prisma validate` accepts the result and the three byte-identical
+copies stay byte-identical, which `check-schema-sync.yml` enforces.
+
+Raw SQL does not move. 306 queries name `"LiteLLM_SpendLogs"` because that is still what the table is
+called, and renaming them in this step breaks every one on the first request. The plan's step 1 reads as
+though they move with the accessors; they cannot, and they belong with the `ALTER TABLE` in step 2. Field
+names stay as well: `litellm_budget_table` is a relation field, and a field name is a key the dashboard
+reads out of the API, so it waits for the rebuild the API JSON work waits for.
+
+### Telling a generated name from one that looks like it
+
+`token_iq/gateway/models/` declares its own Pydantic classes called `LiteLLM_BudgetTable` and friends,
+mirroring the rows without being them. Renaming one of those changes a key the API returns, so the pass
+moves a name only where it can see it come from the `prisma` package: imported from a `prisma.*` module, or
+read off one of the six aliases bound to one, collected per file rather than assumed.
+
+Accessors move by name against the 85 the schema defines, never by prefix. `litellm_params` is a config key
+and `litellm_provider` a field in the price file, and neither is `litellm_` plus a model name.
+
+The accessor rule is the generator's own: every one of the 80 models in the installed client exposes itself
+as its own name lowercased, with no exceptions. That client cannot be regenerated here, so that is the
+evidence the rule rests on, and the inference that the generator does the same on the new schema is the one
+link in this phase that was not observed.
+
+### Five shapes found by running it, not by reading it
+
+Each was a path that would have broken in production or in CI:
+
+- an accessor read off a transaction rather than off `db`, which the first rule, written around `db`, missed
+- a property on a mock, where the `def` line is the only place the name appears
+- a plainly imported class inside a quoted type hint, which is a string and not a name, so renaming the
+  import beside it left ten undefined names
+- a multi-line import, skipped by a rule that edited the statement instead of each name, while its uses
+  were renamed anyway
+- a keyword argument, which is how the container tests build their fake `db`
+
+And one over-reach the other way. The prefix-based first version renamed `db.litellm_dailyspend`, which is
+not a model at all but a table name a test invents to drive `get_daily_activity`. Caught by checking the
+diff against the rule rather than by the suite, which went green either way.
+
+### The migrations package
+
+`litellm-proxy-extras` becomes `token-iq-migrations`, `litellm_proxy_extras` becomes `token_iq_migrations`:
+the distribution, the package, nine Dockerfiles, six workflows, the root pin and the uv workspace. `uv lock`
+regenerated the lock rather than its text being rewritten.
+
+A count of files naming the old package says 188 and the work is nine. 179 are wheels and tarballs under
+`dist/` of versions already published, which a rename cannot reach.
+
+The 177 migration directories keep their names, because Prisma records an applied migration by directory
+name and a renamed one looks unapplied, so the next boot runs it again against a schema that already has it.
+All 177 blobs are byte-identical. The test asserting this checks the names against Prisma's own shape rather
+than against git history, so it keeps meaning something now that the rename is committed.
+
+`TOKEN_IQ_MIGRATION_DIR` is read there with the old name as a fallback, written locally because that package
+installs as its own distribution and cannot import the engine's helper. The rename map's source scope grew to
+include it, so the upgrade notes list it: a variable a customer sets belongs in those notes wherever the code
+reading it lives.
+
+### Verified
+
+- 589 routes and the dynamic-discovery dump byte-identical through both halves
+- 9,059 patch targets resolving
+- the three schemas identical and valid, with the sync workflow pointing at the moved path
+- no undefined names anywhere in the engine
+- nothing in scope still naming the old package, and a second run of each pass moving nothing
+- fourteen mutations across the two passes, each turning a test red
+
+### What this machine cannot check
+
+Device Guard blocks the Prisma Python generator and the `uv sync` build step. So the installed client is
+still the one built from the old schema, two tests that construct `prisma_models.ProxyModelTable` at runtime
+fail here and cannot pass here, and the venv was repointed by hand to keep the migrations package importable.
+Every CI job that runs tests regenerates the client first.
+
+Six other failures in the suites around this work are pre-existing, each confirmed against the previous
+commit: three migration SQL files missing `IF NOT EXISTS`, two in a planned engine restart, and one test
+asserting a complexity router that decision 0012 removed.
+
+### What is left in phase 8
+
+**Step 2, a separate release and the owner's call.** One migration that renames each table to snake_case
+along with its indexes, constraints and sequences, then the `@@map` lines come out. It needs
+`docs/runbooks/rename-tables.md` covering backup, maintenance window and rollback, a rehearsal against a copy
+of a real installation's database, and asking before merging. The 306 raw SQL queries move with it.
+
+Also outstanding from phase 8's own work: publishing `token-iq-migrations` to an index, since the root
+`pyproject.toml` now pins a distribution name that does not exist there yet. `build_and_publish.md` inside
+the package documents the steps.
