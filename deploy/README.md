@@ -25,7 +25,7 @@ version cannot be named cannot be rolled back to a known build.
    existing customer is left alone and their password is never rotated, because rotating one
    takes a live installation offline.
 3. Put the connection string and a generated master key into Secrets Manager.
-4. Apply `terraform/tokeniq/installation` with the customer's values and the shared
+4. Apply `deploy/terraform/installation` with the customer's values and the shared
    infrastructure's identifiers.
 5. Point their hostname at the shared load balancer.
 

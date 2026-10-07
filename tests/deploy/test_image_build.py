@@ -42,7 +42,7 @@ def test_an_image_is_named_under_our_own_registry(tmp_path: Path) -> None:
     reference: Final = reference_for(ALL_IN_ONE, registry=REGISTRY, version="abc123def456")
 
     assert reference.startswith(REGISTRY)
-    assert "/tokeniq/" in reference
+    assert "/token-iq/" in reference
     assert "berriai" not in reference
 
 

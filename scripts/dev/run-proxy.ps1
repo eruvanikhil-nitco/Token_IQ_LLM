@@ -1,6 +1,6 @@
 # Starts the Token IQ proxy on http://localhost:4001
 #
-# Run it from your own terminal:  .\run-proxy.ps1
+# Run it from your own terminal:  .\scripts\dev\run-proxy.ps1
 # Ctrl+C stops it. Nothing else will, unlike a process started from a chat session.
 #
 # Credentials are read from the running Postgres container, so no password is
@@ -10,7 +10,7 @@ $ErrorActionPreference = "Stop"
 
 $container = "tokeniq_db"
 $port = 4001
-$repo = $PSScriptRoot
+$repo = (Resolve-Path "$PSScriptRoot\..\..").Path
 $python = "$repo\.venv\Scripts\python.exe"
 
 if (-not (Test-Path $python)) {

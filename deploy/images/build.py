@@ -18,7 +18,7 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Final
 
-REGISTRY_SUFFIX: Final = "/tokeniq"
+REGISTRY_SUFFIX: Final = "/token-iq"
 """Every image lives under our own namespace. The registry host differs per environment, an
 ECR account for production and something local for a rehearsal, but the namespace does not."""
 
@@ -34,7 +34,7 @@ class ImageSpec:
     context: str = "."
 
 
-ALL_IN_ONE: Final = ImageSpec(name="tokeniq", dockerfile="Dockerfile")
+ALL_IN_ONE: Final = ImageSpec(name="token-iq", dockerfile="Dockerfile")
 """One container per installation, which is the shape a customer installation runs. The
 componentized gateway, backend and UI images stay available for a customer who outgrows it."""
 

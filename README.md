@@ -110,10 +110,10 @@ Start the database and the proxy:
 
 ```powershell
 docker start tokeniq_db
-.\run-proxy.ps1
+.\scripts\dev\run-proxy.ps1
 ```
 
-`run-proxy.ps1` reads the database credentials from the running container, so no password is
+`scripts\dev\run-proxy.ps1` reads the database credentials from the running container, so no password is
 stored in the repo or typed on the command line. The gateway comes up on
 <http://localhost:4001> and the dashboard on <http://localhost:4001/ui/>.
 
