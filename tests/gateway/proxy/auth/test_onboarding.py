@@ -57,11 +57,11 @@ def _make_user() -> MagicMock:
 
 def _make_prisma(invite: MagicMock, user: MagicMock | None = None) -> MagicMock:
     prisma = MagicMock()
-    prisma.db.litellm_invitationlink.find_unique = AsyncMock(return_value=invite)
-    prisma.db.litellm_invitationlink.update = AsyncMock()
-    prisma.db.litellm_invitationlink.update_many = AsyncMock(return_value=1)
-    prisma.db.litellm_usertable.find_unique = AsyncMock(return_value=user)
-    prisma.db.litellm_usertable.update = AsyncMock(return_value=user)
+    prisma.db.invitationlink.find_unique = AsyncMock(return_value=invite)
+    prisma.db.invitationlink.update = AsyncMock()
+    prisma.db.invitationlink.update_many = AsyncMock(return_value=1)
+    prisma.db.usertable.find_unique = AsyncMock(return_value=user)
+    prisma.db.usertable.update = AsyncMock(return_value=user)
     prisma.db.tx = MagicMock(return_value=_AsyncTx(prisma.db))
     return prisma
 
@@ -119,7 +119,7 @@ async def test_get_token_rejects_already_used_link():
     assert exc_info.value.status_code == 401
     assert "already been used" in exc_info.value.detail["error"]
     # The user table must never have been queried
-    prisma.db.litellm_usertable.find_unique.assert_not_called()
+    prisma.db.usertable.find_unique.assert_not_called()
 
 
 @pytest.mark.asyncio
@@ -209,8 +209,8 @@ async def test_get_token_returns_onboarding_token_without_minting_ui_key():
     assert not onboarding_token.startswith("sk-")
 
     mock_generate_key.assert_not_called()
-    prisma.db.litellm_invitationlink.update_many.assert_not_called()
-    prisma.db.litellm_invitationlink.update.assert_not_called()
+    prisma.db.invitationlink.update_many.assert_not_called()
+    prisma.db.invitationlink.update.assert_not_called()
 
 
 # ---------------------------------------------------------------------------
@@ -241,7 +241,7 @@ async def test_claim_token_rejects_already_used_link():
     assert exc_info.value.status_code == 401
     assert "already been used" in exc_info.value.detail["error"]
     # Password must never have been written
-    prisma.db.litellm_usertable.update.assert_not_called()
+    prisma.db.usertable.update.assert_not_called()
 
 
 @pytest.mark.asyncio
@@ -309,7 +309,7 @@ async def test_claim_token_rejects_missing_onboarding_token():
 
     assert exc_info.value.status_code == 401
     assert "Missing onboarding session" in exc_info.value.detail["error"]
-    prisma.db.litellm_usertable.update.assert_not_called()
+    prisma.db.usertable.update.assert_not_called()
 
 
 @pytest.mark.asyncio
@@ -338,7 +338,7 @@ async def test_claim_token_rejects_wrong_onboarding_session():
 
     assert exc_info.value.status_code == 401
     assert "Invalid onboarding session" in exc_info.value.detail["error"]
-    prisma.db.litellm_usertable.update.assert_not_called()
+    prisma.db.usertable.update.assert_not_called()
 
 
 @pytest.mark.asyncio
@@ -365,7 +365,7 @@ async def test_claim_token_rejects_invalid_bearer_token():
 
     assert exc_info.value.status_code == 401
     assert "Invalid onboarding session" in exc_info.value.detail["error"]
-    prisma.db.litellm_usertable.update.assert_not_called()
+    prisma.db.usertable.update.assert_not_called()
 
 
 @pytest.mark.asyncio
@@ -375,7 +375,7 @@ async def test_claim_token_rejects_concurrent_reuse_before_password_write():
 
     invite = _make_invite(is_accepted=False)
     prisma = _make_prisma(invite)
-    prisma.db.litellm_invitationlink.update_many = AsyncMock(return_value=0)
+    prisma.db.invitationlink.update_many = AsyncMock(return_value=0)
     request = _make_claim_request(_make_onboarding_token())
     data = InvitationClaim(
         invitation_link="invite-abc",
@@ -397,7 +397,7 @@ async def test_claim_token_rejects_concurrent_reuse_before_password_write():
 
     assert exc_info.value.status_code == 401
     assert "already been used" in exc_info.value.detail["error"]
-    prisma.db.litellm_usertable.update.assert_not_called()
+    prisma.db.usertable.update.assert_not_called()
     mock_generate_key.assert_not_called()
 
 
@@ -446,18 +446,18 @@ async def test_claim_token_sets_accepted_at_after_password_written():
         result = await claim_onboarding_link(data=data, request=request)
 
     # Password was written
-    prisma.db.litellm_invitationlink.update_many.assert_called_once()
-    reserve_kwargs = prisma.db.litellm_invitationlink.update_many.call_args.kwargs
+    prisma.db.invitationlink.update_many.assert_called_once()
+    reserve_kwargs = prisma.db.invitationlink.update_many.call_args.kwargs
     assert reserve_kwargs["where"] == {"id": "invite-abc", "is_accepted": False}
     assert reserve_kwargs["data"]["is_accepted"] is True
-    prisma.db.litellm_usertable.update.assert_called_once()
-    call_kwargs = prisma.db.litellm_usertable.update.call_args
+    prisma.db.usertable.update.assert_called_once()
+    call_kwargs = prisma.db.usertable.update.call_args
     assert call_kwargs.kwargs["where"] == {"user_id": "user-123"}
     assert "password" in call_kwargs.kwargs["data"]
 
     # is_accepted was flipped to True on the invitation link
-    prisma.db.litellm_invitationlink.update.assert_called_once()
-    link_update_data = prisma.db.litellm_invitationlink.update.call_args.kwargs["data"]
+    prisma.db.invitationlink.update.assert_called_once()
+    link_update_data = prisma.db.invitationlink.update.call_args.kwargs["data"]
     assert "is_accepted" not in link_update_data
     assert link_update_data["accepted_at"] is not None
     outer_claims = jwt.decode(result["token"], "sk-test", algorithms=["HS256"])
@@ -495,8 +495,8 @@ async def test_claim_token_rolls_back_invite_when_session_key_mint_fails():
 
     assert exc_info.value.status_code == 500
     assert "Failed to create onboarding session" in exc_info.value.detail["error"]
-    assert prisma.db.litellm_invitationlink.update_many.call_count == 2
-    rollback_kwargs = prisma.db.litellm_invitationlink.update_many.call_args_list[
+    assert prisma.db.invitationlink.update_many.call_count == 2
+    rollback_kwargs = prisma.db.invitationlink.update_many.call_args_list[
         1
     ].kwargs
     assert rollback_kwargs["where"] == {

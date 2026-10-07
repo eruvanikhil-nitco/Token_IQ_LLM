@@ -70,7 +70,7 @@ async def test_key_service_account_generate_authz_matrix(
         resp.status_code == expected_status
     ), f"{actor.value} {team_target}: {resp.status_code} {resp.text}"
 
-    rows = await prisma.db.litellm_verificationtoken.find_many(
+    rows = await prisma.db.verificationtoken.find_many(
         where={"key_alias": scratch.prefix}
     )
     if expected_status == 200:
@@ -92,7 +92,7 @@ async def test_key_service_account_generate_unknown_team_is_400(
         json={"key_alias": scratch.prefix, "team_id": scratch.tag("no-such-team")},
     )
     assert resp.status_code == 400, resp.text
-    rows = await prisma.db.litellm_verificationtoken.find_many(
+    rows = await prisma.db.verificationtoken.find_many(
         where={"key_alias": scratch.prefix}
     )
     assert rows == []

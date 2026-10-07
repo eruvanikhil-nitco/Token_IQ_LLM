@@ -50,7 +50,7 @@ async def test_bulk_update_specific_team_only_mutates_listed(
     world_team_ids = [TEAM_ALPHA, TEAM_BETA, TEAM_GAMMA]
     before = {}
     for tid in world_team_ids + [bystander]:
-        row = await prisma.db.litellm_teamtable.find_unique(where={"team_id": tid})
+        row = await prisma.db.teamtable.find_unique(where={"team_id": tid})
         before[tid] = list(row.team_member_permissions or [])
 
     seeder = world.keys[Actor.PROXY_ADMIN].cleartext
@@ -63,7 +63,7 @@ async def test_bulk_update_specific_team_only_mutates_listed(
     assert resp.status_code == 200, resp.text
     assert resp.json()["teams_updated"] == 1
 
-    target_row = await prisma.db.litellm_teamtable.find_unique(
+    target_row = await prisma.db.teamtable.find_unique(
         where={"team_id": target}
     )
     assert perm in (
@@ -71,7 +71,7 @@ async def test_bulk_update_specific_team_only_mutates_listed(
     ), f"target team did not gain perm; got={target_row.team_member_permissions}"
 
     for tid, before_perms in before.items():
-        after_row = await prisma.db.litellm_teamtable.find_unique(
+        after_row = await prisma.db.teamtable.find_unique(
             where={"team_id": tid}
         )
         assert list(after_row.team_member_permissions or []) == before_perms, (
@@ -122,7 +122,7 @@ async def test_bulk_update_unknown_team_id_rejected(
     )
     before = list(
         (
-            await prisma.db.litellm_teamtable.find_unique(where={"team_id": existing})
+            await prisma.db.teamtable.find_unique(where={"team_id": existing})
         ).team_member_permissions
         or []
     )
@@ -141,7 +141,7 @@ async def test_bulk_update_unknown_team_id_rejected(
     assert "not found" in resp.text.lower() or "ghost" in resp.text, resp.text
     # Critical: the partial-success regression shape is "real team got
     # mutated before the ghost-id check ran". Re-read and assert it didn't.
-    after_real = await prisma.db.litellm_teamtable.find_unique(
+    after_real = await prisma.db.teamtable.find_unique(
         where={"team_id": existing}
     )
     assert (
@@ -204,7 +204,7 @@ async def test_bulk_update_apply_to_all_mutates_every_team(
     perm = "/key/health"  # distinct from the specific-team scenarios above
 
     # Snapshot every team's permission list so we can restore world teams.
-    all_teams = await prisma.db.litellm_teamtable.find_many()
+    all_teams = await prisma.db.teamtable.find_many()
     snapshot = {t.team_id: list(t.team_member_permissions or []) for t in all_teams}
 
     try:
@@ -219,7 +219,7 @@ async def test_bulk_update_apply_to_all_mutates_every_team(
         # i.e. every team in the DB at call time.
         assert resp.json()["teams_updated"] == len(all_teams)
 
-        post = await prisma.db.litellm_teamtable.find_many()
+        post = await prisma.db.teamtable.find_many()
         for team in post:
             perms = list(team.team_member_permissions or [])
             assert perm in perms, f"team {team.team_id} missing the all-perm: {perms}"
@@ -233,13 +233,13 @@ async def test_bulk_update_apply_to_all_mutates_every_team(
         # explicitly restore world teams (and any other non-scratch teams
         # that snuck in) so downstream tests see the immutable world.
         for team_id, prior_perms in snapshot.items():
-            current = await prisma.db.litellm_teamtable.find_unique(
+            current = await prisma.db.teamtable.find_unique(
                 where={"team_id": team_id}
             )
             if current is None:
                 continue
             if list(current.team_member_permissions or []) != prior_perms:
-                await prisma.db.litellm_teamtable.update(
+                await prisma.db.teamtable.update(
                     where={"team_id": team_id},
                     data={"team_member_permissions": prior_perms},
                 )

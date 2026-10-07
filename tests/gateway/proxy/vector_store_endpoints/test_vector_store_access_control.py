@@ -120,7 +120,7 @@ async def test_delete_vector_store_checks_access():
             "team_id": "team_456",
         }
     )
-    mock_prisma.db.litellm_managedvectorstorestable.find_unique = AsyncMock(
+    mock_prisma.db.managedvectorstorestable.find_unique = AsyncMock(
         return_value=mock_vector_store
     )
 

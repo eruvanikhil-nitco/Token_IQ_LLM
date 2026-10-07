@@ -82,7 +82,7 @@ async def test_team_member_delete_authz_matrix(
         resp.status_code == expected_status
     ), f"{actor.value} {shape}: {resp.status_code} {resp.text}"
 
-    row = await prisma.db.litellm_teamtable.find_unique(
+    row = await prisma.db.teamtable.find_unique(
         where={"team_id": scratch.prefix}
     )
     assert row is not None

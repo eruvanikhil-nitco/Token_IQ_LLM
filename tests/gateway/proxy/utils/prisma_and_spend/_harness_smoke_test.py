@@ -30,12 +30,12 @@ def test_normalize_recurses_into_lists() -> None:
 
 def test_mock_prisma_client_has_common_tables(mock_prisma_client: Any) -> None:
     for table in (
-        "litellm_verificationtoken",
-        "litellm_teamtable",
-        "litellm_usertable",
-        "litellm_spendlogs",
-        "litellm_config",
-        "litellm_healthchecktable",
+        "verificationtoken",
+        "teamtable",
+        "usertable",
+        "spendlogs",
+        "config",
+        "healthchecktable",
     ):
         assert hasattr(mock_prisma_client.db, table)
 

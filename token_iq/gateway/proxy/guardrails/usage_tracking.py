@@ -235,7 +235,7 @@ def _sum_usage_unit_increments(logs_to_process: Sequence[Mapping[str, Any]]) -> 
 
 
 async def _upsert_usage_unit_row(prisma_client: PrismaClient, key: _UsageUnitKey, units: int) -> None:
-    row: Final[prisma_types.LiteLLM_DailyGuardrailUsageUnitsCreateInput] = {
+    row: Final[prisma_types.DailyGuardrailUsageUnitsCreateInput] = {
         "guardrail_id": key.guardrail_id,
         "date": key.date,
         "team_id": key.team_id,
@@ -252,7 +252,7 @@ async def _upsert_usage_unit_row(prisma_client: PrismaClient, key: _UsageUnitKey
             "usage_unit": key.usage_unit,
         }
     }
-    data: Final[prisma_types.LiteLLM_DailyGuardrailUsageUnitsUpsertInput] = {
+    data: Final[prisma_types.DailyGuardrailUsageUnitsUpsertInput] = {
         "create": row,
         "update": {"units": {"increment": units}},
     }

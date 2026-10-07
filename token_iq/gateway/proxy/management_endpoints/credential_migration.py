@@ -206,7 +206,7 @@ async def _migrate_config_settings_row(
     dict with selected sensitive fields (vantage_settings / cloudzero_settings).
     """
     report: Final = LocationReport(location=param_name)
-    record: Final = await prisma_client.db.litellm_config.find_unique(where={"param_name": param_name})
+    record: Final = await prisma_client.db.config.find_unique(where={"param_name": param_name})
     if record is None or record.param_value is None:
         return report
 
@@ -245,7 +245,7 @@ async def _migrate_config_settings_row(
             report.plaintext += 1
 
     if changed and not dry_run:
-        await prisma_client.db.litellm_config.update(
+        await prisma_client.db.config.update(
             where={"param_name": param_name},
             data={"param_value": json.dumps(settings)},
         )
@@ -258,7 +258,7 @@ async def _migrate_sso_config(prisma_client: object, dry_run: bool) -> LocationR
     every present string field.
     """
     report: Final = LocationReport(location="sso_config")
-    record: Final = await prisma_client.db.litellm_ssoconfig.find_unique(where={"id": "sso_config"})
+    record: Final = await prisma_client.db.ssoconfig.find_unique(where={"id": "sso_config"})
     if record is None or record.sso_settings is None:
         return report
 
@@ -297,7 +297,7 @@ async def _migrate_sso_config(prisma_client: object, dry_run: bool) -> LocationR
             report.plaintext += 1
 
     if changed and not dry_run:
-        await prisma_client.db.litellm_ssoconfig.update(
+        await prisma_client.db.ssoconfig.update(
             where={"id": "sso_config"},
             data={"sso_settings": json.dumps(new_settings)},
         )
@@ -325,10 +325,10 @@ async def _migrate_callback_vars_table(
     report: Final = LocationReport(location=f"{table_name}.callback_vars")
 
     if table_name == "team":
-        table = prisma_client.db.litellm_teamtable
+        table = prisma_client.db.teamtable
         pk = "team_id"
     else:
-        table = prisma_client.db.litellm_verificationtoken
+        table = prisma_client.db.verificationtoken
         pk = "token"
 
     rows: Final = await table.find_many()
@@ -439,11 +439,11 @@ def _classify_callback_value(value: object) -> ValueClass:
 
 # (location, prisma db attribute, JSON columns to walk, scalar string columns).
 _COVERED_TABLE_SPECS: Final = [
-    ("model_table", "litellm_proxymodeltable", ("litellm_params",), ()),
-    ("credentials", "litellm_credentialstable", ("credential_values",), ()),
-    ("mcp_server", "litellm_mcpservertable", ("credentials", "env_vars"), ()),
-    ("mcp_user_credentials", "litellm_mcpusercredentials", (), ("credential_b64",)),
-    ("mcp_user_env_vars", "litellm_mcpuserenvvars", (), ("values_b64",)),
+    ("model_table", "proxymodeltable", ("litellm_params",), ()),
+    ("credentials", "credentialstable", ("credential_values",), ()),
+    ("mcp_server", "mcpservertable", ("credentials", "env_vars"), ()),
+    ("mcp_user_credentials", "mcpusercredentials", (), ("credential_b64",)),
+    ("mcp_user_env_vars", "mcpuserenvvars", (), ("values_b64",)),
 ]
 
 
@@ -521,7 +521,7 @@ async def _scan_config_env_vars(prisma_client: object) -> LocationReport:
     """Scan the ``environment_variables`` config row (``param_value`` dict)."""
     report: Final = LocationReport(location="config_environment_variables")
     try:
-        record: Final = await prisma_client.db.litellm_config.find_unique(where={"param_name": "environment_variables"})
+        record: Final = await prisma_client.db.config.find_unique(where={"param_name": "environment_variables"})
     except Exception as e:  # pragma: no cover - defensive
         verbose_proxy_logger.debug("scan: config env vars unavailable: %s", str(e))
         return report

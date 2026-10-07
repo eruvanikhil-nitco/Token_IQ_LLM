@@ -114,8 +114,8 @@ def agents_table(prisma_client: PrismaClient) -> AgentTableClient:
 
 def object_permission_table(
     prisma_client: PrismaClient,
-) -> "TableActions[prisma_models.LiteLLM_ObjectPermissionTable]":
-    table: Final[TableActions[prisma_models.LiteLLM_ObjectPermissionTable]] = ObjectPermissionRepository(
+) -> "TableActions[prisma_models.ObjectPermissionTable]":
+    table: Final[TableActions[prisma_models.ObjectPermissionTable]] = ObjectPermissionRepository(
         prisma_client
     ).table
     return table
@@ -429,7 +429,7 @@ class AgentRegistry:
         return self.agent_list
 
     async def migrate_legacy_grant_ids(
-        self, table: "TableActions[prisma_models.LiteLLM_ObjectPermissionTable]"
+        self, table: "TableActions[prisma_models.ObjectPermissionTable]"
     ) -> GrantMigrationResult:
         """
         Rewrite object_permission.agents rows holding a legacy full-entry hash to the

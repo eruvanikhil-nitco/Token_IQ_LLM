@@ -28,10 +28,10 @@ class MockPrismaClient:
         }
 
         # Mock the config update/upsert
-        self.db.litellm_config.upsert = AsyncMock()
+        self.db.config.upsert = AsyncMock()
 
         # Mock config retrieval for get_config/callbacks
-        self.db.litellm_config.find_first = AsyncMock(side_effect=self._mock_find_first)
+        self.db.config.find_first = AsyncMock(side_effect=self._mock_find_first)
 
         # Mock for get_generic_data
         self.get_generic_data = AsyncMock(side_effect=self._mock_get_generic_data)

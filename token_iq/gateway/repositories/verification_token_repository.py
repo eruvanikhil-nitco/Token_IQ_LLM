@@ -19,10 +19,10 @@ from token_iq.gateway.repositories.prisma_protocols import TableActions
 
 if TYPE_CHECKING:
     from prisma.models import (
-        LiteLLM_DeletedVerificationToken as PrismaDeletedVerificationToken,
+        DeletedVerificationToken as PrismaDeletedVerificationToken,
     )
     from prisma.models import (
-        LiteLLM_VerificationToken as PrismaVerificationToken,
+        VerificationToken as PrismaVerificationToken,
     )
 
     from token_iq.gateway.proxy.utils import PrismaClient
@@ -50,11 +50,11 @@ class VerificationTokenRepository(BaseRepository[LiteLLM_VerificationToken]):
 
     @property
     def table(self) -> TableActions["PrismaVerificationToken"]:
-        return self.prisma_client.db.litellm_verificationtoken
+        return self.prisma_client.db.verificationtoken
 
     @property
     def deleted_table(self) -> TableActions["PrismaDeletedVerificationToken"]:
-        return self.prisma_client.db.litellm_deletedverificationtoken
+        return self.prisma_client.db.deletedverificationtoken
 
     @property
     def model_class(self) -> type[LiteLLM_VerificationToken]:
@@ -326,8 +326,8 @@ class VerificationTokenRepository(BaseRepository[LiteLLM_VerificationToken]):
         archive_data["deleted_at"] = datetime.utcnow()
 
         async with self.prisma_client.db.tx() as tx:
-            await tx.litellm_deletedverificationtoken.create(data=archive_data)
-            await tx.litellm_verificationtoken.delete(where={"token": token})
+            await tx.deletedverificationtoken.create(data=archive_data)
+            await tx.verificationtoken.delete(where={"token": token})
 
         return token_record
 

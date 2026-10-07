@@ -2,8 +2,11 @@
 Tests for gateway repository layer.
 """
 
+import functools
 import json
+import re
 from datetime import datetime
+from pathlib import Path
 from typing import Any, Dict, List, Optional
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -28,6 +31,19 @@ from token_iq.gateway.repositories.user_repository import UserRepository
 from token_iq.gateway.repositories.verification_token_repository import (
     VerificationTokenRepository,
 )
+
+SCHEMA = Path(__file__).resolve().parents[3] / "schema.prisma"
+
+
+@functools.cache
+def _accessor_names() -> frozenset[str]:
+    """Every accessor the generated client exposes, which is each model's name in lower case.
+
+    Read from the schema rather than listed, so a repository bound to a table that no longer exists fails
+    here instead of on the first query against it.
+    """
+    models = re.findall(r"^model\s+(\w+)\s*\{", SCHEMA.read_text(encoding="utf-8"), re.MULTILINE)
+    return frozenset(name.lower() for name in models)
 
 
 class MockRecord:
@@ -127,20 +143,20 @@ class MockPrismaClient:
 
     def __init__(self):
         self.db = MagicMock()
-        self.db.litellm_budgettable = MockTable()
-        self.db.litellm_proxymodeltable = MockTable(pk_field="model_id")
-        self.db.litellm_teamtable = MockTable()
-        self.db.litellm_deletedteamtable = MockTable()
-        self.db.litellm_usertable = MockTable()
-        self.db.litellm_verificationtoken = MockTable()
-        self.db.litellm_deletedverificationtoken = MockTable()
-        self.db.litellm_config = MockTable()
-        self.db.litellm_organizationtable = MockTable()
-        self.db.litellm_projecttable = MockTable(pk_field="project_id")
-        self.db.litellm_objectpermissiontable = MockTable(
+        self.db.budgettable = MockTable()
+        self.db.proxymodeltable = MockTable(pk_field="model_id")
+        self.db.teamtable = MockTable()
+        self.db.deletedteamtable = MockTable()
+        self.db.usertable = MockTable()
+        self.db.verificationtoken = MockTable()
+        self.db.deletedverificationtoken = MockTable()
+        self.db.config = MockTable()
+        self.db.organizationtable = MockTable()
+        self.db.projecttable = MockTable(pk_field="project_id")
+        self.db.objectpermissiontable = MockTable(
             pk_field="object_permission_id"
         )
-        self.db.litellm_credentialstable = MockTable()
+        self.db.credentialstable = MockTable()
 
 
 class TestBaseRepository:
@@ -165,7 +181,7 @@ class TestBaseRepository:
     @pytest.mark.asyncio
     async def test_find_many(self, prisma_client):
         repo = BudgetRepository(prisma_client)
-        prisma_client.db.litellm_budgettable._records = {
+        prisma_client.db.budgettable._records = {
             "b1": {"budget_id": "b1", "max_budget": 100.0},
             "b2": {"budget_id": "b2", "max_budget": 200.0},
         }
@@ -175,7 +191,7 @@ class TestBaseRepository:
     @pytest.mark.asyncio
     async def test_count(self, prisma_client):
         repo = BudgetRepository(prisma_client)
-        prisma_client.db.litellm_budgettable._records = {
+        prisma_client.db.budgettable._records = {
             "b1": {"budget_id": "b1"},
             "b2": {"budget_id": "b2"},
         }
@@ -185,7 +201,7 @@ class TestBaseRepository:
     @pytest.mark.asyncio
     async def test_exists(self, prisma_client):
         repo = BudgetRepository(prisma_client)
-        prisma_client.db.litellm_budgettable._records = {
+        prisma_client.db.budgettable._records = {
             "b1": {"budget_id": "b1"},
         }
         assert await repo.exists("b1", id_field="budget_id")
@@ -194,7 +210,7 @@ class TestBaseRepository:
     @pytest.mark.asyncio
     async def test_find_many_with_all_kwargs(self, prisma_client):
         repo = BudgetRepository(prisma_client)
-        prisma_client.db.litellm_budgettable._records = {
+        prisma_client.db.budgettable._records = {
             "b1": {"budget_id": "b1", "max_budget": 100.0},
         }
         budgets = await repo.find_many(
@@ -268,7 +284,7 @@ class TestBudgetRepository:
     @pytest.mark.asyncio
     async def test_update_budget(self, repo):
         await repo.create_budget(created_by="test-user", max_budget=100.0)
-        repo._prisma_client.db.litellm_budgettable._records["budget-1"] = {
+        repo._prisma_client.db.budgettable._records["budget-1"] = {
             "budget_id": "budget-1",
             "max_budget": 100.0,
         }
@@ -282,17 +298,17 @@ class TestBudgetRepository:
 
     @pytest.mark.asyncio
     async def test_delete_budget(self, repo):
-        repo._prisma_client.db.litellm_budgettable._records["budget-1"] = {
+        repo._prisma_client.db.budgettable._records["budget-1"] = {
             "budget_id": "budget-1",
             "max_budget": 100.0,
         }
         deleted = await repo.delete_budget("budget-1")
         assert deleted is not None
-        assert "budget-1" not in repo._prisma_client.db.litellm_budgettable._records
+        assert "budget-1" not in repo._prisma_client.db.budgettable._records
 
     @pytest.mark.asyncio
     async def test_find_by_id(self, repo):
-        repo._prisma_client.db.litellm_budgettable._records["budget-1"] = {
+        repo._prisma_client.db.budgettable._records["budget-1"] = {
             "budget_id": "budget-1",
             "max_budget": 100.0,
         }
@@ -314,7 +330,7 @@ class TestModelRepository:
 
         table = repo.table
         assert isinstance(table, _PublishOnWriteActions)
-        assert table._actions is repo.prisma_client.db.litellm_proxymodeltable
+        assert table._actions is repo.prisma_client.db.proxymodeltable
 
     @pytest.mark.asyncio
     @patch(
@@ -368,7 +384,7 @@ class TestModelRepository:
         side_effect=lambda v, **kw: v,
     )
     async def test_update_model_all_fields(self, mock_decrypt, mock_encrypt, repo):
-        repo._prisma_client.db.litellm_proxymodeltable._records["model-full"] = {
+        repo._prisma_client.db.proxymodeltable._records["model-full"] = {
             "model_id": "model-full",
             "model_name": "old-name",
             "litellm_params": '{"api_key": "old"}',
@@ -390,7 +406,7 @@ class TestModelRepository:
         side_effect=lambda v, **kw: v,
     )
     async def test_find_all(self, mock_decrypt, repo):
-        repo._prisma_client.db.litellm_proxymodeltable._records = {
+        repo._prisma_client.db.proxymodeltable._records = {
             "m1": {
                 "model_id": "m1",
                 "model_name": "gpt-4",
@@ -413,7 +429,7 @@ class TestModelRepository:
         side_effect=lambda v, **kw: v,
     )
     async def test_find_unblocked(self, mock_decrypt, repo):
-        repo._prisma_client.db.litellm_proxymodeltable._records = {
+        repo._prisma_client.db.proxymodeltable._records = {
             "m1": {
                 "model_id": "m1",
                 "model_name": "gpt-4",
@@ -430,7 +446,7 @@ class TestModelRepository:
         side_effect=lambda v, **kw: v,
     )
     async def test_find_by_name(self, mock_decrypt, repo):
-        repo._prisma_client.db.litellm_proxymodeltable._records = {
+        repo._prisma_client.db.proxymodeltable._records = {
             "m1": {
                 "model_id": "m1",
                 "model_name": "gpt-4",
@@ -450,7 +466,7 @@ class TestModelRepository:
         side_effect=lambda v, **kw: v,
     )
     async def test_update_model(self, mock_decrypt, mock_encrypt, repo):
-        repo._prisma_client.db.litellm_proxymodeltable._records["m1"] = {
+        repo._prisma_client.db.proxymodeltable._records["m1"] = {
             "model_id": "m1",
             "model_name": "gpt-4",
             "litellm_params": '{"model": "gpt-4"}',
@@ -469,7 +485,7 @@ class TestModelRepository:
         side_effect=lambda v, **kw: v,
     )
     async def test_delete_model(self, mock_decrypt, repo):
-        repo._prisma_client.db.litellm_proxymodeltable._records["m1"] = {
+        repo._prisma_client.db.proxymodeltable._records["m1"] = {
             "model_id": "m1",
             "model_name": "gpt-4",
             "litellm_params": '{"model": "gpt-4"}',
@@ -487,7 +503,7 @@ class TestModelRepository:
         side_effect=lambda v, **kw: v,
     )
     async def test_block_unblock_model(self, mock_decrypt, mock_encrypt, repo):
-        repo._prisma_client.db.litellm_proxymodeltable._records["m1"] = {
+        repo._prisma_client.db.proxymodeltable._records["m1"] = {
             "model_id": "m1",
             "model_name": "gpt-4",
             "litellm_params": '{"model": "gpt-4"}',
@@ -586,7 +602,7 @@ class TestTeamRepository:
 
     @pytest.mark.asyncio
     async def test_update_team(self, repo):
-        repo._prisma_client.db.litellm_teamtable._records["team-1"] = {
+        repo._prisma_client.db.teamtable._records["team-1"] = {
             "team_id": "team-1",
             "team_alias": "Test",
             "admins": [],
@@ -602,7 +618,7 @@ class TestTeamRepository:
 
     @pytest.mark.asyncio
     async def test_update_team_all_fields(self, repo):
-        repo._prisma_client.db.litellm_teamtable._records["team-full"] = {
+        repo._prisma_client.db.teamtable._records["team-full"] = {
             "team_id": "team-full",
             "team_alias": "Test",
             "admins": [],
@@ -631,7 +647,7 @@ class TestTeamRepository:
 
     @pytest.mark.asyncio
     async def test_add_member(self, repo):
-        repo._prisma_client.db.litellm_teamtable._records["team-1"] = {
+        repo._prisma_client.db.teamtable._records["team-1"] = {
             "team_id": "team-1",
             "team_alias": "Test",
             "admins": [],
@@ -649,7 +665,7 @@ class TestTeamRepository:
 
     @pytest.mark.asyncio
     async def test_remove_member(self, repo):
-        repo._prisma_client.db.litellm_teamtable._records["team-1"] = {
+        repo._prisma_client.db.teamtable._records["team-1"] = {
             "team_id": "team-1",
             "team_alias": "Test",
             "admins": [],
@@ -662,7 +678,7 @@ class TestTeamRepository:
 
     @pytest.mark.asyncio
     async def test_add_admin(self, repo):
-        repo._prisma_client.db.litellm_teamtable._records["team-1"] = {
+        repo._prisma_client.db.teamtable._records["team-1"] = {
             "team_id": "team-1",
             "team_alias": "Test",
             "admins": [],
@@ -674,7 +690,7 @@ class TestTeamRepository:
 
     @pytest.mark.asyncio
     async def test_remove_admin(self, repo):
-        repo._prisma_client.db.litellm_teamtable._records["team-1"] = {
+        repo._prisma_client.db.teamtable._records["team-1"] = {
             "team_id": "team-1",
             "team_alias": "Test",
             "admins": ["admin1", "admin2"],
@@ -686,7 +702,7 @@ class TestTeamRepository:
 
     @pytest.mark.asyncio
     async def test_add_models(self, repo):
-        repo._prisma_client.db.litellm_teamtable._records["team-1"] = {
+        repo._prisma_client.db.teamtable._records["team-1"] = {
             "team_id": "team-1",
             "team_alias": "Test",
             "admins": [],
@@ -698,7 +714,7 @@ class TestTeamRepository:
 
     @pytest.mark.asyncio
     async def test_remove_models(self, repo):
-        repo._prisma_client.db.litellm_teamtable._records["team-1"] = {
+        repo._prisma_client.db.teamtable._records["team-1"] = {
             "team_id": "team-1",
             "team_alias": "Test",
             "admins": [],
@@ -710,7 +726,7 @@ class TestTeamRepository:
 
     @pytest.mark.asyncio
     async def test_update_spend(self, repo):
-        repo._prisma_client.db.litellm_teamtable._records["team-1"] = {
+        repo._prisma_client.db.teamtable._records["team-1"] = {
             "team_id": "team-1",
             "team_alias": "Test",
             "admins": [],
@@ -723,7 +739,7 @@ class TestTeamRepository:
 
     @pytest.mark.asyncio
     async def test_find_by_alias(self, repo):
-        repo._prisma_client.db.litellm_teamtable._records["team-1"] = {
+        repo._prisma_client.db.teamtable._records["team-1"] = {
             "team_id": "team-1",
             "team_alias": "Engineering",
             "admins": [],
@@ -736,7 +752,7 @@ class TestTeamRepository:
 
     @pytest.mark.asyncio
     async def test_find_by_organization_id(self, repo):
-        repo._prisma_client.db.litellm_teamtable._records["team-1"] = {
+        repo._prisma_client.db.teamtable._records["team-1"] = {
             "team_id": "team-1",
             "organization_id": "org-1",
             "admins": [],
@@ -748,7 +764,7 @@ class TestTeamRepository:
 
     @pytest.mark.asyncio
     async def test_find_by_member(self, repo):
-        repo._prisma_client.db.litellm_teamtable._records["team-1"] = {
+        repo._prisma_client.db.teamtable._records["team-1"] = {
             "team_id": "team-1",
             "admins": [],
             "members": ["user1"],
@@ -759,7 +775,7 @@ class TestTeamRepository:
 
     @pytest.mark.asyncio
     async def test_find_by_admin(self, repo):
-        repo._prisma_client.db.litellm_teamtable._records["team-1"] = {
+        repo._prisma_client.db.teamtable._records["team-1"] = {
             "team_id": "team-1",
             "admins": ["admin1"],
             "members": [],
@@ -812,7 +828,7 @@ class TestUserRepository:
 
     @pytest.mark.asyncio
     async def test_update_user(self, repo):
-        repo._prisma_client.db.litellm_usertable._records["user-1"] = {
+        repo._prisma_client.db.usertable._records["user-1"] = {
             "user_id": "user-1",
             "teams": [],
             "models": [],
@@ -825,7 +841,7 @@ class TestUserRepository:
 
     @pytest.mark.asyncio
     async def test_delete_user(self, repo):
-        repo._prisma_client.db.litellm_usertable._records["user-1"] = {
+        repo._prisma_client.db.usertable._records["user-1"] = {
             "user_id": "user-1",
             "teams": [],
             "models": [],
@@ -835,7 +851,7 @@ class TestUserRepository:
 
     @pytest.mark.asyncio
     async def test_add_to_team(self, repo):
-        repo._prisma_client.db.litellm_usertable._records["user-1"] = {
+        repo._prisma_client.db.usertable._records["user-1"] = {
             "user_id": "user-1",
             "teams": ["team1"],
             "models": [],
@@ -851,7 +867,7 @@ class TestUserRepository:
 
     @pytest.mark.asyncio
     async def test_remove_from_team(self, repo):
-        repo._prisma_client.db.litellm_usertable._records["user-1"] = {
+        repo._prisma_client.db.usertable._records["user-1"] = {
             "user_id": "user-1",
             "teams": ["team1", "team2"],
             "models": [],
@@ -861,7 +877,7 @@ class TestUserRepository:
 
     @pytest.mark.asyncio
     async def test_update_spend(self, repo):
-        repo._prisma_client.db.litellm_usertable._records["user-1"] = {
+        repo._prisma_client.db.usertable._records["user-1"] = {
             "user_id": "user-1",
             "teams": [],
             "models": [],
@@ -872,7 +888,7 @@ class TestUserRepository:
 
     @pytest.mark.asyncio
     async def test_find_by_email(self, repo):
-        repo._prisma_client.db.litellm_usertable._records["user-1"] = {
+        repo._prisma_client.db.usertable._records["user-1"] = {
             "user_id": "user-1",
             "user_email": "test@example.com",
             "teams": [],
@@ -883,7 +899,7 @@ class TestUserRepository:
 
     @pytest.mark.asyncio
     async def test_find_by_sso_id(self, repo):
-        repo._prisma_client.db.litellm_usertable._records["sso-123"] = {
+        repo._prisma_client.db.usertable._records["sso-123"] = {
             "user_id": "user-1",
             "sso_user_id": "sso-123",
             "teams": [],
@@ -894,7 +910,7 @@ class TestUserRepository:
 
     @pytest.mark.asyncio
     async def test_find_by_organization_id(self, repo):
-        repo._prisma_client.db.litellm_usertable._records["user-1"] = {
+        repo._prisma_client.db.usertable._records["user-1"] = {
             "user_id": "user-1",
             "organization_id": "org-1",
             "teams": [],
@@ -905,7 +921,7 @@ class TestUserRepository:
 
     @pytest.mark.asyncio
     async def test_find_by_team_id(self, repo):
-        repo._prisma_client.db.litellm_usertable._records["user-1"] = {
+        repo._prisma_client.db.usertable._records["user-1"] = {
             "user_id": "user-1",
             "teams": ["team-1"],
             "models": [],
@@ -964,7 +980,7 @@ class TestVerificationTokenRepository:
 
     @pytest.mark.asyncio
     async def test_update_token(self, repo):
-        repo._prisma_client.db.litellm_verificationtoken._records["sk-test"] = {
+        repo._prisma_client.db.verificationtoken._records["sk-test"] = {
             "token": "sk-test",
             "blocked": False,
         }
@@ -976,7 +992,7 @@ class TestVerificationTokenRepository:
 
     @pytest.mark.asyncio
     async def test_block_token(self, repo):
-        repo._prisma_client.db.litellm_verificationtoken._records["sk-test"] = {
+        repo._prisma_client.db.verificationtoken._records["sk-test"] = {
             "token": "sk-test",
             "blocked": False,
         }
@@ -986,7 +1002,7 @@ class TestVerificationTokenRepository:
 
     @pytest.mark.asyncio
     async def test_unblock_token(self, repo):
-        repo._prisma_client.db.litellm_verificationtoken._records["sk-test"] = {
+        repo._prisma_client.db.verificationtoken._records["sk-test"] = {
             "token": "sk-test",
             "blocked": True,
         }
@@ -995,7 +1011,7 @@ class TestVerificationTokenRepository:
 
     @pytest.mark.asyncio
     async def test_update_spend(self, repo):
-        repo._prisma_client.db.litellm_verificationtoken._records["sk-test"] = {
+        repo._prisma_client.db.verificationtoken._records["sk-test"] = {
             "token": "sk-test",
             "spend": 0.0,
         }
@@ -1004,7 +1020,7 @@ class TestVerificationTokenRepository:
 
     @pytest.mark.asyncio
     async def test_update_last_active(self, repo):
-        repo._prisma_client.db.litellm_verificationtoken._records["sk-test"] = {
+        repo._prisma_client.db.verificationtoken._records["sk-test"] = {
             "token": "sk-test",
         }
         token = await repo.update_last_active("sk-test")
@@ -1012,7 +1028,7 @@ class TestVerificationTokenRepository:
 
     @pytest.mark.asyncio
     async def test_find_by_alias(self, repo):
-        repo._prisma_client.db.litellm_verificationtoken._records["sk-test"] = {
+        repo._prisma_client.db.verificationtoken._records["sk-test"] = {
             "token": "sk-test",
             "key_alias": "my-key",
         }
@@ -1021,7 +1037,7 @@ class TestVerificationTokenRepository:
 
     @pytest.mark.asyncio
     async def test_find_by_user_id(self, repo):
-        repo._prisma_client.db.litellm_verificationtoken._records["sk-test"] = {
+        repo._prisma_client.db.verificationtoken._records["sk-test"] = {
             "token": "sk-test",
             "user_id": "user-1",
         }
@@ -1030,7 +1046,7 @@ class TestVerificationTokenRepository:
 
     @pytest.mark.asyncio
     async def test_find_by_team_id(self, repo):
-        repo._prisma_client.db.litellm_verificationtoken._records["sk-test"] = {
+        repo._prisma_client.db.verificationtoken._records["sk-test"] = {
             "token": "sk-test",
             "team_id": "team-1",
         }
@@ -1039,7 +1055,7 @@ class TestVerificationTokenRepository:
 
     @pytest.mark.asyncio
     async def test_find_by_project_id(self, repo):
-        repo._prisma_client.db.litellm_verificationtoken._records["sk-test"] = {
+        repo._prisma_client.db.verificationtoken._records["sk-test"] = {
             "token": "sk-test",
             "project_id": "project-1",
         }
@@ -1077,7 +1093,7 @@ class TestOrganizationRepository:
 
     @pytest.mark.asyncio
     async def test_update_organization(self, repo):
-        repo._prisma_client.db.litellm_organizationtable._records["org-1"] = {
+        repo._prisma_client.db.organizationtable._records["org-1"] = {
             "organization_id": "org-1",
             "organization_alias": "Old Name",
             "budget_id": "b1",
@@ -1093,7 +1109,7 @@ class TestOrganizationRepository:
 
     @pytest.mark.asyncio
     async def test_update_organization_all_fields(self, repo):
-        repo._prisma_client.db.litellm_organizationtable._records["org-full"] = {
+        repo._prisma_client.db.organizationtable._records["org-full"] = {
             "organization_id": "org-full",
             "organization_alias": "Old Name",
             "budget_id": "b1",
@@ -1113,7 +1129,7 @@ class TestOrganizationRepository:
 
     @pytest.mark.asyncio
     async def test_delete_organization(self, repo):
-        repo._prisma_client.db.litellm_organizationtable._records["org-1"] = {
+        repo._prisma_client.db.organizationtable._records["org-1"] = {
             "organization_id": "org-1",
             "organization_alias": "Acme",
             "budget_id": "b1",
@@ -1125,7 +1141,7 @@ class TestOrganizationRepository:
 
     @pytest.mark.asyncio
     async def test_update_spend(self, repo):
-        repo._prisma_client.db.litellm_organizationtable._records["org-1"] = {
+        repo._prisma_client.db.organizationtable._records["org-1"] = {
             "organization_id": "org-1",
             "organization_alias": "Acme",
             "spend": 0.0,
@@ -1138,7 +1154,7 @@ class TestOrganizationRepository:
 
     @pytest.mark.asyncio
     async def test_find_by_alias(self, repo):
-        repo._prisma_client.db.litellm_organizationtable._records["org-1"] = {
+        repo._prisma_client.db.organizationtable._records["org-1"] = {
             "organization_id": "org-1",
             "organization_alias": "Acme",
             "budget_id": "b1",
@@ -1182,7 +1198,7 @@ class TestProjectRepository:
 
     @pytest.mark.asyncio
     async def test_update_project(self, repo):
-        repo._prisma_client.db.litellm_projecttable._records["proj-1"] = {
+        repo._prisma_client.db.projecttable._records["proj-1"] = {
             "project_id": "proj-1",
             "project_alias": "Old Name",
         }
@@ -1196,7 +1212,7 @@ class TestProjectRepository:
 
     @pytest.mark.asyncio
     async def test_update_project_all_fields(self, repo):
-        repo._prisma_client.db.litellm_projecttable._records["proj-full"] = {
+        repo._prisma_client.db.projecttable._records["proj-full"] = {
             "project_id": "proj-full",
             "project_alias": "Old Name",
         }
@@ -1218,7 +1234,7 @@ class TestProjectRepository:
 
     @pytest.mark.asyncio
     async def test_delete_project(self, repo):
-        repo._prisma_client.db.litellm_projecttable._records["proj-1"] = {
+        repo._prisma_client.db.projecttable._records["proj-1"] = {
             "project_id": "proj-1",
         }
         deleted = await repo.delete_project("proj-1")
@@ -1226,7 +1242,7 @@ class TestProjectRepository:
 
     @pytest.mark.asyncio
     async def test_update_spend(self, repo):
-        repo._prisma_client.db.litellm_projecttable._records["proj-1"] = {
+        repo._prisma_client.db.projecttable._records["proj-1"] = {
             "project_id": "proj-1",
             "spend": 0.0,
         }
@@ -1235,7 +1251,7 @@ class TestProjectRepository:
 
     @pytest.mark.asyncio
     async def test_find_by_alias(self, repo):
-        repo._prisma_client.db.litellm_projecttable._records["proj-1"] = {
+        repo._prisma_client.db.projecttable._records["proj-1"] = {
             "project_id": "proj-1",
             "project_alias": "MyProject",
         }
@@ -1244,7 +1260,7 @@ class TestProjectRepository:
 
     @pytest.mark.asyncio
     async def test_find_by_team_id(self, repo):
-        repo._prisma_client.db.litellm_projecttable._records["proj-1"] = {
+        repo._prisma_client.db.projecttable._records["proj-1"] = {
             "project_id": "proj-1",
             "team_id": "team-1",
         }
@@ -1285,7 +1301,7 @@ class TestObjectPermissionRepository:
 
     @pytest.mark.asyncio
     async def test_update_permission(self, repo):
-        repo._prisma_client.db.litellm_objectpermissiontable._records["perm-1"] = {
+        repo._prisma_client.db.objectpermissiontable._records["perm-1"] = {
             "object_permission_id": "perm-1",
             "models": ["gpt-3.5-turbo"],
         }
@@ -1297,7 +1313,7 @@ class TestObjectPermissionRepository:
 
     @pytest.mark.asyncio
     async def test_update_permission_all_fields(self, repo):
-        repo._prisma_client.db.litellm_objectpermissiontable._records["perm-full"] = {
+        repo._prisma_client.db.objectpermissiontable._records["perm-full"] = {
             "object_permission_id": "perm-full",
             "models": [],
         }
@@ -1318,7 +1334,7 @@ class TestObjectPermissionRepository:
 
     @pytest.mark.asyncio
     async def test_delete_permission(self, repo):
-        repo._prisma_client.db.litellm_objectpermissiontable._records["perm-1"] = {
+        repo._prisma_client.db.objectpermissiontable._records["perm-1"] = {
             "object_permission_id": "perm-1",
         }
         deleted = await repo.delete_permission("perm-1")
@@ -1338,7 +1354,7 @@ class TestCredentialsRepository:
 
         table = repo.table
         assert isinstance(table, _PublishOnWriteActions)
-        assert table._actions is repo.prisma_client.db.litellm_credentialstable
+        assert table._actions is repo.prisma_client.db.credentialstable
 
     @pytest.mark.asyncio
     async def test_create(self, repo):
@@ -1359,7 +1375,7 @@ class TestCredentialsRepository:
 
     @pytest.mark.asyncio
     async def test_find_by_name_returns_stored_values_without_decryption(self, repo):
-        repo._prisma_client.db.litellm_credentialstable._records["my-key"] = {
+        repo._prisma_client.db.credentialstable._records["my-key"] = {
             "credential_id": "cred-1",
             "credential_name": "my-key",
             "credential_values": {"api_key": "encrypted_secret"},
@@ -1376,7 +1392,7 @@ class TestCredentialsRepository:
 
     @pytest.mark.asyncio
     async def test_update_by_name(self, repo):
-        repo._prisma_client.db.litellm_credentialstable._records["my-key"] = {
+        repo._prisma_client.db.credentialstable._records["my-key"] = {
             "credential_id": "cred-1",
             "credential_name": "my-key",
             "credential_values": {"api_key": "old"},
@@ -1391,7 +1407,7 @@ class TestCredentialsRepository:
 
     @pytest.mark.asyncio
     async def test_delete_by_name(self, repo):
-        repo._prisma_client.db.litellm_credentialstable._records["my-key"] = {
+        repo._prisma_client.db.credentialstable._records["my-key"] = {
             "credential_id": "cred-1",
             "credential_name": "my-key",
             "credential_values": {"api_key": "secret"},
@@ -1402,12 +1418,12 @@ class TestCredentialsRepository:
 
     @pytest.mark.asyncio
     async def test_find_all(self, repo):
-        repo._prisma_client.db.litellm_credentialstable._records["k1"] = {
+        repo._prisma_client.db.credentialstable._records["k1"] = {
             "credential_name": "k1",
             "credential_values": {"api_key": "a"},
             "credential_info": {},
         }
-        repo._prisma_client.db.litellm_credentialstable._records["k2"] = {
+        repo._prisma_client.db.credentialstable._records["k2"] = {
             "credential_name": "k2",
             "credential_values": {"api_key": "b"},
             "credential_info": {},
@@ -1450,7 +1466,7 @@ class TestConfigRepository:
 
     @pytest.mark.asyncio
     async def test_get_param(self, repo):
-        repo._prisma_client.db.litellm_config._records["general_settings"] = {
+        repo._prisma_client.db.config._records["general_settings"] = {
             "param_name": "general_settings",
             "param_value": '{"master_key": "test"}',
         }
@@ -1467,7 +1483,7 @@ class TestConfigRepository:
 
     @pytest.mark.asyncio
     async def test_delete_param(self, repo):
-        repo._prisma_client.db.litellm_config._records["test_param"] = {
+        repo._prisma_client.db.config._records["test_param"] = {
             "param_name": "test_param",
             "param_value": "{}",
         }
@@ -1479,13 +1495,13 @@ class TestConfigRepository:
         async def mock_delete(where):
             raise Exception("Not found")
 
-        repo._prisma_client.db.litellm_config.delete = mock_delete
+        repo._prisma_client.db.config.delete = mock_delete
         result = await repo.delete_param("nonexistent")
         assert result is False
 
     @pytest.mark.asyncio
     async def test_get_all_params(self, repo):
-        repo._prisma_client.db.litellm_config._records = {
+        repo._prisma_client.db.config._records = {
             "param1": {"param_name": "param1", "param_value": '{"a": 1}'},
             "param2": {"param_name": "param2", "param_value": '{"b": 2}'},
         }
@@ -1500,7 +1516,7 @@ class TestConfigRepository:
 
     @pytest.mark.asyncio
     async def test_prefetch_params(self, repo):
-        repo._prisma_client.db.litellm_config._records["general_settings"] = {
+        repo._prisma_client.db.config._records["general_settings"] = {
             "param_name": "general_settings",
             "param_value": "{}",
         }
@@ -1508,11 +1524,11 @@ class TestConfigRepository:
 
     @pytest.mark.asyncio
     async def test_reconcile_config_with_db_values(self, repo):
-        repo._prisma_client.db.litellm_config._records["general_settings"] = {
+        repo._prisma_client.db.config._records["general_settings"] = {
             "param_name": "general_settings",
             "param_value": '{"master_key": "db-key", "db_only": "from_db"}',
         }
-        repo._prisma_client.db.litellm_config._records["router_settings"] = {
+        repo._prisma_client.db.config._records["router_settings"] = {
             "param_name": "router_settings",
             "param_value": '{"timeout": 60}',
         }
@@ -1531,7 +1547,7 @@ class TestConfigRepository:
         self, mock_decrypt, repo
     ):
         mock_decrypt.side_effect = lambda value, **kw: f"decrypted_{value}"
-        repo._prisma_client.db.litellm_config._records["environment_variables"] = {
+        repo._prisma_client.db.config._records["environment_variables"] = {
             "param_name": "environment_variables",
             "param_value": '{"api_key": "encrypted_key", "secret": "encrypted_secret"}',
         }
@@ -1543,7 +1559,7 @@ class TestConfigRepository:
 
     @pytest.mark.asyncio
     async def test_reconcile_config_none_values_preserved(self, repo):
-        repo._prisma_client.db.litellm_config._records["general_settings"] = {
+        repo._prisma_client.db.config._records["general_settings"] = {
             "param_name": "general_settings",
             "param_value": '{"new_key": "value", "null_key": null}',
         }
@@ -1594,7 +1610,7 @@ class TestVerificationTokenRepositoryExtended:
 
     @pytest.mark.asyncio
     async def test_find_active_tokens(self, repo):
-        repo._prisma_client.db.litellm_verificationtoken._records["sk-active"] = {
+        repo._prisma_client.db.verificationtoken._records["sk-active"] = {
             "token": "sk-active",
             "blocked": False,
             "expires": None,
@@ -1604,7 +1620,7 @@ class TestVerificationTokenRepositoryExtended:
 
     @pytest.mark.asyncio
     async def test_delete_token_with_audit(self, repo):
-        repo._prisma_client.db.litellm_verificationtoken._records["sk-delete"] = {
+        repo._prisma_client.db.verificationtoken._records["sk-delete"] = {
             "token": "sk-delete",
             "key_name": "Delete Me",
             "spend": 0.0,
@@ -1612,10 +1628,10 @@ class TestVerificationTokenRepositoryExtended:
 
         class MockTx:
             def __init__(self, client):
-                self.litellm_deletedverificationtoken = (
-                    client.db.litellm_deletedverificationtoken
+                self.deletedverificationtoken = (
+                    client.db.deletedverificationtoken
                 )
-                self.litellm_verificationtoken = client.db.litellm_verificationtoken
+                self.verificationtoken = client.db.verificationtoken
 
             async def __aenter__(self):
                 return self
@@ -1643,7 +1659,7 @@ class TestVerificationTokenRepositoryExtended:
         """Archived token must store JSON columns as strings, map org_id onto the
         organization_id column, preserve budget_id, and drop relation-only fields
         that don't exist on LiteLLM_DeletedVerificationToken."""
-        repo._prisma_client.db.litellm_verificationtoken._records["sk-arch"] = {
+        repo._prisma_client.db.verificationtoken._records["sk-arch"] = {
             "token": "sk-arch",
             "key_name": "Archive Me",
             "aliases": json.dumps({"a": "b"}),
@@ -1657,10 +1673,10 @@ class TestVerificationTokenRepositoryExtended:
 
         class MockTx:
             def __init__(self, client):
-                self.litellm_deletedverificationtoken = (
-                    client.db.litellm_deletedverificationtoken
+                self.deletedverificationtoken = (
+                    client.db.deletedverificationtoken
                 )
-                self.litellm_verificationtoken = client.db.litellm_verificationtoken
+                self.verificationtoken = client.db.verificationtoken
 
             async def __aenter__(self):
                 return self
@@ -1673,7 +1689,7 @@ class TestVerificationTokenRepositoryExtended:
         await repo.delete_token("sk-arch", deleted_by="admin")
 
         archived = list(
-            repo._prisma_client.db.litellm_deletedverificationtoken._records.values()
+            repo._prisma_client.db.deletedverificationtoken._records.values()
         )[0]
 
         assert isinstance(archived["aliases"], str)
@@ -1694,14 +1710,14 @@ class TestVerificationTokenRepositoryExtended:
             assert relation_field not in archived
 
         assert (
-            "sk-arch" not in repo._prisma_client.db.litellm_verificationtoken._records
+            "sk-arch" not in repo._prisma_client.db.verificationtoken._records
         )
 
     @pytest.mark.asyncio
     async def test_find_by_id_maps_org_and_budget_columns(self, repo):
         """Reading a token must surface the organization_id column as org_id and
         populate budget_id rather than silently dropping them."""
-        repo._prisma_client.db.litellm_verificationtoken._records["sk-read"] = {
+        repo._prisma_client.db.verificationtoken._records["sk-read"] = {
             "token": "sk-read",
             "organization_id": "org-7",
             "budget_id": "budget-7",
@@ -1713,7 +1729,7 @@ class TestVerificationTokenRepositoryExtended:
 
     @pytest.mark.asyncio
     async def test_update_token_all_fields(self, repo):
-        repo._prisma_client.db.litellm_verificationtoken._records["sk-test"] = {
+        repo._prisma_client.db.verificationtoken._records["sk-test"] = {
             "token": "sk-test",
         }
         updated = await repo.update_token(
@@ -1742,7 +1758,7 @@ class TestVerificationTokenRepositoryExtended:
 
     @pytest.mark.asyncio
     async def test_to_model_with_json_fields(self, repo):
-        repo._prisma_client.db.litellm_verificationtoken._records["sk-json"] = {
+        repo._prisma_client.db.verificationtoken._records["sk-json"] = {
             "token": "sk-json",
             "aliases": '{"alias1": "value1"}',
             "config": '{"setting": "val"}',
@@ -1768,7 +1784,7 @@ class TestTeamRepositoryExtended:
 
     @pytest.mark.asyncio
     async def test_delete_team_with_audit(self, repo):
-        repo._prisma_client.db.litellm_teamtable._records["team-delete"] = {
+        repo._prisma_client.db.teamtable._records["team-delete"] = {
             "team_id": "team-delete",
             "team_alias": "Delete Team",
             "members": [],
@@ -1779,8 +1795,8 @@ class TestTeamRepositoryExtended:
 
         class MockTx:
             def __init__(self, client):
-                self.litellm_deletedteamtable = client.db.litellm_deletedteamtable
-                self.litellm_teamtable = client.db.litellm_teamtable
+                self.deletedteamtable = client.db.deletedteamtable
+                self.teamtable = client.db.teamtable
 
             async def __aenter__(self):
                 return self
@@ -1805,7 +1821,7 @@ class TestTeamRepositoryExtended:
 
     @pytest.mark.asyncio
     async def test_delete_team_with_full_data(self, repo):
-        repo._prisma_client.db.litellm_teamtable._records["team-full"] = {
+        repo._prisma_client.db.teamtable._records["team-full"] = {
             "team_id": "team-full",
             "team_alias": "Full Team",
             "organization_id": "org-1",
@@ -1836,8 +1852,8 @@ class TestTeamRepositoryExtended:
 
         class MockTx:
             def __init__(self, client):
-                self.litellm_deletedteamtable = client.db.litellm_deletedteamtable
-                self.litellm_teamtable = client.db.litellm_teamtable
+                self.deletedteamtable = client.db.deletedteamtable
+                self.teamtable = client.db.teamtable
 
             async def __aenter__(self):
                 return self
@@ -1859,7 +1875,7 @@ class TestTeamRepositoryExtended:
 
     @pytest.mark.asyncio
     async def test_to_model_with_json_fields(self, repo):
-        repo._prisma_client.db.litellm_teamtable._records["team-json"] = {
+        repo._prisma_client.db.teamtable._records["team-json"] = {
             "team_id": "team-json",
             "metadata": '{"key": "value"}',
             "model_spend": '{"gpt-4": 10.0}',
@@ -1886,7 +1902,7 @@ class TestUserRepositoryExtended:
 
     @pytest.mark.asyncio
     async def test_delete_user_simple(self, repo):
-        repo._prisma_client.db.litellm_usertable._records["user-delete"] = {
+        repo._prisma_client.db.usertable._records["user-delete"] = {
             "user_id": "user-delete",
             "user_email": "delete@example.com",
             "teams": [],
@@ -1904,7 +1920,7 @@ class TestUserRepositoryExtended:
 
     @pytest.mark.asyncio
     async def test_update_user_all_fields(self, repo):
-        repo._prisma_client.db.litellm_usertable._records["user-update"] = {
+        repo._prisma_client.db.usertable._records["user-update"] = {
             "user_id": "user-update",
             "teams": [],
             "models": [],
@@ -1934,7 +1950,7 @@ class TestUserRepositoryExtended:
 
     @pytest.mark.asyncio
     async def test_find_by_id_decodes_only_the_json_encoded_columns(self, repo):
-        repo._prisma_client.db.litellm_usertable._records["user-json"] = {
+        repo._prisma_client.db.usertable._records["user-json"] = {
             "user_id": "user-json",
             "user_email": "json@example.com",
             "user_role": '{"not": "json"}',
@@ -1963,7 +1979,7 @@ class TestProjectRepositoryExtended:
 
     @pytest.mark.asyncio
     async def test_delete_project_simple(self, repo):
-        repo._prisma_client.db.litellm_projecttable._records["proj-delete"] = {
+        repo._prisma_client.db.projecttable._records["proj-delete"] = {
             "project_id": "proj-delete",
             "project_alias": "Delete Project",
             "spend": 0.0,
@@ -1980,7 +1996,7 @@ class TestBudgetRepositoryExtended:
 
     @pytest.mark.asyncio
     async def test_update_budget_all_fields(self, repo):
-        repo._prisma_client.db.litellm_budgettable._records["budget-update"] = {
+        repo._prisma_client.db.budgettable._records["budget-update"] = {
             "budget_id": "budget-update",
             "max_budget": 100.0,
         }
@@ -2011,14 +2027,14 @@ class TestModelRepositoryExtended:
         side_effect=lambda value, **kw: value,
     )
     async def test_find_by_team_id(self, mock_decrypt, repo):
-        repo._prisma_client.db.litellm_proxymodeltable._records["model-1"] = {
+        repo._prisma_client.db.proxymodeltable._records["model-1"] = {
             "model_id": "model-1",
             "model_name": "gpt-4",
             "litellm_params": '{"api_key": "sk-test"}',
             "model_info": '{"team_id": "team-1"}',
             "blocked": False,
         }
-        repo._prisma_client.db.litellm_proxymodeltable._records["model-2"] = {
+        repo._prisma_client.db.proxymodeltable._records["model-2"] = {
             "model_id": "model-2",
             "model_name": "claude-3",
             "litellm_params": '{"api_key": "sk-other"}',
@@ -2038,7 +2054,7 @@ class TestBaseRepositoryExtended:
 
     @pytest.mark.asyncio
     async def test_find_many_with_pagination(self, repo):
-        repo._prisma_client.db.litellm_budgettable._records = {
+        repo._prisma_client.db.budgettable._records = {
             "b1": {"budget_id": "b1", "max_budget": 100.0},
             "b2": {"budget_id": "b2", "max_budget": 200.0},
             "b3": {"budget_id": "b3", "max_budget": 300.0},
@@ -2048,7 +2064,7 @@ class TestBaseRepositoryExtended:
 
     @pytest.mark.asyncio
     async def test_find_many_with_where(self, repo):
-        repo._prisma_client.db.litellm_budgettable._records = {
+        repo._prisma_client.db.budgettable._records = {
             "b1": {"budget_id": "b1", "max_budget": 100.0},
         }
         budgets = await repo.find_many(where={"budget_id": "b1"})
@@ -2203,7 +2219,7 @@ class TestConfigRepositoryDeepCopy:
     async def test_reconcile_config_does_not_mutate_original(self, repo):
         import copy
 
-        repo._prisma_client.db.litellm_config._records["general_settings"] = {
+        repo._prisma_client.db.config._records["general_settings"] = {
             "param_name": "general_settings",
             "param_value": '{"db_key": "db_value", "nested": {"db_nested": "from_db"}}',
         }
@@ -2223,7 +2239,7 @@ class TestConfigRepositoryDeepCopy:
 
     @pytest.mark.asyncio
     async def test_reconcile_config_repeated_calls_independent(self, repo):
-        repo._prisma_client.db.litellm_config._records["general_settings"] = {
+        repo._prisma_client.db.config._records["general_settings"] = {
             "param_name": "general_settings",
             "param_value": '{"db_key": "db_value"}',
         }
@@ -2251,8 +2267,8 @@ class TestPrismaTableRepository:
 
         assert isinstance(agents.table, _PublishOnWriteActions)
         assert isinstance(policy.table, _PublishOnWriteActions)
-        assert agents.table._actions is prisma_client.db.litellm_agentstable
-        assert policy.table._actions is prisma_client.db.litellm_policytable
+        assert agents.table._actions is prisma_client.db.agentstable
+        assert policy.table._actions is prisma_client.db.policytable
         assert agents.table._actions is not policy.table._actions
 
     def test_table_access_raises_without_db(self):
@@ -2264,18 +2280,18 @@ class TestPrismaTableRepository:
 
     CONFIG_SYNCED_TABLE_NAMES = frozenset(
         {
-            "litellm_agentstable",
-            "litellm_cacheconfig",
-            "litellm_configoverrides",
-            "litellm_guardrailstable",
-            "litellm_managedvectorstoreindextable",
-            "litellm_managedvectorstorestable",
-            "litellm_mcpservertable",
-            "litellm_policyattachmenttable",
-            "litellm_policytable",
-            "litellm_prompttable",
-            "litellm_searchtoolstable",
-            "litellm_ssoconfig",
+            "agentstable",
+            "cacheconfig",
+            "configoverrides",
+            "guardrailstable",
+            "managedvectorstoreindextable",
+            "managedvectorstorestable",
+            "mcpservertable",
+            "policyattachmenttable",
+            "policytable",
+            "prompttable",
+            "searchtoolstable",
+            "ssoconfig",
         }
     )
 
@@ -2297,7 +2313,7 @@ class TestPrismaTableRepository:
         seen = set()
         for repo_cls in repos:
             name = repo_cls.table_name
-            assert name.startswith("litellm_")
+            assert name in _accessor_names(), f"{name} is not a model in schema.prisma"
             assert name not in seen, f"duplicate table_name {name}"
             seen.add(name)
             table = repo_cls(prisma_client).table
@@ -2347,7 +2363,7 @@ class _ScimAwareUserTable:
 class TestCountBillableUsers:
     def _repo(self, metadatas: List[Optional[Dict[str, Any]]]) -> UserRepository:
         client = MockPrismaClient()
-        client.db.litellm_usertable = _ScimAwareUserTable(metadatas)
+        client.db.usertable = _ScimAwareUserTable(metadatas)
         return UserRepository(client)
 
     @pytest.mark.asyncio
@@ -2384,7 +2400,7 @@ class TestCountBillableUsers:
                 return 5 if where is not None else 2
 
         client = MockPrismaClient()
-        client.db.litellm_usertable = _RacyTable()
+        client.db.usertable = _RacyTable()
         repo = UserRepository(client)
         assert await repo.count_billable_users() == 0
 
@@ -2404,16 +2420,19 @@ class TestArchiveDataMatchesTheSchemaItWritesTo:
     """
 
     @staticmethod
-    def _columns_of(model: str) -> frozenset[str]:
-        import re
-        from pathlib import Path
+    def _columns_of(table: str) -> frozenset[str]:
+        """The columns of a real table, found through the `@@map` that names it.
 
-        schema = Path(__file__).resolve().parents[3] / "schema.prisma"
-        body = re.search(rf"model {model} \{{(.*?)\n\}}", schema.read_text(encoding="utf-8"), re.DOTALL)
-        assert body is not None, f"{model} not found in schema.prisma"
+        By table rather than by model, because phase 8 renamed the models and deliberately left the tables
+        where they were, and what this test is about is whether an archive write names a column the table
+        actually has.
+        """
+        blocks = re.findall(r"model \w+ \{(.*?)\n\}", SCHEMA.read_text(encoding="utf-8"), re.DOTALL)
+        body = next((block for block in blocks if f'@@map("{table}")' in block), None)
+        assert body is not None, f"no model maps to {table} in schema.prisma"
         return frozenset(
             match.group(1)
-            for line in body.group(1).splitlines()
+            for line in body.splitlines()
             if (match := re.match(r"\s*([a-zA-Z_][a-zA-Z0-9_]*)\s+\S", line)) and not line.strip().startswith("//")
         )
 

@@ -60,7 +60,7 @@ async def test_the_teams_a_user_administers_come_from_their_membership():
         MagicMock(model_dump=lambda: {"team_id": "team-b", "members_with_roles": [Member(user_id="lead", role="user").model_dump()]}),
     ]
     prisma = MagicMock()
-    prisma.db.litellm_teamtable.find_many = AsyncMock(return_value=rows)
+    prisma.db.teamtable.find_many = AsyncMock(return_value=rows)
 
     assert await teams_user_administers(caller, prisma) == frozenset({"team-a"})
 
@@ -70,10 +70,10 @@ async def test_an_admin_needs_no_team_lookup():
     """The lookup reads every team row, so it must not run for a caller who can see them all."""
     admin = UserAPIKeyAuth(user_role=GatewayUserRoles.PROXY_ADMIN, api_key="sk-a", user_id="admin")
     prisma = MagicMock()
-    prisma.db.litellm_teamtable.find_many = AsyncMock(return_value=[])
+    prisma.db.teamtable.find_many = AsyncMock(return_value=[])
 
     assert await teams_user_administers(admin, prisma) == frozenset()
-    prisma.db.litellm_teamtable.find_many.assert_not_awaited()
+    prisma.db.teamtable.find_many.assert_not_awaited()
 
 
 @pytest.mark.asyncio
@@ -85,7 +85,7 @@ async def test_a_malformed_team_row_is_skipped_not_fatal():
         MagicMock(model_dump=lambda: {"team_id": "team-a", "members_with_roles": [Member(user_id="lead", role="admin").model_dump()]}),
     ]
     prisma = MagicMock()
-    prisma.db.litellm_teamtable.find_many = AsyncMock(return_value=rows)
+    prisma.db.teamtable.find_many = AsyncMock(return_value=rows)
 
     assert await teams_user_administers(caller, prisma) == frozenset({"team-a"})
 
@@ -98,6 +98,6 @@ async def test_every_row_malformed_yields_an_empty_set_not_an_exception():
         MagicMock(model_dump=lambda: {"team_id": "team-b", "members_with_roles": [{"user_id": "lead", "role": "owner"}]}),
     ]
     prisma = MagicMock()
-    prisma.db.litellm_teamtable.find_many = AsyncMock(return_value=rows)
+    prisma.db.teamtable.find_many = AsyncMock(return_value=rows)
 
     assert await teams_user_administers(caller, prisma) == frozenset()

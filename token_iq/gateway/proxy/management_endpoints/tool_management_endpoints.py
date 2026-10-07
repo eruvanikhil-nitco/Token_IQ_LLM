@@ -18,12 +18,12 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field, TypeAdapter
 
 if TYPE_CHECKING:
-    from prisma.models import LiteLLM_DailyToolSpend as PrismaDailyToolSpendRow
-    from prisma.models import LiteLLM_ObjectPermissionTable as PrismaObjectPermissionRow
-    from prisma.models import LiteLLM_SpendLogs as PrismaSpendLogRow
-    from prisma.models import LiteLLM_SpendLogToolIndex as PrismaSpendLogToolIndexRow
-    from prisma.models import LiteLLM_TeamTable as PrismaTeamRow
-    from prisma.models import LiteLLM_VerificationToken as PrismaVerificationTokenRow
+    from prisma.models import DailyToolSpend as PrismaDailyToolSpendRow
+    from prisma.models import ObjectPermissionTable as PrismaObjectPermissionRow
+    from prisma.models import SpendLogs as PrismaSpendLogRow
+    from prisma.models import SpendLogToolIndex as PrismaSpendLogToolIndexRow
+    from prisma.models import TeamTable as PrismaTeamRow
+    from prisma.models import VerificationToken as PrismaVerificationTokenRow
 
     from token_iq.gateway.proxy.utils import PrismaClient
 

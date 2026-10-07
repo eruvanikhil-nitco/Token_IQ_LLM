@@ -32,7 +32,7 @@ def _setup_model_block_mocks(monkeypatch, *, updated_blocked: bool):
     model_table.update = AsyncMock(return_value=updated_row)
 
     mock_prisma_client = MagicMock()
-    mock_prisma_client.db.litellm_proxymodeltable = model_table
+    mock_prisma_client.db.proxymodeltable = model_table
 
     mock_router = MagicMock()
     mock_router.get_model_ids.return_value = [model_id]

@@ -29,8 +29,8 @@ async def test_add_deployment_without_master_key():
         # Mock the required dependencies
         mock_prisma_client = MagicMock(spec=PrismaClient)
         mock_prisma_client.db = MagicMock()
-        mock_prisma_client.db.litellm_config = MagicMock()
-        mock_prisma_client.db.litellm_config.find_first = AsyncMock(return_value=None)
+        mock_prisma_client.db.config = MagicMock()
+        mock_prisma_client.db.config.find_first = AsyncMock(return_value=None)
 
         mock_proxy_logging = MagicMock(spec=ProxyLogging)
 
@@ -75,8 +75,8 @@ async def test_add_deployment_without_salt_key_or_master_key(monkeypatch):
         # Mock the required dependencies
         mock_prisma_client = MagicMock(spec=PrismaClient)
         mock_prisma_client.db = MagicMock()
-        mock_prisma_client.db.litellm_config = MagicMock()
-        mock_prisma_client.db.litellm_config.find_first = AsyncMock(
+        mock_prisma_client.db.config = MagicMock()
+        mock_prisma_client.db.config.find_first = AsyncMock(
             return_value=None
         )
 

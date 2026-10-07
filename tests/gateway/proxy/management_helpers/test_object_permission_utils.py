@@ -38,7 +38,7 @@ async def test_set_object_permission():
     mock_created_permission = MagicMock()
     mock_created_permission.object_permission_id = "test_perm_id_123"
 
-    mock_prisma_client.db.litellm_objectpermissiontable.create = AsyncMock(
+    mock_prisma_client.db.objectpermissiontable.create = AsyncMock(
         return_value=mock_created_permission
     )
 
@@ -67,10 +67,10 @@ async def test_set_object_permission():
     assert "object_permission" not in result
 
     # Verify create was called
-    mock_prisma_client.db.litellm_objectpermissiontable.create.assert_called_once()
+    mock_prisma_client.db.objectpermissiontable.create.assert_called_once()
 
     # Verify the data passed to create excludes None values and object_permission_id
-    call_args = mock_prisma_client.db.litellm_objectpermissiontable.create.call_args
+    call_args = mock_prisma_client.db.objectpermissiontable.create.call_args
     created_data = call_args.kwargs["data"]
 
     assert "object_permission_id" not in created_data
@@ -99,7 +99,7 @@ async def test_set_object_permission_persists_mcp_tool_search_enabled():
     mock_prisma_client = MagicMock()
     mock_created_permission = MagicMock()
     mock_created_permission.object_permission_id = "perm_id"
-    mock_prisma_client.db.litellm_objectpermissiontable.create = AsyncMock(
+    mock_prisma_client.db.objectpermissiontable.create = AsyncMock(
         return_value=mock_created_permission
     )
 
@@ -113,7 +113,7 @@ async def test_set_object_permission_persists_mcp_tool_search_enabled():
     await _set_object_permission(data_json=data_json, prisma_client=mock_prisma_client)
 
     created_data = (
-        mock_prisma_client.db.litellm_objectpermissiontable.create.call_args.kwargs[
+        mock_prisma_client.db.objectpermissiontable.create.call_args.kwargs[
             "data"
         ]
     )
@@ -750,7 +750,7 @@ async def test_validate_db_mcp_server_alias_outside_team_scope_raises_when_regis
     mock_db_server.server_id = "private-server-id"
     mock_db_server.alias = "private-alias"
     mock_db_server.server_name = "Private Server"
-    mock_prisma_client.db.litellm_mcpservertable.find_many = AsyncMock(
+    mock_prisma_client.db.mcpservertable.find_many = AsyncMock(
         return_value=[mock_db_server]
     )
 
@@ -1240,7 +1240,7 @@ def _make_grandfather_fixtures(mcp_servers=None, mcp_tool_permissions=None):
     existing_row.mcp_servers = mcp_servers or []
     existing_row.mcp_tool_permissions = mcp_tool_permissions or {}
     mock_prisma = MagicMock()
-    mock_prisma.db.litellm_mcpservertable.find_many = AsyncMock(return_value=[])
+    mock_prisma.db.mcpservertable.find_many = AsyncMock(return_value=[])
     return mock_prisma, existing_row
 
 

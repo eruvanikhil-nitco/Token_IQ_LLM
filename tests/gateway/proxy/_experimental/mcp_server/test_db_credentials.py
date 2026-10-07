@@ -50,9 +50,9 @@ def _make_prisma_with_existing(row):
     """Build a MagicMock prisma_client whose user-credentials table returns ``row``
     for find_unique and behaves async-correctly for upsert/find_many."""
     prisma = MagicMock()
-    prisma.db.litellm_mcpusercredentials.find_unique = AsyncMock(return_value=row)
-    prisma.db.litellm_mcpusercredentials.upsert = AsyncMock()
-    prisma.db.litellm_mcpusercredentials.find_many = AsyncMock(return_value=[])
+    prisma.db.mcpusercredentials.find_unique = AsyncMock(return_value=row)
+    prisma.db.mcpusercredentials.upsert = AsyncMock()
+    prisma.db.mcpusercredentials.find_many = AsyncMock(return_value=[])
     return prisma
 
 
@@ -183,8 +183,8 @@ async def test_purge_user_oauth_credentials_for_server_invalidates_each_user():
     from token_iq.gateway.proxy._experimental.mcp_server.db import purge_user_oauth_credentials_for_server
 
     prisma = MagicMock()
-    prisma.db.litellm_mcpusercredentials.find_many = AsyncMock(return_value=[_oauth_row("alice"), _oauth_row("bob")])
-    prisma.db.litellm_mcpusercredentials.delete_many = AsyncMock(return_value=2)
+    prisma.db.mcpusercredentials.find_many = AsyncMock(return_value=[_oauth_row("alice"), _oauth_row("bob")])
+    prisma.db.mcpusercredentials.delete_many = AsyncMock(return_value=2)
 
     invalidations = []
 
@@ -194,7 +194,7 @@ async def test_purge_user_oauth_credentials_for_server_invalidates_each_user():
     purged = await purge_user_oauth_credentials_for_server(prisma, "srv-1", invalidate_token_cache=record_invalidation)
 
     assert purged == 2
-    prisma.db.litellm_mcpusercredentials.delete_many.assert_awaited_once_with(
+    prisma.db.mcpusercredentials.delete_many.assert_awaited_once_with(
         where={"server_id": "srv-1", "user_id": {"in": ["alice", "bob"]}}
     )
     assert set(invalidations) == {("alice", "srv-1"), ("bob", "srv-1")}
@@ -208,8 +208,8 @@ async def test_purge_user_oauth_credentials_for_server_spares_byok_rows():
     from token_iq.gateway.proxy._experimental.mcp_server.db import purge_user_oauth_credentials_for_server
 
     prisma = MagicMock()
-    prisma.db.litellm_mcpusercredentials.find_many = AsyncMock(return_value=[_byok_row("carol"), _oauth_row("alice")])
-    prisma.db.litellm_mcpusercredentials.delete_many = AsyncMock(return_value=1)
+    prisma.db.mcpusercredentials.find_many = AsyncMock(return_value=[_byok_row("carol"), _oauth_row("alice")])
+    prisma.db.mcpusercredentials.delete_many = AsyncMock(return_value=1)
 
     invalidations = []
 
@@ -219,7 +219,7 @@ async def test_purge_user_oauth_credentials_for_server_spares_byok_rows():
     purged = await purge_user_oauth_credentials_for_server(prisma, "srv-1", invalidate_token_cache=record_invalidation)
 
     assert purged == 1
-    prisma.db.litellm_mcpusercredentials.delete_many.assert_awaited_once_with(
+    prisma.db.mcpusercredentials.delete_many.assert_awaited_once_with(
         where={"server_id": "srv-1", "user_id": {"in": ["alice"]}}
     )
     assert invalidations == [("alice", "srv-1")]
@@ -231,13 +231,13 @@ async def test_purge_user_oauth_credentials_for_server_all_byok_is_noop():
     from token_iq.gateway.proxy._experimental.mcp_server.db import purge_user_oauth_credentials_for_server
 
     prisma = MagicMock()
-    prisma.db.litellm_mcpusercredentials.find_many = AsyncMock(return_value=[_byok_row("carol"), _byok_row("dave")])
-    prisma.db.litellm_mcpusercredentials.delete_many = AsyncMock()
+    prisma.db.mcpusercredentials.find_many = AsyncMock(return_value=[_byok_row("carol"), _byok_row("dave")])
+    prisma.db.mcpusercredentials.delete_many = AsyncMock()
 
     purged = await purge_user_oauth_credentials_for_server(prisma, "srv-1")
 
     assert purged == 0
-    prisma.db.litellm_mcpusercredentials.delete_many.assert_not_awaited()
+    prisma.db.mcpusercredentials.delete_many.assert_not_awaited()
 
 
 @pytest.mark.asyncio
@@ -250,8 +250,8 @@ async def test_purge_user_oauth_credentials_for_server_defaults_to_manager_inval
     from token_iq.gateway.proxy._experimental.mcp_server.db import purge_user_oauth_credentials_for_server
 
     prisma = MagicMock()
-    prisma.db.litellm_mcpusercredentials.find_many = AsyncMock(return_value=[_oauth_row("alice")])
-    prisma.db.litellm_mcpusercredentials.delete_many = AsyncMock(return_value=1)
+    prisma.db.mcpusercredentials.find_many = AsyncMock(return_value=[_oauth_row("alice")])
+    prisma.db.mcpusercredentials.delete_many = AsyncMock(return_value=1)
 
     shared_invalidator = AsyncMock()
     monkeypatch.setattr(
@@ -272,8 +272,8 @@ async def test_purge_user_oauth_credentials_for_server_logs_raced_rows(monkeypat
     from token_iq.gateway.proxy._experimental.mcp_server.db import purge_user_oauth_credentials_for_server
 
     prisma = MagicMock()
-    prisma.db.litellm_mcpusercredentials.find_many = AsyncMock(return_value=[_oauth_row("alice")])
-    prisma.db.litellm_mcpusercredentials.delete_many = AsyncMock(return_value=0)
+    prisma.db.mcpusercredentials.find_many = AsyncMock(return_value=[_oauth_row("alice")])
+    prisma.db.mcpusercredentials.delete_many = AsyncMock(return_value=0)
     warning = MagicMock()
     monkeypatch.setattr(db_module.verbose_proxy_logger, "warning", warning)
 
@@ -291,10 +291,10 @@ async def test_delete_mcp_server_invalidates_cached_tokens_for_enumerated_users(
     from token_iq.gateway.proxy._experimental.mcp_server.db import delete_mcp_server
 
     prisma = MagicMock()
-    prisma.db.litellm_mcpservertable.delete = AsyncMock(return_value=MagicMock(server_id="srv-1"))
-    prisma.db.litellm_mcpusercredentials.find_many = AsyncMock(return_value=[_oauth_row("alice"), _byok_row("bob")])
-    prisma.db.litellm_mcpusercredentials.delete_many = AsyncMock(return_value=2)
-    prisma.db.litellm_mcpuserenvvars.delete_many = AsyncMock(return_value=0)
+    prisma.db.mcpservertable.delete = AsyncMock(return_value=MagicMock(server_id="srv-1"))
+    prisma.db.mcpusercredentials.find_many = AsyncMock(return_value=[_oauth_row("alice"), _byok_row("bob")])
+    prisma.db.mcpusercredentials.delete_many = AsyncMock(return_value=2)
+    prisma.db.mcpuserenvvars.delete_many = AsyncMock(return_value=0)
 
     invalidations = []
 
@@ -312,13 +312,13 @@ async def test_delete_mcp_server_returns_none_without_cleanup_when_server_missin
     from token_iq.gateway.proxy._experimental.mcp_server.db import delete_mcp_server
 
     prisma = MagicMock()
-    prisma.db.litellm_mcpservertable.delete = AsyncMock(return_value=None)
-    prisma.db.litellm_mcpusercredentials.find_many = AsyncMock()
+    prisma.db.mcpservertable.delete = AsyncMock(return_value=None)
+    prisma.db.mcpusercredentials.find_many = AsyncMock()
 
     deleted = await delete_mcp_server(prisma, "srv-1", invalidate_token_cache=AsyncMock())
 
     assert deleted is None
-    prisma.db.litellm_mcpusercredentials.find_many.assert_not_awaited()
+    prisma.db.mcpusercredentials.find_many.assert_not_awaited()
 
 
 @pytest.mark.asyncio
@@ -326,18 +326,18 @@ async def test_purge_user_oauth_credentials_for_server_noop_when_empty():
     from token_iq.gateway.proxy._experimental.mcp_server.db import purge_user_oauth_credentials_for_server
 
     prisma = MagicMock()
-    prisma.db.litellm_mcpusercredentials.find_many = AsyncMock(return_value=[])
-    prisma.db.litellm_mcpusercredentials.delete_many = AsyncMock()
+    prisma.db.mcpusercredentials.find_many = AsyncMock(return_value=[])
+    prisma.db.mcpusercredentials.delete_many = AsyncMock()
 
     purged = await purge_user_oauth_credentials_for_server(prisma, "srv-1")
 
     assert purged == 0
-    prisma.db.litellm_mcpusercredentials.delete_many.assert_not_awaited()
+    prisma.db.mcpusercredentials.delete_many.assert_not_awaited()
 
 
 def _stored_value(prisma) -> str:
     """Pull the credential_b64 value passed to the most recent upsert call."""
-    call = prisma.db.litellm_mcpusercredentials.upsert.call_args
+    call = prisma.db.mcpusercredentials.upsert.call_args
     data = call.kwargs["data"]
     create_value = data["create"]["credential_b64"]
     update_value = data["update"]["credential_b64"]
@@ -399,7 +399,7 @@ async def test_byok_round_trip_returns_plaintext():
     stored = _stored_value(prisma)
     row = MagicMock()
     row.credential_b64 = stored
-    prisma.db.litellm_mcpusercredentials.find_unique = AsyncMock(return_value=row)
+    prisma.db.mcpusercredentials.find_unique = AsyncMock(return_value=row)
 
     result = await get_user_credential(prisma, "alice", "srv-1")
     assert result == secret
@@ -459,7 +459,7 @@ async def test_oauth_round_trip_returns_payload():
     row = MagicMock()
     row.credential_b64 = stored
     row.server_id = "srv-1"
-    prisma.db.litellm_mcpusercredentials.find_unique = AsyncMock(return_value=row)
+    prisma.db.mcpusercredentials.find_unique = AsyncMock(return_value=row)
 
     result = await get_user_oauth_credential(prisma, "alice", "srv-1")
     assert result is not None
@@ -514,7 +514,7 @@ async def test_byok_guard_rejects_overwriting_encrypted_byok():
 
     encrypted_row = MagicMock()
     encrypted_row.credential_b64 = _stored_value(prisma)
-    prisma.db.litellm_mcpusercredentials.find_unique = AsyncMock(return_value=encrypted_row)
+    prisma.db.mcpusercredentials.find_unique = AsyncMock(return_value=encrypted_row)
 
     with pytest.raises(ValueError, match="could not be verified as an OAuth2"):
         await store_user_oauth_credential(prisma, "alice", "srv-1", "tok")
@@ -528,7 +528,7 @@ async def test_byok_guard_allows_overwriting_existing_oauth():
 
     oauth_row = MagicMock()
     oauth_row.credential_b64 = _stored_value(prisma)
-    prisma.db.litellm_mcpusercredentials.find_unique = AsyncMock(return_value=oauth_row)
+    prisma.db.mcpusercredentials.find_unique = AsyncMock(return_value=oauth_row)
 
     await store_user_oauth_credential(prisma, "alice", "srv-1", "tok-2")
     # Final upsert wrote a new payload (different from the first)
@@ -569,7 +569,7 @@ async def test_reauthorization_replaces_row_written_under_previous_salt_key(monk
     replacement = MagicMock()
     replacement.credential_b64 = _stored_value(prisma)
     replacement.server_id = "srv-1"
-    prisma.db.litellm_mcpusercredentials.find_unique = AsyncMock(return_value=replacement)
+    prisma.db.mcpusercredentials.find_unique = AsyncMock(return_value=replacement)
     stored = await get_user_oauth_credential(prisma, "alice", "srv-1")
     assert stored is not None
     assert stored["access_token"] == "tok-after-reauthorization"
@@ -585,7 +585,7 @@ async def test_readable_byok_is_still_refused_after_a_salt_key_change(monkeypatc
     with pytest.raises(ValueError, match="could not be verified as an OAuth2"):
         await store_user_oauth_credential(prisma, "alice", "srv-1", "tok")
 
-    prisma.db.litellm_mcpusercredentials.upsert.assert_not_awaited()
+    prisma.db.mcpusercredentials.upsert.assert_not_awaited()
 
 
 @pytest.mark.asyncio
@@ -639,7 +639,7 @@ async def test_list_user_oauth_credentials_warns_per_row_when_rows_cannot_be_dec
     healthy = MagicMock()
     healthy.credential_b64 = _stored_value(prisma)
     healthy.server_id = "srv-3"
-    prisma.db.litellm_mcpusercredentials.find_many = AsyncMock(return_value=[wedged_one, healthy, wedged_two])
+    prisma.db.mcpusercredentials.find_many = AsyncMock(return_value=[wedged_one, healthy, wedged_two])
 
     with caplog.at_level(logging.WARNING, logger="LiteLLM Proxy"):
         result = await list_user_oauth_credentials(prisma, "alice")
@@ -659,8 +659,8 @@ async def test_skip_byok_guard_does_not_read_the_existing_row(monkeypatch):
 
     await store_user_oauth_credential(prisma, "alice", "srv-1", "tok", skip_byok_guard=True)
 
-    prisma.db.litellm_mcpusercredentials.find_unique.assert_not_awaited()
-    prisma.db.litellm_mcpusercredentials.upsert.assert_awaited_once()
+    prisma.db.mcpusercredentials.find_unique.assert_not_awaited()
+    prisma.db.mcpusercredentials.upsert.assert_awaited_once()
 
 
 @pytest.mark.asyncio
@@ -677,7 +677,7 @@ async def test_blank_credential_row_is_replaced_rather_than_refused():
 
     await store_user_oauth_credential(prisma, "alice", "srv-1", "tok-after-reauthorization")
 
-    prisma.db.litellm_mcpusercredentials.upsert.assert_awaited_once()
+    prisma.db.mcpusercredentials.upsert.assert_awaited_once()
 
 
 @pytest.mark.asyncio
@@ -721,7 +721,7 @@ async def test_list_oauth_credentials_filters_byok_and_returns_payloads():
     byok_row.credential_b64 = base64.urlsafe_b64encode(b"plain-byok-key").decode()
     byok_row.server_id = "srv-byok"
 
-    prisma.db.litellm_mcpusercredentials.find_many = AsyncMock(return_value=[encrypted_row, legacy_row, byok_row])
+    prisma.db.mcpusercredentials.find_many = AsyncMock(return_value=[encrypted_row, legacy_row, byok_row])
 
     results = await list_user_oauth_credentials(prisma, "alice")
 
@@ -767,13 +767,13 @@ async def test_rotate_re_encrypts_byok_with_new_key(monkeypatch):
     row.user_id = "alice"
     row.server_id = "srv-1"
     row.credential_b64 = encrypted_old
-    prisma.db.litellm_mcpusercredentials.find_many = AsyncMock(return_value=[row])
-    prisma.db.litellm_mcpusercredentials.update = AsyncMock()
+    prisma.db.mcpusercredentials.find_many = AsyncMock(return_value=[row])
+    prisma.db.mcpusercredentials.update = AsyncMock()
 
     new_master_key = "rotated-salt-key-9999-9999-9999-9999"
     await rotate_mcp_user_credentials_master_key(prisma_client=prisma, new_master_key=new_master_key)
 
-    update_call = prisma.db.litellm_mcpusercredentials.update.call_args
+    update_call = prisma.db.mcpusercredentials.update.call_args
     new_stored = update_call.kwargs["data"]["credential_b64"]
     assert new_stored != encrypted_old, "rotation must produce different ciphertext"
 
@@ -799,13 +799,13 @@ async def test_rotate_migrates_legacy_plaintext_rows(monkeypatch):
     legacy_row.user_id = "alice"
     legacy_row.server_id = "srv-legacy"
     legacy_row.credential_b64 = base64.urlsafe_b64encode(b"legacy-plain").decode()
-    prisma.db.litellm_mcpusercredentials.find_many = AsyncMock(return_value=[legacy_row])
-    prisma.db.litellm_mcpusercredentials.update = AsyncMock()
+    prisma.db.mcpusercredentials.find_many = AsyncMock(return_value=[legacy_row])
+    prisma.db.mcpusercredentials.update = AsyncMock()
 
     new_key = "another-rotation-key-aaaa-bbbb-cccc-dddd"
     await rotate_mcp_user_credentials_master_key(prisma_client=prisma, new_master_key=new_key)
 
-    new_stored = prisma.db.litellm_mcpusercredentials.update.call_args.kwargs["data"]["credential_b64"]
+    new_stored = prisma.db.mcpusercredentials.update.call_args.kwargs["data"]["credential_b64"]
     monkeypatch.setenv("LITELLM_SALT_KEY", new_key)
     assert (
         decrypt_value_helper(
@@ -833,14 +833,14 @@ async def test_rotate_skips_undecodable_rows():
     good_row.server_id = "srv-ok"
     good_row.credential_b64 = base64.urlsafe_b64encode(b"good-byok").decode()
 
-    prisma.db.litellm_mcpusercredentials.find_many = AsyncMock(return_value=[bad_row, good_row])
-    prisma.db.litellm_mcpusercredentials.update = AsyncMock()
+    prisma.db.mcpusercredentials.find_many = AsyncMock(return_value=[bad_row, good_row])
+    prisma.db.mcpusercredentials.update = AsyncMock()
 
     await rotate_mcp_user_credentials_master_key(prisma_client=prisma, new_master_key="new-key-xxxx")
 
     # Only one update call — the good row.
-    assert prisma.db.litellm_mcpusercredentials.update.call_count == 1
-    where = prisma.db.litellm_mcpusercredentials.update.call_args.kwargs["where"]
+    assert prisma.db.mcpusercredentials.update.call_count == 1
+    where = prisma.db.mcpusercredentials.update.call_args.kwargs["where"]
     assert where["user_id_server_id"]["server_id"] == "srv-ok"
 
 
@@ -1091,13 +1091,13 @@ async def test_rotate_user_env_vars_re_encrypts_with_new_key(monkeypatch):
     encrypted_old = encrypt_value_helper(json.dumps(values))
 
     prisma = MagicMock()
-    prisma.db.litellm_mcpuserenvvars.find_many = AsyncMock(return_value=[_env_var_row(encrypted_old)])
-    prisma.db.litellm_mcpuserenvvars.update = AsyncMock()
+    prisma.db.mcpuserenvvars.find_many = AsyncMock(return_value=[_env_var_row(encrypted_old)])
+    prisma.db.mcpuserenvvars.update = AsyncMock()
 
     new_master_key = "rotated-env-key-1111-2222-3333-4444"
     await rotate_mcp_user_env_vars_master_key(prisma_client=prisma, new_master_key=new_master_key)
 
-    new_stored = prisma.db.litellm_mcpuserenvvars.update.call_args.kwargs["data"]["values_b64"]
+    new_stored = prisma.db.mcpuserenvvars.update.call_args.kwargs["data"]["values_b64"]
     assert new_stored != encrypted_old, "rotation must produce different ciphertext"
 
     monkeypatch.setenv("LITELLM_SALT_KEY", new_master_key)
@@ -1118,13 +1118,13 @@ async def test_rotate_user_env_vars_skips_undecryptable_rows():
     bad = _env_var_row("!!! not encrypted !!!", server_id="srv-corrupt")
 
     prisma = MagicMock()
-    prisma.db.litellm_mcpuserenvvars.find_many = AsyncMock(return_value=[bad, good])
-    prisma.db.litellm_mcpuserenvvars.update = AsyncMock()
+    prisma.db.mcpuserenvvars.find_many = AsyncMock(return_value=[bad, good])
+    prisma.db.mcpuserenvvars.update = AsyncMock()
 
     await rotate_mcp_user_env_vars_master_key(prisma_client=prisma, new_master_key="new-key-xxxx")
 
-    assert prisma.db.litellm_mcpuserenvvars.update.call_count == 1
-    where = prisma.db.litellm_mcpuserenvvars.update.call_args.kwargs["where"]
+    assert prisma.db.mcpuserenvvars.update.call_count == 1
+    where = prisma.db.mcpuserenvvars.update.call_args.kwargs["where"]
     assert where["user_id_server_id"]["server_id"] == "srv-ok"
 
 
@@ -1276,12 +1276,12 @@ async def test_master_key_rotation_reencrypts_oauth_client_store(monkeypatch):
     monkeypatch.setattr(enc, "_get_salt_key", lambda: key_old)
 
     prisma = MagicMock()
-    prisma.db.litellm_mcpservertable.find_many = AsyncMock(return_value=[])
-    prisma.db.litellm_mcpserveroauthclient.find_many = AsyncMock(
+    prisma.db.mcpservertable.find_many = AsyncMock(return_value=[])
+    prisma.db.mcpserveroauthclient.find_many = AsyncMock(
         return_value=[SimpleNamespace(server_id="config_faros", credentials=blob_old)]
     )
     store_update = AsyncMock()
-    prisma.db.litellm_mcpserveroauthclient.update = store_update
+    prisma.db.mcpserveroauthclient.update = store_update
 
     await rotate_mcp_server_credentials_master_key(prisma, touched_by="test", new_master_key=key_new)
 
@@ -1303,15 +1303,15 @@ async def test_delete_mcp_server_cleans_oauth_client_store():
     from token_iq.gateway.proxy._experimental.mcp_server.db import delete_mcp_server
 
     prisma = MagicMock()
-    prisma.db.litellm_mcpservertable.delete = AsyncMock(return_value=SimpleNamespace(server_id="s1"))
-    prisma.db.litellm_mcpusercredentials.find_many = AsyncMock(return_value=[])
-    prisma.db.litellm_mcpusercredentials.delete_many = AsyncMock()
-    prisma.db.litellm_mcpuserenvvars.delete_many = AsyncMock()
-    prisma.db.litellm_mcpserveroauthclient.delete_many = AsyncMock()
+    prisma.db.mcpservertable.delete = AsyncMock(return_value=SimpleNamespace(server_id="s1"))
+    prisma.db.mcpusercredentials.find_many = AsyncMock(return_value=[])
+    prisma.db.mcpusercredentials.delete_many = AsyncMock()
+    prisma.db.mcpuserenvvars.delete_many = AsyncMock()
+    prisma.db.mcpserveroauthclient.delete_many = AsyncMock()
 
     await delete_mcp_server(prisma, "s1", invalidate_token_cache=AsyncMock())
 
-    prisma.db.litellm_mcpserveroauthclient.delete_many.assert_awaited_once_with(where={"server_id": "s1"})
+    prisma.db.mcpserveroauthclient.delete_many.assert_awaited_once_with(where={"server_id": "s1"})
 
 
 def test_mcp_oauth_token_identity_changes_when_only_upstream_resource_is_edited():

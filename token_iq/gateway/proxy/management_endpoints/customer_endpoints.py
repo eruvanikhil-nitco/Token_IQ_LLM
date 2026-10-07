@@ -19,8 +19,8 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel, TypeAdapter
 
 if TYPE_CHECKING:
-    from prisma.models import LiteLLM_BudgetTable as PrismaBudgetRow
-    from prisma.models import LiteLLM_EndUserTable as PrismaEndUserRow
+    from prisma.models import BudgetTable as PrismaBudgetRow
+    from prisma.models import EndUserTable as PrismaEndUserRow
 
     from token_iq.gateway.proxy.utils import PrismaClient
 
@@ -917,7 +917,7 @@ async def get_customer_daily_activity(
     # Query daily activity for organizations
     return await get_daily_activity(
         prisma_client=prisma_client,
-        table_name="litellm_dailyenduserspend",
+        table_name="dailyenduserspend",
         entity_id_field="end_user_id",
         entity_id=end_user_ids_list,
         entity_metadata_field={e.user_id: {"alias": e.alias} for e in end_user_aliases},

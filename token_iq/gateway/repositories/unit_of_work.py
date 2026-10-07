@@ -127,9 +127,9 @@ class BudgetCascadeUnitOfWork:
 async def spend_reset_unit_of_work(new_batch: Callable[[], PrismaBatch]) -> AsyncGenerator[SpendResetUnitOfWork, None]:
     batch = new_batch()
     yield SpendResetUnitOfWork(
-        keys=KeySpendResetWrites(table=batch.litellm_verificationtoken),
-        users=UserSpendResetWrites(table=batch.litellm_usertable),
-        teams=TeamSpendResetWrites(table=batch.litellm_teamtable),
+        keys=KeySpendResetWrites(table=batch.verificationtoken),
+        users=UserSpendResetWrites(table=batch.usertable),
+        teams=TeamSpendResetWrites(table=batch.teamtable),
     )
     await batch.commit()
 
@@ -140,12 +140,12 @@ async def budget_cascade_unit_of_work(
 ) -> AsyncGenerator[BudgetCascadeUnitOfWork, None]:
     batch = new_batch()
     yield BudgetCascadeUnitOfWork(
-        team_memberships=LinkedSpendResetWrites(table=batch.litellm_teammembership),
-        keys=LinkedSpendResetWrites(table=batch.litellm_verificationtoken),
-        organizations=LinkedSpendResetWrites(table=batch.litellm_organizationtable),
-        tags=LinkedSpendResetWrites(table=batch.litellm_tagtable),
-        model_access_groups=LinkedSpendResetWrites(table=batch.litellm_modelaccessgroupbudgettable),
-        endusers=LinkedSpendResetWrites(table=batch.litellm_endusertable),
-        budgets=BudgetWindowWrites(table=batch.litellm_budgettable),
+        team_memberships=LinkedSpendResetWrites(table=batch.teammembership),
+        keys=LinkedSpendResetWrites(table=batch.verificationtoken),
+        organizations=LinkedSpendResetWrites(table=batch.organizationtable),
+        tags=LinkedSpendResetWrites(table=batch.tagtable),
+        model_access_groups=LinkedSpendResetWrites(table=batch.modelaccessgroupbudgettable),
+        endusers=LinkedSpendResetWrites(table=batch.endusertable),
+        budgets=BudgetWindowWrites(table=batch.budgettable),
     )
     await batch.commit()

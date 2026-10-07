@@ -169,8 +169,8 @@ async def test_spend_logs_ui_wraps_params_in_at_time_zone_utc(monkeypatch):
     mock_prisma = MagicMock()
     mock_prisma.db = MagicMock()
     mock_prisma.db.query_raw = AsyncMock(return_value=[])
-    mock_prisma.db.litellm_spendlogs = MagicMock()
-    mock_prisma.db.litellm_spendlogs.count = AsyncMock(return_value=0)
+    mock_prisma.db.spendlogs = MagicMock()
+    mock_prisma.db.spendlogs.count = AsyncMock(return_value=0)
 
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
 
@@ -211,8 +211,8 @@ def _make_ui_spend_logs_mock(count_total, page_rows):
     mock_prisma.db.query_raw = AsyncMock(
         side_effect=[[{"total_count": count_total}], page_rows]
     )
-    mock_prisma.db.litellm_spendlogs = MagicMock()
-    mock_prisma.db.litellm_spendlogs.count = AsyncMock(return_value=0)
+    mock_prisma.db.spendlogs = MagicMock()
+    mock_prisma.db.spendlogs.count = AsyncMock(return_value=0)
     return mock_prisma
 
 
@@ -256,7 +256,7 @@ async def test_spend_logs_ui_uses_bounded_count_not_full_scan(monkeypatch):
         user_api_key_dict=auth,
     )
 
-    mock_prisma.db.litellm_spendlogs.count.assert_not_called()
+    mock_prisma.db.spendlogs.count.assert_not_called()
 
     count_call = mock_prisma.db.query_raw.call_args_list[0]
     count_sql = count_call[0][0]
@@ -345,8 +345,8 @@ async def test_spend_logs_ui_empty_page_reports_zero_total(monkeypatch):
     mock_prisma = MagicMock()
     mock_prisma.db = MagicMock()
     mock_prisma.db.query_raw = AsyncMock(side_effect=[[{"total_count": 0}], []])
-    mock_prisma.db.litellm_spendlogs = MagicMock()
-    mock_prisma.db.litellm_spendlogs.count = AsyncMock(return_value=0)
+    mock_prisma.db.spendlogs = MagicMock()
+    mock_prisma.db.spendlogs.count = AsyncMock(return_value=0)
 
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
 
@@ -368,7 +368,7 @@ async def test_spend_logs_ui_empty_page_reports_zero_total(monkeypatch):
         user_api_key_dict=auth,
     )
 
-    mock_prisma.db.litellm_spendlogs.count.assert_not_called()
+    mock_prisma.db.spendlogs.count.assert_not_called()
     assert response["total"] == 0
     assert response["total_pages"] == 0
     assert response["data"] == []
@@ -392,8 +392,8 @@ async def test_spend_logs_ui_out_of_range_page_keeps_total(monkeypatch):
     mock_prisma = MagicMock()
     mock_prisma.db = MagicMock()
     mock_prisma.db.query_raw = AsyncMock(side_effect=[[{"total_count": 7}], []])
-    mock_prisma.db.litellm_spendlogs = MagicMock()
-    mock_prisma.db.litellm_spendlogs.count = AsyncMock(return_value=0)
+    mock_prisma.db.spendlogs = MagicMock()
+    mock_prisma.db.spendlogs.count = AsyncMock(return_value=0)
 
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
 
@@ -415,7 +415,7 @@ async def test_spend_logs_ui_out_of_range_page_keeps_total(monkeypatch):
         user_api_key_dict=auth,
     )
 
-    mock_prisma.db.litellm_spendlogs.count.assert_not_called()
+    mock_prisma.db.spendlogs.count.assert_not_called()
     assert response["total"] == 7
     assert response["total_pages"] == (7 + 2 - 1) // 2
     assert response["data"] == []

@@ -16,7 +16,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-from prisma.actions import LiteLLM_TeamTableActions
+from prisma.actions import TeamTableActions
 
 
 from token_iq.gateway.proxy.management_endpoints.tool_management_endpoints import router
@@ -90,13 +90,13 @@ class FakeTeamTable:
         self.update_many_calls: list[dict[str, object]] = []
 
     async def find_unique(self, **kwargs: object) -> Optional[MagicMock]:
-        inspect.signature(LiteLLM_TeamTableActions.find_unique).bind(self, **kwargs)
+        inspect.signature(TeamTableActions.find_unique).bind(self, **kwargs)
         index = len(self.find_unique_calls)
         self.find_unique_calls.append(kwargs)
         return self._rows[index] if index < len(self._rows) else None
 
     async def update_many(self, **kwargs: object) -> int:
-        inspect.signature(LiteLLM_TeamTableActions.update_many).bind(self, **kwargs)
+        inspect.signature(TeamTableActions.update_many).bind(self, **kwargs)
         self.update_many_calls.append(kwargs)
         return self._updated_count
 
@@ -109,19 +109,19 @@ def _team_row(object_permission_id: Optional[str]) -> MagicMock:
 
 def _team_policy_prisma(team_table: FakeTeamTable) -> MagicMock:
     prisma = MagicMock()
-    prisma.db.litellm_teamtable = team_table
-    prisma.db.litellm_objectpermissiontable.create = AsyncMock()
-    prisma.db.litellm_objectpermissiontable.delete = AsyncMock()
+    prisma.db.teamtable = team_table
+    prisma.db.objectpermissiontable.create = AsyncMock()
+    prisma.db.objectpermissiontable.delete = AsyncMock()
     return prisma
 
 
 def _rollup_prisma(group_rows: list, daily_rows: list | None = None) -> MagicMock:
     prisma = MagicMock()
     prisma.db.query_raw = AsyncMock(return_value=[])
-    prisma.db.litellm_spendlogs.find_many = AsyncMock(return_value=[])
-    prisma.db.litellm_spendlogtoolindex.find_many = AsyncMock(return_value=[])
-    prisma.db.litellm_dailytoolspend.group_by = AsyncMock(return_value=group_rows)
-    prisma.db.litellm_dailytoolspend.find_many = AsyncMock(return_value=daily_rows or [])
+    prisma.db.spendlogs.find_many = AsyncMock(return_value=[])
+    prisma.db.spendlogtoolindex.find_many = AsyncMock(return_value=[])
+    prisma.db.dailytoolspend.group_by = AsyncMock(return_value=group_rows)
+    prisma.db.dailytoolspend.find_many = AsyncMock(return_value=daily_rows or [])
     return prisma
 
 
@@ -331,10 +331,10 @@ class TestToolManagementEndpoints:
         with patch("token_iq.gateway.proxy.proxy_server.prisma_client", prisma):
             resp = self.client.get("/v1/tool/spend?start_date=2026-07-01&end_date=2026-07-02")
         assert resp.status_code == 200
-        group_kwargs = prisma.db.litellm_dailytoolspend.group_by.await_args.kwargs
+        group_kwargs = prisma.db.dailytoolspend.group_by.await_args.kwargs
         assert group_kwargs["take"] == TOOL_SPEND_TOP_TOOLS
         assert group_kwargs["order"] == {"_sum": {"spend": "desc"}}
-        daily_where = prisma.db.litellm_dailytoolspend.find_many.await_args.kwargs["where"]
+        daily_where = prisma.db.dailytoolspend.find_many.await_args.kwargs["where"]
         assert daily_where["tool_name"] == {"in": ["search"]}
 
     def test_tool_spend_skips_daily_query_when_no_tools(self):
@@ -342,7 +342,7 @@ class TestToolManagementEndpoints:
         with patch("token_iq.gateway.proxy.proxy_server.prisma_client", prisma):
             resp = self.client.get("/v1/tool/spend?start_date=2026-07-01&end_date=2026-07-02")
         assert resp.status_code == 200
-        prisma.db.litellm_dailytoolspend.find_many.assert_not_awaited()
+        prisma.db.dailytoolspend.find_many.assert_not_awaited()
 
     @patch("token_iq.gateway.proxy.proxy_server.prisma_client", None)
     def test_tool_spend_no_db_returns_500(self):
@@ -358,16 +358,16 @@ class TestToolManagementEndpoints:
             resp = self.client.get("/v1/tool/spend?start_date=2026-07-01&end_date=2026-07-02")
         assert resp.status_code == 200
         prisma.db.query_raw.assert_not_awaited()
-        prisma.db.litellm_spendlogs.find_many.assert_not_awaited()
-        prisma.db.litellm_spendlogtoolindex.find_many.assert_not_awaited()
-        prisma.db.litellm_dailytoolspend.group_by.assert_awaited_once()
+        prisma.db.spendlogs.find_many.assert_not_awaited()
+        prisma.db.spendlogtoolindex.find_many.assert_not_awaited()
+        prisma.db.dailytoolspend.group_by.assert_awaited_once()
 
     def test_tool_spend_windows_rollup_by_inclusive_date_strings(self):
         prisma = _rollup_prisma([])
         with patch("token_iq.gateway.proxy.proxy_server.prisma_client", prisma):
             resp = self.client.get("/v1/tool/spend?start_date=2026-07-01&end_date=2026-07-02")
         assert resp.status_code == 200
-        where = prisma.db.litellm_dailytoolspend.group_by.await_args.kwargs["where"]
+        where = prisma.db.dailytoolspend.group_by.await_args.kwargs["where"]
         assert where == {"date": {"gte": "2026-07-01", "lte": "2026-07-02"}}
         assert resp.json()["end_date"] == "2026-07-02"
 
@@ -378,7 +378,7 @@ class TestToolManagementEndpoints:
         with patch("token_iq.gateway.proxy.proxy_server.prisma_client", prisma):
             resp = self.client.get("/v1/tool/spend?start_date=2026-01-01&end_date=2026-07-01")
         assert resp.status_code == 200
-        where = prisma.db.litellm_dailytoolspend.group_by.await_args.kwargs["where"]
+        where = prisma.db.dailytoolspend.group_by.await_args.kwargs["where"]
         assert where == {"date": {"gte": "2026-01-01", "lte": "2026-07-01"}}
         assert resp.json()["start_date"] == "2026-01-01"
         assert resp.json()["end_date"] == "2026-07-01"
@@ -408,7 +408,7 @@ class TestToolManagementEndpoints:
             resp = self.client.get(f"/v1/tool/spend?{query}")
         assert resp.status_code == 400
         assert "Invalid date format" in resp.json()["detail"]
-        prisma.db.litellm_dailytoolspend.group_by.assert_not_awaited()
+        prisma.db.dailytoolspend.group_by.assert_not_awaited()
 
     def test_tool_spend_non_admin_returns_403(self):
         from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
@@ -423,4 +423,4 @@ class TestToolManagementEndpoints:
         with patch("token_iq.gateway.proxy.proxy_server.prisma_client", prisma):
             resp = client.get("/v1/tool/spend")
         assert resp.status_code == 403
-        prisma.db.litellm_dailytoolspend.group_by.assert_not_awaited()
+        prisma.db.dailytoolspend.group_by.assert_not_awaited()

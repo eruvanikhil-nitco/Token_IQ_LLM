@@ -240,7 +240,7 @@ async def _upsert_ptu_daily_row(
         }
     }
     now: Final = datetime.now(timezone.utc)
-    await prisma_client.db.litellm_dailyteamspend.upsert(
+    await prisma_client.db.dailyteamspend.upsert(
         where=where,
         data={  # mutable-ok: prisma upsert data payload
             "create": {  # mutable-ok: prisma create payload
@@ -353,7 +353,7 @@ async def _load_ptu_models(prisma_client: "PrismaClient", *, router: object | No
     The router is handed in rather than read off the proxy module, so a run prices exactly
     the deployments its caller declares and nothing a co-resident process left behind.
     """
-    rows: Final = await prisma_client.db.litellm_proxymodeltable.find_many()
+    rows: Final = await prisma_client.db.proxymodeltable.find_many()
     db_ids: Final = frozenset(model_id for row in rows if (model_id := str(getattr(row, "model_id", "") or "")))
     config_records: Final = _config_deployments(router, owned_by_db=db_ids)
     models: Final = tuple(
@@ -503,7 +503,7 @@ async def _existing_sentinel_keys(
     survives a rename. Nothing here reads the display name.
     """
     date_range: Final = {"gte": start.isoformat(), "lte": end.isoformat()}  # mutable-ok: prisma range filter
-    rows: Final = await prisma_client.db.litellm_dailyteamspend.find_many(
+    rows: Final = await prisma_client.db.dailyteamspend.find_many(
         where={"api_key": PTU_SENTINEL_API_KEY, "date": date_range}  # mutable-ok: prisma find filter
     )
     return frozenset(
@@ -771,7 +771,7 @@ async def _prune_unrefreshed_sentinel_rows(
     )
     filters: Final = tuple(_prune_filter(date_str=date_str, cutoff=cutoff, chunk=chunk) for chunk in chunks)
     deletions: Final = tuple(
-        [await prisma_client.db.litellm_dailyteamspend.delete_many(where=where) for where in filters]
+        [await prisma_client.db.dailyteamspend.delete_many(where=where) for where in filters]
     )
     deleted: Final = sum(deletions)
     if deleted:

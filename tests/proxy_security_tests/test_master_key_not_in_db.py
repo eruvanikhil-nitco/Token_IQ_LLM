@@ -42,7 +42,7 @@ async def test_master_key_not_inserted(test_client):
     await prisma_client.connect()
     stored_tokens = {
         row.token
-        for row in await prisma_client.db.litellm_verificationtoken.find_many()
+        for row in await prisma_client.db.verificationtoken.find_many()
     }
 
     for leaked in (hash_token(MASTER_KEY), MASTER_KEY):

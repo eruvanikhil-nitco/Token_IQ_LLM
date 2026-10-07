@@ -55,12 +55,12 @@ class TeamRepository(BaseRepository[LiteLLM_TeamTable]):
     """Repository for team database operations."""
 
     @property
-    def table(self) -> TableActions["prisma_models.LiteLLM_TeamTable"]:
-        return self.prisma_client.db.litellm_teamtable
+    def table(self) -> TableActions["prisma_models.TeamTable"]:
+        return self.prisma_client.db.teamtable
 
     @property
-    def deleted_table(self) -> TableActions["prisma_models.LiteLLM_DeletedTeamTable"]:
-        return self.prisma_client.db.litellm_deletedteamtable
+    def deleted_table(self) -> TableActions["prisma_models.DeletedTeamTable"]:
+        return self.prisma_client.db.deletedteamtable
 
     @property
     def model_class(self) -> type[LiteLLM_TeamTable]:
@@ -257,8 +257,8 @@ class TeamRepository(BaseRepository[LiteLLM_TeamTable]):
         archive_data["deleted_at"] = datetime.utcnow()
 
         async with self.prisma_client.db.tx() as tx:
-            await tx.litellm_deletedteamtable.create(data=archive_data)
-            await tx.litellm_teamtable.delete(where={"team_id": team_id})
+            await tx.deletedteamtable.create(data=archive_data)
+            await tx.teamtable.delete(where={"team_id": team_id})
 
         return team
 

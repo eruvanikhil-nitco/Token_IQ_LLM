@@ -43,7 +43,7 @@ def _make_prisma_with_config(
     config.delete = AsyncMock()
 
     db = MagicMock()
-    db.litellm_config = config
+    db.config = config
 
     client = MagicMock()
     client.db = db
@@ -100,7 +100,7 @@ def test_reload_anthropic_beta_headers_admin_success(client, auth_as, monkeypatc
         "timestamp": "<VOLATILE>",
     }
     # And the upsert was actually invoked (force_reload write).
-    prisma.db.litellm_config.upsert.assert_awaited_once()
+    prisma.db.config.upsert.assert_awaited_once()
 
 
 def test_reload_anthropic_beta_headers_preserves_existing_interval(
@@ -124,7 +124,7 @@ def test_reload_anthropic_beta_headers_preserves_existing_interval(
 
     assert response.status_code == 200
     # The update branch's interval_hours was sourced from the existing record.
-    call_kwargs = prisma.db.litellm_config.upsert.await_args.kwargs
+    call_kwargs = prisma.db.config.upsert.await_args.kwargs
     data = call_kwargs["data"]
     update_payload = data["update"]["param_value"]
     parsed = (
@@ -185,7 +185,7 @@ def test_schedule_anthropic_beta_headers_reload_admin_success(
         "interval_hours": 6,
         "timestamp": "<VOLATILE>",
     }
-    prisma.db.litellm_config.upsert.assert_awaited_once()
+    prisma.db.config.upsert.assert_awaited_once()
 
 
 def test_schedule_anthropic_beta_headers_reload_zero_hours_400(
@@ -252,7 +252,7 @@ def test_cancel_anthropic_beta_headers_reload_admin_success(
         "status": "success",
         "timestamp": "<VOLATILE>",
     }
-    prisma.db.litellm_config.delete.assert_awaited_once_with(
+    prisma.db.config.delete.assert_awaited_once_with(
         where={"param_name": "anthropic_beta_headers_reload_config"}
     )
 

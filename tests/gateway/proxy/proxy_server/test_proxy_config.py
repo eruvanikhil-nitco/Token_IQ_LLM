@@ -2669,7 +2669,7 @@ async def test_ProxyConfig__add_router_settings_from_db_config_updates_router():
     fake_router = MagicMock()
     fake_router.update_settings = MagicMock()
     fake_prisma = MagicMock()
-    fake_prisma.db.litellm_config.find_first = AsyncMock(
+    fake_prisma.db.config.find_first = AsyncMock(
         return_value=SimpleNamespace(param_value={"timeout": 30, "retries": 2, "fallbacks": []})
     )
     config_data = {"router_settings": {"timeout": 10}}
@@ -2713,7 +2713,7 @@ async def test_ProxyConfig_add_deployment_applies_db_router_settings(monkeypatch
     fake_router = MagicMock()
     fake_router.get_model_list = MagicMock(return_value=[])
     fake_prisma = MagicMock()
-    fake_prisma.db.litellm_config.find_first = AsyncMock(
+    fake_prisma.db.config.find_first = AsyncMock(
         return_value=SimpleNamespace(param_value={"routing_strategy": "latency-based-routing"})
     )
 
@@ -3170,7 +3170,7 @@ async def test_ProxyConfig__init_agents_in_db_keeps_config_defined_agents(clean_
     )
 
     prisma_client = MagicMock()
-    prisma_client.db.litellm_agentstable.find_many = AsyncMock(return_value=[_FakeAgentRow("db-id", "db-agent")])
+    prisma_client.db.agentstable.find_many = AsyncMock(return_value=[_FakeAgentRow("db-id", "db-agent")])
 
     await ProxyConfig()._init_agents_in_db(prisma_client=prisma_client)
 
@@ -3278,7 +3278,7 @@ async def test_ProxyConfig__init_guardrails_in_db_skips_only_the_unloadable_row(
     monkeypatch.setitem(registry_module.guardrail_initializer_registry, "lit5367_ok", _initializer)
 
     prisma_client = MagicMock()
-    prisma_client.db.litellm_guardrailstable.find_many = AsyncMock(
+    prisma_client.db.guardrailstable.find_many = AsyncMock(
         return_value=[
             _db_guardrail_row("first", "lit5367_ok"),
             _db_guardrail_row("broken", "litellm_tool_permission"),

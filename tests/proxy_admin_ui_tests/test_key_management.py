@@ -369,7 +369,7 @@ async def test_get_users(prisma_client):
 
     # Clean up test users
     for user in test_users:
-        await prisma_client.db.litellm_usertable.delete(where={"user_id": user.user_id})
+        await prisma_client.db.usertable.delete(where={"user_id": user.user_id})
 
 
 @pytest.mark.asyncio
@@ -454,7 +454,7 @@ async def test_get_users_filters_dashboard_keys(prisma_client):
     assert user.key_count == 2  # Only count the regular keys, not the UI dashboard key
 
     # Clean up test user and keys
-    await prisma_client.db.litellm_usertable.delete(
+    await prisma_client.db.usertable.delete(
         where={"user_id": test_user.user_id}
     )
 
@@ -534,11 +534,11 @@ async def test_get_users_key_count(prisma_client):
     ), f"Expected key count to increase by 1, but got {updated_key_count} (was {initial_key_count})"
 
     # Clean up test user and keys
-    await prisma_client.db.litellm_usertable.delete(where={"user_id": test_user_id})
+    await prisma_client.db.usertable.delete(where={"user_id": test_user_id})
 
 
 async def cleanup_existing_teams(prisma_client):
-    all_teams = await prisma_client.db.litellm_teamtable.find_many()
+    all_teams = await prisma_client.db.teamtable.find_many()
     for team in all_teams:
         await prisma_client.delete_data(team_id_list=[team.team_id], table_name="team")
 

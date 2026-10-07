@@ -35,8 +35,8 @@ if TYPE_CHECKING:
     from token_iq.gateway.proxy.utils import PrismaClient
     from token_iq.gateway.types.guardrails import Guardrail
 
-    _DbOrConfigGuardrail = prisma_models.LiteLLM_GuardrailsTable | Guardrail
-    _DailyMetricsRow = prisma_models.LiteLLM_DailyGuardrailMetrics | prisma_models.LiteLLM_DailyPolicyMetrics
+    _DbOrConfigGuardrail = prisma_models.GuardrailsTable | Guardrail
+    _DailyMetricsRow = prisma_models.DailyGuardrailMetrics | prisma_models.DailyPolicyMetrics
 
 router: Final = APIRouter()
 
@@ -79,8 +79,8 @@ def _resolve_usage_window(start_date: str | None, end_date: str | None) -> tuple
 
 def _guardrails_table(
     prisma_client: "PrismaClient",
-) -> "TableActions[prisma_models.LiteLLM_GuardrailsTable]":
-    guardrails_table: Final[TableActions[prisma_models.LiteLLM_GuardrailsTable]] = GuardrailsRepository(
+) -> "TableActions[prisma_models.GuardrailsTable]":
+    guardrails_table: Final[TableActions[prisma_models.GuardrailsTable]] = GuardrailsRepository(
         prisma_client
     ).table
     return guardrails_table
@@ -88,15 +88,15 @@ def _guardrails_table(
 
 def _policies_table(
     prisma_client: "PrismaClient",
-) -> "TableActions[prisma_models.LiteLLM_PolicyTable]":
-    policies_table: Final[TableActions[prisma_models.LiteLLM_PolicyTable]] = PolicyRepository(prisma_client).table
+) -> "TableActions[prisma_models.PolicyTable]":
+    policies_table: Final[TableActions[prisma_models.PolicyTable]] = PolicyRepository(prisma_client).table
     return policies_table
 
 
 def _daily_guardrail_metrics_table(
     prisma_client: "PrismaClient",
-) -> "TableActions[prisma_models.LiteLLM_DailyGuardrailMetrics]":
-    metrics_table: Final[TableActions[prisma_models.LiteLLM_DailyGuardrailMetrics]] = DailyGuardrailMetricsRepository(
+) -> "TableActions[prisma_models.DailyGuardrailMetrics]":
+    metrics_table: Final[TableActions[prisma_models.DailyGuardrailMetrics]] = DailyGuardrailMetricsRepository(
         prisma_client
     ).table
     return metrics_table
@@ -104,8 +104,8 @@ def _daily_guardrail_metrics_table(
 
 def _daily_policy_metrics_table(
     prisma_client: "PrismaClient",
-) -> "TableActions[prisma_models.LiteLLM_DailyPolicyMetrics]":
-    metrics_table: Final[TableActions[prisma_models.LiteLLM_DailyPolicyMetrics]] = DailyPolicyMetricsRepository(
+) -> "TableActions[prisma_models.DailyPolicyMetrics]":
+    metrics_table: Final[TableActions[prisma_models.DailyPolicyMetrics]] = DailyPolicyMetricsRepository(
         prisma_client
     ).table
     return metrics_table
@@ -113,22 +113,22 @@ def _daily_policy_metrics_table(
 
 async def _find_daily_guardrail_metrics(
     prisma_client: "PrismaClient",
-    where: "prisma_types.LiteLLM_DailyGuardrailMetricsWhereInput",
-) -> "Sequence[prisma_models.LiteLLM_DailyGuardrailMetrics]":
+    where: "prisma_types.DailyGuardrailMetricsWhereInput",
+) -> "Sequence[prisma_models.DailyGuardrailMetrics]":
     return await _daily_guardrail_metrics_table(prisma_client).find_many(where=where)
 
 
 async def _find_daily_policy_metrics(
     prisma_client: "PrismaClient",
-    where: "prisma_types.LiteLLM_DailyPolicyMetricsWhereInput",
-) -> "Sequence[prisma_models.LiteLLM_DailyPolicyMetrics]":
+    where: "prisma_types.DailyPolicyMetricsWhereInput",
+) -> "Sequence[prisma_models.DailyPolicyMetrics]":
     return await _daily_policy_metrics_table(prisma_client).find_many(where=where)
 
 
 def _daily_guardrail_usage_units_table(
     prisma_client: "PrismaClient",
-) -> "TableActions[prisma_models.LiteLLM_DailyGuardrailUsageUnits]":
-    units_table: Final[TableActions[prisma_models.LiteLLM_DailyGuardrailUsageUnits]] = (
+) -> "TableActions[prisma_models.DailyGuardrailUsageUnits]":
+    units_table: Final[TableActions[prisma_models.DailyGuardrailUsageUnits]] = (
         DailyGuardrailUsageUnitsRepository(prisma_client).table
     )
     return units_table
@@ -136,8 +136,8 @@ def _daily_guardrail_usage_units_table(
 
 async def _find_daily_guardrail_usage_units(
     prisma_client: "PrismaClient",
-    where: "prisma_types.LiteLLM_DailyGuardrailUsageUnitsWhereInput",
-) -> "Sequence[prisma_models.LiteLLM_DailyGuardrailUsageUnits]":
+    where: "prisma_types.DailyGuardrailUsageUnitsWhereInput",
+) -> "Sequence[prisma_models.DailyGuardrailUsageUnits]":
     from prisma.errors import TableNotFoundError
 
     try:
@@ -150,11 +150,11 @@ async def _find_daily_guardrail_usage_units(
         return ()
 
 
-def _counter_name(row: "prisma_models.LiteLLM_DailyGuardrailUsageUnits") -> str:
+def _counter_name(row: "prisma_models.DailyGuardrailUsageUnits") -> str:
     return row.usage_unit
 
 
-def _sum_counter_units(rows: "Iterable[prisma_models.LiteLLM_DailyGuardrailUsageUnits]") -> Mapping[str, int]:
+def _sum_counter_units(rows: "Iterable[prisma_models.DailyGuardrailUsageUnits]") -> Mapping[str, int]:
     ordered: Final = sorted(rows, key=_counter_name)
     return MappingProxyType(
         {name: sum(int(r.units) for r in group) for name, group in groupby(ordered, key=_counter_name)}
@@ -162,8 +162,8 @@ def _sum_counter_units(rows: "Iterable[prisma_models.LiteLLM_DailyGuardrailUsage
 
 
 def _units_by(
-    rows: "Sequence[prisma_models.LiteLLM_DailyGuardrailUsageUnits]",
-    key_of: "Callable[[prisma_models.LiteLLM_DailyGuardrailUsageUnits], str]",
+    rows: "Sequence[prisma_models.DailyGuardrailUsageUnits]",
+    key_of: "Callable[[prisma_models.DailyGuardrailUsageUnits], str]",
 ) -> Mapping[str, Mapping[str, int]]:
     ordered: Final = sorted(rows, key=key_of)
     return MappingProxyType({key: _sum_counter_units(group) for key, group in groupby(ordered, key=key_of)})
@@ -435,7 +435,7 @@ def _guardrail_overview_rows(
 
 
 def _policy_overview_rows(
-    policies: "Sequence[prisma_models.LiteLLM_PolicyTable]",
+    policies: "Sequence[prisma_models.PolicyTable]",
     agg: Mapping[str, _MetricTotals],
     prev_agg: Mapping[str, float],
 ) -> list[UsageOverviewRow]:
@@ -496,21 +496,21 @@ async def guardrails_usage_overview(
         guardrails: Final[Sequence[_DbOrConfigGuardrail]] = [*db_guardrails, *config_guardrails]
 
         # Daily metrics in range
-        metrics: Final[Sequence[prisma_models.LiteLLM_DailyGuardrailMetrics]] = await _find_daily_guardrail_metrics(
+        metrics: Final[Sequence[prisma_models.DailyGuardrailMetrics]] = await _find_daily_guardrail_metrics(
             prisma_client, where={"date": {"gte": start, "lte": end}}
         )
 
         # Previous period for trend
         start_prev: Final = (date.fromisoformat(start) - timedelta(days=7)).isoformat()
-        metrics_prev: Sequence[prisma_models.LiteLLM_DailyGuardrailMetrics] = await _find_daily_guardrail_metrics(
+        metrics_prev: Sequence[prisma_models.DailyGuardrailMetrics] = await _find_daily_guardrail_metrics(
             prisma_client, where={"date": {"gte": start_prev, "lt": start}}
         )
 
-        units_where: Final[prisma_types.LiteLLM_DailyGuardrailUsageUnitsWhereInput] = {
+        units_where: Final[prisma_types.DailyGuardrailUsageUnitsWhereInput] = {
             "date": {"gte": start, "lte": end}
         }
         units_rows: Final[
-            Sequence[prisma_models.LiteLLM_DailyGuardrailUsageUnits]
+            Sequence[prisma_models.DailyGuardrailUsageUnits]
         ] = await _find_daily_guardrail_usage_units(prisma_client, where=units_where)
 
         agg: Final = _aggregate_daily_metrics(metrics, "guardrail_id")
@@ -571,7 +571,7 @@ async def guardrails_usage_detail(
     logical_id: Final = _get_guardrail_field(guardrail, "guardrail_name")
     metric_ids: Final = [i for i in (logical_id, guardrail_id) if i]
 
-    metrics: Final[Sequence[prisma_models.LiteLLM_DailyGuardrailMetrics]] = await _find_daily_guardrail_metrics(
+    metrics: Final[Sequence[prisma_models.DailyGuardrailMetrics]] = await _find_daily_guardrail_metrics(
         prisma_client,
         where={
             "guardrail_id": {"in": metric_ids},
@@ -579,19 +579,19 @@ async def guardrails_usage_detail(
         },
     )
     start_prev: Final = (date.fromisoformat(start) - timedelta(days=7)).isoformat()
-    metrics_prev: Final[Sequence[prisma_models.LiteLLM_DailyGuardrailMetrics]] = await _find_daily_guardrail_metrics(
+    metrics_prev: Final[Sequence[prisma_models.DailyGuardrailMetrics]] = await _find_daily_guardrail_metrics(
         prisma_client,
         where={
             "guardrail_id": {"in": metric_ids},
             "date": {"gte": start_prev, "lt": start},
         },
     )
-    units_where: Final[prisma_types.LiteLLM_DailyGuardrailUsageUnitsWhereInput] = {
+    units_where: Final[prisma_types.DailyGuardrailUsageUnitsWhereInput] = {
         "guardrail_id": {"in": metric_ids},
         "date": {"gte": start, "lte": end},
     }
     units_rows: Final[
-        Sequence[prisma_models.LiteLLM_DailyGuardrailUsageUnits]
+        Sequence[prisma_models.DailyGuardrailUsageUnits]
     ] = await _find_daily_guardrail_usage_units(prisma_client, where=units_where)
 
     requests: Final = sum(int(m.requests_evaluated or 0) for m in metrics)
@@ -646,8 +646,8 @@ def _build_usage_logs_where(
     policy_id: str | None,
     start_date: str | None,
     end_date: str | None,
-) -> "prisma_types.LiteLLM_SpendLogGuardrailIndexWhereInput":
-    where: Final[prisma_types.LiteLLM_SpendLogGuardrailIndexWhereInput] = {}
+) -> "prisma_types.SpendLogGuardrailIndexWhereInput":
+    where: Final[prisma_types.SpendLogGuardrailIndexWhereInput] = {}
     if guardrail_ids:
         where["guardrail_id"] = {"in": guardrail_ids} if len(guardrail_ids) > 1 else guardrail_ids[0]
     if policy_id:
@@ -669,8 +669,8 @@ def _build_usage_logs_where(
 
 
 def _usage_log_entry_from_row(
-    r: "prisma_models.LiteLLM_SpendLogGuardrailIndex",
-    sl: "prisma_models.LiteLLM_SpendLogs",
+    r: "prisma_models.SpendLogGuardrailIndex",
+    sl: "prisma_models.SpendLogs",
     action_filter: str | None,
 ) -> UsageLogEntry | None:
     meta = sl.metadata
@@ -743,7 +743,7 @@ def _snippet(text: Any, max_len: int = 200) -> str | None:
     return result
 
 
-def _input_snippet_for_log(sl: "prisma_models.LiteLLM_SpendLogs") -> str | None:
+def _input_snippet_for_log(sl: "prisma_models.SpendLogs") -> str | None:
     """Snippet for request input: prefer messages, fall back to proxy_server_request (same as drawer)."""
     out = _snippet(sl.messages)
     if out:
@@ -808,7 +808,7 @@ async def guardrails_usage_logs(
                     effective_guardrail_ids.append(logical_name)
 
         where: Final = _build_usage_logs_where(effective_guardrail_ids or None, policy_id, start_date, end_date)
-        index_rows: Sequence[prisma_models.LiteLLM_SpendLogGuardrailIndex] = await SpendLogGuardrailIndexRepository(
+        index_rows: Sequence[prisma_models.SpendLogGuardrailIndex] = await SpendLogGuardrailIndexRepository(
             prisma_client
         ).table.find_many(
             where=where,
@@ -820,7 +820,7 @@ async def guardrails_usage_logs(
         request_ids: Final = [r.request_id for r in index_rows[:page_size]]
         if not request_ids:
             return UsageLogsResponse(logs=[], total=total, page=page, page_size=page_size)
-        spend_logs: Final[Sequence[prisma_models.LiteLLM_SpendLogs]] = await SpendLogsRepository(
+        spend_logs: Final[Sequence[prisma_models.SpendLogs]] = await SpendLogsRepository(
             prisma_client
         ).table.find_many(where={"request_id": {"in": request_ids}})
         log_by_id: Final = {s.request_id: s for s in spend_logs}
@@ -865,10 +865,10 @@ async def policies_usage_overview(
 
     try:
         policies: Final = await _policies_table(prisma_client).find_many()
-        metrics: Final[Sequence[prisma_models.LiteLLM_DailyPolicyMetrics]] = await _find_daily_policy_metrics(
+        metrics: Final[Sequence[prisma_models.DailyPolicyMetrics]] = await _find_daily_policy_metrics(
             prisma_client, where={"date": {"gte": start, "lte": end}}
         )
-        metrics_prev: Final[Sequence[prisma_models.LiteLLM_DailyPolicyMetrics]] = await _find_daily_policy_metrics(
+        metrics_prev: Final[Sequence[prisma_models.DailyPolicyMetrics]] = await _find_daily_policy_metrics(
             prisma_client,
             where={
                 "date": {

@@ -133,8 +133,8 @@ async def list_audit_logs(
 
     where: Final = build_where(table_name, action, object_id, changed_by, start_date, end_date)
 
-    total: Final = await prisma_client.db.litellm_auditlog.count(where=where)
-    rows: Final = await prisma_client.db.litellm_auditlog.find_many(
+    total: Final = await prisma_client.db.auditlog.count(where=where)
+    rows: Final = await prisma_client.db.auditlog.find_many(
         where=where,
         order={"updated_at": "desc"},
         skip=(page - 1) * size,

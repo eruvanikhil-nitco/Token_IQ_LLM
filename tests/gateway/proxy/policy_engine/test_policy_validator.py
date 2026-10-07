@@ -32,8 +32,8 @@ class _FakeTable:
 
 class _FakeDB:
     def __init__(self, teams: Set[str], keys: Set[str]):
-        self.litellm_teamtable = _FakeTable(teams, "team_alias")
-        self.litellm_verificationtoken = _FakeTable(keys, "key_alias")
+        self.teamtable = _FakeTable(teams, "team_alias")
+        self.verificationtoken = _FakeTable(keys, "key_alias")
 
 
 class _FakePrisma:

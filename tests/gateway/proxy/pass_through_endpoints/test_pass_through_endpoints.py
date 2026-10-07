@@ -1512,9 +1512,9 @@ async def test_pass_through_request_streamed_response_is_owned_by_the_caller():
         b'event: response.completed\ndata: {"type": "response.completed", "response": {"id": "%s"}}\n\n'
     ) % (raw_id.encode(), raw_id.encode())
     prisma_client = MagicMock()
-    prisma_client.db.litellm_managedobjecttable.find_first = AsyncMock(return_value=None)
-    prisma_client.db.litellm_managedobjecttable.upsert = AsyncMock(return_value=None)
-    prisma_client.db.litellm_managedfiletable.find_first = AsyncMock(return_value=None)
+    prisma_client.db.managedobjecttable.find_first = AsyncMock(return_value=None)
+    prisma_client.db.managedobjecttable.upsert = AsyncMock(return_value=None)
+    prisma_client.db.managedfiletable.find_first = AsyncMock(return_value=None)
 
     def transport_handler(upstream_request: httpx.Request) -> httpx.Response:
         return httpx.Response(200, content=upstream_body, headers={"content-type": "text/event-stream"})
@@ -1565,8 +1565,8 @@ async def test_pass_through_request_streamed_response_is_owned_by_the_caller():
         cache_dict[cache_key] = real_handler
 
     assert response.status_code == 200
-    prisma_client.db.litellm_managedobjecttable.upsert.assert_awaited_once()
-    created = prisma_client.db.litellm_managedobjecttable.upsert.await_args.kwargs["data"]["create"]
+    prisma_client.db.managedobjecttable.upsert.assert_awaited_once()
+    created = prisma_client.db.managedobjecttable.upsert.await_args.kwargs["data"]["create"]
     assert created["created_by"] == "user-a"
     assert created["team_id"] == "team-a"
     assert created["model_object_id"] == f"passthrough:openai:{raw_id}"
@@ -2614,7 +2614,7 @@ async def test_filter_endpoints_by_team_allowed_routes_with_filter():
     mock_prisma_client = MagicMock()
     mock_team = MagicMock()
     mock_team.metadata = {"allowed_passthrough_routes": ["/api/allowed1", "/api/allowed2"]}
-    mock_prisma_client.db.litellm_teamtable.find_unique = AsyncMock(return_value=mock_team)
+    mock_prisma_client.db.teamtable.find_unique = AsyncMock(return_value=mock_team)
 
     # Call the function
     result = await _filter_endpoints_by_team_allowed_routes(
@@ -2629,7 +2629,7 @@ async def test_filter_endpoints_by_team_allowed_routes_with_filter():
     assert result[1].path == "/api/allowed2"
 
     # Verify database call
-    mock_prisma_client.db.litellm_teamtable.find_unique.assert_called_once_with(where={"team_id": "test-team-123"})
+    mock_prisma_client.db.teamtable.find_unique.assert_called_once_with(where={"team_id": "test-team-123"})
 
 
 @pytest.mark.asyncio
@@ -2652,7 +2652,7 @@ async def test_filter_endpoints_by_team_allowed_routes_team_not_found():
 
     # Mock prisma client to return None (team not found)
     mock_prisma_client = MagicMock()
-    mock_prisma_client.db.litellm_teamtable.find_unique = AsyncMock(return_value=None)
+    mock_prisma_client.db.teamtable.find_unique = AsyncMock(return_value=None)
 
     # Call the function and expect HTTPException
     with pytest.raises(HTTPException) as exc_info:
@@ -2688,7 +2688,7 @@ async def test_filter_endpoints_by_team_allowed_routes_no_metadata():
     mock_prisma_client = MagicMock()
     mock_team = MagicMock()
     mock_team.metadata = None
-    mock_prisma_client.db.litellm_teamtable.find_unique = AsyncMock(return_value=mock_team)
+    mock_prisma_client.db.teamtable.find_unique = AsyncMock(return_value=mock_team)
 
     # Call the function
     result = await _filter_endpoints_by_team_allowed_routes(
@@ -2724,7 +2724,7 @@ async def test_filter_endpoints_by_team_allowed_routes_no_allowed_routes_key():
     mock_prisma_client = MagicMock()
     mock_team = MagicMock()
     mock_team.metadata = {"some_other_key": "some_value"}
-    mock_prisma_client.db.litellm_teamtable.find_unique = AsyncMock(return_value=mock_team)
+    mock_prisma_client.db.teamtable.find_unique = AsyncMock(return_value=mock_team)
 
     # Call the function
     result = await _filter_endpoints_by_team_allowed_routes(
@@ -2760,7 +2760,7 @@ async def test_filter_endpoints_by_team_allowed_routes_empty_allowed_list():
     mock_prisma_client = MagicMock()
     mock_team = MagicMock()
     mock_team.metadata = {"allowed_passthrough_routes": []}
-    mock_prisma_client.db.litellm_teamtable.find_unique = AsyncMock(return_value=mock_team)
+    mock_prisma_client.db.teamtable.find_unique = AsyncMock(return_value=mock_team)
 
     # Call the function
     result = await _filter_endpoints_by_team_allowed_routes(
@@ -2800,7 +2800,7 @@ async def test_filter_endpoints_by_team_allowed_routes_partial_match():
     mock_prisma_client = MagicMock()
     mock_team = MagicMock()
     mock_team.metadata = {"allowed_passthrough_routes": ["/api/openai", "/api/azure"]}
-    mock_prisma_client.db.litellm_teamtable.find_unique = AsyncMock(return_value=mock_team)
+    mock_prisma_client.db.teamtable.find_unique = AsyncMock(return_value=mock_team)
 
     # Call the function
     result = await _filter_endpoints_by_team_allowed_routes(

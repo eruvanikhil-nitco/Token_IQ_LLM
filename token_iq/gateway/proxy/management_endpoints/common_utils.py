@@ -493,19 +493,19 @@ async def _upsert_budget_and_membership(
     )
 
     async def _disconnect():
-        await tx.litellm_teammembership.update(
+        await tx.teammembership.update(
             where={"user_id_team_id": {"user_id": user_id, "team_id": team_id}},
             data={"litellm_budget_table": {"disconnect": True}},
         )
 
     if existing_budget_id is not None and not is_shared_default:
-        existing_budget: Final = await tx.litellm_budgettable.find_unique(where={"budget_id": existing_budget_id})
+        existing_budget: Final = await tx.budgettable.find_unique(where={"budget_id": existing_budget_id})
         merged: Final = existing_budget.model_dump() if existing_budget is not None else {}
         merged.update(write_data)
         if not _has_meaningful_budget_limit(merged):
             await _disconnect()
             return
-        await tx.litellm_budgettable.update(
+        await tx.budgettable.update(
             where={"budget_id": existing_budget_id},
             data={"updated_by": user_api_key_dict.user_id or "", **write_data},
         )
@@ -517,7 +517,7 @@ async def _upsert_budget_and_membership(
     }
 
     if is_shared_default:
-        default_budget_row: Final = await tx.litellm_budgettable.find_unique(where={"budget_id": existing_budget_id})
+        default_budget_row: Final = await tx.budgettable.find_unique(where={"budget_id": existing_budget_id})
         if default_budget_row is not None:
             default_budget_dict: Final = default_budget_row.model_dump()
             for field in _TEAM_MEMBER_BUDGET_LIMIT_FIELDS:
@@ -537,11 +537,11 @@ async def _upsert_budget_and_membership(
             await _disconnect()
         return
 
-    new_budget: Final = await tx.litellm_budgettable.create(
+    new_budget: Final = await tx.budgettable.create(
         data=create_data,
         include={"team_membership": True},
     )
-    await tx.litellm_teammembership.upsert(
+    await tx.teammembership.upsert(
         where={
             "user_id_team_id": {
                 "user_id": user_id,

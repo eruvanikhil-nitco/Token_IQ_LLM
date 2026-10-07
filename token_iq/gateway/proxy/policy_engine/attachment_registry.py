@@ -20,7 +20,7 @@ from token_iq.gateway.types.proxy.policy_engine import (
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
-    from prisma.models import LiteLLM_PolicyAttachmentTable
+    from prisma.models import PolicyAttachmentTable
 
     from token_iq.gateway.proxy.utils import PrismaClient
 
@@ -289,7 +289,7 @@ class AttachmentRegistry:
             PolicyAttachmentDBResponse with the created attachment
         """
         try:
-            created_attachment: Final[LiteLLM_PolicyAttachmentTable] = await PolicyAttachmentRepository(
+            created_attachment: Final[PolicyAttachmentTable] = await PolicyAttachmentRepository(
                 prisma_client
             ).table.create(
                 data={
@@ -351,7 +351,7 @@ class AttachmentRegistry:
         """
         try:
             # Get attachment before deleting
-            attachment: Final[LiteLLM_PolicyAttachmentTable | None] = await PolicyAttachmentRepository(
+            attachment: Final[PolicyAttachmentTable | None] = await PolicyAttachmentRepository(
                 prisma_client
             ).table.find_unique(where={"attachment_id": attachment_id})
 
@@ -386,7 +386,7 @@ class AttachmentRegistry:
             PolicyAttachmentDBResponse if found, None otherwise
         """
         try:
-            attachment: Final[LiteLLM_PolicyAttachmentTable | None] = await PolicyAttachmentRepository(
+            attachment: Final[PolicyAttachmentTable | None] = await PolicyAttachmentRepository(
                 prisma_client
             ).table.find_unique(where={"attachment_id": attachment_id})
 
@@ -424,7 +424,7 @@ class AttachmentRegistry:
             List of PolicyAttachmentDBResponse objects
         """
         try:
-            attachments: Final[Sequence[LiteLLM_PolicyAttachmentTable]] = await PolicyAttachmentRepository(
+            attachments: Final[Sequence[PolicyAttachmentTable]] = await PolicyAttachmentRepository(
                 prisma_client
             ).table.find_many(
                 order={"created_at": "desc"},

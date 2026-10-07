@@ -23,6 +23,6 @@ async def test_key_generate_lands_in_db(proxy_client, prisma, scratch):
     assert cleartext.startswith("sk-")
 
     hashed = hash_token(cleartext)
-    row = await prisma.db.litellm_verificationtoken.find_unique(where={"token": hashed})
+    row = await prisma.db.verificationtoken.find_unique(where={"token": hashed})
     assert row is not None
     assert row.token == hashed != cleartext

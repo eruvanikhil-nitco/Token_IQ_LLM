@@ -810,20 +810,20 @@ async def test_commit_spend_updates_to_db_increments_agent_spend():
     db_writer = DBSpendUpdateWriter()
 
     mock_batcher = MagicMock()
-    mock_batcher.litellm_verificationtoken = MagicMock()
-    mock_batcher.litellm_verificationtoken.update_many = MagicMock()
-    mock_batcher.litellm_usertable = MagicMock()
-    mock_batcher.litellm_usertable.update_many = MagicMock()
-    mock_batcher.litellm_teamtable = MagicMock()
-    mock_batcher.litellm_teamtable.update_many = MagicMock()
-    mock_batcher.litellm_teammembership = MagicMock()
-    mock_batcher.litellm_teammembership.update_many = MagicMock()
-    mock_batcher.litellm_organizationtable = MagicMock()
-    mock_batcher.litellm_organizationtable.update_many = MagicMock()
-    mock_batcher.litellm_tagtable = MagicMock()
-    mock_batcher.litellm_tagtable.update_many = MagicMock()
-    mock_batcher.litellm_agentstable = MagicMock()
-    mock_batcher.litellm_agentstable.update_many = MagicMock()
+    mock_batcher.verificationtoken = MagicMock()
+    mock_batcher.verificationtoken.update_many = MagicMock()
+    mock_batcher.usertable = MagicMock()
+    mock_batcher.usertable.update_many = MagicMock()
+    mock_batcher.teamtable = MagicMock()
+    mock_batcher.teamtable.update_many = MagicMock()
+    mock_batcher.teammembership = MagicMock()
+    mock_batcher.teammembership.update_many = MagicMock()
+    mock_batcher.organizationtable = MagicMock()
+    mock_batcher.organizationtable.update_many = MagicMock()
+    mock_batcher.tagtable = MagicMock()
+    mock_batcher.tagtable.update_many = MagicMock()
+    mock_batcher.agentstable = MagicMock()
+    mock_batcher.agentstable.update_many = MagicMock()
 
     mock_transaction = AsyncMock()
     mock_transaction.__aenter__ = AsyncMock(return_value=mock_transaction)
@@ -863,8 +863,8 @@ async def test_commit_spend_updates_to_db_increments_agent_spend():
             db_spend_update_transactions=db_spend_update_transactions,
         )
 
-    mock_batcher.litellm_agentstable.update_many.assert_called_once()
-    call_kwargs = mock_batcher.litellm_agentstable.update_many.call_args[1]
+    mock_batcher.agentstable.update_many.assert_called_once()
+    call_kwargs = mock_batcher.agentstable.update_many.call_args[1]
     assert call_kwargs["where"] == {"agent_id": agent_id}
     assert call_kwargs["data"] == {"spend": {"increment": response_cost}}
 
@@ -879,20 +879,20 @@ async def test_commit_spend_updates_to_db_increments_team_member_spend_and_total
     db_writer = DBSpendUpdateWriter()
 
     mock_batcher = MagicMock()
-    mock_batcher.litellm_verificationtoken = MagicMock()
-    mock_batcher.litellm_verificationtoken.update_many = MagicMock()
-    mock_batcher.litellm_usertable = MagicMock()
-    mock_batcher.litellm_usertable.update_many = MagicMock()
-    mock_batcher.litellm_teamtable = MagicMock()
-    mock_batcher.litellm_teamtable.update_many = MagicMock()
-    mock_batcher.litellm_teammembership = MagicMock()
-    mock_batcher.litellm_teammembership.update_many = MagicMock()
-    mock_batcher.litellm_organizationtable = MagicMock()
-    mock_batcher.litellm_organizationtable.update_many = MagicMock()
-    mock_batcher.litellm_tagtable = MagicMock()
-    mock_batcher.litellm_tagtable.update_many = MagicMock()
-    mock_batcher.litellm_agentstable = MagicMock()
-    mock_batcher.litellm_agentstable.update_many = MagicMock()
+    mock_batcher.verificationtoken = MagicMock()
+    mock_batcher.verificationtoken.update_many = MagicMock()
+    mock_batcher.usertable = MagicMock()
+    mock_batcher.usertable.update_many = MagicMock()
+    mock_batcher.teamtable = MagicMock()
+    mock_batcher.teamtable.update_many = MagicMock()
+    mock_batcher.teammembership = MagicMock()
+    mock_batcher.teammembership.update_many = MagicMock()
+    mock_batcher.organizationtable = MagicMock()
+    mock_batcher.organizationtable.update_many = MagicMock()
+    mock_batcher.tagtable = MagicMock()
+    mock_batcher.tagtable.update_many = MagicMock()
+    mock_batcher.agentstable = MagicMock()
+    mock_batcher.agentstable.update_many = MagicMock()
 
     mock_transaction = AsyncMock()
     mock_transaction.__aenter__ = AsyncMock(return_value=mock_transaction)
@@ -936,8 +936,8 @@ async def test_commit_spend_updates_to_db_increments_team_member_spend_and_total
             db_spend_update_transactions=db_spend_update_transactions,
         )
 
-    mock_batcher.litellm_teammembership.update_many.assert_called_once()
-    call_kwargs = mock_batcher.litellm_teammembership.update_many.call_args[1]
+    mock_batcher.teammembership.update_many.assert_called_once()
+    call_kwargs = mock_batcher.teammembership.update_many.call_args[1]
     assert call_kwargs["where"] == {"team_id": team_id, "user_id": user_id}
     assert call_kwargs["data"] == {
         "spend": {"increment": response_cost},
@@ -1474,8 +1474,8 @@ async def test_commit_key_spend_updates_includes_last_active():
 
     # Create mock prisma client with transaction support
     mock_batcher = MagicMock()
-    mock_batcher.litellm_verificationtoken = MagicMock()
-    mock_batcher.litellm_verificationtoken.update_many = MagicMock()
+    mock_batcher.verificationtoken = MagicMock()
+    mock_batcher.verificationtoken.update_many = MagicMock()
 
     mock_transaction = AsyncMock()
     mock_transaction.__aenter__ = AsyncMock(return_value=mock_transaction)
@@ -1492,14 +1492,14 @@ async def test_commit_key_spend_updates_includes_last_active():
     mock_prisma_client.db.tx = MagicMock(return_value=mock_transaction)
 
     # Also mock the other table batchers to avoid errors
-    mock_batcher.litellm_usertable = MagicMock()
-    mock_batcher.litellm_usertable.update_many = MagicMock()
-    mock_batcher.litellm_teamtable = MagicMock()
-    mock_batcher.litellm_teamtable.update_many = MagicMock()
-    mock_batcher.litellm_organizationtable = MagicMock()
-    mock_batcher.litellm_organizationtable.update_many = MagicMock()
-    mock_batcher.litellm_agentstable = MagicMock()
-    mock_batcher.litellm_agentstable.update_many = MagicMock()
+    mock_batcher.usertable = MagicMock()
+    mock_batcher.usertable.update_many = MagicMock()
+    mock_batcher.teamtable = MagicMock()
+    mock_batcher.teamtable.update_many = MagicMock()
+    mock_batcher.organizationtable = MagicMock()
+    mock_batcher.organizationtable.update_many = MagicMock()
+    mock_batcher.agentstable = MagicMock()
+    mock_batcher.agentstable.update_many = MagicMock()
 
     mock_proxy_logging = MagicMock()
 
@@ -1528,8 +1528,8 @@ async def test_commit_key_spend_updates_includes_last_active():
     after_call = datetime.now(timezone.utc)
 
     # Verify update_many was called on the key table
-    mock_batcher.litellm_verificationtoken.update_many.assert_called_once()
-    call_kwargs = mock_batcher.litellm_verificationtoken.update_many.call_args[1]
+    mock_batcher.verificationtoken.update_many.assert_called_once()
+    call_kwargs = mock_batcher.verificationtoken.update_many.call_args[1]
 
     # Verify the where clause targets the correct token
     assert call_kwargs["where"] == {"token": "hashed_token_abc"}
@@ -1986,7 +1986,7 @@ async def test_commit_daily_tag_spend_no_requeue_on_success():
         pytest.param(
             "user_list_transactions",
             {"user_c": 0.1, "user_a": 0.2, "user_b": 0.3},
-            "litellm_usertable",
+            "usertable",
             "update_many",
             "user_id",
             ["user_a", "user_b", "user_c"],
@@ -1995,7 +1995,7 @@ async def test_commit_daily_tag_spend_no_requeue_on_success():
         pytest.param(
             "key_list_transactions",
             {"tok_c": 0.1, "tok_a": 0.2, "tok_b": 0.3},
-            "litellm_verificationtoken",
+            "verificationtoken",
             "update_many",
             "token",
             ["tok_a", "tok_b", "tok_c"],
@@ -2004,7 +2004,7 @@ async def test_commit_daily_tag_spend_no_requeue_on_success():
         pytest.param(
             "team_list_transactions",
             {"team_c": 0.1, "team_a": 0.2, "team_b": 0.3},
-            "litellm_teamtable",
+            "teamtable",
             "update_many",
             "team_id",
             ["team_a", "team_b", "team_c"],
@@ -2017,7 +2017,7 @@ async def test_commit_daily_tag_spend_no_requeue_on_success():
                 "team_id::team_a::user_id::user_x": 0.2,
                 "team_id::team_b::user_id::user_x": 0.3,
             },
-            "litellm_teammembership",
+            "teammembership",
             "update_many",
             "team_id",
             ["team_a", "team_b", "team_c"],
@@ -2026,7 +2026,7 @@ async def test_commit_daily_tag_spend_no_requeue_on_success():
         pytest.param(
             "org_list_transactions",
             {"org_c": 0.1, "org_a": 0.2, "org_b": 0.3},
-            "litellm_organizationtable",
+            "organizationtable",
             "update_many",
             "organization_id",
             ["org_a", "org_b", "org_c"],
@@ -2035,7 +2035,7 @@ async def test_commit_daily_tag_spend_no_requeue_on_success():
         pytest.param(
             "project_list_transactions",
             {"proj_c": 0.1, "proj_a": 0.2, "proj_b": 0.3},
-            "litellm_projecttable",
+            "projecttable",
             "update_many",
             "project_id",
             ["proj_a", "proj_b", "proj_c"],
@@ -2044,7 +2044,7 @@ async def test_commit_daily_tag_spend_no_requeue_on_success():
         pytest.param(
             "end_user_list_transactions",
             {"eu_c": 0.1, "eu_a": 0.2, "eu_b": 0.3},
-            "litellm_endusertable",
+            "endusertable",
             "upsert",
             "user_id",
             ["eu_a", "eu_b", "eu_c"],
@@ -2053,7 +2053,7 @@ async def test_commit_daily_tag_spend_no_requeue_on_success():
         pytest.param(
             "tag_list_transactions",
             {"prod": 0.1, "customer-x": 0.2, "test": 0.3},
-            "litellm_tagtable",
+            "tagtable",
             "update_many",
             "tag_name",
             ["customer-x", "prod", "test"],
@@ -2062,7 +2062,7 @@ async def test_commit_daily_tag_spend_no_requeue_on_success():
         pytest.param(
             "agent_list_transactions",
             {"agent_c": 0.1, "agent_a": 0.2, "agent_b": 0.3},
-            "litellm_agentstable",
+            "agentstable",
             "update_many",
             "agent_id",
             ["agent_a", "agent_b", "agent_c"],
@@ -2664,20 +2664,20 @@ async def test_commit_spend_updates_to_db_does_not_stamp_key_settings_updated_at
     db_writer = DBSpendUpdateWriter()
 
     mock_batcher = MagicMock()
-    mock_batcher.litellm_verificationtoken = MagicMock()
-    mock_batcher.litellm_verificationtoken.update_many = MagicMock()
-    mock_batcher.litellm_usertable = MagicMock()
-    mock_batcher.litellm_usertable.update_many = MagicMock()
-    mock_batcher.litellm_teamtable = MagicMock()
-    mock_batcher.litellm_teamtable.update_many = MagicMock()
-    mock_batcher.litellm_teammembership = MagicMock()
-    mock_batcher.litellm_teammembership.update_many = MagicMock()
-    mock_batcher.litellm_organizationtable = MagicMock()
-    mock_batcher.litellm_organizationtable.update_many = MagicMock()
-    mock_batcher.litellm_tagtable = MagicMock()
-    mock_batcher.litellm_tagtable.update_many = MagicMock()
-    mock_batcher.litellm_agentstable = MagicMock()
-    mock_batcher.litellm_agentstable.update_many = MagicMock()
+    mock_batcher.verificationtoken = MagicMock()
+    mock_batcher.verificationtoken.update_many = MagicMock()
+    mock_batcher.usertable = MagicMock()
+    mock_batcher.usertable.update_many = MagicMock()
+    mock_batcher.teamtable = MagicMock()
+    mock_batcher.teamtable.update_many = MagicMock()
+    mock_batcher.teammembership = MagicMock()
+    mock_batcher.teammembership.update_many = MagicMock()
+    mock_batcher.organizationtable = MagicMock()
+    mock_batcher.organizationtable.update_many = MagicMock()
+    mock_batcher.tagtable = MagicMock()
+    mock_batcher.tagtable.update_many = MagicMock()
+    mock_batcher.agentstable = MagicMock()
+    mock_batcher.agentstable.update_many = MagicMock()
 
     mock_transaction = AsyncMock()
     mock_transaction.__aenter__ = AsyncMock(return_value=mock_transaction)
@@ -2715,8 +2715,8 @@ async def test_commit_spend_updates_to_db_does_not_stamp_key_settings_updated_at
             db_spend_update_transactions=db_spend_update_transactions,
         )
 
-    mock_batcher.litellm_verificationtoken.update_many.assert_called_once()
-    call_kwargs = mock_batcher.litellm_verificationtoken.update_many.call_args[1]
+    mock_batcher.verificationtoken.update_many.assert_called_once()
+    call_kwargs = mock_batcher.verificationtoken.update_many.call_args[1]
     assert call_kwargs["where"] == {"token": token}
     assert set(call_kwargs["data"]) == {"spend", "last_active"}
     assert call_kwargs["data"]["spend"] == {"increment": response_cost}
@@ -2836,8 +2836,8 @@ async def test_commit_spend_updates_retries_deadlock_then_commits(monkeypatch):
     )
 
     assert mock_prisma_client.db.tx.call_count == 2
-    mock_batcher.litellm_verificationtoken.update_many.assert_called_once()
-    call_kwargs = mock_batcher.litellm_verificationtoken.update_many.call_args[1]
+    mock_batcher.verificationtoken.update_many.assert_called_once()
+    call_kwargs = mock_batcher.verificationtoken.update_many.call_args[1]
     assert call_kwargs["where"] == {"token": "sk-abc"}
     assert call_kwargs["data"]["spend"] == {"increment": 0.5}
     assert len(slept) == 1

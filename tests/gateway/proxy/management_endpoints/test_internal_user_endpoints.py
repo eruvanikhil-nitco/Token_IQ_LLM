@@ -49,7 +49,7 @@ async def test_ui_view_users_with_null_email(mocker, caplog):
     async def mock_find_many(*args, **kwargs):
         return [mock_user]
 
-    mock_prisma_client.db.litellm_usertable.find_many = mock_find_many
+    mock_prisma_client.db.usertable.find_many = mock_find_many
 
     # Flag OFF by default
     mocker.patch(
@@ -87,7 +87,7 @@ async def test_ui_view_users_proxy_admin_no_org_filter(mocker):
         assert "organization_memberships" not in (kwargs.get("where") or {})
         return []
 
-    mock_prisma_client.db.litellm_usertable.find_many = mock_find_many
+    mock_prisma_client.db.usertable.find_many = mock_find_many
 
     # Flag OFF by default
     mocker.patch(
@@ -127,7 +127,7 @@ async def test_ui_view_users_org_admin_filtered_by_org(mocker):
         }
         return []
 
-    mock_prisma_client.db.litellm_usertable.find_many = mock_find_many
+    mock_prisma_client.db.usertable.find_many = mock_find_many
 
     # Flag ON
     mocker.patch(
@@ -227,7 +227,7 @@ async def test_ui_view_users_flag_off_internal_user_can_search(mocker):
         assert "organization_memberships" not in where
         return []
 
-    mock_prisma_client.db.litellm_usertable.find_many = mock_find_many
+    mock_prisma_client.db.usertable.find_many = mock_find_many
 
     # Flag OFF
     mocker.patch(
@@ -267,7 +267,7 @@ async def test_ui_view_users_flag_on_team_admin_org_team(mocker):
         }
         return []
 
-    mock_prisma_client.db.litellm_usertable.find_many = mock_find_many
+    mock_prisma_client.db.usertable.find_many = mock_find_many
 
     # Flag ON
     mocker.patch(
@@ -400,7 +400,7 @@ async def test_ui_view_users_flag_on_team_admin_org_member_no_team_id(mocker):
         }
         return []
 
-    mock_prisma_client.db.litellm_usertable.find_many = mock_find_many
+    mock_prisma_client.db.usertable.find_many = mock_find_many
 
     mocker.patch(
         "token_iq.gateway.proxy.ui_crud_endpoints.proxy_setting_endpoints.get_ui_settings_cached",
@@ -461,7 +461,7 @@ async def test_ui_view_users_flag_on_team_admin_not_in_org_resolves_via_key_team
         }
         return []
 
-    mock_prisma_client.db.litellm_usertable.find_many = mock_find_many
+    mock_prisma_client.db.usertable.find_many = mock_find_many
 
     mocker.patch(
         "token_iq.gateway.proxy.ui_crud_endpoints.proxy_setting_endpoints.get_ui_settings_cached",
@@ -568,8 +568,8 @@ async def test_get_users_includes_timestamps(mocker):
     async def mock_count(*args, **kwargs):
         return 1
 
-    mock_prisma_client.db.litellm_usertable.find_many = mock_find_many
-    mock_prisma_client.db.litellm_usertable.count = mock_count
+    mock_prisma_client.db.usertable.find_many = mock_find_many
+    mock_prisma_client.db.usertable.count = mock_count
 
     # Patch the prisma client import in the endpoint
     mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
@@ -635,8 +635,8 @@ async def test_get_users_redacts_scim_enterprise_metadata(mocker):
     async def mock_count(*args, **kwargs):
         return 1
 
-    mock_prisma_client.db.litellm_usertable.find_many = mock_find_many
-    mock_prisma_client.db.litellm_usertable.count = mock_count
+    mock_prisma_client.db.usertable.find_many = mock_find_many
+    mock_prisma_client.db.usertable.count = mock_count
     mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
 
     async def mock_get_user_key_counts(*args, **kwargs):
@@ -820,7 +820,7 @@ async def test_new_user_license_over_limit(mocker):
     async def mock_count(*args, where=None, **kwargs):
         return 0 if where is not None else 1000
 
-    mock_prisma_client.db.litellm_usertable.count = mock_count
+    mock_prisma_client.db.usertable.count = mock_count
 
     # Mock duplicate checks to pass
     async def mock_check_duplicate_user_email(*args, **kwargs):
@@ -901,7 +901,7 @@ async def test_new_user_license_gate_counts_only_billable_users(mocker):
         async def _count(*args, where=None, **kwargs):
             return deactivated if where is not None else total
 
-        client.db.litellm_usertable.count = _count
+        client.db.usertable.count = _count
         return client
 
     admin = UserAPIKeyAuth(user_id="admin", user_role=GatewayUserRoles.PROXY_ADMIN)
@@ -943,7 +943,7 @@ async def test_new_user_non_admin_cannot_create_admin(mocker):
     async def mock_count(*args, **kwargs):
         return 5  # Low user count, under limit
 
-    mock_prisma_client.db.litellm_usertable.count = mock_count
+    mock_prisma_client.db.usertable.count = mock_count
 
     # Mock duplicate checks to pass
     async def mock_check_duplicate_user_email(*args, **kwargs):
@@ -1020,7 +1020,7 @@ async def test_new_user_non_admin_permissions_non_empty_rejected(mocker):
     async def mock_count(*args, **kwargs):
         return 5
 
-    mock_prisma_client.db.litellm_usertable.count = mock_count
+    mock_prisma_client.db.usertable.count = mock_count
 
     async def mock_check(*_args, **_kwargs):
         return None
@@ -1062,7 +1062,7 @@ async def test_new_user_non_admin_permissions_explicit_empty_rejected(mocker):
     async def mock_count(*args, **kwargs):
         return 5
 
-    mock_prisma_client.db.litellm_usertable.count = mock_count
+    mock_prisma_client.db.usertable.count = mock_count
 
     async def mock_check(*_args, **_kwargs):
         return None
@@ -1105,7 +1105,7 @@ async def test_new_user_non_admin_omits_permissions_succeeds(mocker):
     async def mock_count(*args, **kwargs):
         return 5
 
-    mock_prisma_client.db.litellm_usertable.count = mock_count
+    mock_prisma_client.db.usertable.count = mock_count
 
     async def mock_check(*_args, **_kwargs):
         return None
@@ -1154,7 +1154,7 @@ async def test_new_user_admin_can_set_permissions(mocker):
     async def mock_count(*args, **kwargs):
         return 5
 
-    mock_prisma_client.db.litellm_usertable.count = mock_count
+    mock_prisma_client.db.usertable.count = mock_count
 
     async def mock_check(*_args, **_kwargs):
         return None
@@ -1430,7 +1430,7 @@ async def test_new_user_default_teams_flow(mocker):
     async def mock_count(*args, **kwargs):
         return 5  # Low user count, under limit
 
-    mock_prisma_client.db.litellm_usertable.count = mock_count
+    mock_prisma_client.db.usertable.count = mock_count
 
     # Mock duplicate checks to pass
     async def mock_check_duplicate_user_email(*args, **kwargs):
@@ -1699,7 +1699,7 @@ async def test_check_duplicate_user_email_case_insensitive(mocker):
 
         return mock_existing_user  # Return existing user to simulate duplicate
 
-    mock_prisma_client.db.litellm_usertable.find_first = mock_find_first_duplicate
+    mock_prisma_client.db.usertable.find_first = mock_find_first_duplicate
 
     # Should raise HTTPException when duplicate is found
     with pytest.raises(HTTPException) as exc_info:
@@ -1722,7 +1722,7 @@ async def test_check_duplicate_user_email_case_insensitive(mocker):
 
         return None  # No existing user found
 
-    mock_prisma_client.db.litellm_usertable.find_first = mock_find_first_no_duplicate
+    mock_prisma_client.db.usertable.find_first = mock_find_first_no_duplicate
 
     # Should not raise any exception when no duplicate is found
     try:
@@ -1762,7 +1762,7 @@ async def test_check_duplicate_user_id(mocker):
         assert "mode" not in user_id_clause
         return mock_existing_user
 
-    mock_prisma_client.db.litellm_usertable.find_first = mock_find_first_duplicate
+    mock_prisma_client.db.usertable.find_first = mock_find_first_duplicate
 
     with pytest.raises(HTTPException) as exc_info:
         await _check_duplicate_user_id("existing-user-id", mock_prisma_client)
@@ -1778,7 +1778,7 @@ async def test_check_duplicate_user_id(mocker):
         assert "mode" not in user_id_clause
         return None
 
-    mock_prisma_client.db.litellm_usertable.find_first = mock_find_first_no_duplicate
+    mock_prisma_client.db.usertable.find_first = mock_find_first_no_duplicate
 
     await _check_duplicate_user_id("new-user-id", mock_prisma_client)
 
@@ -1942,8 +1942,8 @@ async def test_get_users_user_id_partial_match(mocker):
     async def mock_count(*args, **kwargs):
         return 1
 
-    mock_prisma_client.db.litellm_usertable.find_many = mock_find_many
-    mock_prisma_client.db.litellm_usertable.count = mock_count
+    mock_prisma_client.db.usertable.find_many = mock_find_many
+    mock_prisma_client.db.usertable.count = mock_count
 
     mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
 
@@ -2276,7 +2276,7 @@ async def test_get_user_daily_activity_aggregated_admin_global_view(monkeypatch,
     # Verify the helper was called with the right parameters
     mock_get_daily_agg.assert_called_once_with(
         prisma_client=mock_prisma_client,
-        table_name="litellm_dailyuserspend",
+        table_name="dailyuserspend",
         entity_id_field="user_id",
         entity_id=None,  # global view: no user_id filter
         entity_metadata_field=None,
@@ -2386,29 +2386,29 @@ async def test_delete_user_cleans_up_created_by_invitation_links(mocker):
     async def mock_find_unique(*args, **kwargs):
         return mock_user_row
 
-    mock_prisma_client.db.litellm_usertable.find_unique = mocker.AsyncMock(
+    mock_prisma_client.db.usertable.find_unique = mocker.AsyncMock(
         side_effect=mock_find_unique
     )
 
     # Mock find_many for teams (no teams)
-    mock_prisma_client.db.litellm_teamtable.find_many = mocker.AsyncMock(
+    mock_prisma_client.db.teamtable.find_many = mocker.AsyncMock(
         return_value=[]
     )
 
     # Mock all delete_many calls
-    mock_prisma_client.db.litellm_verificationtoken.delete_many = mocker.AsyncMock(
+    mock_prisma_client.db.verificationtoken.delete_many = mocker.AsyncMock(
         return_value=0
     )
-    mock_prisma_client.db.litellm_invitationlink.delete_many = mocker.AsyncMock(
+    mock_prisma_client.db.invitationlink.delete_many = mocker.AsyncMock(
         return_value=1
     )
-    mock_prisma_client.db.litellm_organizationmembership.delete_many = mocker.AsyncMock(
+    mock_prisma_client.db.organizationmembership.delete_many = mocker.AsyncMock(
         return_value=0
     )
-    mock_prisma_client.db.litellm_teammembership.delete_many = mocker.AsyncMock(
+    mock_prisma_client.db.teammembership.delete_many = mocker.AsyncMock(
         return_value=0
     )
-    mock_prisma_client.db.litellm_usertable.delete_many = mocker.AsyncMock(
+    mock_prisma_client.db.usertable.delete_many = mocker.AsyncMock(
         return_value=1
     )
 
@@ -2423,8 +2423,8 @@ async def test_delete_user_cleans_up_created_by_invitation_links(mocker):
     await delete_user(data=data, user_api_key_dict=user_api_key_dict)
 
     # Verify invitation link deletion uses OR with user_id, created_by, updated_by
-    mock_prisma_client.db.litellm_invitationlink.delete_many.assert_called_once()
-    call_kwargs = mock_prisma_client.db.litellm_invitationlink.delete_many.call_args
+    mock_prisma_client.db.invitationlink.delete_many.assert_called_once()
+    call_kwargs = mock_prisma_client.db.invitationlink.delete_many.call_args
     where_clause = call_kwargs.kwargs.get("where") or call_kwargs[1].get("where")
 
     assert (
@@ -2472,7 +2472,7 @@ async def test_delete_user_rejects_org_admin_deleting_outside_scope(mocker):
     async def mock_find_unique(*args, **kwargs):
         return mock_target_user
 
-    mock_prisma_client.db.litellm_usertable.find_unique = mocker.AsyncMock(
+    mock_prisma_client.db.usertable.find_unique = mocker.AsyncMock(
         side_effect=mock_find_unique
     )
 
@@ -2500,7 +2500,7 @@ async def test_delete_user_rejects_org_admin_deleting_outside_scope(mocker):
             return [caller_membership]
         return []
 
-    mock_prisma_client.db.litellm_organizationmembership.find_many = mocker.AsyncMock(
+    mock_prisma_client.db.organizationmembership.find_many = mocker.AsyncMock(
         side_effect=mock_find_memberships
     )
 
@@ -2518,9 +2518,9 @@ async def test_delete_user_rejects_org_admin_deleting_outside_scope(mocker):
     # Critical: no delete_many calls should have executed.
     assert (
         not hasattr(
-            mock_prisma_client.db.litellm_verificationtoken.delete_many, "mock_calls"
+            mock_prisma_client.db.verificationtoken.delete_many, "mock_calls"
         )
-        or len(mock_prisma_client.db.litellm_verificationtoken.delete_many.mock_calls)
+        or len(mock_prisma_client.db.verificationtoken.delete_many.mock_calls)
         == 0
     )
 
@@ -2540,7 +2540,7 @@ async def test_user_update_rejects_silent_create_for_non_proxy_admin(mocker):
 
     mock_prisma_client = mocker.MagicMock()
     # user_email lookup yields None → would silently create pre-fix.
-    mock_prisma_client.db.litellm_usertable.find_first = mocker.AsyncMock(
+    mock_prisma_client.db.usertable.find_first = mocker.AsyncMock(
         return_value=None
     )
     mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
@@ -2602,7 +2602,7 @@ async def test_user_info_v2_proxy_admin_can_query_any_user(mocker):
             return mock_user_row
         return None
 
-    mock_prisma_client.db.litellm_usertable.find_unique = mocker.AsyncMock(
+    mock_prisma_client.db.usertable.find_unique = mocker.AsyncMock(
         side_effect=mock_find_unique
     )
 
@@ -2666,7 +2666,7 @@ async def test_user_info_v2_redacts_scim_enterprise_metadata(mocker):
             return mock_user_row
         return None
 
-    mock_prisma_client.db.litellm_usertable.find_unique = mocker.AsyncMock(
+    mock_prisma_client.db.usertable.find_unique = mocker.AsyncMock(
         side_effect=mock_find_unique
     )
 
@@ -2756,7 +2756,7 @@ async def test_user_info_v2_internal_user_can_query_self(mocker):
             return mock_user_row
         return None
 
-    mock_prisma_client.db.litellm_usertable.find_unique = mocker.AsyncMock(
+    mock_prisma_client.db.usertable.find_unique = mocker.AsyncMock(
         side_effect=mock_find_unique
     )
 
@@ -2801,7 +2801,7 @@ async def test_user_info_v2_internal_user_cannot_query_other(mocker):
             return mock_caller_row
         return None
 
-    mock_prisma_client.db.litellm_usertable.find_unique = mocker.AsyncMock(
+    mock_prisma_client.db.usertable.find_unique = mocker.AsyncMock(
         side_effect=mock_find_unique
     )
 
@@ -2858,7 +2858,7 @@ async def test_user_info_v2_no_user_id_defaults_to_self(mocker):
             return mock_user_row
         return None
 
-    mock_prisma_client.db.litellm_usertable.find_unique = mocker.AsyncMock(
+    mock_prisma_client.db.usertable.find_unique = mocker.AsyncMock(
         side_effect=mock_find_unique
     )
 
@@ -2896,7 +2896,7 @@ async def test_user_info_v2_nonexistent_user_returns_404(mocker):
     async def mock_find_unique(*args, **kwargs):
         return None
 
-    mock_prisma_client.db.litellm_usertable.find_unique = mocker.AsyncMock(
+    mock_prisma_client.db.usertable.find_unique = mocker.AsyncMock(
         side_effect=mock_find_unique
     )
 
@@ -2954,7 +2954,7 @@ async def test_user_info_v2_response_shape(mocker):
     async def mock_find_unique(*args, **kwargs):
         return mock_user_row
 
-    mock_prisma_client.db.litellm_usertable.find_unique = mocker.AsyncMock(
+    mock_prisma_client.db.usertable.find_unique = mocker.AsyncMock(
         side_effect=mock_find_unique
     )
 
@@ -3060,7 +3060,7 @@ async def test_user_info_v2_team_admin_can_query_team_member(mocker):
             return mock_target
         return None
 
-    mock_prisma_client.db.litellm_usertable.find_unique = mocker.AsyncMock(
+    mock_prisma_client.db.usertable.find_unique = mocker.AsyncMock(
         side_effect=mock_find_unique
     )
 
@@ -3079,7 +3079,7 @@ async def test_user_info_v2_team_admin_can_query_team_member(mocker):
     async def mock_find_many_teams(*args, **kwargs):
         return [mock_team]
 
-    mock_prisma_client.db.litellm_teamtable.find_many = mocker.AsyncMock(
+    mock_prisma_client.db.teamtable.find_many = mocker.AsyncMock(
         side_effect=mock_find_many_teams
     )
 
@@ -3129,7 +3129,7 @@ async def test_user_info_v2_team_admin_cannot_query_non_team_member(mocker):
             return mock_target
         return None
 
-    mock_prisma_client.db.litellm_usertable.find_unique = mocker.AsyncMock(
+    mock_prisma_client.db.usertable.find_unique = mocker.AsyncMock(
         side_effect=mock_find_unique
     )
 
@@ -3147,7 +3147,7 @@ async def test_user_info_v2_team_admin_cannot_query_non_team_member(mocker):
     async def mock_find_many_teams(*args, **kwargs):
         return [mock_team]
 
-    mock_prisma_client.db.litellm_teamtable.find_many = mocker.AsyncMock(
+    mock_prisma_client.db.teamtable.find_many = mocker.AsyncMock(
         side_effect=mock_find_many_teams
     )
 
@@ -3207,7 +3207,7 @@ async def test_user_info_v2_url_encoding_plus_character(mocker):
             return mock_user_row
         return None
 
-    mock_prisma_client.db.litellm_usertable.find_unique = mocker.AsyncMock(
+    mock_prisma_client.db.usertable.find_unique = mocker.AsyncMock(
         side_effect=mock_find_unique
     )
 
@@ -3424,7 +3424,7 @@ async def test_ghsa_wvg4_non_admin_cannot_self_escalate_max_budget(mocker):
         "max_budget": 100,
     }
     existing_user.user_id = "user-1"
-    mock_prisma_client.db.litellm_usertable.find_first = mocker.AsyncMock(
+    mock_prisma_client.db.usertable.find_first = mocker.AsyncMock(
         return_value=existing_user
     )
     mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
@@ -3462,7 +3462,7 @@ async def test_ghsa_wvg4_non_admin_cannot_self_escalate_spend(mocker):
         "spend": 50.0,
     }
     existing_user.user_id = "user-1"
-    mock_prisma_client.db.litellm_usertable.find_first = mocker.AsyncMock(
+    mock_prisma_client.db.usertable.find_first = mocker.AsyncMock(
         return_value=existing_user
     )
     mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
@@ -3498,7 +3498,7 @@ async def test_ghsa_wvg4_proxy_admin_can_update_user_budget(mocker):
         "max_budget": 100,
     }
     existing_user.user_id = "target-user"
-    mock_prisma_client.db.litellm_usertable.find_first = mocker.AsyncMock(
+    mock_prisma_client.db.usertable.find_first = mocker.AsyncMock(
         return_value=existing_user
     )
     mock_prisma_client.update_data = mocker.AsyncMock(
@@ -3535,7 +3535,7 @@ async def test_admin_user_update_spend_invalidates_counter(mocker):
     existing_user = mocker.MagicMock()
     existing_user.model_dump.return_value = {"user_id": "target-user", "spend": 50.0}
     existing_user.user_id = "target-user"
-    mock_prisma_client.db.litellm_usertable.find_first = mocker.AsyncMock(
+    mock_prisma_client.db.usertable.find_first = mocker.AsyncMock(
         return_value=existing_user
     )
     mock_prisma_client.update_data = mocker.AsyncMock(
@@ -3578,7 +3578,7 @@ async def test_user_update_rejects_non_finite_spend(mocker):
     existing_user = mocker.MagicMock()
     existing_user.model_dump.return_value = {"user_id": "target-user", "spend": 50.0}
     existing_user.user_id = "target-user"
-    mock_prisma_client.db.litellm_usertable.find_first = mocker.AsyncMock(
+    mock_prisma_client.db.usertable.find_first = mocker.AsyncMock(
         return_value=existing_user
     )
     mock_prisma_client.update_data = mocker.AsyncMock()
@@ -3623,7 +3623,7 @@ async def test_resolve_user_email_metadata_maps_page_user_ids_to_email(mocker):
             SimpleNamespace(user_id="u2", user_email=None, user_alias="bob-alias"),
         ]
     )
-    mock_prisma_client.db.litellm_usertable.find_many = find_many
+    mock_prisma_client.db.usertable.find_many = find_many
 
     records = [
         SimpleNamespace(user_id="u1"),
@@ -3646,7 +3646,7 @@ async def test_resolve_user_email_metadata_skips_db_when_no_user_ids(mocker):
     """No user_ids on the page (e.g. all spend is unattributed) means no query."""
     mock_prisma_client = mocker.MagicMock()
     find_many = mocker.AsyncMock(return_value=[])
-    mock_prisma_client.db.litellm_usertable.find_many = find_many
+    mock_prisma_client.db.usertable.find_many = find_many
 
     records = [SimpleNamespace(user_id=None), SimpleNamespace(user_id="")]
 
@@ -3818,13 +3818,13 @@ def _object_permission_mocks(mocker, existing_object_permission_id=None):
     }
     existing_user.user_id = "target-user"
     existing_user.object_permission_id = existing_object_permission_id
-    mock_prisma_client.db.litellm_usertable.find_first = mocker.AsyncMock(
+    mock_prisma_client.db.usertable.find_first = mocker.AsyncMock(
         return_value=existing_user
     )
-    mock_prisma_client.db.litellm_objectpermissiontable.find_unique = mocker.AsyncMock(
+    mock_prisma_client.db.objectpermissiontable.find_unique = mocker.AsyncMock(
         return_value=None
     )
-    mock_prisma_client.db.litellm_objectpermissiontable.upsert = mocker.AsyncMock(
+    mock_prisma_client.db.objectpermissiontable.upsert = mocker.AsyncMock(
         return_value=SimpleNamespace(object_permission_id="perm-new")
     )
     mock_prisma_client.update_data = mocker.AsyncMock(
@@ -3870,7 +3870,7 @@ async def test_user_update_persists_mcp_entitlement_and_links_it(mocker):
         ),
     )
 
-    upsert_kwargs = mock_prisma_client.db.litellm_objectpermissiontable.upsert.call_args.kwargs
+    upsert_kwargs = mock_prisma_client.db.objectpermissiontable.upsert.call_args.kwargs
     created = upsert_kwargs["data"]["create"]
     assert created["mcp_servers"] == ["github"]
     assert json.loads(created["mcp_tool_permissions"]) == {"github": ["list_issues"]}
@@ -3944,7 +3944,7 @@ async def test_admin_can_clear_a_users_mcp_entitlement(mocker):
     written = mock_prisma_client.update_data.call_args.kwargs["data"]
     assert written["object_permission_id"] is None
     assert "object_permission" not in written
-    mock_prisma_client.db.litellm_objectpermissiontable.upsert.assert_not_called()
+    mock_prisma_client.db.objectpermissiontable.upsert.assert_not_called()
 
     deleted = {call.kwargs["key"] for call in cache.async_delete_cache.call_args_list}
     assert deleted == {
@@ -4044,7 +4044,7 @@ async def test_non_admin_cannot_rewrite_their_own_mcp_entitlement(mocker):
         )
 
     assert exc.value.status_code == 403
-    mock_prisma_client.db.litellm_objectpermissiontable.upsert.assert_not_called()
+    mock_prisma_client.db.objectpermissiontable.upsert.assert_not_called()
     mock_prisma_client.update_data.assert_not_called()
 
 
@@ -4053,13 +4053,13 @@ async def test_new_user_persists_the_requested_mcp_entitlement(mocker):
     """generate_key_helper_fn only forwards object_permission_id, so /user/new has to create the
     grants row itself; otherwise the entitlement the admin sent is silently dropped."""
     mock_prisma_client = mocker.MagicMock()
-    mock_prisma_client.db.litellm_objectpermissiontable.create = mocker.AsyncMock(
+    mock_prisma_client.db.objectpermissiontable.create = mocker.AsyncMock(
         return_value=SimpleNamespace(object_permission_id="perm-created")
     )
-    mock_prisma_client.db.litellm_usertable.find_first = mocker.AsyncMock(
+    mock_prisma_client.db.usertable.find_first = mocker.AsyncMock(
         return_value=None
     )
-    mock_prisma_client.db.litellm_usertable.count = mocker.AsyncMock(return_value=0)
+    mock_prisma_client.db.usertable.count = mocker.AsyncMock(return_value=0)
     mocker.patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
     mocker.patch(
         "token_iq.gateway.proxy.management_endpoints.internal_user_endpoints.check_if_default_team_set",
@@ -4086,7 +4086,7 @@ async def test_new_user_persists_the_requested_mcp_entitlement(mocker):
         ),
     )
 
-    created = mock_prisma_client.db.litellm_objectpermissiontable.create.call_args.kwargs["data"]
+    created = mock_prisma_client.db.objectpermissiontable.create.call_args.kwargs["data"]
     assert json.loads(created["mcp_tool_permissions"]) == {"github": ["list_issues"]}
     forwarded = mock_generate.call_args.kwargs
     assert forwarded["object_permission_id"] == "perm-created"
@@ -4232,7 +4232,7 @@ async def test_user_update_rejects_weak_password(_admin_prisma):
         await _update_single_user_helper(user_request=user_request, user_api_key_dict=admin_caller)
 
     assert exc_info.value.code == "400"
-    _admin_prisma.db.litellm_usertable.find_first.assert_not_called()
+    _admin_prisma.db.usertable.find_first.assert_not_called()
 
 
 @pytest.mark.asyncio
@@ -4270,7 +4270,7 @@ async def test_user_update_hashes_and_persists_strong_password(_admin_prisma, mo
     existing_user = mocker.MagicMock()
     existing_user.model_dump.return_value = {"user_id": "target-user"}
     existing_user.user_id = "target-user"
-    mock_prisma_client.db.litellm_usertable.find_first = mocker.AsyncMock(return_value=existing_user)
+    mock_prisma_client.db.usertable.find_first = mocker.AsyncMock(return_value=existing_user)
     mock_prisma_client.update_data = mocker.AsyncMock(return_value={"user_id": "target-user"})
     mock_prisma_client.jsonify_object = mocker.MagicMock(side_effect=lambda x: x)
 

@@ -23,7 +23,7 @@ def client_and_mocks(monkeypatch):
     mock_table.update = AsyncMock(side_effect=lambda *, where, data: {**where, **data})
 
     mock_prisma.db = types.SimpleNamespace(
-        litellm_budgettable=mock_table,
+        budgettable=mock_table,
         litellm_dailyspend=mock_table,
     )
 

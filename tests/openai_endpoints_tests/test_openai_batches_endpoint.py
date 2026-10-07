@@ -338,10 +338,10 @@ async def test_batch_status_sync_from_provider_to_database():
 
     # Mock prisma client
     mock_prisma_client = MagicMock()
-    mock_prisma_client.db.litellm_managedobjecttable.find_first = AsyncMock(
+    mock_prisma_client.db.managedobjecttable.find_first = AsyncMock(
         return_value=mock_db_batch
     )
-    mock_prisma_client.db.litellm_managedobjecttable.update = AsyncMock()
+    mock_prisma_client.db.managedobjecttable.update = AsyncMock()
 
     # Mock managed_files_obj
     mock_managed_files = MagicMock()
@@ -363,7 +363,7 @@ async def test_batch_status_sync_from_provider_to_database():
     )
 
     # Verify database was queried
-    mock_prisma_client.db.litellm_managedobjecttable.find_first.assert_called_once_with(
+    mock_prisma_client.db.managedobjecttable.find_first.assert_called_once_with(
         where={"unified_object_id": batch_id}
     )
 
@@ -398,8 +398,8 @@ async def test_batch_status_sync_from_provider_to_database():
     )
 
     # Verify database was updated
-    mock_prisma_client.db.litellm_managedobjecttable.update.assert_called_once()
-    update_call_args = mock_prisma_client.db.litellm_managedobjecttable.update.call_args
+    mock_prisma_client.db.managedobjecttable.update.assert_called_once()
+    update_call_args = mock_prisma_client.db.managedobjecttable.update.call_args
 
     # Verify the update call had correct parameters
     assert update_call_args.kwargs["where"]["unified_object_id"] == batch_id
@@ -449,10 +449,10 @@ async def test_batch_cancel_updates_database():
 
     # Mock prisma client
     mock_prisma_client = MagicMock()
-    mock_prisma_client.db.litellm_managedobjecttable.find_first = AsyncMock(
+    mock_prisma_client.db.managedobjecttable.find_first = AsyncMock(
         return_value=None
     )
-    mock_prisma_client.db.litellm_managedobjecttable.update = AsyncMock()
+    mock_prisma_client.db.managedobjecttable.update = AsyncMock()
 
     # Mock managed_files_obj
     mock_managed_files = MagicMock()
@@ -474,8 +474,8 @@ async def test_batch_cancel_updates_database():
     )
 
     # Verify database was updated
-    mock_prisma_client.db.litellm_managedobjecttable.update.assert_called_once()
-    update_call_args = mock_prisma_client.db.litellm_managedobjecttable.update.call_args
+    mock_prisma_client.db.managedobjecttable.update.assert_called_once()
+    update_call_args = mock_prisma_client.db.managedobjecttable.update.call_args
 
     # Verify the update call had correct parameters
     assert update_call_args.kwargs["where"]["unified_object_id"] == batch_id
@@ -528,7 +528,7 @@ async def test_batch_terminal_state_skip_provider_call():
 
     # Mock prisma client
     mock_prisma_client = MagicMock()
-    mock_prisma_client.db.litellm_managedobjecttable.find_first = AsyncMock(
+    mock_prisma_client.db.managedobjecttable.find_first = AsyncMock(
         return_value=mock_db_batch
     )
 
@@ -593,7 +593,7 @@ async def test_batch_no_status_change_skip_update():
 
     # Mock prisma client
     mock_prisma_client = MagicMock()
-    mock_prisma_client.db.litellm_managedobjecttable.update = AsyncMock()
+    mock_prisma_client.db.managedobjecttable.update = AsyncMock()
 
     # Mock managed_files_obj
     mock_managed_files = MagicMock()
@@ -615,7 +615,7 @@ async def test_batch_no_status_change_skip_update():
     )
 
     # Verify database update was NOT called (status hasn't changed)
-    mock_prisma_client.db.litellm_managedobjecttable.update.assert_not_called()
+    mock_prisma_client.db.managedobjecttable.update.assert_not_called()
 
     # Verify logger info was NOT called (no status change to log)
     mock_logger.info.assert_not_called()

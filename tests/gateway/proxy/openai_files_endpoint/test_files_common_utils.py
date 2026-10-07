@@ -31,7 +31,7 @@ async def test_map_raw_file_ids_to_unified_empty_ids_skips_db():
 
     assert await map_raw_file_ids_to_unified(frozenset(), prisma_client) == {}
 
-    prisma_client.db.litellm_managedfiletable.find_many.assert_not_called()
+    prisma_client.db.managedfiletable.find_many.assert_not_called()
 
 
 @pytest.mark.asyncio
@@ -47,13 +47,13 @@ async def test_map_raw_file_ids_to_unified_bulk_queries_and_filters_to_requested
     )
     row_b = MagicMock(unified_file_id="unified-b", flat_model_file_ids=["file-raw-b"])
     prisma_client = MagicMock()
-    prisma_client.db.litellm_managedfiletable.find_many = AsyncMock(return_value=[row_a, row_b])
+    prisma_client.db.managedfiletable.find_many = AsyncMock(return_value=[row_a, row_b])
 
     mapping = await map_raw_file_ids_to_unified(
         frozenset({"file-raw-b", "file-raw-a", "file-raw-missing"}), prisma_client
     )
 
-    prisma_client.db.litellm_managedfiletable.find_many.assert_awaited_once_with(
+    prisma_client.db.managedfiletable.find_many.assert_awaited_once_with(
         where={"flat_model_file_ids": {"hasSome": ["file-raw-a", "file-raw-b", "file-raw-missing"]}}
     )
     assert dict(mapping) == {"file-raw-a": "unified-a", "file-raw-b": "unified-b"}
@@ -183,7 +183,7 @@ async def _run_update(monkeypatch, poller_active: bool) -> dict:
 
     prisma_client = MagicMock()
     update_mock = AsyncMock()
-    prisma_client.db.litellm_managedobjecttable.update = update_mock
+    prisma_client.db.managedobjecttable.update = update_mock
 
     db_batch_object = MagicMock()
     db_batch_object.status = "in_progress"
@@ -266,7 +266,7 @@ async def test_retrieving_a_batch_whose_status_is_unchanged_writes_nothing(monke
 
     prisma_client = MagicMock()
     update_mock = AsyncMock()
-    prisma_client.db.litellm_managedobjecttable.update = update_mock
+    prisma_client.db.managedobjecttable.update = update_mock
 
     db_batch_object = MagicMock()
     db_batch_object.status = "completed"
@@ -291,7 +291,7 @@ async def test_update_batch_in_database_is_a_noop_for_unmanaged_batches(monkeypa
 
     prisma_client = MagicMock()
     update_mock = AsyncMock()
-    prisma_client.db.litellm_managedobjecttable.update = update_mock
+    prisma_client.db.managedobjecttable.update = update_mock
 
     await cu.update_batch_in_database(
         batch_id="batch-raw-xyz",
@@ -315,7 +315,7 @@ async def test_the_caller_s_accounting_decision_wins_over_a_later_poller_transit
 
     prisma_client = MagicMock()
     update_mock = AsyncMock()
-    prisma_client.db.litellm_managedobjecttable.update = update_mock
+    prisma_client.db.managedobjecttable.update = update_mock
     db_batch_object = MagicMock()
     db_batch_object.status = "in_progress"
 
@@ -345,7 +345,7 @@ async def test_a_caller_that_handed_off_accounting_still_leaves_the_marker_alone
 
     prisma_client = MagicMock()
     update_mock = AsyncMock()
-    prisma_client.db.litellm_managedobjecttable.update = update_mock
+    prisma_client.db.managedobjecttable.update = update_mock
     db_batch_object = MagicMock()
     db_batch_object.status = "in_progress"
 

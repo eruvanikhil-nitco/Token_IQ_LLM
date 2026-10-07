@@ -219,7 +219,7 @@ async def test_should_store_team_owner_for_keys_without_user_id(monkeypatch):
     table = AsyncMock()
     table.create.side_effect = lambda data: _skill(data["skill_id"], data["created_by"])
     prisma_client = type(
-        "Prisma", (), {"db": type("DB", (), {"litellm_skillstable": table})()}
+        "Prisma", (), {"db": type("DB", (), {"skillstable": table})()}
     )()
     monkeypatch.setattr(
         GatewaySkillsHandler,
@@ -243,7 +243,7 @@ async def test_should_store_token_owner_for_keys_without_user_team_or_org(monkey
     table = AsyncMock()
     table.create.side_effect = lambda data: _skill(data["skill_id"], data["created_by"])
     prisma_client = type(
-        "Prisma", (), {"db": type("DB", (), {"litellm_skillstable": table})()}
+        "Prisma", (), {"db": type("DB", (), {"skillstable": table})()}
     )()
     monkeypatch.setattr(
         GatewaySkillsHandler,
@@ -269,7 +269,7 @@ async def test_should_reject_skill_create_for_identityless_proxy_auth(monkeypatc
     other's skills via the resulting shared owner scope."""
     table = AsyncMock()
     prisma_client = type(
-        "Prisma", (), {"db": type("DB", (), {"litellm_skillstable": table})()}
+        "Prisma", (), {"db": type("DB", (), {"skillstable": table})()}
     )()
     monkeypatch.setattr(
         GatewaySkillsHandler,
@@ -292,7 +292,7 @@ async def test_should_filter_list_skills_to_authenticated_owner_scopes(monkeypat
     table = AsyncMock()
     table.find_many.return_value = [_skill("litellm_skill_owner", "user-1")]
     prisma_client = type(
-        "Prisma", (), {"db": type("DB", (), {"litellm_skillstable": table})()}
+        "Prisma", (), {"db": type("DB", (), {"skillstable": table})()}
     )()
     monkeypatch.setattr(
         GatewaySkillsHandler,
@@ -319,7 +319,7 @@ async def test_should_hide_skill_from_different_owner(monkeypatch):
     table = AsyncMock()
     table.find_unique.return_value = _skill("litellm_skill_other", "user-2")
     prisma_client = type(
-        "Prisma", (), {"db": type("DB", (), {"litellm_skillstable": table})()}
+        "Prisma", (), {"db": type("DB", (), {"skillstable": table})()}
     )()
     monkeypatch.setattr(
         GatewaySkillsHandler,
@@ -341,7 +341,7 @@ async def test_should_hide_unowned_skill_by_default(monkeypatch):
     table = AsyncMock()
     table.find_unique.return_value = _skill("litellm_skill_unowned", None)
     prisma_client = type(
-        "Prisma", (), {"db": type("DB", (), {"litellm_skillstable": table})()}
+        "Prisma", (), {"db": type("DB", (), {"skillstable": table})()}
     )()
     monkeypatch.setattr(
         GatewaySkillsHandler,
@@ -365,7 +365,7 @@ async def test_list_skills_excludes_unowned_for_non_admin(monkeypatch):
     table = AsyncMock()
     table.find_many.return_value = []
     prisma_client = type(
-        "Prisma", (), {"db": type("DB", (), {"litellm_skillstable": table})()}
+        "Prisma", (), {"db": type("DB", (), {"skillstable": table})()}
     )()
     monkeypatch.setattr(
         GatewaySkillsHandler,
@@ -423,7 +423,7 @@ async def test_load_skill_uses_cache_after_first_db_hit(monkeypatch):
     table = AsyncMock()
     table.find_unique = AsyncMock(return_value=fake_skill)
     prisma_client = type(
-        "Prisma", (), {"db": type("DB", (), {"litellm_skillstable": table})()}
+        "Prisma", (), {"db": type("DB", (), {"skillstable": table})()}
     )()
     monkeypatch.setattr(
         skills_handler.GatewaySkillsHandler,
@@ -446,7 +446,7 @@ async def test_load_skill_caches_negative_lookups(monkeypatch):
     table = AsyncMock()
     table.find_unique = AsyncMock(return_value=None)
     prisma_client = type(
-        "Prisma", (), {"db": type("DB", (), {"litellm_skillstable": table})()}
+        "Prisma", (), {"db": type("DB", (), {"skillstable": table})()}
     )()
     monkeypatch.setattr(
         skills_handler.GatewaySkillsHandler,
@@ -467,7 +467,7 @@ async def test_delete_skill_invalidates_cache(monkeypatch):
     table.find_unique = AsyncMock(return_value=fake_skill)
     table.delete = AsyncMock()
     prisma_client = type(
-        "Prisma", (), {"db": type("DB", (), {"litellm_skillstable": table})()}
+        "Prisma", (), {"db": type("DB", (), {"skillstable": table})()}
     )()
     monkeypatch.setattr(
         skills_handler.GatewaySkillsHandler,

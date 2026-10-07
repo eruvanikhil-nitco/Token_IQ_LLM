@@ -20,10 +20,10 @@ from token_iq.gateway.caching.in_memory_cache import InMemoryCache
 
 if TYPE_CHECKING:
     from prisma.types import (
-        LiteLLM_AgentsTableInclude,
-        LiteLLM_AgentsTableWhereUniqueInput,
-        LiteLLM_GuardrailsTableWhereInput,
-        LiteLLM_ProxyModelTableWhereInput,
+        AgentsTableInclude,
+        AgentsTableWhereUniqueInput,
+        GuardrailsTableWhereInput,
+        ProxyModelTableWhereInput,
     )
 
     from token_iq.gateway.integrations.custom_guardrail import CustomGuardrail
@@ -113,8 +113,8 @@ async def _resync_model_deployments(model_name: str) -> bool:
     prisma_client: Final = proxy_server.prisma_client
     assert prisma_client is not None
     table: Final = ModelRepository(prisma_client).table
-    name_filter: Final[LiteLLM_ProxyModelTableWhereInput] = {"model_name": model_name}
-    id_filter: Final[LiteLLM_ProxyModelTableWhereInput] = {"model_id": model_name}
+    name_filter: Final[ProxyModelTableWhereInput] = {"model_name": model_name}
+    id_filter: Final[ProxyModelTableWhereInput] = {"model_id": model_name}
     rows: Final = await table.find_many(where=name_filter) or await table.find_many(where=id_filter)
     if not rows:
         return False
@@ -143,7 +143,7 @@ async def _resync_guardrails(guardrail_name: str) -> bool:
         return False
     prisma_client: Final = proxy_server.prisma_client
     assert prisma_client is not None
-    active_row_filter: Final[LiteLLM_GuardrailsTableWhereInput] = {
+    active_row_filter: Final[GuardrailsTableWhereInput] = {
         "guardrail_name": guardrail_name,
         "status": "active",
     }
@@ -171,9 +171,9 @@ async def _resync_agents(agent_id_or_name: str) -> bool:
     prisma_client: Final = proxy_server.prisma_client
     assert prisma_client is not None
     table: Final = agents_table(prisma_client)
-    id_filter: Final[LiteLLM_AgentsTableWhereUniqueInput] = {"agent_id": agent_id_or_name}
-    name_filter: Final[LiteLLM_AgentsTableWhereUniqueInput] = {"agent_name": agent_id_or_name}
-    include_permission: Final[LiteLLM_AgentsTableInclude] = {"object_permission": True}
+    id_filter: Final[AgentsTableWhereUniqueInput] = {"agent_id": agent_id_or_name}
+    name_filter: Final[AgentsTableWhereUniqueInput] = {"agent_name": agent_id_or_name}
+    include_permission: Final[AgentsTableInclude] = {"object_permission": True}
     async with AGENT_RECONCILE_LOCK:
         if _agent_from_registry(agent_id_or_name) is not None:
             return True

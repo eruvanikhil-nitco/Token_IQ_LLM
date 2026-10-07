@@ -760,7 +760,7 @@ async def test_load_user_env_vars_caches_within_ttl(env_vars_salt_key, monkeypat
     first = await manager._load_user_env_vars(server, fake_auth)
     second = await manager._load_user_env_vars(server, fake_auth)
     assert first == {"TOKEN": "t0p"} == second
-    assert prisma.db.litellm_mcpuserenvvars.find_unique.await_count == 1
+    assert prisma.db.mcpuserenvvars.find_unique.await_count == 1
 
     mgr_mod._user_env_vars_cache.clear()
 
@@ -787,7 +787,7 @@ async def test_load_user_env_vars_force_refresh_bypasses_cache(
     new_row.values_b64 = _encrypted_user_env_blob({"TOKEN": "new"})
 
     prisma = _mock_env_vars_prisma()
-    prisma.db.litellm_mcpuserenvvars.find_unique = AsyncMock(
+    prisma.db.mcpuserenvvars.find_unique = AsyncMock(
         side_effect=[old_row, new_row]
     )
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", prisma)
@@ -805,7 +805,7 @@ async def test_load_user_env_vars_force_refresh_bypasses_cache(
     assert await manager._load_user_env_vars(server, fake_auth, force_refresh=True) == {
         "TOKEN": "new"
     }
-    assert prisma.db.litellm_mcpuserenvvars.find_unique.await_count == 2
+    assert prisma.db.mcpuserenvvars.find_unique.await_count == 2
 
     mgr_mod._user_env_vars_cache.clear()
 
@@ -833,7 +833,7 @@ async def test_load_user_env_vars_invalidation_forces_refetch(
     new_row.values_b64 = _encrypted_user_env_blob({"TOKEN": "new"})
 
     prisma = _mock_env_vars_prisma()
-    prisma.db.litellm_mcpuserenvvars.find_unique = AsyncMock(
+    prisma.db.mcpuserenvvars.find_unique = AsyncMock(
         side_effect=[old_row, new_row]
     )
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", prisma)
@@ -848,7 +848,7 @@ async def test_load_user_env_vars_invalidation_forces_refetch(
     assert await manager._load_user_env_vars(server, fake_auth) == {"TOKEN": "old"}
     invalidate_user_env_vars_cache("alice", "srv-1")
     assert await manager._load_user_env_vars(server, fake_auth) == {"TOKEN": "new"}
-    assert prisma.db.litellm_mcpuserenvvars.find_unique.await_count == 2
+    assert prisma.db.mcpuserenvvars.find_unique.await_count == 2
 
     mgr_mod._user_env_vars_cache.clear()
 
@@ -868,11 +868,11 @@ def _mock_env_vars_prisma(row=None):
     from unittest.mock import AsyncMock, MagicMock
 
     prisma = MagicMock()
-    prisma.db.litellm_mcpuserenvvars.find_unique = AsyncMock(return_value=row)
-    prisma.db.litellm_mcpuserenvvars.find_many = AsyncMock(return_value=[])
-    prisma.db.litellm_mcpuserenvvars.upsert = AsyncMock()
-    prisma.db.litellm_mcpuserenvvars.delete_many = AsyncMock()
-    prisma.db.litellm_mcpusercredentials.delete_many = AsyncMock()
+    prisma.db.mcpuserenvvars.find_unique = AsyncMock(return_value=row)
+    prisma.db.mcpuserenvvars.find_many = AsyncMock(return_value=[])
+    prisma.db.mcpuserenvvars.upsert = AsyncMock()
+    prisma.db.mcpuserenvvars.delete_many = AsyncMock()
+    prisma.db.mcpusercredentials.delete_many = AsyncMock()
     return prisma
 
 
@@ -934,7 +934,7 @@ def _transactional_env_vars_prisma(read_delay: float = 0.0):
         def __init__(self, store, delay):
             self._store = store
             self._held = None
-            self.litellm_mcpuserenvvars = _Table(store, delay=delay)
+            self.mcpuserenvvars = _Table(store, delay=delay)
 
         async def __aenter__(self):
             return self
@@ -956,7 +956,7 @@ def _transactional_env_vars_prisma(read_delay: float = 0.0):
         def __init__(self, store, delay):
             self._store = store
             self._delay = delay
-            self.litellm_mcpuserenvvars = _Table(store)
+            self.mcpuserenvvars = _Table(store)
 
         def tx(self):
             return _Tx(self._store, self._delay)
@@ -983,7 +983,7 @@ async def test_merge_user_env_vars_does_not_persist_plaintext(env_vars_salt_key)
         prisma, "alice", "srv-1", values, allowed_names=values.keys()
     )
 
-    row = await prisma.db.litellm_mcpuserenvvars.find_unique(
+    row = await prisma.db.mcpuserenvvars.find_unique(
         where={"user_id_server_id": {"user_id": "alice", "server_id": "srv-1"}}
     )
     stored = row.values_b64
@@ -1055,7 +1055,7 @@ async def test_get_user_env_vars_bulk_distributes_results(env_vars_salt_key):
     row2.values_b64 = blob2
 
     prisma = _mock_env_vars_prisma()
-    prisma.db.litellm_mcpuserenvvars.find_many = AsyncMock(return_value=[row1, row2])
+    prisma.db.mcpuserenvvars.find_many = AsyncMock(return_value=[row1, row2])
     result = await get_user_env_vars_bulk(prisma, "alice", ["srv-1", "srv-2", "srv-3"])
     assert result == {"srv-1": {"A": "1"}, "srv-2": {"B": "2"}}
 
@@ -1067,7 +1067,7 @@ async def test_get_user_env_vars_bulk_empty_ids_short_circuits():
     prisma = _mock_env_vars_prisma()
     assert await get_user_env_vars_bulk(prisma, "alice", []) == {}
     # find_many should never have been called
-    assert prisma.db.litellm_mcpuserenvvars.find_many.await_count == 0
+    assert prisma.db.mcpuserenvvars.find_many.await_count == 0
 
 
 @pytest.mark.asyncio
@@ -1078,8 +1078,8 @@ async def test_delete_user_env_vars_is_idempotent_delete_many():
 
     prisma = _mock_env_vars_prisma()
     await delete_user_env_vars(prisma, "alice", "srv-1")
-    prisma.db.litellm_mcpuserenvvars.delete_many.assert_awaited_once()
-    call = prisma.db.litellm_mcpuserenvvars.delete_many.call_args
+    prisma.db.mcpuserenvvars.delete_many.assert_awaited_once()
+    call = prisma.db.mcpuserenvvars.delete_many.call_args
     assert call.kwargs["where"] == {"user_id": "alice", "server_id": "srv-1"}
 
 
@@ -1154,7 +1154,7 @@ async def test_merge_user_env_vars_acquires_lock_without_deserializing_void(
     class _Tx:
         def __init__(self):
             self.stored = None
-            self.litellm_mcpuserenvvars = self
+            self.mcpuserenvvars = self
 
         async def __aenter__(self):
             return self
@@ -1205,12 +1205,12 @@ async def test_delete_mcp_server_removes_orphaned_user_env_vars():
     from token_iq.gateway.proxy._experimental.mcp_server.db import delete_mcp_server
 
     prisma = _mock_env_vars_prisma()
-    prisma.db.litellm_mcpservertable.delete = AsyncMock(return_value=object())
+    prisma.db.mcpservertable.delete = AsyncMock(return_value=object())
 
     await delete_mcp_server(prisma, "srv-1")
 
-    prisma.db.litellm_mcpuserenvvars.delete_many.assert_awaited_once()
-    call = prisma.db.litellm_mcpuserenvvars.delete_many.call_args
+    prisma.db.mcpuserenvvars.delete_many.assert_awaited_once()
+    call = prisma.db.mcpuserenvvars.delete_many.call_args
     assert call.kwargs["where"] == {"server_id": "srv-1"}
 
 
@@ -1222,12 +1222,12 @@ async def test_delete_mcp_server_skips_env_var_cleanup_when_server_missing():
     from token_iq.gateway.proxy._experimental.mcp_server.db import delete_mcp_server
 
     prisma = _mock_env_vars_prisma()
-    prisma.db.litellm_mcpservertable.delete = AsyncMock(return_value=None)
+    prisma.db.mcpservertable.delete = AsyncMock(return_value=None)
 
     result = await delete_mcp_server(prisma, "srv-1")
 
     assert result is None
-    prisma.db.litellm_mcpuserenvvars.delete_many.assert_not_awaited()
+    prisma.db.mcpuserenvvars.delete_many.assert_not_awaited()
 
 
 @pytest.mark.asyncio
@@ -1242,15 +1242,15 @@ async def test_delete_mcp_server_succeeds_when_orphan_cleanup_fails():
 
     deleted = object()
     prisma = _mock_env_vars_prisma()
-    prisma.db.litellm_mcpservertable.delete = AsyncMock(return_value=deleted)
-    prisma.db.litellm_mcpuserenvvars.delete_many = AsyncMock(
+    prisma.db.mcpservertable.delete = AsyncMock(return_value=deleted)
+    prisma.db.mcpuserenvvars.delete_many = AsyncMock(
         side_effect=Exception("connection pool exhausted")
     )
 
     result = await delete_mcp_server(prisma, "srv-1")
 
     assert result is deleted
-    prisma.db.litellm_mcpuserenvvars.delete_many.assert_awaited_once()
+    prisma.db.mcpuserenvvars.delete_many.assert_awaited_once()
 
 
 @pytest.mark.asyncio
@@ -1263,12 +1263,12 @@ async def test_delete_mcp_server_removes_orphaned_user_credentials():
     from token_iq.gateway.proxy._experimental.mcp_server.db import delete_mcp_server
 
     prisma = _mock_env_vars_prisma()
-    prisma.db.litellm_mcpservertable.delete = AsyncMock(return_value=object())
+    prisma.db.mcpservertable.delete = AsyncMock(return_value=object())
 
     await delete_mcp_server(prisma, "srv-1")
 
-    prisma.db.litellm_mcpusercredentials.delete_many.assert_awaited_once()
-    call = prisma.db.litellm_mcpusercredentials.delete_many.call_args
+    prisma.db.mcpusercredentials.delete_many.assert_awaited_once()
+    call = prisma.db.mcpusercredentials.delete_many.call_args
     assert call.kwargs["where"] == {"server_id": "srv-1"}
 
 
@@ -1280,12 +1280,12 @@ async def test_delete_mcp_server_skips_credential_cleanup_when_server_missing():
     from token_iq.gateway.proxy._experimental.mcp_server.db import delete_mcp_server
 
     prisma = _mock_env_vars_prisma()
-    prisma.db.litellm_mcpservertable.delete = AsyncMock(return_value=None)
+    prisma.db.mcpservertable.delete = AsyncMock(return_value=None)
 
     result = await delete_mcp_server(prisma, "srv-1")
 
     assert result is None
-    prisma.db.litellm_mcpusercredentials.delete_many.assert_not_awaited()
+    prisma.db.mcpusercredentials.delete_many.assert_not_awaited()
 
 
 @pytest.mark.asyncio
@@ -1299,16 +1299,16 @@ async def test_delete_mcp_server_credential_cleanup_failure_still_cleans_env_var
 
     deleted = object()
     prisma = _mock_env_vars_prisma()
-    prisma.db.litellm_mcpservertable.delete = AsyncMock(return_value=deleted)
-    prisma.db.litellm_mcpusercredentials.delete_many = AsyncMock(
+    prisma.db.mcpservertable.delete = AsyncMock(return_value=deleted)
+    prisma.db.mcpusercredentials.delete_many = AsyncMock(
         side_effect=Exception("connection pool exhausted")
     )
 
     result = await delete_mcp_server(prisma, "srv-1")
 
     assert result is deleted
-    prisma.db.litellm_mcpusercredentials.delete_many.assert_awaited_once()
-    prisma.db.litellm_mcpuserenvvars.delete_many.assert_awaited_once()
+    prisma.db.mcpusercredentials.delete_many.assert_awaited_once()
+    prisma.db.mcpuserenvvars.delete_many.assert_awaited_once()
 
 
 # ── DB helpers: global env vars encrypted at rest ─────────────────────────
@@ -1523,7 +1523,7 @@ async def test_create_mcp_server_decrypts_env_vars_when_prisma_returns_json_stri
         return row
 
     mock_prisma = MagicMock()
-    mock_prisma.db.litellm_mcpservertable.create = AsyncMock(
+    mock_prisma.db.mcpservertable.create = AsyncMock(
         return_value=_prisma_row_with_json_string_env_vars()
     )
 
@@ -1540,7 +1540,7 @@ async def test_create_mcp_server_decrypts_env_vars_when_prisma_returns_json_stri
     assert created.env_vars[0]["value"] == "s3cr3t-p@ss"
 
     mock_prisma_upd = MagicMock()
-    mock_prisma_upd.db.litellm_mcpservertable.update = AsyncMock(
+    mock_prisma_upd.db.mcpservertable.update = AsyncMock(
         return_value=_prisma_row_with_json_string_env_vars()
     )
     updated = await update_mcp_server(
@@ -1615,17 +1615,17 @@ async def test_rotate_mcp_user_env_vars_logs_rotated_and_skipped_counts(
     bad = _row("carol", "srv-3", undecryptable)
 
     prisma = MagicMock()
-    prisma.db.litellm_mcpuserenvvars.find_many = AsyncMock(
+    prisma.db.mcpuserenvvars.find_many = AsyncMock(
         return_value=[good_one, good_two, bad]
     )
-    prisma.db.litellm_mcpuserenvvars.update = AsyncMock()
+    prisma.db.mcpuserenvvars.update = AsyncMock()
 
     logger = MagicMock()
     monkeypatch.setattr(mcp_db, "verbose_proxy_logger", logger)
 
     await rotate_mcp_user_env_vars_master_key(prisma, new_master_key="rotated-key-0000")
 
-    update = prisma.db.litellm_mcpuserenvvars.update
+    update = prisma.db.mcpuserenvvars.update
     assert update.await_count == 2
     updated_servers = {
         call.kwargs["where"]["user_id_server_id"]["server_id"]

@@ -273,8 +273,8 @@ async def test_get_current_spend_floors_window_against_spend_logs(monkeypatch):
 
 def _make_window_spend_prisma(row=None, spend_logs_total=0.0):
     prisma = MagicMock()
-    prisma.db.litellm_budgetwindowspend.find_unique = AsyncMock(return_value=row)
-    prisma.db.litellm_spendlogs.group_by = AsyncMock(
+    prisma.db.budgetwindowspend.find_unique = AsyncMock(return_value=row)
+    prisma.db.spendlogs.group_by = AsyncMock(
         return_value=[{"api_key": "tok", "_sum": {"spend": spend_logs_total}}]
     )
     return prisma
@@ -308,7 +308,7 @@ async def test_get_current_spend_floors_window_against_maintained_row(monkeypatc
     )
 
     assert result == 15.0
-    fake_prisma.db.litellm_spendlogs.group_by.assert_not_awaited()
+    fake_prisma.db.spendlogs.group_by.assert_not_awaited()
     fake_cache.redis_cache.async_set_max.assert_awaited_once_with(
         key=counter_key, value=15.0
     )
@@ -343,7 +343,7 @@ async def test_get_current_spend_floors_window_against_logs_when_row_stale(monke
     )
 
     assert result == 15.0
-    fake_prisma.db.litellm_spendlogs.group_by.assert_awaited_once()
+    fake_prisma.db.spendlogs.group_by.assert_awaited_once()
 
 
 @pytest.mark.asyncio

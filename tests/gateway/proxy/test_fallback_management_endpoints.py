@@ -122,7 +122,7 @@ class TestCreateFallback:
     def mock_prisma_client(self):
         """Create a mock prisma client"""
         client = MagicMock()
-        client.db.litellm_config.upsert = AsyncMock()
+        client.db.config.upsert = AsyncMock()
         client.jsonify_object = lambda x: x
         return client
 
@@ -177,7 +177,7 @@ class TestCreateFallback:
             )
 
             # Verify database was updated
-            mock_prisma_client.db.litellm_config.upsert.assert_called_once()
+            mock_prisma_client.db.config.upsert.assert_called_once()
 
     async def test_create_fallback_router_not_initialized(
         self, mock_prisma_client, mock_proxy_config, mock_user_api_key_dict
@@ -429,7 +429,7 @@ class TestDeleteFallback:
     def mock_prisma_client(self):
         """Create a mock prisma client"""
         client = MagicMock()
-        client.db.litellm_config.upsert = AsyncMock()
+        client.db.config.upsert = AsyncMock()
         client.jsonify_object = lambda x: x
         return client
 
@@ -486,7 +486,7 @@ class TestDeleteFallback:
             assert "deleted" in response.message.lower()
 
             # Verify database was updated
-            mock_prisma_client.db.litellm_config.upsert.assert_called_once()
+            mock_prisma_client.db.config.upsert.assert_called_once()
 
     async def test_delete_fallback_not_found(
         self,

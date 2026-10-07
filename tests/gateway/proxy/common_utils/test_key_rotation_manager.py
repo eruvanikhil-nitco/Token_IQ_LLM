@@ -125,7 +125,7 @@ class TestKeyRotationManager:
             ),
         ]
 
-        mock_prisma_client.db.litellm_verificationtoken.find_many.return_value = (
+        mock_prisma_client.db.verificationtoken.find_many.return_value = (
             mock_keys
         )
 
@@ -144,7 +144,7 @@ class TestKeyRotationManager:
             keys_needing_rotation = await manager._find_keys_needing_rotation()
 
         # Verify database query - should use OR condition for key_rotation_at
-        mock_prisma_client.db.litellm_verificationtoken.find_many.assert_called_once_with(
+        mock_prisma_client.db.verificationtoken.find_many.assert_called_once_with(
             where={
                 "auto_rotate": True,
                 "OR": [{"key_rotation_at": None}, {"key_rotation_at": {"lte": now}}],
@@ -202,9 +202,9 @@ class TestKeyRotationManager:
                 await manager._rotate_key(key_to_rotate)
 
         # Verify database update was called with correct data
-        mock_prisma_client.db.litellm_verificationtoken.update.assert_called_once()
+        mock_prisma_client.db.verificationtoken.update.assert_called_once()
 
-        call_args = mock_prisma_client.db.litellm_verificationtoken.update.call_args
+        call_args = mock_prisma_client.db.verificationtoken.update.call_args
 
         # Check the WHERE clause targets the new token
         assert call_args[1]["where"]["token"] == "new-token-id"
@@ -231,16 +231,16 @@ class TestKeyRotationManager:
         Test that _cleanup_expired_deprecated_keys deletes expired deprecated keys.
         """
         mock_prisma_client = AsyncMock()
-        mock_prisma_client.db.litellm_deprecatedverificationtoken.delete_many.return_value = (
+        mock_prisma_client.db.deprecatedverificationtoken.delete_many.return_value = (
             3
         )
         manager = KeyRotationManager(mock_prisma_client)
 
         await manager._cleanup_expired_deprecated_keys()
 
-        mock_prisma_client.db.litellm_deprecatedverificationtoken.delete_many.assert_called_once()
+        mock_prisma_client.db.deprecatedverificationtoken.delete_many.assert_called_once()
         call_args = (
-            mock_prisma_client.db.litellm_deprecatedverificationtoken.delete_many.call_args
+            mock_prisma_client.db.deprecatedverificationtoken.delete_many.call_args
         )
         assert "revoke_at" in call_args[1]["where"]
         assert call_args[1]["where"]["revoke_at"]["lt"] is not None

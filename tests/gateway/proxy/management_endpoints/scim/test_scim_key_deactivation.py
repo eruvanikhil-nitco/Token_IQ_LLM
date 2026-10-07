@@ -39,18 +39,18 @@ def _build_prisma_with_keys(user_keys, mock_user=None, updated_user=None):
     mock_db = MagicMock()
     mock_client.db = mock_db
     if mock_user is not None:
-        mock_db.litellm_usertable.find_unique = AsyncMock(return_value=mock_user)
+        mock_db.usertable.find_unique = AsyncMock(return_value=mock_user)
     if updated_user is not None:
-        mock_db.litellm_usertable.update = AsyncMock(return_value=updated_user)
-    mock_db.litellm_usertable.delete = AsyncMock(return_value=None)
-    mock_db.litellm_teamtable.find_unique = AsyncMock(return_value=None)
+        mock_db.usertable.update = AsyncMock(return_value=updated_user)
+    mock_db.usertable.delete = AsyncMock(return_value=None)
+    mock_db.teamtable.find_unique = AsyncMock(return_value=None)
 
-    mock_db.litellm_verificationtoken.find_many = AsyncMock(return_value=user_keys)
-    mock_db.litellm_verificationtoken.update_many = AsyncMock(return_value=None)
-    mock_db.litellm_verificationtoken.update = AsyncMock(return_value=None)
-    mock_db.litellm_invitationlink.delete_many = AsyncMock(return_value=None)
-    mock_db.litellm_organizationmembership.delete_many = AsyncMock(return_value=None)
-    mock_db.litellm_teammembership.delete_many = AsyncMock(return_value=None)
+    mock_db.verificationtoken.find_many = AsyncMock(return_value=user_keys)
+    mock_db.verificationtoken.update_many = AsyncMock(return_value=None)
+    mock_db.verificationtoken.update = AsyncMock(return_value=None)
+    mock_db.invitationlink.delete_many = AsyncMock(return_value=None)
+    mock_db.organizationmembership.delete_many = AsyncMock(return_value=None)
+    mock_db.teammembership.delete_many = AsyncMock(return_value=None)
     return mock_client, mock_db
 
 
@@ -82,8 +82,8 @@ async def test_set_user_keys_blocked_flips_state_and_invalidates_cache():
     assert flipped == 2
     # Each key gets a per-row update that flips `blocked` and stamps the
     # SCIM-block marker into metadata.
-    assert mock_db.litellm_verificationtoken.update.await_count == 2
-    update_calls = mock_db.litellm_verificationtoken.update.await_args_list
+    assert mock_db.verificationtoken.update.await_count == 2
+    update_calls = mock_db.verificationtoken.update.await_args_list
     seen_tokens = set()
     for call in update_calls:
         kwargs = call.kwargs or call[1]
@@ -111,8 +111,8 @@ async def test_set_user_keys_blocked_noop_when_no_matching_keys():
         flipped = await _set_user_keys_blocked(user_id="user-x", blocked=True)
 
     assert flipped == 0
-    mock_db.litellm_verificationtoken.update.assert_not_called()
-    mock_db.litellm_verificationtoken.update_many.assert_not_called()
+    mock_db.verificationtoken.update.assert_not_called()
+    mock_db.verificationtoken.update_many.assert_not_called()
     mocked_delete.assert_not_called()
 
 
@@ -146,8 +146,8 @@ async def test_set_user_keys_unblocked_skips_admin_blocked_keys():
         flipped = await _set_user_keys_blocked(user_id="user-x", blocked=False)
 
     assert flipped == 1
-    mock_db.litellm_verificationtoken.update.assert_awaited_once()
-    update_kwargs = mock_db.litellm_verificationtoken.update.await_args.kwargs
+    mock_db.verificationtoken.update.assert_awaited_once()
+    update_kwargs = mock_db.verificationtoken.update.await_args.kwargs
     assert update_kwargs["where"] == {"token": "hash-scim"}
     assert update_kwargs["data"]["blocked"] is False
     assert cache_deletions == ["hash-scim"]
@@ -179,12 +179,12 @@ async def test_scim_delete_user_blocks_keys_before_deleting_user():
         response = await delete_user(user_id=user_id)
 
     assert response.status_code == 204
-    mock_db.litellm_verificationtoken.update.assert_awaited_once()
-    update_kwargs = mock_db.litellm_verificationtoken.update.await_args.kwargs
+    mock_db.verificationtoken.update.assert_awaited_once()
+    update_kwargs = mock_db.verificationtoken.update.await_args.kwargs
     assert update_kwargs["where"] == {"token": "hash-a"}
     assert update_kwargs["data"]["blocked"] is True
     assert '"scim_blocked": true' in update_kwargs["data"]["metadata"]
-    mock_db.litellm_usertable.delete.assert_awaited_once_with(
+    mock_db.usertable.delete.assert_awaited_once_with(
         where={"user_id": user_id}
     )
 
@@ -202,16 +202,16 @@ async def test_scim_delete_user_clears_fk_referenced_rows_before_user_delete():
     mock_client, mock_db = _build_prisma_with_keys(user_keys=[], mock_user=mock_user)
 
     call_order: list = []
-    mock_db.litellm_invitationlink.delete_many = AsyncMock(
+    mock_db.invitationlink.delete_many = AsyncMock(
         side_effect=lambda **kw: call_order.append(("invitation", kw)) or None
     )
-    mock_db.litellm_organizationmembership.delete_many = AsyncMock(
+    mock_db.organizationmembership.delete_many = AsyncMock(
         side_effect=lambda **kw: call_order.append(("orgmembership", kw)) or None
     )
-    mock_db.litellm_teammembership.delete_many = AsyncMock(
+    mock_db.teammembership.delete_many = AsyncMock(
         side_effect=lambda **kw: call_order.append(("teammembership", kw)) or None
     )
-    mock_db.litellm_usertable.delete = AsyncMock(
+    mock_db.usertable.delete = AsyncMock(
         side_effect=lambda **kw: call_order.append(("user", kw)) or None
     )
 
@@ -228,8 +228,8 @@ async def test_scim_delete_user_clears_fk_referenced_rows_before_user_delete():
 
     assert response.status_code == 204
 
-    mock_db.litellm_invitationlink.delete_many.assert_awaited_once()
-    inv_kwargs = mock_db.litellm_invitationlink.delete_many.await_args.kwargs
+    mock_db.invitationlink.delete_many.assert_awaited_once()
+    inv_kwargs = mock_db.invitationlink.delete_many.await_args.kwargs
     assert inv_kwargs == {
         "where": {
             "OR": [
@@ -239,10 +239,10 @@ async def test_scim_delete_user_clears_fk_referenced_rows_before_user_delete():
             ]
         }
     }
-    mock_db.litellm_organizationmembership.delete_many.assert_awaited_once_with(
+    mock_db.organizationmembership.delete_many.assert_awaited_once_with(
         where={"user_id": user_id}
     )
-    mock_db.litellm_teammembership.delete_many.assert_awaited_once_with(
+    mock_db.teammembership.delete_many.assert_awaited_once_with(
         where={"user_id": user_id}
     )
 
@@ -300,8 +300,8 @@ async def test_scim_patch_user_active_false_blocks_keys():
     ):
         await patch_user(user_id=user_id, patch_ops=patch_ops)
 
-    mock_db.litellm_verificationtoken.update.assert_awaited_once()
-    update_kwargs = mock_db.litellm_verificationtoken.update.await_args.kwargs
+    mock_db.verificationtoken.update.assert_awaited_once()
+    update_kwargs = mock_db.verificationtoken.update.await_args.kwargs
     assert update_kwargs["where"] == {"token": "hash-z"}
     assert update_kwargs["data"]["blocked"] is True
     assert '"scim_blocked": true' in update_kwargs["data"]["metadata"]
@@ -360,8 +360,8 @@ async def test_scim_patch_user_active_true_unblocks_keys():
     ):
         await patch_user(user_id=user_id, patch_ops=patch_ops)
 
-    mock_db.litellm_verificationtoken.update.assert_awaited_once()
-    update_kwargs = mock_db.litellm_verificationtoken.update.await_args.kwargs
+    mock_db.verificationtoken.update.assert_awaited_once()
+    update_kwargs = mock_db.verificationtoken.update.await_args.kwargs
     assert update_kwargs["where"] == {"token": "hash-r"}
     assert update_kwargs["data"]["blocked"] is False
     # SCIM-block marker is stripped on reactivation.
@@ -417,8 +417,8 @@ async def test_scim_patch_user_no_active_change_does_not_touch_keys():
     ):
         await patch_user(user_id=user_id, patch_ops=patch_ops)
 
-    mock_db.litellm_verificationtoken.find_many.assert_not_called()
-    mock_db.litellm_verificationtoken.update_many.assert_not_called()
+    mock_db.verificationtoken.find_many.assert_not_called()
+    mock_db.verificationtoken.update_many.assert_not_called()
 
 
 def _build_put_user_payload(user_id: str, **overrides) -> dict:
@@ -480,10 +480,10 @@ async def test_scim_put_user_omitting_active_preserves_deactivated_state():
     ):
         await update_user(user_id=user_id, user=put_user)
 
-    mock_db.litellm_verificationtoken.update.assert_not_called()
-    mock_db.litellm_verificationtoken.update_many.assert_not_called()
-    mock_db.litellm_usertable.update.assert_awaited_once()
-    update_kwargs = mock_db.litellm_usertable.update.await_args.kwargs
+    mock_db.verificationtoken.update.assert_not_called()
+    mock_db.verificationtoken.update_many.assert_not_called()
+    mock_db.usertable.update.assert_awaited_once()
+    update_kwargs = mock_db.usertable.update.await_args.kwargs
     assert '"scim_active": false' in update_kwargs["data"]["metadata"]
 
 
@@ -536,8 +536,8 @@ async def test_scim_put_user_explicit_active_false_blocks_keys():
     ):
         await update_user(user_id=user_id, user=put_user)
 
-    mock_db.litellm_verificationtoken.update.assert_awaited_once()
-    update_kwargs = mock_db.litellm_verificationtoken.update.await_args.kwargs
+    mock_db.verificationtoken.update.assert_awaited_once()
+    update_kwargs = mock_db.verificationtoken.update.await_args.kwargs
     assert update_kwargs["where"] == {"token": "hash-block-me"}
     assert update_kwargs["data"]["blocked"] is True
     assert '"scim_blocked": true' in update_kwargs["data"]["metadata"]

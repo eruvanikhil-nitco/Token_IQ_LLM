@@ -55,11 +55,11 @@ class TestTeamModelAddAtomicAppend:
             patch("token_iq.gateway.proxy.proxy_server.user_api_key_cache"),
             patch("token_iq.gateway.proxy.proxy_server.proxy_logging_obj"),
         ):
-            mock_prisma.db.litellm_teamtable.find_unique = AsyncMock(
+            mock_prisma.db.teamtable.find_unique = AsyncMock(
                 return_value=existing_team
             )
             mock_prisma.db.execute_raw = AsyncMock(return_value=None)
-            mock_prisma.db.litellm_teamtable.update = AsyncMock(
+            mock_prisma.db.teamtable.update = AsyncMock(
                 return_value=updated_team
             )
 
@@ -77,4 +77,4 @@ class TestTeamModelAddAtomicAppend:
             assert mock_prisma.db.execute_raw.call_args[0][2] == "team-1"
 
             # Should use write-routed update to re-fetch, not find_unique
-            mock_prisma.db.litellm_teamtable.update.assert_called_once()
+            mock_prisma.db.teamtable.update.assert_called_once()

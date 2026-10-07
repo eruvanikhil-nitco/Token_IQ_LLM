@@ -97,32 +97,32 @@ class MemberWriteTx(Protocol):
     """
 
     @property
-    def litellm_usertable(self) -> _PrismaUserTable: ...
+    def usertable(self) -> _PrismaUserTable: ...
 
     @property
-    def litellm_budgettable(self) -> _PrismaBudgetTable: ...
+    def budgettable(self) -> _PrismaBudgetTable: ...
 
     @property
-    def litellm_teammembership(self) -> _PrismaTeamMembershipTable: ...
+    def teammembership(self) -> _PrismaTeamMembershipTable: ...
 
 
 def _user_table(prisma_client: PrismaClient, tx: MemberWriteTx | None) -> _PrismaUserTable:
-    return tx.litellm_usertable if tx is not None else UserRepository(prisma_client).table
+    return tx.usertable if tx is not None else UserRepository(prisma_client).table
 
 
 def _budget_table(prisma_client: PrismaClient, tx: MemberWriteTx | None) -> _PrismaBudgetTable:
-    return tx.litellm_budgettable if tx is not None else BudgetRepository(prisma_client).table
+    return tx.budgettable if tx is not None else BudgetRepository(prisma_client).table
 
 
 def _team_membership_table(prisma_client: PrismaClient, tx: MemberWriteTx | None) -> _PrismaTeamMembershipTable:
-    return tx.litellm_teammembership if tx is not None else TeamMembershipRepository(prisma_client).table
+    return tx.teammembership if tx is not None else TeamMembershipRepository(prisma_client).table
 
 
 async def _find_users_by_email(
     prisma_client: PrismaClient, tx: MemberWriteTx | None, user_email: str
 ) -> Sequence[_PrismaUserRecord]:
     if tx is not None:
-        return await tx.litellm_usertable.find_many(where={"user_email": user_email})
+        return await tx.usertable.find_many(where={"user_email": user_email})
     rows: Final[Sequence[_PrismaUserRecord] | None] = await prisma_client.get_data(
         key_val={"user_email": user_email},
         table_name="user",
@@ -151,7 +151,7 @@ async def _create_user_row(
     prisma_client: PrismaClient, tx: MemberWriteTx | None, user_data: dict[str, object]
 ) -> _PrismaUserRecord | None:
     if tx is not None:
-        return await _upsert_user_row(tx.litellm_usertable, str(user_data["user_id"]), jsonify_object(user_data))
+        return await _upsert_user_row(tx.usertable, str(user_data["user_id"]), jsonify_object(user_data))
     return await prisma_client.insert_data(data=user_data, table_name="user")
 
 

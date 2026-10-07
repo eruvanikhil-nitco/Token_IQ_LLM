@@ -66,8 +66,8 @@ async def test_get_daily_activity_empty_entity_id_list():
     mock_table.count = AsyncMock(return_value=0)
     mock_table.find_many = AsyncMock(return_value=[])
     _stub_window_totals(mock_table, [])
-    mock_prisma.db.litellm_verificationtoken = MagicMock()
-    mock_prisma.db.litellm_verificationtoken.find_many = AsyncMock(return_value=[])
+    mock_prisma.db.verificationtoken = MagicMock()
+    mock_prisma.db.verificationtoken.find_many = AsyncMock(return_value=[])
 
     # Set the table name dynamically
     mock_prisma.db.litellm_dailyspend = mock_table
@@ -117,8 +117,8 @@ async def test_get_daily_activity_order_has_id_tiebreaker():
     mock_table.count = AsyncMock(return_value=0)
     mock_table.find_many = AsyncMock(return_value=[])
     _stub_window_totals(mock_table, [])
-    mock_prisma.db.litellm_verificationtoken = MagicMock()
-    mock_prisma.db.litellm_verificationtoken.find_many = AsyncMock(return_value=[])
+    mock_prisma.db.verificationtoken = MagicMock()
+    mock_prisma.db.verificationtoken.find_many = AsyncMock(return_value=[])
     mock_prisma.db.litellm_dailyspend = mock_table
 
     await get_daily_activity(
@@ -271,13 +271,13 @@ async def test_get_daily_activity_aggregated_with_endpoint_breakdown():
     ]
 
     mock_prisma.db.query_raw = AsyncMock(return_value=mock_rows)
-    mock_prisma.db.litellm_verificationtoken = MagicMock()
-    mock_prisma.db.litellm_verificationtoken.find_many = AsyncMock(return_value=[])
+    mock_prisma.db.verificationtoken = MagicMock()
+    mock_prisma.db.verificationtoken.find_many = AsyncMock(return_value=[])
 
     # Call the function
     result = await get_daily_activity_aggregated(
         prisma_client=mock_prisma,
-        table_name="litellm_dailyuserspend",
+        table_name="dailyuserspend",
         entity_id_field="user_id",
         entity_id=None,
         entity_metadata_field=None,
@@ -331,7 +331,7 @@ async def test_get_api_key_metadata_returns_active_key_metadata():
     mock_active_key.key_alias = "my-active-key"
     mock_active_key.team_id = "team-abc"
 
-    mock_prisma.db.litellm_verificationtoken.find_many = AsyncMock(return_value=[mock_active_key])
+    mock_prisma.db.verificationtoken.find_many = AsyncMock(return_value=[mock_active_key])
 
     result = await get_api_key_metadata(
         prisma_client=mock_prisma,
@@ -349,7 +349,7 @@ async def test_get_api_key_metadata_falls_back_to_deleted_keys():
     mock_prisma = MagicMock()
 
     # No active keys found
-    mock_prisma.db.litellm_verificationtoken.find_many = AsyncMock(return_value=[])
+    mock_prisma.db.verificationtoken.find_many = AsyncMock(return_value=[])
 
     # Deleted key record exists
     mock_deleted_key = MagicMock()
@@ -357,7 +357,7 @@ async def test_get_api_key_metadata_falls_back_to_deleted_keys():
     mock_deleted_key.key_alias = "toto-test-2"
     mock_deleted_key.team_id = "team-xyz"
 
-    mock_prisma.db.litellm_deletedverificationtoken.find_many = AsyncMock(return_value=[mock_deleted_key])
+    mock_prisma.db.deletedverificationtoken.find_many = AsyncMock(return_value=[mock_deleted_key])
 
     result = await get_api_key_metadata(
         prisma_client=mock_prisma,
@@ -369,7 +369,7 @@ async def test_get_api_key_metadata_falls_back_to_deleted_keys():
     assert result["deleted-key-hash-456"]["team_id"] == "team-xyz"
 
     # Verify deleted table was queried with the missing key
-    mock_prisma.db.litellm_deletedverificationtoken.find_many.assert_called_once_with(
+    mock_prisma.db.deletedverificationtoken.find_many.assert_called_once_with(
         where={"token": {"in": ["deleted-key-hash-456"]}},
         order={"deleted_at": "desc"},
     )
@@ -386,7 +386,7 @@ async def test_get_api_key_metadata_mixed_active_and_deleted_keys():
     mock_active_key.key_alias = "active-alias"
     mock_active_key.team_id = "team-active"
 
-    mock_prisma.db.litellm_verificationtoken.find_many = AsyncMock(return_value=[mock_active_key])
+    mock_prisma.db.verificationtoken.find_many = AsyncMock(return_value=[mock_active_key])
 
     # One deleted key found
     mock_deleted_key = MagicMock()
@@ -394,7 +394,7 @@ async def test_get_api_key_metadata_mixed_active_and_deleted_keys():
     mock_deleted_key.key_alias = "deleted-alias"
     mock_deleted_key.team_id = "team-deleted"
 
-    mock_prisma.db.litellm_deletedverificationtoken.find_many = AsyncMock(return_value=[mock_deleted_key])
+    mock_prisma.db.deletedverificationtoken.find_many = AsyncMock(return_value=[mock_deleted_key])
 
     result = await get_api_key_metadata(
         prisma_client=mock_prisma,
@@ -419,9 +419,9 @@ async def test_get_api_key_metadata_deleted_table_not_queried_when_all_keys_foun
     mock_active_key.key_alias = "alias-1"
     mock_active_key.team_id = "team-1"
 
-    mock_prisma.db.litellm_verificationtoken.find_many = AsyncMock(return_value=[mock_active_key])
-    mock_prisma.db.litellm_deletedverificationtoken = MagicMock()
-    mock_prisma.db.litellm_deletedverificationtoken.find_many = AsyncMock(return_value=[])
+    mock_prisma.db.verificationtoken.find_many = AsyncMock(return_value=[mock_active_key])
+    mock_prisma.db.deletedverificationtoken = MagicMock()
+    mock_prisma.db.deletedverificationtoken.find_many = AsyncMock(return_value=[])
 
     result = await get_api_key_metadata(
         prisma_client=mock_prisma,
@@ -431,7 +431,7 @@ async def test_get_api_key_metadata_deleted_table_not_queried_when_all_keys_foun
     assert len(result) == 1
     assert result["key-hash-1"]["key_alias"] == "alias-1"
     # Deleted table should NOT have been queried
-    mock_prisma.db.litellm_deletedverificationtoken.find_many.assert_not_called()
+    mock_prisma.db.deletedverificationtoken.find_many.assert_not_called()
 
 
 @pytest.mark.asyncio
@@ -440,10 +440,10 @@ async def test_get_api_key_metadata_deleted_table_error_handled_gracefully():
     mock_prisma = MagicMock()
 
     # No active keys found
-    mock_prisma.db.litellm_verificationtoken.find_many = AsyncMock(return_value=[])
+    mock_prisma.db.verificationtoken.find_many = AsyncMock(return_value=[])
 
     # Deleted table raises an error (e.g., table doesn't exist in older schema)
-    mock_prisma.db.litellm_deletedverificationtoken.find_many = AsyncMock(side_effect=Exception("Table not found"))
+    mock_prisma.db.deletedverificationtoken.find_many = AsyncMock(side_effect=Exception("Table not found"))
 
     result = await get_api_key_metadata(
         prisma_client=mock_prisma,
@@ -460,7 +460,7 @@ async def test_get_api_key_metadata_regenerated_key_uses_most_recent_deleted_rec
     mock_prisma = MagicMock()
 
     # No active keys found (old hash no longer in active table after regeneration)
-    mock_prisma.db.litellm_verificationtoken.find_many = AsyncMock(return_value=[])
+    mock_prisma.db.verificationtoken.find_many = AsyncMock(return_value=[])
 
     # Multiple deleted records for same token (e.g., regenerated multiple times)
     mock_deleted_1 = MagicMock()
@@ -474,7 +474,7 @@ async def test_get_api_key_metadata_regenerated_key_uses_most_recent_deleted_rec
     mock_deleted_2.team_id = "older-team"
 
     # Ordered by deleted_at desc, so first record is the most recent
-    mock_prisma.db.litellm_deletedverificationtoken.find_many = AsyncMock(return_value=[mock_deleted_1, mock_deleted_2])
+    mock_prisma.db.deletedverificationtoken.find_many = AsyncMock(return_value=[mock_deleted_1, mock_deleted_2])
 
     result = await get_api_key_metadata(
         prisma_client=mock_prisma,
@@ -552,13 +552,13 @@ async def test_tag_daily_activity_metadata_totals_not_zero():
     mock_table.count = AsyncMock(return_value=2)
     mock_table.find_many = AsyncMock(return_value=[mock_record_1, mock_record_2])
     _stub_window_totals(mock_table, [mock_record_1, mock_record_2])
-    mock_prisma.db.litellm_dailytagspend = mock_table
-    mock_prisma.db.litellm_verificationtoken = MagicMock()
-    mock_prisma.db.litellm_verificationtoken.find_many = AsyncMock(return_value=[])
+    mock_prisma.db.dailytagspend = mock_table
+    mock_prisma.db.verificationtoken = MagicMock()
+    mock_prisma.db.verificationtoken.find_many = AsyncMock(return_value=[])
 
     result = await get_daily_activity(
         prisma_client=mock_prisma,
-        table_name="litellm_dailytagspend",
+        table_name="dailytagspend",
         entity_id_field="tag",
         entity_id=None,
         entity_metadata_field=None,
@@ -641,8 +641,8 @@ async def test_aggregated_activity_preserves_metadata_for_deleted_keys():
     mock_prisma.db.query_raw = AsyncMock(return_value=mock_rows)
 
     # Active table returns nothing for this key
-    mock_prisma.db.litellm_verificationtoken = MagicMock()
-    mock_prisma.db.litellm_verificationtoken.find_many = AsyncMock(return_value=[])
+    mock_prisma.db.verificationtoken = MagicMock()
+    mock_prisma.db.verificationtoken.find_many = AsyncMock(return_value=[])
 
     # Deleted table returns the metadata
     mock_deleted_key = MagicMock()
@@ -650,12 +650,12 @@ async def test_aggregated_activity_preserves_metadata_for_deleted_keys():
     mock_deleted_key.key_alias = "toto-test-2"
     mock_deleted_key.team_id = "69cd4b77-b095-4489-8c46-4f2f31d840a2"
 
-    mock_prisma.db.litellm_deletedverificationtoken = MagicMock()
-    mock_prisma.db.litellm_deletedverificationtoken.find_many = AsyncMock(return_value=[mock_deleted_key])
+    mock_prisma.db.deletedverificationtoken = MagicMock()
+    mock_prisma.db.deletedverificationtoken.find_many = AsyncMock(return_value=[mock_deleted_key])
 
     result = await get_daily_activity_aggregated(
         prisma_client=mock_prisma,
-        table_name="litellm_dailyuserspend",
+        table_name="dailyuserspend",
         entity_id_field="user_id",
         entity_id=None,
         entity_metadata_field=None,
@@ -724,9 +724,9 @@ async def test_get_daily_activity_applies_resolve_entity_metadata_to_breakdown()
     mock_table.count = AsyncMock(return_value=len(records))
     mock_table.find_many = AsyncMock(return_value=records)
     _stub_window_totals(mock_table, records)
-    mock_prisma.db.litellm_dailyuserspend = mock_table
-    mock_prisma.db.litellm_verificationtoken = MagicMock()
-    mock_prisma.db.litellm_verificationtoken.find_many = AsyncMock(return_value=[])
+    mock_prisma.db.dailyuserspend = mock_table
+    mock_prisma.db.verificationtoken = MagicMock()
+    mock_prisma.db.verificationtoken.find_many = AsyncMock(return_value=[])
 
     seen_user_ids = {}
 
@@ -736,7 +736,7 @@ async def test_get_daily_activity_applies_resolve_entity_metadata_to_breakdown()
 
     result = await get_daily_activity(
         prisma_client=mock_prisma,
-        table_name="litellm_dailyuserspend",
+        table_name="dailyuserspend",
         entity_id_field="user_id",
         entity_id=None,
         entity_metadata_field=None,
@@ -781,13 +781,13 @@ async def test_model_groups_breakdown_keys_by_public_name_with_model_fallback():
     mock_table.count = AsyncMock(return_value=len(records))
     mock_table.find_many = AsyncMock(return_value=records)
     _stub_window_totals(mock_table, records)
-    mock_prisma.db.litellm_dailyuserspend = mock_table
-    mock_prisma.db.litellm_verificationtoken = MagicMock()
-    mock_prisma.db.litellm_verificationtoken.find_many = AsyncMock(return_value=[])
+    mock_prisma.db.dailyuserspend = mock_table
+    mock_prisma.db.verificationtoken = MagicMock()
+    mock_prisma.db.verificationtoken.find_many = AsyncMock(return_value=[])
 
     result = await get_daily_activity(
         prisma_client=mock_prisma,
-        table_name="litellm_dailyuserspend",
+        table_name="dailyuserspend",
         entity_id_field="user_id",
         entity_id=None,
         entity_metadata_field=None,
@@ -950,7 +950,7 @@ class TestBuildAggregatedSqlQuery:
     @pytest.mark.parametrize("offset_minutes", [None, 0, -330, 480])
     def test_sql_date_bounds_are_user_supplied_dates(self, offset_minutes):
         sql, params = _build_aggregated_sql_query(
-            table_name="litellm_dailyuserspend",
+            table_name="dailyuserspend",
             entity_id_field="user_id",
             entity_id="user-1",
             start_date="2026-05-29",
@@ -978,7 +978,7 @@ class TestBuildAggregatedSqlQuery:
         utc_today: Final = datetime.now(timezone.utc).date().isoformat()
 
         _sql, params = build(
-            table_name="litellm_dailyuserspend",
+            table_name="dailyuserspend",
             entity_id_field="user_id",
             entity_id="user-1",
             start_date="2026-05-01",
@@ -994,7 +994,7 @@ class TestBuildAggregatedSqlQuery:
 
     def test_optional_filters_appear_in_params_in_order(self):
         sql, params = _build_aggregated_sql_query(
-            table_name="litellm_dailyuserspend",
+            table_name="dailyuserspend",
             entity_id_field="user_id",
             entity_id="user-1",
             start_date="2026-05-29",
@@ -1027,7 +1027,7 @@ class TestBuildAggregatedSqlQuery:
         be NULLIF-wrapped to catch both
         """
         sql, _ = _build_aggregated_sql_query(
-            table_name="litellm_dailyuserspend",
+            table_name="dailyuserspend",
             entity_id_field="user_id",
             entity_id=None,
             start_date="2026-07-01",
@@ -1054,7 +1054,7 @@ class TestAggregatedEmptyEntityFilter:
     @pytest.mark.parametrize("build", _BUILDERS)
     def test_empty_entity_list_emits_no_degenerate_in_clause(self, build):
         sql, params = build(
-            table_name="litellm_dailyteamspend",
+            table_name="dailyteamspend",
             entity_id_field="team_id",
             entity_id=[],
             start_date="2026-08-01",
@@ -1071,7 +1071,7 @@ class TestAggregatedEmptyEntityFilter:
     @pytest.mark.parametrize("build", _BUILDERS)
     def test_empty_entity_list_matches_nothing_rather_than_everything(self, build):
         sql, _ = build(
-            table_name="litellm_dailyteamspend",
+            table_name="dailyteamspend",
             entity_id_field="team_id",
             entity_id=[],
             start_date="2026-08-01",
@@ -1085,7 +1085,7 @@ class TestAggregatedEmptyEntityFilter:
     @pytest.mark.parametrize("build", _BUILDERS)
     def test_populated_entity_list_still_filters_on_its_ids(self, build):
         sql, params = build(
-            table_name="litellm_dailyteamspend",
+            table_name="dailyteamspend",
             entity_id_field="team_id",
             entity_id=["team-alpha", "team-beta"],
             start_date="2026-08-01",
@@ -1141,7 +1141,7 @@ async def test_get_daily_activity_aggregated_empty_result_set():
 
     result = await get_daily_activity_aggregated(
         prisma_client=mock_prisma,
-        table_name="litellm_dailyuserspend",
+        table_name="dailyuserspend",
         entity_id_field="user_id",
         entity_id=None,
         entity_metadata_field=None,
@@ -1232,7 +1232,7 @@ class TestEverySavingsDriverSurvivesTheReadPath:
 
     def test_every_driver_is_summed_by_the_rollup_query(self):
         sql, _ = _build_aggregated_sql_query(
-            table_name="litellm_dailyuserspend",
+            table_name="dailyuserspend",
             entity_id_field="user_id",
             entity_id="user-1",
             start_date="2026-07-01",
@@ -1743,13 +1743,13 @@ class TestPtuCostAttributionDisabled:
         ]
         mock_table.find_many = AsyncMock(return_value=team_rows)
         _stub_window_totals(mock_table, team_rows)
-        mock_prisma.db.litellm_verificationtoken = MagicMock()
-        mock_prisma.db.litellm_verificationtoken.find_many = AsyncMock(return_value=[])
-        mock_prisma.db.litellm_dailyteamspend = mock_table
+        mock_prisma.db.verificationtoken = MagicMock()
+        mock_prisma.db.verificationtoken.find_many = AsyncMock(return_value=[])
+        mock_prisma.db.dailyteamspend = mock_table
 
         result = await get_daily_activity(
             prisma_client=mock_prisma,
-            table_name="litellm_dailyteamspend",
+            table_name="dailyteamspend",
             entity_id_field="team_id",
             entity_id="team-1",
             entity_metadata_field=None,
@@ -1781,13 +1781,13 @@ class TestPtuCostAttributionDisabled:
         ]
         mock_table.find_many = AsyncMock(return_value=team_rows)
         _stub_window_totals(mock_table, team_rows)
-        mock_prisma.db.litellm_verificationtoken = MagicMock()
-        mock_prisma.db.litellm_verificationtoken.find_many = AsyncMock(return_value=[])
-        mock_prisma.db.litellm_dailyteamspend = mock_table
+        mock_prisma.db.verificationtoken = MagicMock()
+        mock_prisma.db.verificationtoken.find_many = AsyncMock(return_value=[])
+        mock_prisma.db.dailyteamspend = mock_table
 
         result = await get_daily_activity(
             prisma_client=mock_prisma,
-            table_name="litellm_dailyteamspend",
+            table_name="dailyteamspend",
             entity_id_field="team_id",
             entity_id="team-1",
             entity_metadata_field=None,
@@ -1854,7 +1854,7 @@ def test_entity_rollup_sql_query_and_api_key_list_filter():
     )
 
     sql, params = _build_entity_rollup_sql_query(
-        table_name="litellm_dailyteamspend",
+        table_name="dailyteamspend",
         entity_id_field="team_id",
         entity_id=None,
         start_date="2024-01-01",
@@ -1871,7 +1871,7 @@ def test_entity_rollup_sql_query_and_api_key_list_filter():
     assert params == ["2024-01-01", "2024-01-31", "key-1", "key-2", *INTERNAL_HEALTH_CHECK_API_KEYS]
 
     plain_sql, _ = _build_aggregated_sql_query(
-        table_name="litellm_dailyteamspend",
+        table_name="dailyteamspend",
         entity_id_field="team_id",
         entity_id=None,
         start_date="2024-01-01",
@@ -1883,7 +1883,7 @@ def test_entity_rollup_sql_query_and_api_key_list_filter():
     assert "GROUPING(date" in plain_sql
 
     empty_sql, empty_params = _build_aggregated_sql_query(
-        table_name="litellm_dailyteamspend",
+        table_name="dailyteamspend",
         entity_id_field="team_id",
         entity_id=None,
         start_date="2024-01-01",
@@ -1956,12 +1956,12 @@ async def test_get_daily_activity_aggregated_with_entity_breakdown():
     ]
 
     mock_prisma.db.query_raw = AsyncMock(side_effect=[main_rows, entity_rows])
-    mock_prisma.db.litellm_verificationtoken = MagicMock()
-    mock_prisma.db.litellm_verificationtoken.find_many = AsyncMock(return_value=[])
+    mock_prisma.db.verificationtoken = MagicMock()
+    mock_prisma.db.verificationtoken.find_many = AsyncMock(return_value=[])
 
     result = await get_daily_activity_aggregated(
         prisma_client=mock_prisma,
-        table_name="litellm_dailyteamspend",
+        table_name="dailyteamspend",
         entity_id_field="team_id",
         entity_id=None,
         entity_metadata_field={"team-a": {"team_alias": "Alpha"}},
@@ -2017,13 +2017,13 @@ async def test_metadata_totals_describe_the_window_not_the_page():
     mock_table.count = AsyncMock(return_value=len(whole_window))
     mock_table.find_many = AsyncMock(return_value=[served_page])
     _stub_window_totals(mock_table, whole_window)
-    mock_prisma.db.litellm_dailyuserspend = mock_table
-    mock_prisma.db.litellm_verificationtoken = MagicMock()
-    mock_prisma.db.litellm_verificationtoken.find_many = AsyncMock(return_value=[])
+    mock_prisma.db.dailyuserspend = mock_table
+    mock_prisma.db.verificationtoken = MagicMock()
+    mock_prisma.db.verificationtoken.find_many = AsyncMock(return_value=[])
 
     result = await get_daily_activity(
         prisma_client=mock_prisma,
-        table_name="litellm_dailyuserspend",
+        table_name="dailyuserspend",
         entity_id_field="user_id",
         entity_id=None,
         entity_metadata_field=None,

@@ -38,7 +38,7 @@ def _attach_gateway_config(mock_prisma):
     table.update_many = AsyncMock(return_value=1)
     table.delete = AsyncMock()
     table.delete_many = AsyncMock()
-    mock_prisma.db.litellm_config = table
+    mock_prisma.db.config = table
     return table
 
 

@@ -169,7 +169,7 @@ def _prisma_with_models(rows, existing_sentinel_rows=()):
     daily.find_many = AsyncMock(return_value=list(existing_sentinel_rows))
     daily.upsert = AsyncMock()
     daily.delete_many = AsyncMock()
-    prisma.db = types.SimpleNamespace(litellm_proxymodeltable=model_table, litellm_dailyteamspend=daily)
+    prisma.db = types.SimpleNamespace(proxymodeltable=model_table, dailyteamspend=daily)
     return prisma, daily
 
 
@@ -635,7 +635,7 @@ async def test_scheduled_rollup_runs_and_releases_the_lock_when_it_wins():
 @pytest.mark.asyncio
 async def test_scheduled_rollup_releases_the_lock_even_when_the_run_raises():
     prisma, table = _prisma_with_models([])
-    prisma.db.litellm_proxymodeltable.find_many = AsyncMock(side_effect=RuntimeError("db down"))
+    prisma.db.proxymodeltable.find_many = AsyncMock(side_effect=RuntimeError("db down"))
     lock = _pod_lock(acquired=True)
 
     with pytest.raises(RuntimeError):
@@ -756,7 +756,7 @@ def _prisma_for(model_rows, daily_table):
     prisma = MagicMock()
     model_table = MagicMock()
     model_table.find_many = AsyncMock(return_value=model_rows)
-    prisma.db = types.SimpleNamespace(litellm_proxymodeltable=model_table, litellm_dailyteamspend=daily_table)
+    prisma.db = types.SimpleNamespace(proxymodeltable=model_table, dailyteamspend=daily_table)
     return prisma
 
 
@@ -1433,7 +1433,7 @@ async def test_backfill_returns_empty_when_prisma_client_is_none():
 async def test_backfill_counts_a_charge_that_never_landed():
     table = _FakeSentinelTable()
     prisma = _prisma_for([_windowed_row(effective_from=_midnight(_day(-1)))], table)
-    prisma.db.litellm_dailyteamspend.upsert = AsyncMock(side_effect=RuntimeError("db down"))
+    prisma.db.dailyteamspend.upsert = AsyncMock(side_effect=RuntimeError("db down"))
 
     result = await run_ptu_flat_cost_backfill(prisma, today=TODAY)
 
@@ -1493,7 +1493,7 @@ async def test_a_failing_backfill_does_not_lose_the_days_rollup_result():
     swallow its result or raise into the scheduler."""
     table = _FakeSentinelTable()
     prisma = _prisma_for([_windowed_row()], table)
-    prisma.db.litellm_dailyteamspend.find_many = AsyncMock(side_effect=RuntimeError("read replica down"))
+    prisma.db.dailyteamspend.find_many = AsyncMock(side_effect=RuntimeError("read replica down"))
 
     result = await run_scheduled_ptu_rollup(prisma)
 
@@ -1509,7 +1509,7 @@ async def test_scheduled_rollup_alerts_when_a_backfill_charge_never_landed():
     table = _FakeSentinelTable()
     yesterday = datetime.now(timezone.utc).date() - timedelta(days=1)
     prisma = _prisma_for([_windowed_row(effective_from=_midnight(yesterday - timedelta(days=1)))], table)
-    prisma.db.litellm_dailyteamspend.upsert = AsyncMock(side_effect=RuntimeError("db down"))
+    prisma.db.dailyteamspend.upsert = AsyncMock(side_effect=RuntimeError("db down"))
     alert = AsyncMock()
 
     await run_scheduled_ptu_rollup(prisma, alert=alert)
@@ -1523,7 +1523,7 @@ async def test_scheduled_rollup_alerts_when_a_backfill_charge_never_landed():
 async def test_a_broken_alert_channel_does_not_fail_the_backfill():
     table = _FakeSentinelTable()
     prisma = _prisma_for([_windowed_row()], table)
-    prisma.db.litellm_dailyteamspend.upsert = AsyncMock(side_effect=RuntimeError("db down"))
+    prisma.db.dailyteamspend.upsert = AsyncMock(side_effect=RuntimeError("db down"))
 
     result = await run_scheduled_ptu_rollup(prisma, alert=AsyncMock(side_effect=RuntimeError("slack down")))
 

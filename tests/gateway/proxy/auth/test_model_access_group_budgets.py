@@ -315,7 +315,7 @@ class _RecordingPrismaClient:
         self.rows = {row.access_group_name: row for row in rows}
         self.batches: list[list[str]] = []
         self.db = SimpleNamespace(
-            litellm_modelaccessgroupbudgettable=SimpleNamespace(find_many=self._find_many)
+            modelaccessgroupbudgettable=SimpleNamespace(find_many=self._find_many)
         )
 
     async def _find_many(self, **kwargs):
@@ -492,7 +492,7 @@ async def test_a_database_error_does_not_block_the_request():
     class _FailingPrismaClient:
         def __init__(self) -> None:
             self.db = SimpleNamespace(
-                litellm_modelaccessgroupbudgettable=SimpleNamespace(find_many=self._boom)
+                modelaccessgroupbudgettable=SimpleNamespace(find_many=self._boom)
             )
 
         async def _boom(self, **kwargs):

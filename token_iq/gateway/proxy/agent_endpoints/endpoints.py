@@ -121,7 +121,7 @@ async def _attach_keys_to_agents(agents: Sequence[AgentResponse], prisma_client)
     )
     if not agent_ids:
         return
-    key_rows: Final = await prisma_client.db.litellm_verificationtoken.find_many(
+    key_rows: Final = await prisma_client.db.verificationtoken.find_many(
         where={"agent_id": {"in": agent_ids}},
     )
     keys_by_agent: Final[dict[str, list[AgentKeySummary]]] = {}
@@ -1183,7 +1183,7 @@ async def get_agent_daily_activity(
 
     return await get_daily_activity(
         prisma_client=prisma_client,
-        table_name="litellm_dailyagentspend",
+        table_name="dailyagentspend",
         entity_id_field="agent_id",
         entity_id=agent_ids_list,
         entity_metadata_field=agent_metadata,

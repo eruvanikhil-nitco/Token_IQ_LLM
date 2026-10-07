@@ -86,7 +86,7 @@ async def test_key_reset_spend_authz_matrix(
         proxy_client, seeder, scratch.prefix, world, shape, caller
     )
     hashed = hash_token(target)
-    await prisma.db.litellm_verificationtoken.update(
+    await prisma.db.verificationtoken.update(
         where={"token": hashed}, data={"spend": _SEED_SPEND}
     )
 
@@ -99,7 +99,7 @@ async def test_key_reset_spend_authz_matrix(
         resp.status_code == expected_status
     ), f"{actor.value} {shape}: {resp.status_code} {resp.text}"
 
-    row = await prisma.db.litellm_verificationtoken.find_unique(where={"token": hashed})
+    row = await prisma.db.verificationtoken.find_unique(where={"token": hashed})
     assert row is not None
     if expected_status == 200:
         assert row.spend == _RESET_TO

@@ -626,7 +626,7 @@ async def test_get_all_search_tools_from_db_retries_on_transport_error():
         return []
 
     mock_prisma_client = MagicMock()
-    mock_prisma_client.db.litellm_searchtoolstable.find_many = AsyncMock(
+    mock_prisma_client.db.searchtoolstable.find_many = AsyncMock(
         side_effect=_flaky_find_many
     )
     mock_prisma_client.attempt_db_reconnect = AsyncMock(return_value=True)

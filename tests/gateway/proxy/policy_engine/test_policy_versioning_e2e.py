@@ -76,7 +76,7 @@ async def test_full_lifecycle_create_draft_edit_publish_promote():
         create_data.update(kwargs.get("data", data or {}))
         return created_v1
 
-    prisma.db.litellm_policytable.create = AsyncMock(side_effect=create_impl)
+    prisma.db.policytable.create = AsyncMock(side_effect=create_impl)
     req = PolicyCreateRequest(
         policy_name="lifecycle-policy",
         description="Initial",
@@ -98,9 +98,9 @@ async def test_full_lifecycle_create_draft_edit_publish_promote():
         guardrails_add=["g1", "g2"],
         description="Draft v2",
     )
-    prisma.db.litellm_policytable.find_first = AsyncMock(return_value=created_v1)
-    prisma.db.litellm_policytable.update_many = AsyncMock()
-    prisma.db.litellm_policytable.create = AsyncMock(return_value=v2_row)
+    prisma.db.policytable.find_first = AsyncMock(return_value=created_v1)
+    prisma.db.policytable.update_many = AsyncMock()
+    prisma.db.policytable.create = AsyncMock(return_value=v2_row)
 
     draft_v2 = await registry.create_new_version(
         policy_name="lifecycle-policy",
@@ -125,8 +125,8 @@ async def test_full_lifecycle_create_draft_edit_publish_promote():
         guardrails_add=["g1", "g2", "g3"],
         description="Draft v2 edited",
     )
-    prisma.db.litellm_policytable.find_unique = AsyncMock(return_value=v2_row)
-    prisma.db.litellm_policytable.update = AsyncMock(return_value=v2_updated_row)
+    prisma.db.policytable.find_unique = AsyncMock(return_value=v2_row)
+    prisma.db.policytable.update = AsyncMock(return_value=v2_updated_row)
 
     updated_draft = await registry.update_policy_in_db(
         policy_id="v2-id",
@@ -150,8 +150,8 @@ async def test_full_lifecycle_create_draft_edit_publish_promote():
         guardrails_add=["g1", "g2", "g3"],
         description="Draft v2 edited",
     )
-    prisma.db.litellm_policytable.find_unique = AsyncMock(return_value=v2_updated_row)
-    prisma.db.litellm_policytable.update = AsyncMock(return_value=v2_published)
+    prisma.db.policytable.find_unique = AsyncMock(return_value=v2_updated_row)
+    prisma.db.policytable.update = AsyncMock(return_value=v2_published)
 
     published = await registry.update_version_status(
         policy_id="v2-id",
@@ -162,8 +162,8 @@ async def test_full_lifecycle_create_draft_edit_publish_promote():
     assert published.version_status == "published"
 
     # 5) Promote v2 to production (demote v1 to published, update registry)
-    prisma.db.litellm_policytable.find_unique = AsyncMock(return_value=v2_published)
-    prisma.db.litellm_policytable.update_many = AsyncMock()
+    prisma.db.policytable.find_unique = AsyncMock(return_value=v2_published)
+    prisma.db.policytable.update_many = AsyncMock()
     v2_production = _make_row(
         policy_id="v2-id",
         policy_name="lifecycle-policy",
@@ -173,7 +173,7 @@ async def test_full_lifecycle_create_draft_edit_publish_promote():
         guardrails_add=["g1", "g2", "g3"],
         description="Draft v2 edited",
     )
-    prisma.db.litellm_policytable.update = AsyncMock(return_value=v2_production)
+    prisma.db.policytable.update = AsyncMock(return_value=v2_production)
 
     prod = await registry.update_version_status(
         policy_id="v2-id",
@@ -204,7 +204,7 @@ async def test_attachments_resolve_against_production_after_promotion():
         version_status="production",
         guardrails_add=["ga", "gb"],
     )
-    prisma.db.litellm_policytable.find_many = AsyncMock(return_value=[prod_row])
+    prisma.db.policytable.find_many = AsyncMock(return_value=[prod_row])
 
     resolved = await registry.resolve_guardrails_from_db(
         policy_name="att-policy",
@@ -212,5 +212,5 @@ async def test_attachments_resolve_against_production_after_promotion():
     )
     assert "ga" in resolved
     assert "gb" in resolved
-    call_kw = prisma.db.litellm_policytable.find_many.call_args[1]
+    call_kw = prisma.db.policytable.find_many.call_args[1]
     assert call_kw.get("where") == {"version_status": "production"}

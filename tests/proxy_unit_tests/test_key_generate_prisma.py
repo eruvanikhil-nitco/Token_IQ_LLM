@@ -4215,7 +4215,7 @@ async def test_reset_budget_job(prisma_client, entity_type):
         print("generated key=", key)
 
         # Update the key to set spend and reset_at to now
-        updated = await prisma_client.db.litellm_verificationtoken.update_many(
+        updated = await prisma_client.db.verificationtoken.update_many(
             where={"token": key.token_id},
             data={
                 "spend": 99.0,
@@ -4239,7 +4239,7 @@ async def test_reset_budget_job(prisma_client, entity_type):
         entity_id = user.user_id
 
         # Update the user to set spend and reset_at to now
-        await prisma_client.db.litellm_usertable.update_many(
+        await prisma_client.db.usertable.update_many(
             where={"user_id": user.user_id},
             data={
                 "spend": 99.0,
@@ -4266,7 +4266,7 @@ async def test_reset_budget_job(prisma_client, entity_type):
 
         # Update the team to set spend and reset_at to now
         current_time = datetime.utcnow()
-        await prisma_client.db.litellm_teamtable.update(
+        await prisma_client.db.teamtable.update(
             where={"team_id": team_id},
             data={
                 "spend": 99.0,
@@ -4275,15 +4275,15 @@ async def test_reset_budget_job(prisma_client, entity_type):
 
     # Verify entity was created and updated with spend
     if entity_type == "key":
-        entity_before = await prisma_client.db.litellm_verificationtoken.find_unique(
+        entity_before = await prisma_client.db.verificationtoken.find_unique(
             where={"token": entity_id}
         )
     elif entity_type == "user":
-        entity_before = await prisma_client.db.litellm_usertable.find_unique(
+        entity_before = await prisma_client.db.usertable.find_unique(
             where={"user_id": entity_id}
         )
     elif entity_type == "team":
-        entity_before = await prisma_client.db.litellm_teamtable.find_unique(
+        entity_before = await prisma_client.db.teamtable.find_unique(
             where={"team_id": entity_id}
         )
 
@@ -4299,15 +4299,15 @@ async def test_reset_budget_job(prisma_client, entity_type):
 
     # Verify the entity's spend is reset and budget_reset_at is updated
     if entity_type == "key":
-        entity_after = await prisma_client.db.litellm_verificationtoken.find_unique(
+        entity_after = await prisma_client.db.verificationtoken.find_unique(
             where={"token": entity_id}
         )
     elif entity_type == "user":
-        entity_after = await prisma_client.db.litellm_usertable.find_unique(
+        entity_after = await prisma_client.db.usertable.find_unique(
             where={"user_id": entity_id}
         )
     elif entity_type == "team":
-        entity_after = await prisma_client.db.litellm_teamtable.find_unique(
+        entity_after = await prisma_client.db.teamtable.find_unique(
             where={"team_id": entity_id}
         )
 

@@ -420,7 +420,7 @@ async def test_get_generic_data_retries_on_transport_error_for_config_table(
             raise httpx.ReadError("simulated transport blip")
         return expected_row
 
-    client.db.litellm_config.find_first = AsyncMock(side_effect=_flaky_find_first)
+    client.db.config.find_first = AsyncMock(side_effect=_flaky_find_first)
     client.attempt_db_reconnect = AsyncMock(return_value=True)
 
     result = await client.get_generic_data(
@@ -450,7 +450,7 @@ async def test_get_generic_data_propagates_when_reconnect_fails(mock_proxy_loggi
         database_url="mock://test", proxy_logging_obj=mock_proxy_logging
     )
 
-    client.db.litellm_config.find_first = AsyncMock(
+    client.db.config.find_first = AsyncMock(
         side_effect=httpx.ReadError("simulated transport blip")
     )
     client.attempt_db_reconnect = AsyncMock(return_value=False)

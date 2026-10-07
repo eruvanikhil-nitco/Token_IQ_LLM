@@ -59,9 +59,9 @@ def admin_viewer_client(monkeypatch):
     mock_query_raw = AsyncMock(side_effect=[[{"count": 0}], []])
 
     mock_prisma.db = types.SimpleNamespace(
-        litellm_budgettable=mock_budget_table,
-        litellm_invitationlink=mock_invitation_table,
-        litellm_config=mock_config_table,
+        budgettable=mock_budget_table,
+        invitationlink=mock_invitation_table,
+        config=mock_config_table,
         query_raw=mock_query_raw,
     )
 

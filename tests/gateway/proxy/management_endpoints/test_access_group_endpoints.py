@@ -109,16 +109,16 @@ def client_and_mocks(monkeypatch):
     @asynccontextmanager
     async def mock_tx():
         tx = types.SimpleNamespace(
-            litellm_accessgrouptable=mock_access_group_table,
-            litellm_teamtable=mock_team_table,
-            litellm_verificationtoken=mock_key_table,
+            accessgrouptable=mock_access_group_table,
+            teamtable=mock_team_table,
+            verificationtoken=mock_key_table,
         )
         yield tx
 
     mock_db = types.SimpleNamespace(
-        litellm_accessgrouptable=mock_access_group_table,
-        litellm_teamtable=mock_team_table,
-        litellm_verificationtoken=mock_key_table,
+        accessgrouptable=mock_access_group_table,
+        teamtable=mock_team_table,
+        verificationtoken=mock_key_table,
         tx=mock_tx,
     )
     mock_prisma.db = mock_db
@@ -600,8 +600,8 @@ def test_delete_access_group_cleans_up_teams_and_keys(client_and_mocks):
     client, mock_prisma, mock_access_group_table, mock_cache, mock_proxy_logging = (
         client_and_mocks
     )
-    mock_team_table = mock_prisma.db.litellm_teamtable
-    mock_key_table = mock_prisma.db.litellm_verificationtoken
+    mock_team_table = mock_prisma.db.teamtable
+    mock_key_table = mock_prisma.db.verificationtoken
 
     existing = _make_access_group_record(access_group_id="ag-to-delete")
     mock_access_group_table.find_unique = AsyncMock(return_value=existing)
@@ -702,8 +702,8 @@ def test_delete_access_group_patches_cached_team_and_key(
     client, mock_prisma, mock_access_group_table, mock_cache, mock_proxy_logging = (
         client_and_mocks
     )
-    mock_team_table = mock_prisma.db.litellm_teamtable
-    mock_key_table = mock_prisma.db.litellm_verificationtoken
+    mock_team_table = mock_prisma.db.teamtable
+    mock_key_table = mock_prisma.db.verificationtoken
 
     existing = _make_access_group_record(access_group_id="ag-to-delete")
     mock_access_group_table.find_unique = AsyncMock(return_value=existing)
@@ -821,8 +821,8 @@ def test_delete_access_group_patches_key_cached_as_dict(client_and_mocks):
     client, mock_prisma, mock_access_group_table, mock_cache, mock_proxy_logging = (
         client_and_mocks
     )
-    mock_team_table = mock_prisma.db.litellm_teamtable
-    mock_key_table = mock_prisma.db.litellm_verificationtoken
+    mock_team_table = mock_prisma.db.teamtable
+    mock_key_table = mock_prisma.db.verificationtoken
 
     existing = _make_access_group_record(access_group_id="ag-to-delete")
     mock_access_group_table.find_unique = AsyncMock(return_value=existing)
@@ -995,7 +995,7 @@ def test_create_access_group_syncs_assigned_teams(client_and_mocks):
     client, mock_prisma, mock_access_group_table, mock_cache, mock_proxy_logging = (
         client_and_mocks
     )
-    mock_team_table = mock_prisma.db.litellm_teamtable
+    mock_team_table = mock_prisma.db.teamtable
 
     team_record = MagicMock()
     team_record.team_id = "team-1"
@@ -1021,7 +1021,7 @@ def test_create_access_group_syncs_assigned_keys(client_and_mocks):
     client, mock_prisma, mock_access_group_table, mock_cache, mock_proxy_logging = (
         client_and_mocks
     )
-    mock_key_table = mock_prisma.db.litellm_verificationtoken
+    mock_key_table = mock_prisma.db.verificationtoken
 
     key_record = MagicMock()
     key_record.token = "hashed-token-1"
@@ -1046,7 +1046,7 @@ def test_create_access_group_syncs_assigned_keys(client_and_mocks):
 def test_create_access_group_skips_sync_for_nonexistent_team(client_and_mocks):
     """Create skips updating a team that doesn't exist in DB."""
     client, mock_prisma, _, mock_cache, mock_proxy_logging = client_and_mocks
-    mock_team_table = mock_prisma.db.litellm_teamtable
+    mock_team_table = mock_prisma.db.teamtable
     mock_team_table.find_unique = AsyncMock(return_value=None)
 
     resp = client.post(
@@ -1063,7 +1063,7 @@ def test_create_access_group_skips_sync_for_nonexistent_team(client_and_mocks):
 def test_create_access_group_idempotent_team_sync(client_and_mocks):
     """Create skips updating a team that already has the access_group_id."""
     client, mock_prisma, _, mock_cache, mock_proxy_logging = client_and_mocks
-    mock_team_table = mock_prisma.db.litellm_teamtable
+    mock_team_table = mock_prisma.db.teamtable
 
     team_record = MagicMock()
     team_record.team_id = "team-1"
@@ -1088,7 +1088,7 @@ def test_update_access_group_syncs_added_teams(client_and_mocks):
     client, mock_prisma, mock_access_group_table, mock_cache, mock_proxy_logging = (
         client_and_mocks
     )
-    mock_team_table = mock_prisma.db.litellm_teamtable
+    mock_team_table = mock_prisma.db.teamtable
 
     existing = _make_access_group_record(
         access_group_id="ag-update", assigned_team_ids=["team-existing"]
@@ -1118,7 +1118,7 @@ def test_update_access_group_syncs_removed_teams(client_and_mocks):
     client, mock_prisma, mock_access_group_table, mock_cache, mock_proxy_logging = (
         client_and_mocks
     )
-    mock_team_table = mock_prisma.db.litellm_teamtable
+    mock_team_table = mock_prisma.db.teamtable
 
     existing = _make_access_group_record(
         access_group_id="ag-update", assigned_team_ids=["team-keep", "team-remove"]
@@ -1150,7 +1150,7 @@ def test_update_access_group_no_team_sync_when_ids_not_in_payload(client_and_moc
     client, mock_prisma, mock_access_group_table, mock_cache, mock_proxy_logging = (
         client_and_mocks
     )
-    mock_team_table = mock_prisma.db.litellm_teamtable
+    mock_team_table = mock_prisma.db.teamtable
 
     existing = _make_access_group_record(
         access_group_id="ag-update", assigned_team_ids=["team-1"]
@@ -1169,7 +1169,7 @@ def test_update_access_group_syncs_added_keys(client_and_mocks):
     client, mock_prisma, mock_access_group_table, mock_cache, mock_proxy_logging = (
         client_and_mocks
     )
-    mock_key_table = mock_prisma.db.litellm_verificationtoken
+    mock_key_table = mock_prisma.db.verificationtoken
 
     existing = _make_access_group_record(
         access_group_id="ag-update", assigned_key_ids=["old-token"]
@@ -1199,7 +1199,7 @@ def test_update_access_group_syncs_removed_keys(client_and_mocks):
     client, mock_prisma, mock_access_group_table, mock_cache, mock_proxy_logging = (
         client_and_mocks
     )
-    mock_key_table = mock_prisma.db.litellm_verificationtoken
+    mock_key_table = mock_prisma.db.verificationtoken
 
     existing = _make_access_group_record(
         access_group_id="ag-update", assigned_key_ids=["keep-token", "remove-token"]
@@ -1234,7 +1234,7 @@ def test_delete_access_group_handles_out_of_sync_assigned_teams(client_and_mocks
     client, mock_prisma, mock_access_group_table, mock_cache, mock_proxy_logging = (
         client_and_mocks
     )
-    mock_team_table = mock_prisma.db.litellm_teamtable
+    mock_team_table = mock_prisma.db.teamtable
 
     # Access group has assigned_team_ids but the team's access_group_ids is not synced
     existing = _make_access_group_record(
@@ -1267,7 +1267,7 @@ def test_delete_access_group_handles_out_of_sync_assigned_keys(client_and_mocks)
     client, mock_prisma, mock_access_group_table, mock_cache, mock_proxy_logging = (
         client_and_mocks
     )
-    mock_key_table = mock_prisma.db.litellm_verificationtoken
+    mock_key_table = mock_prisma.db.verificationtoken
 
     existing = _make_access_group_record(
         access_group_id="ag-to-delete",

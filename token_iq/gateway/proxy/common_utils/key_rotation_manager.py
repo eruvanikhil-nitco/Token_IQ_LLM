@@ -110,7 +110,7 @@ class KeyRotationManager:
                     cronjob_id=KEY_ROTATION_JOB_NAME,
                 )
 
-    async def _find_keys_needing_rotation(self) -> "Sequence[prisma_models.LiteLLM_VerificationToken]":
+    async def _find_keys_needing_rotation(self) -> "Sequence[prisma_models.VerificationToken]":
         """
         Find keys that are due for rotation based on their key_rotation_at timestamp.
 
@@ -160,7 +160,7 @@ class KeyRotationManager:
         # Check if the rotation time has passed
         return now >= key.key_rotation_at
 
-    async def _rotate_key(self, key: "prisma_models.LiteLLM_VerificationToken"):
+    async def _rotate_key(self, key: "prisma_models.VerificationToken"):
         """
         Rotate a single key using existing regenerate_key_fn and call the rotation hook
         """

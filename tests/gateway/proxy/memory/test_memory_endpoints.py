@@ -187,7 +187,7 @@ def _make_team(team_id: str, *, admin_user_ids: List[str]) -> Any:
     from prisma import models as prisma_models
 
     now = datetime.now(timezone.utc)
-    return prisma_models.LiteLLM_TeamTable(
+    return prisma_models.TeamTable(
         team_id=team_id,
         organization_id=None,
         members_with_roles=json.dumps([{"user_id": uid, "role": "admin"} for uid in admin_user_ids]),
@@ -212,8 +212,8 @@ def _make_team(team_id: str, *, admin_user_ids: List[str]) -> Any:
 def _make_prisma() -> MagicMock:
     client = MagicMock()
     client.db = MagicMock()
-    client.db.litellm_memorytable = _InMemoryMemoryTable()
-    client.db.litellm_teamtable = _InMemoryTeamTable()
+    client.db.memorytable = _InMemoryMemoryTable()
+    client.db.teamtable = _InMemoryTeamTable()
     return client
 
 
@@ -279,7 +279,7 @@ class TestMemoryEndpoints:
         """
         import json as _json
 
-        table = self.prisma.db.litellm_memorytable
+        table = self.prisma.db.memorytable
         original_create = table.create
         captured: Dict[str, Any] = {}
 
@@ -314,7 +314,7 @@ class TestMemoryEndpoints:
         """
         import json as _json
 
-        table = self.prisma.db.litellm_memorytable
+        table = self.prisma.db.memorytable
         original_create = table.create
         captured: Dict[str, Any] = {}
 
@@ -344,7 +344,7 @@ class TestMemoryEndpoints:
         """Same regression as the POST list-metadata test, but for PUT-create."""
         import json as _json
 
-        table = self.prisma.db.litellm_memorytable
+        table = self.prisma.db.memorytable
         original_create = table.create
         captured: Dict[str, Any] = {}
 
@@ -370,7 +370,7 @@ class TestMemoryEndpoints:
         """Same regression as the POST list-metadata test, but for PUT-update."""
         import json as _json
 
-        table = self.prisma.db.litellm_memorytable
+        table = self.prisma.db.memorytable
         table.rows.append(
             _make_row(
                 memory_id="m1",
@@ -412,7 +412,7 @@ class TestMemoryEndpoints:
         """
         import json as _json
 
-        table = self.prisma.db.litellm_memorytable
+        table = self.prisma.db.memorytable
         original_create = table.create
         captured: Dict[str, Any] = {}
 
@@ -482,7 +482,7 @@ class TestMemoryEndpoints:
         violation (a concurrent writer beat us). The handler should re-read
         and fall through to an update instead of surfacing a 500.
         """
-        table = self.prisma.db.litellm_memorytable
+        table = self.prisma.db.memorytable
 
         original_create = table.create
         original_find_many = table.find_many
@@ -540,7 +540,7 @@ class TestMemoryEndpoints:
         assert body["team_id"] == "some-team"
 
     def test_list_memory_scoped_to_caller(self):
-        table = self.prisma.db.litellm_memorytable
+        table = self.prisma.db.memorytable
         table.rows.extend(
             [
                 _make_row(memory_id="m1", key="a", user_id="user-a", team_id=None),
@@ -559,7 +559,7 @@ class TestMemoryEndpoints:
 
     def test_list_memory_key_prefix_filter(self):
         """key_prefix should do a prefix match (Redis-style namespace scan)."""
-        table = self.prisma.db.litellm_memorytable
+        table = self.prisma.db.memorytable
         table.rows.extend(
             [
                 _make_row(
@@ -590,7 +590,7 @@ class TestMemoryEndpoints:
         Even if a prefix would match another user's keys, the visibility
         filter must still scope results to the caller.
         """
-        table = self.prisma.db.litellm_memorytable
+        table = self.prisma.db.memorytable
         table.rows.extend(
             [
                 # Caller's own "user:*" rows — should be visible.
@@ -616,7 +616,7 @@ class TestMemoryEndpoints:
         assert body["total"] == 1
 
     def test_list_memory_admin_sees_all(self):
-        table = self.prisma.db.litellm_memorytable
+        table = self.prisma.db.memorytable
         table.rows.extend(
             [
                 _make_row(memory_id="m1", key="a", user_id="user-a", team_id=None),
@@ -630,7 +630,7 @@ class TestMemoryEndpoints:
         assert resp.json()["total"] == 2
 
     def test_get_memory_by_key(self):
-        table = self.prisma.db.litellm_memorytable
+        table = self.prisma.db.memorytable
         table.rows.append(
             _make_row(memory_id="m1", key="notes", value="hi", user_id="user-a")
         )
@@ -641,7 +641,7 @@ class TestMemoryEndpoints:
         assert resp.json()["value"] == "hi"
 
     def test_get_memory_not_visible_returns_404(self):
-        table = self.prisma.db.litellm_memorytable
+        table = self.prisma.db.memorytable
         table.rows.append(
             _make_row(memory_id="m1", key="notes", user_id="user-b", team_id=None)
         )
@@ -656,10 +656,10 @@ class TestMemoryEndpoints:
             resp = client.put("/v1/memory/notes", json={"value": "new"})
         assert resp.status_code == 200
         assert resp.json()["value"] == "new"
-        assert len(self.prisma.db.litellm_memorytable.rows) == 1
+        assert len(self.prisma.db.memorytable.rows) == 1
 
     def test_put_memory_updates_existing(self):
-        table = self.prisma.db.litellm_memorytable
+        table = self.prisma.db.memorytable
         table.rows.append(
             _make_row(
                 memory_id="m1",
@@ -682,7 +682,7 @@ class TestMemoryEndpoints:
         makes Prisma's `update` return None. That must surface the same 404 the
         read path uses, not an AttributeError bubbling out as an unhandled 500.
         """
-        table = self.prisma.db.litellm_memorytable
+        table = self.prisma.db.memorytable
         table.rows.append(
             _make_row(
                 memory_id="m1",
@@ -719,7 +719,7 @@ class TestMemoryEndpoints:
         caller's perspective the field is cleared — matching the natural
         expectation of `PUT {"metadata": null}`.
         """
-        table = self.prisma.db.litellm_memorytable
+        table = self.prisma.db.memorytable
         table.rows.append(
             _make_row(
                 memory_id="m1",
@@ -748,7 +748,7 @@ class TestMemoryEndpoints:
         of this PR treated explicit-null as a no-op and surfaced 400; we
         now write JSON `null` so the column reads back as None.)
         """
-        table = self.prisma.db.litellm_memorytable
+        table = self.prisma.db.memorytable
         table.rows.append(
             _make_row(
                 memory_id="m1",
@@ -768,7 +768,7 @@ class TestMemoryEndpoints:
 
     def test_put_memory_omitted_metadata_preserves_field(self):
         """PUT without a metadata field should NOT touch the stored metadata."""
-        table = self.prisma.db.litellm_memorytable
+        table = self.prisma.db.memorytable
         table.rows.append(
             _make_row(
                 memory_id="m1",
@@ -799,7 +799,7 @@ class TestMemoryEndpoints:
         write-authorization check must prevent them from overwriting it.
         Teammate B should get 403, not silently take over user A's entry.
         """
-        table = self.prisma.db.litellm_memorytable
+        table = self.prisma.db.memorytable
         table.rows.append(
             _make_row(
                 memory_id="m1",
@@ -819,7 +819,7 @@ class TestMemoryEndpoints:
 
     def test_delete_memory_teammate_cannot_delete_personal_row(self):
         """Same as above, but for DELETE."""
-        table = self.prisma.db.litellm_memorytable
+        table = self.prisma.db.memorytable
         table.rows.append(
             _make_row(
                 memory_id="m1",
@@ -840,7 +840,7 @@ class TestMemoryEndpoints:
         Pure team row (no user_id stamped) — only team admins (or org admins)
         may modify it, matching the auth pattern in team_endpoints.py.
         """
-        table = self.prisma.db.litellm_memorytable
+        table = self.prisma.db.memorytable
         table.rows.append(
             _make_row(
                 memory_id="m1",
@@ -851,7 +851,7 @@ class TestMemoryEndpoints:
             )
         )
         # user-admin is registered as a team admin of team-shared.
-        self.prisma.db.litellm_teamtable.teams.append(
+        self.prisma.db.teamtable.teams.append(
             _make_team("team-shared", admin_user_ids=["user-admin"])
         )
         client = _make_client(_user_auth("user-admin", "team-shared"))
@@ -865,7 +865,7 @@ class TestMemoryEndpoints:
         Plain team members can READ team rows (visibility OR-filter), but they
         cannot WRITE — only team admins can.
         """
-        table = self.prisma.db.litellm_memorytable
+        table = self.prisma.db.memorytable
         table.rows.append(
             _make_row(
                 memory_id="m1",
@@ -876,7 +876,7 @@ class TestMemoryEndpoints:
             )
         )
         # team-shared exists, but user-b is NOT in members_with_roles as admin.
-        self.prisma.db.litellm_teamtable.teams.append(
+        self.prisma.db.teamtable.teams.append(
             _make_team("team-shared", admin_user_ids=["someone-else"])
         )
         client = _make_client(_user_auth("user-b", "team-shared"))
@@ -887,7 +887,7 @@ class TestMemoryEndpoints:
 
     def test_delete_memory_team_member_cannot_delete_pure_team_row(self):
         """Same as above, for DELETE."""
-        table = self.prisma.db.litellm_memorytable
+        table = self.prisma.db.memorytable
         table.rows.append(
             _make_row(
                 memory_id="m1",
@@ -896,7 +896,7 @@ class TestMemoryEndpoints:
                 team_id="team-shared",
             )
         )
-        self.prisma.db.litellm_teamtable.teams.append(
+        self.prisma.db.teamtable.teams.append(
             _make_team("team-shared", admin_user_ids=["user-admin"])
         )
         client = _make_client(_user_auth("user-b", "team-shared"))
@@ -907,7 +907,7 @@ class TestMemoryEndpoints:
 
     def test_admin_can_modify_any_row(self):
         """Admin bypasses write-authorization."""
-        table = self.prisma.db.litellm_memorytable
+        table = self.prisma.db.memorytable
         table.rows.append(
             _make_row(
                 memory_id="m1",
@@ -928,7 +928,7 @@ class TestMemoryEndpoints:
         500 responses must not echo Prisma internals (table names, columns,
         connection strings) back to the caller.
         """
-        table = self.prisma.db.litellm_memorytable
+        table = self.prisma.db.memorytable
 
         async def boom(*_args, **_kwargs):
             raise Exception(
@@ -954,7 +954,7 @@ class TestMemoryEndpoints:
             ), f"Leaked '{leak}' in 500 response: {body_text}"
 
     def test_delete_memory(self):
-        table = self.prisma.db.litellm_memorytable
+        table = self.prisma.db.memorytable
         table.rows.append(
             _make_row(memory_id="m1", key="notes", user_id="user-a", team_id="team-a")
         )
@@ -966,7 +966,7 @@ class TestMemoryEndpoints:
         assert table.rows == []
 
     def test_delete_memory_not_visible_returns_404(self):
-        table = self.prisma.db.litellm_memorytable
+        table = self.prisma.db.memorytable
         table.rows.append(
             _make_row(memory_id="m1", key="notes", user_id="user-b", team_id=None)
         )
@@ -976,7 +976,7 @@ class TestMemoryEndpoints:
         assert resp.status_code == 404
 
     def test_delete_memory_row_deleted_mid_delete_returns_404(self):
-        table = self.prisma.db.litellm_memorytable
+        table = self.prisma.db.memorytable
         table.rows.append(
             _make_row(memory_id="m1", key="notes", user_id="user-a", team_id="team-a")
         )
@@ -1007,7 +1007,7 @@ class TestMemoryEndpoints:
 
     def test_list_memory_admin_viewer_sees_all(self):
         """Read parity end-to-end: the viewer's own user_id/team_id must not filter the list."""
-        table = self.prisma.db.litellm_memorytable
+        table = self.prisma.db.memorytable
         table.rows.extend(
             [
                 _make_row(memory_id="m1", key="a", user_id="user-a", team_id=None),
@@ -1027,7 +1027,7 @@ class TestMemoryEndpoints:
         Read parity must not become write parity: the viewer now SEES this row
         (403, not 404) but `_assert_write_access` still refuses the write.
         """
-        table = self.prisma.db.litellm_memorytable
+        table = self.prisma.db.memorytable
         table.rows.append(
             _make_row(
                 memory_id="m1",
@@ -1045,7 +1045,7 @@ class TestMemoryEndpoints:
 
     def test_delete_memory_admin_viewer_cannot_delete_foreign_row(self):
         """Same write gate as the PUT case, for DELETE."""
-        table = self.prisma.db.litellm_memorytable
+        table = self.prisma.db.memorytable
         table.rows.append(
             _make_row(
                 memory_id="m1",

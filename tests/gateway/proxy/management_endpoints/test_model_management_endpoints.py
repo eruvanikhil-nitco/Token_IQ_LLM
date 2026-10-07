@@ -84,11 +84,11 @@ class MockPrismaClient:
         return results
 
     @property
-    def litellm_teamtable(self):
+    def teamtable(self):
         return self
 
     @property
-    def litellm_proxymodeltable(self):
+    def proxymodeltable(self):
         return self
 
 
@@ -343,7 +343,7 @@ class TestModelManagementAuthChecks:
                     user_api_key_dict=self.team_admin_user,
                 )
             assert exc_info.value.code == "403"
-            mock_prisma.db.litellm_proxymodeltable.create.assert_not_called()
+            mock_prisma.db.proxymodeltable.create.assert_not_called()
 
     @pytest.mark.asyncio
     async def test_patch_model_rejects_credential_attach_for_non_admin(self):
@@ -552,7 +552,7 @@ class TestModelManagementAuthChecks:
     async def test_credential_info_for_attach_finds_a_database_credential(self, monkeypatch):
         monkeypatch.setattr(gateway, "credential_list", [])
         mock_prisma = MagicMock()
-        mock_prisma.db.litellm_credentialstable.find_unique = AsyncMock(
+        mock_prisma.db.credentialstable.find_unique = AsyncMock(
             return_value={
                 "credential_name": "db-openai",
                 "credential_values": {},
@@ -574,7 +574,7 @@ class TestModelManagementAuthChecks:
     async def test_credential_info_for_attach_refuses_a_name_in_neither_source(self, monkeypatch):
         monkeypatch.setattr(gateway, "credential_list", [])
         mock_prisma = MagicMock()
-        mock_prisma.db.litellm_credentialstable.find_unique = AsyncMock(return_value=None)
+        mock_prisma.db.credentialstable.find_unique = AsyncMock(return_value=None)
 
         with pytest.raises(ProxyException) as exc:
             await _credential_info_for_attach(
@@ -624,7 +624,7 @@ class MockModelTable:
 
 class MockPrismaDB:
     def __init__(self, model_aliases_list):
-        self.litellm_modeltable = self
+        self.modeltable = self
         self.model_aliases_list = model_aliases_list
         self.update_calls = []
 
@@ -639,7 +639,7 @@ class MockPrismaDB:
 
 class MockPrismaWrapper:
     def __init__(self, model_aliases_list):
-        self.litellm_modeltable = MockPrismaDB(model_aliases_list)
+        self.modeltable = MockPrismaDB(model_aliases_list)
 
 
 class TestDeleteTeamModelAlias:
@@ -682,7 +682,7 @@ class TestDeleteTeamModelAlias:
         )
 
         # Verify results
-        mock_db = mock_prisma.db.litellm_modeltable
+        mock_db = mock_prisma.db.modeltable
         assert (
             len(mock_db.update_calls) == 2
         )  # Should have 2 update calls since public_model_1 appears twice
@@ -740,7 +740,7 @@ class TestDeleteTeamModelAlias:
         )
 
         # Verify no updates were made
-        mock_db = mock_prisma.db.litellm_modeltable
+        mock_db = mock_prisma.db.modeltable
         assert len(mock_db.update_calls) == 0
 
 
@@ -1098,9 +1098,9 @@ class TestDeleteModelClearsRouterRegistry:
 
         mock_prisma = MagicMock()
         mock_prisma.db = MagicMock()
-        mock_prisma.db.litellm_proxymodeltable = AsyncMock()
-        mock_prisma.db.litellm_proxymodeltable.find_unique = AsyncMock(return_value=db_row)
-        mock_prisma.db.litellm_proxymodeltable.delete = AsyncMock(return_value=db_row)
+        mock_prisma.db.proxymodeltable = AsyncMock()
+        mock_prisma.db.proxymodeltable.find_unique = AsyncMock(return_value=db_row)
+        mock_prisma.db.proxymodeltable.delete = AsyncMock(return_value=db_row)
 
         real_router = gateway.Router(
             model_list=[
@@ -1159,9 +1159,9 @@ class TestDeleteModelClearsRouterRegistry:
 
         mock_prisma = MagicMock()
         mock_prisma.db = MagicMock()
-        mock_prisma.db.litellm_proxymodeltable = AsyncMock()
-        mock_prisma.db.litellm_proxymodeltable.find_unique = AsyncMock(return_value=db_row)
-        mock_prisma.db.litellm_proxymodeltable.delete = AsyncMock(return_value=db_row)
+        mock_prisma.db.proxymodeltable = AsyncMock()
+        mock_prisma.db.proxymodeltable.find_unique = AsyncMock(return_value=db_row)
+        mock_prisma.db.proxymodeltable.delete = AsyncMock(return_value=db_row)
 
         mock_router = MagicMock()
         mock_router.delete_deployment = MagicMock(
@@ -1234,10 +1234,10 @@ class TestUpdateModel:
         updated_row.model_dump_json.return_value = "{}"
 
         mock_prisma = MagicMock()
-        mock_prisma.db.litellm_proxymodeltable.find_unique = AsyncMock(
+        mock_prisma.db.proxymodeltable.find_unique = AsyncMock(
             return_value=existing_row
         )
-        mock_prisma.db.litellm_proxymodeltable.update = AsyncMock(
+        mock_prisma.db.proxymodeltable.update = AsyncMock(
             return_value=updated_row
         )
 
@@ -1275,7 +1275,7 @@ class TestUpdateModel:
                 user_api_key_dict=admin_user,
             )
 
-            mock_prisma.db.litellm_proxymodeltable.update.assert_awaited_once()
+            mock_prisma.db.proxymodeltable.update.assert_awaited_once()
             mock_clear_cache.assert_awaited_once_with()
 
 
@@ -2302,12 +2302,12 @@ class TestAddAndDeleteModelLifecycle:
 
         mock_prisma = MagicMock()
         mock_prisma.db = MagicMock()
-        mock_prisma.db.litellm_proxymodeltable = AsyncMock()
-        mock_prisma.db.litellm_proxymodeltable.create = AsyncMock(return_value=db_row)
-        mock_prisma.db.litellm_proxymodeltable.find_unique = AsyncMock(
+        mock_prisma.db.proxymodeltable = AsyncMock()
+        mock_prisma.db.proxymodeltable.create = AsyncMock(return_value=db_row)
+        mock_prisma.db.proxymodeltable.find_unique = AsyncMock(
             return_value=db_row
         )
-        mock_prisma.db.litellm_proxymodeltable.delete = AsyncMock(return_value=db_row)
+        mock_prisma.db.proxymodeltable.delete = AsyncMock(return_value=db_row)
 
         mock_proxy_config = MagicMock()
         mock_proxy_config._add_deployment_locked = AsyncMock(
@@ -2352,7 +2352,7 @@ class TestAddAndDeleteModelLifecycle:
             assert "deleted successfully" in delete_result["message"]
 
             # --- DELETE again should fail (model not found) ---
-            mock_prisma.db.litellm_proxymodeltable.find_unique = AsyncMock(
+            mock_prisma.db.proxymodeltable.find_unique = AsyncMock(
                 return_value=None
             )
             from token_iq.gateway.proxy.proxy_server import ProxyException
@@ -2414,21 +2414,21 @@ class TestDeleteTeamBYOKModelGhost:
 
         mock_prisma = MagicMock()
         mock_prisma.db = MagicMock()
-        mock_prisma.db.litellm_proxymodeltable = AsyncMock()
-        mock_prisma.db.litellm_proxymodeltable.find_unique = AsyncMock(
+        mock_prisma.db.proxymodeltable = AsyncMock()
+        mock_prisma.db.proxymodeltable.find_unique = AsyncMock(
             return_value=db_row
         )
-        mock_prisma.db.litellm_proxymodeltable.delete = AsyncMock(return_value=db_row)
+        mock_prisma.db.proxymodeltable.delete = AsyncMock(return_value=db_row)
         # After the row delete no team deployment remains -> nothing backs the public name.
-        mock_prisma.db.litellm_proxymodeltable.find_many = AsyncMock(return_value=[])
-        mock_prisma.db.litellm_teamtable = AsyncMock()
-        mock_prisma.db.litellm_teamtable.find_unique = AsyncMock(return_value=team_row)
-        mock_prisma.db.litellm_teamtable.update = AsyncMock(
+        mock_prisma.db.proxymodeltable.find_many = AsyncMock(return_value=[])
+        mock_prisma.db.teamtable = AsyncMock()
+        mock_prisma.db.teamtable.find_unique = AsyncMock(return_value=team_row)
+        mock_prisma.db.teamtable.update = AsyncMock(
             return_value=updated_team_row
         )
         # Team BYOK models have no alias row; delete_team_model_alias finds nothing.
-        mock_prisma.db.litellm_modeltable = AsyncMock()
-        mock_prisma.db.litellm_modeltable.find_many = AsyncMock(return_value=[])
+        mock_prisma.db.modeltable = AsyncMock()
+        mock_prisma.db.modeltable.find_many = AsyncMock(return_value=[])
 
         admin_user = UserAPIKeyAuth(
             user_id="admin", user_role=GatewayUserRoles.PROXY_ADMIN
@@ -2452,15 +2452,15 @@ class TestDeleteTeamBYOKModelGhost:
 
         assert "deleted successfully" in result["message"]
 
-        mock_prisma.db.litellm_teamtable.update.assert_awaited_once()
-        update_kwargs = mock_prisma.db.litellm_teamtable.update.await_args.kwargs
+        mock_prisma.db.teamtable.update.assert_awaited_once()
+        update_kwargs = mock_prisma.db.teamtable.update.await_args.kwargs
         assert public_name not in update_kwargs["data"]["models"]
         assert kept_name in update_kwargs["data"]["models"]
         assert update_kwargs["include"] == {"object_permission": True}
 
         mock_refresh.assert_awaited_once()
         assert mock_refresh.await_args.kwargs["team_row"] is updated_team_row
-        mock_prisma.db.litellm_modeltable.find_many.assert_awaited()
+        mock_prisma.db.modeltable.find_many.assert_awaited()
 
     @pytest.mark.asyncio
     async def test_delete_non_internal_team_model_still_scans_aliases(self):
@@ -2496,18 +2496,18 @@ class TestDeleteTeamBYOKModelGhost:
 
         mock_prisma = MagicMock()
         mock_prisma.db = MagicMock()
-        mock_prisma.db.litellm_proxymodeltable = AsyncMock()
-        mock_prisma.db.litellm_proxymodeltable.find_unique = AsyncMock(
+        mock_prisma.db.proxymodeltable = AsyncMock()
+        mock_prisma.db.proxymodeltable.find_unique = AsyncMock(
             return_value=db_row
         )
-        mock_prisma.db.litellm_proxymodeltable.delete = AsyncMock(return_value=db_row)
-        mock_prisma.db.litellm_proxymodeltable.find_many = AsyncMock(return_value=[])
-        mock_prisma.db.litellm_teamtable = AsyncMock()
-        mock_prisma.db.litellm_teamtable.find_unique = AsyncMock(return_value=team_row)
-        mock_prisma.db.litellm_teamtable.update = AsyncMock(return_value=team_row)
-        mock_prisma.db.litellm_modeltable = AsyncMock()
+        mock_prisma.db.proxymodeltable.delete = AsyncMock(return_value=db_row)
+        mock_prisma.db.proxymodeltable.find_many = AsyncMock(return_value=[])
+        mock_prisma.db.teamtable = AsyncMock()
+        mock_prisma.db.teamtable.find_unique = AsyncMock(return_value=team_row)
+        mock_prisma.db.teamtable.update = AsyncMock(return_value=team_row)
+        mock_prisma.db.modeltable = AsyncMock()
         # No alias row matches -> delete_team_model_alias returns nothing, but it still ran.
-        mock_prisma.db.litellm_modeltable.find_many = AsyncMock(return_value=[])
+        mock_prisma.db.modeltable.find_many = AsyncMock(return_value=[])
 
         admin_user = UserAPIKeyAuth(
             user_id="admin", user_role=GatewayUserRoles.PROXY_ADMIN
@@ -2531,7 +2531,7 @@ class TestDeleteTeamBYOKModelGhost:
 
         assert "deleted successfully" in result["message"]
         # Non-internal name -> the alias-table scan runs.
-        mock_prisma.db.litellm_modeltable.find_many.assert_awaited()
+        mock_prisma.db.modeltable.find_many.assert_awaited()
 
     @pytest.mark.asyncio
     async def test_delete_keeps_public_name_when_sibling_backs_it(self):
@@ -2572,22 +2572,22 @@ class TestDeleteTeamBYOKModelGhost:
 
         mock_prisma = MagicMock()
         mock_prisma.db = MagicMock()
-        mock_prisma.db.litellm_proxymodeltable = AsyncMock()
-        mock_prisma.db.litellm_proxymodeltable.find_unique = AsyncMock(
+        mock_prisma.db.proxymodeltable = AsyncMock()
+        mock_prisma.db.proxymodeltable.find_unique = AsyncMock(
             return_value=deleted_row
         )
-        mock_prisma.db.litellm_proxymodeltable.delete = AsyncMock(
+        mock_prisma.db.proxymodeltable.delete = AsyncMock(
             return_value=deleted_row
         )
         # After the deleted replica's row is gone, the sibling still backs the public name.
-        mock_prisma.db.litellm_proxymodeltable.find_many = AsyncMock(
+        mock_prisma.db.proxymodeltable.find_many = AsyncMock(
             return_value=[sibling_row]
         )
-        mock_prisma.db.litellm_teamtable = AsyncMock()
-        mock_prisma.db.litellm_teamtable.find_unique = AsyncMock(return_value=team_row)
-        mock_prisma.db.litellm_teamtable.update = AsyncMock(return_value=team_row)
-        mock_prisma.db.litellm_modeltable = AsyncMock()
-        mock_prisma.db.litellm_modeltable.find_many = AsyncMock(return_value=[])
+        mock_prisma.db.teamtable = AsyncMock()
+        mock_prisma.db.teamtable.find_unique = AsyncMock(return_value=team_row)
+        mock_prisma.db.teamtable.update = AsyncMock(return_value=team_row)
+        mock_prisma.db.modeltable = AsyncMock()
+        mock_prisma.db.modeltable.find_many = AsyncMock(return_value=[])
 
         admin_user = UserAPIKeyAuth(
             user_id="admin", user_role=GatewayUserRoles.PROXY_ADMIN
@@ -2611,7 +2611,7 @@ class TestDeleteTeamBYOKModelGhost:
 
         assert "deleted successfully" in result["message"]
         # The public name is still backed by the sibling, so team.models is untouched.
-        mock_prisma.db.litellm_teamtable.update.assert_not_awaited()
+        mock_prisma.db.teamtable.update.assert_not_awaited()
         mock_refresh.assert_not_awaited()
 
     @pytest.mark.asyncio
@@ -2657,20 +2657,20 @@ class TestDeleteTeamBYOKModelGhost:
 
         mock_prisma = MagicMock()
         mock_prisma.db = MagicMock()
-        mock_prisma.db.litellm_proxymodeltable = AsyncMock()
-        mock_prisma.db.litellm_proxymodeltable.find_unique = AsyncMock(
+        mock_prisma.db.proxymodeltable = AsyncMock()
+        mock_prisma.db.proxymodeltable.find_unique = AsyncMock(
             return_value=db_row
         )
-        mock_prisma.db.litellm_proxymodeltable.delete = AsyncMock(return_value=db_row)
-        mock_prisma.db.litellm_proxymodeltable.find_many = AsyncMock(return_value=[])
-        mock_prisma.db.litellm_teamtable = AsyncMock()
-        mock_prisma.db.litellm_teamtable.find_unique = AsyncMock(return_value=team_row)
-        mock_prisma.db.litellm_teamtable.update = AsyncMock(return_value=team_row)
-        mock_prisma.db.litellm_modeltable = AsyncMock()
-        mock_prisma.db.litellm_modeltable.find_many = AsyncMock(
+        mock_prisma.db.proxymodeltable.delete = AsyncMock(return_value=db_row)
+        mock_prisma.db.proxymodeltable.find_many = AsyncMock(return_value=[])
+        mock_prisma.db.teamtable = AsyncMock()
+        mock_prisma.db.teamtable.find_unique = AsyncMock(return_value=team_row)
+        mock_prisma.db.teamtable.update = AsyncMock(return_value=team_row)
+        mock_prisma.db.modeltable = AsyncMock()
+        mock_prisma.db.modeltable.find_many = AsyncMock(
             return_value=[alias_row]
         )
-        mock_prisma.db.litellm_modeltable.update = AsyncMock()
+        mock_prisma.db.modeltable.update = AsyncMock()
 
         mock_router = MagicMock()
         mock_router.model_name_to_deployment_indices = {public_name: [0]}
@@ -2697,13 +2697,13 @@ class TestDeleteTeamBYOKModelGhost:
 
         assert "deleted successfully" in result["message"]
 
-        mock_prisma.db.litellm_modeltable.update.assert_awaited_once()
-        alias_update_kwargs = mock_prisma.db.litellm_modeltable.update.await_args.kwargs
+        mock_prisma.db.modeltable.update.assert_awaited_once()
+        alias_update_kwargs = mock_prisma.db.modeltable.update.await_args.kwargs
         assert alias_update_kwargs["where"] == {"id": "alias-row-1"}
         assert json.loads(alias_update_kwargs["data"]["model_aliases"]) == {}
 
         # A gateway-level deployment still serves the public name -> team access stays.
-        mock_prisma.db.litellm_teamtable.update.assert_not_awaited()
+        mock_prisma.db.teamtable.update.assert_not_awaited()
         mock_refresh.assert_not_awaited()
 
     @pytest.mark.asyncio
@@ -2738,18 +2738,18 @@ class TestDeleteTeamBYOKModelGhost:
 
         mock_prisma = MagicMock()
         mock_prisma.db = MagicMock()
-        mock_prisma.db.litellm_proxymodeltable = AsyncMock()
-        mock_prisma.db.litellm_proxymodeltable.find_unique = AsyncMock(
+        mock_prisma.db.proxymodeltable = AsyncMock()
+        mock_prisma.db.proxymodeltable.find_unique = AsyncMock(
             return_value=db_row
         )
-        mock_prisma.db.litellm_proxymodeltable.delete = AsyncMock(return_value=db_row)
-        mock_prisma.db.litellm_proxymodeltable.find_many = AsyncMock(return_value=[])
-        mock_prisma.db.litellm_teamtable = AsyncMock()
-        mock_prisma.db.litellm_teamtable.find_unique = AsyncMock(return_value=team_row)
-        mock_prisma.db.litellm_teamtable.update = AsyncMock(return_value=team_row)
-        mock_prisma.db.litellm_modeltable = AsyncMock()
-        mock_prisma.db.litellm_modeltable.find_many = AsyncMock(return_value=[])
-        mock_prisma.db.litellm_modeltable.update = AsyncMock()
+        mock_prisma.db.proxymodeltable.delete = AsyncMock(return_value=db_row)
+        mock_prisma.db.proxymodeltable.find_many = AsyncMock(return_value=[])
+        mock_prisma.db.teamtable = AsyncMock()
+        mock_prisma.db.teamtable.find_unique = AsyncMock(return_value=team_row)
+        mock_prisma.db.teamtable.update = AsyncMock(return_value=team_row)
+        mock_prisma.db.modeltable = AsyncMock()
+        mock_prisma.db.modeltable.find_many = AsyncMock(return_value=[])
+        mock_prisma.db.modeltable.update = AsyncMock()
 
         mock_router = MagicMock()
         mock_router.model_name_to_deployment_indices = {internal_name: [0]}
@@ -2775,9 +2775,9 @@ class TestDeleteTeamBYOKModelGhost:
             )
 
         assert "deleted successfully" in result["message"]
-        mock_prisma.db.litellm_modeltable.find_many.assert_not_awaited()
-        mock_prisma.db.litellm_modeltable.update.assert_not_awaited()
-        mock_prisma.db.litellm_teamtable.update.assert_not_awaited()
+        mock_prisma.db.modeltable.find_many.assert_not_awaited()
+        mock_prisma.db.modeltable.update.assert_not_awaited()
+        mock_prisma.db.teamtable.update.assert_not_awaited()
 
 
 class TestDeleteModelTeamAuth:
@@ -2807,18 +2807,18 @@ class TestDeleteModelTeamAuth:
         )
         mock_prisma = MagicMock()
         mock_prisma.db = MagicMock()
-        mock_prisma.db.litellm_proxymodeltable = AsyncMock()
-        mock_prisma.db.litellm_proxymodeltable.find_unique = AsyncMock(
+        mock_prisma.db.proxymodeltable = AsyncMock()
+        mock_prisma.db.proxymodeltable.find_unique = AsyncMock(
             return_value=db_row
         )
-        mock_prisma.db.litellm_proxymodeltable.delete = AsyncMock(return_value=db_row)
-        mock_prisma.db.litellm_proxymodeltable.find_many = AsyncMock(return_value=[])
+        mock_prisma.db.proxymodeltable.delete = AsyncMock(return_value=db_row)
+        mock_prisma.db.proxymodeltable.find_many = AsyncMock(return_value=[])
         # The team is gone -> every team lookup returns None.
-        mock_prisma.db.litellm_teamtable = AsyncMock()
-        mock_prisma.db.litellm_teamtable.find_unique = AsyncMock(return_value=None)
-        mock_prisma.db.litellm_teamtable.update = AsyncMock()
-        mock_prisma.db.litellm_modeltable = AsyncMock()
-        mock_prisma.db.litellm_modeltable.find_many = AsyncMock(return_value=[])
+        mock_prisma.db.teamtable = AsyncMock()
+        mock_prisma.db.teamtable.find_unique = AsyncMock(return_value=None)
+        mock_prisma.db.teamtable.update = AsyncMock()
+        mock_prisma.db.modeltable = AsyncMock()
+        mock_prisma.db.modeltable.find_many = AsyncMock(return_value=[])
         return mock_prisma
 
     @pytest.mark.asyncio
@@ -2853,9 +2853,9 @@ class TestDeleteModelTeamAuth:
             )
 
         assert "deleted successfully" in result["message"]
-        mock_prisma.db.litellm_proxymodeltable.delete.assert_awaited_once()
+        mock_prisma.db.proxymodeltable.delete.assert_awaited_once()
         # Team is gone -> no team.models cleanup to do.
-        mock_prisma.db.litellm_teamtable.update.assert_not_awaited()
+        mock_prisma.db.teamtable.update.assert_not_awaited()
 
     @pytest.mark.asyncio
     async def test_non_admin_cannot_delete_model_when_team_deleted(self):
@@ -2892,7 +2892,7 @@ class TestDeleteModelTeamAuth:
                 )
 
         assert str(exc_info.value.code) == "403"
-        mock_prisma.db.litellm_proxymodeltable.delete.assert_not_awaited()
+        mock_prisma.db.proxymodeltable.delete.assert_not_awaited()
 
     @pytest.mark.asyncio
     async def test_live_team_delete_looks_up_team_once(self):
@@ -2925,16 +2925,16 @@ class TestDeleteModelTeamAuth:
         )
         mock_prisma = MagicMock()
         mock_prisma.db = MagicMock()
-        mock_prisma.db.litellm_proxymodeltable = AsyncMock()
-        mock_prisma.db.litellm_proxymodeltable.find_unique = AsyncMock(
+        mock_prisma.db.proxymodeltable = AsyncMock()
+        mock_prisma.db.proxymodeltable.find_unique = AsyncMock(
             return_value=db_row
         )
-        mock_prisma.db.litellm_proxymodeltable.delete = AsyncMock(return_value=db_row)
-        mock_prisma.db.litellm_proxymodeltable.find_many = AsyncMock(return_value=[])
-        mock_prisma.db.litellm_teamtable = AsyncMock()
-        mock_prisma.db.litellm_teamtable.find_unique = AsyncMock(return_value=team_row)
-        mock_prisma.db.litellm_modeltable = AsyncMock()
-        mock_prisma.db.litellm_modeltable.find_many = AsyncMock(return_value=[])
+        mock_prisma.db.proxymodeltable.delete = AsyncMock(return_value=db_row)
+        mock_prisma.db.proxymodeltable.find_many = AsyncMock(return_value=[])
+        mock_prisma.db.teamtable = AsyncMock()
+        mock_prisma.db.teamtable.find_unique = AsyncMock(return_value=team_row)
+        mock_prisma.db.modeltable = AsyncMock()
+        mock_prisma.db.modeltable.find_many = AsyncMock(return_value=[])
 
         # A team member who is not the team admin: rejected before the delete runs,
         # so the only team lookup is the single one inside the auth check.
@@ -2960,8 +2960,8 @@ class TestDeleteModelTeamAuth:
                 )
 
         assert str(exc_info.value.code) == "403"
-        assert mock_prisma.db.litellm_teamtable.find_unique.await_count == 1
-        mock_prisma.db.litellm_proxymodeltable.delete.assert_not_awaited()
+        assert mock_prisma.db.teamtable.find_unique.await_count == 1
+        mock_prisma.db.proxymodeltable.delete.assert_not_awaited()
 
 
 class TestGetTeamDeployments:
@@ -3082,7 +3082,7 @@ class _TxPrismaClient:
         self.events: list = []
         self._table = _TxProxyModelTable(rows, self.events)
         tx = MagicMock()
-        tx.litellm_proxymodeltable = self._table
+        tx.proxymodeltable = self._table
         outer = self
 
         class _TxCM:
@@ -3646,7 +3646,7 @@ class TestPatchModelBlockedAuthGate:
         existing_row.model_dump_json.return_value = "{}"
 
         mock_prisma = MagicMock()
-        mock_prisma.db.litellm_proxymodeltable.find_unique = AsyncMock(
+        mock_prisma.db.proxymodeltable.find_unique = AsyncMock(
             return_value=existing_row
         )
 
@@ -3689,10 +3689,10 @@ class TestPatchModelBlockedAuthGate:
         updated_row.model_dump_json.return_value = "{}"
 
         mock_prisma = MagicMock()
-        mock_prisma.db.litellm_proxymodeltable.find_unique = AsyncMock(
+        mock_prisma.db.proxymodeltable.find_unique = AsyncMock(
             return_value=existing_row
         )
-        mock_prisma.db.litellm_proxymodeltable.update = AsyncMock(
+        mock_prisma.db.proxymodeltable.update = AsyncMock(
             return_value=updated_row
         )
 
@@ -3718,7 +3718,7 @@ class TestPatchModelBlockedAuthGate:
                 user_api_key_dict=admin,
             )
             assert result is updated_row
-            mock_prisma.db.litellm_proxymodeltable.update.assert_awaited_once()
+            mock_prisma.db.proxymodeltable.update.assert_awaited_once()
 
 
 class TestPatchModelRowDeletedBeforeWrite:
@@ -3744,10 +3744,10 @@ class TestPatchModelRowDeletedBeforeWrite:
         existing_row.model_dump_json.return_value = "{}"
 
         mock_prisma = MagicMock()
-        mock_prisma.db.litellm_proxymodeltable.find_unique = AsyncMock(
+        mock_prisma.db.proxymodeltable.find_unique = AsyncMock(
             return_value=existing_row
         )
-        mock_prisma.db.litellm_proxymodeltable.update = AsyncMock(return_value=None)
+        mock_prisma.db.proxymodeltable.update = AsyncMock(return_value=None)
 
         with (
             patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),  # test-quality-ok: proxy_server module global is the endpoint's only injection point
@@ -4124,7 +4124,7 @@ class TestDeleteEvictionsHoldTheReconcileLock:
         table.delete = AsyncMock(return_value=row)
 
         prisma = MagicMock()
-        prisma.db.litellm_proxymodeltable = table
+        prisma.db.proxymodeltable = table
 
         router = MagicMock()
         router.delete_deployment = MagicMock(return_value=True)
@@ -4169,8 +4169,8 @@ class TestDeleteEvictionsHoldTheReconcileLock:
         deleted_row.model_info = {"id": model_id, "team_id": "team-1"}
 
         tx = MagicMock()
-        tx.litellm_proxymodeltable.find_many = AsyncMock(return_value=[deleted_row])
-        tx.litellm_proxymodeltable.delete_many = AsyncMock(return_value=1)
+        tx.proxymodeltable.find_many = AsyncMock(return_value=[deleted_row])
+        tx.proxymodeltable.delete_many = AsyncMock(return_value=1)
 
         tx_ctx = MagicMock()
         tx_ctx.__aenter__ = AsyncMock(return_value=tx)
@@ -4512,7 +4512,7 @@ class TestStrategyRouterWriteValidation:
                     user_api_key_dict=admin,
                 )
             assert "requires" in str(exc_info.value.message)
-            mock_prisma.db.litellm_proxymodeltable.create.assert_not_called()
+            mock_prisma.db.proxymodeltable.create.assert_not_called()
 
     def test_settings_written_beside_the_config_rejected(self):
         """A setting one level above complexity_router_config configures nothing, and the alias
@@ -4602,8 +4602,8 @@ class TestStrategyRouterWriteValidation:
         }
 
         mock_prisma = MagicMock()
-        mock_prisma.db.litellm_proxymodeltable.find_unique = AsyncMock(return_value=existing_row)
-        mock_prisma.db.litellm_proxymodeltable.update = AsyncMock()
+        mock_prisma.db.proxymodeltable.find_unique = AsyncMock(return_value=existing_row)
+        mock_prisma.db.proxymodeltable.update = AsyncMock()
 
         with (
             patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma),
@@ -4624,7 +4624,7 @@ class TestStrategyRouterWriteValidation:
                     user_api_key_dict=admin,
                 )
             assert "does not start with" in str(exc_info.value.message)
-            mock_prisma.db.litellm_proxymodeltable.update.assert_not_awaited()
+            mock_prisma.db.proxymodeltable.update.assert_not_awaited()
 
 
 class TestAutoRouterClassifierDefaultPrompt:
@@ -4898,12 +4898,12 @@ class TestBlockModelResponseSerialization:
             "updated_at": written_at,
             "updated_by": "admin",
         }
-        existing_row = prisma_models.LiteLLM_ProxyModelTable(blocked=not blocked, **row_fields)
-        updated_row = prisma_models.LiteLLM_ProxyModelTable(blocked=blocked, **row_fields)
+        existing_row = prisma_models.ProxyModelTable(blocked=not blocked, **row_fields)
+        updated_row = prisma_models.ProxyModelTable(blocked=blocked, **row_fields)
 
         mock_prisma = MagicMock()
-        mock_prisma.db.litellm_proxymodeltable.find_unique = AsyncMock(return_value=existing_row)
-        mock_prisma.db.litellm_proxymodeltable.update = AsyncMock(return_value=updated_row)
+        mock_prisma.db.proxymodeltable.find_unique = AsyncMock(return_value=existing_row)
+        mock_prisma.db.proxymodeltable.update = AsyncMock(return_value=updated_row)
 
         admin = UserAPIKeyAuth(user_id="admin", user_role=GatewayUserRoles.PROXY_ADMIN)
         app.dependency_overrides[ps.user_api_key_auth] = lambda: admin

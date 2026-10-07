@@ -79,26 +79,26 @@ def test_per_model_reads_route_to_reader_writes_to_writer():
     from token_iq.gateway.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper
 
     writer, writer_inner, reader, reader_inner = _make_wrappers()
-    writer_inner.litellm_usertable = _model_actions_mock("writer_users")
-    reader_inner.litellm_usertable = _model_actions_mock("reader_users")
+    writer_inner.usertable = _model_actions_mock("writer_users")
+    reader_inner.usertable = _model_actions_mock("reader_users")
     routing = RoutingPrismaWrapper(writer=writer, reader=reader)
 
-    actions = routing.litellm_usertable
+    actions = routing.usertable
 
     # Reads → reader actions.
-    assert actions.find_many is reader_inner.litellm_usertable.find_many
-    assert actions.find_unique is reader_inner.litellm_usertable.find_unique
-    assert actions.find_first is reader_inner.litellm_usertable.find_first
-    assert actions.count is reader_inner.litellm_usertable.count
-    assert actions.group_by is reader_inner.litellm_usertable.group_by
+    assert actions.find_many is reader_inner.usertable.find_many
+    assert actions.find_unique is reader_inner.usertable.find_unique
+    assert actions.find_first is reader_inner.usertable.find_first
+    assert actions.count is reader_inner.usertable.count
+    assert actions.group_by is reader_inner.usertable.group_by
 
     # Writes → writer actions.
-    assert actions.create is writer_inner.litellm_usertable.create
-    assert actions.update is writer_inner.litellm_usertable.update
-    assert actions.upsert is writer_inner.litellm_usertable.upsert
-    assert actions.delete is writer_inner.litellm_usertable.delete
-    assert actions.update_many is writer_inner.litellm_usertable.update_many
-    assert actions.delete_many is writer_inner.litellm_usertable.delete_many
+    assert actions.create is writer_inner.usertable.create
+    assert actions.update is writer_inner.usertable.update
+    assert actions.upsert is writer_inner.usertable.upsert
+    assert actions.delete is writer_inner.usertable.delete
+    assert actions.update_many is writer_inner.usertable.update_many
+    assert actions.delete_many is writer_inner.usertable.delete_many
 
 
 def test_writer_pinned_client_bypasses_reader_routing():
@@ -108,14 +108,14 @@ def test_writer_pinned_client_bypasses_reader_routing():
     from token_iq.gateway.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper, WriterPinnedClient
 
     writer, writer_inner, reader, reader_inner = _make_wrappers()
-    writer_inner.litellm_proxymodeltable = _model_actions_mock("writer_models")
-    reader_inner.litellm_proxymodeltable = _model_actions_mock("reader_models")
+    writer_inner.proxymodeltable = _model_actions_mock("writer_models")
+    reader_inner.proxymodeltable = _model_actions_mock("reader_models")
     routing = RoutingPrismaWrapper(writer=writer, reader=reader)
 
     pinned = WriterPinnedClient(routing)
 
     assert pinned.db is writer
-    assert pinned.db.litellm_proxymodeltable.find_many is writer_inner.litellm_proxymodeltable.find_many
+    assert pinned.db.proxymodeltable.find_many is writer_inner.proxymodeltable.find_many
 
 
 def test_writer_pinned_client_passes_through_single_db():
@@ -133,15 +133,15 @@ def test_writer_pinned_client_yields_to_routed_reads_when_writer_down():
     from token_iq.gateway.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper, WriterPinnedClient
 
     writer, writer_inner, reader, reader_inner = _make_wrappers()
-    writer_inner.litellm_proxymodeltable = _model_actions_mock("writer_models")
-    reader_inner.litellm_proxymodeltable = _model_actions_mock("reader_models")
+    writer_inner.proxymodeltable = _model_actions_mock("writer_models")
+    reader_inner.proxymodeltable = _model_actions_mock("reader_models")
     routing = RoutingPrismaWrapper(writer=writer, reader=reader)
     routing._writer_unavailable = True
 
     pinned = WriterPinnedClient(routing)
 
     assert pinned.db is routing
-    assert pinned.db.litellm_proxymodeltable.find_many is reader_inner.litellm_proxymodeltable.find_many
+    assert pinned.db.proxymodeltable.find_many is reader_inner.proxymodeltable.find_many
 
 
 @pytest.mark.asyncio
@@ -305,8 +305,8 @@ async def test_reads_route_to_writer_when_reader_unavailable():
     from token_iq.gateway.proxy.db.routing_prisma_wrapper import RoutingPrismaWrapper
 
     writer, writer_inner, reader, reader_inner = _make_wrappers()
-    writer_inner.litellm_usertable = _model_actions_mock("writer_users")
-    reader_inner.litellm_usertable = _model_actions_mock("reader_users")
+    writer_inner.usertable = _model_actions_mock("writer_users")
+    reader_inner.usertable = _model_actions_mock("reader_users")
     routing = RoutingPrismaWrapper(writer=writer, reader=reader)
     routing._reader_unavailable = True
 
@@ -315,9 +315,9 @@ async def test_reads_route_to_writer_when_reader_unavailable():
     assert routing.query_first is writer_inner.query_first
 
     # Per-model reads → writer actions.
-    actions = routing.litellm_usertable
-    assert actions.find_many is writer_inner.litellm_usertable.find_many
-    assert actions.find_unique is writer_inner.litellm_usertable.find_unique
+    actions = routing.usertable
+    assert actions.find_many is writer_inner.usertable.find_many
+    assert actions.find_unique is writer_inner.usertable.find_unique
 
 
 @pytest.mark.asyncio
@@ -487,16 +487,16 @@ def test_per_model_accessor_falls_back_when_reader_lacks_attr():
         pass
 
     writer_inner = _PartialPrisma()
-    writer_inner.litellm_usertable = _model_actions_mock("writer_users")
+    writer_inner.usertable = _model_actions_mock("writer_users")
     reader_inner = _PartialPrisma()  # deliberately missing litellm_usertable
 
     writer = PrismaWrapper(original_prisma=writer_inner, iam_token_db_auth=False)
     reader = PrismaWrapper(original_prisma=reader_inner, iam_token_db_auth=False)
     routing = RoutingPrismaWrapper(writer=writer, reader=reader)
 
-    actions = routing.litellm_usertable
+    actions = routing.usertable
     # Falls back to the writer's accessor verbatim — not a _RoutedActions wrapper.
-    assert actions is writer_inner.litellm_usertable
+    assert actions is writer_inner.usertable
 
 
 @pytest.mark.asyncio

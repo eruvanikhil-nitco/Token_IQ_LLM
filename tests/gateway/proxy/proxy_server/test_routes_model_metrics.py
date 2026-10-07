@@ -199,7 +199,7 @@ def test_alerting_settings_non_admin_error(client, auth_as, monkeypatch):
 def test_alerting_settings_happy(client, auth_as, monkeypatch):
     """Pins ``GET /alerting/settings`` (happy: returns list of ConfigList entries)."""
     pc = MagicMock()
-    pc.db.litellm_config.find_first = AsyncMock(return_value=None)
+    pc.db.config.find_first = AsyncMock(return_value=None)
     monkeypatch.setattr(proxy_server, "prisma_client", pc)
 
     logging_obj = MagicMock()

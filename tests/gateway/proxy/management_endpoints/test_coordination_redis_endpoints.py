@@ -51,8 +51,8 @@ def _prisma_with_general_settings(general_settings: dict | None) -> MagicMock:
         row.param_value = json.dumps(general_settings)
 
     mock_prisma = MagicMock()
-    mock_prisma.db.litellm_config.find_unique = AsyncMock(return_value=row)
-    mock_prisma.db.litellm_config.upsert = AsyncMock()
+    mock_prisma.db.config.find_unique = AsyncMock(return_value=row)
+    mock_prisma.db.config.upsert = AsyncMock()
     return mock_prisma
 
 
@@ -266,7 +266,7 @@ async def test_update_rejects_settings_without_a_connection_target(monkeypatch):
             )
 
     assert exc_info.value.status_code == 400
-    mock_prisma.db.litellm_config.upsert.assert_not_called()
+    mock_prisma.db.config.upsert.assert_not_called()
 
 
 @pytest.mark.asyncio
@@ -298,7 +298,7 @@ async def test_update_persists_into_the_general_settings_config_row(monkeypatch)
             litellm_changed_by=None,
         )
 
-    upsert_kwargs = mock_prisma.db.litellm_config.upsert.call_args.kwargs
+    upsert_kwargs = mock_prisma.db.config.upsert.call_args.kwargs
     assert upsert_kwargs["where"] == {"param_name": "general_settings"}
     persisted = json.loads(upsert_kwargs["data"]["update"]["param_value"])
     assert persisted["coordination_redis"] == {
@@ -337,7 +337,7 @@ async def test_update_persists_os_environ_refs_verbatim(monkeypatch):
             litellm_changed_by=None,
         )
 
-    persisted = json.loads(mock_prisma.db.litellm_config.upsert.call_args.kwargs["data"]["update"]["param_value"])
+    persisted = json.loads(mock_prisma.db.config.upsert.call_args.kwargs["data"]["update"]["param_value"])
     assert persisted["coordination_redis"] == {"host": "os.environ/MY_REDIS_HOST"}
 
 
@@ -365,7 +365,7 @@ async def test_update_keeps_saved_credential_when_client_echoes_the_redaction_ma
             litellm_changed_by=None,
         )
 
-    persisted = json.loads(mock_prisma.db.litellm_config.upsert.call_args.kwargs["data"]["update"]["param_value"])
+    persisted = json.loads(mock_prisma.db.config.upsert.call_args.kwargs["data"]["update"]["param_value"])
     assert persisted["coordination_redis"]["password"] == "super-secret-redis-pw"
     assert persisted["coordination_redis"]["host"] == "new-host"
 

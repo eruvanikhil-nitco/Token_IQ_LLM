@@ -148,20 +148,20 @@ async def test_migrate_passwords_skips_when_no_plaintext() -> None:
     pc = MagicMock()
     pc.db = MagicMock()
     sha = hashlib.sha256(b"already-hashed").hexdigest()
-    pc.db.litellm_usertable.find_many = AsyncMock(
+    pc.db.usertable.find_many = AsyncMock(
         return_value=[
             _make_user("a", "scrypt:abc"),
             _make_user("b", sha),
         ]
     )
-    pc.db.litellm_usertable.update = AsyncMock()
+    pc.db.usertable.update = AsyncMock()
 
     result = await migrate_passwords_to_scrypt_async(pc)
     outcome = {
         "message": result,
-        "updates": pc.db.litellm_usertable.update.await_count,
-        "find_called": pc.db.litellm_usertable.find_many.await_count,
-        "fetch_filter": pc.db.litellm_usertable.find_many.await_args.kwargs["where"],
+        "updates": pc.db.usertable.update.await_count,
+        "find_called": pc.db.usertable.find_many.await_count,
+        "fetch_filter": pc.db.usertable.find_many.await_args.kwargs["where"],
     }
     assert outcome == {
         "message": "No plaintext passwords found",
@@ -185,22 +185,22 @@ async def test_migrate_passwords_upgrades_only_plaintext_rows() -> None:
         ),
         _make_user("null-pw", None),
     ]
-    pc.db.litellm_usertable.find_many = AsyncMock(return_value=users)
-    pc.db.litellm_usertable.update = AsyncMock()
+    pc.db.usertable.find_many = AsyncMock(return_value=users)
+    pc.db.usertable.update = AsyncMock()
 
     result = await migrate_passwords_to_scrypt_async(pc)
 
     updated_user_ids = sorted(
         call.kwargs["where"]["user_id"]
-        for call in pc.db.litellm_usertable.update.await_args_list
+        for call in pc.db.usertable.update.await_args_list
     )
     new_password_prefixes = sorted(
         call.kwargs["data"]["password"][:7]
-        for call in pc.db.litellm_usertable.update.await_args_list
+        for call in pc.db.usertable.update.await_args_list
     )
     outcome = {
         "message": result,
-        "update_count": pc.db.litellm_usertable.update.await_count,
+        "update_count": pc.db.usertable.update.await_count,
         "updated_ids": updated_user_ids,
         "all_scrypt_prefixed": new_password_prefixes,
     }
@@ -216,7 +216,7 @@ async def test_migrate_passwords_upgrades_only_plaintext_rows() -> None:
 async def test_migrate_passwords_raises_on_db_failure() -> None:
     pc = MagicMock()
     pc.db = MagicMock()
-    pc.db.litellm_usertable.find_many = AsyncMock(
+    pc.db.usertable.find_many = AsyncMock(
         side_effect=RuntimeError("db unavailable")
     )
     with pytest.raises(RuntimeError, match="db unavailable"):

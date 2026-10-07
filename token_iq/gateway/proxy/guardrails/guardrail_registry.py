@@ -72,7 +72,7 @@ class _GuardrailRowLike(Protocol):
     def __iter__(self) -> Iterator[tuple[str, object]]: ...
 
 
-def _guardrail_table(prisma_client: PrismaClient) -> "TableActions[prisma_models.LiteLLM_GuardrailsTable]":
+def _guardrail_table(prisma_client: PrismaClient) -> "TableActions[prisma_models.GuardrailsTable]":
     """Typed view of the guardrails table actions exposed by the Prisma repository."""
     return GuardrailsRepository(prisma_client).table
 

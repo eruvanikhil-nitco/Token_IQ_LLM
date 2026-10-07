@@ -45,7 +45,7 @@ async def teams_user_administers(
     """Every team this caller is an admin of. Empty for a proxy admin, who needs no list."""
     if user_api_key_dict.user_role == GatewayUserRoles.PROXY_ADMIN:
         return frozenset()
-    rows: Final = await prisma_client.db.litellm_teamtable.find_many()
+    rows: Final = await prisma_client.db.teamtable.find_many()
     valid_teams: Final = (team for team in (_validated_team_row(row) for row in rows) if team is not None)
     return frozenset(
         team.team_id

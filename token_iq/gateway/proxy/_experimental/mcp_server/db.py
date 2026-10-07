@@ -50,7 +50,7 @@ if TYPE_CHECKING:
 
 
 class _UserEnvVarsTransactionClient(Protocol):
-    litellm_mcpuserenvvars: "TableActions[prisma_db_models.LiteLLM_MCPUserEnvVars]"
+    mcpuserenvvars: "TableActions[prisma_db_models.MCPUserEnvVars]"
 
     async def execute_raw(self, query: str, *args: object) -> int: ...
 
@@ -448,15 +448,15 @@ def _credentials_blob_to_mutable_dict(blob: str | Mapping[str, object]) -> dict[
 
 def _mcp_server_table_actions(
     prisma_client: PrismaClient,
-) -> "TableActions[prisma_db_models.LiteLLM_MCPServerTable]":
-    table: Final[TableActions[prisma_db_models.LiteLLM_MCPServerTable]] = MCPServerRepository(prisma_client).table
+) -> "TableActions[prisma_db_models.MCPServerTable]":
+    table: Final[TableActions[prisma_db_models.MCPServerTable]] = MCPServerRepository(prisma_client).table
     return table
 
 
 def _verification_token_table_actions(
     prisma_client: PrismaClient,
-) -> "TableActions[prisma_db_models.LiteLLM_VerificationToken]":
-    table: Final[TableActions[prisma_db_models.LiteLLM_VerificationToken]] = VerificationTokenRepository(
+) -> "TableActions[prisma_db_models.VerificationToken]":
+    table: Final[TableActions[prisma_db_models.VerificationToken]] = VerificationTokenRepository(
         prisma_client
     ).table
     return table
@@ -464,15 +464,15 @@ def _verification_token_table_actions(
 
 def _team_table_actions(
     prisma_client: PrismaClient,
-) -> "TableActions[prisma_db_models.LiteLLM_TeamTable]":
-    table: Final[TableActions[prisma_db_models.LiteLLM_TeamTable]] = TeamRepository(prisma_client).table
+) -> "TableActions[prisma_db_models.TeamTable]":
+    table: Final[TableActions[prisma_db_models.TeamTable]] = TeamRepository(prisma_client).table
     return table
 
 
 def _oauth_client_table_actions(
     prisma_client: PrismaClient,
-) -> "TableActions[prisma_db_models.LiteLLM_MCPServerOAuthClient]":
-    table: Final[TableActions[prisma_db_models.LiteLLM_MCPServerOAuthClient]] = MCPServerOAuthClientRepository(
+) -> "TableActions[prisma_db_models.MCPServerOAuthClient]":
+    table: Final[TableActions[prisma_db_models.MCPServerOAuthClient]] = MCPServerOAuthClientRepository(
         prisma_client
     ).table
     return table
@@ -485,23 +485,23 @@ def _db_transaction_manager(prisma_client: PrismaClient) -> _UserEnvVarsTransact
 
 async def _db_find_mcp_server_rows(
     prisma_client: PrismaClient,
-    where: "prisma_db_types.LiteLLM_MCPServerTableWhereInput | None" = None,
-) -> "Sequence[prisma_db_models.LiteLLM_MCPServerTable]":
+    where: "prisma_db_types.MCPServerTableWhereInput | None" = None,
+) -> "Sequence[prisma_db_models.MCPServerTable]":
     return await _mcp_server_table_actions(prisma_client).find_many(where=where)
 
 
 async def _db_find_mcp_server_row(
     prisma_client: PrismaClient, server_id: str
-) -> "prisma_db_models.LiteLLM_MCPServerTable | None":
+) -> "prisma_db_models.MCPServerTable | None":
     return await _mcp_server_table_actions(prisma_client).find_unique(where={"server_id": server_id})
 
 
 async def _db_update_mcp_server_row(
     prisma_client: PrismaClient,
     server_id: str,
-    data: "prisma_db_types.LiteLLM_MCPServerTableUpdateInput",
-) -> "prisma_db_models.LiteLLM_MCPServerTable":
-    row: Final[prisma_db_models.LiteLLM_MCPServerTable | None] = await _mcp_server_table_actions(prisma_client).update(
+    data: "prisma_db_types.MCPServerTableUpdateInput",
+) -> "prisma_db_models.MCPServerTable":
+    row: Final[prisma_db_models.MCPServerTable | None] = await _mcp_server_table_actions(prisma_client).update(
         where={"server_id": server_id},
         data=data,
     )
@@ -512,8 +512,8 @@ async def _db_update_mcp_server_row(
 
 def _user_credential_actions(
     prisma_client: PrismaClient,
-) -> "TableActions[prisma_db_models.LiteLLM_MCPUserCredentials]":
-    table: Final[TableActions[prisma_db_models.LiteLLM_MCPUserCredentials]] = MCPUserCredentialsRepository(
+) -> "TableActions[prisma_db_models.MCPUserCredentials]":
+    table: Final[TableActions[prisma_db_models.MCPUserCredentials]] = MCPUserCredentialsRepository(
         prisma_client
     ).table
     return table
@@ -521,14 +521,14 @@ def _user_credential_actions(
 
 def _user_env_var_actions(
     prisma_client: PrismaClient,
-) -> "TableActions[prisma_db_models.LiteLLM_MCPUserEnvVars]":
-    table: Final[TableActions[prisma_db_models.LiteLLM_MCPUserEnvVars]] = prisma_client.db.litellm_mcpuserenvvars
+) -> "TableActions[prisma_db_models.MCPUserEnvVars]":
+    table: Final[TableActions[prisma_db_models.MCPUserEnvVars]] = prisma_client.db.mcpuserenvvars
     return table
 
 
 async def _db_find_user_credential_row(
     prisma_client: PrismaClient, user_id: str, server_id: str
-) -> "prisma_db_models.LiteLLM_MCPUserCredentials | None":
+) -> "prisma_db_models.MCPUserCredentials | None":
     return await _user_credential_actions(prisma_client).find_unique(
         where={"user_id_server_id": {"user_id": user_id, "server_id": server_id}}
     )
@@ -536,8 +536,8 @@ async def _db_find_user_credential_row(
 
 async def _db_find_user_credential_rows(
     prisma_client: PrismaClient,
-    where: "prisma_db_types.LiteLLM_MCPUserCredentialsWhereInput | None" = None,
-) -> "Sequence[prisma_db_models.LiteLLM_MCPUserCredentials]":
+    where: "prisma_db_types.MCPUserCredentialsWhereInput | None" = None,
+) -> "Sequence[prisma_db_models.MCPUserCredentials]":
     return await _user_credential_actions(prisma_client).find_many(where=where)
 
 
@@ -559,8 +559,8 @@ async def _db_upsert_user_credential_row(
 
 async def _db_find_user_env_var_rows(
     prisma_client: PrismaClient,
-    where: "prisma_db_types.LiteLLM_MCPUserEnvVarsWhereInput | None" = None,
-) -> "Sequence[prisma_db_models.LiteLLM_MCPUserEnvVars]":
+    where: "prisma_db_types.MCPUserEnvVarsWhereInput | None" = None,
+) -> "Sequence[prisma_db_models.MCPUserEnvVars]":
     return await _user_env_var_actions(prisma_client).find_many(where=where)
 
 
@@ -600,7 +600,7 @@ async def get_all_mcp_servers(
     NULL approval_status predates the approval workflow, so those rows are kept explicitly rather
     than dropped by a bare inequality, which SQL evaluates as NULL and would silently hide them.
     """
-    where: Final[prisma_db_types.LiteLLM_MCPServerTableWhereInput] = (
+    where: Final[prisma_db_types.MCPServerTableWhereInput] = (
         {"approval_status": approval_status}
         if approval_status is not None
         # mutable-ok: prisma where-inputs must be plain dicts, and both `NOT` and `not` drop
@@ -631,7 +631,7 @@ async def get_mcp_servers(prisma_client: PrismaClient, server_ids: Iterable[str]
     """
     Returns the matching mcp servers from the db with the server_ids
     """
-    _mcp_servers: Final[Sequence[prisma_db_models.LiteLLM_MCPServerTable]] = await _mcp_server_table_actions(
+    _mcp_servers: Final[Sequence[prisma_db_models.MCPServerTable]] = await _mcp_server_table_actions(
         prisma_client
     ).find_many(
         where={
@@ -652,7 +652,7 @@ async def get_mcp_servers_by_verificationtoken(prisma_client: PrismaClient, toke
     Returns the mcp servers from the db for the verification token
     """
     verification_token_record: (
-        prisma_db_models.LiteLLM_VerificationToken | None
+        prisma_db_models.VerificationToken | None
     ) = await _verification_token_table_actions(prisma_client).find_unique(
         where={
             "token": token,
@@ -672,7 +672,7 @@ async def get_mcp_servers_by_team(prisma_client: PrismaClient, team_id: str) -> 
     """
     Returns the mcp servers from the db for the team id
     """
-    team_record: prisma_db_models.LiteLLM_TeamTable | None = await _team_table_actions(prisma_client).find_unique(
+    team_record: prisma_db_models.TeamTable | None = await _team_table_actions(prisma_client).find_unique(
         where={
             "team_id": team_id,
         },
@@ -718,12 +718,12 @@ async def get_all_mcp_servers_for_user(
 
 async def get_objectpermissions_for_mcp_server(
     prisma_client: PrismaClient, mcp_server_id: str
-) -> "Sequence[prisma_db_models.LiteLLM_ObjectPermissionTable]":
+) -> "Sequence[prisma_db_models.ObjectPermissionTable]":
     """
     Get all the object permissions records and the associated team and verficiationtoken records that have access to the mcp server
     """
     object_permission_records: Final[
-        Sequence[prisma_db_models.LiteLLM_ObjectPermissionTable]
+        Sequence[prisma_db_models.ObjectPermissionTable]
     ] = await ObjectPermissionRepository(prisma_client).table.find_many(
         where={
             "mcp_servers": {"has": mcp_server_id},
@@ -739,12 +739,12 @@ async def get_objectpermissions_for_mcp_server(
 
 async def get_virtualkeys_for_mcp_server(
     prisma_client: PrismaClient, server_id: str
-) -> "Sequence[prisma_db_models.LiteLLM_VerificationToken]":
+) -> "Sequence[prisma_db_models.VerificationToken]":
     """
     Get all the virtual keys that have access to the mcp server
     """
     virtual_keys: Final[
-        Sequence[prisma_db_models.LiteLLM_VerificationToken] | None
+        Sequence[prisma_db_models.VerificationToken] | None
     ] = await VerificationTokenRepository(prisma_client).table.find_many(
         where={
             "mcp_servers": {"has": server_id},
@@ -799,7 +799,7 @@ async def delete_mcp_server(
     if deleted_server is not None:
         credential_user_ids: list[str] = []
         try:
-            credential_rows: Sequence[prisma_db_models.LiteLLM_MCPUserCredentials] = await _user_credential_actions(
+            credential_rows: Sequence[prisma_db_models.MCPUserCredentials] = await _user_credential_actions(
                 prisma_client
             ).find_many(where={"server_id": server_id})
             credential_user_ids = [row.user_id for row in credential_rows]
@@ -1081,7 +1081,7 @@ async def get_mcp_server_oauth_client_credentials(prisma_client: PrismaClient, s
     LiteLLM_MCPServerTable row, so their dynamically registered client lives here keyed
     by server_id. The returned value is the raw credentials blob for
     ``_get_persisted_dcr_credentials`` to parse."""
-    row: Final[prisma_db_models.LiteLLM_MCPServerOAuthClient | None] = await _oauth_client_table_actions(
+    row: Final[prisma_db_models.MCPServerOAuthClient | None] = await _oauth_client_table_actions(
         prisma_client
     ).find_unique(where={"server_id": server_id})
     if row is None:
@@ -1154,7 +1154,7 @@ async def rotate_mcp_server_credentials_master_key(prisma_client: PrismaClient, 
         )
         updated += 1
 
-    oauth_clients: Final[Sequence[prisma_db_models.LiteLLM_MCPServerOAuthClient]] = await _oauth_client_table_actions(
+    oauth_clients: Final[Sequence[prisma_db_models.MCPServerOAuthClient]] = await _oauth_client_table_actions(
         prisma_client
     ).find_many()
     oauth_updated = 0
@@ -1866,7 +1866,7 @@ async def reject_mcp_server(
 ) -> LiteLLM_MCPServerTable:
     """Set approval_status=rejected, record reviewed_at and review_notes."""
     now: Final = datetime.now(timezone.utc)
-    data: Final[prisma_db_types.LiteLLM_MCPServerTableUpdateInput] = {
+    data: Final[prisma_db_types.MCPServerTableUpdateInput] = {
         "approval_status": MCPApprovalStatus.rejected,
         "reviewed_at": now,
         "updated_by": touched_by,
@@ -1887,7 +1887,7 @@ async def get_mcp_submissions(
     along with a summary count breakdown by approval_status.
     Mirrors get_guardrail_submissions() from guardrail_endpoints.py.
     """
-    rows: Final[Sequence[prisma_db_models.LiteLLM_MCPServerTable]] = await _mcp_server_table_actions(
+    rows: Final[Sequence[prisma_db_models.MCPServerTable]] = await _mcp_server_table_actions(
         prisma_client
     ).find_many(
         where={"submitted_at": {"not": None}},
@@ -1993,13 +1993,13 @@ async def merge_user_env_vars(
     )
     async with _db_transaction_manager(prisma_client) as tx:
         await tx.execute_raw("SELECT pg_advisory_xact_lock($1::bigint)", lock_key)
-        row: Final[prisma_db_models.LiteLLM_MCPUserEnvVars | None] = await tx.litellm_mcpuserenvvars.find_unique(
+        row: Final[prisma_db_models.MCPUserEnvVars | None] = await tx.mcpuserenvvars.find_unique(
             where={"user_id_server_id": {"user_id": user_id, "server_id": server_id}}
         )
         existing: Final = _decode_user_env_vars(row.values_b64) if row is not None else {}
         merged: Final = {k: v for k, v in {**existing, **updates}.items() if k in allowed}
         encoded: Final = encrypt_value_helper(json.dumps(merged))
-        await tx.litellm_mcpuserenvvars.upsert(
+        await tx.mcpuserenvvars.upsert(
             where={"user_id_server_id": {"user_id": user_id, "server_id": server_id}},
             data={
                 "create": {

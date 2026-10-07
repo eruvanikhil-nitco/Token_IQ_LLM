@@ -106,10 +106,10 @@ async def test_create_prompt_stores_environment_and_created_by():
         "created_at": None,
         "updated_at": None,
     }
-    mock_prisma_client.db.litellm_prompttable.create = AsyncMock(
+    mock_prisma_client.db.prompttable.create = AsyncMock(
         return_value=mock_db_entry
     )
-    mock_prisma_client.db.litellm_prompttable.find_many = AsyncMock(return_value=[])
+    mock_prisma_client.db.prompttable.find_many = AsyncMock(return_value=[])
 
     request = Prompt(
         prompt_id="my_prompt",
@@ -132,7 +132,7 @@ async def test_create_prompt_stores_environment_and_created_by():
             )
             await create_prompt(request=request, user_api_key_dict=mock_user_auth)
 
-            create_call = mock_prisma_client.db.litellm_prompttable.create.call_args
+            create_call = mock_prisma_client.db.prompttable.create.call_args
             data = create_call.kwargs["data"]
             assert data["environment"] == "staging"
             assert data["created_by"] == "user-789"
@@ -154,7 +154,7 @@ async def test_update_prompt_stores_environment_and_created_by():
     mock_prisma_client = MagicMock()
     mock_existing = MagicMock()
     mock_existing.version = 1
-    mock_prisma_client.db.litellm_prompttable.find_many = AsyncMock(
+    mock_prisma_client.db.prompttable.find_many = AsyncMock(
         return_value=[mock_existing]
     )
 
@@ -175,7 +175,7 @@ async def test_update_prompt_stores_environment_and_created_by():
         "created_at": None,
         "updated_at": None,
     }
-    mock_prisma_client.db.litellm_prompttable.create = AsyncMock(
+    mock_prisma_client.db.prompttable.create = AsyncMock(
         return_value=mock_db_entry
     )
 
@@ -207,7 +207,7 @@ async def test_update_prompt_stores_environment_and_created_by():
                 prompt_id="my_prompt", request=request, user_api_key_dict=mock_user_auth
             )
 
-            create_call = mock_prisma_client.db.litellm_prompttable.create.call_args
+            create_call = mock_prisma_client.db.prompttable.create.call_args
             data = create_call.kwargs["data"]
             assert data["environment"] == "production"
             assert data["created_by"] == "user-update"
@@ -226,7 +226,7 @@ async def test_delete_prompt_scoped_to_environment():
     )
 
     mock_prisma_client = MagicMock()
-    mock_prisma_client.db.litellm_prompttable.delete_many = AsyncMock(return_value=None)
+    mock_prisma_client.db.prompttable.delete_many = AsyncMock(return_value=None)
 
     with patch(
         "token_iq.gateway.proxy.prompts.prompt_registry.IN_MEMORY_PROMPT_REGISTRY"
@@ -248,6 +248,6 @@ async def test_delete_prompt_scoped_to_environment():
                 environment="staging",
             )
 
-            mock_prisma_client.db.litellm_prompttable.delete_many.assert_called_once_with(
+            mock_prisma_client.db.prompttable.delete_many.assert_called_once_with(
                 where={"prompt_id": "test_prompt", "environment": "staging"}
             )

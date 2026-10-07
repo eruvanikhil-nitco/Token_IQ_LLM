@@ -586,7 +586,7 @@ async def _fetch_global_spend_with_event_coordination(
     """
 
     async def _load_global_spend() -> float | None:
-        proxy_budget_row: Final = await prisma_client.db.litellm_usertable.find_unique(
+        proxy_budget_row: Final = await prisma_client.db.usertable.find_unique(
             where={"user_id": LITELLM_PROXY_BUDGET_NAME}
         )
         return float(proxy_budget_row.spend) if proxy_budget_row is not None else None
@@ -835,7 +835,7 @@ async def _auto_register_jwt_mapping(
     token_hash = hash_token(key_data["token"])
 
     try:
-        await prisma_client.db.litellm_jwtkeymapping.create(
+        await prisma_client.db.jwtkeymapping.create(
             data={
                 "jwt_claim_name": virtual_key_claim_field,
                 "jwt_claim_value": claim_value,
@@ -859,7 +859,7 @@ async def _auto_register_jwt_mapping(
                 claim_value,
             )
             try:
-                await prisma_client.db.litellm_verificationtoken.delete(where={"token": token_hash})
+                await prisma_client.db.verificationtoken.delete(where={"token": token_hash})
             except Exception as delete_err:
                 # Don't fail the request if cleanup fails — the orphan is
                 # unmapped and inert. Log so an operator can prune it later.

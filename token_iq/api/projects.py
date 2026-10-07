@@ -63,7 +63,7 @@ def _prisma_or_500() -> Any:  # any-ok: PrismaClient is an untyped runtime wrapp
 
 
 async def _team_or_404(team_id: str, prisma_client: Any) -> LiteLLM_TeamTable:  # any-ok: untyped wrapper
-    row: Final = await prisma_client.db.litellm_teamtable.find_unique(where={"team_id": team_id})
+    row: Final = await prisma_client.db.teamtable.find_unique(where={"team_id": team_id})
     if row is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
@@ -119,7 +119,7 @@ async def _projects_visible_to(
     if user_api_key_has_admin_view(user_api_key_dict):
         return await repository.find_many()
 
-    team_rows: Final = await prisma_client.db.litellm_teamtable.find_many()
+    team_rows: Final = await prisma_client.db.teamtable.find_many()
     readable_team_ids: Final = tuple(
         team.team_id
         for team in (LiteLLM_TeamTable.model_validate(row.model_dump()) for row in team_rows)
@@ -333,7 +333,7 @@ async def get_project_daily_activity(
 
     return await get_daily_activity(
         prisma_client=prisma_client,
-        table_name="litellm_dailyprojectspend",
+        table_name="dailyprojectspend",
         entity_id_field="project_id",
         entity_id=None if not project_ids and user_api_key_has_admin_view(user_api_key_dict) else list(requested),
         entity_metadata_field={

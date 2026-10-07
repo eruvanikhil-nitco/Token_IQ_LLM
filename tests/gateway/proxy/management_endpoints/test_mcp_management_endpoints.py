@@ -117,10 +117,10 @@ def setup_mock_prisma_client(
 ):
     """Helper to set up a mock prisma client with proper async behavior"""
     mock_prisma_client.db = MagicMock()
-    mock_prisma_client.db.litellm_teamtable = AsyncMock()
-    mock_prisma_client.db.litellm_teamtable.find_many = AsyncMock(return_value=team_records)
-    mock_prisma_client.db.litellm_mcpservertable = AsyncMock()
-    mock_prisma_client.db.litellm_mcpservertable.find_many = AsyncMock(return_value=mcp_servers)
+    mock_prisma_client.db.teamtable = AsyncMock()
+    mock_prisma_client.db.teamtable.find_many = AsyncMock(return_value=team_records)
+    mock_prisma_client.db.mcpservertable = AsyncMock()
+    mock_prisma_client.db.mcpservertable.find_many = AsyncMock(return_value=mcp_servers)
     return mock_prisma_client
 
 
@@ -1253,7 +1253,7 @@ class TestListMCPServers:
         assert isinstance(raw_prisma_model.env_vars[0], dict)
 
         mock_prisma_client = MagicMock()
-        mock_prisma_client.db.litellm_mcpservertable.find_unique = AsyncMock(return_value=raw_prisma_model)
+        mock_prisma_client.db.mcpservertable.find_unique = AsyncMock(return_value=raw_prisma_model)
 
         mock_health_result = generate_mock_mcp_server_db_record(server_id="env-server", alias="Env Server")
         mock_health_result.status = "healthy"
@@ -3692,9 +3692,9 @@ class TestUpdateMCPServer:
         # Mock dependencies
         mock_prisma_client = MagicMock()
         mock_prisma_client.db = MagicMock()
-        mock_prisma_client.db.litellm_mcpservertable = AsyncMock()
-        mock_prisma_client.db.litellm_mcpservertable.find_unique = AsyncMock(return_value=existing_server)
-        mock_prisma_client.db.litellm_mcpservertable.update = AsyncMock(return_value=updated_server)
+        mock_prisma_client.db.mcpservertable = AsyncMock()
+        mock_prisma_client.db.mcpservertable.find_unique = AsyncMock(return_value=existing_server)
+        mock_prisma_client.db.mcpservertable.update = AsyncMock(return_value=updated_server)
 
         mock_user_auth = generate_mock_user_api_key_auth(user_role=GatewayUserRoles.PROXY_ADMIN)
 

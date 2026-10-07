@@ -59,7 +59,7 @@ async def test_list_vector_stores_allowed_when_not_disabled():
 
     user = _make_internal_user()
     mock_prisma = MagicMock()
-    mock_prisma.db.litellm_managedvectorstorestable.find_many = AsyncMock(
+    mock_prisma.db.managedvectorstorestable.find_many = AsyncMock(
         return_value=[]
     )
 
@@ -120,7 +120,7 @@ async def test_list_vector_stores_admin_not_blocked():
     )
 
     mock_prisma = MagicMock()
-    mock_prisma.db.litellm_managedvectorstorestable.find_many = AsyncMock(
+    mock_prisma.db.managedvectorstorestable.find_many = AsyncMock(
         return_value=[]
     )
 

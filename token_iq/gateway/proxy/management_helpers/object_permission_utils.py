@@ -228,7 +228,7 @@ def _mcp_server_identifier_matches(server: Any, identifier: str) -> bool:
 async def _get_db_mcp_servers_by_identifiers(
     identifiers: set[str],
     prisma_client: PrismaClient | None,
-) -> "Sequence[prisma_models.LiteLLM_MCPServerTable]":
+) -> "Sequence[prisma_models.MCPServerTable]":
     if prisma_client is None or not identifiers:
         return []
 

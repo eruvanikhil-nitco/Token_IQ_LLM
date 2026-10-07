@@ -453,11 +453,11 @@ async def test_commit_increments_spend_on_the_model_access_group_budget_table():
         ),
     )
 
-    assert prisma_client.batcher.tables["litellm_modelaccessgroupbudgettable"].calls == [
+    assert prisma_client.batcher.tables["modelaccessgroupbudgettable"].calls == [
         ({"access_group_name": "pool-a"}, {"spend": {"increment": 0.25}}),
         ({"access_group_name": "pool-b"}, {"spend": {"increment": 0.5}}),
     ]
-    assert "litellm_tagtable" not in prisma_client.batcher.tables
+    assert "tagtable" not in prisma_client.batcher.tables
 
 
 # --- end-to-end through the batched fan-out --------------------------------

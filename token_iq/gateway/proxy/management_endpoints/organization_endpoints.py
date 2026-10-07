@@ -68,15 +68,15 @@ from token_iq.gateway.utils import _update_dictionary
 if TYPE_CHECKING:
     from types import TracebackType
 
-    from prisma.models import LiteLLM_BudgetTable as PrismaBudgetTable
+    from prisma.models import BudgetTable as PrismaBudgetTable
     from prisma.models import (
-        LiteLLM_ObjectPermissionTable as PrismaObjectPermissionTable,
+        ObjectPermissionTable as PrismaObjectPermissionTable,
     )
     from prisma.models import (
-        LiteLLM_OrganizationMembership as PrismaOrganizationMembership,
+        OrganizationMembership as PrismaOrganizationMembership,
     )
-    from prisma.models import LiteLLM_OrganizationTable as PrismaOrganizationTable
-    from prisma.models import LiteLLM_UserTable as PrismaUserTable
+    from prisma.models import OrganizationTable as PrismaOrganizationTable
+    from prisma.models import UserTable as PrismaUserTable
 
 router: Final = APIRouter()
 
@@ -165,13 +165,13 @@ class _BudgetTxClient(Protocol):
 
 class _TransactionTables(Protocol):
     @property
-    def litellm_objectpermissiontable(self) -> "_ObjectPermissionTxClient": ...
+    def objectpermissiontable(self) -> "_ObjectPermissionTxClient": ...
 
     @property
-    def litellm_budgettable(self) -> "_BudgetTxClient": ...
+    def budgettable(self) -> "_BudgetTxClient": ...
 
     @property
-    def litellm_organizationtable(self) -> "_OrganizationTableClient": ...
+    def organizationtable(self) -> "_OrganizationTableClient": ...
 
 
 class _TransactionManager(Protocol):
@@ -576,7 +576,7 @@ async def get_organization_daily_activity(
     # Query daily activity for organizations
     return await get_daily_activity(
         prisma_client=prisma_client,
-        table_name="litellm_dailyorganizationspend",
+        table_name="dailyorganizationspend",
         entity_id_field="organization_id",
         entity_id=org_ids_list,
         entity_metadata_field={o.organization_id: {"organization_alias": o.organization_alias} for o in org_aliases},
@@ -886,7 +886,7 @@ async def update_organization_v2(
     tx_manager: Final[_TransactionManager] = prisma_client.db.tx()
     async with tx_manager as tx:
         if object_permission_upsert is not None:
-            await tx.litellm_objectpermissiontable.upsert(
+            await tx.objectpermissiontable.upsert(
                 where={"object_permission_id": object_permission_upsert.object_permission_id},
                 data={
                     "create": object_permission_upsert.record,
@@ -897,11 +897,11 @@ async def update_organization_v2(
             budget_write_data: Final = _STR_OBJECT_DICT_ADAPTER.validate_python(
                 prisma_client.jsonify_object(dict(build_budget_write_data(budget_updates, user_api_key_dict.user_id)))
             )
-            await tx.litellm_budgettable.update(
+            await tx.budgettable.update(
                 where={"budget_id": existing_organization_row.budget_id},
                 data=budget_write_data,
             )
-        response: Final = await tx.litellm_organizationtable.update(
+        response: Final = await tx.organizationtable.update(
             where={"organization_id": organization_id},
             data=organization_write_data,
             include={"members": True, "teams": True, "litellm_budget_table": True},

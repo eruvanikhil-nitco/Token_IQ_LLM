@@ -33,7 +33,7 @@ from token_iq.gateway.proxy.utils import PrismaClient, evict_config_param
 from token_iq.gateway.repositories.config_repository import ConfigRepository
 
 if TYPE_CHECKING:
-    from prisma.models import LiteLLM_Config
+    from prisma.models import Config
 
 MODEL_COST_MAP_RELOAD_PARAM_NAME = "model_cost_map_reload_config"
 
@@ -55,9 +55,9 @@ class _ConfigUpsertData(TypedDict):
 
 
 class _ConfigTable(Protocol):
-    async def find_unique(self, where: Mapping[str, str]) -> "LiteLLM_Config | None": ...
+    async def find_unique(self, where: Mapping[str, str]) -> "Config | None": ...
 
-    async def upsert(self, where: Mapping[str, str], data: _ConfigUpsertData) -> "LiteLLM_Config": ...
+    async def upsert(self, where: Mapping[str, str], data: _ConfigUpsertData) -> "Config": ...
 
     async def update_many(self, data: _ConfigRowWrite, where: Mapping[str, str]) -> int: ...
 
@@ -108,7 +108,7 @@ def _as_utc(value: datetime | None) -> datetime | None:
     return value if value.tzinfo is not None else value.replace(tzinfo=timezone.utc)
 
 
-def parse_reload_schedule(row: "LiteLLM_Config") -> ReloadSchedule:
+def parse_reload_schedule(row: "Config") -> ReloadSchedule:
     return ReloadSchedule(
         interval_hours=_parse_interval_hours(row.param_value),
         reload_revision=int(row.reload_revision or 0),

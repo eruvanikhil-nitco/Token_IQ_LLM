@@ -27,16 +27,16 @@ def _credentials_cleared(value) -> bool:
 
 def _mock_prisma():
     mock_prisma = MagicMock()
-    mock_prisma.db.litellm_mcpservertable = AsyncMock()
-    mock_prisma.db.litellm_mcpservertable.update = AsyncMock(return_value=MagicMock())
-    mock_prisma.db.litellm_mcpservertable.create = AsyncMock(return_value=MagicMock())
+    mock_prisma.db.mcpservertable = AsyncMock()
+    mock_prisma.db.mcpservertable.update = AsyncMock(return_value=MagicMock())
+    mock_prisma.db.mcpservertable.create = AsyncMock(return_value=MagicMock())
     return mock_prisma
 
 
 async def _run_update(data: UpdateMCPServerRequest, fields_set=None) -> dict:
     mock_prisma = _mock_prisma()
     await update_mcp_server(mock_prisma, data, "test-user", fields_set=fields_set)
-    return mock_prisma.db.litellm_mcpservertable.update.call_args[1]["data"]
+    return mock_prisma.db.mcpservertable.update.call_args[1]["data"]
 
 
 @pytest.mark.asyncio
@@ -186,9 +186,9 @@ async def _run_update_with_existing(data: UpdateMCPServerRequest, existing_auth_
     existing = MagicMock()
     existing.auth_type = existing_auth_type
     existing.credentials = None
-    mock_prisma.db.litellm_mcpservertable.find_unique = AsyncMock(return_value=existing)
+    mock_prisma.db.mcpservertable.find_unique = AsyncMock(return_value=existing)
     await update_mcp_server(mock_prisma, data, "test-user")
-    return mock_prisma.db.litellm_mcpservertable.update.call_args[1]["data"]
+    return mock_prisma.db.mcpservertable.update.call_args[1]["data"]
 
 
 @pytest.mark.asyncio
@@ -228,11 +228,11 @@ async def test_explicit_null_clears_upstream_resource_and_keeps_the_rest_of_the_
     existing.auth_type = "oauth2"
     existing.url = "https://up.example.com/mcp"
     existing.credentials = json.dumps({"client_secret": "csec", "upstream_resource": "api://audience"})
-    mock_prisma.db.litellm_mcpservertable.find_unique = AsyncMock(return_value=existing)
+    mock_prisma.db.mcpservertable.find_unique = AsyncMock(return_value=existing)
 
     data = UpdateMCPServerRequest(server_id="my-test-server", credentials={"upstream_resource": None})
     await update_mcp_server(mock_prisma, data, "test-user")
-    data_dict = mock_prisma.db.litellm_mcpservertable.update.call_args[1]["data"]
+    data_dict = mock_prisma.db.mcpservertable.update.call_args[1]["data"]
 
     merged = json.loads(data_dict["credentials"])
     assert merged["upstream_resource"] is None
@@ -249,11 +249,11 @@ async def test_url_change_clears_stale_oauth_fields():
     existing.auth_type = "oauth2"
     existing.url = "https://old.example.com/mcp"
     existing.credentials = None
-    mock_prisma.db.litellm_mcpservertable.find_unique = AsyncMock(return_value=existing)
+    mock_prisma.db.mcpservertable.find_unique = AsyncMock(return_value=existing)
 
     data = UpdateMCPServerRequest(server_id="my-test-server", url="https://new.example.com/mcp")
     await update_mcp_server(mock_prisma, data, "test-user")
-    data_dict = mock_prisma.db.litellm_mcpservertable.update.call_args[1]["data"]
+    data_dict = mock_prisma.db.mcpservertable.update.call_args[1]["data"]
 
     assert data_dict["url"] == "https://new.example.com/mcp"
     for stale_field in ("issuer", "authorization_url", "token_url", "registration_url"):
@@ -274,7 +274,7 @@ async def test_url_change_clears_stale_oauth_fields_even_when_resubmitted_unchan
     existing.issuer = "https://old-idp.example.com"
     existing.token_url = "https://old-idp.example.com/token"
     existing.authorization_url = "https://old-idp.example.com/authorize"
-    mock_prisma.db.litellm_mcpservertable.find_unique = AsyncMock(return_value=existing)
+    mock_prisma.db.mcpservertable.find_unique = AsyncMock(return_value=existing)
 
     data = UpdateMCPServerRequest(
         server_id="my-test-server",
@@ -284,7 +284,7 @@ async def test_url_change_clears_stale_oauth_fields_even_when_resubmitted_unchan
         authorization_url="https://new-idp.example.com/authorize",  # genuinely changed -> kept
     )
     await update_mcp_server(mock_prisma, data, "test-user")
-    data_dict = mock_prisma.db.litellm_mcpservertable.update.call_args[1]["data"]
+    data_dict = mock_prisma.db.mcpservertable.update.call_args[1]["data"]
 
     assert data_dict["issuer"] is None
     assert data_dict["token_url"] is None
@@ -306,7 +306,7 @@ async def test_clearing_pinned_issuer_clears_stale_oauth_endpoints():
     existing.issuer = "https://pinned-idp.example.com"
     existing.token_url = "https://pinned-idp.example.com/token"
     existing.authorization_url = "https://pinned-idp.example.com/authorize"
-    mock_prisma.db.litellm_mcpservertable.find_unique = AsyncMock(return_value=existing)
+    mock_prisma.db.mcpservertable.find_unique = AsyncMock(return_value=existing)
 
     data = UpdateMCPServerRequest(
         server_id="my-test-server",
@@ -315,7 +315,7 @@ async def test_clearing_pinned_issuer_clears_stale_oauth_endpoints():
         authorization_url="https://pinned-idp.example.com/authorize",
     )
     await update_mcp_server(mock_prisma, data, "test-user")
-    data_dict = mock_prisma.db.litellm_mcpservertable.update.call_args[1]["data"]
+    data_dict = mock_prisma.db.mcpservertable.update.call_args[1]["data"]
 
     assert data_dict["token_url"] is None
     assert data_dict["authorization_url"] is None
@@ -333,7 +333,7 @@ async def test_repointing_pinned_issuer_clears_stale_endpoints_keeps_new_issuer(
     existing.issuer = "https://old-idp.example.com"
     existing.token_url = "https://old-idp.example.com/token"
     existing.authorization_url = "https://old-idp.example.com/authorize"
-    mock_prisma.db.litellm_mcpservertable.find_unique = AsyncMock(return_value=existing)
+    mock_prisma.db.mcpservertable.find_unique = AsyncMock(return_value=existing)
 
     data = UpdateMCPServerRequest(
         server_id="my-test-server",
@@ -342,7 +342,7 @@ async def test_repointing_pinned_issuer_clears_stale_endpoints_keeps_new_issuer(
         authorization_url="https://old-idp.example.com/authorize",  # resubmitted stale -> must clear
     )
     await update_mcp_server(mock_prisma, data, "test-user")
-    data_dict = mock_prisma.db.litellm_mcpservertable.update.call_args[1]["data"]
+    data_dict = mock_prisma.db.mcpservertable.update.call_args[1]["data"]
 
     assert data_dict["issuer"] == "https://new-idp.example.com"
     assert data_dict["token_url"] is None
@@ -363,7 +363,7 @@ async def test_establishing_issuer_first_time_preserves_endpoints_set_in_the_sam
     existing.url = "https://same.example.com/mcp"
     existing.credentials = None
     existing.issuer = None
-    mock_prisma.db.litellm_mcpservertable.find_unique = AsyncMock(return_value=existing)
+    mock_prisma.db.mcpservertable.find_unique = AsyncMock(return_value=existing)
 
     data = UpdateMCPServerRequest(
         server_id="my-test-server",
@@ -373,7 +373,7 @@ async def test_establishing_issuer_first_time_preserves_endpoints_set_in_the_sam
         oauth2_flow="authorization_code",
     )
     await update_mcp_server(mock_prisma, data, "some-admin@example.com")
-    data_dict = mock_prisma.db.litellm_mcpservertable.update.call_args[1]["data"]
+    data_dict = mock_prisma.db.mcpservertable.update.call_args[1]["data"]
 
     assert data_dict["issuer"] == "https://discovered-idp.example.com"
     assert data_dict["authorization_url"] == "https://discovered-idp.example.com/authorize"
@@ -390,11 +390,11 @@ async def test_unchanged_url_does_not_clear_oauth_fields():
     existing.auth_type = "oauth2"
     existing.url = "https://same.example.com/mcp"
     existing.credentials = None
-    mock_prisma.db.litellm_mcpservertable.find_unique = AsyncMock(return_value=existing)
+    mock_prisma.db.mcpservertable.find_unique = AsyncMock(return_value=existing)
 
     data = UpdateMCPServerRequest(server_id="my-test-server", url="https://same.example.com/mcp")
     await update_mcp_server(mock_prisma, data, "test-user")
-    data_dict = mock_prisma.db.litellm_mcpservertable.update.call_args[1]["data"]
+    data_dict = mock_prisma.db.mcpservertable.update.call_args[1]["data"]
 
     for preserved_field in ("issuer", "authorization_url", "token_url", "registration_url"):
         assert preserved_field not in data_dict, f"{preserved_field} must not be cleared when url is unchanged"
@@ -484,7 +484,7 @@ async def test_create_still_writes_defaults():
 
     await create_mcp_server(mock_prisma, data, "test-user")
 
-    data_dict = mock_prisma.db.litellm_mcpservertable.create.call_args[1]["data"]
+    data_dict = mock_prisma.db.mcpservertable.create.call_args[1]["data"]
 
     assert data_dict["transport"] == "http"
     # is_byok is force-written on create.
@@ -542,7 +542,7 @@ async def test_create_lifts_blob_token_exchange_settings_into_columns():
     )
 
     await create_mcp_server(mock_prisma, data, "test-user")
-    data_dict = mock_prisma.db.litellm_mcpservertable.create.call_args[1]["data"]
+    data_dict = mock_prisma.db.mcpservertable.create.call_args[1]["data"]
 
     assert data_dict["token_exchange_endpoint"] == "https://idp.example.com/oauth2/token"
     assert data_dict["audience"] == "api://upstream"
@@ -567,7 +567,7 @@ async def test_create_explicit_column_wins_over_blob_copy():
     )
 
     await create_mcp_server(mock_prisma, data, "test-user")
-    data_dict = mock_prisma.db.litellm_mcpservertable.create.call_args[1]["data"]
+    data_dict = mock_prisma.db.mcpservertable.create.call_args[1]["data"]
 
     assert data_dict["token_exchange_endpoint"] == "https://top-level.example.com/token"
     assert "token_exchange_endpoint" not in json.loads(data_dict["credentials"])
@@ -588,7 +588,7 @@ async def test_credentials_merge_migrates_legacy_blob_te_settings():
             "token_exchange_profile": "entra_obo",
         },
     )
-    mock_prisma.db.litellm_mcpservertable.find_unique = AsyncMock(return_value=existing)
+    mock_prisma.db.mcpservertable.find_unique = AsyncMock(return_value=existing)
 
     data = UpdateMCPServerRequest(
         server_id="te-server",
@@ -596,7 +596,7 @@ async def test_credentials_merge_migrates_legacy_blob_te_settings():
         credentials={"client_id": "new-cid"},
     )
     await update_mcp_server(mock_prisma, data, "test-user")
-    data_dict = mock_prisma.db.litellm_mcpservertable.update.call_args[1]["data"]
+    data_dict = mock_prisma.db.mcpservertable.update.call_args[1]["data"]
 
     assert data_dict["token_exchange_endpoint"] == "https://legacy-idp.example.com/token"
     assert data_dict["audience"] == "api://legacy"
@@ -617,7 +617,7 @@ async def test_cleared_column_is_not_resurrected_by_legacy_blob_value():
         "oauth2_token_exchange",
         credentials={"client_id": "enc-old-cid", "token_exchange_endpoint": "https://dead-idp.example.com/token"},
     )
-    mock_prisma.db.litellm_mcpservertable.find_unique = AsyncMock(return_value=existing)
+    mock_prisma.db.mcpservertable.find_unique = AsyncMock(return_value=existing)
 
     data = UpdateMCPServerRequest(
         server_id="te-server",
@@ -626,7 +626,7 @@ async def test_cleared_column_is_not_resurrected_by_legacy_blob_value():
         credentials={"client_id": "new-cid"},
     )
     await update_mcp_server(mock_prisma, data, "test-user")
-    data_dict = mock_prisma.db.litellm_mcpservertable.update.call_args[1]["data"]
+    data_dict = mock_prisma.db.mcpservertable.update.call_args[1]["data"]
 
     assert data_dict["token_exchange_endpoint"] is None
     assert "token_exchange_endpoint" not in json.loads(data_dict["credentials"])
@@ -642,7 +642,7 @@ async def test_merge_strips_blob_te_copy_when_column_already_set():
         credentials={"client_id": "enc-old-cid", "token_exchange_endpoint": "https://blob-copy.example.com/token"},
     )
     existing.token_exchange_endpoint = "https://column.example.com/token"
-    mock_prisma.db.litellm_mcpservertable.find_unique = AsyncMock(return_value=existing)
+    mock_prisma.db.mcpservertable.find_unique = AsyncMock(return_value=existing)
 
     data = UpdateMCPServerRequest(
         server_id="te-server",
@@ -650,7 +650,7 @@ async def test_merge_strips_blob_te_copy_when_column_already_set():
         credentials={"client_id": "new-cid"},
     )
     await update_mcp_server(mock_prisma, data, "test-user")
-    data_dict = mock_prisma.db.litellm_mcpservertable.update.call_args[1]["data"]
+    data_dict = mock_prisma.db.mcpservertable.update.call_args[1]["data"]
 
     # Column untouched by this update (not in payload), blob copy gone.
     assert "token_exchange_endpoint" not in data_dict
@@ -664,11 +664,11 @@ async def test_auth_type_switch_clears_flow_fields_with_external_fields_set():
     gated on ``data.auth_type``/the existing row, not on how fields_set arrives."""
     mock_prisma = _mock_prisma()
     existing = _existing_row("oauth2")
-    mock_prisma.db.litellm_mcpservertable.find_unique = AsyncMock(return_value=existing)
+    mock_prisma.db.mcpservertable.find_unique = AsyncMock(return_value=existing)
 
     data = UpdateMCPServerRequest(server_id="te-server", auth_type="oauth2_token_exchange")
     await update_mcp_server(mock_prisma, data, "test-user", fields_set=set(data.fields_set()))
-    data_dict = mock_prisma.db.litellm_mcpservertable.update.call_args[1]["data"]
+    data_dict = mock_prisma.db.mcpservertable.update.call_args[1]["data"]
 
     for stale_field in (
         "authorization_url",
@@ -693,11 +693,11 @@ async def test_explicit_clear_without_credentials_purges_legacy_blob_copy():
         "oauth2_token_exchange",
         credentials={"client_id": "enc-old-cid", "token_exchange_endpoint": "https://dead-idp.example.com/token"},
     )
-    mock_prisma.db.litellm_mcpservertable.find_unique = AsyncMock(return_value=existing)
+    mock_prisma.db.mcpservertable.find_unique = AsyncMock(return_value=existing)
 
     data = UpdateMCPServerRequest(server_id="te-server", token_exchange_endpoint=None)
     await update_mcp_server(mock_prisma, data, "test-user")
-    data_dict = mock_prisma.db.litellm_mcpservertable.update.call_args[1]["data"]
+    data_dict = mock_prisma.db.mcpservertable.update.call_args[1]["data"]
 
     assert data_dict["token_exchange_endpoint"] is None
     stored_blob = json.loads(data_dict["credentials"])
@@ -720,11 +720,11 @@ async def test_explicit_te_write_without_credentials_migrates_other_legacy_field
             "audience": "api://legacy",
         },
     )
-    mock_prisma.db.litellm_mcpservertable.find_unique = AsyncMock(return_value=existing)
+    mock_prisma.db.mcpservertable.find_unique = AsyncMock(return_value=existing)
 
     data = UpdateMCPServerRequest(server_id="te-server", audience="api://new")
     await update_mcp_server(mock_prisma, data, "test-user")
-    data_dict = mock_prisma.db.litellm_mcpservertable.update.call_args[1]["data"]
+    data_dict = mock_prisma.db.mcpservertable.update.call_args[1]["data"]
 
     assert data_dict["audience"] == "api://new"
     assert data_dict["token_exchange_endpoint"] == "https://legacy-idp.example.com/token"
@@ -739,11 +739,11 @@ async def test_te_update_without_blob_te_keys_leaves_credentials_untouched():
     must not rewrite the credentials blob at all."""
     mock_prisma = _mock_prisma()
     existing = _existing_row("oauth2_token_exchange", credentials={"client_id": "enc-old-cid"})
-    mock_prisma.db.litellm_mcpservertable.find_unique = AsyncMock(return_value=existing)
+    mock_prisma.db.mcpservertable.find_unique = AsyncMock(return_value=existing)
 
     data = UpdateMCPServerRequest(server_id="te-server", token_exchange_endpoint="https://new.example.com/token")
     await update_mcp_server(mock_prisma, data, "test-user")
-    data_dict = mock_prisma.db.litellm_mcpservertable.update.call_args[1]["data"]
+    data_dict = mock_prisma.db.mcpservertable.update.call_args[1]["data"]
 
     assert data_dict["token_exchange_endpoint"] == "https://new.example.com/token"
     assert "credentials" not in data_dict
@@ -762,11 +762,11 @@ async def test_cf_pair_switch_without_credentials_keeps_stored_app_and_endpoints
     existing.authorization_url = "https://provider.example/authorize"
     existing.token_url = "https://provider.example/token"
     existing.registration_url = "https://provider.example/register"
-    mock_prisma.db.litellm_mcpservertable.find_unique = AsyncMock(return_value=existing)
+    mock_prisma.db.mcpservertable.find_unique = AsyncMock(return_value=existing)
 
     data = UpdateMCPServerRequest(server_id="cf-server", auth_type="oauth_delegate")
     await update_mcp_server(mock_prisma, data, "test-user")
-    data_dict = mock_prisma.db.litellm_mcpservertable.update.call_args[1]["data"]
+    data_dict = mock_prisma.db.mcpservertable.update.call_args[1]["data"]
 
     assert "credentials" not in data_dict
     for scoped_field in ("authorization_url", "token_url", "registration_url", "oauth2_flow"):
@@ -779,11 +779,11 @@ async def test_cf_pair_switch_with_partial_credentials_merges_not_replaces():
     stored client_secret survives instead of being dropped by a REPLACE."""
     mock_prisma = _mock_prisma()
     existing = _existing_row("true_passthrough", credentials={"client_id": "enc-A", "client_secret": "enc-B"})
-    mock_prisma.db.litellm_mcpservertable.find_unique = AsyncMock(return_value=existing)
+    mock_prisma.db.mcpservertable.find_unique = AsyncMock(return_value=existing)
 
     data = UpdateMCPServerRequest(server_id="cf-server", auth_type="oauth_delegate", credentials={"client_id": "B"})
     await update_mcp_server(mock_prisma, data, "test-user")
-    data_dict = mock_prisma.db.litellm_mcpservertable.update.call_args[1]["data"]
+    data_dict = mock_prisma.db.mcpservertable.update.call_args[1]["data"]
 
     merged = json.loads(data_dict["credentials"])
     assert merged["client_secret"] == "enc-B"
@@ -796,11 +796,11 @@ async def test_null_existing_auth_type_to_cf_counts_as_changed_and_clears_blob()
     so the stale blob must be cleared (the two change predicates must agree on this)."""
     mock_prisma = _mock_prisma()
     existing = _existing_row(None, credentials={"client_id": "enc-old"})
-    mock_prisma.db.litellm_mcpservertable.find_unique = AsyncMock(return_value=existing)
+    mock_prisma.db.mcpservertable.find_unique = AsyncMock(return_value=existing)
 
     data = UpdateMCPServerRequest(server_id="cf-server", auth_type="true_passthrough")
     await update_mcp_server(mock_prisma, data, "test-user")
-    data_dict = mock_prisma.db.litellm_mcpservertable.update.call_args[1]["data"]
+    data_dict = mock_prisma.db.mcpservertable.update.call_args[1]["data"]
 
     # The clear must reach prisma as Json(None) (SQL null), never a raw None, which prisma rejects.
     assert isinstance(data_dict["credentials"], Json)
@@ -815,13 +815,13 @@ async def test_client_rotation_strips_legacy_minted_token_keys():
     existing = _existing_row(
         "oauth2", credentials={"client_id": "A", "access_token": "T", "refresh_token": "R", "expires_in": 3600}
     )
-    mock_prisma.db.litellm_mcpservertable.find_unique = AsyncMock(return_value=existing)
+    mock_prisma.db.mcpservertable.find_unique = AsyncMock(return_value=existing)
 
     data = UpdateMCPServerRequest(
         server_id="oauth2-server", auth_type="oauth2", credentials={"client_id": "B", "client_secret": "S"}
     )
     await update_mcp_server(mock_prisma, data, "test-user")
-    data_dict = mock_prisma.db.litellm_mcpservertable.update.call_args[1]["data"]
+    data_dict = mock_prisma.db.mcpservertable.update.call_args[1]["data"]
 
     merged = json.loads(data_dict["credentials"])
     assert "access_token" not in merged

@@ -50,7 +50,7 @@ def _wire_team_create_tx(prisma_client):
     @asynccontextmanager
     async def _tx():
         yield SimpleNamespace(
-            litellm_teamtable=prisma_client.db.litellm_teamtable,
+            teamtable=prisma_client.db.teamtable,
             query_raw=AsyncMock(return_value=[]),
         )
 
@@ -595,10 +595,10 @@ async def test_default_team_params(team_params):
 
     # Mock Prisma client
     mock_prisma = MagicMock()
-    mock_prisma.db.litellm_teamtable.find_first = AsyncMock(return_value=None)
-    mock_prisma.db.litellm_teamtable.create = AsyncMock()
+    mock_prisma.db.teamtable.find_first = AsyncMock(return_value=None)
+    mock_prisma.db.teamtable.create = AsyncMock()
     _wire_team_create_tx(mock_prisma)
-    mock_prisma.db.litellm_teamtable.count = AsyncMock(return_value=0)
+    mock_prisma.db.teamtable.count = AsyncMock(return_value=0)
     mock_prisma.get_data = AsyncMock(return_value=None)
     mock_prisma.jsonify_team_object = MagicMock(side_effect=mock_jsonify_team_object)
 
@@ -616,8 +616,8 @@ async def test_default_team_params(team_params):
 
         # Assert
         # Verify team was created with correct parameters
-        mock_prisma.db.litellm_teamtable.create.assert_called_once()
-        create_call_args = mock_prisma.db.litellm_teamtable.create.call_args.kwargs[
+        mock_prisma.db.teamtable.create.assert_called_once()
+        create_call_args = mock_prisma.db.teamtable.create.call_args.kwargs[
             "data"
         ]
         assert create_call_args["team_id"] == team_id
@@ -643,10 +643,10 @@ async def test_default_team_params_organization_id_reaches_sso_created_team(team
     gateway.default_team_params = team_params
 
     mock_prisma = MagicMock()
-    mock_prisma.db.litellm_teamtable.find_first = AsyncMock(return_value=None)
-    mock_prisma.db.litellm_teamtable.create = AsyncMock()
+    mock_prisma.db.teamtable.find_first = AsyncMock(return_value=None)
+    mock_prisma.db.teamtable.create = AsyncMock()
     _wire_team_create_tx(mock_prisma)
-    mock_prisma.db.litellm_teamtable.count = AsyncMock(return_value=0)
+    mock_prisma.db.teamtable.count = AsyncMock(return_value=0)
     mock_prisma.get_data = AsyncMock(return_value=None)
     mock_prisma.jsonify_team_object = MagicMock(side_effect=lambda db_data: db_data)
 
@@ -671,8 +671,8 @@ async def test_default_team_params_organization_id_reaches_sso_created_team(team
             ]
         )
 
-        mock_prisma.db.litellm_teamtable.create.assert_called_once()
-        create_call_args = mock_prisma.db.litellm_teamtable.create.call_args.kwargs["data"]
+        mock_prisma.db.teamtable.create.assert_called_once()
+        create_call_args = mock_prisma.db.teamtable.create.call_args.kwargs["data"]
         assert create_call_args["organization_id"] == "default-org"
         assert mock_get_org.call_args.kwargs["org_id"] == "default-org"
 
@@ -691,10 +691,10 @@ async def test_create_team_without_default_params():
 
     # Mock Prisma client
     mock_prisma = MagicMock()
-    mock_prisma.db.litellm_teamtable.find_first = AsyncMock(return_value=None)
-    mock_prisma.db.litellm_teamtable.create = AsyncMock()
+    mock_prisma.db.teamtable.find_first = AsyncMock(return_value=None)
+    mock_prisma.db.teamtable.create = AsyncMock()
     _wire_team_create_tx(mock_prisma)
-    mock_prisma.db.litellm_teamtable.count = AsyncMock(return_value=0)
+    mock_prisma.db.teamtable.count = AsyncMock(return_value=0)
     mock_prisma.get_data = AsyncMock(return_value=None)
     mock_prisma.jsonify_team_object = MagicMock(side_effect=mock_jsonify_team_object)
 
@@ -711,8 +711,8 @@ async def test_create_team_without_default_params():
         )
 
         # Assert
-        mock_prisma.db.litellm_teamtable.create.assert_called_once()
-        create_call_args = mock_prisma.db.litellm_teamtable.create.call_args.kwargs[
+        mock_prisma.db.teamtable.create.assert_called_once()
+        create_call_args = mock_prisma.db.teamtable.create.call_args.kwargs[
             "data"
         ]
         assert create_call_args["team_id"] == team_id
@@ -974,7 +974,7 @@ async def test_upsert_sso_user_updates_role_for_existing_user():
 
     # Mock prisma client
     mock_prisma = MagicMock()
-    mock_prisma.db.litellm_usertable.update_many = AsyncMock()
+    mock_prisma.db.usertable.update_many = AsyncMock()
 
     # Existing user in DB with old role
     existing_user = LiteLLM_UserTable(
@@ -1004,8 +1004,8 @@ async def test_upsert_sso_user_updates_role_for_existing_user():
     )
 
     # Assert - verify database was updated with both email and role
-    mock_prisma.db.litellm_usertable.update_many.assert_called_once()
-    call_args = mock_prisma.db.litellm_usertable.update_many.call_args
+    mock_prisma.db.usertable.update_many.assert_called_once()
+    call_args = mock_prisma.db.usertable.update_many.call_args
     assert call_args.kwargs["where"] == {"user_id": "test-user-123"}
     assert call_args.kwargs["data"]["user_email"] == "test@example.com"
     assert call_args.kwargs["data"]["user_role"] == "proxy_admin"
@@ -1024,7 +1024,7 @@ async def test_upsert_sso_user_does_not_update_invalid_role():
 
     # Mock prisma client
     mock_prisma = MagicMock()
-    mock_prisma.db.litellm_usertable.update_many = AsyncMock()
+    mock_prisma.db.usertable.update_many = AsyncMock()
 
     # Existing user in DB
     existing_user = LiteLLM_UserTable(
@@ -1049,8 +1049,8 @@ async def test_upsert_sso_user_does_not_update_invalid_role():
     )
 
     # Assert - verify only email was updated, not role
-    mock_prisma.db.litellm_usertable.update_many.assert_called_once()
-    call_args = mock_prisma.db.litellm_usertable.update_many.call_args
+    mock_prisma.db.usertable.update_many.assert_called_once()
+    call_args = mock_prisma.db.usertable.update_many.call_args
     assert call_args.kwargs["where"] == {"user_id": "test-user-456"}
     assert call_args.kwargs["data"]["user_email"] == "test@example.com"
     assert "user_role" not in call_args.kwargs["data"]
@@ -1069,7 +1069,7 @@ async def test_upsert_sso_user_no_role_in_sso_response():
 
     # Mock prisma client
     mock_prisma = MagicMock()
-    mock_prisma.db.litellm_usertable.update_many = AsyncMock()
+    mock_prisma.db.usertable.update_many = AsyncMock()
 
     # Existing user in DB
     existing_user = LiteLLM_UserTable(
@@ -1099,8 +1099,8 @@ async def test_upsert_sso_user_no_role_in_sso_response():
     )
 
     # Assert - verify only email was updated
-    mock_prisma.db.litellm_usertable.update_many.assert_called_once()
-    call_args = mock_prisma.db.litellm_usertable.update_many.call_args
+    mock_prisma.db.usertable.update_many.assert_called_once()
+    call_args = mock_prisma.db.usertable.update_many.call_args
     assert call_args.kwargs["where"] == {"user_id": "test-user-789"}
     assert call_args.kwargs["data"]["user_email"] == "new@example.com"
     assert "user_role" not in call_args.kwargs["data"]
@@ -1427,7 +1427,7 @@ async def test_check_and_update_if_proxy_admin_id():
 
     # Mock Prisma client
     mock_prisma = MagicMock()
-    mock_prisma.db.litellm_usertable.update = AsyncMock()
+    mock_prisma.db.usertable.update = AsyncMock()
 
     # Set up test data
     test_user_id = "test_admin_123"
@@ -1441,7 +1441,7 @@ async def test_check_and_update_if_proxy_admin_id():
 
         # Assert
         assert updated_role == GatewayUserRoles.PROXY_ADMIN.value
-        mock_prisma.db.litellm_usertable.update.assert_called_once_with(
+        mock_prisma.db.usertable.update.assert_called_once_with(
             where={"user_id": test_user_id},
             data={"user_role": GatewayUserRoles.PROXY_ADMIN.value},
         )
@@ -1459,7 +1459,7 @@ async def test_check_and_update_if_proxy_admin_id_already_admin():
 
     # Mock Prisma client
     mock_prisma = MagicMock()
-    mock_prisma.db.litellm_usertable.update = AsyncMock()
+    mock_prisma.db.usertable.update = AsyncMock()
 
     # Set up test data
     test_user_id = "test_admin_123"
@@ -1473,7 +1473,7 @@ async def test_check_and_update_if_proxy_admin_id_already_admin():
 
         # Assert
         assert updated_role == GatewayUserRoles.PROXY_ADMIN.value
-        mock_prisma.db.litellm_usertable.update.assert_not_called()
+        mock_prisma.db.usertable.update.assert_not_called()
 
 
 @pytest.mark.asyncio
@@ -3162,7 +3162,7 @@ class TestCLIKeyRegenerationFlow:
             "session_data": None,
         }
         mock_prisma = MagicMock()
-        mock_prisma.db.litellm_teamtable.find_many = AsyncMock(
+        mock_prisma.db.teamtable.find_many = AsyncMock(
             return_value=[
                 MagicMock(
                     model_dump=lambda team_id=team_id: {
@@ -3579,7 +3579,7 @@ class TestCLIKeyRegenerationFlow:
         }
         find_many = AsyncMock(return_value=[team_row])
         prisma_client = MagicMock()
-        prisma_client.db.litellm_teamtable.find_many = find_many
+        prisma_client.db.teamtable.find_many = find_many
 
         details = await fetch_cli_sso_team_details(
             prisma_client=prisma_client, teams=["team-a"]
@@ -3608,7 +3608,7 @@ class TestCLIKeyRegenerationFlow:
         )
 
         failing_client = MagicMock()
-        failing_client.db.litellm_teamtable.find_many = AsyncMock(
+        failing_client.db.teamtable.find_many = AsyncMock(
             side_effect=Exception("connection reset")
         )
         assert (
@@ -3619,7 +3619,7 @@ class TestCLIKeyRegenerationFlow:
         )
 
         empty_client = MagicMock()
-        empty_client.db.litellm_teamtable.find_many = AsyncMock(return_value=[])
+        empty_client.db.teamtable.find_many = AsyncMock(return_value=[])
         assert (
             await fetch_cli_sso_team_details(
                 prisma_client=empty_client, teams=["team-a"]
@@ -6536,7 +6536,7 @@ async def test_setup_team_mappings():
     mock_prisma = MagicMock()
     mock_sso_config = MagicMock()
     mock_sso_config.sso_settings = {"team_mappings": {"team_ids_jwt_field": "groups"}}
-    mock_prisma.db.litellm_ssoconfig.find_unique = AsyncMock(
+    mock_prisma.db.ssoconfig.find_unique = AsyncMock(
         return_value=mock_sso_config
     )
 
@@ -6551,7 +6551,7 @@ async def test_setup_team_mappings():
         assert result is not None
         assert isinstance(result, TeamMappings)
         assert result.team_ids_jwt_field == "groups"
-        mock_prisma.db.litellm_ssoconfig.find_unique.assert_called_once_with(
+        mock_prisma.db.ssoconfig.find_unique.assert_called_once_with(
             where={"id": "sso_config"}
         )
 
@@ -7220,11 +7220,11 @@ class TestCliSsoAttributionMetadata:
             "session_data": None,
         }
         mock_prisma = MagicMock()
-        mock_prisma.db.litellm_usertable.find_unique = AsyncMock(
+        mock_prisma.db.usertable.find_unique = AsyncMock(
             return_value=MagicMock(metadata={"auth_provider": "generic"})
         )
-        mock_prisma.db.litellm_usertable.update_many = AsyncMock()
-        mock_prisma.db.litellm_teamtable.find_many = AsyncMock(
+        mock_prisma.db.usertable.update_many = AsyncMock()
+        mock_prisma.db.teamtable.find_many = AsyncMock(
             return_value=[
                 MagicMock(
                     model_dump=lambda: {
@@ -7267,8 +7267,8 @@ class TestCliSsoAttributionMetadata:
         assert flow_data["session_data"]["attribution_metadata"] == {
             "acme_employment_type": "contractor"
         }
-        mock_prisma.db.litellm_usertable.update_many.assert_awaited_once()
-        update_data = mock_prisma.db.litellm_usertable.update_many.call_args.kwargs[
+        mock_prisma.db.usertable.update_many.assert_awaited_once()
+        update_data = mock_prisma.db.usertable.update_many.call_args.kwargs[
             "data"
         ]
         assert update_data["metadata"]["acme_employment_type"] == "contractor"
@@ -7515,7 +7515,7 @@ class TestSyncUserRoleFromJwtRoleMap:
         handler = self._make_jwt_handler()
         cache = DualCache()
         prisma = AsyncMock()
-        prisma.db.litellm_usertable.update = AsyncMock()
+        prisma.db.usertable.update = AsyncMock()
         user_id = "testuser@example.com"
 
         existing_user = LiteLLM_UserTable(
@@ -7539,7 +7539,7 @@ class TestSyncUserRoleFromJwtRoleMap:
             user_defined_values=sso_values,
         )
 
-        prisma.db.litellm_usertable.update.assert_called_once_with(
+        prisma.db.usertable.update.assert_called_once_with(
             where={"user_id": user_id},
             data={"user_role": GatewayUserRoles.PROXY_ADMIN.value},
         )
@@ -7554,7 +7554,7 @@ class TestSyncUserRoleFromJwtRoleMap:
 
         handler = self._make_jwt_handler()
         prisma = AsyncMock()
-        prisma.db.litellm_usertable.update = AsyncMock()
+        prisma.db.usertable.update = AsyncMock()
 
         existing_user = LiteLLM_UserTable(
             user_id="testuser@example.com",
@@ -7577,7 +7577,7 @@ class TestSyncUserRoleFromJwtRoleMap:
             user_defined_values=sso_values,
         )
 
-        prisma.db.litellm_usertable.update.assert_not_called()
+        prisma.db.usertable.update.assert_not_called()
 
 
 # ── VERIA-34 regression: PKCE state-to-session-cookie binding ───────────────

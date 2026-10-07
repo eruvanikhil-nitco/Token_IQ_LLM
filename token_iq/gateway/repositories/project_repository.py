@@ -17,8 +17,8 @@ class ProjectRepository(BaseRepository[LiteLLM_ProjectTable]):
     """Repository for project database operations."""
 
     @property
-    def table(self) -> TableActions["prisma_models.LiteLLM_ProjectTable"]:
-        return self.prisma_client.db.litellm_projecttable
+    def table(self) -> TableActions["prisma_models.ProjectTable"]:
+        return self.prisma_client.db.projecttable
 
     @property
     def model_class(self) -> type[LiteLLM_ProjectTable]:

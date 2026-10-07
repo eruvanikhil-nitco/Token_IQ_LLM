@@ -68,9 +68,9 @@ def _regular_user(user_id: str = "user-123") -> UserAPIKeyAuth:
 def _mock_prisma(keys, deleted_tokens):
     """Return a minimal mock prisma_client for a given set of found keys and deleted tokens."""
     mock = AsyncMock()
-    mock.db.litellm_verificationtoken.find_many = AsyncMock(return_value=keys)
+    mock.db.verificationtoken.find_many = AsyncMock(return_value=keys)
     mock.delete_data = AsyncMock(return_value=deleted_tokens)
-    mock.db.litellm_deletedverificationtoken.create_many = AsyncMock()
+    mock.db.deletedverificationtoken.create_many = AsyncMock()
     return mock
 
 
@@ -175,9 +175,9 @@ async def test_delete_tokens_non_admin_token_not_in_db_returns_failed_tokens(
 
     mock_prisma = AsyncMock()
     # DB find_many returns only key1 — token-2 is not found
-    mock_prisma.db.litellm_verificationtoken.find_many = AsyncMock(return_value=[key1])
+    mock_prisma.db.verificationtoken.find_many = AsyncMock(return_value=[key1])
     mock_prisma.delete_data = AsyncMock(return_value=["hashed-token-1"])
-    mock_prisma.db.litellm_deletedverificationtoken.create_many = AsyncMock()
+    mock_prisma.db.deletedverificationtoken.create_many = AsyncMock()
 
     mock_cache = MagicMock()
     mock_cache.delete_cache = MagicMock()

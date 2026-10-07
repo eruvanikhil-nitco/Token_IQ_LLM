@@ -17,9 +17,9 @@ from token_iq.gateway.proxy.guardrails.usage_tracking import (
 def _prisma() -> MagicMock:
     client = MagicMock()
     db = client.db
-    db.litellm_dailyguardrailmetrics.upsert = AsyncMock()
-    db.litellm_dailyguardrailusageunits.upsert = AsyncMock()
-    db.litellm_spendlogguardrailindex.create_many = AsyncMock()
+    db.dailyguardrailmetrics.upsert = AsyncMock()
+    db.dailyguardrailusageunits.upsert = AsyncMock()
+    db.spendlogguardrailindex.create_many = AsyncMock()
     return client
 
 
@@ -47,7 +47,7 @@ def _payload(
 
 
 def _units_upserts(prisma: MagicMock) -> dict[tuple, int]:
-    calls = prisma.db.litellm_dailyguardrailusageunits.upsert.call_args_list
+    calls = prisma.db.dailyguardrailusageunits.upsert.call_args_list
     out: dict[tuple, int] = {}
     for c in calls:
         where = c.kwargs["where"]["guardrail_id_date_team_id_api_key_usage_unit"]
@@ -100,8 +100,8 @@ async def test_one_failing_upsert_does_not_drop_remaining_writes():
     permanently under-report billable counters.
     """
     prisma = _prisma()
-    prisma.db.litellm_dailyguardrailmetrics.upsert.side_effect = httpx.ConnectError("db down")
-    prisma.db.litellm_dailyguardrailusageunits.upsert.side_effect = [httpx.ConnectError("db down"), None, None]
+    prisma.db.dailyguardrailmetrics.upsert.side_effect = httpx.ConnectError("db down")
+    prisma.db.dailyguardrailusageunits.upsert.side_effect = [httpx.ConnectError("db down"), None, None]
     sleep, _ = _fake_sleep()
     logs = [
         _payload("r1", usage={"topicPolicyUnits": 1}),
@@ -125,7 +125,7 @@ async def test_transient_upsert_failure_is_retried_with_backoff_for_failed_rows_
     every row has landed.
     """
     prisma = _prisma()
-    prisma.db.litellm_dailyguardrailusageunits.upsert.side_effect = [httpx.ConnectError("blip"), None, None]
+    prisma.db.dailyguardrailusageunits.upsert.side_effect = [httpx.ConnectError("blip"), None, None]
     sleep, delays = _fake_sleep()
     logs = [
         _payload("r1", usage={"topicPolicyUnits": 1}),
@@ -134,7 +134,7 @@ async def test_transient_upsert_failure_is_retried_with_backoff_for_failed_rows_
 
     await process_spend_logs_guardrail_usage(prisma, logs, sleep=sleep)
 
-    calls = prisma.db.litellm_dailyguardrailusageunits.upsert.call_args_list
+    calls = prisma.db.dailyguardrailusageunits.upsert.call_args_list
     assert len(calls) == 3
     assert calls[2].kwargs["where"] == calls[0].kwargs["where"]
     assert delays == [1]
@@ -143,7 +143,7 @@ async def test_transient_upsert_failure_is_retried_with_backoff_for_failed_rows_
 @pytest.mark.asyncio
 async def test_persistent_upsert_failure_stops_after_three_retries():
     prisma = _prisma()
-    prisma.db.litellm_dailyguardrailmetrics.upsert.side_effect = httpx.ConnectError("db down")
+    prisma.db.dailyguardrailmetrics.upsert.side_effect = httpx.ConnectError("db down")
     sleep, delays = _fake_sleep()
     pending = PendingRollups()
 
@@ -151,9 +151,9 @@ async def test_persistent_upsert_failure_stops_after_three_retries():
         prisma, [_payload("r1", usage={"topicPolicyUnits": 1})], sleep=sleep, pending=pending
     )
 
-    assert prisma.db.litellm_dailyguardrailmetrics.upsert.call_count == 4
+    assert prisma.db.dailyguardrailmetrics.upsert.call_count == 4
     assert delays == [1, 2, 4]
-    assert prisma.db.litellm_dailyguardrailusageunits.upsert.call_count == 1
+    assert prisma.db.dailyguardrailusageunits.upsert.call_count == 1
     assert dict(pending.metrics) == {
         ("bedrock-guard", "2026-08-17"): {
             "requests_evaluated": 1,
@@ -173,8 +173,8 @@ async def test_retry_exhausted_rows_are_requeued_and_land_on_the_next_flush():
     """
     pending = PendingRollups()
     down = _prisma()
-    down.db.litellm_dailyguardrailmetrics.upsert.side_effect = httpx.ConnectError("db down")
-    down.db.litellm_dailyguardrailusageunits.upsert.side_effect = httpx.ConnectError("db down")
+    down.db.dailyguardrailmetrics.upsert.side_effect = httpx.ConnectError("db down")
+    down.db.dailyguardrailusageunits.upsert.side_effect = httpx.ConnectError("db down")
     sleep, _ = _fake_sleep()
 
     await process_spend_logs_guardrail_usage(
@@ -191,7 +191,7 @@ async def test_retry_exhausted_rows_are_requeued_and_land_on_the_next_flush():
     assert _units_upserts(recovered) == {
         ("bedrock-guard", "2026-08-17", "team-a", "hashed-key-1", "topicPolicyUnits"): 5,
     }
-    metrics_create = recovered.db.litellm_dailyguardrailmetrics.upsert.call_args.kwargs["data"]["create"]
+    metrics_create = recovered.db.dailyguardrailmetrics.upsert.call_args.kwargs["data"]["create"]
     assert metrics_create["requests_evaluated"] == 2
     assert not pending.units
     assert not pending.metrics
@@ -205,7 +205,7 @@ async def test_ambiguous_failures_are_never_requeued():
     """
     pending = PendingRollups()
     prisma = _prisma()
-    prisma.db.litellm_dailyguardrailusageunits.upsert.side_effect = httpx.ReadTimeout("maybe committed")
+    prisma.db.dailyguardrailusageunits.upsert.side_effect = httpx.ReadTimeout("maybe committed")
     sleep, delays = _fake_sleep()
 
     await process_spend_logs_guardrail_usage(
@@ -233,7 +233,7 @@ def _units_upsert_wheres(prisma: MagicMock) -> list[tuple]:
             c.kwargs["where"]["guardrail_id_date_team_id_api_key_usage_unit"][k]
             for k in ("guardrail_id", "date", "team_id", "api_key", "usage_unit")
         )
-        for c in prisma.db.litellm_dailyguardrailusageunits.upsert.call_args_list
+        for c in prisma.db.dailyguardrailusageunits.upsert.call_args_list
     ]
 
 
@@ -248,7 +248,7 @@ async def test_post_send_failure_is_never_retried_so_increments_cannot_double_co
     the batch still land either way.
     """
     prisma = _prisma()
-    prisma.db.litellm_dailyguardrailusageunits.upsert.side_effect = [
+    prisma.db.dailyguardrailusageunits.upsert.side_effect = [
         httpx.ReadTimeout("read timed out"),
         httpx.ConnectError("refused"),
         None,
@@ -270,12 +270,12 @@ async def test_post_send_failure_is_never_retried_so_increments_cannot_double_co
 @pytest.mark.asyncio
 async def test_generic_upsert_exception_is_terminal_for_that_row_only():
     prisma = _prisma()
-    prisma.db.litellm_dailyguardrailmetrics.upsert.side_effect = RuntimeError("constraint violation")
+    prisma.db.dailyguardrailmetrics.upsert.side_effect = RuntimeError("constraint violation")
     sleep, delays = _fake_sleep()
 
     await process_spend_logs_guardrail_usage(prisma, [_payload("r1", usage={"topicPolicyUnits": 1})], sleep=sleep)
 
-    assert prisma.db.litellm_dailyguardrailmetrics.upsert.call_count == 1
+    assert prisma.db.dailyguardrailmetrics.upsert.call_count == 1
     assert delays == []
     assert _units_upserts(prisma) == {
         ("bedrock-guard", "2026-08-17", "team-a", "hashed-key-1", "topicPolicyUnits"): 1,
@@ -319,4 +319,4 @@ async def test_payload_without_request_id_is_skipped_like_the_metrics_path():
     assert _units_upserts(prisma) == {
         ("bedrock-guard", "2026-08-17", "team-a", "hashed-key-1", "topicPolicyUnits"): 1,
     }
-    assert prisma.db.litellm_dailyguardrailmetrics.upsert.call_args.kwargs["data"]["create"]["requests_evaluated"] == 1
+    assert prisma.db.dailyguardrailmetrics.upsert.call_args.kwargs["data"]["create"]["requests_evaluated"] == 1

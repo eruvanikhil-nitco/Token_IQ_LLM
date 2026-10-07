@@ -16,8 +16,8 @@ class OrganizationRepository(BaseRepository[LiteLLM_OrganizationTable]):
     """Repository for organization database operations."""
 
     @property
-    def table(self) -> TableActions["prisma_models.LiteLLM_OrganizationTable"]:
-        return self.prisma_client.db.litellm_organizationtable
+    def table(self) -> TableActions["prisma_models.OrganizationTable"]:
+        return self.prisma_client.db.organizationtable
 
     @property
     def model_class(self) -> type[LiteLLM_OrganizationTable]:

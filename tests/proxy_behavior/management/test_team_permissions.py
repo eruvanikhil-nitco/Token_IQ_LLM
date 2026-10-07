@@ -81,7 +81,7 @@ async def test_team_permissions_update_authz_matrix(
         resp.status_code == expected_status
     ), f"{actor.value}: {resp.status_code} {resp.text}"
 
-    row = await prisma.db.litellm_teamtable.find_unique(
+    row = await prisma.db.teamtable.find_unique(
         where={"team_id": scratch.prefix}
     )
     assert row is not None
@@ -150,7 +150,7 @@ async def test_team_permissions_bulk_update_authz_matrix(
         resp.status_code == expected_status
     ), f"{actor.value}: {resp.status_code} {resp.text}"
 
-    row = await prisma.db.litellm_teamtable.find_unique(
+    row = await prisma.db.teamtable.find_unique(
         where={"team_id": scratch.prefix}
     )
     assert row is not None

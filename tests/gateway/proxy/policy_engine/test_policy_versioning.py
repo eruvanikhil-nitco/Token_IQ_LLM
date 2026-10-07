@@ -111,7 +111,7 @@ class TestSyncPoliciesFromDbProductionOnly:
         registry = PolicyRegistry()
         prisma = MagicMock()
         prod_row = _make_row(policy_id="prod-1", version_status="production")
-        prisma.db.litellm_policytable.find_many = AsyncMock(return_value=[prod_row])
+        prisma.db.policytable.find_many = AsyncMock(return_value=[prod_row])
 
         result = await registry.get_all_policies_from_db(
             prisma, version_status="production"
@@ -119,8 +119,8 @@ class TestSyncPoliciesFromDbProductionOnly:
 
         assert len(result) == 1
         assert result[0].version_status == "production"
-        prisma.db.litellm_policytable.find_many.assert_called_once()
-        call_kw = prisma.db.litellm_policytable.find_many.call_args[1]
+        prisma.db.policytable.find_many.assert_called_once()
+        call_kw = prisma.db.policytable.find_many.call_args[1]
         assert call_kw.get("where") == {"version_status": "production"}
 
     @pytest.mark.asyncio
@@ -133,7 +133,7 @@ class TestSyncPoliciesFromDbProductionOnly:
             version_status="production",
             guardrails_add=["g1"],
         )
-        prisma.db.litellm_policytable.find_many = AsyncMock(return_value=[prod_row])
+        prisma.db.policytable.find_many = AsyncMock(return_value=[prod_row])
 
         await registry.sync_policies_from_db(prisma)
 
@@ -142,7 +142,7 @@ class TestSyncPoliciesFromDbProductionOnly:
         assert policy is not None
         assert policy.guardrails.add == ["g1"]
         # find_many was called with version_status=production (via get_all_policies_from_db)
-        find_many_calls = prisma.db.litellm_policytable.find_many.call_args_list
+        find_many_calls = prisma.db.policytable.find_many.call_args_list
         assert len(find_many_calls) >= 1
         assert find_many_calls[0][1].get("where") == {"version_status": "production"}
 
@@ -155,7 +155,7 @@ class TestUpdatePolicyDraftOnly:
         registry = PolicyRegistry()
         prisma = MagicMock()
         prod_row = _make_row(policy_id="pid-1", version_status="production")
-        prisma.db.litellm_policytable.find_unique = AsyncMock(return_value=prod_row)
+        prisma.db.policytable.find_unique = AsyncMock(return_value=prod_row)
 
         with pytest.raises(Exception, match='Error updating policy in DB: Only draft versions can be') as exc_info:
             await registry.update_policy_in_db(
@@ -167,7 +167,7 @@ class TestUpdatePolicyDraftOnly:
             "Only draft" in str(exc_info.value)
             or "draft" in str(exc_info.value).lower()
         )
-        prisma.db.litellm_policytable.update.assert_not_called()
+        prisma.db.policytable.update.assert_not_called()
 
     @pytest.mark.asyncio
     async def test_update_draft_succeeds_and_does_not_update_registry(self):
@@ -186,8 +186,8 @@ class TestUpdatePolicyDraftOnly:
             version_status="draft",
             description="new",
         )
-        prisma.db.litellm_policytable.find_unique = AsyncMock(return_value=draft_row)
-        prisma.db.litellm_policytable.update = AsyncMock(return_value=updated_row)
+        prisma.db.policytable.find_unique = AsyncMock(return_value=draft_row)
+        prisma.db.policytable.update = AsyncMock(return_value=updated_row)
 
         result = await registry.update_policy_in_db(
             policy_id="draft-1",
@@ -196,7 +196,7 @@ class TestUpdatePolicyDraftOnly:
         )
 
         assert result.description == "new"
-        prisma.db.litellm_policytable.update.assert_called_once()
+        prisma.db.policytable.update.assert_called_once()
         # Registry still has old in-memory policy (drafts are not in registry; we don't add)
         assert registry.has_policy("test-policy")
 
@@ -214,8 +214,8 @@ class TestDeletePolicyFromDb:
             policy_name="deleted-policy",
             version_status="production",
         )
-        prisma.db.litellm_policytable.find_unique = AsyncMock(return_value=prod_row)
-        prisma.db.litellm_policytable.delete = AsyncMock()
+        prisma.db.policytable.find_unique = AsyncMock(return_value=prod_row)
+        prisma.db.policytable.delete = AsyncMock()
 
         result = await registry.delete_policy_from_db(
             policy_id="prod-1",
@@ -237,8 +237,8 @@ class TestDeletePolicyFromDb:
             policy_name="my-policy",
             version_status="draft",
         )
-        prisma.db.litellm_policytable.find_unique = AsyncMock(return_value=draft_row)
-        prisma.db.litellm_policytable.delete = AsyncMock()
+        prisma.db.policytable.find_unique = AsyncMock(return_value=draft_row)
+        prisma.db.policytable.delete = AsyncMock()
 
         result = await registry.delete_policy_from_db(
             policy_id="draft-1",
@@ -267,14 +267,14 @@ class TestCreateNewVersion:
             pipeline={"mode": "pre_call", "steps": []},
         )
         # find_first for production
-        prisma.db.litellm_policytable.find_first = AsyncMock(return_value=prod)
+        prisma.db.policytable.find_first = AsyncMock(return_value=prod)
         # find_first for latest version number
-        prisma.db.litellm_policytable.find_first.side_effect = [
+        prisma.db.policytable.find_first.side_effect = [
             prod,  # production lookup
             prod,  # latest version_number lookup
         ]
         # update_many for is_latest=False
-        prisma.db.litellm_policytable.update_many = AsyncMock()
+        prisma.db.policytable.update_many = AsyncMock()
         new_row = _make_row(
             policy_id="new-id",
             policy_name="foo",
@@ -286,7 +286,7 @@ class TestCreateNewVersion:
             description="base",
             pipeline={"mode": "pre_call", "steps": []},
         )
-        prisma.db.litellm_policytable.create = AsyncMock(return_value=new_row)
+        prisma.db.policytable.create = AsyncMock(return_value=new_row)
 
         result = await registry.create_new_version(
             policy_name="foo",
@@ -300,7 +300,7 @@ class TestCreateNewVersion:
         assert result.parent_version_id == "prod-1"
         assert result.guardrails_add == ["g1"]
         assert result.description == "base"
-        create_call = prisma.db.litellm_policytable.create.call_args[1]["data"]
+        create_call = prisma.db.policytable.create.call_args[1]["data"]
         assert create_call["version_number"] == 2
         assert create_call["version_status"] == "draft"
         assert create_call["parent_version_id"] == "prod-1"
@@ -320,8 +320,8 @@ class TestUpdateVersionStatus:
             version_status="published",
             published_at=datetime.now(timezone.utc),
         )
-        prisma.db.litellm_policytable.find_unique = AsyncMock(return_value=draft)
-        prisma.db.litellm_policytable.update = AsyncMock(return_value=updated)
+        prisma.db.policytable.find_unique = AsyncMock(return_value=draft)
+        prisma.db.policytable.update = AsyncMock(return_value=updated)
 
         result = await registry.update_version_status(
             policy_id="d-1",
@@ -330,7 +330,7 @@ class TestUpdateVersionStatus:
         )
 
         assert result.version_status == "published"
-        update_data = prisma.db.litellm_policytable.update.call_args[1]["data"]
+        update_data = prisma.db.policytable.update.call_args[1]["data"]
         assert update_data["version_status"] == "published"
         assert "published_at" in update_data
 
@@ -339,7 +339,7 @@ class TestUpdateVersionStatus:
         registry = PolicyRegistry()
         prisma = MagicMock()
         draft = _make_row(policy_id="d-1", version_status="draft")
-        prisma.db.litellm_policytable.find_unique = AsyncMock(return_value=draft)
+        prisma.db.policytable.find_unique = AsyncMock(return_value=draft)
 
         with pytest.raises(Exception, match='Error updating version status: Cannot promote draft') as exc_info:
             await registry.update_version_status(
@@ -367,11 +367,11 @@ class TestUpdateVersionStatus:
             version_status="production",
             production_at=datetime.now(timezone.utc),
         )
-        prisma.db.litellm_policytable.find_unique = AsyncMock(
+        prisma.db.policytable.find_unique = AsyncMock(
             return_value=published_row
         )
-        prisma.db.litellm_policytable.update_many = AsyncMock()
-        prisma.db.litellm_policytable.update = AsyncMock(return_value=updated_row)
+        prisma.db.policytable.update_many = AsyncMock()
+        prisma.db.policytable.update = AsyncMock(return_value=updated_row)
 
         result = await registry.update_version_status(
             policy_id="pub-1",
@@ -381,7 +381,7 @@ class TestUpdateVersionStatus:
 
         assert result.version_status == "production"
         # update_many should have been called to demote current production
-        assert prisma.db.litellm_policytable.update_many.called
+        assert prisma.db.policytable.update_many.called
         # Registry should have been updated with new production
         assert registry.has_policy("foo")
 
@@ -405,7 +405,7 @@ class TestCompareVersions:
             description="desc B",
             guardrails_add=["g1", "g2"],
         )
-        prisma.db.litellm_policytable.find_unique = AsyncMock(side_effect=[a, b])
+        prisma.db.policytable.find_unique = AsyncMock(side_effect=[a, b])
 
         result = await registry.compare_versions(
             policy_id_a="a",
@@ -433,7 +433,7 @@ class TestResolveGuardrailsProductionOnly:
             version_status="production",
             guardrails_add=["g1"],
         )
-        prisma.db.litellm_policytable.find_many = AsyncMock(return_value=[prod_row])
+        prisma.db.policytable.find_many = AsyncMock(return_value=[prod_row])
 
         result = await registry.resolve_guardrails_from_db(
             policy_name="base",
@@ -441,7 +441,7 @@ class TestResolveGuardrailsProductionOnly:
         )
 
         assert "g1" in result
-        call_kw = prisma.db.litellm_policytable.find_many.call_args[1]
+        call_kw = prisma.db.policytable.find_many.call_args[1]
         assert call_kw.get("where") == {"version_status": "production"}
 
 
@@ -456,7 +456,7 @@ class TestGetPolicyRegistrySingleton:
 
 def _prisma_with_policy_rows(production_rows, non_production_rows=None):
     prisma = MagicMock()
-    prisma.db.litellm_policytable.find_many = AsyncMock(side_effect=[production_rows, non_production_rows or []])
+    prisma.db.policytable.find_many = AsyncMock(side_effect=[production_rows, non_production_rows or []])
     return prisma
 
 
@@ -594,8 +594,8 @@ class TestRemovePolicyRestoresConfigFallback:
         registry.add_policy("shared-name", Policy(guardrails=PolicyGuardrails(add=["db-guard"])), source="db")
         prisma = MagicMock()
         prod_row = _make_row(policy_id="prod-1", policy_name="shared-name", version_status="production")
-        prisma.db.litellm_policytable.find_unique = AsyncMock(return_value=prod_row)
-        prisma.db.litellm_policytable.delete = AsyncMock()
+        prisma.db.policytable.find_unique = AsyncMock(return_value=prod_row)
+        prisma.db.policytable.delete = AsyncMock()
 
         result = await registry.delete_policy_from_db(policy_id="prod-1", prisma_client=prisma)
 
@@ -611,7 +611,7 @@ class TestRemovePolicyRestoresConfigFallback:
         registry.load_policies({"shared-name": {"guardrails": {"add": ["config-guard"]}}})
         registry.add_policy("shared-name", Policy(guardrails=PolicyGuardrails(add=["db-guard"])), source="db")
         prisma = MagicMock()
-        prisma.db.litellm_policytable.delete_many = AsyncMock()
+        prisma.db.policytable.delete_many = AsyncMock()
 
         result = await registry.delete_all_versions(policy_name="shared-name", prisma_client=prisma)
 
@@ -625,7 +625,7 @@ class TestRemovePolicyRestoresConfigFallback:
         registry = PolicyRegistry()
         registry.add_policy("db-only", Policy(guardrails=PolicyGuardrails(add=["db-guard"])), source="db")
         prisma = MagicMock()
-        prisma.db.litellm_policytable.delete_many = AsyncMock()
+        prisma.db.policytable.delete_many = AsyncMock()
 
         result = await registry.delete_all_versions(policy_name="db-only", prisma_client=prisma)
 

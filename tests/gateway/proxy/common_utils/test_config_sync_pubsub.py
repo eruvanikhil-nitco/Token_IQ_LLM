@@ -33,20 +33,20 @@ _EXPECTED_WRITE_ACTION_NAMES = (
 
 _EXPECTED_CONFIG_SYNCED_TABLE_NAMES = frozenset(
     {
-        "litellm_agentstable",
-        "litellm_cacheconfig",
-        "litellm_configoverrides",
-        "litellm_credentialstable",
-        "litellm_guardrailstable",
-        "litellm_managedvectorstoreindextable",
-        "litellm_managedvectorstorestable",
-        "litellm_mcpservertable",
-        "litellm_policyattachmenttable",
-        "litellm_policytable",
-        "litellm_prompttable",
-        "litellm_proxymodeltable",
-        "litellm_searchtoolstable",
-        "litellm_ssoconfig",
+        "agentstable",
+        "cacheconfig",
+        "configoverrides",
+        "credentialstable",
+        "guardrailstable",
+        "managedvectorstoreindextable",
+        "managedvectorstorestable",
+        "mcpservertable",
+        "policyattachmenttable",
+        "policytable",
+        "prompttable",
+        "proxymodeltable",
+        "searchtoolstable",
+        "ssoconfig",
     }
 )
 
@@ -180,26 +180,26 @@ def _recording_callback(
 
 
 async def test_publish_noops_when_redis_cache_is_none() -> None:
-    await publish_config_change(redis_cache=None, object_type="litellm_proxymodeltable")
+    await publish_config_change(redis_cache=None, object_type="proxymodeltable")
 
 
 async def test_publish_sends_object_type_json_on_channel() -> None:
     client = _RecordingRedisClient()
     cache = _FakeRedisCache(client)
 
-    await publish_config_change(redis_cache=cache, object_type="litellm_proxymodeltable")
+    await publish_config_change(redis_cache=cache, object_type="proxymodeltable")
 
     assert len(client.published) == 1
     channel, message = client.published[0]
     assert channel == "litellm_proxy.config_change"
-    assert json.loads(message) == {"object_type": "litellm_proxymodeltable"}
+    assert json.loads(message) == {"object_type": "proxymodeltable"}
 
 
 async def test_publish_uses_namespaced_channel() -> None:
     client = _RecordingRedisClient()
     cache = _FakeRedisCache(client, namespace="prod-eu")
 
-    await publish_config_change(redis_cache=cache, object_type="litellm_credentialstable")
+    await publish_config_change(redis_cache=cache, object_type="credentialstable")
 
     assert client.published[0][0] == "prod-eu:litellm_proxy.config_change"
 
@@ -207,18 +207,18 @@ async def test_publish_uses_namespaced_channel() -> None:
 async def test_publish_swallows_redis_publish_errors() -> None:
     cache = _FakeRedisCache(_FailingPublishRedisClient())
 
-    await publish_config_change(redis_cache=cache, object_type="litellm_proxymodeltable")
+    await publish_config_change(redis_cache=cache, object_type="proxymodeltable")
 
 
 async def test_publish_swallows_client_init_errors() -> None:
-    await publish_config_change(redis_cache=_ExplodingRedisCache(), object_type="litellm_proxymodeltable")
+    await publish_config_change(redis_cache=_ExplodingRedisCache(), object_type="proxymodeltable")
 
 
 async def test_publish_skips_clients_without_pubsub_support() -> None:
     client = _NotRedisClient()
     cache = _FakeRedisCache(client)
 
-    await publish_config_change(redis_cache=cache, object_type="litellm_proxymodeltable")
+    await publish_config_change(redis_cache=cache, object_type="proxymodeltable")
 
     assert client.published == []
 
@@ -239,7 +239,7 @@ async def test_subscriber_runs_injected_callbacks_in_order_on_message() -> None:
     )
 
     subscriber.start()
-    pubsub.queue.put_nowait(json.dumps({"object_type": "litellm_proxymodeltable"}))
+    pubsub.queue.put_nowait(json.dumps({"object_type": "proxymodeltable"}))
     await asyncio.wait_for(fired.wait(), timeout=5)
     await subscriber.stop()
 
@@ -249,7 +249,7 @@ async def test_subscriber_runs_injected_callbacks_in_order_on_message() -> None:
 
 
 async def test_burst_within_debounce_window_coalesces_into_one_resync() -> None:
-    burst = [json.dumps({"object_type": "litellm_proxymodeltable"}) for _ in range(5)]
+    burst = [json.dumps({"object_type": "proxymodeltable"}) for _ in range(5)]
     pubsub = _QueuePubSub(initial_messages=burst)
     cache = _FakeRedisCache(_ScriptedPubSubRedisClient([pubsub]))
     resyncs: List[str] = []
@@ -283,7 +283,7 @@ async def test_subscriber_subscribes_on_namespaced_channel_and_resyncs() -> None
     )
 
     subscriber.start()
-    pubsub.queue.put_nowait(json.dumps({"object_type": "litellm_proxymodeltable"}))
+    pubsub.queue.put_nowait(json.dumps({"object_type": "proxymodeltable"}))
     await asyncio.wait_for(fired.wait(), timeout=5)
     await subscriber.stop()
 
@@ -297,7 +297,7 @@ class _MaxJitterRandom(random.Random):
 
 
 async def test_debounce_sleep_adds_jitter_from_injected_rng() -> None:
-    pubsub = _QueuePubSub(initial_messages=[json.dumps({"object_type": "litellm_proxymodeltable"})])
+    pubsub = _QueuePubSub(initial_messages=[json.dumps({"object_type": "proxymodeltable"})])
     cache = _FakeRedisCache(_ScriptedPubSubRedisClient([pubsub]))
     sleeps: List[float] = []
     fired = asyncio.Event()
@@ -479,7 +479,7 @@ async def test_second_start_does_not_open_a_second_subscription() -> None:
 
 async def test_redis_error_leads_to_backoff_and_resubscribe() -> None:
     broken = _BrokenPubSub()
-    healthy = _QueuePubSub(initial_messages=[json.dumps({"object_type": "litellm_credentialstable"})])
+    healthy = _QueuePubSub(initial_messages=[json.dumps({"object_type": "credentialstable"})])
     cache = _FakeRedisCache(_ScriptedPubSubRedisClient([broken, healthy]))
     resyncs: List[str] = []
     fired = asyncio.Event()
@@ -608,7 +608,7 @@ def _recording_publish(calls: List[Tuple[str, str]]) -> Callable[[str], Coroutin
 def test_wrapper_passes_through_unsynced_tables() -> None:
     actions = object()
 
-    wrapped = wrap_table_actions_for_config_sync(actions=actions, table_name="litellm_spendlogs")
+    wrapped = wrap_table_actions_for_config_sync(actions=actions, table_name="spendlogs")
 
     assert wrapped is actions
 
@@ -617,21 +617,21 @@ async def test_wrapper_publishes_table_name_after_write() -> None:
     calls: List[Tuple[str, str]] = []
     wrapped = wrap_table_actions_for_config_sync(
         actions=_FakeTableActions(calls),
-        table_name="litellm_proxymodeltable",
+        table_name="proxymodeltable",
         publish=_recording_publish(calls),
     )
 
     result = await wrapped.create(data={"model_name": "gpt-5.2"})
 
     assert result == {"id": "m-1"}
-    assert calls == [("write", "create"), ("publish", "litellm_proxymodeltable")]
+    assert calls == [("write", "create"), ("publish", "proxymodeltable")]
 
 
 async def test_wrapper_does_not_publish_on_reads() -> None:
     calls: List[Tuple[str, str]] = []
     wrapped = wrap_table_actions_for_config_sync(
         actions=_FakeTableActions(calls),
-        table_name="litellm_proxymodeltable",
+        table_name="proxymodeltable",
         publish=_recording_publish(calls),
     )
 
@@ -652,7 +652,7 @@ def test_config_synced_table_membership_is_pinned() -> None:
 def test_tool_telemetry_table_writes_pass_through_unwrapped() -> None:
     actions = object()
 
-    wrapped = wrap_table_actions_for_config_sync(actions=actions, table_name="litellm_tooltable")
+    wrapped = wrap_table_actions_for_config_sync(actions=actions, table_name="tooltable")
 
     assert wrapped is actions
 
@@ -663,7 +663,7 @@ async def test_wrapper_publishes_for_every_write_action(action_name: str) -> Non
     publish_calls: List[Tuple[str, str]] = []
     wrapped = wrap_table_actions_for_config_sync(
         actions=_AllWritesTableActions(write_calls),
-        table_name="litellm_guardrailstable",
+        table_name="guardrailstable",
         publish=_recording_publish(publish_calls),
     )
 
@@ -671,7 +671,7 @@ async def test_wrapper_publishes_for_every_write_action(action_name: str) -> Non
 
     assert result == action_name
     assert write_calls == [action_name]
-    assert publish_calls == [("publish", "litellm_guardrailstable")]
+    assert publish_calls == [("publish", "guardrailstable")]
 
 
 async def test_model_repository_write_publishes_via_live_coordination_cache() -> None:
@@ -681,7 +681,7 @@ async def test_model_repository_write_publishes_via_live_coordination_cache() ->
 
     client = _RecordingRedisClient()
     prisma_client = MagicMock()
-    prisma_client.db.litellm_proxymodeltable.update = AsyncMock(return_value={"model_id": "m-1"})
+    prisma_client.db.proxymodeltable.update = AsyncMock(return_value={"model_id": "m-1"})
     repository = ModelRepository(prisma_client)
     table = repository.table
     assert isinstance(table, _PublishOnWriteActions)
@@ -693,13 +693,13 @@ async def test_model_repository_write_publishes_via_live_coordination_cache() ->
     finally:
         _set_redis_usage_cache(previous_cache)
 
-    prisma_client.db.litellm_proxymodeltable.update.assert_awaited_once_with(
+    prisma_client.db.proxymodeltable.update.assert_awaited_once_with(
         where={"model_id": "m-1"}, data={"model_name": "gpt-5.2"}
     )
     assert len(client.published) == 1
     channel, message = client.published[0]
     assert channel == CONFIG_SYNC_CHANNEL
-    assert json.loads(message) == {"object_type": "litellm_proxymodeltable"}
+    assert json.loads(message) == {"object_type": "proxymodeltable"}
 
 
 async def _publish_calls_for_invalidated_param(param_name: str) -> List[Tuple[str, str]]:
@@ -761,9 +761,9 @@ def _reload_config_prisma_client() -> MagicMock:
     config_record.last_run_at = None
     prisma_client = MagicMock()
     prisma_client.get_generic_data = AsyncMock(return_value=config_record)
-    prisma_client.db.litellm_config.find_unique = AsyncMock(return_value=config_record)
-    prisma_client.db.litellm_config.upsert = AsyncMock(return_value=config_record)
-    prisma_client.db.litellm_config.update_many = AsyncMock(return_value=1)
+    prisma_client.db.config.find_unique = AsyncMock(return_value=config_record)
+    prisma_client.db.config.upsert = AsyncMock(return_value=config_record)
+    prisma_client.db.config.update_many = AsyncMock(return_value=1)
     return prisma_client
 
 
@@ -794,7 +794,7 @@ async def test_model_cost_map_reload_does_not_publish_config_change() -> None:
         _invalidate_model_cost_lowercase_map()
         _set_redis_usage_cache(previous_cache)
 
-    prisma_client.db.litellm_config.update_many.assert_awaited_once()
+    prisma_client.db.config.update_many.assert_awaited_once()
     assert client.published == []
 
 
@@ -815,7 +815,7 @@ async def test_anthropic_beta_headers_reload_does_not_publish_config_change() ->
     finally:
         _set_redis_usage_cache(previous_cache)
 
-    prisma_client.db.litellm_config.upsert.assert_awaited_once()
+    prisma_client.db.config.upsert.assert_awaited_once()
     assert client.published == []
 
 

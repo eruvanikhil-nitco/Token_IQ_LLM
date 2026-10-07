@@ -26,13 +26,13 @@ def _team_row(team_id: str = "t1", members_with_roles: list | None = None) -> Si
 
 def _prisma(team_row: SimpleNamespace | None = None) -> MagicMock:
     client = MagicMock()
-    client.db.litellm_teamtable.find_unique = AsyncMock(return_value=team_row if team_row is not None else _team_row())
+    client.db.teamtable.find_unique = AsyncMock(return_value=team_row if team_row is not None else _team_row())
     return client
 
 
 def _prisma_with_teams(*team_rows: SimpleNamespace) -> MagicMock:
     client = MagicMock()
-    client.db.litellm_teamtable.find_many = AsyncMock(return_value=list(team_rows))
+    client.db.teamtable.find_many = AsyncMock(return_value=list(team_rows))
     return client
 
 
@@ -111,7 +111,7 @@ async def test_creating_under_a_team_that_does_not_exist_is_a_404():
     from token_iq.api.projects import new_project
 
     client = MagicMock()
-    client.db.litellm_teamtable.find_unique = AsyncMock(return_value=None)
+    client.db.teamtable.find_unique = AsyncMock(return_value=None)
 
     with patch("token_iq.gateway.proxy.proxy_server.prisma_client", client), pytest.raises(HTTPException) as exc:
         await new_project(data=NewProjectRequest(team_id="ghost"), user_api_key_dict=ADMIN)
@@ -412,7 +412,7 @@ async def test_deleting_is_authorised_per_project_not_once_for_the_batch():
     theirs = _team_row("t-other")
 
     client = MagicMock()
-    client.db.litellm_teamtable.find_unique = AsyncMock(side_effect=[mine, theirs])
+    client.db.teamtable.find_unique = AsyncMock(side_effect=[mine, theirs])
     deleter = AsyncMock(return_value=_project())
 
     with (
@@ -456,7 +456,7 @@ async def test_daily_activity_reads_the_project_rollup_not_the_raw_spend_logs():
         result = await get_project_daily_activity(project_ids="p1", user_api_key_dict=ADMIN)
 
     assert result == "report"
-    assert recorded["table_name"] == "litellm_dailyprojectspend"
+    assert recorded["table_name"] == "dailyprojectspend"
     assert recorded["entity_id_field"] == "project_id"
     assert recorded["entity_id"] == ["p1"]
     assert recorded["entity_metadata_field"] == {"p1": {"project_alias": "api-service"}}
@@ -691,7 +691,7 @@ async def test_a_team_admin_cannot_move_their_project_into_a_team_they_do_not_ru
 
     lead, mine = _lead_of_t1()
     client: Final = MagicMock()
-    client.db.litellm_teamtable.find_unique = AsyncMock(side_effect=(mine, _team_row("t2")))
+    client.db.teamtable.find_unique = AsyncMock(side_effect=(mine, _team_row("t2")))
     saved: Final = AsyncMock(return_value=_project())
 
     with (

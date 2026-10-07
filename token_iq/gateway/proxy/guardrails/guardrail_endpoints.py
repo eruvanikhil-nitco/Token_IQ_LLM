@@ -58,7 +58,7 @@ from token_iq.gateway.types.proxy.guardrails.guardrail_hooks.hide_secrets import
 if TYPE_CHECKING:
     from types import CodeType
 
-    from prisma.models import LiteLLM_GuardrailsTable
+    from prisma.models import GuardrailsTable
     from pydantic.fields import FieldInfo
 
     from token_iq.gateway.proxy.utils import PrismaClient
@@ -73,11 +73,11 @@ def _as_str_object_mapping(mapping: Mapping[str, object]) -> Mapping[str, object
     return mapping
 
 
-def _guardrails_table(prisma_client: "PrismaClient") -> "TableActions[LiteLLM_GuardrailsTable]":
+def _guardrails_table(prisma_client: "PrismaClient") -> "TableActions[GuardrailsTable]":
     return GuardrailsRepository(prisma_client).table
 
 
-async def _create_guardrail_row(prisma_client: "PrismaClient", data: Mapping[str, object]) -> "LiteLLM_GuardrailsTable":
+async def _create_guardrail_row(prisma_client: "PrismaClient", data: Mapping[str, object]) -> "GuardrailsTable":
     row: Final = await _guardrails_table(prisma_client).create(data=data)
     return row
 
@@ -88,7 +88,7 @@ async def _delete_guardrail_row(prisma_client: "PrismaClient", where: Mapping[st
 
 async def _find_team_guardrail_rows(
     prisma_client: "PrismaClient", where: Mapping[str, object]
-) -> "Sequence[LiteLLM_GuardrailsTable]":
+) -> "Sequence[GuardrailsTable]":
     rows: Final = await _guardrails_table(prisma_client).find_many(
         where=where,
         order={"created_at": "desc"},
@@ -833,7 +833,7 @@ async def _get_user_team_ids(user_api_key_dict: UserAPIKeyAuth) -> list[str]:
     return [t for t in user_obj.teams if t]
 
 
-def _row_to_submission_item(row: "LiteLLM_GuardrailsTable") -> GuardrailSubmissionItem:
+def _row_to_submission_item(row: "GuardrailsTable") -> GuardrailSubmissionItem:
     from token_iq.gateway.core_utils.litellm_logging import _get_masked_values
 
     guardrail_info: Final = _parse_json_field(row.guardrail_info) or {}

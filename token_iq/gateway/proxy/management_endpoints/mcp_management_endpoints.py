@@ -939,7 +939,7 @@ if MCP_AVAILABLE:
         # Get from DB
         if prisma_client is not None:
             try:
-                mcp_servers: Final[Sequence[prisma_models.LiteLLM_MCPServerTable]] = await MCPServerRepository(
+                mcp_servers: Final[Sequence[prisma_models.MCPServerTable]] = await MCPServerRepository(
                     prisma_client
                 ).table.find_many()
                 for server in mcp_servers:
@@ -1180,7 +1180,7 @@ if MCP_AVAILABLE:
             byok_server_ids: Final = [s.server_id for s in redacted_mcp_servers if getattr(s, "is_byok", False)]
             if byok_server_ids:
                 cred_rows: Final[
-                    Sequence[prisma_models.LiteLLM_MCPUserCredentials]
+                    Sequence[prisma_models.MCPUserCredentials]
                 ] = await MCPUserCredentialsRepository(_byok_prisma_client).table.find_many(
                     where={"user_id": user_id, "server_id": {"in": byok_server_ids}}
                 )

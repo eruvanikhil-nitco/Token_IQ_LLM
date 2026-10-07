@@ -16,8 +16,8 @@ class BudgetRepository(BaseRepository[LiteLLM_BudgetTable]):
     """Repository for budget database operations."""
 
     @property
-    def table(self) -> TableActions["prisma_models.LiteLLM_BudgetTable"]:
-        return self.prisma_client.db.litellm_budgettable
+    def table(self) -> TableActions["prisma_models.BudgetTable"]:
+        return self.prisma_client.db.budgettable
 
     @property
     def model_class(self) -> type[LiteLLM_BudgetTable]:

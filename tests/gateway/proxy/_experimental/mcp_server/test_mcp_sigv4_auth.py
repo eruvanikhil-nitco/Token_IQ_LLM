@@ -599,8 +599,8 @@ class TestCredentialMergeOnUpdate:
         )
 
         mock_prisma = MagicMock()
-        mock_prisma.db.litellm_mcpservertable.find_unique = AsyncMock(return_value=existing_record)
-        mock_prisma.db.litellm_mcpservertable.update = AsyncMock(return_value=MagicMock())
+        mock_prisma.db.mcpservertable.find_unique = AsyncMock(return_value=existing_record)
+        mock_prisma.db.mcpservertable.update = AsyncMock(return_value=MagicMock())
 
         data = UpdateMCPServerRequest(
             server_id="test-server",
@@ -621,7 +621,7 @@ class TestCredentialMergeOnUpdate:
             await update_mcp_server(mock_prisma, data, "test-user")
 
         # Grab the data dict passed to prisma update
-        update_call = mock_prisma.db.litellm_mcpservertable.update
+        update_call = mock_prisma.db.mcpservertable.update
         assert update_call.called
         data_dict = update_call.call_args[1]["data"]
         merged_creds = json.loads(data_dict["credentials"])
@@ -639,7 +639,7 @@ class TestCredentialMergeOnUpdate:
         from token_iq.gateway.proxy._types import UpdateMCPServerRequest
 
         mock_prisma = MagicMock()
-        mock_prisma.db.litellm_mcpservertable.update = AsyncMock(return_value=MagicMock())
+        mock_prisma.db.mcpservertable.update = AsyncMock(return_value=MagicMock())
 
         data = UpdateMCPServerRequest(
             server_id="test-server",
@@ -652,7 +652,7 @@ class TestCredentialMergeOnUpdate:
         ):
             await update_mcp_server(mock_prisma, data, "test-user")
 
-        data_dict = mock_prisma.db.litellm_mcpservertable.update.call_args[1]["data"]
+        data_dict = mock_prisma.db.mcpservertable.update.call_args[1]["data"]
         assert "credentials" not in data_dict
 
     @pytest.mark.asyncio
@@ -666,8 +666,8 @@ class TestCredentialMergeOnUpdate:
         existing_record.credentials = None
 
         mock_prisma = MagicMock()
-        mock_prisma.db.litellm_mcpservertable.find_unique = AsyncMock(return_value=existing_record)
-        mock_prisma.db.litellm_mcpservertable.update = AsyncMock(return_value=MagicMock())
+        mock_prisma.db.mcpservertable.find_unique = AsyncMock(return_value=existing_record)
+        mock_prisma.db.mcpservertable.update = AsyncMock(return_value=MagicMock())
 
         data = UpdateMCPServerRequest(
             server_id="test-server",
@@ -687,7 +687,7 @@ class TestCredentialMergeOnUpdate:
         ):
             await update_mcp_server(mock_prisma, data, "test-user")
 
-        data_dict = mock_prisma.db.litellm_mcpservertable.update.call_args[1]["data"]
+        data_dict = mock_prisma.db.mcpservertable.update.call_args[1]["data"]
         stored_creds = json.loads(data_dict["credentials"])
         assert stored_creds == {"aws_region_name": "us-east-1"}
 
@@ -708,8 +708,8 @@ class TestCredentialMergeOnUpdate:
         )
 
         mock_prisma = MagicMock()
-        mock_prisma.db.litellm_mcpservertable.find_unique = AsyncMock(return_value=existing_record)
-        mock_prisma.db.litellm_mcpservertable.update = AsyncMock(return_value=MagicMock())
+        mock_prisma.db.mcpservertable.find_unique = AsyncMock(return_value=existing_record)
+        mock_prisma.db.mcpservertable.update = AsyncMock(return_value=MagicMock())
 
         data = UpdateMCPServerRequest(
             server_id="test-server",
@@ -729,7 +729,7 @@ class TestCredentialMergeOnUpdate:
         ):
             await update_mcp_server(mock_prisma, data, "test-user")
 
-        data_dict = mock_prisma.db.litellm_mcpservertable.update.call_args[1]["data"]
+        data_dict = mock_prisma.db.mcpservertable.update.call_args[1]["data"]
         stored_creds = json.loads(data_dict["credentials"])
         # Should only have the new api_key credential, no stale aws_* fields
         assert stored_creds == {"auth_value": "enc:my-key"}
@@ -751,8 +751,8 @@ class TestCredentialMergeOnUpdate:
         )
 
         mock_prisma = MagicMock()
-        mock_prisma.db.litellm_mcpservertable.find_unique = AsyncMock(return_value=existing_record)
-        mock_prisma.db.litellm_mcpservertable.update = AsyncMock(return_value=MagicMock())
+        mock_prisma.db.mcpservertable.find_unique = AsyncMock(return_value=existing_record)
+        mock_prisma.db.mcpservertable.update = AsyncMock(return_value=MagicMock())
 
         data = UpdateMCPServerRequest(
             server_id="test-server",
@@ -772,7 +772,7 @@ class TestCredentialMergeOnUpdate:
         ):
             await update_mcp_server(mock_prisma, data, "test-user")
 
-        data_dict = mock_prisma.db.litellm_mcpservertable.update.call_args[1]["data"]
+        data_dict = mock_prisma.db.mcpservertable.update.call_args[1]["data"]
         merged_creds = json.loads(data_dict["credentials"])
         assert merged_creds["client_id"] == "enc:id"
         assert merged_creds["client_secret"] == "enc:secret"
@@ -987,9 +987,9 @@ class TestRotateCredentials:
         server.env_vars = None
 
         mock_prisma = MagicMock()
-        mock_prisma.db.litellm_mcpservertable.find_many = AsyncMock(return_value=[server])
-        mock_prisma.db.litellm_mcpservertable.update = AsyncMock()
-        mock_prisma.db.litellm_mcpserveroauthclient.find_many = AsyncMock(return_value=[])
+        mock_prisma.db.mcpservertable.find_many = AsyncMock(return_value=[server])
+        mock_prisma.db.mcpservertable.update = AsyncMock()
+        mock_prisma.db.mcpserveroauthclient.find_many = AsyncMock(return_value=[])
 
         with (
             patch(
@@ -1009,7 +1009,7 @@ class TestRotateCredentials:
         ):
             await rotate_mcp_server_credentials_master_key(mock_prisma, "admin", "new-key")
 
-        update_call = mock_prisma.db.litellm_mcpservertable.update
+        update_call = mock_prisma.db.mcpservertable.update
         assert update_call.called
         stored_creds = json.loads(update_call.call_args[1]["data"]["credentials"])
         # Should be decrypted from old, then encrypted with new
@@ -1035,9 +1035,9 @@ class TestRotateCredentials:
         ]
 
         mock_prisma = MagicMock()
-        mock_prisma.db.litellm_mcpservertable.find_many = AsyncMock(return_value=[server])
-        mock_prisma.db.litellm_mcpservertable.update = AsyncMock()
-        mock_prisma.db.litellm_mcpserveroauthclient.find_many = AsyncMock(return_value=[])
+        mock_prisma.db.mcpservertable.find_many = AsyncMock(return_value=[server])
+        mock_prisma.db.mcpservertable.update = AsyncMock()
+        mock_prisma.db.mcpserveroauthclient.find_many = AsyncMock(return_value=[])
 
         with (
             patch(
@@ -1057,7 +1057,7 @@ class TestRotateCredentials:
         ):
             await rotate_mcp_server_credentials_master_key(mock_prisma, "admin", "new-key")
 
-        update_call = mock_prisma.db.litellm_mcpservertable.update
+        update_call = mock_prisma.db.mcpservertable.update
         assert update_call.called
         stored_env = json.loads(update_call.call_args[1]["data"]["env_vars"])
         # Global value decrypted from old, then re-encrypted with new key
@@ -1082,8 +1082,8 @@ class TestAuthTypeSwitchClearsCredentials:
         existing_record.credentials = json.dumps({"client_id": "enc:cid", "client_secret": "enc:csec"})
 
         mock_prisma = MagicMock()
-        mock_prisma.db.litellm_mcpservertable.find_unique = AsyncMock(return_value=existing_record)
-        mock_prisma.db.litellm_mcpservertable.update = AsyncMock(return_value=MagicMock())
+        mock_prisma.db.mcpservertable.find_unique = AsyncMock(return_value=existing_record)
+        mock_prisma.db.mcpservertable.update = AsyncMock(return_value=MagicMock())
 
         data = UpdateMCPServerRequest(
             server_id="test-server",
@@ -1097,7 +1097,7 @@ class TestAuthTypeSwitchClearsCredentials:
         ):
             await update_mcp_server(mock_prisma, data, "test-user")
 
-        data_dict = mock_prisma.db.litellm_mcpservertable.update.call_args[1]["data"]
+        data_dict = mock_prisma.db.mcpservertable.update.call_args[1]["data"]
         # Credentials should be cleared. The clear reaches prisma as Json(None) (SQL null), which
         # prisma-python requires for a Json? field; a bare None is also accepted for older callers.
         from prisma import Json

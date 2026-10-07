@@ -49,8 +49,8 @@ class _FakePrismaClient:
         error: Exception | None = None,
     ) -> None:
         self.db = SimpleNamespace(
-            litellm_budgetwindowspend=_FakeWindowSpendTable(row=row, error=error),
-            litellm_spendlogs=_FakeSpendLogsTable(total=spend_logs_total),
+            budgetwindowspend=_FakeWindowSpendTable(row=row, error=error),
+            spendlogs=_FakeSpendLogsTable(total=spend_logs_total),
         )
 
 
@@ -73,7 +73,7 @@ async def test_window_from_table_reads_row_by_primary_key():
     )
 
     assert result == 4.5
-    assert prisma.db.litellm_budgetwindowspend.where_clauses == [
+    assert prisma.db.budgetwindowspend.where_clauses == [
         {
             "entity_type_entity_id_window_duration": {
                 "entity_type": "key",
@@ -97,7 +97,7 @@ async def test_window_from_table_maps_team_entity_type():
     )
 
     assert result == 9.0
-    inner = prisma.db.litellm_budgetwindowspend.where_clauses[0]["entity_type_entity_id_window_duration"]
+    inner = prisma.db.budgetwindowspend.where_clauses[0]["entity_type_entity_id_window_duration"]
     assert inner["entity_type"] == "team"
 
 
@@ -188,7 +188,7 @@ async def test_window_from_db_prefers_the_row_over_the_spend_logs_aggregate():
     )
 
     assert result == 4.5
-    assert prisma.db.litellm_spendlogs.call_count == 0
+    assert prisma.db.spendlogs.call_count == 0
 
 
 @pytest.mark.asyncio
@@ -209,7 +209,7 @@ async def test_window_from_db_falls_back_to_spend_logs(row):
     )
 
     assert result == 7.25
-    assert prisma.db.litellm_spendlogs.call_count == 1
+    assert prisma.db.spendlogs.call_count == 1
 
 
 @pytest.mark.asyncio
@@ -226,7 +226,7 @@ async def test_window_from_db_without_a_duration_skips_the_row_lookup():
     )
 
     assert result == 7.25
-    assert prisma.db.litellm_budgetwindowspend.where_clauses == []
+    assert prisma.db.budgetwindowspend.where_clauses == []
 
 
 @pytest.mark.asyncio
@@ -247,4 +247,4 @@ async def test_coalesced_window_seeds_a_cold_counter_from_the_row():
 
     assert result == 4.5
     assert cache.in_memory_cache.get_cache(key=counter_key) == 4.5
-    assert prisma.db.litellm_spendlogs.call_count == 0
+    assert prisma.db.spendlogs.call_count == 0

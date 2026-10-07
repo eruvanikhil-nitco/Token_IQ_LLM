@@ -208,7 +208,7 @@ async def test_get_cache_settings_masks_password_bearing_url():
     cache_row.cache_settings = json.dumps(stored_settings)
 
     mock_prisma = MagicMock()
-    mock_prisma.db.litellm_cacheconfig.find_unique = AsyncMock(return_value=cache_row)
+    mock_prisma.db.cacheconfig.find_unique = AsyncMock(return_value=cache_row)
 
     proxy_config = MagicMock()
     proxy_config._decrypt_db_variables = MagicMock(side_effect=lambda variables_dict: dict(variables_dict))
@@ -333,7 +333,7 @@ class TestCacheSettingsManager:
         mock_prisma_client = MagicMock()
         mock_cache_config = MagicMock()
         mock_cache_config.cache_settings = '{"type": "redis", "host": "localhost", "port": "6379"}'
-        mock_prisma_client.db.litellm_cacheconfig.find_unique = AsyncMock(return_value=mock_cache_config)
+        mock_prisma_client.db.cacheconfig.find_unique = AsyncMock(return_value=mock_cache_config)
 
         # Mock proxy_config
         mock_proxy_config = MagicMock()
@@ -378,7 +378,7 @@ class TestCacheSettingsManager:
         mock_prisma_client = MagicMock()
         mock_cache_config = MagicMock()
         mock_cache_config.cache_settings = '{"type": "redis", "host": "localhost", "port": "6379"}'
-        mock_prisma_client.db.litellm_cacheconfig.find_unique = AsyncMock(return_value=mock_cache_config)
+        mock_prisma_client.db.cacheconfig.find_unique = AsyncMock(return_value=mock_cache_config)
 
         # Mock proxy_config
         mock_proxy_config = MagicMock()
@@ -416,7 +416,7 @@ class TestCacheSettingsManager:
             return None  # No config → function returns early after retry.
 
         mock_prisma_client = MagicMock()
-        mock_prisma_client.db.litellm_cacheconfig.find_unique = AsyncMock(side_effect=_flaky_find_unique)
+        mock_prisma_client.db.cacheconfig.find_unique = AsyncMock(side_effect=_flaky_find_unique)
         mock_prisma_client.attempt_db_reconnect = AsyncMock(return_value=True)
         mock_prisma_client._db_auth_reconnect_timeout_seconds = 2.0
         mock_prisma_client._db_auth_reconnect_lock_timeout_seconds = 0.1
@@ -632,7 +632,7 @@ async def test_get_cache_settings_falls_back_to_redis_env(monkeypatch):
     monkeypatch.setenv("REDIS_PASSWORD", "env-password")
 
     mock_prisma = MagicMock()
-    mock_prisma.db.litellm_cacheconfig.find_unique = AsyncMock(return_value=None)
+    mock_prisma.db.cacheconfig.find_unique = AsyncMock(return_value=None)
 
     proxy_config = MagicMock()
     proxy_config._decrypt_db_variables = MagicMock(side_effect=lambda variables_dict: dict(variables_dict))
@@ -660,7 +660,7 @@ async def test_get_cache_settings_redacts_password_with_marker(monkeypatch):
         {"type": "redis", "host": "h", "password": "supersecret", "namespace": "ns"}
     )
     mock_prisma = MagicMock()
-    mock_prisma.db.litellm_cacheconfig.find_unique = AsyncMock(return_value=cache_row)
+    mock_prisma.db.cacheconfig.find_unique = AsyncMock(return_value=cache_row)
     proxy_config = MagicMock()
     proxy_config._decrypt_db_variables = MagicMock(side_effect=lambda variables_dict: dict(variables_dict))
 
@@ -689,7 +689,7 @@ async def test_get_cache_settings_url_mode_hides_env_discrete_fields(monkeypatch
     cache_row = MagicMock()
     cache_row.cache_settings = {"type": "redis", "url": "redis://:pw@stored-host:6379/0"}
     mock_prisma = MagicMock()
-    mock_prisma.db.litellm_cacheconfig.find_unique = AsyncMock(return_value=cache_row)
+    mock_prisma.db.cacheconfig.find_unique = AsyncMock(return_value=cache_row)
     proxy_config = MagicMock()
     proxy_config._decrypt_db_variables = MagicMock(side_effect=lambda variables_dict: dict(variables_dict))
 
@@ -772,7 +772,7 @@ async def test_get_cache_settings_does_not_surface_non_display_env_credentials(m
     monkeypatch.setenv("REDIS_AZURE_CLIENT_SECRET", "super-azure-secret")
 
     mock_prisma = MagicMock()
-    mock_prisma.db.litellm_cacheconfig.find_unique = AsyncMock(return_value=None)
+    mock_prisma.db.cacheconfig.find_unique = AsyncMock(return_value=None)
     proxy_config = MagicMock()
     proxy_config._decrypt_db_variables = MagicMock(side_effect=lambda variables_dict: dict(variables_dict))
 
@@ -801,7 +801,7 @@ async def test_test_cache_connection_does_not_log_plaintext_credentials(monkeypa
     existing = MagicMock()
     existing.cache_settings = {"type": "redis", "host": "h", "port": "6379", "password": "realredispw"}
     mock_prisma = MagicMock()
-    mock_prisma.db.litellm_cacheconfig.find_unique = AsyncMock(return_value=existing)
+    mock_prisma.db.cacheconfig.find_unique = AsyncMock(return_value=existing)
     proxy_config = MagicMock()
     proxy_config._decrypt_db_variables = MagicMock(side_effect=lambda variables_dict: dict(variables_dict))
 
@@ -839,7 +839,7 @@ async def test_test_cache_connection_does_not_replay_saved_password_to_new_host(
     existing = MagicMock()
     existing.cache_settings = {"type": "redis", "host": "real-redis", "port": "6379", "password": "realredispw"}
     mock_prisma = MagicMock()
-    mock_prisma.db.litellm_cacheconfig.find_unique = AsyncMock(return_value=existing)
+    mock_prisma.db.cacheconfig.find_unique = AsyncMock(return_value=existing)
     proxy_config = MagicMock()
     proxy_config._decrypt_db_variables = MagicMock(side_effect=lambda variables_dict: dict(variables_dict))
 

@@ -256,7 +256,7 @@ async def _get_container_owner(original_container_id: str, custom_llm_provider: 
         return None
 
     table: Final = ManagedObjectRepository(prisma_client).table
-    row: Final[prisma_models.LiteLLM_ManagedObjectTable | None] = await table.find_first(
+    row: Final[prisma_models.ManagedObjectTable | None] = await table.find_first(
         where={
             "model_object_id": model_object_id,
             "file_purpose": CONTAINER_OBJECT_PURPOSE,
@@ -293,7 +293,7 @@ async def _get_stored_container_id(original_container_id: str, custom_llm_provid
         return None
 
     table: Final = ManagedObjectRepository(prisma_client).table
-    row: Final[prisma_models.LiteLLM_ManagedObjectTable | None] = await table.find_first(
+    row: Final[prisma_models.ManagedObjectTable | None] = await table.find_first(
         where={
             "model_object_id": model_object_id,
             "file_purpose": CONTAINER_OBJECT_PURPOSE,
@@ -378,7 +378,7 @@ async def _get_allowed_container_ids(
         return set()
 
     table: Final = ManagedObjectRepository(prisma_client).table
-    rows: Final[Sequence[prisma_models.LiteLLM_ManagedObjectTable]] = await table.find_many(
+    rows: Final[Sequence[prisma_models.ManagedObjectTable]] = await table.find_many(
         where={
             "file_purpose": CONTAINER_OBJECT_PURPOSE,
             "created_by": {"in": owner_scopes},

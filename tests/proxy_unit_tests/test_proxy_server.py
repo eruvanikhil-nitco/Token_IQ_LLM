@@ -1176,7 +1176,7 @@ def _member_add_tx_cm(team_table):
 
     class _Tx:
         query_raw = AsyncMock(return_value=[{"members_with_roles": []}])
-        litellm_teamtable = team_table
+        teamtable = team_table
 
         def __getattr__(self, table_name):
             return getattr(gateway.proxy.proxy_server.prisma_client.db, table_name)
@@ -1255,9 +1255,9 @@ async def test_create_team_member_add(prisma_client, new_member_method):  # noqa
         mock_gateway_usertable.find_unique = AsyncMock(return_value=None)
         team_mock_client = AsyncMock()
         original_val = getattr(
-            gateway.proxy.proxy_server.prisma_client.db, "litellm_teamtable"
+            gateway.proxy.proxy_server.prisma_client.db, "teamtable"
         )
-        gateway.proxy.proxy_server.prisma_client.db.litellm_teamtable = team_mock_client
+        gateway.proxy.proxy_server.prisma_client.db.teamtable = team_mock_client
 
         team_mock_client.update = AsyncMock(
             return_value=LiteLLM_TeamTableCachedObj(team_id="1234")
@@ -1289,7 +1289,7 @@ async def test_create_team_member_add(prisma_client, new_member_method):  # noqa
             == gateway.internal_user_budget_duration
         )
 
-        gateway.proxy.proxy_server.prisma_client.db.litellm_teamtable = original_val
+        gateway.proxy.proxy_server.prisma_client.db.teamtable = original_val
         gateway.proxy.proxy_server.prisma_client.tx = original_tx
 
 
@@ -1461,7 +1461,7 @@ async def test_create_team_member_add_team_admin(
         with (
             patch.object(
                 gateway.proxy.proxy_server.prisma_client.db,
-                "litellm_teamtable",
+                "teamtable",
                 team_mock_client,
             ),
             patch.object(
@@ -3060,9 +3060,9 @@ async def test_update_config_success_callback_normalization():
     class MockPrisma:
         def __init__(self):
             self.db = MagicMock()
-            self.db.litellm_config = MagicMock()
-            self.db.litellm_config.find_first = AsyncMock(side_effect=fake_find_first)
-            self.db.litellm_config.upsert = AsyncMock(side_effect=fake_upsert)
+            self.db.config = MagicMock()
+            self.db.config.find_first = AsyncMock(side_effect=fake_find_first)
+            self.db.config.upsert = AsyncMock(side_effect=fake_upsert)
 
     setattr(proxy_server, "prisma_client", MockPrisma())
 
@@ -3084,7 +3084,7 @@ async def test_update_config_success_callback_normalization():
 
     assert (
         "litellm_settings" in upserted
-    ), "litellm_config.upsert was not called for litellm_settings"
+    ), "config.upsert was not called for litellm_settings"
     callbacks = upserted["litellm_settings"]["success_callback"]
 
     # Deduped and normalized

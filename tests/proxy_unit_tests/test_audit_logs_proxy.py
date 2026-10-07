@@ -177,7 +177,7 @@ async def test_create_audit_log_for_update_premium_user():
         patch("token_iq.gateway.proxy.proxy_server.prisma_client") as mock_prisma,
     ):
 
-        mock_prisma.db.litellm_auditlog.create = AsyncMock()
+        mock_prisma.db.auditlog.create = AsyncMock()
 
         request_data = LiteLLM_AuditLogs(
             id="test_id",
@@ -192,7 +192,7 @@ async def test_create_audit_log_for_update_premium_user():
 
         await create_audit_log_for_update(request_data)
 
-        mock_prisma.db.litellm_auditlog.create.assert_called_once_with(
+        mock_prisma.db.auditlog.create.assert_called_once_with(
             data={
                 "id": "test_id",
                 "updated_at": request_data.updated_at,
@@ -254,7 +254,7 @@ async def test_create_audit_log_in_db(prisma_client):
     await asyncio.sleep(1)
 
     # now read the last log from the db
-    last_log = await prisma_client.db.litellm_auditlog.find_first(
+    last_log = await prisma_client.db.auditlog.find_first(
         where={"id": audit_log_id}
     )
 

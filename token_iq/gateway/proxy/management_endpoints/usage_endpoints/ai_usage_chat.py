@@ -23,9 +23,9 @@ from token_iq.gateway.types.proxy.management_endpoints.common_daily_activity imp
 
 USAGE_AI_TEMPERATURE: Final = 0.2
 
-TABLE_DAILY_USER_SPEND: Final = "litellm_dailyuserspend"
-TABLE_DAILY_TEAM_SPEND: Final = "litellm_dailyteamspend"
-TABLE_DAILY_TAG_SPEND: Final = "litellm_dailytagspend"
+TABLE_DAILY_USER_SPEND: Final = "dailyuserspend"
+TABLE_DAILY_TEAM_SPEND: Final = "dailyteamspend"
+TABLE_DAILY_TAG_SPEND: Final = "dailytagspend"
 
 ENTITY_FIELD_USER: Final = "user_id"
 ENTITY_FIELD_TEAM: Final = "team_id"

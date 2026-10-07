@@ -197,8 +197,8 @@ async def test_add_new_member_clones_default_team_budget_id():
         "teams": [test_team_id],
         "user_role": "internal_user",
     }
-    mock_prisma_client.db.litellm_usertable.upsert = AsyncMock(return_value=mock_user_response)
-    mock_prisma_client.db.litellm_usertable.find_unique = AsyncMock(
+    mock_prisma_client.db.usertable.upsert = AsyncMock(return_value=mock_user_response)
+    mock_prisma_client.db.usertable.find_unique = AsyncMock(
         return_value=mock_user_response
     )
 
@@ -215,14 +215,14 @@ async def test_add_new_member_clones_default_team_budget_id():
         "budget_duration": "1d",
         "allowed_models": [],
     }
-    mock_prisma_client.db.litellm_budgettable.find_unique = AsyncMock(
+    mock_prisma_client.db.budgettable.find_unique = AsyncMock(
         return_value=mock_default_budget_row
     )
 
     # Mock the cloned budget row that .create() returns.
     mock_cloned_budget_row = MagicMock()
     mock_cloned_budget_row.budget_id = test_cloned_budget_id
-    mock_prisma_client.db.litellm_budgettable.create = AsyncMock(
+    mock_prisma_client.db.budgettable.create = AsyncMock(
         return_value=mock_cloned_budget_row
     )
 
@@ -234,7 +234,7 @@ async def test_add_new_member_clones_default_team_budget_id():
         "budget_id": test_cloned_budget_id,
         "litellm_budget_table": None,
     }
-    mock_prisma_client.db.litellm_teammembership.create = AsyncMock(
+    mock_prisma_client.db.teammembership.create = AsyncMock(
         return_value=mock_team_membership_response
     )
 
@@ -256,16 +256,16 @@ async def test_add_new_member_clones_default_team_budget_id():
     assert result_team_membership.budget_id == test_cloned_budget_id
     assert result_team_membership.budget_id != test_default_budget_id
 
-    mock_prisma_client.db.litellm_usertable.upsert.assert_called_once()
-    mock_prisma_client.db.litellm_teammembership.create.assert_called_once()
+    mock_prisma_client.db.usertable.upsert.assert_called_once()
+    mock_prisma_client.db.teammembership.create.assert_called_once()
 
     # The clone must have happened: find_unique on the default, create for the clone.
-    mock_prisma_client.db.litellm_budgettable.find_unique.assert_called_once_with(
+    mock_prisma_client.db.budgettable.find_unique.assert_called_once_with(
         where={"budget_id": test_default_budget_id}
     )
-    mock_prisma_client.db.litellm_budgettable.create.assert_called_once()
+    mock_prisma_client.db.budgettable.create.assert_called_once()
     cloned_create_data = (
-        mock_prisma_client.db.litellm_budgettable.create.call_args.kwargs["data"]
+        mock_prisma_client.db.budgettable.create.call_args.kwargs["data"]
     )
     # Cloned values from the default budget row
     assert cloned_create_data["max_budget"] == 100.0
@@ -274,7 +274,7 @@ async def test_add_new_member_clones_default_team_budget_id():
     assert cloned_create_data["created_by"] == user_api_key_dict.user_id
 
     team_membership_call_args = (
-        mock_prisma_client.db.litellm_teammembership.create.call_args
+        mock_prisma_client.db.teammembership.create.call_args
     )
     create_data = team_membership_call_args.kwargs["data"]
     assert create_data["budget_id"] == test_cloned_budget_id
@@ -301,8 +301,8 @@ async def test_add_new_member_budget_duration_only_clones_default_max_budget():
         "teams": ["team-dc"],
         "user_role": "internal_user",
     }
-    mock_prisma_client.db.litellm_usertable.upsert = AsyncMock(return_value=mock_user_response)
-    mock_prisma_client.db.litellm_usertable.find_unique = AsyncMock(
+    mock_prisma_client.db.usertable.upsert = AsyncMock(return_value=mock_user_response)
+    mock_prisma_client.db.usertable.find_unique = AsyncMock(
         return_value=mock_user_response
     )
     mock_default_budget_row = MagicMock()
@@ -317,12 +317,12 @@ async def test_add_new_member_budget_duration_only_clones_default_max_budget():
         "budget_duration": "1d",
         "allowed_models": [],
     }
-    mock_prisma_client.db.litellm_budgettable.find_unique = AsyncMock(
+    mock_prisma_client.db.budgettable.find_unique = AsyncMock(
         return_value=mock_default_budget_row
     )
     mock_cloned_budget_row = MagicMock()
     mock_cloned_budget_row.budget_id = "cloned-dc"
-    mock_prisma_client.db.litellm_budgettable.create = AsyncMock(
+    mock_prisma_client.db.budgettable.create = AsyncMock(
         return_value=mock_cloned_budget_row
     )
     mock_team_membership_response = MagicMock()
@@ -332,7 +332,7 @@ async def test_add_new_member_budget_duration_only_clones_default_max_budget():
         "budget_id": "cloned-dc",
         "litellm_budget_table": None,
     }
-    mock_prisma_client.db.litellm_teammembership.create = AsyncMock(
+    mock_prisma_client.db.teammembership.create = AsyncMock(
         return_value=mock_team_membership_response
     )
 
@@ -347,9 +347,9 @@ async def test_add_new_member_budget_duration_only_clones_default_max_budget():
         budget_duration="7d",
     )
 
-    mock_prisma_client.db.litellm_budgettable.create.assert_called_once()
+    mock_prisma_client.db.budgettable.create.assert_called_once()
     cloned_create_data = (
-        mock_prisma_client.db.litellm_budgettable.create.call_args.kwargs["data"]
+        mock_prisma_client.db.budgettable.create.call_args.kwargs["data"]
     )
     assert cloned_create_data["max_budget"] == 100.0  # kept from the team default
     assert cloned_create_data["budget_duration"] == "7d"  # overridden by the caller
@@ -385,15 +385,15 @@ async def test_add_new_member_no_budget_when_no_default_and_no_max_budget():
         "teams": [test_team_id],
         "user_role": "internal_user",
     }
-    mock_prisma_client.db.litellm_usertable.upsert = AsyncMock(return_value=mock_user_response)
-    mock_prisma_client.db.litellm_usertable.find_unique = AsyncMock(
+    mock_prisma_client.db.usertable.upsert = AsyncMock(return_value=mock_user_response)
+    mock_prisma_client.db.usertable.find_unique = AsyncMock(
         return_value=mock_user_response
     )
 
     # Even though we mock these, they must NOT be called on the no-budget path.
-    mock_prisma_client.db.litellm_budgettable.find_unique = AsyncMock()
-    mock_prisma_client.db.litellm_budgettable.create = AsyncMock()
-    mock_prisma_client.db.litellm_teammembership.create = AsyncMock()
+    mock_prisma_client.db.budgettable.find_unique = AsyncMock()
+    mock_prisma_client.db.budgettable.create = AsyncMock()
+    mock_prisma_client.db.teammembership.create = AsyncMock()
 
     result_user, result_team_membership = await add_new_member(
         new_member=new_member,
@@ -410,9 +410,9 @@ async def test_add_new_member_no_budget_when_no_default_and_no_max_budget():
 
     # No budget id, so no team membership row is created.
     assert result_team_membership is None
-    mock_prisma_client.db.litellm_budgettable.find_unique.assert_not_called()
-    mock_prisma_client.db.litellm_budgettable.create.assert_not_called()
-    mock_prisma_client.db.litellm_teammembership.create.assert_not_called()
+    mock_prisma_client.db.budgettable.find_unique.assert_not_called()
+    mock_prisma_client.db.budgettable.create.assert_not_called()
+    mock_prisma_client.db.teammembership.create.assert_not_called()
 
 
 @pytest.mark.asyncio
@@ -453,15 +453,15 @@ async def test_add_new_member_creates_new_budget_when_max_budget_provided():
         "teams": [test_team_id],
         "user_role": "internal_user",
     }
-    mock_prisma_client.db.litellm_usertable.upsert = AsyncMock(return_value=mock_user_response)
-    mock_prisma_client.db.litellm_usertable.find_unique = AsyncMock(
+    mock_prisma_client.db.usertable.upsert = AsyncMock(return_value=mock_user_response)
+    mock_prisma_client.db.usertable.find_unique = AsyncMock(
         return_value=mock_user_response
     )
 
     # Mock the budget table creation
     mock_budget_response = MagicMock()
     mock_budget_response.budget_id = test_new_budget_id
-    mock_prisma_client.db.litellm_budgettable.create = AsyncMock(
+    mock_prisma_client.db.budgettable.create = AsyncMock(
         return_value=mock_budget_response
     )
 
@@ -473,7 +473,7 @@ async def test_add_new_member_creates_new_budget_when_max_budget_provided():
         "budget_id": test_new_budget_id,
         "litellm_budget_table": None,
     }
-    mock_prisma_client.db.litellm_teammembership.create = AsyncMock(
+    mock_prisma_client.db.teammembership.create = AsyncMock(
         return_value=mock_team_membership_response
     )
 
@@ -489,8 +489,8 @@ async def test_add_new_member_creates_new_budget_when_max_budget_provided():
     )
 
     # Verify that the budget was created
-    mock_prisma_client.db.litellm_budgettable.create.assert_called_once()
-    budget_call_args = mock_prisma_client.db.litellm_budgettable.create.call_args
+    mock_prisma_client.db.budgettable.create.assert_called_once()
+    budget_call_args = mock_prisma_client.db.budgettable.create.call_args
     budget_data = budget_call_args.kwargs["data"]
     assert budget_data["max_budget"] == test_max_budget
     assert budget_data["created_by"] == user_api_key_dict.user_id
@@ -502,7 +502,7 @@ async def test_add_new_member_creates_new_budget_when_max_budget_provided():
 
     # Verify the team membership was created with the correct budget_id
     team_membership_call_args = (
-        mock_prisma_client.db.litellm_teammembership.create.call_args
+        mock_prisma_client.db.teammembership.create.call_args
     )
     assert team_membership_call_args is not None
     create_data = team_membership_call_args.kwargs["data"]
@@ -530,13 +530,13 @@ async def test_add_new_member_persists_budget_duration():
         "teams": ["team-dur"],
         "user_role": "internal_user",
     }
-    mock_prisma_client.db.litellm_usertable.upsert = AsyncMock(return_value=mock_user_response)
-    mock_prisma_client.db.litellm_usertable.find_unique = AsyncMock(
+    mock_prisma_client.db.usertable.upsert = AsyncMock(return_value=mock_user_response)
+    mock_prisma_client.db.usertable.find_unique = AsyncMock(
         return_value=mock_user_response
     )
     mock_budget_response = MagicMock()
     mock_budget_response.budget_id = "budget-dur"
-    mock_prisma_client.db.litellm_budgettable.create = AsyncMock(
+    mock_prisma_client.db.budgettable.create = AsyncMock(
         return_value=mock_budget_response
     )
     mock_team_membership_response = MagicMock()
@@ -546,7 +546,7 @@ async def test_add_new_member_persists_budget_duration():
         "budget_id": "budget-dur",
         "litellm_budget_table": None,
     }
-    mock_prisma_client.db.litellm_teammembership.create = AsyncMock(
+    mock_prisma_client.db.teammembership.create = AsyncMock(
         return_value=mock_team_membership_response
     )
 
@@ -562,8 +562,8 @@ async def test_add_new_member_persists_budget_duration():
         budget_duration="30d",
     )
 
-    mock_prisma_client.db.litellm_budgettable.create.assert_called_once()
-    budget_data = mock_prisma_client.db.litellm_budgettable.create.call_args.kwargs[
+    mock_prisma_client.db.budgettable.create.assert_called_once()
+    budget_data = mock_prisma_client.db.budgettable.create.call_args.kwargs[
         "data"
     ]
     assert budget_data["max_budget"] == 10.0
@@ -594,13 +594,13 @@ async def test_add_new_member_persists_budget_duration_without_max_budget():
         "teams": ["team-dur2"],
         "user_role": "internal_user",
     }
-    mock_prisma_client.db.litellm_usertable.upsert = AsyncMock(return_value=mock_user_response)
-    mock_prisma_client.db.litellm_usertable.find_unique = AsyncMock(
+    mock_prisma_client.db.usertable.upsert = AsyncMock(return_value=mock_user_response)
+    mock_prisma_client.db.usertable.find_unique = AsyncMock(
         return_value=mock_user_response
     )
     mock_budget_response = MagicMock()
     mock_budget_response.budget_id = "budget-dur2"
-    mock_prisma_client.db.litellm_budgettable.create = AsyncMock(
+    mock_prisma_client.db.budgettable.create = AsyncMock(
         return_value=mock_budget_response
     )
     mock_team_membership_response = MagicMock()
@@ -610,7 +610,7 @@ async def test_add_new_member_persists_budget_duration_without_max_budget():
         "budget_id": "budget-dur2",
         "litellm_budget_table": None,
     }
-    mock_prisma_client.db.litellm_teammembership.create = AsyncMock(
+    mock_prisma_client.db.teammembership.create = AsyncMock(
         return_value=mock_team_membership_response
     )
 
@@ -625,8 +625,8 @@ async def test_add_new_member_persists_budget_duration_without_max_budget():
         budget_duration="7d",
     )
 
-    mock_prisma_client.db.litellm_budgettable.create.assert_called_once()
-    budget_data = mock_prisma_client.db.litellm_budgettable.create.call_args.kwargs[
+    mock_prisma_client.db.budgettable.create.assert_called_once()
+    budget_data = mock_prisma_client.db.budgettable.create.call_args.kwargs[
         "data"
     ]
     assert budget_data["budget_duration"] == "7d"
@@ -682,14 +682,14 @@ async def test_add_new_member_with_user_email_clones_default_budget():
         "budget_duration": None,
         "allowed_models": [],
     }
-    mock_prisma_client.db.litellm_budgettable.find_unique = AsyncMock(
+    mock_prisma_client.db.budgettable.find_unique = AsyncMock(
         return_value=mock_default_budget_row
     )
 
     # Cloned budget result
     mock_cloned_budget_row = MagicMock()
     mock_cloned_budget_row.budget_id = test_cloned_budget_id
-    mock_prisma_client.db.litellm_budgettable.create = AsyncMock(
+    mock_prisma_client.db.budgettable.create = AsyncMock(
         return_value=mock_cloned_budget_row
     )
 
@@ -700,7 +700,7 @@ async def test_add_new_member_with_user_email_clones_default_budget():
         "budget_id": test_cloned_budget_id,
         "litellm_budget_table": None,
     }
-    mock_prisma_client.db.litellm_teammembership.create = AsyncMock(
+    mock_prisma_client.db.teammembership.create = AsyncMock(
         return_value=mock_team_membership_response
     )
 
@@ -734,10 +734,10 @@ async def test_add_new_member_with_user_email_clones_default_budget():
     assert insert_data["teams"] == [test_team_id]
 
     # Confirm the clone path ran
-    mock_prisma_client.db.litellm_budgettable.find_unique.assert_called_once_with(
+    mock_prisma_client.db.budgettable.find_unique.assert_called_once_with(
         where={"budget_id": test_default_budget_id}
     )
-    mock_prisma_client.db.litellm_budgettable.create.assert_called_once()
+    mock_prisma_client.db.budgettable.create.assert_called_once()
 
 
 @pytest.mark.asyncio
@@ -773,7 +773,7 @@ async def test_attach_object_permission_to_dict_with_object_permission_id():
     mock_object_permission.model_dump.return_value = expected_object_permission
 
     # Mock the database query
-    mock_prisma_client.db.litellm_objectpermissiontable.find_unique = AsyncMock(
+    mock_prisma_client.db.objectpermissiontable.find_unique = AsyncMock(
         return_value=mock_object_permission
     )
 
@@ -790,7 +790,7 @@ async def test_attach_object_permission_to_dict_with_object_permission_id():
     assert result["object_permission"] == expected_object_permission
 
     # Verify the database query was called correctly
-    mock_prisma_client.db.litellm_objectpermissiontable.find_unique.assert_called_once_with(
+    mock_prisma_client.db.objectpermissiontable.find_unique.assert_called_once_with(
         where={"object_permission_id": test_object_permission_id}
     )
 
@@ -821,7 +821,7 @@ async def test_attach_object_permission_to_dict_without_object_permission_id():
     assert "object_permission" not in result
 
     # Verify no database query was made
-    mock_prisma_client.db.litellm_objectpermissiontable.find_unique.assert_not_called()
+    mock_prisma_client.db.objectpermissiontable.find_unique.assert_not_called()
 
 
 @pytest.mark.asyncio
@@ -846,7 +846,7 @@ async def test_attach_object_permission_to_dict_object_permission_not_found():
     mock_prisma_client = AsyncMock()
 
     # Mock the database query to return None (not found)
-    mock_prisma_client.db.litellm_objectpermissiontable.find_unique = AsyncMock(
+    mock_prisma_client.db.objectpermissiontable.find_unique = AsyncMock(
         return_value=None
     )
 
@@ -860,7 +860,7 @@ async def test_attach_object_permission_to_dict_object_permission_not_found():
     assert "object_permission" not in result
 
     # Verify the database query was called
-    mock_prisma_client.db.litellm_objectpermissiontable.find_unique.assert_called_once_with(
+    mock_prisma_client.db.objectpermissiontable.find_unique.assert_called_once_with(
         where={"object_permission_id": test_object_permission_id}
     )
 
@@ -900,7 +900,7 @@ async def test_attach_object_permission_to_dict_with_dict_method():
     mock_object_permission.dict.return_value = expected_object_permission
 
     # Mock the database query
-    mock_prisma_client.db.litellm_objectpermissiontable.find_unique = AsyncMock(
+    mock_prisma_client.db.objectpermissiontable.find_unique = AsyncMock(
         return_value=mock_object_permission
     )
 
@@ -965,7 +965,7 @@ async def test_attach_object_permission_to_dict_with_empty_dict():
     assert "object_permission" not in result
 
     # Verify no database query was made
-    mock_prisma_client.db.litellm_objectpermissiontable.find_unique.assert_not_called()
+    mock_prisma_client.db.objectpermissiontable.find_unique.assert_not_called()
 
 
 @pytest.mark.asyncio
@@ -997,7 +997,7 @@ async def test_attach_object_permission_to_dict_with_none_object_permission_id()
     assert "object_permission" not in result
 
     # Verify no database query was made
-    mock_prisma_client.db.litellm_objectpermissiontable.find_unique.assert_not_called()
+    mock_prisma_client.db.objectpermissiontable.find_unique.assert_not_called()
 
 
 @pytest.mark.asyncio
@@ -1029,10 +1029,10 @@ async def test_add_new_member_appends_team_only_if_absent_for_existing_user():
         "teams": ["team-1"],
         "user_role": "internal_user",
     }
-    mock_prisma_client.db.litellm_usertable.upsert = AsyncMock(return_value=mock_user_after)
-    mock_prisma_client.db.litellm_usertable.update_many = AsyncMock()
+    mock_prisma_client.db.usertable.upsert = AsyncMock(return_value=mock_user_after)
+    mock_prisma_client.db.usertable.update_many = AsyncMock()
     # no team default budget and no explicit budget -> no team membership row
-    mock_prisma_client.db.litellm_budgettable.find_unique = AsyncMock(return_value=None)
+    mock_prisma_client.db.budgettable.find_unique = AsyncMock(return_value=None)
 
     result_user, _ = await add_new_member(
         new_member=new_member,
@@ -1048,17 +1048,17 @@ async def test_add_new_member_appends_team_only_if_absent_for_existing_user():
 
     # the append must be a filtered, idempotent update keyed off the team id, so
     # a repeated or concurrent add of a team the user already has is a no-op
-    mock_prisma_client.db.litellm_usertable.update_many.assert_called_once()
-    where = mock_prisma_client.db.litellm_usertable.update_many.call_args.kwargs["where"]
+    mock_prisma_client.db.usertable.update_many.assert_called_once()
+    where = mock_prisma_client.db.usertable.update_many.call_args.kwargs["where"]
     assert where["user_id"] == "existing-user"
     assert where["NOT"] == {"teams": {"has": "team-1"}}
-    data = mock_prisma_client.db.litellm_usertable.update_many.call_args.kwargs["data"]
+    data = mock_prisma_client.db.usertable.update_many.call_args.kwargs["data"]
     assert data == {"teams": {"push": ["team-1"]}}
 
     # upsert (not an unconditional teams push) is what ensures the row exists, so
     # its update branch must not carry a teams push that would duplicate
-    mock_prisma_client.db.litellm_usertable.upsert.assert_called_once()
-    upsert_update = mock_prisma_client.db.litellm_usertable.upsert.call_args.kwargs["data"]["update"]
+    mock_prisma_client.db.usertable.upsert.assert_called_once()
+    upsert_update = mock_prisma_client.db.usertable.upsert.call_args.kwargs["data"]["update"]
     assert "teams" not in upsert_update
 
 
@@ -1095,10 +1095,10 @@ async def test_add_new_member_creates_missing_user_atomically_via_upsert():
         "teams": ["team-1"],
         "user_role": "internal_user",
     }
-    mock_prisma_client.db.litellm_usertable.upsert = AsyncMock(return_value=mock_created)
-    mock_prisma_client.db.litellm_usertable.update_many = AsyncMock()
-    mock_prisma_client.db.litellm_usertable.create = AsyncMock()
-    mock_prisma_client.db.litellm_budgettable.find_unique = AsyncMock(return_value=None)
+    mock_prisma_client.db.usertable.upsert = AsyncMock(return_value=mock_created)
+    mock_prisma_client.db.usertable.update_many = AsyncMock()
+    mock_prisma_client.db.usertable.create = AsyncMock()
+    mock_prisma_client.db.budgettable.find_unique = AsyncMock(return_value=None)
 
     result_user, _ = await add_new_member(
         new_member=new_member,
@@ -1114,9 +1114,9 @@ async def test_add_new_member_creates_missing_user_atomically_via_upsert():
 
     # existence is established by an atomic upsert (create-or-update), never a
     # non-atomic standalone create that could race under concurrent provisioning
-    mock_prisma_client.db.litellm_usertable.upsert.assert_called_once()
-    mock_prisma_client.db.litellm_usertable.create.assert_not_called()
-    upsert_data = mock_prisma_client.db.litellm_usertable.upsert.call_args.kwargs["data"]
+    mock_prisma_client.db.usertable.upsert.assert_called_once()
+    mock_prisma_client.db.usertable.create.assert_not_called()
+    upsert_data = mock_prisma_client.db.usertable.upsert.call_args.kwargs["data"]
     assert upsert_data["create"]["teams"] == ["team-1"]
     assert upsert_data["update"], "empty update branch degrades the upsert to a racy SELECT-then-INSERT"
     assert "teams" not in upsert_data["update"]
@@ -1141,13 +1141,13 @@ def _member_write_tx() -> MagicMock:
         "budget_id": "budget-pool",
         "litellm_budget_table": None,
     }
-    tx.litellm_usertable.upsert = AsyncMock(return_value=created_user)
-    tx.litellm_usertable.create = AsyncMock(return_value=created_user)
-    tx.litellm_usertable.update_many = AsyncMock()
-    tx.litellm_usertable.find_many = AsyncMock(return_value=[])
-    tx.litellm_budgettable.find_unique = AsyncMock(return_value=None)
-    tx.litellm_budgettable.create = AsyncMock(return_value=created_budget)
-    tx.litellm_teammembership.create = AsyncMock(return_value=membership)
+    tx.usertable.upsert = AsyncMock(return_value=created_user)
+    tx.usertable.create = AsyncMock(return_value=created_user)
+    tx.usertable.update_many = AsyncMock()
+    tx.usertable.find_many = AsyncMock(return_value=[])
+    tx.budgettable.find_unique = AsyncMock(return_value=None)
+    tx.budgettable.create = AsyncMock(return_value=created_budget)
+    tx.teammembership.create = AsyncMock(return_value=membership)
     return tx
 
 
@@ -1191,9 +1191,9 @@ async def test_add_new_member_runs_every_write_on_the_caller_transaction(new_mem
     assert result_membership is not None
     assert result_membership.budget_id == "budget-pool"
 
-    assert tx.litellm_budgettable.create.await_count == 1
-    assert tx.litellm_teammembership.create.await_count == 1
-    assert tx.litellm_usertable.upsert.await_count + tx.litellm_usertable.create.await_count == 1
+    assert tx.budgettable.create.await_count == 1
+    assert tx.teammembership.create.await_count == 1
+    assert tx.usertable.upsert.await_count + tx.usertable.create.await_count == 1
 
     prisma_client.db.assert_not_called()
     prisma_client.get_data.assert_not_awaited()

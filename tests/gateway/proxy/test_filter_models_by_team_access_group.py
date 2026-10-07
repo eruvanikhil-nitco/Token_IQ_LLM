@@ -75,8 +75,8 @@ async def test_filter_resolves_access_group_names():
 
     # Prisma mock
     mock_prisma = MagicMock()
-    mock_prisma.db.litellm_teamtable.find_unique = AsyncMock(return_value=team_db)
-    mock_prisma.db.litellm_proxymodeltable.find_many = AsyncMock(return_value=[])
+    mock_prisma.db.teamtable.find_unique = AsyncMock(return_value=team_db)
+    mock_prisma.db.proxymodeltable.find_many = AsyncMock(return_value=[])
 
     result = await _filter_models_by_team_id(
         all_models=all_models,
@@ -93,7 +93,7 @@ async def test_filter_resolves_access_group_names():
     }, f"Expected Group-A models only, got {result_ids}"
 
     # Verify DB fallback query received resolved model names, not access group name
-    call_kwargs = mock_prisma.db.litellm_proxymodeltable.find_many.call_args[1]
+    call_kwargs = mock_prisma.db.proxymodeltable.find_many.call_args[1]
     assert set(call_kwargs["where"]["model_name"]["in"]) == {
         "gpt-4o",
         "gpt-5",
@@ -128,8 +128,8 @@ async def test_filter_resolves_mix_of_access_groups_and_literal_names():
     team_db = _make_team(models=["Group-A", "mistral-large"])
 
     mock_prisma = MagicMock()
-    mock_prisma.db.litellm_teamtable.find_unique = AsyncMock(return_value=team_db)
-    mock_prisma.db.litellm_proxymodeltable.find_many = AsyncMock(return_value=[])
+    mock_prisma.db.teamtable.find_unique = AsyncMock(return_value=team_db)
+    mock_prisma.db.proxymodeltable.find_many = AsyncMock(return_value=[])
 
     result = await _filter_models_by_team_id(
         all_models=all_models,
@@ -172,8 +172,8 @@ async def test_filter_excludes_models_from_other_access_group():
     team_db = _make_team(models=["Group-A"])
 
     mock_prisma = MagicMock()
-    mock_prisma.db.litellm_teamtable.find_unique = AsyncMock(return_value=team_db)
-    mock_prisma.db.litellm_proxymodeltable.find_many = AsyncMock(return_value=[])
+    mock_prisma.db.teamtable.find_unique = AsyncMock(return_value=team_db)
+    mock_prisma.db.proxymodeltable.find_many = AsyncMock(return_value=[])
 
     result = await _filter_models_by_team_id(
         all_models=all_models,
@@ -211,8 +211,8 @@ async def test_filter_db_fallback_receives_resolved_model_names():
     mock_db_model.model_id = "id-db-1"
 
     mock_prisma = MagicMock()
-    mock_prisma.db.litellm_teamtable.find_unique = AsyncMock(return_value=team_db)
-    mock_prisma.db.litellm_proxymodeltable.find_many = AsyncMock(
+    mock_prisma.db.teamtable.find_unique = AsyncMock(return_value=team_db)
+    mock_prisma.db.proxymodeltable.find_many = AsyncMock(
         return_value=[mock_db_model]
     )
 
@@ -224,7 +224,7 @@ async def test_filter_db_fallback_receives_resolved_model_names():
     )
 
     # Verify DB query received resolved names, not "Group-A"
-    call_kwargs = mock_prisma.db.litellm_proxymodeltable.find_many.call_args[1]
+    call_kwargs = mock_prisma.db.proxymodeltable.find_many.call_args[1]
     queried_names = set(call_kwargs["where"]["model_name"]["in"])
     assert queried_names == {
         "gpt-4o",

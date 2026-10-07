@@ -40,12 +40,12 @@ async def test_patch_user_updates_fields():
     mock_client = MagicMock()
     mock_db = MagicMock()
     mock_client.db = mock_db
-    mock_db.litellm_usertable.find_unique = AsyncMock(return_value=mock_user)
-    mock_db.litellm_usertable.update = AsyncMock(side_effect=mock_update)
-    mock_db.litellm_teamtable.find_unique = AsyncMock(return_value=None)
+    mock_db.usertable.find_unique = AsyncMock(return_value=mock_user)
+    mock_db.usertable.update = AsyncMock(side_effect=mock_update)
+    mock_db.teamtable.find_unique = AsyncMock(return_value=None)
     # active=False triggers cascading key-block. No keys here, so return [].
-    mock_db.litellm_verificationtoken.find_many = AsyncMock(return_value=[])
-    mock_db.litellm_verificationtoken.update_many = AsyncMock(return_value=None)
+    mock_db.verificationtoken.find_many = AsyncMock(return_value=[])
+    mock_db.verificationtoken.update_many = AsyncMock(return_value=None)
 
     # Mock the transformation function to return a proper SCIMUser
     mock_scim_user = SCIMUser(
@@ -74,7 +74,7 @@ async def test_patch_user_updates_fields():
     ):
         result = await patch_user(user_id="user-1", patch_ops=patch_ops)
 
-    mock_db.litellm_usertable.update.assert_called_once()
+    mock_db.usertable.update.assert_called_once()
     assert result.displayName == "New Name"
     assert result.active is False
 
@@ -105,9 +105,9 @@ async def test_patch_user_manages_group_memberships():
     mock_client = MagicMock()
     mock_db = MagicMock()
     mock_client.db = mock_db
-    mock_db.litellm_usertable.find_unique = AsyncMock(return_value=mock_user)
-    mock_db.litellm_usertable.update = AsyncMock(side_effect=mock_update)
-    mock_db.litellm_teamtable.find_unique = AsyncMock(return_value=None)
+    mock_db.usertable.find_unique = AsyncMock(return_value=mock_user)
+    mock_db.usertable.update = AsyncMock(side_effect=mock_update)
+    mock_db.teamtable.find_unique = AsyncMock(return_value=None)
 
     # Mock the transformation function to return a proper SCIMUser
     mock_scim_user = SCIMUser(
@@ -157,7 +157,7 @@ async def test_patch_user_manages_group_memberships():
     assert mock_add_fn.called
     assert mock_del_fn.called
     # Check that the database update was called with the correct teams
-    call_args = mock_db.litellm_usertable.update.call_args
+    call_args = mock_db.usertable.update.call_args
     assert "new-team" in call_args[1]["data"]["teams"]
     assert result == mock_scim_user
 
@@ -196,10 +196,10 @@ async def test_patch_user_deprovision_without_path():
     mock_client = MagicMock()
     mock_db = MagicMock()
     mock_client.db = mock_db
-    mock_db.litellm_usertable.find_unique = AsyncMock(return_value=mock_user)
-    mock_db.litellm_usertable.update = AsyncMock(side_effect=mock_update)
-    mock_db.litellm_verificationtoken.find_many = AsyncMock(return_value=[])
-    mock_db.litellm_verificationtoken.update_many = AsyncMock(return_value=None)
+    mock_db.usertable.find_unique = AsyncMock(return_value=mock_user)
+    mock_db.usertable.update = AsyncMock(side_effect=mock_update)
+    mock_db.verificationtoken.find_many = AsyncMock(return_value=[])
+    mock_db.verificationtoken.update_many = AsyncMock(return_value=None)
 
     mock_scim_user = SCIMUser(
         schemas=["urn:ietf:params:scim:schemas:core:2.0:User"],
@@ -228,7 +228,7 @@ async def test_patch_user_deprovision_without_path():
         result = await patch_user(user_id="user-3", patch_ops=patch_ops)
 
     # Verify metadata was updated correctly
-    call_args = mock_db.litellm_usertable.update.call_args
+    call_args = mock_db.usertable.update.call_args
     metadata = call_args[1]["data"]["metadata"]
 
     # Parse JSON string back to dict if needed
@@ -275,10 +275,10 @@ async def test_patch_user_multiple_fields_without_path():
     mock_client = MagicMock()
     mock_db = MagicMock()
     mock_client.db = mock_db
-    mock_db.litellm_usertable.find_unique = AsyncMock(return_value=mock_user)
-    mock_db.litellm_usertable.update = AsyncMock(side_effect=mock_update)
-    mock_db.litellm_verificationtoken.find_many = AsyncMock(return_value=[])
-    mock_db.litellm_verificationtoken.update_many = AsyncMock(return_value=None)
+    mock_db.usertable.find_unique = AsyncMock(return_value=mock_user)
+    mock_db.usertable.update = AsyncMock(side_effect=mock_update)
+    mock_db.verificationtoken.find_many = AsyncMock(return_value=[])
+    mock_db.verificationtoken.update_many = AsyncMock(return_value=None)
 
     mock_scim_user = SCIMUser(
         schemas=["urn:ietf:params:scim:schemas:core:2.0:User"],
@@ -314,7 +314,7 @@ async def test_patch_user_multiple_fields_without_path():
         result = await patch_user(user_id="user-4", patch_ops=patch_ops)
 
     # Verify all fields were updated correctly
-    call_args = mock_db.litellm_usertable.update.call_args
+    call_args = mock_db.usertable.update.call_args
     update_data = call_args[1]["data"]
     metadata = update_data["metadata"]
 

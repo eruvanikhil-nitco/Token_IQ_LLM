@@ -54,7 +54,7 @@ async def _clean_db():
 
 async def _seed(db, assignments):
     for group_id, team_ids in assignments.items():
-        await db.litellm_accessgrouptable.create(
+        await db.accessgrouptable.create(
             data={
                 "access_group_id": group_id,
                 "access_group_name": group_id,
@@ -77,7 +77,7 @@ async def _set_team_groups(db, team_id, access_group_ids):
     if access_group_ids is None:
         await db.execute_raw(_DELETE_TEAMS, [team_id])
         return
-    await db.litellm_teamtable.upsert(
+    await db.teamtable.upsert(
         where={"team_id": team_id},
         data={
             "create": {"team_id": team_id, "access_group_ids": list(access_group_ids)},
@@ -171,7 +171,7 @@ async def test_a_failed_mirror_takes_the_new_team_row_with_it():
 
         async def _blow_up_after_reconcile():
             async with db.tx() as tx:
-                await tx.litellm_teamtable.create(data={"team_id": TEAM, "access_group_ids": [GROUPS[0]]})
+                await tx.teamtable.create(data={"team_id": TEAM, "access_group_ids": [GROUPS[0]]})
                 await reconcile_team_access_group_membership(tx, TEAM)
                 raise RuntimeError("the cache handoff blew up")
 
@@ -179,7 +179,7 @@ async def test_a_failed_mirror_takes_the_new_team_row_with_it():
             await _blow_up_after_reconcile()
 
         assert await _read(db) == {GROUPS[0]: [], GROUPS[1]: [OTHER_TEAM]}
-        assert await db.litellm_teamtable.find_unique(where={"team_id": TEAM}) is None
+        assert await db.teamtable.find_unique(where={"team_id": TEAM}) is None
 
 
 @pytest.mark.asyncio

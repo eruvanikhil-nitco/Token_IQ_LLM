@@ -54,7 +54,7 @@ class TestKeyRotationManagerPassesKeyAlias:
 
         # Create mock prisma client
         mock_prisma = MagicMock()
-        mock_prisma.db.litellm_verificationtoken.update = AsyncMock(
+        mock_prisma.db.verificationtoken.update = AsyncMock(
             return_value=mock_key
         )
 
@@ -111,7 +111,7 @@ class TestKeyRotationManagerPassesKeyAlias:
         mock_key.rotation_count = 0
 
         mock_prisma = MagicMock()
-        mock_prisma.db.litellm_verificationtoken.update = AsyncMock(
+        mock_prisma.db.verificationtoken.update = AsyncMock(
             return_value=mock_key
         )
 

@@ -29,8 +29,8 @@ def _team(**overrides):
 
 def _prisma(team_row, unbound_key_count: int = 0):
     client = MagicMock()
-    client.db.litellm_teamtable.find_unique = AsyncMock(return_value=team_row)
-    client.db.litellm_verificationtoken.count = AsyncMock(return_value=unbound_key_count)
+    client.db.teamtable.find_unique = AsyncMock(return_value=team_row)
+    client.db.verificationtoken.count = AsyncMock(return_value=unbound_key_count)
     return client
 
 

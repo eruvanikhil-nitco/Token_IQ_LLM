@@ -1656,7 +1656,7 @@ class _UserTeamsRow(Protocol):
     def teams(self) -> Sequence[str]: ...
 
 
-_ProxyModelRow: TypeAlias = "prisma_models.LiteLLM_ProxyModelTable"
+_ProxyModelRow: TypeAlias = "prisma_models.ProxyModelTable"
 
 
 def _config_param_table(client: PrismaClient | None) -> TableActions[_ConfigParamRow]:
@@ -15851,7 +15851,7 @@ async def claim_onboarding_link(data: InvitationClaim, request: Request):
     hashed_pw: Final = hash_password(data.password)
     current_time = gateway.utils.get_utc_datetime()
     async with prisma_client.db.tx() as tx:
-        updated_count: Final = await tx.litellm_invitationlink.update_many(
+        updated_count: Final = await tx.invitationlink.update_many(
             where={"id": data.invitation_link, "is_accepted": False},
             data={
                 "is_accepted": True,
@@ -15866,7 +15866,7 @@ async def claim_onboarding_link(data: InvitationClaim, request: Request):
             )
 
         ### UPDATE USER OBJECT ###
-        user_obj: Final[_UserTableRow | None] = await tx.litellm_usertable.update(
+        user_obj: Final[_UserTableRow | None] = await tx.usertable.update(
             where={"user_id": invite_obj.user_id}, data={"password": hashed_pw}
         )
 
@@ -15875,7 +15875,7 @@ async def claim_onboarding_link(data: InvitationClaim, request: Request):
 
         #### MARK LINK AS USED
         current_time = gateway.utils.get_utc_datetime()
-        await tx.litellm_invitationlink.update(
+        await tx.invitationlink.update(
             where={"id": data.invitation_link},
             data={
                 "accepted_at": current_time,

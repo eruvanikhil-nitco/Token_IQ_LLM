@@ -30,7 +30,7 @@ def _install_gateway_config(mock_prisma: MagicMock) -> MagicMock:
     table.update = AsyncMock()
     table.upsert = AsyncMock(return_value=None)
     table.delete = AsyncMock()
-    mock_prisma.db.litellm_config = table
+    mock_prisma.db.config = table
     return table
 
 

@@ -388,9 +388,9 @@ async def append_workflow_event(
                 event_data["data"] = _json(data.data)
 
             async with prisma_client.db.tx() as tx:
-                event: object = await tx.litellm_workflowevent.create(data=event_data)
+                event: object = await tx.workflowevent.create(data=event_data)
                 if new_status:
-                    await tx.litellm_workflowrun.update(
+                    await tx.workflowrun.update(
                         where={"run_id": run_id},
                         data={"status": new_status},
                     )

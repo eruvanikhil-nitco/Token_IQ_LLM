@@ -67,7 +67,7 @@ async def test_team_member_me_team_key_without_user_id_is_400(
     """A key with no associated user_id (a team / service-account key) cannot
     resolve 'me' — the caller has no identity to look up — so it is 400."""
     cleartext = "sk-" + uuid.uuid4().hex
-    await prisma.db.litellm_verificationtoken.create(
+    await prisma.db.verificationtoken.create(
         data={
             "token": hash_token(cleartext),
             "key_name": f"{scratch.prefix}-teamkey",

@@ -1842,7 +1842,7 @@ async def test_auto_register_binds_api_key_to_token_hash():
     )
 
     prisma_client = MagicMock()
-    prisma_client.db.litellm_jwtkeymapping.create = AsyncMock()
+    prisma_client.db.jwtkeymapping.create = AsyncMock()
 
     user_api_key_cache = MagicMock()
     user_api_key_cache.async_set_cache = AsyncMock()
@@ -3941,11 +3941,11 @@ def _unrestricted_end_user_prisma(spend: float):
     end_user_row.dict = lambda: {"user_id": "customer-1", "blocked": False, "spend": spend}
 
     mock_prisma = MagicMock()
-    mock_prisma.db.litellm_endusertable.find_many = AsyncMock(return_value=[])
-    mock_prisma.db.litellm_endusertable.find_unique = AsyncMock(return_value=end_user_row)
-    mock_prisma.db.litellm_usertable.find_unique = AsyncMock(return_value=None)
-    mock_prisma.db.litellm_teamtable.find_unique = AsyncMock(return_value=None)
-    mock_prisma.db.litellm_verificationtoken.find_unique = AsyncMock(return_value=None)
+    mock_prisma.db.endusertable.find_many = AsyncMock(return_value=[])
+    mock_prisma.db.endusertable.find_unique = AsyncMock(return_value=end_user_row)
+    mock_prisma.db.usertable.find_unique = AsyncMock(return_value=None)
+    mock_prisma.db.teamtable.find_unique = AsyncMock(return_value=None)
+    mock_prisma.db.verificationtoken.find_unique = AsyncMock(return_value=None)
     return mock_prisma
 
 
@@ -4064,7 +4064,7 @@ async def test_centralized_checks_skip_end_user_lookup_without_a_token_budget():
                 route="/chat/completions",
             )
 
-    mock_prisma.db.litellm_endusertable.find_unique.assert_not_awaited()
+    mock_prisma.db.endusertable.find_unique.assert_not_awaited()
 
 
 @pytest.mark.asyncio
@@ -6620,7 +6620,7 @@ async def test_global_proxy_spend_reads_resettable_proxy_budget_row():
     proxy_budget_row = MagicMock()
     proxy_budget_row.spend = 42.5
     prisma_client = MagicMock()
-    prisma_client.db.litellm_usertable.find_unique = AsyncMock(return_value=proxy_budget_row)
+    prisma_client.db.usertable.find_unique = AsyncMock(return_value=proxy_budget_row)
     prisma_client.db.query_raw = AsyncMock(
         side_effect=AssertionError("global spend must not be loaded from the fixed-30d MonthlyGlobalSpend view")
     )
@@ -6632,7 +6632,7 @@ async def test_global_proxy_spend_reads_resettable_proxy_budget_row():
     )
 
     assert result == 42.5
-    prisma_client.db.litellm_usertable.find_unique.assert_awaited_once_with(
+    prisma_client.db.usertable.find_unique.assert_awaited_once_with(
         where={"user_id": "litellm-proxy-budget"}
     )
 
@@ -6647,7 +6647,7 @@ async def test_global_proxy_spend_none_when_proxy_budget_row_missing():
     from token_iq.gateway.proxy.common_utils.user_api_key_cache import UserApiKeyCache
 
     prisma_client = MagicMock()
-    prisma_client.db.litellm_usertable.find_unique = AsyncMock(return_value=None)
+    prisma_client.db.usertable.find_unique = AsyncMock(return_value=None)
 
     result = await _fetch_global_spend_with_event_coordination(
         cache_key="default_user_id:spend",

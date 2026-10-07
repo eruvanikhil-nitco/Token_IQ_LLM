@@ -211,8 +211,8 @@ class TestPrometheusUserTeamCountMetrics:
             return 2 if where is not None else 10
 
         mock_prisma = MagicMock()
-        mock_prisma.db.litellm_usertable.count = _user_count
-        mock_prisma.db.litellm_teamtable.count = AsyncMock(return_value=4)
+        mock_prisma.db.usertable.count = _user_count
+        mock_prisma.db.teamtable.count = AsyncMock(return_value=4)
 
         mock_proxy_server = MagicMock()
         mock_proxy_server.prisma_client = mock_prisma
@@ -906,10 +906,10 @@ async def test_initialize_org_budget_metrics(prometheus_logger):
     org_mock.litellm_budget_table = budget_mock
 
     mock_prisma = MagicMock()
-    mock_prisma.db.litellm_organizationtable.find_many = AsyncMock(
+    mock_prisma.db.organizationtable.find_many = AsyncMock(
         return_value=[org_mock]
     )
-    mock_prisma.db.litellm_organizationtable.count = AsyncMock(return_value=1)
+    mock_prisma.db.organizationtable.count = AsyncMock(return_value=1)
 
     mock_proxy_server = MagicMock()
     mock_proxy_server.prisma_client = mock_prisma

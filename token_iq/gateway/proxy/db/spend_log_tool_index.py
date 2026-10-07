@@ -122,12 +122,12 @@ async def flush_tool_usage_transactions(
     for attempt in range(n_retry_times + 1):
         try:
             async with prisma_client.db.batch_() as batcher:
-                batcher.litellm_spendlogtoolindex.create_many(data=index_rows, skip_duplicates=True)
+                batcher.spendlogtoolindex.create_many(data=index_rows, skip_duplicates=True)
                 for (date_key, tool_name), grouped in groupby(per_tool_day, key=lambda entry: (entry[0], entry[1])):
                     entries = tuple(grouped)
                     spend = sum(entry[2] for entry in entries)
                     total_tokens = sum(entry[3] for entry in entries)
-                    batcher.litellm_dailytoolspend.upsert(
+                    batcher.dailytoolspend.upsert(
                         where={"date_tool_name": {"date": date_key, "tool_name": tool_name}},
                         data={
                             "create": {

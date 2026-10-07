@@ -19,9 +19,9 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, TypeAdapter
 
 if TYPE_CHECKING:
-    from prisma.models import LiteLLM_DailyTagSpend as PrismaDailyTagSpendRow
-    from prisma.models import LiteLLM_UserTable as PrismaUserRow
-    from prisma.models import LiteLLM_VerificationToken as PrismaVerificationTokenRow
+    from prisma.models import DailyTagSpend as PrismaDailyTagSpendRow
+    from prisma.models import UserTable as PrismaUserRow
+    from prisma.models import VerificationToken as PrismaVerificationTokenRow
 
     from token_iq.gateway.proxy.utils import PrismaClient
 

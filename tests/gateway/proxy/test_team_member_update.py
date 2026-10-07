@@ -57,8 +57,8 @@ def happy_path_upsert(monkeypatch):
     )
 
     prisma_client = MagicMock()
-    prisma_client.db.litellm_teamtable.find_unique = AsyncMock(return_value=team_row)
-    prisma_client.db.litellm_teamtable.update = AsyncMock()
+    prisma_client.db.teamtable.find_unique = AsyncMock(return_value=team_row)
+    prisma_client.db.teamtable.update = AsyncMock()
 
     class _FakeTx:
         async def __aenter__(self):

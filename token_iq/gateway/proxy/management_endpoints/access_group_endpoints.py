@@ -91,13 +91,13 @@ class _KeyTable(Protocol):
 
 class _AccessGroupTx(Protocol):
     @property
-    def litellm_accessgrouptable(self) -> _AccessGroupTable: ...
+    def accessgrouptable(self) -> _AccessGroupTable: ...
 
     @property
-    def litellm_teamtable(self) -> _TeamTable: ...
+    def teamtable(self) -> _TeamTable: ...
 
     @property
-    def litellm_verificationtoken(self) -> _KeyTable: ...
+    def verificationtoken(self) -> _KeyTable: ...
 
 
 def _require_proxy_admin(user_api_key_dict: UserAPIKeyAuth) -> None:
@@ -154,9 +154,9 @@ async def _cache_access_group_record(record: _AccessGroupRecord) -> None:
 async def _sync_add_access_group_to_teams(tx: _AccessGroupTx, team_ids: list[str], access_group_id: str) -> None:
     """Add access_group_id to each team's access_group_ids (idempotent)."""
     for team_id in team_ids:
-        team = await tx.litellm_teamtable.find_unique(where={"team_id": team_id})
+        team = await tx.teamtable.find_unique(where={"team_id": team_id})
         if team is not None and access_group_id not in (team.access_group_ids or []):
-            await tx.litellm_teamtable.update(
+            await tx.teamtable.update(
                 where={"team_id": team_id},
                 data={"access_group_ids": list(team.access_group_ids or []) + [access_group_id]},
             )
@@ -165,9 +165,9 @@ async def _sync_add_access_group_to_teams(tx: _AccessGroupTx, team_ids: list[str
 async def _sync_remove_access_group_from_teams(tx: _AccessGroupTx, team_ids: list[str], access_group_id: str) -> None:
     """Remove access_group_id from each team's access_group_ids (idempotent)."""
     for team_id in team_ids:
-        team = await tx.litellm_teamtable.find_unique(where={"team_id": team_id})
+        team = await tx.teamtable.find_unique(where={"team_id": team_id})
         if team is not None and access_group_id in (team.access_group_ids or []):
-            await tx.litellm_teamtable.update(
+            await tx.teamtable.update(
                 where={"team_id": team_id},
                 data={"access_group_ids": [ag for ag in (team.access_group_ids or ()) if ag != access_group_id]},
             )
@@ -176,9 +176,9 @@ async def _sync_remove_access_group_from_teams(tx: _AccessGroupTx, team_ids: lis
 async def _sync_add_access_group_to_keys(tx: _AccessGroupTx, key_tokens: list[str], access_group_id: str) -> None:
     """Add access_group_id to each key's access_group_ids (idempotent)."""
     for token in key_tokens:
-        key = await tx.litellm_verificationtoken.find_unique(where={"token": token})
+        key = await tx.verificationtoken.find_unique(where={"token": token})
         if key is not None and access_group_id not in (key.access_group_ids or []):
-            await tx.litellm_verificationtoken.update(
+            await tx.verificationtoken.update(
                 where={"token": token},
                 data={"access_group_ids": list(key.access_group_ids or []) + [access_group_id]},
             )
@@ -187,9 +187,9 @@ async def _sync_add_access_group_to_keys(tx: _AccessGroupTx, key_tokens: list[st
 async def _sync_remove_access_group_from_keys(tx: _AccessGroupTx, key_tokens: list[str], access_group_id: str) -> None:
     """Remove access_group_id from each key's access_group_ids (idempotent)."""
     for token in key_tokens:
-        key = await tx.litellm_verificationtoken.find_unique(where={"token": token})
+        key = await tx.verificationtoken.find_unique(where={"token": token})
         if key is not None and access_group_id in (key.access_group_ids or []):
-            await tx.litellm_verificationtoken.update(
+            await tx.verificationtoken.update(
                 where={"token": token},
                 data={"access_group_ids": [ag for ag in (key.access_group_ids or ()) if ag != access_group_id]},
             )
@@ -322,7 +322,7 @@ async def create_access_group(
     try:
         tx: _AccessGroupTx
         async with prisma_client.db.tx() as tx:
-            existing: Final = await tx.litellm_accessgrouptable.find_unique(
+            existing: Final = await tx.accessgrouptable.find_unique(
                 where={"access_group_name": data.access_group_name}
             )
             if existing is not None:
@@ -331,7 +331,7 @@ async def create_access_group(
                     detail=f"Access group '{data.access_group_name}' already exists",
                 )
 
-            record: Final = await tx.litellm_accessgrouptable.create(
+            record: Final = await tx.accessgrouptable.create(
                 data={
                     "access_group_name": data.access_group_name,
                     "description": data.description,
@@ -455,7 +455,7 @@ async def update_access_group(
         async with prisma_client.db.tx() as tx:
             # Read inside the transaction so delta computation is consistent with the write,
             # avoiding a TOCTOU race where a concurrent update could make deltas stale.
-            existing: Final = await tx.litellm_accessgrouptable.find_unique(where={"access_group_id": access_group_id})
+            existing: Final = await tx.accessgrouptable.find_unique(where={"access_group_id": access_group_id})
             if existing is None:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
@@ -476,7 +476,7 @@ async def update_access_group(
             keys_to_add = list(new_key_ids - old_key_ids)
             keys_to_remove = list(old_key_ids - new_key_ids)
 
-            record: Final = await tx.litellm_accessgrouptable.update(
+            record: Final = await tx.accessgrouptable.update(
                 where={"access_group_id": access_group_id},
                 data=update_data,
             )
@@ -526,7 +526,7 @@ async def delete_access_group(
 
         tx: _AccessGroupTx
         async with prisma_client.db.tx() as tx:
-            existing: Final = await tx.litellm_accessgrouptable.find_unique(where={"access_group_id": access_group_id})
+            existing: Final = await tx.accessgrouptable.find_unique(where={"access_group_id": access_group_id})
             if existing is None:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
@@ -535,7 +535,7 @@ async def delete_access_group(
 
             # Union of: teams that have this access_group_id in their own access_group_ids
             # AND teams listed in assigned_team_ids (handles out-of-sync data from before this sync was added)
-            teams_with_group: Final = await tx.litellm_teamtable.find_many(
+            teams_with_group: Final = await tx.teamtable.find_many(
                 where={"access_group_ids": {"hasSome": [access_group_id]}}
             )
             all_affected_team_ids: Final[set[str]] = {team.team_id for team in teams_with_group} | set(
@@ -545,7 +545,7 @@ async def delete_access_group(
 
             # Union of: keys that have this access_group_id in their own access_group_ids
             # AND keys listed in assigned_key_ids (handles out-of-sync data)
-            keys_with_group: Final = await tx.litellm_verificationtoken.find_many(
+            keys_with_group: Final = await tx.verificationtoken.find_many(
                 where={"access_group_ids": {"hasSome": [access_group_id]}}
             )
             all_affected_key_tokens: Final[set[str]] = {key.token for key in keys_with_group} | set(
@@ -555,7 +555,7 @@ async def delete_access_group(
 
             # Update teams returned by find_many directly — we already have their data.
             for team in teams_with_group:
-                await tx.litellm_teamtable.update(
+                await tx.teamtable.update(
                     where={"team_id": team.team_id},
                     data={"access_group_ids": [ag for ag in (team.access_group_ids or ()) if ag != access_group_id]},
                 )
@@ -565,7 +565,7 @@ async def delete_access_group(
 
             # Update keys returned by find_many directly — we already have their data.
             for key in keys_with_group:
-                await tx.litellm_verificationtoken.update(
+                await tx.verificationtoken.update(
                     where={"token": key.token},
                     data={"access_group_ids": [ag for ag in (key.access_group_ids or ()) if ag != access_group_id]},
                 )
@@ -573,7 +573,7 @@ async def delete_access_group(
             out_of_sync_key_tokens: Final = set(existing.assigned_key_ids or []) - {k.token for k in keys_with_group}
             await _sync_remove_access_group_from_keys(tx, list(out_of_sync_key_tokens), access_group_id)
 
-            await tx.litellm_accessgrouptable.delete(where={"access_group_id": access_group_id})
+            await tx.accessgrouptable.delete(where={"access_group_id": access_group_id})
 
         from token_iq.gateway.proxy.proxy_server import proxy_logging_obj, user_api_key_cache
 

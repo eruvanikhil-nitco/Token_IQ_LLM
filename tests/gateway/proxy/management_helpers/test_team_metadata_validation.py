@@ -362,14 +362,14 @@ async def _drive_create(metadata, mock_sink=None):
         pc.jsonify_team_object = MagicMock(side_effect=lambda db_data: db_data)
         pc.get_data = AsyncMock(return_value=None)
         pc.update_data = AsyncMock(return_value=MagicMock())
-        pc.db.litellm_teamtable.create = AsyncMock(return_value=team_row)
-        pc.db.litellm_teamtable.count = AsyncMock(return_value=0)
-        pc.db.litellm_teamtable.update = AsyncMock(return_value=team_row)
-        pc.db.litellm_usertable.update = AsyncMock(return_value=MagicMock())
-        pc.db.litellm_modeltable.create = AsyncMock(return_value=MagicMock(id="model-1"))
+        pc.db.teamtable.create = AsyncMock(return_value=team_row)
+        pc.db.teamtable.count = AsyncMock(return_value=0)
+        pc.db.teamtable.update = AsyncMock(return_value=team_row)
+        pc.db.usertable.update = AsyncMock(return_value=MagicMock())
+        pc.db.modeltable.create = AsyncMock(return_value=MagicMock(id="model-1"))
         if mock_sink is not None:
-            mock_sink["team_create"] = pc.db.litellm_teamtable.create
-            mock_sink["model_create"] = pc.db.litellm_modeltable.create
+            mock_sink["team_create"] = pc.db.teamtable.create
+            mock_sink["model_create"] = pc.db.modeltable.create
 
         request_kwargs = {"team_alias": "matrix-team"}
         if metadata is not None:
@@ -407,8 +407,8 @@ async def _drive_update(kind, existing_metadata, payload):
             new=AsyncMock(),
         ),
     ):
-        pc.db.litellm_teamtable.find_unique = AsyncMock(return_value=existing)
-        pc.db.litellm_teamtable.update = AsyncMock(
+        pc.db.teamtable.find_unique = AsyncMock(return_value=existing)
+        pc.db.teamtable.update = AsyncMock(
             return_value=LiteLLM_TeamTable(team_id=team_id, team_alias="matrix")
         )
         pc.jsonify_team_object = MagicMock(side_effect=lambda db_data: db_data)

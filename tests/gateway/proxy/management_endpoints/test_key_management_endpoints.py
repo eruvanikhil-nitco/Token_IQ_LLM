@@ -70,7 +70,7 @@ client = TestClient(app)
 async def test_list_keys():
     mock_prisma_client = AsyncMock()
     mock_find_many = AsyncMock(return_value=[])
-    mock_prisma_client.db.litellm_verificationtoken.find_many = mock_find_many
+    mock_prisma_client.db.verificationtoken.find_many = mock_find_many
     args = {
         "prisma_client": mock_prisma_client,
         "page": 1,
@@ -107,8 +107,8 @@ async def test_list_keys_include_created_by_keys():
     mock_prisma_client = AsyncMock()
     mock_find_many = AsyncMock(return_value=[])
     mock_count = AsyncMock(return_value=0)
-    mock_prisma_client.db.litellm_verificationtoken.find_many = mock_find_many
-    mock_prisma_client.db.litellm_verificationtoken.count = mock_count
+    mock_prisma_client.db.verificationtoken.find_many = mock_find_many
+    mock_prisma_client.db.verificationtoken.count = mock_count
 
     test_user_id = "user-123"
     test_org_id = "org-456"
@@ -271,15 +271,15 @@ async def test_key_token_handling(monkeypatch):
     )
     mock_prisma_client.insert_data = mock_insert_data
     mock_prisma_client.db = MagicMock()
-    mock_prisma_client.db.litellm_verificationtoken = MagicMock()
-    mock_prisma_client.db.litellm_verificationtoken.find_unique = AsyncMock(
+    mock_prisma_client.db.verificationtoken = MagicMock()
+    mock_prisma_client.db.verificationtoken.find_unique = AsyncMock(
         return_value=None
     )
-    mock_prisma_client.db.litellm_verificationtoken.find_many = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_many = AsyncMock(
         return_value=[]
     )
-    mock_prisma_client.db.litellm_verificationtoken.count = AsyncMock(return_value=0)
-    mock_prisma_client.db.litellm_verificationtoken.update = AsyncMock(
+    mock_prisma_client.db.verificationtoken.count = AsyncMock(return_value=0)
+    mock_prisma_client.db.verificationtoken.update = AsyncMock(
         return_value=MagicMock(
             token="hashed_token_123", litellm_budget_table=None, object_permission=None
         )
@@ -324,15 +324,15 @@ async def test_budget_reset_and_expires_at_first_of_month(monkeypatch):
     )
     mock_prisma_client.insert_data = mock_insert_data
     mock_prisma_client.db = MagicMock()
-    mock_prisma_client.db.litellm_verificationtoken = MagicMock()
-    mock_prisma_client.db.litellm_verificationtoken.find_unique = AsyncMock(
+    mock_prisma_client.db.verificationtoken = MagicMock()
+    mock_prisma_client.db.verificationtoken.find_unique = AsyncMock(
         return_value=None
     )
-    mock_prisma_client.db.litellm_verificationtoken.find_many = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_many = AsyncMock(
         return_value=[]
     )
-    mock_prisma_client.db.litellm_verificationtoken.count = AsyncMock(return_value=0)
-    mock_prisma_client.db.litellm_verificationtoken.update = AsyncMock(
+    mock_prisma_client.db.verificationtoken.count = AsyncMock(return_value=0)
+    mock_prisma_client.db.verificationtoken.update = AsyncMock(
         return_value=MagicMock(token="hashed_token_123", litellm_budget_table=None)
     )
 
@@ -406,15 +406,15 @@ async def test_key_expiration_exact_duration_hours(monkeypatch):
     )
     mock_prisma_client.insert_data = mock_insert_data
     mock_prisma_client.db = MagicMock()
-    mock_prisma_client.db.litellm_verificationtoken = MagicMock()
-    mock_prisma_client.db.litellm_verificationtoken.find_unique = AsyncMock(
+    mock_prisma_client.db.verificationtoken = MagicMock()
+    mock_prisma_client.db.verificationtoken.find_unique = AsyncMock(
         return_value=None
     )
-    mock_prisma_client.db.litellm_verificationtoken.find_many = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_many = AsyncMock(
         return_value=[]
     )
-    mock_prisma_client.db.litellm_verificationtoken.count = AsyncMock(return_value=0)
-    mock_prisma_client.db.litellm_verificationtoken.update = AsyncMock(
+    mock_prisma_client.db.verificationtoken.count = AsyncMock(return_value=0)
+    mock_prisma_client.db.verificationtoken.update = AsyncMock(
         return_value=MagicMock(token="hashed_token_123", litellm_budget_table=None)
     )
 
@@ -478,8 +478,8 @@ async def test_key_generation_with_object_permission(monkeypatch):
         return_value=MagicMock(object_permission_id="objperm123")
     )
     mock_prisma_client.db = MagicMock()
-    mock_prisma_client.db.litellm_objectpermissiontable = MagicMock()
-    mock_prisma_client.db.litellm_objectpermissiontable.create = (
+    mock_prisma_client.db.objectpermissiontable = MagicMock()
+    mock_prisma_client.db.objectpermissiontable.create = (
         mock_object_permission_create
     )
 
@@ -629,8 +629,8 @@ async def test_generate_key_personal_non_admin_denied_for_team_scoped_fields(
     mock_prisma_client = AsyncMock()
     mock_prisma_client.jsonify_object = lambda data: data  # type: ignore
     mock_prisma_client.db = MagicMock()
-    mock_prisma_client.db.litellm_objectpermissiontable = MagicMock()
-    mock_prisma_client.db.litellm_objectpermissiontable.create = AsyncMock(
+    mock_prisma_client.db.objectpermissiontable = MagicMock()
+    mock_prisma_client.db.objectpermissiontable.create = AsyncMock(
         return_value=MagicMock(object_permission_id="should-not-create")
     )
     mock_prisma_client.insert_data = AsyncMock(return_value=MagicMock())
@@ -672,7 +672,7 @@ async def test_generate_key_personal_non_admin_denied_for_team_scoped_fields(
         getattr(exc.value, "detail", None) or getattr(exc.value, "message", exc.value)
     )
     assert expected_in_error in body
-    mock_prisma_client.db.litellm_objectpermissiontable.create.assert_not_called()
+    mock_prisma_client.db.objectpermissiontable.create.assert_not_called()
 
 
 @pytest.mark.asyncio
@@ -753,7 +753,7 @@ async def test_update_key_grandfathers_existing_mcp_servers(monkeypatch):
     existing_row.mcp_servers = ["server-a", "server-b"]
     existing_row.mcp_tool_permissions = {}
     mock_prisma = MagicMock()
-    mock_prisma.db.litellm_mcpservertable.find_many = AsyncMock(return_value=[])
+    mock_prisma.db.mcpservertable.find_many = AsyncMock(return_value=[])
 
     team_obj = MagicMock()
     team_obj.team_id = "team-1"
@@ -850,8 +850,8 @@ async def test_generate_key_helper_fn_with_access_group_ids(monkeypatch):
     mock_prisma_client = AsyncMock()
     mock_prisma_client.jsonify_object = lambda data: data  # type: ignore
     mock_prisma_client.db = MagicMock()
-    mock_prisma_client.db.litellm_objectpermissiontable = MagicMock()
-    mock_prisma_client.db.litellm_objectpermissiontable.create = AsyncMock(
+    mock_prisma_client.db.objectpermissiontable = MagicMock()
+    mock_prisma_client.db.objectpermissiontable.create = AsyncMock(
         return_value=MagicMock(object_permission_id=None)
     )
     mock_prisma_client.db.query_raw = AsyncMock(return_value=[])
@@ -901,8 +901,8 @@ async def test_generate_key_helper_fn_with_budget_fallbacks(monkeypatch):
     mock_prisma_client = AsyncMock()
     mock_prisma_client.jsonify_object = lambda data: data  # type: ignore
     mock_prisma_client.db = MagicMock()
-    mock_prisma_client.db.litellm_objectpermissiontable = MagicMock()
-    mock_prisma_client.db.litellm_objectpermissiontable.create = AsyncMock(
+    mock_prisma_client.db.objectpermissiontable = MagicMock()
+    mock_prisma_client.db.objectpermissiontable.create = AsyncMock(
         return_value=MagicMock(object_permission_id=None)
     )
 
@@ -963,8 +963,8 @@ async def test_key_generation_with_mcp_tool_permissions(monkeypatch):
         return MagicMock(object_permission_id="objperm_mcp_123")
 
     mock_prisma_client.db = MagicMock()
-    mock_prisma_client.db.litellm_objectpermissiontable = MagicMock()
-    mock_prisma_client.db.litellm_objectpermissiontable.create = mock_create
+    mock_prisma_client.db.objectpermissiontable = MagicMock()
+    mock_prisma_client.db.objectpermissiontable.create = mock_create
 
     async def _insert_data_side_effect(*args, **kwargs):
         table_name = kwargs.get("table_name")
@@ -1064,14 +1064,14 @@ async def test_key_update_object_permissions_existing_permission(monkeypatch):
         "vector_stores": ["old_store_1", "old_store_2"],
     }
 
-    mock_prisma_client.db.litellm_objectpermissiontable.find_unique = AsyncMock(
+    mock_prisma_client.db.objectpermissiontable.find_unique = AsyncMock(
         return_value=existing_object_permission
     )
 
     # Mock upsert operation
     updated_permission = MagicMock()
     updated_permission.object_permission_id = "existing_perm_id_123"
-    mock_prisma_client.db.litellm_objectpermissiontable.upsert = AsyncMock(
+    mock_prisma_client.db.objectpermissiontable.upsert = AsyncMock(
         return_value=updated_permission
     )
 
@@ -1094,10 +1094,10 @@ async def test_key_update_object_permissions_existing_permission(monkeypatch):
     assert result["object_permission_id"] == "existing_perm_id_123"
 
     # Verify database operations were called correctly
-    mock_prisma_client.db.litellm_objectpermissiontable.find_unique.assert_called_once_with(
+    mock_prisma_client.db.objectpermissiontable.find_unique.assert_called_once_with(
         where={"object_permission_id": "existing_perm_id_123"}
     )
-    mock_prisma_client.db.litellm_objectpermissiontable.upsert.assert_called_once()
+    mock_prisma_client.db.objectpermissiontable.upsert.assert_called_once()
 
 
 @pytest.mark.asyncio
@@ -1133,14 +1133,14 @@ async def test_key_update_object_permissions_no_existing_permission(monkeypatch)
     )
 
     # Mock find_unique to return None (no existing permission)
-    mock_prisma_client.db.litellm_objectpermissiontable.find_unique = AsyncMock(
+    mock_prisma_client.db.objectpermissiontable.find_unique = AsyncMock(
         return_value=None
     )
 
     # Mock upsert to create new record
     new_permission = MagicMock()
     new_permission.object_permission_id = "new_perm_id_456"
-    mock_prisma_client.db.litellm_objectpermissiontable.upsert = AsyncMock(
+    mock_prisma_client.db.objectpermissiontable.upsert = AsyncMock(
         return_value=new_permission
     )
 
@@ -1160,7 +1160,7 @@ async def test_key_update_object_permissions_no_existing_permission(monkeypatch)
     assert "object_permission" not in result
     assert result["object_permission_id"] == "new_perm_id_456"
     # Verify upsert was called to create new record
-    mock_prisma_client.db.litellm_objectpermissiontable.upsert.assert_called_once()
+    mock_prisma_client.db.objectpermissiontable.upsert.assert_called_once()
 
 
 @pytest.mark.asyncio
@@ -1196,14 +1196,14 @@ async def test_key_update_object_permissions_missing_permission_record(monkeypat
     )
 
     # Mock find_unique to return None (permission record not found)
-    mock_prisma_client.db.litellm_objectpermissiontable.find_unique = AsyncMock(
+    mock_prisma_client.db.objectpermissiontable.find_unique = AsyncMock(
         return_value=None
     )
 
     # Mock upsert to create new record
     new_permission = MagicMock()
     new_permission.object_permission_id = "recreated_perm_id_789"
-    mock_prisma_client.db.litellm_objectpermissiontable.upsert = AsyncMock(
+    mock_prisma_client.db.objectpermissiontable.upsert = AsyncMock(
         return_value=new_permission
     )
 
@@ -1224,12 +1224,12 @@ async def test_key_update_object_permissions_missing_permission_record(monkeypat
     assert result["object_permission_id"] == "recreated_perm_id_789"
 
     # Verify find_unique was called with the missing permission ID
-    mock_prisma_client.db.litellm_objectpermissiontable.find_unique.assert_called_once_with(
+    mock_prisma_client.db.objectpermissiontable.find_unique.assert_called_once_with(
         where={"object_permission_id": "missing_perm_id_789"}
     )
 
     # Verify upsert was called to create new record
-    mock_prisma_client.db.litellm_objectpermissiontable.upsert.assert_called_once()
+    mock_prisma_client.db.objectpermissiontable.upsert.assert_called_once()
 
 
 @pytest.mark.asyncio
@@ -1335,7 +1335,7 @@ async def test_key_info_returns_object_permission(monkeypatch):
     mock_key_info.dict.return_value = mock_key_info.model_dump.return_value
 
     # Mock find_unique for the key lookup
-    mock_prisma_client.db.litellm_verificationtoken.find_unique = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_unique = AsyncMock(
         return_value=mock_key_info
     )
 
@@ -1353,7 +1353,7 @@ async def test_key_info_returns_object_permission(monkeypatch):
     )
 
     # Mock find_unique for object permission lookup
-    mock_prisma_client.db.litellm_objectpermissiontable.find_unique = AsyncMock(
+    mock_prisma_client.db.objectpermissiontable.find_unique = AsyncMock(
         return_value=mock_object_permission
     )
 
@@ -1389,7 +1389,7 @@ async def test_key_info_returns_object_permission(monkeypatch):
     assert obj_perm["agents"] == ["agent_1"]
 
     # Verify the object permission was actually queried from database
-    mock_prisma_client.db.litellm_objectpermissiontable.find_unique.assert_called_once_with(
+    mock_prisma_client.db.objectpermissiontable.find_unique.assert_called_once_with(
         where={"object_permission_id": test_object_permission_id}
     )
 
@@ -1480,9 +1480,9 @@ async def test_generate_key_fn_rejects_short_custom_key(monkeypatch, short_key):
     accepted and fully exposed via key_name."""
     mock_prisma_client = AsyncMock()
     mock_prisma_client.db = MagicMock()
-    mock_prisma_client.db.litellm_verificationtoken = MagicMock()
-    mock_prisma_client.db.litellm_verificationtoken.find_unique = AsyncMock(return_value=None)
-    mock_prisma_client.db.litellm_verificationtoken.find_many = AsyncMock(return_value=[])
+    mock_prisma_client.db.verificationtoken = MagicMock()
+    mock_prisma_client.db.verificationtoken.find_unique = AsyncMock(return_value=None)
+    mock_prisma_client.db.verificationtoken.find_many = AsyncMock(return_value=[])
 
     from token_iq.gateway.proxy._types import GenerateKeyRequest, GatewayUserRoles, ProxyException
     from token_iq.gateway.proxy.auth.user_api_key_auth import UserAPIKeyAuth
@@ -1519,10 +1519,10 @@ async def test_generate_key_fn_accepts_custom_key_at_minimum_length(monkeypatch)
     )
     mock_prisma_client.insert_data = mock_insert_data
     mock_prisma_client.db = MagicMock()
-    mock_prisma_client.db.litellm_verificationtoken = MagicMock()
-    mock_prisma_client.db.litellm_verificationtoken.find_unique = AsyncMock(return_value=None)
-    mock_prisma_client.db.litellm_verificationtoken.find_many = AsyncMock(return_value=[])
-    mock_prisma_client.db.litellm_verificationtoken.count = AsyncMock(return_value=0)
+    mock_prisma_client.db.verificationtoken = MagicMock()
+    mock_prisma_client.db.verificationtoken.find_unique = AsyncMock(return_value=None)
+    mock_prisma_client.db.verificationtoken.find_many = AsyncMock(return_value=[])
+    mock_prisma_client.db.verificationtoken.count = AsyncMock(return_value=0)
 
     from token_iq.gateway.proxy._types import GenerateKeyRequest, GatewayUserRoles
     from token_iq.gateway.proxy.auth.user_api_key_auth import UserAPIKeyAuth
@@ -2193,7 +2193,7 @@ async def test_validate_team_id_used_in_service_account_request_checks_team_exis
 
     # Mock the database query to return None (team doesn't exist)
     mock_find_unique = AsyncMock(return_value=None)
-    mock_prisma_client.db.litellm_teamtable.find_unique = mock_find_unique
+    mock_prisma_client.db.teamtable.find_unique = mock_find_unique
 
     # Test that HTTPException is raised when team doesn't exist in DB
     with pytest.raises(HTTPException) as exc_info:
@@ -2224,7 +2224,7 @@ async def test_validate_team_id_used_in_service_account_request_success():
     # Mock the database query to return a team object (team exists)
     mock_team = {"team_id": "existing-team-id", "team_name": "Test Team"}
     mock_find_unique = AsyncMock(return_value=mock_team)
-    mock_prisma_client.db.litellm_teamtable.find_unique = mock_find_unique
+    mock_prisma_client.db.teamtable.find_unique = mock_find_unique
 
     # Test that function returns True when team exists
     result = await validate_team_id_used_in_service_account_request(
@@ -2274,7 +2274,7 @@ async def test_generate_service_account_key_endpoint_validation():
     with patch("token_iq.gateway.proxy.proxy_server.prisma_client") as mock_prisma:
         # Mock team not found
         mock_find_unique = AsyncMock(return_value=None)
-        mock_prisma.db.litellm_teamtable.find_unique = mock_find_unique
+        mock_prisma.db.teamtable.find_unique = mock_find_unique
 
         with pytest.raises(HTTPException) as exc_info:
             await generate_service_account_key_fn(
@@ -2320,10 +2320,10 @@ async def test_unblock_key_supports_both_sk_and_hashed_tokens(monkeypatch):
     )
 
     # Mock database operations
-    mock_prisma_client.db.litellm_verificationtoken.find_unique = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_unique = AsyncMock(
         return_value=mock_key_record
     )
-    mock_prisma_client.db.litellm_verificationtoken.update = AsyncMock(
+    mock_prisma_client.db.verificationtoken.update = AsyncMock(
         return_value=mock_key_record
     )
 
@@ -2372,14 +2372,14 @@ async def test_unblock_key_supports_both_sk_and_hashed_tokens(monkeypatch):
     )
 
     # Verify that the database update was called with hashed token
-    sk_token_call = mock_prisma_client.db.litellm_verificationtoken.update.call_args.kwargs
+    sk_token_call = mock_prisma_client.db.verificationtoken.update.call_args.kwargs
     assert sk_token_call["where"] == {"token": test_hashed_token}
     assert sk_token_call["data"]["blocked"] is False
 
     assert result == mock_key_record
 
     # Reset mocks for second test
-    mock_prisma_client.db.litellm_verificationtoken.update.reset_mock()
+    mock_prisma_client.db.verificationtoken.update.reset_mock()
 
     # Test Case 2: Using already hashed token
     hashed_token_request = BlockKeyRequest(key=test_hashed_token)
@@ -2392,7 +2392,7 @@ async def test_unblock_key_supports_both_sk_and_hashed_tokens(monkeypatch):
     )
 
     # Verify that the database update was called with the same hashed token
-    hashed_token_call = mock_prisma_client.db.litellm_verificationtoken.update.call_args.kwargs
+    hashed_token_call = mock_prisma_client.db.verificationtoken.update.call_args.kwargs
     assert hashed_token_call["where"] == {"token": test_hashed_token}
     assert hashed_token_call["data"]["blocked"] is False
 
@@ -2453,7 +2453,7 @@ async def test_block_key_nonexistent_key_returns_404(monkeypatch):
     mock_proxy_logging_obj = MagicMock()
 
     # find_unique returns None → key does not exist
-    mock_prisma_client.db.litellm_verificationtoken.find_unique = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_unique = AsyncMock(
         return_value=None
     )
 
@@ -2490,7 +2490,7 @@ async def test_block_key_nonexistent_key_returns_404(monkeypatch):
     # Must NOT contain "Authentication Error"
     assert "Authentication Error" not in str(exc_info.value.message)
     # update should never be called since the key doesn't exist
-    mock_prisma_client.db.litellm_verificationtoken.update.assert_not_called()
+    mock_prisma_client.db.verificationtoken.update.assert_not_called()
 
 
 @pytest.mark.asyncio
@@ -2509,7 +2509,7 @@ async def test_unblock_key_nonexistent_key_returns_404(monkeypatch):
     mock_proxy_logging_obj = MagicMock()
 
     # find_unique returns None → key does not exist
-    mock_prisma_client.db.litellm_verificationtoken.find_unique = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_unique = AsyncMock(
         return_value=None
     )
 
@@ -2544,7 +2544,7 @@ async def test_unblock_key_nonexistent_key_returns_404(monkeypatch):
     assert exc_info.value.code == "404"
     assert "not found" in str(exc_info.value.message).lower()
     assert "Authentication Error" not in str(exc_info.value.message)
-    mock_prisma_client.db.litellm_verificationtoken.update.assert_not_called()
+    mock_prisma_client.db.verificationtoken.update.assert_not_called()
 
 
 @pytest.mark.asyncio
@@ -2563,7 +2563,7 @@ async def test_update_key_nonexistent_key_returns_404(monkeypatch):
     mock_proxy_logging_obj = MagicMock()
 
     # find_unique returns None → key does not exist
-    mock_prisma_client.db.litellm_verificationtoken.find_unique = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_unique = AsyncMock(
         return_value=None
     )
 
@@ -2621,7 +2621,7 @@ async def test_update_key_rejects_a_duration_that_never_advances(monkeypatch, ba
     key_in_db = LiteLLM_VerificationToken(token=hashed_token, user_id="test-user")
 
     mock_prisma_client = AsyncMock()
-    mock_prisma_client.db.litellm_verificationtoken.find_unique = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_unique = AsyncMock(
         return_value=key_in_db
     )
     mock_prisma_client.update_data = AsyncMock()
@@ -2691,10 +2691,10 @@ async def test_update_key_by_alias_only(monkeypatch):
     )
 
     mock_prisma_client = AsyncMock()
-    mock_prisma_client.db.litellm_verificationtoken.find_many = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_many = AsyncMock(
         return_value=[key_in_db]
     )
-    mock_prisma_client.db.litellm_verificationtoken.find_first = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_first = AsyncMock(
         return_value=None
     )
     mock_prisma_client.update_data = AsyncMock(
@@ -2719,11 +2719,11 @@ async def test_update_key_by_alias_only(monkeypatch):
             litellm_changed_by=None,
         )
 
-    mock_prisma_client.db.litellm_verificationtoken.find_many.assert_called_once_with(
+    mock_prisma_client.db.verificationtoken.find_many.assert_called_once_with(
         where={"key_alias": "prod-alias"}, take=2
     )
     assert request_data.key == hashed_token
-    mock_prisma_client.db.litellm_verificationtoken.find_unique.assert_not_called()
+    mock_prisma_client.db.verificationtoken.find_unique.assert_not_called()
     mock_prisma_client.update_data.assert_awaited_once()
     assert mock_prisma_client.update_data.call_args.kwargs["token"] == hashed_token
     assert (
@@ -2742,7 +2742,7 @@ async def test_update_key_by_alias_not_found_returns_404(monkeypatch):
     )
 
     mock_prisma_client = AsyncMock()
-    mock_prisma_client.db.litellm_verificationtoken.find_many = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_many = AsyncMock(
         return_value=[]
     )
     _setup_update_key_mocks(monkeypatch, mock_prisma_client)
@@ -2779,7 +2779,7 @@ async def test_update_key_by_duplicate_alias_returns_400(monkeypatch):
         LiteLLM_VerificationToken(token="hashed-token-2", key_alias="dup-alias"),
     ]
     mock_prisma_client = AsyncMock()
-    mock_prisma_client.db.litellm_verificationtoken.find_many = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_many = AsyncMock(
         return_value=rows
     )
     _setup_update_key_mocks(monkeypatch, mock_prisma_client)
@@ -2820,10 +2820,10 @@ async def test_update_key_with_key_and_alias_selects_by_key(monkeypatch):
     )
 
     mock_prisma_client = AsyncMock()
-    mock_prisma_client.db.litellm_verificationtoken.find_unique = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_unique = AsyncMock(
         return_value=key_in_db
     )
-    mock_prisma_client.db.litellm_verificationtoken.find_first = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_first = AsyncMock(
         return_value=None
     )
     mock_prisma_client.update_data = AsyncMock(
@@ -2846,8 +2846,8 @@ async def test_update_key_with_key_and_alias_selects_by_key(monkeypatch):
             litellm_changed_by=None,
         )
 
-    mock_prisma_client.db.litellm_verificationtoken.find_many.assert_not_called()
-    mock_prisma_client.db.litellm_verificationtoken.find_unique.assert_called_once()
+    mock_prisma_client.db.verificationtoken.find_many.assert_not_called()
+    mock_prisma_client.db.verificationtoken.find_unique.assert_called_once()
     assert mock_prisma_client.update_data.call_args.kwargs["token"] == "sk-test-key"
     assert result["key"] == "sk-test-key"
 
@@ -2876,13 +2876,13 @@ async def test_block_key_existing_key_succeeds(monkeypatch):
         f'{{"token": "{test_hashed_token}", "blocked": false}}'
     )
 
-    mock_prisma_client.db.litellm_verificationtoken.find_unique = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_unique = AsyncMock(
         return_value=mock_key_record
     )
     mock_updated_record = MagicMock()
     mock_updated_record.token = test_hashed_token
     mock_updated_record.blocked = True
-    mock_prisma_client.db.litellm_verificationtoken.update = AsyncMock(
+    mock_prisma_client.db.verificationtoken.update = AsyncMock(
         return_value=mock_updated_record
     )
 
@@ -2925,11 +2925,11 @@ async def test_block_key_existing_key_succeeds(monkeypatch):
     )
 
     # Verify the key was found and updated
-    mock_prisma_client.db.litellm_verificationtoken.find_unique.assert_called_once_with(
+    mock_prisma_client.db.verificationtoken.find_unique.assert_called_once_with(
         where={"token": test_hashed_token}
     )
-    mock_prisma_client.db.litellm_verificationtoken.update.assert_called_once()
-    block_call = mock_prisma_client.db.litellm_verificationtoken.update.call_args.kwargs
+    mock_prisma_client.db.verificationtoken.update.assert_called_once()
+    block_call = mock_prisma_client.db.verificationtoken.update.call_args.kwargs
     assert block_call["where"] == {"token": test_hashed_token}
     assert block_call["data"]["blocked"] is True
     assert result == mock_updated_record
@@ -3184,7 +3184,7 @@ async def test_check_team_key_limits_no_existing_keys():
     """
     # Mock prisma client
     mock_prisma_client = AsyncMock()
-    mock_prisma_client.db.litellm_verificationtoken.find_many = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_many = AsyncMock(
         return_value=[]
     )
 
@@ -3217,7 +3217,7 @@ async def test_check_team_key_limits_no_existing_keys():
     )
 
     # Verify database was queried
-    mock_prisma_client.db.litellm_verificationtoken.find_many.assert_called_once_with(
+    mock_prisma_client.db.verificationtoken.find_many.assert_called_once_with(
         where={"team_id": "test-team-123"}
     )
 
@@ -3242,7 +3242,7 @@ async def test_check_team_key_limits_with_existing_keys_within_bounds():
     existing_key3.rpm_limit = None  # Should be ignored in calculation
 
     mock_prisma_client = AsyncMock()
-    mock_prisma_client.db.litellm_verificationtoken.find_many = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_many = AsyncMock(
         return_value=[existing_key1, existing_key2, existing_key3]
     )
 
@@ -3291,7 +3291,7 @@ async def test_check_team_key_limits_tpm_overallocation():
     existing_key2.metadata = {}
 
     mock_prisma_client = AsyncMock()
-    mock_prisma_client.db.litellm_verificationtoken.find_many = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_many = AsyncMock(
         return_value=[existing_key1, existing_key2]
     )
 
@@ -3348,7 +3348,7 @@ async def test_check_team_key_limits_rpm_overallocation():
     existing_key2.metadata = {}
 
     mock_prisma_client = AsyncMock()
-    mock_prisma_client.db.litellm_verificationtoken.find_many = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_many = AsyncMock(
         return_value=[existing_key1, existing_key2]
     )
 
@@ -3412,7 +3412,7 @@ async def test_check_team_key_limits_on_update_excludes_self():
     other_key.metadata = {}
 
     mock_prisma_client = AsyncMock()
-    mock_prisma_client.db.litellm_verificationtoken.find_many = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_many = AsyncMock(
         return_value=[self_key, other_key]
     )
 
@@ -3458,7 +3458,7 @@ async def test_check_team_key_limits_no_team_limits():
     existing_key.rpm_limit = 500
 
     mock_prisma_client = AsyncMock()
-    mock_prisma_client.db.litellm_verificationtoken.find_many = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_many = AsyncMock(
         return_value=[existing_key]
     )
 
@@ -3501,7 +3501,7 @@ async def test_check_team_key_limits_no_key_limits():
     existing_key.rpm_limit = 800
 
     mock_prisma_client = AsyncMock()
-    mock_prisma_client.db.litellm_verificationtoken.find_many = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_many = AsyncMock(
         return_value=[existing_key]
     )
 
@@ -3554,7 +3554,7 @@ async def test_check_team_key_limits_mixed_scenarios():
     existing_key3.rpm_limit = 300
 
     mock_prisma_client = AsyncMock()
-    mock_prisma_client.db.litellm_verificationtoken.find_many = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_many = AsyncMock(
         return_value=[existing_key1, existing_key2, existing_key3]
     )
 
@@ -3597,7 +3597,7 @@ async def test_check_team_key_limits_exact_boundary():
     existing_key.rpm_limit = 700
 
     mock_prisma_client = AsyncMock()
-    mock_prisma_client.db.litellm_verificationtoken.find_many = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_many = AsyncMock(
         return_value=[existing_key]
     )
 
@@ -3922,8 +3922,8 @@ async def test_generate_key_with_object_permission():
     mock_object_perm_create = AsyncMock(
         return_value=MagicMock(object_permission_id="objperm_key_456")
     )
-    mock_prisma_client.db.litellm_objectpermissiontable = MagicMock()
-    mock_prisma_client.db.litellm_objectpermissiontable.create = mock_object_perm_create
+    mock_prisma_client.db.objectpermissiontable = MagicMock()
+    mock_prisma_client.db.objectpermissiontable.create = mock_object_perm_create
 
     # Mock key insertion
     mock_key_insert = AsyncMock(
@@ -4251,7 +4251,7 @@ async def test_check_org_key_limits_no_existing_keys():
     """
     # Mock prisma client
     mock_prisma_client = AsyncMock()
-    mock_prisma_client.db.litellm_verificationtoken.find_many = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_many = AsyncMock(
         return_value=[]
     )
 
@@ -4286,7 +4286,7 @@ async def test_check_org_key_limits_no_existing_keys():
     )
 
     # Verify database was queried
-    mock_prisma_client.db.litellm_verificationtoken.find_many.assert_called_once_with(
+    mock_prisma_client.db.verificationtoken.find_many.assert_called_once_with(
         where={"organization_id": "test-org-123"}
     )
 
@@ -4314,7 +4314,7 @@ async def test_check_org_key_limits_with_existing_keys_within_bounds():
     existing_key3.metadata = {}
 
     mock_prisma_client = AsyncMock()
-    mock_prisma_client.db.litellm_verificationtoken.find_many = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_many = AsyncMock(
         return_value=[existing_key1, existing_key2, existing_key3]
     )
 
@@ -4367,7 +4367,7 @@ async def test_check_org_key_limits_tpm_overallocation():
     existing_key2.metadata = {}
 
     mock_prisma_client = AsyncMock()
-    mock_prisma_client.db.litellm_verificationtoken.find_many = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_many = AsyncMock(
         return_value=[existing_key1, existing_key2]
     )
 
@@ -4426,7 +4426,7 @@ async def test_check_org_key_limits_rpm_overallocation():
     existing_key2.metadata = {}
 
     mock_prisma_client = AsyncMock()
-    mock_prisma_client.db.litellm_verificationtoken.find_many = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_many = AsyncMock(
         return_value=[existing_key1, existing_key2]
     )
 
@@ -4480,7 +4480,7 @@ async def test_check_org_key_limits_no_org_limits():
     existing_key.metadata = {}
 
     mock_prisma_client = AsyncMock()
-    mock_prisma_client.db.litellm_verificationtoken.find_many = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_many = AsyncMock(
         return_value=[existing_key]
     )
 
@@ -4893,7 +4893,7 @@ def test_transform_verification_tokens_to_deleted_records_empty_list():
 async def test_save_deleted_verification_token_records():
     mock_prisma_client = AsyncMock()
     mock_create_many = AsyncMock()
-    mock_prisma_client.db.litellm_deletedverificationtoken.create_many = (
+    mock_prisma_client.db.deletedverificationtoken.create_many = (
         mock_create_many
     )
 
@@ -4923,7 +4923,7 @@ async def test_save_deleted_verification_token_records():
 async def test_save_deleted_verification_token_records_empty_list():
     mock_prisma_client = AsyncMock()
     mock_create_many = AsyncMock()
-    mock_prisma_client.db.litellm_deletedverificationtoken.create_many = (
+    mock_prisma_client.db.deletedverificationtoken.create_many = (
         mock_create_many
     )
 
@@ -4938,7 +4938,7 @@ async def test_save_deleted_verification_token_records_empty_list():
 async def test_persist_deleted_verification_tokens():
     mock_prisma_client = AsyncMock()
     mock_create_many = AsyncMock()
-    mock_prisma_client.db.litellm_deletedverificationtoken.create_many = (
+    mock_prisma_client.db.deletedverificationtoken.create_many = (
         mock_create_many
     )
 
@@ -5031,7 +5031,7 @@ async def test_delete_verification_tokens_persists_deleted_keys(monkeypatch):
     )
 
     mock_find_many = AsyncMock(return_value=[key1, key2])
-    mock_prisma_client.db.litellm_verificationtoken.find_many = mock_find_many
+    mock_prisma_client.db.verificationtoken.find_many = mock_find_many
 
     # delete_data returns {"deleted_keys": ...} from utils.py line 3049
     # The function at line 2410 assigns it to deleted_tokens
@@ -5046,7 +5046,7 @@ async def test_delete_verification_tokens_persists_deleted_keys(monkeypatch):
     mock_user_api_key_cache.delete_cache = MagicMock()
 
     mock_create_many = AsyncMock()
-    mock_prisma_client.db.litellm_deletedverificationtoken.create_many = (
+    mock_prisma_client.db.deletedverificationtoken.create_many = (
         mock_create_many
     )
 
@@ -5604,9 +5604,9 @@ async def test_list_keys_with_expand_user():
 
     mock_find_many_users = AsyncMock(return_value=[mock_user1, mock_user2])
 
-    mock_prisma_client.db.litellm_verificationtoken.find_many = mock_find_many_keys
-    mock_prisma_client.db.litellm_verificationtoken.count = mock_count_keys
-    mock_prisma_client.db.litellm_usertable.find_many = mock_find_many_users
+    mock_prisma_client.db.verificationtoken.find_many = mock_find_many_keys
+    mock_prisma_client.db.verificationtoken.count = mock_count_keys
+    mock_prisma_client.db.usertable.find_many = mock_find_many_users
 
     # Patch attach_object_permission_to_dict to just return the dict unchanged
     async def mock_attach_object_permission(d, _):
@@ -5716,9 +5716,9 @@ async def test_list_keys_with_expand_user_includes_created_by_user():
 
     mock_find_many_users = AsyncMock(return_value=[mock_user_owner, mock_user_creator])
 
-    mock_prisma_client.db.litellm_verificationtoken.find_many = mock_find_many_keys
-    mock_prisma_client.db.litellm_verificationtoken.count = mock_count_keys
-    mock_prisma_client.db.litellm_usertable.find_many = mock_find_many_users
+    mock_prisma_client.db.verificationtoken.find_many = mock_find_many_keys
+    mock_prisma_client.db.verificationtoken.count = mock_count_keys
+    mock_prisma_client.db.usertable.find_many = mock_find_many_users
 
     async def mock_attach_object_permission(d, _):
         return d
@@ -5801,12 +5801,12 @@ async def test_list_keys_with_status_deleted():
     mock_find_many_regular = AsyncMock(return_value=[])
     mock_count_regular = AsyncMock(return_value=0)
 
-    mock_prisma_client.db.litellm_deletedverificationtoken.find_many = (
+    mock_prisma_client.db.deletedverificationtoken.find_many = (
         mock_find_many_deleted
     )
-    mock_prisma_client.db.litellm_deletedverificationtoken.count = mock_count_deleted
-    mock_prisma_client.db.litellm_verificationtoken.find_many = mock_find_many_regular
-    mock_prisma_client.db.litellm_verificationtoken.count = mock_count_regular
+    mock_prisma_client.db.deletedverificationtoken.count = mock_count_deleted
+    mock_prisma_client.db.verificationtoken.find_many = mock_find_many_regular
+    mock_prisma_client.db.verificationtoken.count = mock_count_regular
 
     args = {
         "prisma_client": mock_prisma_client,
@@ -6421,14 +6421,14 @@ async def test_generate_key_with_router_settings(monkeypatch):
 
     mock_prisma_client.insert_data = AsyncMock(side_effect=_insert_data_side_effect)
     mock_prisma_client.db = MagicMock()
-    mock_prisma_client.db.litellm_verificationtoken = MagicMock()
-    mock_prisma_client.db.litellm_verificationtoken.find_unique = AsyncMock(
+    mock_prisma_client.db.verificationtoken = MagicMock()
+    mock_prisma_client.db.verificationtoken.find_unique = AsyncMock(
         return_value=None
     )
-    mock_prisma_client.db.litellm_verificationtoken.find_many = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_many = AsyncMock(
         return_value=[]
     )
-    mock_prisma_client.db.litellm_verificationtoken.count = AsyncMock(return_value=0)
+    mock_prisma_client.db.verificationtoken.count = AsyncMock(return_value=0)
 
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
 
@@ -6602,7 +6602,7 @@ async def test_get_and_validate_existing_key():
         models=["gpt-4"],
         team_id=None,
     )
-    mock_prisma_client.db.litellm_verificationtoken.find_unique = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_unique = AsyncMock(
         return_value=mock_key
     )
 
@@ -6616,12 +6616,12 @@ async def test_get_and_validate_existing_key():
         )
 
     assert result == mock_key
-    mock_prisma_client.db.litellm_verificationtoken.find_unique.assert_called_once_with(
+    mock_prisma_client.db.verificationtoken.find_unique.assert_called_once_with(
         where={"token": "hashed-test-key-123"}, include={"object_permission": True}
     )
 
     # Test Case 2: Key not found raises ProxyException
-    mock_prisma_client.db.litellm_verificationtoken.find_unique = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_unique = AsyncMock(
         return_value=None
     )
 
@@ -6685,7 +6685,7 @@ async def test_process_single_key_update():
         "tags": ["production"],
     }
 
-    mock_prisma_client.db.litellm_verificationtoken.find_unique = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_unique = AsyncMock(
         return_value=existing_key
     )
     mock_updated_key_obj = MagicMock()
@@ -6756,7 +6756,7 @@ async def test_process_single_key_update():
                             assert result.get("tags") == ["production"]
 
                             # Verify mocks were called
-                            mock_prisma_client.db.litellm_verificationtoken.find_unique.assert_called_once()
+                            mock_prisma_client.db.verificationtoken.find_unique.assert_called_once()
                             mock_prisma_client.update_data.assert_called_once()
                             mock_delete_cache.assert_called_once()
 
@@ -6820,7 +6820,7 @@ async def test_bulk_update_keys_success(monkeypatch):
         "tags": ["staging"],
     }
 
-    mock_prisma_client.db.litellm_verificationtoken.find_unique = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_unique = AsyncMock(
         side_effect=[existing_key_1, existing_key_2]
     )
     mock_updated_key_1_obj = MagicMock()
@@ -6954,7 +6954,7 @@ async def test_bulk_update_keys_partial_failures(monkeypatch):
     }
 
     # First key exists, second key doesn't exist
-    mock_prisma_client.db.litellm_verificationtoken.find_unique = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_unique = AsyncMock(
         side_effect=[existing_key_1, None]  # Second key not found
     )
     mock_updated_key_1_obj = MagicMock()
@@ -7169,10 +7169,10 @@ async def test_reset_key_spend_success(monkeypatch):
         budget_reset_at=None,
     )
 
-    mock_prisma_client.db.litellm_verificationtoken.find_unique = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_unique = AsyncMock(
         return_value=key_in_db
     )
-    mock_prisma_client.db.litellm_verificationtoken.update = AsyncMock(
+    mock_prisma_client.db.verificationtoken.update = AsyncMock(
         return_value=updated_key
     )
 
@@ -7223,7 +7223,7 @@ async def test_reset_key_spend_success(monkeypatch):
         assert response["previous_spend"] == 100.0
         assert response["key_hash"] == hashed_key
         assert response["max_budget"] == 200.0
-        mock_prisma_client.db.litellm_verificationtoken.update.assert_called_once()
+        mock_prisma_client.db.verificationtoken.update.assert_called_once()
         mock_delete_cache.assert_awaited_once()
         mock_spend_counter_cache.in_memory_cache.set_cache.assert_any_call(
             key=f"spend:key:{hashed_key}", value=50.0, ttl=60
@@ -7281,10 +7281,10 @@ async def test_reset_key_spend_resets_budget_windows(monkeypatch):
         budget_reset_at=None,
     )
 
-    mock_prisma_client.db.litellm_verificationtoken.find_unique = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_unique = AsyncMock(
         return_value=key_in_db
     )
-    mock_prisma_client.db.litellm_verificationtoken.update = AsyncMock(
+    mock_prisma_client.db.verificationtoken.update = AsyncMock(
         return_value=updated_key
     )
 
@@ -7355,8 +7355,8 @@ async def test_reset_key_spend_resets_budget_windows(monkeypatch):
     # get_budget_reset_time("1d") call would give) is the wrong value here --
     # it would put window_start at the start of the day already in progress,
     # which still covers that spend.
-    assert mock_prisma_client.db.litellm_verificationtoken.update.call_count == 2
-    window_update_call = mock_prisma_client.db.litellm_verificationtoken.update.call_args_list[1]
+    assert mock_prisma_client.db.verificationtoken.update.call_count == 2
+    window_update_call = mock_prisma_client.db.verificationtoken.update.call_args_list[1]
     assert window_update_call.kwargs["where"] == {"token": hashed_key}
     persisted_windows = json.loads(window_update_call.kwargs["data"]["budget_limits"])
     assert len(persisted_windows) == 1
@@ -7391,10 +7391,10 @@ async def test_reset_key_spend_no_budget_limits_skips_window_reset(monkeypatch):
         budget_reset_at=None,
     )
 
-    mock_prisma_client.db.litellm_verificationtoken.find_unique = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_unique = AsyncMock(
         return_value=key_in_db
     )
-    mock_prisma_client.db.litellm_verificationtoken.update = AsyncMock(
+    mock_prisma_client.db.verificationtoken.update = AsyncMock(
         return_value=updated_key
     )
 
@@ -7440,7 +7440,7 @@ async def test_reset_key_spend_no_budget_limits_skips_window_reset(monkeypatch):
         )
 
     assert response["spend"] == 0.0
-    mock_prisma_client.db.litellm_verificationtoken.update.assert_called_once()
+    mock_prisma_client.db.verificationtoken.update.assert_called_once()
 
 
 @pytest.mark.asyncio
@@ -7500,7 +7500,7 @@ async def test_update_key_spend_updates_counter(monkeypatch):
 
     mock_prisma_client.get_data = AsyncMock(return_value=key_in_db)
     mock_prisma_client.update_data = AsyncMock(return_value={"data": {"spend": 0.0}})
-    mock_prisma_client.db.litellm_verificationtoken.find_unique = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_unique = AsyncMock(
         return_value=key_in_db
     )
 
@@ -7579,10 +7579,10 @@ async def test_reset_key_spend_success_team_admin(monkeypatch):
         budget_reset_at=None,
     )
 
-    mock_prisma_client.db.litellm_verificationtoken.find_unique = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_unique = AsyncMock(
         return_value=key_in_db
     )
-    mock_prisma_client.db.litellm_verificationtoken.update = AsyncMock(
+    mock_prisma_client.db.verificationtoken.update = AsyncMock(
         return_value=updated_key
     )
 
@@ -7643,14 +7643,14 @@ async def test_reset_key_spend_success_team_admin(monkeypatch):
         assert response["previous_spend"] == 100.0
         assert response["key_hash"] == hashed_key
         assert response["max_budget"] == 200.0
-        mock_prisma_client.db.litellm_verificationtoken.update.assert_called_once()
+        mock_prisma_client.db.verificationtoken.update.assert_called_once()
         mock_delete_cache.assert_awaited_once()
 
 
 @pytest.mark.asyncio
 async def test_reset_key_spend_key_not_found(monkeypatch):
     mock_prisma_client = MagicMock()
-    mock_prisma_client.db.litellm_verificationtoken.find_unique = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_unique = AsyncMock(
         return_value=None
     )
 
@@ -7712,7 +7712,7 @@ async def test_reset_key_spend_validation_error(monkeypatch):
         litellm_budget_table=None,
     )
 
-    mock_prisma_client.db.litellm_verificationtoken.find_unique = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_unique = AsyncMock(
         return_value=key_in_db
     )
 
@@ -7754,7 +7754,7 @@ async def test_reset_key_spend_authorization_failure(monkeypatch):
         litellm_budget_table=None,
     )
 
-    mock_prisma_client.db.litellm_verificationtoken.find_unique = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_unique = AsyncMock(
         return_value=key_in_db
     )
 
@@ -7814,10 +7814,10 @@ async def test_reset_key_spend_hashed_key(monkeypatch):
         budget_reset_at=None,
     )
 
-    mock_prisma_client.db.litellm_verificationtoken.find_unique = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_unique = AsyncMock(
         return_value=key_in_db
     )
-    mock_prisma_client.db.litellm_verificationtoken.update = AsyncMock(
+    mock_prisma_client.db.verificationtoken.update = AsyncMock(
         return_value=updated_key
     )
 
@@ -7854,7 +7854,7 @@ async def test_reset_key_spend_hashed_key(monkeypatch):
         )
 
         assert response["spend"] == 50.0
-        mock_prisma_client.db.litellm_verificationtoken.find_unique.assert_called_once_with(
+        mock_prisma_client.db.verificationtoken.find_unique.assert_called_once_with(
             where={"token": hashed_key}, include={"litellm_budget_table": True}
         )
 
@@ -7890,7 +7890,7 @@ async def test_validate_key_list_check_team_admin_success():
         organization_memberships=[],
     )
 
-    mock_prisma_client.db.litellm_usertable.find_unique = AsyncMock(
+    mock_prisma_client.db.usertable.find_unique = AsyncMock(
         return_value=user_info
     )
 
@@ -7923,7 +7923,7 @@ async def test_validate_key_list_check_team_admin_fail():
         organization_memberships=[],
     )
 
-    mock_prisma_client.db.litellm_usertable.find_unique = AsyncMock(
+    mock_prisma_client.db.usertable.find_unique = AsyncMock(
         return_value=user_info
     )
 
@@ -7962,10 +7962,10 @@ async def test_validate_key_list_check_key_hash_authorized():
         user_id="test-user",
     )
 
-    mock_prisma_client.db.litellm_usertable.find_unique = AsyncMock(
+    mock_prisma_client.db.usertable.find_unique = AsyncMock(
         return_value=user_info
     )
-    mock_prisma_client.db.litellm_verificationtoken.find_unique = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_unique = AsyncMock(
         return_value=key_info
     )
 
@@ -8008,10 +8008,10 @@ async def test_validate_key_list_check_key_hash_unauthorized():
         user_id="other-user",
     )
 
-    mock_prisma_client.db.litellm_usertable.find_unique = AsyncMock(
+    mock_prisma_client.db.usertable.find_unique = AsyncMock(
         return_value=user_info
     )
-    mock_prisma_client.db.litellm_verificationtoken.find_unique = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_unique = AsyncMock(
         return_value=key_info
     )
 
@@ -8050,10 +8050,10 @@ async def test_validate_key_list_check_key_hash_not_found():
         organization_memberships=[],
     )
 
-    mock_prisma_client.db.litellm_usertable.find_unique = AsyncMock(
+    mock_prisma_client.db.usertable.find_unique = AsyncMock(
         return_value=user_info
     )
-    mock_prisma_client.db.litellm_verificationtoken.find_unique = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_unique = AsyncMock(
         side_effect=Exception("Key not found")
     )
 
@@ -8082,7 +8082,7 @@ async def test_validate_key_list_check_key_hash_row_missing():
     """A key_hash with no row reaches the same 'Key Hash not found' 403 as a failed
     lookup, instead of blowing up inside the ownership check on a None row."""
     mock_prisma_client = AsyncMock()
-    mock_prisma_client.db.litellm_usertable.find_unique = AsyncMock(
+    mock_prisma_client.db.usertable.find_unique = AsyncMock(
         return_value=LiteLLM_UserTable(
             user_id="test-user",
             user_email="test@example.com",
@@ -8090,7 +8090,7 @@ async def test_validate_key_list_check_key_hash_row_missing():
             organization_memberships=[],
         )
     )
-    mock_prisma_client.db.litellm_verificationtoken.find_unique = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_unique = AsyncMock(
         return_value=None
     )
 
@@ -8121,7 +8121,7 @@ async def test_validate_key_list_check_proxy_admin_viewer_skips_db_lookup():
     """proxy_admin_viewer takes the same unscoped read fast-path as proxy_admin, so no
     user row is fetched and none of the user/team scoping filters apply."""
     mock_prisma_client = AsyncMock()
-    mock_prisma_client.db.litellm_usertable.find_unique = AsyncMock(
+    mock_prisma_client.db.usertable.find_unique = AsyncMock(
         return_value=LiteLLM_UserTable(
             user_id="viewer-user",
             user_email="viewer@example.com",
@@ -8146,7 +8146,7 @@ async def test_validate_key_list_check_proxy_admin_viewer_skips_db_lookup():
     )
 
     assert result is None
-    mock_prisma_client.db.litellm_usertable.find_unique.assert_not_awaited()
+    mock_prisma_client.db.usertable.find_unique.assert_not_awaited()
     assert mock_prisma_client.mock_calls == []
 
 
@@ -8155,7 +8155,7 @@ async def test_validate_key_list_check_internal_user_cannot_query_other_user():
     """Admin-view parity must not leak past the admin roles: an internal user still
     cannot list another user's keys."""
     mock_prisma_client = AsyncMock()
-    mock_prisma_client.db.litellm_usertable.find_unique = AsyncMock(
+    mock_prisma_client.db.usertable.find_unique = AsyncMock(
         return_value=LiteLLM_UserTable(
             user_id="test-user",
             user_email="test@example.com",
@@ -8243,7 +8243,7 @@ async def test_key_with_budget_id_does_not_store_budget_duration():
     )
 
     # No budget tier lookup - we don't copy budget_duration onto the key
-    mock_prisma.db.litellm_budgettable.find_unique.assert_not_called()
+    mock_prisma.db.budgettable.find_unique.assert_not_called()
 
 
 @pytest.mark.asyncio
@@ -8259,7 +8259,7 @@ async def test_key_does_not_override_explicit_budget_duration():
     # The budget tier has budget_duration="7d"
     mock_budget_row = MagicMock()
     mock_budget_row.budget_duration = "7d"
-    mock_prisma.db.litellm_budgettable.find_unique = AsyncMock(
+    mock_prisma.db.budgettable.find_unique = AsyncMock(
         return_value=mock_budget_row
     )
 
@@ -8307,7 +8307,7 @@ async def test_key_does_not_override_explicit_budget_duration():
     )
 
     # The budget tier should NOT have been looked up since budget_duration was explicit
-    mock_prisma.db.litellm_budgettable.find_unique.assert_not_called()
+    mock_prisma.db.budgettable.find_unique.assert_not_called()
 
 
 @pytest.mark.asyncio
@@ -8347,16 +8347,16 @@ async def test_rotate_master_key_reencrypts_model_params_in_place(
     mock_model.model_info = '{"id": "model-1"}'
     mock_model.created_by = "admin"
     mock_model.updated_by = "admin"
-    mock_prisma_client.db.litellm_proxymodeltable.find_many = AsyncMock(
+    mock_prisma_client.db.proxymodeltable.find_many = AsyncMock(
         return_value=[mock_model]
     )
 
     # Mock transaction context manager
     mock_tx = AsyncMock()
-    mock_tx.litellm_proxymodeltable = MagicMock()
-    mock_tx.litellm_proxymodeltable.delete_many = AsyncMock()
-    mock_tx.litellm_proxymodeltable.create_many = AsyncMock()
-    mock_tx.litellm_proxymodeltable.update_many = AsyncMock()
+    mock_tx.proxymodeltable = MagicMock()
+    mock_tx.proxymodeltable.delete_many = AsyncMock()
+    mock_tx.proxymodeltable.create_many = AsyncMock()
+    mock_tx.proxymodeltable.update_many = AsyncMock()
     mock_prisma_client.db.tx = MagicMock(
         return_value=AsyncMock(
             __aenter__=AsyncMock(return_value=mock_tx),
@@ -8365,10 +8365,10 @@ async def test_rotate_master_key_reencrypts_model_params_in_place(
     )
 
     # Mock config table — no env vars
-    mock_prisma_client.db.litellm_config.find_many = AsyncMock(return_value=[])
+    mock_prisma_client.db.config.find_many = AsyncMock(return_value=[])
 
     # Mock credentials table — no credentials
-    mock_prisma_client.db.litellm_credentialstable.find_many = AsyncMock(
+    mock_prisma_client.db.credentialstable.find_many = AsyncMock(
         return_value=[]
     )
 
@@ -8406,11 +8406,11 @@ async def test_rotate_master_key_reencrypts_model_params_in_place(
         )
 
     # Rotation must never rewrite whole rows: no delete + recreate
-    mock_tx.litellm_proxymodeltable.delete_many.assert_not_called()
-    mock_tx.litellm_proxymodeltable.create_many.assert_not_called()
+    mock_tx.proxymodeltable.delete_many.assert_not_called()
+    mock_tx.proxymodeltable.create_many.assert_not_called()
 
-    mock_tx.litellm_proxymodeltable.update_many.assert_called_once()
-    call_args = mock_tx.litellm_proxymodeltable.update_many.call_args
+    mock_tx.proxymodeltable.update_many.assert_called_once()
+    call_args = mock_tx.proxymodeltable.update_many.call_args
 
     assert call_args.kwargs["where"] == {
         "model_id": "model-1"
@@ -8452,15 +8452,15 @@ async def test_default_key_generate_params_duration(monkeypatch):
     )
     mock_prisma_client.insert_data = mock_insert_data
     mock_prisma_client.db = MagicMock()
-    mock_prisma_client.db.litellm_verificationtoken = MagicMock()
-    mock_prisma_client.db.litellm_verificationtoken.find_unique = AsyncMock(
+    mock_prisma_client.db.verificationtoken = MagicMock()
+    mock_prisma_client.db.verificationtoken.find_unique = AsyncMock(
         return_value=None
     )
-    mock_prisma_client.db.litellm_verificationtoken.find_many = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_many = AsyncMock(
         return_value=[]
     )
-    mock_prisma_client.db.litellm_verificationtoken.count = AsyncMock(return_value=0)
-    mock_prisma_client.db.litellm_verificationtoken.update = AsyncMock(
+    mock_prisma_client.db.verificationtoken.count = AsyncMock(return_value=0)
+    mock_prisma_client.db.verificationtoken.update = AsyncMock(
         return_value=MagicMock(
             token="hashed_token_123", litellm_budget_table=None, object_permission=None
         )
@@ -8504,21 +8504,21 @@ async def test_default_key_generate_params_object_permission_applied_when_absent
     )
     mock_prisma_client.insert_data = mock_insert_data
     mock_prisma_client.db = MagicMock()
-    mock_prisma_client.db.litellm_verificationtoken = MagicMock()
-    mock_prisma_client.db.litellm_verificationtoken.find_unique = AsyncMock(
+    mock_prisma_client.db.verificationtoken = MagicMock()
+    mock_prisma_client.db.verificationtoken.find_unique = AsyncMock(
         return_value=None
     )
-    mock_prisma_client.db.litellm_verificationtoken.find_many = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_many = AsyncMock(
         return_value=[]
     )
-    mock_prisma_client.db.litellm_verificationtoken.count = AsyncMock(return_value=0)
-    mock_prisma_client.db.litellm_verificationtoken.update = AsyncMock(
+    mock_prisma_client.db.verificationtoken.count = AsyncMock(return_value=0)
+    mock_prisma_client.db.verificationtoken.update = AsyncMock(
         return_value=MagicMock(
             token="hashed_token_123", litellm_budget_table=None, object_permission=None
         )
     )
-    mock_prisma_client.db.litellm_objectpermissiontable = MagicMock()
-    mock_prisma_client.db.litellm_objectpermissiontable.create = AsyncMock(
+    mock_prisma_client.db.objectpermissiontable = MagicMock()
+    mock_prisma_client.db.objectpermissiontable.create = AsyncMock(
         return_value=MagicMock(object_permission_id="objperm-1")
     )
 
@@ -8544,7 +8544,7 @@ async def test_default_key_generate_params_object_permission_applied_when_absent
         team_table=None,
     )
 
-    created_data = mock_prisma_client.db.litellm_objectpermissiontable.create.call_args.kwargs["data"]
+    created_data = mock_prisma_client.db.objectpermissiontable.create.call_args.kwargs["data"]
     assert created_data["vector_stores"] == ["default-vs"]
 
 
@@ -8567,21 +8567,21 @@ async def test_default_key_generate_params_object_permission_merges_partial(
     )
     mock_prisma_client.insert_data = mock_insert_data
     mock_prisma_client.db = MagicMock()
-    mock_prisma_client.db.litellm_verificationtoken = MagicMock()
-    mock_prisma_client.db.litellm_verificationtoken.find_unique = AsyncMock(
+    mock_prisma_client.db.verificationtoken = MagicMock()
+    mock_prisma_client.db.verificationtoken.find_unique = AsyncMock(
         return_value=None
     )
-    mock_prisma_client.db.litellm_verificationtoken.find_many = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_many = AsyncMock(
         return_value=[]
     )
-    mock_prisma_client.db.litellm_verificationtoken.count = AsyncMock(return_value=0)
-    mock_prisma_client.db.litellm_verificationtoken.update = AsyncMock(
+    mock_prisma_client.db.verificationtoken.count = AsyncMock(return_value=0)
+    mock_prisma_client.db.verificationtoken.update = AsyncMock(
         return_value=MagicMock(
             token="hashed_token_123", litellm_budget_table=None, object_permission=None
         )
     )
-    mock_prisma_client.db.litellm_objectpermissiontable = MagicMock()
-    mock_prisma_client.db.litellm_objectpermissiontable.create = AsyncMock(
+    mock_prisma_client.db.objectpermissiontable = MagicMock()
+    mock_prisma_client.db.objectpermissiontable.create = AsyncMock(
         return_value=MagicMock(object_permission_id="objperm-2")
     )
 
@@ -8609,7 +8609,7 @@ async def test_default_key_generate_params_object_permission_merges_partial(
         team_table=None,
     )
 
-    created_data = mock_prisma_client.db.litellm_objectpermissiontable.create.call_args.kwargs["data"]
+    created_data = mock_prisma_client.db.objectpermissiontable.create.call_args.kwargs["data"]
     assert created_data["agents"] == ["agent-1"]
     assert created_data["vector_stores"] == ["default-vs"]
 
@@ -8632,21 +8632,21 @@ async def test_default_key_generate_params_object_permission_does_not_override_e
     )
     mock_prisma_client.insert_data = mock_insert_data
     mock_prisma_client.db = MagicMock()
-    mock_prisma_client.db.litellm_verificationtoken = MagicMock()
-    mock_prisma_client.db.litellm_verificationtoken.find_unique = AsyncMock(
+    mock_prisma_client.db.verificationtoken = MagicMock()
+    mock_prisma_client.db.verificationtoken.find_unique = AsyncMock(
         return_value=None
     )
-    mock_prisma_client.db.litellm_verificationtoken.find_many = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_many = AsyncMock(
         return_value=[]
     )
-    mock_prisma_client.db.litellm_verificationtoken.count = AsyncMock(return_value=0)
-    mock_prisma_client.db.litellm_verificationtoken.update = AsyncMock(
+    mock_prisma_client.db.verificationtoken.count = AsyncMock(return_value=0)
+    mock_prisma_client.db.verificationtoken.update = AsyncMock(
         return_value=MagicMock(
             token="hashed_token_123", litellm_budget_table=None, object_permission=None
         )
     )
-    mock_prisma_client.db.litellm_objectpermissiontable = MagicMock()
-    mock_prisma_client.db.litellm_objectpermissiontable.create = AsyncMock(
+    mock_prisma_client.db.objectpermissiontable = MagicMock()
+    mock_prisma_client.db.objectpermissiontable.create = AsyncMock(
         return_value=MagicMock(object_permission_id="objperm-3")
     )
 
@@ -8676,7 +8676,7 @@ async def test_default_key_generate_params_object_permission_does_not_override_e
         team_table=None,
     )
 
-    created_data = mock_prisma_client.db.litellm_objectpermissiontable.create.call_args.kwargs["data"]
+    created_data = mock_prisma_client.db.objectpermissiontable.create.call_args.kwargs["data"]
     assert created_data["vector_stores"] == ["explicit-vs"]
 
 
@@ -8700,21 +8700,21 @@ async def test_default_key_generate_params_object_permission_not_rejected_for_no
     )
     mock_prisma_client.insert_data = mock_insert_data
     mock_prisma_client.db = MagicMock()
-    mock_prisma_client.db.litellm_verificationtoken = MagicMock()
-    mock_prisma_client.db.litellm_verificationtoken.find_unique = AsyncMock(
+    mock_prisma_client.db.verificationtoken = MagicMock()
+    mock_prisma_client.db.verificationtoken.find_unique = AsyncMock(
         return_value=None
     )
-    mock_prisma_client.db.litellm_verificationtoken.find_many = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_many = AsyncMock(
         return_value=[]
     )
-    mock_prisma_client.db.litellm_verificationtoken.count = AsyncMock(return_value=0)
-    mock_prisma_client.db.litellm_verificationtoken.update = AsyncMock(
+    mock_prisma_client.db.verificationtoken.count = AsyncMock(return_value=0)
+    mock_prisma_client.db.verificationtoken.update = AsyncMock(
         return_value=MagicMock(
             token="hashed_token_123", litellm_budget_table=None, object_permission=None
         )
     )
-    mock_prisma_client.db.litellm_objectpermissiontable = MagicMock()
-    mock_prisma_client.db.litellm_objectpermissiontable.create = AsyncMock(
+    mock_prisma_client.db.objectpermissiontable = MagicMock()
+    mock_prisma_client.db.objectpermissiontable.create = AsyncMock(
         return_value=MagicMock(object_permission_id="objperm-4")
     )
 
@@ -8741,7 +8741,7 @@ async def test_default_key_generate_params_object_permission_not_rejected_for_no
     )
 
     assert response is not None
-    created_data = mock_prisma_client.db.litellm_objectpermissiontable.create.call_args.kwargs["data"]
+    created_data = mock_prisma_client.db.objectpermissiontable.create.call_args.kwargs["data"]
     assert created_data["vector_stores"] == ["default-vs"]
 
 
@@ -9336,7 +9336,7 @@ async def test_get_member_team_ids():
         "blocked": False,
     }
 
-    mock_prisma_client.db.litellm_teamtable.find_many = AsyncMock(
+    mock_prisma_client.db.teamtable.find_many = AsyncMock(
         return_value=[mock_team_a, mock_team_b, mock_team_c]
     )
 
@@ -9530,7 +9530,7 @@ async def test_key_aliases_internal_user_scoped_to_own_keys_and_teams():
     # Mock user table lookup to return teams
     mock_user_row = MagicMock()
     mock_user_row.teams = ["team-abc", "team-xyz"]
-    mock_prisma_client.db.litellm_usertable.find_unique = AsyncMock(
+    mock_prisma_client.db.usertable.find_unique = AsyncMock(
         return_value=mock_user_row
     )
 
@@ -9694,7 +9694,7 @@ async def test_check_org_key_limits_on_update_within_bounds():
     a key's TPM/RPM limits within organization bounds.
     """
     mock_prisma_client = AsyncMock()
-    mock_prisma_client.db.litellm_verificationtoken.find_many = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_many = AsyncMock(
         return_value=[]
     )
 
@@ -9728,7 +9728,7 @@ async def test_check_org_key_limits_on_update_within_bounds():
         prisma_client=mock_prisma_client,
     )
 
-    mock_prisma_client.db.litellm_verificationtoken.find_many.assert_called_once_with(
+    mock_prisma_client.db.verificationtoken.find_many.assert_called_once_with(
         where={"organization_id": "test-org-update-1"}
     )
 
@@ -9748,7 +9748,7 @@ async def test_check_org_key_limits_on_update_overallocation():
     existing_key.metadata = {}
 
     mock_prisma_client = AsyncMock()
-    mock_prisma_client.db.litellm_verificationtoken.find_many = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_many = AsyncMock(
         return_value=[existing_key]
     )
 
@@ -9809,7 +9809,7 @@ async def test_check_org_key_limits_on_update_excludes_self():
     other_key.metadata = {}
 
     mock_prisma_client = AsyncMock()
-    mock_prisma_client.db.litellm_verificationtoken.find_many = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_many = AsyncMock(
         return_value=[self_key, other_key]
     )
 
@@ -9925,10 +9925,10 @@ def _setup_block_unblock_mocks(monkeypatch, mock_key_team_id=None):
         f'{{"token": "{test_hashed_token}", "blocked": false}}'
     )
 
-    mock_prisma_client.db.litellm_verificationtoken.find_unique = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_unique = AsyncMock(
         return_value=mock_key_record
     )
-    mock_prisma_client.db.litellm_verificationtoken.update = AsyncMock(
+    mock_prisma_client.db.verificationtoken.update = AsyncMock(
         return_value=mock_key_record
     )
 
@@ -10111,7 +10111,7 @@ async def test_update_key_max_budget_rejected_for_internal_user(monkeypatch):
     }
 
     mock_prisma_client.get_data = AsyncMock(return_value=mock_existing_key)
-    mock_prisma_client.db.litellm_verificationtoken.find_unique = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_unique = AsyncMock(
         return_value=mock_existing_key
     )
 
@@ -10184,7 +10184,7 @@ async def test_update_key_non_budget_fields_allowed_for_internal_user(monkeypatc
 
     mock_prisma_client.get_data = AsyncMock(return_value=mock_existing_key)
     mock_prisma_client.update_data = AsyncMock(return_value=mock_updated_key)
-    mock_prisma_client.db.litellm_verificationtoken.find_unique = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_unique = AsyncMock(
         return_value=mock_existing_key
     )
 
@@ -10282,7 +10282,7 @@ async def test_update_key_throttle_on_budget_exceeded_rejected_for_internal_user
     }
 
     mock_prisma_client.get_data = AsyncMock(return_value=mock_existing_key)
-    mock_prisma_client.db.litellm_verificationtoken.find_unique = AsyncMock(return_value=mock_existing_key)
+    mock_prisma_client.db.verificationtoken.find_unique = AsyncMock(return_value=mock_existing_key)
 
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.user_api_key_cache", mock_user_api_key_cache)
@@ -10354,7 +10354,7 @@ async def test_update_key_throttle_unchanged_allows_non_budget_edit_for_internal
 
     mock_prisma_client.get_data = AsyncMock(return_value=mock_existing_key)
     mock_prisma_client.update_data = AsyncMock(return_value=mock_updated_key)
-    mock_prisma_client.db.litellm_verificationtoken.find_unique = AsyncMock(return_value=mock_existing_key)
+    mock_prisma_client.db.verificationtoken.find_unique = AsyncMock(return_value=mock_existing_key)
 
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.user_api_key_cache", mock_user_api_key_cache)
@@ -10430,7 +10430,7 @@ async def test_update_key_non_budget_rejects_cross_user_modification(monkeypatch
     }
 
     mock_prisma_client.get_data = AsyncMock(return_value=mock_existing_key)
-    mock_prisma_client.db.litellm_verificationtoken.find_unique = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_unique = AsyncMock(
         return_value=mock_existing_key
     )
 
@@ -10494,7 +10494,7 @@ async def test_update_key_creator_reassigned_key_blocked(monkeypatch):
     }
 
     mock_prisma_client.get_data = AsyncMock(return_value=mock_existing_key)
-    mock_prisma_client.db.litellm_verificationtoken.find_unique = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_unique = AsyncMock(
         return_value=mock_existing_key
     )
 
@@ -10581,7 +10581,7 @@ async def test_update_key_team_member_with_permission_can_update_non_budget(
     mock_prisma_client = AsyncMock()
     mock_prisma_client.get_data = AsyncMock(return_value=mock_existing_key)
     mock_prisma_client.update_data = AsyncMock(return_value=mock_updated_key)
-    mock_prisma_client.db.litellm_verificationtoken.find_unique = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_unique = AsyncMock(
         return_value=mock_existing_key
     )
 
@@ -10687,7 +10687,7 @@ async def test_update_key_team_member_cannot_change_budget(monkeypatch):
 
     mock_prisma_client = AsyncMock()
     mock_prisma_client.get_data = AsyncMock(return_value=mock_existing_key)
-    mock_prisma_client.db.litellm_verificationtoken.find_unique = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_unique = AsyncMock(
         return_value=mock_existing_key
     )
 
@@ -11418,7 +11418,7 @@ class TestKeyAliasSkipValidationOnUnchanged:
     def mock_prisma(self):
         prisma = MagicMock()
         prisma.db = MagicMock()
-        prisma.db.litellm_verificationtoken = MagicMock()
+        prisma.db.verificationtoken = MagicMock()
         prisma.get_data = AsyncMock(return_value=None)  # no duplicate alias
         prisma.update_data = AsyncMock(return_value=None)
         prisma.jsonify_object = MagicMock(side_effect=lambda data: data)
@@ -11680,7 +11680,7 @@ def _make_regenerate_mock_prisma():
             return iter(self._data.items())
 
     mock_prisma_client = AsyncMock()
-    mock_prisma_client.db.litellm_verificationtoken.update = AsyncMock(
+    mock_prisma_client.db.verificationtoken.update = AsyncMock(
         return_value=DictLikeResult(
             {
                 "token": "new-hashed-token",
@@ -11689,7 +11689,7 @@ def _make_regenerate_mock_prisma():
             }
         )
     )
-    mock_prisma_client.db.litellm_verificationtoken.create = AsyncMock(
+    mock_prisma_client.db.verificationtoken.create = AsyncMock(
         return_value=None
     )
     mock_prisma_client.jsonify_object = MagicMock(side_effect=lambda data: data)
@@ -11768,7 +11768,7 @@ async def test_execute_virtual_key_regeneration_rejects_over_limit_duration(monk
     assert exc_info.value.status_code == 400
     assert "duration" in str(exc_info.value.detail)
     # Rejected regenerate must not reach the DB update.
-    assert mock_prisma_client.db.litellm_verificationtoken.update.await_count == 0
+    assert mock_prisma_client.db.verificationtoken.update.await_count == 0
 
 
 @pytest.mark.asyncio
@@ -11824,7 +11824,7 @@ async def test_execute_virtual_key_regeneration_allows_within_limit_duration(mon
             user_api_key_cache=MagicMock(),
             proxy_logging_obj=MagicMock(),
         )
-    assert mock_prisma_client.db.litellm_verificationtoken.update.await_count == 1
+    assert mock_prisma_client.db.verificationtoken.update.await_count == 1
 
 
 @pytest.mark.asyncio
@@ -11879,7 +11879,7 @@ async def test_execute_virtual_key_regeneration_rejects_over_limit_max_budget(mo
             )
     assert exc_info.value.status_code == 400
     assert "max_budget" in str(exc_info.value.detail)
-    assert mock_prisma_client.db.litellm_verificationtoken.update.await_count == 0
+    assert mock_prisma_client.db.verificationtoken.update.await_count == 0
 
 
 @pytest.mark.asyncio
@@ -11936,7 +11936,7 @@ async def test_execute_virtual_key_regeneration_skips_none_values(monkeypatch):
             user_api_key_cache=MagicMock(),
             proxy_logging_obj=MagicMock(),
         )
-    assert mock_prisma_client.db.litellm_verificationtoken.update.await_count == 1
+    assert mock_prisma_client.db.verificationtoken.update.await_count == 1
 
 
 @pytest.mark.asyncio
@@ -11983,7 +11983,7 @@ async def test_execute_virtual_key_regeneration_no_upperbound_config_is_noop(mon
             user_api_key_cache=MagicMock(),
             proxy_logging_obj=MagicMock(),
         )
-    assert mock_prisma_client.db.litellm_verificationtoken.update.await_count == 1
+    assert mock_prisma_client.db.verificationtoken.update.await_count == 1
 
 
 class TestAllowedRoutesCallerPermission:
@@ -12435,7 +12435,7 @@ async def test_process_single_key_update_cache_invalidation_with_token_hash():
     )
 
     mock_prisma_client = AsyncMock()
-    mock_prisma_client.db.litellm_verificationtoken.find_unique = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_unique = AsyncMock(
         return_value=existing_key
     )
     mock_updated = MagicMock()
@@ -12585,12 +12585,12 @@ async def test_execute_virtual_key_regeneration_cache_invalidation_with_token_ha
         def __iter__(self):
             return iter(self._data.items())
 
-    mock_prisma_client.db.litellm_verificationtoken.update = AsyncMock(
+    mock_prisma_client.db.verificationtoken.update = AsyncMock(
         return_value=DictLikeResult(
             {"token": "new-hashed-token", "key_name": "sk-...ab12", "user_id": "user-1"}
         )
     )
-    mock_prisma_client.db.litellm_verificationtoken.create = AsyncMock(
+    mock_prisma_client.db.verificationtoken.create = AsyncMock(
         return_value=None
     )
     mock_prisma_client.jsonify_object = MagicMock(side_effect=lambda data: data)
@@ -12692,11 +12692,11 @@ def _setup_team_keys_mocks(
 ):
     """Set up mocks for bulk_update_team_keys; returns mock_prisma."""
     mock_prisma = AsyncMock()
-    mock_prisma.db.litellm_verificationtoken.find_many = AsyncMock(
+    mock_prisma.db.verificationtoken.find_many = AsyncMock(
         return_value=[] if find_many is None else find_many
     )
     if find_unique is not None:
-        mock_prisma.db.litellm_verificationtoken.find_unique = find_unique
+        mock_prisma.db.verificationtoken.find_unique = find_unique
     if update_data is not None:
         mock_prisma.update_data = update_data
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
@@ -12765,7 +12765,7 @@ async def test_bulk_update_team_keys_success_with_key_ids(monkeypatch):
 
     assert len(response.successful_updates) == 2
     assert len(response.failed_updates) == 0
-    where = mock.db.litellm_verificationtoken.find_many.await_args.kwargs["where"]
+    where = mock.db.verificationtoken.find_many.await_args.kwargs["where"]
     assert where["team_id"] == "team-abc"
     assert where["token"] == {"in": ["tok-a", "tok-b"]}
     find_unique.assert_not_called()
@@ -12798,7 +12798,7 @@ async def test_bulk_update_team_keys_success_all_keys_in_team(monkeypatch):
     )
 
     assert len(response.successful_updates) == 3
-    where = mock.db.litellm_verificationtoken.find_many.await_args.kwargs["where"]
+    where = mock.db.verificationtoken.find_many.await_args.kwargs["where"]
     # `blocked` is Boolean? with no default → /key/generate writes NULL. Prisma's
     # NOT excludes NULLs, so the filter has to OR `false` with `null` explicitly.
     blocked_or, expires_or = where["AND"][0]["OR"], where["AND"][1]["OR"]
@@ -13090,7 +13090,7 @@ async def test_bulk_update_team_keys_hashes_raw_sk_key_ids(monkeypatch):
             update_fields=KeyUpdateFields(max_budget=50.0),
         )
     )
-    where = mock.db.litellm_verificationtoken.find_many.await_args.kwargs["where"]
+    where = mock.db.verificationtoken.find_many.await_args.kwargs["where"]
     assert where["token"] == {"in": [hashed]}
     # Response reports the user-supplied form, not the hash.
     assert response.successful_updates[0].key == raw_sk
@@ -13979,7 +13979,7 @@ async def test_info_key_fn_includes_model_max_budget_usage(monkeypatch):
     }
     mock_key_info.dict.return_value = mock_key_info.model_dump.return_value
 
-    mock_prisma_client.db.litellm_verificationtoken.find_unique = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_unique = AsyncMock(
         return_value=mock_key_info
     )
     mock_prisma_client.db.query_raw = AsyncMock()
@@ -14040,7 +14040,7 @@ async def test_info_key_fn_no_model_max_budget_skips_usage(monkeypatch):
     }
     mock_key_info.dict.return_value = mock_key_info.model_dump.return_value
 
-    mock_prisma_client.db.litellm_verificationtoken.find_unique = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_unique = AsyncMock(
         return_value=mock_key_info
     )
     mock_prisma_client.db.query_raw = AsyncMock()
@@ -14171,7 +14171,7 @@ async def test_info_key_fn_budget_table_fallback(monkeypatch):
     }
     mock_key_info.dict.return_value = mock_key_info.model_dump.return_value
 
-    mock_prisma_client.db.litellm_verificationtoken.find_unique = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_unique = AsyncMock(
         return_value=mock_key_info
     )
     mock_prisma_client.db.query_raw = AsyncMock()
@@ -14310,7 +14310,7 @@ async def test_info_key_fn_reports_budget_limits_usage(monkeypatch):
     }
     mock_key_info.dict.return_value = mock_key_info.model_dump.return_value
 
-    mock_prisma_client.db.litellm_verificationtoken.find_unique = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_unique = AsyncMock(
         return_value=mock_key_info
     )
 
@@ -14374,7 +14374,7 @@ async def test_info_key_fn_no_budget_limits_skips_spend_lookup(monkeypatch):
     }
     mock_key_info.dict.return_value = mock_key_info.model_dump.return_value
 
-    mock_prisma_client.db.litellm_verificationtoken.find_unique = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_unique = AsyncMock(
         return_value=mock_key_info
     )
 
@@ -14614,7 +14614,7 @@ async def test_info_key_fn_reads_the_configured_budget_model_key(monkeypatch):
     }
     mock_key_info.dict.return_value = mock_key_info.model_dump.return_value
 
-    mock_prisma_client.db.litellm_verificationtoken.find_unique = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_unique = AsyncMock(
         return_value=mock_key_info
     )
     mock_prisma_client.db.query_raw = AsyncMock()
@@ -15913,19 +15913,19 @@ async def test_rotate_master_key_rotates_sso_identity_assertions(
 
     mock_prisma_client = AsyncMock()
     mock_prisma_client.db = MagicMock()
-    mock_prisma_client.db.litellm_proxymodeltable.find_many = AsyncMock(return_value=[])
+    mock_prisma_client.db.proxymodeltable.find_many = AsyncMock(return_value=[])
     mock_tx = AsyncMock()
-    mock_tx.litellm_proxymodeltable = MagicMock()
-    mock_tx.litellm_proxymodeltable.delete_many = AsyncMock()
-    mock_tx.litellm_proxymodeltable.create_many = AsyncMock()
+    mock_tx.proxymodeltable = MagicMock()
+    mock_tx.proxymodeltable.delete_many = AsyncMock()
+    mock_tx.proxymodeltable.create_many = AsyncMock()
     mock_prisma_client.db.tx = MagicMock(
         return_value=AsyncMock(
             __aenter__=AsyncMock(return_value=mock_tx),
             __aexit__=AsyncMock(return_value=False),
         )
     )
-    mock_prisma_client.db.litellm_config.find_many = AsyncMock(return_value=[])
-    mock_prisma_client.db.litellm_credentialstable.find_many = AsyncMock(
+    mock_prisma_client.db.config.find_many = AsyncMock(return_value=[])
+    mock_prisma_client.db.credentialstable.find_many = AsyncMock(
         return_value=[]
     )
 
@@ -16192,7 +16192,7 @@ def _wire_update_key_fn(monkeypatch, existing_key):
 
     mock_prisma_client.get_data = AsyncMock(return_value=existing_key)
     mock_prisma_client.update_data = AsyncMock(return_value=updated_key)
-    mock_prisma_client.db.litellm_verificationtoken.find_unique = AsyncMock(return_value=existing_key)
+    mock_prisma_client.db.verificationtoken.find_unique = AsyncMock(return_value=existing_key)
 
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.user_api_key_cache", AsyncMock())
@@ -16543,7 +16543,7 @@ async def test_execute_virtual_key_regeneration_stamps_settings_updated_at():
         )
         after = datetime.now(timezone.utc)
 
-    sent = mock_prisma_client.db.litellm_verificationtoken.update.call_args.kwargs["data"]
+    sent = mock_prisma_client.db.verificationtoken.update.call_args.kwargs["data"]
     assert sent["max_budget"] == 42.0
     assert before <= sent["settings_updated_at"] <= after
 
@@ -16571,7 +16571,7 @@ async def test_block_key_stamps_settings_updated_at(monkeypatch):
     )
     after = datetime.now(timezone.utc)
 
-    sent = mock_prisma_client.db.litellm_verificationtoken.update.call_args.kwargs["data"]
+    sent = mock_prisma_client.db.verificationtoken.update.call_args.kwargs["data"]
     assert sent["blocked"] is True
     assert before <= sent["settings_updated_at"] <= after
 
@@ -16599,7 +16599,7 @@ async def test_unblock_key_stamps_settings_updated_at(monkeypatch):
     )
     after = datetime.now(timezone.utc)
 
-    sent = mock_prisma_client.db.litellm_verificationtoken.update.call_args.kwargs["data"]
+    sent = mock_prisma_client.db.verificationtoken.update.call_args.kwargs["data"]
     assert sent["blocked"] is False
     assert before <= sent["settings_updated_at"] <= after
 
@@ -16610,11 +16610,11 @@ def _wire_key_generation_prisma(monkeypatch):
     mock_prisma_client = AsyncMock()
     mock_prisma_client.insert_data = AsyncMock(return_value=created_key)
     mock_prisma_client.db = MagicMock()
-    mock_prisma_client.db.litellm_verificationtoken = MagicMock()
-    mock_prisma_client.db.litellm_verificationtoken.find_unique = AsyncMock(return_value=None)
-    mock_prisma_client.db.litellm_verificationtoken.find_many = AsyncMock(return_value=[])
-    mock_prisma_client.db.litellm_verificationtoken.count = AsyncMock(return_value=0)
-    mock_prisma_client.db.litellm_verificationtoken.update = AsyncMock(return_value=created_key)
+    mock_prisma_client.db.verificationtoken = MagicMock()
+    mock_prisma_client.db.verificationtoken.find_unique = AsyncMock(return_value=None)
+    mock_prisma_client.db.verificationtoken.find_many = AsyncMock(return_value=[])
+    mock_prisma_client.db.verificationtoken.count = AsyncMock(return_value=0)
+    mock_prisma_client.db.verificationtoken.update = AsyncMock(return_value=created_key)
 
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client)
 
@@ -16854,10 +16854,10 @@ async def test_update_key_syncs_access_group_assigned_key_ids_in_both_directions
     }
 
     mock_prisma_client = AsyncMock()
-    mock_prisma_client.db.litellm_verificationtoken.find_unique = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_unique = AsyncMock(
         return_value=key_in_db
     )
-    mock_prisma_client.db.litellm_verificationtoken.find_first = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_first = AsyncMock(
         return_value=None
     )
     mock_prisma_client.update_data = AsyncMock(return_value={"data": {}})
@@ -16942,10 +16942,10 @@ async def test_update_key_leaves_access_groups_alone_when_field_is_unset(monkeyp
     }
 
     mock_prisma_client = AsyncMock()
-    mock_prisma_client.db.litellm_verificationtoken.find_unique = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_unique = AsyncMock(
         return_value=key_in_db
     )
-    mock_prisma_client.db.litellm_verificationtoken.find_first = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_first = AsyncMock(
         return_value=None
     )
     mock_prisma_client.update_data = AsyncMock(return_value={"data": {}})
@@ -17060,11 +17060,11 @@ async def test_delete_key_withdraws_token_from_its_access_groups(monkeypatch):
     }
 
     mock_prisma_client = AsyncMock()
-    mock_prisma_client.db.litellm_verificationtoken.find_many = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_many = AsyncMock(
         return_value=[key_in_db]
     )
     mock_prisma_client.delete_data = AsyncMock(return_value={"deleted_keys": 1})
-    mock_prisma_client.db.litellm_deletedverificationtoken.create_many = AsyncMock()
+    mock_prisma_client.db.deletedverificationtoken.create_many = AsyncMock()
     _access_group_table_mocks(monkeypatch, mock_prisma_client, access_groups)
     monkeypatch.setattr(
         "token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client
@@ -17244,10 +17244,10 @@ async def test_key_write_paths_revoke_the_key_cache_before_syncing_access_groups
     }
 
     mock_prisma_client = AsyncMock()
-    mock_prisma_client.db.litellm_verificationtoken.find_unique = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_unique = AsyncMock(
         return_value=key_in_db
     )
-    mock_prisma_client.db.litellm_verificationtoken.find_first = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_first = AsyncMock(
         return_value=None
     )
     mock_prisma_client.update_data = AsyncMock(return_value={"data": {}})
@@ -17319,10 +17319,10 @@ async def test_update_key_syncs_many_access_groups_in_one_statement_per_directio
     }
 
     mock_prisma_client = AsyncMock()
-    mock_prisma_client.db.litellm_verificationtoken.find_unique = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_unique = AsyncMock(
         return_value=key_in_db
     )
-    mock_prisma_client.db.litellm_verificationtoken.find_first = AsyncMock(
+    mock_prisma_client.db.verificationtoken.find_first = AsyncMock(
         return_value=None
     )
     mock_prisma_client.update_data = AsyncMock(return_value={"data": {}})
@@ -17556,7 +17556,7 @@ async def _generate_key_with_project(
         team_id=data.team_id, members_with_roles=members, team_member_permissions=("/key/generate",)
     )
     prisma: Final = AsyncMock()
-    prisma.db.litellm_teamtable.find_unique = AsyncMock(
+    prisma.db.teamtable.find_unique = AsyncMock(
         return_value=MagicMock(model_dump=MagicMock(return_value=team.model_dump()))
     )
     helper: Final = AsyncMock(return_value=MagicMock())

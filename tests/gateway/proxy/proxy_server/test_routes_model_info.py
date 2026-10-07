@@ -233,7 +233,7 @@ def test_model_info_team_key_sees_own_byok_model(client, auth_as, byok_team_rout
     from token_iq.gateway.proxy._types import GatewayUserRoles
 
     monkeypatch.setattr(proxy_server, "prisma_client", mock_prisma)
-    mock_prisma.db.litellm_usertable.find_unique.return_value = None
+    mock_prisma.db.usertable.find_unique.return_value = None
 
     with auth_as(
         role=GatewayUserRoles.INTERNAL_USER,
@@ -261,7 +261,7 @@ def test_model_info_team_key_cannot_see_other_teams_byok_model(
     from token_iq.gateway.proxy._types import GatewayUserRoles
 
     monkeypatch.setattr(proxy_server, "prisma_client", mock_prisma)
-    mock_prisma.db.litellm_usertable.find_unique.return_value = None
+    mock_prisma.db.usertable.find_unique.return_value = None
 
     with auth_as(
         role=GatewayUserRoles.INTERNAL_USER,

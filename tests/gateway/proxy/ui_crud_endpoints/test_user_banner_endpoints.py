@@ -51,8 +51,8 @@ def mock_audit_log(monkeypatch):
 
 def _mock_prisma(monkeypatch, record=None):
     mock_prisma = MagicMock()
-    mock_prisma.db.litellm_uisettings.find_unique = AsyncMock(return_value=record)
-    mock_prisma.db.litellm_uisettings.upsert = AsyncMock()
+    mock_prisma.db.uisettings.find_unique = AsyncMock(return_value=record)
+    mock_prisma.db.uisettings.upsert = AsyncMock()
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
     return mock_prisma
 
@@ -104,7 +104,7 @@ class TestUpdateUserBanner:
         mock_prisma = _mock_prisma(monkeypatch)
         response = client.patch("/update/user_banner", json=PUBLISH_BODY)
         assert response.status_code == 403
-        mock_prisma.db.litellm_uisettings.upsert.assert_not_awaited()
+        mock_prisma.db.uisettings.upsert.assert_not_awaited()
 
     def test_persists_and_round_trips(self, admin_auth, monkeypatch, mock_audit_log):
         mock_prisma = _mock_prisma(monkeypatch, record=None)
@@ -115,13 +115,13 @@ class TestUpdateUserBanner:
         assert {k: saved[k] for k in PUBLISH_BODY} == PUBLISH_BODY
         assert saved["revision"] != ""
 
-        upsert_kwargs = mock_prisma.db.litellm_uisettings.upsert.await_args.kwargs
+        upsert_kwargs = mock_prisma.db.uisettings.upsert.await_args.kwargs
         assert upsert_kwargs["where"] == {"id": "user_banner"}
         persisted_payload = upsert_kwargs["data"]["create"]["ui_settings"]
         assert json.loads(persisted_payload) == saved
         assert json.loads(upsert_kwargs["data"]["update"]["ui_settings"]) == saved
 
-        mock_prisma.db.litellm_uisettings.find_unique = AsyncMock(
+        mock_prisma.db.uisettings.find_unique = AsyncMock(
             return_value=SimpleNamespace(ui_settings=persisted_payload)
         )
         read_back = client.get("/get/user_banner")
@@ -172,4 +172,4 @@ class TestUpdateUserBanner:
         mock_prisma = _mock_prisma(monkeypatch)
         response = client.patch("/update/user_banner", json=payload)
         assert response.status_code == 422
-        mock_prisma.db.litellm_uisettings.upsert.assert_not_awaited()
+        mock_prisma.db.uisettings.upsert.assert_not_awaited()

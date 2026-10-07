@@ -36,15 +36,15 @@ class _ModelDumpMethod(Protocol):
 _ROW_DICT: Final = TypeAdapter(dict)
 
 
-def _tool_table_actions(prisma_client: "PrismaClient") -> "TableActions[prisma_db_models.LiteLLM_ToolTable]":
-    table: Final[TableActions[prisma_db_models.LiteLLM_ToolTable]] = ToolRepository(prisma_client).table
+def _tool_table_actions(prisma_client: "PrismaClient") -> "TableActions[prisma_db_models.ToolTable]":
+    table: Final[TableActions[prisma_db_models.ToolTable]] = ToolRepository(prisma_client).table
     return table
 
 
 def _object_permission_table_actions(
     prisma_client: "PrismaClient",
-) -> "TableActions[prisma_db_models.LiteLLM_ObjectPermissionTable]":
-    table: Final[TableActions[prisma_db_models.LiteLLM_ObjectPermissionTable]] = ObjectPermissionRepository(
+) -> "TableActions[prisma_db_models.ObjectPermissionTable]":
+    table: Final[TableActions[prisma_db_models.ObjectPermissionTable]] = ObjectPermissionRepository(
         prisma_client
     ).table
     return table

@@ -59,7 +59,7 @@ async def test_key_generate_authz_matrix(
         resp.status_code == expected_status
     ), f"{actor.value} {body!r} → {resp.status_code}: {resp.text}"
 
-    rows = await prisma.db.litellm_verificationtoken.find_many(
+    rows = await prisma.db.verificationtoken.find_many(
         where={"key_alias": scratch.prefix}
     )
     if expected_status == 200:

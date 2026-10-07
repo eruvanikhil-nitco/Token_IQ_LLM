@@ -200,8 +200,8 @@ async def test_custom_auth_token_budget_still_loads_and_caches_unrestricted_end_
     }
 
     mock_prisma = MagicMock()
-    mock_prisma.db.litellm_endusertable.find_many = AsyncMock(return_value=[])
-    mock_prisma.db.litellm_endusertable.find_unique = AsyncMock(return_value=end_user_row)
+    mock_prisma.db.endusertable.find_many = AsyncMock(return_value=[])
+    mock_prisma.db.endusertable.find_unique = AsyncMock(return_value=end_user_row)
     cache = UserApiKeyCache()
 
     _, end_user_object = await _lookup_end_user_and_apply_budget(

@@ -127,7 +127,7 @@ def mock_prisma_client():
     mock_table.update = AsyncMock(side_effect=update)
     mock_table.delete = AsyncMock(side_effect=delete)
 
-    mock_client.db.litellm_claudecodeplugintable = mock_table
+    mock_client.db.claudecodeplugintable = mock_table
     mock_client.connect = AsyncMock(side_effect=connect)
 
     # Store plugins_store on the mock for cleanup if needed
@@ -173,7 +173,7 @@ async def test_register_plugin(mock_prisma_client):
 
     # Verify the plugin was stored in the mock
     stored_plugin = (
-        await mock_prisma_client.db.litellm_claudecodeplugintable.find_unique(
+        await mock_prisma_client.db.claudecodeplugintable.find_unique(
             where={"name": plugin_name}
         )
     )
@@ -181,7 +181,7 @@ async def test_register_plugin(mock_prisma_client):
     assert stored_plugin.name == plugin_name
 
     # Cleanup - delete the plugin
-    await mock_prisma_client.db.litellm_claudecodeplugintable.delete(
+    await mock_prisma_client.db.claudecodeplugintable.delete(
         where={"name": plugin_name}
     )
 
@@ -234,7 +234,7 @@ async def test_get_marketplace(mock_prisma_client):
     assert our_plugin["version"] == "2.0.0"
 
     # Cleanup
-    await mock_prisma_client.db.litellm_claudecodeplugintable.delete(
+    await mock_prisma_client.db.claudecodeplugintable.delete(
         where={"name": plugin_name}
     )
 
@@ -283,6 +283,6 @@ async def test_register_plugin_git_subdir(mock_prisma_client):
     assert response.plugin.enabled is True
 
     # Cleanup
-    await mock_prisma_client.db.litellm_claudecodeplugintable.delete(
+    await mock_prisma_client.db.claudecodeplugintable.delete(
         where={"name": plugin_name}
     )

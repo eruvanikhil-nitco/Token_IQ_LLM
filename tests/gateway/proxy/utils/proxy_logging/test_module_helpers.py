@@ -300,7 +300,7 @@ async def test_lookup_deprecated_key_returns_active_token_id_and_caches(monkeypa
     deprecated_row.revoke_at = future
 
     db = MagicMock()
-    db.litellm_deprecatedverificationtoken.find_first = AsyncMock(return_value=deprecated_row)
+    db.deprecatedverificationtoken.find_first = AsyncMock(return_value=deprecated_row)
 
     result = await _lookup_deprecated_key(db=db, hashed_token="hash-abc")
     cached_value = fresh.get("hash-abc")
@@ -322,7 +322,7 @@ async def test_lookup_deprecated_key_returns_none_when_not_found(monkeypatch):
 
     monkeypatch.setattr(utils_mod, "_deprecated_key_cache", LimitedSizeOrderedDict(max_size=10))
     db = MagicMock()
-    db.litellm_deprecatedverificationtoken.find_first = AsyncMock(return_value=None)
+    db.deprecatedverificationtoken.find_first = AsyncMock(return_value=None)
     assert await _lookup_deprecated_key(db=db, hashed_token="missing") is None
 
 
@@ -332,7 +332,7 @@ async def test_lookup_deprecated_key_db_error_returns_none(monkeypatch):
 
     monkeypatch.setattr(utils_mod, "_deprecated_key_cache", LimitedSizeOrderedDict(max_size=10))
     db = MagicMock()
-    db.litellm_deprecatedverificationtoken.find_first = AsyncMock(side_effect=RuntimeError("db down"))
+    db.deprecatedverificationtoken.find_first = AsyncMock(side_effect=RuntimeError("db down"))
     result = await _lookup_deprecated_key(db=db, hashed_token="x")
     assert result is None
 
@@ -347,7 +347,7 @@ async def test_lookup_deprecated_key_uses_cache_within_ttl(monkeypatch):
     monkeypatch.setattr(utils_mod, "_deprecated_key_cache", cache)
 
     db = MagicMock()
-    db.litellm_deprecatedverificationtoken.find_first = AsyncMock(return_value=None)
+    db.deprecatedverificationtoken.find_first = AsyncMock(return_value=None)
     result = await _lookup_deprecated_key(db=db, hashed_token="hashY")
     assert result == "active-from-cache"
-    db.litellm_deprecatedverificationtoken.find_first.assert_not_called()
+    db.deprecatedverificationtoken.find_first.assert_not_called()

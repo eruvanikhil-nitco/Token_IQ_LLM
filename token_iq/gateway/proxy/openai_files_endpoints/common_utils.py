@@ -26,7 +26,7 @@ from token_iq.gateway import compat
 
 if TYPE_CHECKING:
     from fastapi import Request
-    from prisma.models import LiteLLM_ManagedObjectTable
+    from prisma.models import ManagedObjectTable
 
     from token_iq.gateway.proxy._types import UserAPIKeyAuth
     from token_iq.gateway.proxy.utils import PrismaClient
@@ -1105,7 +1105,7 @@ def _model_name_for_batch_response(response: "GatewayBatch") -> str | None:
     )
 
 
-def _batch_owner_auth_from_db_object(db_batch_object: "LiteLLM_ManagedObjectTable") -> "UserAPIKeyAuth | None":
+def _batch_owner_auth_from_db_object(db_batch_object: "ManagedObjectTable") -> "UserAPIKeyAuth | None":
     from token_iq.gateway.proxy._types import UserAPIKeyAuth
 
     created_by: Final = getattr(db_batch_object, "created_by", None)
@@ -1193,7 +1193,7 @@ async def ensure_batch_response_managed_file_ids(
     prisma_client,
     verbose_proxy_logger,
     user_api_key_dict=None,
-    db_batch_object: "LiteLLM_ManagedObjectTable | None" = None,
+    db_batch_object: "ManagedObjectTable | None" = None,
     unified_batch_id: str | Literal[False] | None = None,
 ) -> None:
     """Normalize batch file IDs to managed unified IDs before DB persistence."""
@@ -1371,7 +1371,7 @@ async def update_batch_in_database(
     managed_files_obj,
     prisma_client,
     verbose_proxy_logger,
-    db_batch_object: "LiteLLM_ManagedObjectTable | None" = None,
+    db_batch_object: "ManagedObjectTable | None" = None,
     operation: str = "update",
     user_api_key_dict=None,
     poller_owns_accounting: bool | None = None,

@@ -47,10 +47,10 @@ from token_iq.gateway.types.tag_management import (
 )
 
 if TYPE_CHECKING:
-    from prisma.models import LiteLLM_BudgetTable as PrismaBudgetTable
-    from prisma.models import LiteLLM_ProxyModelTable as PrismaProxyModelTable
-    from prisma.models import LiteLLM_TagTable as PrismaTagTable
-    from prisma.models import LiteLLM_VerificationToken as PrismaVerificationToken
+    from prisma.models import BudgetTable as PrismaBudgetTable
+    from prisma.models import ProxyModelTable as PrismaProxyModelTable
+    from prisma.models import TagTable as PrismaTagTable
+    from prisma.models import VerificationToken as PrismaVerificationToken
 
     from token_iq.gateway import Router
     from token_iq.gateway.proxy.utils import PrismaClient
@@ -766,7 +766,7 @@ async def get_tag_daily_activity(
 
     return await get_daily_activity(
         prisma_client=prisma_client,
-        table_name="litellm_dailytagspend",
+        table_name="dailytagspend",
         entity_id_field="tag",
         entity_id=tag_list,
         entity_metadata_field=None,

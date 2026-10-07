@@ -186,9 +186,9 @@ if TYPE_CHECKING:
     from mcp.types import CallToolResult
     from opentelemetry.trace import Span as _Span
     from prisma import models as prisma_models
-    from prisma.actions import LiteLLM_DeprecatedVerificationTokenActions
+    from prisma.actions import DeprecatedVerificationTokenActions
     from prisma.client import TransactionManager
-    from prisma.models import LiteLLM_DeprecatedVerificationToken
+    from prisma.models import DeprecatedVerificationToken
     from prisma.types import HttpConfig
 
     from token_iq.gateway.core_utils.litellm_logging import Logging as GatewayLoggingObj
@@ -220,7 +220,7 @@ class _EndUserBatchTable(Protocol):
 
 class _EndUserSpendBatch(Protocol):
     @property
-    def litellm_endusertable(self) -> _EndUserBatchTable: ...
+    def endusertable(self) -> _EndUserBatchTable: ...
 
 
 unified_guardrail: Final = UnifiedLLMGuardrails()
@@ -3358,8 +3358,8 @@ async def _lookup_deprecated_key(
 
     try:
         deprecated_keys_table: Final[
-            LiteLLM_DeprecatedVerificationTokenActions[LiteLLM_DeprecatedVerificationToken]
-        ] = db.litellm_deprecatedverificationtoken
+            DeprecatedVerificationTokenActions[DeprecatedVerificationToken]
+        ] = db.deprecatedverificationtoken
         deprecated_row: Final = await deprecated_keys_table.find_first(
             where={
                 "token": hashed_token,
@@ -3448,7 +3448,7 @@ async def prefetch_config_params(prisma_client: "PrismaClient | None", param_nam
         return
     try:
         config_table: Final = cast(  # cast-ok: ConfigRepository.table is prisma's litellm_config actions object
-            "TableActions[prisma_models.LiteLLM_Config]", ConfigRepository(prisma_client).table
+            "TableActions[prisma_models.Config]", ConfigRepository(prisma_client).table
         )
         rows: Final = await config_table.find_many(where={"param_name": {"in": param_names}})
     except Exception as e:
@@ -3875,7 +3875,7 @@ class PrismaClient:
                 return await VerificationTokenRepository(self).table.find_first(where={key: value})
             elif table_name == "config":
                 config_table: Final = cast(  # cast-ok: ConfigRepository.table is prisma's litellm_config actions object
-                    "TableActions[prisma_models.LiteLLM_Config]", ConfigRepository(self).table
+                    "TableActions[prisma_models.Config]", ConfigRepository(self).table
                 )
                 return await config_table.find_first(where={key: value})
             elif table_name == "spend":
@@ -4640,7 +4640,7 @@ class PrismaClient:
                         data_json = self.jsonify_object(data=t.model_dump(exclude_none=True))
                     except Exception:
                         data_json = self.jsonify_object(data=t.dict(exclude_none=True))
-                    batcher.litellm_verificationtoken.update(
+                    batcher.verificationtoken.update(
                         where={"token": t.token},
                         data={**data_json},
                     )
@@ -4662,7 +4662,7 @@ class PrismaClient:
                         data_json = self.jsonify_object(data=user.model_dump(exclude_none=True))
                     except Exception:
                         data_json = self.jsonify_object(data=user.dict())
-                    batcher.litellm_usertable.upsert(
+                    batcher.usertable.upsert(
                         where={"user_id": user.user_id},
                         data={
                             "create": {**data_json},
@@ -4687,7 +4687,7 @@ class PrismaClient:
                         data_json = self.jsonify_object(data=enduser.model_dump(exclude_none=True))
                     except Exception:
                         data_json = self.jsonify_object(data=enduser.dict())
-                    batcher.litellm_endusertable.upsert(
+                    batcher.endusertable.upsert(
                         where={"user_id": enduser.user_id},
                         data={
                             "create": {**data_json},
@@ -4712,7 +4712,7 @@ class PrismaClient:
                         data_json = self.jsonify_object(data=budget.model_dump(exclude_none=True))
                     except Exception:
                         data_json = self.jsonify_object(data=budget.dict())
-                    batcher.litellm_budgettable.upsert(
+                    batcher.budgettable.upsert(
                         where={"budget_id": budget.budget_id},
                         data={
                             "create": {**data_json},
@@ -4735,7 +4735,7 @@ class PrismaClient:
                         data_json = self.jsonify_team_object(db_data=team.model_dump(exclude_none=True))
                     except Exception:
                         data_json = self.jsonify_object(data=team.dict(exclude_none=True))
-                    batcher.litellm_teamtable.upsert(
+                    batcher.teamtable.upsert(
                         where={"team_id": team.team_id},
                         data={
                             "create": {**data_json},
@@ -5946,7 +5946,7 @@ class PrismaClient:
         limit: int = 100,
         offset: int = 0,
         status_filter: str | None = None,
-    ) -> "Sequence[prisma_models.LiteLLM_HealthCheckTable]":
+    ) -> "Sequence[prisma_models.HealthCheckTable]":
         """
         Get health check history with optional filtering
         """
@@ -5968,7 +5968,7 @@ class PrismaClient:
             verbose_proxy_logger.error("Error getting health check history: %s", e)
             return []
 
-    async def get_all_latest_health_checks(self) -> "Sequence[prisma_models.LiteLLM_HealthCheckTable]":
+    async def get_all_latest_health_checks(self) -> "Sequence[prisma_models.HealthCheckTable]":
         """
         Get the latest health check for each model.
 
@@ -5990,7 +5990,7 @@ class PrismaClient:
 
     async def get_latest_health_checks_for_models(
         self, model_names: "Sequence[str]"
-    ) -> "Sequence[prisma_models.LiteLLM_HealthCheckTable]":
+    ) -> "Sequence[prisma_models.HealthCheckTable]":
         """
         Get the latest health check for each of the named models.
 
@@ -6304,7 +6304,7 @@ class ProxyUpdateSpend:
                         for end_user_id, response_cost in sorted(end_user_list_transactions.items()):
                             if gateway.max_end_user_budget is not None:
                                 pass
-                            batcher.litellm_endusertable.upsert(
+                            batcher.endusertable.upsert(
                                 where={"user_id": end_user_id},
                                 data={
                                     "create": {

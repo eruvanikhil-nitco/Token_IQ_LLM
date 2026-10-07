@@ -9,8 +9,8 @@ from token_iq.api.audit_logs import list_audit_logs
 
 def _prisma_with_no_rows() -> MagicMock:
     client = MagicMock()
-    client.db.litellm_auditlog.count = AsyncMock(return_value=0)
-    client.db.litellm_auditlog.find_many = AsyncMock(return_value=[])
+    client.db.auditlog.count = AsyncMock(return_value=0)
+    client.db.auditlog.find_many = AsyncMock(return_value=[])
     return client
 
 

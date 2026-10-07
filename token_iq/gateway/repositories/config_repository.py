@@ -37,7 +37,7 @@ class _ConfigTable(Protocol):
 
 class _ConfigDb(Protocol):
     @property
-    def litellm_config(self) -> _ConfigTable: ...
+    def config(self) -> _ConfigTable: ...
 
 
 class _PrismaHandle(Protocol):
@@ -74,7 +74,7 @@ class ConfigRepository:
 
     @property
     def _config_table(self) -> _ConfigTable:
-        return self.prisma_client.db.litellm_config
+        return self.prisma_client.db.config
 
     @property
     def table(self) -> _ConfigTable:

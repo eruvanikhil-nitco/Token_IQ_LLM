@@ -105,7 +105,7 @@ def _is_stamped_issuer_row(row: _MCPServerRow) -> bool:
 
 async def backfill_discovery_stamped_issuers(prisma_client: PrismaClient) -> int:
     """Clear gateway-written issuer stamps, returning the number of rows healed."""
-    candidate_rows: Final[list[_MCPServerRow]] = await prisma_client.db.litellm_mcpservertable.find_many(
+    candidate_rows: Final[list[_MCPServerRow]] = await prisma_client.db.mcpservertable.find_many(
         where={
             "updated_by": _DISCOVERY_ACTOR,
             "auth_type": {"in": list(_AUTH_TYPES_WITH_ISSUER_ANCHORING)},
@@ -118,7 +118,7 @@ async def backfill_discovery_stamped_issuers(prisma_client: PrismaClient) -> int
     healed = 0
     for row in stamped:
         try:
-            await prisma_client.db.litellm_mcpservertable.update(
+            await prisma_client.db.mcpservertable.update(
                 where={"server_id": row.server_id},
                 data={"issuer": None, "updated_by": _BACKFILL_ACTOR},
             )

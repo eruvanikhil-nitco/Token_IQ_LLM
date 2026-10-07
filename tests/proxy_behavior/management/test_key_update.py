@@ -92,7 +92,7 @@ async def test_key_update_authz_matrix(
         resp.status_code == expected_status
     ), f"{actor.value} {target_shape}: {resp.status_code} {resp.text}"
 
-    row = await prisma.db.litellm_verificationtoken.find_unique(
+    row = await prisma.db.verificationtoken.find_unique(
         where={"token": target_hashed}
     )
     assert row is not None
@@ -175,7 +175,7 @@ async def test_key_update_denied_does_not_touch_budget_counters(
         resp.status_code == expected_status
     ), f"{actor.value} {target_shape}: {resp.status_code} {resp.text}"
 
-    row = await prisma.db.litellm_verificationtoken.find_unique(
+    row = await prisma.db.verificationtoken.find_unique(
         where={"token": target_hashed}
     )
     assert row is not None

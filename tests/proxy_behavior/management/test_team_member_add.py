@@ -90,7 +90,7 @@ async def test_team_member_add_authz_matrix(
         resp.status_code == expected_status
     ), f"{actor.value} {shape}: {resp.status_code} {resp.text}"
 
-    row = await prisma.db.litellm_teamtable.find_unique(
+    row = await prisma.db.teamtable.find_unique(
         where={"team_id": scratch.prefix}
     )
     assert row is not None
@@ -132,7 +132,7 @@ async def test_team_member_add_unprovisioned_user_id_is_proxy_admin_only(
     # calls, and its absence here is the whole scenario.
     unprovisioned_id = scratch.tag("unprovisioned")
     assert (
-        await prisma.db.litellm_usertable.find_unique(
+        await prisma.db.usertable.find_unique(
             where={"user_id": unprovisioned_id}
         )
         is None
@@ -150,11 +150,11 @@ async def test_team_member_add_unprovisioned_user_id_is_proxy_admin_only(
         resp.status_code == expected_status
     ), f"{actor.value}: {resp.status_code} {resp.text}"
 
-    row = await prisma.db.litellm_teamtable.find_unique(
+    row = await prisma.db.teamtable.find_unique(
         where={"team_id": scratch.prefix}
     )
     assert row is not None
-    created = await prisma.db.litellm_usertable.find_unique(
+    created = await prisma.db.usertable.find_unique(
         where={"user_id": unprovisioned_id}
     )
     if expected_status == 200:
@@ -193,11 +193,11 @@ async def test_team_member_add_email_invite_open_to_team_admin(
     )
     assert resp.status_code == 200, resp.text
 
-    invited = await prisma.db.litellm_usertable.find_first(
+    invited = await prisma.db.usertable.find_first(
         where={"user_email": email}
     )
     assert invited is not None, "invite did not create the user"
-    row = await prisma.db.litellm_teamtable.find_unique(
+    row = await prisma.db.teamtable.find_unique(
         where={"team_id": scratch.prefix}
     )
     assert row is not None
@@ -251,7 +251,7 @@ async def test_team_member_add_available_team_self_join(
         resp.status_code == expected_status
     ), f"{who}/{role}: {resp.status_code} {resp.text}"
 
-    row = await prisma.db.litellm_teamtable.find_unique(
+    row = await prisma.db.teamtable.find_unique(
         where={"team_id": scratch.prefix}
     )
     assert row is not None

@@ -34,7 +34,7 @@ async def _seed_alias_keys(prisma, prefix: str, world) -> dict:
         }
         if team_id is not None:
             data["team_id"] = team_id
-        await prisma.db.litellm_verificationtoken.create(data=data)
+        await prisma.db.verificationtoken.create(data=data)
         out[tag] = alias
     return out
 

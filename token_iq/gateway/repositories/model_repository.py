@@ -21,7 +21,7 @@ if TYPE_CHECKING:
 
 class _PrismaModelDb(Protocol):
     @property
-    def litellm_proxymodeltable(self) -> TableActions["prisma_models.LiteLLM_ProxyModelTable"]: ...
+    def proxymodeltable(self) -> TableActions["prisma_models.ProxyModelTable"]: ...
 
 
 class _PrismaClientView(Protocol):
@@ -37,11 +37,11 @@ class ModelRepository(BaseRepository[LiteLLM_ProxyModelTable]):
         self._encryption_key = encryption_key
 
     @property
-    def table(self) -> TableActions["prisma_models.LiteLLM_ProxyModelTable"]:
+    def table(self) -> TableActions["prisma_models.ProxyModelTable"]:
         client: Final[_PrismaClientView] = self.prisma_client
         return wrap_table_actions_for_config_sync(
-            actions=client.db.litellm_proxymodeltable,
-            table_name="litellm_proxymodeltable",
+            actions=client.db.proxymodeltable,
+            table_name="proxymodeltable",
         )
 
     @property

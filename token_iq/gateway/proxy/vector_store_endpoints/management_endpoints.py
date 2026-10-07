@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING, Any, Final
 from fastapi import APIRouter, Depends, HTTPException
 
 if TYPE_CHECKING:
-    from prisma.models import LiteLLM_ManagedVectorStoresTable as _VectorStoreRow
+    from prisma.models import ManagedVectorStoresTable as _VectorStoreRow
 
     from token_iq.gateway.proxy.utils import PrismaClient
 from token_iq import gateway

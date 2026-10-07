@@ -55,7 +55,7 @@ async def _seed_scratch_actor_with_caps(
     """
     user_id = f"{scratch_prefix}-team-creator"
     cleartext = "sk-" + uuid.uuid4().hex
-    await prisma.db.litellm_usertable.create(
+    await prisma.db.usertable.create(
         data={
             "user_id": user_id,
             "user_role": user_role,
@@ -74,7 +74,7 @@ async def _seed_scratch_actor_with_caps(
         token_data["tpm_limit"] = tpm_limit
     if rpm_limit is not None:
         token_data["rpm_limit"] = rpm_limit
-    await prisma.db.litellm_verificationtoken.create(data=token_data)
+    await prisma.db.verificationtoken.create(data=token_data)
     return cleartext
 
 
@@ -134,7 +134,7 @@ async def test_check_org_team_limits_models_subset(
     )
     assert resp.status_code == expected_status, f"{body!r} → {resp.status_code}: {resp.text}"
 
-    rows = await prisma.db.litellm_teamtable.find_many(where={"team_id": team_id})
+    rows = await prisma.db.teamtable.find_many(where={"team_id": team_id})
     assert len(rows) == (1 if expected_status == 200 else 0)
 
 
@@ -212,7 +212,7 @@ async def test_check_org_team_limits_budget_enforced(
         },
     )
     assert resp.status_code == expected_status, f"{body_extras!r} → {resp.status_code}: {resp.text}"
-    rows = await prisma.db.litellm_teamtable.find_many(where={"team_id": team_id})
+    rows = await prisma.db.teamtable.find_many(where={"team_id": team_id})
     assert len(rows) == (1 if expected_status == 200 else 0)
 
 
@@ -302,7 +302,7 @@ async def test_check_user_team_limits(
         f"caps={actor_caps} body={body_extras} → {resp.status_code}: {resp.text}"
     )
 
-    rows = await prisma.db.litellm_teamtable.find_many(where={"team_id": team_id})
+    rows = await prisma.db.teamtable.find_many(where={"team_id": team_id})
     assert len(rows) == (1 if expected_status == 200 else 0)
 
 
@@ -339,7 +339,7 @@ async def test_team_admin_raise_budget_blocked(proxy_client, prisma, scratch):
     )
     assert resp.status_code == 403, resp.text
 
-    row = await prisma.db.litellm_teamtable.find_unique(where={"team_id": team_id})
+    row = await prisma.db.teamtable.find_unique(where={"team_id": team_id})
     assert row is not None
     assert row.max_budget == 50.0, "team budget must not change on a blocked raise"
 
@@ -366,7 +366,7 @@ async def test_team_admin_lower_budget_allowed(proxy_client, prisma, scratch):
     )
     assert resp.status_code == 200, resp.text
 
-    row = await prisma.db.litellm_teamtable.find_unique(where={"team_id": team_id})
+    row = await prisma.db.teamtable.find_unique(where={"team_id": team_id})
     assert row is not None
     assert row.max_budget == 300.0, "team admin should be able to lower the budget"
 
@@ -387,7 +387,7 @@ async def test_proxy_admin_raise_budget_allowed(proxy_client, prisma, scratch):
     )
     assert resp.status_code == 200, resp.text
 
-    row = await prisma.db.litellm_teamtable.find_unique(where={"team_id": team_id})
+    row = await prisma.db.teamtable.find_unique(where={"team_id": team_id})
     assert row is not None
     assert row.max_budget == 999.0, "proxy admin should be able to raise the budget"
 
@@ -409,7 +409,7 @@ async def test_team_admin_remove_budget_cap_blocked(proxy_client, prisma, scratc
     )
     assert resp.status_code == 403, resp.text
 
-    row = await prisma.db.litellm_teamtable.find_unique(where={"team_id": team_id})
+    row = await prisma.db.teamtable.find_unique(where={"team_id": team_id})
     assert row is not None
     assert row.max_budget == 50.0, "team budget cap must not be removed by a team admin"
 
@@ -429,6 +429,6 @@ async def test_proxy_admin_remove_budget_cap_allowed(proxy_client, prisma, scrat
     )
     assert resp.status_code == 200, resp.text
 
-    row = await prisma.db.litellm_teamtable.find_unique(where={"team_id": team_id})
+    row = await prisma.db.teamtable.find_unique(where={"team_id": team_id})
     assert row is not None
     assert row.max_budget is None, "proxy admin should be able to remove the cap"

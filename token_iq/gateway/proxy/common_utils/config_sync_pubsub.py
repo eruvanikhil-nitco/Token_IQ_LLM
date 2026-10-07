@@ -41,20 +41,20 @@ _WRITE_ACTION_NAMES: Final[frozenset[str]] = frozenset(
 
 _CONFIG_SYNCED_TABLE_NAMES: Final[frozenset[str]] = frozenset(
     {
-        "litellm_proxymodeltable",
-        "litellm_credentialstable",
-        "litellm_guardrailstable",
-        "litellm_policytable",
-        "litellm_policyattachmenttable",
-        "litellm_managedvectorstorestable",
-        "litellm_managedvectorstoreindextable",
-        "litellm_mcpservertable",
-        "litellm_agentstable",
-        "litellm_prompttable",
-        "litellm_searchtoolstable",
-        "litellm_ssoconfig",
-        "litellm_cacheconfig",
-        "litellm_configoverrides",
+        "proxymodeltable",
+        "credentialstable",
+        "guardrailstable",
+        "policytable",
+        "policyattachmenttable",
+        "managedvectorstorestable",
+        "managedvectorstoreindextable",
+        "mcpservertable",
+        "agentstable",
+        "prompttable",
+        "searchtoolstable",
+        "ssoconfig",
+        "cacheconfig",
+        "configoverrides",
     }
 )
 

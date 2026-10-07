@@ -289,8 +289,8 @@ class TestKeyRotationErrorResilience:
                     await manager._rotate_key(key)
 
         # The DB update should have been called BEFORE the hook
-        mock_prisma.db.litellm_verificationtoken.update.assert_called_once()
-        update_data = mock_prisma.db.litellm_verificationtoken.update.call_args[1][
+        mock_prisma.db.verificationtoken.update.assert_called_once()
+        update_data = mock_prisma.db.verificationtoken.update.call_args[1][
             "data"
         ]
         assert update_data["rotation_count"] == 1
@@ -358,9 +358,9 @@ class TestKeyRotationFullFlow:
         )
 
         # Mock cleanup
-        mock_prisma.db.litellm_deprecatedverificationtoken.delete_many.return_value = 1
+        mock_prisma.db.deprecatedverificationtoken.delete_many.return_value = 1
         # Mock find keys
-        mock_prisma.db.litellm_verificationtoken.find_many.return_value = [key]
+        mock_prisma.db.verificationtoken.find_many.return_value = [key]
 
         with patch(
             "token_iq.gateway.proxy.common_utils.key_rotation_manager.regenerate_key_fn",
@@ -378,14 +378,14 @@ class TestKeyRotationFullFlow:
         mock_lock.acquire_lock.assert_called_once()
 
         # 2. Cleanup ran
-        mock_prisma.db.litellm_deprecatedverificationtoken.delete_many.assert_called_once()
+        mock_prisma.db.deprecatedverificationtoken.delete_many.assert_called_once()
 
         # 3. Keys were queried
-        mock_prisma.db.litellm_verificationtoken.find_many.assert_called_once()
+        mock_prisma.db.verificationtoken.find_many.assert_called_once()
 
         # 4. DB was updated with new rotation info
-        mock_prisma.db.litellm_verificationtoken.update.assert_called_once()
-        update_args = mock_prisma.db.litellm_verificationtoken.update.call_args[1]
+        mock_prisma.db.verificationtoken.update.assert_called_once()
+        update_args = mock_prisma.db.verificationtoken.update.call_args[1]
         assert update_args["where"]["token"] == "new-token-hash"
         assert update_args["data"]["rotation_count"] == 3  # was 2, now 3
 
@@ -418,7 +418,7 @@ class TestKeyRotationFullFlow:
                 user_id="system",
             )
 
-            mock_prisma.db.litellm_verificationtoken.update.reset_mock()
+            mock_prisma.db.verificationtoken.update.reset_mock()
 
             with patch(
                 "token_iq.gateway.proxy.common_utils.key_rotation_manager.regenerate_key_fn",
@@ -431,7 +431,7 @@ class TestKeyRotationFullFlow:
                 ):
                     await manager._rotate_key(key)
 
-            update_data = mock_prisma.db.litellm_verificationtoken.update.call_args[1][
+            update_data = mock_prisma.db.verificationtoken.update.call_args[1][
                 "data"
             ]
             rotation_counts_seen.append(update_data["rotation_count"])
@@ -444,8 +444,8 @@ class TestKeyRotationFullFlow:
         When no keys need rotation, process should complete without errors.
         """
         mock_prisma = AsyncMock()
-        mock_prisma.db.litellm_deprecatedverificationtoken.delete_many.return_value = 0
-        mock_prisma.db.litellm_verificationtoken.find_many.return_value = []
+        mock_prisma.db.deprecatedverificationtoken.delete_many.return_value = 0
+        mock_prisma.db.verificationtoken.find_many.return_value = []
 
         mock_lock = MagicMock()
         mock_lock.redis_cache = MagicMock()
@@ -457,7 +457,7 @@ class TestKeyRotationFullFlow:
         await manager.process_rotations()
 
         # Verify no rotation was attempted
-        mock_prisma.db.litellm_verificationtoken.update.assert_not_called()
+        mock_prisma.db.verificationtoken.update.assert_not_called()
         # But lock was still properly released
         mock_lock.release_lock.assert_called_once()
 
@@ -497,7 +497,7 @@ class TestKeyRotationFullFlow:
                 await manager._rotate_key(key)
 
         # DB update should NOT have been called (no token_id)
-        mock_prisma.db.litellm_verificationtoken.update.assert_not_called()
+        mock_prisma.db.verificationtoken.update.assert_not_called()
 
 
 class TestKeyRotationInitialization:
@@ -592,14 +592,14 @@ class TestDeprecatedKeyLookupDbE2E:
 
         await prisma_client.connect()
         try:
-            await prisma_client.db.litellm_verificationtoken.create(
+            await prisma_client.db.verificationtoken.create(
                 data={
                     "token": active_token_hash,
                     "models": [],
                 }
             )
 
-            await prisma_client.db.litellm_deprecatedverificationtoken.create(
+            await prisma_client.db.deprecatedverificationtoken.create(
                 data={
                     "token": old_token_hash,
                     "active_token_id": active_token_hash,
@@ -631,13 +631,13 @@ class TestDeprecatedKeyLookupDbE2E:
         finally:
             # Best-effort cleanup for idempotent reruns.
             try:
-                await prisma_client.db.litellm_deprecatedverificationtoken.delete_many(
+                await prisma_client.db.deprecatedverificationtoken.delete_many(
                     where={"token": old_token_hash}
                 )
             except Exception:
                 pass
             try:
-                await prisma_client.db.litellm_verificationtoken.delete_many(
+                await prisma_client.db.verificationtoken.delete_many(
                     where={"token": active_token_hash}
                 )
             except Exception:

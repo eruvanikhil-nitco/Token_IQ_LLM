@@ -93,7 +93,7 @@ def test_update_agent_success(mock_prisma_client, mock_user_api_key_auth, monkey
         "agent_name": "Existing Agent",
         "agent_card_params": _sample_agent_card_params(),
     }
-    mock_prisma_client.db.litellm_agentstable.find_unique = AsyncMock(
+    mock_prisma_client.db.agentstable.find_unique = AsyncMock(
         return_value=existing_agent
     )
 
@@ -119,7 +119,7 @@ def test_update_agent_success(mock_prisma_client, mock_user_api_key_auth, monkey
 def test_update_agent_not_found(
     mock_prisma_client, mock_user_api_key_auth, monkeypatch
 ):
-    mock_prisma_client.db.litellm_agentstable.find_unique = AsyncMock(return_value=None)
+    mock_prisma_client.db.agentstable.find_unique = AsyncMock(return_value=None)
 
     mock_registry = MagicMock()
     monkeypatch.setattr(agent_endpoints, "AGENT_REGISTRY", mock_registry)
@@ -140,7 +140,7 @@ def test_get_agent_by_id_not_found(
     mock_registry = MagicMock()
     mock_registry.get_agent_by_id = MagicMock(return_value=None)
     monkeypatch.setattr(agent_endpoints, "AGENT_REGISTRY", mock_registry)
-    mock_prisma_client.db.litellm_agentstable.find_unique = AsyncMock(return_value=None)
+    mock_prisma_client.db.agentstable.find_unique = AsyncMock(return_value=None)
 
     response = client.get(
         "/v1/agents/missing-agent", headers={"Authorization": "Bearer test-key"}
@@ -153,7 +153,7 @@ def test_get_agent_by_id_not_found(
 def test_delete_agent_not_found(
     mock_prisma_client, mock_user_api_key_auth, monkeypatch
 ):
-    mock_prisma_client.db.litellm_agentstable.find_unique = AsyncMock(return_value=None)
+    mock_prisma_client.db.agentstable.find_unique = AsyncMock(return_value=None)
     mock_registry = MagicMock()
     monkeypatch.setattr(agent_endpoints, "AGENT_REGISTRY", mock_registry)
 
@@ -178,7 +178,7 @@ def test_agent_error_schema_consistency(
     )
     monkeypatch.setattr(agent_endpoints, "AGENT_REGISTRY", mock_registry)
 
-    mock_prisma_client.db.litellm_agentstable.find_unique = AsyncMock(return_value=None)
+    mock_prisma_client.db.agentstable.find_unique = AsyncMock(return_value=None)
 
     missing_agent_id = "missing-agent"
     responses = [
@@ -207,7 +207,7 @@ def test_agent_error_schema_consistency(
 @pytest.mark.asyncio
 async def test_get_agent_daily_activity_admin_param_passing(monkeypatch):
     mock_prisma = AsyncMock()
-    mock_prisma.db.litellm_agentstable.find_many = AsyncMock(return_value=[])
+    mock_prisma.db.agentstable.find_many = AsyncMock(return_value=[])
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
 
     mocked_response = MagicMock(name="SpendAnalyticsPaginatedResponse")
@@ -229,7 +229,7 @@ async def test_get_agent_daily_activity_admin_param_passing(monkeypatch):
 
     get_daily_activity_mock.assert_awaited_once()
     kwargs = get_daily_activity_mock.call_args.kwargs
-    assert kwargs["table_name"] == "litellm_dailyagentspend"
+    assert kwargs["table_name"] == "dailyagentspend"
     assert kwargs["entity_id_field"] == "agent_id"
     assert kwargs["entity_id"] == ["agent-1", "agent-2"]
     assert kwargs["exclude_entity_ids"] == ["agent-3"]
@@ -252,7 +252,7 @@ async def test_get_agent_daily_activity_with_agent_names(monkeypatch):
     mock_agent2.agent_id = "agent-2"
     mock_agent2.agent_name = "Second Agent"
 
-    mock_prisma.db.litellm_agentstable.find_many = AsyncMock(
+    mock_prisma.db.agentstable.find_many = AsyncMock(
         return_value=[mock_agent1, mock_agent2]
     )
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma)
@@ -302,7 +302,7 @@ async def test_attach_keys_to_agents_groups_by_agent_and_omits_secret():
     agent_without_keys = _sample_agent_response(agent_id="agent-2")
 
     mock_prisma = MagicMock()
-    mock_prisma.db.litellm_verificationtoken.find_many = AsyncMock(
+    mock_prisma.db.verificationtoken.find_many = AsyncMock(
         return_value=[
             _Row("hash-aaa", "agent-1", "primary", "sk-...aaa"),
             _Row("hash-bbb", "agent-1", "backup", "sk-...bbb"),
@@ -312,7 +312,7 @@ async def test_attach_keys_to_agents_groups_by_agent_and_omits_secret():
     await _attach_keys_to_agents([agent_with_keys, agent_without_keys], mock_prisma)
 
     # Query is scoped to the agents being returned, not the whole key table.
-    where = mock_prisma.db.litellm_verificationtoken.find_many.call_args.kwargs["where"]
+    where = mock_prisma.db.verificationtoken.find_many.call_args.kwargs["where"]
     assert where == {"agent_id": {"in": ("agent-1", "agent-2")}}
 
     # agent-1 gets both of its keys; agent-2 gets None.
@@ -347,10 +347,10 @@ class TestAgentByIdKeyRedaction:
 
         test_client = _make_app_with_role(role)
         with patch("token_iq.gateway.proxy.proxy_server.prisma_client") as mock_prisma:
-            mock_prisma.db.litellm_agentstable.find_unique = AsyncMock(
+            mock_prisma.db.agentstable.find_unique = AsyncMock(
                 return_value=None
             )
-            mock_prisma.db.litellm_verificationtoken.find_many = AsyncMock(
+            mock_prisma.db.verificationtoken.find_many = AsyncMock(
                 return_value=[key_row]
             )
             return test_client.get(
@@ -409,10 +409,10 @@ class TestAgentRBACInternalUser:
             return_value=_sample_agent_response()
         )
         with patch("token_iq.gateway.proxy.proxy_server.prisma_client") as mock_prisma:
-            mock_prisma.db.litellm_agentstable.find_unique = AsyncMock(
+            mock_prisma.db.agentstable.find_unique = AsyncMock(
                 return_value=None
             )
-            mock_prisma.db.litellm_verificationtoken.find_many = AsyncMock(
+            mock_prisma.db.verificationtoken.find_many = AsyncMock(
                 return_value=[]
             )
             resp = self.internal_client.get(
@@ -531,8 +531,8 @@ class TestAgentRBACProxyAdminViewOnly:
         key_row.key_name = "sk-...aaa"
 
         with patch("token_iq.gateway.proxy.proxy_server.prisma_client") as mock_prisma:
-            mock_prisma.db.litellm_agentstable.find_many = AsyncMock(return_value=[])
-            mock_prisma.db.litellm_verificationtoken.find_many = AsyncMock(
+            mock_prisma.db.agentstable.find_many = AsyncMock(return_value=[])
+            mock_prisma.db.verificationtoken.find_many = AsyncMock(
                 return_value=[key_row]
             )
             return test_client.get("/v1/agents", headers={"Authorization": "Bearer k"})
@@ -659,7 +659,7 @@ class TestAgentRBACProxyAdmin:
     def test_update_agent_response_never_echoes_secret(self):
         """LIT-6736: PUT /v1/agents/{id} must not echo the stored secret back."""
         with patch("token_iq.gateway.proxy.proxy_server.prisma_client") as mock_prisma:  # test-quality-ok: proxy_server module global is the endpoint's only injection point
-            mock_prisma.db.litellm_agentstable.find_unique = AsyncMock(
+            mock_prisma.db.agentstable.find_unique = AsyncMock(
                 return_value={
                     "agent_id": "agent-123",
                     "agent_name": "Existing Agent",
@@ -694,7 +694,7 @@ class TestAgentRBACProxyAdmin:
     def test_patch_agent_response_never_echoes_secret(self):
         """LIT-6736: PATCH /v1/agents/{id} must not echo the stored secret back."""
         with patch("token_iq.gateway.proxy.proxy_server.prisma_client") as mock_prisma:  # test-quality-ok: proxy_server module global is the endpoint's only injection point
-            mock_prisma.db.litellm_agentstable.find_unique = AsyncMock(
+            mock_prisma.db.agentstable.find_unique = AsyncMock(
                 return_value={
                     "agent_id": "agent-123",
                     "agent_name": "Existing Agent",
@@ -729,7 +729,7 @@ class TestAgentRBACProxyAdmin:
             "agent_card_params": _sample_agent_card_params(),
         }
         with patch("token_iq.gateway.proxy.proxy_server.prisma_client") as mock_prisma:
-            mock_prisma.db.litellm_agentstable.find_unique = AsyncMock(
+            mock_prisma.db.agentstable.find_unique = AsyncMock(
                 return_value=existing
             )
             self.mock_registry.delete_agent_from_db = AsyncMock()

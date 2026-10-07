@@ -49,7 +49,7 @@ async def test_create_duplicate_access_group_fails():
     )
 
     mock_prisma = MagicMock()
-    mock_prisma.db.litellm_proxymodeltable.find_many = AsyncMock(
+    mock_prisma.db.proxymodeltable.find_many = AsyncMock(
         return_value=[
             MagicMock(
                 model_id="1",
@@ -102,11 +102,11 @@ async def test_create_access_group_with_model_ids_tags_only_specific_deployments
     deploy_a = MagicMock(model_id="deploy-A", model_name="gpt-4o", model_info={})
 
     mock_prisma = MagicMock()
-    mock_prisma.db.litellm_proxymodeltable.find_many = AsyncMock(return_value=[])
-    mock_prisma.db.litellm_proxymodeltable.find_unique = AsyncMock(
+    mock_prisma.db.proxymodeltable.find_many = AsyncMock(return_value=[])
+    mock_prisma.db.proxymodeltable.find_unique = AsyncMock(
         return_value=deploy_a
     )
-    mock_prisma.db.litellm_proxymodeltable.update = AsyncMock()
+    mock_prisma.db.proxymodeltable.update = AsyncMock()
 
     mock_user = UserAPIKeyAuth(
         user_id="test_admin",
@@ -132,11 +132,11 @@ async def test_create_access_group_with_model_ids_tags_only_specific_deployments
 
     assert response.models_updated == 1
     assert response.model_ids == ["deploy-A"]
-    mock_prisma.db.litellm_proxymodeltable.find_unique.assert_called_once_with(
+    mock_prisma.db.proxymodeltable.find_unique.assert_called_once_with(
         where={"model_id": "deploy-A"}
     )
-    assert mock_prisma.db.litellm_proxymodeltable.update.call_count == 1
-    update_call = mock_prisma.db.litellm_proxymodeltable.update.call_args
+    assert mock_prisma.db.proxymodeltable.update.call_count == 1
+    update_call = mock_prisma.db.proxymodeltable.update.call_args
     assert update_call.kwargs["where"] == {"model_id": "deploy-A"}
 
 
@@ -169,10 +169,10 @@ async def test_create_access_group_with_model_names_tags_all_deployments():
     )
 
     mock_prisma = MagicMock()
-    mock_prisma.db.litellm_proxymodeltable.find_many = AsyncMock(
+    mock_prisma.db.proxymodeltable.find_many = AsyncMock(
         side_effect=[[], [deploy_a, deploy_b, deploy_c]]
     )
-    mock_prisma.db.litellm_proxymodeltable.update = AsyncMock()
+    mock_prisma.db.proxymodeltable.update = AsyncMock()
 
     mock_user = UserAPIKeyAuth(
         user_id="test_admin",
@@ -197,7 +197,7 @@ async def test_create_access_group_with_model_names_tags_all_deployments():
 
     assert response.models_updated == 3
     assert response.model_names == ["gpt-4o"]
-    assert mock_prisma.db.litellm_proxymodeltable.update.call_count == 3
+    assert mock_prisma.db.proxymodeltable.update.call_count == 3
 
 
 @pytest.mark.asyncio
@@ -216,11 +216,11 @@ async def test_create_access_group_model_ids_takes_priority_over_model_names():
     deploy_a = MagicMock(model_id="deploy-A", model_name="gpt-4o", model_info={})
 
     mock_prisma = MagicMock()
-    mock_prisma.db.litellm_proxymodeltable.find_many = AsyncMock(return_value=[])
-    mock_prisma.db.litellm_proxymodeltable.find_unique = AsyncMock(
+    mock_prisma.db.proxymodeltable.find_many = AsyncMock(return_value=[])
+    mock_prisma.db.proxymodeltable.find_unique = AsyncMock(
         return_value=deploy_a
     )
-    mock_prisma.db.litellm_proxymodeltable.update = AsyncMock()
+    mock_prisma.db.proxymodeltable.update = AsyncMock()
 
     mock_user = UserAPIKeyAuth(
         user_id="test_admin",
@@ -246,7 +246,7 @@ async def test_create_access_group_model_ids_takes_priority_over_model_names():
         )
 
     assert response.models_updated == 1
-    mock_prisma.db.litellm_proxymodeltable.find_unique.assert_called_once_with(
+    mock_prisma.db.proxymodeltable.find_unique.assert_called_once_with(
         where={"model_id": "deploy-A"}
     )
 
@@ -297,8 +297,8 @@ async def test_create_access_group_invalid_model_id_returns_400():
     )
 
     mock_prisma = MagicMock()
-    mock_prisma.db.litellm_proxymodeltable.find_many = AsyncMock(return_value=[])
-    mock_prisma.db.litellm_proxymodeltable.find_unique = AsyncMock(return_value=None)
+    mock_prisma.db.proxymodeltable.find_many = AsyncMock(return_value=[])
+    mock_prisma.db.proxymodeltable.find_unique = AsyncMock(return_value=None)
 
     mock_user = UserAPIKeyAuth(
         user_id="test_admin",
@@ -341,9 +341,9 @@ async def test_create_access_group_surfaces_dropped_models():
     deploy_a = MagicMock(model_id="deploy-A", model_name="gpt-4o", model_info={})
 
     mock_prisma = MagicMock()
-    mock_prisma.db.litellm_proxymodeltable.find_many = AsyncMock(return_value=[])
-    mock_prisma.db.litellm_proxymodeltable.find_unique = AsyncMock(return_value=deploy_a)
-    mock_prisma.db.litellm_proxymodeltable.update = AsyncMock()
+    mock_prisma.db.proxymodeltable.find_many = AsyncMock(return_value=[])
+    mock_prisma.db.proxymodeltable.find_unique = AsyncMock(return_value=deploy_a)
+    mock_prisma.db.proxymodeltable.update = AsyncMock()
 
     mock_user = UserAPIKeyAuth(user_id="test_admin", user_role=GatewayUserRoles.PROXY_ADMIN)
 
@@ -384,9 +384,9 @@ async def test_create_access_group_trusts_reload_snapshot_over_post_lock_fresh_r
     deploy_a = MagicMock(model_id="deploy-A", model_name="gpt-4o", model_info={})
 
     mock_prisma = MagicMock()
-    mock_prisma.db.litellm_proxymodeltable.find_many = AsyncMock(return_value=[])
-    mock_prisma.db.litellm_proxymodeltable.find_unique = AsyncMock(return_value=deploy_a)
-    mock_prisma.db.litellm_proxymodeltable.update = AsyncMock()
+    mock_prisma.db.proxymodeltable.find_many = AsyncMock(return_value=[])
+    mock_prisma.db.proxymodeltable.find_unique = AsyncMock(return_value=deploy_a)
+    mock_prisma.db.proxymodeltable.update = AsyncMock()
 
     concurrently_wiped_router = MagicMock()
     concurrently_wiped_router.get_model_ids.side_effect = [["deploy-A"], []]
@@ -420,7 +420,7 @@ async def test_tag_deployment_parses_string_model_info_and_refuses_corrupt():
     )
 
     mock_prisma = MagicMock()
-    mock_prisma.db.litellm_proxymodeltable.update = AsyncMock()
+    mock_prisma.db.proxymodeltable.update = AsyncMock()
 
     pair = await _tag_deployment_with_access_group(
         model_id="deploy-str",
@@ -451,9 +451,9 @@ async def test_delete_access_group_ignores_models_that_were_already_dead():
     )
 
     mock_prisma = MagicMock()
-    mock_prisma.db.litellm_proxymodeltable.find_many = AsyncMock(return_value=[deploy_broken])
-    mock_prisma.db.litellm_proxymodeltable.update = AsyncMock()
-    mock_prisma.db.litellm_modelaccessgroupbudgettable.delete = AsyncMock(return_value=None)
+    mock_prisma.db.proxymodeltable.find_many = AsyncMock(return_value=[deploy_broken])
+    mock_prisma.db.proxymodeltable.update = AsyncMock()
+    mock_prisma.db.modelaccessgroupbudgettable.delete = AsyncMock(return_value=None)
 
     from token_iq.gateway.proxy._types import GatewayUserRoles, UserAPIKeyAuth
     from token_iq.gateway.proxy.management_endpoints.model_access_group_management_endpoints import (
@@ -477,7 +477,7 @@ async def test_delete_access_group_ignores_models_that_were_already_dead():
         )
 
     assert response.models_updated == 1
-    mock_prisma.db.litellm_proxymodeltable.update.assert_awaited_once()
+    mock_prisma.db.proxymodeltable.update.assert_awaited_once()
 
 
 @pytest.mark.asyncio
@@ -513,8 +513,8 @@ async def test_create_access_group_read_through_recovers_model_created_on_siblin
     )
 
     mock_prisma = MagicMock()
-    mock_prisma.db.litellm_proxymodeltable.find_many = AsyncMock(side_effect=[[db_row], [], [db_row]])
-    mock_prisma.db.litellm_proxymodeltable.update = AsyncMock()
+    mock_prisma.db.proxymodeltable.find_many = AsyncMock(side_effect=[[db_row], [], [db_row]])
+    mock_prisma.db.proxymodeltable.update = AsyncMock()
 
     with (
         patch("token_iq.gateway.proxy.proxy_server.llm_router", mock_router),
@@ -532,7 +532,7 @@ async def test_create_access_group_read_through_recovers_model_created_on_siblin
 
     assert response.models_updated == 1
     assert response.model_names == [model_name]
-    assert mock_prisma.db.litellm_proxymodeltable.find_many.await_args_list[0].kwargs["where"] == {
+    assert mock_prisma.db.proxymodeltable.find_many.await_args_list[0].kwargs["where"] == {
         "model_name": model_name
     }
 
@@ -559,7 +559,7 @@ async def test_create_access_group_model_missing_everywhere_still_400s():
         ]
     )
     mock_prisma = MagicMock()
-    mock_prisma.db.litellm_proxymodeltable.find_many = AsyncMock(return_value=[])
+    mock_prisma.db.proxymodeltable.find_many = AsyncMock(return_value=[])
 
     with (
         patch("token_iq.gateway.proxy.proxy_server.llm_router", mock_router),
@@ -710,9 +710,9 @@ class _FakePrismaClient:
         self.access_group_budget_table = _FakeAccessGroupBudgetTable(journal, self.budget_table)
         self.model_table = _FakeModelTable(journal, deployments)
         self.db = SimpleNamespace(
-            litellm_budgettable=self.budget_table,
-            litellm_modelaccessgroupbudgettable=self.access_group_budget_table,
-            litellm_proxymodeltable=self.model_table,
+            budgettable=self.budget_table,
+            modelaccessgroupbudgettable=self.access_group_budget_table,
+            proxymodeltable=self.model_table,
         )
 
     def jsonify_object(self, data):

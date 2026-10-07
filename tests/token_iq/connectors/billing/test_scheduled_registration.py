@@ -97,7 +97,7 @@ async def test_the_lookup_returns_only_the_credential_marked_for_that_providers_
         ("openai-billing", {"purpose": BILLING_PURPOSE, "provider": "openai"}, "sk-admin-test-not-real"),
     )
     prisma_client = MagicMock()
-    prisma_client.db.litellm_credentialstable.find_many = AsyncMock(
+    prisma_client.db.credentialstable.find_many = AsyncMock(
         return_value=[SimpleNamespace(credential_name=name, credential_info=info) for name, info, _ in stored]
     )
     credentials = [
@@ -132,7 +132,7 @@ async def test_the_lookup_returns_every_matching_credential_not_just_the_first()
         ("openai-staging", {"purpose": BILLING_PURPOSE, "provider": "openai"}, "sk-admin-staging-not-real"),
     )
     prisma_client = MagicMock()
-    prisma_client.db.litellm_credentialstable.find_many = AsyncMock(
+    prisma_client.db.credentialstable.find_many = AsyncMock(
         return_value=[SimpleNamespace(credential_name=name, credential_info=info) for name, info, _ in stored]
     )
     credentials = [

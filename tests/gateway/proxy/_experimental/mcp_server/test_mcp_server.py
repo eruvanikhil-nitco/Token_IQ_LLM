@@ -4189,7 +4189,7 @@ class TestMCPServerManagerReload:
         db_row = _make_db_mcp_server("server-1", timestamp)
 
         mock_prisma = MagicMock()
-        mock_prisma.db.litellm_mcpservertable.find_many = AsyncMock(return_value=[db_row])
+        mock_prisma.db.mcpservertable.find_many = AsyncMock(return_value=[db_row])
         with (
             patch(
                 "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
@@ -4231,7 +4231,7 @@ class TestMCPServerManagerReload:
         )
 
         mock_prisma = MagicMock()
-        mock_prisma.db.litellm_mcpservertable.find_many = AsyncMock(return_value=[db_row])
+        mock_prisma.db.mcpservertable.find_many = AsyncMock(return_value=[db_row])
         with (
             patch(
                 "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
@@ -4284,7 +4284,7 @@ class TestMCPServerManagerReload:
             return another_healthy_server
 
         mock_prisma = MagicMock()
-        mock_prisma.db.litellm_mcpservertable.find_many = AsyncMock(
+        mock_prisma.db.mcpservertable.find_many = AsyncMock(
             return_value=[healthy_row, bad_row, another_healthy_row]
         )
         with (
@@ -4356,7 +4356,7 @@ class TestMCPServerManagerReload:
                 raise RuntimeError("blocked address")
 
         mock_prisma = MagicMock()
-        mock_prisma.db.litellm_mcpservertable.find_many = AsyncMock(return_value=[healthy_row, bad_openapi_row])
+        mock_prisma.db.mcpservertable.find_many = AsyncMock(return_value=[healthy_row, bad_openapi_row])
         with (
             patch(
                 "token_iq.gateway.proxy.management_endpoints.mcp_management_endpoints.get_prisma_client_or_throw",
@@ -7338,12 +7338,12 @@ async def test_get_active_submitted_mcp_server_ids_for_user_queries_active_rows(
     row = MagicMock()
     row.server_id = "submitted-1"
     prisma_client = MagicMock()
-    prisma_client.db.litellm_mcpservertable.find_many = AsyncMock(return_value=[row])
+    prisma_client.db.mcpservertable.find_many = AsyncMock(return_value=[row])
 
     result = await get_active_submitted_mcp_server_ids_for_user(prisma_client, "submitter-user")
 
     assert result == ["submitted-1"]
-    prisma_client.db.litellm_mcpservertable.find_many.assert_awaited_once_with(
+    prisma_client.db.mcpservertable.find_many.assert_awaited_once_with(
         where={
             "submitted_by": "submitter-user",
             "approval_status": MCPApprovalStatus.active,
@@ -7358,10 +7358,10 @@ async def test_get_active_submitted_mcp_server_ids_for_user_empty_user_id_skips_
     )
 
     prisma_client = MagicMock()
-    prisma_client.db.litellm_mcpservertable.find_many = AsyncMock()
+    prisma_client.db.mcpservertable.find_many = AsyncMock()
 
     assert await get_active_submitted_mcp_server_ids_for_user(prisma_client, "") == []
-    prisma_client.db.litellm_mcpservertable.find_many.assert_not_awaited()
+    prisma_client.db.mcpservertable.find_many.assert_not_awaited()
 
 
 # --------------------------------------------------------------------------- #

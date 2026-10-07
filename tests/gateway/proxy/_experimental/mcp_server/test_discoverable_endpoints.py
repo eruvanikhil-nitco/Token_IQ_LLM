@@ -8621,7 +8621,7 @@ async def test_reload_servers_from_database_hydrates_dcr_clients():
     )
 
     prisma = MagicMock()
-    prisma.db.litellm_mcpservertable.find_many = AsyncMock(return_value=[])
+    prisma.db.mcpservertable.find_many = AsyncMock(return_value=[])
 
     hydrate_spy = AsyncMock()
     with (

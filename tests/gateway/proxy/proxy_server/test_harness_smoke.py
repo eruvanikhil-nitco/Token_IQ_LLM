@@ -42,14 +42,14 @@ def test_client_fixture_returns_testclient(client):
 
 
 def test_mock_prisma_has_team_table(mock_prisma):
-    assert hasattr(mock_prisma.db, "litellm_teamtable")
-    assert callable(mock_prisma.db.litellm_teamtable.find_unique)
-    assert callable(mock_prisma.db.litellm_teamtable.find_many)
+    assert hasattr(mock_prisma.db, "teamtable")
+    assert callable(mock_prisma.db.teamtable.find_unique)
+    assert callable(mock_prisma.db.teamtable.find_many)
 
 
 def test_mock_prisma_has_key_table(mock_prisma):
-    assert hasattr(mock_prisma.db, "litellm_verificationtoken")
-    assert callable(mock_prisma.db.litellm_verificationtoken.find_unique)
+    assert hasattr(mock_prisma.db, "verificationtoken")
+    assert callable(mock_prisma.db.verificationtoken.find_unique)
 
 
 def test_auth_as_admin_overrides_dependency(app, auth_as):

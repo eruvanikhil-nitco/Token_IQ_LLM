@@ -44,7 +44,7 @@ async def _seed_target(prisma, world, shape: str, team_id: str, member_id: str) 
         await create_scratch_team(prisma, team_id, organization_id=world.org_b_id)
     else:  # pragma: no cover - guard
         pytest.fail(f"unknown shape={shape}")
-    await prisma.db.litellm_teammembership.create(
+    await prisma.db.teammembership.create(
         data={"user_id": member_id, "team_id": team_id, "spend": _SEED_SPEND}
     )
 
@@ -76,7 +76,7 @@ async def test_team_member_reset_spend_authz_matrix(
         resp.status_code == expected_status
     ), f"{actor.value} {shape}: {resp.status_code} {resp.text}"
 
-    row = await prisma.db.litellm_teammembership.find_unique(
+    row = await prisma.db.teammembership.find_unique(
         where={"user_id_team_id": {"user_id": member_id, "team_id": scratch.prefix}}
     )
     assert row is not None
@@ -113,7 +113,7 @@ async def test_team_member_reset_spend_above_current_spend_is_400(
 ):
     member_id = scratch.tag("member")
     await create_scratch_team(prisma, scratch.prefix, organization_id=world.org_a_id)
-    await prisma.db.litellm_teammembership.create(
+    await prisma.db.teammembership.create(
         data={"user_id": member_id, "team_id": scratch.prefix, "spend": 1.0}
     )
     resp = await proxy_client.post(
@@ -137,7 +137,7 @@ async def test_team_member_reset_spend_team_admin_cannot_reset_own_spend(
         organization_id=world.org_a_id,
         admin_user_ids=[team_admin.user_id],
     )
-    await prisma.db.litellm_teammembership.create(
+    await prisma.db.teammembership.create(
         data={"user_id": team_admin.user_id, "team_id": scratch.prefix, "spend": _SEED_SPEND}
     )
     resp = await proxy_client.post(
@@ -146,7 +146,7 @@ async def test_team_member_reset_spend_team_admin_cannot_reset_own_spend(
         json={"reset_to": 0.0},
     )
     assert resp.status_code == 403, resp.text
-    row = await prisma.db.litellm_teammembership.find_unique(
+    row = await prisma.db.teammembership.find_unique(
         where={"user_id_team_id": {"user_id": team_admin.user_id, "team_id": scratch.prefix}}
     )
     assert row is not None and row.spend == _SEED_SPEND, "denied but spend reset"

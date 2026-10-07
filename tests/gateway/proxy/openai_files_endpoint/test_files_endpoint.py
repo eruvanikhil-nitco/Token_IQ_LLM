@@ -3679,7 +3679,7 @@ def test_get_file_content_model_routed_attaches_trusted_model_credentials(monkey
     managed_file_row.storage_backend = None
     managed_file_row.storage_url = None
     prisma_stub = MagicMock()
-    prisma_stub.db.litellm_managedfiletable.find_first = AsyncMock(return_value=managed_file_row)
+    prisma_stub.db.managedfiletable.find_first = AsyncMock(return_value=managed_file_row)
 
     monkeypatch.setattr("token_iq.gateway.proxy.proxy_server.prisma_client", prisma_stub)
     setup_proxy_logging_object(monkeypatch, router)
@@ -4381,7 +4381,7 @@ def _setup_unscoped_list_files_route_over_real_hook(
     managed_files = _PROXY_GatewayManagedFiles(
         internal_usage_cache=MagicMock(), prisma_client=MagicMock()
     )
-    managed_files.prisma_client.db.litellm_managedfiletable = _ManagedFileTableOverRows(rows)
+    managed_files.prisma_client.db.managedfiletable = _ManagedFileTableOverRows(rows)
 
     proxy_logging_obj = setup_proxy_logging_object(monkeypatch, llm_router)
     proxy_logging_obj.proxy_hook_mapping["managed_files"] = managed_files

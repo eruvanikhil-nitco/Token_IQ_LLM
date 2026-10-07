@@ -107,7 +107,7 @@ async def test_team_key_bulk_update_authz_matrix(
         resp.status_code == expected_status
     ), f"{actor.value} {shape}: {resp.status_code} {resp.text}"
 
-    row = await prisma.db.litellm_verificationtoken.find_unique(where={"token": hashed})
+    row = await prisma.db.verificationtoken.find_unique(where={"token": hashed})
     assert row is not None
     if expected_status == 200:
         assert len(resp.json()["successful_updates"]) == 1
@@ -162,7 +162,7 @@ async def test_team_key_bulk_update_all_keys_in_team(
     assert resp.status_code == 200, resp.text
     assert len(resp.json()["successful_updates"]) == 2
     for key in keys:
-        row = await prisma.db.litellm_verificationtoken.find_unique(
+        row = await prisma.db.verificationtoken.find_unique(
             where={"token": hash_token(key)}
         )
         assert row is not None and row.max_budget == _MARKER_BUDGET
@@ -211,7 +211,7 @@ async def test_team_key_bulk_update_missing_key_is_isolated(
     assert len(body["successful_updates"]) == 1
     assert len(body["failed_updates"]) == 1
 
-    row = await prisma.db.litellm_verificationtoken.find_unique(
+    row = await prisma.db.verificationtoken.find_unique(
         where={"token": hash_token(real)}
     )
     assert row is not None and row.max_budget == _MARKER_BUDGET

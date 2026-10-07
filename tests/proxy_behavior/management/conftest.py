@@ -190,7 +190,7 @@ async def create_scratch_team(
         data["rpm_limit"] = rpm_limit
     if metadata is not None:
         data["metadata"] = Json(metadata)
-    await prisma.db.litellm_teamtable.create(data=data)
+    await prisma.db.teamtable.create(data=data)
     return team_id
 
 
@@ -217,7 +217,7 @@ async def create_scratch_user(
     data: Dict[str, Any] = {"user_id": user_id, "user_role": "internal_user"}
     if user_email is not None:
         data["user_email"] = user_email
-    await prisma.db.litellm_usertable.create(data=data)
+    await prisma.db.usertable.create(data=data)
     return user_id
 
 
@@ -259,7 +259,7 @@ async def create_scratch_org(
         budget_data["tpm_limit"] = tpm_limit
     if rpm_limit is not None:
         budget_data["rpm_limit"] = rpm_limit
-    await prisma.db.litellm_budgettable.create(data=budget_data)
+    await prisma.db.budgettable.create(data=budget_data)
 
     org_data: Dict[str, Any] = {
         "organization_id": org_id,
@@ -272,7 +272,7 @@ async def create_scratch_org(
         org_data["models"] = models
     if metadata is not None:
         org_data["metadata"] = Json(metadata)
-    await prisma.db.litellm_organizationtable.create(data=org_data)
+    await prisma.db.organizationtable.create(data=org_data)
     return org_id
 
 
@@ -306,7 +306,7 @@ async def create_scratch_actor(
     user_id = f"{scratch_prefix}-{suffix}"
     cleartext = "sk-" + uuid.uuid4().hex
     hashed = hash_token(cleartext)
-    await prisma.db.litellm_usertable.create(
+    await prisma.db.usertable.create(
         data={
             "user_id": user_id,
             "user_role": user_role,
@@ -322,9 +322,9 @@ async def create_scratch_actor(
     }
     if organization_id is not None:
         token_data["organization_id"] = organization_id
-    await prisma.db.litellm_verificationtoken.create(data=token_data)
+    await prisma.db.verificationtoken.create(data=token_data)
     for org_id in org_admin_of:
-        await prisma.db.litellm_organizationmembership.create(
+        await prisma.db.organizationmembership.create(
             data={
                 "user_id": user_id,
                 "organization_id": org_id,
@@ -341,7 +341,7 @@ async def scratch(prisma):
         yield handle
     finally:
         # Children before parents to avoid FK violations.
-        await prisma.db.litellm_verificationtoken.delete_many(
+        await prisma.db.verificationtoken.delete_many(
             where={
                 "OR": [
                     {"key_alias": {"startswith": handle.prefix}},
@@ -349,19 +349,19 @@ async def scratch(prisma):
                 ]
             }
         )
-        await prisma.db.litellm_teammembership.delete_many(
+        await prisma.db.teammembership.delete_many(
             where={"team_id": {"startswith": handle.prefix}}
         )
-        await prisma.db.litellm_organizationmembership.delete_many(
+        await prisma.db.organizationmembership.delete_many(
             where={"user_id": {"startswith": handle.prefix}}
         )
-        await prisma.db.litellm_teamtable.delete_many(
+        await prisma.db.teamtable.delete_many(
             where={"team_id": {"startswith": handle.prefix}}
         )
         # Inviting a member by user_email allocates the user_id server-side
         # (a uuid), so a scratch-prefixed email is the only handle on that
         # row — sweep both, matching the token sweep above.
-        await prisma.db.litellm_usertable.delete_many(
+        await prisma.db.usertable.delete_many(
             where={
                 "OR": [
                     {"user_id": {"startswith": handle.prefix}},
@@ -375,22 +375,22 @@ async def scratch(prisma):
         # collide with the read-world. Org must be reclaimed BEFORE its
         # budget — org.budget_id → budget.budget_id, so deleting the parent
         # first would FK-violate on any still-attached scratch org.
-        await prisma.db.litellm_organizationtable.delete_many(
+        await prisma.db.organizationtable.delete_many(
             where={"organization_id": {"startswith": handle.prefix}}
         )
-        await prisma.db.litellm_budgettable.delete_many(
+        await prisma.db.budgettable.delete_many(
             where={"budget_id": {"startswith": handle.prefix}}
         )
         # /team/member_add writes LiteLLM_UserTable.teams; the available-team
         # self-join writes it on a world actor whose row must survive. Strip
         # dangling scratch-team refs so the read-world stays immutable.
-        polluted = await prisma.db.litellm_usertable.find_many(
+        polluted = await prisma.db.usertable.find_many(
             where={"teams": {"isEmpty": False}}
         )
         for user in polluted:
             cleaned = [t for t in user.teams if not t.startswith(handle.prefix)]
             if cleaned != list(user.teams):
-                await prisma.db.litellm_usertable.update(
+                await prisma.db.usertable.update(
                     where={"user_id": user.user_id},
                     data={"teams": {"set": cleaned}},
                 )

@@ -86,14 +86,14 @@ RESPONSES_SESSION_CALL_TYPES: Final = frozenset({CallTypes.responses.value, Call
 
 
 class _SpendBatch(Protocol):
-    litellm_usertable: BatchTable
-    litellm_verificationtoken: BatchTable
-    litellm_teamtable: BatchTable
-    litellm_teammembership: BatchTable
-    litellm_organizationtable: BatchTable
-    litellm_tagtable: BatchTable
-    litellm_agentstable: BatchTable
-    litellm_modelaccessgroupbudgettable: BatchTable
+    usertable: BatchTable
+    verificationtoken: BatchTable
+    teamtable: BatchTable
+    teammembership: BatchTable
+    organizationtable: BatchTable
+    tagtable: BatchTable
+    agentstable: BatchTable
+    modelaccessgroupbudgettable: BatchTable
 
 
 class _SpendBatchManager(Protocol):
@@ -1506,7 +1506,7 @@ class DBSpendUpdateWriter:
                             # batch_() issues statements sequentially within the tx, so iteration
                             # order = lock acquisition order.
                             for user_id, response_cost in sorted(user_list_transactions.items()):
-                                batcher.litellm_usertable.update_many(
+                                batcher.usertable.update_many(
                                     where={"user_id": user_id},
                                     data={"spend": {"increment": response_cost}},
                                 )
@@ -1541,7 +1541,7 @@ class DBSpendUpdateWriter:
                         async with transaction.batch_() as batcher:
                             # Sort by token for consistent lock ordering across pods to prevent deadlocks.
                             for token, response_cost in sorted(key_list_transactions.items()):
-                                batcher.litellm_verificationtoken.update_many(  # 'update_many' prevents error from being raised if no row exists
+                                batcher.verificationtoken.update_many(  # 'update_many' prevents error from being raised if no row exists
                                     where={"token": token},
                                     data={
                                         "spend": {"increment": response_cost},
@@ -1572,7 +1572,7 @@ class DBSpendUpdateWriter:
                                 verbose_proxy_logger.debug(
                                     "Updating spend for team id=%s by %s", team_id, response_cost
                                 )
-                                batcher.litellm_teamtable.update_many(  # 'update_many' prevents error from being raised if no row exists
+                                batcher.teamtable.update_many(  # 'update_many' prevents error from being raised if no row exists
                                     where={"team_id": team_id},
                                     data={"spend": {"increment": response_cost}},
                                 )
@@ -1610,7 +1610,7 @@ class DBSpendUpdateWriter:
                                 team_id = key.split("::")[1]
                                 user_id = key.split("::")[3]
 
-                                batcher.litellm_teammembership.update_many(  # 'update_many' prevents error from being raised if no row exists
+                                batcher.teammembership.update_many(  # 'update_many' prevents error from being raised if no row exists
                                     where={"team_id": team_id, "user_id": user_id},
                                     data={
                                         "spend": {"increment": response_cost},
@@ -1651,7 +1651,7 @@ class DBSpendUpdateWriter:
                         async with transaction.batch_() as batcher:
                             # Sort by org_id for consistent lock ordering across pods to prevent deadlocks.
                             for org_id, response_cost in sorted(org_list_transactions.items()):
-                                batcher.litellm_organizationtable.update_many(  # 'update_many' prevents error from being raised if no row exists
+                                batcher.organizationtable.update_many(  # 'update_many' prevents error from being raised if no row exists
                                     where={"organization_id": org_id},
                                     data={"spend": {"increment": response_cost}},
                                 )
@@ -1670,7 +1670,7 @@ class DBSpendUpdateWriter:
         await DBSpendUpdateWriter._update_entity_spend_in_db(
             entity_name="Project",
             transactions=project_list_transactions,
-            table_accessor="litellm_projecttable",
+            table_accessor="projecttable",
             where_field="project_id",
             n_retry_times=n_retry_times,
             prisma_client=prisma_client,
@@ -1682,7 +1682,7 @@ class DBSpendUpdateWriter:
         await DBSpendUpdateWriter._update_entity_spend_in_db(
             entity_name="Tag",
             transactions=tag_list_transactions,
-            table_accessor="litellm_tagtable",
+            table_accessor="tagtable",
             where_field="tag_name",
             n_retry_times=n_retry_times,
             prisma_client=prisma_client,
@@ -1696,7 +1696,7 @@ class DBSpendUpdateWriter:
         await DBSpendUpdateWriter._update_entity_spend_in_db(
             entity_name="Model access group",
             transactions=model_access_group_list_transactions,
-            table_accessor="litellm_modelaccessgroupbudgettable",
+            table_accessor="modelaccessgroupbudgettable",
             where_field="access_group_name",
             n_retry_times=n_retry_times,
             prisma_client=prisma_client,
@@ -1708,7 +1708,7 @@ class DBSpendUpdateWriter:
         await DBSpendUpdateWriter._update_entity_spend_in_db(
             entity_name="Agent",
             transactions=agent_list_transactions,
-            table_accessor="litellm_agentstable",
+            table_accessor="agentstable",
             where_field="agent_id",
             n_retry_times=n_retry_times,
             prisma_client=prisma_client,
@@ -1719,7 +1719,7 @@ class DBSpendUpdateWriter:
     async def _update_entity_spend_in_db(
         entity_name: str,
         transactions: dict[str, float] | None,
-        table_accessor: Literal["litellm_tagtable", "litellm_agentstable", "litellm_modelaccessgroupbudgettable"],
+        table_accessor: Literal["tagtable", "agentstable", "modelaccessgroupbudgettable"],
         where_field: str,
         n_retry_times: int,
         prisma_client: PrismaClient,

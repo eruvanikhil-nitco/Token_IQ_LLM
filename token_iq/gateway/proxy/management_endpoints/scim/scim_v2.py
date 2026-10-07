@@ -74,7 +74,7 @@ from token_iq.gateway.repositories.verification_token_repository import (
 from token_iq.gateway.types.proxy.management_endpoints.scim_v2 import *
 
 if TYPE_CHECKING:
-    from prisma.models import LiteLLM_VerificationToken as PrismaVerificationToken
+    from prisma.models import VerificationToken as PrismaVerificationToken
 
 
 class _UserTableClient(Protocol):

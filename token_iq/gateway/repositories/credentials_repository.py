@@ -17,12 +17,12 @@ from token_iq.gateway.repositories.prisma_protocols import TableActions
 if TYPE_CHECKING:
     from prisma import models as prisma_models
 
-    _CredentialsTable: TypeAlias = TableActions[prisma_models.LiteLLM_CredentialsTable]
+    _CredentialsTable: TypeAlias = TableActions[prisma_models.CredentialsTable]
 
 
 class _PrismaCredentialsDb(Protocol):
     @property
-    def litellm_credentialstable(self) -> "_CredentialsTable": ...
+    def credentialstable(self) -> "_CredentialsTable": ...
 
 
 class _PrismaClientView(Protocol):
@@ -46,8 +46,8 @@ class CredentialsRepository:
     @property
     def table(self) -> "_CredentialsTable":
         return wrap_table_actions_for_config_sync(
-            actions=self.prisma_client.db.litellm_credentialstable,
-            table_name="litellm_credentialstable",
+            actions=self.prisma_client.db.credentialstable,
+            table_name="credentialstable",
         )
 
     @staticmethod
@@ -63,10 +63,10 @@ class CredentialsRepository:
             }
         )
 
-    async def find_all(self) -> Sequence["prisma_models.LiteLLM_CredentialsTable"]:
+    async def find_all(self) -> Sequence["prisma_models.CredentialsTable"]:
         return await self.table.find_many()
 
-    async def create(self, data: Mapping[str, object]) -> "prisma_models.LiteLLM_CredentialsTable":
+    async def create(self, data: Mapping[str, object]) -> "prisma_models.CredentialsTable":
         return await self.table.create(data=data)
 
     async def find_by_name(self, credential_name: str) -> CredentialItem | None:
@@ -75,8 +75,8 @@ class CredentialsRepository:
 
     async def update_by_name(
         self, credential_name: str, data: Mapping[str, object]
-    ) -> "prisma_models.LiteLLM_CredentialsTable | None":
+    ) -> "prisma_models.CredentialsTable | None":
         return await self.table.update(where={"credential_name": credential_name}, data=data)
 
-    async def delete_by_name(self, credential_name: str) -> "prisma_models.LiteLLM_CredentialsTable | None":
+    async def delete_by_name(self, credential_name: str) -> "prisma_models.CredentialsTable | None":
         return await self.table.delete(where={"credential_name": credential_name})

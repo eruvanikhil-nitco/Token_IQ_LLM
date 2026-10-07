@@ -41,7 +41,7 @@ class TestExpiredUISessionKeyCleanupManager:
                 expires=now - timedelta(seconds=1),
             )
         ]
-        mock_prisma_client.db.litellm_verificationtoken.find_many.return_value = (
+        mock_prisma_client.db.verificationtoken.find_many.return_value = (
             mock_keys
         )
 
@@ -55,7 +55,7 @@ class TestExpiredUISessionKeyCleanupManager:
 
             keys = await manager._find_expired_ui_session_keys()
 
-        mock_prisma_client.db.litellm_verificationtoken.find_many.assert_called_once_with(
+        mock_prisma_client.db.verificationtoken.find_many.assert_called_once_with(
             where={
                 "team_id": UI_SESSION_TOKEN_TEAM_ID,
                 "expires": {"lt": now},

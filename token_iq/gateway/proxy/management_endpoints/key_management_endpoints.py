@@ -183,7 +183,7 @@ class _UserRowLike(Protocol):
 
 
 class _TxTables(Protocol):
-    litellm_proxymodeltable: TableActions[object]
+    proxymodeltable: TableActions[object]
 
 
 class _ModelParamsUpdate(TypedDict):
@@ -217,13 +217,13 @@ def _prisma_table(
 
 def _deleted_verification_token_table(
     prisma_client: PrismaClient,
-) -> "TableActions[prisma_models.LiteLLM_DeletedVerificationToken]":
+) -> "TableActions[prisma_models.DeletedVerificationToken]":
     return DeletedVerificationTokenRepository(prisma_client).table
 
 
 def _deprecated_verification_token_table(
     prisma_client: PrismaClient,
-) -> "TableActions[prisma_models.LiteLLM_DeprecatedVerificationToken]":
+) -> "TableActions[prisma_models.DeprecatedVerificationToken]":
     return DeprecatedVerificationTokenRepository(prisma_client).table
 
 
@@ -1111,7 +1111,7 @@ async def _common_key_generation_helper(
         )
         new_budget: Final = prisma_client.jsonify_object(budget_row.json(exclude_none=True))
 
-        _budget: Final[prisma_models.LiteLLM_BudgetTable] = await BudgetRepository(prisma_client).table.create(
+        _budget: Final[prisma_models.BudgetTable] = await BudgetRepository(prisma_client).table.create(
             data={
                 **new_budget,
                 "created_by": user_api_key_dict.user_id or litellm_proxy_admin_name,
@@ -4190,7 +4190,7 @@ async def generate_key_helper_fn(
                 ## CREATE USER (If necessary)
                 if query_type == "insert_data":
                     user_row = cast(  # cast-ok: table_name="user" is the insert_data branch returning the user row
-                        "prisma_models.LiteLLM_UserTable | None",
+                        "prisma_models.UserTable | None",
                         await prisma_client.insert_data(data=user_data, table_name="user"),
                     )
 
@@ -4549,7 +4549,7 @@ async def _save_deleted_verification_token_records(
     if not records:
         return
     if tx is not None:
-        await tx.litellm_deletedverificationtoken.create_many(data=records)
+        await tx.deletedverificationtoken.create_many(data=records)
         return
     await _deleted_verification_token_table(prisma_client).create_many(data=records)
 
@@ -4646,11 +4646,11 @@ async def _rotate_master_key(
         async with prisma_client.db.tx(timeout=timedelta(minutes=2)) as tx_ctx:
             tx: Final[_TxTables] = tx_ctx
             for reencrypted_model in reencrypted_models:
-                await tx.litellm_proxymodeltable.update_many(
+                await tx.proxymodeltable.update_many(
                     data=_ModelParamsUpdate(litellm_params=prisma.Json(reencrypted_model.litellm_params)),
                     where=_ModelRowWhere(model_id=reencrypted_model.model_id),
                 )
-        await publish_config_change(redis_cache=coordination_redis_cache(), object_type="litellm_proxymodeltable")
+        await publish_config_change(redis_cache=coordination_redis_cache(), object_type="proxymodeltable")
     # 3. process config table
     try:
         config = await _config_table(prisma_client).find_many()

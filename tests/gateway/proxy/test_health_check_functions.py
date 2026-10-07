@@ -21,10 +21,10 @@ from token_iq.gateway.proxy.utils import PrismaClient
 def mock_prisma():
     """Simplified mock PrismaClient with bound methods"""
     client = MagicMock()
-    client.db.litellm_healthchecktable.create = AsyncMock(
+    client.db.healthchecktable.create = AsyncMock(
         return_value={"id": "test-id"}
     )
-    client.db.litellm_healthchecktable.find_many = AsyncMock(
+    client.db.healthchecktable.find_many = AsyncMock(
         return_value=[{"id": "1", "model_name": "test"}]
     )
 
@@ -57,7 +57,7 @@ async def test_save_health_check_result(
 ):
     """Test health check result saving with various scenarios"""
     if not should_succeed:
-        mock_prisma.db.litellm_healthchecktable.create.side_effect = Exception(
+        mock_prisma.db.healthchecktable.create.side_effect = Exception(
             "DB Error"
         )
 
@@ -69,7 +69,7 @@ async def test_save_health_check_result(
     )
 
     if should_succeed:
-        mock_prisma.db.litellm_healthchecktable.create.assert_called_once()
+        mock_prisma.db.healthchecktable.create.assert_called_once()
     else:
         assert result is None
 
@@ -78,7 +78,7 @@ async def test_save_health_check_result(
 async def test_get_health_check_history(mock_prisma):
     """Test health check history retrieval"""
     result = await mock_prisma.get_health_check_history(model_name="test", limit=50)
-    mock_prisma.db.litellm_healthchecktable.find_many.assert_called_once()
+    mock_prisma.db.healthchecktable.find_many.assert_called_once()
     assert len(result) == 1
 
 
@@ -467,7 +467,7 @@ async def test_get_all_latest_health_checks_with_model_id(mock_prisma):
     )  # Latest for model-123
 
     # Order by checked_at desc
-    mock_prisma.db.litellm_healthchecktable.find_many = AsyncMock(
+    mock_prisma.db.healthchecktable.find_many = AsyncMock(
         return_value=[mock_check3, mock_check2]
     )
 
@@ -494,7 +494,7 @@ async def test_get_all_latest_health_checks_without_model_id(mock_prisma):
     mock_check2.model_name = "gpt-3.5-turbo"
     mock_check2.checked_at = datetime.now(timezone.utc) - timedelta(minutes=1)  # Latest
 
-    mock_prisma.db.litellm_healthchecktable.find_many = AsyncMock(
+    mock_prisma.db.healthchecktable.find_many = AsyncMock(
         return_value=[mock_check2]
     )
 
@@ -525,7 +525,7 @@ async def test_get_all_latest_health_checks_same_name_with_and_without_model_id(
     without_id.model_name = "gpt-4"
     without_id.checked_at = now - timedelta(minutes=1)
 
-    mock_prisma.db.litellm_healthchecktable.find_many = AsyncMock(
+    mock_prisma.db.healthchecktable.find_many = AsyncMock(
         return_value=[without_id, with_id]
     )
 

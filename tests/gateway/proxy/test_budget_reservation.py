@@ -420,7 +420,7 @@ async def test_should_shrink_second_tag_reservation_to_remaining_budget(
         ).model_dump(),
     )
     prisma_client = MagicMock()
-    prisma_client.db.litellm_tagtable.find_many = AsyncMock(return_value=[])
+    prisma_client.db.tagtable.find_many = AsyncMock(return_value=[])
 
     with patch(
         "token_iq.gateway.proxy.spend_tracking.budget_reservation.estimate_request_max_cost",
@@ -3076,7 +3076,7 @@ class _ModelAccessGroupBudgetPrisma:
         }
         self.batches = []
         self.db = SimpleNamespace(
-            litellm_modelaccessgroupbudgettable=SimpleNamespace(find_many=self._find_many)
+            modelaccessgroupbudgettable=SimpleNamespace(find_many=self._find_many)
         )
 
     async def _find_many(self, **kwargs):

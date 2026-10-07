@@ -55,7 +55,7 @@ def _patch_prisma(existing_team: MagicMock):
 
     updated_row = MagicMock()
     updated_row.team_id = existing_team.team_id
-    mock_prisma.db.litellm_teamtable.update = AsyncMock(return_value=updated_row)
+    mock_prisma.db.teamtable.update = AsyncMock(return_value=updated_row)
     return mock_prisma
 
 
@@ -104,7 +104,7 @@ def patched_prisma():
         ),
     ):
         mock_client.get_data = AsyncMock(return_value=_team_row())
-        mock_client.db.litellm_teamtable.update = AsyncMock()
+        mock_client.db.teamtable.update = AsyncMock()
         yield mock_client
 
 
@@ -128,7 +128,7 @@ async def test_add_team_callbacks_rejects_unauthorized_caller(
             user_api_key_dict=unauthorized_caller,
         )
     assert exc.value.status_code == 403
-    patched_prisma.db.litellm_teamtable.update.assert_not_called()
+    patched_prisma.db.teamtable.update.assert_not_called()
 
 
 @pytest.mark.asyncio
@@ -142,7 +142,7 @@ async def test_disable_team_logging_rejects_unauthorized_caller(
             user_api_key_dict=unauthorized_caller,
         )
     assert exc.value.status_code == 403
-    patched_prisma.db.litellm_teamtable.update.assert_not_called()
+    patched_prisma.db.teamtable.update.assert_not_called()
 
 
 @pytest.mark.asyncio
@@ -174,7 +174,7 @@ async def test_proxy_admin_can_add_team_callbacks(patched_prisma):
         team_id="team-victim",
         user_api_key_dict=_admin_auth(),
     )
-    patched_prisma.db.litellm_teamtable.update.assert_awaited_once()
+    patched_prisma.db.teamtable.update.assert_awaited_once()
 
 
 @pytest.mark.asyncio
@@ -202,7 +202,7 @@ async def test_team_admin_of_target_team_can_add_callbacks(patched_prisma):
         team_id="team-victim",
         user_api_key_dict=team_admin,
     )
-    patched_prisma.db.litellm_teamtable.update.assert_awaited_once()
+    patched_prisma.db.teamtable.update.assert_awaited_once()
 
 
 @pytest.mark.asyncio
@@ -472,7 +472,7 @@ async def test_add_team_callbacks_writes_encrypted_callback_vars(monkeypatch):
         )
 
     written = json.loads(
-        mock_prisma.db.litellm_teamtable.update.await_args.kwargs["data"]["metadata"]
+        mock_prisma.db.teamtable.update.await_args.kwargs["data"]["metadata"]
     )
     cv = written["logging"][0]["callback_vars"]
     assert cv["langfuse_secret_key"] != "sk-lf-real-secret"
@@ -516,7 +516,7 @@ async def test_get_team_callbacks_returns_callbacks_registered_via_post(monkeypa
         )
 
         # Feed the GET exactly what the POST persisted.
-        row.metadata = json.loads(mock_prisma.db.litellm_teamtable.update.await_args.kwargs["data"]["metadata"])
+        row.metadata = json.loads(mock_prisma.db.teamtable.update.await_args.kwargs["data"]["metadata"])
         row.model_dump.return_value["metadata"] = row.metadata
 
         response = await get_team_callbacks(
@@ -777,7 +777,7 @@ async def test_disable_team_logging_stops_callbacks_registered_via_api():
         )
 
     assert response["status"] == "success"
-    written = json.loads(mock_prisma.db.litellm_teamtable.update.await_args.kwargs["data"]["metadata"])
+    written = json.loads(mock_prisma.db.teamtable.update.await_args.kwargs["data"]["metadata"])
     assert written["logging"] == []
 
     resolved = _get_dynamic_logging_metadata(
@@ -820,11 +820,11 @@ async def test_disable_team_logging_refreshes_cached_team(stub_team_cache_refres
 
     stub_team_cache_refresh.assert_awaited_once()
     refreshed = stub_team_cache_refresh.await_args.kwargs["team_row"]
-    assert refreshed is mock_prisma.db.litellm_teamtable.update.return_value
+    assert refreshed is mock_prisma.db.teamtable.update.return_value
     # The row fed to the cache has to carry object_permission, or the refresh
     # publishes a team whose tool allowlists look empty, which reads as
     # unrestricted on the search-tool and MCP-tool checks.
-    update_kwargs = mock_prisma.db.litellm_teamtable.update.await_args.kwargs
+    update_kwargs = mock_prisma.db.teamtable.update.await_args.kwargs
     assert update_kwargs["include"]["object_permission"] is True
 
 
@@ -851,8 +851,8 @@ async def test_add_team_callbacks_refreshes_cached_team(stub_team_cache_refresh)
 
     stub_team_cache_refresh.assert_awaited_once()
     refreshed = stub_team_cache_refresh.await_args.kwargs["team_row"]
-    assert refreshed is mock_prisma.db.litellm_teamtable.update.return_value
-    update_kwargs = mock_prisma.db.litellm_teamtable.update.await_args.kwargs
+    assert refreshed is mock_prisma.db.teamtable.update.return_value
+    update_kwargs = mock_prisma.db.teamtable.update.await_args.kwargs
     assert update_kwargs["include"]["object_permission"] is True
 
 
@@ -888,7 +888,7 @@ async def test_disable_team_logging_clears_both_metadata_shapes():
             litellm_changed_by=None,
         )
 
-    written = json.loads(mock_prisma.db.litellm_teamtable.update.await_args.kwargs["data"]["metadata"])
+    written = json.loads(mock_prisma.db.teamtable.update.await_args.kwargs["data"]["metadata"])
     assert written["logging"] == []
     assert written["callback_settings"]["success_callback"] == []
     assert written["callback_settings"]["failure_callback"] == []
@@ -926,7 +926,7 @@ async def test_disable_team_logging_leaves_team_re_enablable():
             user_api_key_dict=_admin_auth(),
             litellm_changed_by=None,
         )
-        row.metadata = json.loads(mock_prisma.db.litellm_teamtable.update.await_args.kwargs["data"]["metadata"])
+        row.metadata = json.loads(mock_prisma.db.teamtable.update.await_args.kwargs["data"]["metadata"])
         row.model_dump.return_value["metadata"] = row.metadata
 
         await add_team_callbacks(
@@ -941,7 +941,7 @@ async def test_disable_team_logging_leaves_team_re_enablable():
             litellm_changed_by=None,
         )
 
-    written = json.loads(mock_prisma.db.litellm_teamtable.update.await_args.kwargs["data"]["metadata"])
+    written = json.loads(mock_prisma.db.teamtable.update.await_args.kwargs["data"]["metadata"])
     assert [entry["callback_name"] for entry in written["logging"]] == ["langfuse"]
 
 
@@ -979,7 +979,7 @@ async def test_delete_team_callback_rejects_unauthorized_caller(patched_prisma, 
             user_api_key_dict=unauthorized_caller,
         )
     assert exc.value.status_code == 403
-    patched_prisma.db.litellm_teamtable.update.assert_not_called()
+    patched_prisma.db.teamtable.update.assert_not_called()
 
 
 @pytest.mark.asyncio
@@ -1004,7 +1004,7 @@ async def test_delete_team_callback_removes_only_the_named_callback():
             litellm_changed_by=None,
         )
 
-    written = json.loads(mock_prisma.db.litellm_teamtable.update.await_args.kwargs["data"]["metadata"])
+    written = json.loads(mock_prisma.db.teamtable.update.await_args.kwargs["data"]["metadata"])
     assert [entry["callback_name"] for entry in written["logging"]] == ["langfuse"]
     assert written["logging"][0]["callback_vars"].keys() == {
         "langfuse_public_key",
@@ -1039,7 +1039,7 @@ async def test_delete_team_callback_leaves_the_other_callback_firing():
             litellm_changed_by=None,
         )
 
-    written = json.loads(mock_prisma.db.litellm_teamtable.update.await_args.kwargs["data"]["metadata"])
+    written = json.loads(mock_prisma.db.teamtable.update.await_args.kwargs["data"]["metadata"])
     resolved = _get_dynamic_logging_metadata(
         UserAPIKeyAuth(api_key="hashed", team_id="team-1", team_metadata=written),
         proxy_config=MagicMock(**{"load_team_config.return_value": {}}),
@@ -1091,7 +1091,7 @@ async def test_delete_team_callback_removes_every_type_under_that_name():
             litellm_changed_by=None,
         )
 
-    written = json.loads(mock_prisma.db.litellm_teamtable.update.await_args.kwargs["data"]["metadata"])
+    written = json.loads(mock_prisma.db.teamtable.update.await_args.kwargs["data"]["metadata"])
     assert [entry["callback_name"] for entry in written["logging"]] == ["langsmith"]
     assert response.data.success_callbacks == ("langsmith",)
     assert response.data.failure_callbacks == ()
@@ -1117,7 +1117,7 @@ async def test_delete_team_callback_404s_for_unregistered_callback():
 
     assert exc.value.status_code == 404
     assert exc.value.detail == {"error": "callback_name = gcs is not registered for team_id = team-1."}
-    mock_prisma.db.litellm_teamtable.update.assert_not_called()
+    mock_prisma.db.teamtable.update.assert_not_called()
 
 
 @pytest.mark.asyncio
@@ -1146,14 +1146,14 @@ async def test_delete_team_callback_404s_when_team_has_no_logging_slot():
             )
 
     assert exc.value.status_code == 404
-    mock_prisma.db.litellm_teamtable.update.assert_not_called()
+    mock_prisma.db.teamtable.update.assert_not_called()
 
 
 @pytest.mark.asyncio
 async def test_delete_team_callback_404s_for_unknown_team():
     mock_prisma = MagicMock()
     mock_prisma.get_data = AsyncMock(return_value=None)
-    mock_prisma.db.litellm_teamtable.update = AsyncMock()
+    mock_prisma.db.teamtable.update = AsyncMock()
 
     with patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma):
         with pytest.raises(HTTPException) as exc:
@@ -1166,7 +1166,7 @@ async def test_delete_team_callback_404s_for_unknown_team():
             )
 
     assert exc.value.status_code == 404
-    mock_prisma.db.litellm_teamtable.update.assert_not_called()
+    mock_prisma.db.teamtable.update.assert_not_called()
 
 
 @pytest.mark.asyncio
@@ -1179,7 +1179,7 @@ async def test_add_team_callbacks_rejects_team_deleted_before_write():
     caller sees the same 400 whether the team vanished before or after the read.
     """
     mock_prisma = _patch_prisma(_team_row(team_id="team-1", metadata={}))
-    mock_prisma.db.litellm_teamtable.update = AsyncMock(return_value=None)
+    mock_prisma.db.teamtable.update = AsyncMock(return_value=None)
 
     data = AddTeamCallback(
         callback_name="langfuse",
@@ -1202,7 +1202,7 @@ async def test_add_team_callbacks_rejects_team_deleted_before_write():
                 user_api_key_dict=_admin_auth(),
             )
 
-    mock_prisma.db.litellm_teamtable.update.assert_called_once()
+    mock_prisma.db.teamtable.update.assert_called_once()
     assert exc.value.status_code == 400
     assert exc.value.detail == {"error": "Team id = team-1 does not exist. Please use a different team id."}
 
@@ -1245,7 +1245,7 @@ async def test_delete_team_callback_keeps_last_removal_from_reviving_legacy_shap
             litellm_changed_by=None,
         )
 
-    written = json.loads(mock_prisma.db.litellm_teamtable.update.await_args.kwargs["data"]["metadata"])
+    written = json.loads(mock_prisma.db.teamtable.update.await_args.kwargs["data"]["metadata"])
     assert written["logging"] == []
     assert response.data.success_callbacks == ()
 
@@ -1280,11 +1280,11 @@ async def test_delete_team_callback_refreshes_cached_team(stub_team_cache_refres
 
     stub_team_cache_refresh.assert_awaited_once()
     refreshed = stub_team_cache_refresh.await_args.kwargs["team_row"]
-    assert refreshed is mock_prisma.db.litellm_teamtable.update.return_value
+    assert refreshed is mock_prisma.db.teamtable.update.return_value
     # The row fed to the cache has to carry object_permission, or the refresh
     # publishes a team whose tool allowlists look empty, which reads as
     # unrestricted on the search-tool and MCP-tool checks.
-    update_kwargs = mock_prisma.db.litellm_teamtable.update.await_args.kwargs
+    update_kwargs = mock_prisma.db.teamtable.update.await_args.kwargs
     assert update_kwargs["include"]["object_permission"] is True
 
 
@@ -1357,7 +1357,7 @@ async def test_delete_team_callback_encrypts_surviving_callback_vars(monkeypatch
             litellm_changed_by=None,
         )
 
-    written = json.loads(mock_prisma.db.litellm_teamtable.update.await_args.kwargs["data"]["metadata"])
+    written = json.loads(mock_prisma.db.teamtable.update.await_args.kwargs["data"]["metadata"])
     stored = written["logging"][0]["callback_vars"]
     assert stored["langfuse_secret_key"] != "sk-demo"
     assert decrypt_callback_vars(written)["logging"][0]["callback_vars"]["langfuse_secret_key"] == "sk-demo"
@@ -1394,7 +1394,7 @@ async def test_delete_team_callback_keeps_entries_it_cannot_parse():
             litellm_changed_by=None,
         )
 
-    written = json.loads(mock_prisma.db.litellm_teamtable.update.await_args.kwargs["data"]["metadata"])
+    written = json.loads(mock_prisma.db.teamtable.update.await_args.kwargs["data"]["metadata"])
     assert written["logging"] == ["not-a-callback-entry"]
 
 
@@ -1441,5 +1441,5 @@ async def test_delete_team_callback_route_accepts_team_ids_containing_slashes():
 
     assert response.status_code == 200
     assert response.json()["data"]["success_callbacks"] == ["langsmith"]
-    written = json.loads(mock_prisma.db.litellm_teamtable.update.await_args.kwargs["data"]["metadata"])
+    written = json.loads(mock_prisma.db.teamtable.update.await_args.kwargs["data"]["metadata"])
     assert [entry["callback_name"] for entry in written["logging"]] == ["langsmith"]

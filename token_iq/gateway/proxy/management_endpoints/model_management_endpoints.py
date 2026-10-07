@@ -178,7 +178,7 @@ class _ProxyModelTable(Protocol):
 
 
 class _TxModelTables(Protocol):
-    litellm_proxymodeltable: _ProxyModelTable
+    proxymodeltable: _ProxyModelTable
 
 
 class _ExistingModelRow(Protocol):
@@ -214,10 +214,10 @@ def _repo_team_table(prisma_client: PrismaClient) -> _TeamLookupTable:
 
 
 def _db_team_table(prisma_client: PrismaClient) -> _TeamTable:
-    return prisma_client.db.litellm_teamtable
+    return prisma_client.db.teamtable
 
 
-def _model_alias_table(prisma_client: PrismaClient) -> "TableActions[prisma_models.LiteLLM_ModelTable]":
+def _model_alias_table(prisma_client: PrismaClient) -> "TableActions[prisma_models.ModelTable]":
     return ModelTableRepository(prisma_client).table
 
 
@@ -1092,7 +1092,7 @@ async def _add_model_to_db(
     prisma_client: PrismaClient,
     new_encryption_key: str | None = None,
     should_create_model_in_db: bool = True,
-) -> "prisma_models.LiteLLM_ProxyModelTable | LiteLLM_ProxyModelTable | None":
+) -> "prisma_models.ProxyModelTable | LiteLLM_ProxyModelTable | None":
     # encrypt litellm params #
     _gateway_params_dict: Final = model_params.litellm_params.dict(exclude_none=True)
     _original_gateway_model_name: Final = model_params.litellm_params.model
@@ -1121,7 +1121,7 @@ async def _add_team_model_to_db(
     model_params: Deployment,
     user_api_key_dict: UserAPIKeyAuth,
     prisma_client: PrismaClient,
-) -> "prisma_models.LiteLLM_ProxyModelTable | LiteLLM_ProxyModelTable | None":
+) -> "prisma_models.ProxyModelTable | LiteLLM_ProxyModelTable | None":
     """
     If 'team_id' is provided,
 
@@ -1373,14 +1373,14 @@ async def delete_team_models(
     async with prisma_client.db.tx() as tx_ctx:
         tx: Final[_TxModelTables] = tx_ctx
         for team_id in team_ids:
-            rows = await _get_team_deployments(team_id, prisma_client, table=tx.litellm_proxymodeltable)
+            rows = await _get_team_deployments(team_id, prisma_client, table=tx.proxymodeltable)
             model_ids = [row.model_id for row in rows]
             if model_ids:
-                await tx.litellm_proxymodeltable.delete_many(where={"model_id": {"in": model_ids}})
+                await tx.proxymodeltable.delete_many(where={"model_id": {"in": model_ids}})
                 deleted_model_ids.extend(model_ids)
 
     if deleted_model_ids:
-        await publish_config_change(redis_cache=coordination_redis_cache(), object_type="litellm_proxymodeltable")
+        await publish_config_change(redis_cache=coordination_redis_cache(), object_type="proxymodeltable")
 
     # Under MODEL_RECONCILE_LOCK, for the same reason as delete_model: the rows are
     # gone, but a reconcile holding a pre-delete snapshot would upsert these ids back
@@ -2016,7 +2016,7 @@ async def add_new_model(
             enforced=bool(general_settings.get(ENFORCE_RPM_TPM_ON_MODEL_ADD_SETTING, False)),
         )
 
-        model_response: prisma_models.LiteLLM_ProxyModelTable | LiteLLM_ProxyModelTable | None = None
+        model_response: prisma_models.ProxyModelTable | LiteLLM_ProxyModelTable | None = None
         # update DB
         incoming_model_info: Final = model_params.model_info.model_dump(exclude_none=True)
         _raise_if_ptu_cost_attribution_disabled(incoming_model_info)
@@ -2894,7 +2894,7 @@ async def provider_overview() -> ProviderOverviewResponse:
     usage_rows: list[dict] = []
     last_used_by_provider: dict[str, str] = {}
     if prisma_client is not None:
-        records: Final = await prisma_client.db.litellm_dailyuserspend.find_many(
+        records: Final = await prisma_client.db.dailyuserspend.find_many(
             where={"date": {"gte": rollup_start_date()}},
         )
         usage_rows = [
@@ -2907,7 +2907,7 @@ async def provider_overview() -> ProviderOverviewResponse:
         ]
         # group_by rather than find_many over all history: distinct fetches every column
         # of every row and dedupes in application code, which does not scale on this table.
-        last_used_rows: Final = await prisma_client.db.litellm_dailyuserspend.group_by(
+        last_used_rows: Final = await prisma_client.db.dailyuserspend.group_by(
             by=["custom_llm_provider"],
             max={"date": True},
         )
@@ -2965,7 +2965,7 @@ async def provider_model_usage(usage_range: str = DEFAULT_USAGE_RANGE) -> ModelU
 
     usage_rows: list[dict] = []
     if prisma_client is not None:
-        records: Final = await prisma_client.db.litellm_dailyuserspend.find_many(
+        records: Final = await prisma_client.db.dailyuserspend.find_many(
             where={"date": {"gte": start_date}},
         )
         usage_rows = [

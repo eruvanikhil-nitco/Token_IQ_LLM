@@ -174,14 +174,14 @@ async def test_get_generic_data_dispatches_by_table(
     prisma_client: PrismaClient,
 ) -> None:
     row = SimpleNamespace(user_id="u1", spend=0.5, name="Alice")
-    prisma_client.db.litellm_usertable.find_first = AsyncMock(return_value=row)
+    prisma_client.db.usertable.find_first = AsyncMock(return_value=row)
     result = await prisma_client.get_generic_data(
         key="user_id", value="u1", table_name="users"
     )
     actual = {
         "result_is_row": result is row,
-        "find_first_count": prisma_client.db.litellm_usertable.find_first.await_count,
-        "where_kwarg": prisma_client.db.litellm_usertable.find_first.await_args.kwargs[
+        "find_first_count": prisma_client.db.usertable.find_first.await_count,
+        "where_kwarg": prisma_client.db.usertable.find_first.await_args.kwargs[
             "where"
         ],
         "user_attr": result.user_id,
@@ -208,7 +208,7 @@ async def test_get_generic_data_unknown_table_returns_none(
 async def test_get_generic_data_logs_failure_handler_and_raises_on_error(
     prisma_client: PrismaClient,
 ) -> None:
-    prisma_client.db.litellm_usertable.find_first = AsyncMock(
+    prisma_client.db.usertable.find_first = AsyncMock(
         side_effect=RuntimeError("db boom")
     )
     with pytest.raises(RuntimeError, match="db boom"):
@@ -433,17 +433,17 @@ async def test_get_data_token_find_unique_returns_record(
     token = "sk-key-1"
     hashed = hashlib.sha256(token.encode()).hexdigest()
     record = SimpleNamespace(token=hashed, user_id="u1", expires=None, spend=0.5)
-    prisma_client.db.litellm_verificationtoken.find_unique = AsyncMock(
+    prisma_client.db.verificationtoken.find_unique = AsyncMock(
         return_value=record
     )
 
     result = await prisma_client.get_data(token=token, table_name="key")
     actual = {
         "result_is_record": result is record,
-        "where_arg": prisma_client.db.litellm_verificationtoken.find_unique.await_args.kwargs[
+        "where_arg": prisma_client.db.verificationtoken.find_unique.await_args.kwargs[
             "where"
         ],
-        "include_arg": prisma_client.db.litellm_verificationtoken.find_unique.await_args.kwargs[
+        "include_arg": prisma_client.db.verificationtoken.find_unique.await_args.kwargs[
             "include"
         ],
         "token_field_matches": result.token == hashed,
@@ -460,7 +460,7 @@ async def test_get_data_token_find_unique_returns_record(
 async def test_get_data_token_find_unique_missing_token_raises_401(
     prisma_client: PrismaClient,
 ) -> None:
-    prisma_client.db.litellm_verificationtoken.find_unique = AsyncMock(
+    prisma_client.db.verificationtoken.find_unique = AsyncMock(
         return_value=None
     )
     with pytest.raises(HTTPException) as excinfo:
@@ -480,14 +480,14 @@ async def test_get_data_user_find_unique_returns_user_row(
         max_budget=10.0,
         organization_memberships=[],
     )
-    prisma_client.db.litellm_usertable.find_unique = AsyncMock(return_value=row)
+    prisma_client.db.usertable.find_unique = AsyncMock(return_value=row)
     result = await prisma_client.get_data(user_id="u-7", table_name="user")
     actual = {
         "result_is_row": result is row,
-        "where_arg": prisma_client.db.litellm_usertable.find_unique.await_args.kwargs[
+        "where_arg": prisma_client.db.usertable.find_unique.await_args.kwargs[
             "where"
         ],
-        "include_arg": prisma_client.db.litellm_usertable.find_unique.await_args.kwargs[
+        "include_arg": prisma_client.db.usertable.find_unique.await_args.kwargs[
             "include"
         ],
         "spend": row.spend,
@@ -504,7 +504,7 @@ async def test_get_data_user_find_unique_returns_user_row(
 async def test_get_data_logs_and_raises_on_db_error(
     prisma_client: PrismaClient,
 ) -> None:
-    prisma_client.db.litellm_verificationtoken.find_unique = AsyncMock(
+    prisma_client.db.verificationtoken.find_unique = AsyncMock(
         side_effect=RuntimeError("network split")
     )
     with pytest.raises(RuntimeError, match="network split"):
@@ -531,8 +531,8 @@ async def test_get_data_combined_view_returns_view_for_deprecated_key(
         "expires": None,
     }
     prisma_client.db.query_first = AsyncMock(side_effect=[None, active_row])
-    prisma_client.db.litellm_deprecatedverificationtoken = MagicMock()
-    prisma_client.db.litellm_deprecatedverificationtoken.find_first = AsyncMock(
+    prisma_client.db.deprecatedverificationtoken = MagicMock()
+    prisma_client.db.deprecatedverificationtoken.find_first = AsyncMock(
         return_value=SimpleNamespace(
             active_token_id=active_hash,
             revoke_at=datetime.now(timezone.utc) + timedelta(hours=1),
@@ -556,14 +556,14 @@ async def test_get_data_team_keys_forward_limit_as_take(
     database caps how many of a team's keys come back.
     ``limit=None`` leaves ``take`` unset so every key is returned.
     """
-    prisma_client.db.litellm_verificationtoken.find_many = AsyncMock(return_value=[])
+    prisma_client.db.verificationtoken.find_many = AsyncMock(return_value=[])
     await prisma_client.get_data(
         team_id="team-1",
         table_name="key",
         query_type="find_all",
         limit=limit,
     )
-    assert prisma_client.db.litellm_verificationtoken.find_many.await_args.kwargs == {
+    assert prisma_client.db.verificationtoken.find_many.await_args.kwargs == {
         "take": limit,
         "where": {"team_id": "team-1"},
         "include": {"litellm_budget_table": True},

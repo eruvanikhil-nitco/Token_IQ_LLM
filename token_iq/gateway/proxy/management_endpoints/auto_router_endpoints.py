@@ -169,15 +169,15 @@ def _team_table(prisma_client: "PrismaClient") -> _TeamTable:
 
 
 def _verification_tokens(prisma_client: "PrismaClient") -> _VerificationTokenTable:
-    return prisma_client.db.litellm_verificationtoken
+    return prisma_client.db.verificationtoken
 
 
 def _team_rows(prisma_client: "PrismaClient") -> _TeamRowsTable:
-    return prisma_client.db.litellm_teamtable
+    return prisma_client.db.teamtable
 
 
 def _user_rows(prisma_client: "PrismaClient") -> _UserRowsTable:
-    return prisma_client.db.litellm_usertable
+    return prisma_client.db.usertable
 
 
 def _shadow_eval_jobs(prisma_client: "PrismaClient") -> _ShadowEvalJobTable:

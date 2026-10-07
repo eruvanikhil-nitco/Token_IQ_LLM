@@ -65,7 +65,7 @@ def _make_mock_prisma():
     mock_table.find_many = AsyncMock(side_effect=_find_many)
     mock_table.create = AsyncMock(side_effect=_create)
     mock_table.update = AsyncMock(side_effect=_update)
-    mock_client.db.litellm_claudecodeplugintable = mock_table
+    mock_client.db.claudecodeplugintable = mock_table
     return mock_client
 
 
@@ -109,7 +109,7 @@ async def test_register_plugin_git_subdir_success():
 
 
 async def _read_stored_manifest(name: str) -> dict:
-    table = gateway.proxy.proxy_server.prisma_client.db.litellm_claudecodeplugintable
+    table = gateway.proxy.proxy_server.prisma_client.db.claudecodeplugintable
     record = await table.find_unique(where={"name": name})
     return json.loads(record.manifest_json)
 
@@ -192,7 +192,7 @@ async def test_register_plugin_create_race_maps_unique_violation_to_409():
     the unique-constraint error) is mapped to 409, not surfaced as a 500."""
     from prisma.errors import UniqueViolationError
 
-    table = gateway.proxy.proxy_server.prisma_client.db.litellm_claudecodeplugintable
+    table = gateway.proxy.proxy_server.prisma_client.db.claudecodeplugintable
     table.create = AsyncMock(side_effect=UniqueViolationError({}, message="duplicate name"))
 
     with pytest.raises(HTTPException) as exc_info:
@@ -217,7 +217,7 @@ async def test_update_plugin_db_error_maps_to_structured_500():
         user_api_key_dict=_USER,
     )
 
-    table = gateway.proxy.proxy_server.prisma_client.db.litellm_claudecodeplugintable
+    table = gateway.proxy.proxy_server.prisma_client.db.claudecodeplugintable
     table.update = AsyncMock(side_effect=PrismaError("connection lost"))
 
     with pytest.raises(HTTPException) as exc_info:
@@ -241,7 +241,7 @@ async def test_update_plugin_deleted_mid_update_returns_404():
         user_api_key_dict=_USER,
     )
 
-    table = gateway.proxy.proxy_server.prisma_client.db.litellm_claudecodeplugintable
+    table = gateway.proxy.proxy_server.prisma_client.db.claudecodeplugintable
     table.update = AsyncMock(return_value=None)
 
     with pytest.raises(HTTPException) as exc_info:
@@ -262,7 +262,7 @@ async def test_get_marketplace_skips_plugin_with_null_manifest():
         user_api_key_dict=_USER,
     )
 
-    table = gateway.proxy.proxy_server.prisma_client.db.litellm_claudecodeplugintable
+    table = gateway.proxy.proxy_server.prisma_client.db.claudecodeplugintable
     await table.create(data={"name": "null-manifest-plugin", "manifest_json": None, "enabled": True})
 
     response = await get_marketplace()
@@ -389,7 +389,7 @@ async def test_register_plugin_rejects_non_admin():
 
     assert exc_info.value.status_code == 403
 
-    table = gateway.proxy.proxy_server.prisma_client.db.litellm_claudecodeplugintable
+    table = gateway.proxy.proxy_server.prisma_client.db.claudecodeplugintable
     assert await table.find_unique(where={"name": "attacker-plugin"}) is None
 
 
@@ -434,5 +434,5 @@ async def test_enable_disable_delete_plugin_reject_non_admin():
             await coro
         assert exc_info.value.status_code == 403
 
-    table = gateway.proxy.proxy_server.prisma_client.db.litellm_claudecodeplugintable
+    table = gateway.proxy.proxy_server.prisma_client.db.claudecodeplugintable
     assert (await table.find_unique(where={"name": name})).enabled is True

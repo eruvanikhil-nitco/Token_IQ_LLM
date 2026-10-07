@@ -25,7 +25,7 @@ async def test_team_bulk_member_add_proxy_admin_adds_explicit_members(
         },
     )
     assert resp.status_code == 200, resp.text
-    row = await prisma.db.litellm_teamtable.find_unique(
+    row = await prisma.db.teamtable.find_unique(
         where={"team_id": scratch.prefix}
     )
     assert row is not None and new_member in _member_ids(row)
@@ -96,7 +96,7 @@ async def test_team_bulk_member_add_all_users_proxy_admin(
         json={"team_id": scratch.prefix, "all_users": True},
     )
     assert resp.status_code == 200, resp.text
-    row = await prisma.db.litellm_teamtable.find_unique(
+    row = await prisma.db.teamtable.find_unique(
         where={"team_id": scratch.prefix}
     )
     assert row is not None

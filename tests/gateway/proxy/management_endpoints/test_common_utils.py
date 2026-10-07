@@ -381,7 +381,7 @@ class TestTeamAdminCanInviteUser:
             return obj
 
         teams = [make_team(tid, tid in user_is_admin_in) for tid in admin_teams]
-        mock_prisma.db.litellm_teamtable.find_many = AsyncMock(return_value=teams)
+        mock_prisma.db.teamtable.find_many = AsyncMock(return_value=teams)
 
         result = await _team_admin_can_invite_user(
             user_api_key_dict=mock_auth,
@@ -937,7 +937,7 @@ class TestTeamAdminCanInviteUserQuery:
             return obj
 
         find_many = AsyncMock(return_value=[make_team("t1"), make_team("t2")])
-        mock_prisma.db.litellm_teamtable.find_many = find_many
+        mock_prisma.db.teamtable.find_many = find_many
 
         await _team_admin_can_invite_user(
             user_api_key_dict=mock_auth,

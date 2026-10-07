@@ -83,7 +83,7 @@ def _get_tags_from_metadata(metadata: object, json_metadata: object = None) -> l
     return parsed.get("tags", []) or []
 
 
-async def _fetch_all_teams(prisma_client: object) -> "Sequence[prisma_models.LiteLLM_TeamTable]":
+async def _fetch_all_teams(prisma_client: object) -> "Sequence[prisma_models.TeamTable]":
     """Fetch teams from DB once. Reuse the result across tag and alias lookups."""
     return await TeamRepository(prisma_client).table.find_many(
         where={},
@@ -93,7 +93,7 @@ async def _fetch_all_teams(prisma_client: object) -> "Sequence[prisma_models.Lit
 
 
 def _filter_keys_by_tags(
-    keys: "Sequence[prisma_models.LiteLLM_VerificationToken]", tag_patterns: Sequence[str]
+    keys: "Sequence[prisma_models.VerificationToken]", tag_patterns: Sequence[str]
 ) -> tuple[list[str], int]:
     """Filter key rows whose metadata.tags match any of the given patterns.
 
@@ -118,7 +118,7 @@ def _filter_keys_by_tags(
 
 
 def _filter_teams_by_tags(
-    teams: "Sequence[prisma_models.LiteLLM_TeamTable]", tag_patterns: Sequence[str]
+    teams: "Sequence[prisma_models.TeamTable]", tag_patterns: Sequence[str]
 ) -> tuple[list[str], int]:
     """Filter pre-fetched team rows whose metadata.tags match any patterns.
 
@@ -144,7 +144,7 @@ def _filter_teams_by_tags(
 
 async def _find_affected_by_team_patterns(
     prisma_client: object,
-    all_teams: "Sequence[prisma_models.LiteLLM_TeamTable]",
+    all_teams: "Sequence[prisma_models.TeamTable]",
     team_patterns: Sequence[str],
     existing_teams: Sequence[str],
     existing_keys: Sequence[str],
@@ -368,7 +368,7 @@ async def estimate_attachment_impact(
         team_patterns: Final = request.teams or []
 
         # Fetch teams once — reused by both tag-based and alias-based lookups
-        all_teams: Sequence[prisma_models.LiteLLM_TeamTable] = []
+        all_teams: Sequence[prisma_models.TeamTable] = []
         if tag_patterns or team_patterns:
             all_teams = await _fetch_all_teams(prisma_client)
 

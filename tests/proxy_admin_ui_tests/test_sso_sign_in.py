@@ -107,7 +107,7 @@ async def test_auth_callback_new_user(mock_google_sso, mock_env_vars, prisma_cli
         )
 
         # Verify that the user was added to the database
-        user = await prisma_client.db.litellm_usertable.find_first(
+        user = await prisma_client.db.usertable.find_first(
             where={"user_id": unique_user_id}
         )
         print("inserted user from SSO", user)
@@ -118,7 +118,7 @@ async def test_auth_callback_new_user(mock_google_sso, mock_env_vars, prisma_cli
 
     finally:
         # Clean up: Delete the user from the database
-        await prisma_client.db.litellm_usertable.delete(
+        await prisma_client.db.usertable.delete(
             where={"user_id": unique_user_id}
         )
 
@@ -182,7 +182,7 @@ async def test_auth_callback_new_user_with_sso_default(
         )
 
         # Verify that the user was added to the database
-        user = await prisma_client.db.litellm_usertable.find_first(
+        user = await prisma_client.db.usertable.find_first(
             where={"user_id": unique_user_id}
         )
         print("inserted user from SSO", user)
@@ -192,7 +192,7 @@ async def test_auth_callback_new_user_with_sso_default(
 
     finally:
         # Clean up: Delete the user from the database
-        await prisma_client.db.litellm_usertable.delete(
+        await prisma_client.db.usertable.delete(
             where={"user_id": unique_user_id}
         )
         gateway.default_internal_user_params = None

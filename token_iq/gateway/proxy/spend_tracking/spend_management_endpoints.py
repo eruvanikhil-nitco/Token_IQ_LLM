@@ -196,7 +196,7 @@ class _VerificationTokenTable(Protocol):
     async def update_many(self, *, data: Mapping[str, float], where: Mapping[str, object]) -> int: ...
 
 
-def _spend_logs_table(prisma_client: PrismaClient) -> TableActions["prisma_models.LiteLLM_SpendLogs"]:
+def _spend_logs_table(prisma_client: PrismaClient) -> TableActions["prisma_models.SpendLogs"]:
     return SpendLogsRepository(prisma_client).table
 
 

@@ -50,7 +50,7 @@ if TYPE_CHECKING:
 router: Final = APIRouter()
 
 
-def _memory_table(prisma_client: "PrismaClient") -> TableActions["prisma_models.LiteLLM_MemoryTable"]:
+def _memory_table(prisma_client: "PrismaClient") -> TableActions["prisma_models.MemoryTable"]:
     return MemoryRepository(prisma_client).table
 
 
@@ -91,7 +91,7 @@ def _visibility_filter(user_api_key_dict: UserAPIKeyAuth) -> Mapping[str, object
     return {"OR": ors}
 
 
-def _row_to_model(row: "prisma_models.LiteLLM_MemoryTable") -> LiteLLM_MemoryRow:
+def _row_to_model(row: "prisma_models.MemoryTable") -> LiteLLM_MemoryRow:
     return LiteLLM_MemoryRow(
         memory_id=row.memory_id,
         key=row.key,
@@ -125,7 +125,7 @@ def _internal_error(log_message: str, exc: Exception, default_detail: str) -> HT
 
 
 async def _assert_write_access(
-    prisma_client: "PrismaClient", row: "prisma_models.LiteLLM_MemoryTable", user_api_key_dict: UserAPIKeyAuth
+    prisma_client: "PrismaClient", row: "prisma_models.MemoryTable", user_api_key_dict: UserAPIKeyAuth
 ) -> None:
     """
     Enforce ownership for mutations (PUT/DELETE).
@@ -369,7 +369,7 @@ async def list_memory(
 
 async def _find_memory_for_caller(
     prisma_client: "PrismaClient", key: str, user_api_key_dict: UserAPIKeyAuth
-) -> "prisma_models.LiteLLM_MemoryTable":
+) -> "prisma_models.MemoryTable":
     """Look up a memory row by key, scoped to the caller's visibility."""
     key_filter: Final[Mapping[str, object]] = {"key": key}
     vis: Final = _visibility_filter(user_api_key_dict)
@@ -382,7 +382,7 @@ async def _find_memory_for_caller(
 
 async def _find_visible_memory_or_none(
     prisma_client: "PrismaClient", key: str, user_api_key_dict: UserAPIKeyAuth
-) -> "prisma_models.LiteLLM_MemoryTable | None":
+) -> "prisma_models.MemoryTable | None":
     """The caller-visible row for `key`, or None when nothing is visible to them."""
     try:
         return await _find_memory_for_caller(prisma_client, key, user_api_key_dict)

@@ -106,13 +106,13 @@ def _prisma(
 ) -> MagicMock:
     client = MagicMock()
     db = client.db
-    db.litellm_guardrailstable.find_many = AsyncMock(return_value=find_many or [])
-    db.litellm_guardrailstable.find_unique = AsyncMock(return_value=find_unique)
-    db.litellm_dailyguardrailmetrics.find_many = AsyncMock(return_value=metrics or [])
-    db.litellm_dailyguardrailusageunits.find_many = AsyncMock(return_value=units or [])
-    db.litellm_spendlogguardrailindex.find_many = AsyncMock(return_value=index_find_many or [])
-    db.litellm_spendlogguardrailindex.count = AsyncMock(return_value=0)
-    db.litellm_spendlogs.find_many = AsyncMock(return_value=[])
+    db.guardrailstable.find_many = AsyncMock(return_value=find_many or [])
+    db.guardrailstable.find_unique = AsyncMock(return_value=find_unique)
+    db.dailyguardrailmetrics.find_many = AsyncMock(return_value=metrics or [])
+    db.dailyguardrailusageunits.find_many = AsyncMock(return_value=units or [])
+    db.spendlogguardrailindex.find_many = AsyncMock(return_value=index_find_many or [])
+    db.spendlogguardrailindex.count = AsyncMock(return_value=0)
+    db.spendlogs.find_many = AsyncMock(return_value=[])
     return client
 
 
@@ -255,7 +255,7 @@ async def test_overview_reports_usage_units_per_row_and_total():
     row = next(r for r in resp.rows if r.id == "yaml-uuid")
     assert row.usageUnits == {"topicPolicyUnits": 4, "contentPolicyUnits": 5}
     assert resp.totalUsageUnits == {"topicPolicyUnits": 11, "contentPolicyUnits": 5}
-    units_where = prisma.db.litellm_dailyguardrailusageunits.find_many.call_args.kwargs["where"]
+    units_where = prisma.db.dailyguardrailusageunits.find_many.call_args.kwargs["where"]
     assert units_where == {"date": {"gte": START, "lte": END}}
 
 
@@ -290,7 +290,7 @@ async def test_detail_breaks_units_down_by_day_team_and_key():
         "hash-1": {"contentPolicyUnits": 2, "topicPolicyUnits": 1},
         "hash-2": {"contentPolicyUnits": 1},
     }
-    units_where = prisma.db.litellm_dailyguardrailusageunits.find_many.call_args.kwargs["where"]
+    units_where = prisma.db.dailyguardrailusageunits.find_many.call_args.kwargs["where"]
     assert units_where == {"guardrail_id": {"in": ["yaml-pii", "yaml-1"]}, "date": {"gte": START, "lte": END}}
 
 
@@ -303,7 +303,7 @@ def _units_table_missing() -> TableNotFoundError:
 @pytest.mark.asyncio
 async def test_overview_degrades_units_to_empty_when_units_table_is_missing():
     prisma = _prisma(metrics=[_metric("yaml-pii", requests=4, passed=3, blocked=1)])
-    prisma.db.litellm_dailyguardrailusageunits.find_many = AsyncMock(side_effect=_units_table_missing())
+    prisma.db.dailyguardrailusageunits.find_many = AsyncMock(side_effect=_units_table_missing())
     handler = _config_handler(_yaml_guardrail(guardrail_id="yaml-uuid", name="yaml-pii"))
     p1, p2 = _patches(prisma, handler)
     with p1, p2:
@@ -316,7 +316,7 @@ async def test_overview_degrades_units_to_empty_when_units_table_is_missing():
 @pytest.mark.asyncio
 async def test_detail_degrades_units_to_empty_when_units_table_is_missing():
     prisma = _prisma(metrics=[_metric("yaml-pii", requests=4, passed=3, blocked=1)])
-    prisma.db.litellm_dailyguardrailusageunits.find_many = AsyncMock(side_effect=_units_table_missing())
+    prisma.db.dailyguardrailusageunits.find_many = AsyncMock(side_effect=_units_table_missing())
     handler = _config_handler(_yaml_guardrail())
     p1, p2 = _patches(prisma, handler)
     with p1, p2:
@@ -352,7 +352,7 @@ async def test_logs_resolves_config_guardrail_logical_name():
             end_date=END,
             user_api_key_dict=ADMIN,
         )
-    where = prisma.db.litellm_spendlogguardrailindex.find_many.call_args.kwargs["where"]
+    where = prisma.db.spendlogguardrailindex.find_many.call_args.kwargs["where"]
     assert where["guardrail_id"] == {"in": ["yaml-uuid", "yaml-pii"]}
 
 
@@ -429,7 +429,7 @@ async def test_detail_prev_trend_query_is_bounded():
     p1, p2 = _patches(prisma, handler)
     with p1, p2:
         await guardrails_usage_detail(guardrail_id="db-1", start_date=START, end_date=END, user_api_key_dict=ADMIN)
-    wheres = [c.kwargs["where"] for c in prisma.db.litellm_dailyguardrailmetrics.find_many.await_args_list]
+    wheres = [c.kwargs["where"] for c in prisma.db.dailyguardrailmetrics.find_many.await_args_list]
     prev_wheres = [w for w in wheres if "lt" in w.get("date", {})]
     assert prev_wheres
     assert all("gte" in w["date"] for w in prev_wheres)

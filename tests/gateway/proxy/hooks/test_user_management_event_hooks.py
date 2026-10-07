@@ -25,7 +25,7 @@ class FakeUserTable:
 
 class FakePrismaClient:
     def __init__(self, rows: List[Dict[str, Any]]):
-        self.db = SimpleNamespace(litellm_usertable=FakeUserTable(rows))
+        self.db = SimpleNamespace(usertable=FakeUserTable(rows))
 
 
 async def _run_created_hook(prisma_client: FakePrismaClient, audit_log: AsyncMock) -> None:

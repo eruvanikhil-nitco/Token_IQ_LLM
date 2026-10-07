@@ -89,7 +89,7 @@ async def test_key_block_unblock_authz_matrix(
 
     # /unblock starts from a blocked row so a 200 is observable as True->False.
     if route == "unblock":
-        await prisma.db.litellm_verificationtoken.update(
+        await prisma.db.verificationtoken.update(
             where={"token": target_hashed}, data={"blocked": True}
         )
 
@@ -102,7 +102,7 @@ async def test_key_block_unblock_authz_matrix(
         resp.status_code == expected_status
     ), f"{route} {actor.value} {shape}: {resp.status_code} {resp.text}"
 
-    row = await prisma.db.litellm_verificationtoken.find_unique(
+    row = await prisma.db.verificationtoken.find_unique(
         where={"token": target_hashed}
     )
     assert row is not None
@@ -127,14 +127,14 @@ async def test_key_block_unblock_round_trip(proxy_client, prisma, scratch, world
         "/key/block", headers=headers, json={"key": target}
     )
     assert blocked.status_code == 200, blocked.text
-    row = await prisma.db.litellm_verificationtoken.find_unique(where={"token": hashed})
+    row = await prisma.db.verificationtoken.find_unique(where={"token": hashed})
     assert row is not None and row.blocked is True
 
     unblocked = await proxy_client.post(
         "/key/unblock", headers=headers, json={"key": target}
     )
     assert unblocked.status_code == 200, unblocked.text
-    row = await prisma.db.litellm_verificationtoken.find_unique(where={"token": hashed})
+    row = await prisma.db.verificationtoken.find_unique(where={"token": hashed})
     assert row is not None and row.blocked is False
 
 

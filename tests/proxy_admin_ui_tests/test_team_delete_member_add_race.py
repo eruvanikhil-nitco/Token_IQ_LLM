@@ -103,7 +103,7 @@ async def test_member_add_blocked_by_delete_writes_no_dangling_reference():
 
     team_id, user_id = _race_ids()
     async with _clean_db(team_id, user_id) as db:
-        await db.litellm_teamtable.create(data={"team_id": team_id, "team_alias": team_id, "members_with_roles": "[]"})
+        await db.teamtable.create(data={"team_id": team_id, "team_alias": team_id, "members_with_roles": "[]"})
 
         async with _real_prisma_client() as prisma_client:
             from prisma import Prisma
@@ -143,10 +143,10 @@ async def test_member_add_blocked_by_delete_writes_no_dangling_reference():
             finally:
                 await blocker.disconnect()
 
-        user_row = await db.litellm_usertable.find_unique(where={"user_id": user_id})
+        user_row = await db.usertable.find_unique(where={"user_id": user_id})
         assert user_row is None, "member_add must not have written a user row for a team that was gone under its lock"
 
-        membership_row = await db.litellm_teammembership.find_first(where={"team_id": team_id, "user_id": user_id})
+        membership_row = await db.teammembership.find_first(where={"team_id": team_id, "user_id": user_id})
         assert membership_row is None
 
 
@@ -172,7 +172,7 @@ async def test_member_delete_blocked_by_member_add_removes_from_the_fresh_roster
     )
 
     async with _clean_db(team_id, user_id) as db:
-        await db.litellm_teamtable.create(
+        await db.teamtable.create(
             data={"team_id": team_id, "team_alias": team_id, "members_with_roles": seeded_roster}
         )
 
@@ -203,7 +203,7 @@ async def test_member_delete_blocked_by_member_add_removes_from_the_fresh_roster
                         assert not task.done(), "member_delete did not wait on the team's advisory lock"
 
                         # member_add wins the race: it adds `other_user` while holding the lock
-                        await held.litellm_teamtable.update(
+                        await held.teamtable.update(
                             where={"team_id": team_id},
                             data={"members_with_roles": winning_add_roster},
                         )
@@ -214,7 +214,7 @@ async def test_member_delete_blocked_by_member_add_removes_from_the_fresh_roster
             finally:
                 proxy_server_module.prisma_client = original_prisma_client
 
-        team_row = await db.litellm_teamtable.find_unique(where={"team_id": team_id})
+        team_row = await db.teamtable.find_unique(where={"team_id": team_id})
         raw_roster = team_row.members_with_roles
         parsed_roster = json.loads(raw_roster) if isinstance(raw_roster, str) else raw_roster
         remaining_ids = {m["user_id"] for m in parsed_roster}
@@ -238,7 +238,7 @@ async def test_delete_blocked_by_member_add_sweeps_the_fresh_reference():
 
     team_id, user_id = _race_ids()
     async with _clean_db(team_id, user_id) as db:
-        await db.litellm_teamtable.create(data={"team_id": team_id, "team_alias": team_id, "members_with_roles": "[]"})
+        await db.teamtable.create(data={"team_id": team_id, "team_alias": team_id, "members_with_roles": "[]"})
 
         async with _real_prisma_client() as prisma_client:
             proxy_logging_obj = prisma_client.proxy_logging_obj
@@ -285,15 +285,15 @@ async def test_delete_blocked_by_member_add_sweeps_the_fresh_reference():
                         assert not task.done(), "delete_team did not wait on the team's advisory lock"
 
                         # member_add wins the race: write the reference while holding the lock
-                        await held.litellm_usertable.upsert(
+                        await held.usertable.upsert(
                             where={"user_id": user_id},
                             data={
                                 "create": {"user_id": user_id, "teams": [team_id]},
                                 "update": {"teams": {"push": [team_id]}},
                             },
                         )
-                        await held.litellm_teammembership.create(data={"team_id": team_id, "user_id": user_id})
-                        await held.litellm_teamtable.update(
+                        await held.teammembership.create(data={"team_id": team_id, "user_id": user_id})
+                        await held.teamtable.update(
                             where={"team_id": team_id},
                             data={"members_with_roles": '[{"user_id": "%s", "role": "user"}]' % user_id},
                         )
@@ -304,13 +304,13 @@ async def test_delete_blocked_by_member_add_sweeps_the_fresh_reference():
             finally:
                 await restore()
 
-        team_row = await db.litellm_teamtable.find_unique(where={"team_id": team_id})
+        team_row = await db.teamtable.find_unique(where={"team_id": team_id})
         assert team_row is None
 
-        user_row = await db.litellm_usertable.find_unique(where={"user_id": user_id})
+        user_row = await db.usertable.find_unique(where={"user_id": user_id})
         assert user_row is not None and team_id not in user_row.teams, (
             "delete_team's locked sweep must reap the reference member_add wrote just before losing the lock"
         )
 
-        membership_row = await db.litellm_teammembership.find_first(where={"team_id": team_id, "user_id": user_id})
+        membership_row = await db.teammembership.find_first(where={"team_id": team_id, "user_id": user_id})
         assert membership_row is None

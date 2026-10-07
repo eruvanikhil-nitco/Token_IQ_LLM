@@ -254,8 +254,8 @@ async def test_get_team_object_warm_cache():
 
     mock_prisma = MagicMock()
     mock_prisma.db = MagicMock()
-    mock_prisma.db.litellm_teamtable = MagicMock()
-    mock_prisma.db.litellm_teamtable.find_unique = AsyncMock()
+    mock_prisma.db.teamtable = MagicMock()
+    mock_prisma.db.teamtable.find_unique = AsyncMock()
 
     await get_team_object(
         team_id=team_id,
@@ -271,7 +271,7 @@ async def test_get_team_object_warm_cache():
     assert cache_key in summary["cache_read_keys"]
 
     # DB should NOT have been called
-    mock_prisma.db.litellm_teamtable.find_unique.assert_not_called()
+    mock_prisma.db.teamtable.find_unique.assert_not_called()
 
 
 # ============================================================================
@@ -295,8 +295,8 @@ async def test_get_user_object_warm_cache():
 
     mock_prisma = MagicMock()
     mock_prisma.db = MagicMock()
-    mock_prisma.db.litellm_usertable = MagicMock()
-    mock_prisma.db.litellm_usertable.find_unique = AsyncMock()
+    mock_prisma.db.usertable = MagicMock()
+    mock_prisma.db.usertable.find_unique = AsyncMock()
 
     await get_user_object(
         user_id=user_id,
@@ -313,7 +313,7 @@ async def test_get_user_object_warm_cache():
     assert user_id in summary["cache_read_keys"]
 
     # DB should NOT have been called
-    mock_prisma.db.litellm_usertable.find_unique.assert_not_called()
+    mock_prisma.db.usertable.find_unique.assert_not_called()
 
 
 # ============================================================================
@@ -347,8 +347,8 @@ async def test_get_team_membership_warm_cache():
 
     mock_prisma = MagicMock()
     mock_prisma.db = MagicMock()
-    mock_prisma.db.litellm_teammembership = MagicMock()
-    mock_prisma.db.litellm_teammembership.find_unique = AsyncMock()
+    mock_prisma.db.teammembership = MagicMock()
+    mock_prisma.db.teammembership.find_unique = AsyncMock()
 
     await get_team_membership(
         user_id=user_id,
@@ -365,7 +365,7 @@ async def test_get_team_membership_warm_cache():
     assert cache_key in summary["cache_read_keys"]
 
     # DB should NOT have been called
-    mock_prisma.db.litellm_teammembership.find_unique.assert_not_called()
+    mock_prisma.db.teammembership.find_unique.assert_not_called()
 
 
 # ============================================================================
@@ -533,8 +533,8 @@ async def test_get_user_object_missing_user_negative_cache():
 
     mock_prisma = MagicMock()
     mock_prisma.db = MagicMock()
-    mock_prisma.db.litellm_usertable = MagicMock()
-    mock_prisma.db.litellm_usertable.find_unique = AsyncMock(return_value=None)
+    mock_prisma.db.usertable = MagicMock()
+    mock_prisma.db.usertable.find_unique = AsyncMock(return_value=None)
 
     for _ in range(3):
         with pytest.raises(ValueError, match="User doesn't exist in db\\."):
@@ -547,7 +547,7 @@ async def test_get_user_object_missing_user_negative_cache():
                 user_id_upsert=False,
             )
 
-    assert mock_prisma.db.litellm_usertable.find_unique.call_count == 1
+    assert mock_prisma.db.usertable.find_unique.call_count == 1
 
 
 @pytest.mark.asyncio
@@ -564,8 +564,8 @@ async def test_get_user_object_missing_user_rechecks_after_expiry():
 
     mock_prisma = MagicMock()
     mock_prisma.db = MagicMock()
-    mock_prisma.db.litellm_usertable = MagicMock()
-    mock_prisma.db.litellm_usertable.find_unique = AsyncMock(return_value=None)
+    mock_prisma.db.usertable = MagicMock()
+    mock_prisma.db.usertable.find_unique = AsyncMock(return_value=None)
 
     with pytest.raises(ValueError, match="User doesn't exist in db\\."):
         await get_user_object(
@@ -576,7 +576,7 @@ async def test_get_user_object_missing_user_rechecks_after_expiry():
             proxy_logging_obj=None,
             user_id_upsert=False,
         )
-    assert mock_prisma.db.litellm_usertable.find_unique.call_count == 1
+    assert mock_prisma.db.usertable.find_unique.call_count == 1
 
     last_db_access_time[f"user_id:{user_id}"] = (
         None,
@@ -592,7 +592,7 @@ async def test_get_user_object_missing_user_rechecks_after_expiry():
             proxy_logging_obj=None,
             user_id_upsert=False,
         )
-    assert mock_prisma.db.litellm_usertable.find_unique.call_count == 2
+    assert mock_prisma.db.usertable.find_unique.call_count == 2
 
 
 def test_should_check_db_negative_entry_throttles_then_expires():

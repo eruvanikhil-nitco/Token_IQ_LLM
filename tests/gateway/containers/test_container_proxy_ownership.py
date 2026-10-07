@@ -43,7 +43,7 @@ async def test_should_record_container_owner_with_original_provider_id(monkeypat
     table = AsyncMock()
     table.find_unique.return_value = None
     prisma_client = SimpleNamespace(
-        db=SimpleNamespace(litellm_managedobjecttable=table)
+        db=SimpleNamespace(managedobjecttable=table)
     )
     monkeypatch.setattr(
         ownership,
@@ -74,7 +74,7 @@ async def test_should_not_mutate_dict_container_response_when_recording_owner(
     table = AsyncMock()
     table.find_unique.return_value = None
     prisma_client = SimpleNamespace(
-        db=SimpleNamespace(litellm_managedobjecttable=table)
+        db=SimpleNamespace(managedobjecttable=table)
     )
     monkeypatch.setattr(
         ownership,
@@ -102,7 +102,7 @@ async def test_should_record_team_owner_for_keys_without_user_id(monkeypatch):
     table = AsyncMock()
     table.find_unique.return_value = None
     prisma_client = SimpleNamespace(
-        db=SimpleNamespace(litellm_managedobjecttable=table)
+        db=SimpleNamespace(managedobjecttable=table)
     )
     monkeypatch.setattr(
         ownership,
@@ -127,7 +127,7 @@ async def test_should_record_token_owner_for_keys_without_user_team_or_org(monke
     table = AsyncMock()
     table.find_unique.return_value = None
     prisma_client = SimpleNamespace(
-        db=SimpleNamespace(litellm_managedobjecttable=table)
+        db=SimpleNamespace(managedobjecttable=table)
     )
     monkeypatch.setattr(
         ownership,
@@ -175,7 +175,7 @@ async def test_should_reject_record_for_identityless_proxy_auth(monkeypatch):
 async def test_should_skip_owner_record_when_provider_response_has_no_id(monkeypatch):
     table = AsyncMock()
     prisma_client = SimpleNamespace(
-        db=SimpleNamespace(litellm_managedobjecttable=table)
+        db=SimpleNamespace(managedobjecttable=table)
     )
     monkeypatch.setattr(
         ownership,
@@ -222,7 +222,7 @@ async def test_should_not_reassign_existing_container_to_different_owner(monkeyp
         created_by="user-2",
     )
     prisma_client = SimpleNamespace(
-        db=SimpleNamespace(litellm_managedobjecttable=table)
+        db=SimpleNamespace(managedobjecttable=table)
     )
     monkeypatch.setattr(
         ownership,
@@ -249,7 +249,7 @@ async def test_should_filter_container_list_to_owned_records(monkeypatch):
         SimpleNamespace(model_object_id="container:openai:cntr_owned"),
     ]
     prisma_client = SimpleNamespace(
-        db=SimpleNamespace(litellm_managedobjecttable=table)
+        db=SimpleNamespace(managedobjecttable=table)
     )
     monkeypatch.setattr(
         ownership,
@@ -287,7 +287,7 @@ async def test_should_clear_has_more_when_filtered_container_list_is_empty(
         SimpleNamespace(model_object_id="container:openai:cntr_owned"),
     ]
     prisma_client = SimpleNamespace(
-        db=SimpleNamespace(litellm_managedobjecttable=table)
+        db=SimpleNamespace(managedobjecttable=table)
     )
     monkeypatch.setattr(
         ownership,
@@ -322,7 +322,7 @@ async def test_should_clear_dict_has_more_when_filtered_container_list_is_empty(
         SimpleNamespace(model_object_id="container:openai:cntr_owned"),
     ]
     prisma_client = SimpleNamespace(
-        db=SimpleNamespace(litellm_managedobjecttable=table)
+        db=SimpleNamespace(managedobjecttable=table)
     )
     monkeypatch.setattr(
         ownership,
@@ -775,7 +775,7 @@ async def test_get_container_owner_uses_cache_after_first_db_hit(monkeypatch):
     )
     table.find_first.return_value = fake_row
     prisma_client = SimpleNamespace(
-        db=SimpleNamespace(litellm_managedobjecttable=table)
+        db=SimpleNamespace(managedobjecttable=table)
     )
     monkeypatch.setattr(
         ownership,
@@ -800,7 +800,7 @@ async def test_get_container_owner_caches_negative_lookups(monkeypatch):
     table = AsyncMock()
     table.find_first.return_value = None
     prisma_client = SimpleNamespace(
-        db=SimpleNamespace(litellm_managedobjecttable=table)
+        db=SimpleNamespace(managedobjecttable=table)
     )
     monkeypatch.setattr(
         ownership,
@@ -822,7 +822,7 @@ async def test_allowed_container_ids_uses_cache_after_first_db_hit(monkeypatch):
         SimpleNamespace(model_object_id="container:openai:cntr_a"),
     ]
     prisma_client = SimpleNamespace(
-        db=SimpleNamespace(litellm_managedobjecttable=table)
+        db=SimpleNamespace(managedobjecttable=table)
     )
     monkeypatch.setattr(
         ownership,
@@ -854,7 +854,7 @@ async def test_record_container_owner_invalidates_caller_list_cache(monkeypatch)
         SimpleNamespace(model_object_id="container:openai:cntr_old"),
     ]
     prisma_client = SimpleNamespace(
-        db=SimpleNamespace(litellm_managedobjecttable=table)
+        db=SimpleNamespace(managedobjecttable=table)
     )
     monkeypatch.setattr(
         ownership,
@@ -894,7 +894,7 @@ async def test_admin_with_identity_records_container_ownership(monkeypatch):
     table = AsyncMock()
     table.find_unique.return_value = None
     prisma_client = SimpleNamespace(
-        db=SimpleNamespace(litellm_managedobjecttable=table)
+        db=SimpleNamespace(managedobjecttable=table)
     )
     monkeypatch.setattr(
         ownership,
@@ -924,7 +924,7 @@ async def test_should_record_containers_from_responses_output_for_service_accoun
     table = AsyncMock()
     table.find_unique.return_value = None
     prisma_client = SimpleNamespace(
-        db=SimpleNamespace(litellm_managedobjecttable=table)
+        db=SimpleNamespace(managedobjecttable=table)
     )
     monkeypatch.setattr(
         ownership,
@@ -979,7 +979,7 @@ async def test_service_account_can_access_container_after_responses_tracking(
     table = AsyncMock()
     table.find_unique.return_value = None
     prisma_client = SimpleNamespace(
-        db=SimpleNamespace(litellm_managedobjecttable=table)
+        db=SimpleNamespace(managedobjecttable=table)
     )
     monkeypatch.setattr(
         ownership,
@@ -1049,7 +1049,7 @@ async def test_should_record_container_ownership_after_streaming_responses_finis
     table = AsyncMock()
     table.find_unique.return_value = None
     prisma_client = SimpleNamespace(
-        db=SimpleNamespace(litellm_managedobjecttable=table)
+        db=SimpleNamespace(managedobjecttable=table)
     )
     monkeypatch.setattr(
         ownership,

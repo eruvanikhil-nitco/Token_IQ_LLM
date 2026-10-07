@@ -951,8 +951,8 @@ class TestMCPRequestHandler:
 
         # Test case: None values in database
         mock_prisma_client = MagicMock()
-        mock_prisma_client.db.litellm_objectpermissiontable.find_unique.return_value = None
-        mock_prisma_client.db.litellm_teamtable.find_unique.return_value = None
+        mock_prisma_client.db.objectpermissiontable.find_unique.return_value = None
+        mock_prisma_client.db.teamtable.find_unique.return_value = None
 
         user_api_key_auth = UserAPIKeyAuth(
             api_key="test-key",
@@ -966,7 +966,7 @@ class TestMCPRequestHandler:
             assert result == []
 
         # Test case: Exception handling
-        mock_prisma_client.db.litellm_objectpermissiontable.find_unique.side_effect = Exception("DB Error")
+        mock_prisma_client.db.objectpermissiontable.find_unique.side_effect = Exception("DB Error")
 
         with patch("token_iq.gateway.proxy.proxy_server.prisma_client", mock_prisma_client):
             result = await MCPRequestHandler.get_allowed_mcp_servers(user_api_key_auth)
@@ -4369,7 +4369,7 @@ class TestAgentMCPPermissions:
         agent_row = MagicMock()
         agent_row.object_permission_id = "perm-xyz"
         prisma_client = MagicMock()
-        prisma_client.db.litellm_agentstable.find_unique = AsyncMock(return_value=agent_row)
+        prisma_client.db.agentstable.find_unique = AsyncMock(return_value=agent_row)
         user_api_key_auth = UserAPIKeyAuth(
             api_key="test-key",
             user_id="test-user",
@@ -4394,9 +4394,9 @@ class TestAgentMCPPermissions:
 
             # Second call: the agent_id -> object_permission_id mapping is
             # cached, so the agent row is not re-fetched.
-            prisma_client.db.litellm_agentstable.find_unique.reset_mock()
+            prisma_client.db.agentstable.find_unique.reset_mock()
             await MCPRequestHandler._get_agent_object_permission(user_api_key_auth)
-            prisma_client.db.litellm_agentstable.find_unique.assert_not_called()
+            prisma_client.db.agentstable.find_unique.assert_not_called()
 
     async def test_get_agent_object_permission_caches_missing_permission(self):
         """When the agent has no ``object_permission_id`` the sentinel must be
@@ -4407,7 +4407,7 @@ class TestAgentMCPPermissions:
         agent_row = MagicMock()
         agent_row.object_permission_id = None
         prisma_client = MagicMock()
-        prisma_client.db.litellm_agentstable.find_unique = AsyncMock(return_value=agent_row)
+        prisma_client.db.agentstable.find_unique = AsyncMock(return_value=agent_row)
         user_api_key_auth = UserAPIKeyAuth(
             api_key="test-key",
             user_id="test-user",
@@ -4427,7 +4427,7 @@ class TestAgentMCPPermissions:
             assert await MCPRequestHandler._get_agent_object_permission(user_api_key_auth) is None
 
             mock_get_perm.assert_not_awaited()
-            prisma_client.db.litellm_agentstable.find_unique.assert_awaited_once()
+            prisma_client.db.agentstable.find_unique.assert_awaited_once()
 
 
 @pytest.mark.asyncio
@@ -8944,7 +8944,7 @@ class TestGetUserObjectPermission:
 
     def _prisma_with_user(self, user_row):
         prisma_client = MagicMock()
-        prisma_client.db.litellm_usertable.find_unique = AsyncMock(return_value=user_row)
+        prisma_client.db.usertable.find_unique = AsyncMock(return_value=user_row)
         return prisma_client
 
     async def test_resolves_through_the_shared_permission_cache(self):
@@ -8970,9 +8970,9 @@ class TestGetUserObjectPermission:
             assert mock_get_perm.await_args.kwargs["object_permission_id"] == "perm-1"
 
             # The user_id -> object_permission_id link is cached, so the user row is read once.
-            prisma_client.db.litellm_usertable.find_unique.reset_mock()
+            prisma_client.db.usertable.find_unique.reset_mock()
             await MCPRequestHandler._get_user_object_permission(auth)
-            prisma_client.db.litellm_usertable.find_unique.assert_not_called()
+            prisma_client.db.usertable.find_unique.assert_not_called()
 
     async def test_caches_a_sentinel_for_a_human_with_no_entitlement(self):
         """A human without an entitlement is the common case and must cost no DB read per request."""
@@ -8992,7 +8992,7 @@ class TestGetUserObjectPermission:
             assert await MCPRequestHandler._get_user_object_permission(auth) is None
             assert await MCPRequestHandler._get_user_object_permission(auth) is None
             mock_get_perm.assert_not_awaited()
-            prisma_client.db.litellm_usertable.find_unique.assert_awaited_once()
+            prisma_client.db.usertable.find_unique.assert_awaited_once()
 
     async def test_missing_user_row_places_no_ceiling(self):
         """Whether this human is entitled at all is unknown when their row is absent, which is the
@@ -9013,7 +9013,7 @@ class TestGetUserObjectPermission:
         from token_iq.gateway.caching.dual_cache import DualCache
 
         prisma_client = MagicMock()
-        prisma_client.db.litellm_usertable.find_unique = AsyncMock(side_effect=Exception("db down"))
+        prisma_client.db.usertable.find_unique = AsyncMock(side_effect=Exception("db down"))
         auth = UserAPIKeyAuth(api_key="sk-test", user_id="human-db-down")
 
         with (
@@ -9071,7 +9071,7 @@ def _key_auth_reaching(server, *, tools=None, **fields):
 
 def _agent_prisma(object_permission_id=None, side_effect=None):
     prisma_client = MagicMock()
-    prisma_client.db.litellm_agentstable.find_unique = AsyncMock(
+    prisma_client.db.agentstable.find_unique = AsyncMock(
         return_value=MagicMock(object_permission_id=object_permission_id),
         side_effect=side_effect,
     )

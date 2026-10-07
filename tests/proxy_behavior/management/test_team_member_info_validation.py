@@ -36,7 +36,7 @@ async def test_member_add_both_none_rejected(proxy_client, prisma, scratch, worl
     # (422). Either shape proves the empty-Member payload is rejected before
     # any membership row is written — pin both.
     assert resp.status_code in (400, 422), resp.text
-    rows = await prisma.db.litellm_teammembership.find_many(where={"team_id": team_id})
+    rows = await prisma.db.teammembership.find_many(where={"team_id": team_id})
     assert rows == [], "empty-Member payload leaked a membership row"
 
 
@@ -70,7 +70,7 @@ async def test_member_add_email_id_mismatch_rejected(
     )
     assert resp.status_code == 400, resp.text
     assert "do not belong to the same user" in resp.text, resp.text
-    rows = await prisma.db.litellm_teammembership.find_many(where={"team_id": team_id})
+    rows = await prisma.db.teammembership.find_many(where={"team_id": team_id})
     assert rows == [], "mismatch payload leaked a membership row"
 
 
@@ -102,7 +102,7 @@ async def test_member_add_email_only_resolves_user_id(
     # team's members_with_roles JSON. Re-read that and assert the resolved
     # user_id landed — the regression shape is "email resolved to the WRONG
     # user_id and was silently written to members_with_roles".
-    team_row = await prisma.db.litellm_teamtable.find_unique(where={"team_id": team_id})
+    team_row = await prisma.db.teamtable.find_unique(where={"team_id": team_id})
     assert team_row is not None
     member_user_ids = [m.get("user_id") for m in team_row.members_with_roles]
     assert (
@@ -121,7 +121,7 @@ async def test_member_add_unknown_user_id_upserted(
     team_id = await create_scratch_team(prisma, team_id=scratch.tag("team"))
     new_user_id = f"{scratch.prefix}-fresh"
     # Sanity — user does not exist yet.
-    pre = await prisma.db.litellm_usertable.find_unique(where={"user_id": new_user_id})
+    pre = await prisma.db.usertable.find_unique(where={"user_id": new_user_id})
     assert pre is None
     seeder = world.keys[Actor.PROXY_ADMIN].cleartext
     resp = await proxy_client.post(
@@ -133,7 +133,7 @@ async def test_member_add_unknown_user_id_upserted(
         },
     )
     assert resp.status_code == 200, resp.text
-    post = await prisma.db.litellm_usertable.find_unique(where={"user_id": new_user_id})
+    post = await prisma.db.usertable.find_unique(where={"user_id": new_user_id})
     assert post is not None, "user_id was not upserted"
     # The user row was created with NULL email (the helper returned the
     # member as-is, no email lookup happened because the user didn't exist).
@@ -166,5 +166,5 @@ async def test_member_add_duplicate_email_rejected(
     )
     assert resp.status_code == 400, resp.text
     assert "Multiple users found" in resp.text, resp.text
-    rows = await prisma.db.litellm_teammembership.find_many(where={"team_id": team_id})
+    rows = await prisma.db.teammembership.find_many(where={"team_id": team_id})
     assert rows == [], "duplicate-email payload leaked a membership row"

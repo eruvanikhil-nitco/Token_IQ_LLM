@@ -52,7 +52,7 @@ def _make_prisma(stored: dict, db_has_id_jag_server: bool = False):
     ``db_has_id_jag_server`` drives the retention gate's authoritative DB fallback;
     it is wired explicitly so the gate never reads a truthy bare MagicMock."""
     prisma = MagicMock()
-    prisma.db.litellm_mcpservertable.find_first = AsyncMock(
+    prisma.db.mcpservertable.find_first = AsyncMock(
         return_value=MagicMock() if db_has_id_jag_server else None
     )
 
@@ -160,7 +160,7 @@ async def test_retention_gate_reads_the_db_when_config_declares_no_id_jag_server
         db_backed = _make_prisma({}, db_has_id_jag_server=True)
         with patch("token_iq.gateway.proxy.proxy_server.prisma_client", db_backed):
             assert await ema_assertion_retention_enabled() is True
-        db_backed.db.litellm_mcpservertable.find_first.assert_awaited_once_with(
+        db_backed.db.mcpservertable.find_first.assert_awaited_once_with(
             where={"auth_type": MCPAuth.oauth2_id_jag.value}
         )
         with patch("token_iq.gateway.proxy.proxy_server.prisma_client", None):

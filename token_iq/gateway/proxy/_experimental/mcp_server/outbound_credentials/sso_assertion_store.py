@@ -103,7 +103,7 @@ async def ema_assertion_retention_enabled() -> bool:
         return True
     if prisma_client is None:
         return False
-    row = await prisma_client.db.litellm_mcpservertable.find_first(where={"auth_type": MCPAuth.oauth2_id_jag.value})
+    row = await prisma_client.db.mcpservertable.find_first(where={"auth_type": MCPAuth.oauth2_id_jag.value})
     return row is not None
 
 
@@ -201,7 +201,7 @@ async def rotate_sso_identity_assertions_master_key(prisma_client: PrismaClient,
     mirroring the sibling per-user credential tables; an unreadable row is skipped so one
     corrupt row does not abort the rotation. Rows are decrypted one at a time inside the loop
     so the whole table's plaintext is never held in memory at once."""
-    from prisma.models import LiteLLM_SSOIdentityAssertion as AssertionRow  # noqa: PLC0415  # generated at runtime
+    from prisma.models import SSOIdentityAssertion as AssertionRow  # noqa: PLC0415  # generated at runtime
 
     from token_iq.gateway.proxy.common_utils.encrypt_decrypt_utils import (  # noqa: PLC0415  # runtime global
         decrypt_value_helper,

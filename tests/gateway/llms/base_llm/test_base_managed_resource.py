@@ -55,7 +55,7 @@ async def test_list_admin_query_is_unscoped():
 
     await resource.list_user_resources(user_api_key_dict=admin)
 
-    table = resource.prisma_client.db.litellm_test_resource_table
+    table = resource.prisma_client.db.test_resource_table
     where = table.find_many.await_args.kwargs["where"]
     assert "created_by" not in where
     assert "team_id" not in where
@@ -68,7 +68,7 @@ async def test_list_user_filters_by_user_id():
 
     await resource.list_user_resources(user_api_key_dict=user)
 
-    where = resource.prisma_client.db.litellm_test_resource_table.find_many.await_args.kwargs[
+    where = resource.prisma_client.db.test_resource_table.find_many.await_args.kwargs[
         "where"
     ]
     assert where["created_by"] == "alice"
@@ -82,7 +82,7 @@ async def test_list_service_account_filters_by_team_id():
 
     await resource.list_user_resources(user_api_key_dict=service_account)
 
-    where = resource.prisma_client.db.litellm_test_resource_table.find_many.await_args.kwargs[
+    where = resource.prisma_client.db.test_resource_table.find_many.await_args.kwargs[
         "where"
     ]
     assert where["team_id"] == "team-eng"
@@ -105,7 +105,7 @@ async def test_list_identity_less_caller_returns_empty_without_query():
         "last_id": None,
         "has_more": False,
     }
-    resource.prisma_client.db.litellm_test_resource_table.find_many.assert_not_awaited()
+    resource.prisma_client.db.test_resource_table.find_many.assert_not_awaited()
 
 
 @pytest.mark.asyncio

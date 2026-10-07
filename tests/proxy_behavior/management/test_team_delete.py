@@ -51,7 +51,7 @@ async def test_team_delete_authz_matrix(
         resp.status_code == expected_status
     ), f"{actor.value} {shape}: {resp.status_code} {resp.text}"
 
-    row = await prisma.db.litellm_teamtable.find_unique(
+    row = await prisma.db.teamtable.find_unique(
         where={"team_id": scratch.prefix}
     )
     if expected_status == 200:
@@ -72,7 +72,7 @@ async def test_team_delete_batch_with_missing_id_deletes_nothing(
         json={"team_ids": [scratch.prefix, "behavior-pin-no-such-team"]},
     )
     assert resp.status_code == 404, resp.text
-    row = await prisma.db.litellm_teamtable.find_unique(
+    row = await prisma.db.teamtable.find_unique(
         where={"team_id": scratch.prefix}
     )
     assert row is not None, "batch aborted but the accessible team was deleted"

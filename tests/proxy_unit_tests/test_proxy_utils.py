@@ -1924,7 +1924,7 @@ async def test_spend_logs_cleanup_after_error():
     # Add lock for spend_log_transactions (matches real PrismaClient)
     mock_client._spend_log_transactions_lock = asyncio.Lock()
     # Make the DB operation fail
-    mock_client.db.litellm_spendlogs.create_many = AsyncMock(
+    mock_client.db.spendlogs.create_many = AsyncMock(
         side_effect=Exception("DB Error")
     )
 
@@ -2286,7 +2286,7 @@ def test_team_alias_stale_bypass_enabled_by_flag(monkeypatch):
 def mock_prisma_client():
     client = MagicMock()
     client.db = MagicMock()
-    client.db.litellm_teamtable = AsyncMock()
+    client.db.teamtable = AsyncMock()
     return client
 
 
@@ -2382,7 +2382,7 @@ async def test_get_admin_team_ids(
     )
 
     # Setup
-    mock_prisma_client.db.litellm_teamtable.find_many.return_value = mock_teams
+    mock_prisma_client.db.teamtable.find_many.return_value = mock_teams
     user_api_key_dict = UserAPIKeyAuth(
         user_role=user_role, user_id=user_info.user_id if user_info else None
     )
@@ -2398,11 +2398,11 @@ async def test_get_admin_team_ids(
     assert result == expected_teams, f"Expected {expected_teams}, but got {result}"
 
     if should_query_db:
-        mock_prisma_client.db.litellm_teamtable.find_many.assert_called_once_with(
+        mock_prisma_client.db.teamtable.find_many.assert_called_once_with(
             where={"team_id": {"in": user_info.teams}}
         )
     else:
-        mock_prisma_client.db.litellm_teamtable.find_many.assert_not_called()
+        mock_prisma_client.db.teamtable.find_many.assert_not_called()
 
 
 @pytest.mark.asyncio

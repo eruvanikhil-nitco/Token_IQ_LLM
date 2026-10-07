@@ -98,22 +98,22 @@ router: Final = APIRouter()
 
 def _user_table(
     prisma_client: "PrismaClient | None",
-) -> "TableActions[prisma_models.LiteLLM_UserTable]":
-    user_table: Final[TableActions[prisma_models.LiteLLM_UserTable]] = UserRepository(prisma_client).table
+) -> "TableActions[prisma_models.UserTable]":
+    user_table: Final[TableActions[prisma_models.UserTable]] = UserRepository(prisma_client).table
     return user_table
 
 
 def _team_table(
     prisma_client: "PrismaClient | None",
-) -> "TableActions[prisma_models.LiteLLM_TeamTable]":
-    team_table: Final[TableActions[prisma_models.LiteLLM_TeamTable]] = TeamRepository(prisma_client).table
+) -> "TableActions[prisma_models.TeamTable]":
+    team_table: Final[TableActions[prisma_models.TeamTable]] = TeamRepository(prisma_client).table
     return team_table
 
 
 def _verification_token_table(
     prisma_client: "PrismaClient | None",
-) -> "TableActions[prisma_models.LiteLLM_VerificationToken]":
-    token_table: Final[TableActions[prisma_models.LiteLLM_VerificationToken]] = VerificationTokenRepository(
+) -> "TableActions[prisma_models.VerificationToken]":
+    token_table: Final[TableActions[prisma_models.VerificationToken]] = VerificationTokenRepository(
         prisma_client
     ).table
     return token_table
@@ -121,8 +121,8 @@ def _verification_token_table(
 
 def _organization_membership_table(
     prisma_client: "PrismaClient | None",
-) -> "TableActions[prisma_models.LiteLLM_OrganizationMembership]":
-    membership_table: Final[TableActions[prisma_models.LiteLLM_OrganizationMembership]] = (
+) -> "TableActions[prisma_models.OrganizationMembership]":
+    membership_table: Final[TableActions[prisma_models.OrganizationMembership]] = (
         OrganizationMembershipRepository(prisma_client).table
     )
     return membership_table
@@ -130,8 +130,8 @@ def _organization_membership_table(
 
 def _invitation_link_table(
     prisma_client: "PrismaClient | None",
-) -> "TableActions[prisma_models.LiteLLM_InvitationLink]":
-    invitation_table: Final[TableActions[prisma_models.LiteLLM_InvitationLink]] = InvitationLinkRepository(
+) -> "TableActions[prisma_models.InvitationLink]":
+    invitation_table: Final[TableActions[prisma_models.InvitationLink]] = InvitationLinkRepository(
         prisma_client
     ).table
     return invitation_table
@@ -139,8 +139,8 @@ def _invitation_link_table(
 
 def _organization_table(
     prisma_client: "PrismaClient | None",
-) -> "TableActions[prisma_models.LiteLLM_OrganizationTable]":
-    organization_table: Final[TableActions[prisma_models.LiteLLM_OrganizationTable]] = OrganizationRepository(
+) -> "TableActions[prisma_models.OrganizationTable]":
+    organization_table: Final[TableActions[prisma_models.OrganizationTable]] = OrganizationRepository(
         prisma_client
     ).table
     return organization_table
@@ -148,8 +148,8 @@ def _organization_table(
 
 def _team_membership_table(
     prisma_client: "PrismaClient | None",
-) -> "TableActions[prisma_models.LiteLLM_TeamMembership]":
-    team_membership_table: Final[TableActions[prisma_models.LiteLLM_TeamMembership]] = TeamMembershipRepository(
+) -> "TableActions[prisma_models.TeamMembership]":
+    team_membership_table: Final[TableActions[prisma_models.TeamMembership]] = TeamMembershipRepository(
         prisma_client
     ).table
     return team_membership_table
@@ -742,7 +742,7 @@ def _enforce_user_info_access(user_id: str | None, user_api_key_dict: UserAPIKey
 
 class _UserInfoDataClient(Protocol):
     @overload
-    async def get_data(self, *, user_id: str) -> "prisma_models.LiteLLM_UserTable | None": ...
+    async def get_data(self, *, user_id: str) -> "prisma_models.UserTable | None": ...
 
     @overload
     async def get_data(
@@ -777,7 +777,7 @@ async def _get_user_info_keys(
 async def _get_user_info_teams(
     prisma_client: "_UserInfoDataClient",
     user_id: str | None,
-    user_info: "prisma_models.LiteLLM_UserTable",
+    user_info: "prisma_models.UserTable",
     user_api_key_dict: UserAPIKeyAuth,
 ) -> tuple[list[TeamListResponseObject], list[TeamListResponseObject] | None]:
     """Fetch and merge teams from membership + user.teams field."""
@@ -957,7 +957,7 @@ async def user_info(
 async def _check_user_info_v2_access(
     user_api_key_dict: UserAPIKeyAuth,
     target_user_id: str,
-) -> "prisma_models.LiteLLM_UserTable | None":
+) -> "prisma_models.UserTable | None":
     """
     Check if the caller is allowed to access the target user's info.
 
@@ -2195,7 +2195,7 @@ async def get_users(
         _validate_sort_params(sort_by, sort_order) if sort_by is not None and isinstance(sort_by, str) else None
     )
 
-    users: Final[Sequence[prisma_models.LiteLLM_UserTable]] = await UserRepository(prisma_client).table.find_many(
+    users: Final[Sequence[prisma_models.UserTable]] = await UserRepository(prisma_client).table.find_many(
         where=where_conditions,
         skip=skip,
         take=page_size,
@@ -2293,7 +2293,7 @@ async def delete_user(
     caller_is_proxy_admin: Final = user_api_key_dict.user_role == GatewayUserRoles.PROXY_ADMIN.value
     caller_admin_org_ids: set[str] = set()
     if not caller_is_proxy_admin:
-        caller_memberships: Final[Sequence[prisma_models.LiteLLM_OrganizationMembership]] = (
+        caller_memberships: Final[Sequence[prisma_models.OrganizationMembership]] = (
             await _organization_membership_table(prisma_client).find_many(
                 where={
                     "user_id": user_api_key_dict.user_id,
@@ -2375,7 +2375,7 @@ async def delete_user(
             )
 
         ## CLEANUP MEMBERS_WITH_ROLES
-        fetch_all_teams: Sequence[prisma_models.LiteLLM_TeamTable] = await TeamRepository(
+        fetch_all_teams: Sequence[prisma_models.TeamTable] = await TeamRepository(
             prisma_client
         ).table.find_many(where={"team_id": {"in": user_row.teams}})
         teams_to_update: list[tuple[str, str]] = []
@@ -2431,7 +2431,7 @@ async def add_internal_user_to_organization(
     user_id: str,
     organization_id: str,
     user_role: GatewayUserRoles,
-) -> "prisma_models.LiteLLM_OrganizationMembership":
+) -> "prisma_models.OrganizationMembership":
     """
     Helper function to add an internal user to an organization
 
@@ -2457,7 +2457,7 @@ async def add_internal_user_to_organization(
             raise Exception(f"Organization not found, passed organization_id={organization_id}")
 
         # Create a new organization membership entry
-        new_membership: Final[prisma_models.LiteLLM_OrganizationMembership] = await OrganizationMembershipRepository(
+        new_membership: Final[prisma_models.OrganizationMembership] = await OrganizationMembershipRepository(
             prisma_client
         ).table.create(
             data={
@@ -2634,7 +2634,7 @@ async def ui_view_users(
         skip: Final = (page - 1) * page_size
 
         # Build where conditions based on provided parameters
-        where_conditions: Final[prisma_types.LiteLLM_UserTableWhereInput] = {}
+        where_conditions: Final[prisma_types.UserTableWhereInput] = {}
 
         if user_id:
             where_conditions["user_id"] = {
@@ -2786,7 +2786,7 @@ async def get_user_daily_activity(
 
         return await get_daily_activity(
             prisma_client=prisma_client,
-            table_name="litellm_dailyuserspend",
+            table_name="dailyuserspend",
             entity_id_field="user_id",
             entity_id=entity_id,
             entity_metadata_field=None,
@@ -2894,7 +2894,7 @@ async def get_user_daily_activity_aggregated(
 
         return await get_daily_activity_aggregated(
             prisma_client=prisma_client,
-            table_name="litellm_dailyuserspend",
+            table_name="dailyuserspend",
             entity_id_field="user_id",
             entity_id=entity_id,
             entity_metadata_field=None,

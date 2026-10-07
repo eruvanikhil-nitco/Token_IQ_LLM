@@ -78,8 +78,8 @@ def test_onboarding_get_token_happy(client, monkeypatch, mock_prisma):
 
     invite = _make_invite()
     user_obj = _make_user_obj()
-    mock_prisma.db.litellm_invitationlink.find_unique.return_value = invite
-    mock_prisma.db.litellm_usertable.find_unique.return_value = user_obj
+    mock_prisma.db.invitationlink.find_unique.return_value = invite
+    mock_prisma.db.usertable.find_unique.return_value = user_obj
 
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
     monkeypatch.setattr(ps, "master_key", "sk-master-test")
@@ -132,7 +132,7 @@ def test_onboarding_get_token_invalid_invite_link_401(
     """Unknown invite link → 401 with the not-in-db error message."""
     from token_iq.gateway.proxy import proxy_server as ps
 
-    mock_prisma.db.litellm_invitationlink.find_unique.return_value = None
+    mock_prisma.db.invitationlink.find_unique.return_value = None
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
     monkeypatch.setattr(ps, "master_key", "sk-master-test")
     monkeypatch.setattr(ps, "general_settings", {})
@@ -153,7 +153,7 @@ def test_onboarding_get_token_expired_invite_401(client, monkeypatch, mock_prism
     expired_invite = _make_invite(
         expires_at=datetime.now(timezone.utc) - timedelta(days=2)
     )
-    mock_prisma.db.litellm_invitationlink.find_unique.return_value = expired_invite
+    mock_prisma.db.invitationlink.find_unique.return_value = expired_invite
 
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
     monkeypatch.setattr(ps, "master_key", "sk-master-test")
@@ -208,10 +208,10 @@ def test_claim_onboarding_link_happy(client, monkeypatch, mock_prisma):
 
     invite = _make_invite()
     user_obj = _make_user_obj()
-    mock_prisma.db.litellm_invitationlink.find_unique.return_value = invite
-    mock_prisma.db.litellm_invitationlink.update_many.return_value = 1
-    mock_prisma.db.litellm_invitationlink.update.return_value = invite
-    mock_prisma.db.litellm_usertable.update.return_value = user_obj
+    mock_prisma.db.invitationlink.find_unique.return_value = invite
+    mock_prisma.db.invitationlink.update_many.return_value = 1
+    mock_prisma.db.invitationlink.update.return_value = invite
+    mock_prisma.db.usertable.update.return_value = user_obj
     _install_tx_context(mock_prisma)
 
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
@@ -250,7 +250,7 @@ def test_claim_onboarding_link_invalid_invite_401(client, monkeypatch, mock_pris
     """Unknown invite link → 401 with not-in-db error."""
     from token_iq.gateway.proxy import proxy_server as ps
 
-    mock_prisma.db.litellm_invitationlink.find_unique.return_value = None
+    mock_prisma.db.invitationlink.find_unique.return_value = None
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
     monkeypatch.setattr(ps, "master_key", "sk-master-test")
     monkeypatch.setattr(ps, "general_settings", {})
@@ -277,7 +277,7 @@ def test_claim_onboarding_link_user_id_mismatch_401(
     from token_iq.gateway.proxy import proxy_server as ps
 
     invite = _make_invite(user_id="user-real-owner")
-    mock_prisma.db.litellm_invitationlink.find_unique.return_value = invite
+    mock_prisma.db.invitationlink.find_unique.return_value = invite
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
     monkeypatch.setattr(ps, "master_key", "sk-master-test")
     monkeypatch.setattr(ps, "general_settings", {})
@@ -324,7 +324,7 @@ def test_claim_onboarding_link_bad_onboarding_jwt_401(
     from token_iq.gateway.proxy import proxy_server as ps
 
     invite = _make_invite()
-    mock_prisma.db.litellm_invitationlink.find_unique.return_value = invite
+    mock_prisma.db.invitationlink.find_unique.return_value = invite
     monkeypatch.setattr(ps, "prisma_client", mock_prisma)
     monkeypatch.setattr(ps, "master_key", "sk-master-test")
     monkeypatch.setattr(ps, "general_settings", {})

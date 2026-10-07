@@ -616,7 +616,7 @@ async def test_sync_user_role_and_teams():
     )
 
     prisma = AsyncMock()
-    prisma.db.litellm_usertable.update = AsyncMock()
+    prisma.db.usertable.update = AsyncMock()
 
     with patch(
         "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.patch_team_membership",
@@ -624,7 +624,7 @@ async def test_sync_user_role_and_teams():
     ) as mock_patch:
         await JWTAuthManager.sync_user_role_and_teams(jwt_handler, token, user, prisma)
 
-    prisma.db.litellm_usertable.update.assert_called_once()
+    prisma.db.usertable.update.assert_called_once()
     mock_patch.assert_called_once()
     assert user.user_role == GatewayUserRoles.PROXY_ADMIN.value
     assert set(user.teams) == {"team1", "team2"}
@@ -659,7 +659,7 @@ async def test_sync_user_role_and_teams_cache_invalidation_on_role_change():
     )
 
     prisma = AsyncMock()
-    prisma.db.litellm_usertable.update = AsyncMock()
+    prisma.db.usertable.update = AsyncMock()
 
     await JWTAuthManager.sync_user_role_and_teams(
         jwt_handler, token, user, prisma, user_api_key_cache=mock_cache
@@ -702,7 +702,7 @@ async def test_sync_user_role_and_teams_cache_invalidation_on_team_change():
     )
 
     prisma = AsyncMock()
-    prisma.db.litellm_usertable.update = AsyncMock()
+    prisma.db.usertable.update = AsyncMock()
 
     with patch(
         "token_iq.gateway.proxy.management_endpoints.scim.scim_v2.patch_team_membership",

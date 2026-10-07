@@ -146,7 +146,7 @@ async def test_route_a2a_model_read_through_recovers_agent_created_on_sibling_re
 
     agent_name = "a2a-sibling-replica-agent"
     prisma_client = Mock()
-    prisma_client.db.litellm_agentstable.find_unique = AsyncMock(
+    prisma_client.db.agentstable.find_unique = AsyncMock(
         side_effect=[None, _DbAgentRow("a2a-sibling-replica-agent-id", agent_name)]
     )
     monkeypatch.setattr(proxy_server, "prisma_client", prisma_client)
@@ -179,4 +179,4 @@ async def test_route_a2a_model_read_through_recovers_agent_created_on_sibling_re
     call_kwargs = mock_acompletion.call_args.kwargs
     assert call_kwargs["model"] == f"a2a/{agent_name}"
     assert call_kwargs["api_base"] == "http://sibling-db-agent.example.com"
-    prisma_client.db.litellm_agentstable.find_unique.assert_awaited()
+    prisma_client.db.agentstable.find_unique.assert_awaited()

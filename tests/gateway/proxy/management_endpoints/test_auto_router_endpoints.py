@@ -894,7 +894,7 @@ def _shadow_prisma(
         requested = where["token"]["in"]
         return [_key_record(t, team_id=teams.get(t)) for t in known_keys if t in requested]
 
-    prisma.db.litellm_verificationtoken.find_many = AsyncMock(side_effect=find_tokens)
+    prisma.db.verificationtoken.find_many = AsyncMock(side_effect=find_tokens)
 
     async def find_teams(*, where):
         requested = where["team_id"]["in"]
@@ -904,8 +904,8 @@ def _shadow_prisma(
         requested = where["user_id"]["in"]
         return [_user_record(u, email) for u, email in user_emails.items() if u in requested]
 
-    prisma.db.litellm_teamtable.find_many = AsyncMock(side_effect=find_teams)
-    prisma.db.litellm_usertable.find_many = AsyncMock(side_effect=find_users)
+    prisma.db.teamtable.find_many = AsyncMock(side_effect=find_teams)
+    prisma.db.usertable.find_many = AsyncMock(side_effect=find_users)
 
     async def execute_raw(sql: str, *params: object):
         if "SET stopped_by" in sql:
@@ -1778,7 +1778,7 @@ async def test_routing_test_never_confirms_models_the_caller_cannot_use(monkeypa
         team_row.model_dump.return_value = row_data
         team_row.dict.return_value = row_data
         prisma = MagicMock()
-        prisma.db.litellm_teamtable.find_unique = AsyncMock(return_value=team_row)
+        prisma.db.teamtable.find_unique = AsyncMock(return_value=team_row)
         return prisma
 
     def _request(team_id: str) -> AutoRouterRoutingTestRequest:
@@ -1835,7 +1835,7 @@ async def test_validate_config_gates_like_the_write_it_rehearses(monkeypatch: py
         "members_with_roles": [{"role": "admin", "user_id": "team-admin"}],
     }
     prisma: Final = MagicMock()
-    prisma.db.litellm_teamtable.find_unique = AsyncMock(return_value=team_row)
+    prisma.db.teamtable.find_unique = AsyncMock(return_value=team_row)
     monkeypatch.setattr(proxy_server, "prisma_client", prisma)
     monkeypatch.setattr(proxy_server, "premium_user", True)
 

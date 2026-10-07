@@ -88,7 +88,7 @@ async def test_key_delete_authz_matrix(
         resp.status_code == expected_status
     ), f"{actor.value} {target_shape}: {resp.status_code} {resp.text}"
 
-    row = await prisma.db.litellm_verificationtoken.find_unique(
+    row = await prisma.db.verificationtoken.find_unique(
         where={"token": target_hashed}
     )
     auth_check = await proxy_client.get(

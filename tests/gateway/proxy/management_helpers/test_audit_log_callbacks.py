@@ -191,14 +191,14 @@ class TestCreateAuditLogForUpdateWithCallbacks:
             patch("token_iq.gateway.store_audit_logs", True),
             patch("token_iq.gateway.proxy.proxy_server.prisma_client") as mock_prisma,
         ):
-            mock_prisma.db.litellm_auditlog.create = AsyncMock()
+            mock_prisma.db.auditlog.create = AsyncMock()
 
             audit_log = _make_audit_log()
             await create_audit_log_for_update(audit_log)
             await asyncio.sleep(0.1)
 
             # DB write should happen
-            mock_prisma.db.litellm_auditlog.create.assert_called_once()
+            mock_prisma.db.auditlog.create.assert_called_once()
             # Callback should also be called
             mock_logger.async_log_audit_log_event.assert_called_once()
 
@@ -218,7 +218,7 @@ class TestCreateAuditLogForUpdateWithCallbacks:
             await asyncio.sleep(0.1)
 
             mock_logger.async_log_audit_log_event.assert_not_called()
-            mock_prisma.db.litellm_auditlog.create.assert_not_called()
+            mock_prisma.db.auditlog.create.assert_not_called()
 
     @pytest.mark.asyncio
     async def test_no_dispatch_when_store_audit_logs_false(self, monkeypatch: pytest.MonkeyPatch):
@@ -264,7 +264,7 @@ class TestCreateAuditLogForUpdateWithCallbacks:
             patch("token_iq.gateway.store_audit_logs", True),
             patch("token_iq.gateway.proxy.proxy_server.prisma_client") as mock_prisma,
         ):
-            mock_prisma.db.litellm_auditlog.create = AsyncMock(
+            mock_prisma.db.auditlog.create = AsyncMock(
                 side_effect=RuntimeError("DB connection lost")
             )
 

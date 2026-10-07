@@ -25,7 +25,7 @@ def _make_prisma_with_team(team_id: str, admins: list):
     team_row = MagicMock()
     team_row.team_id = team_id
     team_row.admins = admins
-    prisma.db.litellm_teamtable.find_unique = AsyncMock(return_value=team_row)
+    prisma.db.teamtable.find_unique = AsyncMock(return_value=team_row)
     return prisma
 
 
@@ -51,7 +51,7 @@ async def test_project_perm_check_uses_current_team_not_caller_supplied():
         prisma_client=prisma,
     )
     assert has_perm is False
-    prisma.db.litellm_teamtable.find_unique.assert_awaited_once()
+    prisma.db.teamtable.find_unique.assert_awaited_once()
 
 
 @pytest.mark.asyncio
@@ -93,7 +93,7 @@ async def test_project_perm_check_proxy_admin_always_allowed():
     )
     assert has_perm is True
     # Admin shortcut should not even hit the DB.
-    prisma.db.litellm_teamtable.find_unique.assert_not_called()
+    prisma.db.teamtable.find_unique.assert_not_called()
 
 
 # ---------------------------------------------------------------------------
@@ -107,7 +107,7 @@ def _make_prisma_with_user_orgs(user_id: str, org_ids: list):
     user_row.organization_memberships = [
         MagicMock(organization_id=org_id) for org_id in org_ids
     ]
-    prisma.db.litellm_usertable.find_unique = AsyncMock(return_value=user_row)
+    prisma.db.usertable.find_unique = AsyncMock(return_value=user_row)
     return prisma
 
 
@@ -180,7 +180,7 @@ async def test_assign_key_org_blocks_caller_with_no_memberships():
     prisma = MagicMock()
     user_row = MagicMock()
     user_row.organization_memberships = None
-    prisma.db.litellm_usertable.find_unique = AsyncMock(return_value=user_row)
+    prisma.db.usertable.find_unique = AsyncMock(return_value=user_row)
 
     caller = UserAPIKeyAuth(
         user_id="alice",

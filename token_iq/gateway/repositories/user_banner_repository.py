@@ -8,8 +8,8 @@ if TYPE_CHECKING:
 USER_BANNER_ROW_ID: Final = "user_banner"
 
 
-class UserBannerRepository(PrismaTableRepository["prisma_models.LiteLLM_UISettings"]):
-    table_name = "litellm_uisettings"
+class UserBannerRepository(PrismaTableRepository["prisma_models.UISettings"]):
+    table_name = "uisettings"
 
     async def get_raw_settings(self) -> object:
         db_record: Final = await self.table.find_unique(

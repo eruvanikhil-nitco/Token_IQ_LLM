@@ -32,20 +32,20 @@ from token_iq.gateway.types.proxy.management_endpoints.common_daily_activity imp
 
 if TYPE_CHECKING:
     from prisma.models import (
-        LiteLLM_DeletedVerificationToken as PrismaDeletedVerificationToken,
+        DeletedVerificationToken as PrismaDeletedVerificationToken,
     )
     from prisma.models import (
-        LiteLLM_VerificationToken as PrismaVerificationToken,
+        VerificationToken as PrismaVerificationToken,
     )
 
 # Mapping from Prisma accessor names to actual PostgreSQL table names.
 _PRISMA_TO_PG_TABLE: Final[Mapping[str, str]] = {
-    "litellm_dailyuserspend": "LiteLLM_DailyUserSpend",
-    "litellm_dailyteamspend": "LiteLLM_DailyTeamSpend",
-    "litellm_dailyorganizationspend": "LiteLLM_DailyOrganizationSpend",
-    "litellm_dailyenduserspend": "LiteLLM_DailyEndUserSpend",
-    "litellm_dailyagentspend": "LiteLLM_DailyAgentSpend",
-    "litellm_dailytagspend": "LiteLLM_DailyTagSpend",
+    "dailyuserspend": "LiteLLM_DailyUserSpend",
+    "dailyteamspend": "LiteLLM_DailyTeamSpend",
+    "dailyorganizationspend": "LiteLLM_DailyOrganizationSpend",
+    "dailyenduserspend": "LiteLLM_DailyEndUserSpend",
+    "dailyagentspend": "LiteLLM_DailyAgentSpend",
+    "dailytagspend": "LiteLLM_DailyTagSpend",
 }
 
 
@@ -673,7 +673,7 @@ def _build_aggregated_where_clause(
     return " AND ".join(sql_conditions), sql_params
 
 
-_PTU_FLAT_COST_TABLE: Final = "litellm_dailyteamspend"
+_PTU_FLAT_COST_TABLE: Final = "dailyteamspend"
 
 _WINDOW_TOTAL_FIELDS: Final = (
     "spend",
@@ -743,7 +743,7 @@ async def _window_totals(
 def _ptu_flat_cost_select(table_name: str) -> str:
     """Only LiteLLM_DailyTeamSpend carries ptu_flat_cost; other daily tables emit a
     constant zero so the SpendMetrics.flat_cost response shape stays uniform."""
-    if table_name == "litellm_dailyteamspend":
+    if table_name == "dailyteamspend":
         return "SUM(ptu_flat_cost)::float AS ptu_flat_cost"
     return "0::float AS ptu_flat_cost"
 

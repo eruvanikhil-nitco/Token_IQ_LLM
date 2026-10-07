@@ -87,14 +87,14 @@ def _wire_batcher_for_test(prisma_client, fail_commit=False):
             batch_calls.extend(queued)
 
         batcher = MagicMock()
-        batcher.litellm_verificationtoken = _Table("key")
-        batcher.litellm_usertable = _Table("user")
-        batcher.litellm_teamtable = _Table("team")
-        batcher.litellm_budgettable = _Table("budget")
-        batcher.litellm_teammembership = _Table("team_membership")
-        batcher.litellm_organizationtable = _Table("org")
-        batcher.litellm_tagtable = _Table("tag")
-        batcher.litellm_endusertable = _Table("enduser")
+        batcher.verificationtoken = _Table("key")
+        batcher.usertable = _Table("user")
+        batcher.teamtable = _Table("team")
+        batcher.budgettable = _Table("budget")
+        batcher.teammembership = _Table("team_membership")
+        batcher.organizationtable = _Table("org")
+        batcher.tagtable = _Table("tag")
+        batcher.endusertable = _Table("enduser")
         batcher.commit = commit
         return batcher
 
@@ -110,11 +110,11 @@ def _wire_cascade_reads_for_test(prisma_client):
     the job's warn-and-continue path.
     """
     for table in (
-        "litellm_teammembership",
-        "litellm_verificationtoken",
-        "litellm_organizationtable",
-        "litellm_tagtable",
-        "litellm_endusertable",
+        "teammembership",
+        "verificationtoken",
+        "organizationtable",
+        "tagtable",
+        "endusertable",
     ):
         getattr(prisma_client.db, table).find_many = AsyncMock(return_value=[])
 

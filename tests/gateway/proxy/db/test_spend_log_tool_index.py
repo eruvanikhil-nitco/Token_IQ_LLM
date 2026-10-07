@@ -25,8 +25,8 @@ def _response_with_tool_calls(*names: str) -> SimpleNamespace:
 
 class _FakeBatcher:
     def __init__(self) -> None:
-        self.litellm_spendlogtoolindex = MagicMock()
-        self.litellm_dailytoolspend = MagicMock()
+        self.spendlogtoolindex = MagicMock()
+        self.dailytoolspend = MagicMock()
 
     async def __aenter__(self) -> "_FakeBatcher":
         return self
@@ -228,13 +228,13 @@ class TestFlushToolUsageTransactions:
             prisma_client=prisma,
             transactions=[_transaction("r1", tool_names=("tool_a", "tool_b"), spend=0.10, total_tokens=100)],
         )
-        index_rows = batcher.litellm_spendlogtoolindex.create_many.call_args.kwargs["data"]
+        index_rows = batcher.spendlogtoolindex.create_many.call_args.kwargs["data"]
         assert [(r["request_id"], r["tool_name"]) for r in index_rows] == [("r1", "tool_a"), ("r1", "tool_b")]
-        assert batcher.litellm_spendlogtoolindex.create_many.call_args.kwargs["skip_duplicates"] is True
+        assert batcher.spendlogtoolindex.create_many.call_args.kwargs["skip_duplicates"] is True
 
         upserts = {
             c.kwargs["where"]["date_tool_name"]["tool_name"]: c.kwargs["data"]
-            for c in batcher.litellm_dailytoolspend.upsert.call_args_list
+            for c in batcher.dailytoolspend.upsert.call_args_list
         }
         assert set(upserts) == {"tool_a", "tool_b"}
         for data in upserts.values():
@@ -253,8 +253,8 @@ class TestFlushToolUsageTransactions:
                 _transaction("r2", spend=0.30, total_tokens=200),
             ],
         )
-        assert batcher.litellm_dailytoolspend.upsert.call_count == 1
-        data = batcher.litellm_dailytoolspend.upsert.call_args.kwargs["data"]
+        assert batcher.dailytoolspend.upsert.call_count == 1
+        data = batcher.dailytoolspend.upsert.call_args.kwargs["data"]
         assert data["create"] == {
             "date": "2026-07-25",
             "tool_name": "tool_a",
@@ -277,8 +277,8 @@ class TestFlushToolUsageTransactions:
             transactions=[_transaction("r1")],
         )
         prisma.db.batch_.assert_called_once()
-        batcher.litellm_spendlogtoolindex.create_many.assert_called_once()
-        batcher.litellm_dailytoolspend.upsert.assert_called_once()
+        batcher.spendlogtoolindex.create_many.assert_called_once()
+        batcher.dailytoolspend.upsert.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_empty_batch_touches_nothing(self):
@@ -304,7 +304,7 @@ class TestFlushToolUsageTransactions:
         await flush_tool_usage_transactions(prisma_client=prisma, transactions=[_transaction("r1")])
         assert prisma.db.batch_.call_count == 2
         assert len(sleeps) == 1
-        batcher.litellm_dailytoolspend.upsert.assert_called_once()
+        batcher.dailytoolspend.upsert.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_connection_errors_exhaust_retries_then_raise(self, monkeypatch):
